@@ -1,0 +1,29 @@
+# Molecular aliases:
+IonMolHyd  H2
+IonHyd     H
+
+# Molecular info:
+# Radii sources:
+# 01  http://chem.chem.rochester.edu/~nvd/molecularsieves.html
+# 02  Mateucci et al. (2006)
+# 03  http://www.webelements.com/compounds/ (from density and mass calculation)
+# 04  Wolfram Alpha / Wikipedia
+# Mass source: http://www.webqc.org/mmcalc.php
+
+# ID    Molecule  Mass         Diameter  Diameter   Molecule long
+#       symbol    g/mol        Angstrom  source     name
+ 101    H2O       18.01528     3.2       01         Water           
+ 102    CH4       16.0425      4.0       01         Methane
+ 103    CO        28.0101      2.8       01         Carbon Monoxide
+ 104    CO2       44.0095      2.8       01         Carbon Dioxide  
+ 105    H2         2.01588     2.89      02         Molecular Helium
+ 103    NH3       17.03052     3.6       01         Amonia
+ 106    TiO       63.8664      3.45      03         Titanium Monoxide
+ 107    VO        66.94090     3.32      03         Vanadium Monoxide
+  11    Na        22.98976928  3.72      04         Sodium
+  19    K         39.09830     4.54      04         Potassium
+ 108    O2        31.99880     3.46      02         Molecular Oxygen
+ 109    N2        28.01340     3.64      02         Molecular Nitrogen
+   1    H          1.007940    2.4       01         Hydrogen
+   2    He         4.0026020   2.0       01         Helium
+

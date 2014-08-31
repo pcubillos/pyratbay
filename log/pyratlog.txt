@@ -1,0 +1,170 @@
+*****  Sun Jun  8 12:22:40 EDT 2014  *****
+
+State summary:
+--------------
+
+To run (from run folder):
+../src/pyrat.py -c config_pyrat00.cfg
+
+Files:
+------
+pyrat.py:  Main code that call all sub-routines.
+argum.py:  Process command-line arguments.
+           Check inputs (files exist, physically acceptable values).
+makesample.py:  makewn: make wavenumber sample for pyrat object:
+                        p.wn, p.wnlow, p.wnhigh, p.wnstep, p.wnsize
+readatm.py:  getkeywords: Read the keyword values from the atm file.
+             getconstants: Read constant molecular values
+             getprofiles: Read profile data table (rad, press, temp, abundances)
+                          and calculate mean molec. mass and density.
+             IGLdensity: Calculate pdensity using Ideal gas law.
+readlinedb.py: readlinedb: read data bases headers, Iso names, masses, z, & c.
+               TBD: Make checkrange to give only warnings if needed. 
+               Next read line transitions info (in C!).
+
+Issues:
+-------
+pt.msg cut's file paths in the middle of it.  It also doesn't obey linebreaks.
+/home/patricio/ast/esp01/bart/develop/BART/inputs/atmosph_new.dat
+
+
+*****  Sun Jun 15 16:13:44 EDT 2014  *****
+
+readlinedb.py:  Renamed readlinedb to readheader.  Wrote checkrange.
+ptools:  Added warning function.  Adapted msg to print sentences (i.e. 
+         separate by \n).  Set up call to readlinetransition.
+pconstants.py:  Added maxnamelen and strfmt.
+objects.py:  Structured the linetransition, databases and isotopes classes.
+
+
+*****  Sun Jun 22 13:40:06 EDT 2014  *****
+
+Current plan: read line transitions in Python, send to cpyrat.  Check times.
+
+readlinedb.py: Wrote readlintransition function.
+ptools.py: Implemented binary search for TLI file.
+pconstants.py added tlireclen.
+
+
+*****  Sun Jun 29 12:45:21 EDT 2014  *****
+
+I will use the log-pressure array as the base for the layers sampling.
+Changed pyrat.atm -> pyrat.atmf  (the input atmospheric file)
+Now pyrat.atm will be the modeling atm.
+
+object.py: Renamed pyrat.uin -> pyrat.user
+makesample.py: Started writing makeradius, Do Hydrostatic-Equilibrium
+               calculation to get radius as a 
+               function of pressure, then interpolate to get pyrat.atm vals.
+
+
+*****  Sun Jul  6 12:13:29 EDT 2014  *****
+
+No pyrat work this week.  Put lineread up to date, for use with multiple
+databases.
+
+
+*****  Sun Jul 27 14:07:20 EDT 2014  *****
+
+Upgrade pylineread from 4.0 to 5.0:
+Main difference: 5.0 contains the molecule name for the isotope.
+
+Moved /home/patricio/ast/esp01/bart/pylineread/
+to    /home/patricio/ast/esp01/bart/pylineread/pylineread4.0
+
+Created /home/patricio/ast/esp01/bart/pylineread/pylineread5.0
+with new implementation.
+
+Modification from lineread v4.0:
+
+- Changed endianness 'magic' variable to 'endian', changed the value to
+  'b' or 'l' to be less criptic.
+- Change wavelength to wavenumber
+- Added isotopic abundance ratio info in TLI file.
+- Added nTransitions before writting the transition data.
+- Changed order in which the transition data is written: instead of
+  wl1, id1, el1, gf1, wl2, id2, ... gfN.   do:
+  wl1, wl2, ..., wlN, id1, id2, ... gfN.
+
+updated PS, HIT, and TiO.
+
+VO data is in: /home/esp01/code/bart/data/opacities/VO/
+
+
+*****  Sun Aug  3 14:02:37 EDT 2014  *****
+
+Adapt pyrat to pylineread5.0:
+- Edited: - readlinedb.py
+          - ptools.py
+
+Updatded pyrat to work with pylineread5.0.  On the way fixed a couple of bugs:
+  - readlinedb.py: The very last step when I count the number of transitions
+    to read.
+  - binsearch: Handle case when the sequential search went beyond boundaries.
+
+I had to hack a few things, but will do a real test once we have /usr/local/
+working again.  I foresee no troubles between now and then.
+
+Stored old code in: /home/patricio/ast/esp01/pyrat/develop/old/readlinedb4.0/
+
+That's it for now, I can't get much further without scipy working.  Now I will
+continue upgrading transit to make it efficient.
+
+
+*****  Sun Aug 10 13:37:02 EDT 2014  *****
+
+Updated makewavenumner in makesample.py to print a warning on the modified
+last sample point.  Also, make the sample to stay inside the user-defined
+boundary.
+
+In makeradius, changed interpolation kind from 'cubic' to 'slinear' because
+cubic was failing.  Implemented partition-function interpolation from
+pyrat.lt.db to pyrat.iso.
+
+Fixed bug in readline.py: I was adding db.niso to iso.niso for each isotope
+rather than for each db.
+
+
+*****  Sun Aug 17 14:53:42 EDT 2014  *****
+
+argum.c:
+  - Removed maxratio argument. Added Tmin and Tmax arguments.
+  - Updated calls pt.exit -> pt.error.
+  - Updated string formatting calls (% -> {} format).
+  - Added Doppler/Lorentz widths handling.
+
+objects.py:
+  - Added voigt and extinction objects and related variables.
+
+readatm.py:
+  - Using new molecules.dat file.  Added molecule symbol and universal ID info.
+
+extinction.py:
+  - Started extinction calculation.  Implemented The Doppler, Lorentz-width
+    limits calculation and calculate the arrays.
+
+pyrat.py:
+  - Added ex.voigt() step.
+
+Next to do: Calculate the Voigt-profiles grid.
+
+
+*****  Sun Aug 24 12:55:13 EDT 2014  *****
+
+extinction.py:
+  - Implemented the calcvoigt() function to calculate the Voigt profiles.  The
+    function uses a modified version of transit's newprofile wrapper and
+    voigt.c module (modified as header file voigt.h).
+
+Created the vprofile.c C-extension module:
+  - Python wrapper to calculate the Voigt profile (called from extinction's
+    calcvoigt() function).
+
+voigt.h:
+  - Copied and modified file from the transit project.
+
+argum.py:
+  - Renamed LDthresh to DLratio.
+
+
+*****  

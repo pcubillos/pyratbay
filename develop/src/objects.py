@@ -1,0 +1,165 @@
+import numpy as np
+
+class pyrat(object):
+  def __init__(self):
+    # User inputs:
+    self.user = inputs()         # User inputs
+    self.atmf = atm()            # Input-file atmosphere
+    self.atm  = atm()            # Modeling atmosphere
+    self.lt   = linetransition() # Line-transition data
+    self.mol  = molecules()      # Molecules data
+    self.iso  = isotopes()       # Isotopes data
+    self.voigt = voigt()         # Voigt profile
+    self.ex    = extinction()     # Extinction
+
+class inputs(object):
+  """
+  This is a holder class to store user-input arguments.
+
+  Modification History:
+  ---------------------
+  2014-04-26  patricio  Initial implementation.
+  2014-06-29  patricio  Added radius/pressure base levels and surface gravity.
+  """
+  def __init__(self):
+    # General arguments:
+    self.configfile = None
+    self.verb       = None
+    # Input file arguments:
+    self.atmfile = None
+    self.linedb  = None
+    self.cia     = None
+    # Wavelength arguments:
+    self.wllow   = None
+    self.wlhigh  = None
+    self.wlstep  = None
+    self.wlunits = None
+    # Wavenumber arguments:
+    self.wnlow   = None
+    self.wnhigh  = None
+    self.wnstep  = None
+    self.wnsize  = None
+    self.wnunits = None
+    # Atmospheric radius arguments:
+    self.radlow   = None
+    self.radhigh  = None 
+    self.radstep  = None
+    self.radunits = None
+    # Atmospheric pressure arguments:
+    self.plow   = None 
+    self.phigh  = None
+    self.pstep  = None
+    self.punits = None
+    # Base radius-pressure level:
+    self.zeroradius  = None
+    self.zerpress    = None
+    self.surfgravity = None
+    # Voigt profile arguments:
+    self.voigtbin   = None
+    self.voigtwidth = None
+    self.DLratio    = None
+    self.Dmin       = None
+    self.Dmax       = None
+    self.nDop       = None
+    self.Lmin       = None
+    self.Lmax       = None
+    self.nLor       = None
+    # Extinction calculation arguments:
+    self.minelow    = None
+    # Optical depth arguments:
+    self.path    = None
+    self.toomuch = None
+    # Output files arguments:
+    self.outspec    = None
+    self.outsample  = None
+    self.outtoomuch = None
+
+
+class atm(object):
+  def __init__(self):
+    self.abundance = None         # Abundance by mass (True) or number (False)
+    self.info      = None         # General info from atmfile
+    self.runits    = 'km'         # Input radius units
+    self.punits    = 'mbar'       # Input pressure units
+    self.tunits    = 'kelvin'     # Input temperature units
+    self.roffset   = 0.0          # Radius offset
+    self.remainder = np.array([]) # Remainder abundance factors
+    self.layers    = 0            # Number of layers
+    self.nmol      = 0            # Number of molecules
+    self.radius    = None         # Radius array (cm)            [layers]
+    self.press     = None         # Pressure array (barye)       [layers]
+    self.temp      = None         # Temperature array (K)        [layers]
+    self.mm        = None         # Mean molecular mass (gr/mol) [layers]
+    self.q         = None         # Molecular abundances         [layers, nmol]
+    self.d         = None         # Molecular densities          [layers, nmol]
+
+
+class molecules(object):
+  def __init__(self):
+    self.nmol   = 0     # Number of molecules
+    self.name   = None  # Molecule's name
+    self.symbol = None  # Molecule's symbol
+    self.mass   = None  # Molecule's mass  (gr/mol)
+    self.radius = None  # Molecule's radius (Angstroms)
+    self.ID     = None  # Molecule's universal ID
+
+class linetransition(object):
+  def __init__(self):
+    self.nTLI    = 0      # Number of TLI files
+    self.ndb     = 0      # Number of data bases
+    self.db      = []     # Data base objects
+    self.ntransitions = 0 # Number of line transitions
+    self.wn      = np.array([]) # Line wavenumber
+    self.elow    = np.array([]) # Line lower energy level
+    self.gf      = np.array([]) # Line gf value
+    self.isoid   = np.array([]) # Line isotope index
+
+
+class database(object):
+  def __init__(self):
+    self.name    = None  # Data base name
+    self.molname = None  # Molecule name
+    self.niso    = None  # Number of isotopes in database
+    self.iiso    = None  # Isotope correlative index
+    self.ntemp   = None  # Number of temperature samples
+    self.temp    = None  # Temperature array
+    self.z       = None  # Isotopes' partition function array [niso, ntemp]
+
+
+class isotopes(object):
+  def __init__(self):
+    self.niso    = 0            # Number of isotopes
+    self.name    = np.array([]) # Isotope's name
+    self.mass    = np.array([]) # Isotope's mass
+    self.dbindex = np.array([], np.int) # Isotope's data base index
+    self.imol    = np.array([]) # Isotope's molecule index
+    self.ntemp   = None         # Number of temperature samples
+    self.temp    = None         # Temperature array
+    self.z       = None         # Isotopes' partition function [niso, ntemp]
+
+
+class voigt(object):
+  def __init__(self):
+    self.osamp    = None  # Voigt wavenumber oversampling
+    self.width    = None  # Profile width in
+    self.Dmin     = None  # Minimum Doppler width sampled
+    self.Dmax     = None  # Maximum Doppler width sampled
+    self.nDop     = None  # Number of Doppler-width samples
+    self.Lmin     = None  # Minimum Lorentz width sampled
+    self.Lmax     = None  # Maximum Lorentz width sampled
+    self.nLor     = None  # Number of Lorentz-width samples
+    self.doppler  = None  # Doppler-width sample array [nDop]
+    self.lorentz  = None  # Lorentz-width sample array [nLor]
+    self.profsize = None  # Profile wavenumber half-size [nDop, nLor]
+    self.DLratio  = None  # Doppler-Lorentz ratio threshold
+    self.profile  = None  # Voigt profile [nDop, nLor, voigtbin, profsize]
+
+
+class extinction(object):
+  def __init__(self):
+    self.minelow = None # Minimum Elow to consider
+    self.tmin    = None # Minimum temperature to sample
+    self.tmax    = None # Maximum temperature to sample
+    self.nTemp   = None # Number of temperature samples
+    self.opacity = None # Grid of opacities [nmol, nlayer, nTemp, nwave]
+
