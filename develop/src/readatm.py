@@ -176,9 +176,11 @@ def getprofiles(pyrat, atmfile):
     if line == '' or line.startswith('#'):
       break
     pyrat.atmf.layers += 1
-  pt.msg(pyrat.verb, "Number of layers in Atm. file: %d"%pyrat.atmf.layers, 2)
+  pt.msg(pyrat.verb, "Number of layers in Atm. file: {:d}".format(
+                                                         pyrat.atmf.layers), 2)
 
   # Initialize arrays:
+  pyrat.atmf.nmol  = pyrat.mol.nmol
   pyrat.atmf.rad   = np.zeros(pyrat.atmf.layers)
   pyrat.atmf.press = np.zeros(pyrat.atmf.layers)
   pyrat.atmf.temp  = np.zeros(pyrat.atmf.layers)
@@ -226,7 +228,8 @@ def getprofiles(pyrat, atmfile):
   else:                    # Abundance by number:
     pyrat.atmf.mm =     np.sum(pyrat.atmf.q*pyrat.mol.mass, axis=1)
 
-  pt.msg(pyrat.verb-10, "Mean molecular mass: %s"%str(pyrat.atmf.mm), 2)
+  pt.msg(pyrat.verb-10, "Mean molecular mass array: {:s}".format(
+                                                         str(pyrat.atmf.mm)), 2)
   # Store the abundance as volume mixing ratio:
   if pyrat.atmf.abundance:
     pyrat.atmf.q = pyrat.atmf.q * pyrat.atmf.mm / pyrat.mol.mass
@@ -239,7 +242,7 @@ def getprofiles(pyrat, atmfile):
 
 def IGLdensity(abundance, mass, pressure, temperature):
   """
-  Use the Ideal gas law to calculate pressure
+  Use the Ideal gas law to calculate the density.
 
   Parameters:
   -----------
@@ -251,5 +254,9 @@ def IGLdensity(abundance, mass, pressure, temperature):
     Atmospheric pressure profile (in barye units).
   temperature: 1D ndarray
     Atmospheric temperature (in kelvin).
+
+  Modification History:
+  ---------------------
+  2014-06-08  patricio  Initial implementation.
   """
   return (mass * pc.u) * abundance  * pressure / (pc.k * temperature) 

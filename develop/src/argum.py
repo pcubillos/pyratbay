@@ -293,7 +293,7 @@ def checkinputs(pyrat):
     for cia in pyrat.user.cia:
       if not os.path.isfile(cia):
         pt.error("CIA file: '{:s}' does not exist.".format(cia))
-  pyrat.cia = pyrat.user.cia
+  pyrat.cia.files = pyrat.user.cia
 
   # Check Voigt-profile arguments:
   if pyrat.user.voigtbin < 1:

@@ -5,6 +5,7 @@ import makesample as ms
 import readatm    as ra
 import readlinedb as rl
 import extinction as ex
+import cia        as cia
 
 from objects import pyrat
 
@@ -16,9 +17,10 @@ def main(argv):
   ---------------------
   2014-04-26  patricio  Initial implementation.
   2014-08-17  patricio  Added ex.voigt step.
+  2014-08-31  patricio  Added cia steps.
   """
 
-  # Initialyze a pyrat object:
+  # Initialize a pyrat object:
   cavendish = pyrat()
 
   # Parse command line arguments into pyrat:
@@ -41,6 +43,11 @@ def main(argv):
 
   # Extinction gridding:
   ex.voigt(cavendish)
+
+  # Read CIA files:
+  cia.read(cavendish)
+  # Interpolate CIA absorption:
+  cia.interpolate(cavendish)
 
   print("Next one!")
 

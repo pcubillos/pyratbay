@@ -107,6 +107,7 @@ def makeradius(pyrat):
   2014-06-29  patricio  Initial implementation.
   2014-08-10  patricio  Added warning print for modified boundary.
                         Implemented the isotopic interpolation.
+  2014-08-31  patricio  Added molecular abundances and density interpolation.
   """
   pt.msg(pyrat.verb, "\nGenerating atmospheric radius sample:")
 
@@ -116,26 +117,26 @@ def makeradius(pyrat):
 
   # Store atmopsheric base level arguments:
   if pyrat.user.radiusbase <= 0:
-    pt.exit(message="Planetary radius base must be > 0.")
+    pt.error("Planetary radius base must be > 0.")
   pyrat.radiusbase = pyrat.user.radiusbase * pc.units[pyrat.radunits]
 
   if pyrat.user.pressurebase <= 0:
-    pt.exit(message="Planetary pressure base must be > 0.")
+    pt.error("Planetary pressure base must be > 0.")
   pyrat.pressurebase = pyrat.user.pressurebase * pc.units[pyrat.punits]
 
   if pyrat.user.surfgravity <= 0:
-    pt.exit(message="Planetary surface gravity must be > 0.")
+    pt.error("Planetary surface gravity must be > 0.")
   pyrat.surfgravity = pyrat.user.surfgravity
 
-  print("Base pressure: %.3e %s "%(pyrat.pressurebase/pc.units[pyrat.punits],
-                                     pyrat.punits))
-  print("Base radius: %8g %s "%(pyrat.radiusbase/pc.units[pyrat.radunits],
-                                     pyrat.radunits))
+  print("Base pressure: {:.3e} {:s} ".format(
+                      pyrat.pressurebase/pc.units[pyrat.punits], pyrat.punits))
+  print("Base radius: {:8g} {:s} ".format(
+                      pyrat.radiusbase/pc.units[pyrat.radunits], pyrat.radunits))
   # FINDME: move this to readatm
   # Pressure limits from the atmospheric file:
-  print("Pressure limits: %.3e -- %.3e %s"%
-        (pyrat.atmf.press[ 0]/pc.units[pyrat.punits],
-         pyrat.atmf.press[-1]/pc.units[pyrat.punits], pyrat.punits))
+  print("Pressure limits: {:.3e} -- {:.3e} {:s}".format(
+        pyrat.atmf.press[ 0]/pc.units[pyrat.punits],
+        pyrat.atmf.press[-1]/pc.units[pyrat.punits], pyrat.punits))
 
   # Calculate radius array for given atmospheric profile by using the 
   # hydostatic-equilibrium equation:
@@ -152,48 +153,50 @@ def makeradius(pyrat):
   # Reset the interpolating function (for use later):
   radinterp   = sip.interp1d(pyrat.atmf.press[::-1], rad[::-1], kind='slinear')
   pressinterp = sip.interp1d(rad, pyrat.atmf.press,             kind='cubic')
-  pt.msg(pyrat.verb, "Radius array (km) = \n%s"%str(rad/1e5), 2)
+  pt.msg(pyrat.verb, "Radius array (km) = \n{:s}".format(str(rad/1e5)), 2)
+
 
   # Set values for modeling atm object:
+  pyrat.atm.nmol = pyrat.mol.nmol
 
   # Set pressure higher boundary:
   if pyrat.user.phigh is not None:     # From user-defined pressure
     if pyrat.user.phigh < 0.0:
-      pt.error(message="High atm pressure boundary (%.2e %s) must be >= 0.0"%(
-              pyrat.user.phigh, pyrat.user.punits))
+      pt.error("High atm pressure boundary ({:.2e} {:s}) must be "
+               ">= 0.0".format(pyrat.user.phigh, pyrat.user.punits))
     pyrat.phigh = pyrat.user.phigh * pc.units[pyrat.punits]
   elif pyrat.user.radlow is not None:  # From user-defined radius
     if pyrat.user.radlow < 0.0:
-      pt.error(message="Low atm radius boundary (%.2e %s) must be >= 0.0"%(
-               pyrat.user.radlow, pyrat.radunits))
+      pt.error("Low atm radius boundary ({:.2e} {:s}) must be "
+               ">= 0.0".format(pyrat.user.radlow, pyrat.radunits))
     pyrat.phigh = pressinterp(pyrat.user.radlow*pc.units[pyrat.radunits])[0]
   else:                                # From atm-file
     pyrat.phigh = np.amax(pyrat.atmf.press)
   # Out of bounds errors:
   if pyrat.phigh > np.amax(pyrat.atmf.press):
-    pt.error("User defined top layer (p=%.3e %s) is higher than the "
-             "atmospheric-file top layer (p=%.3e %s)."%
-             (pyrat.phigh/pc.units[pyrat.punits], pyrat.punits,
+    pt.error("User defined top layer (p={:.3e} {:s}) is higher than the "
+             "atmospheric-file top layer (p={:.3e} {:s}).".format(
+              pyrat.phigh/pc.units[pyrat.punits], pyrat.punits,
               np.amax(pyrat.atmf.press)/pc.units[pyrat.punits], pyrat.punits))
 
   # Set pressure lower boundary:
   if pyrat.user.plow is not None:     # From user-defined pressure
     if pyrat.user.plow < 0.0:
-      pt.error(message="Low atm pressure boundary (%.2e %s) must be >= 0.0"%(
-              pyrat.user.plow, pyrat.user.punits))
+      pt.error("Low atm pressure boundary ({:.2e} {:s}) must be >= 0.0".format(
+               pyrat.user.plow, pyrat.user.punits))
     pyrat.plow = pyrat.user.plow * pc.units[pyrat.punits]
   elif pyrat.user.radhigh is not None:  # From user-defined radius
     if pyrat.user.radhigh < 0.0:
-      pt.error(message="High atm radius boundary (%.2e %s) must be >= 0.0"%(
+      pt.error("High atm radius boundary ({:.2e} {:s}) must be >= 0.0".format(
                pyrat.user.radhigh, pyrat.radunits))
     pyrat.plow = pressinterp([pyrat.user.radhigh*pc.units[pyrat.radunits]])[0]
   else:                                # From atm-file
     pyrat.plow = np.amin(pyrat.atmf.press)
   # Out of bounds errors:
   if pyrat.plow < np.amin(pyrat.atmf.press):
-    pt.error("User defined bottom layer (p=%.3e %s) is lower than the "
-             "atmospheric-file bottom layer (p=%.3e %s)."%
-             (pyrat.plow/pc.units[pyrat.punits], pyrat.punits,
+    pt.error("User defined bottom layer (p={:.3e} {:s}) is lower than the "
+             "atmospheric-file bottom layer (p={:.3e} {:s}).".format(
+              pyrat.plow/pc.units[pyrat.punits], pyrat.punits,
               np.amin(pyrat.atmf.press)/pc.units[pyrat.punits], pyrat.punits))
 
   # Atmospheric-layers resampling:
@@ -237,13 +240,13 @@ def makeradius(pyrat):
   plt.ylabel("Radius  (%s)"%pyrat.radunits)
   plt.savefig("radpress.png")
 
-  pt.msg(pyrat.verb, "Number of model layers: %d"%pyrat.atm.layers, 2)
-  pt.msg(pyrat.verb, "Pressure lower/higher boundaries: %.2e - %.2e %s"%
-         (pyrat.plow /pc.units[pyrat.punits],
-          pyrat.phigh/pc.units[pyrat.punits], pyrat.punits), 2)
-  pt.msg(pyrat.verb, "Radius lower/higher boundaries:   %.2e - %.2e %s"%
-       (np.amin(pyrat.atm.radius)/pc.units[pyrat.radunits],
-        np.amax(pyrat.atm.radius)/pc.units[pyrat.radunits], pyrat.radunits), 2)
+  pt.msg(pyrat.verb, "Number of model layers: {:d}".format(pyrat.atm.layers), 2)
+  pt.msg(pyrat.verb, "Pressure lower/higher boundaries: {:.2e} - {:.2e} "
+                     "{:s}".format(pyrat.plow /pc.units[pyrat.punits],
+                           pyrat.phigh/pc.units[pyrat.punits], pyrat.punits), 2)
+  pt.msg(pyrat.verb, "Radius lower/higher boundaries:   {:.2e} - {:.2e} "
+         "{:s}".format(np.amin(pyrat.atm.radius)/pc.units[pyrat.radunits],
+         np.amax(pyrat.atm.radius)/pc.units[pyrat.radunits], pyrat.radunits), 2)
 
   # If defaulting to atm file values, don't interpolate:
   if (pyrat.plow  == np.amin(pyrat.atmf.press) and 
@@ -260,9 +263,19 @@ def makeradius(pyrat):
                               kind='cubic')
     pyrat.atm.temp = tempinterp(pyrat.atm.press)
     pyrat.atm.m    =   mminterp(pyrat.atm.press)
+    # Interpolate abundance profiles:
+    pyrat.atm.q = np.zeros((pyrat.atm.layers, pyrat.atm.nmol))
+    pyrat.atm.d = np.zeros((pyrat.atm.layers, pyrat.atm.nmol))
+    for i in np.arange(pyrat.atmf.nmol):
+      qinterp = sip.interp1d(pyrat.atmf.press[::-1], pyrat.atmf.q[::-1, i],
+                             kind='cubic')
+      dinterp = sip.interp1d(pyrat.atmf.press[::-1], pyrat.atmf.d[::-1, i],
+                             kind='cubic')
+      pyrat.atm.q[:,i] = qinterp(pyrat.atm.press)
+      pyrat.atm.d[:,i] = dinterp(pyrat.atm.press)
 
   # Interpolate isotopes partition function:
-  print("Number of isotopes: %d"%pyrat.iso.niso)
+  pt.msg(pyrat.verb,"Number of isotopes: {:d}".format(pyrat.iso.niso), 2)
   
   # Initialize the partition-function array for pyrat.iso:
   pyrat.iso.z = np.zeros((pyrat.iso.niso, pyrat.atm.layers))
@@ -270,7 +283,8 @@ def makeradius(pyrat):
     for j in np.arange(pyrat.lt.db[i].niso):
       zinterp = sip.interp1d(pyrat.lt.db[i].temp, pyrat.lt.db[i].z[j],
                              kind='cubic')
-      print("Isotope ID: %d"%(pyrat.lt.db[i].iiso+j))
+      pt.msg(pyrat.verb, "Interpolating (isotope ID {:2d}) partition "
+                         "function.".format(pyrat.lt.db[i].iiso+j), 4)
       pyrat.iso.z[pyrat.lt.db[i].iiso+j] = zinterp(pyrat.atm.temp)
 
   # Plot interpolation:

@@ -31,6 +31,11 @@ k = sc.k * 1e7
 # Speed of light in cm/s:
 c = sc.c * 100.0
 
+# Amagat (Loschmidt number) in mol cm-3:
+#amagat = 44.6150e-6
+# Amagat (Loschmidt number) in cm-3:
+amagat = 2.68678e19
+
 # TLI record length:
 tlireclen = 26  # Three doubles and one short
 dreclen   =  8  # Double byte length

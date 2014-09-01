@@ -3,14 +3,15 @@ import numpy as np
 class pyrat(object):
   def __init__(self):
     # User inputs:
-    self.user = inputs()         # User inputs
-    self.atmf = atm()            # Input-file atmosphere
-    self.atm  = atm()            # Modeling atmosphere
-    self.lt   = linetransition() # Line-transition data
-    self.mol  = molecules()      # Molecules data
-    self.iso  = isotopes()       # Isotopes data
-    self.voigt = voigt()         # Voigt profile
+    self.user  = inputs()         # User inputs
+    self.atmf  = atm()            # Input-file atmosphere
+    self.atm   = atm()            # Modeling atmosphere
+    self.lt    = linetransition() # Line-transition data
+    self.mol   = molecules()      # Molecules data
+    self.iso   = isotopes()       # Isotopes data
+    self.voigt = voigt()          # Voigt profile
     self.ex    = extinction()     # Extinction
+    self.cia   = cia()            # CIA
 
 class inputs(object):
   """
@@ -20,15 +21,16 @@ class inputs(object):
   ---------------------
   2014-04-26  patricio  Initial implementation.
   2014-06-29  patricio  Added radius/pressure base levels and surface gravity.
+  2014-08-31  patricio  Added CIA variables.
   """
   def __init__(self):
     # General arguments:
     self.configfile = None
     self.verb       = None
     # Input file arguments:
-    self.atmfile = None
-    self.linedb  = None
-    self.cia     = None
+    self.atmfile  = None
+    self.linedb   = None
+    self.ciafiles = None
     # Wavelength arguments:
     self.wllow   = None
     self.wlhigh  = None
@@ -162,4 +164,15 @@ class extinction(object):
     self.tmax    = None # Maximum temperature to sample
     self.nTemp   = None # Number of temperature samples
     self.opacity = None # Grid of opacities [nmol, nlayer, nTemp, nwave]
+    self.ciaext  = None # CIA extinction [nlayer, nwave]
 
+class cia(object):
+  def __init__(self):
+    self.files      = None # CIA file names
+    self.nfiles     = None # Number of files read
+    self.molecules  = None # Molecules involved for each file
+    self.ntemp      = None # Number of temperature samples per file
+    self.nwave      = None # Number of wavenumber samples per file
+    self.temp       = []   # Temperature sampling (in Kelvin)
+    self.wavenumber = []   # Wavenumber sampling (in cm-1)
+    self.absorption = []   # CIA extinction (in cm-1 amagat-2)

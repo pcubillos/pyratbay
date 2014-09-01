@@ -167,4 +167,18 @@ argum.py:
   - Renamed LDthresh to DLratio.
 
 
-*****  
+*****  Sun Aug 31 13:11:27 EDT 2014  *****
+
+Implement cia.py to Read and interpolate the Collision Induced absorption.
+  - Wrote two separate functions to read and interpolate the CIA absorption.
+  - Investigate a bit more if I'm calculating well the extinction.
+
+makesample.py:
+  - makeradius(): Added molecular abundance and density profiles interpolation.
+                  Updated most printing syntax.
+
+pconstants.py:
+  - Added amagat.
+
+
+*****
