@@ -1,17 +1,20 @@
 import numpy as np
 
 class pyrat(object):
+  """
+  Main PyRaT object.
+  """
   def __init__(self):
     # User inputs:
-    self.user  = inputs()         # User inputs
-    self.atmf  = atm()            # Input-file atmosphere
-    self.atm   = atm()            # Modeling atmosphere
-    self.lt    = linetransition() # Line-transition data
-    self.mol   = molecules()      # Molecules data
-    self.iso   = isotopes()       # Isotopes data
-    self.voigt = voigt()          # Voigt profile
-    self.ex    = extinction()     # Extinction
-    self.cia   = cia()            # CIA
+    self.inputs = inputs()         # User inputs
+    self.atmf   = atm()            # Input-file atmosphere
+    self.atm    = atm()            # Modeling atmosphere
+    self.lt     = linetransition() # Line-transition data
+    self.mol    = molecules()      # Molecules data
+    self.iso    = isotopes()       # Isotopes data
+    self.voigt  = voigt()          # Voigt profile
+    self.ex     = extinction()     # Extinction
+    self.cia    = cia()            # CIA
 
 class inputs(object):
   """

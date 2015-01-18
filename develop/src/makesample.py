@@ -8,7 +8,6 @@ import pconstants as pc
 import ptools as pt
 
 
-
 def makewavenumber(pyrat):
   """
   Make the wavenumber sample from user inputs.
@@ -19,34 +18,36 @@ def makewavenumber(pyrat):
   2014-04-28  patricio  Initial python implementation.
   """
   pt.msg(pyrat.verb, "\nGenerating wavenumber array:", 0)
+  # User-inputs object:
+  inputs = pyrat.inputs
 
   # Accept wavenumber and wavelength units:
-  pyrat.wnunits = pyrat.user.wnunits
-  pyrat.wlunits = pyrat.user.wlunits
+  pyrat.wnunits = inputs.wnunits
+  pyrat.wlunits = inputs.wlunits
 
   # Initial wavenumber limit:
-  if pyrat.user.wnlow is not None:
-    if pyrat.user.wnlow < 0.0:
+  if inputs.wnlow is not None:
+    if inputs.wnlow < 0.0:
       pt.error(message="low wavenumber boundary (%.2e %s-1) must be >= 0.0"%(
-              pyrat.user.wnlow, pyrat.user.wnunits))
-    pyrat.wnlow = pyrat.user.wnlow / pc.units[pyrat.wnunits]
+              inputs.wnlow, inputs.wnunits))
+    pyrat.wnlow = inputs.wnlow / pc.units[pyrat.wnunits]
   else:
-    if pyrat.user.wlhigh < 0.0:
+    if inputs.wlhigh < 0.0:
       pt.error(message="high wavelength boundary (%.2e %s) must be >= 0.0"%(
-                pyrat.user.wlhigh, pyrat.user.wlunits))
-    pyrat.wnlow = 1.0 / (pyrat.user.wlhigh * pc.units[pyrat.wlunits])
+                inputs.wlhigh, inputs.wlunits))
+    pyrat.wnlow = 1.0 / (inputs.wlhigh * pc.units[pyrat.wlunits])
 
   # Final wavenumber limit:
-  if pyrat.user.wnhigh is not None:
-    if pyrat.user.wnhigh < 0.0:
+  if inputs.wnhigh is not None:
+    if inputs.wnhigh < 0.0:
       pt.error(message="high wavenumber boundary (%.2e %s-1) must be >= 0.0"%(
-              pyrat.user.wnhigh, pyrat.user.wnunits))
-    pyrat.wnhigh = pyrat.user.wnhigh / pc.units[pyrat.wnunits]
+              inputs.wnhigh, inputs.wnunits))
+    pyrat.wnhigh = inputs.wnhigh / pc.units[pyrat.wnunits]
   else:
-    if pyrat.user.wllow < 0.0:
+    if inputs.wllow < 0.0:
       pt.error(message="low wavelength boundary (%.2e %s) must be >= 0.0"%(
-                pyrat.user.wllow, pyrat.user.wlunits))
-    pyrat.wnhigh = 1.0 / (pyrat.user.wllow * pc.units[pyrat.wlunits])
+                inputs.wllow, inputs.wlunits))
+    pyrat.wnhigh = 1.0 / (inputs.wllow * pc.units[pyrat.wlunits])
 
   # Consistency check (wnlow < wnhigh):
   if pyrat.wnlow > pyrat.wnhigh:
@@ -58,16 +59,16 @@ def makewavenumber(pyrat):
   pyrat.wllow  = 1.0/pyrat.wnhigh
 
   # Set wavenumber step:
-  if pyrat.user.wnstep is not None:
-    if pyrat.user.wnstep <= 0.0:
+  if inputs.wnstep is not None:
+    if inputs.wnstep <= 0.0:
       pt.error(message="Wavenumber step (%.2e %s-1) must be > 0.0"%
-               (pyrat.user.wnstep, pyrat.wnunits))
-    pyrat.wnstep = pyrat.user.wnstep / pc.units[pyrat.wnunits]
+               (inputs.wnstep, pyrat.wnunits))
+    pyrat.wnstep = inputs.wnstep / pc.units[pyrat.wnunits]
   else:
-    if pyrat.user.wlstep <= 0.0:
+    if inputs.wlstep <= 0.0:
       pt.error(message="Wavelength step (%.2e %s-1) must be > 0.0"%
-               (pyrat.user.wlstep, pyrat.wlunits))
-    wlstep = pyrat.user.wlstep * pc.units[pyrat.wlunits]
+               (inputs.wlstep, pyrat.wlunits))
+    wlstep = inputs.wlstep * pc.units[pyrat.wlunits]
     pyrat.wnsize = int((1/pyrat.wnlow - 1/pyrat.wnhigh)/wlstep)
     pyrat.wnstep = (pyrat.wnhigh - pyrat.wnlow)/pyrat.wnsize
 
@@ -111,27 +112,29 @@ def makeradius(pyrat):
   """
   pt.msg(pyrat.verb, "\nGenerating atmospheric radius sample:")
 
+  # User-inputs object:
+  inputs = pyrat.inputs
   # Set user-defined units:
-  pyrat.radunits = pyrat.user.radunits
-  pyrat.punits   = pyrat.user.punits
+  pyrat.radunits = inputs.radunits
+  pyrat.punits   = inputs.punits
 
   # Store atmopsheric base level arguments:
-  if pyrat.user.radiusbase <= 0:
+  if inputs.radiusbase <= 0:
     pt.error("Planetary radius base must be > 0.")
-  pyrat.radiusbase = pyrat.user.radiusbase * pc.units[pyrat.radunits]
+  pyrat.radiusbase = inputs.radiusbase * pc.units[pyrat.radunits]
 
-  if pyrat.user.pressurebase <= 0:
+  if inputs.pressurebase <= 0:
     pt.error("Planetary pressure base must be > 0.")
-  pyrat.pressurebase = pyrat.user.pressurebase * pc.units[pyrat.punits]
+  pyrat.pressurebase = inputs.pressurebase * pc.units[pyrat.punits]
 
-  if pyrat.user.surfgravity <= 0:
+  if inputs.surfgravity <= 0:
     pt.error("Planetary surface gravity must be > 0.")
-  pyrat.surfgravity = pyrat.user.surfgravity
+  pyrat.surfgravity = inputs.surfgravity
 
   print("Base pressure: {:.3e} {:s} ".format(
-                      pyrat.pressurebase/pc.units[pyrat.punits], pyrat.punits))
+                     pyrat.pressurebase/pc.units[pyrat.punits], pyrat.punits))
   print("Base radius: {:8g} {:s} ".format(
-                      pyrat.radiusbase/pc.units[pyrat.radunits], pyrat.radunits))
+                     pyrat.radiusbase/pc.units[pyrat.radunits], pyrat.radunits))
   # FINDME: move this to readatm
   # Pressure limits from the atmospheric file:
   print("Pressure limits: {:.3e} -- {:.3e} {:s}".format(
@@ -160,16 +163,16 @@ def makeradius(pyrat):
   pyrat.atm.nmol = pyrat.mol.nmol
 
   # Set pressure higher boundary:
-  if pyrat.user.phigh is not None:     # From user-defined pressure
-    if pyrat.user.phigh < 0.0:
+  if inputs.phigh is not None:     # From user-defined pressure
+    if inputs.phigh < 0.0:
       pt.error("High atm pressure boundary ({:.2e} {:s}) must be "
-               ">= 0.0".format(pyrat.user.phigh, pyrat.user.punits))
-    pyrat.phigh = pyrat.user.phigh * pc.units[pyrat.punits]
-  elif pyrat.user.radlow is not None:  # From user-defined radius
-    if pyrat.user.radlow < 0.0:
+               ">= 0.0".format(inputs.phigh, inputs.punits))
+    pyrat.phigh = inputs.phigh * pc.units[pyrat.punits]
+  elif inputs.radlow is not None:  # From user-defined radius
+    if inputs.radlow < 0.0:
       pt.error("Low atm radius boundary ({:.2e} {:s}) must be "
-               ">= 0.0".format(pyrat.user.radlow, pyrat.radunits))
-    pyrat.phigh = pressinterp(pyrat.user.radlow*pc.units[pyrat.radunits])[0]
+               ">= 0.0".format(inputs.radlow, pyrat.radunits))
+    pyrat.phigh = pressinterp(inputs.radlow*pc.units[pyrat.radunits])[0]
   else:                                # From atm-file
     pyrat.phigh = np.amax(pyrat.atmf.press)
   # Out of bounds errors:
@@ -180,17 +183,17 @@ def makeradius(pyrat):
               np.amax(pyrat.atmf.press)/pc.units[pyrat.punits], pyrat.punits))
 
   # Set pressure lower boundary:
-  if pyrat.user.plow is not None:     # From user-defined pressure
-    if pyrat.user.plow < 0.0:
+  if inputs.plow is not None:       # From user-defined pressure
+    if inputs.plow < 0.0:
       pt.error("Low atm pressure boundary ({:.2e} {:s}) must be >= 0.0".format(
-               pyrat.user.plow, pyrat.user.punits))
-    pyrat.plow = pyrat.user.plow * pc.units[pyrat.punits]
-  elif pyrat.user.radhigh is not None:  # From user-defined radius
-    if pyrat.user.radhigh < 0.0:
+               inputs.plow, inputs.punits))
+    pyrat.plow = inputs.plow * pc.units[pyrat.punits]
+  elif inputs.radhigh is not None:  # From user-defined radius
+    if inputs.radhigh < 0.0:
       pt.error("High atm radius boundary ({:.2e} {:s}) must be >= 0.0".format(
-               pyrat.user.radhigh, pyrat.radunits))
-    pyrat.plow = pressinterp([pyrat.user.radhigh*pc.units[pyrat.radunits]])[0]
-  else:                                # From atm-file
+               inputs.radhigh, pyrat.radunits))
+    pyrat.plow = pressinterp([inputs.radhigh*pc.units[pyrat.radunits]])[0]
+  else:                             # From atm-file
     pyrat.plow = np.amin(pyrat.atmf.press)
   # Out of bounds errors:
   if pyrat.plow < np.amin(pyrat.atmf.press):
@@ -202,22 +205,22 @@ def makeradius(pyrat):
   # Atmospheric-layers resampling:
   resample = True
   # Resample to equispaced log-pressure array:
-  if pyrat.user.nlayers != -1:
-    pyrat.atm.layers = pyrat.user.nlayers
+  if inputs.nlayers != -1:
+    pyrat.atm.layers = inputs.nlayers
     pyrat.atm.press = np.logspace(np.log10(pyrat.phigh),
                                   np.log10(pyrat.plow ), pyrat.atm.layers)
     pyrat.atm.radius = radinterp(pyrat.atm.press)
 
   # Resample to equispaced radius:
-  elif pyrat.user.radstep is not None:
+  elif inputs.radstep is not None:
     pyrat.atm.layers = int((np.amax(rad)-np.amin(rad))/
-                           (pyrat.user.radstep*pc.units[pyrat.radunits])) + 1
+                           (inputs.radstep*pc.units[pyrat.radunits])) + 1
     # Avoid radinterp going out-of-bounds:
     radlow  = np.amax([rad[ 0], radinterp([pyrat.phigh])[0]])
     radhigh = np.amin([rad[-1], radinterp([pyrat.plow ])[0]])
     # Make equispaced radius array:
     pyrat.atm.radius = np.arange(radlow, radhigh,
-                                 pyrat.user.radstep*pc.units[pyrat.radunits])
+                                 inputs.radstep*pc.units[pyrat.radunits])
     # Interpolate to pressure array:
     pyrat.atm.press = pressinterp(pyrat.atm.radius)
   # Take atm file sampling:

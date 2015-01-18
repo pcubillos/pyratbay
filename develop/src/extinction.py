@@ -2,9 +2,9 @@ import sys, os
 import numpy as np
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__))+'/cfuncs/lib')
-import ptools as pt
+import ptools     as pt
 import pconstants as pc
-import vprofile as vp
+import vprofile   as vp
 
 def voigt(pyrat):
   """

@@ -212,58 +212,58 @@ def parse(pyrat):
   user, unknown = parser.parse_known_args(remaining_argv)
 
   # Put user arguments into pyrat input:
-  pyrat.user.configfile = args.configfile
-  pyrat.user.verb       = user.verb
+  pyrat.inputs.configfile = args.configfile
+  pyrat.inputs.verb       = user.verb
   # Input file:
-  pyrat.user.atmfile    = user.atmfile
-  pyrat.user.linedb     = user.linedb
-  pyrat.user.cia        = user.cia
+  pyrat.inputs.atmfile    = user.atmfile
+  pyrat.inputs.linedb     = user.linedb
+  pyrat.inputs.cia        = user.cia
   # Wavelength:
-  pyrat.user.wllow      = user.wllow
-  pyrat.user.wlhigh     = user.wlhigh
-  pyrat.user.wlstep     = user.wlstep
-  pyrat.user.wlunits    = user.wlunits
+  pyrat.inputs.wllow      = user.wllow
+  pyrat.inputs.wlhigh     = user.wlhigh
+  pyrat.inputs.wlstep     = user.wlstep
+  pyrat.inputs.wlunits    = user.wlunits
   # Wavenumber:
-  #pyrat.user.wnlow      = user.wnlow
-  #pyrat.user.wnhigh     = user.wnhigh
-  pyrat.user.wnstep     = user.wnstep
-  pyrat.user.wnunits    = user.wnunits
-  pyrat.user.nspec      = user.nspec
+  #pyrat.inputs.wnlow      = user.wnlow
+  #pyrat.inputs.wnhigh     = user.wnhigh
+  pyrat.inputs.wnstep     = user.wnstep
+  pyrat.inputs.wnunits    = user.wnunits
+  pyrat.inputs.nspec      = user.nspec
   # Atmospheric radius:
-  pyrat.user.radlow     = user.radlow
-  pyrat.user.radhigh    = user.radhigh
-  pyrat.user.radstep    = user.radstep
-  pyrat.user.radunits   = user.radunits
+  pyrat.inputs.radlow     = user.radlow
+  pyrat.inputs.radhigh    = user.radhigh
+  pyrat.inputs.radstep    = user.radstep
+  pyrat.inputs.radunits   = user.radunits
   # Atmospheric pressure:
-  pyrat.user.plow       = user.plow
-  pyrat.user.phigh      = user.phigh
-  pyrat.user.punits     = user.punits
-  pyrat.user.nlayers    = user.nlayers
+  pyrat.inputs.plow       = user.plow
+  pyrat.inputs.phigh      = user.phigh
+  pyrat.inputs.punits     = user.punits
+  pyrat.inputs.nlayers    = user.nlayers
   # Hydrostatic-equilibrium base-level variables:
-  pyrat.user.radiusbase   = user.radiusbase
-  pyrat.user.pressurebase = user.pressurebase
-  pyrat.user.surfgravity  = user.surfgravity
+  pyrat.inputs.radiusbase   = user.radiusbase
+  pyrat.inputs.pressurebase = user.pressurebase
+  pyrat.inputs.surfgravity  = user.surfgravity
   # Extinction:
-  pyrat.user.voigtbin   = user.voigtbin
-  pyrat.user.voigtwidth = user.voigtwidth
-  pyrat.user.minelow    = user.minelow
-  pyrat.user.tmin       = user.tmin
-  pyrat.user.tmax       = user.tmax
+  pyrat.inputs.voigtbin   = user.voigtbin
+  pyrat.inputs.voigtwidth = user.voigtwidth
+  pyrat.inputs.minelow    = user.minelow
+  pyrat.inputs.tmin       = user.tmin
+  pyrat.inputs.tmax       = user.tmax
   # Voigt-profile:
-  pyrat.user.Dmin       = user.Dmin
-  pyrat.user.Dmax       = user.Dmax
-  pyrat.user.nDop       = user.nDop
-  pyrat.user.Lmin       = user.Lmin
-  pyrat.user.Lmax       = user.Lmax
-  pyrat.user.nLor       = user.nLor
-  pyrat.user.DLratio    = user.DLratio
+  pyrat.inputs.Dmin       = user.Dmin
+  pyrat.inputs.Dmax       = user.Dmax
+  pyrat.inputs.nDop       = user.nDop
+  pyrat.inputs.Lmin       = user.Lmin
+  pyrat.inputs.Lmax       = user.Lmax
+  pyrat.inputs.nLor       = user.nLor
+  pyrat.inputs.DLratio    = user.DLratio
   # Optical depth:
-  pyrat.user.path       = user.path
-  pyrat.user.toomuch    = user.toomuch
+  pyrat.inputs.path       = user.path
+  pyrat.inputs.toomuch    = user.toomuch
   # Output files:
-  pyrat.user.outspec    = user.outspec
-  pyrat.user.outsample  = user.outsample
-  pyrat.user.outtoomuch = user.outtoomuch
+  pyrat.inputs.outspec    = user.outspec
+  pyrat.inputs.outsample  = user.outsample
+  pyrat.inputs.outtoomuch = user.outtoomuch
 
 
 def checkinputs(pyrat):
@@ -279,93 +279,94 @@ def checkinputs(pyrat):
   """
 
   # Check that input files exist:
-  if not os.path.isfile(pyrat.user.atmfile):
-    pt.error("atmfile: '{:s}' does not exist.".format(pyrat.user.atmfile))
-  pyrat.atmfile = pyrat.user.atmfile
+  if not os.path.isfile(pyrat.inputs.atmfile):
+    pt.error("atmfile: '{:s}' does not exist.".format(pyrat.inputs.atmfile))
+  pyrat.atmfile = pyrat.inputs.atmfile
 
-  if pyrat.user.linedb is not None:
-    for linedb in pyrat.user.linedb:
+  if pyrat.inputs.linedb is not None:
+    for linedb in pyrat.inputs.linedb:
       if not os.path.isfile(linedb):
         pt.error("linedb file: '{:s}' does not exist.".format(linedb))
-  pyrat.linedb = pyrat.user.linedb
+  pyrat.linedb = pyrat.inputs.linedb
 
-  if pyrat.user.cia is not None:
-    for cia in pyrat.user.cia:
+  if pyrat.inputs.cia is not None:
+    for cia in pyrat.inputs.cia:
       if not os.path.isfile(cia):
         pt.error("CIA file: '{:s}' does not exist.".format(cia))
-  pyrat.cia.files = pyrat.user.cia
+  pyrat.cia.files = pyrat.inputs.cia
 
   # Check Voigt-profile arguments:
-  if pyrat.user.voigtbin < 1:
+  if pyrat.inputs.voigtbin < 1:
     pt.error("Voigt bin oversampling ({:d}) factor must be >= 1".format(
-                                                           pyrat.user.voigtbin))
-  pyrat.voigt.osamp = pyrat.user.voigtbin
+                                                       pyrat.inputs.voigtbin))
+  pyrat.voigt.osamp = pyrat.inputs.voigtbin
 
-  if pyrat.user.voigtwidth < 1:
-    pt.error("Voigt width ({:g}) must be >= 1.0".format(pyrat.user.voigtwidth))
-  pyrat.voigt.width = pyrat.user.voigtwidth
+  if pyrat.inputs.voigtwidth < 1:
+    pt.error("Voigt width ({:g}) must be >= 1.0".format(
+                                                     pyrat.inputs.voigtwidth))
+  pyrat.voigt.width = pyrat.inputs.voigtwidth
 
   # Doppler width:
-  if pyrat.user.Dmin is not None and pyrat.user.Dmin <= 0:
+  if pyrat.inputs.Dmin is not None and pyrat.inputs.Dmin <= 0:
     pt.error("The minimum Doppler width ({:g} cm-1) to sample must be "
-             "positive.".format(pyrat.user.Dmin))
-  pyrat.voigt.Dmin = pyrat.user.Dmin
+             "positive.".format(pyrat.inputs.Dmin))
+  pyrat.voigt.Dmin = pyrat.inputs.Dmin
 
-  if pyrat.user.Dmax is not None and pyrat.user.Dmax <= 0:
+  if pyrat.inputs.Dmax is not None and pyrat.inputs.Dmax <= 0:
     pt.error("The maximum Doppler width ({:g} cm-1) to sample must be "
-             "positive.".format(pyrat.user.Dmax))
-  pyrat.voigt.Dmax = pyrat.user.Dmax
+             "positive.".format(pyrat.inputs.Dmax))
+  pyrat.voigt.Dmax = pyrat.inputs.Dmax
 
   if pyrat.voigt.Dmax is not None and pyrat.voigt.Dmin is not None:
     if pyrat.voigt.Dmax <= pyrat.voigt.Dmin:
       pt.error("Maximum Doppler width ({:g} cm-1) must be > minimum Doppler "
                "width ({:g} cm-1).".format(pyrat.voigt.Dmax, pyrat.voigt.Dmin))
 
-  if pyrat.user.nDop < 1:
+  if pyrat.inputs.nDop < 1:
     pt.error("The number of Doppler samples ({:d}) must be "
-             ">= 1".format(pyrat.user.nDop))
-  pyrat.voigt.nDop = pyrat.user.nDop
+             ">= 1".format(pyrat.inputs.nDop))
+  pyrat.voigt.nDop = pyrat.inputs.nDop
 
   # Lorentz width:
-  if pyrat.user.Lmin is not None and pyrat.user.Lmin <= 0:
+  if pyrat.inputs.Lmin is not None and pyrat.inputs.Lmin <= 0:
     pt.error("the minimum Lorentz width ({:g} cm-1) to sample must be "
-             "positive.".format(pyrat.user.Lmin))
-  pyrat.voigt.Lmin = pyrat.user.Lmin
+             "positive.".format(pyrat.inputs.Lmin))
+  pyrat.voigt.Lmin = pyrat.inputs.Lmin
 
-  if pyrat.user.Lmax is not None and pyrat.user.Lmax <= 0:
+  if pyrat.inputs.Lmax is not None and pyrat.inputs.Lmax <= 0:
     pt.error("The maximum Lorentz width ({:g} cm-1) to sample must be "
-             "positive.".format(pyrat.user.Lmax))
-  pyrat.voigt.Lmax = pyrat.user.Lmax
+             "positive.".format(pyrat.inputs.Lmax))
+  pyrat.voigt.Lmax = pyrat.inputs.Lmax
 
   if pyrat.voigt.Lmax is not None and pyrat.voigt.Lmin is not None:
     if pyrat.voigt.Lmax <= pyrat.voigt.Lmin:
       pt.error("Maximum Lorentz width ({:g} cm-1) must be > minimum Lorentz "
                "width ({:g} cm-1).".format(pyrat.voigt.Lmax, pyrat.voigt.Lmin))
 
-  if pyrat.user.nLor < 1:
+  if pyrat.inputs.nLor < 1:
     pt.error("The number of Lorentz samples ({:d}) must be "
-             ">= 1".format(pyrat.user.nLor))
-  pyrat.voigt.nLor = pyrat.user.nLor
+             ">= 1".format(pyrat.inputs.nLor))
+  pyrat.voigt.nLor = pyrat.inputs.nLor
 
-  if pyrat.user.DLratio <= 0:
+  if pyrat.inputs.DLratio <= 0:
     pt.error("Lorentz/Doppler width ratio threshold ({:g}) must be "
-             "positive.".format(pyrat.user.DLratio))
-  pyrat.voigt.DLratio = pyrat.user.DLratio
+             "positive.".format(pyrat.inputs.DLratio))
+  pyrat.voigt.DLratio = pyrat.inputs.DLratio
 
   # Check extinction arguments:
-  if pyrat.user.minelow < 0.0:
-    pt.error("Minimum Elow ({:g}) must be >= 0.0".format(pyrat.user.minelow))
-  pyrat.ex.minelow = pyrat.user.minelow
+  if pyrat.inputs.minelow < 0.0:
+    pt.error("Minimum Elow ({:g}) must be >= 0.0".format(pyrat.inputs.minelow))
+  pyrat.ex.minelow = pyrat.inputs.minelow
 
-  if pyrat.user.tmin is not None and pyrat.user.tmin <= 0.0:
+  if pyrat.inputs.tmin is not None and pyrat.inputs.tmin <= 0.0:
     pt.error("Minimum temperature sample ({:g} K) must be positive.".format(
-                                                            pyrat.user.tmin))
-  pyrat.ex.tmin = pyrat.user.tmin
+                                                            pyrat.inputs.tmin))
+  pyrat.ex.tmin = pyrat.inputs.tmin
 
-  if pyrat.user.tmax is not None and pyrat.user.tmax <= 0.0:
+  if pyrat.inputs.tmax is not None and pyrat.inputs.tmax <= 0.0:
     pt.error("Maximum temperature sample ({:g} K) must be positive.".format(
-                                                            pyrat.user.tmax))
-  pyrat.ex.tmax = pyrat.user.tmax
+                                                            pyrat.inputs.tmax))
+  pyrat.ex.tmax = pyrat.inputs.tmax
 
   if pyrat.ex.tmax is not None and pyrat.ex.tmin is not None:
     if pyrat.ex.tmax <= pyrat.ex.tmin:
@@ -373,19 +374,19 @@ def checkinputs(pyrat):
                "temperature ({:g} K).".format(pyrat.ex.tmax, pyrat.ex.tmin))
 
   # Check opacity arguments:
-  if pyrat.user.toomuch < 0.0:
-    pt.error("Too-much limit ({:g}) must be >= 0.0".format(pyrat.user.toomuch))
-  pyrat.toomuch = pyrat.user.toomuch
+  if pyrat.inputs.toomuch < 0.0:
+    pt.error("Tau max limit ({:g}) must be >= 0.0".format(pyrat.inputs.toomuch))
+  pyrat.toomuch = pyrat.inputs.toomuch
 
   # Accept ray-path argument:
-  pyrat.path  = pyrat.user.path
+  pyrat.path  = pyrat.inputs.path
   # Accept output files:
-  pyrat.outspec    = pyrat.user.outspec    
-  pyrat.outsample  = pyrat.user.outsample  
-  pyrat.outtoomuch = pyrat.user.outtoomuch 
+  pyrat.outspec    = pyrat.inputs.outspec    
+  pyrat.outsample  = pyrat.inputs.outsample  
+  pyrat.outtoomuch = pyrat.inputs.outtoomuch 
 
   # Verbose level:
-  pyrat.verb = np.amax([0, pyrat.user.verb])
+  pyrat.verb = np.amax([0, pyrat.inputs.verb])
   pt.msg(pyrat.verb, "Done.", 0)
 
   # FINDME: set system geometry variables

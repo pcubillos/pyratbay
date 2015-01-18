@@ -47,7 +47,7 @@ Modification History:                                                      \n\
 static PyObject *voigt(PyObject *self, PyObject *args){
   PyArrayObject *profile, *doppler, *lorentz, *psize;
   float **vprofile; /* Voigt profile for each (Dop,Lor) width               */
-  double dwn;       /* WAvenumber sample step size                          */
+  double dwn;       /* Wavenumber sample step size                          */
   int nDop, nLor,  /* Number of Lorentz and Doppler width samples           */
       osamp,   /* Oversampling factor                                       */
       nwave,   /* Number of wavenumber samples of Voigt profile             */

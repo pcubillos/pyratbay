@@ -101,6 +101,7 @@ def getconstants(pyrat):
   2014-08-17  patricio  Added Documentation. Adapted to new molecules.dat file.
                         Store molecule symbol and ID.
   """
+  # FINDME: de-hardcode path:
   molfile = open("../inputs/molecules.dat", "r")
  
   # Read Molecular name aliases:
@@ -181,10 +182,10 @@ def getprofiles(pyrat, atmfile):
 
   # Initialize arrays:
   pyrat.atmf.nmol  = pyrat.mol.nmol
-  pyrat.atmf.rad   = np.zeros(pyrat.atmf.layers)
-  pyrat.atmf.press = np.zeros(pyrat.atmf.layers)
-  pyrat.atmf.temp  = np.zeros(pyrat.atmf.layers)
-  pyrat.atmf.mm    = np.zeros(pyrat.atmf.layers)
+  pyrat.atmf.rad   = np.zeros( pyrat.atmf.layers)
+  pyrat.atmf.press = np.zeros( pyrat.atmf.layers)
+  pyrat.atmf.temp  = np.zeros( pyrat.atmf.layers)
+  pyrat.atmf.mm    = np.zeros( pyrat.atmf.layers)
   pyrat.atmf.q     = np.zeros((pyrat.atmf.layers, pyrat.mol.nmol))
   pyrat.atmf.d     = np.zeros((pyrat.atmf.layers, pyrat.mol.nmol))
 
@@ -198,7 +199,7 @@ def getprofiles(pyrat, atmfile):
     pyrat.atmf.temp [i] = float(data[2])
     pyrat.atmf.q    [i,0:nprofiles] = np.asarray(data[3:], float)
 
-  # abundance of molecules with the remainder:
+  # Abundance of molecules with the remainder:
   sumq = np.sum(pyrat.atmf.q, axis=1)
   for i in np.arange(len(pyrat.atmf.remainder)):
     pyrat.atmf.q[:,nprofiles+i] = pyrat.atmf.remainder[i]*(1.0-sumq)

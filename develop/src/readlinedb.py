@@ -28,7 +28,7 @@ def readlinedb(pyrat):
     # Read headers info:
     TLIiline.append(readheader(pyrat, TLI[n]))
 
-  # Set link to molecule's indices:
+  # Set link to molecules' indices:
   setimol(pyrat) 
 
   # Read line-transition data:
@@ -221,10 +221,6 @@ def readlinetransition(pyrat, linefile, dbindex):
   linefile.seek(start*pc.dreclen + nTransitions*(2*pc.dreclen+pc.sreclen) +
                 initrec, 0)
   gf[:]    = struct.unpack('%dd'%nread, linefile.read(nread*pc.dreclen))
-
-  # for i in np.arange(nread):
-  #   wn[i], isoid[i] = struct.unpack('dh', linefile.read(10))
-  #   elow[i], gf[i]  = struct.unpack('dd', linefile.read(16))
 
   # FINDME: Need number of isotopes per TLI file (or Number of DBs)
   #isoid += 0*pyrat.lt.db[dbindex].iiso  # Add isotope correlative index
