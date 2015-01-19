@@ -52,17 +52,19 @@ def exit(comm=None, abort=False, message=None, comm2=None):
   sys.exit(0)
 
 
-def error(message):
+def error(message, lev=-2):
   """
   Pretty print error message
+
+  2015-01-18  patricio  Added lev argument to print.
   """
   # Trace back the file, function, and line where the error source:
   t = traceback.extract_stack()
   # Extract fields:
-  efile = t[-2][0]
+  efile = t[lev][0]
   efile = efile[efile.rfind('/')+1:]
-  efunc = t[-2][2]
-  eline = t[-2][1]
+  efunc = t[lev][2]
+  eline = t[lev][1]
   # Indent and wrap message to 70 characters:
   msg = textwrap.fill(message, initial_indent   ="    ",
                                subsequent_indent="    ")

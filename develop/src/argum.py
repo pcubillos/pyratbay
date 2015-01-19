@@ -1,7 +1,9 @@
 import sys, os
 import argparse, ConfigParser
 import numpy as np
-import ptools as pt
+
+import ptools     as pt
+import pconstants as pc
 
 def parse(pyrat):
   """
@@ -61,33 +63,41 @@ def parse(pyrat):
                      help="Collision Induced Absorption files [default: "
                           "%(default)s]",
                      action="store", type=pt.parray, default=None)
+  group.add_argument(      "--molfile",    dest="molfile",
+                     help="Molecular info file [default: "
+                          "'pyrat/inputs/molecules.dat']",
+                     action="store", type=str, default=None) 
   # Spectrum sampling options:
   group = parser.add_argument_group("Spectrum Sampling Options")
-  group.add_argument("-i", "--wllow",      dest="wllow",
-                     help="Wavelength low boundary [default: %(default)s]",
-                     action="store", type=np.double, default=1.0)
-  group.add_argument("-f", "--wlhigh",     dest="wlhigh",
-                     help="Wavelength high boundary [default: %(default)s]",
-                     action="store", type=np.double, default=10.0)
-  group.add_argument("-s", "--wlstep",     dest="wlstep",
-                     help="Wavelength sampling step (the wavenumber array will in fact be equispaced in wavenumber, with a number of samples equal to the number of samples of the produced by this step in the wavelength range) [default: %(default)s]",
-                     action="store", type=np.double, default=0.001)
-  group.add_argument("-u", "--wlunits",    dest="wlunits",
-                     help="Wavelength (user) units [default: %(default)s]",
-                     action="store", type=str, default='cm',
+  group.add_argument("--wlunits",    dest="wlunits",
+                     help="Wavelength (input) units [default: %(default)s]",
+                     action="store", type=str, default='um',
                      choices=('A','nm','um','mm','cm','m'))
-  group.add_argument(      "--wnstep",     dest="wnstep",
-                     help="Wavenumber sampling step (overrides wlstep) "
-                          "[default: %(default)s]",
+  group.add_argument("--wllow",      dest="wllow",
+                     help="Wavelength low boundary [default: %(default)s]",
                      action="store", type=np.double, default=None)
-  group.add_argument(      "--wnunits",    dest="wnunits",
-                     help="Wavenumber (user) inverse units [default: "
+  group.add_argument("--wlhigh",     dest="wlhigh",
+                     help="Wavelength high boundary [default: %(default)s]",
+                     action="store", type=np.double, default=None)
+
+  group.add_argument("--wnunits",    dest="wnunits",
+                     help="Wavenumber (input) inverse units [default: "
                           "%(default)s]",
                      action="store", type=str, default='cm',
                      choices=('A','nm','um','mm','cm','m'))
-  group.add_argument(     "--nspec",       dest="nspec",
-                     help="Number of spectral samples [default: %(default)s]",
-                     action="store", type=int, default=None)
+  group.add_argument("--wnlow",      dest="wnlow",
+                     help="Wavenumber low boundary [default: %(default)s]",
+                     action="store", type=np.double, default=None)
+  group.add_argument("--wnhigh",     dest="wnhigh",
+                     help="Wavenumber high boundary [default: %(default)s]",
+                     action="store", type=np.double, default=None)
+  group.add_argument("--wnstep",     dest="wnstep",
+                     help="Wavenumber sampling step [default: %(default)s]",
+                     action="store", type=np.double, default=1.0)
+  group.add_argument("--wnosamp",       dest="wnosamp",
+                     help="Wavenumber oversampling factor "
+                          "[default: %(default)s]",
+                     action="store", type=int, default=2160)
   # Atmospheric sampling options:
   group = parser.add_argument_group("Atmosphere Sampling Options")
   group.add_argument(      "--radlow",     dest="radlow",
@@ -129,18 +139,10 @@ def parse(pyrat):
                      help="Planetary pressure base level (in punits)",
                      action="store", type=np.double, default=None)
   group.add_argument(      "--surfgravity",   dest="surfgravity",
-                     help="Planet's surface gravity in cm/s^2",
+                     help="Planet's surface gravity in cm s-2",
                      action="store", type=np.double, default=None)
   # Extinction options:
   group = parser.add_argument_group("Extinction Calculations Options")
-  group.add_argument(      "--voigtbin",      dest="voigtbin",
-                     help="Oversampling bin factor for Voigt profile "
-                          "radius low boundary) [default: %(default)s]",
-                     action="store", type=int, default=5)
-  group.add_argument(      "--voigtwidth",    dest="voigtwidth",
-                     help="Width of Voigt profile in number of max(Doppler "
-                          "width, Lorentz width) [default: %(default)s]",
-                     action="store", type=np.double, default=50)
   group.add_argument(      "--Tmin",          dest="tmin",
                      help="Minimum temperature to sample/consider "
                      " in Kelvin [default: %(default)s]",
@@ -155,30 +157,37 @@ def parse(pyrat):
                      action="store", type=np.double, default=0)
   # Voigt-profile options:
   group = parser.add_argument_group("Voigt-profile  Options")
+  # FINDME: delete voigtbin
+  group.add_argument("--voigtbin", dest="voigtbin", action="store",
+                     type=np.double, default=1)
+  group.add_argument(      "--voigtwidth",    dest="voigtwidth",
+                     help="Width of Voigt profile in number of max(Doppler "
+                          "width, Lorentz width) [default: %(default)s]",
+                     action="store", type=np.double, default=20)
   group.add_argument(      "--Dmin",          dest="Dmin",
                      help="Minimum Doppler width to sample in cm-1 "
                           "[default: %(default)s]",
-                     action="store", type=np.double, default=None)
+                     action="store", type=np.double, default=1e-3)
   group.add_argument(      "--Dmax",          dest="Dmax",
                      help="Maximum Doppler width to sample in cm-1 "
                           "[default: %(default)s]",
-                     action="store", type=np.double, default=None)
+                     action="store", type=np.double, default=0.25)
   group.add_argument(      "--nDop",          dest="nDop",
                      help="Number of Doppler-width samples"
                           "[default: %(default)s]",
-                     action="store", type=np.int, default=100)
+                     action="store", type=np.int, default=40)
   group.add_argument(      "--Lmin",          dest="Lmin",
                      help="Minimum Lorentz width to sample in cm-1 "
                           "[default: %(default)s]",
-                     action="store", type=np.double, default=None)
+                     action="store", type=np.double, default=1e-4)
   group.add_argument(      "--Lmax",          dest="Lmax",
                      help="Maximum Lorentz width to sample in cm-1 "
                           "[default: %(default)s]",
-                     action="store", type=np.double, default=None)
+                     action="store", type=np.double, default=10)
   group.add_argument(      "--nLor",          dest="nLor",
                      help="Number of Lorentz-width samples"
                           "[default: %(default)s]",
-                     action="store", type=np.int, default=100)
+                     action="store", type=np.int, default=40)
   group.add_argument(      "--DLratio",      dest="DLratio",
                      help="Minimum Doppler/Lorentz-width ratio to re-calculate"
                           "a Voigt profile [default: %(default)s]",
@@ -218,17 +227,17 @@ def parse(pyrat):
   pyrat.inputs.atmfile    = user.atmfile
   pyrat.inputs.linedb     = user.linedb
   pyrat.inputs.cia        = user.cia
+  pyrat.inputs.molfile    = user.molfile
   # Wavelength:
+  pyrat.inputs.wlunits    = user.wlunits
   pyrat.inputs.wllow      = user.wllow
   pyrat.inputs.wlhigh     = user.wlhigh
-  pyrat.inputs.wlstep     = user.wlstep
-  pyrat.inputs.wlunits    = user.wlunits
   # Wavenumber:
-  #pyrat.inputs.wnlow      = user.wnlow
-  #pyrat.inputs.wnhigh     = user.wnhigh
-  pyrat.inputs.wnstep     = user.wnstep
   pyrat.inputs.wnunits    = user.wnunits
-  pyrat.inputs.nspec      = user.nspec
+  pyrat.inputs.wnlow      = user.wnlow
+  pyrat.inputs.wnhigh     = user.wnhigh
+  pyrat.inputs.wnstep     = user.wnstep
+  pyrat.inputs.wnosamp    = user.wnosamp
   # Atmospheric radius:
   pyrat.inputs.radlow     = user.radlow
   pyrat.inputs.radhigh    = user.radhigh
@@ -277,14 +286,19 @@ def checkinputs(pyrat):
   2014-08-15  patricio  Added Voigt variables check. Put extinction variables 
                         in pyrat.ex object.
   """
+  # User-inputs object:
+  inputs = pyrat.inputs
+
+  # Path to source parent's folder:
+  pyratdir = os.path.dirname(os.path.realpath(__file__))
 
   # Check that input files exist:
-  if not os.path.isfile(pyrat.inputs.atmfile):
-    pt.error("atmfile: '{:s}' does not exist.".format(pyrat.inputs.atmfile))
-  pyrat.atmfile = pyrat.inputs.atmfile
+  if not os.path.isfile(inputs.atmfile):
+    pt.error("atmfile: '{:s}' does not exist.".format(inputs.atmfile))
+  pyrat.atmfile = inputs.atmfile
 
-  if pyrat.inputs.linedb is not None:
-    for linedb in pyrat.inputs.linedb:
+  if inputs.linedb is not None:
+    for linedb in inputs.linedb:
       if not os.path.isfile(linedb):
         pt.error("linedb file: '{:s}' does not exist.".format(linedb))
   pyrat.linedb = pyrat.inputs.linedb
@@ -295,63 +309,113 @@ def checkinputs(pyrat):
         pt.error("CIA file: '{:s}' does not exist.".format(cia))
   pyrat.cia.files = pyrat.inputs.cia
 
-  # Check Voigt-profile arguments:
-  if pyrat.inputs.voigtbin < 1:
-    pt.error("Voigt bin oversampling ({:d}) factor must be >= 1".format(
-                                                       pyrat.inputs.voigtbin))
-  pyrat.voigt.osamp = pyrat.inputs.voigtbin
+  if inputs.molfile is None: # Set default
+    inputs.molfile = pyratdir + "/../inputs/molecules.dat"
+  if not os.path.isfile(inputs.molfile):
+    pt.error("molfile: '{:s}' does not exist.".format(inputs.molfile))
+  pyrat.molfile = inputs.molfile
 
-  if pyrat.inputs.voigtwidth < 1:
-    pt.error("Voigt width ({:g}) must be >= 1.0".format(
-                                                     pyrat.inputs.voigtwidth))
-  pyrat.voigt.width = pyrat.inputs.voigtwidth
+  # Check spectrum arguments:
+  pyrat.wnunits = inputs.wnunits  # Accept units
+  pyrat.wlunits = inputs.wlunits
+
+  pyrat.wllow  = isgreater(inputs.wllow,  pyrat.wlunits,   0, False,
+                  "Low wavelength boundary ({:.2e} {:s}) must be >= 0.")
+
+  pyrat.wlhigh = isgreater(inputs.wlhigh, pyrat.wlunits,   0, True,
+                  "Low wavelength boundary ({:.2e} {:s}) must be >= 0.")
+
+  if   inputs.wnlow is not None:
+    if inputs.wnlow < 0.0:
+      pt.error("Low wavenumber boundary ({:.2e} {:s}-1) must be "
+               ">= 0.".format(inputs.wnlow, inputs.wnunits))
+    pyrat.wnlow = inputs.wnlow / pc.units[pyrat.wnunits]
+
+  if   inputs.wnhigh is not None:
+    if inputs.wnhigh <= 0.0:
+      pt.error("High wavenumber boundary ({:.2e} {:s}-1) must be "
+               "> 0.".format(inputs.wnhigh, inputs.wnunits))
+    pyrat.wnhigh = inputs.wnhigh / pc.units[pyrat.wnunits]
+
+  if inputs.wnstep is None or inputs.wnstep <= 0:
+    pt.error("Wavenumber sampling step ({:.2e} {:s}-1) must be defined and "
+             "be > 0.".format(inputs.wnstep, inputs.wnunits))
+  pyrat.wnstep = inputs.wnstep
+
+  if inputs.wnosamp < 1:
+    pt.error("Wavenumber oversampling factor ({:d}) must be >= 1.".format(
+             inputs.wnosamp))
+  pyrat.wnosamp = inputs.wnosamp
+
+  # Check atmospheric layers arguments:
+  pyrat.radunits = inputs.radunits
+  pyrat.punits   = inputs.punits
+
+  pyrat.phigh   = isgreater(inputs.phigh,   pyrat.punits,   0, True,
+                     "High atm pressure boundary ({:.2e} {:s}) must be > 0.0")
+
+  pyrat.plow    = isgreater(inputs.plow,    pyrat.punits,   0, True,
+                     "Low atm pressure boundary ({:.2e} {:s}) must be > 0.0")
+
+  pyrat.radlow  = isgreater(inputs.radlow,  pyrat.radunits, 0, False,
+                     "Low atm radius boundary ({:.2e} {:s}) must be >= 0.0")
+
+  pyrat.radhigh = isgreater(inputs.radhigh, pyrat.radunits, 0, True,
+                     "High atm radius boundary ({:.2e} {:s}) must be > 0.0")
+
+  pyrat.radstep = isgreater(inputs.radstep, pyrat.radunits, 0, False,
+                     "Radius step size ({:.2f} {:s}) must be > 0.")
+
+  pyrat.radiusbase   = isgreater(inputs.radiusbase, pyrat.radunits, 0, True,
+                     "Planetary radius base ({:.3e} {:s}) must be > 0.")
+
+  pyrat.pressurebase = isgreater(inputs.pressurebase, pyrat.punits, 0, True,
+                     "Planetary pressure base ({:8g} {:s}) must be > 0.")
+
+  pyrat.surfgravity  = isgreater(inputs.surfgravity,  None,         0, True,
+                     "Planetary surface gravity ({:.2f} cm s-2) must be > 0.")
+
+
+  # Check Voigt-profile arguments:
+  # FINDME: delete voigtbin:
+  if inputs.voigtbin < 1:
+    pt.error("Voigt bin oversampling ({:d}) factor must be >= 1".format(
+                                                       inputs.voigtbin))
+  pyrat.voigt.osamp = inputs.voigtbin
+
+  pyrat.voigt.width = isgreater(inputs.voigtwidth, None, 1, False,
+                                "Voigt width ({:g}) must be >= 1.0")
 
   # Doppler width:
-  if pyrat.inputs.Dmin is not None and pyrat.inputs.Dmin <= 0:
-    pt.error("The minimum Doppler width ({:g} cm-1) to sample must be "
-             "positive.".format(pyrat.inputs.Dmin))
-  pyrat.voigt.Dmin = pyrat.inputs.Dmin
+  pyrat.voigt.nDop = isgreater(inputs.nDop, None, 1, False,
+                         "The number of Doppler samples ({:d}) must be >= 1")
 
-  if pyrat.inputs.Dmax is not None and pyrat.inputs.Dmax <= 0:
-    pt.error("The maximum Doppler width ({:g} cm-1) to sample must be "
-             "positive.".format(pyrat.inputs.Dmax))
-  pyrat.voigt.Dmax = pyrat.inputs.Dmax
+  pyrat.voigt.Dmin = isgreater(inputs.Dmin, None, 0, True,
+                                   "Dmin ({:g} cm-1) must be > 0.")
 
-  if pyrat.voigt.Dmax is not None and pyrat.voigt.Dmin is not None:
-    if pyrat.voigt.Dmax <= pyrat.voigt.Dmin:
-      pt.error("Maximum Doppler width ({:g} cm-1) must be > minimum Doppler "
-               "width ({:g} cm-1).".format(pyrat.voigt.Dmax, pyrat.voigt.Dmin))
+  pyrat.voigt.Dmax = isgreater(inputs.Dmax, None, 0, True,
+                                   "Dmax ({:g} cm-1) must be > 0.")
 
-  if pyrat.inputs.nDop < 1:
-    pt.error("The number of Doppler samples ({:d}) must be "
-             ">= 1".format(pyrat.inputs.nDop))
-  pyrat.voigt.nDop = pyrat.inputs.nDop
+  if pyrat.voigt.Dmax <= pyrat.voigt.Dmin:
+    pt.error("Dmax ({:g} cm-1) must be > Dmin ({:g} cm-1).".format(
+             pyrat.voigt.Dmax, pyrat.voigt.Dmin))
 
   # Lorentz width:
-  if pyrat.inputs.Lmin is not None and pyrat.inputs.Lmin <= 0:
-    pt.error("the minimum Lorentz width ({:g} cm-1) to sample must be "
-             "positive.".format(pyrat.inputs.Lmin))
-  pyrat.voigt.Lmin = pyrat.inputs.Lmin
+  pyrat.voigt.nLor = isgreater(inputs.nLor, None, 1, False,
+             "The number of Lorentz samples ({:d}) must be >= 1")
 
-  if pyrat.inputs.Lmax is not None and pyrat.inputs.Lmax <= 0:
-    pt.error("The maximum Lorentz width ({:g} cm-1) to sample must be "
-             "positive.".format(pyrat.inputs.Lmax))
-  pyrat.voigt.Lmax = pyrat.inputs.Lmax
+  pyrat.voigt.Lmin = isgreater(inputs.Lmin, None, 0, True,
+             "Lmin ({:g} cm-1) must be > 0.")
 
-  if pyrat.voigt.Lmax is not None and pyrat.voigt.Lmin is not None:
-    if pyrat.voigt.Lmax <= pyrat.voigt.Lmin:
-      pt.error("Maximum Lorentz width ({:g} cm-1) must be > minimum Lorentz "
-               "width ({:g} cm-1).".format(pyrat.voigt.Lmax, pyrat.voigt.Lmin))
+  pyrat.voigt.Lmax = isgreater(inputs.Lmax, None, 0, True,
+             "Lmax ({:g} cm-1) must be > 0.")
 
-  if pyrat.inputs.nLor < 1:
-    pt.error("The number of Lorentz samples ({:d}) must be "
-             ">= 1".format(pyrat.inputs.nLor))
-  pyrat.voigt.nLor = pyrat.inputs.nLor
+  if pyrat.voigt.Lmax <= pyrat.voigt.Lmin:
+    pt.error("Lmax ({:g} cm-1) must be > Lmin ({:g} cm-1).".format(
+             pyrat.voigt.Lmax, pyrat.voigt.Lmin))
 
-  if pyrat.inputs.DLratio <= 0:
-    pt.error("Lorentz/Doppler width ratio threshold ({:g}) must be "
-             "positive.".format(pyrat.inputs.DLratio))
-  pyrat.voigt.DLratio = pyrat.inputs.DLratio
+  pyrat.voigt.DLratio = isgreater(inputs.DLratio, None, 0, True,
+             "Doppler/Lorentz width ratio threshold ({:g}) must be > 0.")
 
   # Check extinction arguments:
   if pyrat.inputs.minelow < 0.0:
@@ -390,3 +454,49 @@ def checkinputs(pyrat):
   pt.msg(pyrat.verb, "Done.", 0)
 
   # FINDME: set system geometry variables
+
+
+def isgreater(value, units, thresh, equal=False, text=""):
+  """
+  Check that value (if not None) is greater than thresh.
+  Throw error if not.
+
+  Parameters:
+  -----------
+  value: Scalar
+    The value being tested.
+  units: String
+    The units of value as given in pyrat.units
+  thresh: Scalar
+    Threshold against which value is being compared.
+  equal: Boolean
+    If True, strictly require greater than.
+  text: String
+    Text to show if condition is not satisfied.
+
+  Returns:
+  --------
+  The value in the pyrat units.
+
+  Modification History:
+  ---------------------
+  2015-01-18  patricio  initial implementation.
+  """
+  # Set comparison command:
+  if equal:
+    compare = np.less_equal
+  else:
+    compare = np.less
+
+  # Get the units factor value:
+  if units is None:
+    unitsval = 1.0
+  else:
+    unitsval = pc.units[units]
+
+  # Check value:
+  if value is not None:
+    if compare(value, thresh):
+      pt.error(text.format(value, units), -3)
+    return value * unitsval
+  return None

@@ -8,7 +8,7 @@ units = {'A' :1e-8,
          'nm':1e-7,
          'um':1e-4,
          'mm':1e-1,
-         'cm':1,
+         'cm':1.0,
          'm' :1e+2,
          'km':1e+5,
          'au':sc.au*100,
@@ -17,7 +17,7 @@ units = {'A' :1e-8,
          'mbar':1e3,
          'bar':1e6,
          # Temperature:
-         'kelvin':1
+         'kelvin':1.0
 }
 
 # String lengths:

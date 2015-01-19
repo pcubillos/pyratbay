@@ -1,11 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import scipy.constants as sc
-import scipy.integrate as si
+import scipy.constants   as sc
+import scipy.integrate   as si
 import scipy.interpolate as sip
 
 import pconstants as pc
-import ptools as pt
+import ptools     as pt
 
 
 def makewavenumber(pyrat):
@@ -18,79 +18,68 @@ def makewavenumber(pyrat):
   2014-04-28  patricio  Initial python implementation.
   """
   pt.msg(pyrat.verb, "\nGenerating wavenumber array:", 0)
-  # User-inputs object:
-  inputs = pyrat.inputs
-
-  # Accept wavenumber and wavelength units:
-  pyrat.wnunits = inputs.wnunits
-  pyrat.wlunits = inputs.wlunits
 
   # Initial wavenumber limit:
-  if inputs.wnlow is not None:
-    if inputs.wnlow < 0.0:
-      pt.error(message="low wavenumber boundary (%.2e %s-1) must be >= 0.0"%(
-              inputs.wnlow, inputs.wnunits))
-    pyrat.wnlow = inputs.wnlow / pc.units[pyrat.wnunits]
-  else:
-    if inputs.wlhigh < 0.0:
-      pt.error(message="high wavelength boundary (%.2e %s) must be >= 0.0"%(
-                inputs.wlhigh, inputs.wlunits))
-    pyrat.wnlow = 1.0 / (inputs.wlhigh * pc.units[pyrat.wlunits])
+  if pyrat.wnlow is None:
+    if pyrat.wlhigh is None:
+      pt.error("Low wavenumber boundary is undefined. Set either wnlow or "
+               "wlhigh.")
+    else:
+      pyrat.wnlow = 1.0 / pyrat.wlhigh
+  elif pyrat.wlhigh is not None:
+    pt.warning("Both wnlow ({:.2e} cm-1) and wlhigh ({:.2e} cm) were "
+               "defined.  PyRaT will take wnlow and ignore wlhigh.".format(
+               pyrat.wnlow, pyrat.wlhigh))
 
   # Final wavenumber limit:
-  if inputs.wnhigh is not None:
-    if inputs.wnhigh < 0.0:
-      pt.error(message="high wavenumber boundary (%.2e %s-1) must be >= 0.0"%(
-              inputs.wnhigh, inputs.wnunits))
-    pyrat.wnhigh = inputs.wnhigh / pc.units[pyrat.wnunits]
-  else:
-    if inputs.wllow < 0.0:
-      pt.error(message="low wavelength boundary (%.2e %s) must be >= 0.0"%(
-                inputs.wllow, inputs.wlunits))
-    pyrat.wnhigh = 1.0 / (inputs.wllow * pc.units[pyrat.wlunits])
+  if pyrat.wnhigh is None:
+    if pyrat.wllow is None:
+      pt.error("High wavenumber boundary is undefined. Set either wnhigh or "
+               "wllow.")
+    else:
+      pyrat.wnhigh = 1.0 / pyrat.wllow
+  elif pyrat.wllow is not None:
+    pt.warning("Both wnhigh ({:.2e} cm-1) and wllow ({:.2e} cm) were "
+               "defined.  PyRaT will take wnhigh and ignore wllow.".format(
+               pyrat.wnhigh, pyrat.wllow))
 
   # Consistency check (wnlow < wnhigh):
   if pyrat.wnlow > pyrat.wnhigh:
-    pt.error(message="Wavenumber low boundary (%.2e cm-1) must be larger "
-             "than the high boundary (%.2e cm-1)"%(pyrat.wnlow, pyrat.wnhigh))
+    pt.error("Wavenumber low boundary ({:.2e} cm-1) must be larger than the "
+             "high boundary ({:.2e} cm-1)".format(pyrat.wnlow, pyrat.wnhigh))
 
-  # Set wavelength limits:
-  pyrat.wlhigh = 1.0/pyrat.wnlow
-  pyrat.wllow  = 1.0/pyrat.wnhigh
-
-  # Set wavenumber step:
-  if inputs.wnstep is not None:
-    if inputs.wnstep <= 0.0:
-      pt.error(message="Wavenumber step (%.2e %s-1) must be > 0.0"%
-               (inputs.wnstep, pyrat.wnunits))
-    pyrat.wnstep = inputs.wnstep / pc.units[pyrat.wnunits]
-  else:
-    if inputs.wlstep <= 0.0:
-      pt.error(message="Wavelength step (%.2e %s-1) must be > 0.0"%
-               (inputs.wlstep, pyrat.wlunits))
-    wlstep = inputs.wlstep * pc.units[pyrat.wlunits]
-    pyrat.wnsize = int((1/pyrat.wnlow - 1/pyrat.wnhigh)/wlstep)
-    pyrat.wnstep = (pyrat.wnhigh - pyrat.wnlow)/pyrat.wnsize
+  # Set wavelength limits based on the wavenumber limits:
+  pyrat.wlhigh = 1.0 / pyrat.wnlow
+  pyrat.wllow  = 1.0 / pyrat.wnhigh
 
   # Make the wavenumber array:
   pyrat.wn = np.arange(pyrat.wnlow, pyrat.wnhigh, pyrat.wnstep)  
 
   # Re-set final boundary (stay inside given boundaries):
   if pyrat.wn[-1] != pyrat.wnhigh:
-    pt.warning("Final wavenumber boundary modified from %.4f cm^-1 (user)\n"
-               "                                     to %.4f cm^-1 (Pyrat)."%
-               (pyrat.wnhigh, pyrat.wn[-1]))
+    pt.warning("Final wavenumber boundary modified from {:.4f} cm-1 (input)\n"
+               "                                     to {:.4f} cm-1 (PyRaT).".
+               format(pyrat.wnhigh, pyrat.wn[-1]))
+  # FINDME: think about this:
   #pyrat.wnhigh = pyrat.wn[-1]
   pyrat.nspec  = len(pyrat.wn)
 
+  # Make the fine-sampled (oversampled) wavenumber array:
+  pyrat.ownstep = pyrat.wnstep / pyrat.wnosamp
+  pyrat.onspec  = pyrat.nspec *  pyrat.wnosamp
+  pyrat.own = np.linspace(pyrat.wn[0], pyrat.wn[-1], pyrat.onspec)
+
   # Screen output:
-  pt.msg(pyrat.verb-10, "Wavelength units: %s"%pyrat.wlunits, 2)
-  pt.msg(pyrat.verb, "Initial wavenumber boundary:  %.5e cm-1  (%.3e %s)"%
-     (pyrat.wnlow, pyrat.wlhigh/pc.units[pyrat.wlunits], pyrat.wlunits), 2)
-  pt.msg(pyrat.verb, "Final   wavenumber boundary:  %.5e cm-1  (%.3e %s)"%
-     (pyrat.wnhigh, pyrat.wllow/pc.units[pyrat.wlunits], pyrat.wlunits), 2)
-  pt.msg(pyrat.verb, "Wavenumber sampling stepsize: %.2e cm-1"%pyrat.wnstep, 2)
-  pt.msg(pyrat.verb, "Wavenumber sample size:  %d"%pyrat.nspec, 2)
+  pt.msg(pyrat.verb,"Initial wavenumber boundary:  {:.5e} cm-1  ({:.3e} "
+                    "{:s})".format(pyrat.wnlow,
+                     pyrat.wlhigh/pc.units[pyrat.wlunits], pyrat.wlunits), 2)
+  pt.msg(pyrat.verb,"Final   wavenumber boundary:  {:.5e} cm-1  ({:.3e} "
+                    "{:s})".format(pyrat.wnhigh,
+                     pyrat.wllow/pc.units[pyrat.wlunits], pyrat.wlunits), 2)
+  pt.msg(pyrat.verb,"Wavenumber sampling stepsize: {:.2g} cm-1".format(
+                     pyrat.wnstep), 2)
+  pt.msg(pyrat.verb,"Wavenumber sample size:      {:8d}".format(pyrat.nspec), 2)
+  pt.msg(pyrat.verb,"Wavenumber fine-sample size: {:8d}".format(pyrat.onspec),2)
   pt.msg(pyrat.verb, "Done.", 0)
 
 
@@ -112,29 +101,12 @@ def makeradius(pyrat):
   """
   pt.msg(pyrat.verb, "\nGenerating atmospheric radius sample:")
 
-  # User-inputs object:
-  inputs = pyrat.inputs
-  # Set user-defined units:
-  pyrat.radunits = inputs.radunits
-  pyrat.punits   = inputs.punits
-
-  # Store atmopsheric base level arguments:
-  if inputs.radiusbase <= 0:
-    pt.error("Planetary radius base must be > 0.")
-  pyrat.radiusbase = inputs.radiusbase * pc.units[pyrat.radunits]
-
-  if inputs.pressurebase <= 0:
-    pt.error("Planetary pressure base must be > 0.")
-  pyrat.pressurebase = inputs.pressurebase * pc.units[pyrat.punits]
-
-  if inputs.surfgravity <= 0:
-    pt.error("Planetary surface gravity must be > 0.")
-  pyrat.surfgravity = inputs.surfgravity
-
-  print("Base pressure: {:.3e} {:s} ".format(
+  # Atmopsheric base level arguments:
+  pt.msg(pyrat.verb, "Base pressure: {:.3e} {:s} ".format(
                      pyrat.pressurebase/pc.units[pyrat.punits], pyrat.punits))
-  print("Base radius: {:8g} {:s} ".format(
+  pt.msg(pyrat.verb, "Base radius: {:8g} {:s} ".format(
                      pyrat.radiusbase/pc.units[pyrat.radunits], pyrat.radunits))
+
   # FINDME: move this to readatm
   # Pressure limits from the atmospheric file:
   print("Pressure limits: {:.3e} -- {:.3e} {:s}".format(
@@ -158,23 +130,15 @@ def makeradius(pyrat):
   pressinterp = sip.interp1d(rad, pyrat.atmf.press,             kind='cubic')
   pt.msg(pyrat.verb, "Radius array (km) = \n{:s}".format(str(rad/1e5)), 2)
 
-
   # Set values for modeling atm object:
   pyrat.atm.nmol = pyrat.mol.nmol
 
   # Set pressure higher boundary:
-  if inputs.phigh is not None:     # From user-defined pressure
-    if inputs.phigh < 0.0:
-      pt.error("High atm pressure boundary ({:.2e} {:s}) must be "
-               ">= 0.0".format(inputs.phigh, inputs.punits))
-    pyrat.phigh = inputs.phigh * pc.units[pyrat.punits]
-  elif inputs.radlow is not None:  # From user-defined radius
-    if inputs.radlow < 0.0:
-      pt.error("Low atm radius boundary ({:.2e} {:s}) must be "
-               ">= 0.0".format(inputs.radlow, pyrat.radunits))
-    pyrat.phigh = pressinterp(inputs.radlow*pc.units[pyrat.radunits])[0]
-  else:                                # From atm-file
+  if pyrat.radlow is not None:  # From user-defined radius
+    pyrat.phigh = pressinterp(pyrat.radlow*pc.units[pyrat.radunits])[0]
+  else:                          # From atm-file
     pyrat.phigh = np.amax(pyrat.atmf.press)
+
   # Out of bounds errors:
   if pyrat.phigh > np.amax(pyrat.atmf.press):
     pt.error("User defined top layer (p={:.3e} {:s}) is higher than the "
@@ -183,18 +147,11 @@ def makeradius(pyrat):
               np.amax(pyrat.atmf.press)/pc.units[pyrat.punits], pyrat.punits))
 
   # Set pressure lower boundary:
-  if inputs.plow is not None:       # From user-defined pressure
-    if inputs.plow < 0.0:
-      pt.error("Low atm pressure boundary ({:.2e} {:s}) must be >= 0.0".format(
-               inputs.plow, inputs.punits))
-    pyrat.plow = inputs.plow * pc.units[pyrat.punits]
-  elif inputs.radhigh is not None:  # From user-defined radius
-    if inputs.radhigh < 0.0:
-      pt.error("High atm radius boundary ({:.2e} {:s}) must be >= 0.0".format(
-               inputs.radhigh, pyrat.radunits))
-    pyrat.plow = pressinterp([inputs.radhigh*pc.units[pyrat.radunits]])[0]
+  if pyrat.radhigh is not None:  # From user-defined radius
+    pyrat.plow = pressinterp([pyrat.radhigh * pc.units[pyrat.radunits]])[0]
   else:                             # From atm-file
     pyrat.plow = np.amin(pyrat.atmf.press)
+
   # Out of bounds errors:
   if pyrat.plow < np.amin(pyrat.atmf.press):
     pt.error("User defined bottom layer (p={:.3e} {:s}) is lower than the "
@@ -205,22 +162,20 @@ def makeradius(pyrat):
   # Atmospheric-layers resampling:
   resample = True
   # Resample to equispaced log-pressure array:
-  if inputs.nlayers != -1:
+  if pyrat.inputs.nlayers != -1:
     pyrat.atm.layers = inputs.nlayers
     pyrat.atm.press = np.logspace(np.log10(pyrat.phigh),
                                   np.log10(pyrat.plow ), pyrat.atm.layers)
     pyrat.atm.radius = radinterp(pyrat.atm.press)
 
   # Resample to equispaced radius:
-  elif inputs.radstep is not None:
-    pyrat.atm.layers = int((np.amax(rad)-np.amin(rad))/
-                           (inputs.radstep*pc.units[pyrat.radunits])) + 1
+  elif pyrat.radstep is not None:
+    pyrat.atm.layers = int((np.amax(rad)-np.amin(rad))/pyrat.radstep) + 1
     # Avoid radinterp going out-of-bounds:
     radlow  = np.amax([rad[ 0], radinterp([pyrat.phigh])[0]])
     radhigh = np.amin([rad[-1], radinterp([pyrat.plow ])[0]])
     # Make equispaced radius array:
-    pyrat.atm.radius = np.arange(radlow, radhigh,
-                                 inputs.radstep*pc.units[pyrat.radunits])
+    pyrat.atm.radius = np.arange(radlow, radhigh, pyrat.radstep)
     # Interpolate to pressure array:
     pyrat.atm.press = pressinterp(pyrat.atm.radius)
   # Take atm file sampling:
@@ -237,8 +192,8 @@ def makeradius(pyrat):
   plt.semilogx(pyrat.atmf.press/pc.units[pyrat.punits],
                rad/pc.units[pyrat.radunits], "o-r", mec="r", mfc='r')
   plt.semilogx(pyrat.atm.press/pc.units[pyrat.punits],
-               pyrat.atm.radius/pc.units[pyrat.radunits], "o-b", mec="b", mew=1,
-               mfc='None')
+               pyrat.atm.radius/pc.units[pyrat.radunits], "o-b",
+               mec="b", mew=1, mfc='None')
   plt.xlabel("Pressure  (%s)"%pyrat.punits)
   plt.ylabel("Radius  (%s)"%pyrat.radunits)
   plt.savefig("radpress.png")

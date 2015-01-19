@@ -16,6 +16,9 @@ class pyrat(object):
     self.ex     = extinction()     # Extinction
     self.cia    = cia()            # CIA
 
+    self.wnlow   = None
+    self.wnhigh  = None
+
 class inputs(object):
   """
   This is a holder class to store user-input arguments.
@@ -30,21 +33,22 @@ class inputs(object):
     # General arguments:
     self.configfile = None
     self.verb       = None
-    # Input file arguments:
+    # Input/output files arguments:
     self.atmfile  = None
     self.linedb   = None
     self.ciafiles = None
+    self.molfile  = None
     # Wavelength arguments:
+    self.wlunits = None
     self.wllow   = None
     self.wlhigh  = None
     self.wlstep  = None
-    self.wlunits = None
     # Wavenumber arguments:
+    self.wnunits = None
     self.wnlow   = None
     self.wnhigh  = None
     self.wnstep  = None
-    self.wnsize  = None
-    self.wnunits = None
+    self.wnosamp = None
     # Atmospheric radius arguments:
     self.radlow   = None
     self.radhigh  = None 
