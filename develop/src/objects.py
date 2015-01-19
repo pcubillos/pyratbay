@@ -76,12 +76,12 @@ class inputs(object):
     # Extinction calculation arguments:
     self.minelow    = None
     # Optical depth arguments:
-    self.path    = None
-    self.toomuch = None
+    self.path     = None
+    self.maxdepth = None
     # Output files arguments:
-    self.outspec    = None
-    self.outsample  = None
-    self.outtoomuch = None
+    self.outspec     = None
+    self.outsample   = None
+    self.outmaxdepth = None
 
 
 class atm(object):
@@ -89,12 +89,9 @@ class atm(object):
     self.abundance = None         # Abundance by mass (True) or number (False)
     self.info      = None         # General info from atmfile
     self.runits    = 'km'         # Input radius units
-    self.punits    = 'mbar'       # Input pressure units
+    self.punits    = 'bar'        # Input pressure units
     self.tunits    = 'kelvin'     # Input temperature units
-    self.roffset   = 0.0          # Radius offset
-    self.remainder = np.array([]) # Remainder abundance factors
-    self.layers    = 0            # Number of layers
-    self.nmol      = 0            # Number of molecules
+    self.nlayers   = None         # Number of layers
     self.radius    = None         # Radius array (cm)            [layers]
     self.press     = None         # Pressure array (barye)       [layers]
     self.temp      = None         # Temperature array (K)        [layers]

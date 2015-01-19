@@ -10,7 +10,7 @@ def readatm(pyrat):
   Read the atmospheric file, store variables in pyrat.
   """
   # Check atmfile:
-  pt.msg(pyrat.verb, "\nReading atmosphere file: '%s'"%pyrat.atmfile, 0)
+  pt.msg(pyrat.verb, "\nReading atmosphere file: '{:s}'".format(pyrat.atmfile))
   atmfile = open(pyrat.atmfile, "r")
 
   # Read keywords:
@@ -30,16 +30,24 @@ def readatm(pyrat):
 def getkeywords(pyrat, atmfile):
   """
   Read keyword variables from the atmfile.
-  """
-  # Initialize molecules object:
 
+  Modification History:
+  ---------------------
+  2014-XX-XX  patricio  Initial implementation
+  2015-01-19  patricio  Adapted to new file format.
+  """
   atmfile.seek(0)
+
   while True:
-    iline = atmfile.tell()  # Current line position
     line = atmfile.readline().strip()
     #print(line)
+
+    # Stop when the per-layer data begins:
+    if line == "@DATA":
+      break
+
     # Skip empty and comment lines:
-    if line == '' or line.startswith('#'):
+    elif line == '' or line.startswith('#'):
       pass
 
     # Abundance by mass or number:
@@ -50,10 +58,6 @@ def getkeywords(pyrat, atmfile):
     elif line.startswith('n'):
       pyrat.atmf.info = line[1:].strip()
 
-    # Radius offset level:
-    elif line.startswith('z'):
-      pyrat.atmf.roffset = float(line[1:].strip())
-
     # Radius, pressure, and temperature units of atm file:
     elif line.startswith('u'):
       if line[1] == 'r':
@@ -63,67 +67,53 @@ def getkeywords(pyrat, atmfile):
       if line[1] == 't':
         pyrat.atmf.tunits = line[2:].strip()
 
-    # Read in molecules with abundance profiles:
-    elif line.startswith('i'):
-      pyrat.mol.name = np.asarray(line[1:].strip().split())
+    # Read in molecules:
+    elif line == "@SPECIES":
+      pyrat.mol.name = np.asarray(atmfile.readline().strip().split())
       pyrat.mol.nmol = len(pyrat.mol.name)
 
-    # Read in molecules without abundance profiles:
-    elif line.startswith('f'):
-      remnmol, remnfactor = line[1:].strip().split()
-      pyrat.mol.nmol += 1
-      pyrat.mol.name = np.concatenate((pyrat.mol.name, [remnmol])) 
-      pyrat.atmf.remainder = np.concatenate((pyrat.atmf.remainder,
-                                            [float(remnfactor)])) 
     else:
-      break
+      pt.error("Atmosphere file has an unexpected line: \n'{:s}'".format(line))
+
+  iline = atmfile.tell()  # Current line position
 
   pt.msg(1, "Molecules list: \n%s"%(str(pyrat.mol.name)), 2)
   if pyrat.atmf.abundance:
-    pt.msg(1, "Abundance is by mass (mass mixing ratio)", 2)
+    pt.msg(1, "Abundance is given by mass (mass mixing ratio)", 2)
   else:
-    pt.msg(1, "Abundance is by number (volume mixing ratio)", 2)
+    pt.msg(1, "Abundance is given by number (volume mixing ratio)", 2)
   pt.msg(1, "Unit factors: radius: %s,  pressure: %s,  temperature: %s"%(
          pyrat.atmf.runits, pyrat.atmf.punits, pyrat.atmf.tunits), 2)
   pt.msg(1, "Atm file info: %s"%pyrat.atmf.info, 2)
-  pt.msg(1, "Radius offset: %.2f %s"%(pyrat.atmf.roffset, pyrat.atmf.runits), 2)
   pt.msg(1, "Data starting position: %s"%iline, 2)
   return iline
 
 
 def getconstants(pyrat):
   """
-  Set molecules constant values (mass, radius).
+  Set molecules constant values (ID, mass, radius).
 
   Modification History:
   ---------------------
   2014-??-??  patricio  Initial implemetation
   2014-08-17  patricio  Added Documentation. Adapted to new molecules.dat file.
                         Store molecule symbol and ID.
+  2015-01-19  patricio  Updated molecules.dat reading.
   """
   # FINDME: de-hardcode path:
   molfile = open("../inputs/molecules.dat", "r")
  
-  # Read Molecular name aliases:
-  alias = [] # Molecule alias
-  amol  = [] # Molecule name
+  # Skip comment and blank lines:
   line = molfile.readline().strip()
   while line == '' or line.startswith('#'):
     line = molfile.readline().strip()
-  while line != '' and not line.startswith('#'):
-    alias.append(line.split()[0]) # Alias name
-    amol.append(line.split()[1])  # Molecule name
-    line = molfile.readline().strip()
-  alias = np.asarray(alias)
 
-  # Read Molecular values:
   molID  = [] # Molecule ID
   symbol = [] # Molecule symbol
   mass   = [] # Molecule mass
   diam   = [] # Molecule diameter
-  while line == '' or line.startswith('#'):
-    line = molfile.readline().strip()
-  while line != '' and not line.startswith('#'):
+  # Read Molecular values:
+  while line != '' and not line.startswith('#'):  # Start reading species
     molinfo = line.split()
     # Extract info:
     molID .append(  int(molinfo[0]))
@@ -146,21 +136,15 @@ def getconstants(pyrat):
   pt.msg(pyrat.verb, "Molecule   ID   Radius  Mass\n"
                      "                (A)     (gr/mol)", 4)
   for i in np.arange(pyrat.mol.nmol):
-    # Check if name is an alias:
-    if pyrat.mol.name[i] in alias:
-      molname = amol[np.where(alias == pyrat.mol.name[i])[0]]
-    else:
-      molname = pyrat.mol.name[i]
-
     # Find the molecule in the list:
-    imol = np.where(symbol == molname)[0]
+    imol = np.where(symbol == pyrat.mol.name[i])[0]
     # Set molecule ID:
     pyrat.mol.ID[i]     = molID [imol]
     # Set molecule symbol:
     pyrat.mol.symbol[i] = symbol[imol][0]
     # Set molecule mass:
     pyrat.mol.mass[i]   = mass  [imol]
-    # Set molecule radius:
+    # Set molecule collision radius:
     pyrat.mol.radius[i] = diam  [imol]/2.0
     pt.msg(1, "{:>10s}:  {:3d}  {:.3f}  {:8.4f}".format(pyrat.mol.name[i],
                   pyrat.mol.ID[i], pyrat.mol.radius[i], pyrat.mol.mass[i]), 2)
@@ -169,40 +153,52 @@ def getconstants(pyrat):
 def getprofiles(pyrat, atmfile):
   """
   Extract data from atmospheric file into pyrat object.
+
+  Modification History:
+  ---------------------
+  2014-XX-XX  patricio  Initial implementation.
+  2015-01-19  patricio  Adapted to new atmosphere file format.
   """
+  # Read first line to count number of columns:
   datastart = atmfile.tell()
+  line = atmfile.readline()
+  ncolumns = len(line.split()) - pyrat.mol.nmol
+  # Is the radius given in the atmosphere file?:
+  rad = (ncolumns == 3)
+
   # Count number of layers:
-  while (True):
+  pyrat.atmf.nlayers = 1
+  while True:
     line = atmfile.readline()
     if line == '' or line.startswith('#'):
       break
-    pyrat.atmf.layers += 1
-  pt.msg(pyrat.verb, "Number of layers in Atm. file: {:d}".format(
-                                                         pyrat.atmf.layers), 2)
+    pyrat.atmf.nlayers += 1
+  pt.msg(pyrat.verb, "Number of layers in the atmospheric file: {:d}".
+                     format(pyrat.atmf.nlayers), 2)
 
   # Initialize arrays:
-  pyrat.atmf.nmol  = pyrat.mol.nmol
-  pyrat.atmf.rad   = np.zeros( pyrat.atmf.layers)
-  pyrat.atmf.press = np.zeros( pyrat.atmf.layers)
-  pyrat.atmf.temp  = np.zeros( pyrat.atmf.layers)
-  pyrat.atmf.mm    = np.zeros( pyrat.atmf.layers)
-  pyrat.atmf.q     = np.zeros((pyrat.atmf.layers, pyrat.mol.nmol))
-  pyrat.atmf.d     = np.zeros((pyrat.atmf.layers, pyrat.mol.nmol))
+  if rad:
+    pyrat.atmf.radius = np.zeros( pyrat.atmf.nlayers)
+  pyrat.atmf.press  = np.zeros( pyrat.atmf.nlayers)
+  pyrat.atmf.temp   = np.zeros( pyrat.atmf.nlayers)
+  pyrat.atmf.mm     = np.zeros( pyrat.atmf.nlayers)
+  pyrat.atmf.q      = np.zeros((pyrat.atmf.nlayers, pyrat.mol.nmol))
+  pyrat.atmf.d      = np.zeros((pyrat.atmf.nlayers, pyrat.mol.nmol))
 
   # Read table:
-  nprofiles = pyrat.mol.nmol - len(pyrat.atmf.remainder)
+  nprofiles = pyrat.mol.nmol
   atmfile.seek(datastart, 0)
-  for i in np.arange(pyrat.atmf.layers):
+  for i in np.arange(pyrat.atmf.nlayers):
     data = atmfile.readline().split()
-    pyrat.atmf.rad  [i] = float(data[0])
-    pyrat.atmf.press[i] = float(data[1])
-    pyrat.atmf.temp [i] = float(data[2])
-    pyrat.atmf.q    [i,0:nprofiles] = np.asarray(data[3:], float)
+    if rad:
+      pyrat.atmf.radius[i] = float(data[0])
+    pyrat.atmf.press [i] = float(data[rad+0])
+    pyrat.atmf.temp  [i] = float(data[rad+1])
+    pyrat.atmf.q     [i] = np.asarray(data[rad+2:], float)
 
-  # Abundance of molecules with the remainder:
+  # Sum of abundances per layer:
   sumq = np.sum(pyrat.atmf.q, axis=1)
-  for i in np.arange(len(pyrat.atmf.remainder)):
-    pyrat.atmf.q[:,nprofiles+i] = pyrat.atmf.remainder[i]*(1.0-sumq)
+  # FINDME: Add sumq != 1.0 warning.
 
   # Plot abundance profiles:
   if pyrat.verb >= 10:
@@ -218,22 +214,18 @@ def getprofiles(pyrat, atmfile):
     plt.savefig("atmprofiles.png")
 
   # Store values in CGS system of units:
-  pyrat.atmf.rad    = ((pyrat.atmf.rad + pyrat.atmf.roffset) * 
-                                                   pc.units[pyrat.atmf.runits])
-  pyrat.atmf.press *= pc.units[pyrat.atmf.punits]
-  pyrat.atmf.temp  *= pc.units[pyrat.atmf.tunits]
+  pyrat.atmf.radius *= pc.units[pyrat.atmf.runits]
+  pyrat.atmf.press  *= pc.units[pyrat.atmf.punits]
+  pyrat.atmf.temp   *= pc.units[pyrat.atmf.tunits]
 
-  # Calculate the mean molecular mass per layer:
-  if pyrat.atmf.abundance:  # Abundance by mass:
-    pyrat.atmf.mm = 1.0/np.sum(pyrat.atmf.q/pyrat.mol.mass, axis=1)
-  else:                    # Abundance by number:
-    pyrat.atmf.mm =     np.sum(pyrat.atmf.q*pyrat.mol.mass, axis=1)
-
-  pt.msg(pyrat.verb-10, "Mean molecular mass array: {:s}".format(
-                                                         str(pyrat.atmf.mm)), 2)
   # Store the abundance as volume mixing ratio:
   if pyrat.atmf.abundance:
     pyrat.atmf.q = pyrat.atmf.q * pyrat.atmf.mm / pyrat.mol.mass
+
+  # Calculate the mean molecular mass per layer:
+  pyrat.atmf.mm =     np.sum(pyrat.atmf.q*pyrat.mol.mass, axis=1)
+  pt.msg(pyrat.verb-10, "Mean molecular mass array: {:s}".
+                        format(str(pyrat.atmf.mm)), 2)
 
   # Calculate density profiles for each molecule:
   for i in np.arange(pyrat.mol.nmol):

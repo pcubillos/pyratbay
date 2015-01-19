@@ -127,7 +127,7 @@ def parse(pyrat):
   group.add_argument(      "--nlayers",       dest="nlayers",
                      help="Number of atmospheric pressure samples [default: "
                           "Use atmospheric file value]",
-                     action="store", type=np.int, default=-1)
+                     action="store", type=np.int, default=None)
   group.add_argument(      "--punits",        dest="punits",
                      help="Pressure (user) units [default: %(default)s]",
                      action="store", type=str, default='bar',
@@ -151,10 +151,10 @@ def parse(pyrat):
                      help="Maximum temperature to sample/consider "
                      "in Kelvin [default: %(default)s]",
                      action="store", type=np.double, default=3000.0)
-  group.add_argument(      "--minelow",       dest="minelow",
-                     help="Minimum Elow to consider line transition "
-                          "[default: %(default)s]",
-                     action="store", type=np.double, default=0)
+  group.add_argument("--exthresh",       dest="exthresh",
+                     help="Extinction coefficient threshold "
+                          "[default: %(default)s]",  # FINDME: Explain better
+                     action="store", type=np.double, default=1e-6)
   # Voigt-profile options:
   group = parser.add_argument_group("Voigt-profile  Options")
   # FINDME: delete voigtbin
@@ -198,7 +198,7 @@ def parse(pyrat):
                      help="Lightray-path geometry [default: %(default)s]",
                      action="store", type=str, default='transit',
                      choices=('transit', 'eclipse'))
-  group.add_argument("-t", "--toomuch",       dest="toomuch",
+  group.add_argument("--maxdepth",       dest="maxdepth",
                      help="Maximum optical depth to calculate [default: "
                           "%(default)s]",
                      action="store", type=np.double, default=10)
@@ -210,8 +210,9 @@ def parse(pyrat):
   group.add_argument(      "--outsample",     dest="outsample",
                      help="Output samplings file [default: %(default)s]",
                      action="store", type=str, default=None) 
-  group.add_argument(      "--outtoomuch",    dest="outtoomuch",
-                     help="Output toomuch-level file [default: %(default)s]",
+  group.add_argument(      "--outmaxdepth",    dest="outmaxdepth",
+                     help="Filename to store the radius at maxdepth "
+                          "(per wavelength) [default: %(default)s]",
                      action="store", type=str, default=None) 
 
 
@@ -255,7 +256,7 @@ def parse(pyrat):
   # Extinction:
   pyrat.inputs.voigtbin   = user.voigtbin
   pyrat.inputs.voigtwidth = user.voigtwidth
-  pyrat.inputs.minelow    = user.minelow
+  pyrat.inputs.exthresh   = user.exthresh
   pyrat.inputs.tmin       = user.tmin
   pyrat.inputs.tmax       = user.tmax
   # Voigt-profile:
@@ -268,11 +269,11 @@ def parse(pyrat):
   pyrat.inputs.DLratio    = user.DLratio
   # Optical depth:
   pyrat.inputs.path       = user.path
-  pyrat.inputs.toomuch    = user.toomuch
+  pyrat.inputs.maxdepth   = user.maxdepth
   # Output files:
   pyrat.inputs.outspec    = user.outspec
   pyrat.inputs.outsample  = user.outsample
-  pyrat.inputs.outtoomuch = user.outtoomuch
+  pyrat.inputs.outmaxdepth = user.outmaxdepth
 
 
 def checkinputs(pyrat):
@@ -340,12 +341,10 @@ def checkinputs(pyrat):
   if inputs.wnstep is None or inputs.wnstep <= 0:
     pt.error("Wavenumber sampling step ({:.2e} {:s}-1) must be defined and "
              "be > 0.".format(inputs.wnstep, inputs.wnunits))
-  pyrat.wnstep = inputs.wnstep
+  pyrat.wnstep = inputs.wnstep / pc.units[pyrat.wnunits]
 
-  if inputs.wnosamp < 1:
-    pt.error("Wavenumber oversampling factor ({:d}) must be >= 1.".format(
-             inputs.wnosamp))
-  pyrat.wnosamp = inputs.wnosamp
+  pyrat.wnosamp = isgreater(inputs.wnosamp, None, 1, False,
+                     "Wavenumber oversampling factor ({:d}) must be >= 1.")
 
   # Check atmospheric layers arguments:
   pyrat.radunits = inputs.radunits
@@ -353,28 +352,25 @@ def checkinputs(pyrat):
 
   pyrat.phigh   = isgreater(inputs.phigh,   pyrat.punits,   0, True,
                      "High atm pressure boundary ({:.2e} {:s}) must be > 0.0")
-
   pyrat.plow    = isgreater(inputs.plow,    pyrat.punits,   0, True,
                      "Low atm pressure boundary ({:.2e} {:s}) must be > 0.0")
 
   pyrat.radlow  = isgreater(inputs.radlow,  pyrat.radunits, 0, False,
                      "Low atm radius boundary ({:.2e} {:s}) must be >= 0.0")
-
   pyrat.radhigh = isgreater(inputs.radhigh, pyrat.radunits, 0, True,
                      "High atm radius boundary ({:.2e} {:s}) must be > 0.0")
-
-  pyrat.radstep = isgreater(inputs.radstep, pyrat.radunits, 0, False,
+  pyrat.radstep = isgreater(inputs.radstep, pyrat.radunits, 0, True,
                      "Radius step size ({:.2f} {:s}) must be > 0.")
 
-  pyrat.radiusbase   = isgreater(inputs.radiusbase, pyrat.radunits, 0, True,
+  pyrat.radiusbase   = isgreater(inputs.radiusbase,   pyrat.radunits, 0, True,
                      "Planetary radius base ({:.3e} {:s}) must be > 0.")
-
-  pyrat.pressurebase = isgreater(inputs.pressurebase, pyrat.punits, 0, True,
+  pyrat.pressurebase = isgreater(inputs.pressurebase, pyrat.punits,   0, True,
                      "Planetary pressure base ({:8g} {:s}) must be > 0.")
-
-  pyrat.surfgravity  = isgreater(inputs.surfgravity,  None,         0, True,
+  pyrat.surfgravity  = isgreater(inputs.surfgravity,  None,           0, True,
                      "Planetary surface gravity ({:.2f} cm s-2) must be > 0.")
 
+  pyrat.atm.nlayers = isgreater(inputs.nlayers, None, 0, True,
+                     "The number of atmospheric layers ({:d}) must be > 0.")
 
   # Check Voigt-profile arguments:
   # FINDME: delete voigtbin:
@@ -418,19 +414,11 @@ def checkinputs(pyrat):
              "Doppler/Lorentz width ratio threshold ({:g}) must be > 0.")
 
   # Check extinction arguments:
-  if pyrat.inputs.minelow < 0.0:
-    pt.error("Minimum Elow ({:g}) must be >= 0.0".format(pyrat.inputs.minelow))
-  pyrat.ex.minelow = pyrat.inputs.minelow
+  pyrat.ex.tmin = isgreater(inputs.tmin, None, 0, True,
+             "Minimum temperature sample ({:g} K) must be positive.")
 
-  if pyrat.inputs.tmin is not None and pyrat.inputs.tmin <= 0.0:
-    pt.error("Minimum temperature sample ({:g} K) must be positive.".format(
-                                                            pyrat.inputs.tmin))
-  pyrat.ex.tmin = pyrat.inputs.tmin
-
-  if pyrat.inputs.tmax is not None and pyrat.inputs.tmax <= 0.0:
-    pt.error("Maximum temperature sample ({:g} K) must be positive.".format(
-                                                            pyrat.inputs.tmax))
-  pyrat.ex.tmax = pyrat.inputs.tmax
+  pyrat.ex.tmax = isgreater(inputs.tmax, None, 0, True,
+             "Maximum temperature sample ({:g} K) must be positive.")
 
   if pyrat.ex.tmax is not None and pyrat.ex.tmin is not None:
     if pyrat.ex.tmax <= pyrat.ex.tmin:
@@ -438,19 +426,18 @@ def checkinputs(pyrat):
                "temperature ({:g} K).".format(pyrat.ex.tmax, pyrat.ex.tmin))
 
   # Check opacity arguments:
-  if pyrat.inputs.toomuch < 0.0:
-    pt.error("Tau max limit ({:g}) must be >= 0.0".format(pyrat.inputs.toomuch))
-  pyrat.toomuch = pyrat.inputs.toomuch
+  pyrat.maxdepth = isgreater(inputs.maxdepth, None, 0, False,
+                        "Maximum-optical-depth limit ({:g}) must be >= 0.0")
 
   # Accept ray-path argument:
-  pyrat.path  = pyrat.inputs.path
+  pyrat.path  = inputs.path
   # Accept output files:
-  pyrat.outspec    = pyrat.inputs.outspec    
-  pyrat.outsample  = pyrat.inputs.outsample  
-  pyrat.outtoomuch = pyrat.inputs.outtoomuch 
+  pyrat.outspec     = inputs.outspec    
+  pyrat.outsample   = inputs.outsample  
+  pyrat.outmaxdepth = inputs.outmaxdepth
 
   # Verbose level:
-  pyrat.verb = np.amax([0, pyrat.inputs.verb])
+  pyrat.verb = np.amax([0, inputs.verb])
   pt.msg(pyrat.verb, "Done.", 0)
 
   # FINDME: set system geometry variables
@@ -490,7 +477,7 @@ def isgreater(value, units, thresh, equal=False, text=""):
 
   # Get the units factor value:
   if units is None:
-    unitsval = 1.0
+    unitsval = 1
   else:
     unitsval = pc.units[units]
 
