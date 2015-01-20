@@ -64,7 +64,6 @@ class inputs(object):
     self.zerpress    = None
     self.surfgravity = None
     # Voigt profile arguments:
-    self.voigtbin   = None
     self.voigtwidth = None
     self.DLratio    = None
     self.Dmin       = None
@@ -146,7 +145,6 @@ class isotopes(object):
 
 class voigt(object):
   def __init__(self):
-    self.osamp    = None  # Voigt wavenumber oversampling
     self.width    = None  # Profile width in
     self.Dmin     = None  # Minimum Doppler width sampled
     self.Dmax     = None  # Maximum Doppler width sampled
@@ -156,9 +154,9 @@ class voigt(object):
     self.nLor     = None  # Number of Lorentz-width samples
     self.doppler  = None  # Doppler-width sample array [nDop]
     self.lorentz  = None  # Lorentz-width sample array [nLor]
-    self.profsize = None  # Profile wavenumber half-size [nDop, nLor]
     self.DLratio  = None  # Doppler-Lorentz ratio threshold
-    self.profile  = None  # Voigt profile [nDop, nLor, voigtbin, profsize]
+    self.profsize = None  # Profile wavenumber half-size [nDop, nLor]
+    self.profile  = None  # Voigt profile [nDop, nLor, profsize]
 
 
 class extinction(object):

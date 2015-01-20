@@ -157,9 +157,6 @@ def parse(pyrat):
                      action="store", type=np.double, default=1e-6)
   # Voigt-profile options:
   group = parser.add_argument_group("Voigt-profile  Options")
-  # FINDME: delete voigtbin
-  group.add_argument("--voigtbin", dest="voigtbin", action="store",
-                     type=np.double, default=1)
   group.add_argument(      "--voigtwidth",    dest="voigtwidth",
                      help="Width of Voigt profile in number of max(Doppler "
                           "width, Lorentz width) [default: %(default)s]",
@@ -254,12 +251,11 @@ def parse(pyrat):
   pyrat.inputs.pressurebase = user.pressurebase
   pyrat.inputs.surfgravity  = user.surfgravity
   # Extinction:
-  pyrat.inputs.voigtbin   = user.voigtbin
-  pyrat.inputs.voigtwidth = user.voigtwidth
   pyrat.inputs.exthresh   = user.exthresh
   pyrat.inputs.tmin       = user.tmin
   pyrat.inputs.tmax       = user.tmax
   # Voigt-profile:
+  pyrat.inputs.voigtwidth = user.voigtwidth
   pyrat.inputs.Dmin       = user.Dmin
   pyrat.inputs.Dmax       = user.Dmax
   pyrat.inputs.nDop       = user.nDop
@@ -373,12 +369,6 @@ def checkinputs(pyrat):
                      "The number of atmospheric layers ({:d}) must be > 0.")
 
   # Check Voigt-profile arguments:
-  # FINDME: delete voigtbin:
-  if inputs.voigtbin < 1:
-    pt.error("Voigt bin oversampling ({:d}) factor must be >= 1".format(
-                                                       inputs.voigtbin))
-  pyrat.voigt.osamp = inputs.voigtbin
-
   pyrat.voigt.width = isgreater(inputs.voigtwidth, None, 1, False,
                                 "Voigt width ({:g}) must be >= 1.0")
 

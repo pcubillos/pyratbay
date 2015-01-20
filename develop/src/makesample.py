@@ -147,8 +147,8 @@ def makeradius(pyrat):
   elif pyrat.plow is None:
     pyrat.plow  = np.amin(pyrat.atmf.press)
 
-  print("Pressure user boundaries: {:.3e} -- {:.3e} bar".format(
-        pyrat.plow /pc.units["bar"], pyrat.phigh/pc.units["bar"]))
+  pt.msg(pyrat.verb, "Pressure user boundaries: {:.3e} -- {:.3e} bar".format(
+              pyrat.plow/pc.units["bar"], pyrat.phigh/pc.units["bar"]), 2)
 
   # Out of bounds errors:
   if pyrat.phigh > np.amax(pyrat.atmf.press):
@@ -193,7 +193,6 @@ def makeradius(pyrat):
     # Get top-bottom indices:
     ilow  = np.where(pyrat.atmf.press >= pyrat.plow) [0][-1]
     ihigh = np.where(pyrat.atmf.press <= pyrat.phigh)[0][ 0]
-    print(ihigh, ilow)
     pyrat.atm.press   = pyrat.atmf.press [ihigh:ilow]
     pyrat.atm.radius  = pyrat.atmf.radius[ihigh:ilow]
     pyrat.atm.temp    = pyrat.atmf.temp[ihigh:ilow]
@@ -206,7 +205,6 @@ def makeradius(pyrat):
   # Radius-vs.-pressure from Atm. file and resampled array:
   plt.figure(2)
   plt.clf()
-  #plt.semilogx(pyrat.atmf.press, pyrat.atmf.rad, "o-g")
   plt.semilogx(pyrat.atmf.press /pc.units[pyrat.punits],
                pyrat.atmf.radius/pc.units[pyrat.radunits],
                "o-r", mec="r", mfc='r')

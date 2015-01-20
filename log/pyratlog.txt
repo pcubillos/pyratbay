@@ -181,4 +181,57 @@ pconstants.py:
   - Added amagat.
 
 
+*****  Sun Jan 18 15:36:52 EST 2015  *****
+
+Checking PyRaT status:
+ + rename pyrat.user to pyrat.inputs
+ - rewrite voigt to mimic current transit version 
+ - implement readlinedb's line-info read (think well how to proceed!)
+   - can I make one single calc-extinction function?
+ - replace toomuch by taumax.
+ - rework makeradius to mimic current transit version.
+ + move makesample.py pyrat.user checks to argum.py (mostly)
+ + added pyrat.molfile.
+ + set defaults for the Doppler and Lorentz widths.
+ + removed wn nspec, added wnosamp.
+
+ + implemented isgreater in argum.py to check if a value is greater
+   than a given threshold.
+
+"Moved (most) of input checks from makesample.py to argum.py.
+Implemented isgreater in argum.py to check if a value is greater than
+a given threshold."
+
+
+*****  Mon Jan 19 09:56:24 EST 2015  *****
+
+Today is not Sunday, but it's holiday.  So, let's get into it:
+
+New PyRaT status:
+ + Rewrite voigt to mimic current transit version
+ - Implement readlinedb's line-info read (think well how to proceed!)
+   - Can I make one single calc-extinction function?
+ + Rename toomuch by maxdepth.
+ + Rework makeradius (see below)
+ + Finished cleaning makeradius of input checks.
+ + Removed minelow, voigtbin.
+ + Update readatm to new format.
+
+- If atm file contains radius, take it.
+  Else, calculate it with hydrostatic equilibrium.
+
+- pmin and pmax constrain the atmospheric layers to those within
+  [pmin, pmax] but no resample.
+- radmin and radmax override pmax and pmin.  Still no resample.
+
+- If nlayers is defined, resample to equi-spaced Delta logP sample.
+- If radstep is defined, resample to equi-spaced Delta radius.
+
+- readatm woks for two atm-file column configurations:
+    [radius] pressure temperature abundace1 ... abundanceN
+  (radius is optional).
+
+Removed voigtbin.  Made voigt.c human-understandable.
+
+
 *****

@@ -8,18 +8,18 @@ import vprofile   as vp
 
 def voigt(pyrat):
   """
-  Calculate a grid of Voigt profiles.
+  Calculate a grid of voigt profiles.
 
   Modification History:
   ---------------------
   2014-08-17  patricio  Initial version.
   """
 
-  pt.msg(pyrat.verb, "\nCalculate Voigt profiles:")
+  pt.msg(pyrat.verb, "\nCalculate voigt profiles:")
   # Calculate Doppler and Lorentz-width boundaries:
   widthlimits(pyrat)
 
-  # Make Voigt-width arrays:
+  # Make voigt-width arrays:
   pyrat.voigt.doppler = np.logspace(np.log10(pyrat.voigt.Dmin),
                                    np.log10(pyrat.voigt.Dmax), pyrat.voigt.nDop)
   pyrat.voigt.lorentz = np.logspace(np.log10(pyrat.voigt.Lmin),
@@ -48,7 +48,7 @@ def widthlimits(pyrat):
     tmax = np.amax(pyrat.atm.temp)
 
   # Get mass of line-transition molecules:
-  mols = np.unique(pyrat.iso.imol) # Moleciles with transitions
+  mols = np.unique(pyrat.iso.imol) # Molecules with transitions
   mols = mols[np.where(mols>=0)]   # Remove -1's
   # Minimum and maximum mass of molecules with line transitions:
   mmin = np.amin(pyrat.mol.mass[mols])
@@ -87,7 +87,7 @@ def calcvoigt(pyrat):
   """
   Wrapper to the Voigt-profile calculator.
 
-  Determine the size of each Voigt profile, find the ones that don't need
+  Determine the size of each voigt profile, find the ones that don't need
   to be recalculated (small Doppler/Lorentz width ratio) and get the profiles.
 
   Modification History:
@@ -95,30 +95,30 @@ def calcvoigt(pyrat):
   2014-08-24  patricio  Initial implementation.  Use modified functions from
                         the transit project (newprofile and voigtn).
   """
-  # Voigt object from pyrat:
-  Voigt = pyrat.voigt
+  # voigt object from pyrat:
+  voigt = pyrat.voigt
 
   # Calculate the half-size of the profiles:
-  Voigt.size = np.zeros((Voigt.nLor, Voigt.nDop), np.int)
-  for i in np.arange(Voigt.nLor):
+  voigt.size = np.zeros((voigt.nLor, voigt.nDop), np.int)
+  for i in np.arange(voigt.nLor):
     # Profile half-width in cm-1:
-    pwidth = np.maximum(Voigt.doppler, Voigt.lorentz[i]) * Voigt.width
+    pwidth = np.maximum(voigt.doppler, voigt.lorentz[i]) * voigt.width
     # Width in number of spectral samples:
-    psize = 2*np.asarray(pwidth/pyrat.wnstep + 0.5, np.int) + 1
+    psize = 2*np.asarray(pwidth/pyrat.ownstep + 0.5, np.int) + 1
     # Clip to max and min values:
     psize = np.clip(psize, 3, 2*pyrat.nspec+1)
-    # Set the size to -1 for those who are not being calculated:
-    psize[np.where(Voigt.doppler/Voigt.lorentz[i] < Voigt.DLratio)[0][1:]] = 0
+    # Set the size to 0 for those who do not need to be calculated:
+    psize[np.where(voigt.doppler/voigt.lorentz[i] < voigt.DLratio)[0][1:]] = 0
     # Store half-size values for this Lorentz width:
-    Voigt.size[i] = psize/2
+    voigt.size[i] = psize/2
 
-  pt.msg(pyrat.verb, "Calculating Voigt profiles with oversampling factor {:d} "
-                 "and Nwidth factor {:d}.".format(Voigt.osamp, Voigt.width), 2)
-  # Allocate profile array:
-  Voigt.profile = np.zeros((Voigt.osamp, np.sum(2*Voigt.size+1)), np.double)
+  pt.msg(pyrat.verb, "Voigt half-size: {}".format(voigt.size))
+  print(pyrat.ownstep)
+  pt.msg(pyrat.verb, "Calculating voigt profiles with Nwidth factor {:d}.".
+                     format(voigt.width), 2)
+  # Allocate profile arrays (concatenated in a 1D array):
+  voigt.profile = np.zeros(np.sum(2*voigt.size+1), np.double)
   # Calculate the Voigt profiles in C:
-  vp.voigt(Voigt.profile, Voigt.lorentz, Voigt.doppler,
-           Voigt.size,    Voigt.osamp,   pyrat.wnstep, pyrat.verb)
-
-
+  vp.voigt(voigt.profile, voigt.lorentz, voigt.doppler,
+           voigt.size,    pyrat.ownstep,  pyrat.verb)
 
