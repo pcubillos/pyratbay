@@ -234,4 +234,20 @@ New PyRaT status:
 Removed voigtbin.  Made voigt.c human-understandable.
 
 
+*****  Sun Jan 25 11:42:01 EST 2015  *****
+
+Added tstep to argum.py, some minor comment adjustments.
+
+Worked in extinction.py, wrote most of opacity function, wrote
+read_extinction function, started calc_extinction function; functions
+need proper documentation.
+
+Added extcoef.c function to calculate the extinction coefficient at a
+given layer, work in progress, needs comments and documentation.
+
+Some updates to objects.py.
+
+Added pprint function to ptools to print arrays in a nicer way.
+
+
 *****

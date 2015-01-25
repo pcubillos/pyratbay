@@ -53,20 +53,24 @@ def parse(pyrat):
   parser = argparse.ArgumentParser(parents=[cparser])  #, add_help=False) ??
   # Process pyrat Options:
   group = parser.add_argument_group("Input Files Options")
-  group.add_argument("-a", "--atmfile",    dest="atmfile",
+  group.add_argument("--atmfile",    dest="atmfile",
                      help="Atmospheric file [default: %(default)s]",
                      action="store", type=str, default=None) 
-  group.add_argument("-l", "--linedb",     dest="linedb",
+  group.add_argument("--linedb",     dest="linedb",
                      help="Line database files [default: %(default)s]",
                      action="store", type=pt.parray, default=None) 
-  group.add_argument(      "--cia",        dest="cia",
+  group.add_argument("--cia",        dest="cia",
                      help="Collision Induced Absorption files [default: "
                           "%(default)s]",
                      action="store", type=pt.parray, default=None)
-  group.add_argument(      "--molfile",    dest="molfile",
+  group.add_argument("--molfile",    dest="molfile",
                      help="Molecular info file [default: "
                           "'pyrat/inputs/molecules.dat']",
                      action="store", type=str, default=None) 
+  group.add_argument("--extfile",        dest="extfile",
+                     help="Extinction-coefficient table file [default: "
+                          "%(default)s]",
+                     action="store", type=str, default=None)
   # Spectrum sampling options:
   group = parser.add_argument_group("Spectrum Sampling Options")
   group.add_argument("--wlunits",    dest="wlunits",
@@ -100,59 +104,63 @@ def parse(pyrat):
                      action="store", type=int, default=2160)
   # Atmospheric sampling options:
   group = parser.add_argument_group("Atmosphere Sampling Options")
-  group.add_argument(      "--radlow",     dest="radlow",
+  group.add_argument("--radlow",     dest="radlow",
                      help="Atmospheric radius low boundary [default: "
                           "Use atmospheric file value]",
                      action="store", type=np.double, default=None)
-  group.add_argument(      "--radhigh",    dest="radhigh",
+  group.add_argument("--radhigh",    dest="radhigh",
                      help="Atmospheric radius high boundary [default: "
                           "Use atmospheric file value]",
                      action="store", type=np.double, default=None)
-  group.add_argument(      "--radstep",        dest="radstep",
+  group.add_argument("--radstep",        dest="radstep",
                      help="Atmospheric radius sampling step [default: "
                           "Use atmospheric file value]",
                      action="store", type=np.double, default=None)
-  group.add_argument(      "--radunits",      dest="radunits",
+  group.add_argument("--radunits",      dest="radunits",
                      help="Radius (user) units [default: %(default)s]",
                      action="store", type=str, default='km',
                      choices=('cm','m', 'km', 'atmfile'))
-  group.add_argument(      "--plow",          dest="plow",
+  group.add_argument("--plow",          dest="plow",
                      help="Atmospheric pressure low boundary (overrides "
                           "radius high boundary) [default: %(default)s]",
                      action="store", type=np.double, default=None)
-  group.add_argument(      "--phigh",         dest="phigh",
+  group.add_argument("--phigh",         dest="phigh",
                      help="Atmospheric pressure high boundary (overrides "
                           "radius  low boundary) [default: %(default)s]",
                      action="store", type=np.double, default=None)
-  group.add_argument(      "--nlayers",       dest="nlayers",
+  group.add_argument("--nlayers",       dest="nlayers",
                      help="Number of atmospheric pressure samples [default: "
                           "Use atmospheric file value]",
                      action="store", type=np.int, default=None)
-  group.add_argument(      "--punits",        dest="punits",
+  group.add_argument("--punits",        dest="punits",
                      help="Pressure (user) units [default: %(default)s]",
                      action="store", type=str, default='bar',
                      choices=('bar',))
-  group.add_argument(      "--radiusbase",    dest="radiusbase",
+  group.add_argument("--radiusbase",    dest="radiusbase",
                      help="Planetary radius base level (in radunits)",
                      action="store", type=np.double, default=None)
-  group.add_argument(      "--pressurebase",  dest="pressurebase",
+  group.add_argument("--pressurebase",  dest="pressurebase",
                      help="Planetary pressure base level (in punits)",
                      action="store", type=np.double, default=None)
-  group.add_argument(      "--surfgravity",   dest="surfgravity",
+  group.add_argument("--surfgravity",   dest="surfgravity",
                      help="Planet's surface gravity in cm s-2",
                      action="store", type=np.double, default=None)
   # Extinction options:
   group = parser.add_argument_group("Extinction Calculations Options")
-  group.add_argument(      "--Tmin",          dest="tmin",
+  group.add_argument("--tmin",          dest="tmin",
                      help="Minimum temperature to sample/consider "
                      " in Kelvin [default: %(default)s]",
                      action="store", type=np.double, default=500.0)
-  group.add_argument(      "--Tmax",          dest="tmax",
+  group.add_argument("--tmax",          dest="tmax",
                      help="Maximum temperature to sample/consider "
                      "in Kelvin [default: %(default)s]",
                      action="store", type=np.double, default=3000.0)
-  group.add_argument("--exthresh",       dest="exthresh",
-                     help="Extinction coefficient threshold "
+  group.add_argument("--tstep",          dest="tstep",
+                     help="Temperature sample step interval "
+                     "in Kelvin [default: %(default)s]",
+                     action="store", type=np.double, default=100.0)
+  group.add_argument("--ethresh",       dest="ethresh",
+                     help="Extinction-coefficient threshold "
                           "[default: %(default)s]",  # FINDME: Explain better
                      action="store", type=np.double, default=1e-6)
   # Voigt-profile options:
@@ -226,6 +234,7 @@ def parse(pyrat):
   pyrat.inputs.linedb     = user.linedb
   pyrat.inputs.cia        = user.cia
   pyrat.inputs.molfile    = user.molfile
+  pyrat.inputs.extfile    = user.extfile
   # Wavelength:
   pyrat.inputs.wlunits    = user.wlunits
   pyrat.inputs.wllow      = user.wllow
@@ -251,9 +260,10 @@ def parse(pyrat):
   pyrat.inputs.pressurebase = user.pressurebase
   pyrat.inputs.surfgravity  = user.surfgravity
   # Extinction:
-  pyrat.inputs.exthresh   = user.exthresh
-  pyrat.inputs.tmin       = user.tmin
-  pyrat.inputs.tmax       = user.tmax
+  pyrat.inputs.ethresh = user.ethresh
+  pyrat.inputs.tmin    = user.tmin
+  pyrat.inputs.tmax    = user.tmax
+  pyrat.inputs.tstep   = user.tstep
   # Voigt-profile:
   pyrat.inputs.voigtwidth = user.voigtwidth
   pyrat.inputs.Dmin       = user.Dmin
@@ -300,7 +310,7 @@ def checkinputs(pyrat):
         pt.error("linedb file: '{:s}' does not exist.".format(linedb))
   pyrat.linedb = pyrat.inputs.linedb
 
-  if pyrat.inputs.cia is not None:
+  if inputs.cia is not None:
     for cia in pyrat.inputs.cia:
       if not os.path.isfile(cia):
         pt.error("CIA file: '{:s}' does not exist.".format(cia))
@@ -309,8 +319,15 @@ def checkinputs(pyrat):
   if inputs.molfile is None: # Set default
     inputs.molfile = pyratdir + "/../inputs/molecules.dat"
   if not os.path.isfile(inputs.molfile):
-    pt.error("molfile: '{:s}' does not exist.".format(inputs.molfile))
+    pt.error("Molecular-data file: '{:s}' does not exist.".
+             format(inputs.molfile))
   pyrat.molfile = inputs.molfile
+
+  if inputs.extfile is not None:
+    if not os.path.exists(os.path.realpath(os.path.dirname(inputs.extfile))):
+      pt.error("Directory for extinction-coefficient file '{:s}' does "
+               "not exist.".format(inputs.extfile))
+  pyrat.ex.extfile = os.path.realpath(inputs.extfile)
 
   # Check spectrum arguments:
   pyrat.wnunits = inputs.wnunits  # Accept units
@@ -404,11 +421,12 @@ def checkinputs(pyrat):
              "Doppler/Lorentz width ratio threshold ({:g}) must be > 0.")
 
   # Check extinction arguments:
-  pyrat.ex.tmin = isgreater(inputs.tmin, None, 0, True,
+  pyrat.ex.tmin  = isgreater(inputs.tmin,  None, 0, True,
              "Minimum temperature sample ({:g} K) must be positive.")
-
-  pyrat.ex.tmax = isgreater(inputs.tmax, None, 0, True,
+  pyrat.ex.tmax  = isgreater(inputs.tmax,  None, 0, True,
              "Maximum temperature sample ({:g} K) must be positive.")
+  pyrat.ex.tstep = isgreater(inputs.tstep, None, 0, True,
+             "Temperature sample step interval ({:g} K) must be positive.")
 
   if pyrat.ex.tmax is not None and pyrat.ex.tmin is not None:
     if pyrat.ex.tmax <= pyrat.ex.tmin:

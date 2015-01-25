@@ -134,7 +134,7 @@ def makeradius(pyrat):
                              pyrat.atmf.radius[::-1], kind='slinear')
   pressinterp = sip.interp1d(pyrat.atmf.radius, pyrat.atmf.press, kind='cubic')
   pt.msg(pyrat.verb, "Radius array (km) = \n{:s}".
-                      format(str(pyrat.atmf.radius/pc.units["km"])), 2)
+                      format(pt.pprint(pyrat.atmf.radius/pc.units["km"],2)), 2)
 
   # Set pressure boundaries:
   if pyrat.radhigh is not None:
@@ -247,12 +247,12 @@ def makeradius(pyrat):
   
   # Initialize the partition-function array for pyrat.iso:
   pyrat.iso.z = np.zeros((pyrat.iso.niso, pyrat.atm.nlayers))
-  for i in np.arange(pyrat.lt.ndb):
-    for j in np.arange(pyrat.lt.db[i].niso):
-      zinterp = sip.interp1d(pyrat.lt.db[i].temp, pyrat.lt.db[i].z[j],
-                             kind='cubic')
+  for i in np.arange(pyrat.lt.ndb):           # For each Database
+    for j in np.arange(pyrat.lt.db[i].niso):  # For each isotope in DB
       pt.msg(pyrat.verb, "Interpolating (isotope ID {:2d}) partition "
                          "function.".format(pyrat.lt.db[i].iiso+j), 4)
+      zinterp = sip.interp1d(pyrat.lt.db[i].temp, pyrat.lt.db[i].z[j],
+                             kind='cubic')
       pyrat.iso.z[pyrat.lt.db[i].iiso+j] = zinterp(pyrat.atm.temp)
 
   # Plot interpolation:

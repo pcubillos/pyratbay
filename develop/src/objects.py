@@ -38,6 +38,7 @@ class inputs(object):
     self.linedb   = None
     self.ciafiles = None
     self.molfile  = None
+    self.extfile  = None
     # Wavelength arguments:
     self.wlunits = None
     self.wllow   = None
@@ -73,7 +74,11 @@ class inputs(object):
     self.Lmax       = None
     self.nLor       = None
     # Extinction calculation arguments:
-    self.minelow    = None
+    self.exthresh = None
+    self.tmin     = None
+    self.tmax     = None
+    #self. = 
+    #self. = 
     # Optical depth arguments:
     self.path     = None
     self.maxdepth = None
@@ -85,18 +90,18 @@ class inputs(object):
 
 class atm(object):
   def __init__(self):
-    self.abundance = None         # Abundance by mass (True) or number (False)
-    self.info      = None         # General info from atmfile
-    self.runits    = 'km'         # Input radius units
-    self.punits    = 'bar'        # Input pressure units
-    self.tunits    = 'kelvin'     # Input temperature units
-    self.nlayers   = None         # Number of layers
-    self.radius    = None         # Radius array (cm)            [layers]
-    self.press     = None         # Pressure array (barye)       [layers]
-    self.temp      = None         # Temperature array (K)        [layers]
-    self.mm        = None         # Mean molecular mass (gr/mol) [layers]
-    self.q         = None         # Molecular abundances         [layers, nmol]
-    self.d         = None         # Molecular densities          [layers, nmol]
+    self.abundance = None      # Abundance by mass (True) or number (False)
+    self.info      = None      # General info from atmfile
+    self.runits    = 'km'      # Input radius units
+    self.punits    = 'bar'     # Input pressure units
+    self.tunits    = 'kelvin'  # Input temperature units
+    self.nlayers   = None      # Number of layers
+    self.radius    = None      # Radius array (cm)            [layers]
+    self.press     = None      # Pressure array (barye)       [layers]
+    self.temp      = None      # Temperature array (K)        [layers]
+    self.mm        = None      # Mean molecular mass (gr/mol) [layers]
+    self.q         = None      # Molecular abundances         [layers, nmol]
+    self.d         = None      # Molecular densities          [layers, nmol]
 
 
 class molecules(object):
@@ -107,6 +112,7 @@ class molecules(object):
     self.mass   = None  # Molecule's mass  (gr/mol)
     self.radius = None  # Molecule's radius (Angstroms)
     self.ID     = None  # Molecule's universal ID
+
 
 class linetransition(object):
   def __init__(self):
@@ -161,12 +167,19 @@ class voigt(object):
 
 class extinction(object):
   def __init__(self):
-    self.minelow = None # Minimum Elow to consider
+    self.extfile = None # Extinction-coefficient table filename
+    self.etable  = None # Table of ext. coefficient [nmol, nlayer, nTemp, nwave]
+    self.ethresh = None # Extinction-coefficient threshold
     self.tmin    = None # Minimum temperature to sample
     self.tmax    = None # Maximum temperature to sample
-    self.nTemp   = None # Number of temperature samples
-    self.opacity = None # Grid of opacities [nmol, nlayer, nTemp, nwave]
+    self.tstep   = None # Temperature-sample step interval
+    self.ntemp   = None # Number of temperature samples
+    self.molID   = None
+    self.temp    = None
+    self.press   = None
+    self.wn      = None
     self.ciaext  = None # CIA extinction [nlayer, nwave]
+
 
 class cia(object):
   def __init__(self):

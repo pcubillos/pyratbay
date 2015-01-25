@@ -181,3 +181,35 @@ def binsearch(dbfile, wavelength, rec0, nrec, upper=True):
   # Return the index withing the boundaries:
   return irec - (jump+upper)/2
 
+
+def pprint(array, precision=3, fmt=None):
+  """
+  Pretty print a Numpy array.  Set desired precision and format, and
+  remove line break from the string output.
+
+  Parameters:
+  -----------
+  array: 1D ndarray
+     Array to be pretty printed.
+  precision: Integer
+     Precision for floating point values.
+  fmt: format
+     Numeric format.
+
+  Modification History:
+  ---------------------
+  2015-01-25  patricio  Initial implementation.
+  """
+  default_prec = np.get_printoptions().get('precision')
+  np.set_printoptions(precision=precision)
+
+  # Pretty array is a copy of array:
+  parray = np.copy(array)
+  if format is not None:
+    parray = np.asarray(array, fmt)
+
+  # Convert to string and remove line-breaks:
+  sarray = str(array).replace("\n", "")
+  np.set_printoptions(precision=default_prec)
+  return sarray
+

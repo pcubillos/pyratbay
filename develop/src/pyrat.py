@@ -49,7 +49,11 @@ def main(argv):
   # Interpolate CIA absorption:
   cia.interpolate(cavendish)
 
+  # Calculate opacity grid:
+  ex.opacity(cavendish)
+
   print("Next one!")
+  return 1
 
 if __name__ == "__main__":
   main(sys.argv)
