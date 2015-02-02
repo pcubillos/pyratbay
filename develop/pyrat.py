@@ -1,5 +1,12 @@
 #!/usr/bin/env python
-import sys
+import sys, os
+
+# Main dir (where pyrat.py is located):
+maindir = os.path.dirname(os.path.realpath(__file__))
+# Add paths to Python a C folders:
+sys.path.append(maindir + '/pysrc/')
+sys.path.append(maindir + '/csrc/lib/')
+
 import argum      as ar
 import makesample as ms
 import readatm    as ra

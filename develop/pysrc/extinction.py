@@ -3,7 +3,6 @@ import struct
 import numpy as np
 import scipy.interpolate as sip
 
-sys.path.append(os.path.dirname(os.path.realpath(__file__))+'/cfuncs/lib')
 import ptools     as pt
 import pconstants as pc
 import vprofile   as vp
@@ -110,7 +109,7 @@ def calcvoigt(pyrat):
     psize = 2*np.asarray(pwidth/pyrat.ownstep + 0.5, np.int) + 1
     # Clip to max and min values:
     psize = np.clip(psize, 3, 2*pyrat.nspec+1)
-    # Set the size to 0 for those who do not need to be calculated:
+    # Set the size to 0 for those that do not need to be calculated:
     psize[np.where(voigt.doppler/voigt.lorentz[i] < voigt.DLratio)[0][1:]] = 0
     # Store half-size values for this Lorentz width:
     voigt.size[i] = psize/2
@@ -121,9 +120,11 @@ def calcvoigt(pyrat):
                      format(voigt.width), 2)
   # Allocate profile arrays (concatenated in a 1D array):
   voigt.profile = np.zeros(np.sum(2*voigt.size+1), np.double)
+  voigt.index   = np.zeros((voigt.nLor, voigt.nDop), np.int)
   # Calculate the Voigt profiles in C:
-  vp.voigt(voigt.profile, voigt.lorentz, voigt.doppler,
-           voigt.size,    pyrat.ownstep,  pyrat.verb)
+  vp.voigt(voigt.profile, voigt.size, voigt.index,
+           voigt.lorentz, voigt.doppler,
+           pyrat.ownstep,  pyrat.verb)
 
 
 def opacity(pyrat):
@@ -133,18 +134,20 @@ def opacity(pyrat):
   Modification History:
   ---------------------
   2015-01-19  patricio  pre-initial implementation.
+  2015-01-25  patricio  intitial version.
   """
+  # If the extinction file was not defined, skip this step:
   if pyrat.ex.extfile is None:
     pt.msg(pyrat.verb-10, "No extinction coefficient table requested.")
     return
 
-  # If file exists read:
+  # If the extinction file exists, read it:
   elif os.path.isfile(pyrat.ex.extfile):
     pt.msg(pyrat.verb, "Reading extinction-coefficient table file:"
                      "\n  '{:s}'".format(pyrat.ex.extfile))
     read_extinction(pyrat)
 
-  # If it doesn't exist, calculate it:
+  # If the extinction file doesn't exist, calculate it:
   else:
     pt.msg(pyrat.verb, "Generating new extinction-coefficient table file:"
                      "\n  '{:s}'".format(pyrat.ex.extfile))
@@ -154,10 +157,13 @@ def opacity(pyrat):
 def read_extinction(pyrat):
   """
   Read an extinction-coefficient table from file.
+
+  Modification History:
+  ---------------------
+  2015-01-25  patricio  intitial version.
   """
-  ex = pyrat.ex
-  # Open extinction coefficient file:
-  f = open(pyrat.ex.extfile, "rb")
+  ex = pyrat.ex               # Extinction-coefficient object
+  f = open(ex.extfile, "rb")  # Open extinction coefficient file
 
   # Read arrays lengths:
   ex.nmol    = struct.unpack('l', f.read(8))[0]
@@ -169,18 +175,16 @@ def read_extinction(pyrat):
                        format(ex.nmol, ex.ntemp, ex.nlayers, ex.nspec), 2)
 
   # Read wavenumber, temperature, pressure, and isotope arrays:
-  ex.molID = np.asarray(struct.unpack(str(ex.nmol )+'i',  f.read(4*ex.nmol )))
-  pt.msg(pyrat.verb-15, "Molecules' IDs: {}".format(ex.mol), 2)
+  ex.molID = np.asarray(struct.unpack(str(ex.nmol   )+'i', f.read(4*ex.nmol )))
+  ex.temp  = np.asarray(struct.unpack(str(ex.ntemp  )+'d', f.read(8*ex.ntemp)))
+  ex.press = np.asarray(struct.unpack(str(ex.nlayers)+'d',f.read(8*ex.nlayers)))
+  ex.wn    = np.asarray(struct.unpack(str(ex.nspec  )+'d', f.read(8*ex.nspec)))
 
-  ex.temp  = np.asarray(struct.unpack(str(ex.ntemp)+'d',  f.read(8*ex.ntemp)))
+  pt.msg(pyrat.verb-15, "Molecules' IDs: {}".format(ex.mol), 2)
   pt.msg(pyrat.verb-15, "Temperatures (K): {}".
                          format(pt.pprint(ex.temp, fmt=np.int)), 2)
-
-  ex.press = np.asarray(struct.unpack(str(ex.nlayers)+'d',f.read(8*ex.nlayers)))
   pt.msg(pyrat.verb-15, "Pressure layers (bar): {}".
                          format(pt.pprint(ex.press*1e-6,3)), 2)
-
-  ex.wn    = np.asarray(struct.unpack(str(ex.nspec)+'d',  f.read(8*ex.nspec)))
   pt.msg(pyrat.verb-15, "Wavenumber array (cm-1): {}".
                          format(pt.pprint(ex.wn, 1)), 2)
 
@@ -193,6 +197,12 @@ def read_extinction(pyrat):
 
 def calc_extinction(pyrat):
   """
+  Compute the extinction-coefficient (per molecule) for a tabulated grid of
+  temperatures and pressures, over a wavenumber array.
+
+  Modification History:
+  ---------------------
+  2015-01-25  patricio  intitial version.
   """
   # Extinction-coefficient object:
   ex = pyrat.ex
@@ -204,58 +214,70 @@ def calc_extinction(pyrat):
   ex.temp = np.arange(1.0*ex.tmin, ex.tmax, ex.tstep)
   ex.ntemp = len(ex.temp)
   pt.msg(pyrat.verb-15, "Temperature sample (K): {:s}".
-                        format(pt.pprint(ex.temp)), 2)
+                         format(pt.pprint(ex.temp)), 2)
 
-  # Evaluate partition function:
-  Ztable = np.zeros((pyrat.iso.niso, ex.ntemp), np.double)
+  # Evaluate the partition function at the given temperatures:
+  pt.msg(pyrat.verb, "Interpolate partition function.", 2)
+  ex.z = np.zeros((pyrat.iso.niso, ex.ntemp), np.double)
   for i in np.arange(pyrat.lt.ndb):           # For each Database
     for j in np.arange(pyrat.lt.db[i].niso):  # For each isotope in DB
       zinterp = sip.interp1d(pyrat.lt.db[i].temp, pyrat.lt.db[i].z[j],
                              kind='cubic')
-      Ztable[pyrat.lt.db[i].iiso+j] = zinterp(ex.temp)
+      ex.z[pyrat.lt.db[i].iiso+j] = zinterp(ex.temp)
 
   # Allocate wavenumber, pressure, and isotope arrays:
   ex.wn    = pyrat.wn
   ex.nspec = pyrat.nspec
 
   ex.molID = pyrat.mol.ID[np.unique(pyrat.iso.imol)]
-  ex.nmol  = len(molID)
+  ex.nmol  = len(ex.molID)
 
   ex.press = pyrat.atm.press
-  ex.nlayers = pyrat.nlayers
+  ex.nlayers = pyrat.atm.nlayers
 
   # Allocate extinction-coefficient array:
+  pt.msg(pyrat.verb, "Calculate extinction coefficient.", 2)
   ex.etable = np.zeros((ex.nmol, ex.ntemp, ex.nlayers, ex.nspec), np.double)
 
-  # Compute extinction (do it in C):
-  for nlayer
-    for ntemp
-      for nmol
-      ex.etable[m, t, r] = extinction(pyrat, r, t, m)
+  # Compute extinction (in C):
+  for r in np.arange(ex.nlayers):
+    for t in np.arange(1):
+    #for t in np.arange(ex.ntemp):
+      extinction(pyrat, r, t)
 
   # Store values in file:
+  pass
 
 
-def extinction(pyrat, pressure, temp, molID=None):
+def extinction(pyrat, ilayer, itemp, molID=None):
   """
   Calculate the extinction coefficient over the wavenumber array for the
   given temperature and pressure.
   """
   # Unpack stuff:
-  pressure = pyrat.press[r] # Layer pressure
-  mm   = pyrat.atm.mm[r] # Mean molecular mass
-  molq = pyrat.atm.q[r]  # Molecular abundance
+  pressure = pyrat.atm.press[ilayer]  # Layer pressure
+  molq     = pyrat.atm.q    [ilayer]  # Molecular abundance
+  temp     = pyrat.ex.temp[itemp]     # Temperature
+  ziso     = pyrat.ex.z [:,itemp]     # Partition function per isotope
+
+  # Get mol index in extinction coefficient table for the isotopes:
+  pyrat.iso.iext = np.zeros(pyrat.iso.niso, np.int)
+  for i in np.arange(pyrat.iso.niso):
+    pyrat.iso.iext[i] = np.where(pyrat.ex.molID ==
+                                 pyrat.mol.ID[pyrat.iso.imol[i]])[0][0]
 
   # Call coeff in C:
-  ec.coeff(pyrat.voigt.profile, pyrat.voigt.size,
-           pyrat.voigt.lorentz, pyrat.voigt.doppler,
-           pyrat.wn, pyrat.own,
-           molq, pyrat.mol.radius, pyrat.mol.mass,
-           pyrat.iso.imol, pyrat.iso.mass,
-           pressure, temp)
+  ec.extinction(ex.etable[:,itemp, ilayer, :],
+                pyrat.voigt.profile, pyrat.voigt.size,
+                pyrat.voigt.lorentz, pyrat.voigt.doppler,
+                pyrat.wn, pyrat.own, pyrat.odivisors,
+                molq, pyrat.mol.radius, pyrat.mol.mass,
+                pyrat.iso.imol, pyrat.iso.mass, ziso, pyrat.iso.iext,
+                pyrat.lt.wn, pyrat.lt.elow, pyrat.lt.gf, pyrat.lt.isoid,
+                pressure, temp)
 
   # Return 
-
+  pass
 
 
 

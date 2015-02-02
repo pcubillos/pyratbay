@@ -3,6 +3,14 @@ import scipy.constants as sc
 Constant values used in the pyrat project
 """
 
+# Lineread version:
+TLI_VER = 6  # TLI version
+LR_VER  = 6  # Lineread version
+LR_REV  = 0  # Lineread revision
+
+MTC  = 1e-4  # Microns to cm     (MTC = um/cm)
+NTC  = 1e-7  # Nanometers to cm  (NTC = nm/cm)
+
 # Units processing (conversion to cm):
 units = {'A' :1e-8,
          'nm':1e-7,
@@ -30,6 +38,11 @@ u = sc.physical_constants["unified atomic mass unit"][0] * 1e3
 k = sc.k * 1e7
 # Speed of light in cm/s:
 c = sc.c * 100.0
+# Elementary charge in statcoulombs (from Wolfram Alpha):
+e = 4.803205e-10 
+
+C1 = 4 * sc.epsilon_0 * sc.m_e * sc.c**2 / sc.e**2 * 0.01  # cm-1
+C2 = sc.h * (sc.c * 100.0) / sc.k                          # cm / Kelvin
 
 # Amagat (Loschmidt number) in mol cm-3:
 #amagat = 44.6150e-6

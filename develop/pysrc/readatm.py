@@ -145,9 +145,10 @@ def getconstants(pyrat):
     # Set molecule mass:
     pyrat.mol.mass[i]   = mass  [imol]
     # Set molecule collision radius:
-    pyrat.mol.radius[i] = diam  [imol]/2.0
-    pt.msg(1, "{:>10s}:  {:3d}  {:.3f}  {:8.4f}".format(pyrat.mol.name[i],
-                  pyrat.mol.ID[i], pyrat.mol.radius[i], pyrat.mol.mass[i]), 2)
+    pyrat.mol.radius[i] = diam[imol]/2.0 * pc.units["A"]
+    pt.msg(1, "{:>10s}:  {:3d}  {:.3f}  {:8.4f}".
+           format(pyrat.mol.name[i], pyrat.mol.ID[i],
+                  pyrat.mol.radius[i]/pc.units["A"], pyrat.mol.mass[i]), 2)
 
 
 def getprofiles(pyrat, atmfile):

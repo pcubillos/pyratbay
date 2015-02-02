@@ -144,6 +144,7 @@ class isotopes(object):
     self.mass    = np.array([]) # Isotope's mass
     self.dbindex = np.array([], np.int) # Isotope's data base index
     self.imol    = np.array([]) # Isotope's molecule index
+    self.iext    = None         # Molecule index in ext. coef. table
     self.ntemp   = None         # Number of temperature samples
     self.temp    = None         # Temperature array
     self.z       = None         # Isotopes' partition function [niso, ntemp]
@@ -178,6 +179,7 @@ class extinction(object):
     self.temp    = None
     self.press   = None
     self.wn      = None
+    self.z       = None
     self.ciaext  = None # CIA extinction [nlayer, nwave]
 
 

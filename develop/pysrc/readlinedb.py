@@ -162,7 +162,7 @@ def readlinetransition(pyrat, linefile, dbindex):
   2014-06-22  patricio  Initial implementation
   """
   # Read the number of line transitions:
-  nTransitions = struct.unpack("l", linefile.read(8))[0]
+  nTransitions = struct.unpack("i", linefile.read(4))[0]
   # Position where the line-transition data begins:
   initrec = linefile.tell()
   # Count the number of transitions:
@@ -286,4 +286,10 @@ def setimol(pyrat):
       pyrat.iso.imol[i] = np.where(pyrat.mol.symbol == molname)[0]
   pt.msg(pyrat.verb, "Isotope's molecule indices:\n"
                      "  {:s}".format(str(pyrat.iso.imol)), 2)
+
+  
+  # uniques = np.unique(pyrat.iso.imol)
+  # pyrat.iso.iext = np.zeros(pyrat.iso.niso, np.int)
+  # for i in np.arange(pyrat.iso.niso):
+  #   pyrat.iso.iext[i] = np.where(uniques == pyrat.iso.imol[i])[0][0]
 

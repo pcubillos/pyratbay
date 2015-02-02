@@ -69,6 +69,8 @@ def makewavenumber(pyrat):
   pyrat.ownstep = pyrat.wnstep / pyrat.wnosamp
   pyrat.onspec  = pyrat.nspec *  pyrat.wnosamp
   pyrat.own = np.linspace(pyrat.wn[0], pyrat.wn[-1], pyrat.onspec)
+  # Get list of divisors:
+  pyrat.odivisors = pt.divisors(pyrat.wnosamp)
 
   # Screen output:
   pt.msg(pyrat.verb,"Initial wavenumber boundary:  {:.5e} cm-1  ({:.3e} "
@@ -133,7 +135,7 @@ def makeradius(pyrat):
   radinterp   = sip.interp1d(pyrat.atmf.press [::-1],
                              pyrat.atmf.radius[::-1], kind='slinear')
   pressinterp = sip.interp1d(pyrat.atmf.radius, pyrat.atmf.press, kind='cubic')
-  pt.msg(pyrat.verb, "Radius array (km) = \n{:s}".
+  pt.msg(pyrat.verb, "Radius array (km) = {:s}".
                       format(pt.pprint(pyrat.atmf.radius/pc.units["km"],2)), 2)
 
   # Set pressure boundaries:
@@ -193,6 +195,7 @@ def makeradius(pyrat):
     # Get top-bottom indices:
     ilow  = np.where(pyrat.atmf.press >= pyrat.plow) [0][-1]
     ihigh = np.where(pyrat.atmf.press <= pyrat.phigh)[0][ 0]
+    # Take values within the boundaries:
     pyrat.atm.press   = pyrat.atmf.press [ihigh:ilow]
     pyrat.atm.radius  = pyrat.atmf.radius[ihigh:ilow]
     pyrat.atm.temp    = pyrat.atmf.temp[ihigh:ilow]

@@ -44,18 +44,19 @@ Modification History:                                                      \n\
 2014-08-24  p. cubillos  Modified for use with the pyrat project.");
 
 static PyObject *voigt(PyObject *self, PyObject *args){
-  PyArrayObject *profile, *doppler, *lorentz, *psize;
+  PyArrayObject *profile, *psize, *index, *doppler, *lorentz;
   double *vprofile; /* Voigt profile for each (Dop,Lor) width               */
   double dwn;       /* Wavenumber sample step size                          */
   int nDop, nLor,  /* Number of Lorentz and Doppler width samples           */
       nwave,   /* Number of wavenumber samples of Voigt profile             */
-      index=0, /* Profile index position                                    */
+      idx=0,   /* Profile index position                                    */
       verb,    /* Verbosity flag                                            */
       n, m, j; /* Auxilliary for-loop indices                               */
 
   /* Load inputs:                                                           */
-  if (!PyArg_ParseTuple(args, "OOOOdi", &profile, &lorentz, &doppler, &psize,
-                                        &dwn, &verb))
+  if (!PyArg_ParseTuple(args, "OOOOOdi", &profile, &psize, &index,
+                                         &lorentz, &doppler,
+                                         &dwn, &verb))
     return NULL;
 
   /* Get array sizes:                                                       */
@@ -87,16 +88,19 @@ static PyObject *voigt(PyObject *self, PyObject *args){
         /* Store values in python-object profile:                           */
           for (j=0; j<nwave; j++){
             //printf("%.5f,  ", vprofile[j]);
-            INDd(profile, (index+j)) = vprofile[j];
+            INDd(profile, (idx+j)) = vprofile[j];
           }
           //printf("\n");
         /* Free memory:                                                     */
         free(vprofile);
 
         /* Update index of profile:                                         */
-        index += 2*IND2i(psize,m,n) + 1;
+        IND2i(index, m, n) = idx;
+        idx += 2*IND2i(psize, m, n) + 1;
       }
       else{
+        /* Refer to previous profile:                                       */
+        IND2i(index, m, n) = IND2i(index, (m-1), n);
         if (verb > 10)
           printf("Skip profile[%d, %d] calculation.\n", m, n);
       }

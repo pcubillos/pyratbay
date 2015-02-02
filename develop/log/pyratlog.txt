@@ -250,4 +250,35 @@ Some updates to objects.py.
 Added pprint function to ptools to print arrays in a nicer way.
 
 
+*****  Sun Feb  1 13:24:50 EST 2015  *****
+
+This will be the package structure from now on:
+
+ -pyrat/
+   |--lineread.py
+   |--pyrat.py
+   |
+   |--pysrc/
+   |--csrc/
+   |--inputs/
+   |--log/
+   |--run/
+
+Copied pylineread from transit repo into pyrat repo.  Merged with
+pylineread5.0 (/home/patricio/ast/esp01/bart/pylineread/pylineread5.0/).
+Rename as lineread.py.
+
+Differences with transit repo:
+- Endian encoding.
+- wavelength --> wavenumber.
+
+This week:
+Re-engineered the package folders structure.
+Finished vprofile function.
+Added divisors function to ptools.
+Fixed bug with species collision radius units.
+Added extinction-coefficient C-routines to the repo.
+Added lineread module (adapted to the pyrat code).
+
+
 *****

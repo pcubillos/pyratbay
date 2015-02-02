@@ -213,3 +213,14 @@ def pprint(array, precision=3, fmt=None):
   np.set_printoptions(precision=default_prec)
   return sarray
 
+
+def divisors(number):
+  """
+  Find all the integer divisors of number.
+  """
+  divs = []
+  for i in np.arange(1, number/2+1):
+    if number % i == 0:
+      divs.append(i)
+  divs.append(number)
+  return np.asarray(divs, np.int)

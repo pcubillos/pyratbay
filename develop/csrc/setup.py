@@ -2,7 +2,7 @@ from numpy import get_include
 import os, re, sys
 from distutils.core import setup, Extension
 
-srcdir = 'src/'  # C-code source folder
+srcdir = './'    # C-code source folder
 libdir = 'lib/'  # Where the shared objects are put
 
 files = os.listdir(srcdir)
