@@ -17,10 +17,11 @@ binsearchapprox(PyArrayObject *array, double value, int lo, int hi){
 
 /* Downsample an array by an integer factor into a python array.            */
 int
-downsample(double *input,      /* Input array                               */
+downsample(double **input,     /* Input array                               */
            PyArrayObject *out, /* Output array                              */
            int n,              /* Number of elements in the input array     */
-           int scale){         /* Resampling factor                         */
+           int scale,          /* Resampling factor                         */
+           int index){
   /* - If the scaling factor (f) is an odd number, this routine simply
        performs an averaging of the f points around the resampled value.
      - If f is even, then the boundary points are weighted by one half and
@@ -43,44 +44,41 @@ downsample(double *input,      /* Input array                               */
        O2 = (0.5 I3 + I4 + 0.5 I5) / [    f+1 ]
        O3 = (0.5 I5 + I6         ) / [0.5(f+1)]                             */
 
-  int i, j;   /* for-loop indices */
-  /* Number of points in the downsampled array:                             */
-  int m = 1 + (n-1)/scale;
-  //fprintf(stderr, "m=%i\n", m);
-  /* Kernel size:                                                           */
-  int ks = 2*(scale/2) + 1;
-
-  /* Odd/even flag:                                                         */
-  int even = 1;
+  int i, j;                 /* Auxilliary for-loop indices                  */
+  int m = 1 + (n-1)/scale;  /* Number of points in the downsampled array    */
+  int ks = 2*(scale/2) + 1; /* Kernel size                                  */
+  int even = 1;             /* Odd/even flag:                               */
   if (scale % 2 != 0)
     even = 0;
 
   /* First point:                                                           */
-  INDd(out,0) = 0.0;
+  IND2d(out,index,0) = 0.0;
   for (i=0; i<ks/2+1; i++)
-    INDd(out,0) += input[i];
+    IND2d(out,index,0) += input[index][i];
   if (even == 1)
-    INDd(out,0) -= 0.5*input[ks/2];
-  INDd(out,0) /= 0.5*(scale+1);
+    IND2d(out,index,0) -= 0.5*input[index][ks/2];
+  IND2d(out,index,0) /= 0.5*(scale+1);
 
   /* Down-sampling:                                                         */
   for (j=1; j<m-1; j++){
-    INDd(out,j) = 0.0;
+    IND2d(out,index,j) = 0.0;
     for (i=-ks/2; i < ks/2+1; i++){
-      INDd(out,j) += input[scale*j + i];
+      IND2d(out,index,j) += input[index][scale*j + i];
     }
     if (even == 1)
-      INDd(out,j) -= 0.5*(input[scale*j-ks/2] + input[scale*j+ks/2]);
-    INDd(out,j) /= scale;
+      IND2d(out,index,j) -= 0.5*(input[index][scale*j-ks/2] +
+                                 input[index][scale*j+ks/2]);
+    IND2d(out,index,j) /= scale;
   }
 
   /* Last point:                                                            */
-  INDd(out,(m-1)) = 0.0;
+  IND2d(out,index,(m-1)) = 0.0;
   for (i=n-1-ks/2; i<n; i++)
-    INDd(out,(m-1)) += input[i];
+    IND2d(out,index,(m-1)) += input[index][i];
   if (even == 1)
-    INDd(out,(m-1)) -= 0.5*input[n-ks/2];
-  INDd(out,(m-1)) /= 0.5*(scale+1);
+    IND2d(out,index,(m-1)) -= 0.5*input[index][n-ks/2];
+  IND2d(out,index,(m-1)) /= 0.5*(scale+1);
+  printf("OUT[0,N] = {%.3e, %.3e}\n", IND2d(out,index,0), IND2d(out,index,(m-1)));
 
   return 0;
 }

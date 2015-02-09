@@ -4,8 +4,8 @@ import sys, os
 # Main dir (where pyrat.py is located):
 maindir = os.path.dirname(os.path.realpath(__file__))
 # Add paths to Python a C folders:
-sys.path.append(maindir + '/pysrc/')
-sys.path.append(maindir + '/csrc/lib/')
+sys.path.append(maindir + '/src_Py/')
+sys.path.append(maindir + '/src_C/lib/')
 
 import argum      as ar
 import makesample as ms
@@ -13,6 +13,7 @@ import readatm    as ra
 import readlinedb as rl
 import extinction as ex
 import cia        as cia
+import optdepth   as od
 
 from objects import pyrat
 
@@ -56,8 +57,11 @@ def main(argv):
   # Interpolate CIA absorption:
   cia.interpolate(cavendish)
 
-  # Calculate opacity grid:
-  ex.opacity(cavendish)
+  # Calculate extinction-coefficient table:
+  ex.exttable(cavendish)
+
+  # Calculate the optical depth:
+  od.opticaldepth(cavendish)
 
   print("Next one!")
   return 1

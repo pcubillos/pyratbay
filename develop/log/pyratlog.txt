@@ -281,4 +281,37 @@ Added extinction-coefficient C-routines to the repo.
 Added lineread module (adapted to the pyrat code).
 
 
+*****  Sun Feb  8 12:44:57 EST 2015  *****
+
+Proof-of-concept, return pointers from C to Python:
+  /home/patricio/ast/esp01/code/tests/python/pypointer
+
+import vprofile as v
+a = np.arange(10.) * np.pi
+p = v.parse(a, 2, 3)
+r = v.duplicate(p, 3)
+
+But it appears to be breaking upon closure, ask Nate.
+
+Open questions:
+ - Can I keep a C pointer in C? What data type is?
+ - How can I slice a PyArrayObject in C?
+
+Renamed folders pysrc/ to src_Py/ and csrc/ to src_C/.
+Started writing optical-depth module.
+Finished writing (general) extinction-coefficient calculation C and
+Python functions, runs from end to end, need to compare against
+transit code.
+Started sketching ext. coeff. interpolation function.
+Fixed bugs in downsample function.
+Found issues at the wavenumber ends, it appears it's not calculating
+well the EC there.
+Fixed bug in makerad sampling boundaries.
+Fixed bug in makewn over-sampling array.
+Fixed bug with linetransition isoid data type, added isoratio to
+isotopes object, added index to voigt object, renamed profsize to size
+in voigt object, added ec to extinction object.  Defined optdepth
+object.
+
+
 *****

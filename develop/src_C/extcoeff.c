@@ -4,7 +4,8 @@
 /* Access to i-th value of array a:                                         */
 #define INDd(a,i) *((double *)(a->data + i*a->strides[0]))
 #define INDi(a,i) *((int    *)(a->data + i*a->strides[0]))
-#define IND2i(a,i,j) *((int *)(a->data+i*a->strides[0]+j*a->strides[1]))
+#define IND2d(a,i,j) *((double *)(a->data + i*a->strides[0] + j*a->strides[1]))
+#define IND2i(a,i,j) *((int    *)(a->data + i*a->strides[0] + j*a->strides[1]))
 
 #include "utils.h"
 
@@ -29,26 +30,33 @@ pressure and temperature, over a wavenumber range.                 \n\
                                                                            \n\
 Parameters:                                                                \n\
 -----------                                                                \n\
-profile: 1D double ndarray                                                 \n\
-   Array (nspec) where to put the calculated Voigt profiles.               \n\
-lorentz: 1D double ndarray                                                 \n\
-   Array of Lorentz widths in cm-1.                                        \n\
-doppler: 1D double ndarray                                                 \n\
-   Array of Doppler widths in cm-1.                                        \n\
-psize: 2D integer ndarray                                                  \n\
-   Array (nLorentz, nDoppler) with the half-size of spectral points of the \n\
-   profiles.  Profiles not to be calculated have psize == 0.               \n\
-osamp: Integer                                                             \n\
-   Oversampling factor to calculate the Voigt profiles.                    \n\
-dwn: Float                                                                 \n\
-   Wavenumber step size in cm-1.                                           \n\
-verb: Integer                                                              \n\
-   Verbosity flag to print info to screen.                                 \n\
-                                                                           \n\
-Notes:                                                                     \n\
-------                                                                     \n\
-The profiles are stacked one next to the other in the profile array.       \n\
-                                                                           \n\
+ext: 2D float ndarray                    \n\
+profile: 1D float ndarray                    \n\
+psize: 2D integer ndarray                    \n\
+pindex: 2D integer ndarray                    \n\
+lorentz: 1D Float ndarray                    \n\
+doppler: 1D Float ndarray                    \n\
+wn: 1D Float ndarray                    \n\
+own: 1D Float ndarray                    \n\
+divisors: 1D integer ndarray                    \n\
+moldensity: 1D Float ndarray                    \n\
+molq: 1D Float ndarray                    \n\
+molrad: 1D Float ndarray                    \n\
+molmass: 1D Float ndarray                    \n\
+isoimol: 1D Float ndarray                    \n\
+isomass: 1D Float ndarray                    \n\
+isoratio: 1D Float ndarray                    \n\
+isoz: 1D Float ndarray                    \n\
+isoiext: 1D Float ndarray                    \n\
+lwn: 1D Float ndarray                    \n\
+elow: 1D Float ndarray                    \n\
+gf: 1D Float ndarray                    \n\
+lID: 1D integer ndarray                    \n\
+ethresh: Float                    \n\
+pressure: Float                    \n\
+temp: Float                    \n\
+sum: Integer                    \n\
+                    \n\
 Developers:                                                                \n\
 -----------                                                                \n\
 Patricio Rojo      U Cornell  pato@astro.cornell.edu (pato@oan.cl)         \n\
@@ -57,35 +65,37 @@ Patricio Cubillos  UCF        pcubillos@fulbrightmail.org                  \n\
 Modification History:                                                      \n\
 ---------------------                                                      \n\
 2006        p. rojo      Writen as a component of the transit package.     \n\
-2014-08-24  p. cubillos  Modified for use with the pyrat project.");
+2014-02-08  p. cubillos  Modified for use with the pyrat project.");
 
 static PyObject *extinction(PyObject *self, PyObject *args){
-  PyArrayObject *ext,                                 /* Extinction coeff.  */
-                *profile, *psize, *lorentz, *doppler, /* Voigt data         */
-                *wn, *own, *divisors,                 /* Wavenumber data    */
-                *molq, *molrad, *molmass,             /* Molecular data     */
-                *isoimol, *isomass, *isoratio,
-                *isoz, *isoiext,                      /* Isotopic data      */
-                *lwn, *lID, *elow, *gf;             /* Line transition data */
+  PyArrayObject *ext,                             /* Extinction coefficient */
+           *profile, *psize, *pindex,
+           *lorentz, *doppler,                    /* Voigt data             */
+           *wn, *own, *divisors,                  /* Wavenumber data        */
+           *moldensity, *molq, *molrad, *molmass, /* Molecular data         */
+           *isoimol, *isomass, *isoratio,
+           *isoz, *isoiext,                       /* Isotopic data          */
+           *lwn, *lID, *elow, *gf;                /* Line transition data   */
+
   int next, nLor, nDop,
       nmol, niso,
       nlines,
-      nwn, dnwn, onwn, ndivs, iown, idwn, offset, subw,
+      dnwn, onwn, ndivs, iown, idwn, offset, subw,
       imol, ofactor, iprof,
       nadd=0, nskip=0, neval=0, minj, maxj,
       sum=0;
   int i, j, m, ln; /* Auxilliary for-loop indices    */
-  double pressure, temp, csdiameter, density, minwidth=1, maxwidth, ethresh,
+  double pressure, temp, csdiameter, density, minwidth=1e5, vwidth, ethresh,
          florentz, fdoppler, wnstep, ownstep, dwnstep, wavn, next_wn, k;
   double *alphal, *alphad, *kmax, **ktmp;
   int *idop, *ilor;
 
   /* Load inputs:                                                           */
-  if (!PyArg_ParseTuple(args, "OOOOOOOOOOOOOOOOOOOOddd|i",
+  if (!PyArg_ParseTuple(args, "OOOOOOOOOOOOOOOOOOOOOOddd|i",
                               &ext,
-                              &profile, &psize, &lorentz, &doppler,
+                              &profile, &psize, &pindex, &lorentz, &doppler,
                               &wn, &own, &divisors,
-                              &molq, &molrad, &molmass,
+                              &moldensity, &molq, &molrad, &molmass,
                               &isoimol, &isomass, &isoratio, &isoz, &isoiext,
                               &lwn, &elow, &gf, &lID,
                               &ethresh, &pressure, &temp, &sum))
@@ -96,10 +106,9 @@ static PyObject *extinction(PyObject *self, PyObject *args){
   nmol   = molmass->dimensions[0];  /* Number of species                    */
   niso   = isomass->dimensions[0];  /* Number of isotopes                   */
   ndivs  = divisors->dimensions[0]; /* Number of divisors of osamp          */
-  nwn    = wn->dimensions[0];       /* Number of coarse-wavenumber samples  */
   onwn   = own->dimensions[0];      /* Number of fine-wavenumber samples    */
   nlines = lwn->dimensions[0];      /* Number of line transitions           */
-  next   = ext-> dimensions[0];     /* Number of extinction-coef. species   */
+  next   = ext->dimensions[0];      /* Number of extinction-coef. species   */
 
   if (sum)
     next = 1;
@@ -120,8 +129,11 @@ static PyObject *extinction(PyObject *self, PyObject *args){
   idop = (int *)calloc(niso, sizeof(int));
   ilor = (int *)calloc(niso, sizeof(int));
 
-  ktmp    = (double **)calloc(next, sizeof(double *));
-  ktmp[0] = (double *)calloc(next*nwn, sizeof(double));
+  ktmp    = (double **)calloc(next,      sizeof(double *));
+  ktmp[0] = (double  *)calloc(next*onwn, sizeof(double  ));
+  for (i=1; i<next; i++)
+    ktmp[i] = ktmp[0] + onwn;
+
   /* Calculate the isotopes' widths:                                        */
   for (i=0; i<niso; i++){
     imol = INDi(isoimol, i);
@@ -149,9 +161,10 @@ static PyObject *extinction(PyObject *self, PyObject *args){
       printf("Lorentz: %.6e cm-1, Doppler: %.6e cm-1 (T=%.1f, "
              "p=%.2e).\n", alphal[i], alphad[i]*INDd(wn,0), temp, pressure);
 
-    /* Max between Doppler and Lorentz widths:                              */
-    maxwidth = fmax(alphal[i], alphad[i]*INDd(wn,0));
-    minwidth = fmin(minwidth, maxwidth);
+    /* Estimate the Voigt width:                                            */
+    vwidth = 0.5346*alphal[i] + sqrt(pow(alphal[i], 2)*0.2166    +
+                                     pow(alphad[i]*INDd(wn,0),2) );
+    minwidth = fmin(minwidth, vwidth);
 
     /* Search for aDop and aLor indices for alphal[i] and alphad[i]:        */
     idop[i] = binsearchapprox(doppler, alphad[i]*INDd(wn,0), 0, nDop);
@@ -171,7 +184,6 @@ static PyObject *extinction(PyObject *self, PyObject *args){
   printf("Dynamic-sampling grid interval: %.4e "
          "(factor:%i, minwidth:%.3e)\n", dwnstep, ofactor, minwidth);
   printf("Number of dynamic-sampling values: %d\n", dnwn);
-
 
   /* Find the maximum line-strength per molecule:                           */
   for (ln=0; ln<nlines; ln++){
@@ -195,13 +207,14 @@ static PyObject *extinction(PyObject *self, PyObject *args){
     /* Check if this is the maximum k:                                      */
     kmax[m] = fmax(kmax[m], k);
   }
-
+  //for (i=0; i<next; i++)
+  //  printf("Kmax[%d] is: %.3e\n", i, kmax[i]);
 
   /* Compute the extinction-coefficient for each species:                   */ 
   for(ln=0; ln<nlines; ln++){
-    wavn = INDd(lwn, ln);  /* Wavenumber                                    */
-    i    = INDi(lID, ln);  /* Isotope index                                 */
-    m    = INDi(isoiext, i);  /* extinction-coefficient table index         */
+    wavn = INDd(lwn, ln);    /* Wavenumber                                  */
+    i    = INDi(lID, ln);    /* Isotope index                               */
+    m    = INDi(isoiext, i); /* extinction-coefficient table index          */
     if (sum)
       m = 0;  /* Collapse everything into the first index                   */
 
@@ -234,6 +247,9 @@ static PyObject *extinction(PyObject *self, PyObject *args){
       else
         break;
     }
+    /* Multiply by the species' density:                                    */
+    if (sum)
+      k *= INDd(moldensity, (INDi(isoimol,i)));
 
     /* Skip weakly contributing lines:                                      */
     if (k < ethresh * kmax[m]){
@@ -264,18 +280,26 @@ static PyObject *extinction(PyObject *self, PyObject *args){
       maxj = dnwn;
 
     /* Add the contribution from this line to the opacity spectrum:         */
-    iprof = IND2i(psize, idop[i], ilor[i]);
+    iprof = IND2i(pindex, idop[i], ilor[i]);
+    //printf("minj: %d, maxj: %d, prof0: %d, offset: %d, ofactor: %d\n",
+    //       minj, maxj, iprof, offset, ofactor);
     for(j=minj; j<maxj; j++){
       //transitprint(1, 2, "%i  ", j-offset);
       //transitprint(1, 2, "j=%d, p[%i]=%.2g   ", j, j-offset,
       //                    profile[idop[i]][ilor[i]][subw][j-offset]);
+      //printf("  iprof: %d\n", iprof + ofactor*j - offset);
+      //printf("  Val: %.3e\n", INDd(profile, (iprof + ofactor*j - offset)));
       ktmp[m][j] += k * INDd(profile, (iprof + ofactor*j - offset));
     }
     neval++;
   }
+  //printf("Downsample now: (%f, %d)\n", wnstep/ownstep, ofactor);
+
   /* Downsample ktmp to the final sampling size:                            */
-  for (m=0; m<next; m++)
-    downsample(ktmp[m], ext, dnwn, ownstep/wnstep/ofactor);
+  for (m=0; m<next; m++){
+    //printf("IN [0,N]: {%.3e, %.3e}\n", ktmp[m][0], ktmp[m][dnwn-1]);
+    downsample(ktmp, ext, dnwn, wnstep/ownstep/ofactor, m);
+  }
 
   /* Free the no-longer used memory:                                        */
   free(alphal);

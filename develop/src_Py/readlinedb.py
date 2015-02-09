@@ -136,6 +136,7 @@ def readheader(pyrat, linefile):
     # Store name, mass in isotopes structure:
     pyrat.iso.name    = np.concatenate((pyrat.iso.name,    name))
     pyrat.iso.mass    = np.concatenate((pyrat.iso.mass,    mass))
+    pyrat.iso.ratio   = np.concatenate((pyrat.iso.ratio,   ratio))
     pyrat.iso.dbindex = np.concatenate((pyrat.iso.dbindex, dbindex))
 
     # Set isotope correlative index for DB:

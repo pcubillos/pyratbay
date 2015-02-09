@@ -420,7 +420,9 @@ def checkinputs(pyrat):
   pyrat.voigt.DLratio = isgreater(inputs.DLratio, None, 0, True,
              "Doppler/Lorentz width ratio threshold ({:g}) must be > 0.")
 
-  # Check extinction arguments:
+  # Check extinction-coefficient arguments:
+  pyrat.ex.ethresh = isgreater(inputs.ethresh,  None, 0, True,
+             "Extinction-coefficient threshold ({:g} K) must be positive.")
   pyrat.ex.tmin  = isgreater(inputs.tmin,  None, 0, True,
              "Minimum temperature sample ({:g} K) must be positive.")
   pyrat.ex.tmax  = isgreater(inputs.tmax,  None, 0, True,
@@ -433,7 +435,7 @@ def checkinputs(pyrat):
       pt.error("Maximum temperature limit ({:g} K) must be > minimum "
                "temperature ({:g} K).".format(pyrat.ex.tmax, pyrat.ex.tmin))
 
-  # Check opacity arguments:
+  # Check optical-depth arguments:
   pyrat.maxdepth = isgreater(inputs.maxdepth, None, 0, False,
                         "Maximum-optical-depth limit ({:g}) must be >= 0.0")
 

@@ -67,7 +67,7 @@ def makewavenumber(pyrat):
 
   # Make the fine-sampled (oversampled) wavenumber array:
   pyrat.ownstep = pyrat.wnstep / pyrat.wnosamp
-  pyrat.onspec  = pyrat.nspec *  pyrat.wnosamp
+  pyrat.onspec  = (pyrat.nspec - 1) *  pyrat.wnosamp + 1
   pyrat.own = np.linspace(pyrat.wn[0], pyrat.wn[-1], pyrat.onspec)
   # Get list of divisors:
   pyrat.odivisors = pt.divisors(pyrat.wnosamp)
@@ -196,12 +196,12 @@ def makeradius(pyrat):
     ilow  = np.where(pyrat.atmf.press >= pyrat.plow) [0][-1]
     ihigh = np.where(pyrat.atmf.press <= pyrat.phigh)[0][ 0]
     # Take values within the boundaries:
-    pyrat.atm.press   = pyrat.atmf.press [ihigh:ilow]
-    pyrat.atm.radius  = pyrat.atmf.radius[ihigh:ilow]
-    pyrat.atm.temp    = pyrat.atmf.temp[ihigh:ilow]
-    pyrat.atm.mm      = pyrat.atmf.mm  [ihigh:ilow]
-    pyrat.atm.q       = pyrat.atmf.q   [ihigh:ilow]
-    pyrat.atm.d       = pyrat.atmf.d   [ihigh:ilow]
+    pyrat.atm.press   = pyrat.atmf.press [ihigh:ilow+1]
+    pyrat.atm.radius  = pyrat.atmf.radius[ihigh:ilow+1]
+    pyrat.atm.temp    = pyrat.atmf.temp[ihigh:ilow+1]
+    pyrat.atm.mm      = pyrat.atmf.mm  [ihigh:ilow+1]
+    pyrat.atm.q       = pyrat.atmf.q   [ihigh:ilow+1]
+    pyrat.atm.d       = pyrat.atmf.d   [ihigh:ilow+1]
     pyrat.atm.nlayers = len(pyrat.atm.press)
     resample = False
 

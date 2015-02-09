@@ -77,8 +77,6 @@ class inputs(object):
     self.exthresh = None
     self.tmin     = None
     self.tmax     = None
-    #self. = 
-    #self. = 
     # Optical depth arguments:
     self.path     = None
     self.maxdepth = None
@@ -123,7 +121,7 @@ class linetransition(object):
     self.wn      = np.array([]) # Line wavenumber
     self.elow    = np.array([]) # Line lower energy level
     self.gf      = np.array([]) # Line gf value
-    self.isoid   = np.array([]) # Line isotope index
+    self.isoid   = np.array([], np.int) # Line isotope index
 
 
 class database(object):
@@ -142,6 +140,7 @@ class isotopes(object):
     self.niso    = 0            # Number of isotopes
     self.name    = np.array([]) # Isotope's name
     self.mass    = np.array([]) # Isotope's mass
+    self.ratio   = np.array([]) # Isotopic abundance ratio
     self.dbindex = np.array([], np.int) # Isotope's data base index
     self.imol    = np.array([]) # Isotope's molecule index
     self.iext    = None         # Molecule index in ext. coef. table
@@ -152,7 +151,6 @@ class isotopes(object):
 
 class voigt(object):
   def __init__(self):
-    self.width    = None  # Profile width in
     self.Dmin     = None  # Minimum Doppler width sampled
     self.Dmax     = None  # Maximum Doppler width sampled
     self.nDop     = None  # Number of Doppler-width samples
@@ -162,12 +160,14 @@ class voigt(object):
     self.doppler  = None  # Doppler-width sample array [nDop]
     self.lorentz  = None  # Lorentz-width sample array [nLor]
     self.DLratio  = None  # Doppler-Lorentz ratio threshold
-    self.profsize = None  # Profile wavenumber half-size [nDop, nLor]
-    self.profile  = None  # Voigt profile [nDop, nLor, profsize]
+    self.profile  = None  # Voigt profile [sum(2*size+1)]
+    self.size     = None  # Profile wavenumber half-size [nDop, nLor]
+    self.index    = None  # Index where each profile starts [nDop, nLor]
 
 
 class extinction(object):
   def __init__(self):
+    self.ec      = None # Extinction coefficient [nlayers, nspec]
     self.extfile = None # Extinction-coefficient table filename
     self.etable  = None # Table of ext. coefficient [nmol, nlayer, nTemp, nwave]
     self.ethresh = None # Extinction-coefficient threshold
@@ -193,3 +193,11 @@ class cia(object):
     self.temp       = []   # Temperature sampling (in Kelvin)
     self.wavenumber = []   # Wavenumber sampling (in cm-1)
     self.absorption = []   # CIA extinction (in cm-1 amagat-2)
+
+
+class optdepth(object):
+  def __init__(self):
+    self.raypath = None  # Distance along ray path  [nlayers]
+    self.depth   = None  # Optical depth at raypath [nlayers, nspec]
+    self.ideep   = None  # Layer index where depth reached maxdepth [nspec]
+
