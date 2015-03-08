@@ -1,10 +1,14 @@
 # This file contains the tabulated H2-H2 CIA data from:
 # http://www.astro.ku.dk/~aborysow/programs/CIA.H2H2.Yi
 
-i  H2 H2
-t   1000    2000        3000        4000        5000        6000        7000
+@SPECIES
+H2 H2
+
+@TEMPERATURES
+            1000    2000        3000        4000        5000        6000        7000
 
 # Wavenumber in cm-1, CIA coefficients in cm-1 amagat-2:
+@DATA
    20.00    0.4675E-08  0.3213E-08  0.2839E-08  0.2917E-08  0.3194E-08  0.3515E-08  0.3867E-08
    40.00    0.1840E-07  0.1279E-07  0.1132E-07  0.1165E-07  0.1276E-07  0.1405E-07  0.1546E-07
    60.00    0.4025E-07  0.2851E-07  0.2535E-07  0.2613E-07  0.2867E-07  0.3157E-07  0.3476E-07

@@ -6,15 +6,9 @@ import scipy.interpolate as sip
 import pconstants as pc
 import ptools as pt
 
-
-
 def read(pyrat):
   """
-  Read a CIA file as given by Borysow.
-
-  Modification History:
-  ---------------------
-  2014-08-31  patricio  Initial python implementation.
+  Read a Collision-Induced Absorption (CIA) file.
   """
 
   pt.msg(pyrat.verb, "\nReading the Collision-Induced-Absorption files:", 0)
@@ -35,41 +29,47 @@ def read(pyrat):
                                                       pyrat.cia.files[i]), 2)
       f = open(pyrat.cia.files[i], "r")
       lines = f.readlines()
-      f.close()
+      f.seek(0)
 
-      # Get the molecules involved:
-      iline = 0
-      while(lines[iline].startswith("#")):
-        iline += 1
-      pyrat.cia.molecules[i] = lines[iline].strip().split()
-      iline += 1
+      nheader = 0  # Number of lines in header
+      # Read the file, extract the keywords info:
+      while True:
+        line = f.readline().strip()
+        nheader += 1
 
-      # Read the sampled temperatures:
-      while(lines[iline].startswith("#")):
-        iline += 1
-      temps = lines[iline].split()[1:]
-      pyrat.cia.ntemp[i] = len(temps)
-      temp = np.zeros(pyrat.cia.ntemp[i])
-      for j in np.arange(pyrat.cia.ntemp[i]):
-        temp[j] = temps[j][:-1]  # Trim the 'k' from Kelvin.
-      # Store the temperature array:
-      pyrat.cia.temp.append(temp)
-      iline += 1
+        if line == "@DATA":
+          break
+
+        # Skip empty and comment lines:
+        elif line == '' or line.startswith('#'):
+          pass
+
+        # Get the molecules involved:
+        elif line == "@SPECIES":
+          pyrat.cia.molecules[i] = f.readline().strip().split()
+          nheader += 1
+
+        # Get the sampled temperatures:
+        elif line == "@TEMPERATURES":
+          pyrat.cia.temp.append(np.asarray(f.readline().strip().split(),
+                                           np.double))
+          pyrat.cia.ntemp[i] = len(pyrat.cia.temp[i])
+          nheader += 1
+
+        else:
+          pt.error("CIA file has an unexpected line: \n'{:s}'".format(line))
 
       # Read the data:
-      while(lines[iline].startswith("#")):
-        iline += 1
       # Get number of wavenumber samples:
-      pyrat.cia.nwave[i] = len(lines) - iline
+      pyrat.cia.nwave[i] = len(lines) - nheader
       # Allocate the wavenumber and absorption arrays:
       wavenumber = np.zeros(pyrat.cia.nwave[i], np.double)
       # Allocate the absorption (in cm-1 amagat-2):
       absorption = np.zeros((pyrat.cia.nwave[i], pyrat.cia.ntemp[i]), np.double)
       for j in np.arange(pyrat.cia.nwave[i]):
-        data = lines[iline].split()
-        wavenumber[j] = data[0]
+        data = f.readline().split()
+        wavenumber[j]   = data[0]
         absorption[j,:] = data[1:]
-        iline += 1
 
       # Add arrays to pyrat:
       pyrat.cia.wavenumber.append(wavenumber)
@@ -83,6 +83,8 @@ def read(pyrat):
                          pyrat.cia.temp[i][0], pyrat.cia.temp[i][-1]), 4)
       pt.msg(pyrat.verb, "Wavenumber sample limits: {:.1f}--{:.1f} cm-1".format(
                      pyrat.cia.wavenumber[i][0], pyrat.cia.wavenumber[i][-1]),4)
+      f.close()
+
   pt.msg(pyrat.verb, "Done.", 0)
 
 
