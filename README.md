@@ -1,4 +1,4 @@
 pyrat
 =====
 
-python radiative transfer: A (mostly) python implementation of the ratiative transfer code for exoplanet atmospheres
+Python Radiative Transfer in a Bayesian Framework.
