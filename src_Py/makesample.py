@@ -121,20 +121,22 @@ def makeradius(pyrat):
     # hydostatic-equilibrium equation:
     pyrat.atmf.radius = si.cumtrapz((-pc.k * sc.N_A * pyrat.atmf.temp) /
                (pyrat.atmf.mm * pyrat.surfgravity), np.log(pyrat.atmf.press))
-    pyrat.atmf.radius = np.concatenate(([0.0], pyrat.atmf.radius))
- 
+    pyrat.atmf.radius  = np.concatenate(([0.0], pyrat.atmf.radius))
+    pyrat.atmf.radius -= pyrat.atmf.radius[-1]
+
     # Get radius at the reference pressure level:
     if pyrat.pressurebase is not None and pyrat.radiusbase is not None:
-      radinterp = sip.interp1d(pyrat.atmf.press [::-1],
-                               pyrat.atmf.radius[::-1], kind='cubic')
+      radinterp = sip.interp1d(pyrat.atmf.press, pyrat.atmf.radius,
+                               kind='slinear')
       r0 = radinterp(pyrat.pressurebase)
-      # Make correction to have: radius(ref. pressure) = ref. radius
+      # Make correction to force: radius(ref. pressure) = ref. radius
       pyrat.atmf.radius += pyrat.radiusbase - r0
 
   # Reset the interpolating function (for use later):
-  radinterp   = sip.interp1d(pyrat.atmf.press [::-1],
-                             pyrat.atmf.radius[::-1], kind='slinear')
-  pressinterp = sip.interp1d(pyrat.atmf.radius, pyrat.atmf.press, kind='cubic')
+  radinterp   = sip.interp1d(pyrat.atmf.press, pyrat.atmf.radius,
+                             kind='slinear')
+  pressinterp = sip.interp1d(pyrat.atmf.radius[::-1],
+                             pyrat.atmf.press [::-1], kind='cubic')
   pt.msg(pyrat.verb, "Radius array (km) = {:s}".
                       format(pt.pprint(pyrat.atmf.radius/pc.units["km"],2)), 2)
 
@@ -166,14 +168,14 @@ def makeradius(pyrat):
               pyrat.plow/pc.units[pyrat.punits], pyrat.punits,
               np.amin(pyrat.atmf.press)/pc.units[pyrat.punits], pyrat.punits))
 
-  # Resample to equispaced log-pressure array:
+  # Resample to equispaced log-pressure array if requested:
   if pyrat.atm.nlayers is not None:
     pyrat.atm.press = np.logspace(np.log10(pyrat.phigh), np.log10(pyrat.plow),
                                   pyrat.atm.nlayers)[::-1]
     pyrat.atm.radius = radinterp(pyrat.atm.press)
     resample = True
 
-  # Resample to equispaced radius array:
+  # Resample to equispaced radius array if requested:
   elif pyrat.radstep is not None:
     # Make equispaced radius array:
     if pyrat.radlow is None:
@@ -190,7 +192,7 @@ def makeradius(pyrat):
     pyrat.atm.press = pressinterp(pyrat.atm.radius)
     resample = True
 
-  # Take atm file sampling:
+  # Else, take the atmospheric-file sampling:
   else:
     # Get top-bottom indices:
     ilow  = np.where(pyrat.atmf.press >= pyrat.plow) [0][-1]
@@ -198,14 +200,14 @@ def makeradius(pyrat):
     # Take values within the boundaries:
     pyrat.atm.press   = pyrat.atmf.press [ihigh:ilow+1]
     pyrat.atm.radius  = pyrat.atmf.radius[ihigh:ilow+1]
-    pyrat.atm.temp    = pyrat.atmf.temp[ihigh:ilow+1]
-    pyrat.atm.mm      = pyrat.atmf.mm  [ihigh:ilow+1]
-    pyrat.atm.q       = pyrat.atmf.q   [ihigh:ilow+1]
-    pyrat.atm.d       = pyrat.atmf.d   [ihigh:ilow+1]
+    pyrat.atm.temp    = pyrat.atmf.temp  [ihigh:ilow+1]
+    pyrat.atm.mm      = pyrat.atmf.mm    [ihigh:ilow+1]
+    pyrat.atm.q       = pyrat.atmf.q     [ihigh:ilow+1]
+    pyrat.atm.d       = pyrat.atmf.d     [ihigh:ilow+1]
     pyrat.atm.nlayers = len(pyrat.atm.press)
     resample = False
 
-  # Radius-vs.-pressure from Atm. file and resampled array:
+  # Radius-vs-pressure from Atm. file and resampled array:
   plt.figure(2)
   plt.clf()
   plt.semilogx(pyrat.atmf.press /pc.units[pyrat.punits],
@@ -222,26 +224,26 @@ def makeradius(pyrat):
   pt.msg(pyrat.verb, "Pressure lower/higher boundaries: {:.2e} - {:.2e} "
                      "{:s}".format(pyrat.plow /pc.units[pyrat.punits],
                            pyrat.phigh/pc.units[pyrat.punits], pyrat.punits), 2)
-  pt.msg(pyrat.verb, "Radius lower/higher boundaries:   {:.2e} - {:.2e} "
+  pt.msg(pyrat.verb, "Radius lower/higher boundaries:   {:.1f} - {:.1f} "
          "{:s}".format(np.amin(pyrat.atm.radius)/pc.units[pyrat.radunits],
          np.amax(pyrat.atm.radius)/pc.units[pyrat.radunits], pyrat.radunits), 2)
 
    # Interpolate to new atm-layer sampling if necessary:
   if resample:
-    tempinterp = sip.interp1d(pyrat.atmf.press[::-1], pyrat.atmf.temp[::-1],
-                              kind='cubic')
-    mminterp   = sip.interp1d(pyrat.atmf.press[::-1], pyrat.atmf.mm[::-1],
-                              kind='cubic')
+    tempinterp = sip.interp1d(pyrat.atmf.press, pyrat.atmf.temp,
+                              kind='slinear')
+    mminterp   = sip.interp1d(pyrat.atmf.press, pyrat.atmf.mm,
+                              kind='slinear')
     pyrat.atm.temp = tempinterp(pyrat.atm.press)
     pyrat.atm.m    =   mminterp(pyrat.atm.press)
     # Interpolate abundance profiles:
     pyrat.atm.q = np.zeros((pyrat.atm.nlayers, pyrat.mol.nmol))
     pyrat.atm.d = np.zeros((pyrat.atm.nlayers, pyrat.mol.nmol))
     for i in np.arange(pyrat.mol.nmol):
-      qinterp = sip.interp1d(pyrat.atmf.press[::-1], pyrat.atmf.q[::-1, i],
-                             kind='cubic')
-      dinterp = sip.interp1d(pyrat.atmf.press[::-1], pyrat.atmf.d[::-1, i],
-                             kind='cubic')
+      qinterp = sip.interp1d(pyrat.atmf.press, pyrat.atmf.q[:, i],
+                             kind='slinear')
+      dinterp = sip.interp1d(pyrat.atmf.press, pyrat.atmf.d[:, i],
+                             kind='slinear')
       pyrat.atm.q[:,i] = qinterp(pyrat.atm.press)
       pyrat.atm.d[:,i] = dinterp(pyrat.atm.press)
 

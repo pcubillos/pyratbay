@@ -50,22 +50,21 @@ def getkeywords(pyrat, atmfile):
     elif line == '' or line.startswith('#'):
       pass
 
-    # Abundance by mass or number:
-    elif line.startswith('q'):
-      pyrat.atmf.abundance = (line[1:].strip() == 'mass')
-
     # Atmospheric file info:
     elif line.startswith('n'):
       pyrat.atmf.info = line[1:].strip()
 
     # Radius, pressure, and temperature units of atm file:
-    elif line.startswith('u'):
-      if line[1] == 'r':
-        pyrat.atmf.runits = line[2:].strip()
-      if line[1] == 'p':
-        pyrat.atmf.punits = line[2:].strip()
-      if line[1] == 't':
-        pyrat.atmf.tunits = line[2:].strip()
+    elif line == '@PRESSURE':
+      pyrat.atmf.punits = atmfile.readline().strip()
+    elif line == '@RADIUS':
+      pyrat.atmf.runits = atmfile.readline().strip()
+    elif line == '@TEMPERATURE':
+      pyrat.atmf.tunits = atmfile.readline().strip()
+
+    # Abundance by mass or number:
+    elif line == '@ABUNDANCE':
+      pyrat.atmf.abundance = atmfile.readline().strip() == "mass"
 
     # Read in molecules:
     elif line == "@SPECIES":
@@ -215,7 +214,8 @@ def getprofiles(pyrat, atmfile):
     plt.savefig("atmprofiles.png")
 
   # Store values in CGS system of units:
-  pyrat.atmf.radius *= pc.units[pyrat.atmf.runits]
+  if rad:
+    pyrat.atmf.radius *= pc.units[pyrat.atmf.runits]
   pyrat.atmf.press  *= pc.units[pyrat.atmf.punits]
   pyrat.atmf.temp   *= pc.units[pyrat.atmf.tunits]
 

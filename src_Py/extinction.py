@@ -314,19 +314,19 @@ def extinction(pyrat, extcoeff, ilayer, temp, ziso, add=0):
                 pyrat.ex.ethresh, pressure, temp, add)
 
 
-def interpolate():
-  """
-  Write me.
-  """
-  pyrat.ex.
-  for (i=0; i < Nwave; i++){
-    #/* Add contribution from each molecule:                                 */
-    for (m=0; m < Nmol; m++){
-      #/* Linear interpolation of the extinction coefficient:                */
-      ext = (op->o[m][itemp  ][r][i] * (gtemp[itemp+1]-temp) +
-             op->o[m][itemp+1][r][i] * (temp - gtemp[itemp]) ) /
-                                                 (gtemp[itemp+1]-gtemp[itemp]);
-      imol = valueinarray(mol->ID, gmol[m], mol->nmol);
-      kiso[r][i] += mol->molec[imol].d[r] * ext;
-
-  pass
+# def interpolate():
+#   """
+#   Write me.
+#   """
+#   pyrat.ex.
+#   for (i=0; i < Nwave; i++){
+#     #/* Add contribution from each molecule:                                 */
+#     for (m=0; m < Nmol; m++){
+#       #/* Linear interpolation of the extinction coefficient:                */
+#       ext = (op->o[m][itemp  ][r][i] * (gtemp[itemp+1]-temp) +
+#              op->o[m][itemp+1][r][i] * (temp - gtemp[itemp]) ) /
+#                                                  (gtemp[itemp+1]-gtemp[itemp]);
+#       imol = valueinarray(mol->ID, gmol[m], mol->nmol);
+#       kiso[r][i] += mol->molec[imol].d[r] * ext;
+# 
+#   pass
