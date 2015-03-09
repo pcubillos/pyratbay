@@ -15,6 +15,19 @@ binsearchapprox(PyArrayObject *array, double value, int lo, int hi){
 }
 
 
+/* Check if value is in array.  Return the index where it was found, else
+   return -1.                                                               */
+int
+valueinarray(PyArrayObject *array, int value, int arraylen){
+  int i;
+  for (i=0; i<arraylen; i++){
+    if (INDd(array,i) == value)
+      return i;
+  }
+  return -1;
+}
+
+
 /* Downsample an array by an integer factor into a python array.            */
 int
 downsample(double **input,     /* Input array                               */

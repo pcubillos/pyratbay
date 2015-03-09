@@ -314,4 +314,36 @@ in voigt object, added ec to extinction object.  Defined optdepth
 object.
 
 
+*****  Sun Mar  8 12:26:02 EDT 2015  *****
+
+Done today:
+- Renamed the repo from pyrat to Pyrat-Bay.  Made the repo private.
+- Put the pyrat git repo into the Pyrat-Bay Github repo.
+- Sorted repo folders.
+
+Define the input atmospheric format:
+- Per-layer data will have: pressure temperature abundances (no radius).
+- Data is ordered from top layer to bottom layer.
+- "#" indicate comments.
+- "@" indicate a keyword:
+  - '@ABUNDANCE' indicates if abundance is by mass or number.
+  - '@PRESSURE' indicates the pressure units.
+  - '@RADIUS indicates the radius units.
+  - '@TEMPERATURE indicates the temperature units.
+  - '@SPECIES' indicates the list of species.
+  - '@DATA' indicates the per-layer data.
+
+Reformated the atmospheric file.  Added current CIA files to repo.  
+Updated the config file.  
+Fixed readatm and makesample to read new format of atmospheric file.
+
+"Updated the CIA inputs and cia.py to use the same format as the
+atmospheric files."
+
+"Implemented extinction-coefficient interpolation C code.  Need to test
+the results.  Implemented valueinarray C code for pyrat.  Fixed bugs
+in argum, extinction, and calc_extinction functions.
+Added makeatm.py and optdepth.py to repo."
+
+
 *****

@@ -214,8 +214,9 @@ def calc_extinction(pyrat):
   if ex.tmin < 0.0 or ex.tmax < 0.0 or ex.tstep < 0.0:
     pt.error("All temperature variables: tmin ({:.1f}), tmax ({:.1f}), and "
        "tstep ({:.1f}) must be defined.".format(ex.tmin, ex.tmax, ex.tstep))
-  ex.temp = np.arange(1.0*ex.tmin, ex.tmax, ex.tstep)
-  ex.ntemp = len(ex.temp)
+
+  ex.ntemp = int((ex.tmax-ex.tmin)/ex.tstep) + 1
+  ex.temp  = np.linspace(ex.tmin, ex.tmin + (ex.ntemp-1)*ex.tstep, ex.ntemp)
   pt.msg(pyrat.verb-15, "Temperature sample (K): {:s}".
                          format(pt.pprint(ex.temp)), 2)
 
@@ -244,8 +245,8 @@ def calc_extinction(pyrat):
 
   # Compute extinction (in C):
   for r in np.arange(ex.nlayers):
-    for t in np.arange(1):
-    #for t in np.arange(ex.ntemp):
+    for t in np.arange(ex.ntemp):
+      # Extinction coefficient for given temperature and pressure-layer:
       pt.msg(pyrat.verb, "\nR={}, T={}".format(r,t))
       extinction(pyrat, ex.etable[:,t,r], r, ex.temp[t], ex.z[:,t])
 
@@ -276,7 +277,7 @@ def extinction(pyrat, extcoeff, ilayer, temp, ziso, add=0):
   -----------
   pyrat: Pyrat Object
   extcoeff: 2D float ndarray
-     Array where to put the calculated extinction coefficient.
+     Output extinction coefficient ().
   ilayer: Integer
      Index of the layer.
   temp: Float
@@ -286,10 +287,6 @@ def extinction(pyrat, extcoeff, ilayer, temp, ziso, add=0):
   add:  Boolean
      If True multiply the extinction coefficient by the density and co-add
      the contribution from all molecules.
-
-  Modification History:
-  ---------------------
-  2015-02-08  patricio  Initial implementation.
   """
   # Unpack layer parameters:
   pressure = pyrat.atm.press[ilayer]  # Layer pressure
@@ -298,9 +295,10 @@ def extinction(pyrat, extcoeff, ilayer, temp, ziso, add=0):
 
   # Get mol index in extinction coefficient table for the isotopes:
   pyrat.iso.iext = np.zeros(pyrat.iso.niso, np.int)
-  for i in np.arange(pyrat.iso.niso):
-    pyrat.iso.iext[i] = np.where(pyrat.ex.molID ==
-                                 pyrat.mol.ID[pyrat.iso.imol[i]])[0][0]
+  if pyrat.ex.extfile is not None:
+    for i in np.arange(pyrat.iso.niso):
+      pyrat.iso.iext[i] = np.where(pyrat.ex.molID ==
+                                   pyrat.mol.ID[pyrat.iso.imol[i]])[0][0]
 
   # Calculate extinction-coefficient in C:
   ec.extinction(extcoeff,
@@ -313,20 +311,3 @@ def extinction(pyrat, extcoeff, ilayer, temp, ziso, add=0):
                 pyrat.lt.wn, pyrat.lt.elow, pyrat.lt.gf, pyrat.lt.isoid,
                 pyrat.ex.ethresh, pressure, temp, add)
 
-
-# def interpolate():
-#   """
-#   Write me.
-#   """
-#   pyrat.ex.
-#   for (i=0; i < Nwave; i++){
-#     #/* Add contribution from each molecule:                                 */
-#     for (m=0; m < Nmol; m++){
-#       #/* Linear interpolation of the extinction coefficient:                */
-#       ext = (op->o[m][itemp  ][r][i] * (gtemp[itemp+1]-temp) +
-#              op->o[m][itemp+1][r][i] * (temp - gtemp[itemp]) ) /
-#                                                  (gtemp[itemp+1]-gtemp[itemp]);
-#       imol = valueinarray(mol->ID, gmol[m], mol->nmol);
-#       kiso[r][i] += mol->molec[imol].d[r] * ext;
-# 
-#   pass

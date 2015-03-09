@@ -54,11 +54,14 @@ def main(argv):
 
   # Read CIA files:
   cia.read(cavendish)
-  # Interpolate CIA absorption:
-  cia.interpolate(cavendish)
 
   # Calculate extinction-coefficient table:
   ex.exttable(cavendish)
+
+  # :: Pyrat-Bay loop boundary ::
+
+  # Interpolate CIA absorption:
+  cia.interpolate(cavendish)
 
   # Calculate the optical depth:
   od.opticaldepth(cavendish)

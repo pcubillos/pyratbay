@@ -7,16 +7,20 @@
 #define IND2d(a,i,j) *((double *)(a->data + i*a->strides[0] + j*a->strides[1]))
 #define IND2i(a,i,j) *((int    *)(a->data + i*a->strides[0] + j*a->strides[1]))
 
+#define IND3d(a,i,j,k) *((double *)(a->data + i*a->strides[0] + \
+                                              j*a->strides[1] + \
+                                              k*a->strides[2]))
+
 #include "utils.h"
 
-#define PI      (3.141592653589793)      /* PI                              */
-#define LS      (2.99792458e10)          /* Light Speed (cm / s)            */
-#define KB      (1.380658e-16)           /* Boltzmann constant (erg / K)    */
-#define AMU     (1.66053886e-24)         /* Atomic Mass unit (g)            */
-#define SQRTLN2 (0.83255461115769775635) /* sqrt(ln(2))                     */
-#define H (6.6260755e-27)       /* Planck's constant (erg * s)              */
-#define EC (4.8032068e-10)      /* electronic charge (statcoulomb)          */
-#define ME (9.1093897e-28)      /* Electron mass (g)                        */
+#define PI      (3.141592653589793)   /* PI                                 */
+#define LS      (2.99792458e10)       /* Light Speed (cm / s)               */
+#define KB      (1.380658e-16)        /* Boltzmann constant (erg / K)       */
+#define AMU     (1.66053886e-24)      /* Atomic Mass unit (g)               */
+#define SQRTLN2 (0.832554611157697)   /* sqrt(ln(2))                        */
+#define H       (6.6260755e-27)       /* Planck's constant (erg * s)        */
+#define EC      (4.8032068e-10)       /* electronic charge (statcoulomb)    */
+#define ME      (9.1093897e-28)       /* Electron mass (g)                  */
 
 #define SIGCTE  (PI*EC*EC/LS/LS/ME/AMU)
 #define EXPCTE  (H*LS/KB)
@@ -27,36 +31,36 @@
 PyDoc_STRVAR(extinction__doc__,
 "Calculate the extinction-coefficient for each molecule, at a given\n\
 pressure and temperature, over a wavenumber range.                 \n\
-                                                                           \n\
-Parameters:                                                                \n\
------------                                                                \n\
-ext: 2D float ndarray                    \n\
+                                                                   \n\
+Parameters:                                                        \n\
+-----------                                                        \n\
+ext: 2D float ndarray                        \n\
 profile: 1D float ndarray                    \n\
 psize: 2D integer ndarray                    \n\
-pindex: 2D integer ndarray                    \n\
+pindex: 2D integer ndarray                   \n\
 lorentz: 1D Float ndarray                    \n\
 doppler: 1D Float ndarray                    \n\
-wn: 1D Float ndarray                    \n\
-own: 1D Float ndarray                    \n\
-divisors: 1D integer ndarray                    \n\
-moldensity: 1D Float ndarray                    \n\
-molq: 1D Float ndarray                    \n\
-molrad: 1D Float ndarray                    \n\
+wn: 1D Float ndarray                         \n\
+own: 1D Float ndarray                        \n\
+divisors: 1D integer ndarray                 \n\
+moldensity: 1D Float ndarray                 \n\
+molq: 1D Float ndarray                       \n\
+molrad: 1D Float ndarray                     \n\
 molmass: 1D Float ndarray                    \n\
 isoimol: 1D Float ndarray                    \n\
 isomass: 1D Float ndarray                    \n\
-isoratio: 1D Float ndarray                    \n\
-isoz: 1D Float ndarray                    \n\
+isoratio: 1D Float ndarray                   \n\
+isoz: 1D Float ndarray                       \n\
 isoiext: 1D Float ndarray                    \n\
-lwn: 1D Float ndarray                    \n\
-elow: 1D Float ndarray                    \n\
-gf: 1D Float ndarray                    \n\
-lID: 1D integer ndarray                    \n\
-ethresh: Float                    \n\
-pressure: Float                    \n\
-temp: Float                    \n\
-sum: Integer                    \n\
-                    \n\
+lwn: 1D Float ndarray                        \n\
+elow: 1D Float ndarray                       \n\
+gf: 1D Float ndarray                         \n\
+lID: 1D integer ndarray                      \n\
+ethresh: Float                               \n\
+pressure: Float                              \n\
+temp: Float                                  \n\
+add: Integer                                 \n\
+                                             \n\
 Developers:                                                                \n\
 -----------                                                                \n\
 Patricio Rojo      U Cornell  pato@astro.cornell.edu (pato@oan.cl)         \n\
@@ -83,7 +87,7 @@ static PyObject *extinction(PyObject *self, PyObject *args){
       dnwn, onwn, ndivs, iown, idwn, offset, subw,
       imol, ofactor, iprof,
       nadd=0, nskip=0, neval=0, minj, maxj,
-      sum=0;
+      add=0;
   int i, j, m, ln; /* Auxilliary for-loop indices    */
   double pressure, temp, csdiameter, density, minwidth=1e5, vwidth, ethresh,
          florentz, fdoppler, wnstep, ownstep, dwnstep, wavn, next_wn, k;
@@ -98,7 +102,7 @@ static PyObject *extinction(PyObject *self, PyObject *args){
                               &moldensity, &molq, &molrad, &molmass,
                               &isoimol, &isomass, &isoratio, &isoz, &isoiext,
                               &lwn, &elow, &gf, &lID,
-                              &ethresh, &pressure, &temp, &sum))
+                              &ethresh, &pressure, &temp, &add))
     return NULL;
 
   nLor   = lorentz->dimensions[0];  /* Number of Lorentz widths             */
@@ -110,7 +114,7 @@ static PyObject *extinction(PyObject *self, PyObject *args){
   nlines = lwn->dimensions[0];      /* Number of line transitions           */
   next   = ext->dimensions[0];      /* Number of extinction-coef. species   */
 
-  if (sum)
+  if (add)
     next = 1;
 
   /* Constant factors for line widths:                                      */
@@ -190,7 +194,7 @@ static PyObject *extinction(PyObject *self, PyObject *args){
     wavn = INDd(lwn, ln);    /* Wavenumber of line transition               */
     i    = INDi(lID, ln);    /* Isotope index of line transition:           */
     m    = INDi(isoiext, i); /* Extinction-coefficient table index          */
-    if (sum)
+    if (add)
       m = 0;  /* Collapse everything into the first index                   */
 
     /* If this line falls beyond limits, skip to next line transition:      */
@@ -214,9 +218,10 @@ static PyObject *extinction(PyObject *self, PyObject *args){
   for(ln=0; ln<nlines; ln++){
     wavn = INDd(lwn, ln);    /* Wavenumber                                  */
     i    = INDi(lID, ln);    /* Isotope index                               */
-    m    = INDi(isoiext, i); /* extinction-coefficient table index          */
-    if (sum)
-      m = 0;  /* Collapse everything into the first index                   */
+    if (add)
+      m  = 0;                /* First index of extinction-coefficient       */
+    else
+      m  = INDi(isoiext, i); /* Extinction-coefficient table index          */
 
     if ((wavn < INDd(own,0)) || (wavn > INDd(own,(onwn-1))))
       continue;
@@ -248,7 +253,7 @@ static PyObject *extinction(PyObject *self, PyObject *args){
         break;
     }
     /* Multiply by the species' density:                                    */
-    if (sum)
+    if (add)
       k *= INDd(moldensity, (INDi(isoimol,i)));
 
     /* Skip weakly contributing lines:                                      */
@@ -314,6 +319,74 @@ static PyObject *extinction(PyObject *self, PyObject *args){
 }
 
 
+PyDoc_STRVAR(interp_ec__doc__,
+"Interpolate the extinction coefficient.                            \n\
+                                                                    \n\
+Parameters:                                                         \n\
+-----------                                                         \n\
+extinction: 3D float ndarray                                        \n\
+   Extinction coefficient array [nspec] to calculate.               \n\
+etable 1D float ndarray                                             \n\
+   Tabulated extinction coefficient [ntmol, ntemp, nspec].          \n\
+ttable: 1D float ndarray                                            \n\
+   Tabulated temperature array [ntemp].                             \n\
+mtable: 1D float ndarray                                            \n\
+   Tabulated molID of species [nmol].                               \n\
+temperature: Float                                                  \n\
+   Atmospheric layer temperature.                                   \n\
+density: 1D float ndarray                                           \n\
+   Density of species in the atmospheric layer [nmol].              \n\
+molID: 1D integer ndarray                                           \n\
+   Molecular ID of species in the atmosphere [nmol].");
+
+static PyObject *interp_ec(PyObject *self, PyObject *args){
+  PyArrayObject *extinction,  /* Interpolated extinction coefficient        */
+                *etable,      /* Tabulated extinction coefficient           */
+                *ttable,      /* Tabulated temperature                      */
+                *mtable,      /* Tabulated species ID                       */
+                *density,     /* Density of species at given layer          */
+                *molID;       /* mol ID of the atmospheric species          */
+
+  int nspec, nmol, ntemp,  /* Number of wavenumber, species, & temperatures */
+      tlo, thi, imol;
+  int i, j;                /* Auxilliary for-loop indices                   */
+  double ext,              /* Temporary extinction coefficient              */
+         temperature;      /* Atmospheric-layer temperature                 */
+
+  /* Load inputs:                                                           */
+  if (!PyArg_ParseTuple(args, "OOOOdOO",  &extinction, &etable,
+                                          &ttable, &mtable, 
+                                          &temperature,
+                                          &density, &molID))
+    return NULL;
+
+  ntemp = etable->dimensions[1];  /* Number of temperature samples          */
+  nspec = etable->dimensions[2];  /* Number of spectral samples             */
+  nmol  = molID->dimensions[0];   /* Number of species                      */
+
+  /* Find index of grid-temperature immediately lower than temperature:     */
+  tlo = binsearchapprox(ttable, temperature, 0, ntemp);
+  if (temperature < INDd(ttable,tlo));
+    tlo--;
+  thi = tlo + 1;
+
+  /* Add contribution from each molecule:                                   */
+  for (j=0; j<nmol; j++){
+    imol = valueinarray(molID, INDi(mtable,j), nmol);
+    for (i=0;  i<nspec; i++){
+      /* Linear interpolation of the extinction coefficient:                */
+      ext = (IND3d(etable,j,tlo,i) * (INDd(ttable,thi) - temperature) +
+             IND3d(etable,j,thi,i) * (temperature - INDd(ttable,tlo)) ) /
+            (INDd(ttable,thi) - INDd(ttable,tlo));
+
+      INDd(extinction, i) += INDd(density,imol) * ext;
+    }
+  }
+
+  return Py_BuildValue("i", 1);
+}
+
+
 /* The module doc string    */
 PyDoc_STRVAR(extcoeff__doc__, "Python wrapper for the extinction-coefficient "
                               "calculation.");
@@ -321,6 +394,7 @@ PyDoc_STRVAR(extcoeff__doc__, "Python wrapper for the extinction-coefficient "
 /* A list of all the methods defined by this module.                        */
 static PyMethodDef extcoeff_methods[] = {
     {"extinction", extinction, METH_VARARGS, extinction__doc__},
+    {"interp_ec",  interp_ec,  METH_VARARGS, interp_ec__doc__},
     {NULL,         NULL,       0,            NULL}              /* sentinel */
 };
 

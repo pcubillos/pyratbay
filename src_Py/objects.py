@@ -15,6 +15,7 @@ class pyrat(object):
     self.voigt  = voigt()          # Voigt profile
     self.ex     = extinction()     # Extinction
     self.cia    = cia()            # CIA
+    self.od     = optdepth()       # Optical depth
 
     self.wnlow   = None
     self.wnhigh  = None
@@ -105,11 +106,11 @@ class atm(object):
 class molecules(object):
   def __init__(self):
     self.nmol   = 0     # Number of molecules
-    self.name   = None  # Molecule's name
-    self.symbol = None  # Molecule's symbol
-    self.mass   = None  # Molecule's mass  (gr/mol)
-    self.radius = None  # Molecule's radius (Angstroms)
-    self.ID     = None  # Molecule's universal ID
+    self.name   = None  # Molecule's name               [nmol]
+    self.symbol = None  # Molecule's symbol             [nmol]
+    self.mass   = None  # Molecule's mass  (gr/mol)     [nmol]
+    self.radius = None  # Molecule's radius (Angstroms) [nmol]
+    self.ID     = None  # Molecule's universal ID       [nmol]
 
 
 class linetransition(object):
@@ -175,11 +176,11 @@ class extinction(object):
     self.tmax    = None # Maximum temperature to sample
     self.tstep   = None # Temperature-sample step interval
     self.ntemp   = None # Number of temperature samples
-    self.molID   = None
-    self.temp    = None
-    self.press   = None
-    self.wn      = None
-    self.z       = None
+    self.molID   = None # Tabulated species ID
+    self.temp    = None # Tabulated temperatures
+    self.press   = None # Tabulated pressures
+    self.wn      = None # Tabulated wavenumber
+    self.z       = None # Partition function at tabulated temperatures
     self.ciaext  = None # CIA extinction [nlayer, nwave]
 
 

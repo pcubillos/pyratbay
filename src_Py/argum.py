@@ -327,7 +327,7 @@ def checkinputs(pyrat):
     if not os.path.exists(os.path.realpath(os.path.dirname(inputs.extfile))):
       pt.error("Directory for extinction-coefficient file '{:s}' does "
                "not exist.".format(inputs.extfile))
-  pyrat.ex.extfile = os.path.realpath(inputs.extfile)
+    pyrat.ex.extfile = os.path.realpath(inputs.extfile)
 
   # Check spectrum arguments:
   pyrat.wnunits = inputs.wnunits  # Accept units
