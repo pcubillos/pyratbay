@@ -168,9 +168,10 @@ class voigt(object):
 
 class extinction(object):
   def __init__(self):
-    self.ec      = None # Extinction coefficient [nlayers, nspec]
+    self.ec      = None # Molecular line-transition extinction-coefficient
+                        #  in cm-1 [nlayers, nspec]
     self.extfile = None # Extinction-coefficient table filename
-    self.etable  = None # Table of ext. coefficient [nmol, nlayer, nTemp, nwave]
+    self.etable  = None # Table of ext. coefficient [nmol, nlayer, nTemp, nspec]
     self.ethresh = None # Extinction-coefficient threshold
     self.tmin    = None # Minimum temperature to sample
     self.tmax    = None # Maximum temperature to sample
@@ -194,11 +195,13 @@ class cia(object):
     self.temp       = []   # Temperature sampling (in Kelvin)
     self.wavenumber = []   # Wavenumber sampling (in cm-1)
     self.absorption = []   # CIA extinction (in cm-1 amagat-2)
-
+    self.ec         = None # Interpolated CIA extinction coefficient
+                           #  in cm-1 [nlayer, nspec]
 
 class optdepth(object):
   def __init__(self):
-    self.raypath = None  # Distance along ray path  [nlayers]
+    self.ec      = None  # Total extinction coefficient [nlayers, nspec]
+    self.raypath = []    # Distance along ray path  [nlayers]
     self.depth   = None  # Optical depth at raypath [nlayers, nspec]
     self.ideep   = None  # Layer index where depth reached maxdepth [nspec]
 

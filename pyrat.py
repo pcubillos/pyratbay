@@ -58,8 +58,7 @@ def main(argv):
   # Calculate extinction-coefficient table:
   ex.exttable(cavendish)
 
-  # :: Pyrat-Bay loop boundary ::
-
+  # ::: Pyrat-Bay loop boundary :::
   # Interpolate CIA absorption:
   cia.interpolate(cavendish)
 

@@ -346,4 +346,30 @@ in argum, extinction, and calc_extinction functions.
 Added makeatm.py and optdepth.py to repo."
 
 
+*****  Sun Mar 22 11:23:28 EDT 2015  *****
+
+- Removed outdated atmospheric files.
+- Need to reformat the atmospheric file:
+   /home/patricio/ast/esp01/pyrat/develop/inputs/HD209458b.atm
+  and add it to the repo.
+
+While we ignore a wavelength-dependent refraction, we can assume that
+the raypath at a given impact parameter will allways be the same.
+
+Swapped axes of pyrat.cia.ec to be the same of pyrat.extinction.ec:
+  [nlayers, nspec]
+
+Fixed error in CIA interpolation, I was multiplying by q instead of density.
+Recalculated the whole CIA thing:
+   density in amagat = d/(mass*amu) / n0,
+Then:  e[cm-1] = e[cm-1 amagat-2] * amagat^2
+
+Renamed interpolated-CIA extinction coefficient from extinc to ec.
+Got first version of optdepth running.  Seems slow with python
+integrator (Simpson).  Implemented C Simpson rule (taken from scipy
+implementation).  The integrator works.
+
+I need to incorporate it to the Pyrat project next.
+
+
 *****

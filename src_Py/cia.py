@@ -65,11 +65,11 @@ def read(pyrat):
       # Allocate the wavenumber and absorption arrays:
       wavenumber = np.zeros(pyrat.cia.nwave[i], np.double)
       # Allocate the absorption (in cm-1 amagat-2):
-      absorption = np.zeros((pyrat.cia.nwave[i], pyrat.cia.ntemp[i]), np.double)
+      absorption = np.zeros((pyrat.cia.ntemp[i], pyrat.cia.nwave[i]), np.double)
       for j in np.arange(pyrat.cia.nwave[i]):
         data = f.readline().split()
         wavenumber[j]   = data[0]
-        absorption[j,:] = data[1:]
+        absorption[:,j] = data[1:]
 
       # Add arrays to pyrat:
       pyrat.cia.wavenumber.append(wavenumber)
@@ -102,19 +102,23 @@ def interpolate(pyrat):
   """
   pt.msg(pyrat.verb, "\nBegin CIA interpolation.")
 
+  # Allocate output extinction-coefficient array:
+  pyrat.cia.ec = np.zeros((pyrat.atm.nlayers, pyrat.nspec))
+
   for i in np.arange(pyrat.cia.nfiles):
     # Get index from the pyrat list of molecules:
     imol1 = np.where(pyrat.mol.name == pyrat.cia.molecules[i,0])[0][0]
     imol2 = np.where(pyrat.mol.name == pyrat.cia.molecules[i,1])[0][0]
     #print(imol1, imol2)
-    # FINDME: molecule not found exception
+    # FINDME: Add molecule-not-found exception
 
     # Evaluate the spline:
     #pt.msg(pyrat.verb, "{} {}".format(pyrat.wn[0], pyrat.wn[-1]))
     #pt.msg(pyrat.verb, "{} {}".format(pyrat.atm.temp[0], pyrat.atm.temp[-1]))
 
-    interp = sip.interp2d(pyrat.cia.temp[i], pyrat.cia.wavenumber[i], 
+    interp = sip.interp2d(pyrat.cia.wavenumber[i], pyrat.cia.temp[i],
                           pyrat.cia.absorption[i], kind='linear')
+    # Note that for interp2d: shape(ab) = (len(temp), len(wn))
 
     # Whiny interp2d wants sorted arrays:
     asort  = np.argsort(pyrat.atm.temp)
@@ -123,14 +127,18 @@ def interpolate(pyrat):
 
     # Interpolate:
     sort_temp = pyrat.atm.temp[asort]
-    cia_absorption = interp(sort_temp, pyrat.wn)
-    # Reverse sorting:
-    cia_absorption = cia_absorption[:, desort]
+    cia_absorption = interp(pyrat.wn, sort_temp)
+    # Reverse sorting to the original order of the atmospheric layers:
+    cia_absorption = cia_absorption[desort]
+
+    # Densities in amagat:
+    dens1 = pyrat.atm.d[:,imol1]/(pyrat.mol.mass[imol1]*pc.u) / pc.amagat
+    dens2 = pyrat.atm.d[:,imol2]/(pyrat.mol.mass[imol2]*pc.u) / pc.amagat
 
     # Compute CIA absorption in cm-1 units:
-    #print(np.shape(cia_absorption), np.shape(pyrat.atm.q[:,imol1]))
-    pyrat.cia.extinc = (cia_absorption *           # Broadcasting here
-                pyrat.atm.q[:,imol1] * pyrat.atm.q[:,imol2] / pc.amagat**2.0)
+    pyrat.cia.ec += (cia_absorption * np.expand_dims(dens1*dens2, axis=1))
+    # (I'm broadcasting here)
 
+    pt.msg(pyrat.verb-40, "CIA extinction: {}".format(pyrat.cia.ec[:,0]), 2)
   pt.msg(pyrat.verb, "Done.")
 
