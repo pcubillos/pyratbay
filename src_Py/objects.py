@@ -81,6 +81,8 @@ class inputs(object):
     # Optical depth arguments:
     self.path     = None
     self.maxdepth = None
+    # System arguments:
+    self.rstar = None
     # Output files arguments:
     self.outspec     = None
     self.outsample   = None

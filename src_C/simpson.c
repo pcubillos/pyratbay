@@ -43,6 +43,11 @@ static PyObject *geth(PyObject *self, PyObject *args){
   /* Get the number of intervals:                                           */
   n = h->dimensions[0];
 
+  /* Empty array case:                                                      */
+  if (n==0){
+    return Py_BuildValue("[i,i,i]", 0, 0, 0);
+  }
+    
   /* Check for even number of samples (odd number of intervals):            */
   even = n%2;
 
@@ -59,7 +64,6 @@ static PyObject *geth(PyObject *self, PyObject *args){
     INDd(hfactor,i) = INDd(hsum,i)*INDd(hsum,i) / (INDd(h,(j))*INDd(h,(j+1)));
   }
 
-  Py_XDECREF(size);
   return Py_BuildValue("[N,N,N]", hsum, hratio, hfactor);
 }
 
@@ -114,7 +118,7 @@ static PyObject *simps(PyObject *self, PyObject *args){
     return Py_BuildValue("d", INDd(h,0) * (INDd(y,0) + INDd(y,1))/2);
 
   /* Do Simpson integration (skip first if even):                           */
-  integ = simpson(y, hsum, hratio, hfactor, (n-1)/2);
+  integ = simpson(y, hsum, hratio, hfactor, n);
 
   /* Add trapezoidal rule for first interval if n is even:                  */
   if (even){
@@ -125,7 +129,7 @@ static PyObject *simps(PyObject *self, PyObject *args){
 }
 
 
-/* The module doc string    */
+/* The module doc string                                                    */
 PyDoc_STRVAR(simpson__doc__, "Python wrapper for Simpson integration.");
 
 
@@ -133,12 +137,12 @@ PyDoc_STRVAR(simpson__doc__, "Python wrapper for Simpson integration.");
 static PyMethodDef simpson_methods[] = {
     {"geth",      geth,       METH_VARARGS, geth__doc__},
     {"simps",     simps,      METH_VARARGS, simps__doc__},
-    {NULL,        NULL,       0,            NULL}    /* sentinel */
+    {NULL,        NULL,       0,            NULL}    /* sentinel            */
 };
 
 
-/* When Python imports a C module named 'X' it loads the module */
-/* then looks for a method named "init"+X and calls it.         */
+/* When Python imports a C module named 'X' it loads the module             */
+/* then looks for a method named "init"+X and calls it.                     */
 void initsimpson(void){
   Py_InitModule3("simpson", simpson_methods, simpson__doc__);
   import_array();

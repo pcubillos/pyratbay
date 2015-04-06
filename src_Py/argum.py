@@ -207,6 +207,11 @@ def parse(pyrat):
                      help="Maximum optical depth to calculate [default: "
                           "%(default)s]",
                      action="store", type=np.double, default=10)
+  # System options:
+  group = parser.add_argument_group("System Options")
+  group.add_argument(      "--rstar",       dest="rstar",
+                     help="Stellar radius [default: %(default)s]",
+                     action="store", type=np.double, default=None)
   # Output file options:
   group = parser.add_argument_group("Output File's Options")
   group.add_argument("-o", "--outspec",       dest="outspec",
@@ -276,6 +281,8 @@ def parse(pyrat):
   # Optical depth:
   pyrat.inputs.path       = user.path
   pyrat.inputs.maxdepth   = user.maxdepth
+  # System:
+  pyrat.inputs.rstar = user.rstar
   # Output files:
   pyrat.inputs.outspec    = user.outspec
   pyrat.inputs.outsample  = user.outsample
@@ -438,6 +445,10 @@ def checkinputs(pyrat):
   # Check optical-depth arguments:
   pyrat.maxdepth = isgreater(inputs.maxdepth, None, 0, False,
                         "Maximum-optical-depth limit ({:g}) must be >= 0.0")
+
+  # Check system arguments:
+  pyrat.rstar = isgreater(inputs.rstar, pyrat.radunits, 0, True,
+       "Stellar radius ({:.1f} {:s}) must be > 0.")
 
   # Accept ray-path argument:
   pyrat.path  = inputs.path

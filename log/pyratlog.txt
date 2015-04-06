@@ -372,4 +372,52 @@ implementation).  The integrator works.
 I need to incorporate it to the Pyrat project next.
 
 
+*****  Sun Apr  5 12:41:12 EDT 2015  *****
+
+Timestamps (With scipy integrator):
+ Init:      0.000072
+ Parse:     0.004832
+ Inputs:    0.000398
+ Wnumber:  12.822058
+ Atm:       0.008221
+ TLI:       0.511607
+ Layers:    2.869796
+ Voigt:     7.960232
+ CIAr:      0.009357
+ Ext:       0.000016
+ CIAi:      0.030816
+ Depth:    41.095787
+
+Timestamps (With my integrator):
+ Init:      0.000071
+ Parse:     0.004585
+ Inputs:    0.000398
+ Wnumber:  13.789642
+ Atm:       0.006481
+ TLI:       0.378715
+ Layers:    2.849655
+ Voigt:     7.538518
+ CIAr:      0.009691
+ Ext:       0.000021
+ CIAi:      0.029577
+ Depth:    12.534473
+
+Added spectrum.py module.
+Added timestamps to pyrat.py.
+Added rstar argument for stellar radius.
+Fixed bugs with simpson integration, results now are idential (within
+  machine error) with scipy, though, my reoutine is faster.
+Added temporary timestamps to makewavenumber.  The linspace for the
+  oversampled array takes too long, find alternatives (C?).
+Finished first running version of optdepth for transit geometry.
+
+Known issues:
+- The molecular extinction does not seem to be saveing the values (I
+  see a lot o zeros).
+- The transit spectrum is not right, somewhere in extinction/optical
+  depth/modulation, there are problems.
+
+Compare results against: /home/patricio/ast/esp01/bart/transit/pyrat/
+
+
 *****

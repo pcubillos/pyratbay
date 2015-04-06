@@ -1,4 +1,5 @@
 import numpy as np
+import time
 import matplotlib.pyplot as plt
 import scipy.constants   as sc
 import scipy.integrate   as si
@@ -19,7 +20,8 @@ def makewavenumber(pyrat):
   2015-01-19  patricio  Moved input checks to argum.checkinputs.
   """
   pt.msg(pyrat.verb, "\nGenerating wavenumber array:", 0)
-
+  timestamps = []
+  timestamps.append(time.time())
   # Initial wavenumber limit:
   if pyrat.wnlow is None:
     if pyrat.wlhigh is None:
@@ -52,9 +54,13 @@ def makewavenumber(pyrat):
   # Set wavelength limits based on the wavenumber limits:
   pyrat.wlhigh = 1.0 / pyrat.wnlow
   pyrat.wllow  = 1.0 / pyrat.wnhigh
+  timestamps.append(time.time())
+  print("Defaults: {:10.6f}".format(timestamps[-1] - timestamps[-2]))
 
   # Make the wavenumber array:
   pyrat.wn = np.arange(pyrat.wnlow, pyrat.wnhigh, pyrat.wnstep)  
+  timestamps.append(time.time())
+  print("arange: {:10.6f}".format(timestamps[-1] - timestamps[-2]))
 
   # Re-set final boundary (stay inside given boundaries):
   if pyrat.wn[-1] != pyrat.wnhigh:
@@ -69,8 +75,13 @@ def makewavenumber(pyrat):
   pyrat.ownstep = pyrat.wnstep / pyrat.wnosamp
   pyrat.onspec  = (pyrat.nspec - 1) *  pyrat.wnosamp + 1
   pyrat.own = np.linspace(pyrat.wn[0], pyrat.wn[-1], pyrat.onspec)
+  timestamps.append(time.time())
+  print("Oversample: {:10.6f}".format(timestamps[-1] - timestamps[-2]))
+
   # Get list of divisors:
   pyrat.odivisors = pt.divisors(pyrat.wnosamp)
+  timestamps.append(time.time())
+  print("Divisors: {:10.6f}".format(timestamps[-1] - timestamps[-2]))
 
   # Screen output:
   pt.msg(pyrat.verb,"Initial wavenumber boundary:  {:.5e} cm-1  ({:.3e} "
@@ -85,6 +96,7 @@ def makewavenumber(pyrat):
   pt.msg(pyrat.verb,"Wavenumber fine-sample size: {:8d}".format(pyrat.onspec),2)
   pt.msg(pyrat.verb, "Done.")
 
+  print(np.ediff1d(timestamps))
 
 def makeradius(pyrat):
   """

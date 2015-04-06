@@ -1,6 +1,7 @@
 import scipy.constants as sc
+
 """
-Constant values used in the pyrat project
+Constant values used in the pyrat project.
 """
 
 # Lineread version:
