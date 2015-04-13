@@ -6,6 +6,7 @@ import extinction as ex
 import extcoeff   as ec
 import ptools     as pt
 import simpson    as s
+import cutils     as cu
 
 def opticaldepth(pyrat):
   """
@@ -21,7 +22,7 @@ def opticaldepth(pyrat):
   pyrat.ex.ec    = np.zeros((pyrat.atm.nlayers, pyrat.nspec))
   pyrat.od.ec    = np.zeros((pyrat.atm.nlayers, pyrat.nspec))
   pyrat.od.depth = np.zeros((pyrat.atm.nlayers, pyrat.nspec))
-  pyrat.od.ideep = np.zeros((pyrat.nspec), np.double)
+  pyrat.od.ideep = np.zeros((pyrat.nspec), np.int)
 
   hsum, hratio, hfactor = [], [], []
   # Calculate the optical depth for each wavenumber:
@@ -61,15 +62,15 @@ def opticaldepth(pyrat):
         # Update the computed flag:
         computed[r] = 1
 
-      # Optical depth at each level (tau = inttegral e*ds):
+      # Optical depth at each level (tau = integral e*ds):
       pyrat.od.depth[r,i] = s.simps(pyrat.od.ec[:r+1,i],
                     pyrat.od.raypath[r], hsum[r], hratio[r], hfactor[r])
 
-      if i == 1:
-        pt.msg(pyrat.verb-5, "Optical depth at {:7.2f} cm-1 ({:3d}): {:.4e}".
-                  format(pyrat.wn[i], r, pyrat.od.depth[r,i]))
-        pt.msg(pyrat.verb-5, "Extinction: CIA={:.5e},  Ext={:.5e}".format(
-                              pyrat.cia.ec[r,i], pyrat.ex.ec[r,i]))
+      #if i == 10:
+      #  pt.msg(pyrat.verb-5, "Optical depth at {:7.2f} cm-1 ({:3d}): {:.4e}".
+      #            format(pyrat.wn[i], r, pyrat.od.depth[r,i]))
+      #  pt.msg(pyrat.verb-5, "Extinction: CIA={:.5e},  Ext={:.5e}".format(
+      #                        pyrat.cia.ec[r,i], pyrat.ex.ec[r,i]))
       pt.msg(pyrat.verb-10, "Optical depth[{:3d}, {:4d}]: {:.4e}".format(
                              r, i, pyrat.od.depth[r,i]), 2)
 
@@ -77,46 +78,25 @@ def opticaldepth(pyrat):
       if pyrat.od.depth[r,i] >= pyrat.maxdepth:
         pyrat.od.ideep[i] = r
         break
-
-      #print("")
       #pyrat.od.depth[1:,i] = si.cumtrapz(pyrat.ex.ec[:,i], raypath)
     t1 = time.time()
-    #print("Optical-depth time: {}\n".format(t1-t0))
-
-
-def path2(pyrat, radius, r, path):
-  """ 
-  Calculate the distance along the ray path.
-
-  Parameters:
-  -----------
-  pyrat: Object
-  radius: 1D float ndarray
-  r: Integer
-  path: String
-
-  """
-  if path == "eclipse":
-    # Distance traveled perpendiculary inwards:
-    raypath = radius[0] - radius
-
-  # Calculate slant path for impact parameters at each layer radius:
-  elif path == "transit":
-    # Cumulative distance along the raypath from the outermost layer
-    # to each layer:
-    raypath = (np.sqrt(radius[0    ]**2 - radius[r]**2) -
-               np.sqrt(radius[0:r+1]**2 - radius[r]**2) )
-
-  pyrat.od.raypath.append(raypath)
-  return
 
 
 def path(pyrat, radius, r, path):
   """
   Calculate the distance along the ray path over each layer.
+
+  Parameters:
+  -----------
+  pyrat: Pyrat instance
+  radius: 1D float ndarray
+  r: Integer
+  path: String
   """
   if   path == "eclipse":
-    pyrat.od.raypath.append(np.ediff1d(radius))
+    diffrad = np.empty(r, np.double)
+    cu.ediff(radius, diffrad, r+1)
+    pyrat.od.raypath.append(-diffrad)
 
   elif path == "transit":
     raypath = np.empty(r, np.double)
@@ -126,4 +106,5 @@ def path(pyrat, radius, r, path):
     pyrat.od.raypath.append(raypath)
 
   return
+
 

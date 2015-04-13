@@ -91,7 +91,6 @@ downsample(double **input,     /* Input array                               */
   if (even == 1)
     IND2d(out,index,(m-1)) -= 0.5*input[index][n-ks/2];
   IND2d(out,index,(m-1)) /= 0.5*(scale+1);
-  printf("OUT[0,N] = {%.3e, %.3e}\n", IND2d(out,index,0), IND2d(out,index,(m-1)));
 
   return 0;
 }

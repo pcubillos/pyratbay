@@ -420,4 +420,43 @@ Known issues:
 Compare results against: /home/patricio/ast/esp01/bart/transit/pyrat/
 
 
+*****  Sun Apr 12 11:35:21 EDT 2015  *****
+
+- Renamed transit config file to transit_pyrat.cfg,
+  added eclipse config file: eclipse_pyrat.cfg.
+- Fixed bug in extinction function for on-the-fly run.
+- Stored line strength in array to avoid re-calculation.  Got a speed-up
+  of ~20% in C extinction function.
+- Created constants.h with constant values used in the C code.
+- Added raygrid argument.
+- Implemented eclipse geometry calculations in optdepth and spectrum.
+- Implemented C blackbody function to calculate the Planck function.
+- Implemented cutils file with C utilities.
+- Corrected +/- sign in modulation spectrum integration.
+
+- Pyrat transit geometry seems to be working now (reasonable qualitative
+  results).  Transit seems to have a bug!  the baseline decreases when
+  added line opacities.
+- Pyrat agrees with Transit when there are no line opacities.
+- Extinction is nearly twice as fast as Transit.
+- Transit-Pyrat eclipse results agree: typically to < 1%, worst cases < 7%.
+
+Timestamps (for eclipse run):
+ Init:       0.000078
+ Parse:      0.004777
+ Inputs:     0.000484
+ Wnumber:    0.597169
+ Atmosph:    0.006526
+ TLI:        0.136400
+ Layers:     2.961549
+ Voigt:      4.829901
+ CIA read:   0.009702
+ Extinct:    0.000023
+ CIA intp:   0.029906
+ O.Depth:   25.236646
+ Spectrum:   0.472914
+
+Up next, Check code including an opacity grid.
+
+
 *****

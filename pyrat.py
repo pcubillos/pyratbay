@@ -80,13 +80,12 @@ def main(argv):
   sp.spectrum(cavendish)
   timestamps.append(time.time())
 
-  print("Next one!")
   print("Timestamps:\n"
-        " Init:    {:10.6f}\n Parse:   {:10.6f}\n Inputs:  {:10.6f}\n"
-        " Wnumber: {:10.6f}\n Atm:     {:10.6f}\n TLI:     {:10.6f}\n"
-        " Layers:  {:10.6f}\n Voigt:   {:10.6f}\n CIAr:    {:10.6f}\n"
-        " Ext:     {:10.6f}\n CIAi:    {:10.6f}\n Depth:   {:10.6f}\n"
-        " Spect:   {:10.6f}".format(*np.ediff1d(timestamps)))
+        " Init:     {:10.6f}\n Parse:    {:10.6f}\n Inputs:   {:10.6f}\n"
+        " Wnumber:  {:10.6f}\n Atmosph:  {:10.6f}\n TLI:      {:10.6f}\n"
+        " Layers:   {:10.6f}\n Voigt:    {:10.6f}\n CIA read: {:10.6f}\n"
+        " Extinct:  {:10.6f}\n CIA intp: {:10.6f}\n O.Depth:  {:10.6f}\n"
+        " Spectrum: {:10.6f}".format(*np.ediff1d(timestamps)))
   return 1
 
 if __name__ == "__main__":

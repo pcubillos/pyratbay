@@ -81,6 +81,7 @@ class inputs(object):
     # Optical depth arguments:
     self.path     = None
     self.maxdepth = None
+    self.raygrid  = None
     # System arguments:
     self.rstar = None
     # Output files arguments:

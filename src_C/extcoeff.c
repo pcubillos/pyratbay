@@ -10,23 +10,8 @@
 #define IND3d(a,i,j,k) *((double *)(a->data + i*a->strides[0] + \
                                               j*a->strides[1] + \
                                               k*a->strides[2]))
-
+#include "constants.h"
 #include "utils.h"
-
-#define PI      (3.141592653589793)   /* PI                                 */
-#define LS      (2.99792458e10)       /* Light Speed (cm / s)               */
-#define KB      (1.380658e-16)        /* Boltzmann constant (erg / K)       */
-#define AMU     (1.66053886e-24)      /* Atomic Mass unit (g)               */
-#define SQRTLN2 (0.832554611157697)   /* sqrt(ln(2))                        */
-#define H       (6.6260755e-27)       /* Planck's constant (erg * s)        */
-#define EC      (4.8032068e-10)       /* electronic charge (statcoulomb)    */
-#define ME      (9.1093897e-28)       /* Electron mass (g)                  */
-
-#define SIGCTE  (PI*EC*EC/LS/LS/ME/AMU)
-#define EXPCTE  (H*LS/KB)
-
-#define FDOP (3.581175136e-7)  /* sqrt(2*KB/AMU) * sqrt(ln2) / c  */
-#define FLOR (1.461466451e17)  /* sqrt(2*KB/pi/AMU) / (AMU*c)     */
 
 PyDoc_STRVAR(extinction__doc__,
 "Calculate the extinction-coefficient for each molecule, at a given\n\
@@ -91,7 +76,7 @@ static PyObject *extinction(PyObject *self, PyObject *args){
   int i, j, m, ln; /* Auxilliary for-loop indices    */
   double pressure, temp, csdiameter, density, minwidth=1e5, vwidth, ethresh,
          florentz, fdoppler, wnstep, ownstep, dwnstep, wavn, next_wn, k;
-  double *alphal, *alphad, *kmax, **ktmp;
+  double *alphal, *alphad, *kmax, **ktmp, *kprop;
   int *idop, *ilor;
 
   /* Load inputs:                                                           */
@@ -132,6 +117,9 @@ static PyObject *extinction(PyObject *self, PyObject *args){
   /* Allocate width indices array:                                          */
   idop = (int *)calloc(niso, sizeof(int));
   ilor = (int *)calloc(niso, sizeof(int));
+
+  /* Allocate line strength per transition:                                 */
+  kprop = (double *)calloc(nlines, sizeof(double));
 
   ktmp    = (double **)calloc(next,      sizeof(double *));
   ktmp[0] = (double  *)calloc(next*onwn, sizeof(double  ));
@@ -191,9 +179,9 @@ static PyObject *extinction(PyObject *self, PyObject *args){
 
   /* Find the maximum line-strength per molecule:                           */
   for (ln=0; ln<nlines; ln++){
-    wavn = INDd(lwn, ln);    /* Wavenumber of line transition               */
-    i    = INDi(lID, ln);    /* Isotope index of line transition:           */
-    m    = INDi(isoiext, i); /* Extinction-coefficient table index          */
+    wavn = INDd(lwn, ln);     /* Wavenumber of line transition              */
+    i    = INDi(lID, ln);     /* Isotope index of line transition:          */
+    m    = INDi(isoiext, i);  /* Extinction-coefficient table index         */
     if (add)
       m = 0;  /* Collapse everything into the first index                   */
 
@@ -202,17 +190,18 @@ static PyObject *extinction(PyObject *self, PyObject *args){
       continue;
 
     /* Calculate the line strength divided by the molecular abundance:      */
-    k = INDd(isoratio,i)                   *  /* Density                    */
+    kprop[ln] = k = INDd(isoratio,i)       *  /* Density                    */
         SIGCTE * INDd(gf,ln)               *  /* Constant * gf              */
         exp(-EXPCTE*INDd(elow,ln) / temp)  *  /* Level population           */
         (1-exp(-EXPCTE*wavn/temp))         /  /* Induced emission           */
-        INDd(isomass,i)                    /  /* Isotope mass               */
-        INDd(isoz,i);                         /* Partition function         */
+         (INDd(isomass,i)                 *   /* Isotope mass               */
+          INDd(isoz,i));                      /* Partition function         */
     /* Check if this is the maximum k:                                      */
     kmax[m] = fmax(kmax[m], k);
   }
   //for (i=0; i<next; i++)
   //  printf("Kmax[%d] is: %.3e\n", i, kmax[i]);
+
 
   /* Compute the extinction-coefficient for each species:                   */ 
   for(ln=0; ln<nlines; ln++){
@@ -227,10 +216,7 @@ static PyObject *extinction(PyObject *self, PyObject *args){
       continue;
 
     /* Line strength:                                                       */
-    k = INDd(isoratio,i) * SIGCTE * INDd(gf,ln)  *
-        exp(-EXPCTE * INDd(elow,ln) / temp)      *
-        (1 - exp(-EXPCTE * wavn / temp))         /
-        (INDd(isomass,i) * INDd(isoz,i));
+    k = kprop[ln];
 
     /* Index of closest oversampled wavenumber:                             */
     iown = (wavn - INDd(own,0))/ownstep;
@@ -244,23 +230,20 @@ static PyObject *extinction(PyObject *self, PyObject *args){
         nadd++;
         ln++;
         /* Add the contribution from this line into the opacity:            */
-        k += INDd(isoratio,i) * SIGCTE * INDd(gf,ln) *
-             exp(-EXPCTE * INDd(elow,ln) / temp)     *
-             (1 - exp(-EXPCTE * next_wn / temp))     /
-             (INDd(isomass,i) * INDd(isoz,i));
+        k += kprop[ln];
       }
       else
         break;
     }
-    /* Multiply by the species' density:                                    */
-    if (add)
-      k *= INDd(moldensity, (INDi(isoimol,i)));
-
     /* Skip weakly contributing lines:                                      */
     if (k < ethresh * kmax[m]){
       nskip++;
       continue;
     }
+
+    /* Multiply by the species' density:                                    */
+    if (add)
+      k *= INDd(moldensity, (INDi(isoimol,i)));
 
     /* Index of closest (but not larger than) dynamic-sampling wavenumber:  */
     idwn = (wavn - INDd(own,0))/dwnstep;
@@ -294,11 +277,18 @@ static PyObject *extinction(PyObject *self, PyObject *args){
       //                    profile[idop[i]][ilor[i]][subw][j-offset]);
       //printf("  iprof: %d\n", iprof + ofactor*j - offset);
       //printf("  Val: %.3e\n", INDd(profile, (iprof + ofactor*j - offset)));
+      //printf("%.2e\n", k);
       ktmp[m][j] += k * INDd(profile, (iprof + ofactor*j - offset));
     }
     neval++;
   }
   //printf("Downsample now: (%f, %d)\n", wnstep/ownstep, ofactor);
+  printf("Number of co-added lines:     %8li  (%5.2f%%)\n",
+               nadd,  nadd*100.0/nlines);
+  printf("Number of skipped profiles:   %8li  (%5.2f%%)\n",
+               nskip, nskip*100.0/nlines);
+  printf("Number of evaluated profiles: %8li  (%5.2f%%)\n",
+               neval, neval*100.0/nlines);
 
   /* Downsample ktmp to the final sampling size:                            */
   for (m=0; m<next; m++){
@@ -314,6 +304,7 @@ static PyObject *extinction(PyObject *self, PyObject *args){
   free(ilor);
   free(ktmp[0]);
   free(ktmp);
+  free(kprop);
 
   return Py_BuildValue("i", 1);
 }

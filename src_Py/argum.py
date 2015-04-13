@@ -1,6 +1,7 @@
 import sys, os
 import argparse, ConfigParser
 import numpy as np
+import scipy.constants as sc
 
 import ptools     as pt
 import pconstants as pc
@@ -199,7 +200,7 @@ def parse(pyrat):
                      action="store", type=np.double, default=0.1)
   # Optical depth options:
   group = parser.add_argument_group("Optical Depth Options")
-  group.add_argument("-p", "--path",          dest="path",
+  group.add_argument("--path",          dest="path",
                      help="Lightray-path geometry [default: %(default)s]",
                      action="store", type=str, default='transit',
                      choices=('transit', 'eclipse'))
@@ -207,6 +208,9 @@ def parse(pyrat):
                      help="Maximum optical depth to calculate [default: "
                           "%(default)s]",
                      action="store", type=np.double, default=10)
+  group.add_argument("--raygrid",   dest="raygrid",
+                     help="Grid of incident angles (degrees).",
+                     action="store", type=pt.parray, default="0 20 40 60 80")
   # System options:
   group = parser.add_argument_group("System Options")
   group.add_argument(      "--rstar",       dest="rstar",
@@ -281,6 +285,7 @@ def parse(pyrat):
   # Optical depth:
   pyrat.inputs.path       = user.path
   pyrat.inputs.maxdepth   = user.maxdepth
+  pyrat.inputs.raygrid    = user.raygrid
   # System:
   pyrat.inputs.rstar = user.rstar
   # Output files:
@@ -457,11 +462,19 @@ def checkinputs(pyrat):
   pyrat.outsample   = inputs.outsample  
   pyrat.outmaxdepth = inputs.outmaxdepth
 
+  # Check raygrid:
+  if inputs.raygrid[0] != 0:
+    pt.error("First angle in raygrid must be 0.0 (normal to surface).")
+  if np.any(inputs.raygrid < 0):
+    pt.error("raygrid angles must lie between 0 and 90 deg.")
+  if np.any(np.ediff1d(inputs.raygrid) <= 0):
+    pt.error("raygrid angles must be monotonically increasing.")
+  # Store raygrid values in radians:
+  pyrat.raygrid = inputs.raygrid * sc.degree
+
   # Verbose level:
   pyrat.verb = np.amax([0, inputs.verb])
   pt.msg(pyrat.verb, "Done.", 0)
-
-  # FINDME: set system geometry variables
 
 
 def isgreater(value, units, thresh, equal=False, text=""):

@@ -45,6 +45,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "constants.h"
 
 #ifndef _PROFILE_H
 #define _PROFILE_H
@@ -54,22 +55,6 @@ extern int _voigt_maxelements;
 
 #endif /* _PROFILE_H */
 /* :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::  */
-
-#define SQRTLN2    0.83255461115769775635
-#define TWOOSQRTPI 1.12837916709551257389
-#define SQRTLN2PI  0.46971863934982566689
-
-#define A1  0.46131350
-#define A2  0.19016350
-#define A3  0.09999216
-#define A4  1.78449270
-#define A5  0.002883894
-#define A6  5.52534370
-
-#define B1  0.51242424
-#define B2  0.27525510
-#define B3  0.05176536
-#define B4  2.72474500
 
 #define MAXCONV 61
 /* ferf[n]= 1/(n!(2n+1)) */
