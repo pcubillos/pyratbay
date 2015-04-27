@@ -13,7 +13,7 @@ def spectrum(pyrat):
   pt.msg(1, "\nCalculate the planetary spectrum.")
 
   # Initialize the spectrum array:
-  pyrat.spectrum = np.zeros(pyrat.nspec, np.double)
+  pyrat.spectrum = np.empty(pyrat.nspec, np.double)
 
   # Call respective function depending on the geometry:
   if   pyrat.path == "transit":
@@ -59,28 +59,29 @@ def intensity(pyrat):
   pyrat.intensity = np.empty((pyrat.nangles, pyrat.nspec), np.double)
 
   # Calculate the Blackbody function:
-  pyrat.B = np.zeros((pyrat.nspec, pyrat.atm.nlayers), np.double)
+  pyrat.B = np.empty((pyrat.nspec, pyrat.atm.nlayers), np.double)
   bb.planck(pyrat.B, pyrat.wn, pyrat.atm.temp, pyrat.od.ideep)
 
   # Allocate dtau:
   dtau = np.empty(pyrat.atm.nlayers, np.double)
 
   # Calculate the intensity for each angle in raygrid:
-  for   j in np.arange(pyrat.nangles):
-    for i in np.arange(pyrat.nspec):
+  j = 0
+  while (j <pyrat.nangles):
+    i = 0
+    while (i < pyrat.nspec):
       # Layer index where the optical depth reached maxdepth:
       last = pyrat.od.ideep[i]
       # Optical depth:
       tau  = pyrat.od.depth[:last+1,i]
       cu.ediff(tau, dtau, last+1)
-      #dtau = np.ediff1d(tau)
       # The integrand:
       integ = pyrat.B[i,:last+1] * np.exp(-tau/np.cos(pyrat.raygrid[j]))
       # Integrate 
       pyrat.intensity[j,i] = (s.simps(integ, dtau, *s.geth(dtau[:last])) /
-      #pyrat.intensity[j,i] = (s.simps(integ, dtau, *s.geth(dtau)) /
                               np.cos(pyrat.raygrid[j])          )
-
+      i += 1
+    j += 1
 
 def flux(pyrat):
   """
@@ -116,14 +117,13 @@ def printspec(pyrat):
   # Open-write file:
   specfile = open(pyrat.outspec, "w")
   # Write header:
-  specfile.write("# Wavenumber   {:s}\n"
-                 "# {:>10s}   {:s}\n".format(spectype, wlunits, specunits))
+  specfile.write("# Wavenumber   {:s}\n# {:>10s}   {:s}\n".
+                                        format(spectype, wlunits, specunits))
 
   # Write the spectrum values:
   for i in np.arange(pyrat.nspec):
-    specfile.write("  {:>10.5f}   {:>.8e}\n".format(
-                            1.0/pyrat.wn[i]/pc.units[pyrat.wlunits],
-                                                 pyrat.spectrum[i]))
+    specfile.write("  {:>10.5f}   {:>.8e}\n".
+           format(1.0/pyrat.wn[i]/pc.units[pyrat.wlunits], pyrat.spectrum[i]))
 
   specfile.close()
 

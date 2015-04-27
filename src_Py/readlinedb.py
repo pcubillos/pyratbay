@@ -108,7 +108,6 @@ def readheader(pyrat, linefile):
     ratio   = np.zeros(db.niso)
     dbindex = np.zeros(db.niso, np.int)
     db.z    = np.zeros((db.niso, db.ntemp))
-    #db.c    = np.zeros((db.niso, db.ntemp))
 
     # Store per-isotope info:    
     for j in np.arange(db.niso):
@@ -206,9 +205,9 @@ def readlinetransition(pyrat, linefile, dbindex):
   pt.msg(pyrat.verb, "Reading %d transitions."%nread, 2)
 
   # Allocate arrays:
-  wn    = np.zeros(nread) 
-  gf    = np.zeros(nread) 
-  elow  = np.zeros(nread) 
+  wn    = np.zeros(nread)
+  gf    = np.zeros(nread)
+  elow  = np.zeros(nread)
   isoid = np.zeros(nread, np.short)
 
   # Read data into arrays:

@@ -108,21 +108,21 @@ static PyObject *extinction(PyObject *self, PyObject *args){
   //printf("Florentz: %.6e, Fdoppler: %.6e\n", florentz, fdoppler);
 
   /* Allocate alpha Lorentz and Doppler arrays:                             */
-  alphal = (double *)calloc(niso, sizeof(double));
-  alphad = (double *)calloc(niso, sizeof(double));
+  alphal = (double *)malloc(niso * sizeof(double));
+  alphad = (double *)malloc(niso * sizeof(double));
 
   /* Array to hold maximum line strength:                                   */
-  kmax = (double *)calloc(next, sizeof(double));
+  kmax = (double *)malloc(next * sizeof(double));
 
   /* Allocate width indices array:                                          */
-  idop = (int *)calloc(niso, sizeof(int));
-  ilor = (int *)calloc(niso, sizeof(int));
+  idop = (int *)malloc(niso * sizeof(int));
+  ilor = (int *)malloc(niso * sizeof(int));
 
   /* Allocate line strength per transition:                                 */
-  kprop = (double *)calloc(nlines, sizeof(double));
+  kprop = (double *)malloc(nlines * sizeof(double));
 
-  ktmp    = (double **)calloc(next,      sizeof(double *));
-  ktmp[0] = (double  *)calloc(next*onwn, sizeof(double  ));
+  ktmp    = (double **)malloc(next *      sizeof(double *));
+  ktmp[0] = (double  *)malloc(next*onwn * sizeof(double  ));
   for (i=1; i<next; i++)
     ktmp[i] = ktmp[0] + onwn;
 
@@ -271,6 +271,7 @@ static PyObject *extinction(PyObject *self, PyObject *args){
     iprof = IND2i(pindex, idop[i], ilor[i]);
     //printf("minj: %d, maxj: %d, prof0: %d, offset: %d, ofactor: %d\n",
     //       minj, maxj, iprof, offset, ofactor);
+    int jj = iprof + ofactor*minj - offset;
     for(j=minj; j<maxj; j++){
       //transitprint(1, 2, "%i  ", j-offset);
       //transitprint(1, 2, "j=%d, p[%i]=%.2g   ", j, j-offset,
@@ -278,7 +279,9 @@ static PyObject *extinction(PyObject *self, PyObject *args){
       //printf("  iprof: %d\n", iprof + ofactor*j - offset);
       //printf("  Val: %.3e\n", INDd(profile, (iprof + ofactor*j - offset)));
       //printf("%.2e\n", k);
-      ktmp[m][j] += k * INDd(profile, (iprof + ofactor*j - offset));
+      //ktmp[m][j] += k * INDd(profile, (iprof + ofactor*j - offset));
+      ktmp[m][j] += k * INDd(profile, jj);
+      jj += ofactor;
     }
     neval++;
   }
@@ -318,7 +321,7 @@ Parameters:                                                         \n\
 extinction: 3D float ndarray                                        \n\
    Extinction coefficient array [nspec] to calculate.               \n\
 etable 1D float ndarray                                             \n\
-   Tabulated extinction coefficient [ntmol, ntemp, nspec].          \n\
+   Tabulated extinction coefficient [nmol, ntemp, nspec].           \n\
 ttable: 1D float ndarray                                            \n\
    Tabulated temperature array [ntemp].                             \n\
 mtable: 1D float ndarray                                            \n\
@@ -339,6 +342,7 @@ static PyObject *interp_ec(PyObject *self, PyObject *args){
                 *molID;       /* mol ID of the atmospheric species          */
 
   int nspec, nmol, ntemp,  /* Number of wavenumber, species, & temperatures */
+      nmolID, 
       tlo, thi, imol;
   int i, j;                /* Auxilliary for-loop indices                   */
   double ext,              /* Temporary extinction coefficient              */
@@ -350,20 +354,21 @@ static PyObject *interp_ec(PyObject *self, PyObject *args){
                                           &temperature,
                                           &density, &molID))
     return NULL;
-
-  ntemp = etable->dimensions[1];  /* Number of temperature samples          */
-  nspec = etable->dimensions[2];  /* Number of spectral samples             */
-  nmol  = molID->dimensions[0];   /* Number of species                      */
+  nmol   = etable->dimensions[0];  /* Number of species samples             */
+  ntemp  = etable->dimensions[1];  /* Number of temperature samples         */
+  nspec  = etable->dimensions[2];  /* Number of spectral samples            */
+  nmolID = molID->dimensions[0];   /* Number of species in atmosphere       */
 
   /* Find index of grid-temperature immediately lower than temperature:     */
   tlo = binsearchapprox(ttable, temperature, 0, ntemp);
-  if (temperature < INDd(ttable,tlo));
+  if (temperature < INDd(ttable,tlo)){
     tlo--;
+  }
   thi = tlo + 1;
 
   /* Add contribution from each molecule:                                   */
   for (j=0; j<nmol; j++){
-    imol = valueinarray(molID, INDi(mtable,j), nmol);
+    imol = valueinarray(molID, INDi(mtable,j), nmolID);
     for (i=0;  i<nspec; i++){
       /* Linear interpolation of the extinction coefficient:                */
       ext = (IND3d(etable,j,tlo,i) * (INDd(ttable,thi) - temperature) +

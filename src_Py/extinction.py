@@ -183,7 +183,7 @@ def read_extinction(pyrat):
   ex.press = np.asarray(struct.unpack(str(ex.nlayers)+'d',f.read(8*ex.nlayers)))
   ex.wn    = np.asarray(struct.unpack(str(ex.nspec  )+'d', f.read(8*ex.nspec)))
 
-  pt.msg(pyrat.verb-15, "Molecules' IDs: {}".format(ex.mol), 2)
+  pt.msg(pyrat.verb-15, "Molecules' IDs: {}".format(ex.molID), 2)
   pt.msg(pyrat.verb-15, "Temperatures (K): {}".
                          format(pt.pprint(ex.temp, fmt=np.int)), 2)
   pt.msg(pyrat.verb-15, "Pressure layers (bar): {}".
@@ -251,8 +251,7 @@ def calc_extinction(pyrat):
       extinction(pyrat, ex.etable[:,t,r], r, ex.temp[t], ex.z[:,t])
 
   # Store values in file:
-  f = open("OUTFILE.dat", "wb")
-  #f = open(ex.extfile, "wb")
+  f = open(ex.extfile, "wb")
 
   # Write size of arrays:
   f.write(struct.pack("4l", ex.nmol, ex.ntemp, ex.nlayers, ex.nspec))
@@ -265,6 +264,8 @@ def calc_extinction(pyrat):
   fmt = str(ex.nmol * ex.ntemp * ex.nlayers * ex.nspec) + "d"
   f.write(struct.pack(fmt, *list(pyrat.ex.etable.flatten())))
   f.close()
+  pt.msg(pyrat.verb, "Extinction-coefficient table written to file:"
+                     " '{:s}'.".format(ex.extfile), 2)
 
 
 def extinction(pyrat, extcoeff, ilayer, temp, ziso, add=0):

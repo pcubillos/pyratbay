@@ -459,4 +459,78 @@ Timestamps (for eclipse run):
 Up next, Check code including an opacity grid.
 
 
+*****  Sun Apr 26 11:48:55 EDT 2015  *****
+
+- Fixed bug in valueinarray (extracting double instead of integer).
+- Fixed bugs in interpolating code.
+- Got the code working with a extinction table.  Results are identical
+  to on-the-fly calculations down to 0.3% difference.
+- Optical-depth code is rather slow (~3 seconds).
+- np.zeros vs np.empty does make some difference.
+- Avoid having pt.msg inside loops (may make the code really slow).
+
+*****
+
+sys.path.append("../src_Py")
+import readpyrat as rp
+
+wl, flux1 = rp.readspectrum("eclipse_spectrum.dat", 0)
+wl, flux2 = rp.readspectrum("eclipse_op_spectrum.dat", 0)
+
+plt.figure(0, (8,5))
+plt.clf()
+plt.plot(wl, flux1, "b", label="calc")
+plt.plot(wl, flux2, "r", label="interp", alpha=0.7)
+plt.legend(loc="best")
+plt.xlabel("Wavelength  (um)")
+plt.ylabel("Flux")
+
+plt.figure(1, (8,5))
+plt.clf()
+plt.plot(wl, (flux1-flux2)/flux1, "b")
+
+*****
+
+- Implemented trapezoidal-rule integration.
+
+For the optical depth, it does not make a difference wether we use
+trapezoidal or simpson integration, the results are the same.
+Having said that, a cumulative integration for eclipse geometry saves
+us one while loop, thus improving the code speed by a factor of ~30.
+For transit geometry, the intervals change for each inpact parameter,
+thus we need a more cumbersome calculation.
+The transit calculation is faster though, (higher optical depth and
+simpler spectrum calculation).
+
+- Rewrote the optical depth code in a simpler modular way (one step
+  after the other).  It turns out that stopping the extinction
+  calculation based on maximum optdepth doesn't make much difference
+  now (specially in the case using an extinction table).  So now I'm
+  simply calculating the extinction at all layers (making the code
+  much much easier to follow).
+
+Timestamps:  (for eclipse run using a extinction table)
+ Init:       0.000068
+ Parse:      0.004753
+ Inputs:     0.000550
+ Wnumber:    0.081676
+ Atmosph:    0.006295
+ TLI:        0.138322
+ Layers:     2.899218
+ Voigt:      1.367720
+ CIA read:   0.009534
+ Extinct:    4.937923
+ CIA intp:   0.026635
+ O.Depth:    0.032118
+ Spectrum:   0.471137
+
+*****
+
+Up next:
+- The transit path calculation can be easily written in C, and speed
+  up the optdepth calc by some 30%.
+- Re-write the main, separate code into init() and run().
+- Add reload_atm() so the code will work in the Bayesian framework.
+
+
 *****

@@ -15,7 +15,7 @@ inc = [get_include()]
 
 for i in range(len(files)):
   exec("mod{:d} = Extension('{:s}', sources=['{:s}{:s}'], include_dirs=inc, "
-       "extra_compile_args=['-fopenmp'], extra_link_args=['-lgomp'])".format(
+       "extra_compile_args=['-fopenmp', '-ffast-math'], extra_link_args=['-lgomp'])".format(
        i, files[i].rstrip('.c'), srcdir, files[i]))
 
   exec('ext_mod.append(mod{:d})'.format(i))

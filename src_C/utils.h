@@ -21,7 +21,7 @@ int
 valueinarray(PyArrayObject *array, int value, int arraylen){
   int i;
   for (i=0; i<arraylen; i++){
-    if (INDd(array,i) == value)
+    if (INDi(array,i) == value)
       return i;
   }
   return -1;
