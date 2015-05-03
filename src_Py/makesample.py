@@ -5,6 +5,7 @@ import scipy.constants   as sc
 import scipy.integrate   as si
 import scipy.interpolate as sip
 
+import readatm    as ra
 import pconstants as pc
 import ptools     as pt
 
@@ -98,6 +99,7 @@ def makewavenumber(pyrat):
 
   print(np.ediff1d(timestamps))
 
+
 def makeradius(pyrat):
   """
   Generate atmospheric radius layers sampling.
@@ -148,7 +150,7 @@ def makeradius(pyrat):
   radinterp   = sip.interp1d(pyrat.atmf.press, pyrat.atmf.radius,
                              kind='slinear')
   pressinterp = sip.interp1d(pyrat.atmf.radius[::-1],
-                             pyrat.atmf.press [::-1], kind='cubic')
+                             pyrat.atmf.press [::-1], kind='slinear')
   pt.msg(pyrat.verb, "Radius array (km) = {:s}".
                       format(pt.pprint(pyrat.atmf.radius/pc.units["km"],2)), 2)
 
@@ -220,17 +222,17 @@ def makeradius(pyrat):
     resample = False
 
   # Radius-vs-pressure from Atm. file and resampled array:
-  plt.figure(2)
-  plt.clf()
-  plt.semilogx(pyrat.atmf.press /pc.units[pyrat.punits],
-               pyrat.atmf.radius/pc.units[pyrat.radunits],
-               "o-r", mec="r", mfc='r')
-  plt.semilogx(pyrat.atm.press /pc.units[pyrat.punits],
-               pyrat.atm.radius/pc.units[pyrat.radunits], "o-b",
-               mec="b", mew=1, mfc='None')
-  plt.xlabel("Pressure  ({:s})".format(pyrat.punits))
-  plt.ylabel("Radius  ({:s})".format(pyrat.radunits))
-  plt.savefig("radpress.png")
+  # plt.figure(2)
+  # plt.clf()
+  # plt.semilogx(pyrat.atmf.press /pc.units[pyrat.punits],
+  #              pyrat.atmf.radius/pc.units[pyrat.radunits],
+  #              "o-r", mec="r", mfc='r')
+  # plt.semilogx(pyrat.atm.press /pc.units[pyrat.punits],
+  #              pyrat.atm.radius/pc.units[pyrat.radunits], "o-b",
+  #              mec="b", mew=1, mfc='None')
+  # plt.xlabel("Pressure  ({:s})".format(pyrat.punits))
+  # plt.ylabel("Radius  ({:s})".format(pyrat.radunits))
+  # plt.savefig("radpress.png")
 
   pt.msg(pyrat.verb, "Number of model layers: {:d}".format(pyrat.atm.nlayers),2)
   pt.msg(pyrat.verb, "Pressure lower/higher boundaries: {:.2e} - {:.2e} "
@@ -261,7 +263,6 @@ def makeradius(pyrat):
 
   # Interpolate isotopes partition function:
   pt.msg(pyrat.verb,"Number of isotopes: {:d}".format(pyrat.iso.niso), 2)
-  
   # Initialize the partition-function array for pyrat.iso:
   pyrat.iso.z = np.zeros((pyrat.iso.niso, pyrat.atm.nlayers))
   for i in np.arange(pyrat.lt.ndb):           # For each Database
@@ -269,19 +270,72 @@ def makeradius(pyrat):
       pt.msg(pyrat.verb, "Interpolating (isotope ID {:2d}) partition "
                          "function.".format(pyrat.lt.db[i].iiso+j), 4)
       zinterp = sip.interp1d(pyrat.lt.db[i].temp, pyrat.lt.db[i].z[j],
-                             kind='cubic')
+                             kind='slinear')
       pyrat.iso.z[pyrat.lt.db[i].iiso+j] = zinterp(pyrat.atm.temp)
 
-  # Plot interpolation:
-  plt.figure(3)
-  plt.clf()
-  plt.plot(pyrat.lt.db[0].temp, pyrat.lt.db[0].z[0], "o-r", mec="r")
-  plt.plot(pyrat.atm.temp, pyrat.iso.z[0], "o-b", mec="b", mfc='None')
-  plt.xlabel("Temperature  (K)")
-  plt.ylabel("Partition function")
-  plt.xlim(0, 3000)
-  plt.ylim(0, 15000)
-  plt.savefig("PartitionFunction.png")
+  # # Plot interpolation:
+  # plt.figure(3)
+  # plt.clf()
+  # plt.plot(pyrat.lt.db[0].temp, pyrat.lt.db[0].z[0], "o-r", mec="r")
+  # plt.plot(pyrat.atm.temp, pyrat.iso.z[0], "o-b", mec="b", mfc='None')
+  # plt.xlabel("Temperature  (K)")
+  # plt.ylabel("Partition function")
+  # plt.xlim(0, 3000)
+  # plt.ylim(0, 15000)
+  # plt.savefig("PartitionFunction.png")
 
   pt.msg(pyrat.verb, "Done.")
 
+
+def reloadatm(pyrat, temp, abund):
+  """
+  Parameters:
+  -----------
+  pyrat: A Pyrat instance
+
+  temp: 1D float ndarray
+     Array with a temperature profile in Kelvin (from top to bottom layer).
+  abund: 2D float ndarray
+     Array with the species mole mixing ratio profiles [nlayers, nmol].
+
+  Notes:
+  ------
+  This code assumes that the input temperature and abundances correspond
+  to the final sampling of the atmospheric layers (after makeradius).
+  """
+  # Check that the dimensions match:
+  if np.size(temp) != np.size(pyrat.atm.temp):
+    pt.error("The temperature array size ({:d}) doesn't match the Pyrat's "
+             "temperature size ({:d}).".format(np.size(temp),
+                                               np.size(pyrat.atm.temp)))
+  if np.shape(abund) != np.shape(pyrat.atm.q):
+    pt.error("The shape of the abundances array {:s} doesn't match the "
+             "shape of the Pyrat's abundance size {:s}".format(
+              str(np.shape(abund)), str(np.shape(pyrat.atm.q))))
+
+  # Put temperature and abundance data into the Pyrat object:
+  pyrat.atm.temp = temp
+  pyrat.atm.q    = abund
+
+  # Mean molecular mass:
+  pyrat.atm.mm = np.sum(pyrat.atm.q*pyrat.mol.mass, axis=1)
+
+  # Density:
+  for i in np.arange(pyrat.mol.nmol):
+    pyrat.atm.d[:,i] = ra.IGLdensity(pyrat.atm.q[:,i], pyrat.mol.mass[i],
+                                     pyrat.atm.press, pyrat.atm.temp)
+
+  # Radius:
+  pyrat.atm.radius[1:] = si.cumtrapz((-pc.k * sc.N_A * pyrat.atm.temp) /
+             (pyrat.atm.mm * pyrat.surfgravity), np.log(pyrat.atm.press))
+  pyrat.atm.radius[0] = 0.0
+  radinterp = sip.interp1d(pyrat.atmf.press, pyrat.atmf.radius, kind='slinear')
+  r0 = radinterp(pyrat.pressurebase)
+  pyrat.atm.radius += pyrat.radiusbase - r0
+
+  # Partition function:
+  for i in np.arange(pyrat.lt.ndb):           # For each Database
+    for j in np.arange(pyrat.lt.db[i].niso):  # For each isotope in DB
+      zinterp = sip.interp1d(pyrat.lt.db[i].temp, pyrat.lt.db[i].z[j],
+                             kind='slinear')
+      pyrat.iso.z[pyrat.lt.db[i].iiso+j] = zinterp(pyrat.atm.temp)

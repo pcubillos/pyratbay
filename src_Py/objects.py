@@ -1,6 +1,6 @@
 import numpy as np
 
-class pyrat(object):
+class Pyrat(object):
   """
   Main PyRaT object.
   """

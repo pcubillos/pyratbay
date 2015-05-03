@@ -109,7 +109,6 @@ def interpolate(pyrat):
     # Get index from the pyrat list of molecules:
     imol1 = np.where(pyrat.mol.name == pyrat.cia.molecules[i,0])[0][0]
     imol2 = np.where(pyrat.mol.name == pyrat.cia.molecules[i,1])[0][0]
-    #print(imol1, imol2)
     # FINDME: Add molecule-not-found exception
 
     # Evaluate the spline:

@@ -32,7 +32,7 @@ def modulation(pyrat):
   """
   Calculate the modulation spectrum for transit geometry.
   """
-  pt.msg(1, "\nModulation spectrum.", 2)
+  pt.msg(1, "Modulation spectrum.", 2)
   # Get the stellar radius:
   rstar = pyrat.rstar
   h = np.ediff1d(pyrat.atm.radius)

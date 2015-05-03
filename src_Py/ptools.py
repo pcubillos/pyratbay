@@ -102,13 +102,15 @@ def msg(verblevel, message, indent=0):
   ---------------------
   2014-06-15  patricio  Added Documentation.
   """
+  if verblevel <= 0:
+    return
+
   sentences = message.splitlines()
   indspace = " "*indent
-  if verblevel > 0:
-    for s in sentences:
-      msg = textwrap.fill(s, replace_whitespace=True,
-                          initial_indent=indspace, subsequent_indent=indspace)
-      print(msg)
+  for s in sentences:
+    msg = textwrap.fill(s, replace_whitespace=True,
+                        initial_indent=indspace, subsequent_indent=indspace)
+    print(msg)
 
 
 def binsearch(dbfile, wavelength, rec0, nrec, upper=True):

@@ -253,4 +253,4 @@ def IGLdensity(abundance, mass, pressure, temperature):
   ---------------------
   2014-06-08  patricio  Initial implementation.
   """
-  return (mass * pc.u) * abundance  * pressure / (pc.k * temperature) 
+  return (mass * pc.u) * abundance * pressure / (pc.k * temperature)

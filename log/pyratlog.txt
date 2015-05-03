@@ -533,4 +533,30 @@ Up next:
 - Add reload_atm() so the code will work in the Bayesian framework.
 
 
+*****  Sun May  3 12:16:41 EDT 2015  *****
+
+Re-wrote the pyrat.py main(), separating into init() and run().  Pyrat
+can be run from the Interpreter now:
+
+import sys
+sys.path.append("../")
+import pyrat as p
+
+py = p.init("transit_pyrat.cfg")
+py = p.run(py)
+
 *****
+
+Implemented reloadatm() in makesample.py.
+- Should I put it in readatm.py instead?  
+- Should I remove the layer resampling code?  reloadatm() wont work if
+  the atmosphere was resampled.
+- Changed the spline interpolation for the partition function from
+  cubic to linear.  Differ ences are less than 0.05%.  Linear is ~40
+  times faster.
+
+Up next:
+- Double check that reloadatm works.
+
+
+*****  

@@ -104,6 +104,7 @@ def path(pyrat, radius, path):
     pyrat.od.raypath = -diffrad
 
   elif path == "transit":
+    pyrat.od.raypath = []
     r = 0
     # Compute the path for each impact parameter:
     while r < pyrat.atm.nlayers:
