@@ -559,4 +559,38 @@ Up next:
 - Double check that reloadatm works.
 
 
-*****  
+*****  Sun May 31 15:32:53 EDT 2015  *****
+
+Downloaded Borysow's CIA H2-He data.  Made scripts to reformat the
+given files for use in pyrat:
+  /home/patricio/ast/esp01/pyrat/develop/scripts/Borysow_merge_H2H2.py
+  /home/patricio/ast/esp01/pyrat/develop/scripts/Borysow_merge_H2He.py
+
+Added if-statement to skip Voigt-profile calculation when reading an
+extinction-coefficient table.  Likewise for the line-transition
+reading.
+
+Put Voigt-profile related functions into its own module: voigt.py.
+
+Added error message when an atmospheric species is not listed in the
+molecular info file, and when a CIA species is not listed in the
+atmospheric file.
+
+Updated Borysow's H2-H2 CIA file, and added H2-He file.
+Tested the Borysow's H2-He CIA absorption file. 
+Tested multiple CIA files.  The code seems to be working well in all cases.
+
+Updated hitran.dat and molecules.dat files.
+Updated demo files to include current CIA files.
+
+*****
+
+Up next:
+ - Wait for AJ for TIPS news.
+ - Implement and test multiple TLI files.
+ - Start thinking about the Pyrat-Bay synnergy (even if MC3 is still
+   not ready).
+ - Setup the project's Github README (medium priority?).
+ - Implement HITRAN CIA absorption (wait for AJ?) (low priority?).
+
+

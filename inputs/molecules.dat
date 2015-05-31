@@ -34,11 +34,3 @@
   16    S         32.065       2.00      04         Sulfur
   19    K         39.09830     4.54      04         Potassium
 
-
-# Isotopic ratios:
-# For Partridge & Schwenke (1997):
-H2O    1H1H16O    0.997000
-H2O    1H1H17O    0.000508
-H2O    1H1H18O    0.000508
-H2O    1H2H16O    0.001984
-

@@ -333,7 +333,7 @@ def checkinputs(pyrat):
   if not os.path.isfile(inputs.molfile):
     pt.error("Molecular-data file: '{:s}' does not exist.".
              format(inputs.molfile))
-  pyrat.molfile = inputs.molfile
+  pyrat.molfile = os.path.realpath(inputs.molfile)
 
   if inputs.extfile is not None:
     if not os.path.exists(os.path.realpath(os.path.dirname(inputs.extfile))):

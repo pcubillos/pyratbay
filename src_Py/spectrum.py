@@ -88,7 +88,7 @@ def flux(pyrat):
   Calculate the hemisphere-integrated flux spectrum [units] for eclipse
   geometry.
   """
-  pt.msg(1, "Flux spectrum.", 2)
+  pt.msg(1, "Flux spectrum: '{:s}'".format(pyrat.outspec), 2)
   # Calculate the projected area:
   boundaries = np.linspace(0, 0.5*np.pi, pyrat.nangles+1)
   boundaries[1:pyrat.nangles] = 0.5 * (pyrat.raygrid[:-1] + pyrat.raygrid[1:])

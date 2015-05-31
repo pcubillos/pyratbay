@@ -1,4 +1,4 @@
-import struct, sys
+import struct, sys, os
 import numpy as np
 import objects as o
 import ptools  as pt
@@ -31,9 +31,10 @@ def readlinedb(pyrat):
   # Set link to molecules' indices:
   setimol(pyrat) 
 
-  # Read line-transition data:
-  for n in np.arange(pyrat.lt.nTLI):
-    readlinetransition(pyrat, TLI[n], n)
+  # Read line-transition data (if there's no extinction-coefficient table):
+  if (pyrat.ex.extfile is None) or (not os.path.isfile(pyrat.ex.extfile)):
+    for n in np.arange(pyrat.lt.nTLI):
+      readlinetransition(pyrat, TLI[n], n)
 
   pt.msg(pyrat.verb, "Done.\n")
 
@@ -170,18 +171,18 @@ def readlinetransition(pyrat, linefile, dbindex):
   endrec = linefile.tell()
   nrec = (endrec - initrec + 0.0) / pc.tlireclen
   if nrec != nTransitions:
-    pt.error("The remaining data file size (%.1f) does not correspond "
-             "to the number of transitions (%d)."%(nrec, nTransitions))
-  pt.msg(pyrat.verb, "There are %d line transitions in TLI "
-                     "file."%nTransitions, 2)
+    pt.error("The remaining data file size ({:.1f}) does not correspond to "
+             "the number of transitions ({:d}).".format(nrec, nTransitions))
+  pt.msg(pyrat.verb, "There are {:d} line transitions in TLI "
+                     "file.".format(nTransitions), 2)
 
-  # Show boundary values:
+  # Print spectral boundaries:
   linefile.seek(initrec)
   ini = struct.unpack('d', linefile.read(8))[0]
   linefile.seek((nrec-1)*pc.dreclen + initrec, 0)
   fin = struct.unpack('d', linefile.read(8))[0]
-  pt.msg(pyrat.verb, "Database wavenumber boundaries: %.3f -- %.3f cm^-1"%(
-                     ini, fin), 2)
+  pt.msg(pyrat.verb, "Database wavenumber boundaries: {:.3f} -- {:.3f} cm^-1".
+                      format(ini, fin), 2)
 
   # pyrat low wavelength boundary in microns:
   #pwl_low  = 1.0/(pyrat.wnhigh*pc.units['um'])
@@ -189,20 +190,20 @@ def readlinetransition(pyrat, linefile, dbindex):
   #pyrat.wnlow = 3448.0
   start = pt.binsearch(linefile, pyrat.wnlow, initrec, nTransitions-1, False)
   linefile.seek(start*pc.dreclen + initrec, 0)
-  pt.msg(pyrat.verb, "Found initial transition (%d):  %.7f cm^-1"%(start,
-                     struct.unpack('d', linefile.read(8))[0]), 2)
+  pt.msg(pyrat.verb, "Found initial transition ({:d}):  {:.7f} cm^-1".
+                     format(start, struct.unpack('d', linefile.read(8))[0]), 2)
 
   #pwl_high = 1.0/(pyrat.wnlow*pc.units['um'])
   #pt.msg(pyrat.verb, "Targer final wavelength:   %.7f um"%pwl_high, 2)
   #pyrat.wnhigh = 3571.48
   end = pt.binsearch(linefile, pyrat.wnhigh, initrec, nTransitions-1, True)
   linefile.seek(end*pc.dreclen + initrec, 0)
-  pt.msg(pyrat.verb, "Found final transition (%d):    %.7f cm^-1"%(end,
-                     struct.unpack('d', linefile.read(8))[0]), 2)
+  pt.msg(pyrat.verb, "Found final transition ({:d}):    {:.7f} cm^-1".
+                      format(end, struct.unpack('d', linefile.read(8))[0]), 2)
 
   # Number of transitions to read:
   nread = end - start + 1
-  pt.msg(pyrat.verb, "Reading %d transitions."%nread, 2)
+  pt.msg(pyrat.verb, "Reading {:d} transitions.".format(nread), 2)
 
   # Allocate arrays:
   wn    = np.zeros(nread)

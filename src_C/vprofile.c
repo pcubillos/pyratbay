@@ -106,7 +106,7 @@ static PyObject *voigt(PyObject *self, PyObject *args){
       }
     }
     if (verb > 5 && verb <=10)
-      printf("Calculated Voigt for Lorentz width %3d/%d.\n", m+1, nLor);
+      printf("  Calculated Voigt profile %3d/%d.\n", m+1, nLor);
   }
 
   return Py_BuildValue("i", 1);

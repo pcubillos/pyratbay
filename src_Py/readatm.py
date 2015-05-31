@@ -76,15 +76,15 @@ def getkeywords(pyrat, atmfile):
 
   iline = atmfile.tell()  # Current line position
 
-  pt.msg(1, "Molecules list: \n%s"%(str(pyrat.mol.name)), 2)
+  pt.msg(1, "Molecules list: \n{:s}".format(str(pyrat.mol.name)), 2)
   if pyrat.atmf.abundance:
     pt.msg(1, "Abundance is given by mass (mass mixing ratio)", 2)
   else:
     pt.msg(1, "Abundance is given by number (volume mixing ratio)", 2)
-  pt.msg(1, "Unit factors: radius: %s,  pressure: %s,  temperature: %s"%(
-         pyrat.atmf.runits, pyrat.atmf.punits, pyrat.atmf.tunits), 2)
-  pt.msg(1, "Atm file info: %s"%pyrat.atmf.info, 2)
-  pt.msg(1, "Data starting position: %s"%iline, 2)
+  pt.msg(1, "Unit factors: radius: {:s},  pressure: {:s},  temperature: {:s}".
+          format(pyrat.atmf.runits, pyrat.atmf.punits, pyrat.atmf.tunits), 2)
+  pt.msg(1, "Atm file info: {:s}".format(pyrat.atmf.info), 2)
+  pt.msg(1, "Data starting position: {:d}".format(iline), 2)
   return iline
 
 
@@ -99,8 +99,8 @@ def getconstants(pyrat):
                         Store molecule symbol and ID.
   2015-01-19  patricio  Updated molecules.dat reading.
   """
-  # FINDME: de-hardcode path:
-  molfile = open("../inputs/molecules.dat", "r")
+  # Read file with molecular info:
+  molfile = open(pyrat.molfile, "r")
  
   # Skip comment and blank lines:
   line = molfile.readline().strip()
@@ -125,6 +125,12 @@ def getconstants(pyrat):
   symbol = np.asarray(symbol)
   mass   = np.asarray(mass)
   diam   = np.asarray(diam)
+
+  # Check that all atmospheric species are listed in molfile:
+  absent = np.setdiff1d(pyrat.mol.name, symbol)
+  if len(absent) > 0:
+    pt.error("These species: {:s} are not listed in the molecules info "
+             "file: {:s}.\n".format(str(absent), pyrat.molfile))
 
   # Set molecule's values:
   pyrat.mol.ID     = np.zeros(pyrat.mol.nmol, np.int)
@@ -208,7 +214,7 @@ def getprofiles(pyrat, atmfile):
       plt.loglog(pyrat.atmf.q[:,i], pyrat.atmf.press, label=pyrat.mol.name[i])
     plt.legend(loc="lower left")
     plt.ylim(pyrat.atmf.press[0], pyrat.atmf.press[-1])
-    plt.ylabel("Pressure  (%s)"%pyrat.atmf.punits)
+    plt.ylabel("Pressure  ({:s})".format(pyrat.atmf.punits))
     plt.xlabel("Abundances")
     plt.draw()
     plt.savefig("atmprofiles.png")

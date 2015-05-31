@@ -47,6 +47,11 @@ def read(pyrat):
         # Get the molecules involved:
         elif line == "@SPECIES":
           pyrat.cia.molecules[i] = f.readline().strip().split()
+          # Check that CIA species are in the atmospheric file:
+          absent = np.setdiff1d(pyrat.cia.molecules[i], pyrat.mol.name)
+          if len(absent) > 0:
+            pt.error("These species: {:s} are not listed in the atmospheric "
+                     "file.\n".format(str(absent)))
           nheader += 1
 
         # Get the sampled temperatures:

@@ -13,6 +13,7 @@ import argum      as ar
 import makesample as ms
 import readatm    as ra
 import readlinedb as rl
+import voigt      as v
 import extinction as ex
 import cia        as cia
 import optdepth   as od
@@ -23,7 +24,7 @@ from objects import Pyrat
 
 def init(argv, main=False):
   """
-  PyRaT initialization driver.
+  PyRaT (Python Radiative Transfer) initialization driver.
 
   Parameters:
   -----------
@@ -76,7 +77,7 @@ def init(argv, main=False):
   timestamps.append(time.time())
 
   # Extinction gridding:
-  ex.voigt(pyrat)
+  v.voigt(pyrat)
   timestamps.append(time.time())
 
   # Read CIA files:
