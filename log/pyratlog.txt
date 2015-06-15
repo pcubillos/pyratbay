@@ -594,3 +594,46 @@ Up next:
  - Implement HITRAN CIA absorption (wait for AJ?) (low priority?).
 
 
+*****  Sun Jun 14 17:59:13 EDT 2015  *****
+
+Test Pyrat in OSX Mavericks:
+
+By removing the compilation flags for open MP:
+   extra_compile_args=['-fopenmp']
+   extra_link_args=['-lgomp']
+Pyrat compiles and runs in OSX 10.9.5 (Hurray!)
+
+In general it's much faster than exo. However, the CIA interpolation
+is really slow:
+
+Timestamps:
+            OSX:          Exo:
+            ---------     ---------
+ Init:       0.000178      0.000185
+ Parse:      0.004507	   0.009187
+ Inputs:     0.000679	   0.022783
+ Wnumber:    0.136496	   1.416806
+ Atmosph:    0.005580	   0.010307
+ TLI:        0.097951	   0.159182
+ Layers:     0.005007	   0.008150
+ Voigt:      1.064820	   1.632617
+ CIA read:   0.014392	   0.042466
+ Extinct:    0.000007	   0.000036
+ CIA intp:  34.148751	   0.047788
+ O.Depth:    4.903640	  15.803781
+ Spectrum:   0.409053	   0.470084
+
+I should take a look, and think about implementing my own
+interpolating function.
+
+*****
+
+Implemented modified version of reader.py (TEP file reader), renamed
+as TEP.  Re-worked a bit.  Added method to print the parametes used in
+the Pyrat-Bay project.
+
+*****
+
+Drafted pbay.py, the main Pyrat-Bay driver code.
+
+
