@@ -653,3 +653,14 @@ In ptools.py: Added unpack() function (wrapper of struct.unpack).
 
 *****
 
+Added CTIPS code as sub-module (using this command):
+  git submodule add https://github.com/pcubillos/ctips
+and re-factored the db_hitran.py code to use it.
+
+Should I keep the sub-modules inside a 'modules/' folder?
+I don't have any strong feeling about it.  I will keep them at
+top-level directory for the moment.
+
+Bumped Lineread minor version (Now version 6.2.0).
+Bumped Pyrat revision (Now version 1.0.1).
+

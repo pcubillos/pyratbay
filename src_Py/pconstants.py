@@ -14,11 +14,11 @@ PBAY_REV  = 1  # Revision
 # Pyrat version:
 PYRAT_VER = 1  # Major version
 PYRAT_MIN = 0  # Minor version
-PYRAT_REV = 0  # Revision
+PYRAT_REV = 1  # Revision
 
 # Lineread version:
 LR_VER    = 6  # Major version
-LR_MIN    = 1  # Minor version
+LR_MIN    = 2  # Minor version
 LR_REV    = 0  # Revision
 
 

@@ -1,0 +1,3 @@
+[submodule "ctips"]
+	path = ctips
+	url = https://github.com/pcubillos/ctips

@@ -11,6 +11,10 @@ from driver import dbdriver
 
 # Directory of db_hitran.py:
 DBHdir = os.path.dirname(os.path.realpath(__file__))
+# Add path to ctips source code:
+sys.path.append(DBHdir + "/../ctips/lib")
+import ctips as ct
+
 
 class hitran(dbdriver):
   def __init__(self, dbfile, pffile):
@@ -23,10 +27,6 @@ class hitran(dbdriver):
        File with the Database info as given from HITRAN.
     pffile: String
        File with the partition function.
-
-    Modification History:
-    ---------------------
-    2014-08-01  patricio  Added documentation.
     """
     super(hitran, self).__init__(dbfile, pffile)
 
@@ -47,7 +47,7 @@ class hitran(dbdriver):
     self.molID = self.getMolec()
     # Get info from HITRAN configuration file:
     self.molecule, self.isotopes, self.mass, self.isoratio, self.gi = \
-                                                    self.getHITinfo(self.molID)
+                                                    self.getHITinfo()
     # Database name: 
     self.name = "HITRAN " + self.molecule
 
@@ -62,8 +62,6 @@ class hitran(dbdriver):
        File where to extract the wavelength.
     irec: Integer
        Index of record.
-    dbtype: String
-       Database type: ['ps', 'hit']
 
     Returns:
     --------
@@ -92,86 +90,45 @@ class hitran(dbdriver):
     Calculate the partition function for a grid of temperatures for
     HITRAN molecules.
 
-    Notes:
-    ------
-    This function is a wrapper of the Fortran TIPS routine written
-    by R. R. Gamache.
-    The range of temperatures is limited to: 70K -- 3000K.
-
     Parameters:
     -----------
-    dbfile: String
-       Database filename.
-    pffile: String
-       Partition Function filename.
     verbose: Integer
        Verbosity threshold.
 
     Returns:
     --------
-    PF: 2D ndarray
-       A 2D array (N temperatures, N isotopes + 1) with the partition
-      function values for each isotope (columns) as function of temperature
-       (first column).
-    DBname: String
-       The database name.
-    isoNames: List
-       List with the P&S isotope names.
-    mass: List
-       List with the P&S isotope masses.
+    Temp: 1D float ndarray
+       Array of temperatures where the partition-function was evaluated.
+    pf: 2D float ndarray
+       A 2D array (Nisotopes, Ntemperatures) with the partition-function
+       values for each isotope (columns) as function of temperature.
 
-    Modification History:
-    ---------------------
-    2012-11-22  patricio  Initial implementation.  pcubillos@fulbrightmail.org
-    2014-03-10  patricio  Adapted previous code.
+    Notes:
+    ------
+    The range of temperatures is limited to: 70K -- 3000K.
     """
-
-    # Get molecule ID as  integer:
-    molID = int(self.molID)
- 
-    # Get Number of isotopes:
+    # Number of isotopes:
     Niso = len(self.isotopes)
 
-    # Array of temperatures:
-    Temp = np.arange(70.0, 3000.1, 10)
-    # TIPS range of temperature is: [70K, 3000K]
+    # Array of temperatures (TIPS range of temperature is 70K to 3000K):
+    Temp = np.arange(70.0, 3000.1, 10.0)
     Ntemp = len(Temp)
 
     # Output array for table of Temperature and PF values: 
-    PF = np.zeros((Niso, Ntemp), np.double)
+    pf = np.zeros((Niso, Ntemp), np.double)
 
+    molID = np.repeat(int(self.molID), Ntemp)
+    # Calculate the partition function for each isotope:
     for i in np.arange(Niso):
-      # Molecule ID, isotope ID, and temperature array as strings:
-      smol  = str(molID) + "\n"
-      siso  = str(self.isotopes[i]) + "\n"
-      stemp = np.asarray(Temp, '|S6')
+      isoID = np.repeat(int(self.isotopes[i]), Ntemp)
+      pf[i] = ct.tips(molID, isoID, Temp)/self.gi[i]
 
-      # String input for TIPS:
-      input = smol + siso + ("\n" + smol + siso).join(stemp) + "\n99\n"
-
-      # Call fortran routine to calculate the partition function:
-      p = sp.Popen([self.pffile], stdout=sp.PIPE, stdin=sp.PIPE,
-                   stderr=sp.STDOUT)
-      #print("Size: %d"%np.size(PF[i]))
-      #tmp =  p.communicate(input=input)[0].strip().split("\n")
-      #print(tmp)
-      PF[i] = p.communicate(input=input)[0].strip().split("\n") 
-      PF[i] /= self.gi[i]
-    return Temp, PF
+    return Temp, pf
 
 
   def getMolec(self):
     """
     Get the HITRAN molecule index
-
-    Parameters:
-    -----------
-    dbfile: String
-       The data filename
-
-    Modification History:
-    ---------------------
-    2014-03-21  patricio  Initial implementation.
     """
     # Open file and read first two characters:
     data = open(self.dbfile, "r")
@@ -181,14 +138,9 @@ class hitran(dbdriver):
     return molID #self.molname[molID-1]
 
 
-  def getHITinfo(self, molID):
+  def getHITinfo(self):
     """
     Get HITRAN info from configuration file.
-
-    Parameters:
-    -----------
-    molID: Integer
-       Molecule ID as given in HITRAN database
 
     Returns:
     --------
@@ -211,7 +163,7 @@ class hitran(dbdriver):
  
     # Get values for our molecule: 
     for i in np.arange(len(lines)):
-      if lines[i][0:2] == molID:
+      if lines[i][0:2] == self.molID:
         line = lines[i].split()
         molname  = line[1]
         gi.      append(  int(line[3]))
@@ -228,20 +180,11 @@ class hitran(dbdriver):
 
     Notes:
     ------
-    This function is a wrapper of the Fortran TIPS routine written
-    by R. R. Gamache.
     The range of temperatures is limited to: 70K -- 3000K.
-
-    Parameters:
-    -----------
-    pffile: String
-       Partition Function filename.
-    molID: Integer
-       Molecule ID as given in HITRAN database.
 
     Returns:
     --------
-    PFzero: 1D ndarray
+    PFzero: 1D float ndarray
        An array (N isotopes) with the partition function evaluated at
        T0 = 296 K for each isotope.
 
@@ -255,19 +198,14 @@ class hitran(dbdriver):
     # Output array for table of Temperature and PF values:
     PFzero = np.zeros(Niso, np.double)
 
-    # Molecule ID, isotope ID, and temperature array as strings:
-    smol  = self.molID + "\n"
-    siso  = np.asarray(self.isotopes, '|S5')
-    stemp = "\n" + str(self.T0) + "\n"
+    # Molecule ID, isotope ID, and temperature arrays:
+    molID = np.repeat(int(self.molID), Niso)
+    T0    = np.repeat(self.T0,         Niso)
+    isoID = np.asarray(self.isotopes, np.int)
+    # Evaluate the partition function:
+    PFzero = ct.tips(molID, isoID, T0) / self.gi
 
-    # String input for TIPS:
-    input = smol + ("\n" + stemp + smol).join(siso) + stemp + "\n99\n"
-
-    # Call fortran routine to calculate the partition function:
-    p = sp.Popen([self.pffile], stdout=sp.PIPE, stdin=sp.PIPE, stderr=sp.STDOUT)
-    PFzero[:] = p.communicate(input=input)[0].strip().split("\n")
-
-    return PFzero / self.gi
+    return PFzero
 
 
   def dbread(self, iwn, fwn, verbose, *args):
@@ -379,6 +317,7 @@ class hitran(dbdriver):
     # Set isotopic index to start counting from 0:
     isoID -= 1
     isoID[np.where(isoID < 0)] = 9 # 10th isotope had index 0 --> 10-1=9
+
     # Calculate gf:
     Ia = np.asarray(self.isoratio)
     gf = (S0 * pc.C1 * PFzero[isoID] /  Ia[isoID] *
