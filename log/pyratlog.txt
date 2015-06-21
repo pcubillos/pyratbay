@@ -637,3 +637,19 @@ the Pyrat-Bay project.
 Drafted pbay.py, the main Pyrat-Bay driver code.
 
 
+*****  Sun Jun 21 12:05:55 EDT 2015  *****
+
+In lineread.py: Included the number of transitions per isotope,
+cleaned code (removed unused imports, standarized writing syntax).
+
+In pconstants.py: Added Pyrat-Bay, Pyrat, and Lineread version (major,
+minor, and revision).  Bumped Lineread minor revision to 1 (Now version
+6.1.0).  Set Pyrat version to 1.0.0.
+
+In readlinedb.py: Added check for TLI version.  Adapted to read TLI
+version 6.1.  Standarized writting-to-screen syntax (use format()).
+
+In ptools.py: Added unpack() function (wrapper of struct.unpack).
+
+*****
+

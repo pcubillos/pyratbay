@@ -4,10 +4,23 @@ import scipy.constants as sc
 Constant values used in the pyrat project.
 """
 
+# Software versioning:
+
+# Pyrat-Bay:
+PBAY_VER  = 0  # Major version
+PBAY_MIN  = 0  # Minor version
+PBAY_REV  = 1  # Revision
+
+# Pyrat version:
+PYRAT_VER = 1  # Major version
+PYRAT_MIN = 0  # Minor version
+PYRAT_REV = 0  # Revision
+
 # Lineread version:
-TLI_VER = 6  # TLI version
-LR_VER  = 6  # Lineread version
-LR_REV  = 0  # Lineread revision
+LR_VER    = 6  # Major version
+LR_MIN    = 1  # Minor version
+LR_REV    = 0  # Revision
+
 
 MTC  = 1e-4  # Microns to cm     (MTC = um/cm)
 NTC  = 1e-7  # Nanometers to cm  (NTC = nm/cm)
@@ -53,4 +66,5 @@ amagat = 2.68678e19
 # TLI record length:
 tlireclen = 26  # Three doubles and one short
 dreclen   =  8  # Double byte length
+ireclen   =  4  # Integer byte length
 sreclen   =  2  # Short byte length

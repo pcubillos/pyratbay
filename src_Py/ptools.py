@@ -1,11 +1,13 @@
-import sys, os, traceback, textwrap, struct
+import sys, os
+import traceback
+import textwrap
+import struct
 import numpy as np
-#from mpi4py import MPI
 
 import pconstants as pc
-"""
-pyrat tools: Tools for pyrat project.
 
+"""
+Pyrat tools: Tools for the Pyrat-Bay project.
 """
 
 def parray(string):
@@ -226,3 +228,37 @@ def divisors(number):
       divs.append(i)
   divs.append(number)
   return np.asarray(divs, np.int)
+
+
+def unpack(file, n, dtype):
+  """
+  Wrapper for struct unpack.
+
+  Parameters:
+  -----------
+  file: File object
+     File object to read from.
+  n: Integer
+     Number of elements to read from file.
+  dtype: String
+     Data type of the bytes read.
+
+  Returns:
+  --------
+  output: Scalar, tuple, or string
+     If dtype is 's' return the string.
+     If there is a single element to read, return the scalar value.
+     Else, return a tuple with the elements read.
+  """
+  # Compute the reading format:
+  fmt  = "{:d}{:s}".format(n, dtype)
+  # Calculate the number of bytes to read:
+  size = struct.calcsize(fmt)
+  # Read:
+  output = struct.unpack(fmt, file.read(size))
+  # Return:
+  if (n == 1) or (dtype == "s"):
+    return output[0]
+  else:
+    return output
+

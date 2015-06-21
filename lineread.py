@@ -6,23 +6,35 @@
 #
 # ******************************* END LICENSE ******************************
 
-import matplotlib.pyplot as plt
+"""
+  Usage:
+  ------
+  Execute from the shell:
+  ./lineread.py [--option <args>]
 
+  To dysplay the list of command-line arguments execute:
+  ./lineread.py --help
+
+  Notes:
+  ------
+  This code is based on Patricio Rojo's C code.  That code was subsequently
+  modified by Madison Stemm to translate to Python, and later by Patricio
+  Cubillos into the pylineread module (part of the Transit project)
+"""
+
+import sys, os
+import time
+import ConfigParser, argparse
+import struct
 import numpy as np
 import scipy.constants as sc
-import sys, os, time
-
-import ConfigParser
-import argparse
-import struct
-import heapq as hq
+import matplotlib.pyplot as plt
 
 # Main dir (where lineread.py is located):
 maindir = os.path.dirname(os.path.realpath(__file__))
-# Add paths to Python a C folders:
-sys.path.append(maindir + '/pysrc/')
-sys.path.append(maindir + '/csrc/lib/')
 
+# Add paths to source-code folders:
+sys.path.append(maindir + '/src_Py/')
 import pconstants as pc
 import ptools     as pt
 import db_pands   as ps
@@ -33,18 +45,6 @@ import db_tioschwenke as ts
 def parseargs():
   """
   Read and process the command line arguments.
-
-  Returns:
-  --------
-  args: Namespace object
-     Object with the command line arguments.
-
-  Modification History:
-  ---------------------
-  2013        madison   Initial implementation.        
-  2014-03-06  patricio  Updated from optparse to argparse. Added documentation
-                        and config_file option.    pcubillos@fulbrightmail.org
-  2015-02-01  patricio  
   """
   # Parser to process a configuration file:
   cparser = argparse.ArgumentParser(description=__doc__, add_help=False,
@@ -119,26 +119,9 @@ def parseargs():
   return args
 
 
-if __name__ == "__main__":
+def main():
   """
   Main function to create a TLI file.
-
-  Usage:
-  ------
-  Execute from the shell:
-  ./lineread.py [--option <args>]
-
-  To dysplay the list of command-line arguments execute:
-  ./lineread.py --help
-
-  Modification History:
-  ---------------------
-  2013-10-21  madison   Initial version based on P. Rojo's lineread C code.
-                                                 madison.stemm@ucf.edu
-  2014-03-05  patricio  Added documentation and updated Madison's code.
-                                                 pcubillos@fulbrightmail.org
-  2014-07-27  patricio  Updated to version 5.0
-  2015-02-01  patricio  
   """
 
   # Process command-line-arguments:
@@ -152,6 +135,15 @@ if __name__ == "__main__":
 
   # Number of files:
   Nfiles = len(dblist)
+
+  # Double-check the number of files:
+  Npf = len(pflist)
+  Ntype = len(dbtype)
+  if (Nfiles != Npf) or (Nfiles != Ntype):
+    pt.error("The number of Line-transition files ({:d}) does not match the "
+        "number of partition-function files ({:d}) or database type ({:d}).".
+         format(Nfiles, Npf, Ntype))
+
   # Driver routine to read the databases:
   driver = []
   for i in np.arange(Nfiles):
@@ -181,10 +173,10 @@ if __name__ == "__main__":
   if endianness == 'little':
     endian = 'l'
 
-  # TLI header: Tells endianness of binary, TLI version, and number of
-  # databases used.
+  # TLI header: Tells endianness of binary, TLI version (major, minor, and
+  #             revision):
   header = endian
-  header += struct.pack("3h", pc.TLI_VER, pc.LR_VER, pc.LR_REV)
+  header += struct.pack("3h", pc.LR_VER, pc.LR_MIN, pc.LR_REV)
 
   # Boundaries in wavenumber space (in cm-1):
   iwn = 1.0/(cla.fwav*pc.MTC)
@@ -207,20 +199,18 @@ if __name__ == "__main__":
   TLIout.write(header)
 
   pt.msg(verb-8, "Endianness:   {:s}\n"
-                 "TLI Version:  {:d}\n"
-                 "LR Version:   {:d}\n"
-                 "LR Revision:  {:d}\n"
+                 "TLI Version:  {:d}.{:d}.{:d}\n"
                  "Initial wavelength (um): {:7.3f}  ({:9.3f} cm-1)\n"
                  "Final wavelength (um):   {:7.3f}  ({:9.3f} cm-1)".
-                 format(endian, pc.TLI_VER, pc.LR_VER, pc.LR_REV,
+                 format(endian, pc.LR_VER, pc.LR_MIN, pc.LR_REV,
                         cla.iwav, fwn,  cla.fwav, iwn))
   pt.msg(verb-8, "There are {:d} databases in {:d} files.".
                     format(Ndb, Nfiles))
-  pt.msg(verb-9, "List of databases: {}".format(DBnames))
+  pt.msg(verb-9, "List of databases:\n{}".format(DBnames))
 
   # Partition info:
-  totIso = 0                  # Cumulative number of isotopes
-  acum = np.zeros(Ndb+1, int) # Cumul. number of isotopes per database
+  totIso = 0                   # Cumulative number of isotopes
+  acum = np.zeros(Ndb+1, int)  # Cumul. number of isotopes per database
 
   pt.msg(verb-2, "Reading and writting partition function info:")
   # Database correlative number:
@@ -251,19 +241,21 @@ if __name__ == "__main__":
 
     # Store length of database name, database name, number of temperatures,
     #  and number of isotopes in TLI file:
-    TLIout.write(struct.pack("h%dc"%lenDBname,  lenDBname, *DBnames[idb]))
+    TLIout.write(struct.pack("h{:d}c".format(lenDBname),
+                             lenDBname, *DBnames[idb]))
     # Store the molecule name:
-    TLIout.write(struct.pack("h%dc"%lenMolec, lenMolec, *driver[i].molecule))
+    TLIout.write(struct.pack("h{:d}c".format(lenMolec),
+                             lenMolec, *driver[i].molecule))
     # Store the number of temperature samples and isotopes:
     TLIout.write(struct.pack("hh", Ntemp, Niso))
-    pt.msg(verb-8, "Database ({:d}/{:d}): '{:s}' ({:s} molecule)\n"
+    pt.msg(verb-8, "\nDatabase ({:d}/{:d}): '{:s}' ({:s} molecule)\n"
                    "  Number of temperatures: {:d}\n"
                    "  Number of isotopes: {:d}".
                     format(idb+1, Ndb, DBnames[idb], driver[i].molecule,
                            Ntemp, Niso))
 
     # Write the temperature array:
-    TLIout.write(struct.pack("%dd"%Ntemp, *Temp))
+    TLIout.write(struct.pack("{:d}d".format(Ntemp), *Temp))
     pt.msg(verb-8, "Temperatures: [{:6.1f}, {:6.1f}, ..., {:6.1f}]".
                     format(Temp[0], Temp[1], Temp[Ntemp-1]), 2)
 
@@ -276,12 +268,12 @@ if __name__ == "__main__":
       # Store length of isotope name, isotope name, and isotope mass:
       lenIsoname = len(isoNames[j])
       Iname = str(isoNames[j])
-      TLIout.write(struct.pack("h%dc"%lenIsoname, lenIsoname, *Iname))
+      TLIout.write(struct.pack("h{:d}c".format(lenIsoname), lenIsoname, *Iname))
       TLIout.write(struct.pack("d", iso_mass[j]))
       TLIout.write(struct.pack("d", iso_ratio[j]))
 
       # Write the partition function per isotope:
-      TLIout.write(struct.pack("%dd"%Ntemp, *partDB[j]))
+      TLIout.write(struct.pack("{:d}d".format(Ntemp), *partDB[j]))
       pt.msg(verb-9, "Mass (u):        {:8.4f}\n"
                      "Isotopic ratio:  {:8.4g}\n"
                      "Part. Function:  [{:.2e}, {:.2e}, ..., {:.2e}]".
@@ -298,10 +290,10 @@ if __name__ == "__main__":
   pt.msg(verb, "Done.")
 
   pt.msg(verb, "\nWriting transition info to TLI file:")
-  wnumber = []
-  gf      = []
-  elow    = []
-  isoID   = []
+  wnumber = np.array([], np.double)
+  gf      = np.array([], np.double)
+  elow    = np.array([], np.double)
+  isoID   = np.array([], np.int)
   # Read from file and write the transition info:
   for db in np.arange(Nfiles):
     # Get database index:
@@ -321,7 +313,7 @@ if __name__ == "__main__":
 
     pt.msg(verb-8, "Isotpe in-database indices: {}".
                     format(np.unique(transDB[3])))
-    pt.msg(verb-8, "Isotpe correlative indices: {}".
+    pt.msg(verb-8, "Isotpe correlative indices: {}\n\n".
                     format(np.unique(transDB[3]+acum[idb])))
 
   # Total number of transitions:
@@ -334,10 +326,16 @@ if __name__ == "__main__":
   isort = list(zip(*isort)[0])
   tf = time.time()
   pt.msg(verb-3, "Sort time: {:9.7f} seconds".format(tf-ti))
+
   wnumber = wnumber[isort]
   gf      = gf     [isort]
   elow    = elow   [isort]
   isoID   = isoID  [isort]
+
+  # Calculate the total number of transitions per isotope:
+  Nisotran = np.bincount(isoID)
+  Nisotran = Nisotran[np.where(Nisotran>0)]  # Remove zeroes
+  pt.msg(verb-5, "Transitions per isotope:\n{}".format(Nisotran))
 
   # FINDME: Implement well this:
   if True:
@@ -358,8 +356,16 @@ if __name__ == "__main__":
   transinfo = ""
   # Write the number of transitions:
   TLIout.write(struct.pack("i", nTransitions))
-
   pt.msg(verb-3, "Writing {:d} transition lines.".format(nTransitions))
+  # Write the number of transitions for each isotope:
+  Niso = len(Nisotran)
+  # Note that nIso may differ from accumiso, since accum iso accounts for
+  # all the existing isotopes for an species, whereas nIso accounts only
+  # for the isotopes that do have line transitions in the given range.
+  TLIout.write(struct.pack("i", Niso))
+  TLIout.write(struct.pack(str(Niso)+"i", *list(Nisotran)))
+
+  # Write the Line-transition data:
   ti = time.time()
   transinfo += struct.pack(str(nTransitions)+"d", *list(wnumber))
   transinfo += struct.pack(str(nTransitions)+"h", *list(isoID))
@@ -377,3 +383,6 @@ if __name__ == "__main__":
   pt.msg(verb, "Done.\n")
   sys.exit(0)
 
+
+if __name__ == "__main__":
+  main()
