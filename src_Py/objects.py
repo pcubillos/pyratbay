@@ -122,10 +122,10 @@ class linetransition(object):
     self.ndb     = 0      # Number of data bases
     self.db      = []     # Data base objects
     self.ntransitions = 0 # Number of line transitions
-    self.wn      = np.array([]) # Line wavenumber
-    self.elow    = np.array([]) # Line lower energy level
-    self.gf      = np.array([]) # Line gf value
-    self.isoid   = np.array([], np.int) # Line isotope index
+    self.wn      = np.array([], np.double)  # Line wavenumber
+    self.elow    = np.array([], np.double)  # Line lower energy level
+    self.gf      = np.array([], np.double)  # Line gf value
+    self.isoid   = np.array([], np.int)     # Line isotope index
 
 
 class database(object):

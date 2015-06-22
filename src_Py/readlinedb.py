@@ -1,32 +1,29 @@
-import struct, sys, os
+import sys, os
 import numpy as np
+
 import objects as o
 import ptools  as pt
 import pconstants as pc
 
 def readlinedb(pyrat):
   """
-  Read line transition data.
-
-  Modification History:
-  ---------------------
-  2014-06-08  patricio  Implemented readheader.
-  2014-06-15  patricio  Implemented checkrange.
-  2014-08-15  patricio  Implemented setimol.
+  Main driver to read the line transition data from TLI files.
   """
   pt.msg(pyrat.verb, "\nReading line transition info:")
 
   # Count number of TLI files:
   pyrat.lt.nTLI = len(pyrat.linedb)
+  # TLI file object:
   TLI = []
-  TLIiline = [] # unused
+  # Index of first database in TLI file:
+  dbindex = [0]
 
   # Read data bases header info:
   for n in np.arange(pyrat.lt.nTLI):
     # Open-read TLI data base:
     TLI.append(open(pyrat.linedb[n], "r"))
     # Read headers info:
-    TLIiline.append(readheader(pyrat, TLI[n]))
+    dbindex.append(dbindex[-1] + readheader(pyrat, TLI[n]))
 
   # Set link to molecules' indices:
   setimol(pyrat) 
@@ -34,25 +31,19 @@ def readlinedb(pyrat):
   # Read line-transition data (if there's no extinction-coefficient table):
   if (pyrat.ex.extfile is None) or (not os.path.isfile(pyrat.ex.extfile)):
     for n in np.arange(pyrat.lt.nTLI):
-      readlinetransition(pyrat, TLI[n], n)
+      readlinetransition(pyrat, TLI[n], dbindex[n])
 
   pt.msg(pyrat.verb, "Done.\n")
 
 
 def readheader(pyrat, linefile):
   """
-  Open and read database headers info.
+  Open TLI file and read database header info.
 
   Returns:
   --------
-  iline: Integer
-  Pointer position in linefile where the line-transition info begins.
-
-  Modification History:
-  ---------------------
-  2014-06-08  patricio  Initial implementation.
-  2014-08-03  patricio  Updated to pylineread5.0.
-  2014-08-17  patricio  Store molname in DB object.
+  Ndb: Integer
+     Number of databases in this TLI file.
   """
   # Read header:
   endian = linefile.read(1)
@@ -64,7 +55,7 @@ def readheader(pyrat, linefile):
   # Compare endianness:
   endianness = sys.byteorder
   if endianness[0:1] != endian:
-    pt.error("Incompatible endianness between TLI file ({:s}) and pyrat "
+    pt.error("Incompatible endianness between TLI file ({:s}) and Pyrat "
              "({:s}).".format(endian, endianness[0:1]))
 
   # Read TLI version:
@@ -73,7 +64,7 @@ def readheader(pyrat, linefile):
                       format(TLI_ver, TLI_min, TLI_rev), 2)
   if (TLI_ver != 6) or (TLI_min not in [1,2]):
     pt.error("Incompatible TLI version.  The TLI file must be created with "
-             "Lineread version 6.1.")
+             "Lineread version 6.1-6.2.")
 
   # Read initial and final wavenumber from TLI:
   lt_wni, lt_wnf = pt.unpack(linefile, 2, "d")
@@ -102,7 +93,7 @@ def readheader(pyrat, linefile):
     # Read temperature array:
     db.ntemp, db.niso =  pt.unpack(linefile, 2,        "h")
     db.temp = np.asarray(pt.unpack(linefile, db.ntemp, "d"))
-    pt.msg(pyrat.verb, 'Temperature range: {:4.0f} -- {:4.0f} K.'.
+    pt.msg(pyrat.verb, "Temperature range: {:4.0f} -- {:4.0f} K.".
                         format(db.temp[0], db.temp[-1]), 2)
 
     # Allocate arrays for isotopic info:
@@ -114,7 +105,7 @@ def readheader(pyrat, linefile):
 
     # Store per-isotope info:    
     for j in np.arange(db.niso):
-      dbindex[j] = i
+      dbindex[j] = i + pyrat.lt.ndb
       lenIsoName = pt.unpack(linefile, 1,          "h")
       name[j]    = pt.unpack(linefile, lenIsoName, "s")
       mass[j]    = pt.unpack(linefile, 1,          "d")
@@ -129,7 +120,7 @@ def readheader(pyrat, linefile):
 
     # Add the number of isotopes read:
     pyrat.iso.niso += db.niso
-    pt.msg(pyrat.verb-10, "pyrat niso: {:d}".format(pyrat.iso.niso), 2)
+    pt.msg(pyrat.verb-10, "Pyrat niso: {:d}".format(pyrat.iso.niso), 2)
 
     # Store name, mass in isotopes structure:
     pyrat.iso.name    = np.concatenate((pyrat.iso.name,    name))
@@ -141,23 +132,19 @@ def readheader(pyrat, linefile):
     db.iiso  = acumiso
     acumiso += db.niso
     pyrat.lt.db.append(db)
-    pt.msg(pyrat.verb, "DB index: {:d}, Cumulative Iso: {:d}".
-                        format(i, acumiso), 2)
+    pt.msg(pyrat.verb, "DB index: {:d}, Cumulative Iso: {:d}\n\n".
+                        format(i+pyrat.lt.ndb, acumiso), 2)
 
   # Keep count of number of databases:
   pyrat.lt.ndb  += Ndb
 
   # Return the pointer position in lineinfo file:
-  return linefile.tell()
+  return Ndb
 
 
 def readlinetransition(pyrat, linefile, dbindex):
   """
   Read the databases line transition info.
-
-  Modification History:
-  ---------------------
-  2014-06-22  patricio  Initial implementation
   """
   # Read the number of line transitions:
   nTransitions = pt.unpack(linefile, 1,    "i")
@@ -229,9 +216,9 @@ def readlinetransition(pyrat, linefile, dbindex):
     start  += NisoTran[i]*pc.dreclen
     offset += NisoTran[i]
     nlt    += nread
-    # FINDME: Need number of isotopes per TLI file (or Number of DBs)
-    #isoid += 0*pyrat.lt.db[dbindex].iiso  # Add isotope correlative index
-    # FINDME: Need to sort transition  if there is more than 1 TLI file
+
+  # Add the pre-existing number of isotopes:
+  isoid += pyrat.lt.db[dbindex].iiso
 
   pyrat.lt.wn    = np.concatenate((pyrat.lt.wn,    wn   [0:nlt]))
   pyrat.lt.gf    = np.concatenate((pyrat.lt.gf,    gf   [0:nlt]))
@@ -252,11 +239,6 @@ def checkrange(pyrat, wn_low, wn_high):
     Database's wavenumber lower boundary (in cm^-1).
   wn_high: Float
     Database's wavenumber higher boundary (in cm^-1).
-
-  Modification History:
-  ---------------------
-  2014-06-15  patricio  Initial implementation
-  2015-08-03  patricio  Changed wavelength to wavenumber
   """
   # Print out warning if ranges dont overlap:
   if (wn_low > pyrat.wnhigh) or (wn_high < pyrat.wnlow):
@@ -273,10 +255,6 @@ def checkrange(pyrat, wn_low, wn_high):
 def setimol(pyrat):
   """
   Set the molecule index for the list of isotopes.
-
-  Modification History:
-  ---------------------
-  2014-08-17  patricio  Initial implemetation.
   """
   # Allocate imol array:
   pyrat.iso.imol = np.zeros(pyrat.iso.niso, np.int)

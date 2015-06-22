@@ -32,7 +32,7 @@ def modulation(pyrat):
   """
   Calculate the modulation spectrum for transit geometry.
   """
-  pt.msg(1, "Modulation spectrum.", 2)
+  pt.msg(1, "Modulation spectrum: '{:s}'.".format(pyrat.outspec), 2)
   # Get the stellar radius:
   rstar = pyrat.rstar
   h = np.ediff1d(pyrat.atm.radius)
@@ -88,7 +88,7 @@ def flux(pyrat):
   Calculate the hemisphere-integrated flux spectrum [units] for eclipse
   geometry.
   """
-  pt.msg(1, "Flux spectrum: '{:s}'".format(pyrat.outspec), 2)
+  pt.msg(1, "Flux spectrum: '{:s}'.".format(pyrat.outspec), 2)
   # Calculate the projected area:
   boundaries = np.linspace(0, 0.5*np.pi, pyrat.nangles+1)
   boundaries[1:pyrat.nangles] = 0.5 * (pyrat.raygrid[:-1] + pyrat.raygrid[1:])
