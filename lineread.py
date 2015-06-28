@@ -137,7 +137,7 @@ def main():
   Nfiles = len(dblist)
 
   # Double-check the number of files:
-  Npf = len(pflist)
+  Npf   = len(pflist)
   Ntype = len(dbtype)
   if (Nfiles != Npf) or (Nfiles != Ntype):
     pt.error("The number of Line-transition files ({:d}) does not match the "

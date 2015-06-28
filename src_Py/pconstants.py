@@ -19,7 +19,7 @@ PYRAT_REV = 0  # Revision
 # Lineread version:
 LR_VER    = 6  # Major version
 LR_MIN    = 2  # Minor version
-LR_REV    = 0  # Revision
+LR_REV    = 1  # Revision
 
 
 MTC  = 1e-4  # Microns to cm     (MTC = um/cm)

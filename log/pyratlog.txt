@@ -677,3 +677,29 @@ Cosmetic changes in objects.py and spectrum.py.
 
 Bumped Pyrat minor version (Now version 1.1.0).
 
+
+*****  Sun Jun 28 14:48:59 EDT 2015  *****
+
+What about this?
+- Let part_list continue being a path when we want to read a table,
+  but let it be a flag (e.g., ctips) when we want to calculate it with
+  a method.
+- The method should not live in the db_ class, maybe in the driver?
+
+*****
+
+Added examples/ folder with respective sub-folders for each executable
+of the project.  Moved the pyrat config files here (from run/).
+Deleted the run/ folder.
+
+Added lineread example config file: demo_hitran.cfg (for HITRAN H2O
+database).
+
+Updated eclipse and transit Pyrat config files.  Added demo
+atmospheric file with vertical-uniform abundances to the pyrat_demo/
+folder.  Still need to set the correct paths.
+
+Tiny cosmetic edit in lineread.py.
+
+In pconstants.py: Bumped lineread revision (now version 6.2.1).
+
