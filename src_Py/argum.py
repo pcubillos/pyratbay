@@ -342,33 +342,33 @@ def checkinputs(pyrat):
     pyrat.ex.extfile = os.path.realpath(inputs.extfile)
 
   # Check spectrum arguments:
-  pyrat.wnunits = inputs.wnunits  # Accept units
-  pyrat.wlunits = inputs.wlunits
+  pyrat.spec.wnunits = inputs.wnunits  # Accept units
+  pyrat.spec.wlunits = inputs.wlunits
 
-  pyrat.wllow  = isgreater(inputs.wllow,  pyrat.wlunits,   0, False,
+  pyrat.spec.wllow  = isgreater(inputs.wllow,  pyrat.spec.wlunits, 0, False,
                   "Low wavelength boundary ({:.2e} {:s}) must be >= 0.")
 
-  pyrat.wlhigh = isgreater(inputs.wlhigh, pyrat.wlunits,   0, True,
+  pyrat.spec.wlhigh = isgreater(inputs.wlhigh, pyrat.spec.wlunits, 0, True,
                   "Low wavelength boundary ({:.2e} {:s}) must be >= 0.")
 
   if   inputs.wnlow is not None:
     if inputs.wnlow < 0.0:
       pt.error("Low wavenumber boundary ({:.2e} {:s}-1) must be "
                ">= 0.".format(inputs.wnlow, inputs.wnunits))
-    pyrat.wnlow = inputs.wnlow / pc.units[pyrat.wnunits]
+    pyrat.spec.wnlow = inputs.wnlow / pc.units[pyrat.spec.wnunits]
 
   if   inputs.wnhigh is not None:
     if inputs.wnhigh <= 0.0:
       pt.error("High wavenumber boundary ({:.2e} {:s}-1) must be "
                "> 0.".format(inputs.wnhigh, inputs.wnunits))
-    pyrat.wnhigh = inputs.wnhigh / pc.units[pyrat.wnunits]
+    pyrat.spec.wnhigh = inputs.wnhigh / pc.units[pyrat.spec.wnunits]
 
   if inputs.wnstep is None or inputs.wnstep <= 0:
     pt.error("Wavenumber sampling step ({:.2e} {:s}-1) must be defined and "
              "be > 0.".format(inputs.wnstep, inputs.wnunits))
-  pyrat.wnstep = inputs.wnstep / pc.units[pyrat.wnunits]
+  pyrat.spec.wnstep = inputs.wnstep / pc.units[pyrat.spec.wnunits]
 
-  pyrat.wnosamp = isgreater(inputs.wnosamp, None, 1, False,
+  pyrat.spec.wnosamp = isgreater(inputs.wnosamp, None, 1, False,
                      "Wavenumber oversampling factor ({:d}) must be >= 1.")
 
   # Check atmospheric layers arguments:

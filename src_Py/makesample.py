@@ -14,90 +14,76 @@ def makewavenumber(pyrat):
   """
   Make the wavenumber sample from user inputs.
   Store all values in CGS units.
-
-  Modification History:
-  ---------------------
-  2014-04-28  patricio  Initial python implementation.
-  2015-01-19  patricio  Moved input checks to argum.checkinputs.
   """
+  # Alias for Pyrat's Spectrum object:
+  spec = pyrat.spec
+
   pt.msg(pyrat.verb, "\nGenerating wavenumber array:", 0)
-  #timestamps = []
-  #timestamps.append(time.time())
-  # Initial wavenumber limit:
-  if pyrat.wnlow is None:
-    if pyrat.wlhigh is None:
+  # Low wavenumber boundary:
+  if spec.wnlow is None:
+    if spec.wlhigh is None:
       pt.error("Low wavenumber boundary is undefined.  Set either wnlow or "
                "wlhigh.")
     else:
-      pyrat.wnlow = 1.0 / pyrat.wlhigh
-  elif pyrat.wlhigh is not None:
+      spec.wnlow = 1.0 / spec.wlhigh
+  elif spec.wlhigh is not None:
     pt.warning("Both wnlow ({:.2e} cm-1) and wlhigh ({:.2e} cm) were "
-               "defined.  PyRaT will take wnlow and ignore wlhigh.".format(
-               pyrat.wnlow, pyrat.wlhigh))
+               "defined.  Pyrat will take wnlow and ignore wlhigh.".
+                format(spec.wnlow, spec.wlhigh))
 
-  # Final wavenumber limit:
-  if pyrat.wnhigh is None:
-    if pyrat.wllow is None:
+  # High wavenumber boundary:
+  if spec.wnhigh is None:
+    if spec.wllow is None:
       pt.error("High wavenumber boundary is undefined.  Set either wnhigh or "
                "wllow.")
     else:
-      pyrat.wnhigh = 1.0 / pyrat.wllow
-  elif pyrat.wllow is not None:
+      spec.wnhigh = 1.0 / spec.wllow
+  elif spec.wllow is not None:
     pt.warning("Both wnhigh ({:.2e} cm-1) and wllow ({:.2e} cm) were "
-               "defined.  PyRaT will take wnhigh and ignore wllow.".format(
-               pyrat.wnhigh, pyrat.wllow))
+               "defined.  Pyrat will take wnhigh and ignore wllow.".
+                format(spec.wnhigh, spec.wllow))
 
   # Consistency check (wnlow < wnhigh):
-  if pyrat.wnlow > pyrat.wnhigh:
+  if spec.wnlow > spec.wnhigh:
     pt.error("Wavenumber low boundary ({:.2e} cm-1) must be larger than the "
-             "high boundary ({:.2e} cm-1)".format(pyrat.wnlow, pyrat.wnhigh))
+             "high boundary ({:.2e} cm-1)".
+              format(spec.wnlow, spec.wnhigh))
 
   # Set wavelength limits based on the wavenumber limits:
-  pyrat.wlhigh = 1.0 / pyrat.wnlow
-  pyrat.wllow  = 1.0 / pyrat.wnhigh
-  #timestamps.append(time.time())
-  #print("Defaults: {:10.6f}".format(timestamps[-1] - timestamps[-2]))
+  spec.wlhigh = 1.0 / spec.wnlow
+  spec.wllow  = 1.0 / spec.wnhigh
 
   # Make the wavenumber array:
-  pyrat.wn = np.arange(pyrat.wnlow, pyrat.wnhigh, pyrat.wnstep)  
-  #timestamps.append(time.time())
-  #print("arange: {:10.6f}".format(timestamps[-1] - timestamps[-2]))
+  spec.wn = np.arange(spec.wnlow, spec.wnhigh, spec.wnstep)
 
   # Re-set final boundary (stay inside given boundaries):
-  if pyrat.wn[-1] != pyrat.wnhigh:
+  if spec.wn[-1] != spec.wnhigh:
     pt.warning("Final wavenumber boundary modified from {:.4f} cm-1 (input)\n"
-               "                                     to {:.4f} cm-1 (PyRaT).".
-               format(pyrat.wnhigh, pyrat.wn[-1]))
-  # FINDME: think about this:
-  #pyrat.wnhigh = pyrat.wn[-1]
-  pyrat.nspec  = len(pyrat.wn)
+               "                                     to {:.4f} cm-1 (Pyrat).".
+               format(spec.wnhigh, spec.wn[-1]))
+  # Set the number of spectral samples:
+  spec.nspec  = len(spec.wn)
 
   # Make the fine-sampled (oversampled) wavenumber array:
-  pyrat.ownstep = pyrat.wnstep / pyrat.wnosamp
-  pyrat.onspec  = (pyrat.nspec - 1) *  pyrat.wnosamp + 1
-  pyrat.own = np.linspace(pyrat.wn[0], pyrat.wn[-1], pyrat.onspec)
-  #timestamps.append(time.time())
-  #print("Oversample: {:10.6f}".format(timestamps[-1] - timestamps[-2]))
+  spec.ownstep = spec.wnstep / spec.wnosamp
+  spec.onspec  = (spec.nspec - 1) *  spec.wnosamp + 1
+  spec.own = np.linspace(spec.wn[0], spec.wn[-1], spec.onspec)
 
   # Get list of divisors:
-  pyrat.odivisors = pt.divisors(pyrat.wnosamp)
-  #timestamps.append(time.time())
-  #print("Divisors: {:10.6f}".format(timestamps[-1] - timestamps[-2]))
+  spec.odivisors = pt.divisors(spec.wnosamp)
 
   # Screen output:
   pt.msg(pyrat.verb,"Initial wavenumber boundary:  {:.5e} cm-1  ({:.3e} "
-                    "{:s})".format(pyrat.wnlow,
-                     pyrat.wlhigh/pc.units[pyrat.wlunits], pyrat.wlunits), 2)
+                    "{:s})".format(spec.wnlow,
+                          spec.wlhigh/pc.units[spec.wlunits], spec.wlunits), 2)
   pt.msg(pyrat.verb,"Final   wavenumber boundary:  {:.5e} cm-1  ({:.3e} "
-                    "{:s})".format(pyrat.wnhigh,
-                     pyrat.wllow/pc.units[pyrat.wlunits], pyrat.wlunits), 2)
-  pt.msg(pyrat.verb,"Wavenumber sampling stepsize: {:.2g} cm-1".format(
-                     pyrat.wnstep), 2)
-  pt.msg(pyrat.verb,"Wavenumber sample size:      {:8d}".format(pyrat.nspec), 2)
-  pt.msg(pyrat.verb,"Wavenumber fine-sample size: {:8d}".format(pyrat.onspec),2)
+                    "{:s})".format(spec.wnhigh,
+                          spec.wllow /pc.units[spec.wlunits], spec.wlunits), 2)
+  pt.msg(pyrat.verb,"Wavenumber sampling stepsize: {:.2g} cm-1".
+                            format(spec.wnstep), 2)
+  pt.msg(pyrat.verb,"Wavenumber sample size:      {:8d}".format(spec.nspec),  2)
+  pt.msg(pyrat.verb,"Wavenumber fine-sample size: {:8d}".format(spec.onspec), 2)
   pt.msg(pyrat.verb, "Done.")
-
-  #print(np.ediff1d(timestamps))
 
 
 def makeradius(pyrat):

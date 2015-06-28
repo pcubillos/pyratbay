@@ -108,18 +108,16 @@ def interpolate(pyrat):
   pt.msg(pyrat.verb, "\nBegin CIA interpolation.")
 
   # Allocate output extinction-coefficient array:
-  pyrat.cia.ec = np.zeros((pyrat.atm.nlayers, pyrat.nspec))
+  pyrat.cia.ec = np.zeros((pyrat.atm.nlayers, pyrat.spec.nspec))
 
   for i in np.arange(pyrat.cia.nfiles):
     # Get index from the pyrat list of molecules:
     imol1 = np.where(pyrat.mol.name == pyrat.cia.molecules[i,0])[0][0]
     imol2 = np.where(pyrat.mol.name == pyrat.cia.molecules[i,1])[0][0]
-    # FINDME: Add molecule-not-found exception
 
-    # Evaluate the spline:
     #pt.msg(pyrat.verb, "{} {}".format(pyrat.wn[0], pyrat.wn[-1]))
     #pt.msg(pyrat.verb, "{} {}".format(pyrat.atm.temp[0], pyrat.atm.temp[-1]))
-
+    # Evaluate the spline:
     interp = sip.interp2d(pyrat.cia.wavenumber[i], pyrat.cia.temp[i],
                           pyrat.cia.absorption[i], kind='linear')
     # Note that for interp2d: shape(ab) = (len(temp), len(wn))
@@ -131,7 +129,7 @@ def interpolate(pyrat):
 
     # Interpolate:
     sort_temp = pyrat.atm.temp[asort]
-    cia_absorption = interp(pyrat.wn, sort_temp)
+    cia_absorption = interp(pyrat.spec.wn, sort_temp)
     # Reverse sorting to the original order of the atmospheric layers:
     cia_absorption = cia_absorption[desort]
 

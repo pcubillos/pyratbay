@@ -181,8 +181,10 @@ def readlinetransition(pyrat, linefile, dbindex):
   nlt     = 0  # Total number of line-transitions read
   for i in np.arange(nIso):
     # Search lower and higher line-transition indices to read:
-    ifirst = pt.binsearch(linefile, pyrat.wnlow,  start, NisoTran[i]-1, False)
-    ilast  = pt.binsearch(linefile, pyrat.wnhigh, start, NisoTran[i]-1, True)
+    ifirst = pt.binsearch(linefile, pyrat.spec.wnlow,  start, NisoTran[i]-1,
+                          False)
+    ilast  = pt.binsearch(linefile, pyrat.spec.wnhigh, start, NisoTran[i]-1,
+                          True)
     # Add offset for this isotope:
     ifirst += offset
     ilast  += offset
@@ -241,15 +243,15 @@ def checkrange(pyrat, wn_low, wn_high):
     Database's wavenumber higher boundary (in cm^-1).
   """
   # Print out warning if ranges dont overlap:
-  if (wn_low > pyrat.wnhigh) or (wn_high < pyrat.wnlow):
+  if (wn_low > pyrat.spec.wnhigh) or (wn_high < pyrat.spec.wnlow):
     pt.warning("TLI wavenumber range ({:.2f} - {:.2f} cm^-1) does not "
                "overlap with Pyrat wavenumber range ({:.2f} - {:.2f} cm^-1).".
-                format(wn_low, wn_high, pyrat.wnlow, pyrat.wnhigh))
+                format(wn_low, wn_high, pyrat.spec.wnlow, pyrat.spec.wnhigh))
   # Print out warning if TLI range is smaller than the pyrat required range:
-  elif (wn_low > pyrat.wnlow) or  (wn_high < pyrat.wnhigh):
+  elif (wn_low > pyrat.spec.wnlow) or  (wn_high < pyrat.spec.wnhigh):
     pt.warning("TLI wavenumber range ({:.2f} - {:.2f} cm^-1) does not "
-               "cover the full Pyrat wavenumber range ({:.2f} - {:.2f} "
-               "cm^-1).".format(wn_low, wn_high, pyrat.wnlow, pyrat.wnhigh))
+               "cover the full Pyrat wavenumber range ({:.2f} - {:.2f} cm^-1).".
+                format(wn_low, wn_high, pyrat.spec.wnlow, pyrat.spec.wnhigh))
 
 
 def setimol(pyrat):

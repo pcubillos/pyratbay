@@ -5,30 +5,51 @@ class Pyrat(object):
   Main PyRaT object.
   """
   def __init__(self):
-    # User inputs:
-    self.inputs = inputs()         # User inputs
-    self.atmf   = atm()            # Input-file atmosphere
-    self.atm    = atm()            # Modeling atmosphere
-    self.lt     = linetransition() # Line-transition data
-    self.mol    = molecules()      # Molecules data
-    self.iso    = isotopes()       # Isotopes data
-    self.voigt  = voigt()          # Voigt profile
-    self.ex     = extinction()     # Extinction
-    self.cia    = cia()            # CIA
-    self.od     = optdepth()       # Optical depth
-
-    self.wnlow   = None
-    self.wnhigh  = None
+    # Sub-classes:
+    self.inputs = inputs()          # User inputs
+    self.spec   = Spectrum()        # Spectrum data
+    self.atmf   = atm()             # Input-file atmosphere model
+    self.atm    = atm()             # Modeling atmosphere
+    self.lt     = linetransition()  # Line-transition data
+    self.mol    = molecules()       # Molecules data
+    self.iso    = isotopes()        # Isotopes data
+    self.voigt  = voigt()           # Voigt profile
+    self.ex     = extinction()      # Extinction-coefficient
+    self.cia    = cia()             # Collision-induced absorption
+    self.od     = optdepth()        # Optical depth
+    # Files:
+    self.atmfile     = None  # Atmopheric-model file
+    self.linedb      = None  # Line-transition data file
+    self.molfile     = None  # Molecular-properties file
+    self.outsample   = None  # 
+    self.outmaxdepth = None  # 
+    self.outspec     = None  # Modulation/Flux spectrum file
+    # Photometric surface:
+    self.pressurebase = None  # Pressure reference level
+    self.radiusbase   = None  # Radius reference level
+    # Atmosphere:
+    self.radunits = None  # Radius physical units
+    self.radstep  = None  # Radius sampling interval
+    self.radlow   = None  # Lowest radius boundary
+    self.radhigh  = None  # Highest radius boundary
+    self.punits   = None  # Pressure physical units
+    self.plow     = None  # Lowest pressure boundary
+    self.phigh    = None  # Highest pressure boundary
+    # Geometry:
+    self.path     = None  # Observing geometry
+    self.raygrid  = None  # Array of incident ray-angles
+    self.maxdepth = None  # Maximum optical depth to calculate
+    # Physical parameters:
+    self.rstar       = None  # Stellar radius
+    self.surfgravity = None  # Planetary surface gravity
+    # Other:
+    self.verb       = None  # Verbosity level
+    self.timestamps = None  # Time stamps
+    #self. = None  # 
 
 class inputs(object):
   """
   This is a holder class to store user-input arguments.
-
-  Modification History:
-  ---------------------
-  2014-04-26  patricio  Initial implementation.
-  2014-06-29  patricio  Added radius/pressure base levels and surface gravity.
-  2014-08-31  patricio  Added CIA variables.
   """
   def __init__(self):
     # General arguments:
@@ -89,6 +110,28 @@ class inputs(object):
     self.outsample   = None
     self.outmaxdepth = None
 
+
+class Spectrum(object):
+  def __init__(self):
+    self.nspec     = None  # Number of spectral samples
+    # Wavenumber:
+    self.wnunits   = None  # Wavenumber physical units
+    self.wn        = None  # Wavenumber array
+    self.wnlow     = None  # Lowest wavenumber boundary
+    self.wnhigh    = None  # Highest wavenumber boundary
+    self.wnstep    = None  # Wavenumber sampling interval
+    # Oversampled-wavenumber:
+    self.wnosamp   = None  # Wavenumber oversampling factor
+    self.own       = None  # Oversampled wavenumber array
+    self.ownstep   = None  # Oversampled wavenumber sampling interval
+    self.onspec    = None  # Number of oversampled-wavenumber samples
+    self.odivisors = None  # Oversampling-factor integer divisors
+    # Wavelength:
+    self.wlunits = None  # Wavelength physical units
+    self.wllow   = None  # Lowest wavelength boundary
+    self.wlhigh  = None  # Highest wavelength boundary
+    # Spectrum:
+    self.spectrum = None  # Modulation/Flux spectrum array
 
 class atm(object):
   def __init__(self):

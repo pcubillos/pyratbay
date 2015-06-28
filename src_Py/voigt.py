@@ -62,8 +62,8 @@ def widthlimits(pyrat):
   mmax = np.amax(pyrat.mol.mass[mols])
 
   # Get wavenumber array boundaries:
-  numin = np.amin(pyrat.wn)
-  numax = np.amax(pyrat.wn)
+  numin = np.amin(pyrat.spec.wn)
+  numax = np.amax(pyrat.spec.wn)
 
   # Get max pressure:
   pmax = np.amax(pyrat.atm.press)
@@ -112,9 +112,9 @@ def calcvoigt(pyrat):
     # Profile half-width in cm-1:
     pwidth = np.maximum(voigt.doppler, voigt.lorentz[i]) * voigt.width
     # Width in number of spectral samples:
-    psize = 2*np.asarray(pwidth/pyrat.ownstep + 0.5, np.int) + 1
+    psize = 2*np.asarray(pwidth/pyrat.spec.ownstep + 0.5, np.int) + 1
     # Clip to max and min values:
-    psize = np.clip(psize, 3, 2*pyrat.nspec+1)
+    psize = np.clip(psize, 3, 2*pyrat.spec.nspec+1)
     # Set the size to 0 for those that do not need to be calculated:
     psize[np.where(voigt.doppler/voigt.lorentz[i] < voigt.DLratio)[0][1:]] = 0
     # Store half-size values for this Lorentz width:
@@ -128,6 +128,6 @@ def calcvoigt(pyrat):
   # Calculate the Voigt profiles in C:
   vp.voigt(voigt.profile, voigt.size, voigt.index,
            voigt.lorentz, voigt.doppler,
-           pyrat.ownstep,  pyrat.verb)
+           pyrat.spec.ownstep,  pyrat.verb)
   pt.msg(pyrat.verb, "Voigt indices:\n{}".format(voigt.index), 2)
   return

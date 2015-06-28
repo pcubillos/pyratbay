@@ -184,7 +184,7 @@ def extinction(pyrat, extcoeff, ilayer, temp, ziso, add=0):
   ec.extinction(extcoeff,
                 pyrat.voigt.profile, pyrat.voigt.size, pyrat.voigt.index,
                 pyrat.voigt.lorentz, pyrat.voigt.doppler,
-                pyrat.wn, pyrat.own, pyrat.odivisors,
+                pyrat.spec.wn, pyrat.spec.own, pyrat.spec.odivisors,
                 density, molq, pyrat.mol.radius, pyrat.mol.mass,
                 pyrat.iso.imol, pyrat.iso.mass, pyrat.iso.ratio,
                 ziso, pyrat.iso.iext,

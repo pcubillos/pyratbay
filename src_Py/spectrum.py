@@ -13,7 +13,7 @@ def spectrum(pyrat):
   pt.msg(1, "\nCalculate the planetary spectrum.")
 
   # Initialize the spectrum array:
-  pyrat.spectrum = np.empty(pyrat.nspec, np.double)
+  pyrat.spec.spectrum = np.empty(pyrat.spec.nspec, np.double)
 
   # Call respective function depending on the geometry:
   if   pyrat.path == "transit":
@@ -34,19 +34,19 @@ def modulation(pyrat):
   """
   pt.msg(1, "Modulation spectrum: '{:s}'.".format(pyrat.outspec), 2)
   # Get the stellar radius:
-  rstar = pyrat.rstar
   h = np.ediff1d(pyrat.atm.radius)
 
-  for i in np.arange(pyrat.nspec):
+  for i in np.arange(pyrat.spec.nspec):
     # Layer index where the optical depth reached maxdepth:
     last = pyrat.od.ideep[i]
     # The integrand:
     integ = np.exp(-pyrat.od.depth[0:last+1,i]) * pyrat.atm.radius[0:last+1]
 
     # Integrate with Simpson's rule:
-    pyrat.spectrum[i] = s.simps(integ, h[0:last], *s.geth(h[0:last]))
+    pyrat.spec.spectrum[i] = s.simps(integ, h[0:last], *s.geth(h[0:last]))
 
-  pyrat.spectrum = (pyrat.atm.radius[0]**2 + 2*pyrat.spectrum) / pyrat.rstar**2
+  pyrat.spec.spectrum = ( (pyrat.atm.radius[0]**2 + 2*pyrat.spec.spectrum) /
+                          pyrat.rstar**2                                   )
 
 
 def intensity(pyrat):
@@ -56,11 +56,11 @@ def intensity(pyrat):
   pt.msg(1, "Intensity spectrum.", 2)
   # Allocate intensity array:
   pyrat.nangles = len(pyrat.raygrid)
-  pyrat.intensity = np.empty((pyrat.nangles, pyrat.nspec), np.double)
+  pyrat.intensity = np.empty((pyrat.nangles, pyrat.spec.nspec), np.double)
 
   # Calculate the Blackbody function:
-  pyrat.B = np.empty((pyrat.nspec, pyrat.atm.nlayers), np.double)
-  bb.planck(pyrat.B, pyrat.wn, pyrat.atm.temp, pyrat.od.ideep)
+  pyrat.B = np.empty((pyrat.spec.nspec, pyrat.atm.nlayers), np.double)
+  bb.planck(pyrat.B, pyrat.spec.wn, pyrat.atm.temp, pyrat.od.ideep)
 
   # Allocate dtau:
   dtau = np.empty(pyrat.atm.nlayers, np.double)
@@ -69,7 +69,7 @@ def intensity(pyrat):
   j = 0
   while (j <pyrat.nangles):
     i = 0
-    while (i < pyrat.nspec):
+    while (i < pyrat.spec.nspec):
       # Layer index where the optical depth reached maxdepth:
       last = pyrat.od.ideep[i]
       # Optical depth:
@@ -95,7 +95,8 @@ def flux(pyrat):
   area = np.pi * (np.sin(boundaries[1:])**2 - np.sin(boundaries[:-1])**2)
 
   # Weight-sum the intensities to get the flux:
-  pyrat.spectrum[:] = np.sum(pyrat.intensity*np.expand_dims(area,1), axis=0)
+  pyrat.spec.spectrum[:] = np.sum(pyrat.intensity *
+                                  np.expand_dims(area,1), axis=0)
 
 
 def printspec(pyrat):
@@ -112,7 +113,7 @@ def printspec(pyrat):
     specunits = "[erg/s/cm]"
 
   # Wavelength units in brackets:
-  wlunits = "[{:s}]".format(pyrat.wlunits)
+  wlunits = "[{:s}]".format(pyrat.spec.wlunits)
 
   # Open-write file:
   specfile = open(pyrat.outspec, "w")
@@ -121,9 +122,10 @@ def printspec(pyrat):
                                         format(spectype, wlunits, specunits))
 
   # Write the spectrum values:
-  for i in np.arange(pyrat.nspec):
+  for i in np.arange(pyrat.spec.nspec):
     specfile.write("  {:>10.5f}   {:>.8e}\n".
-           format(1.0/pyrat.wn[i]/pc.units[pyrat.wlunits], pyrat.spectrum[i]))
+                    format(1.0/pyrat.spec.wn[i]/pc.units[pyrat.spec.wlunits],
+                           pyrat.spec.spectrum[i]))
 
   specfile.close()
 

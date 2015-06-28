@@ -703,3 +703,13 @@ Tiny cosmetic edit in lineread.py.
 
 In pconstants.py: Bumped lineread revision (now version 6.2.1).
 
+*****
+
+In objects.py: Created Spectrum class.  Moved Pyrat's wavenumber,
+wavelength, and spectrum variables into the Spectrum object.  Declared
+all of the Pyrat-object attributes.
+Modified accordingly: argum.py, cia.py, extinction.py, makesample.py,
+objects.py, optdepth.py, readlinedb.py, spectrum.py, and voigt.py.
+
+In pconstants.py: Bumped Pyrat revision (now version 1.1.1).
+
