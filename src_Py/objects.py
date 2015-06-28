@@ -6,17 +6,17 @@ class Pyrat(object):
   """
   def __init__(self):
     # Sub-classes:
-    self.inputs = inputs()          # User inputs
+    self.inputs = Inputs()          # User inputs
     self.spec   = Spectrum()        # Spectrum data
-    self.atmf   = atm()             # Input-file atmosphere model
-    self.atm    = atm()             # Modeling atmosphere
-    self.lt     = linetransition()  # Line-transition data
-    self.mol    = molecules()       # Molecules data
-    self.iso    = isotopes()        # Isotopes data
-    self.voigt  = voigt()           # Voigt profile
-    self.ex     = extinction()      # Extinction-coefficient
-    self.cia    = cia()             # Collision-induced absorption
-    self.od     = optdepth()        # Optical depth
+    self.atmf   = Atm()             # Input-file atmosphere model
+    self.atm    = Atm()             # Modeling atmosphere
+    self.lt     = Linetransition()  # Line-transition data
+    self.mol    = Molecules()       # Molecules data
+    self.iso    = Isotopes()        # Isotopes data
+    self.voigt  = Voigt()           # Voigt profile
+    self.ex     = Extinction()      # Extinction-coefficient
+    self.cia    = Cia()             # Collision-induced absorption
+    self.od     = Optdepth()        # Optical depth
     # Files:
     self.atmfile     = None  # Atmopheric-model file
     self.linedb      = None  # Line-transition data file
@@ -47,7 +47,7 @@ class Pyrat(object):
     self.timestamps = None  # Time stamps
     #self. = None  # 
 
-class inputs(object):
+class Inputs(object):
   """
   This is a holder class to store user-input arguments.
   """
@@ -133,7 +133,7 @@ class Spectrum(object):
     # Spectrum:
     self.spectrum = None  # Modulation/Flux spectrum array
 
-class atm(object):
+class Atm(object):
   def __init__(self):
     self.abundance = None      # Abundance by mass (True) or number (False)
     self.info      = None      # General info from atmfile
@@ -149,7 +149,7 @@ class atm(object):
     self.d         = None      # Molecular densities          [layers, nmol]
 
 
-class molecules(object):
+class Molecules(object):
   def __init__(self):
     self.nmol   = 0     # Number of molecules
     self.name   = None  # Molecule's name               [nmol]
@@ -159,7 +159,7 @@ class molecules(object):
     self.ID     = None  # Molecule's universal ID       [nmol]
 
 
-class linetransition(object):
+class Linetransition(object):
   def __init__(self):
     self.nTLI    = 0      # Number of TLI files
     self.ndb     = 0      # Number of data bases
@@ -171,7 +171,7 @@ class linetransition(object):
     self.isoid   = np.array([], np.int)     # Line isotope index
 
 
-class database(object):
+class Database(object):
   def __init__(self):
     self.name    = None  # Data base name
     self.molname = None  # Molecule name
@@ -182,7 +182,7 @@ class database(object):
     self.z       = None  # Isotopes' partition function array [niso, ntemp]
 
 
-class isotopes(object):
+class Isotopes(object):
   def __init__(self):
     self.niso    = 0            # Number of isotopes
     self.name    = np.array([]) # Isotope's name
@@ -196,7 +196,7 @@ class isotopes(object):
     self.z       = None         # Isotopes' partition function [niso, ntemp]
 
 
-class voigt(object):
+class Voigt(object):
   def __init__(self):
     self.Dmin     = None  # Minimum Doppler width sampled
     self.Dmax     = None  # Maximum Doppler width sampled
@@ -212,7 +212,7 @@ class voigt(object):
     self.index    = None  # Index where each profile starts [nDop, nLor]
 
 
-class extinction(object):
+class Extinction(object):
   def __init__(self):
     self.ec      = None # Molecular line-transition extinction-coefficient
                         #  in cm-1 [nlayers, nspec]
@@ -231,7 +231,7 @@ class extinction(object):
     self.ciaext  = None # CIA extinction [nlayer, nwave]
 
 
-class cia(object):
+class Cia(object):
   def __init__(self):
     self.files      = None # CIA file names
     self.nfiles     = None # Number of files read
@@ -244,7 +244,7 @@ class cia(object):
     self.ec         = None # Interpolated CIA extinction coefficient
                            #  in cm-1 [nlayer, nspec]
 
-class optdepth(object):
+class Optdepth(object):
   def __init__(self):
     self.ec      = None  # Total extinction coefficient [nlayers, nspec]
     self.raypath = []    # Distance along ray path  [nlayers]

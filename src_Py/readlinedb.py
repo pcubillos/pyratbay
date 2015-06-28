@@ -81,7 +81,7 @@ def readheader(pyrat, linefile):
   acumiso = pyrat.iso.niso
 
   for i in np.arange(Ndb):
-    db = o.database()
+    db = o.Database()
     # Read Database name:
     lenDBname = pt.unpack(linefile, 1,         "h")
     db.name   = pt.unpack(linefile, lenDBname, "s")

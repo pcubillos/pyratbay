@@ -713,3 +713,10 @@ objects.py, optdepth.py, readlinedb.py, spectrum.py, and voigt.py.
 
 In pconstants.py: Bumped Pyrat revision (now version 1.1.1).
 
+*****
+
+In objects.py: Capitalized the class-object definitions.  Edited
+readlinedb.py accordingly.
+
+In pconstants.py: Bumped Pyrat revision (now version 1.1.2).
+
