@@ -173,8 +173,8 @@ def extinction(pyrat, extcoeff, ilayer, temp, ziso, add=0):
   molq     = pyrat.atm.q    [ilayer]  # Molecular abundance
   density  = pyrat.atm.d    [ilayer]  # Molecular density
 
-  # Get mol index in extinction coefficient table for the isotopes:
   pyrat.iso.iext = np.zeros(pyrat.iso.niso, np.int)
+  # Get species indices in extinction-coefficient table for the isotopes:
   if pyrat.ex.extfile is not None:
     for i in np.arange(pyrat.iso.niso):
       pyrat.iso.iext[i] = np.where(pyrat.ex.molID ==

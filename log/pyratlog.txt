@@ -720,3 +720,27 @@ readlinedb.py accordingly.
 
 In pconstants.py: Bumped Pyrat revision (now version 1.1.2).
 
+*****
+
+In objects.py: Implemented Spectrum.info(), Molecules.info(),
+Linetransition.info(), Database.info(), and Isotopes.info().  There
+are still some variables to patch, though.
+
+In spectrum.py: Moved pyrat.intensity to pyrat.spec.intensity.
+
+In pconstants.py: Bumped Pyrat revision (now version 1.1.3).
+
+Should I change the name of the Molecules class to Species?
+- I would like to, bu it would entail too many changes along the code.
+  Keep thinking about it.
+
+*****
+
+Work to do:
+- Continue implementing the info() methods for Atm, Voigt, Extinction,
+  Cia, and Optdepth.
+- Move path, raygrid, maxdepth variables to pyrat.od.
+- Move files to their respective pyrat sub-classes.
+- Same with pressure and radii-related variables.
+
+

@@ -1,15 +1,18 @@
-import numpy as np
+import numpy  as np
+
+import ptools     as pt
+import pconstants as pc
 
 class Pyrat(object):
   """
-  Main PyRaT object.
+  Main Pyrat object.
   """
   def __init__(self):
     # Sub-classes:
     self.inputs = Inputs()          # User inputs
     self.spec   = Spectrum()        # Spectrum data
-    self.atmf   = Atm()             # Input-file atmosphere model
-    self.atm    = Atm()             # Modeling atmosphere
+    self.atmf   = Atm()             # Input-file atmospheric model
+    self.atm    = Atm()             # Modeling atmospheric model
     self.lt     = Linetransition()  # Line-transition data
     self.mol    = Molecules()       # Molecules data
     self.iso    = Isotopes()        # Isotopes data
@@ -45,7 +48,7 @@ class Pyrat(object):
     # Other:
     self.verb       = None  # Verbosity level
     self.timestamps = None  # Time stamps
-    #self. = None  # 
+
 
 class Inputs(object):
   """
@@ -127,11 +130,54 @@ class Spectrum(object):
     self.onspec    = None  # Number of oversampled-wavenumber samples
     self.odivisors = None  # Oversampling-factor integer divisors
     # Wavelength:
-    self.wlunits = None  # Wavelength physical units
-    self.wllow   = None  # Lowest wavelength boundary
-    self.wlhigh  = None  # Highest wavelength boundary
+    self.wlunits   = None  # Wavelength physical units
+    self.wllow     = None  # Lowest wavelength boundary
+    self.wlhigh    = None  # Highest wavelength boundary
     # Spectrum:
-    self.spectrum = None  # Modulation/Flux spectrum array
+    self.intensity = None  # Intensity spectrum array
+    self.spectrum  = None  # Modulation/Flux spectrum array
+
+  def info(self):
+    """
+    Print the Spectral info.
+    """
+    pt.msg(1, "Spectral info:", 0)
+    pt.msg(1, "Wavenumber:", 2)
+    pt.msg(1, "Number of samples:      {:d}".format(self.nspec), 4)
+    pt.msg(1, "User-input units:       {:s}-1".format(self.wnunits), 4)
+    pt.msg(1, "Pyrat (internal) units: cm-1", 4)
+    pt.msg(1, "Low  boundary:     {:9.3f} cm-1".format(self.wnlow),  4)
+    pt.msg(1, "High boundary:     {:9.3f} cm-1".format(self.wnhigh), 4)
+    pt.msg(1, "Sampling interval: {:9.3f} cm-1".format(self.wnstep), 4)
+    pt.msg(1, "Wavenumber array (cm-1):\n  [{:.3f}, {:.3f}, {:.3f}, ..., "
+              "{:.3f}, {:.3f}]".format(self.wn[ 0], self.wn[ 1], self.wn[2],
+                                       self.wn[-2], self.wn[-1]), 4)
+    pt.msg(1, "Oversampled wavenumber:", 2)
+    pt.msg(1, "Oversampling factor:    {:d}".format(self.wnosamp), 4)
+    pt.msg(1, "Number of samples:      {:d}".format(self.onspec), 4)
+    pt.msg(1, "Sampling interval: {:.3e} cm-1".format(self.ownstep), 4)
+    pt.msg(1, "Integer divisors for oversampling factor:\n{:s}".
+                          format(str(self.odivisors).replace("\n", "")), 4)
+    pt.msg(1, "Wavenumber:", 2)
+    pt.msg(1, "User-input units: {:s}".format(self.wlunits), 4)
+    pt.msg(1, "Low  boundary: {:7.3f} {:s}".
+                  format(self.wllow/pc.units[self.wlunits], self.wlunits),  4)
+    pt.msg(1, "High boundary: {:7.3f} {:s}".
+                  format(self.wlhigh/pc.units[self.wlunits], self.wlunits), 4)
+    pt.msg(1, "Spectrum:", 2)
+    if self.intensity is not None:
+      pt.msg(1, "Intensity spectrum array (erg/s/cm/sr): [{:.3f}, {:.3f}, "
+                "{:.3f}, ..., {:.3f}, {:.3f}]".format(self.intensity[ 0],
+                                  self.intensity[ 1], self.intensity[ 2],
+                                  self.intensity[-2], self.intensity[-1]), 4)
+    if self.spectrum is None:
+      pt.msg(1, "Modulation/Flux spectrum array: None", 4)
+    else:
+      # FINDME: how to get the transit/eclipse geometry?
+      pt.msg(1, "Modulation/Flux spectrum array: [{:.3f}, {:.3f}, {:.3f}, ..., "
+                "{:.3f}, {:.3f}]".format(self.spectrum[ 0], self.spectrum[ 1],
+                     self.spectrum[2], self.spectrum[-2], self.spectrum[-1]), 4)
+
 
 class Atm(object):
   def __init__(self):
@@ -148,15 +194,28 @@ class Atm(object):
     self.q         = None      # Molecular abundances         [layers, nmol]
     self.d         = None      # Molecular densities          [layers, nmol]
 
+  def info(self):
+    pass
+
 
 class Molecules(object):
   def __init__(self):
-    self.nmol   = 0     # Number of molecules
-    self.name   = None  # Molecule's name               [nmol]
-    self.symbol = None  # Molecule's symbol             [nmol]
-    self.mass   = None  # Molecule's mass  (gr/mol)     [nmol]
-    self.radius = None  # Molecule's radius (Angstroms) [nmol]
-    self.ID     = None  # Molecule's universal ID       [nmol]
+    self.nmol   = 0     # Number of species
+    self.name   = None  # Species' name               [nmol]
+    self.symbol = None  # Species' symbol             [nmol]
+    self.mass   = None  # Species' mass  (gr/mol)     [nmol]
+    self.radius = None  # Species' radius (Angstroms) [nmol]
+    self.ID     = None  # Species' universal ID       [nmol]
+
+  def info(self):
+    pt.msg(1, "Atmospheric species info:", 0)
+    pt.msg(1, "Number of species: {:d}".format(self.nmol), 2)
+    pt.msg(1, "Species:   ID   Mass      Radius\n"
+              "                (gr/mol)  (Angstrom)", 2)
+    for i in np.arange(self.nmol):
+      pt.msg(1, "{:>7s}:  {:3d}  {:8.4f}  {:.3f}".
+             format(self.symbol[i], self.ID[i],
+                    self.mass[i], self.radius[i]/pc.units["A"]), 2)
 
 
 class Linetransition(object):
@@ -170,6 +229,14 @@ class Linetransition(object):
     self.gf      = np.array([], np.double)  # Line gf value
     self.isoid   = np.array([], np.int)     # Line isotope index
 
+  def info(self):
+    pt.msg(1, "Line-transition info:", 0)
+    pt.msg(1, "Number of TLI files:           {:d}".format(self.nTLI), 2)
+    pt.msg(1, "Number of databases (species): {:d}".format(self.ndb),  2)
+    for i in np.arange(self.ndb):
+      self.db[i].info(2)
+    pt.msg(1, "Number of line transitions:    {:d}".format(self.ntransitions),2)
+
 
 class Database(object):
   def __init__(self):
@@ -181,19 +248,51 @@ class Database(object):
     self.temp    = None  # Temperature array
     self.z       = None  # Isotopes' partition function array [niso, ntemp]
 
+  def info(self, indent=0):
+    pt.msg(1, "Database info:", 0+indent)
+    pt.msg(1, "Database name: {:s}".format(self.name), 2+indent)
+    pt.msg(1, "Species' name: {:s}".format(self.molname), 2+indent)
+    pt.msg(1, "Number of isotopes: {:d}".format(self.niso), 2+indent)
+    pt.msg(1, "Isotope correlative index: {:d}".format(self.iiso),  2+indent)
+    pt.msg(1, "Number of temperature samples: {:d} (for partition function)".
+                format(self.ntemp), 2+indent)
+    pt.msg(1, "Temperature boundaries (K): [{:.1f}, {:.1f}]".
+                format(self.temp[0], self.temp[-1]), 2+indent)
+
 
 class Isotopes(object):
   def __init__(self):
-    self.niso    = 0            # Number of isotopes
-    self.name    = np.array([]) # Isotope's name
-    self.mass    = np.array([]) # Isotope's mass
-    self.ratio   = np.array([]) # Isotopic abundance ratio
-    self.dbindex = np.array([], np.int) # Isotope's data base index
-    self.imol    = np.array([]) # Isotope's molecule index
-    self.iext    = None         # Molecule index in ext. coef. table
-    self.ntemp   = None         # Number of temperature samples
-    self.temp    = None         # Temperature array
-    self.z       = None         # Isotopes' partition function [niso, ntemp]
+    self.niso    = 0                     # Number of isotopes
+    self.name    = np.array([])          # Isotope's name [niso]
+    self.mass    = np.array([])          # Isotope's mass [niso]
+    self.ratio   = np.array([])          # Isotopic abundance ratio  [niso]
+    self.dbindex = np.array([], np.int)  # Isotope's data base index [niso]
+    self.imol    = np.array([], np.int)  # Isotope's molecule index  [niso]
+    self.iext    = None                  # Molecule index in ext-coef. table
+    self.z       = None                  # Isotopes' partition function at
+                                         #   atmospheric layer [niso, nlayers]
+
+  def info(self, pyrat):
+    # Patch self.iext if Pyrat doesn't use an EC table:
+    if pyrat.ex.extfile is None:
+      iext = [None]*self.niso
+    else:
+      iext = self.iext
+
+    pt.msg(1, "Isotopes info:", 0)
+    pt.msg(1, "Number of isotopes: {:d}".format(self.niso), 2)
+    pt.msg(1,
+          "Isotope:  Species  Mass      Isotopic   Database  Ext-coefficient\n"
+          "                   (gr/mol)  ratio      index     table index", 2)
+    for i in np.arange(self.niso):
+      pt.msg(1, "{:>7s}:  {:>7s}  {:8.4f}  {:.3e}       {:3d}  {}".
+             format(self.name[i], pyrat.mol.name[self.imol[i]],
+                    self.mass[i], self.ratio[i], self.dbindex[i], iext[i]), 2)
+    # FINDME: Partition function?
+    #pt.msg(1, "Partition Function:", 2)
+    #for i in np.arange(self.niso):
+    #  pt.msg(1, "{:>7s}: [{:.2e}, {:.2e}, ..., {:.2e}]".
+    #             format(db.z[j,0], db.z[j,1], db.z[j,-1]), 4)
 
 
 class Voigt(object):
@@ -210,6 +309,9 @@ class Voigt(object):
     self.profile  = None  # Voigt profile [sum(2*size+1)]
     self.size     = None  # Profile wavenumber half-size [nDop, nLor]
     self.index    = None  # Index where each profile starts [nDop, nLor]
+
+  def info(self):
+    pass
 
 
 class Extinction(object):
@@ -230,6 +332,9 @@ class Extinction(object):
     self.z       = None # Partition function at tabulated temperatures
     self.ciaext  = None # CIA extinction [nlayer, nwave]
 
+  def info(self):
+    pass
+
 
 class Cia(object):
   def __init__(self):
@@ -244,10 +349,16 @@ class Cia(object):
     self.ec         = None # Interpolated CIA extinction coefficient
                            #  in cm-1 [nlayer, nspec]
 
+  def info(self):
+    pass
+
 class Optdepth(object):
   def __init__(self):
     self.ec      = None  # Total extinction coefficient [nlayers, nspec]
     self.raypath = []    # Distance along ray path  [nlayers]
     self.depth   = None  # Optical depth at raypath [nlayers, nspec]
     self.ideep   = None  # Layer index where depth reached maxdepth [nspec]
+
+  def info(self):
+    pass
 

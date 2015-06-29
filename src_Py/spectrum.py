@@ -56,7 +56,7 @@ def intensity(pyrat):
   pt.msg(1, "Intensity spectrum.", 2)
   # Allocate intensity array:
   pyrat.nangles = len(pyrat.raygrid)
-  pyrat.intensity = np.empty((pyrat.nangles, pyrat.spec.nspec), np.double)
+  pyrat.spec.intensity = np.empty((pyrat.nangles, pyrat.spec.nspec), np.double)
 
   # Calculate the Blackbody function:
   pyrat.B = np.empty((pyrat.spec.nspec, pyrat.atm.nlayers), np.double)
@@ -78,7 +78,7 @@ def intensity(pyrat):
       # The integrand:
       integ = pyrat.B[i,:last+1] * np.exp(-tau/np.cos(pyrat.raygrid[j]))
       # Integrate 
-      pyrat.intensity[j,i] = (s.simps(integ, dtau, *s.geth(dtau[:last])) /
+      pyrat.spec.intensity[j,i] = (s.simps(integ, dtau, *s.geth(dtau[:last])) /
                               np.cos(pyrat.raygrid[j])          )
       i += 1
     j += 1
@@ -95,7 +95,7 @@ def flux(pyrat):
   area = np.pi * (np.sin(boundaries[1:])**2 - np.sin(boundaries[:-1])**2)
 
   # Weight-sum the intensities to get the flux:
-  pyrat.spec.spectrum[:] = np.sum(pyrat.intensity *
+  pyrat.spec.spectrum[:] = np.sum(pyrat.spec.intensity *
                                   np.expand_dims(area,1), axis=0)
 
 
