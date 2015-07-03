@@ -24,8 +24,8 @@ def read(pyrat):
     pt.msg(pyrat.verb, "No CIA files to read.", 2)
   else:
     for i in np.arange(pyrat.cia.nfiles):
-      pt.msg(pyrat.verb, "Reading CIA file: '{:s}'.".format(
-                                                      pyrat.cia.files[i]), 2)
+      pt.msg(pyrat.verb, "Reading CIA file: '{:s}'.".
+                          format(pyrat.cia.files[i]), 2)
       f = open(pyrat.cia.files[i], "r")
       lines = f.readlines()
       f.seek(0)
@@ -58,6 +58,9 @@ def read(pyrat):
           pyrat.cia.temp.append(np.asarray(f.readline().strip().split(),
                                            np.double))
           pyrat.cia.ntemp[i] = len(pyrat.cia.temp[i])
+          # Update temperature boundaries:
+          pyrat.cia.tmin = np.amax((pyrat.cia.tmin, pyrat.cia.temp[i][ 0]))
+          pyrat.cia.tmax = np.amin((pyrat.cia.tmax, pyrat.cia.temp[i][-1]))
           nheader += 1
 
         else:
@@ -114,6 +117,18 @@ def interpolate(pyrat):
   2014-08-31  patricio  Initial Python implementation.
   """
   pt.msg(pyrat.verb, "\nBegin CIA interpolation.")
+
+  # Check temperature boundaries:
+  if np.any(pyrat.atm.temp < pyrat.cia.tmin):
+    icold = np.where(pyrat.atm.temp < pyrat.cia.tmin)[0][0]
+    pt.error("The layer {:d} in the atmospheric model has a lower "
+             "temperature ({:.1f} K) than the lowest allowed CIA temperature "
+             "({:.1f} K).".format(icold, pyrat.atm.temp[icold], pyrat.cia.tmin))
+  if np.any(pyrat.atm.temp > pyrat.cia.tmax):
+    ihot = np.where(pyrat.atm.temp > pyrat.cia.tmax)[0][0]
+    pt.error("The layer {:d} in the atmospheric model has a higher "
+             "temperature ({:.1f} K) than the highest allowed CIA temperature "
+             "({:.1f} K).".format(ihot, pyrat.atm.temp[ihot], pyrat.cia.tmax))
 
   # Allocate output extinction-coefficient array:
   pyrat.cia.ec = np.zeros((pyrat.atm.nlayers, pyrat.spec.nspec))

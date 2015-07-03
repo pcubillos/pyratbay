@@ -338,16 +338,18 @@ class Extinction(object):
 
 class Cia(object):
   def __init__(self):
-    self.files      = None # CIA file names
-    self.nfiles     = None # Number of files read
-    self.molecules  = None # Molecules involved for each file
-    self.ntemp      = None # Number of temperature samples per file
-    self.nwave      = None # Number of wavenumber samples per file
-    self.temp       = []   # Temperature sampling (in Kelvin)
-    self.wavenumber = []   # Wavenumber sampling (in cm-1)
-    self.absorption = []   # CIA extinction (in cm-1 amagat-2)
-    self.ec         = None # Interpolated CIA extinction coefficient
-                           #  in cm-1 [nlayer, nspec]
+    self.files      = None    # CIA file names
+    self.nfiles     = None    # Number of files read
+    self.molecules  = None    # Molecules involved for each file
+    self.ntemp      = None    # Number of temperature samples per file
+    self.nwave      = None    # Number of wavenumber samples per file
+    self.tmin       = -np.inf # Minimum temperature sampled by all CIA files
+    self.tmax       =  np.inf # Maximum temperature sampled by all CIA files
+    self.temp       = []      # Temperature sampling (in Kelvin)
+    self.wavenumber = []      # Wavenumber sampling (in cm-1)
+    self.absorption = []      # CIA extinction (in cm-1 amagat-2)
+    self.ec         = None    # Interpolated CIA extinction coefficient
+                              #  in cm-1 [nlayer, nspec]
 
   def info(self):
     pass

@@ -761,4 +761,17 @@ cover the requested wavenumber range for Pyrat.
 
 In pconstants.py: Bumped Pyrat revision (now version 1.1.5).
 
+*****
+
+In objects.py: Added tmin and tmax variables to the Cia object to keep
+the minimum and maximum allowed temperatures sampled by the CIA files.
+
+In cia.py: Added warning and stop interpolatecia() execution when a
+layer in the atmospheric file has a temperature beyond the tmin and
+tmax boundaries.
+
+In pconstants.py: Bumped Pyrat revision (now version 1.1.6).
+
+*****
+
 
