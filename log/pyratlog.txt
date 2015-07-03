@@ -792,4 +792,10 @@ In pconstants.py: Bumped Pyrat revision (now version 1.1.7).
 
 *****
 
+Updated README.md to include the Team members, Getting started,
+Install, Quick Demo, Be kind, and License sections.  Still needs work.
+
+In pconstants.py: Bumped Pyrat-Bay revision (now version 0.0.2).
+
+*****
 
