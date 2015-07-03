@@ -1,6 +1,5 @@
 import numpy as np
-import matplotlib.pyplot as plt
-import scipy.constants as sc
+import scipy.constants   as sc
 import scipy.interpolate as sip
 
 import pconstants as pc
@@ -115,21 +114,19 @@ def interpolate(pyrat):
     imol1 = np.where(pyrat.mol.name == pyrat.cia.molecules[i,0])[0][0]
     imol2 = np.where(pyrat.mol.name == pyrat.cia.molecules[i,1])[0][0]
 
-    #pt.msg(pyrat.verb, "{} {}".format(pyrat.wn[0], pyrat.wn[-1]))
-    #pt.msg(pyrat.verb, "{} {}".format(pyrat.atm.temp[0], pyrat.atm.temp[-1]))
     # Evaluate the spline:
-    interp = sip.interp2d(pyrat.cia.wavenumber[i], pyrat.cia.temp[i],
-                          pyrat.cia.absorption[i], kind='linear')
-    # Note that for interp2d: shape(ab) = (len(temp), len(wn))
+    biv = sip.RectBivariateSpline(pyrat.cia.temp[i],
+                                  pyrat.cia.wavenumber[i],
+                                  pyrat.cia.absorption[i])
 
-    # Whiny interp2d wants sorted arrays:
+    # Interpolator requires sorted arrays:
     asort  = np.argsort(pyrat.atm.temp)
     # This one will de-sort to the original order:
     desort = np.argsort(asort)
 
     # Interpolate:
     sort_temp = pyrat.atm.temp[asort]
-    cia_absorption = interp(pyrat.spec.wn, sort_temp)
+    cia_absorption = biv(sort_temp, pyrat.spec.wn)
     # Reverse sorting to the original order of the atmospheric layers:
     cia_absorption = cia_absorption[desort]
 
@@ -137,10 +134,8 @@ def interpolate(pyrat):
     dens1 = pyrat.atm.d[:,imol1]/(pyrat.mol.mass[imol1]*pc.u) / pc.amagat
     dens2 = pyrat.atm.d[:,imol2]/(pyrat.mol.mass[imol2]*pc.u) / pc.amagat
 
-    # Compute CIA absorption in cm-1 units:
+    # Compute CIA absorption in cm-1 units (broadcasting):
     pyrat.cia.ec += (cia_absorption * np.expand_dims(dens1*dens2, axis=1))
-    # (I'm broadcasting here)
 
     pt.msg(pyrat.verb-40, "CIA extinction: {}".format(pyrat.cia.ec[:,0]), 2)
   pt.msg(pyrat.verb, "Done.")
-

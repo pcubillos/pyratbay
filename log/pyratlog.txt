@@ -744,3 +744,15 @@ Work to do:
 - Same with pressure and radii-related variables.
 
 
+*****  Fri Jul  3 10:54:46 EDT 2015  *****
+
+"Replaced 2D interpolator.  In cia.py: Scipy's RectBivariateSpline() is
+~30% faster than the previously used Scipy's inpterp2d().  interp2d
+was also failing in OSX Mavericks (scipy version 0.10.1).
+
+Updated pyrat eclipse and transit demo config files.
+
+In pconstants.py: Bumped Pyrat revision (now version 1.1.4)."
+
+*****
+
