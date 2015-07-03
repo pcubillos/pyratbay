@@ -90,7 +90,7 @@ class Inputs(object):
     self.zerpress    = None
     self.surfgravity = None
     # Voigt profile arguments:
-    self.voigtwidth = None
+    self.Vextent    = None
     self.DLratio    = None
     self.Dmin       = None
     self.Dmax       = None
@@ -182,7 +182,6 @@ class Spectrum(object):
 class Atm(object):
   def __init__(self):
     self.abundance = None      # Abundance by mass (True) or number (False)
-    self.info      = None      # General info from atmfile
     self.runits    = 'km'      # Input radius units
     self.punits    = 'bar'     # Input pressure units
     self.tunits    = 'kelvin'  # Input temperature units
@@ -195,7 +194,32 @@ class Atm(object):
     self.d         = None      # Molecular densities          [layers, nmol]
 
   def info(self):
-    pass
+    pt.msg(1, "Atmospheric model info:", 0)
+    pt.msg(1, "Abundance input units:   {:s} mixing ratio.".
+               format("Mass" if self.abundance else "Molecular"), 2)
+    pt.msg(1, "Radius input units:      {:s}.".format(self.runits), 2)
+    pt.msg(1, "Pressure input units:    {:s}.".format(self.punits), 2)
+    pt.msg(1, "Temperature input units: {:s}.".format(self.tunits), 2)
+    pt.msg(1, "Number of layers: {:d}".format(self.nlayers), 2)
+    pt.msg(1, "Radius (km):        [{:8.1f}, {:8.1f}, ..., {:8.1f}].".
+              format(self.radius[0]/pc.units['km'],
+             self.radius[1]/pc.units['km'], self.radius[-1]/pc.units['km']), 4)
+    pt.msg(1, "Pressure (bar):     [{:.2e}, {:.2e}, ..., {:.2e}].".
+              format(self.press[0]/pc.units['bar'],
+             self.press[1]/pc.units['bar'], self.press[-1]/pc.units['bar']), 4)
+    pt.msg(1, "Temperature (K):    [{:8.2f}, {:8.2f}, ..., {:8.2f}].".
+              format(self.temp[0],   self.temp[1],   self.temp[-1]),   4)
+    pt.msg(1, "Mean M. Mass (amu): [{:8.4f}, {:8.4f}, ..., {:8.4f}].".
+              format(self.mm[0],     self.mm[1],     self.mm[-1]),     4)
+    pt.msg(1, "Number of species: {:d}".format(len(self.q[0])), 2)
+    pt.msg(1, "Abundances:", 2)
+    for i in np.arange(len(self.q[0])):
+      pt.msg(1, "Species [{: 2d}]:       [{:.2e}, {:.2e}, ..., {:.2e}].".
+                format(i, self.q[0,i], self.q[1,i], self.q[-1,i]), 4)
+    pt.msg(1, "Density (gr/cm3):", 2)
+    for i in np.arange(len(self.q[0])):
+      pt.msg(1, "Species [{: 2d}]:       [{:.2e}, {:.2e}, ..., {:.2e}].".
+                format(i, self.d[0,i], self.d[1,i], self.d[-1,i]), 4)
 
 
 class Molecules(object):
@@ -282,7 +306,7 @@ class Isotopes(object):
       iext = [None]*self.niso
     else:
       iext = self.iext
-
+    # Print info to screen:
     pt.msg(1, "Isotopes info:", 0)
     pt.msg(1, "Number of isotopes: {:d}".format(self.niso), 2)
     pt.msg(1,
@@ -310,12 +334,29 @@ class Voigt(object):
     self.doppler  = None  # Doppler-width sample array [nDop]
     self.lorentz  = None  # Lorentz-width sample array [nLor]
     self.DLratio  = None  # Doppler-Lorentz ratio threshold
+    self.extent   = None  # Extent covered by the profile (in number of HWHM)
     self.profile  = None  # Voigt profile [sum(2*size+1)]
     self.size     = None  # Profile wavenumber half-size [nDop, nLor]
     self.index    = None  # Index where each profile starts [nDop, nLor]
 
   def info(self):
-    pass
+    pt.msg(1, "Voigt profile info:", 0)
+    pt.msg(1, "Number of Doppler-width samples:  {:d}".format(self.nDop), 2)
+    pt.msg(1, "Number of Lorentz-width samples:  {:d}".format(self.nLor), 2)
+    pt.msg(1, "Doppler-width array (cm-1):  [{:.3e}, {:.3e}, ..., {:.3e}]".
+               format(self.doppler[0], self.doppler[1], self.doppler[-1]), 2)
+    pt.msg(1, "Lorentz-width array (cm-1):  [{:.3e}, {:.3e}, ..., {:.3e}]".
+               format(self.lorentz[0], self.lorentz[1], self.lorentz[-1]), 2)
+    pt.msg(1, "Doppler--Lorentz ratio threshold:  {:.3e}".
+               format(self.DLratio), 2)
+    pt.msg(1, "Extent covered by a profile in units of Voigt half widths:  "
+              "{:.2f}".format(self.extent), 2)
+    pt.msg(1, "Total size of all Voigt profiles (~sum of: 2*size+1):  {:d}".
+               format(np.size(self.profile)), 2)
+    pt.msg(1, "Voigt-profile half-sizes [Ndop, Nlor]:", 2)
+    pt.msg(1, "{}".format(self.size),  4)
+    pt.msg(1, "Voigt-profile indices [Ndop, Nlor]:", 2)
+    pt.msg(1, "{}".format(self.index), 4)
 
 
 class Extinction(object):

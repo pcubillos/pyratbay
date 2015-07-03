@@ -799,3 +799,16 @@ In pconstants.py: Bumped Pyrat-Bay revision (now version 0.0.2).
 
 *****
 
+In objects.py: implemented Atm.info() and Voigt.info().  Renamed
+Voigt.width to Voigt.extent to avoid confusion.
+
+In argum.py: Renamed the user-input voigtwidth variable to Vextent.
+Corrected Voigt.extent variable name.
+
+In voigt.py: Corrected Voigt.extent variable name.
+
+In pconstants.py: Bumped Pyrat revision (now version 1.1.8).
+
+*****
+
+

@@ -166,9 +166,9 @@ def parse(pyrat):
                      action="store", type=np.double, default=1e-6)
   # Voigt-profile options:
   group = parser.add_argument_group("Voigt-profile  Options")
-  group.add_argument(      "--voigtwidth",    dest="voigtwidth",
-                     help="Width of Voigt profile in number of max(Doppler "
-                          "width, Lorentz width) [default: %(default)s]",
+  group.add_argument(      "--Vextent",    dest="Vextent",
+                     help="Extent of Voigt profile in number of Voigt  "
+                          "widths [default: %(default)s]",
                      action="store", type=np.double, default=20)
   group.add_argument(      "--Dmin",          dest="Dmin",
                      help="Minimum Doppler width to sample in cm-1 "
@@ -274,7 +274,7 @@ def parse(pyrat):
   pyrat.inputs.tmax    = user.tmax
   pyrat.inputs.tstep   = user.tstep
   # Voigt-profile:
-  pyrat.inputs.voigtwidth = user.voigtwidth
+  pyrat.inputs.Vextent    = user.Vextent
   pyrat.inputs.Dmin       = user.Dmin
   pyrat.inputs.Dmax       = user.Dmax
   pyrat.inputs.nDop       = user.nDop
@@ -398,8 +398,8 @@ def checkinputs(pyrat):
                      "The number of atmospheric layers ({:d}) must be > 0.")
 
   # Check Voigt-profile arguments:
-  pyrat.voigt.width = isgreater(inputs.voigtwidth, None, 1, False,
-                                "Voigt width ({:g}) must be >= 1.0")
+  pyrat.voigt.extent = isgreater(inputs.Vextent, None, 1, False,
+                                 "Voigt extent ({:g}) must be >= 1.0")
 
   # Doppler width:
   pyrat.voigt.nDop = isgreater(inputs.nDop, None, 1, False,
