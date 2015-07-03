@@ -756,3 +756,9 @@ In pconstants.py: Bumped Pyrat revision (now version 1.1.4)."
 
 *****
 
+In cia.py: Added warning and stop execution when a CIA file does not
+cover the requested wavenumber range for Pyrat.
+
+In pconstants.py: Bumped Pyrat revision (now version 1.1.5).
+
+

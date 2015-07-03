@@ -75,6 +75,15 @@ def read(pyrat):
         wavenumber[j]   = data[0]
         absorption[:,j] = data[1:]
 
+      # Wavenumber range check:
+      if (wavenumber[ 0] > pyrat.spec.wn[ 0] or
+          wavenumber[-1] < pyrat.spec.wn[-1] ):
+        pt.error("The wavenumber range [{:.3f}, {:.3f}] cm-1 of the CIA "
+                 "file:\n  '{:s}',\ndoes not cover the Pyrat's wavenumber "
+                 "range: [{:.3f}, {:.3f}] cm-1.".
+                 format(wavenumber[0], wavenumber[-1], pyrat.cia.files[i],
+                        pyrat.spec.wn[ 0], pyrat.spec.wn[-1]))
+
       # Add arrays to pyrat:
       pyrat.cia.wavenumber.append(wavenumber)
       pyrat.cia.absorption.append(absorption)
