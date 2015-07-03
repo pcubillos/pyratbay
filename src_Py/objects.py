@@ -220,10 +220,12 @@ class Molecules(object):
 
 class Linetransition(object):
   def __init__(self):
-    self.nTLI    = 0      # Number of TLI files
-    self.ndb     = 0      # Number of data bases
-    self.db      = []     # Data base objects
-    self.ntransitions = 0 # Number of line transitions
+    self.nTLI    = 0        # Number of TLI files
+    self.ndb     = 0        # Number of data bases
+    self.db      = []       # Data base objects
+    self.ntransitions = 0   # Number of line transitions
+    self.tmin    = -np.inf  # Minimum temperature sampled by all TLI files
+    self.tmax    =  np.inf  # Maximum temperature sampled by all TLI files
     self.wn      = np.array([], np.double)  # Line wavenumber
     self.elow    = np.array([], np.double)  # Line lower energy level
     self.gf      = np.array([], np.double)  # Line gf value
@@ -236,6 +238,8 @@ class Linetransition(object):
     for i in np.arange(self.ndb):
       self.db[i].info(2)
     pt.msg(1, "Number of line transitions:    {:d}".format(self.ntransitions),2)
+    pt.msg(1, "Minimum and maximum covered temperatures: [{:.1f}, {:.1f}] K".
+              format(self.tmin, self.tmax))
 
 
 class Database(object):

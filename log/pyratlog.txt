@@ -774,4 +774,22 @@ In pconstants.py: Bumped Pyrat revision (now version 1.1.6).
 
 *****
 
+In objects.py: Added tmin and tmax variables to the Linetransition
+object to keep the minimum and maximum allowed temperatures sampled by
+the TLI files.  Updated info() to include tmin and tmax.
+
+In readlinedb.py: Calculate tmin and tmax for each database in
+readheader().
+
+In extinction.py: Added warning and stop calc_extinction() execution
+if the extinction-coefficient table attempts to sample a temperature
+beyond the TLI limits.
+
+In makesample.py: Added warning and stop makeradius() execution if the
+atmospheric model has a layer with temperature beyond the TLI limits.
+
+In pconstants.py: Bumped Pyrat revision (now version 1.1.7).
+
+*****
+
 

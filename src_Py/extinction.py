@@ -79,23 +79,29 @@ def read_extinction(pyrat):
 
 def calc_extinction(pyrat):
   """
-  Compute the extinction-coefficient (per molecule) for a tabulated grid of
+  Compute the extinction-coefficient (per species) for a tabulated grid of
   temperatures and pressures, over a wavenumber array.
-
-  Modification History:
-  ---------------------
-  2015-01-25  patricio  intitial version.
   """
   # Extinction-coefficient object:
   ex = pyrat.ex
 
   # Make temperature sample:
-  if ex.tmin < 0.0 or ex.tmax < 0.0 or ex.tstep < 0.0:
+  if (ex.tmin < 0.0  or  ex.tmax < 0.0  or  ex.tstep < 0.0):
     pt.error("All temperature variables: tmin ({:.1f}), tmax ({:.1f}), and "
        "tstep ({:.1f}) must be defined.".format(ex.tmin, ex.tmax, ex.tstep))
-
+  # Temperature boundaries check:
+  if (ex.tmin < pyrat.lt.tmin):
+    pt.error("The extinction-coefficient table attempted to sample a "
+             "temperature ({:.1f} K) below the lowest allowed TLI temperature "
+             "({:.1f} K).".format(ex.tmin, pyrat.lt.tmin))
+  if (ex.tmax > pyrat.lt.tmax):
+    pt.error("The extinction-coefficient table attempted to sample a "
+             "temperature ({:.1f} K) above the highest allowed TLI temperature "
+             "({:.1f} K).".format(ex.tmax, pyrat.lt.tmax))
+  # OK, now create the temperature array:
   ex.ntemp = int((ex.tmax-ex.tmin)/ex.tstep) + 1
   ex.temp  = np.linspace(ex.tmin, ex.tmin + (ex.ntemp-1)*ex.tstep, ex.ntemp)
+
   pt.msg(pyrat.verb-15, "Temperature sample (K): {:s}".
                          format(pt.pprint(ex.temp)), 2)
 

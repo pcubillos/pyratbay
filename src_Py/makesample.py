@@ -90,17 +90,8 @@ def makeradius(pyrat):
   """
   Generate atmospheric radius layers sampling.
 
-  Notes:
-  ------
-  If there are radius command-line arguments set, make a sampling; else,
-  use atmfile radius array.
-
-  Modification History:
-  ---------------------
-  2014-06-29  patricio  Initial implementation.
-  2014-08-10  patricio  Added warning print for modified boundary.
-                        Implemented the isotopic interpolation.
-  2014-08-31  patricio  Added molecular abundances and density interpolation.
+  If the user sets radius command-line arguments, make a sampling; else,
+  default to the atmfile radius array.
   """
   pt.msg(pyrat.verb, "\nGenerating atmospheric radius sample:")
 
@@ -246,6 +237,18 @@ def makeradius(pyrat):
                              kind='slinear')
       pyrat.atm.q[:,i] = qinterp(pyrat.atm.press)
       pyrat.atm.d[:,i] = dinterp(pyrat.atm.press)
+
+  # Temperature boundaries check:
+  if np.any(pyrat.atm.temp < pyrat.lt.tmin):
+    icold = np.where(pyrat.atm.temp < pyrat.lt.tmin)[0][0]
+    pt.error("The layer {:d} in the atmospheric model has a lower "
+             "temperature ({:.1f} K) than the lowest allowed TLI temperature "
+             "({:.1f} K).".format(icold, pyrat.atm.temp[icold], pyrat.lt.tmin))
+  if np.any(pyrat.atm.temp > pyrat.lt.tmax):
+    ihot = np.where(pyrat.atm.temp > pyrat.lt.tmax)[0][0]
+    pt.error("The layer {:d} in the atmospheric model has a higher "
+             "temperature ({:.1f} K) than the highest allowed TLI temperature "
+             "({:.1f} K).".format(ihot, pyrat.atm.temp[ihot], pyrat.lt.tmax))
 
   # Interpolate isotopes partition function:
   pt.msg(pyrat.verb,"Number of isotopes: {:d}".format(pyrat.iso.niso), 2)

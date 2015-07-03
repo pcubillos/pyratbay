@@ -93,7 +93,10 @@ def readheader(pyrat, linefile):
     # Read temperature array:
     db.ntemp, db.niso =  pt.unpack(linefile, 2,        "h")
     db.temp = np.asarray(pt.unpack(linefile, db.ntemp, "d"))
-    pt.msg(pyrat.verb, "Temperature range: {:4.0f} -- {:4.0f} K.".
+    # Update temperature boundaries:
+    pyrat.lt.tmin = np.amax((pyrat.lt.tmin, db.temp[ 0]))
+    pyrat.lt.tmax = np.amin((pyrat.lt.tmax, db.temp[-1]))
+    pt.msg(pyrat.verb, "Temperature range: {:4.1f} -- {:4.1f} K.".
                         format(db.temp[0], db.temp[-1]), 2)
 
     # Allocate arrays for isotopic info:
