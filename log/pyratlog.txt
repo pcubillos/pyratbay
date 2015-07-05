@@ -846,3 +846,12 @@ In pconstants.py: Bumped Pyrat revision (now version 1.1.10).
 
 *****
 
+Moved maxdepth and path variables from Pyrat to Optdepth and finished
+implementing info() methods.
+
+In objects.py: implemented Extinction.info(), Cia.info(), and
+  Optdepth.info().  Moved maxdepth and path into Optdepth.
+Edited argum.py, optdepth.py, and spectrum.py to relocate variables.
+In pconstants.py: Bumped Pyrat revision (now version 1.1.11).
+
+*****

@@ -28,7 +28,7 @@ def opticaldepth(pyrat):
 
   # Calculate the ray path:
   ti = time.time()
-  path(pyrat, pyrat.atm.radius, pyrat.path)
+  path(pyrat, pyrat.atm.radius, pyrat.od.path)
   print("Path:   {:.6f}".format(time.time()-ti))
 
   ti = time.time()
@@ -59,10 +59,10 @@ def opticaldepth(pyrat):
   ti = time.time()
   # Calculate the optical depth for each wavenumber:
   i = 0
-  if pyrat.path == "eclipse":
+  if pyrat.od.path == "eclipse":
     while i < pyrat.spec.nspec:
       pyrat.od.ideep[i] = t.cumtrapz(pyrat.od.depth[:,i], pyrat.od.ec[:,i],
-                                     pyrat.od.raypath, pyrat.maxdepth)
+                                     pyrat.od.raypath, pyrat.od.maxdepth)
       i += 1
   else:
     while i < pyrat.spec.nspec:
@@ -72,7 +72,7 @@ def opticaldepth(pyrat):
         pyrat.od.depth[r,i] = t.trapz(pyrat.od.ec[:r+1,i], pyrat.od.raypath[r])
 
         # Stop calculating the op. depth at this wavenumber if reached maxdeph:
-        if pyrat.od.depth[r,i] >= pyrat.maxdepth:
+        if pyrat.od.depth[r,i] >= pyrat.od.maxdepth:
           pyrat.od.ideep[i] = r
           break
         r += 1

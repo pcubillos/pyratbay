@@ -451,7 +451,7 @@ def checkinputs(pyrat):
                "temperature ({:g} K).".format(pyrat.ex.tmax, pyrat.ex.tmin))
 
   # Check optical-depth arguments:
-  pyrat.maxdepth = isgreater(inputs.maxdepth, None, 0, False,
+  pyrat.od.maxdepth = isgreater(inputs.maxdepth, None, 0, False,
                         "Maximum-optical-depth limit ({:g}) must be >= 0.0")
 
   # Check system arguments:
@@ -459,7 +459,7 @@ def checkinputs(pyrat):
        "Stellar radius ({:.1f} {:s}) must be > 0.")
 
   # Accept ray-path argument:
-  pyrat.path  = inputs.path
+  pyrat.od.path  = inputs.path
   # Accept output files:
   pyrat.outspec     = inputs.outspec    
   pyrat.outsample   = inputs.outsample  

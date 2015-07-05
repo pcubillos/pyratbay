@@ -16,10 +16,10 @@ def spectrum(pyrat):
   pyrat.spec.spectrum = np.empty(pyrat.spec.nspec, np.double)
 
   # Call respective function depending on the geometry:
-  if   pyrat.path == "transit":
+  if   pyrat.od.path == "transit":
     modulation(pyrat)
 
-  elif pyrat.path == "eclipse":
+  elif pyrat.od.path == "eclipse":
     intensity(pyrat)
     flux(pyrat)
 
@@ -105,10 +105,10 @@ def printspec(pyrat):
   """
 
   # Type of spectrum and units:
-  if   pyrat.path == "transit":
+  if   pyrat.od.path == "transit":
     spectype  = "Modulation"
     specunits = "[unitless]"
-  elif pyrat.path == "eclipse":
+  elif pyrat.od.path == "eclipse":
     spectype  = "Flux"
     specunits = "[erg/s/cm]"
 

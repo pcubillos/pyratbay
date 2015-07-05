@@ -39,9 +39,7 @@ class Pyrat(object):
     self.plow     = None  # Lowest pressure boundary
     self.phigh    = None  # Highest pressure boundary
     # Geometry:
-    self.path     = None  # Observing geometry
     self.raygrid  = None  # Array of incident ray-angles
-    self.maxdepth = None  # Maximum optical depth to calculate
     # Physical parameters:
     self.rstar       = None  # Stellar radius
     self.surfgravity = None  # Planetary surface gravity
@@ -263,7 +261,7 @@ class Linetransition(object):
       self.db[i].info(2)
     pt.msg(1, "Number of line transitions:    {:d}".format(self.ntransitions),2)
     pt.msg(1, "Minimum and maximum covered temperatures: [{:.1f}, {:.1f}] K".
-              format(self.tmin, self.tmax))
+              format(self.tmin, self.tmax), 2)
 
 
 class Database(object):
@@ -361,31 +359,78 @@ class Voigt(object):
 
 class Extinction(object):
   def __init__(self):
-    self.ec      = None # Molecular line-transition extinction-coefficient
+    self.ec      = None # Molecular line-transition extinction coefficient
                         #  in cm-1 [nlayers, nspec]
-    self.extfile = None # Extinction-coefficient table filename
-    self.etable  = None # Table of ext. coefficient [nmol, nlayer, nTemp, nspec]
     self.ethresh = None # Extinction-coefficient threshold
+
+    self.extfile = None # Extinction-coefficient table filename
+    self.etable  = None # Table of ext. coefficient [nmol, nlayer, ntemp, nspec]
+
     self.tmin    = None # Minimum temperature to sample
     self.tmax    = None # Maximum temperature to sample
     self.tstep   = None # Temperature-sample step interval
+    self.z       = None # Partition function at tabulated temperatures
+                        #   [niso, ntemp]
+    self.nmol    = None # Number of species
     self.ntemp   = None # Number of temperature samples
+    self.nlayers = None # Number of pressure layers
+    self.nspec   = None # Number of wavenumber samples
+
     self.molID   = None # Tabulated species ID
     self.temp    = None # Tabulated temperatures
     self.press   = None # Tabulated pressures
     self.wn      = None # Tabulated wavenumber
-    self.z       = None # Partition function at tabulated temperatures
-    self.ciaext  = None # CIA extinction [nlayer, nwave]
+
 
   def info(self):
-    pass
+    pt.msg(1, "Extinction coefficient info:", 0)
+    pt.msg(1, "Line-transition strength threshold: {:.3e}".
+               format(self.ethresh), 2)
+    if self.extfile is None:
+      pt.msg("No extinction-coefficient table defined.", 2)
+    else:
+      pt.msg(1, "Extinction-coefficient table filename:", 2)
+      pt.msg(1, "'{:s}'".format(self.extfile), 4)
+      pt.msg(1, "Minimum temperature:           {:6.1f} K".format(self.tmin), 4)
+      pt.msg(1, "Maximum temperature:           {:6.1f} K".format(self.tmax), 4)
+      pt.msg(1, "Temperature sampling interval: {:6.1f} K".format(self.tstep),4)
+      pt.msg(1, "Number of tabulated species:          {:5d}".
+                 format(self.nmol),   4)
+      pt.msg(1, "Number of tabulated temperatures:     {:5d}".
+                 format(self.ntemp),   4)
+      pt.msg(1, "Number of tabulated layers:           {:5d}".
+                 format(self.nlayers), 4)
+      pt.msg(1, "Number of tabulated spectral samples: {:5d}".
+                 format(self.nspec),   4)
+      pt.msg(1, "Temperature array (K):   [{:8.1f}, {:8.1f}, ..., {:8.1f}]".
+                 format(self.temp[0], self.temp[1], self.temp[-1]), 4)
+      pt.msg(1, "Partition function at tabulated temperatures:", 4)
+      pt.msg(1, "{}".format(self.z), 6)
+      pt.msg(1, "Species ID array: {:s}".
+                 format(str(self.molID).replace("\n", "")), 4)
+      pt.msg(1, "Pressure array: (bar)    [{:.2e}, {:.2e}, ..., {:.2e}]".
+                 format(self.press[0]/pc.units['bar'],
+             self.press[1]/pc.units['bar'], self.press[-1]/pc.units['bar']), 4)
+      pt.msg(1, "Wavenumber array (cm-1): [{:8.3f}, {:8.3f}, ..., {:8.3f}]".
+                 format(self.wn[0], self.wn[1], self.wn[-1]), 4)
+      np.set_printoptions(formatter={'float': '{: .1e}'.format})
+      pt.msg(1, "Tabulated extinction coefficient (cm2 gr-1)\n"
+                "                       [spec, temp, layer, wave]:", 4)
+      pt.msg(1, "{}".format((self.etable)), 4)
+    if self.ec is not None:
+      np.set_printoptions(formatter={'float': '{: .2e}'.format})
+      pt.msg(1, "\nLine-transition extinction coefficient for the "
+                   "atmospheric model (cm-1) [layer, wave]:", 2)
+      pt.msg(1, "{}".format((self.ec)), 2)
+    np.set_printoptions(formatter=None)
+
 
 
 class Cia(object):
   def __init__(self):
     self.files      = None    # CIA file names
     self.nfiles     = None    # Number of files read
-    self.molecules  = None    # Molecules involved for each file
+    self.molecules  = None    # Species involved for each file
     self.ntemp      = None    # Number of temperature samples per file
     self.nwave      = None    # Number of wavenumber samples per file
     self.tmin       = -np.inf # Minimum temperature sampled by all CIA files
@@ -397,15 +442,94 @@ class Cia(object):
                               #  in cm-1 [nlayer, nspec]
 
   def info(self):
-    pass
+    pt.msg(1, "Collision induced absorption info:", 0)
+    pt.msg(1, "Number of CIA files: {:d}".format(self.nfiles), 2)
+    for i in np.arange(self.nfiles):
+      pt.msg(1, "CIA file: '{:s}':".format(self.files[i]), 2)
+      pt.msg(1, "Species: {:s}-{:s}".
+                 format(self.molecules[i][0], self.molecules[i][1]), 4)
+      pt.msg(1, "Number of temperatures:       {:4d}".format(self.ntemp[i]), 4)
+      pt.msg(1, "Number of wavenumber samples: {:4d}".format(self.nwave[i]), 4)
+      pt.msg(1, "Temperature array (K):  {}".
+                 format(str(self.temp[i]).replace("\n", "")), 4, si=6)
+      pt.msg(1, "Wavenumber array (cm-1): [{:7.1f}, {:7.1f}, ..., {:7.1f}]".
+                 format(self.wavenumber[i][0], self.wavenumber[i][1],
+                        self.wavenumber[i][-1]), 4)
+      np.set_printoptions(formatter={'float': '{: .1e}'.format})
+      pt.msg(1, "Tabulated CIA extinction coefficient (cm-1 amagat-2) "
+                "[layer, wave]:", 4)
+      pt.msg(1, "{}".format((self.ec)), 6)
+      np.set_printoptions(formatter=None)
+    pt.msg(1, "\nMinimum and maximum covered temperatures (K): "
+              "[{:.1f}, {:.1f}]".format(self.tmin, self.tmax), 2)
+    if self.ec is not None:
+      np.set_printoptions(formatter={'float': '{: .2e}'.format})
+      pt.msg(1, "CIA extinction coefficient for the "
+                   "atmospheric model (cm-1) [layer, wave]:", 2)
+      pt.msg(1, "{}".format((self.ec)), 2)
+    np.set_printoptions(formatter=None)
+
 
 class Optdepth(object):
   def __init__(self):
-    self.ec      = None  # Total extinction coefficient [nlayers, nspec]
-    self.raypath = []    # Distance along ray path  [nlayers]
-    self.depth   = None  # Optical depth at raypath [nlayers, nspec]
-    self.ideep   = None  # Layer index where depth reached maxdepth [nspec]
+    self.maxdepth = None  # Maximum optical depth to calculate
+    self.path     = None  # Observing geometry
+    self.ec       = None  # Total extinction coefficient [nlayers, nspec]
+    self.raypath  = []    # Distance along ray path  [nlayers]
+    self.depth    = None  # Optical depth at raypath [nlayers, nspec]
+    self.ideep    = None  # Layer index where depth reached maxdepth [nspec]
 
-  def info(self):
-    pass
+  def info(self, pyrat):
+    pt.msg(1, "Optical depth info:", 0)
+    pt.msg(1, "Ray-path geometry:  {:s}".format(self.path), 2)
+    pt.msg(1, "Maximum optical depth to calculate:  {:.2f}".
+               format(self.maxdepth), 2)
+    if self.ec is not None:
+      np.set_printoptions(formatter={'float': '{: .2e}'.format})
+      pt.msg(1, "Total atmospheric-model extinction coefficient (cm-1) "
+                "[layer, wave]:", 2)
+      pt.msg(1, "{}".format((self.ec)), 2)
+      np.set_printoptions(formatter=None)
+    if self.depth is not None:
+      pt.msg(1, "Layer index where the optical depth reached maxdepth:", 2)
+      pt.msg(1, "{}".format(self.ideep), 4)
+      np.set_printoptions(formatter={'float': '{: .1f}'.format})
+      # Raypath for transit geometry:
+      if self.path == "transit":
+        pt.msg(1, "\nDistance (km) along the raypath over each layer "
+                  "(outside-in) for each impact parameter:", 2)
+        pt.msg(1, "IP[  1] ({:.1f} km): {}".format(
+          pyrat.atm.radius[1]/pc.units["km"], self.raypath[1]/pc.units["km"]),4)
+        pt.msg(1, "IP[  2] ({:.1f} km): {}".format(
+          pyrat.atm.radius[2]/pc.units["km"], self.raypath[2]/pc.units["km"]),4)
+        pt.msg(1, "IP[  3] ({:.1f} km): {}".format(
+          pyrat.atm.radius[3]/pc.units["km"], self.raypath[3]/pc.units["km"]),4)
+        pt.msg(1, "...", 4)
+        pt.msg(1, "IP[{:3d}] ({:.1f} km): {}".format(len(pyrat.atm.radius),
+               pyrat.atm.radius[-1]/pc.units["km"],
+               str(self.raypath[-1]/pc.units["km"])).replace("\n", ""), 4, si=6)
+        pt.msg(1, "\nOptical depth for each impact parameter (outside-in) for "
+                "each wavenumber:", 2)
+      # Raypath for eclipse geometry:
+      elif self.path == "eclipse":
+        pt.msg(1, "\nDistance over each layer along a normal-incident "
+                  "raypath (km):  {}".
+          format(str(self.raypath/pc.units["km"]).replace("\n", "")), 2, si=4)
+        pt.msg(1, "\nOptical depth over each layer (outside-in) along a "
+                  "normal-incident raypath for each wavenumber:", 2)
+      # Print optical depth:
+      np.set_printoptions(formatter={'float': '{: .1e}'.format})
+      pt.msg(1, "At {:7.1f} cm-1:  {}".format(pyrat.spec.wn[0],
+             str(self.depth[0:self.ideep[0]+1,0]).replace("\n","")), 4, si=6)
+      pt.msg(1, "...", 4)
+      index = pyrat.spec.nspec/2
+      pt.msg(1, "At {:7.1f} cm-1:  {}".format(pyrat.spec.wn[index],
+        str(self.depth[0:self.ideep[index]+1,index]).replace("\n","")),4,si=6)
+      pt.msg(1, "...", 4)
+      index = pyrat.spec.nspec-1
+      pt.msg(1, "At {:7.1f} cm-1:  {}".format(pyrat.spec.wn[index],
+        str(self.depth[0:self.ideep[index]+1,index]).replace("\n","")),4,si=6)
+
+
+
 
