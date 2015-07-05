@@ -151,11 +151,11 @@ def parse(pyrat):
   group.add_argument("--tmin",          dest="tmin",
                      help="Minimum temperature to sample/consider "
                      " in Kelvin [default: %(default)s]",
-                     action="store", type=np.double, default=500.0)
+                     action="store", type=np.double, default=None)
   group.add_argument("--tmax",          dest="tmax",
                      help="Maximum temperature to sample/consider "
                      "in Kelvin [default: %(default)s]",
-                     action="store", type=np.double, default=3000.0)
+                     action="store", type=np.double, default=None)
   group.add_argument("--tstep",          dest="tstep",
                      help="Temperature sample step interval "
                      "in Kelvin [default: %(default)s]",
@@ -434,13 +434,16 @@ def checkinputs(pyrat):
 
   # Check extinction-coefficient arguments:
   pyrat.ex.ethresh = isgreater(inputs.ethresh,  None, 0, True,
-             "Extinction-coefficient threshold ({:g} K) must be positive.")
-  pyrat.ex.tmin  = isgreater(inputs.tmin,  None, 0, True,
-             "Minimum temperature sample ({:g} K) must be positive.")
-  pyrat.ex.tmax  = isgreater(inputs.tmax,  None, 0, True,
-             "Maximum temperature sample ({:g} K) must be positive.")
-  pyrat.ex.tstep = isgreater(inputs.tstep, None, 0, True,
-             "Temperature sample step interval ({:g} K) must be positive.")
+               "Extinction-coefficient threshold ({:g} K) must be positive.")
+  if inputs.tmin is not None:
+    pyrat.ex.tmin  = isgreater(inputs.tmin,  'kelvin', 0, True,
+               "Minimum temperature sample ({:g} K) must be positive.")
+  if inputs.tmax is not None:
+    pyrat.ex.tmax  = isgreater(inputs.tmax,  'kelvin', 0, True,
+               "Maximum temperature sample ({:g} K) must be positive.")
+  if inputs.tstep is not None:
+    pyrat.ex.tstep = isgreater(inputs.tstep, 'kelvin', 0, True,
+               "Temperature sample step interval ({:g} K) must be positive.")
 
   if pyrat.ex.tmax is not None and pyrat.ex.tmin is not None:
     if pyrat.ex.tmax <= pyrat.ex.tmin:

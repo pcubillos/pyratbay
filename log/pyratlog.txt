@@ -820,3 +820,23 @@ In pconstants.py: Bumped Pyrat-Bay revision (now version 0.0.3).
 
 *****
 
+
+In setup.py: added more comments and commented out the OMP extra
+arguments.
+In extcoeff.c: Fixed format printing argument for nadd, nskip, and
+neval.
+In pconstants.py: Bumped Pyrat-Bay revision (now version 0.0.3).
+
+*****
+
+Updated Pyrat code for extinction-coefficient table run.
+In argum.py: Set the extinction-coefficient table tmin and tmax
+defaults to None.  Check values only if tmin and tmax are not None.
+
+In extinction.py: Added check for tmin and tmax to be defined when
+producing an extinction-coefficient table.  Fixed path to wn and nspec
+variables in pyrat (-> pyrat.spec).
+
+In pconstants.py: Bumped Pyrat revision (now version 1.1.9).
+
+*****

@@ -86,9 +86,9 @@ def calc_extinction(pyrat):
   ex = pyrat.ex
 
   # Make temperature sample:
-  if (ex.tmin < 0.0  or  ex.tmax < 0.0  or  ex.tstep < 0.0):
-    pt.error("All temperature variables: tmin ({:.1f}), tmax ({:.1f}), and "
-       "tstep ({:.1f}) must be defined.".format(ex.tmin, ex.tmax, ex.tstep))
+  if (ex.tmin is None) or (ex.tmax is None):
+    pt.error("Both, tmin ({}) and tmax ({}), must be defined to produce "
+             "the extinction-coefficient table.".format(ex.tmin, ex.tmax))
   # Temperature boundaries check:
   if (ex.tmin < pyrat.lt.tmin):
     pt.error("The extinction-coefficient table attempted to sample a "
@@ -115,8 +115,8 @@ def calc_extinction(pyrat):
       ex.z[pyrat.lt.db[i].iiso+j] = zinterp(ex.temp)
 
   # Allocate wavenumber, pressure, and isotope arrays:
-  ex.wn    = pyrat.wn
-  ex.nspec = pyrat.nspec
+  ex.wn    = pyrat.spec.wn
+  ex.nspec = pyrat.spec.nspec
 
   ex.molID = pyrat.mol.ID[np.unique(pyrat.iso.imol)]
   ex.nmol  = len(ex.molID)
