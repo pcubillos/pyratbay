@@ -51,16 +51,17 @@ def read_extinction(pyrat):
   ex.nmol    = struct.unpack('l', f.read(8))[0]
   ex.ntemp   = struct.unpack('l', f.read(8))[0]
   ex.nlayers = struct.unpack('l', f.read(8))[0]
-  ex.nspec   = struct.unpack('l', f.read(8))[0]
+  ex.nwave   = struct.unpack('l', f.read(8))[0]
   pt.msg(pyrat.verb-10, "File has {:d} molecules, {:d} temperature samples, "
                        "{:d} layers, and {:d} wavenumber samples.".
-                       format(ex.nmol, ex.ntemp, ex.nlayers, ex.nspec), 2)
+                       format(ex.nmol, ex.ntemp, ex.nlayers, ex.nwave), 2)
 
   # Read wavenumber, temperature, pressure, and isotope arrays:
+  # FINDME: pt.unpack
   ex.molID = np.asarray(struct.unpack(str(ex.nmol   )+'i', f.read(4*ex.nmol )))
   ex.temp  = np.asarray(struct.unpack(str(ex.ntemp  )+'d', f.read(8*ex.ntemp)))
   ex.press = np.asarray(struct.unpack(str(ex.nlayers)+'d',f.read(8*ex.nlayers)))
-  ex.wn    = np.asarray(struct.unpack(str(ex.nspec  )+'d', f.read(8*ex.nspec)))
+  ex.wn    = np.asarray(struct.unpack(str(ex.nwave  )+'d', f.read(8*ex.nwave)))
 
   pt.msg(pyrat.verb-15, "Molecules' IDs: {}".format(ex.molID), 2)
   pt.msg(pyrat.verb-15, "Temperatures (K): {}".
@@ -71,10 +72,10 @@ def read_extinction(pyrat):
                          format(pt.pprint(ex.wn, 1)), 2)
 
   # Read extinction-coefficient data table:
-  ndata = ex.nmol * ex.ntemp * ex.nlayers * ex.nspec
+  ndata = ex.nmol * ex.ntemp * ex.nlayers * ex.nwave
   data = np.asarray(struct.unpack('d'*ndata, f.read(8*ndata)))
 
-  pyrat.ex.etable = np.reshape(data, (ex.nmol, ex.ntemp, ex.nlayers, ex.nspec))
+  pyrat.ex.etable = np.reshape(data, (ex.nmol, ex.ntemp, ex.nlayers, ex.nwave))
 
 
 def calc_extinction(pyrat):
@@ -116,7 +117,7 @@ def calc_extinction(pyrat):
 
   # Allocate wavenumber, pressure, and isotope arrays:
   ex.wn    = pyrat.spec.wn
-  ex.nspec = pyrat.spec.nspec
+  ex.nwave = pyrat.spec.nwave
 
   ex.molID = pyrat.mol.ID[np.unique(pyrat.iso.imol)]
   ex.nmol  = len(ex.molID)
@@ -126,7 +127,7 @@ def calc_extinction(pyrat):
 
   # Allocate extinction-coefficient array:
   pt.msg(pyrat.verb, "Calculate extinction coefficient.", 2)
-  ex.etable = np.zeros((ex.nmol, ex.ntemp, ex.nlayers, ex.nspec), np.double)
+  ex.etable = np.zeros((ex.nmol, ex.ntemp, ex.nlayers, ex.nwave), np.double)
 
   # Compute extinction (in C):
   for r in np.arange(ex.nlayers):
@@ -139,14 +140,14 @@ def calc_extinction(pyrat):
   f = open(ex.extfile, "wb")
 
   # Write size of arrays:
-  f.write(struct.pack("4l", ex.nmol, ex.ntemp, ex.nlayers, ex.nspec))
+  f.write(struct.pack("4l", ex.nmol, ex.ntemp, ex.nlayers, ex.nwave))
   # Write arrays:
   f.write(struct.pack(str(ex.nmol)   +"i", *list(ex.molID)))
   f.write(struct.pack(str(ex.ntemp)  +"d", *list(ex.temp) ))
   f.write(struct.pack(str(ex.nlayers)+"d", *list(ex.press)))
-  f.write(struct.pack(str(ex.nspec)  +"d", *list(ex.wn)   ))
+  f.write(struct.pack(str(ex.nwave)  +"d", *list(ex.wn)   ))
   # Write extinction-coefficient data:
-  fmt = str(ex.nmol * ex.ntemp * ex.nlayers * ex.nspec) + "d"
+  fmt = str(ex.nmol * ex.ntemp * ex.nlayers * ex.nwave) + "d"
   f.write(struct.pack(fmt, *list(pyrat.ex.etable.flatten())))
   f.close()
   pt.msg(pyrat.verb, "Extinction-coefficient table written to file:"

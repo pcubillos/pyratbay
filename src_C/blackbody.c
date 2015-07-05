@@ -26,12 +26,12 @@ last: 1D integer ndarray                                    \n\
    Indices of last layer to evaluate.");
 
 static PyObject *planck(PyObject *self, PyObject *args){
-  PyArrayObject *B,   /* Extinction coefficient [nspec, nlayers]            */
-           *wn,       /* Wavenumber array [nspec]                           */
+  PyArrayObject *B,   /* Extinction coefficient [nwave, nlayers]            */
+           *wn,       /* Wavenumber array [nwave]                           */
            *temp,     /* Temperature of layers [nlayers]                    */
-           *last;     /* Index of last layer to evaluate [nspec]            */
+           *last;     /* Index of last layer to evaluate [nwave]            */
   int i, j,   /* Auxilliary for-loop indices                                */
-      nspec;  /* Number of spectral samples                                 */
+      nwave;  /* Number of wavenumber spectral samples                      */
   double factor;
 
   /* Load inputs:                                                           */
@@ -39,10 +39,10 @@ static PyObject *planck(PyObject *self, PyObject *args){
     return NULL;
 
   /* Get the spectrum size:                                                 */
-  nspec = wn->dimensions[0];
+  nwave = wn->dimensions[0];
 
   /* Evaluate the Planck function:                                          */
-  for (i=0; i<nspec; i++){
+  for (i=0; i<nwave; i++){
     factor = 2 * H * LS*LS * pow(INDd(wn,i),3);
     for (j=0; j < INDi(last, i); j++){
       IND2d(B,i,j) = factor / (exp(H*LS*INDd(wn,i)/(KB*INDd(temp,j))) - 1.0);

@@ -131,7 +131,7 @@ def interpolate(pyrat):
              "({:.1f} K).".format(ihot, pyrat.atm.temp[ihot], pyrat.cia.tmax))
 
   # Allocate output extinction-coefficient array:
-  pyrat.cia.ec = np.zeros((pyrat.atm.nlayers, pyrat.spec.nspec))
+  pyrat.cia.ec = np.zeros((pyrat.atm.nlayers, pyrat.spec.nwave))
 
   for i in np.arange(pyrat.cia.nfiles):
     # Get index from the pyrat list of molecules:

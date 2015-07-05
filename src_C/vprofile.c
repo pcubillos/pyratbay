@@ -14,7 +14,7 @@ widths.                                                                    \n\
 Parameters:                                                                \n\
 -----------                                                                \n\
 profile: 1D double ndarray                                                 \n\
-   Array (nspec) where to put the calculated Voigt profiles.               \n\
+   Array (nwave) where to put the calculated Voigt profiles.               \n\
 lorentz: 1D double ndarray                                                 \n\
    Array of Lorentz widths in cm-1.                                        \n\
 doppler: 1D double ndarray                                                 \n\

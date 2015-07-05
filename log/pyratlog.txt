@@ -855,3 +855,14 @@ Edited argum.py, optdepth.py, and spectrum.py to relocate variables.
 In pconstants.py: Bumped Pyrat revision (now version 1.1.11).
 
 *****
+
+Renamed Spectrum.nspec, Spectrum.onspec, and Extinction.nspec variable
+names from nspec to nwave.
+Files modified: blackbody.c, xtcoeff.c, profile.c, cia.py,
+  extinction.py, makesample.py, objects.py, optdepth.py, spectrum.py,
+  voigt.py.
+In pconstants.py: Bumped Pyrat revision (now version 1.1.12).
+
+
+*****
+

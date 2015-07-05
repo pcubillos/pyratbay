@@ -114,9 +114,9 @@ class Inputs(object):
 
 class Spectrum(object):
   def __init__(self):
-    self.nspec     = None  # Number of spectral samples
+    self.nwave     = None  # Number of wavenumber spectral samples
     # Wavenumber:
-    self.wnunits   = None  # Wavenumber physical units
+    self.wnunits   = None  # User-input wavenumber physical units
     self.wn        = None  # Wavenumber array
     self.wnlow     = None  # Lowest wavenumber boundary
     self.wnhigh    = None  # Highest wavenumber boundary
@@ -125,10 +125,10 @@ class Spectrum(object):
     self.wnosamp   = None  # Wavenumber oversampling factor
     self.own       = None  # Oversampled wavenumber array
     self.ownstep   = None  # Oversampled wavenumber sampling interval
-    self.onspec    = None  # Number of oversampled-wavenumber samples
+    self.onwave    = None  # Number of oversampled-wavenumber samples
     self.odivisors = None  # Oversampling-factor integer divisors
     # Wavelength:
-    self.wlunits   = None  # Wavelength physical units
+    self.wlunits   = None  # User-input wavelength physical units
     self.wllow     = None  # Lowest wavelength boundary
     self.wlhigh    = None  # Highest wavelength boundary
     # Spectrum:
@@ -141,7 +141,7 @@ class Spectrum(object):
     """
     pt.msg(1, "Spectral info:", 0)
     pt.msg(1, "Wavenumber:", 2)
-    pt.msg(1, "Number of samples:      {:d}".format(self.nspec), 4)
+    pt.msg(1, "Number of samples:      {:d}".format(self.nwave), 4)
     pt.msg(1, "User-input units:       {:s}-1".format(self.wnunits), 4)
     pt.msg(1, "Pyrat (internal) units: cm-1", 4)
     pt.msg(1, "Low  boundary:     {:9.3f} cm-1".format(self.wnlow),  4)
@@ -152,7 +152,7 @@ class Spectrum(object):
                                        self.wn[-2], self.wn[-1]), 4)
     pt.msg(1, "Oversampled wavenumber:", 2)
     pt.msg(1, "Oversampling factor:    {:d}".format(self.wnosamp), 4)
-    pt.msg(1, "Number of samples:      {:d}".format(self.onspec), 4)
+    pt.msg(1, "Number of samples:      {:d}".format(self.onwave), 4)
     pt.msg(1, "Sampling interval: {:.3e} cm-1".format(self.ownstep), 4)
     pt.msg(1, "Integer divisors for oversampling factor:\n{:s}".
                           format(str(self.odivisors).replace("\n", "")), 4)
@@ -360,11 +360,11 @@ class Voigt(object):
 class Extinction(object):
   def __init__(self):
     self.ec      = None # Molecular line-transition extinction coefficient
-                        #  in cm-1 [nlayers, nspec]
+                        #  in cm-1 [nlayers, nwave]
     self.ethresh = None # Extinction-coefficient threshold
 
     self.extfile = None # Extinction-coefficient table filename
-    self.etable  = None # Table of ext. coefficient [nmol, nlayer, ntemp, nspec]
+    self.etable  = None # Table of ext. coefficient [nmol, nlayer, ntemp, nwave]
 
     self.tmin    = None # Minimum temperature to sample
     self.tmax    = None # Maximum temperature to sample
@@ -374,7 +374,7 @@ class Extinction(object):
     self.nmol    = None # Number of species
     self.ntemp   = None # Number of temperature samples
     self.nlayers = None # Number of pressure layers
-    self.nspec   = None # Number of wavenumber samples
+    self.nwave   = None # Number of wavenumber spectral samples
 
     self.molID   = None # Tabulated species ID
     self.temp    = None # Tabulated temperatures
@@ -401,7 +401,7 @@ class Extinction(object):
       pt.msg(1, "Number of tabulated layers:           {:5d}".
                  format(self.nlayers), 4)
       pt.msg(1, "Number of tabulated spectral samples: {:5d}".
-                 format(self.nspec),   4)
+                 format(self.nwave),   4)
       pt.msg(1, "Temperature array (K):   [{:8.1f}, {:8.1f}, ..., {:8.1f}]".
                  format(self.temp[0], self.temp[1], self.temp[-1]), 4)
       pt.msg(1, "Partition function at tabulated temperatures:", 4)
@@ -439,7 +439,7 @@ class Cia(object):
     self.wavenumber = []      # Wavenumber sampling (in cm-1)
     self.absorption = []      # CIA extinction (in cm-1 amagat-2)
     self.ec         = None    # Interpolated CIA extinction coefficient
-                              #  in cm-1 [nlayer, nspec]
+                              #  in cm-1 [nlayer, nwave]
 
   def info(self):
     pt.msg(1, "Collision induced absorption info:", 0)
@@ -474,10 +474,10 @@ class Optdepth(object):
   def __init__(self):
     self.maxdepth = None  # Maximum optical depth to calculate
     self.path     = None  # Observing geometry
-    self.ec       = None  # Total extinction coefficient [nlayers, nspec]
+    self.ec       = None  # Total extinction coefficient [nlayers, nwave]
     self.raypath  = []    # Distance along ray path  [nlayers]
-    self.depth    = None  # Optical depth at raypath [nlayers, nspec]
-    self.ideep    = None  # Layer index where depth reached maxdepth [nspec]
+    self.depth    = None  # Optical depth at raypath [nlayers, nwave]
+    self.ideep    = None  # Layer index where depth reached maxdepth [nwave]
 
   def info(self, pyrat):
     pt.msg(1, "Optical depth info:", 0)
@@ -522,14 +522,11 @@ class Optdepth(object):
       pt.msg(1, "At {:7.1f} cm-1:  {}".format(pyrat.spec.wn[0],
              str(self.depth[0:self.ideep[0]+1,0]).replace("\n","")), 4, si=6)
       pt.msg(1, "...", 4)
-      index = pyrat.spec.nspec/2
+      index = pyrat.spec.nwave/2
       pt.msg(1, "At {:7.1f} cm-1:  {}".format(pyrat.spec.wn[index],
         str(self.depth[0:self.ideep[index]+1,index]).replace("\n","")),4,si=6)
       pt.msg(1, "...", 4)
-      index = pyrat.spec.nspec-1
+      index = pyrat.spec.nwave-1
       pt.msg(1, "At {:7.1f} cm-1:  {}".format(pyrat.spec.wn[index],
         str(self.depth[0:self.ideep[index]+1,index]).replace("\n","")),4,si=6)
-
-
-
 

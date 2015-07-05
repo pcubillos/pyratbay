@@ -20,10 +20,10 @@ def opticaldepth(pyrat):
   computed = np.zeros(pyrat.atm.nlayers, np.short)
 
   # Evaluate the extinction coefficient at each layer:
-  pyrat.ex.ec    = np.zeros((pyrat.atm.nlayers, pyrat.spec.nspec))
-  pyrat.od.ec    = np.empty((pyrat.atm.nlayers, pyrat.spec.nspec))
-  pyrat.od.depth = np.empty((pyrat.atm.nlayers, pyrat.spec.nspec))
-  pyrat.od.ideep = np.empty(pyrat.spec.nspec, np.int)
+  pyrat.ex.ec    = np.zeros((pyrat.atm.nlayers, pyrat.spec.nwave))
+  pyrat.od.ec    = np.empty((pyrat.atm.nlayers, pyrat.spec.nwave))
+  pyrat.od.depth = np.empty((pyrat.atm.nlayers, pyrat.spec.nwave))
+  pyrat.od.ideep = np.empty(pyrat.spec.nwave, np.int)
   print("Init:   {:.6f}".format(time.time()-ti))
 
   # Calculate the ray path:
@@ -60,12 +60,12 @@ def opticaldepth(pyrat):
   # Calculate the optical depth for each wavenumber:
   i = 0
   if pyrat.od.path == "eclipse":
-    while i < pyrat.spec.nspec:
+    while i < pyrat.spec.nwave:
       pyrat.od.ideep[i] = t.cumtrapz(pyrat.od.depth[:,i], pyrat.od.ec[:,i],
                                      pyrat.od.raypath, pyrat.od.maxdepth)
       i += 1
   else:
-    while i < pyrat.spec.nspec:
+    while i < pyrat.spec.nwave:
       r = 0
       while r < pyrat.atm.nlayers:
         # Optical depth at each level (tau = integral e*ds):

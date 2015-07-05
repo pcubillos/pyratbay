@@ -58,16 +58,16 @@ def makewavenumber(pyrat):
 
   # Re-set final boundary (stay inside given boundaries):
   if spec.wn[-1] != spec.wnhigh:
-    pt.warning("Final wavenumber boundary modified from {:.4f} cm-1 (input)\n"
-               "                                     to {:.4f} cm-1 (Pyrat).".
+    pt.warning("Final wavenumber boundary modified from {:10.4f} cm-1 (input)\n"
+               "                                     to {:10.4f} cm-1 (Pyrat).".
                format(spec.wnhigh, spec.wn[-1]))
   # Set the number of spectral samples:
-  spec.nspec  = len(spec.wn)
+  spec.nwave  = len(spec.wn)
 
   # Make the fine-sampled (oversampled) wavenumber array:
   spec.ownstep = spec.wnstep / spec.wnosamp
-  spec.onspec  = (spec.nspec - 1) *  spec.wnosamp + 1
-  spec.own = np.linspace(spec.wn[0], spec.wn[-1], spec.onspec)
+  spec.onwave  = (spec.nwave - 1) *  spec.wnosamp + 1
+  spec.own = np.linspace(spec.wn[0], spec.wn[-1], spec.onwave)
 
   # Get list of divisors:
   spec.odivisors = pt.divisors(spec.wnosamp)
@@ -81,8 +81,8 @@ def makewavenumber(pyrat):
                           spec.wllow /pc.units[spec.wlunits], spec.wlunits), 2)
   pt.msg(pyrat.verb,"Wavenumber sampling stepsize: {:.2g} cm-1".
                             format(spec.wnstep), 2)
-  pt.msg(pyrat.verb,"Wavenumber sample size:      {:8d}".format(spec.nspec),  2)
-  pt.msg(pyrat.verb,"Wavenumber fine-sample size: {:8d}".format(spec.onspec), 2)
+  pt.msg(pyrat.verb,"Wavenumber sample size:      {:8d}".format(spec.nwave),  2)
+  pt.msg(pyrat.verb,"Wavenumber fine-sample size: {:8d}".format(spec.onwave), 2)
   pt.msg(pyrat.verb, "Done.")
 
 

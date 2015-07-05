@@ -319,9 +319,9 @@ PyDoc_STRVAR(interp_ec__doc__,
 Parameters:                                                         \n\
 -----------                                                         \n\
 extinction: 3D float ndarray                                        \n\
-   Extinction coefficient array [nspec] to calculate.               \n\
+   Extinction coefficient array [nwave] to calculate.               \n\
 etable 1D float ndarray                                             \n\
-   Tabulated extinction coefficient [nmol, ntemp, nspec].           \n\
+   Tabulated extinction coefficient [nmol, ntemp, nwave].           \n\
 ttable: 1D float ndarray                                            \n\
    Tabulated temperature array [ntemp].                             \n\
 mtable: 1D float ndarray                                            \n\
@@ -341,7 +341,7 @@ static PyObject *interp_ec(PyObject *self, PyObject *args){
                 *density,     /* Density of species at given layer          */
                 *molID;       /* mol ID of the atmospheric species          */
 
-  int nspec, nmol, ntemp,  /* Number of wavenumber, species, & temperatures */
+  int nwave, nmol, ntemp,  /* Number of wavenumber, species, & temperatures */
       nmolID, 
       tlo, thi, imol;
   int i, j;                /* Auxilliary for-loop indices                   */
@@ -356,7 +356,7 @@ static PyObject *interp_ec(PyObject *self, PyObject *args){
     return NULL;
   nmol   = etable->dimensions[0];  /* Number of species samples             */
   ntemp  = etable->dimensions[1];  /* Number of temperature samples         */
-  nspec  = etable->dimensions[2];  /* Number of spectral samples            */
+  nwave  = etable->dimensions[2];  /* Number of spectral samples            */
   nmolID = molID->dimensions[0];   /* Number of species in atmosphere       */
 
   /* Find index of grid-temperature immediately lower than temperature:     */
@@ -369,7 +369,7 @@ static PyObject *interp_ec(PyObject *self, PyObject *args){
   /* Add contribution from each molecule:                                   */
   for (j=0; j<nmol; j++){
     imol = valueinarray(molID, INDi(mtable,j), nmolID);
-    for (i=0;  i<nspec; i++){
+    for (i=0;  i<nwave; i++){
       /* Linear interpolation of the extinction coefficient:                */
       ext = (IND3d(etable,j,tlo,i) * (INDd(ttable,thi) - temperature) +
              IND3d(etable,j,thi,i) * (temperature - INDd(ttable,tlo)) ) /
