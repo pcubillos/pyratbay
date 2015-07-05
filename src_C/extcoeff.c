@@ -286,11 +286,11 @@ static PyObject *extinction(PyObject *self, PyObject *args){
     neval++;
   }
   //printf("Downsample now: (%f, %d)\n", wnstep/ownstep, ofactor);
-  printf("Number of co-added lines:     %8li  (%5.2f%%)\n",
+  printf("Number of co-added lines:     %8i  (%5.2f%%)\n",
                nadd,  nadd*100.0/nlines);
-  printf("Number of skipped profiles:   %8li  (%5.2f%%)\n",
+  printf("Number of skipped profiles:   %8i  (%5.2f%%)\n",
                nskip, nskip*100.0/nlines);
-  printf("Number of evaluated profiles: %8li  (%5.2f%%)\n",
+  printf("Number of evaluated profiles: %8i  (%5.2f%%)\n",
                neval, neval*100.0/nlines);
 
   /* Downsample ktmp to the final sampling size:                            */
