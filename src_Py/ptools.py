@@ -96,22 +96,36 @@ def warning(message):
     "::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::\n")
 
 
-def msg(verblevel, message, indent=0):
+def msg(verblevel, message, indent=0, si=None):
   """
   Conditional message printing to screen.
 
-  Modification History:
-  ---------------------
-  2014-06-15  patricio  Added Documentation.
+  Parameters:
+  -----------
+  verblevel: Integer
+     If positive, print the given message.
+  message: String
+     Message to print.
+  indent: Integer
+     Number of blank spaces for indentation.
+  si: Integer
+     Subsequent indentation.  If None, keep indent as the subsequent
+     indentation.
   """
   if verblevel <= 0:
     return
 
   sentences = message.splitlines()
+  # Set indentation string:
   indspace = " "*indent
+  if si is None:
+    sindspace = indspace
+  else:
+    sindspace = " "*si
+
   for s in sentences:
     msg = textwrap.fill(s, replace_whitespace=True,
-                        initial_indent=indspace, subsequent_indent=indspace)
+                        initial_indent=indspace, subsequent_indent=sindspace)
     print(msg)
 
 
