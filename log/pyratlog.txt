@@ -889,4 +889,9 @@ In pconstants.py: Bumped Pyrat-Bay revision (now version 0.0.4).
 
 *****
 
+Fixed bug in db_hitran (irregular line lengths).
+In pconstants.py: Bumped Lineread revision (now version 6.3.1).
+
+*****
+
 

@@ -25,7 +25,7 @@ class hitran(dbdriver):
     """
     super(hitran, self).__init__(dbfile, pffile)
 
-    self.recsize   = 162 # Record length
+    self.recsize   =   0 # Record length (will be set in self.dbread())
     self.recwnpos  =   3 # Wavenumber     position in record
     self.recisopos =   2 # Isotope        position in record
     self.reclinpos =  15 # Line intensity position in record
@@ -190,16 +190,16 @@ class hitran(dbdriver):
       Lower-state energy (cm-1).
     isoID: 2D ndarray (integer)
       Isotope index (1, 2, 3, ...).
-
-    Modification History:
-    ---------------------
-    2012-12-10  patricio  Initial implementation.  pcubillos@fulbrightmail.org
-    2014-03-10  patricio  Adapted for pylineread.
-    2014-07-06  patricio  Updated to return 1D arrays.
-    2015-02-01  patricio  Changed wavelengths to wavenumbers.
     """
-    # Get Total number of transitions in file:
+    # Open HITRAN file for reading:
     data = open(self.dbfile, "r")
+
+    # Read first line to get the record size:
+    data.seek(0)
+    line = data.readline()
+    self.recsize = len(line)
+
+    # Get Total number of transitions in file:
     data.seek(0, 2)
     nlines   = data.tell() / self.recsize
     # Get Molecule ID:
