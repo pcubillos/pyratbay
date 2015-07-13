@@ -864,5 +864,23 @@ Files modified: blackbody.c, xtcoeff.c, profile.c, cia.py,
 In pconstants.py: Bumped Pyrat revision (now version 1.1.12).
 
 
+*****  Sun Jul 12 13:58:51 EDT 2015  *****
+
+Re-factor linereader:
+- Make a script to format the Partition function files; thus, having a
+  universal format.
+- Then in lineread, the only choice will be specify a file, or a function.
+- Move, PF read out of the DB programs into the driver.
+
+Re-factored driver.c's dbdriver class:
+- Now the partition function files have a standard format, otherwise are
+  calculated from CTIPS.
+- Added scripts to format PandS's H2O and Schwenke's TiO PF files.
+- In driver.py: Moved partition function calculation (getpf) from child
+  classes into here.
+- In db_hitran.py: Removed getpf() function.
+- In readlinedb.py: Adjusted the Lineread version compatibility.
+- In pconstants.py: Bumped Lineread minor version (now version 6.3.0).
+
 *****
 

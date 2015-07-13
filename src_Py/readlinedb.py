@@ -26,7 +26,7 @@ def readlinedb(pyrat):
     dbindex.append(dbindex[-1] + readheader(pyrat, TLI[n]))
 
   # Set link to molecules' indices:
-  setimol(pyrat) 
+  setimol(pyrat)
 
   # Read line-transition data (if there's no extinction-coefficient table):
   if (pyrat.ex.extfile is None) or (not os.path.isfile(pyrat.ex.extfile)):
@@ -62,9 +62,9 @@ def readheader(pyrat, linefile):
   TLI_ver, TLI_min, TLI_rev = pt.unpack(linefile, 3, "h")
   pt.msg(pyrat.verb, "TLI version: {:d}.{:d}.{:d}.".
                       format(TLI_ver, TLI_min, TLI_rev), 2)
-  if (TLI_ver != 6) or (TLI_min not in [1,2]):
+  if (TLI_ver != 6) or (TLI_min not in [1,2,3]):
     pt.error("Incompatible TLI version.  The TLI file must be created with "
-             "Lineread version 6.1-6.2.")
+             "Lineread version 6.1-6.3.")
 
   # Read initial and final wavenumber from TLI:
   lt_wni, lt_wnf = pt.unpack(linefile, 2, "d")
@@ -73,7 +73,7 @@ def readheader(pyrat, linefile):
   # Check TLI and pyrat wavelength ranges:
   checkrange(pyrat, lt_wni, lt_wnf)
 
-  # Read number of data bases: 
+  # Read number of data bases:
   Ndb = pt.unpack(linefile, 1, "h")
   pt.msg(pyrat.verb, "Number of data bases: {:d}".format(Ndb), 2)
 
@@ -106,7 +106,7 @@ def readheader(pyrat, linefile):
     dbindex = np.zeros(db.niso, np.int)
     db.z    = np.zeros((db.niso, db.ntemp))
 
-    # Store per-isotope info:    
+    # Store per-isotope info:
     for j in np.arange(db.niso):
       dbindex[j] = i + pyrat.lt.ndb
       lenIsoName = pt.unpack(linefile, 1,          "h")
@@ -275,7 +275,7 @@ def setimol(pyrat):
   pt.msg(pyrat.verb, "Isotope's molecule indices:\n"
                      "  {:s}".format(str(pyrat.iso.imol)), 2)
 
-  
+
   # uniques = np.unique(pyrat.iso.imol)
   # pyrat.iso.iext = np.zeros(pyrat.iso.niso, np.int)
   # for i in np.arange(pyrat.iso.niso):

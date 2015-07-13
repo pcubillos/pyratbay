@@ -1,74 +1,48 @@
 # ****************************** START LICENSE ******************************
-# Transit, a code to solve for the radiative-transifer equation for
-# planetary atmospheres.
-# 
-# This project was completed with the support of the NASA Planetary
-# Atmospheres Program, grant NNX12AI69G, held by Principal Investigator
-# Joseph Harrington. Principal developers included graduate students
-# Patricio E. Cubillos and Jasmina Blecic, programmer Madison Stemm, and
-# undergraduate Andrew S. D. Foster.  The included
-# 'transit' radiative transfer code is based on an earlier program of
-# the same name written by Patricio Rojo (Univ. de Chile, Santiago) when
-# he was a graduate student at Cornell University under Joseph
-# Harrington.
-# 
-# Copyright (C) 2014 University of Central Florida.  All rights reserved.
-# 
-# This is a test version only, and may not be redistributed to any third
-# party.  Please refer such requests to us.  This program is distributed
-# in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
-# even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-# PURPOSE.
-# 
-# Our intent is to release this software under an open-source,
-# reproducible-research license, once the code is mature and the first
-# research paper describing the code has been accepted for publication
-# in a peer-reviewed journal.  We are committed to development in the
-# open, and have posted this code on github.com so that others can test
-# it and give us feedback.  However, until its first publication and
-# first stable release, we do not permit others to redistribute the code
-# in either original or modified form, nor to publish work based in
-# whole or in part on the output of this code.  By downloading, running,
-# or modifying this code, you agree to these conditions.  We do
-# encourage sharing any modifications with us and discussing them
-# openly.
-# 
-# We welcome your feedback, but do not guarantee support.  Please send
-# feedback or inquiries to:
-# 
-# Joseph Harrington <jh@physics.ucf.edu>
-# Patricio Cubillos <pcubillos@fulbrightmail.org>
-# Jasmina Blecic <jasmina@physics.ucf.edu>
-# 
-# or alternatively,
-# 
-# Joseph Harrington, Patricio Cubillos, and Jasmina Blecic
-# UCF PSB 441
-# 4111 Libra Drive
-# Orlando, FL 32816-2385
-# USA
-# 
-# Thank you for using transit!
 # ******************************* END LICENSE ******************************
 
-#import db_pands  as ps
-#import db_hitran as hit
-#import db_tioschwenke as ts
+import sys
+import os
+import numpy as np
+
+# Directory of db_hitran.py:
+DBHdir = os.path.dirname(os.path.realpath(__file__))
+# Add path to ctips source code:
+sys.path.append(DBHdir + "/../ctips/lib")
+import ctips as ct
+
 
 class dbdriver(object):
   def __init__(self, dbfile, pffile):
     self.dbfile = dbfile
     self.pffile = pffile
 
-  def getpf(self, verbose):
-    """
-      Calculate partition function for specific database type.
 
-      Parameters:
-      -----------
-      dbtype: String
+  def getpf(self, verbose=0):
     """
-    pass
+      Compute partition function for specified source.
+    """
+    # Calculate the partition-function from the CTIPS module:
+    if self.pffile == "ctips":
+      # Number of isotopes:
+      niso = len(self.isotopes)
+
+      # Array of temperatures (TIPS range of temperature is 70K to 3000K):
+      temp = np.arange(70.0, 3000.1, 10.0)
+      ntemp = len(temp)
+      # Output array for table of Temperature and PF values:
+      PF = np.zeros((niso, ntemp), np.double)
+
+      molID = np.repeat(int(self.molID), ntemp)
+      # Calculate the partition function for each isotope:
+      for i in np.arange(niso):
+        isoID = np.repeat(int(self.isotopes[i]), ntemp)
+        PF[i] = ct.tips(molID, isoID, temp)/self.gi[i]
+      return temp, PF
+    # Extract the partition-function from the tabulated file:
+    else:
+      return readpf()
+
 
   def dbread(self, iwl, fwl, verbose):
     """
@@ -89,7 +63,7 @@ class dbdriver(object):
   def binsearch(self, dbfile, wavelength, ilo, ihi, searchup=True):
     """
     Do a binary search of record position in File dbfile that has wavelength iwl
- 
+
     Parameters:
     -----------
     dbfile: File object
@@ -105,11 +79,11 @@ class dbdriver(object):
     searchup: Boolean
        Search up (True) or down (False) the records for duplicate results
        after the binary search.
- 
+
     Returns:
     --------
     Index of record with
- 
+
     Modification History:
     ---------------------
     2013        madison   Initial implementation.
@@ -119,12 +93,12 @@ class dbdriver(object):
     """
     # Wavelength of record:
     rec_wl = 0
- 
+
     # Start binary search:
     while ihi - ilo > 1:
       # Middle record index:
       irec = (ihi + ilo)/2
- 
+
       # Read wavelength, depending on linelist format:
       rec_wl = self.readwl(dbfile, irec)
       # Update search limits:
@@ -132,17 +106,65 @@ class dbdriver(object):
         ihi = irec
       else:
         ilo = irec
- 
+
     # Search up/or down if there are multiple records with the same wavelength:
     while (self.readwl(dbfile, irec) == rec_wl):
       if searchup:
         irec += 1
       else:
         irec -= 1
- 
+
     # Move file pointer to begining:
     dbfile.seek(0)
- 
+
     #print("Found wavelength %d at position %d."%(rec_wl, ihi))
     return irec
 
+  def readpf(self):
+    """
+    Extract the partition-function and temperature from file.
+
+    Returns:
+    --------
+    temp: 1D float ndarray
+       Array with temperature sample.
+    PF:   2D float ndarray
+       The partition function data for each isotope at each temperature.
+    """
+    # Open-read file:
+    f = open(self.pffile, "r")
+    lines = f.readlines()
+    f.close()
+
+    # Number of header lines (to skip when reading the tabulated data):
+    nskip = 0
+    while True:
+      line = lines[nskip].strip()
+      # Skip blank/empty lines:
+      if line == "" or line.startswith('#'):
+        pass
+      # Read isotopes:
+      elif line == "@ISOTOPES":
+        isotopes = np.asarray(lines[nskip+1].strip().split())
+      # Stop when the tabulated data begins:
+      if line == "@DATA":
+        nskip += 1
+        break
+      nskip += 1
+
+    # Number of isotopes:
+    niso = len(isotopes)
+    # Number of temperature samples:
+    ntemp = len(lines) - nskip
+
+    # Allocate output arrays:
+    temp = np.zeros(ntemp, np.double)
+    PF   = np.zeros((niso, ntemp), np.double)
+
+    # Read the data:
+    for i in np.arange(ntemp):
+      info = lines[nskip+i].strip().split()
+      temp[i] = info[0]
+      PF[:,i] = info[1:]
+
+    return temp, PF

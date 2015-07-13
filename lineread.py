@@ -126,7 +126,7 @@ def main():
   verb       = cla.verb
   dblist     = cla.db_list
   pflist     = cla.part_list
-  dbtype     = cla.dbtype 
+  dbtype     = cla.dbtype
   outputfile = cla.output
 
   # Number of files:
@@ -189,7 +189,7 @@ def main():
     if dbname in DBnames:
       DBskip.append(i) # Ommit repeated databases
     else:
-      DBnames.append(dbname) 
+      DBnames.append(dbname)
   Ndb = len(DBnames)
   header += struct.pack("h", Ndb)
   TLIout.write(header)
@@ -220,11 +220,9 @@ def main():
 
     # Get partition function values:
     Temp, partDB = driver[i].getpf(verb)
-    isoNames  = driver[i].isotopes
-    iso_mass  = driver[i].mass
-    iso_ratio = driver[i].isoratio
-
-    #pt.msg(verb, "Isotopes mass: {}".format(iso_mass))
+    isoNames     = driver[i].isotopes
+    iso_mass     = driver[i].mass
+    iso_ratio    = driver[i].isoratio
 
     # Number of temperature samples:
     Ntemp = len(Temp)
@@ -301,7 +299,7 @@ def main():
     transDB = driver[db].dbread(iwn, fwn, cla.verb, pflist[db])
     tf = time.time()
     pt.msg(verb-3, "Reading time: {:8.3f} seconds".format(tf-ti))
-    
+
     wnumber = np.concatenate((wnumber, transDB[0]))
     gf      = np.concatenate((gf,      transDB[1]))
     elow    = np.concatenate((elow,    transDB[2]))
@@ -335,7 +333,7 @@ def main():
 
   # FINDME: Implement well this:
   if True:
-    plt.figure(0)  
+    plt.figure(0)
     plt.clf()
     plt.plot(isoID)
     plt.xlabel("Line index")

@@ -18,8 +18,8 @@ PYRAT_REV = 12  # Revision
 
 # Lineread version:
 LR_VER    = 6  # Major version
-LR_MIN    = 2  # Minor version
-LR_REV    = 1  # Revision
+LR_MIN    = 3  # Minor version
+LR_REV    = 0  # Revision
 
 
 MTC  = 1e-4  # Microns to cm     (MTC = um/cm)
@@ -53,7 +53,7 @@ k = sc.k * 1e7
 # Speed of light in cm/s:
 c = sc.c * 100.0
 # Elementary charge in statcoulombs (from Wolfram Alpha):
-e = 4.803205e-10 
+e = 4.803205e-10
 
 C1 = 4 * sc.epsilon_0 * sc.m_e * sc.c**2 / sc.e**2 * 0.01  # cm-1
 C2 = sc.h * (sc.c * 100.0) / sc.k                          # cm / Kelvin

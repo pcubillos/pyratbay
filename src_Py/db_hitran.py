@@ -1,9 +1,8 @@
 # ****************************** START LICENSE ******************************
 # ******************************* END LICENSE ******************************
 
-import sys, os
+import os
 import numpy as np
-import subprocess as sp
 
 import ptools     as pt
 import pconstants as pc
@@ -11,10 +10,6 @@ from driver import dbdriver
 
 # Directory of db_hitran.py:
 DBHdir = os.path.dirname(os.path.realpath(__file__))
-# Add path to ctips source code:
-sys.path.append(DBHdir + "/../ctips/lib")
-import ctips as ct
-
 
 class hitran(dbdriver):
   def __init__(self, dbfile, pffile):
@@ -48,7 +43,7 @@ class hitran(dbdriver):
     # Get info from HITRAN configuration file:
     self.molecule, self.isotopes, self.mass, self.isoratio, self.gi = \
                                                     self.getHITinfo()
-    # Database name: 
+    # Database name:
     self.name = "HITRAN " + self.molecule
 
 
@@ -85,47 +80,6 @@ class hitran(dbdriver):
     return rec_wl
 
 
-  def getpf(self, verbose):
-    """                                    
-    Calculate the partition function for a grid of temperatures for
-    HITRAN molecules.
-
-    Parameters:
-    -----------
-    verbose: Integer
-       Verbosity threshold.
-
-    Returns:
-    --------
-    Temp: 1D float ndarray
-       Array of temperatures where the partition-function was evaluated.
-    pf: 2D float ndarray
-       A 2D array (Nisotopes, Ntemperatures) with the partition-function
-       values for each isotope (columns) as function of temperature.
-
-    Notes:
-    ------
-    The range of temperatures is limited to: 70K -- 3000K.
-    """
-    # Number of isotopes:
-    Niso = len(self.isotopes)
-
-    # Array of temperatures (TIPS range of temperature is 70K to 3000K):
-    Temp = np.arange(70.0, 3000.1, 10.0)
-    Ntemp = len(Temp)
-
-    # Output array for table of Temperature and PF values: 
-    pf = np.zeros((Niso, Ntemp), np.double)
-
-    molID = np.repeat(int(self.molID), Ntemp)
-    # Calculate the partition function for each isotope:
-    for i in np.arange(Niso):
-      isoID = np.repeat(int(self.isotopes[i]), Ntemp)
-      pf[i] = ct.tips(molID, isoID, Temp)/self.gi[i]
-
-    return Temp, pf
-
-
   def getMolec(self):
     """
     Get the HITRAN molecule index
@@ -149,19 +103,18 @@ class hitran(dbdriver):
     mass:     Isotopes mass
     isoratio: Isotopic abundance ratio
     gi:       State-independent statistical weight
-
     """
     # Read HITRAN configuration file from inputs folder:
     hfile = open(DBHdir + '/../inputs/hitran.dat', 'r')
     lines = hfile.readlines()
     hfile.close()
-  
+
     isotopes = []
     mass     = []
     isoratio = []
     gi       = []
- 
-    # Get values for our molecule: 
+
+    # Get values for our molecule:
     for i in np.arange(len(lines)):
       if lines[i][0:2] == self.molID:
         line = lines[i].split()
@@ -171,16 +124,18 @@ class hitran(dbdriver):
         isoratio.append(float(line[4]))
         mass.    append(float(line[5]))
 
-    return molname, isotopes, mass, isoratio, gi    
+    return molname, isotopes, mass, isoratio, gi
 
- 
+
   def PFzero(self):
     """
     Calculate the partition function for the isotopes at T0 = 296K.
 
     Notes:
     ------
-    The range of temperatures is limited to: 70K -- 3000K.
+    - The range of temperatures is limited to: 70K -- 3000K.
+    - Deprecated: This function was used to calculate gf.  However,
+                  I found a more reliable way to calculate it (see dbread).
 
     Returns:
     --------
@@ -279,9 +234,6 @@ class hitran(dbdriver):
     # Wavelength:
     wlength = np.zeros(irec_init-irec_fin+1, np.double)
 
-    # Get the partition function at T0:
-    PFzero = self.PFzero()
-
     i = 0  # Stored record index
     chk = 0
     interval = float((irec_fin - irec_init)/20)  # Check-point interval
@@ -318,12 +270,15 @@ class hitran(dbdriver):
     isoID -= 1
     isoID[np.where(isoID < 0)] = 9 # 10th isotope had index 0 --> 10-1=9
 
-    # Calculate gf:
-    Ia = np.asarray(self.isoratio)
-    gf = (S0 * pc.C1 * PFzero[isoID] /  Ia[isoID] *
-             np.exp( pc.C2 * elow / self.T0)  /
-                 (1.0-np.exp(-pc.C2 * wnumber    / self.T0)) )
-    # Alternative way:
+    # # Calculate gf:
+    # # Get the partition function at T0:
+    # PFzero = self.PFzero()
+    # Ia = np.asarray(self.isoratio)
+    # gf = (S0 * pc.C1 * PFzero[isoID] /  Ia[isoID] *
+    #          np.exp( pc.C2 * elow / self.T0)  /
+    #              (1.0-np.exp(-pc.C2 * wnumber    / self.T0)) )
+
+    # Alternative way to calculate gf:
     gf2 = A21 * g2 * pc.C1 / (8.0 * np.pi * pc.c) / wnumber**2.0
 
     # FINDME: Delete me when gf-vs-gf2 issue solved.
