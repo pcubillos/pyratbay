@@ -41,7 +41,7 @@ class dbdriver(object):
       return temp, PF
     # Extract the partition-function from the tabulated file:
     else:
-      return readpf()
+      return self.readpf()
 
 
   def dbread(self, iwl, fwl, verbose):

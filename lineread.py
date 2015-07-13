@@ -305,9 +305,9 @@ def main():
     elow    = np.concatenate((elow,    transDB[2]))
     isoID   = np.concatenate((isoID,   transDB[3]+acum[idb]))
 
-    pt.msg(verb-8, "Isotpe in-database indices: {}".
+    pt.msg(verb-8, "Isotope in-database indices: {}".
                     format(np.unique(transDB[3])))
-    pt.msg(verb-8, "Isotpe correlative indices: {}\n\n".
+    pt.msg(verb-8, "Isotope correlative indices: {}\n\n".
                     format(np.unique(transDB[3]+acum[idb])))
 
   # Total number of transitions:
@@ -332,7 +332,7 @@ def main():
   pt.msg(verb-5, "Transitions per isotope:\n{}".format(Nisotran))
 
   # FINDME: Implement well this:
-  if True:
+  if False:
     plt.figure(0)
     plt.clf()
     plt.plot(isoID)
