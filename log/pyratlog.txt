@@ -884,3 +884,9 @@ Re-factored driver.c's dbdriver class:
 
 *****
 
+Added top-level directory gitignore file.
+In pconstants.py: Bumped Pyrat-Bay revision (now version 0.0.4).
+
+*****
+
+
