@@ -30,14 +30,11 @@ def readatm(pyrat):
 def getkeywords(pyrat, atmfile):
   """
   Read keyword variables from the atmfile.
-
-  Modification History:
-  ---------------------
-  2014-XX-XX  patricio  Initial implementation
-  2015-01-19  patricio  Adapted to new file format.
   """
-  atmfile.seek(0)
+  # User-input atmospheric-data object:
+  atm = pyrat.inputs.atm
 
+  atmfile.seek(0)
   while True:
     line = atmfile.readline().strip()
     #print(line)
@@ -52,19 +49,19 @@ def getkeywords(pyrat, atmfile):
 
     # Atmospheric file info:
     elif line.startswith('n'):
-      pyrat.atmf.info = line[1:].strip()
+      atm.info = line[1:].strip()
 
     # Radius, pressure, and temperature units of atm file:
     elif line == '@PRESSURE':
-      pyrat.atmf.punits = atmfile.readline().strip()
+      atm.punits = atmfile.readline().strip()
     elif line == '@RADIUS':
-      pyrat.atmf.runits = atmfile.readline().strip()
+      atm.runits = atmfile.readline().strip()
     elif line == '@TEMPERATURE':
-      pyrat.atmf.tunits = atmfile.readline().strip()
+      atm.tunits = atmfile.readline().strip()
 
     # Abundance by mass or number:
     elif line == '@ABUNDANCE':
-      pyrat.atmf.abundance = atmfile.readline().strip() == "mass"
+      atm.abundance = atmfile.readline().strip() == "mass"
 
     # Read in molecules:
     elif line == "@SPECIES":
@@ -77,13 +74,13 @@ def getkeywords(pyrat, atmfile):
   iline = atmfile.tell()  # Current line position
 
   pt.msg(1, "Molecules list: \n{:s}".format(str(pyrat.mol.name)), 2)
-  if pyrat.atmf.abundance:
+  if atm.abundance:
     pt.msg(1, "Abundance is given by mass (mass mixing ratio)", 2)
   else:
     pt.msg(1, "Abundance is given by number (volume mixing ratio)", 2)
   pt.msg(1, "Unit factors: radius: {:s},  pressure: {:s},  temperature: {:s}".
-          format(pyrat.atmf.runits, pyrat.atmf.punits, pyrat.atmf.tunits), 2)
-  pt.msg(1, "Atm file info: {:s}".format(pyrat.atmf.info), 2)
+          format(atm.runits, atm.punits, atm.tunits), 2)
+  pt.msg(1, "Atm file info: {:s}".format(atm.info), 2)
   pt.msg(1, "Data starting position: {:d}".format(iline), 2)
   return iline
 
@@ -91,13 +88,6 @@ def getkeywords(pyrat, atmfile):
 def getconstants(pyrat):
   """
   Set molecules constant values (ID, mass, radius).
-
-  Modification History:
-  ---------------------
-  2014-??-??  patricio  Initial implemetation
-  2014-08-17  patricio  Added Documentation. Adapted to new molecules.dat file.
-                        Store molecule symbol and ID.
-  2015-01-19  patricio  Updated molecules.dat reading.
   """
   # Read file with molecular info:
   molfile = open(pyrat.molfile, "r")
@@ -158,13 +148,12 @@ def getconstants(pyrat):
 
 def getprofiles(pyrat, atmfile):
   """
-  Extract data from atmospheric file into pyrat object.
-
-  Modification History:
-  ---------------------
-  2014-XX-XX  patricio  Initial implementation.
-  2015-01-19  patricio  Adapted to new atmosphere file format.
+  Extract pressure, temperature, and mixing ratio data from the atmospheric
+  file.
   """
+  # User-input atmospheric-data object:
+  atm = pyrat.inputs.atm
+
   # Read first line to count number of columns:
   datastart = atmfile.tell()
   line = atmfile.readline()
@@ -173,37 +162,37 @@ def getprofiles(pyrat, atmfile):
   rad = (ncolumns == 3)
 
   # Count number of layers:
-  pyrat.atmf.nlayers = 1
+  atm.nlayers = 1
   while True:
     line = atmfile.readline()
     if line == '' or line.startswith('#'):
       break
-    pyrat.atmf.nlayers += 1
-  pt.msg(pyrat.verb, "Number of layers in the atmospheric file: {:d}".
-                     format(pyrat.atmf.nlayers), 2)
+    atm.nlayers += 1
+  pt.msg(pyrat.verb, "Number of layers in the input atmospheric file: {:d}".
+                     format(atm.nlayers), 2)
 
   # Initialize arrays:
   if rad:
-    pyrat.atmf.radius = np.zeros( pyrat.atmf.nlayers)
-  pyrat.atmf.press  = np.zeros( pyrat.atmf.nlayers)
-  pyrat.atmf.temp   = np.zeros( pyrat.atmf.nlayers)
-  pyrat.atmf.mm     = np.zeros( pyrat.atmf.nlayers)
-  pyrat.atmf.q      = np.zeros((pyrat.atmf.nlayers, pyrat.mol.nmol))
-  pyrat.atmf.d      = np.zeros((pyrat.atmf.nlayers, pyrat.mol.nmol))
+    atm.radius = np.zeros( atm.nlayers)
+  atm.press    = np.zeros( atm.nlayers)
+  atm.temp     = np.zeros( atm.nlayers)
+  atm.mm       = np.zeros( atm.nlayers)
+  atm.q        = np.zeros((atm.nlayers, pyrat.mol.nmol))
+  atm.d        = np.zeros((atm.nlayers, pyrat.mol.nmol))
 
   # Read table:
   nprofiles = pyrat.mol.nmol
   atmfile.seek(datastart, 0)
-  for i in np.arange(pyrat.atmf.nlayers):
+  for i in np.arange(atm.nlayers):
     data = atmfile.readline().split()
     if rad:
-      pyrat.atmf.radius[i] = float(data[0])
-    pyrat.atmf.press [i] = float(data[rad+0])
-    pyrat.atmf.temp  [i] = float(data[rad+1])
-    pyrat.atmf.q     [i] = np.asarray(data[rad+2:], float)
+      atm.radius[i] = float(data[0])
+    atm.press [i] = float(data[rad+0])
+    atm.temp  [i] = float(data[rad+1])
+    atm.q     [i] = np.asarray(data[rad+2:], float)
 
   # Sum of abundances per layer:
-  sumq = np.sum(pyrat.atmf.q, axis=1)
+  sumq = np.sum(atm.q, axis=1)
   # FINDME: Add sumq != 1.0 warning.
 
   # Plot abundance profiles:
@@ -211,33 +200,32 @@ def getprofiles(pyrat, atmfile):
     plt.figure(0)
     plt.clf()
     for i in np.arange(pyrat.mol.nmol):
-      plt.loglog(pyrat.atmf.q[:,i], pyrat.atmf.press, label=pyrat.mol.name[i])
+      plt.loglog(atm.q[:,i], atm.press, label=pyrat.mol.name[i])
     plt.legend(loc="lower left")
-    plt.ylim(pyrat.atmf.press[0], pyrat.atmf.press[-1])
-    plt.ylabel("Pressure  ({:s})".format(pyrat.atmf.punits))
+    plt.ylim(atm.press[0], atm.press[-1])
+    plt.ylabel("Pressure  ({:s})".format(atm.punits))
     plt.xlabel("Abundances")
     plt.draw()
     plt.savefig("atmprofiles.png")
 
   # Store values in CGS system of units:
   if rad:
-    pyrat.atmf.radius *= pc.units[pyrat.atmf.runits]
-  pyrat.atmf.press  *= pc.units[pyrat.atmf.punits]
-  pyrat.atmf.temp   *= pc.units[pyrat.atmf.tunits]
+    atm.radius *= pc.units[atm.runits]
+  atm.press  *= pc.units[atm.punits]
+  atm.temp   *= pc.units[atm.tunits]
 
   # Store the abundance as volume mixing ratio:
-  if pyrat.atmf.abundance:
-    pyrat.atmf.q = pyrat.atmf.q * pyrat.atmf.mm / pyrat.mol.mass
+  if atm.abundance:
+    atm.q = atm.q * atm.mm / pyrat.mol.mass
 
   # Calculate the mean molecular mass per layer:
-  pyrat.atmf.mm =     np.sum(pyrat.atmf.q*pyrat.mol.mass, axis=1)
+  atm.mm =     np.sum(atm.q*pyrat.mol.mass, axis=1)
   pt.msg(pyrat.verb-10, "Mean molecular mass array: {:s}".
-                        format(str(pyrat.atmf.mm)), 2)
+                         format(str(atm.mm)), 2)
 
   # Calculate density profiles for each molecule:
   for i in np.arange(pyrat.mol.nmol):
-    pyrat.atmf.d[:,i] = IGLdensity(pyrat.atmf.q[:,i], pyrat.mol.mass[i],
-                                  pyrat.atmf.press, pyrat.atmf.temp)
+    atm.d[:,i] = IGLdensity(atm.q[:,i], pyrat.mol.mass[i], atm.press, atm.temp)
 
 
 def IGLdensity(abundance, mass, pressure, temperature):

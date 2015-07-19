@@ -93,77 +93,82 @@ def makeradius(pyrat):
   If the user sets radius command-line arguments, make a sampling; else,
   default to the atmfile radius array.
   """
+  # Pyrat and user-input atmospheric-data objects:
+  atm    = pyrat.atm
+  atm_in = pyrat.inputs.atm
+
   pt.msg(pyrat.verb, "\nGenerating atmospheric radius sample:")
 
   # Atmopsheric reference pressure-radius level:
-  pt.msg(pyrat.verb, "Reference pressure: {:.3e} {:s}".format(
-         pyrat.pressurebase/pc.units[pyrat.punits], pyrat.punits),   2)
-  pt.msg(pyrat.verb, "Reference radius: {:8g} {:s}".format(
-         pyrat.radiusbase/pc.units[pyrat.radunits], pyrat.radunits), 2)
+  pt.msg(pyrat.verb, "Reference pressure: {:.3e} {:s}".
+          format(pyrat.pressurebase/pc.units[pyrat.punits], pyrat.punits),   2)
+  pt.msg(pyrat.verb, "Reference radius: {:8g} {:s}".
+          format(pyrat.radiusbase/pc.units[pyrat.radunits], pyrat.radunits), 2)
 
   # FINDME: move this to readatm
   # Pressure limits from the atmospheric file:
-  pt.msg(pyrat.verb, "Pressure limits: {:.3e} -- {:.3e} {:s}".format(
-        pyrat.atmf.press[ 0]/pc.units[pyrat.punits],
-        pyrat.atmf.press[-1]/pc.units[pyrat.punits], pyrat.punits), 2)
+  pt.msg(pyrat.verb, "Pressure limits: {:.3e} -- {:.3e} {:s}".
+        format(atm_in.press[ 0]/pc.units[pyrat.punits],
+               atm_in.press[-1]/pc.units[pyrat.punits], pyrat.punits), 2)
 
-  if pyrat.atmf.radius is None:
+  if atm_in.radius is None:
     # Calculate radius array for given atmospheric profile by using the 
     # hydostatic-equilibrium equation:
-    pyrat.atmf.radius = si.cumtrapz((-pc.k * sc.N_A * pyrat.atmf.temp) /
-               (pyrat.atmf.mm * pyrat.surfgravity), np.log(pyrat.atmf.press))
-    pyrat.atmf.radius  = np.concatenate(([0.0], pyrat.atmf.radius))
-    pyrat.atmf.radius -= pyrat.atmf.radius[-1]
+    atm_in.radius = si.cumtrapz((-pc.k * sc.N_A * atm_in.temp) /
+                        (atm_in.mm * pyrat.surfgravity), np.log(atm_in.press))
+    atm_in.radius  = np.concatenate(([0.0], atm_in.radius))
+    atm_in.radius -= atm_in.radius[-1]
 
     # Get radius at the reference pressure level:
     if pyrat.pressurebase is not None and pyrat.radiusbase is not None:
-      radinterp = sip.interp1d(pyrat.atmf.press, pyrat.atmf.radius,
-                               kind='slinear')
+      radinterp = sip.interp1d(atm_in.press, atm_in.radius, kind='slinear')
       r0 = radinterp(pyrat.pressurebase)
       # Make correction to force: radius(ref. pressure) = ref. radius
-      pyrat.atmf.radius += pyrat.radiusbase - r0
+      atm_in.radius += pyrat.radiusbase - r0
+
+  # Check that the layers are sorted from the top to the bottom of
+  #  the atmosphere:
 
   # Reset the interpolating function (for use later):
-  radinterp   = sip.interp1d(pyrat.atmf.press, pyrat.atmf.radius,
-                             kind='slinear')
-  pressinterp = sip.interp1d(pyrat.atmf.radius[::-1],
-                             pyrat.atmf.press [::-1], kind='slinear')
+  radinterp   = sip.interp1d(atm_in.press, atm_in.radius, kind='slinear')
+  pressinterp = sip.interp1d(atm_in.radius[::-1],
+                             atm_in.press [::-1], kind='slinear')
   pt.msg(pyrat.verb, "Radius array (km) = {:s}".
-                      format(pt.pprint(pyrat.atmf.radius/pc.units["km"],2)), 2)
+                      format(pt.pprint(atm_in.radius/pc.units["km"],2)), 2)
 
   # Set pressure boundaries:
   if pyrat.radhigh is not None:
     pyrat.plow = pressinterp(pyrat.radhigh)[0]
   elif pyrat.phigh is None:
-    pyrat.phigh = np.amax(pyrat.atmf.press)
+    pyrat.phigh = np.amax(atm_in.press)
 
   if pyrat.radlow is not None:
     pyrat.phigh = pressinterp(pyrat.radlow)[0]
   elif pyrat.plow is None:
-    pyrat.plow  = np.amin(pyrat.atmf.press)
+    pyrat.plow  = np.amin(atm_in.press)
 
   pt.msg(pyrat.verb, "Pressure user boundaries: {:.3e} -- {:.3e} bar".format(
               pyrat.plow/pc.units["bar"], pyrat.phigh/pc.units["bar"]), 2)
 
   # Out of bounds errors:
-  if pyrat.phigh > np.amax(pyrat.atmf.press):
+  if pyrat.phigh > np.amax(atm_in.press):
     pt.error("User-defined top layer (p={:.3e} {:s}) is higher than the "
              "atmospheric-file top layer (p={:.3e} {:s}).".format(
               pyrat.phigh/pc.units[pyrat.punits], pyrat.punits,
-              np.amax(pyrat.atmf.press)/pc.units[pyrat.punits], pyrat.punits))
+              np.amax(atm_in.press)/pc.units[pyrat.punits], pyrat.punits))
 
   # Out of bounds errors:
-  if pyrat.plow < np.amin(pyrat.atmf.press):
+  if pyrat.plow < np.amin(atm_in.press):
     pt.error("User-defined bottom layer (p={:.3e} {:s}) is lower than the "
              "atmospheric-file bottom layer (p={:.3e} {:s}).".format(
               pyrat.plow/pc.units[pyrat.punits], pyrat.punits,
-              np.amin(pyrat.atmf.press)/pc.units[pyrat.punits], pyrat.punits))
+              np.amin(atm_in.press)/pc.units[pyrat.punits], pyrat.punits))
 
   # Resample to equispaced log-pressure array if requested:
-  if pyrat.atm.nlayers is not None:
-    pyrat.atm.press = np.logspace(np.log10(pyrat.phigh), np.log10(pyrat.plow),
-                                  pyrat.atm.nlayers)[::-1]
-    pyrat.atm.radius = radinterp(pyrat.atm.press)
+  if atm.nlayers is not None:
+    atm.press = np.logspace(np.log10(pyrat.phigh), np.log10(pyrat.plow),
+                            atm.nlayers)[::-1]
+    atm.radius = radinterp(atm.press)
     resample = True
 
   # Resample to equispaced radius array if requested:
@@ -174,99 +179,95 @@ def makeradius(pyrat):
     if pyrat.radhigh is None:
       pyrat.radhigh = radinterp(pyrat.plow)[0]
 
-    pyrat.atm.radius = np.arange(pyrat.radlow, pyrat.radhigh, pyrat.radstep)
-    pyrat.atm.nlayers = len(pyrat.atm.radius)
+    atm.radius = np.arange(pyrat.radlow, pyrat.radhigh, pyrat.radstep)
+    atm.nlayers = len(atm.radius)
     # Avoid radinterp going out-of-bounds:
     # radlow  = np.amax([rad[ 0], radinterp([pyrat.phigh])[0]])
     # radhigh = np.amin([rad[-1], radinterp([pyrat.plow ])[0]])
     # Interpolate to pressure array:
-    pyrat.atm.press = pressinterp(pyrat.atm.radius)
+    atm.press = pressinterp(atm.radius)
     resample = True
 
   # Else, take the atmospheric-file sampling:
   else:
     # Get top-bottom indices:
-    ilow  = np.where(pyrat.atmf.press >= pyrat.plow) [0][-1]
-    ihigh = np.where(pyrat.atmf.press <= pyrat.phigh)[0][ 0]
+    ilow  = np.where(atm_in.press >= pyrat.plow) [0][-1]
+    ihigh = np.where(atm_in.press <= pyrat.phigh)[0][ 0]
     # Take values within the boundaries:
-    pyrat.atm.press   = pyrat.atmf.press [ihigh:ilow+1]
-    pyrat.atm.radius  = pyrat.atmf.radius[ihigh:ilow+1]
-    pyrat.atm.temp    = pyrat.atmf.temp  [ihigh:ilow+1]
-    pyrat.atm.mm      = pyrat.atmf.mm    [ihigh:ilow+1]
-    pyrat.atm.q       = pyrat.atmf.q     [ihigh:ilow+1]
-    pyrat.atm.d       = pyrat.atmf.d     [ihigh:ilow+1]
-    pyrat.atm.nlayers = len(pyrat.atm.press)
+    atm.press   = atm_in.press [ihigh:ilow+1]
+    atm.radius  = atm_in.radius[ihigh:ilow+1]
+    atm.temp    = atm_in.temp  [ihigh:ilow+1]
+    atm.mm      = atm_in.mm    [ihigh:ilow+1]
+    atm.q       = atm_in.q     [ihigh:ilow+1]
+    atm.d       = atm_in.d     [ihigh:ilow+1]
+    atm.nlayers = len(atm.press)
     resample = False
 
   # Radius-vs-pressure from Atm. file and resampled array:
   # plt.figure(2)
   # plt.clf()
-  # plt.semilogx(pyrat.atmf.press /pc.units[pyrat.punits],
-  #              pyrat.atmf.radius/pc.units[pyrat.radunits],
+  # plt.semilogx(atm_in.press /pc.units[pyrat.punits],
+  #              atm_in.radius/pc.units[pyrat.radunits],
   #              "o-r", mec="r", mfc='r')
-  # plt.semilogx(pyrat.atm.press /pc.units[pyrat.punits],
-  #              pyrat.atm.radius/pc.units[pyrat.radunits], "o-b",
+  # plt.semilogx(atm.press /pc.units[pyrat.punits],
+  #              atm.radius/pc.units[pyrat.radunits], "o-b",
   #              mec="b", mew=1, mfc='None')
   # plt.xlabel("Pressure  ({:s})".format(pyrat.punits))
   # plt.ylabel("Radius  ({:s})".format(pyrat.radunits))
   # plt.savefig("radpress.png")
 
-  pt.msg(pyrat.verb, "Number of model layers: {:d}".format(pyrat.atm.nlayers),2)
+  pt.msg(pyrat.verb, "Number of model layers: {:d}".format(atm.nlayers),2)
   pt.msg(pyrat.verb, "Pressure lower/higher boundaries: {:.2e} - {:.2e} "
                      "{:s}".format(pyrat.plow /pc.units[pyrat.punits],
                            pyrat.phigh/pc.units[pyrat.punits], pyrat.punits), 2)
-  pt.msg(pyrat.verb, "Radius lower/higher boundaries:   {:.1f} - {:.1f} "
-         "{:s}".format(np.amin(pyrat.atm.radius)/pc.units[pyrat.radunits],
-         np.amax(pyrat.atm.radius)/pc.units[pyrat.radunits], pyrat.radunits), 2)
+  pt.msg(pyrat.verb, "Radius lower/higher boundaries:   {:.1f} - {:.1f} {:s}".
+               format(np.amin(atm.radius)/pc.units[pyrat.radunits],
+               np.amax(atm.radius)/pc.units[pyrat.radunits], pyrat.radunits), 2)
 
    # Interpolate to new atm-layer sampling if necessary:
   if resample:
-    tempinterp = sip.interp1d(pyrat.atmf.press, pyrat.atmf.temp,
-                              kind='slinear')
-    mminterp   = sip.interp1d(pyrat.atmf.press, pyrat.atmf.mm,
-                              kind='slinear')
-    pyrat.atm.temp = tempinterp(pyrat.atm.press)
-    pyrat.atm.m    =   mminterp(pyrat.atm.press)
+    tempinterp = sip.interp1d(atm_in.press, atm_in.temp, kind='slinear')
+    mminterp   = sip.interp1d(atm_in.press, atm_in.mm,   kind='slinear')
+    atm.temp = tempinterp(atm.press)
+    atm.m    =   mminterp(atm.press)
     # Interpolate abundance profiles:
-    pyrat.atm.q = np.zeros((pyrat.atm.nlayers, pyrat.mol.nmol))
-    pyrat.atm.d = np.zeros((pyrat.atm.nlayers, pyrat.mol.nmol))
+    atm.q = np.zeros((atm.nlayers, pyrat.mol.nmol))
+    atm.d = np.zeros((atm.nlayers, pyrat.mol.nmol))
     for i in np.arange(pyrat.mol.nmol):
-      qinterp = sip.interp1d(pyrat.atmf.press, pyrat.atmf.q[:, i],
-                             kind='slinear')
-      dinterp = sip.interp1d(pyrat.atmf.press, pyrat.atmf.d[:, i],
-                             kind='slinear')
-      pyrat.atm.q[:,i] = qinterp(pyrat.atm.press)
-      pyrat.atm.d[:,i] = dinterp(pyrat.atm.press)
+      qinterp = sip.interp1d(atm_in.press, atm_in.q[:, i], kind='slinear')
+      dinterp = sip.interp1d(atm_in.press, atm_in.d[:, i], kind='slinear')
+      atm.q[:,i] = qinterp(atm.press)
+      atm.d[:,i] = dinterp(atm.press)
 
   # Temperature boundaries check:
-  if np.any(pyrat.atm.temp < pyrat.lt.tmin):
-    icold = np.where(pyrat.atm.temp < pyrat.lt.tmin)[0][0]
+  if np.any(atm.temp < pyrat.lt.tmin):
+    icold = np.where(atm.temp < pyrat.lt.tmin)[0][0]
     pt.error("The layer {:d} in the atmospheric model has a lower "
              "temperature ({:.1f} K) than the lowest allowed TLI temperature "
-             "({:.1f} K).".format(icold, pyrat.atm.temp[icold], pyrat.lt.tmin))
-  if np.any(pyrat.atm.temp > pyrat.lt.tmax):
-    ihot = np.where(pyrat.atm.temp > pyrat.lt.tmax)[0][0]
+             "({:.1f} K).".format(icold, atm.temp[icold], pyrat.lt.tmin))
+  if np.any(atm.temp > pyrat.lt.tmax):
+    ihot = np.where(atm.temp > pyrat.lt.tmax)[0][0]
     pt.error("The layer {:d} in the atmospheric model has a higher "
              "temperature ({:.1f} K) than the highest allowed TLI temperature "
-             "({:.1f} K).".format(ihot, pyrat.atm.temp[ihot], pyrat.lt.tmax))
+             "({:.1f} K).".format(ihot, atm.temp[ihot], pyrat.lt.tmax))
 
   # Interpolate isotopes partition function:
   pt.msg(pyrat.verb,"Number of isotopes: {:d}".format(pyrat.iso.niso), 2)
   # Initialize the partition-function array for pyrat.iso:
-  pyrat.iso.z = np.zeros((pyrat.iso.niso, pyrat.atm.nlayers))
+  pyrat.iso.z = np.zeros((pyrat.iso.niso, atm.nlayers))
   for i in np.arange(pyrat.lt.ndb):           # For each Database
     for j in np.arange(pyrat.lt.db[i].niso):  # For each isotope in DB
       pt.msg(pyrat.verb, "Interpolating (isotope ID {:2d}) partition "
                          "function.".format(pyrat.lt.db[i].iiso+j), 4)
       zinterp = sip.interp1d(pyrat.lt.db[i].temp, pyrat.lt.db[i].z[j],
                              kind='slinear')
-      pyrat.iso.z[pyrat.lt.db[i].iiso+j] = zinterp(pyrat.atm.temp)
+      pyrat.iso.z[pyrat.lt.db[i].iiso+j] = zinterp(atm.temp)
 
   # # Plot interpolation:
   # plt.figure(3)
   # plt.clf()
   # plt.plot(pyrat.lt.db[0].temp, pyrat.lt.db[0].z[0], "o-r", mec="r")
-  # plt.plot(pyrat.atm.temp, pyrat.iso.z[0], "o-b", mec="b", mfc='None')
+  # plt.plot(atm.temp, pyrat.iso.z[0], "o-b", mec="b", mfc='None')
   # plt.xlabel("Temperature  (K)")
   # plt.ylabel("Partition function")
   # plt.xlim(0, 3000)
@@ -281,7 +282,6 @@ def reloadatm(pyrat, temp, abund):
   Parameters:
   -----------
   pyrat: A Pyrat instance
-
   temp: 1D float ndarray
      Array with a temperature profile in Kelvin (from top to bottom layer).
   abund: 2D float ndarray
@@ -318,7 +318,7 @@ def reloadatm(pyrat, temp, abund):
   pyrat.atm.radius[1:] = si.cumtrapz((-pc.k * sc.N_A * pyrat.atm.temp) /
              (pyrat.atm.mm * pyrat.surfgravity), np.log(pyrat.atm.press))
   pyrat.atm.radius[0] = 0.0
-  radinterp = sip.interp1d(pyrat.atmf.press, pyrat.atmf.radius, kind='slinear')
+  radinterp = sip.interp1d(pyrat.atm.press, pyrat.atm.radius, kind='slinear')
   r0 = radinterp(pyrat.pressurebase)
   pyrat.atm.radius += pyrat.radiusbase - r0
 

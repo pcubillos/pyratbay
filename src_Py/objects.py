@@ -11,7 +11,6 @@ class Pyrat(object):
     # Sub-classes:
     self.inputs = Inputs()          # User inputs
     self.spec   = Spectrum()        # Spectrum data
-    self.atmf   = Atm()             # Input-file atmospheric model
     self.atm    = Atm()             # Modeling atmospheric model
     self.lt     = Linetransition()  # Line-transition data
     self.mol    = Molecules()       # Molecules data
@@ -110,6 +109,8 @@ class Inputs(object):
     self.outspec     = None
     self.outsample   = None
     self.outmaxdepth = None
+    # Atmospheric data:
+    self.atm = Atm()  # Input-file atmospheric model
 
 
 class Spectrum(object):

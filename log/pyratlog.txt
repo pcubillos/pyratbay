@@ -895,7 +895,13 @@ In pconstants.py: Bumped Lineread revision (now version 6.3.1).
 *****
 
 Added db_pands.py to read Partridge and Schwenke's H2O database.
-In pconstants.py: Bumped Lineread revision (now version 6.3.1).
+In pconstants.py: Bumped Lineread revision (now version 6.3.2).
 
+
+*****  Sun Jul 19 14:17:22 EDT 2015  *****
+
+Moved pyrat.atmf (user-input atmospheric data) to pyrat.inputs.atm.
+In pconstants.py: Bumped Pyrat revision (now version 1.1.13).
 
 *****
+
