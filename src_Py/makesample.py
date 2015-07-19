@@ -1,8 +1,6 @@
 import numpy as np
 import time
 import matplotlib.pyplot as plt
-import scipy.constants   as sc
-import scipy.integrate   as si
 import scipy.interpolate as sip
 
 import readatm    as ra
@@ -93,11 +91,11 @@ def makeradius(pyrat):
   If the user sets radius command-line arguments, make a sampling; else,
   default to the atmfile radius array.
   """
+  pt.msg(pyrat.verb, "\nGenerating atmospheric radius sample:")
+
   # Pyrat and user-input atmospheric-data objects:
   atm    = pyrat.atm
   atm_in = pyrat.inputs.atm
-
-  pt.msg(pyrat.verb, "\nGenerating atmospheric radius sample:")
 
   # Atmopsheric reference pressure-radius level:
   pt.msg(pyrat.verb, "Reference pressure: {:.3e} {:s}".
@@ -111,16 +109,36 @@ def makeradius(pyrat):
         format(atm_in.press[ 0]/pc.units[pyrat.punits],
                atm_in.press[-1]/pc.units[pyrat.punits], pyrat.punits), 2)
 
+  # Check that the layers are sorted from the top to the bottom of
+  #  the atmosphere:
+  sort    = np.all(np.ediff1d(atm_in.press) > 0)  # Top to bottom
+  reverse = np.all(np.ediff1d(atm_in.press) < 0)  # Bottom to top
+  if atm_in.radius is not None:
+    sort    *= np.all(np.ediff1d(atm_in.radius) < 0)
+    reverse *= np.all(np.ediff1d(atm_in.radius) > 0)
+
+  if   sort:     # Layers are in the correct order
+    pass
+  elif reverse:  # Layers in reverse order
+    pt.warning("The atmospheric layers are in reversed order (top-bottom).  "
+               "Resorting to be from the bottom-up.")
+    if atm_in.radius is not None:
+      atm_in.radius = atm_in.radius[::-1]
+    atm_in.press  = atm_in.press [::-1]
+    atm_in.temp   = atm_in.temp  [::-1]
+    atm_in.mm     = atm_in.mm    [::-1]
+    atm_in.q      = np.flipud(atm_in.q)
+    atm_in.d      = np.flipud(atm_in.d)
+  else:
+    pt.error("The atmospheric layers are neither sorted from the bottom up, "
+             "nor from the top down.")
+
   if atm_in.radius is None:
-    # Calculate radius array for given atmospheric profile by using the 
-    # hydostatic-equilibrium equation:
+    # Calculate the radius array using the hydostatic-equilibrium equation:
     atm_in.radius = ra.hydro_equilibrium(atm_in.press, atm_in.temp, atm_in.mm,
                        pyrat.surfgravity, pyrat.pressurebase, pyrat.radiusbase)
 
-  # Check that the layers are sorted from the top to the bottom of
-  #  the atmosphere:
-
-  # Reset the interpolating function (for use later):
+  # Set the interpolating function (for use later):
   radinterp   = sip.interp1d(atm_in.press, atm_in.radius, kind='slinear')
   pressinterp = sip.interp1d(atm_in.radius[::-1],
                              atm_in.press [::-1], kind='slinear')

@@ -912,3 +912,10 @@ Bumped Pyrat revision (now version 1.1.14).
 
 *****
 
+Check that the layers are given from the top to the bottom.
+If the atm file is sorted from bottom up, reverse it and print a warning.
+Changes in makeradius() from makesample.py.
+In pconstants.py: Bumped Pyrat revision (now version 1.1.15).
+
+*****
+
