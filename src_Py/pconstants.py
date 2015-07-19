@@ -19,11 +19,18 @@ PYRAT_REV = 15  # Revision
 # Lineread version:
 LR_VER    = 6  # Major version
 LR_MIN    = 3  # Minor version
-LR_REV    = 2  # Revision
+LR_REV    = 3  # Revision
 
 
 MTC  = 1e-4  # Microns to cm     (MTC = um/cm)
 NTC  = 1e-7  # Nanometers to cm  (NTC = nm/cm)
+
+# Convert from eV to cm-1 (kayser):
+# planck   = 6.62620e-34  # Planck constant [J * s]
+# lumiere  = 2.997925e10  # speed of light  [cm / s]
+# electron = 1.602192e-19 # elementary charge [Coulomb]
+# kayser2eV = planck * lumiere / electron
+eV2Kayser = 8065.49179
 
 # Units processing (conversion to cm):
 units = {'A' :1e-8,

@@ -20,7 +20,7 @@ class dbdriver(object):
 
   def getpf(self, verbose=0):
     """
-      Compute partition function for specified source.
+    Compute partition function for specified source.
     """
     # Calculate the partition-function from the CTIPS module:
     if self.pffile == "ctips":
@@ -39,6 +39,34 @@ class dbdriver(object):
         isoID = np.repeat(int(self.isotopes[i]), ntemp)
         PF[i] = ct.tips(molID, isoID, temp)/self.gi[i]
       return temp, PF
+
+    # Use polynomial expression:
+    elif self.pffile == "poly":
+      # Temperature array:
+      Temp = np.arange(1000.0, 7001.0, 50.0)
+      Ntemp = len(Temp)
+
+      # Number of isotopes:
+      Niso = len(self.isotopes)
+
+      # Intialize PF array:
+      PF = np.zeros((Niso, Ntemp), np.double)
+
+      # Calculate log(PF) at each temperature and isotope:
+      for j in np.arange(Niso):
+        for i in np.arange(Ntemp):
+          # Formula from Irwin 1981, ApJS 45, 621 (equation #2):
+          PF[j,i] = (self.PFcoeffs[j,0]                      +
+                     self.PFcoeffs[j,1]* np.log(Temp[i])     +
+                     self.PFcoeffs[j,2]*(np.log(Temp[i]))**2 +
+                     self.PFcoeffs[j,3]*(np.log(Temp[i]))**3 +
+                     self.PFcoeffs[j,4]*(np.log(Temp[i]))**4 +
+                     self.PFcoeffs[j,5]*(np.log(Temp[i]))**5 )
+      # Get the exponential of log(PF):
+      PF = np.exp(PF)
+
+      return Temp, PF
+
     # Extract the partition-function from the tabulated file:
     else:
       return self.readpf()

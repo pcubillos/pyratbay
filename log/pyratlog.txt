@@ -919,3 +919,10 @@ In pconstants.py: Bumped Pyrat revision (now version 1.1.15).
 
 *****
 
+Added Plez' VO database reader (src_Py/db_voplez.py).
+Added polynomial option ('poly') to calculate the partition function.
+Added eV to Kayser conversion factor (eV2Kayser) in pconstants.
+Bumped Lineread revision (now version 6.3.3).
+
+*****
+

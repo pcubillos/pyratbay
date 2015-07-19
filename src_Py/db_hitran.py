@@ -62,13 +62,6 @@ class hitran(dbdriver):
     --------
     rec_wl: Float
        Wavelength value at record irec, as given in dbfile database.
-
-    Modification History:
-    ---------------------
-    2014-03-05  patricio  Initial implementation, based on Madison's
-                          code.          pcubillos@fulbrightmail.org
-    2014-03-10  patricio  Updated dbtype to match command-line-argument
-                          sytax.  Updated HITRAN data type.
     """
     # Set pointer at required wavenumber record:
     dbfile.seek(irec*self.recsize + self.recwnpos)

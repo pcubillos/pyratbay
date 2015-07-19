@@ -35,6 +35,7 @@ import pconstants as pc
 import ptools     as pt
 import db_pands   as ps
 import db_hitran  as hit
+import db_voplez  as vo
 import db_tioschwenke as ts
 
 
@@ -98,7 +99,6 @@ def parseargs():
                      help="Database type (string).  'ps' for Partridge & "
                           "Schwenke's H2O; 'hit' for HITRAN and HITEMP; or "
                           "'ts' for Schwenke's TiO.",
-                     choices=('ps', 'hit', 'ts'),
                      dest="dbtype")
   # Wavelength Options:
   group = parser.add_argument_group("Wavelength Options")
@@ -144,11 +144,13 @@ def main():
   driver = []
   for i in np.arange(Nfiles):
     if   dbtype[i] == "ps":
-      driver.append(ps.pands(dblist[i], pflist[i]))
+      driver.append(ps.pands(      dblist[i], pflist[i]))
     elif dbtype[i] == "hit":
-      driver.append(hit.hitran(dblist[i], pflist[i]))
+      driver.append(hit.hitran(    dblist[i], pflist[i]))
     elif dbtype[i] == "ts":
       driver.append(ts.tioschwenke(dblist[i], pflist[i]))
+    elif dbtype[i] == "vo":
+      driver.append(vo.voplez(     dblist[i], pflist[i]))
     else:
       pt.error("Unknown Database type ({:d}): '{:s}'".format(i+1, dbtype[i]))
     pt.msg(verb-10, "File {:d}, database name: '{:s}'".
