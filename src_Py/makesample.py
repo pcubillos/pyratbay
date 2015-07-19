@@ -114,17 +114,8 @@ def makeradius(pyrat):
   if atm_in.radius is None:
     # Calculate radius array for given atmospheric profile by using the 
     # hydostatic-equilibrium equation:
-    atm_in.radius = si.cumtrapz((-pc.k * sc.N_A * atm_in.temp) /
-                        (atm_in.mm * pyrat.surfgravity), np.log(atm_in.press))
-    atm_in.radius  = np.concatenate(([0.0], atm_in.radius))
-    atm_in.radius -= atm_in.radius[-1]
-
-    # Get radius at the reference pressure level:
-    if pyrat.pressurebase is not None and pyrat.radiusbase is not None:
-      radinterp = sip.interp1d(atm_in.press, atm_in.radius, kind='slinear')
-      r0 = radinterp(pyrat.pressurebase)
-      # Make correction to force: radius(ref. pressure) = ref. radius
-      atm_in.radius += pyrat.radiusbase - r0
+    atm_in.radius = ra.hydro_equilibrium(atm_in.press, atm_in.temp, atm_in.mm,
+                       pyrat.surfgravity, pyrat.pressurebase, pyrat.radiusbase)
 
   # Check that the layers are sorted from the top to the bottom of
   #  the atmosphere:
@@ -275,56 +266,3 @@ def makeradius(pyrat):
   # plt.savefig("PartitionFunction.png")
 
   pt.msg(pyrat.verb, "Done.")
-
-
-def reloadatm(pyrat, temp, abund):
-  """
-  Parameters:
-  -----------
-  pyrat: A Pyrat instance
-  temp: 1D float ndarray
-     Array with a temperature profile in Kelvin (from top to bottom layer).
-  abund: 2D float ndarray
-     Array with the species mole mixing ratio profiles [nlayers, nmol].
-
-  Notes:
-  ------
-  This code assumes that the input temperature and abundances correspond
-  to the final sampling of the atmospheric layers (after makeradius).
-  """
-  # Check that the dimensions match:
-  if np.size(temp) != np.size(pyrat.atm.temp):
-    pt.error("The temperature array size ({:d}) doesn't match the Pyrat's "
-             "temperature size ({:d}).".format(np.size(temp),
-                                               np.size(pyrat.atm.temp)))
-  if np.shape(abund) != np.shape(pyrat.atm.q):
-    pt.error("The shape of the abundances array {:s} doesn't match the "
-             "shape of the Pyrat's abundance size {:s}".format(
-              str(np.shape(abund)), str(np.shape(pyrat.atm.q))))
-
-  # Put temperature and abundance data into the Pyrat object:
-  pyrat.atm.temp = temp
-  pyrat.atm.q    = abund
-
-  # Mean molecular mass:
-  pyrat.atm.mm = np.sum(pyrat.atm.q*pyrat.mol.mass, axis=1)
-
-  # Density:
-  for i in np.arange(pyrat.mol.nmol):
-    pyrat.atm.d[:,i] = ra.IGLdensity(pyrat.atm.q[:,i], pyrat.mol.mass[i],
-                                     pyrat.atm.press, pyrat.atm.temp)
-
-  # Radius:
-  pyrat.atm.radius[1:] = si.cumtrapz((-pc.k * sc.N_A * pyrat.atm.temp) /
-             (pyrat.atm.mm * pyrat.surfgravity), np.log(pyrat.atm.press))
-  pyrat.atm.radius[0] = 0.0
-  radinterp = sip.interp1d(pyrat.atm.press, pyrat.atm.radius, kind='slinear')
-  r0 = radinterp(pyrat.pressurebase)
-  pyrat.atm.radius += pyrat.radiusbase - r0
-
-  # Partition function:
-  for i in np.arange(pyrat.lt.ndb):           # For each Database
-    for j in np.arange(pyrat.lt.db[i].niso):  # For each isotope in DB
-      zinterp = sip.interp1d(pyrat.lt.db[i].temp, pyrat.lt.db[i].z[j],
-                             kind='slinear')
-      pyrat.iso.z[pyrat.lt.db[i].iiso+j] = zinterp(pyrat.atm.temp)

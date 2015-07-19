@@ -1,8 +1,11 @@
-import numpy as np
 import sys, os
+import numpy as np
 import matplotlib.pyplot as plt
+import scipy.constants   as sc
+import scipy.integrate   as si
+import scipy.interpolate as sip
 
-import ptools as pt
+import ptools     as pt
 import pconstants as pc
 
 def readatm(pyrat):
@@ -228,6 +231,56 @@ def getprofiles(pyrat, atmfile):
     atm.d[:,i] = IGLdensity(atm.q[:,i], pyrat.mol.mass[i], atm.press, atm.temp)
 
 
+def reloadatm(pyrat, temp, abund):
+  """
+  Parameters:
+  -----------
+  pyrat: A Pyrat instance
+  temp: 1D float ndarray
+     Array with a temperature profile in Kelvin (from top to bottom layer).
+  abund: 2D float ndarray
+     Array with the species mole mixing ratio profiles [nlayers, nmol].
+
+  Notes:
+  ------
+  This code assumes that the input temperature and abundances correspond
+  to the final sampling of the atmospheric layers (after makeradius).
+  """
+  # Check that the dimensions match:
+  if np.size(temp) != np.size(pyrat.atm.temp):
+    pt.error("The temperature array size ({:d}) doesn't match the Pyrat's "
+             "temperature size ({:d}).".format(np.size(temp),
+                                               np.size(pyrat.atm.temp)))
+  if np.shape(abund) != np.shape(pyrat.atm.q):
+    pt.error("The shape of the abundances array {:s} doesn't match the "
+             "shape of the Pyrat's abundance size {:s}".format(
+              str(np.shape(abund)), str(np.shape(pyrat.atm.q))))
+
+  # Put temperature and abundance data into the Pyrat object:
+  pyrat.atm.temp = temp
+  pyrat.atm.q    = abund
+
+  # Mean molecular mass:
+  pyrat.atm.mm = np.sum(pyrat.atm.q*pyrat.mol.mass, axis=1)
+
+  # Density:
+  for i in np.arange(pyrat.mol.nmol):
+    pyrat.atm.d[:,i] = IGLdensity(pyrat.atm.q[:,i], pyrat.mol.mass[i],
+                                  pyrat.atm.press,  pyrat.atm.temp)
+
+  # Radius:
+  pyrat.atm.radius = hydro_equilibrium(pyrat.atm.press,    pyrat.atm.temp,
+                                       pyrat.atm.mm,       pyrat.surfgravity,
+                                       pyrat.pressurebase, pyrat.radiusbase)
+
+  # Partition function:
+  for i in np.arange(pyrat.lt.ndb):           # For each Database
+    for j in np.arange(pyrat.lt.db[i].niso):  # For each isotope in DB
+      zinterp = sip.interp1d(pyrat.lt.db[i].temp, pyrat.lt.db[i].z[j],
+                             kind='slinear')
+      pyrat.iso.z[pyrat.lt.db[i].iiso+j] = zinterp(pyrat.atm.temp)
+
+
 def IGLdensity(abundance, mass, pressure, temperature):
   """
   Use the Ideal gas law to calculate the density.
@@ -242,9 +295,52 @@ def IGLdensity(abundance, mass, pressure, temperature):
     Atmospheric pressure profile (in barye units).
   temperature: 1D ndarray
     Atmospheric temperature (in kelvin).
-
-  Modification History:
-  ---------------------
-  2014-06-08  patricio  Initial implementation.
   """
   return (mass * pc.u) * abundance * pressure / (pc.k * temperature)
+
+
+def hydro_equilibrium(pressure, temperature, mu, g, p0=None, r0=None):
+  """
+  Calculate radii using the hydrostatic-equilibrium equation.
+
+  Parameters:
+  -----------
+  pressure: 1D float ndarray
+     Atmospheric pressure for each layer (in barye).
+  temperature: 1D float ndarray
+     Atmospheric temperature for each layer (in K).
+  mu: 1D float ndarray
+     Mean molecular mass for each layer (in g mol-1).
+  g: Float
+     Atmospheric gravity (in cm s-2).
+  p0: Float
+     Reference pressure level where radius(p0) = r0.
+  r0: Flaot
+     Reference radius level corresponding to p0.
+
+  Returns:
+  --------
+  radius: 1D float ndarray
+     Radius for each layer (in cm).
+
+  Notes:
+  ------
+  If the reference values (p0 and r0) are not given, set radius = 0.0
+  at the bottom of the matmosphere.
+  """
+  # Apply the HE equation:
+  radius = si.cumtrapz((-pc.k*sc.N_A * temperature) / (mu*g), np.log(pressure))
+  radius = np.concatenate(([0.0], radius))
+
+  # Set absolute radii values if p0 and r0 are provided:
+  if p0 is not None and r0 is not None:
+    # Find current radius at p0:
+    radinterp = sip.interp1d(pressure, radius, kind='slinear')
+    r0_interp = radinterp(p0)
+    # Set: radius(p0) = r0
+    radius += r0 - r0_interp
+  # Set radius = 0 at the bottom of the atmosphere:
+  else:
+    radius -= radius[-1]
+
+  return radius

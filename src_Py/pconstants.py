@@ -14,7 +14,7 @@ PBAY_REV  = 4  # Revision
 # Pyrat version:
 PYRAT_VER =  1  # Major version
 PYRAT_MIN =  1  # Minor version
-PYRAT_REV = 13  # Revision
+PYRAT_REV = 14  # Revision
 
 # Lineread version:
 LR_VER    = 6  # Major version
@@ -61,7 +61,8 @@ C2 = sc.h * (sc.c * 100.0) / sc.k                          # cm / Kelvin
 # Amagat (Loschmidt number) in mol cm-3:
 #amagat = 44.6150e-6
 # Amagat (Loschmidt number) in cm-3:
-amagat = 2.68678e19
+amagat = sc.physical_constants[
+                 "Loschmidt constant (273.15 K, 101.325 kPa)"][0] * 1e-6
 
 # TLI record length:
 tlireclen = 26  # Three doubles and one short

@@ -905,3 +905,10 @@ In pconstants.py: Bumped Pyrat revision (now version 1.1.13).
 
 *****
 
+Made the Hydrostatic-Equilibrium calculation a function in readatm.py.
+Moved reloadatm() to readatm.py.
+Re-defined amagat with the Loschmidt constant from scipy.constants.
+Bumped Pyrat revision (now version 1.1.14).
+
+*****
+
