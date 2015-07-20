@@ -926,3 +926,10 @@ Bumped Lineread revision (now version 6.3.3).
 
 *****
 
+Standarized the DB readers in Lineread (P&S, HITRAN, Plez).
+Cleaned up db_hitran, db_pands, and db_voplez.
+Bumped Lineread revision (now version 6.3.4).
+
+
+*****
+

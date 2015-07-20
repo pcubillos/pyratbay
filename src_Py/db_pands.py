@@ -1,5 +1,4 @@
 # ****************************** START LICENSE ******************************
-
 # ******************************* END LICENSE ******************************
 
 import struct
@@ -74,8 +73,7 @@ class pands(dbdriver):
 
   def dbread(self, iwn, fwn, verbose, *args):
     """
-    Read the Partridge and Schwenke H2O database (dbfile) between the
-    wavelengths iwl and fwl.
+    Read the Partridge and Schwenke H2O database.
  
     Parameters:
     -----------
@@ -103,6 +101,11 @@ class pands(dbdriver):
     -----------
     Madison Stemm      madison.stemm@ucf edu
     Patricio Cubillos  pcubillos@fulbrightmail.org
+
+    Notes:
+    ------
+    The Partridge & Schwenke database is a binary format.
+    The line transitions are sorted in increasing wavenlength order.
     """
  
     # Open the binary file:
@@ -113,66 +116,56 @@ class pands(dbdriver):
     nlines   = data.tell()/ self.recsize # Number of lines (8 bytes per line)
  
     # Rewrite wavelength limits as given in the P&S file:
-    #print(iwn, fwn)
-    fwav = 1.0 / (iwn * pc.NTC)         # cm to nanometer
-    iwav = 1.0 / (fwn * pc.NTC)
-    #print(iwav, fwav)
-    iwav = np.log(iwav) / self.ratiolog
-    fwav = np.log(fwav) / self.ratiolog
+    fwl = 1.0 / (iwn * pc.NTC)          # cm to nanometer
+    iwl = 1.0 / (fwn * pc.NTC)
+    iwav = np.log(iwl) / self.ratiolog  # As given in file
+    fwav = np.log(fwl) / self.ratiolog
  
-    #print(iwav, fwav)
-    # Find the positions of iwl and fwl, then jump to wl_i position:
-    #print("FLAG 01")
-    irec = self.binsearch(data, iwav, 0,    nlines, 0)
-    #print("FLAG 02")
-    frec = self.binsearch(data, fwav, irec, nlines, 1)
-    #print("FLAG 03")
-    nread = frec - irec + 1  # Number of records to read
+    # Find the positions of iwav and fwav:
+    istart = self.binsearch(data, iwav, 0,      nlines, 0)
+    istop  = self.binsearch(data, fwav, istart, nlines, 1)
+
+    # Number of records to read
+    nread = istop - istart + 1
  
     # Store data in two arrays for doubles and integers:
-    # For Wavelength, Elow, and log(gf):
-    wlength = np.zeros(nread, np.double)
+    wnumber = np.zeros(nread, np.double)
     gf      = np.zeros(nread, np.double)
     elow    = np.zeros(nread, np.double)
-    # For Isotope index:
-    isoID   = np.zeros(nread,     int)
+    isoID   = np.zeros(nread, int)
  
     pt.msg(verbose, "Beginning to read P&S database, between "
-                    "records {:d} and {:d}.".format(irec, frec))
+                    "records {:d} and {:d}.".format(istart, istop))
 
-    interval = (frec - irec)/20  # Check-point interval
+    interval = (istop - istart)/10  # Check-point interval
 
     iw   = np.zeros(nread, int)
     ielo = np.zeros(nread, np.short)
     igf  = np.zeros(nread, np.short)
 
     i   = 0  # Stored record index
-    data.seek(irec*self.recsize) 
+    data.seek(istart*self.recsize)
     while (i < nread):
       # Read a record:
       iw[i], ielo[i], igf[i] = struct.unpack('Ihh', data.read(self.recsize))
  
-      # Print a checkpoint statement every 1/20th interval
+      # Print a checkpoint statement every 10% interval:
       if verbose > 1:
-        pos = float(data.tell()/self.recsize)
         if (i % interval) == 0 and i != 0:
-          pt.msg(verbose-1, "Checkpoint {:2d}/20...".format(i/interval))
-          pt.msg(verbose-20, "iwl: {:d}, ielow: {:5d}, igf: {:6d}".
-                             format(iw[i], ielo[i], igf[i]))
-          pt.msg(verbose-3, "Wavelength:  {:.3f} um,  IsoID: {:d},  Elow: "
-                            "{:.2e} cm-1,  gf: {:.2e}".
-                         format(np.exp(iw[i] * self.ratiolog) * pc.NTC/pc.MTC,
-                                2*(ielo[i] < 0) + 1*(igf[i] < 0),
-                                np.abs(ielo[i]), self.tablog[np.abs(igf[i])]))
+          wl = np.exp(iw[i] * self.ratiolog) * pc.NTC/pc.MTC
+          pt.msg(verbose-1,"Checkpoint {:5.1f}%".format(10.*i/interval), 2)
+          pt.msg(verbose-2,"Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} um\n"
+                          "Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}".
+                             format(1.0/ (wl * pc.MTC), wl,
+                                  np.abs(ielo[i]), self.tablog[np.abs(igf[i])],
+                                  2*(ielo[i] < 0) + 1*(igf[i] < 0)), 4)
       i += 1
 
-    # Compute wavelength in microns:
-    wlength[:] = np.exp(iw * self.ratiolog) * pc.NTC/pc.MTC
-    # Calculate the wavenumber for TLI (cm-1):
-    wnumber = 1.0/ (wlength * pc.MTC)
+    # Calculate the wavenumber (in cm-1):
+    wnumber[:] = 1.0 / (np.exp(iw * self.ratiolog) * pc.NTC)
     # Get gf fom log table:
     gf[:]      = self.tablog[np.abs(igf)]
-    # Set energy of lowest transition level:
+    # Energy of lowest transition level:
     elow[:]    = np.abs(ielo)
     # Assign indices for isotopes based on Kurucz's indices-1:
     isoID[:]   = 2*(ielo < 0) + 1*(igf < 0)

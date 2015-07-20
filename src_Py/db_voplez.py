@@ -101,9 +101,15 @@ class voplez(dbdriver):
     isoID: 2D integer ndarray
       Isotope index (1, 2, 3, ...).
 
+    Developers:
+    -----------
+    Patricio Cubillos (UCF).
+    Sarah Blumenthal (UCF).
+
     Notes:
     ------
-    The VO data is sorted monotonically increasing in wavelength (cm-1).
+    The Plez VO database is an ASCII format.
+    The line transitions are sorted in increasing wavelength (micron) order.
     """
 
     # Open the file:

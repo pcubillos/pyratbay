@@ -26,8 +26,8 @@ class hitran(dbdriver):
     super(hitran, self).__init__(dbfile, pffile)
 
     self.recsize   =   0 # Record length (will be set in self.dbread())
-    self.recwnpos  =   3 # Wavenumber     position in record
     self.recisopos =   2 # Isotope        position in record
+    self.recwnpos  =   3 # Wavenumber     position in record
     self.reclinpos =  15 # Line intensity position in record
     self.recApos   =  25 # Einstein coef  position in record
     self.recairpos =  35 # Air broadening position in record
@@ -37,7 +37,6 @@ class hitran(dbdriver):
     self.recwnlen  =  12 # Wavenumber record length
     self.reclinend =  25 # Line intensity end position
     self.recelend  =  55 # Low Energy     end position
-    self.T0       = 296.0 # K
 
     self.molID = self.getMolec()
     # Get info from HITRAN configuration file:
@@ -120,42 +119,6 @@ class hitran(dbdriver):
     return molname, isotopes, mass, isoratio, gi
 
 
-  def PFzero(self):
-    """
-    Calculate the partition function for the isotopes at T0 = 296K.
-
-    Notes:
-    ------
-    - The range of temperatures is limited to: 70K -- 3000K.
-    - Deprecated: This function was used to calculate gf.  However,
-                  I found a more reliable way to calculate it (see dbread).
-
-    Returns:
-    --------
-    PFzero: 1D float ndarray
-       An array (N isotopes) with the partition function evaluated at
-       T0 = 296 K for each isotope.
-
-    Modification History:
-    ---------------------
-    2012-03-10  patricio  Initial implementation.  pcubillos@fulbrightmail.org
-    """
-    # Get number of isotopes:
-    Niso = len(self.isotopes)
-
-    # Output array for table of Temperature and PF values:
-    PFzero = np.zeros(Niso, np.double)
-
-    # Molecule ID, isotope ID, and temperature arrays:
-    molID = np.repeat(int(self.molID), Niso)
-    T0    = np.repeat(self.T0,         Niso)
-    isoID = np.asarray(self.isotopes, np.int)
-    # Evaluate the partition function:
-    PFzero = ct.tips(molID, isoID, T0) / self.gi
-
-    return PFzero
-
-
   def dbread(self, iwn, fwn, verbose, *args):
     """
     Read a HITRAN or HITEMP database (dbfile) between wavenumbers iwn and fwn.
@@ -164,9 +127,9 @@ class hitran(dbdriver):
     -----------
     dbfile: String
        A HITRAN or HITEMP database filename.
-    iwl: Scalar
+    iwn: Float
        Initial wavenumber limit (in cm-1).
-    fwl: Scalar
+    fwn: Float
        Final wavenumber limit (in cm-1).
     verbose: Integer
        Verbosity threshold.
@@ -183,7 +146,13 @@ class hitran(dbdriver):
       Lower-state energy (cm-1).
     isoID: 2D ndarray (integer)
       Isotope index (1, 2, 3, ...).
+
+    Notes:
+    ------
+    - The HITRAN data is provided in ASCII format.
+    - The line transitions are sorted in increasing wavenumber (cm-1) order.
     """
+
     # Open HITRAN file for reading:
     data = open(self.dbfile, "r")
 
@@ -195,106 +164,72 @@ class hitran(dbdriver):
     # Get Total number of transitions in file:
     data.seek(0, 2)
     nlines   = data.tell() / self.recsize
+
     # Get Molecule ID:
     molID = int(self.molID)
 
     # Get database limiting wavenumbers:
-    lastwn  = self.readwl(data, nlines-1)
-    firstwn = self.readwl(data, 0)
+    minwn = self.readwl(data,        0)
+    maxwn = self.readwl(data, nlines-1)
+
+    # Find the record index for iwn:
+    if iwn > minwn:
+      istart  = self.binsearch(data, iwn, 0, nlines, 0)
+    else:
+      istart  = 0
 
     # Find the record index for fwn:
-    if fwn < lastwn:
-      irec_init = self.binsearch(data, fwn, 0, nlines,    1)
+    if fwn < maxwn:
+      istop = self.binsearch(data, fwn, 0, nlines,    1)
     else:
-      irec_init = nlines-1
-    # Find the record index for iwn:
-    if iwn > firstwn:
-      irec_fin  = self.binsearch(data, iwn, 0, irec_init, 0)
-    else:
-      irec_fin  = 0
+      istop = nlines-1
+
+    # Number of records to read:
+    nread = istop - istart + 1
 
     # Allocate arrays for values to extract:
-    wnumber = np.zeros(irec_init-irec_fin+1, np.double)
-    gf      = np.zeros(irec_init-irec_fin+1, np.double)
-    elow    = np.zeros(irec_init-irec_fin+1, np.double)
-    isoID   = np.zeros(irec_init-irec_fin+1,       int)
-    # Einstein A coefficient:
-    A21     = np.zeros(irec_init-irec_fin+1, np.double)
-    # Lower statistical weight:
-    g2      = np.zeros(irec_init-irec_fin+1, np.double)
-    # Line intensity, used to calculate gf:
-    S0      = np.zeros(irec_init-irec_fin+1, np.double)
-    # Wavelength:
-    wlength = np.zeros(irec_init-irec_fin+1, np.double)
+    wnumber = np.zeros(nread, np.double)
+    gf      = np.zeros(nread, np.double)
+    elow    = np.zeros(nread, np.double)
+    isoID   = np.zeros(nread,       int)
+    A21     = np.zeros(nread, np.double)  # Einstein A coefficient
+    g2      = np.zeros(nread, np.double)  # Lower statistical weight
+
+    pt.msg(verbose, "Starting to read HITRAN database, between "
+                    "records {:d} and {:d}.".format(istart, istop))
+    interval = (istop - istart)/10  # Check-point interval
 
     i = 0  # Stored record index
-    chk = 0
-    interval = float((irec_fin - irec_init)/20)  # Check-point interval
-    while irec_init - i >= irec_fin:
-      data.seek( (irec_init-i) * self.recsize )
-      # Read in wavenumber
+    while (i < nread):
+      # Read a record:
+      data.seek((istop-i) * self.recsize)
       line = data.read(self.recsize)
-      # Get the isotope index:
-      isoID[i]   = float(line[self.recisopos:self.recwnpos ])
-      # Get the wavenumber:
+      # Extract values:
+      isoID  [i] = float(line[self.recisopos:self.recwnpos ])
       wnumber[i] = float(line[self.recwnpos: self.reclinpos])
-      # Get the line intensity:
-      S0[i]      = float(line[self.reclinpos:self.reclinend])
-      # Get Elow:
-      elow[i]    = float(line[self.recelpos: self.recelend ])
-      A21[i]     = float(line[self.recApos:  self.recairpos])
-      g2[i]      = float(line[self.recg2pos: self.recsize  ])
+      elow   [i] = float(line[self.recelpos: self.recelend ])
+      A21    [i] = float(line[self.recApos:  self.recairpos])
+      g2     [i] = float(line[self.recg2pos: self.recsize  ])
       # Print a checkpoint statement every 1/20th interval
       if verbose > 1:
-        pos = float(data.tell()/self.recsize)
-        if (pos/interval)%1 == 0.0:
-          pt.msg(verbose-1, "checkpoint {:d}/20...".format(chk), 2)
-          chk += 1
-          pt.msg(verbose-3, "Wavenumber: {:.2f}, S0: {:.3e}, Elow: {:.3e}".
-                            format(wnumber[i], S0[i], elow[i]), 2)
-          pt.msg(verbose-3, "Wavelength: {:.3f}, IsoID: {:d}, Elow: {:.3f}".
-                          format(1.0/(wnumber[i]*pc.MTC), isoID[i], elow[i]), 2)
+        if (i % interval) == 0.0  and  i != 0:
+          gfval = A21[i]*g2[i]*pc.C1/(8.0*np.pi*pc.c)/wnumber[i]**2.0
+          pt.msg(verbose-1,"Checkpoint {:5.1f}%".format(10.*i/interval), 2)
+          pt.msg(verbose-2,"Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} um\n"
+                          "Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}".
+                             format(wnumber[i], 1.0/(wnumber[i]*pc.MTC),
+                                    elow[i], gfval, (isoID[i]-1)%10), 4)
       i += 1
 
 
-    # Calculate the wavelength in microns:
-    wlength[:] = 1.0 / (wnumber * pc.MTC)
     # Set isotopic index to start counting from 0:
     isoID -= 1
     isoID[np.where(isoID < 0)] = 9 # 10th isotope had index 0 --> 10-1=9
 
-    # # Calculate gf:
-    # # Get the partition function at T0:
-    # PFzero = self.PFzero()
-    # Ia = np.asarray(self.isoratio)
-    # gf = (S0 * pc.C1 * PFzero[isoID] /  Ia[isoID] *
-    #          np.exp( pc.C2 * elow / self.T0)  /
-    #              (1.0-np.exp(-pc.C2 * wnumber    / self.T0)) )
+    # Calculate gf (Equation (36) of Simekova 2006):
+    gf = A21 * g2 * pc.C1 / (8.0 * np.pi * pc.c) / wnumber**2.0
 
-    # Alternative way to calculate gf:
-    gf2 = A21 * g2 * pc.C1 / (8.0 * np.pi * pc.c) / wnumber**2.0
-
-    # FINDME: Delete me when gf-vs-gf2 issue solved.
-    # print(gf)
-    # print(gf2)
-    # print((gf/gf2)[:20])
-    # print(isoID[:20])
-    # print(np.amax(gf/gf2), np.amin(gf/gf2))
-    # import matplotlib.pyplot as plt
-    # plt.figure(1)
-    # plt.plot(isoID, gf/gf2, "b,")
-    # plt.ylim(0,4)
-    # plt.xlim(-0.5, 5.5)
-    # plt.savefig("gf.png")
-    # plt.figure(2)
-    # print(np.shape(self.gi), np.shape(PFzero))
-    # ggi = np.asarray(self.gi)[isoID]
-    # plt.plot(ggi, gf2/gf, "b,")
-    # plt.plot([0,12], [0,12], "r")
-    # plt.ylim(0,15)
-    # plt.xlim(-0.5, 12.5)
-    # plt.savefig("gf2.png")
-
-    pt.msg(verbose-20, "GF values: {}".format(gf))
+    pt.msg(verbose, "Done.\n")
     data.close()
-    return wnumber, gf2, elow, isoID
+
+    return wnumber, gf, elow, isoID
