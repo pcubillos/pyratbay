@@ -140,9 +140,29 @@ static PyMethodDef pt_methods[] = {
 };
 
 
-/* When Python imports a C module named 'X' it loads the module */
-/* then looks for a method named "init"+X and calls it.         */
+#if PY_MAJOR_VERSION >= 3
+/* Module definition for Python 3.                                          */
+static struct PyModuleDef moduledef = {
+    PyModuleDef_HEAD_INIT,
+    "pt",
+    pt__doc__,
+    -1,
+    pt_methods
+};
+
+/* When Python 3 imports a C module named 'X' it loads the module           */
+/* then looks for a method named "PyInit_"+X and calls it.                  */
+PyObject *PyInit_pt (void) {
+  PyObject *module = PyModule_Create(&moduledef);
+  import_array();
+  return module;
+}
+
+#else
+/* When Python 2 imports a C module named 'X' it loads the module           */
+/* then looks for a method named "init"+X and calls it.                     */
 void initpt(void){
   Py_InitModule3("pt", pt_methods, pt__doc__);
   import_array();
 }
+#endif

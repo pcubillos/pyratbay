@@ -961,3 +961,9 @@ Add verbosity control to Makefile.
 Bumped Pyrat-Bay revision (now version 0.0.9).
 
 *****
+
+Added support for Python 3.
+Bumped Pyrat-Bay revision (now version 0.0.10).
+
+
+*****

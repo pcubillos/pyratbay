@@ -113,9 +113,29 @@ static PyMethodDef trapz_methods[] = {
 };
 
 
-/* When Python imports a C module named 'X' it loads the module             */
+#if PY_MAJOR_VERSION >= 3
+/* Module definition for Python 3.                                          */
+static struct PyModuleDef moduledef = {
+    PyModuleDef_HEAD_INIT,
+    "trapz",
+    trapzmod__doc__,
+    -1,
+    trapz_methods
+};
+
+/* When Python 3 imports a C module named 'X' it loads the module           */
+/* then looks for a method named "PyInit_"+X and calls it.                  */
+PyObject *PyInit_trapz (void) {
+  PyObject *module = PyModule_Create(&moduledef);
+  import_array();
+  return module;
+}
+
+#else
+/* When Python 2 imports a C module named 'X' it loads the module           */
 /* then looks for a method named "init"+X and calls it.                     */
 void inittrapz(void){
   Py_InitModule3("trapz", trapz_methods, trapzmod__doc__);
   import_array();
 }
+#endif
