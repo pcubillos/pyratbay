@@ -19,7 +19,7 @@ readatm.py:  getkeywords: Read the keyword values from the atm file.
                           and calculate mean molec. mass and density.
              IGLdensity: Calculate pdensity using Ideal gas law.
 readlinedb.py: readlinedb: read data bases headers, Iso names, masses, z, & c.
-               TBD: Make checkrange to give only warnings if needed. 
+               TBD: Make checkrange to give only warnings if needed.
                Next read line transitions info (in C!).
 
 Issues:
@@ -31,7 +31,7 @@ pt.msg cut's file paths in the middle of it.  It also doesn't obey linebreaks.
 *****  Sun Jun 15 16:13:44 EDT 2014  *****
 
 readlinedb.py:  Renamed readlinedb to readheader.  Wrote checkrange.
-ptools:  Added warning function.  Adapted msg to print sentences (i.e. 
+ptools:  Added warning function.  Adapted msg to print sentences (i.e.
          separate by \n).  Set up call to readlinetransition.
 pconstants.py:  Added maxnamelen and strfmt.
 objects.py:  Structured the linetransition, databases and isotopes classes.
@@ -54,7 +54,7 @@ Now pyrat.atm will be the modeling atm.
 
 object.py: Renamed pyrat.uin -> pyrat.user
 makesample.py: Started writing makeradius, Do Hydrostatic-Equilibrium
-               calculation to get radius as a 
+               calculation to get radius as a
                function of pressure, then interpolate to get pyrat.atm vals.
 
 
@@ -185,7 +185,7 @@ pconstants.py:
 
 Checking PyRaT status:
  + rename pyrat.user to pyrat.inputs
- - rewrite voigt to mimic current transit version 
+ - rewrite voigt to mimic current transit version
  - implement readlinedb's line-info read (think well how to proceed!)
    - can I make one single calc-extinction function?
  - replace toomuch by taumax.
@@ -333,8 +333,8 @@ Define the input atmospheric format:
   - '@SPECIES' indicates the list of species.
   - '@DATA' indicates the per-layer data.
 
-Reformated the atmospheric file.  Added current CIA files to repo.  
-Updated the config file.  
+Reformated the atmospheric file.  Added current CIA files to repo.
+Updated the config file.
 Fixed readatm and makesample to read new format of atmospheric file.
 
 "Updated the CIA inputs and cia.py to use the same format as the
@@ -548,7 +548,7 @@ py = p.run(py)
 *****
 
 Implemented reloadatm() in makesample.py.
-- Should I put it in readatm.py instead?  
+- Should I put it in readatm.py instead?
 - Should I remove the layer resampling code?  reloadatm() wont work if
   the atmosphere was resampled.
 - Changed the spline interpolation for the partition function from
@@ -577,7 +577,7 @@ molecular info file, and when a CIA species is not listed in the
 atmospheric file.
 
 Updated Borysow's H2-H2 CIA file, and added H2-He file.
-Tested the Borysow's H2-He CIA absorption file. 
+Tested the Borysow's H2-He CIA absorption file.
 Tested multiple CIA files.  The code seems to be working well in all cases.
 
 Updated hitran.dat and molecules.dat files.
@@ -951,3 +951,8 @@ Bumped Pyrat-Bay revision (now version 0.0.7).
 
 *****
 
+Added pt.c (and expn.h) to calculate a temperature profile.
+Still needs more work.
+Bumped Pyrat-Bay revision (now version 0.0.8).
+
+*****
