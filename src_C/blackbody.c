@@ -1,11 +1,7 @@
 #include <Python.h>
 #include <numpy/arrayobject.h>
 
-/* Access to i-th value of array a:                                         */
-#define INDd(a,i) *((double *)(a->data + i*a->strides[0]))
-#define INDi(a,i) *((int    *)(a->data + i*a->strides[0]))
-#define IND2d(a,i,j) *((double *)(a->data + i*a->strides[0] + j*a->strides[1]))
-
+#include "ind.h"
 #include "constants.h"
 #include "utils.h"
 

@@ -1,10 +1,8 @@
 #include <Python.h>
 #include <numpy/arrayobject.h>
-#include "voigt.h"
 
-/* Access to i-th value of array a:                                         */
-#define INDd(a,i) *((double *)(a->data + i*a->strides[0]))
-#define IND2i(a,i,j) *((int *)(a->data+i*a->strides[0]+j*a->strides[1]))
+#include "ind.h"
+#include "voigt.h"
 
 
 PyDoc_STRVAR(voigt__doc__,

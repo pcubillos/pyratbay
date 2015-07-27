@@ -941,3 +941,8 @@ Bumped Pyrat-Bay revision (now version 0.0.5).
 
 *****
 
+Moved ndarray indexing definitions (IND) into ind.h header file.
+Bumped Pyrat-Bay revision (now version 0.0.6).
+
+*****
+

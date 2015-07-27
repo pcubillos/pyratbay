@@ -1,8 +1,7 @@
 #include <Python.h>
 #include <numpy/arrayobject.h>
 
-/* Access to i-th value of array a:                                         */
-#define INDd(a,i) *((double *)(a->data + i*a->strides[0]))
+#include "ind.h"
 
 PyDoc_STRVAR(ediff__doc__,
 "Calculate the differences between consecutive elements of an array.\n\
