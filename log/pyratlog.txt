@@ -956,3 +956,8 @@ Still needs more work.
 Bumped Pyrat-Bay revision (now version 0.0.8).
 
 *****
+
+Add verbosity control to Makefile.
+Bumped Pyrat-Bay revision (now version 0.0.9).
+
+*****
