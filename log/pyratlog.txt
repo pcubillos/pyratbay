@@ -946,3 +946,8 @@ Bumped Pyrat-Bay revision (now version 0.0.6).
 
 *****
 
+Updated C extensions to be compatible with Numpy 1.8 API.
+Bumped Pyrat-Bay revision (now version 0.0.7).
+
+*****
+

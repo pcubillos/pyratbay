@@ -1,4 +1,5 @@
 #include <Python.h>
+#define NPY_NO_DEPRECATED_API NPY_1_8_API_VERSION
 #include <numpy/arrayobject.h>
 
 #include "ind.h"
@@ -35,7 +36,7 @@ static PyObject *planck(PyObject *self, PyObject *args){
     return NULL;
 
   /* Get the spectrum size:                                                 */
-  nwave = wn->dimensions[0];
+  nwave = PyArray_DIM(wn, 0);
 
   /* Evaluate the Planck function:                                          */
   for (i=0; i<nwave; i++){

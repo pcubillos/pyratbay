@@ -1,4 +1,5 @@
 #include <Python.h>
+#define NPY_NO_DEPRECATED_API NPY_1_8_API_VERSION
 #include <numpy/arrayobject.h>
 
 #include "ind.h"
@@ -30,7 +31,7 @@ static PyObject *trapz(PyObject *self, PyObject *args){
     return NULL;
 
   /* Get the number of intervals:                                           */
-  nint = intervals->dimensions[0];
+  nint = PyArray_DIM(intervals, 0);
 
   /* Empty array case:                                                      */
   if (nint < 1){
@@ -77,7 +78,7 @@ static PyObject *cumtrapz(PyObject *self, PyObject *args){
     return NULL;
 
   /* Get the number of intervals:                                           */
-  nint = intervals->dimensions[0];
+  nint = PyArray_DIM(intervals, 0);
 
   /* First value is zero (zero-length interval):                            */
   INDd(output,0) = 0.0;

@@ -1,4 +1,5 @@
 #include <Python.h>
+#define NPY_NO_DEPRECATED_API NPY_1_8_API_VERSION
 #include <numpy/arrayobject.h>
 
 #include "ind.h"
@@ -39,7 +40,7 @@ static PyObject *geth(PyObject *self, PyObject *args){
     return NULL;
 
   /* Get the number of intervals:                                           */
-  n = h->dimensions[0];
+  n = PyArray_DIM(h, 0);
 
   /* Empty array case:                                                      */
   if (n==0){
@@ -51,9 +52,9 @@ static PyObject *geth(PyObject *self, PyObject *args){
 
   /* Allocate outputs:                                                      */ 
   size[0] = n/2;
-  hsum    = (PyArrayObject *) PyArray_SimpleNew(1, size, PyArray_DOUBLE);
-  hratio  = (PyArrayObject *) PyArray_SimpleNew(1, size, PyArray_DOUBLE);
-  hfactor = (PyArrayObject *) PyArray_SimpleNew(1, size, PyArray_DOUBLE);
+  hsum    = (PyArrayObject *) PyArray_SimpleNew(1, size, NPY_DOUBLE);
+  hratio  = (PyArrayObject *) PyArray_SimpleNew(1, size, NPY_DOUBLE);
+  hfactor = (PyArrayObject *) PyArray_SimpleNew(1, size, NPY_DOUBLE);
 
   for (i=0; i<size[0]; i++){
     j = 2*i + even;
@@ -104,7 +105,7 @@ static PyObject *simps(PyObject *self, PyObject *args){
     return NULL;
 
   /* Length of integrand:                                                   */
-  n = y->dimensions[0];
+  n = PyArray_DIM(y, 0);
   /* Check if I have an even number of samples:                             */
   even = n%2 == 0;
 

@@ -1,4 +1,5 @@
 #include <Python.h>
+#define NPY_NO_DEPRECATED_API NPY_1_8_API_VERSION
 #include <numpy/arrayobject.h>
 
 #include "ind.h"
@@ -82,14 +83,14 @@ static PyObject *extinction(PyObject *self, PyObject *args){
                               &ethresh, &pressure, &temp, &add))
     return NULL;
 
-  nLor   = lorentz->dimensions[0];  /* Number of Lorentz widths             */
-  nDop   = doppler->dimensions[0];  /* Number of Doppler widths             */
-  nmol   = molmass->dimensions[0];  /* Number of species                    */
-  niso   = isomass->dimensions[0];  /* Number of isotopes                   */
-  ndivs  = divisors->dimensions[0]; /* Number of divisors of osamp          */
-  onwn   = own->dimensions[0];      /* Number of fine-wavenumber samples    */
-  nlines = lwn->dimensions[0];      /* Number of line transitions           */
-  next   = ext->dimensions[0];      /* Number of extinction-coef. species   */
+  nLor   = PyArray_DIM(lorentz,  0);  /* Number of Lorentz widths            */
+  nDop   = PyArray_DIM(doppler,  0);  /* Number of Doppler widths            */
+  nmol   = PyArray_DIM(molmass,  0);  /* Number of species                   */
+  niso   = PyArray_DIM(isomass,  0);  /* Number of isotopes                  */
+  ndivs  = PyArray_DIM(divisors, 0);  /* Number of divisors of osamp         */
+  onwn   = PyArray_DIM(own,      0);  /* Number of fine-wavenumber samples   */
+  nlines = PyArray_DIM(lwn,      0);  /* Number of line transitions          */
+  next   = PyArray_DIM(ext,      0);  /* Number of extinction-coef. species  */
 
   if (add)
     next = 1;
@@ -346,10 +347,10 @@ static PyObject *interp_ec(PyObject *self, PyObject *args){
                                           &temperature,
                                           &density, &molID))
     return NULL;
-  nmol   = etable->dimensions[0];  /* Number of species samples             */
-  ntemp  = etable->dimensions[1];  /* Number of temperature samples         */
-  nwave  = etable->dimensions[2];  /* Number of spectral samples            */
-  nmolID = molID->dimensions[0];   /* Number of species in atmosphere       */
+  nmol   = PyArray_DIM(etable, 0);  /* Number of species samples            */
+  ntemp  = PyArray_DIM(etable, 1);  /* Number of temperature samples        */
+  nwave  = PyArray_DIM(etable, 2);  /* Number of spectral samples           */
+  nmolID = PyArray_DIM(molID,  0);  /* Number of species in atmosphere      */
 
   /* Find index of grid-temperature immediately lower than temperature:     */
   tlo = binsearchapprox(ttable, temperature, 0, ntemp);

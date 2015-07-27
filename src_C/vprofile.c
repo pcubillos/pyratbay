@@ -1,4 +1,5 @@
 #include <Python.h>
+#define NPY_NO_DEPRECATED_API NPY_1_8_API_VERSION
 #include <numpy/arrayobject.h>
 
 #include "ind.h"
@@ -58,8 +59,8 @@ static PyObject *voigt(PyObject *self, PyObject *args){
     return NULL;
 
   /* Get array sizes:                                                       */
-  nLor = lorentz->dimensions[0];
-  nDop = doppler->dimensions[0];
+  nLor = PyArray_DIM(lorentz, 0);
+  nDop = PyArray_DIM(doppler, 0);
 
   for   (m=0; m<nLor; m++){
     for (n=0; n<nDop; n++){
