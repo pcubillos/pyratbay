@@ -1,4 +1,3 @@
-SRCDIR = src/
 LIBDIR = lib/
 
 all:

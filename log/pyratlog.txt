@@ -931,5 +931,13 @@ Cleaned up db_hitran, db_pands, and db_voplez.
 Bumped Lineread revision (now version 6.3.4).
 
 
+*****  Sun Jul 26 20:06:14 EDT 2015  *****
+
+Propagate updates from AJ Foster for C code:
+
+Moved C header files from src_C into include/.
+Cleaned up setup.py.
+Bumped Pyrat-Bay revision (now version 0.0.5).
+
 *****
 
