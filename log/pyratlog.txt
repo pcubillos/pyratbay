@@ -996,4 +996,10 @@ Resolves #13
 
 *****
 
+Updated and renamed scripts to generate PF files.
+Added script to format Borysow CS CIA files.
+Bumped Pyrat-Bay revision (now version 0.0.11).
+
+*****
+
 
