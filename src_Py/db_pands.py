@@ -47,7 +47,7 @@ class pands(dbdriver):
     self.recsize     = 8 # Record size
 
 
-  def readwl(self, dbfile, irec):
+  def readwave(self, dbfile, irec):
     """
     Read wavelength parameter from irec record in dbfile database.
  
@@ -60,15 +60,19 @@ class pands(dbdriver):
  
     Returns:
     --------
-    rec_wl: Float
-       Wavelength value at record irec, as given in dbfile database.
+    recwl: Unsigned integer
+       Wavelength value as given in the P&S binary file.
+
+    Notes:
+    ------
+    To convert to wavelength in nanometers do: exp(recwl * ratiolog)
     """
     # Set pointer at required wavelength record location:
     dbfile.seek(irec*self.recsize)
     # Read and extract the wavelength:
-    rec_wl = struct.unpack('Ihh', dbfile.read(self.recsize))[0]
+    recwl = struct.unpack('Ihh', dbfile.read(self.recsize))[0]
  
-    return rec_wl
+    return recwl
 
 
   def dbread(self, iwn, fwn, verbose, *args):

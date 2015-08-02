@@ -79,14 +79,14 @@ class dbdriver(object):
     pass
 
 
-  def readwl(self, dbfile, irec):
+  def readwave(self, dbfile, irec):
     """
       Read the wavelength parameter as given in each database.
     """
     pass
 
 
-  def binsearch(self, dbfile, wavelength, ilo, ihi, searchup=True):
+  def binsearch(self, dbfile, wave, ilo, ihi, searchup=True):
     """
     Do a binary (and then linear) search for wavelength in file dbfile
     between record positions ilo and ihi.
@@ -95,7 +95,7 @@ class dbdriver(object):
     -----------
     dbfile: File object
        File where to search.
-    wavelength: Scalar
+    wave: Scalar
        Target wavelength/wavenumber (as given in each specific database).
     ilo: Integer
        Lowest index record to search.
@@ -107,27 +107,28 @@ class dbdriver(object):
 
     Returns:
     --------
-    Index of record for wavelength
+    irec:  Integer
+       Record index for wave.
 
     Uncredited developers:
     ----------------------
     Madison Stemm, UCF.
     """
-    # imin and imax are the fixed boundaries where to search:
+    # Minimum and maximum boundaries where to search:
     imin, imax = ilo, ihi
 
-    # Wavelength of record:
-    rec_wl = 0
+    # Wavelength/wavenumber of record:
+    recwave = 0
 
     # Start binary search:
     while ihi - ilo > 1:
       # Middle record index:
       irec = (ihi + ilo)/2
 
-      # Read wavelength, depending on linelist format:
-      rec_wl = self.readwl(dbfile, irec)
+      # Read wavelength/wavenumber, depending on linelist format:
+      recwave = self.readwave(dbfile, irec)
       # Update search limits:
-      if rec_wl > wavelength:
+      if recwave > wave:
         ihi = irec
       else:
         ilo = irec
@@ -151,10 +152,10 @@ class dbdriver(object):
       # Check wavelength boundaries:
       if searchup:
         icheck += 1
-        bounded = self.readwl(dbfile, icheck) < wavelength
+        bounded = self.readwave(dbfile, icheck) < wave
       else:
         icheck -= 1
-        bounded = self.readwl(dbfile, icheck) > wavelength
+        bounded = self.readwave(dbfile, icheck) > wave
 
     # Return record index:
     return irec

@@ -51,7 +51,7 @@ class voplez(dbdriver):
     self.recgfend = 32
 
 
-  def readwl(self, dbfile, irec):
+  def readwave(self, dbfile, irec):
     """
     Extract the wavelength from record irec.
 
@@ -65,7 +65,7 @@ class voplez(dbdriver):
     Returns:
     --------
     wl: Float
-       The wavelength for record irec.
+       The wavelength in microns for record irec.
     """
     # Set pointer at required record:
     dbfile.seek(irec*self.recsize + self.recwnpos)

@@ -976,3 +976,12 @@ Bumped Lineread revision (now version 6.3.5).
 Solves #15.
 
 *****
+
+Changed readwl() to readwave() for database readers.
+Updated documentation.
+Included molID in getHITinfo().
+Bumped Lineread revision (now version 6.3.6).
+
+*****
+
+

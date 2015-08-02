@@ -38,17 +38,16 @@ class hitran(dbdriver):
     self.reclinend =  25 # Line intensity end position
     self.recelend  =  55 # Low Energy     end position
 
-    self.molID = self.getMolec()
     # Get info from HITRAN configuration file:
-    self.molecule, self.isotopes, self.mass, self.isoratio, self.gi = \
-                                                    self.getHITinfo()
+    self.molID, self.molecule, self.isotopes, self.mass, \
+                self.isoratio, self.gi = self.getHITinfo()
     # Database name:
     self.name = "HITRAN " + self.molecule
 
 
-  def readwl(self, dbfile, irec):
+  def readwave(self, dbfile, irec):
     """
-    Read wavelength parameter from irec record in dbfile database.
+    Read wavenumber from record irec in dbfile database.
 
     Parameters:
     -----------
@@ -59,29 +58,15 @@ class hitran(dbdriver):
 
     Returns:
     --------
-    rec_wl: Float
-       Wavelength value at record irec, as given in dbfile database.
+    wavenumber: Float
+       Wavelength value in cm-1.
     """
     # Set pointer at required wavenumber record:
     dbfile.seek(irec*self.recsize + self.recwnpos)
     # Read:
-    wavenumber = dbfile.read(self.recwnlen)
-    # Convert to float:
-    rec_wl = float(wavenumber)
+    wavenumber = float(dbfile.read(self.recwnlen))
 
-    return rec_wl
-
-
-  def getMolec(self):
-    """
-    Get the HITRAN molecule index
-    """
-    # Open file and read first two characters:
-    data = open(self.dbfile, "r")
-    molID  = data.read(self.recmollen)
-    data.close()
-    # Set database name:
-    return molID #self.molname[molID-1]
+    return wavenumber
 
 
   def getHITinfo(self):
@@ -90,12 +75,18 @@ class hitran(dbdriver):
 
     Returns:
     --------
+    molID
     molname:  Molecule's name
     isotopes: Isotopes names
     mass:     Isotopes mass
     isoratio: Isotopic abundance ratio
     gi:       State-independent statistical weight
     """
+    # Open file and read first two characters:
+    data = open(self.dbfile, "r")
+    molID  = data.read(self.recmollen)
+    data.close()
+
     # Read HITRAN configuration file from inputs folder:
     hfile = open(DBHdir + '/../inputs/hitran.dat', 'r')
     lines = hfile.readlines()
@@ -108,7 +99,7 @@ class hitran(dbdriver):
 
     # Get values for our molecule:
     for i in np.arange(len(lines)):
-      if lines[i][0:2] == self.molID:
+      if lines[i][0:2] == molID:
         line = lines[i].split()
         molname  = line[1]
         gi.      append(  int(line[3]))
@@ -116,7 +107,7 @@ class hitran(dbdriver):
         isoratio.append(float(line[4]))
         mass.    append(float(line[5]))
 
-    return molname, isotopes, mass, isoratio, gi
+    return molID, molname, isotopes, mass, isoratio, gi
 
 
   def dbread(self, iwn, fwn, verbose, *args):
@@ -205,7 +196,6 @@ class hitran(dbdriver):
                              format(wnumber[i], 1.0/(wnumber[i]*pc.MTC),
                                     elow[i], gfval, (isoID[i]-1)%10), 4)
       i += 1
-
 
     # Set isotopic index to start counting from 0:
     isoID -= 1
