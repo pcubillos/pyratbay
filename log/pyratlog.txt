@@ -989,3 +989,11 @@ Bumped Lineread revision (now version 6.3.7).
 Resolves #6
 
 *****
+
+Updated molecules.dat and hitran.dat input files.
+Bumped Pyrat revision (now version 1.1.16).
+Resolves #13
+
+*****
+
+
