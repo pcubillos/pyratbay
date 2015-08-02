@@ -984,4 +984,8 @@ Bumped Lineread revision (now version 6.3.6).
 
 *****
 
+dded Schwenke TiO line-transition reader.
+Bumped Lineread revision (now version 6.3.7).
+Resolves #6
 
+*****

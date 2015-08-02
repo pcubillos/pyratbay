@@ -129,14 +129,14 @@ class hitran(dbdriver):
 
     Returns:
     --------
-    wnumber: 1D ndarray (double)
-      Line-transition central wavenumber (cm-1).
-    gf: 1D ndarray (double)
+    wnumber: 1D float ndarray
+      Line-transition central wavenumber (centimeter-1).
+    gf: 1D float ndarray
       gf value (unitless).
-    elow: 1D ndarray (double)
-      Lower-state energy (cm-1).
-    isoID: 2D ndarray (integer)
-      Isotope index (1, 2, 3, ...).
+    elow: 1D float ndarray
+      Lower-state energy (centimeter-1).
+    isoID: 2D integer ndarray
+      Isotope index (0, 1, 2, 3, ...).
 
     Notes:
     ------

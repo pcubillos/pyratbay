@@ -93,13 +93,13 @@ class voplez(dbdriver):
     Returns:
     --------
     wnumber: 1D float ndarray
-      Line-transition central wavelength (cm-1).
+      Line-transition central wavenumber (centimeter-1).
     gf: 1D float ndarray
       gf value (unitless).
     elow: 1D float ndarray
-      Lower-state energe (cm-1).
+      Lower-state energy (centimeter-1).
     isoID: 2D integer ndarray
-      Isotope index (1, 2, 3, ...).
+      Isotope index (0, 1, 2, 3, ...).
 
     Developers:
     -----------

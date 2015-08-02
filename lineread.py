@@ -352,7 +352,7 @@ def main():
   transinfo = ""
   # Write the number of transitions:
   TLIout.write(struct.pack("i", nTransitions))
-  pt.msg(verb-3, "Writing {:d} transition lines.".format(nTransitions))
+  pt.msg(verb-3, "\nWriting {:d} transition lines.".format(nTransitions))
   # Write the number of transitions for each isotope:
   Niso = len(Nisotran)
   # Note that nIso may differ from accumiso, since accum iso accounts for
