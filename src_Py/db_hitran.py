@@ -193,7 +193,7 @@ class hitran(dbdriver):
           pt.msg(verbose-1,"Checkpoint {:5.1f}%".format(10.*i/interval), 2)
           pt.msg(verbose-2,"Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} um\n"
                           "Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}".
-                             format(wnumber[i], 1.0/(wnumber[i]*pc.MTC),
+                             format(wnumber[i], 1.0/(wnumber[i]*pc.um),
                                     elow[i], gfval, (isoID[i]-1)%10), 4)
       i += 1
 

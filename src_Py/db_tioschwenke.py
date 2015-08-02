@@ -113,8 +113,8 @@ class tioschwenke(dbdriver):
     nlines = data.tell() / self.recsize # Number of lines (bytes/record_size)
  
     # Rewrite wavelength limits as given in the Database file:
-    iwl = 1.0/(fwn * pc.NTC)         # cm to nanometer
-    fwl = 1.0/(iwn * pc.NTC)
+    iwl = 1.0/(fwn * pc.nm)         # cm to nanometer
+    fwl = 1.0/(iwn * pc.nm)
     iwav = np.log(iwl) / self.ratiolog
     fwav = np.log(fwl) / self.ratiolog
  
@@ -153,11 +153,11 @@ class tioschwenke(dbdriver):
       # Print a checkpoint statement every 1/20th interval:
       if verbose > 1:
         if (i % interval) == 0 and i != 0:
-          wl = np.exp(iw[i] * self.ratiolog) * pc.NTC/pc.MTC
+          wl = np.exp(iw[i] * self.ratiolog) * pc.NTC/pc.um
           pt.msg(verbose-1,"Checkpoint {:5.1f}%".format(10.*i/interval), 2)
           pt.msg(verbose-2,"Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} um\n"
                           "Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}".
-                           format(1.0/ (wl * pc.MTC), wl,
+                           format(1.0/ (wl * pc.um), wl,
                                   self.tablog[ielo[i]], self.tablog[igf[i]],
                                   np.abs(ieli[i]) - 8950))
       i += 1

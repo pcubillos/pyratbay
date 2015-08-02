@@ -124,7 +124,7 @@ def printspec(pyrat):
   # Write the spectrum values:
   for i in np.arange(pyrat.spec.nwave):
     specfile.write("  {:>10.5f}   {:>.8e}\n".
-                    format(1.0/pyrat.spec.wn[i]/pc.units[pyrat.spec.wlunits],
+                    format(1.0/pyrat.spec.wn[i]/pt.u(pyrat.spec.wlunits),
                            pyrat.spec.spectrum[i]))
 
   specfile.close()

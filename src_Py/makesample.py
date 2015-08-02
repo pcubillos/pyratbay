@@ -73,10 +73,10 @@ def makewavenumber(pyrat):
   # Screen output:
   pt.msg(pyrat.verb,"Initial wavenumber boundary:  {:.5e} cm-1  ({:.3e} "
                     "{:s})".format(spec.wnlow,
-                          spec.wlhigh/pc.units[spec.wlunits], spec.wlunits), 2)
+                          spec.wlhigh/pt.u(spec.wlunits), spec.wlunits), 2)
   pt.msg(pyrat.verb,"Final   wavenumber boundary:  {:.5e} cm-1  ({:.3e} "
                     "{:s})".format(spec.wnhigh,
-                          spec.wllow /pc.units[spec.wlunits], spec.wlunits), 2)
+                          spec.wllow /pt.u(spec.wlunits), spec.wlunits), 2)
   pt.msg(pyrat.verb,"Wavenumber sampling stepsize: {:.2g} cm-1".
                             format(spec.wnstep), 2)
   pt.msg(pyrat.verb,"Wavenumber sample size:      {:8d}".format(spec.nwave),  2)
@@ -99,15 +99,15 @@ def makeradius(pyrat):
 
   # Atmopsheric reference pressure-radius level:
   pt.msg(pyrat.verb, "Reference pressure: {:.3e} {:s}".
-          format(pyrat.pressurebase/pc.units[pyrat.punits], pyrat.punits),   2)
+          format(pyrat.pressurebase/pt.u(pyrat.punits), pyrat.punits),   2)
   pt.msg(pyrat.verb, "Reference radius: {:8g} {:s}".
-          format(pyrat.radiusbase/pc.units[pyrat.radunits], pyrat.radunits), 2)
+          format(pyrat.radiusbase/pt.u(pyrat.radunits), pyrat.radunits), 2)
 
   # FINDME: move this to readatm
   # Pressure limits from the atmospheric file:
   pt.msg(pyrat.verb, "Pressure limits: {:.3e} -- {:.3e} {:s}".
-        format(atm_in.press[ 0]/pc.units[pyrat.punits],
-               atm_in.press[-1]/pc.units[pyrat.punits], pyrat.punits), 2)
+        format(atm_in.press[ 0]/pt.u(pyrat.punits),
+               atm_in.press[-1]/pt.u(pyrat.punits), pyrat.punits), 2)
 
   # Check that the layers are sorted from the top to the bottom of
   #  the atmosphere:
@@ -143,7 +143,7 @@ def makeradius(pyrat):
   pressinterp = sip.interp1d(atm_in.radius[::-1],
                              atm_in.press [::-1], kind='slinear')
   pt.msg(pyrat.verb, "Radius array (km) = {:s}".
-                      format(pt.pprint(atm_in.radius/pc.units["km"],2)), 2)
+                      format(pt.pprint(atm_in.radius/pc.km, 2)), 2)
 
   # Set pressure boundaries:
   if pyrat.radhigh is not None:
@@ -157,21 +157,21 @@ def makeradius(pyrat):
     pyrat.plow  = np.amin(atm_in.press)
 
   pt.msg(pyrat.verb, "Pressure user boundaries: {:.3e} -- {:.3e} bar".format(
-              pyrat.plow/pc.units["bar"], pyrat.phigh/pc.units["bar"]), 2)
+                     pyrat.plow/pc.bar, pyrat.phigh/pc.bar), 2)
 
   # Out of bounds errors:
   if pyrat.phigh > np.amax(atm_in.press):
     pt.error("User-defined top layer (p={:.3e} {:s}) is higher than the "
              "atmospheric-file top layer (p={:.3e} {:s}).".format(
-              pyrat.phigh/pc.units[pyrat.punits], pyrat.punits,
-              np.amax(atm_in.press)/pc.units[pyrat.punits], pyrat.punits))
+              pyrat.phigh/pt.u(pyrat.punits), pyrat.punits,
+              np.amax(atm_in.press)/pt.u(pyrat.punits), pyrat.punits))
 
   # Out of bounds errors:
   if pyrat.plow < np.amin(atm_in.press):
     pt.error("User-defined bottom layer (p={:.3e} {:s}) is lower than the "
              "atmospheric-file bottom layer (p={:.3e} {:s}).".format(
-              pyrat.plow/pc.units[pyrat.punits], pyrat.punits,
-              np.amin(atm_in.press)/pc.units[pyrat.punits], pyrat.punits))
+              pyrat.plow/pt.u(pyrat.punits), pyrat.punits,
+              np.amin(atm_in.press)/pt.u(pyrat.punits), pyrat.punits))
 
   # Resample to equispaced log-pressure array if requested:
   if atm.nlayers is not None:
@@ -215,11 +215,11 @@ def makeradius(pyrat):
   # Radius-vs-pressure from Atm. file and resampled array:
   # plt.figure(2)
   # plt.clf()
-  # plt.semilogx(atm_in.press /pc.units[pyrat.punits],
-  #              atm_in.radius/pc.units[pyrat.radunits],
+  # plt.semilogx(atm_in.press /pt.u(pyrat.punits),
+  #              atm_in.radius/pt.u(pyrat.radunits),
   #              "o-r", mec="r", mfc='r')
-  # plt.semilogx(atm.press /pc.units[pyrat.punits],
-  #              atm.radius/pc.units[pyrat.radunits], "o-b",
+  # plt.semilogx(atm.press /pt.u(pyrat.punits),
+  #              atm.radius/pt.u(pyrat.radunits), "o-b",
   #              mec="b", mew=1, mfc='None')
   # plt.xlabel("Pressure  ({:s})".format(pyrat.punits))
   # plt.ylabel("Radius  ({:s})".format(pyrat.radunits))
@@ -227,11 +227,11 @@ def makeradius(pyrat):
 
   pt.msg(pyrat.verb, "Number of model layers: {:d}".format(atm.nlayers),2)
   pt.msg(pyrat.verb, "Pressure lower/higher boundaries: {:.2e} - {:.2e} "
-                     "{:s}".format(pyrat.plow /pc.units[pyrat.punits],
-                           pyrat.phigh/pc.units[pyrat.punits], pyrat.punits), 2)
+                     "{:s}".format(pyrat.plow /pt.u(pyrat.punits),
+                               pyrat.phigh/pt.u(pyrat.punits), pyrat.punits), 2)
   pt.msg(pyrat.verb, "Radius lower/higher boundaries:   {:.1f} - {:.1f} {:s}".
-               format(np.amin(atm.radius)/pc.units[pyrat.radunits],
-               np.amax(atm.radius)/pc.units[pyrat.radunits], pyrat.radunits), 2)
+               format(np.amin(atm.radius)/pt.u(pyrat.radunits),
+                   np.amax(atm.radius)/pt.u(pyrat.radunits), pyrat.radunits), 2)
 
    # Interpolate to new atm-layer sampling if necessary:
   if resample:

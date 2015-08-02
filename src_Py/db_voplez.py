@@ -72,7 +72,7 @@ class voplez(dbdriver):
     # Read record (wavenumber in cm-1):
     wave = float(dbfile.read(self.recwnlen))
     # Convert to wavelength (micron) and return:
-    return 1.0/(wave*pc.MTC)
+    return 1.0/(wave*pc.um)
 
 
   def dbread(self, iwn, fwn, verbose, *args):
@@ -119,8 +119,8 @@ class voplez(dbdriver):
     nlines   = data.tell() / self.recsize
 
     # Conver input wavenumber to database units (wavelength):
-    iwl = 1.0 / (fwn * pc.MTC)
-    fwl = 1.0 / (iwn * pc.MTC)
+    iwl = 1.0 / (fwn * pc.um)
+    fwl = 1.0 / (iwn * pc.um)
 
     # Find the record index for iwl and fwl:
     istart = self.binsearch(data, iwl, 0,      nlines-1, 0)
@@ -156,12 +156,12 @@ class voplez(dbdriver):
           pt.msg(verbose-1,"Checkpoint {:5.1f}%".format(10.*i/interval), 2)
           pt.msg(verbose-2,"Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} um\n"
                           "Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}".
-                             format(wnumber[i], 1.0/(wnumber[i]*pc.MTC),
-                                    elow[i]*pc.eV2Kayser, gf[i], isoID[i]), 4)
+                             format(wnumber[i], 1.0/(wnumber[i]*pc.um),
+                                    elow[i]*pc.eV, gf[i], isoID[i]), 4)
       i += 1
 
     # Convert Elow from eV to cm-1:
-    elow[:] = elow * pc.eV2Kayser
+    elow[:] = elow * pc.eV
 
     data.close()
     pt.msg(verbose, "Done.\n")

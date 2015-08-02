@@ -1002,4 +1002,13 @@ Bumped Pyrat-Bay revision (now version 0.0.11).
 
 *****
 
+In pconstants:
+Replaced variable names of MTC and NTC by um and nm.
+Renamed u to amu.
+Replaced pc.units by ptools.u().  Store unit-conversion factors in
+individual variables.
+Bumped Pyrat revision (now version 1.1.17).
+Resolves #12
+
+*****
 

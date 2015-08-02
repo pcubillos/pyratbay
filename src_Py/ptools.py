@@ -56,9 +56,7 @@ def exit(comm=None, abort=False, message=None, comm2=None):
 
 def error(message, lev=-2):
   """
-  Pretty print error message
-
-  2015-01-18  patricio  Added lev argument to print.
+  Pretty print error message.
   """
   # Trace back the file, function, and line where the error source:
   t = traceback.extract_stack()
@@ -275,4 +273,22 @@ def unpack(file, n, dtype):
     return output[0]
   else:
     return output
+
+
+def u(units):
+  """
+  Get the conversion factor (to the CGS system) for units.
+
+  Parameters:
+  -----------
+  units: String
+     Name of units
+  """
+  # Accept only valid units:
+  if units not in ["eV",  "A", "nm", "um", "mm", "cm", "m", "km", "au", "pc",
+                   "mbar", "bar", "kelvin", "amu", "amagat"]:
+    # Throw error:
+    error("Units name '{:s}' does not exist.".format(units), lev=-3)
+  exec("factor = pc.{:s}".format(units))
+  return factor
 

@@ -68,14 +68,14 @@ def widthlimits(pyrat):
   # Get max pressure:
   pmax = np.amax(pyrat.atm.press)
   # Get max collision diameter:
-  cmax = (2.89/2.0 + np.amax(pyrat.mol.radius[mols])) * pc.units['A']
-  #cmax = 2.0*np.amax(pyrat.mol.radius[mols]) * pc.units['A']
+  cmax = (2.89/2.0 + np.amax(pyrat.mol.radius[mols])) * pc.A
+  #cmax = 2.0*np.amax(pyrat.mol.radius[mols]) * pc.A
 
   # Calculate Doppler-width boundaries:
   if pyrat.voigt.Dmin is None:
-    pyrat.voigt.Dmin = np.sqrt(2.0*pc.k*tmin/(mmax*pc.u)) * numin / pc.c
+    pyrat.voigt.Dmin = np.sqrt(2.0*pc.k*tmin/(mmax*pc.amu)) * numin / pc.c
   if pyrat.voigt.Dmax is None:
-    pyrat.voigt.Dmax = np.sqrt(2.0*pc.k*tmax/(mmin*pc.u)) * numax / pc.c
+    pyrat.voigt.Dmax = np.sqrt(2.0*pc.k*tmax/(mmin*pc.amu)) * numax / pc.c
   pt.msg(pyrat.verb, "Doppler width limits: {:.3g} -- {:.3g}  cm-1".format(
                                         pyrat.voigt.Dmin, pyrat.voigt.Dmax), 2)
 
@@ -84,7 +84,7 @@ def widthlimits(pyrat):
     pyrat.voigt.Lmin = pyrat.voigt.Dmin * pyrat.voigt.DLratio
 
   if pyrat.voigt.Lmax is None:
-    pyrat.voigt.Lmax = (np.sqrt(2/(np.pi * pc.k * tmin * pc.u)) * pmax / pc.c *
+    pyrat.voigt.Lmax = (np.sqrt(2/(np.pi * pc.k * tmin *pc.amu)) * pmax / pc.c *
                         cmax**2.0 * np.sqrt(1.0/mmin + 1.0/2.01588))
   pt.msg(pyrat.verb, "Lorentz width limits: {:.3g} -- {:.3g}  cm-1".format(
                                         pyrat.voigt.Lmin, pyrat.voigt.Lmax), 2)

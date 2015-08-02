@@ -177,8 +177,8 @@ def main():
   header += struct.pack("3h", pc.LR_VER, pc.LR_MIN, pc.LR_REV)
 
   # Boundaries in wavenumber space (in cm-1):
-  iwn = 1.0/(cla.fwav*pc.MTC)
-  fwn = 1.0/(cla.iwav*pc.MTC)
+  iwn = 1.0/(cla.fwav*pc.um)
+  fwn = 1.0/(cla.iwav*pc.um)
 
   # Add initial and final wavenumber boundaries:
   header += struct.pack("2d", iwn, fwn)

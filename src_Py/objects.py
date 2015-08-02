@@ -160,9 +160,9 @@ class Spectrum(object):
     pt.msg(1, "Wavenumber:", 2)
     pt.msg(1, "User-input units: {:s}".format(self.wlunits), 4)
     pt.msg(1, "Low  boundary: {:7.3f} {:s}".
-                  format(self.wllow/pc.units[self.wlunits], self.wlunits),  4)
+                  format(self.wllow/pt.u(self.wlunits), self.wlunits),  4)
     pt.msg(1, "High boundary: {:7.3f} {:s}".
-                  format(self.wlhigh/pc.units[self.wlunits], self.wlunits), 4)
+                  format(self.wlhigh/pt.u(self.wlunits), self.wlunits), 4)
     pt.msg(1, "Spectrum:", 2)
     if self.intensity is not None:
       pt.msg(1, "Intensity spectrum array (erg/s/cm/sr): [{:.3f}, {:.3f}, "
@@ -201,11 +201,11 @@ class Atm(object):
     pt.msg(1, "Temperature input units: {:s}.".format(self.tunits), 2)
     pt.msg(1, "Number of layers: {:d}".format(self.nlayers), 2)
     pt.msg(1, "Radius (km):        [{:8.1f}, {:8.1f}, ..., {:8.1f}].".
-              format(self.radius[0]/pc.units['km'],
-             self.radius[1]/pc.units['km'], self.radius[-1]/pc.units['km']), 4)
+              format(self.radius[0]/pc.km,
+                     self.radius[1]/pc.km, self.radius[-1]/pc.km), 4)
     pt.msg(1, "Pressure (bar):     [{:.2e}, {:.2e}, ..., {:.2e}].".
-              format(self.press[0]/pc.units['bar'],
-             self.press[1]/pc.units['bar'], self.press[-1]/pc.units['bar']), 4)
+              format(self.press[0]/pc.bar,
+                     self.press[1]/pc.bar, self.press[-1]/pc.bar), 4)
     pt.msg(1, "Temperature (K):    [{:8.2f}, {:8.2f}, ..., {:8.2f}].".
               format(self.temp[0],   self.temp[1],   self.temp[-1]),   4)
     pt.msg(1, "Mean M. Mass (amu): [{:8.4f}, {:8.4f}, ..., {:8.4f}].".
@@ -238,7 +238,7 @@ class Molecules(object):
     for i in np.arange(self.nmol):
       pt.msg(1, "{:>7s}:  {:3d}  {:8.4f}  {:.3f}".
              format(self.symbol[i], self.ID[i],
-                    self.mass[i], self.radius[i]/pc.units["A"]), 2)
+                    self.mass[i], self.radius[i]/pc.A), 2)
 
 
 class Linetransition(object):
@@ -410,8 +410,8 @@ class Extinction(object):
       pt.msg(1, "Species ID array: {:s}".
                  format(str(self.molID).replace("\n", "")), 4)
       pt.msg(1, "Pressure array: (bar)    [{:.2e}, {:.2e}, ..., {:.2e}]".
-                 format(self.press[0]/pc.units['bar'],
-             self.press[1]/pc.units['bar'], self.press[-1]/pc.units['bar']), 4)
+                 format(self.press[0]/pc.bar,
+                        self.press[1]/pc.bar, self.press[-1]/pc.bar), 4)
       pt.msg(1, "Wavenumber array (cm-1): [{:8.3f}, {:8.3f}, ..., {:8.3f}]".
                  format(self.wn[0], self.wn[1], self.wn[-1]), 4)
       np.set_printoptions(formatter={'float': '{: .1e}'.format})
@@ -500,22 +500,22 @@ class Optdepth(object):
         pt.msg(1, "\nDistance (km) along the raypath over each layer "
                   "(outside-in) for each impact parameter:", 2)
         pt.msg(1, "IP[  1] ({:.1f} km): {}".format(
-          pyrat.atm.radius[1]/pc.units["km"], self.raypath[1]/pc.units["km"]),4)
+          pyrat.atm.radius[1]/pc.km, self.raypath[1]/pc.km), 4)
         pt.msg(1, "IP[  2] ({:.1f} km): {}".format(
-          pyrat.atm.radius[2]/pc.units["km"], self.raypath[2]/pc.units["km"]),4)
+          pyrat.atm.radius[2]/pc.km, self.raypath[2]/pc.km), 4)
         pt.msg(1, "IP[  3] ({:.1f} km): {}".format(
-          pyrat.atm.radius[3]/pc.units["km"], self.raypath[3]/pc.units["km"]),4)
+          pyrat.atm.radius[3]/pc.km, self.raypath[3]/pc.km), 4)
         pt.msg(1, "...", 4)
         pt.msg(1, "IP[{:3d}] ({:.1f} km): {}".format(len(pyrat.atm.radius),
-               pyrat.atm.radius[-1]/pc.units["km"],
-               str(self.raypath[-1]/pc.units["km"])).replace("\n", ""), 4, si=6)
+               pyrat.atm.radius[-1]/pc.km,
+               str(self.raypath[-1]/pc.km)).replace("\n", ""), 4, si=6)
         pt.msg(1, "\nOptical depth for each impact parameter (outside-in) for "
                 "each wavenumber:", 2)
       # Raypath for eclipse geometry:
       elif self.path == "eclipse":
         pt.msg(1, "\nDistance over each layer along a normal-incident "
                   "raypath (km):  {}".
-          format(str(self.raypath/pc.units["km"]).replace("\n", "")), 2, si=4)
+          format(str(self.raypath/pc.km).replace("\n", "")), 2, si=4)
         pt.msg(1, "\nOptical depth over each layer (outside-in) along a "
                   "normal-incident raypath for each wavenumber:", 2)
       # Print optical depth:

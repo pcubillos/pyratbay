@@ -143,10 +143,10 @@ def getconstants(pyrat):
     # Set molecule mass:
     pyrat.mol.mass[i]   = mass  [imol]
     # Set molecule collision radius:
-    pyrat.mol.radius[i] = diam[imol]/2.0 * pc.units["A"]
+    pyrat.mol.radius[i] = diam[imol]/2.0 * pc.A
     pt.msg(1, "{:>10s}:  {:3d}  {:.3f}  {:8.4f}".
            format(pyrat.mol.name[i], pyrat.mol.ID[i],
-                  pyrat.mol.radius[i]/pc.units["A"], pyrat.mol.mass[i]), 2)
+                  pyrat.mol.radius[i]/pc.A, pyrat.mol.mass[i]), 2)
 
 
 def getprofiles(pyrat, atmfile):
@@ -213,9 +213,9 @@ def getprofiles(pyrat, atmfile):
 
   # Store values in CGS system of units:
   if rad:
-    atm.radius *= pc.units[atm.runits]
-  atm.press  *= pc.units[atm.punits]
-  atm.temp   *= pc.units[atm.tunits]
+    atm.radius *= pt.u(atm.runits)
+  atm.press  *= pt.u(atm.punits)
+  atm.temp   *= pt.u(atm.tunits)
 
   # Store the abundance as volume mixing ratio:
   if atm.abundance:
@@ -296,7 +296,7 @@ def IGLdensity(abundance, mass, pressure, temperature):
   temperature: 1D ndarray
     Atmospheric temperature (in kelvin).
   """
-  return (mass * pc.u) * abundance * pressure / (pc.k * temperature)
+  return (mass * pc.amu) * abundance * pressure / (pc.k * temperature)
 
 
 def hydro_equilibrium(pressure, temperature, mu, g, p0=None, r0=None):

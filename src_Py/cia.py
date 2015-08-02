@@ -155,8 +155,8 @@ def interpolate(pyrat):
     cia_absorption = cia_absorption[desort]
 
     # Densities in amagat:
-    dens1 = pyrat.atm.d[:,imol1]/(pyrat.mol.mass[imol1]*pc.u) / pc.amagat
-    dens2 = pyrat.atm.d[:,imol2]/(pyrat.mol.mass[imol2]*pc.u) / pc.amagat
+    dens1 = pyrat.atm.d[:,imol1]/(pyrat.mol.mass[imol1]*pc.amu) / pc.amagat
+    dens2 = pyrat.atm.d[:,imol2]/(pyrat.mol.mass[imol2]*pc.amu) / pc.amagat
 
     # Compute CIA absorption in cm-1 units (broadcasting):
     pyrat.cia.ec += (cia_absorption * np.expand_dims(dens1*dens2, axis=1))

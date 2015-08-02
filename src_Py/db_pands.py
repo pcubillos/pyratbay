@@ -120,8 +120,8 @@ class pands(dbdriver):
     nlines   = data.tell()/ self.recsize # Number of lines (8 bytes per line)
  
     # Rewrite wavelength limits as given in the P&S file:
-    fwl = 1.0 / (iwn * pc.NTC)          # cm to nanometer
-    iwl = 1.0 / (fwn * pc.NTC)
+    fwl = 1.0 / (iwn * pc.nm)          # cm to nanometer
+    iwl = 1.0 / (fwn * pc.nm)
     iwav = np.log(iwl) / self.ratiolog  # As given in file
     fwav = np.log(fwl) / self.ratiolog
  
@@ -156,17 +156,17 @@ class pands(dbdriver):
       # Print a checkpoint statement every 10% interval:
       if verbose > 1:
         if (i % interval) == 0 and i != 0:
-          wl = np.exp(iw[i] * self.ratiolog) * pc.NTC/pc.MTC
+          wl = np.exp(iw[i] * self.ratiolog) * pc.nm/pc.um
           pt.msg(verbose-1,"Checkpoint {:5.1f}%".format(10.*i/interval), 2)
           pt.msg(verbose-2,"Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} um\n"
                           "Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}".
-                             format(1.0/ (wl * pc.MTC), wl,
+                             format(1.0/ (wl * pc.um), wl,
                                   np.abs(ielo[i]), self.tablog[np.abs(igf[i])],
                                   2*(ielo[i] < 0) + 1*(igf[i] < 0)), 4)
       i += 1
 
     # Calculate the wavenumber (in cm-1):
-    wnumber[:] = 1.0 / (np.exp(iw * self.ratiolog) * pc.NTC)
+    wnumber[:] = 1.0 / (np.exp(iw * self.ratiolog) * pc.nm)
     # Get gf fom log table:
     gf[:]      = self.tablog[np.abs(igf)]
     # Energy of lowest transition level:

@@ -355,18 +355,18 @@ def checkinputs(pyrat):
     if inputs.wnlow < 0.0:
       pt.error("Low wavenumber boundary ({:.2e} {:s}-1) must be "
                ">= 0.".format(inputs.wnlow, inputs.wnunits))
-    pyrat.spec.wnlow = inputs.wnlow / pc.units[pyrat.spec.wnunits]
+    pyrat.spec.wnlow = inputs.wnlow / pt.u(pyrat.spec.wnunits)
 
   if   inputs.wnhigh is not None:
     if inputs.wnhigh <= 0.0:
       pt.error("High wavenumber boundary ({:.2e} {:s}-1) must be "
                "> 0.".format(inputs.wnhigh, inputs.wnunits))
-    pyrat.spec.wnhigh = inputs.wnhigh / pc.units[pyrat.spec.wnunits]
+    pyrat.spec.wnhigh = inputs.wnhigh / pt.u(pyrat.spec.wnunits)
 
   if inputs.wnstep is None or inputs.wnstep <= 0:
     pt.error("Wavenumber sampling step ({:.2e} {:s}-1) must be defined and "
              "be > 0.".format(inputs.wnstep, inputs.wnunits))
-  pyrat.spec.wnstep = inputs.wnstep / pc.units[pyrat.spec.wnunits]
+  pyrat.spec.wnstep = inputs.wnstep / pt.u(pyrat.spec.wnunits)
 
   pyrat.spec.wnosamp = isgreater(inputs.wnosamp, None, 1, False,
                      "Wavenumber oversampling factor ({:d}) must be >= 1.")
@@ -516,7 +516,7 @@ def isgreater(value, units, thresh, equal=False, text=""):
   if units is None:
     unitsval = 1
   else:
-    unitsval = pc.units[units]
+    unitsval = pt.u(units)
 
   # Check value:
   if value is not None:
