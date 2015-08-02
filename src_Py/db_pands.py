@@ -6,7 +6,7 @@ import numpy as np
 
 import ptools     as pt
 import pconstants as pc
-from driver import dbdriver
+from db_driver import dbdriver
 
 class pands(dbdriver):
   """
@@ -122,8 +122,8 @@ class pands(dbdriver):
     fwav = np.log(fwl) / self.ratiolog
  
     # Find the positions of iwav and fwav:
-    istart = self.binsearch(data, iwav, 0,      nlines, 0)
-    istop  = self.binsearch(data, fwav, istart, nlines, 1)
+    istart = self.binsearch(data, iwav, 0,      nlines-1, 0)
+    istop  = self.binsearch(data, fwav, istart, nlines-1, 1)
 
     # Number of records to read
     nread = istop - istart + 1
@@ -134,7 +134,7 @@ class pands(dbdriver):
     elow    = np.zeros(nread, np.double)
     isoID   = np.zeros(nread, int)
  
-    pt.msg(verbose, "Beginning to read P&S database, between "
+    pt.msg(verbose, "Starting to read P&S database between "
                     "records {:d} and {:d}.".format(istart, istop))
 
     interval = (istop - istart)/10  # Check-point interval
@@ -170,6 +170,7 @@ class pands(dbdriver):
     # Assign indices for isotopes based on Kurucz's indices-1:
     isoID[:]   = 2*(ielo < 0) + 1*(igf < 0)
 
-    pt.msg(verbose, "Done.\n")
     data.close()
-    return wnumber, gf, elow, isoID
+    pt.msg(verbose, "Done.\n")
+    # Sort (increasingly) by wavenumber:
+    return wnumber[::-1], gf[::-1], elow[::-1], isoID[::-1]

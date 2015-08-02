@@ -75,50 +75,47 @@ class dbdriver(object):
   def dbread(self, iwl, fwl, verbose):
     """
       Read linelist values for specific database type.
-
-      Parameters:
-      -----------
-      dbtype: String
     """
     pass
+
 
   def readwl(self, dbfile, irec):
     """
-      Read the wavelength parameter as given in the database
+      Read the wavelength parameter as given in each database.
     """
     pass
 
+
   def binsearch(self, dbfile, wavelength, ilo, ihi, searchup=True):
     """
-    Do a binary search of record position in File dbfile that has wavelength iwl
+    Do a binary (and then linear) search for wavelength in file dbfile
+    between record positions ilo and ihi.
 
     Parameters:
     -----------
     dbfile: File object
        File where to search.
     wavelength: Scalar
-       Target wavelength (as given in each specific database).
+       Target wavelength/wavenumber (as given in each specific database).
     ilo: Integer
-       Index of smallest record to search.
+       Lowest index record to search.
     ihi: Integer
-       Index of largerst record to search.
-    dbtype: String
-       Database type: ['ps', 'hit']
+       highest index record to search.
     searchup: Boolean
        Search up (True) or down (False) the records for duplicate results
        after the binary search.
 
     Returns:
     --------
-    Index of record with
+    Index of record for wavelength
 
-    Modification History:
-    ---------------------
-    2013        madison   Initial implementation.
-    2014-03-05  patricio  Added documentation, updated Madison's code, and
-                          included searchup parameter
-                                                    pcubillos@fulbrightmail.org
+    Uncredited developers:
+    ----------------------
+    Madison Stemm, UCF.
     """
+    # imin and imax are the fixed boundaries where to search:
+    imin, imax = ilo, ihi
+
     # Wavelength of record:
     rec_wl = 0
 
@@ -135,18 +132,33 @@ class dbdriver(object):
       else:
         ilo = irec
 
-    # Search up/or down if there are multiple records with the same wavelength:
-    while (self.readwl(dbfile, irec) == rec_wl):
+    # Start linear search:
+    if searchup:
+      irec = ilo
+    else:
+      irec = ihi
+
+    # Check value of contiguous entries:
+    icheck  = irec  # Record index to check
+    bounded = True  # Record's wavelength is still within boundaries
+
+    while bounded:
+      # Update irec:
+      irec = icheck
+      # Check index boundaries:
+      if irec == imin or irec == imax:
+        break
+      # Check wavelength boundaries:
       if searchup:
-        irec += 1
+        icheck += 1
+        bounded = self.readwl(dbfile, icheck) < wavelength
       else:
-        irec -= 1
+        icheck -= 1
+        bounded = self.readwl(dbfile, icheck) > wavelength
 
-    # Move file pointer to begining:
-    dbfile.seek(0)
-
-    #print("Found wavelength %d at position %d."%(rec_wl, ihi))
+    # Return record index:
     return irec
+
 
   def readpf(self):
     """

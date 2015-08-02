@@ -6,7 +6,7 @@ import numpy as np
 
 import ptools     as pt
 import pconstants as pc
-from driver import dbdriver
+from db_driver import dbdriver
 
 # Directory of db_hitran.py:
 DBHdir = os.path.dirname(os.path.realpath(__file__))
@@ -165,24 +165,9 @@ class hitran(dbdriver):
     data.seek(0, 2)
     nlines   = data.tell() / self.recsize
 
-    # Get Molecule ID:
-    molID = int(self.molID)
-
-    # Get database limiting wavenumbers:
-    minwn = self.readwl(data,        0)
-    maxwn = self.readwl(data, nlines-1)
-
-    # Find the record index for iwn:
-    if iwn > minwn:
-      istart  = self.binsearch(data, iwn, 0, nlines, 0)
-    else:
-      istart  = 0
-
-    # Find the record index for fwn:
-    if fwn < maxwn:
-      istop = self.binsearch(data, fwn, 0, nlines,    1)
-    else:
-      istop = nlines-1
+    # Find the record index for iwn and fwn:
+    istart = self.binsearch(data, iwn, 0,      nlines-1, 0)
+    istop  = self.binsearch(data, fwn, istart, nlines-1, 1)
 
     # Number of records to read:
     nread = istop - istart + 1
@@ -195,14 +180,14 @@ class hitran(dbdriver):
     A21     = np.zeros(nread, np.double)  # Einstein A coefficient
     g2      = np.zeros(nread, np.double)  # Lower statistical weight
 
-    pt.msg(verbose, "Starting to read HITRAN database, between "
+    pt.msg(verbose, "Starting to read HITRAN database between "
                     "records {:d} and {:d}.".format(istart, istop))
     interval = (istop - istart)/10  # Check-point interval
 
     i = 0  # Stored record index
     while (i < nread):
       # Read a record:
-      data.seek((istop-i) * self.recsize)
+      data.seek((istart+i) * self.recsize)
       line = data.read(self.recsize)
       # Extract values:
       isoID  [i] = float(line[self.recisopos:self.recwnpos ])
@@ -210,7 +195,7 @@ class hitran(dbdriver):
       elow   [i] = float(line[self.recelpos: self.recelend ])
       A21    [i] = float(line[self.recApos:  self.recairpos])
       g2     [i] = float(line[self.recg2pos: self.recsize  ])
-      # Print a checkpoint statement every 1/20th interval
+      # Print a checkpoint statement every 10% interval:
       if verbose > 1:
         if (i % interval) == 0.0  and  i != 0:
           gfval = A21[i]*g2[i]*pc.C1/(8.0*np.pi*pc.c)/wnumber[i]**2.0
@@ -229,7 +214,9 @@ class hitran(dbdriver):
     # Calculate gf (Equation (36) of Simekova 2006):
     gf = A21 * g2 * pc.C1 / (8.0 * np.pi * pc.c) / wnumber**2.0
 
-    pt.msg(verbose, "Done.\n")
     data.close()
+    pt.msg(verbose, "Done.\n")
 
-    return wnumber, gf, elow, isoID
+    # Remove lines with unknown Elow (see Rothman et al. 1996):
+    igood = np.where(elow > 0)
+    return wnumber[igood], gf[igood], elow[igood], isoID[igood]

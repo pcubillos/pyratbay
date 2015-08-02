@@ -966,4 +966,13 @@ Added support for Python 3.
 Bumped Pyrat-Bay revision (now version 0.0.10).
 
 
+*****  Sun Aug  2 11:35:02 EDT 2015  *****
+
+Updated database-binsearch routine to be more precise.
+Renamed driver.py to db_driver.py
+Removed from the HITRAN line-by-line data the transitions with unknown
+Elow.
+Bumped Lineread revision (now version 6.3.5).
+Solves #15.
+
 *****

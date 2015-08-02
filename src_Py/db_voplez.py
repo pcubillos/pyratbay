@@ -7,7 +7,7 @@ import numpy as np
 
 import ptools     as pt
 import pconstants as pc
-from driver import dbdriver
+from db_driver import dbdriver
 
 import struct, time
 
@@ -118,24 +118,13 @@ class voplez(dbdriver):
     data.seek(0, 2)
     nlines   = data.tell() / self.recsize
 
-    # Get database limiting wavelengths:
-    minwl = self.readwl(data,        0)  # Lowest  wavelength in DB
-    maxwl = self.readwl(data, nlines-1)  # Highest wavelength in DB
-
     # Conver input wavenumber to database units (wavelength):
     iwl = 1.0 / (fwn * pc.MTC)
     fwl = 1.0 / (iwn * pc.MTC)
 
     # Find the record index for iwl and fwl:
-    if iwl > minwl:
-      istart = self.binsearch(data, iwl, 0,     nlines, 0)
-    else:
-      istart = 0
-
-    if fwl < maxwl:
-      istop = self.binsearch(data, fwl, istart, nlines, 1)
-    else:
-      istop = nlines-1
+    istart = self.binsearch(data, iwl, 0,      nlines-1, 0)
+    istop  = self.binsearch(data, fwl, istart, nlines-1, 1)
 
     # Number of records to read:
     nread = istop - istart + 1
@@ -146,7 +135,7 @@ class voplez(dbdriver):
     elow    = np.zeros(nread, np.double)
     isoID   = np.zeros(nread, int)
  
-    pt.msg(verbose, "Beginning to read Plez VO database, between "
+    pt.msg(verbose, "Starting to read Plez VO database between "
                     "records {:d} and {:d}.".format(istart, istop))
 
     interval = (istop - istart)/10  # Check-point interval
@@ -154,7 +143,7 @@ class voplez(dbdriver):
     i = 0  # Record index counter
     while (i < nread):
       # Read a record:
-      data.seek((istart+i) * self.recsize)
+      data.seek((istop-i) * self.recsize)
       line = data.read(self.recsize)
       # Store values:
       wnumber[i] = float(line[self.recwnpos:self.recwnend])
@@ -174,7 +163,7 @@ class voplez(dbdriver):
     # Convert Elow from eV to cm-1:
     elow[:] = elow * pc.eV2Kayser
 
-    pt.msg(verbose, "Done.\n")
     data.close()
+    pt.msg(verbose, "Done.\n")
 
     return wnumber, gf, elow, isoID
