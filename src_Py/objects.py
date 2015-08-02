@@ -17,7 +17,7 @@ class Pyrat(object):
     self.iso    = Isotopes()        # Isotopes data
     self.voigt  = Voigt()           # Voigt profile
     self.ex     = Extinction()      # Extinction-coefficient
-    self.cia    = Cia()             # Collision-induced absorption
+    self.cs     = Cross()           # Cross-section extinction
     self.od     = Optdepth()        # Optical depth
     # Files:
     self.atmfile     = None  # Atmopheric-model file
@@ -58,7 +58,7 @@ class Inputs(object):
     # Input/output files arguments:
     self.atmfile  = None
     self.linedb   = None
-    self.ciafiles = None
+    self.csfiles  = None
     self.molfile  = None
     self.extfile  = None
     # Wavelength arguments:
@@ -427,28 +427,29 @@ class Extinction(object):
 
 
 
-class Cia(object):
+class Cross(object):
   def __init__(self):
-    self.files      = None    # CIA file names
+    self.files      = None    # CS file names
     self.nfiles     = None    # Number of files read
+    self.nmol       = None    # Number of species per CS file
     self.molecules  = None    # Species involved for each file
     self.ntemp      = None    # Number of temperature samples per file
     self.nwave      = None    # Number of wavenumber samples per file
-    self.tmin       = -np.inf # Minimum temperature sampled by all CIA files
-    self.tmax       =  np.inf # Maximum temperature sampled by all CIA files
+    self.tmin       =     0.0 # Minimum temperature sampled by all CS files
+    self.tmax       = 70000.0 # Maximum temperature sampled by all CS files
     self.temp       = []      # Temperature sampling (in Kelvin)
     self.wavenumber = []      # Wavenumber sampling (in cm-1)
-    self.absorption = []      # CIA extinction (in cm-1 amagat-2)
-    self.ec         = None    # Interpolated CIA extinction coefficient
+    self.absorption = []      # CS extinction (in cm-1 amagat-2)
+    self.ec         = None    # Interpolated CS extinction coefficient
                               #  in cm-1 [nlayer, nwave]
 
   def info(self):
-    pt.msg(1, "Collision induced absorption info:", 0)
-    pt.msg(1, "Number of CIA files: {:d}".format(self.nfiles), 2)
+    pt.msg(1, "Cross-section extinction info:", 0)
+    pt.msg(1, "Number of CS files: {:d}".format(self.nfiles), 2)
     for i in np.arange(self.nfiles):
-      pt.msg(1, "CIA file: '{:s}':".format(self.files[i]), 2)
-      pt.msg(1, "Species: {:s}-{:s}".
-                 format(self.molecules[i][0], self.molecules[i][1]), 4)
+      pt.msg(1, "CS file: '{:s}':".format(self.files[i]), 2)
+      pt.msg(1, "Species: {:s}".
+                 format("-".join(self.molecules[i,0:self.nmol[i]])), 4)
       pt.msg(1, "Number of temperatures:       {:4d}".format(self.ntemp[i]), 4)
       pt.msg(1, "Number of wavenumber samples: {:4d}".format(self.nwave[i]), 4)
       pt.msg(1, "Temperature array (K):  {}".
@@ -457,15 +458,15 @@ class Cia(object):
                  format(self.wavenumber[i][0], self.wavenumber[i][1],
                         self.wavenumber[i][-1]), 4)
       np.set_printoptions(formatter={'float': '{: .1e}'.format})
-      pt.msg(1, "Tabulated CIA extinction coefficient (cm-1 amagat-2) "
-                "[layer, wave]:", 4)
+      pt.msg(1, "Tabulated CS extinction coefficient (cm-1 amagat-{:d}) "
+                "[layer, wave]:".format(self.nmol[i]), 4)
       pt.msg(1, "{}".format((self.ec)), 6)
       np.set_printoptions(formatter=None)
     pt.msg(1, "\nMinimum and maximum covered temperatures (K): "
               "[{:.1f}, {:.1f}]".format(self.tmin, self.tmax), 2)
     if self.ec is not None:
       np.set_printoptions(formatter={'float': '{: .2e}'.format})
-      pt.msg(1, "CIA extinction coefficient for the "
+      pt.msg(1, "CS extinction coefficient for the "
                    "atmospheric model (cm-1) [layer, wave]:", 2)
       pt.msg(1, "{}".format((self.ec)), 2)
     np.set_printoptions(formatter=None)

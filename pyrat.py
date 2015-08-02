@@ -15,7 +15,7 @@ import readatm    as ra
 import readlinedb as rl
 import voigt      as v
 import extinction as ex
-import cia        as cia
+import crosssec   as cs
 import optdepth   as od
 import spectrum   as sp
 
@@ -81,7 +81,7 @@ def init(argv, main=False):
   timestamps.append(time.time())
 
   # Read CIA files:
-  cia.read(pyrat)
+  cs.read(pyrat)
   timestamps.append(time.time())
 
   # Calculate extinction-coefficient table:
@@ -109,7 +109,7 @@ def run(pyrat, inputs=None):
     ms.reloadatm(pyrat, *inputs)
 
   # Interpolate CIA absorption:
-  cia.interpolate(pyrat)
+  cs.interpolate(pyrat)
   timestamps.append(time.time())
 
   # Calculate the optical depth:

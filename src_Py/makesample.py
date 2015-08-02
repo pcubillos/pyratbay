@@ -120,8 +120,8 @@ def makeradius(pyrat):
   if   sort:     # Layers are in the correct order
     pass
   elif reverse:  # Layers in reverse order
-    pt.warning("The atmospheric layers are in reversed order (top-bottom).  "
-               "Resorting to be from the bottom-up.")
+    pt.warning("The atmospheric layers are in reversed order (bottom-top).  "
+               "Resorting to be from the top down.")
     if atm_in.radius is not None:
       atm_in.radius = atm_in.radius[::-1]
     atm_in.press  = atm_in.press [::-1]

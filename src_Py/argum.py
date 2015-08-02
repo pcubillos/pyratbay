@@ -60,9 +60,8 @@ def parse(pyrat):
   group.add_argument("--linedb",     dest="linedb",
                      help="Line database files [default: %(default)s]",
                      action="store", type=pt.parray, default=None) 
-  group.add_argument("--cia",        dest="cia",
-                     help="Collision Induced Absorption files [default: "
-                          "%(default)s]",
+  group.add_argument("--csfile",     dest="csfile",
+                     help="Cross-section files [default: %(default)s]",
                      action="store", type=pt.parray, default=None)
   group.add_argument("--molfile",    dest="molfile",
                      help="Molecular info file [default: "
@@ -241,7 +240,7 @@ def parse(pyrat):
   # Input file:
   pyrat.inputs.atmfile    = user.atmfile
   pyrat.inputs.linedb     = user.linedb
-  pyrat.inputs.cia        = user.cia
+  pyrat.inputs.csfile     = user.csfile
   pyrat.inputs.molfile    = user.molfile
   pyrat.inputs.extfile    = user.extfile
   # Wavelength:
@@ -322,11 +321,11 @@ def checkinputs(pyrat):
         pt.error("linedb file: '{:s}' does not exist.".format(linedb))
   pyrat.linedb = pyrat.inputs.linedb
 
-  if inputs.cia is not None:
-    for cia in pyrat.inputs.cia:
-      if not os.path.isfile(cia):
-        pt.error("CIA file: '{:s}' does not exist.".format(cia))
-  pyrat.cia.files = pyrat.inputs.cia
+  if inputs.csfile is not None:
+    for cs in pyrat.inputs.csfile:
+      if not os.path.isfile(cs):
+        pt.error("Cross-section file: '{:s}' does not exist.".format(cs))
+  pyrat.cs.files = pyrat.inputs.csfile
 
   if inputs.molfile is None: # Set default
     inputs.molfile = pyratdir + "/../inputs/molecules.dat"
