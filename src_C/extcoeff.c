@@ -7,47 +7,69 @@
 #include "utils.h"
 
 PyDoc_STRVAR(extinction__doc__,
-"Calculate the extinction-coefficient for each molecule, at a given\n\
-pressure and temperature, over a wavenumber range.                 \n\
-                                                                   \n\
-Parameters:                                                        \n\
------------                                                        \n\
-ext: 2D float ndarray                        \n\
-profile: 1D float ndarray                    \n\
-psize: 2D integer ndarray                    \n\
-pindex: 2D integer ndarray                   \n\
-lorentz: 1D Float ndarray                    \n\
-doppler: 1D Float ndarray                    \n\
-wn: 1D Float ndarray                         \n\
-own: 1D Float ndarray                        \n\
-divisors: 1D integer ndarray                 \n\
-moldensity: 1D Float ndarray                 \n\
-molq: 1D Float ndarray                       \n\
-molrad: 1D Float ndarray                     \n\
-molmass: 1D Float ndarray                    \n\
-isoimol: 1D Float ndarray                    \n\
-isomass: 1D Float ndarray                    \n\
-isoratio: 1D Float ndarray                   \n\
-isoz: 1D Float ndarray                       \n\
-isoiext: 1D Float ndarray                    \n\
-lwn: 1D Float ndarray                        \n\
-elow: 1D Float ndarray                       \n\
-gf: 1D Float ndarray                         \n\
-lID: 1D integer ndarray                      \n\
-ethresh: Float                               \n\
-pressure: Float                              \n\
-temp: Float                                  \n\
-add: Integer                                 \n\
-                                             \n\
-Developers:                                                                \n\
------------                                                                \n\
-Patricio Rojo      U Cornell  pato@astro.cornell.edu (pato@oan.cl)         \n\
-Patricio Cubillos  UCF        pcubillos@fulbrightmail.org                  \n\
-                                                                           \n\
-Modification History:                                                      \n\
----------------------                                                      \n\
-2006        p. rojo      Writen as a component of the transit package.     \n\
-2014-02-08  p. cubillos  Modified for use with the pyrat project.");
+"Calculate the extinction-coefficient for each molecule, at\n\
+a given pressure and temperature, over a wavenumber range. \n\
+                                                           \n\
+Parameters:                                                \n\
+-----------                                                \n\
+ext: 2D float ndarray                                      \n\
+   Output extinction coefficient where to put the results. \n\
+profile: 1D float ndarray                                  \n\
+   Array of Voigt profiles.                                \n\
+psize: 2D integer ndarray                                  \n\
+   Profiles half-size.                                     \n\
+pindex: 2D integer ndarray                                 \n\
+   Index where each profile starts.                        \n\
+lorentz: 1D Float ndarray                                  \n\
+   Sample of Lorentz HWHMs.                                \n\
+doppler: 1D Float ndarray                                  \n\
+   Sample of Doppler HWHMs.                                \n\
+wn: 1D Float ndarray                                       \n\
+   Spectrum wavenumber array (cm-1).                       \n\
+own: 1D Float ndarray                                      \n\
+   Oversampled wavenumber array (cm-1).                    \n\
+divisors: 1D integer ndarray                               \n\
+   Integer divisors for oversampling factor.               \n\
+moldensity: 1D Float ndarray                               \n\
+   Atmospheric species number density (molecules cm-3).    \n\
+molq: 1D Float ndarray                                     \n\
+   Atmospheric species mole mixing ratio.                  \n\
+molrad: 1D Float ndarray                                   \n\
+   Atmospheric species collision radius (A).               \n\
+molmass: 1D Float ndarray                                  \n\
+   Atmospheric species mass (gr mol-1).                    \n\
+isoimol: 1D Float ndarray                                  \n\
+   Isotopes species index (from atmospheric-species array).\n\
+isomass: 1D Float ndarray                                  \n\
+   Isotopes mass (gr mol-1).                               \n\
+isoratio: 1D Float ndarray                                 \n\
+   Isotopes abundance ratio.                               \n\
+isoz: 1D Float ndarray                                     \n\
+   Isotopes partition function.                            \n\
+isoiext: 1D Float ndarray                                  \n\
+   Isotopes species index in ext. coeff. table.            \n\
+lwn: 1D Float ndarray                                      \n\
+   Line-transition wavenumber (cm-1).                      \n\
+elow: 1D Float ndarray                                     \n\
+   Line-transition lower-state energy (cm-1).              \n\
+gf: 1D Float ndarray                                       \n\
+   Line-transition oscillator strength.                    \n\
+lID: 1D integer ndarray                                    \n\
+   Line-transition isotope ID.                             \n\
+ethresh: Float                                             \n\
+   Extinction-coefficient threshold factor.                \n\
+pressure: Float                                            \n\
+   Atmospheric-layer pressure (barye).                     \n\
+temp: Float                                                \n\
+   Atmospheric-layer temperature (K).                      \n\
+add: Integer                                               \n\
+   Flag, if True calculate the extinction coefficient (in cm-1) \n\
+   for this layer, if False calculate the extinction coefficient\n\
+   (in cm2 molecules-1) for each species in the layer.          \n\
+                                                                \n\
+Uncredited developers:                                          \n\
+----------------------                                          \n\
+Patricio Rojo  U. Cornell  pato@astro.cornell.edu (pato@oan.cl).");
 
 static PyObject *extinction(PyObject *self, PyObject *args){
   PyArrayObject *ext,                             /* Extinction coefficient */
@@ -97,8 +119,7 @@ static PyObject *extinction(PyObject *self, PyObject *args){
 
   /* Constant factors for line widths:                                      */
   fdoppler = sqrt(2*KB*temp/AMU) * SQRTLN2 / LS;
-  florentz = sqrt(2*KB*temp/PI/AMU) / (AMU*LS);
-  //printf("Florentz: %.6e, Fdoppler: %.6e\n", florentz, fdoppler);
+  florentz = sqrt(2*KB*temp/PI/AMU) / LS;
 
   /* Allocate alpha Lorentz and Doppler arrays:                             */
   alphal = (double *)malloc(niso * sizeof(double));
@@ -128,7 +149,7 @@ static PyObject *extinction(PyObject *self, PyObject *args){
       /* Isotope's collision diameter with j-th species:                    */
       csdiameter = INDd(molrad, imol) + INDd(molrad, j);
       /* Number density of molecule colliding with current isotope:         */
-      density = AMU * INDd(molq,j) * pressure / (KB*temp);
+      density = INDd(molq,j) * pressure / (KB*temp);
       /* Line width:                                                        */
       alphal[i] += density * csdiameter * csdiameter *
                    sqrt(1/INDd(isomass,i) + 1/INDd(molmass,j));
@@ -183,12 +204,11 @@ static PyObject *extinction(PyObject *self, PyObject *args){
       continue;
 
     /* Calculate the line strength divided by the molecular abundance:      */
-    kprop[ln] = k = INDd(isoratio,i)       *  /* Density                    */
+    kprop[ln] = k = INDd(isoratio,i)       *  /* Density fraction           */
         SIGCTE * INDd(gf,ln)               *  /* Constant * gf              */
         exp(-EXPCTE*INDd(elow,ln) / temp)  *  /* Level population           */
         (1-exp(-EXPCTE*wavn/temp))         /  /* Induced emission           */
-         (INDd(isomass,i)                 *   /* Isotope mass               */
-          INDd(isoz,i));                      /* Partition function         */
+        INDd(isoz,i);                         /* Partition function         */
     /* Check if this is the maximum k:                                      */
     kmax[m] = fmax(kmax[m], k);
   }
@@ -196,7 +216,7 @@ static PyObject *extinction(PyObject *self, PyObject *args){
   //  printf("Kmax[%d] is: %.3e\n", i, kmax[i]);
 
 
-  /* Compute the extinction-coefficient for each species:                   */ 
+  /* Compute the extinction-coefficient for each species:                   */
   for(ln=0; ln<nlines; ln++){
     wavn = INDd(lwn, ln);    /* Wavenumber                                  */
     i    = INDi(lID, ln);    /* Isotope index                               */
@@ -335,7 +355,7 @@ static PyObject *interp_ec(PyObject *self, PyObject *args){
                 *molID;       /* mol ID of the atmospheric species          */
 
   int nwave, nmol, ntemp,  /* Number of wavenumber, species, & temperatures */
-      nmolID, 
+      nmolID,
       tlo, thi, imol;
   int i, j;                /* Auxilliary for-loop indices                   */
   double ext,              /* Temporary extinction coefficient              */
@@ -343,7 +363,7 @@ static PyObject *interp_ec(PyObject *self, PyObject *args){
 
   /* Load inputs:                                                           */
   if (!PyArg_ParseTuple(args, "OOOOdOO",  &extinction, &etable,
-                                          &ttable, &mtable, 
+                                          &ttable, &mtable,
                                           &temperature,
                                           &density, &molID))
     return NULL;

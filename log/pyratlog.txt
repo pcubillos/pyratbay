@@ -1012,3 +1012,20 @@ Resolves #12
 
 *****
 
+Refactored CIA as general cross-section routines.
+Changed the Class CIA to Cross (and it's variable names).
+Changed the argument name in the Pyrat config file from cia to csfile.
+Updated the demo configuration files.
+Checked that it works for CIA files (two species).
+Bumped Pyrat revision (now version 1.1.18).
+Advances status of #14.
+
+*****
+
+Changed density units from gr cm-3 to molecules cm-3.
+Improved documentation of extinction() in extcoeff.c.
+Bumped Pyrat revision (now version 1.1.19).
+
+*****
+
+

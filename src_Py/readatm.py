@@ -40,7 +40,6 @@ def getkeywords(pyrat, atmfile):
   atmfile.seek(0)
   while True:
     line = atmfile.readline().strip()
-    #print(line)
 
     # Stop when the per-layer data begins:
     if line == "@DATA":
@@ -226,7 +225,7 @@ def getprofiles(pyrat, atmfile):
   pt.msg(pyrat.verb-10, "Mean molecular mass array: {:s}".
                          format(str(atm.mm)), 2)
 
-  # Calculate density profiles for each molecule:
+  # Calculate number density profiles for each molecule (in molecules cm-3):
   for i in np.arange(pyrat.mol.nmol):
     atm.d[:,i] = IGLdensity(atm.q[:,i], pyrat.mol.mass[i], atm.press, atm.temp)
 
@@ -263,7 +262,7 @@ def reloadatm(pyrat, temp, abund):
   # Mean molecular mass:
   pyrat.atm.mm = np.sum(pyrat.atm.q*pyrat.mol.mass, axis=1)
 
-  # Density:
+  # Number density (molecules cm-3):
   for i in np.arange(pyrat.mol.nmol):
     pyrat.atm.d[:,i] = IGLdensity(pyrat.atm.q[:,i], pyrat.mol.mass[i],
                                   pyrat.atm.press,  pyrat.atm.temp)
@@ -283,7 +282,7 @@ def reloadatm(pyrat, temp, abund):
 
 def IGLdensity(abundance, mass, pressure, temperature):
   """
-  Use the Ideal gas law to calculate the density.
+  Use the Ideal gas law to calculate the density in molecules cm-3.
 
   Parameters:
   -----------
@@ -295,8 +294,13 @@ def IGLdensity(abundance, mass, pressure, temperature):
     Atmospheric pressure profile (in barye units).
   temperature: 1D ndarray
     Atmospheric temperature (in kelvin).
+
+  Returns:
+  --------
+  density: 1D float ndarray
+     Atmospheric density in molecules per centimeter^3.
   """
-  return (mass * pc.amu) * abundance * pressure / (pc.k * temperature)
+  return abundance * pressure / (pc.k * temperature)
 
 
 def hydro_equilibrium(pressure, temperature, mu, g, p0=None, r0=None):

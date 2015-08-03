@@ -150,7 +150,7 @@ def interpolate(pyrat):
       # Get index from the pyrat list of molecules:
       imol = np.where(pyrat.mol.name == pyrat.cs.molecules[i,j])[0][0]
       # Densities in amagat:
-      dens *= pyrat.atm.d[:,imol]/(pyrat.mol.mass[imol]*pc.amu) / pc.amagat
+      dens *= pyrat.atm.d[:,imol] / pc.amagat
 
     # Compute CS absorption in cm-1 units (broadcasting):
     pyrat.cs.ec += (cs_absorption * np.expand_dims(dens, axis=1))

@@ -12,8 +12,8 @@
 #define EC  (4.8032068e-10)           /* Electronic charge (statcoulomb)    */
 #define ME  (9.1093897e-28)           /* Electron mass (g)                  */
 
-/* Other contatnst:                                                         */
-#define SIGCTE  (PI*EC*EC/LS/LS/ME/AMU)
+/* Other constants:                                                         */
+#define SIGCTE  (PI*EC*EC/LS/LS/ME)
 #define EXPCTE  (H*LS/KB)
 
 /* Constants for Doppler and Lorentz width calculation:                     */
