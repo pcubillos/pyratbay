@@ -1026,6 +1026,16 @@ Changed density units from gr cm-3 to molecules cm-3.
 Improved documentation of extinction() in extcoeff.c.
 Bumped Pyrat revision (now version 1.1.19).
 
+
+****  Sun Aug 16 14:21:17 EDT 2015  *****
+
+Added script to format ExoMol CS data.
+Though, this will fail when combining multiple-isotope data for a same
+species.
+Also needs to check that the user is not combining data from different
+species.
+Bumped Pyrat revision (now version 1.1.20).
+
 *****
 
 
