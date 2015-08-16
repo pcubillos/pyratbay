@@ -16,8 +16,9 @@ def voigt(pyrat):
   2014-08-17  patricio  Initial version.
   """
 
-  # Check if there is an extinction-coefficient table:
-  if (pyrat.ex.extfile is not None) and os.path.isfile(pyrat.ex.extfile):
+  # Check if reading extinction-coefficient table or no TLI files:
+  if (((pyrat.ex.extfile is not None) and os.path.isfile(pyrat.ex.extfile)) or
+     pyrat.lt.nTLI == 0):
     pt.msg(pyrat.verb, "\nSkip Voigt-profile calculation.")
     return
 

@@ -12,7 +12,11 @@ def readlinedb(pyrat):
   pt.msg(pyrat.verb, "\nReading line transition info:")
 
   # Count number of TLI files:
-  pyrat.lt.nTLI = len(pyrat.linedb)
+  if pyrat.linedb is None:
+    pyrat.lt.nTLI = 0
+  else:
+    pyrat.lt.nTLI = len(pyrat.linedb)
+
   # TLI file object:
   TLI = []
   # Index of first database in TLI file:

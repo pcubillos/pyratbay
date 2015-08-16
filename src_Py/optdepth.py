@@ -34,15 +34,15 @@ def opticaldepth(pyrat):
   ti = time.time()
   r = 0
   while r < pyrat.atm.nlayers:
-    # On-the-spot calculation of the extinction coefficient:
-    if pyrat.ex.extfile is None:
-      ex.extinction(pyrat, pyrat.ex.ec[r:r+1], r,
-                    pyrat.atm.temp[r], pyrat.iso.z[:,r], add=1)
     # Interpolate from table:
-    else:
+    if pyrat.ex.extfile is not None:
       ec.interp_ec(pyrat.ex.ec[r],
                    pyrat.ex.etable[:,:,r,:], pyrat.ex.temp, pyrat.ex.molID,
                    pyrat.atm.temp[r], pyrat.atm.d[r], pyrat.mol.ID)
+    # On-the-spot calculation of the extinction coefficient:
+    elif pyrat.lt.nTLI > 0:
+      ex.extinction(pyrat, pyrat.ex.ec[r:r+1], r,
+                    pyrat.atm.temp[r], pyrat.iso.z[:,r], add=1)
     r += 1
   print("Interp: {:.6f}".format(time.time()-ti))
 

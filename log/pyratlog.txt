@@ -1038,4 +1038,13 @@ Bumped Pyrat revision (now version 1.1.20).
 
 *****
 
+Enabled runs with no TLI files.
+Fixed bug with CIA extinction-coefficient calculations (wrong number
+of species).
+Checked that 1-species and 2-species cross-section
+extinction-coefficient calculations work.
+Resolves #14.
+Bumped Pyrat revision (now version 1.1.21).
+
+*****
 

@@ -45,7 +45,7 @@ def read(pyrat):
         # Get the molecules involved:
         elif line == "@SPECIES":
           molecs = f.readline().strip().split()
-          nmol = pyrat.cs.nmol = len(molecs)
+          nmol = pyrat.cs.nmol[i] = len(molecs)
           pyrat.cs.molecules[i, 0:nmol] = molecs
           # Check that CS species are in the atmospheric file:
           absent = np.setdiff1d(pyrat.cs.molecules[i, 0:nmol], pyrat.mol.name)
@@ -146,7 +146,7 @@ def interpolate(pyrat):
 
     # Apply density scale factor:
     dens = 1.0
-    for j in np.arange(pyrat.cs.nmol):
+    for j in np.arange(pyrat.cs.nmol[i]):
       # Get index from the pyrat list of molecules:
       imol = np.where(pyrat.mol.name == pyrat.cs.molecules[i,j])[0][0]
       # Densities in amagat:
