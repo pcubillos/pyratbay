@@ -12,14 +12,10 @@ xi(double gamma, double tau){
 }
 
 
-PyDoc_STRVAR(ptfunc__doc__,
-"Generats a PT profile based on input free parameters and pressure   \n\
-array.  If no inputs are provided, it will run in demo mode, using   \n\
-free parameters given by the Line 2013 paper and some dummy pressure \n\
-parameters.                                                          \n\
-                                                                     \n\
-Implementation from equations (13)-(16) of Line et al. (2013), Apj,  \n\
-  775, 137.                                                          \n\
+PyDoc_STRVAR(TCEA__doc__,
+"Generats a temperature profile based on the three-channel Eddington \n\
+approximation model (Parmentier and Gillot 2014, AA 562), following  \n\
+the parameterization of Line et al. (2013, ApJ 775).                 \n\
                                                                      \n\
 Inputs                                                               \n\
 ------                                                               \n\
@@ -29,7 +25,7 @@ params: 1D float ndarray                                             \n\
    log10(gamma1): Visible-to-thermal stream Planck mean opacity ratio\n\
    log10(gamma2): Visible-to-thermal stream Planck mean opacity ratio\n\
    alpha:         Visible-stream partition (0.0--1.0)                \n\
-   beta:          A 'catch-all' for albedo, emissivity, and day-night\n\
+   beta:          'catch-all' for albedo, emissivity, and day-night  \n\
                   redistribution (on the order of unity)             \n\
 pressure: 1D float ndarray                                           \n\
   Array of pressure values in bars.                                  \n\
@@ -44,7 +40,7 @@ T_int:  Float                                                        \n\
 sma:    Float                                                        \n\
    Semi-major axis (in meters).                                      \n\
 grav:   Float                                                        \n\
-   Planetary surface gravity in cm/second^2.                         \n\
+   Planetary surface gravity in m sec-2.                             \n\
                                                                      \n\
   Returns                                                            \n\
   -------                                                            \n\
@@ -52,7 +48,7 @@ grav:   Float                                                        \n\
                                                                      \n\
   Example:                                                           \n\
   --------                                                           \n\
-  >>> import PT as pt                                                \n\
+  >>> import pt as pt                                                \n\
   >>> import scipy.constants as sc                                   \n\
   >>> import matplotlib.pyplot as plt                                \n\
   >>> import numpy as np                                             \n\
@@ -60,14 +56,14 @@ grav:   Float                                                        \n\
   >>> Rsun = 6.995e8 # Sun radius in meters                          \n\
                                                                      \n\
   >>> # Pressure array (bars):                                       \n\
-  >>> p = np.logspace(2, -5, 100)                                    \n\
+  >>> press = np.logspace(2, -5, 100)                                \n\
                                                                      \n\
   >>> # Physical (fixed for each planet) parameters:                 \n\
   >>> Ts = 5040.0        # K                                         \n\
   >>> Ti =  100.0        # K                                         \n\
   >>> a  = 0.031 * sc.au # m                                         \n\
   >>> Rs = 0.756 * Rsun  # m                                         \n\
-  >>> g  = 2192.8        # cm s-2                                    \n\
+  >>> g  = 21.928        # m s-2                                     \n\
                                                                      \n\
   >>> # Fitting parameters:                                          \n\
   >>> kappa  = -1.5   # log10(3e-2)                                  \n\
@@ -75,14 +71,14 @@ grav:   Float                                                        \n\
   >>> gamma2 = -0.8   # log10(0.158)                                 \n\
   >>> alpha  = 0.5                                                   \n\
   >>> beta   = 1.0                                                   \n\
-  >>> params = [kappa, gamma1, gamma2, alpha, beta]                  \n\
-  >>> T0 = pt.PT(p, params, Rs, Ts, Ti, a, g)                        \n\
+  >>> params = np.array([kappa, gamma1, gamma2, alpha, beta])        \n\
+  >>> T0 = pt.TCEA(params, press, Rs, Ts, Ti, a, g)                  \n\
                                                                      \n\
   >>> plt.figure(1)                                                  \n\
   >>> plt.clf()                                                      \n\
   >>> plt.semilogy(T0, p, lw=2, color='b')                           \n\
-  >>> plt.ylim(p[0], p[-1])                                          \n\
-  >>> plt.xlim(800, 2000)                                            \n\
+  >>> plt.ylim(press[0], press[-1])                                  \n\
+  >>> plt.xlim(1000, 1700)                                           \n\
   >>> plt.xlabel('Temperature  (K)')                                 \n\
   >>> plt.ylabel('Pressure  (bars)')                                 \n\
                                                                      \n\
@@ -91,19 +87,23 @@ grav:   Float                                                        \n\
   Madison Stemm      astromaddie@gmail.com                           \n\
   Patricio Cubillos  pcubillos@fulbrightmail.org");
 
-static PyObject *pt(PyObject *self, PyObject *args){
+static PyObject *TCEA(PyObject *self, PyObject *args){
   PyArrayObject *freepars, *pressure, *temperature;
   double Rstar, Tstar, Tint, sma, grav,
          kappa, gamma1, gamma2, alpha, beta, tau, Tirr, xi1, xi2;
   int i, nlayers;     /* Auxilliary for-loop indices                        */
+  npy_intp size[1];
 
   /* Load inputs:                                                           */
-  if (!PyArg_ParseTuple(args, "OOOddddd", &freepars, &pressure, &temperature,
-                                          &Rstar, &Tstar, &Tint, &sma, &grav))
+  if (!PyArg_ParseTuple(args, "OOddddd", &freepars, &pressure,
+                                         &Rstar, &Tstar, &Tint, &sma, &grav))
     return NULL;
 
   /* Get array size:                                                        */
-  nlayers = PyArray_DIM(pressure, 0);
+  size[0] = nlayers = PyArray_DIM(pressure, 0);
+
+  /* Allocate output:                                                       */
+  temperature = (PyArrayObject *) PyArray_SimpleNew(1, size, NPY_DOUBLE);
 
   /* Unpack the model parameters:                                           */
   kappa  = pow(10.0, INDd(freepars, 0));
@@ -117,7 +117,7 @@ static PyObject *pt(PyObject *self, PyObject *args){
 
   /* Gray IR optical depth:                                                 */
   for (i=0; i<nlayers; i++){
-    tau = kappa * (INDd(pressure,i)*1e6) / grav;  /* bars to barye          */
+    tau = kappa * (INDd(pressure,i)*1e6) / (grav*100);  /* Convert to CGS   */
     xi1 = xi(gamma1, tau);
     xi2 = xi(gamma2, tau);
 
@@ -126,16 +126,18 @@ static PyObject *pt(PyObject *self, PyObject *args){
                                       pow(Tirr,4) *    alpha  * xi2 ), 0.25);
   }
 
-  return Py_BuildValue("O", temperature);
+  return Py_BuildValue("N", temperature);
 }
+
 
 /* The module doc string                                                    */
 PyDoc_STRVAR(pt__doc__,
-  "Python wrapper for Total Internal Partition Sum (TIPS) calculation.");
+  "Python wrapper for the Three-channel Eddington-Approxmiation model\n\
+   to calculate a temperature profile.");
 
 /* A list of all the methods defined by this module.                        */
 static PyMethodDef pt_methods[] = {
-    {"pt",      pt,      METH_VARARGS, ptfunc__doc__},
+    {"TCEA",    TCEA,    METH_VARARGS, TCEA__doc__},
     {NULL,      NULL,    0,            NULL}
 };
 

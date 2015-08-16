@@ -1048,3 +1048,11 @@ Bumped Pyrat revision (now version 1.1.21).
 
 *****
 
+Updated code and documentation of the temperature-profile model.
+Renamed to TCEA: three-channel Eddington approximation model.
+Bumped Pyray-Bay revision (now version 0.0.12).
+Resolves #3.
+
+
+*****
+
