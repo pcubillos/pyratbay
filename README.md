@@ -54,12 +54,12 @@ cd run/
 Download the water line-transition database from the HITRAN server with wget:
 ```shell
 wget --user=HITRAN --password=getdata -N https://www.cfa.harvard.edu/HITRAN/HITRAN2012/HITRAN2012/By-Molecule/Compressed-files/01_hit12.zip
-unzip 06_hit08.zip
+unzip 01_hit12.zip
 ```
 Or alternatively, use curl:
 ```shell
 curl -u HITRAN:getdata https://www.cfa.harvard.edu/HITRAN/HITRAN2012/HITRAN2012/By-Molecule/Compressed-files/01_hit12.zip -o 01_hit12.zip
-unzip 06_hit08.zip
+unzip 01_hit12.zip
 ```
 
 Copy the Lineread configuration file and run Lineread to make the Transition-Line-Information (TLI) file:
