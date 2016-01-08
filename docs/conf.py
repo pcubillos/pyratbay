@@ -271,7 +271,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   (master_doc, 'Pyrat-Bay', u'Pyrat-Bay Documentation',
-   author, 'Pyrat-Bay', 'One line description of project.',
+   author, 'Pyrat-Bay', 'Python Radiative Transfer in a Bayesian framework.',
    'Miscellaneous'),
 ]
 
