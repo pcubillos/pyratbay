@@ -1075,4 +1075,10 @@ Pyrat-Bay version 0.0.13.
 
 *****
 
+Moved software versioning variables into VERSION.py
+from pconstants.py.
+Pyrat-Bay version 0.0.14.
+
+*****
+
 
