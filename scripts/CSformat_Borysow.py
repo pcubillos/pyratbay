@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-
-
 import sys, os
 import numpy as np
 
@@ -9,13 +7,13 @@ def main():
   """
   Format Borysow's H2-He CIA data file.
 
-  Usage:
-  ------
+  Usage
+  -----
   Execute from the Shell:
   ./CSformat_Borysow.py fileIn fileOut
 
-  Examples:
-  ---------
+  Examples
+  --------
   $ ./CSformat_Borysow.py ciah2he_dh_quantmech CIA_Borysow_H2He_1000-7000K_0.5-400um.dat  H2 He
   $ ./CSformat_Borysow.py final_CIA_LT.dat     CIA_Borysow_H2H2_0060-0350K_0.6-1000um.dat H2 H2
   $ ./CSformat_Borysow.py final_CIA_HT.dat     CIA_Borysow_H2H2_0400-1000K_0.6-1000um.dat H2 H2
@@ -59,7 +57,7 @@ def main():
   fout = open(fileOut, "w")
 
   # Write comments:
-  fout.write("# This file contains the tabulated {:s}-{:s} CIA data from:\n"
+  fout.write("# This file contains the reformated {:s}-{:s} CIA data from:\n"
              "#  http://www.astro.ku.dk/~aborysow/programs/{:s}\n\n".
               format(mol1, mol2, os.path.basename(fileIn)))
   # Write header:

@@ -1066,5 +1066,13 @@ Pyrat version 1.1.22.
 Added Sphinx documentation source files, following:
 https://gist.github.com/pcubillos/e3c65769662532b43c67
 
+
+*****  Sat Jan  9 23:26:54 CET 2016  *****
+
+Added script to format HITRAN CIA data from Richard et al. (2012).
+Advances #16.
+Pyrat-Bay version 0.0.13.
+
 *****
+
 
