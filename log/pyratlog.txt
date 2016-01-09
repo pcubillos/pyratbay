@@ -1081,4 +1081,9 @@ Pyrat-Bay version 0.0.14.
 
 *****
 
+Updated ctips submodule.
+Pyrat version 1.1.23.
+
+*****
+
 
