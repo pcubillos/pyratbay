@@ -23,7 +23,7 @@ def opticaldepth(pyrat):
   pyrat.ex.ec    = np.zeros((pyrat.atm.nlayers, pyrat.spec.nwave))
   pyrat.od.ec    = np.empty((pyrat.atm.nlayers, pyrat.spec.nwave))
   pyrat.od.depth = np.empty((pyrat.atm.nlayers, pyrat.spec.nwave))
-  pyrat.od.ideep = np.empty(pyrat.spec.nwave, np.int)
+  pyrat.od.ideep = np.tile(pyrat.atm.nlayers-1, pyrat.spec.nwave)
   print("Init:   {:.6f}".format(time.time()-ti))
 
   # Calculate the ray path:
@@ -64,7 +64,7 @@ def opticaldepth(pyrat):
       pyrat.od.ideep[i] = t.cumtrapz(pyrat.od.depth[:,i], pyrat.od.ec[:,i],
                                      pyrat.od.raypath, pyrat.od.maxdepth)
       i += 1
-  else:
+  else: # pyrat.od.path == "transit"
     while i < pyrat.spec.nwave:
       r = 0
       while r < pyrat.atm.nlayers:
