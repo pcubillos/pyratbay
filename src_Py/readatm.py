@@ -49,10 +49,6 @@ def getkeywords(pyrat, atmfile):
     elif line == '' or line.startswith('#'):
       pass
 
-    # Atmospheric file info:
-    elif line.startswith('n'):
-      atm.info = line[1:].strip()
-
     # Radius, pressure, and temperature units of atm file:
     elif line == '@PRESSURE':
       atm.punits = atmfile.readline().strip()
@@ -82,7 +78,6 @@ def getkeywords(pyrat, atmfile):
     pt.msg(1, "Abundance is given by number (volume mixing ratio)", 2)
   pt.msg(1, "Unit factors: radius: {:s},  pressure: {:s},  temperature: {:s}".
           format(atm.runits, atm.punits, atm.tunits), 2)
-  pt.msg(1, "Atm file info: {:s}".format(atm.info), 2)
   pt.msg(1, "Data starting position: {:d}".format(iline), 2)
   return iline
 
