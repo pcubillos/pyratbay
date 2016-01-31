@@ -127,19 +127,19 @@ def interpolate(pyrat):
   # Allocate output extinction-coefficient array:
   pyrat.cs.ec = np.zeros((pyrat.atm.nlayers, pyrat.spec.nwave))
 
+  # Interpolator will require sorted arrays:
+  asort  = np.argsort(pyrat.atm.temp)
+  # This one will de-sort to the original order:
+  desort = np.argsort(asort)
+  sort_temp = pyrat.atm.temp[asort]
+
   for i in np.arange(pyrat.cs.nfiles):
     # Evaluate the spline:
     biv = sip.RectBivariateSpline(pyrat.cs.temp[i],
                                   pyrat.cs.wavenumber[i],
                                   pyrat.cs.absorption[i])
 
-    # Interpolator requires sorted arrays:
-    asort  = np.argsort(pyrat.atm.temp)
-    # This one will de-sort to the original order:
-    desort = np.argsort(asort)
-
     # Interpolate:
-    sort_temp = pyrat.atm.temp[asort]
     cs_absorption = biv(sort_temp, pyrat.spec.wn)
     # Reverse sorting to the original order of the atmospheric layers:
     cs_absorption = cs_absorption[desort]

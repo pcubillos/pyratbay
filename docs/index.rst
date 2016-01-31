@@ -65,6 +65,9 @@ Contents
 
    getstarted
    tutorial
+   lineread
+   pyrat
+   pyrat-bay
    license
 
 .. _Patricio Cubillos: https://github.com/pcubillos/

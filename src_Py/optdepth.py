@@ -31,6 +31,7 @@ def opticaldepth(pyrat):
   path(pyrat, pyrat.atm.radius, pyrat.od.path)
   print("Path:   {:.6f}".format(time.time()-ti))
 
+  # Obtain the extinction-coefficient:
   ti = time.time()
   r = 0
   while r < pyrat.atm.nlayers:

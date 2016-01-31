@@ -1098,5 +1098,11 @@ Minor correction in readatm().
 Removed old (obsolete piece of code).
 Pyrat version 1.1.25.
 
+
+*****  So 31. Jan 13:48:11 CET 2016  *****
+
+Moved CS Temperature sort-desort out of CS-file loop.
+Pyrat version 1.1.26.
+
 *****
 
