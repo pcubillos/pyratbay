@@ -3,14 +3,6 @@
 # FINDME a LICENSE
 
 """
-  Usage:
-  ------
-  Execute from the shell:
-  ./lineread.py [--option <args>]
-
-  To dysplay the list of command-line arguments execute:
-  ./lineread.py --help
-
   Notes:
   ------
   This code is based on Patricio Rojo's C code.  That code was subsequently
@@ -29,17 +21,17 @@ import matplotlib.pyplot as plt
 # Main dir (where lineread.py is located):
 maindir = os.path.dirname(os.path.realpath(__file__))
 
-# Add paths to source-code folders:
-sys.path.append(maindir + '/src_Py/')
-import pconstants as pc
-import ptools     as pt
-import db_pands   as ps
-import db_hitran  as hit
-import db_voplez  as vo
-import db_tioschwenke as ts
+from .. import tools as pt
+from .. import constants as pc
+# # Add paths to source-code folders:
+# sys.path.append(maindir + '/src_Py/')
+# import db_pands   as ps
+# import db_hitran  as hit
+# import db_voplez  as vo
+# import db_tioschwenke as ts
 
 
-def parseargs():
+def parser(cfile=None):
   """
   Read and process the command line arguments.
   """
@@ -47,28 +39,30 @@ def parseargs():
   cparser = argparse.ArgumentParser(description=__doc__, add_help=False,
                            formatter_class=argparse.RawDescriptionHelpFormatter)
   # Add config file option:
-  cparser.add_argument("-c", "--config_file",
+  cparser.add_argument("-c", "--cfile",
                        help="Configuration filename (string).", metavar="FILE")
   # remaining_argv contains all other command-line-arguments:
   args, remaining_argv = cparser.parse_known_args()
 
   # Get parameters from configuration file (if exists):
-  if args.config_file:
-    if not os.path.isfile(args.config_file):
-      pt.error("Configuration file '{:s}' does not exist.".
-                format(args.config_file))
+  if args.cfile:
+    cfile = args.cfile
+  # Parse the configuration-file arguments:
+  if cfile is not None:
+    if not os.path.isfile(cfile):
+      pt.error("Configuration file '{:s}' does not exist.".format(cfile))
     config = ConfigParser.SafeConfigParser()
-    config.read([args.config_file])
-    if "Parameters" not in config.sections():
-      pt.error("Invalid configuration file: '{:s}'.".format(args.config_file))
-    defaults = dict(config.items("Parameters"))
+    config.read([cfile])
+    if "lineread" not in config.sections():
+      pt.error("Invalid configuration file: '{:s}'.".format(cfile))
+    defaults = dict(config.items("lineread"))
     # Store these arguments as lists:
-    if "db_list" in defaults:
-      defaults["db_list"]   = defaults["db_list"].split()
-    if "part_list" in defaults:
-      defaults["part_list"] = defaults["part_list"].split()
+    if "dblist" in defaults:
+      defaults["dblist"] = defaults["dblist"].split()
+    if "pflist" in defaults:
+      defaults["pflist"] = defaults["pflist"].split()
     if "dbtype" in defaults:
-      defaults["dbtype"]    = defaults["dbtype"].split()
+      defaults["dbtype"] = defaults["dbtype"].split()
   else:
     defaults = {}
 
@@ -84,17 +78,17 @@ def parseargs():
                        dest="verb")
   # Database Options:
   group = parser.add_argument_group("Database Options")
-  group.add_argument("-o", "--output",         action  = "store",
+  group.add_argument("-o", "--outfile",        action  = "store",
                      help="Output filename (string) [default: '%(default)s'].",
-                     dest= "output",           default = "output.tli")
+                     dest= "outfile",          default = "output.tli")
   group.add_argument("-d", "--database",       action="append",
                      help="Path (string) to the input line-transition "
                           "database file(s).",
-                     dest="db_list")
+                     dest="dblist")
   group.add_argument("-p", "--partition",      action="append",
                      help="Path (string) to auxiliary partition-function "
                           "file(s).",
-                     dest="part_list")
+                     dest="pflist")
   group.add_argument("-t", "--dbtype",         action="append",
                      help="Database type (string).  'ps' for Partridge & "
                           "Schwenke's H2O; 'hit' for HITRAN and HITEMP; or "
@@ -105,29 +99,45 @@ def parseargs():
   group.add_argument("-i", "--wl-init",       action="store",
                      help="Initial wavelength (microns) [default: "
                           "%(default)s].",
-                     dest="iwav", type=float, default=1.0)
+                     dest="iwl", type=float, default=1.0)
   group.add_argument("-f", "--wl-final",      action="store",
                      help="Final wavelength (microns) [default: %(default)s].",
-                     dest="fwav", type=float, default=2.0)
+                     dest="fwl", type=float, default=2.0)
   parser.set_defaults(**defaults)
   args = parser.parse_args(remaining_argv)
 
   return args
 
 
-def main():
+def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
+            iwl=None,    fwl=None,    verb=None,   cfile=None):
   """
-  Main function to create a TLI file.
+  Driver function to create a TLI file.
   """
+  args = locals()
+  sys.argv = ["ipython"]
 
-  # Process command-line-arguments:
-  cla = parseargs()
-  # Unpack parameters:
-  verb       = cla.verb
-  dblist     = cla.db_list
-  pflist     = cla.part_list
-  dbtype     = cla.dbtype
-  outputfile = cla.output
+  # Process configuration-file arguments:
+  cargs = parser(cfile=cfile)
+
+  print(cfile)
+
+  # Unpack parameters that have not been defined already:
+  for key in args.keys():
+    if args[key] is None:
+      exec("{:s} = cargs.{:s}".format(key, key))
+
+  print("VALUES:")
+  print(dblist)
+  print(pflist)
+  print(dbtype)
+  print(outfile)
+  print(iwl)
+  print(fwl)
+  print(verb)
+  print(cfile)
+  
+  return cargs
 
   # Number of files:
   Nfiles = len(dblist)
@@ -137,8 +147,8 @@ def main():
   Ntype = len(dbtype)
   if (Nfiles != Npf) or (Nfiles != Ntype):
     pt.error("The number of Line-transition files ({:d}) does not match the "
-        "number of partition-function files ({:d}) or database type ({:d}).".
-         format(Nfiles, Npf, Ntype))
+        "number of partition-function files ({:d}) or database-type "
+        "files ({:d}).".format(Nfiles, Npf, Ntype))
 
   # Driver routine to read the databases:
   driver = []
@@ -378,7 +388,3 @@ def main():
   TLIout.close()
   pt.msg(verb, "Done.\n")
   sys.exit(0)
-
-
-if __name__ == "__main__":
-  main()
