@@ -1,9 +1,13 @@
-from numpy import get_include
 import os, re, sys
-from distutils.core import setup, Extension
+from numpy import get_include
+from setuptools import setup, Extension
 
-srcdir = './'           # C-code source folder
-incdir = '../include/'  # Include filder with header files
+topdir = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(topdir + "/pyratbay")
+import VERSION as ver
+
+srcdir = topdir + '/src_c/'          # C-code source folder
+incdir = topdir + '/src_c/include/'  # Include filder with header files
 
 # Get all file from source dir:
 files = os.listdir(srcdir)
@@ -13,8 +17,8 @@ files = list(filter(lambda x:     re.search('.+[.]c$',     x), files))
 files = list(filter(lambda x: not re.search('[.#].+[.]c$', x), files))
 
 inc = [get_include(), incdir]
-eca = ['-ffast-math']  # '-fopenmp'
-ela = []               # '-lgomp'
+eca = ['-ffast-math']
+ela = []
 
 extensions = []
 for i in range(len(files)):
@@ -26,10 +30,14 @@ for i in range(len(files)):
   extensions.append(e)
 
 
-setup(name         = "Pyrat-Bay C",
-      version      = '1.0',
+setup(name         = "pyratbay",
+      version      = "{:d}.{:d}.{:d}".format(ver.PBAY_VER, ver.PBAY_MIN,
+                                             ver.PBAY_REV),
       author       = "Patricio Cubillos",
-      author_email = "pcubillos@fulbrightmail.org",
-      url          = "https://github.com/pcubillos/Pyrat-Bay",
-      description  = "Pyrat-Bay C extension function",
+      author_email = "patricio.cubillos@oeaw.ac.at",
+      url          = "https://github.com/pcubillos/pyratbay",
+      packages     = ["pyratbay"],
+      license      = ["FINDME"],
+      description  = "Python Radiative Transfer in a Bayesian Framework.",
+      include_dirs = inc,
       ext_modules  = extensions)
