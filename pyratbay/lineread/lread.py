@@ -2,34 +2,19 @@
 
 # FINDME a LICENSE
 
-"""
-  Notes:
-  ------
-  This code is based on Patricio Rojo's C code.  That code was subsequently
-  modified by Madison Stemm to translate to Python, and later by Patricio
-  Cubillos into the pylineread module (part of the Transit project)
-"""
+__all__ = ["makeTLI", "parser"]
 
 import sys, os
 import time
 import ConfigParser, argparse
 import struct
 import numpy as np
-import scipy.constants as sc
 import matplotlib.pyplot as plt
-
-# Main dir (where lineread.py is located):
-maindir = os.path.dirname(os.path.realpath(__file__))
 
 from .. import tools as pt
 from .. import constants as pc
-# # Add paths to source-code folders:
-# sys.path.append(maindir + '/src_Py/')
-# import db_pands   as ps
-# import db_hitran  as hit
-# import db_voplez  as vo
-# import db_tioschwenke as ts
-
+from .  import db
+from .. import VERSION as ver
 
 def parser(cfile=None):
   """
@@ -47,6 +32,7 @@ def parser(cfile=None):
   # Get parameters from configuration file (if exists):
   if args.cfile:
     cfile = args.cfile
+
   # Parse the configuration-file arguments:
   if cfile is not None:
     if not os.path.isfile(cfile):
@@ -113,31 +99,26 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
             iwl=None,    fwl=None,    verb=None,   cfile=None):
   """
   Driver function to create a TLI file.
+
+  Uncredited developers
+  ---------------------
+  Patricio Rojo  (Cornell U.)
+  Madison Stemm  (UCF)
   """
+
+  # FINDME: I need to import db again.
+  #         Why db dissapeasr from the namespace?
+  from . import db
   args = locals()
   sys.argv = ["ipython"]
 
   # Process configuration-file arguments:
   cargs = parser(cfile=cfile)
 
-  print(cfile)
-
   # Unpack parameters that have not been defined already:
   for key in args.keys():
     if args[key] is None:
       exec("{:s} = cargs.{:s}".format(key, key))
-
-  print("VALUES:")
-  print(dblist)
-  print(pflist)
-  print(dbtype)
-  print(outfile)
-  print(iwl)
-  print(fwl)
-  print(verb)
-  print(cfile)
-  
-  return cargs
 
   # Number of files:
   Nfiles = len(dblist)
@@ -154,52 +135,46 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
   driver = []
   for i in np.arange(Nfiles):
     if   dbtype[i] == "ps":
-      driver.append(ps.pands(      dblist[i], pflist[i]))
+      driver.append(db.pands(      dblist[i], pflist[i]))
     elif dbtype[i] == "hit":
-      driver.append(hit.hitran(    dblist[i], pflist[i]))
+      driver.append(db.hitran(    dblist[i], pflist[i]))
     elif dbtype[i] == "ts":
-      driver.append(ts.tioschwenke(dblist[i], pflist[i]))
+      driver.append(db.tioschwenke(dblist[i], pflist[i]))
     elif dbtype[i] == "vo":
-      driver.append(vo.voplez(     dblist[i], pflist[i]))
+      driver.append(db.voplez(     dblist[i], pflist[i]))
     else:
       pt.error("Unknown Database type ({:d}): '{:s}'".format(i+1, dbtype[i]))
     pt.msg(verb-10, "File {:d}, database name: '{:s}'".
                        format(i+1, driver[i].name))
 
-  pt.msg(verb, "Beginning to write the TLI file: '{:s}'".format(outputfile))
+  pt.msg(verb, "Beginning to write the TLI file: '{:s}'".format(outfile))
   # Open output file:
-  TLIout  = open(outputfile, "wb")
+  TLIout  = open(outfile, "wb")
 
   # Get the machine endian type (big/little):
-  endianness = sys.byteorder
-
-  # Hardcoded implementation of lineread's "magic number" check for endianness
-  # derived from binary encoding the letters TLI into binary location
-  # and checking the order
-  if endianness == 'big':
+  if sys.byteorder == 'big':
     endian = 'b'
-  if endianness == 'little':
+  if sys.byteorder == 'little':
     endian = 'l'
 
-  # TLI header: Tells endianness of binary, TLI version (major, minor, and
-  #             revision):
+  # Start storing TLI header values:
   header = endian
-  header += struct.pack("3h", pc.LR_VER, pc.LR_MIN, pc.LR_REV)
+  header += struct.pack("3h", ver.LR_VER, ver.LR_MIN, ver.LR_REV)
 
   # Boundaries in wavenumber space (in cm-1):
-  iwn = 1.0/(cla.fwav*pc.um)
-  fwn = 1.0/(cla.iwav*pc.um)
+  iwn = 1.0/(fwl*pc.um)
+  fwn = 1.0/(iwl*pc.um)
 
-  # Add initial and final wavenumber boundaries:
+  # Add initial and final wavenumber boundaries (in cm-1):
   header += struct.pack("2d", iwn, fwn)
 
   # Get number of databases:
-  DBnames = [] # Database names
-  DBskip  = [] # Index of repeated databases
+  DBnames = []  # Database names
+  DBskip  = []  # Index of repeated databases
   for i in np.arange(Nfiles):
     dbname = driver[i].name
     if dbname in DBnames:
-      DBskip.append(i) # Ommit repeated databases
+      DBskip.append(i)  # Ommit repeated databases
     else:
       DBnames.append(dbname)
   Ndb = len(DBnames)
@@ -210,8 +185,8 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
                  "TLI Version:  {:d}.{:d}.{:d}\n"
                  "Initial wavelength (um): {:7.3f}  ({:9.3f} cm-1)\n"
                  "Final wavelength (um):   {:7.3f}  ({:9.3f} cm-1)".
-                 format(endian, pc.LR_VER, pc.LR_MIN, pc.LR_REV,
-                        cla.iwav, fwn,  cla.fwav, iwn))
+                 format(endian, ver.LR_VER, ver.LR_MIN, ver.LR_REV,
+                        iwl, fwn,  fwl, iwn))
   pt.msg(verb-8, "There are {:d} databases in {:d} files.".
                     format(Ndb, Nfiles))
   pt.msg(verb-9, "List of databases:\n{}".format(DBnames))
@@ -308,7 +283,7 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
 
     # Read databases:
     ti = time.time()
-    transDB = driver[db].dbread(iwn, fwn, cla.verb, pflist[db])
+    transDB = driver[db].dbread(iwn, fwn, verb, pflist[db])
     tf = time.time()
     pt.msg(verb-3, "Reading time: {:8.3f} seconds".format(tf-ti))
 

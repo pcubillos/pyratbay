@@ -1,23 +1,26 @@
 # ****************************** START LICENSE ******************************
 # ******************************* END LICENSE ******************************
 
+__all__ = ["hitran"]
+
 import os
 import numpy as np
 
-import ptools     as pt
-import pconstants as pc
-from db_driver import dbdriver
+from ... import tools     as pt
+from ... import constants as pc
+from .driver import dbdriver
 
-# Directory of db_hitran.py:
-DBHdir = os.path.dirname(os.path.realpath(__file__))
+# Directory of db:
+DBdir = os.path.dirname(os.path.realpath(__file__))
+
 
 class hitran(dbdriver):
   def __init__(self, dbfile, pffile):
     """
     Initialize the basic database info.
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     dbfile: String
        File with the Database info as given from HITRAN.
     pffile: String
@@ -49,15 +52,15 @@ class hitran(dbdriver):
     """
     Read wavenumber from record irec in dbfile database.
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     dbfile: File object
        File where to extract the wavelength.
     irec: Integer
        Index of record.
 
-    Returns:
-    --------
+    Returns
+    -------
     wavenumber: Float
        Wavelength value in cm-1.
     """
@@ -73,8 +76,8 @@ class hitran(dbdriver):
     """
     Get HITRAN info from configuration file.
 
-    Returns:
-    --------
+    Returns
+    -------
     molID
     molname:  Molecule's name
     isotopes: Isotopes names
@@ -88,7 +91,7 @@ class hitran(dbdriver):
     data.close()
 
     # Read HITRAN configuration file from inputs folder:
-    hfile = open(DBHdir + '/../inputs/hitran.dat', 'r')
+    hfile = open(DBdir + '/../../../inputs/hitran.dat', 'r')
     lines = hfile.readlines()
     hfile.close()
 
@@ -114,8 +117,8 @@ class hitran(dbdriver):
     """
     Read a HITRAN or HITEMP database (dbfile) between wavenumbers iwn and fwn.
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     dbfile: String
        A HITRAN or HITEMP database filename.
     iwn: Float
@@ -127,8 +130,8 @@ class hitran(dbdriver):
     pffile: String
        Partition function filename.
 
-    Returns:
-    --------
+    Returns
+    -------
     wnumber: 1D float ndarray
       Line-transition central wavenumber (centimeter-1).
     gf: 1D float ndarray
@@ -138,8 +141,8 @@ class hitran(dbdriver):
     isoID: 2D integer ndarray
       Isotope index (0, 1, 2, 3, ...).
 
-    Notes:
-    ------
+    Notes
+    -----
     - The HITRAN data is provided in ASCII format.
     - The line transitions are sorted in increasing wavenumber (cm-1) order.
     """
@@ -201,12 +204,12 @@ class hitran(dbdriver):
     isoID -= 1
     isoID[np.where(isoID < 0)] = 9 # 10th isotope had index 0 --> 10-1=9
 
-    # Calculate gf (Equation (36) of Simekova 2006):
+    # Calculate gf using Equation (36) of Simekova (2006):
     gf = A21 * g2 * pc.C1 / (8.0 * np.pi * pc.c) / wnumber**2.0
 
     data.close()
     pt.msg(verbose, "Done.\n")
 
-    # Remove lines with unknown Elow (see Rothman et al. 1996):
+    # Remove lines with unknown Elow, see Rothman et al. (1996):
     igood = np.where(elow > 0)
     return wnumber[igood], gf[igood], elow[igood], isoID[igood]

@@ -1,12 +1,15 @@
 # ****************************** START LICENSE ******************************
 # ******************************* END LICENSE ******************************
 
-import struct, time
+__all__ = ["tioschwenke"]
+
+import struct
 import numpy as np
 
-import ptools     as pt
-import pconstants as pc
-from db_driver import dbdriver
+from ... import tools     as pt
+from ... import constants as pc
+from .driver import dbdriver
+
 
 class tioschwenke(dbdriver):
   """

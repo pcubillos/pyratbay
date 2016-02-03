@@ -1,6 +1,6 @@
-# Makefile - prepared for ctips
+# Makefile - prepared for Pyrat-Bay package
 #
-# `make` - Build and compile the ctips executable and python extension.
+# `make` - Build and compile the pyratbay package.
 # `make clean` - Remove all compiled (non-source) files that are created.
 #
 # If you are interested in the commands being run by this makefile, you may add

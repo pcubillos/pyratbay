@@ -1,15 +1,14 @@
 # ****************************** START LICENSE ******************************
 # ******************************* END LICENSE ******************************
 
-import sys
-import os
+__all__ = ["voplez"]
+
 import numpy as np
 
-import ptools     as pt
-import pconstants as pc
-from db_driver import dbdriver
+from ... import tools     as pt
+from ... import constants as pc
+from .driver import dbdriver
 
-import struct, time
 
 class voplez(dbdriver):
   """
