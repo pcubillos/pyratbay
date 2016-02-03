@@ -1143,3 +1143,8 @@ Bumped Lineread version to 6.4.0.
 Finished refactoring pyrat as a package.
 
 *****
+
+Updated the lineread demo config file.
+Several of the input variable names changed.
+
+*****
