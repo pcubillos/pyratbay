@@ -85,10 +85,10 @@ def parser(cfile=None):
   group.add_argument("-i", "--wl-init",       action="store",
                      help="Initial wavelength (microns) [default: "
                           "%(default)s].",
-                     dest="iwl", type=float, default=1.0)
+                     dest="iwl", type=float, default=0.01)
   group.add_argument("-f", "--wl-final",      action="store",
                      help="Final wavelength (microns) [default: %(default)s].",
-                     dest="fwl", type=float, default=2.0)
+                     dest="fwl", type=float, default=999.9)
   parser.set_defaults(**defaults)
   args = parser.parse_args(remaining_argv)
 
@@ -106,8 +106,8 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
   Madison Stemm  (UCF)
   """
 
-  # FINDME: I need to import db again.
-  #         Why db dissapeasr from the namespace?
+  # FINDME: For some reason, I need to import 'db' again.
+  #         Why has db dissapeared from the namespace?
   from . import db
   args = locals()
   sys.argv = ["ipython"]
@@ -119,6 +119,19 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
   for key in args.keys():
     if args[key] is None:
       exec("{:s} = cargs.{:s}".format(key, key))
+
+  # Input-not-found error messages:
+  if dblist is None:
+    pt.error("There are no input database files ('dbfile').")
+  if dbtype is None:
+    pt.error("There are no input database types ('dbtype').")
+  if pflist is None:
+    pt.error("There are no partition-function inputs ('pflist').")
+  # Defaulted-inputs warning messages:
+  if iwl == 0.01:
+    pt.warning("Using default initial wavelength boundary: iwl = 0.01 um.")
+  if fwl == 999.9:
+    pt.warning("Using default final wavelength boundary: fwl = 999.9 um.")
 
   # Number of files:
   Nfiles = len(dblist)
@@ -361,5 +374,6 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
   pt.msg(verb-3, "Writing time: {:8.3f} seconds".format(tf-ti))
 
   TLIout.close()
+  pt.msg(verb, "\nGenerated output TLI file: '{:s}'".format(outfile))
   pt.msg(verb, "Done.\n")
   sys.exit(0)
