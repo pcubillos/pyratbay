@@ -27,8 +27,8 @@ static PyObject *planck(PyObject *self, PyObject *args){
            *wn,       /* Wavenumber array [nwave]                           */
            *temp,     /* Temperature of layers [nlayers]                    */
            *last;     /* Index of last layer to evaluate [nwave]            */
-  int i, j,   /* Auxilliary for-loop indices                                */
-      nwave;  /* Number of wavenumber spectral samples                      */
+  int i, j;    /* Auxilliary for-loop indices                               */
+  long nwave;  /* Number of wavenumber spectral samples                     */
   double factor;
 
   /* Load inputs:                                                           */

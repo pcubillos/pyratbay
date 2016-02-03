@@ -1152,3 +1152,6 @@ Several of the input variable names changed.
 Bumped Pyrat version to 1.2.0.
 
 *****
+
+Fixed C-extensions compilation warnings.
+Bumped Pyrat version to 1.2.1.

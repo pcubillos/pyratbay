@@ -40,7 +40,7 @@ static PyObject *geth(PyObject *self, PyObject *args){
     return NULL;
 
   /* Get the number of intervals:                                           */
-  n = PyArray_DIM(h, 0);
+  n = (int)PyArray_DIM(h, 0);
 
   /* Empty array case:                                                      */
   if (n==0){
@@ -105,7 +105,7 @@ static PyObject *simps(PyObject *self, PyObject *args){
     return NULL;
 
   /* Length of integrand:                                                   */
-  n = PyArray_DIM(y, 0);
+  n = (int)PyArray_DIM(y, 0);
   /* Check if I have an even number of samples:                             */
   even = n%2 == 0;
 

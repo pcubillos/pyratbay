@@ -100,7 +100,7 @@ static PyObject *TCEA(PyObject *self, PyObject *args){
     return NULL;
 
   /* Get array size:                                                        */
-  size[0] = nlayers = PyArray_DIM(pressure, 0);
+  size[0] = nlayers = (int)PyArray_DIM(pressure, 0);
 
   /* Allocate output:                                                       */
   temperature = (PyArrayObject *) PyArray_SimpleNew(1, size, NPY_DOUBLE);

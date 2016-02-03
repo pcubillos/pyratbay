@@ -81,14 +81,16 @@ static PyObject *extinction(PyObject *self, PyObject *args){
            *isoz, *isoiext,                       /* Isotopic data          */
            *lwn, *lID, *elow, *gf;                /* Line transition data   */
 
-  int next, nLor, nDop,
-      nmol, niso,
-      nlines,
-      dnwn, onwn, ndivs, iown, idwn, offset, subw,
+  long nmol, niso, nlines, next, ndivs,
+       onwn, dnwn,
+       minj, maxj,
+       nLor, nDop;
+  int iown, idwn, offset, subw,
       imol, ofactor, iprof,
-      nadd=0, nskip=0, neval=0, minj, maxj,
+      nadd=0, nskip=0, neval=0,
       add=0;
   int i, j, m, ln; /* Auxilliary for-loop indices    */
+  long jj;
   double pressure, temp, csdiameter, density, minwidth=1e5, vwidth, ethresh,
          florentz, fdoppler, wnstep, ownstep, dwnstep, wavn, next_wn, k;
   double *alphal, *alphad, *kmax, **ktmp, *kprop;
@@ -173,8 +175,8 @@ static PyObject *extinction(PyObject *self, PyObject *args){
     minwidth = fmin(minwidth, vwidth);
 
     /* Search for aDop and aLor indices for alphal[i] and alphad[i]:        */
-    idop[i] = binsearchapprox(doppler, alphad[i]*INDd(wn,0), 0, nDop);
-    ilor[i] = binsearchapprox(lorentz, alphal[i],            0, nLor);
+    idop[i] = binsearchapprox(doppler, alphad[i]*INDd(wn,0), 0, (int)nDop);
+    ilor[i] = binsearchapprox(lorentz, alphal[i],            0, (int)nLor);
   }
 
   wnstep  = INDd(wn, 1) - INDd(wn, 0);
@@ -189,7 +191,7 @@ static PyObject *extinction(PyObject *self, PyObject *args){
   dnwn    = 1 + (onwn-1) / ofactor; /* Number of dynamic-sampling values    */
   printf("Dynamic-sampling grid interval: %.4e "
          "(factor:%i, minwidth:%.3e)\n", dwnstep, ofactor, minwidth);
-  printf("Number of dynamic-sampling values: %d\n", dnwn);
+  printf("Number of dynamic-sampling values: %ld\n", dnwn);
 
   /* Find the maximum line-strength per molecule:                           */
   for (ln=0; ln<nlines; ln++){
@@ -264,7 +266,7 @@ static PyObject *extinction(PyObject *self, PyObject *args){
     /* FINDME: de-hard code this threshold                                  */
     if (alphad[i]*wavn/alphal[i] >= 1e-1){
       /* Recalculate index for Doppler width:                               */
-      idop[i] = binsearchapprox(doppler, alphad[i]*wavn, 0, nDop);
+      idop[i] = binsearchapprox(doppler, alphad[i]*wavn, 0, (int)nDop);
     }
 
     /* Sub-sampling offset between center of line and dyn-sampled wn:       */
@@ -284,8 +286,8 @@ static PyObject *extinction(PyObject *self, PyObject *args){
     iprof = IND2i(pindex, idop[i], ilor[i]);
     //printf("minj: %d, maxj: %d, prof0: %d, offset: %d, ofactor: %d\n",
     //       minj, maxj, iprof, offset, ofactor);
-    int jj = iprof + ofactor*minj - offset;
-    for(j=minj; j<maxj; j++){
+    jj = iprof + ofactor*minj - offset;
+    for(j=(int)minj; j<maxj; j++){
       //transitprint(1, 2, "%i  ", j-offset);
       //transitprint(1, 2, "j=%d, p[%i]=%.2g   ", j, j-offset,
       //                    profile[idop[i]][ilor[i]][subw][j-offset]);
@@ -309,7 +311,7 @@ static PyObject *extinction(PyObject *self, PyObject *args){
   /* Downsample ktmp to the final sampling size:                            */
   for (m=0; m<next; m++){
     //printf("IN [0,N]: {%.3e, %.3e}\n", ktmp[m][0], ktmp[m][dnwn-1]);
-    downsample(ktmp, ext, dnwn, wnstep/ownstep/ofactor, m);
+    downsample(ktmp, ext, (int)dnwn, wnstep/ownstep/ofactor, m);
   }
 
   /* Free the no-longer used memory:                                        */
@@ -354,9 +356,8 @@ static PyObject *interp_ec(PyObject *self, PyObject *args){
                 *density,     /* Density of species at given layer          */
                 *molID;       /* mol ID of the atmospheric species          */
 
-  int nwave, nmol, ntemp,  /* Number of wavenumber, species, & temperatures */
-      nmolID,
-      tlo, thi, imol;
+  int tlo, thi, imol;
+  long nwave, nmol, nmolID, ntemp;  /* Number of wavenumber, species, temps */
   int i, j;                /* Auxilliary for-loop indices                   */
   double ext,              /* Temporary extinction coefficient              */
          temperature;      /* Atmospheric-layer temperature                 */
@@ -373,7 +374,7 @@ static PyObject *interp_ec(PyObject *self, PyObject *args){
   nmolID = PyArray_DIM(molID,  0);  /* Number of species in atmosphere      */
 
   /* Find index of grid-temperature immediately lower than temperature:     */
-  tlo = binsearchapprox(ttable, temperature, 0, ntemp);
+  tlo = binsearchapprox(ttable, temperature, 0,(int)ntemp);
   if (temperature < INDd(ttable,tlo)){
     tlo--;
   }
@@ -381,7 +382,7 @@ static PyObject *interp_ec(PyObject *self, PyObject *args){
 
   /* Add contribution from each molecule:                                   */
   for (j=0; j<nmol; j++){
-    imol = valueinarray(molID, INDi(mtable,j), nmolID);
+    imol = valueinarray(molID, INDi(mtable,j), (int)nmolID);
     for (i=0;  i<nwave; i++){
       /* Linear interpolation of the extinction coefficient:                */
       ext = (IND3d(etable,j,tlo,i) * (INDd(ttable,thi) - temperature) +
