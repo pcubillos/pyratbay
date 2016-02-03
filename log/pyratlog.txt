@@ -1148,3 +1148,7 @@ Updated the lineread demo config file.
 Several of the input variable names changed.
 
 *****
+
+Bumped Pyrat version to 1.2.0.
+
+*****
