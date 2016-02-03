@@ -7,7 +7,7 @@ import numpy as np
 # Directory of db:
 DBdir = os.path.dirname(os.path.realpath(__file__))
 # Add path to ctips source code:
-sys.path.append(DBdir + "/../../../pytips")
+sys.path.append(DBdir + "/../../../modules/pytips")
 import pytips as t
 
 
