@@ -31,7 +31,7 @@ static PyObject *trapz(PyObject *self, PyObject *args){
     return NULL;
 
   /* Get the number of intervals:                                           */
-  nint = PyArray_DIM(intervals, 0);
+  nint = (int)PyArray_DIM(intervals, 0);
 
   /* Empty array case:                                                      */
   if (nint < 1){
@@ -78,7 +78,7 @@ static PyObject *cumtrapz(PyObject *self, PyObject *args){
     return NULL;
 
   /* Get the number of intervals:                                           */
-  nint = PyArray_DIM(intervals, 0);
+  nint = (int)PyArray_DIM(intervals, 0);
 
   /* First value is zero (zero-length interval):                            */
   INDd(output,0) = 0.0;
