@@ -4,7 +4,7 @@ import textwrap
 import struct
 import numpy as np
 
-import pconstants as pc
+from .. import constants as pc
 
 """
 Pyrat tools: Tools for the Pyrat-Bay project.

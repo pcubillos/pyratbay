@@ -3,17 +3,15 @@ import struct
 import numpy as np
 import scipy.interpolate as sip
 
-import ptools     as pt
-import pconstants as pc
-import vprofile   as vp
+from .. import tools     as pt
+from .. import constants as pc
+
+sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../lib')
+import vprofile as vp
 
 def voigt(pyrat):
   """
   Driver to calculate a grid of Voigt profiles.
-
-  Modification History:
-  ---------------------
-  2014-08-17  patricio  Initial version.
   """
 
   # Check if reading extinction-coefficient table or no TLI files:
@@ -40,10 +38,6 @@ def voigt(pyrat):
 def widthlimits(pyrat):
   """
   Calculate the boundaries for the Doppler and Lorentz widths.
-
-  Modification History:
-  ---------------------
-  2014-08-17  patricio  Initial version.
   """
 
   # Get minimum temperature:
@@ -97,11 +91,6 @@ def calcvoigt(pyrat):
 
   Determine the size of each voigt profile, find the ones that don't need
   to be recalculated (small Doppler/Lorentz width ratio) and get the profiles.
-
-  Modification History:
-  ---------------------
-  2014-08-24  patricio  Initial implementation.  Use modified functions from
-                        the transit project (newprofile and voigtn).
   """
   # Voigt object from pyrat:
   voigt = pyrat.voigt

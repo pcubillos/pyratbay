@@ -1,15 +1,14 @@
-# ****************************** START LICENSE ******************************
-# ******************************* END LICENSE ******************************
+# FINDME A LICENSE
 
 import sys
 import os
 import numpy as np
 
-# Directory of db_hitran.py:
-DBHdir = os.path.dirname(os.path.realpath(__file__))
+# Directory of db:
+DBdir = os.path.dirname(os.path.realpath(__file__))
 # Add path to ctips source code:
-sys.path.append(DBHdir + "/../ctips/lib")
-import ctips as ct
+sys.path.append(DBdir + "/../../../modules/pytips")
+import pytips as t
 
 
 class dbdriver(object):
@@ -37,7 +36,7 @@ class dbdriver(object):
       # Calculate the partition function for each isotope:
       for i in np.arange(niso):
         isoID = np.repeat(int(self.isotopes[i]), ntemp)
-        PF[i] = ct.tips(molID, isoID, temp)/self.gi[i]
+        PF[i] = t.tips(molID, isoID, temp)/self.gi[i]
       return temp, PF
 
     # Use polynomial expression:
@@ -88,11 +87,11 @@ class dbdriver(object):
 
   def binsearch(self, dbfile, wave, ilo, ihi, searchup=True):
     """
-    Do a binary (and then linear) search for wavelength in file dbfile
-    between record positions ilo and ihi.
+    Do a binary (and then linear) search for wavelength/wavenumber in
+    file 'dbfile' between record positions ilo and ihi.
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     dbfile: File object
        File where to search.
     wave: Scalar
@@ -110,9 +109,9 @@ class dbdriver(object):
     irec:  Integer
        Record index for wave.
 
-    Uncredited developers:
-    ----------------------
-    Madison Stemm, UCF.
+    Uncredited developers
+    ---------------------
+    Madison Stemm  (UCF)
     """
     # Minimum and maximum boundaries where to search:
     imin, imax = ilo, ihi
@@ -165,8 +164,8 @@ class dbdriver(object):
     """
     Extract the partition-function and temperature from file.
 
-    Returns:
-    --------
+    Returns
+    -------
     temp: 1D float ndarray
        Array with temperature sample.
     PF:   2D float ndarray

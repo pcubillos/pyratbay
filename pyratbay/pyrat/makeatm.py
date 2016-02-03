@@ -1,5 +1,6 @@
 import numpy as np
-import ptools as pt
+
+from .. import tools     as pt
 
 def uniform(atmfile, pressure, temperature, species, abundances):
   """

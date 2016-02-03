@@ -3,8 +3,10 @@ import struct
 import numpy as np
 import scipy.interpolate as sip
 
-import ptools     as pt
-import pconstants as pc
+from .. import tools     as pt
+from .. import constants as pc
+
+sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../lib')
 import extcoeff   as ec
 
 def exttable(pyrat):

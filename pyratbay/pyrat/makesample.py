@@ -3,10 +3,9 @@ import time
 import matplotlib.pyplot as plt
 import scipy.interpolate as sip
 
-import readatm    as ra
-import pconstants as pc
-import ptools     as pt
-
+from .  import readatm   as ra
+from .. import tools     as pt
+from .. import constants as pc
 
 def makewavenumber(pyrat):
   """

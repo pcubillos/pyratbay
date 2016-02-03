@@ -3,8 +3,8 @@ import argparse, ConfigParser
 import numpy as np
 import scipy.constants as sc
 
-import ptools     as pt
-import pconstants as pc
+from .. import tools     as pt
+from .. import constants as pc
 
 def parse(pyrat):
   """
@@ -328,7 +328,7 @@ def checkinputs(pyrat):
   pyrat.cs.files = pyrat.inputs.csfile
 
   if inputs.molfile is None: # Set default
-    inputs.molfile = pyratdir + "/../inputs/molecules.dat"
+    inputs.molfile = pyratdir + "/../../inputs/molecules.dat"
   if not os.path.isfile(inputs.molfile):
     pt.error("Molecular-data file: '{:s}' does not exist.".
              format(inputs.molfile))

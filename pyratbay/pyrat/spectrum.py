@@ -1,7 +1,10 @@
+import sys, os
 import numpy as np
 
-import pconstants as pc
-import ptools     as pt
+from .. import tools     as pt
+from .. import constants as pc
+
+sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../lib')
 import simpson    as s
 import blackbody  as bb
 import cutils     as cu

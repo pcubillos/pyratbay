@@ -1,9 +1,9 @@
 import sys, os
 import numpy as np
 
-import objects as o
-import ptools  as pt
-import pconstants as pc
+from .  import objects   as o
+from .. import tools     as pt
+from .. import constants as pc
 
 def readlinedb(pyrat):
   """
@@ -66,7 +66,7 @@ def readheader(pyrat, linefile):
   TLI_ver, TLI_min, TLI_rev = pt.unpack(linefile, 3, "h")
   pt.msg(pyrat.verb, "TLI version: {:d}.{:d}.{:d}.".
                       format(TLI_ver, TLI_min, TLI_rev), 2)
-  if (TLI_ver != 6) or (TLI_min not in [1,2,3]):
+  if (TLI_ver != 6) or (TLI_min not in [1,2,3,4]):
     pt.error("Incompatible TLI version.  The TLI file must be created with "
              "Lineread version 6.1-6.3.")
 

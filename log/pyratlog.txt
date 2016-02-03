@@ -1106,3 +1106,49 @@ Pyrat version 1.1.26.
 
 *****
 
+Initial folders re-organization to work as a package.
+
+*****
+
+Updated the makefile and setup.py.  C extensions are working.
+
+*****
+
+Split lineread.py as lread.py and the shell-executable lineread.py.
+Refactored the lineread parser.
+Got the lineread executable in shape.
+
+
+*****  Mi 3. Feb 09:30:07 CET 2016  *****
+
+Got Lineread running.
+Using now the re-named, packaged pytips (previously ctips).
+
+*****
+
+Created 'modules/' folder to hold submodules.
+Moved pytips to modules/.
+
+*****
+
+Added Lineread error/warning messages for missing/defaulted inputs,
+respectively.
+
+*****
+
+Bumped Lineread version to 6.4.0.
+
+*****
+
+Finished refactoring pyrat as a package.
+
+*****
+
+Updated the lineread demo config file.
+Several of the input variable names changed.
+
+*****
+
+Bumped Pyrat version to 1.2.0.
+
+*****

@@ -1,6 +1,6 @@
-# Makefile - prepared for ctips
+# Makefile - prepared for Pyrat-Bay package
 #
-# `make` - Build and compile the ctips executable and python extension.
+# `make` - Build and compile the pyratbay package.
 # `make clean` - Remove all compiled (non-source) files that are created.
 #
 # If you are interested in the commands being run by this makefile, you may add
@@ -10,7 +10,7 @@
 #
 # This will display the exact commands being used for building, etc.
 
-LIBDIR = lib/
+LIBDIR = pyratbay/lib/
 
 # Set verbosity
 #
@@ -24,9 +24,9 @@ ifdef VERBOSE
 endif
 
 all:
-	@echo "Building Pyrat-Bay C extensions."
-	$(Q) python setup.py build_ext --inplace $(O)
-	@mv -f *.so $(LIBDIR)
+	@echo "Building Pyrat-Bay package."
+	$(Q) python setup.py build $(O)
+	@mv -f build/lib.*/*.so $(LIBDIR)
 	@rm -rf build/
 	@echo "Successful compilation."
 
