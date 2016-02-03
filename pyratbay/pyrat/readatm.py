@@ -5,8 +5,8 @@ import scipy.constants   as sc
 import scipy.integrate   as si
 import scipy.interpolate as sip
 
-import ptools     as pt
-import pconstants as pc
+from .. import tools     as pt
+from .. import constants as pc
 
 def readatm(pyrat):
   """

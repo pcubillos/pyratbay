@@ -1,14 +1,12 @@
-__all__ = ["pyratbay", "lineread", "pyrat", "constants", "tools"]
+__all__ = ["init", "run"]
 
-from . import pyrat
-from . import lineread
-from . import constants
-from . import tools
+from .shipmaster import init, run
 
-from . import VERSION as ver
+from .. import VERSION as ver
 
-# Pyrat-Bay version:
-__version__ = "{:d}.{:d}.{:d}".format(ver.PBAY_VER, ver.PBAY_MIN, ver.PBAY_REV)
+# PyRaT version:
+__version__ = "{:d}.{:d}.{:d}".format(ver.PYRAT_VER, ver.PYRAT_MIN,
+                                      ver.PYRAT_REV)
 
 
 # Clean up top-level namespace--delete everything that isn't in __all__

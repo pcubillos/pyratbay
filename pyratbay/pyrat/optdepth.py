@@ -1,10 +1,13 @@
+import sys, os
+import time
 import numpy as np
 import scipy.integrate as si
-import time
 
+from .. import tools     as pt
+
+sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../lib')
 import extinction as ex
 import extcoeff   as ec
-import ptools     as pt
 import cutils     as cu
 import trapz      as t
 

@@ -2,8 +2,8 @@ import numpy as np
 import scipy.constants   as sc
 import scipy.interpolate as sip
 
-import pconstants as pc
-import ptools as pt
+from .. import tools     as pt
+from .. import constants as pc
 
 def read(pyrat):
   """

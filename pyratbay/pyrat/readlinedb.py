@@ -1,9 +1,9 @@
 import sys, os
 import numpy as np
 
-import objects as o
-import ptools  as pt
-import pconstants as pc
+from .  import objects   as o
+from .. import tools     as pt
+from .. import constants as pc
 
 def readlinedb(pyrat):
   """

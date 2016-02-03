@@ -9,8 +9,10 @@ import pyratbay as pbay
 
 def main():
   """
-  Usage:
-  ------
+  Lineread shell-executable driver.
+
+  Usage
+  -----
   Execute from the shell:
   ./lineread.py [--option <args>]
 
