@@ -1155,3 +1155,11 @@ Bumped Pyrat version to 1.2.0.
 
 Fixed C-extensions compilation warnings.
 Bumped Pyrat version to 1.2.1.
+
+
+*****  Thu Feb  4 08:16:59 CET 2016  *****
+
+Corrected abs() with fabs() call in C-binsearch function.
+Pyrat version 1.2.2.
+
+*****
