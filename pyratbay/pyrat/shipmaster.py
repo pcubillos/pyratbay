@@ -13,6 +13,7 @@ from . import readlinedb as rl
 from . import voigt      as v
 from . import extinction as ex
 from . import crosssec   as cs
+from . import haze       as hz
 from . import optdepth   as od
 from . import spectrum   as sp
 
@@ -110,6 +111,10 @@ def run(pyrat, inputs=None):
   # Interpolate CIA absorption:
   cs.interpolate(pyrat)
   timestamps.append(time.time())
+
+  # Evaluate haze absorption:
+  hz.extinction(pyrat)
+  hz.evaluate(pyrat)
 
   # Calculate the optical depth:
   od.opticaldepth(pyrat)

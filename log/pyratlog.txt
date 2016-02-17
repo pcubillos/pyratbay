@@ -1162,4 +1162,12 @@ Bumped Pyrat version to 1.2.1.
 Corrected abs() with fabs() call in C-binsearch function.
 Pyrat version 1.2.2.
 
+
+*****  Wed Feb 17 03:07:08 CET 2016  *****
+
+Added Haze class, haze.py file and implemented H2-Rayleigh model
+from Dalgarno and Williams (1962).
+There are still a few pending issues, like, handling haze parameters.
+Pyrat version 1.2.3.
+
 *****

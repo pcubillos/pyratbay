@@ -19,6 +19,7 @@ class Pyrat(object):
     self.ex     = Extinction()      # Extinction-coefficient
     self.cs     = Cross()           # Cross-section extinction
     self.od     = Optdepth()        # Optical depth
+    self.haze   = Haze()            # Hazes
     # Files:
     self.atmfile     = None  # Atmopheric-model file
     self.linedb      = None  # Line-transition data file
@@ -99,6 +100,9 @@ class Inputs(object):
     self.exthresh = None
     self.tmin     = None
     self.tmax     = None
+    # Haze models:
+    self.hazes    = None
+    self.hazepars = None
     # Optical depth arguments:
     self.path     = None
     self.maxdepth = None
@@ -470,6 +474,14 @@ class Cross(object):
                    "atmospheric model (cm-1) [layer, wave]:", 2)
       pt.msg(1, "{}".format((self.ec)), 2)
     np.set_printoptions(formatter=None)
+
+
+class Haze(object):
+  def __init__(self):
+    self.nmodels = 0     # Number of haze models
+    self.model   = []    # List of haze models
+    self.ec      = None  # Haze extinction coefficient
+
 
 
 class Optdepth(object):

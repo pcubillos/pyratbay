@@ -3,7 +3,7 @@ import time
 import numpy as np
 import scipy.integrate as si
 
-from .. import tools     as pt
+from .. import tools as pt
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../lib')
 import extinction as ex
@@ -55,7 +55,7 @@ def opticaldepth(pyrat):
   r = 0
   while r < pyrat.atm.nlayers:
     # Sum all contributions to the extinction:
-    pyrat.od.ec[r] = pyrat.ex.ec[r] + pyrat.cs.ec[r]
+    pyrat.od.ec[r] = pyrat.ex.ec[r] + pyrat.cs.ec[r] + pyrat.haze.ec[r]
     r += 1
   print("Add:    {:.6f}".format(time.time()-ti))
 
