@@ -1177,3 +1177,7 @@ Pyrat version 1.2.4.
 
 *****
 
+Updated pyrat demo examples to include H2-Rayleigh extinction.
+
+*****
+
