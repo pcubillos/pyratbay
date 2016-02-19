@@ -22,7 +22,8 @@ from .objects import Pyrat
 
 def init(argv, main=False):
   """
-  PyRaT (Python Radiative Transfer) initialization shipmaster.
+  PyRaT (Python Radiative Transfer) initialization driver (or should
+  I say shipmaster?).
 
   Parameters
   ----------
