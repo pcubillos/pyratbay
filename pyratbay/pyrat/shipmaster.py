@@ -82,6 +82,9 @@ def init(argv, main=False):
   cs.read(pyrat)
   timestamps.append(time.time())
 
+  # Calculate haze opacity cross section:
+  hz.extinction(pyrat)
+
   # Calculate extinction-coefficient table:
   ex.exttable(pyrat)
   timestamps.append(time.time())
@@ -112,9 +115,8 @@ def run(pyrat, inputs=None):
   cs.interpolate(pyrat)
   timestamps.append(time.time())
 
-  # Evaluate haze absorption:
-  hz.extinction(pyrat)
-  hz.evaluate(pyrat)
+  # Calculate the haze absorption at each layer:
+  hz.absorption(pyrat)
 
   # Calculate the optical depth:
   od.opticaldepth(pyrat)

@@ -1179,5 +1179,12 @@ Pyrat version 1.2.4.
 
 Updated pyrat demo examples to include H2-Rayleigh extinction.
 
+
+*****  Fri Feb 19 23:08:11 CET 2016  *****
+
+Added H2 Rayleigh model from Lecavelier des Etangs et al. (2008).
+Renamed haze evaluate() function to absorption().
+
 *****
+
 
