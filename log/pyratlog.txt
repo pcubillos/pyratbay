@@ -1197,3 +1197,7 @@ To do: add pyrat-bay logo.
 
 *****
 
+Added MCcubed submodule, poiting to the multiproc branch.
+
+*****
+
