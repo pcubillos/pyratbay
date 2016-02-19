@@ -9,7 +9,7 @@ import pyratbay as pbay
 
 def main():
   """
-  PyRaT (Python Radiative Transfer) initialization shipmaster.
+  PyRaT (Python Radiative Transfer) initialization driver.
   """
 
   # Initialize the Pyrat Object:

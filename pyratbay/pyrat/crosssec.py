@@ -12,13 +12,16 @@ def read(pyrat):
 
   pt.msg(pyrat.verb, "\nReading the cross-section files:", 0)
   # Number of CS files:
-  pyrat.cs.nfiles = len(pyrat.cs.files)
-  # Allocate molecules array:
-  pyrat.cs.molecules = np.zeros((pyrat.cs.nfiles, 2), pc.strfmt)
-  pyrat.cs.nmol      = np.zeros(pyrat.cs.nfiles, np.int)
-  # Allocate the number of temperature and wavenumber samples per file:
-  pyrat.cs.ntemp     = np.zeros(pyrat.cs.nfiles, np.int)
-  pyrat.cs.nwave     = np.zeros(pyrat.cs.nfiles, np.int)
+  if pyrat.cs.files is None:
+    pyrat.cs.nfiles = 0
+  else:
+    pyrat.cs.nfiles = len(pyrat.cs.files)
+    # Allocate molecules array:
+    pyrat.cs.molecules = np.zeros((pyrat.cs.nfiles, 2), pc.strfmt)
+    pyrat.cs.nmol      = np.zeros(pyrat.cs.nfiles, np.int)
+    # Allocate the number of temperature and wavenumber samples per file:
+    pyrat.cs.ntemp     = np.zeros(pyrat.cs.nfiles, np.int)
+    pyrat.cs.nwave     = np.zeros(pyrat.cs.nfiles, np.int)
 
   if pyrat.cs.nfiles == 0:
     pt.msg(pyrat.verb, "No CS files to read.", 2)

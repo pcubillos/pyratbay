@@ -5,6 +5,7 @@ import scipy.constants as sc
 
 from .. import tools     as pt
 from .. import constants as pc
+from .  import haze      as hz
 
 def parse(pyrat):
   """
@@ -14,12 +15,6 @@ def parse(pyrat):
   -----------
   pyrat: Object
      A pyrat object where to store the CLA.
-
-  Modification History:
-  ---------------------
-  2014-04-26  patricio  Initial implementation.
-  2014-06-29  patricio  Added radius/pressure base levels and surface gravity.
-  2014-08-15  patricio  Added Voigt-profile section and arguments.
   """
 
   pt.msg(1, "Processing command-line arguments:")
@@ -197,6 +192,14 @@ def parse(pyrat):
                      help="Minimum Doppler/Lorentz-width ratio to re-calculate"
                           "a Voigt profile [default: %(default)s]",
                      action="store", type=np.double, default=0.1)
+  # Hazes and clouds options:
+  group = parser.add_argument_group("Hazes and Clouds Options")
+  group.add_argument("--hazes",   dest="hazes",
+                     help="Haze models [default: %(default)s].",
+                     action="store", type=pt.parray, default=None)
+  group.add_argument("--hpars",   dest="hpars",
+                     help="Haze model fitting parameters.",
+                     action="store", type=pt.parray, default=None)
   # Optical depth options:
   group = parser.add_argument_group("Optical Depth Options")
   group.add_argument("--path",          dest="path",
@@ -281,6 +284,9 @@ def parse(pyrat):
   pyrat.inputs.Lmax       = user.Lmax
   pyrat.inputs.nLor       = user.nLor
   pyrat.inputs.DLratio    = user.DLratio
+  # Hazes and clouds:
+  pyrat.inputs.hazes      = user.hazes
+  pyrat.inputs.hpars      = user.hpars
   # Optical depth:
   pyrat.inputs.path       = user.path
   pyrat.inputs.maxdepth   = user.maxdepth
@@ -296,13 +302,6 @@ def parse(pyrat):
 def checkinputs(pyrat):
   """
   Check that user input arguments make sense.
-
-  Modification History:
-  ---------------------
-  2014-04-26  patricio  Initial python implementation.
-  2014-06-29  patricio  Added radius/pressure base levels and surface gravity.
-  2014-08-15  patricio  Added Voigt variables check. Put extinction variables 
-                        in pyrat.ex object.
   """
   # User-inputs object:
   inputs = pyrat.inputs
@@ -449,6 +448,18 @@ def checkinputs(pyrat):
       pt.error("Maximum temperature limit ({:g} K) must be > minimum "
                "temperature ({:g} K).".format(pyrat.ex.tmax, pyrat.ex.tmin))
 
+  # Check haze models:
+  if inputs.hazes is not None:
+    for hmodel in inputs.hazes:
+      if hmodel not in hz.hnames:
+        pt.error("Haze model '{:s}' is not in the list of available models:"
+                 "\n{:s}".format(hmodel, hz.hnames))
+      else:
+        ihaze = np.where(hz.hnames == hmodel)[0][0]
+        pyrat.haze.model.append(hz.hmodels[ihaze])
+        pyrat.haze.nmodels += 1
+    # FINDME: process the haze parameters
+
   # Check optical-depth arguments:
   pyrat.od.maxdepth = isgreater(inputs.maxdepth, None, 0, False,
                         "Maximum-optical-depth limit ({:g}) must be >= 0.0")
@@ -500,10 +511,6 @@ def isgreater(value, units, thresh, equal=False, text=""):
   Returns:
   --------
   The value in the pyrat units.
-
-  Modification History:
-  ---------------------
-  2015-01-18  patricio  initial implementation.
   """
   # Set comparison command:
   if equal:

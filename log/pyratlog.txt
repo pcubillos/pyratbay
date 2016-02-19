@@ -1162,4 +1162,32 @@ Bumped Pyrat version to 1.2.1.
 Corrected abs() with fabs() call in C-binsearch function.
 Pyrat version 1.2.2.
 
+
+*****  Wed Feb 17 03:07:08 CET 2016  *****
+
+Added Haze class, haze.py file and implemented H2-Rayleigh model
+from Dalgarno and Williams (1962).
+There are still a few pending issues, like, handling haze parameters.
+Pyrat version 1.2.3.
+
 *****
+
+Fixed bug when there were no input cross-section files.
+Pyrat version 1.2.4.
+
+*****
+
+Updated pyrat demo examples to include H2-Rayleigh extinction.
+
+
+*****  Fri Feb 19 23:08:11 CET 2016  *****
+
+Added H2 Rayleigh model from Lecavelier des Etangs et al. (2008).
+Renamed haze evaluate() function to absorption().
+
+*****
+
+Renamed shipmaster.py to driver.py.
+
+*****
+

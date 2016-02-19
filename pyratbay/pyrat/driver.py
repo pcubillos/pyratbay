@@ -13,6 +13,7 @@ from . import readlinedb as rl
 from . import voigt      as v
 from . import extinction as ex
 from . import crosssec   as cs
+from . import haze       as hz
 from . import optdepth   as od
 from . import spectrum   as sp
 
@@ -21,7 +22,8 @@ from .objects import Pyrat
 
 def init(argv, main=False):
   """
-  PyRaT (Python Radiative Transfer) initialization shipmaster.
+  PyRaT (Python Radiative Transfer) initialization driver (or should
+  I say shipmaster?).
 
   Parameters
   ----------
@@ -81,6 +83,9 @@ def init(argv, main=False):
   cs.read(pyrat)
   timestamps.append(time.time())
 
+  # Calculate haze opacity cross section:
+  hz.extinction(pyrat)
+
   # Calculate extinction-coefficient table:
   ex.exttable(pyrat)
   timestamps.append(time.time())
@@ -110,6 +115,9 @@ def run(pyrat, inputs=None):
   # Interpolate CIA absorption:
   cs.interpolate(pyrat)
   timestamps.append(time.time())
+
+  # Calculate the haze absorption at each layer:
+  hz.absorption(pyrat)
 
   # Calculate the optical depth:
   od.opticaldepth(pyrat)

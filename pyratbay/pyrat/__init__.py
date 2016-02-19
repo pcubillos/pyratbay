@@ -1,6 +1,6 @@
 __all__ = ["init", "run"]
 
-from .shipmaster import init, run
+from .driver import init, run
 
 from .. import VERSION as ver
 
