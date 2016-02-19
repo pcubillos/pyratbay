@@ -1191,3 +1191,9 @@ Renamed shipmaster.py to driver.py.
 
 *****
 
+Minor update to the documentation.
+Added pyrat.rst file to the repo.
+To do: add pyrat-bay logo.
+
+*****
+
