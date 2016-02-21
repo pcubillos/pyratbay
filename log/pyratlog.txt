@@ -1226,3 +1226,8 @@ Added intro message when running Lineread.
 
 *****
 
+Added warnings file output for Pyrat run.
+Resolves #19.
+Improves status on #1, python code OK, C code needs a solution.
+
+*****

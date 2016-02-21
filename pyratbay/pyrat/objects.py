@@ -45,6 +45,7 @@ class Pyrat(object):
     self.surfgravity = None  # Planetary surface gravity
     # Other:
     self.verb       = None  # Verbosity level
+    self.logfile    = None  # Pyrat log filename
     self.log        = None  # Pyrat log file
     self.wlog       = []    # List of raised warnings
     self.timestamps = None  # Time stamps

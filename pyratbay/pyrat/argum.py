@@ -303,7 +303,8 @@ def parse(pyrat):
 
   # Open the Pyrat log file if requested:
   if pyrat.inputs.logfile is not None:
-    pyrat.log = open(pyrat.inputs.logfile, "w")
+    pyrat.logfile = os.path.realpath(pyrat.inputs.logfile)
+    pyrat.log = open(pyrat.logfile, "w")
 
   # Welcome message:
   pt.msg(1, "{:s}\n  Python Radiative Transfer (PyRaT).\n"

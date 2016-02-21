@@ -395,7 +395,7 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
 
   if len(wlog) > 0:
     # Write all warnings to file:
-    wpath, wfile = os.path.split(logname)
+    wpath, wfile = os.path.split(os.path.realpath(logname))
     wfile = "{:s}/warnings_{:s}".format(wpath, wfile)
     warns = open(wfile, "w")
     warns.write("Warnings log:\n\n{:s}\n".format(pt.sep))
