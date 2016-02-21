@@ -1212,3 +1212,8 @@ Removed exit() from pyrat tools.
 
 *****
 
+Updated .gitignore to ignore .DS_Store files.
+These are autmoatically created files in OSX.
+
+*****
+
