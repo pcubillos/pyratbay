@@ -3,6 +3,7 @@
 
 __all__ = ["voplez"]
 
+import os
 import numpy as np
 
 from ... import tools     as pt
@@ -15,7 +16,7 @@ class voplez(dbdriver):
   Download the linelist from:
 
   """
-  def __init__(self, dbfile, pffile):
+  def __init__(self, dbfile, pffile, log):
     """
     Initializer.
     """
@@ -49,6 +50,8 @@ class voplez(dbdriver):
     self.recelend = 50
     self.recgfend = 32
 
+    # Log file:
+    self.log = log
 
   def readwave(self, dbfile, irec):
     """
@@ -112,6 +115,9 @@ class voplez(dbdriver):
     """
 
     # Open the file:
+    if not os.path.isfile(self.dbfile):
+      pt.error("Plez VO database file '{:s}' does not exist.".
+               format(self.dbfile), log)
     data = open(self.dbfile, "r")
     # Get the total number of transitions:
     data.seek(0, 2)
@@ -135,7 +141,7 @@ class voplez(dbdriver):
     isoID   = np.zeros(nread, int)
  
     pt.msg(verbose, "Starting to read Plez VO database between "
-                    "records {:d} and {:d}.".format(istart, istop))
+                    "records {:d} and {:d}.".format(istart, istop), self.log)
 
     interval = (istop - istart)/10  # Check-point interval
 
@@ -152,17 +158,18 @@ class voplez(dbdriver):
       # Print a checkpoint statement every 10% interval:
       if verbose > 1:
         if (i % interval) == 0.0  and  i != 0:
-          pt.msg(verbose-1,"Checkpoint {:5.1f}%".format(10.*i/interval), 2)
+          pt.msg(verbose-1, "Checkpoint {:5.1f}%".format(10.*i/interval),
+                 self.log, 2)
           pt.msg(verbose-2,"Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} um\n"
                           "Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}".
-                             format(wnumber[i], 1.0/(wnumber[i]*pc.um),
-                                    elow[i]*pc.eV, gf[i], isoID[i]), 4)
+                           format(wnumber[i], 1.0/(wnumber[i]*pc.um),
+                                  elow[i]*pc.eV, gf[i], isoID[i]), self.log, 4)
       i += 1
 
     # Convert Elow from eV to cm-1:
     elow[:] = elow * pc.eV
 
     data.close()
-    pt.msg(verbose, "Done.\n")
+    pt.msg(verbose, "Done.\n", self.log)
 
     return wnumber, gf, elow, isoID

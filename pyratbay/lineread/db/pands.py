@@ -3,6 +3,7 @@
 
 __all__ = ["pands"]
 
+import os
 import struct
 import numpy as np
 
@@ -19,16 +20,18 @@ class pands(dbdriver):
     http://kurucz.harvard.edu/molecules/h2o/h2ofastfix.bin
     http://kurucz.harvard.edu/molecules/h2o/h2opartfn.dat
   """
-  def __init__(self, dbfile, pffile):
+  def __init__(self, dbfile, pffile, log):
     """
     Initialize Basic data for the Database.
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     dbfile: String
        File with the Database line-transition info.
     pffile: String
        File with the partition function.
+    log: File
+       File object to store the log.
     """
     super(pands, self).__init__(dbfile, pffile)
 
@@ -49,6 +52,8 @@ class pands(dbdriver):
     self.tablog = 10.0**(0.001*(np.arange(32769) - 16384))
     self.recsize     = 8 # Record size
 
+    # log file:
+    self.log = log
 
   def readwave(self, dbfile, irec):
     """
@@ -82,8 +87,8 @@ class pands(dbdriver):
     """
     Read the Partridge and Schwenke H2O database.
  
-    Parameters:
-    -----------
+    Parameters
+    ----------
     iwn: Scalar
        Initial wavenumber limit (in cm-1).
     fwn: Scalar
@@ -93,8 +98,8 @@ class pands(dbdriver):
     args:
        Additional arguments, not needed for pands.
  
-    Returns:
-    --------
+    Returns
+    -------
     wnumber: 1D float ndarray
       Line-transition central wavenumber (centimeter-1).
     gf: 1D float ndarray
@@ -104,18 +109,20 @@ class pands(dbdriver):
     isoID: 2D integer ndarray
       Isotope index (0, 1, 2, 3, ...).
 
-    Developers:
-    -----------
-    Madison Stemm      madison.stemm@ucf edu
-    Patricio Cubillos  pcubillos@fulbrightmail.org
+    Uncredited developers
+    ---------------------
+    Madison Stemm  (UCF)
 
-    Notes:
-    ------
+    Notes
+    -----
     The Partridge & Schwenke database is a binary format.
     The line transitions are sorted in increasing wavenlength order.
     """
  
     # Open the binary file:
+    if not os.path.isfile(self.dbfile):
+      pt.error("Partridge & Schwenke database file '{:s}' does not exist.".
+               format(self.dbfile), log)
     data = open(self.dbfile, "rb")
  
     # Get the number of lines in the file:
@@ -142,7 +149,7 @@ class pands(dbdriver):
     isoID   = np.zeros(nread, int)
  
     pt.msg(verbose, "Starting to read P&S database between "
-                    "records {:d} and {:d}.".format(istart, istop))
+                    "records {:d} and {:d}.".format(istart, istop), self.log)
 
     interval = (istop - istart)/10  # Check-point interval
 
@@ -160,12 +167,13 @@ class pands(dbdriver):
       if verbose > 1:
         if (i % interval) == 0 and i != 0:
           wl = np.exp(iw[i] * self.ratiolog) * pc.nm/pc.um
-          pt.msg(verbose-1,"Checkpoint {:5.1f}%".format(10.*i/interval), 2)
+          pt.msg(verbose-1, "Checkpoint {:5.1f}%".format(10.*i/interval),
+                 self.log, 2)
           pt.msg(verbose-2,"Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} um\n"
                           "Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}".
-                             format(1.0/ (wl * pc.um), wl,
-                                  np.abs(ielo[i]), self.tablog[np.abs(igf[i])],
-                                  2*(ielo[i] < 0) + 1*(igf[i] < 0)), 4)
+                          format(1.0/ (wl * pc.um), wl,
+                                 np.abs(ielo[i]), self.tablog[np.abs(igf[i])],
+                                 2*(ielo[i] < 0) + 1*(igf[i] < 0)), self.log, 4)
       i += 1
 
     # Calculate the wavenumber (in cm-1):
@@ -178,6 +186,6 @@ class pands(dbdriver):
     isoID[:]   = 2*(ielo < 0) + 1*(igf < 0)
 
     data.close()
-    pt.msg(verbose, "Done.\n")
+    pt.msg(verbose, "Done.\n", self.log)
     # Sort (increasingly) by wavenumber:
     return wnumber[::-1], gf[::-1], elow[::-1], isoID[::-1]

@@ -103,16 +103,16 @@ def warning(message, wlog, file=None):
   # Wrap the message:
   text = msg(1, message, indent=4, noprint=True)[:-1]
   # Add banners around:
-  warntext = "\n{:s}\n  Warning:\n{:s}\n{:s}".format(sep, text, sep)
+  warntext = "\n{:s}\n  Warning:\n{:s}\n{:s}\n".format(sep, text, sep)
 
   # Append warning message to warnings log:
   wlog.append(text)
   # Print warning message to screen:
-  print(text)
+  print(warntext)
   sys.stdout.flush()
   # Print warning message to file (if requested):
   if file is not None:
-    file.write(text + "\n")
+    file.write(warntext + "\n")
     file.flush()
 
 
@@ -130,12 +130,12 @@ def error(message, file=None, lev=-2):
   # Trace back the file, function, and line where the error source:
   t = traceback.extract_stack()
   # Extract fields:
-  modpath    = t[lev][0]                   # Module path
-  modname    = efile[efile.rfind('/')+1:]  # Madule name
-  funcname   = t[lev][2]                   # Function name
+  modpath    = t[lev][0]                       # Module path
+  modname    = modpath[modpath.rfind('/')+1:]  # Madule name
+  funcname   = t[lev][2]                       # Function name
   linenumber = t[lev][1]
   # Text to print:
-  text = ("{:s}\n  Error in module: '{:s}', function: '{:s}', line: {:d}\n"
+  text = ("\n{:s}\n  Error in module: '{:s}', function: '{:s}', line: {:d}\n"
           "{:s}\n{:s}".format(sep, modname, funcname, linenumber,
                               msg(1,message,indent=4,noprint=True)[:-1], sep))
 
