@@ -1231,3 +1231,10 @@ Resolves #19.
 Improves status on #1, python code OK, C code needs a solution.
 
 *****
+
+Fixed issue with timestamps.
+It will properly calculate the times when init() and run() are run
+separately.  It will show only the times for the latest run.
+
+*****
+

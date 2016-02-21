@@ -94,7 +94,7 @@ def init(argv, main=False):
   ex.exttable(pyrat)
   timestamps.append(time.time())
 
-  pyrat.timestamps = timestamps
+  pyrat.timestamps = list(np.ediff1d(timestamps))
   return pyrat
 
 
@@ -131,10 +131,8 @@ def run(pyrat, inputs=None):
   sp.spectrum(pyrat)
   timestamps.append(time.time())
 
-  pyrat.timestamps += timestamps
-
-  dtime = np.ediff1d(pyrat.timestamps)
-  dtime = np.delete(dtime, 9)  # Remove dtime between init() and run() calls
+  pyrat.timestamps += list(np.ediff1d(timestamps))
+  dtime = pyrat.timestamps[0:9] + pyrat.timestamps[-4:]
   print("\nTimestamps:\n"
         " Init:     {:10.6f}\n Parse:    {:10.6f}\n Inputs:   {:10.6f}\n"
         " Wnumber:  {:10.6f}\n Atmosph:  {:10.6f}\n TLI:      {:10.6f}\n"
