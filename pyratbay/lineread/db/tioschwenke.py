@@ -3,6 +3,7 @@
 
 __all__ = ["tioschwenke"]
 
+import os
 import struct
 import numpy as np
 
@@ -44,19 +45,20 @@ class tioschwenke(dbdriver):
     self.tablog    = 10.0**(0.001*(np.arange(32769) - 16384))
     self.pf_isonames = 0 # PF line with isotopes names 
 
+
   def readwave(self, dbfile, irec):
     """
     Read wavelength parameter from irec record in dbfile database.
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     dbfile: File object
        File where to extract the wavelength.
     irec: Integer
        Index of record.
 
-    Returns:
-    --------
+    Returns
+    -------
     rec_wl: integer
        Wavelength value at record irec, as given in dbfile database.
     """
@@ -73,6 +75,9 @@ class tioschwenke(dbdriver):
     Get isotopes names from partition function file
     """
     # Open and read the partition function file:
+    if not os.path.isfile(self.dbfile):
+      pt.error("Schwenke TiO database file '{:s}' does not exist.".
+               format(self.dbfile), log)
     partDB = open(self.pffile)
     PFlines = partDB.readlines()
     partDB.close()
@@ -85,8 +90,8 @@ class tioschwenke(dbdriver):
     """
     Read the Schwenke TiO database.
  
-    Parameters:
-    -----------
+    Parameters
+    ----------
     iwn: Scalar
        Initial wavenumber limit (in cm-1).
     fwn: Scalar
@@ -96,8 +101,8 @@ class tioschwenke(dbdriver):
     args:
        Additional arguments, not needed.
  
-    Returns:
-    --------
+    Returns
+    -------
     wnumber: 1D float ndarray
       Line-transition central wavenumber (centimeter-1).
     gf: 1D float ndarray
@@ -136,7 +141,7 @@ class tioschwenke(dbdriver):
     isoID   = np.zeros(nread,     int)
  
     pt.msg(verbose, "Starting to read Schwenke database between "
-                    "records {:d} and {:d}.".format(istart, istop))
+                    "records {:d} and {:d}.".format(istart, istop), self.log)
 
     interval = (istop - istart)/10  # Check-point interval
 
@@ -157,12 +162,13 @@ class tioschwenke(dbdriver):
       if verbose > 1:
         if (i % interval) == 0 and i != 0:
           wl = np.exp(iw[i] * self.ratiolog) * pc.NTC/pc.um
-          pt.msg(verbose-1,"Checkpoint {:5.1f}%".format(10.*i/interval), 2)
+          pt.msg(verbose-1, "Checkpoint {:5.1f}%".format(10.*i/interval),
+                 self.log, 2)
           pt.msg(verbose-2,"Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} um\n"
                           "Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}".
                            format(1.0/ (wl * pc.um), wl,
                                   self.tablog[ielo[i]], self.tablog[igf[i]],
-                                  np.abs(ieli[i]) - 8950))
+                                  np.abs(ieli[i]) - 8950), self.log, 4)
       i += 1
 
     # Calculate the wavenumber (in cm-1):
@@ -174,7 +180,7 @@ class tioschwenke(dbdriver):
     # Get isotopic index:
     isoID[:]   = np.abs(ieli) - 8950
 
-    pt.msg(verbose, "Done.\n")
+    pt.msg(verbose, "Done.\n", self.log)
     data.close()
 
     # Sort by wavenumber (in ascending order):

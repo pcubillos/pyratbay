@@ -172,6 +172,9 @@ class dbdriver(object):
        The partition function data for each isotope at each temperature.
     """
     # Open-read file:
+    if not os.path.isfile(self.pffile):
+      pt.error("Partition-function file '{:s}' does not exist.".
+               format(self.pffile), log)
     f = open(self.pffile, "r")
     lines = f.readlines()
     f.close()

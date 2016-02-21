@@ -2,9 +2,12 @@
 
 # FINDME a LICENSE
 
+import os
 import sys
 import time
 import numpy as np
+
+from .. import tools as pt
 
 from . import argum      as ar
 from . import makesample as ms
@@ -18,6 +21,7 @@ from . import optdepth   as od
 from . import spectrum   as sp
 
 from .objects import Pyrat
+
 
 
 def init(argv, main=False):
@@ -90,7 +94,7 @@ def init(argv, main=False):
   ex.exttable(pyrat)
   timestamps.append(time.time())
 
-  pyrat.timestamps = timestamps
+  pyrat.timestamps = list(np.ediff1d(timestamps))
   return pyrat
 
 
@@ -127,15 +131,25 @@ def run(pyrat, inputs=None):
   sp.spectrum(pyrat)
   timestamps.append(time.time())
 
-  pyrat.timestamps += timestamps
-
-  dtime = np.ediff1d(pyrat.timestamps)
-  dtime = np.delete(dtime, 9)  # Remove dtime between init() and run() calls
+  pyrat.timestamps += list(np.ediff1d(timestamps))
+  dtime = pyrat.timestamps[0:9] + pyrat.timestamps[-4:]
   print("\nTimestamps:\n"
         " Init:     {:10.6f}\n Parse:    {:10.6f}\n Inputs:   {:10.6f}\n"
         " Wnumber:  {:10.6f}\n Atmosph:  {:10.6f}\n TLI:      {:10.6f}\n"
         " Layers:   {:10.6f}\n Voigt:    {:10.6f}\n CIA read: {:10.6f}\n"
         " Extinct:  {:10.6f}\n CIA intp: {:10.6f}\n O.Depth:  {:10.6f}\n"
         " Spectrum: {:10.6f}".format(*dtime))
+
+  if len(pyrat.wlog) > 0:
+    # Write all warnings to file:
+    wpath, wfile = os.path.split(pyrat.logfile)
+    wfile = "{:s}/warnings_{:s}".format(wpath, wfile)
+    warns = open(wfile, "w")
+    warns.write("Warnings log:\n\n{:s}\n".format(pt.sep))
+    warns.write("\n\n{:s}\n".format(pt.sep).join(pyrat.wlog))
+    warns.close()
+    # Report it:
+    pt.warning("There was(were) {:d} warning(s) raised.  See '{:s}'.".
+                format(len(pyrat.wlog), wfile), [], pyrat.log)
   return pyrat
 

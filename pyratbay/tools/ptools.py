@@ -1,3 +1,9 @@
+# Copyright (c) 2015-2016 Patricio Cubillos and contributors.
+# Pyrat Bay is open-source software under the FINDME license.
+
+__all__ = ["parray", "msg", "warning", "error",
+           "binsearch", "pprint", "divisors", "u", "unpack", "sep"]
+
 import sys, os
 import traceback
 import textwrap
@@ -7,8 +13,12 @@ import numpy as np
 from .. import constants as pc
 
 """
-Pyrat tools: Tools for the Pyrat-Bay project.
+Tools for the Pyrat-Bay project.
 """
+
+# Warning/error banner:
+sep = 70*":"
+
 
 def parray(string):
   """
@@ -23,108 +33,120 @@ def parray(string):
     return string.split()
 
 
-def exit(comm=None, abort=False, message=None, comm2=None):
-  """
-  Stop execution.
-
-  Parameters:
-  -----------
-  comm: MPI communicator
-     An MPI Intracommunicator.
-  abort: Boolean
-     If True send (gather) an abort flag integer through comm.
-  message: String
-     Print message on exit.
-
-  Modification History:
-  ---------------------
-  2014-04-20  patricio  Initial implementation (extracted from transit project).
-  """
-  if message is not None:
-    print(message)
-  if comm is not None:
-    if abort:
-      #comm_gather(comm, np.array([1], dtype='i'), MPI.INT)
-      pass
-    comm.Barrier()
-    comm.Disconnect()
-  if comm2 is not None:
-    comm2.Barrier()
-    comm2.Disconnect()
-  sys.exit(0)
-
-
-def error(message, lev=-2):
-  """
-  Pretty print error message.
-  """
-  # Trace back the file, function, and line where the error source:
-  t = traceback.extract_stack()
-  # Extract fields:
-  efile = t[lev][0]
-  efile = efile[efile.rfind('/')+1:]
-  efunc = t[lev][2]
-  eline = t[lev][1]
-  # Indent and wrap message to 70 characters:
-  msg = textwrap.fill(message, initial_indent   ="    ",
-                               subsequent_indent="    ")
-  # Print it out:
-  print(
-    "::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::\n"
-    "  Error in module: '%s', function: '%s', line: %d\n"
-    "%s\n"
-    "::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::\n"%
-    (efile, efunc, eline, msg))
-  sys.exit(0)
-
-
-def warning(message):
-  """
-  Print message surrounded by colon bands.
-
-  Modification History:
-  ---------------------
-  2014-06-15  patricio  Initial implementation.
-  """
-  print(
-    "::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::\n"
-    "  Warning:")
-  msg(1, message, 4)
-  print(
-    "::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::\n")
-
-
-def msg(verblevel, message, indent=0, si=None):
+def msg(verblevel, message, file=None, indent=0, si=None, noprint=False):
   """
   Conditional message printing to screen.
 
-  Parameters:
-  -----------
+  Parameters
+  ----------
   verblevel: Integer
      If positive, print the given message.
   message: String
      Message to print.
+  file: File pointer
+     If not None, print message to the given file pointer.
   indent: Integer
      Number of blank spaces for indentation.
   si: Integer
      Subsequent indentation.  If None, keep indent as the subsequent
      indentation.
+  noprint: Boolean
+     If True, do not print and return the string instead.
   """
   if verblevel <= 0:
     return
 
-  sentences = message.splitlines()
-  # Set indentation string:
-  indspace = " "*indent
-  if si is None:
-    sindspace = indspace
-  else:
+  # Output text message:
+  text = ""
+
+  # Indentation strings:
+  indspace  = " "*indent
+  sindspace = indspace
+  if si is not None:
     sindspace = " "*si
 
+  # Break the text down into sentences (line-breaks):
+  sentences = message.splitlines()
   for s in sentences:
-    msg = textwrap.fill(s, replace_whitespace=True,
-                        initial_indent=indspace, subsequent_indent=sindspace)
-    print(msg)
+    line = textwrap.fill(s, break_long_words=False, break_on_hyphens=False,
+                         initial_indent=indspace, subsequent_indent=sindspace)
+    text += line + "\n"
+
+  # Do not print, just return the string:
+  if noprint:
+    return text
+
+  # Print to screen:
+  print(text[:-1])  # Remove the trailing "\n"
+  sys.stdout.flush()
+  # Print to file, if requested:
+  if file is not None:
+    file.write(text)
+    file.flush()
+
+
+def warning(message, wlog, file=None):
+  """
+  Print message surrounded by colon banners.
+  Append message to wlog.
+  Add message to file if not None.
+
+  Parameters
+  ----------
+  message: String
+     Message to print.
+  wlog:  list of strings
+     List of warning messages.
+  file: File pointer
+     If not None, also print to the given file.
+  """
+  # Wrap the message:
+  text = msg(1, message, indent=4, noprint=True)[:-1]
+  # Add banners around:
+  warntext = "\n{:s}\n  Warning:\n{:s}\n{:s}\n".format(sep, text, sep)
+
+  # Append warning message to warnings log:
+  wlog.append(text)
+  # Print warning message to screen:
+  print(warntext)
+  sys.stdout.flush()
+  # Print warning message to file (if requested):
+  if file is not None:
+    file.write(warntext + "\n")
+    file.flush()
+
+
+def error(message, file=None, lev=-2):
+  """
+  Pretty print error message.
+
+  Parameters
+  ----------
+  message: String
+     Message to print.
+  file: File pointer
+     If not None, also print to the given file.
+  """
+  # Trace back the file, function, and line where the error source:
+  t = traceback.extract_stack()
+  # Extract fields:
+  modpath    = t[lev][0]                       # Module path
+  modname    = modpath[modpath.rfind('/')+1:]  # Madule name
+  funcname   = t[lev][2]                       # Function name
+  linenumber = t[lev][1]
+  # Text to print:
+  text = ("\n{:s}\n  Error in module: '{:s}', function: '{:s}', line: {:d}\n"
+          "{:s}\n{:s}".format(sep, modname, funcname, linenumber,
+                              msg(1,message,indent=4,noprint=True)[:-1], sep))
+
+  # Print to screen:
+  print(text)
+  sys.stdout.flush()
+  # Print to file (if requested):
+  if file is not None:
+    file.write(text)
+    file.close()
+  sys.exit(0)
 
 
 def binsearch(dbfile, wavelength, rec0, nrec, upper=True):
@@ -147,15 +169,7 @@ def binsearch(dbfile, wavelength, rec0, nrec, upper=True):
 
   Returns:
   --------
-  Index of record with
-
-  Modification History:
-  ---------------------
-  2013        madison   Initial implementation.
-  2014-03-05  patricio  Added documentation, updated Madison's code, and
-                        included searchup parameter. pcubillos@fulbrightmail.org
-  2014-06-22  patricio  Adapted from pylineread project to read from TLI.
-  2014-08-03  patricio  Added boundaries condition in sequential search.
+  Index of record with ...
   """
   # Wavelength of record:
   ilo = 0
@@ -211,10 +225,6 @@ def pprint(array, precision=3, fmt=None):
      Precision for floating point values.
   fmt: format
      Numeric format.
-
-  Modification History:
-  ---------------------
-  2015-01-25  patricio  Initial implementation.
   """
   default_prec = np.get_printoptions().get('precision')
   np.set_printoptions(precision=precision)

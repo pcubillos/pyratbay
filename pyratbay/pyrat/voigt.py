@@ -17,10 +17,10 @@ def voigt(pyrat):
   # Check if reading extinction-coefficient table or no TLI files:
   if (((pyrat.ex.extfile is not None) and os.path.isfile(pyrat.ex.extfile)) or
      pyrat.lt.nTLI == 0):
-    pt.msg(pyrat.verb, "\nSkip Voigt-profile calculation.")
+    pt.msg(pyrat.verb, "\nSkip Voigt-profile calculation.", pyrat.log)
     return
 
-  pt.msg(pyrat.verb, "\nCalculate Voigt profiles:")
+  pt.msg(pyrat.verb, "\nCalculate Voigt profiles:", pyrat.log)
   # Calculate Doppler and Lorentz-width boundaries:
   widthlimits(pyrat)
 
@@ -32,7 +32,7 @@ def voigt(pyrat):
 
   # Calculate profiles:
   calcvoigt(pyrat)
-  pt.msg(pyrat.verb, "Done.")
+  pt.msg(pyrat.verb, "Done.", pyrat.log)
 
 
 def widthlimits(pyrat):
@@ -71,8 +71,8 @@ def widthlimits(pyrat):
     pyrat.voigt.Dmin = np.sqrt(2.0*pc.k*tmin/(mmax*pc.amu)) * numin / pc.c
   if pyrat.voigt.Dmax is None:
     pyrat.voigt.Dmax = np.sqrt(2.0*pc.k*tmax/(mmin*pc.amu)) * numax / pc.c
-  pt.msg(pyrat.verb, "Doppler width limits: {:.3g} -- {:.3g}  cm-1".format(
-                                        pyrat.voigt.Dmin, pyrat.voigt.Dmax), 2)
+  pt.msg(pyrat.verb, "Doppler width limits: {:.3g} -- {:.3g}  cm-1".
+                      format(pyrat.voigt.Dmin, pyrat.voigt.Dmax), pyrat.log, 2)
 
   # Calculate Lorentz-width boundaries:
   if pyrat.voigt.Lmin is None:
@@ -81,8 +81,8 @@ def widthlimits(pyrat):
   if pyrat.voigt.Lmax is None:
     pyrat.voigt.Lmax = (np.sqrt(2/(np.pi * pc.k * tmin *pc.amu)) * pmax / pc.c *
                         cmax**2.0 * np.sqrt(1.0/mmin + 1.0/2.01588))
-  pt.msg(pyrat.verb, "Lorentz width limits: {:.3g} -- {:.3g}  cm-1".format(
-                                        pyrat.voigt.Lmin, pyrat.voigt.Lmax), 2)
+  pt.msg(pyrat.verb, "Lorentz width limits: {:.3g} -- {:.3g}  cm-1".
+                     format(pyrat.voigt.Lmin, pyrat.voigt.Lmax), pyrat.log, 2)
 
 
 def calcvoigt(pyrat):
@@ -109,15 +109,14 @@ def calcvoigt(pyrat):
     psize[np.where(voigt.doppler/voigt.lorentz[i] < voigt.DLratio)[0][1:]] = 0
     # Store half-size values for this Lorentz width:
     voigt.size[i] = psize/2
-  pt.msg(pyrat.verb, "Voigt half-sizes: \n{}".format(voigt.size), 2)
+  pt.msg(pyrat.verb, "Voigt half-sizes: \n{}".format(voigt.size), pyrat.log, 2)
 
   pt.msg(pyrat.verb, "Calculating Voigt profiles with Extent:  {:d} widths.".
-                     format(voigt.extent), 2)
+                     format(voigt.extent), pyrat.log, 2)
   # Allocate profile arrays (concatenated in a 1D array):
   voigt.profile = np.zeros(np.sum(2*voigt.size+1), np.double)
   # Calculate the Voigt profiles in C:
   vp.voigt(voigt.profile, voigt.size, voigt.index,
            voigt.lorentz, voigt.doppler,
            pyrat.spec.ownstep,  pyrat.verb)
-  pt.msg(pyrat.verb, "Voigt indices:\n{}".format(voigt.index), 2)
-  return
+  pt.msg(pyrat.verb, "Voigt indices:\n{}".format(voigt.index), pyrat.log, 2)

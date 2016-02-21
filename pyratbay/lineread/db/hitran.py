@@ -15,7 +15,7 @@ DBdir = os.path.dirname(os.path.realpath(__file__))
 
 
 class hitran(dbdriver):
-  def __init__(self, dbfile, pffile):
+  def __init__(self, dbfile, pffile, log):
     """
     Initialize the basic database info.
 
@@ -40,6 +40,9 @@ class hitran(dbdriver):
     self.recwnlen  =  12 # Wavenumber record length
     self.reclinend =  25 # Line intensity end position
     self.recelend  =  55 # Low Energy     end position
+
+    # Log file:
+    self.log = log
 
     # Get info from HITRAN configuration file:
     self.molID, self.molecule, self.isotopes, self.mass, \
@@ -86,6 +89,9 @@ class hitran(dbdriver):
     gi:       State-independent statistical weight
     """
     # Open file and read first two characters:
+    if not os.path.isfile(self.dbfile):
+      pt.error("HITRAN database file '{:s}' does not exist.".
+                format(self.dbfile), self.log)
     data = open(self.dbfile, "r")
     molID  = data.read(self.recmollen)
     data.close()
@@ -175,7 +181,7 @@ class hitran(dbdriver):
     g2      = np.zeros(nread, np.double)  # Lower statistical weight
 
     pt.msg(verbose, "Starting to read HITRAN database between "
-                    "records {:d} and {:d}.".format(istart, istop))
+                    "records {:d} and {:d}.".format(istart, istop), self.log)
     interval = (istop - istart)/10  # Check-point interval
 
     i = 0  # Stored record index
@@ -193,11 +199,12 @@ class hitran(dbdriver):
       if verbose > 1:
         if (i % interval) == 0.0  and  i != 0:
           gfval = A21[i]*g2[i]*pc.C1/(8.0*np.pi*pc.c)/wnumber[i]**2.0
-          pt.msg(verbose-1,"Checkpoint {:5.1f}%".format(10.*i/interval), 2)
+          pt.msg(verbose-1, "Checkpoint {:5.1f}%".format(10.*i/interval),
+                 self.log, 2)
           pt.msg(verbose-2,"Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} um\n"
                           "Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}".
-                             format(wnumber[i], 1.0/(wnumber[i]*pc.um),
-                                    elow[i], gfval, (isoID[i]-1)%10), 4)
+                           format(wnumber[i], 1.0/(wnumber[i]*pc.um),
+                                  elow[i], gfval, (isoID[i]-1)%10), self.log, 4)
       i += 1
 
     # Set isotopic index to start counting from 0:
@@ -208,7 +215,7 @@ class hitran(dbdriver):
     gf = A21 * g2 * pc.C1 / (8.0 * np.pi * pc.c) / wnumber**2.0
 
     data.close()
-    pt.msg(verbose, "Done.\n")
+    pt.msg(verbose, "Done.\n", self.log)
 
     # Remove lines with unknown Elow, see Rothman et al. (1996):
     igood = np.where(elow > 0)

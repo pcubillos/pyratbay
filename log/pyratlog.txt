@@ -1199,5 +1199,51 @@ To do: add pyrat-bay logo.
 
 Added MCcubed submodule, poiting to the multiproc branch.
 
+
+*****  Sun Feb 21 12:39:00 CET 2016  *****
+
+Added logfile CLA to write runlog to file.
+Updated msg(), warning(), and error() to write to log.
+Adapted calls in pyrat, lineread will break.
+
+*****
+
+Removed exit() from pyrat tools.
+
+*****
+
+Updated .gitignore to ignore .DS_Store files.
+These are autmoatically created files in OSX.
+
+*****
+
+Added logfile output for lineread.
+Adapted lineread calls to write to log.
+Added file with raised warning and message at the end of lineread.
+Fixed bugs in warning() and error() functions.
+Added warnings for input LBL and PF files not found.
+Added intro message when running Lineread.
+
+*****
+
+Added warnings file output for Pyrat run.
+Resolves #19.
+Improves status on #1, python code OK, C code needs a solution.
+
+*****
+
+Fixed issue with timestamps.
+It will properly calculate the times when init() and run() are run
+separately.  It will show only the times for the latest run.
+
+*****
+
+Updated pyrat demo config files to include logfile name.
+
+*****
+
+Bumped pyrat to version 1.2.5.
+Bumped lineread to version 6.4.1.
+
 *****
 

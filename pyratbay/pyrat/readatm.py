@@ -13,7 +13,8 @@ def readatm(pyrat):
   Read the atmospheric file, store variables in pyrat.
   """
   # Check atmfile:
-  pt.msg(pyrat.verb, "\nReading atmosphere file: '{:s}'".format(pyrat.atmfile))
+  pt.msg(pyrat.verb, "\nReading atmosphere file: '{:s}'".format(pyrat.atmfile),
+         pyrat.log)
   atmfile = open(pyrat.atmfile, "r")
 
   # Read keywords:
@@ -27,7 +28,7 @@ def readatm(pyrat):
   getprofiles(pyrat, atmfile)
 
   atmfile.close()
-  pt.msg(pyrat.verb, "Done.", 0)
+  pt.msg(pyrat.verb, "Done.", pyrat.log)
 
 
 def getkeywords(pyrat, atmfile):
@@ -67,18 +68,19 @@ def getkeywords(pyrat, atmfile):
       pyrat.mol.nmol = len(pyrat.mol.name)
 
     else:
-      pt.error("Atmosphere file has an unexpected line: \n'{:s}'".format(line))
+      pt.error("Atmosphere file has an unexpected line: \n'{:s}'".format(line),
+               pyrat.log)
 
   iline = atmfile.tell()  # Current line position
 
-  pt.msg(1, "Molecules list: \n{:s}".format(str(pyrat.mol.name)), 2)
+  pt.msg(1, "Molecules list: \n{:s}".format(str(pyrat.mol.name)),  pyrat.log, 2)
   if atm.abundance:
-    pt.msg(1, "Abundance is given by mass (mass mixing ratio)", 2)
+    pt.msg(1, "Abundance is given by mass (mass mixing ratio)",    pyrat.log, 2)
   else:
-    pt.msg(1, "Abundance is given by number (volume mixing ratio)", 2)
+    pt.msg(1, "Abundance is given by number (volume mixing ratio)", pyrat.log,2)
   pt.msg(1, "Unit factors: radius: {:s},  pressure: {:s},  temperature: {:s}".
-          format(atm.runits, atm.punits, atm.tunits), 2)
-  pt.msg(1, "Data starting position: {:d}".format(iline), 2)
+          format(atm.runits, atm.punits, atm.tunits),     pyrat.log, 2)
+  pt.msg(1, "Data starting position: {:d}".format(iline), pyrat.log, 2)
   return iline
 
 
@@ -117,7 +119,7 @@ def getconstants(pyrat):
   absent = np.setdiff1d(pyrat.mol.name, symbol)
   if len(absent) > 0:
     pt.error("These species: {:s} are not listed in the molecules info "
-             "file: {:s}.\n".format(str(absent), pyrat.molfile))
+             "file: {:s}.\n".format(str(absent), pyrat.molfile), pyrat.log)
 
   # Set molecule's values:
   pyrat.mol.ID     = np.zeros(pyrat.mol.nmol, np.int)
@@ -126,7 +128,7 @@ def getconstants(pyrat):
   pyrat.mol.radius = np.zeros(pyrat.mol.nmol)
 
   pt.msg(pyrat.verb, "Molecule   ID   Radius  Mass\n"
-                     "                (A)     (gr/mol)", 4)
+                     "                (A)     (gr/mol)", pyrat.log, 4)
   for i in np.arange(pyrat.mol.nmol):
     # Find the molecule in the list:
     imol = np.where(symbol == pyrat.mol.name[i])[0]
@@ -140,7 +142,7 @@ def getconstants(pyrat):
     pyrat.mol.radius[i] = diam[imol]/2.0 * pc.A
     pt.msg(1, "{:>10s}:  {:3d}  {:.3f}  {:8.4f}".
            format(pyrat.mol.name[i], pyrat.mol.ID[i],
-                  pyrat.mol.radius[i]/pc.A, pyrat.mol.mass[i]), 2)
+                  pyrat.mol.radius[i]/pc.A, pyrat.mol.mass[i]), pyrat.log, 2)
 
 
 def getprofiles(pyrat, atmfile):
@@ -166,7 +168,7 @@ def getprofiles(pyrat, atmfile):
       break
     atm.nlayers += 1
   pt.msg(pyrat.verb, "Number of layers in the input atmospheric file: {:d}".
-                     format(atm.nlayers), 2)
+                     format(atm.nlayers), pyrat.log, 2)
 
   # Initialize arrays:
   if rad:
@@ -218,7 +220,7 @@ def getprofiles(pyrat, atmfile):
   # Calculate the mean molecular mass per layer:
   atm.mm =     np.sum(atm.q*pyrat.mol.mass, axis=1)
   pt.msg(pyrat.verb-10, "Mean molecular mass array: {:s}".
-                         format(str(atm.mm)), 2)
+                         format(str(atm.mm)), pyrat.log, 2)
 
   # Calculate number density profiles for each molecule (in molecules cm-3):
   for i in np.arange(pyrat.mol.nmol):
@@ -243,12 +245,12 @@ def reloadatm(pyrat, temp, abund):
   # Check that the dimensions match:
   if np.size(temp) != np.size(pyrat.atm.temp):
     pt.error("The temperature array size ({:d}) doesn't match the Pyrat's "
-             "temperature size ({:d}).".format(np.size(temp),
-                                               np.size(pyrat.atm.temp)))
+             "temperature size ({:d}).".
+              format(np.size(temp), np.size(pyrat.atm.temp)), pyrat.log)
   if np.shape(abund) != np.shape(pyrat.atm.q):
     pt.error("The shape of the abundances array {:s} doesn't match the "
-             "shape of the Pyrat's abundance size {:s}".format(
-              str(np.shape(abund)), str(np.shape(pyrat.atm.q))))
+             "shape of the Pyrat's abundance size {:s}".
+           format(str(np.shape(abund)), str(np.shape(pyrat.atm.q))), pyrat.log)
 
   # Put temperature and abundance data into the Pyrat object:
   pyrat.atm.temp = temp

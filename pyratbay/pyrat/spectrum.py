@@ -13,7 +13,7 @@ def spectrum(pyrat):
   """
   Spectrum calculation driver.
   """
-  pt.msg(1, "\nCalculate the planetary spectrum.")
+  pt.msg(1, "\nCalculate the planetary spectrum.", pyrat.log)
 
   # Initialize the spectrum array:
   pyrat.spec.spectrum = np.empty(pyrat.spec.nwave, np.double)
@@ -28,14 +28,14 @@ def spectrum(pyrat):
 
   # Print spectrum to file:
   printspec(pyrat)
-  pt.msg(1, "Done.")
+  pt.msg(1, "Done.", pyrat.log)
 
 
 def modulation(pyrat):
   """
   Calculate the modulation spectrum for transit geometry.
   """
-  pt.msg(1, "Modulation spectrum: '{:s}'.".format(pyrat.outspec), 2)
+  pt.msg(1, "Modulation spectrum: '{:s}'.".format(pyrat.outspec), pyrat.log, 2)
   # Get the stellar radius:
   h = np.ediff1d(pyrat.atm.radius)
 
@@ -56,7 +56,7 @@ def intensity(pyrat):
   """
   Calculate the intensity spectrum [units] for eclipse geometry.
   """
-  pt.msg(1, "Intensity spectrum.", 2)
+  pt.msg(1, "Intensity spectrum.", pyrat.log, 2)
   # Allocate intensity array:
   pyrat.nangles = len(pyrat.raygrid)
   pyrat.spec.intensity = np.empty((pyrat.nangles, pyrat.spec.nwave), np.double)
@@ -91,7 +91,7 @@ def flux(pyrat):
   Calculate the hemisphere-integrated flux spectrum [units] for eclipse
   geometry.
   """
-  pt.msg(1, "Flux spectrum: '{:s}'.".format(pyrat.outspec), 2)
+  pt.msg(1, "Flux spectrum: '{:s}'.".format(pyrat.outspec), pyrat.log, 2)
   # Calculate the projected area:
   boundaries = np.linspace(0, 0.5*np.pi, pyrat.nangles+1)
   boundaries[1:pyrat.nangles] = 0.5 * (pyrat.raygrid[:-1] + pyrat.raygrid[1:])
