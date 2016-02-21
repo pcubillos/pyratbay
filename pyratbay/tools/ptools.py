@@ -1,7 +1,7 @@
 # Copyright (c) 2015-2016 Patricio Cubillos and contributors.
 # Pyrat Bay is open-source software under the FINDME license.
 
-__all__ = ["parray", "exit", "msg", "warning", "error",
+__all__ = ["parray", "msg", "warning", "error",
            "binsearch", "pprint", "divisors", "u", "unpack", "sep"]
 
 import sys, os
@@ -31,33 +31,6 @@ def parray(string):
     return np.asarray(string.split(), np.double)
   except: # Else, return a string array:
     return string.split()
-
-
-def exit(comm=None, abort=False, message=None, comm2=None):
-  """
-  Stop execution.
-
-  Parameters:
-  -----------
-  comm: MPI communicator
-     An MPI Intracommunicator.
-  abort: Boolean
-     If True send (gather) an abort flag integer through comm.
-  message: String
-     Print message on exit.
-  """
-  if message is not None:
-    print(message)
-  if comm is not None:
-    if abort:
-      #comm_gather(comm, np.array([1], dtype='i'), MPI.INT)
-      pass
-    comm.Barrier()
-    comm.Disconnect()
-  if comm2 is not None:
-    comm2.Barrier()
-    comm2.Disconnect()
-  sys.exit(0)
 
 
 def msg(verblevel, message, file=None, indent=0, si=None, noprint=False):

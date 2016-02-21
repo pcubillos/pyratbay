@@ -1208,3 +1208,7 @@ Adapted calls in pyrat, lineread will break.
 
 *****
 
+Removed exit() from pyrat tools.
+
+*****
+
