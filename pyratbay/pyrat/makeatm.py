@@ -6,8 +6,8 @@ def uniform(atmfile, pressure, temperature, species, abundances):
   """
   Generate an atmospheric file with uniform abundances.
 
-  Parameters:
-  -----------
+  Parameters
+  ----------
   atmfile: String
      Name of output atmospheric file.
   pressure: 1D float ndarray

@@ -5,19 +5,20 @@ import scipy.constants as sc
 
 from .. import tools     as pt
 from .. import constants as pc
+from .. import VERSION   as ver
 from .  import haze      as hz
+
 
 def parse(pyrat):
   """
   Parse the command-line arguments into the pyrat object
 
-  Parameters:
-  -----------
+  Parameters
+  ----------
   pyrat: Object
-     A pyrat object where to store the CLA.
+     A Pyrat instance where to store the CLA.
   """
 
-  pt.msg(1, "Processing command-line arguments:")
   # Parse configuration file:
   cparser = argparse.ArgumentParser(description=__doc__, add_help=False,
                            formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -32,7 +33,6 @@ def parse(pyrat):
 
   # Get parameters from configuration file (if exists):
   cfile = args.configfile # The configuration file
-  pt.msg(1, "Configuration file: '{:s}'".format(cfile), 2) 
   #if cfile is None:
   #  pt.exit(message="Undefined configuration file.")
   if cfile is not None and not os.path.isfile(cfile):
@@ -230,7 +230,9 @@ def parse(pyrat):
                      help="Filename to store the radius at maxdepth "
                           "(per wavelength) [default: %(default)s]",
                      action="store", type=str, default=None) 
-
+  group.add_argument(      "--logfile", dest="logfile",
+                     help="Log file.",
+                     action="store", default=None)
 
   # Set the defaults from the configuration file:
   parser.set_defaults(**defaults)
@@ -294,10 +296,25 @@ def parse(pyrat):
   # System:
   pyrat.inputs.rstar = user.rstar
   # Output files:
-  pyrat.inputs.outspec    = user.outspec
-  pyrat.inputs.outsample  = user.outsample
+  pyrat.inputs.outspec     = user.outspec
+  pyrat.inputs.outsample   = user.outsample
   pyrat.inputs.outmaxdepth = user.outmaxdepth
+  pyrat.inputs.logfile     = user.logfile
 
+  # Open the Pyrat log file if requested:
+  if pyrat.inputs.logfile is not None:
+    pyrat.log = open(pyrat.inputs.logfile, "w")
+
+  # Welcome message:
+  pt.msg(1, "{:s}\n  Python Radiative Transfer (PyRaT).\n"
+            "  Version {:d}.{:d}.{:d}.\n"
+            "  Copyright (c) 2016 Patricio Cubillos and collaborators.\n"
+            "  Pyrat is open-source software under the FINDME license.\n"
+            "{:s}\n\n".format(pt.sep, ver.PYRAT_VER, ver.PYRAT_MIN,
+                                      ver.PYRAT_REV, pt.sep), pyrat.log)
+
+  pt.msg(1, "Read command-line arguments from configuration file: '{:s}'".
+            format(cfile), pyrat.log)
 
 def checkinputs(pyrat):
   """
@@ -311,32 +328,35 @@ def checkinputs(pyrat):
 
   # Check that input files exist:
   if not os.path.isfile(inputs.atmfile):
-    pt.error("atmfile: '{:s}' does not exist.".format(inputs.atmfile))
+    pt.error("atmfile: '{:s}' does not exist.".format(inputs.atmfile),
+             pyrat.log)
   pyrat.atmfile = inputs.atmfile
 
   if inputs.linedb is not None:
     for linedb in inputs.linedb:
       if not os.path.isfile(linedb):
-        pt.error("linedb file: '{:s}' does not exist.".format(linedb))
+        pt.error("linedb file: '{:s}' does not exist.".format(linedb),
+                 pyrat.log)
   pyrat.linedb = pyrat.inputs.linedb
 
   if inputs.csfile is not None:
     for cs in pyrat.inputs.csfile:
       if not os.path.isfile(cs):
-        pt.error("Cross-section file: '{:s}' does not exist.".format(cs))
+        pt.error("Cross-section file: '{:s}' does not exist.".format(cs),
+                 pyrat.log)
   pyrat.cs.files = pyrat.inputs.csfile
 
   if inputs.molfile is None: # Set default
     inputs.molfile = pyratdir + "/../../inputs/molecules.dat"
   if not os.path.isfile(inputs.molfile):
     pt.error("Molecular-data file: '{:s}' does not exist.".
-             format(inputs.molfile))
+             format(inputs.molfile), pyrat.log)
   pyrat.molfile = os.path.realpath(inputs.molfile)
 
   if inputs.extfile is not None:
     if not os.path.exists(os.path.realpath(os.path.dirname(inputs.extfile))):
       pt.error("Directory for extinction-coefficient file '{:s}' does "
-               "not exist.".format(inputs.extfile))
+               "not exist.".format(inputs.extfile), pyrat.log)
     pyrat.ex.extfile = os.path.realpath(inputs.extfile)
 
   # Check spectrum arguments:
@@ -352,18 +372,18 @@ def checkinputs(pyrat):
   if   inputs.wnlow is not None:
     if inputs.wnlow < 0.0:
       pt.error("Low wavenumber boundary ({:.2e} {:s}-1) must be "
-               ">= 0.".format(inputs.wnlow, inputs.wnunits))
+               ">= 0.".format(inputs.wnlow, inputs.wnunits), pyrat.log)
     pyrat.spec.wnlow = inputs.wnlow / pt.u(pyrat.spec.wnunits)
 
   if   inputs.wnhigh is not None:
     if inputs.wnhigh <= 0.0:
       pt.error("High wavenumber boundary ({:.2e} {:s}-1) must be "
-               "> 0.".format(inputs.wnhigh, inputs.wnunits))
+               "> 0.".format(inputs.wnhigh, inputs.wnunits), pyrat.log)
     pyrat.spec.wnhigh = inputs.wnhigh / pt.u(pyrat.spec.wnunits)
 
   if inputs.wnstep is None or inputs.wnstep <= 0:
     pt.error("Wavenumber sampling step ({:.2e} {:s}-1) must be defined and "
-             "be > 0.".format(inputs.wnstep, inputs.wnunits))
+             "be > 0.".format(inputs.wnstep, inputs.wnunits), pyrat.log)
   pyrat.spec.wnstep = inputs.wnstep / pt.u(pyrat.spec.wnunits)
 
   pyrat.spec.wnosamp = isgreater(inputs.wnosamp, None, 1, False,
@@ -411,7 +431,7 @@ def checkinputs(pyrat):
 
   if pyrat.voigt.Dmax <= pyrat.voigt.Dmin:
     pt.error("Dmax ({:g} cm-1) must be > Dmin ({:g} cm-1).".format(
-             pyrat.voigt.Dmax, pyrat.voigt.Dmin))
+             pyrat.voigt.Dmax, pyrat.voigt.Dmin), pyrat.log)
 
   # Lorentz width:
   pyrat.voigt.nLor = isgreater(inputs.nLor, None, 1, False,
@@ -425,7 +445,7 @@ def checkinputs(pyrat):
 
   if pyrat.voigt.Lmax <= pyrat.voigt.Lmin:
     pt.error("Lmax ({:g} cm-1) must be > Lmin ({:g} cm-1).".format(
-             pyrat.voigt.Lmax, pyrat.voigt.Lmin))
+             pyrat.voigt.Lmax, pyrat.voigt.Lmin), pyrat.log)
 
   pyrat.voigt.DLratio = isgreater(inputs.DLratio, None, 0, True,
              "Doppler/Lorentz width ratio threshold ({:g}) must be > 0.")
@@ -446,14 +466,14 @@ def checkinputs(pyrat):
   if pyrat.ex.tmax is not None and pyrat.ex.tmin is not None:
     if pyrat.ex.tmax <= pyrat.ex.tmin:
       pt.error("Maximum temperature limit ({:g} K) must be > minimum "
-               "temperature ({:g} K).".format(pyrat.ex.tmax, pyrat.ex.tmin))
+       "temperature ({:g} K).".format(pyrat.ex.tmax, pyrat.ex.tmin), pyrat.log)
 
   # Check haze models:
   if inputs.hazes is not None:
     for hmodel in inputs.hazes:
       if hmodel not in hz.hnames:
         pt.error("Haze model '{:s}' is not in the list of available models:"
-                 "\n{:s}".format(hmodel, hz.hnames))
+                 "\n{:s}".format(hmodel, hz.hnames), pyrat.log)
       else:
         ihaze = np.where(hz.hnames == hmodel)[0][0]
         pyrat.haze.model.append(hz.hmodels[ihaze])
@@ -477,17 +497,18 @@ def checkinputs(pyrat):
 
   # Check raygrid:
   if inputs.raygrid[0] != 0:
-    pt.error("First angle in raygrid must be 0.0 (normal to surface).")
+    pt.error("First angle in raygrid must be 0.0 (normal to surface).",
+             pyrat.log)
   if np.any(inputs.raygrid < 0):
-    pt.error("raygrid angles must lie between 0 and 90 deg.")
+    pt.error("raygrid angles must lie between 0 and 90 deg.", pyrat.log)
   if np.any(np.ediff1d(inputs.raygrid) <= 0):
-    pt.error("raygrid angles must be monotonically increasing.")
+    pt.error("raygrid angles must be monotonically increasing.", pyrat.log)
   # Store raygrid values in radians:
   pyrat.raygrid = inputs.raygrid * sc.degree
 
   # Verbose level:
   pyrat.verb = np.amax([0, inputs.verb])
-  pt.msg(pyrat.verb, "Done.", 0)
+  pt.msg(pyrat.verb, "Done.", pyrat.log)
 
 
 def isgreater(value, units, thresh, equal=False, text=""):
@@ -527,6 +548,6 @@ def isgreater(value, units, thresh, equal=False, text=""):
   # Check value:
   if value is not None:
     if compare(value, thresh):
-      pt.error(text.format(value, units), -3)
+      pt.error(text.format(value, units), pyrat.log, -3)
     return value * unitsval
   return None

@@ -1199,5 +1199,12 @@ To do: add pyrat-bay logo.
 
 Added MCcubed submodule, poiting to the multiproc branch.
 
+
+*****  Sun Feb 21 12:39:00 CET 2016  *****
+
+Added logfile CLA to write runlog to file.
+Updated msg(), warning(), and error() to write to log.
+Adapted calls in pyrat, lineread will break.
+
 *****
 

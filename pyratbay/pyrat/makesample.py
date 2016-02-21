@@ -15,36 +15,36 @@ def makewavenumber(pyrat):
   # Alias for Pyrat's Spectrum object:
   spec = pyrat.spec
 
-  pt.msg(pyrat.verb, "\nGenerating wavenumber array:", 0)
+  pt.msg(pyrat.verb, "\nGenerating wavenumber array:", pyrat.log)
   # Low wavenumber boundary:
   if spec.wnlow is None:
     if spec.wlhigh is None:
       pt.error("Low wavenumber boundary is undefined.  Set either wnlow or "
-               "wlhigh.")
+               "wlhigh.", pyrat.log)
     else:
       spec.wnlow = 1.0 / spec.wlhigh
   elif spec.wlhigh is not None:
     pt.warning("Both wnlow ({:.2e} cm-1) and wlhigh ({:.2e} cm) were "
                "defined.  Pyrat will take wnlow and ignore wlhigh.".
-                format(spec.wnlow, spec.wlhigh))
+                format(spec.wnlow, spec.wlhigh), pyrat.wlog, pyrat.log)
 
   # High wavenumber boundary:
   if spec.wnhigh is None:
     if spec.wllow is None:
       pt.error("High wavenumber boundary is undefined.  Set either wnhigh or "
-               "wllow.")
+               "wllow.", pyrat.log)
     else:
       spec.wnhigh = 1.0 / spec.wllow
   elif spec.wllow is not None:
     pt.warning("Both wnhigh ({:.2e} cm-1) and wllow ({:.2e} cm) were "
                "defined.  Pyrat will take wnhigh and ignore wllow.".
-                format(spec.wnhigh, spec.wllow))
+                format(spec.wnhigh, spec.wllow), pyrat.wlog, pyrat.log)
 
   # Consistency check (wnlow < wnhigh):
   if spec.wnlow > spec.wnhigh:
     pt.error("Wavenumber low boundary ({:.2e} cm-1) must be larger than the "
              "high boundary ({:.2e} cm-1)".
-              format(spec.wnlow, spec.wnhigh))
+              format(spec.wnlow, spec.wnhigh), pyrat.log)
 
   # Set wavelength limits based on the wavenumber limits:
   spec.wlhigh = 1.0 / spec.wnlow
@@ -57,7 +57,7 @@ def makewavenumber(pyrat):
   if spec.wn[-1] != spec.wnhigh:
     pt.warning("Final wavenumber boundary modified from {:10.4f} cm-1 (input)\n"
                "                                     to {:10.4f} cm-1 (Pyrat).".
-               format(spec.wnhigh, spec.wn[-1]))
+               format(spec.wnhigh, spec.wn[-1]), pyrat.wlog, pyrat.log)
   # Set the number of spectral samples:
   spec.nwave  = len(spec.wn)
 
@@ -71,16 +71,18 @@ def makewavenumber(pyrat):
 
   # Screen output:
   pt.msg(pyrat.verb,"Initial wavenumber boundary:  {:.5e} cm-1  ({:.3e} "
-                    "{:s})".format(spec.wnlow,
-                          spec.wlhigh/pt.u(spec.wlunits), spec.wlunits), 2)
+                    "{:s})".format(spec.wnlow, spec.wlhigh/pt.u(spec.wlunits),
+                                   spec.wlunits), pyrat.log, 2)
   pt.msg(pyrat.verb,"Final   wavenumber boundary:  {:.5e} cm-1  ({:.3e} "
-                    "{:s})".format(spec.wnhigh,
-                          spec.wllow /pt.u(spec.wlunits), spec.wlunits), 2)
+                    "{:s})".format(spec.wnhigh, spec.wllow/pt.u(spec.wlunits),
+                                   spec.wlunits), pyrat.log, 2)
   pt.msg(pyrat.verb,"Wavenumber sampling stepsize: {:.2g} cm-1".
-                            format(spec.wnstep), 2)
-  pt.msg(pyrat.verb,"Wavenumber sample size:      {:8d}".format(spec.nwave),  2)
-  pt.msg(pyrat.verb,"Wavenumber fine-sample size: {:8d}".format(spec.onwave), 2)
-  pt.msg(pyrat.verb, "Done.")
+                            format(spec.wnstep),  pyrat.log, 2)
+  pt.msg(pyrat.verb,"Wavenumber sample size:      {:8d}".format(spec.nwave),
+                                                  pyrat.log,  2)
+  pt.msg(pyrat.verb,"Wavenumber fine-sample size: {:8d}".format(spec.onwave),
+                                                  pyrat.log, 2)
+  pt.msg(pyrat.verb, "Done.", pyrat.log)
 
 
 def makeradius(pyrat):
@@ -90,7 +92,7 @@ def makeradius(pyrat):
   If the user sets radius command-line arguments, make a sampling; else,
   default to the atmfile radius array.
   """
-  pt.msg(pyrat.verb, "\nGenerating atmospheric radius sample:")
+  pt.msg(pyrat.verb, "\nGenerating atmospheric radius sample:", pyrat.log)
 
   # Pyrat and user-input atmospheric-data objects:
   atm    = pyrat.atm
@@ -98,15 +100,17 @@ def makeradius(pyrat):
 
   # Atmopsheric reference pressure-radius level:
   pt.msg(pyrat.verb, "Reference pressure: {:.3e} {:s}".
-          format(pyrat.pressurebase/pt.u(pyrat.punits), pyrat.punits),   2)
+          format(pyrat.pressurebase/pt.u(pyrat.punits), pyrat.punits),
+         pyrat.log,   2)
   pt.msg(pyrat.verb, "Reference radius: {:8g} {:s}".
-          format(pyrat.radiusbase/pt.u(pyrat.radunits), pyrat.radunits), 2)
+          format(pyrat.radiusbase/pt.u(pyrat.radunits), pyrat.radunits),
+         pyrat.log, 2)
 
   # FINDME: move this to readatm
   # Pressure limits from the atmospheric file:
   pt.msg(pyrat.verb, "Pressure limits: {:.3e} -- {:.3e} {:s}".
         format(atm_in.press[ 0]/pt.u(pyrat.punits),
-               atm_in.press[-1]/pt.u(pyrat.punits), pyrat.punits), 2)
+               atm_in.press[-1]/pt.u(pyrat.punits), pyrat.punits), pyrat.log, 2)
 
   # Check that the layers are sorted from the top to the bottom of
   #  the atmosphere:
@@ -120,7 +124,7 @@ def makeradius(pyrat):
     pass
   elif reverse:  # Layers in reverse order
     pt.warning("The atmospheric layers are in reversed order (bottom-top).  "
-               "Resorting to be from the top down.")
+               "Resorting to be from the top down.", pyrat.wlog, pyrat.log)
     if atm_in.radius is not None:
       atm_in.radius = atm_in.radius[::-1]
     atm_in.press  = atm_in.press [::-1]
@@ -130,7 +134,7 @@ def makeradius(pyrat):
     atm_in.d      = np.flipud(atm_in.d)
   else:
     pt.error("The atmospheric layers are neither sorted from the bottom up, "
-             "nor from the top down.")
+             "nor from the top down.", pyrat.log)
 
   if atm_in.radius is None:
     # Calculate the radius array using the hydostatic-equilibrium equation:
@@ -142,7 +146,7 @@ def makeradius(pyrat):
   pressinterp = sip.interp1d(atm_in.radius[::-1],
                              atm_in.press [::-1], kind='slinear')
   pt.msg(pyrat.verb, "Radius array (km) = {:s}".
-                      format(pt.pprint(atm_in.radius/pc.km, 2)), 2)
+                      format(pt.pprint(atm_in.radius/pc.km, 2)), pyrat.log, 2)
 
   # Set pressure boundaries:
   if pyrat.radhigh is not None:
@@ -156,21 +160,21 @@ def makeradius(pyrat):
     pyrat.plow  = np.amin(atm_in.press)
 
   pt.msg(pyrat.verb, "Pressure user boundaries: {:.3e} -- {:.3e} bar".format(
-                     pyrat.plow/pc.bar, pyrat.phigh/pc.bar), 2)
+                     pyrat.plow/pc.bar, pyrat.phigh/pc.bar), pyrat.log, 2)
 
   # Out of bounds errors:
   if pyrat.phigh > np.amax(atm_in.press):
     pt.error("User-defined top layer (p={:.3e} {:s}) is higher than the "
              "atmospheric-file top layer (p={:.3e} {:s}).".format(
-              pyrat.phigh/pt.u(pyrat.punits), pyrat.punits,
-              np.amax(atm_in.press)/pt.u(pyrat.punits), pyrat.punits))
+             pyrat.phigh/pt.u(pyrat.punits), pyrat.punits,
+             np.amax(atm_in.press)/pt.u(pyrat.punits), pyrat.punits), pyrat.log)
 
   # Out of bounds errors:
   if pyrat.plow < np.amin(atm_in.press):
     pt.error("User-defined bottom layer (p={:.3e} {:s}) is lower than the "
              "atmospheric-file bottom layer (p={:.3e} {:s}).".format(
-              pyrat.plow/pt.u(pyrat.punits), pyrat.punits,
-              np.amin(atm_in.press)/pt.u(pyrat.punits), pyrat.punits))
+             pyrat.plow/pt.u(pyrat.punits), pyrat.punits,
+             np.amin(atm_in.press)/pt.u(pyrat.punits), pyrat.punits), pyrat.log)
 
   # Resample to equispaced log-pressure array if requested:
   if atm.nlayers is not None:
@@ -224,13 +228,14 @@ def makeradius(pyrat):
   # plt.ylabel("Radius  ({:s})".format(pyrat.radunits))
   # plt.savefig("radpress.png")
 
-  pt.msg(pyrat.verb, "Number of model layers: {:d}".format(atm.nlayers),2)
+  pt.msg(pyrat.verb, "Number of model layers: {:d}".format(atm.nlayers),
+         pyrat.log, 2)
   pt.msg(pyrat.verb, "Pressure lower/higher boundaries: {:.2e} - {:.2e} "
-                     "{:s}".format(pyrat.plow /pt.u(pyrat.punits),
-                               pyrat.phigh/pt.u(pyrat.punits), pyrat.punits), 2)
+                 "{:s}".format(pyrat.plow /pt.u(pyrat.punits),
+                 pyrat.phigh/pt.u(pyrat.punits), pyrat.punits), pyrat.log, 2)
   pt.msg(pyrat.verb, "Radius lower/higher boundaries:   {:.1f} - {:.1f} {:s}".
-               format(np.amin(atm.radius)/pt.u(pyrat.radunits),
-                   np.amax(atm.radius)/pt.u(pyrat.radunits), pyrat.radunits), 2)
+       format(np.amin(atm.radius)/pt.u(pyrat.radunits),
+       np.amax(atm.radius)/pt.u(pyrat.radunits), pyrat.radunits), pyrat.log, 2)
 
    # Interpolate to new atm-layer sampling if necessary:
   if resample:
@@ -250,23 +255,24 @@ def makeradius(pyrat):
   # Temperature boundaries check:
   if np.any(atm.temp < pyrat.lt.tmin):
     icold = np.where(atm.temp < pyrat.lt.tmin)[0][0]
-    pt.error("The layer {:d} in the atmospheric model has a lower "
-             "temperature ({:.1f} K) than the lowest allowed TLI temperature "
-             "({:.1f} K).".format(icold, atm.temp[icold], pyrat.lt.tmin))
+    pt.error("The layer {:d} in the atmospheric model has a lower temperature "
+             "({:.1f} K) than the lowest allowed TLI temperature ({:.1f} K).".
+              format(icold, atm.temp[icold], pyrat.lt.tmin), pyrat.log)
   if np.any(atm.temp > pyrat.lt.tmax):
     ihot = np.where(atm.temp > pyrat.lt.tmax)[0][0]
-    pt.error("The layer {:d} in the atmospheric model has a higher "
-             "temperature ({:.1f} K) than the highest allowed TLI temperature "
-             "({:.1f} K).".format(ihot, atm.temp[ihot], pyrat.lt.tmax))
+    pt.error("The layer {:d} in the atmospheric model has a higher temperature "
+             "({:.1f} K) than the highest allowed TLI temperature ({:.1f} K).".
+              format(ihot, atm.temp[ihot], pyrat.lt.tmax), pyrat.log)
 
   # Interpolate isotopes partition function:
-  pt.msg(pyrat.verb,"Number of isotopes: {:d}".format(pyrat.iso.niso), 2)
+  pt.msg(pyrat.verb, "Number of isotopes: {:d}".format(pyrat.iso.niso),
+         pyrat.log, 2)
   # Initialize the partition-function array for pyrat.iso:
   pyrat.iso.z = np.zeros((pyrat.iso.niso, atm.nlayers))
   for i in np.arange(pyrat.lt.ndb):           # For each Database
     for j in np.arange(pyrat.lt.db[i].niso):  # For each isotope in DB
       pt.msg(pyrat.verb, "Interpolating (isotope ID {:2d}) partition "
-                         "function.".format(pyrat.lt.db[i].iiso+j), 4)
+                        "function.".format(pyrat.lt.db[i].iiso+j), pyrat.log, 4)
       zinterp = sip.interp1d(pyrat.lt.db[i].temp, pyrat.lt.db[i].z[j],
                              kind='slinear')
       pyrat.iso.z[pyrat.lt.db[i].iiso+j] = zinterp(atm.temp)
@@ -282,4 +288,4 @@ def makeradius(pyrat):
   # plt.ylim(0, 15000)
   # plt.savefig("PartitionFunction.png")
 
-  pt.msg(pyrat.verb, "Done.")
+  pt.msg(pyrat.verb, "Done.", pyrat.log)

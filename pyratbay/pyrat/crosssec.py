@@ -10,7 +10,7 @@ def read(pyrat):
   Read a Cross-section (CS) file.
   """
 
-  pt.msg(pyrat.verb, "\nReading the cross-section files:", 0)
+  pt.msg(pyrat.verb, "\nReading the cross-section files:", pyrat.log, 0)
   # Number of CS files:
   if pyrat.cs.files is None:
     pyrat.cs.nfiles = 0
@@ -24,10 +24,11 @@ def read(pyrat):
     pyrat.cs.nwave     = np.zeros(pyrat.cs.nfiles, np.int)
 
   if pyrat.cs.nfiles == 0:
-    pt.msg(pyrat.verb, "No CS files to read.", 2)
+    pt.msg(pyrat.verb, "No CS files to read.", pyrat.log, 2)
   else:
     for i in np.arange(pyrat.cs.nfiles):
-      pt.msg(pyrat.verb, "Read CS file: '{:s}'.".format(pyrat.cs.files[i]), 2)
+      pt.msg(pyrat.verb, "Read CS file: '{:s}'.".format(pyrat.cs.files[i]),
+             pyrat.log, 2)
       f = open(pyrat.cs.files[i], "r")
       lines = f.readlines()
       f.seek(0)
@@ -54,7 +55,7 @@ def read(pyrat):
           absent = np.setdiff1d(pyrat.cs.molecules[i, 0:nmol], pyrat.mol.name)
           if len(absent) > 0:
             pt.error("These species: {:s} are not listed in the atmospheric "
-                     "file.\n".format(str(absent)))
+                     "file.\n".format(str(absent)), pyrat.log)
           nheader += 1
 
         # Get the sampled temperatures:
@@ -68,7 +69,8 @@ def read(pyrat):
           nheader += 1
 
         else:
-          pt.error("CS file has an unexpected line: \n'{:s}'".format(line))
+          pt.error("CS file has an unexpected line: \n'{:s}'".format(line),
+                   pyrat.log)
 
       # Read the data:
       # Get number of wavenumber samples:
@@ -89,7 +91,7 @@ def read(pyrat):
                  "file:\n  '{:s}',\ndoes not cover the Pyrat's wavenumber "
                  "range: [{:.3f}, {:.3f}] cm-1.".
                  format(wavenumber[0], wavenumber[-1], pyrat.cs.files[i],
-                        pyrat.spec.wn[ 0], pyrat.spec.wn[-1]))
+                        pyrat.spec.wn[ 0], pyrat.spec.wn[-1]), pyrat.log)
 
       # Add arrays to pyrat:
       pyrat.cs.wavenumber.append(wavenumber)
@@ -98,14 +100,16 @@ def read(pyrat):
       # Screen output:
       pt.msg(pyrat.verb, "For {:s} CS,\nRead {:d} wavenumber and {:d} "
         "temperature samples.".format("-".join(pyrat.cs.molecules[i,0:nmol]),
-                                      pyrat.cs.nwave[i], pyrat.cs.ntemp[i]), 4)
+                         pyrat.cs.nwave[i], pyrat.cs.ntemp[i]), pyrat.log, 4)
       pt.msg(pyrat.verb, "Temperature sample limits: {:g}--{:g} K".
-                          format(pyrat.cs.temp[i][0], pyrat.cs.temp[i][-1]), 4)
+                          format(pyrat.cs.temp[i][0], pyrat.cs.temp[i][-1]),
+             pyrat.log, 4)
       pt.msg(pyrat.verb, "Wavenumber sample limits: {:.1f}--{:.1f} cm-1".
-              format(pyrat.cs.wavenumber[i][0], pyrat.cs.wavenumber[i][-1]), 4)
+              format(pyrat.cs.wavenumber[i][0], pyrat.cs.wavenumber[i][-1]),
+             pyrat.log, 4)
       f.close()
 
-  pt.msg(pyrat.verb, "Done.", 0)
+  pt.msg(pyrat.verb, "Done.", pyrat.log)
 
 
 def interpolate(pyrat):
@@ -113,19 +117,19 @@ def interpolate(pyrat):
   Interpolate the CS absorption to the planetary model temperature and
   wavenumber samples.
   """
-  pt.msg(pyrat.verb, "\nBegin CS interpolation.")
+  pt.msg(pyrat.verb, "\nBegin CS interpolation.", pyrat.log)
 
   # Check temperature boundaries:
   if np.any(pyrat.atm.temp < pyrat.cs.tmin):
     icold = np.where(pyrat.atm.temp < pyrat.cs.tmin)[0][0]
-    pt.error("The layer {:d} in the atmospheric model has a lower "
-             "temperature ({:.1f} K) than the lowest allowed CS temperature "
-             "({:.1f} K).".format(icold, pyrat.atm.temp[icold], pyrat.cs.tmin))
+    pt.error("The layer {:d} in the atmospheric model has a lower temperature "
+             "({:.1f} K) than the lowest allowed CS temperature ({:.1f} K).".
+              format(icold, pyrat.atm.temp[icold], pyrat.cs.tmin), pyrat.log)
   if np.any(pyrat.atm.temp > pyrat.cs.tmax):
     ihot = np.where(pyrat.atm.temp > pyrat.cs.tmax)[0][0]
-    pt.error("The layer {:d} in the atmospheric model has a higher "
-             "temperature ({:.1f} K) than the highest allowed CS temperature "
-             "({:.1f} K).".format(ihot, pyrat.atm.temp[ihot], pyrat.cs.tmax))
+    pt.error("The layer {:d} in the atmospheric model has a higher temperature "
+             "({:.1f} K) than the highest allowed CS temperature ({:.1f} K).".
+              format(ihot, pyrat.atm.temp[ihot], pyrat.cs.tmax), pyrat.log)
 
   # Allocate output extinction-coefficient array:
   pyrat.cs.ec = np.zeros((pyrat.atm.nlayers, pyrat.spec.nwave))
@@ -158,5 +162,6 @@ def interpolate(pyrat):
     # Compute CS absorption in cm-1 units (broadcasting):
     pyrat.cs.ec += (cs_absorption * np.expand_dims(dens, axis=1))
 
-    pt.msg(pyrat.verb-40, "CS extinction: {}".format(pyrat.cs.ec[:,0]), 2)
-  pt.msg(pyrat.verb, "Done.")
+    pt.msg(pyrat.verb-40, "CS extinction: {}".format(pyrat.cs.ec[:,0]),
+           pyrat.log, 2)
+  pt.msg(pyrat.verb, "Done.", pyrat.log)
