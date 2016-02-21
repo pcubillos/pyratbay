@@ -1242,3 +1242,8 @@ Updated pyrat demo config files to include logfile name.
 
 *****
 
+Bumped pyrat to version 1.2.5.
+Bumped lineread to version 6.4.1.
+
+*****
+
