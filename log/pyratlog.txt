@@ -1238,3 +1238,7 @@ separately.  It will show only the times for the latest run.
 
 *****
 
+Updated pyrat demo config files to include logfile name.
+
+*****
+
