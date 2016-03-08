@@ -1271,4 +1271,8 @@ Bumped lineread version to 6.4.2.
 
 *****
 
+Updated docs, added logo.
+Some other minor corrections.
+
+*****
 

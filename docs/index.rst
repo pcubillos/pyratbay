@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Pyrat-Bay: Python Radiative Transfer in a Bayesian framework
+Pyrat Bay: Python Radiative Transfer in a Bayesian framework
 ============================================================
 
 :Author:       Patricio Cubillos and collaborators (see :ref:`team`)
