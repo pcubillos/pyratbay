@@ -214,9 +214,10 @@ static PyObject *extinction(PyObject *self, PyObject *args){
     /* Check if this is the maximum k:                                      */
     kmax[m] = fmax(kmax[m], k);
   }
-  //for (i=0; i<next; i++)
-  //  printf("Kmax[%d] is: %.3e\n", i, kmax[i]);
-
+  //printf("k: \n");
+  //for (i=0; i<nlines; i++)
+  //  printf("[%.4f,%.2e], ", 10000.0/INDd(lwn, i), kprop[i]);
+  //printf("\n");
 
   /* Compute the extinction-coefficient for each species:                   */
   for(ln=0; ln<nlines; ln++){

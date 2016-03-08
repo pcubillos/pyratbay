@@ -1245,5 +1245,16 @@ Updated pyrat demo config files to include logfile name.
 Bumped pyrat to version 1.2.5.
 Bumped lineread to version 6.4.1.
 
+
+*****  Di 8. Mär 09:59:44 CET 2016  *****
+
+Added init for pyratbay subpackage.
+Moved makeatm.py from pyrat to pyratbay.
+
+*****
+
+Added forgotten files for pbay subpackage.
+Bumped pyratbay to version 0.0.15.
+
 *****
 

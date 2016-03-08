@@ -1,5 +1,6 @@
 __all__ = ["pyratbay", "lineread", "pyrat", "constants", "tools"]
 
+from . import pyratbay
 from . import pyrat
 from . import lineread
 from . import constants
