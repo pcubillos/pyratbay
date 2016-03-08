@@ -1258,3 +1258,8 @@ Bumped pyratbay to version 0.0.15.
 
 *****
 
+Updated argumpy to take haze fitting parameters.
+Bumped pyrat to version 1.2.6.
+
+*****
+

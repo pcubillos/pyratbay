@@ -471,6 +471,7 @@ def checkinputs(pyrat):
 
   # Check haze models:
   if inputs.hazes is not None:
+    nhpars = 0
     for hmodel in inputs.hazes:
       if hmodel not in hz.hnames:
         pt.error("Haze model '{:s}' is not in the list of available models:"
@@ -479,7 +480,17 @@ def checkinputs(pyrat):
         ihaze = np.where(hz.hnames == hmodel)[0][0]
         pyrat.haze.model.append(hz.hmodels[ihaze])
         pyrat.haze.nmodels += 1
+        nhpars += pyrat.haze.model[-1].npars
     # FINDME: process the haze parameters
+    if inputs.hpars is not None:
+      if nhpars != len(inputs.hpars):
+        pt.error("Number of input haze params ({:d}) does not match the"
+                 "number of required haze params({:d}).".
+                 format(inputs.hpars, nhpars), pyrat.log)
+      j = 0
+      for i in np.arange(pyrat.haze.nmodels):
+        pyrat.haze.model[i].pars = inputs.hpars[j:j+pyrat.haze.model[i].npars]
+        j += pyrat.haze.model[i].npars
 
   # Check optical-depth arguments:
   pyrat.od.maxdepth = isgreater(inputs.maxdepth, None, 0, False,
