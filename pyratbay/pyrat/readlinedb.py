@@ -68,7 +68,7 @@ def readheader(pyrat, linefile):
                       format(TLI_ver, TLI_min, TLI_rev), pyrat.log, 2)
   if (TLI_ver != 6) or (TLI_min not in [1,2,3,4]):
     pt.error("Incompatible TLI version.  The TLI file must be created with "
-             "Lineread version 6.1-6.3.", pyrat.log)
+             "Lineread version 6.1-6.4.", pyrat.log)
 
   # Read initial and final wavenumber from TLI:
   lt_wni, lt_wnf = pt.unpack(linefile, 2, "d")

@@ -171,6 +171,8 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
       driver.append(db.tioschwenke(dblist[i], pflist[i], log))
     elif dbtype[i] == "vo":
       driver.append(db.voplez(     dblist[i], pflist[i], log))
+    elif dbtype[i] == "vald":
+      driver.append(db.vald(       dblist[i], pflist[i], log))
     else:
       pt.error("Unknown Database type ({:d}): '{:s}'".format(i+1, dbtype[i]),
                log)

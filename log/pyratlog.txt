@@ -1263,3 +1263,12 @@ Bumped pyrat to version 1.2.6.
 
 *****
 
+Added code to process linelist data from VALD.
+Added inputs file with atomic symbol-name-weight.
+Added script to format partition functions from Barklem et al. (2016).
+Corrected comment in readlinedb.py
+Bumped lineread version to 6.4.2.
+
+*****
+
+
