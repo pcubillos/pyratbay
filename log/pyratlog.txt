@@ -1298,4 +1298,9 @@ species-state names.
 
 *****
 
+Fixed bug in scripts/CSformat_ExoMol.py when extracting info
+from the file name.
+
+*****
+
 

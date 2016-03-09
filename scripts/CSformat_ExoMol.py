@@ -65,7 +65,7 @@ def main():
       species = speciesname(filein[j])
 
     # Extract temperature from the filename:
-    temp[j] = (filein[j].split("_")[2])[:-1]
+    temp[j] = (os.path.basename(filein[j]).split("_")[2])[:-1]
     if (j != 0) and (temp[j] < temp[j-1]):
       return("Error: The files must be sorted in increasing-temperature order.")
 
