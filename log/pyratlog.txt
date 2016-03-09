@@ -1303,4 +1303,11 @@ from the file name.
 
 *****
 
+Addded cubic spline-interpolation C-extension files.
+Included constant-value extrapolation to the interpolating code.
+Added iabsorp variable to Cross class to hold the
+wavenumber-interpolated CS absoprtion.
+Added wn-interpolation at the end of the cross-section read function.
+
+*****
 

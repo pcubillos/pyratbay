@@ -1,9 +1,13 @@
+import sys, os
 import numpy as np
 import scipy.constants   as sc
 import scipy.interpolate as sip
 
 from .. import tools     as pt
 from .. import constants as pc
+
+sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../lib')
+import spline as sp
 
 def read(pyrat):
   """
@@ -83,6 +87,7 @@ def read(pyrat):
         data = f.readline().split()
         wavenumber[j]   = data[0]
         absorption[:,j] = data[1:]
+      f.close()
 
       # Wavenumber range check:
       if (wavenumber[ 0] > pyrat.spec.wn[ 0] or
@@ -107,7 +112,12 @@ def read(pyrat):
       pt.msg(pyrat.verb, "Wavenumber sample limits: {:.1f}--{:.1f} cm-1".
               format(pyrat.cs.wavenumber[i][0], pyrat.cs.wavenumber[i][-1]),
              pyrat.log, 4)
-      f.close()
+
+      # Wavenumber-interpolated CS:
+      iabsopr = np.zeros((pyrat.cs.ntemp[i], pyrat.spec.nwave), np.double)
+      for j in np.arange(pyrat.cs.ntemp[i]):
+        iabsopr[j] = sp.splinterp(absorption, wavenumber, pyrat.spec.wn, 0.0)
+      pyrat.cs.iabsorp.append(iabsopr)
 
   pt.msg(pyrat.verb, "Done.", pyrat.log)
 
