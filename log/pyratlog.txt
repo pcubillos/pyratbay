@@ -1276,3 +1276,12 @@ Some other minor corrections.
 
 *****
 
+Added TEA as submodule.
+
+
+*****  Mi 9. Mär 11:41:07 CET 2016  *****
+
+Minor correction to lineread/db/driver.py.
+
+*****
+
