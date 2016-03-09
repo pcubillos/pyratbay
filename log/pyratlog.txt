@@ -1285,3 +1285,17 @@ Minor correction to lineread/db/driver.py.
 
 *****
 
+In makeatm.py implemented:
+  makeatomic() to create atomic (elemental) abundance files.
+  readatomic() to read atomic (elemental) abundance files.
+  makepreatm() to create atomic (elemental) abundance profile files
+    (for TEA).
+  TEA2pyrat() to format a TEA atmospheric into Pyrat format.
+Added makecfg.py file with makeTEA() function to create a TEA config
+file.
+Added input files with Asplund solar abundances and TEA gdata default
+species-state names.
+
+*****
+
+
