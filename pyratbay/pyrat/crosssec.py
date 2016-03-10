@@ -92,11 +92,11 @@ def read(pyrat):
       # Wavenumber range check:
       if (wavenumber[ 0] > pyrat.spec.wn[ 0] or
           wavenumber[-1] < pyrat.spec.wn[-1] ):
-        pt.error("The wavenumber range [{:.3f}, {:.3f}] cm-1 of the CS "
-                 "file:\n  '{:s}',\ndoes not cover the Pyrat's wavenumber "
-                 "range: [{:.3f}, {:.3f}] cm-1.".
-                 format(wavenumber[0], wavenumber[-1], pyrat.cs.files[i],
-                        pyrat.spec.wn[ 0], pyrat.spec.wn[-1]), pyrat.log)
+        pt.warning("The wavenumber range [{:.3f}, {:.3f}] cm-1 of the CS "
+            "file:\n  '{:s}',\ndoes not cover the Pyrat's wavenumber "
+            "range: [{:.3f}, {:.3f}] cm-1.".format(
+            wavenumber[0], wavenumber[-1], pyrat.cs.files[i],
+            pyrat.spec.wn[ 0], pyrat.spec.wn[-1]), pyrat.wlog, pyrat.log)
 
       # Add arrays to pyrat:
       pyrat.cs.wavenumber.append(wavenumber)
@@ -114,11 +114,67 @@ def read(pyrat):
              pyrat.log, 4)
 
       # Wavenumber-interpolated CS:
-      iabsopr = np.zeros((pyrat.cs.ntemp[i], pyrat.spec.nwave), np.double)
+      iabsorp = np.zeros((pyrat.cs.ntemp[i], pyrat.spec.nwave), np.double)
       for j in np.arange(pyrat.cs.ntemp[i]):
-        iabsopr[j] = sp.splinterp(absorption, wavenumber, pyrat.spec.wn, 0.0)
-      pyrat.cs.iabsorp.append(iabsopr)
+        iabsorp[j] = sp.splinterp(absorption[j], wavenumber, pyrat.spec.wn, 0.0)
+      pyrat.cs.iabsorp.append(iabsorp)
+      # Array with second derivatives:
+      # Note the shape is swapped w.r.t. iabsorp.
+      iz      = np.zeros((pyrat.spec.nwave, pyrat.cs.ntemp[i]), np.double)
+      wnlow = np.flatnonzero(pyrat.spec.wn >= wavenumber[ 0])[ 0]
+      wnhi  = np.flatnonzero(pyrat.spec.wn <= wavenumber[-1])[-1]
+      for j in np.arange(wnlow, wnhi):   # FINDME: wnhi+1 ??
+        iz[j] = sp.spline_init(iabsorp[:,j], pyrat.cs.temp[i])
+      pyrat.cs.iz.append(iz)
 
+  pt.msg(pyrat.verb, "Done.", pyrat.log)
+
+
+def tmp_interpolate(pyrat):
+  """
+  Interpolate the CS absorption to the planetary model temperature and
+  wavenumber samples.
+  """
+  pt.msg(pyrat.verb, "\nBegin CS interpolation.", pyrat.log)
+
+  # Check temperature boundaries:
+  if np.any(pyrat.atm.temp < pyrat.cs.tmin):
+    icold = np.where(pyrat.atm.temp < pyrat.cs.tmin)[0][0]
+    pt.error("The layer {:d} in the atmospheric model has a lower temperature "
+             "({:.1f} K) than the lowest allowed CS temperature ({:.1f} K).".
+              format(icold, pyrat.atm.temp[icold], pyrat.cs.tmin), pyrat.log)
+  if np.any(pyrat.atm.temp > pyrat.cs.tmax):
+    ihot = np.where(pyrat.atm.temp > pyrat.cs.tmax)[0][0]
+    pt.error("The layer {:d} in the atmospheric model has a higher temperature "
+             "({:.1f} K) than the highest allowed CS temperature ({:.1f} K).".
+              format(ihot, pyrat.atm.temp[ihot], pyrat.cs.tmax), pyrat.log)
+
+  # Allocate output extinction-coefficient array:
+  pyrat.cs.ec = np.zeros((pyrat.atm.nlayers, pyrat.spec.nwave))
+
+  for i in np.arange(pyrat.cs.nfiles):
+    cs_absorption = np.zeros((pyrat.atm.nlayers, pyrat.spec.nwave))
+    wnlow = np.flatnonzero(pyrat.spec.wn >= pyrat.cs.wavenumber[i][ 0])[ 0]
+    wnhi  = np.flatnonzero(pyrat.spec.wn <= pyrat.cs.wavenumber[i][-1])[-1]
+    for p in np.arange(pyrat.atm.nlayers):
+      for wn in np.arange(wnlow, wnhi):
+        cs_absorption[p,wn] = sp.splinterp_pt(pyrat.cs.iabsorp[i],
+                                    pyrat.cs.temp[i], pyrat.cs.iz[i][wn],
+                                    pyrat.cs.ntemp[i], pyrat.atm.temp[p])
+
+    # Apply density scale factor:
+    dens = 1.0
+    for j in np.arange(pyrat.cs.nmol[i]):
+      # Get index from the pyrat list of molecules:
+      imol = np.where(pyrat.mol.name == pyrat.cs.molecules[i,j])[0][0]
+      # Densities in amagat:
+      dens *= pyrat.atm.d[:,imol] / pc.amagat
+
+    # Compute CS absorption in cm-1 units (broadcasting):
+    pyrat.cs.ec += (cs_absorption * np.expand_dims(dens, axis=1))
+
+    pt.msg(pyrat.verb-40, "CS extinction: {}".format(pyrat.cs.ec[:,0]),
+           pyrat.log, 2)
   pt.msg(pyrat.verb, "Done.", pyrat.log)
 
 

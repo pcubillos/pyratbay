@@ -1326,3 +1326,9 @@ and being less obscure.
 
 *****
 
+Implemeted CS spline interpolation, but it doesn't work as wished.
+Kept in background, at the moment I will stick with the current
+interpolation code, will go back when there's time for review.
+
+*****
+

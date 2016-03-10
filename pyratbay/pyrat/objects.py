@@ -456,6 +456,7 @@ class Cross(object):
     self.wavenumber = []      # Wavenumber sampling (in cm-1)
     self.absorption = []      # CS extinction (in cm-1 amagat-2)
     self.iabsorp    = []      # wn-interpolated CS extinction (in cm-1 amagat-2)
+    self.iz         = []      # Second derivatives of iabsorp
     self.ec         = None    # Interpolated CS extinction coefficient
                               #  in cm-1 [nlayer, nwave]
 
