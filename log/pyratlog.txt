@@ -1319,4 +1319,10 @@ requests.
 
 *****
 
+Re-factored the lineread sorting to be memory-friendly.
+And much much faster.
+Separated isoID and wavenumber sorting, requiring less memory
+and being less obscure.
+
+*****
 

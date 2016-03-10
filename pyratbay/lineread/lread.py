@@ -331,23 +331,30 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
 
   # Total number of transitions:
   nTransitions = np.size(wnumber)
+  # Number of transitions per isotope:
+  Nisotran = np.bincount(isoID)
+  Nisotran = Nisotran[np.where(Nisotran>0)]  # Remove zeroes
 
-  # Sort the line transitions (by isotope, then by wavenumber):
+  # Sort by isotope ID:
   ti = time.time()
-  isort = sorted(zip(np.arange(nTransitions), isoID, wnumber),
-                 key=lambda x:(x[1], x[2]))
-  isort = list(zip(*isort)[0])
+  isort   = np.argsort(isoID)
+  # Sort each isotope by wavenumber:
+  ihi = 0
+  for j in np.arange(len(Nisotran)):
+    ilo  = ihi
+    ihi += Nisotran[j]
+    print(ilo, ihi)
+    wnsort = np.argsort(wnumber[isort][ilo:ihi])
+    isort[ilo:ihi] = isort[ilo:ihi][wnsort]
   tf = time.time()
   pt.msg(verb-3, "Sort time: {:9.7f} seconds".format(tf-ti), log)
 
+  # Actual sorting:
   wnumber = wnumber[isort]
   gf      = gf     [isort]
   elow    = elow   [isort]
   isoID   = isoID  [isort]
 
-  # Calculate the total number of transitions per isotope:
-  Nisotran = np.bincount(isoID)
-  Nisotran = Nisotran[np.where(Nisotran>0)]  # Remove zeroes
   pt.msg(verb-5, "Transitions per isotope:\n{}".format(Nisotran), log)
 
   # FINDME: Implement well this:
@@ -357,6 +364,7 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
     plt.plot(isoID)
     plt.xlabel("Line index")
     plt.ylabel("Isotope ID")
+    plt.ylim(-0.1, np.amax(isoID)+0.1)
     plt.savefig("ID.png")
 
     plt.clf()
