@@ -1309,5 +1309,14 @@ Added iabsorp variable to Cross class to hold the
 wavenumber-interpolated CS absoprtion.
 Added wn-interpolation at the end of the cross-section read function.
 
+
+*****  Do 10. Mär 09:30:54 CET 2016  *****
+
+Implemented spline_init() and splinterp_pt() functions
+for individual-point interpolation.
+Unlike splinterp(), splinterp_pt() return nan for out of bound
+requests.
+
 *****
+
 

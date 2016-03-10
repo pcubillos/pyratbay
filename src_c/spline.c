@@ -43,8 +43,8 @@ static PyObject *splinterp(PyObject *self, PyObject *args){
     return NULL;
 
   /* Get the number of datapoints:                                          */
-  nin [0] = (int)PyArray_DIM(xin,  0)-1;
-  nout[0] = (int)PyArray_DIM(xout, 0);
+  nin [0] = PyArray_DIM(xin,  0)-1;
+  nout[0] = PyArray_DIM(xout, 0);
 
   /* Allocate arrays:                                                       */ 
   dx   = (PyArrayObject *) PyArray_SimpleNew(1, nin,  NPY_DOUBLE);
@@ -57,14 +57,14 @@ static PyObject *splinterp(PyObject *self, PyObject *args){
   }
 
   /* Calculate second derivatives:                                          */
-  tri(z, yin, dx, nin[0]);
+  tri(z, yin, dx, (int)nin[0]);
 
   /* Extrapolated values:                                                   */
   while(INDd(xout, epleft)  < INDd(xin,0)){
     INDd(yout, epleft) = extrap;
     epleft += 1;
   }
-  epright = nout[0]-1;
+  epright = (int)nout[0]-1;
   while(INDd(xout, epright) > INDd(xin,(nin[0]-1))){
     INDd(yout,epright) = extrap;
     epright -= 1;
@@ -73,12 +73,125 @@ static PyObject *splinterp(PyObject *self, PyObject *args){
   /* Number of points to interpolate:                                       */
   nout[0] = epright - epleft + 1;
   /* Interpolate:                                                           */
-  spline3(xin, yin, nin[0], xout, yout, nout[0], z, dx, epleft);
+  spline3(xin, yin, (int)nin[0], xout, yout, (int)nout[0], z, dx, epleft);
 
   free(dx);
   free(z);
 
   return Py_BuildValue("N", yout);
+}
+
+
+PyDoc_STRVAR(splinterp_pt__doc__,
+"Cubic spline interpolation for a single point.            \n\
+                                                           \n\
+Parameters                                                 \n\
+----------                                                 \n\
+yin: 1D double ndarray                                     \n\
+   Input y values.                                         \n\
+xin: 1D double ndarray                                     \n\
+   Input x array.                                          \n\
+z: 1D double ndarray                                       \n\
+   Second derivatives of yin at xin.                       \n\
+nin: Integer                                               \n\
+   Length of yin.                                          \n\
+xout: Float                                                \n\
+   X valuer where to interpolate.                          \n\
+                                                           \n\
+Return                                                     \n\
+------                                                     \n\
+yout: Float                                                \n\
+   Spline interpolated value.                              \n\
+                                                           \n\
+Notes                                                      \n\
+-----                                                      \n\
+This code is based on BART spline code written by          \n\
+  Ryan Challener and Sarah Blumenthal.");
+
+static PyObject *splinterp_pt(PyObject *self, PyObject *args){
+  PyArrayObject *xin, *yin, *z;
+  int nin, index;
+  double xout, yout, dx, dy, deltax, a, b, c;
+
+  /* Load inputs:                                                           */
+  if (!PyArg_ParseTuple(args, "OOOid", &yin, &xin, &z, &nin, &xout))
+    return NULL;
+
+  if (xout < INDd(xin,0) || xout > INDd(xin,(nin-1)))
+    return Py_BuildValue("d", NAN);
+
+  /* Binary search to find index:                                           */
+  index = binsearchapprox(xin, xout, 0, nin-1);
+  /* Enforce: x[i] <= xout (except if x[N-1] == xout):                      */
+  if (index == nin-1 || xout < INDd(xin,index)){
+    index--;
+  }
+
+  /* If the requested x falls on a given x, no interpolation is necessary:  */
+  if (INDd(xin,index) == xout)
+    return Py_BuildValue("d", INDd(yin,index));
+
+  /* Calculate range of area in question:                                   */
+  dx = INDd(xin,(index+1)) - INDd(xin,index);
+  dy = INDd(yin,(index+1)) - INDd(yin,index);
+
+  /* Else, spline-interpolate:                                              */
+  deltax = xout - INDd(xin,index);
+  a = (INDd(z,(index+1)) - INDd(z,index)) / (6*dx);
+  b = 0.5 * INDd(z,index);
+  c = dy/dx - dx/6 * (INDd(z,(index+1)) + 2*INDd(z,index));
+  yout = INDd(yin,index) + deltax*(c + deltax*(b + deltax*a));
+
+  return Py_BuildValue("d", yout);
+}
+
+
+PyDoc_STRVAR(spline_init__doc__,
+"Cubic spline interpolation for a single point.            \n\
+                                                           \n\
+Parameters                                                 \n\
+----------                                                 \n\
+yin: 1D double ndarray                                     \n\
+   Input y values.                                         \n\
+xin: 1D double ndarray                                     \n\
+   Input x array.                                          \n\
+                                                           \n\
+Return                                                     \n\
+------                                                     \n\
+z: 1D double ndarray                                       \n\
+   Second derivatives of yin at xin.                       \n\
+                                                           \n\
+Notes                                                      \n\
+-----                                                      \n\
+This code is based on BART spline code written by          \n\
+  Ryan Challener and Sarah Blumenthal.");
+
+static PyObject *spline_init(PyObject *self, PyObject *args){
+  PyArrayObject *xin, *yin, *dx, *z;
+  npy_intp nin[1];  /* Size of arrays                                       */
+  int i;            /* For-loop counter                                     */
+
+  /* Load inputs:                                                           */
+  if (!PyArg_ParseTuple(args, "OO", &yin, &xin))
+    return NULL;
+
+  /* Array size - 1:                                                        */
+  nin[0] = PyArray_DIM(yin,0) - 1;
+
+  /* Allocate arrays:                                                       */
+  dx   = (PyArrayObject *) PyArray_SimpleNew(1, nin,  NPY_DOUBLE);
+  nin[0] += 1;
+  z    = (PyArrayObject *) PyArray_SimpleNew(1, nin,  NPY_DOUBLE);
+
+  for (i=0; i<nin[0]-1; i++){
+    INDd(dx, i) = INDd(xin,(i+1)) - INDd(xin,i);
+  }
+  /* Calculate second derivatives:                                          */
+  tri(z, yin, dx, (int)nin[0]);
+
+  /* Free arrays:                                                           */
+  free(dx);
+  return Py_BuildValue("N", z);
 }
 
 
@@ -88,8 +201,10 @@ PyDoc_STRVAR(spline__doc__, "Python wrapper for Cubic Spline Interpolation.");
 
 /* A list of all the methods defined by this module.                        */
 static PyMethodDef spline_methods[] = {
-    {"splinterp", splinterp,  METH_VARARGS, splinterp__doc__},
-    {NULL,        NULL,       0,            NULL}    /* sentinel            */
+    {"splinterp",    splinterp,    METH_VARARGS, splinterp__doc__},
+    {"splinterp_pt", splinterp_pt, METH_VARARGS, splinterp_pt__doc__},
+    {"spline_init",  spline_init,  METH_VARARGS, spline_init__doc__},
+    {NULL,           NULL,         0,            NULL}    /* sentinel       */
 };
 
 
