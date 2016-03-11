@@ -455,6 +455,8 @@ class Cross(object):
     self.temp       = []      # Temperature sampling (in Kelvin)
     self.wavenumber = []      # Wavenumber sampling (in cm-1)
     self.absorption = []      # CS extinction (in cm-1 amagat-2)
+    self.iabsorp    = []      # wn-interpolated CS extinction (in cm-1 amagat-2)
+    self.iz         = []      # Second derivatives of iabsorp
     self.ec         = None    # Interpolated CS extinction coefficient
                               #  in cm-1 [nlayer, nwave]
 
@@ -481,6 +483,7 @@ class Cross(object):
       np.set_printoptions(formatter=None)
     pt.msg(1, "\nMinimum and maximum covered temperatures (K): "
               "[{:.1f}, {:.1f}]".format(self.tmin, self.tmax), indent=2)
+    # FINDME iabsorp ?
     if self.ec is not None:
       np.set_printoptions(formatter={'float': '{: .2e}'.format})
       pt.msg(1, "CS extinction coefficient for the "

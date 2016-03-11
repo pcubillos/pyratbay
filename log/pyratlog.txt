@@ -1276,3 +1276,69 @@ Some other minor corrections.
 
 *****
 
+Added TEA as submodule.
+
+
+*****  Mi 9. Mär 11:41:07 CET 2016  *****
+
+Minor correction to lineread/db/driver.py.
+
+*****
+
+In makeatm.py implemented:
+  makeatomic() to create atomic (elemental) abundance files.
+  readatomic() to read atomic (elemental) abundance files.
+  makepreatm() to create atomic (elemental) abundance profile files
+    (for TEA).
+  TEA2pyrat() to format a TEA atmospheric into Pyrat format.
+Added makecfg.py file with makeTEA() function to create a TEA config
+file.
+Added input files with Asplund solar abundances and TEA gdata default
+species-state names.
+
+*****
+
+Fixed bug in scripts/CSformat_ExoMol.py when extracting info
+from the file name.
+
+*****
+
+Addded cubic spline-interpolation C-extension files.
+Included constant-value extrapolation to the interpolating code.
+Added iabsorp variable to Cross class to hold the
+wavenumber-interpolated CS absoprtion.
+Added wn-interpolation at the end of the cross-section read function.
+
+
+*****  Do 10. Mär 09:30:54 CET 2016  *****
+
+Implemented spline_init() and splinterp_pt() functions
+for individual-point interpolation.
+Unlike splinterp(), splinterp_pt() return nan for out of bound
+requests.
+
+*****
+
+Re-factored the lineread sorting to be memory-friendly.
+And much much faster.
+Separated isoID and wavenumber sorting, requiring less memory
+and being less obscure.
+
+*****
+
+Implemeted CS spline interpolation, but it doesn't work as wished.
+Kept in background, at the moment I will stick with the current
+interpolation code, will go back when there's time for review.
+
+
+*****  Fr 11. Mär 17:13:22 CET 2016  *****
+
+Added code to generate a TEA atmospheric file as script.
+Need to re-factor it into a function of the pyratbay package,
+adding configuration-file functionality.
+Bumped pyratbay to version 0.0.16.
+Bumped pyrat    to version 1.2.7.
+Bumped lineread to version 6.4.3.
+
+*****
+

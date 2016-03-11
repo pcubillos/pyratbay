@@ -4,6 +4,8 @@ import sys
 import os
 import numpy as np
 
+from ... import tools     as pt
+
 # Directory of db:
 DBdir = os.path.dirname(os.path.realpath(__file__))
 # Add path to ctips source code:
@@ -174,7 +176,7 @@ class dbdriver(object):
     # Open-read file:
     if not os.path.isfile(self.pffile):
       pt.error("Partition-function file '{:s}' does not exist.".
-               format(self.pffile), log)
+               format(self.pffile), self.log)
     f = open(self.pffile, "r")
     lines = f.readlines()
     f.close()

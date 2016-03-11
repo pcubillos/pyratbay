@@ -481,7 +481,7 @@ def checkinputs(pyrat):
         pyrat.haze.model.append(hz.hmodels[ihaze])
         pyrat.haze.nmodels += 1
         nhpars += pyrat.haze.model[-1].npars
-    # FINDME: process the haze parameters
+    # Process the haze parameters
     if inputs.hpars is not None:
       if nhpars != len(inputs.hpars):
         pt.error("Number of input haze params ({:d}) does not match the"

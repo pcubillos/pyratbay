@@ -1,6 +1,7 @@
-__all__ = ["ma", "pyratbay", "lineread", "pyrat", "constants", "tools"]
+__all__ = ["ma", "mc", "constants", "tools"]
 
-from . import makeatm as ma
+from .  import makeatm as ma
+from .  import makecfg as mc
 from .. import VERSION as ver
 
 # Clean up top-level namespace--delete everything that isn't in __all__
