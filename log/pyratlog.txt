@@ -1330,5 +1330,15 @@ Implemeted CS spline interpolation, but it doesn't work as wished.
 Kept in background, at the moment I will stick with the current
 interpolation code, will go back when there's time for review.
 
+
+*****  Fr 11. Mär 17:13:22 CET 2016  *****
+
+Added code to generate a TEA atmospheric file as script.
+Need to re-factor it into a function of the pyratbay package,
+adding configuration-file functionality.
+Bumped pyratbay to version 0.0.16.
+Bumped pyrat    to version 1.2.7.
+Bumped lineread to version 6.4.3.
+
 *****
 
