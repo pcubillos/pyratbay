@@ -13,7 +13,7 @@ def extinction(pyrat):
     # Feed params into the model:
     pass
     # Calculate the extinction coefficient (in cm2 molecule-1)
-    pyrat.haze.model[i].extinction(pyrat.spec.wn)
+    pyrat.haze.model[i].extinction(pyrat.spec.wn, pyrat.atm.press)
 
 
 def absorption(pyrat):
@@ -44,7 +44,7 @@ class rayleighH2():
     self.mol   = "H2"           # Species causing the extinction
     self.coef  = np.array([8.14e-45, 1.28e-54, 1.61e-64])
 
-  def extinction(self, wn):
+  def extinction(self, wn, pressure):
     """
     Calculate the opacity cross-section in cm2 molec-1 units.
 
@@ -71,7 +71,7 @@ class rayleighLdE():
     self.s0    = 5.31e-27         # Cross section (cm-2 molec-1) at l0
     self.l0    = 3.5e-5           # Nominal wavelength (cm)
 
-  def extinction(self, wn):
+  def extinction(self, wn, pressure):
     """
     Calculate the H2 Rayleigh cross section in cm2 molec-1:
        cross section = pars[0] * s0 * (lambda/l0)**(pars[1])
@@ -86,9 +86,45 @@ class rayleighLdE():
     self.ec = (self.pars[0] * self.s0) * (wn * self.l0)**(-self.pars[1])
 
 
+class cloudcc():
+  """
+  Constant cross-section cloud model.
+  """
+  def __init__(self):
+    self.name  = "cloud_cc"       # Model name
+    self.pars  = [ 1.0,           # Cross-section scale factor (unitless)
+                   1e-4, 1e2]     # Top, bottom pressure (bar) boundaries
+    self.npars = len(self.pars)   # Number of model fitting parameters
+    self.ec    = None             # Model extinction coefficient
+    self.mol   = "H2"
+    self.s0    = 5.31e-27         # CDefault coss-section (cm-2 molec-1)
+
+  def extinction(self, wn, pressure):
+    """
+    Calculate the H2 Rayleigh cross section in cm2 molec-1:
+       cross section = pars[0] * s0 * (lambda/l0)**(pars[1])
+    With lambda the wavelength = 1/wavenumber.
+
+    Parameters
+    ----------
+    wn:  1D float ndarray
+       Wavenumber array in cm-1.
+    """
+    nlayers = len(pressure)
+    nwave   = len(wn)
+    # Get indices for cloud layer boundaries:
+    itop    = np.where(pressure >= self.pars[1]*pc.bar)[0][ 0]
+    ibottom = np.where(pressure <= self.pars[2]*pc.bar)[0][-1]
+    # Rayleigh opacity cross section in cm2 molec-1 (aka. extinction coef.):
+    self.ec = np.zeros((nlayers, nwave))
+    self.ec[itop:ibottom,:] = self.pars[0] * self.s0
+
+
+
 # List of available haze models:
 hmodels = [rayleighH2(),
-           rayleighLdE()]
+           rayleighLdE(),
+           cloudcc()]
 
 # Compile list of haze-model names:
 hnames = []
