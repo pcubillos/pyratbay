@@ -1340,5 +1340,17 @@ Bumped pyratbay to version 0.0.16.
 Bumped pyrat    to version 1.2.7.
 Bumped lineread to version 6.4.3.
 
+*****  Sat Mar 12 14:22:21 CET 2016  *****
+
+Added cloud model with wavelenght-independent constant cross-section
+between two adjustable pressure levels.  The magnitude of the cross
+section is adjustable as well.  When calculating the extinction
+coefficient, the cross section is multiplied by the H2 number density
+giving the absorption in cm-1.
+Fixed bug with Rayleigh haze model.
+Resolves #34.
+Bumped pyrat to version 1.2.8.
+
 *****
+
 
