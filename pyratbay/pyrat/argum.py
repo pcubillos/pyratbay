@@ -7,6 +7,7 @@ from .. import tools     as pt
 from .. import constants as pc
 from .. import VERSION   as ver
 from .  import haze      as hz
+from .  import alkali    as al
 
 
 def parse(pyrat):
@@ -200,6 +201,11 @@ def parse(pyrat):
   group.add_argument("--hpars",   dest="hpars",
                      help="Haze model fitting parameters.",
                      action="store", type=pt.parray, default=None)
+  # Alkali opacity options:
+  group = parser.add_argument_group("Alkali Options")
+  group.add_argument("--alkali",   dest="alkali",
+                     help="Alkali absorption models [default: %(default)s].",
+                     action="store", type=pt.parray, default=None)
   # Optical depth options:
   group = parser.add_argument_group("Optical Depth Options")
   group.add_argument("--path",          dest="path",
@@ -289,6 +295,8 @@ def parse(pyrat):
   # Hazes and clouds:
   pyrat.inputs.hazes      = user.hazes
   pyrat.inputs.hpars      = user.hpars
+  # Alkali compounds:
+  pyrat.inputs.alkali     = user.alkali
   # Optical depth:
   pyrat.inputs.path       = user.path
   pyrat.inputs.maxdepth   = user.maxdepth
@@ -491,6 +499,17 @@ def checkinputs(pyrat):
       for i in np.arange(pyrat.haze.nmodels):
         pyrat.haze.model[i].pars = inputs.hpars[j:j+pyrat.haze.model[i].npars]
         j += pyrat.haze.model[i].npars
+
+  # Check alkali arguments:
+  if inputs.alkali is not None:
+    nalkali = 0
+    for amodel in inputs.alkali:
+      if amodel not in al.mnames:
+        pt.error("Alkali model '{:s}' is not in the list of available models:"
+                 "\n{:s}".format(amodel, al.mnames), pyrat.log)
+      ialkali = np.where(al.mnames == amodel)[0][0]
+      pyrat.alkali.model.append(al.models[ialkali])
+      pyrat.alkali.nmodels += 1
 
   # Check optical-depth arguments:
   pyrat.od.maxdepth = isgreater(inputs.maxdepth, None, 0, False,

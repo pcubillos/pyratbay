@@ -1351,6 +1351,16 @@ Fixed bug with Rayleigh haze model.
 Resolves #34.
 Bumped pyrat to version 1.2.8.
 
-*****
 
+*****  Sun Mar 13 23:41:04 CET 2016  *****
+
+Added alkali.py to handle Na, K opacities
+following model from Burrows et al. (2000).
+Adapted argum.py to take alkali models.
+Adapted optdepth.py to inclide alkali opacity.
+Renamed vprofile.c's voigt() to grid(), added new voigt() function.
+Added imax() function to utils.c to find max value in int array.
+Added atm (pressure), h (planck), me (electron mass), and C3 constants.
+
+*****
 

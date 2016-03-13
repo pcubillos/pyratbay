@@ -27,6 +27,17 @@ valueinarray(PyArrayObject *array, int value, int arraylen){
   return -1;
 }
 
+/* Find the index of the value with the highest value:                      */
+int
+imax(PyArrayObject *array){
+  int i, max=0;
+  for (i=0; i<(int)PyArray_DIM(array,0); i++){
+    if (INDi(array, i) > INDi(array, max)){
+      max = i;
+    }
+  }
+  return max;
+}
 
 /* Downsample an array by an integer factor into a python array.            */
 int

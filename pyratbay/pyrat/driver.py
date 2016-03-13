@@ -17,6 +17,7 @@ from . import voigt      as v
 from . import extinction as ex
 from . import crosssec   as cs
 from . import haze       as hz
+from . import alkali     as al
 from . import optdepth   as od
 from . import spectrum   as sp
 
@@ -120,8 +121,9 @@ def run(pyrat, inputs=None):
   cs.interpolate(pyrat)
   timestamps.append(time.time())
 
-  # Calculate the haze absorption at each layer:
+  # Calculate the haze and alkali absorption:
   hz.absorption(pyrat)
+  al.absorption(pyrat)
 
   # Calculate the optical depth:
   od.opticaldepth(pyrat)

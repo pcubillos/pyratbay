@@ -25,9 +25,11 @@ m  = 1e+2  # Meter
 km = 1e+5  # Kilometer
 au = sc.au*100      # Astronomical unit
 pc = sc.parsec*100  # Parsec
-# Pressure:
-mbar = 1e3  # Millibar
-bar  = 1e6  # Bar
+
+# Pressure to Barye:
+mbar = 1e3    # Millibar
+bar  = 1e6    # Bar
+atm  = 1.01e6 # Atmosphere
 # Temperature:
 kelvin = 1.0
 
@@ -41,15 +43,20 @@ amagat = sc.physical_constants[
 
 # Universal/Physical constants:
 
+# Planck constant:
+h = sc.h * 1e7
 # Boltzmann constant in ergs/kelvin:
 k = sc.k * 1e7
 # Speed of light in cm/s:
 c = sc.c * 100.0
 # Elementary charge in statcoulombs (from Wolfram Alpha):
 e = 4.803205e-10
+# Electron mass (g):
+me = sc.m_e * 1e3
 
 C1 = 4 * sc.epsilon_0 * sc.m_e * sc.c**2 / sc.e**2 * 0.01  # cm-1
 C2 = sc.h * (sc.c * 100.0) / sc.k                          # cm / Kelvin
+C3 = sc.pi * e**2 / (me * c**2)                            # cm
 
 # String lengths:
 maxnamelen = 20
