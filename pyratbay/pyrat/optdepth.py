@@ -55,7 +55,10 @@ def opticaldepth(pyrat):
   r = 0
   while r < pyrat.atm.nlayers:
     # Sum all contributions to the extinction:
-    pyrat.od.ec[r] = pyrat.ex.ec[r] + pyrat.cs.ec[r] + pyrat.haze.ec[r]
+    pyrat.od.ec[r] = (pyrat.ex.ec[r] +
+                      pyrat.cs.ec[r] +
+                      pyrat.haze.ec[r] +
+                      pyrat.alkali.ec[r])
     r += 1
   print("Add:    {:.6f}".format(time.time()-ti))
 

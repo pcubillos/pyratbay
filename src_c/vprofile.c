@@ -4,16 +4,102 @@
 
 #include "ind.h"
 #include "voigt.h"
-
+#include "utils.h"
 
 PyDoc_STRVAR(voigt__doc__,
 "Calculate an oversampled Voigt profile for the given Lorentz and Doppler  \n\
 widths.                                                                    \n\
                                                                            \n\
-Parameters:                                                                \n\
------------                                                                \n\
+Parameters                                                                 \n\
+----------                                                                 \n\
 profile: 1D double ndarray                                                 \n\
    Array (nwave) where to put the calculated Voigt profiles.               \n\
+   The profiles are stacked one next to the other in the profile array.    \n\
+lorentz: 1D double ndarray                                                 \n\
+   Array of Lorentz widths in cm-1.                                        \n\
+doppler: 1D double ndarray                                                 \n\
+   Array of Doppler widths in cm-1.                                        \n\
+psize: 2D integer ndarray                                                  \n\
+   Array (nLorentz, nDoppler) with the half-size of spectral points of the \n\
+   profiles.  Profiles not to be calculated have psize == 0.               \n\
+osamp: Integer                                                             \n\
+   Oversampling factor to calculate the Voigt profiles.                    \n\
+dwn: Float                                                                 \n\
+   Wavenumber step size in cm-1.                                           \n\
+verb: Integer                                                              \n\
+   Verbosity flag to print info to screen.");
+
+static PyObject *voigt(PyObject *self, PyObject *args){
+  PyArrayObject *profile, *psize, *index, *doppler, *lorentz;
+  double *vprofile; /* Voigt profile for each (Dop,Lor) width               */
+  double dwn;       /* Wavenumber sample step size                          */
+  int nprofiles,   /* Number of Lorentz and Doppler width samples           */
+      nmax, nwave,   /* Number of wavenumber samples of Voigt profile             */
+      idx=0,   /* Profile index position                                    */
+      verb,    /* Verbosity flag                                            */
+      m, j; /* Auxilliary for-loop indices                               */
+
+  /* Load inputs:                                                           */
+  if (!PyArg_ParseTuple(args, "OOOOOdi", &profile, &psize, &index,
+                                         &lorentz, &doppler,
+                                         &dwn, &verb))
+    return NULL;
+
+  /* Get array sizes:                                                       */
+  nprofiles = (int)PyArray_DIM(lorentz, 0);
+
+  /* Allocate temporary profile array:                                      */
+  nmax = 2*INDi(psize, imax(psize)) + 1;
+  vprofile = (double *)calloc(nmax, sizeof(double));
+
+  for (m=0; m<nprofiles; m++){
+    /* If the profile size is > 0, calculate it:                          */
+    if (INDi(psize, m) != 0){
+      /* Number of spectral samples:                                      */
+      nwave = 2*INDi(psize, m) + 1;
+
+      /* Calculate Voigt using a width that gives an integer number
+         of 'dwn' spaced bins:                                            */
+      j = voigtn(nwave, dwn*(long)(nwave/2),
+                 INDd(lorentz,m), INDd(doppler,m), vprofile, -1,
+                 nwave > _voigt_maxelements?VOIGT_QUICK:0);
+      if (j != 1){
+        printf("voigtn() returned error code %i.\n", j);
+        free(vprofile);
+        return Py_BuildValue("i", 0);
+      }
+      /* Store values in python-object profile:                           */
+      for (j=0; j<nwave; j++){
+        INDd(profile, (idx+j)) = vprofile[j];
+      }
+
+      /* Update index of profile:                                         */
+      INDi(index, m) = idx;
+      idx += 2*INDi(psize, m) + 1;
+    }
+    else{
+      /* Refer to previous profile:                                       */
+      INDi(index, m) = INDi(index, (m-1));
+      if (verb > 10)
+        printf("Skip profile[%d] calculation.\n", m);
+    }
+  }
+  /* Free memory:                                                     */
+  free(vprofile);
+
+  return Py_BuildValue("i", 1);
+}
+
+
+PyDoc_STRVAR(grid__doc__,
+"Calculate a set of Voigt profiles for the grid of Lorentz and Doppler     \n\
+widths.                                                                    \n\
+                                                                           \n\
+Parameters                                                                 \n\
+----------                                                                 \n\
+profile: 1D double ndarray                                                 \n\
+   Array (nwave) where to put the calculated Voigt profiles.               \n\
+   The profiles are stacked one next to the other in the profile array.    \n\
 lorentz: 1D double ndarray                                                 \n\
    Array of Lorentz widths in cm-1.                                        \n\
 doppler: 1D double ndarray                                                 \n\
@@ -28,21 +114,11 @@ dwn: Float                                                                 \n\
 verb: Integer                                                              \n\
    Verbosity flag to print info to screen.                                 \n\
                                                                            \n\
-Notes:                                                                     \n\
-------                                                                     \n\
-The profiles are stacked one next to the other in the profile array.       \n\
-                                                                           \n\
-Developers:                                                                \n\
------------                                                                \n\
-Patricio Rojo      U Cornell  pato@astro.cornell.edu (pato@oan.cl)         \n\
-Patricio Cubillos  UCF        pcubillos@fulbrightmail.org                  \n\
-                                                                           \n\
-Modification History:                                                      \n\
+Uncredited Developers                                                      \n\
 ---------------------                                                      \n\
-2006        p. rojo      Writen as a component of the transit package.     \n\
-2014-08-24  p. cubillos  Modified for use with the pyrat project.");
+Patricio Rojo      U Cornell  pato@astro.cornell.edu (pato@oan.cl)");
 
-static PyObject *voigt(PyObject *self, PyObject *args){
+static PyObject *grid(PyObject *self, PyObject *args){
   PyArrayObject *profile, *psize, *index, *doppler, *lorentz;
   double *vprofile; /* Voigt profile for each (Dop,Lor) width               */
   double dwn;       /* Wavenumber sample step size                          */
@@ -118,6 +194,7 @@ PyDoc_STRVAR(vprofile__doc__, "Python wrapper for Voigt profile calculation.");
 /* A list of all the methods defined by this module.                        */
 static PyMethodDef vprofile_methods[] = {
     {"voigt",      voigt,      METH_VARARGS, voigt__doc__},
+    {"grid",       grid,       METH_VARARGS, grid__doc__},
     {NULL,         NULL,       0,            NULL}    /* sentinel */
 };
 

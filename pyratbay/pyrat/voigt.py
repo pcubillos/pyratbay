@@ -116,7 +116,7 @@ def calcvoigt(pyrat):
   # Allocate profile arrays (concatenated in a 1D array):
   voigt.profile = np.zeros(np.sum(2*voigt.size+1), np.double)
   # Calculate the Voigt profiles in C:
-  vp.voigt(voigt.profile, voigt.size, voigt.index,
-           voigt.lorentz, voigt.doppler,
-           pyrat.spec.ownstep,  pyrat.verb)
+  vp.grid(voigt.profile, voigt.size, voigt.index,
+          voigt.lorentz, voigt.doppler,
+          pyrat.spec.ownstep,  pyrat.verb)
   pt.msg(pyrat.verb, "Voigt indices:\n{}".format(voigt.index), pyrat.log, 2)

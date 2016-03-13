@@ -20,6 +20,7 @@ class Pyrat(object):
     self.cs     = Cross()           # Cross-section extinction
     self.od     = Optdepth()        # Optical depth
     self.haze   = Haze()            # Hazes
+    self.alkali = Alkali()          # Alkali opacity models
     # Files:
     self.atmfile     = None  # Atmopheric-model file
     self.linedb      = None  # Line-transition data file
@@ -106,6 +107,8 @@ class Inputs(object):
     # Haze models:
     self.hazes    = None
     self.hazepars = None
+    # Alkalo models:
+    self.alkali   = None
     # Optical depth arguments:
     self.path     = None
     self.maxdepth = None
@@ -497,7 +500,19 @@ class Haze(object):
     self.nmodels = 0     # Number of haze models
     self.model   = []    # List of haze models
     self.ec      = None  # Haze extinction coefficient
+  def info(self, pyrat):
+    # FINDME
+    pass
 
+
+class Alkali(object):
+  def __init__(self):
+    self.nmodels = 0     # Number of alkali models
+    self.model   = []    # List of alkali models
+    self.ec      = None  # Alkali extinction coefficient
+  def info(self, pyrat):
+    # FINDME
+    pass
 
 
 class Optdepth(object):
