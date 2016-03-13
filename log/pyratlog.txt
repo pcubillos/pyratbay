@@ -1372,3 +1372,7 @@ Fixed bug in spline.c when freeing Py_Arrays.
 
 *****
 
+Fixed bug in spline.c when freeing Py_Arrays.
+Next merge Resolves #24.
+
+*****
