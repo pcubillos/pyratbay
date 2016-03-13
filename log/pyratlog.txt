@@ -1368,3 +1368,7 @@ Updated Na and K radius with Van de Waals values from Wikipedia.
 
 *****
 
+Fixed bug in spline.c when freeing Py_Arrays.
+
+*****
+

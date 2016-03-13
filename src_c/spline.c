@@ -75,8 +75,8 @@ static PyObject *splinterp(PyObject *self, PyObject *args){
   /* Interpolate:                                                           */
   spline3(xin, yin, (int)nin[0], xout, yout, (int)nout[0], z, dx, epleft);
 
-  free(dx);
-  free(z);
+  Py_DECREF(dx);
+  Py_DECREF(z);
 
   return Py_BuildValue("N", yout);
 }
@@ -190,7 +190,7 @@ static PyObject *spline_init(PyObject *self, PyObject *args){
   tri(z, yin, dx, (int)nin[0]);
 
   /* Free arrays:                                                           */
-  free(dx);
+  Py_DECREF(dx);
   return Py_BuildValue("N", z);
 }
 
