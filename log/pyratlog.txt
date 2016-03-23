@@ -1340,6 +1340,7 @@ Bumped pyratbay to version 0.0.16.
 Bumped pyrat    to version 1.2.7.
 Bumped lineread to version 6.4.3.
 
+
 *****  Sat Mar 12 14:22:21 CET 2016  *****
 
 Added cloud model with wavelenght-independent constant cross-section
@@ -1369,6 +1370,11 @@ Updated Na and K radius with Van de Waals values from Wikipedia.
 *****
 
 Fixed bug in spline.c when freeing Py_Arrays.
+
+
+*****  Mi 23. Mär 11:00:10 CET 2016  *****
+
+Updated Makefile to compile Pyrat Bay's and the submodules extensions.
 
 *****
 
