@@ -1385,3 +1385,10 @@ Updated Makefile to compile Pyrat Bay's and the submodules extensions.
 
 Added Pyrat-Bay driver and (empty yet) argument parser routine.
 
+
+*****  Do 24. Mär 10:36:20 CET 2016  *****
+
+Updated pconstants with Earth, Jupiter, and Sun values.
+Deleted MTC and NTC unit conversions.
+
+*****
