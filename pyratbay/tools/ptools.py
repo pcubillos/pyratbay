@@ -1,13 +1,14 @@
 # Copyright (c) 2015-2016 Patricio Cubillos and contributors.
 # Pyrat Bay is open-source software under the FINDME license.
 
-__all__ = ["parray", "msg", "warning", "error",
+__all__ = ["parray", "msg", "warning", "error", "getparam",
            "binsearch", "pprint", "divisors", "u", "unpack", "sep"]
 
 import sys, os
 import traceback
 import textwrap
 import struct
+import numbers
 import numpy as np
 
 from .. import constants as pc
@@ -295,10 +296,54 @@ def u(units):
      Name of units
   """
   # Accept only valid units:
-  if units not in ["eV",  "A", "nm", "um", "mm", "cm", "m", "km", "au", "pc",
-                   "mbar", "bar", "kelvin", "amu", "amagat"]:
+  if units not in pc.validunits:
     # Throw error:
     error("Units name '{:s}' does not exist.".format(units), lev=-3)
   exec("factor = pc.{:s}".format(units))
   return factor
 
+
+def getparam(param, units, integer=False):
+  """
+  Read a parameter that may or may not have units included.
+  If it doesn't, default to the 'units' input argument.
+
+  Parameters
+  ----------
+  param: String
+     The parameter name.
+  units: String
+     The default units for the parameter.
+  integer: Bool
+     If True, cast the output to integer.
+  """
+  if param is None:
+    return None
+
+  # Return if it is a numeric value:
+  if isinstance(param, numbers.Number):
+    return param * u(units)
+
+  # Split the parameter if it has a white-space:
+  par = param.split()
+
+  # If the parameter contains units, read the units:
+  if len(par) == 2:
+    units = par[1]
+
+  # Get the value of the parameter:
+  try:
+    value = np.float(par[0])
+  except:
+    error("Invalid parameter format for '{:s}'.  param must be a float "
+          "or integer.  If it contains units, it must be blank-space "
+          "separated.".format(param), lev=-3)
+
+  # Apply the units:
+  value *= u(units)
+
+  # Cast to integer if requested:
+  if integer:
+    return int(value)
+
+  return value
