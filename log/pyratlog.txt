@@ -1409,3 +1409,12 @@ Re-factored isgreater() in pyrat/argum.py.
 Modified pt.c to take arguments in CGS units.
 
 *****
+
+Got a first running version of pyratbay to create atmospheric files,
+Including the temperature profile calculation.
+Still to do: test with uniform abundances.
+Also I need to add warnings all over the place.
+
+*****
+
+

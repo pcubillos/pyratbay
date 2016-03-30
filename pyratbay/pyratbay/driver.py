@@ -5,25 +5,20 @@
 import os
 import sys
 import time
+import shutil
+import subprocess
 import numpy as np
 
-from .. import tools as pt
-from .. import VERSION   as ver
+from .. import tools   as pt
+from .  import argum   as ar
+from .  import makeatm as ma
+from .  import makecfg as mc
 
-from . import argum      as ar
+rootdir = os.path.realpath(os.path.dirname(__file__) + "/../../")
+TEAdir = rootdir + "/modules/TEA/"
 
-#from . import makesample as ms
-#from . import readatm    as ra
-#from . import readlinedb as rl
-#from . import voigt      as v
-#from . import extinction as ex
-#from . import crosssec   as cs
-#from . import haze       as hz
-#from . import alkali     as al
-#from . import optdepth   as od
-#from . import spectrum   as sp
-#
-#from .objects import Pyrat
+sys.path.append(rootdir + '/pyratbay/lib/')
+import pt as PT
 
 
 def run(cfile, flag, main=False):
@@ -39,35 +34,70 @@ def run(cfile, flag, main=False):
   main: Bool
      Flag to indicate if Pyrat was called from the shell (True) or from
      the Python interpreter.
-
-  Returns
-  -------
-  cavendish: Pyrat instance
-     The Pyrat object.
   """
-
-  pt.msg(1, "{:s}\n"
-            "  Python Radiative Transfer in a Bayesian framework (Pyrat Bay).\n"
-            "  Version {:d}.{:d}.{:d}.\n"
-            "  Copyright (c) 2016 Patricio Cubillos and collaborators.\n"
-            "  Pyrat Bay is open-source software under the RR license.\n"
-            "{:s}\n\n".format(pt.sep, ver.PBAY_VER, ver.PBAY_MIN,
-                                      ver.PBAY_REV, pt.sep), None)#pb.log)
 
   # Setup the command-line-arguments input:
   if main is False:
     sys.argv = ['pbay.py', '-c', cfile]
+
+  # Warnings log:
+  wlog = []
 
   # Setup time tracker:
   timestamps = []
   timestamps.append(time.time())
 
   # Parse command line arguments:
-  args = ar.parse()
+  args, log = ar.parse(wlog)
   timestamps.append(time.time())
 
   # Compute an atmospheric file:
-  pass
+
+  # Unpack pressure input variables:
+  punits  = args.punits
+  ptop    = pt.getparam(args.ptop,    args.punits)
+  pbottom = pt.getparam(args.pbottom, args.punits)
+  nlayers = args.nlayers
+
+  # Create pressure array in barye (CGS) units:
+  pressure = np.logspace(np.log10(ptop), np.log10(pbottom), nlayers)
+
+  # Compute the temperature profile:
+  if args.tmodel == "TCEA":
+    rstar   = pt.getparam(args.rstar, args.radunits)
+    tstar   = pt.getparam(args.tstar, "kelvin")
+    tint    = pt.getparam(args.tint,  "kelvin")
+    gplanet = pt.getparam(args.surfgravity, "none")
+    smaxis  = pt.getparam(args.smaxis, args.radunits)
+    tparams = args.tparams
+    temp    = PT.TCEA(tparams, pressure, rstar, tstar, tint, smaxis, gplanet)
+
+  # Make the atmospheric file:
+  atmfile  = args.atmfile
+  uniform  = args.uniform
+  species  = args.species
+  elements = args.elements
+  solar    = args.solar
+  atomicfile = args.atomicfile
+  xsolar   = pt.getparam(args.xsolar, "none")
+  patm     = args.patm
+  # Uniform-abundances profile:
+  if uniform is not None:
+    ma.uniform(atmfile, pressure, temp, species, uniform, punits)
+  # TEA abundances:
+  else:
+    swap   = None
+    ma.makeatomic(solar, atomicfile, xsolar, swap)
+    # Pre-atmospheric file:
+    ma.makepreatm(pressure/pt.u(punits), temp, atomicfile,
+                  elements, species, patm)
+    # Run TEA:
+    mc.makeTEA(abun_file=atomicfile)
+    proc = subprocess.Popen([TEAdir + "tea/runatm.py", patm, "TEA"])
+    proc.communicate()
+    # Reformat the TEA output into the pyrat format:
+    ma.TEA2pyrat("./TEA/TEA/results/TEA.tea", atmfile)
+    shutil.rmtree("TEA")
 
   # Compute an opacity grid:
   pass

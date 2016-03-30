@@ -10,42 +10,36 @@ thisdir = os.path.dirname(os.path.realpath(__file__))
 indir   = thisdir + "/../../inputs/"
 
 
-def uniform(atmfile, pressure, temperature, species, abundances):
+def writeatm(atmfile, pressure, temperature, species, abundances,
+             punits, header):
   """
-  Generate an atmospheric file with uniform abundances.
+  Write an atmospheric file following the Pyrat format.
 
   Parameters
   ----------
   atmfile: String
      Name of output atmospheric file.
   pressure: 1D float ndarray
-     Monotonously decreasing pressure profile (in bar).
+     Monotonously decreasing pressure profile (in punits).
   temperature: 1D float ndarray
-     Temperature profile for pressure layers (in K).
+     Temperature profile for pressure layers (in Kelvin).
   species: 1D string ndarray
      List of atmospheric species.
   abundances: 1D float ndarray
      The species mole mixing ratio.
+  punits:  String
+     Pressure units.
+  header:  String
+     Header message (comment) to include at the top of the file.
   """
-
-  # Safety checks:
-  if len(pressure) != len(temperature):
-    pt.error("Pressure array length ({:d}) and Temperature array length "
-             "({:d}) don't match.".format(len(pressure), len(temperature)))
-  if len(species) != len(abundances):
-    pt.error("Species array length ({:d}) and Abundances array length ({:d}) "
-             "don't match.".format(len(species), len(abundances)))
-  # FINDME: Check pressure array is monotonously decreasing.
-
-  # Write to file:
+  # Open file for writing:
   f = open(atmfile, "w")
 
-  f.write("# This is an atmospheric file with pressure, temperature, \n"
-          "# and uniform mole mixing ratio profiles.\n\n")
+  f.write(header)
 
   # Set the values units:
   f.write("# Abundance units (by number or mass):\n@ABUNDANCE\nnumber\n")
-  f.write("# Pressure units:\n@PRESSURE\nbar\n")
+  f.write("# Pressure units:\n@PRESSURE\n{:s}\n".format(punits))
   f.write("# Temperatures are always Kelvin.\n\n")
 
   # Write the species names:
@@ -54,18 +48,58 @@ def uniform(atmfile, pressure, temperature, species, abundances):
           "  ".join(["{:<s}".format(mol) for mol in species]) + '\n\n')
 
   # Write the per-layer data:
-  # Column's header:
   f.write("# Pressure  Temperature  " +
-        "".join(["{:<14s}".format(mol) for mol in species]) + "\n")
+          "".join(["{:<14s}".format(mol) for mol in species]) + "\n")
   f.write("@DATA\n")
 
   # For each layer write TEA data
-  for i in np.arange(len(pressure)):
-      # Pressure, and Temperature:
-      f.write("{:10.4e}  {:11.3f}  ".format(pressure[i], temperature[i]))
-      # Species mole mixing ratios:
-      f.write("  ".join(["{:12.6e}".format(ab) for ab in abundances]) + "\n")
+  nlayers = len(pressure)
+  for i in np.arange(nlayers):
+    # Pressure, and Temperature:
+    f.write("{:10.4e}  {:11.3f}  ".format(pressure[i], temperature[i]))
+    # Species mole mixing ratios:
+    f.write("  ".join(["{:12.6e}".format(ab) for ab in abundances[i]]) + "\n")
   f.close()
+
+
+def uniform(atmfile, pressure, temperature, species, abundances, punits="bar"):
+  """
+  Generate an atmospheric file with uniform abundances.
+
+  Parameters
+  ----------
+  atmfile: String
+     Name of output atmospheric file.
+  pressure: 1D float ndarray
+     Monotonously decreasing pressure profile (in punits).
+  temperature: 1D float ndarray
+     Temperature profile for pressure layers (in Kelvin).
+  species: 1D string ndarray
+     List of atmospheric species.
+  abundances: 1D float ndarray
+     The species mole mixing ratio.
+  punits:  String
+     Pressure units.
+  """
+
+  # Safety checks:
+  nlayers = len(pressure)
+
+  if len(temperature) != nlayers:
+    pt.error("Pressure array length ({:d}) and Temperature array length "
+             "({:d}) don't match.".format(nlayers, len(temperature)))
+  if len(species) != len(abundances):
+    pt.error("Species array length ({:d}) and Abundances array length ({:d}) "
+             "don't match.".format(len(species), len(abundances)))
+  # FINDME: Check pressure array is monotonously decreasing.
+
+  # Expand abundances to 2D array:
+  abund = np.tile(abundances, (nlayers,1))
+  # File header:
+  header = ("# This is an atmospheric file with pressure, temperature, \n"
+            "# and uniform mole mixing ratio profiles.\n\n")
+
+  writeatm(atmfile, pressure, temperature, species, abund, punits, header)
 
 
 def makeatomic(solar, afile, xsolar=1.0, swap=None):
@@ -86,10 +120,9 @@ def makeatomic(solar, afile, xsolar=1.0, swap=None):
   swap: 2-element string tuple
       Swap the abundances of the given elements.
 
-  Developers
-  ----------
+  Uncredited developers
+  ---------------------
   Jasmina Blecic
-  Patricio Cubillos
   """
   # Read the Asplund et al. (2009) solar elementa abundances:
   index, symbol, dex, name, mass = readatomic(solar)
@@ -119,17 +152,17 @@ def makeatomic(solar, afile, xsolar=1.0, swap=None):
 
 def readatomic(afile):
   """
-  Read the solar elemental abundances from AsplundEtal2009.txt
+  Read an elemental (atomic) composition file.
 
   Parameters
   ----------
   afile: String
-    Asplund file with solar elemental abundances.
+    File with atomic composition.
 
   Returns
   -------
   anum: 1D integer ndarray
-     Atomic number (except for Deuterium which has anum=0).
+     Atomic number (except for Deuterium, which has anum=0).
   symbol: 1D string ndarray
      Elemental chemical symbol.
   dex: 1D float ndarray
@@ -139,10 +172,9 @@ def readatomic(afile):
   mass: 1D float ndarray
      Elemental mass in amu.
 
-  Developers
-  ----------
+  Uncredited developers
+  ---------------------
   Jasmina Blecic
-  Patricio Cubillos
   """
   # Allocate arrays:
   nelements = 84  # Fixed number
@@ -166,11 +198,8 @@ def readatomic(afile):
 
 def makepreatm(pressure, temp, afile, elements, species, patm):
   """
-  Generate a pre-atm file for TEA.
-  It converts dex abundances to number density
-  and divide them by hydrogen number density to get fractional abundances.
-  It writes the pressure, temperature, and elemental-abundances data
-  into a pre-atm file.
+  Generate a pre-atm file for TEA containing the elemental abundances
+  at each atmospheric layer.
 
   Parameters
   ----------
@@ -187,10 +216,9 @@ def makepreatm(pressure, temp, afile, elements, species, patm):
   temp: 1D float array
      Temperature atmospheric profile (in K).
 
-  Developers
-  ----------
+  Uncredited developers
+  ---------------------
   Jasmina Blecic
-  Patricio Cubillos
   """
   # Number of layers:
   nlayers = len(pressure)
@@ -210,7 +238,6 @@ def makepreatm(pressure, temp, afile, elements, species, patm):
   f.write("# TEA pre-atmosphere file.\n"
           "# Units: pressure (bar), temperature (K), abundance (unitless).\n\n")
 
-
   # Load defaults:
   sdefaults = {}
   with open(indir+"TEA_gdata_defaults.txt", "r") as d:
@@ -222,7 +249,6 @@ def makepreatm(pressure, temp, afile, elements, species, patm):
     if species[i].find("_") < 0:
       species[i] = sdefaults[species[i]]
 
-  print(species)
   # Write species names
   f.write('#SPECIES\n{:s}\n\n'.format(" ".join(species)))
 
@@ -239,13 +265,21 @@ def makepreatm(pressure, temp, afile, elements, species, patm):
 
 def TEA2pyrat(teafile, atmfile):
   """
-  Format a TEA output atmospheric file into a Pyrat atmospheric file.
+  Format a TEA atmospheric file into a Pyrat atmospheric file.
+
+  Paramters
+  ---------
+  teafile:  String
+     Input TEA atmospheric file.
+  atmfile:  String
+     Output Pyrat atmospheric file.
   """
   # Open read the TEA file:
   f = open(teafile, "r")
   tea = np.asarray(f.readlines())
   f.close()
 
+  # Line-indices where the species and data are:
   ispec = np.where(tea == "#SPECIES\n")[0][0] + 1  # Species list
   idata = np.where(tea == "#TEADATA\n")[0][0] + 2  # data starting line
 
@@ -255,32 +289,19 @@ def TEA2pyrat(teafile, atmfile):
   for i in np.arange(nspecies):
     species[i] = species[i].rpartition("_")[0]
 
-  # Write to file:
-  f = open(atmfile, "w")
-  f.write("# TEA atmospheric file formatted for Pyrat.\n\n")
-
-  # Set the values units:
-  f.write("# Abundance units (by number or mass):\n@ABUNDANCE\nnumber\n")
-  f.write("# Pressure units:\n@PRESSURE\nbar\n")
-  f.write("# Temperatures are always Kelvin.\n\n")
-
-  # Write the species names:
-  f.write("# Atmospheric composition:\n"
-          "@SPECIES\n" +
-          "  ".join(["{:<s}".format(mol) for mol in species]) + '\n\n')
-
-  # Write the per-layer data:
-  f.write("# Pressure  Temperature  " +
-        "".join(["{:<14s}".format(mol) for mol in species]) + "\n")
-  f.write("@DATA\n")
-
-  # For each layer write TEA data
+  # Extract per-layer data:
   nlayers = len(tea) - idata
+  temperature = np.zeros(nlayers)
+  pressure    = np.zeros(nlayers)
+  abundance   = np.zeros((nlayers, nspecies))
   for i in np.arange(nlayers):
     data = np.asarray(tea[idata+i].split(), np.double)
-    # Pressure, and Temperature:
-    f.write("{:10.4e}  {:11.3f}  ".format(data[0], data[1]))
-    # Species mole mixing ratios:
-    f.write("  ".join(["{:12.6e}".format(ab) for ab in data[2:]]) + "\n")
-  f.close()
-  
+    pressure[i], temperature[i] = data[0:2]
+    abundance[i,:] = data[2:]
+
+  # TEA pressure units are always bars:
+  punits = "bar"
+  # File header:
+  header = "# TEA atmospheric file formatted for Pyrat.\n\n"
+
+  writeatm(atmfile, pressure, temperature, species, abundance, punits, header)
