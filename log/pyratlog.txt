@@ -1391,4 +1391,21 @@ Added Pyrat-Bay driver and (empty yet) argument parser routine.
 Updated pconstants with Earth, Jupiter, and Sun values.
 Deleted MTC and NTC unit conversions.
 
+
+*****  Di 29. Mär 09:34:59 CEST 2016  *****
+
+Added getparam() to ptools.py to process input variables that may
+or may not include units (e.g., 'rstar = 1.1 rsun').
+Updated the type (to string) of input variables that may contain units
+in pyrat/argum.py.
+Added none units to pconstants for variables without units.
+Added validunits variable to pconstants to keep tally of the valid
+unit conversion variables.
+Re-factored isgreater() in pyrat/argum.py.
+
+
+*****  Mi 30. Mär 17:34:31 CEST 2016  *****
+
+Modified pt.c to take arguments in CGS units.
+
 *****

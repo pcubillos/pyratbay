@@ -124,13 +124,11 @@ def parse(pyrat):
                           "radius  low boundary) [default: %(default)s]",
                      action="store", type=str, default=None)
   group.add_argument("--nlayers",       dest="nlayers",
-                     help="Number of atmospheric pressure samples [default: "
-                          "Use atmospheric file value]",
-                     action="store", type=np.int, default=None)
+                     help="Number of atmospheric layers [default: %(default)s]",
+                     action="store", type=np.int, default=100)
   group.add_argument("--punits",        dest="punits",
                      help="Pressure (user) units [default: %(default)s]",
-                     action="store", type=str, default='bar',
-                     choices=('bar',))
+                     action="store", type=str, default='bar')
   group.add_argument("--radiusbase",    dest="radiusbase",
                      help="Planetary radius base level (in radunits)",
                      action="store", type=str, default=None)
