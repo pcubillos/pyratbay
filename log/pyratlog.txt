@@ -1422,4 +1422,8 @@ Updated the Exomol cross-section formatter docstring.
 
 *****
 
+Fixed bug with HITRAN CIA formatter script.
+Updated the docstring.
+
+*****
 
