@@ -75,10 +75,10 @@ def parse(pyrat):
                      choices=('A','nm','um','mm','cm','m'))
   group.add_argument("--wllow",      dest="wllow",
                      help="Wavelength low boundary [default: %(default)s]",
-                     action="store", type=np.double, default=None)
+                     action="store", type=str, default=None)
   group.add_argument("--wlhigh",     dest="wlhigh",
                      help="Wavelength high boundary [default: %(default)s]",
-                     action="store", type=np.double, default=None)
+                     action="store", type=str, default=None)
 
   group.add_argument("--wnunits",    dest="wnunits",
                      help="Wavenumber (input) inverse units [default: "
@@ -87,13 +87,13 @@ def parse(pyrat):
                      choices=('A','nm','um','mm','cm','m'))
   group.add_argument("--wnlow",      dest="wnlow",
                      help="Wavenumber low boundary [default: %(default)s]",
-                     action="store", type=np.double, default=None)
+                     action="store", type=str, default=None)
   group.add_argument("--wnhigh",     dest="wnhigh",
                      help="Wavenumber high boundary [default: %(default)s]",
-                     action="store", type=np.double, default=None)
+                     action="store", type=str, default=None)
   group.add_argument("--wnstep",     dest="wnstep",
                      help="Wavenumber sampling step [default: %(default)s]",
-                     action="store", type=np.double, default=1.0)
+                     action="store", type=str, default="1.0 cm")
   group.add_argument("--wnosamp",       dest="wnosamp",
                      help="Wavenumber oversampling factor "
                           "[default: %(default)s]",
@@ -103,41 +103,38 @@ def parse(pyrat):
   group.add_argument("--radlow",     dest="radlow",
                      help="Atmospheric radius low boundary [default: "
                           "Use atmospheric file value]",
-                     action="store", type=np.double, default=None)
+                     action="store", type=str, default=None)
   group.add_argument("--radhigh",    dest="radhigh",
                      help="Atmospheric radius high boundary [default: "
                           "Use atmospheric file value]",
-                     action="store", type=np.double, default=None)
+                     action="store", type=str, default=None)
   group.add_argument("--radstep",        dest="radstep",
                      help="Atmospheric radius sampling step [default: "
                           "Use atmospheric file value]",
-                     action="store", type=np.double, default=None)
+                     action="store", type=str, default=None)
   group.add_argument("--radunits",      dest="radunits",
                      help="Radius (user) units [default: %(default)s]",
-                     action="store", type=str, default='km',
-                     choices=('cm','m', 'km', 'atmfile'))
+                     action="store", type=str, default='km')
   group.add_argument("--plow",          dest="plow",
                      help="Atmospheric pressure low boundary (overrides "
                           "radius high boundary) [default: %(default)s]",
-                     action="store", type=np.double, default=None)
+                     action="store", type=str, default=None)
   group.add_argument("--phigh",         dest="phigh",
                      help="Atmospheric pressure high boundary (overrides "
                           "radius  low boundary) [default: %(default)s]",
-                     action="store", type=np.double, default=None)
+                     action="store", type=str, default=None)
   group.add_argument("--nlayers",       dest="nlayers",
-                     help="Number of atmospheric pressure samples [default: "
-                          "Use atmospheric file value]",
-                     action="store", type=np.int, default=None)
+                     help="Number of atmospheric layers [default: %(default)s]",
+                     action="store", type=np.int, default=100)
   group.add_argument("--punits",        dest="punits",
                      help="Pressure (user) units [default: %(default)s]",
-                     action="store", type=str, default='bar',
-                     choices=('bar',))
+                     action="store", type=str, default='bar')
   group.add_argument("--radiusbase",    dest="radiusbase",
                      help="Planetary radius base level (in radunits)",
-                     action="store", type=np.double, default=None)
+                     action="store", type=str, default=None)
   group.add_argument("--pressurebase",  dest="pressurebase",
                      help="Planetary pressure base level (in punits)",
-                     action="store", type=np.double, default=None)
+                     action="store", type=str, default=None)
   group.add_argument("--surfgravity",   dest="surfgravity",
                      help="Planet's surface gravity in cm s-2",
                      action="store", type=np.double, default=None)
@@ -161,7 +158,7 @@ def parse(pyrat):
                      action="store", type=np.double, default=1e-6)
   # Voigt-profile options:
   group = parser.add_argument_group("Voigt-profile  Options")
-  group.add_argument(      "--Vextent",    dest="Vextent",
+  group.add_argument(      "--vextent",    dest="vextent",
                      help="Extent of Voigt profile in number of Voigt  "
                           "widths [default: %(default)s]",
                      action="store", type=np.double, default=20)
@@ -223,7 +220,7 @@ def parse(pyrat):
   group = parser.add_argument_group("System Options")
   group.add_argument(      "--rstar",       dest="rstar",
                      help="Stellar radius [default: %(default)s]",
-                     action="store", type=np.double, default=None)
+                     action="store", type=str, default=None)
   # Output file options:
   group = parser.add_argument_group("Output File's Options")
   group.add_argument("-o", "--outspec",       dest="outspec",
@@ -284,7 +281,7 @@ def parse(pyrat):
   pyrat.inputs.tmax    = user.tmax
   pyrat.inputs.tstep   = user.tstep
   # Voigt-profile:
-  pyrat.inputs.Vextent    = user.Vextent
+  pyrat.inputs.vextent    = user.vextent
   pyrat.inputs.Dmin       = user.Dmin
   pyrat.inputs.Dmax       = user.Dmax
   pyrat.inputs.nDop       = user.nDop
@@ -372,104 +369,143 @@ def checkinputs(pyrat):
   pyrat.spec.wnunits = inputs.wnunits  # Accept units
   pyrat.spec.wlunits = inputs.wlunits
 
-  pyrat.spec.wllow  = isgreater(inputs.wllow,  pyrat.spec.wlunits, 0, False,
-                  "Low wavelength boundary ({:.2e} {:s}) must be >= 0.")
+  pyrat.spec.wllow = pt.getparam(inputs.wllow, pyrat.spec.wlunits)
+  isgreater(pyrat.spec.wllow, "um", 0, False,
+            "Low wavelength boundary ({:.2e} um) must be >= 0.")
 
-  pyrat.spec.wlhigh = isgreater(inputs.wlhigh, pyrat.spec.wlunits, 0, True,
-                  "Low wavelength boundary ({:.2e} {:s}) must be >= 0.")
+  pyrat.spec.wlhigh = pt.getparam(inputs.wlhigh, pyrat.spec.wlunits)
+  isgreater(pyrat.spec.wlhigh, "um", 0, True,
+            "High wavelength boundary ({:.2e} um) must be >= 0.")
 
-  if   inputs.wnlow is not None:
-    if inputs.wnlow < 0.0:
-      pt.error("Low wavenumber boundary ({:.2e} {:s}-1) must be "
-               ">= 0.".format(inputs.wnlow, inputs.wnunits), pyrat.log)
-    pyrat.spec.wnlow = inputs.wnlow / pt.u(pyrat.spec.wnunits)
+  # Wavenumber must be taken care differently (take inverse of units):
+  if inputs.wnlow is not None:
+    if len(inputs.wnlow.split()) == 2:
+      wnunits = inputs.wnlow.split()[1]
+    else:
+      wnunits = pyrat.spec.wnunits
+    wnlow = float(inputs.wnlow.split()[0])
+    if wnlow < 0.0:
+      pt.error("Low wavenumber boundary ({:.2e} {:s}-1) must be >= 0.".
+               format(wnlow, wnunits), pyrat.log)
+    pyrat.spec.wnlow = wnlow / pt.u(wnunits)
 
   if   inputs.wnhigh is not None:
-    if inputs.wnhigh <= 0.0:
-      pt.error("High wavenumber boundary ({:.2e} {:s}-1) must be "
-               "> 0.".format(inputs.wnhigh, inputs.wnunits), pyrat.log)
-    pyrat.spec.wnhigh = inputs.wnhigh / pt.u(pyrat.spec.wnunits)
+    if len(inputs.wnhigh.split()) == 2:
+      wnunits = inputs.wnhigh.split()[1]
+    else:
+      wnunits = pyrat.spec.wnunits
+    wnhigh = float(inputs.wnhigh.split()[0])
+    if wnhigh <= 0.0:
+      pt.error("High wavenumber boundary ({:.2e} {:s}-1) must be > 0.".
+               format(wnhigh, wnunits), pyrat.log)
+    pyrat.spec.wnhigh = wnhigh / pt.u(wnunits)
 
-  if inputs.wnstep is None or inputs.wnstep <= 0:
-    pt.error("Wavenumber sampling step ({:.2e} {:s}-1) must be defined and "
-             "be > 0.".format(inputs.wnstep, inputs.wnunits), pyrat.log)
-  pyrat.spec.wnstep = inputs.wnstep / pt.u(pyrat.spec.wnunits)
+  if inputs.wnstep is None:
+    pt.error("Wavenumber sampling step must (wnstep) be defined.", pyrat.log)
+  if len(inputs.wnstep.split()) == 2:
+    wnunits = inputs.wnstep.split()[1]
+  else:
+    wnunits = pyrat.spec.wnunits
+  wnstep = float(inputs.wnstep.split()[0])
+  if inputs.wnstep is None or wnstep <= 0:
+    pt.error("Wavenumber sampling step ({:.2e} {:s}-1) must be be > 0.".
+             format(wnstep, wnunits), pyrat.log)
+  pyrat.spec.wnstep = wnstep / pt.u(wnunits)
 
-  pyrat.spec.wnosamp = isgreater(inputs.wnosamp, None, 1, False,
-                     "Wavenumber oversampling factor ({:d}) must be >= 1.")
+  pyrat.spec.wnosamp = pt.getparam(inputs.wnosamp, "none", integer=True)
+  isgreater(pyrat.spec.wnosamp, "none", 1, False,
+            "Wavenumber oversampling factor ({:d}) must be >= 1.")
 
   # Check atmospheric layers arguments:
   pyrat.radunits = inputs.radunits
   pyrat.punits   = inputs.punits
 
-  pyrat.phigh   = isgreater(inputs.phigh,   pyrat.punits,   0, True,
-                     "High atm pressure boundary ({:.2e} {:s}) must be > 0.0")
-  pyrat.plow    = isgreater(inputs.plow,    pyrat.punits,   0, True,
-                     "Low atm pressure boundary ({:.2e} {:s}) must be > 0.0")
+  # Pressure boundaries:
+  pyrat.phigh = pt.getparam(inputs.phigh, pyrat.punits)
+  isgreater(pyrat.phigh, "bar", 0, True,
+            "High atm pressure boundary ({:.2e} bar) must be > 0.0")
+  pyrat.plow  = pt.getparam(inputs.plow,    pyrat.punits)
+  isgreater(pyrat.plow, "bar",  0, True,
+            "Low atm pressure boundary ({:.2e} bar) must be > 0.0")
+  # Radius boundaries:
+  pyrat.radlow  = pt.getparam(inputs.radlow,  pyrat.radunits)
+  isgreater(pyrat.radlow, "cm", 0, False,
+            "Low atm radius boundary ({:.2e} cm) must be >= 0.0")
+  pyrat.radhigh = pt.getparam(inputs.radhigh, pyrat.radunits)
+  isgreater(pyrat.radhigh, "cm", 0, True,
+            "High atm radius boundary ({:.2e} cm) must be > 0.0")
+  pyrat.radstep = pt.getparam(inputs.radstep, pyrat.radunits)
+  isgreater(pyrat.radstep, "cm", 0, True,
+            "Radius step size ({:.2f} cm) must be > 0.")
+  # Pressure-radius reference level:
+  pyrat.radiusbase   = pt.getparam(inputs.radiusbase, pyrat.radunits)
+  isgreater(pyrat.radiusbase, "cm",   0, True,
+            "Planetary radius base ({:.3e} cm) must be > 0.")
+  pyrat.pressurebase = pt.getparam(inputs.pressurebase, pyrat.punits)
+  isgreater(pyrat.pressurebase, "bar", 0, True,
+            "Planetary pressure base ({:8g} bar) must be > 0.")
+  pyrat.surfgravity  = pt.getparam(inputs.surfgravity,  "none")
+  isgreater(pyrat.surfgravity, "none", 0, True,
+            "Planetary surface gravity ({:.2f} cm s-2) must be > 0.")
 
-  pyrat.radlow  = isgreater(inputs.radlow,  pyrat.radunits, 0, False,
-                     "Low atm radius boundary ({:.2e} {:s}) must be >= 0.0")
-  pyrat.radhigh = isgreater(inputs.radhigh, pyrat.radunits, 0, True,
-                     "High atm radius boundary ({:.2e} {:s}) must be > 0.0")
-  pyrat.radstep = isgreater(inputs.radstep, pyrat.radunits, 0, True,
-                     "Radius step size ({:.2f} {:s}) must be > 0.")
-
-  pyrat.radiusbase   = isgreater(inputs.radiusbase,   pyrat.radunits, 0, True,
-                     "Planetary radius base ({:.3e} {:s}) must be > 0.")
-  pyrat.pressurebase = isgreater(inputs.pressurebase, pyrat.punits,   0, True,
-                     "Planetary pressure base ({:8g} {:s}) must be > 0.")
-  pyrat.surfgravity  = isgreater(inputs.surfgravity,  None,           0, True,
-                     "Planetary surface gravity ({:.2f} cm s-2) must be > 0.")
-
-  pyrat.atm.nlayers = isgreater(inputs.nlayers, None, 0, True,
-                     "The number of atmospheric layers ({:d}) must be > 0.")
+  pyrat.atm.nlayers = pt.getparam(inputs.nlayers, "none", integer=True)
+  isgreater(pyrat.atm.nlayers, "none", 0, True,
+            "The number of atmospheric layers ({:d}) must be > 0.")
 
   # Check Voigt-profile arguments:
-  pyrat.voigt.extent = isgreater(inputs.Vextent, None, 1, False,
-                                 "Voigt extent ({:g}) must be >= 1.0")
+  pyrat.voigt.extent = pt.getparam(inputs.vextent, "none")
+  isgreater(pyrat.voigt.extent, "none", 1, False,
+            "Voigt extent ({:g}) must be >= 1.0")
 
   # Doppler width:
-  pyrat.voigt.nDop = isgreater(inputs.nDop, None, 1, False,
-                         "The number of Doppler samples ({:d}) must be >= 1")
+  pyrat.voigt.nDop = pt.getparam(inputs.nDop, "none", integer=True)
+  isgreater(pyrat.voigt.nDop, "none", 1, False,
+            "The number of Doppler samples ({:d}) must be >= 1")
 
-  pyrat.voigt.Dmin = isgreater(inputs.Dmin, None, 0, True,
-                                   "Dmin ({:g} cm-1) must be > 0.")
+  pyrat.voigt.Dmin = pt.getparam(inputs.Dmin, "none")
+  isgreater(pyrat.voigt.Dmin, "none", 0, True, "Dmin ({:g} cm-1) must be > 0.")
 
-  pyrat.voigt.Dmax = isgreater(inputs.Dmax, None, 0, True,
-                                   "Dmax ({:g} cm-1) must be > 0.")
+  pyrat.voigt.Dmax = pt.getparam(inputs.Dmax, "none")
+  isgreater(pyrat.voigt.Dmax, "none", 0, True, "Dmax ({:g} cm-1) must be > 0.")
 
   if pyrat.voigt.Dmax <= pyrat.voigt.Dmin:
     pt.error("Dmax ({:g} cm-1) must be > Dmin ({:g} cm-1).".format(
              pyrat.voigt.Dmax, pyrat.voigt.Dmin), pyrat.log)
 
   # Lorentz width:
-  pyrat.voigt.nLor = isgreater(inputs.nLor, None, 1, False,
-             "The number of Lorentz samples ({:d}) must be >= 1")
+  pyrat.voigt.nLor = pt.getparam(inputs.nLor, "none", integer=True)
+  isgreater(pyrat.voigt.nLor, "none", 1, False,
+            "The number of Lorentz samples ({:d}) must be >= 1")
 
-  pyrat.voigt.Lmin = isgreater(inputs.Lmin, None, 0, True,
-             "Lmin ({:g} cm-1) must be > 0.")
+  pyrat.voigt.Lmin = pt.getparam(inputs.Lmin, "none")
+  isgreater(pyrat.voigt.Lmin, "none", 0, True, "Lmin ({:g} cm-1) must be > 0.")
 
-  pyrat.voigt.Lmax = isgreater(inputs.Lmax, None, 0, True,
-             "Lmax ({:g} cm-1) must be > 0.")
+  pyrat.voigt.Lmax = pt.getparam(inputs.Lmax, "none")
+  isgreater(pyrat.voigt.Lmax, "none", 0, True, "Lmax ({:g} cm-1) must be > 0.")
 
   if pyrat.voigt.Lmax <= pyrat.voigt.Lmin:
     pt.error("Lmax ({:g} cm-1) must be > Lmin ({:g} cm-1).".format(
              pyrat.voigt.Lmax, pyrat.voigt.Lmin), pyrat.log)
 
-  pyrat.voigt.DLratio = isgreater(inputs.DLratio, None, 0, True,
-             "Doppler/Lorentz width ratio threshold ({:g}) must be > 0.")
+  pyrat.voigt.DLratio = pt.getparam(inputs.DLratio, "none")
+  isgreater(pyrat.voigt.DLratio, "none", 0, True,
+            "Doppler/Lorentz width ratio threshold ({:g}) must be > 0.")
 
   # Check extinction-coefficient arguments:
-  pyrat.ex.ethresh = isgreater(inputs.ethresh,  None, 0, True,
-               "Extinction-coefficient threshold ({:g} K) must be positive.")
+  pyrat.ex.ethresh = pt.getparam(inputs.ethresh, "none")
+  isgreater(pyrat.ex.ethresh, "none", 0, True,
+               "Extinction-coefficient threshold ({:g}) must be positive.")
   if inputs.tmin is not None:
-    pyrat.ex.tmin  = isgreater(inputs.tmin,  'kelvin', 0, True,
+    pyrat.ex.tmin  = pt.getparam(inputs.tmin, "kelvin")
+    isgreater(pyrat.ex.tmin,  "kelvin", 0, True,
                "Minimum temperature sample ({:g} K) must be positive.")
   if inputs.tmax is not None:
-    pyrat.ex.tmax  = isgreater(inputs.tmax,  'kelvin', 0, True,
+    pyrat.ex.tmax  = pt.getparam(inputs.tmax, "kelvin")
+    isgreater(pyrat.ex.tmax,  "kelvin", 0, True,
                "Maximum temperature sample ({:g} K) must be positive.")
   if inputs.tstep is not None:
-    pyrat.ex.tstep = isgreater(inputs.tstep, 'kelvin', 0, True,
+    pyrat.ex.tstep = pt.getparam(inputs.tstep, 'kelvin')
+    isgreater(pyrat.ex.tstep, "kelvin", 0, True,
                "Temperature sample step interval ({:g} K) must be positive.")
 
   if pyrat.ex.tmax is not None and pyrat.ex.tmin is not None:
@@ -512,12 +548,14 @@ def checkinputs(pyrat):
       pyrat.alkali.nmodels += 1
 
   # Check optical-depth arguments:
-  pyrat.od.maxdepth = isgreater(inputs.maxdepth, None, 0, False,
-                        "Maximum-optical-depth limit ({:g}) must be >= 0.0")
+  pyrat.od.maxdepth = pt.getparam(inputs.maxdepth, "none")
+  isgreater(pyrat.od.maxdepth, "none", 0, False,
+            "Maximum optical-depth limit ({:g}) must be >= 0.0")
 
   # Check system arguments:
-  pyrat.rstar = isgreater(inputs.rstar, pyrat.radunits, 0, True,
-       "Stellar radius ({:.1f} {:s}) must be > 0.")
+  pyrat.rstar = pt.getparam(inputs.rstar, pyrat.radunits)
+  isgreater(pyrat.rstar, "cm", 0, True,
+            "Stellar radius ({:.4e} cm) must be > 0.")
 
   # Accept ray-path argument:
   pyrat.od.path  = inputs.path
@@ -547,12 +585,12 @@ def isgreater(value, units, thresh, equal=False, text=""):
   Check that value (if not None) is greater than thresh.
   Throw error if not.
 
-  Parameters:
-  -----------
+  Parameters
+  ----------
   value: Scalar
     The value being tested.
   units: String
-    The units of value as given in pyrat.units
+    The units of the value.
   thresh: Scalar
     Threshold against which value is being compared.
   equal: Boolean
@@ -560,8 +598,8 @@ def isgreater(value, units, thresh, equal=False, text=""):
   text: String
     Text to show if condition is not satisfied.
 
-  Returns:
-  --------
+  Returns
+  -------
   The value in the pyrat units.
   """
   # Set comparison command:
@@ -570,15 +608,10 @@ def isgreater(value, units, thresh, equal=False, text=""):
   else:
     compare = np.less
 
-  # Get the units factor value:
-  if units is None:
-    unitsval = 1
-  else:
-    unitsval = pt.u(units)
-
   # Check value:
-  if value is not None:
-    if compare(value, thresh):
-      pt.error(text.format(value, units), pyrat.log, -3)
-    return value * unitsval
-  return None
+  if value is None:
+    return
+
+  if compare(value, thresh):
+    pt.error(text.format(value/pt.u(units)), pyrat.log, -3)
+

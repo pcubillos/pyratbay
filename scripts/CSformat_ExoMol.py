@@ -24,22 +24,19 @@ def speciesname(filename):
 
 def main():
   """
-  Format Borysow's H2-He CIA data file.
+  Format Exomol's cross-section data file for pyrat.
 
-  Usage:
-  ------
-  Execute from the Shell:
-  ./CSformat_Borysow.py fileIn fileOut
+  Examples
+  --------
+  $ ./CSformat_ExoMol.py 12C-1H4_200*.sigma
 
-  Examples:
-  ---------
-  $ ./CSformat_Borysow.py ciah2he_dh_quantmech CIA_Borysow_H2He_1000-7000K_0.5-400um.dat  H2 He
-  $ ./CSformat_Borysow.py final_CIA_LT.dat     CIA_Borysow_H2H2_0060-0350K_0.6-1000um.dat H2 H2
-  $ ./CSformat_Borysow.py final_CIA_HT.dat     CIA_Borysow_H2H2_0400-1000K_0.6-1000um.dat H2 H2
-  $ ./CSformat_Borysow.py CIA.H2H2.Yi          CIA_Borysow_H2H2_1000-7000K_0.6-0500um.dat H2 H2
-
-  Download the CIA tabulated data from A. Borysow's  webpage:
-    http://www.astro.ku.dk/~aborysow/programs/ciah2he_dh_quantmech
+  Notes
+  -----
+  Download Exomol xsec tabulated data from:
+    http://www.exomol.com/data/data-types/xsec
+  You will need to download one temperature at a time.
+  Keep dnu, nu_min, and nu_max fixed for each temperature.
+  Be sure to check the Two-column output option.
   """
 
   # Parse arguments:

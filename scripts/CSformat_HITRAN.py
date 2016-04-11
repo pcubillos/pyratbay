@@ -26,11 +26,15 @@ def main():
   Examples
   --------
   For H2-H2 run from the Shell prompt:
-    ./HITRAN_CIA_format.py  H2-H2_2011.cia  CIA_HITRAN_H2H2_0200-3000K_1.0-500um.dat  50  10
+    ./CSformat_HITRAN.py  H2-H2_2011.cia  CIA_HITRAN_H2H2_0200-3000K_1.0-500um.dat  50  10
 
-  Previous (uncredited) developers
-  --------------------------------
-  - Dylan Bruce (UCF)
+  Notes
+  -----
+  So far, this routine has bee tested for H2-H2 and H2-He.
+
+  Uncredited Developers
+  ---------------------
+  Dylan Bruce (UCF)
   """
 
   # Loschmidt number (cm-3):
@@ -109,9 +113,7 @@ def main():
         data[i][k, j] = line[1]
       istart += nwaves[i] + 1
 
-
   # Thin the arrays if requested:
-  # Note: So far used for H2-H2 and H2-He files.
   if tstep is not None  and  wstep is not None  and nsets == 1:
     # Thinned arrays:
     Tthin  = np.arange(np.amin(temps[0]), np.amax(temps[0])+1, tstep)
@@ -120,7 +122,7 @@ def main():
     itemp = np.where(np.in1d(temps[0], Tthin ))[0]
     iwn   = np.where(np.in1d(wave[0],  wnthin))[0]
     # Slice the data arrays:
-    temps[0] = temps[0][itemp]
+    temps[0] = np.asarray(temps[0])[itemp]
     wave [0] = wave [0][iwn]
     data [0] = data [0][iwn,:]
     data [0] = data [0][:, itemp]

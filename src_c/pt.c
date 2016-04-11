@@ -27,20 +27,21 @@ params: 1D float ndarray                                             \n\
    alpha:         Visible-stream partition (0.0--1.0)                \n\
    beta:          'catch-all' for albedo, emissivity, and day-night  \n\
                   redistribution (on the order of unity)             \n\
+                                                                     \n\
 pressure: 1D float ndarray                                           \n\
-  Array of pressure values in bars.                                  \n\
+   Array of pressure values (in barye).                              \n\
 temperature: 1D float ndarray                                        \n\
-  Output temperature array in Kelvin.                                \n\
+   Output temperature array (in Kelvin).                             \n\
 R_star: Float                                                        \n\
-   Stellar radius (in meters).                                       \n\
+   Stellar radius (in cm).                                           \n\
 T_star: Float                                                        \n\
    Stellar effective temperature (in Kelvin degrees).                \n\
 T_int:  Float                                                        \n\
    Planetary internal heat flux (in Kelvin degrees).                 \n\
 sma:    Float                                                        \n\
-   Semi-major axis (in meters).                                      \n\
+   Semi-major axis (in cm).                                          \n\
 grav:   Float                                                        \n\
-   Planetary surface gravity in m sec-2.                             \n\
+   Planetary surface gravity (in cm s-2).                            \n\
                                                                      \n\
   Returns                                                            \n\
   -------                                                            \n\
@@ -55,15 +56,15 @@ grav:   Float                                                        \n\
                                                                      \n\
   >>> Rsun = 6.995e8 # Sun radius in meters                          \n\
                                                                      \n\
-  >>> # Pressure array (bars):                                       \n\
-  >>> press = np.logspace(2, -5, 100)                                \n\
+  >>> # Pressure array (barye):                                      \n\
+  >>> press = np.logspace(2, -5, 100) *1e6                           \n\
                                                                      \n\
   >>> # Physical (fixed for each planet) parameters:                 \n\
-  >>> Ts = 5040.0        # K                                         \n\
-  >>> Ti =  100.0        # K                                         \n\
-  >>> a  = 0.031 * sc.au # m                                         \n\
-  >>> Rs = 0.756 * Rsun  # m                                         \n\
-  >>> g  = 21.928        # m s-2                                     \n\
+  >>> Ts = 5040.0  # K                                               \n\
+  >>> Ti =  100.0  # K                                               \n\
+  >>> a  = 100.0 * 0.031 * sc.au # cm                                \n\
+  >>> Rs = 100.0 * 0.756 * Rsun  # cm                                \n\
+  >>> g  = 2192.8                # cm s-2                            \n\
                                                                      \n\
   >>> # Fitting parameters:                                          \n\
   >>> kappa  = -1.5   # log10(3e-2)                                  \n\
@@ -117,7 +118,7 @@ static PyObject *TCEA(PyObject *self, PyObject *args){
 
   /* Gray IR optical depth:                                                 */
   for (i=0; i<nlayers; i++){
-    tau = kappa * (INDd(pressure,i)*1e6) / (grav*100);  /* Convert to CGS   */
+    tau = kappa * INDd(pressure,i) / grav;
     xi1 = xi(gamma1, tau);
     xi2 = xi(gamma2, tau);
 

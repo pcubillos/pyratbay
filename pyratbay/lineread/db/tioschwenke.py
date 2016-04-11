@@ -161,7 +161,7 @@ class tioschwenke(dbdriver):
       # Print a checkpoint statement every 1/20th interval:
       if verbose > 1:
         if (i % interval) == 0 and i != 0:
-          wl = np.exp(iw[i] * self.ratiolog) * pc.NTC/pc.um
+          wl = np.exp(iw[i] * self.ratiolog) * pc.nm/pc.um
           pt.msg(verbose-1, "Checkpoint {:5.1f}%".format(10.*i/interval),
                  self.log, 2)
           pt.msg(verbose-2,"Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} um\n"
@@ -172,7 +172,7 @@ class tioschwenke(dbdriver):
       i += 1
 
     # Calculate the wavenumber (in cm-1):
-    wnumber[:] = 1.0/(np.exp(iw * self.ratiolog) * pc.NTC)
+    wnumber[:] = 1.0/(np.exp(iw * self.ratiolog) * pc.nm)
     # Get gf from log table:
     gf[:]      = self.tablog[igf]
     # Get lowest state energy from log table:

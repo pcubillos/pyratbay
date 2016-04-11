@@ -1,8 +1,15 @@
-__all__ = ["ma", "mc", "constants", "tools"]
+__all__ = ["run", "ma", "mc", "constants", "tools"]
+
+from .driver import run
 
 from .  import makeatm as ma
 from .  import makecfg as mc
 from .. import VERSION as ver
+
+# Pyrat Bay version:
+__version__ = "{:d}.{:d}.{:d}".format(ver.PBAY_VER, ver.PBAY_MIN,
+                                      ver.PBAY_REV)
+
 
 # Clean up top-level namespace--delete everything that isn't in __all__
 # or is a magic attribute, and that isn't a submodule of this package

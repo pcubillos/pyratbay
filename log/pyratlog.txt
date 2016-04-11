@@ -1340,6 +1340,7 @@ Bumped pyratbay to version 0.0.16.
 Bumped pyrat    to version 1.2.7.
 Bumped lineread to version 6.4.3.
 
+
 *****  Sat Mar 12 14:22:21 CET 2016  *****
 
 Added cloud model with wavelenght-independent constant cross-section
@@ -1374,5 +1375,72 @@ Fixed bug in spline.c when freeing Py_Arrays.
 
 Bumped pyrat to version 1.2.9.
 Next merge Resolves #24.
+
+
+*****  Mi 23. Mär 11:00:10 CET 2016  *****
+
+Updated Makefile to compile Pyrat Bay's and the submodules extensions.
+
+*****
+
+Added Pyrat-Bay driver and (empty yet) argument parser routine.
+
+
+*****  Do 24. Mär 10:36:20 CET 2016  *****
+
+Updated pconstants with Earth, Jupiter, and Sun values.
+Deleted MTC and NTC unit conversions.
+
+
+*****  Di 29. Mär 09:34:59 CEST 2016  *****
+
+Added getparam() to ptools.py to process input variables that may
+or may not include units (e.g., 'rstar = 1.1 rsun').
+Updated the type (to string) of input variables that may contain units
+in pyrat/argum.py.
+Added none units to pconstants for variables without units.
+Added validunits variable to pconstants to keep tally of the valid
+unit conversion variables.
+Re-factored isgreater() in pyrat/argum.py.
+
+
+*****  Mi 30. Mär 17:34:31 CEST 2016  *****
+
+Modified pt.c to take arguments in CGS units.
+
+*****
+
+Got a first running version of pyratbay to create atmospheric files,
+Including the temperature profile calculation.
+Still to do: test with uniform abundances.
+Also I need to add warnings all over the place.
+
+
+*****  Sun Apr 10 11:31:58 CEST 2016  *****
+
+Updated the Exomol cross-section formatter docstring.
+
+*****
+
+Fixed bug with HITRAN CIA formatter script.
+Updated the docstring.
+
+
+*****  Mo 11. Apr 17:44:27 CEST 2016  *****
+
+Updated pbay code (running in both shell and interactive).
+Added insothermal temperature model.
+Implemented and tested TEA and uniform-abundances atmospheric models.
+Implemented default warnings and error messages.
+Added defaultp() function to ptools.py
+Added pbay example.
+
+In the future, will need to update the warnings and error messages to
+be called only when necessary (depending on the specific
+required/skipped steps: temp, atm, pyrat, MCMC).
+
+*****
+
+Bumped Pyrat Bay to version 0.0.17.
 
 *****
