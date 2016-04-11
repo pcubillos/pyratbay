@@ -1441,3 +1441,6 @@ required/skipped steps: temp, atm, pyrat, MCMC).
 
 *****
 
+Bumped Pyrat Bay to version 0.0.17.
+
+*****
