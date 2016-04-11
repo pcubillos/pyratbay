@@ -1,7 +1,7 @@
 # Copyright (c) 2015-2016 Patricio Cubillos and contributors.
 # Pyrat Bay is open-source software under the FINDME license.
 
-__all__ = ["parray", "msg", "warning", "error", "getparam",
+__all__ = ["parray", "msg", "warning", "error", "defaultp", "getparam",
            "binsearch", "pprint", "divisors", "u", "unpack", "sep"]
 
 import sys, os
@@ -301,6 +301,30 @@ def u(units):
     error("Units name '{:s}' does not exist.".format(units), lev=-3)
   exec("factor = pc.{:s}".format(units))
   return factor
+
+
+def defaultp(param, default, msg, wlog, log):
+  """
+  Return param if not None, else, return default and print the
+  corresponding warning message.
+
+  Parameters
+  ----------
+  param:  Any
+     Input parameter value.
+  default: Any
+     Default parameter value.
+  msg: String
+     Printed message if param is None.
+  wlog:  List
+     Warnings logfile list.
+  log: File
+     Log file.
+  """
+  if param is None:
+    warning(msg.format(default), wlog, log)
+    return default
+  return param
 
 
 def getparam(param, units, integer=False):

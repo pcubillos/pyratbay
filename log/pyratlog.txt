@@ -1425,5 +1425,19 @@ Updated the Exomol cross-section formatter docstring.
 Fixed bug with HITRAN CIA formatter script.
 Updated the docstring.
 
+
+*****  Mo 11. Apr 17:44:27 CEST 2016  *****
+
+Updated pbay code (running in both shell and interactive).
+Added insothermal temperature model.
+Implemented and tested TEA and uniform-abundances atmospheric models.
+Implemented default warnings and error messages.
+Added defaultp() function to ptools.py
+Added pbay example.
+
+In the future, will need to update the warnings and error messages to
+be called only when necessary (depending on the specific
+required/skipped steps: temp, atm, pyrat, MCMC).
+
 *****
 
