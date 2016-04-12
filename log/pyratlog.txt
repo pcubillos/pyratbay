@@ -1450,3 +1450,7 @@ Drafted initial version of the contributing documentation.
 
 *****
 
+Added *~ to the gitignore list.
+
+*****
+
