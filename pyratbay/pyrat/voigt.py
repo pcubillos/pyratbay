@@ -118,5 +118,5 @@ def calcvoigt(pyrat):
   # Calculate the Voigt profiles in C:
   vp.grid(voigt.profile, voigt.size, voigt.index,
           voigt.lorentz, voigt.doppler,
-          pyrat.spec.ownstep,  pyrat.verb)
+          pyrat.spec.ownstep, pyrat.logfile, pyrat.verb)
   pt.msg(pyrat.verb, "Voigt indices:\n{}".format(voigt.index), pyrat.log, 2)

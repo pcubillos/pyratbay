@@ -197,5 +197,6 @@ def extinction(pyrat, extcoeff, ilayer, temp, ziso, add=0):
                 pyrat.iso.imol, pyrat.iso.mass, pyrat.iso.ratio,
                 ziso, pyrat.iso.iext,
                 pyrat.lt.wn, pyrat.lt.elow, pyrat.lt.gf, pyrat.lt.isoid,
-                pyrat.ex.ethresh, pressure, temp, add)
+                pyrat.ex.ethresh, pressure, temp,
+                pyrat.logfile, pyrat.verb, add)
 

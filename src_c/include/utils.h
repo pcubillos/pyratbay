@@ -106,3 +106,21 @@ downsample(double **input,     /* Input array                               */
   return 0;
 }
 
+
+/* Conditional dual (screen/file) message printing                          */
+int
+msg(int verb, FILE *fp, char *message, ...){
+  if (verb <= 0)
+    return 0;
+
+  va_list args;
+  va_start(args, message);
+
+  /* Print formatted data to file and to screen:                            */
+  if (fp){
+    vfprintf(fp, message, args);
+  }
+  vprintf(message, args);
+  va_end(args);
+  return 0;
+}

@@ -1,6 +1,8 @@
 #include <Python.h>
 #define NPY_NO_DEPRECATED_API NPY_1_8_API_VERSION
 #include <numpy/arrayobject.h>
+#include <stdio.h>
+#include <stdarg.h>
 
 #include "ind.h"
 #include "voigt.h"
@@ -26,6 +28,8 @@ osamp: Integer                                                             \n\
    Oversampling factor to calculate the Voigt profiles.                    \n\
 dwn: Float                                                                 \n\
    Wavenumber step size in cm-1.                                           \n\
+logname: String                                                            \n\
+   Log filename.                                                           \n\
 verb: Integer                                                              \n\
    Verbosity flag to print info to screen.");
 
@@ -33,17 +37,21 @@ static PyObject *voigt(PyObject *self, PyObject *args){
   PyArrayObject *profile, *psize, *index, *doppler, *lorentz;
   double *vprofile; /* Voigt profile for each (Dop,Lor) width               */
   double dwn;       /* Wavenumber sample step size                          */
-  int nprofiles,   /* Number of Lorentz and Doppler width samples           */
-      nmax, nwave,   /* Number of wavenumber samples of Voigt profile             */
+  int nprofiles,    /* Number of Lorentz and Doppler width samples          */
+      nmax, nwave,  /* Number of wavenumber samples of Voigt profile        */
       idx=0,   /* Profile index position                                    */
       verb,    /* Verbosity flag                                            */
-      m, j; /* Auxilliary for-loop indices                               */
+      m, j; /* Auxilliary for-loop indices                                  */
+  char *logname;
+  FILE *log;
 
   /* Load inputs:                                                           */
-  if (!PyArg_ParseTuple(args, "OOOOOdi", &profile, &psize, &index,
-                                         &lorentz, &doppler,
-                                         &dwn, &verb))
+  if (!PyArg_ParseTuple(args, "OOOOOdsi", &profile, &psize, &index,
+                                          &lorentz, &doppler,
+                                          &dwn, &logname, &verb))
     return NULL;
+
+  log = fopen(logname, "a");
 
   /* Get array sizes:                                                       */
   nprofiles = (int)PyArray_DIM(lorentz, 0);
@@ -64,7 +72,7 @@ static PyObject *voigt(PyObject *self, PyObject *args){
                  INDd(lorentz,m), INDd(doppler,m), vprofile, -1,
                  nwave > _voigt_maxelements?VOIGT_QUICK:0);
       if (j != 1){
-        printf("voigtn() returned error code %i.\n", j);
+        msg(verb-1, log, "voigtn() returned error code %i.\n", j);
         free(vprofile);
         return Py_BuildValue("i", 0);
       }
@@ -80,12 +88,12 @@ static PyObject *voigt(PyObject *self, PyObject *args){
     else{
       /* Refer to previous profile:                                       */
       INDi(index, m) = INDi(index, (m-1));
-      if (verb > 10)
-        printf("Skip profile[%d] calculation.\n", m);
+      msg(verb-6, log, "Skip profile[%d] calculation.\n", m);
     }
   }
   /* Free memory:                                                     */
   free(vprofile);
+  fclose(log);
 
   return Py_BuildValue("i", 1);
 }
@@ -127,12 +135,15 @@ static PyObject *grid(PyObject *self, PyObject *args){
       idx=0,   /* Profile index position                                    */
       verb,    /* Verbosity flag                                            */
       n, m, j; /* Auxilliary for-loop indices                               */
+  char *logname;
+  FILE *log;
 
   /* Load inputs:                                                           */
-  if (!PyArg_ParseTuple(args, "OOOOOdi", &profile, &psize, &index,
-                                         &lorentz, &doppler,
-                                         &dwn, &verb))
+  if (!PyArg_ParseTuple(args, "OOOOOdsi", &profile, &psize, &index,
+                                          &lorentz, &doppler,
+                                          &dwn, &logname, &verb))
     return NULL;
+  log = fopen(logname, "a");
 
   /* Get array sizes:                                                       */
   nLor = (int)PyArray_DIM(lorentz, 0);
@@ -140,8 +151,7 @@ static PyObject *grid(PyObject *self, PyObject *args){
 
   for   (m=0; m<nLor; m++){
     for (n=0; n<nDop; n++){
-      if (verb > 20)
-        printf(" DL Ratio: %.3f\n", INDd(doppler, n) / INDd(lorentz, m));
+      msg(verb-6, log, " DL Ratio: %.3f\n", INDd(doppler,n) / INDd(lorentz,m));
       /* If the profile size is > 0, calculate it:                          */
       if (IND2i(psize, m, n) != 0){
         /* Number of spectral samples:                                      */
@@ -149,15 +159,15 @@ static PyObject *grid(PyObject *self, PyObject *args){
         /* Allocate profile array:                                          */
         vprofile = (double *)calloc(nwave, sizeof(double));
 
-        if (verb > 10)
-          printf("Calculating profile[%d, %d] = %d\n", m, n, IND2i(psize,m,n));
+        msg(verb-5, log, "Calculating profile[%d, %d] = %d\n",
+                         m, n, IND2i(psize,m,n));
         /* Calculate Voigt using a width that gives an integer number
            of 'dwn' spaced bins:                                            */
         j = voigtn(nwave, dwn*(long)(nwave/2),
                    INDd(lorentz,m), INDd(doppler,n), vprofile, -1,
                    nwave > _voigt_maxelements?VOIGT_QUICK:0);
         if (j != 1){
-          printf("voigtn() returned error code %i.\n", j);
+          msg(verb-1, log, "voigtn() returned error code %i.\n", j);
           return 0;
         }
         /* Store values in python-object profile:                           */
@@ -176,14 +186,13 @@ static PyObject *grid(PyObject *self, PyObject *args){
       else{
         /* Refer to previous profile:                                       */
         IND2i(index, m, n) = IND2i(index, (m-1), n);
-        if (verb > 10)
-          printf("Skip profile[%d, %d] calculation.\n", m, n);
+        msg(verb-6, log, "Skip profile[%d, %d] calculation.\n", m, n);
       }
     }
-    if (verb > 5 && verb <=10)
-      printf("  Calculated Voigt profile %3d/%d.\n", m+1, nLor);
+    msg(verb-4, log, "  Calculated Voigt profile %3d/%d.\n", m+1, nLor);
   }
 
+  fclose(log);
   return Py_BuildValue("i", 1);
 }
 
