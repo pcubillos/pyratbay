@@ -68,6 +68,7 @@ Contents
    lineread
    pyrat
    pyrat-bay
+   contributing
    license
 
 .. _Patricio Cubillos: https://github.com/pcubillos/
