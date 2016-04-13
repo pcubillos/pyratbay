@@ -54,7 +54,7 @@ def msg(verblevel, message, file=None, indent=0, si=None, noprint=False):
   noprint: Boolean
      If True, do not print and return the string instead.
   """
-  if verblevel <= 0:
+  if verblevel < 0:
     return
 
   # Output text message:

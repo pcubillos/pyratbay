@@ -16,22 +16,20 @@ def exttable(pyrat):
 
   # If the extinction file was not defined, skip this step:
   if pyrat.ex.extfile is None:
-    pt.msg(pyrat.verb-3, "No extinction-coefficient table requested.",
+    pt.msg(pyrat.verb-3, "\nNo extinction-coefficient table requested.",
            pyrat.log)
     return
 
-  pt.msg(pyrat.verb-3, "\nBegin extinction-coefficient table handling.",
-         pyrat.log)
   # If the extinction file exists, read it:
   if os.path.isfile(pyrat.ex.extfile):
-    pt.msg(pyrat.verb-4, "Reading extinction-coefficient table file:"
-                     "\n  '{:s}'".format(pyrat.ex.extfile), pyrat.log, 2)
+    pt.msg(pyrat.verb-3, "\nReading extinction-coefficient table file:"
+                     "\n  '{:s}'.".format(pyrat.ex.extfile), pyrat.log)
     read_extinction(pyrat)
 
   # If the extinction file doesn't exist, calculate it:
   else:
-    pt.msg(pyrat.verb-4, "Generating new extinction-coefficient table file:"
-                     "\n  '{:s}'".format(pyrat.ex.extfile), pyrat.log, 2)
+    pt.msg(pyrat.verb-4, "\nGenerating new extinction-coefficient table file:"
+                     "\n  '{:s}'.".format(pyrat.ex.extfile), pyrat.log)
     calc_extinction(pyrat)
 
 

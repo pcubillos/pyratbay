@@ -312,15 +312,16 @@ def parse(pyrat):
     pyrat.log = open(pyrat.logfile, "w")
 
   # Welcome message:
-  pt.msg(1, "{:s}\n  Python Radiative Transfer (PyRaT).\n"
-            "  Version {:d}.{:d}.{:d}.\n"
-            "  Copyright (c) 2016 Patricio Cubillos and collaborators.\n"
-            "  Pyrat is open-source software under the FINDME license.\n"
-            "{:s}\n\n".format(pt.sep, ver.PYRAT_VER, ver.PYRAT_MIN,
-                                      ver.PYRAT_REV, pt.sep), pyrat.log)
+  pt.msg(pyrat.inputs.verb-2,
+         "{:s}\n  Python Radiative Transfer (PyRaT).\n"
+         "  Version {:d}.{:d}.{:d}.\n"
+         "  Copyright (c) 2016 Patricio Cubillos and collaborators.\n"
+         "  Pyrat is open-source software under the FINDME license.\n"
+         "{:s}\n\n".format(pt.sep, ver.PYRAT_VER, ver.PYRAT_MIN,
+                                   ver.PYRAT_REV, pt.sep), pyrat.log)
 
-  pt.msg(1, "Read command-line arguments from configuration file: '{:s}'".
-            format(cfile), pyrat.log)
+  pt.msg(pyrat.inputs.verb-3, "Read command-line arguments from "
+         "configuration file: '{:s}'".format(cfile), pyrat.log)
 
 def checkinputs(pyrat):
   """
@@ -577,7 +578,7 @@ def checkinputs(pyrat):
 
   # Verbose level:
   pyrat.verb = np.amax([0, inputs.verb])
-  pt.msg(pyrat.verb, "Done.", pyrat.log)
+  pt.msg(pyrat.verb-3, "Done.", pyrat.log)
 
 
 def isgreater(value, units, thresh, equal=False, text=""):

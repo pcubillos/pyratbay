@@ -87,7 +87,7 @@ static PyObject *voigt(PyObject *self, PyObject *args){
     else{
       /* Refer to previous profile:                                       */
       INDi(index, m) = INDi(index, (m-1));
-      msg(verb-6, logtext, "Skip profile[%d] calculation.\n", m);
+      msg(verb-5, logtext, "Skip profile[%d] calculation.\n", m);
     }
   }
   /* Free memory:                                                     */
@@ -188,7 +188,7 @@ static PyObject *grid(PyObject *self, PyObject *args){
         msg(verb-6, logtext, "Skip profile[%d, %d] calculation.\n", m, n);
       }
     }
-    msg(verb-4, logtext, "  Calculated Voigt profile %3d/%d.\n", m+1, nLor);
+    msg(verb-5, logtext, "  Calculated Voigt profile %3d/%d.\n", m+1, nLor);
   }
 
   return Py_BuildValue("i", 1);

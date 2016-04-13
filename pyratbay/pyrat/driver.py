@@ -135,12 +135,12 @@ def run(pyrat, inputs=None):
 
   pyrat.timestamps += list(np.ediff1d(timestamps))
   dtime = pyrat.timestamps[0:9] + pyrat.timestamps[-4:]
-  print("\nTimestamps:\n"
+  pt.msg(pyrat.verb-4, "\nTimestamps:\n"
         " Init:     {:10.6f}\n Parse:    {:10.6f}\n Inputs:   {:10.6f}\n"
         " Wnumber:  {:10.6f}\n Atmosph:  {:10.6f}\n TLI:      {:10.6f}\n"
         " Layers:   {:10.6f}\n Voigt:    {:10.6f}\n CIA read: {:10.6f}\n"
         " Extinct:  {:10.6f}\n CIA intp: {:10.6f}\n O.Depth:  {:10.6f}\n"
-        " Spectrum: {:10.6f}".format(*dtime))
+        " Spectrum: {:10.6f}".format(*dtime), pyrat.log)
 
   if len(pyrat.wlog) > 0:
     # Write all warnings to file:
