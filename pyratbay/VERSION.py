@@ -8,9 +8,9 @@ PBAY_REV  = 17  # Revision
 # Pyrat version:
 PYRAT_VER =  1  # Major version
 PYRAT_MIN =  2  # Minor version
-PYRAT_REV =  9  # Revision
+PYRAT_REV = 10  # Revision
 
 # Lineread version:
 LR_VER    =  6  # Major version
 LR_MIN    =  4  # Minor version
-LR_REV    =  3  # Revision
+LR_REV    =  4  # Revision

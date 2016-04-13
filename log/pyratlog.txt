@@ -1492,3 +1492,8 @@ Updated verbosity in lineread examples.
 
 *****
 
+Bumped Pyrat to version 1.2.10.
+Bumped Lineread to version 6.4.4.
+
+*****
+
