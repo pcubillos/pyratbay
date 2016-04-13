@@ -119,7 +119,7 @@ class hitran(dbdriver):
     return molID, molname, isotopes, mass, isoratio, gi
 
 
-  def dbread(self, iwn, fwn, verbose, *args):
+  def dbread(self, iwn, fwn, verb, *args):
     """
     Read a HITRAN or HITEMP database (dbfile) between wavenumbers iwn and fwn.
 
@@ -131,7 +131,7 @@ class hitran(dbdriver):
        Initial wavenumber limit (in cm-1).
     fwn: Float
        Final wavenumber limit (in cm-1).
-    verbose: Integer
+    verb: Integer
        Verbosity threshold.
     pffile: String
        Partition function filename.
@@ -180,8 +180,8 @@ class hitran(dbdriver):
     A21     = np.zeros(nread, np.double)  # Einstein A coefficient
     g2      = np.zeros(nread, np.double)  # Lower statistical weight
 
-    pt.msg(verbose, "Starting to read HITRAN database between "
-                    "records {:d} and {:d}.".format(istart, istop), self.log)
+    pt.msg(verb-4, "Process HITRAN database between records {:,d} and {:,d}.".
+                   format(istart, istop), self.log, 2)
     interval = (istop - istart)/10  # Check-point interval
 
     i = 0  # Stored record index
@@ -196,15 +196,14 @@ class hitran(dbdriver):
       A21    [i] = float(line[self.recApos:  self.recairpos])
       g2     [i] = float(line[self.recg2pos: self.recsize  ])
       # Print a checkpoint statement every 10% interval:
-      if verbose > 1:
-        if (i % interval) == 0.0  and  i != 0:
-          gfval = A21[i]*g2[i]*pc.C1/(8.0*np.pi*pc.c)/wnumber[i]**2.0
-          pt.msg(verbose-1, "Checkpoint {:5.1f}%".format(10.*i/interval),
-                 self.log, 2)
-          pt.msg(verbose-2,"Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} um\n"
-                          "Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}".
-                           format(wnumber[i], 1.0/(wnumber[i]*pc.um),
-                                  elow[i], gfval, (isoID[i]-1)%10), self.log, 4)
+      if (i % interval) == 0.0  and  i != 0:
+        gfval = A21[i]*g2[i]*pc.C1/(8.0*np.pi*pc.c)/wnumber[i]**2.0
+        pt.msg(verb-4, "{:5.1f}% completed.".format(10.*i/interval),
+               self.log, 3)
+        pt.msg(verb-5,"Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} um\n"
+                        "Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}".
+                         format(wnumber[i], 1.0/(wnumber[i]*pc.um),
+                                elow[i], gfval, (isoID[i]-1)%10), self.log, 6)
       i += 1
 
     # Set isotopic index to start counting from 0:
@@ -215,7 +214,6 @@ class hitran(dbdriver):
     gf = A21 * g2 * pc.C1 / (8.0 * np.pi * pc.c) / wnumber**2.0
 
     data.close()
-    pt.msg(verbose, "Done.\n", self.log)
 
     # Remove lines with unknown Elow, see Rothman et al. (1996):
     igood = np.where(elow > 0)

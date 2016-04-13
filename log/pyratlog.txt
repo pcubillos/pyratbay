@@ -1487,4 +1487,8 @@ Updated verbosity in pyrat examples.
 
 *****
 
+Adjusted msg() verbosity in lineread functions.
+Updated verbosity in lineread examples.
+
+*****
 

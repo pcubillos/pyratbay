@@ -86,7 +86,7 @@ class tioschwenke(dbdriver):
     return PFlines[self.pf_isonames].split()[1:]  # Skip first word
 
 
-  def dbread(self, iwn, fwn, verbose, *args):
+  def dbread(self, iwn, fwn, verb, *args):
     """
     Read the Schwenke TiO database.
  
@@ -96,7 +96,7 @@ class tioschwenke(dbdriver):
        Initial wavenumber limit (in cm-1).
     fwn: Scalar
        Final wavenumber limit (in cm-1).
-    verbose: Integer
+    verb: Integer
        Verbosity threshold.
     args:
        Additional arguments, not needed.
@@ -140,8 +140,8 @@ class tioschwenke(dbdriver):
     elow    = np.zeros(nread, np.double)
     isoID   = np.zeros(nread,     int)
  
-    pt.msg(verbose, "Starting to read Schwenke database between "
-                    "records {:d} and {:d}.".format(istart, istop), self.log)
+    pt.msg(verb-4, "Starting to read Schwenke database between records {:d} "
+                   "and {:d}.".format(istart, istop), self.log, 2)
 
     interval = (istop - istart)/10  # Check-point interval
 
@@ -158,17 +158,16 @@ class tioschwenke(dbdriver):
       iw[i], ieli[i], ielo[i], igf[i] = struct.unpack('ihhh',
                                                       data.read(self.recdata))
  
-      # Print a checkpoint statement every 1/20th interval:
-      if verbose > 1:
-        if (i % interval) == 0 and i != 0:
-          wl = np.exp(iw[i] * self.ratiolog) * pc.nm/pc.um
-          pt.msg(verbose-1, "Checkpoint {:5.1f}%".format(10.*i/interval),
-                 self.log, 2)
-          pt.msg(verbose-2,"Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} um\n"
-                          "Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}".
-                           format(1.0/ (wl * pc.um), wl,
-                                  self.tablog[ielo[i]], self.tablog[igf[i]],
-                                  np.abs(ieli[i]) - 8950), self.log, 4)
+      # Print a checkpoint statement every 10% interval:
+      if (i % interval) == 0 and i != 0:
+        wl = np.exp(iw[i] * self.ratiolog) * pc.nm/pc.um
+        pt.msg(verb-4, "{:5.1f}% completed.".format(10.*i/interval),
+               self.log, 3)
+        pt.msg(verb-5, "Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} um\n"
+                       "Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}".
+                         format(1.0/ (wl * pc.um), wl,
+                                self.tablog[ielo[i]], self.tablog[igf[i]],
+                                np.abs(ieli[i]) - 8950), self.log, 6)
       i += 1
 
     # Calculate the wavenumber (in cm-1):
@@ -180,7 +179,6 @@ class tioschwenke(dbdriver):
     # Get isotopic index:
     isoID[:]   = np.abs(ieli) - 8950
 
-    pt.msg(verbose, "Done.\n", self.log)
     data.close()
 
     # Sort by wavenumber (in ascending order):
