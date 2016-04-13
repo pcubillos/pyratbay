@@ -106,3 +106,20 @@ downsample(double **input,     /* Input array                               */
   return 0;
 }
 
+
+/* Conditional dual (screen/string) message printing.                      */
+int
+msg(int verb, char *buffer, char *message, ...){
+  if (verb < 0)
+    return 0;
+
+  va_list args;
+  va_start(args, message);
+
+  /* Append formatted text to the end the string:                          */
+  vsprintf(buffer+(int)strlen(buffer), message, args);
+  /* Print to screen:                                                      */
+  vprintf(message, args);
+  va_end(args);
+  return 0;
+}

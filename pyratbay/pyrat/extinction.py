@@ -12,31 +12,24 @@ import extcoeff   as ec
 def exttable(pyrat):
   """
   Handle extinction-coefficient table (read/calculate/write file).
-
-  Modification History:
-  ---------------------
-  2015-01-19  patricio  pre-initial implementation.
-  2015-01-25  patricio  intitial version.
   """
 
   # If the extinction file was not defined, skip this step:
   if pyrat.ex.extfile is None:
-    pt.msg(pyrat.verb-10, "No extinction coefficient table requested.",
+    pt.msg(pyrat.verb-3, "\nNo extinction-coefficient table requested.",
            pyrat.log)
     return
 
-  pt.msg(pyrat.verb, "\nBegin Extinction-coefficient table handling.",
-         pyrat.log)
   # If the extinction file exists, read it:
   if os.path.isfile(pyrat.ex.extfile):
-    pt.msg(pyrat.verb, "Reading extinction-coefficient table file:"
-                     "\n  '{:s}'".format(pyrat.ex.extfile), pyrat.log, 2)
+    pt.msg(pyrat.verb-3, "\nReading extinction-coefficient table file:"
+                     "\n  '{:s}'.".format(pyrat.ex.extfile), pyrat.log)
     read_extinction(pyrat)
 
   # If the extinction file doesn't exist, calculate it:
   else:
-    pt.msg(pyrat.verb, "Generating new extinction-coefficient table file:"
-                     "\n  '{:s}'".format(pyrat.ex.extfile), pyrat.log, 2)
+    pt.msg(pyrat.verb-4, "\nGenerating new extinction-coefficient table file:"
+                     "\n  '{:s}'.".format(pyrat.ex.extfile), pyrat.log)
     calc_extinction(pyrat)
 
 
@@ -52,7 +45,7 @@ def read_extinction(pyrat):
   ex.ntemp   = struct.unpack('l', f.read(8))[0]
   ex.nlayers = struct.unpack('l', f.read(8))[0]
   ex.nwave   = struct.unpack('l', f.read(8))[0]
-  pt.msg(pyrat.verb-10, "File has {:d} molecules, {:d} temperature samples, "
+  pt.msg(pyrat.verb-4, "File has {:d} molecules, {:d} temperature samples, "
            "{:d} layers, and {:d} wavenumber samples.".
            format(ex.nmol, ex.ntemp, ex.nlayers, ex.nwave), pyrat.log, 2)
 
@@ -63,12 +56,12 @@ def read_extinction(pyrat):
   ex.press = np.asarray(struct.unpack(str(ex.nlayers)+'d',f.read(8*ex.nlayers)))
   ex.wn    = np.asarray(struct.unpack(str(ex.nwave  )+'d', f.read(8*ex.nwave)))
 
-  pt.msg(pyrat.verb-15, "Molecules' IDs: {}".format(ex.molID), pyrat.log, 2)
-  pt.msg(pyrat.verb-15, "Temperatures (K): {}".format(
-                              pt.pprint(ex.temp, fmt=np.int)), pyrat.log, 2)
-  pt.msg(pyrat.verb-15, "Pressure layers (bar): {}".format(
-                              pt.pprint(ex.press*1e-6,3)), pyrat.log, 2)
-  pt.msg(pyrat.verb-15, "Wavenumber array (cm-1): {}".
+  pt.msg(pyrat.verb-4, "Molecules' IDs: {}".format(ex.molID),    pyrat.log, 2)
+  pt.msg(pyrat.verb-4, "Temperatures (K): {}".
+                         format(pt.pprint(ex.temp, fmt=np.int)), pyrat.log, 2)
+  pt.msg(pyrat.verb-4, "Pressure layers (bar): {}".
+                         format(pt.pprint(ex.press/pc.bar,3)),   pyrat.log, 2)
+  pt.msg(pyrat.verb-4, "Wavenumber array (cm-1): {}".
                          format(pt.pprint(ex.wn, 1)), pyrat.log, 2)
 
   # Read extinction-coefficient data table:
@@ -104,11 +97,11 @@ def calc_extinction(pyrat):
   ex.ntemp = int((ex.tmax-ex.tmin)/ex.tstep) + 1
   ex.temp  = np.linspace(ex.tmin, ex.tmin + (ex.ntemp-1)*ex.tstep, ex.ntemp)
 
-  pt.msg(pyrat.verb-15, "Temperature sample (K): {:s}".
+  pt.msg(pyrat.verb-4, "Temperature sample (K): {:s}".
                          format(pt.pprint(ex.temp)), pyrat.log, 2)
 
   # Evaluate the partition function at the given temperatures:
-  pt.msg(pyrat.verb, "Interpolate partition function.", pyrat.log, 2)
+  pt.msg(pyrat.verb-4, "Interpolate partition function.", pyrat.log, 2)
   ex.z = np.zeros((pyrat.iso.niso, ex.ntemp), np.double)
   for i in np.arange(pyrat.lt.ndb):           # For each Database
     for j in np.arange(pyrat.lt.db[i].niso):  # For each isotope in DB
@@ -127,14 +120,14 @@ def calc_extinction(pyrat):
   ex.nlayers = pyrat.atm.nlayers
 
   # Allocate extinction-coefficient array:
-  pt.msg(pyrat.verb, "Calculate extinction coefficient.", pyrat.log, 2)
+  pt.msg(pyrat.verb-4, "Calculate extinction coefficient.", pyrat.log, 2)
   ex.etable = np.zeros((ex.nmol, ex.ntemp, ex.nlayers, ex.nwave), np.double)
 
   # Compute extinction (in C):
   for r in np.arange(ex.nlayers):
     for t in np.arange(ex.ntemp):
       # Extinction coefficient for given temperature and pressure-layer:
-      pt.msg(pyrat.verb, "\nR={}, T={}".format(r,t), pyrat.log)
+      pt.msg(pyrat.verb-4, "\nR={}, T={}".format(r,t), pyrat.log)
       extinction(pyrat, ex.etable[:,t,r], r, ex.temp[t], ex.z[:,t])
 
   # Store values in file:
@@ -151,8 +144,8 @@ def calc_extinction(pyrat):
   fmt = str(ex.nmol * ex.ntemp * ex.nlayers * ex.nwave) + "d"
   f.write(struct.pack(fmt, *list(pyrat.ex.etable.flatten())))
   f.close()
-  pt.msg(pyrat.verb, "Extinction-coefficient table written to file:"
-                     " '{:s}'.".format(ex.extfile), pyrat.log, 2)
+  pt.msg(pyrat.verb-3, "Extinction-coefficient table written to file:"
+                       " '{:s}'.".format(ex.extfile), pyrat.log, 2)
 
 
 def extinction(pyrat, extcoeff, ilayer, temp, ziso, add=0):
@@ -189,6 +182,10 @@ def extinction(pyrat, extcoeff, ilayer, temp, ziso, add=0):
                                    pyrat.mol.ID[pyrat.iso.imol[i]])[0][0]
 
   # Calculate extinction-coefficient in C:
+  pt.msg(pyrat.verb-4, "Calculating extinction at layer {:3d}/{:d} "
+         "(T={:6.1f} K, p={:.1e} bar).".format(ilayer+1, pyrat.atm.nlayers,
+                                        temp, pressure/pc.bar), pyrat.log, 2)
+  logtext = " "*800
   ec.extinction(extcoeff,
                 pyrat.voigt.profile, pyrat.voigt.size, pyrat.voigt.index,
                 pyrat.voigt.lorentz, pyrat.voigt.doppler,
@@ -197,5 +194,7 @@ def extinction(pyrat, extcoeff, ilayer, temp, ziso, add=0):
                 pyrat.iso.imol, pyrat.iso.mass, pyrat.iso.ratio,
                 ziso, pyrat.iso.iext,
                 pyrat.lt.wn, pyrat.lt.elow, pyrat.lt.gf, pyrat.lt.isoid,
-                pyrat.ex.ethresh, pressure, temp, add)
+                pyrat.ex.ethresh, pressure, temp,
+                logtext, pyrat.verb, add)
+  pyrat.log.write(logtext.rstrip()[:-1])
 

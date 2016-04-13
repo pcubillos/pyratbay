@@ -1454,3 +1454,46 @@ Added *~ to the gitignore list.
 
 *****
 
+Implemented msg(), a dual writing routine for C (utils.h).
+Adapted extinction() and voigt() C routines to use msg().
+Propagated corrections to alkali.py and voigt.py.
+This resolves #1
+
+
+*****  Mi 13. Apr 10:33:26 CEST 2016  *****
+
+Fixed bug in the C msg() routine.
+C and Python prints weren't synchronized.  Re-implemented msg()
+to returns a string, then Python writes it to the log.
+Corrected calls in extcoeff.c and vprofile.c.
+Propagated corrections to alkali.py extinction.py, and voigt.py.
+
+*****
+
+Redefined verbosity levels (following Transit scheme).
+With increasing verbosity, the code will show/store the following
+outputs (in addition to those of lower levels):
+  verb
+  1     Show errors.
+  2     Show warnings.
+  3     Show main routine calls. 
+  4     Show main details of each routine.
+  5     Show detailed info of each step (debugging).
+  6     Show all info (not really recommended).
+
+Adjusted condition in msg() to print if verb >= 0.
+Adjusted msg() verbosity in pyrat functions.
+Updated verbosity in pyrat examples.
+
+*****
+
+Adjusted msg() verbosity in lineread functions.
+Updated verbosity in lineread examples.
+
+*****
+
+Bumped Pyrat to version 1.2.10.
+Bumped Lineread to version 6.4.4.
+
+*****
+

@@ -1,5 +1,3 @@
-# ****************************** START LICENSE ******************************
-# ******************************* END LICENSE ******************************
 
 __all__ = ["pands"]
 
@@ -83,7 +81,7 @@ class pands(dbdriver):
     return recwl
 
 
-  def dbread(self, iwn, fwn, verbose, *args):
+  def dbread(self, iwn, fwn, verb, *args):
     """
     Read the Partridge and Schwenke H2O database.
  
@@ -93,7 +91,7 @@ class pands(dbdriver):
        Initial wavenumber limit (in cm-1).
     fwn: Scalar
        Final wavenumber limit (in cm-1).
-    verbose: Integer
+    verb: Integer
        Verbosity threshold.
     args:
        Additional arguments, not needed for pands.
@@ -148,8 +146,8 @@ class pands(dbdriver):
     elow    = np.zeros(nread, np.double)
     isoID   = np.zeros(nread, int)
  
-    pt.msg(verbose, "Starting to read P&S database between "
-                    "records {:d} and {:d}.".format(istart, istop), self.log)
+    pt.msg(verb-4, "Process P&S database between records {:d} and {:d}.".
+                   format(istart, istop), self.log, 2)
 
     interval = (istop - istart)/10  # Check-point interval
 
@@ -164,16 +162,15 @@ class pands(dbdriver):
       iw[i], ielo[i], igf[i] = struct.unpack('Ihh', data.read(self.recsize))
  
       # Print a checkpoint statement every 10% interval:
-      if verbose > 1:
-        if (i % interval) == 0 and i != 0:
-          wl = np.exp(iw[i] * self.ratiolog) * pc.nm/pc.um
-          pt.msg(verbose-1, "Checkpoint {:5.1f}%".format(10.*i/interval),
-                 self.log, 2)
-          pt.msg(verbose-2,"Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} um\n"
-                          "Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}".
-                          format(1.0/ (wl * pc.um), wl,
-                                 np.abs(ielo[i]), self.tablog[np.abs(igf[i])],
-                                 2*(ielo[i] < 0) + 1*(igf[i] < 0)), self.log, 4)
+      if (i % interval) == 0 and i != 0:
+        wl = np.exp(iw[i] * self.ratiolog) * pc.nm/pc.um
+        pt.msg(verb-4, "{:5.1f}% completed.".format(10.*i/interval),
+                       self.log, 3)
+        pt.msg(verb-5,"Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} um\n"
+                      "Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}".
+                        format(1.0/ (wl * pc.um), wl,
+                               np.abs(ielo[i]), self.tablog[np.abs(igf[i])],
+                               2*(ielo[i] < 0) + 1*(igf[i] < 0)), self.log, 6)
       i += 1
 
     # Calculate the wavenumber (in cm-1):
@@ -186,6 +183,5 @@ class pands(dbdriver):
     isoID[:]   = 2*(ielo < 0) + 1*(igf < 0)
 
     data.close()
-    pt.msg(verbose, "Done.\n", self.log)
     # Sort (increasingly) by wavenumber:
     return wnumber[::-1], gf[::-1], elow[::-1], isoID[::-1]

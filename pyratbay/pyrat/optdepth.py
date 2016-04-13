@@ -17,7 +17,7 @@ def opticaldepth(pyrat):
   Calculate the optical depth.
   """
 
-  pt.msg(pyrat.verb, "\nBegin optical-depth calculation.", pyrat.log)
+  pt.msg(pyrat.verb-3, "\nBegin optical-depth calculation.", pyrat.log)
   ti = time.time()
   # Flag to indicate that the extinction has been computed at given layer:
   computed = np.zeros(pyrat.atm.nlayers, np.short)
@@ -27,12 +27,12 @@ def opticaldepth(pyrat):
   pyrat.od.ec    = np.empty((pyrat.atm.nlayers, pyrat.spec.nwave))
   pyrat.od.depth = np.empty((pyrat.atm.nlayers, pyrat.spec.nwave))
   pyrat.od.ideep = np.tile(pyrat.atm.nlayers-1, pyrat.spec.nwave)
-  print("Init:   {:.6f}".format(time.time()-ti))
+  #print("Init:   {:.6f}".format(time.time()-ti))
 
   # Calculate the ray path:
   ti = time.time()
   path(pyrat, pyrat.atm.radius, pyrat.od.path)
-  print("Path:   {:.6f}".format(time.time()-ti))
+  #print("Path:   {:.6f}".format(time.time()-ti))
 
   # Obtain the extinction-coefficient:
   ti = time.time()
@@ -48,7 +48,7 @@ def opticaldepth(pyrat):
       ex.extinction(pyrat, pyrat.ex.ec[r:r+1], r,
                     pyrat.atm.temp[r], pyrat.iso.z[:,r], add=1)
     r += 1
-  print("Interp: {:.6f}".format(time.time()-ti))
+  #print("Interp: {:.6f}".format(time.time()-ti))
 
 
   ti = time.time()
@@ -60,7 +60,7 @@ def opticaldepth(pyrat):
                       pyrat.haze.ec[r] +
                       pyrat.alkali.ec[r])
     r += 1
-  print("Add:    {:.6f}".format(time.time()-ti))
+  #print("Add:    {:.6f}".format(time.time()-ti))
 
 
   ti = time.time()
@@ -84,8 +84,8 @@ def opticaldepth(pyrat):
           break
         r += 1
       i += 1
-  print("Integ:  {:.6f}".format(time.time()-ti))
-  pt.msg(pyrat.verb, "Done.", pyrat.log)
+  #print("Integ:  {:.6f}".format(time.time()-ti))
+  pt.msg(pyrat.verb-3, "Done.", pyrat.log)
 
 
 def path(pyrat, radius, path):
@@ -120,7 +120,7 @@ def path(pyrat, radius, path):
         raypath[i] = (np.sqrt(radius[i  ]**2 - radius[r]**2) -
                       np.sqrt(radius[i+1]**2 - radius[r]**2) )
       pyrat.od.raypath.append(raypath)
-      pt.msg(pyrat.verb-10,
+      pt.msg(pyrat.verb-6,
         "Raypath[{:3d}]: {}".format(r, pyrat.od.raypath[r]), pyrat.log, 2)
       r += 1
 

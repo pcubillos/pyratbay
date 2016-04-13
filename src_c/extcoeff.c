@@ -1,6 +1,8 @@
 #include <Python.h>
 #define NPY_NO_DEPRECATED_API NPY_1_8_API_VERSION
 #include <numpy/arrayobject.h>
+#include <stdio.h>
+#include <stdarg.h>
 
 #include "ind.h"
 #include "constants.h"
@@ -62,6 +64,10 @@ pressure: Float                                            \n\
    Atmospheric-layer pressure (barye).                     \n\
 temp: Float                                                \n\
    Atmospheric-layer temperature (K).                      \n\
+logtext: String                                            \n\
+   Char array where to store log text outputs.             \n\
+verb: Integer                                              \n\
+   Verbosity level.                                        \n\
 add: Integer                                               \n\
    Flag, if True calculate the extinction coefficient (in cm-1) \n\
    for this layer, if False calculate the extinction coefficient\n\
@@ -88,23 +94,25 @@ static PyObject *extinction(PyObject *self, PyObject *args){
   int iown, idwn, offset, subw,
       imol, ofactor, iprof,
       nadd=0, nskip=0, neval=0,
-      add=0;
+      verb, add=0;
   int i, j, m, ln; /* Auxilliary for-loop indices    */
   long jj;
   double pressure, temp, csdiameter, density, minwidth=1e5, vwidth, ethresh,
          florentz, fdoppler, wnstep, ownstep, dwnstep, wavn, next_wn, k;
   double *alphal, *alphad, *kmax, **ktmp, *kprop;
   int *idop, *ilor;
+  char *logtext;
 
   /* Load inputs:                                                           */
-  if (!PyArg_ParseTuple(args, "OOOOOOOOOOOOOOOOOOOOOOddd|i",
+  if (!PyArg_ParseTuple(args, "OOOOOOOOOOOOOOOOOOOOOOdddsi|i",
                               &ext,
                               &profile, &psize, &pindex, &lorentz, &doppler,
                               &wn, &own, &divisors,
                               &moldensity, &molq, &molrad, &molmass,
                               &isoimol, &isomass, &isoratio, &isoz, &isoiext,
                               &lwn, &elow, &gf, &lID,
-                              &ethresh, &pressure, &temp, &add))
+                              &ethresh, &pressure, &temp,
+                              &logtext, &verb, &add))
     return NULL;
 
   nLor   = PyArray_DIM(lorentz,  0);  /* Number of Lorentz widths            */
@@ -119,6 +127,7 @@ static PyObject *extinction(PyObject *self, PyObject *args){
   if (add)
     next = 1;
 
+  strcpy(logtext, "\0");
   /* Constant factors for line widths:                                      */
   fdoppler = sqrt(2*KB*temp/AMU) * SQRTLN2 / LS;
   florentz = sqrt(2*KB*temp/PI/AMU) / LS;
@@ -164,11 +173,13 @@ static PyObject *extinction(PyObject *self, PyObject *args){
     /* Doppler profile width (divided by central wavenumber):               */
     alphad[i] = fdoppler / sqrt(INDd(isomass,i));
     /* Print Lorentz and Doppler broadening widths:                         */
-    if(i <= 0)
+    if(i <= 0){
       //printf("Imass: %.4f, imol: %d\n", INDd(isomass,i), imol);
-      printf("Lorentz: %.6e cm-1, Doppler: %.6e cm-1 (T=%.1f, "
-             "p=%.2e).\n", alphal[i], alphad[i]*INDd(wn,0), temp, pressure);
-
+      //printf("Len %d\n", n);
+      msg(verb-6, logtext, "    Lorentz: %.3e cm-1, Doppler: %.3e cm-1.\n",
+          alphal[i], alphad[i]*INDd(wn,0), temp, pressure);
+      //printf("Len %d\n", n);
+    }
     /* Estimate the Voigt width:                                            */
     vwidth = 0.5346*alphal[i] + sqrt(pow(alphal[i], 2)*0.2166    +
                                      pow(alphad[i]*INDd(wn,0),2) );
@@ -189,9 +200,9 @@ static PyObject *extinction(PyObject *self, PyObject *args){
   ofactor = INDi(divisors,(i-1));   /* Dynamic-sampling oversampling factor */
   dwnstep = ownstep * ofactor;      /* Dynamic-sampling grid stepsize       */
   dnwn    = 1 + (onwn-1) / ofactor; /* Number of dynamic-sampling values    */
-  printf("Dynamic-sampling grid interval: %.4e "
-         "(factor:%i, minwidth:%.3e)\n", dwnstep, ofactor, minwidth);
-  printf("Number of dynamic-sampling values: %ld\n", dnwn);
+  msg(verb-6, logtext, "    Dynamic-sampling grid interval: %.4e "
+              "(factor:%i, minwidth:%.3e)\n", dwnstep, ofactor, minwidth);
+  msg(verb-6, logtext, "    Number of dynamic-sampling values: %ld\n", dnwn);
 
   /* Find the maximum line-strength per molecule:                           */
   for (ln=0; ln<nlines; ln++){
@@ -302,12 +313,12 @@ static PyObject *extinction(PyObject *self, PyObject *args){
     neval++;
   }
   //printf("Downsample now: (%f, %d)\n", wnstep/ownstep, ofactor);
-  printf("Number of co-added lines:     %8i  (%5.2f%%)\n",
-               nadd,  nadd*100.0/nlines);
-  printf("Number of skipped profiles:   %8i  (%5.2f%%)\n",
-               nskip, nskip*100.0/nlines);
-  printf("Number of evaluated profiles: %8i  (%5.2f%%)\n",
-               neval, neval*100.0/nlines);
+  msg(verb-5, logtext, "    Number of co-added lines:     %8i  (%5.2f%%)\n",
+              nadd,  nadd*100.0/nlines);
+  msg(verb-5, logtext, "    Number of skipped profiles:   %8i  (%5.2f%%)\n",
+              nskip, nskip*100.0/nlines);
+  msg(verb-5, logtext, "    Number of evaluated profiles: %8i  (%5.2f%%)\n",
+              neval, neval*100.0/nlines);
 
   /* Downsample ktmp to the final sampling size:                            */
   for (m=0; m<next; m++){

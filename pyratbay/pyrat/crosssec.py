@@ -14,7 +14,7 @@ def read(pyrat):
   Read a Cross-section (CS) file.
   """
 
-  pt.msg(pyrat.verb, "\nReading the cross-section files:", pyrat.log, 0)
+  pt.msg(pyrat.verb-3, "\nReading cross-section files.", pyrat.log, 0)
   # Number of CS files:
   if pyrat.cs.files is None:
     pyrat.cs.nfiles = 0
@@ -28,10 +28,10 @@ def read(pyrat):
     pyrat.cs.nwave     = np.zeros(pyrat.cs.nfiles, np.int)
 
   if pyrat.cs.nfiles == 0:
-    pt.msg(pyrat.verb, "No CS files to read.", pyrat.log, 2)
+    pt.msg(pyrat.verb-3, "No CS files to read.", pyrat.log, 2)
   else:
     for i in np.arange(pyrat.cs.nfiles):
-      pt.msg(pyrat.verb, "Read CS file: '{:s}'.".format(pyrat.cs.files[i]),
+      pt.msg(pyrat.verb-3, "Read CS file: '{:s}'.".format(pyrat.cs.files[i]),
              pyrat.log, 2)
       f = open(pyrat.cs.files[i], "r")
       lines = f.readlines()
@@ -103,15 +103,15 @@ def read(pyrat):
       pyrat.cs.absorption.append(absorption)
 
       # Screen output:
-      pt.msg(pyrat.verb, "For {:s} CS,\nRead {:d} wavenumber and {:d} "
+      pt.msg(pyrat.verb-4, "For {:s} CS,\nRead {:d} wavenumber and {:d} "
         "temperature samples.".format("-".join(pyrat.cs.molecules[i,0:nmol]),
                          pyrat.cs.nwave[i], pyrat.cs.ntemp[i]), pyrat.log, 4)
-      pt.msg(pyrat.verb, "Temperature sample limits: {:g}--{:g} K".
+      pt.msg(pyrat.verb-4, "Temperature sample limits: {:g}--{:g} K".
                           format(pyrat.cs.temp[i][0], pyrat.cs.temp[i][-1]),
-             pyrat.log, 4)
-      pt.msg(pyrat.verb, "Wavenumber sample limits: {:.1f}--{:.1f} cm-1".
-              format(pyrat.cs.wavenumber[i][0], pyrat.cs.wavenumber[i][-1]),
-             pyrat.log, 4)
+                                 pyrat.log, 4)
+      pt.msg(pyrat.verb-4, "Wavenumber sample limits: {:.1f}--{:.1f} cm-1".
+             format(pyrat.cs.wavenumber[i][0], pyrat.cs.wavenumber[i][-1]),
+                    pyrat.log, 4)
 
       # Wavenumber-interpolated CS:
       iabsorp = np.zeros((pyrat.cs.ntemp[i], pyrat.spec.nwave), np.double)
@@ -127,7 +127,7 @@ def read(pyrat):
         iz[j] = sp.spline_init(iabsorp[:,j], pyrat.cs.temp[i])
       pyrat.cs.iz.append(iz)
 
-  pt.msg(pyrat.verb, "Done.", pyrat.log)
+  pt.msg(pyrat.verb-3, "Done.", pyrat.log)
 
 
 def tmp_interpolate(pyrat):
@@ -135,7 +135,7 @@ def tmp_interpolate(pyrat):
   Interpolate the CS absorption to the planetary model temperature and
   wavenumber samples.
   """
-  pt.msg(pyrat.verb, "\nBegin CS interpolation.", pyrat.log)
+  pt.msg(pyrat.verb-3, "\nBegin CS interpolation.", pyrat.log)
 
   # Check temperature boundaries:
   if np.any(pyrat.atm.temp < pyrat.cs.tmin):
@@ -173,9 +173,9 @@ def tmp_interpolate(pyrat):
     # Compute CS absorption in cm-1 units (broadcasting):
     pyrat.cs.ec += (cs_absorption * np.expand_dims(dens, axis=1))
 
-    pt.msg(pyrat.verb-40, "CS extinction: {}".format(pyrat.cs.ec[:,0]),
+    pt.msg(pyrat.verb-6, "CS extinction: {}".format(pyrat.cs.ec[:,0]),
            pyrat.log, 2)
-  pt.msg(pyrat.verb, "Done.", pyrat.log)
+  pt.msg(pyrat.verb-3, "Done.", pyrat.log)
 
 
 def interpolate(pyrat):

@@ -13,8 +13,8 @@ def readatm(pyrat):
   Read the atmospheric file, store variables in pyrat.
   """
   # Check atmfile:
-  pt.msg(pyrat.verb, "\nReading atmosphere file: '{:s}'".format(pyrat.atmfile),
-         pyrat.log)
+  pt.msg(pyrat.verb-3, "\nReading atmospheric file: '{:s}'.".
+                        format(pyrat.atmfile), pyrat.log)
   atmfile = open(pyrat.atmfile, "r")
 
   # Read keywords:
@@ -28,7 +28,7 @@ def readatm(pyrat):
   getprofiles(pyrat, atmfile)
 
   atmfile.close()
-  pt.msg(pyrat.verb, "Done.", pyrat.log)
+  pt.msg(pyrat.verb-3, "Done.", pyrat.log)
 
 
 def getkeywords(pyrat, atmfile):
@@ -73,14 +73,17 @@ def getkeywords(pyrat, atmfile):
 
   iline = atmfile.tell()  # Current line position
 
-  pt.msg(1, "Molecules list: \n{:s}".format(str(pyrat.mol.name)),  pyrat.log, 2)
+  pt.msg(pyrat.verb-4, "Molecules list: \n{:s}".
+                       format(str(pyrat.mol.name)),  pyrat.log, 2)
   if atm.abundance:
-    pt.msg(1, "Abundance is given by mass (mass mixing ratio)",    pyrat.log, 2)
+    txt = ["mass", "mass"]
   else:
-    pt.msg(1, "Abundance is given by number (volume mixing ratio)", pyrat.log,2)
-  pt.msg(1, "Unit factors: radius: {:s},  pressure: {:s},  temperature: {:s}".
-          format(atm.runits, atm.punits, atm.tunits),     pyrat.log, 2)
-  pt.msg(1, "Data starting position: {:d}".format(iline), pyrat.log, 2)
+    txt = ["number", "volume"]
+    pt.msg(pyrat.verb-4, "Abundances are given by {:s} ({:s} mixing ratio).".
+           format(*txt), pyrat.log, 2)
+  pt.msg(pyrat.verb-4, "Unit factors: radius: {:s},  pressure: {:s},  "
+    "temperature: {:s}".format(atm.runits, atm.punits, atm.tunits), pyrat.log,2)
+  pt.msg(pyrat.verb-6, "Data starting position {:d}".format(iline), pyrat.log,2)
   return iline
 
 
@@ -127,8 +130,8 @@ def getconstants(pyrat):
   pyrat.mol.mass   = np.zeros(pyrat.mol.nmol)
   pyrat.mol.radius = np.zeros(pyrat.mol.nmol)
 
-  pt.msg(pyrat.verb, "Molecule   ID   Radius  Mass\n"
-                     "                (A)     (gr/mol)", pyrat.log, 4)
+  pt.msg(pyrat.verb-4, "Molecule   ID   Radius  Mass\n"
+                       "                (A)     (gr/mol)", pyrat.log, 4)
   for i in np.arange(pyrat.mol.nmol):
     # Find the molecule in the list:
     imol = np.where(symbol == pyrat.mol.name[i])[0]
@@ -140,7 +143,7 @@ def getconstants(pyrat):
     pyrat.mol.mass[i]   = mass  [imol]
     # Set molecule collision radius:
     pyrat.mol.radius[i] = diam[imol]/2.0 * pc.A
-    pt.msg(1, "{:>10s}:  {:3d}  {:.3f}  {:8.4f}".
+    pt.msg(pyrat.verb-4, "{:>10s}:  {:3d}  {:.3f}  {:8.4f}".
            format(pyrat.mol.name[i], pyrat.mol.ID[i],
                   pyrat.mol.radius[i]/pc.A, pyrat.mol.mass[i]), pyrat.log, 2)
 
@@ -167,7 +170,7 @@ def getprofiles(pyrat, atmfile):
     if line == '' or line.startswith('#'):
       break
     atm.nlayers += 1
-  pt.msg(pyrat.verb, "Number of layers in the input atmospheric file: {:d}".
+  pt.msg(pyrat.verb-4, "Number of layers in the input atmospheric file: {:d}".
                      format(atm.nlayers), pyrat.log, 2)
 
   # Initialize arrays:
@@ -218,9 +221,9 @@ def getprofiles(pyrat, atmfile):
     atm.q = atm.q * atm.mm / pyrat.mol.mass
 
   # Calculate the mean molecular mass per layer:
-  atm.mm =     np.sum(atm.q*pyrat.mol.mass, axis=1)
-  pt.msg(pyrat.verb-10, "Mean molecular mass array: {:s}".
-                         format(str(atm.mm)), pyrat.log, 2)
+  atm.mm = np.sum(atm.q*pyrat.mol.mass, axis=1)
+  pt.msg(pyrat.verb-4, "Typical mean molecular mass: {:.3f} g mol-1.".
+                        format(np.median(atm.mm)), pyrat.log, 2)
 
   # Calculate number density profiles for each molecule (in molecules cm-3):
   for i in np.arange(pyrat.mol.nmol):

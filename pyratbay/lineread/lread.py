@@ -127,7 +127,7 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
   wlog = []
 
   # Welcome message:
-  pt.msg(1, "{:s}\n  Lineread.\n"
+  pt.msg(verb-1, "{:s}\n  Lineread.\n"
             "  Version {:d}.{:d}.{:d}.\n"
             "  Copyright (c) 2016 Patricio Cubillos and collaborators.\n"
             "  Lineread is open-source software under the FINDME license.\n"
@@ -176,10 +176,9 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
     else:
       pt.error("Unknown Database type ({:d}): '{:s}'".format(i+1, dbtype[i]),
                log)
-    pt.msg(verb-10, "File {:d}, database name: '{:s}'".
-                                             format(i+1, driver[i].name), log)
+    pt.msg(verb-3, "Reading input database file '{:s}'.".format(dblist[i]), log)
+  pt.msg(verb-4, "There are {:d} input database file(s).".format(Nfiles), log)
 
-  pt.msg(verb, "Beginning to write the TLI file: '{:s}'".format(outfile), log)
   # Open output file:
   TLIout  = open(outfile, "wb")
 
@@ -213,21 +212,18 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
   header += struct.pack("h", Ndb)
   TLIout.write(header)
 
-  pt.msg(verb-8, "Endianness:   {:s}\n"
-                 "TLI Version:  {:d}.{:d}.{:d}\n"
-                 "Initial wavelength (um): {:7.3f}  ({:9.3f} cm-1)\n"
-                 "Final wavelength (um):   {:7.3f}  ({:9.3f} cm-1)".
-                 format(endian, ver.LR_VER, ver.LR_MIN, ver.LR_REV,
-                        iwl, fwn,  fwl, iwn), log)
-  pt.msg(verb-8, "There are {:d} databases in {:d} files.".
-                    format(Ndb, Nfiles), log)
-  pt.msg(verb-9, "List of databases:\n{}".format(DBnames), log)
+  pt.msg(verb-4, "\nOS endianness:  {:s}\n"
+                 "Initial TLI wavelength (um): {:7.3f}  ({:9.3f} cm-1)\n"
+                 "Final   TLI wavelength (um): {:7.3f}  ({:9.3f} cm-1)".
+                 format(endian, iwl, fwn,  fwl, iwn), log)
+  pt.msg(verb-4, "There are {:d} different database(s).".format(Ndb), log)
+  pt.msg(verb-4, "List of databases:\n{}".format(DBnames), log)
 
   # Partition info:
   totIso = 0                   # Cumulative number of isotopes
   acum = np.zeros(Ndb+1, int)  # Cumul. number of isotopes per database
 
-  pt.msg(verb-2, "Reading and writting partition function info:", log)
+  pt.msg(verb-4, "\nReading and writting partition function info.", log)
   # Database correlative number:
   idb = 0
   # Loop through the partition files (if more than one) and write the
@@ -261,22 +257,21 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
                              lenMolec, *driver[i].molecule))
     # Store the number of temperature samples and isotopes:
     TLIout.write(struct.pack("hh", Ntemp, Niso))
-    pt.msg(verb-8, "\nDatabase ({:d}/{:d}): '{:s}' ({:s} molecule)\n"
-                   "  Number of temperatures: {:d}\n"
-                   "  Number of isotopes: {:d}".
-                    format(idb+1, Ndb, DBnames[idb], driver[i].molecule,
-                           Ntemp, Niso), log)
+    pt.msg(verb-4, "Database ({:d}/{:d}): '{:s}' ({:s} molecule)".
+                   format(idb+1, Ndb, DBnames[idb], driver[i].molecule), log, 2)
+    pt.msg(verb-4, "Number of temperatures: {:d}\n"
+                   "Number of isotopes: {:d}".format(Ntemp, Niso), log, 4)
 
     # Write the temperature array:
     TLIout.write(struct.pack("{:d}d".format(Ntemp), *Temp))
-    pt.msg(verb-8, "Temperatures: [{:6.1f}, {:6.1f}, ..., {:6.1f}]".
-                    format(Temp[0], Temp[1], Temp[Ntemp-1]), log, 2)
+    pt.msg(verb-4, "Temperatures (K): [{:6.1f}, {:6.1f}, ..., {:6.1f}]".
+                    format(Temp[0], Temp[1], Temp[Ntemp-1]), log, 4)
 
     # For each isotope, write partition function information.
     # Keep a tally of isotopes for multiple databse support:
     for j in np.arange(Niso):
-      pt.msg(verb-9, "Isotope ({:d}/{:d}): '{:s}'".
-                      format(j+1, Niso, isoNames[j]), log, 2)
+      pt.msg(verb-4, "Isotope ({:d}/{:d}): '{:s}'".
+                      format(j+1, Niso, isoNames[j]), log, 4)
 
       # Store length of isotope name, isotope name, and isotope mass:
       lenIsoname = len(isoNames[j])
@@ -287,11 +282,11 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
 
       # Write the partition function per isotope:
       TLIout.write(struct.pack("{:d}d".format(Ntemp), *partDB[j]))
-      pt.msg(verb-9, "Mass (u):        {:8.4f}\n"
+      pt.msg(verb-4, "Mass (u):        {:8.4f}\n"
                      "Isotopic ratio:  {:8.4g}\n"
                      "Part. Function:  [{:.2e}, {:.2e}, ..., {:.2e}]".
                      format(iso_mass[j], iso_ratio[j],
-                         partDB[j,0], partDB[j,1], partDB[j,Ntemp-1]), log, 4)
+                         partDB[j,0], partDB[j,1], partDB[j,Ntemp-1]), log, 6)
 
     # Calculate cumulative number of isotopes per database:
     totIso += Niso
@@ -299,10 +294,10 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
     acum[idb] = totIso
 
   # Cumulative number of isotopes:
-  pt.msg(verb-5, "Cumulative number of isotopes per DB: {}".format(acum), log)
-  pt.msg(verb, "Done.", log)
+  pt.msg(verb-4, "Cumulative number of isotopes per DB: {}".format(acum), log)
+  pt.msg(verb-3, "Done.", log)
 
-  pt.msg(verb, "\nWriting transition info to TLI file:", log)
+  pt.msg(verb-3, "\nExtracting line transition info.", log)
   wnumber = np.array([], np.double)
   gf      = np.array([], np.double)
   elow    = np.array([], np.double)
@@ -317,17 +312,17 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
     ti = time.time()
     transDB = driver[db].dbread(iwn, fwn, verb, pflist[db])
     tf = time.time()
-    pt.msg(verb-3, "Reading time: {:8.3f} seconds".format(tf-ti), log)
 
     wnumber = np.concatenate((wnumber, transDB[0]))
     gf      = np.concatenate((gf,      transDB[1]))
     elow    = np.concatenate((elow,    transDB[2]))
     isoID   = np.concatenate((isoID,   transDB[3]+acum[idb]))
 
-    pt.msg(verb-8, "Isotope in-database indices: {}".
-                    format(np.unique(transDB[3])), log)
-    pt.msg(verb-8, "Isotope correlative indices: {}\n\n".
-                    format(np.unique(transDB[3]+acum[idb])), log)
+    pt.msg(verb-4, "Isotope in-database indices: {}".
+                    format(np.unique(transDB[3])), log, 2)
+    pt.msg(verb-4, "Isotope correlative indices: {}".
+                    format(np.unique(transDB[3]+acum[idb])), log, 2)
+    pt.msg(verb-5, "Reading time: {:8.3f} seconds".format(tf-ti), log, 2)
 
   # Total number of transitions:
   nTransitions = np.size(wnumber)
@@ -343,11 +338,11 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
   for j in np.arange(len(Nisotran)):
     ilo  = ihi
     ihi += Nisotran[j]
-    print(ilo, ihi)
     wnsort = np.argsort(wnumber[isort][ilo:ihi])
     isort[ilo:ihi] = isort[ilo:ihi][wnsort]
   tf = time.time()
-  pt.msg(verb-3, "Sort time: {:9.7f} seconds".format(tf-ti), log)
+  pt.msg(verb-5, "Sort time:    {:8.3f} seconds".format(tf-ti), log, 2)
+  pt.msg(verb-3, "Done.", log)
 
   # Actual sorting:
   wnumber = wnumber[isort]
@@ -355,7 +350,7 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
   elow    = elow   [isort]
   isoID   = isoID  [isort]
 
-  pt.msg(verb-5, "Transitions per isotope:\n{}".format(Nisotran), log)
+  pt.msg(verb-4, "\nTransitions per isotope:\n{}".format(Nisotran), log)
 
   # FINDME: Implement well this:
   if False:
@@ -377,7 +372,7 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
   transinfo = ""
   # Write the number of transitions:
   TLIout.write(struct.pack("i", nTransitions))
-  pt.msg(verb-3, "\nWriting {:d} transition lines.".format(nTransitions), log)
+  pt.msg(verb-4, "\nWriting {:,d} transition lines.".format(nTransitions), log)
   # Write the number of transitions for each isotope:
   Niso = len(Nisotran)
   # Note that nIso may differ from accumiso, since accum iso accounts for
@@ -393,15 +388,15 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
   transinfo += struct.pack(str(nTransitions)+"d", *list(elow))
   transinfo += struct.pack(str(nTransitions)+"d", *list(gf))
   tf = time.time()
-  pt.msg(verb-3, "Packing time: {:8.3f} seconds".format(tf-ti), log)
+  pt.msg(verb-5, "Packing time: {:8.3f} seconds".format(tf-ti), log)
 
   ti = time.time()
   TLIout.write(transinfo)
   tf = time.time()
-  pt.msg(verb-3, "Writing time: {:8.3f} seconds".format(tf-ti), log)
+  pt.msg(verb-5, "Writing time: {:8.3f} seconds".format(tf-ti), log)
 
   TLIout.close()
-  pt.msg(verb, "\nGenerated output TLI file: '{:s}'".format(outfile), log)
+  pt.msg(verb-3, "Generated TLI file: '{:s}'.".format(outfile), log)
 
   if len(wlog) > 0:
     # Write all warnings to file:
@@ -415,7 +410,5 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
     pt.warning("There was(were) {:d} warning(s) raised.\nSee '{:s}'.".
                 format(len(wlog), wfile), [], log)
 
-  pt.msg(verb, "Done.\n", log)
   log.close()
-
   sys.exit(0)

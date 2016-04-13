@@ -116,7 +116,7 @@ class vald(dbdriver):
     return recwl
 
 
-  def dbread(self, iwn, fwn, verbose, *args):
+  def dbread(self, iwn, fwn, verb, *args):
     """
     Read a VALD database.
  
@@ -126,7 +126,7 @@ class vald(dbdriver):
        Initial wavenumber limit (in cm-1).
     fwn: Scalar
        Final wavenumber limit (in cm-1).
-    verbose: Integer
+    verb: Integer
        Verbosity threshold.
     args:
        Additional arguments, not needed?.
@@ -173,8 +173,8 @@ class vald(dbdriver):
     nread = istop - istart + 1
  
  
-    pt.msg(verbose, "Starting to read VALD database between "
-                    "records {:d} and {:d}.".format(istart, istop), self.log)
+    pt.msg(verb-4, "Starting to read VALD database between records {:d} and "
+                   "{:d}.".format(istart, istop), self.log, 2)
 
     interval = (istop - istart)/10  # Check-point interval
 
@@ -196,14 +196,13 @@ class vald(dbdriver):
       wl[i], elo[i], loggf[i] = rec[1:4]
  
       # Print a checkpoint statement every 10% interval:
-      if verbose > 1:
-        if (i % interval) == 0 and i != 0:
-          pt.msg(verbose-1, "Checkpoint {:5.1f}%".format(10.*i/interval),
-                 self.log, 2)
-          pt.msg(verbose-2,"Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} A\n"
-                          "Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}".
-                          format(1.0/(wl[i] * pc.A), wl[i], elo[i]*pc.eV,
-                                 10**loggf[i], isoID[i]), self.log, 4)
+      if (i % interval) == 0 and i != 0:
+        pt.msg(verb-4, "{:5.1f}% completed.".format(10.*i/interval),
+               self.log, 3)
+        pt.msg(verb-5,"Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} A\n"
+                        "Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}".
+                        format(1.0/(wl[i] * pc.A), wl[i], elo[i]*pc.eV,
+                               10**loggf[i], isoID[i]), self.log, 6)
       i += 1
 
     # Store data in two arrays for doubles and integers:
@@ -223,6 +222,5 @@ class vald(dbdriver):
     isoID[np.where(isoID>2)] = 0
 
     data.close()
-    pt.msg(verbose, "Done.\n", self.log)
     # Sort (increasingly) by wavenumber:
     return wnumber[::-1], gf[::-1], elow[::-1], isoID[::-1]

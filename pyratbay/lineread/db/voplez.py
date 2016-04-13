@@ -77,7 +77,7 @@ class voplez(dbdriver):
     return 1.0/(wave*pc.um)
 
 
-  def dbread(self, iwn, fwn, verbose, *args):
+  def dbread(self, iwn, fwn, verb, *args):
     """
     Read the B. Plez VO database between the wavelengths iwl and fwl.
  
@@ -87,7 +87,7 @@ class voplez(dbdriver):
        Initial wavenumber limit (in cm-1).
     fwn: Scalar
        Final wavenumber limit (in cm-1).
-    verbose: Integer
+    verb: Integer
        Verbosity threshold.
     args:
        Additional arguments, not needed for voplez.
@@ -140,8 +140,8 @@ class voplez(dbdriver):
     elow    = np.zeros(nread, np.double)
     isoID   = np.zeros(nread, int)
  
-    pt.msg(verbose, "Starting to read Plez VO database between "
-                    "records {:d} and {:d}.".format(istart, istop), self.log)
+    pt.msg(verb-4, "Starting to read Plez VO database between records {:d} "
+                   "and {:d}.".format(istart, istop), self.log, 2)
 
     interval = (istop - istart)/10  # Check-point interval
 
@@ -156,20 +156,18 @@ class voplez(dbdriver):
       elow   [i] = float(line[self.recelpos:self.recelend])
 
       # Print a checkpoint statement every 10% interval:
-      if verbose > 1:
-        if (i % interval) == 0.0  and  i != 0:
-          pt.msg(verbose-1, "Checkpoint {:5.1f}%".format(10.*i/interval),
-                 self.log, 2)
-          pt.msg(verbose-2,"Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} um\n"
-                          "Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}".
-                           format(wnumber[i], 1.0/(wnumber[i]*pc.um),
-                                  elow[i]*pc.eV, gf[i], isoID[i]), self.log, 4)
+      if (i % interval) == 0.0  and  i != 0:
+        pt.msg(verb-4, "{:5.1f}% completed.".format(10.*i/interval),
+               self.log, 3)
+        pt.msg(verb-5,"Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} um\n"
+                        "Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}".
+                         format(wnumber[i], 1.0/(wnumber[i]*pc.um),
+                                elow[i]*pc.eV, gf[i], isoID[i]), self.log, 6)
       i += 1
 
     # Convert Elow from eV to cm-1:
     elow[:] = elow * pc.eV
 
     data.close()
-    pt.msg(verbose, "Done.\n", self.log)
 
     return wnumber, gf, elow, isoID

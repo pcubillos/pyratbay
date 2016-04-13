@@ -15,7 +15,7 @@ def makewavenumber(pyrat):
   # Alias for Pyrat's Spectrum object:
   spec = pyrat.spec
 
-  pt.msg(pyrat.verb, "\nGenerating wavenumber array:", pyrat.log)
+  pt.msg(pyrat.verb-3, "\nGenerating wavenumber array.", pyrat.log)
   # Low wavenumber boundary:
   if spec.wnlow is None:
     if spec.wlhigh is None:
@@ -70,45 +70,45 @@ def makewavenumber(pyrat):
   spec.odivisors = pt.divisors(spec.wnosamp)
 
   # Screen output:
-  pt.msg(pyrat.verb,"Initial wavenumber boundary:  {:.5e} cm-1  ({:.3e} "
+  pt.msg(pyrat.verb-4, "Initial wavenumber boundary:  {:.5e} cm-1  ({:.3e} "
                     "{:s})".format(spec.wnlow, spec.wlhigh/pt.u(spec.wlunits),
                                    spec.wlunits), pyrat.log, 2)
-  pt.msg(pyrat.verb,"Final   wavenumber boundary:  {:.5e} cm-1  ({:.3e} "
+  pt.msg(pyrat.verb-4, "Final   wavenumber boundary:  {:.5e} cm-1  ({:.3e} "
                     "{:s})".format(spec.wnhigh, spec.wllow/pt.u(spec.wlunits),
                                    spec.wlunits), pyrat.log, 2)
-  pt.msg(pyrat.verb,"Wavenumber sampling stepsize: {:.2g} cm-1".
+  pt.msg(pyrat.verb-4, "Wavenumber sampling stepsize: {:.2g} cm-1".
                             format(spec.wnstep),  pyrat.log, 2)
-  pt.msg(pyrat.verb,"Wavenumber sample size:      {:8d}".format(spec.nwave),
+  pt.msg(pyrat.verb-4, "Wavenumber sample size:      {:8d}".format(spec.nwave),
                                                   pyrat.log,  2)
-  pt.msg(pyrat.verb,"Wavenumber fine-sample size: {:8d}".format(spec.onwave),
+  pt.msg(pyrat.verb-4, "Wavenumber fine-sample size: {:8d}".format(spec.onwave),
                                                   pyrat.log, 2)
-  pt.msg(pyrat.verb, "Done.", pyrat.log)
+  pt.msg(pyrat.verb-3, "Done.", pyrat.log)
 
 
 def makeradius(pyrat):
   """
-  Generate atmospheric radius layers sampling.
+  Generate atmospheric-profile layers sampling.
 
   If the user sets radius command-line arguments, make a sampling; else,
   default to the atmfile radius array.
   """
-  pt.msg(pyrat.verb, "\nGenerating atmospheric radius sample:", pyrat.log)
+  pt.msg(pyrat.verb-3, "\nGenerating atmospheric profile sample.", pyrat.log)
 
   # Pyrat and user-input atmospheric-data objects:
   atm    = pyrat.atm
   atm_in = pyrat.inputs.atm
 
   # Atmopsheric reference pressure-radius level:
-  pt.msg(pyrat.verb, "Reference pressure: {:.3e} {:s}".
+  pt.msg(pyrat.verb-4, "Reference pressure: {:.3e} {:s}".
           format(pyrat.pressurebase/pt.u(pyrat.punits), pyrat.punits),
          pyrat.log,   2)
-  pt.msg(pyrat.verb, "Reference radius: {:8g} {:s}".
+  pt.msg(pyrat.verb-4, "Reference radius: {:8g} {:s}".
           format(pyrat.radiusbase/pt.u(pyrat.radunits), pyrat.radunits),
          pyrat.log, 2)
 
   # FINDME: move this to readatm
   # Pressure limits from the atmospheric file:
-  pt.msg(pyrat.verb, "Pressure limits: {:.3e} -- {:.3e} {:s}".
+  pt.msg(pyrat.verb-4, "Pressure limits: {:.3e} -- {:.3e} {:s}".
         format(atm_in.press[ 0]/pt.u(pyrat.punits),
                atm_in.press[-1]/pt.u(pyrat.punits), pyrat.punits), pyrat.log, 2)
 
@@ -145,7 +145,7 @@ def makeradius(pyrat):
   radinterp   = sip.interp1d(atm_in.press, atm_in.radius, kind='slinear')
   pressinterp = sip.interp1d(atm_in.radius[::-1],
                              atm_in.press [::-1], kind='slinear')
-  pt.msg(pyrat.verb, "Radius array (km) = {:s}".
+  pt.msg(pyrat.verb-4, "Radius array (km) = {:s}".
                       format(pt.pprint(atm_in.radius/pc.km, 2)), pyrat.log, 2)
 
   # Set pressure boundaries:
@@ -159,8 +159,8 @@ def makeradius(pyrat):
   elif pyrat.plow is None:
     pyrat.plow  = np.amin(atm_in.press)
 
-  pt.msg(pyrat.verb, "Pressure user boundaries: {:.3e} -- {:.3e} bar".format(
-                     pyrat.plow/pc.bar, pyrat.phigh/pc.bar), pyrat.log, 2)
+  pt.msg(pyrat.verb-4, "Pressure user boundaries: {:.3e} -- {:.3e} bar".
+         format(pyrat.plow/pc.bar, pyrat.phigh/pc.bar), pyrat.log, 2)
 
   # Out of bounds errors:
   if pyrat.phigh > np.amax(atm_in.press):
@@ -228,12 +228,12 @@ def makeradius(pyrat):
   # plt.ylabel("Radius  ({:s})".format(pyrat.radunits))
   # plt.savefig("radpress.png")
 
-  pt.msg(pyrat.verb, "Number of model layers: {:d}".format(atm.nlayers),
+  pt.msg(pyrat.verb-4, "Number of model layers: {:d}".format(atm.nlayers),
          pyrat.log, 2)
-  pt.msg(pyrat.verb, "Pressure lower/higher boundaries: {:.2e} - {:.2e} "
+  pt.msg(pyrat.verb-4, "Pressure lower/higher boundaries: {:.2e} - {:.2e} "
                  "{:s}".format(pyrat.plow /pt.u(pyrat.punits),
                  pyrat.phigh/pt.u(pyrat.punits), pyrat.punits), pyrat.log, 2)
-  pt.msg(pyrat.verb, "Radius lower/higher boundaries:   {:.1f} - {:.1f} {:s}".
+  pt.msg(pyrat.verb-4, "Radius lower/higher boundaries:   {:.1f} - {:.1f} {:s}".
        format(np.amin(atm.radius)/pt.u(pyrat.radunits),
        np.amax(atm.radius)/pt.u(pyrat.radunits), pyrat.radunits), pyrat.log, 2)
 
@@ -265,13 +265,13 @@ def makeradius(pyrat):
               format(ihot, atm.temp[ihot], pyrat.lt.tmax), pyrat.log)
 
   # Interpolate isotopes partition function:
-  pt.msg(pyrat.verb, "Number of isotopes: {:d}".format(pyrat.iso.niso),
+  pt.msg(pyrat.verb-4, "Number of isotopes: {:d}".format(pyrat.iso.niso),
          pyrat.log, 2)
   # Initialize the partition-function array for pyrat.iso:
   pyrat.iso.z = np.zeros((pyrat.iso.niso, atm.nlayers))
   for i in np.arange(pyrat.lt.ndb):           # For each Database
     for j in np.arange(pyrat.lt.db[i].niso):  # For each isotope in DB
-      pt.msg(pyrat.verb, "Interpolating (isotope ID {:2d}) partition "
+      pt.msg(pyrat.verb-5, "Interpolating (isotope ID {:2d}) partition "
                         "function.".format(pyrat.lt.db[i].iiso+j), pyrat.log, 4)
       zinterp = sip.interp1d(pyrat.lt.db[i].temp, pyrat.lt.db[i].z[j],
                              kind='slinear')
@@ -288,4 +288,4 @@ def makeradius(pyrat):
   # plt.ylim(0, 15000)
   # plt.savefig("PartitionFunction.png")
 
-  pt.msg(pyrat.verb, "Done.", pyrat.log)
+  pt.msg(pyrat.verb-3, "Done.", pyrat.log)
