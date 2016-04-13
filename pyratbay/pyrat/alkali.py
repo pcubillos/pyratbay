@@ -46,9 +46,11 @@ def absorption(pyrat):
     vsize   = np.asarray(dsigma/pyrat.spec.wnstep+1, np.int)
     vindex  = np.zeros(pyrat.atm.nlayers, np.int)
     profile = np.zeros(np.sum(2*vsize+1), np.double)
+    logtext = " "*800
     # Calculate Voigt profiles:
     vp.voigt(profile, vsize, vindex, lor, dop[0], pyrat.spec.wnstep,
-             pyrat.logfile, pyrat.verb)
+             logtext, pyrat.verb)
+    pyrat.log.write(logtext.rstrip()[:-1])
 
     # Calculate cross section:
     alkali.ec = np.zeros((pyrat.atm.nlayers, pyrat.spec.nwave), np.double)

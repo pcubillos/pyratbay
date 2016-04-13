@@ -1454,3 +1454,19 @@ Added *~ to the gitignore list.
 
 *****
 
+Implemented msg(), a dual writing routine for C (utils.h).
+Adapted extinction() and voigt() C routines to use msg().
+Propagated corrections to alkali.py and voigt.py.
+This resolves #1
+
+
+*****  Mi 13. Apr 10:33:26 CEST 2016  *****
+
+Fixed bug in the C msg() routine.
+C and Python prints weren't synchronized.  Re-implemented msg()
+to returns a string, then Python writes it to the log.
+Corrected calls in extcoeff.c and vprofile.c.
+Propagated corrections to alkali.py extinction.py, and voigt.py.
+
+*****
+
