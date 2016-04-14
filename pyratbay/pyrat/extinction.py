@@ -1,7 +1,10 @@
 import sys, os
 import struct
+import ctypes
+import time
 import numpy as np
 import scipy.interpolate as sip
+import multiprocessing   as mpr
 
 from .. import tools     as pt
 from .. import constants as pc
@@ -121,18 +124,46 @@ def calc_extinction(pyrat):
 
   # Allocate extinction-coefficient array:
   pt.msg(pyrat.verb-4, "Calculate extinction coefficient.", pyrat.log, 2)
-  ex.etable = np.zeros((ex.nmol, ex.ntemp, ex.nlayers, ex.nwave), np.double)
+  sm_ect = mpr.Array(ctypes.c_double,
+                     np.zeros(ex.nmol*ex.ntemp*ex.nlayers*ex.nwave, np.double))
+  ex.etable = np.ctypeslib.as_array(sm_ect.get_obj()).reshape(
+                             (ex.nmol, ex.ntemp, ex.nlayers, ex.nwave))
 
-  # Compute extinction (in C):
-  for r in np.arange(ex.nlayers):
-    for t in np.arange(ex.ntemp):
-      # Extinction coefficient for given temperature and pressure-layer:
-      pt.msg(pyrat.verb-4, "\nR={}, T={}".format(r,t), pyrat.log)
-      extinction(pyrat, ex.etable[:,t,r], r, ex.temp[t], ex.z[:,t])
+  # Put the line-transition data into shared memory:
+  sm_wn       = mpr.Array(ctypes.c_double, pyrat.lt.wn)
+  pyrat.lt.wn = np.ctypeslib.as_array(sm_wn.get_obj())
+
+  sm_gf       = mpr.Array(ctypes.c_double, pyrat.lt.gf)
+  pyrat.lt.gf = np.ctypeslib.as_array(sm_gf.get_obj())
+
+  sm_elow       = mpr.Array(ctypes.c_double, pyrat.lt.elow)
+  pyrat.lt.elow = np.ctypeslib.as_array(sm_elow.get_obj())
+
+  sm_isoid       = mpr.Array(ctypes.c_int, pyrat.lt.isoid)
+  pyrat.lt.isoid = np.ctypeslib.as_array(sm_isoid.get_obj())
+
+  if pyrat.nproc > 1:
+    # Multi-processing extinction calculation (in C):
+    processes = []
+    iproc = np.arange(ex.ntemp) % pyrat.nproc  # CPU index
+    for i in np.arange(pyrat.nproc):
+      proc = mpr.Process(target=mp_extinction,
+                         args=(pyrat, np.where(iproc==i)[0]))
+      processes.append(proc)
+      proc.start()
+    for i in np.arange(pyrat.nproc):
+      processes[i].join()
+  else:
+    # Single-CPU extinction calculation:
+    for r in np.arange(ex.nlayers):
+      for t in np.arange(ex.ntemp):
+        # Extinction coefficient for given temperature and pressure-layer:
+        pt.msg(pyrat.verb-4, "\nCompute EC: layer {:3d}/{:d}, temp {:2d}/{:d}.".
+             format(r+1, ex.nlayers, t+1, ex.ntemp), pyrat.log)
+        extinction(pyrat, ex.etable[:,t,r], r, ex.temp[t], ex.z[:,t])
 
   # Store values in file:
   f = open(ex.extfile, "wb")
-
   # Write size of arrays:
   f.write(struct.pack("4l", ex.nmol, ex.ntemp, ex.nlayers, ex.nwave))
   # Write arrays:
@@ -198,3 +229,46 @@ def extinction(pyrat, extcoeff, ilayer, temp, ziso, add=0):
                 logtext, pyrat.verb, add)
   pyrat.log.write(logtext.rstrip()[:-1])
 
+
+def mp_extinction(pyrat, itemps):
+  """
+  Multi-processing extinction calculation.
+  """
+  niter = 0
+  for itemp in itemps:
+    for ilayer in np.arange(pyrat.atm.nlayers):
+      # Unpack layer parameters:
+      pressure = pyrat.atm.press[ilayer]  # Layer pressure
+      molq     = pyrat.atm.q    [ilayer]  # Molecular abundance
+      density  = pyrat.atm.d    [ilayer]  # Molecular density
+      # Temperature parameters:
+      temp = pyrat.ex.temp[itemp]
+      ziso = pyrat.ex.z[:,itemp]
+
+      add = 0
+
+      pyrat.iso.iext = np.zeros(pyrat.iso.niso, np.int)
+      # Get species indices in extinction-coefficient table for the isotopes:
+      if pyrat.ex.extfile is not None:
+        for i in np.arange(pyrat.iso.niso):
+          pyrat.iso.iext[i] = np.where(pyrat.ex.molID ==
+                                       pyrat.mol.ID[pyrat.iso.imol[i]])[0][0]
+
+      # Calculate extinction-coefficient in C:
+      if 0 in itemps:
+        pt.msg(pyrat.verb-4, "Extinction-coefficient table: layer {:3d}/{:d}, "
+             "iteration {:2d}/{:d}.".format(ilayer+1, pyrat.atm.nlayers,
+                                         niter+1, len(itemps)), pyrat.log, 2)
+
+      logtext = " "*800
+      ec.extinction(pyrat.ex.etable[:,itemp,ilayer],
+                    pyrat.voigt.profile, pyrat.voigt.size, pyrat.voigt.index,
+                    pyrat.voigt.lorentz, pyrat.voigt.doppler,
+                    pyrat.spec.wn, pyrat.spec.own, pyrat.spec.odivisors,
+                    density, molq, pyrat.mol.radius, pyrat.mol.mass,
+                    pyrat.iso.imol, pyrat.iso.mass, pyrat.iso.ratio,
+                    ziso, pyrat.iso.iext,
+                    pyrat.lt.wn, pyrat.lt.elow, pyrat.lt.gf, pyrat.lt.isoid,
+                    pyrat.ex.ethresh, pressure, temp,
+                    logtext, pyrat.verb-10, add)
+    niter += 1

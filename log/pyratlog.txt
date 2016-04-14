@@ -1498,3 +1498,14 @@ Bumped Lineread to version 6.4.4.
 *****
 
 Added CONTRIBUTING.md file (copy of docs/contributing.rst).
+
+
+*****  Do 14. Apr 19:37:09 CEST 2016  *****
+
+Parallelized the extinction-coefficient table calculation.
+Added nproc imput argument to indicate the number of parallel CPUs.
+Put the line-transition data and the extinction-coefficient table into
+shared memory.
+
+*****
+

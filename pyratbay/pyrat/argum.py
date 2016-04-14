@@ -2,6 +2,7 @@ import sys, os
 import argparse, ConfigParser
 import numpy as np
 import scipy.constants as sc
+import multiprocessing as mpr
 
 from .. import tools     as pt
 from .. import constants as pc
@@ -156,6 +157,9 @@ def parse(pyrat):
                      help="Extinction-coefficient threshold "
                           "[default: %(default)s]",  # FINDME: Explain better
                      action="store", type=np.double, default=1e-6)
+  group.add_argument("--nproc", dest="nproc",
+                     help="Number of processors [default: %(default)s]",
+                     action="store", type=int,       default=1)
   # Voigt-profile options:
   group = parser.add_argument_group("Voigt-profile  Options")
   group.add_argument(      "--vextent",    dest="vextent",
@@ -245,6 +249,7 @@ def parse(pyrat):
   # Put user arguments into pyrat input:
   pyrat.inputs.configfile = args.configfile
   pyrat.inputs.verb       = user.verb
+  pyrat.inputs.nproc      = user.nproc
   # Input file:
   pyrat.inputs.atmfile    = user.atmfile
   pyrat.inputs.linedb     = user.linedb
@@ -575,6 +580,16 @@ def checkinputs(pyrat):
     pt.error("raygrid angles must be monotonically increasing.", pyrat.log)
   # Store raygrid values in radians:
   pyrat.raygrid = inputs.raygrid * sc.degree
+
+  # Number of processors:
+  pyrat.nproc = pt.getparam(inputs.nproc, "none", integer=True)
+  isgreater(pyrat.spec.wnosamp, "none", 1, False,
+            "Wavenumber oversampling factor ({:d}) must be >= 1.")
+  if pyrat.nproc >= mpr.cpu_count():
+    pt.warning("The number of requested CPUs ({:d}) is >= than the number "
+      "of available CPUs ({:d}).  Enforced nproc to {:d}.".format(pyrat.nproc,
+             mpr.cpu_count(), mpr.cpu_count()-1), pyrat.wlog, pyrat.log)
+    pyrat.nproc = mpr.cpu_count() - 1
 
   # Verbose level:
   pyrat.verb = np.amax([0, inputs.verb])
