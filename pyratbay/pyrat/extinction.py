@@ -145,10 +145,11 @@ def calc_extinction(pyrat):
   if pyrat.nproc > 1:
     # Multi-processing extinction calculation (in C):
     processes = []
-    iproc = np.arange(ex.ntemp) % pyrat.nproc  # CPU index
+    indices = np.arange(ex.ntemp*ex.nlayers) % pyrat.nproc  # CPU indices
+    #iproc = np.arange(ex.ntemp) % pyrat.nproc  # CPU index
     for i in np.arange(pyrat.nproc):
       proc = mpr.Process(target=mp_extinction,
-                         args=(pyrat, np.where(iproc==i)[0]))
+                         args=(pyrat, np.where(indices==i)[0]))
       processes.append(proc)
       proc.start()
     for i in np.arange(pyrat.nproc):
@@ -230,45 +231,45 @@ def extinction(pyrat, extcoeff, ilayer, temp, ziso, add=0):
   pyrat.log.write(logtext.rstrip()[:-1])
 
 
-def mp_extinction(pyrat, itemps):
+def mp_extinction(pyrat, indices):
   """
   Multi-processing extinction calculation.
   """
-  niter = 0
-  for itemp in itemps:
-    for ilayer in np.arange(pyrat.atm.nlayers):
-      # Unpack layer parameters:
-      pressure = pyrat.atm.press[ilayer]  # Layer pressure
-      molq     = pyrat.atm.q    [ilayer]  # Molecular abundance
-      density  = pyrat.atm.d    [ilayer]  # Molecular density
-      # Temperature parameters:
-      temp = pyrat.ex.temp[itemp]
-      ziso = pyrat.ex.z[:,itemp]
+  add = 0
+  pyrat.iso.iext = np.zeros(pyrat.iso.niso, np.int)
+  # Get species indices in extinction-coefficient table for the isotopes:
+  if pyrat.ex.extfile is not None:
+    for j in np.arange(pyrat.iso.niso):
+      pyrat.iso.iext[j] = np.where(pyrat.ex.molID ==
+                                   pyrat.mol.ID[pyrat.iso.imol[j]])[0][0]
+  verb = (0 in indices)  # Turn off verb of all processes except the first
+  verb *= pyrat.verb     # Adjust the verbosity level to pyrat's verb
 
-      add = 0
+  for i in np.arange(len(indices)):
+    itemp  = indices[i] / pyrat.atm.nlayers  # Temperature index in EC table
+    ilayer = indices[i] % pyrat.atm.nlayers  # Layer index in EC table
 
-      pyrat.iso.iext = np.zeros(pyrat.iso.niso, np.int)
-      # Get species indices in extinction-coefficient table for the isotopes:
-      if pyrat.ex.extfile is not None:
-        for i in np.arange(pyrat.iso.niso):
-          pyrat.iso.iext[i] = np.where(pyrat.ex.molID ==
-                                       pyrat.mol.ID[pyrat.iso.imol[i]])[0][0]
+    # Unpack layer parameters:
+    pressure = pyrat.atm.press[ilayer]  # Layer pressure
+    molq     = pyrat.atm.q    [ilayer]  # Molecular abundance
+    density  = pyrat.atm.d    [ilayer]  # Molecular density
+    # Temperature parameters:
+    temp = pyrat.ex.temp[itemp]
+    ziso = pyrat.ex.z[:,itemp]
 
-      # Calculate extinction-coefficient in C:
-      if 0 in itemps:
-        pt.msg(pyrat.verb-4, "Extinction-coefficient table: layer {:3d}/{:d}, "
-             "iteration {:2d}/{:d}.".format(ilayer+1, pyrat.atm.nlayers,
-                                         niter+1, len(itemps)), pyrat.log, 2)
+    # Calculate extinction-coefficient in C:
+    pt.msg(verb-4, "Extinction-coefficient table: layer {:3d}/{:d}, "
+           "iteration {:3d}/{:d}.".format(ilayer+1, pyrat.atm.nlayers,
+                                       i+1, len(indices)), pyrat.log, 2)
 
-      logtext = " "*800
-      ec.extinction(pyrat.ex.etable[:,itemp,ilayer],
-                    pyrat.voigt.profile, pyrat.voigt.size, pyrat.voigt.index,
-                    pyrat.voigt.lorentz, pyrat.voigt.doppler,
-                    pyrat.spec.wn, pyrat.spec.own, pyrat.spec.odivisors,
-                    density, molq, pyrat.mol.radius, pyrat.mol.mass,
-                    pyrat.iso.imol, pyrat.iso.mass, pyrat.iso.ratio,
-                    ziso, pyrat.iso.iext,
-                    pyrat.lt.wn, pyrat.lt.elow, pyrat.lt.gf, pyrat.lt.isoid,
-                    pyrat.ex.ethresh, pressure, temp,
-                    logtext, pyrat.verb-10, add)
-    niter += 1
+    logtext = " "*800
+    ec.extinction(pyrat.ex.etable[:,itemp,ilayer],
+                  pyrat.voigt.profile, pyrat.voigt.size, pyrat.voigt.index,
+                  pyrat.voigt.lorentz, pyrat.voigt.doppler,
+                  pyrat.spec.wn, pyrat.spec.own, pyrat.spec.odivisors,
+                  density, molq, pyrat.mol.radius, pyrat.mol.mass,
+                  pyrat.iso.imol, pyrat.iso.mass, pyrat.iso.ratio,
+                  ziso, pyrat.iso.iext,
+                  pyrat.lt.wn, pyrat.lt.elow, pyrat.lt.gf, pyrat.lt.isoid,
+                  pyrat.ex.ethresh, pressure, temp,
+                  logtext, verb-10, add)
