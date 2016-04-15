@@ -1512,7 +1512,7 @@ shared memory.
 
 Distributed better the EC table calculation among the processes.
 This resolves #20.
-Bumped Pyrat to version 1.2.10.
+Bumped Pyrat to version 1.2.11.
 
 *****
 
