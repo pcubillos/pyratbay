@@ -60,6 +60,7 @@ class Inputs(object):
     # General arguments:
     self.configfile = None
     self.verb       = None
+    self.nproc      = None
     # Input/output files arguments:
     self.atmfile  = None
     self.linedb   = None
