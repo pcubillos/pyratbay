@@ -123,7 +123,16 @@ def run(argv, main=False):
   pass
 
   # Full Pyrat Bay run:
-  pass
+  if False:
+    # FINDME: So in principle, I could do the initialization here ...
+    pass
+    # Run MCMC:
+    posterior, bestp = mc3.mcmc(data=data, func=func, indparams=indparams,
+                    params=params,
+                    numit=numit, nchains=nchains, walk=walk, grtest=grtest,
+                    leastsq=leastsq, chisqscale=chisqscale,
+                    burnin=burnin, plots=plots, savefile=savefile,
+                    savemodel=savemodel)
 
   # Post processing:
   pass

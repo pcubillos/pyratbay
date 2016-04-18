@@ -1,9 +1,10 @@
-__all__ = ["run", "ma", "mc", "constants", "tools"]
+__all__ = ["run", "ma", "mc", "qs", "constants", "tools"]
 
 from .driver import run
 
 from .  import makeatm as ma
 from .  import makecfg as mc
+from .  import qscale  as qs
 from .. import VERSION as ver
 
 # Pyrat Bay version:

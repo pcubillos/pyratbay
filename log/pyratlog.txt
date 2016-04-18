@@ -1516,3 +1516,27 @@ Bumped Pyrat to version 1.2.11.
 
 *****
 
+Added balance.py to compute bulk-species abundaces
+that balance sum(mole mixing ratio) = 1.0 per layer.
+Added readatm to makeatm.py in pyratbay.
+
+
+*****  Mo 18. Apr 10:35:10 CEST 2016  *****
+
+Renamed balance.py to qscale.py.
+Added main qscale() function to scale and balance atmospheric
+abundances.
+Fixed typo in pyrat driver when calling reloadatm().
+Properly tested the routines.
+This resolves #43.
+
+*****
+
+Drafted initial version of pyratfit.py,
+containing the fitting function for the MCMC run.
+Fixed typo in pyratbay init.
+Bumped Pyrat to version 1.2.12.
+Bumped Pyrat Bay to version 0.0.18.
+
+*****
+

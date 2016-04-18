@@ -1,12 +1,13 @@
-__all__ = ["uniform", "makeatomic", "readatomic", "makepreatm", "TEA2pyrat"]
+__all__ = ["writeatm", "readatm", "uniform", "makeatomic", "readatomic",
+           "makepreatm", "TEA2pyrat"]
 
 import os
 import numpy as np
 
 from .. import tools as pt
 
+# Get Pyrat-Bay inputs dir:
 thisdir = os.path.dirname(os.path.realpath(__file__))
-# Inputs dir
 indir   = thisdir + "/../../inputs/"
 
 
@@ -60,6 +61,78 @@ def writeatm(atmfile, pressure, temperature, species, abundances,
     # Species mole mixing ratios:
     f.write("  ".join(["{:12.6e}".format(ab) for ab in abundances[i]]) + "\n")
   f.close()
+
+
+def readatm(atmfile):
+  """
+  Read a Pyrat atmospheric file.
+  """
+
+  atmfile = open(atmfile, "r")
+  while True:
+    line = atmfile.readline().strip()
+
+    # Stop when the per-layer data begins:
+    if line == "@DATA":
+      break
+
+    # Skip empty and comment lines:
+    elif line == '' or line.startswith('#'):
+      pass
+
+    # Radius, pressure, and temperature units of atm file:
+    elif line == '@PRESSURE':
+      print("Pressure units: {:s}".   format(atmfile.readline().strip()))
+    elif line == '@RADIUS':
+      print("Radius units: {:s}".     format(atmfile.readline().strip()))
+    elif line == '@TEMPERATURE':
+      print("Temperature units: {:s}".format(atmfile.readline().strip()))
+    # Abundance by mass or number:
+    elif line == '@ABUNDANCE':
+      print("Abundance units: {:s}".  format(atmfile.readline().strip()))
+    # Read in molecules:
+    elif line == "@SPECIES":
+      species = np.asarray(atmfile.readline().strip().split())
+      nspecies = len(species)
+    else:
+      print("Atmosphere file has an unexpected line: \n'{:s}'".format(line))
+
+  # Read first line to count number of columns:
+  datastart = atmfile.tell()
+  line = atmfile.readline()
+  # Is there a column for the radius:
+  rad = (len(line.split()) - nspecies == 3)
+
+  # Count number of layers:
+  nlayers = 1
+  while True:
+    line = atmfile.readline()
+    if line == '' or line.startswith('#'):
+      break
+    nlayers += 1
+
+  # Initialize arrays:
+  if rad:
+    radius = np.zeros(nlayers)
+  press    = np.zeros(nlayers)
+  temp     = np.zeros(nlayers)
+  mm       = np.zeros(nlayers)
+  q        = np.zeros((nlayers, nspecies))
+
+  # Read table:
+  nprofiles = nspecies
+  atmfile.seek(datastart, 0)
+  for i in np.arange(nlayers):
+    data = atmfile.readline().split()
+    if rad:
+      radius[i] = float(data[0])
+    press [i] = float(data[rad+0])
+    temp  [i] = float(data[rad+1])
+    q     [i] = np.asarray(data[rad+2:], float)
+
+  if rad:
+    return species, press, temp, q, radius
+  return species, press, temp, q
 
 
 def uniform(atmfile, pressure, temperature, species, abundances, punits="bar"):
