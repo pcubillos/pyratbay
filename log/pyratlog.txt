@@ -1540,3 +1540,7 @@ Bumped Pyrat Bay to version 0.0.18.
 
 *****
 
+Added kurucz.py module to read a Kurucz stellar model.
+
+*****
+
