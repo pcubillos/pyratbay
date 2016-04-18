@@ -1,4 +1,6 @@
 from .  import qscale as qs
+from .  import kurucz as k
+
 
 def init(pyrat):
   """
@@ -8,6 +10,13 @@ def init(pyrat):
   rat, invsrat = b.ratio(q, ibulk)
   ibulk  = np.where(np.in1d(spec, bulk))[0]
   iscale = np.where(np.in1d(spec, molscale))[0]
+
+  # Read stellar spectrum model:
+  if starspec is not None:
+    pass
+  elif kurucz is not None:
+    starflux, starwn, kuruczt, kuruczg = k.getmodel(kurucz, tstar, gstar)
+    # Print Kurucz g and T.
 
   # Output converter:
   wnindices = None

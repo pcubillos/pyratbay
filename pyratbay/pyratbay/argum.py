@@ -37,7 +37,7 @@ def parse(wlog):
   # Inherit options from cparser:
   parser = argparse.ArgumentParser(parents=[cparser])
 
-  # Pressure layers options:
+  # Pressure-layer options:
   group = parser.add_argument_group("Pressure layer sampling")
   group.add_argument("--nlayers", dest="nlayers",
            help="Number of atmospheric layers [default: 100]",
@@ -65,6 +65,9 @@ def parse(wlog):
   group.add_argument("--tstar",   dest="tstar",
            help="Stellar effective temperature (kelvin).",
            action="store", type=np.double, default=None)
+  group.add_argument("--gstar",   dest="gstar",
+           help="Stellar surface gravity (cm s-2).",
+           action="store", type=np.double, default=None)
   group.add_argument("--smaxis",  dest="smaxis",
            help="Orbital semi-major axis (default units: radunits).",
            action="store", type=str,       default=None)
@@ -77,6 +80,12 @@ def parse(wlog):
   group.add_argument("--rplanet", dest="rplanet",
            help="Planetary radius (radunits) [default: %(default)s]",
            action="store", type=str,       default=None)
+  group.add_argument("--starspec",   dest="starspec",
+           help="Stellar spectrum model file.",
+           action="store", type=str, default=None)
+  group.add_argument("--kurucz",   dest="kurucz",
+           help="Kurucz stellar model file.",
+           action="store", type=str, default=None)
 
   # Temperature profile options:
   group = parser.add_argument_group("Temperature-profile options")
@@ -197,6 +206,17 @@ def checkinputs(args, log, wlog):
     "Pre-atmospheric file defaulted to '{:s}'.", wlog, log)
   args.xsolar = pt.defaultp(args.xsolar, 1.0,
     "Solar-metallicity scaling factor defaulted to {:.2f}.", wlog, log)
+
+  # Stellar model:
+  if args.starspec is not None:
+    # Check file exists
+    pass
+  elif args.kurucz is not None:
+    # Check file exists
+    # Check gstar exists
+    pass
+  else:
+    pt.error("Stellar spectrum model was not specified.")
 
   # FINDME: Add logical checks
   if args.tmodel == "TCEA":

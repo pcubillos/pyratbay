@@ -1544,3 +1544,11 @@ Added kurucz.py module to read a Kurucz stellar model.
 
 *****
 
+Added starspec, kurucz, and gstar input variables to pyratbay.
+Drafted variable's checks.
+Drafted Kurucz reading in pyratfit.py.
+This resolves #44.
+Bumped Pyrat Bay to version 0.0.19.
+
+*****
+
