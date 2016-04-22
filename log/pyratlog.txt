@@ -1565,3 +1565,8 @@ Bumped Pyrat Bay to version 0.0.21.
 
 *****
 
+Added runmode argument to pyratbay to choose the running mode.
+
+*****
+
+

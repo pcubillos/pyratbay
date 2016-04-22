@@ -53,7 +53,10 @@ def parse(wlog):
            help="Pressure at the botom of the atmosphere (punits) "
                 "[default: 100 bar]",
            action="store", type=str, default=None)
-
+  group.add_argument("--runmode", dest="runmode",
+           help="Run mode flag.  Select from: 'tli', 'pt', 'atmosphere', "
+                "'opacity', 'spectrum', 'mcmc'.",
+           action="store", type=str, default=None)
   # Physical variables of the system:
   group = parser.add_argument_group("Physical parameters")
   group.add_argument("--radunits",  dest="radunits",
@@ -159,6 +162,15 @@ def checkinputs(args, log, wlog):
   """
   Check that the input values (args) make sense.
   """
+
+  if args.runmode is None:
+    pt.error("Undefined run mode (runmode), select from: 'tli', 'pt', "
+             "'atmosphere', 'opacity', 'spectrum', 'mcmc'.", log)
+  if args.runmode not in ['tli', 'pt', 'atmosphere', 'opacity',
+                          'spectrum', 'mcmc']:
+    pt.error("Invalid runmode ({:s}).  Must select one from: 'tli', 'pt', "
+        "'atmosphere', 'opacity', 'spectrum', 'mcmc'.".format(args.runmode))
+
   # Throw warnings for the default inputs:
   args.punits = pt.defaultp(args.punits, "bar",
                    "punits input variable defaulted to '{:s}'.",   wlog, log)
