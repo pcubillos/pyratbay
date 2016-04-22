@@ -1550,5 +1550,13 @@ Drafted Kurucz reading in pyratfit.py.
 This resolves #44.
 Bumped Pyrat Bay to version 0.0.19.
 
+
+*****  Fr 22. Apr 11:18:17 CEST 2016  *****
+
+Added wine.py code to read and integrate transmission filters.
+Added Spitzer IRAC (sub-array) transmission filters as examples.
+This resolves #45.
+Bumped Pyrat Bay to version 0.0.20.
+
 *****
 
