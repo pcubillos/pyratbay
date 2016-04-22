@@ -13,7 +13,7 @@ xi(double gamma, double tau){
 
 
 PyDoc_STRVAR(TCEA__doc__,
-"Generats a temperature profile based on the three-channel Eddington \n\
+"Generate a temperature profile based on the three-channel Eddington \n\
 approximation model (Parmentier and Gillot 2014, AA 562), following  \n\
 the parameterization of Line et al. (2013, ApJ 775).                 \n\
                                                                      \n\
@@ -30,8 +30,6 @@ params: 1D float ndarray                                             \n\
                                                                      \n\
 pressure: 1D float ndarray                                           \n\
    Array of pressure values (in barye).                              \n\
-temperature: 1D float ndarray                                        \n\
-   Output temperature array (in Kelvin).                             \n\
 R_star: Float                                                        \n\
    Stellar radius (in cm).                                           \n\
 T_star: Float                                                        \n\
@@ -42,51 +40,51 @@ sma:    Float                                                        \n\
    Semi-major axis (in cm).                                          \n\
 grav:   Float                                                        \n\
    Planetary surface gravity (in cm s-2).                            \n\
-                                                                     \n\
-  Returns                                                            \n\
-  -------                                                            \n\
-  T: temperature array                                               \n\
-                                                                     \n\
-  Example:                                                           \n\
-  --------                                                           \n\
-  >>> import pt as pt                                                \n\
-  >>> import scipy.constants as sc                                   \n\
-  >>> import matplotlib.pyplot as plt                                \n\
-  >>> import numpy as np                                             \n\
-                                                                     \n\
-  >>> Rsun = 6.995e8 # Sun radius in meters                          \n\
-                                                                     \n\
-  >>> # Pressure array (barye):                                      \n\
-  >>> press = np.logspace(2, -5, 100) *1e6                           \n\
-                                                                     \n\
-  >>> # Physical (fixed for each planet) parameters:                 \n\
-  >>> Ts = 5040.0  # K                                               \n\
-  >>> Ti =  100.0  # K                                               \n\
-  >>> a  = 100.0 * 0.031 * sc.au # cm                                \n\
-  >>> Rs = 100.0 * 0.756 * Rsun  # cm                                \n\
-  >>> g  = 2192.8                # cm s-2                            \n\
-                                                                     \n\
-  >>> # Fitting parameters:                                          \n\
-  >>> kappa  = -1.5   # log10(3e-2)                                  \n\
-  >>> gamma1 = -0.8   # log10(0.158)                                 \n\
-  >>> gamma2 = -0.8   # log10(0.158)                                 \n\
-  >>> alpha  = 0.5                                                   \n\
-  >>> beta   = 1.0                                                   \n\
-  >>> params = np.array([kappa, gamma1, gamma2, alpha, beta])        \n\
-  >>> T0 = pt.TCEA(params, press, Rs, Ts, Ti, a, g)                  \n\
-                                                                     \n\
-  >>> plt.figure(1)                                                  \n\
-  >>> plt.clf()                                                      \n\
-  >>> plt.semilogy(T0, p, lw=2, color='b')                           \n\
-  >>> plt.ylim(press[0], press[-1])                                  \n\
-  >>> plt.xlim(1000, 1700)                                           \n\
-  >>> plt.xlabel('Temperature  (K)')                                 \n\
-  >>> plt.ylabel('Pressure  (bars)')                                 \n\
-                                                                     \n\
-  Developers:                                                        \n\
-  -----------                                                        \n\
-  Madison Stemm      astromaddie@gmail.com                           \n\
-  Patricio Cubillos  pcubillos@fulbrightmail.org");
+                                                            \n\
+Returns                                                     \n\
+-------                                                     \n\
+T: temperature array                                        \n\
+                                                            \n\
+Example                                                     \n\
+-------                                                     \n\
+>>> import pt as pt                                         \n\
+>>> import scipy.constants as sc                            \n\
+>>> import matplotlib.pyplot as plt                         \n\
+>>> import numpy as np                                      \n\
+                                                            \n\
+>>> Rsun = 6.995e8 # Sun radius in meters                   \n\
+                                                            \n\
+>>> # Pressure array (barye):                               \n\
+>>> press = np.logspace(2, -5, 100) *1e6                    \n\
+                                                            \n\
+>>> # Physical (fixed for each planet) parameters:          \n\
+>>> Ts = 5040.0  # K                                        \n\
+>>> Ti =  100.0  # K                                        \n\
+>>> a  = 100.0 * 0.031 * sc.au # cm                         \n\
+>>> Rs = 100.0 * 0.756 * Rsun  # cm                         \n\
+>>> g  = 2192.8                # cm s-2                     \n\
+                                                            \n\
+>>> # Fitting parameters:                                   \n\
+>>> kappa  = -1.5   # log10(3e-2)                           \n\
+>>> gamma1 = -0.8   # log10(0.158)                          \n\
+>>> gamma2 = -0.8   # log10(0.158)                          \n\
+>>> alpha  = 0.5                                            \n\
+>>> beta   = 1.0                                            \n\
+>>> params = np.array([kappa, gamma1, gamma2, alpha, beta]) \n\
+>>> T0 = pt.TCEA(params, press, Rs, Ts, Ti, a, g)           \n\
+                                                            \n\
+>>> plt.figure(1)                                           \n\
+>>> plt.clf()                                               \n\
+>>> plt.semilogy(T0, p, lw=2, color='b')                    \n\
+>>> plt.ylim(press[0], press[-1])                           \n\
+>>> plt.xlim(1000, 1700)                                    \n\
+>>> plt.xlabel('Temperature  (K)')                          \n\
+>>> plt.ylabel('Pressure  (bars)')                          \n\
+                                                            \n\
+Developers                                                  \n\
+----------                                                  \n\
+Madison Stemm      astromaddie@gmail.com                    \n\
+Patricio Cubillos  pcubillos@fulbrightmail.org");
 
 static PyObject *TCEA(PyObject *self, PyObject *args){
   PyArrayObject *freepars, *pressure, *temperature;
@@ -131,15 +129,52 @@ static PyObject *TCEA(PyObject *self, PyObject *args){
 }
 
 
+PyDoc_STRVAR(isothermal__doc__,
+"Generate an isothermal temperature profile.\n\
+                                            \n\
+Inputs                                      \n\
+------                                      \n\
+T0:  Float                                  \n\
+   Atmospheric temperature (in Kelvin).     \n\
+pressure: 1D float ndarray                  \n\
+   Array of pressure values (in barye).     \n\
+                                            \n\
+Returns                                     \n\
+-------                                     \n\
+T: temperature array");
+
+static PyObject *isothermal(PyObject *self, PyObject *args){
+  PyArrayObject *pressure, *temperature;
+  double T0;
+  int i, nlayers;     /* Auxilliary for-loop indices                        */
+  npy_intp size[1];
+
+  /* Load inputs:                                                           */
+  if (!PyArg_ParseTuple(args, "dO", &T0, &pressure))
+    return NULL;
+
+  /* Get array size:                                                        */
+  size[0] = nlayers = (int)PyArray_DIM(pressure, 0);
+
+  /* Allocate output:                                                       */
+  temperature = (PyArrayObject *) PyArray_SimpleNew(1, size, NPY_DOUBLE);
+  /* Set isothermal temperature:                                            */
+  for (i=0; i<nlayers; i++){
+    INDd(temperature,i) = T0;
+  }
+  return Py_BuildValue("N", temperature);
+}
+
+
 /* The module doc string                                                    */
 PyDoc_STRVAR(pt__doc__,
-  "Python wrapper for the Three-channel Eddington-Approxmiation model\n\
-   to calculate a temperature profile.");
+  "Python wrapper for the temperature-profile models.");
 
 /* A list of all the methods defined by this module.                        */
 static PyMethodDef pt_methods[] = {
-    {"TCEA",    TCEA,    METH_VARARGS, TCEA__doc__},
-    {NULL,      NULL,    0,            NULL}
+    {"TCEA",       TCEA,       METH_VARARGS, TCEA__doc__},
+    {"isothermal", isothermal, METH_VARARGS, isothermal__doc__},
+    {NULL,         NULL,       0,            NULL}
 };
 
 
