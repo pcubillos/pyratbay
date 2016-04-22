@@ -1569,4 +1569,12 @@ Added runmode argument to pyratbay to choose the running mode.
 
 *****
 
+Re-implemented pressure/temperature calculation in pbay driver.
+Now, it looks more like a driver, calling subroutines instead of
+having all the code in place.  Input checks are also checked only when
+specific calculations are needed.
+Changed pgrav to gplanet.
+Implemented isfile() in ptools.py that also handles the None case.
+
+*****
 

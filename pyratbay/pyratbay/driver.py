@@ -1,13 +1,10 @@
-#!/usr/bin/env python
-
-# FINDME a LICENSE
-
 import os
 import sys
 import time
 import shutil
 import subprocess
 import numpy as np
+import matplotlib.pyplot as plt
 
 from .. import tools     as pt
 from .. import constants as pc
@@ -52,36 +49,24 @@ def run(argv, main=False):
   args, log = ar.parse(wlog)
   timestamps.append(time.time())
 
-  ar.checkinputs(args, log, wlog)
+  #ar.checkinputs(args, log, wlog)
 
-  # Unpack pressure input variables:
-  punits  = args.punits
-  ptop    = pt.getparam(args.ptop,    args.punits)
-  pbottom = pt.getparam(args.pbottom, args.punits)
-  if ptop >= pbottom:
-    pt.error("Bottom-layer pressure ({:.2e} bar) must be higher than the"
-      "top-layer pressure ({:.2e} bar).".format(pbottom/pt.u("bar"),
-                                                ptop/pt.u("bar")))
-  nlayers = args.nlayers
+  # Call lineread package:
+  if args.runmode == "tli":
+    return
 
-  # Create pressure array in barye (CGS) units:
-  pressure = np.logspace(np.log10(ptop), np.log10(pbottom), nlayers)
-  pt.msg(1, "Creating {:d}-layer atmospheric model between {:.1e} "
-      "and {:.1e} bar.".format(nlayers, ptop/pc.bar, pbottom/pc.bar), log)
+  # Compute pressure-temperature profile:
+  if args.runmode == "pt" or pt.isfile(args.atmfile) != 1:
+    pressure    = calcp(args, log, wlog)
+    temperature = calct(args, pressure, log, wlog)
 
-  # Compute the temperature profile:
-  if args.tmodel == "TCEA":
-    rstar   = pt.getparam(args.rstar, args.radunits)
-    tstar   = pt.getparam(args.tstar, "kelvin")
-    tint    = pt.getparam(args.tint,  "kelvin")
-    pgrav   = pt.getparam(args.pgrav, "none")
-    smaxis  = pt.getparam(args.smaxis, args.radunits)
-    tparams = args.tparams
-    temp    = PT.TCEA(tparams, pressure, rstar, tstar, tint, smaxis, pgrav)
-    pt.msg(1, "\nComputed TCEA temperature model.", log)
-  elif args.tmodel == "isothermal":
-    temp = np.tile(tparams[0], nlayers)
-    pt.msg(1, "\nComputed isothermal temperature model.", log)
+  # Return temperature-pressure if requested:
+  if args.runmode == "pt":
+    plt.figure(1)
+    plt.semilogy(temperature, pressure)
+    plt.ylim(np.max(pressure), np.min(pressure))
+    plt.savefig("tmp_pt.pdf")
+    return pressure, temperature
 
   # Make the atmospheric file:
   atmfile  = args.atmfile
@@ -138,3 +123,48 @@ def run(argv, main=False):
   pass
 
   log.close()
+
+
+def calcp(args, log, wlog):
+  """
+  Calculate the pressure profile.
+  """
+  # Check pressure inputs:
+  ar.checkpressure(args, log, wlog)
+  # Unpack pressure input variables:
+  punits  = args.punits
+  ptop    = pt.getparam(args.ptop,    args.punits)
+  pbottom = pt.getparam(args.pbottom, args.punits)
+  if ptop >= pbottom:
+    pt.error("Bottom-layer pressure ({:.2e} bar) must be higher than the"
+      "top-layer pressure ({:.2e} bar).".format(pbottom/pt.u("bar"),
+                                                ptop/pt.u("bar")))
+
+  # Create pressure array in barye (CGS) units:
+  pressure = np.logspace(np.log10(ptop), np.log10(pbottom), args.nlayers)
+  pt.msg(1, "Creating {:d}-layer atmospheric model between {:.1e} "
+      "and {:.1e} bar.".format(args.nlayers, ptop/pc.bar, pbottom/pc.bar), log)
+  return pressure
+
+
+def calct(args, pressure, log, wlog):
+  """
+  Calculate the temperature profile.
+  """
+  ar.checktemp(args, log, wlog)
+  if args.tmodel == "TCEA":
+    rstar   = pt.getparam(args.rstar, args.radunits)
+    tstar   = pt.getparam(args.tstar, "kelvin")
+    tint    = pt.getparam(args.tint,  "kelvin")
+    gplanet = pt.getparam(args.gplanet, "none")
+    smaxis  = pt.getparam(args.smaxis, args.radunits)
+    temperature = PT.TCEA(args.tparams, pressure,
+                          rstar, tstar, tint, smaxis, gplanet)
+    pt.msg(1, "\nComputed TCEA temperature model.", log)
+  elif args.tmodel == "isothermal":
+    temperature = np.tile(args.tparams[0], args.nlayers)
+    pt.msg(1, "\nComputed isothermal temperature model.", log)
+
+  return temperature
+
+

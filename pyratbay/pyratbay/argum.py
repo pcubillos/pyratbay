@@ -77,7 +77,7 @@ def parse(wlog):
   group.add_argument("--tint",    dest="tint",
            help="Planetary internal temperature (kelvin) [default: 100].",
            action="store", type=np.double, default=None)
-  group.add_argument("--pgrav",    dest="pgrav",
+  group.add_argument("--gplanet",    dest="gplanet",
            help="Planetary surface gravity (cm s-2).",
            action="store", type=np.double, default=None)
   group.add_argument("--rplanet", dest="rplanet",
@@ -146,6 +146,8 @@ def parse(wlog):
   # Get logfile:
   if args.logfile is not None:
     log = open(args.logfile, "w")
+  else:
+    log = None
 
   # Welcome message:
   pt.msg(1, "{:s}\n"
@@ -157,6 +159,53 @@ def parse(wlog):
                                       ver.PBAY_REV, pt.sep), log)
 
   return args, log
+
+
+def checkpressure(args, log, wlog):
+  """
+  Check that input arguments to calculate the pressure are set.
+  """
+  args.punits = pt.defaultp(args.punits, "bar",
+    "punits input variable defaulted to '{:s}'.",   wlog, log)
+  args.nlayers = pt.defaultp(args.nlayers, 100,
+    "Number of atmospheric-model layers defaulted to {:d}.",         wlog, log)
+  args.ptop = pt.defaultp(args.ptop, "1e-8 bar",
+    "Atmospheric-model top-pressure boundary defaulted to {:s}.",    wlog, log)
+  args.pbottom = pt.defaultp(args.pbottom, "100 bar",
+    "Atmospheric-model bottom-pressure boundary defaulted to {:s}.", wlog, log)
+
+
+def checktemp(args, log, wlog):
+  """
+  Check that the input arguments to calculate the temperature are set.
+  """
+  if args.tmodel is None:
+    pt.error("Undefined temperature model (tmodel).", log)
+  if args.tparams is None:
+    pt.error("Undefined temperature-model parameters (tparams).", log)
+
+  if args.tmodel == "TCEA":
+    if len(args.tparams) != 5:
+      pt.error("Wrong number of parameters ({:d}) for the TCEA temperature "
+               "model (5).".format(len(args.tparams)), log)
+    if args.rstar is None:
+      pt.error("Undefined stellar radius (rstar).", log)
+    if args.tstar is None:
+      pt.error("Undefined stellar temperature (tstar).", log)
+    if args.smaxis is None:
+      pt.error("Undefined orbital semi-major axis (smaxis).", log)
+    if args.gplanet is None:
+      pt.error("Undefined planetary surface gravity (gplanet).", log)
+    args.tint = pt.defaultp(args.tint, "100",
+      "Planetary internal temperature defaulted to {:s} K.", wlog, log)
+    args.radunits = pt.defaultp(args.radunits, "cm",
+                   "radunits input variable defaulted to '{:s}'.", wlog, log)
+
+  elif args.tmodel == "isothermal":
+    if len(args.tparams) != 1:
+      pt.error("Wrong number of parameters ({:d}) for the isothermal "
+               "temperature model (1).".format(len(args.tparams)), log)
+
 
 def checkinputs(args, log, wlog):
   """
@@ -171,46 +220,21 @@ def checkinputs(args, log, wlog):
     pt.error("Invalid runmode ({:s}).  Must select one from: 'tli', 'pt', "
         "'atmosphere', 'opacity', 'spectrum', 'mcmc'.".format(args.runmode))
 
-  # Throw warnings for the default inputs:
-  args.punits = pt.defaultp(args.punits, "bar",
-                   "punits input variable defaulted to '{:s}'.",   wlog, log)
-  args.radunits = pt.defaultp(args.radunits, "cm",
-                   "radunits input variable defaulted to '{:s}'.", wlog, log)
 
-  args.nlayers = pt.defaultp(args.nlayers, 100,
-    "Number of atmospheric-model layers defaulted to {:d}.",         wlog, log)
-  args.ptop = pt.defaultp(args.ptop, "1e-8 bar",
-    "Atmospheric-model top-pressure boundary defaulted to {:s}.",    wlog, log)
-  args.pbottom = pt.defaultp(args.pbottom, "100 bar",
-    "Atmospheric-model bottom-pressure boundary defaulted to {:s}.", wlog, log)
 
-  # Throw errors for undefined required inputs:
-  if args.rstar is None:
-    pt.error("Undefined stellar radius (rstar).", log)
-  if args.tstar is None:
-    pt.error("Undefined stellar temperature (tstar).", log)
-  if args.smaxis is None:
-    pt.error("Undefined orbital semi-major axis (smaxis).", log)
-  if args.pgrav is None:
-    pt.error("Undefined planetary surface gravity (pgrav).", log)
-  if args.tmodel is None:
-    pt.error("Undefined temperature model (tmodel).", log)
-  if args.tparams is None:
-    pt.error("Undefined temperature-model parameters (tparams).", log)
-  if args.atmfile is None:
-    pt.error("Undefined atmospheric file (atmfile).", log)
+  #if args.atmfile is None:
+  #  pt.error("Undefined atmospheric file (atmfile).", log)
+
   # If atmfile does not exist:
-  if args.species is None:
-    pt.error("Undefined atmospheric species list (species).", log)
-  # If TEA:
-  if args.elements is None:
-    pt.error("Undefined atmospheric atomic-composition list (elements).", log)
-  if args.atomicfile is None:
-    pt.error("Undefined atomic-composition file (atomicfile).", log)
+  #if args.species is None:
+  #  pt.error("Undefined atmospheric species list (species).", log)
 
-  # If TCEA:
-  args.tint  = pt.defaultp(args.tint, "100",
-    "Planetary internal temperature defaulted to {:s} K.", wlog, log)
+  # If TEA:
+  #if args.elements is None:
+  #  pt.error("Undefined atmospheric atomic-composition list (elements).", log)
+  #if args.atomicfile is None:
+  #  pt.error("Undefined atomic-composition file (atomicfile).", log)
+
   # If TEA:
   args.solar = pt.defaultp(args.solar, rootdir+"/inputs/AsplundEtal2009.txt",
     "Solar-abundances file defaulted to '{:s}'.", wlog, log)
@@ -228,16 +252,7 @@ def checkinputs(args, log, wlog):
     # Check gstar exists
     pass
   else:
-    pt.error("Stellar spectrum model was not specified.")
+    #pt.error("Stellar spectrum model was not specified.")
+    pass
 
-  # FINDME: Add logical checks
-  if args.tmodel == "TCEA":
-    if len(args.tparams) != 5:
-      pt.error("Wrong number of parameters ({:d}) for the TCEA temperature "
-               "model (5).".format(len(args.tparams)), log)
-  elif arg.stmodel == "isothermal":
-    if len(args.tparams) != 1:
-      pt.error("Wrong number of parameters ({:d}) for the isothermal "
-               "temperature model (1).".format(len(args.tparams)), log)
 
-  # If TCEA: check rstar, tstar, tint, pgrav, smaxis, tparams
