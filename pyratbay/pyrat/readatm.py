@@ -269,7 +269,7 @@ def reloadatm(pyrat, temp, abund):
 
   # Radius:
   pyrat.atm.radius = hydro_equilibrium(pyrat.atm.press,    pyrat.atm.temp,
-                                       pyrat.atm.mm,       pyrat.surfgravity,
+                                       pyrat.atm.mm,       pyrat.gplanet,
                                        pyrat.pressurebase, pyrat.radiusbase)
 
   # Partition function:

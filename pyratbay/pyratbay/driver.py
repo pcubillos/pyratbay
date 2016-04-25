@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 
 from .. import tools     as pt
 from .. import constants as pc
+from .. import pyrat     as pyrat
 from .  import argum     as ar
 from .  import makeatm   as ma
 from .  import makecfg   as mc
@@ -76,6 +77,11 @@ def run(argv, main=False):
   if args.runmode == "atmosphere":
     species, pressure, temperature, abundances = ma.readatm(args.atmfile)
     return pressure, temperature, abundances
+
+  if args.runmode == "spectrum":
+    py = pyrat.init(args.cfile)
+    py = pyrat.run(py)
+    return py
 
   # Compute an opacity grid:
   pass

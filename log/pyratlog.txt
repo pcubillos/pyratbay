@@ -1589,3 +1589,8 @@ read.
 
 *****
 
+Adapted pbay driver to run pyrat spectrum calculator.
+Replaced surfgravity by gplanet in pyrat code.
+
+*****
+

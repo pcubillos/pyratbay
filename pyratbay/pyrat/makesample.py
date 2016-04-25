@@ -139,7 +139,7 @@ def makeradius(pyrat):
   if atm_in.radius is None:
     # Calculate the radius array using the hydostatic-equilibrium equation:
     atm_in.radius = ra.hydro_equilibrium(atm_in.press, atm_in.temp, atm_in.mm,
-                       pyrat.surfgravity, pyrat.pressurebase, pyrat.radiusbase)
+                       pyrat.gplanet, pyrat.pressurebase, pyrat.radiusbase)
 
   # Set the interpolating function (for use later):
   radinterp   = sip.interp1d(atm_in.press, atm_in.radius, kind='slinear')

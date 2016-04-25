@@ -42,8 +42,8 @@ class Pyrat(object):
     # Geometry:
     self.raygrid  = None  # Array of incident ray-angles
     # Physical parameters:
-    self.rstar       = None  # Stellar radius
-    self.surfgravity = None  # Planetary surface gravity
+    self.rstar    = None  # Stellar radius
+    self.gplanet  = None  # Planetary surface gravity
     # Other:
     self.verb       = None  # Verbosity level
     self.logfile    = None  # Pyrat log filename
@@ -89,9 +89,7 @@ class Inputs(object):
     self.pstep  = None
     self.punits = None
     # Base radius-pressure level:
-    self.zeroradius  = None
-    self.zerpress    = None
-    self.surfgravity = None
+    self.gplanet    = None
     # Voigt profile arguments:
     self.Vextent    = None
     self.DLratio    = None

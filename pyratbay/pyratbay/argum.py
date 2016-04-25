@@ -32,6 +32,7 @@ def parse(wlog):
     pt.error("Invalid configuration file: '{:s}', no [pyrat] section.".
              format(args.cfile))
 
+  cfile = args.cfile
   defaults = dict(config.items("pyrat"))
 
   # Inherit options from cparser:
@@ -142,6 +143,7 @@ def parse(wlog):
 
   parser.set_defaults(**defaults)
   args = parser.parse_args(remaining_argv)
+  args.cfile = cfile
 
   # Get logfile:
   if args.logfile is not None:

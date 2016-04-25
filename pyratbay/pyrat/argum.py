@@ -136,8 +136,8 @@ def parse(pyrat):
   group.add_argument("--pressurebase",  dest="pressurebase",
                      help="Planetary pressure base level (in punits)",
                      action="store", type=str, default=None)
-  group.add_argument("--surfgravity",   dest="surfgravity",
-                     help="Planet's surface gravity in cm s-2",
+  group.add_argument("--gplanet",   dest="gplanet",
+                     help="Planetaty surface gravity (cm s-2).",
                      action="store", type=np.double, default=None)
   # Extinction options:
   group = parser.add_argument_group("Extinction Calculations Options")
@@ -279,7 +279,7 @@ def parse(pyrat):
   # Hydrostatic-equilibrium base-level variables:
   pyrat.inputs.radiusbase   = user.radiusbase
   pyrat.inputs.pressurebase = user.pressurebase
-  pyrat.inputs.surfgravity  = user.surfgravity
+  pyrat.inputs.gplanet  = user.gplanet
   # Extinction:
   pyrat.inputs.ethresh = user.ethresh
   pyrat.inputs.tmin    = user.tmin
@@ -450,8 +450,8 @@ def checkinputs(pyrat):
   pyrat.pressurebase = pt.getparam(inputs.pressurebase, pyrat.punits)
   isgreater(pyrat.pressurebase, "bar", 0, True,
             "Planetary pressure base ({:8g} bar) must be > 0.")
-  pyrat.surfgravity  = pt.getparam(inputs.surfgravity,  "none")
-  isgreater(pyrat.surfgravity, "none", 0, True,
+  pyrat.gplanet  = pt.getparam(inputs.gplanet,  "none")
+  isgreater(pyrat.gplanet, "none", 0, True,
             "Planetary surface gravity ({:.2f} cm s-2) must be > 0.")
 
   pyrat.atm.nlayers = pt.getparam(inputs.nlayers, "none", integer=True)
