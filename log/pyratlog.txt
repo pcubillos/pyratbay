@@ -1594,3 +1594,8 @@ Replaced surfgravity by gplanet in pyrat code.
 
 *****
 
+Fixed bug in makeatm.py writeatm() where the pressures were not
+save in the correct units.
+
+*****
+
