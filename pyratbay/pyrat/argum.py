@@ -71,9 +71,8 @@ def parse(pyrat):
   # Spectrum sampling options:
   group = parser.add_argument_group("Spectrum Sampling Options")
   group.add_argument("--wlunits",    dest="wlunits",
-                     help="Wavelength (input) units [default: %(default)s]",
-                     action="store", type=str, default='um',
-                     choices=('A','nm','um','mm','cm','m'))
+                     help="Wavelength (input) units [default: um]",
+                     action="store", type=str, default=None)
   group.add_argument("--wllow",      dest="wllow",
                      help="Wavelength low boundary [default: %(default)s]",
                      action="store", type=str, default=None)
@@ -82,10 +81,8 @@ def parse(pyrat):
                      action="store", type=str, default=None)
 
   group.add_argument("--wnunits",    dest="wnunits",
-                     help="Wavenumber (input) inverse units [default: "
-                          "%(default)s]",
-                     action="store", type=str, default='cm',
-                     choices=('A','nm','um','mm','cm','m'))
+                     help="Wavenumber (input) inverse units [default: cm]",
+                     action="store", type=str, default=None)
   group.add_argument("--wnlow",      dest="wnlow",
                      help="Wavenumber low boundary [default: %(default)s]",
                      action="store", type=str, default=None)
@@ -93,12 +90,11 @@ def parse(pyrat):
                      help="Wavenumber high boundary [default: %(default)s]",
                      action="store", type=str, default=None)
   group.add_argument("--wnstep",     dest="wnstep",
-                     help="Wavenumber sampling step [default: %(default)s]",
-                     action="store", type=str, default="1.0 cm")
+                     help="Wavenumber sampling step [default: 1.0 cm]",
+                     action="store", type=str, default=None)
   group.add_argument("--wnosamp",       dest="wnosamp",
-                     help="Wavenumber oversampling factor "
-                          "[default: %(default)s]",
-                     action="store", type=int, default=2160)
+                     help="Wavenumber oversampling factor [default: 2160]",
+                     action="store", type=int, default=None)
   # Atmospheric sampling options:
   group = parser.add_argument_group("Atmosphere Sampling Options")
   group.add_argument("--radlow",     dest="radlow",
@@ -210,9 +206,9 @@ def parse(pyrat):
   # Optical depth options:
   group = parser.add_argument_group("Optical Depth Options")
   group.add_argument("--path",          dest="path",
-                     help="Lightray-path geometry [default: %(default)s]",
-                     action="store", type=str, default='transit',
-                     choices=('transit', 'eclipse'))
+                     help="Observing geometry. Select between: 'transit' or "
+                          "'eclipse'.",
+                     action="store", type=str, default=None)
   group.add_argument("--maxdepth",       dest="maxdepth",
                      help="Maximum optical depth to calculate [default: "
                           "%(default)s]",
@@ -227,9 +223,9 @@ def parse(pyrat):
                      action="store", type=str, default=None)
   # Output file options:
   group = parser.add_argument_group("Output File's Options")
-  group.add_argument("-o", "--outspec",       dest="outspec",
-                     help="Output spectrum file [default: %(default)s]",
-                     action="store", type=str, default='output.dat') 
+  group.add_argument(      "--outspec",       dest="outspec",
+                     help="Output spectrum file [default: 'outspec.dat']",
+                     action="store", type=str, default=None)
   group.add_argument(      "--outsample",     dest="outsample",
                      help="Output samplings file [default: %(default)s]",
                      action="store", type=str, default=None) 
@@ -304,7 +300,7 @@ def parse(pyrat):
   pyrat.inputs.maxdepth   = user.maxdepth
   pyrat.inputs.raygrid    = user.raygrid
   # System:
-  pyrat.inputs.rstar = user.rstar
+  pyrat.inputs.rstar      = user.rstar
   # Output files:
   pyrat.inputs.outspec     = user.outspec
   pyrat.inputs.outsample   = user.outsample
@@ -339,7 +335,9 @@ def checkinputs(pyrat):
   pyratdir = os.path.dirname(os.path.realpath(__file__))
 
   # Check that input files exist:
-  if not os.path.isfile(inputs.atmfile):
+  if inputs.atmfile is None:
+    pt.error("Undefined atmospheric file (atmfile).", pyrat.log)
+  elif not os.path.isfile(inputs.atmfile):
     pt.error("atmfile: '{:s}' does not exist.".format(inputs.atmfile),
              pyrat.log)
   pyrat.atmfile = inputs.atmfile
@@ -372,8 +370,10 @@ def checkinputs(pyrat):
     pyrat.ex.extfile = os.path.realpath(inputs.extfile)
 
   # Check spectrum arguments:
-  pyrat.spec.wnunits = inputs.wnunits  # Accept units
-  pyrat.spec.wlunits = inputs.wlunits
+  pyrat.spec.wnunits = pt.defaultp(inputs.wnunits, "cm",
+         "wnunits input variable defaulted to '{:s}'.", pyrat.wlog, pyrat.log)
+  pyrat.spec.wlunits = pt.defaultp(inputs.wlunits, "um",
+         "wlunits input variable defaulted to '{:s}'.", pyrat.wlog, pyrat.log)
 
   pyrat.spec.wllow = pt.getparam(inputs.wllow, pyrat.spec.wlunits)
   isgreater(pyrat.spec.wllow, "um", 0, False,
@@ -406,19 +406,22 @@ def checkinputs(pyrat):
                format(wnhigh, wnunits), pyrat.log)
     pyrat.spec.wnhigh = wnhigh / pt.u(wnunits)
 
-  if inputs.wnstep is None:
-    pt.error("Wavenumber sampling step must (wnstep) be defined.", pyrat.log)
-  if len(inputs.wnstep.split()) == 2:
-    wnunits = inputs.wnstep.split()[1]
+  wnstep = pt.defaultp(inputs.wnstep, "1.0 cm",
+     "Input wavenumber sampling step (wnstep) defaulted to '{:s}'.",
+     pyrat.wlog, pyrat.log)
+  if len(wnstep.split()) == 2:
+    wnunits = wnstep.split()[1]
   else:
     wnunits = pyrat.spec.wnunits
-  wnstep = float(inputs.wnstep.split()[0])
-  if inputs.wnstep is None or wnstep <= 0:
+  wnstep = float(wnstep.split()[0])
+  if wnstep <= 0:
     pt.error("Wavenumber sampling step ({:.2e} {:s}-1) must be be > 0.".
              format(wnstep, wnunits), pyrat.log)
   pyrat.spec.wnstep = wnstep / pt.u(wnunits)
 
-  pyrat.spec.wnosamp = pt.getparam(inputs.wnosamp, "none", integer=True)
+  pyrat.spec.wnosamp = pt.defaultp(inputs.wnosamp, 2160,
+     "Input wavenumber oversampling factor (wnosamp) defaulted to {:d}.",
+     pyrat.wlog, pyrat.log)
   isgreater(pyrat.spec.wnosamp, "none", 1, False,
             "Wavenumber oversampling factor ({:d}) must be >= 1.")
 
@@ -558,17 +561,25 @@ def checkinputs(pyrat):
   isgreater(pyrat.od.maxdepth, "none", 0, False,
             "Maximum optical-depth limit ({:g}) must be >= 0.0")
 
-  # Check system arguments:
-  pyrat.rstar = pt.getparam(inputs.rstar, pyrat.radunits)
-  isgreater(pyrat.rstar, "cm", 0, True,
-            "Stellar radius ({:.4e} cm) must be > 0.")
-
   # Accept ray-path argument:
   pyrat.od.path  = inputs.path
+  if pyrat.od.path is None:
+    pt.error("Undefined observing geometry (path).  Select between 'transit' "
+             "or 'eclipse'.", pyrat.log)
   # Accept output files:
-  pyrat.outspec     = inputs.outspec    
-  pyrat.outsample   = inputs.outsample  
+  pyrat.outspec = pt.defaultp(inputs.outspec, 'outpsec.dat',
+     "Output spectrum filename (outspec) defaulted to '{:s}'.",
+     pyrat.wlog, pyrat.log)
+
+  pyrat.outsample   = inputs.outsample
   pyrat.outmaxdepth = inputs.outmaxdepth
+
+  # Check system arguments:
+  pyrat.rstar = pt.getparam(inputs.rstar, pyrat.radunits)
+  if pyrat.od.path == "transit" and pyrat.rstar is None:
+    pt.error("Undefined stellar radius (rstar).",  pyrat.log)
+  isgreater(pyrat.rstar, "cm", 0, True,
+            "Stellar radius ({:.4e} cm) must be > 0.")
 
   # Check raygrid:
   if inputs.raygrid[0] != 0:
@@ -583,8 +594,8 @@ def checkinputs(pyrat):
 
   # Number of processors:
   pyrat.nproc = pt.getparam(inputs.nproc, "none", integer=True)
-  isgreater(pyrat.spec.wnosamp, "none", 1, False,
-            "Wavenumber oversampling factor ({:d}) must be >= 1.")
+  isgreater(pyrat.nproc, "none", 1, False,
+            "The number of processors ({:d}) must be >= 1.")
   if pyrat.nproc >= mpr.cpu_count():
     pt.warning("The number of requested CPUs ({:d}) is >= than the number "
       "of available CPUs ({:d}).  Enforced nproc to {:d}.".format(pyrat.nproc,
