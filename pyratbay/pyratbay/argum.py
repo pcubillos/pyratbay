@@ -163,7 +163,7 @@ def parse(wlog):
 
 def checkpressure(args, log, wlog):
   """
-  Check that input arguments to calculate the pressure are set.
+  Check the input arguments to calculate the pressure profile.
   """
   args.punits = pt.defaultp(args.punits, "bar",
     "punits input variable defaulted to '{:s}'.",   wlog, log)
@@ -177,7 +177,7 @@ def checkpressure(args, log, wlog):
 
 def checktemp(args, log, wlog):
   """
-  Check that the input arguments to calculate the temperature are set.
+  Check the input arguments to calculate the temperature profile.
   """
   if args.tmodel is None:
     pt.error("Undefined temperature model (tmodel).", log)
@@ -207,6 +207,37 @@ def checktemp(args, log, wlog):
                "temperature model (1).".format(len(args.tparams)), log)
 
 
+def checkatm(args, log, wlog):
+  """
+  Check the input arguments to calculate the atmospheric model.
+  """
+  if args.runmode != "atmosphere" and args.atmfile is None:
+    pt.error("Undefined atmospheric file (atmfile).", log)
+  if args.species is None:
+    pt.error("Undefined atmospheric species list (species).", log)
+  args.punits = pt.defaultp(args.punits, "bar",
+    "punits input variable defaulted to '{:s}'.",   wlog, log)
+
+  # Uniform-abundances profile:
+  if args.uniform is not None:
+    if len(args.uniform) != len(args.species):
+      pt.error("Number of uniform abundances ({:d}) does not match the "
+               "number of species ({:d}).".
+                format(len(args.uniform), len(args.species)), log)
+    return
+  else:  # TEA abundances:
+    if args.elements is None:
+      pt.error("Undefined atmospheric atomic-composition list (elements).", log)
+    args.solar = pt.defaultp(args.solar, rootdir+"/inputs/AsplundEtal2009.txt",
+      "Solar-abundances file defaulted to '{:s}'.", wlog, log)
+    args.atomicfile = pt.defaultp(args.atomicfile, "./atomic.tea",
+      "Atomic-composition file defaulted to '{:s}'.", wlog, log)
+    args.patm = pt.defaultp(args.patm, "./preatm.tea",
+      "Pre-atmospheric file defaulted to '{:s}'.", wlog, log)
+    args.xsolar = pt.defaultp(args.xsolar, 1.0,
+      "Solar-metallicity scaling factor defaulted to {:.2f}.", wlog, log)
+
+
 def checkinputs(args, log, wlog):
   """
   Check that the input values (args) make sense.
@@ -220,28 +251,6 @@ def checkinputs(args, log, wlog):
     pt.error("Invalid runmode ({:s}).  Must select one from: 'tli', 'pt', "
         "'atmosphere', 'opacity', 'spectrum', 'mcmc'.".format(args.runmode))
 
-
-
-  #if args.atmfile is None:
-  #  pt.error("Undefined atmospheric file (atmfile).", log)
-
-  # If atmfile does not exist:
-  #if args.species is None:
-  #  pt.error("Undefined atmospheric species list (species).", log)
-
-  # If TEA:
-  #if args.elements is None:
-  #  pt.error("Undefined atmospheric atomic-composition list (elements).", log)
-  #if args.atomicfile is None:
-  #  pt.error("Undefined atomic-composition file (atomicfile).", log)
-
-  # If TEA:
-  args.solar = pt.defaultp(args.solar, rootdir+"/inputs/AsplundEtal2009.txt",
-    "Solar-abundances file defaulted to '{:s}'.", wlog, log)
-  args.patm = pt.defaultp(args.patm, "./preatm.tea",
-    "Pre-atmospheric file defaulted to '{:s}'.", wlog, log)
-  args.xsolar = pt.defaultp(args.xsolar, 1.0,
-    "Solar-metallicity scaling factor defaulted to {:.2f}.", wlog, log)
 
   # Stellar model:
   if args.starspec is not None:

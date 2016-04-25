@@ -1576,5 +1576,16 @@ specific calculations are needed.
 Changed pgrav to gplanet.
 Implemented isfile() in ptools.py that also handles the None case.
 
+
+*****  Mo 25. Apr 08:42:02 CEST 2016  *****
+
+Re-implemented atmospheric model calculation in pbay driver.
+Moved code to calcatm() subroutine.
+Moved specific input checks to checkatm() in argum.py.
+If previously existing, the atmospheric model is recalculated
+(including PT recalculation) only if specifically requested
+(runmode=atmosphere). Else, the existing atmospheric file will be
+read.
+
 *****
 

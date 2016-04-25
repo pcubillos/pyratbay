@@ -56,7 +56,7 @@ def run(argv, main=False):
     return
 
   # Compute pressure-temperature profile:
-  if args.runmode == "pt" or pt.isfile(args.atmfile) != 1:
+  if args.runmode in ["pt", "atmosphere"] or pt.isfile(args.atmfile) != 1:
     pressure    = calcp(args, log, wlog)
     temperature = calct(args, pressure, log, wlog)
 
@@ -68,41 +68,14 @@ def run(argv, main=False):
     plt.savefig("tmp_pt.pdf")
     return pressure, temperature
 
-  # Make the atmospheric file:
-  atmfile  = args.atmfile
-  uniform  = args.uniform
-  species  = args.species
-  elements = args.elements
-  solar    = args.solar
-  atomicfile = args.atomicfile
-  xsolar   = pt.getparam(args.xsolar, "none")
-  patm     = args.patm
+  # Compute or read atmospheric abundances:
+  if args.runmode == "atmosphere" or pt.isfile(args.atmfile) != 1:
+    calcatm(args, pressure, temperature, log, wlog)
 
-  # Uniform-abundances profile:
-  if uniform is not None:
-    if len(uniform) != len(species):
-      pt.error("Number of uniform abundances ({:d}) does not match the "
-        "number of species ({:d}).".format(len(uniform), len(species)), log)
-    ma.uniform(atmfile, pressure, temp, species, uniform, punits)
-    pt.msg(1, "\nProduced uniform-abundances atmospheric file: '{:s}'.".
-              format(atmfile), log)
-  # TEA abundances:
-  else:
-    pt.msg(1, "\nRun TEA to compute thermochemical-equilibrium "
-              "abundances.", log)
-    swap   = None
-    ma.makeatomic(solar, atomicfile, xsolar, swap)
-    # Pre-atmospheric file:
-    ma.makepreatm(pressure/pt.u(punits), temp, atomicfile,
-                  elements, species, patm)
-    # Run TEA:
-    mc.makeTEA(abun_file=atomicfile)
-    proc = subprocess.Popen([TEAdir + "tea/runatm.py", patm, "TEA"])
-    proc.communicate()
-    # Reformat the TEA output into the pyrat format:
-    ma.TEA2pyrat("./TEA/TEA/results/TEA.tea", atmfile)
-    shutil.rmtree("TEA")
-    pt.msg(1, "Produced TEA atmospheric file: '{:s}'.".format(atmfile), log)
+  # Return atmospheric model if requested:
+  if args.runmode == "atmosphere":
+    species, pressure, temperature, abundances = ma.readatm(args.atmfile)
+    return pressure, temperature, abundances
 
   # Compute an opacity grid:
   pass
@@ -122,7 +95,7 @@ def run(argv, main=False):
   # Post processing:
   pass
 
-  log.close()
+  #log.close()
 
 
 def calcp(args, log, wlog):
@@ -167,4 +140,35 @@ def calct(args, pressure, log, wlog):
 
   return temperature
 
+
+def calcatm(args, pressure, temperature, log, wlog):
+  """
+  Compute atmospheric abundaces for given pressure, temperature profile:
+  """
+  ar.checkatm(args, log, wlog)
+
+  # Uniform-abundances profile:
+  if args.uniform is not None:
+    ma.uniform(args.atmfile, pressure, temperature, args.species,
+               args.uniform, args.punits)
+    pt.msg(1, "\nProduced uniform-abundances atmospheric file: '{:s}'.".
+              format(args.atmfile), log)
+  # TEA abundances:
+  else:
+    pt.msg(1, "\nRun TEA to compute thermochemical-equilibrium "
+              "abundances.", log)
+    xsolar = pt.getparam(args.xsolar, "none")
+    swap   = None
+    ma.makeatomic(args.solar, args.atomicfile, xsolar, swap)
+    # Pre-atmospheric file:
+    ma.makepreatm(pressure/pt.u(args.punits), temperature, args.atomicfile,
+                  args.elements, args.species, args.patm)
+    # Run TEA:
+    mc.makeTEA(abun_file=args.atomicfile)
+    proc = subprocess.Popen([TEAdir + "tea/runatm.py", args.patm, "TEA"])
+    proc.communicate()
+    # Reformat the TEA output into the pyrat format:
+    ma.TEA2pyrat("./TEA/TEA/results/TEA.tea", args.atmfile)
+    shutil.rmtree("TEA")
+    pt.msg(1, "Produced TEA atmospheric file: '{:s}'.".format(args.atmfile), log)
 
