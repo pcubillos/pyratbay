@@ -189,7 +189,7 @@ class Spectrum(object):
 
 class Atm(object):
   def __init__(self):
-    self.abundance = None      # Abundance by mass (True) or number (False)
+    self.abundance = None      # Input abundance units ('mass' or 'number')
     self.runits    = 'km'      # Input radius units
     self.punits    = 'bar'     # Input pressure units
     self.tunits    = 'kelvin'  # Input temperature units

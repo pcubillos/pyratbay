@@ -137,6 +137,11 @@ def makeradius(pyrat):
              "nor from the top down.", pyrat.log)
 
   if atm_in.radius is None:
+    # Check that the gravity variable is exists:
+    if pyrat.gplanet is None:
+      pt.error("Undefined atmospheric gravity (gplanet).  Either include the "
+        "radius profile in the atmospheric file or set the surface gravity.",
+        pyrat.log)
     # Calculate the radius array using the hydostatic-equilibrium equation:
     atm_in.radius = ra.hydro_equilibrium(atm_in.press, atm_in.temp, atm_in.mm,
                        pyrat.gplanet, pyrat.pressurebase, pyrat.radiusbase)

@@ -1605,3 +1605,14 @@ Advances status of #17.
 
 *****
 
+*****  Di 26. Apr 09:04:02 CEST 2016  *****
+TAGS: :PYRAT:
+
+Added warnings for punits, radunits, isotope's species not in atm,
+tstep.
+Added errors for tmin, tmax, and gplanet.
+Added option to input radius profile in reloadatm().
+Advances status of #17.
+
+*****
+

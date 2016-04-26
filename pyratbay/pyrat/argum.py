@@ -110,8 +110,8 @@ def parse(pyrat):
                           "Use atmospheric file value]",
                      action="store", type=str, default=None)
   group.add_argument("--radunits",      dest="radunits",
-                     help="Radius (user) units [default: %(default)s]",
-                     action="store", type=str, default='km')
+                     help="Radius (user) units [default: km]",
+                     action="store", type=str, default=None)
   group.add_argument("--plow",          dest="plow",
                      help="Atmospheric pressure low boundary (overrides "
                           "radius high boundary) [default: %(default)s]",
@@ -124,8 +124,8 @@ def parse(pyrat):
                      help="Number of atmospheric layers [default: %(default)s]",
                      action="store", type=np.int, default=100)
   group.add_argument("--punits",        dest="punits",
-                     help="Pressure (user) units [default: %(default)s]",
-                     action="store", type=str, default='bar')
+                     help="Pressure (user) units [default: bar]",
+                     action="store", type=str, default=None)
   group.add_argument("--radiusbase",    dest="radiusbase",
                      help="Planetary radius base level (in radunits)",
                      action="store", type=str, default=None)
@@ -138,17 +138,15 @@ def parse(pyrat):
   # Extinction options:
   group = parser.add_argument_group("Extinction Calculations Options")
   group.add_argument("--tmin",          dest="tmin",
-                     help="Minimum temperature to sample/consider "
-                     " in Kelvin [default: %(default)s]",
+                     help="Minimum extinction-coefficient grid temperature.",
                      action="store", type=np.double, default=None)
   group.add_argument("--tmax",          dest="tmax",
-                     help="Maximum temperature to sample/consider "
-                     "in Kelvin [default: %(default)s]",
+                     help="Maximum extinction-coefficient grid temperature.",
                      action="store", type=np.double, default=None)
   group.add_argument("--tstep",          dest="tstep",
                      help="Temperature sample step interval "
-                     "in Kelvin [default: %(default)s]",
-                     action="store", type=np.double, default=100.0)
+                     "in Kelvin [default: 100]",
+                     action="store", type=np.double, default=None)
   group.add_argument("--ethresh",       dest="ethresh",
                      help="Extinction-coefficient threshold "
                           "[default: %(default)s]",  # FINDME: Explain better
@@ -210,9 +208,8 @@ def parse(pyrat):
                           "'eclipse'.",
                      action="store", type=str, default=None)
   group.add_argument("--maxdepth",       dest="maxdepth",
-                     help="Maximum optical depth to calculate [default: "
-                          "%(default)s]",
-                     action="store", type=np.double, default=10)
+                     help="Maximum optical depth to calculate [default: 10]",
+                     action="store", type=np.double, default=None)
   group.add_argument("--raygrid",   dest="raygrid",
                      help="Grid of incident angles (degrees).",
                      action="store", type=pt.parray, default="0 20 40 60 80")
@@ -426,8 +423,10 @@ def checkinputs(pyrat):
             "Wavenumber oversampling factor ({:d}) must be >= 1.")
 
   # Check atmospheric layers arguments:
-  pyrat.radunits = inputs.radunits
-  pyrat.punits   = inputs.punits
+  pyrat.punits = pt.defaultp(inputs.punits, "bar",
+     "Input pressure units (punits) defaulted to '{:s}'.", pyrat.wlog, pyrat.log)
+  pyrat.radunits = pt.defaultp(inputs.radunits, "km",
+     "Input radius units (punits) defaulted to '{:s}'.", pyrat.wlog, pyrat.log)
 
   # Pressure boundaries:
   pyrat.phigh = pt.getparam(inputs.phigh, pyrat.punits)
@@ -504,23 +503,33 @@ def checkinputs(pyrat):
   pyrat.ex.ethresh = pt.getparam(inputs.ethresh, "none")
   isgreater(pyrat.ex.ethresh, "none", 0, True,
                "Extinction-coefficient threshold ({:g}) must be positive.")
-  if inputs.tmin is not None:
-    pyrat.ex.tmin  = pt.getparam(inputs.tmin, "kelvin")
-    isgreater(pyrat.ex.tmin,  "kelvin", 0, True,
-               "Minimum temperature sample ({:g} K) must be positive.")
-  if inputs.tmax is not None:
-    pyrat.ex.tmax  = pt.getparam(inputs.tmax, "kelvin")
-    isgreater(pyrat.ex.tmax,  "kelvin", 0, True,
-               "Maximum temperature sample ({:g} K) must be positive.")
-  if inputs.tstep is not None:
-    pyrat.ex.tstep = pt.getparam(inputs.tstep, 'kelvin')
-    isgreater(pyrat.ex.tstep, "kelvin", 0, True,
-               "Temperature sample step interval ({:g} K) must be positive.")
+  if pyrat.ex.extfile is not None:
+    if inputs.tmin is None:
+      pt.error("Undefined lower boundary (tmin) of temperature grid for "
+               "extinction-coefficient grid.", pyrat.log)
+    else:
+      pyrat.ex.tmin = pt.getparam(inputs.tmin, "kelvin")
+      isgreater(pyrat.ex.tmin,  "kelvin", 0, True,
+                 "Minimum temperature sample ({:g} K) must be positive.")
+    if inputs.tmax is None:
+      pt.error("Undefined upper boundary (tmax) of temperature grid for "
+               "extinction-coefficient grid.", pyrat.log)
+    else:
+      pyrat.ex.tmax  = pt.getparam(inputs.tmax, "kelvin")
+      isgreater(pyrat.ex.tmax,  "kelvin", 0, True,
+                 "Maximum temperature sample ({:g} K) must be positive.")
 
-  if pyrat.ex.tmax is not None and pyrat.ex.tmin is not None:
+    pyrat.ex.tstep = pt.defaultp(inputs.tstep, 100,
+      "Extinction-coefficient grid's temperature sampling interval (tstep) "
+      "defaulted to {:g} K.", pyrat.wlog, pyrat.log)
+
+    isgreater(pyrat.ex.tstep, "kelvin", 0, True,
+              "Temperature sample step interval ({:g} K) must be positive.")
+
     if pyrat.ex.tmax <= pyrat.ex.tmin:
-      pt.error("Maximum temperature limit ({:g} K) must be > minimum "
-       "temperature ({:g} K).".format(pyrat.ex.tmax, pyrat.ex.tmin), pyrat.log)
+      pt.error("Extinction-coefficient grid's maximum temperature ({:g} K) "
+               "must be > minimum temperature ({:g} K).".
+                format(pyrat.ex.tmax, pyrat.ex.tmin), pyrat.log)
 
   # Check haze models:
   if inputs.hazes is not None:
@@ -557,7 +566,8 @@ def checkinputs(pyrat):
       pyrat.alkali.nmodels += 1
 
   # Check optical-depth arguments:
-  pyrat.od.maxdepth = pt.getparam(inputs.maxdepth, "none")
+  pyrat.od.maxdepth = pt.defaultp(inputs.maxdepth, 10.0,
+   "Maximum optical-depth (maxdepth) defaulted to {:g}.", pyrat.wlog, pyrat.log)
   isgreater(pyrat.od.maxdepth, "none", 0, False,
             "Maximum optical-depth limit ({:g}) must be >= 0.0")
 
@@ -566,6 +576,10 @@ def checkinputs(pyrat):
   if pyrat.od.path is None:
     pt.error("Undefined observing geometry (path).  Select between 'transit' "
              "or 'eclipse'.", pyrat.log)
+  elif pyrat.od.path not in ['transit', 'eclipse']:
+    pt.error("Unknown observing geometry (path = {:s}).  Select between "
+             "'transit' or 'eclipse'.".format(pyrat.od.path), pyrat.log)
+
   # Accept output files:
   pyrat.outspec = pt.defaultp(inputs.outspec, 'outpsec.dat',
      "Output spectrum filename (outspec) defaulted to '{:s}'.",

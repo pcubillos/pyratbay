@@ -72,6 +72,10 @@ def getkeywords(pyrat, atmfile):
                pyrat.log)
 
   iline = atmfile.tell()  # Current line position
+  if atm.punits is None:
+    atm.punits = pt.defaultp(atm.punits, 'bar',
+       "Undefined pressure units in the input atmospheric file.  Assumed to "
+       "be '{:s}'.", pyrat.wlog, pyrat.log)
 
   pt.msg(pyrat.verb-4, "Molecules list: \n{:s}".
                        format(str(pyrat.mol.name)),  pyrat.log, 2)
@@ -230,20 +234,17 @@ def getprofiles(pyrat, atmfile):
     atm.d[:,i] = IGLdensity(atm.q[:,i], pyrat.mol.mass[i], atm.press, atm.temp)
 
 
-def reloadatm(pyrat, temp, abund):
+def reloadatm(pyrat, temp, abund, radius=None):
   """
   Parameters:
   -----------
   pyrat: A Pyrat instance
   temp: 1D float ndarray
-     Array with a temperature profile in Kelvin (from top to bottom layer).
+     Layer's temperature profile (in Kelvin) sorted from top to bottom.
   abund: 2D float ndarray
-     Array with the species mole mixing ratio profiles [nlayers, nmol].
-
-  Notes:
-  ------
-  This code assumes that the input temperature and abundances correspond
-  to the final sampling of the atmospheric layers (after makeradius).
+     Species mole mixing ratio profiles [nlayers, nmol].
+  radius: 1D float ndarray
+     Layer's altitude profile (in cm), same order as temp.
   """
   # Check that the dimensions match:
   if np.size(temp) != np.size(pyrat.atm.temp):
@@ -267,10 +268,17 @@ def reloadatm(pyrat, temp, abund):
     pyrat.atm.d[:,i] = IGLdensity(pyrat.atm.q[:,i], pyrat.mol.mass[i],
                                   pyrat.atm.press,  pyrat.atm.temp)
 
-  # Radius:
-  pyrat.atm.radius = hydro_equilibrium(pyrat.atm.press,    pyrat.atm.temp,
-                                       pyrat.atm.mm,       pyrat.gplanet,
-                                       pyrat.pressurebase, pyrat.radiusbase)
+  # Take radius if provided, else use hydrostatic-equilibrium equation:
+  if radius is not None:
+    pyrat.atm.radius = radius
+  else:
+    # Check that the gravity variable is exists:
+    if pyrat.gplanet is None:
+      pt.error("Undefined atmospheric gravity (gplanet).  Either provide "
+        "the radius profile for the layers or the surface gravity.", pyrat.log)
+    pyrat.atm.radius = hydro_equilibrium(pyrat.atm.press,    pyrat.atm.temp,
+                                         pyrat.atm.mm,       pyrat.gplanet,
+                                         pyrat.pressurebase, pyrat.radiusbase)
 
   # Partition function:
   for i in np.arange(pyrat.lt.ndb):           # For each Database

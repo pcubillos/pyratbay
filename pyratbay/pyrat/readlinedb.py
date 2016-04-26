@@ -289,10 +289,10 @@ def setimol(pyrat):
       pyrat.iso.imol[i] = np.where(pyrat.mol.symbol == molname)[0]
   pt.msg(pyrat.verb-4, "Isotope's molecule indices:\n"
                        "  {:s}".format(str(pyrat.iso.imol)), pyrat.log, 2)
-
-
-  # uniques = np.unique(pyrat.iso.imol)
-  # pyrat.iso.iext = np.zeros(pyrat.iso.niso, np.int)
-  # for i in np.arange(pyrat.iso.niso):
-  #   pyrat.iso.iext[i] = np.where(uniques == pyrat.iso.imol[i])[0][0]
+  # Report missing species:
+  imiss = np.unique(pyrat.iso.dbindex[np.where(pyrat.iso.imol < 0)])
+  for i in imiss:
+    pt.warning("The species '{:s}' for isotopes {:s} is not present in the "
+               "atmosphere.".format(pyrat.lt.db[i].molname,
+        pyrat.iso.name[np.where(pyrat.iso.dbindex == i)]), pyrat.wlog, pyrat.log)
 
