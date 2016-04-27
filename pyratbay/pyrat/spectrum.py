@@ -58,6 +58,9 @@ def intensity(pyrat):
   Calculate the intensity spectrum [units] for eclipse geometry.
   """
   pt.msg(pyrat.verb-4, "Computing intensity spectrum.", pyrat.log, 2)
+  if pyrat.quadrature is not None:
+    pyrat.raygrid = np.arccos(np.sqrt(pyrat.qnodes))
+
   # Allocate intensity array:
   pyrat.nangles = len(pyrat.raygrid)
   pyrat.spec.intensity = np.empty((pyrat.nangles, pyrat.spec.nwave), np.double)
@@ -87,6 +90,7 @@ def intensity(pyrat):
       i += 1
     j += 1
 
+
 def flux(pyrat):
   """
   Calculate the hemisphere-integrated flux spectrum [units] for eclipse
@@ -97,6 +101,8 @@ def flux(pyrat):
   boundaries[1:pyrat.nangles] = 0.5 * (pyrat.raygrid[:-1] + pyrat.raygrid[1:])
   area = np.pi * (np.sin(boundaries[1:])**2 - np.sin(boundaries[:-1])**2)
 
+  if pyrat.quadrature is not None:
+    area = pyrat.qweights * np.pi
   # Weight-sum the intensities to get the flux:
   pyrat.spec.spectrum[:] = np.sum(pyrat.spec.intensity *
                                   np.expand_dims(area,1), axis=0)

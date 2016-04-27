@@ -2,6 +2,7 @@ import sys, os
 import argparse, ConfigParser
 import numpy as np
 import scipy.constants as sc
+import scipy.special   as ss
 import multiprocessing as mpr
 
 from .. import tools     as pt
@@ -211,8 +212,14 @@ def parse(pyrat):
                      help="Maximum optical depth to calculate [default: 10]",
                      action="store", type=np.double, default=None)
   group.add_argument("--raygrid",   dest="raygrid",
-                     help="Grid of incident angles (degrees).",
-                     action="store", type=pt.parray, default="0 20 40 60 80")
+                     help="Array of incident angles over day-side hemisphere "
+                          "for intensity integration. Values in degrees between "
+                          "0 and 90 [default: 0, 20, 40, 60, 80]",
+                     action="store", type=pt.parray, default=None)
+  group.add_argument("--quadrature",   dest="quadrature",
+                     help="Polynomial degree for quadrature-integration over"
+                          "the day-side hemisphere.",
+                     action="store", type=int, default=None)
   # System options:
   group = parser.add_argument_group("System Options")
   group.add_argument(      "--rstar",       dest="rstar",
@@ -296,6 +303,7 @@ def parse(pyrat):
   pyrat.inputs.path       = user.path
   pyrat.inputs.maxdepth   = user.maxdepth
   pyrat.inputs.raygrid    = user.raygrid
+  pyrat.inputs.quadrature = user.quadrature
   # System:
   pyrat.inputs.rstar      = user.rstar
   # Output files:
@@ -354,7 +362,7 @@ def checkinputs(pyrat):
   pyrat.cs.files = pyrat.inputs.csfile
 
   if inputs.molfile is None: # Set default
-    inputs.molfile = pyratdir + "/../../inputs/molecules.dat"
+    inputs.molfile = os.path.realpath(pyratdir + "/../../inputs/molecules.dat")
   if not os.path.isfile(inputs.molfile):
     pt.error("Molecular-data file: '{:s}' does not exist.".
              format(inputs.molfile), pyrat.log)
@@ -596,15 +604,25 @@ def checkinputs(pyrat):
             "Stellar radius ({:.4e} cm) must be > 0.")
 
   # Check raygrid:
-  if inputs.raygrid[0] != 0:
-    pt.error("First angle in raygrid must be 0.0 (normal to surface).",
-             pyrat.log)
-  if np.any(inputs.raygrid < 0):
-    pt.error("raygrid angles must lie between 0 and 90 deg.", pyrat.log)
-  if np.any(np.ediff1d(inputs.raygrid) <= 0):
-    pt.error("raygrid angles must be monotonically increasing.", pyrat.log)
-  # Store raygrid values in radians:
-  pyrat.raygrid = inputs.raygrid * sc.degree
+  if pyrat.od.path == "eclipse" and inputs.raygrid is None:
+    raygrid = pt.defaultp(inputs.raygrid, np.array([0, 20, 40, 60, 80.]),
+       "Defaulted raygrid to {:s}.", pyrat.wlog, pyrat.log)
+    if raygrid[0] != 0:
+      pt.error("First angle in raygrid must be 0.0 (normal to surface).",
+               pyrat.log)
+    if np.any(raygrid < 0):
+      pt.error("raygrid angles must lie between 0 and 90 deg.", pyrat.log)
+    if np.any(np.ediff1d(raygrid) <= 0):
+      pt.error("raygrid angles must be monotonically increasing.", pyrat.log)
+    # Store raygrid values in radians:
+    pyrat.raygrid = raygrid * sc.degree
+
+  # Gauss quadrature integration variables:
+  pyrat.quadrature = inputs.quadrature
+  if inputs.quadrature is not None:
+    qnodes, qweights = ss.p_roots(inputs.quadrature)
+    pyrat.qnodes   = 0.5*(qnodes + 1.0)
+    pyrat.qweights = 0.5 * qweights
 
   # Number of processors:
   pyrat.nproc = pt.getparam(inputs.nproc, "none", integer=True)
