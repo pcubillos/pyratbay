@@ -1644,3 +1644,8 @@ Renamed pressurebase as refpressure.
 This resolves #17.
 
 *****
+
+Wrote pbay/driver code to handle opacity, mcmc, and spectrum cases.
+
+*****
+

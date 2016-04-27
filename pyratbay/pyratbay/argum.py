@@ -114,7 +114,7 @@ def parse(wlog):
            help="Species mole mixing ratios for uniform-abundance "
                 "profiles [default: %(default)s]",
            action="store", type=pt.parray, default=None)
-  # VAriables for TEA calculations:
+  # Variables for TEA calculations:
   group.add_argument("--solar",      dest="solar",
            help="Solar composition file (solar atomic composition) "
                 "[default: %(default)s]",
@@ -134,7 +134,10 @@ def parse(wlog):
            help="Atmospheric elements for the pre-atmospheric file "
                 "[default: %(default)s]",
            action="store", type=pt.parray, default=None)
-
+  # Extinction-coefficient variables:
+  group.add_argument("--extfile",    dest="extfile",
+           help="Extinction-coefficient table file.",
+           action="store", type=str,       default=None)
   # Output files options:
   group = parser.add_argument_group("Output files")
   group.add_argument("--logfile", dest="logfile",

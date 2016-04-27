@@ -78,13 +78,26 @@ def run(argv, main=False):
     species, pressure, temperature, abundances = ma.readatm(args.atmfile)
     return pressure, temperature, abundances
 
+  # Check status of extinction-coefficient file if necessary:
+  if args.runmode != "spectrum" and pt.isfile(args.extfile) == -1:
+    pt.error("Unspecified extinction-coefficient file (extfile).", log)
+
+  # Force to re-calculate extinction-coefficient file if requested:
+  if args.runmode == "opacity":
+    # FINDME: os.remove(args.extfile)
+    pass
+
+  # Initialize pyrat object:
+  py = pyrat.init(args.cfile)
+
+  # Compute spectrum and return pyrat object if requested:
   if args.runmode == "spectrum":
-    py = pyrat.init(args.cfile)
     py = pyrat.run(py)
     return py
 
-  # Compute an opacity grid:
-  pass
+  # End if necessary:
+  if args.runmode == "opacity":
+    return
 
   # Full Pyrat Bay run:
   if False:
