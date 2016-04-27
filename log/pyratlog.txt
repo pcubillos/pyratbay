@@ -1655,3 +1655,9 @@ Changed the section of lineread confing files from 'lineread' to
 
 *****
 
+Bumped Pyrat Bay to version 0.0.22.
+Bumped Pyrat to version 1.2.13.
+Bumped Lineread to version 6.4.5.
+
+*****
+
