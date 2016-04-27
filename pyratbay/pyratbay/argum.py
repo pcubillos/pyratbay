@@ -32,6 +32,7 @@ def parse(wlog):
     pt.error("Invalid configuration file: '{:s}', no [pyrat] section.".
              format(args.cfile))
 
+  cfile = args.cfile
   defaults = dict(config.items("pyrat"))
 
   # Inherit options from cparser:
@@ -53,7 +54,10 @@ def parse(wlog):
            help="Pressure at the botom of the atmosphere (punits) "
                 "[default: 100 bar]",
            action="store", type=str, default=None)
-
+  group.add_argument("--runmode", dest="runmode",
+           help="Run mode flag.  Select from: 'tli', 'pt', 'atmosphere', "
+                "'opacity', 'spectrum', 'mcmc'.",
+           action="store", type=str, default=None)
   # Physical variables of the system:
   group = parser.add_argument_group("Physical parameters")
   group.add_argument("--radunits",  dest="radunits",
@@ -74,7 +78,7 @@ def parse(wlog):
   group.add_argument("--tint",    dest="tint",
            help="Planetary internal temperature (kelvin) [default: 100].",
            action="store", type=np.double, default=None)
-  group.add_argument("--pgrav",    dest="pgrav",
+  group.add_argument("--gplanet",    dest="gplanet",
            help="Planetary surface gravity (cm s-2).",
            action="store", type=np.double, default=None)
   group.add_argument("--rplanet", dest="rplanet",
@@ -110,7 +114,7 @@ def parse(wlog):
            help="Species mole mixing ratios for uniform-abundance "
                 "profiles [default: %(default)s]",
            action="store", type=pt.parray, default=None)
-  # VAriables for TEA calculations:
+  # Variables for TEA calculations:
   group.add_argument("--solar",      dest="solar",
            help="Solar composition file (solar atomic composition) "
                 "[default: %(default)s]",
@@ -130,7 +134,10 @@ def parse(wlog):
            help="Atmospheric elements for the pre-atmospheric file "
                 "[default: %(default)s]",
            action="store", type=pt.parray, default=None)
-
+  # Extinction-coefficient variables:
+  group.add_argument("--extfile",    dest="extfile",
+           help="Extinction-coefficient table file.",
+           action="store", type=str,       default=None)
   # Output files options:
   group = parser.add_argument_group("Output files")
   group.add_argument("--logfile", dest="logfile",
@@ -139,10 +146,13 @@ def parse(wlog):
 
   parser.set_defaults(**defaults)
   args = parser.parse_args(remaining_argv)
+  args.cfile = cfile
 
   # Get logfile:
   if args.logfile is not None:
     log = open(args.logfile, "w")
+  else:
+    log = None
 
   # Welcome message:
   pt.msg(1, "{:s}\n"
@@ -155,16 +165,13 @@ def parse(wlog):
 
   return args, log
 
-def checkinputs(args, log, wlog):
-  """
-  Check that the input values (args) make sense.
-  """
-  # Throw warnings for the default inputs:
-  args.punits = pt.defaultp(args.punits, "bar",
-                   "punits input variable defaulted to '{:s}'.",   wlog, log)
-  args.radunits = pt.defaultp(args.radunits, "cm",
-                   "radunits input variable defaulted to '{:s}'.", wlog, log)
 
+def checkpressure(args, log, wlog):
+  """
+  Check the input arguments to calculate the pressure profile.
+  """
+  args.punits = pt.defaultp(args.punits, "bar",
+    "punits input variable defaulted to '{:s}'.",   wlog, log)
   args.nlayers = pt.defaultp(args.nlayers, 100,
     "Number of atmospheric-model layers defaulted to {:d}.",         wlog, log)
   args.ptop = pt.defaultp(args.ptop, "1e-8 bar",
@@ -172,40 +179,83 @@ def checkinputs(args, log, wlog):
   args.pbottom = pt.defaultp(args.pbottom, "100 bar",
     "Atmospheric-model bottom-pressure boundary defaulted to {:s}.", wlog, log)
 
-  # Throw errors for undefined required inputs:
-  if args.rstar is None:
-    pt.error("Undefined stellar radius (rstar).", log)
-  if args.tstar is None:
-    pt.error("Undefined stellar temperature (tstar).", log)
-  if args.smaxis is None:
-    pt.error("Undefined orbital semi-major axis (smaxis).", log)
-  if args.pgrav is None:
-    pt.error("Undefined planetary surface gravity (pgrav).", log)
+
+def checktemp(args, log, wlog):
+  """
+  Check the input arguments to calculate the temperature profile.
+  """
   if args.tmodel is None:
     pt.error("Undefined temperature model (tmodel).", log)
   if args.tparams is None:
     pt.error("Undefined temperature-model parameters (tparams).", log)
-  if args.atmfile is None:
+
+  if args.tmodel == "TCEA":
+    if len(args.tparams) != 5:
+      pt.error("Wrong number of parameters ({:d}) for the TCEA temperature "
+               "model (5).".format(len(args.tparams)), log)
+    if args.rstar is None:
+      pt.error("Undefined stellar radius (rstar).", log)
+    if args.tstar is None:
+      pt.error("Undefined stellar temperature (tstar).", log)
+    if args.smaxis is None:
+      pt.error("Undefined orbital semi-major axis (smaxis).", log)
+    if args.gplanet is None:
+      pt.error("Undefined planetary surface gravity (gplanet).", log)
+    args.tint = pt.defaultp(args.tint, "100",
+      "Planetary internal temperature defaulted to {:s} K.", wlog, log)
+    args.radunits = pt.defaultp(args.radunits, "cm",
+                   "radunits input variable defaulted to '{:s}'.", wlog, log)
+
+  elif args.tmodel == "isothermal":
+    if len(args.tparams) != 1:
+      pt.error("Wrong number of parameters ({:d}) for the isothermal "
+               "temperature model (1).".format(len(args.tparams)), log)
+
+
+def checkatm(args, log, wlog):
+  """
+  Check the input arguments to calculate the atmospheric model.
+  """
+  if args.runmode != "atmosphere" and args.atmfile is None:
     pt.error("Undefined atmospheric file (atmfile).", log)
-  # If atmfile does not exist:
   if args.species is None:
     pt.error("Undefined atmospheric species list (species).", log)
-  # If TEA:
-  if args.elements is None:
-    pt.error("Undefined atmospheric atomic-composition list (elements).", log)
-  if args.atomicfile is None:
-    pt.error("Undefined atomic-composition file (atomicfile).", log)
+  args.punits = pt.defaultp(args.punits, "bar",
+    "punits input variable defaulted to '{:s}'.",   wlog, log)
 
-  # If TCEA:
-  args.tint  = pt.defaultp(args.tint, "100",
-    "Planetary internal temperature defaulted to {:s} K.", wlog, log)
-  # If TEA:
-  args.solar = pt.defaultp(args.solar, rootdir+"/inputs/AsplundEtal2009.txt",
-    "Solar-abundances file defaulted to '{:s}'.", wlog, log)
-  args.patm = pt.defaultp(args.patm, "./preatm.tea",
-    "Pre-atmospheric file defaulted to '{:s}'.", wlog, log)
-  args.xsolar = pt.defaultp(args.xsolar, 1.0,
-    "Solar-metallicity scaling factor defaulted to {:.2f}.", wlog, log)
+  # Uniform-abundances profile:
+  if args.uniform is not None:
+    if len(args.uniform) != len(args.species):
+      pt.error("Number of uniform abundances ({:d}) does not match the "
+               "number of species ({:d}).".
+                format(len(args.uniform), len(args.species)), log)
+    return
+  else:  # TEA abundances:
+    if args.elements is None:
+      pt.error("Undefined atmospheric atomic-composition list (elements).", log)
+    args.solar = pt.defaultp(args.solar, rootdir+"/inputs/AsplundEtal2009.txt",
+      "Solar-abundances file defaulted to '{:s}'.", wlog, log)
+    args.atomicfile = pt.defaultp(args.atomicfile, "./atomic.tea",
+      "Atomic-composition file defaulted to '{:s}'.", wlog, log)
+    args.patm = pt.defaultp(args.patm, "./preatm.tea",
+      "Pre-atmospheric file defaulted to '{:s}'.", wlog, log)
+    args.xsolar = pt.defaultp(args.xsolar, 1.0,
+      "Solar-metallicity scaling factor defaulted to {:.2f}.", wlog, log)
+
+
+def checkinputs(args, log, wlog):
+  """
+  Check that the input values (args) make sense.
+  """
+
+  if args.runmode is None:
+    pt.error("Undefined run mode (runmode), select from: 'tli', 'pt', "
+             "'atmosphere', 'opacity', 'spectrum', 'mcmc'.", log)
+  if args.runmode not in ['tli', 'pt', 'atmosphere', 'opacity',
+                          'spectrum', 'mcmc']:
+    pt.error("Invalid runmode ({:s}).  Must select one from: 'tli', 'pt', "
+        "'atmosphere', 'opacity', 'spectrum', 'mcmc'.".format(args.runmode))
+
 
   # Stellar model:
   if args.starspec is not None:
@@ -216,16 +266,7 @@ def checkinputs(args, log, wlog):
     # Check gstar exists
     pass
   else:
-    pt.error("Stellar spectrum model was not specified.")
+    #pt.error("Stellar spectrum model was not specified.")
+    pass
 
-  # FINDME: Add logical checks
-  if args.tmodel == "TCEA":
-    if len(args.tparams) != 5:
-      pt.error("Wrong number of parameters ({:d}) for the TCEA temperature "
-               "model (5).".format(len(args.tparams)), log)
-  elif arg.stmodel == "isothermal":
-    if len(args.tparams) != 1:
-      pt.error("Wrong number of parameters ({:d}) for the isothermal "
-               "temperature model (1).".format(len(args.tparams)), log)
 
-  # If TCEA: check rstar, tstar, tint, pgrav, smaxis, tparams

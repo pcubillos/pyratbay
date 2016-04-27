@@ -50,17 +50,16 @@ def getkeywords(pyrat, atmfile):
     elif line == '' or line.startswith('#'):
       pass
 
-    # Radius, pressure, and temperature units of atm file:
+    # Radius, pressure, temperature, and abundance units of atm file:
     elif line == '@PRESSURE':
       atm.punits = atmfile.readline().strip()
     elif line == '@RADIUS':
       atm.runits = atmfile.readline().strip()
     elif line == '@TEMPERATURE':
       atm.tunits = atmfile.readline().strip()
-
     # Abundance by mass or number:
     elif line == '@ABUNDANCE':
-      atm.abundance = atmfile.readline().strip() == "mass"
+      atm.qunits = atmfile.readline().strip()
 
     # Read in molecules:
     elif line == "@SPECIES":
@@ -72,15 +71,21 @@ def getkeywords(pyrat, atmfile):
                pyrat.log)
 
   iline = atmfile.tell()  # Current line position
+  atm.qunits = pt.defaultp(atm.qunits, 'number',
+       "Undefined abundance units in the input atmospheric file.  Assumed to "
+       "be '{:s}'.", pyrat.wlog, pyrat.log)
+  atm.punits = pt.defaultp(atm.punits, 'barye',
+       "Undefined pressure units in the input atmospheric file.  Assumed to "
+       "be '{:s}'.", pyrat.wlog, pyrat.log)
 
-  pt.msg(pyrat.verb-4, "Molecules list: \n{:s}".
-                       format(str(pyrat.mol.name)),  pyrat.log, 2)
-  if atm.abundance:
-    txt = ["mass", "mass"]
+  pt.msg(pyrat.verb-4, "Species list: \n  {:s}".
+                       format(str(pyrat.mol.name)),  pyrat.log, 2, si=4)
+  if atm.qunits == "number":
+    txt = "volume"
   else:
-    txt = ["number", "volume"]
-    pt.msg(pyrat.verb-4, "Abundances are given by {:s} ({:s} mixing ratio).".
-           format(*txt), pyrat.log, 2)
+    txt = "mass"
+  pt.msg(pyrat.verb-4, "Abundances are given by {:s} ({:s} mixing ratio).".
+           format(atm.qunits, txt), pyrat.log, 2)
   pt.msg(pyrat.verb-4, "Unit factors: radius: {:s},  pressure: {:s},  "
     "temperature: {:s}".format(atm.runits, atm.punits, atm.tunits), pyrat.log,2)
   pt.msg(pyrat.verb-6, "Data starting position {:d}".format(iline), pyrat.log,2)
@@ -92,6 +97,8 @@ def getconstants(pyrat):
   Set molecules constant values (ID, mass, radius).
   """
   # Read file with molecular info:
+  pt.msg(pyrat.verb-4, "Taking species constant parameters from: '{:s}'.".
+         format(pyrat.molfile), pyrat.log, 2)
   molfile = open(pyrat.molfile, "r")
  
   # Skip comment and blank lines:
@@ -175,6 +182,9 @@ def getprofiles(pyrat, atmfile):
 
   # Initialize arrays:
   if rad:
+    atm.runits = pt.defaultp(atm.runits, 'cm',
+       "Undefined radius units in the input atmospheric file.  Assumed to "
+       "be '{:s}'.", pyrat.wlog, pyrat.log)
     atm.radius = np.zeros( atm.nlayers)
   atm.press    = np.zeros( atm.nlayers)
   atm.temp     = np.zeros( atm.nlayers)
@@ -217,7 +227,7 @@ def getprofiles(pyrat, atmfile):
   atm.temp   *= pt.u(atm.tunits)
 
   # Store the abundance as volume mixing ratio:
-  if atm.abundance:
+  if atm.qunits == "mass":
     atm.q = atm.q * atm.mm / pyrat.mol.mass
 
   # Calculate the mean molecular mass per layer:
@@ -230,20 +240,17 @@ def getprofiles(pyrat, atmfile):
     atm.d[:,i] = IGLdensity(atm.q[:,i], pyrat.mol.mass[i], atm.press, atm.temp)
 
 
-def reloadatm(pyrat, temp, abund):
+def reloadatm(pyrat, temp, abund, radius=None):
   """
   Parameters:
   -----------
   pyrat: A Pyrat instance
   temp: 1D float ndarray
-     Array with a temperature profile in Kelvin (from top to bottom layer).
+     Layer's temperature profile (in Kelvin) sorted from top to bottom.
   abund: 2D float ndarray
-     Array with the species mole mixing ratio profiles [nlayers, nmol].
-
-  Notes:
-  ------
-  This code assumes that the input temperature and abundances correspond
-  to the final sampling of the atmospheric layers (after makeradius).
+     Species mole mixing ratio profiles [nlayers, nmol].
+  radius: 1D float ndarray
+     Layer's altitude profile (in cm), same order as temp.
   """
   # Check that the dimensions match:
   if np.size(temp) != np.size(pyrat.atm.temp):
@@ -267,10 +274,23 @@ def reloadatm(pyrat, temp, abund):
     pyrat.atm.d[:,i] = IGLdensity(pyrat.atm.q[:,i], pyrat.mol.mass[i],
                                   pyrat.atm.press,  pyrat.atm.temp)
 
-  # Radius:
-  pyrat.atm.radius = hydro_equilibrium(pyrat.atm.press,    pyrat.atm.temp,
-                                       pyrat.atm.mm,       pyrat.surfgravity,
-                                       pyrat.pressurebase, pyrat.radiusbase)
+  # Take radius if provided, else use hydrostatic-equilibrium equation:
+  if radius is not None:
+    pyrat.atm.radius = radius
+  else:
+    # Check that the gravity variable is exists:
+    if pyrat.gplanet is None:
+      pt.error("Undefined atmospheric gravity (gplanet).  Either provide "
+        "the radius profile for the layers or the surface gravity.", pyrat.log)
+    if pyrat.rplanet is None:
+      pt.error("Undefined reference planetary radius (rplanet). Either provide "
+        "the radius profile for the layers or the rplanet.", pyrat.log)
+    if pyrat.refpressure is None:
+      pt.error("Undefined reference pressure level (refpressure). Either "
+         "provide the radius profile for the layers or refpressure.", pyrat.log)
+    pyrat.atm.radius = hydro_equilibrium(pyrat.atm.press,   pyrat.atm.temp,
+                                         pyrat.atm.mm,      pyrat.gplanet,
+                                         pyrat.refpressure, pyrat.rplanet)
 
   # Partition function:
   for i in np.arange(pyrat.lt.ndb):           # For each Database

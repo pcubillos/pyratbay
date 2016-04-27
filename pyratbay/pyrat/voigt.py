@@ -69,10 +69,12 @@ def widthlimits(pyrat):
   # Calculate Doppler-width boundaries:
   if pyrat.voigt.Dmin is None:
     pyrat.voigt.Dmin = np.sqrt(2.0*pc.k*tmin/(mmax*pc.amu)) * numin / pc.c
+
   if pyrat.voigt.Dmax is None:
     pyrat.voigt.Dmax = np.sqrt(2.0*pc.k*tmax/(mmin*pc.amu)) * numax / pc.c
-  pt.msg(pyrat.verb-4, "Doppler width limits: {:.3g} -- {:.3g}  cm-1".
-                      format(pyrat.voigt.Dmin, pyrat.voigt.Dmax), pyrat.log, 2)
+  pt.msg(pyrat.verb-4, "Doppler width limits: {:.1e} -- {:.1e} cm-1  "
+                       "({:d} samples).".format(pyrat.voigt.Dmin,
+                       pyrat.voigt.Dmax, pyrat.voigt.nDop), pyrat.log, 2)
 
   # Calculate Lorentz-width boundaries:
   if pyrat.voigt.Lmin is None:
@@ -81,8 +83,9 @@ def widthlimits(pyrat):
   if pyrat.voigt.Lmax is None:
     pyrat.voigt.Lmax = (np.sqrt(2/(np.pi * pc.k * tmin *pc.amu)) * pmax / pc.c *
                         cmax**2.0 * np.sqrt(1.0/mmin + 1.0/2.01588))
-  pt.msg(pyrat.verb-4, "Lorentz width limits: {:.3g} -- {:.3g}  cm-1".
-                     format(pyrat.voigt.Lmin, pyrat.voigt.Lmax), pyrat.log, 2)
+  pt.msg(pyrat.verb-4, "Lorentz width limits: {:.1e} -- {:.1e} cm-1  "
+                       "({:d} samples).".format(pyrat.voigt.Lmin,
+                       pyrat.voigt.Lmax, pyrat.voigt.nLor), pyrat.log, 2)
 
 
 def calcvoigt(pyrat):

@@ -53,7 +53,8 @@ def writeatm(atmfile, pressure, temperature, species, abundances,
           "".join(["{:<14s}".format(mol) for mol in species]) + "\n")
   f.write("@DATA\n")
 
-  # For each layer write TEA data
+  pressure = pressure/pt.u(punits)
+  # Write data for each layer:
   nlayers = len(pressure)
   for i in np.arange(nlayers):
     # Pressure, and Temperature:

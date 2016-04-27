@@ -1565,3 +1565,99 @@ Bumped Pyrat Bay to version 0.0.21.
 
 *****
 
+Added runmode argument to pyratbay to choose the running mode.
+
+*****
+
+Re-implemented pressure/temperature calculation in pbay driver.
+Now, it looks more like a driver, calling subroutines instead of
+having all the code in place.  Input checks are also checked only when
+specific calculations are needed.
+Changed pgrav to gplanet.
+Implemented isfile() in ptools.py that also handles the None case.
+
+
+*****  Mo 25. Apr 08:42:02 CEST 2016  *****
+
+Re-implemented atmospheric model calculation in pbay driver.
+Moved code to calcatm() subroutine.
+Moved specific input checks to checkatm() in argum.py.
+If previously existing, the atmospheric model is recalculated
+(including PT recalculation) only if specifically requested
+(runmode=atmosphere). Else, the existing atmospheric file will be
+read.
+
+*****
+
+Adapted pbay driver to run pyrat spectrum calculator.
+Replaced surfgravity by gplanet in pyrat code.
+
+*****
+
+Fixed bug in makeatm.py writeatm() where the pressures were not
+save in the correct units.
+
+*****
+
+Added warnings for wlunits, wnunits, wnstep, wnosamp, outspec.
+Added error for path.
+Advances status of #17.
+
+
+*****  Di 26. Apr 09:04:02 CEST 2016  *****
+
+Added warnings for punits, radunits, isotope's species not in atm,
+tstep.
+Added errors for tmin, tmax, and gplanet.
+Added option to input radius profile in reloadatm().
+Advances status of #17.
+
+
+*****  Mi 27. Apr 13:54:35 CEST 2016  *****
+
+Implemented Gauss-quadrature option to integrate the intensity
+over the day-side hemisphere.
+Added warning for raygrid default.
+
+I get similar flux values with quadrature integration than before.
+Typical differences range from 0.1% - 0.5% for test case.  Quadrature
+seems to give more weight towards the substellar point.
+The higher the degree the smaller the difference, which makes me think
+that the previos integration scheeme is more correct (though this is
+just a conjecture).
+The other issue is that I still don't know how to get weights for
+custom nodes (pretty sure there's something out there that does this).
+
+*****
+
+Changed abundance units in atm object from abundance to qunits.
+Added warnings for undefined/defaulted pressure, abundance, and radius
+units in the atmospheric file (temperature is always kelvin).
+Added message to show molfile path.
+
+*****
+
+Added warnings for defaulted Voigt input arguments
+vextent, Dmin, Dmax, Lmin, Lmax, Ndop, nLor, DLratio.
+Renamed radiusbase to rplanet.
+Renamed pressurebase as refpressure.
+This resolves #17.
+
+*****
+
+Wrote pbay/driver code to handle opacity, mcmc, and spectrum cases.
+
+*****
+
+Adapted pbay driver to handle lineread runs if requested.
+Changed the section of lineread confing files from 'lineread' to
+'pyrat'.  Now the whole code uses the same section name.
+
+*****
+
+Bumped Pyrat Bay to version 0.0.22.
+Bumped Pyrat to version 1.2.13.
+Bumped Lineread to version 6.4.5.
+
+*****
+

@@ -29,8 +29,8 @@ class Pyrat(object):
     self.outmaxdepth = None  # 
     self.outspec     = None  # Modulation/Flux spectrum file
     # Photometric surface:
-    self.pressurebase = None  # Pressure reference level
-    self.radiusbase   = None  # Radius reference level
+    self.refpressure = None  # Pressure reference level
+    self.rplanet     = None  # Radius reference level
     # Atmosphere:
     self.radunits = None  # Radius physical units
     self.radstep  = None  # Radius sampling interval
@@ -42,8 +42,8 @@ class Pyrat(object):
     # Geometry:
     self.raygrid  = None  # Array of incident ray-angles
     # Physical parameters:
-    self.rstar       = None  # Stellar radius
-    self.surfgravity = None  # Planetary surface gravity
+    self.rstar    = None  # Stellar radius
+    self.gplanet  = None  # Planetary surface gravity
     # Other:
     self.verb       = None  # Verbosity level
     self.logfile    = None  # Pyrat log filename
@@ -89,9 +89,7 @@ class Inputs(object):
     self.pstep  = None
     self.punits = None
     # Base radius-pressure level:
-    self.zeroradius  = None
-    self.zerpress    = None
-    self.surfgravity = None
+    self.gplanet    = None
     # Voigt profile arguments:
     self.Vextent    = None
     self.DLratio    = None
@@ -191,9 +189,9 @@ class Spectrum(object):
 
 class Atm(object):
   def __init__(self):
-    self.abundance = None      # Abundance by mass (True) or number (False)
-    self.runits    = 'km'      # Input radius units
-    self.punits    = 'bar'     # Input pressure units
+    self.qunits    = None      # Input abundance units ('mass' or 'number')
+    self.runits    = None      # Input radius units
+    self.punits    = None     # Input pressure units
     self.tunits    = 'kelvin'  # Input temperature units
     self.nlayers   = None      # Number of layers
     self.radius    = None      # Radius array (cm)            [layers]
@@ -205,8 +203,7 @@ class Atm(object):
 
   def info(self):
     pt.msg(1, "Atmospheric model info:")
-    pt.msg(1, "Abundance input units:   {:s} mixing ratio.".
-               format("Mass" if self.abundance else "Molecular"),    indent=2)
+    pt.msg(1, "Abundance input units:   {:s}.".format(self.qunits),  indent=2)
     pt.msg(1, "Radius input units:      {:s}.".format(self.runits),  indent=2)
     pt.msg(1, "Pressure input units:    {:s}.".format(self.punits),  indent=2)
     pt.msg(1, "Temperature input units: {:s}.".format(self.tunits),  indent=2)
@@ -222,7 +219,7 @@ class Atm(object):
     pt.msg(1, "Mean M. Mass (amu): [{:8.4f}, {:8.4f}, ..., {:8.4f}].".
               format(self.mm[0],     self.mm[1],     self.mm[-1]),   indent=4)
     pt.msg(1, "Number of species: {:d}".format(len(self.q[0])),      indent=2)
-    pt.msg(1, "Abundances:", indent=2)
+    pt.msg(1, "Abundances (mole mixing ratio):", indent=2)
     for i in np.arange(len(self.q[0])):
       pt.msg(1, "Species [{: 2d}]:       [{:.2e}, {:.2e}, ..., {:.2e}].".
                 format(i, self.q[0,i], self.q[1,i], self.q[-1,i]), indent=4)

@@ -2,7 +2,8 @@
 # Pyrat Bay is open-source software under the FINDME license.
 
 __all__ = ["parray", "msg", "warning", "error", "defaultp", "getparam",
-           "binsearch", "pprint", "divisors", "u", "unpack", "sep"]
+           "binsearch", "pprint", "divisors", "u", "unpack", "sep",
+           "isfile"]
 
 import sys, os
 import traceback
@@ -371,3 +372,27 @@ def getparam(param, units, integer=False):
     return int(value)
 
   return value
+
+
+def isfile(path):
+  """
+  Check whether a path is a regular file.
+
+  Parameters
+  ----------
+  path:  String
+    Path to check.
+
+  Returns
+  -------
+  status: Integer
+    If path is None, return -1.
+    If path is not a regular file, return 0.
+    If path is a regular file, return 1.
+  """
+  # None exception:
+  if path is None:
+    return -1
+
+  # Regular file or not:
+  return os.path.isfile(path)
