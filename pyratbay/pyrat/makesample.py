@@ -104,14 +104,6 @@ def makeradius(pyrat):
   atm.punits = atm_in.punits
   atm.runits = atm_in.runits
 
-  # Atmopsheric reference pressure-radius level:
-  pt.msg(pyrat.verb-4, "Reference pressure: {:.3e} {:s}.".
-          format(pyrat.pressurebase/pt.u(pyrat.punits), pyrat.punits),
-         pyrat.log,   2)
-  pt.msg(pyrat.verb-4, "Reference radius: {:8g} {:s}.".
-          format(pyrat.radiusbase/pt.u(pyrat.radunits), pyrat.radunits),
-         pyrat.log, 2)
-
   # FINDME: move this to readatm
   # Pressure limits from the atmospheric file:
   pt.msg(pyrat.verb-4, "Atmospheric file pressure limits: {:.2e}--{:.2e} {:s}.".
@@ -148,9 +140,24 @@ def makeradius(pyrat):
       pt.error("Undefined atmospheric gravity (gplanet).  Either include the "
         "radius profile in the atmospheric file or set the surface gravity.",
         pyrat.log)
-    # Calculate the radius array using the hydostatic-equilibrium equation:
+    if pyrat.rplanet is None:
+      pt.error("Undefined reference planetary radius (rplanet). Either include "
+        "the radius profile in the atmospheric file or set rplanet.", pyrat.log)
+    if pyrat.refpressure is None:
+      pt.error("Undefined reference pressure level (refpressure). Either "
+        "include the radius profile in the atmospheric file or set refpress.",
+        pyrat.log)
+    # Atmopsheric reference pressure-radius level:
+    pt.msg(pyrat.verb-4, "Reference pressure: {:.3e} {:s}.".
+           format(pyrat.refpressure/pt.u(pyrat.punits), pyrat.punits),
+           pyrat.log,   2)
+    pt.msg(pyrat.verb-4, "Reference radius: {:8g} {:s}.".
+           format(pyrat.rplanet/pt.u(pyrat.radunits), pyrat.radunits),
+           pyrat.log, 2)
+
+    # Calculate the radius profile using the hydostatic-equilibrium equation:
     atm_in.radius = ra.hydro_equilibrium(atm_in.press, atm_in.temp, atm_in.mm,
-                       pyrat.gplanet, pyrat.pressurebase, pyrat.radiusbase)
+                       pyrat.gplanet, pyrat.refpressure, pyrat.rplanet)
 
   # Set the interpolating function (for use later):
   radinterp   = sip.interp1d(atm_in.press, atm_in.radius, kind='slinear')

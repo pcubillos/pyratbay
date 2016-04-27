@@ -1637,3 +1637,10 @@ Added message to show molfile path.
 
 *****
 
+Added warnings for defaulted Voigt input arguments
+vextent, Dmin, Dmax, Lmin, Lmax, Ndop, nLor, DLratio.
+Renamed radiusbase to rplanet.
+Renamed pressurebase as refpressure.
+This resolves #17.
+
+*****

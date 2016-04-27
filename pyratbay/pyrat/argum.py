@@ -127,11 +127,12 @@ def parse(pyrat):
   group.add_argument("--punits",        dest="punits",
                      help="Pressure (user) units [default: bar]",
                      action="store", type=str, default=None)
-  group.add_argument("--radiusbase",    dest="radiusbase",
-                     help="Planetary radius base level (in radunits)",
+  group.add_argument("--rplanet",    dest="rplanet",
+                     help="Planetary radius (in radunits)",
                      action="store", type=str, default=None)
-  group.add_argument("--pressurebase",  dest="pressurebase",
-                     help="Planetary pressure base level (in punits)",
+  group.add_argument("--refpressure",  dest="refpressure",
+                     help="Pressure reference level corresponding to rplanet "
+                          "(in punits).",
                      action="store", type=str, default=None)
   group.add_argument("--gplanet",   dest="gplanet",
                      help="Planetaty surface gravity (cm s-2).",
@@ -158,37 +159,35 @@ def parse(pyrat):
   # Voigt-profile options:
   group = parser.add_argument_group("Voigt-profile  Options")
   group.add_argument(      "--vextent",    dest="vextent",
-                     help="Extent of Voigt profile in number of Voigt  "
-                          "widths [default: %(default)s]",
-                     action="store", type=np.double, default=20)
+                     help="Extent of Voigt profile in number of Voigt "
+                          "widths [default: 20]",
+                     action="store", type=np.double, default=None)
   group.add_argument(      "--Dmin",          dest="Dmin",
-                     help="Minimum Doppler width to sample in cm-1 "
-                          "[default: %(default)s]",
-                     action="store", type=np.double, default=1e-3)
+                     help="Minimum Doppler-width to sample in cm-1 "
+                          "[default: 1.0e-03]",
+                     action="store", type=np.double, default=None)
   group.add_argument(      "--Dmax",          dest="Dmax",
-                     help="Maximum Doppler width to sample in cm-1 "
-                          "[default: %(default)s]",
-                     action="store", type=np.double, default=0.25)
+                     help="Maximum Doppler-width to sample in cm-1 "
+                          "[default: 0.25]",
+                     action="store", type=np.double, default=None)
   group.add_argument(      "--nDop",          dest="nDop",
-                     help="Number of Doppler-width samples"
-                          "[default: %(default)s]",
-                     action="store", type=np.int, default=40)
+                     help="Number of Doppler-width samples [default: 40]",
+                     action="store", type=np.int, default=None)
   group.add_argument(      "--Lmin",          dest="Lmin",
                      help="Minimum Lorentz width to sample in cm-1 "
-                          "[default: %(default)s]",
-                     action="store", type=np.double, default=1e-4)
+                          "[default: 1.0e-04]",
+                     action="store", type=np.double, default=None)
   group.add_argument(      "--Lmax",          dest="Lmax",
                      help="Maximum Lorentz width to sample in cm-1 "
-                          "[default: %(default)s]",
-                     action="store", type=np.double, default=10)
+                          "[default: 10.0]",
+                     action="store", type=np.double, default=None)
   group.add_argument(      "--nLor",          dest="nLor",
-                     help="Number of Lorentz-width samples"
-                          "[default: %(default)s]",
-                     action="store", type=np.int, default=40)
+                     help="Number of Lorentz-width samples [default: 40]",
+                     action="store", type=np.int, default=None)
   group.add_argument(      "--DLratio",      dest="DLratio",
                      help="Minimum Doppler/Lorentz-width ratio to re-calculate"
-                          "a Voigt profile [default: %(default)s]",
-                     action="store", type=np.double, default=0.1)
+                          "a Voigt profile [default: 0.1]",
+                     action="store", type=np.double, default=None)
   # Hazes and clouds options:
   group = parser.add_argument_group("Hazes and Clouds Options")
   group.add_argument("--hazes",   dest="hazes",
@@ -277,9 +276,9 @@ def parse(pyrat):
   pyrat.inputs.punits     = user.punits
   pyrat.inputs.nlayers    = user.nlayers
   # Hydrostatic-equilibrium base-level variables:
-  pyrat.inputs.radiusbase   = user.radiusbase
-  pyrat.inputs.pressurebase = user.pressurebase
-  pyrat.inputs.gplanet  = user.gplanet
+  pyrat.inputs.rplanet     = user.rplanet
+  pyrat.inputs.refpressure = user.refpressure
+  pyrat.inputs.gplanet     = user.gplanet
   # Extinction:
   pyrat.inputs.ethresh = user.ethresh
   pyrat.inputs.tmin    = user.tmin
@@ -454,12 +453,12 @@ def checkinputs(pyrat):
   isgreater(pyrat.radstep, "cm", 0, True,
             "Radius step size ({:.2f} cm) must be > 0.")
   # Pressure-radius reference level:
-  pyrat.radiusbase   = pt.getparam(inputs.radiusbase, pyrat.radunits)
-  isgreater(pyrat.radiusbase, "cm",   0, True,
+  pyrat.rplanet = pt.getparam(inputs.rplanet, pyrat.radunits)
+  isgreater(pyrat.rplanet, "cm",   0, True,
             "Planetary radius base ({:.3e} cm) must be > 0.")
-  pyrat.pressurebase = pt.getparam(inputs.pressurebase, pyrat.punits)
-  isgreater(pyrat.pressurebase, "bar", 0, True,
-            "Planetary pressure base ({:8g} bar) must be > 0.")
+  pyrat.refpressure = pt.getparam(inputs.refpressure, pyrat.punits)
+  isgreater(pyrat.refpressure, "bar", 0, True,
+            "Planetary reference pressure level ({:8g} bar) must be > 0.")
   pyrat.gplanet  = pt.getparam(inputs.gplanet,  "none")
   isgreater(pyrat.gplanet, "none", 0, True,
             "Planetary surface gravity ({:.2f} cm s-2) must be > 0.")
@@ -469,14 +468,17 @@ def checkinputs(pyrat):
             "The number of atmospheric layers ({:d}) must be > 0.")
 
   # Check Voigt-profile arguments:
-  pyrat.voigt.extent = pt.getparam(inputs.vextent, "none")
+  pyrat.voigt.extent = pt.defaultp(inputs.vextent, 20,
+     "Input Voigt extent (vextent) defaulted to {:g}.", pyrat.wlog, pyrat.log)
   isgreater(pyrat.voigt.extent, "none", 1, False,
             "Voigt extent ({:g}) must be >= 1.0")
 
   # Doppler width:
-  pyrat.voigt.nDop = pt.getparam(inputs.nDop, "none", integer=True)
+  pyrat.voigt.nDop = pt.defaultp(inputs.nDop, 40,
+       "Number of Doppler-width samples (nDop) defaulted to {:d}.",
+       pyrat.wlog, pyrat.log)
   isgreater(pyrat.voigt.nDop, "none", 1, False,
-            "The number of Doppler samples ({:d}) must be >= 1")
+       "The number of Doppler-width samples ({:d}) must be >= 1")
 
   pyrat.voigt.Dmin = pt.getparam(inputs.Dmin, "none")
   isgreater(pyrat.voigt.Dmin, "none", 0, True, "Dmin ({:g} cm-1) must be > 0.")
@@ -484,14 +486,17 @@ def checkinputs(pyrat):
   pyrat.voigt.Dmax = pt.getparam(inputs.Dmax, "none")
   isgreater(pyrat.voigt.Dmax, "none", 0, True, "Dmax ({:g} cm-1) must be > 0.")
 
-  if pyrat.voigt.Dmax <= pyrat.voigt.Dmin:
-    pt.error("Dmax ({:g} cm-1) must be > Dmin ({:g} cm-1).".format(
-             pyrat.voigt.Dmax, pyrat.voigt.Dmin), pyrat.log)
+  if (pyrat.voigt.Dmin is not None and pyrat.voigt.Dmax is not None and
+      pyrat.voigt.Dmax <= pyrat.voigt.Dmin):
+    pt.error("Dmax ({:g} cm-1) must be > Dmin ({:g} cm-1).".
+             format(pyrat.voigt.Dmax, pyrat.voigt.Dmin), pyrat.log)
 
   # Lorentz width:
-  pyrat.voigt.nLor = pt.getparam(inputs.nLor, "none", integer=True)
+  pyrat.voigt.nLor = pt.defaultp(inputs.nLor, 40,
+       "Number of Lorentz-width samples (nLor) defaulted to {:d}.",
+       pyrat.wlog, pyrat.log)
   isgreater(pyrat.voigt.nLor, "none", 1, False,
-            "The number of Lorentz samples ({:d}) must be >= 1")
+       "The number of Lorentz-width samples ({:d}) must be >= 1")
 
   pyrat.voigt.Lmin = pt.getparam(inputs.Lmin, "none")
   isgreater(pyrat.voigt.Lmin, "none", 0, True, "Lmin ({:g} cm-1) must be > 0.")
@@ -499,13 +504,16 @@ def checkinputs(pyrat):
   pyrat.voigt.Lmax = pt.getparam(inputs.Lmax, "none")
   isgreater(pyrat.voigt.Lmax, "none", 0, True, "Lmax ({:g} cm-1) must be > 0.")
 
-  if pyrat.voigt.Lmax <= pyrat.voigt.Lmin:
-    pt.error("Lmax ({:g} cm-1) must be > Lmin ({:g} cm-1).".format(
-             pyrat.voigt.Lmax, pyrat.voigt.Lmin), pyrat.log)
+  if (pyrat.voigt.Lmin is not None and pyrat.voigt.Lmax is not None and
+      pyrat.voigt.Lmax <= pyrat.voigt.Lmin):
+    pt.error("Lmax ({:g} cm-1) must be > Lmin ({:g} cm-1).".
+             format(pyrat.voigt.Lmax, pyrat.voigt.Lmin), pyrat.log)
 
-  pyrat.voigt.DLratio = pt.getparam(inputs.DLratio, "none")
+  pyrat.voigt.DLratio = pt.defaultp(inputs.DLratio, 0.1,
+     "Doppler/Lorentz-width ratio threshold (DLratio) defaulted to {:g}.",
+     pyrat.wlog, pyrat.log)
   isgreater(pyrat.voigt.DLratio, "none", 0, True,
-            "Doppler/Lorentz width ratio threshold ({:g}) must be > 0.")
+     "Doppler/Lorentz-width ratio threshold ({:g}) must be > 0.")
 
   # Check extinction-coefficient arguments:
   pyrat.ex.ethresh = pt.getparam(inputs.ethresh, "none")
