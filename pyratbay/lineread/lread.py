@@ -39,9 +39,10 @@ def parser(cfile=None):
       pt.error("Configuration file '{:s}' does not exist.".format(cfile))
     config = ConfigParser.SafeConfigParser()
     config.read([cfile])
-    if "lineread" not in config.sections():
-      pt.error("Invalid configuration file: '{:s}'.".format(cfile))
-    defaults = dict(config.items("lineread"))
+    if "pyrat" not in config.sections():
+      pt.error("Invalid configuration file: '{:s}'. The configuration-file "
+               "section must be 'pyrat'.".format(cfile))
+    defaults = dict(config.items("pyrat"))
     # Store these arguments as lists:
     if "dblist" in defaults:
       defaults["dblist"] = defaults["dblist"].split()
@@ -411,4 +412,3 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
                 format(len(wlog), wfile), [], log)
 
   log.close()
-  sys.exit(0)

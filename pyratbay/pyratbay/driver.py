@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 from .. import tools     as pt
 from .. import constants as pc
 from .. import pyrat     as pyrat
+from .. import lineread  as lr
 from .  import argum     as ar
 from .  import makeatm   as ma
 from .  import makecfg   as mc
@@ -50,10 +51,12 @@ def run(argv, main=False):
   args, log = ar.parse(wlog)
   timestamps.append(time.time())
 
-  #ar.checkinputs(args, log, wlog)
-
   # Call lineread package:
   if args.runmode == "tli":
+    parser = lr.parser()
+    lr.makeTLI(parser.dblist,  parser.pflist, parser.dbtype,
+                        parser.outfile, parser.iwl, parser.fwl,
+                        parser.verb)
     return
 
   # Compute pressure-temperature profile:

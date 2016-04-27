@@ -1649,3 +1649,9 @@ Wrote pbay/driver code to handle opacity, mcmc, and spectrum cases.
 
 *****
 
+Adapted pbay driver to handle lineread runs if requested.
+Changed the section of lineread confing files from 'lineread' to
+'pyrat'.  Now the whole code uses the same section name.
+
+*****
+
