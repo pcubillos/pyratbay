@@ -98,19 +98,25 @@ def makeradius(pyrat):
   atm    = pyrat.atm
   atm_in = pyrat.inputs.atm
 
+  # Copy atmospheric-model units:
+  atm.tunits = "kelvin"
+  atm.qunits = atm_in.qunits
+  atm.punits = atm_in.punits
+  atm.runits = atm_in.runits
+
   # Atmopsheric reference pressure-radius level:
-  pt.msg(pyrat.verb-4, "Reference pressure: {:.3e} {:s}".
+  pt.msg(pyrat.verb-4, "Reference pressure: {:.3e} {:s}.".
           format(pyrat.pressurebase/pt.u(pyrat.punits), pyrat.punits),
          pyrat.log,   2)
-  pt.msg(pyrat.verb-4, "Reference radius: {:8g} {:s}".
+  pt.msg(pyrat.verb-4, "Reference radius: {:8g} {:s}.".
           format(pyrat.radiusbase/pt.u(pyrat.radunits), pyrat.radunits),
          pyrat.log, 2)
 
   # FINDME: move this to readatm
   # Pressure limits from the atmospheric file:
-  pt.msg(pyrat.verb-4, "Pressure limits: {:.3e} -- {:.3e} {:s}".
-        format(atm_in.press[ 0]/pt.u(pyrat.punits),
-               atm_in.press[-1]/pt.u(pyrat.punits), pyrat.punits), pyrat.log, 2)
+  pt.msg(pyrat.verb-4, "Atmospheric file pressure limits: {:.2e}--{:.2e} {:s}.".
+     format(atm_in.press[ 0]/pt.u(atm_in.punits),
+            atm_in.press[-1]/pt.u(atm_in.punits), atm_in.punits), pyrat.log, 2)
 
   # Check that the layers are sorted from the top to the bottom of
   #  the atmosphere:
@@ -150,8 +156,9 @@ def makeradius(pyrat):
   radinterp   = sip.interp1d(atm_in.press, atm_in.radius, kind='slinear')
   pressinterp = sip.interp1d(atm_in.radius[::-1],
                              atm_in.press [::-1], kind='slinear')
-  pt.msg(pyrat.verb-4, "Radius array (km) = {:s}".
-                      format(pt.pprint(atm_in.radius/pc.km, 2)), pyrat.log, 2)
+  radstr = '['+', '.join('{:9.2f}'.format(k) for k in atm_in.radius/pc.km)+']'
+  pt.msg(pyrat.verb-4, "Radius array (km) =   {:s}".format(radstr),
+         pyrat.log, 2, si=4)
 
   # Set pressure boundaries:
   if pyrat.radhigh is not None:
@@ -164,21 +171,19 @@ def makeradius(pyrat):
   elif pyrat.plow is None:
     pyrat.plow  = np.amin(atm_in.press)
 
-  pt.msg(pyrat.verb-4, "Pressure user boundaries: {:.3e} -- {:.3e} bar".
+  pt.msg(pyrat.verb-4, "User pressure boundaries: {:.2e}--{:.2e} bar.".
          format(pyrat.plow/pc.bar, pyrat.phigh/pc.bar), pyrat.log, 2)
 
   # Out of bounds errors:
   if pyrat.phigh > np.amax(atm_in.press):
     pt.error("User-defined top layer (p={:.3e} {:s}) is higher than the "
-             "atmospheric-file top layer (p={:.3e} {:s}).".format(
-             pyrat.phigh/pt.u(pyrat.punits), pyrat.punits,
+             "atmospheric-file top layer (p={:.3e} {:s}).".
+             format(pyrat.phigh/pt.u(pyrat.punits), pyrat.punits,
              np.amax(atm_in.press)/pt.u(pyrat.punits), pyrat.punits), pyrat.log)
-
-  # Out of bounds errors:
   if pyrat.plow < np.amin(atm_in.press):
     pt.error("User-defined bottom layer (p={:.3e} {:s}) is lower than the "
-             "atmospheric-file bottom layer (p={:.3e} {:s}).".format(
-             pyrat.plow/pt.u(pyrat.punits), pyrat.punits,
+             "atmospheric-file bottom layer (p={:.3e} {:s}).".
+             format(pyrat.plow/pt.u(pyrat.punits), pyrat.punits,
              np.amin(atm_in.press)/pt.u(pyrat.punits), pyrat.punits), pyrat.log)
 
   # Resample to equispaced log-pressure array if requested:
@@ -233,12 +238,12 @@ def makeradius(pyrat):
   # plt.ylabel("Radius  ({:s})".format(pyrat.radunits))
   # plt.savefig("radpress.png")
 
-  pt.msg(pyrat.verb-4, "Number of model layers: {:d}".format(atm.nlayers),
+  pt.msg(pyrat.verb-4, "Number of model layers: {:d}.".format(atm.nlayers),
          pyrat.log, 2)
   pt.msg(pyrat.verb-4, "Pressure lower/higher boundaries: {:.2e} - {:.2e} "
-                 "{:s}".format(pyrat.plow /pt.u(pyrat.punits),
+                 "{:s}.".format(pyrat.plow /pt.u(pyrat.punits),
                  pyrat.phigh/pt.u(pyrat.punits), pyrat.punits), pyrat.log, 2)
-  pt.msg(pyrat.verb-4, "Radius lower/higher boundaries:   {:.1f} - {:.1f} {:s}".
+  pt.msg(pyrat.verb-4, "Radius lower/higher boundaries: {:.1f} - {:.1f} {:s}.".
        format(np.amin(atm.radius)/pt.u(pyrat.radunits),
        np.amax(atm.radius)/pt.u(pyrat.radunits), pyrat.radunits), pyrat.log, 2)
 

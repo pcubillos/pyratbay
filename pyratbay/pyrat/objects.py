@@ -189,9 +189,9 @@ class Spectrum(object):
 
 class Atm(object):
   def __init__(self):
-    self.abundance = None      # Input abundance units ('mass' or 'number')
-    self.runits    = 'km'      # Input radius units
-    self.punits    = 'bar'     # Input pressure units
+    self.qunits    = None      # Input abundance units ('mass' or 'number')
+    self.runits    = None      # Input radius units
+    self.punits    = None     # Input pressure units
     self.tunits    = 'kelvin'  # Input temperature units
     self.nlayers   = None      # Number of layers
     self.radius    = None      # Radius array (cm)            [layers]

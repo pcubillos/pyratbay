@@ -1630,3 +1630,10 @@ custom nodes (pretty sure there's something out there that does this).
 
 *****
 
+Changed abundance units in atm object from abundance to qunits.
+Added warnings for undefined/defaulted pressure, abundance, and radius
+units in the atmospheric file (temperature is always kelvin).
+Added message to show molfile path.
+
+*****
+
