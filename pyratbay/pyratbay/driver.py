@@ -10,15 +10,18 @@ from .. import tools     as pt
 from .. import constants as pc
 from .. import pyrat     as pyrat
 from .. import lineread  as lr
+
 from .  import argum     as ar
 from .  import makeatm   as ma
 from .  import makecfg   as mc
+from .  import pyratfit  as pf
 
 rootdir = os.path.realpath(os.path.dirname(__file__) + "/../../")
 TEAdir = rootdir + "/modules/TEA/"
+MC3dir = rootdir + "/modules/MCcubed/"
 
-sys.path.append(rootdir + '/pyratbay/lib/')
-import pt as PT
+sys.path.append(MC3dir)
+import MCcubed as mc3
 
 
 def run(argv, main=False):
@@ -55,14 +58,13 @@ def run(argv, main=False):
   if args.runmode == "tli":
     parser = lr.parser()
     lr.makeTLI(parser.dblist,  parser.pflist, parser.dbtype,
-                        parser.outfile, parser.iwl, parser.fwl,
-                        parser.verb)
+               parser.outfile, parser.iwl, parser.fwl, parser.verb)
     return
 
   # Compute pressure-temperature profile:
   if args.runmode in ["pt", "atmosphere"] or pt.isfile(args.atmfile) != 1:
     pressure    = calcp(args, log, wlog)
-    temperature = calct(args, pressure, log, wlog)
+    temperature = ma.calct(args, pressure, log, wlog)
 
   # Return temperature-pressure if requested:
   if args.runmode == "pt":
@@ -102,17 +104,19 @@ def run(argv, main=False):
   if args.runmode == "opacity":
     return
 
+  # Parse retrieval into the Pyrat object:
+  pf.init(py, args, log)
+  return py, args, pf.fit
+
+
   # Full Pyrat Bay run:
   if False:
-    # FINDME: So in principle, I could do the initialization here ...
-    pass
     # Run MCMC:
-    posterior, bestp = mc3.mcmc(data=data, func=func, indparams=indparams,
-                    params=params,
-                    numit=numit, nchains=nchains, walk=walk, grtest=grtest,
-                    leastsq=leastsq, chisqscale=chisqscale,
-                    burnin=burnin, plots=plots, savefile=savefile,
-                    savemodel=savemodel)
+    bestp, uncertp, posterior, Zchain = mc3.mcmc(data=args.data,
+         uncert=args.uncert,
+         func=pf.fit, indparams=indparams, params=params,
+         nsamples=nsamples, nchains=nchains, walk="snooker", grtest=grtest,
+         burnin=burnin, plots=plots, savefile=savefile)
 
   # Post processing:
   pass
@@ -122,7 +126,18 @@ def run(argv, main=False):
 
 def calcp(args, log, wlog):
   """
-  Calculate the pressure profile.
+  Calculate a pressure profile.
+
+  Parameters
+  ----------
+  args:
+  log:
+  wlog:
+
+  Returns
+  -------
+  pressure: 1D float ndarray
+    Atmospheric pressure profile in Barye units.
   """
   # Check pressure inputs:
   ar.checkpressure(args, log, wlog)
@@ -140,27 +155,6 @@ def calcp(args, log, wlog):
   pt.msg(1, "Creating {:d}-layer atmospheric model between {:.1e} "
       "and {:.1e} bar.".format(args.nlayers, ptop/pc.bar, pbottom/pc.bar), log)
   return pressure
-
-
-def calct(args, pressure, log, wlog):
-  """
-  Calculate the temperature profile.
-  """
-  ar.checktemp(args, log, wlog)
-  if args.tmodel == "TCEA":
-    rstar   = pt.getparam(args.rstar, args.radunits)
-    tstar   = pt.getparam(args.tstar, "kelvin")
-    tint    = pt.getparam(args.tint,  "kelvin")
-    gplanet = pt.getparam(args.gplanet, "none")
-    smaxis  = pt.getparam(args.smaxis, args.radunits)
-    temperature = PT.TCEA(args.tparams, pressure,
-                          rstar, tstar, tint, smaxis, gplanet)
-    pt.msg(1, "\nComputed TCEA temperature model.", log)
-  elif args.tmodel == "isothermal":
-    temperature = np.tile(args.tparams[0], args.nlayers)
-    pt.msg(1, "\nComputed isothermal temperature model.", log)
-
-  return temperature
 
 
 def calcatm(args, pressure, temperature, log, wlog):

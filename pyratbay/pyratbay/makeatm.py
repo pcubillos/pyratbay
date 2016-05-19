@@ -1,10 +1,21 @@
 __all__ = ["writeatm", "readatm", "uniform", "makeatomic", "readatomic",
-           "makepreatm", "TEA2pyrat"]
+           "makepreatm", "TEA2pyrat", "calct", "hydro_equilibrium"]
 
 import os
+import sys
 import numpy as np
+import scipy.integrate as si
+import scipy.constants as sc
+import scipy.interpolate as sip
 
-from .. import tools as pt
+from .. import tools     as pt
+from .. import constants as pc
+from .  import argum as ar
+
+rootdir = os.path.realpath(os.path.dirname(__file__) + "/../../")
+sys.path.append(rootdir + "/pyratbay/lib/")
+import pt as PT
+
 
 # Get Pyrat-Bay inputs dir:
 thisdir = os.path.dirname(os.path.realpath(__file__))
@@ -380,3 +391,92 @@ def TEA2pyrat(teafile, atmfile):
   header = "# TEA atmospheric file formatted for Pyrat.\n\n"
 
   writeatm(atmfile, pressure, temperature, species, abundance, punits, header)
+
+
+def calct(args, pressure, log, wlog, eval=True):
+  """
+  Calculate the temperature profile.
+
+  Parameters
+  ----------
+  args:
+  pressure
+  log
+  wlog
+  eval:
+
+  Returns
+  -------
+  temperature: 1D float ndarray
+  """
+  ar.checktemp(args, log, wlog)
+  if args.tmodel == "TCEA":
+    # Parse inputs:
+    rstar   = pt.getparam(args.rstar, args.radunits)
+    tstar   = pt.getparam(args.tstar, "kelvin")
+    tint    = pt.getparam(args.tint,  "kelvin")
+    gplanet = pt.getparam(args.gplanet, "none")
+    smaxis  = pt.getparam(args.smaxis, args.radunits)
+    # Define model and arguments:
+    tmodel = PT.TCEA
+    targs  = [pressure, rstar, tstar, tint, smaxis, gplanet]
+    ntpars = 5
+  elif args.tmodel == "isothermal":
+    #temperature = np.tile(args.tparams[0], args.nlayers)
+    # Define model and arguments:
+    tmodel = np.tile
+    targs  = [args.nlayers]
+    ntpars = 1
+  if eval:
+    temperature = tmodel(args.tparams, *targs)
+    pt.msg(1, "\nComputed {:s} temperature model.".format(args.tmodel), log)
+    return temperature
+  else:
+    return tmodel, targs, ntpars
+
+
+def hydro_equilibrium(pressure, temperature, mu, g, p0=None, r0=None):
+  """
+  Calculate radii using the hydrostatic-equilibrium equation.
+
+  Parameters
+  ----------
+  pressure: 1D float ndarray
+     Atmospheric pressure for each layer (in barye).
+  temperature: 1D float ndarray
+     Atmospheric temperature for each layer (in K).
+  mu: 1D float ndarray
+     Mean molecular mass for each layer (in g mol-1).
+  g: Float
+     Atmospheric gravity (in cm s-2).
+  p0: Float
+     Reference pressure level (in barye) where radius(p0) = r0.
+  r0: Float
+     Reference radius level (in cm) corresponding to p0.
+
+  Returns
+  -------
+  radius: 1D float ndarray
+     Radius for each layer (in cm).
+
+  Notes
+  -----
+  If the reference values (p0 and r0) are not given, set radius = 0.0
+  at the bottom of the matmosphere.
+  """
+  # Apply the HE equation:
+  radius = si.cumtrapz((-pc.k*sc.N_A * temperature) / (mu*g), np.log(pressure))
+  radius = np.concatenate(([0.0], radius))
+
+  # Set absolute radii values if p0 and r0 are provided:
+  if p0 is not None and r0 is not None:
+    # Find current radius at p0:
+    radinterp = sip.interp1d(pressure, radius, kind='slinear')
+    r0_interp = radinterp(p0)
+    # Set: radius(p0) = r0
+    radius += r0 - r0_interp
+  # Set radius = 0 at the bottom of the atmosphere:
+  else:
+    radius -= radius[-1]
+
+  return radius

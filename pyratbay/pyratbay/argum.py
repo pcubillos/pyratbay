@@ -138,6 +138,23 @@ def parse(wlog):
   group.add_argument("--extfile",    dest="extfile",
            help="Extinction-coefficient table file.",
            action="store", type=str,       default=None)
+  # Retrieval variables:
+  group = parser.add_argument_group("Retrieval options")
+  group.add_argument("--data",   dest="data",
+           help="Transit or eclipse depths.",
+           action="store", type=pt.parray, default=None)
+  group.add_argument("--params", dest="params",
+           help="Model-fitting parameters",
+           action="store", type=pt.parray, default=None)
+  group.add_argument("--bulk",   dest="bulk",
+           help="Bulk-abundance atmospheric species",
+           action="store", type=pt.parray, default=None)
+  group.add_argument("--molscale",   dest="molscale",
+           help="Variable-abundance atmospheric species",
+           action="store", type=pt.parray, default=None)
+  group.add_argument("--filter",     dest="filter",
+           help="Waveband filter filenames.",
+           action="store", type=pt.parray, default=None)
   # Output files options:
   group = parser.add_argument_group("Output files")
   group.add_argument("--logfile", dest="logfile",

@@ -1729,4 +1729,28 @@ future if necessary.
 
 Bumped Pyrat to version 1.2.15.
 
+
+*****  Di 17. Mai 10:14:42 CEST 2016  *****
+
+Updated MC3 submodule (snooker multiprocessing code).
+
 *****
+
+Got first running version of pyratfit.py init()
+which creates the required variables to put pyrat in the atmospheric
+retrieval MCMC.
+Added bulk, molscale, filter, and data arguments to pyratbay driver.
+Added error catch for a wrong run mode.
+
+I should probably put the outputs from this function into the pyrat
+object.
+
+*****  Do 19. Mai 15:52:27 CEST 2016  *****
+
+Completed initial working version of pyratfit.py for use in the MCMC.
+Refactored calct() and moved from driver.py to makeatm.py.
+Copied hydro_equilibrium() from pyrat into pyratbay's makeatm.py.
+Added params argument to pyratbay's argum.py.
+
+*****
+
