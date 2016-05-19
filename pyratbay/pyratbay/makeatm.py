@@ -393,6 +393,50 @@ def TEA2pyrat(teafile, atmfile):
   writeatm(atmfile, pressure, temperature, species, abundance, punits, header)
 
 
+def pressure(ptop, pbottom, nlayers, units="bar", log=None):
+  """
+  Compute a log-scale pressure profile.
+
+  Parameters
+  ----------
+  ptop: String or Float
+     Pressure at the top of the atmosphere. If string, may contain the units.
+  pbottom: String or Float
+     Pressure at the bottom of the atmosphere. If string, may contain the units.
+  nlayers: Integer
+     Number of pressure layers.
+  units: String
+     The pressure units (if not defined in ptop, pbottom).
+     Available units are: barye, mbar, pascal, bar (default), and atm.
+  log: File
+     Log file where to write screen outputs.
+
+  Returns
+  -------
+  press: 1D float ndarray
+     The pressure profile in barye units.
+
+  Examples
+  --------
+  >>> import pyratbay.pyratbay.makeatm as ma
+  >>> p1 = ma.pressure(1e-5,       1e2,      100, "bar")
+  >>> p2 = ma.pressure("1e-5 bar", "50 bar",  10)
+  """
+  # Unpack pressure input variables:
+  ptop    = pt.getparam(ptop,    units)
+  pbottom = pt.getparam(pbottom, units)
+  if ptop >= pbottom:
+    pt.error("Bottom-layer pressure ({:.2e} bar) must be higher than the"
+      "top-layer pressure ({:.2e} bar).".format(pbottom/pt.u(units),
+                                                ptop/pt.u(units)), log)
+
+  # Create pressure array in barye (CGS) units:
+  press = np.logspace(np.log10(ptop), np.log10(pbottom), nlayers)
+  pt.msg(1, "Creating {:d}-layer atmospheric model between {:.1e} and "
+     "{:.1e} bar.".format(nlayers, ptop/pt.u(units), pbottom/pt.u(units)), log)
+  return press
+
+
 def calct(args, pressure, log, wlog, eval=True):
   """
   Calculate the temperature profile.

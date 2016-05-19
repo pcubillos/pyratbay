@@ -63,7 +63,9 @@ def run(argv, main=False):
 
   # Compute pressure-temperature profile:
   if args.runmode in ["pt", "atmosphere"] or pt.isfile(args.atmfile) != 1:
-    pressure    = calcp(args, log, wlog)
+    ar.checkpressure(args, log, wlog)  # Check pressure inputs
+    pressure = ma.pressure(args.ptop, args.pbottom, args.nlayers,
+                           args.punits, log)
     temperature = ma.calct(args, pressure, log, wlog)
 
   # Return temperature-pressure if requested:
