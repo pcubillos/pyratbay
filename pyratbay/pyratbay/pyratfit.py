@@ -83,13 +83,13 @@ def init(pyrat):
   if pyrat.od.path == "eclipse":
     pyrat.rprs = pyrat.rplanet/pyrat.rstar
 
-  pyrat.starflux = starflux
-  pyrat.starwn   = starwn
-  pyrat.nfilters = nfilters
+  pyrat.starflux  = starflux
+  pyrat.starwn    = starwn
+  pyrat.nfilters  = nfilters
   pyrat.wnindices = wnindices
-  pyrat.istarfl  = istarfl
-  pyrat.nfilters = nfilters
-  pyrat.bandflux = np.zeros(nfilters)
+  pyrat.istarfl   = istarfl
+  pyrat.nifilter  = nifilter
+  pyrat.bandflux  = np.zeros(nfilters)
 
   # Temperature model:
   pyrat.tmodel, pyrat.targs, ntemp = ma.calct(args, pyrat.atm.press,
@@ -113,10 +113,30 @@ def init(pyrat):
               format(len(args.params), ntemp+nrad+nabund))
 
 
-def fit(params, pyrat):
+def fit(params, pyrat, freeze=False):
   """
   Fitting routine for MCMC.
+
+  Parameters
+  ----------
+  params: 1D float ndarray
+     Array of fitting parameters that define the atmosphere.
+  pyrat: Pyrat object instance
+     Pyrat object.
+  freeze: Bool
+     If True, (after the spectrum calculation) reset the atmospheric
+     temperature, abundance, and radius profiles to the original values.
+     Note that in this case the pyrat object will contain inconsistent
+     values between the atmospheric profiles and the spectrum.
+
+  Returns
+  -------
+  bandflux: 1D float ndarray
+     The waveband-integrated spectrum values.
   """
+
+  if freeze:
+    t0, q0, r0 = pyrat.atm.temp, pyrat.atm.q, pyrat.atm.radius
 
   # Update temperature profile:
   temp = pyrat.tmodel(params[pyrat.itemp], *pyrat.targs)
@@ -144,10 +164,13 @@ def fit(params, pyrat):
   for i in np.arange(pyrat.nfilters):
     # Integrate the spectrum over the filter band:
     if   pyrat.od.path == "transit":
-      pyrat.bflux[i] = w.bandintegrate(spectrum[wnind[i]],
+      bflux[i] = w.bandintegrate(spectrum[wnind[i]],
                           wn[wnind[i]], pyrat.nifilter[i])
     elif pyrat.od.path == "eclipse":
       fluxrat = (spectrum[wnind[i]]/pyrat.istarfl[i]) * pyrat.rprs**2.0
-    pyrat.bflux[i] = w.bandintegrate(fluxrat, wn[wnind[i]], pyrat.nifilter[i])
+      bflux[i] = w.bandintegrate(fluxrat, wn[wnind[i]], pyrat.nifilter[i])
 
+  # Revert changes in the atmospheric profile:
+  if freeze:
+    pyrat.atm.temp, pyrat.atm.q, pyrat.atm.radius = t0, q0, r0
   return pyrat.bandflux

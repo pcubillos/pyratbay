@@ -422,9 +422,8 @@ def calct(args, pressure, log, wlog, eval=True):
     targs  = [pressure, rstar, tstar, tint, smaxis, gplanet]
     ntpars = 5
   elif args.tmodel == "isothermal":
-    #temperature = np.tile(args.tparams[0], args.nlayers)
     # Define model and arguments:
-    tmodel = np.tile
+    tmodel = PT.isothermal
     targs  = [args.nlayers]
     ntpars = 1
   if eval:

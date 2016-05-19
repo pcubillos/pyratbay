@@ -825,6 +825,11 @@ Adapted it to work with the pyratbay code.
 
 *****
 
+Properly tested pyratfit.py's fit().
+Added freeze optional argument to fit(), useful for use in the MCMC.
+Modified calct to use the isothermal() function when requested.
+
+*****
 
 In setup.py: added more comments and commented out the OMP extra
 arguments.
