@@ -820,6 +820,11 @@ In pconstants.py: Bumped Pyrat-Bay revision (now version 0.0.3).
 
 *****
 
+Fixed issues with the isothermal() function.
+Adapted it to work with the pyratbay code.
+
+*****
+
 
 In setup.py: added more comments and commented out the OMP extra
 arguments.
