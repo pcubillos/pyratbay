@@ -151,7 +151,7 @@ def run(pyrat, inputs=None):
     warns.write("\n\n{:s}\n".format(pt.sep).join(pyrat.wlog))
     warns.close()
     # Report it:
-    pt.warning("There was(were) {:d} warning(s) raised.  See '{:s}'.".
-                format(len(pyrat.wlog), wfile), [], pyrat.log)
+    pt.warning(pyrat.verb-2, "There was(were) {:d} warning(s) raised.  "
+        "See '{:s}'.".format(len(pyrat.wlog), wfile), pyrat.log)
   return pyrat
 

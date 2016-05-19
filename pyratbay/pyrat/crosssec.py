@@ -92,11 +92,11 @@ def read(pyrat):
       # Wavenumber range check:
       if (wavenumber[ 0] > pyrat.spec.wn[ 0] or
           wavenumber[-1] < pyrat.spec.wn[-1] ):
-        pt.warning("The wavenumber range [{:.3f}, {:.3f}] cm-1 of the CS "
-            "file:\n  '{:s}',\ndoes not cover the Pyrat's wavenumber "
-            "range: [{:.3f}, {:.3f}] cm-1.".format(
+        pt.warning(pyrat.verb-2, "The wavenumber range [{:.3f}, {:.3f}] cm-1 "
+            "of the CS file:\n  '{:s}',\ndoes not cover the Pyrat's "
+            "wavenumber range: [{:.3f}, {:.3f}] cm-1.".format(
             wavenumber[0], wavenumber[-1], pyrat.cs.files[i],
-            pyrat.spec.wn[ 0], pyrat.spec.wn[-1]), pyrat.wlog, pyrat.log)
+            pyrat.spec.wn[ 0], pyrat.spec.wn[-1]), pyrat.log, pyrat.wlog)
 
       # Add arrays to pyrat:
       pyrat.cs.wavenumber.append(wavenumber)
@@ -183,7 +183,7 @@ def interpolate(pyrat):
   Interpolate the CS absorption to the planetary model temperature and
   wavenumber samples.
   """
-  pt.msg(pyrat.verb, "\nBegin CS interpolation.", pyrat.log)
+  pt.msg(pyrat.verb-3, "\nBegin CS interpolation.", pyrat.log)
 
   # Check temperature boundaries:
   if np.any(pyrat.atm.temp < pyrat.cs.tmin):
@@ -228,6 +228,6 @@ def interpolate(pyrat):
     # Compute CS absorption in cm-1 units (broadcasting):
     pyrat.cs.ec += (cs_absorption * np.expand_dims(dens, axis=1))
 
-    pt.msg(pyrat.verb-40, "CS extinction: {}".format(pyrat.cs.ec[:,0]),
+    pt.msg(pyrat.verb-6, "CS extinction: {}".format(pyrat.cs.ec[:,0]),
            pyrat.log, 2)
-  pt.msg(pyrat.verb, "Done.", pyrat.log)
+  pt.msg(pyrat.verb-3, "Done.", pyrat.log)

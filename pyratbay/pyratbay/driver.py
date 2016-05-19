@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 from .. import tools     as pt
 from .. import constants as pc
-from .. import pyrat     as pyrat
+from .. import pyrat     as py
 from .. import lineread  as lr
 
 from .  import argum     as ar
@@ -93,20 +93,21 @@ def run(argv, main=False):
     pass
 
   # Initialize pyrat object:
-  py = pyrat.init(args.cfile)
+  pyrat = py.init(args.cfile)
 
   # Compute spectrum and return pyrat object if requested:
   if args.runmode == "spectrum":
-    py = pyrat.run(py)
-    return py
+    pyrat = py.run(pyrat)
+    return pyrat
 
   # End if necessary:
   if args.runmode == "opacity":
     return
 
   # Parse retrieval into the Pyrat object:
-  pf.init(py, args, log)
-  return py, args, pf.fit
+  pf.init(pyrat, args, log)
+  pyrat.verb = 0  # Mute pyrat
+  return pyrat, args, pf.fit
 
 
   # Full Pyrat Bay run:
@@ -114,7 +115,7 @@ def run(argv, main=False):
     # Run MCMC:
     bestp, uncertp, posterior, Zchain = mc3.mcmc(data=args.data,
          uncert=args.uncert,
-         func=pf.fit, indparams=indparams, params=params,
+         func=pf.fit, indparams=[pyrat, True], params=params,
          nsamples=nsamples, nchains=nchains, walk="snooker", grtest=grtest,
          burnin=burnin, plots=plots, savefile=savefile)
 

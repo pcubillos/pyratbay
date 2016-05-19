@@ -24,9 +24,9 @@ def makewavenumber(pyrat):
     else:
       spec.wnlow = 1.0 / spec.wlhigh
   elif spec.wlhigh is not None:
-    pt.warning("Both wnlow ({:.2e} cm-1) and wlhigh ({:.2e} cm) were "
-               "defined.  Pyrat will take wnlow and ignore wlhigh.".
-                format(spec.wnlow, spec.wlhigh), pyrat.wlog, pyrat.log)
+    pt.warning(pyrat.verb-2, "Both wnlow ({:.2e} cm-1) and wlhigh ({:.2e} cm) "
+        "were defined.  Pyrat will take wnlow and ignore wlhigh.".
+         format(spec.wnlow, spec.wlhigh), pyrat.log, pyrat.wlog)
 
   # High wavenumber boundary:
   if spec.wnhigh is None:
@@ -36,9 +36,9 @@ def makewavenumber(pyrat):
     else:
       spec.wnhigh = 1.0 / spec.wllow
   elif spec.wllow is not None:
-    pt.warning("Both wnhigh ({:.2e} cm-1) and wllow ({:.2e} cm) were "
-               "defined.  Pyrat will take wnhigh and ignore wllow.".
-                format(spec.wnhigh, spec.wllow), pyrat.wlog, pyrat.log)
+    pt.warning(pyrat.verb-2, "Both wnhigh ({:.2e} cm-1) and wllow ({:.2e} cm) "
+        "were defined.  Pyrat will take wnhigh and ignore wllow.".
+         format(spec.wnhigh, spec.wllow), pyrat.log, pyrat.wlog)
 
   # Consistency check (wnlow < wnhigh):
   if spec.wnlow > spec.wnhigh:
@@ -55,9 +55,10 @@ def makewavenumber(pyrat):
 
   # Re-set final boundary (stay inside given boundaries):
   if spec.wn[-1] != spec.wnhigh:
-    pt.warning("Final wavenumber boundary modified from {:10.4f} cm-1 (input)\n"
-               "                                     to {:10.4f} cm-1 (Pyrat).".
-               format(spec.wnhigh, spec.wn[-1]), pyrat.wlog, pyrat.log)
+    pt.warning(pyrat.verb-2, "Final wavenumber boundary modified from "
+                                               "{:10.4f} cm-1 (input)\n"
+       "                                     to {:10.4f} cm-1 (Pyrat).".
+               format(spec.wnhigh, spec.wn[-1]), pyrat.log, pyrat.wlog)
   # Set the number of spectral samples:
   spec.nwave  = len(spec.wn)
 
@@ -121,8 +122,8 @@ def makeradius(pyrat):
   if   sort:     # Layers are in the correct order
     pass
   elif reverse:  # Layers in reverse order
-    pt.warning("The atmospheric layers are in reversed order (bottom-top).  "
-               "Resorting to be from the top down.", pyrat.wlog, pyrat.log)
+    pt.warning(pyrat.verb-2, "The atmospheric layers are in reversed order "
+     "(bottom-top).  Resorting to be from the top down.", pyrat.log, pyrat.wlog)
     if atm_in.radius is not None:
       atm_in.radius = atm_in.radius[::-1]
     atm_in.press  = atm_in.press [::-1]

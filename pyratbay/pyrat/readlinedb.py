@@ -260,16 +260,16 @@ def checkrange(pyrat, wn_low, wn_high):
   """
   # Print out warning if ranges dont overlap:
   if (wn_low > pyrat.spec.wnhigh) or (wn_high < pyrat.spec.wnlow):
-    pt.warning("TLI wavenumber range ({:.2f} - {:.2f} cm^-1) does not "
-               "overlap with Pyrat wavenumber range ({:.2f} - {:.2f} cm^-1).".
-                format(wn_low, wn_high, pyrat.spec.wnlow, pyrat.spec.wnhigh),
-               pyrat.wlog, pyrat.log)
+    pt.warning(pyrat.verb-2, "TLI wavenumber range ({:.2f} - {:.2f} cm^-1) "
+       "does not overlap with Pyrat wavenumber range ({:.2f} - {:.2f} cm^-1).".
+        format(wn_low, wn_high, pyrat.spec.wnlow, pyrat.spec.wnhigh),
+        pyrat.log, pyrat.wlog)
   # Print out warning if TLI range is smaller than the pyrat required range:
   elif (wn_low > pyrat.spec.wnlow) or  (wn_high < pyrat.spec.wnhigh):
-    pt.warning("TLI wavenumber range ({:.2f} - {:.2f} cm^-1) does not "
-               "cover the full Pyrat wavenumber range ({:.2f} - {:.2f} cm^-1).".
-                format(wn_low, wn_high, pyrat.spec.wnlow, pyrat.spec.wnhigh),
-               pyrat.wlog, pyrat.log)
+    pt.warning(pyrat.verb-2, "TLI wavenumber range ({:.2f} - {:.2f} cm^-1) "
+       "does not cover the full Pyrat wavenumber range ({:.2f} - {:.2f} "
+       "cm^-1).".format(wn_low, wn_high, pyrat.spec.wnlow, pyrat.spec.wnhigh),
+        pyrat.log, pyrat.wlog)
 
 
 def setimol(pyrat):
@@ -292,7 +292,7 @@ def setimol(pyrat):
   # Report missing species:
   imiss = np.unique(pyrat.iso.dbindex[np.where(pyrat.iso.imol < 0)])
   for i in imiss:
-    pt.warning("The species '{:s}' for isotopes {:s} is not present in the "
-               "atmosphere.".format(pyrat.lt.db[i].molname,
-        pyrat.iso.name[np.where(pyrat.iso.dbindex == i)]), pyrat.wlog, pyrat.log)
+    pt.warning(pyrat.verb-2, "The species '{:s}' for isotopes {:s} is not "
+        "present in the atmosphere.".format(pyrat.lt.db[i].molname,
+         pyrat.iso.name[np.where(pyrat.iso.dbindex==i)]), pyrat.log, pyrat.wlog)
 

@@ -87,7 +87,7 @@ def msg(verblevel, message, file=None, indent=0, si=None, noprint=False):
     file.flush()
 
 
-def warning(message, wlog, file=None):
+def warning(verblevel, message, file=None, wlog=None):
   """
   Print message surrounded by colon banners.
   Append message to wlog.
@@ -95,20 +95,26 @@ def warning(message, wlog, file=None):
 
   Parameters
   ----------
+  verblevel: Integer
+     If positive, print the given message.
   message: String
      Message to print.
-  wlog:  list of strings
-     List of warning messages.
   file: File pointer
      If not None, also print to the given file.
+  wlog:  list of strings
+     List of warning messages.
   """
+  if verblevel < 0:
+    return
+
   # Wrap the message:
   text = msg(1, message, indent=4, noprint=True)[:-1]
   # Add banners around:
   warntext = "\n{:s}\n  Warning:\n{:s}\n{:s}\n".format(sep, text, sep)
 
   # Append warning message to warnings log:
-  wlog.append(text)
+  if wlog is not None:
+    wlog.append(text)
   # Print warning message to screen:
   print(warntext)
   sys.stdout.flush()
@@ -323,7 +329,7 @@ def defaultp(param, default, msg, wlog, log):
      Log file.
   """
   if param is None:
-    warning(msg.format(default), wlog, log)
+    warning(1, msg.format(default), log, wlog)
     return default
   return param
 

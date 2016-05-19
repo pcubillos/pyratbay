@@ -24,7 +24,8 @@ def init(pyrat):
 
   # Process variable-abundance species:
   if args.molscale is None:
-    pt.warning("There are no variable-abundance species (molscale).", [], log)
+    pt.warning(pyrat.verb-2, "There are no variable-abundance species "
+                             "(molscale).", log)
   else:
     if len(np.setdiff1d(args.molscale, species)) > 0:
       pt.error("These variable-abundance species are not present "
