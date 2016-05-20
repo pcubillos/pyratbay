@@ -66,7 +66,10 @@ def run(argv, main=False):
     ar.checkpressure(args, log, wlog)  # Check pressure inputs
     pressure = ma.pressure(args.ptop, args.pbottom, args.nlayers,
                            args.punits, log)
-    temperature = ma.calct(args, pressure, log, wlog)
+    ar.checktemp(args, log, wlog)      # Check temperature inputs
+    temperature = ma.temperature(args.tmodel, args.tparams, True, pressure,
+       args.rstar, args.tstar, args.tint, args.gplanet, args.smaxis,
+       args.radunits, args.nlayers, log)
 
   # Return temperature-pressure if requested:
   if args.runmode == "pt":
@@ -125,39 +128,6 @@ def run(argv, main=False):
   pass
 
   #log.close()
-
-
-def calcp(args, log, wlog):
-  """
-  Calculate a pressure profile.
-
-  Parameters
-  ----------
-  args:
-  log:
-  wlog:
-
-  Returns
-  -------
-  pressure: 1D float ndarray
-    Atmospheric pressure profile in Barye units.
-  """
-  # Check pressure inputs:
-  ar.checkpressure(args, log, wlog)
-  # Unpack pressure input variables:
-  punits  = args.punits
-  ptop    = pt.getparam(args.ptop,    args.punits)
-  pbottom = pt.getparam(args.pbottom, args.punits)
-  if ptop >= pbottom:
-    pt.error("Bottom-layer pressure ({:.2e} bar) must be higher than the"
-      "top-layer pressure ({:.2e} bar).".format(pbottom/pt.u("bar"),
-                                                ptop/pt.u("bar")))
-
-  # Create pressure array in barye (CGS) units:
-  pressure = np.logspace(np.log10(ptop), np.log10(pbottom), args.nlayers)
-  pt.msg(1, "Creating {:d}-layer atmospheric model between {:.1e} "
-      "and {:.1e} bar.".format(args.nlayers, ptop/pc.bar, pbottom/pc.bar), log)
-  return pressure
 
 
 def calcatm(args, pressure, temperature, log, wlog):

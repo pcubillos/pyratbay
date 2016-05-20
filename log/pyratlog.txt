@@ -1772,5 +1772,12 @@ Refactored calcp() made the input arguments for general use.
 Renamed as pressure() and moved from driver.py to makeatm.py.
 Took checkpressure() out of calcp() into driver.py.
 
+
+*****  Fr 20. Mai 09:32:06 CEST 2016  *****
+
+Refactored calct() making the input arguments for general use.
+Renamed as temperature().
+Moved checktemp() out of the function.
+
 *****
 

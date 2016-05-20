@@ -1,5 +1,6 @@
 __all__ = ["writeatm", "readatm", "uniform", "makeatomic", "readatomic",
-           "makepreatm", "TEA2pyrat", "calct", "hydro_equilibrium"]
+           "makepreatm", "TEA2pyrat", "pressure", "temperature",
+           "hydro_equilibrium"]
 
 import os
 import sys
@@ -437,45 +438,93 @@ def pressure(ptop, pbottom, nlayers, units="bar", log=None):
   return press
 
 
-def calct(args, pressure, log, wlog, eval=True):
+def temperature(tmodel, tparams=None, eval=True, pressure=None,
+     rstar=None, tstar=None, tint=100.0, gplanet=None, smaxis=None,
+     radunits="cm", nlayers=None, log=None):
   """
-  Calculate the temperature profile.
+  Temperature profile wrapper.
 
   Parameters
   ----------
-  args:
-  pressure
-  log
-  wlog
-  eval:
+  tmodel: String
+     Name of the temperature model.
+  tparams: 1D float ndarray
+     Temperature model parameters.
+  eval: Bool
+     If True, return the temperature profile evaluated at tparams.
+     Else, return a tuple with the model callable, arguments, and number of
+     fitting parameters.
+  pressure: 1D float ndarray
+     Atmospheric pressure profile in barye units.
+  rstar: String or float
+     Stellar radius. If string, may contain the units.
+  tstar: String or float
+    Stellar temperature in kelvin degrees.
+  tint: String or float
+    Planetary internal temperature in kelvin degrees.
+  gplanet: String or float
+    Planetary atmospheric temperature in cm s-2.
+  smaxis: String or float
+    Orbital semi-major axis. If string, may contain the units.
+  radunits: String
+    Default units for rstar and smaxis.  Available units are: A, nm, um,
+    mm, cm (default), m, km, au, pc, rearth, rjup, rsun.
+  nlayers: Integer
+     Number of pressure layers.
+  log: File
+     Log file where to write screen outputs.
 
   Returns
   -------
-  temperature: 1D float ndarray
+  If eval=True:
+   temperature: 1D float ndarray
+      The evaluated atmospheric temperature profile.
+  If eval=False:
+   Tmodel: Callable
+      The atmospheric temperature model.
+   targs: List
+      The list of additional arguments (besides the model parameters).
+   ntpars: Integer
+      The expected number of model parameters.
+
+  Examples
+  --------
+  >>> import pyratbay.pyratbay.makeatm as ma
+  >>> # 100-layer isothermal profile:
+  >>> ma.temperature("isothermal", tparams=np.array([1500.0]), eval=True,
+                     nlayers=100)
+  >>> # Three-chanel Eddington-approximation profile:
+  >>> p = ma.pressure(1e-5, 1e2, 100, "bar")
+  >>> Tmodel, targs, ntpars = ma.temperature("TCEA", eval=False, pressure=p,
+    rstar="1.0 rsun", tstar=5800.0, tint=100.0, gplanet=800.0, smaxis="0.05 au")
+  >>> tparams = np.array([-3.0, -0.25, 0.0, 0.0, 1.0])
+  >>> temp = Tmodel(tparams, *targs)
   """
-  ar.checktemp(args, log, wlog)
-  if args.tmodel == "TCEA":
+  if tmodel == "TCEA":
     # Parse inputs:
-    rstar   = pt.getparam(args.rstar, args.radunits)
-    tstar   = pt.getparam(args.tstar, "kelvin")
-    tint    = pt.getparam(args.tint,  "kelvin")
-    gplanet = pt.getparam(args.gplanet, "none")
-    smaxis  = pt.getparam(args.smaxis, args.radunits)
+    rstar   = pt.getparam(rstar, radunits)
+    tstar   = pt.getparam(tstar, "kelvin")
+    tint    = pt.getparam(tint,  "kelvin")
+    gplanet = pt.getparam(gplanet, "none")
+    smaxis  = pt.getparam(smaxis, radunits)
     # Define model and arguments:
-    tmodel = PT.TCEA
+    Tmodel = PT.TCEA
     targs  = [pressure, rstar, tstar, tint, smaxis, gplanet]
     ntpars = 5
-  elif args.tmodel == "isothermal":
+  elif tmodel == "isothermal":
     # Define model and arguments:
-    tmodel = PT.isothermal
-    targs  = [args.nlayers]
+    Tmodel = PT.isothermal
+    targs  = [nlayers]
     ntpars = 1
+  else:
+    pt.error("Invalid input temperature model '{:s}'.  Select from: 'TCEA' "
+             "or 'isothermal'.".format(tmodel), log)
   if eval:
-    temperature = tmodel(args.tparams, *targs)
-    pt.msg(1, "\nComputed {:s} temperature model.".format(args.tmodel), log)
+    temperature = Tmodel(tparams, *targs)
+    pt.msg(1, "\nComputed {:s} temperature model.".format(tmodel), log)
     return temperature
   else:
-    return tmodel, targs, ntpars
+    return Tmodel, targs, ntpars
 
 
 def hydro_equilibrium(pressure, temperature, mu, g, p0=None, r0=None):

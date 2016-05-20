@@ -8,7 +8,7 @@ from .  import qscale  as qs
 from .  import kurucz  as k
 from .  import wine    as w
 from .  import makeatm as ma
-
+from .  import argum   as ar
 
 def init(pyrat):
   """
@@ -93,8 +93,11 @@ def init(pyrat):
   pyrat.bandflux  = np.zeros(nfilters)
 
   # Temperature model:
-  pyrat.tmodel, pyrat.targs, ntemp = ma.calct(args, pyrat.atm.press,
-                                              log, [], eval=False)
+  # FINDME: Need to check args.tstar, tint, smaxis
+  pyrat.tmodel, pyrat.targs, ntemp = ma.temperature(args.tmodel,
+     eval=False, pressure=pyrat.atm.press, rstar=pyrat.rstar, tstar=args.tstar,
+     tint=args.tint, gplanet=pyrat.gplanet, smaxis=args.smaxis,
+     radunits=pyrat.radunits, nlayers=pyrat.atm.nlayers, log=log)
   # Indices to parse the array of fitting parameters:
   nrad   = int(pyrat.od.path == "transit")
   nabund = len(pyrat.iscale)
