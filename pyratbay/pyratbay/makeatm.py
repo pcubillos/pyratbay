@@ -21,7 +21,7 @@ def writeatm(atmfile, pressure, temperature, species, abundances,
   atmfile: String
      Name of output atmospheric file.
   pressure: 1D float ndarray
-     Monotonously decreasing pressure profile (in punits).
+     Monotonously decreasing pressure profile (in barye).
   temperature: 1D float ndarray
      Temperature profile for pressure layers (in Kelvin).
   species: 1D string ndarray
@@ -29,7 +29,7 @@ def writeatm(atmfile, pressure, temperature, species, abundances,
   abundances: 1D float ndarray
      The species mole mixing ratio.
   punits:  String
-     Pressure units.
+     Pressure units of output.
   header:  String
      Header message (comment) to include at the top of the file.
   """
@@ -375,6 +375,7 @@ def TEA2pyrat(teafile, atmfile):
 
   # TEA pressure units are always bars:
   punits = "bar"
+  pressure = pressure * pt.u(punits)  # Set in barye units
   # File header:
   header = "# TEA atmospheric file formatted for Pyrat.\n\n"
 
