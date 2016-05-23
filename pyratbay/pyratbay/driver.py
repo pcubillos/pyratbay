@@ -192,5 +192,5 @@ def calcatm(args, pressure, temperature, log, wlog):
     # Reformat the TEA output into the pyrat format:
     ma.TEA2pyrat("./TEA/TEA/results/TEA.tea", args.atmfile)
     shutil.rmtree("TEA")
-    pt.msg(1, "Produced TEA atmospheric file: '{:s}'.".format(args.atmfile), log)
+    pt.msg(1, "Produced TEA atmospheric file '{:s}'.".format(args.atmfile), log)
 
