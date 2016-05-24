@@ -136,15 +136,15 @@ static PyObject *extinction(PyObject *self, PyObject *args){
   alphal = (double *)malloc(niso * sizeof(double));
   alphad = (double *)malloc(niso * sizeof(double));
 
-  /* Array to hold maximum line strength:                                   */
-  kmax = (double *)malloc(next * sizeof(double));
-
   /* Allocate width indices array:                                          */
   idop = (int *)malloc(niso * sizeof(int));
   ilor = (int *)malloc(niso * sizeof(int));
 
   /* Allocate line strength per transition:                                 */
   kprop = (double *)malloc(nlines * sizeof(double));
+  /* Array to hold maximum line strength:                                   */
+  kmax  = (double *)calloc(next,    sizeof(double));
+
 
   ktmp    = (double **)malloc(next *      sizeof(double *));
   ktmp[0] = (double  *)malloc(next*onwn * sizeof(double  ));
@@ -231,7 +231,7 @@ static PyObject *extinction(PyObject *self, PyObject *args){
   //printf("\n");
 
   /* Compute the extinction-coefficient for each species:                   */
-  for(ln=0; ln<nlines; ln++){
+  for (ln=0; ln<nlines; ln++){
     wavn = INDd(lwn, ln);    /* Wavenumber                                  */
     i    = INDi(lID, ln);    /* Isotope index                               */
     if (add)
