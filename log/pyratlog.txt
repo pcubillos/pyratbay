@@ -1670,3 +1670,8 @@ Bumped Pyrat Bay to version 0.0.23.
 
 *****
 
+Fixed bug in extcoeff.c where kmax was not initialized to zero.
+Bumped Pyrat to version 1.2.14.
+
+*****
+
