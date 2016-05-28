@@ -27,6 +27,8 @@ Pyrat-Bay is a efficient, user-friendly tool to compute and fit radiative-transf
     - Line-by-line molecular absorption
     - Collision-induced absorption
     - Rayleigh scattering absorption
+    - Na and K alkali resonant lines
+    - Gray-opacity Mie scattering
 
 - Bayesian (Markov-chain Monte Carlo) posterior sampling of atmospheric parameters:
 
@@ -67,7 +69,7 @@ Contents
    tutorial
    lineread
    pyrat
-   pyrat-bay
+   pyratbay
    contributing
    license
 

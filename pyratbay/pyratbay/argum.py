@@ -143,9 +143,39 @@ def parse(wlog):
   group.add_argument("--data",   dest="data",
            help="Transit or eclipse depths.",
            action="store", type=pt.parray, default=None)
-  group.add_argument("--params", dest="params",
-           help="Model-fitting parameters",
+  group.add_argument("--uncert",   dest="uncert",
+           help="Transit or eclipse depth uncertainties.",
            action="store", type=pt.parray, default=None)
+  group.add_argument("--params", dest="params",
+           help="Filename or list of initial-guess model-fitting "
+                "parameter [required]",
+           action="store", type=pt.parray, default=None)
+  group.add_argument("--pmin", dest="pmin",
+           help="Filename or list of parameter lower boundaries",
+           action="store", type=pt.parray, default=None)
+  group.add_argument("--pmax", dest="pmax",
+           help="Filename or list of parameter upper boundaries",
+           action="store", type=pt.parray, default=None)
+  group.add_argument("--stepsize", dest="stepsize",
+           help="Filename or list with proposal jump scale.",
+           action="store", type=pt.parray, default=None)
+  group.add_argument("--walk",     dest="walk",
+           help="Random walk algorithm, select from: ['mrw', 'demc', "
+                "'snooker']. [default: %(default)s]",
+           action="store", type=str,  default="snooker")
+  group.add_argument("--nsamples", dest="nsamples",
+           help="Number of MCMC samples [default: %(default)s]",
+           action="store", type=eval,  default=int(1e5))
+  group.add_argument("--nchains", dest="nchains",
+           help="Number of chains [default: %(default)s]",
+           action="store", type=int,  default=7)
+  group.add_argument("--burnin", dest="burnin",
+           help="Number of burn-in iterations per chain [default: %(default)s]",
+           action="store", type=eval,  default=0)
+  group.add_argument("--thinning", dest="thinning",
+           help="Chains thinning factor (use every thinning-th iteration) "
+                "[default: %(default)s]",
+           action="store", type=int,  default=1)
   group.add_argument("--bulk",   dest="bulk",
            help="Bulk-abundance atmospheric species",
            action="store", type=pt.parray, default=None)

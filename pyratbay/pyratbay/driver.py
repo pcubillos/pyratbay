@@ -112,22 +112,20 @@ def run(argv, main=False):
   # Parse retrieval into the Pyrat object:
   pf.init(pyrat, args, log)
   pyrat.verb = 0  # Mute pyrat
-  return pyrat, args, pf.fit
 
-
-  # Full Pyrat Bay run:
-  if False:
-    # Run MCMC:
-    bestp, uncertp, posterior, Zchain = mc3.mcmc(data=args.data,
+  # Run MCMC:
+  bestp, uncertp, posterior, Zchain = mc3.mcmc(data=args.data,
          uncert=args.uncert,
-         func=pf.fit, indparams=[pyrat, True], params=params,
-         nsamples=nsamples, nchains=nchains, walk="snooker", grtest=grtest,
-         burnin=burnin, plots=plots, savefile=savefile)
-
+         func=pf.fit, indparams=[pyrat, True], params=args.params,
+         pmin=args.pmin, pmax=args.pmax, stepsize=args.stepsize,
+         walk=args.walk, nsamples=args.nsamples, nchains=args.nchains,
+         burnin=args.burnin, thinning=args.thinning, grtest=True,
+         hsize=10, kickoff='normal', log='MCMC.log',
+         plots=True, savefile="test.npz")
   # Post processing:
   pass
 
-  #log.close()
+  log.close()
 
 
 def calcatm(args, pressure, temperature, log, wlog):

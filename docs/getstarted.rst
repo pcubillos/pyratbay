@@ -3,6 +3,25 @@
 Getting Started
 ===============
 
+The Pyrat Bay package is composed of three main sub-packages:
+``lineread``, ``pyrat``, and ``pyratbay``.
+
+The ``pyrat`` package provides the forward-modeling radiative transfer
+code that computes an emission or transmission spectrum for a given
+atmospheric model.
+
+The ``lineread`` package formats online-available line-by-line opacity
+data into a line-transition information (TLI) file, which is used as
+input for ``pyrat``.
+
+The ``pyratbay`` package provides the retrieval (MCMC) code that
+constrain the atmospheric properties of an atmospheric model, given
+observed transit or eclipse-depth data points as function of
+wavelength.
+
+Each one of these can be run either from the shell prompt or in an
+interactive session through the Python interpreter.
+
 System Requirements
 -------------------
 
@@ -15,7 +34,9 @@ and OSX (10.9+) machines, with the following software:
 * Matplotlib (version 1.3.1+)
 
 MC3 may work with previous versions of these software.
-However we do not guarantee nor provide support for that.
+However we do not guarantee it nor provide support for that.
+
+.. _install:
 
 Install
 -------
@@ -27,7 +48,7 @@ First, from any given directory, clone the Pyrat-Bay repository:
 .. code-block:: shell
 
   topdir=`pwd`
-  git clone https://github.com/pcubillos/MCcubed
+  git clone --recursive https://github.com/pcubillos/pyratbay
 
 Compile
 -------
@@ -36,9 +57,7 @@ Compile the C programs:
 
 .. code-block:: shell
 
-  cd $topdir/Pyrat-Bay/src_C/
-  make
-  cd $topdir/Pyrat-Bay/ctips/
+  cd $topdir/pyratbay
   make
 
 To remove the program binaries, execute (from the respective directories):
