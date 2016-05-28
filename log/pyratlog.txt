@@ -1773,11 +1773,34 @@ Renamed as pressure() and moved from driver.py to makeatm.py.
 Took checkpressure() out of calcp() into driver.py.
 
 
+*****  Do 19. Mai 15:52:27 CEST 2016  *****
+
+Completed initial working version of pyratfit.py for use in the MCMC.
+Refactored calct() and moved from driver.py to makeatm.py.
+Copied hydro_equilibrium() from pyrat into pyratbay's makeatm.py.
+Added params argument to pyratbay's argum.py.
+
+
 *****  Fr 20. Mai 09:32:06 CEST 2016  *****
 
 Refactored calct() making the input arguments for general use.
 Renamed as temperature().
 Moved checktemp() out of the function.
+
+
+*****  Sat May 28 20:45:54 CEST 2016  *****
+
+Enabled MCMC run for isothermal model.
+Added to pyratbay's driver argument list:
+uncert, pmin, pmax, stepsize, walk, nsamples, nsamples, nchains,
+burnin, thinning.
+Some initial updates to the documentation.
+
+Need to add temperature-boundaries check for TCEA model.
+
+*****
+
+Updated MCcubed submodule.
 
 *****
 
