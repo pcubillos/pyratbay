@@ -1802,5 +1802,10 @@ Need to add temperature-boundaries check for TCEA model.
 
 Updated MCcubed submodule.
 
+
+*****  Sun May 29 17:31:41 CEST 2016  *****
+
+Added template files for docs. Updated logo and added favicon.
+
 *****
 
