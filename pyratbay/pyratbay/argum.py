@@ -109,7 +109,6 @@ def parse(wlog):
            help="Atmospheric species for the atmospheric file "
                 "[default: %(default)s]",
            action="store", type=pt.parray, default=None)
-  # Uniform decides uniform-abundances vs TEA-abundances:
   group.add_argument("--uniform",    dest="uniform",
            help="Species mole mixing ratios for uniform-abundance "
                 "profiles [default: %(default)s]",
@@ -159,6 +158,12 @@ def parse(wlog):
   group.add_argument("--stepsize", dest="stepsize",
            help="Filename or list with proposal jump scale.",
            action="store", type=pt.parray, default=None)
+  group.add_argument("--thigh",   dest="thigh",
+           help="Upper boundary for temperature sampling (kelvin).",
+           action="store", type=np.double, default=np.inf)
+  group.add_argument("--tlow",   dest="tlow",
+           help="Lower boundary for temperature sampling (kelvin).",
+           action="store", type=np.double, default=0.0)
   group.add_argument("--walk",     dest="walk",
            help="Random walk algorithm, select from: ['mrw', 'demc', "
                 "'snooker']. [default: %(default)s]",
