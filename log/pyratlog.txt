@@ -1673,5 +1673,11 @@ Bumped Pyrat Bay to version 0.0.23.
 Fixed bug in extcoeff.c where kmax was not initialized to zero.
 Bumped Pyrat to version 1.2.14.
 
+
+*****  Mo 6. Jun 09:03:27 CEST 2016  *****
+
+Fixed bug in lineread hitran.py for non-overlapping wavenumber range.
+Added warning instead.
+
 *****
 
