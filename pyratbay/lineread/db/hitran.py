@@ -169,6 +169,20 @@ class hitran(dbdriver):
     istart = self.binsearch(data, iwn, 0,      nlines-1, 0)
     istop  = self.binsearch(data, fwn, istart, nlines-1, 1)
 
+    # Non-overlaping wavenumber ranges:
+    data.seek(0)
+    line = data.read(self.recsize)
+    DBiwn = float(line[self.recwnpos: self.reclinpos])
+    data.seek((nlines-1) * self.recsize)
+    line = data.read(self.recsize)
+    DBfwn = float(line[self.recwnpos: self.reclinpos])
+    if iwn > DBfwn or fwn < DBiwn:
+      pt.warning("Database ('{:s}') wavenumber range ({:.2f}--{:.2f} cm-1) "
+        "does not overlap with the requested wavenumber range "
+        "({:.2f}--{:.2f} cm-1).".format(os.path.basename(self.dbfile),
+                                        DBiwn, DBfwn, iwn, fwn), [], self.log)
+      return None
+
     # Number of records to read:
     nread = istop - istart + 1
 

@@ -314,6 +314,9 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
     transDB = driver[db].dbread(iwn, fwn, verb, pflist[db])
     tf = time.time()
 
+    if transDB is None:
+      continue
+
     wnumber = np.concatenate((wnumber, transDB[0]))
     gf      = np.concatenate((gf,      transDB[1]))
     elow    = np.concatenate((elow,    transDB[2]))
