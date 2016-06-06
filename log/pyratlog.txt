@@ -1681,3 +1681,8 @@ Added warning instead.
 
 *****
 
+Bumped Lineread to version 6.4.6.
+
+*****
+
+
