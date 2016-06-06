@@ -1685,4 +1685,9 @@ Bumped Lineread to version 6.4.6.
 
 *****
 
+Fixed bug in extcoeff.c extinction().
+The scale argument for downsample() was not being correctry rounded to
+the nearest integer.
+
+*****
 

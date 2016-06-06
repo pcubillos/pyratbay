@@ -12,8 +12,8 @@ PyDoc_STRVAR(extinction__doc__,
 "Calculate the extinction-coefficient for each molecule, at\n\
 a given pressure and temperature, over a wavenumber range. \n\
                                                            \n\
-Parameters:                                                \n\
------------                                                \n\
+Parameters                                                 \n\
+----------                                                 \n\
 ext: 2D float ndarray                                      \n\
    Output extinction coefficient where to put the results. \n\
 profile: 1D float ndarray                                  \n\
@@ -73,9 +73,9 @@ add: Integer                                               \n\
    for this layer, if False calculate the extinction coefficient\n\
    (in cm2 molecules-1) for each species in the layer.          \n\
                                                                 \n\
-Uncredited developers:                                          \n\
-----------------------                                          \n\
-Patricio Rojo  U. Cornell  pato@astro.cornell.edu (pato@oan.cl).");
+Uncredited developers                                           \n\
+---------------------                                           \n\
+Patricio Rojo  U. Cornell.");
 
 static PyObject *extinction(PyObject *self, PyObject *args){
   PyArrayObject *ext,                             /* Extinction coefficient */
@@ -322,8 +322,7 @@ static PyObject *extinction(PyObject *self, PyObject *args){
 
   /* Downsample ktmp to the final sampling size:                            */
   for (m=0; m<next; m++){
-    //printf("IN [0,N]: {%.3e, %.3e}\n", ktmp[m][0], ktmp[m][dnwn-1]);
-    downsample(ktmp, ext, (int)dnwn, wnstep/ownstep/ofactor, m);
+    downsample(ktmp, ext, (int)dnwn, (int)round(wnstep/ownstep/ofactor), m);
   }
 
   /* Free the no-longer used memory:                                        */
