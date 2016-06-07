@@ -64,8 +64,8 @@ downsample(double **input,     /* Input array                               */
        O2 = (I5 + I6     ) / [0.5(f+1)]
      The output for a scaling factor f=2 is:
        O0 = (         I0 + 0.5 I1) / [0.5(f+1)]
-       O1 = (0.5 I1 + I2 + 0.5 I3) / [    f+1 ]
-       O2 = (0.5 I3 + I4 + 0.5 I5) / [    f+1 ]
+       O1 = (0.5 I1 + I2 + 0.5 I3) / [    f   ]
+       O2 = (0.5 I3 + I4 + 0.5 I5) / [    f   ]
        O3 = (0.5 I5 + I6         ) / [0.5(f+1)]                             */
 
   int i, j;                 /* Auxilliary for-loop indices                  */
@@ -76,32 +76,26 @@ downsample(double **input,     /* Input array                               */
     even = 0;
 
   /* First point:                                                           */
-  IND2d(out,index,0) = 0.0;
   for (i=0; i<ks/2+1; i++)
-    IND2d(out,index,0) += input[index][i];
+    IND2d(out,index,0) += input[index][i] / (0.5*(scale+1));
   if (even == 1)
-    IND2d(out,index,0) -= 0.5*input[index][ks/2];
-  IND2d(out,index,0) /= 0.5*(scale+1);
+    IND2d(out,index,0) -= input[index][ks/2] / (scale+1.0);
 
   /* Down-sampling:                                                         */
   for (j=1; j<m-1; j++){
-    IND2d(out,index,j) = 0.0;
     for (i=-ks/2; i < ks/2+1; i++){
-      IND2d(out,index,j) += input[index][scale*j + i];
+      IND2d(out,index,j) += input[index][scale*j + i] / scale;
     }
     if (even == 1)
       IND2d(out,index,j) -= 0.5*(input[index][scale*j-ks/2] +
-                                 input[index][scale*j+ks/2]);
-    IND2d(out,index,j) /= scale;
+                                 input[index][scale*j+ks/2])/scale;
   }
 
   /* Last point:                                                            */
-  IND2d(out,index,(m-1)) = 0.0;
   for (i=n-1-ks/2; i<n; i++)
-    IND2d(out,index,(m-1)) += input[index][i];
+    IND2d(out,index,(m-1)) += input[index][i] / (0.5*(scale+1));
   if (even == 1)
-    IND2d(out,index,(m-1)) -= 0.5*input[index][n-ks/2];
-  IND2d(out,index,(m-1)) /= 0.5*(scale+1);
+    IND2d(out,index,(m-1)) -= input[index][n-ks/2] / (scale+1.0);
 
   return 0;
 }

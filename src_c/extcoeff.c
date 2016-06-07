@@ -146,8 +146,8 @@ static PyObject *extinction(PyObject *self, PyObject *args){
   kmax  = (double *)calloc(next,    sizeof(double));
 
 
-  ktmp    = (double **)malloc(next *      sizeof(double *));
-  ktmp[0] = (double  *)malloc(next*onwn * sizeof(double  ));
+  ktmp    = (double **)malloc(next *     sizeof(double *));
+  ktmp[0] = (double  *)calloc(next*onwn, sizeof(double  ));
   for (i=1; i<next; i++)
     ktmp[i] = ktmp[0] + onwn;
 
@@ -225,10 +225,6 @@ static PyObject *extinction(PyObject *self, PyObject *args){
     /* Check if this is the maximum k:                                      */
     kmax[m] = fmax(kmax[m], k);
   }
-  //printf("k: \n");
-  //for (i=0; i<nlines; i++)
-  //  printf("[%.4f,%.2e], ", 10000.0/INDd(lwn, i), kprop[i]);
-  //printf("\n");
 
   /* Compute the extinction-coefficient for each species:                   */
   for (ln=0; ln<nlines; ln++){
@@ -262,6 +258,19 @@ static PyObject *extinction(PyObject *self, PyObject *args){
       else
         break;
     }
+
+    /* Estimate the line-transition width:                                  */
+    vwidth = 0.5346*alphal[i] + sqrt(pow(alphal[i], 2.0)*0.2166 +
+                                     pow(alphad[i]*wavn, 2.0));
+    /* If the line is much thinner than the requested resolution:           */
+    if (vwidth < 0.1*wnstep){
+      iown = (wavn - INDd(wn,0))/wnstep;  /* Re-use variable                */
+      if (fabs(wavn - INDd(wn,(iown+1))) < fabs(wavn - INDd(wn,iown)))
+        iown++;
+      IND2d(ext,m,iown) += (k * INDd(moldensity, (INDi(isoimol,i))) / wnstep);
+      continue;
+    }
+
     /* Skip weakly contributing lines:                                      */
     if (k < ethresh * kmax[m]){
       nskip++;
@@ -296,23 +305,13 @@ static PyObject *extinction(PyObject *self, PyObject *args){
 
     /* Add the contribution from this line to the opacity spectrum:         */
     iprof = IND2i(pindex, idop[i], ilor[i]);
-    //printf("minj: %d, maxj: %d, prof0: %d, offset: %d, ofactor: %d\n",
-    //       minj, maxj, iprof, offset, ofactor);
     jj = iprof + ofactor*minj - offset;
     for(j=(int)minj; j<maxj; j++){
-      //transitprint(1, 2, "%i  ", j-offset);
-      //transitprint(1, 2, "j=%d, p[%i]=%.2g   ", j, j-offset,
-      //                    profile[idop[i]][ilor[i]][subw][j-offset]);
-      //printf("  iprof: %d\n", iprof + ofactor*j - offset);
-      //printf("  Val: %.3e\n", INDd(profile, (iprof + ofactor*j - offset)));
-      //printf("%.2e\n", k);
-      //ktmp[m][j] += k * INDd(profile, (iprof + ofactor*j - offset));
       ktmp[m][j] += k * INDd(profile, jj);
       jj += ofactor;
     }
     neval++;
   }
-  //printf("Downsample now: (%f, %d)\n", wnstep/ownstep, ofactor);
   msg(verb-5, logtext, "    Number of co-added lines:     %8i  (%5.2f%%)\n",
               nadd,  nadd*100.0/nlines);
   msg(verb-5, logtext, "    Number of skipped profiles:   %8i  (%5.2f%%)\n",

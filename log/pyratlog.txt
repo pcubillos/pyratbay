@@ -1689,5 +1689,25 @@ Fixed bug in extcoeff.c extinction().
 The scale argument for downsample() was not being correctry rounded to
 the nearest integer.
 
+
+*****  Di 7. Jun 18:37:46 CEST 2016  *****
+
+Edited downsample() such that it doesn't modify the previous values
+stored in the 'out' input array.
+
+*****
+
+Revamped part of extcoeff() to skip broadening of lines much thinner
+than the requested resolution.  This avoids a bug found in the
+previous code, where the extinction-coefficient wasn't being correctly
+calculated at some specific layers/wavelengths.
+Note that this bug hasn't been fixed yet.
+The speed improvement is small, I'd say just about 10% (for a hitemp
+run on WASP-43b with 62 million lines from 0.85--5.0 um).
+
+Some pending tasks are to find the right threshold where a line is
+thin enough to avoid broadening without impacting the results.
+At the moment 0.1x seems to be agood first approximation.
+
 *****
 
