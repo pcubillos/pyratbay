@@ -1711,3 +1711,7 @@ At the moment 0.1x seems to be agood first approximation.
 
 *****
 
+Small edit in setup.py
+
+*****
+
