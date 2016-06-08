@@ -22,7 +22,7 @@ ela = []
 
 extensions = []
 for i in range(len(files)):
-  e = Extension(files[i].rstrip('.c'),
+  e = Extension(os.path.splitext(files[i])[0],
                 sources=['{:s}{:s}'.format(srcdir, files[i])],
                 include_dirs=inc,
                 extra_compile_args=eca,

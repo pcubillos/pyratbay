@@ -70,25 +70,31 @@ def intensity(pyrat):
   bb.planck(pyrat.B, pyrat.spec.wn, pyrat.atm.temp, pyrat.od.ideep)
 
   # Allocate dtau:
-  dtau = np.empty(pyrat.atm.nlayers, np.double)
+  dtau  = np.empty(pyrat.atm.nlayers, np.double)
+  dltau = np.empty(pyrat.atm.nlayers, np.double)
 
   # Calculate the intensity for each angle in raygrid:
-  j = 0
-  while (j <pyrat.nangles):
-    i = 0
-    while (i < pyrat.spec.nwave):
-      # Layer index where the optical depth reached maxdepth:
-      last = pyrat.od.ideep[i]
-      # Optical depth:
-      tau  = pyrat.od.depth[:last+1,i]
-      cu.ediff(tau, dtau, last+1)
+  i = 0
+  while (i < pyrat.spec.nwave):
+    # Layer index where the optical depth reached maxdepth:
+    last = pyrat.od.ideep[i]
+    # Optical depth:
+    tau  = pyrat.od.depth[:last+1,i]
+    cu.ediff(tau, dtau, last+1)
+    hsum, hratio, hfactor = s.geth(dtau[:last])
+    j = 0
+    while (j <pyrat.nangles):
       # The integrand:
-      integ = pyrat.B[i,:last+1] * np.exp(-tau/np.cos(pyrat.raygrid[j]))
-      # Integrate 
-      pyrat.spec.intensity[j,i] = (s.simps(integ, dtau, *s.geth(dtau[:last])) /
-                              np.cos(pyrat.raygrid[j])          )
-      i += 1
-    j += 1
+      integ = (pyrat.B[i,:last+1] * np.exp(-tau/np.cos(pyrat.raygrid[j])) /
+               np.cos(pyrat.raygrid[j]))
+      # Simpson integration:
+      pyrat.spec.intensity[j,i] = s.simps(integ, dtau, hsum, hratio, hfactor)
+      #ltau = np.log(tau[1:])
+      #integ = (pyrat.B[i,1:last+1]*np.exp(-tau[1:]/np.cos(pyrat.raygrid[j])) /
+      #         tau[1:]/np.cos(pyrat.raygrid[j]))
+      #pyrat.spec.intensity[j,i] = si.simps(integ, ltau)
+      j += 1
+    i += 1
 
 
 def flux(pyrat):
