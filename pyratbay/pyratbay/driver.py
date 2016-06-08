@@ -54,6 +54,11 @@ def run(argv, main=False):
   args, log = ar.parse(wlog)
   timestamps.append(time.time())
 
+  # Check run mode:
+  if args.runmode not in ['tli','pt','atmosphere','opacity','spectrum','mcmc']:
+    pt.error("Invalid runmode ({:s}). Select from: 'tli', 'pt', 'atmosphere', "
+             "'opacity', 'spectrum', 'mcmc'.".format(args.runmode))
+
   # Call lineread package:
   if args.runmode == "tli":
     parser = lr.parser()

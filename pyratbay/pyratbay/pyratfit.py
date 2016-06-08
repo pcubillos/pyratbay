@@ -11,9 +11,12 @@ from .  import wine    as w
 from .  import makeatm as ma
 from .  import argum   as ar
 
-def init(pyrat):
+def init(pyrat, args, log):
   """
-  Initialize variables that will be used in fit().
+  Initialize variables that will be used in the atmospheric retrieval.
+  Checks bulk and variable-abundance species.
+  Loads the stellar spectrum.
+  Loads the waveband transmission filters.
   """
   species = pyrat.mol.name
   # Process bulk-abundance species:

@@ -820,17 +820,6 @@ In pconstants.py: Bumped Pyrat-Bay revision (now version 0.0.3).
 
 *****
 
-Fixed issues with the isothermal() function.
-Adapted it to work with the pyratbay code.
-
-*****
-
-Properly tested pyratfit.py's fit().
-Added freeze optional argument to fit(), useful for use in the MCMC.
-Modified calct to use the isothermal() function when requested.
-
-*****
-
 In setup.py: added more comments and commented out the OMP extra
 arguments.
 In extcoeff.c: Fixed format printing argument for nadd, nskip, and
@@ -1755,12 +1744,16 @@ Added error catch for a wrong run mode.
 I should probably put the outputs from this function into the pyrat
 object.
 
-*****  Do 19. Mai 15:52:27 CEST 2016  *****
+*****
 
-Completed initial working version of pyratfit.py for use in the MCMC.
-Refactored calct() and moved from driver.py to makeatm.py.
-Copied hydro_equilibrium() from pyrat into pyratbay's makeatm.py.
-Added params argument to pyratbay's argum.py.
+Fixed issues with the isothermal() function.
+Adapted it to work with the pyratbay code.
+
+*****
+
+Properly tested pyratfit.py's fit().
+Added freeze optional argument to fit(), useful for use in the MCMC.
+Modified calct to use the isothermal() function when requested.
 
 *****
 
@@ -1811,6 +1804,11 @@ Added template files for docs. Updated logo and added favicon.
 
 Implemented temperature boundaries in the retrieval sampling.
 Added thigh, tlow input arguments in pyratbay's argum.py.
+
+
+*****  Mi 8. Jun 11:20:26 CEST 2016  *****
+
+Fixed quirks out of the rebase.
 
 *****
 
