@@ -1713,5 +1713,18 @@ At the moment 0.1x seems to be agood first approximation.
 
 Small edit in setup.py
 
+
+*****  Mi 8. Jun 09:45:41 CEST 2016  *****
+
+Minor reshufle in intensity() to take lines out of a loop.
+Got a 5--15% speed up (0.05--0.1 sec) in the intensity spectrum
+calculation for eclipse geometry.
+
+Tried to integrate in log(tau) instead of tau, but could not get the
+code to run fast enough or it simply broke.  After the update in
+3708c3f this seems unnecessary, though UI might consider this in the
+future if necessary.
+
 *****
+
 
