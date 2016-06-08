@@ -1727,4 +1727,6 @@ future if necessary.
 
 *****
 
+Bumped Pyrat to version 1.2.15.
 
+*****
