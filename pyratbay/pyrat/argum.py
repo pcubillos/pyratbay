@@ -152,7 +152,7 @@ def parse(pyrat):
   group.add_argument("--ethresh",       dest="ethresh",
                      help="Extinction-coefficient threshold "
                           "[default: %(default)s]",  # FINDME: Explain better
-                     action="store", type=np.double, default=1e-6)
+                     action="store", type=np.double, default=1e-9)
   group.add_argument("--nproc", dest="nproc",
                      help="Number of processors [default: %(default)s]",
                      action="store", type=int,       default=1)

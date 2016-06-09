@@ -1828,3 +1828,8 @@ multiplied by the density (when they shouldn't have).
 
 *****
 
+Updated default value of ethresh to 1e-9.
+Which is more appropriate.
+
+*****
+
