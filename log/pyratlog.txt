@@ -1820,5 +1820,11 @@ Updated TEA submodule.
 
 *****
 
+Corrected two bugs in extcoeff().
+For multiple molecules, all the non-zero molecular indices were
+pointing to the same location.
+For the EC table code, the no-broadening contributions were being
+multiplied by the density (when they shouldn't have).
 
+*****
 
