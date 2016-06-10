@@ -1844,3 +1844,8 @@ This merge resolves #17.
 
 *****
 
+Added addarg() function to ptools to wrap the argument parsing.
+Updated Pyrat's argparse() to use addarg().
+
+*****
+
