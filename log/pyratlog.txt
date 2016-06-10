@@ -1831,5 +1831,16 @@ multiplied by the density (when they shouldn't have).
 Updated default value of ethresh to 1e-9.
 Which is more appropriate.
 
+
+*****  Fr 10. Jun 14:46:44 CEST 2016  *****
+
+Put etable into shared memory when read from file.
+Although this might not be necessary (test in OSX).
+
+*****
+
+Bumped Pyrat Bay to version 0.0.24.
+This merge resolves #17.
+
 *****
 
