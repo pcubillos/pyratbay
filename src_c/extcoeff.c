@@ -149,7 +149,7 @@ static PyObject *extinction(PyObject *self, PyObject *args){
   ktmp    = (double **)malloc(next *     sizeof(double *));
   ktmp[0] = (double  *)calloc(next*onwn, sizeof(double  ));
   for (i=1; i<next; i++)
-    ktmp[i] = ktmp[0] + onwn;
+    ktmp[i] = ktmp[0] + onwn*i;
 
   /* Calculate the isotopes' widths:                                        */
   for (i=0; i<niso; i++){
@@ -267,7 +267,10 @@ static PyObject *extinction(PyObject *self, PyObject *args){
       iown = (wavn - INDd(wn,0))/wnstep;  /* Re-use variable                */
       if (fabs(wavn - INDd(wn,(iown+1))) < fabs(wavn - INDd(wn,iown)))
         iown++;
-      IND2d(ext,m,iown) += (k * INDd(moldensity, (INDi(isoimol,i))) / wnstep);
+
+      if (add)  /* Multiply by the species' density:                        */
+        k *= INDd(moldensity, (INDi(isoimol,i)));
+      IND2d(ext,m,iown) += k/wnstep;
       continue;
     }
 

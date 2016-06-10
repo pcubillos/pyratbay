@@ -152,7 +152,7 @@ def parse(pyrat):
   group.add_argument("--ethresh",       dest="ethresh",
                      help="Extinction-coefficient threshold "
                           "[default: %(default)s]",  # FINDME: Explain better
-                     action="store", type=np.double, default=1e-6)
+                     action="store", type=np.double, default=1e-9)
   group.add_argument("--nproc", dest="nproc",
                      help="Number of processors [default: %(default)s]",
                      action="store", type=int,       default=1)
@@ -637,9 +637,10 @@ def checkinputs(pyrat):
   isgreater(pyrat.nproc, "none", 1, False,
             "The number of processors ({:d}) must be >= 1.")
   if pyrat.nproc >= mpr.cpu_count():
-    pt.warning("The number of requested CPUs ({:d}) is >= than the number "
-      "of available CPUs ({:d}).  Enforced nproc to {:d}.".format(pyrat.nproc,
-             mpr.cpu_count(), mpr.cpu_count()-1), pyrat.wlog, pyrat.log)
+    pt.warning(pyrat.verb-2, "The number of requested CPUs ({:d}) is >= "
+       "than the number of available CPUs ({:d}).  Enforced nproc to {:d}.".
+       format(pyrat.nproc, mpr.cpu_count(), mpr.cpu_count()-1),
+       pyrat.log, pyrat.wlog)
     pyrat.nproc = mpr.cpu_count() - 1
 
   # Verbose level:

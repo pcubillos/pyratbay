@@ -109,7 +109,6 @@ def parse(wlog):
            help="Atmospheric species for the atmospheric file "
                 "[default: %(default)s]",
            action="store", type=pt.parray, default=None)
-  # Uniform decides uniform-abundances vs TEA-abundances:
   group.add_argument("--uniform",    dest="uniform",
            help="Species mole mixing ratios for uniform-abundance "
                 "profiles [default: %(default)s]",
@@ -138,6 +137,59 @@ def parse(wlog):
   group.add_argument("--extfile",    dest="extfile",
            help="Extinction-coefficient table file.",
            action="store", type=str,       default=None)
+  # Retrieval variables:
+  group = parser.add_argument_group("Retrieval options")
+  group.add_argument("--data",   dest="data",
+           help="Transit or eclipse depths.",
+           action="store", type=pt.parray, default=None)
+  group.add_argument("--uncert",   dest="uncert",
+           help="Transit or eclipse depth uncertainties.",
+           action="store", type=pt.parray, default=None)
+  group.add_argument("--params", dest="params",
+           help="Filename or list of initial-guess model-fitting "
+                "parameter [required]",
+           action="store", type=pt.parray, default=None)
+  group.add_argument("--pmin", dest="pmin",
+           help="Filename or list of parameter lower boundaries",
+           action="store", type=pt.parray, default=None)
+  group.add_argument("--pmax", dest="pmax",
+           help="Filename or list of parameter upper boundaries",
+           action="store", type=pt.parray, default=None)
+  group.add_argument("--stepsize", dest="stepsize",
+           help="Filename or list with proposal jump scale.",
+           action="store", type=pt.parray, default=None)
+  group.add_argument("--thigh",   dest="thigh",
+           help="Upper boundary for temperature sampling (kelvin).",
+           action="store", type=np.double, default=np.inf)
+  group.add_argument("--tlow",   dest="tlow",
+           help="Lower boundary for temperature sampling (kelvin).",
+           action="store", type=np.double, default=0.0)
+  group.add_argument("--walk",     dest="walk",
+           help="Random walk algorithm, select from: ['mrw', 'demc', "
+                "'snooker']. [default: %(default)s]",
+           action="store", type=str,  default="snooker")
+  group.add_argument("--nsamples", dest="nsamples",
+           help="Number of MCMC samples [default: %(default)s]",
+           action="store", type=eval,  default=int(1e5))
+  group.add_argument("--nchains", dest="nchains",
+           help="Number of chains [default: %(default)s]",
+           action="store", type=int,  default=7)
+  group.add_argument("--burnin", dest="burnin",
+           help="Number of burn-in iterations per chain [default: %(default)s]",
+           action="store", type=eval,  default=0)
+  group.add_argument("--thinning", dest="thinning",
+           help="Chains thinning factor (use every thinning-th iteration) "
+                "[default: %(default)s]",
+           action="store", type=int,  default=1)
+  group.add_argument("--bulk",   dest="bulk",
+           help="Bulk-abundance atmospheric species",
+           action="store", type=pt.parray, default=None)
+  group.add_argument("--molscale",   dest="molscale",
+           help="Variable-abundance atmospheric species",
+           action="store", type=pt.parray, default=None)
+  group.add_argument("--filter",     dest="filter",
+           help="Waveband filter filenames.",
+           action="store", type=pt.parray, default=None)
   # Output files options:
   group = parser.add_argument_group("Output files")
   group.add_argument("--logfile", dest="logfile",

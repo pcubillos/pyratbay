@@ -1,31 +1,12 @@
-.. _getstarted:
+.. _pyratbay:
 
-Getting Started
-===============
+Pyrat Bay Module
+================
 
-The Pyrat Bay package is composed of three main sub-packages:
-``lineread``, ``pyrat``, and ``pyratbay``.
+Quick Example
+-------------
 
-The ``pyrat`` package provides the forward-modeling radiative transfer
-code that computes an emission or transmission spectrum for a given
-atmospheric model.
-
-The ``lineread`` package formats online-available line-by-line opacity
-data into a line-transition information (TLI) file, which is used as
-input for ``pyrat``.
-
-The ``pyratbay`` package provides the retrieval (MCMC) code that
-constrain the atmospheric properties of an atmospheric model, given
-observed transit or eclipse-depth data points as function of
-wavelength.
-
-Each one of these can be run either from the shell prompt or in an
-interactive session through the Python interpreter.
-
-System Requirements
--------------------
-
-Pyrat-Bay (version 1.0) is known to work (at least) on Unix/Linux (Ubuntu)
+Pyrat Bay (version 1.X) is known to work (at least) on Unix/Linux (Ubuntu)
 and OSX (10.9+) machines, with the following software:
 
 * Python (version 2.7)
@@ -34,12 +15,10 @@ and OSX (10.9+) machines, with the following software:
 * Matplotlib (version 1.3.1+)
 
 MC3 may work with previous versions of these software.
-However we do not guarantee it nor provide support for that.
+However we do not guarantee nor provide support for that.
 
-.. _install:
-
-Install
--------
+Walkthrough
+-----------
 
 To obtain the latest stable Pyrat-Bay code, clone the repository to
 your local machine with the following terminal commands.
@@ -48,27 +27,10 @@ First, from any given directory, clone the Pyrat-Bay repository:
 .. code-block:: shell
 
   topdir=`pwd`
-  git clone --recursive https://github.com/pcubillos/pyratbay
+  git clone https://github.com/pcubillos/pyratbay
 
-Compile
--------
-
-Compile the C programs:
-
-.. code-block:: shell
-
-  cd $topdir/pyratbay
-  make
-
-To remove the program binaries, execute (from the respective directories):
-
-.. code-block:: shell
-
-  make clean
-
-
-Quick Example: pyrat forward modeling
--------------------------------------
+Quick Example: ``pyrat`` forward modeling
+-----------------------------------------
 
 The following script quickly lets you calculate a water transmission
 spectrum between 1 and 5.5 um.  These instructions are meant to be
@@ -92,13 +54,12 @@ Download the water line-transition database from the HITRAN server with wget or 
    curl -u HITRAN:getdata https://www.cfa.harvard.edu/HITRAN/HITRAN2012/HITRAN2012/By-Molecule/Compressed-files/01_hit12.zip -o 01_hit12.zip
    unzip 01_hit12.zip
 
-
 Copy the Lineread configuration file and run Lineread to make the Transition-Line-Information (TLI) file:
 
 .. code-block:: shell
 
-   cp $topdir/Pyrat-Bay/examples/lineread_demo/demo_hitran.cfg .
-   $topdir/Pyrat-Bay/lineread.py -c demo_hitran.cfg
+   cp $topdir/pyratbay/examples/lineread_demo/demo_hitran.cfg .
+   $topdir/pyratbay/lineread.py -c demo_hitran.cfg
 
 Copy the Pyrat configuration file and run it to compute the spectrum:
 
@@ -144,9 +105,3 @@ Pyrat-Bay will print out to screen some stuff:
    [ 2.81119952 -2.33026943  0.48622898]
 
    ...
-
-
-Example 2 (Shell Run)
----------------------
-
-TBD

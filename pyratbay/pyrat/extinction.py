@@ -71,7 +71,10 @@ def read_extinction(pyrat):
   ndata = ex.nmol * ex.ntemp * ex.nlayers * ex.nwave
   data = np.asarray(struct.unpack('d'*ndata, f.read(8*ndata)))
 
-  pyrat.ex.etable = np.reshape(data, (ex.nmol, ex.ntemp, ex.nlayers, ex.nwave))
+  sm_ect = mpr.Array(ctypes.c_double, data)
+  pyrat.ex.etable = np.ctypeslib.as_array(sm_ect.get_obj()).reshape(
+                               (ex.nmol, ex.ntemp, ex.nlayers, ex.nwave))
+  #pyrat.ex.etable = np.reshape(data, (ex.nmol, ex.ntemp, ex.nlayers, ex.nwave))
 
 
 def calc_extinction(pyrat):

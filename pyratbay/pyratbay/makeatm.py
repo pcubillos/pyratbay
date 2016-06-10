@@ -1,10 +1,22 @@
 __all__ = ["writeatm", "readatm", "uniform", "makeatomic", "readatomic",
-           "makepreatm", "TEA2pyrat"]
+           "makepreatm", "TEA2pyrat", "pressure", "temperature",
+           "hydro_equilibrium"]
 
 import os
+import sys
 import numpy as np
+import scipy.integrate as si
+import scipy.constants as sc
+import scipy.interpolate as sip
 
-from .. import tools as pt
+from .. import tools     as pt
+from .. import constants as pc
+from .  import argum as ar
+
+rootdir = os.path.realpath(os.path.dirname(__file__) + "/../../")
+sys.path.append(rootdir + "/pyratbay/lib/")
+import pt as PT
+
 
 # Get Pyrat-Bay inputs dir:
 thisdir = os.path.dirname(os.path.realpath(__file__))
@@ -380,3 +392,183 @@ def TEA2pyrat(teafile, atmfile):
   header = "# TEA atmospheric file formatted for Pyrat.\n\n"
 
   writeatm(atmfile, pressure, temperature, species, abundance, punits, header)
+
+
+def pressure(ptop, pbottom, nlayers, units="bar", log=None):
+  """
+  Compute a log-scale pressure profile.
+
+  Parameters
+  ----------
+  ptop: String or Float
+     Pressure at the top of the atmosphere. If string, may contain the units.
+  pbottom: String or Float
+     Pressure at the bottom of the atmosphere. If string, may contain the units.
+  nlayers: Integer
+     Number of pressure layers.
+  units: String
+     The pressure units (if not defined in ptop, pbottom).
+     Available units are: barye, mbar, pascal, bar (default), and atm.
+  log: File
+     Log file where to write screen outputs.
+
+  Returns
+  -------
+  press: 1D float ndarray
+     The pressure profile in barye units.
+
+  Examples
+  --------
+  >>> import pyratbay.pyratbay.makeatm as ma
+  >>> p1 = ma.pressure(1e-5,       1e2,      100, "bar")
+  >>> p2 = ma.pressure("1e-5 bar", "50 bar",  10)
+  """
+  # Unpack pressure input variables:
+  ptop    = pt.getparam(ptop,    units)
+  pbottom = pt.getparam(pbottom, units)
+  if ptop >= pbottom:
+    pt.error("Bottom-layer pressure ({:.2e} bar) must be higher than the"
+      "top-layer pressure ({:.2e} bar).".format(pbottom/pt.u(units),
+                                                ptop/pt.u(units)), log)
+
+  # Create pressure array in barye (CGS) units:
+  press = np.logspace(np.log10(ptop), np.log10(pbottom), nlayers)
+  pt.msg(1, "Creating {:d}-layer atmospheric model between {:.1e} and "
+     "{:.1e} bar.".format(nlayers, ptop/pt.u(units), pbottom/pt.u(units)), log)
+  return press
+
+
+def temperature(tmodel, tparams=None, eval=True, pressure=None,
+     rstar=None, tstar=None, tint=100.0, gplanet=None, smaxis=None,
+     radunits="cm", nlayers=None, log=None):
+  """
+  Temperature profile wrapper.
+
+  Parameters
+  ----------
+  tmodel: String
+     Name of the temperature model.
+  tparams: 1D float ndarray
+     Temperature model parameters.
+  eval: Bool
+     If True, return the temperature profile evaluated at tparams.
+     Else, return a tuple with the model callable, arguments, and number of
+     fitting parameters.
+  pressure: 1D float ndarray
+     Atmospheric pressure profile in barye units.
+  rstar: String or float
+     Stellar radius. If string, may contain the units.
+  tstar: String or float
+    Stellar temperature in kelvin degrees.
+  tint: String or float
+    Planetary internal temperature in kelvin degrees.
+  gplanet: String or float
+    Planetary atmospheric temperature in cm s-2.
+  smaxis: String or float
+    Orbital semi-major axis. If string, may contain the units.
+  radunits: String
+    Default units for rstar and smaxis.  Available units are: A, nm, um,
+    mm, cm (default), m, km, au, pc, rearth, rjup, rsun.
+  nlayers: Integer
+     Number of pressure layers.
+  log: File
+     Log file where to write screen outputs.
+
+  Returns
+  -------
+  If eval=True:
+   temperature: 1D float ndarray
+      The evaluated atmospheric temperature profile.
+  If eval=False:
+   Tmodel: Callable
+      The atmospheric temperature model.
+   targs: List
+      The list of additional arguments (besides the model parameters).
+   ntpars: Integer
+      The expected number of model parameters.
+
+  Examples
+  --------
+  >>> import pyratbay.pyratbay.makeatm as ma
+  >>> # 100-layer isothermal profile:
+  >>> ma.temperature("isothermal", tparams=np.array([1500.0]), eval=True,
+                     nlayers=100)
+  >>> # Three-chanel Eddington-approximation profile:
+  >>> p = ma.pressure(1e-5, 1e2, 100, "bar")
+  >>> Tmodel, targs, ntpars = ma.temperature("TCEA", eval=False, pressure=p,
+    rstar="1.0 rsun", tstar=5800.0, tint=100.0, gplanet=800.0, smaxis="0.05 au")
+  >>> tparams = np.array([-3.0, -0.25, 0.0, 0.0, 1.0])
+  >>> temp = Tmodel(tparams, *targs)
+  """
+  if tmodel == "TCEA":
+    # Parse inputs:
+    rstar   = pt.getparam(rstar, radunits)
+    tstar   = pt.getparam(tstar, "kelvin")
+    tint    = pt.getparam(tint,  "kelvin")
+    gplanet = pt.getparam(gplanet, "none")
+    smaxis  = pt.getparam(smaxis, radunits)
+    # Define model and arguments:
+    Tmodel = PT.TCEA
+    targs  = [pressure, rstar, tstar, tint, smaxis, gplanet]
+    ntpars = 5
+  elif tmodel == "isothermal":
+    # Define model and arguments:
+    Tmodel = PT.isothermal
+    targs  = [nlayers]
+    ntpars = 1
+  else:
+    pt.error("Invalid input temperature model '{:s}'.  Select from: 'TCEA' "
+             "or 'isothermal'.".format(tmodel), log)
+  if eval:
+    temperature = Tmodel(tparams, *targs)
+    pt.msg(1, "\nComputed {:s} temperature model.".format(tmodel), log)
+    return temperature
+  else:
+    return Tmodel, targs, ntpars
+
+
+def hydro_equilibrium(pressure, temperature, mu, g, p0=None, r0=None):
+  """
+  Calculate radii using the hydrostatic-equilibrium equation.
+
+  Parameters
+  ----------
+  pressure: 1D float ndarray
+     Atmospheric pressure for each layer (in barye).
+  temperature: 1D float ndarray
+     Atmospheric temperature for each layer (in K).
+  mu: 1D float ndarray
+     Mean molecular mass for each layer (in g mol-1).
+  g: Float
+     Atmospheric gravity (in cm s-2).
+  p0: Float
+     Reference pressure level (in barye) where radius(p0) = r0.
+  r0: Float
+     Reference radius level (in cm) corresponding to p0.
+
+  Returns
+  -------
+  radius: 1D float ndarray
+     Radius for each layer (in cm).
+
+  Notes
+  -----
+  If the reference values (p0 and r0) are not given, set radius = 0.0
+  at the bottom of the matmosphere.
+  """
+  # Apply the HE equation:
+  radius = si.cumtrapz((-pc.k*sc.N_A * temperature) / (mu*g), np.log(pressure))
+  radius = np.concatenate(([0.0], radius))
+
+  # Set absolute radii values if p0 and r0 are provided:
+  if p0 is not None and r0 is not None:
+    # Find current radius at p0:
+    radinterp = sip.interp1d(pressure, radius, kind='slinear')
+    r0_interp = radinterp(p0)
+    # Set: radius(p0) = r0
+    radius += r0 - r0_interp
+  # Set radius = 0 at the bottom of the atmosphere:
+  else:
+    radius -= radius[-1]
+
+  return radius

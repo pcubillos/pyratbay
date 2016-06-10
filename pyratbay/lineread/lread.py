@@ -144,11 +144,11 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
     pt.error("There are no partition-function inputs ('pflist').", log)
   # Defaulted-inputs warning messages:
   if iwl == 0.01:
-    pt.warning("Using default initial wavelength boundary: iwl = 0.01 um.",
-               wlog, log)
+    pt.warning(verb-2, "Using default initial wavelength boundary: "
+                       "iwl = 0.01 um.", log, wlog)
   if fwl == 999.9:
-    pt.warning("Using default final wavelength boundary: fwl = 999.9 um.",
-               wlog, log)
+    pt.warning(verb-2, "Using default final wavelength boundary: "
+                       "fwl = 999.9 um.", log, wlog)
 
   # Number of files:
   Nfiles = len(dblist)
@@ -411,7 +411,7 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
     warns.write("\n\n{:s}\n".format(pt.sep).join(wlog))
     warns.close()
     # Report it:
-    pt.warning("There was(were) {:d} warning(s) raised.\nSee '{:s}'.".
-                format(len(wlog), wfile), [], log)
+    pt.warning(verb-2, "There was(were) {:d} warning(s) raised.\nSee '{:s}'.".
+                format(len(wlog), wfile), log)
 
   log.close()

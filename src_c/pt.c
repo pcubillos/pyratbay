@@ -134,33 +134,33 @@ PyDoc_STRVAR(isothermal__doc__,
                                             \n\
 Inputs                                      \n\
 ------                                      \n\
-T0:  Float                                  \n\
+T0: 1D float array                          \n\
    Atmospheric temperature (in Kelvin).     \n\
-pressure: 1D float ndarray                  \n\
-   Array of pressure values (in barye).     \n\
+nlayers: integer                            \n\
+   Number of atmospheric layers.            \n\
                                             \n\
 Returns                                     \n\
 -------                                     \n\
-T: temperature array");
+T: 1D float ndarray                         \n\
+   Temperature profile.");
 
 static PyObject *isothermal(PyObject *self, PyObject *args){
-  PyArrayObject *pressure, *temperature;
-  double T0;
+  PyArrayObject *T0, *temperature;
   int i, nlayers;     /* Auxilliary for-loop indices                        */
   npy_intp size[1];
 
   /* Load inputs:                                                           */
-  if (!PyArg_ParseTuple(args, "dO", &T0, &pressure))
+  if (!PyArg_ParseTuple(args, "Oi", &T0, &nlayers))
     return NULL;
 
   /* Get array size:                                                        */
-  size[0] = nlayers = (int)PyArray_DIM(pressure, 0);
+  size[0] = nlayers;
 
   /* Allocate output:                                                       */
   temperature = (PyArrayObject *) PyArray_SimpleNew(1, size, NPY_DOUBLE);
   /* Set isothermal temperature:                                            */
   for (i=0; i<nlayers; i++){
-    INDd(temperature,i) = T0;
+    INDd(temperature,i) = INDd(T0,0);
   }
   return Py_BuildValue("N", temperature);
 }

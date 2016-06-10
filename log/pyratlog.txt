@@ -820,7 +820,6 @@ In pconstants.py: Bumped Pyrat-Bay revision (now version 0.0.3).
 
 *****
 
-
 In setup.py: added more comments and commented out the OMP extra
 arguments.
 In extcoeff.c: Fixed format printing argument for nadd, nskip, and
@@ -1729,4 +1728,119 @@ future if necessary.
 
 Bumped Pyrat to version 1.2.15.
 
+
+*****  Di 17. Mai 10:14:42 CEST 2016  *****
+
+Updated MC3 submodule (snooker multiprocessing code).
+
 *****
+
+Got first running version of pyratfit.py init()
+which creates the required variables to put pyrat in the atmospheric
+retrieval MCMC.
+Added bulk, molscale, filter, and data arguments to pyratbay driver.
+Added error catch for a wrong run mode.
+
+I should probably put the outputs from this function into the pyrat
+object.
+
+*****
+
+Fixed issues with the isothermal() function.
+Adapted it to work with the pyratbay code.
+
+*****
+
+Properly tested pyratfit.py's fit().
+Added freeze optional argument to fit(), useful for use in the MCMC.
+Modified calct to use the isothermal() function when requested.
+
+*****
+
+Refactor warning() to take verblevel as input.
+
+*****
+
+Refactored calcp() made the input arguments for general use.
+Renamed as pressure() and moved from driver.py to makeatm.py.
+Took checkpressure() out of calcp() into driver.py.
+
+
+*****  Do 19. Mai 15:52:27 CEST 2016  *****
+
+Completed initial working version of pyratfit.py for use in the MCMC.
+Refactored calct() and moved from driver.py to makeatm.py.
+Copied hydro_equilibrium() from pyrat into pyratbay's makeatm.py.
+Added params argument to pyratbay's argum.py.
+
+
+*****  Fr 20. Mai 09:32:06 CEST 2016  *****
+
+Refactored calct() making the input arguments for general use.
+Renamed as temperature().
+Moved checktemp() out of the function.
+
+
+*****  Sat May 28 20:45:54 CEST 2016  *****
+
+Enabled MCMC run for isothermal model.
+Added to pyratbay's driver argument list:
+uncert, pmin, pmax, stepsize, walk, nsamples, nsamples, nchains,
+burnin, thinning.
+Some initial updates to the documentation.
+
+Need to add temperature-boundaries check for TCEA model.
+
+*****
+
+Updated MCcubed submodule.
+
+
+*****  Sun May 29 17:31:41 CEST 2016  *****
+
+Added template files for docs. Updated logo and added favicon.
+
+*****
+
+Implemented temperature boundaries in the retrieval sampling.
+Added thigh, tlow input arguments in pyratbay's argum.py.
+
+
+*****  Mi 8. Jun 11:20:26 CEST 2016  *****
+
+Fixed quirks out of the rebase.
+
+*****
+
+Updated MCcubed submodule.
+
+*****  Do 9. Jun 14:07:32 CEST 2016  *****
+
+Updated TEA submodule.
+
+*****
+
+Corrected two bugs in extcoeff().
+For multiple molecules, all the non-zero molecular indices were
+pointing to the same location.
+For the EC table code, the no-broadening contributions were being
+multiplied by the density (when they shouldn't have).
+
+*****
+
+Updated default value of ethresh to 1e-9.
+Which is more appropriate.
+
+
+*****  Fr 10. Jun 14:46:44 CEST 2016  *****
+
+Put etable into shared memory when read from file.
+Although this might not be necessary (test in OSX).
+
+*****
+
+Bumped Pyrat Bay to version 0.0.24.
+This merge resolves #17.
+
+*****
+
