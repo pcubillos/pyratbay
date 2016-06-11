@@ -7,10 +7,12 @@ import multiprocessing as mpr
 
 from .. import tools     as pt
 from .. import constants as pc
+from .. import wine      as w
+from .. import starspec  as sspec
 from .. import VERSION   as ver
+
 from .  import haze      as hz
 from .  import alkali    as al
-from ..pyratbay import kurucz as k
 
 
 def parse(pyrat):
@@ -711,7 +713,7 @@ def setup(pyrat):
 
   # Read stellar spectrum model:
   if phy.starspec is not None:
-    starwn, starflux = rp.readspectrum(phy.starspec)
+    starwn, starflux = sspec.readpyrat(phy.starspec)
   # Kurucz stellar model:
   elif phy.kurucz is not None:
     if phy.tstar is None:
@@ -720,7 +722,7 @@ def setup(pyrat):
     if phy.gstar is None:
       pt.error("Undefined stellar gravity (tstar), required for Kurucz "
                "model.", pyrat.log)
-    starflux, starwn, kuruczt, kuruczg = k.getmodel(phy.kurucz,
+    starflux, starwn, kuruczt, kuruczg = sspec.readkurucz(phy.kurucz,
                                            phy.tstar, np.log10(phy.gstar))
     pt.msg(pyrat.verb-4, "Input stellar params: T={:7.1f} K, log(g)={:4.2f}\n"
                          "Best Kurucz match:    T={:7.1f} K, log(g)={:4.2f}".

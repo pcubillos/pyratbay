@@ -1876,3 +1876,11 @@ Move the wine.py module from pyratbay/pyratbay/ to pyratbay/.
 
 *****
 
+Created starspec sub-package containing stellar spectrum models code.
+Moved kurucz.py to starspec package, renamed getmodel() to readkurucz().
+Moved readspectrum() from ptools.py to starspec package, remamed function
+to readpyrat().
+
+*****
+
+

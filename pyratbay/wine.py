@@ -132,7 +132,7 @@ def bandintegrate(spectrum, specwn, nifilter):
   
   >>> # Get a stellar spectrum:
   >>> kmodel = "fp00k2odfnew.pck"
-  >>> sflux, swn, tm, gm = pb.k.getmodel(kmodel, 5800, 4.43)
+  >>> sflux, swn, tm, gm = pb.starspec.readkurucz(kmodel, 5800, 4.43)
   
   >>> # Load Spitzer IRAC filters:
   >>> wn1, irac1 = pb.w.readfilter(pbpath+"inputs/filters/spitzer_irac1_sa.dat")

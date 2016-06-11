@@ -1,4 +1,4 @@
-__all__ = ["run", "makeatm", "mc", "qs", "k", "constants", "tools",
+__all__ = ["run", "makeatm", "mc", "qs", "constants", "tools",
            "ar", "pf"]
 
 from .driver import run
@@ -6,7 +6,6 @@ from .driver import run
 from .  import makeatm as ma
 from .  import makecfg as mc
 from .  import qscale  as qs
-from .  import kurucz  as k
 from .  import pyratfit as pf
 from .. import VERSION as ver
 

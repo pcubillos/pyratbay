@@ -4,10 +4,9 @@ import numpy as np
 from .. import tools     as pt
 from .. import constants as pc
 from .. import pyrat     as py
-from .. import wine    as w
+from .. import wine      as w
 
 from .  import qscale  as qs
-from .  import kurucz  as k
 from .  import makeatm as ma
 from .  import argum   as ar
 
@@ -46,20 +45,8 @@ def init(pyrat, args, log):
   pyrat.iscale = np.where(np.in1d(species, args.molscale))[0]
   pyrat.bulkratio, pyrat.invsrat = qs.ratio(pyrat.atm.q, pyrat.ibulk)
 
-  # Read stellar spectrum model:
-  if args.starspec is not None:
-    starwn, starflux = rp.readspectrum(args.starspec)
-  elif args.kurucz is not None:
-    if args.tstar is None:
-      pt.error("Undefined stellar temperature (tstar).", log)
-    if args.gstar is None:
-      pt.error("Undefined stellar gravity (tstar).", log)
-    starflux, starwn, kuruczt, kuruczg = k.getmodel(args.kurucz,
-                                           args.tstar, np.log10(args.gstar))
-    pt.msg(1, "Input stellar params: Tstar={:7.1f} K, log(g)={:4.2f}\n"
-              "Best Kurucz match:    Tstar={:7.1f} K, log(g)={:4.2f}".
-               format(args.tstar, np.log10(args.gstar), kuruczt, kuruczg, log))
-  else:
+  # Check stellar spectrum model:
+  if pyrat.phy.starflux is None:
     pt.error("Unspecified stellar flux model.", log)
 
   # Load filters:
@@ -69,35 +56,9 @@ def init(pyrat, args, log):
     pt.error("Undefined data.", log)
 
   nfilters = len(args.filter)  # Number of filters
-  if nfilters != len(args.data):
-    pt.error("The number of data points ({:d}) does not match the number "
-             "of filter bands ({:d}).".format(len(args.data), nfilters))
-
-  wnindices = []
-  istarfl   = []
-  nifilter  = []
-  bandwn    = []
-  for i in np.arange(nfilters):
-    # Read filter file:
-    fwn, ftr = w.readfilter(args.filter[i])
-    # Resample the filters into the stellar wavenumber array:
-    nif, wni, isf = w.resample(pyrat.spec.wn, fwn, ftr, starwn, starflux)
-    nifilter.append(nif)
-    wnindices.append(wni)
-    istarfl.append(isf)
-    bandwn.append(np.sum(fwn*ftr)/sum(ftr))
 
   if pyrat.od.path == "eclipse":
     pyrat.rprs = pyrat.rplanet/pyrat.rstar
-
-  pyrat.starflux  = starflux
-  pyrat.starwn    = starwn
-  pyrat.nfilters  = nfilters
-  pyrat.wnindices = wnindices
-  pyrat.istarfl   = istarfl
-  pyrat.nifilter  = nifilter
-  pyrat.bandflux  = np.zeros(nfilters)
-  pyrat.bandwn    = bandwn
 
   # Temperature model:
   # FINDME: Need to check args.tstar, tint, smaxis
@@ -157,8 +118,8 @@ def fit(params, pyrat, freeze=False):
   # Update temperature profile:
   temp = pyrat.tmodel(params[pyrat.itemp], *pyrat.targs)
   if np.any(temp < pyrat.tlow) or np.any(temp > pyrat.thigh):
-    pyrat.bandflux[:] = 1e10  # FINDME: what if np.inf? or nan?
-    return pyrat.bandflux
+    pyrat.obs.bandflux[:] = -1e10  # FINDME: what if np.inf? or nan?
+    return pyrat.obs.bandflux
   # Update abundance profiles:
   q2 = qs.qscale(pyrat.atm.q, pyrat.mol.name, params[pyrat.iabund],
                  pyrat.molscale, pyrat.bulk,
@@ -177,7 +138,7 @@ def fit(params, pyrat, freeze=False):
   # Unpack some variables:
   spectrum = pyrat.spec.spectrum
   wn       = pyrat.spec.wn
-  bflux = pyrat.bandflux
+  bflux = pyrat.obs.bandflux
   wnind = pyrat.wnindices
   # Band-integrate spectrum:
   for i in np.arange(pyrat.nfilters):
@@ -192,4 +153,4 @@ def fit(params, pyrat, freeze=False):
   # Revert changes in the atmospheric profile:
   if freeze:
     pyrat.atm.temp, pyrat.atm.q, pyrat.atm.radius = t0, q0, r0
-  return pyrat.bandflux
+  return pyrat.obs.bandflux
