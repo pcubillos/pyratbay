@@ -1864,3 +1864,8 @@ Defined pyrat.phy.rprs.
 
 *****
 
+Moved readspectrum() from scripts/readpyrat.py to ptools.py.
+
+*****
+
+
