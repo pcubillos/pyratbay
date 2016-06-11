@@ -95,6 +95,9 @@ def init(argv, main=False):
   ex.exttable(pyrat)
   timestamps.append(time.time())
 
+  # Set up observational/retrieval parameters:
+  ar.setup(pyrat)
+
   pyrat.timestamps = list(np.ediff1d(timestamps))
   return pyrat
 

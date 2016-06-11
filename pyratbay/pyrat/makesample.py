@@ -137,11 +137,11 @@ def makeradius(pyrat):
 
   if atm_in.radius is None:
     # Check that the gravity variable is exists:
-    if pyrat.gplanet is None:
+    if pyrat.phy.gplanet is None:
       pt.error("Undefined atmospheric gravity (gplanet).  Either include the "
         "radius profile in the atmospheric file or set the surface gravity.",
         pyrat.log)
-    if pyrat.rplanet is None:
+    if pyrat.phy.rplanet is None:
       pt.error("Undefined reference planetary radius (rplanet). Either include "
         "the radius profile in the atmospheric file or set rplanet.", pyrat.log)
     if pyrat.refpressure is None:
@@ -153,12 +153,12 @@ def makeradius(pyrat):
            format(pyrat.refpressure/pt.u(pyrat.punits), pyrat.punits),
            pyrat.log,   2)
     pt.msg(pyrat.verb-4, "Reference radius: {:8g} {:s}.".
-           format(pyrat.rplanet/pt.u(pyrat.radunits), pyrat.radunits),
+           format(pyrat.phy.rplanet/pt.u(pyrat.radunits), pyrat.radunits),
            pyrat.log, 2)
 
     # Calculate the radius profile using the hydostatic-equilibrium equation:
     atm_in.radius = ra.hydro_equilibrium(atm_in.press, atm_in.temp, atm_in.mm,
-                       pyrat.gplanet, pyrat.refpressure, pyrat.rplanet)
+                       pyrat.phy.gplanet, pyrat.refpressure, pyrat.phy.rplanet)
 
   # Set the interpolating function (for use later):
   radinterp   = sip.interp1d(atm_in.press, atm_in.radius, kind='slinear')

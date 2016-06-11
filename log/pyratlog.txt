@@ -1847,5 +1847,20 @@ This merge resolves #17.
 Added addarg() function to ptools to wrap the argument parsing.
 Updated Pyrat's argparse() to use addarg().
 
+
+*****  Sat Jun 11 20:18:10 CEST 2016  *****
+
+Defined the Observation(), Physics(), and Retrieval() objects as part
+of the Pyrat class.
+Removed variables in Input class.
+
+Added filter, starspec, kurucz, gstar, and tstar arguments in pyrat argum.py.
+Added marcs and phoenix placeholder arguments in pyrat's argum.py.
+Fixed bug in isgreater(), adding log argument.
+Moved rplanet, gplanet, and rstar from pyrat to pyrat.phy.
+Implemented setup() in pyrat argum.py (temporary location) to process
+stellar spectrum and filter band variables.
+Defined pyrat.phy.rprs.
+
 *****
 

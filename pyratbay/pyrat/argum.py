@@ -10,6 +10,7 @@ from .. import constants as pc
 from .. import VERSION   as ver
 from .  import haze      as hz
 from .  import alkali    as al
+from ..pyratbay import kurucz as k
 
 
 def parse(pyrat):
@@ -100,12 +101,6 @@ def parse(pyrat):
       "Number of atmospheric layers [default: %(default)s]")
   pt.addarg("punits",      group, str,       None,
       "Pressure (user) units [default: bar]")
-  pt.addarg("rplanet",     group, str,       None,
-      "Planetary radius (in radunits)")
-  pt.addarg("refpressure", group, str,       None,
-      "Pressure reference level corresponding to rplanet (in punits).")
-  pt.addarg("gplanet",     group, np.double, None,
-      "Planetaty surface gravity (cm s-2).")
   # Extinction options:
   group = parser.add_argument_group("Extinction Calculations Options")
   pt.addarg("tmin",        group, np.double, None,
@@ -164,10 +159,30 @@ def parse(pyrat):
       "Transit or eclipse depth uncertainties.")
   pt.addarg("uncert",      group, pt.parray, None,
       "Transit or eclipse depth uncertainties.")
+  pt.addarg("filter",      group, pt.parray, None,
+      "Waveband filter filenames.")
   # System options:
-  group = parser.add_argument_group("System Options")
+  group = parser.add_argument_group("System physical variables")
+  pt.addarg("starspec",    group, str,       None,
+      "Stellar-spectrum model filename.")
+  pt.addarg("kurucz",      group, str,       None,
+      "Kurucz stellar-spectrum filename.")
+  pt.addarg("marcs",       group, str,       None,
+      "MARCS stellar-spectrum filename.")
+  pt.addarg("phoenix",     group, str,       None,
+      "PHOENIX stellar-spectrum filename.")
   pt.addarg("rstar",       group, str,       None,
-      "Stellar radius [default: %(default)s]")
+      "Stellar radius (radunits).")
+  pt.addarg("gstar",       group, np.double, None,
+      "Stellar surface gravity (cm s-2).")
+  pt.addarg("tstar",       group, np.double, None,
+      "Stellar effective temperature (kelvin).")
+  pt.addarg("rplanet",     group, str,       None,
+      "Planetary radius (in radunits)")
+  pt.addarg("refpressure", group, str,       None,
+      "Pressure reference level corresponding to rplanet (in punits).")
+  pt.addarg("gplanet",     group, np.double, None,
+      "Planetaty surface gravity (cm s-2).")
   # Output file options:
   group = parser.add_argument_group("Output File's Options")
   pt.addarg("outspec",     group, str,       None,
@@ -216,9 +231,7 @@ def parse(pyrat):
   pyrat.inputs.punits     = user.punits
   pyrat.inputs.nlayers    = user.nlayers
   # Hydrostatic-equilibrium base-level variables:
-  pyrat.inputs.rplanet     = user.rplanet
   pyrat.inputs.refpressure = user.refpressure
-  pyrat.inputs.gplanet     = user.gplanet
   # Extinction:
   pyrat.inputs.ethresh = user.ethresh
   pyrat.inputs.tmin    = user.tmin
@@ -243,8 +256,20 @@ def parse(pyrat):
   pyrat.inputs.maxdepth   = user.maxdepth
   pyrat.inputs.raygrid    = user.raygrid
   pyrat.inputs.quadrature = user.quadrature
-  # System:
+  # System physical variables:
   pyrat.inputs.rstar      = user.rstar
+  pyrat.inputs.gstar      = user.gstar
+  pyrat.inputs.tstar      = user.tstar
+  pyrat.inputs.rplanet    = user.rplanet
+  pyrat.inputs.gplanet    = user.gplanet
+  pyrat.inputs.starspec   = user.starspec
+  pyrat.inputs.kurucz     = user.kurucz
+  pyrat.inputs.marcs      = user.marcs
+  pyrat.inputs.phoenix    = user.phoenix
+  # Observing variables:
+  pyrat.inputs.data   = user.data
+  pyrat.inputs.uncert = user.uncert
+  pyrat.inputs.filter = user.filter
   # Output files:
   pyrat.inputs.outspec     = user.outspec
   pyrat.inputs.outsample   = user.outsample
@@ -321,11 +346,11 @@ def checkinputs(pyrat):
 
   pyrat.spec.wllow = pt.getparam(inputs.wllow, pyrat.spec.wlunits)
   isgreater(pyrat.spec.wllow, "um", 0, False,
-            "Low wavelength boundary ({:.2e} um) must be >= 0.")
+            "Low wavelength boundary ({:.2e} um) must be >= 0.", pyrat.log)
 
   pyrat.spec.wlhigh = pt.getparam(inputs.wlhigh, pyrat.spec.wlunits)
   isgreater(pyrat.spec.wlhigh, "um", 0, True,
-            "High wavelength boundary ({:.2e} um) must be >= 0.")
+            "High wavelength boundary ({:.2e} um) must be >= 0.", pyrat.log)
 
   # Wavenumber must be taken care differently (take inverse of units):
   if inputs.wnlow is not None:
@@ -367,64 +392,75 @@ def checkinputs(pyrat):
      "Input wavenumber oversampling factor (wnosamp) defaulted to {:d}.",
      pyrat.wlog, pyrat.log)
   isgreater(pyrat.spec.wnosamp, "none", 1, False,
-            "Wavenumber oversampling factor ({:d}) must be >= 1.")
+            "Wavenumber oversampling factor ({:d}) must be >= 1.", pyrat.log)
 
   # Check atmospheric layers arguments:
   pyrat.punits = pt.defaultp(inputs.punits, "bar",
-     "Input pressure units (punits) defaulted to '{:s}'.", pyrat.wlog, pyrat.log)
+     "Input pressure units (punits) defaulted to '{:s}'.", pyrat.wlog,pyrat.log)
   pyrat.radunits = pt.defaultp(inputs.radunits, "km",
      "Input radius units (punits) defaulted to '{:s}'.", pyrat.wlog, pyrat.log)
 
   # Pressure boundaries:
   pyrat.phigh = pt.getparam(inputs.phigh, pyrat.punits)
   isgreater(pyrat.phigh, "bar", 0, True,
-            "High atm pressure boundary ({:.2e} bar) must be > 0.0")
+            "High atm pressure boundary ({:.2e} bar) must be > 0.0", pyrat.log)
   pyrat.plow  = pt.getparam(inputs.plow,    pyrat.punits)
   isgreater(pyrat.plow, "bar",  0, True,
-            "Low atm pressure boundary ({:.2e} bar) must be > 0.0")
+            "Low atm pressure boundary ({:.2e} bar) must be > 0.0", pyrat.log)
   # Radius boundaries:
   pyrat.radlow  = pt.getparam(inputs.radlow,  pyrat.radunits)
   isgreater(pyrat.radlow, "cm", 0, False,
-            "Low atm radius boundary ({:.2e} cm) must be >= 0.0")
+            "Low atm radius boundary ({:.2e} cm) must be >= 0.0", pyrat.log)
   pyrat.radhigh = pt.getparam(inputs.radhigh, pyrat.radunits)
   isgreater(pyrat.radhigh, "cm", 0, True,
-            "High atm radius boundary ({:.2e} cm) must be > 0.0")
+            "High atm radius boundary ({:.2e} cm) must be > 0.0", pyrat.log)
   pyrat.radstep = pt.getparam(inputs.radstep, pyrat.radunits)
   isgreater(pyrat.radstep, "cm", 0, True,
-            "Radius step size ({:.2f} cm) must be > 0.")
+            "Radius step size ({:.2f} cm) must be > 0.", pyrat.log)
   # Pressure-radius reference level:
-  pyrat.rplanet = pt.getparam(inputs.rplanet, pyrat.radunits)
-  isgreater(pyrat.rplanet, "cm",   0, True,
-            "Planetary radius base ({:.3e} cm) must be > 0.")
+  pyrat.phy.rplanet = pt.getparam(inputs.rplanet, pyrat.radunits)
+  isgreater(pyrat.phy.rplanet, "cm",   0, True,
+            "Planetary radius ({:.3e} cm) must be > 0.", pyrat.log)
   pyrat.refpressure = pt.getparam(inputs.refpressure, pyrat.punits)
   isgreater(pyrat.refpressure, "bar", 0, True,
-            "Planetary reference pressure level ({:8g} bar) must be > 0.")
-  pyrat.gplanet  = pt.getparam(inputs.gplanet,  "none")
-  isgreater(pyrat.gplanet, "none", 0, True,
-            "Planetary surface gravity ({:.2f} cm s-2) must be > 0.")
+      "Planetary reference pressure level ({:8g} bar) must be > 0.", pyrat.log)
+  pyrat.phy.gplanet  = pt.getparam(inputs.gplanet,  "none")
+  isgreater(pyrat.phy.gplanet, "none", 0, True,
+            "Planetary surface gravity ({:.2f} cm s-2) must be > 0.", pyrat.log)
+  pyrat.phy.rstar = pt.getparam(inputs.rstar, pyrat.radunits)
+  isgreater(pyrat.phy.rstar, "cm",   0, True,
+            "Stellar radius ({:.3e} cm) must be > 0.", pyrat.log)
+  pyrat.phy.gstar  = pt.getparam(inputs.gstar,  "none")
+  isgreater(pyrat.phy.gstar, "none", 0, True,
+            "Stellar surface gravity ({:.2f} cm s-2) must be > 0.", pyrat.log)
+  pyrat.phy.tstar  = pt.getparam(inputs.tstar,  "none")
+  isgreater(pyrat.phy.tstar, "none", 0, True,
+            "Stellar effective temperature ({:.1f} K) must be > 0.", pyrat.log)
 
   pyrat.atm.nlayers = pt.getparam(inputs.nlayers, "none", integer=True)
   isgreater(pyrat.atm.nlayers, "none", 0, True,
-            "The number of atmospheric layers ({:d}) must be > 0.")
+            "The number of atmospheric layers ({:d}) must be > 0.", pyrat.log)
 
   # Check Voigt-profile arguments:
   pyrat.voigt.extent = pt.defaultp(inputs.vextent, 20,
      "Input Voigt extent (vextent) defaulted to {:g}.", pyrat.wlog, pyrat.log)
   isgreater(pyrat.voigt.extent, "none", 1, False,
-            "Voigt extent ({:g}) must be >= 1.0")
+            "Voigt extent ({:g}) must be >= 1.0", pyrat.log)
 
   # Doppler width:
   pyrat.voigt.nDop = pt.defaultp(inputs.nDop, 40,
        "Number of Doppler-width samples (nDop) defaulted to {:d}.",
        pyrat.wlog, pyrat.log)
   isgreater(pyrat.voigt.nDop, "none", 1, False,
-       "The number of Doppler-width samples ({:d}) must be >= 1")
+       "The number of Doppler-width samples ({:d}) must be >= 1", pyrat.log)
 
   pyrat.voigt.Dmin = pt.getparam(inputs.Dmin, "none")
-  isgreater(pyrat.voigt.Dmin, "none", 0, True, "Dmin ({:g} cm-1) must be > 0.")
+  isgreater(pyrat.voigt.Dmin, "none", 0, True,
+            "Dmin ({:g} cm-1) must be > 0.", pyrat.log)
 
   pyrat.voigt.Dmax = pt.getparam(inputs.Dmax, "none")
-  isgreater(pyrat.voigt.Dmax, "none", 0, True, "Dmax ({:g} cm-1) must be > 0.")
+  isgreater(pyrat.voigt.Dmax, "none", 0, True,
+            "Dmax ({:g} cm-1) must be > 0.", pyrat.log)
 
   if (pyrat.voigt.Dmin is not None and pyrat.voigt.Dmax is not None and
       pyrat.voigt.Dmax <= pyrat.voigt.Dmin):
@@ -436,13 +472,15 @@ def checkinputs(pyrat):
        "Number of Lorentz-width samples (nLor) defaulted to {:d}.",
        pyrat.wlog, pyrat.log)
   isgreater(pyrat.voigt.nLor, "none", 1, False,
-       "The number of Lorentz-width samples ({:d}) must be >= 1")
+       "The number of Lorentz-width samples ({:d}) must be >= 1", pyrat.log)
 
   pyrat.voigt.Lmin = pt.getparam(inputs.Lmin, "none")
-  isgreater(pyrat.voigt.Lmin, "none", 0, True, "Lmin ({:g} cm-1) must be > 0.")
+  isgreater(pyrat.voigt.Lmin, "none", 0, True,
+            "Lmin ({:g} cm-1) must be > 0.", pyrat.log)
 
   pyrat.voigt.Lmax = pt.getparam(inputs.Lmax, "none")
-  isgreater(pyrat.voigt.Lmax, "none", 0, True, "Lmax ({:g} cm-1) must be > 0.")
+  isgreater(pyrat.voigt.Lmax, "none", 0, True,
+            "Lmax ({:g} cm-1) must be > 0.", pyrat.log)
 
   if (pyrat.voigt.Lmin is not None and pyrat.voigt.Lmax is not None and
       pyrat.voigt.Lmax <= pyrat.voigt.Lmin):
@@ -453,12 +491,12 @@ def checkinputs(pyrat):
      "Doppler/Lorentz-width ratio threshold (DLratio) defaulted to {:g}.",
      pyrat.wlog, pyrat.log)
   isgreater(pyrat.voigt.DLratio, "none", 0, True,
-     "Doppler/Lorentz-width ratio threshold ({:g}) must be > 0.")
+     "Doppler/Lorentz-width ratio threshold ({:g}) must be > 0.", pyrat.log)
 
   # Check extinction-coefficient arguments:
   pyrat.ex.ethresh = pt.getparam(inputs.ethresh, "none")
   isgreater(pyrat.ex.ethresh, "none", 0, True,
-               "Extinction-coefficient threshold ({:g}) must be positive.")
+        "Extinction-coefficient threshold ({:g}) must be positive.", pyrat.log)
   if pyrat.ex.extfile is not None:
     if inputs.tmin is None:
       pt.error("Undefined lower boundary (tmin) of temperature grid for "
@@ -466,21 +504,21 @@ def checkinputs(pyrat):
     else:
       pyrat.ex.tmin = pt.getparam(inputs.tmin, "kelvin")
       isgreater(pyrat.ex.tmin,  "kelvin", 0, True,
-                 "Minimum temperature sample ({:g} K) must be positive.")
+            "Minimum temperature sample ({:g} K) must be positive.", pyrat.log)
     if inputs.tmax is None:
       pt.error("Undefined upper boundary (tmax) of temperature grid for "
                "extinction-coefficient grid.", pyrat.log)
     else:
       pyrat.ex.tmax  = pt.getparam(inputs.tmax, "kelvin")
       isgreater(pyrat.ex.tmax,  "kelvin", 0, True,
-                 "Maximum temperature sample ({:g} K) must be positive.")
+            "Maximum temperature sample ({:g} K) must be positive.", pyrat.log)
 
     pyrat.ex.tstep = pt.defaultp(inputs.tstep, 100,
       "Extinction-coefficient grid's temperature sampling interval (tstep) "
       "defaulted to {:g} K.", pyrat.wlog, pyrat.log)
 
     isgreater(pyrat.ex.tstep, "kelvin", 0, True,
-              "Temperature sample step interval ({:g} K) must be positive.")
+      "Temperature sample step interval ({:g} K) must be positive.", pyrat.log)
 
     if pyrat.ex.tmax <= pyrat.ex.tmin:
       pt.error("Extinction-coefficient grid's maximum temperature ({:g} K) "
@@ -525,7 +563,7 @@ def checkinputs(pyrat):
   pyrat.od.maxdepth = pt.defaultp(inputs.maxdepth, 10.0,
    "Maximum optical-depth (maxdepth) defaulted to {:g}.", pyrat.wlog, pyrat.log)
   isgreater(pyrat.od.maxdepth, "none", 0, False,
-            "Maximum optical-depth limit ({:g}) must be >= 0.0")
+            "Maximum optical-depth limit ({:g}) must be >= 0.0", pyrat.log)
 
   # Accept ray-path argument:
   pyrat.od.path  = inputs.path
@@ -549,7 +587,24 @@ def checkinputs(pyrat):
   if pyrat.od.path == "transit" and pyrat.rstar is None:
     pt.error("Undefined stellar radius (rstar).",  pyrat.log)
   isgreater(pyrat.rstar, "cm", 0, True,
-            "Stellar radius ({:.4e} cm) must be > 0.")
+            "Stellar radius ({:.4e} cm) must be > 0.", pyrat.log)
+  # Stellar-spectrum models:
+  pyrat.phy.starspec = inputs.starspec
+  pyrat.phy.kurucz   = inputs.kurucz
+  pyrat.phy.marcs    = inputs.marcs
+  pyrat.phy.phoenix  = inputs.phoenix
+  if inputs.starspec is not None and not os.path.isfile(inputs.starspec):
+    pt.error("Stellar-spectrum model file: '{:s}' does not exist.".
+             format(inputs.starspec), pyrat.log)
+  if inputs.kurucz  is not None and not os.path.isfile(inputs.kurucz):
+    pt.error("Stellar Kurucz model file: '{:s}' does not exist.".
+             format(inputs.kurucz), pyrat.log)
+  if inputs.marcs   is not None and not os.path.isfile(inputs.marcs):
+    pt.error("Stellar MARCS model file: '{:s}' does not exist.".
+             format(inputs.marcs), pyrat.log)
+  if inputs.phoenix is not None and not os.path.isfile(inputs.phoenix):
+    pt.error("Stellar PHOENIX model file: '{:s}' does not exist.".
+             format(inputs.phoenix), pyrat.log)
 
   # Check raygrid:
   if pyrat.od.path == "eclipse" and inputs.raygrid is None:
@@ -572,10 +627,30 @@ def checkinputs(pyrat):
     pyrat.qnodes   = 0.5*(qnodes + 1.0)
     pyrat.qweights = 0.5 * qweights
 
+  # Observational parameters:
+  pyrat.obs.data   = inputs.data
+  pyrat.obs.uncert = inputs.uncert
+  pyrat.obs.filter = inputs.filter
+  if inputs.data is not None:
+    pyrat.obs.ndata = len(inputs.data)
+  if pyrat.obs.uncert is not None and pyrat.obs.ndata != len(pyrat.obs.uncert):
+    pt.error("The number of data uncertainty values ({:d}) does not match "
+       "the number of data points ({:d}).".
+        format(len(pyrat.obs.uncert)), pyrat.obs.ndata)
+  if pyrat.obs.filter is not None:
+    if pyrat.obs.ndata != len(pyrat.obs.filter):
+      pt.error("The number of filter bands ({:d}) does not match the number "
+               "of data points ({:d}).".
+               format(len(pyrat.obs.filter)), pyrat.obs.ndata)
+    for f in pyrat.obs.filter:
+      if not os.path.isfile(f):
+        pt.error("Filter band file: '{:s}' does not exist.".format(f),
+                 pyrat.log)
+
   # Number of processors:
   pyrat.nproc = pt.getparam(inputs.nproc, "none", integer=True)
   isgreater(pyrat.nproc, "none", 1, False,
-            "The number of processors ({:d}) must be >= 1.")
+            "The number of processors ({:d}) must be >= 1.", pyrat.log)
   if pyrat.nproc >= mpr.cpu_count():
     pt.warning(pyrat.verb-2, "The number of requested CPUs ({:d}) is >= "
        "than the number of available CPUs ({:d}).  Enforced nproc to {:d}.".
@@ -588,7 +663,7 @@ def checkinputs(pyrat):
   pt.msg(pyrat.verb-3, "Done.", pyrat.log)
 
 
-def isgreater(value, units, thresh, equal=False, text=""):
+def isgreater(value, units, thresh, equal=False, text="", log=None):
   """
   Check that value (if not None) is greater than thresh.
   Throw error if not.
@@ -605,6 +680,8 @@ def isgreater(value, units, thresh, equal=False, text=""):
     If True, strictly require greater than.
   text: String
     Text to show if condition is not satisfied.
+  log: File
+    Pyrat screen-output log file.
 
   Returns
   -------
@@ -621,5 +698,73 @@ def isgreater(value, units, thresh, equal=False, text=""):
     return
 
   if compare(value, thresh):
-    pt.error(text.format(value/pt.u(units)), pyrat.log, -3)
+    pt.error(text.format(value/pt.u(units)), log, -3)
+
+
+def setup(pyrat):
+  """
+  Process stellar spectrum.
+  Process the oberving filter bands.
+  """
+  obs = pyrat.obs
+  phy = pyrat.phy
+
+  # Read stellar spectrum model:
+  if phy.starspec is not None:
+    starwn, starflux = rp.readspectrum(phy.starspec)
+  # Kurucz stellar model:
+  elif phy.kurucz is not None:
+    if phy.tstar is None:
+      pt.error("Undefined stellar temperature (tstar), required for Kurucz "
+               "model.", pyrat.log)
+    if phy.gstar is None:
+      pt.error("Undefined stellar gravity (tstar), required for Kurucz "
+               "model.", pyrat.log)
+    starflux, starwn, kuruczt, kuruczg = k.getmodel(phy.kurucz,
+                                           phy.tstar, np.log10(phy.gstar))
+    pt.msg(pyrat.verb-4, "Input stellar params: T={:7.1f} K, log(g)={:4.2f}\n"
+                         "Best Kurucz match:    T={:7.1f} K, log(g)={:4.2f}".
+          format(phy.tstar, np.log10(phy.gstar), kuruczt, kuruczg, pyrat.log))
+  # MARCS stellar model:
+  elif phy.marcs:
+    pass
+  # PHOENIX stellar model:
+  elif phy.phoenix:
+    pass
+  else:
+    starflux, starwn = None, None
+
+  phy.starflux  = starflux
+  phy.starwn    = starwn
+
+
+  # Skip if there are no filter bands:
+  if obs.filter is None:
+    return
+
+  # Load filters:
+  bandidx   = []  # Filter wavenumber indices
+  starflux  = []  # Interpolated stellar flux
+  bandtrans = []  # Normalized interpolated filter transmission
+  bandwn    = []  # Band's mean wavenumber
+  for i in np.arange(obs.ndata):
+    # Read filter wavenumber and transmission curves:
+    filterwn, filtertr = w.readfilter(obs.filter[i])
+    # Resample the filters into the stellar wavenumber array:
+    btr, wni, isf = w.resample(pyrat.spec.wn, filterwn,   filtertr,
+                                              phy.starwn, phy.starflux)
+    bandidx.append(wni)
+    bandtrans.append(btr)
+    starflux.append(isf)
+    bandwn.append(np.sum(filterwn*filtertr)/sum(filtertr))
+
+  # Per-band variables:
+  obs.bandidx   = bandidx
+  obs.bandtrans = bandtrans
+  obs.starflux  = starflux
+  obs.bandflux  = np.zeros(obs.ndata, np.double)
+  obs.bandwn    = bandwn
+
+  if phy.rplanet is not None and phy.rstar is not None:
+    phy.rprs = phy.rplanet/phy.rstar
 
