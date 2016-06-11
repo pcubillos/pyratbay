@@ -4,10 +4,10 @@ import numpy as np
 from .. import tools     as pt
 from .. import constants as pc
 from .. import pyrat     as py
+from .. import wine    as w
 
 from .  import qscale  as qs
 from .  import kurucz  as k
-from .  import wine    as w
 from .  import makeatm as ma
 from .  import argum   as ar
 
@@ -76,6 +76,7 @@ def init(pyrat, args, log):
   wnindices = []
   istarfl   = []
   nifilter  = []
+  bandwn    = []
   for i in np.arange(nfilters):
     # Read filter file:
     fwn, ftr = w.readfilter(args.filter[i])
@@ -84,6 +85,7 @@ def init(pyrat, args, log):
     nifilter.append(nif)
     wnindices.append(wni)
     istarfl.append(isf)
+    bandwn.append(np.sum(fwn*ftr)/sum(ftr))
 
   if pyrat.od.path == "eclipse":
     pyrat.rprs = pyrat.rplanet/pyrat.rstar
@@ -95,6 +97,7 @@ def init(pyrat, args, log):
   pyrat.istarfl   = istarfl
   pyrat.nifilter  = nifilter
   pyrat.bandflux  = np.zeros(nfilters)
+  pyrat.bandwn    = bandwn
 
   # Temperature model:
   # FINDME: Need to check args.tstar, tint, smaxis

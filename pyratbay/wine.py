@@ -1,52 +1,18 @@
+__all__ = ["readfilter", "resample", "bandintegrate"]
+
 import numpy as np
 import scipy.constants   as sc
 import scipy.interpolate as si
 
-from .. import constants as pc
-
-all = ["readfilter", "resample", "bandintegrate"]
+from . import constants as pc
 
 """
 WINE: Waveband INtegrated Emission module
 
 This set of routines read waveband filters and compute band-integrated
 fluxes over the filter transmission curve.
-
-Example
--------
->>> import sys
->>> pbpath = "../Pyrat-Bay/"
->>> sys.path.append(pbpath)
->>> import pyratbay.pyratbay as pb
-
->>> # Get a stellar spectrum:
->>> kmodel = "fp00k2odfnew.pck"
->>> sflux, swn, tm, gm = pb.k.getmodel(kmodel, 5800, 4.43)
-
->>> # Load Spitzer IRAC filters:
->>> wn1, irac1 = pb.w.readfilter(pbpath+"inputs/filters/spitzer_irac1_sa.dat")
->>> wn2, irac2 = pb.w.readfilter(pbpath+"inputs/filters/spitzer_irac2_sa.dat")
-
->>> # Resample the filters into the stellar wavenumber array:
->>> nifilter, wnindices = pb.w.resample(swn, wn1, irac1)
->>> # Integrate the spectrum over the filter band:
->>> bandflux1 = pb.w.bandintegrate(sflux[wnindices], swn[wnindices], nifilter)
->>> nifilter, wnindices = pb.w.resample(swn, wn2, irac2)
->>> bandflux2 = pb.w.bandintegrate(sflux[wnindices], swn[wnindices], nifilter)
-
->>> # Plot the results:
->>> plt.figure(1, (8,5))
->>> plt.clf()
->>> plt.semilogy(1e4/swn, sflux, "b")
->>> plt.plot(np.mean(1e4/wn1), bandflux1, "o", color="red")
->>> plt.plot(np.mean(1e4/wn2), bandflux2, "o", color="limegreen")
->>> plt.plot(1e4/wn1, (irac1+1)*2e5, "red")
->>> plt.plot(1e4/wn2, (irac2+1)*2e5, "limegreen")
->>> plt.xlim(0.3, 6.0)
->>> plt.ylim(2e5, 6e6)
->>> plt.xlabel("Wavelength  (um)")
->>> plt.ylabel(r"Flux  (erg s$^{-1}$ cm$^{-2}$ cm)")
 """
+
 
 def readfilter(filt):
   """
@@ -137,10 +103,11 @@ def resample(specwn, filterwn, filtertr, starwn=None, starfl=None):
   if starfl is not None and starwn is not None:
     sinterp = si.interp1d(starwn,   starfl)
     istarfl = sinterp(specwn[wnindices])
-    return nifilter, wnindices, istarfl
+  else:
+    istarfl = None
 
   # Return the normalized interpolated filter and the indices:
-  return nifilter, wnindices
+  return nifilter, wnindices, istarfl
 
 
 def bandintegrate(spectrum, specwn, nifilter):
@@ -155,8 +122,50 @@ def bandintegrate(spectrum, specwn, nifilter):
      Wavenumber of spectrum in cm-1
   nifilter: 1D ndarray
      The normalized interpolated filter transmission curve.
+
+  Example
+  -------
+  >>> import sys
+  >>> pbpath = "../Pyrat-Bay/"
+  >>> sys.path.append(pbpath)
+  >>> import pyratbay.pyratbay as pb
+  
+  >>> # Get a stellar spectrum:
+  >>> kmodel = "fp00k2odfnew.pck"
+  >>> sflux, swn, tm, gm = pb.k.getmodel(kmodel, 5800, 4.43)
+  
+  >>> # Load Spitzer IRAC filters:
+  >>> wn1, irac1 = pb.w.readfilter(pbpath+"inputs/filters/spitzer_irac1_sa.dat")
+  >>> wn2, irac2 = pb.w.readfilter(pbpath+"inputs/filters/spitzer_irac2_sa.dat")
+  
+  >>> # Resample the filters into the stellar wavenumber array:
+  >>> nifilter, wnindices = pb.w.resample(swn, wn1, irac1)
+  >>> # Integrate the spectrum over the filter band:
+  >>> bandflux1 = pb.w.bandintegrate(sflux[wnindices], swn[wnindices], nifilter)
+  >>> nifilter, wnindices = pb.w.resample(swn, wn2, irac2)
+  >>> bandflux2 = pb.w.bandintegrate(sflux[wnindices], swn[wnindices], nifilter)
+  
+  >>> # Plot the results:
+  >>> plt.figure(1, (8,5))
+  >>> plt.clf()
+  >>> plt.semilogy(1e4/swn, sflux, "b")
+  >>> plt.plot(np.mean(1e4/wn1), bandflux1, "o", color="red")
+  >>> plt.plot(np.mean(1e4/wn2), bandflux2, "o", color="limegreen")
+  >>> plt.plot(1e4/wn1, (irac1+1)*2e5, "red")
+  >>> plt.plot(1e4/wn2, (irac2+1)*2e5, "limegreen")
+  >>> plt.xlim(0.3, 6.0)
+  >>> plt.ylim(2e5, 6e6)
+  >>> plt.xlabel("Wavelength  (um)")
+  >>> plt.ylabel(r"Flux  (erg s$^{-1}$ cm$^{-2}$ cm)")
   """
-  # Flux ratio:
-  # fratio = Fplanet / Fstar * rprs**2.0
 
   return np.trapz(spectrum*nifilter, specwn)
+
+
+# Clean up top-level namespace--delete everything that isn't in __all__
+# or is a magic attribute, and that isn't a submodule of this module
+for varname in dir():
+    if not ((varname.startswith('__') and varname.endswith('__')) or
+            varname in __all__ ):
+        del locals()[varname]
+del(varname)

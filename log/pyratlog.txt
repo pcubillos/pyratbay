@@ -1868,4 +1868,11 @@ Moved readspectrum() from scripts/readpyrat.py to ptools.py.
 
 *****
 
+Tweaked resample() in wine.py to always return three variables,
+with or without a stellar spectrum, returning None in the latter case.
+
+Starting re-structuring the Pyrat-Bay pacakge.
+Move the wine.py module from pyratbay/pyratbay/ to pyratbay/.
+
+*****
 
