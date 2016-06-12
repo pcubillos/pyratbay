@@ -535,12 +535,16 @@ class Observation(object):
 # Retrieval variables:
 class Retrieval(object):
   def __init__(self):
-    self.nparams  = None  #  Number of free parameters
-    self.tmodel   = None  #  Temperature model
-    self.tlow     = None  #
-    self.thigh    = None  #
-#    self. = None  #
-#    self. = None  #
+    self.nparams   = None  # Number of free parameters
+    self.tmodel    = None  # Temperature model
+    self.tlow      = None  #
+    self.thigh     = None  #
+    self.bulk      = None  # Bulk species name list
+    self.molscale  = None  # Variable-abundance species name list
+    self.ibulk     = None  # Indices of bulk species in pyrat.mol.name
+    self.iscale    = None  # Indices of variable-abundance species
+    self.bulkratio = None  # Abundance ratio among bulk species
+    self.invsrat   = None  # Inverse of the sum of the bulk ratios/layer
 #    self. = None  #
   def info(self, pyrat):
     # FINDME

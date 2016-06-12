@@ -80,6 +80,9 @@ def init(argv, main=False):
   ms.makeradius(pyrat)
   timestamps.append(time.time())
 
+  # Set up observational/retrieval parameters:
+  ar.setup(pyrat)
+
   # Extinction gridding:
   v.voigt(pyrat)
   timestamps.append(time.time())
@@ -94,9 +97,6 @@ def init(argv, main=False):
   # Calculate extinction-coefficient table:
   ex.exttable(pyrat)
   timestamps.append(time.time())
-
-  # Set up observational/retrieval parameters:
-  ar.setup(pyrat)
 
   pyrat.timestamps = list(np.ediff1d(timestamps))
   return pyrat

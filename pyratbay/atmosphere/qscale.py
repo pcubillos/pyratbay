@@ -1,3 +1,5 @@
+__all__ = ["balance", "ratio", "qscale"]
+
 import numpy as np
 
 def balance(Q, ibulk, ratio, invsrat):
@@ -44,8 +46,8 @@ def balance(Q, ibulk, ratio, invsrat):
 
 def ratio(Q, ibulk):
   """
-  Calculate the abundance ratios of the species relative to the first
-  species indexed in ibulk.
+  Calculate the abundance ratios of the species indexed by ibulk, relative
+  to the first species in the list.
 
   Parameters
   ----------

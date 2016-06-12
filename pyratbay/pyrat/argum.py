@@ -6,11 +6,12 @@ import scipy.interpolate as si
 import scipy.special     as ss
 import multiprocessing   as mpr
 
-from .. import tools     as pt
-from .. import constants as pc
-from .. import wine      as w
-from .. import starspec  as sspec
-from .. import VERSION   as ver
+from .. import tools      as pt
+from .. import constants  as pc
+from .. import wine       as w
+from .. import starspec   as sspec
+from .. import atmosphere as atm
+from .. import VERSION    as ver
 
 from .  import haze      as hz
 from .  import alkali    as al
@@ -158,12 +159,19 @@ def parse(pyrat):
       "Polynomial degree for quadrature-integration over day-side hemisphere.")
   # Data options:
   group = parser.add_argument_group("Retrieval options")
+  pt.addarg("runmode",     group, str,       None,
+      "Run mode flag.  Select from: tli, pt, atmosphere, spectrum, "
+      "opacity, or mcmc.")
   pt.addarg("data",        group, pt.parray, None,
       "Transit or eclipse depth uncertainties.")
   pt.addarg("uncert",      group, pt.parray, None,
       "Transit or eclipse depth uncertainties.")
   pt.addarg("filter",      group, pt.parray, None,
       "Waveband filter filenames.")
+  pt.addarg("bulk",        group, pt.parray, None,
+      "Bulk-abundance atmospheric species.")
+  pt.addarg("molscale",    group, pt.parray, None,
+      "Variable-abundance atmospheric species.")
   # System options:
   group = parser.add_argument_group("System physical variables")
   pt.addarg("starspec",    group, str,       None,
@@ -205,6 +213,7 @@ def parse(pyrat):
 
   # Put user arguments into pyrat input:
   pyrat.inputs.configfile = args.configfile
+  pyrat.inputs.runmode    = user.runmode
   pyrat.inputs.verb       = user.verb
   pyrat.inputs.nproc      = user.nproc
   # Input file:
@@ -270,9 +279,12 @@ def parse(pyrat):
   pyrat.inputs.marcs      = user.marcs
   pyrat.inputs.phoenix    = user.phoenix
   # Observing variables:
-  pyrat.inputs.data   = user.data
-  pyrat.inputs.uncert = user.uncert
-  pyrat.inputs.filter = user.filter
+  pyrat.inputs.data     = user.data
+  pyrat.inputs.uncert   = user.uncert
+  pyrat.inputs.filter   = user.filter
+  # Retrieval variables:
+  pyrat.inputs.bulk     = user.bulk
+  pyrat.inputs.molscale = user.molscale
   # Output files:
   pyrat.inputs.outspec     = user.outspec
   pyrat.inputs.outsample   = user.outsample
@@ -305,6 +317,16 @@ def checkinputs(pyrat):
 
   # Path to source parent's folder:
   pyratdir = os.path.dirname(os.path.realpath(__file__))
+
+  # Pyrat runmode:
+  pyrat.runmode = inputs.runmode
+  if pyrat.runmode is None:
+    pt.warning(pyrat.verb-2, "Defaulted Pyrat's runmode to: spectrum.",
+               pyrat.log, pyrat.wlog)
+  if pyrat.runmode not in ['tli', 'pt', 'atmosphere', 'opacity', 'spectrum',
+                           'mcmc']:
+    pt.error("Invalid runmode ({:s}).  Must select one from: tli, pt, "
+        "atmosphere, spectrum, opacity, mcmc.".format(pyrat.runmode), pyrat.log)
 
   # Check that input files exist:
   if inputs.atmfile is None:
@@ -652,6 +674,11 @@ def checkinputs(pyrat):
       pt.error("The number of filter bands ({:d}) does not match the number "
           "of data points ({:d}).".format(pyrat.obs.nfilters), pyrat.obs.ndata)
 
+  # Retrieval variables:
+  # Accept species lists, check after we load the atmospheric model:
+  pyrat.ret.bulk     = inputs.bulk
+  pyrat.ret.molscale = inputs.molscale
+
   # Number of processors:
   pyrat.nproc = pt.getparam(inputs.nproc, "none", integer=True)
   isgreater(pyrat.nproc, "none", 1, False,
@@ -708,11 +735,44 @@ def isgreater(value, units, thresh, equal=False, text="", log=None):
 
 def setup(pyrat):
   """
+  Process retrieval variables: bulk, molscale.
   Process stellar spectrum.
   Process the oberving filter bands.
   """
   obs = pyrat.obs
   phy = pyrat.phy
+  ret = pyrat.ret
+
+  # Setup bulk and variable-abundance species:
+  species = pyrat.mol.name
+  # Non-overlapping species:
+  if ret.bulk is not None  and  len(np.setdiff1d(ret.bulk, species)) > 0:
+    pt.error("These bulk species are not present in the atmosphere: {:s}.".
+      format(str(np.setdiff1d(ret.bulk, species))), pyrat.log)
+  if ret.molscale is not None and len(np.setdiff1d(ret.molscale, species)) > 0:
+    pt.error("These variable-abundance species are not present in the "
+             "atmosphere: {:s}.".
+              format(str(np.setdiff1d(ret.molscale, species))), pyrat.log)
+  # Overlapping species:
+  if (ret.bulk is not None  and  ret.molscale is not None  and
+      len(np.intersect1d(ret.bulk, ret.molscale)) > 0):
+    pt.error("These species were marked as both bulk and variable-abundance: "
+             "{:s}.".format(np.intersect1d(ret.bulk, ret.molscale)), pyrat.log)
+
+  if pyrat.runmode == "mcmc":
+    if ret.bulk is None:
+      pt.error("Undefined bulk species list (bulk).", pyrat.log)
+    if ret.molscale is None:
+      pt.warning(pyrat.verb-2, "There are no variable-abundance species "
+                               "(molscale).", pyrat.log, pyrat.wlog)
+
+  # Obtain abundance ratios between the bulk species:
+  if ret.bulk is not None:
+    ret.ibulk  = np.where(np.in1d(species, ret.bulk))[0]
+    ret.bulkratio, ret.invsrat = atm.ratio(pyrat.atm.q, ret.ibulk)
+  if ret.molscale is not None:
+    ret.iscale = np.where(np.in1d(species, ret.molscale))[0]
+
 
   # Read stellar spectrum model:
   if phy.starspec is not None:

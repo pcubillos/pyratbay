@@ -1892,4 +1892,11 @@ Some corrections to wine.py documentation.
 
 *****
 
+Created atmosphere subpackage to hold atmospheric model functions.
+Put qscale.py into atm package.
+Added runmode, bulk, molscale input arguments to pyrat.
+Added bulk, molscale, ibulk, iscale, bulkratio, and invsrat variables
+to Retrieval object.
+
+*****
 

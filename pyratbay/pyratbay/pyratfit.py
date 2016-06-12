@@ -5,45 +5,17 @@ from .. import tools     as pt
 from .. import constants as pc
 from .. import pyrat     as py
 from .. import wine      as w
+from .. import atmosphere as atm
 
-from .  import qscale  as qs
 from .  import makeatm as ma
 from .  import argum   as ar
 
 def init(pyrat, args, log):
   """
   Initialize variables that will be used in the atmospheric retrieval.
-  Checks bulk and variable-abundance species.
   Loads the stellar spectrum.
   Loads the waveband transmission filters.
   """
-  species = pyrat.mol.name
-  # Process bulk-abundance species:
-  if args.bulk is None:
-    pt.error("Undefined bulk species list (bulk).", log)
-  if len(np.setdiff1d(args.bulk, species)) > 0:
-    pt.error("These bulk species are not present in the atmosphere: {:s}".
-      format(str(np.setdiff1d(args.bulk, species))), log)
-
-  # Process variable-abundance species:
-  if args.molscale is None:
-    pt.warning(pyrat.verb-2, "There are no variable-abundance species "
-                             "(molscale).", log)
-  else:
-    if len(np.setdiff1d(args.molscale, species)) > 0:
-      pt.error("These variable-abundance species are not present "
-               "in the atmosphere: {:s}".
-                format(str(np.setdiff1d(args.molscale, species))), log)
-    if len(np.intersect1d(args.bulk, args.molscale)) > 0:
-      pt.error("These species were marked as both bulk and "
-               "variable-abundance: {:s}".
-                format(np.intersect1d(args.bulk, args.molscale)))
-
-  # Obtain abundance ratios between the bulk species:
-  pyrat.bulk, pyrat.molscale = args.bulk, args.molscale
-  pyrat.ibulk  = np.where(np.in1d(species, args.bulk))[0]
-  pyrat.iscale = np.where(np.in1d(species, args.molscale))[0]
-  pyrat.bulkratio, pyrat.invsrat = qs.ratio(pyrat.atm.q, pyrat.ibulk)
 
   # Check stellar spectrum model:
   if pyrat.phy.starflux is None:
@@ -59,6 +31,7 @@ def init(pyrat, args, log):
 
   if pyrat.od.path == "eclipse":
     pyrat.rprs = pyrat.rplanet/pyrat.rstar
+
 
   # Temperature model:
   # FINDME: Need to check args.tstar, tint, smaxis
@@ -121,10 +94,10 @@ def fit(params, pyrat, freeze=False):
     pyrat.obs.bandflux[:] = -1e10  # FINDME: what if np.inf? or nan?
     return pyrat.obs.bandflux
   # Update abundance profiles:
-  q2 = qs.qscale(pyrat.atm.q, pyrat.mol.name, params[pyrat.iabund],
-                 pyrat.molscale, pyrat.bulk,
-                 iscale=pyrat.iscale, ibulk=pyrat.ibulk,
-                 bratio=pyrat.bulkratio, invsrat=pyrat.invsrat)
+  q2 = atm.qscale(pyrat.atm.q, pyrat.mol.name, params[pyrat.iabund],
+                  pyrat.ret.molscale, pyrat.ret.bulk,
+                  iscale=pyrat.ret.iscale, ibulk=pyrat.ret.ibulk,
+                  bratio=pyrat.ret.bulkratio, invsrat=pyrat.ret.invsrat)
   # Update radius profile:
   if len(pyrat.irad) > 0:
     radius = ma.hydro_equilibrium(pyrat.atm.press, temp, pyrat.atm.m,
