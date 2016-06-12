@@ -535,8 +535,11 @@ class Observation(object):
 # Retrieval variables:
 class Retrieval(object):
   def __init__(self):
-    self.nparams   = None  # Number of free parameters
-    self.tmodel    = None  # Temperature model
+    self.nparams    = None  # Number of free parameters
+    self.tmodelname = None  # Temperature-model name
+    self.tmodel     = None  # Temperature model
+    self.ntpars     = None  # Number of temperature-model parameters
+    self.targs      = None  # Temperature-model arguments
     self.tlow      = None  #
     self.thigh     = None  #
     self.bulk      = None  # Bulk species name list
@@ -560,6 +563,7 @@ class Physics(object):
     self.rplanet  = None  # Planetary radius
     self.gplanet  = None  # Planetary surface gravity
     self.rprs     = None  # Planet-to-star radius ratio
+    self.smaxis   = None  # Orbital semi-major axis
     self.starspec = None  # Stellar spectrum filename
     self.kurucz   = None  # Kurucz stellar spectrum
     self.marcs    = None  # MARCS stellar spectrum

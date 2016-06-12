@@ -16,6 +16,9 @@ from .. import VERSION    as ver
 from .  import haze      as hz
 from .  import alkali    as al
 
+rootdir = os.path.realpath(os.path.dirname(__file__) + "/../../")
+sys.path.append(rootdir + "/pyratbay/lib/")
+import pt as PT
 
 def parse(pyrat):
   """
@@ -158,7 +161,7 @@ def parse(pyrat):
   pt.addarg("quadrature",  group, int,       None,
       "Polynomial degree for quadrature-integration over day-side hemisphere.")
   # Data options:
-  group = parser.add_argument_group("Retrieval options")
+  group = parser.add_argument_group("Data options")
   pt.addarg("runmode",     group, str,       None,
       "Run mode flag.  Select from: tli, pt, atmosphere, spectrum, "
       "opacity, or mcmc.")
@@ -168,11 +171,15 @@ def parse(pyrat):
       "Transit or eclipse depth uncertainties.")
   pt.addarg("filter",      group, pt.parray, None,
       "Waveband filter filenames.")
+  # Retrieval options:
+  group = parser.add_argument_group("Retrieval options")
   pt.addarg("bulk",        group, pt.parray, None,
       "Bulk-abundance atmospheric species.")
   pt.addarg("molscale",    group, pt.parray, None,
       "Variable-abundance atmospheric species.")
-  # System options:
+  pt.addarg("tmodel",      group, str,       None,
+      "Temperature-profile model name.  Select from: isothermal or TCEA.")
+  # System physical parameters:
   group = parser.add_argument_group("System physical variables")
   pt.addarg("starspec",    group, str,       None,
       "Stellar-spectrum model filename.")
@@ -194,6 +201,10 @@ def parse(pyrat):
       "Pressure reference level corresponding to rplanet (in punits).")
   pt.addarg("gplanet",     group, np.double, None,
       "Planetaty surface gravity (cm s-2).")
+  pt.addarg("smaxis",     group, str,       None,
+      "Orbital semi-major axis (default in radunits).")
+  pt.addarg("tint",       group, np.double, None,
+      "Planetary internal temperature (kelvin) [default: 100].")
   # Output file options:
   group = parser.add_argument_group("Output File's Options")
   pt.addarg("outspec",     group, str,       None,
@@ -274,6 +285,8 @@ def parse(pyrat):
   pyrat.inputs.tstar      = user.tstar
   pyrat.inputs.rplanet    = user.rplanet
   pyrat.inputs.gplanet    = user.gplanet
+  pyrat.inputs.smaxis     = user.smaxis
+  pyrat.inputs.tint       = user.tint
   pyrat.inputs.starspec   = user.starspec
   pyrat.inputs.kurucz     = user.kurucz
   pyrat.inputs.marcs      = user.marcs
@@ -285,6 +298,7 @@ def parse(pyrat):
   # Retrieval variables:
   pyrat.inputs.bulk     = user.bulk
   pyrat.inputs.molscale = user.molscale
+  pyrat.inputs.tmodel   = user.tmodel
   # Output files:
   pyrat.inputs.outspec     = user.outspec
   pyrat.inputs.outsample   = user.outsample
@@ -442,7 +456,7 @@ def checkinputs(pyrat):
   pyrat.radstep = pt.getparam(inputs.radstep, pyrat.radunits)
   isgreater(pyrat.radstep, "cm", 0, True,
             "Radius step size ({:.2f} cm) must be > 0.", pyrat.log)
-  # Pressure-radius reference level:
+  # System physical parameters:
   pyrat.phy.rplanet = pt.getparam(inputs.rplanet, pyrat.radunits)
   isgreater(pyrat.phy.rplanet, "cm",   0, True,
             "Planetary radius ({:.3e} cm) must be > 0.", pyrat.log)
@@ -461,6 +475,14 @@ def checkinputs(pyrat):
   pyrat.phy.tstar  = pt.getparam(inputs.tstar,  "none")
   isgreater(pyrat.phy.tstar, "none", 0, True,
             "Stellar effective temperature ({:.1f} K) must be > 0.", pyrat.log)
+  pyrat.phy.smaxis = pt.getparam(inputs.smaxis, pyrat.radunits)
+  isgreater(pyrat.phy.smaxis, "cm",   0, True,
+            "Planetary radius ({:.3e} cm) must be > 0.", pyrat.log)
+  pyrat.phy.tint = pt.defaultp(inputs.tint, 100.0,
+            "Planetary internal temperature (tint) defaulted to {:.1f} K.",
+            pyrat.wlog, pyrat.log)
+  isgreater(pyrat.phy.tint, "none", 0, True,
+            "Planetary internal temperature ({:.1f} K) must be > 0.", pyrat.log)
 
   pyrat.atm.nlayers = pt.getparam(inputs.nlayers, "none", integer=True)
   isgreater(pyrat.atm.nlayers, "none", 0, True,
@@ -608,11 +630,9 @@ def checkinputs(pyrat):
   pyrat.outmaxdepth = inputs.outmaxdepth
 
   # Check system arguments:
-  pyrat.rstar = pt.getparam(inputs.rstar, pyrat.radunits)
-  if pyrat.od.path == "transit" and pyrat.rstar is None:
-    pt.error("Undefined stellar radius (rstar).",  pyrat.log)
-  isgreater(pyrat.rstar, "cm", 0, True,
-            "Stellar radius ({:.4e} cm) must be > 0.", pyrat.log)
+  if pyrat.od.path == "transit" and pyrat.phy.rstar is None:
+    pt.error("Undefined stellar radius (rstar), required for transmission "
+             "spectrum calculation.",  pyrat.log)
   # Stellar-spectrum models:
   pyrat.phy.starspec = inputs.starspec
   pyrat.phy.kurucz   = inputs.kurucz
@@ -678,6 +698,24 @@ def checkinputs(pyrat):
   # Accept species lists, check after we load the atmospheric model:
   pyrat.ret.bulk     = inputs.bulk
   pyrat.ret.molscale = inputs.molscale
+
+  if inputs.tmodel is not None and inputs.tmodel not in ["TCEA", "isothermal"]:
+    pt.error("Invalid temperature model '{:s}'.  Select from: TCEA or "
+             "isothermal".format(inputs.tmodel), pyrat.log)
+  pyrat.ret.tmodelname = inputs.tmodel
+  if pyrat.ret.tmodelname == "TCEA":
+    if pyrat.phy.rstar is None:
+      pt.error("Undefined stellar radius (rstar), required for temperature "
+               "model.", pyrat.log)
+    if pyrat.phy.tstar is None:
+      pt.error("Undefined stellar temperature (tstar), required for "
+               "temperature model.", pyrat.log)
+    if pyrat.phy.smaxis is None:
+      pt.error("Undefined orbital semi-major axis (smaxis), required for "
+               "temperature model.", pyrat.log)
+    if pyrat.phy.gplanet is None:
+      pt.error("Undefined planetary surface gravity (gplanet), required for "
+               "temperature model.", pyrat.log)
 
   # Number of processors:
   pyrat.nproc = pt.getparam(inputs.nproc, "none", integer=True)
@@ -808,32 +846,40 @@ def setup(pyrat):
 
 
   # Skip if there are no filter bands:
-  if obs.filter is None:
-    return
+  if obs.filter is not None:
+    # Load filters:
+    bandidx   = []  # Filter wavenumber indices
+    starflux  = []  # Interpolated stellar flux
+    bandtrans = []  # Normalized interpolated filter transmission
+    bandwn    = []  # Band's mean wavenumber
+    for i in np.arange(obs.nfilters):
+      # Read filter wavenumber and transmission curves:
+      filterwn, filtertr = w.readfilter(obs.filter[i])
+      # Resample the filters into the stellar wavenumber array:
+      btr, wni, isf = w.resample(pyrat.spec.wn, filterwn,   filtertr,
+                                                phy.starwn, phy.starflux)
+      bandidx.append(wni)
+      bandtrans.append(btr)
+      starflux.append(isf)
+      bandwn.append(np.sum(filterwn*filtertr)/sum(filtertr))
 
-  # Load filters:
-  bandidx   = []  # Filter wavenumber indices
-  starflux  = []  # Interpolated stellar flux
-  bandtrans = []  # Normalized interpolated filter transmission
-  bandwn    = []  # Band's mean wavenumber
-  for i in np.arange(obs.nfilters):
-    # Read filter wavenumber and transmission curves:
-    filterwn, filtertr = w.readfilter(obs.filter[i])
-    # Resample the filters into the stellar wavenumber array:
-    btr, wni, isf = w.resample(pyrat.spec.wn, filterwn,   filtertr,
-                                              phy.starwn, phy.starflux)
-    bandidx.append(wni)
-    bandtrans.append(btr)
-    starflux.append(isf)
-    bandwn.append(np.sum(filterwn*filtertr)/sum(filtertr))
-
-  # Per-band variables:
-  obs.bandidx   = bandidx
-  obs.bandtrans = bandtrans
-  obs.starflux  = starflux
-  obs.bandflux  = np.zeros(obs.nfilters, np.double)
-  obs.bandwn    = bandwn
+    # Per-band variables:
+    obs.bandidx   = bandidx
+    obs.bandtrans = bandtrans
+    obs.starflux  = starflux
+    obs.bandflux  = np.zeros(obs.nfilters, np.double)
+    obs.bandwn    = bandwn
 
   if phy.rplanet is not None and phy.rstar is not None:
     phy.rprs = phy.rplanet/phy.rstar
 
+  # Temperature model and arguments:
+  if ret.tmodelname == "TCEA":
+    ret.tmodel = PT.TCEA
+    ret.ntpars = 5
+    ret.targs  = [pyrat.atm.press, phy.rstar, phy.tstar, phy.tint,
+                  phy.smaxis, phy.gplanet]
+  elif ret.tmodelname == "isothermal":
+    ret.tmodel = PT.isothermal
+    ret.ntpars = 1
+    ret.targs  = [pyrat.atm.nlayers]

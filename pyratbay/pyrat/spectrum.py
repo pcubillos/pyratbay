@@ -47,8 +47,8 @@ def modulation(pyrat):
     # Integrate with Simpson's rule:
     pyrat.spec.spectrum[i] = s.simps(integ, h[0:last], *s.geth(h[0:last]))
 
-  pyrat.spec.spectrum = ( (pyrat.atm.radius[0]**2 + 2*pyrat.spec.spectrum) /
-                          pyrat.rstar**2                                   )
+  pyrat.spec.spectrum = ((pyrat.atm.radius[0]**2 + 2*pyrat.spec.spectrum) /
+                         pyrat.phy.rstar**2)
   pt.msg(pyrat.verb-3, "Computed transmission spectrum: '{:s}'.".
                         format(pyrat.outspec), pyrat.log, 2)
 

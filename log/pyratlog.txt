@@ -1900,3 +1900,9 @@ to Retrieval object.
 
 *****
 
+Moved makeatm.py to atmosphere package, renamed to atmosphere.py
+Added tmodel, smaxis, tint input arguments to pyrat.
+Added checks for tmodel parameters in argum.py when tmodel != None.
+
+*****
+

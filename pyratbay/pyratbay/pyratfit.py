@@ -33,18 +33,12 @@ def init(pyrat, args, log):
     pyrat.rprs = pyrat.rplanet/pyrat.rstar
 
 
-  # Temperature model:
-  # FINDME: Need to check args.tstar, tint, smaxis
-  pyrat.tmodel, pyrat.targs, ntemp = ma.temperature(args.tmodel,
-     eval=False, pressure=pyrat.atm.press, rstar=args.rstar, tstar=args.tstar,
-     tint=args.tint, gplanet=args.gplanet, smaxis=args.smaxis,
-     radunits=pyrat.radunits, nlayers=pyrat.atm.nlayers, log=log)
-
   # Boundaries for temperature profile:
   pyrat.tlow  = args.tlow
   pyrat.thigh = args.thigh
 
   # Indices to parse the array of fitting parameters:
+  ntemp  = pyrat.ret.ntpars
   nrad   = int(pyrat.od.path == "transit")
   nabund = len(pyrat.iscale)
   nhaze  = 0
@@ -89,7 +83,7 @@ def fit(params, pyrat, freeze=False):
     t0, q0, r0 = pyrat.atm.temp, pyrat.atm.q, pyrat.atm.radius
 
   # Update temperature profile:
-  temp = pyrat.tmodel(params[pyrat.itemp], *pyrat.targs)
+  temp = pyrat.ret.tmodel(params[pyrat.itemp], *pyrat.ret.targs)
   if np.any(temp < pyrat.tlow) or np.any(temp > pyrat.thigh):
     pyrat.obs.bandflux[:] = -1e10  # FINDME: what if np.inf? or nan?
     return pyrat.obs.bandflux
