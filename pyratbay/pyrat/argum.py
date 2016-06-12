@@ -1,9 +1,10 @@
 import sys, os
 import argparse, ConfigParser
 import numpy as np
-import scipy.constants as sc
-import scipy.special   as ss
-import multiprocessing as mpr
+import scipy.constants   as sc
+import scipy.interpolate as si
+import scipy.special     as ss
+import multiprocessing   as mpr
 
 from .. import tools     as pt
 from .. import constants as pc
@@ -633,21 +634,23 @@ def checkinputs(pyrat):
   pyrat.obs.data   = inputs.data
   pyrat.obs.uncert = inputs.uncert
   pyrat.obs.filter = inputs.filter
+  # Number of datapoints and filters:
   if inputs.data is not None:
     pyrat.obs.ndata = len(inputs.data)
+  if inputs.filter is not None:
+    pyrat.obs.nfilters = len(inputs.filter)
+  # Number checks:
   if pyrat.obs.uncert is not None and pyrat.obs.ndata != len(pyrat.obs.uncert):
     pt.error("The number of data uncertainty values ({:d}) does not match "
        "the number of data points ({:d}).".
         format(len(pyrat.obs.uncert)), pyrat.obs.ndata)
   if pyrat.obs.filter is not None:
-    if pyrat.obs.ndata != len(pyrat.obs.filter):
-      pt.error("The number of filter bands ({:d}) does not match the number "
-               "of data points ({:d}).".
-               format(len(pyrat.obs.filter)), pyrat.obs.ndata)
     for f in pyrat.obs.filter:
       if not os.path.isfile(f):
-        pt.error("Filter band file: '{:s}' does not exist.".format(f),
-                 pyrat.log)
+        pt.error("Filter file: '{:s}' does not exist.".format(f), pyrat.log)
+    if pyrat.obs.ndata > 0  and  pyrat.obs.ndata != pyrat.obs.nfilters:
+      pt.error("The number of filter bands ({:d}) does not match the number "
+          "of data points ({:d}).".format(pyrat.obs.nfilters), pyrat.obs.ndata)
 
   # Number of processors:
   pyrat.nproc = pt.getparam(inputs.nproc, "none", integer=True)
@@ -736,8 +739,12 @@ def setup(pyrat):
   else:
     starflux, starwn = None, None
 
+  # Store input stellar spectrum into pyrat:
   phy.starflux  = starflux
   phy.starwn    = starwn
+  # Store interpolated stellar spectrum:
+  sinterp = si.interp1d(phy.starwn, phy.starflux)
+  pyrat.spec.starflux = sinterp(pyrat.spec.wn)
 
 
   # Skip if there are no filter bands:
@@ -749,7 +756,7 @@ def setup(pyrat):
   starflux  = []  # Interpolated stellar flux
   bandtrans = []  # Normalized interpolated filter transmission
   bandwn    = []  # Band's mean wavenumber
-  for i in np.arange(obs.ndata):
+  for i in np.arange(obs.nfilters):
     # Read filter wavenumber and transmission curves:
     filterwn, filtertr = w.readfilter(obs.filter[i])
     # Resample the filters into the stellar wavenumber array:
@@ -764,7 +771,7 @@ def setup(pyrat):
   obs.bandidx   = bandidx
   obs.bandtrans = bandtrans
   obs.starflux  = starflux
-  obs.bandflux  = np.zeros(obs.ndata, np.double)
+  obs.bandflux  = np.zeros(obs.nfilters, np.double)
   obs.bandwn    = bandwn
 
   if phy.rplanet is not None and phy.rstar is not None:

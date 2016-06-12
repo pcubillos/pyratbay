@@ -49,13 +49,13 @@ def init(pyrat, args, log):
   if pyrat.phy.starflux is None:
     pt.error("Unspecified stellar flux model.", log)
 
-  # Load filters:
-  if args.filter is None:
+  # Check filter files and data:
+  if pyrat.obs.filter is None:
     pt.error("Undefined waveband transmission filters (filter).", log)
-  if args.data is None:
+  if pyrat.obs.data is None:
     pt.error("Undefined data.", log)
-
-  nfilters = len(args.filter)  # Number of filters
+  if pyrat.obs.uncert is None:
+    pt.error("Undefined data uncertainties.", log)
 
   if pyrat.od.path == "eclipse":
     pyrat.rprs = pyrat.rplanet/pyrat.rstar
@@ -138,17 +138,17 @@ def fit(params, pyrat, freeze=False):
   # Unpack some variables:
   spectrum = pyrat.spec.spectrum
   wn       = pyrat.spec.wn
-  bflux = pyrat.obs.bandflux
-  wnind = pyrat.wnindices
+  bflux    = pyrat.obs.bandflux
+  wnidx    = pyrat.obs.bandidx
   # Band-integrate spectrum:
-  for i in np.arange(pyrat.nfilters):
+  for i in np.arange(pyrat.obs.nfilters):
     # Integrate the spectrum over the filter band:
     if   pyrat.od.path == "transit":
-      bflux[i] = w.bandintegrate(spectrum[wnind[i]],
-                          wn[wnind[i]], pyrat.nifilter[i])
+      bflux[i] = w.bandintegrate(spectrum[wnidx[i]],
+                          wn[wnidx[i]], pyrat.nifilter[i])
     elif pyrat.od.path == "eclipse":
-      fluxrat = (spectrum[wnind[i]]/pyrat.istarfl[i]) * pyrat.rprs**2.0
-      bflux[i] = w.bandintegrate(fluxrat, wn[wnind[i]], pyrat.nifilter[i])
+      fluxrat = (spectrum[wnidx[i]]/pyrat.istarfl[i]) * pyrat.rprs**2.0
+      bflux[i] = w.bandintegrate(fluxrat, wn[wnidx[i]], pyrat.nifilter[i])
 
   # Revert changes in the atmospheric profile:
   if freeze:

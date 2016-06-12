@@ -80,7 +80,8 @@ class Spectrum(object):
     self.wlhigh    = None  # Highest wavelength boundary
     # Spectrum:
     self.intensity = None  # Intensity spectrum array
-    self.spectrum  = None  # Modulation/Flux spectrum array
+    self.spectrum  = None  # Modulation/Flux spectrum
+    self.starflux  = None  # Stellar flux spectrum
 
   def info(self):
     """
@@ -517,10 +518,11 @@ class Optdepth(object):
 
 class Observation(object):
   def __init__(self):
-    self.ndata = 0
-    self.data   = None  # Transit or eclipse data point
-    self.uncert = None  # Data's 1-sigma uncertainty
-    self.filter = None  # Observing filter filename
+    self.ndata    = 0     # Number of data points
+    self.data     = None  # Transit or eclipse data point
+    self.uncert   = None  # Data's 1-sigma uncertainty
+    self.nfilters  = 0     # Number of filter bands
+    self.filter    = None  # Observing filter filename
     self.bandidx   = None  # Band wavenumber indices
     self.bandtrans = None  # Band-interpolated transmission function
     self.starflux  = None  # Band-interpolated stellar flux
@@ -533,12 +535,10 @@ class Observation(object):
 # Retrieval variables:
 class Retrieval(object):
   def __init__(self):
-    self.starwn   = None  #
-    self.starflux = None  #
-#    self. = None  #
-#    self. = None  #
-#    self. = None  #
-#    self. = None  #
+    self.nparams  = None  #  Number of free parameters
+    self.tmodel   = None  #  Temperature model
+    self.tlow     = None  #
+    self.thigh    = None  #
 #    self. = None  #
 #    self. = None  #
 #    self. = None  #

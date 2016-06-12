@@ -128,21 +128,23 @@ def bandintegrate(spectrum, specwn, nifilter):
   >>> import sys
   >>> pbpath = "../Pyrat-Bay/"
   >>> sys.path.append(pbpath)
-  >>> import pyratbay.pyratbay as pb
+  >>> import pyratbay as pb
   
   >>> # Get a stellar spectrum:
   >>> kmodel = "fp00k2odfnew.pck"
   >>> sflux, swn, tm, gm = pb.starspec.readkurucz(kmodel, 5800, 4.43)
   
   >>> # Load Spitzer IRAC filters:
-  >>> wn1, irac1 = pb.w.readfilter(pbpath+"inputs/filters/spitzer_irac1_sa.dat")
-  >>> wn2, irac2 = pb.w.readfilter(pbpath+"inputs/filters/spitzer_irac2_sa.dat")
+  >>> wn1, irac1 = pb.wine.readfilter(pbpath +
+                       "inputs/filters/spitzer_irac1_sa.dat")
+  >>> wn2, irac2 = pb.wine.readfilter(pbpath +
+                       "inputs/filters/spitzer_irac2_sa.dat")
   
   >>> # Resample the filters into the stellar wavenumber array:
-  >>> nifilter, wnindices = pb.w.resample(swn, wn1, irac1)
+  >>> nifilter, wnindices = pb.wine.resample(swn, wn1, irac1)
   >>> # Integrate the spectrum over the filter band:
-  >>> bandflux1 = pb.w.bandintegrate(sflux[wnindices], swn[wnindices], nifilter)
-  >>> nifilter, wnindices = pb.w.resample(swn, wn2, irac2)
+  >>> bandflux1 = pb.wine.bandintegrate(sflux[wnindices], swn[wnindices], nifilter)
+  >>> nifilter, wnindices = pb.wine.resample(swn, wn2, irac2)
   >>> bandflux2 = pb.w.bandintegrate(sflux[wnindices], swn[wnindices], nifilter)
   
   >>> # Plot the results:

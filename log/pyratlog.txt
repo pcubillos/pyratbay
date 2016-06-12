@@ -1881,6 +1881,15 @@ Moved kurucz.py to starspec package, renamed getmodel() to readkurucz().
 Moved readspectrum() from ptools.py to starspec package, remamed function
 to readpyrat().
 
+
+*****  Sun Jun 12 11:56:44 CEST 2016  *****
+
+Added nfilters variable to pyrat.obs.  Check consistency with ndata
+only when both arrays are defined.
+Added starflux variable to pyrat.spec with interpolated stellar spectrum.
+
+Some corrections to wine.py documentation.
+
 *****
 
 
