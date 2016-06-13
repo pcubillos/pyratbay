@@ -179,6 +179,8 @@ def parse(pyrat):
       "Variable-abundance atmospheric species.")
   pt.addarg("tmodel",      group, str,       None,
       "Temperature-profile model name.  Select from: isothermal or TCEA.")
+  pt.addarg("params",        group, pt.parray, None,
+      "Initial-guess for retrieval model-fitting parameter.")
   # System physical parameters:
   group = parser.add_argument_group("System physical variables")
   pt.addarg("starspec",    group, str,       None,
@@ -299,6 +301,7 @@ def parse(pyrat):
   pyrat.inputs.bulk     = user.bulk
   pyrat.inputs.molscale = user.molscale
   pyrat.inputs.tmodel   = user.tmodel
+  pyrat.inputs.params   = user.params
   # Output files:
   pyrat.inputs.outspec     = user.outspec
   pyrat.inputs.outsample   = user.outsample
@@ -698,7 +701,7 @@ def checkinputs(pyrat):
   # Accept species lists, check after we load the atmospheric model:
   pyrat.ret.bulk     = inputs.bulk
   pyrat.ret.molscale = inputs.molscale
-
+  pyrat.ret.params   = inputs.params  # FINDME checks
   if inputs.tmodel is not None and inputs.tmodel not in ["TCEA", "isothermal"]:
     pt.error("Invalid temperature model '{:s}'.  Select from: TCEA or "
              "isothermal".format(inputs.tmodel), pyrat.log)
@@ -870,6 +873,7 @@ def setup(pyrat):
     obs.bandflux  = np.zeros(obs.nfilters, np.double)
     obs.bandwn    = bandwn
 
+  # Planet-to-star radius ratio:
   if phy.rplanet is not None and phy.rstar is not None:
     phy.rprs = phy.rplanet/phy.rstar
 
@@ -883,3 +887,24 @@ def setup(pyrat):
     ret.tmodel = PT.isothermal
     ret.ntpars = 1
     ret.targs  = [pyrat.atm.nlayers]
+
+  # Indices to parse the array of fitting parameters:
+  if pyrat.runmode == "mcmc":
+    ntemp  = ret.ntpars
+    nrad   = int(pyrat.od.path == "transit")
+    nabund = len(pyrat.ret.iscale)
+    nhaze  = 0
+    nalk   = 0
+
+    pyrat.ret.itemp  = np.arange(0,          ntemp)
+    pyrat.ret.irad   = np.arange(ntemp,      ntemp+nrad)
+    pyrat.ret.iabund = np.arange(ntemp+nrad, ntemp+nrad+nabund)
+    pyrat.ret.ihaze  = np.arange(ntemp+nrad+nabund, ntemp+nrad+nabund+nhaze)
+    pyrat.ret.ialk   = np.arange(ntemp+nrad+nabund+nhaze,
+                                 ntemp+nrad+nabund+nhaze+nalk)
+
+    if len(pyrat.ret.params) != ntemp+nrad+nabund:
+      pt.error("The input number of fitting parameters ({:d}) does not "
+               "match the number of model parameters ({:d}).".
+                format(len(pyrat.ret.params), ntemp+nrad+nabund))
+

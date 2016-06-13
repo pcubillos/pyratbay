@@ -1,11 +1,13 @@
 """
-Atmospheric modeling utility functions.
+Waveband-integrated emission utilities.
+
+This set of routines read waveband filters and compute band-integrated
+fluxes over the filter transmission curve.
 """
 
-from .qscale     import *
-from .atmosphere import *
+from .wine import *
 
-__all__ = ["balance", "ratio", "qscale"] + atmosphere.__all__
+__all__ = wine.__all__
 
 # Clean up top-level namespace--delete everything that isn't in __all__
 # or is a magic attribute, and that isn't a submodule of this package

@@ -548,6 +548,11 @@ class Retrieval(object):
     self.iscale    = None  # Indices of variable-abundance species
     self.bulkratio = None  # Abundance ratio among bulk species
     self.invsrat   = None  # Inverse of the sum of the bulk ratios/layer
+    self.itemp  = None  # Temperature-model parameter indices
+    self.irad   = None  # Radius-pressure-model parameter indices
+    self.iabund = None  # Abundance-model parameter indices
+    self.ihaze  = None  # Haze-model parameter indices
+    self.ialk   = None  # Alkali-model parameter indices
 #    self. = None  #
   def info(self, pyrat):
     # FINDME

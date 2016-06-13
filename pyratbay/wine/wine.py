@@ -4,14 +4,7 @@ import numpy as np
 import scipy.constants   as sc
 import scipy.interpolate as si
 
-from . import constants as pc
-
-"""
-WINE: Waveband INtegrated Emission module
-
-This set of routines read waveband filters and compute band-integrated
-fluxes over the filter transmission curve.
-"""
+from .. import constants as pc
 
 
 def readfilter(filt):
@@ -162,12 +155,3 @@ def bandintegrate(spectrum, specwn, nifilter):
   """
 
   return np.trapz(spectrum*nifilter, specwn)
-
-
-# Clean up top-level namespace--delete everything that isn't in __all__
-# or is a magic attribute, and that isn't a submodule of this module
-for varname in dir():
-    if not ((varname.startswith('__') and varname.endswith('__')) or
-            varname in __all__ ):
-        del locals()[varname]
-del(varname)

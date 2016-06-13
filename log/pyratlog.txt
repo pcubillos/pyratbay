@@ -1904,5 +1904,15 @@ Moved makeatm.py to atmosphere package, renamed to atmosphere.py
 Added tmodel, smaxis, tint input arguments to pyrat.
 Added checks for tmodel parameters in argum.py when tmodel != None.
 
+
+*****  Mo 13. Jun 09:33:33 CEST 2016  *****
+
+Moved wine.py to wine package.
+Added params argument to pyrat.
+Added checks for retrieval parameter argum.py for mcmc runmode.
+
+This brings back the code to a stable version (prior to the branching).
+
 *****
+
 

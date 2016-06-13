@@ -7,8 +7,6 @@ from .. import pyrat     as py
 from .. import wine      as w
 from .. import atmosphere as atm
 
-from .  import makeatm as ma
-from .  import argum   as ar
 
 def init(pyrat, args, log):
   """
@@ -29,32 +27,13 @@ def init(pyrat, args, log):
   if pyrat.obs.uncert is None:
     pt.error("Undefined data uncertainties.", log)
 
-  if pyrat.od.path == "eclipse":
-    pyrat.rprs = pyrat.rplanet/pyrat.rstar
-
+  # Check rprs:
+  if pyrat.od.path == "eclipse" and pyrat.phy.rprs is None:
+    pt.error("Undefined Rp/Rs.", log)
 
   # Boundaries for temperature profile:
-  pyrat.tlow  = args.tlow
-  pyrat.thigh = args.thigh
-
-  # Indices to parse the array of fitting parameters:
-  ntemp  = pyrat.ret.ntpars
-  nrad   = int(pyrat.od.path == "transit")
-  nabund = len(pyrat.iscale)
-  nhaze  = 0
-  nalk   = 0
-
-  pyrat.itemp  = np.arange(0,          ntemp)
-  pyrat.irad   = np.arange(ntemp,      ntemp+nrad)
-  pyrat.iabund = np.arange(ntemp+nrad, ntemp+nrad+nabund)
-  pyrat.ihaze  = np.arange(ntemp+nrad+nabund, ntemp+nrad+nabund+nhaze)
-  pyrat.ialk   = np.arange(ntemp+nrad+nabund+nhaze,
-                           ntemp+nrad+nabund+nhaze+nalk)
-
-  if len(args.params) != ntemp+nrad+nabund:
-    pt.error("The input number of fitting parameters ({:d}) does not "
-             "match the number of model parameters ({:d}).".
-              format(len(args.params), ntemp+nrad+nabund))
+  pyrat.ret.tlow  = args.tlow
+  pyrat.ret.thigh = args.thigh
 
 
 def fit(params, pyrat, freeze=False):
@@ -83,18 +62,18 @@ def fit(params, pyrat, freeze=False):
     t0, q0, r0 = pyrat.atm.temp, pyrat.atm.q, pyrat.atm.radius
 
   # Update temperature profile:
-  temp = pyrat.ret.tmodel(params[pyrat.itemp], *pyrat.ret.targs)
-  if np.any(temp < pyrat.tlow) or np.any(temp > pyrat.thigh):
+  temp = pyrat.ret.tmodel(params[pyrat.ret.itemp], *pyrat.ret.targs)
+  if np.any(temp < pyrat.ret.tlow) or np.any(temp > pyrat.ret.thigh):
     pyrat.obs.bandflux[:] = -1e10  # FINDME: what if np.inf? or nan?
     return pyrat.obs.bandflux
   # Update abundance profiles:
-  q2 = atm.qscale(pyrat.atm.q, pyrat.mol.name, params[pyrat.iabund],
+  q2 = atm.qscale(pyrat.atm.q, pyrat.mol.name, params[pyrat.ret.iabund],
                   pyrat.ret.molscale, pyrat.ret.bulk,
                   iscale=pyrat.ret.iscale, ibulk=pyrat.ret.ibulk,
                   bratio=pyrat.ret.bulkratio, invsrat=pyrat.ret.invsrat)
   # Update radius profile:
-  if len(pyrat.irad) > 0:
-    radius = ma.hydro_equilibrium(pyrat.atm.press, temp, pyrat.atm.m,
+  if len(pyrat.ret.irad) > 0:
+    radius = atm.hydro_equilibrium(pyrat.atm.press, temp, pyrat.atm.m,
         pyrat.gplanet, pyrat.refpressure, params[pyrat.irad][0]*pc.km)
   else:
     radius = None
@@ -111,11 +90,11 @@ def fit(params, pyrat, freeze=False):
   for i in np.arange(pyrat.obs.nfilters):
     # Integrate the spectrum over the filter band:
     if   pyrat.od.path == "transit":
-      bflux[i] = w.bandintegrate(spectrum[wnidx[i]],
-                          wn[wnidx[i]], pyrat.nifilter[i])
+      bflux[i] = w.bandintegrate(spectrum[wnidx[i]], wn[wnidx[i]],
+                                 pyrat.obs.bandtrans[i])
     elif pyrat.od.path == "eclipse":
-      fluxrat = (spectrum[wnidx[i]]/pyrat.istarfl[i]) * pyrat.rprs**2.0
-      bflux[i] = w.bandintegrate(fluxrat, wn[wnidx[i]], pyrat.nifilter[i])
+      fluxrat = spectrum[wnidx[i]]/pyrat.obs.starflux[i] * pyrat.phy.rprs**2.0
+      bflux[i] = w.bandintegrate(fluxrat, wn[wnidx[i]], pyrat.obs.bandtrans[i])
 
   # Revert changes in the atmospheric profile:
   if freeze:
