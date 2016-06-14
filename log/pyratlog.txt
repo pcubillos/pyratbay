@@ -1924,4 +1924,14 @@ Renamed pyratbay sub-package to pbay.
 
 *****
 
+Created plots subpackage to hold plotting utility functions.
+Implemented spectrum plot, which works either passing a pyrat object
+or the model/data/filter arrays.
+This resolves #47.
+
+Possible options for spectrum plot:
+ - Custom labels, custom xticks.
+
+*****
+
 

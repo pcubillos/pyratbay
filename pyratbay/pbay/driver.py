@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 
 from .. import tools      as pt
 from .. import constants  as pc
+from .. import plots      as pp
 from .. import pyrat      as py
 from .. import lineread   as lr
 from .. import atmosphere as atm
@@ -129,7 +130,11 @@ def run(argv, main=False):
          plots=True, savefile="test.npz")
 
   # Best-fitting model:
-  #bestbandflux = pf.fit(bestp, pyrat)
+  bestbandflux = pf.fit(bestp, pyrat)
+
+  # Best-fitting spectrum:
+  pp.spectrum(pyrat=pyrat, filename="bestfit_spectrum.png")
+
   log.close()
   return pyrat, bestp
 
