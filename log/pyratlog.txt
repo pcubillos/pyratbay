@@ -1920,4 +1920,8 @@ Fixed minor bugs in pyrat's argum.py.
 
 *****
 
+Renamed pyratbay sub-package to pbay.
+
+*****
+
 
