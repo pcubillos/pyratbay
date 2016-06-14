@@ -1913,6 +1913,11 @@ Added checks for retrieval parameter argum.py for mcmc runmode.
 
 This brings back the code to a stable version (prior to the branching).
 
+
+*****  Di 14. Jun 09:20:23 CEST 2016  *****
+
+Fixed minor bugs in pyrat's argum.py.
+
 *****
 
 

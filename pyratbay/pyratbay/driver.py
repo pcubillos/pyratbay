@@ -130,10 +130,8 @@ def run(argv, main=False):
 
   # Best-fitting model:
   #bestbandflux = pf.fit(bestp, pyrat)
-
-  return pyrat, bestp
-
   log.close()
+  return pyrat, bestp
 
 
 def calcatm(args, pressure, temperature, log, wlog):

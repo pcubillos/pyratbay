@@ -342,8 +342,8 @@ def checkinputs(pyrat):
                pyrat.log, pyrat.wlog)
   if pyrat.runmode not in ['tli', 'pt', 'atmosphere', 'opacity', 'spectrum',
                            'mcmc']:
-    pt.error("Invalid runmode ({:s}).  Must select one from: tli, pt, "
-        "atmosphere, spectrum, opacity, mcmc.".format(pyrat.runmode), pyrat.log)
+    pt.error("Invalid runmode ({:s}).  Select from: tli, pt, atmosphere, "
+             "spectrum, opacity, mcmc.".format(pyrat.runmode), pyrat.log)
 
   # Check that input files exist:
   if inputs.atmfile is None:
@@ -844,8 +844,9 @@ def setup(pyrat):
   phy.starflux  = starflux
   phy.starwn    = starwn
   # Store interpolated stellar spectrum:
-  sinterp = si.interp1d(phy.starwn, phy.starflux)
-  pyrat.spec.starflux = sinterp(pyrat.spec.wn)
+  if phy.starflux is not None:
+    sinterp = si.interp1d(phy.starwn, phy.starflux)
+    pyrat.spec.starflux = sinterp(pyrat.spec.wn)
 
 
   # Skip if there are no filter bands:
@@ -870,8 +871,8 @@ def setup(pyrat):
     obs.bandidx   = bandidx
     obs.bandtrans = bandtrans
     obs.starflux  = starflux
+    obs.bandwn    = np.asarray(bandwn)
     obs.bandflux  = np.zeros(obs.nfilters, np.double)
-    obs.bandwn    = bandwn
 
   # Planet-to-star radius ratio:
   if phy.rplanet is not None and phy.rstar is not None:
