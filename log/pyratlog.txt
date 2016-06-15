@@ -1940,4 +1940,7 @@ and transposed it to have the same shape as pyrat.od.depth.
 
 *****
 
+Minor correction in the shape of wnindices.
+
+*****
 

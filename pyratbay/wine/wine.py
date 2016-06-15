@@ -84,7 +84,7 @@ def resample(specwn, filterwn, filtertr, starwn=None, starfl=None):
   """
   # Indices in the spectrum wavenumber array included in the band
   # wavenumber range:
-  wnindices = np.where((specwn < filterwn[-1]) & (filterwn[0] < specwn))
+  wnindices = np.where((specwn < filterwn[-1]) & (filterwn[0] < specwn))[0]
 
   # Make function to spline-interpolate the filter and stellar flux:
   finterp = si.interp1d(filterwn, filtertr)
