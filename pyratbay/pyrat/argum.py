@@ -181,6 +181,10 @@ def parse(pyrat):
       "Temperature-profile model name.  Select from: isothermal or TCEA.")
   pt.addarg("params",        group, pt.parray, None,
       "Initial-guess for retrieval model-fitting parameter.")
+  pt.addarg("tlow",        group, np.double, None,
+      "Minimum valid temperature.")
+  pt.addarg("thigh",        group, np.double, None,
+      "Maximum valid temperature.")
   # System physical parameters:
   group = parser.add_argument_group("System physical variables")
   pt.addarg("starspec",    group, str,       None,
@@ -302,6 +306,8 @@ def parse(pyrat):
   pyrat.inputs.molscale = user.molscale
   pyrat.inputs.tmodel   = user.tmodel
   pyrat.inputs.params   = user.params
+  pyrat.inputs.tlow     = user.tlow
+  pyrat.inputs.thigh    = user.thigh
   # Output files:
   pyrat.inputs.outspec     = user.outspec
   pyrat.inputs.outsample   = user.outsample
@@ -702,6 +708,8 @@ def checkinputs(pyrat):
   pyrat.ret.bulk     = inputs.bulk
   pyrat.ret.molscale = inputs.molscale
   pyrat.ret.params   = inputs.params  # FINDME checks
+  pyrat.ret.tlow     = pt.getparam(inputs.tlow,  "kelvin")
+  pyrat.ret.thigh    = pt.getparam(inputs.thigh, "kelvin")
   if inputs.tmodel is not None and inputs.tmodel not in ["TCEA", "isothermal"]:
     pt.error("Invalid temperature model '{:s}'.  Select from: TCEA or "
              "isothermal".format(inputs.tmodel), pyrat.log)
@@ -813,6 +821,9 @@ def setup(pyrat):
     ret.bulkratio, ret.invsrat = atm.ratio(pyrat.atm.q, ret.ibulk)
   if ret.molscale is not None:
     ret.iscale = np.where(np.in1d(species, ret.molscale))[0]
+    nabund = len(ret.iscale)
+  else:
+    nabund = 0
 
 
   # Read stellar spectrum model:
@@ -888,22 +899,24 @@ def setup(pyrat):
     ret.tmodel = PT.isothermal
     ret.ntpars = 1
     ret.targs  = [pyrat.atm.nlayers]
+  else:
+    ret.ntpars = 0
 
   # Indices to parse the array of fitting parameters:
+  ntemp  = ret.ntpars
+
+  nrad   = int(pyrat.od.path == "transit")
+  nhaze  = 0
+  nalk   = 0
+
+  pyrat.ret.itemp  = np.arange(0,          ntemp)
+  pyrat.ret.irad   = np.arange(ntemp,      ntemp+nrad)
+  pyrat.ret.iabund = np.arange(ntemp+nrad, ntemp+nrad+nabund)
+  pyrat.ret.ihaze  = np.arange(ntemp+nrad+nabund, ntemp+nrad+nabund+nhaze)
+  pyrat.ret.ialk   = np.arange(ntemp+nrad+nabund+nhaze,
+                               ntemp+nrad+nabund+nhaze+nalk)
+
   if pyrat.runmode == "mcmc":
-    ntemp  = ret.ntpars
-    nrad   = int(pyrat.od.path == "transit")
-    nabund = len(pyrat.ret.iscale)
-    nhaze  = 0
-    nalk   = 0
-
-    pyrat.ret.itemp  = np.arange(0,          ntemp)
-    pyrat.ret.irad   = np.arange(ntemp,      ntemp+nrad)
-    pyrat.ret.iabund = np.arange(ntemp+nrad, ntemp+nrad+nabund)
-    pyrat.ret.ihaze  = np.arange(ntemp+nrad+nabund, ntemp+nrad+nabund+nhaze)
-    pyrat.ret.ialk   = np.arange(ntemp+nrad+nabund+nhaze,
-                                 ntemp+nrad+nabund+nhaze+nalk)
-
     if len(pyrat.ret.params) != ntemp+nrad+nabund:
       pt.error("The input number of fitting parameters ({:d}) does not "
                "match the number of model parameters ({:d}).".

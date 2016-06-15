@@ -1954,3 +1954,9 @@ This resolves #48.
 
 *****
 
+Added tlow and thigh arguments to pyrat argum.py.
+tweaked setup() to read the retrieval model indices.
+
+*****
+
+
