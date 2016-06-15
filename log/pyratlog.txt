@@ -1949,3 +1949,8 @@ Based the code on the BART-project functions.
 
 *****
 
+Added contribution function's plotting function cf().
+This resolves #48.
+
+*****
+

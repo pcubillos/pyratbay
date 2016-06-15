@@ -134,6 +134,12 @@ def run(argv, main=False):
 
   # Best-fitting spectrum:
   pp.spectrum(pyrat=pyrat, filename="bestfit_spectrum.png")
+  # Contribution functions:
+  cf  = pt.cf(pyrat.od.depth, pyrat.atm.press, pyrat.od.B)
+  bcf = pt.bandcf(cf, pyrat.obs.bandtrans, pyrat.obs.bandidx)
+  pp.cf(bcf, 1.0/(pyrat.obs.bandwn*pc.um), pyrat.atm.press,
+        filename="bestfit_cf.png")
+
 
   log.close()
   return pyrat, bestp

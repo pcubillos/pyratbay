@@ -2,8 +2,9 @@
 Pyrat plotting utilities.
 """
 
-__all__ = ["spectrum"]
+__all__ = ["spectrum", "cf"]
 
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.interpolate as si
@@ -46,6 +47,7 @@ def spectrum(wlength=None, spectrum=None, data=None, uncert=None,
      Observing-geometry path: transit or eclipse.
   pyrat: Pyrat instance
   gaussbin: Integer
+     Standard deviation for Gaussian-kernel smoothing (in number of samples).
   filename: String
      Filename of the output figure.
   """
@@ -121,5 +123,59 @@ def spectrum(wlength=None, spectrum=None, data=None, uncert=None,
   plt.xlabel(r"${\rm Wavelength\ \ (um)}$", fontsize=fs)
   plt.xlim(np.amin(wlength), np.amax(wlength))
   leg = plt.legend(loc="best", numpoints=1)
+  if filename is not None:
+    plt.savefig(filename)
+
+
+
+
+def cf(bandcf, bandwl, pressure, filename=None, filters=None):
+  """
+  Plot the band-integrated contribution functions.
+
+  Parameters
+  ----------
+  bandcf: 2D float ndarray
+     Band-integrated contribution functions [nfilters, nlayers].
+  bandwl: 1D float ndarray
+     Mean wavelength of the bands in microns.
+  pressure: 1D float ndarray
+     Layer's pressure array in barye.
+  filters: 1D string ndarray
+     Name of the filter bands (optional).
+  filename: String
+     Filename of the output figure.
+  """
+  nfilters = len(bandwl)
+  xran   = 0, np.amax(bandcf)
+  press  = pressure/pc.bar
+  wlsort = np.argsort(bandwl)
+
+  fs  = 14
+  lw  = 1.5
+  plt.figure(-21)
+  plt.clf()
+  for i in np.arange(nfilters):
+    idx = wlsort[i]
+    ax = plt.subplot(1, nfilters, i+1)
+    fname = " {:5.2f} um .".format(bandwl[idx])
+    # Strip root and file extension:
+    if filters is not None:
+      fname = os.path.split(os.path.splitext(filters[idx])[0])[1] + " @" + fname
+    c = int(10 + i / (nfilters-1.0) * 240)
+    ax.semilogy(bandcf[idx], press, '-', lw=lw, color=plt.cm.rainbow(c))
+    ax.set_ylim(np.amax(press), np.amin(press))
+    plt.text(0.9*xran[1], np.amin(press), fname, rotation=90,
+             ha="right", va="top")
+    ax.set_xlim(xran)
+    ax.set_xticklabels([])
+    if i == 0:
+      ax.set_ylabel(r'${\rm Pressure\ \ (bar)}$' , fontsize=fs)
+    else:
+      ax.set_yticklabels([])
+
+  plt.subplots_adjust(0.1, 0.11, 0.95, 0.95, 0, 0)
+  plt.suptitle(r'${\rm Contribution\ functions}$', fontsize=fs, y=0.09, x=0.52)
+
   if filename is not None:
     plt.savefig(filename)
