@@ -1944,3 +1944,8 @@ Minor correction in the shape of wnindices.
 
 *****
 
+Added contribution-functions code to tools sub-package.
+Based the code on the BART-project functions.
+
+*****
+

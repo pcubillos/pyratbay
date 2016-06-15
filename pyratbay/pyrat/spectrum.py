@@ -66,7 +66,7 @@ def intensity(pyrat):
   pyrat.spec.intensity = np.empty((pyrat.nangles, pyrat.spec.nwave), np.double)
 
   # Calculate the Blackbody function:
-  pyrat.od.B = np.empty((pyrat.atm.nlayers, pyrat.spec.nwave), np.double)
+  pyrat.od.B = np.zeros((pyrat.atm.nlayers, pyrat.spec.nwave), np.double)
   bb.planck(pyrat.od.B, pyrat.spec.wn, pyrat.atm.temp, pyrat.od.ideep)
 
   # Allocate dtau:
