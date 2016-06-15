@@ -458,6 +458,7 @@ class Optdepth(object):
     self.ec       = None  # Total extinction coefficient [nlayers, nwave]
     self.raypath  = []    # Distance along ray path  [nlayers]
     self.depth    = None  # Optical depth at raypath [nlayers, nwave]
+    self.B        = None  # Blackbody Planck emission [nlayers, nwave]
     self.ideep    = None  # Layer index where depth reached maxdepth [nwave]
 
   def info(self, pyrat):

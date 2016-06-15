@@ -1932,6 +1932,12 @@ This resolves #47.
 Possible options for spectrum plot:
  - Custom labels, custom xticks.
 
+
+*****  Mi 15. Jun 10:34:15 CEST 2016  *****
+
+Moved the blackbody-emission array from pyrat.B to pyrat.od.B,
+and transposed it to have the same shape as pyrat.od.depth.
+
 *****
 
 

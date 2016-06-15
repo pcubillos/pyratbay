@@ -14,7 +14,7 @@ all variables in cgs units.                                 \n\
 Parameters:                                                 \n\
 -----------                                                 \n\
 B: 2D float ndarray                                         \n\
-   Array to store the Planck emission.                      \n\
+   Array to store the Planck emission [nlayers, nwave].     \n\
 wn: 1D float ndarray                                        \n\
    Wavenumber spectrum (cm-1).                              \n\
 temp: 1D float ndarray                                      \n\
@@ -42,7 +42,7 @@ static PyObject *planck(PyObject *self, PyObject *args){
   for (i=0; i<nwave; i++){
     factor = 2 * H * LS*LS * pow(INDd(wn,i),3);
     for (j=0; j < INDi(last, i); j++){
-      IND2d(B,i,j) = factor / (exp(H*LS*INDd(wn,i)/(KB*INDd(temp,j))) - 1.0);
+      IND2d(B,j,i) = factor / (exp(H*LS*INDd(wn,i)/(KB*INDd(temp,j))) - 1.0);
     }
   }
 
