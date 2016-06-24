@@ -80,6 +80,9 @@ def init(argv, main=False):
   ms.makeradius(pyrat)
   timestamps.append(time.time())
 
+  # Set up observational/retrieval parameters:
+  ar.setup(pyrat)
+
   # Extinction gridding:
   v.voigt(pyrat)
   timestamps.append(time.time())

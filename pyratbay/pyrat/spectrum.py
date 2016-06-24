@@ -47,8 +47,8 @@ def modulation(pyrat):
     # Integrate with Simpson's rule:
     pyrat.spec.spectrum[i] = s.simps(integ, h[0:last], *s.geth(h[0:last]))
 
-  pyrat.spec.spectrum = ( (pyrat.atm.radius[0]**2 + 2*pyrat.spec.spectrum) /
-                          pyrat.rstar**2                                   )
+  pyrat.spec.spectrum = ((pyrat.atm.radius[0]**2 + 2*pyrat.spec.spectrum) /
+                         pyrat.phy.rstar**2)
   pt.msg(pyrat.verb-3, "Computed transmission spectrum: '{:s}'.".
                         format(pyrat.outspec), pyrat.log, 2)
 
@@ -66,8 +66,8 @@ def intensity(pyrat):
   pyrat.spec.intensity = np.empty((pyrat.nangles, pyrat.spec.nwave), np.double)
 
   # Calculate the Blackbody function:
-  pyrat.B = np.empty((pyrat.spec.nwave, pyrat.atm.nlayers), np.double)
-  bb.planck(pyrat.B, pyrat.spec.wn, pyrat.atm.temp, pyrat.od.ideep)
+  pyrat.od.B = np.zeros((pyrat.atm.nlayers, pyrat.spec.nwave), np.double)
+  bb.planck(pyrat.od.B, pyrat.spec.wn, pyrat.atm.temp, pyrat.od.ideep)
 
   # Allocate dtau:
   dtau  = np.empty(pyrat.atm.nlayers, np.double)
@@ -85,12 +85,12 @@ def intensity(pyrat):
     j = 0
     while (j <pyrat.nangles):
       # The integrand:
-      integ = (pyrat.B[i,:last+1] * np.exp(-tau/np.cos(pyrat.raygrid[j])) /
+      integ = (pyrat.od.B[:last+1,i] * np.exp(-tau/np.cos(pyrat.raygrid[j])) /
                np.cos(pyrat.raygrid[j]))
       # Simpson integration:
       pyrat.spec.intensity[j,i] = s.simps(integ, dtau, hsum, hratio, hfactor)
       #ltau = np.log(tau[1:])
-      #integ = (pyrat.B[i,1:last+1]*np.exp(-tau[1:]/np.cos(pyrat.raygrid[j])) /
+      #integ=(pyrat.od.B[i,1:last+1]*np.exp(-tau[1:]/np.cos(pyrat.raygrid[j]))/
       #         tau[1:]/np.cos(pyrat.raygrid[j]))
       #pyrat.spec.intensity[j,i] = si.simps(integ, ltau)
       j += 1

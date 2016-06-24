@@ -1,7 +1,13 @@
-from .ptools import *
-from .cf     import *
+"""
+Waveband-integrated emission utilities.
 
-__all__ = ptools.__all__ + ["cf", "bandcf"]
+This set of routines read waveband filters and compute band-integrated
+fluxes over the filter transmission curve.
+"""
+
+from .wine import *
+
+__all__ = wine.__all__
 
 # Clean up top-level namespace--delete everything that isn't in __all__
 # or is a magic attribute, and that isn't a submodule of this package

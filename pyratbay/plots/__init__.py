@@ -1,7 +1,6 @@
-from .ptools import *
-from .cf     import *
+from .plots import *
 
-__all__ = ptools.__all__ + ["cf", "bandcf"]
+__all__ = plots.__all__
 
 # Clean up top-level namespace--delete everything that isn't in __all__
 # or is a magic attribute, and that isn't a submodule of this package
@@ -10,3 +9,4 @@ for varname in dir():
             varname in __all__ ):
         del locals()[varname]
 del(varname)
+

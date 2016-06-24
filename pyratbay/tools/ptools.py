@@ -3,7 +3,7 @@
 
 __all__ = ["parray", "msg", "warning", "error", "defaultp", "getparam",
            "binsearch", "pprint", "divisors", "u", "unpack", "sep",
-           "isfile"]
+           "isfile", "addarg"]
 
 import sys, os
 import traceback
@@ -402,3 +402,24 @@ def isfile(path):
 
   # Regular file or not:
   return os.path.isfile(path)
+
+
+def addarg(variable, pgroup, type, default, help):
+  """
+  Wrapper of the parser argument group.
+
+  Parameters
+  ----------
+  pgroup: _ArgumentGroup
+     A parser's argument group.
+  variable: String
+     The variable name.
+  type: Callable
+     Type of the variable.
+  default: Any
+     Default value of the variable.
+  help: String
+     Brief description of the argument.
+  """
+  pgroup.add_argument("--{:s}".format(variable), dest=variable,
+                      action="store", type=type, default=default, help=help)

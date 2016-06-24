@@ -1,7 +1,11 @@
-from .ptools import *
-from .cf     import *
+"""
+Atmospheric modeling utility functions.
+"""
 
-__all__ = ptools.__all__ + ["cf", "bandcf"]
+from .qscale     import *
+from .atmosphere import *
+
+__all__ = ["balance", "ratio", "qscale"] + atmosphere.__all__
 
 # Clean up top-level namespace--delete everything that isn't in __all__
 # or is a magic attribute, and that isn't a submodule of this package

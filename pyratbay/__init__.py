@@ -1,10 +1,15 @@
-__all__ = ["pyratbay", "lineread", "pyrat", "constants", "tools"]
+__all__ = ["pbay", "lineread", "pyrat", "constants", "tools", "wine",
+           "starspec", "atmosphere", "plots"]
 
-from . import pyratbay
+from . import pbay
 from . import pyrat
 from . import lineread
 from . import constants
 from . import tools
+from . import wine
+from . import starspec
+from . import atmosphere
+from . import plots
 
 from . import VERSION as ver
 

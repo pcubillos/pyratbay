@@ -1,20 +1,24 @@
-# This wonderful piece of code reads the output modulation spectrum
-# of a transit run and plots it.
+__all__ = ["readpyrat"]
 
 import numpy as np
-import matplotlib.pyplot as plt
 
-
-def readspectrum(specfile, wn=True):
+def readpyrat(specfile, wn=True):
   """
-  Read pyrat's output spectrum.
+  Read a pyrat spectrum file.
 
-  Parameters:
-  -----------
+  Parameters
+  ----------
   specfile: String
      Path to output Transit spectrum file to read.
   wn: Boolean
      If True convert wavelength to wavenumber.
+
+  Return
+  ------
+  wave: 1D float ndarray
+     The spectrum's wavenumber or wavelength array.
+  spectrum: 1D float ndarray
+     The pyrat spectrum.
   """
   f = open(specfile, "r")
 
@@ -30,7 +34,7 @@ def readspectrum(specfile, wn=True):
   # Initialize arrays:
   wave     = np.zeros(ndata, np.double)
   spectrum = np.zeros(ndata, np.double)
-  
+
   # Return to begining of file:
   f.seek(0)
   f.readline()
@@ -39,9 +43,9 @@ def readspectrum(specfile, wn=True):
     l = f.readline().strip().split()
     wave    [i] = np.double(l[ 0])
     spectrum[i] = np.double(l[-1])
-  
+
   # Convert wavelength (micron) to wavenumber (cm-1):
   if wn:
     wave = 1e4/wave
-  
+
   return wave, spectrum

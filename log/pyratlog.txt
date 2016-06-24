@@ -1844,3 +1844,128 @@ This merge resolves #17.
 
 *****
 
+Added addarg() function to ptools to wrap the argument parsing.
+Updated Pyrat's argparse() to use addarg().
+
+
+*****  Sat Jun 11 20:18:10 CEST 2016  *****
+
+Defined the Observation(), Physics(), and Retrieval() objects as part
+of the Pyrat class.
+Removed variables in Input class.
+
+Added filter, starspec, kurucz, gstar, and tstar arguments in pyrat argum.py.
+Added marcs and phoenix placeholder arguments in pyrat's argum.py.
+Fixed bug in isgreater(), adding log argument.
+Moved rplanet, gplanet, and rstar from pyrat to pyrat.phy.
+Implemented setup() in pyrat argum.py (temporary location) to process
+stellar spectrum and filter band variables.
+Defined pyrat.phy.rprs.
+
+*****
+
+Moved readspectrum() from scripts/readpyrat.py to ptools.py.
+
+*****
+
+Tweaked resample() in wine.py to always return three variables,
+with or without a stellar spectrum, returning None in the latter case.
+
+Starting re-structuring the Pyrat-Bay pacakge.
+Move the wine.py module from pyratbay/pyratbay/ to pyratbay/.
+
+*****
+
+Created starspec sub-package containing stellar spectrum models code.
+Moved kurucz.py to starspec package, renamed getmodel() to readkurucz().
+Moved readspectrum() from ptools.py to starspec package, remamed function
+to readpyrat().
+
+
+*****  Sun Jun 12 11:56:44 CEST 2016  *****
+
+Added nfilters variable to pyrat.obs.  Check consistency with ndata
+only when both arrays are defined.
+Added starflux variable to pyrat.spec with interpolated stellar spectrum.
+
+Some corrections to wine.py documentation.
+
+*****
+
+Created atmosphere subpackage to hold atmospheric model functions.
+Put qscale.py into atm package.
+Added runmode, bulk, molscale input arguments to pyrat.
+Added bulk, molscale, ibulk, iscale, bulkratio, and invsrat variables
+to Retrieval object.
+
+*****
+
+Moved makeatm.py to atmosphere package, renamed to atmosphere.py
+Added tmodel, smaxis, tint input arguments to pyrat.
+Added checks for tmodel parameters in argum.py when tmodel != None.
+
+
+*****  Mo 13. Jun 09:33:33 CEST 2016  *****
+
+Moved wine.py to wine package.
+Added params argument to pyrat.
+Added checks for retrieval parameter argum.py for mcmc runmode.
+
+This brings back the code to a stable version (prior to the branching).
+
+
+*****  Di 14. Jun 09:20:23 CEST 2016  *****
+
+Fixed minor bugs in pyrat's argum.py.
+
+*****
+
+Renamed pyratbay sub-package to pbay.
+
+*****
+
+Created plots subpackage to hold plotting utility functions.
+Implemented spectrum plot, which works either passing a pyrat object
+or the model/data/filter arrays.
+This resolves #47.
+
+Possible options for spectrum plot:
+ - Custom labels, custom xticks.
+
+
+*****  Mi 15. Jun 10:34:15 CEST 2016  *****
+
+Moved the blackbody-emission array from pyrat.B to pyrat.od.B,
+and transposed it to have the same shape as pyrat.od.depth.
+
+*****
+
+Minor correction in the shape of wnindices.
+
+*****
+
+Added contribution-functions code to tools sub-package.
+Based the code on the BART-project functions.
+
+*****
+
+Added contribution function's plotting function cf().
+This resolves #48.
+
+*****
+
+Added tlow and thigh arguments to pyrat argum.py.
+tweaked setup() to read the retrieval model indices.
+
+*****
+
+Fixed bug in pbay imports.
+
+
+*****  Fr 24. Jun 10:35:18 CEST 2016  *****
+
+Bumped Pyrat Bay to version 0.0.25.
+Bumped Pyrat to version 1.2.16.
+
+*****
+

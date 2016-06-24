@@ -1,9 +1,10 @@
+__all__ = ["readkurucz", "kunpack"]
+
 import numpy as np
 import scipy.constants   as sc
 
-__all__ = ["getmodel", "unpack"]
 
-def getmodel(kfile, temperature, logg):
+def readkurucz(kfile, temperature, logg):
   """
   Load a the Kurucz stellar spectrum with parameters closest to requested
   temperature and log(g).
@@ -29,7 +30,7 @@ def getmodel(kfile, temperature, logg):
      log10 of the surface gravity for the model (g in cgs units).
   """
 
-  inten, freq, grav, temp, nainten, head = unpack(kfile, freq=True)
+  inten, freq, grav, temp, nainten, head = kunpack(kfile, freq=True)
 
   # Wavenumber in cm^-1
   starwn = freq / sc.c * 1e-2
@@ -57,7 +58,7 @@ def getmodel(kfile, temperature, logg):
   return starfl, starwn, tmodel, gmodel
 
 
-def unpack(filename, freq=False):
+def kunpack(filename, freq=False):
   """
   This function reads a file of stellar spectral intensity models
   from Bob Kurucz (Harvard) and returns its content.

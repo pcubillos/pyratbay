@@ -6,13 +6,14 @@ import subprocess
 import numpy as np
 import matplotlib.pyplot as plt
 
-from .. import tools     as pt
-from .. import constants as pc
-from .. import pyrat     as py
-from .. import lineread  as lr
+from .. import tools      as pt
+from .. import constants  as pc
+from .. import plots      as pp
+from .. import pyrat      as py
+from .. import lineread   as lr
+from .. import atmosphere as atm
 
 from .  import argum     as ar
-from .  import makeatm   as ma
 from .  import makecfg   as mc
 from .  import pyratfit  as pf
 
@@ -69,12 +70,12 @@ def run(argv, main=False):
   # Compute pressure-temperature profile:
   if args.runmode in ["pt", "atmosphere"] or pt.isfile(args.atmfile) != 1:
     ar.checkpressure(args, log, wlog)  # Check pressure inputs
-    pressure = ma.pressure(args.ptop, args.pbottom, args.nlayers,
+    pressure = atm.pressure(args.ptop, args.pbottom, args.nlayers,
                            args.punits, log)
     ar.checktemp(args, log, wlog)      # Check temperature inputs
-    temperature = ma.temperature(args.tmodel, args.tparams, True, pressure,
+    temperature = atm.temperature(args.tmodel, pressure,
        args.rstar, args.tstar, args.tint, args.gplanet, args.smaxis,
-       args.radunits, args.nlayers, log)
+       args.radunits, args.nlayers, log, args.tparams)
 
   # Return temperature-pressure if requested:
   if args.runmode == "pt":
@@ -90,7 +91,7 @@ def run(argv, main=False):
 
   # Return atmospheric model if requested:
   if args.runmode == "atmosphere":
-    species, pressure, temperature, abundances = ma.readatm(args.atmfile)
+    species, pressure, temperature, abundances = atm.readatm(args.atmfile)
     return pressure, temperature, abundances
 
   # Check status of extinction-coefficient file if necessary:
@@ -127,10 +128,21 @@ def run(argv, main=False):
          burnin=args.burnin, thinning=args.thinning, grtest=True,
          hsize=10, kickoff='normal', log='MCMC.log',
          plots=True, savefile="test.npz")
-  # Post processing:
-  pass
+
+  # Best-fitting model:
+  bestbandflux = pf.fit(bestp, pyrat)
+
+  # Best-fitting spectrum:
+  pp.spectrum(pyrat=pyrat, filename="bestfit_spectrum.png")
+  # Contribution functions:
+  cf  = pt.cf(pyrat.od.depth, pyrat.atm.press, pyrat.od.B)
+  bcf = pt.bandcf(cf, pyrat.obs.bandtrans, pyrat.obs.bandidx)
+  pp.cf(bcf, 1.0/(pyrat.obs.bandwn*pc.um), pyrat.atm.press,
+        filename="bestfit_cf.png")
+
 
   log.close()
+  return pyrat, bestp
 
 
 def calcatm(args, pressure, temperature, log, wlog):
@@ -141,7 +153,7 @@ def calcatm(args, pressure, temperature, log, wlog):
 
   # Uniform-abundances profile:
   if args.uniform is not None:
-    ma.uniform(args.atmfile, pressure, temperature, args.species,
+    atm.uniform(args.atmfile, pressure, temperature, args.species,
                args.uniform, args.punits)
     pt.msg(1, "\nProduced uniform-abundances atmospheric file: '{:s}'.".
               format(args.atmfile), log)
@@ -151,16 +163,16 @@ def calcatm(args, pressure, temperature, log, wlog):
               "abundances.", log)
     xsolar = pt.getparam(args.xsolar, "none")
     swap   = None
-    ma.makeatomic(args.solar, args.atomicfile, xsolar, swap)
+    atm.makeatomic(args.solar, args.atomicfile, xsolar, swap)
     # Pre-atmospheric file:
-    ma.makepreatm(pressure/pt.u(args.punits), temperature, args.atomicfile,
+    atm.makepreatm(pressure/pt.u(args.punits), temperature, args.atomicfile,
                   args.elements, args.species, args.patm)
     # Run TEA:
     mc.makeTEA(abun_file=args.atomicfile)
     proc = subprocess.Popen([TEAdir + "tea/runatm.py", args.patm, "TEA"])
     proc.communicate()
     # Reformat the TEA output into the pyrat format:
-    ma.TEA2pyrat("./TEA/TEA/results/TEA.tea", args.atmfile)
+    atm.TEA2pyrat("./TEA/TEA/results/TEA.tea", args.atmfile)
     shutil.rmtree("TEA")
     pt.msg(1, "Produced TEA atmospheric file '{:s}'.".format(args.atmfile), log)
 

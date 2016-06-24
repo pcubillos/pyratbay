@@ -11,7 +11,6 @@ import scipy.interpolate as sip
 
 from .. import tools     as pt
 from .. import constants as pc
-from .  import argum as ar
 
 rootdir = os.path.realpath(os.path.dirname(__file__) + "/../../")
 sys.path.append(rootdir + "/pyratbay/lib/")
@@ -438,9 +437,9 @@ def pressure(ptop, pbottom, nlayers, units="bar", log=None):
   return press
 
 
-def temperature(tmodel, tparams=None, eval=True, pressure=None,
-     rstar=None, tstar=None, tint=100.0, gplanet=None, smaxis=None,
-     radunits="cm", nlayers=None, log=None):
+def temperature(tmodel, pressure=None, rstar=None, tstar=None, tint=100.0,
+     gplanet=None, smaxis=None, radunits="cm", nlayers=None,
+     log=None, tparams=None):
   """
   Temperature profile wrapper.
 
@@ -448,12 +447,6 @@ def temperature(tmodel, tparams=None, eval=True, pressure=None,
   ----------
   tmodel: String
      Name of the temperature model.
-  tparams: 1D float ndarray
-     Temperature model parameters.
-  eval: Bool
-     If True, return the temperature profile evaluated at tparams.
-     Else, return a tuple with the model callable, arguments, and number of
-     fitting parameters.
   pressure: 1D float ndarray
      Atmospheric pressure profile in barye units.
   rstar: String or float
@@ -473,13 +466,15 @@ def temperature(tmodel, tparams=None, eval=True, pressure=None,
      Number of pressure layers.
   log: File
      Log file where to write screen outputs.
+  tparams: 1D float ndarray
+     Temperature model parameters.
 
   Returns
   -------
-  If eval=True:
+  If tparams is not None:
    temperature: 1D float ndarray
       The evaluated atmospheric temperature profile.
-  If eval=False:
+  If tparams is None:
    Tmodel: Callable
       The atmospheric temperature model.
    targs: List
@@ -489,13 +484,12 @@ def temperature(tmodel, tparams=None, eval=True, pressure=None,
 
   Examples
   --------
-  >>> import pyratbay.pyratbay.makeatm as ma
+  >>> import pyratbay.atmosphere as atm
   >>> # 100-layer isothermal profile:
-  >>> ma.temperature("isothermal", tparams=np.array([1500.0]), eval=True,
-                     nlayers=100)
+  >>> atm.temperature("isothermal", tparams=np.array([1500.0]), nlayers=100)
   >>> # Three-chanel Eddington-approximation profile:
   >>> p = ma.pressure(1e-5, 1e2, 100, "bar")
-  >>> Tmodel, targs, ntpars = ma.temperature("TCEA", eval=False, pressure=p,
+  >>> Tmodel, targs, ntpars = ma.temperature("TCEA", pressure=p,
     rstar="1.0 rsun", tstar=5800.0, tint=100.0, gplanet=800.0, smaxis="0.05 au")
   >>> tparams = np.array([-3.0, -0.25, 0.0, 0.0, 1.0])
   >>> temp = Tmodel(tparams, *targs)

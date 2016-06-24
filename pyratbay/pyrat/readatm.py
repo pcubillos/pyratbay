@@ -279,18 +279,18 @@ def reloadatm(pyrat, temp, abund, radius=None):
     pyrat.atm.radius = radius
   else:
     # Check that the gravity variable is exists:
-    if pyrat.gplanet is None:
+    if pyrat.phy.gplanet is None:
       pt.error("Undefined atmospheric gravity (gplanet).  Either provide "
         "the radius profile for the layers or the surface gravity.", pyrat.log)
-    if pyrat.rplanet is None:
+    if pyrat.phy.rplanet is None:
       pt.error("Undefined reference planetary radius (rplanet). Either provide "
         "the radius profile for the layers or the rplanet.", pyrat.log)
     if pyrat.refpressure is None:
       pt.error("Undefined reference pressure level (refpressure). Either "
          "provide the radius profile for the layers or refpressure.", pyrat.log)
     pyrat.atm.radius = hydro_equilibrium(pyrat.atm.press,   pyrat.atm.temp,
-                                         pyrat.atm.mm,      pyrat.gplanet,
-                                         pyrat.refpressure, pyrat.rplanet)
+                                         pyrat.atm.mm,      pyrat.phy.gplanet,
+                                         pyrat.refpressure, pyrat.phy.rplanet)
 
   # Partition function:
   for i in np.arange(pyrat.lt.ndb):           # For each Database

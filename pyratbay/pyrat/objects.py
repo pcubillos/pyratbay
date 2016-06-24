@@ -21,6 +21,9 @@ class Pyrat(object):
     self.od     = Optdepth()        # Optical depth
     self.haze   = Haze()            # Hazes
     self.alkali = Alkali()          # Alkali opacity models
+    self.obs    = Observation()     # Observational data
+    self.phy    = Physics()         # System physical parameters
+    self.ret    = Retrieval()       # Retrieval variables
     # Files:
     self.atmfile     = None  # Atmopheric-model file
     self.linedb      = None  # Line-transition data file
@@ -30,7 +33,6 @@ class Pyrat(object):
     self.outspec     = None  # Modulation/Flux spectrum file
     # Photometric surface:
     self.refpressure = None  # Pressure reference level
-    self.rplanet     = None  # Radius reference level
     # Atmosphere:
     self.radunits = None  # Radius physical units
     self.radstep  = None  # Radius sampling interval
@@ -41,9 +43,6 @@ class Pyrat(object):
     self.phigh    = None  # Highest pressure boundary
     # Geometry:
     self.raygrid  = None  # Array of incident ray-angles
-    # Physical parameters:
-    self.rstar    = None  # Stellar radius
-    self.gplanet  = None  # Planetary surface gravity
     # Other:
     self.verb       = None  # Verbosity level
     self.logfile    = None  # Pyrat log filename
@@ -57,68 +56,6 @@ class Inputs(object):
   This is a holder class to store user-input arguments.
   """
   def __init__(self):
-    # General arguments:
-    self.configfile = None
-    self.verb       = None
-    self.nproc      = None
-    # Input/output files arguments:
-    self.atmfile  = None
-    self.linedb   = None
-    self.csfiles  = None
-    self.molfile  = None
-    self.extfile  = None
-    # Wavelength arguments:
-    self.wlunits = None
-    self.wllow   = None
-    self.wlhigh  = None
-    self.wlstep  = None
-    # Wavenumber arguments:
-    self.wnunits = None
-    self.wnlow   = None
-    self.wnhigh  = None
-    self.wnstep  = None
-    self.wnosamp = None
-    # Atmospheric radius arguments:
-    self.radlow   = None
-    self.radhigh  = None 
-    self.radstep  = None
-    self.radunits = None
-    # Atmospheric pressure arguments:
-    self.plow   = None 
-    self.phigh  = None
-    self.pstep  = None
-    self.punits = None
-    # Base radius-pressure level:
-    self.gplanet    = None
-    # Voigt profile arguments:
-    self.Vextent    = None
-    self.DLratio    = None
-    self.Dmin       = None
-    self.Dmax       = None
-    self.nDop       = None
-    self.Lmin       = None
-    self.Lmax       = None
-    self.nLor       = None
-    # Extinction calculation arguments:
-    self.exthresh = None
-    self.tmin     = None
-    self.tmax     = None
-    # Haze models:
-    self.hazes    = None
-    self.hazepars = None
-    # Alkalo models:
-    self.alkali   = None
-    # Optical depth arguments:
-    self.path     = None
-    self.maxdepth = None
-    self.raygrid  = None
-    # System arguments:
-    self.rstar = None
-    # Output files arguments:
-    self.outspec     = None
-    self.outsample   = None
-    self.outmaxdepth = None
-    # Atmospheric data:
     self.atm = Atm()  # Input-file atmospheric model
 
 
@@ -143,7 +80,8 @@ class Spectrum(object):
     self.wlhigh    = None  # Highest wavelength boundary
     # Spectrum:
     self.intensity = None  # Intensity spectrum array
-    self.spectrum  = None  # Modulation/Flux spectrum array
+    self.spectrum  = None  # Modulation/Flux spectrum
+    self.starflux  = None  # Stellar flux spectrum
 
   def info(self):
     """
@@ -520,6 +458,7 @@ class Optdepth(object):
     self.ec       = None  # Total extinction coefficient [nlayers, nwave]
     self.raypath  = []    # Distance along ray path  [nlayers]
     self.depth    = None  # Optical depth at raypath [nlayers, nwave]
+    self.B        = None  # Blackbody Planck emission [nlayers, nwave]
     self.ideep    = None  # Layer index where depth reached maxdepth [nwave]
 
   def info(self, pyrat):
@@ -576,4 +515,69 @@ class Optdepth(object):
       pt.msg(1, "At {:7.1f} cm-1:  {}".format(pyrat.spec.wn[index],
         str(self.depth[0:self.ideep[index]+1,index]).replace("\n","")),
                        indent=4, si=6)
+
+
+class Observation(object):
+  def __init__(self):
+    self.ndata    = 0     # Number of data points
+    self.data     = None  # Transit or eclipse data point
+    self.uncert   = None  # Data's 1-sigma uncertainty
+    self.nfilters  = 0     # Number of filter bands
+    self.filter    = None  # Observing filter filename
+    self.bandidx   = None  # Band wavenumber indices
+    self.bandtrans = None  # Band-interpolated transmission function
+    self.starflux  = None  # Band-interpolated stellar flux
+    self.bandflux  = None  # Band-integrated flux
+    self.bandwn    = None  # Filter mean wavenumber
+  def info(self, pyrat):
+    # FINDME
+    pass
+
+# Retrieval variables:
+class Retrieval(object):
+  def __init__(self):
+    self.nparams    = None  # Number of free parameters
+    self.tmodelname = None  # Temperature-model name
+    self.tmodel     = None  # Temperature model
+    self.ntpars     = None  # Number of temperature-model parameters
+    self.targs      = None  # Temperature-model arguments
+    self.tlow      = None  #
+    self.thigh     = None  #
+    self.bulk      = None  # Bulk species name list
+    self.molscale  = None  # Variable-abundance species name list
+    self.ibulk     = None  # Indices of bulk species in pyrat.mol.name
+    self.iscale    = None  # Indices of variable-abundance species
+    self.bulkratio = None  # Abundance ratio among bulk species
+    self.invsrat   = None  # Inverse of the sum of the bulk ratios/layer
+    self.itemp  = None  # Temperature-model parameter indices
+    self.irad   = None  # Radius-pressure-model parameter indices
+    self.iabund = None  # Abundance-model parameter indices
+    self.ihaze  = None  # Haze-model parameter indices
+    self.ialk   = None  # Alkali-model parameter indices
+#    self. = None  #
+  def info(self, pyrat):
+    # FINDME
+    pass
+
+
+# System physical variables:
+class Physics(object):
+  def __init__(self):
+    self.tstar    = None  # Stellar effective temperature
+    self.rstar    = None  # Stellar radius
+    self.gstar    = None  # Stellar surface gravity
+    self.rplanet  = None  # Planetary radius
+    self.gplanet  = None  # Planetary surface gravity
+    self.rprs     = None  # Planet-to-star radius ratio
+    self.smaxis   = None  # Orbital semi-major axis
+    self.starspec = None  # Stellar spectrum filename
+    self.kurucz   = None  # Kurucz stellar spectrum
+    self.marcs    = None  # MARCS stellar spectrum
+    self.phoenix  = None  # PHOENIX stellar spectrum
+#    self. = None  #
+    self.starwn   = None  #  Input stellar wavenumber array
+    self.starflux = None  #  Input stellar flux spectrum in  FINDME units
+  def info(self, pyrat):
+    # FINDME
+    pass
 
