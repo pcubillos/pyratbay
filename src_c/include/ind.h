@@ -1,3 +1,6 @@
+// Copyright (c) 2016 Patricio Cubillos and contributors.
+// Pyrat Bay is currently proprietary software (see LICENSE).
+
 /* Definitions for indexing Numpy arrays:                                   */
 
 /* 1D double ndarray:                                                       */

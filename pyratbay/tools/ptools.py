@@ -1,5 +1,5 @@
-# Copyright (c) 2015-2016 Patricio Cubillos and contributors.
-# Pyrat Bay is open-source software under the FINDME license.
+# Copyright (c) 2016 Patricio Cubillos and contributors.
+# Pyrat Bay is currently proprietary software (see LICENSE).
 
 __all__ = ["parray", "msg", "warning", "error", "defaultp", "getparam",
            "binsearch", "pprint", "divisors", "u", "unpack", "sep",

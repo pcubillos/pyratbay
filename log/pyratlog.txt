@@ -1969,3 +1969,11 @@ Bumped Pyrat to version 1.2.16.
 
 *****
 
+Added LICENSE file with proprietary licence.
+A temporarily decision until we publish and switch to RR License.
+
+*****
+
+Added license banner at the top of the Python and C files.
+
+*****

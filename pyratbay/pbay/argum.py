@@ -1,3 +1,6 @@
+# Copyright (c) 2016 Patricio Cubillos and contributors.
+# Pyrat Bay is currently proprietary software (see LICENSE).
+
 import sys, os
 import ConfigParser, argparse
 import numpy as np
