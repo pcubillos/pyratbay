@@ -3,6 +3,11 @@
 Lineread Module
 ===============
 
+The ``lineread`` package formats online-available line-by-line opacity
+data into a line-transition information (TLI) file, which is used as
+input for ``pyrat``.
+
+
 Quick Example
 -------------
 

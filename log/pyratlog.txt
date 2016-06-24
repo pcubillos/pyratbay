@@ -1982,3 +1982,8 @@ Updated getting-started demo examples (hitran tli, transmission, and
 emission spectra).
 
 *****
+
+Updated home, getting started, and license documentation.
+
+*****
+
