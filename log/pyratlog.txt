@@ -1987,3 +1987,7 @@ Updated home, getting started, and license documentation.
 
 *****
 
+Updated README.md to point to the Sphinx documentation.
+
+*****
+
