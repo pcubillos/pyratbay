@@ -1991,3 +1991,7 @@ Updated README.md to point to the Sphinx documentation.
 
 *****
 
+Removed the now-obsolete lineread.py and pyrat.py shell executables.
+
+*****
+
