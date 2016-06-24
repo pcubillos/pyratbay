@@ -1,5 +1,5 @@
-# ****************************** START LICENSE ******************************
-# ******************************* END LICENSE ******************************
+# Copyright (c) 2016 Patricio Cubillos and contributors.
+# Pyrat Bay is currently proprietary software (see LICENSE).
 
 __all__ = ["pands"]
 

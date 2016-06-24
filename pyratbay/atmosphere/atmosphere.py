@@ -1,3 +1,6 @@
+# Copyright (c) 2016 Patricio Cubillos and contributors.
+# Pyrat Bay is currently proprietary software (see LICENSE).
+
 __all__ = ["writeatm", "readatm", "uniform", "makeatomic", "readatomic",
            "makepreatm", "TEA2pyrat", "pressure", "temperature",
            "hydro_equilibrium"]

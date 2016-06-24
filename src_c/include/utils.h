@@ -1,3 +1,6 @@
+// Copyright (c) 2016 Patricio Cubillos and contributors.
+// Pyrat Bay is currently proprietary software (see LICENSE).
+
 int
 binsearchapprox(PyArrayObject *array, double value, int lo, int hi){
   /* Last case, value limited between consecutive indices of array:         */

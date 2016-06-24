@@ -1,3 +1,6 @@
+// Copyright (c) 2016 Patricio Cubillos and contributors.
+// Pyrat Bay is currently proprietary software (see LICENSE).
+
 /* Solve the Natural-Cubic-Spline Tridiagonal System.
    See: Kincaid & Cheney (2008): Numerical Mathematics & Computing,
         Algorithm 1 (page 391).                                             */

@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+# Copyright (c) 2016 Patricio Cubillos and contributors.
+# Pyrat Bay is currently proprietary software (see LICENSE).
+
 import sys, os
 import numpy as np
 

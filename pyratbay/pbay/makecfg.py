@@ -1,5 +1,5 @@
-# Copyright (C) 2016 Patricio Cubillos. All rights reserved.
-# Pyrat Bay is open-source, reproducible-research code (see LICENSE).
+# Copyright (c) 2016 Patricio Cubillos and contributors.
+# Pyrat Bay is currently proprietary software (see LICENSE).
 
 __all__ = ["makeTEA"]
 

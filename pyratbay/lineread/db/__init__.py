@@ -1,3 +1,6 @@
+# Copyright (c) 2016 Patricio Cubillos and contributors.
+# Pyrat Bay is currently proprietary software (see LICENSE).
+
 __all__ = ["hitran", "pands", "tioschwenke", "voplez", "vald"]
 
 from .hitran      import hitran

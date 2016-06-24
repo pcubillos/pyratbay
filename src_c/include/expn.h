@@ -1,4 +1,6 @@
-/*  expn.c                                                                  */
+// Copyright (c) 2016 Patricio Cubillos and contributors.
+// Pyrat Bay is currently proprietary software (see LICENSE).
+
 #include <math.h>
 
 #define EUL 0.57721566490153286060

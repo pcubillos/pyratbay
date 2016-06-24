@@ -1,3 +1,6 @@
+// Copyright (c) 2016 Patricio Cubillos and contributors.
+// Pyrat Bay is currently proprietary software (see LICENSE).
+
 /* Math constants:                                                          */
 #define PI         (3.141592653589793)       /* pi                          */
 #define SQRTLN2    (0.83255461115769775635)  /* sqrt(ln(2))                 */
