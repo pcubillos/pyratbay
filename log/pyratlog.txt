@@ -1995,3 +1995,7 @@ Removed the now-obsolete lineread.py and pyrat.py shell executables.
 
 *****
 
+Quick fix to the docs, getting started demo.
+
+*****
+

@@ -112,8 +112,8 @@ transmission and emission spectra:
 .. code-block:: shell
 
    cp $topdir/pyratbay/examples/pyrat_demo/* .
-   $topdir/pyratbay/pyrat.py -c demo_transmission.cfg
-   $topdir/pyratbay/pyrat.py -c demo_emission.cfg
+   $topdir/pyratbay/pbay.py -c demo_transmission.cfg
+   $topdir/pyratbay/pbay.py -c demo_emission.cfg
 
 Outputs
 ^^^^^^^
