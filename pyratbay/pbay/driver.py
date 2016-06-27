@@ -85,6 +85,8 @@ def run(argv, main=False):
     plt.figure(1)
     plt.semilogy(temperature, pressure)
     plt.ylim(np.max(pressure), np.min(pressure))
+    plt.xlabel("Temperature  (K)")
+    plt.ylabel("Pressure  (barye)")
     plt.savefig("tmp_pt.pdf")
     return pressure, temperature
 

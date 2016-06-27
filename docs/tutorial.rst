@@ -1,15 +1,590 @@
+.. |H2O| replace:: H\ :sub:`2`\ O
+.. |CO2| replace:: CO\ :sub:`2`
+.. |CH4| replace:: CH\ :sub:`4`
+.. |H2|  replace:: H\ :sub:`2`
+
 .. _tutorial:
 
 Tutorial
 ========
 
-TBD.
+``Pyrat Bay`` offers a unique driver command that allow multiple
+running modes.  A configuration file defines all of the run settings,
+inputs, and outputs.
+
+As said, all of these calls can either be run from the shell or from
+the Python interpreter.  However, the interpreter has the advantage of
+that you can interact with the outputs.
+
+
+Configuration Files
+-------------------
+
+``Pyrat Bay`` configuration files follow the `ConfigParser <https://docs.python.org/2/library/configparser.html>`_ format.
+Whether you are executing the call from shell or from the interpreted,
+the configuration file defines all the settings of your run.
+
+All of the running settings, inputs, and outputs are set in the
+configuration file.  For example, here is the configuration file for the transmission spectrum demo: `demo_transmission.cfg <https://github.com/pcubillos/pyratbay/blob/master/examples/pyrat_demo/demo_transmission.cfg>`_.
+
+Input files can either have absolute or relative paths.
+
+The configuration file include variables to define the default units
+of some physical variables (mass, length, pressure), e.g.:
+
+.. code-block:: python
+
+  # Default units:
+  radunits = km
+  # System parameters:
+  rstar   = 6.995e5    ; Stellar radius (default units: radunits)
+
+Equivalently, a variable can explicitly include the units (overriding
+the default units):
+
+.. code-block:: python
+
+  # Default units:
+  radunits = km
+  # System parameters:
+  rstar   = 1.0 rsun    ; Stellar radius (default units: radunits)
+
+
+Here is the list of available units:
+
++------------+------------+----------------+------------------------+
+| Unit       | Valid unit | CGS Value      | Description            |
++============+============+================+========================+
+| Length     | A          | 1.0e-08        | Angstrom               |
++            +------------+----------------+------------------------+
+|            | nm         | 1.0e-07        | Nanometer              |
++            +------------+----------------+------------------------+
+|            | um         | 1.0e-04        | Micron                 |
++            +------------+----------------+------------------------+
+|            | mm         | 1.0e-01        | Millimeter             |
++            +------------+----------------+------------------------+
+|            | cm         | 1.0            | Centimeter             |
++            +------------+----------------+------------------------+
+|            | m          | 1.0e+02        | Meter                  |
++            +------------+----------------+------------------------+
+|            | km         | 1.0e+05        | Kilometer              |
++            +------------+----------------+------------------------+
+|            | au         | 1.49597e+13    | Astronomical unit      |
++            +------------+----------------+------------------------+
+|            | pc         | 3.08568e+18    | Parsec                 |
++            +------------+----------------+------------------------+
+|            | rearth     | 6.3710e+08     | Earth radius           |
++            +------------+----------------+------------------------+
+|            | rjup       | 6.9911e+09     | Jupiter mean radius    |
++            +------------+----------------+------------------------+
+|            | rsun       | 6.955e+10      | Sun radius             |
++------------+------------+----------------+------------------------+
+| Mass       | me         | 9.10938e-28    | Electron mass          |
++            +------------+----------------+------------------------+
+|            | amu        | 1.66054e-24    | Unified atomic mass    |
++            +------------+----------------+------------------------+
+|            | mearth     | 5.9724e+27     | Earth mass             |
++            +------------+----------------+------------------------+
+|            | mjup       | 1.8982e+30     | Jupiter mass           |
++            +------------+----------------+------------------------+
+|            | msun       | 1.9885e+33     | Sun mass               |
++------------+------------+----------------+------------------------+
+| Pressure   | barye      | 1.0            | Barye                  |
++            +------------+----------------+------------------------+
+|            | mbar       | 1000.0         | Millibar               |
++            +------------+----------------+------------------------+
+|            | pascal     | 1.0e+05        | Pascal (MKS unit)      |
++            +------------+----------------+------------------------+
+|            | bar        | 1.0e+06        | Bar                    |
++            +------------+----------------+------------------------+
+|            | atm        | 1.01e+06       | Atmosphere             |
++------------+------------+----------------+------------------------+
+
+
+
+
+Running Modes
+-------------
+
+``Pyrat Bay`` offers a sequence of running modes that allow you to
+generate a transition-line-information file (``runmode = tli``), a
+temperature-pressure profile (``pt``), an atmospheric model
+(``atmosphere``), a spectrum (``spectrum``), an extinction-coefficient
+table (``opacity``), or run an atmospheric retrieval (``mcmc``).
+
+Note that there is a logical sequence in these modes.  An ``mcmc`` run
+requires an opacity file, a ``spectrum`` or ``opacity`` run require an
+atmospheric model.  An ``atmosphere`` run requires a PT profile.
+
+Depending on the selected running mode, the returned outputs will
+differ.
+
+The following examples show how to run each of these modes from the
+Python interpreter.
+
+Be sure to include this script each time you open
+a Python session:
+
+.. code-block:: python
+
+  # Preamble
+  # --------
+  # To correctly execute this script, set the correct path to the source
+  # code.   The paths are given as if the Python session runs from a
+  # 'run/' folder at the same level than the repository folder, as in:
+  #    rootdir/
+  #    |-- pyratbay/
+  #    `-- run/
+  #  Alternatively, set pbpath to the appropriate path.
+
+  import sys, os
+  import numpy as np
+  import matplotlib.pyplot as plt
+  # This line allows you to keep a plotting window open:
+  plt.ion()
+
+  # Set the path to the pyratbay dir:
+  pbpath = "../pyratbay"
+
+  # Import the Pyrat Bay package:
+  sys.path.append(pbpath)
+  import pyratbay as pb
+
+Before executing the tutorial runs, copy the configuration files into
+the current folder:
+
+.. code-block:: shell
+
+   cp ../pyratbay/examples/tutorial/tutorial_*.cfg .
+
+
+TLI Mode
+........
+
+This mode formats the Line-by-line (LBL) line-transition information
+into a TLI file, used by ``Pyrat Bay`` to compute opacities.  The
+following table list the available data bases (Note that cross-section
+opacity files, CS, are not process into TLI files):
+
+==================== ============================= ==== ====== =========
+Source               Species                       Type Format Reference
+==================== ============================= ==== ====== =========
+HITRAN               |H2O|, CO, |CO2|, |CH4| (+43) LT   LBL    [Rothman2013]_
+HITEMP               |H2O|, CO, |CO2|, NO, OH      LT   LBL    [Rothman2010]_
+EXOMOL               |H2O|, CO, |CO2|, |CH4| (+9)  LT   CS
+Partridge & Schwenke |H2O|                         LT   LBL    [PS1997]_
+Schwenke             TiO                           LT   LBL    [Schwenke1998]_
+Plez                 VO                            LT   LBL    [Plez1998]_
+Borysow              |H2|-|H2|, |H2|-He            CIA  CS
+HITRAN               |H2|-|H2|, |H2|-He (+12)      CIA  CS     [Richard2012]_
+==================== ============================= ==== ====== =========
+
+
+Here is an example of a TLI configuration file:
+
+.. code-block:: python
+
+   [pyrat]
+   # For syntax see:  https://docs.python.org/2/library/configparser.html
+
+   # Run mode, select from: tli, pt, atmosphere, spectrum, opacity, mcmc
+   runmode = tli
+
+   # List of line-transtion databases:
+   dblist = ./01_hit12.par
+   # Type of line-transition database:
+   dbtype  = hit
+   # List of partition functions for each database:
+   pflist = ctips
+
+   # Initial wavelength (microns):
+   iwl =  0.3
+   # Final wavelength (microns):
+   fwl =  5.0
+
+   # Output TLI file:
+   outfile = ./HITRAN_H2O_0.3-5.0um.tli
+
+   # Verbosity level [1--5]:
+   verb  = 4
+
+A TLI run requires as input the set of LBL database files
+(``dblist``), DB type (``dbtype``), and partition function file
+(``pflist``).  Multiple DB files from multiple species can be set in a
+same configuration file, as long as one sets the corresponding list of
+DB types and partition-function files.  The following table shows the
+available DBs and source URLs:
+
+====================  =============================   ====== ===
+Database              Species                         dbtype URL
+====================  =============================   ====== ===
+Partridge & Schwenke  |H2O|                           ps     http://kurucz.harvard.edu/molecules/h2o/h2ofastfix.bin
+HITRAN                |H2O|, CO, |CO2|, |CH4| (+43)   hit    http://cfa.harvard.edu/hitran
+HITEMP                |H2O|, CO, |CO2|, NO, OH        hit    http://cfa.harvard.edu/hitran
+Schwenke              TiO                             ts     http://kurucz.harvard.edu/molecules/tio/tioschwenke.bin
+Plez                  VO                              vo     http://www.pages-perso-bertrand-plez.univ-montp2.fr
+VALD                  TBD                             vald   TBD
+====================  =============================   ====== ===
+
+The following table lists the available partition-function files and
+source URLs.  See the :ref:`sscripts` section to format the online
+partition-function files into the ``Pyrat Bay`` format.
+
+====================  =====================  ===
+Database              Temperature range (K)  URL
+====================  =====================  ===
+Partridge & Schwenke  10-6000                http://kurucz.harvard.edu/molecules/h2o/h2opartfn.dat
+HITRAN and HITEMP     70-3000                ctips*
+Schwenke TiO          10-6000                http://kurucz.harvard.edu/molecules/tio/tiopart.dat
+Plez VO               1000-7000              poly**
+====================  =====================  ===
+
+\* For the HITRAN and HITEMP databases, ``Pyrat Bay``
+provides a modified version of the Total Internal Partition Sums
+(TIPS) code [Laraia2011]_ to calculate the partition functions.
+
+\** The VO database uses a polynomial formula from [Irwin1981]_.
+
+Before running the tli tutorial, download the HITRAN |H2O| file as
+in :ref:`qexample`.
+
+To create the TLI file, run from the Python interpreter:
+
+.. code-block:: python
+
+   # Make a TLI file with opacity line-transition info:
+   pb.pbay.run("tutorial_tli.cfg")
+
+The output TLI file will include only the lines within the specified
+wavelength ranges (``iwl`` and ``fwl``).  The screen output will be
+stored to an ASCII log file with the same name as the TLI file.
+
+PT Mode
+.......
+
+This mode creates a 1D set of pressure-temperature layers.  The
+pressure array is equi-spaced in log-pressure.  This mode produces a
+pdf image of the pressure-temperature profile and it returns the
+pressure and temperature arrays.
+
+The temperature model (``tmodel``) can either be isothermal or a
+three-channel Eddington approximation (TCEA) model [Line2013]_.  The
+number of model parameter (``tparams``) and other system parameters
+depend on the temperature model.
+
+Here is an example of a PT configuration file:
+
+.. code-block:: python
+
+  [pyrat]
+
+  # Run mode, select from: tli, pt, atmosphere, spectrum, opacity, mcmc
+  runmode = pt
+
+  # Pressure array:
+  punits  = bar    ; Default pressure units
+  pbottom = 100.0  ; Bottom-layer pressure  (default units: punits)
+  ptop    = 1e-5   ; Top-layer pressure (default units: punits)
+  nlayers = 100    ; Number of atmospheric layers
+
+  # Temperature-profile model, select from: isothermal or TCEA
+  tmodel  = isothermal
+  tparams = 1500.0
+  # TCEA pars: kappa gamma1 gamma2 alpha beta
+  #tparams =   -3.0  -0.25  0.0    0.0   1.0
+
+  # System parameters:
+  radunits = km
+  rstar    = 1.27 rsun  ; Stellar radius (default units: radunits)
+  tstar    = 5800.0     ; Stellar effective temperature in K
+  smaxis   = 0.045 au   ; Semi-major axis (default units: radunits)
+  gplanet  = 800.0      ; Planetary surface gravity in cm s-2
+  tint     = 100.0      ; Planetary internal temperature in K
+
+  # Verbosity level [1--5]:
+  verb = 4
+
+For the isothermal model, the only parameter is the temperature.  For
+the TCEA model the parameters are :math:`\kappa, \gamma1, \gamma2,
+\alpha, \beta` as defined in [Line2013]_.  The TCEA model also
+requires the stellar radius (``rstar``), the orbital semi-major axis
+(``smaxis``), the planetary surface gravity (``gplanet``), the stellar
+effective temperature (``tstar``), and the planetary internal
+temperature (``tint``).
+
+To create an isothermal pressure-temperature profile run from the
+Python interpreter:
+
+.. code-block:: python
+
+  # Generate an isothermal PT profile (output values in CGS units):
+  pressure, temperature = pb.pbay.run("tutorial_pt.cfg")
+
+  # Plot the resulting profile:
+  plt.figure(0)
+  plt.clf()
+  plt.semilogy(temperature, pressure/pb.constants.bar, color="b", lw=2)
+  plt.ylim(100, 1e-5)
+  plt.xlabel("Temperature  (K)")
+  plt.ylabel("Pressure  (bar)")
+  plt.show()
+
+To generate a TCEA temperature profile, edit the configuration file to set:
+
+.. code-block:: python
+
+  # Temperature-profile model, select from: isothermal or TCEA
+  tmodel  = TCEA
+  # TCEA pars: kappa gamma1 gamma2 alpha beta
+  tparams =   -3.0  -0.25  0.0    0.0   1.0
+
+And re-run the script from Python:
+
+.. code-block:: python
+
+  # Generate an TCEA PT profile (output values in CGS units):
+  pressure, temperature = pb.pbay.run("tutorial_pt.cfg")
+
+.. note:: If any of the required variables is missing form the
+          configuration file, ``Pyrat Bay`` will throw an error
+          indicating the missing value, and **stop executing the
+          run.**
+
+.. note:: Similarly, ``Pyrat Bay`` will throw a warning for a missing
+          variable that was defaulted, and **continue executing the run.**
+
+
+atmosphere Mode
+...............
+
+This mode generates a 1D atmospheric model (pressure, temperature,
+abundances).  So far, ``Pyrat Bay`` implements uniform- and
+thermochemical-equilibrium-abundance profiles (through the ``TEA`` sub
+module).  In the interactive run, the code returns the pressure,
+temperature, and the 2D array of abundances.
+
+The configuration file for this mode only has a few extra parameters
+in addition of the PT mode:
+
+.. code-block:: python
+
+  [pyrat]
+
+  # Run mode, select from: tli, pt, atmosphere, spectrum, opacity, mcmc
+  runmode = atmosphere
+  ...
+  # Atmospheric model:
+  atmfile  = WASP-00b.atm            ; Input/output atmospheric file
+  elements = H He C N O Na           ; Input elemental composition
+  species  = H2 He Na H2O CH4 CO CO2 ; Output species composition
+  xsolar   = 1.0                     ; Solar-metallicity scaling factor
+  #uniform  = 0.85 0.149 3e-6 4e-4 1e-4 4e-4 1e-7 ; Uniform abundances
+
+``atmfile`` sets the output atmospheric file. ``species`` determines
+the species present in the atmosphere.
+
+To decide between a uniform or a TEA model, include or exclude the
+``uniform`` variable, respectively.  The ``uniform`` values set the
+abundances of each species in the ``species`` list, respectively.
+
+A TEA run computes the abundances from a given elemental
+solar-abundances list (``elements``).  The ``xsolar`` variable allows
+the user to scale the elemental metallic abundances (everything but H
+and He).
+
+To generate the atmospheric model, run from the Python interpreter:
+
+.. code-block:: python
+
+  # Generate a TEA atmospheric model:
+  pressure, temperature, abundances = pb.run("tutorial_atmosphere.cfg")
+
+The ``atmosphere`` subpackage offers the ``readatm`` to read an
+atmospheric model.
+
+.. code-block:: python
+
+  # Read the atmospheric file:
+  spec, press, temp, q = pb.atmosphere.readatm("WASP-00b.atm")
+
+  # Plot the results:
+  plt.figure(1)
+  plt.clf()
+  for i in np.arange(len(spec)):
+    plt.loglog(q[:,i], press, label=spec[i], lw=2)
+
+  plt.ylim(np.amax(press), np.amin(press))
+  plt.xlim(1e-10, 1.0)
+  plt.legend(loc='best')
+  plt.xlabel("Mole mixing fraction")
+  plt.ylabel("Pressure  (bar)")
+
+
+spectrum Mode
+.............
+
+This mode computes a transmission or emission spectrum.  Since this
+mode requires an atmospheric model, the ``atmfile`` variable works
+both as input or output.  If the atmospheric file already exists, it
+will take it as input, if it doesn't exists the code will generate it
+(provided the configuration file contains the required arguments).
+
+Here is an example configuration file for this mode:
+
+.. code-block:: python
+
+  [pyrat]
+
+  # Run mode, select from: tli, pt, atmosphere, spectrum, opacity, mcmc
+  runmode = spectrum
+
+  # Pressure array:
+  punits  = bar    ; Default pressure units
+
+  # System parameters:
+  radunits = km
+  rstar    = 1.27 rsun  ; Stellar radius (default units: radunits)
+  gplanet  = 800.0      ; Planetary surface gravity in cm s-2
+
+  # Atmospheric model:
+  atmfile  = WASP-00b.atm   ; Input/output atmospheric file
+
+  # TLI opacity files:
+  linedb  = ./HITRAN_H2O_0.3-5.0um.tli
+
+  # Cross-section opacity files:
+  csfile  = ../Pyrat-Bay/inputs/CIA/CIA_Borysow_H2H2_0060-7000K_0.6-500um.dat
+            ../Pyrat-Bay/inputs/CIA/CIA_Borysow_H2He_1000-7000K_0.5-400um.dat
+
+  # Wavelength sampling options:
+  wlunits = um
+  wllow   =  0.3 um ; Spectrum lower boundary (default units: wlunits)
+  wlhigh  =  5.0 um ; Spectrum higher boundary (default units: wlunits)
+
+  # Wavenumber options (no need to edit unless you want hi-res):
+  wnunits = cm
+  wnstep  = 1.0   ; Sampling rate (default units: wnunits)
+  wnosamp = 2160  ; Wavenumber over-sampling rate
+
+  # pressure--radius baseline:
+  rplanet     = 1.0 rjup ; Planetary radius (default units: radunits)
+  refpressure = 0.1      ; Reference pressure at rplanet (default units: punits)
+
+  # Maximum optical depth to calculate:
+  maxdepth = 10.0
+
+  # Observing geometry, select between: transit or eclipse
+  path  = transit
+
+  # Haze/cloud models:
+  hazes = rayleigh_LdE
+  hpars = 1.0 -4.0
+
+  # Alkali opacity: Van der Waals + statistical-theory models
+  alkali = SodiumVdWst
+
+  # Verbosity level [1--5]:
+  verb  = 4
+
+  # Output file names:
+  logfile    = ./transmisison_tutorial.log
+  outspec    = ./transmisison_spectrum_tutorial.dat
+
+For a transmission-spectrum configuration (``path=transit``) ``Pyrat
+Bay`` computes the modulation spectrum, a unitless quantity
+proportional to the squared planet-to-star radius ratio
+(:ref:`spectrum`).  For an emission-spectrum configuration
+(``path=eclipse``) ``Pyrat Bay`` computes the day-side hemisphere
+integrated flux-emission spectrum (evaluated at the surface of the
+planet) in erg s\ :sup:`-1` cm\ :sup:`-2` cm (:ref:`spectrum`).
+
+
+To compute a ``Pyrat`` model spectrum run the following script:
+
+.. code-block:: python
+
+  pyrat = pb.pbay.run("tutorial_spectrum.cfg")
+
+This returns a ``pyrat`` object that contains all the input,
+intermediate, and output variables used.  Until I got a decent
+documentation working, take a look at `objects.py
+<https://github.com/pcubillos/pyratbay/blob/master/pyratbay/pyrat/objects.py>`_
+to see the object's structure.
+
+To plot the resulting spectrum you can use this script:
+
+.. code-block:: python
+
+  plt.figure(2)
+  plt.clf()
+  ax = plt.subplot(111)
+  plt.semilogx(1e4/pyrat.spec.wn, pyrat.spec.spectrum, "b-")
+  ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+  ax.set_xticks([0.3, 0.4, 0.6, 0.8, 1.0, 2.0, 3.0, 4.0, 5.0])
+  plt.xlim(0.3, 5.0)
+  plt.ylabel("Modulation spectrum  (Rp/Rs)^2")
+  plt.xlabel("Wavelength  (um)")
+
+
+Or alternatively, use this ``plots`` subpackage's routine:
+
+.. code-block:: python
+
+  ax = pb.plots.spectrum(pyrat=pyrat, gaussbin=2)
+
+  ax.set_xscale('log')
+  ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+  ax.set_xticks([0.3, 0.4, 0.6, 0.8, 1.0, 2.0, 3.0, 4.0, 5.0])
+  plt.show()
+
+If you want to compute emission spectra, all you need to do is to
+change ``path`` to ``eclipse`` and re run:
+
+.. code-block:: python
+
+  pyrat = pb.pbay.run("tutorial_spectrum.cfg")
+
+
+opacity Mode
+............
+
+TBD
+
+mcmc Mode
+.........
+
+TBD
+
+.. _sscripts:
+
+Scripts
+-------
+
+The `scripts
+<https://github.com/pcubillos/pyratbay/tree/master/scripts>`_ folder
+provide Python executable files (from shell) that reformat
+cross-section data from the given online format (Borysow, EXOMOL,
+HITRAN) into the ``Pyrat Bay`` format.
+
+Additionally, there are executable files that reformat the
+partition-function files from the given online format (Partridge &
+Schwenke's |H2O|, Schwenke's TiO, and Barklem's) into the ``Pyrat
+Bay`` format.
+
+More explicit details are TBD. For the moment read the file's
+docstrings for use.
+
+
 
 References
 ----------
 
-.. [CarterWinn2009] `Carter & Winn (2009): Parameter Estimation from Time-series Data with Correlated Errors: A Wavelet-based Method and its Application to Transit Light Curves <http://adsabs.harvard.edu/abs/2009ApJ...704...51C>`_
-.. [GelmanRubin1992] `Gelman & Rubin (1992): Inference from Iterative Simulation Using Multiple Sequences <http://projecteuclid.org/euclid.ss/1177011136>`_
-.. [Gregory2005] `Gregory (2005): Bayesian Logical Data Analysis for the Physical Sciences <http://adsabs.harvard.edu/abs/2005blda.book.....G>`_
-.. [terBraak2006] `ter Braak (2006): A Markov Chain Monte Carlo version of the genetic algorithm Differential Evolution <http://dx.doi.org/10.1007/s11222-006-8769-1>`_
-.. [Winn2008] `Winn et al. (2008): The Transit Light Curve Project. IX. Evidence for a Smaller Radius of the Exoplanet XO-3b <http://adsabs.harvard.edu/abs/2008ApJ...683.1076W>`_
+.. [Irwin1981] `Irwin (1981): Polynomial partition function approximations of 344 atomic and molecular species <http://adsabs.harvard.edu/abs/1981ApJS...45..621I>`_
+.. [Laraia2011] `Laraia et al. (2011): Total internal partition sums to support planetary remote sensing <http://adsabs.harvard.edu/abs/2011Icar..215..391L>`_
+.. [Line2013] `A Systematic Retrieval Analysis of Secondary Eclipse Spectra. I. A Comparison of Atmospheric Retrieval Techniques <http://adsabs.harvard.edu/abs/2013ApJ...775..137L>`_
+.. [PS1997] `Partridge & Schwenke (1997): The determination of an accurate isotope dependent potential energy surface for water from extensive ab initio calculations and experimental data <http://adsabs.harvard.edu/abs/1997JChPh.106.4618P>`_
+.. [Plez1998] `Plez (1998): A new TiO line list <http://adsabs.harvard.edu/abs/1998A%26A...337..495P>`_
+.. [Richard2012] `New section of the HITRAN database: Collision-induced absorption (CIA) <http://adsabs.harvard.edu/abs/2012JQSRT.113.1276R>`_
+.. [Rothman2010] `Rothman et al. (2010): HITEMP, the high-temperature molecular spectroscopic database <http://adsabs.harvard.edu/abs/2010JQSRT.111.2139R>`_
+.. [Rothman2013] `Rothman et al. (2013): The HITRAN2012 molecular spectroscopic database <http://adsabs.harvard.edu/abs/2013JQSRT.130....4R>`_
+.. [Schwenke1998] `Schwenke (19988): Opacity of TiO from a coupled electronic state calculation parametrized by AB initio and experimental data <http://adsabs.harvard.edu/abs/1998FaDi..109..321S>`_

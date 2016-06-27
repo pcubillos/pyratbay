@@ -3,4 +3,5 @@
 *.swp
 *.DS_Store
 *~
+modules/sphinxdoc-MCcubed/*
 

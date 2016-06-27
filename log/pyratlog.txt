@@ -1995,3 +1995,34 @@ Removed the now-obsolete lineread.py and pyrat.py shell executables.
 
 *****
 
+Quick fix to the docs, getting started demo.
+
+
+*****  Mo 27. Jun 13:33:30 CEST 2016  *****
+
+Added tutorial run.py and configuration files to the examples.
+Updated Rsun and Rearth with values from Prsa (2016).
+Updated license (proprietary) banner in lineread, pyrat, and pbay.
+Tweaked PT figure in pbay's driver.
+Added return ax in plots.spectrum().
+
+*****
+
+Documented tutorial (initial draft) until spectrum calculation.
+opacity and mcmc are still pending (and a million of other things).
+Need to find a place to document (alkali, Rayleigh) models.
+
+Added acknowledgement to BART project in docs.
+
+*****
+
+Updated .gitignore to ignore MC3's sphinxdocs folder.
+
+*****
+
+Bumped Pyrat Bay to version 0.0.26.
+Bumped Pyrat to version 1.2.17.
+Bumped Lineread to version 6.4.7.
+
+*****
+

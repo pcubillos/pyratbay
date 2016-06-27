@@ -130,7 +130,7 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
   pt.msg(verb-1, "{:s}\n  Lineread.\n"
             "  Version {:d}.{:d}.{:d}.\n"
             "  Copyright (c) 2016 Patricio Cubillos and collaborators.\n"
-            "  Lineread is open-source software under the FINDME license.\n"
+            "  Lineread is (temporarily) proprietaty software (see LICENSE).\n"
             "{:s}\n\n".format(pt.sep, ver.LR_VER, ver.LR_MIN,
                                       ver.LR_REV, pt.sep), log)
 

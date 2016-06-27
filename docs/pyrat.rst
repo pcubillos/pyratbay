@@ -131,7 +131,9 @@ Or between the top of the atmosphere and each atmospheric layer:
   :label: optical depth
 
 
-Oputut Spectrum
+.. _spectrum:
+
+Output Spectrum
 ^^^^^^^^^^^^^^^
 
 Integrate the optical depth to compute the transmission or emission spectrum.
@@ -143,12 +145,21 @@ Modulation spectrum for transmission spectroscopy:
        2 \int_{R_{\rm top}}^{R_{\rm deep}} b e^{-\tau(b)} {\rm d}b \right)
    :label: modulation
 
-Intensity and flux-emission spectrum for eclipse spectroscopy:
+Intensity spectrum for eclipse spectroscopy:
+
+.. math::   I_{\nu} = \int_{0}^{\infty} B_{\nu} e^{-\tau} {\rm d}\tau
+   :label: eq:intensity
+
+And the flux spectrum (in erg s\ :sup:`-1` cm\ :sup:`-2` cm) by
+integrating ober the day-side hemisphere:
 
 .. math::
-   I_{\nu} = \int_{0}^{\infty} B_{\nu} e^{-\tau} {\rm d}\tau
-   :label: intensity
-
-.. math::
-   F_{\nu} = \pi \sum I_{\nu} \Delta\alpha
+   F_{\nu} & = & \left(\frac{R_{\rm p}}{d}\right)^{2} 
+                \int_{0}^{2\pi}\int_{0}^{\pi/2} 
+                   I_{\nu} \cos(\alpha)\sin(\alpha) {\rm d}\alpha {\rm d}\phi \\
+    & = & \pi \left(\frac{R_{\rm p}}{d}\right)^{2}  \sum \langle I_{\nu}\rangle \Delta\alpha
    :label: flux
+
+Where :math:`\alpha` covers the angle from the substellar point to the
+terminator.  ``Pyrat Bay`` returns the flux as observed at a distance 
+:math:`d \equiv R_{\rm p}`.

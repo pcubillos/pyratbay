@@ -74,6 +74,11 @@ Please send feedback or inquiries to:
 
 Pyrat-Bay is (temporarily) proprietary software (see :ref:`license`). 
 
+.. note:: It is imprtant to highlight that this project would not be
+          possible without the previous experience with the `BART
+          <https://github.com/exosports/BART>`_ project, nor without
+          the contribution from each one of the collaborators to the
+          BART code.
 
 .. _Patricio Cubillos: https://github.com/pcubillos/
 .. _patricio.cubillos[at]oeaw.ac.at: patricio.cubillos@oeaw.ac.at

@@ -35,6 +35,7 @@ software:
 * Numpy (version 1.8.2+)
 * Scipy (version 0.13.3+)
 * Matplotlib (version 1.3.1+)
+* Sphinx (version 1.3.3+)
 
 MC3 may work with previous versions of these software.
 However we do not guarantee it nor provide support for that.
@@ -66,6 +67,7 @@ Compile the C programs:
    code-block:: shell
    make clean
 
+.. _qexample:
 
 Quick Example: pyrat forward modeling
 -------------------------------------
@@ -112,8 +114,8 @@ transmission and emission spectra:
 .. code-block:: shell
 
    cp $topdir/pyratbay/examples/pyrat_demo/* .
-   $topdir/pyratbay/pyrat.py -c demo_transmission.cfg
-   $topdir/pyratbay/pyrat.py -c demo_emission.cfg
+   $topdir/pyratbay/pbay.py -c demo_transmission.cfg
+   $topdir/pyratbay/pbay.py -c demo_emission.cfg
 
 Outputs
 ^^^^^^^
