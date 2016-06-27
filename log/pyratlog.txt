@@ -2019,3 +2019,10 @@ Added acknowledgement to BART project in docs.
 Updated .gitignore to ignore MC3's sphinxdocs folder.
 
 *****
+
+Bumped Pyrat Bay to version 0.0.26.
+Bumped Pyrat to version 1.2.17.
+Bumped Lineread to version 6.4.7.
+
+*****
+
