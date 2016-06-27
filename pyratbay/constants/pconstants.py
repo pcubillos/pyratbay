@@ -34,9 +34,9 @@ m  = 1e+2  # Meter
 km = 1e+5  # Kilometer
 au = sc.au*100      # Astronomical unit
 pc = sc.parsec*100  # Parsec
-rearth = 6.3710e8  # Earth radius
+rearth = 6.3674e8  # Earth geometric-mean radius (Prsa et al. 2016)
 rjup   = 6.9911e9  # Jupiter mean radius
-rsun   = 6.955e10  # Sun radius
+rsun   = 6.957e10  # Sun radius (Prsa et al. 2016)
 
 # Pressure to Barye:
 barye  = 1.0    # Barye (CGS units)
@@ -48,7 +48,7 @@ atm    = 1.01e6 # Atmosphere
 # Mass to grams:
 mearth = 5.9724e27     # Earth mass
 mjup   = 1.8982e30     # Jupiter mass
-msun   = 1.9885e33     # Sun mass
+msun   = 1.9885e33     # Sun mass  (Prsa et al. 2016)
 # Unified atomic mass:
 amu    = sc.physical_constants["unified atomic mass unit"][0] * 1e3
 me     = sc.m_e * 1e3  # Electron mass

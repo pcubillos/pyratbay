@@ -53,6 +53,11 @@ def spectrum(wlength=None, spectrum=None, data=None, uncert=None,
      Standard deviation for Gaussian-kernel smoothing (in number of samples).
   filename: String
      Filename of the output figure.
+
+  Returns
+  -------
+  ax: AxesSubplot instance
+    The matplotlib Axes of the figure.
   """
   # Unpack variables from Pyrat object:
   if pyrat is not None:
@@ -129,6 +134,7 @@ def spectrum(wlength=None, spectrum=None, data=None, uncert=None,
   if filename is not None:
     plt.savefig(filename)
 
+  return ax
 
 
 

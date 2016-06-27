@@ -214,7 +214,8 @@ def parse(wlog):
             "  Python Radiative Transfer in a Bayesian framework (Pyrat Bay).\n"
             "  Version {:d}.{:d}.{:d}.\n"
             "  Copyright (c) 2016 Patricio Cubillos and collaborators.\n"
-            "  Pyrat Bay is open-source software under the RR license.\n"
+            "  Pyrat Bay is (temporarily) proprietaty software (see LICENSE).\n"
+#            "  Pyrat Bay is open-source software under the RR license.\n"
             "{:s}\n\n".format(pt.sep, ver.PBAY_VER, ver.PBAY_MIN,
                                       ver.PBAY_REV, pt.sep), log)
 

@@ -327,7 +327,7 @@ def parse(pyrat):
          "{:s}\n  Python Radiative Transfer (PyRaT).\n"
          "  Version {:d}.{:d}.{:d}.\n"
          "  Copyright (c) 2016 Patricio Cubillos and collaborators.\n"
-         "  Pyrat is open-source software under the FINDME license.\n"
+         "  Pyrat is (temporarily) proprietaty software (see LICENSE).\n"
          "{:s}\n\n".format(pt.sep, ver.PYRAT_VER, ver.PYRAT_MIN,
                                    ver.PYRAT_REV, pt.sep), pyrat.log)
 
