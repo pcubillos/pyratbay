@@ -2016,3 +2016,6 @@ Added acknowledgement to BART project in docs.
 
 *****
 
+Updated .gitignore to ignore MC3's sphinxdocs folder.
+
+*****
