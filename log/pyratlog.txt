@@ -2024,5 +2024,18 @@ Bumped Pyrat Bay to version 0.0.26.
 Bumped Pyrat to version 1.2.17.
 Bumped Lineread to version 6.4.7.
 
+*****  Di 28. Jun 09:51:13 CEST 2016  *****
+
+Fixed small issues in the getting-started plotting commands.
+
 *****
 
+Updated tutorial docs and example files (after comments from Jasmina).
+Split PT and atmosphere tutorial config files into the different
+options each one provides.
+
+*****
+
+Bumped Pyrat to version 1.2.18.
+
+*****
