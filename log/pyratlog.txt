@@ -2039,3 +2039,9 @@ options each one provides.
 Bumped Pyrat to version 1.2.18.
 
 *****
+
+Implemented pb.plots.TCEA() routine to plot the PT posterior.
+Added stepsize to pyrat input arguments.
+
+*****
+
