@@ -2030,3 +2030,9 @@ Fixed small issues in the getting-started plotting commands.
 
 *****
 
+Updated tutorial docs and example files (after comments from Jasmina).
+Split PT and atmosphere tutorial config files into the different
+options each one provides.
+
+*****
+

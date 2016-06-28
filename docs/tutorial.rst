@@ -130,24 +130,21 @@ a Python session:
   # Preamble
   # --------
   # To correctly execute this script, set the correct path to the source
-  # code.   The paths are given as if the Python session runs from a
-  # 'run/' folder at the same level than the repository folder, as in:
+  # code.   The path is given as if the Python session runs from a
+  # 'run_tutorial/' folder at the same level than the repository, i.e.:
   #    rootdir/
   #    |-- pyratbay/
-  #    `-- run/
-  #  Alternatively, set pbpath to the appropriate path.
+  #    `-- run_tutorial/
+  #  Alternatively, set the appropriate path in sys.path.append().
 
   import sys, os
+  import matplotlib
   import numpy as np
   import matplotlib.pyplot as plt
-  # This line allows you to keep a plotting window open:
   plt.ion()
 
-  # Set the path to the pyratbay dir:
-  pbpath = "../pyratbay"
-
-  # Import the Pyrat Bay package:
-  sys.path.append(pbpath)
+  # Edit the path to the Pyrat-Bay package if necessary:
+  sys.path.append("../pyratbay")
   import pyratbay as pb
 
 Before executing the tutorial runs, copy the configuration files into
@@ -245,8 +242,8 @@ provides a modified version of the Total Internal Partition Sums
 
 \** The VO database uses a polynomial formula from [Irwin1981]_.
 
-Before running the tli tutorial, download the HITRAN |H2O| file as
-in :ref:`qexample`.
+.. note:: Before running the tli tutorial, download the HITRAN |H2O|
+          file as in :ref:`qexample`.
 
 To create the TLI file, run from the Python interpreter:
 
@@ -318,32 +315,30 @@ Python interpreter:
 .. code-block:: python
 
   # Generate an isothermal PT profile (output values in CGS units):
-  pressure, temperature = pb.pbay.run("tutorial_pt.cfg")
+  pressure, T_isothermal = pb.pbay.run("tutorial_pt-isothermal.cfg")
+  # Generate a TCEA PT profile:
+  pressure, T_tcea = pb.pbay.run("tutorial_pt-tcea.cfg")
 
-  # Plot the resulting profile:
+Note that the only difference between these configuration files are the
+``tmodel`` and ``tparams`` varables.
+
+Plot the profiles:
+
+.. code-block:: python
+
+  # Plot the PT profiles:
   plt.figure(0)
   plt.clf()
-  plt.semilogy(temperature, pressure/pb.constants.bar, color="b", lw=2)
+  plt.semilogy(T_isothermal, pressure/pb.constants.bar, color="b",
+               lw=2, label='Isothermal')
+  plt.semilogy(T_tcea, pressure/pb.constants.bar, color="r",
+               lw=2, label='TCEA')
   plt.ylim(100, 1e-5)
+  plt.legend(loc="best")
   plt.xlabel("Temperature  (K)")
   plt.ylabel("Pressure  (bar)")
-  plt.show()
+  plt.savefig("pyrat_PT_tutorial.pdf")
 
-To generate a TCEA temperature profile, edit the configuration file to set:
-
-.. code-block:: python
-
-  # Temperature-profile model, select from: isothermal or TCEA
-  tmodel  = TCEA
-  # TCEA pars: kappa gamma1 gamma2 alpha beta
-  tparams =   -3.0  -0.25  0.0    0.0   1.0
-
-And re-run the script from Python:
-
-.. code-block:: python
-
-  # Generate an TCEA PT profile (output values in CGS units):
-  pressure, temperature = pb.pbay.run("tutorial_pt.cfg")
 
 .. note:: If any of the required variables is missing form the
           configuration file, ``Pyrat Bay`` will throw an error
@@ -397,27 +392,39 @@ To generate the atmospheric model, run from the Python interpreter:
 .. code-block:: python
 
   # Generate a TEA atmospheric model:
-  pressure, temperature, abundances = pb.run("tutorial_atmosphere.cfg")
+  pressure, temperature, abundances = pb.pbay.run("tutorial_atmosphere.cfg")
+  # Generate a uniform-abundance atmospheric model:
+  pressure, temperature, abundances = pb.pbay.run("tutorial_atmosphere-uniform.cfg")
 
-The ``atmosphere`` subpackage offers the ``readatm`` to read an
+The ``atmosphere`` subpackage offers the ``readatm`` function to read an
 atmospheric model.
 
 .. code-block:: python
 
-  # Read the atmospheric file:
-  spec, press, temp, q = pb.atmosphere.readatm("WASP-00b.atm")
+  # Read the atmospheric files:
+  spec, press, temp, q_tea     = pb.atmosphere.readatm("WASP-00b.atm")
+  spec, press, temp, q_uniform = pb.atmosphere.readatm("WASP-00c.atm")
 
   # Plot the results:
   plt.figure(1)
   plt.clf()
+  ax = plt.subplot(211)
   for i in np.arange(len(spec)):
-    plt.loglog(q[:,i], press, label=spec[i], lw=2)
+    plt.loglog(q_tea[:,i], press, label=spec[i], lw=2)
 
   plt.ylim(np.amax(press), np.amin(press))
   plt.xlim(1e-10, 1.0)
-  plt.legend(loc='best')
+  plt.legend(loc='best', fontsize=11)
+  plt.ylabel("Pressure  (bar)")
+  ax = plt.subplot(212)
+  for i in np.arange(len(spec)):
+    plt.loglog(q_uniform[:,i], press, label=spec[i], lw=2)
+
+  plt.ylim(np.amax(press), np.amin(press))
+  plt.xlim(1e-10, 1.0)
   plt.xlabel("Mole mixing fraction")
   plt.ylabel("Pressure  (bar)")
+  plt.savefig("pyrat_atmosphere_tutorial.pdf")
 
 
 spectrum Mode
@@ -438,14 +445,6 @@ Here is an example configuration file for this mode:
   # Run mode, select from: tli, pt, atmosphere, spectrum, opacity, mcmc
   runmode = spectrum
 
-  # Pressure array:
-  punits  = bar    ; Default pressure units
-
-  # System parameters:
-  radunits = km
-  rstar    = 1.27 rsun  ; Stellar radius (default units: radunits)
-  gplanet  = 800.0      ; Planetary surface gravity in cm s-2
-
   # Atmospheric model:
   atmfile  = WASP-00b.atm   ; Input/output atmospheric file
 
@@ -453,32 +452,36 @@ Here is an example configuration file for this mode:
   linedb  = ./HITRAN_H2O_0.3-5.0um.tli
 
   # Cross-section opacity files:
-  csfile  = ../Pyrat-Bay/inputs/CIA/CIA_Borysow_H2H2_0060-7000K_0.6-500um.dat
-            ../Pyrat-Bay/inputs/CIA/CIA_Borysow_H2He_1000-7000K_0.5-400um.dat
+  csfile  = ../pyratbay/inputs/CIA/CIA_Borysow_H2H2_0060-7000K_0.6-500um.dat
+            ../pyratbay/inputs/CIA/CIA_Borysow_H2He_1000-7000K_0.5-400um.dat
 
   # Wavelength sampling options:
   wlunits = um
   wllow   =  0.3 um ; Spectrum lower boundary (default units: wlunits)
   wlhigh  =  5.0 um ; Spectrum higher boundary (default units: wlunits)
 
-  # Wavenumber options (no need to edit unless you want hi-res):
+  # Wavenumber options:
   wnunits = cm
   wnstep  = 1.0   ; Sampling rate (default units: wnunits)
   wnosamp = 2160  ; Wavenumber over-sampling rate
 
-  # pressure--radius baseline:
-  rplanet     = 1.0 rjup ; Planetary radius (default units: radunits)
-  refpressure = 0.1      ; Reference pressure at rplanet (default units: punits)
+  # System parameters:
+  radunits = km         ; Default distance units
+  punits   = bar        ; Default pressure units
+  rstar    = 1.27 rsun  ; Stellar radius (default units: radunits)
+  rplanet  = 1.0 rjup   ; Planetary radius (default units: radunits)
+  gplanet  = 800.0      ; Planetary surface gravity in cm s-2
+  refpressure = 0.1     ; Reference pressure at rplanet (default units: punits)
 
   # Maximum optical depth to calculate:
   maxdepth = 10.0
 
   # Observing geometry, select between: transit or eclipse
-  path  = transit
+  path = transit
 
   # Haze/cloud models:
-  hazes = rayleigh_LdE
-  hpars = 1.0 -4.0
+  hazes = rayleigh_LdE  ; Lecavelier des Etangs (2008) model
+  hpars = 1.0 -4.0      ; [xH2 cross section, slope]
 
   # Alkali opacity: Van der Waals + statistical-theory models
   alkali = SodiumVdWst
@@ -489,6 +492,7 @@ Here is an example configuration file for this mode:
   # Output file names:
   logfile    = ./transmisison_tutorial.log
   outspec    = ./transmisison_spectrum_tutorial.dat
+
 
 For a transmission-spectrum configuration (``path=transit``) ``Pyrat
 Bay`` computes the modulation spectrum, a unitless quantity
@@ -510,6 +514,10 @@ intermediate, and output variables used.  Until I got a decent
 documentation working, take a look at `objects.py
 <https://github.com/pcubillos/pyratbay/blob/master/pyratbay/pyrat/objects.py>`_
 to see the object's structure.
+
+.. note:: Note that although the user can define the input units,
+          (nearly) all variables are stored in CGS units in the Pyrat
+          object.
 
 To plot the resulting spectrum you can use this script:
 
@@ -535,7 +543,7 @@ Or alternatively, use this ``plots`` subpackage's routine:
   ax.set_xscale('log')
   ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
   ax.set_xticks([0.3, 0.4, 0.6, 0.8, 1.0, 2.0, 3.0, 4.0, 5.0])
-  plt.show()
+  plt.savefig("pyrat_transmission-spectrum_tutorial.pdf")
 
 If you want to compute emission spectra, all you need to do is to
 change ``path`` to ``eclipse`` and re run:
