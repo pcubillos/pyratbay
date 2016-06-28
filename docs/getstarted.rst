@@ -126,8 +126,11 @@ saved to a separate file, to see it, run this Python script:
 
 .. code-block:: python
 
-  import matplotlib.pyplot as plt
+  import matplotlib
   import sys
+  import matplotlib.pyplot as plt
+  plt.ion()
+
   sys.path.append("../pyratbay/")
   import pyratbay as pb
   wl, transmission = pb.starspec.readpyrat("./transmission_spectrum_demo.dat", wn=False)
@@ -138,9 +141,9 @@ saved to a separate file, to see it, run this Python script:
   ax = plt.subplot(211)
   plt.semilogx(wl, transmission, "b", label="Pyrat transmission model")
   plt.xlabel(r"${\rm Wavelength\ \ (um)}$")
-  plt.ylabel(r"${\rm Modulation\ \ (R_p/R_s)^2}$")
+  plt.ylabel(r"${\rm Modulation}\ \ (R_{\rm p}/R_{\rm s})^2}$")
   ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
-  ax.set_xticks([0.5, 0.6, 0.8, 1.0, 2.0, 3.0, 4.0, 5.0])
+  ax.set_xticks([0.5, 0.7, 1.0, 2.0, 3.0, 4.0, 5.0])
   plt.xlim(0.5, 5.5)
   plt.ylim(0.018, 0.0205)
   plt.legend(loc="upper left")
@@ -150,8 +153,8 @@ saved to a separate file, to see it, run this Python script:
   plt.xlabel(r"${\rm Wavelength\ \ (um)}$")
   plt.ylabel(r"${\rm Emission\ \ (erg\ s^{-1} cm^{-2} cm)}$")
   ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
-  ax.set_xticks([0.5, 0.6, 0.8, 1.0, 2.0, 3.0, 4.0, 5.0])
+  ax.set_xticks([0.5, 0.7, 1.0, 2.0, 3.0, 4.0, 5.0])
   plt.ylim(0, 60000)
   plt.xlim(0.5, 5.5)
   plt.legend(loc="upper left")
-  plt.show()
+  plt.savefig("pyrat_spectrum_demo.pdf")
