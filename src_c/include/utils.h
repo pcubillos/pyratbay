@@ -2,6 +2,37 @@
 // Pyrat Bay is currently proprietary software (see LICENSE).
 
 int
+pyramidsearch(PyArrayObject *array, double value, int lo, int hi){
+  int scale=1,
+      imax;
+  /* Out of bounds:                                                         */
+  if (value < INDd(array,lo))
+    return lo;
+  if (INDd(array,hi) < value)
+    return hi;
+
+  /* Search up the pyramid:                                                 */
+  imax = (lo+scale < hi) ? lo+scale:hi;
+  while (INDd(array,imax) < value){
+    scale *= 2;
+    imax = (lo+scale < hi) ? lo+scale:hi;
+  }
+
+  /* Now, binsearch down:                                                   */
+  while (imax-lo > 1){
+    if (INDd(array,((imax+lo)/2)) < value)
+      lo = (imax+lo)/2;
+    else
+      imax = (imax+lo)/2;
+  }
+  /* Return indext of closest value:                                        */
+  if (fabs(INDd(array,imax)-value) < fabs(INDd(array,lo)-value))
+    return imax;
+  return lo;
+}
+
+
+int
 binsearchapprox(PyArrayObject *array, double value, int lo, int hi){
   /* Last case, value limited between consecutive indices of array:         */
   if (hi-lo == 1){
@@ -120,3 +151,4 @@ msg(int verb, char *buffer, char *message, ...){
   va_end(args);
   return 0;
 }
+
