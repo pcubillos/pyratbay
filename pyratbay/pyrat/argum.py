@@ -504,7 +504,7 @@ def checkinputs(pyrat):
             "The number of atmospheric layers ({:d}) must be > 0.", pyrat.log)
 
   # Check Voigt-profile arguments:
-  pyrat.voigt.extent = pt.defaultp(inputs.vextent, 20,
+  pyrat.voigt.extent = pt.defaultp(inputs.vextent, 20.0,
      "Input Voigt extent (vextent) defaulted to {:g}.", pyrat.wlog, pyrat.log)
   isgreater(pyrat.voigt.extent, "none", 1, False,
             "Voigt extent ({:g}) must be >= 1.0", pyrat.log)

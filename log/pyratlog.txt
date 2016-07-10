@@ -2045,3 +2045,7 @@ Added stepsize to pyrat input arguments.
 
 *****
 
+Fixed typo in print statement of voigt.py function.
+
+*****
+

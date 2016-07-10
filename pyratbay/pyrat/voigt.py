@@ -117,7 +117,7 @@ def calcvoigt(pyrat):
     voigt.size[i] = psize/2
   pt.msg(pyrat.verb-5, "Voigt half-sizes:\n{}".format(voigt.size), pyrat.log, 2)
 
-  pt.msg(pyrat.verb-4, "Calculating Voigt profiles with Extent:  {:d} widths.".
+  pt.msg(pyrat.verb-4, "Calculating Voigt profiles with Extent: {:.1f} widths.".
                      format(voigt.extent), pyrat.log, 2)
   # Allocate profile arrays (concatenated in a 1D array):
   voigt.profile = np.zeros(np.sum(2*voigt.size+1), np.double)
