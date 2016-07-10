@@ -94,7 +94,7 @@ static PyObject *extinction(PyObject *self, PyObject *args){
        onwn, dnwn,
        minj, maxj,
        nLor, nDop;
-  int iown, idwn, offset, subw,
+  int iwn, iown, idwn, offset, subw,
       imol, ofactor, iprof,
       nadd=0, nskip=0, neval=0,
       verb, add=0;
@@ -265,15 +265,18 @@ static PyObject *extinction(PyObject *self, PyObject *args){
     /* Estimate the line-transition width:                                  */
     vwidth = 0.5346*alphal[i] + sqrt(pow(alphal[i], 2.0)*0.2166 +
                                      pow(alphad[i]*wavn, 2.0));
-    /* If the line is much thinner than the requested resolution:           */
-    if (vwidth < 0.05*wnstep){
-      iown = (wavn - INDd(wn,0))/wnstep;  /* Re-use variable                */
-      if (fabs(wavn - INDd(wn,(iown+1))) < fabs(wavn - INDd(wn,iown)))
-        iown++;
+
+    /* Index of wavenumber closest and smaller than wavn:                   */
+    iwn = (wavn - INDd(wn,0))/wnstep;
+    /* Line is more than 10 widths away from nearest wavelength sampling:   */
+    if (fabs(wavn-INDd(wn,iwn)-0.5*wnstep) > 0.1*vwidth){
+    //if (vwidth < 0.1*wnstep){
+      if (wavn - INDd(wn,iwn) > 0.5*wnstep)
+        iwn++;
 
       if (add)  /* Multiply by the species' density:                        */
         k *= INDd(moldensity, (INDi(isoimol,i)));
-      IND2d(ext,m,iown) += k/wnstep;
+      IND2d(ext, m, iwn) += k/wnstep;
       continue;
     }
 

@@ -2058,3 +2058,15 @@ searched value lies close to the initial element in the array.
 
 *****
 
+Tweaked extcoeff() to skip the broadening of lines only when they
+fall more than 10 Voigt widths away from the wavenumber sampling
+divisions.
+
+This solves previous sudden jumps in the extinction coefficient which
+disrupted the integration into the optical depth.
+
+*****
+
+
+*****
+
