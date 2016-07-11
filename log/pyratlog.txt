@@ -2074,3 +2074,7 @@ Outputs look OK now.
 
 *****
 
+Updated minor details in the tutorial.
+
+*****
+

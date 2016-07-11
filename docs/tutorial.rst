@@ -327,7 +327,7 @@ Plot the profiles:
 .. code-block:: python
 
   # Plot the PT profiles:
-  plt.figure(0)
+  plt.figure(-1)
   plt.clf()
   plt.semilogy(T_isothermal, pressure/pb.constants.bar, color="b",
                lw=2, label='Isothermal')
@@ -392,7 +392,7 @@ To generate the atmospheric model, run from the Python interpreter:
 .. code-block:: python
 
   # Generate a TEA atmospheric model:
-  pressure, temperature, abundances = pb.pbay.run("tutorial_atmosphere.cfg")
+  pressure, temperature, abundances = pb.pbay.run("tutorial_atmosphere-tea.cfg")
   # Generate a uniform-abundance atmospheric model:
   pressure, temperature, abundances = pb.pbay.run("tutorial_atmosphere-uniform.cfg")
 
@@ -406,7 +406,7 @@ atmospheric model.
   spec, press, temp, q_uniform = pb.atmosphere.readatm("WASP-00c.atm")
 
   # Plot the results:
-  plt.figure(1)
+  plt.figure(-2)
   plt.clf()
   ax = plt.subplot(211)
   for i in np.arange(len(spec)):
@@ -523,14 +523,14 @@ To plot the resulting spectrum you can use this script:
 
 .. code-block:: python
 
-  plt.figure(2)
+  plt.figure(-3)
   plt.clf()
   ax = plt.subplot(111)
   plt.semilogx(1e4/pyrat.spec.wn, pyrat.spec.spectrum, "b-")
   ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
   ax.set_xticks([0.3, 0.4, 0.6, 0.8, 1.0, 2.0, 3.0, 4.0, 5.0])
   plt.xlim(0.3, 5.0)
-  plt.ylabel("Modulation spectrum  (Rp/Rs)^2")
+  plt.ylabel("Modulation  (Rp/Rs)^2")
   plt.xlabel("Wavelength  (um)")
 
 
@@ -543,6 +543,7 @@ Or alternatively, use this ``plots`` subpackage's routine:
   ax.set_xscale('log')
   ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
   ax.set_xticks([0.3, 0.4, 0.6, 0.8, 1.0, 2.0, 3.0, 4.0, 5.0])
+  plt.show()
   plt.savefig("pyrat_transmission-spectrum_tutorial.pdf")
 
 If you want to compute emission spectra, all you need to do is to

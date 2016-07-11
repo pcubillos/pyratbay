@@ -31,7 +31,7 @@ pressure, T_isothermal = pb.pbay.run("tutorial_pt-isothermal.cfg")
 pressure, T_tcea = pb.pbay.run("tutorial_pt-tcea.cfg")
 
 # Plot the PT profiles:
-plt.figure(0)
+plt.figure(-1)
 plt.clf()
 plt.semilogy(T_isothermal, pressure/pb.constants.bar, color="b",
              lw=2, label='Isothermal')
@@ -49,7 +49,7 @@ plt.savefig("pyrat_PT_tutorial.pdf")
 #  pip2 install sympy==0.7.1 )
 
 # Generate a TEA atmospheric model:
-pressure, temperature, abundances = pb.pbay.run("tutorial_atmosphere.cfg")
+pressure, temperature, abundances = pb.pbay.run("tutorial_atmosphere-tea.cfg")
 # Generate a uniform-abundance atmospheric model:
 pressure, temperature, abundances = pb.pbay.run("tutorial_atmosphere-uniform.cfg")
 
@@ -58,7 +58,7 @@ spec, press, temp, q_tea     = pb.atmosphere.readatm("WASP-00b.atm")
 spec, press, temp, q_uniform = pb.atmosphere.readatm("WASP-00c.atm")
 
 # Plot the results:
-plt.figure(1)
+plt.figure(-2)
 plt.clf()
 ax = plt.subplot(211)
 for i in np.arange(len(spec)):
@@ -84,14 +84,14 @@ plt.savefig("pyrat_atmosphere_tutorial.pdf")
 pyrat = pb.pbay.run("tutorial_spectrum.cfg")
 
 # Plot:
-plt.figure(2)
+plt.figure(-3)
 plt.clf()
 ax = plt.subplot(111)
 plt.semilogx(1e4/pyrat.spec.wn, pyrat.spec.spectrum, "b-")
 ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
 ax.set_xticks([0.3, 0.4, 0.6, 0.8, 1.0, 2.0, 3.0, 4.0, 5.0])
 plt.xlim(0.3, 5.0)
-plt.ylabel("Modulation spectrum  (Rp/Rs)^2")
+plt.ylabel("Modulation  (Rp/Rs)^2")
 plt.xlabel("Wavelength  (um)")
 
 # Alternative plotting:
@@ -99,4 +99,5 @@ ax = pb.plots.spectrum(pyrat=pyrat)
 ax.set_xscale('log')
 ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
 ax.set_xticks([0.3, 0.4, 0.6, 0.8, 1.0, 2.0, 3.0, 4.0, 5.0])
+plt.show()
 plt.savefig("pyrat_transmission-spectrum_tutorial.pdf")
