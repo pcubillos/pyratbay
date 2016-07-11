@@ -105,7 +105,7 @@ def run(argv, main=False):
 
   # Force to re-calculate extinction-coefficient file if requested:
   if args.runmode == "opacity":
-    # FINDME: os.remove(args.extfile)
+    os.remove(args.extfile)
     pass
 
   # Initialize pyrat object:

@@ -2083,3 +2083,10 @@ Bumped Pyrat to version 1.2.19.
 
 *****
 
+Wrote the opacity tutorial.
+Tweaked the pbay driver to always generate an extinction-coefficient
+grid (overwrite) when runmode=opacity.
+Added the tutorial_opacity.cfg file to the tutorial example files.
+
+*****
+
