@@ -2065,8 +2065,12 @@ divisions.
 This solves previous sudden jumps in the extinction coefficient which
 disrupted the integration into the optical depth.
 
-*****
 
+*****  Mo 11. Jul 08:35:28 CEST 2016  *****
+
+Fixed typo in last commit.  The code skip-broadening threshold was
+set at 0.1 widths instead of 10.0.  Reset to 1.0 widths.
+Outputs look OK now.
 
 *****
 
