@@ -2090,3 +2090,9 @@ Added the tutorial_opacity.cfg file to the tutorial example files.
 
 *****
 
+Added filter files for tutorial
+  inputs/filters/tutorial/
+
+*****
+
+
