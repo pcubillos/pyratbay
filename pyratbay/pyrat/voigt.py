@@ -111,7 +111,8 @@ def calcvoigt(pyrat):
     psize = 2*np.asarray(pwidth/pyrat.spec.ownstep + 0.5, np.int) + 1
     # Clip to max and min values:
     psize = np.clip(psize, 3, 2*pyrat.spec.nwave+1)
-    # Set the size to 0 for those that do not need to be calculated:
+    # Temporarily Set the size to 0 for not calculated profiles:
+    # (sizes will be set in vp.grid())
     psize[np.where(voigt.doppler/voigt.lorentz[i] < voigt.DLratio)[0][1:]] = 0
     # Store half-size values for this Lorentz width:
     voigt.size[i] = psize/2

@@ -2100,3 +2100,15 @@ when the file exists.
 
 *****
 
+Fixed extinction-coefficient bug, first reported in 3708c3f.
+It turned out that since I was letting the size of the Voigt profiles
+of the un-calculated profiles equal to zero, extcoeff wasn't adding
+the contribution of these lines, corrupting the EC at wavelengths
+shorter than a certain threshold at a certain layers.
+
+Set the broadening-skip threshold at 10 Voigt widths, because smaller
+thresholds seem to cause EC jumps along the atmosphere.
+
+*****
+
+
