@@ -37,7 +37,7 @@ software:
 * Matplotlib (version 1.3.1+)
 * Sphinx (version 1.3.3+)
 
-MC3 may work with previous versions of these software.
+``Pyrat Bay`` may work with previous versions of these software.
 However we do not guarantee it nor provide support for that.
 
 .. _install:

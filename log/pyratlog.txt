@@ -2111,4 +2111,7 @@ thresholds seem to cause EC jumps along the atmosphere.
 
 *****
 
+Fixed typo in getting-started docs.
+
+*****
 
