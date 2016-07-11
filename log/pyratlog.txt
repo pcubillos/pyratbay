@@ -2078,3 +2078,8 @@ Updated minor details in the tutorial.
 
 *****
 
+Bumped Pyrat Bay to version 0.0.27.
+Bumped Pyrat to version 1.2.19.
+
+*****
+
