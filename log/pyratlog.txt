@@ -2095,4 +2095,8 @@ Added filter files for tutorial
 
 *****
 
+Fixed typo in pbay driver.  Try only delete pre-existing opacity file
+when the file exists.
+
+*****
 

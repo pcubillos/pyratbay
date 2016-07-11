@@ -104,7 +104,7 @@ def run(argv, main=False):
     pt.error("Unspecified extinction-coefficient file (extfile).", log)
 
   # Force to re-calculate extinction-coefficient file if requested:
-  if args.runmode == "opacity":
+  if args.runmode == "opacity" and pt.isfile(args.extfile):
     os.remove(args.extfile)
     pass
 
