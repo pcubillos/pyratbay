@@ -139,6 +139,9 @@ def run(argv, main=False):
 
   # Best-fitting spectrum:
   pp.spectrum(pyrat=pyrat, filename="bestfit_spectrum.png")
+  # Posterior PT profiles:
+  if pyrat.ret.tmodelname == "TCEA":
+    pp.TCEA(posterior, besttpars=bestp[pyrat.ret.itemp], pyrat=pyrat)
   # Contribution functions:
   cf  = pt.cf(pyrat.od.depth, pyrat.atm.press, pyrat.od.B)
   bcf = pt.bandcf(cf, pyrat.obs.bandtrans, pyrat.obs.bandidx)

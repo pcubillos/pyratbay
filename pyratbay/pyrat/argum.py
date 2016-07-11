@@ -182,8 +182,10 @@ def parse(pyrat):
       "Variable-abundance atmospheric species.")
   pt.addarg("tmodel",      group, str,       None,
       "Temperature-profile model name.  Select from: isothermal or TCEA.")
-  pt.addarg("params",        group, pt.parray, None,
+  pt.addarg("params",      group, pt.parray, None,
       "Initial-guess for retrieval model-fitting parameter.")
+  pt.addarg("stepsize",    group, pt.parray, None,
+      "Stepsize for retrieval model-fitting parameter.")
   pt.addarg("tlow",        group, np.double, None,
       "Minimum valid temperature.")
   pt.addarg("thigh",        group, np.double, None,
@@ -309,6 +311,7 @@ def parse(pyrat):
   pyrat.inputs.molscale = user.molscale
   pyrat.inputs.tmodel   = user.tmodel
   pyrat.inputs.params   = user.params
+  pyrat.inputs.stepsize = user.stepsize
   pyrat.inputs.tlow     = user.tlow
   pyrat.inputs.thigh    = user.thigh
   # Output files:
@@ -501,7 +504,7 @@ def checkinputs(pyrat):
             "The number of atmospheric layers ({:d}) must be > 0.", pyrat.log)
 
   # Check Voigt-profile arguments:
-  pyrat.voigt.extent = pt.defaultp(inputs.vextent, 20,
+  pyrat.voigt.extent = pt.defaultp(inputs.vextent, 20.0,
      "Input Voigt extent (vextent) defaulted to {:g}.", pyrat.wlog, pyrat.log)
   isgreater(pyrat.voigt.extent, "none", 1, False,
             "Voigt extent ({:g}) must be >= 1.0", pyrat.log)
@@ -710,7 +713,8 @@ def checkinputs(pyrat):
   # Accept species lists, check after we load the atmospheric model:
   pyrat.ret.bulk     = inputs.bulk
   pyrat.ret.molscale = inputs.molscale
-  pyrat.ret.params   = inputs.params  # FINDME checks
+  pyrat.ret.params   = inputs.params   # FINDME checks
+  pyrat.ret.stepsize = inputs.stepsize # FINDME checks
   pyrat.ret.tlow     = pt.getparam(inputs.tlow,  "kelvin")
   pyrat.ret.thigh    = pt.getparam(inputs.thigh, "kelvin")
   if inputs.tmodel is not None and inputs.tmodel not in ["TCEA", "isothermal"]:

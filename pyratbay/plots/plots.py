@@ -5,16 +5,20 @@
 Pyrat plotting utilities.
 """
 
-__all__ = ["spectrum", "cf"]
+__all__ = ["spectrum", "cf", "TCEA"]
 
-import os
+import os, sys
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.interpolate as si
 from scipy.ndimage.filters import gaussian_filter1d as gaussf
 
-from .. import constants as pc
+from .. import constants  as pc
+from .. import atmosphere as atm
 
+rootdir = os.path.realpath(os.path.dirname(__file__) + "/../../")
+sys.path.append(rootdir + "/pyratbay/lib/")
+import pt as PT
 
 def spectrum(wlength=None, spectrum=None, data=None, uncert=None,
     bandflux=None, bandtrans=None, bandidx=None, bandwl=None,
@@ -137,7 +141,6 @@ def spectrum(wlength=None, spectrum=None, data=None, uncert=None,
   return ax
 
 
-
 def cf(bandcf, bandwl, pressure, filename=None, filters=None):
   """
   Plot the band-integrated contribution functions.
@@ -188,3 +191,90 @@ def cf(bandcf, bandwl, pressure, filename=None, filters=None):
 
   if filename is not None:
     plt.savefig(filename)
+
+
+def TCEA(posterior, pressure=None, tparams=None, tstepsize=None,
+         besttpars=None, rstar=None, tstar=None, tint=None, smaxis=None,
+         gplanet=None, pyrat=None):
+  """
+  Plot the posterior TCEA PT profile.
+
+  Parameters
+  ----------
+  posterior: 2D float ndarray
+     The MCMC posterior array of shape [nsamples, nparams]
+  pressure: 1D float ndarray
+     The atmospheric pressure profile in barye.
+  tparams: 1D float ndarray
+     The list of temperature-profile parameters.
+  tstepsize: 1D float ndarray
+     Stepsize of the temperature-profile parameters.
+  besttpars: 1D float ndarray
+     Array of best-fitting temperature-profile parameters.
+  rstar: Float
+     Stellar radius in cm.
+  tstar: Float
+     Stellar effective temperature in K.
+  tint: Float
+     Planetary internal temperature in K.
+  smaxis: Float
+     Semi-major axis in cm.
+  gplanet: Float
+     Planetary surface gravity in cm s-2.
+  pyrat: Pyrat instance
+  """
+  if pyrat is not None:
+    pressure  = pyrat.atm.press
+    targs     = pyrat.ret.targs
+    tparams   = pyrat.ret.params[pyrat.ret.itemp]
+    tstepsize = pyrat.ret.stepsize[pyrat.ret.itemp]
+    tmodel    = pyrat.ret.tmodel
+  elif (pressure is None  or  tparams is None  or  tstepsize is None or
+        rstar    is None  or  tstar   is None  or  tint      is None or
+        smaxis   is None  or  gplanet is None):
+    print("One or more input parameters is missing (pressure, tparams, "
+          "tstepsize, rstar, tstar, tint, smaxis, gplanet).")
+
+  if pyrat is None:
+    targs = [pressure, rstar, tstar, tint, smaxis, gplanet]
+    tmodel = PT.TCEA
+
+  ifree = tstepsize > 0
+  nfree = np.sum(ifree)
+  ipost = np.arange(nfree)
+
+  nlayers = len(pressure)
+  nsamples, npars = np.shape(posterior)
+
+  # Evaluate posterior PT profiles:
+  PTprofiles = np.zeros((nsamples, nlayers), np.double)
+  for i in np.arange(nsamples):
+    tparams[ifree] = posterior[i, ipost]
+    PTprofiles[i] = tmodel(tparams, *targs)
+
+  # Get percentiles (for 1,2-sigma boundaries):
+  low1 = np.percentile(PTprofiles, 16.0, axis=0)
+  hi1  = np.percentile(PTprofiles, 84.0, axis=0)
+  low2 = np.percentile(PTprofiles,  2.5, axis=0)
+  hi2  = np.percentile(PTprofiles, 97.5, axis=0)
+  median = np.median(PTprofiles, axis=0)
+
+  # Plot figure:
+  plt.figure(2)
+  plt.clf()
+  ax=plt.subplot(111)
+  ax.fill_betweenx(pressure/pc.bar, low2, hi2,
+                   facecolor="#62B1FF", edgecolor="0.5")
+  ax.fill_betweenx(pressure/pc.bar, low1, hi1,
+                   facecolor="#1873CC", edgecolor="#1873CC")
+  plt.semilogy(median, pressure/pc.bar, "k-", lw=2, label="Median")
+  if besttpars is not None:
+    bestpt = tmodel(besttpars, *targs)
+    plt.semilogy(bestpt, pressure/pc.bar, "r-", lw=2, label="Best fit")
+  plt.ylim(np.amax(pressure/pc.bar), np.amin(pressure/pc.bar))
+  plt.legend(loc="best")
+  plt.xlabel("Temperature  (K)", size=15)
+  plt.ylabel("Pressure  (bar)",  size=15)
+
+  # Save figure:
+  plt.savefig("MCMC_PT-profiles.pdf")

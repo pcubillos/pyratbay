@@ -2024,6 +2024,7 @@ Bumped Pyrat Bay to version 0.0.26.
 Bumped Pyrat to version 1.2.17.
 Bumped Lineread to version 6.4.7.
 
+
 *****  Di 28. Jun 09:51:13 CEST 2016  *****
 
 Fixed small issues in the getting-started plotting commands.
@@ -2039,3 +2040,46 @@ options each one provides.
 Bumped Pyrat to version 1.2.18.
 
 *****
+
+Implemented pb.plots.TCEA() routine to plot the PT posterior.
+Added stepsize to pyrat input arguments.
+
+
+*****  Sun Jul 10 12:24:02 CEST 2016  *****
+
+Fixed typo in print statement of voigt.py function.
+
+*****
+
+Fixed bug in extinction() from extcoeff.c.  The upper boundary in
+the bin search was out of bounds.
+Implemented pyramid-binary search in utils.h, optimized when the
+searched value lies close to the initial element in the array.
+
+*****
+
+Tweaked extcoeff() to skip the broadening of lines only when they
+fall more than 10 Voigt widths away from the wavenumber sampling
+divisions.
+
+This solves previous sudden jumps in the extinction coefficient which
+disrupted the integration into the optical depth.
+
+
+*****  Mo 11. Jul 08:35:28 CEST 2016  *****
+
+Fixed typo in last commit.  The code skip-broadening threshold was
+set at 0.1 widths instead of 10.0.  Reset to 1.0 widths.
+Outputs look OK now.
+
+*****
+
+Updated minor details in the tutorial.
+
+*****
+
+Bumped Pyrat Bay to version 0.0.27.
+Bumped Pyrat to version 1.2.19.
+
+*****
+

@@ -94,7 +94,7 @@ static PyObject *extinction(PyObject *self, PyObject *args){
        onwn, dnwn,
        minj, maxj,
        nLor, nDop;
-  int iown, idwn, offset, subw,
+  int iwn, iown, idwn, offset, subw,
       imol, ofactor, iprof,
       nadd=0, nskip=0, neval=0,
       verb, add=0;
@@ -189,8 +189,8 @@ static PyObject *extinction(PyObject *self, PyObject *args){
     minwidth = fmin(minwidth, vwidth);
 
     /* Search for aDop and aLor indices for alphal[i] and alphad[i]:        */
-    idop[i] = binsearchapprox(doppler, alphad[i]*INDd(wn,0), 0, (int)nDop);
-    ilor[i] = binsearchapprox(lorentz, alphal[i],            0, (int)nLor);
+    idop[i] = binsearchapprox(doppler, alphad[i]*INDd(wn,0), 0, (int)nDop-1);
+    ilor[i] = binsearchapprox(lorentz, alphal[i],            0, (int)nLor-1);
   }
 
   wnstep  = INDd(wn, 1) - INDd(wn, 0);
@@ -265,15 +265,17 @@ static PyObject *extinction(PyObject *self, PyObject *args){
     /* Estimate the line-transition width:                                  */
     vwidth = 0.5346*alphal[i] + sqrt(pow(alphal[i], 2.0)*0.2166 +
                                      pow(alphad[i]*wavn, 2.0));
-    /* If the line is much thinner than the requested resolution:           */
-    if (vwidth < 0.1*wnstep){
-      iown = (wavn - INDd(wn,0))/wnstep;  /* Re-use variable                */
-      if (fabs(wavn - INDd(wn,(iown+1))) < fabs(wavn - INDd(wn,iown)))
-        iown++;
+
+    /* Index of wavenumber closest and smaller than wavn:                   */
+    iwn = (wavn - INDd(wn,0))/wnstep;
+    /* Line is more than 1 Voigt HW from the nearest wn sampling division:  */
+    if (fabs(wavn-INDd(wn,iwn)-0.5*wnstep) > 1.0*vwidth){
+      if (wavn - INDd(wn,iwn) > 0.5*wnstep)
+        iwn++;
 
       if (add)  /* Multiply by the species' density:                        */
         k *= INDd(moldensity, (INDi(isoimol,i)));
-      IND2d(ext,m,iown) += k/wnstep;
+      IND2d(ext, m, iwn) += k/wnstep;
       continue;
     }
 
@@ -290,11 +292,9 @@ static PyObject *extinction(PyObject *self, PyObject *args){
     /* Index of closest (but not larger than) dynamic-sampling wavenumber:  */
     idwn = (wavn - INDd(own,0))/dwnstep;
 
-    /* FINDME: de-hard code this threshold                                  */
-    if (alphad[i]*wavn/alphal[i] >= 1e-1){
-      /* Recalculate index for Doppler width:                               */
-      idop[i] = binsearchapprox(doppler, alphad[i]*wavn, 0, (int)nDop);
-    }
+    /* Calculate index for Doppler width:                                   */
+    //if (alphad[i]*wavn/alphal[i] >= 0.1)
+    idop[i] = pyramidsearch(doppler, alphad[i]*wavn, idop[i], (int)nDop-1);
 
     /* Sub-sampling offset between center of line and dyn-sampled wn:       */
     subw = iown - idwn*ofactor;
@@ -390,7 +390,7 @@ static PyObject *interp_ec(PyObject *self, PyObject *args){
   nmolID = PyArray_DIM(molID,  0);  /* Number of species in atmosphere      */
 
   /* Find index of grid-temperature immediately lower than temperature:     */
-  tlo = binsearchapprox(ttable, temperature, 0,(int)ntemp);
+  tlo = binsearchapprox(ttable, temperature, 0, (int)ntemp-1);
   if (temperature < INDd(ttable,tlo)){
     tlo--;
   }
