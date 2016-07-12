@@ -18,9 +18,11 @@ plt.ion()
 sys.path.append("../pyratbay")
 import pyratbay as pb
 
+
 # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 # Make a TLI file with opacity line-transition info:
 pb.pbay.run("tutorial_lineread.cfg")
+
 
 # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 # Make temperature profiles:
@@ -42,6 +44,7 @@ plt.legend(loc="best")
 plt.xlabel("Temperature  (K)")
 plt.ylabel("Pressure  (bar)")
 plt.savefig("pyrat_PT_tutorial.pdf")
+
 
 # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 # Make Atmospheric file:
@@ -78,6 +81,7 @@ plt.xlabel("Mole mixing fraction")
 plt.ylabel("Pressure  (bar)")
 plt.savefig("pyrat_atmosphere_tutorial.pdf")
 
+
 # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 # Compute spectrum:
 
@@ -101,3 +105,14 @@ ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
 ax.set_xticks([0.3, 0.4, 0.6, 0.8, 1.0, 2.0, 3.0, 4.0, 5.0])
 plt.show()
 plt.savefig("pyrat_transmission-spectrum_tutorial.pdf")
+
+# :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+# Generate opacity grid:
+
+pyrat = pb.pbay.run("tutorial_opacity.cfg")
+
+
+# :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+# A simple MCMC:
+
+pyrat = pb.pbay.run("tutorial_mcmc.cfg")

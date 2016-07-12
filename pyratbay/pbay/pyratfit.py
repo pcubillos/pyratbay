@@ -84,20 +84,8 @@ def fit(params, pyrat, freeze=False):
   # Calculate spectrum:
   pyrat = py.run(pyrat, [temp, q2, radius])
 
-  # Unpack some variables:
-  spectrum = pyrat.spec.spectrum
-  wn       = pyrat.spec.wn
-  bflux    = pyrat.obs.bandflux
-  wnidx    = pyrat.obs.bandidx
   # Band-integrate spectrum:
-  for i in np.arange(pyrat.obs.nfilters):
-    # Integrate the spectrum over the filter band:
-    if   pyrat.od.path == "transit":
-      bflux[i] = w.bandintegrate(spectrum[wnidx[i]], wn[wnidx[i]],
-                                 pyrat.obs.bandtrans[i])
-    elif pyrat.od.path == "eclipse":
-      fluxrat = spectrum[wnidx[i]]/pyrat.obs.starflux[i] * pyrat.phy.rprs**2.0
-      bflux[i] = w.bandintegrate(fluxrat, wn[wnidx[i]], pyrat.obs.bandtrans[i])
+  pyrat.obs.bandflux = w.bandintegrate(pyrat=pyrat)
 
   # Revert changes in the atmospheric profile:
   if freeze:

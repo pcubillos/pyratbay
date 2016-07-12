@@ -188,6 +188,7 @@ static PyObject *grid(PyObject *self, PyObject *args){
       else{
         /* Refer to previous profile:                                       */
         IND2i(index, m, n) = IND2i(index, (m-1), n);
+        IND2i(psize, m, n) = IND2i(psize, (m-1), n);
         msg(verb-6, logtext, "Skip profile[%d, %d] calculation.\n", m, n);
       }
     }

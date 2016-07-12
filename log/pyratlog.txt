@@ -2083,3 +2083,49 @@ Bumped Pyrat to version 1.2.19.
 
 *****
 
+Wrote the opacity tutorial.
+Tweaked the pbay driver to always generate an extinction-coefficient
+grid (overwrite) when runmode=opacity.
+Added the tutorial_opacity.cfg file to the tutorial example files.
+
+*****
+
+Added filter files for tutorial
+  inputs/filters/tutorial/
+
+*****
+
+Fixed typo in pbay driver.  Try only delete pre-existing opacity file
+when the file exists.
+
+*****
+
+Fixed extinction-coefficient bug, first reported in 3708c3f.
+It turned out that since I was letting the size of the Voigt profiles
+of the un-calculated profiles equal to zero, extcoeff wasn't adding
+the contribution of these lines, corrupting the EC at wavelengths
+shorter than a certain threshold at a certain layers.
+
+Set the broadening-skip threshold at 10 Voigt widths, because smaller
+thresholds seem to cause EC jumps along the atmosphere.
+
+*****
+
+Fixed typo in getting-started docs.
+
+*****
+
+Refactored wine.bandintegrate() into a higher-level routine.
+
+*****
+
+Updated tutorial with MCMC example (may need some revision).
+Added mcmc tutorial config file.
+Added a Kurucz file for the tutorial.
+
+*****
+
+Bumped Pyrat Bay to version 0.0.28.
+Bumped Pyrat to version 1.2.20.
+
+*****

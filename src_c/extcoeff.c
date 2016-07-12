@@ -268,8 +268,8 @@ static PyObject *extinction(PyObject *self, PyObject *args){
 
     /* Index of wavenumber closest and smaller than wavn:                   */
     iwn = (wavn - INDd(wn,0))/wnstep;
-    /* Line is more than 1 Voigt HW from the nearest wn sampling division:  */
-    if (fabs(wavn-INDd(wn,iwn)-0.5*wnstep) > 1.0*vwidth){
+    /* Line is more than 10 Voigt HW from nearest wn sampling division:     */
+    if (fabs(wavn-INDd(wn,iwn)-0.5*wnstep) > 10.0*vwidth){
       if (wavn - INDd(wn,iwn) > 0.5*wnstep)
         iwn++;
 
