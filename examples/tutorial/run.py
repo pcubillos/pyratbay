@@ -112,3 +112,7 @@ plt.savefig("pyrat_transmission-spectrum_tutorial.pdf")
 pyrat = pb.pbay.run("tutorial_opacity.cfg")
 
 
+# :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+# A simple MCMC:
+
+pyrat = pb.pbay.run("tutorial_mcmc.cfg")

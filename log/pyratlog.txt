@@ -2119,3 +2119,9 @@ Refactored wine.bandintegrate() into a higher-level routine.
 
 *****
 
+Updated tutorial with MCMC example (may need some revision).
+Added mcmc tutorial config file.
+Added a Kurucz file for the tutorial.
+
+*****
+
