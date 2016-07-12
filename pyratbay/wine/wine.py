@@ -80,49 +80,68 @@ def resample(specwn, filterwn, filtertr, starwn=None, starfl=None):
   -------
   nifilter: 1D ndarray
      The normalized interpolated filter transmission curve.
-  wnindices: 1D ndarray
+  wnidx: 1D ndarray
      The indices of specwn covered by the filter.
   istarfl: 1D ndarray
      The interpolated stellar flux.
   """
   # Indices in the spectrum wavenumber array included in the band
   # wavenumber range:
-  wnindices = np.where((specwn < filterwn[-1]) & (filterwn[0] < specwn))[0]
+  wnidx = np.where((specwn < filterwn[-1]) & (filterwn[0] < specwn))[0]
 
   # Make function to spline-interpolate the filter and stellar flux:
   finterp = si.interp1d(filterwn, filtertr)
   # Evaluate over the spectrum wavenumber array:
-  ifilter = finterp(specwn[wnindices])
+  ifilter = finterp(specwn[wnidx])
   # Normalize to integrate to 1.0:
-  nifilter = ifilter/np.trapz(ifilter, specwn[wnindices])
+  nifilter = ifilter/np.trapz(ifilter, specwn[wnidx])
 
   if starfl is not None and starwn is not None:
     sinterp = si.interp1d(starwn,   starfl)
-    istarfl = sinterp(specwn[wnindices])
+    istarfl = sinterp(specwn[wnidx])
   else:
     istarfl = None
 
   # Return the normalized interpolated filter and the indices:
-  return nifilter, wnindices, istarfl
+  return nifilter, wnidx, istarfl
 
 
-def bandintegrate(spectrum, specwn, nifilter):
+def bandintegrate(spectrum=None, specwn=None, wnidx=None, nfilters=None,
+                  bandtrans=None, starflux=None, rprs=None, path=None,
+                  pyrat=None):
   """
   Integrate a spectrum over the band transmission.
 
   Parameters
   ----------
-  spectrum: 1D ndarray
-     Spectral signal to be integrated
-  specwn: 1D ndarray
-     Wavenumber of spectrum in cm-1
-  nifilter: 1D ndarray
-     The normalized interpolated filter transmission curve.
+  spectrum: 1D float ndarray
+     Spectral signal to be integrated.
+  specwn: 1D float ndarray
+     Wavenumber of spectrum in cm-1.
+  wnidx: List of 1D integer ndarrays
+     List of indices of specwn covered by each filter.
+  nfilters: Integer
+     Number of filters.
+  bandtrans: List of 1D float ndarray
+     List  of normalized interpolated band transmission values in each filter.
+  starflux: List of 1D float ndarray
+     List of interpolated stellar flux values in each filter (eclipse geometry).
+  rprs: Float
+     Planet-to-star radius ratio (used for eclipse geometry).
+  path: String
+     Observing geometry.  Select from: transit or eclipse.
+  pyrat: A Pyrat object.
+     If not None, extract input values from pyrat object.
+
+  Returns
+  -------
+  bflux: 1D ndarray
+     Array of band-integrated values.
 
   Example
   -------
   >>> import sys
-  >>> pbpath = "../Pyrat-Bay/"
+  >>> pbpath = "../pyratbay/"
   >>> sys.path.append(pbpath)
   >>> import pyratbay as pb
   
@@ -137,18 +156,19 @@ def bandintegrate(spectrum, specwn, nifilter):
                        "inputs/filters/spitzer_irac2_sa.dat")
   
   >>> # Resample the filters into the stellar wavenumber array:
-  >>> nifilter, wnindices = pb.wine.resample(swn, wn1, irac1)
+  >>> nifilter1, wnidx1 = pb.wine.resample(swn, wn1, irac1)
+  >>> nifilter2, wnidx2 = pb.wine.resample(swn, wn2, irac2)
   >>> # Integrate the spectrum over the filter band:
-  >>> bandflux1 = pb.wine.bandintegrate(sflux[wnindices], swn[wnindices], nifilter)
-  >>> nifilter, wnindices = pb.wine.resample(swn, wn2, irac2)
-  >>> bandflux2 = pb.w.bandintegrate(sflux[wnindices], swn[wnindices], nifilter)
-  
+  >>> bandflux = pb.wine.bandintegrate(spectrum=sflux, specwn=swn,
+       wnidx=[wnidx1,wnidx2], nfilters=2, bandtrans=[nifilter1, nifilter2],
+       path='transit')
+
   >>> # Plot the results:
   >>> plt.figure(1, (8,5))
   >>> plt.clf()
   >>> plt.semilogy(1e4/swn, sflux, "b")
-  >>> plt.plot(np.mean(1e4/wn1), bandflux1, "o", color="red")
-  >>> plt.plot(np.mean(1e4/wn2), bandflux2, "o", color="limegreen")
+  >>> plt.plot(np.mean(1e4/wn1), bandflux[0], "o", color="red")
+  >>> plt.plot(np.mean(1e4/wn2), bandflux[1], "o", color="limegreen")
   >>> plt.plot(1e4/wn1, (irac1+1)*2e5, "red")
   >>> plt.plot(1e4/wn2, (irac2+1)*2e5, "limegreen")
   >>> plt.xlim(0.3, 6.0)
@@ -157,4 +177,28 @@ def bandintegrate(spectrum, specwn, nifilter):
   >>> plt.ylabel(r"Flux  (erg s$^{-1}$ cm$^{-2}$ cm)")
   """
 
-  return np.trapz(spectrum*nifilter, specwn)
+  if pyrat is not None:
+    # Unpack variables from pyrat object:
+    spectrum  = pyrat.spec.spectrum
+    wn        = pyrat.spec.wn
+    bflux     = pyrat.obs.bandflux
+    wnidx     = pyrat.obs.bandidx
+    nfilters  = pyrat.obs.nfilters
+    bandtrans = pyrat.obs.bandtrans
+    starflux  = pyrat.obs.starflux
+    rprs      = pyrat.phy.rprs
+    path      = pyrat.od.path
+
+  if bflux is None:
+    bflux = np.zeros(nfilters)
+
+  # Band-integrate spectrum:
+  for i in np.arange(nfilters):
+    # Integrate the spectrum over the filter band:
+    if   path == "transit":
+      bflux[i] = np.trapz(spectrum[wnidx[i]]*bandtrans[i], wn[wnidx[i]])
+    elif path == "eclipse":
+      fluxrat = spectrum[wnidx[i]]/starflux[i] * rprs**2.0
+      bflux[i] = np.trapz(fluxrat*bandtrans[i], wn[wnidx[i]])
+
+  return bflux

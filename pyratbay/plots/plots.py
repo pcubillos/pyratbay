@@ -15,6 +15,7 @@ from scipy.ndimage.filters import gaussian_filter1d as gaussf
 
 from .. import constants  as pc
 from .. import atmosphere as atm
+from .. import wine       as w
 
 rootdir = os.path.realpath(os.path.dirname(__file__) + "/../../")
 sys.path.append(rootdir + "/pyratbay/lib/")
@@ -82,6 +83,8 @@ def spectrum(wlength=None, spectrum=None, data=None, uncert=None,
     nfilters = 0
   else:
     nfilters = len(bandtrans)
+    if bandflux is None or np.all(bandflux==0):
+      bandflux = w.bandintegrate(pyrat=pyrat)
 
   # Plotting setup:
   fs  = 14

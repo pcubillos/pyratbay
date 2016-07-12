@@ -2115,3 +2115,7 @@ Fixed typo in getting-started docs.
 
 *****
 
+Refactored wine.bandintegrate() into a higher-level routine.
+
+*****
+
