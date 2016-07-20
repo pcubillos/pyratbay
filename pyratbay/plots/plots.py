@@ -168,6 +168,8 @@ def cf(bandcf, bandwl, pressure, filename=None, filters=None):
 
   fs  = 14
   lw  = 1.5
+  colors = np.asarray(np.linspace(10, 240, nfilters), np.int)
+
   plt.figure(-21)
   plt.clf()
   for i in np.arange(nfilters):
@@ -177,7 +179,7 @@ def cf(bandcf, bandwl, pressure, filename=None, filters=None):
     # Strip root and file extension:
     if filters is not None:
       fname = os.path.split(os.path.splitext(filters[idx])[0])[1] + " @" + fname
-    c = int(10 + i / (nfilters-1.0) * 240)
+    c = colors[i]
     ax.semilogy(bandcf[idx], press, '-', lw=lw, color=plt.cm.rainbow(c))
     ax.set_ylim(np.amax(press), np.amin(press))
     plt.text(0.9*xran[1], np.amin(press), fname, rotation=90,

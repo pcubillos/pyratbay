@@ -2128,4 +2128,11 @@ Added a Kurucz file for the tutorial.
 Bumped Pyrat Bay to version 0.0.28.
 Bumped Pyrat to version 1.2.20.
 
+
+*****  Mi 20. Jul 17:52:52 CEST 2016  *****
+
+Fixed bug in plots.cf(). The code was breaking when there was a
+single band.
+
 *****
+
