@@ -81,6 +81,9 @@ def parse(wlog):
   group.add_argument("--tint",    dest="tint",
            help="Planetary internal temperature (kelvin) [default: 100].",
            action="store", type=np.double, default=None)
+  group.add_argument("--mplanet",    dest="mplanet",
+           help="Planetary mass (default units: g).",
+           action="store", type=str, default=None)
   group.add_argument("--gplanet",    dest="gplanet",
            help="Planetary surface gravity (cm s-2).",
            action="store", type=np.double, default=None)
@@ -255,7 +258,8 @@ def checktemp(args, log, wlog):
       pt.error("Undefined stellar temperature (tstar).", log)
     if args.smaxis is None:
       pt.error("Undefined orbital semi-major axis (smaxis).", log)
-    if args.gplanet is None:
+    if (args.gplanet is None and
+        (args.mplanet is None or args.rplanet is None)):
       pt.error("Undefined planetary surface gravity (gplanet).", log)
     args.tint = pt.defaultp(args.tint, "100",
       "Planetary internal temperature defaulted to {:s} K.", wlog, log)

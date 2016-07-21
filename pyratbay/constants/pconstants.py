@@ -12,10 +12,11 @@ Notes
   http://nssdc.gsfc.nasa.gov/planetary/factsheet/
 """
 
-# Universal constants:
-h = sc.h * 1e7  # Planck constant
-k = sc.k * 1e7  # Boltzmann constant in ergs/kelvin
-c = sc.c * 1e2  # Speed of light in cm/s
+# Universal constants in CGS units:
+h = sc.h * 1e7  # Planck constant in erg s
+k = sc.k * 1e7  # Boltzmann constant in erg K-1
+c = sc.c * 1e2  # Speed of light in cm s-1
+G = sc.G * 1e3  # Graviational constant in dyne cm2 g-2
 
 # Convert from eV to cm-1 (kayser):
 # planck   = 6.62620e-34  # Planck constant [J * s]
@@ -46,6 +47,8 @@ bar    = 1e6    # Bar
 atm    = 1.01e6 # Atmosphere
 
 # Mass to grams:
+gram   = 1.0           # Gram
+kg     = 1.0e3         # Kilogram
 mearth = 5.9724e27     # Earth mass
 mjup   = 1.8982e30     # Jupiter mass
 msun   = 1.9885e33     # Sun mass  (Prsa et al. 2016)
@@ -72,7 +75,7 @@ validunits = ["A", "nm", "um", "mm", "cm", "m", "km", "au", "pc",
               "barye", "mbar", "pascal", "bar", "atm",
               "kelvin",
               "eV",
-              "amu", "me", "mearth", "mjup", "msun",
+              "amu", "me", "gram", "kg", "mearth", "mjup", "msun",
               "amagat", "none"]
 
 # Other combination of constants:

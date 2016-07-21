@@ -70,6 +70,12 @@ def run(argv, main=False):
                parser.outfile, parser.iwl, parser.fwl, parser.verb)
     return
 
+  # Get gplanet from mplanet and rplanet if necessary:
+  if (args.gplanet is None and args.rplanet is not None and
+      args.mplanet is not None):
+    args.gplanet = (pc.G * pt.getparam(args.mplanet, "gram") /
+                    pt.getparam(args.rplanet, args.radunits)**2)
+
   # Compute pressure-temperature profile:
   if args.runmode in ["pt", "atmosphere"] or pt.isfile(args.atmfile) != 1:
     ar.checkpressure(args, log, wlog)  # Check pressure inputs

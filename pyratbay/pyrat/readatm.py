@@ -281,13 +281,19 @@ def reloadatm(pyrat, temp, abund, radius=None):
   if radius is not None:
     pyrat.atm.radius = radius
   else:
+    # Compute gplanet from mass and radius if necessary/possible:
+    if (pyrat.phy.gplanet is None and
+      pyrat.phy.mplanet is not None and pyrat.phy.rplanet is not None):
+      pyrat.phy.gplanet = pc.G * pyrat.phy.mplanet / pyrat.phy.rplanet**2
+
     # Check that the gravity variable is exists:
-    if pyrat.phy.gplanet is None:
-      pt.error("Undefined atmospheric gravity (gplanet).  Either provide "
-        "the radius profile for the layers or the surface gravity.", pyrat.log)
     if pyrat.phy.rplanet is None:
       pt.error("Undefined reference planetary radius (rplanet). Either provide "
         "the radius profile for the layers or the rplanet.", pyrat.log)
+    if pyrat.phy.gplanet is None:
+      pt.error("Undefined atmospheric gravity (gplanet).  Either provide "
+        "the radius profile for the layers, the surface gravity, or the "
+        "planetary mass (mplanet).", pyrat.log)
     if pyrat.refpressure is None:
       pt.error("Undefined reference pressure level (refpressure). Either "
          "provide the radius profile for the layers or refpressure.", pyrat.log)

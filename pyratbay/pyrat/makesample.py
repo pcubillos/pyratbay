@@ -140,13 +140,13 @@ def makeradius(pyrat):
 
   if atm_in.radius is None:
     # Check that the gravity variable is exists:
-    if pyrat.phy.gplanet is None:
-      pt.error("Undefined atmospheric gravity (gplanet).  Either include the "
-        "radius profile in the atmospheric file or set the surface gravity.",
-        pyrat.log)
     if pyrat.phy.rplanet is None:
       pt.error("Undefined reference planetary radius (rplanet). Either include "
         "the radius profile in the atmospheric file or set rplanet.", pyrat.log)
+    if pyrat.phy.gplanet is None:
+      pt.error("Undefined atmospheric gravity (gplanet).  Either include "
+        "the radius profile in the atmospheric file, set the surface "
+        "gravity, or set the planetary mass (mplanet).", pyrat.log)
     if pyrat.refpressure is None:
       pt.error("Undefined reference pressure level (refpressure). Either "
         "include the radius profile in the atmospheric file or set refpress.",

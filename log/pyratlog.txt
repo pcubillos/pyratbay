@@ -2161,3 +2161,12 @@ Updated tutorial docs.
 
 *****
 
+Implemented mplanet input argument (used to compute gplanet).
+Added gram and kg mass units.
+Added gravitational constant to pb.constants.
+Updated units docs.
+Fixed typo in pyratfit.py fit() for transmission geometry.
+This resolves #69.
+
+*****
+
