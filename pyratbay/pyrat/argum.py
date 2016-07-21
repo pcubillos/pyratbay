@@ -107,7 +107,7 @@ def parse(pyrat):
   pt.addarg("phigh",       group, str,       None,
       "Atmospheric pressure high boundary (overrides radius low boundary) "
       "[default: %(default)s]")
-  pt.addarg("nlayers",     group, np.int,    100,
+  pt.addarg("nlayers",     group, np.int,    None,
       "Number of atmospheric layers [default: %(default)s]")
   pt.addarg("punits",      group, str,       None,
       "Pressure (user) units [default: bar]")
