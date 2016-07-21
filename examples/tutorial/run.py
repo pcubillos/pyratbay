@@ -21,7 +21,7 @@ import pyratbay as pb
 
 # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 # Make a TLI file with opacity line-transition info:
-pb.pbay.run("tutorial_lineread.cfg")
+pb.pbay.run("tutorial_tli.cfg")
 
 
 # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

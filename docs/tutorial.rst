@@ -691,7 +691,7 @@ required variables:
 
 .. note:: Note that an ``mcmc`` run requires the user to set an
           extinction-coefficient grid (``extfile``) to allow the code
-          to finish within a Hubble time (haze parameters TBI soon).
+          to finish within a Hubble time.
 
 
 The observational data is input through the ``filter``, ``data``, and
@@ -703,7 +703,7 @@ For eclipse geometry, the user needs to input a stellar flux model.
 ``Pyrat Bay`` currently incorporates `Kurucz models
 <http://kurucz.harvard.edu/grids.html>`_ Through the ``kurucz``
 variable (marcs and Phoenix TBI).  The code selects the correct Kurucz
-model based on the stellar temperature (``tsar``) and surface gravity
+model based on the stellar temperature (``tstar``) and surface gravity
 (``gstar``).
 
 The atmospheric model can vary the temperature profile, the planetary
@@ -713,7 +713,8 @@ model parameter into a single array.
 
 .. note:: The order of params is always the same, starting with the
           temperature parameters, then the planetary radius (if
-          ``path=transit``), and lastly the abundance parameters.
+          ``path=transit``), and lastly the abundance parameters
+          (haze parameters TBI soon).
 
 The temperature model consists of the TCEA or isothermal model (set by
 ``tmodel``).  The planetary radius must be set in **kilometers**.

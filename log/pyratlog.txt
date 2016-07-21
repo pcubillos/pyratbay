@@ -2143,3 +2143,12 @@ from the input atmospheric model.
 
 *****
 
+Added output figure of getting-started docs script.
+Rearranged examples/ demo files into a single folder.
+Updated getting-started docs accordingly.
+Housekeeping docs, minor corrections.
+Fixed typo in examples/tutorial/run.py in TLI call.
+
+*****
+
+
