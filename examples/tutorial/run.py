@@ -3,7 +3,7 @@
 # To correctly execute this script, set the correct path to the source
 # code.   The path is given as if the Python session runs from a
 # 'run_tutorial/' folder at the same level than the repository, i.e.:
-#    rootdir/
+#    parentdir/
 #    |-- pyratbay/
 #    `-- run_tutorial/
 #  Alternatively, set the appropriate path in sys.path.append().
@@ -20,7 +20,20 @@ import pyratbay as pb
 
 
 # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-# Make a TLI file with opacity line-transition info:
+# Make a TLI file containing the opacity line-transition info:
+"""
+# NOTE: Before running the Python script, you need to download and
+# unzip this HITRAN file into the working directory.
+# Download from the shell prompt using wget:
+wget --user=HITRAN --password=getdata -N https://www.cfa.harvard.edu/HITRAN/HITRAN2012/HITRAN2012/By-Molecule/Compressed-files/01_hit12.zip
+
+# Alternatively, download from the shell prompt using curl:
+curl -u HITRAN:getdata https://www.cfa.harvard.edu/HITRAN/HITRAN2012/HITRAN2012/By-Molecule/Compressed-files/01_hit12.zip -o 01_hit12.zip
+
+# Unzip the file:
+unzip 01_hit12.zip
+"""
+
 pb.pbay.run("tutorial_tli.cfg")
 
 
@@ -30,7 +43,7 @@ pb.pbay.run("tutorial_tli.cfg")
 # Generate an isothermal PT profile (output values in CGS units):
 pressure, T_isothermal = pb.pbay.run("tutorial_pt-isothermal.cfg")
 # Generate a TCEA PT profile:
-pressure, T_tcea = pb.pbay.run("tutorial_pt-tcea.cfg")
+pressure, T_tcea       = pb.pbay.run("tutorial_pt-tcea.cfg")
 
 # Plot the PT profiles:
 plt.figure(-1)

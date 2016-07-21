@@ -2151,4 +2151,8 @@ Fixed typo in examples/tutorial/run.py in TLI call.
 
 *****
 
+Added Note in examples/tutorial/run.py alerting to download the
+HITRAN input file before running the TLI command.
+
+*****
 
