@@ -2156,3 +2156,8 @@ HITRAN input file before running the TLI command.
 
 *****
 
+Moved the units list from the tutorial docs into its own page.
+Updated tutorial docs.
+
+*****
+

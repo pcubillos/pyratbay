@@ -57,6 +57,7 @@ Documentation
    lineread
    pyrat
    pyratbay
+   units
    contributing
    license
 
