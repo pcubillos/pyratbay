@@ -2168,5 +2168,11 @@ Updated units docs.
 Fixed typo in pyratfit.py fit() for transmission geometry.
 This resolves #69.
 
+
+***** Fr 22. Jul 10:07:21 CEST 2016 *****
+
+Put the pbay/driver.py main code into a try-except to avoid
+printing to screen the System-Exit Traceback error message.
+
 *****
 

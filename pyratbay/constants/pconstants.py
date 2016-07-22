@@ -92,3 +92,6 @@ tlireclen = 26  # Three doubles and one short
 dreclen   =  8  # Double  byte length
 ireclen   =  4  # Integer byte length
 sreclen   =  2  # Short   byte length
+
+# Running modes:
+rmodes = ['tli', 'pt', 'atmosphere', 'opacity', 'spectrum', 'mcmc']
