@@ -2185,3 +2185,9 @@ and gamma2 TCEA parameters are in log10.
 Moved log (this file) from log/pyratlog.txt to CHANGELOG.txt.
 
 *****
+
+Fixed typos in tutorial docs and minor adjustments in examples.
+Bumped Pyrat Bay to version 0.0.29.
+Bumped Pyrat to version 1.2.21.
+
+*****

@@ -247,8 +247,8 @@ Here is an example of a PT configuration file:
   # Temperature-profile model, select from: isothermal or TCEA
   tmodel  = isothermal
   tparams = 1500.0
-  #    log10(kappa) log10(gamma1) log10(gamma2) alpha beta
-  tparams = -3.0    -0.25         0.0           0.0   1.0
+  #    log10(kappa) log10(g1) log10(g2) alpha beta
+  tparams = -3.0    -0.25     0.0       0.0   1.0
 
   # System parameters:
   radunits = km
@@ -262,8 +262,8 @@ Here is an example of a PT configuration file:
   verb = 4
 
 For the isothermal model, the only parameter is the temperature.  For
-the TCEA model the parameters are :math:`\log_10(\kappa),
-\log_10(\gamma1), \log_10(\gamma2), \alpha, \beta` as defined in
+the TCEA model the parameters are :math:`\log_{10}(\kappa),
+\log_{10}(\gamma1), \log_{10}(\gamma2), \alpha, \beta` as defined in
 [Line2013]_.  The TCEA model also requires the stellar radius
 (``rstar``), the orbital semi-major axis (``smaxis``), the planetary
 surface gravity (``gplanet``), the stellar effective temperature
