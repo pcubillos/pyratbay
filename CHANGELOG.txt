@@ -2181,3 +2181,7 @@ Updated docs and examples to make explicit that kappa, gamma1,
 and gamma2 TCEA parameters are in log10.
 
 *****
+
+Moved log (this file) from log/pyratlog.txt to CHANGELOG.txt.
+
+*****
