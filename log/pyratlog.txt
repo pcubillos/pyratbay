@@ -2169,10 +2169,15 @@ Fixed typo in pyratfit.py fit() for transmission geometry.
 This resolves #69.
 
 
-***** Fr 22. Jul 10:07:21 CEST 2016 *****
+*****  Fr 22. Jul 10:07:21 CEST 2016  *****
 
 Put the pbay/driver.py main code into a try-except to avoid
 printing to screen the System-Exit Traceback error message.
 
-*****
 
+*****  Mi 10. Aug 09:48:01 CEST 2016  *****
+
+Updated docs and examples to make explicit that kappa, gamma1,
+and gamma2 TCEA parameters are in log10.
+
+*****
