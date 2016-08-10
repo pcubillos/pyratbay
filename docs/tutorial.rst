@@ -25,7 +25,7 @@ Whether you are executing the call from shell or from the interpreted,
 the configuration file defines all the settings of your run.
 
 All of the running settings, inputs, and outputs are set in the
-configuration file.  For example, here is the configuration file for the transmission spectrum demo: `demo_transmission.cfg <https://github.com/pcubillos/pyratbay/blob/master/examples/pyrat_demo/demo_transmission.cfg>`_.
+configuration file.  For example, here is the configuration file for the transmission spectrum demo: `demo_spectrum-transmission.cfg <https://github.com/pcubillos/pyratbay/blob/master/examples/demo/demo_spectrum-transmission.cfg>`_.
 
 Input files can either have absolute or relative paths.
 
@@ -50,57 +50,7 @@ the default units):
   rstar   = 1.0 rsun    ; Stellar radius (default units: radunits)
 
 
-Here is the list of available units:
-
-+------------+------------+----------------+------------------------+
-| Unit       | Valid unit | CGS Value      | Description            |
-+============+============+================+========================+
-| Length     | A          | 1.0e-08        | Angstrom               |
-+            +------------+----------------+------------------------+
-|            | nm         | 1.0e-07        | Nanometer              |
-+            +------------+----------------+------------------------+
-|            | um         | 1.0e-04        | Micron                 |
-+            +------------+----------------+------------------------+
-|            | mm         | 1.0e-01        | Millimeter             |
-+            +------------+----------------+------------------------+
-|            | cm         | 1.0            | Centimeter             |
-+            +------------+----------------+------------------------+
-|            | m          | 1.0e+02        | Meter                  |
-+            +------------+----------------+------------------------+
-|            | km         | 1.0e+05        | Kilometer              |
-+            +------------+----------------+------------------------+
-|            | au         | 1.49597e+13    | Astronomical unit      |
-+            +------------+----------------+------------------------+
-|            | pc         | 3.08568e+18    | Parsec                 |
-+            +------------+----------------+------------------------+
-|            | rearth     | 6.3710e+08     | Earth radius           |
-+            +------------+----------------+------------------------+
-|            | rjup       | 6.9911e+09     | Jupiter mean radius    |
-+            +------------+----------------+------------------------+
-|            | rsun       | 6.955e+10      | Sun radius             |
-+------------+------------+----------------+------------------------+
-| Mass       | me         | 9.10938e-28    | Electron mass          |
-+            +------------+----------------+------------------------+
-|            | amu        | 1.66054e-24    | Unified atomic mass    |
-+            +------------+----------------+------------------------+
-|            | mearth     | 5.9724e+27     | Earth mass             |
-+            +------------+----------------+------------------------+
-|            | mjup       | 1.8982e+30     | Jupiter mass           |
-+            +------------+----------------+------------------------+
-|            | msun       | 1.9885e+33     | Sun mass               |
-+------------+------------+----------------+------------------------+
-| Pressure   | barye      | 1.0            | Barye                  |
-+            +------------+----------------+------------------------+
-|            | mbar       | 1000.0         | Millibar               |
-+            +------------+----------------+------------------------+
-|            | pascal     | 1.0e+05        | Pascal (MKS unit)      |
-+            +------------+----------------+------------------------+
-|            | bar        | 1.0e+06        | Bar                    |
-+            +------------+----------------+------------------------+
-|            | atm        | 1.01e+06       | Atmosphere             |
-+------------+------------+----------------+------------------------+
-
-
+This Link contains the list of available units:  :ref:`units`.
 
 
 Running Modes
@@ -114,25 +64,42 @@ table (``opacity``), or run an atmospheric retrieval (``mcmc``).
 
 Note that there is a logical sequence in these modes.  An ``mcmc`` run
 requires an opacity file, a ``spectrum`` or ``opacity`` run require an
-atmospheric model.  An ``atmosphere`` run requires a PT profile.
+atmospheric model.  
 
-Depending on the selected running mode, the returned outputs will
-differ.
+.. Depending on the selected running mode, the returned outputs will
+   differ.
 
 The following examples show how to run each of these modes from the
 Python interpreter.
 
-Be sure to include this script each time you open
-a Python session:
+.. note:: All of the tutorial commands are briefly summarized into
+          this file:  `/pyratbay/examples/tutorial/run.py <https://github.com/pcubillos/pyratbay/blob/master/examples/tutorial/run.py>`_.
+
+For a better organization, we recommend to work from a newly created
+folder, e.g., from a 'run_tutorial/' folder at the same level than the
+repository, i.e.:
+
+.. code-block:: shell
+
+   #    parentdir/
+   #    |-- pyratbay/
+   #    `-- run_tutorial/
+
+Start by copying the configuration files into the working directory
+and start a Python session:
+
+.. code-block:: shell
+
+   cp ../pyratbay/examples/tutorial/tutorial_*.cfg .
+   ipython --pylab
+
+Be sure to include this script each time you open a Python session:
 
 .. code-block:: python
 
-  # Preamble
-  # --------
-  # To correctly execute this script, set the correct path to the source
-  # code.   The path is given as if the Python session runs from a
-  # 'run_tutorial/' folder at the same level than the repository, i.e.:
-  #    rootdir/
+  # This script assumes that you are in a folder at the same level than
+  # the repository, i.e.:
+  #    parentdir/
   #    |-- pyratbay/
   #    `-- run_tutorial/
   #  Alternatively, set the appropriate path in sys.path.append().
@@ -147,13 +114,6 @@ a Python session:
   sys.path.append("../pyratbay")
   import pyratbay as pb
 
-Before executing the tutorial runs, copy the configuration files into
-the current folder:
-
-.. code-block:: shell
-
-   cp ../pyratbay/examples/tutorial/tutorial_*.cfg .
-
 
 TLI Mode
 ........
@@ -161,18 +121,18 @@ TLI Mode
 This mode formats the Line-by-line (LBL) line-transition information
 into a TLI file, used by ``Pyrat Bay`` to compute opacities.  The
 following table list the available data bases (Note that cross-section
-opacity files, CS, are not process into TLI files):
+opacity files (CS) are not processed into TLI files):
 
 ==================== ============================= ==== ====== =========
 Source               Species                       Type Format Reference
 ==================== ============================= ==== ====== =========
 HITRAN               |H2O|, CO, |CO2|, |CH4| (+43) LT   LBL    [Rothman2013]_
 HITEMP               |H2O|, CO, |CO2|, NO, OH      LT   LBL    [Rothman2010]_
-EXOMOL               |H2O|, CO, |CO2|, |CH4| (+9)  LT   CS
+EXOMOL               |H2O|, CO, |CO2|, |CH4| (+9)  LT   CS     TBD
 Partridge & Schwenke |H2O|                         LT   LBL    [PS1997]_
 Schwenke             TiO                           LT   LBL    [Schwenke1998]_
 Plez                 VO                            LT   LBL    [Plez1998]_
-Borysow              |H2|-|H2|, |H2|-He            CIA  CS
+Borysow              |H2|-|H2|, |H2|-He            CIA  CS     TBD
 HITRAN               |H2|-|H2|, |H2|-He (+12)      CIA  CS     [Richard2012]_
 ==================== ============================= ==== ====== =========
 
@@ -287,8 +247,8 @@ Here is an example of a PT configuration file:
   # Temperature-profile model, select from: isothermal or TCEA
   tmodel  = isothermal
   tparams = 1500.0
-  # TCEA pars: kappa gamma1 gamma2 alpha beta
-  #tparams =   -3.0  -0.25  0.0    0.0   1.0
+  #    log10(kappa) log10(g1) log10(g2) alpha beta
+  tparams = -3.0    -0.25     0.0       0.0   1.0
 
   # System parameters:
   radunits = km
@@ -302,12 +262,12 @@ Here is an example of a PT configuration file:
   verb = 4
 
 For the isothermal model, the only parameter is the temperature.  For
-the TCEA model the parameters are :math:`\kappa, \gamma1, \gamma2,
-\alpha, \beta` as defined in [Line2013]_.  The TCEA model also
-requires the stellar radius (``rstar``), the orbital semi-major axis
-(``smaxis``), the planetary surface gravity (``gplanet``), the stellar
-effective temperature (``tstar``), and the planetary internal
-temperature (``tint``).
+the TCEA model the parameters are :math:`\log_{10}(\kappa),
+\log_{10}(\gamma1), \log_{10}(\gamma2), \alpha, \beta` as defined in
+[Line2013]_.  The TCEA model also requires the stellar radius
+(``rstar``), the orbital semi-major axis (``smaxis``), the planetary
+surface gravity (``gplanet``), the stellar effective temperature
+(``tstar``), and the planetary internal temperature (``tint``).
 
 To create an isothermal pressure-temperature profile run from the
 Python interpreter:
@@ -691,7 +651,7 @@ required variables:
 
 .. note:: Note that an ``mcmc`` run requires the user to set an
           extinction-coefficient grid (``extfile``) to allow the code
-          to finish within a Hubble time (haze parameters TBI soon).
+          to finish within a Hubble time.
 
 
 The observational data is input through the ``filter``, ``data``, and
@@ -703,7 +663,7 @@ For eclipse geometry, the user needs to input a stellar flux model.
 ``Pyrat Bay`` currently incorporates `Kurucz models
 <http://kurucz.harvard.edu/grids.html>`_ Through the ``kurucz``
 variable (marcs and Phoenix TBI).  The code selects the correct Kurucz
-model based on the stellar temperature (``tsar``) and surface gravity
+model based on the stellar temperature (``tstar``) and surface gravity
 (``gstar``).
 
 The atmospheric model can vary the temperature profile, the planetary
@@ -713,7 +673,8 @@ model parameter into a single array.
 
 .. note:: The order of params is always the same, starting with the
           temperature parameters, then the planetary radius (if
-          ``path=transit``), and lastly the abundance parameters.
+          ``path=transit``), and lastly the abundance parameters
+          (haze parameters TBI soon).
 
 The temperature model consists of the TCEA or isothermal model (set by
 ``tmodel``).  The planetary radius must be set in **kilometers**.

@@ -35,6 +35,7 @@ software:
 * Numpy (version 1.8.2+)
 * Scipy (version 0.13.3+)
 * Matplotlib (version 1.3.1+)
+* Sympy (suggested version 0.7.1.rc1)
 * Sphinx (version 1.3.3+)
 
 ``Pyrat Bay`` may work with previous versions of these software.
@@ -81,8 +82,8 @@ programs, e.g.:
 .. code-block:: shell
 
    cd $topdir
-   mkdir run01
-   cd run01
+   mkdir run_demo
+   cd run_demo
 
 Download the water line-transition database from the HITRAN server:
 
@@ -100,22 +101,23 @@ Unzip the file:
    unzip 01_hit12.zip
 
 
-Copy and execute the demo configuration file for ``lineread`` to make a
-Transition-Line-Information (TLI) file:
+Copy the input and configuration files for the demo from the examples
+folder to your working directory:
 
 .. code-block:: shell
 
-   cp $topdir/pyratbay/examples/lineread_demo/demo_hitran.cfg .
-   $topdir/pyratbay/pbay.py -c demo_hitran.cfg
+   cp $topdir/pyratbay/examples/demo/* .
 
-Copy the ``pyrat`` configuration file and run it to compute the
+Execute these commands from the shell to create a
+Transition-Line-Information (TLI) file, and then to use it to compute
 transmission and emission spectra:
 
 .. code-block:: shell
 
-   cp $topdir/pyratbay/examples/pyrat_demo/* .
-   $topdir/pyratbay/pbay.py -c demo_transmission.cfg
-   $topdir/pyratbay/pbay.py -c demo_emission.cfg
+   $topdir/pyratbay/pbay.py -c demo_tli-hitran.cfg
+
+   $topdir/pyratbay/pbay.py -c demo_spectrum-transmission.cfg
+   $topdir/pyratbay/pbay.py -c demo_spectrum-emission.cfg
 
 Outputs
 ^^^^^^^
@@ -158,3 +160,8 @@ saved to a separate file, to see it, run this Python script:
   plt.xlim(0.5, 5.5)
   plt.legend(loc="upper left")
   plt.savefig("pyrat_spectrum_demo.pdf")
+
+The output figure should look like this:
+
+.. image:: ./figures/pyrat_spectrum_demo.png
+   :width: 70%

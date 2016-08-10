@@ -107,7 +107,7 @@ def parse(pyrat):
   pt.addarg("phigh",       group, str,       None,
       "Atmospheric pressure high boundary (overrides radius low boundary) "
       "[default: %(default)s]")
-  pt.addarg("nlayers",     group, np.int,    100,
+  pt.addarg("nlayers",     group, np.int,    None,
       "Number of atmospheric layers [default: %(default)s]")
   pt.addarg("punits",      group, str,       None,
       "Pressure (user) units [default: bar]")
@@ -210,6 +210,8 @@ def parse(pyrat):
       "Planetary radius (in radunits)")
   pt.addarg("refpressure", group, str,       None,
       "Pressure reference level corresponding to rplanet (in punits).")
+  pt.addarg("mplanet",     group, str,       None,
+      "Planetary mass (default units: gram)")
   pt.addarg("gplanet",     group, np.double, None,
       "Planetaty surface gravity (cm s-2).")
   pt.addarg("smaxis",     group, str,       None,
@@ -295,6 +297,7 @@ def parse(pyrat):
   pyrat.inputs.gstar      = user.gstar
   pyrat.inputs.tstar      = user.tstar
   pyrat.inputs.rplanet    = user.rplanet
+  pyrat.inputs.mplanet    = user.mplanet
   pyrat.inputs.gplanet    = user.gplanet
   pyrat.inputs.smaxis     = user.smaxis
   pyrat.inputs.tint       = user.tint
@@ -475,24 +478,40 @@ def checkinputs(pyrat):
   pyrat.phy.rplanet = pt.getparam(inputs.rplanet, pyrat.radunits)
   isgreater(pyrat.phy.rplanet, "cm",   0, True,
             "Planetary radius ({:.3e} cm) must be > 0.", pyrat.log)
+
   pyrat.refpressure = pt.getparam(inputs.refpressure, pyrat.punits)
   isgreater(pyrat.refpressure, "bar", 0, True,
       "Planetary reference pressure level ({:8g} bar) must be > 0.", pyrat.log)
+
   pyrat.phy.gplanet  = pt.getparam(inputs.gplanet,  "none")
   isgreater(pyrat.phy.gplanet, "none", 0, True,
             "Planetary surface gravity ({:.2f} cm s-2) must be > 0.", pyrat.log)
+
+  pyrat.phy.mplanet  = pt.getparam(inputs.mplanet,  "gram")
+  isgreater(pyrat.phy.gplanet, "mearth", 0, True,
+            "Planetary mass ({:.2f} Mearth) must be > 0.", pyrat.log)
+  # Compute gplanet from mass and radius if necessary/possible:
+  if (pyrat.phy.gplanet is None and
+      pyrat.phy.mplanet is not None and pyrat.phy.rplanet is not None):
+    pyrat.phy.gplanet = pc.G * pyrat.phy.mplanet / pyrat.phy.rplanet**2
+
+
   pyrat.phy.rstar = pt.getparam(inputs.rstar, pyrat.radunits)
   isgreater(pyrat.phy.rstar, "cm",   0, True,
             "Stellar radius ({:.3e} cm) must be > 0.", pyrat.log)
+
   pyrat.phy.gstar  = pt.getparam(inputs.gstar,  "none")
   isgreater(pyrat.phy.gstar, "none", 0, True,
             "Stellar surface gravity ({:.2f} cm s-2) must be > 0.", pyrat.log)
+
   pyrat.phy.tstar  = pt.getparam(inputs.tstar,  "none")
   isgreater(pyrat.phy.tstar, "none", 0, True,
             "Stellar effective temperature ({:.1f} K) must be > 0.", pyrat.log)
+
   pyrat.phy.smaxis = pt.getparam(inputs.smaxis, pyrat.radunits)
   isgreater(pyrat.phy.smaxis, "cm",   0, True,
             "Planetary radius ({:.3e} cm) must be > 0.", pyrat.log)
+
   pyrat.phy.tint = pt.defaultp(inputs.tint, 100.0,
             "Planetary internal temperature (tint) defaulted to {:.1f} K.",
             pyrat.wlog, pyrat.log)

@@ -77,7 +77,7 @@ def fit(params, pyrat, freeze=False):
   # Update radius profile:
   if len(pyrat.ret.irad) > 0:
     radius = atm.hydro_equilibrium(pyrat.atm.press, temp, pyrat.atm.m,
-        pyrat.gplanet, pyrat.refpressure, params[pyrat.irad][0]*pc.km)
+        pyrat.phy.gplanet, pyrat.refpressure, params[pyrat.ret.irad][0]*pc.km)
   else:
     radius = None
 

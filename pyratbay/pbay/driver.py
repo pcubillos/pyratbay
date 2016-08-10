@@ -43,114 +43,126 @@ def run(argv, main=False):
      the Python interpreter.
   """
 
-  # Setup the command-line-arguments input:
-  if main is False:
-    sys.argv = ['pbay.py', '-c', argv]
+  # Put everything into a try--except to catch the sys.exit() Traceback.
+  try:
+    # Setup the command-line-arguments input:
+    if main is False:
+      sys.argv = ['pbay.py', '-c', argv]
 
-  # Warnings log:
-  wlog = []
+    # Warnings log:
+    wlog = []
 
-  # Setup time tracker:
-  timestamps = []
-  timestamps.append(time.time())
+    # Setup time tracker:
+    timestamps = []
+    timestamps.append(time.time())
 
-  # Parse command line arguments:
-  args, log = ar.parse(wlog)
-  timestamps.append(time.time())
+    # Parse command line arguments:
+    args, log = ar.parse(wlog)
+    timestamps.append(time.time())
 
-  # Check run mode:
-  if args.runmode not in ['tli','pt','atmosphere','opacity','spectrum','mcmc']:
-    pt.error("Invalid runmode ({:s}). Select from: 'tli', 'pt', 'atmosphere', "
-             "'opacity', 'spectrum', 'mcmc'.".format(args.runmode))
+    # Check run mode:
+    if args.runmode not in pc.rmodes:
+      pt.error("Invalid runmode ({:s}). Select from: {:s}.".
+                format(args.runmode, str(pc.rmodes)))
 
-  # Call lineread package:
-  if args.runmode == "tli":
-    parser = lr.parser()
-    lr.makeTLI(parser.dblist,  parser.pflist, parser.dbtype,
-               parser.outfile, parser.iwl, parser.fwl, parser.verb)
-    return
+    # Call lineread package:
+    if args.runmode == "tli":
+      parser = lr.parser()
+      lr.makeTLI(parser.dblist,  parser.pflist, parser.dbtype,
+                 parser.outfile, parser.iwl, parser.fwl, parser.verb)
+      return
 
-  # Compute pressure-temperature profile:
-  if args.runmode in ["pt", "atmosphere"] or pt.isfile(args.atmfile) != 1:
-    ar.checkpressure(args, log, wlog)  # Check pressure inputs
-    pressure = atm.pressure(args.ptop, args.pbottom, args.nlayers,
-                           args.punits, log)
-    ar.checktemp(args, log, wlog)      # Check temperature inputs
-    temperature = atm.temperature(args.tmodel, pressure,
-       args.rstar, args.tstar, args.tint, args.gplanet, args.smaxis,
-       args.radunits, args.nlayers, log, args.tparams)
+    # Get gplanet from mplanet and rplanet if necessary:
+    if (args.gplanet is None and args.rplanet is not None and
+        args.mplanet is not None):
+      args.gplanet = (pc.G * pt.getparam(args.mplanet, "gram") /
+                      pt.getparam(args.rplanet, args.radunits)**2)
 
-  # Return temperature-pressure if requested:
-  if args.runmode == "pt":
-    plt.figure(1)
-    plt.semilogy(temperature, pressure)
-    plt.ylim(np.max(pressure), np.min(pressure))
-    plt.xlabel("Temperature  (K)")
-    plt.ylabel("Pressure  (barye)")
-    plt.savefig("tmp_pt.pdf")
-    return pressure, temperature
+    # Compute pressure-temperature profile:
+    if args.runmode in ["pt", "atmosphere"] or pt.isfile(args.atmfile) != 1:
+      ar.checkpressure(args, log, wlog)  # Check pressure inputs
+      pressure = atm.pressure(args.ptop, args.pbottom, args.nlayers,
+                             args.punits, log)
+      ar.checktemp(args, log, wlog)      # Check temperature inputs
+      temperature = atm.temperature(args.tmodel, pressure,
+         args.rstar, args.tstar, args.tint, args.gplanet, args.smaxis,
+         args.radunits, args.nlayers, log, args.tparams)
 
-  # Compute or read atmospheric abundances:
-  if args.runmode == "atmosphere" or pt.isfile(args.atmfile) != 1:
-    calcatm(args, pressure, temperature, log, wlog)
+    # Return temperature-pressure if requested:
+    if args.runmode == "pt":
+      plt.figure(1)
+      plt.semilogy(temperature, pressure)
+      plt.ylim(np.max(pressure), np.min(pressure))
+      plt.xlabel("Temperature  (K)")
+      plt.ylabel("Pressure  (barye)")
+      plt.savefig("tmp_pt.pdf")
+      return pressure, temperature
 
-  # Return atmospheric model if requested:
-  if args.runmode == "atmosphere":
-    species, pressure, temperature, abundances = atm.readatm(args.atmfile)
-    return pressure, temperature, abundances
+    # Compute or read atmospheric abundances:
+    if args.runmode == "atmosphere" or pt.isfile(args.atmfile) != 1:
+      calcatm(args, pressure, temperature, log, wlog)
 
-  # Check status of extinction-coefficient file if necessary:
-  if args.runmode != "spectrum" and pt.isfile(args.extfile) == -1:
-    pt.error("Unspecified extinction-coefficient file (extfile).", log)
+    # Return atmospheric model if requested:
+    if args.runmode == "atmosphere":
+      species, pressure, temperature, abundances = atm.readatm(args.atmfile)
+      return pressure, temperature, abundances
 
-  # Force to re-calculate extinction-coefficient file if requested:
-  if args.runmode == "opacity" and pt.isfile(args.extfile):
-    os.remove(args.extfile)
-    pass
+    # Check status of extinction-coefficient file if necessary:
+    if args.runmode != "spectrum" and pt.isfile(args.extfile) == -1:
+      pt.error("Unspecified extinction-coefficient file (extfile).", log)
 
-  # Initialize pyrat object:
-  pyrat = py.init(args.cfile)
+    # Force to re-calculate extinction-coefficient file if requested:
+    if args.runmode == "opacity" and pt.isfile(args.extfile):
+      os.remove(args.extfile)
+      pass
 
-  # Compute spectrum and return pyrat object if requested:
-  if args.runmode == "spectrum":
-    pyrat = py.run(pyrat)
-    return pyrat
+    # Initialize pyrat object:
+    pyrat = py.init(args.cfile)
 
-  # End if necessary:
-  if args.runmode == "opacity":
-    return
+    # Compute spectrum and return pyrat object if requested:
+    if args.runmode == "spectrum":
+      pyrat = py.run(pyrat)
+      return pyrat
 
-  # Parse retrieval into the Pyrat object:
-  pf.init(pyrat, args, log)
-  pyrat.verb = 0  # Mute pyrat
+    # End if necessary:
+    if args.runmode == "opacity":
+      return
 
-  # Run MCMC:
-  bestp, uncertp, posterior, Zchain = mc3.mcmc(data=args.data,
-         uncert=args.uncert,
-         func=pf.fit, indparams=[pyrat, True], params=args.params,
-         pmin=args.pmin, pmax=args.pmax, stepsize=args.stepsize,
-         walk=args.walk, nsamples=args.nsamples, nchains=args.nchains,
-         burnin=args.burnin, thinning=args.thinning, grtest=True,
-         hsize=10, kickoff='normal', log='MCMC.log',
-         plots=True, savefile="test.npz")
+    # Parse retrieval into the Pyrat object:
+    pf.init(pyrat, args, log)
+    pyrat.verb = 0  # Mute pyrat
 
-  # Best-fitting model:
-  bestbandflux = pf.fit(bestp, pyrat)
+    # Run MCMC:
+    bestp, uncertp, posterior, Zchain = mc3.mcmc(data=args.data,
+           uncert=args.uncert,
+           func=pf.fit, indparams=[pyrat, True], params=args.params,
+           pmin=args.pmin, pmax=args.pmax, stepsize=args.stepsize,
+           walk=args.walk, nsamples=args.nsamples, nchains=args.nchains,
+           burnin=args.burnin, thinning=args.thinning, grtest=True,
+           hsize=10, kickoff='normal', log='MCMC.log',
+           plots=True, savefile="test.npz")
 
-  # Best-fitting spectrum:
-  pp.spectrum(pyrat=pyrat, filename="bestfit_spectrum.png")
-  # Posterior PT profiles:
-  if pyrat.ret.tmodelname == "TCEA":
-    pp.TCEA(posterior, besttpars=bestp[pyrat.ret.itemp], pyrat=pyrat)
-  # Contribution functions:
-  cf  = pt.cf(pyrat.od.depth, pyrat.atm.press, pyrat.od.B)
-  bcf = pt.bandcf(cf, pyrat.obs.bandtrans, pyrat.obs.bandidx)
-  pp.cf(bcf, 1.0/(pyrat.obs.bandwn*pc.um), pyrat.atm.press,
-        filename="bestfit_cf.png")
+    # Best-fitting model:
+    bestbandflux = pf.fit(bestp, pyrat)
+
+    # Best-fitting spectrum:
+    pp.spectrum(pyrat=pyrat, filename="bestfit_spectrum.png")
+    # Posterior PT profiles:
+    if pyrat.ret.tmodelname == "TCEA":
+      pp.TCEA(posterior, besttpars=bestp[pyrat.ret.itemp], pyrat=pyrat)
+    # Contribution functions:
+    cf  = pt.cf(pyrat.od.depth, pyrat.atm.press, pyrat.od.B)
+    bcf = pt.bandcf(cf, pyrat.obs.bandtrans, pyrat.obs.bandidx)
+    pp.cf(bcf, 1.0/(pyrat.obs.bandwn*pc.um), pyrat.atm.press,
+          filename="bestfit_cf.png")
 
 
-  log.close()
-  return pyrat, bestp
+    log.close()
+    return pyrat, bestp
+
+  # Avoid printing to screeen the System-Exit Traceback error:
+  except SystemExit:
+    return None
 
 
 def calcatm(args, pressure, temperature, log, wlog):

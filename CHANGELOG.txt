@@ -2128,4 +2128,66 @@ Added a Kurucz file for the tutorial.
 Bumped Pyrat Bay to version 0.0.28.
 Bumped Pyrat to version 1.2.20.
 
+
+*****  Mi 20. Jul 17:52:52 CEST 2016  *****
+
+Fixed bug in plots.cf(). The code was breaking when there was a
+single band.
+
+
+*****  Do 21. Jul 09:01:05 CEST 2016  *****
+
+Fixed bug in pyrat/argum.py where the number of layers was being
+defaulted to 100 eveytime, instead of taking the number of layers
+from the input atmospheric model.
+
+*****
+
+Added output figure of getting-started docs script.
+Rearranged examples/ demo files into a single folder.
+Updated getting-started docs accordingly.
+Housekeeping docs, minor corrections.
+Fixed typo in examples/tutorial/run.py in TLI call.
+
+*****
+
+Added Note in examples/tutorial/run.py alerting to download the
+HITRAN input file before running the TLI command.
+
+*****
+
+Moved the units list from the tutorial docs into its own page.
+Updated tutorial docs.
+
+*****
+
+Implemented mplanet input argument (used to compute gplanet).
+Added gram and kg mass units.
+Added gravitational constant to pb.constants.
+Updated units docs.
+Fixed typo in pyratfit.py fit() for transmission geometry.
+This resolves #69.
+
+
+*****  Fr 22. Jul 10:07:21 CEST 2016  *****
+
+Put the pbay/driver.py main code into a try-except to avoid
+printing to screen the System-Exit Traceback error message.
+
+
+*****  Mi 10. Aug 09:48:01 CEST 2016  *****
+
+Updated docs and examples to make explicit that kappa, gamma1,
+and gamma2 TCEA parameters are in log10.
+
+*****
+
+Moved log (this file) from log/pyratlog.txt to CHANGELOG.txt.
+
+*****
+
+Fixed typos in tutorial docs and minor adjustments in examples.
+Bumped Pyrat Bay to version 0.0.29.
+Bumped Pyrat to version 1.2.21.
+
 *****

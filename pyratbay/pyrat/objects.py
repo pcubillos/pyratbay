@@ -570,6 +570,7 @@ class Physics(object):
     self.rstar    = None  # Stellar radius
     self.gstar    = None  # Stellar surface gravity
     self.rplanet  = None  # Planetary radius
+    self.mplanet  = None  # Planetary mass
     self.gplanet  = None  # Planetary surface gravity
     self.rprs     = None  # Planet-to-star radius ratio
     self.smaxis   = None  # Orbital semi-major axis
