@@ -2190,4 +2190,17 @@ Fixed typos in tutorial docs and minor adjustments in examples.
 Bumped Pyrat Bay to version 0.0.29.
 Bumped Pyrat to version 1.2.21.
 
+
+*****  Di 16. Aug 11:27:25 CEST 2016  *****
+
+Renamed hydro_equilibrium() to hydro_g() in atmosphere.py.
+This one uses a constant gravity g.
+Added hydro_m(), which is a HE calculation with variable g=GM/r**2.
+Removed redundant hydro code from readatm.py.
+
+In principle, in the future I will use hydro_m() when the planetary
+mass is given.  If not, use hydro_g() with the input g.  But the code
+is not ready yet (How to set the radius after the Hill radius?).
+
 *****
+

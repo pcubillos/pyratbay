@@ -3,7 +3,7 @@
 
 __all__ = ["writeatm", "readatm", "uniform", "makeatomic", "readatomic",
            "makepreatm", "TEA2pyrat", "pressure", "temperature",
-           "hydro_equilibrium"]
+           "hydro_g", "hydro_m"]
 
 import os
 import sys
@@ -524,9 +524,10 @@ def temperature(tmodel, pressure=None, rstar=None, tstar=None, tint=100.0,
     return Tmodel, targs, ntpars
 
 
-def hydro_equilibrium(pressure, temperature, mu, g, p0=None, r0=None):
+def hydro_g(pressure, temperature, mu, g, p0=None, r0=None):
   """
-  Calculate radii using the hydrostatic-equilibrium equation.
+  Calculate radii using the hydrostatic-equilibrium equation considering
+  a constant gravity.
 
   Parameters
   ----------
@@ -551,7 +552,7 @@ def hydro_equilibrium(pressure, temperature, mu, g, p0=None, r0=None):
   Notes
   -----
   If the reference values (p0 and r0) are not given, set radius = 0.0
-  at the bottom of the matmosphere.
+  at the bottom of the atmosphere.
   """
   # Apply the HE equation:
   radius = si.cumtrapz((-pc.k*sc.N_A * temperature) / (mu*g), np.log(pressure))
@@ -567,5 +568,49 @@ def hydro_equilibrium(pressure, temperature, mu, g, p0=None, r0=None):
   # Set radius = 0 at the bottom of the atmosphere:
   else:
     radius -= radius[-1]
+
+  return radius
+
+
+def hydro_m(pressure, temperature, mu, M, p0, r0):
+  """
+  Calculate radii using the hydrostatic-equilibrium equation considering
+  a variable gravity: g=G*M/r**2
+
+  Parameters
+  ----------
+  pressure: 1D float ndarray
+     Atmospheric pressure for each layer (in barye).
+  temperature: 1D float ndarray
+     Atmospheric temperature for each layer (in K).
+  mu: 1D float ndarray
+     Mean molecular mass for each layer (in g mol-1).
+  M: Float
+     Planetary mass (in g).
+  p0: Float
+     Reference pressure level (in barye) where radius(p0) = r0.
+  r0: Float
+     Reference radius level (in cm) corresponding to p0.
+
+  Returns
+  -------
+  radius: 1D float ndarray
+     Radius for each layer (in cm).
+  """
+  # Apply the HE equation:
+  I = si.cumtrapz((pc.k*sc.N_A*temperature)/(pc.G*mu*M), np.log(pressure))
+  I = np.concatenate(([0.0], I))
+
+  # Find current radius at p0:
+  radinterp = sip.interp1d(pressure, I, kind='slinear')
+  I0 = radinterp(p0)
+  # Set: radius(p0) = r0
+  radius = 1.0/(I - I0 + 1/r0)
+
+  # Throw error for unbounded radius:
+  if np.any(np.ediff1d(radius) < 0.0):
+    p = pressure[np.where(np.ediff1d(radius)>0)[0]][0]
+    pt.error("Unbounded atmosphere.  Hydrostatic-equilibrium radius "
+           "solution diverges at pressure {:.3e} bar.".format(p/pc.bar))
 
   return radius

@@ -8,8 +8,9 @@ import scipy.constants   as sc
 import scipy.integrate   as si
 import scipy.interpolate as sip
 
-from .. import tools     as pt
-from .. import constants as pc
+from .. import tools      as pt
+from .. import constants  as pc
+from .. import atmosphere as at
 
 def readatm(pyrat):
   """
@@ -297,9 +298,9 @@ def reloadatm(pyrat, temp, abund, radius=None):
     if pyrat.refpressure is None:
       pt.error("Undefined reference pressure level (refpressure). Either "
          "provide the radius profile for the layers or refpressure.", pyrat.log)
-    pyrat.atm.radius = hydro_equilibrium(pyrat.atm.press,   pyrat.atm.temp,
-                                         pyrat.atm.mm,      pyrat.phy.gplanet,
-                                         pyrat.refpressure, pyrat.phy.rplanet)
+    pyrat.atm.radius = at.hydro_g(pyrat.atm.press,   pyrat.atm.temp,
+                                  pyrat.atm.mm,      pyrat.phy.gplanet,
+                                  pyrat.refpressure, pyrat.phy.rplanet)
 
   # Partition function:
   for i in np.arange(pyrat.lt.ndb):           # For each Database
@@ -330,50 +331,3 @@ def IGLdensity(abundance, mass, pressure, temperature):
      Atmospheric density in molecules per centimeter^3.
   """
   return abundance * pressure / (pc.k * temperature)
-
-
-def hydro_equilibrium(pressure, temperature, mu, g, p0=None, r0=None):
-  """
-  Calculate radii using the hydrostatic-equilibrium equation.
-
-  Parameters:
-  -----------
-  pressure: 1D float ndarray
-     Atmospheric pressure for each layer (in barye).
-  temperature: 1D float ndarray
-     Atmospheric temperature for each layer (in K).
-  mu: 1D float ndarray
-     Mean molecular mass for each layer (in g mol-1).
-  g: Float
-     Atmospheric gravity (in cm s-2).
-  p0: Float
-     Reference pressure level where radius(p0) = r0.
-  r0: Flaot
-     Reference radius level corresponding to p0.
-
-  Returns:
-  --------
-  radius: 1D float ndarray
-     Radius for each layer (in cm).
-
-  Notes:
-  ------
-  If the reference values (p0 and r0) are not given, set radius = 0.0
-  at the bottom of the matmosphere.
-  """
-  # Apply the HE equation:
-  radius = si.cumtrapz((-pc.k*sc.N_A * temperature) / (mu*g), np.log(pressure))
-  radius = np.concatenate(([0.0], radius))
-
-  # Set absolute radii values if p0 and r0 are provided:
-  if p0 is not None and r0 is not None:
-    # Find current radius at p0:
-    radinterp = sip.interp1d(pressure, radius, kind='slinear')
-    r0_interp = radinterp(p0)
-    # Set: radius(p0) = r0
-    radius += r0 - r0_interp
-  # Set radius = 0 at the bottom of the atmosphere:
-  else:
-    radius -= radius[-1]
-
-  return radius

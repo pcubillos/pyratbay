@@ -344,8 +344,9 @@ def checkinputs(pyrat):
   """
   Check that user input arguments make sense.
   """
-  # User-inputs object:
+  # Shortcuts:
   inputs = pyrat.inputs
+  phy    = pyrat.phy
 
   # Path to source parent's folder:
   pyratdir = os.path.dirname(os.path.realpath(__file__))
@@ -475,26 +476,36 @@ def checkinputs(pyrat):
   isgreater(pyrat.radstep, "cm", 0, True,
             "Radius step size ({:.2f} cm) must be > 0.", pyrat.log)
   # System physical parameters:
-  pyrat.phy.rplanet = pt.getparam(inputs.rplanet, pyrat.radunits)
-  isgreater(pyrat.phy.rplanet, "cm",   0, True,
+  phy.rplanet = pt.getparam(inputs.rplanet, pyrat.radunits)
+  isgreater(phy.rplanet, "cm",   0, True,
             "Planetary radius ({:.3e} cm) must be > 0.", pyrat.log)
 
   pyrat.refpressure = pt.getparam(inputs.refpressure, pyrat.punits)
   isgreater(pyrat.refpressure, "bar", 0, True,
       "Planetary reference pressure level ({:8g} bar) must be > 0.", pyrat.log)
 
-  pyrat.phy.gplanet  = pt.getparam(inputs.gplanet,  "none")
-  isgreater(pyrat.phy.gplanet, "none", 0, True,
+  phy.gplanet  = pt.getparam(inputs.gplanet,  "none")
+  isgreater(phy.gplanet, "none", 0, True,
             "Planetary surface gravity ({:.2f} cm s-2) must be > 0.", pyrat.log)
-
-  pyrat.phy.mplanet  = pt.getparam(inputs.mplanet,  "gram")
-  isgreater(pyrat.phy.gplanet, "mearth", 0, True,
+  phy.mplanet  = pt.getparam(inputs.mplanet,  "gram")
+  isgreater(phy.gplanet, "mearth", 0, True,
             "Planetary mass ({:.2f} Mearth) must be > 0.", pyrat.log)
-  # Compute gplanet from mass and radius if necessary/possible:
-  if (pyrat.phy.gplanet is None and
-      pyrat.phy.mplanet is not None and pyrat.phy.rplanet is not None):
-    pyrat.phy.gplanet = pc.G * pyrat.phy.mplanet / pyrat.phy.rplanet**2
+  # Check planetary surface gravity:
+  if phy.mplanet is not None:
+    # hydro_m
+    if phy.gplanet is not None and phy.rplanet is not None:
+      gplanet = pc.G * phy.mplanet / phy.rplanet**2
+      if np.abs(gplanet-phy.gplanet)/phy.gplanet > 0.05:
+        pt.error("Both mplanet and gplanet were provided, but values are "
+          "inconsistent (>5%): g(mplanet) = {:7.1f} cm s-2 and gplanet = "
+          "{:7.1f} cm s-2.".format(gplanet, phy.gplanet))
+  elif phy.gplanet is not None:
+    pass # hydro_g
 
+  # Compute gplanet from mass and radius if necessary/possible:
+  if (phy.gplanet is None and
+      phy.mplanet is not None and phy.rplanet is not None):
+    phy.gplanet = pc.G * phy.mplanet / phy.rplanet**2
 
   pyrat.phy.rstar = pt.getparam(inputs.rstar, pyrat.radunits)
   isgreater(pyrat.phy.rstar, "cm",   0, True,

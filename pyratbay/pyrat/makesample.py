@@ -9,6 +9,7 @@ import scipy.interpolate as sip
 from .  import readatm   as ra
 from .. import tools     as pt
 from .. import constants as pc
+from .. import atmosphere as at
 
 def makewavenumber(pyrat):
   """
@@ -160,8 +161,8 @@ def makeradius(pyrat):
            pyrat.log, 2)
 
     # Calculate the radius profile using the hydostatic-equilibrium equation:
-    atm_in.radius = ra.hydro_equilibrium(atm_in.press, atm_in.temp, atm_in.mm,
-                       pyrat.phy.gplanet, pyrat.refpressure, pyrat.phy.rplanet)
+    atm_in.radius = at.hydro_g(atm_in.press, atm_in.temp, atm_in.mm,
+                      pyrat.phy.gplanet, pyrat.refpressure, pyrat.phy.rplanet)
 
   # Set the interpolating function (for use later):
   radinterp   = sip.interp1d(atm_in.press, atm_in.radius, kind='slinear')
