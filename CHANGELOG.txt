@@ -2204,3 +2204,7 @@ is not ready yet (How to set the radius after the Hill radius?).
 
 *****
 
+Bumped Pyrat Bay to version 0.0.30.
+Bumped Pyrat to version 1.2.22.
+
+*****
