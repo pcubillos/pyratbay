@@ -743,7 +743,9 @@ def checkinputs(pyrat):
   # Accept species lists, check after we load the atmospheric model:
   pyrat.ret.bulk     = inputs.bulk
   pyrat.ret.molscale = inputs.molscale
-  pyrat.ret.params   = inputs.params   # FINDME checks
+  pyrat.ret.params   = inputs.params
+  if pyrat.ret.params is not None:
+    pyrat.ret.nparams = len(pyrat.ret.params)
   pyrat.ret.stepsize = inputs.stepsize # FINDME checks
   pyrat.ret.tlow     = pt.getparam(inputs.tlow,  "kelvin")
   pyrat.ret.thigh    = pt.getparam(inputs.thigh, "kelvin")
@@ -825,6 +827,7 @@ def setup(pyrat):
   Process stellar spectrum.
   Process the oberving filter bands.
   """
+  # Shortcuts:
   obs = pyrat.obs
   phy = pyrat.phy
   ret = pyrat.ret
@@ -939,23 +942,22 @@ def setup(pyrat):
   else:
     ret.ntpars = 0
 
-  # Indices to parse the array of fitting parameters:
+  # Number of free parameters:
   ntemp  = ret.ntpars
-
   nrad   = int(pyrat.od.path == "transit")
   nhaze  = 0
-  nalk   = 0
+  if pyrat.ret.nparams > ntemp+nrad+nabund:
+    for i in np.arange(pyrat.haze.nmodels):
+      nhaze += pyrat.haze.model[i].npars
 
+  # Indices to parse the array of fitting parameters:
   pyrat.ret.itemp  = np.arange(0,          ntemp)
   pyrat.ret.irad   = np.arange(ntemp,      ntemp+nrad)
   pyrat.ret.iabund = np.arange(ntemp+nrad, ntemp+nrad+nabund)
   pyrat.ret.ihaze  = np.arange(ntemp+nrad+nabund, ntemp+nrad+nabund+nhaze)
-  pyrat.ret.ialk   = np.arange(ntemp+nrad+nabund+nhaze,
-                               ntemp+nrad+nabund+nhaze+nalk)
 
   if pyrat.runmode == "mcmc":
-    if len(pyrat.ret.params) != ntemp+nrad+nabund:
+    if pyrat.ret.nparams != ntemp+nrad+nabund+nhaze:
       pt.error("The input number of fitting parameters ({:d}) does not "
                "match the number of model parameters ({:d}).".
-                format(len(pyrat.ret.params), ntemp+nrad+nabund))
-
+                format(len(pyrat.ret.params), ntemp+nrad+nabund+nhaze))

@@ -14,8 +14,6 @@ from .. import atmosphere as atm
 def init(pyrat, args, log):
   """
   Initialize variables that will be used in the atmospheric retrieval.
-  Loads the stellar spectrum.
-  Loads the waveband transmission filters.
   """
 
   # Check stellar spectrum model:
@@ -80,6 +78,13 @@ def fit(params, pyrat, freeze=False):
         pyrat.phy.gplanet, pyrat.refpressure, params[pyrat.ret.irad][0]*pc.km)
   else:
     radius = None
+  # Update haze parameters:
+  if len(pyrat.ret.ihaze) > 0:
+    j = 0
+    hpars = params[pyrat.ret.irad]
+    for i in np.arange(pyrat.haze.nmodels):
+      pyrat.haze.model[i].pars = hpars[j:j+pyrat.haze.model[i].npars]
+      j += pyrat.haze.model[i].npars
 
   # Calculate spectrum:
   pyrat = py.run(pyrat, [temp, q2, radius])

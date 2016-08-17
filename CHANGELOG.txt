@@ -2220,4 +2220,9 @@ This resolves #18.
 
 *****
 
+Made haze parameters retrievable.
+To determine whether haze models are retrievable, check if the number
+of fitting parameters matches ntemp+nradius+nabund+nhaze.
+
+*****
 
