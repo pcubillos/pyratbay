@@ -2207,4 +2207,17 @@ is not ready yet (How to set the radius after the Hill radius?).
 Bumped Pyrat Bay to version 0.0.30.
 Bumped Pyrat to version 1.2.22.
 
+
+*****  Mi 17. Aug 11:15:09 CEST 2016  *****
+
+Fixed routine to interpolate cross-sections using C splines code.
+New CS-interpolation routine is nearly 6 times faster and reproduces
+the previous results down to 0.03% difference.
+Removed Pyton 2D-interpolation routine.
+Added splinterp_2D() routine to spline.c (which in fact is a 1D
+interpolation that repeats along second axis).
+This resolves #18.
+
 *****
+
+
