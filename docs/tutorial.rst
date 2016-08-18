@@ -56,15 +56,19 @@ This Link contains the list of available units:  :ref:`units`.
 Running Modes
 -------------
 
-``Pyrat Bay`` offers a sequence of running modes that allow you to
-generate a transition-line-information file (``runmode = tli``), a
-temperature-pressure profile (``pt``), an atmospheric model
-(``atmosphere``), a spectrum (``spectrum``), an extinction-coefficient
-table (``opacity``), or run an atmospheric retrieval (``mcmc``).
+``Pyrat Bay`` offers a sequence of running modes (``runmode``):
 
-Note that there is a logical sequence in these modes.  An ``mcmc`` run
-requires an opacity file, a ``spectrum`` or ``opacity`` run require an
-atmospheric model.  
+- ``tli``: Generate a transition-line-information file (used for spectral computation).
+- ``pt``: Compute a temperature-pressure profile.
+- ``atmosphere``: Generate a 1D atmospheric model (pressure, temperature, and abundances).
+- ``spectrum``: Compute forwad-modeling spectra (transmission or emission).
+- ``opacity``: Generate an extinction-coefficient table (to speed up spectra computation).
+- ``mcmc``: Run an atmospheric retrieval.
+
+Running modes that require a previous step (e.g., a spectrum
+computation requires an atmospheric model), can do all required
+calculations in a single run, as long as the user provides all the
+necessary parameters in the configuration file.
 
 .. Depending on the selected running mode, the returned outputs will
    differ.
@@ -81,9 +85,9 @@ repository, i.e.:
 
 .. code-block:: shell
 
-   #    parentdir/
-   #    |-- pyratbay/
-   #    `-- run_tutorial/
+   #   parentdir/
+   #   |-- pyratbay/
+   #   `-- run_tutorial/
 
 Start by copying the configuration files into the working directory
 and start a Python session:
@@ -299,6 +303,8 @@ Plot the profiles:
   plt.ylabel("Pressure  (bar)")
   plt.savefig("pyrat_PT_tutorial.pdf")
 
+.. image:: ./figures/pyrat_PT_tutorial.png
+   :width: 70%
 
 .. note:: If any of the required variables is missing form the
           configuration file, ``Pyrat Bay`` will throw an error
@@ -385,6 +391,9 @@ atmospheric model.
   plt.xlabel("Mole mixing fraction")
   plt.ylabel("Pressure  (bar)")
   plt.savefig("pyrat_atmosphere_tutorial.pdf")
+
+.. image:: ./figures/pyrat_atmosphere_tutorial.png
+   :width: 70%
 
 
 spectrum Mode
@@ -493,6 +502,8 @@ To plot the resulting spectrum you can use this script:
   plt.ylabel("Modulation  (Rp/Rs)^2")
   plt.xlabel("Wavelength  (um)")
 
+.. image:: ./figures/pyrat_transmission-spectrum_tutorial.png
+   :width: 70%
 
 Or alternatively, use this ``plots`` subpackage's routine:
 

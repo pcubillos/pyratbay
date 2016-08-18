@@ -399,6 +399,8 @@ class Cross(object):
     self.absorption = []      # CS extinction (in cm-1 amagat-2)
     self.iabsorp    = []      # wn-interpolated CS extinction (in cm-1 amagat-2)
     self.iz         = []      # Second derivatives of iabsorp
+    self.iwnlo      = []      # Lower-wavenumber index for interpolation
+    self.iwnhi      = []      # Upper-wavenumber index for interpolation
     self.ec         = None    # Interpolated CS extinction coefficient
                               #  in cm-1 [nlayer, nwave]
 
@@ -539,7 +541,7 @@ class Observation(object):
 # Retrieval variables:
 class Retrieval(object):
   def __init__(self):
-    self.nparams    = None  # Number of free parameters
+    self.nparams    = 0     # Number of free parameters
     self.tmodelname = None  # Temperature-model name
     self.tmodel     = None  # Temperature model
     self.ntpars     = None  # Number of temperature-model parameters

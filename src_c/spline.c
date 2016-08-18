@@ -85,6 +85,79 @@ static PyObject *splinterp(PyObject *self, PyObject *args){
 }
 
 
+PyDoc_STRVAR(splinterp_2D__doc__,
+"Cubic spline interpolation for 2D array along the first axis,\n\
+Repeating across second axis.                              \n\
+                                                           \n\
+Parameters                                                 \n\
+----------                                                 \n\
+yin: 2D double ndarray                                     \n\
+   Input y values of shape [nin, nin2].                    \n\
+xin: 1D double ndarray                                     \n\
+   Input x array of length nin.                            \n\
+z: 2D double ndarray                                       \n\
+   Second derivatives of yin at xin (of shape [nin, nin2]).\n\
+xout: 1D double ndarray                                    \n\
+   X valuer where to interpolate (of length nout).         \n\
+yout: 2D double ndarray                                    \n\
+   X valuer where to interpolate (of shape [nout,nin2]).   \n\
+lo: Integer                                                \n\
+   Lower index along second axis of yin to interpolate.    \n\
+hi: Integer                                                \n\
+   Upper index along second axis of yin to interpolate.    \n\
+                                                           \n\
+Notes                                                      \n\
+-----                                                      \n\
+This code is based on BART spline code written by          \n\
+  Ryan Challener and Sarah Blumenthal.");
+
+static PyObject *splinterp_2D(PyObject *self, PyObject *args){
+  PyArrayObject *xin, *yin, *z, *xout, *yout;
+  int i, j, nin, nout, index, lo, hi;
+  double dx, dy, deltax, a, b, c;
+
+  /* Load inputs:                                                           */
+  if (!PyArg_ParseTuple(args, "OOOOOii",
+                        &yin, &xin, &z, &xout, &yout, &lo, &hi))
+    return NULL;
+
+  nin  = PyArray_DIM(xin, 0);
+  nout = PyArray_DIM(xout,0);
+
+  for (i=0; i<nout; i++){
+    if (INDd(xout,i) < INDd(xin,0) || INDd(xout,i) > INDd(xin,(nin-1)))
+      return Py_BuildValue("d", NAN);
+
+    /* Binary search to find index:                                         */
+    index = binsearchapprox(xin, INDd(xout,i), 0, nin-1);
+    /* Enforce: x[i] <= xout (except if x[N-1] == xout):                    */
+    if (index == nin-1 || INDd(xout,i) < INDd(xin,index)){
+      index--;
+    }
+
+    /* If the requested x falls on a given x, no interpolation needed:      */
+    if (INDd(xin,index) == INDd(xout,i)){
+      for (j=lo; j<hi; j++){
+        IND2d(yout,i,j) = IND2d(yin,index,j);
+      }
+      continue;
+    }
+    /* Else, spline-interpolate:                                            */
+    dx = INDd(xin,(index+1)) - INDd(xin,index);
+    deltax = INDd(xout,i) - INDd(xin,index);
+    for (j=lo; j<hi; j++){
+      dy = IND2d(yin,(index+1),j) - IND2d(yin,index,j);
+      a = (IND2d(z,(index+1),j) - IND2d(z,index,j)) / (6*dx);
+      b = 0.5 * IND2d(z,index,j);
+      c = dy/dx - dx/6 * (IND2d(z,(index+1),j) + 2*IND2d(z,index,j));
+      IND2d(yout,i,j) = IND2d(yin,index,j) + deltax*(c + deltax*(b + deltax*a));
+    }
+  }
+
+  return Py_BuildValue("d", 0.0);
+}
+
+
 PyDoc_STRVAR(splinterp_pt__doc__,
 "Cubic spline interpolation for a single point.            \n\
                                                            \n\
@@ -206,6 +279,7 @@ PyDoc_STRVAR(spline__doc__, "Python wrapper for Cubic Spline Interpolation.");
 static PyMethodDef spline_methods[] = {
     {"splinterp",    splinterp,    METH_VARARGS, splinterp__doc__},
     {"splinterp_pt", splinterp_pt, METH_VARARGS, splinterp_pt__doc__},
+    {"splinterp_2D", splinterp_2D, METH_VARARGS, splinterp_2D__doc__},
     {"spline_init",  spline_init,  METH_VARARGS, spline_init__doc__},
     {NULL,           NULL,         0,            NULL}    /* sentinel       */
 };

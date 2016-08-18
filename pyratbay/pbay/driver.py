@@ -133,8 +133,8 @@ def run(argv, main=False):
     pyrat.verb = 0  # Mute pyrat
 
     # Run MCMC:
-    bestp, uncertp, posterior, Zchain = mc3.mcmc(data=args.data,
-           uncert=args.uncert,
+    bestp, CRlo, CRhi, stdp, posterior, Zchain = mc3.mcmc(
+           data=args.data, uncert=args.uncert,
            func=pf.fit, indparams=[pyrat, True], params=args.params,
            pmin=args.pmin, pmax=args.pmax, stepsize=args.stepsize,
            walk=args.walk, nsamples=args.nsamples, nchains=args.nchains,
