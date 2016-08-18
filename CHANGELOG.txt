@@ -2228,5 +2228,11 @@ of fitting parameters matches ntemp+nradius+nabund+nhaze.
 
 Updated MC3 submodule.
 
+
+*****  Do 18. Aug 11:12:50 CEST 2016  *****
+
+Added PT, atmosphere, and transmission-spectrum plots to the tutorial.
+Update some text at the intro of the tutorial.
+
 *****
 
