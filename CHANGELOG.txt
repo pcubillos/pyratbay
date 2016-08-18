@@ -2236,3 +2236,9 @@ Update some text at the intro of the tutorial.
 
 *****
 
+Added H2-He CIA table ranging from 50-3000 K and 0.3-30 um.
+This was computed using our rewritten Python version of Borysow's
+FORTRAN code.
+
+*****
+
