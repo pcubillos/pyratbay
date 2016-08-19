@@ -24,7 +24,7 @@ class tioschwenke(dbdriver):
   function.  One way to fix is, on vim do: :%s/\r/\r/g
   """
   def __init__(self, dbfile, pffile):
-    super(tioschwenke, self).__init__(dbfile, pffile)
+    super(tioschwenke, self).__init__(dbfile, pffile, log)
 
     # Database name:
     self.name ="Schwenke TiO (1998)"
@@ -44,6 +44,7 @@ class tioschwenke(dbdriver):
     # Table of logarithms:
     self.tablog    = 10.0**(0.001*(np.arange(32769) - 16384))
     self.pf_isonames = 0 # PF line with isotopes names 
+    self.log = log
 
 
   def readwave(self, dbfile, irec):
@@ -77,7 +78,7 @@ class tioschwenke(dbdriver):
     # Open and read the partition function file:
     if not os.path.isfile(self.dbfile):
       pt.error("Schwenke TiO database file '{:s}' does not exist.".
-               format(self.dbfile), log)
+               format(self.dbfile), self.log)
     partDB = open(self.pffile)
     PFlines = partDB.readlines()
     partDB.close()
