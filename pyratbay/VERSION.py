@@ -16,4 +16,4 @@ PYRAT_REV = 24  # Revision
 # Lineread version:
 LR_VER    =  6  # Major version
 LR_MIN    =  4  # Minor version
-LR_REV    =  7  # Revision
+LR_REV    =  8  # Revision
