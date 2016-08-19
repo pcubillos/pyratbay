@@ -2245,5 +2245,11 @@ FORTRAN code.
 Bumped Pyrat Bay to version 0.0.31.
 Bumped Pyrat to version 1.2.23.
 
+
+*****  Fr 19. Aug 09:58:29 CEST 2016  *****
+
+Fixed the alkali models when the line cores reside out of the
+sampled wavenumber range.
+
 *****
 

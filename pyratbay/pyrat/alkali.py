@@ -59,12 +59,19 @@ def absorption(pyrat):
     alkali.ec = np.zeros((pyrat.atm.nlayers, pyrat.spec.nwave), np.double)
     for k in np.arange(len(alkali.wn)):
       ec = np.zeros((pyrat.atm.nlayers, pyrat.spec.nwave), np.double)
-      wlo = np.where(pyrat.spec.wn > alkali.wn[k])[0][0] - vsize
-      whi = np.where(pyrat.spec.wn > alkali.wn[k])[0][0] + vsize + 1
+
+      offset = int((alkali.wn[k] - pyrat.spec.wn[0])/pyrat.spec.wnstep)+1
+      wlo = np.clip(offset-vsize,   0, pyrat.spec.nwave)
+      whi = np.clip(offset+vsize+1, 0, pyrat.spec.nwave)
       for j in np.arange(pyrat.atm.nlayers):
+        # Extinction out of the detuning region (power law):
         ec[j] += (profile[vindex[j]] *
                   (np.abs(pyrat.spec.wn-alkali.wn[k])/dsigma[j])**(-1.5))
-        ec[j, wlo[j]:whi[j]] = profile[vindex[j]:vindex[j]+2*vsize[j]+1]
+        # Profile ranges:
+        pran = (vindex[j] + wlo[j] - offset + vsize[j],
+                vindex[j] + whi[j] - offset + vsize[j])
+        # Extinction in the detuning region (Voigt profile):
+        ec[j, wlo[j]:whi[j]] = profile[pran[0]:pran[1]]
       alkali.ec += (pc.C3 * ec * alkali.gf[k] /alkali.Z * dens *
          np.exp(-pc.h*pc.c*np.abs(pyrat.spec.wn-alkali.wn[k])/(pc.k*temp[j])))
     #dsigma, dop, lor, lor2, profile, vsize, vindex
