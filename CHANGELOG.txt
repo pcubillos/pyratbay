@@ -2253,3 +2253,7 @@ sampled wavenumber range.
 
 *****
 
+Bumped Pyrat to version 1.2.24.
+
+*****
+
