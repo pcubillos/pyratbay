@@ -590,8 +590,6 @@ class Retrieval(object):
     self.irad   = None  # Radius-pressure-model parameter indices
     self.iabund = None  # Abundance-model parameter indices
     self.ihaze  = None  # Haze-model parameter indices
-    self.ialk   = None  # Alkali-model parameter indices
-#    self. = None  #
   def info(self, pyrat):
     # FINDME
     pass
@@ -602,19 +600,20 @@ class Physics(object):
   def __init__(self):
     self.tstar    = None  # Stellar effective temperature
     self.rstar    = None  # Stellar radius
+    self.mstar    = None  # Stellar mass
     self.gstar    = None  # Stellar surface gravity
     self.rplanet  = None  # Planetary radius
     self.mplanet  = None  # Planetary mass
     self.gplanet  = None  # Planetary surface gravity
     self.rprs     = None  # Planet-to-star radius ratio
     self.smaxis   = None  # Orbital semi-major axis
+    self.rhill    = None  # Planetary Hill radius
     self.starspec = None  # Stellar spectrum filename
     self.kurucz   = None  # Kurucz stellar spectrum
     self.marcs    = None  # MARCS stellar spectrum
     self.phoenix  = None  # PHOENIX stellar spectrum
-#    self. = None  #
-    self.starwn   = None  #  Input stellar wavenumber array
-    self.starflux = None  #  Input stellar flux spectrum in  FINDME units
+    self.starwn   = None  # Input stellar wavenumber array
+    self.starflux = None  # Input stellar flux spectrum in  FINDME units
   def info(self, pyrat):
     # FINDME
     pass

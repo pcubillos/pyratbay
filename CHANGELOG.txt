@@ -2273,3 +2273,10 @@ Fixed bug in hydro_m() function.
 
 ******
 
+Added mstar to pyrat input argument list.
+Added code to compute the Hill radius.
+Fixed minor typos in pyrat argum checkinputs().
+
+*****
+
+
