@@ -608,7 +608,7 @@ def hydro_m(pressure, temperature, mu, M, p0, r0):
   radius = 1.0/(I - I0 + 1/r0)
 
   # Throw error for unbounded radius:
-  if np.any(np.ediff1d(radius) < 0.0):
+  if np.any(np.ediff1d(radius) > 0.0):
     p = pressure[np.where(np.ediff1d(radius)>0)[0]][0]
     pt.error("Unbounded atmosphere.  Hydrostatic-equilibrium radius "
            "solution diverges at pressure {:.3e} bar.".format(p/pc.bar))

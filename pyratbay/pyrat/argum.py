@@ -340,6 +340,7 @@ def parse(pyrat):
   pt.msg(pyrat.inputs.verb-3, "Read command-line arguments from "
          "configuration file: '{:s}'".format(cfile), pyrat.log)
 
+
 def checkinputs(pyrat):
   """
   Check that user input arguments make sense.
@@ -492,20 +493,22 @@ def checkinputs(pyrat):
             "Planetary mass ({:.2f} Mearth) must be > 0.", pyrat.log)
   # Check planetary surface gravity:
   if phy.mplanet is not None:
-    # hydro_m
-    if phy.gplanet is not None and phy.rplanet is not None:
+    pyrat.hydrom = True  # Use mass value for hydrostatic equilibrium
+    if phy.rplanet is None and phy.gplanet is not None:
+      phy.rplanet = np.sqrt(pc.G * phy.mplanet / phy.gplanet)
+    if phy.rplanet is not None:
       gplanet = pc.G * phy.mplanet / phy.rplanet**2
-      if np.abs(gplanet-phy.gplanet)/phy.gplanet > 0.05:
+      if phy.gplanet is None:
+        phy.gplanet = gplanet
+      elif np.abs(gplanet-phy.gplanet)/phy.gplanet > 0.05:
         pt.error("Both mplanet and gplanet were provided, but values are "
           "inconsistent (>5%): g(mplanet) = {:7.1f} cm s-2 and gplanet = "
           "{:7.1f} cm s-2.".format(gplanet, phy.gplanet))
-  elif phy.gplanet is not None:
-    pass # hydro_g
 
   # Compute gplanet from mass and radius if necessary/possible:
-  if (phy.gplanet is None and
-      phy.mplanet is not None and phy.rplanet is not None):
-    phy.gplanet = pc.G * phy.mplanet / phy.rplanet**2
+  #if (phy.gplanet is None and
+  #    phy.mplanet is not None and phy.rplanet is not None):
+  #  phy.gplanet = pc.G * phy.mplanet / phy.rplanet**2
 
   pyrat.phy.rstar = pt.getparam(inputs.rstar, pyrat.radunits)
   isgreater(pyrat.phy.rstar, "cm",   0, True,

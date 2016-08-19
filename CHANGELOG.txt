@@ -2264,3 +2264,12 @@ Fixed bugs in TiO and VO database readers.
 Bumped Lineread to version 6.4.8.
 
 *****
+
+Added hydro() driver method to the pyrat object to compute the
+hydrostatic-equilibrium radii depending on the inputs.
+If the user set mplanet, use g=GM/R**2; else, use a constant gravity
+given by gplanet.
+Fixed bug in hydro_m() function.
+
+******
+

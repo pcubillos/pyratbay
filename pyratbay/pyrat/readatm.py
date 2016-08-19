@@ -10,7 +10,6 @@ import scipy.interpolate as sip
 
 from .. import tools      as pt
 from .. import constants  as pc
-from .. import atmosphere as at
 
 def readatm(pyrat):
   """
@@ -298,9 +297,9 @@ def reloadatm(pyrat, temp, abund, radius=None):
     if pyrat.refpressure is None:
       pt.error("Undefined reference pressure level (refpressure). Either "
          "provide the radius profile for the layers or refpressure.", pyrat.log)
-    pyrat.atm.radius = at.hydro_g(pyrat.atm.press,   pyrat.atm.temp,
-                                  pyrat.atm.mm,      pyrat.phy.gplanet,
-                                  pyrat.refpressure, pyrat.phy.rplanet)
+    pyrat.atm.radius = pyrat.hydro(pyrat.atm.press, pyrat.atm.temp,
+                          pyrat.atm.mm, pyrat.phy.gplanet, pyrat.phy.mplanet,
+                          pyrat.refpressure, pyrat.phy.rplanet)
 
   # Partition function:
   for i in np.arange(pyrat.lt.ndb):           # For each Database

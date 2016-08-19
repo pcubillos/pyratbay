@@ -131,7 +131,7 @@ def run(pyrat, inputs=None):
   od.opticaldepth(pyrat)
   timestamps.append(time.time())
 
-  # Calculate the modulation (transit) or emission (eclipse) spectrum:
+  # Calculate the spectrum:
   sp.spectrum(pyrat)
   timestamps.append(time.time())
 
