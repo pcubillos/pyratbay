@@ -117,7 +117,7 @@ class voplez(dbdriver):
     # Open the file:
     if not os.path.isfile(self.dbfile):
       pt.error("Plez VO database file '{:s}' does not exist.".
-               format(self.dbfile), log)
+               format(self.dbfile), self.log)
     data = open(self.dbfile, "r")
     # Get the total number of transitions:
     data.seek(0, 2)

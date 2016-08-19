@@ -2257,3 +2257,10 @@ Bumped Pyrat to version 1.2.24.
 
 *****
 
+Fixed bugs in TiO and VO database readers.
+
+*****
+
+Bumped Lineread to version 6.4.8.
+
+*****
