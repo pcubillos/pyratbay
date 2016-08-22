@@ -2290,4 +2290,7 @@ Adjusted path() in optdeph.py to handle rtop!=0.
 
 *****
 
+Bumped Pyrat to version 1.2.25.
+
+*****
 
