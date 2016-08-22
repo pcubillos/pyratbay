@@ -173,6 +173,7 @@ class Atm(object):
     self.mm        = None      # Mean molecular mass (gr/mol) [layers]
     self.q         = None      # Molecular abundances         [layers, nmol]
     self.d         = None      # Molecular densities          [layers, nmol]
+    self.rtop      = 0         # Index of topmost layer (within Hill radius)
 
   def info(self):
     pt.msg(1, "Atmospheric model info:")
@@ -607,7 +608,7 @@ class Physics(object):
     self.gplanet  = None  # Planetary surface gravity
     self.rprs     = None  # Planet-to-star radius ratio
     self.smaxis   = None  # Orbital semi-major axis
-    self.rhill    = None  # Planetary Hill radius
+    self.rhill    = np.inf  # Planetary Hill radius
     self.starspec = None  # Stellar spectrum filename
     self.kurucz   = None  # Kurucz stellar spectrum
     self.marcs    = None  # MARCS stellar spectrum

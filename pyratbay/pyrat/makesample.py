@@ -139,7 +139,7 @@ def makeradius(pyrat):
              "nor from the top down.", pyrat.log)
 
   if atm_in.radius is None:
-    # Check that the gravity variable is exists:
+    # Check that gplanet exists:
     if pyrat.phy.rplanet is None:
       pt.error("Undefined reference planetary radius (rplanet). Either include "
         "the radius profile in the atmospheric file or set rplanet.", pyrat.log)
@@ -154,9 +154,13 @@ def makeradius(pyrat):
     # Atmopsheric reference pressure-radius level:
     pt.msg(pyrat.verb-4, "Reference pressure: {:.3e} {:s}.".
            format(pyrat.refpressure/pt.u(pyrat.punits), pyrat.punits),
-           pyrat.log,   2)
-    pt.msg(pyrat.verb-4, "Reference radius: {:8g} {:s}.".
+           pyrat.log, 2)
+    pt.msg(pyrat.verb-4, "Reference radius: {:8.1f} {:s}.".
            format(pyrat.phy.rplanet/pt.u(pyrat.radunits), pyrat.radunits),
+           pyrat.log, 2)
+    if not np.isinf(pyrat.phy.rhill):
+      pt.msg(pyrat.verb-4, "Hill radius:      {:8.1f} {:s}.".
+           format(pyrat.phy.rhill/pt.u(pyrat.radunits), pyrat.radunits),
            pyrat.log, 2)
 
     # Calculate the radius profile using the hydostatic-equilibrium equation:
@@ -164,44 +168,60 @@ def makeradius(pyrat):
                                 pyrat.phy.gplanet, pyrat.phy.mplanet,
                                 pyrat.refpressure, pyrat.phy.rplanet)
 
-  # Set the interpolating function (for use later):
-  radinterp   = sip.interp1d(atm_in.press, atm_in.radius, kind='slinear')
-  pressinterp = sip.interp1d(atm_in.radius[::-1],
-                             atm_in.press [::-1], kind='slinear')
-  radstr = '['+', '.join('{:9.2f}'.format(k) for k in atm_in.radius/pc.km)+']'
-  pt.msg(pyrat.verb-4, "Radius array (km) =   {:s}".format(radstr),
-         pyrat.log, 2, si=4)
+  # Check if Hydrostatic Eq. breaks down:
+  ibreak = 0  # Index and flag at the same time
+  if np.any(np.ediff1d(atm_in.radius) > 0.0):
+    ibreak = np.where(np.ediff1d(atm_in.radius)>0)[0][0] + 1
 
-  # Set pressure boundaries:
-  if pyrat.radhigh is not None:
-    pyrat.plow = pressinterp(pyrat.radhigh)[0]
-  elif pyrat.phigh is None:
-    pyrat.phigh = np.amax(atm_in.press)
+  # Set the interpolating function (for use later):
+  radinterp   = sip.interp1d(atm_in.press [ibreak:],
+                             atm_in.radius[ibreak:], kind='slinear')
+  pressinterp = sip.interp1d(np.flipud(atm_in.radius[ibreak:]),
+                             np.flipud(atm_in.press [ibreak:]), kind='slinear')
+
+  # Set radius/pressure boundaries if exist:
+  if pyrat.plow is not None:
+    if pyrat.plow >= atm_in.press[ibreak]:
+      ibreak = 0   # Turn-off break flag
+  elif pyrat.radhigh is not None:
+    if pyrat.radhigh <= atm_in.radius[ibreak]:
+      ibreak = 0   # Turn-off break flag
+      pyrat.plow = pressinterp(pyrat.radhigh)[0]
+    #else:
+    #  out-of-bounds error
+  else:
+    pyrat.plow = np.amin(atm_in.press)
 
   if pyrat.radlow is not None:
     pyrat.phigh = pressinterp(pyrat.radlow)[0]
-  elif pyrat.plow is None:
-    pyrat.plow  = np.amin(atm_in.press)
+  elif pyrat.phigh is None:
+    pyrat.phigh = np.amax(atm_in.press)
 
-  pt.msg(pyrat.verb-4, "User pressure boundaries: {:.2e}--{:.2e} bar.".
-         format(pyrat.plow/pc.bar, pyrat.phigh/pc.bar), pyrat.log, 2)
+  if ibreak != 0 and np.isinf(pyrat.phy.rhill):
+    pt.error("Unbounded atmosphere.  Hydrostatic-equilibrium radius solution "
+             "diverges at pressure {:.3e} bar.  Set mstar and smaxis to "
+             "define a Hill radius (top boundary) and avoid error.".
+              format(atm_in.press[ibreak]/pc.bar))
 
   # Out of bounds errors:
-  if pyrat.phigh > np.amax(atm_in.press):
-    pt.error("User-defined top layer (p={:.3e} {:s}) is higher than the "
-             "atmospheric-file top layer (p={:.3e} {:s}).".
-             format(pyrat.phigh/pt.u(pyrat.punits), pyrat.punits,
-             np.amax(atm_in.press)/pt.u(pyrat.punits), pyrat.punits), pyrat.log)
   if pyrat.plow < np.amin(atm_in.press):
     pt.error("User-defined bottom layer (p={:.3e} {:s}) is lower than the "
              "atmospheric-file bottom layer (p={:.3e} {:s}).".
              format(pyrat.plow/pt.u(pyrat.punits), pyrat.punits,
              np.amin(atm_in.press)/pt.u(pyrat.punits), pyrat.punits), pyrat.log)
+  if pyrat.phigh > np.amax(atm_in.press):
+    pt.error("User-defined top layer (p={:.3e} {:s}) is higher than the "
+             "atmospheric-file top layer (p={:.3e} {:s}).".
+             format(pyrat.phigh/pt.u(pyrat.punits), pyrat.punits,
+             np.amax(atm_in.press)/pt.u(pyrat.punits), pyrat.punits), pyrat.log)
+
+  pt.msg(pyrat.verb-4, "User pressure boundaries: {:.2e}--{:.2e} bar.".
+         format(pyrat.plow/pc.bar, pyrat.phigh/pc.bar), pyrat.log, 2)
 
   # Resample to equispaced log-pressure array if requested:
   if atm.nlayers is not None:
-    atm.press = np.logspace(np.log10(pyrat.phigh), np.log10(pyrat.plow),
-                            atm.nlayers)[::-1]
+    atm.press = np.logspace(np.log10(pyrat.plow), np.log10(pyrat.phigh),
+                            atm.nlayers)
     atm.radius = radinterp(atm.press)
     resample = True
 
@@ -216,8 +236,6 @@ def makeradius(pyrat):
     atm.radius = np.arange(pyrat.radlow, pyrat.radhigh, pyrat.radstep)
     atm.nlayers = len(atm.radius)
     # Avoid radinterp going out-of-bounds:
-    # radlow  = np.amax([rad[ 0], radinterp([pyrat.phigh])[0]])
-    # radhigh = np.amin([rad[-1], radinterp([pyrat.plow ])[0]])
     # Interpolate to pressure array:
     atm.press = pressinterp(atm.radius)
     resample = True
@@ -237,6 +255,16 @@ def makeradius(pyrat):
     atm.nlayers = len(atm.press)
     resample = False
 
+  # Check the radii lie within Hill radius:
+  rtop = np.where(atm.radius > pyrat.phy.rhill)[0]
+  if np.size(rtop) > 0:
+    pyrat.atm.rtop = rtop[-1] + 1
+    pt.warning(pyrat.verb-2, "The atmospheric pressure array extends "
+       "beyond the Hill radius ({:.1f} km) at pressure {:.2e} bar (layer "
+       "#{:d}).  Extinction beyond this layer will be neglected.".
+        format(pyrat.phy.rhill/pc.km, atm_in.press[pyrat.atm.rtop]/pc.bar,
+               pyrat.atm.rtop), pyrat.log, pyrat.wlog)
+
   # Radius-vs-pressure from Atm. file and resampled array:
   # plt.figure(2)
   # plt.clf()
@@ -250,14 +278,19 @@ def makeradius(pyrat):
   # plt.ylabel("Radius  ({:s})".format(pyrat.radunits))
   # plt.savefig("radpress.png")
 
-  pt.msg(pyrat.verb-4, "Number of model layers: {:d}.".format(atm.nlayers),
-         pyrat.log, 2)
-  pt.msg(pyrat.verb-4, "Pressure lower/higher boundaries: {:.2e} - {:.2e} "
-                 "{:s}.".format(pyrat.plow /pt.u(pyrat.punits),
+  # Print radius array:
+  radstr = '['+', '.join('{:9.2f}'.format(k) for k in atm_in.radius/pc.km)+']'
+  pt.msg(pyrat.verb-4, "Radius array (km) =   {:s}".format(radstr),
+         pyrat.log, 2, si=4)
+
+  pt.msg(pyrat.verb-4, "Number of valid model layers: {:d}.".
+                        format(atm.nlayers-atm.rtop), pyrat.log, 2)
+  pt.msg(pyrat.verb-4, "Valid lower/higher pressure boundaries: {:.2e} - "
+         "{:.2e} {:s}.".format(atm.press[atm.rtop]/pt.u(pyrat.punits),
                  pyrat.phigh/pt.u(pyrat.punits), pyrat.punits), pyrat.log, 2)
-  pt.msg(pyrat.verb-4, "Radius lower/higher boundaries: {:.1f} - {:.1f} {:s}.".
-       format(np.amin(atm.radius)/pt.u(pyrat.radunits),
-       np.amax(atm.radius)/pt.u(pyrat.radunits), pyrat.radunits), pyrat.log, 2)
+  pt.msg(pyrat.verb-4, "Valid upper/lower radius boundaries:    {:8.1f} - {:8.1f} "
+         "{:s}.".format(atm.radius[atm.rtop]/pt.u(pyrat.radunits),
+          atm.radius[-1]/pt.u(pyrat.radunits), pyrat.radunits), pyrat.log, 2)
 
    # Interpolate to new atm-layer sampling if necessary:
   if resample:

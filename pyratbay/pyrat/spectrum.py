@@ -38,19 +38,21 @@ def modulation(pyrat):
   """
   Calculate the modulation spectrum for transit geometry.
   """
+  rtop = pyrat.atm.rtop
   # Get the stellar radius:
-  h = np.ediff1d(pyrat.atm.radius)
+  h = np.ediff1d(pyrat.atm.radius[rtop:])
 
   for i in np.arange(pyrat.spec.nwave):
     # Layer index where the optical depth reached maxdepth:
     last = pyrat.od.ideep[i]
     # The integrand:
-    integ = np.exp(-pyrat.od.depth[0:last+1,i]) * pyrat.atm.radius[0:last+1]
+    integ = (np.exp(-pyrat.od.depth[rtop:last+1,i]) *
+                   pyrat.atm.radius[rtop:last+1])
 
     # Integrate with Simpson's rule:
     pyrat.spec.spectrum[i] = s.simps(integ, h[0:last], *s.geth(h[0:last]))
 
-  pyrat.spec.spectrum = ((pyrat.atm.radius[0]**2 + 2*pyrat.spec.spectrum) /
+  pyrat.spec.spectrum = ((pyrat.atm.radius[rtop]**2 + 2*pyrat.spec.spectrum) /
                          pyrat.phy.rstar**2)
   pt.msg(pyrat.verb-3, "Computed transmission spectrum: '{:s}'.".
                         format(pyrat.outspec), pyrat.log, 2)
@@ -68,7 +70,7 @@ def intensity(pyrat):
   pyrat.nangles = len(pyrat.raygrid)
   pyrat.spec.intensity = np.empty((pyrat.nangles, pyrat.spec.nwave), np.double)
 
-  # Calculate the Blackbody function:
+  # Calculate the Planck Emission:
   pyrat.od.B = np.zeros((pyrat.atm.nlayers, pyrat.spec.nwave), np.double)
   bb.planck(pyrat.od.B, pyrat.spec.wn, pyrat.atm.temp, pyrat.od.ideep)
 
@@ -77,19 +79,20 @@ def intensity(pyrat):
   dltau = np.empty(pyrat.atm.nlayers, np.double)
 
   # Calculate the intensity for each angle in raygrid:
+  rtop = pyrat.atm.rtop
   i = 0
   while (i < pyrat.spec.nwave):
     # Layer index where the optical depth reached maxdepth:
     last = pyrat.od.ideep[i]
     # Optical depth:
-    tau  = pyrat.od.depth[:last+1,i]
+    tau  = pyrat.od.depth[rtop:last+1,i]
     cu.ediff(tau, dtau, last+1)
-    hsum, hratio, hfactor = s.geth(dtau[:last])
+    hsum, hratio, hfactor = s.geth(dtau[rtop:last])
     j = 0
-    while (j <pyrat.nangles):
+    while (j < pyrat.nangles):
       # The integrand:
-      integ = (pyrat.od.B[:last+1,i] * np.exp(-tau/np.cos(pyrat.raygrid[j])) /
-               np.cos(pyrat.raygrid[j]))
+      integ = (pyrat.od.B[rtop:last+1,i] *
+               np.exp(-tau/np.cos(pyrat.raygrid[j])) / np.cos(pyrat.raygrid[j]))
       # Simpson integration:
       pyrat.spec.intensity[j,i] = s.simps(integ, dtau, hsum, hratio, hfactor)
       #ltau = np.log(tau[1:])
