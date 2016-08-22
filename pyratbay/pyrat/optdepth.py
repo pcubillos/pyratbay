@@ -34,12 +34,12 @@ def opticaldepth(pyrat):
 
   # Calculate the ray path:
   ti = time.time()
-  path(pyrat, pyrat.atm.radius, pyrat.od.path)
+  path(pyrat)
   #print("Path:   {:.6f}".format(time.time()-ti))
 
   # Obtain the extinction-coefficient:
   ti = time.time()
-  r = 0
+  r = pyrat.atm.rtop
   while r < pyrat.atm.nlayers:
     # Interpolate from table:
     if pyrat.ex.extfile is not None:
@@ -53,9 +53,7 @@ def opticaldepth(pyrat):
     r += 1
   #print("Interp: {:.6f}".format(time.time()-ti))
 
-
-  ti = time.time()
-  r = 0
+  r = pyrat.atm.rtop
   while r < pyrat.atm.nlayers:
     # Sum all contributions to the extinction:
     pyrat.od.ec[r] = (pyrat.ex.ec[r] +
@@ -63,23 +61,24 @@ def opticaldepth(pyrat):
                       pyrat.haze.ec[r] +
                       pyrat.alkali.ec[r])
     r += 1
-  #print("Add:    {:.6f}".format(time.time()-ti))
-
 
   ti = time.time()
   # Calculate the optical depth for each wavenumber:
   i = 0
   if pyrat.od.path == "eclipse":
     while i < pyrat.spec.nwave:
-      pyrat.od.ideep[i] = t.cumtrapz(pyrat.od.depth[:,i], pyrat.od.ec[:,i],
-                                     pyrat.od.raypath, pyrat.od.maxdepth)
+      pyrat.od.ideep[i] = t.cumtrapz(pyrat.od.depth  [pyrat.atm.rtop:,i],
+                                     pyrat.od.ec     [pyrat.atm.rtop:,i],
+                                     pyrat.od.raypath[pyrat.atm.rtop:],
+                                     pyrat.od.maxdepth) + pyrat.atm.rtop
       i += 1
   else: # pyrat.od.path == "transit"
     while i < pyrat.spec.nwave:
-      r = 0
+      r = pyrat.atm.rtop
       while r < pyrat.atm.nlayers:
         # Optical depth at each level (tau = integral e*ds):
-        pyrat.od.depth[r,i] = t.trapz(pyrat.od.ec[:r+1,i], pyrat.od.raypath[r])
+        pyrat.od.depth[r,i] = t.trapz(pyrat.od.ec[pyrat.atm.rtop:r+1,i],
+                                      pyrat.od.raypath[r])
 
         # Stop calculating the op. depth at this wavenumber if reached maxdeph:
         if pyrat.od.depth[r,i] >= pyrat.od.maxdepth:
@@ -91,7 +90,7 @@ def opticaldepth(pyrat):
   pt.msg(pyrat.verb-3, "Done.", pyrat.log)
 
 
-def path(pyrat, radius, path):
+def path(pyrat):
   """
   Calculate the distance along the ray path over each interval (layer).
 
@@ -100,31 +99,30 @@ def path(pyrat, radius, path):
   - Note that for eclipse geometry the path is always the same.  However,
     for transit geometry the path is unique to each impact parameter; hence,
     the calculation is more laborious.
-
-  Parameters:
-  -----------
-  pyrat: Pyrat instance
-  radius: 1D float ndarray
-  path: String
-     Flag that indicates eclipse or transit geometry.
   """
-  if   path == "eclipse":
+  if   pyrat.od.path == "eclipse":
+    radius = pyrat.atm.radius
     diffrad = np.empty(pyrat.atm.nlayers-1, np.double)
     cu.ediff(radius, diffrad, pyrat.atm.nlayers)
     pyrat.od.raypath = -diffrad
 
-  elif path == "transit":
+  elif pyrat.od.path == "transit":
     pyrat.od.raypath = []
-    r = 0
+    radius  = pyrat.atm.radius[pyrat.atm.rtop:]
+    nlayers = pyrat.atm.nlayers - pyrat.atm.rtop
+    # Empty-filling layers that don't contribute:
+    for r in np.arange(pyrat.atm.rtop):
+      pyrat.od.raypath.append([])
     # Compute the path for each impact parameter:
-    while r < pyrat.atm.nlayers:
+    r = 0
+    while r < nlayers:
       raypath = np.empty(r, np.double)
       for i in np.arange(r):
         raypath[i] = (np.sqrt(radius[i  ]**2 - radius[r]**2) -
                       np.sqrt(radius[i+1]**2 - radius[r]**2) )
       pyrat.od.raypath.append(raypath)
-      pt.msg(pyrat.verb-6,
-        "Raypath[{:3d}]: {}".format(r, pyrat.od.raypath[r]), pyrat.log, 2)
+      pt.msg(pyrat.verb-6, "Raypath[{:3d}]: {}".
+                            format(r, pyrat.od.raypath[r]), pyrat.log, 2)
       r += 1
 
   return

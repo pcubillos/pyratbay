@@ -10,7 +10,6 @@ import scipy.interpolate as sip
 
 from .. import tools      as pt
 from .. import constants  as pc
-from .. import atmosphere as at
 
 def readatm(pyrat):
   """
@@ -298,9 +297,20 @@ def reloadatm(pyrat, temp, abund, radius=None):
     if pyrat.refpressure is None:
       pt.error("Undefined reference pressure level (refpressure). Either "
          "provide the radius profile for the layers or refpressure.", pyrat.log)
-    pyrat.atm.radius = at.hydro_g(pyrat.atm.press,   pyrat.atm.temp,
-                                  pyrat.atm.mm,      pyrat.phy.gplanet,
-                                  pyrat.refpressure, pyrat.phy.rplanet)
+    pyrat.atm.radius = pyrat.hydro(pyrat.atm.press, pyrat.atm.temp,
+                          pyrat.atm.mm, pyrat.phy.gplanet, pyrat.phy.mplanet,
+                          pyrat.refpressure, pyrat.phy.rplanet)
+  # Check radii lie within Hill radius:
+  rtop = np.where(pyrat.atm.radius > pyrat.phy.rhill)[0]
+  if np.size(rtop) > 0:
+    pyrat.atm.rtop = rtop[-1] + 1
+    pt.warning(pyrat.verb-2, "The atmospheric pressure array extends "
+       "beyond the Hill radius ({:.3e} km) at pressure {:.3e} bar (layer "
+       "#{:d}).  Extinction beyond this layer will be neglected.".
+        format(pyrat.phy.rhill/pc.km, pyrat.atm.press[pyrat.atm.rtop]/pc.bar,
+               pyrat.atm.rtop), pyrat.log, pyrat.wlog)
+  else:
+    pyrat.atm.rtop = 0
 
   # Partition function:
   for i in np.arange(pyrat.lt.ndb):           # For each Database

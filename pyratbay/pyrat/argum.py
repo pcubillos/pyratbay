@@ -206,6 +206,8 @@ def parse(pyrat):
       "Stellar surface gravity (cm s-2).")
   pt.addarg("tstar",       group, np.double, None,
       "Stellar effective temperature (kelvin).")
+  pt.addarg("mstar",       group, str,       None,
+      "Stellar mass (default units: gram)")
   pt.addarg("rplanet",     group, str,       None,
       "Planetary radius (in radunits)")
   pt.addarg("refpressure", group, str,       None,
@@ -296,6 +298,7 @@ def parse(pyrat):
   pyrat.inputs.rstar      = user.rstar
   pyrat.inputs.gstar      = user.gstar
   pyrat.inputs.tstar      = user.tstar
+  pyrat.inputs.mstar      = user.mstar
   pyrat.inputs.rplanet    = user.rplanet
   pyrat.inputs.mplanet    = user.mplanet
   pyrat.inputs.gplanet    = user.gplanet
@@ -339,6 +342,7 @@ def parse(pyrat):
 
   pt.msg(pyrat.inputs.verb-3, "Read command-line arguments from "
          "configuration file: '{:s}'".format(cfile), pyrat.log)
+
 
 def checkinputs(pyrat):
   """
@@ -487,25 +491,26 @@ def checkinputs(pyrat):
   phy.gplanet  = pt.getparam(inputs.gplanet,  "none")
   isgreater(phy.gplanet, "none", 0, True,
             "Planetary surface gravity ({:.2f} cm s-2) must be > 0.", pyrat.log)
+
   phy.mplanet  = pt.getparam(inputs.mplanet,  "gram")
-  isgreater(phy.gplanet, "mearth", 0, True,
+  isgreater(phy.mplanet, "mearth", 0, True,
             "Planetary mass ({:.2f} Mearth) must be > 0.", pyrat.log)
+
   # Check planetary surface gravity:
   if phy.mplanet is not None:
-    # hydro_m
-    if phy.gplanet is not None and phy.rplanet is not None:
+    pyrat.hydrom = True  # Use mass value for hydrostatic equilibrium
+    if phy.rplanet is None and phy.gplanet is not None:
+      phy.rplanet = np.sqrt(pc.G * phy.mplanet / phy.gplanet)
+    if phy.rplanet is not None:
       gplanet = pc.G * phy.mplanet / phy.rplanet**2
-      if np.abs(gplanet-phy.gplanet)/phy.gplanet > 0.05:
+      if phy.gplanet is None:
+        phy.gplanet = gplanet
+      elif np.abs(gplanet-phy.gplanet)/phy.gplanet > 0.05:
         pt.error("Both mplanet and gplanet were provided, but values are "
           "inconsistent (>5%): g(mplanet) = {:7.1f} cm s-2 and gplanet = "
           "{:7.1f} cm s-2.".format(gplanet, phy.gplanet))
-  elif phy.gplanet is not None:
-    pass # hydro_g
-
-  # Compute gplanet from mass and radius if necessary/possible:
-  if (phy.gplanet is None and
-      phy.mplanet is not None and phy.rplanet is not None):
-    phy.gplanet = pc.G * phy.mplanet / phy.rplanet**2
+  elif phy.gplanet is not None and phy.rplanet is not None:
+    phy.mplanet = phy.gplanet * phy.rplanet**2 / pc.G
 
   pyrat.phy.rstar = pt.getparam(inputs.rstar, pyrat.radunits)
   isgreater(pyrat.phy.rstar, "cm",   0, True,
@@ -523,11 +528,20 @@ def checkinputs(pyrat):
   isgreater(pyrat.phy.smaxis, "cm",   0, True,
             "Planetary radius ({:.3e} cm) must be > 0.", pyrat.log)
 
+  phy.mstar  = pt.getparam(inputs.mstar, "gram")
+  isgreater(phy.mstar, "msun", 0, True,
+            "Stellar mass ({:.2f} Msun) must be > 0.", pyrat.log)
+
   pyrat.phy.tint = pt.defaultp(inputs.tint, 100.0,
             "Planetary internal temperature (tint) defaulted to {:.1f} K.",
             pyrat.wlog, pyrat.log)
-  isgreater(pyrat.phy.tint, "none", 0, True,
+  isgreater(phy.tint, "none", 0, True,
             "Planetary internal temperature ({:.1f} K) must be > 0.", pyrat.log)
+
+  # Compute the Hill radius for the planet:
+  if (phy.mstar is not None and phy.mplanet is not None and
+      phy.smaxis is not None):
+    phy.rhill = phy.smaxis * (phy.mplanet/(3*phy.mstar))**(1.0/3.0)
 
   pyrat.atm.nlayers = pt.getparam(inputs.nlayers, "none", integer=True)
   isgreater(pyrat.atm.nlayers, "none", 0, True,

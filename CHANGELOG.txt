@@ -2264,3 +2264,33 @@ Fixed bugs in TiO and VO database readers.
 Bumped Lineread to version 6.4.8.
 
 *****
+
+Added hydro() driver method to the pyrat object to compute the
+hydrostatic-equilibrium radii depending on the inputs.
+If the user set mplanet, use g=GM/R**2; else, use a constant gravity
+given by gplanet.
+Fixed bug in hydro_m() function.
+
+******
+
+Added mstar to pyrat input argument list.
+Added code to compute the Hill radius.
+Fixed minor typos in pyrat argum checkinputs().
+
+
+*****  Mo 22. Aug 14:58:08 CEST 2016  *****
+
+Added warning if Hill radius is reached before pmin in makeradius().
+Discard layers with radius > R.Hill (in optdepth.py and spectrum.py).
+Removed error message in hydro_m() when the HE solution breaks.
+Throw error if HE breaks down and there's no Hill radius defined.
+Added rtop to Atm() to indicate index of topmost valid layer,
+Added rhill to Physics() with the Hill radius.
+Adjusted path() in optdeph.py to handle rtop!=0.
+
+*****
+
+Bumped Pyrat to version 1.2.25.
+
+*****
+

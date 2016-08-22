@@ -3,8 +3,9 @@
 
 import numpy  as np
 
-from .. import tools     as pt
-from .. import constants as pc
+from .. import tools      as pt
+from .. import constants  as pc
+from .. import atmosphere as atm
 
 class Pyrat(object):
   """
@@ -44,6 +45,7 @@ class Pyrat(object):
     self.punits   = None  # Pressure physical units
     self.plow     = None  # Lowest pressure boundary
     self.phigh    = None  # Highest pressure boundary
+    self.hydrom   = False # Variable/constant-g flag for hydrostatic equilib.
     # Geometry:
     self.raygrid  = None  # Array of incident ray-angles
     # Other:
@@ -52,6 +54,36 @@ class Pyrat(object):
     self.log        = None  # Pyrat log file
     self.wlog       = []    # List of raised warnings
     self.timestamps = None  # Time stamps
+
+  def hydro(self, pressure, temperature, mu, g, mass, p0, r0):
+    """
+    Hydrostatic-equilibrium driver.
+    Depending on the self.hydrom flag, select between the g=GM/r**2
+    (hydrom=True) or constant-g (hydrom=False) formula to compute
+    the hydrostatic-equilibrium radii of the planet layers.
+
+    Parameters
+    ----------
+    pressure: 1D float ndarray
+       Atmospheric pressure for each layer (in barye).
+    temperature: 1D float ndarray
+       Atmospheric temperature for each layer (in K).
+    mu: 1D float ndarray
+       Mean molecular mass for each layer (in g mol-1).
+    g: Float
+       Atmospheric gravity (in cm s-2).
+    mass: Float
+       Planetary mass (in g).
+    p0: Float
+       Reference pressure level (in barye) where radius(p0) = r0.
+    r0: Float
+       Reference radius level (in cm) corresponding to p0.
+    """
+    # H.E. with  g=GM/r**2:
+    if self.hydrom:
+      return atm.hydro_m(pressure, temperature, mu, mass, p0, r0)
+    # H.E. with constant g:
+    return atm.hydro_g(pressure, temperature, mu, g, p0, r0)
 
 
 class Inputs(object):
@@ -141,6 +173,7 @@ class Atm(object):
     self.mm        = None      # Mean molecular mass (gr/mol) [layers]
     self.q         = None      # Molecular abundances         [layers, nmol]
     self.d         = None      # Molecular densities          [layers, nmol]
+    self.rtop      = 0         # Index of topmost layer (within Hill radius)
 
   def info(self):
     pt.msg(1, "Atmospheric model info:")
@@ -558,8 +591,6 @@ class Retrieval(object):
     self.irad   = None  # Radius-pressure-model parameter indices
     self.iabund = None  # Abundance-model parameter indices
     self.ihaze  = None  # Haze-model parameter indices
-    self.ialk   = None  # Alkali-model parameter indices
-#    self. = None  #
   def info(self, pyrat):
     # FINDME
     pass
@@ -570,19 +601,20 @@ class Physics(object):
   def __init__(self):
     self.tstar    = None  # Stellar effective temperature
     self.rstar    = None  # Stellar radius
+    self.mstar    = None  # Stellar mass
     self.gstar    = None  # Stellar surface gravity
     self.rplanet  = None  # Planetary radius
     self.mplanet  = None  # Planetary mass
     self.gplanet  = None  # Planetary surface gravity
     self.rprs     = None  # Planet-to-star radius ratio
     self.smaxis   = None  # Orbital semi-major axis
+    self.rhill    = np.inf  # Planetary Hill radius
     self.starspec = None  # Stellar spectrum filename
     self.kurucz   = None  # Kurucz stellar spectrum
     self.marcs    = None  # MARCS stellar spectrum
     self.phoenix  = None  # PHOENIX stellar spectrum
-#    self. = None  #
-    self.starwn   = None  #  Input stellar wavenumber array
-    self.starflux = None  #  Input stellar flux spectrum in  FINDME units
+    self.starwn   = None  # Input stellar wavenumber array
+    self.starflux = None  # Input stellar flux spectrum in  FINDME units
   def info(self, pyrat):
     # FINDME
     pass
