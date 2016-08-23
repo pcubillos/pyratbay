@@ -871,10 +871,14 @@ def setup(pyrat):
 
   # Obtain abundance ratios between the bulk species:
   if ret.bulk is not None:
-    ret.ibulk  = np.where(np.in1d(species, ret.bulk))[0]
+    ret.ibulk = []
+    for mol in ret.bulk:
+      ret.ibulk  += list(np.where(species==mol)[0])
     ret.bulkratio, ret.invsrat = atm.ratio(pyrat.atm.q, ret.ibulk)
   if ret.molscale is not None:
-    ret.iscale = np.where(np.in1d(species, ret.molscale))[0]
+    ret.iscale = []
+    for mol in ret.molscale:
+      ret.iscale += list(np.where(species==mol)[0])
     nabund = len(ret.iscale)
   else:
     nabund = 0

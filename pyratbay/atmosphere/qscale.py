@@ -123,9 +123,13 @@ def qscale(Q, spec, qscale, molscale, bulk, qsat=None,
   """
   q = np.copy(Q)
   if iscale is None:
-    iscale = np.where(np.in1d(spec, molscale))[0]
+    iscale = []
+    for mol in molscale:
+      iscale += list(np.where(spec==mol)[0])
   if ibulk is None:
-    ibulk = np.where(np.in1d(spec, bulk))[0]
+    ibulk = []
+    for mol in bulk:
+      ibulk  += list(np.where(spec==mol)[0])
   if bratio is None:
     bratio, invsrat = ratio(Q, ibulk)
 
