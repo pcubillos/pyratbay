@@ -2292,5 +2292,15 @@ Adjusted path() in optdeph.py to handle rtop!=0.
 
 Bumped Pyrat to version 1.2.25.
 
+
+*****  Di 23. Aug 15:24:29 CEST 2016  *****
+
+Fixed bug iscale and ibulk computation.  The indices were not sorted
+acording to the molscale and bulk species list.
+
+*****
+
+Bumped Pyrat to version 1.2.26.
+
 *****
 
