@@ -17,7 +17,7 @@ def init(pyrat, args, log):
   """
 
   # Check stellar spectrum model:
-  if pyrat.phy.starflux is None:
+  if pyrat.od.path == "eclipse" and pyrat.phy.starflux is None:
     pt.error("Unspecified stellar flux model.", log)
 
   # Check filter files and data:
@@ -74,7 +74,7 @@ def fit(params, pyrat, freeze=False):
                   bratio=pyrat.ret.bulkratio, invsrat=pyrat.ret.invsrat)
   # Update radius profile:
   if len(pyrat.ret.irad) > 0:
-    radius = pyrat.hydro(pyrat.atm.press, temp, pyrat.atm.m,
+    radius = pyrat.hydro(pyrat.atm.press, temp, pyrat.atm.mm,
                          pyrat.phy.gplanet, pyrat.phy.mplanet,
                          pyrat.refpressure, params[pyrat.ret.irad][0]*pc.km)
   else:
@@ -82,7 +82,7 @@ def fit(params, pyrat, freeze=False):
   # Update haze parameters:
   if len(pyrat.ret.ihaze) > 0:
     j = 0
-    hpars = params[pyrat.ret.irad]
+    hpars = params[pyrat.ret.ihaze]
     for i in np.arange(pyrat.haze.nmodels):
       pyrat.haze.model[i].pars = hpars[j:j+pyrat.haze.model[i].npars]
       j += pyrat.haze.model[i].npars

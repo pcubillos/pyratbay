@@ -2302,5 +2302,52 @@ acording to the molscale and bulk species list.
 
 Bumped Pyrat to version 1.2.26.
 
+
+*****  Mi 24. Aug 09:33:35 CEST 2016  *****
+
+Commented out print statements in qscale()'s qsat calculation.
+
+*****
+
+Fixed bug in haze extinction-coefficient calculation:
+In haze.py, moved extinction() function  into absorption() such
+that the model parameters get updated in each driver's run() call.
+Updated driver.py timestamps to time the haze and alkali models.
+
+*****
+
+Fixed typo in pyratfit.py, wrong name for the mean molecular mass
+variable, in the hydrostatic equilibrium call.
+
+*****
+
+Fixed bug in pyratfit.py, wrong fitting-parameter indices (irad)
+for haze parameters.
+
+*****
+
+Renamed cloudcc haze model to grey.
+Modified its parametes (cross-section, pto, pbottom) to work
+in log10 to better explore the parameter space.
+
+*****
+
+Fixed bug in pyratfit.py init().
+The code was requesting a stellar spectrum for transmission,
+which is not necessary.
+Added exeption to compute contribution functions only for
+emission geometry in pbay driver.
+
+*****
+
+Updated MCcubed submodule.
+
+*****
+
+Unified the log file for a run between pbay, pyrat, and mc3.
+The updated MC3 module takes the log started by pbay.
+Modified Pyrat to take pbay's log.
+This resolves #50.
+
 *****
 

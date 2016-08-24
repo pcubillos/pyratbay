@@ -23,7 +23,7 @@ rootdir = os.path.realpath(os.path.dirname(__file__) + "/../../")
 sys.path.append(rootdir + "/pyratbay/lib/")
 import pt as PT
 
-def parse(pyrat):
+def parse(pyrat, log=None):
   """
   Parse the command-line arguments into the pyrat object
 
@@ -327,7 +327,10 @@ def parse(pyrat):
   pyrat.inputs.logfile     = user.logfile
 
   # Open the Pyrat log file if requested:
-  if pyrat.inputs.logfile is not None:
+  if   log is not None:  # Take pre-existing log
+    pyrat.log = log
+    pyrat.logfile = os.path.realpath(log.name)
+  elif pyrat.inputs.logfile is not None:  # Start new log
     pyrat.logfile = os.path.realpath(pyrat.inputs.logfile)
     pyrat.log = open(pyrat.logfile, "w")
 

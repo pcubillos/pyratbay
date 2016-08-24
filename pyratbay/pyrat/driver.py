@@ -24,7 +24,7 @@ from .objects import Pyrat
 
 
 
-def init(argv, main=False):
+def init(argv, main=False, log=None):
   """
   PyRaT (Python Radiative Transfer) initialization driver (or should
   I say shipmaster?).
@@ -56,7 +56,7 @@ def init(argv, main=False):
   timestamps.append(time.time())
 
   # Parse command line arguments into pyrat:
-  ar.parse(pyrat)
+  ar.parse(pyrat, log)
   timestamps.append(time.time())
 
   # Check that user input arguments make sense:
@@ -90,9 +90,6 @@ def init(argv, main=False):
   cs.read(pyrat)
   timestamps.append(time.time())
 
-  # Calculate haze opacity cross section:
-  hz.extinction(pyrat)
-
   # Calculate extinction-coefficient table:
   ex.exttable(pyrat)
   timestamps.append(time.time())
@@ -123,9 +120,13 @@ def run(pyrat, inputs=None):
   cs.interpolate(pyrat)
   timestamps.append(time.time())
 
-  # Calculate the haze and alkali absorption:
+  # Calculate the haze absorption:
   hz.absorption(pyrat)
+  timestamps.append(time.time())
+
+  # Calculate the alkali absorption:
   al.absorption(pyrat)
+  timestamps.append(time.time())
 
   # Calculate the optical depth:
   od.opticaldepth(pyrat)
@@ -136,13 +137,14 @@ def run(pyrat, inputs=None):
   timestamps.append(time.time())
 
   pyrat.timestamps += list(np.ediff1d(timestamps))
-  dtime = pyrat.timestamps[0:9] + pyrat.timestamps[-4:]
+  dtime = pyrat.timestamps[0:9] + pyrat.timestamps[-6:]
   pt.msg(pyrat.verb-4, "\nTimestamps:\n"
         " Init:     {:10.6f}\n Parse:    {:10.6f}\n Inputs:   {:10.6f}\n"
         " Wnumber:  {:10.6f}\n Atmosph:  {:10.6f}\n TLI:      {:10.6f}\n"
         " Layers:   {:10.6f}\n Voigt:    {:10.6f}\n CIA read: {:10.6f}\n"
-        " Extinct:  {:10.6f}\n CIA intp: {:10.6f}\n O.Depth:  {:10.6f}\n"
-        " Spectrum: {:10.6f}".format(*dtime), pyrat.log)
+        " Extinct:  {:10.6f}\n CIA intp: {:10.6f}\n Haze:     {:10.6f}\n"
+        " Alkali:   {:10.6f}\n O.Depth:  {:10.6f}\n Spectrum: {:10.6f}".
+        format(*dtime), pyrat.log)
 
   if len(pyrat.wlog) > 0:
     # Write all warnings to file:
@@ -155,5 +157,6 @@ def run(pyrat, inputs=None):
     # Report it:
     pt.warning(pyrat.verb-2, "There was(were) {:d} warning(s) raised.  "
         "See '{:s}'.".format(len(pyrat.wlog), wfile), pyrat.log)
+    pyrat.log.flush()
   return pyrat
 
