@@ -74,7 +74,7 @@ def fit(params, pyrat, freeze=False):
                   bratio=pyrat.ret.bulkratio, invsrat=pyrat.ret.invsrat)
   # Update radius profile:
   if len(pyrat.ret.irad) > 0:
-    radius = pyrat.hydro(pyrat.atm.press, temp, pyrat.atm.m,
+    radius = pyrat.hydro(pyrat.atm.press, temp, pyrat.atm.mm,
                          pyrat.phy.gplanet, pyrat.phy.mplanet,
                          pyrat.refpressure, params[pyrat.ret.irad][0]*pc.km)
   else:
