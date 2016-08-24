@@ -2356,4 +2356,8 @@ Bumped Pyrat to version 1.2.27.
 
 *****
 
+Updated MCcubed (with version that accepts parname).
+
+*****
+
 
