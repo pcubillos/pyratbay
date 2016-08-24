@@ -2351,3 +2351,9 @@ This resolves #50.
 
 *****
 
+Bumped Pyrat to version 0.0.31.
+Bumped Pyrat to version 1.2.27.
+
+*****
+
+
