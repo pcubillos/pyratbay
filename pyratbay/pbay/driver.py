@@ -151,10 +151,11 @@ def run(argv, main=False):
     if pyrat.ret.tmodelname == "TCEA":
       pp.TCEA(posterior, besttpars=bestp[pyrat.ret.itemp], pyrat=pyrat)
     # Contribution functions:
-    cf  = pt.cf(pyrat.od.depth, pyrat.atm.press, pyrat.od.B)
-    bcf = pt.bandcf(cf, pyrat.obs.bandtrans, pyrat.obs.bandidx)
-    pp.cf(bcf, 1.0/(pyrat.obs.bandwn*pc.um), pyrat.atm.press,
-          filename="bestfit_cf.png")
+    if pyrat.od.path == "eclipse":
+      cf  = pt.cf(pyrat.od.depth, pyrat.atm.press, pyrat.od.B)
+      bcf = pt.bandcf(cf, pyrat.obs.bandtrans, pyrat.obs.bandidx)
+      pp.cf(bcf, 1.0/(pyrat.obs.bandwn*pc.um), pyrat.atm.press,
+            filename="bestfit_cf.png")
 
 
     log.close()

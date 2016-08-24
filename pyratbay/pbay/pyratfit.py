@@ -17,7 +17,7 @@ def init(pyrat, args, log):
   """
 
   # Check stellar spectrum model:
-  if pyrat.phy.starflux is None:
+  if pyrat.od.path == "eclipse" and pyrat.phy.starflux is None:
     pt.error("Unspecified stellar flux model.", log)
 
   # Check filter files and data:

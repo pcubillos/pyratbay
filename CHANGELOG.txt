@@ -2332,4 +2332,12 @@ in log10 to better explore the parameter space.
 
 *****
 
+Fixed bug in pyratfit.py init().
+The code was requesting a stellar spectrum for transmission,
+which is not necessary.
+Added exeption to compute contribution functions only for
+emission geometry in pbay driver.
+
+*****
+
 
