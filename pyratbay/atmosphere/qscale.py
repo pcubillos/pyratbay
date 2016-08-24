@@ -141,13 +141,13 @@ def qscale(Q, spec, qscale, molscale, bulk, qsat=None,
   # Enforce saturation limit:
   if qsat is not None:
     ifix = np.setdiff1d(np.arange(len(spec)), np.union1d(ibulk, iscale))
-    print(ifix)
-    q0 = ((qsat - np.sum(q[:,ifix], axis=1, keepdims=True)) /
-           np.sum(q[:,iscale], axis=1, keepdims=True))
-    print(q0)
+    #print(ifix)
+    q0 = ((qsat - np.sum(q[:,ifix],   axis=1, keepdims=True)) /
+                  np.sum(q[:,iscale], axis=1, keepdims=True))
+    #print(q0)
     q0 = np.clip(q0, 0.0, 1.0)
     q[:,iscale] *= q0
-    print(np.sum(q[:,ifix], axis=1)+np.sum(q[:,iscale], axis=1))
+    #print(np.sum(q[:,ifix], axis=1)+np.sum(q[:,iscale], axis=1))
 
   # Scale abundance of bulk species to balance sum(Q):
   balance(q, ibulk, bratio, invsrat)
