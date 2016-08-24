@@ -2351,7 +2351,7 @@ This resolves #50.
 
 *****
 
-Bumped Pyrat to version 0.0.31.
+Bumped Pyrat to version 0.0.32.
 Bumped Pyrat to version 1.2.27.
 
 *****
@@ -2366,4 +2366,8 @@ Added parname variable to haze models.
 
 *****
 
+Bumped Pyrat to version 0.0.33.
+Bumped Pyrat to version 1.2.28.
+
+*****
 
