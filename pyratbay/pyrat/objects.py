@@ -591,6 +591,7 @@ class Retrieval(object):
     self.irad   = None  # Radius-pressure-model parameter indices
     self.iabund = None  # Abundance-model parameter indices
     self.ihaze  = None  # Haze-model parameter indices
+    self.parname = []   # Model parameter names
   def info(self, pyrat):
     # FINDME
     pass

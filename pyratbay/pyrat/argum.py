@@ -956,20 +956,29 @@ def setup(pyrat):
     ret.ntpars = 5
     ret.targs  = [pyrat.atm.press, phy.rstar, phy.tstar, phy.tint,
                   phy.smaxis, phy.gplanet]
+    ret.parname = [r"$\log_{10}(\kappa)$", r"$\log_{10}(\gamma_1)$",
+                   r"$\log_{10}(\gamma2)$", r"$\alpha$", r"$\beta$"]
   elif ret.tmodelname == "isothermal":
     ret.tmodel = PT.isothermal
     ret.ntpars = 1
     ret.targs  = [pyrat.atm.nlayers]
+    ret.parname = [r"$T\ ({\rm K})$"]
   else:
     ret.ntpars = 0
 
   # Number of free parameters:
   ntemp  = ret.ntpars
   nrad   = int(pyrat.od.path == "transit")
+  if nrad == 1:
+    ret.parname += [r"${\rm Radius\ (km)}$"]
+  for i in np.arange(nabund):
+    ret.parname += [r"$\log_{{10}}(f_{{\rm {:s}}})$".format(ret.molscale[i])]
+
   nhaze  = 0
   if pyrat.ret.nparams > ntemp+nrad+nabund:
     for i in np.arange(pyrat.haze.nmodels):
       nhaze += pyrat.haze.model[i].npars
+      ret.parname += pyrat.haze.model[i].parname
 
   # Indices to parse the array of fitting parameters:
   pyrat.ret.itemp  = np.arange(0,          ntemp)

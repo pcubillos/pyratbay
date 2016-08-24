@@ -2360,4 +2360,10 @@ Updated MCcubed (with version that accepts parname).
 
 *****
 
+Added parameter names in MCMC plot outputs (automated),
+through the pyrat.ret.parname variable.
+Added parname variable to haze models.
+
+*****
+
 
