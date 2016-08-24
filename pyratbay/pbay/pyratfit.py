@@ -82,7 +82,7 @@ def fit(params, pyrat, freeze=False):
   # Update haze parameters:
   if len(pyrat.ret.ihaze) > 0:
     j = 0
-    hpars = params[pyrat.ret.irad]
+    hpars = params[pyrat.ret.ihaze]
     for i in np.arange(pyrat.haze.nmodels):
       pyrat.haze.model[i].pars = hpars[j:j+pyrat.haze.model[i].npars]
       j += pyrat.haze.model[i].npars

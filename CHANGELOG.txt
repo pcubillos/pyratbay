@@ -2319,5 +2319,11 @@ Updated driver.py timestamps to time the haze and alkali models.
 Fixed typo in pyratfit.py, wrong name for the mean molecular mass
 variable, in the hydrostatic equilibrium call.
 
-******
+*****
+
+Fixed bug in pyratfit.py, wrong fitting-parameter indices (irad)
+for haze parameters.
+
+*****
+
 
