@@ -81,24 +81,26 @@ class rayleighLdE():
     self.ec = (self.pars[0] * self.s0) * (wn * self.l0)**(-self.pars[1])
 
 
-class cloudcc():
+class grey():
   """
   Constant cross-section cloud model.
   """
   def __init__(self):
-    self.name  = "cloud_cc"       # Model name
-    self.pars  = [ 1.0,           # Cross-section scale factor (unitless)
-                   1e-4, 1e2]     # Top, bottom pressure (bar) boundaries
+    self.name  = "grey"           # Model name
+    self.pars  = [ 0.0,           # log10 of cross-section scale factor, top,
+                   -4, 2]         #  and bottom pressure (bar) boundaries
     self.npars = len(self.pars)   # Number of model fitting parameters
     self.ec    = None             # Model extinction coefficient
     self.mol   = "H2"
-    self.s0    = 5.31e-27         # CDefault coss-section (cm-2 molec-1)
+    self.s0    = 5.31e-27         # Default coss-section (cm-2 molec-1)
 
   def extinction(self, wn, pressure):
     """
-    Calculate the H2 Rayleigh cross section in cm2 molec-1:
-       cross section = pars[0] * s0 * (lambda/l0)**(pars[1])
-    With lambda the wavelength = 1/wavenumber.
+    Calculate a uniform grey-cloud cross section in cm2 molec-1:
+       cross section = s0 * 10**pars[0],
+    between layers with pressure 10**pars[1] -- 10**pars[2] bar
+    (top and bottom layers, respectively).
+    s0 is the H2 Rayleigh cross section at 0.35 um.
 
     Parameters
     ----------
@@ -108,18 +110,17 @@ class cloudcc():
     nlayers = len(pressure)
     nwave   = len(wn)
     # Get indices for cloud layer boundaries:
-    itop    = np.where(pressure >= self.pars[1]*pc.bar)[0][ 0]
-    ibottom = np.where(pressure <= self.pars[2]*pc.bar)[0][-1]
+    itop    = np.where(pressure >= 10**self.pars[1]*pc.bar)[0][ 0]
+    ibottom = np.where(pressure <= 10**self.pars[2]*pc.bar)[0][-1]
     # Rayleigh opacity cross section in cm2 molec-1 (aka. extinction coef.):
     self.ec = np.zeros((nlayers, nwave))
-    self.ec[itop:ibottom,:] = self.pars[0] * self.s0
-
+    self.ec[itop:ibottom,:] = 10**self.pars[0] * self.s0
 
 
 # List of available haze models:
 hmodels = [rayleighH2(),
            rayleighLdE(),
-           cloudcc()]
+           grey()]
 
 # Compile list of haze-model names:
 hnames = []

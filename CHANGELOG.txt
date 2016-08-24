@@ -2326,4 +2326,10 @@ for haze parameters.
 
 *****
 
+Renamed cloudcc haze model to grey.
+Modified its parametes (cross-section, pto, pbottom) to work
+in log10 to better explore the parameter space.
+
+*****
+
 
