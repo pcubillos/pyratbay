@@ -37,6 +37,7 @@ class rayleighH2():
     self.pars  = None           # Model fitting parameters
     self.ec    = None           # Model extinction coefficient (cm2 molec-1)
     self.mol   = "H2"           # Species causing the extinction
+    self.parname = []           # Fitting-parameter names
     self.coef  = np.array([8.14e-45, 1.28e-54, 1.61e-64])
 
   def extinction(self, wn, pressure):
@@ -62,7 +63,9 @@ class rayleighLdE():
                   -4.0]           # Power-law exponent
     self.npars = len(self.pars)   # Number of model fitting parameters
     self.ec    = None             # Model extinction coefficient
-    self.mol   = "H2"
+    self.mol   = "H2"             # Species causing the extinction
+    self.parname = [r"$f_{\rm Rayleigh}$", # Fitting-parameter names
+                    r"$\alpha$"]
     self.s0    = 5.31e-27         # Cross section (cm-2 molec-1) at l0
     self.l0    = 3.5e-5           # Nominal wavelength (cm)
 
@@ -91,7 +94,10 @@ class grey():
                    -4, 2]         #  and bottom pressure (bar) boundaries
     self.npars = len(self.pars)   # Number of model fitting parameters
     self.ec    = None             # Model extinction coefficient
-    self.mol   = "H2"
+    self.mol   = "H2"             # Species causing the extinction
+    self.parname = [r"$\log_{10}(f_{\rm gray})$",  # Fitting-parameter names
+                    r"$\log_{10}(p_{\rm top})\ ({\rm bar})$",
+                    r"$\log_{10}(p_{\rm bot})\ ({\rm bar})$"]
     self.s0    = 5.31e-27         # Default coss-section (cm-2 molec-1)
 
   def extinction(self, wn, pressure):

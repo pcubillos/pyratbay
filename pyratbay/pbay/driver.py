@@ -140,7 +140,7 @@ def run(argv, main=False):
            walk=args.walk, nsamples=args.nsamples, nchains=args.nchains,
            burnin=args.burnin, thinning=args.thinning, grtest=True,
            hsize=10, kickoff='normal', log=log,
-           plots=True, savefile="test.npz")
+           plots=True, parname=pyrat.ret.parname, savefile="test.npz")
 
     # Best-fitting model:
     bestbandflux = pf.fit(bestp, pyrat)

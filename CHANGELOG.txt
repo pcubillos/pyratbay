@@ -2351,9 +2351,23 @@ This resolves #50.
 
 *****
 
-Bumped Pyrat to version 0.0.31.
+Bumped Pyrat to version 0.0.32.
 Bumped Pyrat to version 1.2.27.
 
 *****
 
+Updated MCcubed (with version that accepts parname).
+
+*****
+
+Added parameter names in MCMC plot outputs (automated),
+through the pyrat.ret.parname variable.
+Added parname variable to haze models.
+
+*****
+
+Bumped Pyrat to version 0.0.33.
+Bumped Pyrat to version 1.2.28.
+
+*****
 
