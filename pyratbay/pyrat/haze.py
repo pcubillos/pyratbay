@@ -7,17 +7,6 @@ import numpy as np
 from .. import tools as pt
 from .. import constants as pc
 
-def extinction(pyrat):
-  """
-  Calculate the hazes extinction coefficient.
-  """
-  # Get list of haze models
-  for i in np.arange(pyrat.haze.nmodels):
-    # Feed params into the model:
-    pass
-    # Calculate the extinction coefficient (in cm2 molecule-1)
-    pyrat.haze.model[i].extinction(pyrat.spec.wn, pyrat.atm.press)
-
 
 def absorption(pyrat):
   """
@@ -27,6 +16,9 @@ def absorption(pyrat):
   pyrat.haze.ec = np.zeros((pyrat.atm.nlayers, pyrat.spec.nwave))
 
   for i in np.arange(pyrat.haze.nmodels):
+    # Calculate the extinction coefficient (in cm2 molecule-1):
+    pyrat.haze.model[i].extinction(pyrat.spec.wn, pyrat.atm.press)
+
     # Get molecule index:
     imol = np.where(pyrat.mol.name == pyrat.haze.model[i].mol)[0][0]
     # Densities in molecules cm-3:

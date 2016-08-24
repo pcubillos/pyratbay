@@ -2309,3 +2309,11 @@ Commented out print statements in qscale()'s qsat calculation.
 
 *****
 
+Fixed bug in haze extinction-coefficient calculation:
+In haze.py, moved extinction() function  into absorption() such
+that the model parameters get updated in each driver's run() call.
+Updated driver.py timestamps to time the haze and alkali models.
+
+*****
+
+
