@@ -24,7 +24,7 @@ from .objects import Pyrat
 
 
 
-def init(argv, main=False):
+def init(argv, main=False, log=None):
   """
   PyRaT (Python Radiative Transfer) initialization driver (or should
   I say shipmaster?).
@@ -56,7 +56,7 @@ def init(argv, main=False):
   timestamps.append(time.time())
 
   # Parse command line arguments into pyrat:
-  ar.parse(pyrat)
+  ar.parse(pyrat, log)
   timestamps.append(time.time())
 
   # Check that user input arguments make sense:
@@ -157,5 +157,6 @@ def run(pyrat, inputs=None):
     # Report it:
     pt.warning(pyrat.verb-2, "There was(were) {:d} warning(s) raised.  "
         "See '{:s}'.".format(len(pyrat.wlog), wfile), pyrat.log)
+    pyrat.log.flush()
   return pyrat
 

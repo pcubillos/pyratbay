@@ -2344,3 +2344,10 @@ Updated MCcubed submodule.
 
 *****
 
+Unified the log file for a run between pbay, pyrat, and mc3.
+The updated MC3 module takes the log started by pbay.
+Modified Pyrat to take pbay's log.
+This resolves #50.
+
+*****
+

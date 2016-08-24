@@ -117,7 +117,7 @@ def run(argv, main=False):
       pass
 
     # Initialize pyrat object:
-    pyrat = py.init(args.cfile)
+    pyrat = py.init(args.cfile, log=log)
 
     # Compute spectrum and return pyrat object if requested:
     if args.runmode == "spectrum":
@@ -128,7 +128,7 @@ def run(argv, main=False):
     if args.runmode == "opacity":
       return
 
-    # Parse retrieval into the Pyrat object:
+    # Parse retrieval info into the Pyrat object:
     pf.init(pyrat, args, log)
     pyrat.verb = 0  # Mute pyrat
 
@@ -139,7 +139,7 @@ def run(argv, main=False):
            pmin=args.pmin, pmax=args.pmax, stepsize=args.stepsize,
            walk=args.walk, nsamples=args.nsamples, nchains=args.nchains,
            burnin=args.burnin, thinning=args.thinning, grtest=True,
-           hsize=10, kickoff='normal', log='MCMC.log',
+           hsize=10, kickoff='normal', log=log,
            plots=True, savefile="test.npz")
 
     # Best-fitting model:
@@ -156,7 +156,6 @@ def run(argv, main=False):
       bcf = pt.bandcf(cf, pyrat.obs.bandtrans, pyrat.obs.bandidx)
       pp.cf(bcf, 1.0/(pyrat.obs.bandwn*pc.um), pyrat.atm.press,
             filename="bestfit_cf.png")
-
 
     log.close()
     return pyrat, bestp
