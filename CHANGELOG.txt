@@ -2378,4 +2378,7 @@ on the geometry.
 
 *****
 
+Renamed cf.py (in tool's folder) to contribfuncs.py.
+
+*****
 
