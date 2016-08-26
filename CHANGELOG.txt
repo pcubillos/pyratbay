@@ -2351,7 +2351,7 @@ This resolves #50.
 
 *****
 
-Bumped Pyrat to version 0.0.32.
+Bumped Pyrat Bay to version 0.0.32.
 Bumped Pyrat to version 1.2.27.
 
 *****
@@ -2366,7 +2366,7 @@ Added parname variable to haze models.
 
 *****
 
-Bumped Pyrat to version 0.0.33.
+Bumped Pyrat Bay to version 0.0.33.
 Bumped Pyrat to version 1.2.28.
 
 
@@ -2379,6 +2379,10 @@ on the geometry.
 *****
 
 Renamed cf.py (in tool's folder) to contribfuncs.py.
+
+*****
+
+Bumped Pyrat Bay to version 0.0.34.
 
 *****
 
