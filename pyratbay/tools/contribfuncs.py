@@ -3,7 +3,7 @@
 
 import numpy as np
 
-__all__ = ["cf", "bandcf"]
+__all__ = ["cf", "transmittance", "bandcf"]
 
 def cf(optdepth, pressure, B):
   """
@@ -43,14 +43,36 @@ def cf(optdepth, pressure, B):
   return cf
 
 
+def transmittance(optdepth, ideep):
+  """
+  Compute the transmittance spectrum for the impact-parameter
+  raypaths of a transmission model.
+
+  Parameters
+  ----------
+  optdepth: 2D float ndarray
+     Optical depth at each layer and wavenumber [nlayers, nwave].
+  ideep: 1D integer ndarray
+     Impact-parameter indices of deepest-calculated optical depth
+     at each wavenumber.
+  """
+  # Transmittance:
+  transmit = np.exp(-optdepth)
+  # Fill-in values beyond ideep:
+  for i in np.arange(len(ideep)):
+    transmit[ideep[i]:,i] = transmit[ideep[i],i]
+
+  return transmit
+
+
 def bandcf(cf, bandtrans, bandidx):
   """
-  Band-integrated contribution functions.
+  Compute band-averaged contribution functions or transmittances.
 
   Parameters
   ----------
   cf: 2D float ndarray
-    The contribution function [nlayers, nwave]
+    The contribution function or transmittance [nlayers, nwave]
   bandtrans: List of 1D ndarrays
     List of band transmission curves.
   bandidx: List of 1D ndarrays
@@ -64,7 +86,7 @@ def bandcf(cf, bandtrans, bandidx):
   nfilters = len(bandtrans)
   nlayers  = np.shape(cf)[0]
 
-  # Allocate arrays for filter cf and normalize cf
+  # Allocate arrays for filter cf:
   bandcf = np.zeros((nfilters, nlayers))
 
   # Number of filters

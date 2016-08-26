@@ -144,9 +144,10 @@ def spectrum(wlength=None, spectrum=None, data=None, uncert=None,
   return ax
 
 
-def cf(bandcf, bandwl, pressure, filename=None, filters=None):
+def cf(bandcf, bandwl, path, layers, rtop=0, filename=None, filters=None):
   """
-  Plot the band-integrated contribution functions.
+  Plot the band-integrated contribution functions (emission) or
+  transmittance (transmission).
 
   Parameters
   ----------
@@ -154,20 +155,38 @@ def cf(bandcf, bandwl, pressure, filename=None, filters=None):
      Band-integrated contribution functions [nfilters, nlayers].
   bandwl: 1D float ndarray
      Mean wavelength of the bands in microns.
-  pressure: 1D float ndarray
-     Layer's pressure array in barye.
+  path: String
+     Observing geometry (transit or eclipse).
+  layers: 1D float ndarray
+     Layer's pressure (eclipse) or impact parameter (transit) array (CGS units).
+  rtop: Integer
+     Index of topmost valid layer.
   filters: 1D string ndarray
      Name of the filter bands (optional).
   filename: String
      Filename of the output figure.
   """
   nfilters = len(bandwl)
-  xran   = 0, np.amax(bandcf)
-  press  = pressure/pc.bar
-  wlsort = np.argsort(bandwl)
+  wlsort   = np.argsort(bandwl)
+
+  if   path == "eclipse":
+    press = layers/pc.bar
+    xran = -0.03*np.amax(bandcf), 1.03*np.amax(bandcf)
+    yran = np.amax(press), np.amin(press)
+    xlabel = r'${\rm Contribution\ functions}$'
+    ylabel = r'${\rm Pressure\ \ (bar)}$'
+  elif path == "transit":
+    rad  = layers[rtop:]/pc.km
+    xran = -0.03, 1.03
+    yran = np.amin(rad), np.amax(rad)
+    xlabel = r'${\rm Band-averaged\ transmittance}$'
+    ylabel = r'${\rm Impact\ parameter\ \ (km)}$'
+  else:
+    print("Invalid geometry.  Select from: 'eclipse' or 'transit'.")
+    return
 
   fs  = 14
-  lw  = 1.5
+  lw  = 2.0
   colors = np.asarray(np.linspace(10, 240, nfilters), np.int)
 
   plt.figure(-21)
@@ -180,19 +199,22 @@ def cf(bandcf, bandwl, pressure, filename=None, filters=None):
     if filters is not None:
       fname = os.path.split(os.path.splitext(filters[idx])[0])[1] + " @" + fname
     c = colors[i]
-    ax.semilogy(bandcf[idx], press, '-', lw=lw, color=plt.cm.rainbow(c))
-    ax.set_ylim(np.amax(press), np.amin(press))
-    plt.text(0.9*xran[1], np.amin(press), fname, rotation=90,
-             ha="right", va="top")
+    if    path == "eclipse":
+      ax.semilogy(bandcf[idx], press, '-', lw=lw, color=plt.cm.rainbow(c))
+    elif  path == "transit":
+      ax.plot(bandcf[idx], rad,       '-', lw=lw, color=plt.cm.rainbow(c))
+
+    ax.set_ylim(yran)
     ax.set_xlim(xran)
+    plt.text(0.9*xran[1], yran[1], fname, rotation=90, ha="right", va="top")
     ax.set_xticklabels([])
     if i == 0:
-      ax.set_ylabel(r'${\rm Pressure\ \ (bar)}$' , fontsize=fs)
+      ax.set_ylabel(ylabel, fontsize=fs)
     else:
       ax.set_yticklabels([])
 
-  plt.subplots_adjust(0.1, 0.11, 0.95, 0.95, 0, 0)
-  plt.suptitle(r'${\rm Contribution\ functions}$', fontsize=fs, y=0.09, x=0.52)
+  plt.subplots_adjust(0.12, 0.11, 0.97, 0.95, 0, 0)
+  plt.suptitle(xlabel, fontsize=fs, y=0.09, x=0.52)
 
   if filename is not None:
     plt.savefig(filename)
