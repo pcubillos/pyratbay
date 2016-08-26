@@ -4,7 +4,7 @@
 from .ptools import *
 from .cf     import *
 
-__all__ = ptools.__all__ + ["cf", "bandcf"]
+__all__ = ptools.__all__ + ["cf", "transmittance", "bandcf"]
 
 # Clean up top-level namespace--delete everything that isn't in __all__
 # or is a magic attribute, and that isn't a submodule of this package

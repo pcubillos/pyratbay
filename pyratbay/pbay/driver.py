@@ -150,12 +150,17 @@ def run(argv, main=False):
     # Posterior PT profiles:
     if pyrat.ret.tmodelname == "TCEA":
       pp.TCEA(posterior, besttpars=bestp[pyrat.ret.itemp], pyrat=pyrat)
-    # Contribution functions:
-    if pyrat.od.path == "eclipse":
+    # Contribution or transmittance functions:
+    if   pyrat.od.path == "eclipse":
       cf  = pt.cf(pyrat.od.depth, pyrat.atm.press, pyrat.od.B)
       bcf = pt.bandcf(cf, pyrat.obs.bandtrans, pyrat.obs.bandidx)
-      pp.cf(bcf, 1.0/(pyrat.obs.bandwn*pc.um), pyrat.atm.press,
+      pp.cf(bcf, 1.0/(pyrat.obs.bandwn*pc.um), pyrat.od.path, pyrat.atm.press,
             filename="bestfit_cf.png")
+    elif pyrat.od.path == "transit":
+      transmittance = pt.transmittance(pyrat.od.depth, pyrat.od.ideep)
+      btr = pt.bandcf(transmittance, pyrat.obs.bandtrans, pyrat.obs.bandidx)
+      pp.cf(btr, 1.0/(pyrat.obs.bandwn*pc.um), pyrat.od.path, pyrat.atm.radius,
+            pyrat.atm.rtop, filename="bestfit_cf.png")
 
     log.close()
     return pyrat, bestp

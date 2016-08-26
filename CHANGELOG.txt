@@ -2369,5 +2369,13 @@ Added parname variable to haze models.
 Bumped Pyrat to version 0.0.33.
 Bumped Pyrat to version 1.2.28.
 
+
+*****  Fr 26. Aug 10:31:43 CEST 2016  *****
+
+Added transmittance() function to cf.py for transmission runs.
+Edited plots.py cf() to produce CF or transmittance plots depending
+on the geometry.
+
 *****
+
 
