@@ -2398,4 +2398,7 @@ grid of Lorentz and Doppler widths.
 
 *****
 
+Removed (deprecated) voigt() function from vprofile.c.
+
+*****
 
