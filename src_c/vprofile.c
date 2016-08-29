@@ -163,7 +163,6 @@ static PyObject *grid(PyObject *self, PyObject *args){
 
   for   (m=0; m<nLor; m++){
     for (n=0; n<nDop; n++){
-      msg(verb-6, logtext, " DL Ratio: %.3f\n",INDd(doppler,n)/INDd(lorentz,m));
       /* If the profile size is > 0, calculate it:                          */
       if (IND2i(psize, m, n) != 0){
         /* Number of spectral samples:                                      */
@@ -197,8 +196,8 @@ static PyObject *grid(PyObject *self, PyObject *args){
       }
       else{
         /* Refer to previous profile:                                       */
-        IND2i(index, m, n) = IND2i(index, (m-1), n);
-        IND2i(psize, m, n) = IND2i(psize, (m-1), n);
+        IND2i(index, m, n) = IND2i(index, m, (n-1));
+        IND2i(psize, m, n) = IND2i(psize, m, (n-1));
         msg(verb-6, logtext, "Skip profile[%d, %d] calculation.\n", m, n);
       }
     }

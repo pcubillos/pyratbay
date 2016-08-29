@@ -2406,3 +2406,9 @@ Fixed minor compilation warning in spline.c.
 
 *****
 
+Fixed bug in vprofile.c grid() function.  The code was pointing to
+wrong profile indices when skipping the calculation (previous Lorentz
+instead of the previous Doppler index).
+
+*****
+
