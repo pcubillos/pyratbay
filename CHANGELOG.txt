@@ -2412,3 +2412,11 @@ instead of the previous Doppler index).
 
 *****
 
+Tasks to do (regarding alkali models):
+ - Unify vprofile.c grid() and alkali() functions.
+ - Edit voigtn() to compute just half the Voigt profile.
+ - Write power-law calculation in C?
+Bumped Pyrat to version 1.2.29.
+
+*****
+
