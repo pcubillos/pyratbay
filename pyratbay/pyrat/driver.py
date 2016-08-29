@@ -82,8 +82,10 @@ def init(argv, main=False, log=None):
   # Set up observational/retrieval parameters:
   ar.setup(pyrat)
 
-  # Extinction gridding:
+  # Extinction Voigt grid:
   v.voigt(pyrat)
+  # Alkali Voigt grid:
+  al.init(pyrat)
   timestamps.append(time.time())
 
   # Read CIA files:

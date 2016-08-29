@@ -2384,5 +2384,18 @@ Renamed cf.py (in tool's folder) to contribfuncs.py.
 
 Bumped Pyrat Bay to version 0.0.34.
 
+
+*****  Mo 29. Aug 13:53:38 CEST 2016  *****
+
+Re-factored the alkali module.  Now make a grid of pre-computed Voigt
+profiles (in initialization) instead of computing on the fly on each
+run() call.  The routine now takes half the time to run.  Most time is
+spent computing the extinction in the power-law regime.
+Added arrbinsearch() to cutils.c to do a binsearch for an array of
+values into another tabulated array.
+Added alkali() function to vprofile.c to compte the Voigt profiles for the
+grid of Lorentz and Doppler widths.
+
 *****
+
 

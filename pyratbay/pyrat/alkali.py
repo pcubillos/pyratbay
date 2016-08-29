@@ -9,6 +9,40 @@ from .. import constants as pc
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../lib')
 import vprofile as vp
+import cutils   as cu
+
+
+def init(pyrat):
+  if pyrat.alkali.nmodels > 0:
+    pressure = pyrat.atm.press
+
+    # Minimum-maximum Doppler widths (cm-1) for Na & K @50--5000 K:
+    doppler = np.logspace(np.log10(0.006), np.log10(0.11), 15)
+    # Minimum-maximum Lorentz widths (cm-1) for Na & K @50--5000 K:
+    lorentz = np.logspace(np.log10(0.035*np.amin(pressure/pc.atm)),
+                          np.log10(1.900*np.amax(pressure/pc.atm)), 30)
+
+    # Maximum number of samples in detuning region for Na & K @3000K:
+    ndetuning = int(90.0/pyrat.spec.wnstep) + 1
+    vindex  = np.zeros((len(lorentz),len(doppler)), np.int)
+    vsize   = np.tile(ndetuning, (len(lorentz),len(doppler)))
+    for i in np.arange(len(lorentz)):
+      iskip = np.where(doppler/lorentz[i] < 0.1)[0][1:]
+      vsize[i][iskip] = 0
+
+    profile = np.zeros(np.sum(2*vsize+1), np.double)
+    logtext = " "*800
+    # Calculate Voigt profiles:
+    pt.msg(pyrat.verb-3, "\nComputing grid of Voigt profiles for "
+           "alkali species.", pyrat.log)
+    vp.alkali(profile, vsize, vindex, lorentz, doppler, pyrat.spec.wnstep,
+              logtext, pyrat.verb)
+    pyrat.alkali.voigt   = profile
+    pyrat.alkali.lorentz = lorentz
+    pyrat.alkali.doppler = doppler
+    pyrat.alkali.vindex  = vindex
+    pyrat.alkali.vsize   = vsize[0,0]
+    pt.msg(pyrat.verb-3, "Done.", pyrat.log)
 
 
 def absorption(pyrat):
@@ -22,14 +56,9 @@ def absorption(pyrat):
     alkali = pyrat.alkali.model[i]
 
     imol = np.where(pyrat.mol.name == alkali.mol)[0][0]
-    iH2  = np.where(pyrat.mol.name == "H2"      )[0][0]
-    iHe  = np.where(pyrat.mol.name == "He"      )[0][0]
     dens = np.expand_dims(pyrat.atm.d[:,imol], axis=1)
     temp     = pyrat.atm.temp
     pressure = pyrat.atm.press
-
-    H2diam = (pyrat.mol.radius[imol] + pyrat.mol.radius[iH2])
-    Hediam = (pyrat.mol.radius[imol] + pyrat.mol.radius[iHe])
 
     # Detuning frequency (cm-1):
     dsigma = alkali.detuning * (temp/500.0)**0.6
@@ -38,43 +67,36 @@ def absorption(pyrat):
            np.expand_dims(alkali.wn, axis=1)/pc.c  )
     # Lorentz width (cm-1):
     lor = alkali.lpar * (temp/2000.0)**(-0.7) * pressure/pc.atm
-    lor2 = (np.sqrt(2/(np.pi*pc.k*temp*pc.amu)) * pressure/pc.c *
-            ((H2diam**2.0 * np.sqrt(1.0/pyrat.mol.mass[imol] +
-                                    1.0/pyrat.mol.mass[iH2])) +
-             (Hediam**2.0 * np.sqrt(1.0/pyrat.mol.mass[imol] +
-                                    1.0/pyrat.mol.mass[iHe]))))
-    #print(lor/lor2)
 
-    # Number of spectral samples in detuning region:
-    vsize   = np.asarray(dsigma/pyrat.spec.wnstep+1, np.int)
-    vindex  = np.zeros(pyrat.atm.nlayers, np.int)
-    profile = np.zeros(np.sum(2*vsize+1), np.double)
-    logtext = " "*800
-    # Calculate Voigt profiles:
-    vp.voigt(profile, vsize, vindex, lor, dop[0], pyrat.spec.wnstep,
-             logtext, pyrat.verb)
-    pyrat.log.write(logtext.rstrip()[:-1])
+    # Index of closest doppler/lorentz width for each layer:
+    idop = cu.arrbinsearch(dop[0], pyrat.alkali.doppler)
+    ilor = cu.arrbinsearch(lor,    pyrat.alkali.lorentz)
+    # Number of detuning spectral samples for each layer:
+    idet = np.asarray(dsigma/pyrat.spec.wnstep, np.int)
 
     # Calculate cross section:
     alkali.ec = np.zeros((pyrat.atm.nlayers, pyrat.spec.nwave), np.double)
     for k in np.arange(len(alkali.wn)):
       ec = np.zeros((pyrat.atm.nlayers, pyrat.spec.nwave), np.double)
 
+      # Profile ranges:
       offset = int((alkali.wn[k] - pyrat.spec.wn[0])/pyrat.spec.wnstep)+1
-      wlo = np.clip(offset-vsize,   0, pyrat.spec.nwave)
-      whi = np.clip(offset+vsize+1, 0, pyrat.spec.nwave)
+      wlo = np.clip(offset-idet,   0, pyrat.spec.nwave)
+      whi = np.clip(offset+idet+1, 0, pyrat.spec.nwave)
+      pran = np.vstack((wlo - offset + idet, whi - offset + idet)).T
       for j in np.arange(pyrat.atm.nlayers):
-        # Extinction out of the detuning region (power law):
-        ec[j] += (profile[vindex[j]] *
-                  (np.abs(pyrat.spec.wn-alkali.wn[k])/dsigma[j])**(-1.5))
-        # Profile ranges:
-        pran = (vindex[j] + wlo[j] - offset + vsize[j],
-                vindex[j] + whi[j] - offset + vsize[j])
+        # Voigt profile inside the detuning region:
+        profile = pyrat.alkali.voigt[
+           pyrat.alkali.vindex[ilor[j],idop[j]]+pyrat.alkali.vsize-idet[j]:
+           pyrat.alkali.vindex[ilor[j],idop[j]]+pyrat.alkali.vsize+idet[j]+1]
+        # Extinction outside the detuning region (power law):
+        ec[j] += (profile[0] / dsigma[j]**-1.5 *
+                  np.abs(pyrat.spec.wn-alkali.wn[k])**-1.5)
         # Extinction in the detuning region (Voigt profile):
-        ec[j, wlo[j]:whi[j]] = profile[pran[0]:pran[1]]
+        ec[j, wlo[j]:whi[j]] = profile[pran[j,0]:pran[j,1]]
+      # Add up contribution (include exponential cutoff):
       alkali.ec += (pc.C3 * ec * alkali.gf[k] /alkali.Z * dens *
-         np.exp(-pc.h*pc.c*np.abs(pyrat.spec.wn-alkali.wn[k])/(pc.k*temp[j])))
-    #dsigma, dop, lor, lor2, profile, vsize, vindex
+                    np.exp(-pc.C2*np.abs(pyrat.spec.wn-alkali.wn[k])/temp[j]))
 
     # Sum alkali extinction coefficient (cm-1):
     pyrat.alkali.ec += alkali.ec
