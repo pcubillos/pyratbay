@@ -20,10 +20,10 @@ def voigt(pyrat):
   # Check if reading extinction-coefficient table or no TLI files:
   if (((pyrat.ex.extfile is not None) and os.path.isfile(pyrat.ex.extfile)) or
      pyrat.lt.nTLI == 0):
-    pt.msg(pyrat.verb-3, "\nSkip Voigt-profile calculation.", pyrat.log)
+    pt.msg(pyrat.verb-3, "\nSkip LBL Voigt-profile calculation.", pyrat.log)
     return
 
-  pt.msg(pyrat.verb-3, "\nCalculate Voigt profiles:", pyrat.log)
+  pt.msg(pyrat.verb-3, "\nCalculate LBL Voigt profiles:", pyrat.log)
   # Calculate Doppler and Lorentz-width boundaries:
   widthlimits(pyrat)
 

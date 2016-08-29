@@ -121,8 +121,8 @@ static PyObject *splinterp_2D(PyObject *self, PyObject *args){
                         &yin, &xin, &z, &xout, &yout, &lo, &hi))
     return NULL;
 
-  nin  = PyArray_DIM(xin, 0);
-  nout = PyArray_DIM(xout,0);
+  nin  = (int)PyArray_DIM(xin, 0);
+  nout = (int)PyArray_DIM(xout,0);
 
   for (i=0; i<nout; i++){
     if (INDd(xout,i) < INDd(xin,0) || INDd(xout,i) > INDd(xin,(nin-1)))
