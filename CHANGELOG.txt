@@ -2418,5 +2418,10 @@ Tasks to do (regarding alkali models):
  - Write power-law calculation in C?
 Bumped Pyrat to version 1.2.29.
 
+
+*****  Wed Sep  7 15:18:55 CEST 2016  *****
+
+Updated MC3 submodule.
+
 *****
 
