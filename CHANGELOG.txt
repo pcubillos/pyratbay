@@ -2425,3 +2425,8 @@ Updated MC3 submodule.
 
 *****
 
+Added prior, priorlow, and priorup arguments to pbay,
+which can be passed around to the MCMC.
+
+*****
+

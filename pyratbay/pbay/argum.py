@@ -156,13 +156,22 @@ def parse(wlog):
                 "parameter [required]",
            action="store", type=pt.parray, default=None)
   group.add_argument("--pmin", dest="pmin",
-           help="Filename or list of parameter lower boundaries",
+           help="Filename or list of parameter lower boundaries.",
            action="store", type=pt.parray, default=None)
   group.add_argument("--pmax", dest="pmax",
-           help="Filename or list of parameter upper boundaries",
+           help="Filename or list of parameter upper boundaries.",
            action="store", type=pt.parray, default=None)
   group.add_argument("--stepsize", dest="stepsize",
            help="Filename or list with proposal jump scale.",
+           action="store", type=pt.parray, default=None)
+  group.add_argument("--prior", dest="prior",
+           help="Filename or list of parameter priors.",
+           action="store", type=pt.parray, default=None)
+  group.add_argument("--priorlow", dest="priorlow",
+           help="Filename or list of parameter prior lower uncertainties.",
+           action="store", type=pt.parray, default=None)
+  group.add_argument("--priorup", dest="priorup",
+           help="Filename or list of parameter prior upper uncertainties.",
            action="store", type=pt.parray, default=None)
   group.add_argument("--thigh",   dest="thigh",
            help="Upper boundary for temperature sampling (kelvin).",
