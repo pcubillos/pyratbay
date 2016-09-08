@@ -8,6 +8,14 @@
 #    `-- run_tutorial/
 #  Alternatively, set the appropriate path in sys.path.append().
 
+"""
+Once you are in the run_tutorial/ folder, download the following Kurucz
+stellar model file with this shell command for example (or you can
+also use the browser):
+
+curl http://kurucz.harvard.edu/grids/gridp00odfnew/fp00k2odfnew.pck -o kurucz_fp00k2odfnew.pck
+"""
+
 import sys, os
 import matplotlib
 import numpy as np

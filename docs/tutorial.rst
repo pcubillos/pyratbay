@@ -97,6 +97,13 @@ and start a Python session:
    cp ../pyratbay/examples/tutorial/tutorial_*.cfg .
    ipython --pylab
 
+Also you will need to download a Kurucz stellar model file.  You can
+use the following shell command:
+
+.. code-block:: shell
+
+  curl http://kurucz.harvard.edu/grids/gridp00odfnew/fp00k2odfnew.pck -o kurucz_fp00k2odfnew.pck
+
 Be sure to include this script each time you open a Python session:
 
 .. code-block:: python

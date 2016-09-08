@@ -2449,3 +2449,9 @@ Fixed bug in TiO reader.
 
 *****
 
+Removed tutorial Kurucz file because it was too large.
+Replaced with commands to download the file.
+
+*****
+
+
