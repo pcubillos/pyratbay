@@ -2454,4 +2454,7 @@ Replaced with commands to download the file.
 
 *****
 
+Fixed minor bug with the verbosity argument in pyrat's argum.py. 
+
+*****
 
