@@ -2435,3 +2435,10 @@ Updated MC3 submodule.
 
 *****
 
+Check and reject MCMC proposals that generate an atmospheric model
+where the top radius layer cannot reach the data Rp/Rs (for
+transmission geometry).
+
+*****
+
+
