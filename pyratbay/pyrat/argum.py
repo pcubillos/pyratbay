@@ -358,6 +358,9 @@ def checkinputs(pyrat):
   # Path to source parent's folder:
   pyratdir = os.path.dirname(os.path.realpath(__file__))
 
+  # Verbose level:
+  pyrat.verb = np.amax([0, inputs.verb])
+
   # Pyrat runmode:
   pyrat.runmode = inputs.runmode
   if pyrat.runmode is None:
@@ -794,9 +797,6 @@ def checkinputs(pyrat):
        format(pyrat.nproc, mpr.cpu_count(), mpr.cpu_count()-1),
        pyrat.log, pyrat.wlog)
     pyrat.nproc = mpr.cpu_count() - 1
-
-  # Verbose level:
-  pyrat.verb = np.amax([0, inputs.verb])
   pt.msg(pyrat.verb-3, "Done.", pyrat.log)
 
 

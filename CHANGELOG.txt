@@ -2445,3 +2445,21 @@ Bumped Pyrat Bay to version 0.0.35.
 
 *****
 
+Fixed bug in TiO reader.
+
+*****
+
+Removed tutorial Kurucz file because it was too large.
+Replaced with commands to download the file.
+
+*****
+
+Fixed minor bug with the verbosity argument in pyrat's argum.py. 
+
+*****
+
+Bumped Pyrat Bay to version 0.0.36.
+Bumped Pyrat to version 1.2.30.
+Bumped Lineread to version 6.4.9.
+
+*****
