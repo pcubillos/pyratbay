@@ -23,8 +23,8 @@ class tioschwenke(dbdriver):
   There might be a problem with the linebreak character of the partition
   function.  One way to fix is, on vim do: :%s/\r/\r/g
   """
-  def __init__(self, dbfile, pffile):
-    super(tioschwenke, self).__init__(dbfile, pffile, log)
+  def __init__(self, dbfile, pffile, log):
+    super(tioschwenke, self).__init__(dbfile, pffile)
 
     # Database name:
     self.name ="Schwenke TiO (1998)"

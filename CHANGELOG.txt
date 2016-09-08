@@ -2445,3 +2445,7 @@ Bumped Pyrat Bay to version 0.0.35.
 
 *****
 
+Fixed bug in TiO reader.
+
+*****
+
