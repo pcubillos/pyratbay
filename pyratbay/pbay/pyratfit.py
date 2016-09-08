@@ -64,9 +64,11 @@ def fit(params, pyrat, freeze=False):
 
   # Update temperature profile:
   temp = pyrat.ret.tmodel(params[pyrat.ret.itemp], *pyrat.ret.targs)
+  # Turn-on out-of-bounds temperature flag:
   if np.any(temp < pyrat.ret.tlow) or np.any(temp > pyrat.ret.thigh):
-    pyrat.obs.bandflux[:] = -1e10  # FINDME: what if np.inf? or nan?
-    return pyrat.obs.bandflux
+    temp[:] = 0.5*(pyrat.ret.tlow + pyrat.ret.thigh)
+    tempflag = True
+
   # Update abundance profiles:
   q2 = atm.qscale(pyrat.atm.q, pyrat.mol.name, params[pyrat.ret.iabund],
                   pyrat.ret.molscale, pyrat.ret.bulk,
@@ -92,6 +94,11 @@ def fit(params, pyrat, freeze=False):
 
   # Band-integrate spectrum:
   pyrat.obs.bandflux = w.bandintegrate(pyrat=pyrat)
+
+  # Reject this iteration if there are invalid temperatures or radii:
+  if tempflag or (pyrat.od.path == "transit" and
+      np.any(pyrat.obs.data > (pyrat.atm.radius[0]/pyrat.phy.rstar)**2)):
+    pyrat.obs.bandflux[:] = np.inf
 
   # Revert changes in the atmospheric profile:
   if freeze:

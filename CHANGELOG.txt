@@ -2418,5 +2418,30 @@ Tasks to do (regarding alkali models):
  - Write power-law calculation in C?
 Bumped Pyrat to version 1.2.29.
 
+
+*****  Wed Sep  7 15:18:55 CEST 2016  *****
+
+Updated MC3 submodule.
+
+*****
+
+Added prior, priorlow, and priorup arguments to pbay,
+which can be passed around to the MCMC.
+
+
+*****  Do 8. Sep 16:58:35 CEST 2016  *****
+
+Updated MC3 submodule.
+
+*****
+
+Check and reject MCMC proposals that generate an atmospheric model
+where the top radius layer cannot reach the data Rp/Rs (for
+transmission geometry).
+
+*****
+
+Bumped Pyrat Bay to version 0.0.35.
+
 *****
 

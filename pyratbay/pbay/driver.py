@@ -137,6 +137,7 @@ def run(argv, main=False):
            data=args.data, uncert=args.uncert,
            func=pf.fit, indparams=[pyrat, True], params=args.params,
            pmin=args.pmin, pmax=args.pmax, stepsize=args.stepsize,
+           prior=args.prior, priorlow=args.priorlow, priorup=args.priorup,
            walk=args.walk, nsamples=args.nsamples, nchains=args.nchains,
            burnin=args.burnin, thinning=args.thinning, grtest=True,
            hsize=10, kickoff='normal', log=log,
