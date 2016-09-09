@@ -2470,3 +2470,6 @@ The default value of the rejection flag was missing.
 
 *****
 
+Bumped Pyrat Bay to version 0.0.37.
+
+*****
