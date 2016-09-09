@@ -2462,4 +2462,14 @@ Bumped Pyrat Bay to version 0.0.36.
 Bumped Pyrat to version 1.2.30.
 Bumped Lineread to version 6.4.9.
 
+
+*****  Fri Sep  9 12:50:56 CEST 2016  *****
+
+Fixed bug in pyratfit() MCMC fitting function, introduced in 5741a63.
+The default value of the rejection flag was missing.
+
+*****
+
+Bumped Pyrat Bay to version 0.0.37.
+
 *****
