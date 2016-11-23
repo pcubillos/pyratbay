@@ -391,7 +391,7 @@ static PyObject *interp_ec(PyObject *self, PyObject *args){
 
   /* Find index of grid-temperature immediately lower than temperature:     */
   tlo = binsearchapprox(ttable, temperature, 0, (int)ntemp-1);
-  if (temperature < INDd(ttable,tlo)){
+  if (temperature < INDd(ttable,tlo) || tlo == ntemp-1){
     tlo--;
   }
   thi = tlo + 1;
