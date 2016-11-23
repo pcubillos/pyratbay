@@ -116,7 +116,9 @@ def run(pyrat, inputs=None):
 
   # Re-calculate atmospheric properties if required:
   if inputs is not None:
-    ra.reloadatm(pyrat, *inputs)
+    status = ra.reloadatm(pyrat, *inputs)
+    if status == 0:
+      return
 
   # Interpolate CIA absorption:
   cs.interpolate(pyrat)

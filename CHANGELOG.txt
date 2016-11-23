@@ -2472,4 +2472,18 @@ The default value of the rejection flag was missing.
 
 Bumped Pyrat Bay to version 0.0.37.
 
+
+*****  Di 22. Nov 10:00:00 CET 2016  *****
+
+Fixed bug in extinction temperature interpolation.
+segfaulting when the requested temperature was equal to the
+upper boundary value.
+
+
+*****  Mi 23. Nov 10:54:31 CET 2016  *****
+
+Added check in reloadatm() to enforce valid atm. temperature values
+when running pyrat.run().
+
 *****
+
