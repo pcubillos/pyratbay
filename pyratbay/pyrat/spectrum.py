@@ -88,14 +88,17 @@ def intensity(pyrat):
     tau  = pyrat.od.depth[rtop:last+1,i]
     cu.ediff(tau, dtau, last+1-rtop)
     hsum, hratio, hfactor = s.geth(dtau[0:last-rtop])
-    j = 0
-    while (j < pyrat.nangles):
-      # The integrand:
-      integ = (pyrat.od.B[rtop:last+1,i] *
-           np.exp(-tau/np.cos(pyrat.raygrid[j])) / np.cos(pyrat.raygrid[j]))
-      # Simpson integration:
-      pyrat.spec.intensity[j,i] = s.simps(integ, dtau, hsum, hratio, hfactor)
-      j += 1
+    if last-rtop == 1:  # Single layer before taumax:
+      pyrat.spec.intensity[:,i] = pyrat.od.B[rtop,i]
+    else:
+      j = 0
+      while (j < pyrat.nangles):
+        # The integrand:
+        integ = (pyrat.od.B[rtop:last+1,i] *
+             np.exp(-tau/np.cos(pyrat.raygrid[j])) / np.cos(pyrat.raygrid[j]))
+        # Simpson integration:
+        pyrat.spec.intensity[j,i] = s.simps(integ, dtau, hsum, hratio, hfactor)
+        j += 1
     i += 1
 
 

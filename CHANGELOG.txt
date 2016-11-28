@@ -2498,3 +2498,9 @@ were causing a segmentation fault when calling cu.ediff().
 
 *****
 
+Added exception in intensity integration for a single layer
+before reaching taumax.  There are still problems when tau is
+poorly sampled.
+
+*****
+
