@@ -86,19 +86,15 @@ def intensity(pyrat):
     last = pyrat.od.ideep[i]
     # Optical depth:
     tau  = pyrat.od.depth[rtop:last+1,i]
-    cu.ediff(tau, dtau, last+1)
-    hsum, hratio, hfactor = s.geth(dtau[rtop:last])
+    cu.ediff(tau, dtau, last+1-rtop)
+    hsum, hratio, hfactor = s.geth(dtau[0:last-rtop])
     j = 0
     while (j < pyrat.nangles):
       # The integrand:
       integ = (pyrat.od.B[rtop:last+1,i] *
-               np.exp(-tau/np.cos(pyrat.raygrid[j])) / np.cos(pyrat.raygrid[j]))
+           np.exp(-tau/np.cos(pyrat.raygrid[j])) / np.cos(pyrat.raygrid[j]))
       # Simpson integration:
       pyrat.spec.intensity[j,i] = s.simps(integ, dtau, hsum, hratio, hfactor)
-      #ltau = np.log(tau[1:])
-      #integ=(pyrat.od.B[i,1:last+1]*np.exp(-tau[1:]/np.cos(pyrat.raygrid[j]))/
-      #         tau[1:]/np.cos(pyrat.raygrid[j]))
-      #pyrat.spec.intensity[j,i] = si.simps(integ, ltau)
       j += 1
     i += 1
 

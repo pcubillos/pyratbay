@@ -2490,5 +2490,11 @@ when running pyrat.run().
 Bumped Pyrat Bay to version 0.0.38.
 Bumped Pyrat to version 1.2.31.
 
+
+*****  Mo 28. Nov 18:15:27 CET 2016  *****
+
+Fixed bug in intensity() function. Wrong indices for dtau
+were causing a segmentation fault when calling cu.ediff().
+
 *****
 
