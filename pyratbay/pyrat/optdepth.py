@@ -28,7 +28,7 @@ def opticaldepth(pyrat):
   # Evaluate the extinction coefficient at each layer:
   pyrat.ex.ec    = np.zeros((pyrat.atm.nlayers, pyrat.spec.nwave))
   pyrat.od.ec    = np.empty((pyrat.atm.nlayers, pyrat.spec.nwave))
-  pyrat.od.depth = np.empty((pyrat.atm.nlayers, pyrat.spec.nwave))
+  pyrat.od.depth = np.zeros((pyrat.atm.nlayers, pyrat.spec.nwave))
   pyrat.od.ideep = np.tile(pyrat.atm.nlayers-1, pyrat.spec.nwave)
   #print("Init:   {:.6f}".format(time.time()-ti))
 

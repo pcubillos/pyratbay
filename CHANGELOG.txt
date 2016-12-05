@@ -2518,3 +2518,9 @@ Fixed index typo in single-layer intensity calculation.
 
 *****
 
+Initialize pyrat.od.depth with zeros() instead of empty()
+to avoid funky behavior in the CF calculation (particularly when
+rtop!=0).
+
+*****
+
