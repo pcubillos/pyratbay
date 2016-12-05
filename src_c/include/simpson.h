@@ -15,11 +15,11 @@ simpson(PyArrayObject *y,         /* Values of function to integrate        */
   int i=0,           /* for-loop index                                      */
       j;             /* Array index for each interval                       */
   double res = 0.0;  /* The results                                         */
-
+  int even=1-(n%2);
   /* Add contribution from each interval:                                   */
   for (i=0; i < (n-1)/2; i++){
     /* Skip first value of y if there's an even number of samples:          */
-    j = 2*i + (n%2==0);
+    j = 2*i + even;
     res += (INDd(y, (j  )) * (2.0 - INDd(hratio, i))     +
             INDd(y, (j+1)) * INDd(hfactor, i)            +
             INDd(y, (j+2)) * (2.0 - 1.0/INDd(hratio, i)) ) * INDd(hsum,i);

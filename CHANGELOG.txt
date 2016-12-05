@@ -2512,3 +2512,9 @@ Include the calculation of B at ideep-th layer.
 This resolves #87.
 
 *****
+
+Minor upgrade in simpson(), take even calculation out of the loop.
+Fixed index typo in single-layer intensity calculation.
+
+*****
+
