@@ -2502,5 +2502,13 @@ Added exception in intensity integration for a single layer
 before reaching taumax.  There are still problems when tau is
 poorly sampled.
 
-*****
 
+*****  Mo 5. Dez 18:13:53 CET 2016  *****
+
+Revamped intensity integration with a change of variable,
+now integrated over t=exp(-tau/mu) instead of tau, also replace
+simpson with trapz integration.
+Include the calculation of B at ideep-th layer.
+This resolves #87.
+
+*****
