@@ -44,7 +44,7 @@ static PyObject *planck(PyObject *self, PyObject *args){
   /* Evaluate the Planck function:                                          */
   for (i=0; i<nwave; i++){
     factor = 2 * H * LS*LS * pow(INDd(wn,i),3);
-    for (j=0; j < INDi(last, i); j++){
+    for (j=0; j <= INDi(last, i); j++){
       IND2d(B,j,i) = factor / (exp(H*LS*INDd(wn,i)/(KB*INDd(temp,j))) - 1.0);
     }
   }

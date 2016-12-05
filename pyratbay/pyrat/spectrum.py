@@ -9,8 +9,10 @@ from .. import constants as pc
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../lib')
 import simpson    as s
+import trapz      as t
 import blackbody  as bb
 import cutils     as cu
+
 
 def spectrum(pyrat):
   """
@@ -76,7 +78,6 @@ def intensity(pyrat):
 
   # Allocate dtau:
   dtau  = np.empty(pyrat.atm.nlayers, np.double)
-  dltau = np.empty(pyrat.atm.nlayers, np.double)
 
   # Calculate the intensity for each angle in raygrid:
   rtop = pyrat.atm.rtop
@@ -84,22 +85,17 @@ def intensity(pyrat):
   while (i < pyrat.spec.nwave):
     # Layer index where the optical depth reached maxdepth:
     last = pyrat.od.ideep[i]
-    # Optical depth:
-    tau  = pyrat.od.depth[rtop:last+1,i]
-    cu.ediff(tau, dtau, last+1)
-    hsum, hratio, hfactor = s.geth(dtau[rtop:last])
-    j = 0
-    while (j < pyrat.nangles):
-      # The integrand:
-      integ = (pyrat.od.B[rtop:last+1,i] *
-               np.exp(-tau/np.cos(pyrat.raygrid[j])) / np.cos(pyrat.raygrid[j]))
-      # Simpson integration:
-      pyrat.spec.intensity[j,i] = s.simps(integ, dtau, hsum, hratio, hfactor)
-      #ltau = np.log(tau[1:])
-      #integ=(pyrat.od.B[i,1:last+1]*np.exp(-tau[1:]/np.cos(pyrat.raygrid[j]))/
-      #         tau[1:]/np.cos(pyrat.raygrid[j]))
-      #pyrat.spec.intensity[j,i] = si.simps(integ, ltau)
-      j += 1
+    if last-rtop == 1:  # Single layer before taumax:
+      pyrat.spec.intensity[:,i] = pyrat.od.B[last,i]
+    else:
+      j = 0
+      # Change of variable: t = exp(-tau/mu) gives a more stable integration
+      while (j < pyrat.nangles):
+        cu.ediff(np.exp(-pyrat.od.depth[rtop:last+1,i] /
+                        np.cos(pyrat.raygrid[j])), dtau, last+1-rtop)
+        pyrat.spec.intensity[j,i] = -t.trapz(pyrat.od.B[rtop:last+1,i],
+                                             dtau[0:last-rtop])
+        j += 1
     i += 1
 
 

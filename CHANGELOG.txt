@@ -2490,5 +2490,41 @@ when running pyrat.run().
 Bumped Pyrat Bay to version 0.0.38.
 Bumped Pyrat to version 1.2.31.
 
+
+*****  Mo 28. Nov 18:15:27 CET 2016  *****
+
+Fixed bug in intensity() function. Wrong indices for dtau
+were causing a segmentation fault when calling cu.ediff().
+
+*****
+
+Added exception in intensity integration for a single layer
+before reaching taumax.  There are still problems when tau is
+poorly sampled.
+
+
+*****  Mo 5. Dez 18:13:53 CET 2016  *****
+
+Revamped intensity integration with a change of variable,
+now integrated over t=exp(-tau/mu) instead of tau, also replace
+simpson with trapz integration.
+Include the calculation of B at ideep-th layer.
+This resolves #87.
+
+*****
+
+Minor upgrade in simpson(), take even calculation out of the loop.
+Fixed index typo in single-layer intensity calculation.
+
+*****
+
+Initialize pyrat.od.depth with zeros() instead of empty()
+to avoid funky behavior in the CF calculation (particularly when
+rtop!=0).
+
+*****
+
+Bumped Pyrat to version 1.2.32.
+
 *****
 

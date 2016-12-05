@@ -117,14 +117,14 @@ static PyObject *simps(PyObject *self, PyObject *args){
     return Py_BuildValue("d", 0.0);
   /* Simple case, do a trapezoidal integration:                             */
   if (n == 2)
-    return Py_BuildValue("d", INDd(h,0) * (INDd(y,0) + INDd(y,1))/2);
+    return Py_BuildValue("d", INDd(h,0) * 0.5*(INDd(y,0) + INDd(y,1)));
 
   /* Do Simpson integration (skip first if even):                           */
   integ = simpson(y, hsum, hratio, hfactor, n);
 
   /* Add trapezoidal rule for first interval if n is even:                  */
   if (even){
-    integ += INDd(h,0) * (INDd(y,0) + INDd(y,1))/2;
+    integ += INDd(h,0) * 0.5*(INDd(y,0) + INDd(y,1));
   }
 
   return Py_BuildValue("d", integ);
