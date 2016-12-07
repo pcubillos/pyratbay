@@ -2526,5 +2526,10 @@ rtop!=0).
 
 Bumped Pyrat to version 1.2.32.
 
+
+*****  Mi 7. Dez 16:22:05 CET 2016  *****
+
+Fixed hardcoded array size in vprofile.c alkali() function.
+
 *****
 
