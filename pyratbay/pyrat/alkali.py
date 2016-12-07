@@ -55,7 +55,13 @@ def absorption(pyrat):
   for i in np.arange(pyrat.alkali.nmodels):
     alkali = pyrat.alkali.model[i]
 
-    imol = np.where(pyrat.mol.name == alkali.mol)[0][0]
+    imol = np.where(pyrat.mol.name == alkali.mol)[0]
+    if np.size(imol) == 0:
+      pt.warning(pyrat.verb-2, "Alkali species '{:s}' is not present in "
+        "the atmospheric file.".format(alkali.mol), pyrat.log, pyrat.wlog)
+      continue
+    else:
+      imol = imol[0]
     dens = np.expand_dims(pyrat.atm.d[:,imol], axis=1)
     temp     = pyrat.atm.temp
     pressure = pyrat.atm.press

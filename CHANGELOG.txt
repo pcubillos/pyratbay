@@ -2533,3 +2533,8 @@ Fixed hardcoded array size in vprofile.c alkali() function.
 
 *****
 
+Added warning when attempting to compute alkali opacities for a
+species that is not present in the atmospheric.
+
+*****
+
