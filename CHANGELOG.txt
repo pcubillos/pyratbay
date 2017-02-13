@@ -2548,4 +2548,9 @@ Bumped Pyrat Bay to version 0.0.39.
 
 *****
 
+Updated copyright year to 2016-2017.
+Bumped Pyrat Bay to version 0.0.40.
+
+*****
+
 
