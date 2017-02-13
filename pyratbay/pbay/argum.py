@@ -1,4 +1,4 @@
-# Copyright (c) 2016 Patricio Cubillos and contributors.
+# Copyright (c) 2016-2017 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
 import sys, os
@@ -225,7 +225,7 @@ def parse(wlog):
   pt.msg(1, "{:s}\n"
             "  Python Radiative Transfer in a Bayesian framework (Pyrat Bay).\n"
             "  Version {:d}.{:d}.{:d}.\n"
-            "  Copyright (c) 2016 Patricio Cubillos and collaborators.\n"
+            "  Copyright (c) 2016-2017 Patricio Cubillos and collaborators.\n"
             "  Pyrat Bay is (temporarily) proprietaty software (see LICENSE).\n"
 #            "  Pyrat Bay is open-source software under the RR license.\n"
             "{:s}\n\n".format(pt.sep, ver.PBAY_VER, ver.PBAY_MIN,

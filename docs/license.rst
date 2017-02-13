@@ -10,7 +10,7 @@ License
 Python Radiative Transfer in a Bayesian framework (Pyrat Bay),
 a forward modeling and retrieval package to model exoplanet atmospheres
 
-Copyright (C) 2016 Patricio Cubillos and contributors. All rights reserved.
+Copyright (C) 2016-2017 Patricio Cubillos and contributors. All rights reserved.
 
 This is a test version only, and may not be redistributed to any third
 party.  Please refer such requests to us.  This program is distributed
