@@ -40,8 +40,8 @@ def writeatm(atmfile, pressure, temperature, species, abundances,
      Temperature profile for pressure layers (in Kelvin).
   species: 1D string ndarray
      List of atmospheric species.
-  abundances: 1D float ndarray
-     The species mole mixing ratio.
+  abundances: 2D float ndarray
+     The species mole mixing ratio (of shape [nlayers,nspecies]).
   punits:  String
      Pressure units of output.
   header:  String
