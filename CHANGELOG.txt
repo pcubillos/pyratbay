@@ -2526,5 +2526,26 @@ rtop!=0).
 
 Bumped Pyrat to version 1.2.32.
 
+
+*****  Mi 7. Dez 16:22:05 CET 2016  *****
+
+Fixed hardcoded array size in vprofile.c alkali() function.
+
 *****
+
+Added warning when attempting to compute alkali opacities for a
+species that is not present in the atmospheric.
+
+
+*****  Mo 13. Feb 17:18:54 CET 2017  *****
+
+Fixed typo in atmosphere.py docstring parameter.
+
+*****
+
+Bumped Pyrat to version 1.2.33.
+Bumped Pyrat Bay to version 0.0.39.
+
+*****
+
 

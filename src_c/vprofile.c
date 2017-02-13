@@ -43,7 +43,7 @@ static PyObject *alkali(PyObject *self, PyObject *args){
   double *vprofile; /* Voigt profile for each (Dop,Lor) width               */
   double dwn;       /* Wavenumber sample step size                          */
   int nLor, nDop,   /* Number of Lorentz and Doppler width samples          */
-      nmax, nwave,  /* Number of wavenumber samples of Voigt profile        */
+      vsize, nwave,  /* Number of wavenumber samples of Voigt profile        */
       idx=0,   /* Profile index position                                    */
       verb,    /* Verbosity flag                                            */
       m, n, j; /* Auxilliary for-loop indices                               */
@@ -62,8 +62,8 @@ static PyObject *alkali(PyObject *self, PyObject *args){
   nDop = (int)PyArray_DIM(doppler, 0);
 
   /* Allocate temporary profile array:                                      */
-  nmax = 500;  // FINDME: Take from psize
-  vprofile = (double *)calloc(nmax, sizeof(double));
+  vsize = 2*IND2i(psize,0,0) + 1;
+  vprofile = (double *)calloc(vsize, sizeof(double));
 
   for   (m=0; m<nLor; m++){
     for (n=0; n<nDop; n++){
@@ -182,11 +182,9 @@ static PyObject *grid(PyObject *self, PyObject *args){
           return 0;
         }
         /* Store values in python-object profile:                           */
-          for (j=0; j<nwave; j++){
-            //printf("%.5f,  ", vprofile[j]);
-            INDd(profile, (idx+j)) = vprofile[j];
-          }
-          //printf("\n");
+        for (j=0; j<nwave; j++){
+          INDd(profile, (idx+j)) = vprofile[j];
+        }
         /* Free memory:                                                     */
         free(vprofile);
 
