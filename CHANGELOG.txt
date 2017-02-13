@@ -2543,4 +2543,9 @@ Fixed typo in atmosphere.py docstring parameter.
 
 *****
 
+Bumped Pyrat to version 1.2.33.
+Bumped Pyrat Bay to version 0.0.39.
+
+*****
+
 
