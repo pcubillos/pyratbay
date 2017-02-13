@@ -66,7 +66,7 @@ Be Kind
 =======
 
 Please reference this paper if you found ``Pyrat Bay`` useful for your research:
-  `Cubillos et al. 2016: Yet Another Open-source Radiative-Transifer Code for Exoplanet Modeling`_, in preparation.
+  `Cubillos et al. 2017: Yet Another Open-source Radiative-Transifer Code for Exoplanet Modeling`_, in preparation.
 
 We welcome your feedback, but do not necessarily guarantee support.
 Please send feedback or inquiries to:
@@ -84,4 +84,4 @@ Pyrat-Bay is (temporarily) proprietary software (see :ref:`license`).
 .. _Patricio Cubillos: https://github.com/pcubillos/
 .. _patricio.cubillos[at]oeaw.ac.at: patricio.cubillos@oeaw.ac.at
 .. _Space Research Institute (IWF): http://iwf.oeaw.ac.at/
-.. _Cubillos et al. 2016\: Yet Another Open-source Radiative-Transifer Code for Exoplanet Modeling: https://github.com/pcubillos/pyratbay/lalala
+.. _Cubillos et al. 2017\: Yet Another Open-source Radiative-Transifer Code for Exoplanet Modeling: https://github.com/pcubillos/pyratbay/lalala

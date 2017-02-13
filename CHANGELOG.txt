@@ -2553,4 +2553,7 @@ Bumped Pyrat Bay to version 0.0.40.
 
 *****
 
+Updated years in docs.
+
+*****
 
