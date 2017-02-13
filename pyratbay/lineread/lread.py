@@ -1,4 +1,4 @@
-# Copyright (c) 2016 Patricio Cubillos and contributors.
+# Copyright (c) 2016-2017 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
 __all__ = ["makeTLI", "parser"]
@@ -129,7 +129,7 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
   # Welcome message:
   pt.msg(verb-1, "{:s}\n  Lineread.\n"
             "  Version {:d}.{:d}.{:d}.\n"
-            "  Copyright (c) 2016 Patricio Cubillos and collaborators.\n"
+            "  Copyright (c) 2016-2017 Patricio Cubillos and collaborators.\n"
             "  Lineread is (temporarily) proprietaty software (see LICENSE).\n"
             "{:s}\n\n".format(pt.sep, ver.LR_VER, ver.LR_MIN,
                                       ver.LR_REV, pt.sep), log)
