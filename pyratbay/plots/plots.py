@@ -95,6 +95,7 @@ def spectrum(wlength=None, spectrum=None, data=None, uncert=None,
   plt.figure(-20, (8.5, 5))
   plt.clf()
   ax = plt.subplot(111)
+  plt.subplots_adjust(0.15, 0.125, 0.925, 0.925)
 
   # Setup according to geometry:
   if   path == "eclipse":
@@ -127,7 +128,7 @@ def spectrum(wlength=None, spectrum=None, data=None, uncert=None,
   for i in np.arange(nfilters):
     bandtr = bandh * bandtrans[i]/np.amax(bandtrans[i])
     plt.plot(wlength[bandidx[i]], ylim[0]+bandtr, "k")
-
+  plt.ylim(ylim)
   #logxtics = [0.7, 1.0, 2.0, 3.0, 4.0, 5.0]
   #if logxtics:
   #  ax.set_xscale('log')
@@ -136,8 +137,9 @@ def spectrum(wlength=None, spectrum=None, data=None, uncert=None,
   #  ax.set_xticks(logxtics)
 
   plt.xlabel(r"${\rm Wavelength\ \ (um)}$", fontsize=fs)
-  plt.xlim(np.amin(wlength), np.amax(wlength))
   leg = plt.legend(loc="best", numpoints=1)
+  plt.xlim(np.amin(wlength), np.amax(wlength))
+
   if filename is not None:
     plt.savefig(filename)
 

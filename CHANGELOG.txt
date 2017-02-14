@@ -2597,4 +2597,10 @@ Added Fe to molecules.dat file.
 
 *****
 
+Tweaked spectrum plot to fix the bandpasses on the lower Y-boundary
+and adjust the frame.
+
+*****
+
+
 
