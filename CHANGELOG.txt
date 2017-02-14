@@ -2609,4 +2609,9 @@ file if pyrat.outspec is None.
 
 *****
 
+Fixed typo in pyrat/argum.py setup() error message for gstar.
+Fixed bug in hitran.py warning call for non-overlapping ranges.
+
+*****
+
 
