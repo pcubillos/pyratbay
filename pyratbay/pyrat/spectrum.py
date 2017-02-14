@@ -123,6 +123,9 @@ def printspec(pyrat):
   Print the planetary spectrum to file.
   """
 
+  if pyrat.outspec is None:
+    return
+
   # Type of spectrum and units:
   if   pyrat.od.path == "transit":
     spectype  = "Modulation"

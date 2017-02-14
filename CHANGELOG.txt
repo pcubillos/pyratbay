@@ -2602,5 +2602,11 @@ and adjust the frame.
 
 *****
 
+Directed PyratBay's logfile input into the MCMC basename for the
+output MCMC data, plots, best fits, and logfile.
+Tweaked printspec() in spectrum.py to avoid writing the spectrum to
+file if pyrat.outspec is None.
+
+*****
 
 
