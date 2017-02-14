@@ -2575,4 +2575,9 @@ Bumped Pyrat Bay to version 0.0.41.
 
 *****
 
+Enabled multiprocessing line-by-line computation of the extinction
+coefficient (for forward modeling).
+
+*****
+
 
