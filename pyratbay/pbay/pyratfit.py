@@ -60,7 +60,7 @@ def fit(params, pyrat, freeze=False):
   """
 
   if freeze:
-    t0, q0, r0 = pyrat.atm.temp, pyrat.atm.q, pyrat.atm.radius
+    q0 = pyrat.atm.q
 
   rejectflag = False
   # Update temperature profile:
@@ -76,13 +76,9 @@ def fit(params, pyrat, freeze=False):
                   iscale=pyrat.ret.iscale, ibulk=pyrat.ret.ibulk,
                   bratio=pyrat.ret.bulkratio, invsrat=pyrat.ret.invsrat)
 
-  # Update radius profile:
+  # Update reference radius:
   if len(pyrat.ret.irad) > 0:
-    radius = pyrat.hydro(pyrat.atm.press, temp, pyrat.atm.mm,
-                         pyrat.phy.gplanet, pyrat.phy.mplanet,
-                         pyrat.refpressure, params[pyrat.ret.irad][0]*pc.km)
-  else:
-    radius = None
+    pyrat.phy.rplanet = params[pyrat.ret.irad][0]*pc.km
 
   # Update haze parameters:
   if len(pyrat.ret.ihaze) > 0:
@@ -93,12 +89,12 @@ def fit(params, pyrat, freeze=False):
       j += pyrat.haze.model[i].npars
 
   # Calculate spectrum:
-  pyrat = py.run(pyrat, [temp, q2, radius])
+  pyrat = py.run(pyrat, [temp, q2, None])
 
   # Band-integrate spectrum:
   pyrat.obs.bandflux = w.bandintegrate(pyrat=pyrat)
 
-  # Turn-on reject flag if it doesn't cover the transit-depth values:
+  # Turn-on reject flag if atm doesn't cover the transit-depth values:
   if (pyrat.od.path == "transit" and
       np.any(pyrat.obs.data >
              (pyrat.atm.radius[pyrat.atm.rtop]/pyrat.phy.rstar)**2)):
@@ -108,7 +104,7 @@ def fit(params, pyrat, freeze=False):
   if rejectflag:
     pyrat.obs.bandflux[:] = np.inf
 
-  # Revert changes in the atmospheric profile:
+  # Revert abundances in the atmospheric profile:
   if freeze:
-    pyrat.atm.temp, pyrat.atm.q, pyrat.atm.radius = t0, q0, r0
+    pyrat.atm.q = q0
   return pyrat.obs.bandflux

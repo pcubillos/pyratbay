@@ -2555,5 +2555,24 @@ Bumped Pyrat Bay to version 0.0.40.
 
 Updated years in docs.
 
+
+*****  Di 14. Feb 09:27:42 CET 2017  *****
+
+Fixed bug in pyratfit.py's retrieval fit() routine, where the
+atmosphere was updating the radius profile without updating the
+mean molecular mass. Now the fit() updates the reference radius, and
+passes the task to reloadatm().
+This resolves #85.
+
 *****
+
+Changed action for freeze=True in fit().  It makes no sense to freeze
+r, q, and T but not other parameters. Now freeze only q.
+
+*****
+
+Bumped Pyrat Bay to version 0.0.41.
+
+*****
+
 
