@@ -60,7 +60,7 @@ def fit(params, pyrat, freeze=False):
   """
 
   if freeze:
-    t0, q0, r0 = pyrat.atm.temp, pyrat.atm.q, pyrat.atm.radius
+    q0 = pyrat.atm.q
 
   rejectflag = False
   # Update temperature profile:
@@ -102,7 +102,7 @@ def fit(params, pyrat, freeze=False):
 
   # Reject this iteration if there are invalid temperatures or radii:
   if rejectflag:
-    pyrat.atm.temp, pyrat.atm.q, pyrat.atm.radius = t0, q0, r0
+    pyrat.obs.bandflux[:] = np.inf
 
   # Revert abundances in the atmospheric profile:
   if freeze:

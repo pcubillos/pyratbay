@@ -2566,4 +2566,9 @@ This resolves #85.
 
 *****
 
+Changed action for freeze=True in fit().  It makes no sense to freeze
+r, q, and T but not other parameters. Now freeze only q.
+
+*****
+
 
