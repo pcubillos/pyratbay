@@ -2593,3 +2593,8 @@ Bumped Pyrat Bay to version 0.0.43.
 
 *****
 
+Added Fe to molecules.dat file.
+
+*****
+
+
