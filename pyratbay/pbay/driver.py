@@ -130,8 +130,11 @@ def run(argv, main=False):
 
     # Parse retrieval info into the Pyrat object:
     pf.init(pyrat, args, log)
-    pyrat.verb = 0  # Mute pyrat
+    pyrat.verb = 0        # Mute pyrat
+    pyrat.outspec = None  # Avoid writing spectrum file during MCMC
 
+    # Basename of the output files:
+    outfile = os.path.splitext(os.path.basename(log.name))[0]
     # Run MCMC:
     bestp, CRlo, CRhi, stdp, posterior, Zchain = mc3.mcmc(
            data=args.data, uncert=args.uncert,
@@ -141,13 +144,16 @@ def run(argv, main=False):
            walk=args.walk, nsamples=args.nsamples, nchains=args.nchains,
            burnin=args.burnin, thinning=args.thinning, grtest=True,
            hsize=10, kickoff='normal', log=log,
-           plots=True, parname=pyrat.ret.parname, savefile="test.npz")
+           plots=True, parname=pyrat.ret.parname,
+           savefile="{:s}.npz".format(outfile))
 
     # Best-fitting model:
+    pyrat.outspec = "{:s}_bestfit_spectrum.dat".format(outfile)
     bestbandflux = pf.fit(bestp, pyrat)
 
     # Best-fitting spectrum:
-    pp.spectrum(pyrat=pyrat, filename="bestfit_spectrum.png")
+    pp.spectrum(pyrat=pyrat,
+                filename="{:s}_bestfit_spectrum.png".format(outfile))
     # Posterior PT profiles:
     if pyrat.ret.tmodelname == "TCEA":
       pp.TCEA(posterior, besttpars=bestp[pyrat.ret.itemp], pyrat=pyrat)
@@ -156,12 +162,12 @@ def run(argv, main=False):
       cf  = pt.cf(pyrat.od.depth, pyrat.atm.press, pyrat.od.B)
       bcf = pt.bandcf(cf, pyrat.obs.bandtrans, pyrat.obs.bandidx)
       pp.cf(bcf, 1.0/(pyrat.obs.bandwn*pc.um), pyrat.od.path, pyrat.atm.press,
-            filename="bestfit_cf.png")
+            filename="{:s}_bestfit_cf.png".format(outfile))
     elif pyrat.od.path == "transit":
       transmittance = pt.transmittance(pyrat.od.depth, pyrat.od.ideep)
       btr = pt.bandcf(transmittance, pyrat.obs.bandtrans, pyrat.obs.bandidx)
       pp.cf(btr, 1.0/(pyrat.obs.bandwn*pc.um), pyrat.od.path, pyrat.atm.radius,
-            pyrat.atm.rtop, filename="bestfit_cf.png")
+            pyrat.atm.rtop, filename="{:s}_bestfit_cf.png".format(outfile))
 
     log.close()
     return pyrat, bestp

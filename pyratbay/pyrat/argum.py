@@ -896,7 +896,7 @@ def setup(pyrat):
       pt.error("Undefined stellar temperature (tstar), required for Kurucz "
                "model.", pyrat.log)
     if phy.gstar is None:
-      pt.error("Undefined stellar gravity (tstar), required for Kurucz "
+      pt.error("Undefined stellar gravity (gstar), required for Kurucz "
                "model.", pyrat.log)
     starflux, starwn, kuruczt, kuruczg = sspec.readkurucz(phy.kurucz,
                                            phy.tstar, np.log10(phy.gstar))

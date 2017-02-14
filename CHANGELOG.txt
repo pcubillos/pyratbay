@@ -2593,3 +2593,31 @@ Bumped Pyrat Bay to version 0.0.43.
 
 *****
 
+Added Fe to molecules.dat file.
+
+*****
+
+Tweaked spectrum plot to fix the bandpasses on the lower Y-boundary
+and adjust the frame.
+
+*****
+
+Directed PyratBay's logfile input into the MCMC basename for the
+output MCMC data, plots, best fits, and logfile.
+Tweaked printspec() in spectrum.py to avoid writing the spectrum to
+file if pyrat.outspec is None.
+
+*****
+
+Fixed typo in pyrat/argum.py setup() error message for gstar.
+Fixed bug in hitran.py warning call for non-overlapping ranges.
+
+*****
+
+Bumped Lineread to version 6.4.10.
+Bumped Pyrat to version 1.2.35.
+Bumped Pyrat Bay to version 0.0.44.
+
+*****
+
+
