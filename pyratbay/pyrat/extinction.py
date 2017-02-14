@@ -186,32 +186,18 @@ def calc_extinction(pyrat):
                        " '{:s}'.".format(ex.extfile), pyrat.log, 2)
 
 
-def extinction(pyrat, extcoeff, ilayer, temp, ziso, add=0):
+def extinction(pyrat, indices):
   """
-  Python wrapper for the extinction-coefficient calculation function.
-  Compute the EC over the wavenumber array for the given temperature
-  and pressure.
+  Python multiprocessing wrapper for the extinction-coefficient
+  calculation function for the atmospheric layers in pyrat object.
 
-  Parameters:
-  -----------
+  Parameters
+  ----------
   pyrat: Pyrat Object
-  extcoeff: 2D float ndarray
-     Output extinction coefficient ().
-  ilayer: Integer
-     Index of the layer.
-  temp: Float
-     Layer's temperature.
-  ziso: 1D float ndarray
-     Isotopes' partition fuction at the given layer.
-  add:  Boolean
-     If True multiply the extinction coefficient by the density and co-add
-     the contribution from all molecules.
+  indices: 1D integer list
+     The indices of the atmospheric layers where to calculate the EC.
   """
-  # Unpack layer parameters:
-  pressure = pyrat.atm.press[ilayer]  # Layer pressure
-  molq     = pyrat.atm.q    [ilayer]  # Molecular abundance
-  density  = pyrat.atm.d    [ilayer]  # Molecular density
-
+  add = 1  # Co-add EC contribution from all species
   pyrat.iso.iext = np.zeros(pyrat.iso.niso, np.int)
   # Get species indices in extinction-coefficient table for the isotopes:
   if pyrat.ex.extfile is not None:
@@ -219,12 +205,24 @@ def extinction(pyrat, extcoeff, ilayer, temp, ziso, add=0):
       pyrat.iso.iext[i] = np.where(pyrat.ex.molID ==
                                    pyrat.mol.ID[pyrat.iso.imol[i]])[0][0]
 
-  # Calculate extinction-coefficient in C:
-  pt.msg(pyrat.verb-4, "Calculating extinction at layer {:3d}/{:d} "
+  verb = (0 in indices)  # Turn off verb of all processes except the first
+  verb *= pyrat.verb     # Adjust the verbosity level to pyrat's verb
+
+  for i in np.arange(len(indices)):
+    ilayer = indices[i]  # Layer index
+    # Unpack atmospheric layer parameters:
+    pressure = pyrat.atm.press[ilayer]  # Layer pressure
+    molq     = pyrat.atm.q    [ilayer]  # Molecular abundance
+    density  = pyrat.atm.d    [ilayer]  # Molecular density
+    temp     = pyrat.atm.temp [ilayer]  # Temperature
+    ziso     = pyrat.iso.z  [:,ilayer]  # Isotopic ratio
+
+    # Calculate extinction-coefficient in C:
+    pt.msg(verb-4, "Calculating extinction at layer {:3d}/{:d} "
          "(T={:6.1f} K, p={:.1e} bar).".format(ilayer+1, pyrat.atm.nlayers,
                                         temp, pressure/pc.bar), pyrat.log, 2)
-  logtext = " "*800
-  ec.extinction(extcoeff,
+    logtext = " "*800
+    ec.extinction(pyrat.ex.ec[ilayer:ilayer+1],
                 pyrat.voigt.profile, pyrat.voigt.size, pyrat.voigt.index,
                 pyrat.voigt.lorentz, pyrat.voigt.doppler,
                 pyrat.spec.wn, pyrat.spec.own, pyrat.spec.odivisors,
@@ -234,14 +232,15 @@ def extinction(pyrat, extcoeff, ilayer, temp, ziso, add=0):
                 pyrat.lt.wn, pyrat.lt.elow, pyrat.lt.gf, pyrat.lt.isoid,
                 pyrat.ex.ethresh, pressure, temp,
                 logtext, pyrat.verb, add)
-  pyrat.log.write(logtext.rstrip()[:-1])
+    #pyrat.log.write(logtext.rstrip()[:-1])
 
 
 def mp_extinction(pyrat, indices):
   """
-  Multi-processing extinction calculation.
+  Python multiprocessing wrapper for the extinction-coefficient
+  calculation for a pressure-temperature-species-wavelength grid.
   """
-  add = 0
+  add = 0  # Keep EC contribution from each species separated
   pyrat.iso.iext = np.zeros(pyrat.iso.niso, np.int)
   # Get species indices in extinction-coefficient table for the isotopes:
   if pyrat.ex.extfile is not None:

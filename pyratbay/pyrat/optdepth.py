@@ -3,8 +3,10 @@
 
 import sys, os
 import time
+import ctypes
 import numpy as np
 import scipy.integrate as si
+import multiprocessing as mpr
 
 from .. import tools as pt
 
@@ -38,20 +40,34 @@ def opticaldepth(pyrat):
   #print("Path:   {:.6f}".format(time.time()-ti))
 
   # Obtain the extinction-coefficient:
-  ti = time.time()
-  r = pyrat.atm.rtop
-  while r < pyrat.atm.nlayers:
-    # Interpolate from table:
-    if pyrat.ex.extfile is not None:
+  # Interpolate from table:
+  if pyrat.ex.extfile is not None:
+    r = pyrat.atm.rtop
+    while r < pyrat.atm.nlayers:
       ec.interp_ec(pyrat.ex.ec[r],
                    pyrat.ex.etable[:,:,r,:], pyrat.ex.temp, pyrat.ex.molID,
                    pyrat.atm.temp[r], pyrat.atm.d[r], pyrat.mol.ID)
-    # On-the-spot calculation of the extinction coefficient:
-    elif pyrat.lt.nTLI > 0:
-      ex.extinction(pyrat, pyrat.ex.ec[r:r+1], r,
-                    pyrat.atm.temp[r], pyrat.iso.z[:,r], add=1)
-    r += 1
-  #print("Interp: {:.6f}".format(time.time()-ti))
+      r += 1
+
+  # On-the-spot calculation of the extinction coefficient:
+  elif pyrat.lt.nTLI > 0:
+    # Put pyrat.ex.ec into shared memory:
+    sm_ext = mpr.Array(ctypes.c_double,
+                     np.zeros(pyrat.atm.nlayers*pyrat.spec.nwave, np.double))
+    pyrat.ex.ec = np.ctypeslib.as_array(sm_ext.get_obj()).reshape(
+                                   (pyrat.atm.nlayers, pyrat.spec.nwave))
+    # Multi-processing extinction calculation (in C):
+    processes = []
+    # CPU indices
+    indices = np.arange(pyrat.atm.rtop, pyrat.atm.nlayers) % pyrat.nproc
+    for i in np.arange(pyrat.nproc):
+      proc = mpr.Process(target=ex.extinction,
+                         args=(pyrat, np.where(indices==i)[0]))
+      processes.append(proc)
+      proc.start()
+    for i in np.arange(pyrat.nproc):
+      processes[i].join()
+
 
   r = pyrat.atm.rtop
   while r < pyrat.atm.nlayers:
