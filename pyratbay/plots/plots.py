@@ -146,7 +146,8 @@ def spectrum(wlength=None, spectrum=None, data=None, uncert=None,
   return ax
 
 
-def cf(bandcf, bandwl, path, layers, rtop=0, filename=None, filters=None):
+def cf(bandcf, bandwl, path, pressure, radius, rtop=0,
+       filename=None, filters=None):
   """
   Plot the band-integrated contribution functions (emission) or
   transmittance (transmission).
@@ -171,14 +172,14 @@ def cf(bandcf, bandwl, path, layers, rtop=0, filename=None, filters=None):
   nfilters = len(bandwl)
   wlsort   = np.argsort(bandwl)
 
+  press = pressure[rtop:]/pc.bar
+  rad   = radius[rtop:]/pc.km
   if   path == "eclipse":
-    press = layers/pc.bar
     xran = -0.03*np.amax(bandcf), 1.03*np.amax(bandcf)
     yran = np.amax(press), np.amin(press)
     xlabel = r'${\rm Contribution\ functions}$'
     ylabel = r'${\rm Pressure\ \ (bar)}$'
   elif path == "transit":
-    rad  = layers[rtop:]/pc.km
     xran = -0.03, 1.03
     yran = np.amin(rad), np.amax(rad)
     xlabel = r'${\rm Band-averaged\ transmittance}$'
@@ -215,7 +216,13 @@ def cf(bandcf, bandwl, path, layers, rtop=0, filename=None, filters=None):
     else:
       ax.set_yticklabels([])
 
-  plt.subplots_adjust(0.12, 0.11, 0.97, 0.95, 0, 0)
+  if  path == "transit":
+    par = ax.twinx()
+    par.set_ylim(np.amax(press), np.amin(press))
+    par.set_yscale('log')
+    par.set_ylabel(r'$\rm Pressure\ \ (bar)$', fontsize=fs)
+
+  plt.subplots_adjust(0.12, 0.11, 0.91, 0.95, 0, 0)
   plt.suptitle(xlabel, fontsize=fs, y=0.09, x=0.52)
 
   if filename is not None:

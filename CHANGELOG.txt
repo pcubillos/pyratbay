@@ -2626,4 +2626,9 @@ MC3 plots.
 
 *****
 
+Updated transmittance plot to show the pressure of the closest point
+of the impact parameter on the right y axis.
+
+*****
+
 
