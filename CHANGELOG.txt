@@ -2639,4 +2639,8 @@ Updated plots.py's cf() docstring to include the latests changes.
 
 *****
 
+Updated MC3 module.
+
+*****
+
 
