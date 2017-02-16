@@ -161,13 +161,12 @@ def run(argv, main=False):
     if   pyrat.od.path == "eclipse":
       cf  = pt.cf(pyrat.od.depth, pyrat.atm.press, pyrat.od.B)
       bcf = pt.bandcf(cf, pyrat.obs.bandtrans, pyrat.obs.bandidx)
-      pp.cf(bcf, 1.0/(pyrat.obs.bandwn*pc.um), pyrat.od.path, pyrat.atm.press,
-            filename="{:s}_bestfit_cf.png".format(outfile))
     elif pyrat.od.path == "transit":
       transmittance = pt.transmittance(pyrat.od.depth, pyrat.od.ideep)
-      btr = pt.bandcf(transmittance, pyrat.obs.bandtrans, pyrat.obs.bandidx)
-      pp.cf(btr, 1.0/(pyrat.obs.bandwn*pc.um), pyrat.od.path, pyrat.atm.radius,
-            pyrat.atm.rtop, filename="{:s}_bestfit_cf.png".format(outfile))
+      bcf = pt.bandcf(transmittance, pyrat.obs.bandtrans, pyrat.obs.bandidx)
+    pp.cf(bcf, 1.0/(pyrat.obs.bandwn*pc.um), pyrat.od.path,
+          pyrat.atm.press, pyrat.atm.radius,
+          pyrat.atm.rtop, filename="{:s}_bestfit_cf.png".format(outfile))
 
     log.close()
     return pyrat, bestp
