@@ -2635,3 +2635,8 @@ Updated writeatm() to enable radius input.
 
 *****
 
+Updated plots.py's cf() docstring to include the latests changes.
+
+*****
+
+

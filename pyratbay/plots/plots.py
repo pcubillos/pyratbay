@@ -160,14 +160,16 @@ def cf(bandcf, bandwl, path, pressure, radius, rtop=0,
      Mean wavelength of the bands in microns.
   path: String
      Observing geometry (transit or eclipse).
-  layers: 1D float ndarray
-     Layer's pressure (eclipse) or impact parameter (transit) array (CGS units).
+  pressure: 1D float ndarray
+     Layer's pressure array (barye units).
+  radius: 1D float ndarray
+     Layer's impact parameter array (cm units).
   rtop: Integer
      Index of topmost valid layer.
-  filters: 1D string ndarray
-     Name of the filter bands (optional).
   filename: String
      Filename of the output figure.
+  filters: 1D string ndarray
+     Name of the filter bands (optional).
   """
   nfilters = len(bandwl)
   wlsort   = np.argsort(bandwl)
