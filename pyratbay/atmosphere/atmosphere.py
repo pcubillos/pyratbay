@@ -26,7 +26,7 @@ indir   = thisdir + "/../../inputs/"
 
 
 def writeatm(atmfile, pressure, temperature, species, abundances,
-             punits, header):
+             punits, header, radius=None, runits=None):
   """
   Write an atmospheric file following the Pyrat format.
 
@@ -46,6 +46,10 @@ def writeatm(atmfile, pressure, temperature, species, abundances,
      Pressure units of output.
   header:  String
      Header message (comment) to include at the top of the file.
+  radisu: 1D float ndarray
+     Monotonously increasing radius profile (in cm).
+  runits:  String
+     Radius units of output.
   """
   # Open file for writing:
   f = open(atmfile, "w")
@@ -55,22 +59,32 @@ def writeatm(atmfile, pressure, temperature, species, abundances,
   # Set the values units:
   f.write("# Abundance units (by number or mass):\n@ABUNDANCE\nnumber\n")
   f.write("# Pressure units:\n@PRESSURE\n{:s}\n".format(punits))
+  if radius is not None:
+    f.write("# Radius units:\n@RADIUS\n{:s}\n".format(runits))
   f.write("# Temperatures are always Kelvin.\n\n")
 
   # Write the species names:
   f.write("# Atmospheric composition:\n"
           "@SPECIES\n" +
           "  ".join(["{:<s}".format(mol) for mol in species]) + '\n\n')
-
   # Write the per-layer data:
-  f.write("# Pressure  Temperature  " +
-          "".join(["{:<14s}".format(mol) for mol in species]) + "\n")
+  if radius is not None:
+    f.write("# Radius    Pressure    Temperature  ")
+  else:
+    f.write("# Pressure  Temperature  ")
+  f.write("".join(["{:<14s}".format(mol) for mol in species]) + "\n")
   f.write("@DATA\n")
 
   pressure = pressure/pt.u(punits)
+  if radius is not None:
+    radius = radius/pt.u(runits)
+
   # Write data for each layer:
   nlayers = len(pressure)
   for i in np.arange(nlayers):
+    # Radius:
+    if radius is not None:
+      f.write("{:10.4e}  ".format(radius[i]))
     # Pressure, and Temperature:
     f.write("{:10.4e}  {:11.3f}  ".format(pressure[i], temperature[i]))
     # Species mole mixing ratios:
