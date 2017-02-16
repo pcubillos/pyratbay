@@ -2618,6 +2618,12 @@ Bumped Lineread to version 6.4.10.
 Bumped Pyrat to version 1.2.35.
 Bumped Pyrat Bay to version 0.0.44.
 
+
+*****  Do 16. Feb 15:28:01 CET 2017  *****
+
+Changed default fignum for spectrum plot to avoid collision with
+MC3 plots.
+
 *****
 
 

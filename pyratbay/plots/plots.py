@@ -92,7 +92,7 @@ def spectrum(wlength=None, spectrum=None, data=None, uncert=None,
   lw  = 1.5
   mew = 1.0
 
-  plt.figure(-20, (8.5, 5))
+  plt.figure(-11, (8.5, 5))
   plt.clf()
   ax = plt.subplot(111)
   plt.subplots_adjust(0.15, 0.125, 0.925, 0.925)
