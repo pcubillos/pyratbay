@@ -42,7 +42,7 @@ rsun   = 6.957e10  # Sun radius (Prsa et al. 2016)
 # Pressure to Barye:
 barye  = 1.0    # Barye (CGS units)
 mbar   = 1e3    # Millibar
-pascal = 1e5    # Pascal (MKS units)
+pascal = 1e1    # Pascal (MKS units)
 bar    = 1e6    # Bar
 atm    = 1.01e6 # Atmosphere
 
