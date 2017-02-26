@@ -2662,3 +2662,7 @@ in opacity model.
 
 *****
 
+Added x-range info in x-label of transmittance plot.
+
+*****
+
