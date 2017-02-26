@@ -2657,4 +2657,8 @@ cross-section script.
 
 *****
 
+Updated pbay.py driver to return the pyrat object when running
+in opacity model.
+
+*****
 

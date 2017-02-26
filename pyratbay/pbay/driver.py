@@ -114,7 +114,6 @@ def run(argv, main=False):
     # Force to re-calculate extinction-coefficient file if requested:
     if args.runmode == "opacity" and pt.isfile(args.extfile):
       os.remove(args.extfile)
-      pass
 
     # Initialize pyrat object:
     pyrat = py.init(args.cfile, log=log)
@@ -126,7 +125,7 @@ def run(argv, main=False):
 
     # End if necessary:
     if args.runmode == "opacity":
-      return
+      return pyrat
 
     # Parse retrieval info into the Pyrat object:
     pf.init(pyrat, args, log)
