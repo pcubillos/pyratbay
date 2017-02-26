@@ -2645,6 +2645,27 @@ Updated MC3 module.
 
 Bumped Pyrat Bay to version 0.0.45.
 
+
+*****  Sun Feb 26 13:47:04 GST 2017  *****
+
+Fixed wrong unit conversion for Pascals.
+
 *****
 
+Fixed error message for wrong temperature order in Exomol
+cross-section script.
 
+*****
+
+Updated pbay.py driver to return the pyrat object when running
+in opacity model.
+
+*****
+
+Added x-range info in x-label of transmittance plot.
+
+*****
+
+Bumped Pyrat Bay to version 0.0.46.
+
+*****

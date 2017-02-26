@@ -184,7 +184,7 @@ def cf(bandcf, bandwl, path, pressure, radius, rtop=0,
   elif path == "transit":
     xran = -0.03, 1.03
     yran = np.amin(rad), np.amax(rad)
-    xlabel = r'${\rm Band-averaged\ transmittance}$'
+    xlabel = r'${\rm Band-averaged\ transmittance\ \(0-1)}$'
     ylabel = r'${\rm Impact\ parameter\ \ (km)}$'
   else:
     print("Invalid geometry.  Select from: 'eclipse' or 'transit'.")
