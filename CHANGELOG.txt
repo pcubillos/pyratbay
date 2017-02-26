@@ -2652,5 +2652,9 @@ Fixed wrong unit conversion for Pascals.
 
 *****
 
+Fixed error message for wrong temperature order in Exomol
+cross-section script.
+
+*****
 
 
