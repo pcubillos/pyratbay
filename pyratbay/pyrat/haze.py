@@ -27,63 +27,6 @@ def absorption(pyrat):
     pyrat.haze.ec += pyrat.haze.model[i].ec * np.expand_dims(dens, axis=1)
 
 
-class rayleighH2():
-  """
-  Rayleigh-scattering model from Dalgarno & Williams (1962).
-  """
-  def __init__(self):
-    self.name  = "rayleigh_H2"  # Model name
-    self.npars = 0              # Number of model fitting parameters
-    self.pars  = None           # Model fitting parameters
-    self.ec    = None           # Model extinction coefficient (cm2 molec-1)
-    self.mol   = "H2"           # Species causing the extinction
-    self.parname = []           # Fitting-parameter names
-    self.coef  = np.array([8.14e-45, 1.28e-54, 1.61e-64])
-
-  def extinction(self, wn, pressure):
-    """
-    Calculate the opacity cross-section in cm2 molec-1 units.
-
-    Parameters
-    ----------
-    wn: 1D float ndarray
-       Wavenumber in cm-1.
-    """
-    self.ec = self.coef[0]*wn**4.0 + self.coef[1]*wn**6.0 + self.coef[2]*wn**8.0
-
-
-class rayleighLdE():
-  """
-  Rayleigh-scattering model from Lecavelier des Etangs et al. (2008).
-  AA, 485, 865.
-  """
-  def __init__(self):
-    self.name  = "rayleigh_LdE"   # Model name
-    self.pars  = [ 1.0,           # Cross-section scale factor (unitless)
-                  -4.0]           # Power-law exponent
-    self.npars = len(self.pars)   # Number of model fitting parameters
-    self.ec    = None             # Model extinction coefficient
-    self.mol   = "H2"             # Species causing the extinction
-    self.parname = [r"$f_{\rm Rayleigh}$", # Fitting-parameter names
-                    r"$\alpha$"]
-    self.s0    = 5.31e-27         # Cross section (cm-2 molec-1) at l0
-    self.l0    = 3.5e-5           # Nominal wavelength (cm)
-
-  def extinction(self, wn, pressure):
-    """
-    Calculate the H2 Rayleigh cross section in cm2 molec-1:
-       cross section = pars[0] * s0 * (lambda/l0)**(pars[1])
-    With lambda the wavelength = 1/wavenumber.
-
-    Parameters
-    ----------
-    wn:  1D float ndarray
-       Wavenumber array in cm-1.
-    """
-    # Rayleigh opacity cross section in cm2 molec-1 (aka. extinction coef.):
-    self.ec = (self.pars[0] * self.s0) * (wn * self.l0)**(-self.pars[1])
-
-
 class grey():
   """
   Constant cross-section cloud model.
@@ -124,9 +67,7 @@ class grey():
 
 
 # List of available haze models:
-hmodels = [rayleighH2(),
-           rayleighLdE(),
-           grey()]
+hmodels = [grey()]
 
 # Compile list of haze-model names:
 hnames = []

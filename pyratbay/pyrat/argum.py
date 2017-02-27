@@ -17,6 +17,7 @@ from .. import atmosphere as atm
 from .. import VERSION    as ver
 
 from .  import haze      as hz
+from .  import rayleigh  as ray
 from .  import alkali    as al
 
 rootdir = os.path.realpath(os.path.dirname(__file__) + "/../../")
@@ -148,6 +149,10 @@ def parse(pyrat, log=None):
       "Haze models [default: %(default)s].")
   pt.addarg("hpars",       group, pt.parray, None,
       "Haze model fitting parameters.")
+  pt.addarg("rayleigh",    group, pt.parray, None,
+      "Rayleigh models [default: %(default)s].")
+  pt.addarg("rpars",       group, pt.parray, None,
+      "Rayleigh model fitting parameters.")
   # Alkali opacity options:
   group = parser.add_argument_group("Alkali Options")
   pt.addarg("alkali",      group, pt.parray, None,
@@ -287,6 +292,8 @@ def parse(pyrat, log=None):
   # Hazes and clouds:
   pyrat.inputs.hazes      = user.hazes
   pyrat.inputs.hpars      = user.hpars
+  pyrat.inputs.rayleigh   = user.rayleigh
+  pyrat.inputs.rpars      = user.rpars
   # Alkali compounds:
   pyrat.inputs.alkali     = user.alkali
   # Optical depth:
@@ -653,12 +660,35 @@ def checkinputs(pyrat):
     if inputs.hpars is not None:
       if nhpars != len(inputs.hpars):
         pt.error("Number of input haze params ({:d}) does not match the"
-                 "number of required haze params({:d}).".
+                 "number of required haze params ({:d}).".
                  format(inputs.hpars, nhpars), pyrat.log)
       j = 0
       for i in np.arange(pyrat.haze.nmodels):
         pyrat.haze.model[i].pars = inputs.hpars[j:j+pyrat.haze.model[i].npars]
         j += pyrat.haze.model[i].npars
+
+  # Check Rayleigh models:
+  if inputs.rayleigh is not None:
+    nrpars = 0
+    for rmodel in inputs.rayleigh:
+      if rmodel not in ray.rnames:
+        pt.error("Rayleigh model '{:s}' is not in the list of available models:"
+                 "\n{:s}".format(rmodel, ray.rnames), pyrat.log)
+      j = np.where(ray.rnames == rmodel)[0][0]
+      pyrat.rayleigh.model.append(ray.rmodels[j])
+      pyrat.rayleigh.nmodels += 1
+      nrpars += pyrat.rayleigh.model[-1].npars
+    # Process the Rayleigh parameters
+    if inputs.rpars is not None:
+      if nrpars != len(inputs.rpars):
+        pt.error("Number of input Rayleigh params ({:d}) does not match the"
+                 "number of required params ({:d}).".
+                 format(inputs.rpars, nrpars), pyrat.log)
+      j = 0
+      for i in np.arange(pyrat.rayleigh.nmodels):
+        pyrat.rayleigh.model[i].pars = \
+                                inputs.rpars[j:j+pyrat.rayleigh.model[i].npars]
+        j += pyrat.rayleigh.model[i].npars
 
   # Check alkali arguments:
   if inputs.alkali is not None:
@@ -975,6 +1005,7 @@ def setup(pyrat):
     ret.parname += [r"$\log_{{10}}(f_{{\rm {:s}}})$".format(ret.molscale[i])]
 
   nhaze  = 0
+  # FINDME: RE-DESIGN THIS CRITERIA
   if pyrat.ret.nparams > ntemp+nrad+nabund:
     for i in np.arange(pyrat.haze.nmodels):
       nhaze += pyrat.haze.model[i].npars

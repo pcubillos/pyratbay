@@ -2669,3 +2669,12 @@ Added x-range info in x-label of transmittance plot.
 Bumped Pyrat Bay to version 0.0.46.
 
 *****
+
+Separated Rayleigh models from haze.py into their own class
+(pyrat.rayleigh) and file rayleigh.py.
+Added corresponding rayleigh and rpars input arguments in
+pyrat/argum.py.
+Updated demo config files accordingly.
+
+*****
+

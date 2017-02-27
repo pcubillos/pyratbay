@@ -24,6 +24,7 @@ class Pyrat(object):
     self.cs     = Cross()           # Cross-section extinction
     self.od     = Optdepth()        # Optical depth
     self.haze   = Haze()            # Hazes
+    self.rayleigh = Rayleigh()      # Rayleigh models
     self.alkali = Alkali()          # Alkali opacity models
     self.obs    = Observation()     # Observational data
     self.phy    = Physics()         # System physical parameters
@@ -479,6 +480,16 @@ class Haze(object):
     pass
 
 
+class Rayleigh(object):
+  def __init__(self):
+    self.nmodels = 0     # Number of Rayleigh models
+    self.model   = []    # List of Rayleigh models
+    self.ec      = None  # Rayleigh extinction coefficient
+  def info(self, pyrat):
+    # FINDME
+    pass
+
+
 class Alkali(object):
   def __init__(self):
     self.nmodels = 0     # Number of alkali models
@@ -591,6 +602,7 @@ class Retrieval(object):
     self.irad   = None  # Radius-pressure-model parameter indices
     self.iabund = None  # Abundance-model parameter indices
     self.ihaze  = None  # Haze-model parameter indices
+    self.irayleigh = None  # Rayleigh-model parameter indices
     self.parname = []   # Model parameter names
   def info(self, pyrat):
     # FINDME
