@@ -2678,3 +2678,9 @@ Updated demo config files accordingly.
 
 *****
 
+Added command to compute Rayleigh extinction and opacity.
+By the way, retrieval now will not work because of the way the code
+counts the haze parameters.
+
+*****
+

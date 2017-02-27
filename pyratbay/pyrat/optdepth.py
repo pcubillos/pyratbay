@@ -75,6 +75,7 @@ def opticaldepth(pyrat):
     pyrat.od.ec[r] = (pyrat.ex.ec[r] +
                       pyrat.cs.ec[r] +
                       pyrat.haze.ec[r] +
+                      pyrat.rayleigh.ec[r] +
                       pyrat.alkali.ec[r])
     r += 1
 
