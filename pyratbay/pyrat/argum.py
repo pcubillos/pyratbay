@@ -153,6 +153,8 @@ def parse(pyrat, log=None):
       "Rayleigh models [default: %(default)s].")
   pt.addarg("rpars",       group, pt.parray, None,
       "Rayleigh model fitting parameters.")
+  pt.addarg("fpatchy",     group, np.double, None,
+      "Patchy-clouds factor [default: None].")
   # Alkali opacity options:
   group = parser.add_argument_group("Alkali Options")
   pt.addarg("alkali",      group, pt.parray, None,
@@ -294,6 +296,7 @@ def parse(pyrat, log=None):
   pyrat.inputs.hpars      = user.hpars
   pyrat.inputs.rayleigh   = user.rayleigh
   pyrat.inputs.rpars      = user.rpars
+  pyrat.inputs.fpatchy    = user.fpatchy
   # Alkali compounds:
   pyrat.inputs.alkali     = user.alkali
   # Optical depth:
@@ -666,6 +669,12 @@ def checkinputs(pyrat):
       for i in np.arange(pyrat.haze.nmodels):
         pyrat.haze.model[i].pars = inputs.hpars[j:j+pyrat.haze.model[i].npars]
         j += pyrat.haze.model[i].npars
+
+  if inputs.fpatchy is not None:
+    if inputs.fpatchy < 0 or inputs.fpatchy > 1:
+      pt.error("Invalid patchy-cloud fraction ({:g}).  fpatchy must be "
+               "in the range 0--1.".format(inputs.fpatchy))
+    pyrat.haze.fpatchy = inputs.fpatchy
 
   # Check Rayleigh models:
   if inputs.rayleigh is not None:

@@ -2688,3 +2688,10 @@ Renamed grey haze model to gray.
 
 *****
 
+Implemented fpatchy argument into Pyrat.  If defined (i.e., not None)
+the code will compute two optical-depth arrays, clear (everything but
+haze/cloud extinction) and cloudy (all contributions).  Then produce a
+clear, cloudy, and patchy spectra (according to fpatchy fraction).
+
+*****
+

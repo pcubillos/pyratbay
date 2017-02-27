@@ -117,6 +117,8 @@ class Spectrum(object):
     # Spectrum:
     self.intensity = None  # Intensity spectrum array
     self.spectrum  = None  # Modulation/Flux spectrum
+    self.clear     = None  # Clear modulation spectrum for patchy model
+    self.cloudy    = None  # Cloudy modulation spectrum for patchy model
     self.starflux  = None  # Stellar flux spectrum
 
   def info(self):
@@ -475,6 +477,7 @@ class Haze(object):
     self.nmodels = 0     # Number of haze models
     self.model   = []    # List of haze models
     self.ec      = None  # Haze extinction coefficient
+    self.fpatchy = None  # Pyatchy-cloud fraction
   def info(self, pyrat):
     # FINDME
     pass
@@ -505,8 +508,10 @@ class Optdepth(object):
     self.maxdepth = None  # Maximum optical depth to calculate
     self.path     = None  # Observing geometry
     self.ec       = None  # Total extinction coefficient [nlayers, nwave]
+    self.epatchy  = None  # Cloudy extinction coefficient for patchy model
     self.raypath  = []    # Distance along ray path  [nlayers]
     self.depth    = None  # Optical depth at raypath [nlayers, nwave]
+    self.pdepth   = None  # Cloudy optical depth for patchy model
     self.B        = None  # Blackbody Planck emission [nlayers, nwave]
     self.ideep    = None  # Layer index where depth reached maxdepth [nwave]
 
