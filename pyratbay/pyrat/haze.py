@@ -27,12 +27,12 @@ def absorption(pyrat):
     pyrat.haze.ec += pyrat.haze.model[i].ec * np.expand_dims(dens, axis=1)
 
 
-class grey():
+class Gray():
   """
   Constant cross-section cloud model.
   """
   def __init__(self):
-    self.name  = "grey"           # Model name
+    self.name  = "gray"           # Model name
     self.pars  = [ 0.0,           # log10 of cross-section scale factor, top,
                    -4, 2]         #  and bottom pressure (bar) boundaries
     self.npars = len(self.pars)   # Number of model fitting parameters
@@ -45,7 +45,7 @@ class grey():
 
   def extinction(self, wn, pressure):
     """
-    Calculate a uniform grey-cloud cross section in cm2 molec-1:
+    Calculate a uniform gray-cloud cross section in cm2 molec-1:
        cross section = s0 * 10**pars[0],
     between layers with pressure 10**pars[1] -- 10**pars[2] bar
     (top and bottom layers, respectively).
@@ -67,7 +67,7 @@ class grey():
 
 
 # List of available haze models:
-hmodels = [grey()]
+hmodels = [Gray()]
 
 # Compile list of haze-model names:
 hnames = []

@@ -2684,3 +2684,7 @@ counts the haze parameters.
 
 *****
 
+Renamed grey haze model to gray.
+
+*****
+
