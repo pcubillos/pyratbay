@@ -2703,3 +2703,7 @@ Made a list of available model types for retrieval:
 
 *****
 
+Updated demo config files according to current code.
+
+*****
+
