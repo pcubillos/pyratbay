@@ -2707,3 +2707,7 @@ Updated demo config files according to current code.
 
 *****
 
+Updated tutorial config files according to current code.
+
+*****
+
