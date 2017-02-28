@@ -590,24 +590,28 @@ class Observation(object):
 # Retrieval variables:
 class Retrieval(object):
   def __init__(self):
+    # Available model types for retrieval:
+    self.rmodels    = ["pt", "rad", "mol", "ray", "haze", "cloud", "patchy"]
+    self.retflag    = None  # Flags for models to be included for retrieval
     self.nparams    = 0     # Number of free parameters
     self.tmodelname = None  # Temperature-model name
     self.tmodel     = None  # Temperature model
-    self.ntpars     = None  # Number of temperature-model parameters
     self.targs      = None  # Temperature-model arguments
-    self.tlow      = None  #
-    self.thigh     = None  #
-    self.bulk      = None  # Bulk species name list
-    self.molscale  = None  # Variable-abundance species name list
-    self.ibulk     = None  # Indices of bulk species in pyrat.mol.name
-    self.iscale    = None  # Indices of variable-abundance species
-    self.bulkratio = None  # Abundance ratio among bulk species
-    self.invsrat   = None  # Inverse of the sum of the bulk ratios/layer
+    self.tlow       = None  # Lower-temperature retrieval boundary
+    self.thigh      = None  # Higher-temperature retrieval boundary
+    self.bulk       = None  # Bulk species name list
+    self.molscale   = None  # Variable-abundance species name list
+    self.ibulk      = None  # Indices of bulk species in pyrat.mol.name
+    self.iscale     = None  # Indices of variable-abundance species
+    self.bulkratio  = None  # Abundance ratio among bulk species
+    self.invsrat    = None  # Inverse of the sum of the bulk ratios/layer
     self.itemp  = None  # Temperature-model parameter indices
-    self.irad   = None  # Radius-pressure-model parameter indices
+    self.irad   = None  # Reference-radius model parameter index
     self.iabund = None  # Abundance-model parameter indices
+    self.iray   = None  # Haze-model parameter indices
     self.ihaze  = None  # Haze-model parameter indices
-    self.irayleigh = None  # Rayleigh-model parameter indices
+    self.icloud = None  # Haze-model parameter indices
+    self.ipatchy = None  # Patchy-model parameter index
     self.parname = []   # Model parameter names
   def info(self, pyrat):
     # FINDME

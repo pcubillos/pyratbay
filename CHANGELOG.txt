@@ -2693,5 +2693,13 @@ the code will compute two optical-depth arrays, clear (everything but
 haze/cloud extinction) and cloudy (all contributions).  Then produce a
 clear, cloudy, and patchy spectra (according to fpatchy fraction).
 
+
+*****  Tue Feb 28 16:08:56 GST 2017  *****
+
+Implement retflag argument to signal which models to retrieve in mcmc.
+This makes the code working in retrieval mode again.
+Made a list of available model types for retrieval:
+  [pt, rad, mol, ray, haze, cloud, patchty]
+
 *****
 
