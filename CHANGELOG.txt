@@ -2669,3 +2669,54 @@ Added x-range info in x-label of transmittance plot.
 Bumped Pyrat Bay to version 0.0.46.
 
 *****
+
+Separated Rayleigh models from haze.py into their own class
+(pyrat.rayleigh) and file rayleigh.py.
+Added corresponding rayleigh and rpars input arguments in
+pyrat/argum.py.
+Updated demo config files accordingly.
+
+*****
+
+Added command to compute Rayleigh extinction and opacity.
+By the way, retrieval now will not work because of the way the code
+counts the haze parameters.
+
+*****
+
+Renamed grey haze model to gray.
+
+*****
+
+Implemented fpatchy argument into Pyrat.  If defined (i.e., not None)
+the code will compute two optical-depth arrays, clear (everything but
+haze/cloud extinction) and cloudy (all contributions).  Then produce a
+clear, cloudy, and patchy spectra (according to fpatchy fraction).
+
+
+*****  Tue Feb 28 16:08:56 GST 2017  *****
+
+Implement retflag argument to signal which models to retrieve in mcmc.
+This makes the code working in retrieval mode again.
+Made a list of available model types for retrieval:
+  [pt, rad, mol, ray, haze, cloud, patchty]
+
+*****
+
+Updated demo config files according to current code.
+
+*****
+
+Updated tutorial config files according to current code.
+
+
+*****  Wed Mar  1 16:51:17 GST 2017  *****
+
+Bumped Pyrat to version 1.2.36.
+Bumped Pyrat Bay to version 0.0.47.
+
+Note that the online documentation about the haze, rayleigh, and
+patchy models is outdated or non-existent (TBD).
+
+*****
+

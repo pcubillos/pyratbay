@@ -17,6 +17,7 @@ from .. import atmosphere as atm
 from .. import VERSION    as ver
 
 from .  import haze      as hz
+from .  import rayleigh  as ray
 from .  import alkali    as al
 
 rootdir = os.path.realpath(os.path.dirname(__file__) + "/../../")
@@ -148,6 +149,12 @@ def parse(pyrat, log=None):
       "Haze models [default: %(default)s].")
   pt.addarg("hpars",       group, pt.parray, None,
       "Haze model fitting parameters.")
+  pt.addarg("rayleigh",    group, pt.parray, None,
+      "Rayleigh models [default: %(default)s].")
+  pt.addarg("rpars",       group, pt.parray, None,
+      "Rayleigh model fitting parameters.")
+  pt.addarg("fpatchy",     group, np.double, None,
+      "Patchy-clouds factor [default: None].")
   # Alkali opacity options:
   group = parser.add_argument_group("Alkali Options")
   pt.addarg("alkali",      group, pt.parray, None,
@@ -176,6 +183,9 @@ def parse(pyrat, log=None):
       "Waveband filter filenames.")
   # Retrieval options:
   group = parser.add_argument_group("Retrieval options")
+  pt.addarg("retflag",     group, pt.parray, None,
+      "The list of retrieval models, select from: pt mol rad ray haze "
+      "cloud patchy.")
   pt.addarg("bulk",        group, pt.parray, None,
       "Bulk-abundance atmospheric species.")
   pt.addarg("molscale",    group, pt.parray, None,
@@ -287,6 +297,9 @@ def parse(pyrat, log=None):
   # Hazes and clouds:
   pyrat.inputs.hazes      = user.hazes
   pyrat.inputs.hpars      = user.hpars
+  pyrat.inputs.rayleigh   = user.rayleigh
+  pyrat.inputs.rpars      = user.rpars
+  pyrat.inputs.fpatchy    = user.fpatchy
   # Alkali compounds:
   pyrat.inputs.alkali     = user.alkali
   # Optical depth:
@@ -313,6 +326,7 @@ def parse(pyrat, log=None):
   pyrat.inputs.uncert   = user.uncert
   pyrat.inputs.filter   = user.filter
   # Retrieval variables:
+  pyrat.inputs.retflag  = user.retflag
   pyrat.inputs.bulk     = user.bulk
   pyrat.inputs.molscale = user.molscale
   pyrat.inputs.tmodel   = user.tmodel
@@ -653,12 +667,41 @@ def checkinputs(pyrat):
     if inputs.hpars is not None:
       if nhpars != len(inputs.hpars):
         pt.error("Number of input haze params ({:d}) does not match the"
-                 "number of required haze params({:d}).".
+                 "number of required haze params ({:d}).".
                  format(inputs.hpars, nhpars), pyrat.log)
       j = 0
       for i in np.arange(pyrat.haze.nmodels):
         pyrat.haze.model[i].pars = inputs.hpars[j:j+pyrat.haze.model[i].npars]
         j += pyrat.haze.model[i].npars
+
+  if inputs.fpatchy is not None:
+    if inputs.fpatchy < 0 or inputs.fpatchy > 1:
+      pt.error("Invalid patchy-cloud fraction ({:g}).  fpatchy must be "
+               "in the range 0--1.".format(inputs.fpatchy))
+    pyrat.haze.fpatchy = inputs.fpatchy
+
+  # Check Rayleigh models:
+  if inputs.rayleigh is not None:
+    nrpars = 0
+    for rmodel in inputs.rayleigh:
+      if rmodel not in ray.rnames:
+        pt.error("Rayleigh model '{:s}' is not in the list of available models:"
+                 "\n{:s}".format(rmodel, ray.rnames), pyrat.log)
+      j = np.where(ray.rnames == rmodel)[0][0]
+      pyrat.rayleigh.model.append(ray.rmodels[j])
+      pyrat.rayleigh.nmodels += 1
+      nrpars += pyrat.rayleigh.model[-1].npars
+    # Process the Rayleigh parameters
+    if inputs.rpars is not None:
+      if nrpars != len(inputs.rpars):
+        pt.error("Number of input Rayleigh params ({:d}) does not match the"
+                 "number of required params ({:d}).".
+                 format(inputs.rpars, nrpars), pyrat.log)
+      j = 0
+      for i in np.arange(pyrat.rayleigh.nmodels):
+        pyrat.rayleigh.model[i].pars = \
+                                inputs.rpars[j:j+pyrat.rayleigh.model[i].npars]
+        j += pyrat.rayleigh.model[i].npars
 
   # Check alkali arguments:
   if inputs.alkali is not None:
@@ -761,6 +804,7 @@ def checkinputs(pyrat):
 
   # Retrieval variables:
   # Accept species lists, check after we load the atmospheric model:
+  pyrat.ret.retflag = inputs.retflag
   pyrat.ret.bulk     = inputs.bulk
   pyrat.ret.molscale = inputs.molscale
   pyrat.ret.params   = inputs.params
@@ -866,6 +910,12 @@ def setup(pyrat):
              "{:s}.".format(np.intersect1d(ret.bulk, ret.molscale)), pyrat.log)
 
   if pyrat.runmode == "mcmc":
+    if ret.retflag is None:
+      pt.error("Unspecified retrieval model flags.  Set the retflag list "
+               "of models selecting from: {:s}.".format(ret.rmodels))
+    elif not np.all(np.in1d(ret.retflag, ret.rmodels)):
+      pt.error("Invalid retrieval model flags in retflag={}.  Available "
+               "options are: {}.".format(ret.retflag, ret.rmodels))
     if ret.bulk is None:
       pt.error("Undefined bulk species list (bulk).", pyrat.log)
     if ret.molscale is None:
@@ -885,6 +935,10 @@ def setup(pyrat):
     nabund = len(ret.iscale)
   else:
     nabund = 0
+  # Abundance free-parameter names:
+  mparname = []
+  for i in np.arange(nabund):
+    mparname += [r"$\log_{{10}}(f_{{\rm {:s}}})$".format(ret.molscale[i])]
 
 
   # Read stellar spectrum model:
@@ -950,44 +1004,80 @@ def setup(pyrat):
   if phy.rplanet is not None and phy.rstar is not None:
     phy.rprs = phy.rplanet/phy.rstar
 
-  # Temperature model and arguments:
+  # Temperature models and arguments:
   if ret.tmodelname == "TCEA":
     ret.tmodel = PT.TCEA
-    ret.ntpars = 5
+    ntemp = 5
     ret.targs  = [pyrat.atm.press, phy.rstar, phy.tstar, phy.tint,
                   phy.smaxis, phy.gplanet]
-    ret.parname = [r"$\log_{10}(\kappa)$", r"$\log_{10}(\gamma_1)$",
-                   r"$\log_{10}(\gamma2)$", r"$\alpha$", r"$\beta$"]
+    tparname = [r"$\log_{10}(\kappa)$", r"$\log_{10}(\gamma_1)$",
+                r"$\log_{10}(\gamma2)$", r"$\alpha$", r"$\beta$"]
   elif ret.tmodelname == "isothermal":
     ret.tmodel = PT.isothermal
-    ret.ntpars = 1
+    ntemp = 1
     ret.targs  = [pyrat.atm.nlayers]
-    ret.parname = [r"$T\ ({\rm K})$"]
+    tparname = [r"$T\ ({\rm K})$"]
   else:
-    ret.ntpars = 0
+    ntemp = 0
+    tparname = []
 
-  # Number of free parameters:
-  ntemp  = ret.ntpars
-  nrad   = int(pyrat.od.path == "transit")
-  if nrad == 1:
-    ret.parname += [r"${\rm Radius\ (km)}$"]
-  for i in np.arange(nabund):
-    ret.parname += [r"$\log_{{10}}(f_{{\rm {:s}}})$".format(ret.molscale[i])]
+  # Rayleigh models:
+  nray     = 0
+  rparname = []
+  for i in np.arange(pyrat.rayleigh.nmodels):
+    rparname += pyrat.rayleigh.model[i].parname
+    nray += pyrat.rayleigh.model[i].npars
 
-  nhaze  = 0
-  if pyrat.ret.nparams > ntemp+nrad+nabund:
-    for i in np.arange(pyrat.haze.nmodels):
-      nhaze += pyrat.haze.model[i].npars
-      ret.parname += pyrat.haze.model[i].parname
+  # Haze models:
+  nhaze    = 0
+  hparname = []
+  for i in np.arange(pyrat.haze.nmodels):
+    hparname += pyrat.haze.model[i].parname
+    nhaze += pyrat.haze.model[i].npars
+
+  # Cloud models:
+  #ncloud    = 0
+  #cparname = []
+  #for i in np.arange(pyrat.cloud.nmodels):
+  #  cparname += pyrat.cloud.model[i].parname
+  #  ncloud += pyrat.cloud.model[i].npars
 
   # Indices to parse the array of fitting parameters:
-  pyrat.ret.itemp  = np.arange(0,          ntemp)
-  pyrat.ret.irad   = np.arange(ntemp,      ntemp+nrad)
-  pyrat.ret.iabund = np.arange(ntemp+nrad, ntemp+nrad+nabund)
-  pyrat.ret.ihaze  = np.arange(ntemp+nrad+nabund, ntemp+nrad+nabund+nhaze)
+  if ret.retflag is None:
+    ret.retflag = []
+  nparams = 0
+  ret.parname = []
+  if "pt" in ret.retflag:
+    ret.itemp  = np.arange(nparams, nparams + ntemp)
+    ret.parname += tparname
+    nparams += ntemp
+  if "rad" in ret.retflag:
+    ret.irad   = np.arange(nparams, nparams + 1)  # nrad is always 1
+    ret.parname += [r"${\rm Radius\ (km)}$"]
+    nparams += 1
+  if "mol" in ret.retflag:
+    ret.iabund = np.arange(nparams, nparams + nabund)
+    ret.parname += mparname
+    nparams += nabund
+  if "ray" in ret.retflag:
+    ret.iray   = np.arange(nparams, nparams + nray)
+    ret.parname += rparname
+    nparams += nray
+  if "haze" in ret.retflag:
+    ret.ihaze  = np.arange(nparams, nparams + nhaze)
+    ret.parname += hparname
+    nparams += nhaze
+  #if "cloud" in ret.retflag:
+  #  ret.icloud  = np.arange(nparams, nparams + ncloud)
+  #  ret.parname += cparname
+  #  nparams += ncloud
+  if "patchy" in ret.retflag:
+    ret.ipatchy = np.arange(nparams, nparams + 1)  # npatchy is always 1
+    ret.parname += [r"$f_{\rm patchy}$"]
+    naprams += 1
 
   if pyrat.runmode == "mcmc":
-    if pyrat.ret.nparams != ntemp+nrad+nabund+nhaze:
+    if ret.nparams != nparams:
       pt.error("The input number of fitting parameters ({:d}) does not "
                "match the number of model parameters ({:d}).".
-                format(len(pyrat.ret.params), ntemp+nrad+nabund+nhaze))
+                format(ret.nparams, nparams))

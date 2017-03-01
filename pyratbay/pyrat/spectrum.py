@@ -22,6 +22,9 @@ def spectrum(pyrat):
 
   # Initialize the spectrum array:
   pyrat.spec.spectrum = np.empty(pyrat.spec.nwave, np.double)
+  if pyrat.haze.fpatchy is not None:
+    pyrat.spec.clear  = np.empty(pyrat.spec.nwave, np.double)
+    pyrat.spec.cloudy = np.empty(pyrat.spec.nwave, np.double)
 
   # Call respective function depending on the geometry:
   if   pyrat.od.path == "transit":
@@ -50,12 +53,23 @@ def modulation(pyrat):
     # The integrand:
     integ = (np.exp(-pyrat.od.depth[rtop:last+1,i]) *
                    pyrat.atm.radius[rtop:last+1])
-
     # Integrate with Simpson's rule:
     pyrat.spec.spectrum[i] = s.simps(integ, h[0:last], *s.geth(h[0:last]))
+    # Extra spectrum for patchy model:
+    if pyrat.haze.fpatchy is not None:
+      pinteg = (np.exp(-pyrat.od.pdepth[rtop:last+1,i]) *
+                   pyrat.atm.radius[rtop:last+1])
+      pyrat.spec.cloudy[i] = s.simps(pinteg, h[0:last], *s.geth(h[0:last]))
 
   pyrat.spec.spectrum = ((pyrat.atm.radius[rtop]**2 + 2*pyrat.spec.spectrum) /
                          pyrat.phy.rstar**2)
+  if pyrat.haze.fpatchy is not None:
+    pyrat.spec.cloudy = ((pyrat.atm.radius[rtop]**2 + 2*pyrat.spec.cloudy) /
+                         pyrat.phy.rstar**2)
+    pyrat.spec.clear = pyrat.spec.spectrum
+    pyrat.spec.spectrum = (pyrat.haze.fpatchy     * pyrat.spec.cloudy +
+                           (1-pyrat.haze.fpatchy) * pyrat.spec.clear  )
+
   pt.msg(pyrat.verb-3, "Computed transmission spectrum: '{:s}'.".
                         format(pyrat.outspec), pyrat.log, 2)
 

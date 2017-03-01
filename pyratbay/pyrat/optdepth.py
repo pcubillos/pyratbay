@@ -32,8 +32,12 @@ def opticaldepth(pyrat):
   pyrat.od.ec    = np.empty((pyrat.atm.nlayers, pyrat.spec.nwave))
   pyrat.od.depth = np.zeros((pyrat.atm.nlayers, pyrat.spec.nwave))
   pyrat.od.ideep = np.tile(pyrat.atm.nlayers-1, pyrat.spec.nwave)
+  if pyrat.haze.fpatchy:
+    pyrat.od.epatchy = np.empty((pyrat.atm.nlayers, pyrat.spec.nwave))
+    pyrat.od.pdepth  = np.zeros((pyrat.atm.nlayers, pyrat.spec.nwave))
   #print("Init:   {:.6f}".format(time.time()-ti))
 
+  rtop = pyrat.atm.rtop
   # Calculate the ray path:
   ti = time.time()
   path(pyrat)
@@ -42,7 +46,7 @@ def opticaldepth(pyrat):
   # Obtain the extinction-coefficient:
   # Interpolate from table:
   if pyrat.ex.extfile is not None:
-    r = pyrat.atm.rtop
+    r = rtop
     while r < pyrat.atm.nlayers:
       ec.interp_ec(pyrat.ex.ec[r],
                    pyrat.ex.etable[:,:,r,:], pyrat.ex.temp, pyrat.ex.molID,
@@ -59,7 +63,7 @@ def opticaldepth(pyrat):
     # Multi-processing extinction calculation (in C):
     processes = []
     # CPU indices
-    indices = np.arange(pyrat.atm.rtop, pyrat.atm.nlayers) % pyrat.nproc
+    indices = np.arange(rtop, pyrat.atm.nlayers) % pyrat.nproc
     for i in np.arange(pyrat.nproc):
       proc = mpr.Process(target=ex.extinction,
                          args=(pyrat, np.where(indices==i)[0]))
@@ -68,33 +72,37 @@ def opticaldepth(pyrat):
     for i in np.arange(pyrat.nproc):
       processes[i].join()
 
-
-  r = pyrat.atm.rtop
-  while r < pyrat.atm.nlayers:
-    # Sum all contributions to the extinction:
-    pyrat.od.ec[r] = (pyrat.ex.ec[r] +
-                      pyrat.cs.ec[r] +
-                      pyrat.haze.ec[r] +
-                      pyrat.alkali.ec[r])
-    r += 1
+  # Sum all contributions to the extinction (except clouds):
+  pyrat.od.ec[rtop:] = (pyrat.ex.ec      [rtop:] +
+                        pyrat.cs.ec      [rtop:] +
+                        pyrat.rayleigh.ec[rtop:] +
+                        pyrat.alkali.ec  [rtop:])
+  # Add cloud if not fpatchy, else separate Eclear and Ecloudy:
+  if pyrat.haze.fpatchy is None:
+    pyrat.od.ec[rtop:] += pyrat.haze.ec[rtop:]
+  else:
+    pyrat.od.epatchy[rtop:] = np.copy(pyrat.od.ec[rtop:]) + pyrat.haze.ec[rtop:]
 
   ti = time.time()
   # Calculate the optical depth for each wavenumber:
   i = 0
   if pyrat.od.path == "eclipse":
     while i < pyrat.spec.nwave:
-      pyrat.od.ideep[i] = t.cumtrapz(pyrat.od.depth  [pyrat.atm.rtop:,i],
-                                     pyrat.od.ec     [pyrat.atm.rtop:,i],
-                                     pyrat.od.raypath[pyrat.atm.rtop:],
-                                     pyrat.od.maxdepth) + pyrat.atm.rtop
+      pyrat.od.ideep[i] = t.cumtrapz(pyrat.od.depth  [rtop:,i],
+                                     pyrat.od.ec     [rtop:,i],
+                                     pyrat.od.raypath[rtop:],
+                                     pyrat.od.maxdepth) + rtop
       i += 1
   else: # pyrat.od.path == "transit"
     while i < pyrat.spec.nwave:
-      r = pyrat.atm.rtop
+      r = rtop
       while r < pyrat.atm.nlayers:
         # Optical depth at each level (tau = integral e*ds):
-        pyrat.od.depth[r,i] = t.trapz(pyrat.od.ec[pyrat.atm.rtop:r+1,i],
+        pyrat.od.depth[r,i] = t.trapz(pyrat.od.ec[rtop:r+1,i],
                                       pyrat.od.raypath[r])
+        if pyrat.haze.fpatchy is not None:
+          pyrat.od.pdepth[r,i] = t.trapz(pyrat.od.epatchy[rtop:r+1,i],
+                                         pyrat.od.raypath[r])
 
         # Stop calculating the op. depth at this wavenumber if reached maxdeph:
         if pyrat.od.depth[r,i] >= pyrat.od.maxdepth:
