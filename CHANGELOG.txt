@@ -2709,5 +2709,14 @@ Updated demo config files according to current code.
 
 Updated tutorial config files according to current code.
 
+
+*****  Wed Mar  1 16:51:17 GST 2017  *****
+
+Bumped Pyrat to version 1.2.36.
+Bumped Pyrat Bay to version 0.0.47.
+
+Note that the online documentation about the haze, rayleigh, and
+patchy models is outdated or non-existent (TBD).
+
 *****
 
