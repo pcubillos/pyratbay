@@ -150,6 +150,17 @@ def run(argv, main=False):
     pyrat.outspec = "{:s}_bestfit_spectrum.dat".format(outfile)
     bestbandflux = pf.fit(bestp, pyrat)
 
+    # Best-fit atmfile header:
+    header = "# TEA atmospheric file formatted for Pyrat.\n\n"
+
+    # Best-fit atmfile name:
+    best_atmfile = "BestFit_" + pyrat.atmfile 
+
+    # Write best-fit atmfile:
+    atm.writeatm(best_atmfile, pyrat.atm.press, pyrat.atm.temp,
+                 pyrat.mol.name, pyrat.atm.q, pyrat.atm.punits,
+                 header, radius=pyrat.atm.radius, runits='km')
+
     # Best-fitting spectrum:
     pp.spectrum(pyrat=pyrat,
                 filename="{:s}_bestfit_spectrum.png".format(outfile))
