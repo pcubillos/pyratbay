@@ -63,30 +63,48 @@ def fit(params, pyrat, freeze=False):
     q0 = pyrat.atm.q
 
   rejectflag = False
-  # Update temperature profile:
-  temp = pyrat.ret.tmodel(params[pyrat.ret.itemp], *pyrat.ret.targs)
+  # Update temperature profile if requested:
+  if pyrat.ret.itemp is not None:
+    temp = pyrat.ret.tmodel(params[pyrat.ret.itemp], *pyrat.ret.targs)
+  else:
+    temp = pyrat.atm.temp
   # Turn-on reject flag if out-of-bounds temperature:
   if np.any(temp < pyrat.ret.tlow) or np.any(temp > pyrat.ret.thigh):
     temp[:] = 0.5*(pyrat.ret.tlow + pyrat.ret.thigh)
     rejectflag = True
 
-  # Update abundance profiles:
-  q2 = atm.qscale(pyrat.atm.q, pyrat.mol.name, params[pyrat.ret.iabund],
-                  pyrat.ret.molscale, pyrat.ret.bulk,
-                  iscale=pyrat.ret.iscale, ibulk=pyrat.ret.ibulk,
-                  bratio=pyrat.ret.bulkratio, invsrat=pyrat.ret.invsrat)
+  # Update abundance profiles if requested:
+  if pyrat.ret.iabund is not None:
+    q2 = atm.qscale(pyrat.atm.q, pyrat.mol.name, params[pyrat.ret.iabund],
+                    pyrat.ret.molscale, pyrat.ret.bulk,
+                    iscale=pyrat.ret.iscale, ibulk=pyrat.ret.ibulk,
+                    bratio=pyrat.ret.bulkratio, invsrat=pyrat.ret.invsrat)
+  else:
+    q2 = pyrat.atm.q
 
-  # Update reference radius:
-  if len(pyrat.ret.irad) > 0:
+  # Update reference radius if requested:
+  if pyrat.ret.irad is not None:
     pyrat.phy.rplanet = params[pyrat.ret.irad][0]*pc.km
 
-  # Update haze parameters:
-  if len(pyrat.ret.ihaze) > 0:
+  # Update Rayleigh parameters if requested:
+  if pyrat.ret.iray is not None:
+    j = 0
+    rpars = params[pyrat.ret.iray]
+    for i in np.arange(pyrat.rayleigh.nmodels):
+      pyrat.rayleigh.model[i].pars = rpars[j:j+pyrat.rayleigh.model[i].npars]
+      j += pyrat.rayleigh.model[i].npars
+
+  # Update haze parameters if requested:
+  if pyrat.ret.ihaze is not None:
     j = 0
     hpars = params[pyrat.ret.ihaze]
     for i in np.arange(pyrat.haze.nmodels):
       pyrat.haze.model[i].pars = hpars[j:j+pyrat.haze.model[i].npars]
       j += pyrat.haze.model[i].npars
+
+  # Update patchy fraction if requested:
+  if pyrat.ret.ipatchy is not None:
+    pyrat.haze.fpatchy = params[pyrat.ret.ipatchy]
 
   # Calculate spectrum:
   pyrat = py.run(pyrat, [temp, q2, None])

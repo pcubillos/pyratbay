@@ -2754,3 +2754,8 @@ Fixed bug with verb variable.
 
 *****
 
+Fixed bug in pyratfit.py with undefined variables.  The code now
+recognizes which models should be updated for retrieval.
+
+*****
+
