@@ -2768,3 +2768,8 @@ Fixed typo in xlabel of transmittance plot.
 
 *****
 
+Bumped Pyrat Bay to version 0.0.50.
+
+*****
+
+
