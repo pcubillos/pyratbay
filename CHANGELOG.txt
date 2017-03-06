@@ -2771,6 +2771,11 @@ Fixed typo in xlabel of transmittance plot.
 Bumped Pyrat Bay to version 0.0.50.
 
 
+*****  Mo 6. Mär 14:14:56 CET 2017  *****
+
+Docs, fixed bug in equation array that was breaking latexpdf command.
+
+
 *****  Mi 8. Mär 18:57:02 CET 2017  *****
 
 Enabled single-layer extinction-coefficient calculation in CS module.
@@ -2827,5 +2832,3 @@ Bumped Pyrat to version 1.2.38.
 Bumped Pyrat Bay to version 0.0.51.
 
 *****
-
-

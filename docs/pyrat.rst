@@ -151,14 +151,19 @@ Intensity spectrum for eclipse spectroscopy:
    :label: eq:intensity
 
 And the flux spectrum (in erg s\ :sup:`-1` cm\ :sup:`-2` cm) by
-integrating ober the day-side hemisphere:
+integrating over the day-side hemisphere:
 
 .. math::
+   :label: flux
+   :nowrap:
+
+   \begin{eqnarray}
    F_{\nu} & = & \left(\frac{R_{\rm p}}{d}\right)^{2} 
                 \int_{0}^{2\pi}\int_{0}^{\pi/2} 
                    I_{\nu} \cos(\alpha)\sin(\alpha) {\rm d}\alpha {\rm d}\phi \\
     & = & \pi \left(\frac{R_{\rm p}}{d}\right)^{2}  \sum \langle I_{\nu}\rangle \Delta\alpha
-   :label: flux
+   \end{eqnarray}
+
 
 Where :math:`\alpha` covers the angle from the substellar point to the
 terminator.  ``Pyrat Bay`` returns the flux as observed at a distance 
