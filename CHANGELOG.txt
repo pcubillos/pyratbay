@@ -2764,4 +2764,7 @@ Some cosmetics in tutorial config file for mcmc.
 
 *****
 
+Fixed typo in xlabel of transmittance plot.
+
+*****
 
