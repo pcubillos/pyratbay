@@ -24,6 +24,9 @@ rootdir = os.path.realpath(os.path.dirname(__file__) + "/../../")
 sys.path.append(rootdir + "/pyratbay/lib/")
 import pt as PT
 
+sys.path.append(rootdir + "/pyratbay/atmosphere/")
+import MadhuTP
+
 def parse(pyrat, log=None):
   """
   Parse the command-line arguments into the pyrat object
@@ -813,8 +816,10 @@ def checkinputs(pyrat):
   pyrat.ret.stepsize = inputs.stepsize # FINDME checks
   pyrat.ret.tlow     = pt.getparam(inputs.tlow,  "kelvin")
   pyrat.ret.thigh    = pt.getparam(inputs.thigh, "kelvin")
-  if inputs.tmodel is not None and inputs.tmodel not in ["TCEA", "isothermal"]:
-    pt.error("Invalid temperature model '{:s}'.  Select from: TCEA or "
+  if inputs.tmodel is not None and inputs.tmodel not in \
+          ["TCEA", "isothermal", "MadhuInv", "MadhuNoInv"]:
+    pt.error("Invalid temperature model '{:s}'.  "
+             "Select from: TCEA, MadhuInv, MadhuNoInv or "
              "isothermal".format(inputs.tmodel), pyrat.log)
   pyrat.ret.tmodelname = inputs.tmodel
   if pyrat.ret.tmodelname == "TCEA":
@@ -1017,6 +1022,18 @@ def setup(pyrat):
     ntemp = 1
     ret.targs  = [pyrat.atm.nlayers]
     tparname = [r"$T\ ({\rm K})$"]
+  elif ret.tmodelname == "MadhuNoInv":
+    ntemp = 5
+    ret.tmodel = MadhuTP.no_inversion
+    ret.targs  = [pyrat.atm.press*1e-6]
+    tparname   = [r"$a_1$", r"$a_2$",
+                   r"$p_1$", r"$p_3$", r"$T_3$"]
+  elif ret.tmodelname == "MadhuInv":
+    ntemp = 6
+    ret.tmodel = MadhuTP.inversion
+    ret.targs  = [pyrat.atm.press*1e-6]
+    tparname   = [r"$a_1$", r"$a_2$",
+                   r"$p_1$", r"$p_2$", r"$p_3$", r"$T_3$"]
   else:
     ntemp = 0
     tparname = []

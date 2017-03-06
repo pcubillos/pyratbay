@@ -161,12 +161,16 @@ def run(argv, main=False):
                  pyrat.mol.name, pyrat.atm.q, pyrat.atm.punits,
                  header, radius=pyrat.atm.radius, runits='km')
 
+    pyrat.verb = verb
+    pt.msg(pyrat.verb-3, "Writing best-fit atmfile.", pyrat.log, 0)
+
     # Best-fitting spectrum:
     pp.spectrum(pyrat=pyrat,
                 filename="{:s}_bestfit_spectrum.png".format(outfile))
     # Posterior PT profiles:
-    if pyrat.ret.tmodelname == "TCEA":
-      pp.TCEA(posterior, besttpars=bestp[pyrat.ret.itemp], pyrat=pyrat)
+    if pyrat.ret.tmodelname == "TCEA" or pyrat.ret.tmodelname == "MadhuInv"\
+                                    or pyrat.ret.tmodelname == "MadhuNoInv":
+      pp.PT(posterior, besttpars=bestp[pyrat.ret.itemp], pyrat=pyrat)
     # Contribution or transmittance functions:
     if   pyrat.od.path == "eclipse":
       cf  = pt.cf(pyrat.od.depth, pyrat.atm.press, pyrat.od.B)
