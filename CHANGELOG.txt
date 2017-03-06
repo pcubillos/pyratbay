@@ -2759,3 +2759,9 @@ recognizes which models should be updated for retrieval.
 
 *****
 
+Fixed wavelength boundaries in tutorial config file for opacity grid.
+Some cosmetics in tutorial config file for mcmc.
+
+*****
+
+
