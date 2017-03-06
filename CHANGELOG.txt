@@ -1475,7 +1475,7 @@ outputs (in addition to those of lower levels):
   verb
   1     Show errors.
   2     Show warnings.
-  3     Show main routine calls. 
+  3     Show main routine calls.
   4     Show main details of each routine.
   5     Show detailed info of each step (debugging).
   6     Show all info (not really recommended).
@@ -2454,7 +2454,7 @@ Replaced with commands to download the file.
 
 *****
 
-Fixed minor bug with the verbosity argument in pyrat's argum.py. 
+Fixed minor bug with the verbosity argument in pyrat's argum.py.
 
 *****
 
@@ -2721,16 +2721,55 @@ patchy models is outdated or non-existent (TBD).
 
 *****  Thu Mar  2 16:00:27 GST 2017  *****
 
-JB - Implemented best-fit atmfile. The code writes the best-fit atmfile
-with all best-fit updated values, including radius.
+JB - Implemented best-fit atmfile. The code writes the best-fit
+atmfile with all best-fit updated values, including radius.
 
 Bumped Pyrat Bay to version 0.0.48.
 
+
 ***** Mon Mar  6 11:12:58 GST 2017 *****
 
-JB - Implemented Madhu's TP profile. Must have not overlapping pressure boundaries in the mcmc.cfg file. Must separately execute inverted and non-inverted case, by calling tmodel arguments MadhuInv or MadhuNoInv.
+JB - Implemented Madhu's TP profile. Must have not overlapping
+pressure boundaries in the mcmc.cfg file.
+Must separately execute inverted and non-inverted case, by calling
+tmodel arguments MadhuInv or MadhuNoInv.
 
 Bumped Pyrat to version 1.2.37.
 Bumped Pyrat Bay to version 0.0.49.
+
+
+*****  Mo 6. Mär 12:14:12 CET 2017  *****
+
+Corrected __all__ list in plots module initializer.
+
+*****
+
+Removed residual 'else' command in atmosphere.py.
+Cleaned up trailing white spaces in MadhuTP.py.
+
+*****
+
+Minor tweaks in pbay driver.py.
+Fixed bug with verb variable.
+
+*****
+
+Fixed bug in pyratfit.py with undefined variables.  The code now
+recognizes which models should be updated for retrieval.
+
+*****
+
+Fixed wavelength boundaries in tutorial config file for opacity grid.
+Some cosmetics in tutorial config file for mcmc.
+
+*****
+
+Fixed typo in xlabel of transmittance plot.
+
+*****
+
+Bumped Pyrat Bay to version 0.0.50.
+
+*****
 
 

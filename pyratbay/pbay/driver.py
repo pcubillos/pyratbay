@@ -129,6 +129,7 @@ def run(argv, main=False):
 
     # Parse retrieval info into the Pyrat object:
     pf.init(pyrat, args, log)
+    verb = pyrat.verb     # Mute pyrat
     pyrat.verb = 0        # Mute pyrat
     pyrat.outspec = None  # Avoid writing spectrum file during MCMC
 
@@ -151,25 +152,23 @@ def run(argv, main=False):
     bestbandflux = pf.fit(bestp, pyrat)
 
     # Best-fit atmfile header:
-    header = "# TEA atmospheric file formatted for Pyrat.\n\n"
-
-    # Best-fit atmfile name:
-    best_atmfile = "BestFit_" + pyrat.atmfile 
-
+    header = "# MCMC best-fitting atmospheric model.\n\n"
     # Write best-fit atmfile:
-    atm.writeatm(best_atmfile, pyrat.atm.press, pyrat.atm.temp,
+    atm.writeatm("bestfit_{:s}".format(pyrat.atmfile),
+                 pyrat.atm.press, pyrat.atm.temp,
                  pyrat.mol.name, pyrat.atm.q, pyrat.atm.punits,
                  header, radius=pyrat.atm.radius, runits='km')
 
     pyrat.verb = verb
-    pt.msg(pyrat.verb-3, "Writing best-fit atmfile.", pyrat.log, 0)
+    pt.msg(pyrat.verb-3, "Written best-fit atmospheric file ('{:s}') and "
+      "spectrum ('{:s}').".
+      format("bestfit_{:s}".format(pyrat.atmfile), pyrat.outspec), pyrat.log,0)
 
     # Best-fitting spectrum:
     pp.spectrum(pyrat=pyrat,
                 filename="{:s}_bestfit_spectrum.png".format(outfile))
     # Posterior PT profiles:
-    if pyrat.ret.tmodelname == "TCEA" or pyrat.ret.tmodelname == "MadhuInv"\
-                                    or pyrat.ret.tmodelname == "MadhuNoInv":
+    if pyrat.ret.tmodelname in ["TCEA", "MadhuInv", "MadhuNoInv"]:
       pp.PT(posterior, besttpars=bestp[pyrat.ret.itemp], pyrat=pyrat)
     # Contribution or transmittance functions:
     if   pyrat.od.path == "eclipse":

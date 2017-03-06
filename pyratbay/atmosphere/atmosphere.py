@@ -541,9 +541,6 @@ def temperature(tmodel, pressure=None, rstar=None, tstar=None, tint=100.0,
   else:
     pt.error("Invalid input temperature model '{:s}'.  Select from: 'TCEA', "
              " 'MadhuInv', 'MadhuNoInv', or 'isothermal'.".format(tmodel), log)
-  else:
-    pt.error("Invalid input temperature model '{:s}'.  Select from: 'TCEA' "
-             "or 'isothermal'.".format(tmodel), log)
   if eval:
     temperature = Tmodel(tparams, *targs)
     pt.msg(1, "\nComputed {:s} temperature model.".format(tmodel), log)
