@@ -5,7 +5,7 @@
 Pyrat plotting utilities.
 """
 
-__all__ = ["spectrum", "cf", "TCEA"]
+__all__ = ["spectrum", "cf", "PT"]
 
 import os, sys
 import numpy as np
