@@ -165,3 +165,4 @@ The output figure should look like this:
 
 .. image:: ./figures/pyrat_spectrum_demo.png
    :width: 70%
+   :align: center

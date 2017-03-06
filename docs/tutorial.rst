@@ -58,20 +58,32 @@ Running Modes
 
 ``Pyrat Bay`` offers a sequence of running modes (``runmode``):
 
-- ``tli``: Generate a transition-line-information file (used for spectral computation).
-- ``pt``: Compute a temperature-pressure profile.
-- ``atmosphere``: Generate a 1D atmospheric model (pressure, temperature, and abundances).
-- ``spectrum``: Compute forwad-modeling spectra (transmission or emission).
-- ``opacity``: Generate an extinction-coefficient table (to speed up spectra computation).
-- ``mcmc``: Run an atmospheric retrieval.
++----------------+------------------------------------------------------------+
+| ``runmode``    | Description                                                |
++================+============================================================+
+| ``tli``        | Generate a transition-line-information file (used for      |
+|                | spectral computation)                                      |
++----------------+------------------------------------------------------------+
+| ``pt``         | Compute a temperature-pressure profile                     |
++----------------+------------------------------------------------------------+
+| ``atmosphere`` | Generate a 1D atmospheric model (pressure, temperature,    |
+|                | and abundances)                                            |
++----------------+------------------------------------------------------------+
+| ``spectrum``   | Compute forwad-modeling spectra (transmission or emission) |
++----------------+------------------------------------------------------------+
+| ``opacity``    | Generate an extinction-coefficient table (to speed up      |
+|                | spectra computation)                                       |
++----------------+------------------------------------------------------------+
+| ``mcmc``       | Run an atmospheric retrieval                               |
++----------------+------------------------------------------------------------+
+
 
 Running modes that require a previous step (e.g., a spectrum
 computation requires an atmospheric model), can do all required
-calculations in a single run, as long as the user provides all the
-necessary parameters in the configuration file.
-
-.. Depending on the selected running mode, the returned outputs will
-   differ.
+calculations in a single run, as long as the user provides the
+necessary parameters for each step in the configuration file.
+Depending on the selected running mode, the returned outputs will
+differ.
 
 The following examples show how to run each of these modes from the
 Python interpreter.
@@ -102,7 +114,7 @@ use the following shell command:
 
 .. code-block:: shell
 
-  curl http://kurucz.harvard.edu/grids/gridp00odfnew/fp00k2odfnew.pck -o kurucz_fp00k2odfnew.pck
+  curl http://kurucz.harvard.edu/grids/gridp00odfnew/fp00k2odfnew.pck -o fp00k2odfnew.pck
 
 Be sure to include this script each time you open a Python session:
 
@@ -139,13 +151,15 @@ Source               Species                       Type Format Reference
 ==================== ============================= ==== ====== =========
 HITRAN               |H2O|, CO, |CO2|, |CH4| (+43) LT   LBL    [Rothman2013]_
 HITEMP               |H2O|, CO, |CO2|, NO, OH      LT   LBL    [Rothman2010]_
-EXOMOL               |H2O|, CO, |CO2|, |CH4| (+9)  LT   CS     TBD
+ExoMol               |H2O|, CO, |CO2|, |CH4| (+)   LT   CS     TBD
 Partridge & Schwenke |H2O|                         LT   LBL    [PS1997]_
 Schwenke             TiO                           LT   LBL    [Schwenke1998]_
 Plez                 VO                            LT   LBL    [Plez1998]_
 Borysow              |H2|-|H2|, |H2|-He            CIA  CS     TBD
 HITRAN               |H2|-|H2|, |H2|-He (+12)      CIA  CS     [Richard2012]_
 ==================== ============================= ==== ====== =========
+
+.. ExoMol               |H2O|, CO, |CO2|, |CH4| (+)   LT   LBL    Coming Soon
 
 
 Here is an example of a TLI configuration file:
@@ -155,7 +169,7 @@ Here is an example of a TLI configuration file:
    [pyrat]
    # For syntax see:  https://docs.python.org/2/library/configparser.html
 
-   # Run mode, select from: tli, pt, atmosphere, spectrum, opacity, mcmc
+   # Pyrat Bay run mode, select from: [tli pt atmosphere spectrum opacity mcmc]
    runmode = tli
 
    # List of line-transtion databases:
@@ -235,8 +249,8 @@ pressure array is equi-spaced in log-pressure.  This mode produces a
 pdf image of the pressure-temperature profile and it returns the
 pressure and temperature arrays.
 
-The temperature model (``tmodel``) can either be isothermal or a
-three-channel Eddington approximation (TCEA) model [Line2013]_.  The
+The temperature model (``tmodel``) can be isothermal,
+three-channel Eddington approximation (TCEA) [Line2013]_, or the Madhusudhan parameterized model for thermally inverted (MadhuInv) or non-inverted (MadhuNoInv) atmospheres [Madhusudhan2009]_.  The
 number of model parameter (``tparams``) and other system parameters
 depend on the temperature model.
 
@@ -246,7 +260,7 @@ Here is an example of a PT configuration file:
 
   [pyrat]
 
-  # Run mode, select from: tli, pt, atmosphere, spectrum, opacity, mcmc
+  # Pyrat Bay run mode, select from: [tli pt atmosphere spectrum opacity mcmc]
   runmode = pt
 
   # Pressure array:
@@ -255,7 +269,7 @@ Here is an example of a PT configuration file:
   ptop    = 1e-5   ; Top-layer pressure (default units: punits)
   nlayers = 100    ; Number of atmospheric layers
 
-  # Temperature-profile model, select from: isothermal or TCEA
+  # Temperature-profile model, select from: [isothermal TCEA MadhuInv MadhuNoInv]
   tmodel  = isothermal
   tparams = 1500.0
   #    log10(kappa) log10(g1) log10(g2) alpha beta
@@ -272,13 +286,17 @@ Here is an example of a PT configuration file:
   # Verbosity level [1--5]:
   verb = 4
 
-For the isothermal model, the only parameter is the temperature.  For
-the TCEA model the parameters are :math:`\log_{10}(\kappa),
+The isothermal model has one free parameter: the temperature.
+The TCEA model has five parameters: :math:`\log_{10}(\kappa),
 \log_{10}(\gamma1), \log_{10}(\gamma2), \alpha, \beta` as defined in
 [Line2013]_.  The TCEA model also requires the stellar radius
 (``rstar``), the orbital semi-major axis (``smaxis``), the planetary
 surface gravity (``gplanet``), the stellar effective temperature
 (``tstar``), and the planetary internal temperature (``tint``).
+The MadhuInv model has six parameters: :math:`a_1, a_2, p_1, p_2, p_3,
+T_3` as defined in [Madhusudhan2009]_. The MadhuNoInv model has five
+parameters: :math:`a_1, a_2, p_1, p_3, T_3` as defined in
+[Madhusudhan2009]_.
 
 To create an isothermal pressure-temperature profile run from the
 Python interpreter:
@@ -312,6 +330,7 @@ Plot the profiles:
 
 .. image:: ./figures/pyrat_PT_tutorial.png
    :width: 70%
+   :align: center
 
 .. note:: If any of the required variables is missing form the
           configuration file, ``Pyrat Bay`` will throw an error
@@ -338,7 +357,7 @@ in addition of the PT mode:
 
   [pyrat]
 
-  # Run mode, select from: tli, pt, atmosphere, spectrum, opacity, mcmc
+  # Pyrat Bay run mode, select from: [tli pt atmosphere spectrum opacity mcmc]
   runmode = atmosphere
   ...
   # Atmospheric model:
@@ -401,16 +420,18 @@ atmospheric model.
 
 .. image:: ./figures/pyrat_atmosphere_tutorial.png
    :width: 70%
+   :align: center
 
 
 spectrum Mode
 .............
 
 This mode computes a transmission or emission spectrum.  Since this
-mode requires an atmospheric model, the ``atmfile`` variable works
-both as input or output.  If the atmospheric file already exists, it
-will take it as input, if it doesn't exists the code will generate it
-(provided the configuration file contains the required arguments).
+mode requires an atmospheric model, the ``atmfile`` variable can work
+as either input or output.  If the atmospheric file already exists, it
+will take it as input; if the atmospheric file doesn't exist, the code
+will generate it (provided the configuration file contains the
+required arguments).
 
 Here is an example configuration file for this mode:
 
@@ -418,7 +439,7 @@ Here is an example configuration file for this mode:
 
   [pyrat]
 
-  # Run mode, select from: tli, pt, atmosphere, spectrum, opacity, mcmc
+  # Pyrat Bay run mode, select from: [tli pt atmosphere spectrum opacity mcmc]
   runmode = spectrum
 
   # Atmospheric model:
@@ -446,20 +467,20 @@ Here is an example configuration file for this mode:
   punits   = bar        ; Default pressure units
   rstar    = 1.27 rsun  ; Stellar radius (default units: radunits)
   rplanet  = 1.0 rjup   ; Planetary radius (default units: radunits)
-  gplanet  = 800.0      ; Planetary surface gravity in cm s-2
+  mplanet  = 0.31 mjup  ; Planetary mass
   refpressure = 0.1     ; Reference pressure at rplanet (default units: punits)
 
   # Maximum optical depth to calculate:
   maxdepth = 10.0
 
-  # Observing geometry, select between: transit or eclipse
+  # Observing geometry, select between: [transit eclipse]
   path = transit
 
-  # Haze/cloud models:
-  hazes = rayleigh_LdE  ; Lecavelier des Etangs (2008) model
-  hpars = 1.0 -4.0      ; [xH2 cross section, slope]
+  # Rayleigh models, select from: [lecavelier dw_H2]
+  rayleigh = lecavelier  ; Lecavelier des Etangs (2008) model
+  rpars    = 1.0 -4.0    ; [xH2 cross-section, slope]
 
-  # Alkali opacity: Van der Waals + statistical-theory models
+  # Alkali opacity, select from: [SodiumVdWst PotassiumVdWst]
   alkali = SodiumVdWst
 
   # Verbosity level [1--5]:
@@ -468,6 +489,10 @@ Here is an example configuration file for this mode:
   # Output file names:
   logfile    = ./transmisison_tutorial.log
   outspec    = ./transmisison_spectrum_tutorial.dat
+
+.. note:: Pro-tip: By specifying the planetary mass (``mplanet``) and
+          radius (``rplanet``), ``Pyrat Bay`` will automatically
+          compute ``gplanet`` using Newton's gravitational law.
 
 
 For a transmission-spectrum configuration (``path=transit``) ``Pyrat
@@ -478,6 +503,39 @@ proportional to the squared planet-to-star radius ratio
 integrated flux-emission spectrum (evaluated at the surface of the
 planet) in erg s\ :sup:`-1` cm\ :sup:`-2` cm (:ref:`spectrum`).
 
+Besides the cross-section and line-by-line opacities, ``Pyrat Bay``
+provides the following alkali resonant-line models (``alkali`` parameter):
+
+====================  ========= =========================
+Alkali Models         Species   Reference      
+====================  ========= =========================
+SodiumVdWst           Na        [Burrows2000]_
+PotassiumVdWst        K         [Burrows2000]_
+====================  ========= =========================
+
+These are the available Rayleigh models (``rayleigh`` parameter):
+
+====================  ======== =================  ===
+Rayleigh Models       Species  Parameters         Reference
+====================  ======== =================  ===
+lecavelier            Any      :math:`f, \alpha`  [Lecavelier2008]_
+dw_H2                 |H2|     None               [DalgarnoWilliams1962]_
+====================  ======== =================  ===
+
+And these are the available haze/cloud models (``hazes`` parameter):
+
+====================  ==================================
+Haze/Cloud Models       Parameters         
+====================  ==================================
+gray                  :math:`\log(f), \log(p_{\rm t}), \log(p_{\rm b}`)
+====================  ==================================
+
+The Rayleigh and haze parameters are input throught the ``rpars`` and
+``hpars``, respectively.  For any of these type of models, the user
+can include multiple models, simply by concatenating multiple models
+(and parameters) one after the other in the config file.
+
+More details about the parameters TBD in a different page.
 
 To compute a ``Pyrat`` model spectrum run the following script:
 
@@ -511,6 +569,7 @@ To plot the resulting spectrum you can use this script:
 
 .. image:: ./figures/pyrat_transmission-spectrum_tutorial.png
    :width: 70%
+   :align: center
 
 Or alternatively, use this ``plots`` subpackage's routine:
 
@@ -551,11 +610,11 @@ just need the following variables (in addition to a spectrum run):
 
   [pyrat]
 
-  # Run mode, select from: tli, pt, atmosphere, spectrum, opacity, mcmc
+  # Pyrat Bay run mode, select from: [tli pt atmosphere spectrum opacity mcmc]
   runmode = opacity
   ...
   # Opacity file name and temperature range and step
-  extfile = ./opacity_100-3000K_0.3-5.0um.dat
+  extfile = ./opacity_100-3000K_1.0-5.0um.dat
   tmin    =  100   ; Minimum temperature for grid
   tmax    = 3000   ; Maximum temperature for grid
   tstep   =  100   ; Temperature step for grid
@@ -616,7 +675,7 @@ required variables:
 
   [pyrat]
 
-  # Run mode, select from: tli, pt, atmosphere, spectrum, opacity, mcmc
+  # Pyrat Bay run mode, select from: [tli pt atmosphere spectrum opacity mcmc]
   runmode = mcmc
   ...
   # Filter bandpasses:
@@ -638,13 +697,16 @@ required variables:
            0.000017  0.000016  0.000015  0.000014  0.000014
 
   # Kurucz stellar model:
-  kurucz = kurucz_fp00k2odfnew.pck
+  kurucz = ./fp00k2odfnew.pck
 
-  # Retrieval variables:
+  # Retrieval models, select from: [pt rad mol ray haze]
+  retflag = pt mol
+
+  # Retrieval abundances:
   bulk     = H2 He    ; Bulk (dominant) abundance species
   molscale = H2O      ; Variable-abundance species
 
-  # Temperature-profile model:
+  # Temperature-profile model, select from: [isothermal TCEA MadhuInv MadhuNoInv]
   tmodel = TCEA
 
   # Fitting parameters:
@@ -656,15 +718,15 @@ required variables:
 
 
   # MCMC temperature boundaries  (TBD: merge with tmin/tmax)
-  tlow  = 1000
+  tlow  =  100
   thigh = 3000
 
   # MCMC parameters:
   walk     = snooker   ; MCMC algorithm, select from: mrw, demc, snooker
   nsamples = 50000     ; Total number of MCMC samples
-  nchains  =   7       ; Number of parallel MCMC chains
-  burnin   =  10       ; Burn-in iterations per chain
-  thinning =   1       ; Chains thinning factor
+  nchains  =     7     ; Number of parallel MCMC chains
+  burnin   =  1000     ; Burn-in iterations per chain
+  thinning =     1     ; Chains thinning factor
 
 
 .. note:: Note that an ``mcmc`` run requires the user to set an
@@ -684,19 +746,22 @@ variable (marcs and Phoenix TBI).  The code selects the correct Kurucz
 model based on the stellar temperature (``tstar``) and surface gravity
 (``gstar``).
 
-The atmospheric model can vary the temperature profile, the planetary
-radius at ``refpressure`` (for transit geometry), and the abundance of
-selected species.  The ``params`` variable encapsulates **all** of the
-model parameter into a single array.
+Through the ``retflag`` parameter, the user defines which models will
+vary in the retrieval.  Currently the available options are ``pt`` for
+the temperature model, ``rad`` for the planetary radius at
+``refpressure``, ``mol`` for the species abundances, ``ray`` for the
+Rayleigh models, and ``haze`` for the haze/cloud models.
 
-.. note:: The order of params is always the same, starting with the
-          temperature parameters, then the planetary radius (if
-          ``path=transit``), and lastly the abundance parameters
-          (haze parameters TBI soon).
-
-The temperature model consists of the TCEA or isothermal model (set by
-``tmodel``).  The planetary radius must be set in **kilometers**.
-
+The ``params`` variable encapsulates **all** of the MCMC model
+parameter into a single array.  The user is responsible for listing
+the MCMC parameters in the right order, and the right number of
+parameters.  The order is always: ``pt, rad, mol, ray, haze``.
+The number of ``pt``, ``ray``, and ``haze`` parameters depends on the
+``tmodel``, ``rayleigh``, and ``haze`` models, respectively.
+The number of ``rad`` parameters is always one, planetary radius in
+**kilometers**.
+The number of ``mol`` parameters is the number of ``molscale``
+species.
 
 The ``molscale`` variable set the species with variable abundance.  To
 do so, the code scales the whole initial species abundance profile
@@ -754,9 +819,13 @@ docstrings for use.
 References
 ----------
 
+.. [Burrows2000] `Burrows et al. (2000): The Near-Infrared and Optical Spectra of Methane Dwarfs and Brown Dwarfs <http://adsabs.harvard.edu/abs/2000ApJ...531..438B>`_
+.. [DalgarnoWilliams1962] `Dalgarno & Williams (1962): Rayleigh Scattering by Molecular Hydrogen <http://adsabs.harvard.edu/abs/1962ApJ...136..690D>`_
 .. [Irwin1981] `Irwin (1981): Polynomial partition function approximations of 344 atomic and molecular species <http://adsabs.harvard.edu/abs/1981ApJS...45..621I>`_
 .. [Laraia2011] `Laraia et al. (2011): Total internal partition sums to support planetary remote sensing <http://adsabs.harvard.edu/abs/2011Icar..215..391L>`_
+.. [Lecavelier2008] `Lecavelier des Etangs et al. (2008): Rayleigh Scattering in the Transit Spectrum of HD 189733b <http://adsabs.harvard.edu/abs/2008A%26A...481L..83L>`_
 .. [Line2013] `A Systematic Retrieval Analysis of Secondary Eclipse Spectra. I. A Comparison of Atmospheric Retrieval Techniques <http://adsabs.harvard.edu/abs/2013ApJ...775..137L>`_
+.. [Madhusudhan2009] `Madhusudhan & Seager (2009): A Temperature and Abundance Retrieval Method for Exoplanet Atmospheres. <http://adsabs.harvard.edu/abs/2009ApJ...707...24M>`_
 .. [PS1997] `Partridge & Schwenke (1997): The determination of an accurate isotope dependent potential energy surface for water from extensive ab initio calculations and experimental data <http://adsabs.harvard.edu/abs/1997JChPh.106.4618P>`_
 .. [Plez1998] `Plez (1998): A new TiO line list <http://adsabs.harvard.edu/abs/1998A%26A...337..495P>`_
 .. [Richard2012] `New section of the HITRAN database: Collision-induced absorption (CIA) <http://adsabs.harvard.edu/abs/2012JQSRT.113.1276R>`_
