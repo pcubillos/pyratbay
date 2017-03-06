@@ -229,7 +229,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  (master_doc, 'Pyrat-Bay.tex', u'Pyrat-Bay Documentation',
+  (master_doc, 'pyratbay.tex', u'Pyrat-Bay Documentation',
    u'Patricio Cubillos', 'howto'),
 ]
 

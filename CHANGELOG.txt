@@ -2775,6 +2775,12 @@ Bumped Pyrat Bay to version 0.0.50.
 
 Docs, fixed bug in equation array that was breaking latexpdf command.
 
+*****
+
+Fixed tex docs file to get the output pdf file as pyratbay.pdf.
+Fixed docs Makefile to put only the pyraybay pdf into the latex
+folder when compiling with 'make latexpdf'.
+
 
 *****  Mi 8. Mär 18:57:02 CET 2017  *****
 
@@ -2832,3 +2838,4 @@ Bumped Pyrat to version 1.2.38.
 Bumped Pyrat Bay to version 0.0.51.
 
 *****
+
