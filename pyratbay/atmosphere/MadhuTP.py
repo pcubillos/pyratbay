@@ -13,24 +13,24 @@ def inversion(params, p):
          Pressure array, needs to be equally spaced in log space from bottom
          to top of the atmosphere. Must be given in bars.
      params: 1D float ndarray
-         Temperature model parameters: 
-                 a1 - float, exponential factor in Layer 1, 
+         Temperature model parameters:
+                 a1 - float, exponential factor in Layer 1,
                  empirically determined to be within range (0.2, 0.6).
-                 a2 - float, exponential factor in Layer 2, 
-                 empirically determined to be within range (0.04, 0.5) 
+                 a2 - float, exponential factor in Layer 2,
+                 empirically determined to be within range (0.04, 0.5)
                  p1 - floa, pressure boundary between Layer 1 and 2 (in bars).
                  p2 - float, pressure in the middle of tLayer 2
                  p3 - float, pressure boundary between Layers 2 and 3 (in bars).
                  T3 - float, temperature in the Layer 3.
-      
+
      Returns
      -------
-     T_smooth:  1D array of floats, Gaussian smoothed temperatures, 
-                no kinks on Layer boundaries 
- 
+     T_smooth:  1D array of floats, Gaussian smoothed temperatures,
+                no kinks on Layer boundaries
+
      Example
-     -------    
-     # array of pressures, equally spaced in log space 
+     -------
+     # array of pressures, equally spaced in log space
      p = np.logspace(-5, 2, 100)
 
      # random values
@@ -53,7 +53,7 @@ def inversion(params, p):
 
      # Calculate temperatures at layer boundaries:
      T2 = T3 - (np.log(p3/p2) / a2)**2
-     T0 = T2 + (np.log(p1/p2) / -a2)**2 - (np.log(p1/p0) / a1)**2 
+     T0 = T2 + (np.log(p1/p2) / -a2)**2 - (np.log(p1/p0) / a1)**2
      T1 = T0 + (np.log(p1/p0) / a1)**2
 
      # Defining arrays for every part of the PT profile:
@@ -63,17 +63,17 @@ def inversion(params, p):
      p_l3     = p[(np.where((p >= p3)  & (p <= max(p))))]
 
      # Layer 1 temperatures:
-     T_l1 = (np.log(p_l1/p0) / a1)**2 + T0  
- 
+     T_l1 = (np.log(p_l1/p0) / a1)**2 + T0
+
      # Layer 2 temperatures (inversion part):
      T_l2_pos = (np.log(p_l2_pos/p2) / -a2)**2 + T2
- 
+
      # Layer 2 temperatures (decreasing part):
      T_l2_neg = (np.log(p_l2_neg/p2) / a2)**2 + T2
 
      # Layer 3 temperatures:
      T_l3     = np.linspace(T3, T3, len(p_l3))
-      
+
      # Concatenating all temperature arrays:
      T_conc = np.concatenate((T_l1, T_l2_pos, T_l2_neg, T_l3))
 
@@ -99,23 +99,23 @@ def no_inversion(params, p):
          Pressure array, needs to be equally spaced in log space from bottom
          to top of the atmosphere. Must be given in bars.
      params: 1D float ndarray
-         Temperature model parameters: 
-                 a1 - float, exponential factor in Layer 1, 
+         Temperature model parameters:
+                 a1 - float, exponential factor in Layer 1,
                  empirically determined to be within range (0.2, 0.6).
-                 a2 - float, exponential factor in Layer 2, 
-                 empirically determined to be within range (0.04, 0.5) 
+                 a2 - float, exponential factor in Layer 2,
+                 empirically determined to be within range (0.04, 0.5)
                  p1 - floa, pressure boundary between Layer 1 and 2 (in bars).
                  p3 - float, pressure boundary between Layers 2 and 3 (in bars).
                  T3 - float, temperature in the Layer 3.
-      
+
      Returns
      -------
-     T_smooth:  1D array of floats, Gaussian smoothed temperatures, 
-                no kinks on Layer boundaries 
- 
+     T_smooth:  1D array of floats, Gaussian smoothed temperatures,
+                no kinks on Layer boundaries
+
      Example
-     -------    
-     # array of pressures, equally spaced in log space 
+     -------
+     # array of pressures, equally spaced in log space
      p = np.logspace(-5, 2, 100)
 
      # random values
@@ -144,7 +144,7 @@ def no_inversion(params, p):
      p_l2_neg = p[np.where((p >= p1) & (p < p3))]
      p_l3     = p[np.where((p >= p3) & (p <= np.amax(p)))]
 
-     # Layer 1 temperatures: 
+     # Layer 1 temperatures:
      T_l1 = (np.log(p_l1/p0) / a1)**2 + T0
 
      # Layer 2 temperatures decreasing part:

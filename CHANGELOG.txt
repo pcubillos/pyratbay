@@ -2744,3 +2744,9 @@ Corrected __all__ list in plots module initializer.
 
 *****
 
+Removed residual 'else' command in atmosphere.py.
+Cleaned up trailing white spaces in MadhuTP.py.
+
+*****
+
+
