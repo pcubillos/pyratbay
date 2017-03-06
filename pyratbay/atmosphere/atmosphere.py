@@ -19,6 +19,8 @@ rootdir = os.path.realpath(os.path.dirname(__file__) + "/../../")
 sys.path.append(rootdir + "/pyratbay/lib/")
 import pt as PT
 
+import MadhuTP
+
 
 # Get Pyrat-Bay inputs dir:
 thisdir = os.path.dirname(os.path.realpath(__file__))
@@ -527,6 +529,18 @@ def temperature(tmodel, pressure=None, rstar=None, tstar=None, tint=100.0,
     Tmodel = PT.isothermal
     targs  = [nlayers]
     ntpars = 1
+  elif tmodel == "MadhuNoInv":
+    # Define model and arguments:
+    Tmodel = MadhuTP.no_inverision
+    targs = [pressure*1e-6]
+    ntpars = 5
+  elif tmodel == "MadhuInv":
+    Tmodel = MadhuTP.inversion
+    targs = [pressure*1e-6]
+    ntpars = 6
+  else:
+    pt.error("Invalid input temperature model '{:s}'.  Select from: 'TCEA', "
+             " 'MadhuInv', 'MadhuNoInv', or 'isothermal'.".format(tmodel), log)
   else:
     pt.error("Invalid input temperature model '{:s}'.  Select from: 'TCEA' "
              "or 'isothermal'.".format(tmodel), log)

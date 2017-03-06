@@ -2725,3 +2725,12 @@ JB - Implemented best-fit atmfile. The code writes the best-fit atmfile
 with all best-fit updated values, including radius.
 
 Bumped Pyrat Bay to version 0.0.48.
+
+***** Mon Mar  6 11:12:58 GST 2017 *****
+
+JB - Implemented Madhu's TP profile. Must have not overlapping pressure boundaries in the mcmc.cfg file. Must separately execute inverted and non-inverted case, by calling tmodel arguments MadhuInv or MadhuNoInv.
+
+Bumped Pyrat to version 1.2.37.
+Bumped Pyrat Bay to version 0.0.49.
+
+

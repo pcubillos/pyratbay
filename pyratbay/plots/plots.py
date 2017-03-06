@@ -21,6 +21,9 @@ rootdir = os.path.realpath(os.path.dirname(__file__) + "/../../")
 sys.path.append(rootdir + "/pyratbay/lib/")
 import pt as PT
 
+sys.path.append(rootdir + "/pyratbay/atmosphere/")
+import MadhuTP
+
 def spectrum(wlength=None, spectrum=None, data=None, uncert=None,
     bandflux=None, bandtrans=None, bandidx=None, bandwl=None,
     starflux=None, rprs=None, path=None,
@@ -231,11 +234,11 @@ def cf(bandcf, bandwl, path, pressure, radius, rtop=0,
     plt.savefig(filename)
 
 
-def TCEA(posterior, pressure=None, tparams=None, tstepsize=None,
+def PT(posterior, pressure=None, tparams=None, tstepsize=None,
          besttpars=None, rstar=None, tstar=None, tint=None, smaxis=None,
          gplanet=None, pyrat=None):
   """
-  Plot the posterior TCEA PT profile.
+  Plot the posterior PT profile.
 
   Parameters
   ----------
@@ -277,6 +280,14 @@ def TCEA(posterior, pressure=None, tparams=None, tstepsize=None,
     targs = [pressure, rstar, tstar, tint, smaxis, gplanet]
     tmodel = PT.TCEA
 
+  if pyrat is None and pyrat.ret.tmodel=="MadhuInv":
+    targs = [pyrat.atm.press*1e-6]
+    tmodel = MadhuTP.inversion
+
+  if pyrat is None and pyrat.ret.tmodel=="MadhuNoInv":
+    targs = [pyrat.atm.press*1e-6]
+    tmodel = MadhuTP.no_inversion
+
   ifree = tstepsize > 0
   nfree = np.sum(ifree)
   ipost = np.arange(nfree)
@@ -315,4 +326,4 @@ def TCEA(posterior, pressure=None, tparams=None, tstepsize=None,
   plt.ylabel("Pressure  (bar)",  size=15)
 
   # Save figure:
-  plt.savefig("MCMC_PT-profiles.pdf")
+  plt.savefig("MCMC_PT-profiles.png")
