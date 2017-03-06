@@ -2843,4 +2843,16 @@ Added link to previous versions of the documentation in index.html.
 
 *****
 
+Update tutorial docs with info of Madhu PT, rayleigh, haze, and alkali
+models.  Several models still need more in-depth description of the
+parameters. Added info of the retflag parameter.
+Aligned figures in docs to be on the center.
+Updated demo and tutorial config files accordingly.
+
+*****
+
+Updated tli demo and tutorial config files to include dbtype options.
+
+*****
+
 
