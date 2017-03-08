@@ -2793,4 +2793,10 @@ extinction-coefficient.
 
 *****
 
+dded get_ec() in Extinction module to compute single-layer
+extinction-coefficient.
+Modified extinction() to take add as argument for single-layer calc.
+
+*****
+
 

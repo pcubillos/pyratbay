@@ -19,6 +19,8 @@ def exttable(pyrat):
   """
   Handle extinction-coefficient table (read/calculate/write file).
   """
+  pyrat.ex.molID = pyrat.mol.ID[np.unique(pyrat.iso.imol)]
+  pyrat.ex.nmol  = len(pyrat.ex.molID)
 
   # If the extinction file was not defined, skip this step:
   if pyrat.ex.extfile is None:
@@ -122,9 +124,6 @@ def calc_extinction(pyrat):
   ex.wn    = pyrat.spec.wn
   ex.nwave = pyrat.spec.nwave
 
-  ex.molID = pyrat.mol.ID[np.unique(pyrat.iso.imol)]
-  ex.nmol  = len(ex.molID)
-
   ex.press = pyrat.atm.press
   ex.nlayers = pyrat.atm.nlayers
 
@@ -186,7 +185,7 @@ def calc_extinction(pyrat):
                        " '{:s}'.".format(ex.extfile), pyrat.log, 2)
 
 
-def extinction(pyrat, indices):
+def extinction(pyrat, indices, add=1):
   """
   Python multiprocessing wrapper for the extinction-coefficient
   calculation function for the atmospheric layers in pyrat object.
@@ -196,8 +195,15 @@ def extinction(pyrat, indices):
   pyrat: Pyrat Object
   indices: 1D integer list
      The indices of the atmospheric layers where to calculate the EC.
+  add: Integer
+     If add=1, co-add EC contribution from all species.
+     If add=0, keep EC contribution from each species separated.
   """
-  add = 1  # Co-add EC contribution from all species
+  if   add == 1:
+    extinct_coeff = np.zeros((1, pyrat.spec.nwave))
+  elif add == 0:
+    extinct_coeff = np.zeros((pyrat.ex.nmol, pyrat.spec.nwave))
+
   pyrat.iso.iext = np.zeros(pyrat.iso.niso, np.int)
   # Get species indices in extinction-coefficient table for the isotopes:
   if pyrat.ex.extfile is not None:
@@ -222,7 +228,7 @@ def extinction(pyrat, indices):
          "(T={:6.1f} K, p={:.1e} bar).".format(ilayer+1, pyrat.atm.nlayers,
                                         temp, pressure/pc.bar), pyrat.log, 2)
     logtext = " "*800
-    ec.extinction(pyrat.ex.ec[ilayer:ilayer+1],
+    ec.extinction(extinct_coeff,
                 pyrat.voigt.profile, pyrat.voigt.size, pyrat.voigt.index,
                 pyrat.voigt.lorentz, pyrat.voigt.doppler,
                 pyrat.spec.wn, pyrat.spec.own, pyrat.spec.odivisors,
@@ -232,6 +238,9 @@ def extinction(pyrat, indices):
                 pyrat.lt.wn, pyrat.lt.elow, pyrat.lt.gf, pyrat.lt.isoid,
                 pyrat.ex.ethresh, pressure, temp,
                 logtext, pyrat.verb, add)
+    if add == 0:
+      return extinct_coeff
+    pyrat.ex.ec[ilayer:ilayer+1] = extinct_coeff
     #pyrat.log.write(logtext.rstrip()[:-1])
 
 
@@ -247,6 +256,7 @@ def mp_extinction(pyrat, indices):
     for j in np.arange(pyrat.iso.niso):
       pyrat.iso.iext[j] = np.where(pyrat.ex.molID ==
                                    pyrat.mol.ID[pyrat.iso.imol[j]])[0][0]
+
   verb = (0 in indices)  # Turn off verb of all processes except the first
   verb *= pyrat.verb     # Adjust the verbosity level to pyrat's verb
 
@@ -278,3 +288,16 @@ def mp_extinction(pyrat, indices):
                   pyrat.lt.wn, pyrat.lt.elow, pyrat.lt.gf, pyrat.lt.isoid,
                   pyrat.ex.ethresh, pressure, temp,
                   logtext, verb-10, add)
+
+
+def get_ec(pyrat, layer):
+  """
+  Compute per-species extinction coefficient at requested layer.
+  """
+  exc = extinction(pyrat, [layer], add=0)
+  label = []
+  for i in np.arange(pyrat.ex.nmol):
+    imol = np.where(pyrat.mol.ID == pyrat.ex.molID[i])[0][0]
+    exc[i] *= pyrat.atm.d[layer,imol]
+    label.append(pyrat.mol.name[imol])
+  return exc, label

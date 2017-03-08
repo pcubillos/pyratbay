@@ -6,7 +6,7 @@ import numpy  as np
 from .. import tools      as pt
 from .. import constants  as pc
 from .. import atmosphere as atm
-from .  import extinction as ec
+from .  import extinction as ex
 from .  import crosssec   as cs
 from .  import rayleigh   as ray
 from .  import haze       as hz
@@ -99,16 +99,17 @@ class Pyrat(object):
     Extract extinction-coefficient contribution from each component of
     the atmosphere at the requested layer.
     """
-    #mol = ec.get_ec(self, layer)
+    m, mlabel = ex.get_ec(self, layer)
     c, clabel = cs.interpolate(self, layer)
+    ec = np.vstack((m, c))
     r, rlabel = ray.get_ec(self, layer)
-    ec = np.vstack((c,r))
+    ec = np.vstack((ec,r))
     h, hlabel = hz.get_ec(self, layer)
     ec = np.vstack((ec,h))
     a, alabel = al.get_ec(self, layer)
     ec = np.vstack((ec,a))
     # TBD: add no-model exceptions
-    return ec, clabel + rlabel + hlabel + alabel
+    return ec, mlabel + clabel + rlabel + hlabel + alabel
 
 
 class Inputs(object):
