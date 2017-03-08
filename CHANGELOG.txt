@@ -2783,4 +2783,9 @@ extinction-coefficient.
 
 *****
 
+Added get_ec() in Haze module to compute single-layer
+extinction-coefficient.
+
+*****
+
 

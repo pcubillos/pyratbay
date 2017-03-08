@@ -9,6 +9,7 @@ from .. import atmosphere as atm
 from .  import extinction as ec
 from .  import crosssec   as cs
 from .  import rayleigh   as ray
+from .  import haze       as hz
 
 
 class Pyrat(object):
@@ -60,6 +61,7 @@ class Pyrat(object):
     self.wlog       = []    # List of raised warnings
     self.timestamps = None  # Time stamps
 
+
   def hydro(self, pressure, temperature, mu, g, mass, p0, r0):
     """
     Hydrostatic-equilibrium driver.
@@ -95,9 +97,11 @@ class Pyrat(object):
     #mol = ec.get_ec(self, layer)
     c, clabel = cs.interpolate(self, layer)
     r, rlabel = ray.get_ec(self, layer)
-    ec = np.vstack(c,r)
+    ec = np.vstack((c,r))
+    h, hlabel = hz.get_ec(self, layer)
+    ec = np.vstack((ec,h))
     # TBD: add no-model exceptions
-    return ec, clabel + rlabel
+    return ec, clabel + rlabel + hlabel
 
 
 class Inputs(object):
