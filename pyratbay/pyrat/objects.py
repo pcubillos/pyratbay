@@ -6,6 +6,8 @@ import numpy  as np
 from .. import tools      as pt
 from .. import constants  as pc
 from .. import atmosphere as atm
+from .  import extinction as ec
+from .  import crosssec   as cs
 
 class Pyrat(object):
   """
@@ -86,6 +88,10 @@ class Pyrat(object):
     # H.E. with constant g:
     return atm.hydro_g(pressure, temperature, mu, g, p0, r0)
 
+  def get_ec(self, layer):
+    #mol = ec.get_ec(self, layer)
+    c, label = cs.interpolate(self, layer)
+    return c, label
 
 class Inputs(object):
   """

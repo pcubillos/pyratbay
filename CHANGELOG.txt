@@ -2770,6 +2770,14 @@ Fixed typo in xlabel of transmittance plot.
 
 Bumped Pyrat Bay to version 0.0.50.
 
+
+*****  Mi 8. Mär 18:57:02 CET 2017  *****
+
+Enabled single-layer extinction-coefficient calculation in CS module.
+Added get_ec() function to pyrat object to obtain the requested EC.
+
 *****
+
+
 
 
