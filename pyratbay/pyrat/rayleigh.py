@@ -28,6 +28,19 @@ def absorption(pyrat):
                           np.expand_dims(dens, axis=1)
 
 
+def get_ec(pyrat, layer):
+  """
+  Extract per-model extinction coefficient at requested layer.
+  """
+  ec = np.zeros((pyrat.rayleigh.nmodels, pyrat.spec.nwave))
+  label = []
+  for i in np.arange(pyrat.rayleigh.nmodels):
+    imol = np.where(pyrat.mol.name == pyrat.rayleigh.model[i].mol)[0][0]
+    ec[i] = pyrat.rayleigh.model[i].ec * pyrat.atm.d[layer,imol]
+    label.append(pyrat.rayleigh.model[i].name)
+  return ec, label
+
+
 class DW_H2():
   """
   Rayleigh-scattering model from Dalgarno & Williams (1962).

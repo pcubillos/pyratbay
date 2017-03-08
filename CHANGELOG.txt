@@ -2778,6 +2778,9 @@ Added get_ec() function to pyrat object to obtain the requested EC.
 
 *****
 
+Added get_ec() in Rayleigh module to compute single-layer
+extinction-coefficient.
 
+*****
 
 

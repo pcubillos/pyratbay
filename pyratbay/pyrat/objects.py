@@ -8,6 +8,8 @@ from .. import constants  as pc
 from .. import atmosphere as atm
 from .  import extinction as ec
 from .  import crosssec   as cs
+from .  import rayleigh   as ray
+
 
 class Pyrat(object):
   """
@@ -88,10 +90,15 @@ class Pyrat(object):
     # H.E. with constant g:
     return atm.hydro_g(pressure, temperature, mu, g, p0, r0)
 
+
   def get_ec(self, layer):
     #mol = ec.get_ec(self, layer)
-    c, label = cs.interpolate(self, layer)
-    return c, label
+    c, clabel = cs.interpolate(self, layer)
+    r, rlabel = ray.get_ec(self, layer)
+    ec = np.vstack(c,r)
+    # TBD: add no-model exceptions
+    return ec, clabel + rlabel
+
 
 class Inputs(object):
   """
