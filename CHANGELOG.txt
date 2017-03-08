@@ -2788,4 +2788,9 @@ extinction-coefficient.
 
 *****
 
+Added get_ec() in Alkali module to compute single-layer
+extinction-coefficient.
+
+*****
+
 

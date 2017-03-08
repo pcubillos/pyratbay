@@ -108,6 +108,18 @@ def absorption(pyrat):
     pyrat.alkali.ec += alkali.ec
 
 
+def get_ec(pyrat, layer):
+  """
+  Extract per-species extinction coefficient at requested layer.
+  """
+  label = []
+  ec = np.zeros((pyrat.alkali.nmodels, pyrat.spec.nwave))
+  for i in np.arange(pyrat.alkali.nmodels):
+    ec[i] = pyrat.alkali.model[i].ec[layer]
+    label.append(pyrat.alkali.model[i].mol)
+  return ec, label
+
+
 class SodiumVdWst():
   """
   Sodium Van der Waals plus statistical theory opacity model from
