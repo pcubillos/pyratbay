@@ -2814,4 +2814,8 @@ Finished pyrat's get_ec() function to extract EC at requested layer.
 
 *****
 
+Fixed typo in get_ec() for cross-section EC.
+
+*****
+
 

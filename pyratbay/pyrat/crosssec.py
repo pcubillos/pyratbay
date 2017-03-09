@@ -178,7 +178,7 @@ def interpolate(pyrat, layer=None):
       ec += cs_absorption * np.expand_dims(dens, axis=1)
     else:
       ec[i] = cs_absorption * dens
-      label.append("-".join(pyrat.cs.molecules[j]))
+      label.append("-".join(pyrat.cs.molecules[i]))
 
     pt.msg(pyrat.verb-6, "CS extinction: {}".format(ec[:,0]),
            pyrat.log, 2)
