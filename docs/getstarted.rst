@@ -124,7 +124,9 @@ Outputs
 
 That's it, now let's see the results.  The screen outputs and any
 warnings raisedare are saved into log files.  The output spectrum is
-saved to a separate file, to see it, run this Python script:
+saved to a separate file, to see it, run this Python script (on
+interactive mode, I suggest starting the session with ``ipython
+--pylab``):
 
 .. code-block:: python
 
@@ -159,9 +161,11 @@ saved to a separate file, to see it, run this Python script:
   plt.ylim(0, 60000)
   plt.xlim(0.5, 5.5)
   plt.legend(loc="upper left")
+  plt.draw()
   plt.savefig("pyrat_spectrum_demo.pdf")
 
 The output figure should look like this:
 
 .. image:: ./figures/pyrat_spectrum_demo.png
    :width: 70%
+   :align: center

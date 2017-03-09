@@ -125,7 +125,7 @@ latexpdf:
 	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) $(PDFBUILDDIR)/latex
 	@echo "Running LaTeX files through pdflatex..."
 	$(MAKE) -C $(PDFBUILDDIR)/latex all-pdf
-	cp $(PDFBUILDDIR)/latex/*.pdf ./latex/
+	cp $(PDFBUILDDIR)/latex/pyratbay.pdf ./latex/
 	@echo "pdflatex finished; the PDF files are in ./latex/"
 
 latexpdfja:

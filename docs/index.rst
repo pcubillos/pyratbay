@@ -81,6 +81,12 @@ Pyrat-Bay is (temporarily) proprietary software (see :ref:`license`).
           the contribution from each one of the collaborators to the
           BART code.
 
+Documentation for Previous Releases
+===================================
+
+- `Pyrat Bay version 0.0.50 <http://geco.oeaw.ac.at/patricio/PB_v0.0.50.pdf>`_ (and earlier versions).
+
+
 .. _Patricio Cubillos: https://github.com/pcubillos/
 .. _patricio.cubillos[at]oeaw.ac.at: patricio.cubillos@oeaw.ac.at
 .. _Space Research Institute (IWF): http://iwf.oeaw.ac.at/
