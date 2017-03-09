@@ -96,20 +96,51 @@ class Pyrat(object):
 
   def get_ec(self, layer):
     """
-    Extract extinction-coefficient contribution from each component of
-    the atmosphere at the requested layer.
+    Extract extinction-coefficient contribution (in cm-1) from each
+    component of the atmosphere at the requested layer.
+
+    Parameters
+    ----------
+    layer: Integer
+       The index of the atmospheric layer where to extract the EC.
+
+    Returns
+    -------
+    ec: 2D float ndarray
+       An array of shape [ncomponents, nwave] with the EC spectra
+       (in cm-1) from each component of the atmosphere.
+    label: List of strings
+       The names of each atmospheric component that contributed to EC.
     """
-    m, mlabel = ex.get_ec(self, layer)
-    c, clabel = cs.interpolate(self, layer)
-    ec = np.vstack((m, c))
-    r, rlabel = ray.get_ec(self, layer)
-    ec = np.vstack((ec,r))
-    h, hlabel = hz.get_ec(self, layer)
-    ec = np.vstack((ec,h))
-    a, alabel = al.get_ec(self, layer)
-    ec = np.vstack((ec,a))
-    # TBD: add no-model exceptions
-    return ec, mlabel + clabel + rlabel + hlabel + alabel
+    # Allocate outputs:
+    ec = np.empty((0, self.spec.nwave))
+    label = []
+    # Line-by-line extinction coefficient:
+    if self.ex.nmol != 0:
+      e, lab = ex.get_ec(self, layer)
+      ec = np.vstack((ec, e))
+      label += lab
+    # Cross-section extinction coefficient:
+    if self.cs.nfiles != 0:
+      e, lab = cs.interpolate(self, layer)
+      ec = np.vstack((ec, e))
+      label += lab
+    # Rayleigh scattering extinction coefficient:
+    if self.rayleigh.nmodels != 0:
+      e, lab = ray.get_ec(self, layer)
+      ec = np.vstack((ec, e))
+      label += lab
+    # Haze/clouds extinction coefficient:
+    if self.haze.nmodels != 0:
+      e, lab = hz.get_ec(self, layer)
+      ec = np.vstack((ec, e))
+      label += lab
+    # Alkali resonant lines extinction coefficient:
+    if self.alkali.nmodels != 0:
+      e, lab = al.get_ec(self, layer)
+      ec = np.vstack((ec, e))
+      label += lab
+    return ec, label
 
 
 class Inputs(object):

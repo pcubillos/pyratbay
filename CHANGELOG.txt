@@ -2810,6 +2810,8 @@ Updated MC3 module.
 
 *****
 
+Finished pyrat's get_ec() function to extract EC at requested layer.
 
+*****
 
 
