@@ -42,6 +42,12 @@ def init(pyrat):
     pyrat.alkali.doppler = doppler
     pyrat.alkali.vindex  = vindex
     pyrat.alkali.vsize   = vsize[0,0]
+    # Species index in atmosphere:
+    pyrat.alkali.imol = -np.ones(pyrat.alkali.nmodels, int)
+    for i in np.arange(pyrat.alkali.nmodels):
+      imol = np.where(pyrat.mol.name == pyrat.alkali.model[i].mol)[0]
+      if np.size(imol) != 0:
+        pyrat.alkali.imol[i] = imol[0]
     pt.msg(pyrat.verb-3, "Done.", pyrat.log)
 
 
@@ -55,13 +61,11 @@ def absorption(pyrat):
   for i in np.arange(pyrat.alkali.nmodels):
     alkali = pyrat.alkali.model[i]
 
-    imol = np.where(pyrat.mol.name == alkali.mol)[0]
-    if np.size(imol) == 0:
+    if pyrat.alkali.imol[i] < 0:
       pt.warning(pyrat.verb-2, "Alkali species '{:s}' is not present in "
         "the atmospheric file.".format(alkali.mol), pyrat.log, pyrat.wlog)
       continue
-    else:
-      imol = imol[0]
+    imol = pyrat.alkali.imol[i]
     dens = np.expand_dims(pyrat.atm.d[:,imol], axis=1)
     temp     = pyrat.atm.temp
     pressure = pyrat.atm.press
@@ -106,6 +110,20 @@ def absorption(pyrat):
 
     # Sum alkali extinction coefficient (cm-1):
     pyrat.alkali.ec += alkali.ec
+
+
+def get_ec(pyrat, layer):
+  """
+  Extract per-species extinction coefficient at requested layer.
+  """
+  label = []
+  ec = np.zeros((0, pyrat.spec.nwave))
+  for i in np.arange(pyrat.alkali.nmodels):
+    if pyrat.alkali.imol[i] >= 0:
+      e = pyrat.alkali.model[i].ec[layer]
+      ec = np.vstack((ec, e))
+      label.append(pyrat.alkali.model[i].mol)
+  return ec, label
 
 
 class SodiumVdWst():

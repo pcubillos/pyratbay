@@ -132,7 +132,7 @@ def read(pyrat):
   pt.msg(pyrat.verb-3, "Done.", pyrat.log)
 
 
-def interpolate(pyrat):
+def interpolate(pyrat, layer=None):
   """
   Interpolate the CS absorption into the planetary model temperature.
   """
@@ -151,12 +151,19 @@ def interpolate(pyrat):
               format(ihot, pyrat.atm.temp[ihot], pyrat.cs.tmax), pyrat.log)
 
   # Allocate output extinction-coefficient array:
-  pyrat.cs.ec = np.zeros((pyrat.atm.nlayers, pyrat.spec.nwave))
+  if layer is None:   # Take a single layer
+    ec = np.zeros((pyrat.atm.nlayers, pyrat.spec.nwave))
+    li, lf = 0, pyrat.atm.nlayers
+  else:               # Take whole atmosphere
+    ec = np.zeros((pyrat.cs.nfiles, pyrat.spec.nwave))
+    li, lf = layer, layer+1
+    label = []
 
   for i in np.arange(pyrat.cs.nfiles):
-    cs_absorption = np.zeros((pyrat.atm.nlayers, pyrat.spec.nwave))
+    cs_absorption = np.zeros((lf-li, pyrat.spec.nwave))
     sp.splinterp_2D(pyrat.cs.iabsorp[i], pyrat.cs.temp[i], pyrat.cs.iz[i],
-        pyrat.atm.temp, cs_absorption, pyrat.cs.iwnlo[i], pyrat.cs.iwnhi[i])
+                    pyrat.atm.temp[li:lf], cs_absorption,
+                    pyrat.cs.iwnlo[i], pyrat.cs.iwnhi[i])
 
     # Apply density scale factor:
     dens = 1.0
@@ -164,11 +171,20 @@ def interpolate(pyrat):
       # Get index from the pyrat list of molecules:
       imol = np.where(pyrat.mol.name == pyrat.cs.molecules[i,j])[0][0]
       # Densities in amagat:
-      dens *= pyrat.atm.d[:,imol] / pc.amagat
+      dens *= pyrat.atm.d[li:lf,imol] / pc.amagat
 
-    # Compute CS absorption in cm-1 units (broadcasting):
-    pyrat.cs.ec += (cs_absorption * np.expand_dims(dens, axis=1))
+    # Compute CS absorption in cm-1 units:
+    if layer is None:
+      ec += cs_absorption * np.expand_dims(dens, axis=1)
+    else:
+      ec[i] = cs_absorption * dens
+      label.append("-".join(pyrat.cs.molecules[i]))
 
-    pt.msg(pyrat.verb-6, "CS extinction: {}".format(pyrat.cs.ec[:,0]),
+    pt.msg(pyrat.verb-6, "CS extinction: {}".format(ec[:,0]),
            pyrat.log, 2)
+  # Return per-database EC if single-layer run:
+  if layer is not None:
+    return ec, label
+  # Else, store cumulative result into pyrat object:
+  pyrat.cs.ec = ec
   pt.msg(pyrat.verb-3, "Done.", pyrat.log)

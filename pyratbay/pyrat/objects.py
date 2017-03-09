@@ -6,6 +6,12 @@ import numpy  as np
 from .. import tools      as pt
 from .. import constants  as pc
 from .. import atmosphere as atm
+from .  import extinction as ex
+from .  import crosssec   as cs
+from .  import rayleigh   as ray
+from .  import haze       as hz
+from .  import alkali     as al
+
 
 class Pyrat(object):
   """
@@ -56,6 +62,7 @@ class Pyrat(object):
     self.wlog       = []    # List of raised warnings
     self.timestamps = None  # Time stamps
 
+
   def hydro(self, pressure, temperature, mu, g, mass, p0, r0):
     """
     Hydrostatic-equilibrium driver.
@@ -85,6 +92,55 @@ class Pyrat(object):
       return atm.hydro_m(pressure, temperature, mu, mass, p0, r0)
     # H.E. with constant g:
     return atm.hydro_g(pressure, temperature, mu, g, p0, r0)
+
+
+  def get_ec(self, layer):
+    """
+    Extract extinction-coefficient contribution (in cm-1) from each
+    component of the atmosphere at the requested layer.
+
+    Parameters
+    ----------
+    layer: Integer
+       The index of the atmospheric layer where to extract the EC.
+
+    Returns
+    -------
+    ec: 2D float ndarray
+       An array of shape [ncomponents, nwave] with the EC spectra
+       (in cm-1) from each component of the atmosphere.
+    label: List of strings
+       The names of each atmospheric component that contributed to EC.
+    """
+    # Allocate outputs:
+    ec = np.empty((0, self.spec.nwave))
+    label = []
+    # Line-by-line extinction coefficient:
+    if self.ex.nmol != 0:
+      e, lab = ex.get_ec(self, layer)
+      ec = np.vstack((ec, e))
+      label += lab
+    # Cross-section extinction coefficient:
+    if self.cs.nfiles != 0:
+      e, lab = cs.interpolate(self, layer)
+      ec = np.vstack((ec, e))
+      label += lab
+    # Rayleigh scattering extinction coefficient:
+    if self.rayleigh.nmodels != 0:
+      e, lab = ray.get_ec(self, layer)
+      ec = np.vstack((ec, e))
+      label += lab
+    # Haze/clouds extinction coefficient:
+    if self.haze.nmodels != 0:
+      e, lab = hz.get_ec(self, layer)
+      ec = np.vstack((ec, e))
+      label += lab
+    # Alkali resonant lines extinction coefficient:
+    if self.alkali.nmodels != 0:
+      e, lab = al.get_ec(self, layer)
+      ec = np.vstack((ec, e))
+      label += lab
+    return ec, label
 
 
 class Inputs(object):
@@ -498,6 +554,12 @@ class Alkali(object):
     self.nmodels = 0     # Number of alkali models
     self.model   = []    # List of alkali models
     self.ec      = None  # Alkali extinction coefficient
+    self.imol    = None  # Species indices in atmospheric file
+    self.doppler = None  # Tabulated Doppler widths
+    self.lorentz = None  # Tabulated Lorentz widths
+    self.voigt   = None  # Tabulated alkali Voigt profiles
+    self.vsize   = None  # Size of the Voigt profiles
+    self.vindex  = None  # Starting indices of the Voigt profiles
   def info(self, pyrat):
     # FINDME
     pass

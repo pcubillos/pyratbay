@@ -27,6 +27,19 @@ def absorption(pyrat):
     pyrat.haze.ec += pyrat.haze.model[i].ec * np.expand_dims(dens, axis=1)
 
 
+def get_ec(pyrat, layer):
+  """
+  Extract per-model extinction coefficient at requested layer.
+  """
+  ec = np.zeros((pyrat.haze.nmodels, pyrat.spec.nwave))
+  label = []
+  for i in np.arange(pyrat.haze.nmodels):
+    imol = np.where(pyrat.mol.name == pyrat.haze.model[i].mol)[0][0]
+    ec[i] = pyrat.haze.model[i].ec[layer] * pyrat.atm.d[layer,imol]
+    label.append(pyrat.haze.model[i].name)
+  return ec, label
+
+
 class Gray():
   """
   Constant cross-section cloud model.

@@ -65,8 +65,8 @@ def opticaldepth(pyrat):
     # CPU indices
     indices = np.arange(rtop, pyrat.atm.nlayers) % pyrat.nproc
     for i in np.arange(pyrat.nproc):
-      proc = mpr.Process(target=ex.extinction,
-                         args=(pyrat, np.where(indices==i)[0]))
+      proc = mpr.Process(target=ex.extinction,   #      grid   add
+                  args=(pyrat, np.where(indices==i)[0], False, True))
       processes.append(proc)
       proc.start()
     for i in np.arange(pyrat.nproc):

@@ -2770,6 +2770,62 @@ Fixed typo in xlabel of transmittance plot.
 
 Bumped Pyrat Bay to version 0.0.50.
 
+
+*****  Mi 8. Mär 18:57:02 CET 2017  *****
+
+Enabled single-layer extinction-coefficient calculation in CS module.
+Added get_ec() function to pyrat object to obtain the requested EC.
+
+*****
+
+Added get_ec() in Rayleigh module to compute single-layer
+extinction-coefficient.
+
+*****
+
+Added get_ec() in Haze module to compute single-layer
+extinction-coefficient.
+
+*****
+
+Added get_ec() in Alkali module to compute single-layer
+extinction-coefficient.
+
+*****
+
+dded get_ec() in Extinction module to compute single-layer
+extinction-coefficient.
+Modified extinction() to take add as argument for single-layer calc.
+
+*****
+
+Unified mp_extinction() and extinction() into a single function.
+Added grid and add flags to identify which mode to run.
+Fixed potential bug with single-cpu EC grid calculation.
+
+
+*****  Thu Mar  9 09:22:07 CET 2017  *****
+
+Updated MC3 module.
+
+*****
+
+Finished pyrat's get_ec() function to extract EC at requested layer.
+
+*****
+
+Fixed typo in get_ec() for cross-section EC.
+
+*****
+
+Added imol variable to alkali class and added exception to case when
+alkali species is absent from the atmosphere.
+
+*****
+
+Bumped Pyrat to version 1.2.38.
+Bumped Pyrat Bay to version 0.0.51.
+
 *****
 
 
