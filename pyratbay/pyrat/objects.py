@@ -554,6 +554,12 @@ class Alkali(object):
     self.nmodels = 0     # Number of alkali models
     self.model   = []    # List of alkali models
     self.ec      = None  # Alkali extinction coefficient
+    self.imol    = None  # Species indices in atmospheric file
+    self.doppler = None  # Tabulated Doppler widths
+    self.lorentz = None  # Tabulated Lorentz widths
+    self.voigt   = None  # Tabulated alkali Voigt profiles
+    self.vsize   = None  # Size of the Voigt profiles
+    self.vindex  = None  # Starting indices of the Voigt profiles
   def info(self, pyrat):
     # FINDME
     pass

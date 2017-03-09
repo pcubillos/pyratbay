@@ -2818,4 +2818,9 @@ Fixed typo in get_ec() for cross-section EC.
 
 *****
 
+Added imol variable to alkali class and added exception to case when
+alkali species is absent from the atmosphere.
+
+*****
+
 
