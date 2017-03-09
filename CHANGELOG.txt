@@ -2803,6 +2803,13 @@ Unified mp_extinction() and extinction() into a single function.
 Added grid and add flags to identify which mode to run.
 Fixed potential bug with single-cpu EC grid calculation.
 
+
+*****  Thu Mar  9 09:22:07 CET 2017  *****
+
+Updated MC3 module.
+
 *****
+
+
 
 
