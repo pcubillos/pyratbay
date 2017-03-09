@@ -2859,4 +2859,7 @@ Updated some more details in docs and tutorial config files.
 
 *****
 
+Bumped Pyrat Bay to version 0.0.52.
+
+*****
 
