@@ -2781,6 +2781,22 @@ Fixed tex docs file to get the output pdf file as pyratbay.pdf.
 Fixed docs Makefile to put only the pyraybay pdf into the latex
 folder when compiling with 'make latexpdf'.
 
+*****
+
+Added link to previous versions of the documentation in index.html.
+
+*****
+
+Update tutorial docs with info of Madhu PT, rayleigh, haze, and alkali
+models.  Several models still need more in-depth description of the
+parameters. Added info of the retflag parameter.
+Aligned figures in docs to be on the center.
+Updated demo and tutorial config files accordingly.
+
+*****
+
+Updated tli demo and tutorial config files to include dbtype options.
+
 
 *****  Mi 8. Mär 18:57:02 CET 2017  *****
 
@@ -2839,19 +2855,7 @@ Bumped Pyrat Bay to version 0.0.51.
 
 *****
 
-Added link to previous versions of the documentation in index.html.
-
-*****
-
-Update tutorial docs with info of Madhu PT, rayleigh, haze, and alkali
-models.  Several models still need more in-depth description of the
-parameters. Added info of the retflag parameter.
-Aligned figures in docs to be on the center.
-Updated demo and tutorial config files accordingly.
-
-*****
-
-Updated tli demo and tutorial config files to include dbtype options.
+Updated some more details in docs and tutorial config files.
 
 *****
 

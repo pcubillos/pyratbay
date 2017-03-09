@@ -13,7 +13,13 @@ Once you are in the run_tutorial/ folder, download the following Kurucz
 stellar model file with this shell command for example (or you can
 also use the browser):
 
-curl http://kurucz.harvard.edu/grids/gridp00odfnew/fp00k2odfnew.pck -o kurucz_fp00k2odfnew.pck
+curl http://kurucz.harvard.edu/grids/gridp00odfnew/fp00k2odfnew.pck -o fp00k2odfnew.pck
+
+Also, make sure to copy the tutorial files into the current folder:
+cp ../pyratbay/examples/tutorial/tutorial_*.cfg .
+
+Now you can start a Python interactive session:
+ipython --pylab
 """
 
 import sys, os

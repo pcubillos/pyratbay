@@ -59,7 +59,7 @@ Running Modes
 ``Pyrat Bay`` offers a sequence of running modes (``runmode``):
 
 +----------------+------------------------------------------------------------+
-| ``runmode``    | Description                                                |
+|  Run mode      | Description                                                |
 +================+============================================================+
 | ``tli``        | Generate a transition-line-information file (used for      |
 |                | spectral computation)                                      |
@@ -205,8 +205,9 @@ HITRAN                |H2O|, CO, |CO2|, |CH4| (+43)   hit    http://cfa.harvard.
 HITEMP                |H2O|, CO, |CO2|, NO, OH        hit    http://cfa.harvard.edu/hitran
 Schwenke              TiO                             ts     http://kurucz.harvard.edu/molecules/tio/tioschwenke.bin
 Plez                  VO                              vo     http://www.pages-perso-bertrand-plez.univ-montp2.fr
-VALD                  TBD                             vald   TBD
 ====================  =============================   ====== ===
+
+.. VALD                  TBD                             vald   TBD
 
 The following table lists the available partition-function files and
 source URLs.  See the :ref:`sscripts` section to format the online
@@ -483,6 +484,9 @@ Here is an example configuration file for this mode:
   # Alkali opacity, select from: [SodiumVdWst PotassiumVdWst]
   alkali = SodiumVdWst
 
+  # Number of CPUs to use for parallel processing:
+  nproc = 7
+
   # Verbosity level [1--5]:
   verb  = 4
 
@@ -535,7 +539,7 @@ The Rayleigh and haze parameters are input throught the ``rpars`` and
 can include multiple models, simply by concatenating multiple models
 (and parameters) one after the other in the config file.
 
-More details about the parameters TBD in a different page.
+TBD: Add details about the models' parameters in a different page.
 
 To compute a ``Pyrat`` model spectrum run the following script:
 
@@ -618,20 +622,20 @@ just need the following variables (in addition to a spectrum run):
   tmin    =  100   ; Minimum temperature for grid
   tmax    = 3000   ; Maximum temperature for grid
   tstep   =  100   ; Temperature step for grid
-  nproc   =    3   ; Number of parallel processors
+  nproc   =    7   ; Number of parallel processors
 
 The ``extfile`` variable sets the file name of the input/output
 extinction-coefficient file.  The ``tmin``, ``tmax``, and ``tstep``
 variables set the temperature sampling rate of the grid.  The
-``nproc`` variable (default ``nproc=1``) set the number of parallel
-processors used to compute the extinction-coefficient grid.
+``nproc`` variable (default ``nproc=1``) sets the number of parallel
+processors used to compute the extinction-coefficient.
 
 The following table describes what ``Pyrat Bay`` outputs depending on
 the ``runmode``, whether ``extfile`` was set in the configuration
 file, and whether the extinction file already exists:
 
 +-----------+-----------+-------------+---------------------------------------+
-|``runmode``|``extfile``| File exists | Output                                |
+| Run mode  |``extfile``| File exists | Output                                |
 +===========+===========+=============+=======================================+
 | opacity   | defined   | No          | Generate new grid file                |
 +           +-----------+-------------+---------------------------------------+
@@ -699,15 +703,15 @@ required variables:
   # Kurucz stellar model:
   kurucz = ./fp00k2odfnew.pck
 
-  # Retrieval models, select from: [pt rad mol ray haze]
-  retflag = pt mol
-
   # Retrieval abundances:
   bulk     = H2 He    ; Bulk (dominant) abundance species
   molscale = H2O      ; Variable-abundance species
 
   # Temperature-profile model, select from: [isothermal TCEA MadhuInv MadhuNoInv]
   tmodel = TCEA
+
+  # Retrieval models, select from: [pt rad mol ray haze]
+  retflag = pt mol
 
   # Fitting parameters:
   #         log(kappa) log(g1) log(g2)  alpha  beta  log(fH2O)
@@ -716,17 +720,16 @@ required variables:
   pmax     =  1.0       1.0     0.7     1.0    1.1      3.0
   stepsize =  0.01      0.01    0.0     0.0    0.01     0.01
 
-
-  # MCMC temperature boundaries  (TBD: merge with tmin/tmax)
-  tlow  =  100
-  thigh = 3000
-
   # MCMC parameters:
   walk     = snooker   ; MCMC algorithm, select from: mrw, demc, snooker
   nsamples = 50000     ; Total number of MCMC samples
   nchains  =     7     ; Number of parallel MCMC chains
   burnin   =  1000     ; Burn-in iterations per chain
   thinning =     1     ; Chains thinning factor
+
+  # MCMC temperature boundaries  (TBD: merge with tmin/tmax)
+  tlow  =  100
+  thigh = 3000
 
 
 .. note:: Note that an ``mcmc`` run requires the user to set an
