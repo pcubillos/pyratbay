@@ -2861,5 +2861,11 @@ Updated some more details in docs and tutorial config files.
 
 Bumped Pyrat Bay to version 0.0.52.
 
+
+*****  Mon Mar 13 09:41:35 CET 2017  *****
+
+Updated MC3 module.
+
 *****
+
 
