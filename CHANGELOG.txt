@@ -2868,4 +2868,8 @@ Updated MC3 module.
 
 *****
 
+Bumped Pyrat Bay to version 0.0.53.
+
+*****
+
 
