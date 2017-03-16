@@ -2,7 +2,7 @@
 // Pyrat Bay is currently proprietary software (see LICENSE).
 
 #include <Python.h>
-#define NPY_NO_DEPRECATED_API NPY_1_8_API_VERSION
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/arrayobject.h>
 #include <stdio.h>
 #include <stdarg.h>

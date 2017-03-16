@@ -2878,3 +2878,8 @@ Fixed glitch in best atmospheric file name for PB mcmc run.
 
 *****
 
+Changed #define command in C code to NPY_1_7_API_VERSION.
+
+*****
+
+
