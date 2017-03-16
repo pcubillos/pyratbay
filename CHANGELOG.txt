@@ -2886,3 +2886,7 @@ Updated MC3 and pytips modules with corrected NPY deprecation.
 
 *****
 
+Bumped Pyrat Bay to version 0.0.54.
+
+*****
+
