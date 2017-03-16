@@ -2870,6 +2870,11 @@ Updated MC3 module.
 
 Bumped Pyrat Bay to version 0.0.53.
 
-*****
 
+*****  Do 16. Mär 17:09:58 CET 2017  *****
+
+
+Fixed glitch in best atmospheric file name for PB mcmc run.
+
+*****
 
