@@ -2882,4 +2882,7 @@ Changed #define command in C code to NPY_1_7_API_VERSION.
 
 *****
 
+Updated MC3 and pytips modules with corrected NPY deprecation.
+
+*****
 
