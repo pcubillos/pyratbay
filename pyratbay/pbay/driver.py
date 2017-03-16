@@ -154,15 +154,14 @@ def run(argv, main=False):
     # Best-fit atmfile header:
     header = "# MCMC best-fitting atmospheric model.\n\n"
     # Write best-fit atmfile:
-    atm.writeatm("bestfit_{:s}".format(pyrat.atmfile),
-                 pyrat.atm.press, pyrat.atm.temp,
+    bestatm = "{:s}_bestfit_atmosphere.atm".format(outfile)
+    atm.writeatm(bestatm, pyrat.atm.press, pyrat.atm.temp,
                  pyrat.mol.name, pyrat.atm.q, pyrat.atm.punits,
                  header, radius=pyrat.atm.radius, runits='km')
 
     pyrat.verb = verb
     pt.msg(pyrat.verb-3, "Written best-fit atmospheric file ('{:s}') and "
-      "spectrum ('{:s}').".
-      format("bestfit_{:s}".format(pyrat.atmfile), pyrat.outspec), pyrat.log,0)
+      "spectrum ('{:s}').".format(bestatm, pyrat.outspec), pyrat.log, 0)
 
     # Best-fitting spectrum:
     pp.spectrum(pyrat=pyrat,
