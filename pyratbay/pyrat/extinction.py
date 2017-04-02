@@ -239,6 +239,7 @@ def extinction(pyrat, indices, grid=False, add=False):
 
     # Calculate extinction-coefficient in C:
     logtext = " "*800
+    extinct_coeff[:] = 0.0
     ec.extinction(extinct_coeff,
                 pyrat.voigt.profile, pyrat.voigt.size, pyrat.voigt.index,
                 pyrat.voigt.lorentz, pyrat.voigt.doppler,
