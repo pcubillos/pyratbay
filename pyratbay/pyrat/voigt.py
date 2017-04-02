@@ -100,7 +100,6 @@ def calcvoigt(pyrat):
   """
   # Voigt object from pyrat:
   voigt = pyrat.voigt
-
   voigt.size  = np.zeros((voigt.nLor, voigt.nDop), np.int)
   voigt.index = np.zeros((voigt.nLor, voigt.nDop), np.int)
   # Calculate the half-size of the profiles:
@@ -110,7 +109,7 @@ def calcvoigt(pyrat):
     # Width in number of spectral samples:
     psize = 2*np.asarray(pwidth/pyrat.spec.ownstep + 0.5, np.int) + 1
     # Clip to max and min values:
-    psize = np.clip(psize, 3, 2*pyrat.spec.nwave+1)
+    psize = np.clip(psize, 3, 2*pyrat.spec.onwave+1)
     # Temporarily Set the size to 0 for not calculated profiles:
     # (sizes will be set in vp.grid())
     psize[np.where(voigt.doppler/voigt.lorentz[i] < voigt.DLratio)[0][1:]] = 0

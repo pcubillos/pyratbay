@@ -2888,5 +2888,32 @@ Updated MC3 and pytips modules with corrected NPY deprecation.
 
 Bumped Pyrat Bay to version 0.0.54.
 
+
+*****  So 2. Apr 16:41:00 CEST 2017  *****
+
+Found and fixed bug introduced in Pyrat Bay version 0.0.51.
+The extinction-coefficient calculation was reusing the extinct_coeff
+array without reseting it's values to zero on each iteration.
+
 *****
+
+Fixed bug in voigt's calcvoigt() function.
+The maximum size of the profile arrays should be that of the
+over-sampled wn array instead of the wn array.
+
+*****
+
+Fixed import call to Madhu's TP profiles in atmosphere module.
+
+*****
+
+Minor comment/spacing corrections.
+
+*****
+
+Bumped Pyrat to version 1.2.39.
+Bumped Pyrat Bay to version 0.0.55.
+
+*****
+
 
