@@ -149,7 +149,7 @@ static PyObject *extinction(PyObject *self, PyObject *args){
   kmax  = (double *)calloc(next,    sizeof(double));
 
 
-  ktmp    = (double **)malloc(next *     sizeof(double *));
+  ktmp    = (double **)malloc(next*      sizeof(double *));
   ktmp[0] = (double  *)calloc(next*onwn, sizeof(double  ));
   for (i=1; i<next; i++)
     ktmp[i] = ktmp[0] + onwn*i;
@@ -268,7 +268,8 @@ static PyObject *extinction(PyObject *self, PyObject *args){
 
     /* Index of wavenumber closest and smaller than wavn:                   */
     iwn = (wavn - INDd(wn,0))/wnstep;
-    /* Line is more than 10 Voigt HW from nearest wn sampling division:     */
+    /* If line is more than 10 Voigt HW from the nearest wavenumber
+       sampling division, add k directly to the output array:               */
     if (fabs(wavn-INDd(wn,iwn)-0.5*wnstep) > 10.0*vwidth){
       if (wavn - INDd(wn,iwn) > 0.5*wnstep)
         iwn++;

@@ -61,6 +61,7 @@ valueinarray(PyArrayObject *array, int value, int arraylen){
   return -1;
 }
 
+
 /* Find the index of the value with the highest value:                      */
 int
 imax(PyArrayObject *array){
@@ -72,6 +73,7 @@ imax(PyArrayObject *array){
   }
   return max;
 }
+
 
 /* Downsample an array by an integer factor into a python array.            */
 int
