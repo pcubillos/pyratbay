@@ -2911,3 +2911,9 @@ Minor comment/spacing corrections.
 
 *****
 
+Bumped Pyrat to version 1.2.39.
+Bumped Pyrat Bay to version 0.0.55.
+
+*****
+
+
