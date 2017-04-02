@@ -2897,3 +2897,10 @@ array without reseting it's values to zero on each iteration.
 
 *****
 
+Fixed bug in voigt's calcvoigt() function.
+The maximum size of the profile arrays should be that of the
+over-sampled wn array instead of the wn array.
+
+*****
+
+
