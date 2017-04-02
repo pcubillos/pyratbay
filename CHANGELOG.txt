@@ -2903,4 +2903,7 @@ over-sampled wn array instead of the wn array.
 
 *****
 
+Fixed import call to Madhu's TP profiles in atmosphere module.
+
+*****
 

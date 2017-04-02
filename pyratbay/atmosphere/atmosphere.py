@@ -14,12 +14,12 @@ import scipy.interpolate as sip
 
 from .. import tools     as pt
 from .. import constants as pc
+from .  import MadhuTP
 
 rootdir = os.path.realpath(os.path.dirname(__file__) + "/../../")
 sys.path.append(rootdir + "/pyratbay/lib/")
 import pt as PT
 
-import MadhuTP
 
 
 # Get Pyrat-Bay inputs dir:
