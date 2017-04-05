@@ -533,7 +533,7 @@ class Haze(object):
     self.nmodels = 0     # Number of haze models
     self.model   = []    # List of haze models
     self.ec      = None  # Haze extinction coefficient
-    self.fpatchy = None  # Pyatchy-cloud fraction
+    self.fpatchy = None  # Patchy-cloud fraction
   def info(self, pyrat):
     # FINDME
     pass
@@ -672,7 +672,7 @@ class Retrieval(object):
     self.iabund = None  # Abundance-model parameter indices
     self.iray   = None  # Haze-model parameter indices
     self.ihaze  = None  # Haze-model parameter indices
-    self.icloud = None  # Haze-model parameter indices
+    self.icloud = None  # Cloud-model parameter indices
     self.ipatchy = None  # Patchy-model parameter index
     self.parname = []   # Model parameter names
   def info(self, pyrat):
