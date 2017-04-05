@@ -672,7 +672,7 @@ class Retrieval(object):
     self.iabund = None  # Abundance-model parameter indices
     self.iray   = None  # Haze-model parameter indices
     self.ihaze  = None  # Haze-model parameter indices
-    self.icloud = None  # Haze-model parameter indices
+    self.icloud = None  # Cloud-model parameter indices
     self.ipatchy = None  # Patchy-model parameter index
     self.parname = []   # Model parameter names
   def info(self, pyrat):

@@ -2918,7 +2918,11 @@ Bumped Pyrat Bay to version 0.0.55.
 *****  Mi 5. Apr 09:12:42 CEST 2017  *****
 
 Corrected nparams variable name for pachy model in pyrat's argum.py.
-Minor comment correction in objects.
+Minor comment correction in objects.py.
+
+*****
+
+Another minor comment correction in objects.py.
 
 *****
 
