@@ -2926,4 +2926,8 @@ Another minor comment correction in objects.py.
 
 *****
 
+Bumped Pyrat to version 1.2.40.
+Bumped Pyrat Bay to version 0.0.56.
+
+*****
 
