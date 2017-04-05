@@ -2931,3 +2931,10 @@ Bumped Pyrat Bay to version 0.0.56.
 
 *****
 
+Fixed bug in modulation simps integration. When rtop differs from
+zero, the code need to set the right ranges in h when calculating
+geth().
+
+*****
+
+

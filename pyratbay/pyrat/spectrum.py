@@ -54,12 +54,14 @@ def modulation(pyrat):
     integ = (np.exp(-pyrat.od.depth[rtop:last+1,i]) *
                    pyrat.atm.radius[rtop:last+1])
     # Integrate with Simpson's rule:
-    pyrat.spec.spectrum[i] = s.simps(integ, h[0:last], *s.geth(h[0:last]))
+    pyrat.spec.spectrum[i] = s.simps(integ,  h[0:last-rtop],
+                                     *s.geth(h[0:last-rtop]))
     # Extra spectrum for patchy model:
     if pyrat.haze.fpatchy is not None:
       pinteg = (np.exp(-pyrat.od.pdepth[rtop:last+1,i]) *
                    pyrat.atm.radius[rtop:last+1])
-      pyrat.spec.cloudy[i] = s.simps(pinteg, h[0:last], *s.geth(h[0:last]))
+      pyrat.spec.cloudy[i] = s.simps(pinteg, h[0:last-rtop],
+                                     *s.geth(h[0:last-rtop]))
 
   pyrat.spec.spectrum = ((pyrat.atm.radius[rtop]**2 + 2*pyrat.spec.spectrum) /
                          pyrat.phy.rstar**2)
