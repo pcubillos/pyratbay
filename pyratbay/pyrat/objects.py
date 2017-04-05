@@ -533,7 +533,7 @@ class Haze(object):
     self.nmodels = 0     # Number of haze models
     self.model   = []    # List of haze models
     self.ec      = None  # Haze extinction coefficient
-    self.fpatchy = None  # Pyatchy-cloud fraction
+    self.fpatchy = None  # Patchy-cloud fraction
   def info(self, pyrat):
     # FINDME
     pass

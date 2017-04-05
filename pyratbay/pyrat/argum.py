@@ -1091,7 +1091,7 @@ def setup(pyrat):
   if "patchy" in ret.retflag:
     ret.ipatchy = np.arange(nparams, nparams + 1)  # npatchy is always 1
     ret.parname += [r"$f_{\rm patchy}$"]
-    naprams += 1
+    nparams += 1
 
   if pyrat.runmode == "mcmc":
     if ret.nparams != nparams:
