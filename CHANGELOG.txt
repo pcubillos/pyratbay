@@ -2943,6 +2943,8 @@ should improve a bit the performance.
 
 *****
 
+Bumped Pyrat to version 1.2.41.
+Bumped Pyrat Bay to version 0.0.57.
 
-
+*****
 
