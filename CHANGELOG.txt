@@ -2935,6 +2935,14 @@ Fixed bug in modulation simps integration. When rtop differs from
 zero, the code need to set the right ranges in h when calculating
 geth().
 
+
+*****  Fr 7. Apr 15:37:12 CEST 2017  *****
+
+Reshuffled modulation integration to take stuff out of the loop. This
+should improve a bit the performance.
+
 *****
+
+
 
 

@@ -44,24 +44,35 @@ def modulation(pyrat):
   Calculate the modulation spectrum for transit geometry.
   """
   rtop = pyrat.atm.rtop
-  # Get the stellar radius:
+  # The integrand:
+  integ = (np.exp(-pyrat.od.depth[rtop:,:]) *
+           np.expand_dims(pyrat.atm.radius[rtop:],1))
+  if pyrat.haze.fpatchy is not None:
+    pinteg = (np.exp(-pyrat.od.pdepth[rtop:,:]) *
+              np.expand_dims(pyrat.atm.radius[rtop:],1))
+  # Get Delta radius (and simps' integration variables):
   h = np.ediff1d(pyrat.atm.radius[rtop:])
+  hseven, hreven, hfeven = s.geth(h[:-1])
+  hsodd,  hrodd,  hfodd  = s.geth(h)
+  hsum = [hseven, hsodd]  # Re-packed for even/odd values of ideep
+  hrat = [hreven, hrodd]
+  hfac = [hfeven, hfodd]
+
+  nlayers = pyrat.od.ideep-rtop         # Number of layers for integration
+  nhalf   = np.asarray(nlayers/2, int)  # Half-size of used layers
+  par     = pyrat.od.ideep % 2          # Parity of ideep
 
   for i in np.arange(pyrat.spec.nwave):
-    # Layer index where the optical depth reached maxdepth:
-    last = pyrat.od.ideep[i]
-    # The integrand:
-    integ = (np.exp(-pyrat.od.depth[rtop:last+1,i]) *
-                   pyrat.atm.radius[rtop:last+1])
+    nl = nlayers[i]
+    nh = nhalf[i]
+    p  = par[i]
     # Integrate with Simpson's rule:
-    pyrat.spec.spectrum[i] = s.simps(integ,  h[0:last-rtop],
-                                     *s.geth(h[0:last-rtop]))
+    pyrat.spec.spectrum[i] = s.simps(integ[0:nl+1,i], h[0:nl],
+                             hsum[p][0:nh], hrat[p][0:nh], hfac[p][0:nh])
     # Extra spectrum for patchy model:
     if pyrat.haze.fpatchy is not None:
-      pinteg = (np.exp(-pyrat.od.pdepth[rtop:last+1,i]) *
-                   pyrat.atm.radius[rtop:last+1])
-      pyrat.spec.cloudy[i] = s.simps(pinteg, h[0:last-rtop],
-                                     *s.geth(h[0:last-rtop]))
+      pyrat.spec.cloudy[i] = s.simps(pinteg[0:nl,i], h[0:nl],
+                             hsum[p][0:nh], hrat[p][0:nh], hfac[p][0:nh])
 
   pyrat.spec.spectrum = ((pyrat.atm.radius[rtop]**2 + 2*pyrat.spec.spectrum) /
                          pyrat.phy.rstar**2)
@@ -148,7 +159,7 @@ def printspec(pyrat):
     specunits = "[unitless]"
   elif pyrat.od.path == "eclipse":
     spectype  = "Flux"
-    specunits = "[erg/s/cm]"
+    specunits = "[erg s-1 cm-2 cm]"
 
   # Wavelength units in brackets:
   wlunits = "[{:s}]".format(pyrat.spec.wlunits)
