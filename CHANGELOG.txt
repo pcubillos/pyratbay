@@ -2992,4 +2992,9 @@ switched.
 Bumped Pyrat to version 1.2.42.
 Bumped Pyrat Bay to version 0.0.61.
 
+
+*****  Sun Apr  9 21:01:47 CEST 2017  *****
+
+Added lineread code to process exomol data.
+
 *****

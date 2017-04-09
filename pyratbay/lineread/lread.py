@@ -173,6 +173,8 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
       driver.append(db.voplez(     dblist[i], pflist[i], log))
     elif dbtype[i] == "vald":
       driver.append(db.vald(       dblist[i], pflist[i], log))
+    elif dbtype[i] == "emol":
+      driver.append(db.exomol(     dblist[i], pflist[i], log))
     else:
       pt.error("Unknown Database type ({:d}): '{:s}'".format(i+1, dbtype[i]),
                log)
@@ -206,6 +208,12 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
     dbname = driver[i].name
     if dbname in DBnames:
       DBskip.append(i)  # Ommit repeated databases
+      # Update exomol driver for this molecule:
+      if dbname.startswith("Exomol"):
+        j = DBnames.index(dbname)
+        driver[j].isotopes += driver[i].isotopes  # Append values
+        driver[j].isoratio += driver[i].isoratio
+        driver[j].mass     += driver[i].mass
     else:
       DBnames.append(dbname)
   Ndb = len(DBnames)
@@ -222,6 +230,7 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
   # Partition info:
   totIso = 0                   # Cumulative number of isotopes
   acum = np.zeros(Ndb+1, int)  # Cumul. number of isotopes per database
+
 
   pt.msg(verb-4, "\nReading and writting partition function info.", log)
   # Database correlative number:
@@ -297,6 +306,7 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
   pt.msg(verb-4, "Cumulative number of isotopes per DB: {}".format(acum), log)
   pt.msg(verb-3, "Done.", log)
 
+
   pt.msg(verb-3, "\nExtracting line transition info.", log)
   wnumber = np.array([], np.double)
   gf      = np.array([], np.double)
@@ -307,6 +317,12 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
     # Get database index:
     dbname = driver[db].name
     idb = DBnames.index(dbname)
+
+    # Exomol fix:
+    if dbname.startswith("Exomol"):
+        driver[db].isotopes = driver[idb].isotopes
+        driver[db].isoratio = driver[idb].isoratio
+        driver[db].mass     = driver[idb].mass
 
     # Read databases:
     ti = time.time()
@@ -326,6 +342,7 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
     pt.msg(verb-4, "Isotope correlative indices: {}".
                     format(np.unique(transDB[3]+acum[idb])), log, 2)
     pt.msg(verb-5, "Reading time: {:8.3f} seconds".format(tf-ti), log, 2)
+
 
   # Total number of transitions:
   nTransitions = np.size(wnumber)
