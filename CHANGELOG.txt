@@ -2997,4 +2997,9 @@ Bumped Pyrat Bay to version 0.0.61.
 
 Added lineread code to process exomol data.
 
+
+*****  Mo 10. Apr 17:54:42 CEST 2017  *****
+
+Documented Exomol PF script, and adapted for (more) general use.
+
 *****

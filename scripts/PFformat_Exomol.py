@@ -9,32 +9,29 @@ import numpy as np
 
 def main():
   """
-  Format the Partridge and Schwenke H2O partition function file.
+  Format Exomol partition function files.
 
   Usage:
   ------
   Execute from the Shell:
-  ./PFformat_PandS_H2O.py [fileIn] [fileOut]
+  ./PFformat_Exomol.py file1 [file2] ... [fileN]
 
   Parameters:
   -----------
-  fileIn: String
-     Input P&S H2O partition-function filename.
-  fileOut: String
-     Output PF filename.
+  file1--fileN: String
+     Input Exomol partition-function filenames.
 
   Notes:
   ------
-  Download the partition-function file to the working directory:
-    http://kurucz.harvard.edu/molecules/h2o/h2opartfn.dat
+  As far as I've seen, each input file contains a single isotope.
+  More exotic formats will break the code.
+
+  Exomol database: http://www.exomol.com/
   """
   # Parse arguments:
   if len(sys.argv) > 1:
     fileIn = sys.argv[1:]
-
-  #if len(sys.argv) > 2:
-  #  fileOut = sys.argv[2]
-  #else:
+  # Output file:
   fileOut = "PF_Exomol_{:s}.dat"
 
   # Read and extract data from files:
@@ -50,11 +47,11 @@ def main():
     molecule = ""
     iso = ""
     for i in np.arange(len(s)):
-      match = re.match(r"([0-9]+(?:.[0-9]+)?)([a-z]+)", s[i], re.I)
-      molecule += match.group(2)
-      iso      += match.group(1)[-1:]
+      match = re.match(r"([0-9]+)([a-z]+)([0-9]*)", s[i], re.I)
+      N = 1 if match.group(3) == "" else int(match.group(3))
+      molecule += match.group(2) + match.group(3)
+      iso      += match.group(1)[-1:] * N
 
-    print(iso)
     # Extract the isotopes array:
     isotopes.append(iso)
 
@@ -65,19 +62,29 @@ def main():
     z    = np.zeros(ntemp, np.double)
     for i in np.arange(ntemp):
       temp[i], z[i] = lines[i].split()
+    if data != [] and len(z) != len(data[-1]):
+      print("Warning! Lengths of PF files do not match!\n")
+      # FINDME: I should stop here, but for the moment, I just roll with it
     data.append(z)
 
-  print(isotopes)
   # Number of isotopes:
   niso  = len(isotopes)
-  data = np.asarray(data).T
+  # Temporary patch (zero pad):
+  maxlen = 0
+  for i in np.arange(niso):
+    maxlen = np.amax((maxlen, len(data[i])))
+  for i in np.arange(niso):
+    d = np.zeros(maxlen)
+    d[0:len(data[i])] = data[i]
+    data[i] = d
 
+  data = np.asarray(data).T
   # Output file name:
   fout = open(fileOut.format(molecule), "w")
 
   fout.write(
-  "# This file incorporates the tabulated {:s} Partition-function data from\n"
-  "# Exomol\n\n".format(molecule))
+  "# This file incorporates the tabulated {:s} partition-function data\n"
+  "# from Exomol\n\n".format(molecule))
 
   fout.write("@ISOTOPES\n            ")
   for j in np.arange(niso):
@@ -94,6 +101,9 @@ def main():
     fout.write("\n")
 
   fout.close()
+  print("\nWriten partition-function file:\n  '{:s}'\nfor {:s} molecule, "
+   "with isotopes {:s},\nand temperature range {:.0f}K--{:.0f}K.".
+      format(fileOut.format(molecule), molecule, isotopes, temp[0], temp[-1]))
 
 
 if __name__ == "__main__":
