@@ -3003,3 +3003,11 @@ Added lineread code to process exomol data.
 Documented Exomol PF script, and adapted for (more) general use.
 
 *****
+
+Fixed bug in Exomol linereader (wrong Elow index).
+Generalized name, molecule, and isotope names extraction.
+Updated documentation.
+Currently tested for HCN database.
+
+*****
+
