@@ -175,6 +175,8 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
       driver.append(db.vald(       dblist[i], pflist[i], log))
     elif dbtype[i] == "emol":
       driver.append(db.exomol(     dblist[i], pflist[i], log))
+    elif dbtype[i] == "byte":
+      driver.append(db.byte(       dblist[i], pflist[i], log))
     else:
       pt.error("Unknown Database type ({:d}): '{:s}'".format(i+1, dbtype[i]),
                log)
@@ -209,11 +211,14 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
     if dbname in DBnames:
       DBskip.append(i)  # Ommit repeated databases
       # Update exomol driver for this molecule:
-      if dbname.startswith("Exomol"):
+      if dbname.startswith("Exomol") or dbname.startswith("BYTe"):
         j = DBnames.index(dbname)
-        driver[j].isotopes += driver[i].isotopes  # Append values
-        driver[j].isoratio += driver[i].isoratio
-        driver[j].mass     += driver[i].mass
+        # Select only new isotopes:
+        inew = ~np.in1d(driver[i].isotopes, driver[j].isotopes)
+        # Append new isotopes:
+        driver[j].isotopes += list(np.array(driver[i].isotopes)[inew])
+        driver[j].isoratio += list(np.array(driver[i].isoratio)[inew])
+        driver[j].mass     += list(np.array(driver[i].mass)[inew])
     else:
       DBnames.append(dbname)
   Ndb = len(DBnames)
@@ -319,7 +324,7 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
     idb = DBnames.index(dbname)
 
     # Exomol fix:
-    if dbname.startswith("Exomol"):
+    if dbname.startswith("Exomol") or dbname.startswith("BYTe"):
         driver[db].isotopes = driver[idb].isotopes
         driver[db].isoratio = driver[idb].isoratio
         driver[db].mass     = driver[idb].mass

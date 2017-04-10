@@ -3011,3 +3011,8 @@ Currently tested for HCN database.
 
 *****
 
+Enabled BYTe db reader.
+
+*****
+
+
