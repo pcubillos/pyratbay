@@ -71,22 +71,6 @@ class tioschwenke(dbdriver):
     return recwl
 
 
-  def getinfo(self):
-    """
-    Get isotopes names from partition function file
-    """
-    # Open and read the partition function file:
-    if not os.path.isfile(self.dbfile):
-      pt.error("Schwenke TiO database file '{:s}' does not exist.".
-               format(self.dbfile), self.log)
-    partDB = open(self.pffile)
-    PFlines = partDB.readlines()
-    partDB.close()
-
-    # Get isotopes names from first line:
-    return PFlines[self.pf_isonames].split()[1:]  # Skip first word
-
-
   def dbread(self, iwn, fwn, verb, *args):
     """
     Read the Schwenke TiO database.

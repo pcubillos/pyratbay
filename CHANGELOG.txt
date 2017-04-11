@@ -3031,4 +3031,8 @@ those of the database.
 
 *****
 
+Removed unused getinfo() function in tioschwenke.py.
+
+*****
+
 
