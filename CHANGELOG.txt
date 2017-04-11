@@ -3044,3 +3044,7 @@ Adapted byte.py to read isotopic info from isotopes.dat file.
 
 *****
 
+Adapted exomol.py to read isotopic info from isotopes.dat file.
+
+*****
+

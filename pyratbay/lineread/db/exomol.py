@@ -46,19 +46,21 @@ class exomol(dbdriver):
     s = os.path.split(dbfile)[1].split("_")[0].split("-")
     self.molecule = ""
     isotopes      = ""
-    mass = 0.0
     for i in np.arange(len(s)):
       match = re.match(r"([0-9]+)([a-z]+)([0-9]*)", s[i], re.I)
       N = 1 if match.group(3) == "" else int(match.group(3))
       self.molecule += match.group(2) + match.group(3)
       isotopes += match.group(1)[-1:] * N
-      mass += float(match.group(1))*N
-    self.iso = isotopes
-    self.isotopes = [isotopes]
-    self.mass     = [mass]
-    self.isoratio = [1.0]   # ditto
+    self.iso = isotopes  # isotope name of this file's data
+
     # Database name:
     self.name = "Exomol " + self.molecule
+
+    # Get isotopic info:
+    ID, mol, isotopes, mass, ratio, gi = self.getiso(molname=self.molecule)
+    self.isotopes = isotopes
+    self.mass     = mass
+    self.isoratio = ratio
 
 
   def readwave(self, dbfile, irec):
