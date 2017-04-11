@@ -3040,4 +3040,7 @@ abundance fraction for each ion (need Saha? sigh ...).
 
 *****
 
+Adapted byte.py to read isotopic info from isotopes.dat file.
+
+*****
 
