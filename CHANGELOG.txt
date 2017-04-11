@@ -3035,4 +3035,9 @@ Removed unused getinfo() function in tioschwenke.py.
 
 *****
 
+Minor corrections in vald.py. Still need to compute correct
+abundance fraction for each ion (need Saha? sigh ...).
+
+*****
+
 
