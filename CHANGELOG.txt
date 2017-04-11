@@ -3013,6 +3013,15 @@ Currently tested for HCN database.
 
 Enabled BYTe db reader.
 
+
+*****  Di 11. Apr 15:24:05 CEST 2017  *****
+
+Revamped hitran.dat file to work as a general isotopes info file (not
+only for HITRAN). Renamed as isotopes.dat.
+Moved getHITinfo() from hitran.py to driver.py. Renamed as getiso().
+Added input arguments to request data either from DB file or from
+molecule name.
+
 *****
 
 

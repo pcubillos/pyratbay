@@ -214,3 +214,63 @@ class dbdriver(object):
       PF[:,i] = info[1:]
 
     return temp, PF
+
+  def getiso(self, fromfile=False, molname=None):
+    """
+    Get isotopic info from isotopes.dat file.
+
+    Parameters
+    ----------
+    fromfile: String
+       If True, extract data based on the database file info (for HITRAN).
+    mol: String
+       If not None, extract data based on this molecule name.
+
+    Returns
+    -------
+    molID: Integer
+       HITRAN molecule ID.
+    molname: String
+       Molecule's name.
+    isotopes: List of strings
+       Isotopes AFGL code names.
+    mass: List of floats
+       Masses for each isotope.
+    isoratio: List of integers
+       Isotopic terrestrial abundance ratio.
+    gi: List of integers
+       State-independent statistical weights for each isotope.
+    """
+    if fromfile:
+      # Open HITRAN DB file and read first two characters:
+      if not os.path.isfile(self.dbfile):
+        pt.error("HITRAN database file '{:s}' does not exist.".
+                  format(self.dbfile), self.log)
+      with open(self.dbfile, "r") as data:
+        molID  = data.read(self.recmollen)
+      molname = t.molname(int(molID))
+    elif molname is None:
+      pt.error("Neither fromfile nor mol were specified.", self.log)
+
+    # Read isotopes info file:
+    with open(DBdir + '/../../../inputs/isotopes.dat', 'r') as isofile:
+      lines = isofile.readlines()
+
+    isotopes = []
+    mass     = []
+    isoratio = []
+    gi       = []
+
+    # Get values for our molecule:
+    for i in np.arange(len(lines)):
+      if lines[i].startswith("#") or lines[i].strip() == "":
+        continue
+      info = lines[i].split()
+      if info[1] == molname:
+        molID = info[0]
+        isotopes.append(      info[2] )
+        gi.      append(  int(info[3]))
+        isoratio.append(float(info[4]))
+        mass.    append(float(info[5]))
+
+    return molID, molname, isotopes, mass, isoratio, gi
