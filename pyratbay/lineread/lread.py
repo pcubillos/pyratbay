@@ -210,15 +210,6 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
     dbname = driver[i].name
     if dbname in DBnames:
       DBskip.append(i)  # Ommit repeated databases
-      # Update exomol driver for this molecule:
-      if dbname.startswith("Exomol") or dbname.startswith("BYTe"):
-        j = DBnames.index(dbname)
-        # Select only new isotopes:
-        inew = ~np.in1d(driver[i].isotopes, driver[j].isotopes)
-        # Append new isotopes:
-        driver[j].isotopes += list(np.array(driver[i].isotopes)[inew])
-        driver[j].isoratio += list(np.array(driver[i].isoratio)[inew])
-        driver[j].mass     += list(np.array(driver[i].mass)[inew])
     else:
       DBnames.append(dbname)
   Ndb = len(DBnames)
@@ -248,7 +239,7 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
       continue
 
     # Get partition function values:
-    Temp, partDB = driver[i].getpf(verb)
+    Temp, partDB, PFiso = driver[i].getpf(verb)
     isoNames     = driver[i].isotopes
     iso_mass     = driver[i].mass
     iso_ratio    = driver[i].isoratio
@@ -257,6 +248,12 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
     Ntemp = len(Temp)
     # Number of isotopes:
     Niso  = len(isoNames)
+
+    # Partition-function sorted according to isoNames:
+    PF = np.zeros((Niso, Ntemp), np.double)
+    for j in np.arange(np.shape(partDB)[0]):
+      idx = isoNames.index(PFiso[j])
+      PF[idx] = partDB[j]
 
     # DB and molecule name lengths:
     lenDBname = len(DBnames[idb])
@@ -295,12 +292,12 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
       TLIout.write(struct.pack("d", iso_ratio[j]))
 
       # Write the partition function per isotope:
-      TLIout.write(struct.pack("{:d}d".format(Ntemp), *partDB[j]))
+      TLIout.write(struct.pack("{:d}d".format(Ntemp), *PF[j]))
       pt.msg(verb-4, "Mass (u):        {:8.4f}\n"
                      "Isotopic ratio:  {:8.4g}\n"
                      "Part. Function:  [{:.2e}, {:.2e}, ..., {:.2e}]".
                      format(iso_mass[j], iso_ratio[j],
-                         partDB[j,0], partDB[j,1], partDB[j,Ntemp-1]), log, 6)
+                         PF[j,0], PF[j,1], PF[j,Ntemp-1]), log, 6)
 
     # Calculate cumulative number of isotopes per database:
     totIso += Niso
@@ -322,12 +319,6 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
     # Get database index:
     dbname = driver[db].name
     idb = DBnames.index(dbname)
-
-    # Exomol fix:
-    if dbname.startswith("Exomol") or dbname.startswith("BYTe"):
-        driver[db].isotopes = driver[idb].isotopes
-        driver[db].isoratio = driver[idb].isoratio
-        driver[db].mass     = driver[idb].mass
 
     # Read databases:
     ti = time.time()

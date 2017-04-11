@@ -23,6 +23,15 @@ class dbdriver(object):
   def getpf(self, verbose=0):
     """
     Compute partition function for specified source.
+
+    Returns
+    -------
+    temp: 1D float ndarray
+       Array with temperature sample.
+    PF:   2D float ndarray
+       The partition function data for each isotope at each temperature.
+    isotopes: List of strings
+       The names of the tabulated isotopes
     """
     # Calculate the partition-function from the CTIPS module:
     if self.pffile == "ctips":
@@ -40,7 +49,7 @@ class dbdriver(object):
       for i in np.arange(niso):
         isoID = np.repeat(int(self.isotopes[i]), ntemp)
         PF[i] = t.tips(molID, isoID, temp)/self.gi[i]
-      return temp, PF
+      return temp, PF, self.isotopes
 
     # Use polynomial expression:
     elif self.pffile == "poly":
@@ -67,7 +76,7 @@ class dbdriver(object):
       # Get the exponential of log(PF):
       PF = np.exp(PF)
 
-      return Temp, PF
+      return Temp, PF, self.isotopes
 
     # Extract the partition-function from the tabulated file:
     else:
@@ -173,14 +182,15 @@ class dbdriver(object):
        Array with temperature sample.
     PF:   2D float ndarray
        The partition function data for each isotope at each temperature.
+    isotopes: List of strings
+       The names of the tabulated isotopes
     """
     # Open-read file:
     if not os.path.isfile(self.pffile):
       pt.error("Partition-function file '{:s}' does not exist.".
                format(self.pffile), self.log)
-    f = open(self.pffile, "r")
-    lines = f.readlines()
-    f.close()
+    with open(self.pffile, "r") as f:
+      lines = f.readlines()
 
     # Number of header lines (to skip when reading the tabulated data):
     nskip = 0
@@ -213,7 +223,7 @@ class dbdriver(object):
       temp[i] = info[0]
       PF[:,i] = info[1:]
 
-    return temp, PF
+    return temp, PF, isotopes
 
   def getiso(self, fromfile=False, molname=None):
     """
