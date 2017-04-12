@@ -48,7 +48,7 @@ class dbdriver(object):
       # Calculate the partition function for each isotope:
       for i in np.arange(niso):
         isoID = np.repeat(int(self.isotopes[i]), ntemp)
-        PF[i] = t.tips(molID, isoID, temp)/self.gi[i]
+        PF[i] = t.tips(molID, isoID, temp)
       return temp, PF, self.isotopes
 
     # Use polynomial expression:

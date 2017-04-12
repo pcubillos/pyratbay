@@ -3048,3 +3048,12 @@ Adapted exomol.py to read isotopic info from isotopes.dat file.
 
 *****
 
+Corrected partition-function for pytips in lineread code.
+Before I was dividing by the statistical-independent degeneracy,
+but the HITRAN state degeneracy includes is, so both PF and g must
+contain it to stay consistent.
+This could modify the extinction coefficient by up to a few percent
+at specific wavelengths, but it does not seem to change dramatically
+previous results (i.e., no need to panic).
+
+*****
