@@ -44,7 +44,7 @@ class dbdriver(object):
       # Output array for table of Temperature and PF values:
       PF = np.zeros((niso, ntemp), np.double)
 
-      molID = np.repeat(int(self.molID), ntemp)
+      molID = np.repeat(int(t.molID(self.molecule)), ntemp)
       # Calculate the partition function for each isotope:
       for i in np.arange(niso):
         isoID = np.repeat(int(self.isotopes[i]), ntemp)

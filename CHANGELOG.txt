@@ -3063,4 +3063,8 @@ Removed byte.py line-transition reader.
 
 *****
 
+Corrected exomol reader such that it can use tips partition functions.
+
+*****
+
 
