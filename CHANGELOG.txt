@@ -3067,4 +3067,8 @@ Corrected exomol reader such that it can use tips partition functions.
 
 *****
 
+Updated example files to include exomol DB option.
+
+*****
+
 
