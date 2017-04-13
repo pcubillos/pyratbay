@@ -27,20 +27,21 @@ class exomol(dbdriver):
        A log file.
     """
     super(exomol, self).__init__(dbfile, pffile)
-    self.recwnpos  =  37 # Wavenumber position in record
-    self.recwnlen  =  12 # Wavenumber record length
 
     # Log file:
     self.log = log
 
     # Read states:
-    with open(dbfile.replace(".trans", ".states"), "r") as f:
+    sfile = dbfile.replace("trans", "states")
+    if sfile.count("__") == 2:
+      sfile = sfile.replace(sfile[sfile.rindex("__"):sfile.index(".")], "")
+    with open(sfile, "r") as f:
       lines = f.readlines()
     nstates = len(lines)
-    self.E       = np.zeros(nstates, np.double)
-    self.J       = np.zeros(nstates, int)
+    self.E       = np.zeros(nstates, np.double)  # State energy
+    self.g       = np.zeros(nstates, int)        # State degeneracy (incl. ns)
     for i in np.arange(nstates):
-      self.E[i], self.J[i] = lines[i].split()[1:3]
+      self.E[i], self.g[i] = lines[i].split()[1:3]
 
     # Get info from file name:
     s = os.path.split(dbfile)[1].split("_")[0].split("-")
@@ -80,9 +81,11 @@ class exomol(dbdriver):
        Wavelength value in cm-1.
     """
     # Set pointer at required wavenumber record:
-    dbfile.seek(irec*self.recsize + self.recwnpos)
+    dbfile.seek(irec*self.recsize)
     # Read:
-    wavenumber = float(dbfile.read(self.recwnlen))
+    line = dbfile.readline().split()
+    up, low = int(line[0]), int(line[1])
+    wavenumber = self.E[up-1] - self.E[low-1]
 
     return wavenumber
 
@@ -105,13 +108,13 @@ class exomol(dbdriver):
     Returns
     -------
     wnumber: 1D float ndarray
-      Line-transition central wavenumber (centimeter-1).
+      Line-transition central wavenumber (cm-1).
     gf: 1D float ndarray
       gf value (unitless).
     elow: 1D float ndarray
-      Lower-state energy (centimeter-1).
+      Lower-state energy (cm-1).
     isoID: 2D integer ndarray
-      Isotope index (0, 1, 2, 3, ...).
+      Isotope index.
 
     Notes
     -----
@@ -166,24 +169,24 @@ class exomol(dbdriver):
       data.seek((istart+i) * self.recsize)
       line = data.read(self.recsize)
       # Extract values:
-      upID[i], loID[i], A21[i], wnumber[i] = line.split()
+      upID[i], loID[i], A21[i] = line.split()[0:3]
       # Print a checkpoint statement every 10% interval:
       if (i % interval) == 0.0  and  i != 0:
         pt.msg(verb-4, "{:5.1f}% completed.".format(10.*i/interval),
                self.log, 3)
-        gfval=(2*self.J[upID[i]-1]+1)*A21[i]*pc.C1/(8*np.pi*pc.c)/wnumber[i]**2
-        pt.msg(verb-5,"Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} um\n"
-                        "Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}".
-                         format(wnumber[i], 1.0/(wnumber[i]*pc.um),
-                                self.E[loID[i]-1], gfval,
+        wn    = self.E[upID[i]-1] - self.E[loID[i]-1]
+        gfval = self.g[loID[i]-1] * A21[i] * pc.C1 / (8.0*np.pi*pc.c) / wn**2
+        pt.msg(verb-5, "Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} um\n"
+                       "Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}".
+                         format(wn, 1.0/(wn*pc.um), self.E[loID[i]-1], gfval,
                                 self.isotopes.index(self.iso), self.log, 6))
       i += 1
 
 
-    # Calculate gf using Equation (4) of Harris et al. (2006):
-    gf[:] = (2*self.J[upID-1]+1) * A21 * pc.C1 / (8.0*np.pi*pc.c) / wnumber**2.0
-    elow[:] = self.E[loID-1]
-    isoID[:] = self.isotopes.index(self.iso)
+    wnumber[:] = self.E[upID-1] - self.E[loID-1]
+    gf[:]      = self.g[loID-1] * A21 * pc.C1 / (8.0*np.pi*pc.c) / wnumber**2.0
+    elow[:]    = self.E[loID-1]
+    isoID[:]   = self.isotopes.index(self.iso)
     data.close()
 
     return wnumber, gf, elow, isoID

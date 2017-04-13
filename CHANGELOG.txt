@@ -3056,4 +3056,11 @@ This could modify the extinction coefficient by up to a few percent
 at specific wavelengths, but it does not seem to change dramatically
 previous results (i.e., no need to panic).
 
+*****  Do 13. Apr 15:37:36 CEST 2017  *****
+
+Unified Exomol and BYTe linereaders.
+Removed byte.py line-transition reader.
+
 *****
+
+
