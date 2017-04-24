@@ -175,8 +175,8 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
       driver.append(db.vald(       dblist[i], pflist[i], log))
     elif dbtype[i] == "emol":
       driver.append(db.exomol(     dblist[i], pflist[i], log))
-    elif dbtype[i] == "byte":
-      driver.append(db.byte(       dblist[i], pflist[i], log))
+    elif dbtype[i] == "repack":
+      driver.append(db.repack(     dblist[i], pflist[i], log))
     else:
       pt.error("Unknown Database type ({:d}): '{:s}'".format(i+1, dbtype[i]),
                log)

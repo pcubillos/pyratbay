@@ -225,7 +225,7 @@ class dbdriver(object):
 
     return temp, PF, isotopes
 
-  def getiso(self, fromfile=False, molname=None):
+  def getiso(self, fromfile=False, molname=None, dbtype="hitran"):
     """
     Get isotopic info from isotopes.dat file.
 
@@ -235,6 +235,8 @@ class dbdriver(object):
        If True, extract data based on the database file info (for HITRAN).
     mol: String
        If not None, extract data based on this molecule name.
+    dbtype: String
+       Database type (for isotope names).
 
     Returns
     -------
@@ -243,13 +245,11 @@ class dbdriver(object):
     molname: String
        Molecule's name.
     isotopes: List of strings
-       Isotopes AFGL code names.
+       Isotopes names.
     mass: List of floats
        Masses for each isotope.
     isoratio: List of integers
        Isotopic terrestrial abundance ratio.
-    gi: List of integers
-       State-independent statistical weights for each isotope.
     """
     if fromfile:
       # Open HITRAN DB file and read first two characters:
@@ -269,7 +269,11 @@ class dbdriver(object):
     isotopes = []
     mass     = []
     isoratio = []
-    gi       = []
+
+    if dbtype   == "hitran":
+      iiso = 2
+    elif dbtype == "exomol":
+      iiso = 3
 
     # Get values for our molecule:
     for i in np.arange(len(lines)):
@@ -278,9 +282,8 @@ class dbdriver(object):
       info = lines[i].split()
       if info[1] == molname:
         molID = info[0]
-        isotopes.append(      info[2] )
-        gi.      append(  int(info[3]))
+        isotopes.append(info[iiso])
         isoratio.append(float(info[4]))
         mass.    append(float(info[5]))
 
-    return molID, molname, isotopes, mass, isoratio, gi
+    return molID, molname, isotopes, mass, isoratio

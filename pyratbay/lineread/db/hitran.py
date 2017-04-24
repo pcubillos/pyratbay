@@ -43,7 +43,7 @@ class hitran(dbdriver):
 
     # Get info from HITRAN configuration file:
     self.molID, self.molecule, self.isotopes, self.mass, \
-                self.isoratio, self.gi = self.getiso(fromfile=True)
+                self.isoratio = self.getiso(fromfile=True)
     # Database name:
     self.name = "HITRAN " + self.molecule
 

@@ -1,10 +1,11 @@
 # Copyright (c) 2016-2017 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-__all__ = ["exomol"]
+__all__ = ["repack"]
 
 import os
 import re
+import struct
 import numpy as np
 
 from ... import tools     as pt
@@ -12,7 +13,7 @@ from ... import constants as pc
 from .driver import dbdriver
 
 
-class exomol(dbdriver):
+class repack(dbdriver):
   def __init__(self, dbfile, pffile, log):
     """
     Initialize the basic database info.
@@ -26,40 +27,23 @@ class exomol(dbdriver):
     log: FILE
        A log file.
     """
-    super(exomol, self).__init__(dbfile, pffile)
+    super(repack, self).__init__(dbfile, pffile)
 
     # Log file:
     self.log = log
 
-    # Read states:
-    sfile = dbfile.replace("trans", "states")
-    if sfile.count("__") == 2:
-      sfile = sfile.replace(sfile[sfile.rindex("__"):sfile.index(".")], "")
-    with open(sfile, "r") as f:
-      lines = f.readlines()
-    nstates = len(lines)
-    self.E       = np.zeros(nstates, np.double)  # State energy
-    self.g       = np.zeros(nstates, int)        # State degeneracy (incl. ns)
-    for i in np.arange(nstates):
-      self.E[i], self.g[i] = lines[i].split()[1:3]
+    self.fmt = "dddi"
+    self.recsize = struct.calcsize(self.fmt)
+    self.dsize   = struct.calcsize("d")
 
     # Get info from file name:
-    s = os.path.split(dbfile)[1].split("_")[0].split("-")
-    self.molecule = ""
-    isotopes      = ""
-    for i in np.arange(len(s)):
-      match = re.match(r"([0-9]+)([a-z]+)([0-9]*)", s[i], re.I)
-      N = 1 if match.group(3) == "" else int(match.group(3))
-      self.molecule += match.group(2) + match.group(3)
-      isotopes += match.group(1)[-1:] * N
-    self.iso = isotopes  # isotope name of this file's data
-
+    self.molecule, self.dbtype = os.path.split(dbfile)[1].split("_")[0:2]
     # Database name:
-    self.name = "Exomol " + self.molecule
+    self.name = "repack {:s} {:s}".format(self.dbtype, self.molecule)
 
     # Get isotopic info:
     ID, mol, isotopes, mass, ratio = self.getiso(molname=self.molecule,
-                                                 dbtype="exomol")
+                                                 dbtype=self.dbtype)
     self.isotopes = isotopes
     self.mass     = mass
     self.isoratio = ratio
@@ -84,16 +68,14 @@ class exomol(dbdriver):
     # Set pointer at required wavenumber record:
     dbfile.seek(irec*self.recsize)
     # Read:
-    line = dbfile.readline().split()
-    up, low = int(line[0]), int(line[1])
-    wavenumber = self.E[up-1] - self.E[low-1]
+    wavenumber = struct.unpack("d", dbfile.read(self.dsize))[0]
 
     return wavenumber
 
 
   def dbread(self, iwn, fwn, verb, *args):
     """
-    Read an Exomol database (dbfile) between wavenumbers iwn and fwn.
+    Read a repack database (dbfile) between wavenumbers iwn and fwn.
 
     Parameters
     ----------
@@ -123,13 +105,7 @@ class exomol(dbdriver):
     """
 
     # Open file for reading:
-    data = open(self.dbfile, "r")
-
-    # Read first line to get the record size:
-    data.seek(0)
-    line = data.readline()
-    self.recsize = len(line)
-
+    data = open(self.dbfile, "rb")
     # Get Total number of transitions in file:
     data.seek(0, 2)
     nlines   = data.tell() / self.recsize
@@ -138,7 +114,7 @@ class exomol(dbdriver):
     istart = self.binsearch(data, iwn, 0,      nlines-1, 0)
     istop  = self.binsearch(data, fwn, istart, nlines-1, 1)
 
-    # Non-overlaping wavenumber ranges:
+    # Data-base wavenumber ranges:
     DBiwn = self.readwave(data, 0)
     DBfwn = self.readwave(data, nlines-1)
 
@@ -153,14 +129,11 @@ class exomol(dbdriver):
     nread = istop - istart + 1
     # Allocate arrays for values to extract:
     wnumber = np.zeros(nread, np.double)
-    gf      = np.zeros(nread, np.double)
     elow    = np.zeros(nread, np.double)
-    isoID   = np.zeros(nread,       int)
-    A21     = np.zeros(nread, np.double)  # Einstein A coefficient
-    upID    = np.zeros(nread,       int)
-    loID    = np.zeros(nread,       int)
+    gf      = np.zeros(nread, np.double)
+    iso     = np.zeros(nread,       int)
 
-    pt.msg(verb-4, "Process Exomol database between records {:,d} and {:,d}.".
+    pt.msg(verb-4, "Process repack database between records {:,d} and {:,d}.".
                    format(istart, istop), self.log, 2)
     interval = (istop - istart)/10  # Check-point interval
 
@@ -168,26 +141,24 @@ class exomol(dbdriver):
     while (i < nread):
       # Read a record:
       data.seek((istart+i) * self.recsize)
-      line = data.read(self.recsize)
       # Extract values:
-      upID[i], loID[i], A21[i] = line.split()[0:3]
+      wnumber[i], elow[i], gf[i], iso[i] = \
+                             struct.unpack(self.fmt, data.read(self.recsize))
       # Print a checkpoint statement every 10% interval:
       if (i % interval) == 0.0  and  i != 0:
         pt.msg(verb-4, "{:5.1f}% completed.".format(10.*i/interval),
                self.log, 3)
-        wn    = self.E[upID[i]-1] - self.E[loID[i]-1]
-        gfval = self.g[loID[i]-1] * A21[i] * pc.C1 / (8.0*np.pi*pc.c) / wn**2
         pt.msg(verb-5, "Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} um\n"
                        "Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}".
-                         format(wn, 1.0/(wn*pc.um), self.E[loID[i]-1], gfval,
-                                self.isotopes.index(self.iso), self.log, 6))
+                         format(wnumber[i], 1.0/(wnumber[i]*pc.um), elow[i],
+                                gf[i], iso[i], self.log, 6))
       i += 1
-
-
-    wnumber[:] = self.E[upID-1] - self.E[loID-1]
-    gf[:]      = self.g[loID-1] * A21 * pc.C1 / (8.0*np.pi*pc.c) / wnumber**2.0
-    elow[:]    = self.E[loID-1]
-    isoID[:]   = self.isotopes.index(self.iso)
     data.close()
 
+    # Unique isotopes and inverse indices:
+    uiso, inverse = np.unique(iso, return_inverse=True)
+    idx = np.zeros(len(uiso), int)
+    for i in np.arange(len(uiso)):
+      idx[i] = self.isotopes.index(str(uiso[i]))
+    isoID = idx[inverse]
     return wnumber, gf, elow, isoID

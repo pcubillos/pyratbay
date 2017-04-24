@@ -3069,6 +3069,13 @@ Corrected exomol reader such that it can use tips partition functions.
 
 Updated example files to include exomol DB option.
 
-*****
 
+*****  Mo 24. Apr 17:32:53 CEST 2017  *****
+
+Added repack line-transition reader.
+Revamped isotopes.dat to include exomol isotope naming and remove gi.
+Modified database driver.py accordingly to extract info according to
+input database (hitran or exomol).
+
+*****
 
