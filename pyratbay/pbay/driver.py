@@ -207,15 +207,17 @@ def calcatm(args, pressure, temperature, log, wlog):
     xsolar = pt.getparam(args.xsolar, "none")
     swap   = None
     atm.makeatomic(args.solar, args.atomicfile, xsolar, swap)
+    # Append species after elements (without repeating values):
+    species = args.elements + list(np.setdiff1d(args.species, args.elements))
     # Pre-atmospheric file:
     atm.makepreatm(pressure/pt.u(args.punits), temperature, args.atomicfile,
-                  args.elements, args.species, args.patm)
+                  args.elements, species, args.patm)
     # Run TEA:
     mc.makeTEA(abun_file=args.atomicfile)
     proc = subprocess.Popen([TEAdir + "tea/runatm.py", args.patm, "TEA"])
     proc.communicate()
     # Reformat the TEA output into the pyrat format:
-    atm.TEA2pyrat("./TEA/TEA/results/TEA.tea", args.atmfile)
+    atm.TEA2pyrat("./TEA/TEA/results/TEA.tea", args.atmfile, args.species)
     shutil.rmtree("TEA")
     pt.msg(1, "Produced TEA atmospheric file '{:s}'.".format(args.atmfile), log)
 

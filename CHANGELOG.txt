@@ -2958,3 +2958,11 @@ Bumped Pyrat Bay to version 0.0.58.
 
 *****
 
+Fixed TEA call to always include all elements in the species list,
+and put them before the molecules. 
+Modified TEA2Pyrat() in atmosphere.py to transfer only the requested
+species.
+
+*****
+
+
