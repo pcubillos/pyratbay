@@ -35,7 +35,7 @@ pyramidsearch(PyArrayObject *array, double value, int lo, int hi){
 int
 binsearchapprox(PyArrayObject *array, double value, int lo, int hi){
   /* Last case, value limited between consecutive indices of array:         */
-  if (hi-lo == 1){
+  if (hi-lo <= 1){
     /* Return closest array index to value:                                 */
     if (fabs(INDd(array,hi)-value) < fabs(INDd(array,lo)-value))
       return hi;

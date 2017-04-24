@@ -2946,5 +2946,15 @@ should improve a bit the performance.
 Bumped Pyrat to version 1.2.41.
 Bumped Pyrat Bay to version 0.0.57.
 
+
+*****  Mo 24. Apr 17:42:17 CEST 2017  *****
+
+Fixed potential bug in binary search code that handles case when
+inputs lo=hi.
+
+*****
+
+Bumped Pyrat Bay to version 0.0.58.
+
 *****
 
