@@ -84,8 +84,9 @@ class exomol(dbdriver):
     # Set pointer at required wavenumber record:
     dbfile.seek(irec*self.recsize)
     # Read:
-    line = dbfile.readline().split()
-    up, low = int(line[0]), int(line[1])
+    line = dbfile.readline()
+    up  = int(line[ 0:12])
+    low = int(line[13:25])
     wavenumber = self.E[up-1] - self.E[low-1]
 
     return wavenumber
@@ -170,7 +171,9 @@ class exomol(dbdriver):
       data.seek((istart+i) * self.recsize)
       line = data.read(self.recsize)
       # Extract values:
-      upID[i], loID[i], A21[i] = line.split()[0:3]
+      upID[i] = line[ 0:12]
+      loID[i] = line[13:25]
+      A21 [i] = line[26:36]
       # Print a checkpoint statement every 10% interval:
       if (i % interval) == 0.0  and  i != 0:
         pt.msg(verb-4, "{:5.1f}% completed.".format(10.*i/interval),

@@ -3056,6 +3056,7 @@ This could modify the extinction coefficient by up to a few percent
 at specific wavelengths, but it does not seem to change dramatically
 previous results (i.e., no need to panic).
 
+
 *****  Do 13. Apr 15:37:36 CEST 2017  *****
 
 Unified Exomol and BYTe linereaders.
@@ -3076,6 +3077,12 @@ Added repack line-transition reader.
 Revamped isotopes.dat to include exomol isotope naming and remove gi.
 Modified database driver.py accordingly to extract info according to
 input database (hitran or exomol).
+
+
+*****  Di 25. Apr 18:03:26 CEST 2017  *****
+
+Updated exomol database reader to read line-transition format
+as given bt Tennyson (2016).
 
 *****
 
