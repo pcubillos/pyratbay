@@ -70,11 +70,12 @@ def widthlimits(pyrat):
   #cmax = 2.0*np.amax(pyrat.mol.radius[mols]) * pc.A
 
   # Calculate Doppler-width boundaries:
+  ln2 = np.log(2)
   if pyrat.voigt.Dmin is None:
-    pyrat.voigt.Dmin = np.sqrt(2.0*pc.k*tmin/(mmax*pc.amu)) * numin / pc.c
+    pyrat.voigt.Dmin = np.sqrt(ln2*2.0*pc.k*tmin/(mmax*pc.amu)) * numin / pc.c
 
   if pyrat.voigt.Dmax is None:
-    pyrat.voigt.Dmax = np.sqrt(2.0*pc.k*tmax/(mmin*pc.amu)) * numax / pc.c
+    pyrat.voigt.Dmax = np.sqrt(ln2*2.0*pc.k*tmax/(mmin*pc.amu)) * numax / pc.c
   pt.msg(pyrat.verb-4, "Doppler width limits: {:.1e} -- {:.1e} cm-1  "
                        "({:d} samples).".format(pyrat.voigt.Dmin,
                        pyrat.voigt.Dmax, pyrat.voigt.nDop), pyrat.log, 2)

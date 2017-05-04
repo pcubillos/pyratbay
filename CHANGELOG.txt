@@ -2976,5 +2976,20 @@ Updated TEA submodule.
 
 Bumped Pyrat Bay to version 0.0.60.
 
+
+*****  Do 4. Mai 13:54:46 CEST 2017  *****
+
+Corrected Doppler HWHM array to include the ln(2) factor.
+
 *****
 
+Corrected bug in extinction() function. The code was getting the
+wrong Voigt profile because the doppler and lorentz indices were
+switched.
+
+*****
+
+Bumped Pyrat to version 1.2.42.
+Bumped Pyrat Bay to version 0.0.61.
+
+*****
