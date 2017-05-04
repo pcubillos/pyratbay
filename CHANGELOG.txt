@@ -2989,3 +2989,7 @@ switched.
 
 *****
 
+Bumped Pyrat to version 1.2.42.
+Bumped Pyrat Bay to version 0.0.61.
+
+*****
