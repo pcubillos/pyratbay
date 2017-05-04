@@ -2983,3 +2983,9 @@ Corrected Doppler HWHM array to include the ln(2) factor.
 
 *****
 
+Corrected bug in extinction() function. The code was getting the
+wrong Voigt profile because the doppler and lorentz indices were
+switched.
+
+*****
+

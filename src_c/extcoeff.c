@@ -177,11 +177,8 @@ static PyObject *extinction(PyObject *self, PyObject *args){
     alphad[i] = fdoppler / sqrt(INDd(isomass,i));
     /* Print Lorentz and Doppler broadening widths:                         */
     if(i <= 0){
-      //printf("Imass: %.4f, imol: %d\n", INDd(isomass,i), imol);
-      //printf("Len %d\n", n);
       msg(verb-6, logtext, "    Lorentz: %.3e cm-1, Doppler: %.3e cm-1.\n",
           alphal[i], alphad[i]*INDd(wn,0), temp, pressure);
-      //printf("Len %d\n", n);
     }
     /* Estimate the Voigt width:                                            */
     vwidth = 0.5346*alphal[i] + sqrt(pow(alphal[i], 2)*0.2166    +
@@ -300,18 +297,18 @@ static PyObject *extinction(PyObject *self, PyObject *args){
     /* Sub-sampling offset between center of line and dyn-sampled wn:       */
     subw = iown - idwn*ofactor;
     /* Offset between the profile and the wavenumber-array indices:         */
-    offset = ofactor*idwn - IND2i(psize, idop[i], ilor[i]) + subw;
+    offset = ofactor*idwn - IND2i(psize, ilor[i], idop[i]) + subw;
     /* Range that contributes to the opacity:                               */
     /* Set the lower and upper indices of the profile to be used:           */
-    minj = idwn - (IND2i(psize, idop[i], ilor[i]) - subw) / ofactor;
-    maxj = idwn + (IND2i(psize, idop[i], ilor[i]) + subw) / ofactor;
+    minj = idwn - (IND2i(psize, ilor[i], idop[i]) - subw) / ofactor;
+    maxj = idwn + (IND2i(psize, ilor[i], idop[i]) + subw) / ofactor;
     if (minj < 0)
       minj = 0;
     if (maxj > dnwn)
       maxj = dnwn;
 
     /* Add the contribution from this line to the opacity spectrum:         */
-    iprof = IND2i(pindex, idop[i], ilor[i]);
+    iprof = IND2i(pindex, ilor[i], idop[i]);
     jj = iprof + ofactor*minj - offset;
     for(j=(int)minj; j<maxj; j++){
       ktmp[m][j] += k * INDd(profile, jj);
