@@ -189,6 +189,10 @@ def parse(wlog):
   group.add_argument("--nchains", dest="nchains",
            help="Number of chains [default: %(default)s]",
            action="store", type=int,  default=7)
+  group.add_argument("--nproc", dest="nproc",
+           help="Number of parallel processors for the MCMC chains "
+                "[default: nchains]",
+           action="store", type=int,  default=None)
   group.add_argument("--burnin", dest="burnin",
            help="Number of burn-in iterations per chain [default: %(default)s]",
            action="store", type=eval,  default=0)

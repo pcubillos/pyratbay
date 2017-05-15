@@ -143,7 +143,7 @@ def run(argv, main=False):
            prior=args.prior, priorlow=args.priorlow, priorup=args.priorup,
            walk=args.walk, nsamples=args.nsamples, nchains=args.nchains,
            burnin=args.burnin, thinning=args.thinning, grtest=True,
-           hsize=10, kickoff='normal', log=log,
+           hsize=10, kickoff='normal', log=log, nproc=args.nproc,
            plots=True, parname=pyrat.ret.parname,
            savefile="{:s}.npz".format(outfile))
 

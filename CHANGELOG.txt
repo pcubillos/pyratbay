@@ -3097,4 +3097,8 @@ Bumped Lineread to version 6.4.11.
 
 *****
 
+Updated pbay.py to pass the nproc input argument to MC3.
+
+*****
+
 
