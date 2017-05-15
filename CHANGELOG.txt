@@ -3105,4 +3105,11 @@ Added a warning() wrapper to Pyrat class to simplify warning calls.
 
 *****
 
+Added warning when wavenumber sampling does not match that of
+a given extinction-coefficient table. Adopt tabulated array.
+Swapped ec.exttable() and cs.read() read in pyrat.init() to avoid bug.
+Updated partition-function interpolation to slinear (faster).
+
+*****
+
 

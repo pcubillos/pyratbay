@@ -84,7 +84,24 @@ def read_extinction(pyrat):
   sm_ect = mpr.Array(ctypes.c_double, data)
   pyrat.ex.etable = np.ctypeslib.as_array(sm_ect.get_obj()).reshape(
                                (ex.nmol, ex.ntemp, ex.nlayers, ex.nwave))
-  #pyrat.ex.etable = np.reshape(data, (ex.nmol, ex.ntemp, ex.nlayers, ex.nwave))
+  # Some checks:
+  if ex.nwave != pyrat.spec.nwave or np.sum(np.abs(ex.wn-pyrat.spec.wn)) > 0:
+    pyrat.warning("Wavenumber sampling from extinction-coefficient "
+        "table does not match the input wavenumber sampling.  Adopting "
+        "tabulated array with {:d} samples, spacing of {:.2f} cm-1, "
+        "and ranges [{:.2f}, {:.2f}] cm-1.".
+          format(ex.nwave, ex.wn[1]-ex.wn[0], ex.wn[0], ex.wn[-1]))
+    # Update wavenumber sampling:
+    pyrat.spec.wn     = ex.wn
+    pyrat.spec.nwave  = ex.nwave
+    pyrat.spec.wnlow  = ex.wn[ 0]
+    pyrat.spec.wnhigh = ex.wn[-1]
+    pyrat.spec.wnstep = ex.wn[1] - ex.wn[0]
+    # Keep wavenumber oversampling factor:
+    pyrat.spec.ownstep = pyrat.spec.wnstep / pyrat.spec.wnosamp
+    pyrat.spec.onwave  = (pyrat.spec.nwave - 1) *  pyrat.spec.wnosamp + 1
+    pyrat.spec.own     = np.linspace(pyrat.spec.wn[0], pyrat.spec.wn[-1],
+                                     pyrat.spec.onwave)
 
 
 def calc_extinction(pyrat):
@@ -123,7 +140,7 @@ def calc_extinction(pyrat):
   for i in np.arange(pyrat.lt.ndb):           # For each Database
     for j in np.arange(pyrat.lt.db[i].niso):  # For each isotope in DB
       zinterp = sip.interp1d(pyrat.lt.db[i].temp, pyrat.lt.db[i].z[j],
-                             kind='cubic')
+                             kind='slinear')
       ex.z[pyrat.lt.db[i].iiso+j] = zinterp(ex.temp)
 
   # Allocate wavenumber, pressure, and isotope arrays:

@@ -89,12 +89,12 @@ def init(argv, main=False, log=None):
   al.init(pyrat)
   timestamps.append(time.time())
 
-  # Read CIA files:
-  cs.read(pyrat)
-  timestamps.append(time.time())
-
   # Calculate extinction-coefficient table:
   ex.exttable(pyrat)
+  timestamps.append(time.time())
+
+  # Read CIA files:
+  cs.read(pyrat)
   timestamps.append(time.time())
 
   pyrat.timestamps = list(np.ediff1d(timestamps))
@@ -147,8 +147,8 @@ def run(pyrat, inputs=None):
   pt.msg(pyrat.verb-4, "\nTimestamps:\n"
         " Init:     {:10.6f}\n Parse:    {:10.6f}\n Inputs:   {:10.6f}\n"
         " Wnumber:  {:10.6f}\n Atmosph:  {:10.6f}\n TLI:      {:10.6f}\n"
-        " Layers:   {:10.6f}\n Voigt:    {:10.6f}\n CIA read: {:10.6f}\n"
-        " Extinct:  {:10.6f}\n CIA intp: {:10.6f}\n Haze:     {:10.6f}\n"
+        " Layers:   {:10.6f}\n Voigt:    {:10.6f}\n Extinct:  {:10.6f}\n"
+        " CIA read: {:10.6f}\n CIA intp: {:10.6f}\n Haze:     {:10.6f}\n"
         " Alkali:   {:10.6f}\n O.Depth:  {:10.6f}\n Spectrum: {:10.6f}".
         format(*dtime), pyrat.log)
 
@@ -156,13 +156,12 @@ def run(pyrat, inputs=None):
     # Write all warnings to file:
     wpath, wfile = os.path.split(pyrat.logfile)
     wfile = "{:s}/warnings_{:s}".format(wpath, wfile)
-    warns = open(wfile, "w")
-    warns.write("Warnings log:\n\n{:s}\n".format(pt.sep))
-    warns.write("\n\n{:s}\n".format(pt.sep).join(pyrat.wlog))
-    warns.close()
+    with open(wfile, "w") as warns:
+      warns.write("Warnings log:\n\n{:s}\n".format(pt.sep))
+      warns.write("\n\n{:s}\n".format(pt.sep).join(pyrat.wlog))
     # Report it:
-    pt.warning(pyrat.verb-2, "There was(were) {:d} warning(s) raised.  "
-        "See '{:s}'.".format(len(pyrat.wlog), wfile), pyrat.log)
+    pyrat.warning("There were {:d} warnings raised.  See '{:s}'.".
+                   format(len(pyrat.wlog), wfile))
     pyrat.log.flush()
   return pyrat
 
