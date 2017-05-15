@@ -3116,4 +3116,9 @@ Fixed bug in readlinedb.py when database has a single isotope.
 
 *****
 
+Edited makeradius() to permit runmode=opacity runs without planet
+radius nor refpressure values.
+
+*****
+
 

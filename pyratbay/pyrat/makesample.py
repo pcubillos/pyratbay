@@ -125,8 +125,8 @@ def makeradius(pyrat):
   if   sort:     # Layers are in the correct order
     pass
   elif reverse:  # Layers in reverse order
-    pt.warning(pyrat.verb-2, "The atmospheric layers are in reversed order "
-     "(bottom-top).  Resorting to be from the top down.", pyrat.log, pyrat.wlog)
+    pyrat.warning("The atmospheric layers are in reversed order "
+                  "(bottom-top).  Resorting to be from the top down.")
     if atm_in.radius is not None:
       atm_in.radius = atm_in.radius[::-1]
     atm_in.press  = atm_in.press [::-1]
@@ -140,33 +140,36 @@ def makeradius(pyrat):
 
   if atm_in.radius is None:
     # Check that gplanet exists:
-    if pyrat.phy.rplanet is None:
+    if pyrat.phy.rplanet is None and pyrat.runmode != "opacity":
       pt.error("Undefined reference planetary radius (rplanet). Either include "
         "the radius profile in the atmospheric file or set rplanet.", pyrat.log)
-    if pyrat.phy.gplanet is None:
+    if pyrat.phy.gplanet is None and pyrat.runmode != "opacity":
       pt.error("Undefined atmospheric gravity (gplanet).  Either include "
         "the radius profile in the atmospheric file, set the surface "
         "gravity, or set the planetary mass (mplanet).", pyrat.log)
-    if pyrat.refpressure is None:
+    if pyrat.refpressure is None and pyrat.runmode != "opacity":
       pt.error("Undefined reference pressure level (refpressure). Either "
         "include the radius profile in the atmospheric file or set refpress.",
         pyrat.log)
-    # Atmopsheric reference pressure-radius level:
-    pt.msg(pyrat.verb-4, "Reference pressure: {:.3e} {:s}.".
-           format(pyrat.refpressure/pt.u(pyrat.punits), pyrat.punits),
-           pyrat.log, 2)
-    pt.msg(pyrat.verb-4, "Reference radius: {:8.1f} {:s}.".
-           format(pyrat.phy.rplanet/pt.u(pyrat.radunits), pyrat.radunits),
-           pyrat.log, 2)
-    if not np.isinf(pyrat.phy.rhill):
-      pt.msg(pyrat.verb-4, "Hill radius:      {:8.1f} {:s}.".
-           format(pyrat.phy.rhill/pt.u(pyrat.radunits), pyrat.radunits),
-           pyrat.log, 2)
+    if (pyrat.phy.rplanet is not None and
+        pyrat.phy.gplanet is not None and
+        pyrat.refpressure is not None):
+      # Atmopsheric reference pressure-radius level:
+      pt.msg(pyrat.verb-4, "Reference pressure: {:.3e} {:s}.".
+             format(pyrat.refpressure/pt.u(pyrat.punits), pyrat.punits),
+             pyrat.log, 2)
+      pt.msg(pyrat.verb-4, "Reference radius: {:8.1f} {:s}.".
+             format(pyrat.phy.rplanet/pt.u(pyrat.radunits), pyrat.radunits),
+             pyrat.log, 2)
+      if not np.isinf(pyrat.phy.rhill):
+        pt.msg(pyrat.verb-4, "Hill radius:      {:8.1f} {:s}.".
+             format(pyrat.phy.rhill/pt.u(pyrat.radunits), pyrat.radunits),
+             pyrat.log, 2)
 
-    # Calculate the radius profile using the hydostatic-equilibrium equation:
-    atm_in.radius = pyrat.hydro(atm_in.press, atm_in.temp, atm_in.mm,
-                                pyrat.phy.gplanet, pyrat.phy.mplanet,
-                                pyrat.refpressure, pyrat.phy.rplanet)
+      # Calculate the radius profile using the hydostatic-equilibrium equation:
+      atm_in.radius = pyrat.hydro(atm_in.press, atm_in.temp, atm_in.mm,
+                                  pyrat.phy.gplanet, pyrat.phy.mplanet,
+                                  pyrat.refpressure, pyrat.phy.rplanet)
 
   # Check if Hydrostatic Eq. breaks down:
   ibreak = 0  # Index and flag at the same time
@@ -174,10 +177,13 @@ def makeradius(pyrat):
     ibreak = np.where(np.ediff1d(atm_in.radius)>0)[0][0] + 1
 
   # Set the interpolating function (for use later):
-  radinterp   = sip.interp1d(atm_in.press [ibreak:],
+  try:
+    radinterp   = sip.interp1d(atm_in.press [ibreak:],
                              atm_in.radius[ibreak:], kind='slinear')
-  pressinterp = sip.interp1d(np.flipud(atm_in.radius[ibreak:]),
+    pressinterp = sip.interp1d(np.flipud(atm_in.radius[ibreak:]),
                              np.flipud(atm_in.press [ibreak:]), kind='slinear')
+  except:
+    pass
 
   # Set radius/pressure boundaries if exist:
   if pyrat.plow is not None:
@@ -235,19 +241,18 @@ def makeradius(pyrat):
 
     atm.radius = np.arange(pyrat.radlow, pyrat.radhigh, pyrat.radstep)
     atm.nlayers = len(atm.radius)
-    # Avoid radinterp going out-of-bounds:
     # Interpolate to pressure array:
     atm.press = pressinterp(atm.radius)
     resample = True
 
-  # Else, take the atmospheric-file sampling:
-  else:
+  else:  # Take the atmospheric-file sampling:
     # Get top-bottom indices:
     ilow  = np.where(atm_in.press >= pyrat.plow) [0][-1]
     ihigh = np.where(atm_in.press <= pyrat.phigh)[0][ 0]
     # Take values within the boundaries:
     atm.press   = atm_in.press [ihigh:ilow+1]
-    atm.radius  = atm_in.radius[ihigh:ilow+1]
+    if atm_in.radius is not None:
+      atm.radius  = atm_in.radius[ihigh:ilow+1]
     atm.temp    = atm_in.temp  [ihigh:ilow+1]
     atm.mm      = atm_in.mm    [ihigh:ilow+1]
     atm.q       = atm_in.q     [ihigh:ilow+1]
@@ -279,18 +284,19 @@ def makeradius(pyrat):
   # plt.savefig("radpress.png")
 
   # Print radius array:
-  radstr = '['+', '.join('{:9.2f}'.format(k) for k in atm_in.radius/pc.km)+']'
-  pt.msg(pyrat.verb-4, "Radius array (km) =   {:s}".format(radstr),
-         pyrat.log, 2, si=4)
+  if atm.radius is not None:
+    radstr = '['+', '.join('{:9.2f}'.format(k) for k in atm.radius/pc.km)+']'
+    pt.msg(pyrat.verb-4, "Radius array (km) =   {:s}".format(radstr),
+           pyrat.log, 2, si=4)
+    pt.msg(pyrat.verb-4, "Valid upper/lower radius boundaries:    {:8.1f} - "
+           "{:8.1f} {:s}.".format(atm.radius[atm.rtop]/pt.u(pyrat.radunits),
+            atm.radius[-1]/pt.u(pyrat.radunits), pyrat.radunits), pyrat.log, 2)
 
-  pt.msg(pyrat.verb-4, "Number of valid model layers: {:d}.".
-                        format(atm.nlayers-atm.rtop), pyrat.log, 2)
   pt.msg(pyrat.verb-4, "Valid lower/higher pressure boundaries: {:.2e} - "
          "{:.2e} {:s}.".format(atm.press[atm.rtop]/pt.u(pyrat.punits),
                  pyrat.phigh/pt.u(pyrat.punits), pyrat.punits), pyrat.log, 2)
-  pt.msg(pyrat.verb-4, "Valid upper/lower radius boundaries:    {:8.1f} - {:8.1f} "
-         "{:s}.".format(atm.radius[atm.rtop]/pt.u(pyrat.radunits),
-          atm.radius[-1]/pt.u(pyrat.radunits), pyrat.radunits), pyrat.log, 2)
+  pt.msg(pyrat.verb-4, "Number of valid model layers: {:d}.".
+                        format(atm.nlayers-atm.rtop), pyrat.log, 2)
 
    # Interpolate to new atm-layer sampling if necessary:
   if resample:

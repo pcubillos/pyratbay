@@ -92,6 +92,8 @@ def init(argv, main=False, log=None):
   # Calculate extinction-coefficient table:
   ex.exttable(pyrat)
   timestamps.append(time.time())
+  if pyrat.runmode == "opacity":  # Early way out
+    return pyrat
 
   # Read CIA files:
   cs.read(pyrat)
