@@ -3112,4 +3112,8 @@ Updated partition-function interpolation to slinear (faster).
 
 *****
 
+Fixed bug in readlinedb.py when database has a single isotope.
+
+*****
+
 
