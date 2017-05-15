@@ -725,12 +725,13 @@ def checkinputs(pyrat):
 
   # Accept ray-path argument:
   pyrat.od.path  = inputs.path
-  if pyrat.od.path is None:
-    pt.error("Undefined observing geometry (path).  Select between 'transit' "
-             "or 'eclipse'.", pyrat.log)
-  elif pyrat.od.path not in ['transit', 'eclipse']:
-    pt.error("Unknown observing geometry (path = {:s}).  Select between "
-             "'transit' or 'eclipse'.".format(pyrat.od.path), pyrat.log)
+  if pyrat.runmode in ["spectrum", "mcmc"]: # Check only if computing spectrum
+    if pyrat.od.path is None:
+      pt.error("Undefined observing geometry (path).  Select between "
+               "'transit' or 'eclipse'.", pyrat.log)
+    elif pyrat.od.path not in ['transit', 'eclipse']:
+      pt.error("Unknown observing geometry (path = {:s}).  Select between "
+               "'transit' or 'eclipse'.".format(pyrat.od.path), pyrat.log)
 
   # Accept output files:
   pyrat.outspec = pt.defaultp(inputs.outspec, 'outpsec.dat',
