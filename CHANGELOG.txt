@@ -3101,4 +3101,8 @@ Updated pbay.py to pass the nproc input argument to MC3.
 
 *****
 
+Added a warning() wrapper to Pyrat class to simplify warning calls.
+
+*****
+
 
