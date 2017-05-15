@@ -2992,4 +2992,109 @@ switched.
 Bumped Pyrat to version 1.2.42.
 Bumped Pyrat Bay to version 0.0.61.
 
+
+*****  Sun Apr  9 21:01:47 CEST 2017  *****
+
+Added lineread code to process exomol data.
+
+
+*****  Mo 10. Apr 17:54:42 CEST 2017  *****
+
+Documented Exomol PF script, and adapted for (more) general use.
+
 *****
+
+Fixed bug in Exomol linereader (wrong Elow index).
+Generalized name, molecule, and isotope names extraction.
+Updated documentation.
+Currently tested for HCN database.
+
+*****
+
+Enabled BYTe db reader.
+
+
+*****  Di 11. Apr 15:24:05 CEST 2017  *****
+
+Revamped hitran.dat file to work as a general isotopes info file (not
+only for HITRAN). Renamed as isotopes.dat.
+Moved getHITinfo() from hitran.py to driver.py. Renamed as getiso().
+Added input arguments to request data either from DB file or from
+molecule name.
+
+*****
+
+Modified getpf() and readpf() functions in lineread's driver to
+include isotope name.  This allows lread.py later to contrast and
+adjust the isotopes read from the partition-function file against
+those of the database.
+
+*****
+
+Removed unused getinfo() function in tioschwenke.py.
+
+*****
+
+Minor corrections in vald.py. Still need to compute correct
+abundance fraction for each ion (need Saha? sigh ...).
+
+*****
+
+Adapted byte.py to read isotopic info from isotopes.dat file.
+
+*****
+
+Adapted exomol.py to read isotopic info from isotopes.dat file.
+
+*****
+
+Corrected partition-function for pytips in lineread code.
+Before I was dividing by the statistical-independent degeneracy,
+but the HITRAN state degeneracy includes is, so both PF and g must
+contain it to stay consistent.
+This could modify the extinction coefficient by up to a few percent
+at specific wavelengths, but it does not seem to change dramatically
+previous results (i.e., no need to panic).
+
+
+*****  Do 13. Apr 15:37:36 CEST 2017  *****
+
+Unified Exomol and BYTe linereaders.
+Removed byte.py line-transition reader.
+
+*****
+
+Corrected exomol reader such that it can use tips partition functions.
+
+*****
+
+Updated example files to include exomol DB option.
+
+
+*****  Mo 24. Apr 17:32:53 CEST 2017  *****
+
+Added repack line-transition reader.
+Revamped isotopes.dat to include exomol isotope naming and remove gi.
+Modified database driver.py accordingly to extract info according to
+input database (hitran or exomol).
+
+
+*****  Di 25. Apr 18:03:26 CEST 2017  *****
+
+Updated exomol database reader to read line-transition format
+as given bt Tennyson (2016).
+
+
+*****  Mo 15. Mai 13:09:17 CEST 2017  *****
+
+Updated pytips submodule.
+
+*****
+
+Bumped Pyrat Bay to version 0.0.62.
+Bumped Pyrat to version 1.2.43.
+Bumped Lineread to version 6.4.11.
+
+*****
+
+

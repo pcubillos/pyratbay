@@ -173,6 +173,10 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
       driver.append(db.voplez(     dblist[i], pflist[i], log))
     elif dbtype[i] == "vald":
       driver.append(db.vald(       dblist[i], pflist[i], log))
+    elif dbtype[i] == "emol":
+      driver.append(db.exomol(     dblist[i], pflist[i], log))
+    elif dbtype[i] == "repack":
+      driver.append(db.repack(     dblist[i], pflist[i], log))
     else:
       pt.error("Unknown Database type ({:d}): '{:s}'".format(i+1, dbtype[i]),
                log)
@@ -223,6 +227,7 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
   totIso = 0                   # Cumulative number of isotopes
   acum = np.zeros(Ndb+1, int)  # Cumul. number of isotopes per database
 
+
   pt.msg(verb-4, "\nReading and writting partition function info.", log)
   # Database correlative number:
   idb = 0
@@ -234,7 +239,7 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
       continue
 
     # Get partition function values:
-    Temp, partDB = driver[i].getpf(verb)
+    Temp, partDB, PFiso = driver[i].getpf(verb)
     isoNames     = driver[i].isotopes
     iso_mass     = driver[i].mass
     iso_ratio    = driver[i].isoratio
@@ -243,6 +248,12 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
     Ntemp = len(Temp)
     # Number of isotopes:
     Niso  = len(isoNames)
+
+    # Partition-function sorted according to isoNames:
+    PF = np.zeros((Niso, Ntemp), np.double)
+    for j in np.arange(np.shape(partDB)[0]):
+      idx = isoNames.index(PFiso[j])
+      PF[idx] = partDB[j]
 
     # DB and molecule name lengths:
     lenDBname = len(DBnames[idb])
@@ -281,12 +292,12 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
       TLIout.write(struct.pack("d", iso_ratio[j]))
 
       # Write the partition function per isotope:
-      TLIout.write(struct.pack("{:d}d".format(Ntemp), *partDB[j]))
+      TLIout.write(struct.pack("{:d}d".format(Ntemp), *PF[j]))
       pt.msg(verb-4, "Mass (u):        {:8.4f}\n"
                      "Isotopic ratio:  {:8.4g}\n"
                      "Part. Function:  [{:.2e}, {:.2e}, ..., {:.2e}]".
                      format(iso_mass[j], iso_ratio[j],
-                         partDB[j,0], partDB[j,1], partDB[j,Ntemp-1]), log, 6)
+                         PF[j,0], PF[j,1], PF[j,Ntemp-1]), log, 6)
 
     # Calculate cumulative number of isotopes per database:
     totIso += Niso
@@ -296,6 +307,7 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
   # Cumulative number of isotopes:
   pt.msg(verb-4, "Cumulative number of isotopes per DB: {}".format(acum), log)
   pt.msg(verb-3, "Done.", log)
+
 
   pt.msg(verb-3, "\nExtracting line transition info.", log)
   wnumber = np.array([], np.double)
@@ -326,6 +338,7 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
     pt.msg(verb-4, "Isotope correlative indices: {}".
                     format(np.unique(transDB[3]+acum[idb])), log, 2)
     pt.msg(verb-5, "Reading time: {:8.3f} seconds".format(tf-ti), log, 2)
+
 
   # Total number of transitions:
   nTransitions = np.size(wnumber)

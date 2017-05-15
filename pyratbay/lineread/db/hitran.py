@@ -10,9 +10,6 @@ from ... import tools     as pt
 from ... import constants as pc
 from .driver import dbdriver
 
-# Directory of db:
-DBdir = os.path.dirname(os.path.realpath(__file__))
-
 
 class hitran(dbdriver):
   def __init__(self, dbfile, pffile, log):
@@ -46,7 +43,7 @@ class hitran(dbdriver):
 
     # Get info from HITRAN configuration file:
     self.molID, self.molecule, self.isotopes, self.mass, \
-                self.isoratio, self.gi = self.getHITinfo()
+                self.isoratio = self.getiso(fromfile=True)
     # Database name:
     self.name = "HITRAN " + self.molecule
 
@@ -73,50 +70,6 @@ class hitran(dbdriver):
     wavenumber = float(dbfile.read(self.recwnlen))
 
     return wavenumber
-
-
-  def getHITinfo(self):
-    """
-    Get HITRAN info from configuration file.
-
-    Returns
-    -------
-    molID
-    molname:  Molecule's name
-    isotopes: Isotopes names
-    mass:     Isotopes mass
-    isoratio: Isotopic abundance ratio
-    gi:       State-independent statistical weight
-    """
-    # Open file and read first two characters:
-    if not os.path.isfile(self.dbfile):
-      pt.error("HITRAN database file '{:s}' does not exist.".
-                format(self.dbfile), self.log)
-    data = open(self.dbfile, "r")
-    molID  = data.read(self.recmollen)
-    data.close()
-
-    # Read HITRAN configuration file from inputs folder:
-    hfile = open(DBdir + '/../../../inputs/hitran.dat', 'r')
-    lines = hfile.readlines()
-    hfile.close()
-
-    isotopes = []
-    mass     = []
-    isoratio = []
-    gi       = []
-
-    # Get values for our molecule:
-    for i in np.arange(len(lines)):
-      if lines[i][0:2] == molID:
-        line = lines[i].split()
-        molname  = line[1]
-        gi.      append(  int(line[3]))
-        isotopes.append(      line[2] )
-        isoratio.append(float(line[4]))
-        mass.    append(float(line[5]))
-
-    return molID, molname, isotopes, mass, isoratio, gi
 
 
   def dbread(self, iwn, fwn, verb, *args):

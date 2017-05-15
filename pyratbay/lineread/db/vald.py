@@ -57,21 +57,20 @@ class vald(dbdriver):
     if not os.path.isfile(self.dbfile):
       pt.error("VALD database file '{:s}' does not exist.".
                 format(self.dbfile), self.log)
-    data = open(self.dbfile, "r")
 
     # Extract name from database:
-    offset  = len(data.readline())
-    offset += len(data.readline())
-    line = data.readline()
+    with open(self.dbfile, "r") as data:
+      offset  = len(data.readline())
+      offset += len(data.readline())
+      line = data.readline()
 
     recsize = len(line)
     name    = line.split("'")[1]
     name    = name.split()[0]      # Keep the species only
 
     # Read atomic info file from inputs folder:
-    afile = open(DBdir + '/../../../inputs/atoms.dat', 'r')
-    lines = afile.readlines()
-    afile.close()
+    with open(DBdir + '/../../../inputs/atoms.dat', 'r') as afile:
+      lines = afile.readlines()
 
     isotopes = []
     mass     = []

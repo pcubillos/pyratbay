@@ -23,6 +23,15 @@ class dbdriver(object):
   def getpf(self, verbose=0):
     """
     Compute partition function for specified source.
+
+    Returns
+    -------
+    temp: 1D float ndarray
+       Array with temperature sample.
+    PF:   2D float ndarray
+       The partition function data for each isotope at each temperature.
+    isotopes: List of strings
+       The names of the tabulated isotopes
     """
     # Calculate the partition-function from the CTIPS module:
     if self.pffile == "ctips":
@@ -35,12 +44,12 @@ class dbdriver(object):
       # Output array for table of Temperature and PF values:
       PF = np.zeros((niso, ntemp), np.double)
 
-      molID = np.repeat(int(self.molID), ntemp)
+      molID = np.repeat(int(t.molID(self.molecule)), ntemp)
       # Calculate the partition function for each isotope:
       for i in np.arange(niso):
         isoID = np.repeat(int(self.isotopes[i]), ntemp)
-        PF[i] = t.tips(molID, isoID, temp)/self.gi[i]
-      return temp, PF
+        PF[i] = t.tips(molID, isoID, temp)
+      return temp, PF, self.isotopes
 
     # Use polynomial expression:
     elif self.pffile == "poly":
@@ -67,7 +76,7 @@ class dbdriver(object):
       # Get the exponential of log(PF):
       PF = np.exp(PF)
 
-      return Temp, PF
+      return Temp, PF, self.isotopes
 
     # Extract the partition-function from the tabulated file:
     else:
@@ -173,14 +182,15 @@ class dbdriver(object):
        Array with temperature sample.
     PF:   2D float ndarray
        The partition function data for each isotope at each temperature.
+    isotopes: List of strings
+       The names of the tabulated isotopes
     """
     # Open-read file:
     if not os.path.isfile(self.pffile):
       pt.error("Partition-function file '{:s}' does not exist.".
                format(self.pffile), self.log)
-    f = open(self.pffile, "r")
-    lines = f.readlines()
-    f.close()
+    with open(self.pffile, "r") as f:
+      lines = f.readlines()
 
     # Number of header lines (to skip when reading the tabulated data):
     nskip = 0
@@ -213,4 +223,67 @@ class dbdriver(object):
       temp[i] = info[0]
       PF[:,i] = info[1:]
 
-    return temp, PF
+    return temp, PF, isotopes
+
+  def getiso(self, fromfile=False, molname=None, dbtype="hitran"):
+    """
+    Get isotopic info from isotopes.dat file.
+
+    Parameters
+    ----------
+    fromfile: String
+       If True, extract data based on the database file info (for HITRAN).
+    mol: String
+       If not None, extract data based on this molecule name.
+    dbtype: String
+       Database type (for isotope names).
+
+    Returns
+    -------
+    molID: Integer
+       HITRAN molecule ID.
+    molname: String
+       Molecule's name.
+    isotopes: List of strings
+       Isotopes names.
+    mass: List of floats
+       Masses for each isotope.
+    isoratio: List of integers
+       Isotopic terrestrial abundance ratio.
+    """
+    if fromfile:
+      # Open HITRAN DB file and read first two characters:
+      if not os.path.isfile(self.dbfile):
+        pt.error("HITRAN database file '{:s}' does not exist.".
+                  format(self.dbfile), self.log)
+      with open(self.dbfile, "r") as data:
+        molID  = data.read(self.recmollen)
+      molname = t.molname(int(molID))
+    elif molname is None:
+      pt.error("Neither fromfile nor mol were specified.", self.log)
+
+    # Read isotopes info file:
+    with open(DBdir + '/../../../inputs/isotopes.dat', 'r') as isofile:
+      lines = isofile.readlines()
+
+    isotopes = []
+    mass     = []
+    isoratio = []
+
+    if dbtype   == "hitran":
+      iiso = 2
+    elif dbtype == "exomol":
+      iiso = 3
+
+    # Get values for our molecule:
+    for i in np.arange(len(lines)):
+      if lines[i].startswith("#") or lines[i].strip() == "":
+        continue
+      info = lines[i].split()
+      if info[1] == molname:
+        molID = info[0]
+        isotopes.append(info[iiso])
+        isoratio.append(float(info[4]))
+        mass.    append(float(info[5]))
+
+    return molID, molname, isotopes, mass, isoratio
