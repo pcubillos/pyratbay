@@ -89,12 +89,19 @@ def makewavenumber(pyrat):
   pt.msg(pyrat.verb-3, "Done.", pyrat.log)
 
 
-def makeradius(pyrat):
+def make_atmprofiles(pyrat):
   """
-  Generate atmospheric-profile layers sampling.
+  Define atmospheric-profile layers sampling.
 
-  If the user sets radius command-line arguments, make a sampling; else,
-  default to the atmfile radius array.
+  Notes
+  -----
+  There are multiple things going on in this functions, here's a summary:
+  - Read input atmospheric file.
+  - Compute hydrostatic-equilibrium radius profile if necessary.
+  - Reset (pressure/radius) boundaries if requested.
+  - Resample (pressure/radius/abundance/temperature) profiles if requested.
+  - Check whether top of atmosphere crosses the Hill radius.
+  - Compute partition-function at layers temperatures.
   """
   pt.msg(pyrat.verb-3, "\nGenerating atmospheric profile sample.", pyrat.log)
 

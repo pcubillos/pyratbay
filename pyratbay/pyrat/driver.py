@@ -76,8 +76,8 @@ def init(argv, main=False, log=None):
   rl.readlinedb(pyrat)
   timestamps.append(time.time())
 
-  # Make radius sampling:
-  ms.makeradius(pyrat)
+  # Make atmospheric profiles (pressure, radius, temperature, abundances):
+  ms.make_atmprofiles(pyrat)
   timestamps.append(time.time())
 
   # Set up observational/retrieval parameters:

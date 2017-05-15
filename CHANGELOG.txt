@@ -3121,4 +3121,9 @@ radius nor refpressure values.
 
 *****
 
+Renamed makeradius() to make_atmprofiles().
+Properly documented the routine.
+This resolves #40.
+
+*****
 
