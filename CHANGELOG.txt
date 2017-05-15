@@ -3084,5 +3084,11 @@ input database (hitran or exomol).
 Updated exomol database reader to read line-transition format
 as given bt Tennyson (2016).
 
+
+*****  Mo 15. Mai 13:09:17 CEST 2017  *****
+
+Updated pytips submodule.
+
 *****
+
 
