@@ -41,20 +41,36 @@ def get_ec(pyrat, layer):
   return ec, label
 
 
-class DW_H2():
+class Dalgarno():
   """
-  Rayleigh-scattering model from Dalgarno & Williams (1962).
+  Rayleigh-scattering model from Dalgarno (1962), Kurucz (1970), and
+  Dalgarno & Williams (1962).
   """
-  def __init__(self):
-    self.name  = "dw_H2"        # Model name
+  def __init__(self, mol):
+    """
+    Parameters
+    ----------
+    mol: String
+       The species, which can be H, He, or H2.
+    """
+    self.name  = "dalgarno_{:s}".format(mol)  # Model name
     self.npars = 0              # Number of model fitting parameters
     self.pars  = None           # Model fitting parameters
     self.ec    = None           # Model extinction coefficient (cm2 molec-1)
-    self.mol   = "H2"           # Species causing the extinction
+    self.mol   = mol            # Species causing the extinction
     self.parname = []           # Fitting-parameter names
-    self.coef  = np.array([8.14e-45, 1.28e-54, 1.61e-64])
 
-  def extinction(self, wn, pressure):
+    if   self.mol == "H":
+      self.coef = np.array([5.799e-45, 1.422e-54, 2.784e-64])
+      self.extinction = self._extH
+    elif self.mol == "He":
+      self.coef = np.array([5.484e-46, 2.440e-11, 5.940e-42, 2.900e-11])
+      self.extinction = self._extHe
+    elif self.mol == "H2":
+      self.coef = np.array([8.140e-45, 1.280e-54, 1.610e-64])
+      self.extinction = self._extH
+
+  def _extH(self, wn, pressure):
     """
     Calculate the opacity cross-section in cm2 molec-1 units.
 
@@ -65,6 +81,18 @@ class DW_H2():
     """
     self.ec = self.coef[0]*wn**4.0 + self.coef[1]*wn**6.0 + self.coef[2]*wn**8.0
 
+  def _extHe(self, wn, pressure):
+    """
+    Calculate the opacity cross-section in cm2 molec-1 units.
+
+    Parameters
+    ----------
+    wn: 1D float ndarray
+       Wavenumber in cm-1.
+    """
+    self.ec = self.coef[0]*wn**4 * (1 + self.coef[1]*wn**2 +
+                           self.coef[2]*wn**4/(1 - self.coef[2]*wn**2))**2
+
 
 class Lecavelier():
   """
@@ -73,7 +101,7 @@ class Lecavelier():
   """
   def __init__(self):
     self.name  = "lecavelier"     # Model name
-    self.pars  = [ 1.0,           # Cross-section scale factor (unitless)
+    self.pars  = [ 0.0,           # Cross-section scale factor (unitless)
                   -4.0]           # Power-law exponent
     self.npars = len(self.pars)   # Number of model fitting parameters
     self.ec    = None             # Model extinction coefficient
@@ -86,7 +114,7 @@ class Lecavelier():
   def extinction(self, wn, pressure):
     """
     Calculate the H2 Rayleigh cross section in cm2 molec-1:
-       cross section = pars[0] * s0 * (lambda/l0)**(pars[1])
+       cross section = 10**pars[0] * s0 * (lambda/l0)**(pars[1])
     With lambda the wavelength = 1/wavenumber.
 
     Parameters
@@ -95,12 +123,14 @@ class Lecavelier():
        Wavenumber array in cm-1.
     """
     # Rayleigh opacity cross section in cm2 molec-1 (aka. extinction coef.):
-    self.ec = (self.pars[0] * self.s0) * (wn * self.l0)**(-self.pars[1])
+    self.ec = 10.0**self.pars[0] * self.s0 * (wn * self.l0)**(-self.pars[1])
 
 
 
 # List of available Rayleigh models:
-rmodels = [DW_H2(),
+rmodels = [Dalgarno("H"),
+           Dalgarno("He"),
+           Dalgarno("H2"),
            Lecavelier()]
 
 # Compile list of Rayleigh-model names:

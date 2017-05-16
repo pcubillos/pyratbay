@@ -477,9 +477,10 @@ Here is an example configuration file for this mode:
   # Observing geometry, select between: [transit eclipse]
   path = transit
 
-  # Rayleigh models, select from: [lecavelier dw_H2]
-  rayleigh = lecavelier  ; Lecavelier des Etangs (2008) model
-  rpars    = 1.0 -4.0    ; [xH2 cross-section, slope]
+  # Rayleigh models, select from: [lecavelier dalgarno_H dalgarno_He dalgarno_H2]
+  rayleigh = lecavelier
+  # Lecavelier parameters (log10(H2-cross-section), alpha):
+  rpars    = 0.0 -4.0
 
   # Alkali opacity, select from: [SodiumVdWst PotassiumVdWst]
   alkali = SodiumVdWst
@@ -519,12 +520,14 @@ PotassiumVdWst        K         [Burrows2000]_
 
 These are the available Rayleigh models (``rayleigh`` parameter):
 
-====================  ======== =================  ===
-Rayleigh Models       Species  Parameters         Reference
-====================  ======== =================  ===
-lecavelier            Any      :math:`f, \alpha`  [Lecavelier2008]_
-dw_H2                 |H2|     None               [DalgarnoWilliams1962]_
-====================  ======== =================  ===
+====================  ======== =======================  ===
+Rayleigh Models       Species  Parameters               Reference
+====================  ======== =======================  ===
+lecavelier            Any      :math:`\log(f), \alpha`  [Lecavelier2008]_
+dalgarno_H            H        None                     [DalgarnoWilliams1962]_
+dalgarno_He           He       None                     [Kurucz1970]_
+dalgarno_H2           |H2|     None                     [Kurucz1970]_
+====================  ======== =======================  ===
 
 And these are the available haze/cloud models (``hazes`` parameter):
 
@@ -825,6 +828,7 @@ References
 .. [Burrows2000] `Burrows et al. (2000): The Near-Infrared and Optical Spectra of Methane Dwarfs and Brown Dwarfs <http://adsabs.harvard.edu/abs/2000ApJ...531..438B>`_
 .. [DalgarnoWilliams1962] `Dalgarno & Williams (1962): Rayleigh Scattering by Molecular Hydrogen <http://adsabs.harvard.edu/abs/1962ApJ...136..690D>`_
 .. [Irwin1981] `Irwin (1981): Polynomial partition function approximations of 344 atomic and molecular species <http://adsabs.harvard.edu/abs/1981ApJS...45..621I>`_
+.. [Kurucz1970] `Atlas: a Computer Program for Calculating Model Stellar Atmospheres <http://adsabs.harvard.edu/abs/1970SAOSR.309.....K>`_
 .. [Laraia2011] `Laraia et al. (2011): Total internal partition sums to support planetary remote sensing <http://adsabs.harvard.edu/abs/2011Icar..215..391L>`_
 .. [Lecavelier2008] `Lecavelier des Etangs et al. (2008): Rayleigh Scattering in the Transit Spectrum of HD 189733b <http://adsabs.harvard.edu/abs/2008A%26A...481L..83L>`_
 .. [Line2013] `A Systematic Retrieval Analysis of Secondary Eclipse Spectra. I. A Comparison of Atmospheric Retrieval Techniques <http://adsabs.harvard.edu/abs/2013ApJ...775..137L>`_
