@@ -3159,4 +3159,10 @@ list of input parameters for each class.
 
 *****
 
+Bumped Pyrat Bay to version 0.0.63.
+Bumped Pyrat to version 1.2.44.
+
+When merged, this resolves #106.
+
+*****
 
