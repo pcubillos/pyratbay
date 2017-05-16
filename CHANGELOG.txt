@@ -3130,6 +3130,12 @@ This resolves #40.
 Skip path check when mode is not spectrum nor mcmc (when one wont
 compute a spectrum).
 
+
+*****  Di 16. Mai 09:26:32 CEST 2017  *****
+
+Refactored [tmin,tmax] check to request values only in opacity mode or
+[spectrum,mcmc] mode and new-grid.
+
 *****
 
 

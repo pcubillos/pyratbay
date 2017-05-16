@@ -626,21 +626,26 @@ def checkinputs(pyrat):
   pyrat.ex.ethresh = pt.getparam(inputs.ethresh, "none")
   isgreater(pyrat.ex.ethresh, "none", 0, True,
         "Extinction-coefficient threshold ({:g}) must be positive.", pyrat.log)
-  if pyrat.ex.extfile is not None:
+  # Require tmin, tmax:
+  if (pyrat.runmode == "opacity" or
+      (pyrat.runmode in ["spectrum", "mcmc"] and
+       pyrat.ex.extfile is not None and
+       not os.path.isfile(pyrat.ex.extfile))):
     if inputs.tmin is None:
       pt.error("Undefined lower boundary (tmin) of temperature grid for "
                "extinction-coefficient grid.", pyrat.log)
-    else:
-      pyrat.ex.tmin = pt.getparam(inputs.tmin, "kelvin")
-      isgreater(pyrat.ex.tmin,  "kelvin", 0, True,
-            "Minimum temperature sample ({:g} K) must be positive.", pyrat.log)
     if inputs.tmax is None:
       pt.error("Undefined upper boundary (tmax) of temperature grid for "
                "extinction-coefficient grid.", pyrat.log)
-    else:
-      pyrat.ex.tmax  = pt.getparam(inputs.tmax, "kelvin")
-      isgreater(pyrat.ex.tmax,  "kelvin", 0, True,
-            "Maximum temperature sample ({:g} K) must be positive.", pyrat.log)
+
+  if inputs.tmin is not None:
+    pyrat.ex.tmin = pt.getparam(inputs.tmin, "kelvin")
+    isgreater(pyrat.ex.tmin,  "kelvin", 0, True,
+          "Minimum temperature sample ({:g} K) must be positive.", pyrat.log)
+  if inputs.tmax is not None:
+    pyrat.ex.tmax  = pt.getparam(inputs.tmax, "kelvin")
+    isgreater(pyrat.ex.tmax,  "kelvin", 0, True,
+          "Maximum temperature sample ({:g} K) must be positive.", pyrat.log)
 
     pyrat.ex.tstep = pt.defaultp(inputs.tstep, 100,
       "Extinction-coefficient grid's temperature sampling interval (tstep) "
