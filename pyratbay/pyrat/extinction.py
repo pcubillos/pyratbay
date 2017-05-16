@@ -11,9 +11,11 @@ import multiprocessing   as mpr
 
 from .. import tools     as pt
 from .. import constants as pc
+from .  import argum     as ar
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../lib')
 import extcoeff   as ec
+
 
 def exttable(pyrat):
   """
@@ -69,6 +71,10 @@ def read_extinction(pyrat):
   ex.press = np.asarray(struct.unpack(str(ex.nlayers)+'d',f.read(8*ex.nlayers)))
   ex.wn    = np.asarray(struct.unpack(str(ex.nwave  )+'d', f.read(8*ex.nwave)))
 
+  # Set tabulated temperature extrema:
+  ex.tmin = np.amin(ex.temp)
+  ex.tmax = np.amax(ex.temp)
+
   pt.msg(pyrat.verb-4, "Molecules' IDs: {}".format(ex.molID),    pyrat.log, 2)
   pt.msg(pyrat.verb-4, "Temperatures (K): {}".
                          format(pt.pprint(ex.temp, fmt=np.int)), pyrat.log, 2)
@@ -102,6 +108,12 @@ def read_extinction(pyrat):
     pyrat.spec.onwave  = (pyrat.spec.nwave - 1) *  pyrat.spec.wnosamp + 1
     pyrat.spec.own     = np.linspace(pyrat.spec.wn[0], pyrat.spec.wn[-1],
                                      pyrat.spec.onwave)
+    # Update interpolated stellar spectrum:
+    if pyrat.phy.starflux is not None:
+      sinterp = sip.interp1d(pyrat.phy.starwn, pyrat.phy.starflux)
+      pyrat.spec.starflux = sinterp(pyrat.spec.wn)
+    # Update observational variables:
+    ar.setfilters(pyrat.obs, pyrat.spec, pyrat.phy)
 
 
 def calc_extinction(pyrat):

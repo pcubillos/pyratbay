@@ -927,11 +927,12 @@ def setup(pyrat):
     elif not np.all(np.in1d(ret.retflag, ret.rmodels)):
       pt.error("Invalid retrieval model flags in retflag={}.  Available "
                "options are: {}.".format(ret.retflag, ret.rmodels))
-    if ret.bulk is None:
+    if ret.bulk is None and "mol" in ret.retflag:
       pt.error("Undefined bulk species list (bulk).", pyrat.log)
-    if ret.molscale is None:
-      pt.warning(pyrat.verb-2, "There are no variable-abundance species "
-                               "(molscale).", pyrat.log, pyrat.wlog)
+    if ret.molscale is None and "mol" in ret.retflag:
+      pt.error("Species abundances included for retrieval (retflag contains "
+               "'mol') but there are no variable-abundance species "
+               "(molscale).", pyrat.log)
 
   # Obtain abundance ratios between the bulk species:
   if ret.bulk is not None:
@@ -985,31 +986,8 @@ def setup(pyrat):
     sinterp = si.interp1d(phy.starwn, phy.starflux)
     pyrat.spec.starflux = sinterp(pyrat.spec.wn)
 
-
-  # Skip if there are no filter bands:
-  if obs.filter is not None:
-    # Load filters:
-    bandidx   = []  # Filter wavenumber indices
-    starflux  = []  # Interpolated stellar flux
-    bandtrans = []  # Normalized interpolated filter transmission
-    bandwn    = []  # Band's mean wavenumber
-    for i in np.arange(obs.nfilters):
-      # Read filter wavenumber and transmission curves:
-      filterwn, filtertr = w.readfilter(obs.filter[i])
-      # Resample the filters into the stellar wavenumber array:
-      btr, wni, isf = w.resample(pyrat.spec.wn, filterwn,   filtertr,
-                                                phy.starwn, phy.starflux)
-      bandidx.append(wni)
-      bandtrans.append(btr)
-      starflux.append(isf)
-      bandwn.append(np.sum(filterwn*filtertr)/sum(filtertr))
-
-    # Per-band variables:
-    obs.bandidx   = bandidx
-    obs.bandtrans = bandtrans
-    obs.starflux  = starflux
-    obs.bandwn    = np.asarray(bandwn)
-    obs.bandflux  = np.zeros(obs.nfilters, np.double)
+  # Set observational variables (for given filters and other parameters):
+  setfilters(pyrat.obs, pyrat.spec, pyrat.phy)
 
   # Planet-to-star radius ratio:
   if phy.rplanet is not None and phy.rstar is not None:
@@ -1104,3 +1082,34 @@ def setup(pyrat):
       pt.error("The input number of fitting parameters ({:d}) does not "
                "match the number of model parameters ({:d}).".
                 format(ret.nparams, nparams))
+
+
+def setfilters(obs, spec, phy):
+  """
+  Set observational variables (pyrat.obs) based on given parameters.
+  """
+  # Skip if there are no filter bands:
+  if obs.filter is None:
+    return
+  # Load filters:
+  bandidx   = []  # Filter wavenumber indices
+  starflux  = []  # Interpolated stellar flux
+  bandtrans = []  # Normalized interpolated filter transmission
+  bandwn    = []  # Band's mean wavenumber
+  for i in np.arange(obs.nfilters):
+    # Read filter wavenumber and transmission curves:
+    filterwn, filtertr = w.readfilter(obs.filter[i])
+    # Resample the filters into the stellar wavenumber array:
+    btr, wni, isf = w.resample(spec.wn, filterwn,   filtertr,
+                                        phy.starwn, phy.starflux)
+    bandidx.append(wni)
+    bandtrans.append(btr)
+    starflux.append(isf)
+    bandwn.append(np.sum(filterwn*filtertr)/np.sum(filtertr))
+
+  # Per-band variables:
+  obs.bandidx   = bandidx
+  obs.bandtrans = bandtrans
+  obs.starflux  = starflux
+  obs.bandwn    = np.asarray(bandwn)
+  obs.bandflux  = np.zeros(obs.nfilters, np.double)

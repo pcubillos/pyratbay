@@ -3142,4 +3142,13 @@ Fixed HITRAN-wget command in get-started docs to fit in pdf page.
 
 *****
 
+Fixed check for bulk argument to request a value only in mcmc mode
+with mol retrieval.
+Moved pyrat.obs setup into function setfilters() in argum.py, which is
+also called if EC table updates the wavenumber array.
+Fixed minor bugs with tmin, tmax set from EC table, and stellar
+wavenumber resampling after EC table update.
+
+*****
+
 

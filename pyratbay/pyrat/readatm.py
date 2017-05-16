@@ -270,19 +270,19 @@ def reloadatm(pyrat, temp, abund, radius=None):
     "temperature boundaries (K): [{:6.1f}, {:6.1f}].\nHalted calculation.")
   if pyrat.ex.extfile is not None:
     if np.any(temp > pyrat.ex.tmax) or np.any(temp < pyrat.ex.tmin):
-      pt.warning(pyrat.verb-1, errorlog.format("tabulated EC",
-                                        pyrat.ex.tmin, pyrat.ex.tmax))
+      pyrat.warning(errorlog.format("tabulated EC", pyrat.ex.tmin,
+                                                    pyrat.ex.tmax))
       return 0
   else:
     if (pyrat.lt.ntransitions > 0 and
         (np.any(temp > pyrat.lt.tmax) or np.any(temp < pyrat.lt.tmin))):
-      pt.warning(pyrat.verb-1, errorlog.format("line-transition",
-                                         pyrat.lt.tmin, pyrat.lt.tmax))
+      pyrat.warning(errorlog.format("line-transition", pyrat.lt.tmin,
+                                                       pyrat.lt.tmax))
       return 0
     if (pyrat.cs.nfiles > 0 and
         (np.any(temp > pyrat.cs.tmax) or np.any(temp < pyrat.cs.tmin))):
-      pt.warning(pyrat.verb-1, errorlog.format("cross-section",
-                                         pyrat.cs.tmin, pyrat.cs.tmax))
+      pyrat.warning(errorlog.format("cross-section", pyrat.cs.tmin,
+                                                     pyrat.cs.tmax))
       return 0
 
   # Put temperature and abundance data into the Pyrat object:
