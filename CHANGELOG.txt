@@ -3166,3 +3166,11 @@ When merged, this resolves #106.
 
 *****
 
+Implemented Rayleigh models for H and He from Dalgarno (1962)
+through Kurucz (1970).
+Renamed class from DW_H2 to Dalgarno, and model names to
+dalgarno_mol, where mol is the species.
+This resolves #21.
+
+*****
+
