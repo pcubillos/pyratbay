@@ -168,7 +168,7 @@ def readlinetransition(pyrat, linefile, dbindex):
   # Read the number of isotopes in line-transition array:
   nIso         = pt.unpack(linefile, 1,    "i")
   # Read the number of transitions per isotope:
-  NisoTran     = pt.unpack(linefile, nIso, "i")
+  NisoTran     = np.atleast_1d(pt.unpack(linefile, nIso, "i"))
 
   # Position where the line-transition data begins:
   init_wl  = linefile.tell()

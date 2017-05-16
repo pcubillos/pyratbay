@@ -11,9 +11,11 @@ import multiprocessing   as mpr
 
 from .. import tools     as pt
 from .. import constants as pc
+from .  import argum     as ar
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../lib')
 import extcoeff   as ec
+
 
 def exttable(pyrat):
   """
@@ -69,6 +71,10 @@ def read_extinction(pyrat):
   ex.press = np.asarray(struct.unpack(str(ex.nlayers)+'d',f.read(8*ex.nlayers)))
   ex.wn    = np.asarray(struct.unpack(str(ex.nwave  )+'d', f.read(8*ex.nwave)))
 
+  # Set tabulated temperature extrema:
+  ex.tmin = np.amin(ex.temp)
+  ex.tmax = np.amax(ex.temp)
+
   pt.msg(pyrat.verb-4, "Molecules' IDs: {}".format(ex.molID),    pyrat.log, 2)
   pt.msg(pyrat.verb-4, "Temperatures (K): {}".
                          format(pt.pprint(ex.temp, fmt=np.int)), pyrat.log, 2)
@@ -84,7 +90,30 @@ def read_extinction(pyrat):
   sm_ect = mpr.Array(ctypes.c_double, data)
   pyrat.ex.etable = np.ctypeslib.as_array(sm_ect.get_obj()).reshape(
                                (ex.nmol, ex.ntemp, ex.nlayers, ex.nwave))
-  #pyrat.ex.etable = np.reshape(data, (ex.nmol, ex.ntemp, ex.nlayers, ex.nwave))
+  # Some checks:
+  if ex.nwave != pyrat.spec.nwave or np.sum(np.abs(ex.wn-pyrat.spec.wn)) > 0:
+    pyrat.warning("Wavenumber sampling from extinction-coefficient "
+        "table does not match the input wavenumber sampling.  Adopting "
+        "tabulated array with {:d} samples, spacing of {:.2f} cm-1, "
+        "and ranges [{:.2f}, {:.2f}] cm-1.".
+          format(ex.nwave, ex.wn[1]-ex.wn[0], ex.wn[0], ex.wn[-1]))
+    # Update wavenumber sampling:
+    pyrat.spec.wn     = ex.wn
+    pyrat.spec.nwave  = ex.nwave
+    pyrat.spec.wnlow  = ex.wn[ 0]
+    pyrat.spec.wnhigh = ex.wn[-1]
+    pyrat.spec.wnstep = ex.wn[1] - ex.wn[0]
+    # Keep wavenumber oversampling factor:
+    pyrat.spec.ownstep = pyrat.spec.wnstep / pyrat.spec.wnosamp
+    pyrat.spec.onwave  = (pyrat.spec.nwave - 1) *  pyrat.spec.wnosamp + 1
+    pyrat.spec.own     = np.linspace(pyrat.spec.wn[0], pyrat.spec.wn[-1],
+                                     pyrat.spec.onwave)
+    # Update interpolated stellar spectrum:
+    if pyrat.phy.starflux is not None:
+      sinterp = sip.interp1d(pyrat.phy.starwn, pyrat.phy.starflux)
+      pyrat.spec.starflux = sinterp(pyrat.spec.wn)
+    # Update observational variables:
+    ar.setfilters(pyrat.obs, pyrat.spec, pyrat.phy)
 
 
 def calc_extinction(pyrat):
@@ -123,7 +152,7 @@ def calc_extinction(pyrat):
   for i in np.arange(pyrat.lt.ndb):           # For each Database
     for j in np.arange(pyrat.lt.db[i].niso):  # For each isotope in DB
       zinterp = sip.interp1d(pyrat.lt.db[i].temp, pyrat.lt.db[i].z[j],
-                             kind='cubic')
+                             kind='slinear')
       ex.z[pyrat.lt.db[i].iiso+j] = zinterp(ex.temp)
 
   # Allocate wavenumber, pressure, and isotope arrays:

@@ -19,22 +19,22 @@ class Pyrat(object):
   """
   def __init__(self):
     # Sub-classes:
-    self.inputs = Inputs()          # User inputs
-    self.spec   = Spectrum()        # Spectrum data
-    self.atm    = Atm()             # Modeling atmospheric model
-    self.lt     = Linetransition()  # Line-transition data
-    self.mol    = Molecules()       # Molecules data
-    self.iso    = Isotopes()        # Isotopes data
-    self.voigt  = Voigt()           # Voigt profile
-    self.ex     = Extinction()      # Extinction-coefficient
-    self.cs     = Cross()           # Cross-section extinction
-    self.od     = Optdepth()        # Optical depth
-    self.haze   = Haze()            # Hazes
-    self.rayleigh = Rayleigh()      # Rayleigh models
-    self.alkali = Alkali()          # Alkali opacity models
-    self.obs    = Observation()     # Observational data
-    self.phy    = Physics()         # System physical parameters
-    self.ret    = Retrieval()       # Retrieval variables
+    self.inputs   = Inputs()          # User inputs
+    self.spec     = Spectrum()        # Spectrum data
+    self.atm      = Atm()             # Modeling atmospheric model
+    self.lt       = Linetransition()  # Line-transition data
+    self.mol      = Molecules()       # Molecules data
+    self.iso      = Isotopes()        # Isotopes data
+    self.voigt    = Voigt()           # Voigt profile
+    self.ex       = Extinction()      # Extinction-coefficient
+    self.cs       = Cross()           # Cross-section extinction
+    self.od       = Optdepth()        # Optical depth
+    self.haze     = Haze()            # Hazes
+    self.rayleigh = Rayleigh()        # Rayleigh models
+    self.alkali   = Alkali()          # Alkali opacity models
+    self.obs      = Observation()     # Observational data
+    self.phy      = Physics()         # System physical parameters
+    self.ret      = Retrieval()       # Retrieval variables
     # Files:
     self.atmfile     = None  # Atmopheric-model file
     self.linedb      = None  # Line-transition data file
@@ -141,6 +141,17 @@ class Pyrat(object):
       ec = np.vstack((ec, e))
       label += lab
     return ec, label
+
+  def warning(self, msg):
+    """
+    Wrapped for warnings launched during a Pyrat run.
+
+    Parameters
+    ----------
+    msg: String
+       Text describing the warning.
+    """
+    pt.warning(self.verb-2, msg, self.log, self.wlog)
 
 
 class Inputs(object):
@@ -534,6 +545,7 @@ class Haze(object):
     self.model   = []    # List of haze models
     self.ec      = None  # Haze extinction coefficient
     self.fpatchy = None  # Patchy-cloud fraction
+    self.pars    = None  # Input haze parameters
   def info(self, pyrat):
     # FINDME
     pass
@@ -544,6 +556,7 @@ class Rayleigh(object):
     self.nmodels = 0     # Number of Rayleigh models
     self.model   = []    # List of Rayleigh models
     self.ec      = None  # Rayleigh extinction coefficient
+    self.pars    = None  # Input rayleigh parameters
   def info(self, pyrat):
     # FINDME
     pass

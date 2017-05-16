@@ -3097,4 +3097,72 @@ Bumped Lineread to version 6.4.11.
 
 *****
 
+Updated pbay.py to pass the nproc input argument to MC3.
+
+*****
+
+Added a warning() wrapper to Pyrat class to simplify warning calls.
+
+*****
+
+Added warning when wavenumber sampling does not match that of
+a given extinction-coefficient table. Adopt tabulated array.
+Swapped ec.exttable() and cs.read() read in pyrat.init() to avoid bug.
+Updated partition-function interpolation to slinear (faster).
+
+*****
+
+Fixed bug in readlinedb.py when database has a single isotope.
+
+*****
+
+Edited makeradius() to permit runmode=opacity runs without planet
+radius nor refpressure values.
+
+*****
+
+Renamed makeradius() to make_atmprofiles().
+Properly documented the routine.
+This resolves #40.
+
+*****
+
+Skip path check when mode is not spectrum nor mcmc (when one wont
+compute a spectrum).
+
+
+*****  Di 16. Mai 09:26:32 CEST 2017  *****
+
+Refactored [tmin,tmax] check to request values only in opacity mode or
+[spectrum,mcmc] mode and new-grid.
+
+*****
+
+Fixed HITRAN-wget command in get-started docs to fit in pdf page.
+
+*****
+
+Fixed check for bulk argument to request a value only in mcmc mode
+with mol retrieval.
+Moved pyrat.obs setup into function setfilters() in argum.py, which is
+also called if EC table updates the wavenumber array.
+Fixed minor bugs with tmin, tmax set from EC table, and stellar
+wavenumber resampling after EC table update.
+
+*****
+
+Updated check for hpars and rpars, to request inputs only when
+necessary from rpars and hpars (non-retrieval models) or params for
+retrieval models.
+Added pars variable to Rayleigh and Haze classes, which contains the
+list of input parameters for each class.
+
+*****
+
+Bumped Pyrat Bay to version 0.0.63.
+Bumped Pyrat to version 1.2.44.
+
+When merged, this resolves #106.
+
+*****
 

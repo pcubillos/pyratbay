@@ -626,21 +626,26 @@ def checkinputs(pyrat):
   pyrat.ex.ethresh = pt.getparam(inputs.ethresh, "none")
   isgreater(pyrat.ex.ethresh, "none", 0, True,
         "Extinction-coefficient threshold ({:g}) must be positive.", pyrat.log)
-  if pyrat.ex.extfile is not None:
+  # Require tmin, tmax:
+  if (pyrat.runmode == "opacity" or
+      (pyrat.runmode in ["spectrum", "mcmc"] and
+       pyrat.ex.extfile is not None and
+       not os.path.isfile(pyrat.ex.extfile))):
     if inputs.tmin is None:
       pt.error("Undefined lower boundary (tmin) of temperature grid for "
                "extinction-coefficient grid.", pyrat.log)
-    else:
-      pyrat.ex.tmin = pt.getparam(inputs.tmin, "kelvin")
-      isgreater(pyrat.ex.tmin,  "kelvin", 0, True,
-            "Minimum temperature sample ({:g} K) must be positive.", pyrat.log)
     if inputs.tmax is None:
       pt.error("Undefined upper boundary (tmax) of temperature grid for "
                "extinction-coefficient grid.", pyrat.log)
-    else:
-      pyrat.ex.tmax  = pt.getparam(inputs.tmax, "kelvin")
-      isgreater(pyrat.ex.tmax,  "kelvin", 0, True,
-            "Maximum temperature sample ({:g} K) must be positive.", pyrat.log)
+
+  if inputs.tmin is not None:
+    pyrat.ex.tmin = pt.getparam(inputs.tmin, "kelvin")
+    isgreater(pyrat.ex.tmin,  "kelvin", 0, True,
+          "Minimum temperature sample ({:g} K) must be positive.", pyrat.log)
+  if inputs.tmax is not None:
+    pyrat.ex.tmax  = pt.getparam(inputs.tmax, "kelvin")
+    isgreater(pyrat.ex.tmax,  "kelvin", 0, True,
+          "Maximum temperature sample ({:g} K) must be positive.", pyrat.log)
 
     pyrat.ex.tstep = pt.defaultp(inputs.tstep, 100,
       "Extinction-coefficient grid's temperature sampling interval (tstep) "
@@ -666,21 +671,23 @@ def checkinputs(pyrat):
         pyrat.haze.model.append(hz.hmodels[ihaze])
         pyrat.haze.nmodels += 1
         nhpars += pyrat.haze.model[-1].npars
-    # Process the haze parameters
-    if inputs.hpars is not None:
-      if nhpars != len(inputs.hpars):
-        pt.error("Number of input haze params ({:d}) does not match the"
-                 "number of required haze params ({:d}).".
-                 format(inputs.hpars, nhpars), pyrat.log)
+    # Process the haze parameters:
+    pyrat.haze.pars = inputs.hpars
+    if pyrat.haze.pars is not None:
+      if nhpars != len(pyrat.haze.pars):
+        pt.error("The number of input haze parameters ({:d}) does not match "
+                 "the number of required haze parameters ({:d}).".
+                 format(len(pyrat.haze.pars), nhpars), pyrat.log)
       j = 0
       for i in np.arange(pyrat.haze.nmodels):
-        pyrat.haze.model[i].pars = inputs.hpars[j:j+pyrat.haze.model[i].npars]
-        j += pyrat.haze.model[i].npars
+        npars = pyrat.haze.model[i].npars
+        pyrat.haze.model[i].pars = pyrat.haze.pars[j:j+npars]
+        j += npars
 
   if inputs.fpatchy is not None:
     if inputs.fpatchy < 0 or inputs.fpatchy > 1:
       pt.error("Invalid patchy-cloud fraction ({:g}).  fpatchy must be "
-               "in the range 0--1.".format(inputs.fpatchy))
+               "in the range 0--1.".format(inputs.fpatchy), pyrat.log)
     pyrat.haze.fpatchy = inputs.fpatchy
 
   # Check Rayleigh models:
@@ -694,17 +701,18 @@ def checkinputs(pyrat):
       pyrat.rayleigh.model.append(ray.rmodels[j])
       pyrat.rayleigh.nmodels += 1
       nrpars += pyrat.rayleigh.model[-1].npars
-    # Process the Rayleigh parameters
-    if inputs.rpars is not None:
-      if nrpars != len(inputs.rpars):
-        pt.error("Number of input Rayleigh params ({:d}) does not match the"
-                 "number of required params ({:d}).".
-                 format(inputs.rpars, nrpars), pyrat.log)
+    # Process the Rayleigh parameters:
+    pyrat.rayleigh.pars = inputs.rpars
+    if pyrat.rayleigh.pars is not None:
+      if nrpars != len(pyrat.rayleigh.pars):
+        pt.error("The number of input Rayleigh parameters ({:d}) does not "
+                 "match the number of required parameters ({:d}).".
+                 format(len(pyrat.rayleigh.pars), nrpars), pyrat.log)
       j = 0
       for i in np.arange(pyrat.rayleigh.nmodels):
-        pyrat.rayleigh.model[i].pars = \
-                                inputs.rpars[j:j+pyrat.rayleigh.model[i].npars]
-        j += pyrat.rayleigh.model[i].npars
+        npars = pyrat.rayleigh.model[i].npars
+        pyrat.rayleigh.model[i].pars = pyrat.rayleigh.pars[j:j+npars]
+        j += npars
 
   # Check alkali arguments:
   if inputs.alkali is not None:
@@ -725,12 +733,13 @@ def checkinputs(pyrat):
 
   # Accept ray-path argument:
   pyrat.od.path  = inputs.path
-  if pyrat.od.path is None:
-    pt.error("Undefined observing geometry (path).  Select between 'transit' "
-             "or 'eclipse'.", pyrat.log)
-  elif pyrat.od.path not in ['transit', 'eclipse']:
-    pt.error("Unknown observing geometry (path = {:s}).  Select between "
-             "'transit' or 'eclipse'.".format(pyrat.od.path), pyrat.log)
+  if pyrat.runmode in ["spectrum", "mcmc"]: # Check only if computing spectrum
+    if pyrat.od.path is None:
+      pt.error("Undefined observing geometry (path).  Select between "
+               "'transit' or 'eclipse'.", pyrat.log)
+    elif pyrat.od.path not in ['transit', 'eclipse']:
+      pt.error("Unknown observing geometry (path = {:s}).  Select between "
+               "'transit' or 'eclipse'.".format(pyrat.od.path), pyrat.log)
 
   # Accept output files:
   pyrat.outspec = pt.defaultp(inputs.outspec, 'outpsec.dat',
@@ -807,7 +816,7 @@ def checkinputs(pyrat):
 
   # Retrieval variables:
   # Accept species lists, check after we load the atmospheric model:
-  pyrat.ret.retflag = inputs.retflag
+  pyrat.ret.retflag  = inputs.retflag
   pyrat.ret.bulk     = inputs.bulk
   pyrat.ret.molscale = inputs.molscale
   pyrat.ret.params   = inputs.params
@@ -921,11 +930,12 @@ def setup(pyrat):
     elif not np.all(np.in1d(ret.retflag, ret.rmodels)):
       pt.error("Invalid retrieval model flags in retflag={}.  Available "
                "options are: {}.".format(ret.retflag, ret.rmodels))
-    if ret.bulk is None:
+    if ret.bulk is None and "mol" in ret.retflag:
       pt.error("Undefined bulk species list (bulk).", pyrat.log)
-    if ret.molscale is None:
-      pt.warning(pyrat.verb-2, "There are no variable-abundance species "
-                               "(molscale).", pyrat.log, pyrat.wlog)
+    if ret.molscale is None and "mol" in ret.retflag:
+      pt.error("Species abundances included for retrieval (retflag contains "
+               "'mol') but there are no variable-abundance species "
+               "(molscale).", pyrat.log)
 
   # Obtain abundance ratios between the bulk species:
   if ret.bulk is not None:
@@ -979,31 +989,8 @@ def setup(pyrat):
     sinterp = si.interp1d(phy.starwn, phy.starflux)
     pyrat.spec.starflux = sinterp(pyrat.spec.wn)
 
-
-  # Skip if there are no filter bands:
-  if obs.filter is not None:
-    # Load filters:
-    bandidx   = []  # Filter wavenumber indices
-    starflux  = []  # Interpolated stellar flux
-    bandtrans = []  # Normalized interpolated filter transmission
-    bandwn    = []  # Band's mean wavenumber
-    for i in np.arange(obs.nfilters):
-      # Read filter wavenumber and transmission curves:
-      filterwn, filtertr = w.readfilter(obs.filter[i])
-      # Resample the filters into the stellar wavenumber array:
-      btr, wni, isf = w.resample(pyrat.spec.wn, filterwn,   filtertr,
-                                                phy.starwn, phy.starflux)
-      bandidx.append(wni)
-      bandtrans.append(btr)
-      starflux.append(isf)
-      bandwn.append(np.sum(filterwn*filtertr)/sum(filtertr))
-
-    # Per-band variables:
-    obs.bandidx   = bandidx
-    obs.bandtrans = bandtrans
-    obs.starflux  = starflux
-    obs.bandwn    = np.asarray(bandwn)
-    obs.bandflux  = np.zeros(obs.nfilters, np.double)
+  # Set observational variables (for given filters and other parameters):
+  setfilters(pyrat.obs, pyrat.spec, pyrat.phy)
 
   # Planet-to-star radius ratio:
   if phy.rplanet is not None and phy.rstar is not None:
@@ -1098,3 +1085,45 @@ def setup(pyrat):
       pt.error("The input number of fitting parameters ({:d}) does not "
                "match the number of model parameters ({:d}).".
                 format(ret.nparams, nparams))
+
+  # Check for non-retrieval model/parameters:
+  if (pyrat.rayleigh.nmodels > 0 and
+      (pyrat.runmode != "mcmc" or "ray" not in ret.retflag)):
+    if pyrat.rayleigh.pars is None:
+      pt.error("Rayleigh parameters (rpars) have not been specified.",
+               pyrat.log)
+  if (pyrat.haze.nmodels > 0 and
+      (pyrat.runmode != "mcmc" or "haze" not in ret.retflag)):
+    if pyrat.haze.pars is None:
+      pt.error("Haze parameters (hpars) have not been specified.", pyrat.log)
+
+
+def setfilters(obs, spec, phy):
+  """
+  Set observational variables (pyrat.obs) based on given parameters.
+  """
+  # Skip if there are no filter bands:
+  if obs.filter is None:
+    return
+  # Load filters:
+  bandidx   = []  # Filter wavenumber indices
+  starflux  = []  # Interpolated stellar flux
+  bandtrans = []  # Normalized interpolated filter transmission
+  bandwn    = []  # Band's mean wavenumber
+  for i in np.arange(obs.nfilters):
+    # Read filter wavenumber and transmission curves:
+    filterwn, filtertr = w.readfilter(obs.filter[i])
+    # Resample the filters into the stellar wavenumber array:
+    btr, wni, isf = w.resample(spec.wn, filterwn,   filtertr,
+                                        phy.starwn, phy.starflux)
+    bandidx.append(wni)
+    bandtrans.append(btr)
+    starflux.append(isf)
+    bandwn.append(np.sum(filterwn*filtertr)/np.sum(filtertr))
+
+  # Per-band variables:
+  obs.bandidx   = bandidx
+  obs.bandtrans = bandtrans
+  obs.starflux  = starflux
+  obs.bandwn    = np.asarray(bandwn)
+  obs.bandflux  = np.zeros(obs.nfilters, np.double)
