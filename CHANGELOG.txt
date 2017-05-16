@@ -3181,10 +3181,13 @@ exponentially the opacity (10**par) instead of linearly.
 
 Updated demo/tutorial configuration files to have correct rayleigh
 documentation and values.
+Updated tutorial docs with latest changes to rayleigh models.
 
 *****
 
-Updated tutorial docs with latest changes to rayleigh models.
+Bumped Pyrat Bay to version 0.0.64.
+Bumped Pyrat to version 1.2.45.
+
 
 *****
 
