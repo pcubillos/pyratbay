@@ -545,6 +545,7 @@ class Haze(object):
     self.model   = []    # List of haze models
     self.ec      = None  # Haze extinction coefficient
     self.fpatchy = None  # Patchy-cloud fraction
+    self.pars    = None  # Input haze parameters
   def info(self, pyrat):
     # FINDME
     pass
@@ -555,6 +556,7 @@ class Rayleigh(object):
     self.nmodels = 0     # Number of Rayleigh models
     self.model   = []    # List of Rayleigh models
     self.ec      = None  # Rayleigh extinction coefficient
+    self.pars    = None  # Input rayleigh parameters
   def info(self, pyrat):
     # FINDME
     pass

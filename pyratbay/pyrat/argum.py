@@ -671,21 +671,23 @@ def checkinputs(pyrat):
         pyrat.haze.model.append(hz.hmodels[ihaze])
         pyrat.haze.nmodels += 1
         nhpars += pyrat.haze.model[-1].npars
-    # Process the haze parameters
-    if inputs.hpars is not None:
-      if nhpars != len(inputs.hpars):
-        pt.error("Number of input haze params ({:d}) does not match the"
-                 "number of required haze params ({:d}).".
-                 format(inputs.hpars, nhpars), pyrat.log)
+    # Process the haze parameters:
+    pyrat.haze.pars = inputs.hpars
+    if pyrat.haze.pars is not None:
+      if nhpars != len(pyrat.haze.pars):
+        pt.error("The number of input haze parameters ({:d}) does not match "
+                 "the number of required haze parameters ({:d}).".
+                 format(len(pyrat.haze.pars), nhpars), pyrat.log)
       j = 0
       for i in np.arange(pyrat.haze.nmodels):
-        pyrat.haze.model[i].pars = inputs.hpars[j:j+pyrat.haze.model[i].npars]
-        j += pyrat.haze.model[i].npars
+        npars = pyrat.haze.model[i].npars
+        pyrat.haze.model[i].pars = pyrat.haze.pars[j:j+npars]
+        j += npars
 
   if inputs.fpatchy is not None:
     if inputs.fpatchy < 0 or inputs.fpatchy > 1:
       pt.error("Invalid patchy-cloud fraction ({:g}).  fpatchy must be "
-               "in the range 0--1.".format(inputs.fpatchy))
+               "in the range 0--1.".format(inputs.fpatchy), pyrat.log)
     pyrat.haze.fpatchy = inputs.fpatchy
 
   # Check Rayleigh models:
@@ -699,17 +701,18 @@ def checkinputs(pyrat):
       pyrat.rayleigh.model.append(ray.rmodels[j])
       pyrat.rayleigh.nmodels += 1
       nrpars += pyrat.rayleigh.model[-1].npars
-    # Process the Rayleigh parameters
-    if inputs.rpars is not None:
-      if nrpars != len(inputs.rpars):
-        pt.error("Number of input Rayleigh params ({:d}) does not match the"
-                 "number of required params ({:d}).".
-                 format(inputs.rpars, nrpars), pyrat.log)
+    # Process the Rayleigh parameters:
+    pyrat.rayleigh.pars = inputs.rpars
+    if pyrat.rayleigh.pars is not None:
+      if nrpars != len(pyrat.rayleigh.pars):
+        pt.error("The number of input Rayleigh parameters ({:d}) does not "
+                 "match the number of required parameters ({:d}).".
+                 format(len(pyrat.rayleigh.pars), nrpars), pyrat.log)
       j = 0
       for i in np.arange(pyrat.rayleigh.nmodels):
-        pyrat.rayleigh.model[i].pars = \
-                                inputs.rpars[j:j+pyrat.rayleigh.model[i].npars]
-        j += pyrat.rayleigh.model[i].npars
+        npars = pyrat.rayleigh.model[i].npars
+        pyrat.rayleigh.model[i].pars = pyrat.rayleigh.pars[j:j+npars]
+        j += npars
 
   # Check alkali arguments:
   if inputs.alkali is not None:
@@ -813,7 +816,7 @@ def checkinputs(pyrat):
 
   # Retrieval variables:
   # Accept species lists, check after we load the atmospheric model:
-  pyrat.ret.retflag = inputs.retflag
+  pyrat.ret.retflag  = inputs.retflag
   pyrat.ret.bulk     = inputs.bulk
   pyrat.ret.molscale = inputs.molscale
   pyrat.ret.params   = inputs.params
@@ -1082,6 +1085,17 @@ def setup(pyrat):
       pt.error("The input number of fitting parameters ({:d}) does not "
                "match the number of model parameters ({:d}).".
                 format(ret.nparams, nparams))
+
+  # Check for non-retrieval model/parameters:
+  if (pyrat.rayleigh.nmodels > 0 and
+      (pyrat.runmode != "mcmc" or "ray" not in ret.retflag)):
+    if pyrat.rayleigh.pars is None:
+      pt.error("Rayleigh parameters (rpars) have not been specified.",
+               pyrat.log)
+  if (pyrat.haze.nmodels > 0 and
+      (pyrat.runmode != "mcmc" or "haze" not in ret.retflag)):
+    if pyrat.haze.pars is None:
+      pt.error("Haze parameters (hpars) have not been specified.", pyrat.log)
 
 
 def setfilters(obs, spec, phy):

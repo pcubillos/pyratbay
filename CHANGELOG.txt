@@ -3151,4 +3151,12 @@ wavenumber resampling after EC table update.
 
 *****
 
+Updated check for hpars and rpars, to request inputs only when
+necessary from rpars and hpars (non-retrieval models) or params for
+retrieval models.
+Added pars variable to Rayleigh and Haze classes, which contains the
+list of input parameters for each class.
+
+*****
+
 
