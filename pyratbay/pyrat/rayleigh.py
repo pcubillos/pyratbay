@@ -101,7 +101,7 @@ class Lecavelier():
   """
   def __init__(self):
     self.name  = "lecavelier"     # Model name
-    self.pars  = [ 1.0,           # Cross-section scale factor (unitless)
+    self.pars  = [ 0.0,           # Cross-section scale factor (unitless)
                   -4.0]           # Power-law exponent
     self.npars = len(self.pars)   # Number of model fitting parameters
     self.ec    = None             # Model extinction coefficient
@@ -114,7 +114,7 @@ class Lecavelier():
   def extinction(self, wn, pressure):
     """
     Calculate the H2 Rayleigh cross section in cm2 molec-1:
-       cross section = pars[0] * s0 * (lambda/l0)**(pars[1])
+       cross section = 10**pars[0] * s0 * (lambda/l0)**(pars[1])
     With lambda the wavelength = 1/wavenumber.
 
     Parameters
@@ -123,7 +123,7 @@ class Lecavelier():
        Wavenumber array in cm-1.
     """
     # Rayleigh opacity cross section in cm2 molec-1 (aka. extinction coef.):
-    self.ec = (self.pars[0] * self.s0) * (wn * self.l0)**(-self.pars[1])
+    self.ec = 10.0**self.pars[0] * self.s0 * (wn * self.l0)**(-self.pars[1])
 
 
 

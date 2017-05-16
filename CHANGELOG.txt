@@ -3174,3 +3174,9 @@ This resolves #21.
 
 *****
 
+Revamped Lecavelier Rayleigh model.  Now the first argument scales
+exponentially the opacity (10**par) instead of linearly.
+
+*****
+
+
