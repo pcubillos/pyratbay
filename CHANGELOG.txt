@@ -3138,4 +3138,8 @@ Refactored [tmin,tmax] check to request values only in opacity mode or
 
 *****
 
+Fixed HITRAN-wget command in get-started docs to fit in pdf page.
+
+*****
+
 

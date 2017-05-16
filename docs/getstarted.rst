@@ -90,9 +90,12 @@ Download the water line-transition database from the HITRAN server:
 .. code-block:: shell
 
    # Using wget:
-   wget --user=HITRAN --password=getdata -N https://www.cfa.harvard.edu/HITRAN/HITRAN2012/HITRAN2012/By-Molecule/Compressed-files/01_hit12.zip
+   wget --user=HITRAN --password=getdata -N \
+    https://www.cfa.harvard.edu/HITRAN/HITRAN2012/HITRAN2012/By-Molecule/Compressed-files/01_hit12.zip
    # Or alternatively, curl:
-   curl -u HITRAN:getdata https://www.cfa.harvard.edu/HITRAN/HITRAN2012/HITRAN2012/By-Molecule/Compressed-files/01_hit12.zip -o 01_hit12.zip
+   curl -u HITRAN:getdata \
+    https://www.cfa.harvard.edu/HITRAN/HITRAN2012/HITRAN2012/By-Molecule/Compressed-files/01_hit12.zip\
+    -o 01_hit12.zip
 
 Unzip the file:
 
