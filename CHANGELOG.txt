@@ -3199,3 +3199,9 @@ Enabled xlogticks argument into pbay to plot the best-fit spectrum
 in log-wavelength scale with the given set of xticks.
 
 *****
+
+Fixed bug in bandcf(), the code now takes the wavenumber sampling
+as input to make a correct integration.
+
+*****
+
