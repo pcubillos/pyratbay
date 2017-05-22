@@ -3189,5 +3189,10 @@ Bumped Pyrat Bay to version 0.0.64.
 Bumped Pyrat to version 1.2.45.
 
 
+*****  Mo 22. Mai 11:56:30 CEST 2017  *****
+
+Fixed extinction get_ec() for case with tabulated data.
+
 *****
+
 

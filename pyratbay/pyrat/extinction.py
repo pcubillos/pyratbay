@@ -293,10 +293,28 @@ def get_ec(pyrat, layer):
   """
   Compute per-species extinction coefficient at requested layer.
   """
-  exc = extinction(pyrat, [layer], grid=False, add=False)
-  label = []
-  for i in np.arange(pyrat.ex.nmol):
-    imol = np.where(pyrat.mol.ID == pyrat.ex.molID[i])[0][0]
-    exc[i] *= pyrat.atm.d[layer,imol]
-    label.append(pyrat.mol.name[imol])
+  # Interpolate:
+  if pyrat.ex.extfile is not None:
+    exc    = np.zeros((pyrat.ex.nmol, pyrat.spec.nwave))
+    label  = []
+    temp   = pyrat.atm.temp[layer]
+    itemp  = np.where(pyrat.ex.temp <= temp)[0][-1]
+    if itemp == len(pyrat.ex.temp):
+      itemp -= 1
+    for i in np.arange(pyrat.ex.nmol):
+      imol = np.where(pyrat.mol.ID == pyrat.ex.molID[i])[0][0]
+      label.append(pyrat.mol.name[imol])
+      etable = pyrat.ex.etable[i,:,layer,:]
+      exc[i] = ((etable[itemp  ] * (pyrat.ex.temp[itemp+1] - temp) +
+                 etable[itemp+1] * (temp - pyrat.ex.temp[itemp]  ) ) /
+                (pyrat.ex.temp[itemp+1] - pyrat.ex.temp[itemp])      )
+      exc[i] *= pyrat.atm.d[layer, imol]
+  # Line-by-line:
+  else:
+    exc = extinction(pyrat, [layer], grid=False, add=False)
+    label = []
+    for i in np.arange(pyrat.ex.nmol):
+      imol = np.where(pyrat.mol.ID == pyrat.ex.molID[i])[0][0]
+      exc[i] *= pyrat.atm.d[layer,imol]
+      label.append(pyrat.mol.name[imol])
   return exc, label
