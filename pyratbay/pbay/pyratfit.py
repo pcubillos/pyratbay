@@ -60,7 +60,7 @@ def fit(params, pyrat, freeze=False):
   """
 
   if freeze:
-    q0 = pyrat.atm.q
+    q0 = np.copy(pyrat.atm.q)
 
   rejectflag = False
   # Update temperature profile if requested:

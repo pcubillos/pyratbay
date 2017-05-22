@@ -3205,3 +3205,9 @@ as input to make a correct integration.
 
 *****
 
+Made a copy of q at the beginning of pyratfit.fit() to be extra sure
+the original value does not change.
+
+*****
+
+
