@@ -3195,4 +3195,7 @@ Fixed extinction get_ec() for case with tabulated data.
 
 *****
 
+Enabled xlogticks argument into pbay to plot the best-fit spectrum
+in log-wavelength scale with the given set of xticks.
 
+*****

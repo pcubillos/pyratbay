@@ -164,7 +164,7 @@ def run(argv, main=False):
       "spectrum ('{:s}').".format(bestatm, pyrat.outspec), pyrat.log, 0)
 
     # Best-fitting spectrum:
-    pp.spectrum(pyrat=pyrat,
+    pp.spectrum(pyrat=pyrat, logxticks=args.logxticks,
                 filename="{:s}_bestfit_spectrum.png".format(outfile))
     # Posterior PT profiles:
     if pyrat.ret.tmodelname in ["TCEA", "MadhuInv", "MadhuNoInv"]:

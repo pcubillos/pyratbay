@@ -8,6 +8,8 @@ Pyrat plotting utilities.
 __all__ = ["spectrum", "cf", "PT"]
 
 import os, sys
+import matplotlib
+
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.interpolate as si
@@ -26,7 +28,7 @@ import MadhuTP
 
 def spectrum(wlength=None, spectrum=None, data=None, uncert=None,
     bandflux=None, bandtrans=None, bandidx=None, bandwl=None,
-    starflux=None, rprs=None, path=None,
+    starflux=None, rprs=None, path=None, logxticks=None,
     pyrat=None, gaussbin=2, filename=None):
   """
   Plot a transmission or emission model spectrum with (optional) data
@@ -132,12 +134,10 @@ def spectrum(wlength=None, spectrum=None, data=None, uncert=None,
     bandtr = bandh * bandtrans[i]/np.amax(bandtrans[i])
     plt.plot(wlength[bandidx[i]], ylim[0]+bandtr, "k")
   plt.ylim(ylim)
-  #logxtics = [0.7, 1.0, 2.0, 3.0, 4.0, 5.0]
-  #if logxtics:
-  #  ax.set_xscale('log')
-  #  ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
-  #  #ax.set_xticks(np.arange(round(min(wlength)),max(wlength),1))
-  #  ax.set_xticks(logxtics)
+  if logxtics:
+    ax.set_xscale('log')
+    ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+    ax.set_xticks(logxtics)
 
   plt.xlabel(r"${\rm Wavelength\ \ (um)}$", fontsize=fs)
   leg = plt.legend(loc="best", numpoints=1)
