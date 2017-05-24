@@ -3215,4 +3215,7 @@ Fixed a couple of minor bugs.
 
 *****
 
+Updated MC3 submodule.
+
+*****
 
