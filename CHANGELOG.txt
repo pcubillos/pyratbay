@@ -3208,6 +3208,11 @@ as input to make a correct integration.
 Made a copy of q at the beginning of pyratfit.fit() to be extra sure
 the original value does not change.
 
+
+*****  Mi 24. Mai 09:18:22 CEST 2017  *****
+
+Fixed a couple of minor bugs.
+
 *****
 
 

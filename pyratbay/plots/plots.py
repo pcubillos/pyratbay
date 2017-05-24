@@ -134,10 +134,10 @@ def spectrum(wlength=None, spectrum=None, data=None, uncert=None,
     bandtr = bandh * bandtrans[i]/np.amax(bandtrans[i])
     plt.plot(wlength[bandidx[i]], ylim[0]+bandtr, "k")
   plt.ylim(ylim)
-  if logxtics:
+  if logxticks is not None:
     ax.set_xscale('log')
     ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
-    ax.set_xticks(logxtics)
+    ax.set_xticks(logxticks)
 
   plt.xlabel(r"${\rm Wavelength\ \ (um)}$", fontsize=fs)
   leg = plt.legend(loc="best", numpoints=1)
