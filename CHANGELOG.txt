@@ -3189,5 +3189,43 @@ Bumped Pyrat Bay to version 0.0.64.
 Bumped Pyrat to version 1.2.45.
 
 
+*****  Mo 22. Mai 11:56:30 CEST 2017  *****
+
+Fixed extinction get_ec() for case with tabulated data.
+
+*****
+
+Enabled xlogticks argument into pbay to plot the best-fit spectrum
+in log-wavelength scale with the given set of xticks.
+
+*****
+
+Fixed bug in bandcf(), the code now takes the wavenumber sampling
+as input to make a correct integration.
+
+*****
+
+Made a copy of q at the beginning of pyratfit.fit() to be extra sure
+the original value does not change.
+
+
+*****  Mi 24. Mai 09:18:22 CEST 2017  *****
+
+Fixed a couple of minor bugs.
+
+*****
+
+Updated MC3 submodule.
+
+
+*****  Do 27. Jul 14:58:36 CEST 2017  *****
+
+Updated TEA submodule.
+
+*****
+
+Bumped Pyrat Bay to version 0.0.65.
+Bumped Pyrat to version 1.2.46.
+
 *****
 

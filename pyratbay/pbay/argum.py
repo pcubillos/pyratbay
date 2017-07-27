@@ -214,6 +214,9 @@ def parse(wlog):
   group.add_argument("--logfile", dest="logfile",
            help="Log file name.",
            action="store", type=str,       default=None)
+  group.add_argument("--logxticks", dest="logxticks",
+           help="Plot output spectrum in log(wavelength) with the given ticks.",
+           action="store", type=pt.parray,   default=None)
 
   parser.set_defaults(**defaults)
   args = parser.parse_args(remaining_argv)

@@ -65,23 +65,25 @@ def transmittance(optdepth, ideep):
   return transmit
 
 
-def bandcf(cf, bandtrans, bandidx):
+def bandcf(cf, bandtrans, wn, bandidx):
   """
   Compute band-averaged contribution functions or transmittances.
 
   Parameters
   ----------
   cf: 2D float ndarray
-    The contribution function or transmittance [nlayers, nwave]
+     The contribution function or transmittance [nlayers, nwave]
   bandtrans: List of 1D ndarrays
-    List of band transmission curves.
+     List of band transmission curves.
+  wn: 1D float ndarray
+     The wavenumber sampling (in cm-1).
   bandidx: List of 1D ndarrays
-    List of wavenumber-index arrays for each band transmission curve.
+     List of wavenumber-index arrays for each band transmission curve.
 
   Returns
   -------
   bandcf: 2D float ndarray
-    The band-integrated contribution functions.
+     The band-integrated contribution functions.
   """
   nfilters = len(bandtrans)
   nlayers  = np.shape(cf)[0]
@@ -94,7 +96,7 @@ def bandcf(cf, bandtrans, bandidx):
     # Weighted CF (by filter response function):
     wcf = cf[:,bandidx[i]] * bandtrans[i]
     # Integrated CF across bandpass at each layer:
-    bandcf[i] = np.trapz(wcf, axis=1)
+    bandcf[i] = np.trapz(wcf, wn[bandidx[i]], axis=1)
 
     # Normalize to 1:
     #filt_cf[i] /= np.sum(filt_cf[i])

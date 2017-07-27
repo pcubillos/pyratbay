@@ -805,14 +805,14 @@ def checkinputs(pyrat):
   if pyrat.obs.uncert is not None and pyrat.obs.ndata != len(pyrat.obs.uncert):
     pt.error("The number of data uncertainty values ({:d}) does not match "
        "the number of data points ({:d}).".
-        format(len(pyrat.obs.uncert)), pyrat.obs.ndata)
+        format(len(pyrat.obs.uncert), pyrat.obs.ndata))
   if pyrat.obs.filter is not None:
     for f in pyrat.obs.filter:
       if not os.path.isfile(f):
         pt.error("Filter file: '{:s}' does not exist.".format(f), pyrat.log)
     if pyrat.obs.ndata > 0  and  pyrat.obs.ndata != pyrat.obs.nfilters:
       pt.error("The number of filter bands ({:d}) does not match the number "
-          "of data points ({:d}).".format(pyrat.obs.nfilters), pyrat.obs.ndata)
+          "of data points ({:d}).".format(pyrat.obs.nfilters, pyrat.obs.ndata))
 
   # Retrieval variables:
   # Accept species lists, check after we load the atmospheric model:

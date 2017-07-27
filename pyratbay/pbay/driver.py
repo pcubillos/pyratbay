@@ -164,7 +164,7 @@ def run(argv, main=False):
       "spectrum ('{:s}').".format(bestatm, pyrat.outspec), pyrat.log, 0)
 
     # Best-fitting spectrum:
-    pp.spectrum(pyrat=pyrat,
+    pp.spectrum(pyrat=pyrat, logxticks=args.logxticks,
                 filename="{:s}_bestfit_spectrum.png".format(outfile))
     # Posterior PT profiles:
     if pyrat.ret.tmodelname in ["TCEA", "MadhuInv", "MadhuNoInv"]:
@@ -172,10 +172,11 @@ def run(argv, main=False):
     # Contribution or transmittance functions:
     if   pyrat.od.path == "eclipse":
       cf  = pt.cf(pyrat.od.depth, pyrat.atm.press, pyrat.od.B)
-      bcf = pt.bandcf(cf, pyrat.obs.bandtrans, pyrat.obs.bandidx)
+      bcf = pt.bandcf(cf, pyrat.obs.bandtrans, pyrat.spec.wn, pyrat.obs.bandidx)
     elif pyrat.od.path == "transit":
       transmittance = pt.transmittance(pyrat.od.depth, pyrat.od.ideep)
-      bcf = pt.bandcf(transmittance, pyrat.obs.bandtrans, pyrat.obs.bandidx)
+      bcf = pt.bandcf(transmittance, pyrat.obs.bandtrans, pyrat.spec.wn,
+                      pyrat.obs.bandidx)
     pp.cf(bcf, 1.0/(pyrat.obs.bandwn*pc.um), pyrat.od.path,
           pyrat.atm.press, pyrat.atm.radius,
           pyrat.atm.rtop, filename="{:s}_bestfit_cf.png".format(outfile))
