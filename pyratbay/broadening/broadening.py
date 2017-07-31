@@ -176,7 +176,7 @@ class voigt():
     if self.hwhmL/self.hwhmG < 0.1:
       # sigma * sqrt(2):
       sigmaroot2 = self.hwhmG / (self._sqrtln2 * np.sqrt(2))
-      z = (x + 1j * self.hwhmL) / sigmaroot2
+      z = (x + 1j * self.hwhmL - self.x0) / sigmaroot2
       return self.scale * ss.wofz(z).real / (sigmaroot2 * self._sqrtpi)
 
     # This is faster than the previous script (but it fails for HWl/HWg > 1.0):

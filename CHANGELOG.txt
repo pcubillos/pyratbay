@@ -3236,3 +3236,7 @@ to C, but this will suffice for the moment.
 
 *****
 
+Fixed bug in voigt broadening function for non-zero center.
+
+*****
+
