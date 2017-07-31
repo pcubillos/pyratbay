@@ -3227,5 +3227,12 @@ Updated TEA submodule.
 Bumped Pyrat Bay to version 0.0.65.
 Bumped Pyrat to version 1.2.46.
 
+
+*****  Mo 31. Jul 11:51:16 CEST 2017  *****
+
+Added broadening module with Voigt, Lorentz, and Gaussian
+line-broadening profiles.  The code could be improved by rewriting it
+to C, but this will suffice for the moment.
+
 *****
 
