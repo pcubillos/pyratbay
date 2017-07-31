@@ -3240,3 +3240,10 @@ Fixed bug in voigt broadening function for non-zero center.
 
 *****
 
+Replaced Voigt profile code for alkali profiles.
+Take code from the broadening module instead of creatinga library of
+profiles with the old C code.
+Removed alkali() function from vprofile.c code.
+
+*****
+
