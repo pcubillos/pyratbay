@@ -3247,3 +3247,9 @@ Removed alkali() function from vprofile.c code.
 
 *****
 
+Bumped Pyrat Bay to version 0.0.66.
+Bumped Pyrat to version 1.2.47.
+This resolves #119.
+
+*****
+
