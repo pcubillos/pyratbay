@@ -3271,3 +3271,8 @@ Also added the verb argument to set when to print out the atmfile
 units.
 
 *****
+
+Bumped Pyrat Bay to version 0.0.67.
+Bumped Pyrat to version 1.2.48.
+
+*****
