@@ -93,10 +93,40 @@ def writeatm(atmfile, pressure, temperature, species, abundances,
   f.close()
 
 
-def readatm(atmfile):
+def readatm(atmfile, verb=False):
   """
   Read a Pyrat atmospheric file.
+
+  Parameters
+  ----------
+  atmfile: String
+     File path to a Pyrat-Bay's atmospheric file.
+  verb: Bool
+     Verbosity, if True print out to screen the units from the
+     atmospheric file.
+
+  Returns
+  -------
+  species: 1D string ndarray
+     The list of species names read from the atmospheric file (of
+     size nspec).
+  press: 1D float ndarray
+     The atmospheric pressure profile (of size nlayers). The
+     file's @PRESSURE keyword indicates the ouptput units.
+  temp: 1D float ndarray
+     The atmospheric temperature profile (of size nlayers). The
+     file's @TEMPERATURE keyword indicates the ouptput units.
+  q: 2D float ndarray
+     The mixing ratio profiles of the atmospheric species (of size
+     [nlayers,nspec]).  The file's @ABUNDANCE indicates the output
+     units.
+  radius: 1D float ndarray
+     The atmospheric altiture profile (of size nlayers).  Returned
+     only if the atmospheric file contain's a radius profile.
+     The file's @RADIUS keyword indicates the output units.
   """
+  if verb is False:
+    verb = -1
 
   atmfile = open(atmfile, "r")
   while True:
@@ -112,20 +142,21 @@ def readatm(atmfile):
 
     # Radius, pressure, and temperature units of atm file:
     elif line == '@PRESSURE':
-      print("Pressure units: {:s}".   format(atmfile.readline().strip()))
+      pt.msg(verb, "Pressure units: {:s}".format(atmfile.readline().strip()))
     elif line == '@RADIUS':
-      print("Radius units: {:s}".     format(atmfile.readline().strip()))
+      pt.msg(verb,"Radius units: {:s}".format(atmfile.readline().strip()))
     elif line == '@TEMPERATURE':
-      print("Temperature units: {:s}".format(atmfile.readline().strip()))
+      pt.msg(verb,"Temperature units: {:s}".format(atmfile.readline().strip()))
     # Abundance by mass or number:
     elif line == '@ABUNDANCE':
-      print("Abundance units: {:s}".  format(atmfile.readline().strip()))
+      pt.msg(verb,"Abundance units: {:s}".format(atmfile.readline().strip()))
     # Read in molecules:
     elif line == "@SPECIES":
       species = np.asarray(atmfile.readline().strip().split())
       nspecies = len(species)
     else:
       print("Atmosphere file has an unexpected line: \n'{:s}'".format(line))
+      return None, None, None, None
 
   # Read first line to count number of columns:
   datastart = atmfile.tell()

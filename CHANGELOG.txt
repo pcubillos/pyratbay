@@ -3266,3 +3266,8 @@ Updated readatm.py to use pb.atmosphere's readmol() function.
 
 *****
 
+Documented the atmosphere.readatm() function.
+Also added the verb argument to set when to print out the atmfile
+units.
+
+*****
