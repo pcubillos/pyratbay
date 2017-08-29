@@ -3251,5 +3251,14 @@ Bumped Pyrat Bay to version 0.0.66.
 Bumped Pyrat to version 1.2.47.
 This resolves #119.
 
+
+*****  Di 29. Aug 13:52:00 CEST 2017  *****
+
+Added readmol() and meanweight() function into atmosphere module,
+making these routines acessible to the user.
+readmol reads the molecules file (as in the PyratBay format).
+meanweight computes the mean molecular mass for a given
+atmospheric composition.
+
 *****
 
