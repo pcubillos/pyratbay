@@ -3,7 +3,7 @@
 
 __all__ = ["writeatm", "readatm", "uniform", "makeatomic", "readatomic",
            "makepreatm", "TEA2pyrat", "pressure", "temperature",
-           "hydro_g", "hydro_m"]
+           "hydro_g", "hydro_m", "readmol", "meanweight"]
 
 import os
 import sys
@@ -19,7 +19,6 @@ from .  import MadhuTP
 rootdir = os.path.realpath(os.path.dirname(__file__) + "/../../")
 sys.path.append(rootdir + "/pyratbay/lib/")
 import pt as PT
-
 
 
 # Get Pyrat-Bay inputs dir:
@@ -94,10 +93,40 @@ def writeatm(atmfile, pressure, temperature, species, abundances,
   f.close()
 
 
-def readatm(atmfile):
+def readatm(atmfile, verb=False):
   """
   Read a Pyrat atmospheric file.
+
+  Parameters
+  ----------
+  atmfile: String
+     File path to a Pyrat-Bay's atmospheric file.
+  verb: Bool
+     Verbosity, if True print out to screen the units from the
+     atmospheric file.
+
+  Returns
+  -------
+  species: 1D string ndarray
+     The list of species names read from the atmospheric file (of
+     size nspec).
+  press: 1D float ndarray
+     The atmospheric pressure profile (of size nlayers). The
+     file's @PRESSURE keyword indicates the ouptput units.
+  temp: 1D float ndarray
+     The atmospheric temperature profile (of size nlayers). The
+     file's @TEMPERATURE keyword indicates the ouptput units.
+  q: 2D float ndarray
+     The mixing ratio profiles of the atmospheric species (of size
+     [nlayers,nspec]).  The file's @ABUNDANCE indicates the output
+     units.
+  radius: 1D float ndarray
+     The atmospheric altiture profile (of size nlayers).  Returned
+     only if the atmospheric file contain's a radius profile.
+     The file's @RADIUS keyword indicates the output units.
   """
+  if verb is False:
+    verb = -1
 
   atmfile = open(atmfile, "r")
   while True:
@@ -113,20 +142,21 @@ def readatm(atmfile):
 
     # Radius, pressure, and temperature units of atm file:
     elif line == '@PRESSURE':
-      print("Pressure units: {:s}".   format(atmfile.readline().strip()))
+      pt.msg(verb, "Pressure units: {:s}".format(atmfile.readline().strip()))
     elif line == '@RADIUS':
-      print("Radius units: {:s}".     format(atmfile.readline().strip()))
+      pt.msg(verb,"Radius units: {:s}".format(atmfile.readline().strip()))
     elif line == '@TEMPERATURE':
-      print("Temperature units: {:s}".format(atmfile.readline().strip()))
+      pt.msg(verb,"Temperature units: {:s}".format(atmfile.readline().strip()))
     # Abundance by mass or number:
     elif line == '@ABUNDANCE':
-      print("Abundance units: {:s}".  format(atmfile.readline().strip()))
+      pt.msg(verb,"Abundance units: {:s}".format(atmfile.readline().strip()))
     # Read in molecules:
     elif line == "@SPECIES":
       species = np.asarray(atmfile.readline().strip().split())
       nspecies = len(species)
     else:
       print("Atmosphere file has an unexpected line: \n'{:s}'".format(line))
+      return None, None, None, None
 
   # Read first line to count number of columns:
   datastart = atmfile.tell()
@@ -467,8 +497,8 @@ def pressure(ptop, pbottom, nlayers, units="bar", log=None):
 
 
 def temperature(tmodel, pressure=None, rstar=None, tstar=None, tint=100.0,
-     gplanet=None, smaxis=None, radunits="cm", nlayers=None,
-     log=None, tparams=None):
+                gplanet=None, smaxis=None, radunits="cm", nlayers=None,
+                log=None, tparams=None):
   """
   Temperature profile wrapper.
 
@@ -643,3 +673,87 @@ def hydro_m(pressure, temperature, mu, M, p0, r0):
   radius = 1.0/(I - I0 + 1/r0)
 
   return radius
+
+
+def readmol(file):
+  """
+  Read a molecules file to extract their ID, symbol, mass, and diameter.
+
+  Parameters
+  ----------
+  file: String
+     The molecule file path.
+
+  Returns
+  -------
+  molID: 1D integer ndarray
+     The molecules' ID.
+  symbol: 1D string ndarray
+     The molecule's name.
+  mass: 1D float ndarray
+     The mass of the molecules (in g mol-1).
+  diam: 1D float ndarray
+     The collisional diameter of the molecules (in Angstrom).
+
+  Notes
+  -----
+  In all truthfulness, these are species, not only molecules, as the
+  file also contain elemental particles.
+  """
+  with open(file, "r") as molfile:
+    # Skip comment and blank lines:
+    line = molfile.readline().strip()
+    while line == '' or line.startswith('#'):
+      line = molfile.readline().strip()
+
+    # Allocate outputs:
+    molID  = [] # Molecule ID
+    symbol = [] # Molecule symbol
+    mass   = [] # Molecule mass
+    diam   = [] # Molecule diameter
+
+    # Read in values:
+    while line != '' and not line.startswith('#'):  # Start reading species
+      molinfo = line.split()
+      # Extract info:
+      molID .append(  int(molinfo[0]))
+      symbol.append(      molinfo[1] )
+      mass  .append(float(molinfo[2]))
+      diam  .append(float(molinfo[3]))
+      line = molfile.readline().strip()  # Read next line
+
+  molID  = np.asarray(molID)
+  symbol = np.asarray(symbol)
+  mass   = np.asarray(mass)
+  diam   = np.asarray(diam)
+
+  return molID, symbol, mass, diam
+
+
+def meanweight(abundances, molnames, molfile=None):
+  """
+  Calculate the mean molecular weight (a.k.a. mean molecular mass)
+  for the given abundances composition.
+
+  Parameters
+  ----------
+  abundances: 2D float ndarray
+     Array of shape (nlayers,nmol) with the species mol mixing fractions.
+  molnames: 1D string ndarray
+     The species names (of size nmol).
+  molfile: String
+     (Optional) a molecules file with the species info.
+  """
+  # Default molecules file.
+  if molfile is None:
+    molfile = indir + "molecules.dat"
+
+  molID, symbol, mass, diam = readmol(molfile)
+
+  nmol = len(molnames)
+  molmass = np.zeros(nmol)
+  for i in np.arange(nmol):
+    imol = np.where(symbol == molnames[i])[0]
+    molmass[i] = mass[imol]
+
+  return np.sum(abundances*molmass, axis=1)
