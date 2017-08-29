@@ -10,6 +10,7 @@ import scipy.interpolate as sip
 
 from .. import tools      as pt
 from .. import constants  as pc
+from .. import atmosphere as pa
 
 def readatm(pyrat):
   """
@@ -102,31 +103,7 @@ def getconstants(pyrat):
   # Read file with molecular info:
   pt.msg(pyrat.verb-4, "Taking species constant parameters from: '{:s}'.".
          format(pyrat.molfile), pyrat.log, 2)
-  molfile = open(pyrat.molfile, "r")
- 
-  # Skip comment and blank lines:
-  line = molfile.readline().strip()
-  while line == '' or line.startswith('#'):
-    line = molfile.readline().strip()
-
-  molID  = [] # Molecule ID
-  symbol = [] # Molecule symbol
-  mass   = [] # Molecule mass
-  diam   = [] # Molecule diameter
-  # Read Molecular values:
-  while line != '' and not line.startswith('#'):  # Start reading species
-    molinfo = line.split()
-    # Extract info:
-    molID .append(  int(molinfo[0]))
-    symbol.append(      molinfo[1] )
-    mass  .append(float(molinfo[2]))
-    diam  .append(float(molinfo[3]))
-    line = molfile.readline().strip()  # Read next line
-
-  molID  = np.asarray(molID)
-  symbol = np.asarray(symbol)
-  mass   = np.asarray(mass)
-  diam   = np.asarray(diam)
+  molID, symbol, mass, diam = pa.readmol(pyrat.molfile)
 
   # Check that all atmospheric species are listed in molfile:
   absent = np.setdiff1d(pyrat.mol.name, symbol)

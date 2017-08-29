@@ -3262,3 +3262,7 @@ atmospheric composition.
 
 *****
 
+Updated readatm.py to use pb.atmosphere's readmol() function.
+
+*****
+
