@@ -3284,3 +3284,9 @@ of the record (needed for pseudo HITRAN format data with extra
 entries).
 
 *****
+
+Bumped Pyrat Bay to version 0.0.68.
+Bumped Lineread to version 6.4.12.
+
+*****
+
