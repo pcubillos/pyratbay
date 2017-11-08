@@ -3275,4 +3275,12 @@ units.
 Bumped Pyrat Bay to version 0.0.67.
 Bumped Pyrat to version 1.2.48.
 
+
+*****  Mi 8. Nov 15:29:30 CET 2017  *****
+
+Fixed wrong index for g2 (statistical weight) in hitran.py (current
+code seemed not to fail).  Defined hitran.recg2end to mark the end
+of the record (needed for pseudo HITRAN format data with extra
+entries).
+
 *****

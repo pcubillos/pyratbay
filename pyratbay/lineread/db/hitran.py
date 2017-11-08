@@ -32,11 +32,11 @@ class hitran(dbdriver):
     self.recApos   =  25 # Einstein coef  position in record
     self.recairpos =  35 # Air broadening position in record
     self.recelpos  =  45 # Low Energy     position in record
-    self.recg2pos  = 155 # Low stat weight position in record
+    self.recelend  =  55 # Low Energy     end position
+    self.recg2pos  = 153 # Low stat weight position in record
+    self.recg2end  = 160 # Low stat weight end position
     self.recmollen =   2 # Molecule   record length
     self.recwnlen  =  12 # Wavenumber record length
-    self.reclinend =  25 # Line intensity end position
-    self.recelend  =  55 # Low Energy     end position
 
     # Log file:
     self.log = log
@@ -161,7 +161,7 @@ class hitran(dbdriver):
       wnumber[i] = float(line[self.recwnpos: self.reclinpos])
       elow   [i] = float(line[self.recelpos: self.recelend ])
       A21    [i] = float(line[self.recApos:  self.recairpos])
-      g2     [i] = float(line[self.recg2pos: self.recsize  ])
+      g2     [i] = float(line[self.recg2pos: self.recg2end ])
       # Print a checkpoint statement every 10% interval:
       if (i % interval) == 0.0  and  i != 0:
         gfval = A21[i]*g2[i]*pc.C1/(8.0*np.pi*pc.c)/wnumber[i]**2.0
