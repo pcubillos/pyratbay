@@ -90,6 +90,7 @@ def get_ec(pyrat, layer):
   """
   Extract per-species extinction coefficient at requested layer.
   """
+  absorption(pyrat)
   label = []
   ec = np.zeros((0, pyrat.spec.nwave))
   for i in np.arange(pyrat.alkali.nmodels):

@@ -36,6 +36,7 @@ def get_ec(pyrat, layer):
   label = []
   for i in np.arange(pyrat.rayleigh.nmodels):
     imol = np.where(pyrat.mol.name == pyrat.rayleigh.model[i].mol)[0][0]
+    pyrat.rayleigh.model[i].extinction(pyrat.spec.wn, pyrat.atm.press)
     ec[i] = pyrat.rayleigh.model[i].ec * pyrat.atm.d[layer,imol]
     label.append(pyrat.rayleigh.model[i].name)
   return ec, label

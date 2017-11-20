@@ -3288,5 +3288,11 @@ entries).
 Bumped Pyrat Bay to version 0.0.68.
 Bumped Lineread to version 6.4.12.
 
+
+*****  Mo 20. Nov 16:06:42 CET 2017  *****
+
+Fixed alkali and Rayleigh get_ec() functions to compute/update
+extinction on each call.
+
 *****
 
