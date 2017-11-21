@@ -3319,5 +3319,22 @@ Updated Schwenke's TiO PF script to use Exomol's isotope names.
 Bumped Pyrat Bay to version 0.0.70.
 Bumped lineread to version 6.4.13.
 
+
+*****  Di 21. Nov 16:15:07 CET 2017  *****
+
+Re-implemented gray cloud model.
+The new model is parameterized by the cloud top pressure (ptop).
+
+The model sets the extinction (cm-1) such that the optical depth grows
+to ~2/3 at ptop, creating a nearly instantaneous opaque layer.  The
+extinction is zero above ptop, and scales proportional to the pressure
+below ptop.
+
+This is much easier to interpret than the previous gray model, and is
+not linked to the H2 abundance, which was arbitrary and prone to
+correlations for high-metallicity (ie, variable H2) retrievals.
+
+Kept old gray model, renamed as ccsgray.
+
 *****
 
