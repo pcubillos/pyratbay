@@ -3342,3 +3342,8 @@ Updated tutorial configuration files.
 
 *****
 
+Updated docs.
+
+*****
+
+

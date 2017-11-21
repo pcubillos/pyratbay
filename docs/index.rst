@@ -15,7 +15,7 @@ Pyrat Bay: Python Radiative Transfer in a Bayesian framework
 Features
 ========
 
-``Pyrat Bay`` is a efficient, user-friendly tool to compute and fit
+``Pyrat Bay`` is an efficient, user-friendly tool to compute and fit
 radiative-transfer spectra.  This package offers:
 
 - Forward-model radiative-transfer calculation of:
@@ -29,14 +29,20 @@ radiative-transfer spectra.  This package offers:
     - Collision-induced absorption
     - Rayleigh scattering absorption
     - Na and K alkali resonant lines
-    - Gray-opacity Mie scattering
+    - Gray and Mie scattering opacity
 
 - Bayesian (MCMC) posterior sampling of atmospheric parameters:
-  
+
   - Molecular abundances
   - Temperature profile
   - Pressure-radius
-    
+  - Rayleigh and cloud top levels
+
+.. note:: ``Pyrat Bay`` is temporarily proprietary software.  If you
+          want to take a look before we release it, send me an email
+          at `patricio.cubillos[at]oeaw.ac.at`_.
+
+
 .. _team:
 
 Contributors
