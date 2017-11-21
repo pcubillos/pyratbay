@@ -3338,3 +3338,7 @@ Kept old gray model, renamed as ccsgray.
 
 *****
 
+Updated tutorial configuration files.
+
+*****
+
