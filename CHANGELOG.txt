@@ -3314,3 +3314,10 @@ Extract TiO's isotopic info from the isotopes.dat file.
 
 Updated Schwenke's TiO PF script to use Exomol's isotope names.
 
+*****
+
+Bumped Pyrat Bay to version 0.0.70.
+Bumped lineread to version 6.4.13.
+
+*****
+
