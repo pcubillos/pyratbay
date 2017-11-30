@@ -3310,3 +3310,7 @@ Switched TiO isotope name notation to Exomol's (which repack also
 uses).
 Extract TiO's isotopic info from the isotopes.dat file.
 
+*****
+
+Updated Schwenke's TiO PF script to use Exomol's isotope names.
+
