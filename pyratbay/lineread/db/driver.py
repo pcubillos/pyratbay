@@ -272,8 +272,9 @@ class dbdriver(object):
 
     if dbtype   == "hitran":
       iiso = 2
-    elif dbtype == "exomol":
+    elif dbtype in ["exomol", "kurucz"]:
       iiso = 3
+    # FINDME: Replace elif with else?
 
     # Get values for our molecule:
     for i in np.arange(len(lines)):

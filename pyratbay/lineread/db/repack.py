@@ -157,8 +157,9 @@ class repack(dbdriver):
 
     # Unique isotopes and inverse indices:
     uiso, inverse = np.unique(iso, return_inverse=True)
+    isonamelen = len(str(np.amax(uiso)))  # Count how many digits
     idx = np.zeros(len(uiso), int)
     for i in np.arange(len(uiso)):
-      idx[i] = self.isotopes.index(str(uiso[i]))
+      idx[i] = self.isotopes.index(str(uiso[i]).zfill(isonamelen))
     isoID = idx[inverse]
     return wnumber, gf, elow, isoID

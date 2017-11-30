@@ -50,6 +50,9 @@ def main():
   # Number of isotopes:
   niso  = len(iso)
 
+  # Replace input isotope names with Exomol's notation:
+  iso[:] = ["66", "76", "86", "96", "06"]
+
   # Number of temperature samples:
   ntemp = len(lines) - offset
 

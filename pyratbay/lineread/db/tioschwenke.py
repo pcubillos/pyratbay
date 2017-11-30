@@ -28,22 +28,20 @@ class tioschwenke(dbdriver):
 
     # Database name:
     self.name ="Schwenke TiO (1998)"
-    # Isotopes names:
-    self.isotopes = [" 46TiO", "47TiO", "48TiO", "49TiO", "50TiO"]
-    # Isotopes mass:
-    self.mass = [61.94754403, 62.94667863, 63.94286193, 64.94278573,
-                 65.93970673]
-    # Isotopic abundance ratio:
-    self.isoratio = [0.080, 0.073, 0.738, 0.055, 0.054]
     # Molecule name:
     self.molecule = "TiO"
+    ID, mol, isotopes, mass, ratio = self.getiso(molname=self.molecule,
+                                                 dbtype="exomol")
+    self.isotopes = isotopes
+    self.mass     = mass
+    self.isoratio = ratio
 
-    self.recsize = 16 # Record size (bytes)
-    self.recdata = 10 # Useful record data size (bytes)
+    self.recsize = 16  # Record size (bytes)
+    self.recdata = 10  # Useful record data size (bytes)
     self.ratiolog  = np.log(1.0 + 1.0/2000000)
     # Table of logarithms:
     self.tablog    = 10.0**(0.001*(np.arange(32769) - 16384))
-    self.pf_isonames = 0 # PF line with isotopes names 
+    self.pf_isonames = 0  # PF line with isotopes names
     self.log = log
 
 
@@ -74,7 +72,7 @@ class tioschwenke(dbdriver):
   def dbread(self, iwn, fwn, verb, *args):
     """
     Read the Schwenke TiO database.
- 
+
     Parameters
     ----------
     iwn: Scalar
@@ -85,7 +83,7 @@ class tioschwenke(dbdriver):
        Verbosity threshold.
     args:
        Additional arguments, not needed.
- 
+
     Returns
     -------
     wnumber: 1D float ndarray
@@ -97,20 +95,20 @@ class tioschwenke(dbdriver):
     isoID: 2D integer ndarray
       Isotope index (0, 1, 2, 3, ...).
     """
- 
+
     # Open the file:
     data = open(self.dbfile, "rb")
- 
+
     # Get the number of lines in the file:
     data.seek(0, 2)                     # Set pointer at the file's end
     nlines = data.tell() / self.recsize # Number of lines (bytes/record_size)
- 
+
     # Rewrite wavelength limits as given in the Database file:
     iwl = 1.0/(fwn * pc.nm)         # cm to nanometer
     fwl = 1.0/(iwn * pc.nm)
     iwav = np.log(iwl) / self.ratiolog
     fwav = np.log(fwl) / self.ratiolog
- 
+
     # Find the positions of iwl and fwl, then jump to wl_i position:
     istart = self.binsearch(data, iwav, 0,      nlines-1, 0)
     istop  = self.binsearch(data, fwav, istart, nlines-1, 1)
@@ -124,7 +122,7 @@ class tioschwenke(dbdriver):
     gf      = np.zeros(nread, np.double)
     elow    = np.zeros(nread, np.double)
     isoID   = np.zeros(nread,     int)
- 
+
     pt.msg(verb-4, "Starting to read Schwenke database between records {:d} "
                    "and {:d}.".format(istart, istop), self.log, 2)
 
@@ -142,7 +140,7 @@ class tioschwenke(dbdriver):
       data.seek((istart+i)*self.recsize)
       iw[i], ieli[i], ielo[i], igf[i] = struct.unpack('ihhh',
                                                       data.read(self.recdata))
- 
+
       # Print a checkpoint statement every 10% interval:
       if (i % interval) == 0 and i != 0:
         wl = np.exp(iw[i] * self.ratiolog) * pc.nm/pc.um

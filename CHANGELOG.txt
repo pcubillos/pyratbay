@@ -3299,4 +3299,25 @@ extinction on each call.
 Bumped Pyrat Bay to version 0.0.69.
 Bumped Pyrat to version 1.2.49.
 
+
+*****  Do 30. Nov 14:29:56 CET 2017  *****
+
+Added TiO, VO, and FeH info to the isotopes.dat file.
+
 *****
+
+Switched TiO isotope name notation to Exomol's (which repack also
+uses).
+Extract TiO's isotopic info from the isotopes.dat file.
+
+*****
+
+Updated Schwenke's TiO PF script to use Exomol's isotope names.
+
+*****
+
+Bumped Pyrat Bay to version 0.0.70.
+Bumped lineread to version 6.4.13.
+
+*****
+
