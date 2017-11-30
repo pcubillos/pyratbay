@@ -4,9 +4,9 @@
 # Molecule   Molecule name        --
 # HIT        HITRAN isotope ID    AFGL code
 # Exomol     Exomol isotope ID
-# Iso ratio  Isotopic ratio       Simeckova et al. (2006), Rothman et al (2013).
+# Iso ratio  Isotopic ratio       Simeckova et al. (2006), Rothman et al (2013),
+#                                 kurucz.harvard.edu/molecules/tio (TiO)
 # Iso mass   Isotopic mass (amu)  Lide (2008) Handbook of chem.
-
 # ID Molecule Iso   Exomol          Iso ratio    Iso mass
  1   H2O      161   116           9.973e-01    18.0105646
  1   H2O      181   118           1.999e-03    20.014811
@@ -139,3 +139,10 @@
 52   CS2      224   000           0            0
 52   CS2      223   000           0            0
 52   CS2      232   000           0            0
+90   TiO       00   66            0.0793       61.9475462
+90   TiO       00   76            0.0728       62.9466777
+90   TiO       00   86            0.7394       63.9428609
+90   TiO       00   96            0.0551       64.9427846
+90   TiO       00   06            0.0534       65.9397058
+91   VO        00   16            1.0          66.9388741
+92   FeH       00   61            1.0          56.9427625

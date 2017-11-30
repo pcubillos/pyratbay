@@ -3299,4 +3299,8 @@ extinction on each call.
 Bumped Pyrat Bay to version 0.0.69.
 Bumped Pyrat to version 1.2.49.
 
-*****
+
+*****  Do 30. Nov 14:29:56 CET 2017  *****
+
+Added TiO, VO, and FeH info to the isotopes.dat file.
+
