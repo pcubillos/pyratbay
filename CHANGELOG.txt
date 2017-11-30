@@ -3304,3 +3304,9 @@ Bumped Pyrat to version 1.2.49.
 
 Added TiO, VO, and FeH info to the isotopes.dat file.
 
+*****
+
+Switched TiO isotope name notation to Exomol's (which repack also
+uses).
+Extract TiO's isotopic info from the isotopes.dat file.
+
