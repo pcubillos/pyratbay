@@ -3359,3 +3359,10 @@ This merge resolves #33.
 
 *****
 
+Updated MC3 submodule.
+
+*****
+
+Bumped Pyrat Bay to version 0.0.72.
+
+*****
