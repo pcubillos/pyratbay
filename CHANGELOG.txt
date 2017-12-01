@@ -3344,6 +3344,7 @@ Updated tutorial configuration files.
 
 Updated docs.
 
+
 *****  Fr 1. Dez 09:48:23 CET 2017  *****
 
 Renamed the new 'gray' model to 'deck', (so one doesn't confuse it
@@ -3352,4 +3353,9 @@ Updated examples and docs accordingly.
 
 *****
 
+Bumped Pyrat Bay to version 0.0.71.
+Bumped Pyrat to version 1.2.50.
+This merge resolves #33.
+
+*****
 
