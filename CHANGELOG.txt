@@ -3344,6 +3344,12 @@ Updated tutorial configuration files.
 
 Updated docs.
 
+*****  Fr 1. Dez 09:48:23 CET 2017  *****
+
+Renamed the new 'gray' model to 'deck', (so one doesn't confuse it
+with the old gray model).
+Updated examples and docs accordingly.
+
 *****
 
 

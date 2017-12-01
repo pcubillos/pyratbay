@@ -209,7 +209,7 @@ HITEMP                |H2O|, CO, |CO2|, NO, OH        hit    http://cfa.harvard.
 Exomol                |H2O|, CO, |CO2|, |CH4| (+43)   emol   http://www.exomol.com/
 Schwenke              TiO                             ts     http://kurucz.harvard.edu/molecules/tio/tioschwenke.bin
 Plez                  VO                              vo     http://www.pages-perso-bertrand-plez.univ-montp2.fr
-repack                Exomol/HITEMP                   repack https://github.com/pcubillos/repack
+repack                Exomol/HITEMP/schwenke-TiO      repack https://github.com/pcubillos/repack
 ====================  =============================   ====== ===
 
 .. VALD                  TBD                             vald   TBD
@@ -487,8 +487,8 @@ Here is an example configuration file for this mode:
   # Lecavelier parameters (log10(H2-cross-section), alpha):
   rpars    = 0.0 -4.0
 
-  # Haze models, select from: [gray ccsgray]
-  hazes = gray   ; Opaque gray cloud top model
+  # Haze models, select from: [deck ccsgray]
+  hazes = deck   ; Opaque gray cloud deck model
   hpars = -0.5   ; log10(cloud top pressure[bar])
 
   # Alkali opacity, select from: [SodiumVdWst PotassiumVdWst]
@@ -543,8 +543,8 @@ And these are the available haze/cloud models (``hazes`` parameter):
 ====================  ================================================= ==
 Haze/Cloud Models       Parameters                                      Comments
 ====================  ================================================= ==
-gray                  :math:`\log(p_{\rm top})`                         Opaque gray cloud top at :math:`p_{\rm top}` pressure. 
-ccsgray               :math:`\log(f), \log(p_{\rm t}), \log(p_{\rm b}`) Constant cross-section between :math:`p_{\rm t}` and :math:`p_{\rm b}`.
+deck                  :math:`\log(p_{\rm top})`                         Opaque gray cloud deck at :math:`p_{\rm top}` pressure. 
+ccsgray               :math:`\log(f), \log(p_{\rm t}), \log(p_{\rm b}`) Constant cross-section (:math:`\log(f)`) gray cloud between :math:`p_{\rm t}` and :math:`p_{\rm b}`.
 ====================  ================================================= ==
 
 The Rayleigh and haze parameters are input throught the ``rpars`` and
@@ -552,7 +552,7 @@ The Rayleigh and haze parameters are input throught the ``rpars`` and
 can include multiple models, simply by concatenating multiple models
 (and parameters) one after the other in the config file.
 
-TBD: Add details about the models' parameters in a different page.
+.. TBD: Add details about the models' parameters in a different page.
 
 To compute a ``Pyrat`` model spectrum run the following script:
 

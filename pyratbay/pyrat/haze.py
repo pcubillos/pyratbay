@@ -17,7 +17,7 @@ def absorption(pyrat):
 
   for i in np.arange(pyrat.haze.nmodels):
     # Little hack (clean up later):
-    if pyrat.haze.model[i].name == "gray":
+    if pyrat.haze.model[i].name == "deck":
       pyrat.haze.model[i].extinction(pyrat.spec.wn, pyrat.atm.press,
                                      pyrat.atm.radius)
       pyrat.haze.ec += pyrat.haze.model[i].ec
@@ -41,7 +41,7 @@ def get_ec(pyrat, layer):
   ec = np.zeros((pyrat.haze.nmodels, pyrat.spec.nwave))
   label = []
   for i in np.arange(pyrat.haze.nmodels):
-    if pyrat.haze.model[i].name == "gray":
+    if pyrat.haze.model[i].name == "deck":
       pyrat.haze.model[i].extinction(pyrat.spec.wn, pyrat.atm.press,
                                      pyrat.atm.radius)
       ec[i] = pyrat.haze.model[i].ec[layer]
@@ -52,7 +52,7 @@ def get_ec(pyrat, layer):
   return ec, label
 
 
-class CCSGray():
+class CCSgray():
   """
   Constant cross-section gray cloud model.
   """
@@ -91,12 +91,12 @@ class CCSGray():
     self.ec[itop:ibottom,:] = 10**self.pars[0] * self.s0
 
 
-class Gray():
+class Deck():
   """
-  Instantly opaque gray cloud model (below given pressure).
+  Instantly opaque gray cloud deck at given pressure.
   """
   def __init__(self):
-    self.name  = "gray"         # Model name
+    self.name  = "deck"         # Model name
     self.pars  = [-1.0]          # log10(Pressure[bar]) of cloud top
     self.npars = len(self.pars)  # Number of model fitting parameters
     self.ec    = None            # Model extinction coefficient
@@ -136,7 +136,7 @@ class Gray():
     self.ec[itop:,:] = np.expand_dims(ec[itop:], axis=1)
 
 # List of available haze models:
-hmodels = [CCSGray(), Gray()]
+hmodels = [CCSgray(), Deck()]
 
 # Compile list of haze-model names:
 hnames = []
