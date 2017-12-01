@@ -151,13 +151,16 @@ Source               Species                       Type Format Reference
 ==================== ============================= ==== ====== =========
 HITRAN               |H2O|, CO, |CO2|, |CH4| (+43) LT   LBL    [Rothman2013]_
 HITEMP               |H2O|, CO, |CO2|, NO, OH      LT   LBL    [Rothman2010]_
-ExoMol               |H2O|, CO, |CO2|, |CH4| (+)   LT   CS     TBD
+ExoMol               |H2O|, CO, |CO2|, |CH4| (+)   LT   LBL/CS [Tennyson2016]_
 Partridge & Schwenke |H2O|                         LT   LBL    [PS1997]_
 Schwenke             TiO                           LT   LBL    [Schwenke1998]_
 Plez                 VO                            LT   LBL    [Plez1998]_
 Borysow              |H2|-|H2|, |H2|-He            CIA  CS     TBD
 HITRAN               |H2|-|H2|, |H2|-He (+12)      CIA  CS     [Richard2012]_
 ==================== ============================= ==== ====== =========
+
+``Pyrat Bay`` is also compatible with the ``repack`` code to compress
+Exomol/HITEMP databases [Cubillos2017]_.
 
 .. ExoMol               |H2O|, CO, |CO2|, |CH4| (+)   LT   LBL    Coming Soon
 
@@ -203,8 +206,10 @@ Database              Species                         dbtype URL
 Partridge & Schwenke  |H2O|                           ps     http://kurucz.harvard.edu/molecules/h2o/h2ofastfix.bin
 HITRAN                |H2O|, CO, |CO2|, |CH4| (+43)   hit    http://cfa.harvard.edu/hitran
 HITEMP                |H2O|, CO, |CO2|, NO, OH        hit    http://cfa.harvard.edu/hitran
+Exomol                |H2O|, CO, |CO2|, |CH4| (+43)   emol   http://www.exomol.com/
 Schwenke              TiO                             ts     http://kurucz.harvard.edu/molecules/tio/tioschwenke.bin
 Plez                  VO                              vo     http://www.pages-perso-bertrand-plez.univ-montp2.fr
+repack                Exomol/HITEMP/schwenke-TiO      repack https://github.com/pcubillos/repack
 ====================  =============================   ====== ===
 
 .. VALD                  TBD                             vald   TBD
@@ -482,6 +487,10 @@ Here is an example configuration file for this mode:
   # Lecavelier parameters (log10(H2-cross-section), alpha):
   rpars    = 0.0 -4.0
 
+  # Haze models, select from: [deck ccsgray]
+  hazes = deck   ; Opaque gray cloud deck model
+  hpars = -0.5   ; log10(cloud top pressure[bar])
+
   # Alkali opacity, select from: [SodiumVdWst PotassiumVdWst]
   alkali = SodiumVdWst
 
@@ -531,18 +540,19 @@ dalgarno_H2           |H2|     None                     [Kurucz1970]_
 
 And these are the available haze/cloud models (``hazes`` parameter):
 
-====================  ==================================
-Haze/Cloud Models       Parameters         
-====================  ==================================
-gray                  :math:`\log(f), \log(p_{\rm t}), \log(p_{\rm b}`)
-====================  ==================================
+====================  ================================================= ==
+Haze/Cloud Models       Parameters                                      Comments
+====================  ================================================= ==
+deck                  :math:`\log(p_{\rm top})`                         Opaque gray cloud deck at :math:`p_{\rm top}` pressure. 
+ccsgray               :math:`\log(f), \log(p_{\rm t}), \log(p_{\rm b}`) Constant cross-section (:math:`\log(f)`) gray cloud between :math:`p_{\rm t}` and :math:`p_{\rm b}`.
+====================  ================================================= ==
 
 The Rayleigh and haze parameters are input throught the ``rpars`` and
 ``hpars``, respectively.  For any of these type of models, the user
 can include multiple models, simply by concatenating multiple models
 (and parameters) one after the other in the config file.
 
-TBD: Add details about the models' parameters in a different page.
+.. TBD: Add details about the models' parameters in a different page.
 
 To compute a ``Pyrat`` model spectrum run the following script:
 
@@ -826,6 +836,7 @@ References
 ----------
 
 .. [Burrows2000] `Burrows et al. (2000): The Near-Infrared and Optical Spectra of Methane Dwarfs and Brown Dwarfs <http://adsabs.harvard.edu/abs/2000ApJ...531..438B>`_
+.. [Cubillos2017] `An Algorithm to Compress Line-transition Data for Radiative-transfer Calculations <http://adsabs.harvard.edu/abs/2017ApJ...850...32C>`_
 .. [DalgarnoWilliams1962] `Dalgarno & Williams (1962): Rayleigh Scattering by Molecular Hydrogen <http://adsabs.harvard.edu/abs/1962ApJ...136..690D>`_
 .. [Irwin1981] `Irwin (1981): Polynomial partition function approximations of 344 atomic and molecular species <http://adsabs.harvard.edu/abs/1981ApJS...45..621I>`_
 .. [Kurucz1970] `Atlas: a Computer Program for Calculating Model Stellar Atmospheres <http://adsabs.harvard.edu/abs/1970SAOSR.309.....K>`_
@@ -839,5 +850,6 @@ References
 .. [Rothman2010] `Rothman et al. (2010): HITEMP, the high-temperature molecular spectroscopic database <http://adsabs.harvard.edu/abs/2010JQSRT.111.2139R>`_
 .. [Rothman2013] `Rothman et al. (2013): The HITRAN2012 molecular spectroscopic database <http://adsabs.harvard.edu/abs/2013JQSRT.130....4R>`_
 .. [Schwenke1998] `Schwenke (19988): Opacity of TiO from a coupled electronic state calculation parametrized by AB initio and experimental data <http://adsabs.harvard.edu/abs/1998FaDi..109..321S>`_
+.. [Tennyson2016] `Tennyson et al. (2016): The ExoMol database: Molecular line lists for exoplanet and other hot atmospheres <http://adsabs.harvard.edu/abs/2016JMoSp.327...73T>`_
 .. [terBraak2006] `ter Braak (2006): A Markov Chain Monte Carlo version of the genetic algorithm Differential Evolution <http://dx.doi.org/10.1007/s11222-006-8769-1>`_
 .. [BraakVrugt2008] `ter Braak & Vrugt (2008): Differential Evolution Markov Chain with snooker updater and fewer chains <http://dx.doi.org/10.1007/s11222-008-9104-9>`_
