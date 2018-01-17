@@ -85,11 +85,8 @@ def read_extinction(pyrat):
 
   # Read extinction-coefficient data table:
   ndata = ex.nmol * ex.ntemp * ex.nlayers * ex.nwave
-  data = np.asarray(struct.unpack('d'*ndata, f.read(8*ndata)))
-
-  sm_ect = mpr.Array(ctypes.c_double, data)
-  pyrat.ex.etable = np.ctypeslib.as_array(sm_ect.get_obj()).reshape(
-                               (ex.nmol, ex.ntemp, ex.nlayers, ex.nwave))
+  pyrat.ex.etable = np.asarray(struct.unpack('d'*ndata, f.read(8*ndata))).\
+                           reshape((ex.nmol, ex.ntemp, ex.nlayers, ex.nwave))
   # Some checks:
   if ex.nwave != pyrat.spec.nwave or np.sum(np.abs(ex.wn-pyrat.spec.wn)) > 0:
     pyrat.warning("Wavenumber sampling from extinction-coefficient "
@@ -102,7 +99,7 @@ def read_extinction(pyrat):
     pyrat.spec.nwave  = ex.nwave
     pyrat.spec.wnlow  = ex.wn[ 0]
     pyrat.spec.wnhigh = ex.wn[-1]
-    pyrat.spec.wnstep = ex.wn[1] - ex.wn[0]
+    pyrat.spec.wnstep = ex.wn[ 1] - ex.wn[0]
     # Keep wavenumber oversampling factor:
     pyrat.spec.ownstep = pyrat.spec.wnstep / pyrat.spec.wnosamp
     pyrat.spec.onwave  = (pyrat.spec.nwave - 1) *  pyrat.spec.wnosamp + 1

@@ -3365,4 +3365,12 @@ Updated MC3 submodule.
 
 Bumped Pyrat Bay to version 0.0.72.
 
+
+*****  Mi 17. Jan 10:45:08 CET 2018  *****
+
+Removed shared-memory of opacity when reading from file.
+This reduces the ammount of memory needed when creating large files.
+
 *****
+
+
