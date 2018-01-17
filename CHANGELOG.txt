@@ -3373,4 +3373,7 @@ This reduces the ammount of memory needed when creating large files.
 
 *****
 
+Bumped Pyrat to version 1.2.51.
+
+*****
 
