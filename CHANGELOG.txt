@@ -3377,3 +3377,7 @@ Bumped Pyrat to version 1.2.51.
 
 *****
 
+Added Spitzer MIPS 24 um filter file.
+
+*****
+
