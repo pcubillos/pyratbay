@@ -3385,3 +3385,7 @@ Enabled fignum argument for spectrum() function.
 
 *****
 
+Cosmetic fixes in argum.py.
+
+*****
+
