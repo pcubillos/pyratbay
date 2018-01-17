@@ -383,10 +383,9 @@ def checkinputs(pyrat):
   if pyrat.runmode is None:
     pt.warning(pyrat.verb-2, "Defaulted Pyrat's runmode to: spectrum.",
                pyrat.log, pyrat.wlog)
-  if pyrat.runmode not in ['tli', 'pt', 'atmosphere', 'opacity', 'spectrum',
-                           'mcmc']:
-    pt.error("Invalid runmode ({:s}).  Select from: tli, pt, atmosphere, "
-             "spectrum, opacity, mcmc.".format(pyrat.runmode), pyrat.log)
+  if pyrat.runmode not in pc.rmodes:
+    pt.error("Invalid runmode ({:s}).  Select from: {}.".
+              format(pyrat.runmode, pc.rmodes), pyrat.log)
 
   # Check that input files exist:
   if inputs.atmfile is None:

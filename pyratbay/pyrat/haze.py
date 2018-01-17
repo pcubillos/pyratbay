@@ -122,18 +122,24 @@ class Deck():
     nwave   = len(wn)
     ptop = 10**self.pars[0]*pc.bar
     # Index of layer directly below cloud top:
-    itop = np.where(pressure>ptop)[0][0]
+    if ptop >= pressure[-1]:  # Atmosphere boundary cases
+      itop = nlayers-1
+    elif ptop < pressure[0]:
+      itop = 1
+    else:
+      itop = np.where(pressure>ptop)[0][0]
 
     # Set the extinction at itop such that vertical tau[itop] ~ 2/3:
     alpha = (2.0/3)/ptop
     ec = np.zeros(nlayers)
     ec[itop] = 2*alpha*(pressure[itop])/(radius[itop-1]-radius[itop])
     # Below itop, scale the extinction proportional to the pressure:
-    ec[itop+1:] = ec[itop] * pressure[itop+1:]/ptop
+    ec[itop:] = ec[itop] * pressure[itop:]/pressure[itop]
 
     # Gray absorption in cm-1:
     self.ec = np.zeros((nlayers, nwave))
     self.ec[itop:,:] = np.expand_dims(ec[itop:], axis=1)
+
 
 # List of available haze models:
 hmodels = [CCSgray(), Deck()]

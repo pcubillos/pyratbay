@@ -29,7 +29,7 @@ import MadhuTP
 def spectrum(wlength=None, spectrum=None, data=None, uncert=None,
     bandflux=None, bandtrans=None, bandidx=None, bandwl=None,
     starflux=None, rprs=None, path=None, logxticks=None,
-    pyrat=None, gaussbin=2, filename=None):
+    pyrat=None, gaussbin=2, filename=None, fignum=-11):
   """
   Plot a transmission or emission model spectrum with (optional) data
   points with error bars and band-integrated model.
@@ -97,7 +97,7 @@ def spectrum(wlength=None, spectrum=None, data=None, uncert=None,
   lw  = 1.5
   mew = 1.0
 
-  plt.figure(-11, (8.5, 5))
+  plt.figure(fignum, (8.5, 5))
   plt.clf()
   ax = plt.subplot(111)
   plt.subplots_adjust(0.15, 0.125, 0.925, 0.925)
