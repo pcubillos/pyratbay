@@ -3381,3 +3381,7 @@ Added Spitzer MIPS 24 um filter file.
 
 *****
 
+Enabled fignum argument for spectrum() function.
+
+*****
+
