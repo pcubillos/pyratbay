@@ -1,13 +1,16 @@
-# Copyright (c) 2016-2017 Patricio Cubillos and contributors.
+# Copyright (c) 2016-2018 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-import sys, os
-import argparse, ConfigParser
+import sys
+import os
+import ConfigParser
+import argparse
 import numpy as np
 import scipy.constants   as sc
 import scipy.interpolate as si
 import scipy.special     as ss
 import multiprocessing   as mpr
+from datetime import date
 
 from .. import tools      as pt
 from .. import constants  as pc
@@ -355,10 +358,10 @@ def parse(pyrat, log=None):
   pt.msg(pyrat.inputs.verb-2,
          "{:s}\n  Python Radiative Transfer (PyRaT).\n"
          "  Version {:d}.{:d}.{:d}.\n"
-         "  Copyright (c) 2016-2017 Patricio Cubillos and collaborators.\n"
+         "  Copyright (c) 2016-{:d} Patricio Cubillos and collaborators.\n"
          "  Pyrat is (temporarily) proprietaty software (see LICENSE).\n"
          "{:s}\n\n".format(pt.sep, ver.PYRAT_VER, ver.PYRAT_MIN,
-                                   ver.PYRAT_REV, pt.sep), pyrat.log)
+                        ver.PYRAT_REV, date.today().year, pt.sep), pyrat.log)
 
   pt.msg(pyrat.inputs.verb-3, "Read command-line arguments from "
          "configuration file: '{:s}'".format(cfile), pyrat.log)

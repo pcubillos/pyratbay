@@ -3401,5 +3401,28 @@ Updated MC3 submodule.
 Bumped Pyrat Bay to version 0.0.73.
 Bumped Pyrat to version 1.2.52.
 
+
+*****  Fr 19. Jan 09:52:21 CET 2018  *****
+
+Updated MC3 submodule.
+
+*****
+
+Updated pbay's driver to process the grbreak and grnmin arguments.
+Updated MC3 submodule.
+
+*****
+
+Minor correction in atmosphere's makepreatm() docstring.
+
+*****
+
+Updated copyright year to 2018.
+
+*****
+
+Bumped Pyrat Bay to version 0.0.74.
+Bumped Pyrat to version 1.2.53.
+
 *****
 

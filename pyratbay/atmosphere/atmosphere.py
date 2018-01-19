@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2017 Patricio Cubillos and contributors.
+# Copyright (c) 2016-2018 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
 __all__ = ["writeatm", "readatm", "uniform", "makeatomic", "readatomic",
@@ -339,16 +339,16 @@ def makepreatm(pressure, temp, afile, elements, species, patm):
   ----------
   pressure: String
      Pressure atmospheric profile (bar).
-  abun_file: String
-     Name of the abundances file.
-  in_elem: String
-     String containing input elemental species.
-  out_spec: String
-     String containing output molecular species.
-  pre_atm: String
-     Pre-atmospheric filename.
   temp: 1D float array
      Temperature atmospheric profile (in K).
+  afile: String
+     Name of the elemental abundances file.
+  elements: List of strings
+     List of input elemental species.
+  species: List of strings
+     List of output molecular species.
+  patm: String
+     Output pre-atmospheric filename.
 
   Uncredited developers
   ---------------------
