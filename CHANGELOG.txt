@@ -3417,3 +3417,7 @@ Minor correction in atmosphere's makepreatm() docstring.
 
 *****
 
+Updated copyright year to 2018.
+
+*****
+

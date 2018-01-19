@@ -1,14 +1,17 @@
-# Copyright (c) 2016-2017 Patricio Cubillos and contributors.
+# Copyright (c) 2016-2018 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
 __all__ = ["makeTLI", "parser"]
 
-import sys, os
+import sys
+import os
 import time
-import ConfigParser, argparse
+import ConfigParser
+import argparse
 import struct
 import numpy as np
 import matplotlib.pyplot as plt
+from datetime import date
 
 from .. import tools as pt
 from .. import constants as pc
@@ -129,10 +132,10 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
   # Welcome message:
   pt.msg(verb-1, "{:s}\n  Lineread.\n"
             "  Version {:d}.{:d}.{:d}.\n"
-            "  Copyright (c) 2016-2017 Patricio Cubillos and collaborators.\n"
+            "  Copyright (c) 2016-{:d} Patricio Cubillos and collaborators.\n"
             "  Lineread is (temporarily) proprietaty software (see LICENSE).\n"
-            "{:s}\n\n".format(pt.sep, ver.LR_VER, ver.LR_MIN,
-                                      ver.LR_REV, pt.sep), log)
+            "{:s}\n\n".format(pt.sep, ver.LR_VER, ver.LR_MIN, ver.LR_REV,
+                              pt.sep, date.today().year), log)
 
   # Input-not-found error messages:
   if dblist is None:
