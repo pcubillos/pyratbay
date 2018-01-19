@@ -142,7 +142,8 @@ def run(argv, main=False):
            pmin=args.pmin, pmax=args.pmax, stepsize=args.stepsize,
            prior=args.prior, priorlow=args.priorlow, priorup=args.priorup,
            walk=args.walk, nsamples=args.nsamples, nchains=args.nchains,
-           burnin=args.burnin, thinning=args.thinning, grtest=True,
+           burnin=args.burnin, thinning=args.thinning,
+           grtest=True, grbreak=args.grbreak, grnmin=args.grnmin,
            hsize=10, kickoff='normal', log=log, nproc=args.nproc,
            plots=True, parname=pyrat.ret.parname,
            savefile="{:s}.npz".format(outfile))

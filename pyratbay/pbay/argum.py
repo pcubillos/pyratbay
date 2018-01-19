@@ -1,7 +1,8 @@
 # Copyright (c) 2016-2017 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-import sys, os
+import sys
+import os
 import ConfigParser, argparse
 import numpy as np
 
@@ -200,6 +201,13 @@ def parse(wlog):
            help="Chains thinning factor (use every thinning-th iteration) "
                 "[default: %(default)s]",
            action="store", type=int,  default=1)
+  group.add_argument("--grbreak",   dest="grbreak",
+           action="store", type=float, default=0.0,
+           help="Gelman-Rubin convergence threshold to stop the MCMC.")
+  group.add_argument("--grnmin",     dest="grnmin",
+           action="store", type=eval, default=0.5,
+           help="Minimum number (integer) or fraction (float) of valid "
+                "samples required for grbreak [default: %(default)s]")
   group.add_argument("--bulk",   dest="bulk",
            help="Bulk-abundance atmospheric species",
            action="store", type=pt.parray, default=None)
@@ -232,7 +240,7 @@ def parse(wlog):
   pt.msg(1, "{:s}\n"
             "  Python Radiative Transfer in a Bayesian framework (Pyrat Bay).\n"
             "  Version {:d}.{:d}.{:d}.\n"
-            "  Copyright (c) 2016-2017 Patricio Cubillos and collaborators.\n"
+            "  Copyright (c) 2016-2018 Patricio Cubillos and collaborators.\n"
             "  Pyrat Bay is (temporarily) proprietaty software (see LICENSE).\n"
 #            "  Pyrat Bay is open-source software under the RR license.\n"
             "{:s}\n\n".format(pt.sep, ver.PBAY_VER, ver.PBAY_MIN,
