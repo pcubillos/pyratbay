@@ -3413,3 +3413,7 @@ Updated MC3 submodule.
 
 *****
 
+Minor correction in atmosphere's makepreatm() docstring.
+
+*****
+
