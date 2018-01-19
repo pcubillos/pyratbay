@@ -3401,5 +3401,11 @@ Updated MC3 submodule.
 Bumped Pyrat Bay to version 0.0.73.
 Bumped Pyrat to version 1.2.52.
 
+
+*****  Fr 19. Jan 09:52:21 CET 2018  *****
+
+Updated MC3 submodule.
+
 *****
+
 
