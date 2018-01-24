@@ -3424,5 +3424,12 @@ Updated copyright year to 2018.
 Bumped Pyrat Bay to version 0.0.74.
 Bumped Pyrat to version 1.2.53.
 
+
+*****  Mi 24. Jan 11:12:46 CET 2018  *****
+
+Implemented qcapcheck() in atmosphere module to check whether trace
+species abundances add more than a given qcap value.
+Renamed qscale.py to qscaling.py (to avoid name conflict).
+
 *****
 

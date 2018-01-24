@@ -5,10 +5,10 @@
 Atmospheric modeling utility functions.
 """
 
-from .qscale     import *
+from .qscaling   import *
 from .atmosphere import *
 
-__all__ = ["balance", "ratio", "qscale"] + atmosphere.__all__
+__all__ = qscaling.__all__ + atmosphere.__all__
 
 # Clean up top-level namespace--delete everything that isn't in __all__
 # or is a magic attribute, and that isn't a submodule of this package
