@@ -37,7 +37,7 @@ def init(pyrat, args, log):
   pyrat.ret.thigh = args.thigh
 
 
-def fit(params, pyrat, freeze=False):
+def fit(params, pyrat, freeze=False, retmodel=True):
   """
   Fitting routine for MCMC.
 
@@ -52,9 +52,13 @@ def fit(params, pyrat, freeze=False):
      temperature, abundance, and radius profiles to the original values.
      Note that in this case the pyrat object will contain inconsistent
      values between the atmospheric profiles and the spectrum.
+  retmodel: Bool
+     Flag to include the model spectra in the return.
 
   Returns
   -------
+  spectrum: 1D float ndarray
+     The output model spectra.  Returned only if retmodel=True.
   bandflux: 1D float ndarray
      The waveband-integrated spectrum values.
   """
@@ -122,10 +126,13 @@ def fit(params, pyrat, freeze=False):
     rejectflag = True
 
   # Reject this iteration if there are invalid temperatures or radii:
-  if rejectflag:
+  if pyrat.obs.bandflux is not None and rejectflag:
     pyrat.obs.bandflux[:] = np.inf
 
   # Revert abundances in the atmospheric profile:
   if freeze:
     pyrat.atm.q = q0
+
+  if retmodel:
+    return pyrat.spec.spectrum, pyrat.obs.bandflux
   return pyrat.obs.bandflux

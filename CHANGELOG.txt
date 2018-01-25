@@ -3449,3 +3449,8 @@ Removed deprecated functions.
 
 *****
 
+Added retmodel argument to pbay.fit() to include the model spectrum in
+the return.
+
+*****
+
