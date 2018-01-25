@@ -15,7 +15,6 @@ def init(pyrat, args, log):
   """
   Initialize variables that will be used in the atmospheric retrieval.
   """
-
   # Check stellar spectrum model:
   if pyrat.od.path == "eclipse" and pyrat.phy.starflux is None:
     pt.error("Unspecified stellar flux model.", log)
@@ -58,7 +57,6 @@ def fit(params, pyrat, freeze=False):
   bandflux: 1D float ndarray
      The waveband-integrated spectrum values.
   """
-
   if freeze:
     q0 = np.copy(pyrat.atm.q)
 
@@ -81,6 +79,10 @@ def fit(params, pyrat, freeze=False):
                     bratio=pyrat.ret.bulkratio, invsrat=pyrat.ret.invsrat)
   else:
     q2 = pyrat.atm.q
+
+  # Check abundaces stay within bounds:
+  if atm.qcapcheck(q2, pyrat.ret.qcap, pyrat.ret.ibulk):
+    rejectflag = True
 
   # Update reference radius if requested:
   if pyrat.ret.irad is not None:

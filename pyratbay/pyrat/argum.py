@@ -30,16 +30,16 @@ import pt as PT
 sys.path.append(rootdir + "/pyratbay/atmosphere/")
 import MadhuTP
 
+
 def parse(pyrat, log=None):
   """
-  Parse the command-line arguments into the pyrat object
+  Parse the command-line arguments into the pyrat object.
 
   Parameters
   ----------
   pyrat: Object
-     A Pyrat instance where to store the CLA.
+     A Pyrat instance where to store the command-line arguments.
   """
-
   # Parse configuration file:
   cparser = argparse.ArgumentParser(description=__doc__, add_help=False,
                            formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -196,6 +196,8 @@ def parse(pyrat, log=None):
       "Bulk-abundance atmospheric species.")
   pt.addarg("molscale",    group, pt.parray, None,
       "Variable-abundance atmospheric species.")
+  pt.addarg("qcap",        group, np.double, None,
+      "Maximum acceptable cumulative abundance fraction of traces.")
   pt.addarg("tmodel",      group, str,       None,
       "Temperature-profile model name.  Select from: isothermal or TCEA.")
   pt.addarg("params",      group, pt.parray, None,
@@ -287,10 +289,10 @@ def parse(pyrat, log=None):
   # Hydrostatic-equilibrium base-level variables:
   pyrat.inputs.refpressure = user.refpressure
   # Extinction:
-  pyrat.inputs.ethresh = user.ethresh
-  pyrat.inputs.tmin    = user.tmin
-  pyrat.inputs.tmax    = user.tmax
-  pyrat.inputs.tstep   = user.tstep
+  pyrat.inputs.ethresh    = user.ethresh
+  pyrat.inputs.tmin       = user.tmin
+  pyrat.inputs.tmax       = user.tmax
+  pyrat.inputs.tstep      = user.tstep
   # Voigt-profile:
   pyrat.inputs.vextent    = user.vextent
   pyrat.inputs.Dmin       = user.Dmin
@@ -328,18 +330,19 @@ def parse(pyrat, log=None):
   pyrat.inputs.marcs      = user.marcs
   pyrat.inputs.phoenix    = user.phoenix
   # Observing variables:
-  pyrat.inputs.data     = user.data
-  pyrat.inputs.uncert   = user.uncert
-  pyrat.inputs.filter   = user.filter
+  pyrat.inputs.data       = user.data
+  pyrat.inputs.uncert     = user.uncert
+  pyrat.inputs.filter     = user.filter
   # Retrieval variables:
-  pyrat.inputs.retflag  = user.retflag
-  pyrat.inputs.bulk     = user.bulk
-  pyrat.inputs.molscale = user.molscale
-  pyrat.inputs.tmodel   = user.tmodel
-  pyrat.inputs.params   = user.params
-  pyrat.inputs.stepsize = user.stepsize
-  pyrat.inputs.tlow     = user.tlow
-  pyrat.inputs.thigh    = user.thigh
+  pyrat.inputs.retflag    = user.retflag
+  pyrat.inputs.bulk       = user.bulk
+  pyrat.inputs.molscale   = user.molscale
+  pyrat.inputs.qcap       = user.qcap
+  pyrat.inputs.tmodel     = user.tmodel
+  pyrat.inputs.params     = user.params
+  pyrat.inputs.stepsize   = user.stepsize
+  pyrat.inputs.tlow       = user.tlow
+  pyrat.inputs.thigh      = user.thigh
   # Output files:
   pyrat.inputs.outspec     = user.outspec
   pyrat.inputs.outsample   = user.outsample
@@ -820,6 +823,7 @@ def checkinputs(pyrat):
   # Accept species lists, check after we load the atmospheric model:
   pyrat.ret.retflag  = inputs.retflag
   pyrat.ret.bulk     = inputs.bulk
+  pyrat.ret.qcap     = inputs.qcap
   pyrat.ret.molscale = inputs.molscale
   pyrat.ret.params   = inputs.params
   if pyrat.ret.params is not None:
@@ -833,6 +837,9 @@ def checkinputs(pyrat):
              "Select from: TCEA, MadhuInv, MadhuNoInv or "
              "isothermal".format(inputs.tmodel), pyrat.log)
   pyrat.ret.tmodelname = inputs.tmodel
+  if np.abs(pyrat.ret.qcap-0.5) > 0.5:
+    pt.error("Trace abundances cap (qcap={:.3f}) must lie in the range "
+             "between 0.0 and 1.0.".format(pyrat.ret.qcap), pyrat.log)
   if pyrat.ret.tmodelname == "TCEA":
     if pyrat.phy.rstar is None:
       pt.error("Undefined stellar radius (rstar), required for temperature "

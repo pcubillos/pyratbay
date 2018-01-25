@@ -1,9 +1,10 @@
 # Copyright (c) 2016-2018 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-__all__ = ["balance", "ratio", "qscale"]
+__all__ = ["balance", "ratio", "qscale", "qcapcheck"]
 
 import numpy as np
+
 
 def balance(Q, ibulk, ratio, invsrat):
   """
@@ -45,6 +46,39 @@ def balance(Q, ibulk, ratio, invsrat):
   # Calculate the balanced mole mixing ratios:
   for j in np.arange(nratio):
     Q[:,ibulk[j]] = ratio[:,j] * q * invsrat
+
+
+def qcapcheck(Q, qcap, ibulk):
+  """
+  Check if the cummulative abundance of traces exceed qcap.
+
+  Parameters
+  ----------
+  Q: 2D float ndarray
+     Mole mixing ratio of the species in the atmosphere [Nlayers, Nspecies].
+  qcap: Float
+     Cap threshold for cummulative trace abundances.
+  ibulk: 1D integer ndarray
+     Indices of the bulk species to calculate the mixing ratio.
+
+  Returns
+  -------
+  qcapcheck: Bool
+     Flag indicating whether trace abundances sum more than qcap.
+  """
+  # The shape of things:
+  nlayers, nspecies = np.shape(Q)
+
+  # Get the indices of the species not in ibulk (trace species):
+  itrace = np.setdiff1d(np.arange(nspecies), ibulk)
+
+  # Sum the abundances of everything exept the ibulk species (per layer):
+  qtrace = np.sum(Q[:,itrace], axis=1)
+
+  # Do sum of trace abundances exceed Qcap?
+  if np.any(qtrace > qcap):
+    return True
+  return False
 
 
 def ratio(Q, ibulk):
@@ -141,13 +175,10 @@ def qscale(Q, spec, qscale, molscale, bulk, qsat=None,
   # Enforce saturation limit:
   if qsat is not None:
     ifix = np.setdiff1d(np.arange(len(spec)), np.union1d(ibulk, iscale))
-    #print(ifix)
     q0 = ((qsat - np.sum(q[:,ifix],   axis=1, keepdims=True)) /
                   np.sum(q[:,iscale], axis=1, keepdims=True))
-    #print(q0)
     q0 = np.clip(q0, 0.0, 1.0)
     q[:,iscale] *= q0
-    #print(np.sum(q[:,ifix], axis=1)+np.sum(q[:,iscale], axis=1))
 
   # Scale abundance of bulk species to balance sum(Q):
   balance(q, ibulk, bratio, invsrat)
