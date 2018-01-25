@@ -1,14 +1,15 @@
 # Copyright (c) 2016-2018 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-import sys
 import numpy as np
 
-from .. import tools     as pt
-from .. import constants as pc
-from .. import pyrat     as py
-from .. import wine      as w
-from .. import atmosphere as atm
+from .. import tools      as pt
+from .. import constants  as pc
+from .. import pyrat      as py
+from .. import wine       as pw
+from .. import atmosphere as pa
+
+__all__ = ["fit"]
 
 
 def init(pyrat, args, log):
@@ -36,7 +37,7 @@ def init(pyrat, args, log):
   pyrat.ret.thigh = args.thigh
 
 
-def fit(params, pyrat, freeze=False):
+def fit(params, pyrat, freeze=False, retmodel=True, verbose=False):
   """
   Fitting routine for MCMC.
 
@@ -51,9 +52,15 @@ def fit(params, pyrat, freeze=False):
      temperature, abundance, and radius profiles to the original values.
      Note that in this case the pyrat object will contain inconsistent
      values between the atmospheric profiles and the spectrum.
+  retmodel: Bool
+     Flag to include the model spectra in the return.
+  verbose: Bool
+     Flag to print out if a run failed.
 
   Returns
   -------
+  spectrum: 1D float ndarray
+     The output model spectra.  Returned only if retmodel=True.
   bandflux: 1D float ndarray
      The waveband-integrated spectrum values.
   """
@@ -70,20 +77,26 @@ def fit(params, pyrat, freeze=False):
   if np.any(temp < pyrat.ret.tlow) or np.any(temp > pyrat.ret.thigh):
     temp[:] = 0.5*(pyrat.ret.tlow + pyrat.ret.thigh)
     rejectflag = True
-
+    if verbose:
+      pt.warning(pyrat.verb-2, "Input temperature profile runs out of "
+       "boundaries ({:.1f--{:.1f}} K)".format(pyrat.ret.tlow,pyrat.ret.thigh),
+       pyrat.log, pyrat.wlog)
   # Update abundance profiles if requested:
   if pyrat.ret.iabund is not None:
-    q2 = atm.qscale(pyrat.atm.q, pyrat.mol.name, params[pyrat.ret.iabund],
-                    pyrat.ret.molscale, pyrat.ret.bulk,
-                    iscale=pyrat.ret.iscale, ibulk=pyrat.ret.ibulk,
-                    bratio=pyrat.ret.bulkratio, invsrat=pyrat.ret.invsrat)
+    q2 = pa.qscale(pyrat.atm.q, pyrat.mol.name, params[pyrat.ret.iabund],
+                   pyrat.ret.molscale, pyrat.ret.bulk,
+                   iscale=pyrat.ret.iscale, ibulk=pyrat.ret.ibulk,
+                   bratio=pyrat.ret.bulkratio, invsrat=pyrat.ret.invsrat)
   else:
     q2 = pyrat.atm.q
 
   # Check abundaces stay within bounds:
-  if atm.qcapcheck(q2, pyrat.ret.qcap, pyrat.ret.ibulk):
+  if pa.qcapcheck(q2, pyrat.ret.qcap, pyrat.ret.ibulk):
     rejectflag = True
-
+    if verbose:
+      pt.warning(pyrat.verb-2, "The sum of trace abundances' fraction "
+                 "exceeds the cap of {:.3f}.".format(pyrat.ret.qcap),
+                 pyrat.log, pyrat.wlog)
   # Update reference radius if requested:
   if pyrat.ret.irad is not None:
     pyrat.phy.rplanet = params[pyrat.ret.irad][0]*pc.km
@@ -112,19 +125,16 @@ def fit(params, pyrat, freeze=False):
   pyrat = py.run(pyrat, [temp, q2, None])
 
   # Band-integrate spectrum:
-  pyrat.obs.bandflux = w.bandintegrate(pyrat=pyrat)
-
-  # Turn-on reject flag if atm doesn't cover the transit-depth values:
-  if (pyrat.od.path == "transit" and
-      np.any(pyrat.obs.data >
-             (pyrat.atm.radius[pyrat.atm.rtop]/pyrat.phy.rstar)**2)):
-    rejectflag = True
+  pyrat.obs.bandflux = pw.bandintegrate(pyrat=pyrat)
 
   # Reject this iteration if there are invalid temperatures or radii:
-  if rejectflag:
+  if pyrat.obs.bandflux is not None and rejectflag:
     pyrat.obs.bandflux[:] = np.inf
 
   # Revert abundances in the atmospheric profile:
   if freeze:
     pyrat.atm.q = q0
+
+  if retmodel:
+    return pyrat.spec.spectrum, pyrat.obs.bandflux
   return pyrat.obs.bandflux

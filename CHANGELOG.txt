@@ -3443,3 +3443,41 @@ Bumped Pyrat to version 1.2.54.
 
 *****
 
+Cleaned up pbay module.
+Set the right functions to be visible.
+Removed deprecated functions.
+
+*****
+
+Added retmodel argument to pbay.fit() to include the model spectrum in
+the return.
+
+*****
+
+Added nfilters==0 exception in wine.bandintegrate() to catch case
+when there are no input filters.
+
+*****
+
+Removed rejectflag for the model not reaching pyrat.obs.data
+in pbay.fit().
+
+*****
+
+Added verbose argument to pbay.fit() to write when/why a run fails.
+
+*****
+
+Fixed pyrat default arguments for qcap, tlow, and thigh.
+
+*****
+
+Adjusted retrieval call to work with latest changes in pbay.fit().
+
+*****
+
+Bumped Pyrat Bay to version 0.0.76.
+Bumped Pyrat to version 1.2.55.
+
+*****
+

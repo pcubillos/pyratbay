@@ -11,6 +11,7 @@ from .. import VERSION as ver
 
 rootdir = os.path.realpath(os.path.dirname(__file__) + "/../../")
 
+
 def parse(wlog):
   """
   Read the command line arguments.

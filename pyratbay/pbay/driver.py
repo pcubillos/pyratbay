@@ -27,6 +27,8 @@ MC3dir = rootdir + "/modules/MCcubed/"
 sys.path.append(MC3dir)
 import MCcubed as mc3
 
+__all__ = ["run"]
+
 
 def run(argv, main=False):
   """
@@ -136,9 +138,11 @@ def run(argv, main=False):
     # Basename of the output files:
     outfile = os.path.splitext(os.path.basename(log.name))[0]
     # Run MCMC:
+    freeze   = True  # Freeze abundances evoer iterations
+    retmodel = False # Return only the band-integrated spectrum
     bestp, CRlo, CRhi, stdp, posterior, Zchain = mc3.mcmc(
            data=args.data, uncert=args.uncert,
-           func=pf.fit, indparams=[pyrat, True], params=args.params,
+           func=pf.fit, indparams=[pyrat,freeze,retmodel], params=args.params,
            pmin=args.pmin, pmax=args.pmax, stepsize=args.stepsize,
            prior=args.prior, priorlow=args.priorlow, priorup=args.priorup,
            walk=args.walk, nsamples=args.nsamples, nchains=args.nchains,
