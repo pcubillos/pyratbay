@@ -3459,3 +3459,8 @@ when there are no input filters.
 
 *****
 
+Removed rejectflag for the model not reaching pyrat.obs.data
+in pbay.fit().
+
+*****
+

@@ -119,12 +119,6 @@ def fit(params, pyrat, freeze=False, retmodel=True):
   # Band-integrate spectrum:
   pyrat.obs.bandflux = pw.bandintegrate(pyrat=pyrat)
 
-  # Turn-on reject flag if atm doesn't cover the transit-depth values:
-  if (pyrat.od.path == "transit" and
-      np.any(pyrat.obs.data >
-             (pyrat.atm.radius[pyrat.atm.rtop]/pyrat.phy.rstar)**2)):
-    rejectflag = True
-
   # Reject this iteration if there are invalid temperatures or radii:
   if pyrat.obs.bandflux is not None and rejectflag:
     pyrat.obs.bandflux[:] = np.inf
