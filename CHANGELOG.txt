@@ -3454,3 +3454,8 @@ the return.
 
 *****
 
+Added nfilters==0 exception in wine.bandintegrate() to catch case
+when there are no input filters.
+
+*****
+

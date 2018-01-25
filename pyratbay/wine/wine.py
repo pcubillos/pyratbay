@@ -106,7 +106,7 @@ def resample(specwn, filterwn, filtertr, starwn=None, starfl=None):
   return nifilter, wnidx, istarfl
 
 
-def bandintegrate(spectrum=None, specwn=None, wnidx=None, nfilters=None,
+def bandintegrate(spectrum=None, specwn=None, wnidx=None, nfilters=0,
                   bandtrans=None, starflux=None, rprs=None, path=None,
                   pyrat=None):
   """
@@ -188,6 +188,9 @@ def bandintegrate(spectrum=None, specwn=None, wnidx=None, nfilters=None,
     starflux  = pyrat.obs.starflux
     rprs      = pyrat.phy.rprs
     path      = pyrat.od.path
+
+  if nfilters == 0:
+    return None
 
   if bflux is None:
     bflux = np.zeros(nfilters)
