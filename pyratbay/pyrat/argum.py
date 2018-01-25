@@ -196,7 +196,7 @@ def parse(pyrat, log=None):
       "Bulk-abundance atmospheric species.")
   pt.addarg("molscale",    group, pt.parray, None,
       "Variable-abundance atmospheric species.")
-  pt.addarg("qcap",        group, np.double, None,
+  pt.addarg("qcap",        group, np.double, 0.99,
       "Maximum acceptable cumulative abundance fraction of traces.")
   pt.addarg("tmodel",      group, str,       None,
       "Temperature-profile model name.  Select from: isothermal or TCEA.")
@@ -204,9 +204,9 @@ def parse(pyrat, log=None):
       "Initial-guess for retrieval model-fitting parameter.")
   pt.addarg("stepsize",    group, pt.parray, None,
       "Stepsize for retrieval model-fitting parameter.")
-  pt.addarg("tlow",        group, np.double, None,
+  pt.addarg("tlow",        group, np.double, -np.inf,
       "Minimum valid temperature.")
-  pt.addarg("thigh",        group, np.double, None,
+  pt.addarg("thigh",        group, np.double, np.inf,
       "Maximum valid temperature.")
   # System physical parameters:
   group = parser.add_argument_group("System physical variables")

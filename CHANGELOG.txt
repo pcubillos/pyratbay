@@ -3468,3 +3468,7 @@ Added verbose argument to pbay.fit() to write when/why a run fails.
 
 *****
 
+Fixed pyrat default arguments for qcap, tlow, and thigh.
+
+*****
+
