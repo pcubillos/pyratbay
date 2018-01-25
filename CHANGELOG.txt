@@ -3481,3 +3481,9 @@ Bumped Pyrat to version 1.2.55.
 
 *****
 
+Fixed bug in post-MCMC call to pbay.fit().
+Minor cleanup in ptools.py docstrings.
+
+*****
+
+

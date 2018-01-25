@@ -154,7 +154,7 @@ def run(argv, main=False):
 
     # Best-fitting model:
     pyrat.outspec = "{:s}_bestfit_spectrum.dat".format(outfile)
-    bestbandflux = pf.fit(bestp, pyrat)
+    bestbandflux = pf.fit(bestp, pyrat, retmodel=False)
 
     # Best-fit atmfile header:
     header = "# MCMC best-fitting atmospheric model.\n\n"
