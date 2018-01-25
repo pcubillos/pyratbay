@@ -3464,3 +3464,7 @@ in pbay.fit().
 
 *****
 
+Added verbose argument to pbay.fit() to write when/why a run fails.
+
+*****
+

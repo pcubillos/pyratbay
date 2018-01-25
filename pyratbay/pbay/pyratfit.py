@@ -37,7 +37,7 @@ def init(pyrat, args, log):
   pyrat.ret.thigh = args.thigh
 
 
-def fit(params, pyrat, freeze=False, retmodel=True):
+def fit(params, pyrat, freeze=False, retmodel=True, verbose=False):
   """
   Fitting routine for MCMC.
 
@@ -54,6 +54,8 @@ def fit(params, pyrat, freeze=False, retmodel=True):
      values between the atmospheric profiles and the spectrum.
   retmodel: Bool
      Flag to include the model spectra in the return.
+  verbose: Bool
+     Flag to print out if a run failed.
 
   Returns
   -------
@@ -75,7 +77,10 @@ def fit(params, pyrat, freeze=False, retmodel=True):
   if np.any(temp < pyrat.ret.tlow) or np.any(temp > pyrat.ret.thigh):
     temp[:] = 0.5*(pyrat.ret.tlow + pyrat.ret.thigh)
     rejectflag = True
-
+    if verbose:
+      pt.warning(pyrat.verb-2, "Input temperature profile runs out of "
+       "boundaries ({:.1f--{:.1f}} K)".format(pyrat.ret.tlow,pyrat.ret.thigh),
+       pyrat.log, pyrat.wlog)
   # Update abundance profiles if requested:
   if pyrat.ret.iabund is not None:
     q2 = pa.qscale(pyrat.atm.q, pyrat.mol.name, params[pyrat.ret.iabund],
@@ -88,7 +93,10 @@ def fit(params, pyrat, freeze=False, retmodel=True):
   # Check abundaces stay within bounds:
   if pa.qcapcheck(q2, pyrat.ret.qcap, pyrat.ret.ibulk):
     rejectflag = True
-
+    if verbose:
+      pt.warning(pyrat.verb-2, "The sum of trace abundances' fraction "
+                 "exceeds the cap of {:.3f}.".format(pyrat.ret.qcap),
+                 pyrat.log, pyrat.wlog)
   # Update reference radius if requested:
   if pyrat.ret.irad is not None:
     pyrat.phy.rplanet = params[pyrat.ret.irad][0]*pc.km
