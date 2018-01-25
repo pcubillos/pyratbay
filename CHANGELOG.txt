@@ -3472,3 +3472,7 @@ Fixed pyrat default arguments for qcap, tlow, and thigh.
 
 *****
 
+Adjusted retrieval call to work with latest changes in pbay.fit().
+
+*****
+
