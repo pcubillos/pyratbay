@@ -27,6 +27,8 @@ MC3dir = rootdir + "/modules/MCcubed/"
 sys.path.append(MC3dir)
 import MCcubed as mc3
 
+__all__ = ["run"]
+
 
 def run(argv, main=False):
   """

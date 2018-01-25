@@ -1,14 +1,15 @@
 # Copyright (c) 2016-2018 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-import sys
 import numpy as np
 
-from .. import tools     as pt
-from .. import constants as pc
-from .. import pyrat     as py
-from .. import wine      as w
-from .. import atmosphere as atm
+from .. import tools      as pt
+from .. import constants  as pc
+from .. import pyrat      as py
+from .. import wine       as pw
+from .. import atmosphere as pa
+
+__all__ = ["fit"]
 
 
 def init(pyrat, args, log):
@@ -73,15 +74,15 @@ def fit(params, pyrat, freeze=False):
 
   # Update abundance profiles if requested:
   if pyrat.ret.iabund is not None:
-    q2 = atm.qscale(pyrat.atm.q, pyrat.mol.name, params[pyrat.ret.iabund],
-                    pyrat.ret.molscale, pyrat.ret.bulk,
-                    iscale=pyrat.ret.iscale, ibulk=pyrat.ret.ibulk,
-                    bratio=pyrat.ret.bulkratio, invsrat=pyrat.ret.invsrat)
+    q2 = pa.qscale(pyrat.atm.q, pyrat.mol.name, params[pyrat.ret.iabund],
+                   pyrat.ret.molscale, pyrat.ret.bulk,
+                   iscale=pyrat.ret.iscale, ibulk=pyrat.ret.ibulk,
+                   bratio=pyrat.ret.bulkratio, invsrat=pyrat.ret.invsrat)
   else:
     q2 = pyrat.atm.q
 
   # Check abundaces stay within bounds:
-  if atm.qcapcheck(q2, pyrat.ret.qcap, pyrat.ret.ibulk):
+  if pa.qcapcheck(q2, pyrat.ret.qcap, pyrat.ret.ibulk):
     rejectflag = True
 
   # Update reference radius if requested:
@@ -112,7 +113,7 @@ def fit(params, pyrat, freeze=False):
   pyrat = py.run(pyrat, [temp, q2, None])
 
   # Band-integrate spectrum:
-  pyrat.obs.bandflux = w.bandintegrate(pyrat=pyrat)
+  pyrat.obs.bandflux = pw.bandintegrate(pyrat=pyrat)
 
   # Turn-on reject flag if atm doesn't cover the transit-depth values:
   if (pyrat.od.path == "transit" and

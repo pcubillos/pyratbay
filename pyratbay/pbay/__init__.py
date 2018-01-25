@@ -1,16 +1,14 @@
 # Copyright (c) 2016-2018 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-__all__ = ["run", "mc", "ar", "pf"]
+from .driver   import *
+from .makecfg  import *
+from .pyratfit import *
 
-from .driver import run
+from .. import VERSION  as ver
 
-from .  import makecfg as mc
-from .  import pyratfit as pf
-from .. import VERSION as ver
-
-# Temporary:
-from . import argum as ar
+# Visible functions:
+__all__ = driver.__all__ + makecfg.__all__ + pyratfit.__all__
 
 # Pyrat Bay version:
 __version__ = "{:d}.{:d}.{:d}".format(ver.PBAY_VER, ver.PBAY_MIN,
