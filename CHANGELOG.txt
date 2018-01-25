@@ -3486,4 +3486,7 @@ Minor cleanup in ptools.py docstrings.
 
 *****
 
+Updated pytips submodule.
+
+*****
 
