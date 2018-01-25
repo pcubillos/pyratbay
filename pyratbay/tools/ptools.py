@@ -161,8 +161,8 @@ def binsearch(dbfile, wavelength, rec0, nrec, upper=True):
   """
   Do a binary search in TLI dbfile for record that has wavelength iwl
 
-  Parameters:
-  -----------
+  Parameters
+  ----------
   dbfile: File object
      TLI file where to search.
   wavelength: Scalar
@@ -175,8 +175,8 @@ def binsearch(dbfile, wavelength, rec0, nrec, upper=True):
      Wavelength is an upper boundary, return the index of value smaller
      than wavelength.
 
-  Returns:
-  --------
+  Returns
+  -------
   Index of record with ...
   """
   # Wavelength of record:
@@ -225,8 +225,8 @@ def pprint(array, precision=3, fmt=None):
   Pretty print a Numpy array.  Set desired precision and format, and
   remove line break from the string output.
 
-  Parameters:
-  -----------
+  Parameters
+  ----------
   array: 1D ndarray
      Array to be pretty printed.
   precision: Integer
@@ -264,8 +264,8 @@ def unpack(file, n, dtype):
   """
   Wrapper for struct unpack.
 
-  Parameters:
-  -----------
+  Parameters
+  ----------
   file: File object
      File object to read from.
   n: Integer
@@ -297,8 +297,8 @@ def u(units):
   """
   Get the conversion factor (to the CGS system) for units.
 
-  Parameters:
-  -----------
+  Parameters
+  ----------
   units: String
      Name of units
   """
