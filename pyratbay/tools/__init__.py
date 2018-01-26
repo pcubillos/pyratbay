@@ -3,8 +3,9 @@
 
 from .ptools       import *
 from .contribfuncs import *
+from .percentiles  import *
 
-__all__ = ptools.__all__ + contribfuncs.__all__
+__all__ = ptools.__all__ + contribfuncs.__all__ + percentiles.__all__
 
 # Clean up top-level namespace--delete everything that isn't in __all__
 # or is a magic attribute, and that isn't a submodule of this package

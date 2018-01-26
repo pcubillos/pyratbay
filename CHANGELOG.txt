@@ -3492,4 +3492,13 @@ Updated pytips submodule.
 
 Bumped Pyrat Bay to version 0.0.77.
 
+
+*****  Fr 26. Jan 10:09:21 CET 2018  *****
+
+Added percentiles.py file that implements tools.specpercent(),
+which computes the 0.68 and 0.95 percentile boundaries of the model
+spectra for a given posterior sample.
+
 *****
+
+
