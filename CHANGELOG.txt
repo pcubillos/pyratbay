@@ -3499,6 +3499,10 @@ Added percentiles.py file that implements tools.specpercent(),
 which computes the 0.68 and 0.95 percentile boundaries of the model
 spectra for a given posterior sample.
 
-*****
 
+*****  Thu Feb  1 23:22:46 CET 2018  *****
+
+Bumped Pyrat Bay to version 0.0.78.
+
+*****
 
