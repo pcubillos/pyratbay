@@ -3516,3 +3516,7 @@ Removed nfilters argument.
 
 *****
 
+Updated MC3 submodule.
+
+*****
+
