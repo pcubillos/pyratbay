@@ -3511,3 +3511,8 @@ Cleaned up a few minor things in pyrat/argum.py.
 
 *****
 
+Fixed a bug in bandintegrate() when not using a pyrat input argument.
+Removed nfilters argument.
+
+*****
+

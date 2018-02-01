@@ -106,9 +106,8 @@ def resample(specwn, filterwn, filtertr, starwn=None, starfl=None):
   return nifilter, wnidx, istarfl
 
 
-def bandintegrate(spectrum=None, specwn=None, wnidx=None, nfilters=0,
-                  bandtrans=None, starflux=None, rprs=None, path=None,
-                  pyrat=None):
+def bandintegrate(spectrum=None, specwn=None, wnidx=None, bandtrans=None,
+                  starflux=None, rprs=None, path='transit', pyrat=None):
   """
   Integrate a spectrum over the band transmission.
 
@@ -120,8 +119,6 @@ def bandintegrate(spectrum=None, specwn=None, wnidx=None, nfilters=0,
      Wavenumber of spectrum in cm-1.
   wnidx: List of 1D integer ndarrays
      List of indices of specwn covered by each filter.
-  nfilters: Integer
-     Number of filters.
   bandtrans: List of 1D float ndarray
      List  of normalized interpolated band transmission values in each filter.
   starflux: List of 1D float ndarray
@@ -160,7 +157,7 @@ def bandintegrate(spectrum=None, specwn=None, wnidx=None, nfilters=0,
   >>> nifilter2, wnidx2 = pb.wine.resample(swn, wn2, irac2)
   >>> # Integrate the spectrum over the filter band:
   >>> bandflux = pb.wine.bandintegrate(spectrum=sflux, specwn=swn,
-       wnidx=[wnidx1,wnidx2], nfilters=2, bandtrans=[nifilter1, nifilter2],
+       wnidx=[wnidx1,wnidx2], bandtrans=[nifilter1, nifilter2],
        path='transit')
 
   >>> # Plot the results:
@@ -180,7 +177,7 @@ def bandintegrate(spectrum=None, specwn=None, wnidx=None, nfilters=0,
   if pyrat is not None:
     # Unpack variables from pyrat object:
     spectrum  = pyrat.spec.spectrum
-    wn        = pyrat.spec.wn
+    specwn    = pyrat.spec.wn
     bflux     = pyrat.obs.bandflux
     wnidx     = pyrat.obs.bandidx
     nfilters  = pyrat.obs.nfilters
@@ -188,20 +185,25 @@ def bandintegrate(spectrum=None, specwn=None, wnidx=None, nfilters=0,
     starflux  = pyrat.obs.starflux
     rprs      = pyrat.phy.rprs
     path      = pyrat.od.path
+  else:
+    if np.isscalar(wnidx[0]):  # A single filter
+      nfilters  = 1
+      wnidx     = [wnidx]
+      bandtrans = [bandtrans]
+    else:  # Multiple filters
+      nfilters = len(wnidx)
+    bflux = np.zeros(nfilters)
 
   if nfilters == 0:
     return None
-
-  if bflux is None:
-    bflux = np.zeros(nfilters)
 
   # Band-integrate spectrum:
   for i in np.arange(nfilters):
     # Integrate the spectrum over the filter band:
     if   path == "transit":
-      bflux[i] = np.trapz(spectrum[wnidx[i]]*bandtrans[i], wn[wnidx[i]])
+      bflux[i] = np.trapz(spectrum[wnidx[i]]*bandtrans[i], specwn[wnidx[i]])
     elif path == "eclipse":
       fluxrat = spectrum[wnidx[i]]/starflux[i] * rprs**2.0
-      bflux[i] = np.trapz(fluxrat*bandtrans[i], wn[wnidx[i]])
+      bflux[i] = np.trapz(fluxrat*bandtrans[i], specwn[wnidx[i]])
 
   return bflux
