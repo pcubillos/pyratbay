@@ -9,7 +9,7 @@ import numpy as np
 import scipy.constants   as sc
 import scipy.interpolate as si
 import scipy.special     as ss
-import multiprocessing   as mpr
+import multiprocessing   as mp
 from datetime import date
 
 from .. import tools      as pt
@@ -23,7 +23,8 @@ from .  import haze      as hz
 from .  import rayleigh  as ray
 from .  import alkali    as al
 
-rootdir = os.path.realpath(os.path.dirname(__file__) + "/../../")
+
+rootdir = os.path.realpath(os.path.dirname(__file__) + "/../..")
 sys.path.append(rootdir + "/pyratbay/lib/")
 import pt as PT
 
@@ -378,9 +379,6 @@ def checkinputs(pyrat):
   inputs = pyrat.inputs
   phy    = pyrat.phy
 
-  # Path to source parent's folder:
-  pyratdir = os.path.dirname(os.path.realpath(__file__))
-
   # Verbose level:
   pyrat.verb = np.amax([0, inputs.verb])
 
@@ -416,7 +414,7 @@ def checkinputs(pyrat):
   pyrat.cs.files = pyrat.inputs.csfile
 
   if inputs.molfile is None: # Set default
-    inputs.molfile = os.path.realpath(pyratdir + "/../../inputs/molecules.dat")
+    inputs.molfile = os.path.realpath(rootdir + "/inputs/molecules.dat")
   if not os.path.isfile(inputs.molfile):
     pt.error("Molecular-data file: '{:s}' does not exist.".
              format(inputs.molfile), pyrat.log)
@@ -858,12 +856,12 @@ def checkinputs(pyrat):
   pyrat.nproc = pt.getparam(inputs.nproc, "none", integer=True)
   isgreater(pyrat.nproc, "none", 1, False,
             "The number of processors ({:d}) must be >= 1.", pyrat.log)
-  if pyrat.nproc >= mpr.cpu_count():
+  if pyrat.nproc >= mp.cpu_count():
     pt.warning(pyrat.verb-2, "The number of requested CPUs ({:d}) is >= "
        "than the number of available CPUs ({:d}).  Enforced nproc to {:d}.".
-       format(pyrat.nproc, mpr.cpu_count(), mpr.cpu_count()-1),
+       format(pyrat.nproc, mp.cpu_count(), mp.cpu_count()-1),
        pyrat.log, pyrat.wlog)
-    pyrat.nproc = mpr.cpu_count() - 1
+    pyrat.nproc = mp.cpu_count() - 1
   pt.msg(pyrat.verb-3, "Done.", pyrat.log)
 
 
