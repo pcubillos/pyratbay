@@ -3520,3 +3520,7 @@ Updated MC3 submodule.
 
 *****
 
+Bumped Pyrat Bay to version 0.0.79.
+
+*****
+
