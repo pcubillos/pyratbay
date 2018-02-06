@@ -3537,3 +3537,7 @@ Updated MC3 submodule.
 
 *****
 
+Fixed a couple of minor bugs with resume code.
+
+*****
+

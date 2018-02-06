@@ -236,7 +236,7 @@ def parse(wlog):
 
   # Get logfile:
   if args.logfile is not None:
-    if resume:
+    if args.resume:
       log = open(args.logfile, "aw")
     else:
       log = open(args.logfile, "w")
@@ -244,10 +244,7 @@ def parse(wlog):
     log = None
 
   # Welcome message:
-  if resume:
-    pt.msg(1, "\n\n{:s}\n{:s}  Resuming previous Pyrat-bay MCMC run.\n\n".
-               format(70*":", 70*":"), log)
-  else:
+  if not args.resume:
     pt.msg(1, "{:s}\n"
             "  Python Radiative Transfer in a Bayesian framework (Pyrat Bay).\n"
             "  Version {:d}.{:d}.{:d}.\n"

@@ -118,11 +118,12 @@ def run(argv, main=False):
       os.remove(args.extfile)
 
     # Initialize pyrat object:
-    if args.resume: # Avoid writing to log on resume:
+    if args.resume: # Bypass writting all of the initialization log:
       nolog = open("deleteme.log", "w")
       pyrat = py.init(args.cfile, log=nolog)
       nolog.close()
       os.remove("deleteme.log")
+      pyrat.log = log
     else:
       pyrat = py.init(args.cfile, log=log)
 
@@ -146,8 +147,7 @@ def run(argv, main=False):
     # Run MCMC:
     freeze   = True  # Freeze abundances evoer iterations
     retmodel = False # Return only the band-integrated spectrum
-    bestp, CRlo, CRhi, stdp, posterior, Zchain = mc3.mcmc(
-           data=args.data, uncert=args.uncert,
+    mc3_out = mc3.mcmc(data=args.data, uncert=args.uncert,
            func=pf.fit, indparams=[pyrat,freeze,retmodel], params=args.params,
            pmin=args.pmin, pmax=args.pmax, stepsize=args.stepsize,
            prior=args.prior, priorlow=args.priorlow, priorup=args.priorup,
@@ -157,6 +157,11 @@ def run(argv, main=False):
            hsize=10, kickoff='normal', log=log, nproc=args.nproc,
            plots=True, parname=pyrat.ret.parname, resume=args.resume,
            savefile="{:s}.npz".format(outfile))
+
+    if mc3_out is None:
+      pt.error("You broke MC3 :(", pyrat.log)
+    else:
+      bestp, CRlo, CRhi, stdp, posterior, Zchain = mc3_out
 
     # Best-fitting model:
     pyrat.outspec = "{:s}_bestfit_spectrum.dat".format(outfile)
