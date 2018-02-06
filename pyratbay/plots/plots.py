@@ -136,6 +136,7 @@ def spectrum(wlength=None, spectrum=None, data=None, uncert=None,
   plt.ylim(ylim)
   if logxticks is not None:
     ax.set_xscale('log')
+    plt.gca().xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
     ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
     ax.set_xticks(logxticks)
 

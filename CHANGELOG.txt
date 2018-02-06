@@ -3541,3 +3541,7 @@ Fixed a couple of minor bugs with resume code.
 
 *****
 
+Unrelated to resume, fixed bug with matplotlib2 ticks for log plots.
+
+*****
+
