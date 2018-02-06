@@ -3533,3 +3533,7 @@ Added resume argument to continue previous nearly-converged MCMCs.
 
 *****
 
+Updated MC3 submodule.
+
+*****
+
