@@ -118,7 +118,13 @@ def run(argv, main=False):
       os.remove(args.extfile)
 
     # Initialize pyrat object:
-    pyrat = py.init(args.cfile, log=log)
+    if args.resume: # Avoid writing to log on resume:
+      nolog = open("deleteme.log", "w")
+      pyrat = py.init(args.cfile, log=nolog)
+      nolog.close()
+      os.remove("deleteme.log")
+    else:
+      pyrat = py.init(args.cfile, log=log)
 
     # Compute spectrum and return pyrat object if requested:
     if args.runmode == "spectrum":
@@ -149,7 +155,7 @@ def run(argv, main=False):
            burnin=args.burnin, thinning=args.thinning,
            grtest=True, grbreak=args.grbreak, grnmin=args.grnmin,
            hsize=10, kickoff='normal', log=log, nproc=args.nproc,
-           plots=True, parname=pyrat.ret.parname,
+           plots=True, parname=pyrat.ret.parname, resume=args.resume,
            savefile="{:s}.npz".format(outfile))
 
     # Best-fitting model:

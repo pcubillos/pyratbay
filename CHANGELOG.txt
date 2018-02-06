@@ -3522,9 +3522,14 @@ Updated MC3 submodule.
 
 Bumped Pyrat Bay to version 0.0.79.
 
-*****
+
+*****  Di 6. Feb 18:12:58 CET 2018  *****
 
 Updated MC3 submodule.
+
+*****
+
+Added resume argument to continue previous nearly-converged MCMCs.
 
 *****
 

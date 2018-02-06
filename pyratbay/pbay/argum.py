@@ -209,6 +209,9 @@ def parse(wlog):
            action="store", type=eval, default=0.5,
            help="Minimum number (integer) or fraction (float) of valid "
                 "samples required for grbreak [default: %(default)s]")
+  group.add_argument("-r", "--resume", dest="resume",
+           action="store_true",       default="False",
+           help="If set, resume a previous run (load output).")
   group.add_argument("--bulk",   dest="bulk",
            help="Bulk-abundance atmospheric species",
            action="store", type=pt.parray, default=None)
@@ -233,12 +236,19 @@ def parse(wlog):
 
   # Get logfile:
   if args.logfile is not None:
-    log = open(args.logfile, "w")
+    if resume:
+      log = open(args.logfile, "aw")
+    else:
+      log = open(args.logfile, "w")
   else:
     log = None
 
   # Welcome message:
-  pt.msg(1, "{:s}\n"
+  if resume:
+    pt.msg(1, "\n\n{:s}\n{:s}  Resuming previous Pyrat-bay MCMC run.\n\n".
+               format(70*":", 70*":"), log)
+  else:
+    pt.msg(1, "{:s}\n"
             "  Python Radiative Transfer in a Bayesian framework (Pyrat Bay).\n"
             "  Version {:d}.{:d}.{:d}.\n"
             "  Copyright (c) 2016-2018 Patricio Cubillos and collaborators.\n"
