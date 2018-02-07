@@ -3551,4 +3551,7 @@ Added error catch for failed MC3 runs.
 
 *****
 
+Bumped Pyrat Bay to version 0.0.80.
+
+*****
 
