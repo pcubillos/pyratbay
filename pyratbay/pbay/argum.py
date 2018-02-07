@@ -210,7 +210,7 @@ def parse(wlog):
            help="Minimum number (integer) or fraction (float) of valid "
                 "samples required for grbreak [default: %(default)s]")
   group.add_argument("-r", "--resume", dest="resume",
-           action="store_true",       default="False",
+           action="store_true",       default=False,
            help="If set, resume a previous run (load output).")
   group.add_argument("--bulk",   dest="bulk",
            help="Bulk-abundance atmospheric species",

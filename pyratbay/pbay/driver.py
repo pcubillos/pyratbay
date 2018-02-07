@@ -159,7 +159,7 @@ def run(argv, main=False):
            savefile="{:s}.npz".format(outfile))
 
     if mc3_out is None:
-      pt.error("You broke MC3 :(", pyrat.log)
+      pt.error("Error in MC3.", pyrat.log)
     else:
       bestp, CRlo, CRhi, stdp, posterior, Zchain = mc3_out
 
