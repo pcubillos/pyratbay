@@ -3586,3 +3586,9 @@ Updated mc3 submodule.
 
 *****
 
+Bumped Pyrat Bay to version 0.0.81.
+Bumped Pyrat to version 1.2.56.
+Bumped lineread to version 6.4.14.
+
+*****
+
