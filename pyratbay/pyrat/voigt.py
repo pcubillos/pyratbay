@@ -1,7 +1,8 @@
 # Copyright (c) 2016-2018 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-import sys, os
+import sys
+import os
 import struct
 import numpy as np
 import scipy.interpolate as sip
@@ -66,7 +67,7 @@ def widthlimits(pyrat):
   # Get max pressure:
   pmax = np.amax(pyrat.atm.press)
   # Get max collision diameter:
-  cmax = (2.89/2.0 + np.amax(pyrat.mol.radius[mols])) * pc.A
+  cmax = (2.89*pc.A/2.0 + np.amax(pyrat.mol.radius[mols])) 
   #cmax = 2.0*np.amax(pyrat.mol.radius[mols]) * pc.A
 
   # Calculate Doppler-width boundaries:
