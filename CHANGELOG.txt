@@ -3568,3 +3568,8 @@ Fixed minor bug in readlinetransition() to show the right iso ID.
 
 *****
 
+Fixed intensity() to include emission from last layer as background
+emission (important when atmosphere is optically thin).
+
+*****
+

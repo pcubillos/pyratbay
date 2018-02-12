@@ -1,7 +1,8 @@
 # Copyright (c) 2016-2018 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-import sys, os
+import sys
+import os
 import numpy as np
 
 from .. import tools     as pt
@@ -112,6 +113,7 @@ def intensity(pyrat):
   while (i < pyrat.spec.nwave):
     # Layer index where the optical depth reached maxdepth:
     last = pyrat.od.ideep[i]
+    taumax = pyrat.od.depth[last,i]
     if last-rtop == 1:  # Single layer before taumax:
       pyrat.spec.intensity[:,i] = pyrat.od.B[last,i]
     else:
@@ -120,8 +122,9 @@ def intensity(pyrat):
       while (j < pyrat.nangles):
         cu.ediff(np.exp(-pyrat.od.depth[rtop:last+1,i] /
                         np.cos(pyrat.raygrid[j])), dtau, last+1-rtop)
-        pyrat.spec.intensity[j,i] = -t.trapz(pyrat.od.B[rtop:last+1,i],
-                                             dtau[0:last-rtop])
+        pyrat.spec.intensity[j,i] = (
+             pyrat.od.B[last,i]*np.exp(-taumax/np.cos(pyrat.raygrid[j])) -
+             t.trapz(pyrat.od.B[rtop:last+1,i], dtau[0:last-rtop]))
         j += 1
     i += 1
 
