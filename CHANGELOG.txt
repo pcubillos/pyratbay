@@ -3560,4 +3560,8 @@ Fixed bug lineread copyright date.
 
 *****
 
+Fixed bug in molID indexing for exttable() in extinction.py.
+
+*****
+
 
