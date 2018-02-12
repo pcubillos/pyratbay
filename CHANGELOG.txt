@@ -3573,3 +3573,9 @@ emission (important when atmosphere is optically thin).
 
 *****
 
+Upgraded printspec() to adjust the required number of decimal places
+in wavelength.
+
+*****
+
+

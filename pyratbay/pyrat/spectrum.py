@@ -152,7 +152,6 @@ def printspec(pyrat):
   """
   Print the planetary spectrum to file.
   """
-
   if pyrat.outspec is None:
     return
 
@@ -166,6 +165,10 @@ def printspec(pyrat):
 
   # Wavelength units in brackets:
   wlunits = "[{:s}]".format(pyrat.spec.wlunits)
+  wlength = 1.0/pyrat.spec.wn/pt.u(pyrat.spec.wlunits)
+  # Precision of 5 decimal places (or better if needed):
+  precision = -np.floor(np.amin(np.log10(np.abs(np.ediff1d(wlength)))))
+  precision = int(np.clip(precision+1, 5, np.inf))
 
   # Open-write file:
   specfile = open(pyrat.outspec, "w")
@@ -175,9 +178,6 @@ def printspec(pyrat):
 
   # Write the spectrum values:
   for i in np.arange(pyrat.spec.nwave):
-    specfile.write("  {:>10.5f}   {:>.8e}\n".
-                    format(1.0/pyrat.spec.wn[i]/pt.u(pyrat.spec.wlunits),
-                           pyrat.spec.spectrum[i]))
-
+    specfile.write("  {:>15.{:d}f}   {:>.8e}\n".
+                    format(wlength[i], precision, pyrat.spec.spectrum[i]))
   specfile.close()
-
