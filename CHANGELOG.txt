@@ -3582,3 +3582,7 @@ Fixed bug in widthlimits(), calculating the max collision diameter.
 
 *****
 
+Updated mc3 submodule.
+
+*****
+
