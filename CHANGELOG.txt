@@ -3564,4 +3564,7 @@ Fixed bug in molID indexing for exttable() in extinction.py.
 
 *****
 
+Fixed minor bug in readlinetransition() to show the right iso ID.
+
+*****
 
