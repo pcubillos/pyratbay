@@ -218,6 +218,10 @@ def readlinetransition(pyrat, linefile, dbindex):
 
     # Number of transitions to read:
     nread = ilast - ifirst + 1
+    # Get isotope ID:
+    i0 = pt.binsearch(linefile, 0, start, NisoTran[i]-1, False)
+    linefile.seek((i0+offset)*pc.sreclen + init_iso, 0)
+    isoID = pt.unpack(linefile, 1, 'h')
 
     # Read data into arrays:
     linefile.seek(ifirst*pc.dreclen + init_wl,  0)
@@ -231,8 +235,8 @@ def readlinetransition(pyrat, linefile, dbindex):
 
     linefile.seek(ifirst*pc.dreclen + init_gf,  0)
     gf   [nlt:nlt+nread] = pt.unpack(linefile, nread, 'd')
-    pt.msg(pyrat.verb-4, "Read {:11,d} transitions for isoID {:2d}.".
-           format(nread, isoid[nlt]+pyrat.lt.db[dbindex].iiso), pyrat.log, 4)
+    pt.msg(pyrat.verb-4, "Read {:11,d} transitions for isotope {:2d}.".
+           format(nread, pyrat.lt.db[dbindex].iiso+isoID), pyrat.log, 4)
 
     start  += NisoTran[i]*pc.dreclen
     offset += NisoTran[i]

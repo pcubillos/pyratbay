@@ -1,7 +1,8 @@
 # Copyright (c) 2016-2018 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-import sys, os
+import sys
+import os
 import struct
 import ctypes
 import time
@@ -14,7 +15,7 @@ from .. import constants as pc
 from .  import argum     as ar
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../lib')
-import extcoeff   as ec
+import extcoeff as ec
 
 
 def exttable(pyrat):
@@ -22,10 +23,10 @@ def exttable(pyrat):
   Handle extinction-coefficient table (read/calculate/write file).
   """
   # ID list of species with isotopes:
-  if np.size(np.where(pyrat.iso.imol>0)[0]) == 0:
+  if np.size(np.where(pyrat.iso.imol>=0)[0]) == 0:
     pyrat.ex.nmol = 0
   else:
-    imols = pyrat.iso.imol[np.where(pyrat.iso.imol>0)]
+    imols = pyrat.iso.imol[np.where(pyrat.iso.imol>=0)]
     pyrat.ex.molID = pyrat.mol.ID[np.unique(imols)]
     pyrat.ex.nmol  = len(pyrat.ex.molID)
 

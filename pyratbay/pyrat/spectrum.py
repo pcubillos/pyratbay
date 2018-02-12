@@ -1,7 +1,8 @@
 # Copyright (c) 2016-2018 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-import sys, os
+import sys
+import os
 import numpy as np
 
 from .. import tools     as pt
@@ -112,6 +113,7 @@ def intensity(pyrat):
   while (i < pyrat.spec.nwave):
     # Layer index where the optical depth reached maxdepth:
     last = pyrat.od.ideep[i]
+    taumax = pyrat.od.depth[last,i]
     if last-rtop == 1:  # Single layer before taumax:
       pyrat.spec.intensity[:,i] = pyrat.od.B[last,i]
     else:
@@ -120,8 +122,9 @@ def intensity(pyrat):
       while (j < pyrat.nangles):
         cu.ediff(np.exp(-pyrat.od.depth[rtop:last+1,i] /
                         np.cos(pyrat.raygrid[j])), dtau, last+1-rtop)
-        pyrat.spec.intensity[j,i] = -t.trapz(pyrat.od.B[rtop:last+1,i],
-                                             dtau[0:last-rtop])
+        pyrat.spec.intensity[j,i] = (
+             pyrat.od.B[last,i]*np.exp(-taumax/np.cos(pyrat.raygrid[j])) -
+             t.trapz(pyrat.od.B[rtop:last+1,i], dtau[0:last-rtop]))
         j += 1
     i += 1
 
@@ -149,7 +152,6 @@ def printspec(pyrat):
   """
   Print the planetary spectrum to file.
   """
-
   if pyrat.outspec is None:
     return
 
@@ -163,6 +165,10 @@ def printspec(pyrat):
 
   # Wavelength units in brackets:
   wlunits = "[{:s}]".format(pyrat.spec.wlunits)
+  wlength = 1.0/pyrat.spec.wn/pt.u(pyrat.spec.wlunits)
+  # Precision of 5 decimal places (or better if needed):
+  precision = -np.floor(np.amin(np.log10(np.abs(np.ediff1d(wlength)))))
+  precision = int(np.clip(precision+1, 5, np.inf))
 
   # Open-write file:
   specfile = open(pyrat.outspec, "w")
@@ -172,9 +178,6 @@ def printspec(pyrat):
 
   # Write the spectrum values:
   for i in np.arange(pyrat.spec.nwave):
-    specfile.write("  {:>10.5f}   {:>.8e}\n".
-                    format(1.0/pyrat.spec.wn[i]/pt.u(pyrat.spec.wlunits),
-                           pyrat.spec.spectrum[i]))
-
+    specfile.write("  {:>15.{:d}f}   {:>.8e}\n".
+                    format(wlength[i], precision, pyrat.spec.spectrum[i]))
   specfile.close()
-

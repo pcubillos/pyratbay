@@ -83,7 +83,6 @@ def writeatm(atmfile, pressure, temperature, species, abundances,
   # Write data for each layer:
   nlayers = len(pressure)
   for i in np.arange(nlayers):
-    # Radius:
     if radius is not None:
       f.write("{:10.4e}  ".format(radius[i]))
     # Pressure, and Temperature:

@@ -3553,5 +3553,42 @@ Added error catch for failed MC3 runs.
 
 Bumped Pyrat Bay to version 0.0.80.
 
+
+*****  Mo 12. Feb 12:03:05 CET 2018  *****
+
+Fixed bug lineread copyright date.
+
+*****
+
+Fixed bug in molID indexing for exttable() in extinction.py.
+
+*****
+
+Fixed minor bug in readlinetransition() to show the right iso ID.
+
+*****
+
+Fixed intensity() to include emission from last layer as background
+emission (important when atmosphere is optically thin).
+
+*****
+
+Upgraded printspec() to adjust the required number of decimal places
+in wavelength.
+
+*****
+
+Fixed bug in widthlimits(), calculating the max collision diameter.
+
+*****
+
+Updated mc3 submodule.
+
+*****
+
+Bumped Pyrat Bay to version 0.0.81.
+Bumped Pyrat to version 1.2.56.
+Bumped lineread to version 6.4.14.
+
 *****
 

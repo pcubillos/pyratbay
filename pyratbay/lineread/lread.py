@@ -135,7 +135,7 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
             "  Copyright (c) 2016-{:d} Patricio Cubillos and collaborators.\n"
             "  Lineread is (temporarily) proprietaty software (see LICENSE).\n"
             "{:s}\n\n".format(pt.sep, ver.LR_VER, ver.LR_MIN, ver.LR_REV,
-                              pt.sep, date.today().year), log)
+                              date.today().year, pt.sep), log)
 
   # Input-not-found error messages:
   if dblist is None:
