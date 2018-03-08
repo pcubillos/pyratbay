@@ -217,7 +217,7 @@ def getprofiles(pyrat, atmfile):
 
   # Calculate number density profiles for each molecule (in molecules cm-3):
   for i in np.arange(pyrat.mol.nmol):
-    atm.d[:,i] = IGLdensity(atm.q[:,i], pyrat.mol.mass[i], atm.press, atm.temp)
+    atm.d[:,i] = pa.IGLdensity(atm.q[:,i], atm.press, atm.temp)
 
 
 def reloadatm(pyrat, temp, abund, radius=None):
@@ -271,8 +271,8 @@ def reloadatm(pyrat, temp, abund, radius=None):
 
   # Number density (molecules cm-3):
   for i in np.arange(pyrat.mol.nmol):
-    pyrat.atm.d[:,i] = IGLdensity(pyrat.atm.q[:,i], pyrat.mol.mass[i],
-                                  pyrat.atm.press,  pyrat.atm.temp)
+    pyrat.atm.d[:,i] = pa.IGLdensity(pyrat.atm.q[:,i], pyrat.atm.press,
+                                     pyrat.atm.temp)
 
   # Take radius if provided, else use hydrostatic-equilibrium equation:
   if radius is not None:
@@ -315,26 +315,3 @@ def reloadatm(pyrat, temp, abund, radius=None):
       zinterp = sip.interp1d(pyrat.lt.db[i].temp, pyrat.lt.db[i].z[j],
                              kind='slinear')
       pyrat.iso.z[pyrat.lt.db[i].iiso+j] = zinterp(pyrat.atm.temp)
-
-
-def IGLdensity(abundance, mass, pressure, temperature):
-  """
-  Use the Ideal gas law to calculate the density in molecules cm-3.
-
-  Parameters:
-  -----------
-  abundance: 1D ndarray
-    Species volume mixing ratio profile.
-  mass: Float
-    Species mass (in gr/mol).
-  pressure: 1D ndarray
-    Atmospheric pressure profile (in barye units).
-  temperature: 1D ndarray
-    Atmospheric temperature (in kelvin).
-
-  Returns:
-  --------
-  density: 1D float ndarray
-     Atmospheric density in molecules per centimeter^3.
-  """
-  return abundance * pressure / (pc.k * temperature)

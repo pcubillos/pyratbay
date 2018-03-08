@@ -1,9 +1,9 @@
 # Copyright (c) 2016-2018 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-__all__ = ["read_ptfile", "writeatm", "readatm", "uniform", "makeatomic", 
+__all__ = ["read_ptfile", "writeatm", "readatm", "uniform", "makeatomic",
            "readatomic", "makepreatm", "TEA2pyrat", "pressure", "temperature",
-           "hydro_g", "hydro_m", "readmol", "meanweight"]
+           "hydro_g", "hydro_m", "readmol", "meanweight", "IGLdensity"]
 
 
 import os
@@ -806,3 +806,27 @@ def meanweight(abundances, molnames, molfile=None):
     molmass[i] = mass[imol]
 
   return np.sum(abundances*molmass, axis=1)
+
+
+def IGLdensity(abundance, pressure, temperature, mass=None):
+  """
+  Use the Ideal gas law to calculate number density (molecules cm-3).
+
+  Parameters
+  ----------
+  abundance: 1D float ndarray
+     Species volume mixing ratio profile.
+  pressure: 1D float ndarray
+     Atmospheric pressure profile (in barye units).
+  temperature: 1D float ndarray
+     Atmospheric temperature (in kelvin).
+  mass: 1D float ndarray
+     Species mass (gr mol-1).  If not None, assume input abundances
+     are mass mixing ratio. [To be implemented]
+
+  Returns
+  -------
+  density: 1D float ndarray
+     Atmospheric density in molecules per centimeter^3.
+  """
+  return abundance * pressure / (pc.k * temperature)

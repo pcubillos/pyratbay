@@ -3793,3 +3793,8 @@ Updated makeTEA() to work with multiprocessing TEA version.
 
 *****
 
+Moved IGLdensity() from readatm.py to atmosphere.py to make it visible
+to the user.
+
+*****
+
