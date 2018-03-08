@@ -3798,3 +3798,8 @@ to the user.
 
 *****
 
+Increased default maxiter value in makeTEA() from 100 to 300 to help
+with lower temperature runs.
+
+*****
+

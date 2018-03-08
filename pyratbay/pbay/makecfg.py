@@ -12,7 +12,7 @@ pbdir  = os.path.dirname(os.path.realpath(__file__))
 TEAdir = os.path.realpath(pbdir + "/../../modules/TEA/")
 
 
-def makeTEA(cfile=None, maxiter=100, savefiles=False,
+def makeTEA(cfile=None, maxiter=300, savefiles=False,
             verb=1, times=False, abun_file=None,
             location_out="./TEA", guess=None, ncpu=1):
   """
