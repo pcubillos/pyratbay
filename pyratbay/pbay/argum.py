@@ -110,6 +110,11 @@ def parse(wlog):
 
   # Atmospheric file:
   group = parser.add_argument_group("Atmospheric-file options")
+  # Jasmina ---
+  group.add_argument("--ptfile",    dest="ptfile",
+           help="Pres-temp file [default: %(default)s]",
+           action="store", type=str,       default=None)
+  # Jasmina ---
   group.add_argument("--atmfile",    dest="atmfile",
            help="Atmospheric file [default: %(default)s]",
            action="store", type=str,       default=None)

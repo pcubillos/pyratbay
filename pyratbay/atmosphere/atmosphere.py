@@ -1,9 +1,11 @@
 # Copyright (c) 2016-2018 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-__all__ = ["writeatm", "readatm", "uniform", "makeatomic", "readatomic",
-           "makepreatm", "TEA2pyrat", "pressure", "temperature",
+# Jasmina ---
+__all__ = ["read_ptfile", "writeatm", "readatm", "uniform", "makeatomic", 
+           "readatomic", "makepreatm", "TEA2pyrat", "pressure", "temperature",
            "hydro_g", "hydro_m", "readmol", "meanweight"]
+# Jasmina ---
 
 import os
 import sys
@@ -25,6 +27,40 @@ import pt as PT
 thisdir = os.path.dirname(os.path.realpath(__file__))
 indir   = thisdir + "/../../inputs/"
 
+# Jasmina ---
+def read_ptfile(ptfile):     
+    """
+    Extract pressure, temperature, from ptfile.
+    """
+
+    # Open ptfile:
+    f = open(ptfile, 'r')
+    data = []
+    for line in f.readlines():
+        if line.startswith('#'):
+            continue
+        else:
+            l = [value for value in line.split()]
+            data.append(l)
+    data = np.asarray(data)
+    f.close()
+
+    # Size of the data array (number of layers in the atmosphere):
+    ndata = len(data)
+
+    # Allocate arrays of pressure and temperature
+    pres = []
+    temp = []
+
+    # Read lines and store pressure and temperature data
+    for i in np.arange(ndata):
+        pres = np.append(pres, data[i][0])
+        temp = np.append(temp, data[i][1])
+    pressure    = pres.astype(float)*pt.u('bar')
+    temperature = temp.astype(float)
+
+    return pressure, temperature
+# Jasmina ---
 
 def writeatm(atmfile, pressure, temperature, species, abundances,
              punits, header, radius=None, runits=None):

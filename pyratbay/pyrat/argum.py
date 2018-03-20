@@ -71,6 +71,10 @@ def parse(pyrat, log=None):
   parser = argparse.ArgumentParser(parents=[cparser])  #, add_help=False) ??
   # Process pyrat Options:
   group = parser.add_argument_group("Input Files Options")
+  # Jasmina ---
+  pt.addarg("ptfile",     group, str,       None,     
+      "Pressure temperature file [default: %(default)s]")
+  # Jasmina ---
   pt.addarg("atmfile",     group, str,       None,
       "Atmospheric file [default: %(default)s]")
   pt.addarg("linedb",      group, pt.parray, None,
@@ -262,6 +266,9 @@ def parse(pyrat, log=None):
   pyrat.inputs.verb       = user.verb
   pyrat.inputs.nproc      = user.nproc
   # Input file:
+  # Jasmina ---
+  pyrat.inputs.ptfile     = user.ptfile
+  # Jasmina ---
   pyrat.inputs.atmfile    = user.atmfile
   pyrat.inputs.linedb     = user.linedb
   pyrat.inputs.csfile     = user.csfile
@@ -390,6 +397,15 @@ def checkinputs(pyrat):
   if pyrat.runmode not in pc.rmodes:
     pt.error("Invalid runmode ({:s}).  Select from: {}.".
               format(pyrat.runmode, pc.rmodes), pyrat.log)
+
+  # Jasmina ---
+  # Check that input files exist:   
+  if inputs.ptfile is not None:  
+    if not os.path.exists(os.path.realpath(os.path.dirname(inputs.ptfile))):
+      pt.error("Pressure-temperature file '{:s}' does "
+               "not exist.".format(inputs.ptfile), pyrat.log)
+    pyrat.ptfile = os.path.realpath(inputs.ptfile)
+  # Jasmina ---
 
   # Check that input files exist:
   if inputs.atmfile is None:

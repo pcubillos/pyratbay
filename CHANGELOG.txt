@@ -3592,3 +3592,26 @@ Bumped lineread to version 6.4.14.
 
 *****
 
+
+*****  Tue 20. Mar 15:52:18 CET 2018  *****
+
+#--- Jasmina
+changed the following file to add option to read
+pressure and temperature from a file:
+pyrat/argum.py
+pyrat/objects.py
+atmopshere/atmopshere.py
+pbay/driver.py
+pbay/argum.py
+
+in the atm.cfg file only these two lines need to be added
+no need to touch other stuff
+# Read PTfile (pres units ba, temp units K)
+ptfile = _path_
+
+*****
+
+Bumped Pyrat Bay to version 0.0.82.
+Bumped Pyrat to version 1.2.57.
+
+*****
