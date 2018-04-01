@@ -3803,3 +3803,7 @@ with lower temperature runs.
 
 *****
 
+Added Stefan-Boltzmann constant to constants module.
+
+*****
+
