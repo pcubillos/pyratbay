@@ -5,6 +5,7 @@
 # 03  http://www.webelements.com/compounds/ (from density and mass calculation)
 # 04  Wolfram Alpha + Wikipedia
 # 05  http://www.chemspider.com/Molecular-Formula/C2H2
+# 06  R_vanderwaals, Handbook of Chemistry and Physics, Lide.
 # xx  Not found!
 
 # Mass source: http://www.webqc.org/mmcalc.php
@@ -34,14 +35,17 @@
  121    NO        30.006       4.25      04         Nitric Oxide
  122    H2CO      30.026       5.16      05         Formaldehyde
  123    HNO3      63.013       4.95      05         Nitric Acid
-   1    H          1.007940    2.4       01         Hydrogen
-   2    He         4.0026020   2.0       01         Helium
-   6    C         12.0107      1.7       04         Carbon
-   7    N         14.0067      1.55      04         Nitrogen
-   8    O         15.9994      1.52      04         Oxygen
-  11    Na        22.98976928  4.54      04         Sodium
-  16    S         32.065       2.00      04         Sulfur
-  19    K         39.09830     5.50      04         Potassium
-  22    Ti        47.8670      2.94      04         Titanium
-  23    V         50.94150     2.70      04         Vanadium
-  26    Fe        55.845       2.52      04         Iron
+ 124    MgSiO3   100.3887      5.0       xx         Enstatite
+   1    H          1.007940    2.20      06         Hydrogen
+   2    He         4.0026020   2.80      06         Helium
+   6    C         12.0107      3.40      06         Carbon
+   7    N         14.0067      3.10      06         Nitrogen
+   8    O         15.9994      3.04      06         Oxygen
+  11    Na        22.98976928  4.54      06         Sodium
+  12    Mg        24.305       3.46      06         Magnesium
+  14    Si        28.0855      4.20      06         Silicon
+  16    S         32.065       3.60      06         Sulfur
+  19    K         39.09830     5.50      06         Potassium
+  22    Ti        47.8670      2.94      06         Titanium
+  23    V         50.94150     2.66      06         Vanadium
+  26    Fe        55.845       2.68      06         Iron

@@ -3619,3 +3619,13 @@ Some other code tweaks and clean up.
 
 *****
 
+Updated molecules.dat file, added Mg, Si, and MgSiO3.
+Updated Elemental radii with Van der Waals radii from the
+Handbook of Chemistry and Physics, Lide.
+
+*****
+
+Bumped Pyrat Bay to version 0.0.83.
+
+*****
+
