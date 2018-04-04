@@ -27,12 +27,28 @@ import pt as PT
 thisdir = os.path.dirname(os.path.realpath(__file__))
 indir   = thisdir + "/../../inputs/"
 
-# Jasmina ---
+
 def read_ptfile(ptfile):     
     """
-    Extract pressure, temperature, from ptfile.
-    """
+    Extract pressure, temperature, from a file.
 
+    Parameters
+    ----------
+    ptfile: String
+       Input file with pressure (first column), temperature (second
+       column) arrays.
+
+    Return
+    ------
+    pressure: 1D float ndarray
+       Pressure profile in barye.
+    temperature: 1D float ndarray
+       Temperature profile in Kelvin.
+
+    Notes
+    -----
+    This function assumes that the units of the input pressure are bar.
+    """
     # Open ptfile:
     f = open(ptfile, 'r')
     data = []
@@ -49,18 +65,17 @@ def read_ptfile(ptfile):
     ndata = len(data)
 
     # Allocate arrays of pressure and temperature
-    pres = []
-    temp = []
+    press, temp = [], []
 
     # Read lines and store pressure and temperature data
     for i in np.arange(ndata):
-        pres = np.append(pres, data[i][0])
-        temp = np.append(temp, data[i][1])
-    pressure    = pres.astype(float)*pt.u('bar')
+        press = np.append(press, data[i][0])
+        temp  = np.append(temp,  data[i][1])
+    pressure    = press.astype(float) * pt.u('bar')
     temperature = temp.astype(float)
 
     return pressure, temperature
-# Jasmina ---
+
 
 def writeatm(atmfile, pressure, temperature, species, abundances,
              punits, header, radius=None, runits=None):

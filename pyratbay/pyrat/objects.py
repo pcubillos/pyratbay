@@ -36,9 +36,6 @@ class Pyrat(object):
     self.phy      = Physics()         # System physical parameters
     self.ret      = Retrieval()       # Retrieval variables
     # Files:
-    # Jasmina ---
-    self.ptfile      = None  # Pressure and temperaure file 
-    # Jasmina ---
     self.atmfile     = None  # Atmopheric-model file
     self.linedb      = None  # Line-transition data file
     self.molfile     = None  # Molecular-properties file

@@ -3590,12 +3590,9 @@ Bumped Pyrat Bay to version 0.0.81.
 Bumped Pyrat to version 1.2.56.
 Bumped lineread to version 6.4.14.
 
-*****
-
 
 *****  Tue 20. Mar 15:52:18 CET 2018  *****
 
-#--- Jasmina
 changed the following file to add option to read
 pressure and temperature from a file:
 pyrat/argum.py
@@ -3614,4 +3611,11 @@ ptfile = _path_
 Bumped Pyrat Bay to version 0.0.82.
 Bumped Pyrat to version 1.2.57.
 
+
+*****  Mi 4. Apr 11:03:13 CEST 2018  *****
+
+Added docstring to atmosphere.read_ptfile().
+Some other code tweaks and clean up.
+
 *****
+
