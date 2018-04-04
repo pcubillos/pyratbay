@@ -110,6 +110,9 @@ def parse(wlog):
 
   # Atmospheric file:
   group = parser.add_argument_group("Atmospheric-file options")
+  group.add_argument("--ptfile",    dest="ptfile",
+           help="Pressure-temperature file [default: None]",
+           action="store", type=str,       default=None)
   group.add_argument("--atmfile",    dest="atmfile",
            help="Atmospheric file [default: %(default)s]",
            action="store", type=str,       default=None)

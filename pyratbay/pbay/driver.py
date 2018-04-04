@@ -82,13 +82,21 @@ def run(argv, main=False):
 
     # Compute pressure-temperature profile:
     if args.runmode in ["pt", "atmosphere"] or pt.isfile(args.atmfile) != 1:
-      ar.checkpressure(args, log, wlog)  # Check pressure inputs
-      pressure = atm.pressure(args.ptop, args.pbottom, args.nlayers,
-                             args.punits, log)
-      ar.checktemp(args, log, wlog)      # Check temperature inputs
-      temperature = atm.temperature(args.tmodel, pressure,
-         args.rstar, args.tstar, args.tint, args.gplanet, args.smaxis,
-         args.radunits, args.nlayers, log, args.tparams)
+      # Check if PT file is provided:
+      if args.ptfile is None:
+        ar.checkpressure(args, log, wlog)  # Check pressure inputs
+        pressure = atm.pressure(args.ptop, args.pbottom, args.nlayers,
+                                args.punits, log)
+        ar.checktemp(args, log, wlog)      # Check temperature inputs
+        temperature = atm.temperature(args.tmodel, pressure,
+           args.rstar, args.tstar, args.tint, args.gplanet, args.smaxis,
+           args.radunits, args.nlayers, log, args.tparams)
+
+      # If PT file is provided, read it:
+      elif os.path.isfile(args.ptfile):
+        pt.msg(pyrat.verb-3, "\nReading pressure-temperature file:"
+               " '{:s}'.".format(args.ptfile), log)
+        pressure, temperature = atm.read_ptfile(args.ptfile)
 
     # Return temperature-pressure if requested:
     if args.runmode == "pt":

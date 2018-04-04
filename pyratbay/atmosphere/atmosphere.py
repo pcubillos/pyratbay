@@ -1,9 +1,11 @@
 # Copyright (c) 2016-2018 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-__all__ = ["writeatm", "readatm", "uniform", "makeatomic", "readatomic",
-           "makepreatm", "TEA2pyrat", "pressure", "temperature",
+# Jasmina ---
+__all__ = ["read_ptfile", "writeatm", "readatm", "uniform", "makeatomic", 
+           "readatomic", "makepreatm", "TEA2pyrat", "pressure", "temperature",
            "hydro_g", "hydro_m", "readmol", "meanweight"]
+# Jasmina ---
 
 import os
 import sys
@@ -24,6 +26,55 @@ import pt as PT
 # Get Pyrat-Bay inputs dir:
 thisdir = os.path.dirname(os.path.realpath(__file__))
 indir   = thisdir + "/../../inputs/"
+
+
+def read_ptfile(ptfile):     
+    """
+    Extract pressure, temperature, from a file.
+
+    Parameters
+    ----------
+    ptfile: String
+       Input file with pressure (first column), temperature (second
+       column) arrays.
+
+    Return
+    ------
+    pressure: 1D float ndarray
+       Pressure profile in barye.
+    temperature: 1D float ndarray
+       Temperature profile in Kelvin.
+
+    Notes
+    -----
+    This function assumes that the units of the input pressure are bar.
+    """
+    # Open ptfile:
+    f = open(ptfile, 'r')
+    data = []
+    for line in f.readlines():
+        if line.startswith('#'):
+            continue
+        else:
+            l = [value for value in line.split()]
+            data.append(l)
+    data = np.asarray(data)
+    f.close()
+
+    # Size of the data array (number of layers in the atmosphere):
+    ndata = len(data)
+
+    # Allocate arrays of pressure and temperature
+    press, temp = [], []
+
+    # Read lines and store pressure and temperature data
+    for i in np.arange(ndata):
+        press = np.append(press, data[i][0])
+        temp  = np.append(temp,  data[i][1])
+    pressure    = press.astype(float) * pt.u('bar')
+    temperature = temp.astype(float)
+
+    return pressure, temperature
 
 
 def writeatm(atmfile, pressure, temperature, species, abundances,

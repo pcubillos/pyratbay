@@ -261,7 +261,7 @@ def parse(pyrat, log=None):
   pyrat.inputs.runmode    = user.runmode
   pyrat.inputs.verb       = user.verb
   pyrat.inputs.nproc      = user.nproc
-  # Input file:
+  # Input files:
   pyrat.inputs.atmfile    = user.atmfile
   pyrat.inputs.linedb     = user.linedb
   pyrat.inputs.csfile     = user.csfile
