@@ -3627,5 +3627,15 @@ Handbook of Chemistry and Physics, Lide.
 
 Bumped Pyrat Bay to version 0.0.83.
 
+
+*****  Mi 11. Apr 18:42:48 CEST 2018  *****
+
+Outsourced the Planck blackbody calculation into its own module,
+making it available for the user.
+Renamed planck() to Bwn2D(), and made the 'B' and 'last' arguments
+optional.  Also, implemented Bwn(), a 1D version of the code for
+a single temperature value.
+
 *****
+
 
