@@ -6,12 +6,12 @@ import os
 import numpy as np
 
 from .. import tools     as pt
+from .. import blackbody as bb
 from .. import constants as pc
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../lib')
 import simpson    as s
 import trapz      as t
-import blackbody  as bb
 import cutils     as cu
 
 
@@ -102,7 +102,7 @@ def intensity(pyrat):
 
   # Calculate the Planck Emission:
   pyrat.od.B = np.zeros((pyrat.atm.nlayers, pyrat.spec.nwave), np.double)
-  bb.planck(pyrat.od.B, pyrat.spec.wn, pyrat.atm.temp, pyrat.od.ideep)
+  bb.Bwn2D(pyrat.spec.wn, pyrat.atm.temp, pyrat.od.B, pyrat.od.ideep)
 
   # Allocate dtau:
   dtau  = np.empty(pyrat.atm.nlayers, np.double)
