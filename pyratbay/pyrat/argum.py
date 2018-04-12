@@ -14,9 +14,9 @@ from datetime import date
 
 from .. import tools      as pt
 from .. import constants  as pc
-from .. import wine       as w
-from .. import starspec   as sspec
-from .. import atmosphere as atm
+from .. import wine       as pw
+from .. import starspec   as ps
+from .. import atmosphere as pa
 from .. import VERSION    as ver
 
 from .  import haze      as hz
@@ -949,7 +949,7 @@ def setup(pyrat):
     ret.ibulk = []
     for mol in ret.bulk:
       ret.ibulk  += list(np.where(species==mol)[0])
-    ret.bulkratio, ret.invsrat = atm.ratio(pyrat.atm.q, ret.ibulk)
+    ret.bulkratio, ret.invsrat = pa.ratio(pyrat.atm.q, ret.ibulk)
   if ret.molscale is not None:
     ret.iscale = []
     for mol in ret.molscale:
@@ -965,7 +965,7 @@ def setup(pyrat):
 
   # Read stellar spectrum model:
   if phy.starspec is not None:
-    starwn, starflux = sspec.readpyrat(phy.starspec)
+    starwn, starflux = ps.readpyrat(phy.starspec)
   # Kurucz stellar model:
   elif phy.kurucz is not None:
     if phy.tstar is None:
@@ -974,17 +974,19 @@ def setup(pyrat):
     if phy.gstar is None:
       pt.error("Undefined stellar gravity (gstar), required for Kurucz "
                "model.", pyrat.log)
-    starflux, starwn, kuruczt, kuruczg = sspec.readkurucz(phy.kurucz,
+    starflux, starwn, kuruczt, kuruczg = ps.readkurucz(phy.kurucz,
                                            phy.tstar, np.log10(phy.gstar))
     pt.msg(pyrat.verb-4, "Input stellar params: T={:7.1f} K, log(g)={:4.2f}\n"
                          "Best Kurucz match:    T={:7.1f} K, log(g)={:4.2f}".
           format(phy.tstar, np.log10(phy.gstar), kuruczt, kuruczg, pyrat.log))
   # MARCS stellar model:
-  elif phy.marcs:
+  elif phy.marcs is not None:
     pass
   # PHOENIX stellar model:
-  elif phy.phoenix:
+  elif phy.phoenix is not None:
     pass
+  elif phy.tstar is not None:
+    starwn, starflux = ps.bbflux(pyrat.spec.wn, phy.tstar)
   else:
     starflux, starwn = None, None
 
@@ -1119,10 +1121,10 @@ def setfilters(obs, spec, phy):
   bandwn    = []  # Band's mean wavenumber
   for i in np.arange(obs.nfilters):
     # Read filter wavenumber and transmission curves:
-    filterwn, filtertr = w.readfilter(obs.filter[i])
+    filterwn, filtertr = pw.readfilter(obs.filter[i])
     # Resample the filters into the stellar wavenumber array:
-    btr, wni, isf = w.resample(spec.wn, filterwn,   filtertr,
-                                        phy.starwn, phy.starflux)
+    btr, wni, isf = pw.resample(spec.wn, filterwn,   filtertr,
+                                         phy.starwn, phy.starflux)
     bandidx.append(wni)
     bandtrans.append(btr)
     starflux.append(isf)

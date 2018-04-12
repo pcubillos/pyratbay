@@ -3,7 +3,9 @@
 
 __all__ = ["readpyrat"]
 
+
 import numpy as np
+
 
 def readpyrat(specfile, wn=True):
   """

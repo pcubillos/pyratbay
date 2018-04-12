@@ -1,6 +1,8 @@
 # Copyright (c) 2016-2018 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
+__all__ = ["specpercent"]
+
 import sys
 import os
 if sys.version_info.major == 3:
@@ -13,8 +15,6 @@ import multiprocessing as mp
 
 from .. import constants as pc
 from .. import starspec  as ps
-
-__all__ = ["specpercent"]
 
 
 def worker(pyrat, idx, models, post, uind):

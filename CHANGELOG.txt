@@ -3645,5 +3645,27 @@ Bumped Pyrat to version 1.2.58.
 
 Clean up comments.
 
+
+*****  Do 12. Apr 11:13:32 CEST 2018  *****
+
+Fixed lib path typo in blackbody module.
+Renamed blackbody.c to _blackbody.c to avoid conflict.
+
+*****
+
+Added bbflux() to starspec module to compute stellar flux as blackbody
+emission.
+Cleaned up a bit the kurucz.py and readpyrat.py files.
+
+*****
+
+Default stellar spectrum to blackbody at phy.tstar when no stellar
+spectrum is provided (and tstar is not None, duh).
+
+*****
+
+Bumped Pyrat Bay to version 0.0.85.
+Bumped Pyrat to version 1.2.59.
+
 *****
 

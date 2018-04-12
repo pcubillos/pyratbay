@@ -3,8 +3,11 @@
 
 __all__ = ["readkurucz", "kunpack"]
 
+
 import numpy as np
-import scipy.constants   as sc
+import scipy.constants as sc
+
+from .. import constants as pc
 
 
 def readkurucz(kfile, temperature, logg):
@@ -35,8 +38,8 @@ def readkurucz(kfile, temperature, logg):
 
   inten, freq, grav, temp, nainten, head = kunpack(kfile, freq=True)
 
-  # Wavenumber in cm^-1
-  starwn = freq / sc.c * 1e-2
+  # Frequency to wavenumber (cm-1):
+  starwn = freq / pc.c
 
   # Find the model index with the nearest temp and log(g):
   # Nearest sampled temperature:
@@ -45,18 +48,18 @@ def readkurucz(kfile, temperature, logg):
   gmodel = grav[np.argmin(np.abs(grav-logg))]
   imodel = np.where((temp == tmodel) & (grav > gmodel))[0][0]
 
-  # Get the stellar flux:
-  starfl = inten[imodel]  # W m^-2 sr^-1 Hz^-1
+  # Get the stellar flux (W m-2 sr-1 Hz-1):
+  starfl = inten[imodel]
 
   # Convert F_freq to F_wavenumber (Hz-1 --> m):
   #   multiply by c.
-  # Convert units MKS to cgs:
+  # Convert MKS units to cgs:
   #   W m-2 = 1e3 ergs s-1 cm-2
   # Convert intensity (astrophysical flux) to flux:
   #   sr-1 = pi
 
-  # Flux per wavenumber:  ergs s-1 cm-2 cm
-  starfl = starfl * 1e3 * np.pi * (1e2 * sc.c)
+  # Flux per wavenumber (ergs s-1 cm-2 cm):
+  starfl = starfl * 1e3 * np.pi * pc.c
 
   return starfl, starwn, tmodel, gmodel
 
