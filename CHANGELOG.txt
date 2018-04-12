@@ -3653,3 +3653,9 @@ Renamed blackbody.c to _blackbody.c to avoid conflict.
 
 *****
 
+Added bbflux() to starspec module to compute stellar flux as blackbody
+emission.
+Cleaned up a bit the kurucz.py and readpyrat.py files.
+
+*****
+
