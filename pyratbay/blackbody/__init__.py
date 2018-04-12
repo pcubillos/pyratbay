@@ -13,8 +13,8 @@ __all__ = ["Bwn", "Bwn2D"]
 import os
 import sys
 
-sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/lib')
-from blackbody import Bwn, Bwn2D
+sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../lib')
+from _blackbody import Bwn, Bwn2D
 
 
 # Clean up top-level namespace--delete everything that isn't in __all__

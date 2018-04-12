@@ -145,7 +145,7 @@ static PyMethodDef blackbody_methods[] = {
 /* Module definition for Python 3.                                          */
 static struct PyModuleDef moduledef = {
     PyModuleDef_HEAD_INIT,
-    "blackbody",
+    "_blackbody",
     blackbody__doc__,
     -1,
     blackbody_methods
@@ -153,7 +153,7 @@ static struct PyModuleDef moduledef = {
 
 /* When Python 3 imports a C module named 'X' it loads the module           */
 /* then looks for a method named "PyInit_"+X and calls it.                  */
-PyObject *PyInit_blackbody (void) {
+PyObject *PyInit__blackbody (void) {
   PyObject *module = PyModule_Create(&moduledef);
   import_array();
   return module;
@@ -162,8 +162,8 @@ PyObject *PyInit_blackbody (void) {
 #else
 /* When Python 2 imports a C module named 'X' it loads the module           */
 /* then looks for a method named "init"+X and calls it.                     */
-void initblackbody(void){
-  Py_InitModule3("blackbody", blackbody_methods, blackbody__doc__);
+void init_blackbody(void){
+  Py_InitModule3("_blackbody", blackbody_methods, blackbody__doc__);
   import_array();
 }
 #endif
