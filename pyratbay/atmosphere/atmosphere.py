@@ -1,11 +1,10 @@
 # Copyright (c) 2016-2018 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-# Jasmina ---
 __all__ = ["read_ptfile", "writeatm", "readatm", "uniform", "makeatomic", 
            "readatomic", "makepreatm", "TEA2pyrat", "pressure", "temperature",
            "hydro_g", "hydro_m", "readmol", "meanweight"]
-# Jasmina ---
+
 
 import os
 import sys

@@ -3659,3 +3659,8 @@ Cleaned up a bit the kurucz.py and readpyrat.py files.
 
 *****
 
+Default stellar spectrum to blackbody at phy.tstar when no stellar
+spectrum is provided (and tstar is not None, duh).
+
+*****
+
