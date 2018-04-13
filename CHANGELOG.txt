@@ -3805,5 +3805,18 @@ with lower temperature runs.
 
 Added Stefan-Boltzmann constant to constants module.
 
+
+*****  Fr 13. Apr 10:23:53 CEST 2018  *****
+
+Moved calcatm() wrapper from pbay.driver.py to atmosphere module,
+making it accessible to the user.
+Added stoich() function to atmosphere module to compute elemental
+composition and stoichiometric values for a list of species.
+Modified uniform() function in atmosphere module to return the
+abundance profiles.
+Removed atomicfile and patm arguments from pbay parser, which are not
+actually useful.
+Fixed minor bug in pbay.driver verb.
+
 *****
 

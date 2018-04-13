@@ -2,12 +2,15 @@
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
 __all__ = ["read_ptfile", "writeatm", "readatm", "uniform", "makeatomic",
-           "readatomic", "makepreatm", "TEA2pyrat", "pressure", "temperature",
-           "hydro_g", "hydro_m", "readmol", "meanweight", "IGLdensity"]
+           "readatomic", "makepreatm", "calcatm", "TEA2pyrat",
+           "pressure", "temperature", "hydro_g", "hydro_m", "readmol",
+           "meanweight", "stoich", "IGLdensity"]
 
 
 import os
 import sys
+import operator
+import subprocess
 import numpy as np
 import scipy.integrate as si
 import scipy.constants as sc
@@ -16,8 +19,10 @@ import scipy.interpolate as sip
 from .. import tools     as pt
 from .. import constants as pc
 from .  import MadhuTP
+from ..pbay  import makecfg as mc
 
 rootdir = os.path.realpath(os.path.dirname(__file__) + "/../../")
+TEAdir = rootdir + "/modules/TEA/"
 sys.path.append(rootdir + "/pyratbay/lib/")
 import pt as PT
 
@@ -247,7 +252,7 @@ def readatm(atmfile, verb=False):
 
 def uniform(atmfile, pressure, temperature, species, abundances, punits="bar"):
   """
-  Generate an atmospheric file with uniform abundances.
+  Generate an atmospheric file with uniform abundances and save to file.
 
   Parameters
   ----------
@@ -263,8 +268,12 @@ def uniform(atmfile, pressure, temperature, species, abundances, punits="bar"):
      The species mole mixing ratio.
   punits:  String
      Pressure units.
-  """
 
+  Returns
+  -------
+  abund: 2D float ndarray
+     The abundances profiles.
+  """
   # Safety checks:
   nlayers = len(pressure)
 
@@ -283,7 +292,7 @@ def uniform(atmfile, pressure, temperature, species, abundances, punits="bar"):
             "# and uniform mole mixing ratio profiles.\n\n")
 
   writeatm(atmfile, pressure, temperature, species, abund, punits, header)
-
+  return abund
 
 def makeatomic(solar, afile, xsolar=1.0, swap=None):
   """
@@ -446,12 +455,84 @@ def makepreatm(pressure, temp, afile, elements, species, patm):
   f.close()
 
 
+def calcatm(atmfile, pressure, temperature, species, punits="bar",
+            solar=rootdir+"/inputs/AsplundEtal2009.txt", xsolar=1.0,
+            quniform=None, elements=None, nproc=1, log=None, verb=0):
+  """
+  Wrapper to compute atmospheric abundaces for given pressure and
+  temperature profiles with either uniform abundances or TEA.
+
+  Parameters
+  ----------
+  atmfile: String
+     Output file where to save the atmospheric model.
+  pressure: 1D float ndarray
+     Atmospheric pressure profile (barye).
+  temperature: 1D float ndarray
+     Atmospheric temperature profile (Kelvin).
+  species: 1D string list
+     Atmospheric composition.
+  punits: String
+     Output pressure units.
+  solar: String
+     Solar elemental abundances file.
+  xsolar: Float
+     Metallicity enhancement factor.
+  elements: 1D strings list
+     Elemental composition.
+  quniform: 1D float ndarray
+     If not None, the species abundances at all layers.
+  nproc: Integer
+     Number of CPUs (for parallel computing).
+  log: FILE pointer
+     Log file to store screen outputs.
+  verb: Integer
+     Verbosity level.
+
+  Returns
+  -------
+  q: 2D float ndarray
+     Atmospheric abundances (volume mixing fraction).
+  """
+  # Uniform-abundances profile:
+  if quniform is not None:
+    q = uniform(atmfile, pressure, temperature, species, quniform, punits)
+    pt.msg(verb-1, "\nProduced uniform-abundances atmospheric file: '{:s}'.".
+                   format(atmfile), log)
+  # TEA abundances:
+  else:
+    pt.msg(verb-1, "\nRun TEA to compute thermochemical-equilibrium "
+                     "abundances.", log)
+    atomicfile = "./atomic.tea"
+    patm = "./preatm.tea"
+    makeatomic(solar, atomicfile, xsolar, swap=None)
+    # Append species after elements (without repeating values):
+    if elements is None:
+      elements, stoi = stoich(species)
+    specs = elements + list(np.setdiff1d(species, elements))
+    # Pre-atmospheric file:
+    makepreatm(pressure/pt.u(punits), temperature, atomicfile,
+               elements, specs, patm)
+    # Run TEA:
+    mc.makeTEA(abun_file=atomicfile, verb=verb, ncpu=nproc)
+    proc = subprocess.Popen([TEAdir + "tea/runatm.py", patm, "TEA"])
+    proc.communicate()
+    # Reformat the TEA output into the pyrat format:
+    TEA2pyrat("./TEA.tea", atmfile, species)
+    os.remove("TEA.cfg")
+    os.remove(atomicfile)
+    os.remove(patm)
+    os.remove("TEA.tea")
+    pt.msg(verb-1, "Produced TEA atmospheric file '{:s}'.".format(atmfile), log)
+    q = readatm(atmfile)[3]
+  return q
+
 def TEA2pyrat(teafile, atmfile, req_species):
   """
   Format a TEA atmospheric file into a Pyrat atmospheric file.
 
-  Paramters
-  ---------
+  Parameters
+  ----------
   teafile:  String
      Input TEA atmospheric file.
   atmfile:  String
@@ -808,6 +889,53 @@ def meanweight(abundances, molnames, molfile=None):
   return np.sum(abundances*molmass, axis=1)
 
 
+def stoich(species):
+  """
+  Extract the elemental composition from a list of species.
+
+  Parameters
+  ----------
+  species: 1D string list
+     List of species.
+
+  Returns
+  -------
+  elements: 1D string list
+     List of elements contained in species list.
+  stoich: 2D integer ndarray
+     Stoichiometric elemental values for each species (number of elements).
+  """
+  # Elemental composition and quantity for each species:
+  comp, n = [], []
+
+  for spec in species:
+    comp.append([])
+    n.append([])
+    for char in spec:
+      # New element:
+      if char.isupper():
+        comp[-1].append(char)
+        n[-1].append(1)
+      # Same element:
+      elif char.islower():
+        comp[-1][-1] += char
+      # Quantity:
+      elif char.isdigit():
+        n[-1][-1] = int(char)
+
+  # Flatten nested list, and get unique list of elements:
+  elements = list(np.unique(reduce(operator.concat, comp)))
+  stoich = np.zeros((len(species), len(elements)), int)
+
+  # Count how many elements in each species:
+  for i in np.arange(len(species)):
+    for j in np.arange(len(comp[i])):
+      idx = elements.index(comp[i][j])
+      stoich[i,idx] = n[i][j]
+
+  return elements, stoich
+
+
 def IGLdensity(abundance, pressure, temperature, mass=None):
   """
   Use the Ideal gas law to calculate number density (molecules cm-3).
@@ -827,6 +955,6 @@ def IGLdensity(abundance, pressure, temperature, mass=None):
   Returns
   -------
   density: 1D float ndarray
-     Atmospheric density in molecules per centimeter^3.
+     Atmospheric density in molecules cm-3.
   """
   return abundance * pressure / (pc.k * temperature)

@@ -136,14 +136,6 @@ def parse(wlog):
   group.add_argument("--xsolar",     dest="xsolar",
            help="Metallicity scaling factor [default: %(default)s]",
            action="store", type=np.double, default=None)
-  group.add_argument("--atomicfile", dest="atomicfile",
-           help="Atomic-composition file (atomic composition) "
-                "[default: %(default)s]",
-           action="store", type=str,       default=None)
-  group.add_argument("--patm",       dest="patm",
-           help="Pre-atmospheric file (atomic abundances per layer) "
-                "[default: %(default)s]",
-           action="store", type=str,       default=None)
   group.add_argument("--elements",   dest="elements",
            help="Atmospheric elements for the pre-atmospheric file "
                 "[default: %(default)s]",
@@ -337,10 +329,6 @@ def checkatm(args, log, wlog):
       pt.error("Undefined atmospheric atomic-composition list (elements).", log)
     args.solar = pt.defaultp(args.solar, rootdir+"/inputs/AsplundEtal2009.txt",
       "Solar-abundances file defaulted to '{:s}'.", wlog, log)
-    args.atomicfile = pt.defaultp(args.atomicfile, "./atomic.tea",
-      "Atomic-composition file defaulted to '{:s}'.", wlog, log)
-    args.patm = pt.defaultp(args.patm, "./preatm.tea",
-      "Pre-atmospheric file defaulted to '{:s}'.", wlog, log)
     args.xsolar = pt.defaultp(args.xsolar, 1.0,
       "Solar-metallicity scaling factor defaulted to {:.2f}.", wlog, log)
 
