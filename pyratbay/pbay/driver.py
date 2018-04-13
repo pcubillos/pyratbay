@@ -16,6 +16,7 @@ from .. import atmosphere as pa
 
 from .  import argum     as ar
 from .  import pyratfit  as pf
+from .  import radeq
 
 rootdir = os.path.realpath(os.path.dirname(__file__) + "/../../")
 MC3dir = rootdir + "/modules/MCcubed/"
@@ -115,6 +116,9 @@ def run(argv, main=False):
     if args.runmode == "atmosphere":
       species, pressure, temperature, abundances = pa.readatm(args.atmfile)
       return pressure, temperature, abundances
+
+    if args.runmode == "radeq":
+      return radeq.radeq(args)
 
     # Check status of extinction-coefficient file if necessary:
     if args.runmode != "spectrum" and pt.isfile(args.extfile) == -1:

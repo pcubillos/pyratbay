@@ -3820,3 +3820,11 @@ Fixed minor bug in pbay.driver verb.
 
 *****
 
+Implemented radiative-thermochemical equilibrium code in pbay/radeq.py
+This code can be run selecting the 'radeq' run mode.
+radeq uses a new argument 'beta' which is the combined Bond albedo and
+redistribution factor, which controls how much stellar flux the planet
+absorbs.
+
+*****
+

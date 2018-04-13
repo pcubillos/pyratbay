@@ -111,7 +111,11 @@ def parse(wlog):
   group.add_argument("--tparams", dest="tparams",
            help="Temperature-profile parameters [default: %(default)s]",
            action="store", type=pt.parray, default=None)
-
+  group.add_argument("--beta",    dest="beta",
+           help="Combined Bond albedo (A) and redistribution factor (f), "
+                "beta=(1-A)/f, where f=1.0 -> 4pi reemission, f=0.5 "
+                "-> 2pi (dayside) reemission.",
+           action="store", type=np.double, default=1.0)
   # Atmospheric file:
   group = parser.add_argument_group("Atmospheric-file options")
   group.add_argument("--ptfile",    dest="ptfile",
@@ -337,14 +341,12 @@ def checkinputs(args, log, wlog):
   """
   Check that the input values (args) make sense.
   """
-
   if args.runmode is None:
-    pt.error("Undefined run mode (runmode), select from: 'tli', 'pt', "
-             "'atmosphere', 'opacity', 'spectrum', 'mcmc'.", log)
-  if args.runmode not in ['tli', 'pt', 'atmosphere', 'opacity',
-                          'spectrum', 'mcmc']:
-    pt.error("Invalid runmode ({:s}).  Must select one from: 'tli', 'pt', "
-        "'atmosphere', 'opacity', 'spectrum', 'mcmc'.".format(args.runmode))
+    pt.error("Undefined run mode (runmode), select from: {}.".
+              format(pc.rmodes), log)
+  if args.runmode not in pc.rmodes:
+    pt.error("Invalid runmode ({:s}).  Must select one from: {}.".
+              format(args.runmode, pc.rmodes), log)
 
 
   # Stellar model:
