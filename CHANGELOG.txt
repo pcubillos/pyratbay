@@ -3828,3 +3828,7 @@ absorbs.
 
 *****
 
+Fixed bug creating a Planck stellar flux in pyrat.argum.setup().
+
+*****
+

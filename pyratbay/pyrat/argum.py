@@ -561,7 +561,7 @@ def checkinputs(pyrat):
   pyrat.phy.tint = pt.defaultp(inputs.tint, 100.0,
             "Planetary internal temperature (tint) defaulted to {:.1f} K.",
             pyrat.wlog, pyrat.log)
-  isgreater(phy.tint, "none", 0, True,
+  isgreater(phy.tint, "none", 0, False,
             "Planetary internal temperature ({:.1f} K) must be > 0.", pyrat.log)
 
   # Compute the Hill radius for the planet:
