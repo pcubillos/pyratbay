@@ -94,7 +94,7 @@ def run(argv, main=False):
 
       # If PT file is provided, read it:
       elif os.path.isfile(args.ptfile):
-        pt.msg(pyrat.verb-3, "\nReading pressure-temperature file:"
+        pt.msg(args.verb-3, "\nReading pressure-temperature file:"
                " '{:s}'.".format(args.ptfile), log)
         pressure, temperature = atm.read_ptfile(args.ptfile)
 
@@ -183,7 +183,7 @@ def run(argv, main=False):
                  pyrat.mol.name, pyrat.atm.q, pyrat.atm.punits,
                  header, radius=pyrat.atm.radius, runits='km')
 
-    pyrat.verb = verb
+    pyrat.verb = verb  # Un-mute
     pt.msg(pyrat.verb-3, "Written best-fit atmospheric file ('{:s}') and "
       "spectrum ('{:s}').".format(bestatm, pyrat.outspec), pyrat.log, 0)
 

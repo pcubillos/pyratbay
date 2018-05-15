@@ -23,6 +23,10 @@ def parse(wlog):
   # Add config file option:
   cparser.add_argument("-c", "--cfile",
                        help="Configuration filename (string).", metavar="FILE")
+  cparser.add_argument("-v",  "--verb",  dest="verb",
+                       help="Verbosity level [default: %(default)s]",
+                       action="store", type=int, default=2)
+
   # remaining_argv contains all other command-line-arguments:
   args, remaining_argv = cparser.parse_known_args()
 
