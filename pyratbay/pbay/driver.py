@@ -190,7 +190,8 @@ def run(argv, main=False):
                 filename="{:s}_bestfit_spectrum.png".format(outfile))
     # Posterior PT profiles:
     if pyrat.ret.tmodelname in ["TCEA", "MadhuInv", "MadhuNoInv"]:
-      pp.PT(posterior, besttpars=bestp[pyrat.ret.itemp], pyrat=pyrat)
+      pp.PT(posterior, besttpars=bestp[pyrat.ret.itemp], pyrat=pyrat,
+            filename="{:s}_PT_posterior_profile.png".format(outfile))
     # Contribution or transmittance functions:
     if   pyrat.od.path == "eclipse":
       cf  = pt.cf(pyrat.od.depth, pyrat.atm.press, pyrat.od.B)

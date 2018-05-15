@@ -236,8 +236,8 @@ def cf(bandcf, bandwl, path, pressure, radius, rtop=0,
 
 
 def PT(posterior, pressure=None, tparams=None, tstepsize=None,
-         besttpars=None, rstar=None, tstar=None, tint=None, smaxis=None,
-         gplanet=None, pyrat=None):
+       besttpars=None, rstar=None, tstar=None, tint=None, smaxis=None,
+       gplanet=None, filename=None, pyrat=None):
   """
   Plot the posterior PT profile.
 
@@ -263,6 +263,8 @@ def PT(posterior, pressure=None, tparams=None, tstepsize=None,
      Semi-major axis in cm.
   gplanet: Float
      Planetary surface gravity in cm s-2.
+  filename: String
+     Filename of the output figure.
   pyrat: Pyrat instance
   """
   if pyrat is not None:
@@ -327,4 +329,5 @@ def PT(posterior, pressure=None, tparams=None, tstepsize=None,
   plt.ylabel("Pressure  (bar)",  size=15)
 
   # Save figure:
-  plt.savefig("MCMC_PT-profiles.png")
+  if filename is not None:
+    plt.savefig(filename)

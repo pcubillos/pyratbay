@@ -3678,3 +3678,9 @@ Tweaked final MCMC output message.
 
 *****
 
+Added savefile argument to plots.PT().
+Fixed MCMC posterior PT plot to follow same naming scheme as all
+other files.
+
+*****
+
