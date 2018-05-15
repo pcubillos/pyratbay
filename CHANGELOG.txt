@@ -3674,3 +3674,7 @@ Fixed bug when reading in a PT profile.
 
 *****
 
+Tweaked final MCMC output message.
+
+*****
+

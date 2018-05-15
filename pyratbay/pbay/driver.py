@@ -184,8 +184,6 @@ def run(argv, main=False):
                  header, radius=pyrat.atm.radius, runits='km')
 
     pyrat.verb = verb  # Un-mute
-    pt.msg(pyrat.verb-3, "Written best-fit atmospheric file ('{:s}') and "
-      "spectrum ('{:s}').".format(bestatm, pyrat.outspec), pyrat.log, 0)
 
     # Best-fitting spectrum:
     pp.spectrum(pyrat=pyrat, logxticks=args.logxticks,
@@ -205,6 +203,10 @@ def run(argv, main=False):
           pyrat.atm.press, pyrat.atm.radius,
           pyrat.atm.rtop, filename="{:s}_bestfit_cf.png".format(outfile))
 
+    pt.msg(pyrat.verb-3, "\nOutput MCMC posterior results, log, bestfit "
+      "atmosphere, and spectrum:\n'{:s}.npz',\n'{:s}',\n'{:s}',\n'{:s}'.\n\n".
+      format(outfile, os.path.basename(args.logfile), bestatm,
+             pyrat.outspec), pyrat.log, 0)
     log.close()
     return pyrat, bestp
 
