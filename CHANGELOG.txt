@@ -3684,3 +3684,7 @@ other files.
 
 *****
 
+Fixed bug when defaulting stellar spectrum to Blackbody function.
+
+*****
+
