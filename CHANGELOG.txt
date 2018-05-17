@@ -3686,5 +3686,15 @@ other files.
 
 Fixed bug when defaulting stellar spectrum to Blackbody function.
 
+
+*****  Do 17. Mai 16:02:15 CEST 2018  *****
+
+Re-vamped contribution plots, switching from individual panels with
+curves for each filter into a single panel with color maps.
+This significantly improves the readability for cases with many
+filters, and makes the outputs ~2.6 times prettier.
+This resolves #49 since I think we are already covering all basic
+plots.
+
 *****
 

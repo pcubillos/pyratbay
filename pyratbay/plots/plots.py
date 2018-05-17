@@ -26,6 +26,7 @@ import pt as PT
 sys.path.append(rootdir + "/pyratbay/atmosphere/")
 import MadhuTP
 
+
 def spectrum(wlength=None, spectrum=None, data=None, uncert=None,
     bandflux=None, bandtrans=None, bandidx=None, bandwl=None,
     starflux=None, rprs=None, path=None, logxticks=None,
@@ -151,10 +152,10 @@ def spectrum(wlength=None, spectrum=None, data=None, uncert=None,
 
 
 def cf(bandcf, bandwl, path, pressure, radius, rtop=0,
-       filename=None, filters=None):
+       filename=None, filters=None, fignum=-21):
   """
-  Plot the band-integrated contribution functions (emission) or
-  transmittance (transmission).
+  Plot the band-integrated normalized contribution functions
+  (emission) or transmittance (transmission).
 
   Parameters
   ----------
@@ -174,63 +175,128 @@ def cf(bandcf, bandwl, path, pressure, radius, rtop=0,
      Filename of the output figure.
   filters: 1D string ndarray
      Name of the filter bands (optional).
+  fignum: Integer
+     Figure number.
+
+  Notes
+  -----
+  - The dashed lines denote the 0.16 and 0.84 percentiles of the
+    cumulative contribution function or the transmittance (i.e.,
+    the boundaries of the central 68% of the respective curves).
+  - If there are more than 80 filters, this code will thin the
+    displayed filter names.
   """
   nfilters = len(bandwl)
-  wlsort   = np.argsort(bandwl)
+  nlayers  = len(pressure)
+
+  wlsort = np.argsort(bandwl)
+  press = pressure[rtop:]/pc.bar
+  rad   = radius  [rtop:]/pc.km
 
   press = pressure[rtop:]/pc.bar
   rad   = radius[rtop:]/pc.km
   if   path == "eclipse":
-    xran = -0.03*np.amax(bandcf), 1.03*np.amax(bandcf)
-    yran = np.amax(press), np.amin(press)
-    xlabel = r'${\rm Contribution\ functions}$'
-    ylabel = r'${\rm Pressure\ \ (bar)}$'
+    yran = np.amax(np.log10(press)), np.amin(np.log10(press))
+    zz = bandcf/np.amax(bandcf)
+    xlabel = 'contribution function'
+    ylabel = ''
+    yright = 0.9
   elif path == "transit":
-    xran = -0.03, 1.03
+    zz = bandcf/np.amax(bandcf)
     yran = np.amin(rad), np.amax(rad)
-    xlabel = r'${\rm Band-averaged\ transmittance\ \ (0-1)}$'
-    ylabel = r'${\rm Impact\ parameter\ \ (km)}$'
+    xlabel = r'transmittance'
+    ylabel = r'Impact parameter (km)'
+    yright = 0.84
   else:
     print("Invalid geometry.  Select from: 'eclipse' or 'transit'.")
     return
 
-  fs  = 14
-  lw  = 2.0
-  colors = np.asarray(np.linspace(10, 240, nfilters), np.int)
+  fs  = 12
+  colors = np.asarray(np.linspace(0, 255, nfilters), np.int)
+  # 68% percentile boundaries of the central cumulative function:
+  lo = 0.5*(1-0.683)
+  hi = 1.0 - lo
+  # Filter fontsize and thinning:
+  ffs = 8.0 + (nfilters<50) + (nfilters<65)
+  thin = (nfilters>80) + (nfilters>125) + (nfilters<100) + nfilters//100
 
-  plt.figure(-21)
-  plt.clf()
+  # Colormap and percentile limits:
+  z = np.empty((nlayers, nfilters, 4), dtype=float)
+  plo = np.zeros(nfilters+1)
+  phi = np.zeros(nfilters+1)
   for i in np.arange(nfilters):
+    z[:,i, :] = plt.cm.rainbow(colors[i])
+    z[:,i,-1] = zz[i]**(0.5+0.5*(path=='transit'))
+    if path == "eclipse":
+      cumul = np.cumsum(zz[i])/np.sum(zz[i])
+      plo[i], phi[i] = press[cumul>lo][0], press[cumul>hi][0]
+    elif path == "transit":
+      plo[i], phi[i] = press[zz[i]<lo][0], press[zz[i]<hi][0]
+  plo[-1] = plo[-2]
+  phi[-1] = phi[-2]
+
+  fig = plt.figure(fignum, (8.5, 5))
+  plt.clf()
+  plt.subplots_adjust(0.09, 0.10, yright, 0.95)
+  ax = plt.subplot(111)
+  pax = ax.twinx()
+  if   path == "eclipse":
+    ax.imshow(z[:,wlsort], aspect='auto', extent=[0,nfilters,yran[0],yran[1]],
+              origin='upper', interpolation='nearest')
+    ax.yaxis.set_visible(False)
+    pax.spines["left"].set_visible(True)
+    pax.yaxis.set_label_position('left')
+    pax.yaxis.set_ticks_position('left')
+  elif path == "transit":
+    ax.imshow(z[:,wlsort], aspect='auto', extent=[0,nfilters,yran[0],yran[1]],
+              origin='upper', interpolation='nearest')
+    # Setting the right radius tick labels requires some sorcery:
+    fig.canvas.draw()
+    ylab = [l.get_text() for l in ax.get_yticklabels()]
+    rint = si.interp1d(rad, press, bounds_error=False)
+    pticks = rint(ax.get_yticks())
+    bounds = np.isfinite(pticks)
+    pint = si.interp1d(press, np.linspace(yran[1], yran[0], nlayers),
+                       bounds_error=False)
+    ax.set_yticks(pint(pticks[bounds]))
+    ax.set_yticklabels(np.array(ylab)[bounds])
+
+  pax.plot(plo, drawstyle="steps-post", color="0.25", lw=0.75, ls="--")
+  pax.plot(phi, drawstyle="steps-post", color="0.25", lw=0.75, ls="--")
+  pax.set_yscale('log')
+  pax.set_ylim(np.amax(press), np.amin(press))
+  pax.set_ylabel(r'Pressure (bar)', fontsize=fs)
+
+  ax.set_xlim(0, nfilters)
+  ax.set_ylim(yran)
+  ax.set_xticklabels([])
+  ax.set_ylabel(ylabel, fontsize=fs)
+  ax.set_xlabel("Band-averaged {:s}".format(xlabel), fontsize=fs)
+
+  # Print filter names/wavelengths:
+  for i in np.arange(0, nfilters, thin):
     idx = wlsort[i]
-    ax = plt.subplot(1, nfilters, i+1)
-    fname = " {:5.2f} um .".format(bandwl[idx])
+    fname = " {:5.2f} um ".format(bandwl[idx])
     # Strip root and file extension:
     if filters is not None:
       fname = os.path.split(os.path.splitext(filters[idx])[0])[1] + " @" + fname
-    c = colors[i]
-    if    path == "eclipse":
-      ax.semilogy(bandcf[idx], press, '-', lw=lw, color=plt.cm.rainbow(c))
-    elif  path == "transit":
-      ax.plot(bandcf[idx], rad,       '-', lw=lw, color=plt.cm.rainbow(c))
+    ax.text(i+0.1, yran[1], fname, rotation=90, ha="left", va="top",
+            fontsize=ffs)
 
-    ax.set_ylim(yran)
-    ax.set_xlim(xran)
-    plt.text(0.9*xran[1], yran[1], fname, rotation=90, ha="right", va="top")
-    ax.set_xticklabels([])
-    if i == 0:
-      ax.set_ylabel(ylabel, fontsize=fs)
-    else:
-      ax.set_yticklabels([])
+  # Color bar:
+  cbar = plt.axes([0.92, 0.10, 0.02, 0.85])
+  cz = np.zeros((100, 2, 4), dtype=float)
+  cz[:,0,3] = np.linspace(0,1,100)**(0.5+0.5*(path=='transit'))
+  cz[:,1,3] = np.linspace(0,1,100)**(0.5+0.5*(path=='transit'))
+  cbar.imshow(cz, aspect='auto', extent=[0, 1, 0, 1],
+              origin='lower', interpolation='nearest')
+  cbar.spines["right"].set_visible(True)
+  cbar.yaxis.set_label_position('right')
+  cbar.yaxis.set_ticks_position('right')
+  cbar.set_ylabel(xlabel.capitalize(), fontsize=fs)
+  cbar.xaxis.set_visible(False)
 
-  if  path == "transit":
-    par = ax.twinx()
-    par.set_ylim(np.amax(press), np.amin(press))
-    par.set_yscale('log')
-    par.set_ylabel(r'$\rm Pressure\ \ (bar)$', fontsize=fs)
-
-  plt.subplots_adjust(0.12, 0.11, 0.91, 0.95, 0, 0)
-  plt.suptitle(xlabel, fontsize=fs, y=0.09, x=0.52)
-
+  fig.canvas.draw()
   if filename is not None:
     plt.savefig(filename)
 
