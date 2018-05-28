@@ -3713,3 +3713,6 @@ Enabled yran argument for the output soectrum plot in MCMC runs.
 
 *****
 
+Bumped Pyrat Bay to version 0.0.86.
+
+*****
