@@ -3709,3 +3709,7 @@ Updated its documentation.
 
 *****
 
+Enabled yran argument for the output soectrum plot in MCMC runs.
+
+*****
+

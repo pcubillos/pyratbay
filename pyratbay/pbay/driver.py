@@ -186,7 +186,7 @@ def run(argv, main=False):
     pyrat.verb = verb  # Un-mute
 
     # Best-fitting spectrum:
-    pp.spectrum(pyrat=pyrat, logxticks=args.logxticks,
+    pp.spectrum(pyrat=pyrat, logxticks=args.logxticks, yran=args.yran,
                 filename="{:s}_bestfit_spectrum.png".format(outfile))
     # Posterior PT profiles:
     if pyrat.ret.tmodelname in ["TCEA", "MadhuInv", "MadhuNoInv"]:
