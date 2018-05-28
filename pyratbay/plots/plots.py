@@ -27,8 +27,8 @@ import MadhuTP
 
 def spectrum(wlength=None, spectrum=None, data=None, uncert=None,
     bandflux=None, bandtrans=None, bandidx=None, bandwl=None,
-    starflux=None, rprs=None, path=None, logxticks=None,
-    pyrat=None, gaussbin=2, filename=None, fignum=-11):
+    starflux=None, rprs=None, path=None, logxticks=None, yran=None,
+    pyrat=None, gaussbin=2.0, filename=None, fignum=-11):
   """
   Plot a transmission or emission model spectrum with (optional) data
   points with error bars and band-integrated model.
@@ -57,11 +57,18 @@ def spectrum(wlength=None, spectrum=None, data=None, uncert=None,
      Planet-to-star radius ratio.
   path: String
      Observing-geometry path: transit or eclipse.
+  logxticks: 1D float ndarray
+     If not None, switch the X-axis scale from linear to log, and set
+     the X-axis ticks at the locations given by logxticks.
+  yran: 1D float ndarray
+     If not None, set the spectrum's Y-axis boundaries.
   pyrat: Pyrat instance
   gaussbin: Integer
      Standard deviation for Gaussian-kernel smoothing (in number of samples).
   filename: String
      Filename of the output figure.
+  fignum: Integer
+     The Figure number.
 
   Returns
   -------
@@ -91,15 +98,15 @@ def spectrum(wlength=None, spectrum=None, data=None, uncert=None,
       bandflux = w.bandintegrate(pyrat=pyrat)
 
   # Plotting setup:
-  fs  = 14
-  ms  =  7
+  fs  = 12
+  ms  =  5
   lw  = 1.5
-  mew = 1.0
+  mew = 0.4
 
   plt.figure(fignum, (8.5, 5))
   plt.clf()
   ax = plt.subplot(111)
-  plt.subplots_adjust(0.15, 0.125, 0.925, 0.925)
+  plt.subplots_adjust(0.1, 0.1, 0.97, 0.97)
 
   # Setup according to geometry:
   if   path == "eclipse":
@@ -120,19 +127,24 @@ def spectrum(wlength=None, spectrum=None, data=None, uncert=None,
   plt.plot(wlength, gmodel*fscale, lw=lw, label="Model", color="orange")
   # Plot band-integrated model:
   if bandwl is not None:
-    plt.plot(bandwl, bandflux*fscale, "o", ms=ms, color="orange", mew=mew)
+    plt.plot(bandwl, bandflux*fscale, "o", ms=ms, color="orange",
+             mec="k", mew=mew)
   # Plot data:
   if data is not None:
     plt.errorbar(bandwl, data*fscale, uncert*fscale, fmt="ob", label="Data",
                  ms=ms, elinewidth=lw, capthick=lw, zorder=3)
 
+  # Set Y-axis limits:
+  if yran is not None:
+    ax.set_ylim(np.array(yran)*fscale)
+  yran = ax.get_ylim()  # Note this yran may differ from input (fscale).
+
   # Transmission filters:
-  ylim = ax.get_ybound()
-  bandh = 0.06*(ylim[1] - ylim[0])
+  bandh = 0.06*(yran[1] - yran[0])
   for i in np.arange(nfilters):
     bandtr = bandh * bandtrans[i]/np.amax(bandtrans[i])
-    plt.plot(wlength[bandidx[i]], ylim[0]+bandtr, "k")
-  plt.ylim(ylim)
+    plt.plot(wlength[bandidx[i]], yran[0]+bandtr, "0.4", zorder=-100)
+  ax.set_ylim(yran)
   if logxticks is not None:
     ax.set_xscale('log')
     plt.gca().xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())

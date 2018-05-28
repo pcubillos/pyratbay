@@ -3703,3 +3703,9 @@ Tweaked CF and transmittance plots.
 
 *****
 
+Adjusted plots.spectrum() to take in the Y-axis ranges (optional).
+Some other minor tweaks to the plot.
+Updated its documentation.
+
+*****
+
