@@ -94,7 +94,7 @@ def run(argv, main=False):
 
       # If PT file is provided, read it:
       elif os.path.isfile(args.ptfile):
-        pt.msg(pyrat.verb-3, "\nReading pressure-temperature file:"
+        pt.msg(args.verb-3, "\nReading pressure-temperature file:"
                " '{:s}'.".format(args.ptfile), log)
         pressure, temperature = atm.read_ptfile(args.ptfile)
 
@@ -183,16 +183,15 @@ def run(argv, main=False):
                  pyrat.mol.name, pyrat.atm.q, pyrat.atm.punits,
                  header, radius=pyrat.atm.radius, runits='km')
 
-    pyrat.verb = verb
-    pt.msg(pyrat.verb-3, "Written best-fit atmospheric file ('{:s}') and "
-      "spectrum ('{:s}').".format(bestatm, pyrat.outspec), pyrat.log, 0)
+    pyrat.verb = verb  # Un-mute
 
     # Best-fitting spectrum:
-    pp.spectrum(pyrat=pyrat, logxticks=args.logxticks,
+    pp.spectrum(pyrat=pyrat, logxticks=args.logxticks, yran=args.yran,
                 filename="{:s}_bestfit_spectrum.png".format(outfile))
     # Posterior PT profiles:
     if pyrat.ret.tmodelname in ["TCEA", "MadhuInv", "MadhuNoInv"]:
-      pp.PT(posterior, besttpars=bestp[pyrat.ret.itemp], pyrat=pyrat)
+      pp.PT(posterior, besttpars=bestp[pyrat.ret.itemp], pyrat=pyrat,
+            filename="{:s}_PT_posterior_profile.png".format(outfile))
     # Contribution or transmittance functions:
     if   pyrat.od.path == "eclipse":
       cf  = pt.cf(pyrat.od.depth, pyrat.atm.press, pyrat.od.B)
@@ -205,6 +204,10 @@ def run(argv, main=False):
           pyrat.atm.press, pyrat.atm.radius,
           pyrat.atm.rtop, filename="{:s}_bestfit_cf.png".format(outfile))
 
+    pt.msg(pyrat.verb-3, "\nOutput MCMC posterior results, log, bestfit "
+      "atmosphere, and spectrum:\n'{:s}.npz',\n'{:s}',\n'{:s}',\n'{:s}'.\n\n".
+      format(outfile, os.path.basename(args.logfile), bestatm,
+             pyrat.outspec), pyrat.log, 0)
     log.close()
     return pyrat, bestp
 

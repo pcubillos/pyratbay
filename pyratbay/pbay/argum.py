@@ -23,6 +23,10 @@ def parse(wlog):
   # Add config file option:
   cparser.add_argument("-c", "--cfile",
                        help="Configuration filename (string).", metavar="FILE")
+  cparser.add_argument("-v",  "--verb",  dest="verb",
+                       help="Verbosity level [default: %(default)s]",
+                       action="store", type=int, default=2)
+
   # remaining_argv contains all other command-line-arguments:
   args, remaining_argv = cparser.parse_known_args()
 
@@ -231,7 +235,10 @@ def parse(wlog):
            action="store", type=str,       default=None)
   group.add_argument("--logxticks", dest="logxticks",
            help="Plot output spectrum in log(wavelength) with the given ticks.",
-           action="store", type=pt.parray,   default=None)
+           action="store", type=pt.parray,  default=None)
+  group.add_argument("--yran", dest="yran",
+           help="Set spectrum plot Y-axis ranges.",
+           action="store", type=pt.parray,  default=None)
 
   parser.set_defaults(**defaults)
   args = parser.parse_args(remaining_argv)

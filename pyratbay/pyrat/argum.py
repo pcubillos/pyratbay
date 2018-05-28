@@ -985,8 +985,10 @@ def setup(pyrat):
   # PHOENIX stellar model:
   elif phy.phoenix is not None:
     pass
+  # Blackbody stellar model:
   elif phy.tstar is not None:
-    starwn, starflux = ps.bbflux(pyrat.spec.wn, phy.tstar)
+    starwn   = pyrat.spec.wn
+    starflux = ps.bbflux(starwn, phy.tstar)
   else:
     starflux, starwn = None, None
 
