@@ -3696,5 +3696,10 @@ filters, and makes the outputs ~2.6 times prettier.
 This resolves #49 since I think we are already covering all basic
 plots.
 
+
+*****  Mo 28. Mai 11:21:56 CEST 2018  *****
+
+Tweaked CF and transmittance plots.
+
 *****
 

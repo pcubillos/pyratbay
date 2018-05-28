@@ -16,8 +16,6 @@ import scipy.interpolate as si
 from scipy.ndimage.filters import gaussian_filter1d as gaussf
 
 from .. import constants  as pc
-from .. import atmosphere as atm
-from .. import wine       as w
 
 rootdir = os.path.realpath(os.path.dirname(__file__) + "/../../")
 sys.path.append(rootdir + "/pyratbay/lib/")
@@ -201,12 +199,14 @@ def cf(bandcf, bandwl, path, pressure, radius, rtop=0,
     xlabel = 'contribution function'
     ylabel = ''
     yright = 0.9
+    cbtop  = 0.5
   elif path == "transit":
     zz = bandcf/np.amax(bandcf)
     yran = np.amin(rad), np.amax(rad)
     xlabel = r'transmittance'
     ylabel = r'Impact parameter (km)'
     yright = 0.84
+    cbtop  = 0.8
   else:
     print("Invalid geometry.  Select from: 'eclipse' or 'transit'.")
     return
@@ -237,7 +237,7 @@ def cf(bandcf, bandwl, path, pressure, radius, rtop=0,
 
   fig = plt.figure(fignum, (8.5, 5))
   plt.clf()
-  plt.subplots_adjust(0.09, 0.10, yright, 0.95)
+  plt.subplots_adjust(0.105, 0.10, yright, 0.95)
   ax = plt.subplot(111)
   pax = ax.twinx()
   if   path == "eclipse":
@@ -274,7 +274,7 @@ def cf(bandcf, bandwl, path, pressure, radius, rtop=0,
   ax.set_xlabel("Band-averaged {:s}".format(xlabel), fontsize=fs)
 
   # Print filter names/wavelengths:
-  for i in np.arange(0, nfilters, thin):
+  for i in np.arange(0, nfilters-thin//2, thin):
     idx = wlsort[i]
     fname = " {:5.2f} um ".format(bandwl[idx])
     # Strip root and file extension:
@@ -284,12 +284,15 @@ def cf(bandcf, bandwl, path, pressure, radius, rtop=0,
             fontsize=ffs)
 
   # Color bar:
-  cbar = plt.axes([0.92, 0.10, 0.02, 0.85])
+  cbar = plt.axes([0.925, 0.10, 0.015, 0.85])
   cz = np.zeros((100, 2, 4), dtype=float)
-  cz[:,0,3] = np.linspace(0,1,100)**(0.5+0.5*(path=='transit'))
-  cz[:,1,3] = np.linspace(0,1,100)**(0.5+0.5*(path=='transit'))
+  cz[:,0,3] = np.linspace(0.0,cbtop,100)**(0.5+0.5*(path=='transit'))
+  cz[:,1,3] = np.linspace(0.0,cbtop,100)**(0.5+0.5*(path=='transit'))
   cbar.imshow(cz, aspect='auto', extent=[0, 1, 0, 1],
               origin='lower', interpolation='nearest')
+  if path == "transit":
+    cbar.axhline(0.1585, color="k", lw=1.0, dashes=(2.5,1))
+    cbar.axhline(0.8415, color="w", lw=1.0, dashes=(2.5,1))
   cbar.spines["right"].set_visible(True)
   cbar.yaxis.set_label_position('right')
   cbar.yaxis.set_ticks_position('right')
