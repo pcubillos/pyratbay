@@ -3715,4 +3715,12 @@ Enabled yran argument for the output soectrum plot in MCMC runs.
 
 Bumped Pyrat Bay to version 0.0.86.
 
+
+*****  Mo 18. Jun 12:22:02 CEST 2018  *****
+
+Updated MC3 submodule.
+Defaulted showbp to False for MCMC calls.
+
 *****
+
+

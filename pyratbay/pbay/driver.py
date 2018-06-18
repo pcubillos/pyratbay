@@ -163,8 +163,8 @@ def run(argv, main=False):
            burnin=args.burnin, thinning=args.thinning,
            grtest=True, grbreak=args.grbreak, grnmin=args.grnmin,
            hsize=10, kickoff='normal', log=log, nproc=args.nproc,
-           plots=True, parname=pyrat.ret.parname, resume=args.resume,
-           savefile="{:s}.npz".format(outfile))
+           plots=True, parname=pyrat.ret.parname, showbp=False,
+           resume=args.resume, savefile="{:s}.npz".format(outfile))
 
     if mc3_out is None:
       pt.error("Error in MC3.", pyrat.log)
