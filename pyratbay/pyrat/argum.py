@@ -360,7 +360,7 @@ def parse(pyrat, log=None):
 
   # Welcome message:
   pt.msg(pyrat.inputs.verb-2,
-         "{:s}\n  Python Radiative Transfer (PyRaT).\n"
+         "{:s}\n  Python Radiative Transfer (Pyrat).\n"
          "  Version {:d}.{:d}.{:d}.\n"
          "  Copyright (c) 2016-{:d} Patricio Cubillos and collaborators.\n"
          "  Pyrat is (temporarily) proprietaty software (see LICENSE).\n"
