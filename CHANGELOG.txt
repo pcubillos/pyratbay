@@ -3732,4 +3732,20 @@ Bumped Pyrat Bay to version 0.0.87.
 
 *****
 
+Fixed bug in alkali.py calculation.  When weighting by the cut-off
+term, the code was using the temperature at a single layer rather
+than the whole temperature profile.
+
+*****
+
+Added clarification in the line-intensity equation in alkali.py
+about the neglected terms.
+
+*****
+
+Bumped Pyrat Bay to version 0.0.88.
+Bumped Pyrat to version 1.2.60.
+Fixed typo in an alkali.py comment.
+
+*****
 
