@@ -3725,6 +3725,11 @@ Defaulted showbp to False for MCMC calls.
 
 Some cosmetics (screen output of package name).
 
+
+*****  Mi 27. Jun 09:30:29 CEST 2018  *****
+
+Bumped Pyrat Bay to version 0.0.87.
+
 *****
 
 
