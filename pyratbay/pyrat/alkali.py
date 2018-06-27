@@ -82,6 +82,8 @@ def absorption(pyrat):
       alkali.ec += (pc.C3 * ec * alkali.gf[k]/alkali.Z * dens
                     * np.exp(-pc.C2*np.abs(pyrat.spec.wn-alkali.wn[k])
                              / np.expand_dims(temp,axis=1)))
+      # Note this equation is neglecting the exp(-Elow/T)*(1-exp(-nu0/T))
+      # terms because they as approximately 1.0 at T=[100K--4000K]
 
     # Sum alkali extinction coefficient (cm-1):
     pyrat.alkali.ec += alkali.ec

@@ -3738,4 +3738,8 @@ than the whole temperature profile.
 
 *****
 
+Added clarification in the line-intensity equation in alkali.py
+about the neglected terms.
+
+*****
 
