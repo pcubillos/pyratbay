@@ -79,8 +79,9 @@ def absorption(pyrat):
           profile[i0] = 1.0-np.trapz(profile, wndet)
         ec[j, wlo[j]:whi[j]] = profile
       # Add up contribution (include exponential cutoff):
-      alkali.ec += (pc.C3 * ec * alkali.gf[k] /alkali.Z * dens *
-                    np.exp(-pc.C2*np.abs(pyrat.spec.wn-alkali.wn[k])/temp[j]))
+      alkali.ec += (pc.C3 * ec * alkali.gf[k]/alkali.Z * dens
+                    * np.exp(-pc.C2*np.abs(pyrat.spec.wn-alkali.wn[k])
+                             / np.expand_dims(temp,axis=1)))
 
     # Sum alkali extinction coefficient (cm-1):
     pyrat.alkali.ec += alkali.ec
