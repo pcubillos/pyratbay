@@ -27,8 +27,7 @@ from .objects import Pyrat
 
 def init(argv, main=False, log=None):
   """
-  PyRaT (Python Radiative Transfer) initialization driver (or should
-  I say shipmaster?).
+  Pyrat (Python Radiative Transfer) initialization driver.
 
   Parameters
   ----------
@@ -41,8 +40,8 @@ def init(argv, main=False, log=None):
 
   Returns
   -------
-  cavendish: Pyrat instance
-     The Pyrat object.
+  pyrat: Pyrat instance
+     A Pyrat object.
   """
   # Setup the command-line-arguments input:
   if main is False:
