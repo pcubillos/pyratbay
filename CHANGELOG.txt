@@ -3747,5 +3747,15 @@ Bumped Pyrat Bay to version 0.0.88.
 Bumped Pyrat to version 1.2.60.
 Fixed typo in an alkali.py comment.
 
+
+*****  Fr 13. Jul 16:13:32 CEST 2018  *****
+
+Updated Earth and Jupiter radii to the Equatorial values from Prsa
+et al. (2016), which are also consistent with those of Astropy.
+
+*****
+
+Bumped Pyrat Bay to version 0.0.89.
+
 *****
 
