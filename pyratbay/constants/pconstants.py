@@ -35,8 +35,8 @@ m  = 1e+2  # Meter
 km = 1e+5  # Kilometer
 au = sc.au*100      # Astronomical unit
 pc = sc.parsec*100  # Parsec
-rearth = 6.3674e8  # Earth geometric-mean radius (Prsa et al. 2016)
-rjup   = 6.9911e9  # Jupiter mean radius
+rearth = 6.3781e8  # Earth equatorial radius (Prsa et al. 2016)
+rjup   = 7.1492e9  # Jupiter equatorial radius (Prsa et al. 2016)
 rsun   = 6.957e10  # Sun radius (Prsa et al. 2016)
 
 # Pressure to Barye:
