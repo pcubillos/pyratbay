@@ -3754,3 +3754,8 @@ Updated Earth and Jupiter radii to the Equatorial values from Prsa
 et al. (2016), which are also consistent with those of Astropy.
 
 *****
+
+Bumped Pyrat Bay to version 0.0.89.
+
+*****
+
