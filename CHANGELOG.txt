@@ -3830,5 +3830,10 @@ absorbs.
 
 Fixed bug creating a Planck stellar flux in pyrat.argum.setup().
 
+
+*****  Di 31. Jul 09:10:09 CEST 2018  *****
+
+Added atmospheric file write at the end of a radeq run.
+
 *****
 

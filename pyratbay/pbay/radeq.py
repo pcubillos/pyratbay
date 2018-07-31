@@ -146,5 +146,8 @@ def radeq(args):
 
   # Update last temp iteration:
   pyrat.atm.temp = temp[k+1]
+  # Write atmfile with final temperature and abundance profiles:
+  pa.writeatm(args.atmfile, pyrat.atm.press, temp[k+1], pyrat.mol.name, q,
+     "bar", "# Radiative-thermochemical equilibrium atmospheric profile.\n\n")
 
   return pyrat, temp, Fup, Fdown, Qup, Qdown
