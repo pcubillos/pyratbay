@@ -8,6 +8,9 @@ from .. import constants  as pc
 from .. import pyrat      as py
 from .. import wine       as pw
 from .. import atmosphere as pa
+# Jasmina Heng ---
+from .. import analytic   as an
+# Jasmina Heng ---
 
 __all__ = ["fit"]
 
@@ -81,12 +84,40 @@ def fit(params, pyrat, freeze=False, retmodel=True, verbose=False):
       pt.warning(pyrat.verb-2, "Input temperature profile runs out of "
        "boundaries ({:.1f--{:.1f}} K)".format(pyrat.ret.tlow,pyrat.ret.thigh),
        pyrat.log, pyrat.wlog)
+
+  # Jasmina Heng ---
+  # Update analytical equilibirum parameters if requested:
+  if pyrat.ret.iaequil is not None:
+    j = 0
+    apars = params[pyrat.ret.iaequil]
+    for i in np.arange(pyrat.haze.nmodels):
+      pyrat.aequil.model[i].pars = apars[j:j+pyrat.aequil.model[i].npars]
+      j += pyrat.aequil.model[i].npars
+  # Jasmina Heng ---
+
+  # Jasmina Heng ---
+  # Calculate the analytical equilibirum abundances
+  an.eqq(pyrat, temp, pyrat.atm.press)
+  # Jasmina Heng ---
+
   # Update abundance profiles if requested:
   if pyrat.ret.iabund is not None:
     q2 = pa.qscale(pyrat.atm.q, pyrat.mol.name, params[pyrat.ret.iabund],
                    pyrat.ret.molscale, pyrat.ret.bulk,
                    iscale=pyrat.ret.iscale, ibulk=pyrat.ret.ibulk,
                    bratio=pyrat.ret.bulkratio, invsrat=pyrat.ret.invsrat)
+
+  # Jasmina Heng ---
+  elif "aequil" in pyrat.ret.retflag:
+    # Take the abundances from the initial atmopshere:
+    q2 = pyrat.atm.q
+    # Replace aspecs abundances with analyticialy calculated ones:
+    for i in np.arange(len(pyrat.aequil.aspecs)):
+      index = pyrat.mol.name.tolist().index(pyrat.aequil.aspecs[i])
+      q2[:,index] = pyrat.aequil.eqq[i] 
+    pa.balance(q2, ibulk=pyrat.ret.ibulk, ratio=pyrat.ret.bulkratio, 
+                    invsrat=pyrat.ret.invsrat)
+    # Jasmina Heng ---
   else:
     q2 = pyrat.atm.q
 

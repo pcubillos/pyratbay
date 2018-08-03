@@ -1,8 +1,12 @@
 # Copyright (c) 2016-2018 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
+
+# Jasmina Heng ---
 __all__ = ["pbay", "lineread", "pyrat", "constants", "tools", "wine",
-           "blackbody", "broadening", "starspec", "atmosphere", "plots"]
+           "blackbody", "broadening", "starspec", "atmosphere", "plots", 
+           "analytic"]
+# Jasmina Heng ---
 
 from . import pbay
 from . import pyrat
@@ -15,6 +19,9 @@ from . import broadening
 from . import starspec
 from . import atmosphere
 from . import plots
+# Jasmina Heng ---
+from . import analytic
+# Jasmina Heng ---
 
 from . import VERSION as ver
 

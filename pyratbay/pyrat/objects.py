@@ -35,6 +35,9 @@ class Pyrat(object):
     self.obs      = Observation()     # Observational data
     self.phy      = Physics()         # System physical parameters
     self.ret      = Retrieval()       # Retrieval variables
+    # Jasmina Heng ---
+    self.aequil   = Aequil()          # Analytical equilibrium
+    # Jasmina Heng ---
     # Files:
     self.atmfile     = None  # Atmopheric-model file
     self.linedb      = None  # Line-transition data file
@@ -485,8 +488,6 @@ class Extinction(object):
       pt.msg(1, "{}".format((self.ec)), indent=2)
     np.set_printoptions(formatter=None)
 
-
-
 class Cross(object):
   def __init__(self):
     self.files      = None    # CS file names
@@ -577,6 +578,18 @@ class Alkali(object):
     # FINDME
     pass
 
+# Jasmina Heng ---
+class Aequil(object):
+  def __init__(self):
+    self.nmodels = 0     # Number of analytical models
+    self.model   = []    # List of analytical models
+    self.eqq     = None  # Equilibrium mixing fractions (Xi/X[H2])
+    self.aspecs  = None  # Analytical equilibrium species
+    self.pars    = None  # Input analytic parameters
+  def info(self, pyrat):
+    # FINDME
+    pass
+# Jasmina Heng ---
 
 class Optdepth(object):
   def __init__(self):
@@ -645,7 +658,6 @@ class Optdepth(object):
         str(self.depth[0:self.ideep[index]+1,index]).replace("\n","")),
                        indent=4, si=6)
 
-
 class Observation(object):
   def __init__(self):
     self.ndata    = 0     # Number of data points
@@ -666,7 +678,12 @@ class Observation(object):
 class Retrieval(object):
   def __init__(self):
     # Available model types for retrieval:
-    self.rmodels    = ["pt", "rad", "mol", "ray", "haze", "cloud", "patchy"]
+    # Jasmina Heng ---
+    self.rmodels    = ["pt", "rad", "mol", "ray", "haze", "cloud", "patchy", "aequil"]
+    # Jasmina Heng---
+    # Jasmina Heng ---
+    self.iaequil    = None  # Analytical-model parameter indices
+    # Jasmina Heng ---
     self.retflag    = None  # Flags for models to be included for retrieval
     self.nparams    = 0     # Number of free parameters
     self.tmodelname = None  # Temperature-model name
@@ -691,7 +708,6 @@ class Retrieval(object):
   def info(self, pyrat):
     # FINDME
     pass
-
 
 # System physical variables:
 class Physics(object):

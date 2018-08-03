@@ -17,6 +17,9 @@ from .. import constants  as pc
 from .. import wine       as pw
 from .. import starspec   as ps
 from .. import atmosphere as pa
+# Jasmina Heng ---
+from ..  import analytic  as an
+# Jasmina Heng ---
 from .. import VERSION    as ver
 
 from .  import haze      as hz
@@ -190,9 +193,11 @@ def parse(pyrat, log=None):
       "Waveband filter filenames.")
   # Retrieval options:
   group = parser.add_argument_group("Retrieval options")
+  # Jasmina Heng ---
   pt.addarg("retflag",     group, pt.parray, None,
       "The list of retrieval models, select from: pt mol rad ray haze "
-      "cloud patchy.")
+      "cloud patchy aequil.")
+  # Jasmina Heng ---
   pt.addarg("bulk",        group, pt.parray, None,
       "Bulk-abundance atmospheric species.")
   pt.addarg("molscale",    group, pt.parray, None,
@@ -209,6 +214,14 @@ def parse(pyrat, log=None):
       "Minimum valid temperature.")
   pt.addarg("thigh",        group, np.double, np.inf,
       "Maximum valid temperature.")
+  # Jasmina Heng ---
+  group = parser.add_argument_group("Analytical Abundances")
+  pt.addarg("aequil",        group, pt.parray, None,
+      "Analytical abundances models [default: %(default)s].")
+  pt.addarg("apars",       group, pt.parray, None,
+      "Analytical abundances model fitting parameters.")
+  # Jasmina Heng ---
+  
   # System physical parameters:
   group = parser.add_argument_group("System physical variables")
   pt.addarg("starspec",    group, str,       None,
@@ -344,6 +357,10 @@ def parse(pyrat, log=None):
   pyrat.inputs.stepsize   = user.stepsize
   pyrat.inputs.tlow       = user.tlow
   pyrat.inputs.thigh      = user.thigh
+  # Jasmina Heng --- 
+  pyrat.inputs.aequil     = user.aequil
+  pyrat.inputs.apars      = user.apars
+  # Jasmina Heng --- 
   # Output files:
   pyrat.inputs.outspec     = user.outspec
   pyrat.inputs.outsample   = user.outsample
@@ -717,6 +734,32 @@ def checkinputs(pyrat):
         pyrat.rayleigh.model[i].pars = pyrat.rayleigh.pars[j:j+npars]
         j += npars
 
+  # Jasmina Heng ---
+  # Check analytical equilibirum abundances model:
+  if inputs.aequil is not None:
+    napars = 0
+    for amodel in inputs.aequil:
+      if amodel not in an.anames:
+        pt.error("Analitical model '{:s}' is not in the list of available models:"
+                 "\n{:s}".format(amodel, an.anames), pyrat.log)
+      else:
+        iaequil = np.where(an.anames == amodel)[0][0]
+        pyrat.aequil.model.append(an.amodels[iaequil])
+        pyrat.aequil.nmodels += 1
+        napars += pyrat.aequil.model[-1].npars
+    # Process the analytical parameters:
+    pyrat.aequil.pars = inputs.apars
+    if inputs.apars is not None:
+      if napars != len(inputs.apars):
+        pt.error("Number of input analytical params ({:d}) does not match the"
+                 "number of required analytical params({:d}).".
+                 format(inputs.apars, napars), pyrat.log)
+      j = 0
+      for i in np.arange(pyrat.aequil.nmodels):
+        pyrat.aequil.model[i].pars = inputs.apars[j:j+pyrat.aequil.model[i].npars]
+        j += pyrat.aequil.model[i].npars
+  # Jasmina Heng ---
+
   # Check alkali arguments:
   if inputs.alkali is not None:
     nalkali = 0
@@ -824,6 +867,7 @@ def checkinputs(pyrat):
   pyrat.ret.qcap     = inputs.qcap
   pyrat.ret.molscale = inputs.molscale
   pyrat.ret.params   = inputs.params
+
   if pyrat.ret.params is not None:
     pyrat.ret.nparams = len(pyrat.ret.params)
   pyrat.ret.stepsize = inputs.stepsize # FINDME checks
@@ -1057,6 +1101,15 @@ def setup(pyrat):
   #  cparname += pyrat.cloud.model[i].parname
   #  ncloud += pyrat.cloud.model[i].npars
 
+  # Jasmina Heng ---
+  # Analitical equilibirum models:
+  naequil    = 0
+  aparname = []
+  for i in np.arange(pyrat.aequil.nmodels):
+    aparname += pyrat.aequil.model[i].parname
+    naequil  += pyrat.aequil.model[i].npars
+  # Jasmina Heng ---
+
   # Indices to parse the array of fitting parameters:
   if ret.retflag is None:
     ret.retflag = []
@@ -1091,6 +1144,13 @@ def setup(pyrat):
     ret.parname += [r"$f_{\rm patchy}$"]
     nparams += 1
 
+  # Jasmina Heng ---
+  if "aequil" in ret.retflag:
+    ret.iaequil  = np.arange(nparams, nparams + naequil)
+    ret.parname += aparname
+    nparams += naequil
+  # Jasmina Heng ---
+
   if pyrat.runmode == "mcmc":
     if ret.nparams != nparams:
       pt.error("The input number of fitting parameters ({:d}) does not "
@@ -1108,8 +1168,28 @@ def setup(pyrat):
     if pyrat.haze.pars is None:
       pt.error("Haze parameters (hpars) have not been specified.", pyrat.log)
 
+  # Jasmina Heng ---
+  if (pyrat.aequil.nmodels > 0 and
+      (pyrat.runmode != "mcmc" or "aequil" not in ret.retflag)):
+    if pyrat.aequil.pars is None:
+      pt.error("Analytical abundances parameters (apars) have not been specified.", pyrat.log)
+  # Jasmina Heng ---
 
-def setfilters(obs, spec, phy):
+  # Jasmina Heng ---
+  # Calculate analytical equilibirum abundances for forward model only:
+  if pyrat.aequil.model is not None and pyrat.aequil.pars is not None:
+    an.eqq(pyrat, pyrat.atm.temp, pyrat.atm.press)
+    abun = pyrat.atm.q
+    for i in np.arange(len(pyrat.aequil.aspecs)):
+      index = pyrat.mol.name.tolist().index(pyrat.aequil.aspecs[i])
+      abun[:,index] = pyrat.aequil.eqq[i] 
+    pa.balance(abun, ibulk=ret.ibulk, ratio=ret.bulkratio, 
+                    invsrat=ret.invsrat)
+
+    pyrat.atm.q = abun
+  # Jasmina Heng ---
+
+def setfilters(obs, spec, phy) :
   """
   Set observational variables (pyrat.obs) based on given parameters.
   """
