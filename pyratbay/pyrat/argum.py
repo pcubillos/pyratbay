@@ -127,14 +127,14 @@ def parse(pyrat, log=None):
       "Maximum extinction-coefficient grid temperature.")
   pt.addarg("tstep",       group, np.double, None,
       "Temperature sample step interval in Kelvin [default: 100]")
-  pt.addarg("ethresh",     group, np.double, 1e-9,
+  pt.addarg("ethresh",     group, np.double, 1e-15,
       "Extinction-coefficient threshold [default: %(default)s]")
   pt.addarg("nproc",       group, int,       1,
       "Number of processors [default: %(default)s]")
   # Voigt-profile options:
   group = parser.add_argument_group("Voigt-profile  Options")
   pt.addarg("vextent",     group, np.double, None,
-      "Extent of Voigt profile in number of Voigt widths [default: 20]")
+      "Extent of Voigt profile in number of Voigt widths [default: 40]")
   pt.addarg("Dmin",        group, np.double, None,
       "Minimum Doppler-width to sample in cm-1 [default: 1.0e-03]")
   pt.addarg("Dmax",        group, np.double, None,
