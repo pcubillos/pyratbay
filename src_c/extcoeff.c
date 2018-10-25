@@ -94,7 +94,7 @@ static PyObject *extinction(PyObject *self, PyObject *args){
        onwn, dnwn,
        minj, maxj,
        nLor, nDop;
-  int iwn, iown, idwn, offset, subw,
+  int iown, idwn, offset, subw,
       imol, ofactor, iprof,
       nadd=0, nskip=0, neval=0,
       verb, add=0;
@@ -180,7 +180,7 @@ static PyObject *extinction(PyObject *self, PyObject *args){
       msg(verb-6, logtext, "    Lorentz: %.3e cm-1, Doppler: %.3e cm-1.\n",
           alphal[i], alphad[i]*INDd(wn,0), temp, pressure);
     }
-    /* Estimate the Voigt width:                                            */
+    /* Estimate the Voigt FWHM:                                             */
     vwidth = 0.5346*alphal[i] + sqrt(pow(alphal[i], 2)*0.2166    +
                                      pow(alphad[i]*INDd(wn,0),2) );
     minwidth = fmin(minwidth, vwidth);
@@ -193,6 +193,7 @@ static PyObject *extinction(PyObject *self, PyObject *args){
   wnstep  = INDd(wn, 1) - INDd(wn, 0);
   ownstep = INDd(own,1) - INDd(own,0);
   /* Set the wavenumber sampling resolution:                                */
+  /* Have at least two samples across the minimum FWHM:                     */
   for (i=1; i<ndivs; i++)
     if (INDi(divisors,i)*ownstep >= 0.5 * minwidth){
       break;
@@ -263,27 +264,13 @@ static PyObject *extinction(PyObject *self, PyObject *args){
     vwidth = 0.5346*alphal[i] + sqrt(pow(alphal[i], 2.0)*0.2166 +
                                      pow(alphad[i]*wavn, 2.0));
 
-    /* Index of wavenumber closest and smaller than wavn:                   */
-    iwn = (wavn - INDd(wn,0))/wnstep;
-    /* If line is more than 10 Voigt HW from the nearest wavenumber
-       sampling division, add k directly to the output array:               */
-    if (fabs(wavn-INDd(wn,iwn)-0.5*wnstep) > 10.0*vwidth){
-      if (wavn - INDd(wn,iwn) > 0.5*wnstep)
-        iwn++;
-
-      if (add)  /* Multiply by the species' density:                        */
-        k *= INDd(moldensity, (INDi(isoimol,i)));
-      IND2d(ext, m, iwn) += k/wnstep;
-      continue;
-    }
-
     /* Skip weakly contributing lines:                                      */
     if (k < ethresh * kmax[m]){
       nskip++;
       continue;
     }
 
-    /* Multiply by the species' density:                                    */
+    /* Multiply by the species' number density:                             */
     if (add)
       k *= INDd(moldensity, (INDi(isoimol,i)));
 
@@ -316,6 +303,7 @@ static PyObject *extinction(PyObject *self, PyObject *args){
     }
     neval++;
   }
+
   msg(verb-5, logtext, "    Number of co-added lines:     %8i  (%5.2f%%)\n",
               nadd,  nadd*100.0/nlines);
   msg(verb-5, logtext, "    Number of skipped profiles:   %8i  (%5.2f%%)\n",
@@ -325,7 +313,7 @@ static PyObject *extinction(PyObject *self, PyObject *args){
 
   /* Downsample ktmp to the final sampling size:                            */
   for (m=0; m<next; m++){
-    downsample(ktmp, ext, (int)dnwn, (int)round(wnstep/ownstep/ofactor), m);
+    resample(ktmp, ext, (int)dnwn, (int)round(wnstep/ownstep/ofactor), m);
   }
 
   /* Free the no-longer used memory:                                        */
