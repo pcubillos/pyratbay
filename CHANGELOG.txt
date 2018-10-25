@@ -3776,3 +3776,7 @@ lowered ethresh from 1e-9 to 1e-20.
 
 *****
 
+Updated Makefile to remove changing-dir verbosity.
+
+*****
+
