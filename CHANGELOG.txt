@@ -3778,5 +3778,12 @@ lowered ethresh from 1e-9 to 1e-20.
 
 Updated Makefile to remove changing-dir verbosity.
 
+
+*****  Fri Oct 26 16:27:35 CEST 2018  *****
+
+Bumped Pyrat Bay to version 0.0.90.
+Bumped Pyrat to version 1.3.0.
+Note: Upped minor version, outputs have changed significantly.
+
 *****
 
