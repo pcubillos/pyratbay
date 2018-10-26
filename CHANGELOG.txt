@@ -3757,5 +3757,33 @@ et al. (2016), which are also consistent with those of Astropy.
 
 Bumped Pyrat Bay to version 0.0.89.
 
+
+*****  Do 25. Okt 19:13:06 CEST 2018  *****
+
+Big update to extcoeff.c: Removed watered down opacity contribution
+when a line's center lies far away from the nearest output (low-res)
+sampling wavenumber.
+Most importantly, replaced downsample(), which conserved opacity per
+wavenumber interval, with resample(), which simply takes the value
+(from the higher-res line-by-line opacity array) at the output low-res
+wavenumbers.
+Implemented resample into utils.c.
+
+*****
+
+Updated default values, increase voigt width from 20 to 40,
+lowered ethresh from 1e-9 to 1e-20.
+
+*****
+
+Updated Makefile to remove changing-dir verbosity.
+
+
+*****  Fri Oct 26 16:27:35 CEST 2018  *****
+
+Bumped Pyrat Bay to version 0.0.90.
+Bumped Pyrat to version 1.3.0.
+Note: Upped minor version, outputs have changed significantly.
+
 *****
 

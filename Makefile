@@ -19,6 +19,8 @@ ifdef VERBOSE
 		Q =
 		O =
 	endif
+else
+	MAKEFLAGS += --no-print-directory
 endif
 
 LIBDIR = pyratbay/lib/
@@ -36,7 +38,8 @@ make_pb:
 	$(Q) python setup.py build $(O)
 	@mv -f build/lib.*/*.so $(LIBDIR)
 	@rm -rf build/
-	@echo "Successful compilation.\n"
+	@echo "Successful compilation."
+	@echo ""
 
 make_mc3:
 	@cd $(mkfile_dir)/modules/MCcubed/ && make

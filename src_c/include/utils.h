@@ -75,6 +75,24 @@ imax(PyArrayObject *array){
 }
 
 
+/* Resample from a higher-resolution array (hopefully, true line-by-line) */
+int
+resample(double **input,     /* Input array                               */
+         PyArrayObject *out, /* 2D Output array                           */
+         int n,              /* Number of elements in the input array     */
+         int scale,          /* Resampling factor                         */
+         int index){         /* index where to store output               */
+  /* Simple resample to low-res array by taking corresponding values
+     from hi-res array.                                                   */
+  int j;
+  int m = 1 + (n-1)/scale;   /* Number of points in the resampled array   */
+  for (j=0; j<m; j++){
+    IND2d(out,index,j) = input[index][scale*j];
+  }
+  return 0;
+}
+
+
 /* Downsample an array by an integer factor into a python array.            */
 int
 downsample(double **input,     /* Input array                               */
