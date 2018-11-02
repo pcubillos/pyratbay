@@ -3829,4 +3829,9 @@ Pushed back MC3 by one version to avoit conflict with logs.
 Cleaned up Makefile.
 
 *****
+ 
+Bumped Pyrat Bay to version 0.0.91.
+Bumped Pyrat to version 1.3.1.
+
+*****
 
