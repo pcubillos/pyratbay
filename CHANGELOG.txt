@@ -3797,3 +3797,8 @@ for very large files in extinction.py.
 
 *****
 
+Fixed bug in wine.bandintegrate() with stellar flux for single-band
+runs.
+
+*****
+

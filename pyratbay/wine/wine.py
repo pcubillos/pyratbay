@@ -190,6 +190,7 @@ def bandintegrate(spectrum=None, specwn=None, wnidx=None, bandtrans=None,
       nfilters  = 1
       wnidx     = [wnidx]
       bandtrans = [bandtrans]
+      starflux  = [starflux]
     else:  # Multiple filters
       nfilters = len(wnidx)
     bflux = np.zeros(nfilters)
