@@ -9,12 +9,12 @@ import subprocess
 import numpy as np
 import matplotlib.pyplot as plt
 
+from .. import lineread   as lr
 from .. import tools      as pt
 from .. import constants  as pc
 from .. import plots      as pp
 from .. import pyrat      as py
-from .. import lineread   as lr
-from .. import atmosphere as atm
+from .. import atmosphere as pa
 
 from .  import argum     as ar
 from .  import makecfg   as mc
@@ -85,18 +85,19 @@ def run(argv, main=False):
       # Check if PT file is provided:
       if args.ptfile is None:
         ar.checkpressure(args, log, wlog)  # Check pressure inputs
-        pressure = atm.pressure(args.ptop, args.pbottom, args.nlayers,
-                                args.punits, log)
-        ar.checktemp(args, log, wlog)      # Check temperature inputs
-        temperature = atm.temperature(args.tmodel, pressure,
-           args.rstar, args.tstar, args.tint, args.gplanet, args.smaxis,
-           args.radunits, args.nlayers, log, args.tparams)
+        pressure = pa.pressure(args.ptop, args.pbottom, args.nlayers,
+                               args.punits, log)
+        if args.runmode != "opacity":
+          ar.checktemp(args, log, wlog)      # Check temperature inputs
+          temperature = pa.temperature(args.tmodel, pressure,
+             args.rstar, args.tstar, args.tint, args.gplanet, args.smaxis,
+             args.radunits, args.nlayers, log, args.tparams)
 
       # If PT file is provided, read it:
       elif os.path.isfile(args.ptfile):
         pt.msg(args.verb-3, "\nReading pressure-temperature file:"
                " '{:s}'.".format(args.ptfile), log)
-        pressure, temperature = atm.read_ptfile(args.ptfile)
+        pressure, temperature = pa.read_ptfile(args.ptfile)
 
     # Return temperature-pressure if requested:
     if args.runmode == "pt":
@@ -114,7 +115,7 @@ def run(argv, main=False):
 
     # Return atmospheric model if requested:
     if args.runmode == "atmosphere":
-      species, pressure, temperature, abundances = atm.readatm(args.atmfile)
+      species, pressure, temperature, abundances = pa.readatm(args.atmfile)
       return pressure, temperature, abundances
 
     # Check status of extinction-coefficient file if necessary:
@@ -179,9 +180,9 @@ def run(argv, main=False):
     header = "# MCMC best-fitting atmospheric model.\n\n"
     # Write best-fit atmfile:
     bestatm = "{:s}_bestfit_atmosphere.atm".format(outfile)
-    atm.writeatm(bestatm, pyrat.atm.press, pyrat.atm.temp,
-                 pyrat.mol.name, pyrat.atm.q, pyrat.atm.punits,
-                 header, radius=pyrat.atm.radius, runits='km')
+    pa.writeatm(bestatm, pyrat.atm.press, pyrat.atm.temp,
+                pyrat.mol.name, pyrat.atm.q, pyrat.atm.punits,
+                header, radius=pyrat.atm.radius, runits='km')
 
     pyrat.verb = verb  # Un-mute
 
@@ -224,7 +225,7 @@ def calcatm(args, pressure, temperature, log, wlog):
 
   # Uniform-abundances profile:
   if args.uniform is not None:
-    atm.uniform(args.atmfile, pressure, temperature, args.species,
+    pa.uniform(args.atmfile, pressure, temperature, args.species,
                args.uniform, args.punits)
     pt.msg(1, "\nProduced uniform-abundances atmospheric file: '{:s}'.".
               format(args.atmfile), log)
@@ -234,18 +235,18 @@ def calcatm(args, pressure, temperature, log, wlog):
               "abundances.", log)
     xsolar = pt.getparam(args.xsolar, "none")
     swap   = None
-    atm.makeatomic(args.solar, args.atomicfile, xsolar, swap)
+    pa.makeatomic(args.solar, args.atomicfile, xsolar, swap)
     # Append species after elements (without repeating values):
     species = args.elements + list(np.setdiff1d(args.species, args.elements))
     # Pre-atmospheric file:
-    atm.makepreatm(pressure/pt.u(args.punits), temperature, args.atomicfile,
+    pa.makepreatm(pressure/pt.u(args.punits), temperature, args.atomicfile,
                   args.elements, species, args.patm)
     # Run TEA:
     mc.makeTEA(abun_file=args.atomicfile)
     proc = subprocess.Popen([TEAdir + "tea/runatm.py", args.patm, "TEA"])
     proc.communicate()
     # Reformat the TEA output into the pyrat format:
-    atm.TEA2pyrat("./TEA/TEA/results/TEA.tea", args.atmfile, args.species)
+    pa.TEA2pyrat("./TEA/TEA/results/TEA.tea", args.atmfile, args.species)
     shutil.rmtree("TEA")
     pt.msg(1, "Produced TEA atmospheric file '{:s}'.".format(args.atmfile), log)
 
