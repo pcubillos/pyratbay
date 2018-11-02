@@ -3806,3 +3806,11 @@ Updated pyrat.atmosphere module nickname in pbay/driver.py.
 
 *****
 
+Moved calcatm() from pbay/driver.py into atmosphere.py, renamed to
+more appropriate name abundances().
+Implemented stoich() function in atmosphere.py to compute the
+stoichiometric values for a list of species.
+
+*****
+
+

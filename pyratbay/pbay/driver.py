@@ -4,8 +4,6 @@
 import os
 import sys
 import time
-import shutil
-import subprocess
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -17,14 +15,11 @@ from .. import pyrat      as py
 from .. import atmosphere as pa
 
 from .  import argum     as ar
-from .  import makecfg   as mc
 from .  import pyratfit  as pf
 
 rootdir = os.path.realpath(os.path.dirname(__file__) + "/../../")
-TEAdir = rootdir + "/modules/TEA/"
-MC3dir = rootdir + "/modules/MCcubed/"
 
-sys.path.append(MC3dir)
+sys.path.append(rootdir + "/modules/MCcubed/")
 import MCcubed as mc3
 
 __all__ = ["run"]
@@ -87,12 +82,10 @@ def run(argv, main=False):
         ar.checkpressure(args, log, wlog)  # Check pressure inputs
         pressure = pa.pressure(args.ptop, args.pbottom, args.nlayers,
                                args.punits, log)
-        if args.runmode != "opacity":
-          ar.checktemp(args, log, wlog)      # Check temperature inputs
-          temperature = pa.temperature(args.tmodel, pressure,
+        ar.checktemp(args, log, wlog)      # Check temperature inputs
+        temperature = pa.temperature(args.tmodel, pressure,
              args.rstar, args.tstar, args.tint, args.gplanet, args.smaxis,
              args.radunits, args.nlayers, log, args.tparams)
-
       # If PT file is provided, read it:
       elif os.path.isfile(args.ptfile):
         pt.msg(args.verb-3, "\nReading pressure-temperature file:"
@@ -111,7 +104,11 @@ def run(argv, main=False):
 
     # Compute or read atmospheric abundances:
     if args.runmode == "atmosphere" or pt.isfile(args.atmfile) != 1:
-      calcatm(args, pressure, temperature, log, wlog)
+      ar.checkatm(args, log, wlog)
+      xsolar = pt.getparam(args.xsolar, "none")
+      pa.abundances(args.atmfile, pressure, temperature, args.species,
+                    args.elements, args.uniform, args.punits, xsolar,
+                    args.solar, log)
 
     # Return atmospheric model if requested:
     if args.runmode == "atmosphere":
@@ -215,38 +212,3 @@ def run(argv, main=False):
   # Avoid printing to screeen the System-Exit Traceback error:
   except SystemExit:
     return None
-
-
-def calcatm(args, pressure, temperature, log, wlog):
-  """
-  Compute atmospheric abundaces for given pressure, temperature profile:
-  """
-  ar.checkatm(args, log, wlog)
-
-  # Uniform-abundances profile:
-  if args.uniform is not None:
-    pa.uniform(args.atmfile, pressure, temperature, args.species,
-               args.uniform, args.punits)
-    pt.msg(1, "\nProduced uniform-abundances atmospheric file: '{:s}'.".
-              format(args.atmfile), log)
-  # TEA abundances:
-  else:
-    pt.msg(1, "\nRun TEA to compute thermochemical-equilibrium "
-              "abundances.", log)
-    xsolar = pt.getparam(args.xsolar, "none")
-    swap   = None
-    pa.makeatomic(args.solar, args.atomicfile, xsolar, swap)
-    # Append species after elements (without repeating values):
-    species = args.elements + list(np.setdiff1d(args.species, args.elements))
-    # Pre-atmospheric file:
-    pa.makepreatm(pressure/pt.u(args.punits), temperature, args.atomicfile,
-                  args.elements, species, args.patm)
-    # Run TEA:
-    mc.makeTEA(abun_file=args.atomicfile)
-    proc = subprocess.Popen([TEAdir + "tea/runatm.py", args.patm, "TEA"])
-    proc.communicate()
-    # Reformat the TEA output into the pyrat format:
-    pa.TEA2pyrat("./TEA/TEA/results/TEA.tea", args.atmfile, args.species)
-    shutil.rmtree("TEA")
-    pt.msg(1, "Produced TEA atmospheric file '{:s}'.".format(args.atmfile), log)
-

@@ -2,12 +2,16 @@
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
 __all__ = ["read_ptfile", "writeatm", "readatm", "uniform", "makeatomic", 
-           "readatomic", "makepreatm", "TEA2pyrat", "pressure", "temperature",
-           "hydro_g", "hydro_m", "readmol", "meanweight"]
+           "readatomic", "makepreatm", "TEA2pyrat",
+           "pressure", "temperature", "abundances",
+           "hydro_g", "hydro_m", "stoich", "readmol", "meanweight"]
 
 
 import os
 import sys
+import shutil
+import subprocess
+import operator
 import numpy as np
 import scipy.integrate as si
 import scipy.constants as sc
@@ -16,15 +20,14 @@ import scipy.interpolate as sip
 from .. import tools     as pt
 from .. import constants as pc
 from .  import MadhuTP
+from ..pbay import makecfg as mc
 
 rootdir = os.path.realpath(os.path.dirname(__file__) + "/../../")
 sys.path.append(rootdir + "/pyratbay/lib/")
 import pt as PT
 
-
 # Get Pyrat-Bay inputs dir:
-thisdir = os.path.dirname(os.path.realpath(__file__))
-indir   = thisdir + "/../../inputs/"
+indir = rootdir + "/inputs/"
 
 
 def read_ptfile(ptfile):     
@@ -226,11 +229,9 @@ def readatm(atmfile, verb=False):
     radius = np.zeros(nlayers)
   press    = np.zeros(nlayers)
   temp     = np.zeros(nlayers)
-  mm       = np.zeros(nlayers)
   q        = np.zeros((nlayers, nspecies))
 
   # Read table:
-  nprofiles = nspecies
   atmfile.seek(datastart, 0)
   for i in np.arange(nlayers):
     data = atmfile.readline().split()
@@ -423,7 +424,7 @@ def makepreatm(pressure, temp, afile, elements, species, patm):
 
   # Load defaults:
   sdefaults = {}
-  with open(indir+"TEA_gdata_defaults.txt", "r") as d:
+  with open(rootdir+"/inputs/TEA_gdata_defaults.txt", "r") as d:
     for line in d:
       sdefaults[line.split()[0]] = line.split()[1]
 
@@ -444,6 +445,91 @@ def makepreatm(pressure, temp, afile, elements, species, patm):
     # Elemental abundance list:
     f.write("  ".join(["{:12.6e}".format(abun) for abun in nfrac]) + "\n")
   f.close()
+
+
+def abundances(atmfile, pressure, temperature, species, elements=None,
+               quniform=None, punits="bar", xsolar=1.0,
+               solar=rootdir+"/inputs/AsplundEtal2009.txt",
+               log=None, nproc=1, verb=0):
+  """
+  Wrapper to compute atmospheric abundaces for given pressure and
+  temperature profiles with either uniform abundances or TEA.
+
+  Parameters
+  ----------
+  atmfile: String
+     Output file where to save the atmospheric model.
+  pressure: 1D float ndarray
+     Atmospheric pressure profile (barye).
+  temperature: 1D float ndarray
+     Atmospheric temperature profile (Kelvin).
+  species: 1D string list
+     Atmospheric composition.
+  elements: 1D strings list
+     Elemental composition.
+  quniform: 1D float ndarray
+     If not None, the species abundances at all layers.
+  punits: String
+     Output pressure units.
+  xsolar: Float
+     Metallicity enhancement factor.
+  solar: String
+     Solar elemental abundances file.
+  log: FILE pointer
+     Log file to store screen outputs.
+  nproc: Integer
+     Number of CPUs (for parallel computing).
+  verb: Integer
+     Verbosity level.
+
+  Returns
+  -------
+  q: 2D float ndarray
+     Atmospheric abundances (volume mixing fraction).
+
+  Example
+  -------
+  >>> import pyratbay.atmosphere as pa
+  >>> import pyratbay.constants  as pc
+  >>> atmfile = "pbtea.atm"
+  >>> nlayers = 100
+  >>> press = np.logspace(-8, 3, nlayers) * pc.bar
+  >>> temp  = 900+500/(1+np.exp(-(np.log10(press)+1.5)*1.5))
+  >>> species = ['H2O', 'CH4', 'CO', 'CO2', 'NH3', 'C2H2', 'C2H4', 'HCN',
+  >>>            'N2', 'H2', 'H', 'He']
+  >>> # Automatically get 'elements' necessary from the list of species:
+  >>> Q = pa.abundances("pbtea.atm", press, temp, species)
+  """
+  # Uniform-abundances profile:
+  if quniform is not None:
+    q = uniform(atmfile, pressure, temperature, species, quniform, punits)
+    pt.msg(1, "\nProduced uniform-abundances atmospheric file: '{:s}'.".
+           format(atmfile), log)
+    return q
+
+  # TEA abundances:
+  pt.msg(1, "\nRun TEA to compute thermochemical-equilibrium abundances.", log)
+  # Prep up files:
+  atomicfile, patm = "PBatomicfile.tea", "PBpreatm.tea"
+  makeatomic(solar, atomicfile, xsolar, swap=None)
+  if elements is None:
+     elements, dummy = stoich(species)
+  specs = elements + list(np.setdiff1d(species, elements))
+  makepreatm(pressure/pt.u(punits), temperature, atomicfile, elements,
+             specs, patm)
+  # Run TEA:
+  mc.makeTEA(abun_file=atomicfile)
+  proc = subprocess.Popen([rootdir + "/modules/TEA/tea/runatm.py", patm, "TEA"])
+  proc.communicate()
+  # Reformat the TEA output into the pyrat format:
+  TEA2pyrat("./TEA/TEA/results/TEA.tea", atmfile, species)
+  shutil.rmtree("TEA")
+  os.remove(atomicfile)
+  os.remove(patm)
+  os.remove("TEA.cfg")
+  pt.msg(1, "Produced TEA atmospheric file '{:s}'.".format(atmfile), log)
+  sdummy, Pdummy, Tdummy, q = readatm(atmfile)
+  return q
 
 
 def TEA2pyrat(teafile, atmfile, req_species):
@@ -722,6 +808,53 @@ def hydro_m(pressure, temperature, mu, M, p0, r0):
   radius = 1.0/(I - I0 + 1/r0)
 
   return radius
+
+
+def stoich(species):
+  """
+  Extract the elemental composition from a list of species.
+
+  Parameters
+  ----------
+  species: 1D string list
+     List of species.
+
+  Returns
+  -------
+  elements: 1D string list
+     List of elements contained in species list.
+  stoich: 2D integer ndarray
+     Stoichiometric elemental values for each species (number of elements).
+  """
+  # Elemental composition and quantity for each species:
+  comp, n = [], []
+
+  for spec in species:
+    comp.append([])
+    n.append([])
+    for char in spec:
+      # New element:
+      if char.isupper():
+        comp[-1].append(char)
+        n[-1].append(1)
+      # Same element:
+      elif char.islower():
+        comp[-1][-1] += char
+      # Quantity:
+      elif char.isdigit():
+        n[-1][-1] = int(char)
+
+  # Flatten nested list, and get unique list of elements:
+  elements = list(np.unique(reduce(operator.concat, comp)))
+  stoich = np.zeros((len(species), len(elements)), int)
+
+  # Count how many elements in each species:
+  for i in range(len(species)):
+    for j in range(len(comp[i])):
+      idx = elements.index(comp[i][j])
+      stoich[i,idx] = n[i][j]
+
+  return elements, stoich
 
 
 def readmol(file):
