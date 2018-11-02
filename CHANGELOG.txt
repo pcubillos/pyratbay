@@ -3813,4 +3813,9 @@ stoichiometric values for a list of species.
 
 *****
 
+Automated loading of user inputs into pyrat.inputs object
+in pyrat/argum.py.
+
+*****
+
 

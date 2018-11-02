@@ -258,100 +258,11 @@ def parse(pyrat, log=None):
 
   # Put user arguments into pyrat input:
   pyrat.inputs.configfile = args.configfile
-  pyrat.inputs.runmode    = user.runmode
-  pyrat.inputs.verb       = user.verb
-  pyrat.inputs.nproc      = user.nproc
-  # Input files:
-  pyrat.inputs.atmfile    = user.atmfile
-  pyrat.inputs.linedb     = user.linedb
-  pyrat.inputs.csfile     = user.csfile
-  pyrat.inputs.molfile    = user.molfile
-  pyrat.inputs.extfile    = user.extfile
-  # Wavelength:
-  pyrat.inputs.wlunits    = user.wlunits
-  pyrat.inputs.wllow      = user.wllow
-  pyrat.inputs.wlhigh     = user.wlhigh
-  # Wavenumber:
-  pyrat.inputs.wnunits    = user.wnunits
-  pyrat.inputs.wnlow      = user.wnlow
-  pyrat.inputs.wnhigh     = user.wnhigh
-  pyrat.inputs.wnstep     = user.wnstep
-  pyrat.inputs.wnosamp    = user.wnosamp
-  # Atmospheric radius:
-  pyrat.inputs.radlow     = user.radlow
-  pyrat.inputs.radhigh    = user.radhigh
-  pyrat.inputs.radstep    = user.radstep
-  pyrat.inputs.radunits   = user.radunits
-  # Atmospheric pressure:
-  pyrat.inputs.plow       = user.plow
-  pyrat.inputs.phigh      = user.phigh
-  pyrat.inputs.punits     = user.punits
-  pyrat.inputs.nlayers    = user.nlayers
-  # Hydrostatic-equilibrium base-level variables:
-  pyrat.inputs.refpressure = user.refpressure
-  # Extinction:
-  pyrat.inputs.ethresh    = user.ethresh
-  pyrat.inputs.tmin       = user.tmin
-  pyrat.inputs.tmax       = user.tmax
-  pyrat.inputs.tstep      = user.tstep
-  # Voigt-profile:
-  pyrat.inputs.vextent    = user.vextent
-  pyrat.inputs.Dmin       = user.Dmin
-  pyrat.inputs.Dmax       = user.Dmax
-  pyrat.inputs.nDop       = user.nDop
-  pyrat.inputs.Lmin       = user.Lmin
-  pyrat.inputs.Lmax       = user.Lmax
-  pyrat.inputs.nLor       = user.nLor
-  pyrat.inputs.DLratio    = user.DLratio
-  # Hazes and clouds:
-  pyrat.inputs.hazes      = user.hazes
-  pyrat.inputs.hpars      = user.hpars
-  pyrat.inputs.rayleigh   = user.rayleigh
-  pyrat.inputs.rpars      = user.rpars
-  pyrat.inputs.fpatchy    = user.fpatchy
-  # Alkali compounds:
-  pyrat.inputs.alkali     = user.alkali
-  # Optical depth:
-  pyrat.inputs.path       = user.path
-  pyrat.inputs.maxdepth   = user.maxdepth
-  pyrat.inputs.raygrid    = user.raygrid
-  pyrat.inputs.quadrature = user.quadrature
-  # System physical variables:
-  pyrat.inputs.rstar      = user.rstar
-  pyrat.inputs.gstar      = user.gstar
-  pyrat.inputs.tstar      = user.tstar
-  pyrat.inputs.mstar      = user.mstar
-  pyrat.inputs.rplanet    = user.rplanet
-  pyrat.inputs.mplanet    = user.mplanet
-  pyrat.inputs.gplanet    = user.gplanet
-  pyrat.inputs.smaxis     = user.smaxis
-  pyrat.inputs.tint       = user.tint
-  pyrat.inputs.starspec   = user.starspec
-  pyrat.inputs.kurucz     = user.kurucz
-  pyrat.inputs.marcs      = user.marcs
-  pyrat.inputs.phoenix    = user.phoenix
-  # Observing variables:
-  pyrat.inputs.data       = user.data
-  pyrat.inputs.uncert     = user.uncert
-  pyrat.inputs.filter     = user.filter
-  # Retrieval variables:
-  pyrat.inputs.retflag    = user.retflag
-  pyrat.inputs.bulk       = user.bulk
-  pyrat.inputs.molscale   = user.molscale
-  pyrat.inputs.qcap       = user.qcap
-  pyrat.inputs.tmodel     = user.tmodel
-  pyrat.inputs.params     = user.params
-  pyrat.inputs.stepsize   = user.stepsize
-  pyrat.inputs.tlow       = user.tlow
-  pyrat.inputs.thigh      = user.thigh
-  # Output files:
-  pyrat.inputs.outspec     = user.outspec
-  pyrat.inputs.outsample   = user.outsample
-  pyrat.inputs.outmaxdepth = user.outmaxdepth
-  pyrat.inputs.logfile     = user.logfile
+  for key, value in vars(user).items():
+    setattr(pyrat.inputs, key, value)
 
   # Open the Pyrat log file if requested:
-  if   log is not None:  # Take pre-existing log
+  if log is not None:  # Take pre-existing log
     pyrat.log = log
     pyrat.logfile = os.path.realpath(log.name)
   elif pyrat.inputs.logfile is not None:  # Start new log
