@@ -3826,3 +3826,7 @@ Pushed back MC3 by one version to avoit conflict with logs.
 
 *****
 
+Cleaned up Makefile.
+
+*****
+
