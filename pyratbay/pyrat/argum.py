@@ -775,9 +775,9 @@ def checkinputs(pyrat):
              format(inputs.phoenix), pyrat.log)
 
   # Check raygrid:
-  if pyrat.od.path == "eclipse" and inputs.raygrid is None:
+  if inputs.raygrid is None:
     raygrid = pt.defaultp(inputs.raygrid, np.array([0, 20, 40, 60, 80.]),
-       "Defaulted raygrid to {:s}.", pyrat.wlog, pyrat.log)
+              "Defaulted emission raygrid to {:s}.", pyrat.wlog, pyrat.log)
     if raygrid[0] != 0:
       pt.error("First angle in raygrid must be 0.0 (normal to surface).",
                pyrat.log)
@@ -785,8 +785,10 @@ def checkinputs(pyrat):
       pt.error("raygrid angles must lie between 0 and 90 deg.", pyrat.log)
     if np.any(np.ediff1d(raygrid) <= 0):
       pt.error("raygrid angles must be monotonically increasing.", pyrat.log)
-    # Store raygrid values in radians:
-    pyrat.raygrid = raygrid * sc.degree
+  else:
+    raygrid = inputs.raygrid
+  # Store raygrid values in radians:
+  pyrat.raygrid = raygrid * sc.degree
 
   # Gauss quadrature integration variables:
   pyrat.quadrature = inputs.quadrature
