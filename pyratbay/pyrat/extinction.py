@@ -201,8 +201,10 @@ def calc_extinction(pyrat):
   f.write(struct.pack(str(ex.nlayers)+"d", *list(ex.press)))
   f.write(struct.pack(str(ex.nwave)  +"d", *list(ex.wn)   ))
   # Write extinction-coefficient data:
-  fmt = str(ex.nmol * ex.ntemp * ex.nlayers * ex.nwave) + "d"
-  f.write(struct.pack(fmt, *list(pyrat.ex.etable.flatten())))
+  fmt = str(ex.ntemp * ex.nlayers * ex.nwave) + "d"
+  for i in np.arange(ex.nmol):
+    f.write(struct.pack(fmt, *list(pyrat.ex.etable[i].flatten())))
+
   f.close()
   pt.msg(pyrat.verb-3, "Extinction-coefficient table written to file:"
                        " '{:s}'.".format(ex.extfile), pyrat.log, 2)

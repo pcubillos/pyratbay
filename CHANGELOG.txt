@@ -3792,3 +3792,8 @@ Fixed bug when loading user-defined raygrid in pyrat/argum.py.
 
 *****
 
+Split opacity grid writing into chunks to avoid memort crashes
+for very large files in extinction.py.
+
+*****
+
