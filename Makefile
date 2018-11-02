@@ -43,7 +43,6 @@ make_pb:
 
 make_mc3:
 	@cd $(mkfile_dir)/modules/MCcubed/ && make
-	@echo ""
 
 make_pytips:
 	@cd $(mkfile_dir)/modules/pytips/ && make
@@ -51,11 +50,11 @@ make_pytips:
 
 clean_pb:
 	@rm -rf $(LIBDIR)*.so
-	@echo "Cleaned Pyrat Bay.\n"
+	@echo "Cleaned Pyrat Bay."
 
 clean_mc3:
 	@cd $(mkfile_dir)/modules/MCcubed && make clean
-	@echo "Cleaned MC3.\n"
+	@echo "Cleaned MC3."
 
 clean_pytips:
 	@cd $(mkfile_dir)/modules/pytips/ && make clean
