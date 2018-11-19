@@ -6,7 +6,6 @@ __all__ = ["hitran"]
 import os
 import numpy as np
 
-from ... import tools     as pt
 from ... import constants as pc
 from .driver import dbdriver
 
@@ -23,7 +22,7 @@ class hitran(dbdriver):
     pffile: String
        File with the partition function.
     """
-    super(hitran, self).__init__(dbfile, pffile)
+    super(hitran, self).__init__(dbfile, pffile, log)
 
     self.recsize   =   0 # Record length (will be set in self.dbread())
     self.recisopos =   2 # Isotope        position in record
@@ -37,9 +36,6 @@ class hitran(dbdriver):
     self.recg2end  = 160 # Low stat weight end position
     self.recmollen =   2 # Molecule   record length
     self.recwnlen  =  12 # Wavenumber record length
-
-    # Log file:
-    self.log = log
 
     # Get info from HITRAN configuration file:
     self.molID, self.molecule, self.isotopes, self.mass, \
@@ -102,10 +98,9 @@ class hitran(dbdriver):
 
     Notes
     -----
-    - The HITRAN data is provided in ASCII format.
-    - The line transitions are sorted in increasing wavenumber (cm-1) order.
+    The HITRAN data is provided in ASCII format.
+    The line transitions are sorted in increasing wavenumber (cm-1) order.
     """
-
     # Open HITRAN file for reading:
     data = open(self.dbfile, "r")
 
@@ -116,7 +111,7 @@ class hitran(dbdriver):
 
     # Get Total number of transitions in file:
     data.seek(0, 2)
-    nlines   = data.tell() / self.recsize
+    nlines = data.tell() / self.recsize
 
     # Find the record index for iwn and fwn:
     istart = self.binsearch(data, iwn, 0,      nlines-1, 0)
@@ -130,10 +125,10 @@ class hitran(dbdriver):
     line = data.read(self.recsize)
     DBfwn = float(line[self.recwnpos: self.reclinpos])
     if iwn > DBfwn or fwn < DBiwn:
-      pt.warning(verb-2, "Database ('{:s}') wavenumber range ({:.2f}--{:.2f} "
+      self.log.warning("Database ('{:s}') wavenumber range ({:.2f}--{:.2f} "
         "cm-1) does not overlap with the requested wavenumber range "
         "({:.2f}--{:.2f} cm-1).".format(os.path.basename(self.dbfile),
-                                        DBiwn, DBfwn, iwn, fwn), self.log, [])
+                                        DBiwn, DBfwn, iwn, fwn))
       return None
 
     # Number of records to read:
@@ -147,8 +142,8 @@ class hitran(dbdriver):
     A21     = np.zeros(nread, np.double)  # Einstein A coefficient
     g2      = np.zeros(nread, np.double)  # Lower statistical weight
 
-    pt.msg(verb-4, "Process HITRAN database between records {:,d} and {:,d}.".
-                   format(istart, istop), self.log, 2)
+    self.log.msg("Process HITRAN database between records {:,d} and {:,d}.".
+                 format(istart, istop), verb=2, indent=2)
     interval = (istop - istart)/10  # Check-point interval
 
     i = 0  # Stored record index
@@ -165,12 +160,12 @@ class hitran(dbdriver):
       # Print a checkpoint statement every 10% interval:
       if (i % interval) == 0.0  and  i != 0:
         gfval = A21[i]*g2[i]*pc.C1/(8.0*np.pi*pc.c)/wnumber[i]**2.0
-        pt.msg(verb-4, "{:5.1f}% completed.".format(10.*i/interval),
-               self.log, 3)
-        pt.msg(verb-5,"Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} um\n"
-                        "Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}".
-                         format(wnumber[i], 1.0/(wnumber[i]*pc.um),
-                                elow[i], gfval, (isoID[i]-1)%10), self.log, 6)
+        self.log.msg("{:5.1f}% completed.".format(10.*i/interval),
+                     verb=2, indent=3)
+        self.log.msg("Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} um\n"
+                     "Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}".
+                     format(wnumber[i], 1.0/(wnumber[i]*pc.um),
+                            elow[i], gfval, (isoID[i]-1)%10), verb=3, indent=6)
       i += 1
 
     # Set isotopic index to start counting from 0:

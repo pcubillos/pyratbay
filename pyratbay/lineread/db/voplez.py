@@ -6,7 +6,6 @@ __all__ = ["voplez"]
 import os
 import numpy as np
 
-from ... import tools     as pt
 from ... import constants as pc
 from .driver import dbdriver
 
@@ -14,13 +13,12 @@ from .driver import dbdriver
 class voplez(dbdriver):
   """
   Download the linelist from:
-
   """
   def __init__(self, dbfile, pffile, log):
     """
     Initializer.
     """
-    super(voplez, self).__init__(dbfile, pffile)
+    super(voplez, self).__init__(dbfile, pffile, log)
 
     # Database name:
     self.name = "Bertrand Plez VO"
@@ -50,8 +48,6 @@ class voplez(dbdriver):
     self.recelend = 50
     self.recgfend = 32
 
-    # Log file:
-    self.log = log
 
   def readwave(self, dbfile, irec):
     """
@@ -80,7 +76,7 @@ class voplez(dbdriver):
   def dbread(self, iwn, fwn, verb, *args):
     """
     Read the B. Plez VO database between the wavelengths iwl and fwl.
- 
+
     Parameters:
     -----------
     iwn: Scalar
@@ -91,7 +87,7 @@ class voplez(dbdriver):
        Verbosity threshold.
     args:
        Additional arguments, not needed for voplez.
- 
+
     Returns:
     --------
     wnumber: 1D float ndarray
@@ -113,11 +109,10 @@ class voplez(dbdriver):
     The Plez VO database is an ASCII format.
     The line transitions are sorted in increasing wavelength (micron) order.
     """
-
     # Open the file:
     if not os.path.isfile(self.dbfile):
-      pt.error("Plez VO database file '{:s}' does not exist.".
-               format(self.dbfile), self.log)
+      self.log.error("Plez VO database file '{:s}' does not exist.".
+                     format(self.dbfile))
     data = open(self.dbfile, "r")
     # Get the total number of transitions:
     data.seek(0, 2)
@@ -139,9 +134,9 @@ class voplez(dbdriver):
     gf      = np.zeros(nread, np.double)
     elow    = np.zeros(nread, np.double)
     isoID   = np.zeros(nread, int)
- 
-    pt.msg(verb-4, "Starting to read Plez VO database between records {:d} "
-                   "and {:d}.".format(istart, istop), self.log, 2)
+
+    self.log.msg("Starting to read Plez VO database between records {:,d} "
+                 "and {:,d}.".format(istart, istop), verb=2, indent=2)
 
     interval = (istop - istart)/10  # Check-point interval
 
@@ -157,12 +152,12 @@ class voplez(dbdriver):
 
       # Print a checkpoint statement every 10% interval:
       if (i % interval) == 0.0  and  i != 0:
-        pt.msg(verb-4, "{:5.1f}% completed.".format(10.*i/interval),
-               self.log, 3)
-        pt.msg(verb-5,"Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} um\n"
-                        "Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}".
-                         format(wnumber[i], 1.0/(wnumber[i]*pc.um),
-                                elow[i]*pc.eV, gf[i], isoID[i]), self.log, 6)
+        self.log.msg("{:5.1f}% completed.".format(10.*i/interval),
+                     verb=2, indent=3)
+        self.log.msg("Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} um\n"
+                     "Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}".
+                     format(wnumber[i], 1.0/(wnumber[i]*pc.um),
+                            elow[i]*pc.eV, gf[i], isoID[i]), verb=3, indent=6)
       i += 1
 
     # Convert Elow from eV to cm-1:

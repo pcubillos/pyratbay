@@ -7,7 +7,6 @@ import os
 import struct
 import numpy as np
 
-from ... import tools     as pt
 from ... import constants as pc
 from .driver import dbdriver
 
@@ -33,39 +32,37 @@ class pands(dbdriver):
     log: File
        File object to store the log.
     """
-    super(pands, self).__init__(dbfile, pffile)
+    super(pands, self).__init__(dbfile, pffile, log)
 
     # Database name:
     self.name = "Partridge & Schwenke (1997)"
     # Isotopes names:
-    self.isotopes  = ['1H1H16O',   '1H1H17O',   '1H1H18O',   '1H2H16O'] 
+    self.isotopes = ['1H1H16O',   '1H1H17O',   '1H1H18O',   '1H2H16O']
     # Isotopes masses:
-    self.mass      = [18.01056468, 19.01478156, 20.01481046, 19.01684143]
+    self.mass     = [18.01056468, 19.01478156, 20.01481046, 19.01684143]
     # Isotopic abundance ratio:
-    self.isoratio  = [0.997000,    0.000508,    0.000508,    0.001984]
+    self.isoratio = [0.997000,    0.000508,    0.000508,    0.001984]
 
     # Molecule name:
-    self.molecule  = "H2O"
+    self.molecule = "H2O"
 
-    self.ratiolog  = np.log(1 + 1/2e6)
-    # Table of logarithms: 
-    self.tablog = 10.0**(0.001*(np.arange(32769) - 16384))
-    self.recsize     = 8 # Record size
+    self.ratiolog = np.log(1 + 1/2e6)
+    # Table of logarithms:
+    self.tablog   = 10.0**(0.001*(np.arange(32769) - 16384))
+    self.recsize  = 8 # Record size
 
-    # log file:
-    self.log = log
 
   def readwave(self, dbfile, irec):
     """
     Read wavelength parameter from irec record in dbfile database.
- 
+
     Parameters:
     -----------
     dbfile: File object
        File where to extract the wavelength.
     irec: Integer
        Index of record.
- 
+
     Returns:
     --------
     recwl: Unsigned integer
@@ -79,14 +76,14 @@ class pands(dbdriver):
     dbfile.seek(irec*self.recsize)
     # Read and extract the wavelength:
     recwl = struct.unpack('Ihh', dbfile.read(self.recsize))[0]
- 
+
     return recwl
 
 
   def dbread(self, iwn, fwn, verb, *args):
     """
     Read the Partridge and Schwenke H2O database.
- 
+
     Parameters
     ----------
     iwn: Scalar
@@ -97,7 +94,7 @@ class pands(dbdriver):
        Verbosity threshold.
     args:
        Additional arguments, not needed for pands.
- 
+
     Returns
     -------
     wnumber: 1D float ndarray
@@ -118,38 +115,37 @@ class pands(dbdriver):
     The Partridge & Schwenke database is a binary format.
     The line transitions are sorted in increasing wavenlength order.
     """
- 
     # Open the binary file:
     if not os.path.isfile(self.dbfile):
-      pt.error("Partridge & Schwenke database file '{:s}' does not exist.".
-               format(self.dbfile), log)
+      self.log.error("File '{:s}' for Partridge & Schwenke database "
+                     "does not exist.".format(self.dbfile))
     data = open(self.dbfile, "rb")
- 
+
     # Get the number of lines in the file:
     data.seek(0, 2)                      # Set pointer at the file's end
-    nlines   = data.tell()/ self.recsize # Number of lines (8 bytes per line)
- 
+    nlines = data.tell()/ self.recsize   # Number of lines (8 bytes per line)
+
     # Rewrite wavelength limits as given in the P&S file:
     fwl = 1.0 / (iwn * pc.nm)          # cm to nanometer
     iwl = 1.0 / (fwn * pc.nm)
     iwav = np.log(iwl) / self.ratiolog  # As given in file
     fwav = np.log(fwl) / self.ratiolog
- 
+
     # Find the positions of iwav and fwav:
     istart = self.binsearch(data, iwav, 0,      nlines-1, 0)
     istop  = self.binsearch(data, fwav, istart, nlines-1, 1)
 
     # Number of records to read
     nread = istop - istart + 1
- 
+
     # Store data in two arrays for doubles and integers:
     wnumber = np.zeros(nread, np.double)
     gf      = np.zeros(nread, np.double)
     elow    = np.zeros(nread, np.double)
     isoID   = np.zeros(nread, int)
- 
-    pt.msg(verb-4, "Process P&S database between records {:d} and {:d}.".
-                   format(istart, istop), self.log, 2)
+
+    self.log.msg("Process P&S database between records {:,d} and {:,d}.".
+                 format(istart, istop), verb=2, indent=2)
 
     interval = (istop - istart)/10  # Check-point interval
 
@@ -162,17 +158,17 @@ class pands(dbdriver):
     while (i < nread):
       # Read a record:
       iw[i], ielo[i], igf[i] = struct.unpack('Ihh', data.read(self.recsize))
- 
+
       # Print a checkpoint statement every 10% interval:
       if (i % interval) == 0 and i != 0:
         wl = np.exp(iw[i] * self.ratiolog) * pc.nm/pc.um
-        pt.msg(verb-4, "{:5.1f}% completed.".format(10.*i/interval),
-                       self.log, 3)
-        pt.msg(verb-5,"Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} um\n"
-                      "Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}".
-                        format(1.0/ (wl * pc.um), wl,
-                               np.abs(ielo[i]), self.tablog[np.abs(igf[i])],
-                               2*(ielo[i] < 0) + 1*(igf[i] < 0)), self.log, 6)
+        self.log.msg("{:5.1f}% completed.".format(10.*i/interval),
+                     verb=2, indent=3)
+        self.log.msg("Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} um\n"
+                     "Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}".
+                     format(1.0/ (wl * pc.um), wl,
+                            np.abs(ielo[i]), self.tablog[np.abs(igf[i])],
+                            2*(ielo[i] < 0) + 1*(igf[i] < 0)), verb=3, indent=6)
       i += 1
 
     # Calculate the wavenumber (in cm-1):

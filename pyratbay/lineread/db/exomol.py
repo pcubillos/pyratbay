@@ -7,7 +7,6 @@ import os
 import re
 import numpy as np
 
-from ... import tools     as pt
 from ... import constants as pc
 from .driver import dbdriver
 
@@ -26,20 +25,23 @@ class exomol(dbdriver):
     log: FILE
        A log file.
     """
-    super(exomol, self).__init__(dbfile, pffile)
+    super(exomol, self).__init__(dbfile, pffile, log)
 
-    # Log file:
-    self.log = log
+    sfile = self.dbfile.replace("trans", "states")
+    # Check files exist:
+    for dfile in [self.dbfile, sfile]:
+      if not os.path.isfile(dfile):
+        self.log.error("File '{:s}' for Exomol database does not exist.".
+                       format(dfile))
 
     # Read states:
-    sfile = dbfile.replace("trans", "states")
     if sfile.count("__") == 2:
       sfile = sfile.replace(sfile[sfile.rindex("__"):sfile.index(".")], "")
     with open(sfile, "r") as f:
       lines = f.readlines()
     nstates = len(lines)
-    self.E       = np.zeros(nstates, np.double)  # State energy
-    self.g       = np.zeros(nstates, int)        # State degeneracy (incl. ns)
+    self.E = np.zeros(nstates, np.double)  # State energy
+    self.g = np.zeros(nstates, int)        # State degeneracy (incl. ns)
     for i in np.arange(nstates):
       self.E[i], self.g[i] = lines[i].split()[1:3]
 
@@ -122,7 +124,6 @@ class exomol(dbdriver):
     -----
       The line transitions are sorted in increasing wavenumber (cm-1) order.
     """
-
     # Open file for reading:
     data = open(self.dbfile, "r")
 
@@ -144,10 +145,10 @@ class exomol(dbdriver):
     DBfwn = self.readwave(data, nlines-1)
 
     if iwn > DBfwn or fwn < DBiwn:
-      pt.warning(verb-2, "Database ('{:s}') wavenumber range ({:.2f}--{:.2f} "
+      self.log.warning("Database ('{:s}') wavenumber range ({:.2f}--{:.2f} "
         "cm-1) does not overlap with the requested wavenumber range "
         "({:.2f}--{:.2f} cm-1).".format(os.path.basename(self.dbfile),
-                                        DBiwn, DBfwn, iwn, fwn), self.log, [])
+                                        DBiwn, DBfwn, iwn, fwn))
       return None
 
     # Number of records to read:
@@ -161,8 +162,8 @@ class exomol(dbdriver):
     upID    = np.zeros(nread,       int)
     loID    = np.zeros(nread,       int)
 
-    pt.msg(verb-4, "Process Exomol database between records {:,d} and {:,d}.".
-                   format(istart, istop), self.log, 2)
+    self.log.msg("Process Exomol database between records {:,d} and {:,d}.".
+                  format(istart, istop), verb=2, indent=2)
     interval = (istop - istart)/10  # Check-point interval
 
     i = 0  # Stored record index
@@ -176,14 +177,14 @@ class exomol(dbdriver):
       A21 [i] = line[26:36]
       # Print a checkpoint statement every 10% interval:
       if (i % interval) == 0.0  and  i != 0:
-        pt.msg(verb-4, "{:5.1f}% completed.".format(10.*i/interval),
-               self.log, 3)
+        self.log.msg("{:5.1f}% completed.".format(10.*i/interval),
+                     verb=2, indent=3)
         wn    = self.E[upID[i]-1] - self.E[loID[i]-1]
         gfval = self.g[loID[i]-1] * A21[i] * pc.C1 / (8.0*np.pi*pc.c) / wn**2
-        pt.msg(verb-5, "Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} um\n"
-                       "Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}".
-                         format(wn, 1.0/(wn*pc.um), self.E[loID[i]-1], gfval,
-                                self.isotopes.index(self.iso), self.log, 6))
+        self.log.msg("Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} um\n"
+                     "Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}".
+                      format(wn, 1.0/(wn*pc.um), self.E[loID[i]-1], gfval,
+                             self.isotopes.index(self.iso)), verb=3, indent=6)
       i += 1
 
 

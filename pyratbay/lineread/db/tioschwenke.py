@@ -3,11 +3,9 @@
 
 __all__ = ["tioschwenke"]
 
-import os
 import struct
 import numpy as np
 
-from ... import tools     as pt
 from ... import constants as pc
 from .driver import dbdriver
 
@@ -24,7 +22,7 @@ class tioschwenke(dbdriver):
   function.  One way to fix is, on vim do: :%s/\r/\r/g
   """
   def __init__(self, dbfile, pffile, log):
-    super(tioschwenke, self).__init__(dbfile, pffile)
+    super(tioschwenke, self).__init__(dbfile, pffile, log)
 
     # Database name:
     self.name ="Schwenke TiO (1998)"
@@ -38,11 +36,10 @@ class tioschwenke(dbdriver):
 
     self.recsize = 16  # Record size (bytes)
     self.recdata = 10  # Useful record data size (bytes)
-    self.ratiolog  = np.log(1.0 + 1.0/2000000)
+    self.ratiolog = np.log(1.0 + 1.0/2000000)
     # Table of logarithms:
-    self.tablog    = 10.0**(0.001*(np.arange(32769) - 16384))
+    self.tablog   = 10.0**(0.001*(np.arange(32769) - 16384))
     self.pf_isonames = 0  # PF line with isotopes names
-    self.log = log
 
 
   def readwave(self, dbfile, irec):
@@ -95,7 +92,6 @@ class tioschwenke(dbdriver):
     isoID: 2D integer ndarray
       Isotope index (0, 1, 2, 3, ...).
     """
-
     # Open the file:
     data = open(self.dbfile, "rb")
 
@@ -123,8 +119,8 @@ class tioschwenke(dbdriver):
     elow    = np.zeros(nread, np.double)
     isoID   = np.zeros(nread,     int)
 
-    pt.msg(verb-4, "Starting to read Schwenke database between records {:d} "
-                   "and {:d}.".format(istart, istop), self.log, 2)
+    self.log.msg("Starting to read Schwenke database between records {:,d} "
+                 "and {:,d}.".format(istart, istop), verb=2, indent=2)
 
     interval = (istop - istart)/10  # Check-point interval
 
@@ -144,13 +140,13 @@ class tioschwenke(dbdriver):
       # Print a checkpoint statement every 10% interval:
       if (i % interval) == 0 and i != 0:
         wl = np.exp(iw[i] * self.ratiolog) * pc.nm/pc.um
-        pt.msg(verb-4, "{:5.1f}% completed.".format(10.*i/interval),
-               self.log, 3)
-        pt.msg(verb-5, "Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} um\n"
-                       "Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}".
-                         format(1.0/ (wl * pc.um), wl,
-                                self.tablog[ielo[i]], self.tablog[igf[i]],
-                                np.abs(ieli[i]) - 8950), self.log, 6)
+        self.log.msg("{:5.1f}% completed.".format(10.*i/interval),
+                     verb=2, indent=3)
+        self.log.msg("Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} um\n"
+                     "Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}".
+                     format(1.0/(wl*pc.um), wl,
+                            self.tablog[ielo[i]], self.tablog[igf[i]],
+                            np.abs(ieli[i]) - 8950), verb=3, indent=6)
       i += 1
 
     # Calculate the wavenumber (in cm-1):

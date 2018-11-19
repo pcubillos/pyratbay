@@ -1,13 +1,12 @@
 # Copyright (c) 2016-2018 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-import sys
 import os
+import sys
 import numpy as np
 
 from .. import tools     as pt
 from .. import blackbody as bb
-from .. import constants as pc
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../lib')
 import simpson    as s
@@ -19,7 +18,7 @@ def spectrum(pyrat):
   """
   Spectrum calculation driver.
   """
-  pt.msg(pyrat.verb-3, "\nCalculate the planetary spectrum.", pyrat.log)
+  pyrat.log.msg("\nCalculate the planetary spectrum.")
 
   # Initialize the spectrum array:
   pyrat.spec.spectrum = np.empty(pyrat.spec.nwave, np.double)
@@ -37,7 +36,7 @@ def spectrum(pyrat):
 
   # Print spectrum to file:
   printspec(pyrat)
-  pt.msg(pyrat.verb-3, "Done.", pyrat.log)
+  pyrat.log.msg("Done.")
 
 
 def modulation(pyrat):
@@ -84,15 +83,15 @@ def modulation(pyrat):
     pyrat.spec.spectrum = (   pyrat.haze.fpatchy  * pyrat.spec.cloudy +
                            (1-pyrat.haze.fpatchy) * pyrat.spec.clear  )
 
-  pt.msg(pyrat.verb-3, "Computed transmission spectrum: '{:s}'.".
-                        format(pyrat.outspec), pyrat.log, 2)
+  pyrat.log.msg("Computed transmission spectrum: '{:s}'.".
+                format(pyrat.outspec), indent=2)
 
 
 def intensity(pyrat):
   """
   Calculate the intensity spectrum [units] for eclipse geometry.
   """
-  pt.msg(pyrat.verb-4, "Computing intensity spectrum.", pyrat.log, 2)
+  pyrat.log.msg("Computing intensity spectrum.", verb=2, indent=2)
   if pyrat.quadrature is not None:
     pyrat.raygrid = np.arccos(np.sqrt(pyrat.qnodes))
 
@@ -124,8 +123,8 @@ def flux(pyrat):
   # Weight-sum the intensities to get the flux:
   pyrat.spec.spectrum[:] = np.sum(pyrat.spec.intensity *
                                   np.expand_dims(area,1), axis=0)
-  pt.msg(pyrat.verb-3, "Computed flux spectrum: '{:s}'.".
-                        format(pyrat.outspec), pyrat.log, 2)
+  pyrat.log.msg("Computed flux spectrum: '{:s}'.".
+                format(pyrat.outspec), indent=2)
 
 
 def printspec(pyrat):

@@ -4,8 +4,6 @@
 import os
 import sys
 import time
-import numpy as np
-import matplotlib.pyplot as plt
 
 from .. import lineread   as lr
 from .. import tools      as pt
@@ -46,21 +44,18 @@ def run(argv, main=False):
     if main is False:
       sys.argv = ['pbay.py', '-c', argv]
 
-    # Warnings log:
-    wlog = []
-
     # Setup time tracker:
     timestamps = []
     timestamps.append(time.time())
 
     # Parse command line arguments:
-    args, log = ar.parse(wlog)
+    args, log = ar.parse()
     timestamps.append(time.time())
 
     # Check run mode:
     if args.runmode not in pc.rmodes:
-      pt.error("Invalid runmode ({:s}). Select from: {:s}.".
-                format(args.runmode, str(pc.rmodes)))
+      log.error("Invalid runmode ({:s}). Select from: {:s}.".
+                 format(args.runmode, str(pc.rmodes)))
 
     # Call lineread package:
     if args.runmode == "tli":
@@ -72,40 +67,35 @@ def run(argv, main=False):
     # Get gplanet from mplanet and rplanet if necessary:
     if (args.gplanet is None and args.rplanet is not None and
         args.mplanet is not None):
-      args.gplanet = (pc.G * pt.getparam(args.mplanet, "gram") /
-                      pt.getparam(args.rplanet, args.radunits)**2)
+      args.gplanet = (pc.G
+                    * pt.getparam(args.mplanet, "gram", log)
+                    / pt.getparam(args.rplanet, args.radunits, log)**2)
 
     # Compute pressure-temperature profile:
     if args.runmode in ["pt", "atmosphere"] or pt.isfile(args.atmfile) != 1:
       # Check if PT file is provided:
       if args.ptfile is None:
-        ar.checkpressure(args, log, wlog)  # Check pressure inputs
+        ar.checkpressure(args, log)  # Check pressure inputs
         pressure = pa.pressure(args.ptop, args.pbottom, args.nlayers,
                                args.punits, log)
-        ar.checktemp(args, log, wlog)      # Check temperature inputs
+        ar.checktemp(args, log)      # Check temperature inputs
         temperature = pa.temperature(args.tmodel, pressure,
              args.rstar, args.tstar, args.tint, args.gplanet, args.smaxis,
              args.radunits, args.nlayers, log, args.tparams)
       # If PT file is provided, read it:
       elif os.path.isfile(args.ptfile):
-        pt.msg(args.verb-3, "\nReading pressure-temperature file:"
-               " '{:s}'.".format(args.ptfile), log)
+        log.msg("\nReading pressure-temperature file: '{:s}'.".
+                format(args.ptfile))
         pressure, temperature = pa.read_ptfile(args.ptfile)
 
     # Return temperature-pressure if requested:
     if args.runmode == "pt":
-      plt.figure(1)
-      plt.semilogy(temperature, pressure)
-      plt.ylim(np.max(pressure), np.min(pressure))
-      plt.xlabel("Temperature  (K)")
-      plt.ylabel("Pressure  (barye)")
-      plt.savefig("tmp_pt.pdf")
       return pressure, temperature
 
     # Compute or read atmospheric abundances:
     if args.runmode == "atmosphere" or pt.isfile(args.atmfile) != 1:
-      ar.checkatm(args, log, wlog)
-      xsolar = pt.getparam(args.xsolar, "none")
+      ar.checkatm(args, log)
+      xsolar = pt.getparam(args.xsolar, "none", log)
       pa.abundances(args.atmfile, pressure, temperature, args.species,
                     args.elements, args.uniform, args.punits, xsolar,
                     args.solar, log)
@@ -117,18 +107,16 @@ def run(argv, main=False):
 
     # Check status of extinction-coefficient file if necessary:
     if args.runmode != "spectrum" and pt.isfile(args.extfile) == -1:
-      pt.error("Unspecified extinction-coefficient file (extfile).", log)
+      log.error("Unspecified extinction-coefficient file (extfile).")
 
     # Force to re-calculate extinction-coefficient file if requested:
     if args.runmode == "opacity" and pt.isfile(args.extfile):
       os.remove(args.extfile)
 
     # Initialize pyrat object:
+    dummy_log = mc3.utils.Log(None, width=80)
     if args.resume: # Bypass writting all of the initialization log:
-      nolog = open("deleteme.log", "w")
-      pyrat = py.init(args.cfile, log=nolog)
-      nolog.close()
-      os.remove("deleteme.log")
+      pyrat = py.init(args.cfile, log=dummy_log)
       pyrat.log = log
     else:
       pyrat = py.init(args.cfile, log=log)
@@ -144,12 +132,12 @@ def run(argv, main=False):
 
     # Parse retrieval info into the Pyrat object:
     pf.init(pyrat, args, log)
-    verb = pyrat.verb     # Mute pyrat
-    pyrat.verb = 0        # Mute pyrat
+    pyrat.log = dummy_log
+    dummy_log.verb = 0    # Mute logging in PB, but not in MC3
     pyrat.outspec = None  # Avoid writing spectrum file during MCMC
 
     # Basename of the output files:
-    outfile = os.path.splitext(os.path.basename(log.name))[0]
+    outfile = os.path.splitext(os.path.basename(log.logname))[0]
     # Run MCMC:
     freeze   = True  # Freeze abundances evoer iterations
     retmodel = False # Return only the band-integrated spectrum
@@ -165,7 +153,7 @@ def run(argv, main=False):
            resume=args.resume, savefile="{:s}.npz".format(outfile))
 
     if mc3_out is None:
-      pt.error("Error in MC3.", pyrat.log)
+      log.error("Error in MC3.")
     else:
       bestp, CRlo, CRhi, stdp, posterior, Zchain = mc3_out
 
@@ -180,8 +168,6 @@ def run(argv, main=False):
     pa.writeatm(bestatm, pyrat.atm.press, pyrat.atm.temp,
                 pyrat.mol.name, pyrat.atm.q, pyrat.atm.punits,
                 header, radius=pyrat.atm.radius, runits='km')
-
-    pyrat.verb = verb  # Un-mute
 
     # Best-fitting spectrum:
     pp.spectrum(pyrat=pyrat, logxticks=args.logxticks, yran=args.yran,
@@ -202,10 +188,10 @@ def run(argv, main=False):
           pyrat.atm.press, pyrat.atm.radius,
           pyrat.atm.rtop, filename="{:s}_bestfit_cf.png".format(outfile))
 
-    pt.msg(pyrat.verb-3, "\nOutput MCMC posterior results, log, bestfit "
-      "atmosphere, and spectrum:\n'{:s}.npz',\n'{:s}',\n'{:s}',\n'{:s}'.\n\n".
-      format(outfile, os.path.basename(args.logfile), bestatm,
-             pyrat.outspec), pyrat.log, 0)
+    pyrat.log = log  # Un-mute
+    log.msg("\nOutput MCMC posterior results, log, bestfit atmosphere, "
+      "and spectrum:\n'{:s}.npz',\n'{:s}',\n'{:s}',\n'{:s}'.\n\n".
+      format(outfile, os.path.basename(args.logfile), bestatm, pyrat.outspec))
     log.close()
     return pyrat, bestp
 

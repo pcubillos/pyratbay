@@ -3867,6 +3867,14 @@ Updated MC3 submodule (once again).
 
 Updated MC3 submodule (bugfixes).
 
-******
 
+*****  Mo 19. Nov 17:51:37 CET 2018  *****
+
+Outsourced msg(), warning(), and error() logging functions to
+mc3.utils.Log.
+Changed behavior of tools.getparam(), added 'log' argument.
+Adapted tools.defaultp() according to new Log usage.
+Edited the code everyhere.
+
+******
 

@@ -3,7 +3,6 @@
 
 import numpy as np
 
-from .. import tools      as pt
 from .. import constants  as pc
 from .. import pyrat      as py
 from .. import wine       as pw
@@ -18,19 +17,19 @@ def init(pyrat, args, log):
   """
   # Check stellar spectrum model:
   if pyrat.od.path == "eclipse" and pyrat.phy.starflux is None:
-    pt.error("Unspecified stellar flux model.", log)
+    log.error("Unspecified stellar flux model.")
 
   # Check filter files and data:
   if pyrat.obs.filter is None:
-    pt.error("Undefined waveband transmission filters (filter).", log)
+    log.error("Undefined waveband transmission filters (filter).")
   if pyrat.obs.data is None:
-    pt.error("Undefined data.", log)
+    log.error("Undefined data.")
   if pyrat.obs.uncert is None:
-    pt.error("Undefined data uncertainties.", log)
+    log.error("Undefined data uncertainties.")
 
   # Check rprs:
   if pyrat.od.path == "eclipse" and pyrat.phy.rprs is None:
-    pt.error("Undefined Rp/Rs.", log)
+    log.error("Undefined Rp/Rs.")
 
   # Boundaries for temperature profile:
   pyrat.ret.tlow  = args.tlow
@@ -78,9 +77,8 @@ def fit(params, pyrat, freeze=False, retmodel=True, verbose=False):
     temp[:] = 0.5*(pyrat.ret.tlow + pyrat.ret.thigh)
     rejectflag = True
     if verbose:
-      pt.warning(pyrat.verb-2, "Input temperature profile runs out of "
-       "boundaries ({:.1f--{:.1f}} K)".format(pyrat.ret.tlow,pyrat.ret.thigh),
-       pyrat.log, pyrat.wlog)
+      pyrat.log.warning("Input temperature profile runs out of boundaries "
+         "({:.1f--{:.1f}} K)".format(pyrat.ret.tlow,pyrat.ret.thigh))
   # Update abundance profiles if requested:
   if pyrat.ret.iabund is not None:
     q2 = pa.qscale(pyrat.atm.q, pyrat.mol.name, params[pyrat.ret.iabund],
@@ -94,9 +92,8 @@ def fit(params, pyrat, freeze=False, retmodel=True, verbose=False):
   if pa.qcapcheck(q2, pyrat.ret.qcap, pyrat.ret.ibulk):
     rejectflag = True
     if verbose:
-      pt.warning(pyrat.verb-2, "The sum of trace abundances' fraction "
-                 "exceeds the cap of {:.3f}.".format(pyrat.ret.qcap),
-                 pyrat.log, pyrat.wlog)
+      pyrat.log.warning("The sum of trace abundances' fraction exceeds "
+                        "the cap of {:.3f}.".format(pyrat.ret.qcap))
   # Update reference radius if requested:
   if pyrat.ret.irad is not None:
     pyrat.phy.rplanet = params[pyrat.ret.irad][0]*pc.km

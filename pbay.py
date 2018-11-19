@@ -3,7 +3,8 @@
 # Copyright (c) 2016-2018 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-import sys, os
+import os
+import sys
 sys.path.append(os.path.dirname(os.path.realpath(__file__)))
 import pyratbay as pb
 
