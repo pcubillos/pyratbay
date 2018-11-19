@@ -169,7 +169,8 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
     elif dbtype[i] == "repack":
       driver.append(db.repack(     dblist[i], pflist[i], log))
     else:
-      log.error("Unknown Database type ({:d}): '{:s}'.".format(i+1, dbtype[i]))
+      log.error("Unknown Database type ({:d}): '{:s}'.  Select from: {:s}".
+                format(i+1, dbtype[i], pc.dbases))
     log.msg("Reading input database file '{:s}'.".format(dblist[i]))
   log.msg("There are {:d} input database file(s).".format(Nfiles), verb=2)
 

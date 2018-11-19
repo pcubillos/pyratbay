@@ -3876,5 +3876,9 @@ Changed behavior of tools.getparam(), added 'log' argument.
 Adapted tools.defaultp() according to new Log usage.
 Edited the code everyhere.
 
-******
+*****
+
+Added list of available line-transition databases to constants.
+
+*****
 
