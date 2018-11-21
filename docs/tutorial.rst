@@ -127,7 +127,8 @@ Be sure to include this script each time you open a Python session:
   #    `-- run_tutorial/
   #  Alternatively, set the appropriate path in sys.path.append().
 
-  import sys, os
+  import os
+  import sys
   import matplotlib
   import numpy as np
   import matplotlib.pyplot as plt

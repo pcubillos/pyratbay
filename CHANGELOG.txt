@@ -3882,3 +3882,15 @@ Added list of available line-transition databases to constants.
 
 *****
 
+Updated demo and tutorial config files.
+
+
+*****  Mi 21. Nov 17:46:29 CET 2018  *****
+
+Tweaked spectrum plot defaults.
+Updated demo and tutorial figures.
+Updated docs.
+
+*****
+
+
