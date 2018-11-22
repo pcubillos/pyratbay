@@ -3833,5 +3833,17 @@ Cleaned up Makefile.
 Bumped Pyrat Bay to version 0.0.91.
 Bumped Pyrat to version 1.3.1.
 
+
+*****  Mi 21. Nov 10:16:14 CET 2018  *****
+
+Refactored optical-depth integration for transmission
+(moved loops into C), got better performance of 2-3 times faster.
+Implemented optdepth() funtion in trapz.c.
+
+*****
+
+Bumped Pyrat Bay to version 0.0.92.
+Bumped Pyrat to version 1.3.2.
+
 *****
 

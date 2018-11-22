@@ -1,7 +1,8 @@
 # Copyright (c) 2016-2018 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-import sys, os
+import os
+import sys
 import time
 import ctypes
 import numpy as np
@@ -85,8 +86,8 @@ def opticaldepth(pyrat):
 
   ti = time.time()
   # Calculate the optical depth for each wavenumber:
-  i = 0
   if pyrat.od.path == "eclipse":
+    i = 0
     while i < pyrat.spec.nwave:
       pyrat.od.ideep[i] = t.cumtrapz(pyrat.od.depth  [rtop:,i],
                                      pyrat.od.ec     [rtop:,i],
@@ -94,22 +95,19 @@ def opticaldepth(pyrat):
                                      pyrat.od.maxdepth) + rtop
       i += 1
   else: # pyrat.od.path == "transit"
-    while i < pyrat.spec.nwave:
-      r = rtop
-      while r < pyrat.atm.nlayers:
-        # Optical depth at each level (tau = integral e*ds):
-        pyrat.od.depth[r,i] = t.trapz(pyrat.od.ec[rtop:r+1,i],
-                                      pyrat.od.raypath[r])
-        if pyrat.haze.fpatchy is not None:
-          pyrat.od.pdepth[r,i] = t.trapz(pyrat.od.epatchy[rtop:r+1,i],
-                                         pyrat.od.raypath[r])
-
-        # Stop calculating the op. depth at this wavenumber if reached maxdeph:
-        if pyrat.od.depth[r,i] >= pyrat.od.maxdepth:
-          pyrat.od.ideep[i] = r
-          break
-        r += 1
-      i += 1
+    pyrat.od.ideep = np.array(pyrat.od.ideep, dtype=np.intc)
+    pyrat.od.ideep[:] = -1
+    r = rtop
+    while r < pyrat.atm.nlayers:
+      # Optical depth at each level (tau = integral e*ds):
+      pyrat.od.depth[r] = t.optdepth(pyrat.od.ec[rtop:r+1],
+                            pyrat.od.raypath[r],
+                            pyrat.od.maxdepth, pyrat.od.ideep, r)
+      if pyrat.haze.fpatchy is not None:
+        pyrat.od.pdepth[r] = t.optdepth(pyrat.od.epatchy[rtop:r+1],
+                            pyrat.od.raypath[r],
+                            np.inf, pyrat.od.ideep, r)
+      r += 1
   #print("Integ:  {:.6f}".format(time.time()-ti))
   pt.msg(pyrat.verb-3, "Done.", pyrat.log)
 
