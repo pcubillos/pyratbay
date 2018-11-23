@@ -863,10 +863,9 @@ def setup(pyrat):
   else:
     nabund = 0
   # Abundance free-parameter names:
-  mparname = []
-  for i in np.arange(nabund):
-    mparname += [r"$\log_{{10}}(f_{{\rm {:s}}})$".format(ret.molscale[i])]
-
+  mpnames    = ["log({:s})".format(mol) for mol in ret.molscale]
+  mfigpnames = [r"$\log_{{10}}(f_{{\rm {:s}}})$".format(mol)
+                for mol in ret.molscale]
 
   # Read stellar spectrum model:
   if phy.starspec is not None:
@@ -917,82 +916,86 @@ def setup(pyrat):
     ntemp = 5
     ret.targs  = [pyrat.atm.press, phy.rstar, phy.tstar, phy.tint,
                   phy.smaxis, phy.gplanet]
-    tparname = [r"$\log_{10}(\kappa)$", r"$\log_{10}(\gamma_1)$",
-                r"$\log_{10}(\gamma2)$", r"$\alpha$", r"$\beta$"]
+    tpnames    = ["log(kappa)", "log(gamma1)", "log(gamma2)", "alpha", "beta"]
+    tfigpnames = [r"$\log_{10}(\kappa)$", r"$\log_{10}(\gamma_1)$",
+                  r"$\log_{10}(\gamma2)$", r"$\alpha$", r"$\beta$"]
   elif ret.tmodelname == "isothermal":
     ret.tmodel = PT.isothermal
     ntemp = 1
     ret.targs  = [pyrat.atm.nlayers]
-    tparname = [r"$T\ ({\rm K})$"]
+    tpnames    = ["T (K)"]
+    tfigpnames = [r"$T\ ({\rm K})$"]
   elif ret.tmodelname == "MadhuNoInv":
     ntemp = 5
     ret.tmodel = MadhuTP.no_inversion
     ret.targs  = [pyrat.atm.press*1e-6]
-    tparname   = [r"$a_1$", r"$a_2$",
-                   r"$p_1$", r"$p_3$", r"$T_3$"]
+    tpnames      = ["a1", "a2", "p1", "p3", "T3"]
+    tfigpnames   = [r"$a_1$", r"$a_2$", r"$p_1$", r"$p_3$", r"$T_3$"]
   elif ret.tmodelname == "MadhuInv":
     ntemp = 6
     ret.tmodel = MadhuTP.inversion
     ret.targs  = [pyrat.atm.press*1e-6]
-    tparname   = [r"$a_1$", r"$a_2$",
-                   r"$p_1$", r"$p_2$", r"$p_3$", r"$T_3$"]
+    tpnames    = ["a1", "a2", "p1", "p2", "p3", "T3"]
+    tfigpnames = [r"$a_1$", r"$a_2$", r"$p_1$", r"$p_2$", r"$p_3$", r"$T_3$"]
   else:
     ntemp = 0
-    tparname = []
+    tpnames, tfigpnames = [], []
 
   # Rayleigh models:
   nray     = 0
-  rparname = []
+  rpnames, rfigpnames = [], []
   for i in np.arange(pyrat.rayleigh.nmodels):
-    rparname += pyrat.rayleigh.model[i].parname
+    rpnames    += pyrat.rayleigh.model[i].pnames
+    rfigpnames += pyrat.rayleigh.model[i].figpnames
     nray += pyrat.rayleigh.model[i].npars
 
   # Haze models:
   nhaze    = 0
-  hparname = []
+  hpnames, hfigpnames = [], []
   for i in np.arange(pyrat.haze.nmodels):
-    hparname += pyrat.haze.model[i].parname
+    hpnames    += pyrat.haze.model[i].pnames
+    hfigpnames += pyrat.haze.model[i].figpnames
     nhaze += pyrat.haze.model[i].npars
-
-  # Cloud models:
-  #ncloud    = 0
-  #cparname = []
-  #for i in np.arange(pyrat.cloud.nmodels):
-  #  cparname += pyrat.cloud.model[i].parname
-  #  ncloud += pyrat.cloud.model[i].npars
 
   # Indices to parse the array of fitting parameters:
   if ret.retflag is None:
     ret.retflag = []
   nparams = 0
-  ret.parname = []
+  ret.pnames, ret.figpnames = [], []
   if "pt" in ret.retflag:
     ret.itemp  = np.arange(nparams, nparams + ntemp)
-    ret.parname += tparname
+    ret.pnames    += tpnames
+    ret.figpnames += tfigpnames
     nparams += ntemp
   if "rad" in ret.retflag:
     ret.irad   = np.arange(nparams, nparams + 1)  # nrad is always 1
-    ret.parname += [r"${\rm Radius\ (km)}$"]
+    ret.pnames    += ["Radius (km)"]
+    ret.figpnames += [r"${\rm Radius\ (km)}$"]
     nparams += 1
   if "mol" in ret.retflag:
     ret.iabund = np.arange(nparams, nparams + nabund)
-    ret.parname += mparname
+    ret.pnames    += mpnames
+    ret.figpnames += mfigpnames
     nparams += nabund
   if "ray" in ret.retflag:
     ret.iray   = np.arange(nparams, nparams + nray)
-    ret.parname += rparname
+    ret.pnames    += rpnames
+    ret.figpnames += rfigpnames
     nparams += nray
   if "haze" in ret.retflag:
     ret.ihaze  = np.arange(nparams, nparams + nhaze)
-    ret.parname += hparname
+    ret.pnames    += hpnames
+    ret.figpnames += hfigpnames
     nparams += nhaze
   #if "cloud" in ret.retflag:
   #  ret.icloud  = np.arange(nparams, nparams + ncloud)
-  #  ret.parname += cparname
+  #  ret.pnames    += cpnames
+  #  ret.figpnames += cfigpnames
   #  nparams += ncloud
   if "patchy" in ret.retflag:
     ret.ipatchy = np.arange(nparams, nparams + 1)  # npatchy is always 1
-    ret.parname += [r"$f_{\rm patchy}$"]
+    ret.pnames    += ["f_patchy"]
+    ret.figpnames += [r"$f_{\rm patchy}$"]
     nparams += 1
 
   if pyrat.runmode == "mcmc":

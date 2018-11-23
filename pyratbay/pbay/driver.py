@@ -149,7 +149,8 @@ def run(argv, main=False):
            burnin=args.burnin, thinning=args.thinning,
            grtest=True, grbreak=args.grbreak, grnmin=args.grnmin,
            hsize=10, kickoff='normal', log=log, nproc=args.nproc,
-           plots=True, parname=pyrat.ret.parname, showbp=False,
+           plots=True, pnames=pyrat.ret.pnames, figpnames=pyrat.ret.figpnames,
+           showbp=False,
            resume=args.resume, savefile="{:s}.npz".format(outfile))
 
     if mc3_out is None:

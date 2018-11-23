@@ -3898,3 +3898,8 @@ Minor bug fix in plots.spectrum().
 
 *****
 
+Implemented pnames/figpnames naming (replaced parname).
+Updated MC3 (parname -> pnames, figpnames).
+
+*****
+

@@ -698,7 +698,8 @@ class Retrieval(object):
     self.ihaze  = None  # Haze-model parameter indices
     self.icloud = None  # Cloud-model parameter indices
     self.ipatchy = None  # Patchy-model parameter index
-    self.parname = []   # Model parameter names
+    self.pnames    = []   # Model parameter names (screen)
+    self.figpnames = []   # Model parameter names (figures)
 
   def __repr__(self):
     info = []
