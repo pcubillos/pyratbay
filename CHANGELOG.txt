@@ -3903,3 +3903,9 @@ Updated MC3 (parname -> pnames, figpnames).
 
 *****
 
+Bumped Pyrat Bay to version 0.0.94.
+Bumped Pyrat to version 1.3.4.
+Bumped lineread to version 6.4.15.
+
+*****
+
