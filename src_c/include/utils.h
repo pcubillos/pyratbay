@@ -1,6 +1,43 @@
 // Copyright (c) 2016-2018 Patricio Cubillos and contributors.
 // Pyrat Bay is currently proprietary software (see LICENSE).
 
+
+/* Differential step for plane-parallel radiative transifer                 */
+int
+tdiff(PyArrayObject *dtau, /* Output differential element d(exp(-tau/mu))   */
+      PyArrayObject *tau,  /* Input optical depth                           */
+      double mu,           /* Cosine of angle between normal and ray path   */
+      int top,             /* Top-layer index                               */
+      int last,            /* Bottom-layer index                            */
+      int wave){           /* Wavenumber index in tau                       */
+  int i;
+
+  for (i=0; i<last-top; i++)
+    INDd(dtau,i) = exp(-IND2d(tau,(top+i+1),wave)/mu)
+                  -exp(-IND2d(tau,(top+i),  wave)/mu);
+  return 1;
+}
+
+
+/* Trapezoidal integration (1D, but acting on a 2D array)                   */
+double
+itrapz(PyArrayObject *bbody, /* Integrand                                   */
+       PyArrayObject *dtau,  /* Differential element                        */
+      int top,               /* Top-layer index                             */
+      int last,              /* Bottom-layer index                          */
+      int wave){             /* Wavenumber index in bbody                   */
+  int i;
+  double res=0.0;
+
+  /* Check for even number of samples (odd number of intervals):            */
+  for(i=0; i<last-top; i++){
+    res += INDd(dtau,i) * (IND2d(bbody,(top+i+1),wave)
+                         + IND2d(bbody,(top+i),  wave));
+  }
+  return 0.5*res;
+}
+
+
 int
 pyramidsearch(PyArrayObject *array, double value, int lo, int hi){
   int scale=1,

@@ -81,7 +81,7 @@ def modulation(pyrat):
     pyrat.spec.cloudy = ((pyrat.atm.radius[rtop]**2 + 2*pyrat.spec.cloudy) /
                          pyrat.phy.rstar**2)
     pyrat.spec.clear = pyrat.spec.spectrum
-    pyrat.spec.spectrum = (pyrat.haze.fpatchy     * pyrat.spec.cloudy +
+    pyrat.spec.spectrum = (   pyrat.haze.fpatchy  * pyrat.spec.cloudy +
                            (1-pyrat.haze.fpatchy) * pyrat.spec.clear  )
 
   pt.msg(pyrat.verb-3, "Computed transmission spectrum: '{:s}'.".
@@ -104,29 +104,9 @@ def intensity(pyrat):
   pyrat.od.B = np.zeros((pyrat.atm.nlayers, pyrat.spec.nwave), np.double)
   bb.Bwn2D(pyrat.spec.wn, pyrat.atm.temp, pyrat.od.B, pyrat.od.ideep)
 
-  # Allocate dtau:
-  dtau  = np.empty(pyrat.atm.nlayers, np.double)
-
-  # Calculate the intensity for each angle in raygrid:
-  rtop = pyrat.atm.rtop
-  i = 0
-  while (i < pyrat.spec.nwave):
-    # Layer index where the optical depth reached maxdepth:
-    last = pyrat.od.ideep[i]
-    taumax = pyrat.od.depth[last,i]
-    if last-rtop == 1:  # Single layer before taumax:
-      pyrat.spec.intensity[:,i] = pyrat.od.B[last,i]
-    else:
-      j = 0
-      # Change of variable: t = exp(-tau/mu) gives a more stable integration
-      while (j < pyrat.nangles):
-        cu.ediff(np.exp(-pyrat.od.depth[rtop:last+1,i] /
-                        np.cos(pyrat.raygrid[j])), dtau, last+1-rtop)
-        pyrat.spec.intensity[j,i] = (
-             pyrat.od.B[last,i]*np.exp(-taumax/np.cos(pyrat.raygrid[j])) -
-             t.trapz(pyrat.od.B[rtop:last+1,i], dtau[0:last-rtop]))
-        j += 1
-    i += 1
+  # Plane-parallel radiative-transfer intensity integration:
+  pyrat.spec.intensity = t.intensity(pyrat.od.depth, pyrat.od.ideep,
+                           pyrat.od.B, np.cos(pyrat.raygrid), pyrat.atm.rtop)
 
 
 def flux(pyrat):
