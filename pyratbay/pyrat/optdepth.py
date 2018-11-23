@@ -3,13 +3,9 @@
 
 import os
 import sys
-import time
 import ctypes
 import numpy as np
-import scipy.integrate as si
 import multiprocessing as mpr
-
-from .. import tools as pt
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../lib')
 import extinction as ex
@@ -23,10 +19,8 @@ def opticaldepth(pyrat):
   Calculate the optical depth.
   """
 
-  pt.msg(pyrat.verb-3, "\nBegin optical-depth calculation.", pyrat.log)
-  ti = time.time()
-  # Flag to indicate that the extinction has been computed at given layer:
-  computed = np.zeros(pyrat.atm.nlayers, np.short)
+  pyrat.log.msg("\nBegin optical-depth calculation.")
+  #ti = time.time()
 
   # Evaluate the extinction coefficient at each layer:
   pyrat.ex.ec    = np.zeros((pyrat.atm.nlayers, pyrat.spec.nwave))
@@ -40,7 +34,7 @@ def opticaldepth(pyrat):
 
   rtop = pyrat.atm.rtop
   # Calculate the ray path:
-  ti = time.time()
+  #ti = time.time()
   path(pyrat)
   #print("Path:   {:.6f}".format(time.time()-ti))
 
@@ -84,7 +78,7 @@ def opticaldepth(pyrat):
   else:
     pyrat.od.epatchy[rtop:] = np.copy(pyrat.od.ec[rtop:]) + pyrat.haze.ec[rtop:]
 
-  ti = time.time()
+  #ti = time.time()
   # Calculate the optical depth for each wavenumber:
   if pyrat.od.path == "eclipse":
     i = 0
@@ -109,7 +103,7 @@ def opticaldepth(pyrat):
                             np.inf, pyrat.od.ideep, r)
       r += 1
   #print("Integ:  {:.6f}".format(time.time()-ti))
-  pt.msg(pyrat.verb-3, "Done.", pyrat.log)
+  pyrat.log.msg("Optical depth done.")
 
 
 def path(pyrat):
@@ -143,8 +137,8 @@ def path(pyrat):
         raypath[i] = (np.sqrt(radius[i  ]**2 - radius[r]**2) -
                       np.sqrt(radius[i+1]**2 - radius[r]**2) )
       pyrat.od.raypath.append(raypath)
-      pt.msg(pyrat.verb-6, "Raypath[{:3d}]: {}".
-                            format(r, pyrat.od.raypath[r]), pyrat.log, 2)
+      pyrat.log.msg("Raypath[{:3d}]: {}".format(r, pyrat.od.raypath[r]),
+                    verb=4, indent=2)
       r += 1
 
   return

@@ -15,7 +15,8 @@ import matplotlib.pyplot as plt
 import scipy.interpolate as si
 from scipy.ndimage.filters import gaussian_filter1d as gaussf
 
-from .. import constants  as pc
+from .. import constants as pc
+from .. import wine      as pw
 
 rootdir = os.path.realpath(os.path.dirname(__file__) + "/../../")
 sys.path.append(rootdir + "/pyratbay/lib/")
@@ -95,18 +96,18 @@ def spectrum(wlength=None, spectrum=None, data=None, uncert=None,
   else:
     nfilters = len(bandtrans)
     if bandflux is None or np.all(bandflux==0):
-      bandflux = w.bandintegrate(pyrat=pyrat)
+      bandflux = pw.bandintegrate(pyrat=pyrat)
 
   # Plotting setup:
-  fs  = 12
+  fs  = 14
   ms  =  5
   lw  = 1.5
   mew = 0.4
 
-  plt.figure(fignum, (8.5, 5))
+  plt.figure(fignum, (8, 5))
   plt.clf()
   ax = plt.subplot(111)
-  plt.subplots_adjust(0.1, 0.1, 0.97, 0.97)
+  plt.subplots_adjust(0.14, 0.12, 0.97, 0.95)
 
   # Setup according to geometry:
   if   path == "eclipse":
@@ -121,7 +122,7 @@ def spectrum(wlength=None, spectrum=None, data=None, uncert=None,
   elif path == "transit":
     fscale = 1.0
     gmodel = gaussf(spectrum, gaussbin)
-    plt.ylabel(r"${\rm Modulation}\ \ (R_p/R_s)^2$", fontsize=fs)
+    plt.ylabel("$(R_p/R_s)^2$", fontsize=fs)
 
   # Plot model:
   plt.plot(wlength, gmodel*fscale, lw=lw, label="Model", color="orange")
@@ -151,8 +152,9 @@ def spectrum(wlength=None, spectrum=None, data=None, uncert=None,
     ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
     ax.set_xticks(logxticks)
 
-  plt.xlabel(r"${\rm Wavelength\ \ (um)}$", fontsize=fs)
-  leg = plt.legend(loc="best", numpoints=1)
+  ax.tick_params(labelsize=fs-2)
+  plt.xlabel("Wavelength  (um)", fontsize=fs)
+  leg = plt.legend(loc="best", numpoints=1, fontsize=fs-1)
   plt.xlim(np.amin(wlength), np.amax(wlength))
 
   if filename is not None:

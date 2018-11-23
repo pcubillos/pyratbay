@@ -1,49 +1,47 @@
 # Copyright (c) 2016-2018 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-import sys
 import os
-import struct
+import sys
 import numpy as np
-import scipy.interpolate as sip
 
-from .. import tools     as pt
 from .. import constants as pc
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../lib')
 import vprofile as vp
 
+
 def voigt(pyrat):
   """
   Driver to calculate a grid of Voigt profiles.
   """
-
   # Check if reading extinction-coefficient table or no TLI files:
-  if (((pyrat.ex.extfile is not None) and os.path.isfile(pyrat.ex.extfile)) or
-     pyrat.lt.nTLI == 0):
-    pt.msg(pyrat.verb-3, "\nSkip LBL Voigt-profile calculation.", pyrat.log)
+  if (((pyrat.ex.extfile is not None) and os.path.isfile(pyrat.ex.extfile))
+      or pyrat.lt.nTLI == 0):
+    pyrat.log.msg("\nSkip LBL Voigt-profile calculation.")
     return
 
-  pt.msg(pyrat.verb-3, "\nCalculate LBL Voigt profiles:", pyrat.log)
+  pyrat.log.msg("\nCalculate LBL Voigt profiles:")
   # Calculate Doppler and Lorentz-width boundaries:
   widthlimits(pyrat)
 
   # Make Voigt-width arrays:
-  pyrat.voigt.doppler = np.logspace(np.log10(pyrat.voigt.Dmin),
-                                   np.log10(pyrat.voigt.Dmax), pyrat.voigt.nDop)
-  pyrat.voigt.lorentz = np.logspace(np.log10(pyrat.voigt.Lmin),
-                                   np.log10(pyrat.voigt.Lmax), pyrat.voigt.nLor)
+  voigt = pyrat.voigt
+  voigt.doppler = np.logspace(np.log10(voigt.Dmin),
+                              np.log10(voigt.Dmax), voigt.nDop)
+  voigt.lorentz = np.logspace(np.log10(voigt.Lmin),
+                              np.log10(voigt.Lmax), voigt.nLor)
 
   # Calculate profiles:
   calcvoigt(pyrat)
-  pt.msg(pyrat.verb-3, "Done.", pyrat.log)
+  pyrat.log.msg("Voigt grid pre-calculation done.")
 
 
 def widthlimits(pyrat):
   """
   Calculate the boundaries for the Doppler and Lorentz widths.
   """
-
+  voigt = pyrat.voigt
   # Get minimum temperature:
   tmin = pyrat.ex.tmin
   if tmin is None:
@@ -67,30 +65,30 @@ def widthlimits(pyrat):
   # Get max pressure:
   pmax = np.amax(pyrat.atm.press)
   # Get max collision diameter:
-  cmax = (2.89*pc.A/2.0 + np.amax(pyrat.mol.radius[mols])) 
+  cmax = (2.89*pc.A/2.0 + np.amax(pyrat.mol.radius[mols]))
   #cmax = 2.0*np.amax(pyrat.mol.radius[mols]) * pc.A
 
   # Calculate Doppler-width boundaries:
   ln2 = np.log(2)
-  if pyrat.voigt.Dmin is None:
-    pyrat.voigt.Dmin = np.sqrt(ln2*2.0*pc.k*tmin/(mmax*pc.amu)) * numin / pc.c
+  if voigt.Dmin is None:
+    voigt.Dmin = np.sqrt(ln2*2.0*pc.k*tmin/(mmax*pc.amu)) * numin / pc.c
 
-  if pyrat.voigt.Dmax is None:
-    pyrat.voigt.Dmax = np.sqrt(ln2*2.0*pc.k*tmax/(mmin*pc.amu)) * numax / pc.c
-  pt.msg(pyrat.verb-4, "Doppler width limits: {:.1e} -- {:.1e} cm-1  "
-                       "({:d} samples).".format(pyrat.voigt.Dmin,
-                       pyrat.voigt.Dmax, pyrat.voigt.nDop), pyrat.log, 2)
+  if voigt.Dmax is None:
+    voigt.Dmax = np.sqrt(ln2*2.0*pc.k*tmax/(mmin*pc.amu)) * numax / pc.c
+  pyrat.log.msg("Doppler width limits: {:.1e} -- {:.1e} cm-1 ({:d} samples).".
+                format(voigt.Dmin, voigt.Dmax, voigt.nDop),
+                verb=2, indent=2)
 
   # Calculate Lorentz-width boundaries:
-  if pyrat.voigt.Lmin is None:
-    pyrat.voigt.Lmin = pyrat.voigt.Dmin * pyrat.voigt.DLratio
+  if voigt.Lmin is None:
+    voigt.Lmin = voigt.Dmin * voigt.DLratio
 
-  if pyrat.voigt.Lmax is None:
-    pyrat.voigt.Lmax = (np.sqrt(2/(np.pi * pc.k * tmin *pc.amu)) * pmax / pc.c *
+  if voigt.Lmax is None:
+    voigt.Lmax = (np.sqrt(2/(np.pi * pc.k * tmin *pc.amu)) * pmax / pc.c *
                         cmax**2.0 * np.sqrt(1.0/mmin + 1.0/2.01588))
-  pt.msg(pyrat.verb-4, "Lorentz width limits: {:.1e} -- {:.1e} cm-1  "
-                       "({:d} samples).".format(pyrat.voigt.Lmin,
-                       pyrat.voigt.Lmax, pyrat.voigt.nLor), pyrat.log, 2)
+  pyrat.log.msg("Lorentz width limits: {:.1e} -- {:.1e} cm-1 ({:d} samples).".
+                format(voigt.Lmin, voigt.Lmax, voigt.nLor),
+                verb=2, indent=2)
 
 
 def calcvoigt(pyrat):
@@ -117,10 +115,10 @@ def calcvoigt(pyrat):
     psize[np.where(voigt.doppler/voigt.lorentz[i] < voigt.DLratio)[0][1:]] = 0
     # Store half-size values for this Lorentz width:
     voigt.size[i] = psize/2
-  pt.msg(pyrat.verb-5, "Voigt half-sizes:\n{}".format(voigt.size), pyrat.log, 2)
+  pyrat.log.msg("Voigt half-sizes:\n{}".format(voigt.size), verb=3, indent=2)
 
-  pt.msg(pyrat.verb-4, "Calculating Voigt profiles with Extent: {:.1f} widths.".
-                     format(voigt.extent), pyrat.log, 2)
+  pyrat.log.msg("Calculating Voigt profiles with Extent: {:.1f} widths.".
+                format(voigt.extent), verb=2, indent=2)
   # Allocate profile arrays (concatenated in a 1D array):
   voigt.profile = np.zeros(np.sum(2*voigt.size+1), np.double)
 
@@ -130,4 +128,4 @@ def calcvoigt(pyrat):
           voigt.lorentz, voigt.doppler,
           pyrat.spec.ownstep, logtext, pyrat.verb)
   pyrat.log.write(logtext.rstrip()[:-1])
-  pt.msg(pyrat.verb-5, "Voigt indices:\n{}".format(voigt.index), pyrat.log, 2)
+  pyrat.log.msg("Voigt indices:\n{}".format(voigt.index), verb=3, indent=2)

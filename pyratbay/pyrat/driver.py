@@ -6,8 +6,6 @@ import sys
 import time
 import numpy as np
 
-from .. import tools as pt
-
 from . import argum      as ar
 from . import makesample as ms
 from . import readatm    as ra
@@ -22,7 +20,6 @@ from . import optdepth   as od
 from . import spectrum   as sp
 
 from .objects import Pyrat
-
 
 
 def init(argv, main=False, log=None):
@@ -143,24 +140,24 @@ def run(pyrat, inputs=None):
 
   pyrat.timestamps += list(np.ediff1d(timestamps))
   dtime = pyrat.timestamps[0:9] + pyrat.timestamps[-6:]
-  pt.msg(pyrat.verb-4, "\nTimestamps:\n"
+  pyrat.log.msg("\nTimestamps:\n"
         " Init:     {:10.6f}\n Parse:    {:10.6f}\n Inputs:   {:10.6f}\n"
         " Wnumber:  {:10.6f}\n Atmosph:  {:10.6f}\n TLI:      {:10.6f}\n"
         " Layers:   {:10.6f}\n Voigt:    {:10.6f}\n Extinct:  {:10.6f}\n"
         " CIA read: {:10.6f}\n CIA intp: {:10.6f}\n Haze:     {:10.6f}\n"
         " Alkali:   {:10.6f}\n O.Depth:  {:10.6f}\n Spectrum: {:10.6f}".
-        format(*dtime), pyrat.log)
+        format(*dtime), verb=2)
 
-  if len(pyrat.wlog) > 0:
+  if len(pyrat.log.warnings) > 0:
     # Write all warnings to file:
-    wpath, wfile = os.path.split(pyrat.logfile)
+    wpath, wfile = os.path.split(pyrat.log.logname)
     wfile = "{:s}/warnings_{:s}".format(wpath, wfile)
-    with open(wfile, "w") as warns:
-      warns.write("Warnings log:\n\n{:s}\n".format(pt.sep))
-      warns.write("\n\n{:s}\n".format(pt.sep).join(pyrat.wlog))
+    with open(wfile, "w") as wf:
+      wf.write("Warnings log:\n\n{:s}\n".format(pyrat.log.sep))
+      wf.write("\n\n{:s}\n".format(pyrat.log.sep).join(pyrat.log.warnings))
     # Report it:
-    pyrat.warning("There were {:d} warnings raised.  See '{:s}'.".
-                   format(len(pyrat.wlog), wfile))
-    pyrat.log.flush()
+    pyrat.log.msg("\n{:s}\n  There were {:d} warnings raised.  See '{:s}'.\n"
+                  "{:s}".format(pyrat.log.sep, len(pyrat.log.warnings), wfile,
+                  pyrat.log.sep))
   return pyrat
 

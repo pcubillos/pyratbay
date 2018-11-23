@@ -4,11 +4,9 @@
 __all__ = ["repack"]
 
 import os
-import re
 import struct
 import numpy as np
 
-from ... import tools     as pt
 from ... import constants as pc
 from .driver import dbdriver
 
@@ -24,13 +22,10 @@ class repack(dbdriver):
        File with the Database info as given from Exomol.
     pffile: String
        File with the partition function.
-    log: FILE
+    log: Log object
        A log file.
     """
-    super(repack, self).__init__(dbfile, pffile)
-
-    # Log file:
-    self.log = log
+    super(repack, self).__init__(dbfile, pffile, log)
 
     self.fmt = "dddi"
     self.recsize = struct.calcsize(self.fmt)
@@ -101,9 +96,8 @@ class repack(dbdriver):
 
     Notes
     -----
-      The line transitions are sorted in increasing wavenumber (cm-1) order.
+    The line transitions are sorted in increasing wavenumber (cm-1) order.
     """
-
     # Open file for reading:
     data = open(self.dbfile, "rb")
     # Get Total number of transitions in file:
@@ -119,10 +113,10 @@ class repack(dbdriver):
     DBfwn = self.readwave(data, nlines-1)
 
     if iwn > DBfwn or fwn < DBiwn:
-      pt.warning(verb-2, "Database ('{:s}') wavenumber range ({:.2f}--{:.2f} "
+      self.log.warning("Database ('{:s}') wavenumber range ({:.2f}--{:.2f} "
         "cm-1) does not overlap with the requested wavenumber range "
         "({:.2f}--{:.2f} cm-1).".format(os.path.basename(self.dbfile),
-                                        DBiwn, DBfwn, iwn, fwn), self.log, [])
+                                        DBiwn, DBfwn, iwn, fwn))
       return None
 
     # Number of records to read:
@@ -133,8 +127,8 @@ class repack(dbdriver):
     gf      = np.zeros(nread, np.double)
     iso     = np.zeros(nread,       int)
 
-    pt.msg(verb-4, "Process repack database between records {:,d} and {:,d}.".
-                   format(istart, istop), self.log, 2)
+    self.log.msg("Process repack database between records {:,d} and {:,d}.".
+                 format(istart, istop), verb=2, indent=2)
     interval = (istop - istart)/10  # Check-point interval
 
     i = 0  # Stored record index
@@ -146,12 +140,12 @@ class repack(dbdriver):
                              struct.unpack(self.fmt, data.read(self.recsize))
       # Print a checkpoint statement every 10% interval:
       if (i % interval) == 0.0  and  i != 0:
-        pt.msg(verb-4, "{:5.1f}% completed.".format(10.*i/interval),
-               self.log, 3)
-        pt.msg(verb-5, "Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} um\n"
-                       "Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}".
-                         format(wnumber[i], 1.0/(wnumber[i]*pc.um), elow[i],
-                                gf[i], iso[i], self.log, 6))
+        self.log.msg("{:5.1f}% completed.".format(10.*i/interval),
+                     verb=2, indent=3)
+        self.log.msg("Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} um\n"
+                     "Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}".
+                     format(wnumber[i], 1.0/(wnumber[i]*pc.um), elow[i],
+                            gf[i], iso[i]), verb=3, indent=6)
       i += 1
     data.close()
 

@@ -1,13 +1,11 @@
 # Copyright (c) 2016-2018 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-__all__ = ["pands"]
+__all__ = ["vald"]
 
 import os
-import struct
 import numpy as np
 
-from ... import tools     as pt
 from ... import constants as pc
 from .driver import dbdriver
 
@@ -36,10 +34,7 @@ class vald(dbdriver):
     log: File
        File object to store the log.
     """
-    super(vald, self).__init__(dbfile, pffile)
-
-    # log file:
-    self.log = log
+    super(vald, self).__init__(dbfile, pffile, log)
 
     # Molecule/atom properties:
     self.molecule, self.isotopes, self.mass, self.isoratio, \
@@ -55,8 +50,7 @@ class vald(dbdriver):
     Doc me.
     """
     if not os.path.isfile(self.dbfile):
-      pt.error("VALD database file '{:s}' does not exist.".
-                format(self.dbfile), self.log)
+      self.log.error("VALD file '{:s}' does not exist.".format(self.dbfile))
 
     # Extract name from database:
     with open(self.dbfile, "r") as data:
@@ -90,14 +84,14 @@ class vald(dbdriver):
   def readwave(self, dbfile, irec):
     """
     Read wavelength parameter from irec record in dbfile database.
- 
+
     Parameters
     ----------
     dbfile: File object
        File where to extract the wavelength.
     irec: Integer
        Index of record.
- 
+
     Returns
     -------
     recwl: Unsigned integer
@@ -111,14 +105,14 @@ class vald(dbdriver):
     dbfile.seek(self.offset + irec*self.recsize)
     # Read and extract the wavelength:
     recwl = float(dbfile.read(self.recsize).split(",")[1])
- 
+
     return recwl
 
 
   def dbread(self, iwn, fwn, verb, *args):
     """
     Read a VALD database.
- 
+
     Parameters
     ----------
     iwn: Scalar
@@ -129,7 +123,7 @@ class vald(dbdriver):
        Verbosity threshold.
     args:
        Additional arguments, not needed?.
- 
+
     Returns
     -------
     wnumber: 1D float ndarray
@@ -145,11 +139,9 @@ class vald(dbdriver):
     -----
     The line transitions are sorted in increasing wavenlength order.
     """
- 
     # Open/read the file:
     if not os.path.isfile(self.dbfile):
-      pt.error("VALD database file '{:s}' does not exist.".
-               format(self.dbfile), log)
+      self.log.error("VALD file '{:s}' does not exist.".format(self.dbfile))
     data = open(self.dbfile, "r")
     lines = data.readlines()
 
@@ -163,17 +155,16 @@ class vald(dbdriver):
     # Rewrite wavenumber limits as given in the VALD file (wl in Angstrom):
     fwl = 1.0 / (iwn * pc.A)  # cm to Angstrom
     iwl = 1.0 / (fwn * pc.A)
- 
+
     # Find the positions of iwav and fwav:
     istart = self.binsearch(data, iwl, 0,      nlines-1, 0)
     istop  = self.binsearch(data, fwl, istart, nlines-1, 1)
 
     # Number of records to read
     nread = istop - istart + 1
- 
- 
-    pt.msg(verb-4, "Starting to read VALD database between records {:d} and "
-                   "{:d}.".format(istart, istop), self.log, 2)
+
+    self.log.msg("Starting to read VALD database between records {:,d} and "
+                 "{:,d}.".format(istart, istop), verb=2, indent=2)
 
     interval = (istop - istart)/10  # Check-point interval
 
@@ -193,15 +184,15 @@ class vald(dbdriver):
       isoID[i]  = int(ion) - 1
       rec = line.split(",")
       wl[i], elo[i], loggf[i] = rec[1:4]
- 
+
       # Print a checkpoint statement every 10% interval:
       if (i % interval) == 0 and i != 0:
-        pt.msg(verb-4, "{:5.1f}% completed.".format(10.*i/interval),
-               self.log, 3)
-        pt.msg(verb-5,"Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} A\n"
-                        "Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}".
-                        format(1.0/(wl[i] * pc.A), wl[i], elo[i]*pc.eV,
-                               10**loggf[i], isoID[i]), self.log, 6)
+        self.log.msg("{:5.1f}% completed.".format(10.*i/interval),
+                     verb=2, indent=3)
+        self.log.msg("Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} A\n"
+                     "Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}".
+                     format(1.0/(wl[i] * pc.A), wl[i], elo[i]*pc.eV,
+                            10**loggf[i], isoID[i]), self.log, verb=3, indent=6)
       i += 1
 
     # Store data in two arrays for doubles and integers:

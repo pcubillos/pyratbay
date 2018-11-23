@@ -5,20 +5,18 @@ import sys
 import os
 import numpy as np
 
-from ... import tools     as pt
-
 # Directory of db:
-DBdir = os.path.dirname(os.path.realpath(__file__))
+rootdir = os.path.dirname(os.path.realpath(__file__)) + "/../../../"
 # Add path to ctips source code:
-sys.path.append(DBdir + "/../../../modules/pytips")
+sys.path.append(rootdir + "modules/pytips")
 import pytips as t
 
 
 class dbdriver(object):
-  def __init__(self, dbfile, pffile):
+  def __init__(self, dbfile, pffile, log):
     self.dbfile = dbfile
     self.pffile = pffile
-
+    self.log    = log
 
   def getpf(self, verbose=0):
     """
@@ -85,14 +83,14 @@ class dbdriver(object):
 
   def dbread(self, iwl, fwl, verbose):
     """
-      Read linelist values for specific database type.
+    Read linelist values for specific database type.
     """
     pass
 
 
   def readwave(self, dbfile, irec):
     """
-      Read the wavelength parameter as given in each database.
+    Read the wavelength parameter as given in each database.
     """
     pass
 
@@ -187,8 +185,8 @@ class dbdriver(object):
     """
     # Open-read file:
     if not os.path.isfile(self.pffile):
-      pt.error("Partition-function file '{:s}' does not exist.".
-               format(self.pffile), self.log)
+      self.log.error("Partition-function file '{:s}' does not exist.".
+                     format(self.pffile))
     with open(self.pffile, "r") as f:
       lines = f.readlines()
 
@@ -225,6 +223,7 @@ class dbdriver(object):
 
     return temp, PF, isotopes
 
+
   def getiso(self, fromfile=False, molname=None, dbtype="hitran"):
     """
     Get isotopic info from isotopes.dat file.
@@ -252,25 +251,25 @@ class dbdriver(object):
        Isotopic terrestrial abundance ratio.
     """
     if fromfile:
-      # Open HITRAN DB file and read first two characters:
+      # Open DB file and read first two characters:
       if not os.path.isfile(self.dbfile):
-        pt.error("HITRAN database file '{:s}' does not exist.".
-                  format(self.dbfile), self.log)
+        self.log.error("Input database file '{:s}' does not exist.".
+                       format(self.dbfile))
       with open(self.dbfile, "r") as data:
         molID  = data.read(self.recmollen)
       molname = t.molname(int(molID))
     elif molname is None:
-      pt.error("Neither fromfile nor mol were specified.", self.log)
+      self.log.error("Neither fromfile nor mol were specified.")
 
     # Read isotopes info file:
-    with open(DBdir + '/../../../inputs/isotopes.dat', 'r') as isofile:
+    with open(rootdir + 'inputs/isotopes.dat', 'r') as isofile:
       lines = isofile.readlines()
 
     isotopes = []
     mass     = []
     isoratio = []
 
-    if dbtype   == "hitran":
+    if dbtype == "hitran":
       iiso = 2
     elif dbtype in ["exomol", "kurucz"]:
       iiso = 3

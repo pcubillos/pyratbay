@@ -13,10 +13,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 from datetime import date
 
-from .. import tools as pt
-from .. import constants as pc
 from .  import db
+from .. import constants as pc
 from .. import VERSION as ver
+
+rootdir = os.path.realpath(os.path.dirname(__file__) + "/../..")
+sys.path.append(rootdir + "/modules/MCcubed")
+import MCcubed.utils as mu
+
 
 def parser(cfile=None):
   """
@@ -38,12 +42,14 @@ def parser(cfile=None):
   # Parse the configuration-file arguments:
   if cfile is not None:
     if not os.path.isfile(cfile):
-      pt.error("Configuration file '{:s}' does not exist.".format(cfile))
+      print("Configuration file '{:s}' does not exist.".format(cfile))
+      sys.exit(0)
     config = ConfigParser.SafeConfigParser()
     config.read([cfile])
     if "pyrat" not in config.sections():
-      pt.error("Invalid configuration file: '{:s}'. The configuration-file "
-               "section must be 'pyrat'.".format(cfile))
+      print("Invalid configuration file: '{:s}'. The configuration-file "
+            "section must be 'pyrat'.".format(cfile))
+      sys.exit(0)
     defaults = dict(config.items("pyrat"))
     # Store these arguments as lists:
     if "dblist" in defaults:
@@ -108,49 +114,31 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
   Patricio Rojo  (Cornell U.)
   Madison Stemm  (UCF)
   """
-
-  # FINDME: For some reason, I need to import 'db' again.
-  #         Why has db dissapeared from the namespace?
-  from . import db
-  args = locals()
-  sys.argv = ["ipython"]
-
-  # Process configuration-file arguments:
-  cargs = parser(cfile=cfile)
-
-  # Unpack parameters that have not been defined already:
-  for key in args.keys():
-    if args[key] is None:
-      exec("{:s} = cargs.{:s}".format(key, key))
-
   # Open log file (removing .tli extension):
   logname = outfile.replace(".tli", ".log")
-  log = open(logname, "w")
-  # Warning log:
-  wlog = []
+  log = mu.Log(logname, verb=verb, width=80)
 
   # Welcome message:
-  pt.msg(verb-1, "{:s}\n  Lineread.\n"
-            "  Version {:d}.{:d}.{:d}.\n"
-            "  Copyright (c) 2016-{:d} Patricio Cubillos and collaborators.\n"
-            "  Lineread is (temporarily) proprietaty software (see LICENSE).\n"
-            "{:s}\n\n".format(pt.sep, ver.LR_VER, ver.LR_MIN, ver.LR_REV,
-                              date.today().year, pt.sep), log)
+  log.msg("{:s}\n"
+          "  Lineread.\n"
+          "  Version {:d}.{:d}.{:d}.\n"
+          "  Copyright (c) 2016-{:d} Patricio Cubillos and collaborators.\n"
+          "  Lineread is (temporarily) proprietaty software (see LICENSE).\n"
+          "{:s}\n\n".format(log.sep, ver.LR_VER, ver.LR_MIN, ver.LR_REV,
+                            date.today().year, log.sep))
 
   # Input-not-found error messages:
   if dblist is None:
-    pt.error("There are no input database files ('dbfile').", log)
+    log.error("There are no input database files ('dblist').")
   if dbtype is None:
-    pt.error("There are no input database types ('dbtype').", log)
+    log.error("There are no input database types ('dbtype').")
   if pflist is None:
-    pt.error("There are no partition-function inputs ('pflist').", log)
+    log.error("There are no partition-function inputs ('pflist').")
   # Defaulted-inputs warning messages:
   if iwl == 0.01:
-    pt.warning(verb-2, "Using default initial wavelength boundary: "
-                       "iwl = 0.01 um.", log, wlog)
+    log.warning("Using default initial wavelength boundary: iwl = 0.01 um.")
   if fwl == 999.9:
-    pt.warning(verb-2, "Using default final wavelength boundary: "
-                       "fwl = 999.9 um.", log, wlog)
+    log.warning("Using default final wavelength boundary: fwl = 999.9 um.")
 
   # Number of files:
   Nfiles = len(dblist)
@@ -159,9 +147,9 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
   Npf   = len(pflist)
   Ntype = len(dbtype)
   if (Nfiles != Npf) or (Nfiles != Ntype):
-    pt.error("The number of Line-transition files ({:d}) does not match the "
+    log.error("The number of Line-transition files ({:d}) does not match the "
         "number of partition-function files ({:d}) or database-type "
-        "files ({:d}).".format(Nfiles, Npf, Ntype), log)
+        "files ({:d}).".format(Nfiles, Npf, Ntype))
 
   # Driver routine to read the databases:
   driver = []
@@ -181,10 +169,10 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
     elif dbtype[i] == "repack":
       driver.append(db.repack(     dblist[i], pflist[i], log))
     else:
-      pt.error("Unknown Database type ({:d}): '{:s}'".format(i+1, dbtype[i]),
-               log)
-    pt.msg(verb-3, "Reading input database file '{:s}'.".format(dblist[i]), log)
-  pt.msg(verb-4, "There are {:d} input database file(s).".format(Nfiles), log)
+      log.error("Unknown Database type ({:d}): '{:s}'.  Select from: {:s}".
+                format(i+1, dbtype[i], pc.dbases))
+    log.msg("Reading input database file '{:s}'.".format(dblist[i]))
+  log.msg("There are {:d} input database file(s).".format(Nfiles), verb=2)
 
   # Open output file:
   TLIout  = open(outfile, "wb")
@@ -219,19 +207,19 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
   header += struct.pack("h", Ndb)
   TLIout.write(header)
 
-  pt.msg(verb-4, "\nOS endianness:  {:s}\n"
-                 "Initial TLI wavelength (um): {:7.3f}  ({:9.3f} cm-1)\n"
-                 "Final   TLI wavelength (um): {:7.3f}  ({:9.3f} cm-1)".
-                 format(endian, iwl, fwn,  fwl, iwn), log)
-  pt.msg(verb-4, "There are {:d} different database(s).".format(Ndb), log)
-  pt.msg(verb-4, "List of databases:\n{}".format(DBnames), log)
+  log.msg("\nOS endianness:  {:s}\n"
+          "Initial TLI wavelength (um): {:7.3f}  ({:9.3f} cm-1)\n"
+          "Final   TLI wavelength (um): {:7.3f}  ({:9.3f} cm-1)".
+          format(endian, iwl, fwn,  fwl, iwn), verb=2)
+  log.msg("There are {:d} different database(s).".format(Ndb), verb=2)
+  log.msg("List of databases:\n{}".format(DBnames), verb=2)
 
   # Partition info:
   totIso = 0                   # Cumulative number of isotopes
   acum = np.zeros(Ndb+1, int)  # Cumul. number of isotopes per database
 
 
-  pt.msg(verb-4, "\nReading and writting partition function info.", log)
+  log.msg("\nReading and writting partition function info.", verb=2)
   # Database correlative number:
   idb = 0
   # Loop through the partition files (if more than one) and write the
@@ -271,21 +259,21 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
                              lenMolec, *driver[i].molecule))
     # Store the number of temperature samples and isotopes:
     TLIout.write(struct.pack("hh", Ntemp, Niso))
-    pt.msg(verb-4, "Database ({:d}/{:d}): '{:s}' ({:s} molecule)".
-                   format(idb+1, Ndb, DBnames[idb], driver[i].molecule), log, 2)
-    pt.msg(verb-4, "Number of temperatures: {:d}\n"
-                   "Number of isotopes: {:d}".format(Ntemp, Niso), log, 4)
+    log.msg("Database ({:d}/{:d}): '{:s}' ({:s} molecule)".format(
+            idb+1, Ndb, DBnames[idb], driver[i].molecule), verb=2, indent=2)
+    log.msg("Number of temperatures: {:d}\n"
+            "Number of isotopes: {:d}".format(Ntemp, Niso), verb=2, indent=4)
 
     # Write the temperature array:
     TLIout.write(struct.pack("{:d}d".format(Ntemp), *Temp))
-    pt.msg(verb-4, "Temperatures (K): [{:6.1f}, {:6.1f}, ..., {:6.1f}]".
-                    format(Temp[0], Temp[1], Temp[Ntemp-1]), log, 4)
+    log.msg("Temperatures (K): [{:6.1f}, {:6.1f}, ..., {:6.1f}]".
+            format(Temp[0], Temp[1], Temp[Ntemp-1]), verb=2, indent=4)
 
     # For each isotope, write partition function information.
     # Keep a tally of isotopes for multiple databse support:
     for j in np.arange(Niso):
-      pt.msg(verb-4, "Isotope ({:d}/{:d}): '{:s}'".
-                      format(j+1, Niso, isoNames[j]), log, 4)
+      log.msg("Isotope ({:d}/{:d}): '{:s}'".format(j+1, Niso, isoNames[j]),
+              verb=2, indent=4)
 
       # Store length of isotope name, isotope name, and isotope mass:
       lenIsoname = len(isoNames[j])
@@ -296,11 +284,11 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
 
       # Write the partition function per isotope:
       TLIout.write(struct.pack("{:d}d".format(Ntemp), *PF[j]))
-      pt.msg(verb-4, "Mass (u):        {:8.4f}\n"
-                     "Isotopic ratio:  {:8.4g}\n"
-                     "Part. Function:  [{:.2e}, {:.2e}, ..., {:.2e}]".
-                     format(iso_mass[j], iso_ratio[j],
-                         PF[j,0], PF[j,1], PF[j,Ntemp-1]), log, 6)
+      log.msg("Mass (u):        {:8.4f}\n"
+              "Isotopic ratio:  {:8.4g}\n"
+              "Part. Function:  [{:.2e}, {:.2e}, ..., {:.2e}]".
+              format(iso_mass[j], iso_ratio[j],
+                  PF[j,0], PF[j,1], PF[j,Ntemp-1]), verb=2, indent=6)
 
     # Calculate cumulative number of isotopes per database:
     totIso += Niso
@@ -308,24 +296,24 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
     acum[idb] = totIso
 
   # Cumulative number of isotopes:
-  pt.msg(verb-4, "Cumulative number of isotopes per DB: {}".format(acum), log)
-  pt.msg(verb-3, "Done.", log)
+  log.msg("Cumulative number of isotopes per DB: {}".format(acum), verb=2)
+  log.msg("Lineread done.")
 
 
-  pt.msg(verb-3, "\nExtracting line transition info.", log)
+  log.msg("\nExtracting line transition info.")
   wnumber = np.array([], np.double)
   gf      = np.array([], np.double)
   elow    = np.array([], np.double)
   isoID   = np.array([], np.int)
   # Read from file and write the transition info:
-  for db in np.arange(Nfiles):
+  for dbase in np.arange(Nfiles):
     # Get database index:
-    dbname = driver[db].name
+    dbname = driver[dbase].name
     idb = DBnames.index(dbname)
 
     # Read databases:
     ti = time.time()
-    transDB = driver[db].dbread(iwn, fwn, verb, pflist[db])
+    transDB = driver[dbase].dbread(iwn, fwn, verb, pflist[dbase])
     tf = time.time()
 
     if transDB is None:
@@ -336,11 +324,11 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
     elow    = np.concatenate((elow,    transDB[2]))
     isoID   = np.concatenate((isoID,   transDB[3]+acum[idb]))
 
-    pt.msg(verb-4, "Isotope in-database indices: {}".
-                    format(np.unique(transDB[3])), log, 2)
-    pt.msg(verb-4, "Isotope correlative indices: {}".
-                    format(np.unique(transDB[3]+acum[idb])), log, 2)
-    pt.msg(verb-5, "Reading time: {:8.3f} seconds".format(tf-ti), log, 2)
+    log.msg("Isotope in-database indices: {}".format(np.unique(transDB[3])),
+            verb=2, indent=2)
+    log.msg("Isotope correlative indices: {}".
+                    format(np.unique(transDB[3]+acum[idb])), verb=2, indent=2)
+    log.msg("Reading time: {:8.3f} seconds".format(tf-ti), verb=3, indent=2)
 
 
   # Total number of transitions:
@@ -360,8 +348,8 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
     wnsort = np.argsort(wnumber[isort][ilo:ihi])
     isort[ilo:ihi] = isort[ilo:ihi][wnsort]
   tf = time.time()
-  pt.msg(verb-5, "Sort time:    {:8.3f} seconds".format(tf-ti), log, 2)
-  pt.msg(verb-3, "Done.", log)
+  log.msg("Sort time:    {:8.3f} seconds".format(tf-ti), verb=3, indent=2)
+  log.msg("Done.")
 
   # Actual sorting:
   wnumber = wnumber[isort]
@@ -369,7 +357,7 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
   elow    = elow   [isort]
   isoID   = isoID  [isort]
 
-  pt.msg(verb-4, "\nTransitions per isotope:\n{}".format(Nisotran), log)
+  log.msg("\nTransitions per isotope:\n{}".format(Nisotran), verb=2)
 
   # FINDME: Implement well this:
   if False:
@@ -391,7 +379,7 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
   transinfo = ""
   # Write the number of transitions:
   TLIout.write(struct.pack("i", nTransitions))
-  pt.msg(verb-4, "\nWriting {:,d} transition lines.".format(nTransitions), log)
+  log.msg("\nWriting {:,d} transition lines.".format(nTransitions), verb=2)
   # Write the number of transitions for each isotope:
   Niso = len(Nisotran)
   # Note that nIso may differ from accumiso, since accum iso accounts for
@@ -407,26 +395,27 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
   transinfo += struct.pack(str(nTransitions)+"d", *list(elow))
   transinfo += struct.pack(str(nTransitions)+"d", *list(gf))
   tf = time.time()
-  pt.msg(verb-5, "Packing time: {:8.3f} seconds".format(tf-ti), log)
+  log.msg("Packing time: {:8.3f} seconds".format(tf-ti), verb=3)
 
   ti = time.time()
   TLIout.write(transinfo)
   tf = time.time()
-  pt.msg(verb-5, "Writing time: {:8.3f} seconds".format(tf-ti), log)
+  log.msg("Writing time: {:8.3f} seconds".format(tf-ti), verb=3)
 
   TLIout.close()
-  pt.msg(verb-3, "Generated TLI file: '{:s}'.".format(outfile), log)
+  log.msg("Generated TLI file: '{:s}'.".format(outfile))
 
-  if len(wlog) > 0:
+  if len(log.warnings) > 0:
     # Write all warnings to file:
     wpath, wfile = os.path.split(os.path.realpath(logname))
     wfile = "{:s}/warnings_{:s}".format(wpath, wfile)
-    warns = open(wfile, "w")
-    warns.write("Warnings log:\n\n{:s}\n".format(pt.sep))
-    warns.write("\n\n{:s}\n".format(pt.sep).join(wlog))
-    warns.close()
+    with open(wfile, "w") as warnings:
+      warnings.write("Warnings log:\n\n{:s}\n".format(log.sep))
+      warnings.write("\n\n{:s}\n".format(log.sep).join(log.warnings))
     # Report it:
-    pt.warning(verb-2, "There was(were) {:d} warning(s) raised.\nSee '{:s}'.".
-                format(len(wlog), wfile), log)
+    flag = len(log.warnings) > 1
+    log.msg("\n{:s}\nThere {:s} {:d} warning{:s} raised.  See '{:s}'.".
+            format(log.sep, ['was','were'][flag], len(log.warnings),
+                   ["","s"][flag], wfile), verb=0)
 
   log.close()

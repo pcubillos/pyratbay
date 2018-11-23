@@ -1,25 +1,21 @@
 # Copyright (c) 2016-2018 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-__all__ = ["parray", "msg", "warning", "error", "defaultp", "getparam",
-           "binsearch", "pprint", "divisors", "u", "unpack", "sep",
+__all__ = ["parray", "defaultp", "getparam",
+           "binsearch", "pprint", "divisors", "u", "unpack",
            "isfile", "addarg"]
 
-import sys, os
-import traceback
-import textwrap
+import os
+import sys
 import struct
 import numbers
 import numpy as np
 
 from .. import constants as pc
 
-"""
-Tools for the Pyrat-Bay project.
-"""
-
-# Warning/error banner:
-sep = 70*":"
+rootdir = os.path.realpath(os.path.dirname(__file__) + "/../../")
+sys.path.append(rootdir + "/modules/MCcubed/")
+import MCcubed.utils as mu
 
 
 def parray(string):
@@ -33,128 +29,6 @@ def parray(string):
     return np.asarray(string.split(), np.double)
   except: # Else, return a string array:
     return string.split()
-
-
-def msg(verblevel, message, file=None, indent=0, si=None, noprint=False):
-  """
-  Conditional message printing to screen.
-
-  Parameters
-  ----------
-  verblevel: Integer
-     If positive, print the given message.
-  message: String
-     Message to print.
-  file: File pointer
-     If not None, print message to the given file pointer.
-  indent: Integer
-     Number of blank spaces for indentation.
-  si: Integer
-     Subsequent indentation.  If None, keep indent as the subsequent
-     indentation.
-  noprint: Boolean
-     If True, do not print and return the string instead.
-  """
-  if verblevel < 0:
-    return
-
-  # Output text message:
-  text = ""
-
-  # Indentation strings:
-  indspace  = " "*indent
-  sindspace = indspace
-  if si is not None:
-    sindspace = " "*si
-
-  # Break the text down into sentences (line-breaks):
-  sentences = message.splitlines()
-  for s in sentences:
-    line = textwrap.fill(s, break_long_words=False, break_on_hyphens=False,
-                         initial_indent=indspace, subsequent_indent=sindspace)
-    text += line + "\n"
-
-  # Do not print, just return the string:
-  if noprint:
-    return text
-
-  # Print to screen:
-  print(text[:-1])  # Remove the trailing "\n"
-  sys.stdout.flush()
-  # Print to file, if requested:
-  if file is not None:
-    file.write(text)
-    file.flush()
-
-
-def warning(verblevel, message, file=None, wlog=None):
-  """
-  Print message surrounded by colon banners.
-  Append message to wlog.
-  Add message to file if not None.
-
-  Parameters
-  ----------
-  verblevel: Integer
-     If positive, print the given message.
-  message: String
-     Message to print.
-  file: File pointer
-     If not None, also print to the given file.
-  wlog:  list of strings
-     List of warning messages.
-  """
-  if verblevel < 0:
-    return
-
-  # Wrap the message:
-  text = msg(1, message, indent=4, noprint=True)[:-1]
-  # Add banners around:
-  warntext = "\n{:s}\n  Warning:\n{:s}\n{:s}\n".format(sep, text, sep)
-
-  # Append warning message to warnings log:
-  if wlog is not None:
-    wlog.append(text)
-  # Print warning message to screen:
-  print(warntext)
-  sys.stdout.flush()
-  # Print warning message to file (if requested):
-  if file is not None:
-    file.write(warntext + "\n")
-    file.flush()
-
-
-def error(message, file=None, lev=-2):
-  """
-  Pretty print error message.
-
-  Parameters
-  ----------
-  message: String
-     Message to print.
-  file: File pointer
-     If not None, also print to the given file.
-  """
-  # Trace back the file, function, and line where the error source:
-  t = traceback.extract_stack()
-  # Extract fields:
-  modpath    = t[lev][0]                       # Module path
-  modname    = modpath[modpath.rfind('/')+1:]  # Madule name
-  funcname   = t[lev][2]                       # Function name
-  linenumber = t[lev][1]
-  # Text to print:
-  text = ("\n{:s}\n  Error in module: '{:s}', function: '{:s}', line: {:d}\n"
-          "{:s}\n{:s}".format(sep, modname, funcname, linenumber,
-                              msg(1,message,indent=4,noprint=True)[:-1], sep))
-
-  # Print to screen:
-  print(text)
-  sys.stdout.flush()
-  # Print to file (if requested):
-  if file is not None:
-    file.write(text)
-    file.close()
-  sys.exit(0)
 
 
 def binsearch(dbfile, wavelength, rec0, nrec, upper=True):
@@ -239,7 +113,7 @@ def pprint(array, precision=3, fmt=None):
 
   # Pretty array is a copy of array:
   parray = np.copy(array)
-  if format is not None:
+  if fmt is not None:
     parray = np.asarray(array, fmt)
 
   # Convert to string and remove line-breaks:
@@ -293,7 +167,7 @@ def unpack(file, n, dtype):
     return output
 
 
-def u(units):
+def u(units, log=None):
   """
   Get the conversion factor (to the CGS system) for units.
 
@@ -305,12 +179,13 @@ def u(units):
   # Accept only valid units:
   if units not in pc.validunits:
     # Throw error:
-    error("Units name '{:s}' does not exist.".format(units), lev=-3)
+    print("Units name '{:s}' does not exist.".format(units))
+    sys.exit(0)
   exec("factor = pc.{:s}".format(units))
   return factor
 
 
-def defaultp(param, default, msg, wlog, log):
+def defaultp(param, default, msg, log):
   """
   Return param if not None, else, return default and print the
   corresponding warning message.
@@ -323,18 +198,16 @@ def defaultp(param, default, msg, wlog, log):
      Default parameter value.
   msg: String
      Printed message if param is None.
-  wlog:  List
-     Warnings logfile list.
-  log: File
-     Log file.
+  log: Log object
+     Screen-output log handler.
   """
   if param is None:
-    warning(1, msg.format(default), log, wlog)
+    log.warning(msg.format(default))
     return default
   return param
 
 
-def getparam(param, units, integer=False):
+def getparam(param, units, log=None, integer=False):
   """
   Read a parameter that may or may not have units included.
   If it doesn't, default to the 'units' input argument.
@@ -345,14 +218,20 @@ def getparam(param, units, integer=False):
      The parameter name.
   units: String
      The default units for the parameter.
-  integer: Bool
-     If True, cast the output to integer.
+  log: Log object
+     Screen-output log handler.
   """
   if param is None:
     return None
 
+  if log is None:
+    log = mu.Log(logname=None)
+
   # Return if it is a numeric value:
   if isinstance(param, numbers.Number):
+    if units not in pc.validunits:
+      log.error("Units name '{:s}' does not exist.".format(units))
+
     return param * u(units)
 
   # Split the parameter if it has a white-space:
@@ -361,19 +240,20 @@ def getparam(param, units, integer=False):
   # If the parameter contains units, read the units:
   if len(par) == 2:
     units = par[1]
+    if units not in pc.validunits:
+      log.error("Units name '{:s}' does not exist.".format(units))
 
   # Get the value of the parameter:
   try:
     value = np.float(par[0])
   except:
-    error("Invalid parameter format for '{:s}'.  param must be a float "
-          "or integer.  If it contains units, it must be blank-space "
-          "separated.".format(param), lev=-3)
+    log.error("Invalid parameter format for '{:s}'.  param must be a float "
+              "or integer.  If it contains units, it must be blank-space "
+              "separated.".format(param), lev=-3)
 
   # Apply the units:
   value *= u(units)
 
-  # Cast to integer if requested:
   if integer:
     return int(value)
 

@@ -1,11 +1,10 @@
 # Copyright (c) 2016-2018 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-__all__ = ["read_ptfile", "writeatm", "readatm", "uniform", "makeatomic", 
+__all__ = ["read_ptfile", "writeatm", "readatm", "uniform", "makeatomic",
            "readatomic", "makepreatm", "TEA2pyrat",
            "pressure", "temperature", "abundances",
            "hydro_g", "hydro_m", "stoich", "readmol", "meanweight"]
-
 
 import os
 import sys
@@ -26,11 +25,11 @@ rootdir = os.path.realpath(os.path.dirname(__file__) + "/../../")
 sys.path.append(rootdir + "/pyratbay/lib/")
 import pt as PT
 
-# Get Pyrat-Bay inputs dir:
-indir = rootdir + "/inputs/"
+sys.path.append(rootdir + "/modules/MCcubed/")
+import MCcubed.utils as mu
 
 
-def read_ptfile(ptfile):     
+def read_ptfile(ptfile):
     """
     Extract pressure, temperature, from a file.
 
@@ -145,7 +144,7 @@ def writeatm(atmfile, pressure, temperature, species, abundances,
   f.close()
 
 
-def readatm(atmfile, verb=False):
+def readatm(atmfile, verb=0, log=None):
   """
   Read a Pyrat atmospheric file.
 
@@ -154,8 +153,10 @@ def readatm(atmfile, verb=False):
   atmfile: String
      File path to a Pyrat-Bay's atmospheric file.
   verb: Bool
-     Verbosity, if True print out to screen the units from the
+     Verbosity, if positive print out to screen the units from the
      atmospheric file.
+  log: Log object
+     Screen-output log handler.
 
   Returns
   -------
@@ -177,8 +178,8 @@ def readatm(atmfile, verb=False):
      only if the atmospheric file contain's a radius profile.
      The file's @RADIUS keyword indicates the output units.
   """
-  if verb is False:
-    verb = -1
+  if log is None:
+    log = mu.Log(logname=None, verb=verb)
 
   atmfile = open(atmfile, "r")
   while True:
@@ -194,20 +195,20 @@ def readatm(atmfile, verb=False):
 
     # Radius, pressure, and temperature units of atm file:
     elif line == '@PRESSURE':
-      pt.msg(verb, "Pressure units: {:s}".format(atmfile.readline().strip()))
+      log.msg("Pressure units: {:s}".format(atmfile.readline().strip()))
     elif line == '@RADIUS':
-      pt.msg(verb,"Radius units: {:s}".format(atmfile.readline().strip()))
+      log.msg("Radius units: {:s}".format(atmfile.readline().strip()))
     elif line == '@TEMPERATURE':
-      pt.msg(verb,"Temperature units: {:s}".format(atmfile.readline().strip()))
+      log.msg("Temperature units: {:s}".format(atmfile.readline().strip()))
     # Abundance by mass or number:
     elif line == '@ABUNDANCE':
-      pt.msg(verb,"Abundance units: {:s}".format(atmfile.readline().strip()))
+      log.msg("Abundance units: {:s}".format(atmfile.readline().strip()))
     # Read in molecules:
     elif line == "@SPECIES":
       species = np.asarray(atmfile.readline().strip().split())
       nspecies = len(species)
     else:
-      print("Atmosphere file has an unexpected line: \n'{:s}'".format(line))
+      log.warning("Atmosphere file has unexpected line: \n'{:s}'".format(line))
       return None, None, None, None
 
   # Read first line to count number of columns:
@@ -246,7 +247,8 @@ def readatm(atmfile, verb=False):
   return species, press, temp, q
 
 
-def uniform(atmfile, pressure, temperature, species, abundances, punits="bar"):
+def uniform(atmfile, pressure, temperature, species, abundances, punits="bar",
+            log=None):
   """
   Generate an atmospheric file with uniform abundances.
 
@@ -264,17 +266,21 @@ def uniform(atmfile, pressure, temperature, species, abundances, punits="bar"):
      The species mole mixing ratio.
   punits:  String
      Pressure units.
+  log: Log object
+     Screen-output log handler.
   """
+  if log is None:
+    log = mu.Log(logname=None)
 
   # Safety checks:
   nlayers = len(pressure)
 
   if len(temperature) != nlayers:
-    pt.error("Pressure array length ({:d}) and Temperature array length "
-             "({:d}) don't match.".format(nlayers, len(temperature)))
+    log.error("Pressure array length ({:d}) and Temperature array length "
+              "({:d}) don't match.".format(nlayers, len(temperature)))
   if len(species) != len(abundances):
-    pt.error("Species array length ({:d}) and Abundances array length ({:d}) "
-             "don't match.".format(len(species), len(abundances)))
+    log.error("Species array length ({:d}) and Abundances array length ({:d}) "
+              "don't match.".format(len(species), len(abundances)))
   # FINDME: Check pressure array is monotonously decreasing.
 
   # Expand abundances to 2D array:
@@ -475,8 +481,8 @@ def abundances(atmfile, pressure, temperature, species, elements=None,
      Metallicity enhancement factor.
   solar: String
      Solar elemental abundances file.
-  log: FILE pointer
-     Log file to store screen outputs.
+  log: Log object
+     Screen-output log handler.
   nproc: Integer
      Number of CPUs (for parallel computing).
   verb: Integer
@@ -500,15 +506,17 @@ def abundances(atmfile, pressure, temperature, species, elements=None,
   >>> # Automatically get 'elements' necessary from the list of species:
   >>> Q = pa.abundances("pbtea.atm", press, temp, species)
   """
+  if log is None:
+    log = mu.log(logname=None, verb=verb)
   # Uniform-abundances profile:
   if quniform is not None:
     q = uniform(atmfile, pressure, temperature, species, quniform, punits)
-    pt.msg(1, "\nProduced uniform-abundances atmospheric file: '{:s}'.".
-           format(atmfile), log)
+    log.msg("\nProduced uniform-abundances atmospheric file: '{:s}'.".
+             format(atmfile))
     return q
 
   # TEA abundances:
-  pt.msg(1, "\nRun TEA to compute thermochemical-equilibrium abundances.", log)
+  log.msg("\nRun TEA to compute thermochemical-equilibrium abundances.")
   # Prep up files:
   atomicfile, patm = "PBatomicfile.tea", "PBpreatm.tea"
   makeatomic(solar, atomicfile, xsolar, swap=None)
@@ -527,7 +535,7 @@ def abundances(atmfile, pressure, temperature, species, elements=None,
   os.remove(atomicfile)
   os.remove(patm)
   os.remove("TEA.cfg")
-  pt.msg(1, "Produced TEA atmospheric file '{:s}'.".format(atmfile), log)
+  log.msg("Produced TEA atmospheric file '{:s}'.".format(atmfile))
   sdummy, Pdummy, Tdummy, q = readatm(atmfile)
   return q
 
@@ -587,7 +595,7 @@ def TEA2pyrat(teafile, atmfile, req_species):
            punits, header)
 
 
-def pressure(ptop, pbottom, nlayers, units="bar", log=None):
+def pressure(ptop, pbottom, nlayers, units="bar", log=None, verb=0):
   """
   Compute a log-scale pressure profile.
 
@@ -602,8 +610,10 @@ def pressure(ptop, pbottom, nlayers, units="bar", log=None):
   units: String
      The pressure units (if not defined in ptop, pbottom).
      Available units are: barye, mbar, pascal, bar (default), and atm.
-  log: File
-     Log file where to write screen outputs.
+  log: Log object
+     Screen-output log handler.
+  verb: Integer
+     Verbosity level (when log is None). Print out when verb > 0.
 
   Returns
   -------
@@ -612,22 +622,26 @@ def pressure(ptop, pbottom, nlayers, units="bar", log=None):
 
   Examples
   --------
-  >>> import pyratbay.pyratbay.makeatm as ma
-  >>> p1 = ma.pressure(1e-5,       1e2,      100, "bar")
-  >>> p2 = ma.pressure("1e-5 bar", "50 bar",  10)
+  >>> import pyratbay.atmosphere as pa
+  >>> # Specify values and units separately:
+  >>> p1 = pa.pressure(ptop=1e-5, pbottom=100, nlayers=100, units="bar")
+  >>> # Specify values with units:
+  >>> p2 = pa.pressure(ptop="1e-5 bar", pbottom="100 bar", nlayers=100)
   """
+  if log is None:
+    log = mu.Log(logname=None, verb=verb)
   # Unpack pressure input variables:
-  ptop    = pt.getparam(ptop,    units)
-  pbottom = pt.getparam(pbottom, units)
+  ptop    = pt.getparam(ptop,    units, log)
+  pbottom = pt.getparam(pbottom, units, log)
   if ptop >= pbottom:
-    pt.error("Bottom-layer pressure ({:.2e} bar) must be higher than the"
-      "top-layer pressure ({:.2e} bar).".format(pbottom/pt.u(units),
-                                                ptop/pt.u(units)), log)
+    log.error("Bottom-layer pressure ({:.2e} bar) must be higher than the "
+              "top-layer pressure ({:.2e} bar).".format(pbottom/pt.u(units),
+                                                        ptop/pt.u(units)))
 
   # Create pressure array in barye (CGS) units:
   press = np.logspace(np.log10(ptop), np.log10(pbottom), nlayers)
-  pt.msg(1, "Creating {:d}-layer atmospheric model between {:.1e} and "
-     "{:.1e} bar.".format(nlayers, ptop/pt.u(units), pbottom/pt.u(units)), log)
+  log.msg("Creating {:d}-layer atmospheric model between {:.1e} and "
+     "{:.1e} bar.".format(nlayers, ptop/pt.u(units), pbottom/pt.u(units)))
   return press
 
 
@@ -658,8 +672,8 @@ def temperature(tmodel, pressure=None, rstar=None, tstar=None, tint=100.0,
     mm, cm (default), m, km, au, pc, rearth, rjup, rsun.
   nlayers: Integer
      Number of pressure layers.
-  log: File
-     Log file where to write screen outputs.
+  log: Log object
+     Screen-output log handler.
   tparams: 1D float ndarray
      Temperature model parameters.
 
@@ -688,13 +702,16 @@ def temperature(tmodel, pressure=None, rstar=None, tstar=None, tint=100.0,
   >>> tparams = np.array([-3.0, -0.25, 0.0, 0.0, 1.0])
   >>> temp = Tmodel(tparams, *targs)
   """
+  if log is None:
+    log = mu.Log(logname=None)
+
   if tmodel == "TCEA":
     # Parse inputs:
-    rstar   = pt.getparam(rstar, radunits)
-    tstar   = pt.getparam(tstar, "kelvin")
-    tint    = pt.getparam(tint,  "kelvin")
-    gplanet = pt.getparam(gplanet, "none")
-    smaxis  = pt.getparam(smaxis, radunits)
+    rstar   = pt.getparam(rstar,   radunits, log)
+    tstar   = pt.getparam(tstar,   "kelvin", log)
+    tint    = pt.getparam(tint,    "kelvin", log)
+    gplanet = pt.getparam(gplanet, "none",   log)
+    smaxis  = pt.getparam(smaxis,  radunits, log)
     # Define model and arguments:
     Tmodel = PT.TCEA
     targs  = [pressure, rstar, tstar, tint, smaxis, gplanet]
@@ -714,11 +731,11 @@ def temperature(tmodel, pressure=None, rstar=None, tstar=None, tint=100.0,
     targs = [pressure*1e-6]
     ntpars = 6
   else:
-    pt.error("Invalid input temperature model '{:s}'.  Select from: 'TCEA', "
-             " 'MadhuInv', 'MadhuNoInv', or 'isothermal'.".format(tmodel), log)
+    log.error("Invalid input temperature model '{:s}'.  Select from: 'TCEA', "
+              " 'MadhuInv', 'MadhuNoInv', or 'isothermal'.".format(tmodel))
   if eval:
     temperature = Tmodel(tparams, *targs)
-    pt.msg(1, "\nComputed {:s} temperature model.".format(tmodel), log)
+    log.msg("\nComputed {:s} temperature model.".format(tmodel))
     return temperature
   else:
     return Tmodel, targs, ntpars
@@ -928,7 +945,7 @@ def meanweight(abundances, molnames, molfile=None):
   """
   # Default molecules file.
   if molfile is None:
-    molfile = indir + "molecules.dat"
+    molfile = rootdir + "/inputs/molecules.dat"
 
   molID, symbol, mass, diam = readmol(molfile)
 

@@ -1,24 +1,22 @@
 # Copyright (c) 2016-2018 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-import sys, os
 import numpy as np
 
-from .. import tools as pt
 from .. import constants as pc
 from .. import broadening as broad
 
 
 def init(pyrat):
   if pyrat.alkali.nmodels > 0:
-
+    pyrat.log.msg("\nSetup Alkali opacity models.")
     # Species index in atmosphere:
     pyrat.alkali.imol = -np.ones(pyrat.alkali.nmodels, int)
     for i in np.arange(pyrat.alkali.nmodels):
       imol = np.where(pyrat.mol.name == pyrat.alkali.model[i].mol)[0]
       if np.size(imol) != 0:
         pyrat.alkali.imol[i] = imol[0]
-    pt.msg(pyrat.verb-3, "Done.", pyrat.log)
+    pyrat.log.msg("Alkali done.")
 
 
 def absorption(pyrat):
@@ -32,8 +30,8 @@ def absorption(pyrat):
     alkali = pyrat.alkali.model[i]
 
     if pyrat.alkali.imol[i] < 0:
-      pt.warning(pyrat.verb-2, "Alkali species '{:s}' is not present in "
-        "the atmospheric file.".format(alkali.mol), pyrat.log, pyrat.wlog)
+      pyrat.log.warning("Alkali species '{:s}' is not present in the "
+                        "atmospheric file.".format(alkali.mol))
       continue
     imol = pyrat.alkali.imol[i]
     dens = np.expand_dims(pyrat.atm.d[:,imol], axis=1)
@@ -113,14 +111,14 @@ class SodiumVdWst():
     self.name  = "SodiumVdWst"  # Model name
     self.ec    = None           # Opacity cross section (cm2 molec-1)
     self.mol   = "Na"           # Species causing the extinction
-    # Line properties (VALD):
+    # Line properties (from VALD):
     self.wn    = [16960.87, 16978.07] # Wavenumber in cm-1
     self.elow  = [0.0,      0.0]
     self.gf    = [0.65464,  1.30918]
     self.detuning = 30.0   # Detuning parameter
     self.lpar = 0.071  # Lorentz width parameter (From Iro et al. 2005)
     self.Z    = 2.0    # Partition function (valid for temp < 4000 K)
-    
+
 
 class PotassiumVdWst():
   """

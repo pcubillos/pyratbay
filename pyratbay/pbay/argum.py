@@ -1,18 +1,26 @@
 # Copyright (c) 2016-2018 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-import sys
 import os
-import ConfigParser, argparse
+import sys
+import argparse
+if sys.version_info.major == 3:
+  import configparser
+else:
+  import ConfigParser as configparser
 import numpy as np
+from datetime import date
 
 from .. import tools as pt
 from .. import VERSION as ver
 
 rootdir = os.path.realpath(os.path.dirname(__file__) + "/../../")
 
+sys.path.append(rootdir + "/modules/MCcubed")
+import MCcubed.utils as mu
 
-def parse(wlog):
+
+def parse():
   """
   Read the command line arguments.
   """
@@ -31,15 +39,18 @@ def parse(wlog):
   args, remaining_argv = cparser.parse_known_args()
 
   if args.cfile is None:
-    pt.error("No configuration file specified.")
+    print("\nNo configuration file specified.")
+    sys.exit(0)
   elif not os.path.isfile(args.cfile):
-    pt.error("Configuration file '{:s}' does not exist.".format(args.cfile))
+    print("\nConfiguration file '{:s}' does not exist.".format(args.cfile))
+    sys.exit(0)
 
-  config = ConfigParser.SafeConfigParser()
+  config = configparser.SafeConfigParser()
   config.read([args.cfile])
   if "pyrat" not in config.sections():
-    pt.error("Invalid configuration file: '{:s}', no [pyrat] section.".
-             format(args.cfile))
+    print("\nInvalid configuration file: '{:s}', no [pyrat] section.".
+          format(args.cfile))
+    sys.exit(0)
 
   cfile = args.cfile
   defaults = dict(config.items("pyrat"))
@@ -244,121 +255,107 @@ def parse(wlog):
   args = parser.parse_args(remaining_argv)
   args.cfile = cfile
 
-  # Get logfile:
-  if args.logfile is not None:
-    if args.resume:
-      log = open(args.logfile, "aw")
-    else:
-      log = open(args.logfile, "w")
-  else:
-    log = None
+  # Initialize log object:
+  log = mu.Log(logname=args.logfile, verb=args.verb, width=80,
+               append=args.resume)
 
   # Welcome message:
   if not args.resume:
-    pt.msg(1, "{:s}\n"
-            "  Python Radiative Transfer in a Bayesian framework (Pyrat Bay).\n"
-            "  Version {:d}.{:d}.{:d}.\n"
-            "  Copyright (c) 2016-2018 Patricio Cubillos and collaborators.\n"
-            "  Pyrat Bay is (temporarily) proprietaty software (see LICENSE).\n"
-#            "  Pyrat Bay is open-source software under the RR license.\n"
-            "{:s}\n\n".format(pt.sep, ver.PBAY_VER, ver.PBAY_MIN,
-                                      ver.PBAY_REV, pt.sep), log)
+    log.msg("{:s}\n"
+           "  Python Radiative Transfer in a Bayesian framework (Pyrat Bay).\n"
+           "  Version {:d}.{:d}.{:d}.\n"
+           "  Copyright (c) 2016-{:d} Patricio Cubillos and collaborators.\n"
+           "  Pyrat Bay is (temporarily) proprietaty software (see LICENSE).\n"
+#           "  Pyrat Bay is open-source software under the RR license.\n"
+           "{:s}\n\n".format(log.sep, ver.PBAY_VER, ver.PBAY_MIN,
+                             ver.PBAY_REV, date.today().year, log.sep), verb=0)
 
   return args, log
 
 
-def checkpressure(args, log, wlog):
+def checkpressure(args, log):
   """
   Check the input arguments to calculate the pressure profile.
   """
   args.punits = pt.defaultp(args.punits, "bar",
-    "punits input variable defaulted to '{:s}'.",   wlog, log)
+     "punits input variable defaulted to '{:s}'.", log)
   args.nlayers = pt.defaultp(args.nlayers, 100,
-    "Number of atmospheric-model layers defaulted to {:d}.",         wlog, log)
+     "Number of atmospheric-model layers defaulted to {:d}.", log)
   args.ptop = pt.defaultp(args.ptop, "1e-8 bar",
-    "Atmospheric-model top-pressure boundary defaulted to {:s}.",    wlog, log)
+     "Atmospheric-model top-pressure boundary defaulted to {:s}.", log)
   args.pbottom = pt.defaultp(args.pbottom, "100 bar",
-    "Atmospheric-model bottom-pressure boundary defaulted to {:s}.", wlog, log)
+     "Atmospheric-model bottom-pressure boundary defaulted to {:s}.", log)
 
 
-def checktemp(args, log, wlog):
+def checktemp(args, log):
   """
   Check the input arguments to calculate the temperature profile.
   """
   if args.tmodel is None:
-    pt.error("Undefined temperature model (tmodel).", log)
+    log.error("Undefined temperature model (tmodel).")
   if args.tparams is None:
-    pt.error("Undefined temperature-model parameters (tparams).", log)
+    log.error("Undefined temperature-model parameters (tparams).")
 
   if args.tmodel == "TCEA":
     if len(args.tparams) != 5:
-      pt.error("Wrong number of parameters ({:d}) for the TCEA temperature "
-               "model (5).".format(len(args.tparams)), log)
+      log.error("Wrong number of parameters ({:d}) for the TCEA temperature "
+                "model (5).".format(len(args.tparams)))
     if args.rstar is None:
-      pt.error("Undefined stellar radius (rstar).", log)
+      log.error("Undefined stellar radius (rstar).")
     if args.tstar is None:
-      pt.error("Undefined stellar temperature (tstar).", log)
+      log.error("Undefined stellar temperature (tstar).")
     if args.smaxis is None:
-      pt.error("Undefined orbital semi-major axis (smaxis).", log)
+      log.error("Undefined orbital semi-major axis (smaxis).")
     if (args.gplanet is None and
         (args.mplanet is None or args.rplanet is None)):
-      pt.error("Undefined planetary surface gravity (gplanet).", log)
-    args.tint = pt.defaultp(args.tint, "100",
-      "Planetary internal temperature defaulted to {:s} K.", wlog, log)
+      log.error("Undefined planetary surface gravity, set either gplanet or "
+                "mplanet and rplanet.")
+    args.tint = pt.defaultp(args.tint, "100.0",
+       "Planetary internal temperature defaulted to {:s} K.", log)
     args.radunits = pt.defaultp(args.radunits, "cm",
-                   "radunits input variable defaulted to '{:s}'.", wlog, log)
+       "radunits input variable defaulted to '{:s}'.", log)
 
   elif args.tmodel == "isothermal":
     if len(args.tparams) != 1:
-      pt.error("Wrong number of parameters ({:d}) for the isothermal "
-               "temperature model (1).".format(len(args.tparams)), log)
+      log.error("Wrong number of parameters ({:d}) for the isothermal "
+                "temperature model (1).".format(len(args.tparams)))
 
 
-def checkatm(args, log, wlog):
+def checkatm(args, log):
   """
   Check the input arguments to calculate the atmospheric model.
   """
-  if args.runmode != "atmosphere" and args.atmfile is None:
-    pt.error("Undefined atmospheric file (atmfile).", log)
+  if args.atmfile is None:
+    log.error("Undefined atmospheric file (atmfile).")
   if args.species is None:
-    pt.error("Undefined atmospheric species list (species).", log)
+    log.error("Undefined atmospheric species list (species).")
   args.punits = pt.defaultp(args.punits, "bar",
-    "punits input variable defaulted to '{:s}'.",   wlog, log)
+     "punits input variable defaulted to '{:s}'.", log)
 
   # Uniform-abundances profile:
   if args.uniform is not None:
     if len(args.uniform) != len(args.species):
-      pt.error("Number of uniform abundances ({:d}) does not match the "
-               "number of species ({:d}).".
-                format(len(args.uniform), len(args.species)), log)
+      log.error("Number of uniform abundances ({:d}) does not match the "
+                "number of species ({:d}).".
+                format(len(args.uniform), len(args.species)))
     return
   else:  # TEA abundances:
     if args.elements is None:
-      pt.error("Undefined atmospheric atomic-composition list (elements).", log)
+      log.error("Undefined atmospheric atomic-composition list (elements).")
     args.solar = pt.defaultp(args.solar, rootdir+"/inputs/AsplundEtal2009.txt",
-      "Solar-abundances file defaulted to '{:s}'.", wlog, log)
+      "Solar-abundances file defaulted to '{:s}'.", log)
     args.atomicfile = pt.defaultp(args.atomicfile, "./atomic.tea",
-      "Atomic-composition file defaulted to '{:s}'.", wlog, log)
+      "Atomic-composition file defaulted to '{:s}'.", log)
     args.patm = pt.defaultp(args.patm, "./preatm.tea",
-      "Pre-atmospheric file defaulted to '{:s}'.", wlog, log)
+      "Pre-atmospheric file defaulted to '{:s}'.", log)
     args.xsolar = pt.defaultp(args.xsolar, 1.0,
-      "Solar-metallicity scaling factor defaulted to {:.2f}.", wlog, log)
+      "Solar-metallicity scaling factor defaulted to {:.2f}.", log)
 
 
-def checkinputs(args, log, wlog):
+def checkinputs(args, log):
   """
   Check that the input values (args) make sense.
   """
-
-  if args.runmode is None:
-    pt.error("Undefined run mode (runmode), select from: 'tli', 'pt', "
-             "'atmosphere', 'opacity', 'spectrum', 'mcmc'.", log)
-  if args.runmode not in ['tli', 'pt', 'atmosphere', 'opacity',
-                          'spectrum', 'mcmc']:
-    pt.error("Invalid runmode ({:s}).  Must select one from: 'tli', 'pt', "
-        "'atmosphere', 'opacity', 'spectrum', 'mcmc'.".format(args.runmode))
-
-
   # Stellar model:
   if args.starspec is not None:
     # Check file exists
@@ -368,7 +365,5 @@ def checkinputs(args, log, wlog):
     # Check gstar exists
     pass
   else:
-    #pt.error("Stellar spectrum model was not specified.")
+    #log.error("Stellar spectrum model was not specified.")
     pass
-
-

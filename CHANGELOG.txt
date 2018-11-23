@@ -3860,3 +3860,52 @@ Bumped Pyrat to version 1.3.3.
 
 *****
 
+Updated MC3 submodule (once again).
+
+
+*****  Sun Nov  4 17:04:54 CET 2018  *****
+
+Updated MC3 submodule (bugfixes).
+
+
+*****  Mo 19. Nov 17:51:37 CET 2018  *****
+
+Outsourced msg(), warning(), and error() logging functions to
+mc3.utils.Log.
+Changed behavior of tools.getparam(), added 'log' argument.
+Adapted tools.defaultp() according to new Log usage.
+Edited the code everyhere.
+
+*****
+
+Added list of available line-transition databases to constants.
+
+*****
+
+Updated demo and tutorial config files.
+
+
+*****  Mi 21. Nov 17:46:29 CET 2018  *****
+
+Tweaked spectrum plot defaults.
+Updated demo and tutorial figures.
+Updated docs.
+
+
+*****  Fr 23. Nov 15:28:06 CET 2018  *****
+
+Minor bug fix in plots.spectrum().
+
+*****
+
+Implemented pnames/figpnames naming (replaced parname).
+Updated MC3 (parname -> pnames, figpnames).
+
+*****
+
+Bumped Pyrat Bay to version 0.0.94.
+Bumped Pyrat to version 1.3.4.
+Bumped lineread to version 6.4.15.
+
+*****
+

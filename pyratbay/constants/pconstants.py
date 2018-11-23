@@ -93,5 +93,8 @@ dreclen   =  8  # Double  byte length
 ireclen   =  4  # Integer byte length
 sreclen   =  2  # Short   byte length
 
+# Available line-transition databases:
+dbases = ['ps', 'hit', 'ts', 'vo', 'vald', 'emol', 'repack']
+
 # Running modes:
 rmodes = ['tli', 'pt', 'atmosphere', 'opacity', 'spectrum', 'mcmc']
