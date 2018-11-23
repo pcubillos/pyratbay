@@ -3891,6 +3891,10 @@ Tweaked spectrum plot defaults.
 Updated demo and tutorial figures.
 Updated docs.
 
-*****
 
+*****  Fr 23. Nov 15:28:06 CET 2018  *****
+
+Minor bug fix in plots.spectrum().
+
+*****
 

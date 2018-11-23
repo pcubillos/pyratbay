@@ -15,7 +15,8 @@ import matplotlib.pyplot as plt
 import scipy.interpolate as si
 from scipy.ndimage.filters import gaussian_filter1d as gaussf
 
-from .. import constants  as pc
+from .. import constants as pc
+from .. import wine      as pw
 
 rootdir = os.path.realpath(os.path.dirname(__file__) + "/../../")
 sys.path.append(rootdir + "/pyratbay/lib/")
@@ -95,7 +96,7 @@ def spectrum(wlength=None, spectrum=None, data=None, uncert=None,
   else:
     nfilters = len(bandtrans)
     if bandflux is None or np.all(bandflux==0):
-      bandflux = w.bandintegrate(pyrat=pyrat)
+      bandflux = pw.bandintegrate(pyrat=pyrat)
 
   # Plotting setup:
   fs  = 14
