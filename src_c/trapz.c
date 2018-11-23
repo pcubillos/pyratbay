@@ -6,6 +6,7 @@
 #include <numpy/arrayobject.h>
 
 #include "ind.h"
+#include "utils.h"
 
 
 PyDoc_STRVAR(trapz__doc__,
@@ -94,6 +95,60 @@ static PyObject *trapz2D(PyObject *self, PyObject *args){
 }
 
 
+PyDoc_STRVAR(cumtrapz__doc__,
+"Calculate the cumulative integral of a data array using the    \n\
+trapezoidal-rule.  Stop calculation if it reaches the threshold.\n\
+                                                                \n\
+Parameters:                                                     \n\
+-----------                                                     \n\
+output: 1D double ndarray                                       \n\
+   The output array to store the results.                       \n\
+data: 1D double ndarray                                         \n\
+   Sampled function (Y-axis) to integrate.                      \n\
+intervals: 1D double ndarray                                    \n\
+   Intervals between the data samples (X-axis).                 \n\
+threshold: double                                               \n\
+   Maximum threshold value to integrate.                        \n\
+                                                                \n\
+Returns:                                                        \n\
+--------                                                        \n\
+ind: integer                                                    \n\
+   The index where the integration stopped.                     \n\
+");
+
+static PyObject *cumtrapz(PyObject *self, PyObject *args){
+  PyArrayObject *output, *data, *intervals;
+  int i, nint;       /* Auxilliary for-loop indices                         */
+  double threshold;
+
+  /* Load inputs:                                                           */
+  if (!PyArg_ParseTuple(args, "OOOd", &output, &data, &intervals,
+                                      &threshold))
+    return NULL;
+
+  /* Get the number of intervals:                                           */
+  nint = (int)PyArray_DIM(intervals, 0);
+
+  /* First value is zero (zero-length interval):                            */
+  INDd(output,0) = 0.0;
+  /* Empty array case:                                                      */
+  if (nint < 1){
+    return Py_BuildValue("i", 0);
+  }
+
+  for (i=0; i<nint; i++){
+    /* Integrate each interval:                                             */
+    INDd(output, (i+1)) = INDd(output,i) +
+            0.5*INDd(intervals,i) * (INDd(data,(i+1)) + INDd(data,i));
+    /* If it reached the threshold, stop:                                   */
+    if (INDd(output,(i+1)) >= threshold){
+      return Py_BuildValue("i", (i+1));
+    }
+  }
+  return Py_BuildValue("i", nint);
+}
+
+
 PyDoc_STRVAR(optdepth__doc__,
 "Integrate optical depth using the trapezoidal rule.       \n\
                                                             \n\
@@ -154,57 +209,67 @@ static PyObject *optdepth(PyObject *self, PyObject *args){
 }
 
 
-PyDoc_STRVAR(cumtrapz__doc__,
-"Calculate the cumulative integral of a data array using the    \n\
-trapezoidal-rule.  Stop calculation if it reaches the threshold.\n\
-                                                                \n\
-Parameters:                                                     \n\
------------                                                     \n\
-output: 1D double ndarray                                       \n\
-   The output array to store the results.                       \n\
-data: 1D double ndarray                                         \n\
-   Sampled function (Y-axis) to integrate.                      \n\
-intervals: 1D double ndarray                                    \n\
-   Intervals between the data samples (X-axis).                 \n\
-threshold: double                                               \n\
-   Maximum threshold value to integrate.                        \n\
-                                                                \n\
-Returns:                                                        \n\
---------                                                        \n\
-ind: integer                                                    \n\
-   The index where the integration stopped.                     \n\
+PyDoc_STRVAR(intensity__doc__,
+"Intensity radiative-transfer integration under plane-parallel, LTE    \n\
+approximation:                                                         \n\
+  I = integ{B * exp(-tau/mu)} dtau/mu                                  \n\
+                                                                       \n\
+Parameters:                                                            \n\
+-----------                                                            \n\
+tau: 2D double ndarray                                                 \n\
+   Optical depth as a function of altitude and wavelength.             \n\
+ideep: 1D integer ndarray                                              \n\
+   Bottom-layer index of the atmosphere as a function of wavelength.   \n\
+planck: 2D dloble ndarray                                              \n\
+   Planck blackbody emission as a funcrion of altitude and wavelength. \n\
+mu: 1D float ndarray                                                   \n\
+   Cosine of angles between normal and the the ray paths.              \n\
+rtop: Integer                                                          \n\
+   Top-layer index of the atmosphere.                                  \n\
+                                                                       \n\
+Returns:                                                               \n\
+--------                                                               \n\
+intensity: 2D double ndarray                                           \n\
+   Intensity at the top of an atmosphere as a function of mu and       \n\
+   wavelength.                                                         \n\
 ");
 
-static PyObject *cumtrapz(PyObject *self, PyObject *args){
-  PyArrayObject *output, *data, *intervals;
-  int i, nint;       /* Auxilliary for-loop indices                         */
-  double threshold;
+static PyObject *intensity(PyObject *self, PyObject *args){
+  PyArrayObject *tau, *ideep, *bbody, *mu, *intensity, *dtau;
+  int j, k, nwave, ntheta, rtop, last;
+  double taumax;
+  npy_intp idims[2], tdims[1];
 
   /* Load inputs:                                                           */
-  if (!PyArg_ParseTuple(args, "OOOd", &output, &data, &intervals,
-                                      &threshold))
+  if (!PyArg_ParseTuple(args, "OOOOi", &tau, &ideep, &bbody, &mu, &rtop))
     return NULL;
 
-  /* Get the number of intervals:                                           */
-  nint = (int)PyArray_DIM(intervals, 0);
+  tdims[0] =          (int)PyArray_DIM(tau, 0);
+  idims[1] = nwave  = (int)PyArray_DIM(tau, 1);
+  idims[0] = ntheta = (int)PyArray_DIM(mu,  0);
 
-  /* First value is zero (zero-length interval):                            */
-  INDd(output,0) = 0.0;
-  /* Empty array case:                                                      */
-  if (nint < 1){
-    return Py_BuildValue("i", 0);
-  }
+  intensity = (PyArrayObject *) PyArray_SimpleNew(2, idims, NPY_DOUBLE);
+  dtau      = (PyArrayObject *) PyArray_SimpleNew(1, tdims, NPY_DOUBLE);
 
-  for (i=0; i<nint; i++){
-    /* Integrate each interval:                                             */
-    INDd(output, (i+1)) = INDd(output,i) +
-            0.5*INDd(intervals,i) * (INDd(data,(i+1)) + INDd(data,i));
-    /* If it reached the threshold, stop:                                   */
-    if (INDd(output,(i+1)) >= threshold){
-      return Py_BuildValue("i", (i+1));
+  for (j=0; j<nwave; j++){
+    last   = INDi(ideep, j);
+    taumax = IND2d(tau,last,j);
+
+    for (k=0; k<ntheta; k++){
+      if (last-rtop == 1){
+        IND2d(intensity,k,j) = IND2d(bbody,last,j);
+      }else{
+        /* Integral step: dtau = delta exp(-tau/mu)      */
+        tdiff(dtau, tau, INDd(mu,k), rtop, last, j);
+        /* Intensity trapezoidal integration:            */
+        IND2d(intensity,k,j) = IND2d(bbody,last,j)*exp(-taumax/INDd(mu,k))
+                               - itrapz(bbody, dtau, rtop, last, j);
+      }
     }
   }
-  return Py_BuildValue("i", nint);
+
+  Py_DECREF(dtau);
+  return Py_BuildValue("N", intensity);
 }
 
 
@@ -217,8 +282,9 @@ PyDoc_STRVAR(trapzmod__doc__,
 static PyMethodDef trapz_methods[] = {
     {"trapz",     trapz,      METH_VARARGS, trapz__doc__},
     {"trapz2D",   trapz2D,    METH_VARARGS, trapz2D__doc__},
-    {"optdepth",  optdepth,   METH_VARARGS, optdepth__doc__},
     {"cumtrapz",  cumtrapz,   METH_VARARGS, cumtrapz__doc__},
+    {"optdepth",  optdepth,   METH_VARARGS, optdepth__doc__},
+    {"intensity", intensity,  METH_VARARGS, intensity__doc__},
     {NULL,        NULL,       0,            NULL}    /* sentinel            */
 };
 

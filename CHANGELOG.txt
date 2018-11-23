@@ -3845,5 +3845,18 @@ Implemented optdepth() funtion in trapz.c.
 Bumped Pyrat Bay to version 0.0.92.
 Bumped Pyrat to version 1.3.2.
 
+
+*****  Fr 23. Nov 10:22:40 CET 2018  *****
+
+Refactored plane-parallel intensity integration (moved loops into C)
+got a of 2-3 times fsater performance.
+Implemented intensity() in trapz.c, and tdiff() and itrapz()
+subroutines in utils.h.
+
+*****
+
+Bumped Pyrat Bay to version 0.0.93.
+Bumped Pyrat to version 1.3.3.
+
 *****
 
