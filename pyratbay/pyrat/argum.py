@@ -764,8 +764,8 @@ def checkinputs(pyrat):
   isgreater(pyrat.nproc, "none", 1, False,
             "The number of processors ({:d}) must be >= 1.", log)
   if pyrat.nproc >= mp.cpu_count():
-    log.warning(pyrat.verb-2, "The number of requested CPUs ({:d}) is >= "
-       "than the number of available CPUs ({:d}).  Enforced nproc to {:d}.".
+    log.warning("The number of requested CPUs ({:d}) is >= than the number "
+       "of available CPUs ({:d}).  Enforced nproc to {:d}.".
        format(pyrat.nproc, mp.cpu_count(), mp.cpu_count()-1))
     pyrat.nproc = mp.cpu_count() - 1
   log.msg("Check inputs done.")
