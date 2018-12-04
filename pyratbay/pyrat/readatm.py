@@ -160,7 +160,7 @@ def getprofiles(pyrat, atmfile):
   if rad:
     atm.runits = pt.defaultp(atm.runits, 'cm',
        "Undefined radius units in the input atmospheric file.  Assumed to "
-       "be '{:s}'.", pyrat.wlog)
+       "be '{:s}'.", pyrat.log)
     atm.radius = np.zeros( atm.nlayers)
   atm.press    = np.zeros( atm.nlayers)
   atm.temp     = np.zeros( atm.nlayers)
