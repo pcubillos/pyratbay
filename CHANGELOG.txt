@@ -3926,3 +3926,9 @@ Fixed bug with radius units warning in pyrat/readatm.py.
 Corrected mispelled default output spectrum file name.
 
 *****
+
+Bumped Pyrat Bay to version 0.0.96.
+Bumped Pyrat to version 1.3.6.
+
+*****
+
