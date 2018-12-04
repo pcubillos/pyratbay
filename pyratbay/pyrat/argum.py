@@ -653,7 +653,7 @@ def checkinputs(pyrat):
                "'transit' or 'eclipse'.".format(pyrat.od.path))
 
   # Accept output files:
-  pyrat.outspec = pt.defaultp(inputs.outspec, 'outpsec.dat',
+  pyrat.outspec = pt.defaultp(inputs.outspec, 'outspec.dat',
      "Output spectrum filename (outspec) defaulted to '{:s}'.", log)
 
   pyrat.outsample   = inputs.outsample
@@ -860,12 +860,13 @@ def setup(pyrat):
     for mol in ret.molscale:
       ret.iscale += list(np.where(species==mol)[0])
     nabund = len(ret.iscale)
+    # Abundance free-parameter names:
+    mpnames    = ["log({:s})".format(mol) for mol in ret.molscale]
+    mfigpnames = [r"$\log_{{10}}(f_{{\rm {:s}}})$".format(mol)
+                  for mol in ret.molscale]
   else:
     nabund = 0
-  # Abundance free-parameter names:
-  mpnames    = ["log({:s})".format(mol) for mol in ret.molscale]
-  mfigpnames = [r"$\log_{{10}}(f_{{\rm {:s}}})$".format(mol)
-                for mol in ret.molscale]
+    mpnames, mfigpnames = [], []
 
   # Read stellar spectrum model:
   if phy.starspec is not None:
