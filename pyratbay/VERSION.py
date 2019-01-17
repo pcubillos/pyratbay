@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2018 Patricio Cubillos and contributors.
+# Copyright (c) 2016-2019 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
 # Software versioning:
@@ -6,7 +6,7 @@
 # Pyrat-Bay version:
 PBAY_VER  =  0  # Major version
 PBAY_MIN  =  0  # Minor version
-PBAY_REV  = 96  # Revision
+PBAY_REV  = 97  # Revision
 
 # Pyrat version:
 PYRAT_VER =  1  # Major version
