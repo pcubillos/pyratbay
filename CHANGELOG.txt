@@ -3948,3 +3948,7 @@ Implemented ifirst() and ilast() functions in indices.c for efficient
 
 *****
 
+Implemented linterp() in utils.h for 1D linear interpolation.
+
+*****
+

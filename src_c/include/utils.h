@@ -130,6 +130,33 @@ resample(double **input,     /* Input array                               */
 }
 
 
+/* 1D linear interpolation */
+int
+linterp(double **input,
+        PyArrayObject *out,
+        double wn0,
+        double wnstep,
+        PyArrayObject *wnout,
+        int index){
+
+    double wnlo;
+    int i, ilo = 0;
+    int nwave_out = PyArray_DIM(wnout, 0);  /* Number of output samples */
+
+    /* Find input wavenumber index immediately lower than wn out:   */
+    for (i=0;  i<nwave_out; i++){
+        ilo = (int)((INDd(wnout,i)-wn0)/wnstep);
+        wnlo = wn0 + wnstep*ilo;
+
+        /* Linear interpolation of the extinction coefficient:        */
+        IND2d(out,index,i) +=
+            ( input[index][ilo  ] * (wnlo + wnstep - INDd(wnout,i))
+            + input[index][ilo+1] * (INDd(wnout,i) - wnlo      )) / wnstep;
+    }
+    return 0;
+}
+
+
 /* Downsample an array by an integer factor into a python array.            */
 int
 downsample(double **input,     /* Input array                               */
