@@ -263,7 +263,8 @@ def extinction(pyrat, indices, grid=False, add=False):
                 ziso, pyrat.iso.iext,
                 pyrat.lt.wn, pyrat.lt.elow, pyrat.lt.gf, pyrat.lt.isoid,
                 pyrat.ex.ethresh, pressure, temp,
-                logtext, verb-10, int(add))
+                logtext, verb-10, int(add),
+                int(pyrat.spec.resolution is not None))
     # Store output:
     if grid:   # Into grid
       pyrat.ex.etable[:, itemp, ilayer] = extinct_coeff

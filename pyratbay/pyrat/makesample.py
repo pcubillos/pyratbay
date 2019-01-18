@@ -61,7 +61,7 @@ def makewavenumber(pyrat):
        "                                     to {:10.4f} cm-1 (Pyrat).".
        format(spec.wnhigh, spec.wn[-1]))
   # Set the number of spectral samples:
-  spec.nwave  = len(spec.wn)
+  spec.nwave = len(spec.wn)
 
   # Make the fine-sampled (oversampled) wavenumber array:
   spec.ownstep = spec.wnstep / spec.wnosamp
@@ -70,6 +70,19 @@ def makewavenumber(pyrat):
 
   # Get list of divisors:
   spec.odivisors = pt.divisors(spec.wnosamp)
+
+  # User-defined output resolution:
+  if spec.resolution is not None:
+      f = 0.5 / spec.resolution
+      g = (1.0-f) / (1.0+f)
+      imax = int(np.ceil(np.log(spec.wnlow/spec.wnhigh) / np.log(g))) + 1
+      # These are the wavelength edges of each bin:
+      dwn = spec.wnhigh * g**np.arange(imax)
+      # Central wavelength of each bin:
+      spec.wn = 0.5*(dwn[1:]+dwn[:-1])[::-1]
+      # Total number of spectral samples:
+      spec.nwave = imax - 1
+
 
   # Screen output:
   pyrat.log.msg("Initial wavenumber boundary:  {:.5e} cm-1  ({:.3e} "

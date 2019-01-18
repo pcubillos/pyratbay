@@ -3952,3 +3952,9 @@ Implemented linterp() in utils.h for 1D linear interpolation.
 
 *****
 
+Added 'resolution' to the Pyrat input variables to define a
+constant-resolution output spectrum (if not None).  Otherwise,
+continue returning a constant-delta-wavenumber output.
+
+*****
+

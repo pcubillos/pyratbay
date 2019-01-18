@@ -12,72 +12,77 @@
 #include "utils.h"
 
 PyDoc_STRVAR(extinction__doc__,
-"Calculate the extinction-coefficient for each molecule, at\n\
-a given pressure and temperature, over a wavenumber range. \n\
-                                                           \n\
-Parameters                                                 \n\
-----------                                                 \n\
-ext: 2D float ndarray                                      \n\
-   Output extinction coefficient where to put the results. \n\
-profile: 1D float ndarray                                  \n\
-   Array of Voigt profiles.                                \n\
-psize: 2D integer ndarray                                  \n\
-   Profiles half-size.                                     \n\
-pindex: 2D integer ndarray                                 \n\
-   Index where each profile starts.                        \n\
-lorentz: 1D Float ndarray                                  \n\
-   Sample of Lorentz HWHMs.                                \n\
-doppler: 1D Float ndarray                                  \n\
-   Sample of Doppler HWHMs.                                \n\
-wn: 1D Float ndarray                                       \n\
-   Spectrum wavenumber array (cm-1).                       \n\
-own: 1D Float ndarray                                      \n\
-   Oversampled wavenumber array (cm-1).                    \n\
-divisors: 1D integer ndarray                               \n\
-   Integer divisors for oversampling factor.               \n\
-moldensity: 1D Float ndarray                               \n\
-   Atmospheric species number density (molecules cm-3).    \n\
-molq: 1D Float ndarray                                     \n\
-   Atmospheric species mole mixing ratio.                  \n\
-molrad: 1D Float ndarray                                   \n\
-   Atmospheric species collision radius (A).               \n\
-molmass: 1D Float ndarray                                  \n\
-   Atmospheric species mass (gr mol-1).                    \n\
-isoimol: 1D Float ndarray                                  \n\
-   Isotopes species index (from atmospheric-species array).\n\
-isomass: 1D Float ndarray                                  \n\
-   Isotopes mass (gr mol-1).                               \n\
-isoratio: 1D Float ndarray                                 \n\
-   Isotopes abundance ratio.                               \n\
-isoz: 1D Float ndarray                                     \n\
-   Isotopes partition function.                            \n\
-isoiext: 1D Float ndarray                                  \n\
-   Isotopes species index in ext. coeff. table.            \n\
-lwn: 1D Float ndarray                                      \n\
-   Line-transition wavenumber (cm-1).                      \n\
-elow: 1D Float ndarray                                     \n\
-   Line-transition lower-state energy (cm-1).              \n\
-gf: 1D Float ndarray                                       \n\
-   Line-transition oscillator strength.                    \n\
-lID: 1D integer ndarray                                    \n\
-   Line-transition isotope ID.                             \n\
-ethresh: Float                                             \n\
-   Extinction-coefficient threshold factor.                \n\
-pressure: Float                                            \n\
-   Atmospheric-layer pressure (barye).                     \n\
-temp: Float                                                \n\
-   Atmospheric-layer temperature (K).                      \n\
-logtext: String                                            \n\
-   Char array where to store log text outputs.             \n\
-verb: Integer                                              \n\
-   Verbosity level.                                        \n\
-add: Integer                                               \n\
-   Flag, if True calculate the extinction coefficient (in cm-1) \n\
-   for this layer, if False calculate the extinction coefficient\n\
-   (in cm2 molecules-1) for each species in the layer.          \n\
-                                                                \n\
-Uncredited developers                                           \n\
----------------------                                           \n\
+"Calculate the extinction-coefficient for each molecule, at      \n\
+a given pressure and temperature, over a wavenumber range.       \n\
+                                                                 \n\
+Parameters                                                       \n\
+----------                                                       \n\
+ext: 2D float ndarray                                            \n\
+   Output extinction coefficient where to put the results.       \n\
+profile: 1D float ndarray                                        \n\
+   Array of Voigt profiles.                                      \n\
+psize: 2D integer ndarray                                        \n\
+   Profiles half-size.                                           \n\
+pindex: 2D integer ndarray                                       \n\
+   Index where each profile starts.                              \n\
+lorentz: 1D Float ndarray                                        \n\
+   Sample of Lorentz HWHMs.                                      \n\
+doppler: 1D Float ndarray                                        \n\
+   Sample of Doppler HWHMs.                                      \n\
+wn: 1D Float ndarray                                             \n\
+   Spectrum wavenumber array (cm-1).                             \n\
+own: 1D Float ndarray                                            \n\
+   Oversampled wavenumber array (cm-1).                          \n\
+divisors: 1D integer ndarray                                     \n\
+   Integer divisors for oversampling factor.                     \n\
+moldensity: 1D Float ndarray                                     \n\
+   Atmospheric species number density (molecules cm-3).          \n\
+molq: 1D Float ndarray                                           \n\
+   Atmospheric species mole mixing ratio.                        \n\
+molrad: 1D Float ndarray                                         \n\
+   Atmospheric species collision radius (A).                     \n\
+molmass: 1D Float ndarray                                        \n\
+   Atmospheric species mass (gr mol-1).                          \n\
+isoimol: 1D Float ndarray                                        \n\
+   Isotopes species index (from atmospheric-species array).      \n\
+isomass: 1D Float ndarray                                        \n\
+   Isotopes mass (gr mol-1).                                     \n\
+isoratio: 1D Float ndarray                                       \n\
+   Isotopes abundance ratio.                                     \n\
+isoz: 1D Float ndarray                                           \n\
+   Isotopes partition function.                                  \n\
+isoiext: 1D Float ndarray                                        \n\
+   Isotopes species index in ext. coeff. table.                  \n\
+lwn: 1D Float ndarray                                            \n\
+   Line-transition wavenumber (cm-1).                            \n\
+elow: 1D Float ndarray                                           \n\
+   Line-transition lower-state energy (cm-1).                    \n\
+gf: 1D Float ndarray                                             \n\
+   Line-transition oscillator strength.                          \n\
+lID: 1D integer ndarray                                          \n\
+   Line-transition isotope ID.                                   \n\
+ethresh: Float                                                   \n\
+   Extinction-coefficient threshold factor.                      \n\
+pressure: Float                                                  \n\
+   Atmospheric-layer pressure (barye).                           \n\
+temp: Float                                                      \n\
+   Atmospheric-layer temperature (K).                            \n\
+logtext: String                                                  \n\
+   Char array where to store log text outputs.                   \n\
+verb: Integer                                                    \n\
+   Verbosity level.                                              \n\
+add: Integer                                                     \n\
+   Flag, if True calculate the extinction coefficient (in cm-1)  \n\
+   for this layer, if False calculate the extinction coefficient \n\
+   (in cm2 molecules-1) for each species in the layer.           \n\
+resolution: Integer                                              \n\
+   Flag, if True perform a linear interpolation of the extinction\n\
+   spectrum into the constant-resolution output spectrum.        \n\
+   Otherwise, resample into the constant-delta-wavenumber        \n\
+   output spectrum.                                              \n\
+                                                                 \n\
+Uncredited developers                                            \n\
+---------------------                                            \n\
 Patricio Rojo  U. Cornell.");
 
 static PyObject *extinction(PyObject *self, PyObject *args){
@@ -97,7 +102,7 @@ static PyObject *extinction(PyObject *self, PyObject *args){
   int iown, idwn, offset, subw,
       imol, ofactor, iprof,
       nadd=0, nskip=0, neval=0,
-      verb, add=0;
+      verb, add=0, resolution;
   int i, j, m, ln; /* Auxilliary for-loop indices    */
   long jj;
   double pressure, temp, csdiameter, density, minwidth=1e5, vwidth, ethresh,
@@ -107,7 +112,7 @@ static PyObject *extinction(PyObject *self, PyObject *args){
   char *logtext;
 
   /* Load inputs:                                                           */
-  if (!PyArg_ParseTuple(args, "OOOOOOOOOOOOOOOOOOOOOOdddsi|i",
+  if (!PyArg_ParseTuple(args, "OOOOOOOOOOOOOOOOOOOOOOdddsi|ii",
                               &ext,
                               &profile, &psize, &pindex, &lorentz, &doppler,
                               &wn, &own, &divisors,
@@ -115,7 +120,7 @@ static PyObject *extinction(PyObject *self, PyObject *args){
                               &isoimol, &isomass, &isoratio, &isoz, &isoiext,
                               &lwn, &elow, &gf, &lID,
                               &ethresh, &pressure, &temp,
-                              &logtext, &verb, &add))
+                              &logtext, &verb, &add, &resolution))
     return NULL;
 
   nLor   = PyArray_DIM(lorentz,  0);  /* Number of Lorentz widths            */
@@ -178,16 +183,16 @@ static PyObject *extinction(PyObject *self, PyObject *args){
     /* Print Lorentz and Doppler broadening widths:                         */
     if(i <= 0){
       msg(verb-6, logtext, "    Lorentz: %.3e cm-1, Doppler: %.3e cm-1.\n",
-          alphal[i], alphad[i]*INDd(wn,0), temp, pressure);
+          alphal[i], alphad[i]*INDd(own,0), temp, pressure);
     }
     /* Estimate the Voigt FWHM:                                             */
     vwidth = 0.5346*alphal[i] + sqrt(pow(alphal[i], 2)*0.2166    +
-                                     pow(alphad[i]*INDd(wn,0),2) );
+                                     pow(alphad[i]*INDd(own,0),2) );
     minwidth = fmin(minwidth, vwidth);
 
     /* Search for aDop and aLor indices for alphal[i] and alphad[i]:        */
-    idop[i] = binsearchapprox(doppler, alphad[i]*INDd(wn,0), 0, (int)nDop-1);
-    ilor[i] = binsearchapprox(lorentz, alphal[i],            0, (int)nLor-1);
+    idop[i] = binsearchapprox(doppler, alphad[i]*INDd(own,0), 0, (int)nDop-1);
+    ilor[i] = binsearchapprox(lorentz, alphal[i],             0, (int)nLor-1);
   }
 
   wnstep  = INDd(wn, 1) - INDd(wn, 0);
@@ -311,9 +316,17 @@ static PyObject *extinction(PyObject *self, PyObject *args){
   msg(verb-5, logtext, "    Number of evaluated profiles: %8i  (%5.2f%%)\n",
               neval, neval*100.0/nlines);
 
-  /* Downsample ktmp to the final sampling size:                            */
-  for (m=0; m<next; m++){
-    resample(ktmp, ext, (int)dnwn, (int)round(wnstep/ownstep/ofactor), m);
+  /* Interpolate ktmp to constant-R output spectrum:                        */
+  if (resolution == 1){
+      for (m=0; m<next; m++){
+          linterp(ktmp, ext, INDd(wn,0), dwnstep, wn, m);
+      }
+  }
+  /* Resample ktmp to the final sampling size (constant delta-wavenumber):  */
+  else{
+      for (m=0; m<next; m++){
+          resample(ktmp, ext, (int)dnwn, (int)round(wnstep/ownstep/ofactor), m);
+      }
   }
 
   /* Free the no-longer used memory:                                        */

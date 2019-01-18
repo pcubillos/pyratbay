@@ -106,6 +106,8 @@ def parse(pyrat, log=None):
       "Wavenumber sampling step [default: 1.0 cm]")
   pt.addarg("wnosamp",     group, int,       None,
       "Wavenumber oversampling factor [default: 2160]")
+  pt.addarg("resolution",  group, np.double, None,
+      "Output resolving power")
   # Atmospheric sampling options:
   group = parser.add_argument_group("Atmosphere Sampling Options")
   pt.addarg("radlow",      group, str,       None,
@@ -394,6 +396,8 @@ def checkinputs(pyrat):
      "Input wavenumber oversampling factor (wnosamp) defaulted to {:d}.", log)
   isgreater(pyrat.spec.wnosamp, "none", 1, False,
      "Wavenumber oversampling factor ({:d}) must be >= 1.", log)
+
+  pyrat.spec.resolution = inputs.resolution
 
   # Check atmospheric layers arguments:
   pyrat.punits = pt.defaultp(inputs.punits, "bar",
