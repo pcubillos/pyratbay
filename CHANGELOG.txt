@@ -3940,5 +3940,11 @@ Updated submodules.
 
 Bumped Pyrat Bay to version 0.0.97.
 
+
+*****  Fr 18. Jan 15:39:53 CET 2019  *****
+
+Implemented ifirst() and ilast() functions in indices.c for efficient
+1D index search.
+
 *****
 
