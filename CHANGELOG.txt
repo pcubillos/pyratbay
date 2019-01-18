@@ -3958,3 +3958,9 @@ continue returning a constant-delta-wavenumber output.
 
 *****
 
+Modified alkali.py to work on both constant delta-wavenumber or
+constant-R spectral sampling.  A side effect of this change seems to
+be that solves #161 (out of bound alkali lines broke the code).
+
+*****
+

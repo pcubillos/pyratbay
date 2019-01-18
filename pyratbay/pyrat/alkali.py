@@ -1,10 +1,14 @@
 # Copyright (c) 2016-2019 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
+import sys
 import numpy as np
 
-from .. import constants as pc
 from .. import broadening as broad
+from .. import constants  as pc
+
+sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../lib')
+import indices
 
 
 def init(pyrat):
@@ -45,7 +49,6 @@ def absorption(pyrat):
     # Lorentz half width (cm-1):
     lor = alkali.lpar * (temp/2000.0)**(-0.7) * pyrat.atm.press/pc.atm
 
-    idet = np.asarray(dsigma/pyrat.spec.wnstep, np.int)
 
     # Initialize Voigt model:
     voigt = broad.voigt()
@@ -53,17 +56,20 @@ def absorption(pyrat):
     alkali.ec = np.zeros((pyrat.atm.nlayers, pyrat.spec.nwave), np.double)
     for k in np.arange(len(alkali.wn)):
       ec = np.zeros((pyrat.atm.nlayers, pyrat.spec.nwave), np.double)
-      # Profile ranges:
-      offset = int((alkali.wn[k] - pyrat.spec.wn[0])/pyrat.spec.wnstep) + 1
-      wlo = np.clip(offset-idet,   0, pyrat.spec.nwave)
-      whi = np.clip(offset+idet+1, 0, pyrat.spec.nwave)
       # Update Voigt model:
       voigt.x0 = alkali.wn[k]
       fwidth = 0.5346*(2*lor) + np.sqrt(0.2166*(2*lor)**2 + (2*dop[k])**2)
+      # Model spectral sampling rate at alkali.wn:
+      dwave = pyrat.spec.wnstep if pyrat.spec.resolution is None else \
+              alkali.wn[k]/pyrat.spec.resolution
       for j in np.arange(pyrat.atm.nlayers):
+        # Profile ranges:
+        det = np.array(np.abs(pyrat.spec.wn - alkali.wn[k]) < dsigma[j], int)
+        wlo = indices.ifirst(det)
+        whi = indices.ilast(det) + 1
         voigt.hwhmL = lor[j]
         voigt.hwhmG = dop[k,j]
-        wndet = pyrat.spec.wn[wlo[j]:whi[j]]
+        wndet = pyrat.spec.wn[wlo:whi]
         # EC at the detuning boundary:
         edet = voigt(alkali.wn[k]+dsigma[j])
         # Extinction outside the detuning region (power law):
@@ -71,11 +77,11 @@ def absorption(pyrat):
         # Extinction in the detuning region (Voigt profile):
         profile = voigt(wndet)
         # Correction for undersampled line:
-        if fwidth[j] < 2.0*pyrat.spec.wnstep:
+        if whi>wlo and fwidth[j] < 2.0*dwave:
           i0 = np.argmin(np.abs(alkali.wn[k]-wndet))
           profile[i0] = 0.0
           profile[i0] = 1.0-np.trapz(profile, wndet)
-        ec[j, wlo[j]:whi[j]] = profile
+        ec[j, wlo:whi] = profile
       # Add up contribution (include exponential cutoff):
       alkali.ec += (pc.C3 * ec * alkali.gf[k]/alkali.Z * dens
                     * np.exp(-pc.C2*np.abs(pyrat.spec.wn-alkali.wn[k])
