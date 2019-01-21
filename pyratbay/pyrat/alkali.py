@@ -2,6 +2,7 @@
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
 import sys
+import os
 import numpy as np
 
 from .. import broadening as broad
