@@ -3967,5 +3967,10 @@ be that solves #161 (out of bound alkali lines broke the code).
 
 Fixed bug in alkali.py (missing import os).
 
+
+*****  Mo 4. Feb 11:18:58 CET 2019  *****
+
+Updated MCcubed submodule.
+
 *****
 
