@@ -1,6 +1,7 @@
 # Copyright (c) 2016-2019 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
+import os
 import scipy.constants as sc
 
 """
@@ -92,6 +93,10 @@ tlireclen = 26  # Three doubles and one short
 dreclen   =  8  # Double  byte length
 ireclen   =  4  # Integer byte length
 sreclen   =  2  # Short   byte length
+
+# Paths:
+ROOT = os.path.realpath(os.path.dirname(__file__) + '/../..') + '/'
+
 
 # Available line-transition databases:
 dbases = ['ps', 'hit', 'ts', 'vo', 'vald', 'emol', 'repack']

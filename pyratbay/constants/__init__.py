@@ -2,3 +2,6 @@
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
 from .pconstants import *
+
+del locals()['sc']
+del locals()['os']
