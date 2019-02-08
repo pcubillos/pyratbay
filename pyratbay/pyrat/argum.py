@@ -4,22 +4,24 @@
 import os
 import sys
 if sys.version_info.major == 3:
-  import configparser
+    import configparser
 else:
-  import ConfigParser as configparser
+    import ConfigParser as configparser
 import argparse
+import multiprocessing   as mp
+from datetime import date
+
 import numpy as np
 import scipy.constants   as sc
 import scipy.interpolate as si
 import scipy.special     as ss
-import multiprocessing   as mp
-from datetime import date
 
 from .. import tools      as pt
 from .. import constants  as pc
 from .. import wine       as pw
 from .. import starspec   as ps
 from .. import atmosphere as pa
+from .. import io         as io
 from .. import VERSION    as ver
 
 from .  import haze      as hz
@@ -874,7 +876,7 @@ def setup(pyrat):
 
   # Read stellar spectrum model:
   if phy.starspec is not None:
-    starwn, starflux = ps.readpyrat(phy.starspec)
+    starwn, starflux = io.read_pyrat(phy.starspec)
   # Kurucz stellar model:
   elif phy.kurucz is not None:
     if phy.tstar is None:

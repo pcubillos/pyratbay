@@ -9,12 +9,14 @@ if sys.version_info.major == 3:
   import configparser
 else:
   import ConfigParser as configparser
-import numpy as np
 import ctypes
 import multiprocessing as mp
 
+import numpy as np
+
 from .. import constants as pc
 from .. import starspec  as ps
+from .. import io        as io
 
 
 def worker(pyrat, idx, models, post, uind):
@@ -156,7 +158,7 @@ def specpercent(cfile, ncpu=None, nmax=None):
       print("{:3.0f}% completed.".format(i*100.0/nwave))
 
   # Load best-fitting model:
-  wn, bestmodel = ps.readpyrat(path + rootname + "_bestfit_spectrum.dat")
+  wn, bestmodel = io.read_pyrat(path + rootname + "_bestfit_spectrum.dat")
 
   # Write to file:
   with open(path + rootname + "_percentiles.dat", "w") as f:

@@ -5,13 +5,12 @@
 Stellar-spectrum models.
 """
 
-from .readpyrat import *
 from .kurucz    import *
 #from .marcs     import *
 #from .phoenix   import *
 from .bbflux    import *
 
-__all__ = ["readpyrat"] + kurucz.__all__ + ["bbflux"]
+__all__ = kurucz.__all__ + ["bbflux"]
 
 
 # Clean up top-level namespace--delete everything that isn't in __all__

@@ -3993,3 +3993,11 @@ Fixed .gitignore for test folder.
 
 *****
 
+Added Pyrat Bay ROOT into constants module.
+
+*****
+
+Removed readpyrat.py, replaced readpyrat() calls with io.read_pyrat()
+
+*****
+
