@@ -5,7 +5,8 @@ import os
 import sys
 import numpy as np
 
-from .. import constants as pc
+from .. import constants  as pc
+from .. import broadening as broad
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../lib')
 import vprofile as vp
@@ -45,50 +46,39 @@ def widthlimits(pyrat):
   # Get minimum temperature:
   tmin = pyrat.ex.tmin
   if tmin is None:
-    tmin = np.amin(pyrat.atm.temp)
+      tmin = np.amin(pyrat.atm.temp)
   # Get maximum temperature:
   tmax = pyrat.ex.tmax
   if tmax is None:
-    tmax = np.amax(pyrat.atm.temp)
+      tmax = np.amax(pyrat.atm.temp)
 
   # Get mass of line-transition molecules:
   mols = np.unique(pyrat.iso.imol) # Molecules with transitions
   mols = mols[np.where(mols>=0)]   # Remove -1's
-  # Minimum and maximum mass of molecules with line transitions:
-  mmin = np.amin(pyrat.mol.mass[mols])
-  mmax = np.amax(pyrat.mol.mass[mols])
 
-  # Get wavenumber array boundaries:
-  numin = np.amin(pyrat.spec.wn)
-  numax = np.amax(pyrat.spec.wn)
+  # Estimate min/max Doppler/Lorentz HWHMs from atmospheric properties:
+  Dmin, Lmin = broad.min_widths(tmin, np.amin(pyrat.spec.wn),
+      np.amax(pyrat.mol.mass[mols]), voigt.DLratio)
 
-  # Get max pressure:
-  pmax = np.amax(pyrat.atm.press)
-  # Get max collision diameter:
-  cmax = (2.89*pc.A/2.0 + np.amax(pyrat.mol.radius[mols]))
-  #cmax = 2.0*np.amax(pyrat.mol.radius[mols]) * pc.A
+  Dmax, Lmax = broad.max_widths(tmin, tmax, np.amax(pyrat.spec.wn),
+      np.amin(pyrat.mol.mass[mols]), np.amax(pyrat.mol.radius[mols]),
+      np.amax(pyrat.atm.press))
 
-  # Calculate Doppler-width boundaries:
-  ln2 = np.log(2)
+  # Doppler-width boundaries:
   if voigt.Dmin is None:
-    voigt.Dmin = np.sqrt(ln2*2.0*pc.k*tmin/(mmax*pc.amu)) * numin / pc.c
-
+      voigt.Dmin = Dmin
   if voigt.Dmax is None:
-    voigt.Dmax = np.sqrt(ln2*2.0*pc.k*tmax/(mmin*pc.amu)) * numax / pc.c
+      voigt.Dmax = Dmax
   pyrat.log.msg("Doppler width limits: {:.1e} -- {:.1e} cm-1 ({:d} samples).".
-                format(voigt.Dmin, voigt.Dmax, voigt.nDop),
-                verb=2, indent=2)
+                format(voigt.Dmin, voigt.Dmax, voigt.nDop), verb=2, indent=2)
 
-  # Calculate Lorentz-width boundaries:
+  # Lorentz-width boundaries:
   if voigt.Lmin is None:
-    voigt.Lmin = voigt.Dmin * voigt.DLratio
-
+      voigt.Lmin = Lmin
   if voigt.Lmax is None:
-    voigt.Lmax = (np.sqrt(2/(np.pi * pc.k * tmin *pc.amu)) * pmax / pc.c *
-                        cmax**2.0 * np.sqrt(1.0/mmin + 1.0/2.01588))
+      voigt.Lmax = Lmax
   pyrat.log.msg("Lorentz width limits: {:.1e} -- {:.1e} cm-1 ({:d} samples).".
-                format(voigt.Lmin, voigt.Lmax, voigt.nLor),
-                verb=2, indent=2)
+                format(voigt.Lmin, voigt.Lmax, voigt.nLor), verb=2, indent=2)
 
 
 def calcvoigt(pyrat):

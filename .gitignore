@@ -4,4 +4,5 @@
 *.DS_Store
 *~
 modules/sphinxdoc-MCcubed/*
-
+tests/*
+tests/!*.py

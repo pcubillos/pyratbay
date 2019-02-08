@@ -3979,3 +3979,10 @@ Propagated MC3 argument change into PB (figpnames to texnames).
 
 *****
 
+Implemented min_widths() and max_widths() in broadening module.
+These replace the content in pyrat.voigt.widthlimits(),
+making them now accessible to the user.
+Implemented their tests as well.
+
+*****
+

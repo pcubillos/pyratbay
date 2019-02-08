@@ -1,7 +1,13 @@
+# Copyright (c) 2016-2019 Patricio Cubillos and contributors.
+# Pyrat Bay is currently proprietary software (see LICENSE).
+
+__all__ = ["lorentz", "gauss", "voigt",
+           "min_widths", "max_widths"]
+
 import numpy as np
 import scipy.special as ss
 
-__all__ = ["lorentz", "gauss", "voigt"]
+import pyratbay.constants as pc
 
 
 class lorentz():
@@ -114,7 +120,7 @@ class voigt():
   >>> l = b.lorentz(x0=0.0)
   >>> d = b.gauss  (x0=0.0, hwhm=hG)
   >>> v = b.voigt  (x0=0.0, hwhmG=hG)
-  >>> 
+  >>>
   >>> plt.figure(11, (6,6))
   >>> plt.clf()
   >>> plt.subplots_adjust(0.15, 0.1, 0.95, 0.95, wspace=0, hspace=0)
@@ -189,3 +195,96 @@ class voigt():
            ((Y-self._A[i])**2 + (X-self._B[i])**2)
     V /= np.pi * self.hwhmL
     return self.scale * self.hwhmL/self.hwhmG * self._sqrtpi*self._sqrtln2 * V
+
+
+def min_widths(min_temp, min_wn, max_mass, DLratio=0.1):
+  """
+  Estimate the minimum Doppler and Lorentz half-widths at half maximum
+  (cm-1) for a given atmosphere.
+
+  Parameters
+  ----------
+  min_temp: Float
+      Minimum atmospheric tmperature (Kelvin degrees).
+  min_wn: Float
+      Minimum spectral wavenumber (cm-1).
+  max_mass: Float
+      Maximum mass of molecule/isotope (amu).
+  DLratio: Float
+      Doppler--Lorentz width ratio.
+
+  Returns
+  -------
+  dmin: Float
+      Minimum Doppler HWHM (cm-1).
+  lmin: Float
+      Minimum Lorentz HWHM (cm-1).
+
+  Examples
+  --------
+  >>> wn = np.amin(pyrat.spec.wn)
+  >>> temperature = np.amin(pyrat.atm.temp)
+  >>> mols = np.unique(pyrat.iso.imol)
+  >>> mols = mols[np.where(mols>=0)]
+  >>> molmass = np.amax(pyrat.mol.mass[mols])
+  >>> # TBD
+  """
+  # Minimum Doppler and Lorenz widths (cm-1):
+  dmin = np.sqrt(np.log(2)*2.0*pc.k*min_temp/(max_mass*pc.amu)) * min_wn / pc.c
+  lmin = dmin * DLratio
+  return dmin, lmin
+
+
+def max_widths(min_temp, max_temp, max_wn, min_mass, max_rad, max_press):
+  """
+  Estimate the maximum Doppler and Lorentz half-widths at half maximum
+  (cm-1) for a given atmosphere.
+
+  Parameters
+  ----------
+  min_temp: Float
+      Minimum atmospheric tmperature (Kelvin degrees).
+  max_temp: Float
+      Maximum atmospheric tmperature (Kelvin degrees).
+  max_wn: Float
+      Maximum spectral wavenumber (cm-1).
+  min_mass: Float
+      Minimum mass of molecule/isotope (amu).
+  max_press: Float
+      Maximum collision radius of molecule/isotope (Angstrom).
+  max_press: Float
+      Maximum atmospheric pressure (barye).
+
+  Returns
+  -------
+  dmax: Float
+      Maximum Doppler HWHM (cm-1).
+  lmax: Float
+      Maximum Lorentz HWHM (cm-1).
+
+  Examples
+  --------
+  >>> pmax = np.amax(pyrat.atm.press)
+  >>> wn = np.amax(pyrat.spec.wn)
+  >>> temperature = np.amax(pyrat.atm.temp)
+  >>> mols = np.unique(pyrat.iso.imol) # Molecules with transitions
+  >>> mols = mols[np.where(mols>=0)]   # Remove -1's
+  >>> mmin = np.amin(pyrat.mol.mass[mols])
+  >>> rmax = np.amax(pyrat.mol.radius[mols])
+  >>> # TBD
+  """
+  # TBD: Extract values from files instead
+  H2_diam = 2.89    # Angstrom
+  H2_mass = 2.01588 # amu
+
+  # Get max collision diameter:
+  max_diam = H2_diam*pc.A/2.0 + max_rad
+
+  # Doppler widths (cm-1):
+  dmax = np.sqrt(np.log(2)*2.0*pc.k*max_temp/(min_mass*pc.amu)) * max_wn / pc.c
+
+  # Approximate Sum_a (n_a * d_a**2 ...) ~ n_H2 *d_H2 ...
+  # (assuming H2-dominated atmosphere)
+  lmax = (np.sqrt(2.0/(np.pi * pc.k * min_temp * pc.amu)) * max_press / pc.c *
+                        max_diam**2.0 * np.sqrt(1.0/min_mass + 1.0/H2_mass))
+  return dmax, lmax
