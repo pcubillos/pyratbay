@@ -5,4 +5,4 @@
 *~
 modules/sphinxdoc-MCcubed/*
 tests/*
-tests/!*.py
+!tests/*.py

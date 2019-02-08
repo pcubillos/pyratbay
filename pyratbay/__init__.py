@@ -1,7 +1,7 @@
 # Copyright (c) 2016-2019 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-__all__ = ["pbay", "lineread", "pyrat", "constants", "tools", "wine",
+__all__ = ["pbay", "lineread", "pyrat", "constants", "tools", "io", "wine",
            "blackbody", "broadening", "starspec", "atmosphere", "plots"]
 
 from . import pbay
@@ -9,6 +9,7 @@ from . import pyrat
 from . import lineread
 from . import constants
 from . import tools
+from . import io
 from . import wine
 from . import blackbody
 from . import broadening

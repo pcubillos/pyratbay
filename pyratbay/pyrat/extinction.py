@@ -5,12 +5,14 @@ import os
 import sys
 import struct
 import ctypes
+import multiprocessing   as mpr
+
 import numpy as np
 import scipy.interpolate as sip
-import multiprocessing   as mpr
 
 from .. import tools     as pt
 from .. import constants as pc
+from .. import io        as io
 from .  import argum     as ar
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../lib')
@@ -51,24 +53,19 @@ def read_extinction(pyrat):
   """
   Read an extinction-coefficient table from file.
   """
-  ex = pyrat.ex               # Extinction-coefficient object
-  f = open(ex.extfile, "rb")  # Open extinction coefficient file
+  ex = pyrat.ex
 
-  # Read arrays lengths:
-  ex.nmol    = struct.unpack('l', f.read(8))[0]
-  ex.ntemp   = struct.unpack('l', f.read(8))[0]
-  ex.nlayers = struct.unpack('l', f.read(8))[0]
-  ex.nwave   = struct.unpack('l', f.read(8))[0]
+  edata = io.read_opacity(ex.extfile)
+  # Arrays lengths:
+  ex.nmol, ex.ntemp, ex.nlayers, ex.nwave = edata[0]
+  # Molecule ID, temperature (K), pressure (barye), and wavenumber (cm-1):
+  ex.molID, ex.temp, ex.press, ex.wn = edata[1]
+  # Extinction-coefficient data table (cm-1):
+  pyrat.ex.etable = edata[2]
+
   pyrat.log.msg("File has {:d} molecules, {:d} temperature samples, "
                 "{:d} layers, and {:d} wavenumber samples.".format(ex.nmol,
                 ex.ntemp, ex.nlayers, ex.nwave), verb=2, indent=2)
-
-  # Read wavenumber, temperature, pressure, and isotope arrays:
-  # FINDME: pt.unpack
-  ex.molID = np.asarray(struct.unpack(str(ex.nmol   )+'i', f.read(4*ex.nmol )))
-  ex.temp  = np.asarray(struct.unpack(str(ex.ntemp  )+'d', f.read(8*ex.ntemp)))
-  ex.press = np.asarray(struct.unpack(str(ex.nlayers)+'d',f.read(8*ex.nlayers)))
-  ex.wn    = np.asarray(struct.unpack(str(ex.nwave  )+'d', f.read(8*ex.nwave)))
 
   # Set tabulated temperature extrema:
   ex.tmin = np.amin(ex.temp)
@@ -78,38 +75,35 @@ def read_extinction(pyrat):
                 "Temperatures (K): {}\n"
                 "Pressure layers (bar): {}\n"
                 "Wavenumber array (cm-1): {}".format(
-                 ex.molID, pt.pprint(ex.temp,fmt=np.int),
-                 pt.pprint(ex.press/pc.bar,3),pt.pprint(ex.wn,1)),
-                verb=2, indent=2)
+                 ex.molID, pt.pprint(ex.temp, fmt=np.int),
+                 pt.pprint(ex.press/pc.bar,3), pt.pprint(ex.wn,1)),
+                 verb=2, indent=2)
 
-  # Read extinction-coefficient data table:
-  ndata = ex.nmol * ex.ntemp * ex.nlayers * ex.nwave
-  pyrat.ex.etable = np.asarray(struct.unpack('d'*ndata, f.read(8*ndata))).\
-                           reshape((ex.nmol, ex.ntemp, ex.nlayers, ex.nwave))
   # Some checks:
   if ex.nwave != pyrat.spec.nwave or np.sum(np.abs(ex.wn-pyrat.spec.wn)) > 0:
-    pyrat.warning("Wavenumber sampling from extinction-coefficient "
-        "table does not match the input wavenumber sampling.  Adopting "
-        "tabulated array with {:d} samples, spacing of {:.2f} cm-1, "
-        "and ranges [{:.2f}, {:.2f}] cm-1.".
-          format(ex.nwave, ex.wn[1]-ex.wn[0], ex.wn[0], ex.wn[-1]))
-    # Update wavenumber sampling:
-    pyrat.spec.wn     = ex.wn
-    pyrat.spec.nwave  = ex.nwave
-    pyrat.spec.wnlow  = ex.wn[ 0]
-    pyrat.spec.wnhigh = ex.wn[-1]
-    pyrat.spec.wnstep = ex.wn[ 1] - ex.wn[0]
-    # Keep wavenumber oversampling factor:
-    pyrat.spec.ownstep = pyrat.spec.wnstep / pyrat.spec.wnosamp
-    pyrat.spec.onwave  = (pyrat.spec.nwave - 1) *  pyrat.spec.wnosamp + 1
-    pyrat.spec.own     = np.linspace(pyrat.spec.wn[0], pyrat.spec.wn[-1],
-                                     pyrat.spec.onwave)
-    # Update interpolated stellar spectrum:
-    if pyrat.phy.starflux is not None:
-      sinterp = sip.interp1d(pyrat.phy.starwn, pyrat.phy.starflux)
-      pyrat.spec.starflux = sinterp(pyrat.spec.wn)
-    # Update observational variables:
-    ar.setfilters(pyrat.obs, pyrat.spec, pyrat.phy)
+      pyrat.warning("Wavenumber sampling from extinction-coefficient "
+          "table does not match the input wavenumber sampling.  Adopting "
+          "tabulated array with {:d} samples, spacing of {:.2f} cm-1, "
+          "and ranges [{:.2f}, {:.2f}] cm-1.".
+            format(ex.nwave, ex.wn[1]-ex.wn[0], ex.wn[0], ex.wn[-1]))
+      # Update wavenumber sampling:
+      pyrat.spec.wn     = ex.wn
+      pyrat.spec.nwave  = ex.nwave
+      pyrat.spec.wnlow  = ex.wn[ 0]
+      pyrat.spec.wnhigh = ex.wn[-1]
+      pyrat.spec.wnstep = ex.wn[ 1] - ex.wn[0]
+      # Keep wavenumber oversampling factor:
+      pyrat.spec.ownstep = pyrat.spec.wnstep / pyrat.spec.wnosamp
+      pyrat.spec.onwave  = (pyrat.spec.nwave - 1) *  pyrat.spec.wnosamp + 1
+      pyrat.spec.own     = np.linspace(pyrat.spec.wn[0], pyrat.spec.wn[-1],
+                                       pyrat.spec.onwave)
+
+      # Update interpolated stellar spectrum:
+      if pyrat.phy.starflux is not None:
+          sinterp = sip.interp1d(pyrat.phy.starwn, pyrat.phy.starflux)
+          pyrat.spec.starflux = sinterp(pyrat.spec.wn)
+      # Update observational variables:
+      ar.setfilters(pyrat.obs, pyrat.spec, pyrat.phy)
 
 
 def calc_extinction(pyrat):
@@ -168,7 +162,7 @@ def calc_extinction(pyrat):
   processes = []
   indices = np.arange(ex.ntemp*ex.nlayers) % pyrat.nproc  # CPU indices
   for i in np.arange(pyrat.nproc):
-    proc = mpr.Process(target=extinction,  #          grid  add
+    proc = mpr.Process(target=extinction,           # grid  add
                 args=(pyrat, np.where(indices==i)[0], True, False))
     processes.append(proc)
     proc.start()
@@ -176,20 +170,8 @@ def calc_extinction(pyrat):
     processes[i].join()
 
   # Store values in file:
-  f = open(ex.extfile, "wb")
-  # Write size of arrays:
-  f.write(struct.pack("4l", ex.nmol, ex.ntemp, ex.nlayers, ex.nwave))
-  # Write arrays:
-  f.write(struct.pack(str(ex.nmol)   +"i", *list(ex.molID)))
-  f.write(struct.pack(str(ex.ntemp)  +"d", *list(ex.temp) ))
-  f.write(struct.pack(str(ex.nlayers)+"d", *list(ex.press)))
-  f.write(struct.pack(str(ex.nwave)  +"d", *list(ex.wn)   ))
-  # Write extinction-coefficient data:
-  fmt = str(ex.ntemp * ex.nlayers * ex.nwave) + "d"
-  for i in np.arange(ex.nmol):
-    f.write(struct.pack(fmt, *list(pyrat.ex.etable[i].flatten())))
-
-  f.close()
+  io.write_opacity(ex.extfile, ex.molID, ex.temp, ex.press, ex.wn,
+                   pyrat.ex.etable)
   pyrat.log.msg("Extinction-coefficient table written to file: '{:s}'.".
                 format(ex.extfile), indent=2)
 

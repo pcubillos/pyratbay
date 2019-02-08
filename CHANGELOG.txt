@@ -3986,3 +3986,10 @@ Implemented their tests as well.
 
 *****
 
+Implemented new io module for input/output routines.
+Moved code to read/write opacity file, and readpyrat into io.
+Implemented the tests for read/write opacity as well.
+Fixed .gitignore for test folder.
+
+*****
+
