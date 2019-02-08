@@ -65,9 +65,9 @@ class CCSgray():
     self.mol   = "H2"            # Species causing the extinction
     # Fitting-parameter names (plain text and figure labels):
     self.pnames = ["log(f_gray)", "log(p_top)", "log(p_bot)"]
-    self.figpnames = [r"$\log_{10}(f_{\rm gray})$",
-                      r"$\log_{10}(p_{\rm top})\ ({\rm bar})$",
-                      r"$\log_{10}(p_{\rm bot})\ ({\rm bar})$"]
+    self.texnames = [r"$\log_{10}(f_{\rm gray})$",
+                     r"$\log_{10}(p_{\rm top})\ ({\rm bar})$",
+                     r"$\log_{10}(p_{\rm bot})\ ({\rm bar})$"]
     self.s0    = 5.31e-27         # Default coss-section (cm-2 molec-1)
 
   def extinction(self, wn, pressure):
@@ -105,7 +105,7 @@ class Deck():
     self.mol   = None            # Species causing the extinction
     # Fitting-parameter names (plain text and figure labels):
     self.pnames = ["log(p_top)"]
-    self.figpnames = [r"$\log_{10}(p_{\rm top})$"]
+    self.texnames = [r"$\log_{10}(p_{\rm top})$"]
 
   def extinction(self, wn, pressure, radius):
     """

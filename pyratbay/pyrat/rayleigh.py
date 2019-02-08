@@ -59,8 +59,8 @@ class Dalgarno():
     self.pars  = None           # Model fitting parameters
     self.ec    = None           # Model extinction coefficient (cm2 molec-1)
     self.mol   = mol            # Species causing the extinction
-    self.pnames    = []         # Fitting-parameter names
-    self.figpnames = []         # Fitting-parameter names
+    self.pnames   = []          # Fitting-parameter names
+    self.texnames = []          # Fitting-parameter names
 
     if   self.mol == "H":
       self.coef = np.array([5.799e-45, 1.422e-54, 2.784e-64])
@@ -108,8 +108,8 @@ class Lecavelier():
     self.npars = len(self.pars)   # Number of model fitting parameters
     self.ec    = None             # Model extinction coefficient
     self.mol   = "H2"             # Species causing the extinction
-    self.pnames    = ["log(f_Ray)", "alpha_Ray"]
-    self.figpnames = [r"$\log_{10}(f_{\rm Ray})$", r"$\alpha_{\rm Ray}$"]
+    self.pnames   = ["log(f_Ray)", "alpha_Ray"]
+    self.texnames = [r"$\log_{10}(f_{\rm Ray})$", r"$\alpha_{\rm Ray}$"]
     self.s0    = 5.31e-27         # Cross section (cm-2 molec-1) at l0
     self.l0    = 3.5e-5           # Nominal wavelength (cm)
 

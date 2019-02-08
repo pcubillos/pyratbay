@@ -3972,5 +3972,10 @@ Fixed bug in alkali.py (missing import os).
 
 Updated MCcubed submodule.
 
+
+*****  Fr 8. Feb 12:10:57 CET 2019  *****
+
+Propagated MC3 argument change into PB (figpnames to texnames).
+
 *****
 
