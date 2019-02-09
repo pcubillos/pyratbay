@@ -866,6 +866,22 @@ def hydro_g(pressure, temperature, mu, g, p0=None, r0=None):
   -----
   If the reference values (p0 and r0) are not given, set radius = 0.0
   at the bottom of the atmosphere.
+
+  Examples
+  --------
+  >>> import pyratbay.atmosphere as pa
+  >>> nlayers = 11
+  >>> pressure = pa.pressure(1e-8, 1e2, nlayers, units='bar')
+  >>> temperature = pa.temp_isothermal(1500.0, nlayers)
+  >>> mu = np.tile(2.3, nlayers)
+  >>> g = pc.G * pc.mjup / pc.rjup**2
+  >>> r0 = 1.0 * pc.rjup
+  >>> p0 = 1.0 * pc.bar
+  >>> # Radius profile in Jupiter radii:
+  >>> radius = pa.hydro_g(pressure, temperature, mu, g, p0, r0) / pc.rjup
+  >>> print(radius)
+  [1.0563673  1.04932138 1.04227547 1.03522956 1.02818365 1.02113774
+   1.01409182 1.00704591 1.         0.99295409 0.98590818]
   """
   # Apply the HE equation:
   radius = si.cumtrapz((-pc.k*sc.N_A * temperature) / (mu*g), np.log(pressure))
@@ -873,14 +889,14 @@ def hydro_g(pressure, temperature, mu, g, p0=None, r0=None):
 
   # Set absolute radii values if p0 and r0 are provided:
   if p0 is not None and r0 is not None:
-    # Find current radius at p0:
-    radinterp = sip.interp1d(pressure, radius, kind='slinear')
-    r0_interp = radinterp(p0)
-    # Set: radius(p0) = r0
-    radius += r0 - r0_interp
+      # Find current radius at p0:
+      radinterp = sip.interp1d(pressure, radius, kind='slinear')
+      r0_interp = radinterp(p0)
+      # Set: radius(p0) = r0
+      radius += r0 - r0_interp
   # Set radius = 0 at the bottom of the atmosphere:
   else:
-    radius -= radius[-1]
+      radius -= radius[-1]
 
   return radius
 
@@ -909,6 +925,22 @@ def hydro_m(pressure, temperature, mu, M, p0, r0):
   -------
   radius: 1D float ndarray
      Radius for each layer (in cm).
+
+  Examples
+  --------
+  >>> import pyratbay.atmosphere as pa
+  >>> nlayers = 11
+  >>> pressure = pa.pressure(1e-8, 1e2, nlayers, units='bar')
+  >>> temperature = pa.temp_isothermal(1500.0, nlayers)
+  >>> mu = np.tile(2.3, nlayers)
+  >>> Mp = 1.0 * pc.mjup
+  >>> r0 = 1.0 * pc.rjup
+  >>> p0 = 1.0 * pc.bar
+  >>> # Radius profile in Jupiter radii:
+  >>> radius = pa.hydro_m(pressure, temperature, mu, Mp, p0, r0) / pc.rjup
+  >>> print(radius)
+  [1.05973436 1.05188019 1.04414158 1.036516   1.029001   1.02159419
+   1.01429324 1.00709591 1.         0.99300339 0.986104  ]
   """
   # Apply the HE equation:
   I = si.cumtrapz((pc.k*sc.N_A*temperature)/(pc.G*mu*M), np.log(pressure))

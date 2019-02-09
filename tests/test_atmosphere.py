@@ -16,6 +16,14 @@ expected_temp = np.array(
        1175.84806406, 1175.66810064, 1175.38603129, 1185.64394212,
        1286.15511142, 1357.93586563, 1358.82442802])
 
+# Jupiter radius profile at constant g:
+radius_g = np.array(
+      [1.0563673 , 1.04932138, 1.04227547, 1.03522956, 1.02818365, 1.02113774,
+       1.01409182, 1.00704591, 1.        , 0.99295409, 0.98590818])
+# Jupiter radius profile with g(r)=GM/r**2:
+radius_m = np.array(
+      [1.05973436, 1.05188019, 1.04414158, 1.036516  , 1.029001  , 1.02159419,
+       1.01429324, 1.00709591, 1.        , 0.99300339, 0.986104  ])
 
 def test_pressure_floats():
     ptop    = 1e-8
@@ -75,5 +83,31 @@ def test_uniform():
     abundances  = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
     pa.uniform(atmfile, pressure, temperature, species, abundances)
     # Now what?
+
+
+def test_hydro_g():
+    nlayers = 11
+    pressure = pa.pressure(1e-8, 1e2, nlayers, units='bar')
+    temperature = pa.temp_isothermal(1500.0, nlayers)
+    mu = np.tile(2.3, nlayers)
+    g = pc.G * pc.mjup / pc.rjup**2
+    r0 = 1.0 * pc.rjup
+    p0 = 1.0 * pc.bar
+    # Radius profile in Jupiter radii:
+    radius = pa.hydro_g(pressure, temperature, mu, g, p0, r0) / pc.rjup
+    np.testing.assert_almost_equal(radius, radius_g, decimal=7)
+
+
+def test_hydro_m():
+    nlayers = 11
+    pressure = pa.pressure(1e-8, 1e2, nlayers, units='bar')
+    temperature = pa.temp_isothermal(1500.0, nlayers)
+    mu = np.tile(2.3, nlayers)
+    Mp = 1.0 * pc.mjup
+    r0 = 1.0 * pc.rjup
+    p0 = 1.0 * pc.bar
+    radius = pa.hydro_m(pressure, temperature, mu, Mp, p0, r0) / pc.rjup
+    # Radius profile in Jupiter radii:
+    np.testing.assert_almost_equal(radius, radius_m, decimal=7)
 
 

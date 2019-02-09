@@ -4014,3 +4014,7 @@ Added tests for pressure(), temp_isothermal(), and temp_TCEA().
 
 *****
 
+Added tests and docstring examples for hydro_g() and hydro_m().
+
+*****
+
