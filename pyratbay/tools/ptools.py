@@ -181,7 +181,7 @@ def u(units, log=None):
     # Throw error:
     print("Units name '{:s}' does not exist.".format(units))
     sys.exit(0)
-  exec("factor = pc.{:s}".format(units))
+  factor = getattr(pc, units)
   return factor
 
 

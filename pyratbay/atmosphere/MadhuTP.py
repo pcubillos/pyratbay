@@ -1,3 +1,6 @@
+# Copyright (c) 2016-2019 Patricio Cubillos and contributors.
+# Pyrat Bay is currently proprietary software (see LICENSE).
+
 import numpy as np
 from scipy.ndimage import gaussian_filter1d
 
@@ -165,4 +168,3 @@ def no_inversion(params, p):
      T_smooth = gaussian_filter1d(T_conc, sigma, mode='nearest')
 
      return T_smooth
-

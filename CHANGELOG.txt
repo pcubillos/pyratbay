@@ -3999,5 +3999,18 @@ Added Pyrat Bay ROOT into constants module.
 
 Removed readpyrat.py, replaced readpyrat() calls with io.read_pyrat()
 
+
+*****  Sat Feb  9 13:10:21 CET 2019  *****
+
+Implemented temp_isothermal() and temp_TCEA() in atmosphere.py.
+These are the wrappers of the CPython routines, that now are directly
+accessible to the user (rather than going through temperature()).
+They also take care of casting the inputs to the correct types.
+
+Modified tools.u() to use getattr instead of exec (to be compatible
+with Python 3).
+
+Added tests for pressure(), temp_isothermal(), and temp_TCEA().
+
 *****
 
