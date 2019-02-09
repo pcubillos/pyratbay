@@ -4018,3 +4018,17 @@ Added tests and docstring examples for hydro_g() and hydro_m().
 
 *****
 
+Cleaned up atmosphere.stoich().
+Added docstring example.
+
+Added return statement to atmosphere.uniform()
+Added docstring example.
+
+Fixed bug in atmosphere.abundances() with Log when making a uniform
+profile.
+
+Added tests for stoich() and uniform().
+
+*****
+
+

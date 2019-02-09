@@ -11,7 +11,7 @@ import os
 import sys
 import shutil
 import subprocess
-import operator
+
 import numpy as np
 import scipy.integrate as si
 import scipy.constants as sc
@@ -24,7 +24,6 @@ from ..pbay import makecfg as mc
 
 sys.path.append(pc.ROOT + "pyratbay/lib/")
 import pt as PT
-
 sys.path.append(pc.ROOT + "modules/MCcubed/")
 import MCcubed.utils as mu
 
@@ -247,49 +246,81 @@ def readatm(atmfile, verb=0, log=None):
   return species, press, temp, q
 
 
+# TBD: Move atmfile after abundances, make it optional
 def uniform(atmfile, pressure, temperature, species, abundances, punits="bar",
             log=None):
   """
   Generate an atmospheric file with uniform abundances.
+  Save it into atmfile.
 
   Parameters
   ----------
   atmfile: String
-     Name of output atmospheric file.
+      Name of output atmospheric file.
   pressure: 1D float ndarray
-     Monotonously decreasing pressure profile (in punits).
+      Monotonously decreasing pressure profile (in punits).
   temperature: 1D float ndarray
-     Temperature profile for pressure layers (in Kelvin).
+      Temperature profile for pressure layers (in Kelvin).
   species: 1D string ndarray
-     List of atmospheric species.
+      List of atmospheric species.
   abundances: 1D float ndarray
-     The species mole mixing ratio.
+      The species mole mixing ratio.
   punits:  String
      Pressure units.
   log: Log object
-     Screen-output log handler.
+      Screen-output log handler.
+
+  Returns
+  -------
+  qprofiles: 2D Float ndarray
+      Abundance profiles of shape [nlayers,nspecies]
+
+  Examples
+  --------
+  >>> import pyratbay.atmosphere as pa
+  >>> atmfile = "atm_test.dat"
+  >>> nlayers = 11
+  >>> punits  = 'bar'
+  >>> pressure    = pa.pressure(1e-8, 1e2, nlayers, punits)
+  >>> temperature = pa.temp_isothermal(1500.0, nlayers)
+  >>> species     = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
+  >>> abundances  = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
+  >>> qprofiles = pa.abundances(atmfile, pressure, temperature, species,
+  >>>                           quniform=abundances, punits=punits)
+  >>> print(qprofiles)
+  [[8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]
+   [8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]
+   [8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]
+   [8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]
+   [8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]
+   [8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]
+   [8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]
+   [8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]
+   [8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]
+   [8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]
+   [8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]]
   """
   if log is None:
-    log = mu.Log(logname=None)
+      log = mu.Log(logname=None)
 
-  # Safety checks:
   nlayers = len(pressure)
-
+  # Safety checks:
   if len(temperature) != nlayers:
-    log.error("Pressure array length ({:d}) and Temperature array length "
-              "({:d}) don't match.".format(nlayers, len(temperature)))
+      log.error("Pressure array length ({:d}) and Temperature array length "
+                "({:d}) don't match.".format(nlayers, len(temperature)))
   if len(species) != len(abundances):
-    log.error("Species array length ({:d}) and Abundances array length ({:d}) "
-              "don't match.".format(len(species), len(abundances)))
-  # FINDME: Check pressure array is monotonously decreasing.
+      log.error("Species array length ({:d}) and Abundances array length "
+              "({:d}) don't match.".format(len(species), len(abundances)))
 
   # Expand abundances to 2D array:
-  abund = np.tile(abundances, (nlayers,1))
+  qprofiles = np.tile(abundances, (nlayers,1))
+
   # File header:
   header = ("# This is an atmospheric file with pressure, temperature, \n"
             "# and uniform mole mixing ratio profiles.\n\n")
+  writeatm(atmfile, pressure, temperature, species, qprofiles, punits, header)
 
-  writeatm(atmfile, pressure, temperature, species, abund, punits, header)
+  return qprofiles
 
 
 def makeatomic(solar, afile, xsolar=1.0, swap=None):
@@ -455,8 +486,8 @@ def makepreatm(pressure, temp, afile, elements, species, patm):
 
 def abundances(atmfile, pressure, temperature, species, elements=None,
                quniform=None, punits="bar", xsolar=1.0,
-               solar=pc.ROOT + "inputs/AsplundEtal2009.txt",
-               log=None, nproc=1, verb=0):
+               solar=pc.ROOT+"inputs/AsplundEtal2009.txt",
+               log=None, verb=0):
   """
   Wrapper to compute atmospheric abundaces for given pressure and
   temperature profiles with either uniform abundances or TEA.
@@ -483,8 +514,6 @@ def abundances(atmfile, pressure, temperature, species, elements=None,
      Solar elemental abundances file.
   log: Log object
      Screen-output log handler.
-  nproc: Integer
-     Number of CPUs (for parallel computing).
   verb: Integer
      Verbosity level.
 
@@ -507,13 +536,13 @@ def abundances(atmfile, pressure, temperature, species, elements=None,
   >>> Q = pa.abundances("pbtea.atm", press, temp, species)
   """
   if log is None:
-    log = mu.log(logname=None, verb=verb)
+    log = mu.Log(logname=None, verb=verb)
   # Uniform-abundances profile:
   if quniform is not None:
-    q = uniform(atmfile, pressure, temperature, species, quniform, punits)
-    log.msg("\nProduced uniform-abundances atmospheric file: '{:s}'.".
-             format(atmfile))
-    return q
+      q = uniform(atmfile, pressure, temperature, species, quniform, punits)
+      log.msg("\nProduced uniform-abundances atmospheric file: '{:s}'.".
+              format(atmfile))
+      return q
 
   # TEA abundances:
   log.msg("\nRun TEA to compute thermochemical-equilibrium abundances.")
@@ -970,34 +999,49 @@ def stoich(species):
      List of elements contained in species list.
   stoich: 2D integer ndarray
      Stoichiometric elemental values for each species (number of elements).
+
+  Examples
+  --------
+  >>> import pyratbay.atmosphere as pa
+  >>> species = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
+  >>> elements, stoichs = pa.stoich(species)
+  >>> print("{}\n{}".format(elements, stoichs))
+  ['C', 'H', 'He', 'O']
+  [[0 2 0 0]
+   [0 0 1 0]
+   [0 2 0 1]
+   [1 0 0 1]
+   [1 0 0 2]
+   [1 4 0 0]]
   """
   # Elemental composition and quantity for each species:
   comp, n = [], []
 
   for spec in species:
-    comp.append([])
-    n.append([])
-    for char in spec:
-      # New element:
-      if char.isupper():
-        comp[-1].append(char)
-        n[-1].append(1)
-      # Same element:
-      elif char.islower():
-        comp[-1][-1] += char
-      # Quantity:
-      elif char.isdigit():
-        n[-1][-1] = int(char)
+      comp.append([])
+      n.append([])
+      for char in spec:
+          # New element:
+          if char.isupper():
+              comp[-1].append(char)
+              n[-1].append(1)
+          # Same element:
+          elif char.islower():
+              comp[-1][-1] += char
+          # Quantity:
+          elif char.isdigit():
+              n[-1][-1] = int(char)
 
-  # Flatten nested list, and get unique list of elements:
-  elements = list(np.unique(reduce(operator.concat, comp)))
+  # Flatten nested list, and get unique set of elements:
+  elements = sorted(set([element for spec    in comp
+                                 for element in spec]))
   stoich = np.zeros((len(species), len(elements)), int)
 
   # Count how many elements in each species:
   for i in range(len(species)):
-    for j in range(len(comp[i])):
-      idx = elements.index(comp[i][j])
-      stoich[i,idx] = n[i][j]
+      for j in range(len(comp[i])):
+          idx = elements.index(comp[i][j])
+          stoich[i,idx] = n[i][j]
 
   return elements, stoich
 

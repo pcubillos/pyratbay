@@ -75,14 +75,33 @@ def test_temperature_TCEA_units():
 
 
 def test_uniform():
-    atmfile = "atm_test.dat"
+    atmfile = "uniform_test.atm"
     nlayers = 11
     pressure    = np.logspace(-8, 2 , nlayers)
     temperature = np.tile(1500.0, nlayers)
     species     = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
     abundances  = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
-    pa.uniform(atmfile, pressure, temperature, species, abundances)
-    # Now what?
+    qprofiles = pa.uniform(atmfile, pressure, temperature, species, abundances)
+    assert np.shape(qprofiles) == (nlayers, len(species))
+    for q in qprofiles:
+        np.testing.assert_equal(q, np.array(abundances))
+    # TBD: Check file is there
+
+
+def test_abundances_uniform():
+    atmfile = "atm_test.dat"
+    nlayers = 11
+    punits  = 'bar'
+    pressure    = pa.pressure(1e-8, 1e2, nlayers, punits)
+    temperature = pa.temp_isothermal(1500.0, nlayers)
+    species     = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
+    abundances  = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
+    qprofiles = pa.abundances(atmfile, pressure, temperature, species,
+                              quniform=abundances, punits=punits)
+    assert np.shape(qprofiles) == (nlayers, len(species))
+    for q in qprofiles:
+        np.testing.assert_equal(q, np.array(abundances))
+    # TBD: Check file is there
 
 
 def test_hydro_g():
@@ -109,5 +128,17 @@ def test_hydro_m():
     radius = pa.hydro_m(pressure, temperature, mu, Mp, p0, r0) / pc.rjup
     # Radius profile in Jupiter radii:
     np.testing.assert_almost_equal(radius, radius_m, decimal=7)
+
+
+def test_stoich():
+    species = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
+    elements, stoichs = pa.stoich(species)
+    assert elements == ['C', 'H', 'He', 'O']
+    np.testing.assert_equal(stoichs, np.array([[0, 2, 0, 0],
+                                               [0, 0, 1, 0],
+                                               [0, 2, 0, 1],
+                                               [1, 0, 0, 1],
+                                               [1, 0, 0, 2],
+                                               [1, 4, 0, 0]]))
 
 
