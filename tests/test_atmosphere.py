@@ -142,3 +142,10 @@ def test_stoich():
                                                [1, 4, 0, 0]]))
 
 
+@pytest.mark.parametrize("abundances",
+    [ [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4],
+      [[0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]]])
+def test_meanweight(abundances):
+    species     = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
+    mu = pa.meanweight(abundances, species)
+    np.testing.assert_almost_equal(mu, np.array([2.31928918]), decimal=7)

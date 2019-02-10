@@ -1101,30 +1101,34 @@ def readmol(file):
   return molID, symbol, mass, diam
 
 
-def meanweight(abundances, molnames, molfile=None):
+def meanweight(abundances, species, molfile=pc.ROOT+"inputs/molecules.dat"):
   """
   Calculate the mean molecular weight (a.k.a. mean molecular mass)
   for the given abundances composition.
 
   Parameters
   ----------
-  abundances: 2D float ndarray
-     Array of shape (nlayers,nmol) with the species mol mixing fractions.
-  molnames: 1D string ndarray
-     The species names (of size nmol).
+  abundances: 2D float iterable
+      Species mol-mixing-fraction array of shape [nlayers,nmol].
+  species: 1D string iterable
+      Species names.
   molfile: String
-     (Optional) a molecules file with the species info.
+      A molecules file with the species info.
+
+  Returns
+  -------
+  mu: 1D float ndarray
+      Mean molecular weight at each layer for the input abundances.
+
+  Examples
+  --------
+  >>> import pyratbay.atmosphere as pa
+  >>> species     = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
+  >>> abundances  = [[0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]]
+  >>> mu = pa.meanweight(abundances, species)
+  >>> print(mu)
+  [2.31928918]
   """
-  # Default molecules file.
-  if molfile is None:
-    molfile = pc.ROOT + "inputs/molecules.dat"
-
   molID, symbol, mass, diam = readmol(molfile)
-
-  nmol = len(molnames)
-  molmass = np.zeros(nmol)
-  for i in np.arange(nmol):
-    imol = np.where(symbol == molnames[i])[0]
-    molmass[i] = mass[imol]
-
-  return np.sum(abundances*molmass, axis=1)
+  molmass = np.array([mass[symbol==spec][0] for spec in species])
+  return np.sum(np.atleast_2d(abundances)*molmass, axis=1)

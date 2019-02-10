@@ -4023,11 +4023,16 @@ Added docstring example.
 
 Added return statement to atmosphere.uniform()
 Added docstring example.
-
 Fixed bug in atmosphere.abundances() with Log when making a uniform
 profile.
 
 Added tests for stoich() and uniform().
+
+
+*****  Sun Feb 10 18:25:41 CET 2019  *****
+
+Cleaned up atmosphere.meanweight() code, updated docstring, and
+added tests.
 
 *****
 
