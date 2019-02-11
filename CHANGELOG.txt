@@ -4067,4 +4067,7 @@ Updated demo atmospheric file and getting-started docs.
 
 *****
 
+Cosmetic changes in makesample.make_atmprofiles().
+
+*****
 

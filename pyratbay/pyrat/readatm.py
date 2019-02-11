@@ -42,9 +42,6 @@ def readatm(pyrat):
       "the input atmospheric file.  Assumed to be '{:s}'.", pyrat.log)
 
   atm.nlayers, pyrat.mol.nmol = np.shape(atm.q)
-  pyrat.log.msg("Number of layers in the input atmospheric file: {:d}".
-                format(atm.nlayers), verb=2, indent=2)
-
   pyrat.log.msg("Species list: \n  {:s}".format(str(pyrat.mol.name)),
                 verb=2, indent=2, si=4)
 
@@ -63,6 +60,12 @@ def readatm(pyrat):
   atm.press *= pt.u(atm.punits)
   atm.temp  *= pt.u(atm.tunits)
 
+  pyrat.log.msg("Number of layers in the input atmospheric file: {:d}".
+                format(atm.nlayers), verb=2, indent=2)
+  pyrat.log.msg("Atmospheric file pressure limits: {:.2e}--{:.2e} {:s}.".
+      format(atm.press[ 0]/pt.u(atm.punits),
+             atm.press[-1]/pt.u(atm.punits), atm.punits), verb=2, indent=2)
+
   # Calculate the mean molecular mass per layer:
   atm.mm = np.sum(atm.q*pyrat.mol.mass, axis=1)
   pyrat.log.msg("Typical mean molecular mass: {:.3f} g mol-1.".
@@ -73,8 +76,6 @@ def readatm(pyrat):
       atm.q = atm.q * atm.mm / pyrat.mol.mass
 
   # Calculate number density profiles for each molecule (in molecules cm-3):
-  atm.d = np.zeros((atm.nlayers, pyrat.mol.nmol))
-  #for i in np.arange(pyrat.mol.nmol):
   atm.d = pa.IGLdensity(atm.q, atm.press, atm.temp)
 
   pyrat.log.msg("Read atmosphere done.")
