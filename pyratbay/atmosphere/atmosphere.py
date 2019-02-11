@@ -112,103 +112,105 @@ def writeatm(atmfile, pressure, temperature, species, abundances,
   f.write("# Abundance units (by number or mass):\n@ABUNDANCE\nnumber\n")
   f.write("# Pressure units:\n@PRESSURE\n{:s}\n".format(punits))
   if radius is not None:
-    f.write("# Radius units:\n@RADIUS\n{:s}\n".format(runits))
-  f.write("# Temperatures are always Kelvin.\n\n")
+      f.write("# Radius units:\n@RADIUS\n{:s}\n".format(runits))
+  f.write("# Temperatures units:\n@TEMPERATURE\nkelvin\n")
 
   # Write the species names:
-  f.write("# Atmospheric composition:\n"
-          "@SPECIES\n" +
+  f.write("# Atmospheric composition:\n@SPECIES\n" +
           "  ".join(["{:<s}".format(mol) for mol in species]) + '\n\n')
   # Write the per-layer data:
   if radius is not None:
-    f.write("# Radius    Pressure    Temperature  ")
+      f.write("# Radius    Pressure    Temperature  ")
   else:
-    f.write("# Pressure  Temperature  ")
+      f.write("# Pressure  Temperature  ")
   f.write("".join(["{:<14s}".format(mol) for mol in species]) + "\n")
   f.write("@DATA\n")
 
   pressure = pressure/pt.u(punits)
   if radius is not None:
-    radius = radius/pt.u(runits)
+      radius = radius/pt.u(runits)
 
   # Write data for each layer:
   nlayers = len(pressure)
   for i in np.arange(nlayers):
-    if radius is not None:
-      f.write("{:10.4e}  ".format(radius[i]))
-    # Pressure, and Temperature:
-    f.write("{:10.4e}  {:11.3f}  ".format(pressure[i], temperature[i]))
-    # Species mole mixing ratios:
-    f.write("  ".join(["{:12.6e}".format(ab) for ab in abundances[i]]) + "\n")
+      # (radius,) pressure, and temperature:
+      if radius is not None:
+          f.write("{:10.4e}  ".format(radius[i]))
+      f.write("{:10.4e}  {:11.3f}  ".format(pressure[i], temperature[i]))
+      # Species mole mixing ratios:
+      f.write("  ".join(["{:12.6e}".format(ab) for ab in abundances[i]]) + "\n")
   f.close()
 
 
-def readatm(atmfile, verb=0, log=None):
+def readatm(atmfile):
   """
   Read a Pyrat atmospheric file.
 
   Parameters
   ----------
   atmfile: String
-     File path to a Pyrat-Bay's atmospheric file.
-  verb: Bool
-     Verbosity, if positive print out to screen the units from the
-     atmospheric file.
-  log: Log object
-     Screen-output log handler.
+     File path to a Pyrat Bay's atmospheric file.
 
   Returns
   -------
+  units: 4-element string tuple
+      Units for pressure, temperature, abundance, and radius as given
+      in the atmospheric file.
   species: 1D string ndarray
-     The list of species names read from the atmospheric file (of
-     size nspec).
+      The list of species names read from the atmospheric file (of
+      size nspec).
   press: 1D float ndarray
-     The atmospheric pressure profile (of size nlayers). The
-     file's @PRESSURE keyword indicates the ouptput units.
+      The atmospheric pressure profile (of size nlayers). The
+      file's @PRESSURE keyword indicates the ouptput units.
   temp: 1D float ndarray
-     The atmospheric temperature profile (of size nlayers). The
-     file's @TEMPERATURE keyword indicates the ouptput units.
+      The atmospheric temperature profile (of size nlayers). The
+      file's @TEMPERATURE keyword indicates the ouptput units.
   q: 2D float ndarray
-     The mixing ratio profiles of the atmospheric species (of size
-     [nlayers,nspec]).  The file's @ABUNDANCE indicates the output
-     units.
+      The mixing ratio profiles of the atmospheric species (of size
+      [nlayers,nspec]).  The file's @ABUNDANCE indicates the output
+      units.
   radius: 1D float ndarray
-     The atmospheric altiture profile (of size nlayers).  Returned
-     only if the atmospheric file contain's a radius profile.
-     The file's @RADIUS keyword indicates the output units.
+      The atmospheric altiture profile (of size nlayers).  None if the
+      atmospheric file does not contain a radius profile.
+      The file's @RADIUS keyword indicates the output units.
   """
-  if log is None:
-    log = mu.Log(logname=None, verb=verb)
-
   atmfile = open(atmfile, "r")
+
+  punits, runits, tunits, qunits, species = None, None, None, None, None
+
   while True:
-    line = atmfile.readline().strip()
+      line = atmfile.readline().strip()
+      # Stop when the per-layer data begins:
+      if line == "@DATA":
+          break
+      # Skip empty and comment lines:
+      elif line == '' or line.startswith('#'):
+          pass
+      # Extract units, and species from header:
+      elif line == '@PRESSURE':
+          punits = atmfile.readline().strip()
+      elif line == '@RADIUS':
+          runits = atmfile.readline().strip()
+      elif line == '@TEMPERATURE':
+          tunits = atmfile.readline().strip()
+      elif line == '@ABUNDANCE':
+          qunits = atmfile.readline().strip()
+      elif line == '@SPECIES':
+          species = np.asarray(atmfile.readline().strip().split())
+      else:
+          raise ValueError("Atmosphere file has unexpected line: \n'{:s}'".
+                           format(line))
 
-    # Stop when the per-layer data begins:
-    if line == "@DATA":
-      break
+  if punits is None:
+      raise ValueError("Atmospheric file does not have '@PRESSURE' header")
+  if tunits is None:
+      raise ValueError("Atmospheric file does not have '@TEMPERATURE' header")
+  if qunits is None:
+      raise ValueError("Atmospheric file does not have '@ABUNDANCE' header")
+  if species is None:
+      raise ValueError("Atmospheric file does not have '@SPECIES' header")
 
-    # Skip empty and comment lines:
-    elif line == '' or line.startswith('#'):
-      pass
-
-    # Radius, pressure, and temperature units of atm file:
-    elif line == '@PRESSURE':
-      log.msg("Pressure units: {:s}".format(atmfile.readline().strip()))
-    elif line == '@RADIUS':
-      log.msg("Radius units: {:s}".format(atmfile.readline().strip()))
-    elif line == '@TEMPERATURE':
-      log.msg("Temperature units: {:s}".format(atmfile.readline().strip()))
-    # Abundance by mass or number:
-    elif line == '@ABUNDANCE':
-      log.msg("Abundance units: {:s}".format(atmfile.readline().strip()))
-    # Read in molecules:
-    elif line == "@SPECIES":
-      species = np.asarray(atmfile.readline().strip().split())
-      nspecies = len(species)
-    else:
-      log.warning("Atmosphere file has unexpected line: \n'{:s}'".format(line))
-      return None, None, None, None
+  nspecies = len(species)
 
   # Read first line to count number of columns:
   datastart = atmfile.tell()
@@ -219,31 +221,32 @@ def readatm(atmfile, verb=0, log=None):
   # Count number of layers:
   nlayers = 1
   while True:
-    line = atmfile.readline()
-    if line == '' or line.startswith('#'):
-      break
-    nlayers += 1
+      line = atmfile.readline()
+      if line == '' or line.startswith('#'):
+          break
+      nlayers += 1
 
   # Initialize arrays:
   if rad:
-    radius = np.zeros(nlayers)
-  press    = np.zeros(nlayers)
-  temp     = np.zeros(nlayers)
-  q        = np.zeros((nlayers, nspecies))
+      radius = np.zeros(nlayers, np.double)
+  else:
+      radius = None
+  press = np.zeros(nlayers, np.double)
+  temp  = np.zeros(nlayers, np.double)
+  q     = np.zeros((nlayers, nspecies), np.double)
 
   # Read table:
   atmfile.seek(datastart, 0)
   for i in np.arange(nlayers):
-    data = atmfile.readline().split()
-    if rad:
-      radius[i] = float(data[0])
-    press [i] = float(data[rad+0])
-    temp  [i] = float(data[rad+1])
-    q     [i] = np.asarray(data[rad+2:], float)
+      data = atmfile.readline().split()
+      if rad:
+          radius[i] = data[0]
+      press[i] = data[rad+0]
+      temp [i] = data[rad+1]
+      q    [i] = data[rad+2:]
 
-  if rad:
-    return species, press, temp, q, radius
-  return species, press, temp, q
+  return (punits, tunits, qunits, runits), \
+         species, press, temp, q, radius
 
 
 # TBD: Move atmfile after abundances, make it optional

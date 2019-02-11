@@ -6,6 +6,8 @@ import numpy as np
 ROOT = os.path.realpath(os.path.dirname(__file__) + '/..') + '/'
 sys.path.append(ROOT)
 import pyratbay.io as io
+import pyratbay.atmosphere as pa
+import pyratbay.constants  as pc
 
 
 def test_read_write_opacity():
@@ -38,3 +40,26 @@ def test_read_write_opacity():
     np.testing.assert_almost_equal(wn,    edata[1][3], decimal=7)
 
     np.testing.assert_almost_equal(etable, edata[2],   decimal=7)
+
+
+# TBD: Move into io
+def test_read_write_atm(tmpdir):
+    atmfile = "WASP-99b.atm"
+    atm = "{}/{}".format(tmpdir,atmfile)
+    nlayers = 11
+    pressure    = np.logspace(-8, 2, nlayers)
+    temperature = np.tile(1500.0, nlayers)
+    species     = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
+    abundances  = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
+    qprofiles = pa.uniform(atm, pressure, temperature, species, abundances)
+    pa.writeatm(atm, pressure, temperature, species, qprofiles,
+                punits='bar', header='# Test write atm\n')
+    assert atmfile in os.listdir(tmpdir)
+
+    atm_input = pa.readatm(atm)
+    assert atm_input[0] == ('bar', 'kelvin', 'number', None)
+    np.testing.assert_equal(atm_input[1], np.array(species))
+    np.testing.assert_almost_equal(atm_input[2], pressure/pc.bar)
+    np.testing.assert_almost_equal(atm_input[3], temperature)
+    np.testing.assert_almost_equal(atm_input[4], qprofiles)
+    assert atm_input[5] is None
