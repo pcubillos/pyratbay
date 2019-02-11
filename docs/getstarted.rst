@@ -141,10 +141,10 @@ interactive mode, I suggest starting the session with ``ipython
 
   sys.path.append("../pyratbay/")
   import pyratbay as pb
+  import pyratbay.io as io
 
-
-  wl, transmission = pb.starspec.readpyrat("./transmission_spectrum_demo.dat", wn=False)
-  wl, emission     = pb.starspec.readpyrat("./emission_spectrum_demo.dat", wn=False)
+  wl, transmission = io.read_pyrat("./transmission_spectrum_demo.dat", wn=False)
+  wl, emission     = io.read_pyrat("./emission_spectrum_demo.dat", wn=False)
   
   plt.figure(0, figsize=(7,5))
   plt.clf()

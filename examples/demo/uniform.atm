@@ -4,12 +4,12 @@
 # Abundance units (by number or mass):
 @ABUNDANCE
 number
-
 # Pressure units:
 @PRESSURE
 bar
-
-# Temperature units are always Kelvin.
+# Temperature units:
+@TEMPERATURE
+kelvin
 
 # Atmospheric composition:
 @SPECIES

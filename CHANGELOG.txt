@@ -4063,4 +4063,8 @@ and IGLdensity() functions.
 
 *****
 
+Updated demo atmospheric file and getting-started docs.
+
+*****
+
 
