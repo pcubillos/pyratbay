@@ -4058,4 +4058,9 @@ Updated docstring, and added tests in test_atmosphere.py.
 
 *****
 
+Updated pyrat.readatm.py to use the outsourced atmosphere.readatm()
+and IGLdensity() functions.
+
+*****
+
 
