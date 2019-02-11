@@ -4047,4 +4047,8 @@ Added testing for writeatm() and readatm() in test_io.py
 
 *****
 
+In atmosphere.uniform(), moved atmfile argument from first to last,
+made optional (saving to file only if not None).
+
+*****
 

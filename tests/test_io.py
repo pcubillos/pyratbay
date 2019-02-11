@@ -10,8 +10,8 @@ import pyratbay.atmosphere as pa
 import pyratbay.constants  as pc
 
 
-def test_read_write_opacity():
-    ofile = 'opacity_test.dat'
+def test_read_write_opacity(tmpdir):
+    ofile = "{}/opacity_test.dat".format(tmpdir)
     molID = np.array([101, 105])
     temp  = np.linspace(300, 3000, 28)
     press = np.logspace(-6, 2, 21)
@@ -42,7 +42,6 @@ def test_read_write_opacity():
     np.testing.assert_almost_equal(etable, edata[2],   decimal=7)
 
 
-# TBD: Move into io
 def test_read_write_atm(tmpdir):
     atmfile = "WASP-99b.atm"
     atm = "{}/{}".format(tmpdir,atmfile)
@@ -51,7 +50,7 @@ def test_read_write_atm(tmpdir):
     temperature = np.tile(1500.0, nlayers)
     species     = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
     abundances  = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
-    qprofiles = pa.uniform(atm, pressure, temperature, species, abundances)
+    qprofiles = pa.uniform(pressure, temperature, species, abundances)
     pa.writeatm(atm, pressure, temperature, species, qprofiles,
                 punits='bar', header='# Test write atm\n')
     assert atmfile in os.listdir(tmpdir)

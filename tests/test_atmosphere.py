@@ -4,7 +4,8 @@ import pytest
 
 import numpy as np
 
-sys.path.append('../')
+ROOT = os.path.realpath(os.path.dirname(__file__) + '/..') + '/'
+sys.path.append(ROOT)
 import pyratbay.atmosphere as pa
 import pyratbay.constants  as pc
 
@@ -77,15 +78,14 @@ def test_temperature_TCEA_units():
 def test_uniform():
     atmfile = "uniform_test.atm"
     nlayers = 11
-    pressure    = np.logspace(-8, 2 , nlayers)
+    pressure    = pa.pressure(1e-8, 1e2, nlayers, units='bar')
     temperature = np.tile(1500.0, nlayers)
     species     = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
     abundances  = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
-    qprofiles = pa.uniform(atmfile, pressure, temperature, species, abundances)
+    qprofiles = pa.uniform(pressure, temperature, species, abundances)
     assert np.shape(qprofiles) == (nlayers, len(species))
     for q in qprofiles:
         np.testing.assert_equal(q, np.array(abundances))
-    # TBD: Check file is there
 
 
 def test_abundances_uniform():

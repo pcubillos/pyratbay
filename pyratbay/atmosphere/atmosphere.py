@@ -249,17 +249,14 @@ def readatm(atmfile):
          species, press, temp, q, radius
 
 
-# TBD: Move atmfile after abundances, make it optional
-def uniform(atmfile, pressure, temperature, species, abundances, punits="bar",
-            log=None):
+def uniform(pressure, temperature, species, abundances, punits="bar",
+            log=None, atmfile=None):
   """
   Generate an atmospheric file with uniform abundances.
   Save it into atmfile.
 
   Parameters
   ----------
-  atmfile: String
-      Name of output atmospheric file.
   pressure: 1D float ndarray
       Monotonously decreasing pressure profile (in punits).
   temperature: 1D float ndarray
@@ -272,6 +269,8 @@ def uniform(atmfile, pressure, temperature, species, abundances, punits="bar",
      Pressure units.
   log: Log object
       Screen-output log handler.
+  atmfile: String
+      If not None, filename to save atmospheric model.
 
   Returns
   -------
@@ -288,7 +287,7 @@ def uniform(atmfile, pressure, temperature, species, abundances, punits="bar",
   >>> temperature = pa.temp_isothermal(1500.0, nlayers)
   >>> species     = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
   >>> abundances  = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
-  >>> qprofiles = pa.abundances(atmfile, pressure, temperature, species,
+  >>> qprofiles = pa.abundances(pressure, temperature, species,
   >>>                           quniform=abundances, punits=punits)
   >>> print(qprofiles)
   [[8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]
@@ -313,15 +312,16 @@ def uniform(atmfile, pressure, temperature, species, abundances, punits="bar",
                 "({:d}) don't match.".format(nlayers, len(temperature)))
   if len(species) != len(abundances):
       log.error("Species array length ({:d}) and Abundances array length "
-              "({:d}) don't match.".format(len(species), len(abundances)))
+                "({:d}) don't match.".format(len(species), len(abundances)))
 
   # Expand abundances to 2D array:
   qprofiles = np.tile(abundances, (nlayers,1))
 
-  # File header:
-  header = ("# This is an atmospheric file with pressure, temperature, \n"
-            "# and uniform mole mixing ratio profiles.\n\n")
-  writeatm(atmfile, pressure, temperature, species, qprofiles, punits, header)
+  if atmfile is not None:
+      header = ("# This is an atmospheric file with pressure, temperature,\n"
+                "# and uniform mole mixing ratio profiles.\n\n")
+      writeatm(atmfile, pressure, temperature, species, qprofiles,
+               punits, header)
 
   return qprofiles
 
@@ -542,7 +542,7 @@ def abundances(atmfile, pressure, temperature, species, elements=None,
     log = mu.Log(logname=None, verb=verb)
   # Uniform-abundances profile:
   if quniform is not None:
-      q = uniform(atmfile, pressure, temperature, species, quniform, punits)
+      q = uniform(pressure, temperature, species, quniform, punits, atmfile)
       log.msg("\nProduced uniform-abundances atmospheric file: '{:s}'.".
               format(atmfile))
       return q
