@@ -53,7 +53,7 @@ def test_read_write_atm(tmpdir):
     qprofiles = pa.uniform(pressure, temperature, species, abundances)
     pa.writeatm(atm, pressure, temperature, species, qprofiles,
                 punits='bar', header='# Test write atm\n')
-    assert atmfile in os.listdir(tmpdir)
+    assert atmfile in os.listdir(str(tmpdir))
 
     atm_input = pa.readatm(atm)
     assert atm_input[0] == ('bar', 'kelvin', 'number', None)

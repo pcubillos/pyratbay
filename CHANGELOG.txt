@@ -4052,3 +4052,10 @@ made optional (saving to file only if not None).
 
 *****
 
+Moved IGLdensity() from pyrat.readatm.py into atmosphere module.
+Updated docstring, and added tests in test_atmosphere.py.
+(Main code is breaking at this point, will get fixed in next commit)
+
+*****
+
+

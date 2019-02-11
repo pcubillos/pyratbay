@@ -2,10 +2,10 @@
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
 __all__ = ["read_ptfile", "writeatm", "readatm", "uniform", "makeatomic",
-           "readatomic", "makepreatm", "TEA2pyrat",
+           "readatomic", "makepreatm", "TEA2pyrat", "readmol",
            "pressure",
            "temp_isothermal", "temp_TCEA", "temperature", "abundances",
-           "hydro_g", "hydro_m", "stoich", "readmol", "meanweight"]
+           "hydro_g", "hydro_m", "stoich", "meanweight", "IGLdensity"]
 
 import os
 import sys
@@ -1135,3 +1135,39 @@ def meanweight(abundances, species, molfile=pc.ROOT+"inputs/molecules.dat"):
   molID, symbol, mass, diam = readmol(molfile)
   molmass = np.array([mass[symbol==spec][0] for spec in species])
   return np.sum(np.atleast_2d(abundances)*molmass, axis=1)
+
+
+def IGLdensity(abundances, pressure, temperature):
+  """
+  Use the Ideal gas law to calculate the density in molecules cm-3.
+
+  Parameters
+  ----------
+  abundances: 2D float ndarray
+     Species volume mixing ratio profiles, of shape [nlayers,nmol].
+  pressure: 1D ndarray
+     Atmospheric pressure profile (in barye units).
+  temperature: 1D ndarray
+     Atmospheric temperature (in kelvin).
+
+  Returns
+  -------
+  density: 2D float ndarray
+     Atmospheric density in molecules per centimeter^3.
+
+  Examples
+  --------
+  >>> import pyratbay.atmosphere as pa
+  >>> atmfile = "uniform_test.atm"
+  >>> nlayers = 11
+  >>> pressure    = pa.pressure(1e-8, 1e2, nlayers, units='bar')
+  >>> temperature = np.tile(1500.0, nlayers)
+  >>> species     = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
+  >>> abundances  = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
+  >>> qprofiles = pa.uniform(pressure, temperature, species, abundances)
+  >>> dens = pa.IGLdensity(qprofiles, pressure, temperature)
+  >>> print(dens[0])
+  [4.10241993e+10 7.24297303e+09 4.82864869e+06 4.82864869e+06
+   4.82864869e+02 4.82864869e+06]
+  """
+  return abundances * np.expand_dims(pressure/temperature, axis=1) / pc.k

@@ -26,6 +26,11 @@ radius_m = np.array(
       [1.05973436, 1.05188019, 1.04414158, 1.036516  , 1.029001  , 1.02159419,
        1.01429324, 1.00709591, 1.        , 0.99300339, 0.986104  ])
 
+expected_dens = np.array(
+      [4.10241993e+10, 7.24297303e+09, 4.82864869e+06, 4.82864869e+06,
+       4.82864869e+02, 4.82864869e+06])
+
+
 def test_pressure_floats():
     ptop    = 1e-8
     pbottom = 1e2
@@ -149,3 +154,16 @@ def test_meanweight(abundances):
     species     = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
     mu = pa.meanweight(abundances, species)
     np.testing.assert_almost_equal(mu, np.array([2.31928918]), decimal=7)
+
+
+def test_IGLdensity():
+    atmfile = "uniform_test.atm"
+    nlayers = 11
+    pressure    = pa.pressure(1e-8, 1e2, nlayers, units='bar')
+    temperature = np.tile(1500.0, nlayers)
+    species     = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
+    abundances  = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
+    qprofiles = pa.uniform(pressure, temperature, species, abundances)
+    dens = pa.IGLdensity(qprofiles, pressure, temperature)
+    for i,density in enumerate(dens):
+        np.testing.assert_allclose(density, expected_dens*10**i, rtol=1e-7)
