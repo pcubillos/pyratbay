@@ -4,11 +4,13 @@
 import os
 import sys
 import ctypes
-import numpy as np
 import multiprocessing as mpr
 
+import numpy as np
+
+from . import extinction as ex
+
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../lib')
-import extinction as ex
 import extcoeff   as ec
 import cutils     as cu
 import trapz      as t

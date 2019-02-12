@@ -4081,3 +4081,7 @@ temperature(), abundances(), ratio(), balance, and qscale().
 
 *****
 
+Some edits for Python3 compatibility.
+
+*****
+

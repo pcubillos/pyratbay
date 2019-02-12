@@ -6,7 +6,10 @@ __all__ = ["makeTLI", "parser"]
 import sys
 import os
 import time
-import ConfigParser
+if sys.version_info.major == 3:
+  import configparser
+else:
+  import ConfigParser as configparser
 import argparse
 import struct
 import numpy as np
@@ -44,7 +47,7 @@ def parser(cfile=None):
     if not os.path.isfile(cfile):
       print("Configuration file '{:s}' does not exist.".format(cfile))
       sys.exit(0)
-    config = ConfigParser.SafeConfigParser()
+    config = configparser.SafeConfigParser()
     config.read([cfile])
     if "pyrat" not in config.sections():
       print("Invalid configuration file: '{:s}'. The configuration-file "

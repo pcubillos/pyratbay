@@ -1,8 +1,12 @@
 # Copyright (c) 2016-2019 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-import os, sys
-import ConfigParser as cp
+import os
+import sys
+if sys.version_info.major == 3:
+  import configparser
+else:
+  import ConfigParser as configparser
 import numpy as np
 
 __all__ = ["makeTEA"]
@@ -26,7 +30,7 @@ def makeTEA(cfile=None, maxiter=100, save_headers=False, save_outputs=False,
      Default TEA directory.
   """
   # Open New Config parser:
-  config = cp.SafeConfigParser()
+  config = configparser.SafeConfigParser()
   config.add_section('TEA')
   config.set("TEA", "maxiter",      str(maxiter))
   config.set("TEA", "save_headers", str(save_headers))
@@ -39,7 +43,7 @@ def makeTEA(cfile=None, maxiter=100, save_headers=False, save_outputs=False,
 
   # Override with input Config parser values:
   if cfile is not None:
-    Bconfig = cp.SafeConfigParser()
+    Bconfig = configparser.SafeConfigParser()
     Bconfig.read([cfile])
 
     keys = ["maxiter", "save_headers", "save_outputs", "doprint",
