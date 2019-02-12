@@ -182,12 +182,12 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
 
   # Get the machine endian type (big/little):
   if sys.byteorder == 'big':
-    endian = b'b'
+    endian = 'b'
   if sys.byteorder == 'little':
-    endian = b'l'
+    endian = 'l'
 
   # Start storing TLI header values:
-  header = endian
+  header  = struct.pack("s", endian.encode())
   header += struct.pack("3h", ver.LR_VER, ver.LR_MIN, ver.LR_REV)
 
   # Boundaries in wavenumber space (in cm-1):

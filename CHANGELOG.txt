@@ -4089,3 +4089,7 @@ Enabled Python3 compatibility for HITRAN TLI runs with lineread.
 
 *****
 
+Fixed some more Python3 compatibility issues up to readline.
+
+*****
+

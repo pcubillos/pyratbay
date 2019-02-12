@@ -13,8 +13,7 @@ import numpy as np
 
 from .. import constants as pc
 
-rootdir = os.path.realpath(os.path.dirname(__file__) + "/../../")
-sys.path.append(rootdir + "/modules/MCcubed/")
+sys.path.append(pc.ROOT + "/modules/MCcubed/")
 import MCcubed.utils as mu
 
 
@@ -60,7 +59,7 @@ def binsearch(dbfile, wavelength, rec0, nrec, upper=True):
   # Start binary search:
   while ihi - ilo > 1:
     # Middle record index:
-    irec = (ihi + ilo)/2
+    irec = (ihi + ilo)//2
 
     # Read wavelength from TLI file record:
     dbfile.seek(irec*pc.dreclen + rec0, 0)
@@ -91,7 +90,7 @@ def binsearch(dbfile, wavelength, rec0, nrec, upper=True):
   #print("Sequential found:  %.7f"%next_wl)
 
   # Return the index withing the boundaries:
-  return irec - (jump+upper)/2
+  return irec - (jump+upper)//2
 
 
 def pprint(array, precision=3, fmt=None):
@@ -202,8 +201,8 @@ def defaultp(param, default, msg, log):
      Screen-output log handler.
   """
   if param is None:
-    log.warning(msg.format(default))
-    return default
+      log.warning(msg.format(default))
+      return default
   return param
 
 

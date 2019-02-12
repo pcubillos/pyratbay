@@ -30,7 +30,7 @@ def readlinedb(pyrat):
   # Read data bases header info:
   for n in np.arange(pyrat.lt.nTLI):
     # Open-read TLI data base:
-    TLI.append(open(pyrat.linedb[n], "r"))
+    TLI.append(open(pyrat.linedb[n], "rb"))
     pyrat.log.msg("Read TLI file: '{:s}'.".format(pyrat.linedb[n]), indent=2)
     # Read headers info:
     dbindex.append(dbindex[-1] + readheader(pyrat, TLI[n]))
@@ -58,7 +58,7 @@ def readheader(pyrat, linefile):
      Number of databases in this TLI file.
   """
   # Read header:
-  endian = linefile.read(1)
+  endian = linefile.read(1).decode()
   if endian == 'b':
     pyrat.log.msg("TLI data storage: Big endian", verb=2, indent=2)
   elif endian == 'l':
@@ -96,11 +96,11 @@ def readheader(pyrat, linefile):
     db = o.Database()
     # Read Database name:
     lenDBname = pt.unpack(linefile, 1,         "h")
-    db.name   = pt.unpack(linefile, lenDBname, "s")
+    db.name   = pt.unpack(linefile, lenDBname, "s").decode()
     pyrat.log.msg("Data base name: '{:s}'".format(db.name), verb=2, indent=2)
     # Read Molecule name:
     lenMolec   = pt.unpack(linefile, 1,        "h")
-    db.molname = pt.unpack(linefile, lenMolec, "s")
+    db.molname = pt.unpack(linefile, lenMolec, "s").decode()
     pyrat.log.msg("Molecule name: '{:s}'".format(db.molname), verb=2, indent=2)
     # Read temperature array:
     db.ntemp, db.niso =  pt.unpack(linefile, 2,        "h")
@@ -112,7 +112,7 @@ def readheader(pyrat, linefile):
                   format(db.temp[0], db.temp[-1]), verb=2, indent=2)
 
     # Allocate arrays for isotopic info:
-    name    = np.zeros(db.niso, pc.strfmt)
+    name    = np.zeros(db.niso, 'U20')
     mass    = np.zeros(db.niso)
     ratio   = np.zeros(db.niso)
     dbindex = np.zeros(db.niso, np.int)
@@ -122,7 +122,7 @@ def readheader(pyrat, linefile):
     for j in np.arange(db.niso):
       dbindex[j] = i + pyrat.lt.ndb
       lenIsoName = pt.unpack(linefile, 1,          "h")
-      name[j]    = pt.unpack(linefile, lenIsoName, "s")
+      name[j]    = pt.unpack(linefile, lenIsoName, "s").decode()
       mass[j]    = pt.unpack(linefile, 1,          "d")
       ratio[j]   = pt.unpack(linefile, 1,          "d")
       db.z[j]    = np.asarray(pt.unpack(linefile, db.ntemp, "d"))
@@ -163,9 +163,9 @@ def readlinetransition(pyrat, linefile, dbindex):
   Read the databases line transition info.
   """
   # Read the number of line transitions:
-  nTransitions = pt.unpack(linefile, 1,    "i")
+  nTransitions = pt.unpack(linefile, 1, "i")
   # Read the number of isotopes in line-transition array:
-  nIso         = pt.unpack(linefile, 1,    "i")
+  nIso         = pt.unpack(linefile, 1, "i")
   # Read the number of transitions per isotope:
   NisoTran     = np.atleast_1d(pt.unpack(linefile, nIso, "i"))
 
@@ -194,7 +194,7 @@ def readlinetransition(pyrat, linefile, dbindex):
   # Number of line-transitions offset for a given isotope:
   offset = 0
   start  = init_wl
-  nlt     = 0  # Total number of line-transitions read
+  nlt    = 0  # Total number of line-transitions read
   for i in np.arange(nIso):
     # Search lower and higher line-transition indices to read:
     ifirst = pt.binsearch(linefile, pyrat.spec.wnlow,  start, NisoTran[i]-1,
