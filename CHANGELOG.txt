@@ -4069,5 +4069,15 @@ Updated demo atmospheric file and getting-started docs.
 
 Cosmetic changes in makesample.make_atmprofiles().
 
+
+*****  Tue Feb 12 19:42:35 CET 2019  *****
+
+Fixed bugs in atmosphere.abundances().
+Added Python2 and 3 compatibility for readatomic().
+Added docstring examples in pressure(), temp_TCEA(), and temperature().
+
+Added more tests for pressure(), temp_TCEA(), temp_isothermal(),
+temperature(), abundances(), ratio(), balance, and qscale().
+
 *****
 

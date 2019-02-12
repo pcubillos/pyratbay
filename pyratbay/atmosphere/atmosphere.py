@@ -343,10 +343,6 @@ def makeatomic(solar, afile, xsolar=1.0, swap=None):
      except H and He).
   swap: 2-element string tuple
       Swap the abundances of the given elements.
-
-  Uncredited developers
-  ---------------------
-  Jasmina Blecic
   """
   # Read the Asplund et al. (2009) solar elementa abundances:
   index, symbol, dex, name, mass = readatomic(solar)
@@ -403,19 +399,19 @@ def readatomic(afile):
   # Allocate arrays:
   nelements = 84  # Fixed number
   anum   = np.zeros(nelements, np.int)
-  symbol = np.zeros(nelements, '|S2')
+  symbol = np.zeros(nelements, '|U2')
   dex    = np.zeros(nelements, np.double)
-  name   = np.zeros(nelements, '|S20')
+  name   = np.zeros(nelements, '|U20')
   mass   = np.zeros(nelements, np.double)
 
   # Open-read file:
   with open(afile, 'r') as f:
-    # Read-discard first two lines (header):
-    f.readline()
-    f.readline()
-    # Store data into the arrays:
-    for i in np.arange(nelements):
-      anum[i], symbol[i], dex[i], name[i], mass[i] = f.readline().split()
+      # Read-discard first two lines (header):
+      f.readline()
+      f.readline()
+      # Store data into the arrays:
+      for i in np.arange(nelements):
+          anum[i], symbol[i], dex[i], name[i], mass[i] = f.readline().split()
 
   return anum, symbol, dex, name, mass
 
@@ -539,10 +535,10 @@ def abundances(atmfile, pressure, temperature, species, elements=None,
   >>> Q = pa.abundances("pbtea.atm", press, temp, species)
   """
   if log is None:
-    log = mu.Log(logname=None, verb=verb)
+      log = mu.Log(logname=None, verb=verb)
   # Uniform-abundances profile:
   if quniform is not None:
-      q = uniform(pressure, temperature, species, quniform, punits, atmfile)
+      q = uniform(pressure, temperature, species, quniform, punits, log, atmfile)
       log.msg("\nProduced uniform-abundances atmospheric file: '{:s}'.".
               format(atmfile))
       return q
@@ -568,7 +564,7 @@ def abundances(atmfile, pressure, temperature, species, elements=None,
   os.remove(patm)
   os.remove("TEA.cfg")
   log.msg("Produced TEA atmospheric file '{:s}'.".format(atmfile))
-  sdummy, Pdummy, Tdummy, q = readatm(atmfile)
+  udummy, sdummy, pdummy, tdummy, q, rdummy = readatm(atmfile)
   return q
 
 
@@ -640,7 +636,7 @@ def pressure(ptop, pbottom, nlayers, units="bar", log=None, verb=0):
   nlayers: Integer
      Number of pressure layers.
   units: String
-     The pressure units (if not defined in ptop, pbottom).
+     Pressure input units (if not defined in ptop, pbottom).
      Available units are: barye, mbar, pascal, bar (default), and atm.
   log: Log object
      Screen-output log handler.
@@ -650,15 +646,20 @@ def pressure(ptop, pbottom, nlayers, units="bar", log=None, verb=0):
   Returns
   -------
   press: 1D float ndarray
-     The pressure profile in barye units.
+     The pressure profile (in barye units).
 
   Examples
   --------
   >>> import pyratbay.atmosphere as pa
-  >>> # Specify values and units separately:
-  >>> p1 = pa.pressure(ptop=1e-5, pbottom=100, nlayers=100, units="bar")
-  >>> # Specify values with units:
-  >>> p2 = pa.pressure(ptop="1e-5 bar", pbottom="100 bar", nlayers=100)
+  >>> import pyratbay.constants  as pc
+  >>> nlayers = 9
+  >>> # These are all equivalent:
+  >>> p1 = pa.pressure(ptop=1e-6,   pbottom=1e2, nlayers=nlayers)
+  >>> p2 = pa.pressure(1e-6,        1e2,         nlayers, 'bar')
+  >>> p3 = pa.pressure('1e-6 bar', '1e2 bar',    nlayers)
+  >>> p4 = pa.pressure(1e-6*pc.bar, 1e2*pc.bar,  nlayers, 'barye')
+  >>> print(p1/pc.bar)
+  [1.e-06 1.e-05 1.e-04 1.e-03 1.e-02 1.e-01 1.e+00 1.e+01 1.e+02]
   """
   if log is None:
     log = mu.Log(logname=None, verb=verb)
@@ -746,18 +747,20 @@ def temp_TCEA(tparams, pressure, rstar, tstar, tint, gplanet, smaxis,
     --------
     >>> import pyratbay.atmosphere as pa
     >>> import pyratbay.constants  as pc
-    >>> nlayers = 10
-    >>> pressure = pa.pressure(1e-8*pc.bar, 1e2*pc.bar, nlayers)
-    >>> rstar   = 1.0 * pc.rsun
-    >>> tstar   = 5800.0  # K
+    >>> nlayers = 11
+    >>> pressure = pa.pressure(1e-8, 1e2, nlayers, 'bar')
+    >>> rstar   = 0.756 * pc.rsun
+    >>> tstar   = 5040.0  # K
     >>> tint    = 100.0   # K
-    >>> gplanet = 800.0   # cm s-2
-    >>> smaxis  = 0.05 * pc.au
-    >>> tparams = [-3.0, -0.25, 0.0, 0.0, 1.0]
-    >>> temp = pa.temp_TCEA(tparams, pressure, rstar, tstar, tint, gplanet, smaxis)
+    >>> gplanet = 2200.0   # cm s-2
+    >>> smaxis  = 0.031 * pc.au
+    >>> tparams = [-1.5, -0.8, -0.8, 0.5, 1.0]
+    >>> temp = pa.temp_TCEA(tparams, pressure, rstar, tstar, tint,
+                            gplanet, smaxis)
     >>> print(temp)
-    [1175.38603129 1189.98427711 1319.1276347  1358.09092498 1360.48657139
-     1390.34817902 1668.56811111 2778.52470123 5196.63710566 9840.84034629]
+    [1047.04157312 1047.04189805 1047.04531644 1047.08118784 1047.45648563
+     1051.34469989 1088.69956369 1311.86379107 1640.12857767 1660.02396061
+     1665.30121021]
     """
     # Ensure Numpy array:
     if isinstance(tparams, (list, tuple)):
@@ -822,13 +825,20 @@ def temperature(tmodel, pressure=None, rstar=None, tstar=None, tint=100.0,
   Examples
   --------
   >>> import pyratbay.atmosphere as pa
-  >>> # 100-layer isothermal profile:
-  >>> pa.temperature("isothermal", tparams=np.array([1500.0]), nlayers=100)
+  >>> nlayers = 11
+  >>> # Isothermal profile:
+  >>> temp_iso = pa.temperature("isothermal", tparams=1500.0, nlayers=nlayers)
+  >>> print(temp_iso)
+  [1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500.]
   >>> # Three-channel Eddington-approximation profile:
-  >>> p = pa.pressure(1e-5, 1e2, 100, "bar")
-  >>> Tmodel, targs, ntpars = ma.temperature("TCEA", pressure=p,
-    rstar="1.0 rsun", tstar=5800.0, tint=100.0, gplanet=800.0, smaxis="0.05 au")
-  >>> tparams = np.array([-3.0, -0.25, 0.0, 0.0, 1.0])
+  >>> pressure = pa.pressure(1e-8, 1e2, nlayers, "bar")
+  >>> tparams = np.array([-1.5, -0.8, -0.8, 0.5, 1.0])
+  >>> temp = pa.temperature("TCEA", pressure, rstar="0.756 rsun", tstar=5040,
+          tint=100.0, gplanet=2200.0, smaxis="0.031 au", tparams=tparams)
+  >>> print(temp)
+  [1047.04157312 1047.04189805 1047.04531644 1047.08118784 1047.45648563
+   1051.34469989 1088.69956369 1311.86379107 1640.12857767 1660.02396061
+   1665.30121021]
   >>> temp = Tmodel(tparams, *targs)
   """
   if log is None:
@@ -843,7 +853,7 @@ def temperature(tmodel, pressure=None, rstar=None, tstar=None, tint=100.0,
     smaxis  = pt.getparam(smaxis,  radunits, log)
     # Define model and arguments:
     Tmodel = temp_TCEA
-    targs  = [pressure, rstar, tstar, tint, smaxis, gplanet]
+    targs  = [pressure, rstar, tstar, tint, gplanet, smaxis]
     ntpars = 5
   elif tmodel == "isothermal":
     Tmodel = temp_isothermal
