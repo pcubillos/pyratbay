@@ -38,8 +38,8 @@ class hitran(dbdriver):
     self.recwnlen  =  12 # Wavenumber record length
 
     # Get info from HITRAN configuration file:
-    self.molID, self.molecule, self.isotopes, self.mass, \
-                self.isoratio = self.getiso(fromfile=True)
+    self.molID, self.molecule, self.isotopes, self.mass, self.isoratio = \
+        self.getiso(fromfile=True)
     # Database name:
     self.name = "HITRAN " + self.molecule
 
@@ -107,11 +107,11 @@ class hitran(dbdriver):
     # Read first line to get the record size:
     data.seek(0)
     line = data.readline()
-    self.recsize = len(line)
+    self.recsize = data.tell()
 
     # Get Total number of transitions in file:
     data.seek(0, 2)
-    nlines = data.tell() / self.recsize
+    nlines = data.tell() // self.recsize
 
     # Find the record index for iwn and fwn:
     istart = self.binsearch(data, iwn, 0,      nlines-1, 0)
@@ -144,7 +144,7 @@ class hitran(dbdriver):
 
     self.log.msg("Process HITRAN database between records {:,d} and {:,d}.".
                  format(istart, istop), verb=2, indent=2)
-    interval = (istop - istart)/10  # Check-point interval
+    interval = (istop - istart)//10  # Check-point interval
 
     i = 0  # Stored record index
     while (i < nread):

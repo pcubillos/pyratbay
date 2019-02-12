@@ -4085,3 +4085,7 @@ Some edits for Python3 compatibility.
 
 *****
 
+Enabled Python3 compatibility for HITRAN TLI runs with lineread.
+
+*****
+

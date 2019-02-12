@@ -5,10 +5,8 @@ import sys
 import os
 import numpy as np
 
-# Directory of db:
-rootdir = os.path.dirname(os.path.realpath(__file__)) + "/../../../"
-# Add path to ctips source code:
-sys.path.append(rootdir + "modules/pytips")
+import pyratbay.constants as pc
+sys.path.append(pc.ROOT + "modules/pytips")
 import pytips as t
 
 
@@ -132,7 +130,7 @@ class dbdriver(object):
     # Start binary search:
     while ihi - ilo > 1:
       # Middle record index:
-      irec = (ihi + ilo)/2
+      irec = (ihi + ilo)//2
 
       # Read wavelength/wavenumber, depending on linelist format:
       recwave = self.readwave(dbfile, irec)
@@ -262,7 +260,7 @@ class dbdriver(object):
       self.log.error("Neither fromfile nor mol were specified.")
 
     # Read isotopes info file:
-    with open(rootdir + 'inputs/isotopes.dat', 'r') as isofile:
+    with open(pc.ROOT + 'inputs/isotopes.dat', 'r') as isofile:
       lines = isofile.readlines()
 
     isotopes = []

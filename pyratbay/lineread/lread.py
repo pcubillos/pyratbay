@@ -6,22 +6,22 @@ __all__ = ["makeTLI", "parser"]
 import sys
 import os
 import time
-if sys.version_info.major == 3:
-  import configparser
-else:
-  import ConfigParser as configparser
 import argparse
 import struct
+from datetime import date
+if sys.version_info.major == 3:
+    import configparser
+else:
+    import ConfigParser as configparser
+
 import numpy as np
 import matplotlib.pyplot as plt
-from datetime import date
 
 from .  import db
 from .. import constants as pc
 from .. import VERSION as ver
 
-rootdir = os.path.realpath(os.path.dirname(__file__) + "/../..")
-sys.path.append(rootdir + "/modules/MCcubed")
+sys.path.append(pc.ROOT + "/modules/MCcubed")
 import MCcubed.utils as mu
 
 
@@ -182,9 +182,9 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
 
   # Get the machine endian type (big/little):
   if sys.byteorder == 'big':
-    endian = 'b'
+    endian = b'b'
   if sys.byteorder == 'little':
-    endian = 'l'
+    endian = b'l'
 
   # Start storing TLI header values:
   header = endian
@@ -213,7 +213,7 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
   log.msg("\nOS endianness:  {:s}\n"
           "Initial TLI wavelength (um): {:7.3f}  ({:9.3f} cm-1)\n"
           "Final   TLI wavelength (um): {:7.3f}  ({:9.3f} cm-1)".
-          format(endian, iwl, fwn,  fwl, iwn), verb=2)
+          format(sys.byteorder, iwl, fwn,  fwl, iwn), verb=2)
   log.msg("There are {:d} different database(s).".format(Ndb), verb=2)
   log.msg("List of databases:\n{}".format(DBnames), verb=2)
 
@@ -255,11 +255,11 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
 
     # Store length of database name, database name, number of temperatures,
     #  and number of isotopes in TLI file:
-    TLIout.write(struct.pack("h{:d}c".format(lenDBname),
-                             lenDBname, *DBnames[idb]))
+    TLIout.write(struct.pack("h{:d}s".format(lenDBname),
+                             lenDBname, DBnames[idb].encode("utf-8")))
     # Store the molecule name:
-    TLIout.write(struct.pack("h{:d}c".format(lenMolec),
-                             lenMolec, *driver[i].molecule))
+    TLIout.write(struct.pack("h{:d}s".format(lenMolec),
+                             lenMolec, driver[i].molecule.encode("utf-8")))
     # Store the number of temperature samples and isotopes:
     TLIout.write(struct.pack("hh", Ntemp, Niso))
     log.msg("Database ({:d}/{:d}): '{:s}' ({:s} molecule)".format(
@@ -281,7 +281,8 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
       # Store length of isotope name, isotope name, and isotope mass:
       lenIsoname = len(isoNames[j])
       Iname = str(isoNames[j])
-      TLIout.write(struct.pack("h{:d}c".format(lenIsoname), lenIsoname, *Iname))
+      TLIout.write(struct.pack("h{:d}s".format(lenIsoname), lenIsoname,
+                   Iname.encode()))
       TLIout.write(struct.pack("d", iso_mass[j]))
       TLIout.write(struct.pack("d", iso_ratio[j]))
 
@@ -379,7 +380,6 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
     plt.savefig("wavelength.png")
 
   # Pack:
-  transinfo = ""
   # Write the number of transitions:
   TLIout.write(struct.pack("i", nTransitions))
   log.msg("\nWriting {:,d} transition lines.".format(nTransitions), verb=2)
@@ -393,7 +393,7 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
 
   # Write the Line-transition data:
   ti = time.time()
-  transinfo += struct.pack(str(nTransitions)+"d", *list(wnumber))
+  transinfo  = struct.pack(str(nTransitions)+"d", *list(wnumber))
   transinfo += struct.pack(str(nTransitions)+"h", *list(isoID))
   transinfo += struct.pack(str(nTransitions)+"d", *list(elow))
   transinfo += struct.pack(str(nTransitions)+"d", *list(gf))
