@@ -84,10 +84,6 @@ C1 = 4 * sc.epsilon_0 * sc.m_e * sc.c**2 / sc.e**2 * 0.01  # cm-1
 C2 = sc.h * (sc.c * 100.0) / sc.k                          # cm / Kelvin
 C3 = sc.pi * e**2 / (me * c**2)                            # cm
 
-# String lengths:
-maxnamelen = 20
-strfmt = "|S%d"%maxnamelen
-
 # TLI record lengths:
 tlireclen = 26  # Three doubles and one short
 dreclen   =  8  # Double  byte length

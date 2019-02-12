@@ -23,7 +23,7 @@ def read(pyrat):
   else:
     pyrat.cs.nfiles = len(pyrat.cs.files)
     # Allocate molecules array:
-    pyrat.cs.molecules = np.zeros((pyrat.cs.nfiles, 2), pc.strfmt)
+    pyrat.cs.molecules = np.zeros((pyrat.cs.nfiles, 2), "U20")
     pyrat.cs.nmol      = np.zeros(pyrat.cs.nfiles, np.int)
     # Allocate the number of temperature and wavenumber samples per file:
     pyrat.cs.ntemp     = np.zeros(pyrat.cs.nfiles, np.int)
@@ -33,8 +33,7 @@ def read(pyrat):
     pyrat.log.msg("No CS files to read.", indent=2)
   else:
     for i in np.arange(pyrat.cs.nfiles):
-      pyrat.log.msg("Read CS file: '{:s}'.".format(pyrat.cs.files[i]),
-                    pyrat.log, indent=2)
+      pyrat.log.msg("Read CS file: '{:s}'.".format(pyrat.cs.files[i]), indent=2)
       f = open(pyrat.cs.files[i], "r")
       lines = f.readlines()
       f.seek(0)

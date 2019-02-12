@@ -4093,3 +4093,10 @@ Fixed some more Python3 compatibility issues up to readline.
 
 *****
 
+Fixed Python3 compatibility issues in crosssec.py.
+Removed pc.strfmt.
+Got a basic transmission forward model running.
+(though, argum.py and readatm.py updates still need to be committed).
+
+*****
+
