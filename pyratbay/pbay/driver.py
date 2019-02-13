@@ -94,16 +94,15 @@ def run(argv, main=False):
 
     # Compute or read atmospheric abundances:
     if args.runmode == "atmosphere" or pt.isfile(args.atmfile) != 1:
-      ar.checkatm(args, log)
-      xsolar = pt.getparam(args.xsolar, "none", log)
-      pa.abundances(args.atmfile, pressure, temperature, args.species,
-                    args.elements, args.uniform, args.punits, xsolar,
-                    args.solar, log)
+        ar.checkatm(args, log)
+        xsolar = pt.getparam(args.xsolar, "none", log)
+        abundances = pa.abundances(args.atmfile, pressure, temperature,
+            args.species, args.elements, args.uniform, args.punits, xsolar,
+            args.solar, log)
 
     # Return atmospheric model if requested:
     if args.runmode == "atmosphere":
-      species, pressure, temperature, abundances = pa.readatm(args.atmfile)
-      return pressure, temperature, abundances
+        return pressure, temperature, abundances
 
     # Check status of extinction-coefficient file if necessary:
     if args.runmode != "spectrum" and pt.isfile(args.extfile) == -1:

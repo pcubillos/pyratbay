@@ -4100,3 +4100,8 @@ Got a basic transmission forward model running.
 
 *****
 
+Added tests/test_pbay.py to test pbay.run() calls.
+There are many tests to be implemented in there yet.
+
+*****
+
