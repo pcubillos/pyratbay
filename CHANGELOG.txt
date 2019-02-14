@@ -4103,5 +4103,11 @@ Got a basic transmission forward model running.
 Added tests/test_pbay.py to test pbay.run() calls.
 There are many tests to be implemented in there yet.
 
+
+*****  Thu Feb 14 22:24:05 CET 2019  *****
+
+Implemented tools.path() function to ensure path in file names.
+Tested in test_tools.py.
+
 *****
 

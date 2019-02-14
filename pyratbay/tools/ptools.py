@@ -3,7 +3,7 @@
 
 __all__ = ["parray", "defaultp", "getparam",
            "binsearch", "pprint", "divisors", "u", "unpack",
-           "isfile", "addarg"]
+           "isfile", "addarg", "path"]
 
 import os
 import sys
@@ -302,3 +302,30 @@ def addarg(variable, pgroup, type, default, help):
   """
   pgroup.add_argument("--{:s}".format(variable), dest=variable,
                       action="store", type=type, default=default, help=help)
+
+def path(filename):
+    """
+    Ensure file names have non-null path
+
+    Parameters
+    ----------
+    filename: String
+        A file name.
+
+    Examples
+    --------
+    >>> import pyratbay.tools as pt
+    >>> print(pt.path('file.txt'))
+    ./file.txt
+    >>> print(pt.path('./file.txt'))
+    ./file.txt
+    >>> print(pt.path('/home/user/file.txt'))
+    /home/user/file.txt
+    """
+    if filename is None:
+        return None
+    path, filename = os.path.split(filename)
+    if path == '':
+        path = '.'
+    return '{:s}/{:s}'.format(path, filename)
+
