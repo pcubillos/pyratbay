@@ -234,7 +234,6 @@ def extinction(pyrat, indices, grid=False, add=False):
                     pyrat.atm.nlayers, temp, pressure/pc.bar), verb=2, indent=2)
 
     # Calculate extinction-coefficient in C:
-    logtext = " "*800
     extinct_coeff[:] = 0.0
     ec.extinction(extinct_coeff,
                 pyrat.voigt.profile, pyrat.voigt.size, pyrat.voigt.index,
@@ -245,7 +244,7 @@ def extinction(pyrat, indices, grid=False, add=False):
                 ziso, pyrat.iso.iext,
                 pyrat.lt.wn, pyrat.lt.elow, pyrat.lt.gf, pyrat.lt.isoid,
                 pyrat.ex.ethresh, pressure, temp,
-                logtext, verb-10, int(add),
+                verb-10, int(add),
                 int(pyrat.spec.resolution is not None))
     # Store output:
     if grid:   # Into grid

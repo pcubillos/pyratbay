@@ -8,7 +8,7 @@ import numpy as np
 from .. import constants  as pc
 from .. import broadening as broad
 
-sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../lib')
+sys.path.append(pc.ROOT+'/lib')
 import vprofile as vp
 
 
@@ -104,7 +104,7 @@ def calcvoigt(pyrat):
     # (sizes will be set in vp.grid())
     psize[np.where(voigt.doppler/voigt.lorentz[i] < voigt.DLratio)[0][1:]] = 0
     # Store half-size values for this Lorentz width:
-    voigt.size[i] = psize/2
+    voigt.size[i] = psize//2
   pyrat.log.msg("Voigt half-sizes:\n{}".format(voigt.size), verb=3, indent=2)
 
   pyrat.log.msg("Calculating Voigt profiles with Extent: {:.1f} widths.".
@@ -112,10 +112,8 @@ def calcvoigt(pyrat):
   # Allocate profile arrays (concatenated in a 1D array):
   voigt.profile = np.zeros(np.sum(2*voigt.size+1), np.double)
 
-  logtext = " "*80*50
   # Calculate the Voigt profiles in C:
   vp.grid(voigt.profile, voigt.size, voigt.index,
           voigt.lorentz, voigt.doppler,
-          pyrat.spec.ownstep, logtext, pyrat.verb)
-  pyrat.log.write(logtext.rstrip()[:-1])
+          pyrat.spec.ownstep, pyrat.verb)
   pyrat.log.msg("Voigt indices:\n{}".format(voigt.index), verb=3, indent=2)

@@ -4126,5 +4126,15 @@ or by input arrays.
 
 The new qscaling scheme is still to be updated.
 
+
+*****  Fri Feb 15 20:40:31 CET 2019  *****
+
+Removed logtext char variable from extcoeff.extinction() and
+vprofile.grid(), because it breaks Python3.7.
+There might be a solution for the dual printing in C, but for the
+moment I'll take it away.  It was not being used for logging anyways,
+just for debugging.
+Replaced the repective msg() calls with printf() calls.
+
 *****
 

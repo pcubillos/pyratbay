@@ -67,8 +67,6 @@ pressure: Float                                                  \n\
    Atmospheric-layer pressure (barye).                           \n\
 temp: Float                                                      \n\
    Atmospheric-layer temperature (K).                            \n\
-logtext: String                                                  \n\
-   Char array where to store log text outputs.                   \n\
 verb: Integer                                                    \n\
    Verbosity level.                                              \n\
 add: Integer                                                     \n\
@@ -109,10 +107,9 @@ static PyObject *extinction(PyObject *self, PyObject *args){
          florentz, fdoppler, wnstep, ownstep, dwnstep, wavn, next_wn, k;
   double *alphal, *alphad, *kmax, **ktmp, *kprop;
   int *idop, *ilor;
-  char *logtext;
 
   /* Load inputs:                                                           */
-  if (!PyArg_ParseTuple(args, "OOOOOOOOOOOOOOOOOOOOOOdddsi|ii",
+  if (!PyArg_ParseTuple(args, "OOOOOOOOOOOOOOOOOOOOOOdddi|ii",
                               &ext,
                               &profile, &psize, &pindex, &lorentz, &doppler,
                               &wn, &own, &divisors,
@@ -120,7 +117,7 @@ static PyObject *extinction(PyObject *self, PyObject *args){
                               &isoimol, &isomass, &isoratio, &isoz, &isoiext,
                               &lwn, &elow, &gf, &lID,
                               &ethresh, &pressure, &temp,
-                              &logtext, &verb, &add, &resolution))
+                              &verb, &add, &resolution))
     return NULL;
 
   nLor   = PyArray_DIM(lorentz,  0);  /* Number of Lorentz widths            */
@@ -135,7 +132,6 @@ static PyObject *extinction(PyObject *self, PyObject *args){
   if (add)
     next = 1;
 
-  strcpy(logtext, "\0");
   /* Constant factors for line widths:                                      */
   fdoppler = sqrt(2*KB*temp/AMU) * SQRTLN2 / LS;
   florentz = sqrt(2*KB*temp/PI/AMU) / LS;
@@ -181,9 +177,9 @@ static PyObject *extinction(PyObject *self, PyObject *args){
     /* Doppler profile width (divided by central wavenumber):               */
     alphad[i] = fdoppler / sqrt(INDd(isomass,i));
     /* Print Lorentz and Doppler broadening widths:                         */
-    if(i <= 0){
-      msg(verb-6, logtext, "    Lorentz: %.3e cm-1, Doppler: %.3e cm-1.\n",
-          alphal[i], alphad[i]*INDd(own,0), temp, pressure);
+    if(i <= 0  &&  verb > 6){
+      printf("    Lorentz: %.3e cm-1, Doppler: %.3e cm-1.\n",
+             alphal[i], alphad[i]*INDd(own,0));
     }
     /* Estimate the Voigt FWHM:                                             */
     vwidth = 0.5346*alphal[i] + sqrt(pow(alphal[i], 2)*0.2166    +
@@ -206,9 +202,11 @@ static PyObject *extinction(PyObject *self, PyObject *args){
   ofactor = INDi(divisors,(i-1));   /* Dynamic-sampling oversampling factor */
   dwnstep = ownstep * ofactor;      /* Dynamic-sampling grid stepsize       */
   dnwn    = 1 + (onwn-1) / ofactor; /* Number of dynamic-sampling values    */
-  msg(verb-6, logtext, "    Dynamic-sampling grid interval: %.4e "
-              "(factor:%i, minwidth:%.3e)\n", dwnstep, ofactor, minwidth);
-  msg(verb-6, logtext, "    Number of dynamic-sampling values: %ld\n", dnwn);
+  if (verb > 6){
+      printf("    Dynamic-sampling grid interval: %.4e "
+             "(factor:%i, minwidth:%.3e)\n", dwnstep, ofactor, minwidth);
+      printf("    Number of dynamic-sampling values: %ld\n", dnwn);
+  }
 
   /* Find the maximum line-strength per molecule:                           */
   for (ln=0; ln<nlines; ln++){
@@ -309,12 +307,14 @@ static PyObject *extinction(PyObject *self, PyObject *args){
     neval++;
   }
 
-  msg(verb-5, logtext, "    Number of co-added lines:     %8i  (%5.2f%%)\n",
-              nadd,  nadd*100.0/nlines);
-  msg(verb-5, logtext, "    Number of skipped profiles:   %8i  (%5.2f%%)\n",
-              nskip, nskip*100.0/nlines);
-  msg(verb-5, logtext, "    Number of evaluated profiles: %8i  (%5.2f%%)\n",
-              neval, neval*100.0/nlines);
+  if (verb > 5){
+      printf("    Number of co-added lines:     %8i  (%5.2f%%)\n",
+             nadd,  nadd*100.0/nlines);
+      printf("    Number of skipped profiles:   %8i  (%5.2f%%)\n",
+             nskip, nskip*100.0/nlines);
+      printf("    Number of evaluated profiles: %8i  (%5.2f%%)\n",
+             neval, neval*100.0/nlines);
+  }
 
   /* Interpolate ktmp to constant-R output spectrum:                        */
   if (resolution == 1){

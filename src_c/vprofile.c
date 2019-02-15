@@ -32,8 +32,6 @@ doppler: 1D double ndarray                                                 \n\
    Array of Doppler widths in cm-1.                                        \n\
 dwn: Float                                                                 \n\
    Wavenumber step size in cm-1.                                           \n\
-logtext: String                                                            \n\
-   Char array where to store log text outputs.                             \n\
 verb: Integer                                                              \n\
    Verbosity flag to print info to screen.                                 \n\
                                                                            \n\
@@ -50,14 +48,12 @@ static PyObject *grid(PyObject *self, PyObject *args){
       idx=0,   /* Profile index position                                    */
       verb,    /* Verbosity flag                                            */
       n, m, j; /* Auxilliary for-loop indices                               */
-  char *logtext;
 
   /* Load inputs:                                                           */
-  if (!PyArg_ParseTuple(args, "OOOOOdsi", &profile, &psize, &index,
-                                          &lorentz, &doppler,
-                                          &dwn, &logtext, &verb))
-    return NULL;
-  strcpy(logtext, "\0");
+  if (!PyArg_ParseTuple(args, "OOOOOdi", &profile, &psize, &index,
+                                         &lorentz, &doppler,
+                                         &dwn, &verb))
+      return NULL;
 
   /* Get array sizes:                                                       */
   nLor = (int)PyArray_DIM(lorentz, 0);
@@ -72,15 +68,15 @@ static PyObject *grid(PyObject *self, PyObject *args){
         /* Allocate profile array:                                          */
         vprofile = (double *)calloc(nwave, sizeof(double));
 
-        msg(verb-6, logtext, "Calculating profile[%d, %d] = %d\n",
-                             m, n, IND2i(psize,m,n));
+        if (verb>6)
+          printf("Calculating profile[%d, %d] = %d\n", m, n, IND2i(psize,m,n));
         /* Calculate Voigt using a width that gives an integer number
            of 'dwn' spaced bins:                                            */
         j = voigtn(nwave, dwn*(long)(nwave/2),
                    INDd(lorentz,m), INDd(doppler,n), vprofile, -1,
                    nwave > _voigt_maxelements?VOIGT_QUICK:0);
         if (j != 1){
-          msg(verb-1, logtext, "voigtn() returned error code %i.\n", j);
+          printf("voigtn() returned error code %i.\n", j);
           return 0;
         }
         /* Store values in python-object profile:                           */
@@ -98,10 +94,12 @@ static PyObject *grid(PyObject *self, PyObject *args){
         /* Refer to previous profile:                                       */
         IND2i(index, m, n) = IND2i(index, m, (n-1));
         IND2i(psize, m, n) = IND2i(psize, m, (n-1));
-        msg(verb-6, logtext, "Skip profile[%d, %d] calculation.\n", m, n);
+        if (verb > 6)
+          printf("Skip profile[%d, %d] calculation.\n", m, n);
       }
     }
-    msg(verb-5, logtext, "  Calculated Voigt profile %3d/%d.\n", m+1, nLor);
+    if (verb >5)
+      printf("  Calculated Voigt profile %3d/%d.\n", m+1, nLor);
   }
 
   return Py_BuildValue("i", 1);
