@@ -22,6 +22,7 @@ def readatm(pyrat):
   try:
       atm_inputs = pa.readatm(pyrat.atmfile)
   except ValueError as e:
+      # TBD: handle properly the error message
       pyrat.log.error("Atmosphere file has an unexpected line: \n'{:s}'".
                       format(line))
 
@@ -47,9 +48,9 @@ def readatm(pyrat):
 
   txt = "volume" if (qunits == "number") else "mass"
   pyrat.log.msg("Abundances are given by {:s} ({:s} mixing ratio).".
-           format(atm.qunits, txt), verb=2, indent=2)
-  pyrat.log.msg("Unit factors: radius: {:s}, pressure: {:s}, temperature: "
-    "{:s}".format(atm.runits, atm.punits, atm.tunits), verb=2, indent=2)
+      format(atm.qunits, txt), verb=2, indent=2)
+  pyrat.log.msg("Unit factors: radius: {}, pressure: {:s}, temperature: {:s}".
+      format(atm.runits, atm.punits, atm.tunits), verb=2, indent=2)
 
   # Read molecular constant values:
   getconstants(pyrat)
@@ -98,7 +99,7 @@ def getconstants(pyrat):
 
   # Set molecule's values:
   pyrat.mol.ID     = np.zeros(pyrat.mol.nmol, np.int)
-  pyrat.mol.symbol = np.zeros(pyrat.mol.nmol, "|S15")
+  pyrat.mol.symbol = np.zeros(pyrat.mol.nmol, "U15")
   pyrat.mol.mass   = np.zeros(pyrat.mol.nmol)
   pyrat.mol.radius = np.zeros(pyrat.mol.nmol)
 
@@ -120,10 +121,10 @@ def getconstants(pyrat):
                   pyrat.mol.mass[i]), verb=2, indent=2)
 
 
-def reloadatm(pyrat, temp, abund, radius=None):
+def reloadatm(pyrat, temp=None, abund=None, radius=None):
   """
-  Parameters:
-  -----------
+  Parameters
+  ----------
   pyrat: A Pyrat instance
   temp: 1D float ndarray
      Layer's temperature profile (in Kelvin) sorted from top to bottom.
@@ -132,37 +133,58 @@ def reloadatm(pyrat, temp, abund, radius=None):
   radius: 1D float ndarray
      Layer's altitude profile (in cm), same order as temp.
   """
+  # Recompute temperature profile:
+  if temp is not None:
+      # Need to null tpars since it does not represent temp anymore
+      pyrat.atm.tpars = None
+  elif pyrat.atm.tpars is not None:
+      temp = pyrat.atm.tmodel(pyrat.atm.tpars, *pyrat.atm.targs)
+  else:
+      temp = pyrat.atm.temp
+
   # Check that the dimensions match:
   if np.size(temp) != np.size(pyrat.atm.temp):
-    pyrat.log.error("The temperature array size ({:d}) doesn't match the "
-                    "Pyrat's temperature size ({:d}).".
-                    format(np.size(temp), np.size(pyrat.atm.temp)))
-  if np.shape(abund) != np.shape(pyrat.atm.q):
-    pyrat.log.error("The shape of the abundances array {:s} doesn't match "
-                    "the shape of the Pyrat's abundance size {:s}".
-                    format(str(np.shape(abund)), str(np.shape(pyrat.atm.q))))
+      pyrat.log.error("The temperature array size ({:d}) doesn't match the "
+                      "Pyrat's temperature size ({:d}).".
+                      format(np.size(temp), np.size(pyrat.atm.temp)))
 
   # Check temperature boundaries:
   errorlog = ("One or more input temperature values lies out of the {:s} "
-    "temperature boundaries (K): [{:6.1f}, {:6.1f}].\nHalted calculation.")
+      "temperature boundaries (K): [{:6.1f}, {:6.1f}].\nHalted calculation.")
   if pyrat.ex.extfile is not None:
-    if np.any(temp > pyrat.ex.tmax) or np.any(temp < pyrat.ex.tmin):
-      pyrat.log.warning(errorlog.format("tabulated EC", pyrat.ex.tmin,
-                                                        pyrat.ex.tmax))
-      return 0
+      if np.any(temp > pyrat.ex.tmax) or np.any(temp < pyrat.ex.tmin):
+          pyrat.log.warning(errorlog.format("tabulated EC", pyrat.ex.tmin,
+                                                            pyrat.ex.tmax))
+          return 0
   else:
-    if (pyrat.lt.ntransitions > 0 and
-        (np.any(temp > pyrat.lt.tmax) or np.any(temp < pyrat.lt.tmin))):
-      pyrat.log.warning(errorlog.format("line-transition", pyrat.lt.tmin,
-                                                           pyrat.lt.tmax))
-      return 0
-    if (pyrat.cs.nfiles > 0 and
-        (np.any(temp > pyrat.cs.tmax) or np.any(temp < pyrat.cs.tmin))):
-      pyrat.log.warning(errorlog.format("cross-section", pyrat.cs.tmin,
-                                                         pyrat.cs.tmax))
-      return 0
+      if (pyrat.lt.ntransitions > 0 and
+         (np.any(temp > pyrat.lt.tmax) or np.any(temp < pyrat.lt.tmin))):
+          pyrat.log.warning(errorlog.format("line-transition", pyrat.lt.tmin,
+                                                               pyrat.lt.tmax))
+          return 0
+      if (pyrat.cs.nfiles > 0 and
+         (np.any(temp > pyrat.cs.tmax) or np.any(temp < pyrat.cs.tmin))):
+          pyrat.log.warning(errorlog.format("cross-section", pyrat.cs.tmin,
+                                                             pyrat.cs.tmax))
+          return 0
 
-  # Put temperature and abundance data into the Pyrat object:
+  # Recompute abundance profiles:
+  q0 = np.copy(pyrat.atm.qbase)
+  if abund is not None:
+      pass
+  elif pyrat.atm.molpars is not None:
+      abund = pa.qscale(q0, pyrat.mol.name, pyrat.atm.molmodel,
+          pyrat.atm.molfree, pyrat.atm.molpars, pyrat.atm.bulk,
+          iscale=pyrat.atm.ifree, ibulk=pyrat.atm.ibulk,
+          bratio=pyrat.atm.bulkratio, invsrat=pyrat.atm.invsrat)
+  else:
+      abund = q0
+  if np.shape(abund) != np.shape(pyrat.atm.q):
+      pyrat.log.error("The shape of the abundances array {:s} doesn't match "
+                      "the shape of the Pyrat's abundance size {:s}".
+                      format(str(np.shape(abund)), str(np.shape(pyrat.atm.q))))
+
+  # Update values:
   pyrat.atm.temp = temp
   pyrat.atm.q    = abund
 
@@ -174,27 +196,28 @@ def reloadatm(pyrat, temp, abund, radius=None):
 
   # Take radius if provided, else use hydrostatic-equilibrium equation:
   if radius is not None:
-    pyrat.atm.radius = radius
+      pyrat.atm.radius = radius
   else:
-    # Compute gplanet from mass and radius if necessary/possible:
-    if (pyrat.phy.gplanet is None and
-      pyrat.phy.mplanet is not None and pyrat.phy.rplanet is not None):
-      pyrat.phy.gplanet = pc.G * pyrat.phy.mplanet / pyrat.phy.rplanet**2
+      # Compute gplanet from mass and radius if necessary/possible:
+      if pyrat.phy.gplanet is None and \
+         pyrat.phy.mplanet is not None and \
+         pyrat.phy.rplanet is not None:
+          pyrat.phy.gplanet = pc.G * pyrat.phy.mplanet / pyrat.phy.rplanet**2
 
-    # Check that the gravity variable is exists:
-    if pyrat.phy.rplanet is None:
-      pyrat.log.error("Undefined reference planetary radius (rplanet). "
-         "Either provide the radius profile for the layers or the rplanet.")
-    if pyrat.phy.gplanet is None:
-      pyrat.log.error("Undefined atmospheric gravity (gplanet). "
-         "Either provide the radius profile for the layers, the surface "
-         "gravity, or the planetary mass (mplanet).")
-    if pyrat.refpressure is None:
-      pyrat.log.error("Undefined reference pressure level (refpressure). "
-         "Either provide the radius profile for the layers or refpressure.")
-    pyrat.atm.radius = pyrat.hydro(pyrat.atm.press, pyrat.atm.temp,
-                          pyrat.atm.mm, pyrat.phy.gplanet, pyrat.phy.mplanet,
-                          pyrat.refpressure, pyrat.phy.rplanet)
+      # Check that the gravity variable is exists:
+      if pyrat.phy.rplanet is None:
+          pyrat.log.error("Undefined reference planetary radius (rplanet). "
+           "Either provide the radius profile for the layers or the rplanet.")
+      if pyrat.phy.gplanet is None:
+          pyrat.log.error("Undefined atmospheric gravity (gplanet). "
+           "Either provide the radius profile for the layers, the surface "
+           "gravity, or the planetary mass (mplanet).")
+      if pyrat.refpressure is None:
+          pyrat.log.error("Undefined reference pressure level (refpressure). "
+           "Either provide the radius profile for the layers or refpressure.")
+      pyrat.atm.radius = pyrat.hydro(pyrat.atm.press, pyrat.atm.temp,
+                            pyrat.atm.mm, pyrat.phy.gplanet, pyrat.phy.mplanet,
+                            pyrat.refpressure, pyrat.phy.rplanet)
   # Check radii lie within Hill radius:
   rtop = np.where(pyrat.atm.radius > pyrat.phy.rhill)[0]
   if np.size(rtop) > 0:
@@ -208,8 +231,7 @@ def reloadatm(pyrat, temp, abund, radius=None):
     pyrat.atm.rtop = 0
 
   # Partition function:
-  for i in np.arange(pyrat.lt.ndb):           # For each Database
-    for j in np.arange(pyrat.lt.db[i].niso):  # For each isotope in DB
-      zinterp = sip.interp1d(pyrat.lt.db[i].temp, pyrat.lt.db[i].z[j],
-                             kind='slinear')
-      pyrat.iso.z[pyrat.lt.db[i].iiso+j] = zinterp(pyrat.atm.temp)
+  for db in pyrat.lt.db:            # For each Database
+      for j in np.arange(db.niso):  # For each isotope in DB
+          zinterp = sip.interp1d(db.temp, db.z[j], kind='slinear')
+          pyrat.iso.z[db.iiso+j] = zinterp(pyrat.atm.temp)

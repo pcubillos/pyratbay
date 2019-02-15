@@ -256,6 +256,7 @@ def parse():
   args.cfile = cfile
 
   # Initialize log object:
+  args.logfile = pt.path(args.logfile)
   log = mu.Log(logname=args.logfile, verb=args.verb, width=80,
                append=args.resume)
 

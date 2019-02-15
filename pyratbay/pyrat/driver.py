@@ -97,24 +97,27 @@ def init(argv, main=False, log=None):
   return pyrat
 
 
-def run(pyrat, inputs=None):
+def run(pyrat, temp=None, q=None, radius=None):
   """
-  PyRaT driver to calculate the spectrum.
+  Pyrat driver to calculate a spectrum.
 
-  Parameters:
-  -----------
+  Parameters
+  ----------
   pyrat: A Pyrat instance
-  inputs: list
-     A list containing a 1D float array of temperatures, and a 2D array of
-     the species abundances.
+  temp: 1D float ndarray
+      Updated atmospheric temperature profile in Kelvin, of size nlayers.
+  q: 2D float ndarray
+      Updated atmospheric abundances profile by number density, of
+      shape [nlayers, nmol]
+  radius: 1D float ndarray
+      Updated atmospheric altitude profile in cm, of size nlayers.
   """
   timestamps = []
   timestamps.append(time.time())
 
   # Re-calculate atmospheric properties if required:
-  if inputs is not None:
-    status = ra.reloadatm(pyrat, *inputs)
-    if status == 0:
+  status = ra.reloadatm(pyrat, temp, q, radius)
+  if status == 0:
       return
 
   # Interpolate CIA absorption:
@@ -153,8 +156,8 @@ def run(pyrat, inputs=None):
     wpath, wfile = os.path.split(pyrat.log.logname)
     wfile = "{:s}/warnings_{:s}".format(wpath, wfile)
     with open(wfile, "w") as wf:
-      wf.write("Warnings log:\n\n{:s}\n".format(pyrat.log.sep))
-      wf.write("\n\n{:s}\n".format(pyrat.log.sep).join(pyrat.log.warnings))
+        wf.write("Warnings log:\n\n{:s}\n".format(pyrat.log.sep))
+        wf.write("\n\n{:s}\n".format(pyrat.log.sep).join(pyrat.log.warnings))
     # Report it:
     pyrat.log.msg("\n{:s}\n  There were {:d} warnings raised.  See '{:s}'.\n"
                   "{:s}".format(pyrat.log.sep, len(pyrat.log.warnings), wfile,

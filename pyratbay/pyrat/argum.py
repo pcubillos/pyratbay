@@ -8,7 +8,7 @@ if sys.version_info.major == 3:
 else:
     import ConfigParser as configparser
 import argparse
-import multiprocessing   as mp
+import multiprocessing as mp
 from datetime import date
 
 import numpy as np
@@ -28,15 +28,10 @@ from .  import haze      as hz
 from .  import rayleigh  as ray
 from .  import alkali    as al
 
-
-rootdir = os.path.realpath(os.path.dirname(__file__) + "/../..")
-sys.path.append(rootdir + "/pyratbay/lib/")
-import pt as PT
-
-sys.path.append(rootdir + "/pyratbay/atmosphere/")
+sys.path.append(pc.ROOT + "/pyratbay/atmosphere/")
 import MadhuTP
 
-sys.path.append(rootdir + "/modules/MCcubed")
+sys.path.append(pc.ROOT + "/modules/MCcubed")
 import MCcubed.utils as mu
 
 
@@ -112,6 +107,10 @@ def parse(pyrat, log=None):
       "Output resolving power")
   # Atmospheric sampling options:
   group = parser.add_argument_group("Atmosphere Sampling Options")
+  pt.addarg("tmodel",      group, str,       None,
+      "Temperature-profile model name.  Select from: isothermal or TCEA.")
+  pt.addarg("tpars",       group, pt.parray, None,
+      "Temperature model fitting parameters.")
   pt.addarg("radlow",      group, str,       None,
       "Atmospheric radius low boundary [default: Atmospheric file value]")
   pt.addarg("radhigh",     group, str,       None,
@@ -206,12 +205,14 @@ def parse(pyrat, log=None):
       "cloud patchy.")
   pt.addarg("bulk",        group, pt.parray, None,
       "Bulk-abundance atmospheric species.")
-  pt.addarg("molscale",    group, pt.parray, None,
-      "Variable-abundance atmospheric species.")
+  pt.addarg("molmodel",    group, pt.parray, None,
+      "Model to vary species abundance profile. Select from: vert or scale.")
+  pt.addarg("molfree",    group, pt.parray, None,
+      "Species to vary (one species per each molmodel).")
+  pt.addarg("molpars",    group, pt.parray, None,
+      "molmodel parameters.")
   pt.addarg("qcap",        group, np.double, 0.99,
       "Maximum acceptable cumulative abundance fraction of traces.")
-  pt.addarg("tmodel",      group, str,       None,
-      "Temperature-profile model name.  Select from: isothermal or TCEA.")
   pt.addarg("params",      group, pt.parray, None,
       "Initial-guess for retrieval model-fitting parameter.")
   pt.addarg("stepsize",    group, pt.parray, None,
@@ -277,11 +278,11 @@ def parse(pyrat, log=None):
 
   # Open the Pyrat log file if requested:
   if log is not None:  # Take pre-existing log
-    pyrat.log = log
-    pyrat.logfile = log.logname
+      pyrat.log = log
+      pyrat.logfile = log.logname
   elif pyrat.inputs.logfile is not None:  # Start new log
-    pyrat.logfile = os.path.realpath(pyrat.inputs.logfile)
-    log = pyrat.log = mu.Log(pyrat.logfile, verb=pyrat.verb, width=80)
+      pyrat.logfile = pt.path(pyrat.inputs.logfile)
+      log = pyrat.log = mu.Log(pyrat.logfile, verb=pyrat.verb, width=80)
 
   # Welcome message:
   log.msg("{:s}\n"
@@ -333,7 +334,7 @@ def checkinputs(pyrat):
   pyrat.cs.files = pyrat.inputs.csfile
 
   if inputs.molfile is None: # Set default
-    inputs.molfile = os.path.realpath(rootdir + "/inputs/molecules.dat")
+    inputs.molfile = os.path.realpath(pc.ROOT + "/inputs/molecules.dat")
   if not os.path.isfile(inputs.molfile):
     log.error("Molecular-data file: '{:s}' does not exist.".
               format(inputs.molfile))
@@ -690,7 +691,7 @@ def checkinputs(pyrat):
   # Check raygrid:
   if inputs.raygrid is None:
     raygrid = pt.defaultp(inputs.raygrid, np.array([0, 20, 40, 60, 80.]),
-              "Defaulted emission raygrid to {:s}.", log)
+        "Defaulted emission raygrid to {}.", log)
   else:
     raygrid = inputs.raygrid
     if raygrid[0] != 0:
@@ -734,24 +735,31 @@ def checkinputs(pyrat):
   # Retrieval variables:
   # Accept species lists, check after we load the atmospheric model:
   pyrat.ret.retflag  = inputs.retflag
-  pyrat.ret.bulk     = inputs.bulk
   pyrat.ret.qcap     = inputs.qcap
-  pyrat.ret.molscale = inputs.molscale
   pyrat.ret.params   = inputs.params
   if pyrat.ret.params is not None:
-    pyrat.ret.nparams = len(pyrat.ret.params)
+      pyrat.ret.nparams = len(pyrat.ret.params)
   pyrat.ret.stepsize = inputs.stepsize # FINDME checks
   pyrat.ret.tlow     = pt.getparam(inputs.tlow,  "kelvin", log)
   pyrat.ret.thigh    = pt.getparam(inputs.thigh, "kelvin", log)
+
+  # Atmospheric model:
+  pyrat.atm.molmodel = inputs.molmodel
+  pyrat.atm.molfree  = inputs.molfree
+  pyrat.atm.molpars  = inputs.molpars
+  pyrat.atm.bulk     = inputs.bulk
   if inputs.tmodel is not None and inputs.tmodel not in \
           ["TCEA", "isothermal", "MadhuInv", "MadhuNoInv"]:
     log.error("Invalid temperature model '{:s}'.  Select from: "
               "TCEA, MadhuInv, MadhuNoInv or isothermal.".format(inputs.tmodel))
-  pyrat.ret.tmodelname = inputs.tmodel
+  pyrat.atm.tmodelname = inputs.tmodel
+
+  pyrat.atm.tpars = inputs.tpars
+
   if np.abs(pyrat.ret.qcap-0.5) > 0.5:
     log.error("Trace abundances cap (qcap={:.3f}) must lie in the range "
              "between 0.0 and 1.0.".format(pyrat.ret.qcap))
-  if pyrat.ret.tmodelname == "TCEA":
+  if pyrat.atm.tmodelname == "TCEA":
     if pyrat.phy.rstar is None:
       log.error("Undefined stellar radius (rstar), required for temperature "
                "model.")
@@ -817,30 +825,38 @@ def isgreater(value, units, thresh, equal=False, text="", log=None):
 
 def setup(pyrat):
   """
-  Process retrieval variables: bulk, molscale.
+  Process retrieval variables: bulk, molmodel.
   Process stellar spectrum.
   Process the oberving filter bands.
   """
   # Shortcuts:
   phy = pyrat.phy
   ret = pyrat.ret
+  atm = pyrat.atm
   log = pyrat.log
 
   # Setup bulk and variable-abundance species:
   species = pyrat.mol.name
   # Non-overlapping species:
-  if ret.bulk is not None  and  len(np.setdiff1d(ret.bulk, species)) > 0:
+  if atm.bulk is not None  and  len(np.setdiff1d(atm.bulk, species)) > 0:
     log.error("These bulk species are not present in the atmosphere: {:s}.".
-      format(str(np.setdiff1d(ret.bulk, species))))
-  if ret.molscale is not None and len(np.setdiff1d(ret.molscale, species)) > 0:
-    log.error("These variable-abundance species are not present in the "
-        "atmosphere: {:s}.".format(str(np.setdiff1d(ret.molscale, species))))
+      format(str(np.setdiff1d(atm.bulk, species))))
+
+  if atm.molmodel is not None:
+      if atm.molfree is None:
+          log.error("molmodel is set, but there are no molfree.")
+      if len(atm.molmodel) != len(atm.molfree):
+          log.error("There should be one molfree for each molmodel:\n"
+              "molmodel: {}\nmolfree: {}".format(atm.molmodel, atm.molfree))
+      if len(np.setdiff1d(atm.molfree, species)) > 0:
+          log.error("These species are not present in the atmosphere: {:s}.".
+                    format(str(np.setdiff1d(atm.molfree, species))))
 
   # Overlapping species:
-  if (ret.bulk is not None  and  ret.molscale is not None  and
-      len(np.intersect1d(ret.bulk, ret.molscale)) > 0):
+  if (atm.bulk is not None  and  atm.molfree is not None  and
+      len(np.intersect1d(atm.bulk, atm.molfree)) > 0):
     log.error("These species were marked as both bulk and variable-abundance: "
-             "{:s}.".format(np.intersect1d(ret.bulk, ret.molscale)))
+             "{:s}.".format(np.intersect1d(atm.bulk, atm.molfree)))
 
   if pyrat.runmode == "mcmc":
     if ret.retflag is None:
@@ -849,30 +865,27 @@ def setup(pyrat):
     elif not np.all(np.in1d(ret.retflag, ret.rmodels)):
       log.error("Invalid retrieval model flags in retflag={}.  Available "
                "options are: {}.".format(ret.retflag, ret.rmodels))
-    if ret.bulk is None and "mol" in ret.retflag:
+    if atm.bulk is None and "mol" in ret.retflag:
       log.error("Undefined bulk species list (bulk).")
-    if ret.molscale is None and "mol" in ret.retflag:
+    if atm.molmodel is None and "mol" in ret.retflag:
       log.error("Species abundances included for retrieval (retflag contains "
-               "'mol') but there are no variable-abundance species (molscale).")
+               "'mol') but there are no abundance model (molmodel).")
 
   # Obtain abundance ratios between the bulk species:
-  if ret.bulk is not None:
-    ret.ibulk = []
-    for mol in ret.bulk:
-      ret.ibulk  += list(np.where(species==mol)[0])
-    ret.bulkratio, ret.invsrat = pa.ratio(pyrat.atm.q, ret.ibulk)
-  if ret.molscale is not None:
-    ret.iscale = []
-    for mol in ret.molscale:
-      ret.iscale += list(np.where(species==mol)[0])
-    nabund = len(ret.iscale)
-    # Abundance free-parameter names:
-    mpnames   = ["log({:s})".format(mol) for mol in ret.molscale]
-    mtexnames = [r"$\log_{{10}}(f_{{\rm {:s}}})$".format(mol)
-                  for mol in ret.molscale]
+  spec = list(species)
+  if atm.bulk is not None:
+      atm.ibulk = [spec.index(mol) for mol in atm.bulk]
+      atm.bulkratio, atm.invsrat = pa.ratio(pyrat.atm.q, atm.ibulk)
+  if atm.molmodel is not None:
+      atm.ifree = [spec.index(mol) for mol in atm.molfree]
+      nabund = len(atm.ifree)
+      # Abundance free-parameter names:
+      mpnames   = ["log({:s})".format(mol) for mol in atm.molfree]
+      mtexnames = [r"$\log_{{10}}(f_{{\rm {:s}}})$".format(mol)
+                   for mol in atm.molfree]
   else:
-    nabund = 0
-    mpnames, mtexnames = [], []
+      nabund = 0
+      mpnames, mtexnames = [], []
 
   # Read stellar spectrum model:
   if phy.starspec is not None:
@@ -918,30 +931,30 @@ def setup(pyrat):
     phy.rprs = phy.rplanet/phy.rstar
 
   # Temperature models and arguments:
-  if ret.tmodelname == "TCEA":
-    ret.tmodel = PT.TCEA
+  if atm.tmodelname == "TCEA":
     ntemp = 5
-    ret.targs  = [pyrat.atm.press, phy.rstar, phy.tstar, phy.tint,
-                  phy.smaxis, phy.gplanet]
+    atm.tmodel = pa.temp_TCEA
+    atm.targs  = [pyrat.atm.press, phy.rstar, phy.tstar, phy.tint,
+                  phy.gplanet, phy.smaxis]
     tpnames   = ["log(kappa)", "log(gamma1)", "log(gamma2)", "alpha", "beta"]
     ttexnames = [r"$\log_{10}(\kappa)$", r"$\log_{10}(\gamma_1)$",
                  r"$\log_{10}(\gamma2)$", r"$\alpha$", r"$\beta$"]
-  elif ret.tmodelname == "isothermal":
-    ret.tmodel = PT.isothermal
+  elif atm.tmodelname == "isothermal":
     ntemp = 1
-    ret.targs = [pyrat.atm.nlayers]
+    atm.tmodel = pa.temp_isothermal
+    atm.targs = [pyrat.atm.nlayers]
     tpnames   = ["T (K)"]
     ttexnames = [r"$T\ ({\rm K})$"]
-  elif ret.tmodelname == "MadhuNoInv":
+  elif atm.tmodelname == "MadhuNoInv":
     ntemp = 5
-    ret.tmodel = MadhuTP.no_inversion
-    ret.targs  = [pyrat.atm.press*1e-6]
+    atm.tmodel = MadhuTP.no_inversion
+    atm.targs  = [pyrat.atm.press*1e-6]
     tpnames    = ["a1", "a2", "p1", "p3", "T3"]
     ttexnames  = [r"$a_1$", r"$a_2$", r"$p_1$", r"$p_3$", r"$T_3$"]
-  elif ret.tmodelname == "MadhuInv":
+  elif atm.tmodelname == "MadhuInv":
     ntemp = 6
-    ret.tmodel = MadhuTP.inversion
-    ret.targs  = [pyrat.atm.press*1e-6]
+    atm.tmodel = MadhuTP.inversion
+    atm.targs  = [pyrat.atm.press*1e-6]
     tpnames    = ["a1", "a2", "p1", "p2", "p3", "T3"]
     ttexnames  = [r"$a_1$", r"$a_2$", r"$p_1$", r"$p_2$", r"$p_3$", r"$T_3$"]
   else:

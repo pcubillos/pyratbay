@@ -2,6 +2,7 @@
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
 import textwrap
+
 import numpy  as np
 
 from .. import tools      as pt
@@ -15,12 +16,22 @@ from .  import alkali     as al
 
 
 def wrap(outlist, text, indent=0):
-  indspace = " "*indent
-  lines = text.splitlines()
-  for line in lines:
-    outlist.append(textwrap.fill(line, break_long_words=False,
-                                 initial_indent=indspace,
-                                 subsequent_indent=indspace, width=80))
+    """
+    Wrap input text, store it into outlist list.
+
+    Parameters
+    ----------
+    outlist: List
+    text: String
+    indent: Integer
+    """
+    # TDB: Document and move to tools.
+    indspace = " "*indent
+    lines = text.splitlines()
+    for line in lines:
+        outlist.append(textwrap.fill(line, break_long_words=False,
+                                     initial_indent=indspace,
+                                     subsequent_indent=indspace, width=80))
 
 
 class Pyrat(object):
@@ -70,6 +81,12 @@ class Pyrat(object):
     self.logfile    = None  # Pyrat log filename
     self.log        = None  # Pyrat log file
     self.timestamps = None  # Time stamps
+
+
+  def run(self):
+      """Evaluate a model"""
+      # TBD: Bring code from driver.run() in here.
+      pass
 
 
   def hydro(self, pressure, temperature, mu, g, mass, p0, r0):
@@ -241,6 +258,8 @@ class Atm(object):
     self.mm        = None      # Mean molecular mass (gr/mol) [layers]
     self.q         = None      # Molecular abundances         [layers, nmol]
     self.d         = None      # Molecular densities          [layers, nmol]
+    self.tmodel    = None
+    self.tpars     = None
     self.rtop      = 0         # Index of topmost layer (within Hill radius)
 
   def __repr__(self):

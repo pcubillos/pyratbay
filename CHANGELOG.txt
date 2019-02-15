@@ -4111,3 +4111,20 @@ Tested in test_tools.py.
 
 *****
 
+Lots of changes in pyrat argum.py.
+Added tpars arguments to pyrat parser to set temperature model.
+Replaced molscale with molmodel, molfree, and molpars to set
+abundance scaling model, variable species, and model parameters.
+Renamed pyrat.ret.iscale with pyrat.atm.ifree.
+Put tmodel, tpars, tmodelname, molmodel, molfree, molpars, bulk,
+ibulk, bulkratio, invsrat, ifree into pyrat.atm module (as opposed
+to pyrat.ret as before).
+
+Completely refactored pyrat.readatm.reloadatm().
+Enable temp, abundance, or radius update either by model parameters
+or by input arrays.
+
+The new qscaling scheme is still to be updated.
+
+*****
+
