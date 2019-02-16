@@ -7,7 +7,7 @@ import numpy as np
 
 
 def balance(Q, ibulk, ratio, invsrat):
-  """
+  r"""
   Balance the mole mixing ratios of the bulk species, Q[ibulk],
   such that Sum(Q) = 1.0 at each level.
 
@@ -32,6 +32,19 @@ def balance(Q, ibulk, ratio, invsrat):
      {\rm ratio}_j = Q_j/Q_0.
   The balanced abundance of the bulk species is then:
      Q_j = \frac{{\rm ratio}_j * Q_{\rm bulk}} {\sum {\rm ratio}}.
+
+  Examples
+  --------
+  >>> import pyratbay.atmosphere as pa
+  >>> q = np.tile([0.8, 0.2, 0.5], (5,1))
+  >>> q[4] = 0.5, 0.5, 0.5
+  >>> ibulk = [0, 1]
+  >>> bratio, invsrat = pa.ratio(q, ibulk)
+  >>> pa.balance(q, ibulk, bratio, invsrat)
+  >>> print(np.sum(q,axis=1))
+  [ 1.  1.  1.  1.  1.]
+  >>> print(q[:,1]/q[:,0])
+  [ 0.25  0.25  0.25  0.25  1.  ]
   """
   # The shape of things:
   nlayers, nspecies = np.shape(Q)
@@ -45,7 +58,7 @@ def balance(Q, ibulk, ratio, invsrat):
 
   # Calculate the balanced mole mixing ratios:
   for j in np.arange(nratio):
-    Q[:,ibulk[j]] = ratio[:,j] * q * invsrat
+      Q[:,ibulk[j]] = ratio[:,j] * q * invsrat
 
 
 def qcapcheck(Q, qcap, ibulk):
@@ -77,7 +90,7 @@ def qcapcheck(Q, qcap, ibulk):
 
   # Do sum of trace abundances exceed Qcap?
   if np.any(qtrace > qcap):
-    return True
+      return True
   return False
 
 
@@ -99,6 +112,22 @@ def ratio(Q, ibulk):
      Abundance ratio between species indexed by ibulk.
   invsrat: 1D float ndarray
      Inverse of the sum of the ratios (at each layer).
+
+  Examples
+  --------
+  >>> import pyratbay.atmosphere as pa
+  >>> q = np.tile([0.8, 0.2], (5,1))
+  >>> q[4] = 0.5, 0.5
+  >>> ibulk = [0, 1]
+  >>> bratio, invsrat = pa.ratio(q, ibulk)
+  >>> print(bratio)
+  [[ 1.    0.25]
+   [ 1.    0.25]
+   [ 1.    0.25]
+   [ 1.    0.25]
+   [ 1.    1.  ]]
+  >>> print(invsrat)
+  [ 0.8  0.8  0.8  0.8  0.5]
   """
   # The shape of things:
   nlayers, nspecies = np.shape(Q)
@@ -107,7 +136,7 @@ def ratio(Q, ibulk):
 
   # Calculate the abundance ratio WRT first indexed species in ibulk: 
   for j in np.arange(1, nratio):
-    bratio[:,j] = Q[:,ibulk[j]] / Q[:,ibulk[0]]
+      bratio[:,j] = Q[:,ibulk[j]] / Q[:,ibulk[0]]
 
   # Inverse sum of ratio:
   invsrat = 1.0 / np.sum(bratio, axis=1)
@@ -115,7 +144,7 @@ def ratio(Q, ibulk):
   return bratio, invsrat
 
 
-def qscale(Q, spec, qscale, molscale, bulk, qsat=None,
+def qscale(Q, spec, molmodel, molfree, molpars, bulk, qsat=None,
            iscale=None, ibulk=None, bratio=None, invsrat=None):
   """
   Scale specified species abundances and balance bulk abundances to
@@ -127,16 +156,18 @@ def qscale(Q, spec, qscale, molscale, bulk, qsat=None,
      Mole mixing ratio of the species in the atmosphere [Nlayers, Nspecies].
   spec:  1D string ndarray
      Names of the species in the atmosphere.
-  qscale:  1D float ndarray
-     Scaling factor (dex) for each species in molscale.
-  molscale:  1D string ndarray
-     Names of the species to scale their abundance profiles.
+  molmodel: 1D string ndarray
+     Model to vary the species abundances.
+  molfree:  1D string ndarray
+     Names of the species to vary their abundances.
+  molpars:  1D float ndarray
+     Scaling factor (dex) for each species in molfree.
   bulk:  1D string ndarray
      Names of the bulk (dominant) species.
   qsat:  Float
      Maximum allowed combined abundance for trace species.
   iscale:  1D integer ndarray
-     Indices of molscale species in Q.
+     Indices of molfree species in Q.
   ibulk:  1D integer ndarray
      Indices of the bulk species in Q.
   bratio:  2D float ndarray
@@ -155,30 +186,29 @@ def qscale(Q, spec, qscale, molscale, bulk, qsat=None,
      the routine.
   I'm not completely happy with qsat yet.
   """
+  spec = list(spec)
   q = np.copy(Q)
   if iscale is None:
-    iscale = []
-    for mol in molscale:
-      iscale += list(np.where(spec==mol)[0])
+      iscale = [spec.index(mol) for mol in molfree]
   if ibulk is None:
-    ibulk = []
-    for mol in bulk:
-      ibulk  += list(np.where(spec==mol)[0])
+      ibulk  = [spec.index(mol) for mol in bulk]
   if bratio is None:
-    bratio, invsrat = ratio(Q, ibulk)
+      bratio, invsrat = ratio(Q, ibulk)
 
   # Scale abundance of requested species:
-  for i in np.arange(len(iscale)):
-    m = iscale[i]
-    q[:,m] = Q[:,m] * 10.0**qscale[i]
+  for idx,value,model in zip(iscale, molpars, molmodel):
+      if model == 'scale':
+          q[:,idx] = Q[:,idx] * 10.0**value
+      elif model == 'vert':
+          q[:,idx] = 10**value
 
   # Enforce saturation limit:
   if qsat is not None:
-    ifix = np.setdiff1d(np.arange(len(spec)), np.union1d(ibulk, iscale))
-    q0 = ((qsat - np.sum(q[:,ifix],   axis=1, keepdims=True)) /
-                  np.sum(q[:,iscale], axis=1, keepdims=True))
-    q0 = np.clip(q0, 0.0, 1.0)
-    q[:,iscale] *= q0
+      ifix = np.setdiff1d(np.arange(len(spec)), np.union1d(ibulk, iscale))
+      q0 = ((qsat - np.sum(q[:,ifix],   axis=1, keepdims=True)) /
+                    np.sum(q[:,iscale], axis=1, keepdims=True))
+      q0 = np.clip(q0, 0.0, 1.0)
+      q[:,iscale] *= q0
 
   # Scale abundance of bulk species to balance sum(Q):
   balance(q, ibulk, bratio, invsrat)

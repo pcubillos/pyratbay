@@ -4136,5 +4136,14 @@ moment I'll take it away.  It was not being used for logging anyways,
 just for debugging.
 Replaced the repective msg() calls with printf() calls.
 
+
+*****  Sat Feb 16 17:36:30 JST 2019  *****
+
+Finished implementing new abundance-variation scheme (vert and scale)
+Code works for forward-modeling in a much simplified way for the user
+TBD: unbreak mcmc.
+TBD: clean and commit test_spectrum.py.
+
 *****
+
 

@@ -171,7 +171,7 @@ def reloadatm(pyrat, temp=None, abund=None, radius=None):
   # Recompute abundance profiles:
   q0 = np.copy(pyrat.atm.qbase)
   if abund is not None:
-      pass
+      pyrat.atm.molpars = None
   elif pyrat.atm.molpars is not None:
       abund = pa.qscale(q0, pyrat.mol.name, pyrat.atm.molmodel,
           pyrat.atm.molfree, pyrat.atm.molpars, pyrat.atm.bulk,
@@ -218,6 +218,7 @@ def reloadatm(pyrat, temp=None, abund=None, radius=None):
       pyrat.atm.radius = pyrat.hydro(pyrat.atm.press, pyrat.atm.temp,
                             pyrat.atm.mm, pyrat.phy.gplanet, pyrat.phy.mplanet,
                             pyrat.refpressure, pyrat.phy.rplanet)
+
   # Check radii lie within Hill radius:
   rtop = np.where(pyrat.atm.radius > pyrat.phy.rhill)[0]
   if np.size(rtop) > 0:
