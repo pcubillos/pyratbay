@@ -9,6 +9,7 @@ sys.path.append(ROOT)
 import pyratbay.atmosphere as pa
 import pyratbay.constants  as pc
 
+os.chdir(ROOT+'tests')
 
 expected_pressure = np.array([1.e-02, 1.e-01, 1.e+00, 1.e+01, 1.e+02, 1.e+03,
                               1.e+04, 1.e+05, 1.e+06, 1.e+07, 1.e+08])

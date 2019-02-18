@@ -12,6 +12,7 @@ import pyratbay as pb
 import pyratbay.constants as pc
 import pyratbay.atmosphere as pa
 
+os.chdir(ROOT+'tests')
 
 expected_pressure = np.array(
       [1.00000000e+00, 1.25892541e+00, 1.58489319e+00, 1.99526231e+00,
@@ -61,9 +62,9 @@ expected_temperature = np.array(
 
 
 def test_tli_hitran():
-    subprocess.call(['wget', '--user=HITRAN', '--password=getdata', '-N',
-                     'https://www.cfa.harvard.edu/HITRAN/HITRAN2012/HITRAN2012/By-Molecule/Compressed-files/01_hit12.zip'])
-    subprocess.call(['unzip', '01_hit12.zip'])
+    #subprocess.call(['wget', '--user=HITRAN', '--password=getdata', '-N',
+    #                 'https://www.cfa.harvard.edu/HITRAN/HITRAN2012/HITRAN2012/By-Molecule/Compressed-files/01_hit12.zip'])
+    #subprocess.call(['unzip', '01_hit12.zip'])
     pb.pbay.run('tli_hitran_test.cfg')
     # asserts on output file
 

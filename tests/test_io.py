@@ -9,6 +9,8 @@ import pyratbay.io as io
 import pyratbay.atmosphere as pa
 import pyratbay.constants  as pc
 
+os.chdir(ROOT+'tests')
+
 
 def test_read_write_opacity(tmpdir):
     ofile = "{}/opacity_test.dat".format(tmpdir)

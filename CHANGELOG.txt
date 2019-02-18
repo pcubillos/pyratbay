@@ -4151,3 +4151,8 @@ Added __repr__ function for Pyrat() object.
 
 *****
 
+Ensure that tests are run from the tests/ folder to prevent issues
+with relative paths.
+
+*****
+
