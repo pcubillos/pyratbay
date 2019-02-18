@@ -269,9 +269,9 @@ def parse(pyrat, log=None):
   user, unknown = parser.parse_known_args(remaining_argv)
 
   # Put user arguments into pyrat input:
-  pyrat.inputs.configfile = args.configfile
   for key, value in vars(user).items():
-    setattr(pyrat.inputs, key, value)
+      setattr(pyrat.inputs, key, value)
+  pyrat.inputs.configfile = args.configfile
 
   # Verbosity level:
   pyrat.verb = int(pyrat.inputs.verb)

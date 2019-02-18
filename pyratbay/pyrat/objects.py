@@ -169,6 +169,46 @@ class Pyrat(object):
     return ec, label
 
 
+  def __repr__(self):
+      if self.spec.resolution is not None:
+         wave = "R={.0f}".format(self.spec.resolution)
+      else:
+         wave = "dwn={:.3f} cm-1".format(self.spec.wnstep)
+
+      opacities = []
+      if self.ex.nmol != 0:
+          for molID in self.ex.molID:
+              imol = np.where(self.mol.ID == molID)[0][0]
+              opacities.append(self.mol.name[imol])
+      if self.cs.nfiles != 0:
+          for molecs in self.cs.molecules:
+              opacities.append("-".join(molecs))
+      if self.rayleigh.nmodels != 0:
+          for ray in self.rayleigh.model:
+              opacities.append(ray.name)
+      for haze in self.haze.model:
+          opacities.append(haze.name)
+      for alkali in self.alkali.model:
+          opacities.append(self.alkali.mol)
+
+      return ("Pyrat atmospheric model\n"
+          "configuration file:  '{:s}'\n"
+          "Pressure profile (bar):  {:.2e} -- {:.2e} ({:d} layers)\n"
+          "Wavelength range (um):  {:.2f} -- {:.2f} ({:d} samples, {:s})\n"
+          "Composition:  {}\n"
+          "Opacity sources:  {}".format(
+          self.inputs.configfile,
+          self.atm.press[ 0]/pc.bar,
+          self.atm.press[-1]/pc.bar,
+          self.atm.nlayers,
+          1.0/(self.spec.wn[ 0]*pc.um),
+          1.0/(self.spec.wn[-1]*pc.um),
+          self.spec.nwave,
+          wave,
+          self.mol.name,
+          opacities))
+
+
 class Inputs(object):
   """
   This is a holder class to store user-input arguments.

@@ -15,7 +15,6 @@ def read(pyrat):
   """
   Read a Cross-section (CS) file.
   """
-
   pyrat.log.msg("\nReading cross-section files.")
   # Number of CS files:
   if pyrat.cs.files is None:

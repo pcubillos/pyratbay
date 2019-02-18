@@ -4144,6 +4144,10 @@ Code works for forward-modeling in a much simplified way for the user
 TBD: unbreak mcmc.
 TBD: clean and commit test_spectrum.py.
 
-*****
 
+*****  Mon Feb 18 17:08:40 JST 2019  *****
+
+Added __repr__ function for Pyrat() object.
+
+*****
 

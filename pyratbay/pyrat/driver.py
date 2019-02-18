@@ -124,7 +124,7 @@ def run(pyrat, temp=None, q=None, radius=None):
   cs.interpolate(pyrat)
   timestamps.append(time.time())
 
-  # Calculate the haze absorption:
+  # Calculate haze and Rayleigh absorption:
   hz.absorption(pyrat)
   ray.absorption(pyrat)
   timestamps.append(time.time())
@@ -163,4 +163,3 @@ def run(pyrat, temp=None, q=None, radius=None):
                   "{:s}".format(pyrat.log.sep, len(pyrat.log.warnings), wfile,
                   pyrat.log.sep))
   return pyrat
-
