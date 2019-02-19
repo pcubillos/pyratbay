@@ -200,7 +200,7 @@ def qscale(Q, spec, molmodel, molfree, molpars, bulk, qsat=None,
       if model == 'scale':
           q[:,idx] = Q[:,idx] * 10.0**value
       elif model == 'vert':
-          q[:,idx] = 10**value
+          q[:,idx] = 10.0**value
 
   # Enforce saturation limit:
   if qsat is not None:

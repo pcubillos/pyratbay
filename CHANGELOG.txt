@@ -4171,3 +4171,13 @@ loop into a C extension).
 
 *****
 
+Updated pyratfit.fit() to handle changes in Pyrat object.
+Updated pyrat.run() to have the same argument names as fit() and
+reloadatm().
+Removed freeze argument (not needed anymore).
+Enforce params argument to be ndarray to avoid slicing errors.
+Tweaked qscaling.qscale() to avoid error with raising integer to
+negative powers.
+
+*****
+

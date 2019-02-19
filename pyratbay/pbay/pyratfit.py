@@ -36,7 +36,7 @@ def init(pyrat, args, log):
   pyrat.ret.thigh = args.thigh
 
 
-def fit(params, pyrat, freeze=False, retmodel=True, verbose=False):
+def fit(params, pyrat, retmodel=True, verbose=False):
   """
   Fitting routine for MCMC.
 
@@ -63,13 +63,13 @@ def fit(params, pyrat, freeze=False, retmodel=True, verbose=False):
   bandflux: 1D float ndarray
      The waveband-integrated spectrum values.
   """
-  if freeze:
-    q0 = np.copy(pyrat.atm.q)
+  params = np.asarray(params)
+  q0 = np.copy(pyrat.atm.qbase)
 
   rejectflag = False
   # Update temperature profile if requested:
   if pyrat.ret.itemp is not None:
-    temp = pyrat.ret.tmodel(params[pyrat.ret.itemp], *pyrat.ret.targs)
+    temp = pyrat.atm.tmodel(params[pyrat.ret.itemp], *pyrat.atm.targs)
   else:
     temp = pyrat.atm.temp
   # Turn-on reject flag if out-of-bounds temperature:
@@ -78,15 +78,17 @@ def fit(params, pyrat, freeze=False, retmodel=True, verbose=False):
     rejectflag = True
     if verbose:
       pyrat.log.warning("Input temperature profile runs out of boundaries "
-         "({:.1f--{:.1f}} K)".format(pyrat.ret.tlow,pyrat.ret.thigh))
+         "({:.1f--{:.1f}} K)".format(pyrat.ret.tlow, pyrat.ret.thigh))
+
   # Update abundance profiles if requested:
   if pyrat.ret.iabund is not None:
-    q2 = pa.qscale(pyrat.atm.q, pyrat.mol.name, params[pyrat.ret.iabund],
-                   pyrat.ret.molscale, pyrat.ret.bulk,
-                   iscale=pyrat.ret.iscale, ibulk=pyrat.ret.ibulk,
-                   bratio=pyrat.ret.bulkratio, invsrat=pyrat.ret.invsrat)
+      q2 = pa.qscale(q0, pyrat.mol.name, pyrat.atm.molmodel,
+                     pyrat.atm.molfree, params[pyrat.ret.iabund],
+                     pyrat.atm.bulk,
+                     iscale=pyrat.atm.ifree, ibulk=pyrat.atm.ibulk,
+                     bratio=pyrat.atm.bulkratio, invsrat=pyrat.atm.invsrat)
   else:
-    q2 = pyrat.atm.q
+      q2 = pyrat.atm.q
 
   # Check abundaces stay within bounds:
   if pa.qcapcheck(q2, pyrat.ret.qcap, pyrat.ret.ibulk):
@@ -96,7 +98,7 @@ def fit(params, pyrat, freeze=False, retmodel=True, verbose=False):
                         "the cap of {:.3f}.".format(pyrat.ret.qcap))
   # Update reference radius if requested:
   if pyrat.ret.irad is not None:
-    pyrat.phy.rplanet = params[pyrat.ret.irad][0]*pc.km
+    pyrat.phy.rplanet = params[pyrat.ret.irad][0] * pc.km
 
   # Update Rayleigh parameters if requested:
   if pyrat.ret.iray is not None:
@@ -119,7 +121,7 @@ def fit(params, pyrat, freeze=False, retmodel=True, verbose=False):
     pyrat.haze.fpatchy = params[pyrat.ret.ipatchy]
 
   # Calculate spectrum:
-  pyrat = py.run(pyrat, [temp, q2, None])
+  pyrat = py.run(pyrat, temp=temp, abund=q2)
 
   # Band-integrate spectrum:
   pyrat.obs.bandflux = pw.bandintegrate(pyrat=pyrat)
@@ -128,10 +130,6 @@ def fit(params, pyrat, freeze=False, retmodel=True, verbose=False):
   if pyrat.obs.bandflux is not None and rejectflag:
     pyrat.obs.bandflux[:] = np.inf
 
-  # Revert abundances in the atmospheric profile:
-  if freeze:
-    pyrat.atm.q = q0
-
   if retmodel:
-    return pyrat.spec.spectrum, pyrat.obs.bandflux
+      return pyrat.spec.spectrum, pyrat.obs.bandflux
   return pyrat.obs.bandflux

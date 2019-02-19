@@ -97,7 +97,7 @@ def init(argv, main=False, log=None):
   return pyrat
 
 
-def run(pyrat, temp=None, q=None, radius=None):
+def run(pyrat, temp=None, abund=None, radius=None):
   """
   Pyrat driver to calculate a spectrum.
 
@@ -106,7 +106,7 @@ def run(pyrat, temp=None, q=None, radius=None):
   pyrat: A Pyrat instance
   temp: 1D float ndarray
       Updated atmospheric temperature profile in Kelvin, of size nlayers.
-  q: 2D float ndarray
+  abund: 2D float ndarray
       Updated atmospheric abundances profile by number density, of
       shape [nlayers, nmol]
   radius: 1D float ndarray
@@ -116,7 +116,7 @@ def run(pyrat, temp=None, q=None, radius=None):
   timestamps.append(time.time())
 
   # Re-calculate atmospheric properties if required:
-  status = ra.reloadatm(pyrat, temp, q, radius)
+  status = ra.reloadatm(pyrat, temp, abund, radius)
   if status == 0:
       return
 
