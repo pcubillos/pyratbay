@@ -4154,5 +4154,12 @@ Added __repr__ function for Pyrat() object.
 Ensure that tests are run from the tests/ folder to prevent issues
 with relative paths.
 
+
+*****  Tue Feb 19 13:38:17 JST 2019  *****
+
+Fixed bug in the valid wavenumber upper index (cs.iwnhi).
+(was missing the last channel)
+
 *****
+
 

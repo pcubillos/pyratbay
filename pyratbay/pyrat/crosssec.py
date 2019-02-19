@@ -120,7 +120,7 @@ def read(pyrat):
       # Array with second derivatives:
       iz   = np.zeros((pyrat.spec.nwave, pyrat.cs.ntemp[i]), np.double)
       wnlo = np.flatnonzero(pyrat.spec.wn >= wavenumber[ 0])[ 0]
-      wnhi = np.flatnonzero(pyrat.spec.wn <= wavenumber[-1])[-1]
+      wnhi = np.flatnonzero(pyrat.spec.wn <= wavenumber[-1])[-1] + 1
       for j in np.arange(wnlo, wnhi):
         iz[j] = sp.spline_init(iabsorp[:,j], pyrat.cs.temp[i])
       pyrat.cs.iz.append(iz.T)
