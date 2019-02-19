@@ -7,8 +7,9 @@ import numpy as np
 
 from .. import tools     as pt
 from .. import blackbody as bb
+from .. import constants as pc
 
-sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../lib')
+sys.path.append(pc.ROOT + 'lib')
 import simpson    as s
 import trapz      as t
 import cutils     as cu
@@ -58,20 +59,20 @@ def modulation(pyrat):
   hrat = [hreven, hrodd]
   hfac = [hfeven, hfodd]
 
-  nlayers = pyrat.od.ideep-rtop         # Number of layers for integration
-  nhalf   = np.asarray(nlayers/2, int)  # Half-size of used layers
-  par     = pyrat.od.ideep % 2          # Parity of ideep
+  nlayers = pyrat.od.ideep - rtop + 1    # Number of layers for integration
+  nhalf   = np.asarray(nlayers//2, int)  # Half-size of used layers
+  par     = nlayers % 2                  # Parity of nlayers
 
   for i in np.arange(pyrat.spec.nwave):
     nl = nlayers[i]
     nh = nhalf[i]
     p  = par[i]
     # Integrate with Simpson's rule:
-    pyrat.spec.spectrum[i] = s.simps(integ[0:nl+1,i], h[0:nl],
+    pyrat.spec.spectrum[i] = s.simps(integ[0:nl,i], h[0:nl-1],
                              hsum[p][0:nh], hrat[p][0:nh], hfac[p][0:nh])
     # Extra spectrum for patchy model:
     if pyrat.haze.fpatchy is not None:
-      pyrat.spec.cloudy[i] = s.simps(pinteg[0:nl,i], h[0:nl],
+      pyrat.spec.cloudy[i] = s.simps(pinteg[0:nl,i], h[0:nl-1],
                              hsum[p][0:nh], hrat[p][0:nh], hfac[p][0:nh])
 
   pyrat.spec.spectrum = ((pyrat.atm.radius[rtop]**2 + 2*pyrat.spec.spectrum) /

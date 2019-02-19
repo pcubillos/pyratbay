@@ -8,9 +8,10 @@ import multiprocessing as mpr
 
 import numpy as np
 
-from . import extinction as ex
+from .  import extinction as ex
+from .. import constants  as pc
 
-sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../lib')
+sys.path.append(pc.ROOT + 'lib')
 import extcoeff   as ec
 import cutils     as cu
 import trapz      as t
@@ -104,6 +105,7 @@ def opticaldepth(pyrat):
                             pyrat.od.raypath[r],
                             np.inf, pyrat.od.ideep, r)
       r += 1
+    pyrat.od.ideep[pyrat.od.ideep<0] = pyrat.atm.nlayers - 1
   #print("Integ:  {:.6f}".format(time.time()-ti))
   pyrat.log.msg("Optical depth done.")
 
@@ -112,11 +114,10 @@ def path(pyrat):
   """
   Calculate the distance along the ray path over each interval (layer).
 
-  Notes:
-  ------
-  - Note that for eclipse geometry the path is always the same.  However,
-    for transit geometry the path is unique to each impact parameter; hence,
-    the calculation is more laborious.
+  Notes
+  -----
+  For eclipse geometry, the path is always the same.
+  For transit geometry, the path is unique to each impact parameter.
   """
   if   pyrat.od.path == "eclipse":
     radius = pyrat.atm.radius
@@ -144,4 +145,3 @@ def path(pyrat):
       r += 1
 
   return
-

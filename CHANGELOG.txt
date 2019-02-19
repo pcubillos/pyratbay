@@ -4162,4 +4162,12 @@ Fixed bug in the valid wavenumber upper index (cs.iwnhi).
 
 *****
 
+Fixed bug in optdepth.opticaldepth(), set idepth when transmission
+optical depth reaches the bottom of the atmosphere.
+
+Fixed bug in spectrum.modulation(), corrected number of layers at
+each wavelength for the Simpson integration (might worth moving this
+loop into a C extension).
+
+*****
 
