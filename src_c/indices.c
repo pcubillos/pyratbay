@@ -10,26 +10,42 @@
 
 
 PyDoc_STRVAR(ifirst__doc__,
-"Get the first index where data is 1.                       \n\
-                                                            \n\
-Parameters:                                                 \n\
------------                                                 \n\
-data: 1D integer ndarray                                    \n\
-   An array of (int) bools.                                 \n\
-                                                            \n\
-Returns:                                                    \n\
---------                                                    \n\
-first: integer                                              \n\
-   First index where data == 1.  Return -1 otherwise.       \n\
-");
+"Get the first index where data is 1.                         \n\
+                                                              \n\
+Parameters                                                    \n\
+----------                                                    \n\
+data: 1D integer ndarray                                      \n\
+    An array of (int) bools.                                  \n\
+default_ret: Integer                                          \n\
+    Default returned value when no value in data is 1.        \n\
+                                                              \n\
+Returns                                                       \n\
+-------                                                       \n\
+first: integer                                                \n\
+   First index where data == 1.  Return default_ret otherwise.\n\
+                                                              \n\
+Examples                                                      \n\
+--------                                                      \n\
+>>> import numpy as np                                        \n\
+>>> print(indices.ifirst(np.array([1,0,0])))                  \n\
+0                                                             \n\
+>>> print(indices.ifirst(np.array([0,1,0])))                  \n\
+1                                                             \n\
+>>> print(indices.ifirst(np.array([0,1,1])))                  \n\
+1                                                             \n\
+>>> print(indices.ifirst(np.array([0,0,0])))                  \n\
+-1                                                            \n\
+>>> default_ret = 0                                           \n\
+>>> print(indices.ifirst(np.array([0,0,0]), default_ret))     \n\
+0");
 
 static PyObject *ifirst(PyObject *self, PyObject *args){
   PyArrayObject *data;
-  int i, n;  /* Auxilliary for-loop indices                              */
+  int i, n, default_ret=-1;
 
   /* Load inputs:                                                           */
-  if (!PyArg_ParseTuple(args, "O", &data))
-    return NULL;
+  if (!PyArg_ParseTuple(args, "O|i", &data, &default_ret))
+      return NULL;
 
   /* Get the number of intervals:                                           */
   n = (int)PyArray_DIM(data, 0);
@@ -39,31 +55,47 @@ static PyObject *ifirst(PyObject *self, PyObject *args){
       if (INDi(data,i) == 1)
           return Py_BuildValue("i", i);
   }
-  return Py_BuildValue("i", -1);
+  return Py_BuildValue("i", default_ret);
 }
 
 
 PyDoc_STRVAR(ilast__doc__,
-"Get the last index where data is 1.                        \n\
-                                                            \n\
-Parameters:                                                 \n\
------------                                                 \n\
-data: 1D integer ndarray                                    \n\
-   An array of (int) bools.                                 \n\
-                                                            \n\
-Returns:                                                    \n\
---------                                                    \n\
-last: integer                                               \n\
-   Last index where data == 1.  Return -2 otherwise.        \n\
-");
+"Get the last index where data is 1.                         \n\
+                                                             \n\
+Parameters                                                   \n\
+----------                                                   \n\
+data: 1D integer ndarray                                     \n\
+    An array of (int) bools.                                 \n\
+default_ret: Integer                                         \n\
+    Default returned value when no value in data is 1.       \n\
+                                                             \n\
+Returns                                                      \n\
+-------                                                      \n\
+last: integer                                                \n\
+   Last index where data == 1.  Return default_ret otherwise.\n\
+                                                             \n\
+Examples                                                     \n\
+--------                                                     \n\
+>>> import numpy as np                                       \n\
+>>> print(indices.ilast(np.array([1,0,0])))                  \n\
+0                                                            \n\
+>>> print(indices.ilast(np.array([0,1,0])))                  \n\
+1                                                            \n\
+>>> print(indices.ilast(np.array([0,1,1])))                  \n\
+2                                                            \n\
+>>> print(indices.ilast(np.array([0,0,0])))                  \n\
+-1                                                           \n\
+>>> default_ret = 0                                          \n\
+>>> print(indices.ilast(np.array([0,0,0]), default_ret))     \n\
+0");
 
 static PyObject *ilast(PyObject *self, PyObject *args){
   PyArrayObject *data;
-  int i, n;  /* Auxilliary for-loop indices                              */
+  int i, n, default_ret=-1;
 
   /* Load inputs:                                                           */
-  if (!PyArg_ParseTuple(args, "O", &data))
-    return NULL;
+  if (!PyArg_ParseTuple(args, "O|i", &data, &default_ret))
+      return NULL;
 
   /* Get the number of intervals:                                           */
   n = (int)PyArray_DIM(data, 0);
@@ -73,13 +105,13 @@ static PyObject *ilast(PyObject *self, PyObject *args){
       if (INDi(data,i) == 1)
           return Py_BuildValue("i", i);
   }
-  return Py_BuildValue("i", -2);
+  return Py_BuildValue("i", default_ret);
 }
 
 
 /* The module doc string                                                    */
 PyDoc_STRVAR(indicesmod__doc__,
-   "Efficient search for indices where a condition is met.");
+    "Efficient search for indices where a condition is met.");
 
 
 /* A list of all the methods defined by this module.                        */
@@ -103,16 +135,16 @@ static struct PyModuleDef moduledef = {
 /* When Python 3 imports a C module named 'X' it loads the module           */
 /* then looks for a method named "PyInit_"+X and calls it.                  */
 PyObject *PyInit_indices (void) {
-  PyObject *module = PyModule_Create(&moduledef);
-  import_array();
-  return module;
+    PyObject *module = PyModule_Create(&moduledef);
+    import_array();
+    return module;
 }
 
 #else
 /* When Python 2 imports a C module named 'X' it loads the module           */
 /* then looks for a method named "init"+X and calls it.                     */
 void initindices(void){
-  Py_InitModule3("indices", indices_methods, indicesmod__doc__);
-  import_array();
+    Py_InitModule3("indices", indices_methods, indicesmod__doc__);
+    import_array();
 }
 #endif

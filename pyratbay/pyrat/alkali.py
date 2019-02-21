@@ -3,12 +3,13 @@
 
 import sys
 import os
+
 import numpy as np
 
 from .. import broadening as broad
 from .. import constants  as pc
 
-sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../lib')
+sys.path.append(pc.ROOT + 'lib')
 import indices
 
 
@@ -66,8 +67,8 @@ def absorption(pyrat):
       for j in np.arange(pyrat.atm.nlayers):
         # Profile ranges:
         det = np.array(np.abs(pyrat.spec.wn - alkali.wn[k]) < dsigma[j], int)
-        wlo = indices.ifirst(det)
-        whi = indices.ilast(det) + 1
+        wlo = indices.ifirst(det, -1)
+        whi = indices.ilast(det,  -2) + 1
         voigt.hwhmL = lor[j]
         voigt.hwhmG = dop[k,j]
         wndet = pyrat.spec.wn[wlo:whi]

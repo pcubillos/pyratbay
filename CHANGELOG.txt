@@ -4187,3 +4187,9 @@ atmospheric file.
 
 *****
 
+Modified indices.ifirst() and indices.ilast() to accept optional
+argument with default value to return when there are no first nor
+last indices in the input array.
+
+*****
+
