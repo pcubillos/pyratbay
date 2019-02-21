@@ -4179,5 +4179,11 @@ Enforce params argument to be ndarray to avoid slicing errors.
 Tweaked qscaling.qscale() to avoid error with raising integer to
 negative powers.
 
+
+*****  Thu Feb 21 18:07:39 JST 2019  *****
+
+Fixed readatm.readatm() to report errors raised when reading the
+atmospheric file.
+
 *****
 

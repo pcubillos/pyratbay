@@ -1,5 +1,6 @@
 import os
 import sys
+import pytest
 
 import numpy as np
 
@@ -64,3 +65,9 @@ def test_read_write_atm(tmpdir):
     np.testing.assert_almost_equal(atm_input[3], temperature)
     np.testing.assert_almost_equal(atm_input[4], qprofiles)
     assert atm_input[5] is None
+
+
+def test_read_atm_no_temp():
+    with pytest.raises(ValueError, match="Atmospheric file does not have "
+                       "'@TEMPERATURE' header"):
+        atm_input = pa.readatm('uniform_notemp_test.atm')

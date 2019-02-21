@@ -22,9 +22,7 @@ def readatm(pyrat):
   try:
       atm_inputs = pa.readatm(pyrat.atmfile)
   except ValueError as e:
-      # TBD: handle properly the error message
-      pyrat.log.error("Atmosphere file has an unexpected line: \n'{:s}'".
-                      format(line))
+      pyrat.log.error(e.args[0])
 
   # Atmospheric-file units, species, and profiles:
   punits, tunits, qunits, runits = atm_inputs[0]
