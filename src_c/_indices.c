@@ -113,7 +113,6 @@ static PyObject *ilast(PyObject *self, PyObject *args){
 PyDoc_STRVAR(indicesmod__doc__,
     "Efficient search for indices where a condition is met.");
 
-
 /* A list of all the methods defined by this module.                        */
 static PyMethodDef indices_methods[] = {
     {"ifirst", ifirst, METH_VARARGS, ifirst__doc__},
@@ -126,7 +125,7 @@ static PyMethodDef indices_methods[] = {
 /* Module definition for Python 3.                                          */
 static struct PyModuleDef moduledef = {
     PyModuleDef_HEAD_INIT,
-    "trapz",
+    "_indices",
     indicesmod__doc__,
     -1,
     indices_methods
@@ -134,7 +133,7 @@ static struct PyModuleDef moduledef = {
 
 /* When Python 3 imports a C module named 'X' it loads the module           */
 /* then looks for a method named "PyInit_"+X and calls it.                  */
-PyObject *PyInit_indices (void) {
+PyObject *PyInit__indices (void) {
     PyObject *module = PyModule_Create(&moduledef);
     import_array();
     return module;
@@ -143,8 +142,8 @@ PyObject *PyInit_indices (void) {
 #else
 /* When Python 2 imports a C module named 'X' it loads the module           */
 /* then looks for a method named "init"+X and calls it.                     */
-void initindices(void){
-    Py_InitModule3("indices", indices_methods, indicesmod__doc__);
+void init_indices(void){
+    Py_InitModule3("_indices", indices_methods, indicesmod__doc__);
     import_array();
 }
 #endif

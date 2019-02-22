@@ -4191,5 +4191,12 @@ Modified indices.ifirst() and indices.ilast() to accept optional
 argument with default value to return when there are no first nor
 last indices in the input array.
 
+
+*****  Fri Feb 22 16:57:03 CET 2019  *****
+
+Renamed indices.c to _indices.c.
+Added tools.ifirst() and tools.ilast() wrapper functions of the
+cpython functions.
+
 *****
 

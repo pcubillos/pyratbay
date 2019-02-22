@@ -9,9 +9,6 @@ import numpy as np
 from .. import broadening as broad
 from .. import constants  as pc
 
-sys.path.append(pc.ROOT + 'lib')
-import indices
-
 
 def init(pyrat):
   if pyrat.alkali.nmodels > 0:
@@ -66,9 +63,9 @@ def absorption(pyrat):
               alkali.wn[k]/pyrat.spec.resolution
       for j in np.arange(pyrat.atm.nlayers):
         # Profile ranges:
-        det = np.array(np.abs(pyrat.spec.wn - alkali.wn[k]) < dsigma[j], int)
-        wlo = indices.ifirst(det, -1)
-        whi = indices.ilast(det,  -2) + 1
+        det = np.abs(pyrat.spec.wn - alkali.wn[k]) < dsigma[j]
+        wlo = pt.ifirst(det, defalut_ret=-1)
+        whi = pt.ilast( det, default_ret=-2) + 1
         voigt.hwhmL = lor[j]
         voigt.hwhmG = dop[k,j]
         wndet = pyrat.spec.wn[wlo:whi]

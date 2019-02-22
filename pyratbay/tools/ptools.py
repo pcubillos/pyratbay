@@ -3,17 +3,21 @@
 
 __all__ = ["parray", "defaultp", "getparam",
            "binsearch", "pprint", "divisors", "u", "unpack",
+           "ifirst", "ilast",
            "isfile", "addarg", "path"]
 
 import os
 import sys
 import struct
 import numbers
+
 import numpy as np
 
 from .. import constants as pc
 
-sys.path.append(pc.ROOT + "/modules/MCcubed/")
+sys.path.append(pc.ROOT + "pyratbay/lib/")
+import _indices
+sys.path.append(pc.ROOT + "modules/MCcubed/")
 import MCcubed.utils as mu
 
 
@@ -257,6 +261,74 @@ def getparam(param, units, log=None, integer=False):
     return int(value)
 
   return value
+
+
+def ifirst(data, default_ret=-1):
+  """
+  Get the first index where data is True or 1.
+
+  Parameters
+  ----------
+  data: 1D bool/integer iterable
+      An array of bools or integers.
+  default_ret: Integer
+      Default returned value when no value in data is True or 1.
+
+  Returns
+  -------
+  first: integer
+     First index where data == True or 1.  Return default_ret otherwise.
+
+  Examples
+  --------
+  >>> import pyratbay.tools as pt
+  >>> import numpy as np
+  >>> print(pt.ifirst([1,0,0]))
+  0
+  >>> print(pt.ifirst(np.arange(5)>2.5))
+  3
+  >>> print(pt.ifirst([False, True, True]))
+  1
+  >>> print(pt.ifirst([False, False, False]))
+  -1
+  >>> print(pt.ifirst([False, False, False], default_ret=0))
+  0
+  """
+  return _indices.ifirst(np.asarray(data, np.int), default_ret)
+
+
+def ilast(data, default_ret=-1):
+  """
+  Get the last index where data is 1 or True.
+
+  Parameters
+  ----------
+  data: 1D bool/integer iterable
+      An array of bools or integers.
+  default_ret: Integer
+      Default returned value when no value in data is True or 1.
+
+  Returns
+  -------
+  last: integer
+     Last index where data == 1 or True.  Return default_ret otherwise.
+
+  Examples
+  --------
+  >>> import pyratbay.tools as pt
+  >>> import numpy as np
+  >>> print(pt.ilast([1,0,0]))
+  0
+  >>> print(pt.ilast(np.arange(5)<2.5))
+  2
+  >>> print(pt.ilast([False, True, True]))
+  2
+  >>> print(pt.ilast([False, False, False]))
+  -1
+  >>> print(pt.ilast([False, False, False], default_ret=0))
+  0
+  """
+  return _indices.ilast(np.asarray(data, np.int), default_ret)
 
 
 def isfile(path):
