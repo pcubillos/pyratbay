@@ -189,7 +189,7 @@ class Pyrat(object):
       for haze in self.haze.model:
           opacities.append(haze.name)
       for alkali in self.alkali.model:
-          opacities.append(self.alkali.mol)
+          opacities.append(alkali.mol)
 
       return ("Pyrat atmospheric model\n"
           "configuration file:  '{:s}'\n"

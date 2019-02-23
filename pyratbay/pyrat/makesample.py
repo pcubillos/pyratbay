@@ -270,15 +270,14 @@ def make_atmprofiles(pyrat):
       atm.nlayers = len(atm.press)
       resample = False
 
-  # Check the radii lie within Hill radius:
-  rtop = np.where(atm.radius > pyrat.phy.rhill)[0]
-  if np.size(rtop) > 0:
-      pyrat.atm.rtop = rtop[-1] + 1
-      pyrat.log.warning("The atmospheric pressure array extends "
-          "beyond the Hill radius ({:.1f} km) at pressure {:.2e} bar (layer "
-          "#{:d}).  Extinction beyond this layer will be neglected.".
-           format(pyrat.phy.rhill/pc.km, atm_in.press[pyrat.atm.rtop]/pc.bar,
-                  pyrat.atm.rtop))
+  # Check the radii that lie within Hill radius:
+  if atm.radius is not None:
+      atm.rtop = pt.ifirst(atm.radius < pyrat.phy.rhill, default_ret=0)
+  if atm.rtop > 0:
+      pyrat.log.warning("The atmospheric pressure array extends beyond "
+          "the Hill radius ({:.1f} km) at pressure {:.2e} bar (layer {:d}).  "
+          "Extinction beyond this layer will be neglected.".format(
+          pyrat.phy.rhill/pc.km, atm_in.press[atm.rtop]/pc.bar, atm.rtop))
 
   # Print radius array:
   if atm.radius is not None:

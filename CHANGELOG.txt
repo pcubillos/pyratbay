@@ -4198,5 +4198,14 @@ Renamed indices.c to _indices.c.
 Added tools.ifirst() and tools.ilast() wrapper functions of the
 cpython functions.
 
+
+*****  Sat Feb 23 20:12:29 CET 2019  *****
+
+Changed rtop calculation in makesample.py and readatm.py to use
+pt.ifirst(), enclosed call into an if statement to avoid errors when
+atm.radius is not defined.
+Fixed typo in Pyrat.__repr__.
+Fixed typo in alkali.py
+
 *****
 

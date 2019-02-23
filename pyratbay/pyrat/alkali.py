@@ -8,6 +8,7 @@ import numpy as np
 
 from .. import broadening as broad
 from .. import constants  as pc
+from .. import tools      as pt
 
 
 def init(pyrat):
@@ -64,7 +65,7 @@ def absorption(pyrat):
       for j in np.arange(pyrat.atm.nlayers):
         # Profile ranges:
         det = np.abs(pyrat.spec.wn - alkali.wn[k]) < dsigma[j]
-        wlo = pt.ifirst(det, defalut_ret=-1)
+        wlo = pt.ifirst(det, default_ret=-1)
         whi = pt.ilast( det, default_ret=-2) + 1
         voigt.hwhmL = lor[j]
         voigt.hwhmG = dop[k,j]

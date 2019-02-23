@@ -148,7 +148,7 @@ def reloadatm(pyrat, temp=None, abund=None, radius=None):
 
   # Check temperature boundaries:
   errorlog = ("One or more input temperature values lies out of the {:s} "
-      "temperature boundaries (K): [{:6.1f}, {:6.1f}].\nHalted calculation.")
+      "temperature boundaries (K): [{:6.1f}, {:6.1f}].")
   if pyrat.ex.extfile is not None:
       if np.any(temp > pyrat.ex.tmax) or np.any(temp < pyrat.ex.tmin):
           pyrat.log.warning(errorlog.format("tabulated EC", pyrat.ex.tmin,
@@ -197,7 +197,7 @@ def reloadatm(pyrat, temp=None, abund=None, radius=None):
       pyrat.atm.radius = radius
   else:
       # Compute gplanet from mass and radius if necessary/possible:
-      if pyrat.phy.gplanet is None and \
+      if pyrat.phy.gplanet is None and     \
          pyrat.phy.mplanet is not None and \
          pyrat.phy.rplanet is not None:
           pyrat.phy.gplanet = pc.G * pyrat.phy.mplanet / pyrat.phy.rplanet**2
@@ -218,16 +218,13 @@ def reloadatm(pyrat, temp=None, abund=None, radius=None):
                             pyrat.refpressure, pyrat.phy.rplanet)
 
   # Check radii lie within Hill radius:
-  rtop = np.where(pyrat.atm.radius > pyrat.phy.rhill)[0]
-  if np.size(rtop) > 0:
-    pyrat.atm.rtop = rtop[-1] + 1
-    pyrat.log.warning("The atmospheric pressure array extends beyond the "
-       "Hill radius ({:.3e} km) at pressure {:.3e} bar (layer #{:d}).  "
-       "Extinction beyond this layer will be neglected.".
-        format(pyrat.phy.rhill/pc.km, pyrat.atm.press[pyrat.atm.rtop]/pc.bar,
-               pyrat.atm.rtop))
-  else:
-    pyrat.atm.rtop = 0
+  pyrat.atm.rtop = pt.ifirst(pyrat.atm.radius < pyrat.phy.rhill, default_ret=0)
+  if pyrat.atm.rtop > 0:
+      pyrat.log.warning("The atmospheric pressure array extends beyond the "
+          "Hill radius ({:.3e} km) at pressure {:.3e} bar (layer {:d}).  "
+          "Extinction beyond this layer will be neglected.".
+          format(pyrat.phy.rhill/pc.km, pyrat.atm.press[pyrat.atm.rtop]/pc.bar,
+                 pyrat.atm.rtop))
 
   # Partition function:
   for db in pyrat.lt.db:            # For each Database
