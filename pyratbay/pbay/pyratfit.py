@@ -42,7 +42,7 @@ def fit(params, pyrat, retmodel=True, verbose=False):
 
   Parameters
   ----------
-  params: 1D float ndarray
+  params: 1D float iterable
      Array of fitting parameters that define the atmosphere.
   pyrat: Pyrat object instance
      Pyrat object.
@@ -91,34 +91,35 @@ def fit(params, pyrat, retmodel=True, verbose=False):
       q2 = pyrat.atm.q
 
   # Check abundaces stay within bounds:
-  if pa.qcapcheck(q2, pyrat.ret.qcap, pyrat.ret.ibulk):
-    rejectflag = True
-    if verbose:
-      pyrat.log.warning("The sum of trace abundances' fraction exceeds "
-                        "the cap of {:.3f}.".format(pyrat.ret.qcap))
+  if pa.qcapcheck(q2, pyrat.ret.qcap, pyrat.atm.ibulk):
+      rejectflag = True
+      if verbose:
+          pyrat.log.warning("The sum of trace abundances' fraction exceeds "
+                            "the cap of {:.3f}.".format(pyrat.ret.qcap))
+
   # Update reference radius if requested:
   if pyrat.ret.irad is not None:
-    pyrat.phy.rplanet = params[pyrat.ret.irad][0] * pc.km
+      pyrat.phy.rplanet = params[pyrat.ret.irad][0] * pc.km
 
   # Update Rayleigh parameters if requested:
   if pyrat.ret.iray is not None:
-    j = 0
-    rpars = params[pyrat.ret.iray]
-    for i in np.arange(pyrat.rayleigh.nmodels):
-      pyrat.rayleigh.model[i].pars = rpars[j:j+pyrat.rayleigh.model[i].npars]
-      j += pyrat.rayleigh.model[i].npars
+      j = 0
+      rpars = params[pyrat.ret.iray]
+      for rmodel in pyrat.rayleigh.model:
+          rmodel.pars = rpars[j:j+rmodel.npars]
+          j += rmodel.npars
 
   # Update haze parameters if requested:
   if pyrat.ret.ihaze is not None:
-    j = 0
-    hpars = params[pyrat.ret.ihaze]
-    for i in np.arange(pyrat.haze.nmodels):
-      pyrat.haze.model[i].pars = hpars[j:j+pyrat.haze.model[i].npars]
-      j += pyrat.haze.model[i].npars
+      j = 0
+      hpars = params[pyrat.ret.ihaze]
+      for hmodel in pyrat.haze.model:
+          hmodel.pars = hpars[j:j+hmodel.npars]
+          j += hmodel.npars
 
   # Update patchy fraction if requested:
   if pyrat.ret.ipatchy is not None:
-    pyrat.haze.fpatchy = params[pyrat.ret.ipatchy]
+      pyrat.haze.fpatchy = params[pyrat.ret.ipatchy]
 
   # Calculate spectrum:
   pyrat = py.run(pyrat, temp=temp, abund=q2)
@@ -128,8 +129,9 @@ def fit(params, pyrat, retmodel=True, verbose=False):
 
   # Reject this iteration if there are invalid temperatures or radii:
   if pyrat.obs.bandflux is not None and rejectflag:
-    pyrat.obs.bandflux[:] = np.inf
+      pyrat.obs.bandflux[:] = np.inf
 
   if retmodel:
       return pyrat.spec.spectrum, pyrat.obs.bandflux
+
   return pyrat.obs.bandflux

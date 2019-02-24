@@ -4207,5 +4207,13 @@ atm.radius is not defined.
 Fixed typo in Pyrat.__repr__.
 Fixed typo in alkali.py
 
+
+*****  So 24. Feb 14:07:20 CET 2019  *****
+
+Fixed bug in pyratfit.fit(), wrong ibulk argument when calling
+pa.qcapcheck() ended up setting rejectflag = True.
+Updated pyratfit.fit() call in pbay.run() call for mcmc runs.
+Updated test_src.py to implement indices.c change to _indices.c.
+
 *****
 

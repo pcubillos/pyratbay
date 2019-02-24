@@ -11,7 +11,7 @@ sys.path.append(ROOT + 'pyratbay/lib')
 import simpson as s
 import trapz   as t
 import cutils  as cu
-import indices
+import _indices
 
 os.chdir(ROOT+'tests')
 
@@ -31,36 +31,36 @@ def test_simps():
 
 
 def test_ifirst_default():
-    assert indices.ifirst(np.array([0])) == -1
+    assert _indices.ifirst(np.array([0])) == -1
 
 
 @pytest.mark.parametrize("def_ret", [-1, 0, 1])
 def test_ifirst_with_default(def_ret):
-    assert indices.ifirst(np.array([0]), def_ret) == def_ret
+    assert _indices.ifirst(np.array([0]), def_ret) == def_ret
 
 
 def test_ifirst():
-    assert indices.ifirst(np.array([1,0,0])) == 0
-    assert indices.ifirst(np.array([1,1,0])) == 0
-    assert indices.ifirst(np.array([0,1,0])) == 1
-    assert indices.ifirst(np.array([0,1,1])) == 1
-    assert indices.ifirst(np.array([0,0,1])) == 2
-    assert indices.ifirst(np.array([0,2,1])) == 2
+    assert _indices.ifirst(np.array([1,0,0])) == 0
+    assert _indices.ifirst(np.array([1,1,0])) == 0
+    assert _indices.ifirst(np.array([0,1,0])) == 1
+    assert _indices.ifirst(np.array([0,1,1])) == 1
+    assert _indices.ifirst(np.array([0,0,1])) == 2
+    assert _indices.ifirst(np.array([0,2,1])) == 2
 
 
 def test_ilast_default():
-    assert indices.ilast(np.array([0])) == -1
+    assert _indices.ilast(np.array([0])) == -1
 
 
 @pytest.mark.parametrize("def_ret", [-1, 0, 1])
 def test_ilast_with_default(def_ret):
-    assert indices.ilast(np.array([0]), def_ret) == def_ret
+    assert _indices.ilast(np.array([0]), def_ret) == def_ret
 
 
 def test_ilast():
-    assert indices.ilast(np.array([1,0,0])) == 0
-    assert indices.ilast(np.array([0,1,0])) == 1
-    assert indices.ilast(np.array([1,1,0])) == 1
-    assert indices.ilast(np.array([0,1,1])) == 2
-    assert indices.ilast(np.array([0,0,1])) == 2
-    assert indices.ilast(np.array([0,2,1])) == 2
+    assert _indices.ilast(np.array([1,0,0])) == 0
+    assert _indices.ilast(np.array([0,1,0])) == 1
+    assert _indices.ilast(np.array([1,1,0])) == 1
+    assert _indices.ilast(np.array([0,1,1])) == 2
+    assert _indices.ilast(np.array([0,0,1])) == 2
+    assert _indices.ilast(np.array([0,2,1])) == 2
