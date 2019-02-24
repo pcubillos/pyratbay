@@ -64,7 +64,7 @@ def parse(pyrat, log=None):
     print("Configuration file: '{:s}' not found.".format(cfile))
     sys.exit(0)
   if cfile:
-    config = configparser.SafeConfigParser()
+    config = configparser.ConfigParser()
     config.optionxform = str  # Enable case-sensitive variable names
     config.read([cfile])
     defaults = dict(config.items("pyrat"))

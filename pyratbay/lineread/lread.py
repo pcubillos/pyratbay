@@ -47,7 +47,7 @@ def parser(cfile=None):
     if not os.path.isfile(cfile):
       print("Configuration file '{:s}' does not exist.".format(cfile))
       sys.exit(0)
-    config = configparser.SafeConfigParser()
+    config = configparser.ConfigParser()
     config.read([cfile])
     if "pyrat" not in config.sections():
       print("Invalid configuration file: '{:s}'. The configuration-file "

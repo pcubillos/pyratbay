@@ -4224,3 +4224,8 @@ Some cosmetics clean up.
 
 *****
 
+Changed SafeConfigParser to ConfigParser objects to avoid deprecation
+warnings in Python3.
+
+*****
+
