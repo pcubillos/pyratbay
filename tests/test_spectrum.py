@@ -92,7 +92,7 @@ def test_transmission_tmodel_none():
     np.testing.assert_allclose(tmodel0, expected['all'], rtol=1e-7)
     # Now, re-run with user-input tparams:
     tpyrat.atm.tpars = np.array([-1.5, -0.8, -0.8,  0.5,  1.0])
-    pb.pyrat.run(tpyrat)
+    tpyrat.run()
     tmodel1 = tpyrat.spec.spectrum
     np.testing.assert_allclose(tmodel1, expected['tmodel'], rtol=1e-7)
     # np.testing.assert_allclose(tpyrat.atm.temp, tmodel, rtol=1e-7)
@@ -110,7 +110,7 @@ def test_transmission_vert_none_model():
     vmodel0 = vpyrat.spec.spectrum
     np.testing.assert_allclose(vmodel0, expected['all'], rtol=1e-7)
     vpyrat.atm.molpars = [-5]
-    pb.pyrat.run(vpyrat)
+    vpyrat.run()
     vmodel1 = vpyrat.spec.spectrum
     np.testing.assert_allclose(vmodel1, expected['vert'], rtol=1e-7)
     np.testing.assert_equal(vpyrat.atm.q[:,3], 1e-5)

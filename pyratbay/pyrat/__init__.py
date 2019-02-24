@@ -1,9 +1,9 @@
 # Copyright (c) 2016-2019 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-__all__ = ["init", "run"]
+__all__ = ["init"]
 
-from .driver import init, run
+from .driver import init
 
 from .. import VERSION as ver
 

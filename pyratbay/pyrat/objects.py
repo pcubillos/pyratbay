@@ -1,6 +1,9 @@
 # Copyright (c) 2016-2019 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
+import os
+import time
+
 import numpy  as np
 
 from .. import tools      as pt
@@ -11,6 +14,9 @@ from .  import crosssec   as cs
 from .  import rayleigh   as ray
 from .  import haze       as hz
 from .  import alkali     as al
+from .  import readatm    as ra
+from .  import optdepth   as od
+from .  import spectrum   as sp
 
 
 class Pyrat(object):
@@ -62,10 +68,71 @@ class Pyrat(object):
     self.timestamps = None  # Time stamps
 
 
-  def run(self):
-      """Evaluate a model"""
-      # TBD: Bring code from driver.run() in here.
-      pass
+  def run(self, temp=None, abund=None, radius=None):
+      """
+      Evaluate a Pyrat spectroscopic model
+
+      Parameters
+      ----------
+      pyrat: A Pyrat instance
+      temp: 1D float ndarray
+          Updated atmospheric temperature profile in Kelvin, of size nlayers.
+      abund: 2D float ndarray
+          Updated atmospheric abundances profile by number density, of
+          shape [nlayers, nmol]
+      radius: 1D float ndarray
+          Updated atmospheric altitude profile in cm, of size nlayers.
+      """
+      timestamps = []
+      timestamps.append(time.time())
+
+      # Re-calculate atmospheric properties if required:
+      status = ra.reloadatm(self, temp, abund, radius)
+      if status == 0:
+          return
+
+      # Interpolate CIA absorption:
+      cs.interpolate(self)
+      timestamps.append(time.time())
+
+      # Calculate haze and Rayleigh absorption:
+      hz.absorption(self)
+      ray.absorption(self)
+      timestamps.append(time.time())
+
+      # Calculate the alkali absorption:
+      al.absorption(self)
+      timestamps.append(time.time())
+
+      # Calculate the optical depth:
+      od.opticaldepth(self)
+      timestamps.append(time.time())
+
+      # Calculate the spectrum:
+      sp.spectrum(self)
+      timestamps.append(time.time())
+
+      self.timestamps += list(np.ediff1d(timestamps))
+      dtime = self.timestamps[0:9] + self.timestamps[-6:]
+      self.log.msg("\nTimestamps:\n"
+          " Init:     {:10.6f}\n Parse:    {:10.6f}\n Inputs:   {:10.6f}\n"
+          " Wnumber:  {:10.6f}\n Atmosph:  {:10.6f}\n TLI:      {:10.6f}\n"
+          " Layers:   {:10.6f}\n Voigt:    {:10.6f}\n Extinct:  {:10.6f}\n"
+          " CIA read: {:10.6f}\n CIA intp: {:10.6f}\n Haze:     {:10.6f}\n"
+          " Alkali:   {:10.6f}\n O.Depth:  {:10.6f}\n Spectrum: {:10.6f}".
+          format(*dtime), verb=2)
+
+      if len(self.log.warnings) > 0:
+          # Write all warnings to file:
+          wpath, wfile = os.path.split(self.log.logname)
+          wfile = "{:s}/warnings_{:s}".format(wpath, wfile)
+          with open(wfile, "w") as f:
+              f.write("Warnings log:\n\n{:s}\n".format(self.log.sep))
+              f.write("\n\n{:s}\n".format(self.log.sep).join(self.log.warnings))
+          # Report it:
+          self.log.msg("\n{:s}\n  There were {:d} warnings raised.  "
+              "See '{:s}'.\n{:s}".format(self.log.sep, len(self.log.warnings),
+                                         wfile, self.log.sep))
 
 
   def hydro(self, pressure, temperature, mu, g, mass, p0, r0):

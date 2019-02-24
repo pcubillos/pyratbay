@@ -122,7 +122,7 @@ def fit(params, pyrat, retmodel=True, verbose=False):
       pyrat.haze.fpatchy = params[pyrat.ret.ipatchy]
 
   # Calculate spectrum:
-  pyrat = py.run(pyrat, temp=temp, abund=q2)
+  pyrat.run(temp=temp, abund=q2)
 
   # Band-integrate spectrum:
   pyrat.obs.bandflux = pw.bandintegrate(pyrat=pyrat)

@@ -4234,3 +4234,8 @@ Documented and tested.
 
 *****
 
+Moved pyrat.driver.run() funtion into Pyrat.run() method,
+which does not return the object itself anymore (redundant).
+
+*****
+

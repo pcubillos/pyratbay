@@ -122,7 +122,7 @@ def run(argv, main=False):
 
     # Compute spectrum and return pyrat object if requested:
     if args.runmode == "spectrum":
-      pyrat = py.run(pyrat)
+      pyrat.run()
       return pyrat
 
     # End if necessary:
