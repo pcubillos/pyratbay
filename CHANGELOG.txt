@@ -4229,3 +4229,8 @@ warnings in Python3.
 
 *****
 
+Moved objects.wrap() to tools.wrap().
+Documented and tested.
+
+*****
+

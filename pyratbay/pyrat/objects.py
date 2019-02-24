@@ -1,8 +1,6 @@
 # Copyright (c) 2016-2019 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-import textwrap
-
 import numpy  as np
 
 from .. import tools      as pt
@@ -13,25 +11,6 @@ from .  import crosssec   as cs
 from .  import rayleigh   as ray
 from .  import haze       as hz
 from .  import alkali     as al
-
-
-def wrap(outlist, text, indent=0):
-    """
-    Wrap input text, store it into outlist list.
-
-    Parameters
-    ----------
-    outlist: List
-    text: String
-    indent: Integer
-    """
-    # TDB: Document and move to tools.
-    indspace = " "*indent
-    lines = text.splitlines()
-    for line in lines:
-        outlist.append(textwrap.fill(line, break_long_words=False,
-                                     initial_indent=indspace,
-                                     subsequent_indent=indspace, width=80))
 
 
 class Pyrat(object):
@@ -248,41 +227,42 @@ class Spectrum(object):
     Print the Spectral info.
     """
     info = []
-    wrap(info, "Spectral info:")
-    wrap(info, "Wavenumber:", 2)
-    wrap(info, "Number of samples:      {:d}".format(self.nwave), 4)
-    wrap(info, "User-input units:       {:s}-1".format(self.wnunits), 4)
-    wrap(info, "Pyrat (internal) units: cm-1", 4)
-    wrap(info, "Low  boundary:     {:9.3f} cm-1".format(self.wnlow),  4)
-    wrap(info, "High boundary:     {:9.3f} cm-1".format(self.wnhigh), 4)
-    wrap(info, "Sampling interval: {:9.3f} cm-1".format(self.wnstep), 4)
-    wrap(info, "Wavenumber array (cm-1):\n  [{:.3f}, {:.3f}, {:.3f}, ..., "
-           "{:.3f}, {:.3f}]".format(self.wn[ 0], self.wn[ 1], self.wn[2],
-                                    self.wn[-2], self.wn[-1]), 4)
-    wrap(info, "Oversampled wavenumber:", 2)
-    wrap(info, "Oversampling factor:    {:d}".format(self.wnosamp),   4)
-    wrap(info, "Number of samples:      {:d}".format(self.onwave),    4)
-    wrap(info, "Sampling interval: {:.3e} cm-1".format(self.ownstep), 4)
-    wrap(info, "Integer divisors for oversampling factor:\n{:s}".
-                   format(str(self.odivisors).replace("\n", "")), 4)
-    wrap(info, "Wavenumber:", 2)
-    wrap(info, "User-input units: {:s}".format(self.wlunits), 4)
-    wrap(info, "Low  boundary: {:7.3f} {:s}".
-             format(self.wllow/pt.u(self.wlunits), self.wlunits),  4)
-    wrap(info, "High boundary: {:7.3f} {:s}".
-             format(self.wlhigh/pt.u(self.wlunits), self.wlunits), 4)
-    wrap(info, "Spectrum:", 2)
+    pt.wrap(info, "Spectral info:")
+    pt.wrap(info, "Wavenumber:", 2)
+    pt.wrap(info, "Number of samples:      {:d}".format(self.nwave), 4)
+    pt.wrap(info, "User-input units:       {:s}-1".format(self.wnunits), 4)
+    pt.wrap(info, "Pyrat (internal) units: cm-1", 4)
+    pt.wrap(info, "Low  boundary:     {:9.3f} cm-1".format(self.wnlow),  4)
+    pt.wrap(info, "High boundary:     {:9.3f} cm-1".format(self.wnhigh), 4)
+    pt.wrap(info, "Sampling interval: {:9.3f} cm-1".format(self.wnstep), 4)
+    pt.wrap(info, "Wavenumber array (cm-1):\n  [{:.3f}, {:.3f}, {:.3f}, ..., "
+        "{:.3f}, {:.3f}]".format(self.wn[ 0], self.wn[ 1], self.wn[2],
+                                 self.wn[-2], self.wn[-1]), 4)
+    pt.wrap(info, "Oversampled wavenumber:", 2)
+    pt.wrap(info, "Oversampling factor:    {:d}".format(self.wnosamp),   4)
+    pt.wrap(info, "Number of samples:      {:d}".format(self.onwave),    4)
+    pt.wrap(info, "Sampling interval: {:.3e} cm-1".format(self.ownstep), 4)
+    pt.wrap(info, "Integer divisors for oversampling factor:\n{:s}".
+                  format(str(self.odivisors).replace("\n", "")), 4)
+    pt.wrap(info, "Wavenumber:", 2)
+    pt.wrap(info, "User-input units: {:s}".format(self.wlunits), 4)
+    pt.wrap(info, "Low  boundary: {:7.3f} {:s}".
+                format(self.wllow/pt.u(self.wlunits), self.wlunits),  4)
+    pt.wrap(info, "High boundary: {:7.3f} {:s}".
+                format(self.wlhigh/pt.u(self.wlunits), self.wlunits), 4)
+    pt.wrap(info, "Spectrum:", 2)
     if self.intensity is not None:
-      wrap(info, "Intensity spectrum array (erg/s/cm/sr): [{:.3f}, {:.3f}, "
-             "{:.3f}, ..., {:.3f}, {:.3f}]".format(self.intensity[ 0],
+      pt.wrap(info, "Intensity spectrum array (erg/s/cm/sr): [{:.3f}, {:.3f}, "
+              "{:.3f}, ..., {:.3f}, {:.3f}]".format(self.intensity[ 0],
                              self.intensity[ 1], self.intensity[ 2],
                              self.intensity[-2], self.intensity[-1]), 4)
     if self.spectrum is None:
-      wrap(info, "Modulation/Flux spectrum array: None", 4)
+        pt.wrap(info, "Modulation/Flux spectrum array: None", 4)
     else:
-      wrap(info, "Modulation/Flux spectrum array: [{:.3f}, {:.3f}, {:.3f}, ..., "
-              "{:.3f}, {:.3f}]".format(self.spectrum[ 0], self.spectrum[ 1],
-              self.spectrum[2], self.spectrum[-2], self.spectrum[-1]), 4)
+        pt.wrap(info, "Modulation/Flux spectrum array: [{:.3f}, {:.3f}, "
+            "{:.3f}, ..., {:.3f}, {:.3f}]".
+            format(self.spectrum[ 0], self.spectrum[ 1], self.spectrum[2],
+                   self.spectrum[-2], self.spectrum[-1]), 4)
 
 
 class Atm(object):
@@ -304,30 +284,30 @@ class Atm(object):
 
   def __repr__(self):
     info = []
-    wrap(info, "Atmospheric model info:")
-    wrap(info, "Abundance input units:   {:s}.".format(self.qunits),  2)
-    wrap(info, "Radius input units:      {:s}.".format(self.runits),  2)
-    wrap(info, "Pressure input units:    {:s}.".format(self.punits),  2)
-    wrap(info, "Temperature input units: {:s}.".format(self.tunits),  2)
-    wrap(info, "Number of layers: {:d}".        format(self.nlayers), 2)
-    wrap(info, "Radius (km):        [{:8.1f}, {:8.1f}, ..., {:8.1f}].".
+    pt.wrap(info, "Atmospheric model info:")
+    pt.wrap(info, "Abundance input units:   {:s}.".format(self.qunits),  2)
+    pt.wrap(info, "Radius input units:      {:s}.".format(self.runits),  2)
+    pt.wrap(info, "Pressure input units:    {:s}.".format(self.punits),  2)
+    pt.wrap(info, "Temperature input units: {:s}.".format(self.tunits),  2)
+    pt.wrap(info, "Number of layers: {:d}".        format(self.nlayers), 2)
+    pt.wrap(info, "Radius (km):        [{:8.1f}, {:8.1f}, ..., {:8.1f}].".
               format(self.radius[0]/pc.km,
                      self.radius[1]/pc.km, self.radius[-1]/pc.km),   4)
-    wrap(info, "Pressure (bar):     [{:.2e}, {:.2e}, ..., {:.2e}].".
+    pt.wrap(info, "Pressure (bar):     [{:.2e}, {:.2e}, ..., {:.2e}].".
               format(self.press[0]/pc.bar,
                      self.press[1]/pc.bar, self.press[-1]/pc.bar),   4)
-    wrap(info, "Temperature (K):    [{:8.2f}, {:8.2f}, ..., {:8.2f}].".
+    pt.wrap(info, "Temperature (K):    [{:8.2f}, {:8.2f}, ..., {:8.2f}].".
               format(self.temp[0],   self.temp[1],   self.temp[-1]), 4)
-    wrap(info, "Mean M. Mass (amu): [{:8.4f}, {:8.4f}, ..., {:8.4f}].".
+    pt.wrap(info, "Mean M. Mass (amu): [{:8.4f}, {:8.4f}, ..., {:8.4f}].".
               format(self.mm[0],     self.mm[1],     self.mm[-1]),   4)
-    wrap(info, "Number of species: {:d}".format(len(self.q[0])),      2)
-    wrap(info, "Abundances (mole mixing ratio):", 2)
+    pt.wrap(info, "Number of species: {:d}".format(len(self.q[0])),      2)
+    pt.wrap(info, "Abundances (mole mixing ratio):", 2)
     for i in np.arange(len(self.q[0])):
-      wrap(info, "Species [{: 2d}]:       [{:.2e}, {:.2e}, ..., {:.2e}].".
+        pt.wrap(info, "Species [{: 2d}]:       [{:.2e}, {:.2e}, ..., {:.2e}].".
                 format(i, self.q[0,i], self.q[1,i], self.q[-1,i]), 4)
-    wrap(info, "Density (gr/cm3):", 2)
+    pt.wrap(info, "Density (gr/cm3):", 2)
     for i in np.arange(len(self.q[0])):
-      wrap(info, "Species [{: 2d}]:       [{:.2e}, {:.2e}, ..., {:.2e}].".
+        pt.wrap(info, "Species [{: 2d}]:       [{:.2e}, {:.2e}, ..., {:.2e}].".
                 format(i, self.d[0,i], self.d[1,i], self.d[-1,i]), 4)
     return "\n".join(info)
 
@@ -343,14 +323,14 @@ class Molecules(object):
 
   def __repr__(self):
     info = []
-    wrap(info, "Atmospheric species info:")
-    wrap(info, "Number of species: {:d}\n"
-               "Species:   ID   Mass      Radius\n"
-               "                (gr/mol)  (Angstrom)".format(self.nmol), 2)
+    pt.wrap(info, "Atmospheric species info:")
+    pt.wrap(info, "Number of species: {:d}\n"
+                  "Species:   ID   Mass      Radius\n"
+                  "                (gr/mol)  (Angstrom)".format(self.nmol), 2)
     for i in np.arange(self.nmol):
-      wrap(info, "{:>7s}:  {:3d}  {:8.4f}  {:.3f}".
-             format(self.symbol[i], self.ID[i],
-                    self.mass[i], self.radius[i]/pc.A), 2)
+        pt.wrap(info, "{:>7s}:  {:3d}  {:8.4f}  {:.3f}".
+                format(self.symbol[i], self.ID[i],
+                       self.mass[i], self.radius[i]/pc.A), 2)
     return "\n".join(info)
 
 
@@ -369,14 +349,14 @@ class Linetransition(object):
 
   def __repr__(self):
     info = []
-    wrap(info, "Line-transition info:")
-    wrap(info, "Number of TLI files:           {:d}".format(self.nTLI), 2)
-    wrap(info, "Number of databases (species): {:d}".format(self.ndb),  2)
+    pt.wrap(info, "Line-transition info:")
+    pt.wrap(info, "Number of TLI files:           {:d}".format(self.nTLI), 2)
+    pt.wrap(info, "Number of databases (species): {:d}".format(self.ndb),  2)
     for i in np.arange(self.ndb):
-      self.db[i].info(2)
-    wrap(info, "Number of line transitions:    {:d}\n"
-               "Minimum and maximum covered temperatures: [{:.1f}, {:.1f}] K".
-               format(self.ntransitions, self.tmin, self.tmax), 2)
+        self.db[i].info(2)
+    pt.wrap(info, "Number of line transitions:    {:d}\n"
+            "Minimum and maximum covered temperatures: [{:.1f}, {:.1f}] K".
+            format(self.ntransitions, self.tmin, self.tmax), 2)
     return "\n".join(info)
 
 
@@ -392,15 +372,15 @@ class Database(object):
 
   def __repr__(self):
     info = []
-    wrap(info, "Database info:")
-    wrap(info, "Database name: {:s}".format(self.name),      2)
-    wrap(info, "Species' name: {:s}".format(self.molname),   2)
-    wrap(info, "Number of isotopes: {:d}".format(self.niso), 2)
-    wrap(info, "Isotope correlative index: {:d}".format(self.iiso), 2)
-    wrap(info, "Number of temperature samples: {:d} (for partition function)".
-                format(self.ntemp), 2)
-    wrap(info, "Temperature boundaries (K): [{:.1f}, {:.1f}]".
-                format(self.temp[0], self.temp[-1]), 2)
+    pt.wrap(info, "Database info:")
+    pt.wrap(info, "Database name: {:s}".format(self.name),      2)
+    pt.wrap(info, "Species' name: {:s}".format(self.molname),   2)
+    pt.wrap(info, "Number of isotopes: {:d}".format(self.niso), 2)
+    pt.wrap(info, "Isotope correlative index: {:d}".format(self.iiso), 2)
+    pt.wrap(info, "Number of temperature samples: {:d} (for partition "
+                  "function)".format(self.ntemp), 2)
+    pt.wrap(info, "Temperature boundaries (K): [{:.1f}, {:.1f}]".
+                  format(self.temp[0], self.temp[-1]), 2)
     return "\n".join(info)
 
 
@@ -420,23 +400,23 @@ class Isotopes(object):
     info = []
     # Patch self.iext if Pyrat doesn't use an EC table:
     if self.ex.extfile is None:
-      iext = [None]*self.niso
+        iext = [None]*self.niso
     else:
-      iext = self.iext
+        iext = self.iext
     # Print info to screen:
-    wrap(info, "Isotopes info:")
-    wrap(info, "Number of isotopes: {:d}".format(self.niso), 2)
-    wrap(info,
+    pt.wrap(info, "Isotopes info:")
+    pt.wrap(info, "Number of isotopes: {:d}".format(self.niso), 2)
+    pt.wrap(info,
       "Isotope:  Species  Mass      Isotopic   Database  Ext-coefficient\n"
       "                   (gr/mol)  ratio      index     table index", 2)
     for i in np.arange(self.niso):
-      wrap(info, "{:>7s}:  {:>7s}  {:8.4f}  {:.3e}       {:3d}  {}".
+      pt.wrap(info, "{:>7s}:  {:>7s}  {:8.4f}  {:.3e}       {:3d}  {}".
              format(self.name[i], self.mol.name[self.imol[i]],
                self.mass[i], self.ratio[i], self.dbindex[i], iext[i]), 2)
     # FINDME: Partition function?
-    #wrap(info, "Partition Function:", 2)
+    #pt.wrap(info, "Partition Function:", 2)
     #for i in np.arange(self.niso):
-    #  wrap(info, "{:>7s}: [{:.2e}, {:.2e}, ..., {:.2e}]".
+    #  pt.wrap(info, "{:>7s}: [{:.2e}, {:.2e}, ..., {:.2e}]".
     #             format(db.z[j,0], db.z[j,1], db.z[j,-1]), 4)
     return "\n".join(info)
 
@@ -459,27 +439,27 @@ class Voigt(object):
 
   def __repr__(self):
     info = []
-    wrap(info, "Voigt profile info:", 0)
-    wrap(info, "Number of Doppler-width samples:  {:d}".format(self.nDop),
+    pt.wrap(info, "Voigt profile info:", 0)
+    pt.wrap(info, "Number of Doppler-width samples:  {:d}".format(self.nDop),
            2)
-    wrap(info, "Number of Lorentz-width samples:  {:d}".format(self.nLor),
+    pt.wrap(info, "Number of Lorentz-width samples:  {:d}".format(self.nLor),
            2)
-    wrap(info, "Doppler-width array (cm-1):  [{:.3e}, {:.3e}, ..., {:.3e}]".
+    pt.wrap(info, "Doppler-width array (cm-1):  [{:.3e}, {:.3e}, ..., {:.3e}]".
                format(self.doppler[0], self.doppler[1], self.doppler[-1]),
            2)
-    wrap(info, "Lorentz-width array (cm-1):  [{:.3e}, {:.3e}, ..., {:.3e}]".
+    pt.wrap(info, "Lorentz-width array (cm-1):  [{:.3e}, {:.3e}, ..., {:.3e}]".
                format(self.lorentz[0], self.lorentz[1], self.lorentz[-1]),
            2)
-    wrap(info, "Doppler--Lorentz ratio threshold:  {:.3e}".
+    pt.wrap(info, "Doppler--Lorentz ratio threshold:  {:.3e}".
                format(self.DLratio), 2)
-    wrap(info, "Extent covered by a profile in units of Voigt half widths:  "
+    pt.wrap(info, "Extent covered by a profile in units of Voigt half widths:  "
               "{:.2f}".format(self.extent), 2)
-    wrap(info, "Total size of all Voigt profiles (~sum of: 2*size+1):  {:d}".
+    pt.wrap(info, "Total size of all Voigt profiles (~sum of: 2*size+1):  {:d}".
                format(np.size(self.profile)), 2)
-    wrap(info, "Voigt-profile half-sizes [Ndop, Nlor]:", 2)
-    wrap(info, "{}".format(self.size), 4)
-    wrap(info, "Voigt-profile indices [Ndop, Nlor]:", 2)
-    wrap(info, "{}".format(self.index), 4)
+    pt.wrap(info, "Voigt-profile half-sizes [Ndop, Nlor]:", 2)
+    pt.wrap(info, "{}".format(self.size), 4)
+    pt.wrap(info, "Voigt-profile indices [Ndop, Nlor]:", 2)
+    pt.wrap(info, "{}".format(self.index), 4)
     return "\n".join(info)
 
 
@@ -509,45 +489,48 @@ class Extinction(object):
 
   def __repr__(self):
     info = []
-    wrap(info, "Extinction coefficient info:")
-    wrap(info, "Line-transition strength threshold: {:.3e}".
+    pt.wrap(info, "Extinction coefficient info:")
+    pt.wrap(info, "Line-transition strength threshold: {:.3e}".
                format(self.ethresh), 2)
     if self.extfile is None:
-      wrap(info, "No extinction-coefficient table defined.", 2)
+        pt.wrap(info, "No extinction-coefficient table defined.", 2)
     else:
-      wrap(info, "Extinction-coefficient table filename:",  2)
-      wrap(info, "'{:s}'".format(self.extfile), 4)
-      wrap(info, "Minimum temperature:           {:6.1f} K".format(self.tmin), 4)
-      wrap(info, "Maximum temperature:           {:6.1f} K".format(self.tmax), 4)
-      wrap(info, "Temperature sampling interval: {:6.1f} K".format(self.tstep), 4)
-      wrap(info, "Number of tabulated species:          {:5d}".
-                 format(self.nmol), 4)
-      wrap(info, "Number of tabulated temperatures:     {:5d}".
-                 format(self.ntemp), 4)
-      wrap(info, "Number of tabulated layers:           {:5d}".
-                 format(self.nlayers), 4)
-      wrap(info, "Number of tabulated spectral samples: {:5d}".
-                 format(self.nwave), 4)
-      wrap(info, "Temperature array (K):   [{:8.1f}, {:8.1f}, ..., {:8.1f}]".
-                 format(self.temp[0], self.temp[1], self.temp[-1]), 4)
-      wrap(info, "Partition function at tabulated temperatures:", 4)
-      wrap(info, "{}".format(self.z), 6)
-      wrap(info, "Species ID array: {:s}".
-                 format(str(self.molID).replace("\n", "")), 4)
-      wrap(info, "Pressure array: (bar)    [{:.2e}, {:.2e}, ..., {:.2e}]".
-                 format(self.press[0]/pc.bar,
-                        self.press[1]/pc.bar, self.press[-1]/pc.bar), 4)
-      wrap(info, "Wavenumber array (cm-1): [{:8.3f}, {:8.3f}, ..., {:8.3f}]".
-                 format(self.wn[0], self.wn[1], self.wn[-1]), 4)
-      np.set_printoptions(formatter={'float': '{: .1e}'.format})
-      wrap(info, "Tabulated extinction coefficient (cm2 gr-1)\n"
-                "                       [spec, temp, layer, wave]:", 4)
-      wrap(info, "{}".format((self.etable)), 4)
+        pt.wrap(info, "Extinction-coefficient table filename:",  2)
+        pt.wrap(info, "'{:s}'".format(self.extfile), 4)
+        pt.wrap(info, "Minimum temperature:           {:6.1f} K".
+                      format(self.tmin), 4)
+        pt.wrap(info, "Maximum temperature:           {:6.1f} K".
+                      format(self.tmax), 4)
+        pt.wrap(info, "Temperature sampling interval: {:6.1f} K".
+                      format(self.tstep), 4)
+        pt.wrap(info, "Number of tabulated species:          {:5d}".
+                      format(self.nmol), 4)
+        pt.wrap(info, "Number of tabulated temperatures:     {:5d}".
+                      format(self.ntemp), 4)
+        pt.wrap(info, "Number of tabulated layers:           {:5d}".
+                      format(self.nlayers), 4)
+        pt.wrap(info, "Number of tabulated spectral samples: {:5d}".
+                      format(self.nwave), 4)
+        pt.wrap(info, "Temperature array (K):   [{:8.1f}, {:8.1f}, ..., "
+                "{:8.1f}]".format(self.temp[0], self.temp[1], self.temp[-1]), 4)
+        pt.wrap(info, "Partition function at tabulated temperatures:", 4)
+        pt.wrap(info, "{}".format(self.z), 6)
+        pt.wrap(info, "Species ID array: {:s}".
+                      format(str(self.molID).replace("\n", "")), 4)
+        pt.wrap(info, "Pressure array: (bar)    [{:.2e}, {:.2e}, ..., {:.2e}]".
+                      format(self.press[0]/pc.bar,
+                             self.press[1]/pc.bar, self.press[-1]/pc.bar), 4)
+        pt.wrap(info, "Wavenumber array (cm-1): [{:8.3f}, {:8.3f}, ..., "
+                "{:8.3f}]".format(self.wn[0], self.wn[1], self.wn[-1]), 4)
+        np.set_printoptions(formatter={'float': '{: .1e}'.format})
+        pt.wrap(info, "Tabulated extinction coefficient (cm2 gr-1)\n"
+                      "                       [spec, temp, layer, wave]:", 4)
+        pt.wrap(info, "{}".format((self.etable)), 4)
     if self.ec is not None:
-      np.set_printoptions(formatter={'float': '{: .2e}'.format})
-      wrap(info, "\nLine-transition extinction coefficient for the "
-                   "atmospheric model (cm-1) [layer, wave]:", 2)
-      wrap(info, "{}".format((self.ec)), 2)
+        np.set_printoptions(formatter={'float': '{: .2e}'.format})
+        pt.wrap(info, "\nLine-transition extinction coefficient for the "
+                      "atmospheric model (cm-1) [layer, wave]:", 2)
+        pt.wrap(info, "{}".format((self.ec)), 2)
     np.set_printoptions(formatter=None)
     return "\n".join(info)
 
@@ -574,34 +557,34 @@ class Cross(object):
 
   def info(self):
     info = []
-    wrap(info, "Cross-section extinction info:")
-    wrap(info, "Number of CS files: {:d}".format(self.nfiles), 2)
+    pt.wrap(info, "Cross-section extinction info:")
+    pt.wrap(info, "Number of CS files: {:d}".format(self.nfiles), 2)
     for i in np.arange(self.nfiles):
-      wrap(info, "CS file: '{:s}':".format(self.files[i]), 2)
-      wrap(info, "Species: {:s}".
-                 format("-".join(self.molecules[i,0:self.nmol[i]])), 4)
-      wrap(info, "Number of temperatures:       {:4d}".format(self.ntemp[i]),
-                                                                     4)
-      wrap(info, "Number of wavenumber samples: {:4d}".format(self.nwave[i]),
-                                                                     4)
-      wrap(info, "Temperature array (K):  {}".
-                 format(str(self.temp[i]).replace("\n", "")), 4, si=6)
-      wrap(info, "Wavenumber array (cm-1): [{:7.1f}, {:7.1f}, ..., {:7.1f}]".
-                 format(self.wavenumber[i][0], self.wavenumber[i][1],
-                        self.wavenumber[i][-1]), 4)
-      np.set_printoptions(formatter={'float': '{: .1e}'.format})
-      wrap(info, "Tabulated CS extinction coefficient (cm-1 amagat-{:d}) "
-                "[layer, wave]:".format(self.nmol[i]), 4)
-      wrap(info, "{}".format((self.ec)),                6)
-      np.set_printoptions(formatter=None)
-    wrap(info, "\nMinimum and maximum covered temperatures (K): "
-              "[{:.1f}, {:.1f}]".format(self.tmin, self.tmax), 2)
+        pt.wrap(info, "CS file: '{:s}':".format(self.files[i]), 2)
+        pt.wrap(info, "Species: {:s}".
+                format("-".join(self.molecules[i,0:self.nmol[i]])), 4)
+        pt.wrap(info, "Number of temperatures:       {:4d}".
+                format(self.ntemp[i]), 4)
+        pt.wrap(info, "Number of wavenumber samples: {:4d}".
+                format(self.nwave[i]), 4)
+        pt.wrap(info, "Temperature array (K):  {}".
+                format(str(self.temp[i]).replace("\n", "")), 4, 6)
+        pt.wrap(info, "Wavenumber array (cm-1): [{:7.1f}, {:7.1f}, ..., "
+                "{:7.1f}]".format(self.wavenumber[i][0], self.wavenumber[i][1],
+                                  self.wavenumber[i][-1]), 4)
+        np.set_printoptions(formatter={'float': '{: .1e}'.format})
+        pt.wrap(info, "Tabulated CS extinction coefficient (cm-1 amagat-{:d}) "
+                      "[layer, wave]:".format(self.nmol[i]), 4)
+        pt.wrap(info, "{}".format((self.ec)),                6)
+        np.set_printoptions(formatter=None)
+    pt.wrap(info, "\nMinimum and maximum covered temperatures (K): "
+                  "[{:.1f}, {:.1f}]".format(self.tmin, self.tmax), 2)
     # FINDME iabsorp ?
     if self.ec is not None:
-      np.set_printoptions(formatter={'float': '{: .2e}'.format})
-      wrap(info, "CS extinction coefficient for the "
-                   "atmospheric model (cm-1) [layer, wave]:", 2)
-      wrap(info, "{}".format((self.ec)), 2)
+        np.set_printoptions(formatter={'float': '{: .2e}'.format})
+        pt.wrap(info, "CS extinction coefficient for the "
+                      "atmospheric model (cm-1) [layer, wave]:", 2)
+        pt.wrap(info, "{}".format((self.ec)), 2)
     np.set_printoptions(formatter=None)
     return "\n".join(info)
 
@@ -662,55 +645,58 @@ class Optdepth(object):
 
   def __repr__(self):
     info = []
-    wrap(info, "Optical depth info:")
-    wrap(info, "Ray-path geometry:  {:s}".format(self.path), 2)
-    wrap(info, "Maximum optical depth to calculate:  {:.2f}".
+    pt.wrap(info, "Optical depth info:")
+    pt.wrap(info, "Ray-path geometry:  {:s}".format(self.path), 2)
+    pt.wrap(info, "Maximum optical depth to calculate:  {:.2f}".
                format(self.maxdepth), 2)
     if self.ec is not None:
-      np.set_printoptions(formatter={'float': '{: .2e}'.format})
-      wrap(info, "Total atmospheric-model extinction coefficient (cm-1) "
-                 "[layer, wave]:", 2)
-      wrap(info, "{}".format((self.ec)), 2)
-      np.set_printoptions(formatter=None)
+        np.set_printoptions(formatter={'float': '{: .2e}'.format})
+        pt.wrap(info, "Total atmospheric-model extinction coefficient (cm-1) "
+                      "[layer, wave]:", 2)
+        pt.wrap(info, "{}".format((self.ec)), 2)
+        np.set_printoptions(formatter=None)
     if self.depth is not None:
-      wrap(info, "Layer index where the optical depth reached maxdepth:", 2)
-      wrap(info, "{}".format(self.ideep), 4)
-      np.set_printoptions(formatter={'float': '{: .1f}'.format})
-      # Raypath for transit geometry:
-      if self.path == "transit":
-        wrap(info, "\nDistance (km) along the raypath over each layer "
-                  "(outside-in) for each impact parameter:", 2)
-        wrap(info, "IP[  1] ({:.1f} km): {}".format(
-          pyrat.atm.radius[1]/pc.km, self.raypath[1]/pc.km), 4)
-        wrap(info, "IP[  2] ({:.1f} km): {}".format(
-          pyrat.atm.radius[2]/pc.km, self.raypath[2]/pc.km), 4)
-        wrap(info, "IP[  3] ({:.1f} km): {}".format(
-          pyrat.atm.radius[3]/pc.km, self.raypath[3]/pc.km), 4)
-        wrap(info, "...", 4)
-        wrap(info, "IP[{:3d}] ({:.1f} km): {}".format(len(pyrat.atm.radius),
-               pyrat.atm.radius[-1]/pc.km,
-               str(self.raypath[-1]/pc.km)).replace("\n", ""), 4, si=6)
-        wrap(info, "\nOptical depth for each impact parameter (outside-in) for "
-                "each wavenumber:", 2)
-      # Raypath for eclipse geometry:
-      elif self.path == "eclipse":
-        wrap(info, "\nDistance over each layer along a normal-incident "
-                  "raypath (km):  {}".
-          format(str(self.raypath/pc.km).replace("\n", "")), 2, si=4)
-        wrap(info, "\nOptical depth over each layer (outside-in) along a "
-                  "normal-incident raypath for each wavenumber:", 2)
-      # Print optical depth:
-      np.set_printoptions(formatter={'float': '{: .1e}'.format})
-      wrap(info, "At {:7.1f} cm-1:  {}".format(pyrat.spec.wn[0],
-             str(self.depth[0:self.ideep[0]+1,0]).replace("\n","")), 4, si=6)
-      wrap(info, "...", 4)
-      index = pyrat.spec.nwave/2
-      wrap(info, "At {:7.1f} cm-1:  {}".format(pyrat.spec.wn[index],
-        str(self.depth[0:self.ideep[index]+1,index]).replace("\n","")), 4, si=6)
-      wrap(info, "...", 4)
-      index = pyrat.spec.nwave-1
-      wrap(info, "At {:7.1f} cm-1:  {}".format(pyrat.spec.wn[index],
-        str(self.depth[0:self.ideep[index]+1,index]).replace("\n","")), 4, si=6)
+        pt.wrap(info, "Layer index where the optical depth reached maxdepth:",2)
+        pt.wrap(info, "{}".format(self.ideep), 4)
+        np.set_printoptions(formatter={'float': '{: .1f}'.format})
+        # Raypath for transit geometry:
+        if self.path == "transit":
+            pt.wrap(info, "\nDistance (km) along the raypath over each layer "
+                          "(outside-in) for each impact parameter:", 2)
+            pt.wrap(info, "IP[  1] ({:.1f} km): {}".format(
+                    pyrat.atm.radius[1]/pc.km, self.raypath[1]/pc.km), 4)
+            pt.wrap(info, "IP[  2] ({:.1f} km): {}".format(
+                    pyrat.atm.radius[2]/pc.km, self.raypath[2]/pc.km), 4)
+            pt.wrap(info, "IP[  3] ({:.1f} km): {}".format(
+                    pyrat.atm.radius[3]/pc.km, self.raypath[3]/pc.km), 4)
+            pt.wrap(info, "...", 4)
+            pt.wrap(info, "IP[{:3d}] ({:.1f} km): {}".format(
+                    len(pyrat.atm.radius),
+                    pyrat.atm.radius[-1]/pc.km,
+                    str(self.raypath[-1]/pc.km)).replace("\n", ""), 4, 6)
+            pt.wrap(info, "\nOptical depth for each impact parameter "
+                          "(outside-in) for each wavenumber:", 2)
+        # Raypath for eclipse geometry:
+        elif self.path == "eclipse":
+            pt.wrap(info, "\nDistance over each layer along a normal-incident "
+                          "raypath (km):  {}".format(
+                          str(self.raypath/pc.km).replace("\n", "")), 2, 4)
+            pt.wrap(info, "\nOptical depth over each layer (outside-in) along "
+                          "a normal-incident raypath for each wavenumber:", 2)
+        # Print optical depth:
+        np.set_printoptions(formatter={'float': '{: .1e}'.format})
+        pt.wrap(info, "At {:7.1f} cm-1:  {}".format(pyrat.spec.wn[0],
+               str(self.depth[0:self.ideep[0]+1,0]).replace("\n","")), 4, 6)
+        pt.wrap(info, "...", 4)
+        index = pyrat.spec.nwave/2
+        pt.wrap(info, "At {:7.1f} cm-1:  {}".format(pyrat.spec.wn[index],
+                str(self.depth[0:self.ideep[index]+1,index]).replace("\n","")),
+                4, 6)
+        pt.wrap(info, "...", 4)
+        index = pyrat.spec.nwave-1
+        pt.wrap(info, "At {:7.1f} cm-1:  {}".format(pyrat.spec.wn[index],
+                str(self.depth[0:self.ideep[index]+1,index]).replace("\n","")),
+                4, 6)
     return "\n".join(info)
 
 

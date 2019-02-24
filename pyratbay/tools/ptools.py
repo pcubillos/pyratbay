@@ -4,12 +4,13 @@
 __all__ = ["parray", "defaultp", "getparam",
            "binsearch", "pprint", "divisors", "u", "unpack",
            "ifirst", "ilast",
-           "isfile", "addarg", "path"]
+           "isfile", "addarg", "path", "wrap"]
 
 import os
 import sys
 import struct
 import numbers
+import textwrap
 
 import numpy as np
 
@@ -401,3 +402,41 @@ def path(filename):
         path = '.'
     return '{:s}/{:s}'.format(path, filename)
 
+
+def wrap(outlist, text, indent=0, si=None):
+    """
+    Wrap input text, store it into outlist list.
+
+    Parameters
+    ----------
+    outlist: List
+        List where to append the wrapped text.
+    text: String
+        Text to wrap.
+    indent: Integer
+        Number of spaces to indent the first line.
+    si: Integer
+        Number of spaces to indent subsequent lines.  If None, use
+        use same indentation as indent.
+
+    Examples
+    --------
+    >>> import pyratbay.tools as pt
+    >>> info = []
+    >>> pt.wrap(info, "Pyrat atmospheric model\n")
+    >>> pt.wrap(info, "Pressure = 1.0 bar\nTemperature = 1000.0 K", indent=2)
+    >>> print("\n".join(info))
+    Pyrat atmospheric model
+      Pressure = 1.0 bar
+      Temperature = 1000.0 K
+    """
+    indspace = " "*indent
+    if si is None:
+        sindspace = indspace
+    else:
+        sindspace = " "*si
+    lines = text.splitlines()
+    for line in lines:
+        outlist.append(textwrap.fill(line, break_long_words=False,
+                                     initial_indent=indspace,
+                                     subsequent_indent=sindspace, width=80))
