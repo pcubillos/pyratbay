@@ -150,10 +150,10 @@ static PyObject *cumtrapz(PyObject *self, PyObject *args){
 
 
 PyDoc_STRVAR(optdepth__doc__,
-"Integrate optical depth using the trapezoidal rule.       \n\
+"Integrate optical depth using the trapezoidal rule.        \n\
                                                             \n\
-Parameters:                                                 \n\
------------                                                 \n\
+Parameters                                                  \n\
+----------                                                  \n\
 data: 2D double ndarray                                     \n\
    Sampled function (Y-axis) to integrate.                  \n\
 intervals: 1D double ndarray                                \n\
@@ -165,8 +165,8 @@ ideep: 1D integer ndarray                                   \n\
 ilay: Integer                                               \n\
    Current layer index                                      \n\
                                                             \n\
-Returns:                                                    \n\
---------                                                    \n\
+Returns                                                     \n\
+-------                                                     \n\
 res: double                                                 \n\
    The integral of data over the given intervals.           \n\
 ");
@@ -180,7 +180,7 @@ static PyObject *optdepth(PyObject *self, PyObject *args){
   /* Load inputs:                                                           */
   if (!PyArg_ParseTuple(args, "OOdOi",
                         &data, &intervals, &taumax, &ideep, &ilay))
-    return NULL;
+      return NULL;
 
   /* Get the number of intervals:                                           */
   nint  = (int)PyArray_DIM(intervals, 0);
@@ -190,19 +190,19 @@ static PyObject *optdepth(PyObject *self, PyObject *args){
   tau = (PyArrayObject *) PyArray_SimpleNew(1, dims, NPY_DOUBLE);
 
   for (j=0; j<nwave; j++){
-    INDd(tau,j) = 0.0;
+      INDd(tau,j) = 0.0;
 
-    /* Check for even number of samples (odd number of intervals):            */
-    if (INDi(ideep,j) < 0){
-      for(i=0; i<nint; i++){
-        INDd(tau,j) += INDd(intervals,i)
-                       * (IND2d(data,(i+1),j) + IND2d(data,i,j));
+      /* Check for even number of samples (odd number of intervals):        */
+      if (INDi(ideep,j) < 0){
+          for(i=0; i<nint; i++){
+              INDd(tau,j) += INDd(intervals,i)
+                             * (IND2d(data,(i+1),j) + IND2d(data,i,j));
+          }
+          INDd(tau,j) *= 0.5;
+          if (INDd(tau,j) > taumax){
+              INDi(ideep,j) = (int)ilay;
+          }
       }
-      INDd(tau,j) *= 0.5;
-      if (INDd(tau,j) > taumax){
-        INDi(ideep,j) = (int)ilay;
-      }
-    }
   }
 
   return Py_BuildValue("N", tau);

@@ -7,9 +7,8 @@ import numpy as np
 
 ROOT = os.path.realpath(os.path.dirname(__file__) + '/..') + '/'
 sys.path.append(ROOT)
-#sys.path.append('../')
 import pyratbay as pb
-import pyratbay.constants as pc
+import pyratbay.constants  as pc
 import pyratbay.atmosphere as pa
 
 os.chdir(ROOT+'tests')
@@ -65,7 +64,7 @@ def test_tli_hitran():
     #subprocess.call(['wget', '--user=HITRAN', '--password=getdata', '-N',
     #                 'https://www.cfa.harvard.edu/HITRAN/HITRAN2012/HITRAN2012/By-Molecule/Compressed-files/01_hit12.zip'])
     #subprocess.call(['unzip', '01_hit12.zip'])
-    pb.pbay.run('tli_hitran_test.cfg')
+    pb.pbay.run(ROOT+'tests/tli_hitran_test.cfg')
     # asserts on output file
 
 
@@ -139,6 +138,7 @@ def test_atmosphere_tea():
     np.testing.assert_allclose(atm[4], expected_abundances,      rtol=1e-4)
 
 
+@pytest.mark.skip(reason="See tests/test_spectrum.py")
 def test_spectrum_transmission():
     pyrat = pb.pbay.run(ROOT+'tests/spectrum_transmission_test.cfg')
     # implement asserts
@@ -149,9 +149,9 @@ def test_spectrum_emission():
     # implement asserts
 
 
-@pytest.mark.skip
 def test_opacity():
-    pass
+    pyrat = pb.pbay.run(ROOT+'tests/opacity_test.cfg')
+    # implement asserts
 
 
 @pytest.mark.skip

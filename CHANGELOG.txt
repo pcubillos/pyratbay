@@ -4217,3 +4217,10 @@ Updated test_src.py to implement indices.c change to _indices.c.
 
 *****
 
+Added opacity test in test_pbay.py.
+Added spectrum forward-model tests in test_spectrum.py (and
+associated files).
+Some cosmetics clean up.
+
+*****
+

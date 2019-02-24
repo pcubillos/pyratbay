@@ -6,3 +6,5 @@
 modules/sphinxdoc-MCcubed/*
 tests/*
 !tests/*.py
+!tests/*.npz
+!tests/*.cfg

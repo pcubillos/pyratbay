@@ -9,7 +9,9 @@ sys.path.append(ROOT)
 import pyratbay.atmosphere as pa
 import pyratbay.constants  as pc
 
+
 os.chdir(ROOT+'tests')
+
 
 expected_pressure = np.array([1.e-02, 1.e-01, 1.e+00, 1.e+01, 1.e+02, 1.e+03,
                               1.e+04, 1.e+05, 1.e+06, 1.e+07, 1.e+08])
@@ -220,7 +222,7 @@ def test_stoich():
 
 @pytest.mark.parametrize("abundances",
     [ [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4],
-      [[0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]]])
+     [[0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]]])
 def test_meanweight(abundances):
     species     = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
     mu = pa.meanweight(abundances, species)
