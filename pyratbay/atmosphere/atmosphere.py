@@ -20,7 +20,6 @@ import scipy.interpolate as sip
 from .. import tools     as pt
 from .. import constants as pc
 from .  import MadhuTP
-from ..pbay import makecfg as mc
 
 sys.path.append(pc.ROOT + "pyratbay/lib/")
 import pt as PT
@@ -554,7 +553,7 @@ def abundances(atmfile, pressure, temperature, species, elements=None,
   makepreatm(pressure/pt.u(punits), temperature, atomicfile, elements,
              specs, patm)
   # Run TEA:
-  mc.makeTEA(abun_file=atomicfile)
+  pt.make_tea(abun_file=atomicfile)
   proc = subprocess.Popen([pc.ROOT + "modules/TEA/tea/runatm.py", patm, "TEA"])
   proc.communicate()
   # Reformat the TEA output into the pyrat format:

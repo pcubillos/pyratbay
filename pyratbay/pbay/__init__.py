@@ -2,13 +2,12 @@
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
 from .driver   import *
-from .makecfg  import *
 from .pyratfit import *
 
 from .. import VERSION  as ver
 
 # Visible functions:
-__all__ = driver.__all__ + makecfg.__all__ + pyratfit.__all__
+__all__ = driver.__all__ + pyratfit.__all__
 
 # Pyrat Bay version:
 __version__ = "{:d}.{:d}.{:d}".format(ver.PBAY_VER, ver.PBAY_MIN,

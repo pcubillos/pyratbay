@@ -4237,5 +4237,9 @@ Documented and tested.
 Moved pyrat.driver.run() funtion into Pyrat.run() method,
 which does not return the object itself anymore (redundant).
 
-*****
+
+*****  Mo 25. Feb 10:09:39 CET 2019  *****
+
+Renamed makeTEA() to make_tea(), moved from pbay to tools module.
+This avoid issues with circular imports.
 
