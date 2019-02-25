@@ -7,7 +7,8 @@ import time
 import numpy  as np
 
 from .. import constants  as pc
-from .. import atmosphere as atm
+from .. import atmosphere as pa
+from .. import wine       as pw
 from .  import extinction as ex
 from .  import crosssec   as cs
 from .  import rayleigh   as ray
@@ -17,11 +18,10 @@ from .  import readatm    as ra
 from .  import optdepth   as od
 from .  import spectrum   as sp
 from .  import objects    as ob
-
-from . import argum      as ar
-from . import makesample as ms
-from . import voigt      as v
-from . import readlinedb as rl
+from .  import argum      as ar
+from .  import makesample as ms
+from .  import voigt      as v
+from .  import readlinedb as rl
 
 
 class Pyrat(object):
@@ -206,6 +206,101 @@ class Pyrat(object):
                                          wfile, self.log.sep))
 
 
+  def eval(self, params, retmodel=True, verbose=False):
+      """
+      Fitting routine for MCMC.
+
+      Parameters
+      ----------
+      params: 1D float iterable
+         Array of fitting parameters that define the atmosphere.
+      retmodel: Bool
+         Flag to include the model spectra in the return.
+      verbose: Bool
+         Flag to print out if a run failed.
+
+      Returns
+      -------
+      spectrum: 1D float ndarray
+         The output model spectra.  Returned only if retmodel=True.
+      bandflux: 1D float ndarray
+         The waveband-integrated spectrum values.
+      """
+      params = np.asarray(params)
+      q0 = np.copy(self.atm.qbase)
+
+      rejectflag = False
+      # Update temperature profile if requested:
+      if self.ret.itemp is not None:
+          temp = self.atm.tmodel(params[self.ret.itemp], *self.atm.targs)
+      else:
+          temp = self.atm.temp
+      # Turn-on reject flag if out-of-bounds temperature:
+      if np.any(temp < self.ret.tlow) or np.any(temp > self.ret.thigh):
+          temp[:] = 0.5*(self.ret.tlow + self.ret.thigh)
+          rejectflag = True
+          if verbose:
+              self.log.warning("Input temperature profile runs out of "
+                               "boundaries ({:.1f--{:.1f}} K)".
+                               format(self.ret.tlow, self.ret.thigh))
+
+      # Update abundance profiles if requested:
+      if self.ret.iabund is not None:
+          q2 = pa.qscale(q0, self.mol.name, self.atm.molmodel,
+                         self.atm.molfree, params[self.ret.iabund],
+                         self.atm.bulk,
+                         iscale=self.atm.ifree, ibulk=self.atm.ibulk,
+                         bratio=self.atm.bulkratio, invsrat=self.atm.invsrat)
+      else:
+          q2 = self.atm.q
+
+      # Check abundaces stay within bounds:
+      if pa.qcapcheck(q2, self.ret.qcap, self.atm.ibulk):
+          rejectflag = True
+          if verbose:
+              self.log.warning("The sum of trace abundances' fraction exceeds "
+                               "the cap of {:.3f}.".format(self.ret.qcap))
+
+      # Update reference radius if requested:
+      if self.ret.irad is not None:
+          self.phy.rplanet = params[self.ret.irad][0] * pc.km
+
+      # Update Rayleigh parameters if requested:
+      if self.ret.iray is not None:
+          j = 0
+          rpars = params[self.ret.iray]
+          for rmodel in self.rayleigh.model:
+              rmodel.pars = rpars[j:j+rmodel.npars]
+              j += rmodel.npars
+
+      # Update haze parameters if requested:
+      if self.ret.ihaze is not None:
+          j = 0
+          hpars = params[self.ret.ihaze]
+          for hmodel in self.haze.model:
+              hmodel.pars = hpars[j:j+hmodel.npars]
+              j += hmodel.npars
+
+      # Update patchy fraction if requested:
+      if self.ret.ipatchy is not None:
+          self.haze.fpatchy = params[self.ret.ipatchy]
+
+      # Calculate spectrum:
+      self.run(temp=temp, abund=q2)
+
+      # Band-integrate spectrum:
+      self.obs.bandflux = pw.bandintegrate(pyrat=self)
+
+      # Reject this iteration if there are invalid temperatures or radii:
+      if self.obs.bandflux is not None and rejectflag:
+          self.obs.bandflux[:] = np.inf
+
+      if retmodel:
+          return self.spec.spectrum, self.obs.bandflux
+
+      return self.obs.bandflux
+
+
   def hydro(self, pressure, temperature, mu, g, mass, p0, r0):
     """
     Hydrostatic-equilibrium driver.
@@ -232,9 +327,9 @@ class Pyrat(object):
     """
     # H.E. with  g=GM/r**2:
     if self.hydrom:
-      return atm.hydro_m(pressure, temperature, mu, mass, p0, r0)
+      return pa.hydro_m(pressure, temperature, mu, mass, p0, r0)
     # H.E. with constant g:
-    return atm.hydro_g(pressure, temperature, mu, g, p0, r0)
+    return pa.hydro_g(pressure, temperature, mu, g, p0, r0)
 
 
   def get_ec(self, layer):

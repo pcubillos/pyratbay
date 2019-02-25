@@ -6,9 +6,9 @@ __all__ = ["specpercent"]
 import sys
 import os
 if sys.version_info.major == 3:
-  import configparser
+    import configparser
 else:
-  import ConfigParser as configparser
+    import ConfigParser as configparser
 import ctypes
 import multiprocessing as mp
 
@@ -17,6 +17,9 @@ import numpy as np
 from .. import constants as pc
 from .. import starspec  as ps
 from .. import io        as io
+
+sys.path.append(pc.ROOT + "modules/MCcubed/")
+import MCcubed as mc3
 
 
 def worker(pyrat, idx, models, post, uind):
@@ -35,15 +38,12 @@ def worker(pyrat, idx, models, post, uind):
   uind: 1D integer ndarray
      Indices of unique samples in post (of shape nunique).
   """
-  # Need to put the import here to avoid circular imports:
-  from .. import pbay as pb
-
   params = pyrat.ret.params
   ifree = np.where(pyrat.ret.stepsize >0)[0]
   j = 0
   for i in idx:
     params[ifree] = post[uind[i]]
-    models[i], dummy = pb.fit(params, pyrat, freeze=True)
+    models[i], dummy = pyrat.eval(params)
     j += 1
     if 0 in idx and j%(len(idx)/10)==0:
       print("{:3.0f}% completed.".format(j*100.0/len(idx)))
@@ -81,26 +81,26 @@ def specpercent(cfile, ncpu=None, nmax=None):
      Spectrum values of the upper 0.954 percentile of the posterior.
   """
   # Need to put the import here to avoid circular imports:
-  from .. import pyrat as py
+  from .. import Pyrat
 
   # Set number of cpus:
   if ncpu is None:
-    ncpu = mp.cpu_count()  # Default to max
+      ncpu = mp.cpu_count()  # Default to max
   else:
-    ncpu = np.clip(ncpu, 1, mp.cpu_count())
+      ncpu = np.clip(ncpu, 1, mp.cpu_count())
 
   # Initialize Pyrat object from given config file:
   path, cfg = os.path.split(os.path.realpath(cfile))
   path += "/"
 
-  log = open("dummy.log", "w")  # Avoid overwriting the log file
-  pyrat = py.init(cfile, log=log)
+  log = mc3.utils.Log(None, width=80)  # Avoid overwriting the log file
+  pyrat = Pyrat(cfile, log=log)
   wl    = 1.0/(pyrat.spec.wn*pc.um)
   nwave = len(wl)
   pyrat.verb = -5
 
   # Extract MCMC setup info:
-  config = configparser.SafeConfigParser()
+  config = configparser.ConfigParser()
   config.read([cfile])
   rootname = config.get('pyrat','logfile').replace('.log','')
   savefile = rootname + '.npz'
@@ -130,8 +130,8 @@ def specpercent(cfile, ncpu=None, nmax=None):
   # Compute spectra:
   processes = []
   for n in np.arange(ncpu):
-    start =  n    * nruns/ncpu
-    end   = (n+1) * nruns/ncpu
+    start =  n    * nruns//ncpu
+    end   = (n+1) * nruns//ncpu
     idx = np.arange(start, end)
     proc = mp.Process(target=worker, args=(pyrat, idx, models, post, uind))
     processes.append(proc)
@@ -154,7 +154,7 @@ def specpercent(cfile, ncpu=None, nmax=None):
     low1[i]  = np.percentile(msample, 15.865)
     high1[i] = np.percentile(msample, 100-15.865)
     high2[i] = np.percentile(msample, 100- 2.275)
-    if i % int(nwave/10) == 0:
+    if i % int(nwave//10) == 0:
       print("{:3.0f}% completed.".format(i*100.0/nwave))
 
   # Load best-fitting model:

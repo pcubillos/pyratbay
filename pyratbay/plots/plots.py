@@ -352,10 +352,10 @@ def PT(posterior, pressure=None, tparams=None, tstepsize=None,
   """
   if pyrat is not None:
     pressure  = pyrat.atm.press
-    targs     = pyrat.ret.targs
+    targs     = pyrat.atm.targs
     tparams   = pyrat.ret.params[pyrat.ret.itemp]
     tstepsize = pyrat.ret.stepsize[pyrat.ret.itemp]
-    tmodel    = pyrat.ret.tmodel
+    tmodel    = pyrat.atm.tmodel
   elif (pressure is None  or  tparams is None  or  tstepsize is None or
         rstar    is None  or  tstar   is None  or  tint      is None or
         smaxis   is None  or  gplanet is None):

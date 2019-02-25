@@ -170,10 +170,10 @@ def kunpack(filename, freq=False):
   grav   = grav  [np.where(grav   != -1)]
   header = header[np.where(header !=  0)]
   nmod   = header.size
-  nline  = (header[2] - header[1] - 1) / 2  # Omit the header line itself
+  nline  = (header[2] - header[1] - 1) // 2  # Omit the header line itself
 
   # Read and count wavelengths:
-  wave = np.zeros(header[0]*len(filetxt[startwave])/10)
+  wave = np.zeros(header[0]*len(filetxt[startwave])//10)
   k = 0
   string = ''.join(filetxt[startwave:header[0]])
   for j in np.arange(0, len(string), 10):

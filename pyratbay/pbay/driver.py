@@ -137,7 +137,7 @@ def run(argv, main=False):
     # Run MCMC:
     retmodel = False  # Return only the band-integrated spectrum
     mc3_out = mc3.mcmc(data=args.data, uncert=args.uncert,
-           func=pf.fit, indparams=[pyrat,retmodel], params=args.params,
+           func=pyrat.eval, indparams=[retmodel], params=args.params,
            pmin=args.pmin, pmax=args.pmax, stepsize=args.stepsize,
            prior=args.prior, priorlow=args.priorlow, priorup=args.priorup,
            walk=args.walk, nsamples=args.nsamples, nchains=args.nchains,
@@ -155,7 +155,7 @@ def run(argv, main=False):
 
     # Best-fitting model:
     pyrat.outspec = "{:s}_bestfit_spectrum.dat".format(outfile)
-    bestbandflux = pf.fit(bestp, pyrat, retmodel=False)
+    bestbandflux = pyrat.eval(bestp, retmodel=False)
 
     # Best-fit atmfile header:
     header = "# MCMC best-fitting atmospheric model.\n\n"
@@ -169,7 +169,7 @@ def run(argv, main=False):
     pp.spectrum(pyrat=pyrat, logxticks=args.logxticks, yran=args.yran,
                 filename="{:s}_bestfit_spectrum.png".format(outfile))
     # Posterior PT profiles:
-    if pyrat.ret.tmodelname in ["TCEA", "MadhuInv", "MadhuNoInv"]:
+    if pyrat.atm.tmodelname in ["TCEA", "MadhuInv", "MadhuNoInv"]:
       pp.PT(posterior, besttpars=bestp[pyrat.ret.itemp], pyrat=pyrat,
             filename="{:s}_PT_posterior_profile.png".format(outfile))
     # Contribution or transmittance functions:

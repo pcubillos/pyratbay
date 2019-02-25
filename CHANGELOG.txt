@@ -4251,3 +4251,8 @@ Pyrat() object initialization method, and moved Pyrat() from
 objects.py into pyrat_object.py.
 Modified pyrat.argum.parse() to take the cfile as an argument.
 
+*****
+
+Replaced pyratfit.fit() function with Pyrat.eval() method.
+Corrected some minor Python3 issues here and there.
+

@@ -135,26 +135,26 @@ def test_fit():
     model0 = np.copy(pyrat.spec.spectrum)
     np.testing.assert_allclose(model0, expected['all'])
     # Eval default params:
-    model1 = pb.pbay.fit(pyrat.ret.params, pyrat, retmodel=True)
+    model1 = pyrat.eval(pyrat.ret.params, retmodel=True)
     np.testing.assert_allclose(model1[0], expected['fit1'], rtol=1e-7)
     assert model1[1] is None
     # Cloud deck:
     params = [-1.5, -0.8, -0.8,  0.5,  1.0, -4.0,  0.0, -4.0,  -3.0]
-    model2 = pb.pbay.fit(params, pyrat, retmodel=True)
+    model2 = pyrat.eval(params, retmodel=True)
     rmin = np.amin(np.sqrt(pyrat.spec.spectrum)) * pyrat.phy.rstar
     assert np.amax(pyrat.atm.press[pyrat.atm.radius > rmin]) == 1e-3*pc.bar
     np.testing.assert_allclose(model2[0], expected['fit2'], rtol=1e-7)
     assert model2[1] is None
     # Depleted H2O:
     params = [-1.5, -0.8, -0.8,  0.5,  1.0, -8.0,  0.0, -4.0,  2.0]
-    model3 = pb.pbay.fit(params, pyrat, retmodel=True)
+    model3 = pyrat.eval(params, retmodel=True)
     np.testing.assert_allclose(model3[0], expected['fit3'], rtol=1e-7)
     assert model3[1] is None
 
 
 def test_fit_filters():
     pyrat = pb.pbay.run(ROOT+'tests/spectrum_transmission_filters_test.cfg')
-    model4 = pb.pbay.fit(pyrat.ret.params, pyrat, retmodel=True)
+    model4 = pyrat.eval(pyrat.ret.params, retmodel=True)
     np.testing.assert_allclose(model4[0], expected['fit4'],      rtol=1e-7)
     np.testing.assert_allclose(model4[1], expected['bandflux4'], rtol=1e-7)
 
@@ -174,7 +174,7 @@ def spectrum_fm():
     import pyratbay.wine as pw
     pyrat = pb.pbay.run(ROOT+'tests/spectrum_transmission_filters_test.cfg')
     params = [-1.5, -0.8, 0.0,  1.0,  1.0,  71500.0, -3.4, 2.0]
-    model = pb.pbay.fit(params, pyrat, retmodel=True)
+    model = pyrat(params, retmodel=True)
     bandflux = pw.bandintegrate(pyrat=pyrat)
 
     plt.figure(1)
