@@ -1,13 +1,13 @@
 # Copyright (c) 2016-2019 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-__all__ = ["init"]
+__all__ = ['Pyrat']
 
-from .driver import init
+from .pyrat_obj import Pyrat
 
 from .. import VERSION as ver
 
-# PyRaT version:
+# Pyrat version:
 __version__ = "{:d}.{:d}.{:d}".format(ver.PYRAT_VER, ver.PYRAT_MIN,
                                       ver.PYRAT_REV)
 

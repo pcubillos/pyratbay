@@ -35,21 +35,23 @@ sys.path.append(pc.ROOT + "/modules/MCcubed")
 import MCcubed.utils as mu
 
 
-def parse(pyrat, log=None):
+def parse(pyrat, cfile, log=None):
   """
   Parse the command-line arguments into the pyrat object.
 
   Parameters
   ----------
-  pyrat: Object
-     A Pyrat instance where to store the command-line arguments.
+  pyrat: Pyrat object
+      A Pyrat instance where to store the command-line arguments.
+  cfile: String
+      A Pyrat Bay configuration file.
+  log: Log object
+      An MCcubed.utils.Log instance to log screen outputs to file.
+      If None, start a new log from logfile argument in the cfile.
   """
   # Parse configuration file:
   cparser = argparse.ArgumentParser(description=__doc__, add_help=False,
-                           formatter_class=argparse.RawDescriptionHelpFormatter)
-  # Add config file option:
-  cparser.add_argument("-c", "--configfile",
-                       help="Specify config file", metavar="FILE")
+                formatter_class=argparse.RawDescriptionHelpFormatter)
   cparser.add_argument("-v",  "--verb",  dest="verb",
                        help="Verbosity level [default: %(default)s]",
                        action="store", type=int, default=2)
@@ -57,22 +59,17 @@ def parse(pyrat, log=None):
   args, remaining_argv = cparser.parse_known_args()
 
   # Get parameters from configuration file (if exists):
-  cfile = args.configfile # The configuration file
-  #if cfile is None:
-  #  pt.exit(message="Undefined configuration file.")
-  if cfile is not None and not os.path.isfile(cfile):
-    print("Configuration file: '{:s}' not found.".format(cfile))
-    sys.exit(0)
-  if cfile:
-    config = configparser.ConfigParser()
-    config.optionxform = str  # Enable case-sensitive variable names
-    config.read([cfile])
-    defaults = dict(config.items("pyrat"))
-  else:
-    defaults = {}
+  if not os.path.isfile(cfile):
+      print("Configuration file: '{:s}' not found.".format(cfile))
+      sys.exit(0)
+
+  config = configparser.ConfigParser()
+  config.optionxform = str  # Enable case-sensitive variable names
+  config.read([cfile])
+  defaults = dict(config.items("pyrat"))
 
   # Inherit options from cparser:
-  parser = argparse.ArgumentParser(parents=[cparser])  #, add_help=False) ??
+  parser = argparse.ArgumentParser(parents=[cparser])
   # Process pyrat Options:
   group = parser.add_argument_group("Input Files Options")
   pt.addarg("atmfile",     group, str,       None,
@@ -271,7 +268,7 @@ def parse(pyrat, log=None):
   # Put user arguments into pyrat input:
   for key, value in vars(user).items():
       setattr(pyrat.inputs, key, value)
-  pyrat.inputs.configfile = args.configfile
+  pyrat.inputs.configfile = cfile
 
   # Verbosity level:
   pyrat.verb = int(pyrat.inputs.verb)
@@ -294,7 +291,7 @@ def parse(pyrat, log=None):
                             ver.PYRAT_REV, date.today().year, log.sep), verb=0)
 
   log.msg("Read command-line arguments from configuration file: '{:s}'".
-           format(cfile))
+          format(cfile))
 
 
 def checkinputs(pyrat):

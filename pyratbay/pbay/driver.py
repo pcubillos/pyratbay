@@ -1,6 +1,8 @@
 # Copyright (c) 2016-2019 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
+__all__ = ["run"]
+
 import os
 import sys
 import time
@@ -9,18 +11,13 @@ from .. import lineread   as lr
 from .. import tools      as pt
 from .. import constants  as pc
 from .. import plots      as pp
-from .. import pyrat      as py
 from .. import atmosphere as pa
-
+from .. import Pyrat
 from .  import argum     as ar
 from .  import pyratfit  as pf
 
-rootdir = os.path.realpath(os.path.dirname(__file__) + "/../../")
-
-sys.path.append(rootdir + "/modules/MCcubed/")
+sys.path.append(pc.ROOT + "modules/MCcubed/")
 import MCcubed as mc3
-
-__all__ = ["run"]
 
 
 def run(argv, main=False):
@@ -115,15 +112,15 @@ def run(argv, main=False):
     # Initialize pyrat object:
     dummy_log = mc3.utils.Log(None, width=80)
     if args.resume: # Bypass writting all of the initialization log:
-      pyrat = py.init(args.cfile, log=dummy_log)
-      pyrat.log = log
+        pyrat = Pyrat(args.cfile, log=dummy_log)
+        pyrat.log = log
     else:
-      pyrat = py.init(args.cfile, log=log)
+        pyrat = Pyrat(args.cfile, log=log)
 
     # Compute spectrum and return pyrat object if requested:
     if args.runmode == "spectrum":
-      pyrat.run()
-      return pyrat
+        pyrat.run()
+        return pyrat
 
     # End if necessary:
     if args.runmode == "opacity":

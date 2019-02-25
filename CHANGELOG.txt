@@ -4243,3 +4243,11 @@ which does not return the object itself anymore (redundant).
 Renamed makeTEA() to make_tea(), moved from pbay to tools module.
 This avoid issues with circular imports.
 
+*****
+
+Moved Pyrat() object into top level (pyratbay) module.
+Removed pyratbay.pyrat.driver.py,  put init() content into
+Pyrat() object initialization method, and moved Pyrat() from
+objects.py into pyrat_object.py.
+Modified pyrat.argum.parse() to take the cfile as an argument.
+
