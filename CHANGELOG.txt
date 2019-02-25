@@ -4267,3 +4267,9 @@ Documented and tested.
 
 Renamed pconstants.py and ptools.py to constants.py and tools.py.
 
+*****
+
+Added tools.clock() generator to track time for each Pyrat module.
+Refactored the timestamps system. Now they are an OrderedDict, where
+the values are updated using the clock() generator.
+

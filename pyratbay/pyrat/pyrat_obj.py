@@ -3,12 +3,14 @@
 
 import os
 import time
+from collections import OrderedDict
 
 import numpy  as np
 
 from .. import constants  as pc
 from .. import atmosphere as pa
 from .. import wine       as pw
+from .. import tools      as pt
 from .  import extinction as ex
 from .  import crosssec   as cs
 from .  import rayleigh   as ray
@@ -90,35 +92,34 @@ class Pyrat(object):
       self.verb       = None  # Verbosity level
       self.logfile    = None  # Pyrat log filename
       self.log        = None  # Pyrat log file
-      self.timestamps = None  # Time stamps
+      self.timestamps = OrderedDict()
 
       # Setup time tracker:
-      timestamps = []
-      timestamps.append(time.time())
+      timer = pt.clock()
+      next(timer)
 
       # Parse command line arguments into pyrat:
       ar.parse(self, cfile, log)
-      timestamps.append(time.time())
 
       # Check that user input arguments make sense:
       ar.checkinputs(self)
-      timestamps.append(time.time())
+      self.timestamps['init'] = next(timer)
 
       # Initialize wavenumber sampling:
       ms.makewavenumber(self)
-      timestamps.append(time.time())
+      self.timestamps['wn sample'] = next(timer)
 
       # Read the atmospheric file:
       ra.readatm(self)
-      timestamps.append(time.time())
+      self.timestamps['read atm'] = next(timer)
 
       # Read line database:
       rl.readlinedb(self)
-      timestamps.append(time.time())
+      self.timestamps['read tli'] = next(timer)
 
       # Make atmospheric profiles (pressure, radius, temperature, abundances):
       ms.make_atmprofiles(self)
-      timestamps.append(time.time())
+      self.timestamps['atm sample'] = next(timer)
 
       # Set up observational/retrieval parameters:
       ar.setup(self)
@@ -127,16 +128,15 @@ class Pyrat(object):
       v.voigt(self)
       # Alkali Voigt grid:
       al.init(self)
-      timestamps.append(time.time())
+      self.timestamps['voigt'] = next(timer)
 
       # Calculate extinction-coefficient table:
       ex.exttable(self)
-      timestamps.append(time.time())
+      self.timestamps['ext table'] = next(timer)
 
       # Read CIA files:
       cs.read(self)
-      timestamps.append(time.time())
-      self.timestamps = list(np.ediff1d(timestamps))
+      self.timestamps['read cs'] = next(timer)
 
 
   def run(self, temp=None, abund=None, radius=None):
@@ -154,8 +154,8 @@ class Pyrat(object):
       radius: 1D float ndarray
           Updated atmospheric altitude profile in cm, of size nlayers.
       """
-      timestamps = []
-      timestamps.append(time.time())
+      timer = pt.clock()
+      next(timer)
 
       # Re-calculate atmospheric properties if required:
       status = ra.reloadatm(self, temp, abund, radius)
@@ -164,34 +164,28 @@ class Pyrat(object):
 
       # Interpolate CIA absorption:
       cs.interpolate(self)
-      timestamps.append(time.time())
+      self.timestamps['interp cs'] = next(timer)
 
       # Calculate haze and Rayleigh absorption:
       hz.absorption(self)
       ray.absorption(self)
-      timestamps.append(time.time())
+      self.timestamps['haze+ray'] = next(timer)
 
       # Calculate the alkali absorption:
       al.absorption(self)
-      timestamps.append(time.time())
+      self.timestamps['alkali'] = next(timer)
 
       # Calculate the optical depth:
       od.opticaldepth(self)
-      timestamps.append(time.time())
+      self.timestamps['odepth'] = next(timer)
 
       # Calculate the spectrum:
       sp.spectrum(self)
-      timestamps.append(time.time())
+      self.timestamps['spectrum'] = next(timer)
 
-      self.timestamps += list(np.ediff1d(timestamps))
-      dtime = self.timestamps[0:9] + self.timestamps[-6:]
-      self.log.msg("\nTimestamps:\n"
-          " Init:     {:10.6f}\n Parse:    {:10.6f}\n Inputs:   {:10.6f}\n"
-          " Wnumber:  {:10.6f}\n Atmosph:  {:10.6f}\n TLI:      {:10.6f}\n"
-          " Layers:   {:10.6f}\n Voigt:    {:10.6f}\n Extinct:  {:10.6f}\n"
-          " CIA read: {:10.6f}\n CIA intp: {:10.6f}\n Haze:     {:10.6f}\n"
-          " Alkali:   {:10.6f}\n O.Depth:  {:10.6f}\n Spectrum: {:10.6f}".
-          format(*dtime), verb=2)
+      self.log.msg("\nTimestamps (s):\n" +
+                   "\n".join("{:10s}: {:10.6f}".format(key,val)
+                             for key,val in self.timestamps.items()), verb=2)
 
       if len(self.log.warnings) > 0:
           # Write all warnings to file:

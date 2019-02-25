@@ -5,11 +5,12 @@ __all__ = ["parray", "defaultp", "getparam",
            "binsearch", "pprint", "divisors", "u", "unpack",
            "ifirst", "ilast",
            "isfile", "addarg", "path", "wrap",
-           "make_tea"]
+           "make_tea", "clock"]
 
 import os
 import sys
 import struct
+import time
 import numbers
 import textwrap
 if sys.version_info.major == 3:
@@ -495,3 +496,16 @@ def make_tea(cfile=None, maxiter=100, save_headers=False, save_outputs=False,
   # Write TEA configuration file:
   with open("TEA.cfg", 'w') as configfile:
       config.write(configfile)
+
+
+def clock():
+  """
+  Timer generator yields the time (in seconds) since the last call.
+  """
+  t0 = time.time()
+  yield
+  while True:
+      tnew = time.time()
+      delta = tnew - t0
+      t0 = tnew
+      yield delta
