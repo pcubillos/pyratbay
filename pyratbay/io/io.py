@@ -1,20 +1,81 @@
 # Copyright (c) 2016-2019 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-__all__ = ["read_pyrat", "write_opacity", "read_opacity"]
+__all__ = ["write_spectrum", "read_spectrum",
+           "write_opacity", "read_opacity"]
 
 import struct
 
 import numpy as np
 
 
-def read_pyrat(specfile, wn=True):
+
+def write_spectrum(wl, spectrum, filename, path, wlunits='um'):
   """
-  Read a pyrat spectrum file.
+  Write a Pyrat spectrum to file.
+
 
   Parameters
   ----------
-  specfile: String
+  wl: 1D float iterable
+      Wavelength array  in cm units.
+  spectrum: 1D float iterable
+      Spectrum array. (rp/rs)**2 for transmission (unitless),
+      planetary flux for emission (erg s-1 cm-2 cm units).
+  filename: String
+      Output file name.
+  path: String
+      Observing mode: 'transit' for transmission, 'eclipse' for
+      emission.
+  wlunits: String
+      Output units for wavelength.
+
+  Examples
+  --------
+  >>> # See read_spectrum() examples.
+  """
+  # Need to import here to avoid circular imports:
+  from .. import tools as pt
+
+  if filename is None:
+      return
+
+  # Type of spectrum and units:
+  if path == "transit":
+      spectype  = "(Rp/Rs)**2"
+      specunits = "unitless"
+  elif path == "eclipse":
+      spectype  = "Flux"
+      specunits = "erg s-1 cm-2 cm"
+  else:
+      raise ValueError("Input 'path' argument must be either 'transit' "
+                       "or 'eclipse'.")
+
+  # Wavelength units in brackets:
+  wl = wl/pt.u(wlunits)
+  # Precision of 5 decimal places (or better if needed):
+  precision = -np.floor(np.log10(np.amin(np.abs(np.ediff1d(wl)))))
+  precision = int(np.clip(precision+1, 5, np.inf))
+  buff = precision + 5
+
+  # Open-write file:
+  with open(filename, "w") as f:
+      # Write header:
+      f.write("# {:>{:d}s}   {:>15s}\n".format("Wavelength", buff, spectype))
+      f.write("# {:>{:d}s}   {:>15s}\n".format(wlunits, buff, specunits))
+      # Write the spectrum values:
+      for wave, flux in zip(wl, spectrum):
+          f.write("{:>{:d}.{:d}f}   {:.9e}\n".
+                  format(wave, buff+2, precision, flux))
+
+
+def read_spectrum(filename, wn=True):
+  """
+  Read a Pyrat spectrum file.
+
+  Parameters
+  ----------
+  filename: String
      Path to output Transit spectrum file to read.
   wn: Boolean
      If True convert wavelength to wavenumber.
@@ -22,36 +83,61 @@ def read_pyrat(specfile, wn=True):
   Return
   ------
   wave: 1D float ndarray
-     The spectrum's wavenumber or wavelength array.
+     The spectrum's wavenumber (in cm units) or wavelength array (in
+     the input file's units).
   spectrum: 1D float ndarray
-     The pyrat spectrum.
+     The spectrum in the input file.
+
+  Examples
+  --------
+  >>> import pyratbay.io as io
+  >>> # Write a spectrum to file:
+  >>> nwave = 7
+  >>> wl = np.linspace(1.1, 1.7, nwave) * 1e-4
+  >>> spectrum = np.ones(nwave)
+  >>> io.write_spectrum(wl, spectrum,
+  >>>     filename='sample_spectrum.dat', path='transit', wlunits='um')
+  >>> # Take a look at the output file:
+  >>> with open('sample_spectrum.dat', 'r') as f:
+  >>>     print("".join(f.readlines()))
+  # Wavelength        (Rp/Rs)**2
+  #         um          unitless
+       1.10000   1.000000000e+00
+       1.20000   1.000000000e+00
+       1.30000   1.000000000e+00
+       1.40000   1.000000000e+00
+       1.50000   1.000000000e+00
+       1.60000   1.000000000e+00
+       1.70000   1.000000000e+00
+  >>> # Now, read from file (getting wavenumber array):
+  >>> wn, flux = io.read_spectrum('sample_spectrum.dat')
+  >>> print(wn)
+  [9090.90909091 8333.33333333 7692.30769231 7142.85714286 6666.66666667
+   6250.         5882.35294118]
+  >>> print(flux)
+  [1. 1. 1. 1. 1. 1. 1.]
+  >>> # Read from file (getting wavelength array):
+  >>> wl, flux = io.read_spectrum('sample_spectrum.dat', wn=False)
+  >>> print(wl)
+  [1.1 1.2 1.3 1.4 1.5 1.6 1.7]
+  >>> print(flux)
+  [1. 1. 1. 1. 1. 1. 1.]
   """
-  with open(specfile, "r") as f:
+  # Need to import here to avoid circular imports:
+  from .. import tools as pt
+  with open(filename, "r") as f:
     # Count number of lines in file:
     f.seek(0)
-    # Ignore first two lines of comments:
+    # Get wavelength units from header:
     l = f.readline()
     l = f.readline()
-    ndata = 0
-    for line in f:
-        ndata += 1
+    wlunits = l.split()[1]
 
-    # Initialize arrays:
-    wave     = np.zeros(ndata, np.double)
-    spectrum = np.zeros(ndata, np.double)
+    wave, spectrum = np.array([line.strip().split() for line in f], np.double).T
 
-    # Return to begining of file:
-    f.seek(0)
-    f.readline()
-    f.readline()
-    for i in np.arange(ndata):
-        l = f.readline().strip().split()
-        wave    [i] = np.double(l[ 0])
-        spectrum[i] = np.double(l[-1])
-
-    # Convert wavelength (micron) to wavenumber (cm-1):
+    # Convert wavelength to wavenumber (always in cm-1):
     if wn:
-        wave = 1e4/wave
+        wave = 1.0/(wave*pt.u(wlunits))
 
   return wave, spectrum
 

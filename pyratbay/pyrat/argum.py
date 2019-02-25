@@ -886,7 +886,7 @@ def setup(pyrat):
 
   # Read stellar spectrum model:
   if phy.starspec is not None:
-    starwn, starflux = io.read_pyrat(phy.starspec)
+    starwn, starflux = io.read_spectrum(phy.starspec)
   # Kurucz stellar model:
   elif phy.kurucz is not None:
     if phy.tstar is None:

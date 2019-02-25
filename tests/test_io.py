@@ -13,6 +13,35 @@ import pyratbay.constants  as pc
 os.chdir(ROOT+'tests')
 
 
+def test_read_write_spectrum(tmpdir):
+    sfile = "{}/spectrum_test.dat".format(tmpdir)
+    wl = np.linspace(1.1, 1.7, 7) * 1e-4
+    spectrum = np.ones(7)
+    io.write_spectrum(wl, spectrum, filename=sfile, path='transit',
+                      wlunits='um')
+    # Take a look at the output file:
+    with open(sfile, 'r') as f:
+        content = "".join(f.readlines())
+    assert content == ('# Wavelength        (Rp/Rs)**2\n'
+                       '#         um          unitless\n'
+                       '     1.10000   1.000000000e+00\n'
+                       '     1.20000   1.000000000e+00\n'
+                       '     1.30000   1.000000000e+00\n'
+                       '     1.40000   1.000000000e+00\n'
+                       '     1.50000   1.000000000e+00\n'
+                       '     1.60000   1.000000000e+00\n'
+                       '     1.70000   1.000000000e+00\n')
+
+    wn, flux = io.read_spectrum(sfile)
+    np.testing.assert_allclose(wn, np.array(
+      [9090.90909091, 8333.33333333, 7692.30769231, 7142.85714286,
+       6666.66666667, 6250.        , 5882.35294118]), rtol=1e-7)
+    np.testing.assert_equal(flux, np.ones(7))
+    wl, flux = io.read_spectrum(sfile, wn=False)
+    np.testing.assert_almost_equal(wl, np.linspace(1.1, 1.7, 7))
+    np.testing.assert_equal(flux, np.ones(7))
+
+
 def test_read_write_opacity(tmpdir):
     ofile = "{}/opacity_test.dat".format(tmpdir)
     molID = np.array([101, 105])

@@ -174,8 +174,9 @@ def spectrum_fm():
     import pyratbay.wine as pw
     pyrat = pb.pbay.run(ROOT+'tests/spectrum_transmission_filters_test.cfg')
     params = [-1.5, -0.8, 0.0,  1.0,  1.0,  71500.0, -3.4, 2.0]
-    model = pyrat(params, retmodel=True)
-    bandflux = pw.bandintegrate(pyrat=pyrat)
+    model = pyrat.eval(params, retmodel=True)
+    #bandflux = pw.bandintegrate(pyrat=pyrat)
+    bandflux = pyrat.obs.bandflux
 
     plt.figure(1)
     plt.clf()
@@ -183,6 +184,14 @@ def spectrum_fm():
     plt.plot(1e4/pyrat.spec.wn, gaussf(pyrat.spec.spectrum, 5), 'navy')
     plt.plot(1e4/pyrat.obs.bandwn, bandflux, "o", c='orange')
 
+    # Now, add noise:
+    SNR = 350.0
+    std = 35.0
+    np.random.seed(209458)
+    snr = np.random.normal(SNR, std, len(bandflux))
+    uncert = bandflux/snr
 
+    data = bandflux + np.random.normal(0.0, uncert)
+    plt.errorbar(1e4/pyrat.obs.bandwn, data, uncert, fmt='or', zorder=10)
 
 

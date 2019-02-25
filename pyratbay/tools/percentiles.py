@@ -158,7 +158,7 @@ def specpercent(cfile, ncpu=None, nmax=None):
       print("{:3.0f}% completed.".format(i*100.0/nwave))
 
   # Load best-fitting model:
-  wn, bestmodel = io.read_pyrat(path + rootname + "_bestfit_spectrum.dat")
+  wn, bestmodel = io.read_spectrum(path + rootname + "_bestfit_spectrum.dat")
 
   # Write to file:
   with open(path + rootname + "_percentiles.dat", "w") as f:

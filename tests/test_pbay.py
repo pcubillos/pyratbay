@@ -156,4 +156,4 @@ def test_opacity():
 
 @pytest.mark.skip
 def test_mcmc():
-    pass
+    pyrat = pb.pbay.run(ROOT+'tests/mcmc_transmission_test.cfg')

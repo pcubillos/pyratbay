@@ -8,6 +8,7 @@ import numpy as np
 from .. import tools     as pt
 from .. import blackbody as bb
 from .. import constants as pc
+from .. import io        as io
 
 sys.path.append(pc.ROOT + 'lib')
 import simpson    as s
@@ -36,7 +37,8 @@ def spectrum(pyrat):
     flux(pyrat)
 
   # Print spectrum to file:
-  printspec(pyrat)
+  io.write_spectrum(1.0/pyrat.spec.wn, pyrat.spec.spectrum, pyrat.outspec,
+                    pyrat.od.path)
   pyrat.log.msg("Done.")
 
 
@@ -126,38 +128,3 @@ def flux(pyrat):
                                   np.expand_dims(area,1), axis=0)
   pyrat.log.msg("Computed flux spectrum: '{:s}'.".
                 format(pyrat.outspec), indent=2)
-
-
-def printspec(pyrat):
-  """
-  Print the planetary spectrum to file.
-  """
-  if pyrat.outspec is None:
-    return
-
-  # Type of spectrum and units:
-  if   pyrat.od.path == "transit":
-    spectype  = "Modulation"
-    specunits = "[unitless]"
-  elif pyrat.od.path == "eclipse":
-    spectype  = "Flux"
-    specunits = "[erg s-1 cm-2 cm]"
-
-  # Wavelength units in brackets:
-  wlunits = "[{:s}]".format(pyrat.spec.wlunits)
-  wlength = 1.0/pyrat.spec.wn/pt.u(pyrat.spec.wlunits)
-  # Precision of 5 decimal places (or better if needed):
-  precision = -np.floor(np.amin(np.log10(np.abs(np.ediff1d(wlength)))))
-  precision = int(np.clip(precision+1, 5, np.inf))
-
-  # Open-write file:
-  specfile = open(pyrat.outspec, "w")
-  # Write header:
-  specfile.write("# Wavenumber   {:s}\n# {:>10s}   {:s}\n".
-                                        format(spectype, wlunits, specunits))
-
-  # Write the spectrum values:
-  for i in np.arange(pyrat.spec.nwave):
-    specfile.write("  {:>15.{:d}f}   {:>.8e}\n".
-                    format(wlength[i], precision, pyrat.spec.spectrum[i]))
-  specfile.close()
