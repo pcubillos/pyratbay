@@ -4263,3 +4263,7 @@ Moved/renamed pyrat.spectrum.printspec() to io.write_spectrum().
 Refactored modifying their behavior (but not default behavior).
 Documented and tested.
 
+*****
+
+Renamed pconstants.py and ptools.py to constants.py and tools.py.
+

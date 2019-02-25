@@ -1,11 +1,11 @@
 # Copyright (c) 2016-2019 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-from .ptools       import *
+from .tools        import *
 from .contribfuncs import *
 from .percentiles  import *
 
-__all__ = ptools.__all__ + contribfuncs.__all__ + percentiles.__all__
+__all__ = tools.__all__ + contribfuncs.__all__ + percentiles.__all__
 
 # Clean up top-level namespace--delete everything that isn't in __all__
 # or is a magic attribute, and that isn't a submodule of this package
