@@ -500,12 +500,10 @@ def make_tea(cfile=None, maxiter=100, save_headers=False, save_outputs=False,
       config.write(configfile)
 
 
-def clock():
+def clock(t0=time.time()):
   """
   Timer generator yields the time (in seconds) since the last call.
   """
-  t0 = time.time()
-  yield
   while True:
       tnew = time.time()
       delta = tnew - t0

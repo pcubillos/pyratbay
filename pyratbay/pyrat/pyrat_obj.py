@@ -2,7 +2,6 @@
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
 import os
-import time
 from collections import OrderedDict
 
 import numpy  as np
@@ -96,7 +95,6 @@ class Pyrat(object):
 
       # Setup time tracker:
       timer = pt.clock()
-      next(timer)
 
       # Parse command line arguments into pyrat:
       ar.parse(self, cfile, log)
@@ -150,12 +148,11 @@ class Pyrat(object):
           Updated atmospheric temperature profile in Kelvin, of size nlayers.
       abund: 2D float ndarray
           Updated atmospheric abundances profile by number density, of
-          shape [nlayers, nmol]
+          shape [nlayers, nmol].
       radius: 1D float ndarray
           Updated atmospheric altitude profile in cm, of size nlayers.
       """
       timer = pt.clock()
-      next(timer)
 
       # Re-calculate atmospheric properties if required:
       status = ra.reloadatm(self, temp, abund, radius)
