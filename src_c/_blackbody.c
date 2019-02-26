@@ -34,9 +34,8 @@ B: 2D float ndarray                                              \n\
 
 static PyObject *Bwn2D(PyObject *self, PyObject *args){
   PyArrayObject *wn, *temp, *B=NULL, *last=NULL;
-  int i, j, ilast;
+  int i, j, ilast, nwave, nlayers;
   npy_intp dims[2];
-  long nwave, nlayers;
   double factor;
 
   /* Use dims as flag to detect whether B was passed as input argument:     */
@@ -47,8 +46,8 @@ static PyObject *Bwn2D(PyObject *self, PyObject *args){
     return NULL;
 
   /* Get the spectrum size:                                                 */
-  nwave   = PyArray_DIM(wn, 0);
-  nlayers = PyArray_DIM(temp, 0);
+  nwave   = (int)PyArray_DIM(wn, 0);
+  nlayers = (int)PyArray_DIM(temp, 0);
 
   /* Initialize output array if necessary:                                  */
   if (!B){

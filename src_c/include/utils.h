@@ -141,7 +141,7 @@ linterp(double **input,
 
     double wnlo;
     int i, ilo = 0;
-    int nwave_out = PyArray_DIM(wnout, 0);  /* Number of output samples */
+    int nwave_out = (int)PyArray_DIM(wnout, 0);  /* Number of output samples */
 
     /* Find input wavenumber index immediately lower than wn out:   */
     for (i=0;  i<nwave_out; i++){

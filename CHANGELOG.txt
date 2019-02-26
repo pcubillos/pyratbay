@@ -4286,3 +4286,8 @@ Documented and tested.
 
 Tweaked tools.clock() to avoid call right after initialization.
 
+*****
+
+Cast explicitely integers variables in _blackbody.c and utils.h
+to avoid compilation warnings.
+
