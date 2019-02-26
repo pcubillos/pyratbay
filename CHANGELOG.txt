@@ -4273,3 +4273,12 @@ Added tools.clock() generator to track time for each Pyrat module.
 Refactored the timestamps system. Now they are an OrderedDict, where
 the values are updated using the clock() generator.
 
+
+*****  Di 26. Feb 10:13:58 CET 2019  *****
+
+Added tools.get_exomol_mol() function to parse an exomol file
+to extract the molecule and isotope name.
+This also fixes a bug when there are multiple isotopes for a same
+element in a molecule.
+Documented and tested.
+

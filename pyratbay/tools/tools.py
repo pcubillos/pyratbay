@@ -5,14 +5,16 @@ __all__ = ["parray", "defaultp", "getparam",
            "binsearch", "pprint", "divisors", "u", "unpack",
            "ifirst", "ilast",
            "isfile", "addarg", "path", "wrap",
-           "make_tea", "clock"]
+           "make_tea", "clock", "get_exomol_mol"]
 
 import os
 import sys
+import re
 import struct
 import time
 import numbers
 import textwrap
+import itertools
 if sys.version_info.major == 3:
     import configparser
 else:
@@ -509,3 +511,55 @@ def clock():
       delta = tnew - t0
       t0 = tnew
       yield delta
+
+
+def get_exomol_mol(dbfile):
+  """
+  Parse an exomol file to extract the molecule and isotope name.
+
+  Parameters
+  ----------
+  dbfile: String
+      An exomol line-list file (must follow ExoMol naming convention).
+
+  Returns
+  -------
+  molecule: String
+      Name of the molecule.
+  isotope: String
+      Name of the isotope (See Tennyson et al. 2016, jmosp, 327).
+
+  Examples
+  --------
+  >>> import pyratbay.tools as pt
+  >>> filenames = [
+  >>>     '1H2-16O__POKAZATEL__00400-00500.trans.bz2',
+  >>>     '1H-2H-16O__VTT__00250-00500.trans.bz2',
+  >>>     '12C-16O2__HITEMP.pf',
+  >>>     '12C-16O-18O__Zak.par',
+  >>>     '12C-1H4__YT10to10__01100-01200.trans.bz2',
+  >>>     '12C-1H3-2H__MockName__01100-01200.trans.bz2'
+  >>>    ]
+  >>> for db in filenames:
+  >>>     print(pt.get_exomol_mol(db))
+  ('H2O', '116')
+  ('H2O', '126')
+  ('CO2', '266')
+  ('CO2', '268')
+  ('CH4', '21111')
+  ('CH4', '21112')
+  """
+  atoms = os.path.split(dbfile)[1].split("_")[0].split("-")
+  elements = []
+  isotope  = ""
+  for atom in atoms:
+      match = re.match(r"([0-9]+)([a-z]+)([0-9]*)", atom, re.I)
+      N = 1 if match.group(3) == "" else int(match.group(3))
+      elements += N * [match.group(2)]
+      isotope  += match.group(1)[-1:] * N
+
+  composition = [list(g[1]) for g in itertools.groupby(elements)]
+  molecule = "".join([c[0] + str(len(c))*(len(c)>1)
+                      for c in composition])
+
+  return molecule, isotope

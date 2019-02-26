@@ -4,10 +4,10 @@
 __all__ = ["exomol"]
 
 import os
-import re
 import numpy as np
 
 from ... import constants as pc
+from ... import tools     as pt
 from .driver import dbdriver
 
 
@@ -46,15 +46,7 @@ class exomol(dbdriver):
       self.E[i], self.g[i] = lines[i].split()[1:3]
 
     # Get info from file name:
-    s = os.path.split(dbfile)[1].split("_")[0].split("-")
-    self.molecule = ""
-    isotopes      = ""
-    for i in np.arange(len(s)):
-      match = re.match(r"([0-9]+)([a-z]+)([0-9]*)", s[i], re.I)
-      N = 1 if match.group(3) == "" else int(match.group(3))
-      self.molecule += match.group(2) + match.group(3)
-      isotopes += match.group(1)[-1:] * N
-    self.iso = isotopes  # isotope name of this file's data
+    self.molecule, self.iso = pt.get_exomol_mol(dbfile)
 
     # Database name:
     self.name = "Exomol " + self.molecule

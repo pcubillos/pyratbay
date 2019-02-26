@@ -6,7 +6,12 @@
 import os
 import sys
 import re 
+import itertools
 import numpy as np
+
+ROOT = os.path.realpath(os.path.dirname(__file__) + "/../")
+sys.path.append(ROOT)
+import pyratbay.tools as pt
 
 
 def main():
@@ -45,14 +50,7 @@ def main():
       lines = f.readlines()
 
     # Get info from file name:
-    s = os.path.split(fileIn[j])[1].split("_")[0].split("-")
-    molecule = ""
-    iso = ""
-    for i in np.arange(len(s)):
-      match = re.match(r"([0-9]+)([a-z]+)([0-9]*)", s[i], re.I)
-      N = 1 if match.group(3) == "" else int(match.group(3))
-      molecule += match.group(2) + match.group(3)
-      iso      += match.group(1)[-1:] * N
+    molecule, iso = pt.get_exomol_mol(fileIn[j])
 
     # Extract the isotopes array:
     isotopes.append(iso)
