@@ -4291,3 +4291,8 @@ Tweaked tools.clock() to avoid call right after initialization.
 Cast explicitely integers variables in _blackbody.c and utils.h
 to avoid compilation warnings.
 
+
+*****  Wed Feb 27 22:48:55 CET 2019  *****
+
+Fixed odd/even indices for modulation() Simpson's integration.
+

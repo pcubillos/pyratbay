@@ -23,7 +23,6 @@ def opticaldepth(pyrat):
   """
 
   pyrat.log.msg("\nBegin optical-depth calculation.")
-  #ti = time.time()
 
   # Evaluate the extinction coefficient at each layer:
   pyrat.ex.ec    = np.zeros((pyrat.atm.nlayers, pyrat.spec.nwave))
@@ -33,13 +32,10 @@ def opticaldepth(pyrat):
   if pyrat.haze.fpatchy:
     pyrat.od.epatchy = np.empty((pyrat.atm.nlayers, pyrat.spec.nwave))
     pyrat.od.pdepth  = np.zeros((pyrat.atm.nlayers, pyrat.spec.nwave))
-  #print("Init:   {:.6f}".format(time.time()-ti))
 
   rtop = pyrat.atm.rtop
   # Calculate the ray path:
-  #ti = time.time()
   path(pyrat)
-  #print("Path:   {:.6f}".format(time.time()-ti))
 
   # Obtain the extinction-coefficient:
   # Interpolate from table:
@@ -81,7 +77,6 @@ def opticaldepth(pyrat):
   else:
     pyrat.od.epatchy[rtop:] = np.copy(pyrat.od.ec[rtop:]) + pyrat.haze.ec[rtop:]
 
-  #ti = time.time()
   # Calculate the optical depth for each wavenumber:
   if pyrat.od.path == "eclipse":
     i = 0
@@ -106,7 +101,6 @@ def opticaldepth(pyrat):
                             np.inf, pyrat.od.ideep, r)
       r += 1
     pyrat.od.ideep[pyrat.od.ideep<0] = pyrat.atm.nlayers - 1
-  #print("Integ:  {:.6f}".format(time.time()-ti))
   pyrat.log.msg("Optical depth done.")
 
 

@@ -1,11 +1,9 @@
 # Copyright (c) 2016-2019 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-import os
 import sys
 import numpy as np
 
-from .. import tools     as pt
 from .. import blackbody as bb
 from .. import constants as pc
 from .. import io        as io
@@ -13,7 +11,6 @@ from .. import io        as io
 sys.path.append(pc.ROOT + 'lib')
 import simpson    as s
 import trapz      as t
-import cutils     as cu
 
 
 def spectrum(pyrat):
@@ -51,40 +48,45 @@ def modulation(pyrat):
   integ = (np.exp(-pyrat.od.depth[rtop:,:]) *
            np.expand_dims(pyrat.atm.radius[rtop:],1))
   if pyrat.haze.fpatchy is not None:
-    pinteg = (np.exp(-pyrat.od.pdepth[rtop:,:]) *
-              np.expand_dims(pyrat.atm.radius[rtop:],1))
+      pinteg = (np.exp(-pyrat.od.pdepth[rtop:,:]) *
+                np.expand_dims(pyrat.atm.radius[rtop:],1))
   # Get Delta radius (and simps' integration variables):
   h = np.ediff1d(pyrat.atm.radius[rtop:])
-  hseven, hreven, hfeven = s.geth(h[:-1])
-  hsodd,  hrodd,  hfodd  = s.geth(h)
-  hsum = [hseven, hsodd]  # Re-packed for even/odd values of ideep
-  hrat = [hreven, hrodd]
-  hfac = [hfeven, hfodd]
+  if (len(h) % 2) == 1:
+        hseven, hreven, hfeven = s.geth(h[0:-1])
+        hsodd,  hrodd,  hfodd  = s.geth(h[0:])
+  else:
+        hseven, hreven, hfeven = s.geth(h[0:])
+        hsodd,  hrodd,  hfodd  = s.geth(h[0:-1])
+  hsum = [hsodd, hseven]
+  hrat = [hrodd, hreven]
+  hfac = [hfodd, hfeven]
 
   nlayers = pyrat.od.ideep - rtop + 1    # Number of layers for integration
   nhalf   = np.asarray(nlayers//2, int)  # Half-size of used layers
-  par     = nlayers % 2                  # Parity of nlayers
+  # Parity of nlayers (if nlayers is odd, parity is 1, h is even):
+  parity  = nlayers % 2
 
   for i in np.arange(pyrat.spec.nwave):
-    nl = nlayers[i]
-    nh = nhalf[i]
-    p  = par[i]
-    # Integrate with Simpson's rule:
-    pyrat.spec.spectrum[i] = s.simps(integ[0:nl,i], h[0:nl-1],
-                             hsum[p][0:nh], hrat[p][0:nh], hfac[p][0:nh])
-    # Extra spectrum for patchy model:
-    if pyrat.haze.fpatchy is not None:
-      pyrat.spec.cloudy[i] = s.simps(pinteg[0:nl,i], h[0:nl-1],
-                             hsum[p][0:nh], hrat[p][0:nh], hfac[p][0:nh])
+      nl = nlayers[i]
+      nh = nhalf  [i]
+      p  = parity [i]
+      # Integrate with Simpson's rule:
+      pyrat.spec.spectrum[i] = s.simps(integ[0:nl,i], h[0:nl-1],
+                               hsum[p][0:nh], hrat[p][0:nh], hfac[p][0:nh])
+      # Extra spectrum for patchy model:
+      if pyrat.haze.fpatchy is not None:
+          pyrat.spec.cloudy[i] = s.simps(pinteg[0:nl,i], h[0:nl-1],
+                               hsum[p][0:nh], hrat[p][0:nh], hfac[p][0:nh])
 
-  pyrat.spec.spectrum = ((pyrat.atm.radius[rtop]**2 + 2*pyrat.spec.spectrum) /
-                         pyrat.phy.rstar**2)
+  pyrat.spec.spectrum = ((pyrat.atm.radius[rtop]**2 + 2*pyrat.spec.spectrum)
+                         / pyrat.phy.rstar**2)
   if pyrat.haze.fpatchy is not None:
-    pyrat.spec.cloudy = ((pyrat.atm.radius[rtop]**2 + 2*pyrat.spec.cloudy) /
-                         pyrat.phy.rstar**2)
-    pyrat.spec.clear = pyrat.spec.spectrum
-    pyrat.spec.spectrum = (   pyrat.haze.fpatchy  * pyrat.spec.cloudy +
-                           (1-pyrat.haze.fpatchy) * pyrat.spec.clear  )
+      pyrat.spec.cloudy = ((pyrat.atm.radius[rtop]**2 + 2*pyrat.spec.cloudy)
+                           / pyrat.phy.rstar**2)
+      pyrat.spec.clear = pyrat.spec.spectrum
+      pyrat.spec.spectrum = (   pyrat.haze.fpatchy  * pyrat.spec.cloudy +
+                             (1-pyrat.haze.fpatchy) * pyrat.spec.clear  )
 
   pyrat.log.msg("Computed transmission spectrum: '{:s}'.".
                 format(pyrat.outspec), indent=2)
