@@ -4296,3 +4296,8 @@ to avoid compilation warnings.
 
 Fixed odd/even indices for modulation() Simpson's integration.
 
+
+*****  Do 28. Feb 18:37:24 CET 2019  *****
+
+Added example and tests for atmosphere.qcapcheck().
+

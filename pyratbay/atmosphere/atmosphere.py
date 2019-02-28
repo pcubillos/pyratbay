@@ -1,10 +1,11 @@
 # Copyright (c) 2016-2019 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-__all__ = ["read_ptfile", "writeatm", "readatm", "uniform", "makeatomic",
+__all__ = ["read_ptfile", "writeatm", "readatm", "makeatomic",
            "readatomic", "makepreatm", "TEA2pyrat", "readmol",
            "pressure",
-           "temp_isothermal", "temp_TCEA", "temperature", "abundances",
+           "temp_isothermal", "temp_TCEA", "temperature",
+           "uniform", "abundances",
            "hydro_g", "hydro_m", "stoich", "meanweight", "IGLdensity"]
 
 import os
@@ -97,7 +98,7 @@ def writeatm(atmfile, pressure, temperature, species, abundances,
      Pressure units of output.
   header:  String
      Header message (comment) to include at the top of the file.
-  radisu: 1D float ndarray
+  radius: 1D float ndarray
      Monotonously increasing radius profile (in cm).
   runits:  String
      Radius units of output.

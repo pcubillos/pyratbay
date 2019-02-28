@@ -1,9 +1,61 @@
 # Copyright (c) 2016-2019 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-__all__ = ["balance", "ratio", "qscale", "qcapcheck"]
+__all__ = ["qcapcheck", "balance", "ratio", "qscale"]
 
 import numpy as np
+
+
+def qcapcheck(Q, qcap, ibulk):
+  """
+  Check if the cummulative abundance of traces exceed qcap.
+
+  Parameters
+  ----------
+  Q: 2D float ndarray
+     Mole mixing ratio of the species in the atmosphere [Nlayers, Nspecies].
+  qcap: Float
+     Cap threshold for cummulative trace abundances.
+  ibulk: 1D integer ndarray
+     Indices of the bulk species to calculate the mixing ratio.
+
+  Returns
+  -------
+  qcapcheck: Bool
+     Flag indicating whether trace abundances sum more than qcap.
+
+  Examples
+  --------
+  >>> import pyratbay.atmosphere as pa
+  >>> # Make an atmosphere:
+  >>> pressure    = pa.pressure(ptop=1e-8, pbottom=1e2, nlayers=11, units='bar')
+  >>> temperature = np.tile(1500.0, 11)
+  >>> species     = ["H2", "He", "H2O"]
+  >>> abundances  = [0.8495, 0.15, 5e-4]
+  >>> qprofiles = pa.uniform(pressure, temperature, species, abundances)
+  >>> ibulk = [0,1]
+  >>> # Sum of all metals (H2O) is not above qcap:
+  >>> qcap = 1e-3
+  >>> print(pa.qcapcheck(qprofiles, qcap, ibulk))
+  False
+  >>> # Sum of all metals (H2O) is exceedes qcap:
+  >>> qcap = 1e-4
+  >>> print(pa.qcapcheck(qprofiles, qcap, ibulk))
+  True
+  """
+  # The shape of things:
+  nlayers, nspecies = np.shape(Q)
+
+  # Get the indices of the species not in ibulk (trace species):
+  itrace = np.setdiff1d(np.arange(nspecies), ibulk)
+
+  # Sum the abundances of everything exept the ibulk species (per layer):
+  qtrace = np.sum(Q[:,itrace], axis=1)
+
+  # Do sum of trace abundances exceed Qcap?
+  if np.any(qtrace > qcap):
+      return True
+  return False
 
 
 def balance(Q, ibulk, ratio, invsrat):
@@ -59,39 +111,6 @@ def balance(Q, ibulk, ratio, invsrat):
   # Calculate the balanced mole mixing ratios:
   for j in np.arange(nratio):
       Q[:,ibulk[j]] = ratio[:,j] * q * invsrat
-
-
-def qcapcheck(Q, qcap, ibulk):
-  """
-  Check if the cummulative abundance of traces exceed qcap.
-
-  Parameters
-  ----------
-  Q: 2D float ndarray
-     Mole mixing ratio of the species in the atmosphere [Nlayers, Nspecies].
-  qcap: Float
-     Cap threshold for cummulative trace abundances.
-  ibulk: 1D integer ndarray
-     Indices of the bulk species to calculate the mixing ratio.
-
-  Returns
-  -------
-  qcapcheck: Bool
-     Flag indicating whether trace abundances sum more than qcap.
-  """
-  # The shape of things:
-  nlayers, nspecies = np.shape(Q)
-
-  # Get the indices of the species not in ibulk (trace species):
-  itrace = np.setdiff1d(np.arange(nspecies), ibulk)
-
-  # Sum the abundances of everything exept the ibulk species (per layer):
-  qtrace = np.sum(Q[:,itrace], axis=1)
-
-  # Do sum of trace abundances exceed Qcap?
-  if np.any(qtrace > qcap):
-      return True
-  return False
 
 
 def ratio(Q, ibulk):

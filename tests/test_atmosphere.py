@@ -129,7 +129,6 @@ def test_temperature_isothermal():
 
 
 def test_temperature_TCEA():
-    nlayers = 11
     pressure = expected_pressure
     tparams = [-1.5, -0.8, -0.8, 0.5, 1.0]
     temp = pa.temperature("TCEA", pressure, rstar="0.756 rsun", tstar=5040,
@@ -138,7 +137,6 @@ def test_temperature_TCEA():
 
 
 def test_uniform():
-    atmfile = "uniform_test.atm"
     nlayers = 11
     pressure    = pa.pressure(1e-8, 1e2, nlayers, units='bar')
     temperature = np.tile(1500.0, nlayers)
@@ -230,7 +228,6 @@ def test_meanweight(abundances):
 
 
 def test_IGLdensity():
-    atmfile = "uniform_test.atm"
     nlayers = 11
     pressure    = pa.pressure(1e-8, 1e2, nlayers, units='bar')
     temperature = np.tile(1500.0, nlayers)
@@ -242,14 +239,18 @@ def test_IGLdensity():
         np.testing.assert_allclose(density, expected_dens*10**i, rtol=1e-7)
 
 
-def test_ratio():
-    q = np.tile([0.8, 0.2], (5,1))
-    q[4] = 0.5, 0.5
-    ibulk = [0, 1]
-    bratio, invsrat = pa.ratio(q, ibulk)
-    np.testing.assert_equal(bratio[:,0], np.tile(1.0, 5))
-    np.testing.assert_equal(bratio[:,1], np.array([0.25,0.25,0.25,0.25,1.0]))
-    np.testing.assert_equal(invsrat, np.array([0.8, 0.8, 0.8, 0.8, 0.5]))
+@pytest.mark.parametrize("qcap,qcap_result",
+    [(1e-3, False),
+     (1e-4, True)])
+def test_qcapcheck(qcap, qcap_result):
+    nlayers = 11
+    pressure    = pa.pressure(1e-8, 1e2, nlayers, units='bar')
+    temperature = np.tile(1500.0, nlayers)
+    species     = ["H2", "He", "H2O"]
+    abundances  = [0.8495, 0.15, 5e-4]
+    qprofiles = pa.uniform(pressure, temperature, species, abundances)
+    ibulk = [0,1]
+    assert pa.qcapcheck(qprofiles, qcap, ibulk) == qcap_result
 
 
 def test_balance():
@@ -264,6 +265,16 @@ def test_balance():
     np.testing.assert_equal(q[:,1]/q[:,0], bratio[:,1]/bratio[:,0])
 
 
+def test_ratio():
+    q = np.tile([0.8, 0.2], (5,1))
+    q[4] = 0.5, 0.5
+    ibulk = [0, 1]
+    bratio, invsrat = pa.ratio(q, ibulk)
+    np.testing.assert_equal(bratio[:,0], np.tile(1.0, 5))
+    np.testing.assert_equal(bratio[:,1], np.array([0.25,0.25,0.25,0.25,1.0]))
+    np.testing.assert_equal(invsrat, np.array([0.8, 0.8, 0.8, 0.8, 0.5]))
+
+
 def test_qscale():
     spec = np.array(["H2", "He", "H2O", "CO", "CO2", "CH4"])
     bulk = np.array(['H2', 'He'])
@@ -276,5 +287,3 @@ def test_qscale():
     np.testing.assert_equal(q2[:,2], np.tile(10**molpars[0], nlayers))
     # All CO abundances scaled by value:
     np.testing.assert_allclose(q2[:,3], q0[:,3]*10**molpars[1], rtol=1e-7)
-
-
