@@ -1,9 +1,6 @@
 # Copyright (c) 2016-2019 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-import sys
-import os
-
 import numpy as np
 
 from .. import broadening as broad
@@ -51,7 +48,7 @@ def absorption(pyrat):
 
 
     # Initialize Voigt model:
-    voigt = broad.voigt()
+    voigt = broad.Voigt()
     # Calculate cross section:
     alkali.ec = np.zeros((pyrat.atm.nlayers, pyrat.spec.nwave), np.double)
     for k in np.arange(len(alkali.wn)):

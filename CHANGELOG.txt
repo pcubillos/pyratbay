@@ -4301,3 +4301,11 @@ Fixed odd/even indices for modulation() Simpson's integration.
 
 Added example and tests for atmosphere.qcapcheck().
 
+*****
+
+Renamed broadening.lorentz(), gauss(), and voigt() objects to
+broadening.Lorenz(), Gauss(), and Voigt().
+Improved documentation, and implemented testing.
+
+*****
+
