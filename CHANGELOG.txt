@@ -4307,5 +4307,12 @@ Renamed broadening.lorentz(), gauss(), and voigt() objects to
 broadening.Lorenz(), Gauss(), and Voigt().
 Improved documentation, and implemented testing.
 
+
+*****  Sa 2. Mär 16:10:41 CET 2019  *****
+
+Edited exomol.py to enable Python3 compatibility.
+Added tli_hitran_test.cfg to test lineread (for HITRAN and ExoMol
+formats so far).
+
 *****
 

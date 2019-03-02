@@ -28,6 +28,11 @@ class exomol(dbdriver):
     super(exomol, self).__init__(dbfile, pffile, log)
 
     sfile = self.dbfile.replace("trans", "states")
+    if sfile.count("__") == 2:
+      suffix = sfile[sfile.rindex("__"):sfile.index(".")]
+      sfile = sfile.replace(suffix, "")
+    else:
+      suffix = ""
     # Check files exist:
     for dfile in [self.dbfile, sfile]:
       if not os.path.isfile(dfile):
@@ -122,11 +127,11 @@ class exomol(dbdriver):
     # Read first line to get the record size:
     data.seek(0)
     line = data.readline()
-    self.recsize = len(line)
+    self.recsize = data.tell()
 
     # Get Total number of transitions in file:
     data.seek(0, 2)
-    nlines   = data.tell() / self.recsize
+    nlines   = data.tell() // self.recsize
 
     # Find the record index for iwn and fwn:
     istart = self.binsearch(data, iwn, 0,      nlines-1, 0)
@@ -156,7 +161,7 @@ class exomol(dbdriver):
 
     self.log.msg("Process Exomol database between records {:,d} and {:,d}.".
                   format(istart, istop), verb=2, indent=2)
-    interval = (istop - istart)/10  # Check-point interval
+    interval = (istop - istart)//10  # Check-point interval
 
     i = 0  # Stored record index
     while (i < nread):
