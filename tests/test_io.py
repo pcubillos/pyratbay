@@ -76,7 +76,7 @@ def test_read_write_opacity(tmpdir):
 
 def test_read_write_atm(tmpdir):
     atmfile = "WASP-99b.atm"
-    atm = "{}/{}".format(tmpdir,atmfile)
+    atm = "{}/{}".format(tmpdir, atmfile)
     nlayers = 11
     pressure    = np.logspace(-8, 2, nlayers)
     temperature = np.tile(1500.0, nlayers)
@@ -100,3 +100,40 @@ def test_read_atm_no_temp():
     with pytest.raises(ValueError, match="Atmospheric file does not have "
                        "'@TEMPERATURE' header"):
         atm_input = pa.readatm('uniform_notemp_test.atm')
+
+
+def test_read_write_pf(tmpdir):
+    pffile = 'PF_Exomol_NH3_test.dat'
+    pff = "{}/{}".format(tmpdir, pffile)
+    isotopes = ['4111', '5111']
+    temp   = np.linspace(10,100,4)
+    pf     = np.array([np.logspace(0,3,4), np.logspace(1,4,4)])
+    header = '# Mock partition function for NH3.\n'
+    io.write_pf(pff, pf, isotopes, temp, header)
+
+    assert pffile in os.listdir(str(tmpdir))
+    PF, T, iso = io.read_pf(pff)
+    np.testing.assert_allclose(PF, pf, rtol=1e-5)
+    np.testing.assert_allclose(temp, T, rtol=1e-7)
+    assert list(iso) == isotopes
+
+
+def test_write_pf_mismatch_iso():
+    pffile = 'PF_Exomol_NH3_test.dat'
+    isotopes = ['4111']
+    temp   = np.linspace(10,100,4)
+    pf     = np.array([np.logspace(0,3,4), np.logspace(1,4,4)])
+    with pytest.raises(ValueError, match='Shape of the partition-function '
+                       'array does not match with the number of isotopes.'):
+        io.write_pf(pffile, pf, isotopes, temp)
+
+
+def test_write_pf_mismatch_temp():
+    pffile = 'PF_Exomol_NH3_test.dat'
+    isotopes = ['4111', '5111']
+    temp   = np.linspace(10,100,5)
+    pf     = np.array([np.logspace(0,3,4), np.logspace(1,4,4)])
+    with pytest.raises(ValueError, match='Shape of the partition-function '
+            'array does not match with the number of temperature samples.'):
+        io.write_pf(pffile, pf, isotopes, temp)
+

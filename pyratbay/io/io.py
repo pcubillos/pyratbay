@@ -2,12 +2,13 @@
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
 __all__ = ["write_spectrum", "read_spectrum",
-           "write_opacity", "read_opacity"]
+           "write_opacity", "read_opacity",
+           "write_pf", "read_pf"]
 
+import os
 import struct
 
 import numpy as np
-
 
 
 def write_spectrum(wl, spectrum, filename, path, wlunits='um'):
@@ -225,3 +226,128 @@ def read_opacity(ofile):
   return ((nmol, ntemp, nlayers, nwave),
           (molID, temp, press, wn),
           etable)
+
+
+def write_pf(pffile, pf, isotopes, temp, header=None):
+    """
+    Write a partition-function file in Pyrat Bay format.
+
+    Parameters
+    ----------
+    pffile: String
+        Output partition-function file.
+    pf: 2D float iterable
+        Partition-function data (of shape [niso, ntemp]).
+    isotopes: 1D string iterable
+        Isotope names.
+    temp: 1D float iterable
+        Temperature array.
+    header: String
+        A header for the partition-function file (must be as comments).
+
+    Examples
+    --------
+    >>> # See read_pf() examples.
+    """
+    if len(isotopes) != np.shape(pf)[0]:
+        raise ValueError('Shape of the partition-function array does not '
+                         'match with the number of isotopes.')
+    if len(temp) != np.shape(pf)[1]:
+        raise ValueError('Shape of the partition-function array does not '
+                         'match with the number of temperature samples.')
+
+    print(len(isotopes), len(temp), np.shape(pf))
+    # Write output file:
+    with open(pffile, "w") as f:
+        if header is not None:
+            f.write(header)
+        f.write("@ISOTOPES\n           "
+                + "  ".join(["{:>11s}".format(iso) for iso in isotopes])
+                + "\n\n")
+
+        f.write("# Temperature (K), partition function for each isotope:\n")
+        f.write("@DATA\n")
+        for t, z in zip(temp, pf.T):
+            f.write("  {:7.1f}  ".format(t)
+                    + "  ".join("{:.5e}".format(d) for d in z) + "\n")
+
+
+def read_pf(pffile):
+    """
+    Extract the partition-function and temperature from file.
+
+    Parameters
+    ----------
+    pffile: String
+        Partition function file to read.
+
+    Returns
+    -------
+    pf: 2D float ndarray
+        The partition function data (of shape [niso, ntemp]).
+    temp: 1D float ndarray
+        Array with temperature sample.
+    isotopes: List of strings
+         The names of the tabulated isotopes.
+
+    Examples
+    --------
+    >>> import pyratbay.io as io
+    >>> # Generate some mock PF data and write to file:
+    >>> pffile = 'PF_Exomol_NH3.dat'
+    >>> isotopes = ['4111', '5111']
+    >>> temp   = np.linspace(10,100,4)
+    >>> pf     = np.array([np.logspace(0,3,4),
+    >>>                    np.logspace(1,4,4)])
+    >>> header = '# Mock partition function for NH3.\n'
+    >>> io.write_pf(pffile, pf, isotopes, temp, header)
+
+    >>> # Now, read it back:
+    >>> PF, T, ISO = io.read_pf(pffile)
+    >>> print(T)
+    [ 10.  40.  70. 100.]
+    >>> print(ISO)
+    ['4111' '5111']
+    >>> print(PF)
+    [[1.e+00 1.e+01 1.e+02 1.e+03]
+     [1.e+01 1.e+02 1.e+03 1.e+04]]
+    """
+    # Open-read file:
+    if not os.path.isfile(pffile):
+        raise ValueError("Partition-function file '{:s}' does not exist.".
+                         format(pffile))
+    with open(pffile, "r") as f:
+        lines = f.readlines()
+
+    # Number of header lines (to skip when reading the tabulated data):
+    nskip = 0
+    while True:
+        line = lines[nskip].strip()
+        # Skip blank/empty lines:
+        if line == "" or line.startswith('#'):
+            pass
+        # Read isotopes:
+        elif line == "@ISOTOPES":
+            isotopes = np.asarray(lines[nskip+1].strip().split())
+        # Stop when the tabulated data begins:
+        if line == "@DATA":
+            nskip += 1
+            break
+        nskip += 1
+
+    # Number of isotopes:
+    niso = len(isotopes)
+    # Number of temperature samples:
+    ntemp = len(lines) - nskip
+
+    # Allocate output arrays:
+    temp = np.zeros(ntemp, np.double)
+    pf   = np.zeros((niso, ntemp), np.double)
+
+    # Read the data:
+    for i in np.arange(ntemp):
+        info = lines[nskip+i].strip().split()
+        temp[i] = info[0]
+        pf[:,i] = info[1:]
+
+    return pf, temp, isotopes

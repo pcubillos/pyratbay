@@ -6,6 +6,8 @@ import os
 import numpy as np
 
 import pyratbay.constants as pc
+import pyratbay.io        as io
+
 sys.path.append(pc.ROOT + "modules/pytips")
 import pytips as t
 
@@ -76,7 +78,9 @@ class dbdriver(object):
 
     # Extract the partition-function from the tabulated file:
     else:
-      return self.readpf()
+        # TBD: Caught file not found error with self.log
+        pf, temp, iso = io.read_pf(self.pffile)
+        return temp, pf, iso
 
 
   def dbread(self, iwl, fwl, verbose):
@@ -166,60 +170,6 @@ class dbdriver(object):
 
     # Return record index:
     return irec
-
-
-  def readpf(self):
-    """
-    Extract the partition-function and temperature from file.
-
-    Returns
-    -------
-    temp: 1D float ndarray
-       Array with temperature sample.
-    PF:   2D float ndarray
-       The partition function data for each isotope at each temperature.
-    isotopes: List of strings
-       The names of the tabulated isotopes
-    """
-    # Open-read file:
-    if not os.path.isfile(self.pffile):
-      self.log.error("Partition-function file '{:s}' does not exist.".
-                     format(self.pffile))
-    with open(self.pffile, "r") as f:
-      lines = f.readlines()
-
-    # Number of header lines (to skip when reading the tabulated data):
-    nskip = 0
-    while True:
-      line = lines[nskip].strip()
-      # Skip blank/empty lines:
-      if line == "" or line.startswith('#'):
-        pass
-      # Read isotopes:
-      elif line == "@ISOTOPES":
-        isotopes = np.asarray(lines[nskip+1].strip().split())
-      # Stop when the tabulated data begins:
-      if line == "@DATA":
-        nskip += 1
-        break
-      nskip += 1
-
-    # Number of isotopes:
-    niso = len(isotopes)
-    # Number of temperature samples:
-    ntemp = len(lines) - nskip
-
-    # Allocate output arrays:
-    temp = np.zeros(ntemp, np.double)
-    PF   = np.zeros((niso, ntemp), np.double)
-
-    # Read the data:
-    for i in np.arange(ntemp):
-      info = lines[nskip+i].strip().split()
-      temp[i] = info[0]
-      PF[:,i] = info[1:]
-
-    return temp, PF, isotopes
 
 
   def getiso(self, fromfile=False, molname=None, dbtype="hitran"):

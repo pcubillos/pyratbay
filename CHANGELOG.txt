@@ -4316,3 +4316,9 @@ formats so far).
 
 *****
 
+Outsourced code to reformat the ExoMol partition functions for
+Pyrat Bay into tools.pf_exomol().
+Added io.write_pf() and io.read_pf() functions to read/write PF.
+Now, all of these are available to the user.
+Implemented docstrings and tests for all these.
+

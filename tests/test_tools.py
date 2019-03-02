@@ -6,7 +6,17 @@ import numpy as np
 
 ROOT = os.path.realpath(os.path.dirname(__file__) + '/..') + '/'
 sys.path.append(ROOT)
+
 import pyratbay.tools as pt
+import pyratbay.io    as io
+
+os.chdir(ROOT+'tests')
+
+
+def mock_pf(epf, temp, pf):
+    with open(epf, 'w') as f:
+        f.write("\n".join("{:7.1f}  {:.10e}".format(t,z)
+                          for t,z in zip(temp,pf)))
 
 
 def test_path():
@@ -56,4 +66,38 @@ def test_get_exomol_mol(db, molecule, isotope):
     mol, iso = pt.get_exomol_mol(db)
     assert mol == molecule
     assert iso == isotope
+
+
+def test_pf_exomol_single(capfd):
+    # Mock an Exomol PF:
+    epf = '14N-1H4__MockBYTe.pf'
+    mock_pf(epf, np.arange(1,6), np.logspace(0,1,5))
+    pt.pf_exomol(epf)
+    pf, temp, iso = io.read_pf('PF_Exomol_NH4.dat')
+    np.testing.assert_allclose(pf[0,:], np.logspace(0,1,5), rtol=1e-5)
+    np.testing.assert_allclose(temp, np.arange(1,6), rtol=1e-7)
+    assert list(iso) == ['41111']
+
+
+def test_pf_exomol_listed_single(capfd):
+    epf = '14N-1H4__MockBYTe.pf'
+    mock_pf(epf, np.arange(1,6), np.logspace(0,1,5))
+    pt.pf_exomol([epf])
+    pf, temp, iso = io.read_pf('PF_Exomol_NH4.dat')
+    np.testing.assert_allclose(pf[0,:], np.logspace(0,1,5), rtol=1e-5)
+    np.testing.assert_allclose(temp, np.arange(1,6), rtol=1e-7)
+    assert list(iso) == ['41111']
+
+
+def test_pf_exomol_two(capfd):
+    epf1 = '14N-1H4__MockBYTe.pf'
+    epf2 = '15N-1H4__MockBYTe.pf'
+    mock_pf(epf1, np.arange(1,6), np.logspace(0,1,5))
+    mock_pf(epf2, np.arange(1,9), np.logspace(0,1,8))
+    pt.pf_exomol([epf1, epf2])
+    pf, temp, iso = io.read_pf('PF_Exomol_NH4.dat')
+    np.testing.assert_allclose(pf[0,:5], np.logspace(0,1,5), rtol=1e-5)
+    np.testing.assert_allclose(pf[1,:], np.logspace(0,1,8), rtol=1e-5)
+    np.testing.assert_allclose(temp, np.arange(1,9), rtol=1e-7)
+    assert list(iso) == ['41111', '51111']
 

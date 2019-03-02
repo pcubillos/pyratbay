@@ -5,7 +5,8 @@ __all__ = ["parray", "defaultp", "getparam",
            "binsearch", "pprint", "divisors", "u", "unpack",
            "ifirst", "ilast",
            "isfile", "addarg", "path", "wrap",
-           "make_tea", "clock", "get_exomol_mol"]
+           "make_tea", "clock", "get_exomol_mol",
+           "pf_exomol"]
 
 import os
 import sys
@@ -23,6 +24,7 @@ else:
 import numpy as np
 
 from .. import constants as pc
+from .. import io        as io
 
 sys.path.append(pc.ROOT + "pyratbay/lib/")
 import _indices
@@ -561,3 +563,88 @@ def get_exomol_mol(dbfile):
                       for c in composition])
 
   return molecule, isotope
+
+
+def pf_exomol(pf_files):
+  """
+  Re-format Exomol partition-function files for use with Pyrat Bay.
+
+  Parameters
+  ----------
+  pf_files: String or List of strings
+     Input Exomol partition-function filenames.  If there are
+     multiple isotopes, all of them must correspond to the same
+     molecule.
+
+  Examples
+  --------
+  >>> import pyratbay.tools as pt
+  >>> # A single file:
+  >>> pt.pf_exomol('14N-1H3__MockBYTe.pf')
+  Written partition-function file:
+    'PF_Exomol_NH3.dat'
+  for molecule NH3, with isotopes ['4111'],
+  and temperature range 1--1600 K.
+
+  >>> # Multiple files (isotopes) for a molecule:
+  >>> pt.pf_exomol(['14N-1H3__MockBYTe.pf', '15N-1H3__MockBYTe-15.pf'])
+  Warning: Length of PF files do not match.  Zero-padding the shorter array(s).
+  Written partition-function file:
+    'PF_Exomol_NH3.dat'
+  for molecule NH3, with isotopes ['4111', '5111'],
+  and temperature range 1--2000 K.
+  """
+  # Put into list if necessary:
+  if isinstance(pf_files, str):
+      pf_files = [pf_files]
+
+  # Read and extract data from files:
+  isotopes = []
+  data, temps = [], []
+  molecule = ""
+  nt = 0
+  for pf_file in pf_files:
+      # Get info from file name:
+      mol, iso = get_exomol_mol(pf_file)
+
+      # Check all files correspond to the same molecule.
+      if molecule == "":
+          molecule = mol
+      elif molecule != mol:
+          raise ValueError("All files must correspond to the same molecule.")
+
+      isotopes.append(iso)
+      # Read data:
+      temp, z = np.loadtxt(pf_file).T
+      data.append(z)
+      temps.append(temp)
+
+  # Number of isotopes:
+  niso = len(isotopes)
+  # Check temp sampling:
+  minlen = min(len(temp) for temp in temps)
+  maxlen = max(len(temp) for temp in temps)
+  ntemp = maxlen
+  if minlen != maxlen:
+      for temp in temps:
+          if np.any(temp[0:minlen] - temps[0][0:minlen] != 0):
+              raise ValueError(
+                  "Temperature sampling in PF files are not compatible.")
+      print('Warning: Length of PF files do not match.  Zero-padding the '
+            'shorter array(s).')
+
+  pf = np.zeros((niso, ntemp), np.double)
+  for i,z in enumerate(data):
+      pf[i, 0:len(z)] = z
+      if len(z) == maxlen:
+          temp = temps[i]
+
+  # Write output file:
+  file_out = "PF_Exomol_{:s}.dat".format(molecule)
+  header = ("# This file incorporates the tabulated {:s} partition-function "
+            "data\n# from Exomol\n\n".format(molecule))
+  io.write_pf(file_out, pf, isotopes, temp, header)
+
+  print("\nWritten partition-function file:\n  '{:s}'\nfor molecule {:s}, "
+        "with isotopes {},\nand temperature range {:.0f}--{:.0f} K.".
+        format(file_out, molecule, isotopes, temp[0], temp[-1]))
