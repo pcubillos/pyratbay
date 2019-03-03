@@ -4331,3 +4331,7 @@ Introducing travis CI.
 
 Updated setup.py.
 
+*****
+
+Updated pytips submodule.
+
