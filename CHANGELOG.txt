@@ -4322,3 +4322,10 @@ Added io.write_pf() and io.read_pf() functions to read/write PF.
 Now, all of these are available to the user.
 Implemented docstrings and tests for all these.
 
+
+*****  Sun Mar  3 11:38:15 CET 2019  *****
+
+Introducing travis CI.
+
+*****
+
