@@ -1,8 +1,10 @@
 import os
 import re
 import sys
-from numpy import get_include
+import setuptools
 from setuptools import setup, Extension
+
+from numpy import get_include
 
 topdir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(topdir + "/pyratbay")

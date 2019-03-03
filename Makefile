@@ -36,7 +36,7 @@ clean: clean_pb clean_mc3 clean_pytips
 make_pb:
 	@echo "Building Pyrat-Bay package."
 	$(Q) python setup.py build $(O)
-	@mv -f build/lib.*/*.so $(LIBDIR)
+	@mv -f build/lib.*/pyratbay/lib/*.so $(LIBDIR)
 	@rm -rf build/
 	@echo "Successful compilation."
 	@echo ""
