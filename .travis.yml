@@ -14,6 +14,6 @@ install:
   - pip install -r requirements.txt
   - pip install -e .
   - wget --user=HITRAN --password=getdata -N https://www.cfa.harvard.edu/HITRAN/HITRAN2012/HITRAN2012/By-Molecule/Compressed-files/01_hit12.zip && unzip 01_hit12.zip -d ./pyratbay/tests
-  - cd ./pyratbay && make
+  - cd /home/travis/build/pcubillos/pyratbay && make
 
 script: pytest
