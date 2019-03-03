@@ -4329,3 +4329,5 @@ Introducing travis CI.
 
 *****
 
+Updated setup.py.
+

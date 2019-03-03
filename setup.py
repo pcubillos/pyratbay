@@ -1,10 +1,13 @@
-import os, re, sys
+import os
+import re
+import sys
 from numpy import get_include
 from setuptools import setup, Extension
 
 topdir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(topdir + "/pyratbay")
 import VERSION as ver
+
 
 srcdir = topdir + '/src_c/'          # C-code source folder
 incdir = topdir + '/src_c/include/'  # Include filder with header files
@@ -21,13 +24,14 @@ eca = ['-ffast-math']
 ela = []
 
 extensions = []
-for i in range(len(files)):
-  e = Extension(os.path.splitext(files[i])[0],
-                sources=['{:s}{:s}'.format(srcdir, files[i])],
-                include_dirs=inc,
-                extra_compile_args=eca,
-                extra_link_args=ela)
-  extensions.append(e)
+for efile in files:
+    #e = Extension(os.path.splitext(efile)[0],
+    e = Extension('pyratbay.lib.'+efile.rstrip('.c'),
+                  sources=['{:s}{:s}'.format(srcdir, efile)],
+                  include_dirs=inc,
+                  extra_compile_args=eca,
+                  extra_link_args=ela)
+    extensions.append(e)
 
 
 setup(name         = "pyratbay",
@@ -36,8 +40,12 @@ setup(name         = "pyratbay",
       author       = "Patricio Cubillos",
       author_email = "patricio.cubillos@oeaw.ac.at",
       url          = "https://github.com/pcubillos/pyratbay",
-      packages     = ["pyratbay"],
-      license      = ["FINDME"],
+      packages     = setuptools.find_packages(),
+      install_requires = ['numpy>=1.8.1',
+                          'scipy>=0.13.3',
+                          'matplotlib>=1.3.1',
+                          'sympy>=0.7.6'],
+      license      = "TBD",
       description  = "Python Radiative Transfer in a Bayesian Framework.",
       include_dirs = inc,
       ext_modules  = extensions)
