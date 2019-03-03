@@ -4339,3 +4339,8 @@ Updated pytips submodule.
 
 Updated Makefile and setup.py to work with travis CI.
 
+*****
+
+Updated MC3 submodule.
+
+
