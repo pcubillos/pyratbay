@@ -22,7 +22,7 @@ def read(pyrat):
   else:
     pyrat.cs.nfiles = len(pyrat.cs.files)
     # Allocate molecules array:
-    pyrat.cs.molecules = np.zeros((pyrat.cs.nfiles, 2), "U20")
+    pyrat.cs.molecules = []
     pyrat.cs.nmol      = np.zeros(pyrat.cs.nfiles, np.int)
     # Allocate the number of temperature and wavenumber samples per file:
     pyrat.cs.ntemp     = np.zeros(pyrat.cs.nfiles, np.int)
@@ -54,9 +54,9 @@ def read(pyrat):
         elif line == "@SPECIES":
           molecs = f.readline().strip().split()
           nmol = pyrat.cs.nmol[i] = len(molecs)
-          pyrat.cs.molecules[i, 0:nmol] = molecs
+          pyrat.cs.molecules.append(molecs)
           # Check that CS species are in the atmospheric file:
-          absent = np.setdiff1d(pyrat.cs.molecules[i, 0:nmol], pyrat.mol.name)
+          absent = np.setdiff1d(pyrat.cs.molecules[i][0:nmol], pyrat.mol.name)
           if len(absent) > 0:
             pyrat.log.error("These species: {:s} are not listed in the "
                             "atmospheric file.\n".format(str(absent)))
@@ -103,7 +103,7 @@ def read(pyrat):
 
       # Screen output:
       pyrat.log.msg("For {:s} CS,\nRead {:d} wavenumber and {:d} temperature "
-          "samples.".format("-".join(pyrat.cs.molecules[i,0:nmol]),
+          "samples.".format("-".join(pyrat.cs.molecules[i][0:nmol]),
           pyrat.cs.nwave[i], pyrat.cs.ntemp[i]), verb=2, indent=4)
       pyrat.log.msg("Temperature sample limits: {:g}--{:g} K".
           format(pyrat.cs.temp[i][0], pyrat.cs.temp[i][-1]),
@@ -167,7 +167,7 @@ def interpolate(pyrat, layer=None):
     dens = 1.0
     for j in np.arange(pyrat.cs.nmol[i]):
       # Get index from the pyrat list of molecules:
-      imol = np.where(pyrat.mol.name == pyrat.cs.molecules[i,j])[0][0]
+      imol = np.where(pyrat.mol.name == pyrat.cs.molecules[i][j])[0][0]
       # Densities in amagat:
       dens *= pyrat.atm.d[li:lf,imol] / pc.amagat
 
@@ -176,12 +176,15 @@ def interpolate(pyrat, layer=None):
       ec += cs_absorption * np.expand_dims(dens, axis=1)
     else:
       ec[i] = cs_absorption * dens
-      label.append("-".join(pyrat.cs.molecules[i]))
+      if pyrat.cs.nmol[i] == 2:
+          label.append('CIA ' + '-'.join(pyrat.cs.molecules[i]))
+      else:
+          label.append(pyrat.cs.molecules[i][0])
 
     pyrat.log.msg("CS extinction: {}".format(ec[:,0]), verb=4, indent=2)
   # Return per-database EC if single-layer run:
   if layer is not None:
-    return ec, label
+      return ec, label
   # Else, store cumulative result into pyrat object:
   pyrat.cs.ec = ec
   pyrat.log.msg("Cross-section interpolate done.")

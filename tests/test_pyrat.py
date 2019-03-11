@@ -33,5 +33,5 @@ def test_call_from_pbay():
         "Pressure profile (bar):  1.00e-06 -- 1.00e+02 (81 layers)\n"
         "Wavelength range (um):  1.10 -- 1.70 (3209 samples, dwn=1.000 cm-1)\n"
         "Composition:  ['H2' 'He' 'Na' 'H2O' 'CH4' 'CO' 'CO2']\n"
-        "Opacity sources:  ['H2O', 'H2-H2', 'H2-He', 'lecavelier', 'Na']")
+        "Opacity sources:  ['H2O', 'CIA H2-H2', 'CIA H2-He', 'lecavelier', 'Na']")
 

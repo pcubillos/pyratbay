@@ -385,7 +385,10 @@ class Pyrat(object):
               opacities.append(self.mol.name[imol])
       if self.cs.nfiles != 0:
           for molecs in self.cs.molecules:
-              opacities.append("-".join(molecs))
+              if len(molecs) == 2:
+                  opacities.append('CIA ' + '-'.join(molecs))
+              else:
+                  opacities.append(molecs[0])
       if self.rayleigh.nmodels != 0:
           for rayleigh in self.rayleigh.model:
               opacities.append(rayleigh.name)

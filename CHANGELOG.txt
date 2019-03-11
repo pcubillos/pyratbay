@@ -4365,4 +4365,9 @@ arguments.  Everywhere else, the code only uses argparse only to
 define the data type and defaults of the config-file inputs.
 This means that the 'help' descriptions can be removed as well.
 
+*****
+
+Turned pyrat.cs.molecules from a numpy array into a nested list to
+avoid issues with string data types on prints.
+Added 'CIA ' to output __repr__() and get_ec() calls.
 
