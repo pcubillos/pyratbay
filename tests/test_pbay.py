@@ -60,27 +60,27 @@ expected_temperature = np.array(
        1665.35997887])
 
 
-def test_tli_hitran():
-    pb.pbay.run(ROOT+'tests/tli_hitran_wfc3_test.cfg')
-    # asserts on output file
+def test_tli_hitran_wfc3():
+    pb.pbay.run(ROOT+'tests/tli_hitran_1.1-1.7um_test.cfg')
+    # TBD: asserts on output file
 
 
 @pytest.mark.skip(reason="Skip until implementing in Python3")
 def test_tli_pands():
     pb.pbay.run('tli_pands_test.cfg')
-    # asserts on output file
+    # TBD: asserts on output file
 
 
 @pytest.mark.skip(reason="Skip until implementing in Python3")
 def test_tli_repack():
     pb.pbay.run('tli_repack_test.cfg')
-    # asserts on output file
+    # TBD: asserts on output file
 
 
 @pytest.mark.skip(reason="Skip until implementing in Python3")
 def test_tli_tio_schwenke():
     pb.pbay.run('tli_tio_schwenke_test.cfg')
-    # asserts on output file
+    # TBD: asserts on output file
 
 
 
@@ -134,7 +134,8 @@ def test_atmosphere_tea():
 
 def test_spectrum_emission():
     pyrat = pb.pbay.run(ROOT+'tests/spectrum_emission_test.cfg')
-    # implement asserts
+    assert pyrat is not None
+    # TBD: implement asserts
 
 
 def test_opacity(capfd):

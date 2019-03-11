@@ -4371,3 +4371,7 @@ Turned pyrat.cs.molecules from a numpy array into a nested list to
 avoid issues with string data types on prints.
 Added 'CIA ' to output __repr__() and get_ec() calls.
 
+*****
+
+Fixed wrong config file in test that creates the 1.1-1.7 um tli file.
+
