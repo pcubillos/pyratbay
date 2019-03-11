@@ -4375,3 +4375,13 @@ Added 'CIA ' to output __repr__() and get_ec() calls.
 
 Fixed wrong config file in test that creates the 1.1-1.7 um tli file.
 
+*****
+
+The next merge enable travis CI testing.  Most of the code works in
+Python2 and Python3 (some tli's are pending).
+This merits a new minor version.
+
+Bumped Pyrat Bay to version 0.1.0.
+Bumped Pyrat to version 1.3.7.
+Bumped lineread to version 6.4.16.
+
