@@ -68,7 +68,7 @@ def test_get_exomol_mol(db, molecule, isotope):
     assert iso == isotope
 
 
-def test_pf_exomol_single(capfd):
+def test_pf_exomol_single():
     # Mock an Exomol PF:
     epf = '14N-1H4__MockBYTe.pf'
     mock_pf(epf, np.arange(1,6), np.logspace(0,1,5))
@@ -79,7 +79,7 @@ def test_pf_exomol_single(capfd):
     assert list(iso) == ['41111']
 
 
-def test_pf_exomol_listed_single(capfd):
+def test_pf_exomol_listed_single():
     epf = '14N-1H4__MockBYTe.pf'
     mock_pf(epf, np.arange(1,6), np.logspace(0,1,5))
     pt.pf_exomol([epf])
@@ -89,7 +89,7 @@ def test_pf_exomol_listed_single(capfd):
     assert list(iso) == ['41111']
 
 
-def test_pf_exomol_two(capfd):
+def test_pf_exomol_two():
     epf1 = '14N-1H4__MockBYTe.pf'
     epf2 = '15N-1H4__MockBYTe.pf'
     mock_pf(epf1, np.arange(1,6), np.logspace(0,1,5))

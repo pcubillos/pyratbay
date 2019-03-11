@@ -61,22 +61,13 @@ expected_temperature = np.array(
 
 
 def test_tli_hitran():
-    #subprocess.call(['wget', '--user=HITRAN', '--password=getdata', '-N',
-    #                 'https://www.cfa.harvard.edu/HITRAN/HITRAN2012/HITRAN2012/By-Molecule/Compressed-files/01_hit12.zip'])
-    #subprocess.call(['unzip', '01_hit12.zip'])
-    pb.pbay.run(ROOT+'tests/tli_hitran_test.cfg')
+    pb.pbay.run(ROOT+'tests/tli_hitran_wfc3_test.cfg')
     # asserts on output file
 
 
 @pytest.mark.skip(reason="Skip until implementing in Python3")
 def test_tli_pands():
     pb.pbay.run('tli_pands_test.cfg')
-    # asserts on output file
-
-
-@pytest.mark.skip(reason="Skip until implementing in Python3")
-def test_tli_exomol():
-    pb.pbay.run('tli_exomol_test.cfg')
     # asserts on output file
 
 
@@ -138,10 +129,7 @@ def test_atmosphere_tea():
     np.testing.assert_allclose(atm[4], expected_abundances,      rtol=1e-4)
 
 
-@pytest.mark.skip(reason="See tests/test_spectrum.py")
-def test_spectrum_transmission():
-    pyrat = pb.pbay.run(ROOT+'tests/spectrum_transmission_test.cfg')
-    # implement asserts
+# See tests/test_spectrum.py for spectrum tests
 
 
 def test_spectrum_emission():
@@ -149,9 +137,12 @@ def test_spectrum_emission():
     # implement asserts
 
 
-def test_opacity():
+def test_opacity(capfd):
     pyrat = pb.pbay.run(ROOT+'tests/opacity_test.cfg')
-    # implement asserts
+    captured = capfd.readouterr()
+    assert "Extinction-coefficient table written to file:" in captured.out
+    assert "exttable_test_300-3000K_1.1-1.7um.dat'." in captured.out
+    assert "exttable_test_300-3000K_1.1-1.7um.dat" in os.listdir('.')
 
 
 @pytest.mark.skip

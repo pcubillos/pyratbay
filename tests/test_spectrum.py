@@ -68,7 +68,7 @@ def test_transmission_etable():
     # LBL from extinction table:
     epyrat = pb.pbay.run(ROOT+'tests/spectrum_transmission_etable_test.cfg')
     np.testing.assert_allclose(epyrat.spec.spectrum, expected['etable'],
-    rtol=1e-7)
+                               rtol=1e-7)
 
 
 def plot_transmission():
@@ -159,6 +159,7 @@ def test_fit_filters():
     np.testing.assert_allclose(model4[1], expected['bandflux4'], rtol=1e-7)
 
 
+# These are extra bits for testing the tests before testing:
 def plot_fit():
     plt.figure(0)
     plt.clf()
@@ -194,4 +195,12 @@ def spectrum_fm():
     data = bandflux + np.random.normal(0.0, uncert)
     plt.errorbar(1e4/pyrat.obs.bandwn, data, uncert, fmt='or', zorder=10)
 
+
+def spectrum_exomol():
+    pyrat = pb.pbay.run(ROOT+'tests/spectrum_transmission_exomol.cfg')
+
+    plt.figure(1)
+    plt.clf()
+    plt.plot(1e4/hcn[0], hcn[1], 'b')
+    plt.plot(1e4/pyrat.spec.wn, pyrat.spec.spectrum, 'orange', alpha=0.5)
 

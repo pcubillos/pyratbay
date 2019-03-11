@@ -4351,3 +4351,10 @@ Added make command to travis file.
 
 Try again, different path.
 
+
+*****  Mo 11. Mär 13:58:37 CET 2019  *****
+
+Fixed a bunch of file names for tests.
+There is one case to fix in test_pyrat.py.
+
+
