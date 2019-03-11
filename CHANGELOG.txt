@@ -4357,4 +4357,12 @@ Try again, different path.
 Fixed a bunch of file names for tests.
 There is one case to fix in test_pyrat.py.
 
+*****
+
+Removed lots of unnecessary argparse overhead. Now pbay.py is the
+only instance where the code is looking at the input command-line
+arguments.  Everywhere else, the code only uses argparse only to
+define the data type and defaults of the config-file inputs.
+This means that the 'help' descriptions can be removed as well.
+
 

@@ -49,27 +49,19 @@ def parse(pyrat, cfile, log=None):
       An MCcubed.utils.Log instance to log screen outputs to file.
       If None, start a new log from logfile argument in the cfile.
   """
-  # Parse configuration file:
-  cparser = argparse.ArgumentParser(description=__doc__, add_help=False,
-                formatter_class=argparse.RawDescriptionHelpFormatter)
-  cparser.add_argument("-v",  "--verb",  dest="verb",
-                       help="Verbosity level [default: %(default)s]",
-                       action="store", type=int, default=2)
-  # remaining_argv contains all other command-line-arguments:
-  args, remaining_argv = cparser.parse_known_args()
-
-  # Get parameters from configuration file (if exists):
   if not os.path.isfile(cfile):
       print("Configuration file: '{:s}' not found.".format(cfile))
       sys.exit(0)
 
+  # Use argparse only to define the data types and defaults:
   config = configparser.ConfigParser()
   config.optionxform = str  # Enable case-sensitive variable names
   config.read([cfile])
   defaults = dict(config.items("pyrat"))
 
-  # Inherit options from cparser:
-  parser = argparse.ArgumentParser(parents=[cparser])
+  parser = argparse.ArgumentParser(
+               formatter_class=argparse.RawDescriptionHelpFormatter)
+  parser.add_argument("--verb", type=int, default=None)
   # Process pyrat Options:
   group = parser.add_argument_group("Input Files Options")
   pt.addarg("atmfile",     group, str,       None,
@@ -263,7 +255,7 @@ def parse(pyrat, cfile, log=None):
   # Set the defaults from the configuration file:
   parser.set_defaults(**defaults)
   # Set values from command line:
-  user, unknown = parser.parse_known_args(remaining_argv)
+  user, unknown = parser.parse_known_args()
 
   # Put user arguments into pyrat input:
   for key, value in vars(user).items():
@@ -271,7 +263,7 @@ def parse(pyrat, cfile, log=None):
   pyrat.inputs.configfile = cfile
 
   # Verbosity level:
-  pyrat.verb = int(pyrat.inputs.verb)
+  pyrat.verb = pyrat.inputs.verb
 
   # Open the Pyrat log file if requested:
   if log is not None:  # Take pre-existing log

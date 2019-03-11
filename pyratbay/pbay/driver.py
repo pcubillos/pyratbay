@@ -5,7 +5,6 @@ __all__ = ["run"]
 
 import os
 import sys
-import time
 
 from .. import lineread   as lr
 from .. import tools      as pt
@@ -20,34 +19,20 @@ sys.path.append(pc.ROOT + "modules/MCcubed/")
 import MCcubed as mc3
 
 
-def run(argv, main=False):
+def run(cfile):
   """
   Pyrat Bay (Python Radiative Transfer in a Bayesian framework)
   initialization driver.
 
   Parameters
   ----------
-  argv: List or string
-     If called from the shell, the list of command line arguments; if
-     called from the Python interpreter, the configuration-file name.
-  main: Bool
-     Flag to indicate if Pyrat was called from the shell (True) or from
-     the Python interpreter.
+  cfile: String
+     A Pyrat Bay configuration file.
   """
-
   # Put everything into a try--except to catch the sys.exit() Traceback.
   try:
-    # Setup the command-line-arguments input:
-    if main is False:
-      sys.argv = ['pbay.py', '-c', argv]
-
-    # Setup time tracker:
-    timestamps = []
-    timestamps.append(time.time())
-
     # Parse command line arguments:
-    args, log = ar.parse()
-    timestamps.append(time.time())
+    args, log = ar.parse(cfile)
 
     # Check run mode:
     if args.runmode not in pc.rmodes:
@@ -56,7 +41,7 @@ def run(argv, main=False):
 
     # Call lineread package:
     if args.runmode == "tli":
-      parser = lr.parser()
+      parser = lr.parser(cfile)
       lr.makeTLI(parser.dblist,  parser.pflist, parser.dbtype,
                  parser.outfile, parser.iwl, parser.fwl, parser.verb)
       return
@@ -112,10 +97,10 @@ def run(argv, main=False):
     # Initialize pyrat object:
     dummy_log = mc3.utils.Log(None, width=80)
     if args.resume: # Bypass writting all of the initialization log:
-        pyrat = Pyrat(args.cfile, log=dummy_log)
+        pyrat = Pyrat(cfile, log=dummy_log)
         pyrat.log = log
     else:
-        pyrat = Pyrat(args.cfile, log=log)
+        pyrat = Pyrat(cfile, log=log)
 
     # Compute spectrum and return pyrat object if requested:
     if args.runmode == "spectrum":
@@ -155,7 +140,7 @@ def run(argv, main=False):
 
     # Best-fitting model:
     pyrat.outspec = "{:s}_bestfit_spectrum.dat".format(outfile)
-    bestbandflux = pyrat.eval(bestp, retmodel=False)
+    dummy = pyrat.eval(bestp, retmodel=False)
 
     # Best-fit atmfile header:
     header = "# MCMC best-fitting atmospheric model.\n\n"

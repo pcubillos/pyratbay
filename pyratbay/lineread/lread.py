@@ -19,29 +19,22 @@ import matplotlib.pyplot as plt
 
 from .  import db
 from .. import constants as pc
+from .. import tools     as pt
 from .. import VERSION as ver
 
 sys.path.append(pc.ROOT + "/modules/MCcubed")
 import MCcubed.utils as mu
 
 
-def parser(cfile=None):
+def parser(cfile):
   """
   Read and process the command line arguments.
+
+  Parameters
+  ----------
+  cfile: String
+      A Pyrat Bay configuration file.
   """
-  # Parser to process a configuration file:
-  cparser = argparse.ArgumentParser(description=__doc__, add_help=False,
-                           formatter_class=argparse.RawDescriptionHelpFormatter)
-  # Add config file option:
-  cparser.add_argument("-c", "--cfile",
-                       help="Configuration filename (string).", metavar="FILE")
-  # remaining_argv contains all other command-line-arguments:
-  args, remaining_argv = cparser.parse_known_args()
-
-  # Get parameters from configuration file (if exists):
-  if args.cfile:
-    cfile = args.cfile
-
   # Parse the configuration-file arguments:
   if cfile is not None:
     if not os.path.isfile(cfile):
@@ -54,55 +47,47 @@ def parser(cfile=None):
             "section must be 'pyrat'.".format(cfile))
       sys.exit(0)
     defaults = dict(config.items("pyrat"))
-    # Store these arguments as lists:
-    if "dblist" in defaults:
-      defaults["dblist"] = defaults["dblist"].split()
-    if "pflist" in defaults:
-      defaults["pflist"] = defaults["pflist"].split()
-    if "dbtype" in defaults:
-      defaults["dbtype"] = defaults["dbtype"].split()
   else:
     defaults = {}
 
-  # Inherit options from cparser:
-  parser = argparse.ArgumentParser(parents=[cparser])
-
+  parser = argparse.ArgumentParser(
+               formatter_class=argparse.RawDescriptionHelpFormatter)
   # General Options:
-  parser.add_argument("-v", "--verbose-level", action="store",
+  parser.add_argument("--verb", action="store",
                        help="Verbosity level (integer) [default: %(default)s].",
                        dest="verb", type=int, default=2)
-  parser.add_argument("-q", "--quiet",         action="store_false",
+  parser.add_argument("--quiet",         action="store_false",
                        help="Set verbosity level to 0.",
                        dest="verb")
   # Database Options:
   group = parser.add_argument_group("Database Options")
-  group.add_argument("-o", "--outfile",        action  = "store",
+  group.add_argument("--outfile",        action  = "store",
                      help="Output filename (string) [default: '%(default)s'].",
                      dest= "outfile",          default = "output.tli")
-  group.add_argument("-d", "--database",       action="append",
+  group.add_argument("--dblist",         action="append",
                      help="Path (string) to the input line-transition "
                           "database file(s).",
-                     dest="dblist")
-  group.add_argument("-p", "--partition",      action="append",
+                     dest="dblist", type=pt.parray)
+  group.add_argument("--pflist",      action="append",
                      help="Path (string) to auxiliary partition-function "
                           "file(s).",
-                     dest="pflist")
-  group.add_argument("-t", "--dbtype",         action="append",
+                     dest="pflist", type=pt.parray)
+  group.add_argument("--dbtype",         action="append",
                      help="Database type (string).  'ps' for Partridge & "
                           "Schwenke's H2O; 'hit' for HITRAN and HITEMP; or "
                           "'ts' for Schwenke's TiO.",
-                     dest="dbtype")
+                     dest="dbtype", type=pt.parray)
   # Wavelength Options:
   group = parser.add_argument_group("Wavelength Options")
-  group.add_argument("-i", "--wl-init",       action="store",
+  group.add_argument("--iwl",       action="store",
                      help="Initial wavelength (microns) [default: "
                           "%(default)s].",
                      dest="iwl", type=float, default=0.01)
-  group.add_argument("-f", "--wl-final",      action="store",
+  group.add_argument("--fwl",      action="store",
                      help="Final wavelength (microns) [default: %(default)s].",
                      dest="fwl", type=float, default=999.9)
   parser.set_defaults(**defaults)
-  args = parser.parse_args(remaining_argv)
+  args, remaining_argv = parser.parse_known_args()
 
   return args
 

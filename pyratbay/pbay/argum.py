@@ -20,43 +20,35 @@ sys.path.append(rootdir + "/modules/MCcubed")
 import MCcubed.utils as mu
 
 
-def parse():
+def parse(cfile):
   """
   Read the command line arguments.
+
+  Parameters
+  ----------
+  cfile: String
+      A Pyrat Bay configuration file.
   """
-
-  # Parser to process a configuration file:
-  cparser = argparse.ArgumentParser(description=__doc__, add_help=False,
-                           formatter_class=argparse.RawDescriptionHelpFormatter)
-  # Add config file option:
-  cparser.add_argument("-c", "--cfile",
-                       help="Configuration filename (string).", metavar="FILE")
-  cparser.add_argument("-v",  "--verb",  dest="verb",
-                       help="Verbosity level [default: %(default)s]",
-                       action="store", type=int, default=2)
-
-  # remaining_argv contains all other command-line-arguments:
-  args, remaining_argv = cparser.parse_known_args()
-
-  if args.cfile is None:
+  if cfile is None:
     print("\nNo configuration file specified.")
     sys.exit(0)
-  elif not os.path.isfile(args.cfile):
-    print("\nConfiguration file '{:s}' does not exist.".format(args.cfile))
+  elif not os.path.isfile(cfile):
+    print("\nConfiguration file '{:s}' does not exist.".format(cfile))
     sys.exit(0)
 
   config = configparser.ConfigParser()
-  config.read([args.cfile])
+  config.read([cfile])
   if "pyrat" not in config.sections():
     print("\nInvalid configuration file: '{:s}', no [pyrat] section.".
-          format(args.cfile))
+          format(cfile))
     sys.exit(0)
 
-  cfile = args.cfile
   defaults = dict(config.items("pyrat"))
 
-  # Inherit options from cparser:
-  parser = argparse.ArgumentParser(parents=[cparser])
+  # Use argparse only to define the data types and defaults:
+  parser = argparse.ArgumentParser(
+               formatter_class=argparse.RawDescriptionHelpFormatter)
+  parser.add_argument("--verb", type=int, default=None)
 
   # Pressure-layer options:
   group = parser.add_argument_group("Pressure layer sampling")
@@ -252,8 +244,7 @@ def parse():
            action="store", type=pt.parray,  default=None)
 
   parser.set_defaults(**defaults)
-  args = parser.parse_args(remaining_argv)
-  args.cfile = cfile
+  args, remaining_argv = parser.parse_known_args()
 
   # Initialize log object:
   args.logfile = pt.path(args.logfile)
