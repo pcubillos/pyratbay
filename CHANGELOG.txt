@@ -4392,3 +4392,11 @@ Implemented tools.pf_kurucz() to reformat a Kurucz partition-function
 file.  Documented and tested.
 Cosmetic clean up in io.write_pf()
 
+*****
+
+Removed PFformat_Exomol.py, PFformat_PandS_H2O.py, and
+PFformat_Schwenke_TiO.py scripts.  These are now handled by the main
+Pyrat Bay entry point, using the -pf argument.
+The actual code is now implemented into the tools and io modules
+(thus, they are accessible to the user through the API).
+
