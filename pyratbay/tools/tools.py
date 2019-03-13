@@ -6,7 +6,7 @@ __all__ = ["parray", "defaultp", "getparam",
            "ifirst", "ilast",
            "isfile", "addarg", "path", "wrap",
            "make_tea", "clock", "get_exomol_mol",
-           "pf_exomol"]
+           "pf_exomol", "pf_kurucz"]
 
 import os
 import sys
@@ -643,6 +643,67 @@ def pf_exomol(pf_files):
   file_out = "PF_Exomol_{:s}.dat".format(molecule)
   header = ("# This file incorporates the tabulated {:s} partition-function "
             "data\n# from Exomol\n\n".format(molecule))
+  io.write_pf(file_out, pf, isotopes, temp, header)
+
+  print("\nWritten partition-function file:\n  '{:s}'\nfor molecule {:s}, "
+        "with isotopes {},\nand temperature range {:.0f}--{:.0f} K.".
+        format(file_out, molecule, isotopes, temp[0], temp[-1]))
+
+
+def pf_kurucz(pf_file):
+  """
+  Re-format Kurucz's partition-function files for use with Pyrat Bay.
+
+  Parameters
+  ----------
+  pf_file: String
+      Input partition-function from Kurucz webpage.  Currently only H2O
+      and TiO are available (probably there's no need for any other support).
+      Files can be downloaded from these links:
+        http://kurucz.harvard.edu/molecules/h2o/h2opartfn.dat
+        http://kurucz.harvard.edu/molecules/tio/tiopart.dat
+
+  Examples
+  --------
+  >>> import pyratbay.tools as pt
+  >>> # Before moving on, download Kurucz's PF files from links above.
+  >>> pf_files = ['h2opartfn.dat', 'tiopart.dat']
+  >>> for pf_file in pf_files:
+  >>>     pt.pf_kurucz(pf_file)
+  Written partition-function file:
+    'PF_kurucz_H2O.dat'
+  for molecule H2O, with isotopes ['1H1H16O', '1H1H17O', '1H1H18O', '1H2H16O'],
+  and temperature range 10--6000 K.
+
+  Written partition-function file:
+    'PF_kurucz_TiO.dat'
+  for molecule TiO, with isotopes ['66', '76', '86', '96', '06'],
+  and temperature range 10--6000 K.
+  """
+  if 'h2o' in pf_file:
+      molecule = 'H2O'
+      url = 'http://kurucz.harvard.edu/molecules/h2o/h2opartfn.dat'
+      isotopes = ['1H1H16O', '1H1H17O', '1H1H18O', '1H2H16O']
+      skiprows = 6
+  elif 'tio' in pf_file:
+      molecule = 'TiO'
+      url = 'http://kurucz.harvard.edu/molecules/tio/tiopart.dat'
+      isotopes = ["66", "76", "86", "96", "06"]
+      skiprows = 1
+  else:
+      print('Invalid Kurucz partition-function file.')
+
+  # Read and extract data from files:
+  data = np.loadtxt(pf_file, skiprows=skiprows, unpack=True)
+
+  # Allocate arrays:
+  temp = data[0]
+  pf   = data[1:]
+
+  # Write output file:
+  file_out = "PF_kurucz_{:s}.dat".format(molecule)
+  header = ("# This file incorporates the tabulated {:s} partition-function "
+            "data\n# from {:s}\n\n".format(molecule, url))
   io.write_pf(file_out, pf, isotopes, temp, header)
 
   print("\nWritten partition-function file:\n  '{:s}'\nfor molecule {:s}, "

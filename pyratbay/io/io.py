@@ -256,7 +256,6 @@ def write_pf(pffile, pf, isotopes, temp, header=None):
         raise ValueError('Shape of the partition-function array does not '
                          'match with the number of temperature samples.')
 
-    print(len(isotopes), len(temp), np.shape(pf))
     # Write output file:
     with open(pffile, "w") as f:
         if header is not None:
