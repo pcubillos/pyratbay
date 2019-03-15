@@ -73,7 +73,7 @@ def test_pf_exomol_single():
     epf = '14N-1H4__MockBYTe.pf'
     mock_pf(epf, np.arange(1,6), np.logspace(0,1,5))
     pt.pf_exomol(epf)
-    pf, temp, iso = io.read_pf('PF_Exomol_NH4.dat')
+    pf, iso, temp = io.read_pf('PF_Exomol_NH4.dat')
     np.testing.assert_allclose(pf[0,:], np.logspace(0,1,5), rtol=1e-5)
     np.testing.assert_allclose(temp, np.arange(1,6), rtol=1e-7)
     assert list(iso) == ['41111']
@@ -83,7 +83,7 @@ def test_pf_exomol_listed_single():
     epf = '14N-1H4__MockBYTe.pf'
     mock_pf(epf, np.arange(1,6), np.logspace(0,1,5))
     pt.pf_exomol([epf])
-    pf, temp, iso = io.read_pf('PF_Exomol_NH4.dat')
+    pf, iso, temp = io.read_pf('PF_Exomol_NH4.dat')
     np.testing.assert_allclose(pf[0,:], np.logspace(0,1,5), rtol=1e-5)
     np.testing.assert_allclose(temp, np.arange(1,6), rtol=1e-7)
     assert list(iso) == ['41111']
@@ -95,7 +95,7 @@ def test_pf_exomol_two():
     mock_pf(epf1, np.arange(1,6), np.logspace(0,1,5))
     mock_pf(epf2, np.arange(1,9), np.logspace(0,1,8))
     pt.pf_exomol([epf1, epf2])
-    pf, temp, iso = io.read_pf('PF_Exomol_NH4.dat')
+    pf, iso, temp = io.read_pf('PF_Exomol_NH4.dat')
     np.testing.assert_allclose(pf[0,:5], np.logspace(0,1,5), rtol=1e-5)
     np.testing.assert_allclose(pf[1,:],  np.logspace(0,1,8), rtol=1e-5)
     np.testing.assert_allclose(temp, np.arange(1,9), rtol=1e-7)
@@ -118,7 +118,7 @@ def test_pf_kurucz_H2O():
            50      12.962      13.017      13.066      10.476''')
     pt.pf_kurucz('Mock_h2opartfn.dat')
     # Check outputs:
-    pf, temp, iso = io.read_pf('PF_kurucz_H2O.dat')
+    pf, iso, temp = io.read_pf('PF_kurucz_H2O.dat')
     np.testing.assert_equal(iso,
         np.array(['1H1H16O', '1H1H17O', '1H1H18O', '1H2H16O']))
     np.testing.assert_equal(temp, np.arange(10, 51, 10.0))
@@ -140,7 +140,7 @@ def test_pf_kurucz_TiO():
             50     141.079     141.834     142.564     143.273     143.960''')
     pt.pf_kurucz('Mock_tiopart.dat')
     # Check outputs:
-    pf, temp, iso = io.read_pf('PF_kurucz_TiO.dat')
+    pf, iso, temp = io.read_pf('PF_kurucz_TiO.dat')
     np.testing.assert_equal(iso, np.array(['66','76','86','96','06']))
     np.testing.assert_equal(temp, np.arange(10, 51, 10.0))
     np.testing.assert_allclose(pf,

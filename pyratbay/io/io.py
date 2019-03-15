@@ -284,10 +284,10 @@ def read_pf(pffile):
     -------
     pf: 2D float ndarray
         The partition function data (of shape [niso, ntemp]).
-    temp: 1D float ndarray
-        Array with temperature sample.
     isotopes: List of strings
          The names of the tabulated isotopes.
+    temp: 1D float ndarray
+        Array with temperature sample.
 
     Examples
     --------
@@ -302,53 +302,47 @@ def read_pf(pffile):
     >>> io.write_pf(pffile, pf, isotopes, temp, header)
 
     >>> # Now, read it back:
-    >>> pf, temp, iso = io.read_pf(pffile)
-    >>> for item in [temp, iso, pf]:
+    >>> pf, iso, temp = io.read_pf(pffile)
+    >>> for item in [iso, temp, pf]:
     >>>     print(item)
-    [ 10.  40.  70. 100.]
     ['4111' '5111']
+    [ 10.  40.  70. 100.]
     [[1.e+00 1.e+01 1.e+02 1.e+03]
      [1.e+01 1.e+02 1.e+03 1.e+04]]
     """
-    # Open-read file:
     if not os.path.isfile(pffile):
         raise ValueError("Partition-function file '{:s}' does not exist.".
                          format(pffile))
+
     with open(pffile, "r") as f:
         lines = f.readlines()
 
-    # Number of header lines (to skip when reading the tabulated data):
-    nskip = 0
-    while True:
-        line = lines[nskip].strip()
-        # Skip blank/empty lines:
-        if line == "" or line.startswith('#'):
-            pass
-        # Read isotopes:
-        elif line == "@ISOTOPES":
-            isotopes = np.asarray(lines[nskip+1].strip().split())
+    nlines = len(lines)
+    lines  = iter(lines)
+    for i,line in enumerate(lines):
+        line = line.strip()
         # Stop when the tabulated data begins:
         if line == "@DATA":
-            nskip += 1
             break
-        nskip += 1
+        # Read isotopes:
+        if line == "@ISOTOPES":
+            isotopes = np.asarray(next(lines).split())
 
-    # Number of isotopes:
+    # Number of samples:
     niso = len(isotopes)
-    # Number of temperature samples:
-    ntemp = len(lines) - nskip
-
-    # Allocate output arrays:
+    ntemp = nlines - i - 2
+    # Allocate arrays:
     temp = np.zeros(ntemp, np.double)
     pf   = np.zeros((niso, ntemp), np.double)
 
     # Read the data:
-    for i in np.arange(ntemp):
-        info = lines[nskip+i].strip().split()
+    for i,line in enumerate(lines):
+        info = line.split()
         temp[i] = info[0]
         pf[:,i] = info[1:]
 
-    return pf, temp, isotopes
+    return pf, isotopes, temp
+
 
 def write_cs(csfile, cs, species, temp, wn, header=None):
     """
@@ -480,4 +474,3 @@ def read_cs(csfile):
         cs[:,i] = info[1:]
 
     return cs, species, temp, wn
-

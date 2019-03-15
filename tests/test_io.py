@@ -112,7 +112,7 @@ def test_read_write_pf(tmpdir):
     io.write_pf(pff, pf, isotopes, temp, header)
 
     assert pffile in os.listdir(str(tmpdir))
-    PF, T, iso = io.read_pf(pff)
+    PF, iso, T = io.read_pf(pff)
     np.testing.assert_allclose(PF, pf, rtol=1e-5)
     np.testing.assert_allclose(temp, T, rtol=1e-7)
     assert list(iso) == isotopes

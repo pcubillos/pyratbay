@@ -78,8 +78,8 @@ class dbdriver(object):
 
     # Extract the partition-function from the tabulated file:
     else:
-        # TBD: Caught file not found error with self.log
-        pf, temp, iso = io.read_pf(self.pffile)
+        # TBD: Catch file not found error with self.log
+        pf, iso, temp = io.read_pf(self.pffile)
         return temp, pf, iso
 
 

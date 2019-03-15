@@ -4407,4 +4407,9 @@ Implemented io.read_cs() and io.write_cs() to read and write
 cross-section files in Pyrat Bay format.
 Documented and tested.
 
+*****
+
+Refactored io.read_pf() following io.read_cs().
+Switched outputs order to pf, isotopes, temp.
+Adapted code, docs, and tests accordingly.
 
