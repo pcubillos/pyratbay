@@ -6,6 +6,7 @@ import sys
 import numpy as np
 
 from .. import constants as pc
+from .. import io        as io
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../lib')
 import spline as sp
@@ -29,73 +30,39 @@ def read(pyrat):
     pyrat.cs.nwave     = np.zeros(pyrat.cs.nfiles, np.int)
 
   if pyrat.cs.nfiles == 0:
-    pyrat.log.msg("No CS files to read.", indent=2)
-  else:
-    for i in np.arange(pyrat.cs.nfiles):
+      pyrat.log.msg("No CS files to read.", indent=2)
+      return
+
+  for i in range(pyrat.cs.nfiles):
+      # TBD: Catch file-not-found error
       pyrat.log.msg("Read CS file: '{:s}'.".format(pyrat.cs.files[i]), indent=2)
-      f = open(pyrat.cs.files[i], "r")
-      lines = f.readlines()
-      f.seek(0)
+      absorption, molecs, temp, wavenumber = io.read_cs(pyrat.cs.files[i])
 
-      nheader = 0  # Number of lines in header
-      # Read the file, extract the keywords info:
-      while True:
-        line = f.readline().strip()
-        nheader += 1
+      nmol = pyrat.cs.nmol[i] = len(molecs)
+      pyrat.cs.molecules.append(molecs)
+      # Check that CS species are in the atmospheric file:
+      absent = np.setdiff1d(pyrat.cs.molecules[i], pyrat.mol.name)
+      if len(absent) > 0:
+          pyrat.log.error("These species: {:s} are not listed in the "
+                          "atmospheric file.\n".format(str(absent)))
 
-        if   line == "@DATA":
-          break
+      pyrat.cs.temp.append(temp)
+      pyrat.cs.ntemp[i] = len(pyrat.cs.temp[i])
+      # Update temperature boundaries:
+      pyrat.cs.tmin = np.amax((pyrat.cs.tmin, pyrat.cs.temp[i][ 0]))
+      pyrat.cs.tmax = np.amin((pyrat.cs.tmax, pyrat.cs.temp[i][-1]))
 
-        # Skip empty and comment lines:
-        elif line == '' or line.startswith('#'):
-          pass
-
-        # Get the molecules involved:
-        elif line == "@SPECIES":
-          molecs = f.readline().strip().split()
-          nmol = pyrat.cs.nmol[i] = len(molecs)
-          pyrat.cs.molecules.append(molecs)
-          # Check that CS species are in the atmospheric file:
-          absent = np.setdiff1d(pyrat.cs.molecules[i][0:nmol], pyrat.mol.name)
-          if len(absent) > 0:
-            pyrat.log.error("These species: {:s} are not listed in the "
-                            "atmospheric file.\n".format(str(absent)))
-          nheader += 1
-
-        # Get the sampled temperatures:
-        elif line == "@TEMPERATURES":
-          pyrat.cs.temp.append(np.asarray(f.readline().strip().split(),
-                                          np.double))
-          pyrat.cs.ntemp[i] = len(pyrat.cs.temp[i])
-          # Update temperature boundaries:
-          pyrat.cs.tmin = np.amax((pyrat.cs.tmin, pyrat.cs.temp[i][ 0]))
-          pyrat.cs.tmax = np.amin((pyrat.cs.tmax, pyrat.cs.temp[i][-1]))
-          nheader += 1
-
-        else:
-          pyrat.log.error("CS file has unexpected line: \n'{:s}'".format(line))
-
-      # Read the data:
       # Get number of wavenumber samples:
-      pyrat.cs.nwave[i] = len(lines) - nheader
-      # Allocate the wavenumber and absorption arrays:
-      wavenumber = np.zeros(pyrat.cs.nwave[i], np.double)
-      # Allocate the absorption (in cm-1 amagat-2):
-      absorption = np.zeros((pyrat.cs.ntemp[i], pyrat.cs.nwave[i]), np.double)
-      for j in np.arange(pyrat.cs.nwave[i]):
-        data = f.readline().split()
-        wavenumber[j]   = data[0]
-        absorption[:,j] = data[1:]
-      f.close()
+      pyrat.cs.nwave[i] = len(wavenumber)
 
       # Wavenumber range check:
       if (wavenumber[ 0] > pyrat.spec.wn[ 0] or
           wavenumber[-1] < pyrat.spec.wn[-1] ):
-        pyrat.log.warning("The wavenumber range [{:.3f}, {:.3f}] cm-1 "
-            "of the CS file:\n  '{:s}',\ndoes not cover the Pyrat's "
-            "wavenumber range: [{:.3f}, {:.3f}] cm-1.".format(
-            wavenumber[0], wavenumber[-1], pyrat.cs.files[i],
-            pyrat.spec.wn[ 0], pyrat.spec.wn[-1]))
+          pyrat.log.warning("The wavenumber range [{:.3f}, {:.3f}] cm-1 "
+              "of the CS file:\n  '{:s}',\ndoes not cover the Pyrat's "
+              "wavenumber range: [{:.3f}, {:.3f}] cm-1.".format(
+              wavenumber[0], wavenumber[-1], pyrat.cs.files[i],
+              pyrat.spec.wn[ 0], pyrat.spec.wn[-1]))
 
       # Add arrays to pyrat:
       pyrat.cs.wavenumber.append(wavenumber)
@@ -103,7 +70,7 @@ def read(pyrat):
 
       # Screen output:
       pyrat.log.msg("For {:s} CS,\nRead {:d} wavenumber and {:d} temperature "
-          "samples.".format("-".join(pyrat.cs.molecules[i][0:nmol]),
+          "samples.".format("-".join(pyrat.cs.molecules[i]),
           pyrat.cs.nwave[i], pyrat.cs.ntemp[i]), verb=2, indent=4)
       pyrat.log.msg("Temperature sample limits: {:g}--{:g} K".
           format(pyrat.cs.temp[i][0], pyrat.cs.temp[i][-1]),
@@ -115,14 +82,15 @@ def read(pyrat):
       # Wavenumber-interpolated CS:
       iabsorp = np.zeros((pyrat.cs.ntemp[i], pyrat.spec.nwave), np.double)
       for j in np.arange(pyrat.cs.ntemp[i]):
-        iabsorp[j] = sp.splinterp(absorption[j], wavenumber, pyrat.spec.wn, 0.0)
+          iabsorp[j] = sp.splinterp(absorption[j], wavenumber,
+                                    pyrat.spec.wn, 0.0)
       pyrat.cs.iabsorp.append(iabsorp)
       # Array with second derivatives:
       iz   = np.zeros((pyrat.spec.nwave, pyrat.cs.ntemp[i]), np.double)
       wnlo = np.flatnonzero(pyrat.spec.wn >= wavenumber[ 0])[ 0]
       wnhi = np.flatnonzero(pyrat.spec.wn <= wavenumber[-1])[-1] + 1
       for j in np.arange(wnlo, wnhi):
-        iz[j] = sp.spline_init(iabsorp[:,j], pyrat.cs.temp[i])
+          iz[j] = sp.spline_init(iabsorp[:,j], pyrat.cs.temp[i])
       pyrat.cs.iz.append(iz.T)
       pyrat.cs.iwnlo.append(wnlo)
       pyrat.cs.iwnhi.append(wnhi)

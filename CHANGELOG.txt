@@ -4413,3 +4413,7 @@ Refactored io.read_pf() following io.read_cs().
 Switched outputs order to pf, isotopes, temp.
 Adapted code, docs, and tests accordingly.
 
+*****
+
+Replaced cross-section reading code in crosssec.py with io.read_cs().
+
