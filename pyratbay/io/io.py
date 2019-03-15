@@ -4,12 +4,16 @@
 __all__ = ["write_spectrum", "read_spectrum",
            "write_opacity", "read_opacity",
            "write_pf", "read_pf",
-           "write_cs", "read_cs"]
+           "write_cs", "read_cs",
+           "write_filter", "read_filter",
+          ]
 
 import os
 import struct
 
 import numpy as np
+
+import pyratbay.constants as pc
 
 
 def write_spectrum(wl, spectrum, filename, path, wlunits='um'):
@@ -474,3 +478,74 @@ def read_cs(csfile):
         cs[:,i] = info[1:]
 
     return cs, species, temp, wn
+
+
+def write_filter(ffile, wl, transmission):
+    """
+    Write a filter transmission function to file.
+
+    Parameters
+    ----------
+    ffile: String
+        Name of the output file.
+    wl: 1D float iterable
+        Filter wavelength array in microns.
+    transmission: 1D float iterable
+        Filter transmission.
+
+    Example
+    -------
+    >>> See examples in read_filter()
+    """
+    # Precision of 5 decimal places (or better if needed):
+    precision = -np.floor(np.log10(np.amin(np.abs(np.ediff1d(wl)))))
+    precision = int(np.clip(precision+1, 5, np.inf))
+
+    with open(ffile, "w") as f:
+        f.write("# Wavelength   Transmission\n"
+                "#         um       unitless\n")
+        for wave, trans in zip(wl, transmission):
+            f.write("{:>12.{:d}f}   {:.6e}\n".
+                    format(wave, precision, trans))
+
+
+def read_filter(ffile):
+    r"""
+    Read a filter transmission file.
+
+    Parameters
+    ----------
+    ffile: String
+        Filter filename.
+
+    Returns
+    -------
+    wn: 1D float ndarray
+        Filter wavenumber array in cm-1.
+    transmission: 1D float ndarray
+        Filter transmission.
+
+    Examples
+    --------
+    >>> import pyratbay.io as io
+    >>> import numpy as np
+    >>> # Make a top-hat filter:
+    >>> wl = np.linspace(1.4, 1.5, 20)
+    >>> transmission = np.array(np.abs(wl-1.45) < 0.035, np.double)
+    >>> io.write_filter("tophat_filter.dat", wl, transmission)
+    >>> # Now read it and print it:
+    >>> wn, trans = io.read_filter("tophat_filter.dat")
+    >>> print(1e4/wn, trans, sep='\n')
+    [1.4     1.40526 1.41053 1.41579 1.42105 1.42632 1.43158 1.43684 1.44211
+     1.44737 1.45263 1.45789 1.46316 1.46842 1.47368 1.47895 1.48421 1.48947
+     1.49474 1.5    ]
+    [0. 0. 0. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 0. 0. 0.]
+    """
+    # Open and read the filter file:
+    wl, transmission = np.loadtxt(ffile, unpack=True)
+
+    # Get wavenumber in cm-1:
+    wn = 1.0 / (wl*pc.um)
+    # Return statement:
+    return wn, transmission
+

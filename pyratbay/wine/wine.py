@@ -1,62 +1,13 @@
 # Copyright (c) 2016-2019 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-__all__ = ["readfilter", "resample", "bandintegrate"]
+__all__ = ["resample", "bandintegrate"]
 
 import numpy as np
 import scipy.constants   as sc
 import scipy.interpolate as si
 
 from .. import constants as pc
-
-
-def readfilter(filt):
-  """
-  Load a filter bandpass from file.
-
-  Parameters
-  ----------
-  filt: String
-      Filter file name.
-
-  Return
-  ------
-  wavenumber: 1D ndarray
-     The filter pass band wavenumber in cm-1.
-  transmission: 1D ndarray 
-     The filter spectral response. No specific units.
-
-  Notes
-  -----
-  - The file can contains empty lines and comments (with '#' character)
-    before the data.  No comments or empty lines after the data.
-  - The data must come in two columns.  The first column must contain
-    the wavelength in microns, the second the filter response, other
-    columns will be ignored.
-  """
-  # Open and read the filter file:
-  data = open(filt, "r")
-  lines = data.readlines()
-  data.close()
-
-  # Remove header comments and empty lines:
-  while lines[0].startswith("#") or not lines[0].strip():
-    comment = lines.pop(0)
-
-  # Allocate arrays for the wavelength and response:
-  nlines = len(lines)
-  wavel  = np.zeros(nlines, np.double) # filter's wavelengths  (in microns)
-  transm = np.zeros(nlines, np.double) # filter's pass bands
-
-  # Read the data and store in reverse order:
-  for i in np.arange(nlines):
-    wavel[nlines-1-i], transm[nlines-1-i] = lines[i].strip().split()[0:2]
-
-  m2cm  = 1e-4 # Microns to cm conversion factor
-  # Get wavenumber in cm-1:
-  waven = 1.0 / (wavel*m2cm)
-  # Return statement:
-  return waven, transm
 
 
 def resample(specwn, filterwn, filtertr, starwn=None, starfl=None):
@@ -87,7 +38,8 @@ def resample(specwn, filterwn, filtertr, starwn=None, starfl=None):
   """
   # Indices in the spectrum wavenumber array included in the band
   # wavenumber range:
-  wnidx = np.where((specwn < filterwn[-1]) & (filterwn[0] < specwn))[0]
+  wnidx = np.where((specwn < np.amax(filterwn))
+                 & (np.amin(filterwn) < specwn))[0]
 
   # Make function to spline-interpolate the filter and stellar flux:
   finterp = si.interp1d(filterwn, filtertr)
@@ -97,10 +49,10 @@ def resample(specwn, filterwn, filtertr, starwn=None, starfl=None):
   nifilter = ifilter/np.trapz(ifilter, specwn[wnidx])
 
   if starfl is not None and starwn is not None:
-    sinterp = si.interp1d(starwn,   starfl)
-    istarfl = sinterp(specwn[wnidx])
+      sinterp = si.interp1d(starwn, starfl)
+      istarfl = sinterp(specwn[wnidx])
   else:
-    istarfl = None
+      istarfl = None
 
   # Return the normalized interpolated filter and the indices:
   return nifilter, wnidx, istarfl
@@ -141,15 +93,16 @@ def bandintegrate(spectrum=None, specwn=None, wnidx=None, bandtrans=None,
   >>> pbpath = "../pyratbay/"
   >>> sys.path.append(pbpath)
   >>> import pyratbay as pb
+  >>> import pyratbay.io as io
   
   >>> # Get a stellar spectrum:
   >>> kmodel = "fp00k2odfnew.pck"
   >>> sflux, swn, tm, gm = pb.starspec.readkurucz(kmodel, 5800, 4.43)
   
   >>> # Load Spitzer IRAC filters:
-  >>> wn1, irac1 = pb.wine.readfilter(pbpath +
+  >>> wn1, irac1 = io.read_filter(pbpath +
                        "inputs/filters/spitzer_irac1_sa.dat")
-  >>> wn2, irac2 = pb.wine.readfilter(pbpath +
+  >>> wn2, irac2 = io.read_filter(pbpath +
                        "inputs/filters/spitzer_irac2_sa.dat")
   
   >>> # Resample the filters into the stellar wavenumber array:

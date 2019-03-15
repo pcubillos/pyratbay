@@ -183,3 +183,19 @@ def test_write_cs_mismatch_wn():
     with pytest.raises(ValueError, match='Shape of the cross-section array '
                        'does not match the number of wavenumber samples.'):
         io.write_cs(csfile, cs, species, temp, wn)
+
+
+def test_read_write_filter(tmpdir):
+    ffile = 'filter.dat'
+    ff = "{}/{}".format(tmpdir, ffile)
+    wl = np.linspace(1.4, 1.5, 20)
+    transmission = np.array(np.abs(wl-1.45) < 0.035, np.double)
+    io.write_filter(ff, wl, transmission)
+    assert ffile in os.listdir(str(tmpdir))
+
+    wn, trans = io.read_filter(ff)
+    np.testing.assert_equal(trans, transmission)
+    np.testing.assert_allclose(1e4/wn, np.array(
+      [1.4    , 1.40526, 1.41053, 1.41579, 1.42105, 1.42632, 1.43158,
+       1.43684, 1.44211, 1.44737, 1.45263, 1.45789, 1.46316, 1.46842,
+       1.47368, 1.47895, 1.48421, 1.48947, 1.49474, 1.5    ]), atol=1e-7)

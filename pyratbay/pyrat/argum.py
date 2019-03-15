@@ -1038,7 +1038,7 @@ def setfilters(obs, spec, phy):
   bandwn    = []  # Band's mean wavenumber
   for i in np.arange(obs.nfilters):
     # Read filter wavenumber and transmission curves:
-    filterwn, filtertr = pw.readfilter(obs.filter[i])
+    filterwn, filtertr = io.read_filter(obs.filter[i])
     # Resample the filters into the stellar wavenumber array:
     btr, wni, isf = pw.resample(spec.wn, filterwn,   filtertr,
                                          phy.starwn, phy.starflux)

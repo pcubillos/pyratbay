@@ -4423,3 +4423,10 @@ Implemented tools.cia_hitran() function to re-write a HITRAN CIA file
 in Pyrat Bay format.
 Tests are TBD.
 
+*****
+
+Implemented io.read_filter() and io.write_filter() functions.
+Documented and tested.
+Removed pw.readfilter(), some tweaks to pw.resample() to avoid issues
+with transmission wn array sorting.
+
