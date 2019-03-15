@@ -4417,3 +4417,9 @@ Adapted code, docs, and tests accordingly.
 
 Replaced cross-section reading code in crosssec.py with io.read_cs().
 
+*****
+
+Implemented tools.cia_hitran() function to re-write a HITRAN CIA file
+in Pyrat Bay format.
+Tests are TBD.
+

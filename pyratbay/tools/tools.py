@@ -6,7 +6,8 @@ __all__ = ["parray", "defaultp", "getparam",
            "ifirst", "ilast",
            "isfile", "addarg", "path", "wrap",
            "make_tea", "clock", "get_exomol_mol",
-           "pf_exomol", "pf_kurucz"]
+           "pf_exomol", "pf_kurucz",
+           "cia_hitran"]
 
 import os
 import sys
@@ -709,3 +710,78 @@ def pf_kurucz(pf_file):
   print("\nWritten partition-function file:\n  '{:s}'\nfor molecule {:s}, "
         "with isotopes {},\nand temperature range {:.0f}--{:.0f} K.".
         format(file_out, molecule, isotopes, temp[0], temp[-1]))
+
+
+def cia_hitran(ciafile, tstep=1, wstep=1):
+  """
+  Re-write a HITRAN CIA file into Pyrat Bay format.
+  See Richard et al. (2012) and https://www.cfa.harvard.edu/HITRAN/
+
+  Parameters
+  ----------
+  ciafile: String
+      A HITRAN CIA file.
+  tstep: Integer
+      Slicing step size along temperature dimension.
+  wstep: Integer
+      Slicing step size along wavenumber dimension.
+
+  Examples
+  --------
+  >>> import pyratbay.tools as pt
+  >>> # Before moving on, download a HITRAN CIA files from the link above.
+  >>> ciafile = 'H2-H2_2011.cia'
+  >>> pt.cia_hitran(ciafile, tstep=2, wstep=10)
+  """
+  # Extract CS data:
+  with open(ciafile, 'r') as f:
+      info = f.readline().strip().split()
+      species = info[0].split("-")
+      temps, data, wave = [], [], []
+      wnmin, wnmax = -1, -1
+      f.seek(0)
+      for line in f:
+          if line.strip().startswith('-'.join(species)):
+              info = line.strip().split()
+              # if wn ranges differ, trigger new set
+              if float(info[1]) != wnmin or float(info[2]) != wnmax:
+                  wnmin = float(info[1])
+                  wnmax = float(info[2])
+              temp = float(info[4])
+              nwave = int  (info[3])
+              wn = np.zeros(nwave, np.double)
+              cs = np.zeros(nwave, np.double)
+              i = 0
+              continue
+          # else, read in opacities
+          wn[i], cs[i] = line.split()[0:2]
+          i += 1
+          if i == nwave:
+              temps.append(temp)
+              # Thin the arrays in wavenumber if requested:
+              data.append(cs[::wstep])
+              wave.append(wn[::wstep])
+
+  # Identify sets:
+  temps = np.array(temps)
+  ntemps = len(temps)
+  i = 0
+  while i < ntemps:
+      wn = wave[i]
+      j = i
+      while j < ntemps and len(wave[j])==len(wn) and np.all(wave[j]-wn==0):
+          j += 1
+      temp = temps[i:j:tstep]
+      # Set cm-1 amagat-2 units:
+      cs = np.array(data[i:j])[::tstep] * pc.amagat**2
+
+      csfile = ('CIA_HITRAN_{:s}_{:.1f}-{:.1f}um_{:.1f}-{:.1f}K.dat'.
+                format('-'.join(species),
+                       1.0/(wn[-1]*pc.um), 1.0/(wn[0]*pc.um),
+                       temp[0], temp[-1]))
+      header = ("# This file contains the reformated {:s}-{:s} CIA data from:\n"
+                "# Richard et al. (2012), HITRAN file: {:s}\n\n".
+                format(species[0], species[1], ciafile))
+      io.write_cs(csfile, cs, species, temp, wn, header)
+      i = j
+

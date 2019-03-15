@@ -149,3 +149,10 @@ def test_pf_kurucz_TiO():
                   [ 29.107,  55.425,  82.417, 111.19 , 142.564],
                   [ 29.24 ,  55.692,  82.821, 111.741, 143.273],
                   [ 29.369,  55.95 ,  83.212, 112.273, 143.96 ]]))
+
+
+@pytest.mark.skip(reason='Do I want to wget this file or mock it?')
+def test_cia_hitran():
+    ciafile = 'H2-H_2011.cia'
+    pt.cia_hitran(ciafile, tstep=1, wstep=1)
+    # TBD: implement check
