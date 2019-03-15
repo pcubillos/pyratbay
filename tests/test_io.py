@@ -137,3 +137,49 @@ def test_write_pf_mismatch_temp():
             'array does not match with the number of temperature samples.'):
         io.write_pf(pffile, pf, isotopes, temp)
 
+@pytest.mark.parametrize('species',
+    [['CH4'], ['H2', 'H2']])
+def test_read_write_cs(species, tmpdir):
+    csfile = 'CS_Mock.dat'
+    csf = "{}/{}".format(tmpdir, csfile)
+    temp = np.linspace(100, 1000, 3)
+    wn   = np.arange(10, 15, 1.0)
+    cs   = np.array([np.logspace( 0,-4,5),
+                     np.logspace(-1,-5,5),
+                     np.logspace(-2,-6,5)])
+    header = '# Mock cross-section.\n'
+    io.write_cs(csf, cs, species, temp, wn, header)
+    assert csfile in os.listdir(str(tmpdir))
+    # TBD: assert file mentions the right opacity units
+
+    cross_sec, specs, t, wave = io.read_cs(csf)
+    np.testing.assert_allclose(cs, cross_sec, rtol=1e-5)
+    np.testing.assert_allclose(temp, t,  rtol=1e-7)
+    np.testing.assert_allclose(wn, wave, rtol=1e-7)
+    assert specs == species
+
+
+def test_write_cs_mismatch_temp():
+    csfile = 'CS_Mock.dat'
+    species = ['H2', 'H2']
+    temp = np.linspace(100, 1000, 10)
+    wn   = np.arange(10, 15, 1.0)
+    cs   = np.array([np.logspace( 0,-4,5),
+                     np.logspace(-1,-5,5),
+                     np.logspace(-2,-6,5)])
+    with pytest.raises(ValueError, match='Shape of the cross-section array '
+                       'does not match the number of temperature samples.'):
+        io.write_cs(csfile, cs, species, temp, wn)
+
+
+def test_write_cs_mismatch_wn():
+    csfile = 'CS_Mock.dat'
+    species = ['H2', 'H2']
+    temp = np.linspace(100, 1000, 3)
+    wn   = np.arange(10, 15, 0.5)
+    cs   = np.array([np.logspace( 0,-4,5),
+                     np.logspace(-1,-5,5),
+                     np.logspace(-2,-6,5)])
+    with pytest.raises(ValueError, match='Shape of the cross-section array '
+                       'does not match the number of wavenumber samples.'):
+        io.write_cs(csfile, cs, species, temp, wn)

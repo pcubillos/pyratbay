@@ -4400,3 +4400,11 @@ Pyrat Bay entry point, using the -pf argument.
 The actual code is now implemented into the tools and io modules
 (thus, they are accessible to the user through the API).
 
+
+*****  Fr 15. Mär 08:21:05 CET 2019  *****
+
+Implemented io.read_cs() and io.write_cs() to read and write
+cross-section files in Pyrat Bay format.
+Documented and tested.
+
+

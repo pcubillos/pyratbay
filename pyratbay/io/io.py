@@ -3,7 +3,8 @@
 
 __all__ = ["write_spectrum", "read_spectrum",
            "write_opacity", "read_opacity",
-           "write_pf", "read_pf"]
+           "write_pf", "read_pf",
+           "write_cs", "read_cs"]
 
 import os
 import struct
@@ -14,7 +15,6 @@ import numpy as np
 def write_spectrum(wl, spectrum, filename, path, wlunits='um'):
   """
   Write a Pyrat spectrum to file.
-
 
   Parameters
   ----------
@@ -261,19 +261,19 @@ def write_pf(pffile, pf, isotopes, temp, header=None):
         if header is not None:
             f.write(header)
         f.write("@ISOTOPES\n           "
-                + "  ".join(["{:>11s}".format(iso) for iso in isotopes])
-                + "\n\n")
+              + "  ".join(["{:>11s}".format(iso) for iso in isotopes])
+              + "\n\n")
 
         f.write("# Temperature (K), partition function for each isotope:\n")
         f.write("@DATA\n")
         for t, z in zip(temp, pf.T):
             f.write("  {:7.1f}  ".format(t)
-                    + "  ".join("{:.5e}".format(d) for d in z) + "\n")
+                  + "  ".join("{:.5e}".format(d) for d in z) + "\n")
 
 
 def read_pf(pffile):
-    """
-    Extract the partition-function and temperature from file.
+    r"""
+    Read a partition-function file.
 
     Parameters
     ----------
@@ -302,12 +302,11 @@ def read_pf(pffile):
     >>> io.write_pf(pffile, pf, isotopes, temp, header)
 
     >>> # Now, read it back:
-    >>> PF, T, ISO = io.read_pf(pffile)
-    >>> print(T)
+    >>> pf, temp, iso = io.read_pf(pffile)
+    >>> for item in [temp, iso, pf]:
+    >>>     print(item)
     [ 10.  40.  70. 100.]
-    >>> print(ISO)
     ['4111' '5111']
-    >>> print(PF)
     [[1.e+00 1.e+01 1.e+02 1.e+03]
      [1.e+01 1.e+02 1.e+03 1.e+04]]
     """
@@ -350,3 +349,135 @@ def read_pf(pffile):
         pf[:,i] = info[1:]
 
     return pf, temp, isotopes
+
+def write_cs(csfile, cs, species, temp, wn, header=None):
+    """
+    Write a cross-section file in Pyrat Bay format.
+
+    Parameters
+    ----------
+    csfile: String
+        Output cross-section file.
+    cs: 2D float iterable
+        Cross-section opacity in units of cm-1 amagat^-N, with N the
+        number of species, of shape [ntemp, nwave].
+    species: 1D string iterable
+        Species names.
+    temp: 1D float iterable
+        Temperature array in Kelvin degree.
+    wn: 1D float iterable
+        Wavenumber array in cm-1.
+    header: String
+        A header for the cross-section file (must be as comments).
+
+    Examples
+    --------
+    >>> # See read_cs() examples.
+    """
+    if len(temp) != np.shape(cs)[0]:
+        raise ValueError('Shape of the cross-section array does not '
+                         'match the number of temperature samples.')
+    if len(wn) != np.shape(cs)[1]:
+        raise ValueError('Shape of the cross-section array does not '
+                         'match the number of wavenumber samples.')
+
+    with open(csfile, "w") as f:
+        if header is not None:
+            f.write(header)
+        f.write("@SPECIES\n"
+              + "  ".join(["{:s}".format(spec) for spec in species])
+              + "\n\n")
+        f.write("@TEMPERATURES\n                "
+              + "      ".join(["{:4.0f}".format(t) for t in temp])
+              + "\n\n")
+
+        f.write("# Wavenumber in cm-1, opacity in cm-1 amagat-{:d}:\n".
+                format(len(species)))
+        f.write("@DATA\n")
+        for wave, data in zip(wn, cs.T):
+            f.write("  {:7.1f}  ".format(wave)
+                  + " ".join("{:.3e}".format(d) for d in data) + "\n")
+
+
+def read_cs(csfile):
+    r"""
+    Read a cross-section file.
+
+    Parameters
+    ----------
+    csfile: String
+        Partition function file to read.
+
+    Returns
+    -------
+    cs: 2D float ndarray
+        Cross-section opacity in units of cm-1 amagat^-N, with N the
+        number of species, of shape [ntemp, nwave].
+    species: 1D string list
+        Species names.
+    temp: 1D float ndarray
+        Temperature array in Kelvin degree.
+    wn: 1D float ndarray
+        Wavenumber array in cm-1.
+
+    Examples
+    --------
+    >>> import pyratbay.io as io
+    >>> # Generate some mock PF data and write to file:
+    >>> csfile = 'CS_Mock-HITRAN_H2-H2.dat'
+    >>> species = ['H2', 'H2']
+    >>> temp = np.linspace(100, 1000, 3)
+    >>> wn   = np.arange(10, 15, 1.0)
+    >>> cs   = np.array([np.logspace( 0,-4,5),
+    >>>                  np.logspace(-1,-5,5),
+    >>>                  np.logspace(-2,-6,5)])
+    >>> header = '# Mock cross-section for H2-H2.\n'
+    >>> io.write_cs(csfile, cs, species, temp, wn, header)
+    >>> # Now, read it back:
+    >>> cs, species, temp, wn = io.read_cs(csfile)
+    >>> for item in [species, temp, wn, cs]:
+    >>>     print(item)
+    ['H2', 'H2']
+    [ 100.  550. 1000.]
+    [10. 11. 12. 13. 14.]
+    [[1.e+00 1.e-01 1.e-02 1.e-03 1.e-04]
+     [1.e-01 1.e-02 1.e-03 1.e-04 1.e-05]
+     [1.e-02 1.e-03 1.e-04 1.e-05 1.e-06]]
+    """
+    if not os.path.isfile(csfile):
+        raise ValueError("Cross-section file '{:s}' does not exist.".
+                         format(csfile))
+
+    with open(csfile, "r") as f:
+        lines = f.readlines()
+
+    # Number of header lines (to skip when reading the tabulated data):
+    nlines = len(lines)
+    lines  = iter(lines)
+    for i,line in enumerate(lines):
+        line = line.strip()
+        # Stop when the tabulated data begins:
+        if line == "@DATA":
+            break
+        # Get species:
+        elif line == "@SPECIES":
+            species = next(lines).split()
+        # Get the sampled temperatures:
+        elif line == "@TEMPERATURES":
+            temp = np.array(next(lines).split(), np.double)
+
+    # Number of samples:
+    nwave = nlines - i - 3
+    ntemp = len(temp)
+    # Allocate arrays:
+    wn = np.zeros(nwave, np.double)
+    cs = np.zeros((ntemp, nwave), np.double)
+
+    # Read the data:
+    for i,line in enumerate(lines):
+        info = line.split()
+        wn[i]   = info[0]
+        cs[:,i] = info[1:]
+
+    return cs, species, temp, wn
+
