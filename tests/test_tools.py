@@ -161,6 +161,13 @@ def test_cia_hitran():
     # TBD: implement check
 
 
+@pytest.mark.skip(reason='Do I want to wget this file or mock it?')
+def test_cia_borysow():
+    ciafile = 'ciah2he_dh_quantmech'
+    pt.cia_borysow(ciafile, 'H2', 'He')
+    # TBD: implement check
+
+
 def test_tophat_dlambda():
     wl0     = 1.50
     width   = 0.50

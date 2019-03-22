@@ -4449,3 +4449,9 @@ Documented and tested.
 
 *****
 
+Implemented tools.cia_borysow() function to reformat a CIA file
+from Borysow's webpage.
+Testing is TBI.
+
+*****
+

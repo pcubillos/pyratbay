@@ -7,7 +7,7 @@ __all__ = ["parray", "defaultp", "getparam",
            "isfile", "addarg", "path", "wrap",
            "make_tea", "clock", "get_exomol_mol",
            "pf_exomol", "pf_kurucz",
-           "cia_hitran",
+           "cia_hitran", "cia_borysow",
            "tophat",
           ]
 
@@ -786,6 +786,48 @@ def cia_hitran(ciafile, tstep=1, wstep=1):
                 format(species[0], species[1], ciafile))
       io.write_cs(csfile, cs, species, temp, wn, header)
       i = j
+
+
+def cia_borysow(ciafile, species1, species2):
+  """
+  Re-write a Borysow CIA file into Pyrat Bay format.
+  See http://www.astro.ku.dk/~aborysow/programs/
+
+  Parameters
+  ----------
+  ciafile: String
+      A HITRAN CIA file.
+  species1: String
+      First CIA species.
+  species2: String
+      Second CIA species.
+
+  Examples
+  --------
+  >>> import pyratbay.tools as pt
+  >>> # Before moving on, download a HITRAN CIA files from the link above.
+  >>> ciafile = 'ciah2he_dh_quantmech'
+  >>> pt.cia_borysow(ciafile, 'H2', 'He')
+  """
+  data = np.loadtxt(ciafile, skiprows=3)
+  wn = data[:,0]
+  cs = data[:,1:].T
+
+  with open(ciafile) as f:
+      line = f.readline()
+      temp = f.readline().split()[1:]
+  temp = [float(t.replace('K','')) for t in temp]
+
+  species = [species1, species2]
+
+  csfile = ('CIA_Borysow_{:s}_{:.1f}-{:.1f}um_{:04.0f}-{:04.0f}K.dat'.
+            format('-'.join(species),
+                   1.0/(wn[-1]*pc.um), 1.0/(wn[0]*pc.um),
+                   temp[0], temp[-1]))
+  header = ("# This file contains the reformated {:s} CIA data from:\n"
+            "# http://www.astro.ku.dk/~aborysow/programs/{:s}\n\n".
+              format('-'.join(species), os.path.basename(ciafile)))
+  io.write_cs(csfile, cs, species, temp, wn, header)
 
 
 def tophat(wl0, width, margin=None, dlambda=None, resolution=None, ffile=None):
