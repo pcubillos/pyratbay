@@ -4430,3 +4430,16 @@ Documented and tested.
 Removed pw.readfilter(), some tweaks to pw.resample() to avoid issues
 with transmission wn array sorting.
 
+
+*****  Fr 22. Mär 14:38:56 CET 2019  *****
+
+Modified io.write_spectrum() 'path' argument to 'type', which now
+also accepts 'filter' as an option.
+Updated code to use io.read_spectrum() and io.write_spectrum() to
+handle the instrumental filter transmission files.
+Updated tests and documentation accordingly.
+
+Removed io.read_filter() and io.write_filter().
+
+*****
+

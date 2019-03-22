@@ -100,9 +100,9 @@ def bandintegrate(spectrum=None, specwn=None, wnidx=None, bandtrans=None,
   >>> sflux, swn, tm, gm = pb.starspec.readkurucz(kmodel, 5800, 4.43)
   
   >>> # Load Spitzer IRAC filters:
-  >>> wn1, irac1 = io.read_filter(pbpath +
+  >>> wn1, irac1 = io.read_spectrum(pbpath +
                        "inputs/filters/spitzer_irac1_sa.dat")
-  >>> wn2, irac2 = io.read_filter(pbpath +
+  >>> wn2, irac2 = io.read_spectrum(pbpath +
                        "inputs/filters/spitzer_irac2_sa.dat")
   
   >>> # Resample the filters into the stellar wavenumber array:

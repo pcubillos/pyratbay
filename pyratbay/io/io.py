@@ -5,7 +5,6 @@ __all__ = ["write_spectrum", "read_spectrum",
            "write_opacity", "read_opacity",
            "write_pf", "read_pf",
            "write_cs", "read_cs",
-           "write_filter", "read_filter",
           ]
 
 import os
@@ -16,22 +15,24 @@ import numpy as np
 import pyratbay.constants as pc
 
 
-def write_spectrum(wl, spectrum, filename, path, wlunits='um'):
+def write_spectrum(wl, spectrum, filename, type, wlunits='um'):
   """
   Write a Pyrat spectrum to file.
 
   Parameters
   ----------
   wl: 1D float iterable
-      Wavelength array  in cm units.
+      Wavelength array in cm units.
   spectrum: 1D float iterable
       Spectrum array. (rp/rs)**2 for transmission (unitless),
       planetary flux for emission (erg s-1 cm-2 cm units).
   filename: String
       Output file name.
-  path: String
-      Observing mode: 'transit' for transmission, 'eclipse' for
-      emission.
+  type: String
+      Data type:
+      'transit' for transmission,
+      'eclipse' for emission,
+      'filter' for a instrumental filter transmission.
   wlunits: String
       Output units for wavelength.
 
@@ -46,15 +47,18 @@ def write_spectrum(wl, spectrum, filename, path, wlunits='um'):
       return
 
   # Type of spectrum and units:
-  if path == "transit":
+  if type == "transit":
       spectype  = "(Rp/Rs)**2"
       specunits = "unitless"
-  elif path == "eclipse":
+  elif type == "eclipse":
       spectype  = "Flux"
       specunits = "erg s-1 cm-2 cm"
+  elif type == "filter":
+      spectype  = "transmission"
+      specunits = "unitless"
   else:
-      raise ValueError("Input 'path' argument must be either 'transit' "
-                       "or 'eclipse'.")
+      raise ValueError("Input 'type' argument must be 'transit', 'eclipse',"
+                       " or 'filter'.")
 
   # Wavelength units in brackets:
   wl = wl/pt.u(wlunits)
@@ -101,7 +105,7 @@ def read_spectrum(filename, wn=True):
   >>> wl = np.linspace(1.1, 1.7, nwave) * 1e-4
   >>> spectrum = np.ones(nwave)
   >>> io.write_spectrum(wl, spectrum,
-  >>>     filename='sample_spectrum.dat', path='transit', wlunits='um')
+  >>>     filename='sample_spectrum.dat', type='transit', wlunits='um')
   >>> # Take a look at the output file:
   >>> with open('sample_spectrum.dat', 'r') as f:
   >>>     print("".join(f.readlines()))
@@ -131,18 +135,19 @@ def read_spectrum(filename, wn=True):
   # Need to import here to avoid circular imports:
   from .. import tools as pt
   with open(filename, "r") as f:
-    # Count number of lines in file:
-    f.seek(0)
-    # Get wavelength units from header:
-    l = f.readline()
-    l = f.readline()
-    wlunits = l.split()[1]
+      # Count number of lines in file:
+      f.seek(0)
+      # Get wavelength units from header:
+      l = f.readline()
+      l = f.readline()
+      wlunits = l.split()[1]
 
-    wave, spectrum = np.array([line.strip().split() for line in f], np.double).T
+      wave, spectrum = np.array([line.strip().split() for line in f],
+                                np.double).T
 
-    # Convert wavelength to wavenumber (always in cm-1):
-    if wn:
-        wave = 1.0/(wave*pt.u(wlunits))
+      # Convert wavelength to wavenumber (always in cm-1):
+      if wn:
+          wave = 1.0/(wave*pt.u(wlunits))
 
   return wave, spectrum
 
@@ -478,74 +483,3 @@ def read_cs(csfile):
         cs[:,i] = info[1:]
 
     return cs, species, temp, wn
-
-
-def write_filter(ffile, wl, transmission):
-    """
-    Write a filter transmission function to file.
-
-    Parameters
-    ----------
-    ffile: String
-        Name of the output file.
-    wl: 1D float iterable
-        Filter wavelength array in microns.
-    transmission: 1D float iterable
-        Filter transmission.
-
-    Example
-    -------
-    >>> See examples in read_filter()
-    """
-    # Precision of 5 decimal places (or better if needed):
-    precision = -np.floor(np.log10(np.amin(np.abs(np.ediff1d(wl)))))
-    precision = int(np.clip(precision+1, 5, np.inf))
-
-    with open(ffile, "w") as f:
-        f.write("# Wavelength   Transmission\n"
-                "#         um       unitless\n")
-        for wave, trans in zip(wl, transmission):
-            f.write("{:>12.{:d}f}   {:.6e}\n".
-                    format(wave, precision, trans))
-
-
-def read_filter(ffile):
-    r"""
-    Read a filter transmission file.
-
-    Parameters
-    ----------
-    ffile: String
-        Filter filename.
-
-    Returns
-    -------
-    wn: 1D float ndarray
-        Filter wavenumber array in cm-1.
-    transmission: 1D float ndarray
-        Filter transmission.
-
-    Examples
-    --------
-    >>> import pyratbay.io as io
-    >>> import numpy as np
-    >>> # Make a top-hat filter:
-    >>> wl = np.linspace(1.4, 1.5, 20)
-    >>> transmission = np.array(np.abs(wl-1.45) < 0.035, np.double)
-    >>> io.write_filter("tophat_filter.dat", wl, transmission)
-    >>> # Now read it and print it:
-    >>> wn, trans = io.read_filter("tophat_filter.dat")
-    >>> print(1e4/wn, trans, sep='\n')
-    [1.4     1.40526 1.41053 1.41579 1.42105 1.42632 1.43158 1.43684 1.44211
-     1.44737 1.45263 1.45789 1.46316 1.46842 1.47368 1.47895 1.48421 1.48947
-     1.49474 1.5    ]
-    [0. 0. 0. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 0. 0. 0.]
-    """
-    # Open and read the filter file:
-    wl, transmission = np.loadtxt(ffile, unpack=True)
-
-    # Get wavenumber in cm-1:
-    wn = 1.0 / (wl*pc.um)
-    # Return statement:
-    return wn, transmission
-

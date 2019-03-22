@@ -14,32 +14,57 @@ os.chdir(ROOT+'tests')
 
 
 def test_read_write_spectrum(tmpdir):
-    sfile = "{}/spectrum_test.dat".format(tmpdir)
+    sfile = "spectrum_test.dat"
+    tmp_file = "{}/{}".format(tmpdir, sfile)
+
     wl = np.linspace(1.1, 1.7, 7) * 1e-4
     spectrum = np.ones(7)
-    io.write_spectrum(wl, spectrum, filename=sfile, path='transit',
+    io.write_spectrum(wl, spectrum, filename=tmp_file, type='transit',
                       wlunits='um')
     # Take a look at the output file:
-    with open(sfile, 'r') as f:
-        content = "".join(f.readlines())
-    assert content == ('# Wavelength        (Rp/Rs)**2\n'
-                       '#         um          unitless\n'
-                       '     1.10000   1.000000000e+00\n'
-                       '     1.20000   1.000000000e+00\n'
-                       '     1.30000   1.000000000e+00\n'
-                       '     1.40000   1.000000000e+00\n'
-                       '     1.50000   1.000000000e+00\n'
-                       '     1.60000   1.000000000e+00\n'
-                       '     1.70000   1.000000000e+00\n')
+    assert sfile in os.listdir(str(tmpdir))
+    with open(tmp_file, 'r') as f:
+        assert f.readline() == '# Wavelength        (Rp/Rs)**2\n'
+        assert f.readline() == '#         um          unitless\n'
 
-    wn, flux = io.read_spectrum(sfile)
+    wn, flux = io.read_spectrum(tmp_file)
     np.testing.assert_allclose(wn, np.array(
       [9090.90909091, 8333.33333333, 7692.30769231, 7142.85714286,
        6666.66666667, 6250.        , 5882.35294118]), rtol=1e-7)
     np.testing.assert_equal(flux, np.ones(7))
-    wl, flux = io.read_spectrum(sfile, wn=False)
+    wl, flux = io.read_spectrum(tmp_file, wn=False)
     np.testing.assert_almost_equal(wl, np.linspace(1.1, 1.7, 7))
     np.testing.assert_equal(flux, np.ones(7))
+
+
+def test_read_write_spectrum_filter(tmpdir):
+    ffile = 'filter_test.dat'
+    tmp_file = "{}/{}".format(tmpdir, ffile)
+
+    # Assert write:
+    wl = np.linspace(1.4, 1.5, 20)
+    transmission = np.array(np.abs(wl-1.45) < 0.035, np.double)
+    io.write_spectrum(wl*pc.um, transmission, tmp_file, 'filter')
+    assert ffile in os.listdir(str(tmpdir))
+    with open(tmp_file, 'r') as f:
+        assert f.readline() == '# Wavelength      transmission\n'
+        assert f.readline() == '#         um          unitless\n'
+
+    # Assert read:
+    wn, trans = io.read_spectrum(tmp_file)
+    np.testing.assert_equal(trans, transmission)
+    np.testing.assert_allclose(1e4/wn, np.array(
+      [1.4    , 1.40526, 1.41053, 1.41579, 1.42105, 1.42632, 1.43158,
+       1.43684, 1.44211, 1.44737, 1.45263, 1.45789, 1.46316, 1.46842,
+       1.47368, 1.47895, 1.48421, 1.48947, 1.49474, 1.5    ]), atol=1e-7)
+
+
+def test_write_spectrum_bad_type():
+    wl = np.linspace(1.4, 1.5, 20)
+    trans = np.ones(20)
+    with pytest.raises(ValueError, match="Input 'type' argument must be "
+                                         "'transit', 'eclipse', or 'filter'."):
+        io.write_spectrum(wl, trans, "tophat_filter.dat", 'bad_type')
 
 
 def test_read_write_opacity(tmpdir):
@@ -184,18 +209,3 @@ def test_write_cs_mismatch_wn():
                        'does not match the number of wavenumber samples.'):
         io.write_cs(csfile, cs, species, temp, wn)
 
-
-def test_read_write_filter(tmpdir):
-    ffile = 'filter.dat'
-    ff = "{}/{}".format(tmpdir, ffile)
-    wl = np.linspace(1.4, 1.5, 20)
-    transmission = np.array(np.abs(wl-1.45) < 0.035, np.double)
-    io.write_filter(ff, wl, transmission)
-    assert ffile in os.listdir(str(tmpdir))
-
-    wn, trans = io.read_filter(ff)
-    np.testing.assert_equal(trans, transmission)
-    np.testing.assert_allclose(1e4/wn, np.array(
-      [1.4    , 1.40526, 1.41053, 1.41579, 1.42105, 1.42632, 1.43158,
-       1.43684, 1.44211, 1.44737, 1.45263, 1.45789, 1.46316, 1.46842,
-       1.47368, 1.47895, 1.48421, 1.48947, 1.49474, 1.5    ]), atol=1e-7)
