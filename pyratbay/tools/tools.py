@@ -7,7 +7,9 @@ __all__ = ["parray", "defaultp", "getparam",
            "isfile", "addarg", "path", "wrap",
            "make_tea", "clock", "get_exomol_mol",
            "pf_exomol", "pf_kurucz",
-           "cia_hitran"]
+           "cia_hitran",
+           "tophat",
+          ]
 
 import os
 import sys
@@ -785,3 +787,65 @@ def cia_hitran(ciafile, tstep=1, wstep=1):
       io.write_cs(csfile, cs, species, temp, wn, header)
       i = j
 
+
+def tophat(wl0, width, margin=None, dlambda=None, resolution=None, ffile=None):
+  """
+  Generate a top-hat filter function, with transmission = 1.0 from
+  wl0-width/2 to wl0+width/2, and an extra margin with transmission
+  = 0.0 at each end.
+
+  Parameters
+  ----------
+  ffile: String
+      Name of the output file.
+  wl0:  Float
+      Filter central wavelength in microns.
+  width: Float
+      Filter width in microns.
+  margin: Float
+      Margin (in microns) with zero-valued transmission, to append
+      at each end of the filter.
+  dlambda: Float
+      Spectral sampling rate in microns.
+  resolution: Float
+      Spectral sampling resolution (used if dlambda is None).
+  ffile: String
+      If not None, save filter to file.
+
+  Examples
+  --------
+  >>> import pyratbay.tools as pt
+  >>> wl0     = 1.50
+  >>> width   = 0.50
+  >>> margin  = 0.10
+  >>> dlambda = 0.05
+  >>> wl, trans = pt.tophat(wl0, width, margin, dlambda)
+  >>> print(wl, trans, sep='\n')
+  [1.15 1.2  1.25 1.3  1.35 1.4  1.45 1.5  1.55 1.6  1.65 1.7  1.75 1.8
+   1.85]
+  [0. 0. 0. 1. 1. 1. 1. 1. 1. 1. 1. 1. 0. 0. 0.]
+  """
+  if margin is None:
+      margin = 0.1 * width
+
+  if dlambda is None and resolution is None:
+      raise ValueError("Either dlambda or resolution must be defined.")
+
+  # Wavelength array:
+  wllow  = wl0 - 0.5*width - margin
+  wlhigh = wl0 + 0.5*width + margin
+  if dlambda is not None:
+      wl = np.arange(wllow, wlhigh, dlambda)
+  else:
+      f = 0.5 / resolution
+      g = (1.0-f) / (1.0+f)
+      imax = int(np.ceil(np.log(wllow/wlhigh) / np.log(g))) + 1
+      dwl = wlhigh * g**np.arange(imax)
+      wl = 0.5 * np.flip(dwl[1:] + dwl[:-1], axis=0)
+
+  transmission = np.array(np.abs(wl-wl0) < 0.5*width, np.double)
+
+  if ffile is not None:
+      io.write_spectrum(wl*pc.um, transmission, ffile, type='filter')
+
+  return wl, transmission

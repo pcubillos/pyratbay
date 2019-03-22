@@ -1,3 +1,6 @@
+# Copyright (c) 2016-2019 Patricio Cubillos and contributors.
+# Pyrat Bay is currently proprietary software (see LICENSE).
+
 import os
 import sys
 import pytest
@@ -156,3 +159,48 @@ def test_cia_hitran():
     ciafile = 'H2-H_2011.cia'
     pt.cia_hitran(ciafile, tstep=1, wstep=1)
     # TBD: implement check
+
+
+def test_tophat_dlambda():
+    wl0     = 1.50
+    width   = 0.50
+    margin  = 0.10
+    dlambda = 0.05
+    wl, trans = pt.tophat(wl0, width, margin, dlambda)
+    np.testing.assert_allclose(wl, np.array(
+       [1.15, 1.2 , 1.25, 1.3 , 1.35, 1.4 , 1.45, 1.5 , 1.55, 1.6 , 1.65,
+        1.7 , 1.75, 1.8 , 1.85]))
+    np.testing.assert_equal(trans, np.array(
+       [0., 0., 0., 1., 1., 1., 1., 1., 1., 1., 1., 1., 0., 0., 0.]))
+
+
+def test_tophat_resolution():
+    wl0     = 1.50
+    width   = 0.50
+    margin  = 0.10
+    resolution = 30.0
+    wl, trans = pt.tophat(wl0, width, margin, resolution=resolution)
+    np.testing.assert_allclose(wl, np.array(
+      [1.14104722, 1.17972679, 1.21971752, 1.26106388, 1.30381181,
+       1.34800882, 1.39370403, 1.44094824, 1.48979394, 1.54029543,
+       1.59250883, 1.64649218, 1.70230548, 1.76001075, 1.81967213]))
+    np.testing.assert_equal(trans, np.array(
+      [0., 0., 0., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 0., 0.]))
+
+
+def test_tophat_savefile(tmpdir):
+    ffile = "tophat.dat"
+    tmp_file = "{}/{}".format(tmpdir, ffile)
+    wl0     = 1.50
+    width   = 0.50
+    margin  = 0.10
+    dlambda = 0.05
+    wl, trans = pt.tophat(wl0, width, margin, dlambda, ffile=tmp_file)
+    assert ffile in os.listdir(str(tmpdir))
+    with open(tmp_file, 'r') as f:
+        assert f.readline() == '# Wavelength      transmission\n'
+        assert f.readline() == '#         um          unitless\n'
+        assert f.readline() == '     1.15000   0.000000000e+00\n'
+        assert f.readline() == '     1.20000   0.000000000e+00\n'
+        assert f.readline() == '     1.25000   0.000000000e+00\n'
+        assert f.readline() == '     1.30000   1.000000000e+00\n'

@@ -1,3 +1,6 @@
+# Copyright (c) 2016-2019 Patricio Cubillos and contributors.
+# Pyrat Bay is currently proprietary software (see LICENSE).
+
 import os
 import sys
 import pytest

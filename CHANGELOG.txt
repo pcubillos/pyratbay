@@ -4443,3 +4443,9 @@ Removed io.read_filter() and io.write_filter().
 
 *****
 
+Implemented tools.tophat() function to compute and save top-hat
+filter functions.
+Documented and tested.
+
+*****
+
