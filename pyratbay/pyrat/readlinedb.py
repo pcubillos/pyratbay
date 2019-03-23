@@ -197,19 +197,23 @@ def readlinetransition(pyrat, linefile, dbindex):
   nlt    = 0  # Total number of line-transitions read
   for i in np.arange(nIso):
     # Search lower and higher line-transition indices to read:
-    ifirst = pt.binsearch(linefile, pyrat.spec.wnlow,  start, NisoTran[i]-1,
-                          False)
-    ilast  = pt.binsearch(linefile, pyrat.spec.wnhigh, start, NisoTran[i]-1,
-                          True)
+    ifirst = pt.binsearch(linefile, pyrat.spec.wnlow,  start, NisoTran[i],
+                          upper=False)
+    ilast  = pt.binsearch(linefile, pyrat.spec.wnhigh, start, NisoTran[i],
+                          upper=True)
     # Add offset for this isotope:
     ifirst += offset
     ilast  += offset
+
+    if ifirst < 0 or ilast < 0:
+        start  += NisoTran[i]*pc.dreclen
+        offset += NisoTran[i]
+        continue
 
     # Print boundaries:
     linefile.seek(ifirst*pc.dreclen + init_wl, 0)
     pyrat.log.msg("Found initial transition ({:8d}):  {:13.4f} cm-1".
                   format(ifirst, pt.unpack(linefile, 1, 'd')), verb=3, indent=2)
-    # Pyrat low-wavelength boundary in microns:
     linefile.seek(ilast*pc.dreclen  + init_wl, 0)
     pyrat.log.msg("Found final   transition ({:8d}):  {:13.4f} cm-1".
                   format(ilast, pt.unpack(linefile, 1, 'd')), verb=3, indent=2)
@@ -217,7 +221,7 @@ def readlinetransition(pyrat, linefile, dbindex):
     # Number of transitions to read:
     nread = ilast - ifirst + 1
     # Get isotope ID:
-    i0 = pt.binsearch(linefile, 0, start, NisoTran[i]-1, False)
+    i0 = pt.binsearch(linefile, 0, start, NisoTran[i], upper=False)
     linefile.seek((i0+offset)*pc.sreclen + init_iso, 0)
     isoID = pt.unpack(linefile, 1, 'h')
 

@@ -3,6 +3,7 @@
 
 import os
 import sys
+import struct
 import pytest
 
 import numpy as np
@@ -20,6 +21,75 @@ def mock_pf(epf, temp, pf):
     with open(epf, 'w') as f:
         f.write("\n".join("{:7.1f}  {:.10e}".format(t,z)
                           for t,z in zip(temp,pf)))
+
+def test_binsearch_zero():
+    with pytest.raises(ValueError,
+    match='Requested binsearch over a zero a zero-sized array.'):
+        pt.binsearch('dummy.dat', 1.0, 0, nrec=0, upper=True)
+
+
+@pytest.mark.parametrize('wn0, upper, result',
+    [(0.0, False,  0), (0.0, True, -1),
+     (1.0, False,  0), (1.0, True,  0),
+     (2.0, False, -1), (2.0, True,  0),])
+def test_binsearch_one(wn0, upper, result):
+    wn = np.array([1.0])
+    with open('tli_test.dat', 'wb') as tli:
+        tli.write(struct.pack(str(len(wn))+"d", *list(wn)))
+    with open('tli_test.dat', 'rb') as tli:
+        assert pt.binsearch(tli, wn0, 0, len(wn), upper) == result
+
+
+@pytest.mark.parametrize('wn0, upper, result',
+    [(0.0, False, 0), (0.0, True,-1),
+     (1.0, False, 0), (1.0, True, 0),
+     (1.5, False, 1), (1.5, True, 0),
+     (2.0, False, 1), (2.0, True, 1),
+     (2.5, False,-1), (2.5, True, 1)])
+def test_binsearch_two(wn0, upper, result):
+    wn = np.array([1., 2.])
+    with open('tli_test.dat', 'wb') as tli:
+        tli.write(struct.pack(str(len(wn))+"d", *list(wn)))
+    with open('tli_test.dat', 'rb') as tli:
+        assert pt.binsearch(tli, wn0, 0, len(wn), upper) == result
+
+
+@pytest.mark.parametrize('wn0, upper, result',
+    [(0.0, False, 0), (0.0, True, 0),
+     (0.5, False, 1), (0.5, True, 0),
+     (1.0, False, 1), (1.0, True, 3),
+     (1.5, False, 4), (1.5, True, 3),
+     (2.0, False, 4), (2.0, True, 4)])
+def test_binsearch_duplicates(wn0, upper, result):
+    wn = np.array([0.0, 1.0, 1.0, 1.0, 2.0])
+    with open('tli_test.dat', 'wb') as tli:
+        tli.write(struct.pack(str(len(wn))+"d", *list(wn)))
+    with open('tli_test.dat', 'rb') as tli:
+        assert pt.binsearch(tli, wn0, 0, len(wn), upper) == result
+
+
+@pytest.mark.parametrize('wn0, upper, result',
+    [(1.0, False, 0), (1.0, True, 3),
+     (1.5, False, 4), (1.5, True, 3),
+     (2.0, False, 4), (2.0, True, 5)])
+def test_binsearch_duplicates_low_edge(wn0, upper, result):
+    wn = np.array([1.0, 1.0, 1.0, 1.0, 2.0, 2.0])
+    with open('tli_test.dat', 'wb') as tli:
+        tli.write(struct.pack(str(len(wn))+"d", *list(wn)))
+    with open('tli_test.dat', 'rb') as tli:
+        assert pt.binsearch(tli, wn0, 0, len(wn), upper) == result
+
+
+@pytest.mark.parametrize('wn0, upper, result',
+    [(1.0, False, 0), (1.0, True, 1),
+     (1.5, False, 2), (1.5, True, 1),
+     (2.0, False, 2), (2.0, True, 5)])
+def test_binsearch_duplicates_hi_edge(wn0, upper, result):
+    wn = np.array([1.0, 1.0, 2.0, 2.0, 2.0, 2.0])
+    with open('tli_test.dat', 'wb') as tli:
+        tli.write(struct.pack(str(len(wn))+"d", *list(wn)))
+    with open('tli_test.dat', 'rb') as tli:
+        assert pt.binsearch(tli, wn0, 0, len(wn), upper) == result
 
 
 def test_path():

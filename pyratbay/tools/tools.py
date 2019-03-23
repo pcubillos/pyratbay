@@ -48,67 +48,99 @@ def parray(string):
     return string.split()
 
 
-def binsearch(dbfile, wavelength, rec0, nrec, upper=True):
-  """
-  Do a binary search in TLI dbfile for record that has wavelength iwl
+def binsearch(tli, wnumber, rec0, nrec, upper=True):
+  r"""
+  Do a binary+linear search in TLI dbfile for record with wavenumber
+  immediately less equal to wnumber (if upper is True), or greater
+  equal to wnumber (if upper) is False (considering duplicate values
+  in tli file).
 
   Parameters
   ----------
-  dbfile: File object
-     TLI file where to search.
-  wavelength: Scalar
-     Target wavelength.
+  tli: File object
+      TLI file where to search.
+  wnumber: Scalar
+      Target wavenumber in cm-1.
   rec0: Integer
-     Position of first record.
+      File position of first wavenumber record.
   nrec: Integer
-     Number of records.
+      Number of wavenumber records.
   upper: Boolean
-     Wavelength is an upper boundary, return the index of value smaller
-     than wavelength.
+      If True, consider wnumber as an upper boundary. If False,
+      consider wnumber as a lower boundary.
 
   Returns
   -------
-  Index of record with ...
+  irec: Integer
+      Index of record nearest to target. Return -1 if out of bounds.
+
+  Examples
+  --------
+  >>> import pyratbay.tools as pt
+  >>> import struct
+  >>> # Mock a TLI file:
+  >>> wn = [0.0, 1.0, 1.0, 1.0, 2.0, 2.0]
+  >>> with open('tli_demo.dat', 'wb') as tli:
+  >>>     tli.write(struct.pack(str(len(wn))+"d", *wn))
+  >>> # Now do bin searches for upper and lower boundaries:
+  >>> with open('tli_demo.dat', 'rb') as tli:
+  >>>     bs_lower = [pt.binsearch(tli, target, 0, len(wn), upper=False)
+  >>>                 for target in [-1.0, 0.0, 0.5, 1.0, 1.5, 2.0, 2.5]]
+  >>>     bs_upper = [pt.binsearch(tli, target, 0, len(wn), upper=True)
+  >>>                 for target in [-1.0, 0.0, 0.5, 1.0, 1.5, 2.0, 2.5]]
+  >>> print(bs_lower, bs_upper, sep='\n')
+  [0, 0, 1, 1, 4, 4, -1]
+  [-1, 0, 0, 3, 3, 5, 5]
   """
-  # Wavelength of record:
-  ilo = 0
-  ihi = nrec
+  if nrec <= 0:
+      raise ValueError('Requested binsearch over a zero a zero-sized array.')
 
-  # Start binary search:
+  # Initialize indices and current record:
+  irec = ilo = 0
+  ihi = nrec - 1
+  tli.seek(rec0, 0)
+  current = first = struct.unpack('d', tli.read(8))[0]
+  tli.seek(rec0 + ihi*pc.dreclen, 0)
+  last = struct.unpack('d', tli.read(8))[0]
+
+  # Out of bounds:
+  if wnumber < first and upper:
+      return -1
+  if last < wnumber and not upper:
+      return -1
+
+  # Binary search:
   while ihi - ilo > 1:
-    # Middle record index:
-    irec = (ihi + ilo)//2
+      irec = (ihi + ilo) // 2
+      tli.seek(rec0 + irec*pc.dreclen, 0)
+      current = struct.unpack('d', tli.read(8))[0]
 
-    # Read wavelength from TLI file record:
-    dbfile.seek(irec*pc.dreclen + rec0, 0)
-    rec_wl = struct.unpack('d', dbfile.read(8))[0]
-    # Update search limits:
-    if rec_wl > wavelength:
-      ihi = irec
-    else:
-      ilo = irec
-  #print("Binary found:      %.7f (%d)"%(rec_wl, irec))
+      if current > wnumber:
+          ihi = irec
+      else:
+          ilo = irec
 
-  # Sequential search:
-  if rec_wl < wavelength:
-    jump =  1 # Move up
+  # Linear search:
+  if upper and current > wnumber:
+      return irec - 1
+  elif not upper and current < wnumber:
+      return irec + 1
+  elif upper:
+      while current <= wnumber:
+          irec += 1
+          if irec > nrec-1:
+              return nrec-1
+          tli.seek(rec0 + irec*pc.dreclen, 0)
+          current = struct.unpack('d', tli.read(8))[0]
+      return irec - 1
   else:
-    jump = -1 # Move down
-
-  dbfile.seek(irec*pc.dreclen + rec0, 0)
-  next_wl = struct.unpack('d', dbfile.read(8))[0]
-  while (np.sign(next_wl-wavelength) == np.sign(rec_wl-wavelength)):
-    irec += jump
-    # Check for boundaries:
-    if (irec < 0 or irec > nrec):
-      return np.clip(irec, 0, nrec)
-    dbfile.seek(irec*pc.dreclen + rec0, 0)
-    rec_wl  = next_wl
-    next_wl = struct.unpack('d', dbfile.read(8))[0]
-  #print("Sequential found:  %.7f"%next_wl)
-
-  # Return the index withing the boundaries:
-  return irec - (jump+upper)//2
+      while current >= wnumber:
+          irec -= 1
+          if irec < 0:
+              return 0
+          tli.seek(rec0 + irec*pc.dreclen, 0)
+          current = struct.unpack('d', tli.read(8))[0]
+      return irec + 1
 
 
 def pprint(array, precision=3, fmt=None):

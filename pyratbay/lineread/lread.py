@@ -306,7 +306,7 @@ def makeTLI(dblist=None, pflist=None, dbtype=None, outfile=None,
     tf = time.time()
 
     if transDB is None:
-      continue
+        continue
 
     wnumber = np.concatenate((wnumber, transDB[0]))
     gf      = np.concatenate((gf,      transDB[1]))

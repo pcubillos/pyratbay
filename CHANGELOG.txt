@@ -4453,5 +4453,10 @@ Implemented tools.cia_borysow() function to reformat a CIA file
 from Borysow's webpage.
 Testing is TBI.
 
-*****
+
+*****  Sat Mar 23 13:14:20 CET 2019  *****
+
+Refactored tools.binsearch() function to handle more edge cases.
+Documented and tested.
+Propagated corrections throughout the rest of the code.
 
