@@ -80,7 +80,12 @@ def write_spectrum(wl, spectrum, filename, type, wlunits='um'):
 
 def read_spectrum(filename, wn=True):
   """
-  Read a Pyrat spectrum file.
+  Read a Pyrat spectrum file, a plain text file with two-columns: the
+  wavelength and signal.  If wn is true, this function converts
+  wavelength to wavenumber in cm-1.  The very last comment line sets
+  the wavelength units (the first string following a blank, e.g., the
+  string '# um' sets the wavelength units as microns).
+  If the units are not defined, assume wavelength units are microns.
 
   Parameters
   ----------
@@ -134,20 +139,30 @@ def read_spectrum(filename, wn=True):
   """
   # Need to import here to avoid circular imports:
   from .. import tools as pt
+  # Extract data:
+  data = np.loadtxt(filename, unpack=True)
+  wave, spectrum = data[0], data[1]
+
+  if not wn:
+      return wave, spectrum
+
+  # Check 'header' (last comment line) for wavelength units:
   with open(filename, "r") as f:
-      # Count number of lines in file:
-      f.seek(0)
-      # Get wavelength units from header:
-      l = f.readline()
-      l = f.readline()
-      wlunits = l.split()[1]
+      for line in f:
+          info = line
+          if not line.strip().startswith('#') and line.strip() != '':
+              break
 
-      wave, spectrum = np.array([line.strip().split() for line in f],
-                                np.double).T
+  # Get wavelength units from last line of comments:
+  if len(info.split()) > 1:
+      wlunits = info.split()[1]
+  else:
+      wlunits = 'um'
+  if wlunits not in pc.validunits:
+      wlunits = 'um'
 
-      # Convert wavelength to wavenumber (always in cm-1):
-      if wn:
-          wave = 1.0/(wave*pt.u(wlunits))
+  # Convert wavelength to wavenumber in cm-1:
+  wave = 1.0/(wave*pt.u(wlunits))
 
   return wave, spectrum
 

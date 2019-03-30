@@ -70,6 +70,25 @@ def test_write_spectrum_bad_type():
         io.write_spectrum(wl, trans, "tophat_filter.dat", 'bad_type')
 
 
+@pytest.mark.parametrize('header',
+    ['# Wavelength flux\n',
+     '# Something something\n# Wavelength flux\n# um funits\n',
+     '',
+     '\n',
+     '# Wavelength flux\n\n# um funits\n',
+     '# um funits\n',
+     '# um\n'
+    ])
+def test_read_spectrum_custom_header(tmpdir, header):
+    ffile = 'filter_test.dat'
+    tmp_file = "{}/{}".format(tmpdir, ffile)
+    data = '1.0 1.0\n2.0 1.5\n4.0 1.0\n'
+    with open(tmp_file, 'w') as f:
+        f.write(header + data)
+    wn, spec = io.read_spectrum(tmp_file)
+    np.testing.assert_allclose(wn, np.array([10000.0, 5000.0, 2500.0]))
+
+
 def test_read_write_opacity(tmpdir):
     ofile = "{}/opacity_test.dat".format(tmpdir)
     molID = np.array([101, 105])
