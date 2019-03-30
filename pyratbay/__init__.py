@@ -2,39 +2,29 @@
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
 __all__ = [
-    "Pyrat",
     "constants",
     "io",
     "blackbody",
     "broadening",
     "lineread",
-    "wine",
     "plots",
     "starspec",
     "tools",
     "atmosphere",
+    "Pyrat",
     "pbay",
 ]
 
-# No pre-requirements:
 from . import constants
 from . import io
 from . import blackbody
-# Require constants:
 from . import broadening
 from . import lineread
-from . import wine
-# Require constants, wine:
 from . import plots
-# Require constants, blackbody:
 from . import starspec
-# Require constants, io, starspec, (pbay):
 from . import tools
-# Require constants, tools:
 from . import atmosphere
-# Require many things:
 from .pyrat import Pyrat
-# Require even more things:
 from . import pbay
 
 from . import VERSION as ver

@@ -1,3 +1,6 @@
+# Copyright (c) 2016-2019 Patricio Cubillos and contributors.
+# Pyrat Bay is currently proprietary software (see LICENSE).
+
 import os
 import sys
 import pytest
@@ -172,11 +175,9 @@ def plot_fit():
 
 def spectrum_fm():
     from scipy.ndimage.filters import gaussian_filter1d as gaussf
-    import pyratbay.wine as pw
     pyrat = pb.pbay.run(ROOT+'tests/spectrum_transmission_filters_test.cfg')
     params = [-1.5, -0.8, 0.0,  1.0,  1.0,  71500.0, -3.4, 2.0]
     model = pyrat.eval(params, retmodel=True)
-    #bandflux = pw.bandintegrate(pyrat=pyrat)
     bandflux = pyrat.obs.bandflux
 
     plt.figure(1)

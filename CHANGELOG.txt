@@ -4468,3 +4468,15 @@ lines).  The very last comment line should define the wavelength
 units (first non-blank string after the comment char and a blank).
 If the units are not defined, assume wavelength units are microns.
 
+*****
+
+Removed wine module.
+Moved wine.resample() to tools.resample(), refactored to handle a
+generic signal with option to normalize (for filters), rather than
+handling filters and stellar spectrum.
+Moved wine.bandintegrate() to tools.band_integrate(), renamed and
+refactored to perform resampling as part of the function.
+Implemented pyrat.band_integrate(), which automates the band
+integration for the variables in a pyrat object.
+Documented and tested.
+

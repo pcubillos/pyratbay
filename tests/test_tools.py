@@ -13,6 +13,8 @@ sys.path.append(ROOT)
 
 import pyratbay.tools as pt
 import pyratbay.io    as io
+import pyratbay.constants as pc
+import pyratbay.starspec  as ps
 
 os.chdir(ROOT+'tests')
 
@@ -281,3 +283,78 @@ def test_tophat_savefile(tmpdir):
         assert f.readline() == '     1.20000   0.000000000e+00\n'
         assert f.readline() == '     1.25000   0.000000000e+00\n'
         assert f.readline() == '     1.30000   1.000000000e+00\n'
+
+
+@pytest.mark.parametrize('wn',
+    [np.linspace(1.3, 1.7, 11),
+     np.flip(np.linspace(1.3, 1.7, 11), axis=0)])
+def test_resample_flip_wn(wn):
+    signal = np.array(np.abs(wn-1.5)<0.1, np.double) * wn
+    specwn = np.linspace(1, 2, 101)
+    resampled, wnidx = pt.resample(signal, wn, specwn)
+    np.testing.assert_equal(wnidx, np.arange(31, 70))
+    np.testing.assert_allclose(resampled, np.array(
+      [0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.355,
+       0.71 , 1.065, 1.42 , 1.43 , 1.44 , 1.45 , 1.46 , 1.47 , 1.48 ,
+       1.49 , 1.5  , 1.51 , 1.52 , 1.53 , 1.54 , 1.55 , 1.56 , 1.57 ,
+       1.58 , 1.185, 0.79 , 0.395, 0.   , 0.   , 0.   , 0.   , 0.   ,
+       0.   , 0.   , 0.   ]))
+
+
+def test_resample_flip_specwn():
+    wn = np.linspace(1.3, 1.7, 11)
+    signal = np.array(np.abs(wn-1.5)<0.1, np.double) * wn
+    specwn = np.flip(np.linspace(1, 2, 101), axis=0)
+    resampled, wnidx = pt.resample(signal, wn, specwn)
+    np.testing.assert_equal(wnidx, np.arange(31, 70))
+    np.testing.assert_allclose(resampled, np.array(
+      [0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.395,
+       0.79 , 1.185, 1.58 , 1.57 , 1.56 , 1.55 , 1.54 , 1.53 , 1.52 ,
+       1.51 , 1.5  , 1.49 , 1.48 , 1.47 , 1.46 , 1.45 , 1.44 , 1.43 ,
+       1.42 , 1.065, 0.71 , 0.355, 0.   , 0.   , 0.   , 0.   , 0.   ,
+       0.   , 0.   , 0.   ]))
+
+
+def test_resample_normalize():
+    wn = np.linspace(1.3, 1.7, 11)
+    signal = np.array(np.abs(wn-1.5)<0.1, np.double)
+    specwn = np.linspace(1, 2, 101)
+    resampled, wnidx = pt.resample(signal, wn, specwn, normalize=True)
+    # For an equi-spaced specwn:
+    dx = specwn[1] - specwn[0]
+    np.testing.assert_approx_equal(np.sum(resampled)*dx, 1.0)
+
+
+def test_resample_outbounds():
+    wn = np.linspace(1.3, 1.7, 11)
+    signal = np.array(np.abs(wn-1.5)<0.1, np.double)
+    specwn = np.linspace(1.4, 2, 101)
+    with pytest.raises(ValueError,
+    match="Resampling signal's wavenumber is not contained in specwn."):
+        resampled, wnidx = pt.resample(signal, wn, specwn)
+
+
+def test_band_integrate_single():
+    wn = np.arange(1500, 5000.1, 1.0)
+    signal = np.ones_like(wn)
+    wn1, irac1 = io.read_spectrum(pc.ROOT+"inputs/filters/spitzer_irac1_sa.dat")
+    bandflux = pt.band_integrate(signal, wn, irac1, wn1)
+    np.testing.assert_allclose(bandflux, [1.0])
+
+
+def test_band_integrate_multiple():
+    wn = np.arange(1500, 5000.1, 1.0)
+    signal = np.ones_like(wn)
+    wn1, irac1 = io.read_spectrum(pc.ROOT+"inputs/filters/spitzer_irac1_sa.dat")
+    wn2, irac2 = io.read_spectrum(pc.ROOT+"inputs/filters/spitzer_irac2_sa.dat")
+    bandflux = pt.band_integrate(signal, wn, [irac1, irac2], [wn1, wn2])
+    np.testing.assert_allclose(bandflux, [1.0, 1.0])
+
+
+def test_band_integrate():
+    wn = np.arange(1500, 5000.1, 1.0)
+    sflux = ps.bbflux(wn, 1800.0)
+    wn1, irac1 = io.read_spectrum(pc.ROOT+"inputs/filters/spitzer_irac1_sa.dat")
+    wn2, irac2 = io.read_spectrum(pc.ROOT+"inputs/filters/spitzer_irac2_sa.dat")
+    bandfluxes = pt.band_integrate(sflux, wn, [irac1,irac2], [wn1, wn2])
+    np.testing.assert_allclose(bandfluxes, [98527.148526, 84171.417692])

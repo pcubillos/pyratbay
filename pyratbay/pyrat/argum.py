@@ -18,7 +18,6 @@ import scipy.special     as ss
 
 from .. import tools      as pt
 from .. import constants  as pc
-from .. import wine       as pw
 from .. import starspec   as ps
 from .. import atmosphere as pa
 from .. import io         as io
@@ -1037,15 +1036,15 @@ def setfilters(obs, spec, phy):
   bandtrans = []  # Normalized interpolated filter transmission
   bandwn    = []  # Band's mean wavenumber
   for i in np.arange(obs.nfilters):
-    # Read filter wavenumber and transmission curves:
-    filterwn, filtertr = io.read_spectrum(obs.filter[i])
-    # Resample the filters into the stellar wavenumber array:
-    btr, wni, isf = pw.resample(spec.wn, filterwn,   filtertr,
-                                         phy.starwn, phy.starflux)
-    bandidx.append(wni)
-    bandtrans.append(btr)
-    starflux.append(isf)
-    bandwn.append(np.sum(filterwn*filtertr)/np.sum(filtertr))
+      # Read filter wavenumber and transmission curves:
+      filterwn, filtertr = io.read_spectrum(obs.filter[i])
+      # Resample the filters into the stellar wavenumber array:
+      btrans, bidx = pt.resample(filtertr, filterwn, spec.wn, normalize=True)
+      sflux, dummy = pt.resample(phy.starflux, phy.starwn, spec.wn)
+      bandidx.append(bidx)
+      bandtrans.append(btrans)
+      starflux.append(sflux)
+      bandwn.append(np.sum(filterwn*filtertr)/np.sum(filtertr))
 
   # Per-band variables:
   obs.bandidx   = bandidx

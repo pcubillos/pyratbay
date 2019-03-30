@@ -8,7 +8,6 @@ import numpy  as np
 
 from .. import constants  as pc
 from .. import atmosphere as pa
-from .. import wine       as pw
 from .. import tools      as pt
 from .  import extinction as ex
 from .  import crosssec   as cs
@@ -280,7 +279,7 @@ class Pyrat(object):
       self.run(temp=temp, abund=q2)
 
       # Band-integrate spectrum:
-      self.obs.bandflux = pw.bandintegrate(pyrat=self)
+      self.obs.bandflux = self.band_integrate()
 
       # Reject this iteration if there are invalid temperatures or radii:
       if self.obs.bandflux is not None and rejectflag:
@@ -290,6 +289,30 @@ class Pyrat(object):
           return self.spec.spectrum, self.obs.bandflux
 
       return self.obs.bandflux
+
+
+  def band_integrate(self):
+    """
+    Band-integrate transmission spectrum (transit) or planet-to-star
+    flux ratio (eclipse) over transmission band passes.
+    """
+    if self.obs.bandtrans is None:
+        return None
+
+    spectrum = self.spec.spectrum
+    specwn   = self.spec.wn
+    bandidx  = self.obs.bandidx
+
+    if self.od.path == 'transit':
+        bandtrans = self.obs.bandtrans
+    elif self.od.path == 'eclipse':
+        bandtrans = [btrans/sflux * self.phy.rprs**2
+             for btrans, sflux in zip(self.obs.bandtrans, self.obs.starflux)]
+
+    self.obs.bandflux = np.array([np.trapz(spectrum[idx]*btrans, specwn[idx])
+                                  for btrans, idx in zip(bandtrans, bandidx)])
+
+    return self.obs.bandflux
 
 
   def hydro(self, pressure, temperature, mu, g, mass, p0, r0):

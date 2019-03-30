@@ -1,10 +1,6 @@
 # Copyright (c) 2016-2019 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-"""
-Pyrat plotting utilities.
-"""
-
 __all__ = ["spectrum", "cf", "PT"]
 
 import os, sys
@@ -16,13 +12,11 @@ import scipy.interpolate as si
 from scipy.ndimage.filters import gaussian_filter1d as gaussf
 
 from .. import constants as pc
-from .. import wine      as pw
 
-rootdir = os.path.realpath(os.path.dirname(__file__) + "/../../")
-sys.path.append(rootdir + "/pyratbay/lib/")
+sys.path.append(pc.ROOT + "/pyratbay/lib/")
 import pt as PT
 
-sys.path.append(rootdir + "/pyratbay/atmosphere/")
+sys.path.append(pc.ROOT + "/pyratbay/atmosphere/")
 import MadhuTP
 
 
@@ -96,7 +90,7 @@ def spectrum(wlength=None, spectrum=None, data=None, uncert=None,
   else:
     nfilters = len(bandtrans)
     if bandflux is None or np.all(bandflux==0):
-      bandflux = pw.bandintegrate(pyrat=pyrat)
+      bandflux = pyrat.band_integrate()
 
   # Plotting setup:
   fs  = 14
