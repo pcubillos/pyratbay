@@ -3,54 +3,20 @@
 .. |CH4| replace:: CH\ :sub:`4`
 .. |H2|  replace:: H\ :sub:`2`
 
-.. _tutorial:
+.. _api:
 
-Tutorial
-========
+API
+===
+
+There is :ref:`atmapi`.
 
 ``Pyrat Bay`` offers a unique driver command that allow multiple
 running modes.  A configuration file defines all of the run settings,
 inputs, and outputs.
 
-As said, all of these calls can either be run from the shell or from
+All of these calls can either be run from the shell or from
 the Python interpreter.  However, the interpreter has the advantage of
 that you can interact with the outputs.
-
-
-Configuration Files
--------------------
-
-``Pyrat Bay`` configuration files follow the `ConfigParser <https://docs.python.org/2/library/configparser.html>`_ format.
-Whether you are executing the call from shell or from the interpreted,
-the configuration file defines all the settings of your run.
-
-All of the running settings, inputs, and outputs are set in the
-configuration file.  For example, here is the configuration file for the transmission spectrum demo: `demo_spectrum-transmission.cfg <https://github.com/pcubillos/pyratbay/blob/master/examples/demo/demo_spectrum-transmission.cfg>`_.
-
-Input files can either have absolute or relative paths.
-
-The configuration file include variables to define the default units
-of some physical variables (mass, length, pressure), e.g.:
-
-.. code-block:: python
-
-  # Default units:
-  radunits = km
-  # System parameters:
-  rstar   = 6.995e5    ; Stellar radius (default units: radunits)
-
-Equivalently, a variable can explicitly include the units (overriding
-the default units):
-
-.. code-block:: python
-
-  # Default units:
-  radunits = km
-  # System parameters:
-  rstar   = 1.0 rsun    ; Stellar radius (default units: radunits)
-
-
-This Link contains the list of available units:  :ref:`units`.
 
 
 Running Modes
@@ -513,10 +479,10 @@ Here is an example configuration file for this mode:
 For a transmission-spectrum configuration (``path=transit``) ``Pyrat
 Bay`` computes the modulation spectrum, a unitless quantity
 proportional to the squared planet-to-star radius ratio
-(:ref:`spectrum`).  For an emission-spectrum configuration
+.  For an emission-spectrum configuration
 (``path=eclipse``) ``Pyrat Bay`` computes the day-side hemisphere
 integrated flux-emission spectrum (evaluated at the surface of the
-planet) in erg s\ :sup:`-1` cm\ :sup:`-2` cm (:ref:`spectrum`).
+planet) in erg s\ :sup:`-1` cm\ :sup:`-2` cm.
 
 Besides the cross-section and line-by-line opacities, ``Pyrat Bay``
 provides the following alkali resonant-line models (``alkali`` parameter):
@@ -832,25 +798,3 @@ More explicit details are TBD. For the moment read the file's
 docstrings for use.
 
 
-
-References
-----------
-
-.. [Burrows2000] `Burrows et al. (2000): The Near-Infrared and Optical Spectra of Methane Dwarfs and Brown Dwarfs <http://adsabs.harvard.edu/abs/2000ApJ...531..438B>`_
-.. [Cubillos2017] `An Algorithm to Compress Line-transition Data for Radiative-transfer Calculations <http://adsabs.harvard.edu/abs/2017ApJ...850...32C>`_
-.. [DalgarnoWilliams1962] `Dalgarno & Williams (1962): Rayleigh Scattering by Molecular Hydrogen <http://adsabs.harvard.edu/abs/1962ApJ...136..690D>`_
-.. [Irwin1981] `Irwin (1981): Polynomial partition function approximations of 344 atomic and molecular species <http://adsabs.harvard.edu/abs/1981ApJS...45..621I>`_
-.. [Kurucz1970] `Atlas: a Computer Program for Calculating Model Stellar Atmospheres <http://adsabs.harvard.edu/abs/1970SAOSR.309.....K>`_
-.. [Laraia2011] `Laraia et al. (2011): Total internal partition sums to support planetary remote sensing <http://adsabs.harvard.edu/abs/2011Icar..215..391L>`_
-.. [Lecavelier2008] `Lecavelier des Etangs et al. (2008): Rayleigh Scattering in the Transit Spectrum of HD 189733b <http://adsabs.harvard.edu/abs/2008A%26A...481L..83L>`_
-.. [Line2013] `A Systematic Retrieval Analysis of Secondary Eclipse Spectra. I. A Comparison of Atmospheric Retrieval Techniques <http://adsabs.harvard.edu/abs/2013ApJ...775..137L>`_
-.. [Madhusudhan2009] `Madhusudhan & Seager (2009): A Temperature and Abundance Retrieval Method for Exoplanet Atmospheres. <http://adsabs.harvard.edu/abs/2009ApJ...707...24M>`_
-.. [PS1997] `Partridge & Schwenke (1997): The determination of an accurate isotope dependent potential energy surface for water from extensive ab initio calculations and experimental data <http://adsabs.harvard.edu/abs/1997JChPh.106.4618P>`_
-.. [Plez1998] `Plez (1998): A new TiO line list <http://adsabs.harvard.edu/abs/1998A%26A...337..495P>`_
-.. [Richard2012] `New section of the HITRAN database: Collision-induced absorption (CIA) <http://adsabs.harvard.edu/abs/2012JQSRT.113.1276R>`_
-.. [Rothman2010] `Rothman et al. (2010): HITEMP, the high-temperature molecular spectroscopic database <http://adsabs.harvard.edu/abs/2010JQSRT.111.2139R>`_
-.. [Rothman2013] `Rothman et al. (2013): The HITRAN2012 molecular spectroscopic database <http://adsabs.harvard.edu/abs/2013JQSRT.130....4R>`_
-.. [Schwenke1998] `Schwenke (19988): Opacity of TiO from a coupled electronic state calculation parametrized by AB initio and experimental data <http://adsabs.harvard.edu/abs/1998FaDi..109..321S>`_
-.. [Tennyson2016] `Tennyson et al. (2016): The ExoMol database: Molecular line lists for exoplanet and other hot atmospheres <http://adsabs.harvard.edu/abs/2016JMoSp.327...73T>`_
-.. [terBraak2006] `ter Braak (2006): A Markov Chain Monte Carlo version of the genetic algorithm Differential Evolution <http://dx.doi.org/10.1007/s11222-006-8769-1>`_
-.. [BraakVrugt2008] `ter Braak & Vrugt (2008): Differential Evolution Markov Chain with snooker updater and fewer chains <http://dx.doi.org/10.1007/s11222-008-9104-9>`_

@@ -4480,3 +4480,7 @@ Implemented pyrat.band_integrate(), which automates the band
 integration for the variables in a pyrat object.
 Documented and tested.
 
+*****
+
+Reshuffled the docs.  Propper documentation is still TBD.
+

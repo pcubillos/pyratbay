@@ -29,7 +29,7 @@ radiative-transfer spectra.  This package offers:
     - Collision-induced absorption
     - Rayleigh scattering absorption
     - Na and K alkali resonant lines
-    - Gray and Mie scattering opacity
+    - Gray and Mie (soon) scattering opacity
 
 - Bayesian (MCMC) posterior sampling of atmospheric parameters:
 
@@ -59,20 +59,24 @@ Documentation
    :maxdepth: 3
 
    getstarted
-   tutorial
-   lineread
-   pyrat
-   pyratbay
+   tlitutorial
+   pttutorial
+   atmtutorial
+   spectutorial
+   opactutorial
+   mcmctutorial
+   api
    units
    contributing
    license
 
+.. add: references section
 
 Be Kind
 =======
 
 Please reference this paper if you found ``Pyrat Bay`` useful for your research:
-  `Cubillos et al. 2017: Yet Another Open-source Radiative-Transifer Code for Exoplanet Modeling`_, in preparation.
+  `Cubillos et al. (2019): Yet Another Open-source Radiative-Transifer Code for Exoplanet Modeling`_, in preparation.
 
 We welcome your feedback, but do not necessarily guarantee support.
 Please send feedback or inquiries to:
@@ -81,11 +85,6 @@ Please send feedback or inquiries to:
 
 Pyrat-Bay is (temporarily) proprietary software (see :ref:`license`). 
 
-.. note:: It is imprtant to highlight that this project would not be
-          possible without the previous experience with the `BART
-          <https://github.com/exosports/BART>`_ project, nor without
-          the contribution from each one of the collaborators to the
-          BART code.
 
 Documentation for Previous Releases
 ===================================
@@ -96,4 +95,4 @@ Documentation for Previous Releases
 .. _Patricio Cubillos: https://github.com/pcubillos/
 .. _patricio.cubillos[at]oeaw.ac.at: patricio.cubillos@oeaw.ac.at
 .. _Space Research Institute (IWF): http://iwf.oeaw.ac.at/
-.. _Cubillos et al. 2017\: Yet Another Open-source Radiative-Transifer Code for Exoplanet Modeling: https://github.com/pcubillos/pyratbay/lalala
+.. _Cubillos et al. (2019)\: Yet Another Open-source Radiative-Transifer Code for Exoplanet Modeling: https://github.com/pcubillos/pyratbay/lalala

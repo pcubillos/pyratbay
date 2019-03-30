@@ -3,6 +3,29 @@
 Getting Started
 ===============
 
+``Pyrat Bay`` is a modular package
+that offers a sequence of running modes (``runmode``):
+
++----------------+------------------------------------------------------------+
+|  Run mode      | Description                                                |
++================+============================================================+
+| ``tli``        | Generate a transition-line-information file (used for      |
+|                | spectral computation)                                      |
++----------------+------------------------------------------------------------+
+| ``pt``         | Compute a temperature-pressure profile                     |
++----------------+------------------------------------------------------------+
+| ``atmosphere`` | Generate a 1D atmospheric model (pressure, temperature,    |
+|                | and abundances)                                            |
++----------------+------------------------------------------------------------+
+| ``spectrum``   | Compute forwad-modeling spectra (transmission or emission) |
++----------------+------------------------------------------------------------+
+| ``opacity``    | Generate an extinction-coefficient table (to speed up      |
+|                | spectra computation)                                       |
++----------------+------------------------------------------------------------+
+| ``mcmc``       | Run an atmospheric retrieval                               |
++----------------+------------------------------------------------------------+
+
+
 The Pyrat Bay package provides multiple sub packages to compute
 radiative-transfer calculations for exoplanets:
 
@@ -28,8 +51,7 @@ System Requirements
 -------------------
 
 Pyrat-Bay (version 0.0) is known to work (at least) on Unix/Linux
-(Ubuntu, Fedora) and OSX (10.9+) machines, with the following
-software:
+and OS X machines, with the following software:
 
 * Python (version 2.7)
 * Numpy (version 1.8.2+)
@@ -179,3 +201,61 @@ The output figure should look like this:
 .. image:: ./figures/pyrat_spectrum_demo.png
    :width: 70%
    :align: center
+
+
+Configuration Files
+-------------------
+
+``Pyrat Bay`` configuration files follow the `ConfigParser <https://docs.python.org/2/library/configparser.html>`_ format.
+Whether you are executing the call from shell or from the interpreted,
+the configuration file defines all the settings of your run.
+
+All of the running settings, inputs, and outputs are set in the
+configuration file.  For example, here is the configuration file for the transmission spectrum demo: `demo_spectrum-transmission.cfg <https://github.com/pcubillos/pyratbay/blob/master/examples/demo/demo_spectrum-transmission.cfg>`_.
+
+Input files can either have absolute or relative paths.
+
+The configuration file include variables to define the default units
+of some physical variables (mass, length, pressure), e.g.:
+
+.. code-block:: python
+
+  # Default units:
+  radunits = km
+  # System parameters:
+  rstar   = 6.995e5    ; Stellar radius (default units: radunits)
+
+Equivalently, a variable can explicitly include the units (overriding
+the default units):
+
+.. code-block:: python
+
+  # Default units:
+  radunits = km
+  # System parameters:
+  rstar   = 1.0 rsun    ; Stellar radius (default units: radunits)
+
+
+This Link contains the list of available units:  :ref:`units`.
+
+
+.. _sscripts:
+
+Scripts
+-------
+
+The `scripts
+<https://github.com/pcubillos/pyratbay/tree/master/scripts>`_ folder
+provide Python executable files (from shell) that reformat
+cross-section data from the given online format (Borysow, EXOMOL,
+HITRAN) into the ``Pyrat Bay`` format.
+
+Additionally, there are executable files that reformat the
+partition-function files from the given online format (Partridge &
+Schwenke's |H2O|, Schwenke's TiO, and Barklem's) into the ``Pyrat
+Bay`` format.
+
+More explicit details are TBD. For the moment read the file's
+docstrings for use.
+
+
