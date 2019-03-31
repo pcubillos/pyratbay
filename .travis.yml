@@ -8,12 +8,11 @@ matrix:
 #    sudo: required
 #    dist: xenial
 
-#before_install:
-
 install:
   - pip install -r requirements.txt
   - pip install -e .
   - wget --user=HITRAN --password=getdata -N https://www.cfa.harvard.edu/HITRAN/HITRAN2012/HITRAN2012/By-Molecule/Compressed-files/01_hit12.zip && unzip 01_hit12.zip -d /home/travis/build/pcubillos/pyratbay/tests
+  - wget http://kurucz.harvard.edu/grids/gridp00odfnew/fp00k0odfnew.pck -P /home/travis/build/pcubillos/pyratbay/tests
   - cd /home/travis/build/pcubillos/pyratbay && make
 
 script: pytest tests/

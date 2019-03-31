@@ -885,7 +885,7 @@ def setup(pyrat):
                "model.")
     if phy.gstar is None:
       log.error("Undefined stellar gravity (gstar), required for Kurucz model.")
-    starflux, starwn, kuruczt, kuruczg = ps.readkurucz(phy.kurucz,
+    starflux, starwn, kuruczt, kuruczg = ps.read_kurucz(phy.kurucz,
                                            phy.tstar, np.log10(phy.gstar))
     log.msg("Input stellar params: T={:7.1f} K, log(g)={:4.2f}\n"
             "Best Kurucz match:    T={:7.1f} K, log(g)={:4.2f}".

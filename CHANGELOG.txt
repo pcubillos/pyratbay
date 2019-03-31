@@ -4484,3 +4484,14 @@ Documented and tested.
 
 Reshuffled the docs.  Propper documentation is still TBD.
 
+
+*****  Sun Mar 31 22:55:38 CEST 2019  *****
+
+Refactored kurucz.py functions into a cleaner code.
+Replaced starspec.kunpack() and starspec.readkurucz() with
+starspec.read_kurucz() function.  Outputs are allways in wavenumber
+space.  If user provides a temperature and gravity, extract only the
+closest Kurucz model; otherwise extract the whole set of models in
+the file.
+Documented and tested.
+
