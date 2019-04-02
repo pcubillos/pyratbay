@@ -3,23 +3,24 @@
 
 __all__ = ["bbflux"]
 
-import os
-import sys
+from numbers import Integral
+from collections import Iterable
+
 import numpy as np
 
 from .. import blackbody as bb
 
 
-def bbflux(wn, Teff):
-  """
+def bbflux(wn, teff):
+  r"""
   Compute the emission flux of a blackbody at temperature Teff
   in wavenumber space.
 
   Parameters
   ----------
-  wn: 1D float ndarray
+  wn: 1D float iterable
      Wavenumber array where to evaluate the flux (cm-1).
-  Teff: Float
+  teff: Float
      The effective temperature (Kelvin).
 
   Return
@@ -27,8 +28,29 @@ def bbflux(wn, Teff):
   flux: 1D float ndarray
      blackbody flux (erg s-1 cm-2 cm) at wn.
 
-  Note
-  ----
-  This function adopts the spherical-cow approximation.
+  Examples
+  --------
+  >>> import pyratbay.starspec  as ps
+  >>> import pyratbay.constants as pc
+  >>> import numpy as np
+  >>> tsun = 5772.0
+  >>> wn = np.logspace(-1, 5, 30000)
+  >>> flux = ps.bbflux(wn, tsun)
+  >>> # Solar constant:
+  >>> s = np.trapz(flux, wn) * (pc.rsun/pc.au)**2
+  >>> print("Solar constant (Teff={:.0f}K): S = {:.1f} W m-2\n"
+  >>>       "Wien's displacement law: wn(flux_max) = {:.1f} cm-1\n"
+  >>>       "             5.879E10 Hz/K * Teff / c = {:.1f} cm-1".
+  >>>       format(tsun, s*1e-3, wn[np.argmax(flux)], 5.879e10*tsun/pc.c))
+  Solar constant (Teff=5772K): S = 1361.2 W m-2
+  Wien's displacement law: wn(flux_max) = 11318.0 cm-1
+               5.879E10 Hz/K * Teff / c = 11319.0 cm-1
   """
-  return np.pi * bb.Bwn(wn, Teff)
+  if not isinstance(wn, Iterable):
+      raise ValueError('Input wn must be an iterable.')
+
+  if isinstance(wn, (list, tuple)):
+      wn = np.array(wn, np.double)
+  if isinstance(wn[0], Integral):
+      return np.pi * bb.Bwn(np.array(wn, np.double), float(teff))
+  return np.pi * bb.Bwn(wn, float(teff))

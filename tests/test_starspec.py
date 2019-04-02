@@ -16,9 +16,42 @@ import pyratbay.constants  as pc
 os.chdir(ROOT + 'tests')
 
 
+@pytest.mark.parametrize('wn',
+   [[1.0, 10.0, 100.0, 1000.0, 3000.0],
+    [1  , 10  , 100  , 1000  , 3000  ],
+    (1.0, 10.0, 100.0, 1000.0, 3000.0),
+    (1  , 10  , 100  , 1000  , 3000  ),
+    np.array([1.0, 10.0, 100.0, 1000.0, 3000.0]),
+    np.array([1  , 10  , 100  , 1000  , 3000  ])])
+def test_bbflux_type(wn):
+    tsun = 5772.0
+    flux = ps.bbflux(wn, tsun)
+    np.testing.assert_allclose(flux,
+        np.array([1.50092461e-01, 1.49924158e+01, 1.48248054e+03,
+                  1.32178742e+05, 9.08239148e+05]))
+
+def test_bbflux_sun():
+    tsun = 5772.0
+    wn = np.logspace(-1, 5, 30000)
+    flux = ps.bbflux(wn, tsun)
+    # Solar constant:
+    s = np.trapz(flux, wn) * (pc.rsun/pc.au)**2
+    np.testing.assert_allclose(s, 1361195.40)
+    # Wien's displacement law:
+    np.testing.assert_allclose(wn[np.argmax(flux)], 5.879e10*tsun/pc.c,
+                               rtol=1e-4)
+
+
+def test_bbflux_error():
+    tsun = 5772.0
+    wn = 10.0
+    with pytest.raises(ValueError, match='Input wn must be an iterable.'):
+        flux = ps.bbflux(wn, tsun)
+
+
 def test_read_kurucz_sun():
     kfile = 'fp00k0odfnew.pck'
-    tsun = 5770.0
+    tsun = 5772.0
     gsun = 4.44
     flux, wn, ktemp, klogg = ps.read_kurucz(kfile, tsun, gsun)
     s = np.trapz(flux, wn) * (pc.rsun/pc.au)**2

@@ -4495,3 +4495,10 @@ closest Kurucz model; otherwise extract the whole set of models in
 the file.
 Documented and tested.
 
+
+*****  Tue Apr  2 21:05:20 CEST 2019  *****
+
+Revised starspec.bbflux(), added checks for input data types.
+Updated documentation and added tests.
+Fixed some typos in starspec.read_kurucz() documentation.
+

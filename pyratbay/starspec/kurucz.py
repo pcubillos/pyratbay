@@ -3,9 +3,7 @@
 
 __all__ = ["read_kurucz"]
 
-
 import numpy as np
-import scipy.constants as sc
 
 from .. import constants as pc
 
@@ -31,7 +29,7 @@ def read_kurucz(filename, temp=None, logg=None):
   -------
   flux: 1D or 2D float ndarray
      If temp and logg are not None, a 1D array with the kurucz surface
-     flux per unit wavenumber (erg cm-2 cm) of the closest model to
+     flux per unit wavenumber (erg s-1 cm-2 cm) of the closest model to
      the input temperature and gravity.
      Else, a 2D array with all kurucz models in file, of shape
      [nmodels, nwave].
@@ -100,7 +98,7 @@ def read_kurucz(filename, temp=None, logg=None):
   else:
       imodels = range(nmodels)
 
-  # Read intensity per unit frequency (erg cm-2 s-1 Hz-1 ster-1):
+  # Read intensity per unit frequency (erg s-1 cm-2 Hz-1 ster-1):
   intensity = np.zeros((nmodels, nwave), np.double)
   continuum = np.zeros((nmodels, nwave), np.double)
   for k,i in enumerate(imodels):
@@ -112,7 +110,7 @@ def read_kurucz(filename, temp=None, logg=None):
       continuum[k] = [data[j*vsize:(j+1)*vsize] for j in range(nwave)]
 
   # Convert intensity per unit frequency to surface flux per unit
-  # wavenumber (erg cm-2 cm):
+  # wavenumber (erg s-1 cm-2 cm):
   flux      = np.flip(intensity, axis=1) * 4.0*np.pi * pc.c
   continuum = np.flip(continuum, axis=1) * 4.0*np.pi * pc.c
 
