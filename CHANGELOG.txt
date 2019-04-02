@@ -4502,3 +4502,8 @@ Revised starspec.bbflux(), added checks for input data types.
 Updated documentation and added tests.
 Fixed some typos in starspec.read_kurucz() documentation.
 
+*****
+
+Implemented command-line cross-section reformater code.
+Tests have not been implemented yet.
+

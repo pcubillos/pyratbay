@@ -12,18 +12,23 @@ def main():
     """
     Pyrat Bay: Python Radiative Transfer in a Bayesian framework
 
-    This code was initially developed in parallel with the Bayesian
-    Atmospheric Radiative Transfer (BART) code, developed at UCF:
-    https://github.com/exosports/BART
+    Pyrat Bay is a modification of the GNU-licensed transit code
+    (developed by Patricio Rojo).  Pyrat Bay branched as an alternative
+    of the Bayesian Atmospheric Radiative Transfer (BART) code,
+    developed at UCF: https://github.com/exosports/BART
 
     Examples
     --------
     # Run Pyrat Bay:
     python pbay.py -c config.cfg
 
-    # Re-format partition function files
+    # Re-format partition-function files
     python pbay.py -pf exomol 14N-1H3__BYTe.pf 15N-1H3__BYTe-15.pf
     python pbay.py -pf kurucz h2opartfn.dat
+
+    # Re-format cross-section files:
+    python pbay.py -cs hitran H2-H2_2011.cia 2 10
+    python pbay.py -cs borysow ciah2he_dh_quantmech H2 He
     """
     # Parse configuration file:
     parser = argparse.ArgumentParser(description=__doc__, add_help=True,
@@ -47,9 +52,14 @@ def main():
             pb.tools.pf_exomol(args.pf[1:])
         elif args.pf[0] == 'kurucz':
             pb.tools.pf_kurucz(args.pf[1])
+
     # Cross-section reformatting:
     elif args.cs is not None:
-        pass
+        if args.cs[0] == 'hitran':
+            pb.tools.cia_hitran(args.cs[1], int(args.cs[2]), int(args.cs[3]))
+        elif args.cs[0] == 'borysow':
+            pb.tools.cia_borysow(*args.cs[1:])
+
     # Pyrat-Bay run:
     elif args.cfile is not None:
         pb.pbay.run(args.cfile)
