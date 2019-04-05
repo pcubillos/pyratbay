@@ -107,11 +107,11 @@ def parse(pyrat, cfile, log=None):
       "Atmospheric radius sampling step [default: Atmospheric file value]")
   pt.addarg("runits",      group, str,       None,
       "Radius (and all other length) units [default: km]")
-  pt.addarg("plow",        group, str,       None,
-      "Atmospheric pressure low boundary (overrides radius high boundary) "
+  pt.addarg("ptop",        group, str,       None,
+      "Pressure at the top of the atmsophere (overrides radius high boundary) "
       "[default: %(default)s]")
-  pt.addarg("phigh",       group, str,       None,
-      "Atmospheric pressure high boundary (overrides radius low boundary) "
+  pt.addarg("pbottom",       group, str,       None,
+      "Pressure at the bottom of the atmposphere (overrides radius low boundary) "
       "[default: %(default)s]")
   pt.addarg("nlayers",     group, np.int,    None,
       "Number of atmospheric layers [default: %(default)s]")
@@ -392,11 +392,11 @@ def checkinputs(pyrat):
      "Input radius units (punits) defaulted to '{:s}'.", log)
 
   # Pressure boundaries:
-  pyrat.atm.phigh = pt.getparam(inputs.phigh, pyrat.atm.punits, log)
-  isgreater(pyrat.atm.phigh, "bar", 0, True,
+  pyrat.atm.pbottom = pt.getparam(inputs.pbottom, pyrat.atm.punits, log)
+  isgreater(pyrat.atm.pbottom, "bar", 0, True,
             "High atm pressure boundary ({:.2e} bar) must be > 0.0", log)
-  pyrat.atm.plow  = pt.getparam(inputs.plow,  pyrat.atm.punits, log)
-  isgreater(pyrat.atm.plow, "bar",  0, True,
+  pyrat.atm.ptop  = pt.getparam(inputs.ptop,  pyrat.atm.punits, log)
+  isgreater(pyrat.atm.ptop, "bar",  0, True,
             "Low atm pressure boundary ({:.2e} bar) must be > 0.0", log)
   # Radius boundaries:
   pyrat.atm.radlow  = pt.getparam(inputs.radlow,  pyrat.atm.runits, log)
@@ -754,7 +754,10 @@ def checkinputs(pyrat):
                "temperature model.")
 
   # Number of processors:
-  pyrat.ncpu = pt.getparam(inputs.ncpu, "none", log, integer=True)
+  if inputs.ncpu is None:
+      pyrat.ncpu = 1
+  else:
+      pyrat.ncpu = pt.getparam(inputs.ncpu, "none", log, integer=True)
   isgreater(pyrat.ncpu, "none", 1, False,
             "The number of processors ({:d}) must be >= 1.", log)
   if pyrat.ncpu >= mp.cpu_count():

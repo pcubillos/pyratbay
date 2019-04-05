@@ -190,22 +190,22 @@ def make_atmprofiles(pyrat):
       pass
 
   # Set radius/pressure boundaries if exist:
-  if atm.plow is not None:
-      if atm.plow >= atm_in.press[ibreak]:
+  if atm.ptop is not None:
+      if atm.ptop >= atm_in.press[ibreak]:
           ibreak = 0   # Turn-off break flag
   elif atm.radhigh is not None:
       if atm.radhigh <= atm_in.radius[ibreak]:
           ibreak = 0   # Turn-off break flag
-          atm.plow = pressinterp(atm.radhigh)[0]
+          atm.ptop = pressinterp(atm.radhigh)[0]
       #else:
       #  out-of-bounds error
   else:
-      atm.plow = np.amin(atm_in.press)
+      atm.ptop = np.amin(atm_in.press)
 
   if atm.radlow is not None:
-      atm.phigh = pressinterp(atm.radlow)[0]
-  elif atm.phigh is None:
-      atm.phigh = np.amax(atm_in.press)
+      atm.pbottom = pressinterp(atm.radlow)[0]
+  elif atm.pbottom is None:
+      atm.pbottom = np.amax(atm_in.press)
 
   if ibreak != 0 and np.isinf(pyrat.phy.rhill):
       pyrat.log.error("Unbounded atmosphere.  Hydrostatic-equilibrium radius "
@@ -214,23 +214,23 @@ def make_atmprofiles(pyrat):
           format(atm_in.press[ibreak]/pc.bar))
 
   # Out of bounds errors:
-  if atm.plow < np.amin(atm_in.press):
+  if atm.ptop < np.amin(atm_in.press):
       pyrat.log.error("User-defined bottom layer (p={:.3e} {:s}) is lower than "
           "the atmospheric-file bottom layer (p={:.3e} {:s}).".
-          format(atm.plow/pt.u(atm.punits), atm.punits,
+          format(atm.ptop/pt.u(atm.punits), atm.punits,
                  np.amin(atm_in.press)/pt.u(atm.punits), atm.punits))
-  if atm.phigh > np.amax(atm_in.press):
+  if atm.pbottom > np.amax(atm_in.press):
       pyrat.log.error("User-defined top layer (p={:.3e} {:s}) is higher than "
           "the atmospheric-file top layer (p={:.3e} {:s}).".
-          format(atm.phigh/pt.u(atm.punits), atm.punits,
+          format(atm.pbottom/pt.u(atm.punits), atm.punits,
                  np.amax(atm_in.press)/pt.u(atm.punits), atm.punits))
 
   pyrat.log.msg("User pressure boundaries: {:.2e}--{:.2e} bar.".
-                format(atm.plow/pc.bar, atm.phigh/pc.bar), verb=2, indent=2)
+                format(atm.ptop/pc.bar, atm.pbottom/pc.bar), verb=2, indent=2)
 
   # Resample to equispaced log-pressure array if requested:
   if atm.nlayers is not None:
-      atm.press = np.logspace(np.log10(atm.plow), np.log10(atm.phigh),
+      atm.press = np.logspace(np.log10(atm.ptop), np.log10(atm.pbottom),
                               atm.nlayers)
       atm.radius = radinterp(atm.press)
       resample = True
@@ -239,9 +239,9 @@ def make_atmprofiles(pyrat):
   elif atm.radstep is not None:
       # Make equispaced radius array:
       if atm.radlow is None:
-          atm.radlow  = radinterp(atm.phigh)[0]
+          atm.radlow  = radinterp(atm.pbottom)[0]
       if atm.radhigh is None:
-          atm.radhigh = radinterp(atm.plow)[0]
+          atm.radhigh = radinterp(atm.ptop)[0]
 
       atm.radius = np.arange(atm.radlow, atm.radhigh, atm.radstep)
       atm.nlayers = len(atm.radius)
@@ -251,8 +251,8 @@ def make_atmprofiles(pyrat):
 
   else:  # Take the atmospheric-file sampling:
       # Get top-bottom indices:
-      ilow  = np.where(atm_in.press >= atm.plow) [0][-1]
-      ihigh = np.where(atm_in.press <= atm.phigh)[0][ 0]
+      ilow  = np.where(atm_in.press >= atm.ptop)   [0][-1]
+      ihigh = np.where(atm_in.press <= atm.pbottom)[0][ 0]
       # Take values within the boundaries:
       atm.press = atm_in.press[ihigh:ilow+1]
       atm.temp  = atm_in.temp [ihigh:ilow+1]
@@ -285,7 +285,7 @@ def make_atmprofiles(pyrat):
 
   pyrat.log.msg("Valid lower/higher pressure boundaries: {:.2e} - "
                 "{:.2e} {:s}.".format(atm.press[atm.rtop]/pt.u(atm.punits),
-                atm.phigh/pt.u(atm.punits), atm.punits), verb=2, indent=2)
+                atm.pbottom/pt.u(atm.punits), atm.punits), verb=2, indent=2)
   pyrat.log.msg("Number of valid model layers: {:d}.".
                 format(atm.nlayers-atm.rtop), verb=2, indent=2)
 

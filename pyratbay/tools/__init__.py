@@ -4,8 +4,13 @@
 from .tools        import *
 from .contribfuncs import *
 from .percentiles  import *
+from .parser       import *
 
-__all__ = tools.__all__ + contribfuncs.__all__ + percentiles.__all__
+__all__ = ( tools.__all__
+          + contribfuncs.__all__
+          + percentiles.__all__
+          + parser.__all__
+          )
 
 # Clean up top-level namespace--delete everything that isn't in __all__
 # or is a magic attribute, and that isn't a submodule of this package

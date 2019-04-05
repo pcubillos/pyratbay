@@ -4532,3 +4532,15 @@ Cosmetic edits in constants.py.
 
 Renamed nproc argument with ncpu.
 
+*****
+
+Unified pyrat and pbay parse() functions into a single function in tools.
+Replaced pbay.parse() with tools.parse().
+Replacing pyrat.parse() is TBI.
+Also TBI, merge in lineread.parse() as well.
+Removed molscale argument.
+Renamed plow and phigh to ptop and pbottom, respectively.
+Renamed tparams with tpars argument.
+
+Tweaked tools.addarg() to default help, and enable action argument.
+

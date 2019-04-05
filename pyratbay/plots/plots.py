@@ -148,7 +148,7 @@ def spectrum(wlength=None, spectrum=None, data=None, uncert=None,
 
   ax.tick_params(labelsize=fs-2)
   plt.xlabel("Wavelength  (um)", fontsize=fs)
-  leg = plt.legend(loc="best", numpoints=1, fontsize=fs-1)
+  plt.legend(loc="best", numpoints=1, fontsize=fs-1)
   plt.xlim(np.amin(wlength), np.amax(wlength))
 
   if filename is not None:
@@ -312,7 +312,7 @@ def cf(bandcf, bandwl, path, pressure, radius, rtop=0,
     plt.savefig(filename)
 
 
-def PT(posterior, pressure=None, tparams=None, tstepsize=None,
+def PT(posterior, pressure=None, tpars=None, tstepsize=None,
        besttpars=None, rstar=None, tstar=None, tint=None, smaxis=None,
        gplanet=None, filename=None, pyrat=None):
   """
@@ -324,7 +324,7 @@ def PT(posterior, pressure=None, tparams=None, tstepsize=None,
      The MCMC posterior array of shape [nsamples, nparams]
   pressure: 1D float ndarray
      The atmospheric pressure profile in barye.
-  tparams: 1D float ndarray
+  tpars: 1D float ndarray
      The list of temperature-profile parameters.
   tstepsize: 1D float ndarray
      Stepsize of the temperature-profile parameters.
@@ -347,13 +347,13 @@ def PT(posterior, pressure=None, tparams=None, tstepsize=None,
   if pyrat is not None:
     pressure  = pyrat.atm.press
     targs     = pyrat.atm.targs
-    tparams   = pyrat.ret.params[pyrat.ret.itemp]
+    tpars     = pyrat.ret.params[pyrat.ret.itemp]
     tstepsize = pyrat.ret.stepsize[pyrat.ret.itemp]
     tmodel    = pyrat.atm.tmodel
-  elif (pressure is None  or  tparams is None  or  tstepsize is None or
+  elif (pressure is None  or  tpars   is None  or  tstepsize is None or
         rstar    is None  or  tstar   is None  or  tint      is None or
         smaxis   is None  or  gplanet is None):
-    print("One or more input parameters is missing (pressure, tparams, "
+    print("One or more input parameters is missing (pressure, tpars, "
           "tstepsize, rstar, tstar, tint, smaxis, gplanet).")
 
   if pyrat is None:
@@ -378,8 +378,8 @@ def PT(posterior, pressure=None, tparams=None, tstepsize=None,
   # Evaluate posterior PT profiles:
   PTprofiles = np.zeros((nsamples, nlayers), np.double)
   for i in np.arange(nsamples):
-    tparams[ifree] = posterior[i, ipost]
-    PTprofiles[i] = tmodel(tparams, *targs)
+    tpars[ifree] = posterior[i, ipost]
+    PTprofiles[i] = tmodel(tpars, *targs)
 
   # Get percentiles (for 1,2-sigma boundaries):
   low1 = np.percentile(PTprofiles, 16.0, axis=0)

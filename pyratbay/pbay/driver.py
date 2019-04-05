@@ -32,7 +32,7 @@ def run(cfile):
   # Put everything into a try--except to catch the sys.exit() Traceback.
   try:
     # Parse command line arguments:
-    args, log = ar.parse(cfile)
+    args, log = pt.parse(cfile)
 
     # Check run mode:
     if args.runmode not in pc.rmodes:
@@ -63,7 +63,7 @@ def run(cfile):
         ar.checktemp(args, log)      # Check temperature inputs
         temperature = pa.temperature(args.tmodel, pressure,
              args.rstar, args.tstar, args.tint, args.gplanet, args.smaxis,
-             args.runits, args.nlayers, log, args.tparams)
+             args.runits, args.nlayers, log, args.tpars)
       # If PT file is provided, read it:
       elif os.path.isfile(args.ptfile):
         log.msg("\nReading pressure-temperature file: '{:s}'.".

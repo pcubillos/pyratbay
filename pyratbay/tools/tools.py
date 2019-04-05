@@ -404,25 +404,32 @@ def isfile(path):
   return os.path.isfile(path)
 
 
-def addarg(variable, pgroup, type, default, help):
+def addarg(variable, parser, type, default, help='', action=None):
   """
-  Wrapper of the parser argument group.
+  Wrapper of an argparse add_argument() method.
 
   Parameters
   ----------
-  pgroup: _ArgumentGroup
-     A parser's argument group.
   variable: String
-     The variable name.
+      The variable name.
+  parser:
+      An argparse parser.
   type: Callable
-     Type of the variable.
+      Type of the variable.
   default: Any
-     Default value of the variable.
+      Default value of the variable.
   help: String
-     Brief description of the argument.
+      Brief description of the argument.
+  action: String
+      Action for the argument.
   """
-  pgroup.add_argument("--{:s}".format(variable), dest=variable,
+  if action is not None:
+      parser.add_argument("--{:s}".format(variable), dest=variable,
+                      action=action, default=default, help=help)
+  else:
+      parser.add_argument("--{:s}".format(variable), dest=variable,
                       action="store", type=type, default=default, help=help)
+
 
 def path(filename):
     """

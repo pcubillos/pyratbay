@@ -102,11 +102,11 @@ def plot_transmission():
 
 # Now try some forward models that modify the atmospheric profile:
 def test_transmission_tmodel_none():
-    # include tmodel, but tparams is None
+    # include tmodel, but tpars is None
     tpyrat = pb.pbay.run(ROOT+'tests/spectrum_transmission_tmodel_none_test.cfg')
     tmodel0 = tpyrat.spec.spectrum
     np.testing.assert_allclose(tmodel0, expected['all'], rtol=1e-7)
-    # Now, re-run with user-input tparams:
+    # Now, re-run with user-input tpars:
     tpyrat.atm.tpars = np.array([-1.5, -0.8, -0.8,  0.5,  1.0])
     tpyrat.run()
     tmodel1 = tpyrat.spec.spectrum

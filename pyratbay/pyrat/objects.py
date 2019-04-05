@@ -98,8 +98,8 @@ class Atm(object):
     self.radstep  = None  # Radius sampling interval
     self.radlow   = None  # Lowest radius boundary
     self.radhigh  = None  # Highest radius boundary
-    self.plow     = None  # Lowest pressure boundary
-    self.phigh    = None  # Highest pressure boundary
+    self.ptop     = None  # Lowest pressure boundary
+    self.pbottom  = None  # Highest pressure boundary
     self.hydrom   = False # Variable/constant-g flag for hydrostatic equilib.
 
     self.atmfile   = None      # Atmopheric-model file
