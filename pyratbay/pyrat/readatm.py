@@ -14,68 +14,65 @@ def readatm(pyrat):
   Read the atmospheric file, store variables in pyrat.
   """
   # Check atmfile:
-  pyrat.log.msg("\nReading atmospheric file: '{:s}'.".format(pyrat.atmfile))
+  pyrat.log.msg("\nReading atmospheric file: '{:s}'.".format(pyrat.atm.atmfile))
 
   # User-input atmospheric-data object:
-  atm = pyrat.inputs.atm
+  atm    = pyrat.atm
+  atm_in = pyrat.inputs.atm
 
   try:
-      atm_inputs = pa.readatm(pyrat.atmfile)
+      atm_inputs = pa.readatm(pyrat.atm.atmfile)
   except ValueError as e:
       pyrat.log.error(e.args[0])
 
   # Atmospheric-file units, species, and profiles:
   punits, tunits, qunits, runits = atm_inputs[0]
   pyrat.mol.name = atm_inputs[1]
-  atm.press, atm.temp, atm.q, atm.radius = atm_inputs[2:]
-
-  # Warnings:
-  atm.punits = pt.defaultp(punits, 'barye', "Undefined pressure units in "
-      "the input atmospheric file.  Assumed to be '{:s}'.", pyrat.log)
-  atm.tunits = pt.defaultp(tunits, 'kelvin', "Undefined temperature units in "
-      "the input atmospheric file.  Assumed to be '{:s}'.", pyrat.log)
-  if atm.radius is not None:
-      atm.runits = pt.defaultp(runits, 'cm', "Undefined radius units in the "
-          "input atmospheric file.  Assumed to be '{:s}'.", pyrat.log)
-  atm.qunits = pt.defaultp(qunits, 'number', "Undefined abundance units in "
-      "the input atmospheric file.  Assumed to be '{:s}'.", pyrat.log)
-
-  atm.nlayers, pyrat.mol.nmol = np.shape(atm.q)
-  pyrat.log.msg("Species list: \n  {:s}".format(str(pyrat.mol.name)),
-                verb=2, indent=2, si=4)
-
-  txt = "volume" if (qunits == "number") else "mass"
-  pyrat.log.msg("Abundances are given by {:s} ({:s} mixing ratio).".
-      format(atm.qunits, txt), verb=2, indent=2)
-  pyrat.log.msg("Unit factors: radius: {}, pressure: {:s}, temperature: {:s}".
-      format(atm.runits, atm.punits, atm.tunits), verb=2, indent=2)
+  pyrat.mol.nmol = len(pyrat.mol.name)
 
   # Read molecular constant values:
   getconstants(pyrat)
 
   # Store values in CGS system of units:
-  if atm.radius is not None:
-      atm.radius *= pt.u(atm.runits)
-  atm.press *= pt.u(atm.punits)
-  atm.temp  *= pt.u(atm.tunits)
-
-  pyrat.log.msg("Number of layers in the input atmospheric file: {:d}".
-                format(atm.nlayers), verb=2, indent=2)
-  pyrat.log.msg("Atmospheric file pressure limits: {:.2e}--{:.2e} {:s}.".
-      format(atm.press[ 0]/pt.u(atm.punits),
-             atm.press[-1]/pt.u(atm.punits), atm.punits), verb=2, indent=2)
+  atm_in.press  = atm_inputs[2] * pt.u(punits)
+  atm_in.temp   = atm_inputs[3] * pt.u(tunits)
+  atm_in.q      = atm_inputs[4]
+  if atm_inputs[5] is not None:
+      atm_in.radius = atm_inputs[5] * pt.u(runits)
+  atm_in.nlayers = len(atm_in.press)
 
   # Calculate the mean molecular mass per layer:
-  atm.mm = np.sum(atm.q*pyrat.mol.mass, axis=1)
-  pyrat.log.msg("Typical mean molecular mass: {:.3f} g mol-1.".
-                format(np.median(atm.mm)), verb=2, indent=2)
+  if qunits == 'mass':
+      atm_in.mm = 1.0/np.sum(atm_in.q/pyrat.mol.mass, axis=1)
+  elif qunits == 'number':
+      atm_in.mm = np.sum(atm_in.q*pyrat.mol.mass, axis=1)
+  else:
+      pyrat.log.error("Invalid input abundance units ('{:s}').".format(qunits))
 
   # Store the abundance as volume mixing ratio:
-  if atm.qunits == "mass":
-      atm.q = atm.q * atm.mm / pyrat.mol.mass
+  if qunits == "mass":
+      atm_in.q = atm_in.q * atm_in.mm / pyrat.mol.mass
 
   # Calculate number density profiles for each molecule (in molecules cm-3):
-  atm.d = pa.IGLdensity(atm.q, atm.press, atm.temp)
+  atm_in.d = pa.IGLdensity(atm_in.q, atm_in.press, atm_in.temp)
+
+  pyrat.log.msg("Species list:\n  {:s}".format(str(pyrat.mol.name)),
+                verb=2, indent=2, si=4)
+
+  txt = "volume" if (qunits == "number") else "mass"
+  pyrat.log.msg("Abundances are given by {:s} ({:s} mixing ratio).".
+      format(qunits, txt), verb=2, indent=2)
+  pyrat.log.msg("Unit factors: radius: {}, pressure: {:s}, temperature: {:s}".
+      format(runits, punits, tunits), verb=2, indent=2)
+
+  pyrat.log.msg("Number of layers in the input atmospheric file: {:d}".
+      format(atm_in.nlayers), verb=2, indent=2)
+  pyrat.log.msg("Atmospheric file pressure limits: {:.2e}--{:.2e} {:s}.".
+      format(atm_in.press[ 0]/pt.u(atm.punits),
+             atm_in.press[-1]/pt.u(atm.punits), atm.punits), verb=2, indent=2)
+
+  pyrat.log.msg("Typical mean molecular mass: {:.3f} g mol-1.".
+      format(np.median(atm_in.mm)), verb=2, indent=2)
 
   pyrat.log.msg("Read atmosphere done.")
 
@@ -86,14 +83,14 @@ def getconstants(pyrat):
   """
   # Read file with molecular info:
   pyrat.log.msg("Taking species constant parameters from: '{:s}'.".
-                format(pyrat.molfile), verb=2, indent=2)
-  molID, symbol, mass, diam = pa.readmol(pyrat.molfile)
+                format(pyrat.mol.molfile), verb=2, indent=2)
+  molID, symbol, mass, diam = pa.readmol(pyrat.mol.molfile)
 
   # Check that all atmospheric species are listed in molfile:
   absent = np.setdiff1d(pyrat.mol.name, symbol)
   if len(absent) > 0:
-    pyrat.log.error("These species: {:s} are not listed in the molecules "
-                    "info file: {:s}.\n".format(str(absent), pyrat.molfile))
+      pyrat.log.error("These species: {:s} are not listed in the molecules "
+          "info file: {:s}.\n".format(str(absent), pyrat.mol.molfile))
 
   # Set molecule's values:
   pyrat.mol.ID     = np.zeros(pyrat.mol.nmol, np.int)
@@ -103,20 +100,17 @@ def getconstants(pyrat):
 
   pyrat.log.msg("Molecule   ID   Radius  Mass\n"
                 "                (A)     (gr/mol)", verb=2, indent=4)
-  for i in np.arange(pyrat.mol.nmol):
-    # Find the molecule in the list:
-    imol = np.where(symbol == pyrat.mol.name[i])[0]
-    # Set molecule ID:
-    pyrat.mol.ID[i]     = molID [imol]
-    # Set molecule symbol:
-    pyrat.mol.symbol[i] = symbol[imol][0]
-    # Set molecule mass:
-    pyrat.mol.mass[i]   = mass  [imol]
-    # Set molecule collision radius:
-    pyrat.mol.radius[i] = 0.5 * diam[imol] * pc.A
-    pyrat.log.msg("{:>10s}:  {:3d}  {:.3f}  {:8.4f}".format(pyrat.mol.name[i],
-                  pyrat.mol.ID[i], pyrat.mol.radius[i]/pc.A,
-                  pyrat.mol.mass[i]), verb=2, indent=2)
+  for i in range(pyrat.mol.nmol):
+      # Find the molecule in the list:
+      imol = np.where(symbol == pyrat.mol.name[i])[0]
+      # Set molecule ID, name, mass, and collision radius:
+      pyrat.mol.ID[i]     = molID [imol]
+      pyrat.mol.symbol[i] = symbol[imol][0]
+      pyrat.mol.mass[i]   = mass  [imol]
+      pyrat.mol.radius[i] = 0.5*diam[imol] * pc.A
+      pyrat.log.msg("{:>10s}:  {:3d}  {:.3f}  {:8.4f}".format(pyrat.mol.name[i],
+                    pyrat.mol.ID[i], pyrat.mol.radius[i]/pc.A,
+                    pyrat.mol.mass[i]), verb=2, indent=2)
 
 
 def reloadatm(pyrat, temp=None, abund=None, radius=None):
@@ -210,12 +204,12 @@ def reloadatm(pyrat, temp=None, abund=None, radius=None):
           pyrat.log.error("Undefined atmospheric gravity (gplanet). "
            "Either provide the radius profile for the layers, the surface "
            "gravity, or the planetary mass (mplanet).")
-      if pyrat.refpressure is None:
+      if pyrat.atm.refpressure is None:
           pyrat.log.error("Undefined reference pressure level (refpressure). "
            "Either provide the radius profile for the layers or refpressure.")
       pyrat.atm.radius = pyrat.hydro(pyrat.atm.press, pyrat.atm.temp,
                             pyrat.atm.mm, pyrat.phy.gplanet, pyrat.phy.mplanet,
-                            pyrat.refpressure, pyrat.phy.rplanet)
+                            pyrat.atm.refpressure, pyrat.phy.rplanet)
 
   # Check radii lie within Hill radius:
   pyrat.atm.rtop = pt.ifirst(pyrat.atm.radius < pyrat.phy.rhill, default_ret=0)

@@ -34,8 +34,8 @@ def spectrum(pyrat):
     flux(pyrat)
 
   # Print spectrum to file:
-  io.write_spectrum(1.0/pyrat.spec.wn, pyrat.spec.spectrum, pyrat.outspec,
-                    pyrat.od.path)
+  io.write_spectrum(1.0/pyrat.spec.wn, pyrat.spec.spectrum,
+                    pyrat.spec.outspec, pyrat.od.path)
   pyrat.log.msg("Done.")
 
 
@@ -89,28 +89,29 @@ def modulation(pyrat):
                              (1-pyrat.haze.fpatchy) * pyrat.spec.clear  )
 
   pyrat.log.msg("Computed transmission spectrum: '{:s}'.".
-                format(pyrat.outspec), indent=2)
+                format(pyrat.spec.outspec), indent=2)
 
 
 def intensity(pyrat):
   """
   Calculate the intensity spectrum [units] for eclipse geometry.
   """
+  spec = pyrat.spec
   pyrat.log.msg("Computing intensity spectrum.", verb=2, indent=2)
-  if pyrat.quadrature is not None:
-    pyrat.raygrid = np.arccos(np.sqrt(pyrat.qnodes))
+  if spec.quadrature is not None:
+      spec.raygrid = np.arccos(np.sqrt(spec.qnodes))
 
   # Allocate intensity array:
-  pyrat.nangles = len(pyrat.raygrid)
-  pyrat.spec.intensity = np.empty((pyrat.nangles, pyrat.spec.nwave), np.double)
+  spec.nangles = len(spec.raygrid)
+  spec.intensity = np.empty((spec.nangles, spec.nwave), np.double)
 
   # Calculate the Planck Emission:
-  pyrat.od.B = np.zeros((pyrat.atm.nlayers, pyrat.spec.nwave), np.double)
-  bb.Bwn2D(pyrat.spec.wn, pyrat.atm.temp, pyrat.od.B, pyrat.od.ideep)
+  pyrat.od.B = np.zeros((pyrat.atm.nlayers, spec.nwave), np.double)
+  bb.Bwn2D(spec.wn, pyrat.atm.temp, pyrat.od.B, pyrat.od.ideep)
 
   # Plane-parallel radiative-transfer intensity integration:
-  pyrat.spec.intensity = t.intensity(pyrat.od.depth, pyrat.od.ideep,
-                           pyrat.od.B, np.cos(pyrat.raygrid), pyrat.atm.rtop)
+  spec.intensity = t.intensity(pyrat.od.depth, pyrat.od.ideep,
+                               pyrat.od.B, np.cos(spec.raygrid), pyrat.atm.rtop)
 
 
 def flux(pyrat):
@@ -118,15 +119,14 @@ def flux(pyrat):
   Calculate the hemisphere-integrated flux spectrum [units] for eclipse
   geometry.
   """
+  spec = pyrat.spec
   # Calculate the projected area:
-  boundaries = np.linspace(0, 0.5*np.pi, pyrat.nangles+1)
-  boundaries[1:pyrat.nangles] = 0.5 * (pyrat.raygrid[:-1] + pyrat.raygrid[1:])
+  boundaries = np.linspace(0, 0.5*np.pi, spec.nangles+1)
+  boundaries[1:spec.nangles] = 0.5 * (spec.raygrid[:-1] + spec.raygrid[1:])
   area = np.pi * (np.sin(boundaries[1:])**2 - np.sin(boundaries[:-1])**2)
 
-  if pyrat.quadrature is not None:
-    area = pyrat.qweights * np.pi
+  if spec.quadrature is not None:
+      area = spec.qweights * np.pi
   # Weight-sum the intensities to get the flux:
-  pyrat.spec.spectrum[:] = np.sum(pyrat.spec.intensity *
-                                  np.expand_dims(area,1), axis=0)
-  pyrat.log.msg("Computed flux spectrum: '{:s}'.".
-                format(pyrat.outspec), indent=2)
+  spec.spectrum[:] = np.sum(spec.intensity * np.expand_dims(area,1), axis=0)
+  pyrat.log.msg("Computed flux spectrum: '{:s}'.".format(spec.outspec),indent=2)

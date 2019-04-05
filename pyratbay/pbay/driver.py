@@ -51,7 +51,7 @@ def run(cfile):
         args.mplanet is not None):
       args.gplanet = (pc.G
                     * pt.getparam(args.mplanet, "gram", log)
-                    / pt.getparam(args.rplanet, args.radunits, log)**2)
+                    / pt.getparam(args.rplanet, args.runits, log)**2)
 
     # Compute pressure-temperature profile:
     if args.runmode in ["pt", "atmosphere"] or pt.isfile(args.atmfile) != 1:
@@ -63,7 +63,7 @@ def run(cfile):
         ar.checktemp(args, log)      # Check temperature inputs
         temperature = pa.temperature(args.tmodel, pressure,
              args.rstar, args.tstar, args.tint, args.gplanet, args.smaxis,
-             args.radunits, args.nlayers, log, args.tparams)
+             args.runits, args.nlayers, log, args.tparams)
       # If PT file is provided, read it:
       elif os.path.isfile(args.ptfile):
         log.msg("\nReading pressure-temperature file: '{:s}'.".
@@ -109,13 +109,13 @@ def run(cfile):
 
     # End if necessary:
     if args.runmode == "opacity":
-      return pyrat
+        return pyrat
 
     # Parse retrieval info into the Pyrat object:
     pf.init(pyrat, args, log)
     pyrat.log = dummy_log
     dummy_log.verb = 0    # Mute logging in PB, but not in MC3
-    pyrat.outspec = None  # Avoid writing spectrum file during MCMC
+    pyrat.spec.outspec = None  # Avoid writing spectrum file during MCMC
 
     # Basename of the output files:
     outfile = os.path.splitext(os.path.basename(log.logname))[0]
@@ -139,7 +139,7 @@ def run(cfile):
       bestp, CRlo, CRhi, stdp, posterior, Zchain = mc3_out
 
     # Best-fitting model:
-    pyrat.outspec = "{:s}_bestfit_spectrum.dat".format(outfile)
+    pyrat.spec.outspec = "{:s}_bestfit_spectrum.dat".format(outfile)
     dummy = pyrat.eval(bestp, retmodel=False)
 
     # Best-fit atmfile header:
@@ -171,11 +171,12 @@ def run(cfile):
 
     pyrat.log = log  # Un-mute
     log.msg("\nOutput MCMC posterior results, log, bestfit atmosphere, "
-      "and spectrum:\n'{:s}.npz',\n'{:s}',\n'{:s}',\n'{:s}'.\n\n".
-      format(outfile, os.path.basename(args.logfile), bestatm, pyrat.outspec))
+            "and spectrum:\n'{:s}.npz',\n'{:s}',\n'{:s}',\n'{:s}'.\n\n".
+            format(outfile, os.path.basename(args.logfile), bestatm,
+                   pyrat.spec.outspec))
     log.close()
     return pyrat, bestp
 
   # Avoid printing to screeen the System-Exit Traceback error:
   except SystemExit:
-    return None
+      return None

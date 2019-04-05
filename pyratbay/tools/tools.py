@@ -230,9 +230,9 @@ def u(units, log=None):
   """
   # Accept only valid units:
   if units not in pc.validunits:
-    # Throw error:
-    print("Units name '{:s}' does not exist.".format(units))
-    sys.exit(0)
+      # Throw error:
+      print("Units name '{:s}' does not exist.".format(units))
+      sys.exit(0)
   factor = getattr(pc, units)
   return factor
 
@@ -640,7 +640,6 @@ def pf_exomol(pf_files):
   isotopes = []
   data, temps = [], []
   molecule = ""
-  nt = 0
   for pf_file in pf_files:
       # Get info from file name:
       mol, iso = get_exomol_mol(pf_file)

@@ -15,11 +15,11 @@ def readlinedb(pyrat):
   Main driver to read the line transition data from TLI files.
   """
   # Count number of TLI files:
-  if pyrat.linedb is None:
+  if pyrat.lt.linedb is None:
     pyrat.lt.nTLI = 0
     pyrat.log.msg("\nNo line transition file to read.")
   else:
-    pyrat.lt.nTLI = len(pyrat.linedb)
+    pyrat.lt.nTLI = len(pyrat.lt.linedb)
     pyrat.log.msg("\nReading line transition info.")
 
   # TLI file object:
@@ -30,8 +30,8 @@ def readlinedb(pyrat):
   # Read data bases header info:
   for n in np.arange(pyrat.lt.nTLI):
     # Open-read TLI data base:
-    TLI.append(open(pyrat.linedb[n], "rb"))
-    pyrat.log.msg("Read TLI file: '{:s}'.".format(pyrat.linedb[n]), indent=2)
+    TLI.append(open(pyrat.lt.linedb[n], "rb"))
+    pyrat.log.msg("Read TLI file: '{:s}'.".format(pyrat.lt.linedb[n]), indent=2)
     # Read headers info:
     dbindex.append(dbindex[-1] + readheader(pyrat, TLI[n]))
 

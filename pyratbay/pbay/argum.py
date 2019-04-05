@@ -72,11 +72,11 @@ def parse(cfile):
            action="store", type=str, default=None)
   # Physical variables of the system:
   group = parser.add_argument_group("Physical parameters")
-  group.add_argument("--radunits",  dest="radunits",
+  group.add_argument("--runits",  dest="runits",
            help="Radius units [default: cm]",
            action="store", type=str,       default=None)
   group.add_argument("--rstar",   dest="rstar",
-           help="Stellar radius (default units: radunits).",
+           help="Stellar radius (default units: runits).",
            action="store", type=str,       default=None)
   group.add_argument("--tstar",   dest="tstar",
            help="Stellar effective temperature (kelvin).",
@@ -85,7 +85,7 @@ def parse(cfile):
            help="Stellar surface gravity (cm s-2).",
            action="store", type=np.double, default=None)
   group.add_argument("--smaxis",  dest="smaxis",
-           help="Orbital semi-major axis (default units: radunits).",
+           help="Orbital semi-major axis (default units: runits).",
            action="store", type=str,       default=None)
   group.add_argument("--tint",    dest="tint",
            help="Planetary internal temperature (kelvin) [default: 100].",
@@ -97,7 +97,7 @@ def parse(cfile):
            help="Planetary surface gravity (cm s-2).",
            action="store", type=np.double, default=None)
   group.add_argument("--rplanet", dest="rplanet",
-           help="Planetary radius (radunits) [default: %(default)s]",
+           help="Planetary radius (runits) [default: %(default)s]",
            action="store", type=str,       default=None)
   group.add_argument("--starspec",   dest="starspec",
            help="Stellar spectrum model file.",
@@ -303,9 +303,9 @@ def checktemp(args, log):
       log.error("Undefined planetary surface gravity, set either gplanet or "
                 "mplanet and rplanet.")
     args.tint = pt.defaultp(args.tint, "100.0",
-       "Planetary internal temperature defaulted to {:s} K.", log)
-    args.radunits = pt.defaultp(args.radunits, "cm",
-       "radunits input variable defaulted to '{:s}'.", log)
+        "Planetary internal temperature defaulted to {:s} K.", log)
+    args.runits = pt.defaultp(args.runits, "cm",
+        "runits input variable defaulted to '{:s}'.", log)
 
   elif args.tmodel == "isothermal":
     if len(args.tparams) != 1:

@@ -4507,3 +4507,20 @@ Fixed some typos in starspec.read_kurucz() documentation.
 Implemented command-line cross-section reformater code.
 Tests have not been implemented yet.
 
+
+*****  Fr 5. Apr 10:55:21 CEST 2019  *****
+
+Reshuffled variables in the Pyrat object.
+Moved atmfile, radstep, hydrom, phigh, plow, radlow, radhigh,
+radunits, punits, and refpressure from Pyrat to Pyrat.atm.
+Renamed radunits to runits.
+Moved linedb from Pyrat to Pyrat.lt.
+Moved molfile from Pyrat to Pyrat.mol.
+Moved raygrid, quadrature, qnodes, qweights, nangles, and outspec
+from Pyrat to Pyrat.spectrum.
+Removed outsample, and outmaxdepth.
+
+Refactored readatm() in readatm.py to handle input abundances by mass
+(testing is TBI).
+
+

@@ -22,8 +22,9 @@ class Inputs(object):
 
 class Spectrum(object):
   def __init__(self):
-    self.nwave     = None  # Number of wavenumber spectral samples
+    self.outspec   = None  # Modulation/Flux spectrum file
     # Wavenumber:
+    self.nwave     = None  # Number of wavenumber spectral samples
     self.wnunits   = None  # User-input wavenumber physical units
     self.wn        = None  # Wavenumber array
     self.wnlow     = None  # Lowest wavenumber boundary
@@ -40,6 +41,7 @@ class Spectrum(object):
     self.wllow     = None  # Lowest wavelength boundary
     self.wlhigh    = None  # Highest wavelength boundary
     # Spectrum:
+    self.raygrid   = None  # Array of incident ray-angles (emission)
     self.intensity = None  # Intensity spectrum array
     self.spectrum  = None  # Modulation/Flux spectrum
     self.clear     = None  # Clear modulation spectrum for patchy model
@@ -91,9 +93,19 @@ class Spectrum(object):
 
 class Atm(object):
   def __init__(self):
+    # From pyrat:
+    self.refpressure = None  # Pressure reference level
+    self.radstep  = None  # Radius sampling interval
+    self.radlow   = None  # Lowest radius boundary
+    self.radhigh  = None  # Highest radius boundary
+    self.plow     = None  # Lowest pressure boundary
+    self.phigh    = None  # Highest pressure boundary
+    self.hydrom   = False # Variable/constant-g flag for hydrostatic equilib.
+
+    self.atmfile   = None      # Atmopheric-model file
     self.qunits    = None      # Input abundance units ('mass' or 'number')
     self.runits    = None      # Input radius units
-    self.punits    = None     # Input pressure units
+    self.punits    = None      # Input pressure units
     self.tunits    = 'kelvin'  # Input temperature units
     self.nlayers   = None      # Number of layers
     self.radius    = None      # Radius array (cm)            [layers]
@@ -138,6 +150,7 @@ class Atm(object):
 
 class Molecules(object):
   def __init__(self):
+    self.molfile = None  # Molecular-properties file
     self.nmol   = 0     # Number of species
     self.name   = None  # Species' name               [nmol]
     self.symbol = None  # Species' symbol             [nmol]
@@ -160,6 +173,7 @@ class Molecules(object):
 
 class Linetransition(object):
   def __init__(self):
+    self.linedb  = None     # Line-transition data file
     self.nTLI    = 0        # Number of TLI files
     self.ndb     = 0        # Number of data bases
     self.db      = []       # Data base objects
@@ -488,15 +502,15 @@ class Optdepth(object):
             pt.wrap(info, "\nDistance (km) along the raypath over each layer "
                           "(outside-in) for each impact parameter:", 2)
             pt.wrap(info, "IP[  1] ({:.1f} km): {}".format(
-                    pyrat.atm.radius[1]/pc.km, self.raypath[1]/pc.km), 4)
+                    self.atm.radius[1]/pc.km, self.raypath[1]/pc.km), 4)
             pt.wrap(info, "IP[  2] ({:.1f} km): {}".format(
-                    pyrat.atm.radius[2]/pc.km, self.raypath[2]/pc.km), 4)
+                    self.atm.radius[2]/pc.km, self.raypath[2]/pc.km), 4)
             pt.wrap(info, "IP[  3] ({:.1f} km): {}".format(
-                    pyrat.atm.radius[3]/pc.km, self.raypath[3]/pc.km), 4)
+                    self.atm.radius[3]/pc.km, self.raypath[3]/pc.km), 4)
             pt.wrap(info, "...", 4)
             pt.wrap(info, "IP[{:3d}] ({:.1f} km): {}".format(
-                    len(pyrat.atm.radius),
-                    pyrat.atm.radius[-1]/pc.km,
+                    len(self.atm.radius),
+                    self.atm.radius[-1]/pc.km,
                     str(self.raypath[-1]/pc.km)).replace("\n", ""), 4, 6)
             pt.wrap(info, "\nOptical depth for each impact parameter "
                           "(outside-in) for each wavenumber:", 2)
@@ -509,16 +523,16 @@ class Optdepth(object):
                           "a normal-incident raypath for each wavenumber:", 2)
         # Print optical depth:
         np.set_printoptions(formatter={'float': '{: .1e}'.format})
-        pt.wrap(info, "At {:7.1f} cm-1:  {}".format(pyrat.spec.wn[0],
+        pt.wrap(info, "At {:7.1f} cm-1:  {}".format(self.spec.wn[0],
                str(self.depth[0:self.ideep[0]+1,0]).replace("\n","")), 4, 6)
         pt.wrap(info, "...", 4)
-        index = pyrat.spec.nwave/2
-        pt.wrap(info, "At {:7.1f} cm-1:  {}".format(pyrat.spec.wn[index],
+        index = self.spec.nwave/2
+        pt.wrap(info, "At {:7.1f} cm-1:  {}".format(self.spec.wn[index],
                 str(self.depth[0:self.ideep[index]+1,index]).replace("\n","")),
                 4, 6)
         pt.wrap(info, "...", 4)
-        index = pyrat.spec.nwave-1
-        pt.wrap(info, "At {:7.1f} cm-1:  {}".format(pyrat.spec.wn[index],
+        index = self.spec.nwave-1
+        pt.wrap(info, "At {:7.1f} cm-1:  {}".format(self.spec.wn[index],
                 str(self.depth[0:self.ideep[index]+1,index]).replace("\n","")),
                 4, 6)
     return "\n".join(info)

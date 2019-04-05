@@ -105,8 +105,8 @@ def parse(pyrat, cfile, log=None):
       "Atmospheric radius high boundary [default: Atmospheric file value]")
   pt.addarg("radstep",     group, str,       None,
       "Atmospheric radius sampling step [default: Atmospheric file value]")
-  pt.addarg("radunits",    group, str,       None,
-      "Radius (user) units [default: km]")
+  pt.addarg("runits",      group, str,       None,
+      "Radius (and all other length) units [default: km]")
   pt.addarg("plow",        group, str,       None,
       "Atmospheric pressure low boundary (overrides radius high boundary) "
       "[default: %(default)s]")
@@ -220,7 +220,7 @@ def parse(pyrat, cfile, log=None):
   pt.addarg("phoenix",     group, str,       None,
       "PHOENIX stellar-spectrum filename.")
   pt.addarg("rstar",       group, str,       None,
-      "Stellar radius (radunits).")
+      "Stellar radius (default units: runits).")
   pt.addarg("gstar",       group, np.double, None,
       "Stellar surface gravity (cm s-2).")
   pt.addarg("tstar",       group, np.double, None,
@@ -228,26 +228,21 @@ def parse(pyrat, cfile, log=None):
   pt.addarg("mstar",       group, str,       None,
       "Stellar mass (default units: gram)")
   pt.addarg("rplanet",     group, str,       None,
-      "Planetary radius (in radunits)")
+      "Planetary radius (default units: runits)")
   pt.addarg("refpressure", group, str,       None,
-      "Pressure reference level corresponding to rplanet (in punits).")
+      "Pressure reference level corresponding to rplanet (default units: punits).")
   pt.addarg("mplanet",     group, str,       None,
       "Planetary mass (default units: gram)")
   pt.addarg("gplanet",     group, np.double, None,
       "Planetaty surface gravity (cm s-2).")
   pt.addarg("smaxis",     group, str,       None,
-      "Orbital semi-major axis (default in radunits).")
+      "Orbital semi-major axis (default units: runits).")
   pt.addarg("tint",       group, np.double, None,
       "Planetary internal temperature (kelvin) [default: 100].")
   # Output file options:
   group = parser.add_argument_group("Output File's Options")
   pt.addarg("outspec",     group, str,       None,
       "Output spectrum file [default: 'outspec.dat']")
-  pt.addarg("outsample",   group, str,       None,
-      "Output samplings file [default: %(default)s]")
-  pt.addarg("outmaxdepth", group, str,       None,
-      "Filename to store the radius at maxdepth (per wavelength) "
-      "[default: %(default)s]")
   pt.addarg("logfile",     group, str,       None,
       "Screen-output log filename.")
 
@@ -304,16 +299,16 @@ def checkinputs(pyrat):
 
   # Check that input files exist:
   if inputs.atmfile is None:
-    log.error("Undefined atmospheric file (atmfile).")
+      log.error("Undefined atmospheric file (atmfile).")
   elif not os.path.isfile(inputs.atmfile):
-    log.error("atmfile: '{:s}' does not exist.".format(inputs.atmfile))
-  pyrat.atmfile = inputs.atmfile
+      log.error("atmfile: '{:s}' does not exist.".format(inputs.atmfile))
+  pyrat.atm.atmfile = inputs.atmfile
 
   if inputs.linedb is not None:
     for linedb in inputs.linedb:
       if not os.path.isfile(linedb):
         log.error("linedb file: '{:s}' does not exist.".format(linedb))
-  pyrat.linedb = pyrat.inputs.linedb
+  pyrat.lt.linedb = pyrat.inputs.linedb
 
   if inputs.csfile is not None:
     for cs in pyrat.inputs.csfile:
@@ -326,7 +321,7 @@ def checkinputs(pyrat):
   if not os.path.isfile(inputs.molfile):
     log.error("Molecular-data file: '{:s}' does not exist.".
               format(inputs.molfile))
-  pyrat.molfile = os.path.realpath(inputs.molfile)
+  pyrat.mol.molfile = os.path.realpath(inputs.molfile)
 
   if inputs.extfile is not None:
     if not os.path.exists(os.path.realpath(os.path.dirname(inputs.extfile))):
@@ -391,35 +386,35 @@ def checkinputs(pyrat):
   pyrat.spec.resolution = inputs.resolution
 
   # Check atmospheric layers arguments:
-  pyrat.punits = pt.defaultp(inputs.punits, "bar",
+  pyrat.atm.punits = pt.defaultp(inputs.punits, "bar",
      "Input pressure units (punits) defaulted to '{:s}'.", log)
-  pyrat.radunits = pt.defaultp(inputs.radunits, "km",
+  pyrat.atm.runits = pt.defaultp(inputs.runits, "km",
      "Input radius units (punits) defaulted to '{:s}'.", log)
 
   # Pressure boundaries:
-  pyrat.phigh = pt.getparam(inputs.phigh, pyrat.punits, log)
-  isgreater(pyrat.phigh, "bar", 0, True,
+  pyrat.atm.phigh = pt.getparam(inputs.phigh, pyrat.atm.punits, log)
+  isgreater(pyrat.atm.phigh, "bar", 0, True,
             "High atm pressure boundary ({:.2e} bar) must be > 0.0", log)
-  pyrat.plow  = pt.getparam(inputs.plow,  pyrat.punits, log)
-  isgreater(pyrat.plow, "bar",  0, True,
+  pyrat.atm.plow  = pt.getparam(inputs.plow,  pyrat.atm.punits, log)
+  isgreater(pyrat.atm.plow, "bar",  0, True,
             "Low atm pressure boundary ({:.2e} bar) must be > 0.0", log)
   # Radius boundaries:
-  pyrat.radlow  = pt.getparam(inputs.radlow,  pyrat.radunits, log)
-  isgreater(pyrat.radlow, "cm", 0, False,
+  pyrat.atm.radlow  = pt.getparam(inputs.radlow,  pyrat.atm.runits, log)
+  isgreater(pyrat.atm.radlow, "cm", 0, False,
             "Low atm radius boundary ({:.2e} cm) must be >= 0.0", log)
-  pyrat.radhigh = pt.getparam(inputs.radhigh, pyrat.radunits, log)
-  isgreater(pyrat.radhigh, "cm", 0, True,
+  pyrat.atm.radhigh = pt.getparam(inputs.radhigh, pyrat.atm.runits, log)
+  isgreater(pyrat.atm.radhigh, "cm", 0, True,
             "High atm radius boundary ({:.2e} cm) must be > 0.0", log)
-  pyrat.radstep = pt.getparam(inputs.radstep, pyrat.radunits, log)
-  isgreater(pyrat.radstep, "cm", 0, True,
+  pyrat.atm.radstep = pt.getparam(inputs.radstep, pyrat.atm.runits, log)
+  isgreater(pyrat.atm.radstep, "cm", 0, True,
             "Radius step size ({:.2f} cm) must be > 0.", log)
   # System physical parameters:
-  phy.rplanet = pt.getparam(inputs.rplanet, pyrat.radunits, log)
+  phy.rplanet = pt.getparam(inputs.rplanet, pyrat.atm.runits, log)
   isgreater(phy.rplanet, "cm",   0, True,
             "Planetary radius ({:.3e} cm) must be > 0.", log)
 
-  pyrat.refpressure = pt.getparam(inputs.refpressure, pyrat.punits, log)
-  isgreater(pyrat.refpressure, "bar", 0, True,
+  pyrat.atm.refpressure = pt.getparam(inputs.refpressure, pyrat.atm.punits, log)
+  isgreater(pyrat.atm.refpressure, "bar", 0, True,
       "Planetary reference pressure level ({:8g} bar) must be > 0.", log)
 
   phy.gplanet  = pt.getparam(inputs.gplanet, "none", log)
@@ -432,7 +427,7 @@ def checkinputs(pyrat):
 
   # Check planetary surface gravity:
   if phy.mplanet is not None:
-    pyrat.hydrom = True  # Use mass value for hydrostatic equilibrium
+    pyrat.atm.hydrom = True  # Use mass value for hydrostatic equilibrium
     if phy.rplanet is None and phy.gplanet is not None:
       phy.rplanet = np.sqrt(pc.G * phy.mplanet / phy.gplanet)
     if phy.rplanet is not None:
@@ -446,7 +441,7 @@ def checkinputs(pyrat):
   elif phy.gplanet is not None and phy.rplanet is not None:
     phy.mplanet = phy.gplanet * phy.rplanet**2 / pc.G
 
-  pyrat.phy.rstar = pt.getparam(inputs.rstar, pyrat.radunits, log)
+  pyrat.phy.rstar = pt.getparam(inputs.rstar, pyrat.atm.runits, log)
   isgreater(pyrat.phy.rstar, "cm",   0, True,
             "Stellar radius ({:.3e} cm) must be > 0.", log)
 
@@ -458,7 +453,7 @@ def checkinputs(pyrat):
   isgreater(pyrat.phy.tstar, "none", 0, True,
             "Stellar effective temperature ({:.1f} K) must be > 0.", log)
 
-  pyrat.phy.smaxis = pt.getparam(inputs.smaxis, pyrat.radunits, log)
+  pyrat.phy.smaxis = pt.getparam(inputs.smaxis, pyrat.atm.runits, log)
   isgreater(pyrat.phy.smaxis, "cm",   0, True,
             "Planetary radius ({:.3e} cm) must be > 0.", log)
 
@@ -648,11 +643,8 @@ def checkinputs(pyrat):
                "'transit' or 'eclipse'.".format(pyrat.od.path))
 
   # Accept output files:
-  pyrat.outspec = pt.defaultp(inputs.outspec, 'outspec.dat',
+  pyrat.spec.outspec = pt.defaultp(inputs.outspec, 'outspec.dat',
      "Output spectrum filename (outspec) defaulted to '{:s}'.", log)
-
-  pyrat.outsample   = inputs.outsample
-  pyrat.outmaxdepth = inputs.outmaxdepth
 
   # Check system arguments:
   if pyrat.od.path == "transit" and pyrat.phy.rstar is None:
@@ -689,14 +681,14 @@ def checkinputs(pyrat):
     if np.any(np.ediff1d(raygrid) <= 0):
       log.error("raygrid angles must be monotonically increasing.")
   # Store raygrid values in radians:
-  pyrat.raygrid = raygrid * sc.degree
+  pyrat.spec.raygrid = raygrid * sc.degree
 
   # Gauss quadrature integration variables:
-  pyrat.quadrature = inputs.quadrature
+  pyrat.spec.quadrature = inputs.quadrature
   if inputs.quadrature is not None:
-    qnodes, qweights = ss.p_roots(inputs.quadrature)
-    pyrat.qnodes   = 0.5*(qnodes + 1.0)
-    pyrat.qweights = 0.5 * qweights
+      qnodes, qweights = ss.p_roots(inputs.quadrature)
+      pyrat.spec.qnodes   = 0.5*(qnodes + 1.0)
+      pyrat.spec.qweights = 0.5 * qweights
 
   # Observational parameters:
   pyrat.obs.data   = inputs.data

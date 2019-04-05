@@ -10,7 +10,6 @@ import numpy as np
 ROOT = os.path.realpath(os.path.dirname(__file__) + '/..') + '/'
 sys.path.append(ROOT)
 import pyratbay as pb
-import pyratbay.io as io
 import pyratbay.constants  as pc
 import pyratbay.atmosphere as pa
 
@@ -74,7 +73,21 @@ def test_transmission_etable():
                                rtol=1e-7)
 
 
+@pytest.mark.skip(reason="Because I'm lazy. TBI")
+def test_transmission_qmass_input():
+    # This is the gist of it, prepare a qmass atmospheric file:
+    units, species, press, temp, q = pa.read('atmosphere_uniform_test.atm')
+    molID, symbol, mass, diam = pa.readmol(pc.ROOT+"inputs/molecules.dat")
+    mm = pa.meanweight(q, species)
+    qmass = qprofiles * molmass / mm
+    pa.writeatm(...)
+    # Then run spectrum, results must be the same as qnumber run:
+    pyrat = pb.pbay.run(ROOT+'tests/spectrum_transmission_qmass_test.cfg')
+    np.testing.assert_allclose(pyrat.spec.spectrum, expected['all'], rtol=1e-7)
+
+
 def plot_transmission():
+    import matplotlib.pyplot as plt
     plt.figure(10)
     plt.clf()
     plt.plot(1e4/clear.spec.wn,  clear.spec.spectrum,  'k')
@@ -164,6 +177,7 @@ def test_fit_filters():
 
 # These are extra bits for testing the tests before testing:
 def plot_fit():
+    import matplotlib.pyplot as plt
     plt.figure(0)
     plt.clf()
     plt.plot(1e4/pyrat.spec.wn, model0, 'blue')

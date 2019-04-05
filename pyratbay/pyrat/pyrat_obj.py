@@ -66,26 +66,6 @@ class Pyrat(object):
       self.obs      = ob.Observation()     # Observational data
       self.phy      = ob.Physics()         # System physical parameters
       self.ret      = ob.Retrieval()       # Retrieval variables
-      # Files:
-      self.atmfile     = None  # Atmopheric-model file
-      self.linedb      = None  # Line-transition data file
-      self.molfile     = None  # Molecular-properties file
-      self.outsample   = None  #
-      self.outmaxdepth = None  #
-      self.outspec     = None  # Modulation/Flux spectrum file
-      # Photometric surface:
-      self.refpressure = None  # Pressure reference level
-      # Atmosphere:
-      self.radunits = None  # Radius physical units
-      self.radstep  = None  # Radius sampling interval
-      self.radlow   = None  # Lowest radius boundary
-      self.radhigh  = None  # Highest radius boundary
-      self.punits   = None  # Pressure physical units
-      self.plow     = None  # Lowest pressure boundary
-      self.phigh    = None  # Highest pressure boundary
-      self.hydrom   = False # Variable/constant-g flag for hydrostatic equilib.
-      # Geometry:
-      self.raygrid  = None  # Array of incident ray-angles
       # Other:
       self.verb       = None  # Verbosity level
       self.logfile    = None  # Pyrat log filename
@@ -318,7 +298,7 @@ class Pyrat(object):
   def hydro(self, pressure, temperature, mu, g, mass, p0, r0):
     """
     Hydrostatic-equilibrium driver.
-    Depending on the self.hydrom flag, select between the g=GM/r**2
+    Depending on the self.atm.hydrom flag, select between the g=GM/r**2
     (hydrom=True) or constant-g (hydrom=False) formula to compute
     the hydrostatic-equilibrium radii of the planet layers.
 
@@ -340,7 +320,7 @@ class Pyrat(object):
        Reference radius level (in cm) corresponding to p0.
     """
     # H.E. with  g=GM/r**2:
-    if self.hydrom:
+    if self.atm.hydrom:
       return pa.hydro_m(pressure, temperature, mu, mass, p0, r0)
     # H.E. with constant g:
     return pa.hydro_g(pressure, temperature, mu, g, p0, r0)
