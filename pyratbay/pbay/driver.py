@@ -128,7 +128,7 @@ def run(cfile):
            walk=args.walk, nsamples=args.nsamples, nchains=args.nchains,
            burnin=args.burnin, thinning=args.thinning,
            grtest=True, grbreak=args.grbreak, grnmin=args.grnmin,
-           hsize=10, kickoff='normal', log=log, nproc=args.nproc,
+           hsize=10, kickoff='normal', log=log, nproc=args.ncpu,
            plots=True, pnames=pyrat.ret.pnames, texnames=pyrat.ret.texnames,
            showbp=False,
            resume=args.resume, savefile="{:s}.npz".format(outfile))

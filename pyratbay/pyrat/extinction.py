@@ -160,13 +160,13 @@ def calc_extinction(pyrat):
 
   # Multi-processing extinction calculation (in C):
   processes = []
-  indices = np.arange(ex.ntemp*ex.nlayers) % pyrat.nproc  # CPU indices
-  for i in np.arange(pyrat.nproc):
+  indices = np.arange(ex.ntemp*ex.nlayers) % pyrat.ncpu  # CPU indices
+  for i in np.arange(pyrat.ncpu):
     proc = mpr.Process(target=extinction,           # grid  add
                 args=(pyrat, np.where(indices==i)[0], True, False))
     processes.append(proc)
     proc.start()
-  for i in np.arange(pyrat.nproc):
+  for i in np.arange(pyrat.ncpu):
     processes[i].join()
 
   # Store values in file:

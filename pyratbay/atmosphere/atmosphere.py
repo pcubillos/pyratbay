@@ -216,7 +216,10 @@ def readatm(atmfile):
   datastart = atmfile.tell()
   line = atmfile.readline()
   # Is there a column for the radius:
-  rad = (len(line.split()) - nspecies == 3)
+  rad = len(line.split()) - nspecies == 3
+
+  if rad and runits is None:
+      raise ValueError("Atmospheric file does not have '@RADIUS' header")
 
   # Count number of layers:
   nlayers = 1
@@ -715,7 +718,7 @@ def temp_isothermal(tparams, nlayers):
 
 
 def temp_TCEA(tparams, pressure, rstar, tstar, tint, gplanet, smaxis,
-              radunits="cm"):
+              runits="cm"):
     """
     Compute Three-channel Eddington Approximation (TCEA) temperature
     profile model.
@@ -740,7 +743,7 @@ def temp_TCEA(tparams, pressure, rstar, tstar, tint, gplanet, smaxis,
         Planetary atmospheric temperature in cm s-2.
     smaxis: String or float
         Orbital semi-major axis (default in cm). If string, may specify units.
-    radunits: String
+    runits: String
         Default units for rstar and smaxis.
 
     Examples
@@ -766,18 +769,18 @@ def temp_TCEA(tparams, pressure, rstar, tstar, tint, gplanet, smaxis,
     if isinstance(tparams, (list, tuple)):
         tparams = np.array(tparams, np.double)
     # Parse inputs:
-    rstar   = pt.getparam(rstar,   radunits)
+    rstar   = pt.getparam(rstar,   runits)
     tstar   = pt.getparam(tstar,   "kelvin")
     tint    = pt.getparam(tint,    "kelvin")
     gplanet = pt.getparam(gplanet, "none")
-    smaxis  = pt.getparam(smaxis,  radunits)
+    smaxis  = pt.getparam(smaxis,  runits)
     # Define model and arguments:
     targs  = [pressure, rstar, tstar, tint, smaxis, gplanet]
     return PT.TCEA(tparams, *targs)
 
 
 def temperature(tmodel, pressure=None, rstar=None, tstar=None, tint=100.0,
-                gplanet=None, smaxis=None, radunits="cm", nlayers=None,
+                gplanet=None, smaxis=None, runits="cm", nlayers=None,
                 log=None, tparams=None):
   """
   Temperature profile wrapper.
@@ -798,7 +801,7 @@ def temperature(tmodel, pressure=None, rstar=None, tstar=None, tint=100.0,
     Planetary atmospheric temperature in cm s-2.
   smaxis: String or float
     Orbital semi-major axis. If string, may contain the units.
-  radunits: String
+  runits: String
     Default units for rstar and smaxis.  Available units are: A, nm, um,
     mm, cm (default), m, km, au, pc, rearth, rjup, rsun.
   nlayers: Integer
@@ -846,11 +849,11 @@ def temperature(tmodel, pressure=None, rstar=None, tstar=None, tint=100.0,
 
   if tmodel == "TCEA":
     # Parse inputs:
-    rstar   = pt.getparam(rstar,   radunits, log)
+    rstar   = pt.getparam(rstar,   runits,   log)
     tstar   = pt.getparam(tstar,   "kelvin", log)
     tint    = pt.getparam(tint,    "kelvin", log)
     gplanet = pt.getparam(gplanet, "none",   log)
-    smaxis  = pt.getparam(smaxis,  radunits, log)
+    smaxis  = pt.getparam(smaxis,  runits,   log)
     # Define model and arguments:
     Tmodel = temp_TCEA
     targs  = [pressure, rstar, tstar, tint, gplanet, smaxis]

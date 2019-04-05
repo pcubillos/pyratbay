@@ -54,7 +54,7 @@ mearth = 5.9724e27     # Earth mass
 mjup   = 1.8982e30     # Jupiter mass
 msun   = 1.9885e33     # Sun mass  (Prsa et al. 2016)
 # Unified atomic mass:
-amu    = sc.physical_constants["unified atomic mass unit"][0] * 1e3
+amu    = sc.physical_constants['unified atomic mass unit'][0] * 1e3
 me     = sc.m_e * 1e3  # Electron mass
 
 # Temperature to Kelvin degree:
@@ -62,7 +62,7 @@ kelvin = 1.0
 
 # Amagat (Loschmidt number) molecules cm-3:
 amagat = sc.physical_constants[
-                 "Loschmidt constant (273.15 K, 101.325 kPa)"][0] * 1e-6
+                 'Loschmidt constant (273.15 K, 101.325 kPa)'][0] * 1e-6
 
 # Elementary charge in statcoulombs (from Wolfram Alpha):
 e = 4.803205e-10
@@ -71,13 +71,13 @@ e = 4.803205e-10
 none = 1
 
 # Valid units for conversion:
-validunits = ["A", "nm", "um", "mm", "cm", "m", "km", "au", "pc",
-              "rearth", "rjup", "rsun",
-              "barye", "mbar", "pascal", "bar", "atm",
-              "kelvin",
-              "eV",
-              "amu", "me", "gram", "kg", "mearth", "mjup", "msun",
-              "amagat", "none"]
+validunits = ['A', 'nm', 'um', 'mm', 'cm', 'm', 'km',
+              'au', 'pc', 'rearth', 'rjup', 'rsun',
+              'barye', 'mbar', 'pascal', 'bar', 'atm',
+              'kelvin',
+              'eV',
+              'amu', 'me', 'gram', 'kg', 'mearth', 'mjup', 'msun',
+              'amagat', 'none']
 
 # Other combination of constants:
 C1 = 4 * sc.epsilon_0 * sc.m_e * sc.c**2 / sc.e**2 * 0.01  # cm-1

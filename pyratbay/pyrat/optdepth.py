@@ -57,13 +57,13 @@ def opticaldepth(pyrat):
     # Multi-processing extinction calculation (in C):
     processes = []
     # CPU indices
-    indices = np.arange(rtop, pyrat.atm.nlayers) % pyrat.nproc
-    for i in np.arange(pyrat.nproc):
+    indices = np.arange(rtop, pyrat.atm.nlayers) % pyrat.ncpu
+    for i in np.arange(pyrat.ncpu):
       proc = mpr.Process(target=ex.extinction,   #      grid   add
                   args=(pyrat, np.where(indices==i)[0], False, True))
       processes.append(proc)
       proc.start()
-    for i in np.arange(pyrat.nproc):
+    for i in np.arange(pyrat.ncpu):
       processes[i].join()
 
   # Sum all contributions to the extinction (except clouds):

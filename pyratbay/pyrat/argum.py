@@ -127,8 +127,8 @@ def parse(pyrat, cfile, log=None):
       "Temperature sample step interval in Kelvin [default: 100]")
   pt.addarg("ethresh",     group, np.double, 1e-15,
       "Extinction-coefficient threshold [default: %(default)s]")
-  pt.addarg("nproc",       group, int,       1,
-      "Number of processors [default: %(default)s]")
+  pt.addarg("ncpu",       group, int,       1,
+      "Number of parallel processors to use [default: %(default)s]")
   # Voigt-profile options:
   group = parser.add_argument_group("Voigt-profile  Options")
   pt.addarg("vextent",     group, np.double, None,
@@ -754,14 +754,14 @@ def checkinputs(pyrat):
                "temperature model.")
 
   # Number of processors:
-  pyrat.nproc = pt.getparam(inputs.nproc, "none", log, integer=True)
-  isgreater(pyrat.nproc, "none", 1, False,
+  pyrat.ncpu = pt.getparam(inputs.ncpu, "none", log, integer=True)
+  isgreater(pyrat.ncpu, "none", 1, False,
             "The number of processors ({:d}) must be >= 1.", log)
-  if pyrat.nproc >= mp.cpu_count():
+  if pyrat.ncpu >= mp.cpu_count():
     log.warning("The number of requested CPUs ({:d}) is >= than the number "
-       "of available CPUs ({:d}).  Enforced nproc to {:d}.".
-       format(pyrat.nproc, mp.cpu_count(), mp.cpu_count()-1))
-    pyrat.nproc = mp.cpu_count() - 1
+       "of available CPUs ({:d}).  Enforced ncpu to {:d}.".
+       format(pyrat.ncpu, mp.cpu_count(), mp.cpu_count()-1))
+    pyrat.ncpu = mp.cpu_count() - 1
   log.msg("Check inputs done.")
 
 

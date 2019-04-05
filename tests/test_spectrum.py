@@ -80,7 +80,7 @@ def test_transmission_qmass_input():
     molID, symbol, mass, diam = pa.readmol(pc.ROOT+"inputs/molecules.dat")
     mm = pa.meanweight(q, species)
     qmass = qprofiles * molmass / mm
-    pa.writeatm(...)
+    pa.writeatm(lalal)
     # Then run spectrum, results must be the same as qnumber run:
     pyrat = pb.pbay.run(ROOT+'tests/spectrum_transmission_qmass_test.cfg')
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['all'], rtol=1e-7)

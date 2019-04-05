@@ -4523,4 +4523,12 @@ Removed outsample, and outmaxdepth.
 Refactored readatm() in readatm.py to handle input abundances by mass
 (testing is TBI).
 
+*****
+
+Replaced radunits to runits in atmosphere.py functions.
+Cosmetic edits in constants.py.
+
+*****
+
+Renamed nproc argument with ncpu.
 
