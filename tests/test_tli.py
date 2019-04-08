@@ -10,7 +10,7 @@ os.chdir(ROOT+'tests')
 
 
 def test_hitran(capfd):
-    pb.pbay.run('tli_hitran_test.cfg')
+    pb.run('tli_hitran_test.cfg')
     captured = capfd.readouterr()
     caps = [
         "Reading input database file 'Mock_HITRAN_H2O_1.00-1.01um.par'.",
@@ -29,7 +29,7 @@ def test_hitran(capfd):
 
 
 def test_exomol(capfd):
-    pb.pbay.run('tli_exomol_test.cfg')
+    pb.run('tli_exomol_test.cfg')
     captured = capfd.readouterr()
     caps = [
         "Reading input database file '14N-1H3__MockBYTe__04999-05000.trans'.",

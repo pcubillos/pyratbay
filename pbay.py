@@ -62,7 +62,7 @@ def main():
 
     # Pyrat-Bay run:
     elif args.cfile is not None:
-        pb.pbay.run(args.cfile)
+        pb.run(args.cfile)
 
 
 if __name__ == "__main__":

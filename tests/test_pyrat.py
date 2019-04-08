@@ -11,7 +11,7 @@ os.chdir(ROOT+'tests')
 
 
 def test_call_from_pyrat():
-    pyrat = pb.Pyrat(ROOT+'tests/spectrum_transmission_test.cfg')
+    pyrat = pb.init(ROOT+'tests/spectrum_transmission_test.cfg')
     assert pyrat is not None
 
 
@@ -25,7 +25,7 @@ def test_call_from_command_line2():
 
 
 def test_call_from_pbay():
-    pyrat = pb.pbay.run('spectrum_transmission_test.cfg')
+    pyrat = pb.run('spectrum_transmission_test.cfg')
     assert pyrat is not None
     assert repr(pyrat) == (
         "Pyrat atmospheric model\n"

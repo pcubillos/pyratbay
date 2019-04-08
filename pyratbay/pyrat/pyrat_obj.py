@@ -2,6 +2,7 @@
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
 import os
+import sys
 from collections import OrderedDict
 
 import numpy  as np
@@ -23,31 +24,37 @@ from .  import makesample as ms
 from .  import voigt      as v
 from .  import readlinedb as rl
 
+sys.path.append(pc.ROOT + 'modules/MCcubed')
+import MCcubed as mc3
+
 
 class Pyrat(object):
   """
   Main Pyrat object.
   """
-  def __init__(self, cfile, log=None):
+  def __init__(self, args, log):
       """
       Parse the command-line arguments into the pyrat object.
 
       Parameters
       ----------
-      cfile: String
-          A Pyrat Bay configuration file.
+      args: Namespace
+          Object storing user-input attributes to initialize Pyrat.
       log: Log object
           An MCcubed.utils.Log instance to log screen outputs to file.
-          If None, start a new log from logfile argument in the cfile.
 
       Examples
       --------
       >>> import pyratbay as pb
       >>> # There are two ways to initialize a Pyrat object:
       >>> # Initialize only:
-      >>> pyrat = pb.Pyrat('spectrum_transmission.cfg')
+      >>> pyrat = pb.init('spectrum_transmission.cfg')
+      >>> # This is equivalent to:
+      >>> args, log = pb.tools.parse('spectrum_transmission.cfg')
+      >>> pyrat = pb.Pyrat(args, log)
+
       >>> # Initialize and compute a spectrum:
-      >>> pyrat = pb.pbay.run('spectrum_transmission.cfg')
+      >>> pyrat = pb.run('spectrum_transmission.cfg')
       """
       # Sub-classes:
       self.inputs   = ob.Inputs()          # User inputs
@@ -66,17 +73,23 @@ class Pyrat(object):
       self.obs      = ob.Observation()     # Observational data
       self.phy      = ob.Physics()         # System physical parameters
       self.ret      = ob.Retrieval()       # Retrieval variables
-      # Other:
-      self.verb       = None  # Verbosity level
-      self.logfile    = None  # Pyrat log filename
-      self.log        = None  # Pyrat log file
       self.timestamps = OrderedDict()
+
+      # Add log into object:
+      if log is None:
+          self.log = mc3.utils.Log(None, self.verb, width=80)
+          self.logfile = ''
+      else:
+          self.log = log
+          self.logfile = log.logname
 
       # Setup time tracker:
       timer = pt.clock()
 
-      # Parse command line arguments into pyrat:
-      ar.parse(self, cfile, log)
+      # Add args attributes to pyrat's user inputs:
+      for key, value in vars(args).items():
+          setattr(self.inputs, key, value)
+      self.verb = self.inputs.verb
 
       # Check that user input arguments make sense:
       ar.checkinputs(self)

@@ -4544,3 +4544,18 @@ Renamed tparams with tpars argument.
 
 Tweaked tools.addarg() to default help, and enable action argument.
 
+
+*****  Mo 8. Apr 15:06:21 CEST 2019  *****
+
+Removed pbay module. Moved content to pyratbay/driver.py.
+Refactored Pyrat.__init__() method to receive args rather than a
+configuration file.  This removes the need to run parse() multiple
+times when running pyratbay.run().
+Removed pyrat.argum.py's parse() function, use tools.parse() instead.
+
+Implemented pyratbay.init() which initializes a Pyrat object from
+input configuration file.
+
+Removed pyratbay.VERSION.PYRAT_ versionning variables. Now will
+maintain only the PBAY_ variables.
+

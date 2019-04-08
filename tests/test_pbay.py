@@ -61,43 +61,43 @@ expected_temperature = np.array(
 
 
 def test_tli_hitran_wfc3():
-    pb.pbay.run(ROOT+'tests/tli_hitran_1.1-1.7um_test.cfg')
+    pb.run(ROOT+'tests/tli_hitran_1.1-1.7um_test.cfg')
     # TBD: asserts on output file
 
 
 @pytest.mark.skip(reason="Skip until implementing in Python3")
 def test_tli_pands():
-    pb.pbay.run('tli_pands_test.cfg')
+    pb.run('tli_pands_test.cfg')
     # TBD: asserts on output file
 
 
 @pytest.mark.skip(reason="Skip until implementing in Python3")
 def test_tli_repack():
-    pb.pbay.run('tli_repack_test.cfg')
+    pb.run('tli_repack_test.cfg')
     # TBD: asserts on output file
 
 
 @pytest.mark.skip(reason="Skip until implementing in Python3")
 def test_tli_tio_schwenke():
-    pb.pbay.run('tli_tio_schwenke_test.cfg')
+    pb.run('tli_tio_schwenke_test.cfg')
     # TBD: asserts on output file
 
 
 
 def test_pt_isothermal():
-    pressure, temperature = pb.pbay.run(ROOT+'tests/pt_isothermal_test.cfg')
+    pressure, temperature = pb.run(ROOT+'tests/pt_isothermal_test.cfg')
     np.testing.assert_allclose(pressure, expected_pressure, rtol=1e-7)
     np.testing.assert_equal(temperature, np.tile(1500.0, 81))
 
 
 def test_pt_TCEA():
-    pressure, temperature = pb.pbay.run(ROOT+'tests/pt_tcea_test.cfg')
+    pressure, temperature = pb.run(ROOT+'tests/pt_tcea_test.cfg')
     np.testing.assert_allclose(pressure, expected_pressure, rtol=1e-7)
     np.testing.assert_allclose(temperature, expected_temperature, atol=1e-10)
 
 
 def test_atmosphere_uniform():
-    atm = pb.pbay.run(ROOT+"tests/atmosphere_uniform_test.cfg")
+    atm = pb.run(ROOT+"tests/atmosphere_uniform_test.cfg")
     np.testing.assert_allclose(atm[0], expected_pressure,    rtol=1e-7)
     np.testing.assert_allclose(atm[1], expected_temperature, atol=1e-10)
     q = np.tile([0.85, 0.149, 3.0e-6, 4.0e-4, 1.0e-4, 5.0e-4, 1.0e-7], (81,1))
@@ -114,7 +114,7 @@ def test_atmosphere_uniform():
 
 @pytest.mark.skip(reason="Skip until implementing the fast TEA")
 def test_atmosphere_tea():
-    atm = pb.pbay.run(ROOT+"tests/atmosphere_tea_test.cfg")
+    atm = pb.run(ROOT+"tests/atmosphere_tea_test.cfg")
     np.testing.assert_allclose(atm[0], expected_pressure,    rtol=1e-7)
     np.testing.assert_allclose(atm[1], expected_temperature, atol=1e-10)
     np.testing.assert_allclose(atm[2], expected_abundances,  rtol=1e-7)
@@ -133,13 +133,13 @@ def test_atmosphere_tea():
 
 
 def test_spectrum_emission():
-    pyrat = pb.pbay.run(ROOT+'tests/spectrum_emission_test.cfg')
+    pyrat = pb.run(ROOT+'tests/spectrum_emission_test.cfg')
     assert pyrat is not None
     # TBD: implement asserts
 
 
 def test_opacity(capfd):
-    pyrat = pb.pbay.run(ROOT+'tests/opacity_test.cfg')
+    pyrat = pb.run(ROOT+'tests/opacity_test.cfg')
     captured = capfd.readouterr()
     assert "Extinction-coefficient table written to file:" in captured.out
     assert "exttable_test_300-3000K_1.1-1.7um.dat'." in captured.out
@@ -148,4 +148,4 @@ def test_opacity(capfd):
 
 @pytest.mark.skip
 def test_mcmc():
-    pyrat = pb.pbay.run(ROOT+'tests/mcmc_transmission_test.cfg')
+    pyrat = pb.run(ROOT+'tests/mcmc_transmission_test.cfg')

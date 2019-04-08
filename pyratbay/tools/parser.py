@@ -17,7 +17,7 @@ from .  import tools as pt
 from .. import VERSION as ver
 from .. import constants as pc
 
-sys.path.append(pc.ROOT + "/modules/MCcubed")
+sys.path.append(pc.ROOT + "modules/MCcubed")
 import MCcubed.utils as mu
 
 
@@ -32,7 +32,11 @@ def parse(cfile):
 
   Returns
   -------
-  args: TBD
+  args: Namespace
+      Object storing the attributes defined in this function, with
+      the values given in cfile.
+  log: Log object
+      An MCcubed.utils.Log instance to log screen outputs to file.
   """
   if cfile is None:
       print("No configuration file specified.")
@@ -142,7 +146,7 @@ def parse(cfile):
   pt.addarg('priorup',     parser, pt.parray, None)
   pt.addarg('walk',        parser, str,       'snooker')
   pt.addarg('nsamples',    parser, eval,      int(1e5))
-  pt.addarg('nchains',     parser, str,       7)
+  pt.addarg('nchains',     parser, int,       7)
   pt.addarg('burnin',      parser, eval,      0)
   pt.addarg('thinning',    parser, int,       1)
   pt.addarg('grbreak',     parser, np.double, 0.0)
@@ -171,18 +175,18 @@ def parse(cfile):
   pt.addarg('yran',        parser, pt.parray, None)
 
 
+  # Set the defaults from the configuration file:
   parser.set_defaults(**defaults)
-  args, remaining_argv = parser.parse_known_args()
+  # Set values from command line:
+  args, unknowns = parser.parse_known_args()
+  args.configfile = cfile
 
-  # Initialize log object:
   args.logfile = pt.path(args.logfile)
   log = mu.Log(logname=args.logfile, verb=args.verb, width=80,
                append=args.resume)
 
   # Welcome message:
-  if not args.resume:
-      log.msg(
-          "{:s}\n"
+  log.msg("{:s}\n"
           "  Python Radiative Transfer in a Bayesian framework (Pyrat Bay).\n"
           "  Version {:d}.{:d}.{:d}.\n"
           "  Copyright (c) 2016-{:d} Patricio Cubillos and collaborators.\n"
@@ -190,5 +194,7 @@ def parse(cfile):
           "{:s}\n\n".format(log.sep, ver.PBAY_VER, ver.PBAY_MIN,
                             ver.PBAY_REV, date.today().year, log.sep), verb=0)
 
-  return args, log
+  log.msg("Read command-line arguments from configuration file: '{:s}'".
+          format(cfile))
 
+  return args, log

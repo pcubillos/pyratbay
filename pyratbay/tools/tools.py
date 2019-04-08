@@ -398,10 +398,10 @@ def isfile(path):
   """
   # None exception:
   if path is None:
-    return -1
+      return -1
 
   # Regular file or not:
-  return os.path.isfile(path)
+  return int(os.path.isfile(path))
 
 
 def addarg(variable, parser, type, default, help='', action=None):

@@ -48,16 +48,16 @@ curl -u HITRAN:getdata https://www.cfa.harvard.edu/HITRAN/HITRAN2012/HITRAN2012/
 unzip 01_hit12.zip
 """
 
-pb.pbay.run("tutorial_tli.cfg")
+pb.run("tutorial_tli.cfg")
 
 
 # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 # Make temperature profiles:
 
 # Generate an isothermal PT profile (output values in CGS units):
-pressure, T_isothermal = pb.pbay.run("tutorial_pt-isothermal.cfg")
+pressure, T_isothermal = pb.run("tutorial_pt-isothermal.cfg")
 # Generate a TCEA PT profile:
-pressure, T_tcea       = pb.pbay.run("tutorial_pt-tcea.cfg")
+pressure, T_tcea       = pb.run("tutorial_pt-tcea.cfg")
 
 # Plot the PT profiles:
 plt.figure(-1)
@@ -79,9 +79,9 @@ plt.savefig("pyrat_PT_tutorial.pdf")
 #  pip2 install sympy==0.7.1 )
 
 # Generate a TEA atmospheric model:
-pressure, temperature, abundances = pb.pbay.run("tutorial_atmosphere-tea.cfg")
+pressure, temperature, abundances = pb.run("tutorial_atmosphere-tea.cfg")
 # Generate a uniform-abundance atmospheric model:
-pressure, temperature, abundances = pb.pbay.run("tutorial_atmosphere-uniform.cfg")
+pressure, temperature, abundances = pb.run("tutorial_atmosphere-uniform.cfg")
 
 # Read the atmospheric files:
 spec, press, temp, q_tea     = pb.atmosphere.readatm("WASP-00b.atm")
@@ -112,7 +112,7 @@ plt.savefig("pyrat_atmosphere_tutorial.pdf")
 # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 # Compute spectrum:
 
-pyrat = pb.pbay.run("tutorial_spectrum.cfg")
+pyrat = pb.run("tutorial_spectrum.cfg")
 
 # Plot:
 plt.figure(-3)
@@ -136,10 +136,10 @@ plt.savefig("pyrat_transmission-spectrum_tutorial.pdf")
 # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 # Generate opacity grid:
 
-pyrat = pb.pbay.run("tutorial_opacity.cfg")
+pyrat = pb.run("tutorial_opacity.cfg")
 
 
 # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 # A simple MCMC:
 
-pyrat = pb.pbay.run("tutorial_mcmc.cfg")
+pyrat = pb.run("tutorial_mcmc.cfg")
