@@ -4582,3 +4582,7 @@ Fixed bug in db readers when the plotting interval is zero.
 Replaced linedb argument with tlifile in Pyrat object (now using same
 variable name everywhere in the code).
 
+*****
+
+Renamed lineread.db to lineread.database.
+

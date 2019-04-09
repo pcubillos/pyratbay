@@ -1,10 +1,10 @@
 # Copyright (c) 2016-2019 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-__all__ = ["makeTLI", "db"]
+__all__ = ["makeTLI", "database"]
 
 from .lread import *
-from . import db
+from . import database
 
 from .. import VERSION as ver
 

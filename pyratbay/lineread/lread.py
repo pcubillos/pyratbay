@@ -9,7 +9,7 @@ import struct
 
 import numpy as np
 
-from .  import db as database
+from .  import database
 from .. import constants as pc
 from .. import tools     as pt
 from .. import VERSION as ver
