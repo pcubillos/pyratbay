@@ -4586,3 +4586,7 @@ variable name everywhere in the code).
 
 Renamed lineread.db to lineread.database.
 
+*****
+
+Updated nproc to ncpu argument in tests config files.
+
