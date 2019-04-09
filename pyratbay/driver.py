@@ -26,14 +26,6 @@ def run(cfile):
   ----------
   cfile: String
      A Pyrat Bay configuration file.
-
-import os
-import pyratbay as pb
-import pyratbay.tools as pt
-import pyratbay.constants as pc
-os.chdir('tests/')
-pyrat = pb.run('mcmc_transmission_test.cfg')
-
   """
   # Put everything into a try--except to catch the sys.exit() Traceback.
   try:
@@ -47,9 +39,12 @@ pyrat = pb.run('mcmc_transmission_test.cfg')
 
     # Call lineread package:
     if args.runmode == "tli":
-        parser = lr.parser(cfile)
-        lr.makeTLI(parser.dblist,  parser.pflist, parser.dbtype,
-                   parser.outfile, parser.iwl, parser.fwl, parser.verb)
+        if args.tlifile is None:
+            log.error('No output TLI file specified.')
+        if args.wlunits is None:
+            args.wlunits = 'um'
+        lr.makeTLI(args.dblist, args.pflist, args.dbtype, args.tlifile[0],
+                   args.wllow, args.wlhigh, args.wlunits, log)
         return
 
     # Get gplanet from mplanet and rplanet if necessary:

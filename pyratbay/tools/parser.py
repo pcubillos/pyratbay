@@ -59,7 +59,12 @@ def parse(cfile):
                formatter_class=argparse.RawDescriptionHelpFormatter)
   parser.add_argument("--verb", type=int, default=None)
 
+  pt.addarg("dblist",      parser, pt.parray, None)
+  pt.addarg("pflist",      parser, pt.parray, None)
+  pt.addarg("dbtype",      parser, pt.parray, None)
+
   pt.addarg("linedb",      parser, pt.parray, None)
+  pt.addarg("tlifile",     parser, pt.parray, None)
   pt.addarg("csfile",      parser, pt.parray, None)
   pt.addarg("molfile",     parser, str,       None)
   pt.addarg("extfile",     parser, str,       None)

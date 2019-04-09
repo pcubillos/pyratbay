@@ -68,7 +68,7 @@ class repack(dbdriver):
     return wavenumber
 
 
-  def dbread(self, iwn, fwn, verb, *args):
+  def dbread(self, iwn, fwn, verb):
     """
     Read a repack database (dbfile) between wavenumbers iwn and fwn.
 

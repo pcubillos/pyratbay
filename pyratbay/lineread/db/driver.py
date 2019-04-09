@@ -83,7 +83,7 @@ class dbdriver(object):
         return temp, pf, iso
 
 
-  def dbread(self, iwl, fwl, verbose):
+  def dbread(self, iwl, fwl, verb):
     """
     Read linelist values for specific database type.
     """

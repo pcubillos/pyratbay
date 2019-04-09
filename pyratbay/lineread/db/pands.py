@@ -80,7 +80,7 @@ class pands(dbdriver):
     return recwl
 
 
-  def dbread(self, iwn, fwn, verb, *args):
+  def dbread(self, iwn, fwn, verb):
     """
     Read the Partridge and Schwenke H2O database.
 
@@ -92,8 +92,6 @@ class pands(dbdriver):
        Final wavenumber limit (in cm-1).
     verb: Integer
        Verbosity threshold.
-    args:
-       Additional arguments, not needed for pands.
 
     Returns
     -------

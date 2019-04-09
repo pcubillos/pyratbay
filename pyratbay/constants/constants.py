@@ -95,7 +95,22 @@ ROOT = os.path.realpath(os.path.dirname(__file__) + '/../..') + '/'
 
 
 # Available line-transition databases:
-dbases = ['ps', 'hit', 'ts', 'vo', 'vald', 'emol', 'repack']
+dbases = [
+    'hitran',
+    'exomol',
+    'repack',
+    'pands',
+    'tioschwenke',
+    'voplez',
+    'vald',
+    ]
 
 # Running modes:
-rmodes = ['tli', 'pt', 'atmosphere', 'opacity', 'spectrum', 'mcmc']
+rmodes = [
+    'tli',
+    'pt',
+    'atmosphere',
+    'opacity',
+    'spectrum',
+    'mcmc'
+    ]

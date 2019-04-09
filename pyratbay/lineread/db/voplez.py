@@ -73,7 +73,7 @@ class voplez(dbdriver):
     return 1.0/(wave*pc.um)
 
 
-  def dbread(self, iwn, fwn, verb, *args):
+  def dbread(self, iwn, fwn, verb):
     """
     Read the B. Plez VO database between the wavelengths iwl and fwl.
 
@@ -85,8 +85,6 @@ class voplez(dbdriver):
        Final wavenumber limit (in cm-1).
     verb: Integer
        Verbosity threshold.
-    args:
-       Additional arguments, not needed for voplez.
 
     Returns:
     --------

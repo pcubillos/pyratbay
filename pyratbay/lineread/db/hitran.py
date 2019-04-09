@@ -68,7 +68,7 @@ class hitran(dbdriver):
     return wavenumber
 
 
-  def dbread(self, iwn, fwn, verb, *args):
+  def dbread(self, iwn, fwn, verb):
     """
     Read a HITRAN or HITEMP database (dbfile) between wavenumbers iwn and fwn.
 
@@ -82,8 +82,6 @@ class hitran(dbdriver):
        Final wavenumber limit (in cm-1).
     verb: Integer
        Verbosity threshold.
-    pffile: String
-       Partition function filename.
 
     Returns
     -------
@@ -114,8 +112,8 @@ class hitran(dbdriver):
     nlines = data.tell() // self.recsize
 
     # Find the record index for iwn and fwn:
-    istart = self.binsearch(data, iwn, 0,      nlines-1, 0)
-    istop  = self.binsearch(data, fwn, istart, nlines-1, 1)
+    istart = self.binsearch(data, iwn, 0,      nlines-1, False)
+    istop  = self.binsearch(data, fwn, istart, nlines-1, True)
 
     # Non-overlaping wavenumber ranges:
     data.seek(0)
@@ -142,8 +140,8 @@ class hitran(dbdriver):
     A21     = np.zeros(nread, np.double)  # Einstein A coefficient
     g2      = np.zeros(nread, np.double)  # Lower statistical weight
 
-    self.log.msg("Process HITRAN database between records {:,d} and {:,d}.".
-                 format(istart, istop), verb=2, indent=2)
+    self.log.msg("Process {:s} database between records {:,d} and {:,d}.".
+                 format(self.name, istart, istop), verb=2, indent=2)
     interval = (istop - istart)//10  # Check-point interval
 
     i = 0  # Stored record index
@@ -158,7 +156,7 @@ class hitran(dbdriver):
       A21    [i] = float(line[self.recApos:  self.recairpos])
       g2     [i] = float(line[self.recg2pos: self.recg2end ])
       # Print a checkpoint statement every 10% interval:
-      if (i % interval) == 0.0  and  i != 0:
+      if (i % interval) == 0.0 and i != 0:
         gfval = A21[i]*g2[i]*pc.C1/(8.0*np.pi*pc.c)/wnumber[i]**2.0
         self.log.msg("{:5.1f}% completed.".format(10.*i/interval),
                      verb=2, indent=3)

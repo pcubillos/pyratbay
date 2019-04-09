@@ -4559,3 +4559,17 @@ input configuration file.
 Removed pyratbay.VERSION.PYRAT_ versionning variables. Now will
 maintain only the PBAY_ variables.
 
+
+*****  Di 9. Apr 14:47:19 CEST 2019  *****
+
+Removed lread.py parser() function; replaced with tools.parse().
+Refactored lread.makeTLI() function to make it more pythonic.
+Documented.
+Renamed pc.dbases names list to the actual names of the opacity-lineread
+classes.  These will be the allowed values in dbtype.
+Removed 'args' argument from dbread() method in opacity database
+readers.
+Renamed tli config variables from iwl, fwl, outfile to wllow, wlhigh, tlifile.
+Enabled wllow and wlhigh inputs to include units (default: um).
+Updated travis file and tests accordingly.
+

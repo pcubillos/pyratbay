@@ -91,7 +91,7 @@ class exomol(dbdriver):
     return wavenumber
 
 
-  def dbread(self, iwn, fwn, verb, *args):
+  def dbread(self, iwn, fwn, verb):
     """
     Read an Exomol database (dbfile) between wavenumbers iwn and fwn.
 
@@ -159,8 +159,8 @@ class exomol(dbdriver):
     upID    = np.zeros(nread,       int)
     loID    = np.zeros(nread,       int)
 
-    self.log.msg("Process Exomol database between records {:,d} and {:,d}.".
-                  format(istart, istop), verb=2, indent=2)
+    self.log.msg("Process {:s} database between records {:,d} and {:,d}.".
+                  format(self.name, istart, istop), verb=2, indent=2)
     interval = (istop - istart)//10  # Check-point interval
 
     i = 0  # Stored record index

@@ -66,7 +66,7 @@ class tioschwenke(dbdriver):
     return recwl
 
 
-  def dbread(self, iwn, fwn, verb, *args):
+  def dbread(self, iwn, fwn, verb):
     """
     Read the Schwenke TiO database.
 
@@ -78,8 +78,6 @@ class tioschwenke(dbdriver):
        Final wavenumber limit (in cm-1).
     verb: Integer
        Verbosity threshold.
-    args:
-       Additional arguments, not needed.
 
     Returns
     -------
