@@ -4573,3 +4573,7 @@ Renamed tli config variables from iwl, fwl, outfile to wllow, wlhigh, tlifile.
 Enabled wllow and wlhigh inputs to include units (default: um).
 Updated travis file and tests accordingly.
 
+*****
+
+Fixed bug in db readers when the plotting interval is zero.
+

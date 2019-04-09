@@ -165,6 +165,8 @@ class vald(dbdriver):
                  "{:,d}.".format(istart, istop), verb=2, indent=2)
 
     interval = (istop - istart)/10  # Check-point interval
+    if interval == 0:
+        interval = 1
 
     # Line-transition data as given in database:
     wl    = np.zeros(nread, np.double)  # Wavelength (Angstrom)

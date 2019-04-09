@@ -146,6 +146,8 @@ class pands(dbdriver):
                  format(istart, istop), verb=2, indent=2)
 
     interval = (istop - istart)/10  # Check-point interval
+    if interval == 0:
+        interval = 1
 
     iw   = np.zeros(nread, int)
     ielo = np.zeros(nread, np.short)

@@ -162,6 +162,8 @@ class exomol(dbdriver):
     self.log.msg("Process {:s} database between records {:,d} and {:,d}.".
                   format(self.name, istart, istop), verb=2, indent=2)
     interval = (istop - istart)//10  # Check-point interval
+    if interval == 0:
+        interval = 1
 
     i = 0  # Stored record index
     while (i < nread):
