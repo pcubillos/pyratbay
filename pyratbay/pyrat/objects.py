@@ -173,7 +173,7 @@ class Molecules(object):
 
 class Linetransition(object):
   def __init__(self):
-    self.linedb  = None     # Line-transition data file
+    self.tlifile = None     # Line-transition data file
     self.nTLI    = 0        # Number of TLI files
     self.ndb     = 0        # Number of data bases
     self.db      = []       # Data base objects

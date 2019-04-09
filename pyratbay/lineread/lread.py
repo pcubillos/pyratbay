@@ -118,13 +118,12 @@ def makeTLI(dblist, pflist, dbtype, tlifile,
 
 
   log.msg("\nReading and writting partition function info.", verb=2)
-  # Database correlative number:
+  idb = 1         # Database correlative number:
+  niso_total = 0  # Cumulative number of isotopes
+  acum = [0]      # Cumulative number of isotopes per database
+  db_names = []
   # Loop through the partition files (if more than one) and write the
   # data to a processed TLI file:
-  idb = 1
-  niso_total = 0  # Cumulative number of isotopes
-  acum = [0]  # Cumulative number of isotopes per database
-  db_names = []
   for db in databases:
       # Skip if we already stored the pf info of this DB:
       if db.name in db_names:

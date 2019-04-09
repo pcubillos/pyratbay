@@ -62,8 +62,6 @@ def parse(cfile):
   pt.addarg("dblist",      parser, pt.parray, None)
   pt.addarg("pflist",      parser, pt.parray, None)
   pt.addarg("dbtype",      parser, pt.parray, None)
-
-  pt.addarg("linedb",      parser, pt.parray, None)
   pt.addarg("tlifile",     parser, pt.parray, None)
   pt.addarg("csfile",      parser, pt.parray, None)
   pt.addarg("molfile",     parser, str,       None)

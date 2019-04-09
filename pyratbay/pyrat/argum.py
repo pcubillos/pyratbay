@@ -48,11 +48,11 @@ def checkinputs(pyrat):
       log.error("atmfile: '{:s}' does not exist.".format(inputs.atmfile))
   pyrat.atm.atmfile = inputs.atmfile
 
-  if inputs.linedb is not None:
-    for linedb in inputs.linedb:
-      if not os.path.isfile(linedb):
-        log.error("linedb file: '{:s}' does not exist.".format(linedb))
-  pyrat.lt.linedb = pyrat.inputs.linedb
+  if inputs.tlifile is not None:
+      for tli in inputs.tlifile:
+          if not os.path.isfile(tli):
+              log.error("tli file: '{:s}' does not exist.".format(tli))
+  pyrat.lt.tlifile = pyrat.inputs.tlifile
 
   if inputs.csfile is not None:
     for cs in pyrat.inputs.csfile:

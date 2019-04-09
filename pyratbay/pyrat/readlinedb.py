@@ -15,33 +15,34 @@ def readlinedb(pyrat):
   Main driver to read the line transition data from TLI files.
   """
   # Count number of TLI files:
-  if pyrat.lt.linedb is None:
+  if pyrat.lt.tlifile is None:
     pyrat.lt.nTLI = 0
     pyrat.log.msg("\nNo line transition file to read.")
   else:
-    pyrat.lt.nTLI = len(pyrat.lt.linedb)
+    pyrat.lt.nTLI = len(pyrat.lt.tlifile)
     pyrat.log.msg("\nReading line transition info.")
 
   # TLI file object:
-  TLI = []
+  tli = []
   # Index of first database in TLI file:
   dbindex = [0]
 
   # Read data bases header info:
   for n in np.arange(pyrat.lt.nTLI):
-    # Open-read TLI data base:
-    TLI.append(open(pyrat.lt.linedb[n], "rb"))
-    pyrat.log.msg("Read TLI file: '{:s}'.".format(pyrat.lt.linedb[n]), indent=2)
-    # Read headers info:
-    dbindex.append(dbindex[-1] + readheader(pyrat, TLI[n]))
+      # Open-read TLI data base:
+      tli.append(open(pyrat.lt.tlifile[n], "rb"))
+      pyrat.log.msg("Read TLI file: '{:s}'.".format(pyrat.lt.tlifile[n]),
+                    indent=2)
+      # Read headers info:
+      dbindex.append(dbindex[-1] + readheader(pyrat, tli[n]))
 
   # Set link to molecules' indices:
   setimol(pyrat)
 
   # Read line-transition data (if there's no extinction-coefficient table):
-  if (pyrat.ex.extfile is None) or (not os.path.isfile(pyrat.ex.extfile)):
+  if pyrat.ex.extfile is None or not os.path.isfile(pyrat.ex.extfile):
     for n in np.arange(pyrat.lt.nTLI):
-      readlinetransition(pyrat, TLI[n], dbindex[n])
+      readlinetransition(pyrat, tli[n], dbindex[n])
 
   pyrat.log.msg("Read a total of {:,d} line transitions.".
                 format(pyrat.lt.ntransitions), verb=2, indent=2)
