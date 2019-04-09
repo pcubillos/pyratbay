@@ -4590,3 +4590,8 @@ Renamed lineread.db to lineread.database.
 
 Updated nproc to ncpu argument in tests config files.
 
+*****
+
+Default logname to output files (changing extention to .log) for tli,
+atmosphere, spectrum, and opacity runs.
+

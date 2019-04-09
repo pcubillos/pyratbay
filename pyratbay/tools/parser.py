@@ -184,6 +184,17 @@ def parse(cfile):
   args, unknowns = parser.parse_known_args()
   args.configfile = cfile
 
+  # Default log file name:
+  if args.logfile is None:
+      if args.runmode == 'tli' and args.tlifile is not None:
+          args.logfile = os.path.splitext(args.tlifile[0])[0] + '.log'
+      if args.runmode == 'atmosphere' and args.atmfile is not None:
+          args.logfile = os.path.splitext(args.atmfile)[0] + '.log'
+      if args.runmode == 'spectrum' and args.outspec is not None:
+          args.logfile = os.path.splitext(args.outspec)[0] + '.log'
+      if args.runmode == 'opacity' and args.extfile is not None:
+          args.logfile = os.path.splitext(args.extfile)[0] + '.log'
+
   args.logfile = pt.path(args.logfile)
   log = mu.Log(logname=args.logfile, verb=args.verb, width=80,
                append=args.resume)
