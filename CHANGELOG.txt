@@ -4595,3 +4595,12 @@ Updated nproc to ncpu argument in tests config files.
 Default logname to output files (changing extention to .log) for tli,
 atmosphere, spectrum, and opacity runs.
 
+
+*****  Mi 10. Apr 09:53:30 CEST 2019  *****
+
+Added MCMC-specific variables into pyrat.ret (mcmcfile, walk, pmin,
+pmax, nsamples, burnin, thinning, nchains, grbreak, grnmin, prior,
+priorlow, priorup).
+Added mcmcfile to set output of mcmc runs.  Default logname root name
+to mcmcfile if needed.
+

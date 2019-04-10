@@ -142,6 +142,7 @@ def parse(cfile):
   pt.addarg('tlow',        parser, np.double, 0.0)
   pt.addarg("thigh",       parser, np.double, np.inf)
   # Retrieval variables:
+  pt.addarg('mcmcfile',    parser, str,       None)
   pt.addarg('pmin',        parser, pt.parray, None)
   pt.addarg('pmax',        parser, pt.parray, None)
   pt.addarg('prior',       parser, pt.parray, None)
@@ -194,6 +195,8 @@ def parse(cfile):
           args.logfile = os.path.splitext(args.outspec)[0] + '.log'
       if args.runmode == 'opacity' and args.extfile is not None:
           args.logfile = os.path.splitext(args.extfile)[0] + '.log'
+      if args.runmode == 'mcmc' and args.mcmcfile is not None:
+          args.logfile = os.path.splitext(args.mcmcfile)[0] + '.log'
 
   args.logfile = pt.path(args.logfile)
   log = mu.Log(logname=args.logfile, verb=args.verb, width=80,

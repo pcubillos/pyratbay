@@ -378,7 +378,7 @@ def checkinputs(pyrat):
 
   # Accept ray-path argument:
   pyrat.od.path  = inputs.path
-  if pyrat.runmode in ["spectrum", "mcmc"]: # Check only if computing spectrum
+  if pyrat.runmode in ["spectrum", "mcmc"]:
     if pyrat.od.path is None:
       log.error("Undefined observing geometry (path).  Select between "
                "'transit' or 'eclipse'.")
@@ -466,6 +466,22 @@ def checkinputs(pyrat):
   pyrat.ret.stepsize = inputs.stepsize # FINDME checks
   pyrat.ret.tlow     = pt.getparam(inputs.tlow,  "kelvin", log)
   pyrat.ret.thigh    = pt.getparam(inputs.thigh, "kelvin", log)
+
+  # Purely-MCMC variables:
+  pyrat.ret.mcmcfile = inputs.mcmcfile
+  pyrat.ret.walk     = inputs.walk
+  pyrat.ret.pmin     = inputs.pmin
+  pyrat.ret.pmax     = inputs.pmax
+  pyrat.ret.nsamples = inputs.nsamples
+  pyrat.ret.burnin   = inputs.burnin
+  pyrat.ret.thinning = inputs.thinning
+  pyrat.ret.nchains  = inputs.nchains
+  pyrat.ret.grbreak  = inputs.grbreak
+  pyrat.ret.grnmin   = inputs.grnmin
+  pyrat.ret.prior    = inputs.prior
+  pyrat.ret.priorlow = inputs.priorlow
+  pyrat.ret.priorup  = inputs.priorup
+  # TBD: implement checks
 
   # Atmospheric model:
   pyrat.atm.molmodel = inputs.molmodel

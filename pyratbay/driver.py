@@ -124,24 +124,24 @@ def run(cfile):
 
     muted_log = mc3.utils.Log(None, verb=0, width=80)
     pyrat.log = muted_log    # Mute logging in PB, but not in MC3
-
     pyrat.spec.outspec = None  # Avoid writing spectrum file during MCMC
-
-    # Basename of the output files:
-    outfile = os.path.splitext(os.path.basename(log.logname))[0]
-    # Run MCMC:
     retmodel = False  # Return only the band-integrated spectrum
+    # Basename of the output files (no path, no extension):
+    outfile = os.path.splitext(os.path.basename(pyrat.ret.mcmcfile))[0]
+    ret = pyrat.ret
+
+    # Run MCMC:
     mc3_out = mc3.mcmc(data=args.data, uncert=args.uncert,
-           func=pyrat.eval, indparams=[retmodel], params=args.params,
-           pmin=args.pmin, pmax=args.pmax, stepsize=args.stepsize,
-           prior=args.prior, priorlow=args.priorlow, priorup=args.priorup,
-           walk=args.walk, nsamples=args.nsamples, nchains=args.nchains,
-           burnin=args.burnin, thinning=args.thinning,
-           grtest=True, grbreak=args.grbreak, grnmin=args.grnmin,
-           hsize=10, kickoff='normal', log=log, nproc=args.ncpu,
-           plots=True, pnames=pyrat.ret.pnames, texnames=pyrat.ret.texnames,
-           showbp=False,
-           resume=args.resume, savefile="{:s}.npz".format(outfile))
+        func=pyrat.eval, indparams=[retmodel], params=ret.params,
+        pmin=ret.pmin, pmax=ret.pmax, stepsize=ret.stepsize,
+        prior=ret.prior, priorlow=ret.priorlow, priorup=ret.priorup,
+        walk=ret.walk, nsamples=ret.nsamples,
+        nchains=ret.nchains, burnin=ret.burnin, thinning=ret.thinning,
+        grtest=True, grbreak=ret.grbreak, grnmin=ret.grnmin,
+        hsize=10, kickoff='normal', log=log, nproc=pyrat.ncpu,
+        plots=True, showbp=False,
+        pnames=ret.pnames, texnames=ret.texnames,
+        resume=args.resume, savefile=ret.mcmcfile)
 
     if mc3_out is None:
         log.error("Error in MC3.")
