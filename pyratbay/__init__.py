@@ -26,19 +26,13 @@ from . import starspec
 from . import tools
 from . import atmosphere
 from .pyrat import Pyrat
-from .driver import run
+from .driver import init, run
 
 from . import VERSION as ver
 
 
 # Pyrat-Bay version:
 __version__ = "{:d}.{:d}.{:d}".format(ver.PBAY_VER, ver.PBAY_MIN, ver.PBAY_REV)
-
-
-def init(cfile):
-    """Return a Pyrat object initialized from input config file."""
-    args, log = tools.parse(cfile)
-    return Pyrat(args, log)
 
 
 # Clean up top-level namespace--delete everything that isn't in __all__

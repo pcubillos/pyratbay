@@ -4614,3 +4614,9 @@ to 'spectrum', to an error.
 Implemented tools.ignore_system_exit() decorator to capture
 sys.exit() calls and return None.  Tested.
 
+*****
+
+Moved main init() function from main __init__.py to driver.py
+Applied ignore_system_exit() decorator to init() and run().
+(Replacing try-except clause).
+
