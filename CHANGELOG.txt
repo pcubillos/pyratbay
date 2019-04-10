@@ -4604,3 +4604,8 @@ priorlow, priorup).
 Added mcmcfile to set output of mcmc runs.  Default logname root name
 to mcmcfile if needed.
 
+*****
+
+Changed behavior of Pyrat when runmode is None, from warning/default
+to 'spectrum', to an error.
+

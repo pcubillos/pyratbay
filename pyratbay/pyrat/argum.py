@@ -34,12 +34,9 @@ def checkinputs(pyrat):
   log    = pyrat.log
 
   # Pyrat runmode:
-  pyrat.runmode = inputs.runmode
-  if pyrat.runmode is None:
-    log.warning("Defaulted Pyrat's runmode to: spectrum.")
-  if pyrat.runmode not in pc.rmodes:
-    log.error("Invalid runmode ({:s}).  Select from: {}.".
-              format(pyrat.runmode, pc.rmodes))
+  if inputs.runmode not in pc.rmodes:
+      log.error("Invalid runmode ({}). Select from: {:s}.".
+                format(inputs.runmode, str(pc.rmodes)))
 
   # Check that input files exist:
   if inputs.atmfile is None:
