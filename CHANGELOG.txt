@@ -4620,3 +4620,11 @@ Moved main init() function from main __init__.py to driver.py
 Applied ignore_system_exit() decorator to init() and run().
 (Replacing try-except clause).
 
+*****
+
+Implemented tests for missing or invalid runmode,
+missing tlifile for tli runs, missing extfile for opacity/mcmc runs,
+and missing mcmcfile for mcmc runs.
+(pt, atmosphere, or spectrum runs may run without an output file
+if they are ran through the interpreter).
+

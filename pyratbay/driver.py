@@ -80,7 +80,7 @@ def run(cfile):
   if args.runmode == "pt":
       return pressure, temperature
 
-  # Compute or read atmospheric abundances:
+  # Compute atmospheric abundances:
   if args.runmode == "atmosphere" or pt.isfile(args.atmfile) != 1:
       check_atm(args, log)
       xsolar = pt.getparam(args.xsolar, "none", log)
@@ -97,8 +97,11 @@ def run(cfile):
       log.error("Unspecified extinction-coefficient file (extfile).")
 
   # Force to re-calculate extinction-coefficient file if requested:
-  if args.runmode == "opacity" and pt.isfile(args.extfile):
+  if args.runmode == "opacity" and pt.isfile(args.extfile) == 1:
       os.remove(args.extfile)
+
+  if args.runmode == "mcmc" and args.mcmcfile is None:
+      log.error('No MCMC file specified.')
 
   # Initialize pyrat object:
   if args.resume: # Bypass writting all of the initialization log:
