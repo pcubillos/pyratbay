@@ -10,7 +10,9 @@ __all__ = ["parray", "defaultp", "getparam",
            "cia_hitran", "cia_borysow",
            "tophat",
            "resample", "band_integrate",
+           "ignore_system_exit",
           ]
+
 
 import os
 import sys
@@ -1057,3 +1059,14 @@ def band_integrate(spectrum, specwn, bandtrans, bandwn):
       bflux.append(np.trapz(spectrum[wnidx]*resampled, specwn[wnidx]))
 
   return bflux
+
+
+def ignore_system_exit(func):
+    """Decorator to ignore SystemExit exceptions."""
+    def new_func(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except SystemExit as e:
+            return None
+    return new_func
+

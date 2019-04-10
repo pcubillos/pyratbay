@@ -358,3 +358,16 @@ def test_band_integrate():
     wn2, irac2 = io.read_spectrum(pc.ROOT+"inputs/filters/spitzer_irac2_sa.dat")
     bandfluxes = pt.band_integrate(sflux, wn, [irac1,irac2], [wn1, wn2])
     np.testing.assert_allclose(bandfluxes, [98527.148526, 84171.417692])
+
+
+@pytest.mark.parametrize('flag, output', [(False,1), (True,None)])
+def test_ignore_system_exit(flag, output):
+    @pt.ignore_system_exit
+    def dummy_function(flag):
+        if flag:
+            sys.exit()
+        return 1
+    if flag:
+        assert dummy_function(flag) is None
+    else:
+        assert dummy_function(flag) == 1

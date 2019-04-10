@@ -4609,3 +4609,8 @@ to mcmcfile if needed.
 Changed behavior of Pyrat when runmode is None, from warning/default
 to 'spectrum', to an error.
 
+*****
+
+Implemented tools.ignore_system_exit() decorator to capture
+sys.exit() calls and return None.  Tested.
+
