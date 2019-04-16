@@ -231,3 +231,15 @@ def test_write_cs_mismatch_wn():
                        'does not match the number of wavenumber samples.'):
         io.write_cs(csfile, cs, species, temp, wn)
 
+
+def test_read_pt(tmpdir):
+    ptfile = 'mock_pt.dat'
+    ptf = "{}/{}".format(tmpdir, ptfile)
+    temp  = np.array([100.0, 150.0, 200.0, 175.0, 150.0])
+    press = np.array([1e-6,  1e-4,  1e-2,  1e0,   1e2])
+    with open(ptf, 'w') as f:
+        for p,t in zip(press, temp):
+            f.write('{:.3e}  {:5.1f}\n'.format(p, t))
+    pressure, temperature = io.read_pt(ptf)
+    np.testing.assert_allclose(pressure, press*pc.bar,  rtol=1e-7)
+    np.testing.assert_allclose(temperature, temp,  rtol=1e-7)

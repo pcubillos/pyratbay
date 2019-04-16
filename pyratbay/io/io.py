@@ -5,6 +5,7 @@ __all__ = ["write_spectrum", "read_spectrum",
            "write_opacity", "read_opacity",
            "write_pf", "read_pf",
            "write_cs", "read_cs",
+           "read_pt",
           ]
 
 import os
@@ -498,3 +499,44 @@ def read_cs(csfile):
         cs[:,i] = info[1:]
 
     return cs, species, temp, wn
+
+
+def read_pt(ptfile):
+    r"""
+    Read a pressure and temperature profile from a file.
+
+    Parameters
+    ----------
+    ptfile: String
+        Input file with pressure (in bars, first column) and temperature
+        profiles (in Kelvin degree, second column).
+
+    Returns
+    -------
+    pressure: 1D float ndarray
+        Pressure profile in barye.
+    temperature: 1D float ndarray
+        Temperature profile in Kelvin.
+
+    Examples
+    --------
+    >>> import pyratbay.io as io
+    >>> ptfile = 'pt_profile.dat'
+    >>> temp  = np.array([100.0, 150.0, 200.0, 175.0, 150.0])
+    >>> press = np.array([1e-6,  1e-4,  1e-2,  1e0,   1e2])
+    >>> with open(ptfile, 'w') as f:
+    >>>     for p,t in zip(press, temp):
+    >>>         f.write('{:.3e}  {:5.1f}\n'.format(p, t))
+    >>> pressure, temperature = io.read_pt(ptfile)
+    >>> for p,t in zip(pressure, temperature):
+    >>>     print('{:.1e} barye  {:5.1f} K'.format(p, t))
+    1.0e+00 barye  100.0 K
+    1.0e+02 barye  150.0 K
+    1.0e+04 barye  200.0 K
+    1.0e+06 barye  175.0 K
+    1.0e+08 barye  150.0 K
+    """
+    pressure, temperature = np.loadtxt(ptfile, usecols=(0,1), unpack=True)
+    pressure *= pc.bar
+    return pressure, temperature
+

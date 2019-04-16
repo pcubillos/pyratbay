@@ -4635,3 +4635,8 @@ Removed pyratbay.init().  Instead, use pyratbay.run(cfile, init=True)
 This streamlines usage and eases error handling.
 Some test updates are TBD, but will be fixed very soon.
 
+*****
+
+Moved atmosphere.read_ptfile() to io.read_pt().
+Cleaned up code and tested.
+

@@ -1,7 +1,7 @@
 # Copyright (c) 2016-2019 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-__all__ = ["read_ptfile", "writeatm", "readatm", "makeatomic",
+__all__ = ["writeatm", "readatm", "makeatomic",
            "readatomic", "makepreatm", "TEA2pyrat", "readmol",
            "pressure",
            "temp_isothermal", "temp_TCEA", "temperature",
@@ -26,55 +26,6 @@ sys.path.append(pc.ROOT + "pyratbay/lib/")
 import pt as PT
 sys.path.append(pc.ROOT + "modules/MCcubed/")
 import MCcubed.utils as mu
-
-
-def read_ptfile(ptfile):
-    """
-    Extract pressure, temperature, from a file.
-
-    Parameters
-    ----------
-    ptfile: String
-       Input file with pressure (first column), temperature (second
-       column) arrays.
-
-    Return
-    ------
-    pressure: 1D float ndarray
-       Pressure profile in barye.
-    temperature: 1D float ndarray
-       Temperature profile in Kelvin.
-
-    Notes
-    -----
-    This function assumes that the units of the input pressure are bar.
-    """
-    # Open ptfile:
-    f = open(ptfile, 'r')
-    data = []
-    for line in f.readlines():
-        if line.startswith('#'):
-            continue
-        else:
-            l = [value for value in line.split()]
-            data.append(l)
-    data = np.asarray(data)
-    f.close()
-
-    # Size of the data array (number of layers in the atmosphere):
-    ndata = len(data)
-
-    # Allocate arrays of pressure and temperature
-    press, temp = [], []
-
-    # Read lines and store pressure and temperature data
-    for i in np.arange(ndata):
-        press = np.append(press, data[i][0])
-        temp  = np.append(temp,  data[i][1])
-    pressure    = press.astype(float) * pt.u('bar')
-    temperature = temp.astype(float)
-
-    return pressure, temperature
 
 
 def writeatm(atmfile, pressure, temperature, species, abundances,

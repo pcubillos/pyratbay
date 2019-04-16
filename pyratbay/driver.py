@@ -11,6 +11,7 @@ from . import constants  as pc
 from . import lineread   as lr
 from . import plots      as pp
 from . import atmosphere as pa
+from . import io         as io
 from .pyrat import Pyrat
 
 sys.path.append(pc.ROOT + "modules/MCcubed/")
@@ -71,7 +72,7 @@ def run(cfile, init=False):
       elif os.path.isfile(args.ptfile):
           log.msg("\nReading pressure-temperature file: '{:s}'.".
                   format(args.ptfile))
-          pressure, temperature = pa.read_ptfile(args.ptfile)
+          pressure, temperature = io.read_pt(args.ptfile)
 
   # Return temperature-pressure if requested:
   if args.runmode == "pt":
