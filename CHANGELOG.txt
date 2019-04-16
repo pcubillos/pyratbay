@@ -4628,3 +4628,10 @@ and missing mcmcfile for mcmc runs.
 (pt, atmosphere, or spectrum runs may run without an output file
 if they are ran through the interpreter).
 
+
+*****  Di 16. Apr 17:24:31 CEST 2019  *****
+
+Removed pyratbay.init().  Instead, use pyratbay.run(cfile, init=True)
+This streamlines usage and eases error handling.
+Some test updates are TBD, but will be fixed very soon.
+

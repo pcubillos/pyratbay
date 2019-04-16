@@ -12,7 +12,6 @@ __all__ = [
     "tools",
     "atmosphere",
     "Pyrat",
-    "init",
     "run",
 ]
 
@@ -26,7 +25,7 @@ from . import starspec
 from . import tools
 from . import atmosphere
 from .pyrat import Pyrat
-from .driver import init, run
+from .driver import run
 
 from . import VERSION as ver
 

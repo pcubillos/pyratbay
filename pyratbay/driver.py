@@ -1,7 +1,7 @@
 # Copyright (c) 2016-2019 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-__all__ = ["init", "run"]
+__all__ = ["run"]
 
 import os
 import sys
@@ -18,14 +18,7 @@ import MCcubed as mc3
 
 
 @pt.ignore_system_exit
-def init(cfile):
-    """Return a Pyrat object initialized from input config file."""
-    args, log = pt.parse(cfile)
-    return Pyrat(args, log)
-
-
-@pt.ignore_system_exit
-def run(cfile):
+def run(cfile, init=False):
   """
   Pyrat Bay (Python Radiative Transfer in a Bayesian framework)
   initialization driver.
@@ -33,7 +26,10 @@ def run(cfile):
   Parameters
   ----------
   cfile: String
-     A Pyrat Bay configuration file.
+      A Pyrat Bay configuration file.
+  init: Bool
+      If True, only initialize a Pyrat object (no spectra calculation).
+      This is useful when computing spectra interactively.
   """
   # Parse command line arguments:
   args, log = pt.parse(cfile)
@@ -53,6 +49,7 @@ def run(cfile):
                  args.wllow, args.wlhigh, args.wlunits, log)
       return
 
+
   # Get gplanet from mplanet and rplanet if necessary:
   if (args.gplanet is None and args.rplanet is not None and
       args.mplanet is not None):
@@ -63,10 +60,10 @@ def run(cfile):
   if args.runmode in ["pt", "atmosphere"] or pt.isfile(args.atmfile) != 1:
       # Check if PT file is provided:
       if args.ptfile is None:
-          check_pressure(args, log)  # Check pressure inputs
+          check_pressure(args, log)
           pressure = pa.pressure(args.ptop, args.pbottom, args.nlayers,
                                  args.punits, log)
-          check_temp(args, log)      # Check temperature inputs
+          check_temp(args, log)
           temperature = pa.temperature(args.tmodel, pressure,
                args.rstar, args.tstar, args.tint, args.gplanet, args.smaxis,
                args.runits, args.nlayers, log, args.tpars)
@@ -79,6 +76,7 @@ def run(cfile):
   # Return temperature-pressure if requested:
   if args.runmode == "pt":
       return pressure, temperature
+
 
   # Compute atmospheric abundances:
   if args.runmode == "atmosphere" or pt.isfile(args.atmfile) != 1:
@@ -110,13 +108,13 @@ def run(cfile):
   else:
       pyrat = Pyrat(args, log=log)
 
+  # Stop and return if requested:
+  if init or pyrat.runmode == 'opacity':
+      return pyrat
+
   # Compute spectrum and return pyrat object if requested:
   if args.runmode == "spectrum":
       pyrat.run()
-      return pyrat
-
-  # End if necessary:
-  if args.runmode == "opacity":
       return pyrat
 
   # Retrieval checks:
@@ -203,8 +201,8 @@ def check_pressure(args, log):
   """
   args.punits = pt.defaultp(args.punits, "bar",
       "punits input variable defaulted to '{:s}'.", log)
-  args.nlayers = pt.defaultp(args.nlayers, 100,
-      "Number of atmospheric-model layers defaulted to {:d}.", log)
+  if args.nlayers is None:
+      log.error("Undefined number of atmospheric layers (nlayers).")
   args.ptop = pt.defaultp(args.ptop, "1e-8 bar",
       "Atmospheric-model top-pressure boundary defaulted to {:s}.", log)
   args.pbottom = pt.defaultp(args.pbottom, "100 bar",

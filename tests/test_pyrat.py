@@ -10,11 +10,6 @@ import pyratbay as pb
 os.chdir(ROOT+'tests')
 
 
-def test_call_from_pyrat():
-    pyrat = pb.init(ROOT+'tests/spectrum_transmission_test.cfg')
-    assert pyrat is not None
-
-
 def test_call_from_command_line():
     subprocess.call(['python', '../pbay.py', '-c',
                      'spectrum_transmission_test.cfg'])
@@ -24,7 +19,7 @@ def test_call_from_command_line2():
     subprocess.call(['../pbay.py', '-c', 'spectrum_transmission_test.cfg'])
 
 
-def test_call_from_pbay():
+def test_call_from_interpreter():
     pyrat = pb.run('spectrum_transmission_test.cfg')
     assert pyrat is not None
     assert repr(pyrat) == (
