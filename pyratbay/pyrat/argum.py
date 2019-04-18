@@ -37,31 +37,33 @@ def checkinputs(pyrat):
   if inputs.runmode not in pc.rmodes:
       log.error("Invalid runmode ({}). Select from: {:s}.".
                 format(inputs.runmode, str(pc.rmodes)))
+  pyrat.runmode = inputs.runmode
 
   # Check that input files exist:
   if inputs.atmfile is None:
       log.error("Undefined atmospheric file (atmfile).")
   elif not os.path.isfile(inputs.atmfile):
-      log.error("atmfile: '{:s}' does not exist.".format(inputs.atmfile))
+      log.error("Atmospheric file: '{:s}' does not exist.".
+                format(inputs.atmfile))
   pyrat.atm.atmfile = inputs.atmfile
 
   if inputs.tlifile is not None:
       for tli in inputs.tlifile:
           if not os.path.isfile(tli):
-              log.error("tli file: '{:s}' does not exist.".format(tli))
+              log.error("TLI file: '{:s}' does not exist.".format(tli))
   pyrat.lt.tlifile = pyrat.inputs.tlifile
 
   if inputs.csfile is not None:
-    for cs in pyrat.inputs.csfile:
-      if not os.path.isfile(cs):
-        log.error("Cross-section file: '{:s}' does not exist.".format(cs))
+      for cs in pyrat.inputs.csfile:
+          if not os.path.isfile(cs):
+              log.error("Cross-section file: '{:s}' does not exist.".format(cs))
   pyrat.cs.files = pyrat.inputs.csfile
 
   if inputs.molfile is None: # Set default
-    inputs.molfile = os.path.realpath(pc.ROOT + "/inputs/molecules.dat")
+      inputs.molfile = os.path.realpath(pc.ROOT + "/inputs/molecules.dat")
   if not os.path.isfile(inputs.molfile):
-    log.error("Molecular-data file: '{:s}' does not exist.".
-              format(inputs.molfile))
+      log.error("Molecular-data file: '{:s}' does not exist.".
+                format(inputs.molfile))
   pyrat.mol.molfile = os.path.realpath(inputs.molfile)
 
   if inputs.extfile is not None:

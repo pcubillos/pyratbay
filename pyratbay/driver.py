@@ -204,10 +204,10 @@ def check_pressure(args, log):
       "punits input variable defaulted to '{:s}'.", log)
   if args.nlayers is None:
       log.error("Undefined number of atmospheric layers (nlayers).")
-  args.ptop = pt.defaultp(args.ptop, "1e-8 bar",
-      "Atmospheric-model top-pressure boundary defaulted to {:s}.", log)
-  args.pbottom = pt.defaultp(args.pbottom, "100 bar",
-      "Atmospheric-model bottom-pressure boundary defaulted to {:s}.", log)
+  if args.ptop is None:
+      log.error("Undefined atmospheric top pressure (ptop)")
+  if args.pbottom is None:
+      log.error("Undefined atmospheric bottom pressure (pbottom)")
 
 
 def check_temp(args, log):

@@ -4640,3 +4640,11 @@ Some test updates are TBD, but will be fixed very soon.
 Moved atmosphere.read_ptfile() to io.read_pt().
 Cleaned up code and tested.
 
+
+*****  Do 18. Apr 17:59:27 CEST 2019  *****
+
+Changed warnings to errors for missing ptop and pbottom arguments
+when computing a pressure profile.
+Brought back pyrat.runmode in argum.py
+Added tests for missing pressure parameters.
+
