@@ -4648,3 +4648,10 @@ when computing a pressure profile.
 Brought back pyrat.runmode in argum.py
 Added tests for missing pressure parameters.
 
+
+*****  Fr 19. Apr 11:58:56 CEST 2019  *****
+
+PEP8ed tools.getparam().
+Set parser's usage to a blank string (for cleaner output for
+invalid inputs data types).
+

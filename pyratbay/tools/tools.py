@@ -274,42 +274,44 @@ def getparam(param, units, log=None, integer=False):
      The default units for the parameter.
   log: Log object
      Screen-output log handler.
+  integer: Bool
+     If True, cast the output into an int.
   """
   if param is None:
     return None
 
   if log is None:
-    log = mu.Log(logname=None)
+      log = mu.Log(logname=None)
 
   # Return if it is a numeric value:
   if isinstance(param, numbers.Number):
-    if units not in pc.validunits:
-      log.error("Units name '{:s}' does not exist.".format(units))
+      if units not in pc.validunits:
+          log.error("Invalid units '{:s}'.".format(units))
 
-    return param * u(units)
+      return param * u(units)
 
   # Split the parameter if it has a white-space:
   par = param.split()
 
   # If the parameter contains units, read the units:
   if len(par) == 2:
-    units = par[1]
-    if units not in pc.validunits:
-      log.error("Units name '{:s}' does not exist.".format(units))
+      units = par[1]
+      if units not in pc.validunits:
+          log.error("Invalid units '{:s}'.".format(units))
 
   # Get the value of the parameter:
   try:
-    value = np.float(par[0])
+      value = np.float(par[0])
   except:
-    log.error("Invalid parameter format for '{:s}'.  param must be a float "
-              "or integer.  If it contains units, it must be blank-space "
-              "separated.".format(param), lev=-3)
+      log.error("Invalid parameter format for '{:s}'.  param must be a float "
+          "or integer.  If it contains units, it must be blank-space "
+          "separated.".format(param), lev=-3)
 
   # Apply the units:
   value *= u(units)
 
   if integer:
-    return int(value)
+      return int(value)
 
   return value
 

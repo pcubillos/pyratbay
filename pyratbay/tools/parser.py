@@ -56,9 +56,9 @@ def parse(cfile):
 
   # Use argparse only to define the data types and defaults:
   parser = argparse.ArgumentParser(
-               formatter_class=argparse.RawDescriptionHelpFormatter)
+               formatter_class=argparse.RawDescriptionHelpFormatter,
+               usage='')
   parser.add_argument("--verb", type=int, default=None)
-
   pt.addarg("dblist",      parser, pt.parray, None)
   pt.addarg("pflist",      parser, pt.parray, None)
   pt.addarg("dbtype",      parser, pt.parray, None)
@@ -184,6 +184,7 @@ def parse(cfile):
   # Set values from command line:
   args, unknowns = parser.parse_known_args()
   args.configfile = cfile
+
 
   # Default log file name:
   if args.logfile is None:
