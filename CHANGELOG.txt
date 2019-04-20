@@ -4655,3 +4655,10 @@ PEP8ed tools.getparam().
 Set parser's usage to a blank string (for cleaner output for
 invalid inputs data types).
 
+
+*****  Sat Apr 20 20:41:53 CEST 2019  *****
+
+Refactored tools.getparam(), adding the parameter name for a more
+explicit error report.  Updated docs.
+Updated getparams() calls throughout the package.
+

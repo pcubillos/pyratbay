@@ -54,8 +54,9 @@ def run(cfile, init=False):
   # Get gplanet from mplanet and rplanet if necessary:
   if (args.gplanet is None and args.rplanet is not None and
       args.mplanet is not None):
-      args.gplanet = (pc.G * pt.getparam(args.mplanet, "gram", log)
-                      / pt.getparam(args.rplanet, args.runits, log)**2)
+      mplanet = pt.getparam('mplanet', args.mplanet, "gram", log)
+      rplanet = pt.getparam('rplanet', args.rplanet, args.runits, log)
+      args.gplanet = pc.G * mplanet / rplanet**2
 
   # Compute pressure-temperature profile:
   if args.runmode in ["pt", "atmosphere"] or pt.isfile(args.atmfile) != 1:
@@ -82,7 +83,7 @@ def run(cfile, init=False):
   # Compute atmospheric abundances:
   if args.runmode == "atmosphere" or pt.isfile(args.atmfile) != 1:
       check_atm(args, log)
-      xsolar = pt.getparam(args.xsolar, "none", log)
+      xsolar = pt.getparam('xsolar', args.xsolar, "none", log)
       abundances = pa.abundances(args.atmfile, pressure, temperature,
           args.species, args.elements, args.uniform, args.punits, xsolar,
           args.solar, log)

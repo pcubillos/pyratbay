@@ -32,6 +32,8 @@ def checkinputs(pyrat):
   inputs = pyrat.inputs
   phy    = pyrat.phy
   log    = pyrat.log
+  spec   = pyrat.spec
+  atm    = pyrat.atm
 
   # Pyrat runmode:
   if inputs.runmode not in pc.rmodes:
@@ -45,7 +47,7 @@ def checkinputs(pyrat):
   elif not os.path.isfile(inputs.atmfile):
       log.error("Atmospheric file: '{:s}' does not exist.".
                 format(inputs.atmfile))
-  pyrat.atm.atmfile = inputs.atmfile
+  atm.atmfile = inputs.atmfile
 
   if inputs.tlifile is not None:
       for tli in inputs.tlifile:
@@ -73,204 +75,205 @@ def checkinputs(pyrat):
     pyrat.ex.extfile = os.path.realpath(inputs.extfile)
 
   # Check spectrum arguments:
-  pyrat.spec.wnunits = pt.defaultp(inputs.wnunits, "cm",
-         "wnunits input variable defaulted to '{:s}'.", log)
-  pyrat.spec.wlunits = pt.defaultp(inputs.wlunits, "um",
-         "wlunits input variable defaulted to '{:s}'.", log)
+  spec.wnunits = pt.defaultp(inputs.wnunits, "cm",
+      "wnunits input variable defaulted to '{:s}'.", log)
+  spec.wlunits = pt.defaultp(inputs.wlunits, "um",
+      "wlunits input variable defaulted to '{:s}'.", log)
 
-  pyrat.spec.wllow = pt.getparam(inputs.wllow, pyrat.spec.wlunits, log)
-  isgreater(pyrat.spec.wllow, "um", 0, False,
-            "Low wavelength boundary ({:.2e} um) must be >= 0.", log)
+  spec.wllow = pt.getparam('wllow', inputs.wllow, spec.wlunits, log)
+  isgreater(spec.wllow, "um", 0, False,
+      "Low wavelength boundary ({:.2e} um) must be >= 0.", log)
 
-  pyrat.spec.wlhigh = pt.getparam(inputs.wlhigh, pyrat.spec.wlunits, log)
-  isgreater(pyrat.spec.wlhigh, "um", 0, True,
-            "High wavelength boundary ({:.2e} um) must be >= 0.", log)
+  spec.wlhigh = pt.getparam('wlhigh', inputs.wlhigh, spec.wlunits, log)
+  isgreater(spec.wlhigh, "um", 0, True,
+      "High wavelength boundary ({:.2e} um) must be >= 0.", log)
 
   # Wavenumber must be taken care differently (take inverse of units):
   if inputs.wnlow is not None:
-    if len(inputs.wnlow.split()) == 2:
-      wnunits = inputs.wnlow.split()[1]
-    else:
-      wnunits = pyrat.spec.wnunits
-    wnlow = float(inputs.wnlow.split()[0])
-    if wnlow < 0.0:
-      log.error("Low wavenumber boundary ({:.2e} {:s}-1) must be >= 0.".
-               format(wnlow, wnunits))
-    pyrat.spec.wnlow = wnlow / pt.u(wnunits)
+      if len(inputs.wnlow.split()) == 2:
+          wnunits = inputs.wnlow.split()[1]
+      else:
+          wnunits = spec.wnunits
+      wnlow = float(inputs.wnlow.split()[0])
+      if wnlow < 0.0:
+          log.error("Low wavenumber boundary ({:.2e} {:s}-1) must be >= 0.".
+                    format(wnlow, wnunits))
+      spec.wnlow = wnlow / pt.u(wnunits)
 
-  if   inputs.wnhigh is not None:
-    if len(inputs.wnhigh.split()) == 2:
-      wnunits = inputs.wnhigh.split()[1]
-    else:
-      wnunits = pyrat.spec.wnunits
-    wnhigh = float(inputs.wnhigh.split()[0])
-    if wnhigh <= 0.0:
-      log.error("High wavenumber boundary ({:.2e} {:s}-1) must be > 0.".
-               format(wnhigh, wnunits))
-    pyrat.spec.wnhigh = wnhigh / pt.u(wnunits)
+  if inputs.wnhigh is not None:
+      if len(inputs.wnhigh.split()) == 2:
+          wnunits = inputs.wnhigh.split()[1]
+      else:
+          wnunits = spec.wnunits
+      wnhigh = float(inputs.wnhigh.split()[0])
+      if wnhigh <= 0.0:
+          log.error("High wavenumber boundary ({:.2e} {:s}-1) must be > 0.".
+                    format(wnhigh, wnunits))
+      spec.wnhigh = wnhigh / pt.u(wnunits)
 
   wnstep = pt.defaultp(inputs.wnstep, "1.0 cm",
-     "Input wavenumber sampling step (wnstep) defaulted to '{:s}'.", log)
+      "Input wavenumber sampling step (wnstep) defaulted to '{:s}'.", log)
   if len(wnstep.split()) == 2:
-    wnunits = wnstep.split()[1]
+      wnunits = wnstep.split()[1]
   else:
-    wnunits = pyrat.spec.wnunits
+      wnunits = spec.wnunits
   wnstep = float(wnstep.split()[0])
   if wnstep <= 0:
-    log.error("Wavenumber sampling step ({:.2e} {:s}-1) must be be > 0.".
-             format(wnstep, wnunits))
-  pyrat.spec.wnstep = wnstep / pt.u(wnunits)
+      log.error("Wavenumber sampling step ({:.2e} {:s}-1) must be be > 0.".
+                format(wnstep, wnunits))
+  spec.wnstep = wnstep / pt.u(wnunits)
 
-  pyrat.spec.wnosamp = pt.defaultp(inputs.wnosamp, 2160,
-     "Input wavenumber oversampling factor (wnosamp) defaulted to {:d}.", log)
-  isgreater(pyrat.spec.wnosamp, "none", 1, False,
-     "Wavenumber oversampling factor ({:d}) must be >= 1.", log)
+  spec.wnosamp = pt.defaultp(inputs.wnosamp, 2160,
+      "Input wavenumber oversampling factor (wnosamp) defaulted to {:d}.", log)
+  isgreater(spec.wnosamp, "none", 1, False,
+      "Wavenumber oversampling factor ({:d}) must be >= 1.", log)
 
-  pyrat.spec.resolution = inputs.resolution
+  spec.resolution = inputs.resolution
 
   # Check atmospheric layers arguments:
-  pyrat.atm.punits = pt.defaultp(inputs.punits, "bar",
+  atm.punits = pt.defaultp(inputs.punits, "bar",
      "Input pressure units (punits) defaulted to '{:s}'.", log)
-  pyrat.atm.runits = pt.defaultp(inputs.runits, "km",
+  atm.runits = pt.defaultp(inputs.runits, "km",
      "Input radius units (punits) defaulted to '{:s}'.", log)
 
   # Pressure boundaries:
-  pyrat.atm.pbottom = pt.getparam(inputs.pbottom, pyrat.atm.punits, log)
-  isgreater(pyrat.atm.pbottom, "bar", 0, True,
+  atm.pbottom = pt.getparam('pbottom', inputs.pbottom, atm.punits, log)
+  isgreater(atm.pbottom, "bar", 0, True,
             "High atm pressure boundary ({:.2e} bar) must be > 0.0", log)
-  pyrat.atm.ptop  = pt.getparam(inputs.ptop,  pyrat.atm.punits, log)
-  isgreater(pyrat.atm.ptop, "bar",  0, True,
+  atm.ptop = pt.getparam('ptop', inputs.ptop,  atm.punits, log)
+  isgreater(atm.ptop, "bar",  0, True,
             "Low atm pressure boundary ({:.2e} bar) must be > 0.0", log)
   # Radius boundaries:
-  pyrat.atm.radlow  = pt.getparam(inputs.radlow,  pyrat.atm.runits, log)
-  isgreater(pyrat.atm.radlow, "cm", 0, False,
+  atm.radlow = pt.getparam('radlow', inputs.radlow,  atm.runits, log)
+  isgreater(atm.radlow, "cm", 0, False,
             "Low atm radius boundary ({:.2e} cm) must be >= 0.0", log)
-  pyrat.atm.radhigh = pt.getparam(inputs.radhigh, pyrat.atm.runits, log)
-  isgreater(pyrat.atm.radhigh, "cm", 0, True,
+  atm.radhigh = pt.getparam('radhigh', inputs.radhigh, atm.runits, log)
+  isgreater(atm.radhigh, "cm", 0, True,
             "High atm radius boundary ({:.2e} cm) must be > 0.0", log)
-  pyrat.atm.radstep = pt.getparam(inputs.radstep, pyrat.atm.runits, log)
-  isgreater(pyrat.atm.radstep, "cm", 0, True,
+  atm.radstep = pt.getparam('radstep', inputs.radstep, atm.runits, log)
+  isgreater(atm.radstep, "cm", 0, True,
             "Radius step size ({:.2f} cm) must be > 0.", log)
   # System physical parameters:
-  phy.rplanet = pt.getparam(inputs.rplanet, pyrat.atm.runits, log)
+  phy.rplanet = pt.getparam('rplanet', inputs.rplanet, atm.runits, log)
   isgreater(phy.rplanet, "cm",   0, True,
             "Planetary radius ({:.3e} cm) must be > 0.", log)
 
-  pyrat.atm.refpressure = pt.getparam(inputs.refpressure, pyrat.atm.punits, log)
-  isgreater(pyrat.atm.refpressure, "bar", 0, True,
+  atm.refpressure = pt.getparam('refpressure', inputs.refpressure, atm.punits,
+                                log)
+  isgreater(atm.refpressure, "bar", 0, True,
       "Planetary reference pressure level ({:8g} bar) must be > 0.", log)
 
-  phy.gplanet  = pt.getparam(inputs.gplanet, "none", log)
+  phy.gplanet = pt.getparam('gplanet', inputs.gplanet, "none", log)
   isgreater(phy.gplanet, "none", 0, True,
             "Planetary surface gravity ({:.2f} cm s-2) must be > 0.", log)
 
-  phy.mplanet  = pt.getparam(inputs.mplanet, "gram", log)
+  phy.mplanet = pt.getparam('mplanet', inputs.mplanet, "gram", log)
   isgreater(phy.mplanet, "mearth", 0, True,
             "Planetary mass ({:.2f} Mearth) must be > 0.", log)
 
   # Check planetary surface gravity:
   if phy.mplanet is not None:
-    pyrat.atm.hydrom = True  # Use mass value for hydrostatic equilibrium
-    if phy.rplanet is None and phy.gplanet is not None:
-      phy.rplanet = np.sqrt(pc.G * phy.mplanet / phy.gplanet)
-    if phy.rplanet is not None:
-      gplanet = pc.G * phy.mplanet / phy.rplanet**2
-      if phy.gplanet is None:
-        phy.gplanet = gplanet
-      elif np.abs(gplanet-phy.gplanet)/phy.gplanet > 0.05:
-        log.error("Both mplanet and gplanet were provided, but values are "
-          "inconsistent (>5%): g(mplanet) = {:7.1f} cm s-2 and gplanet = "
-          "{:7.1f} cm s-2.".format(gplanet, phy.gplanet))
+      atm.hydrom = True  # Use mass value for hydrostatic equilibrium
+      if phy.rplanet is None and phy.gplanet is not None:
+          phy.rplanet = np.sqrt(pc.G * phy.mplanet / phy.gplanet)
+      if phy.rplanet is not None:
+          gplanet = pc.G * phy.mplanet / phy.rplanet**2
+          if phy.gplanet is None:
+              phy.gplanet = gplanet
+          elif np.abs(gplanet-phy.gplanet)/phy.gplanet > 0.05:
+              log.error("Both mplanet and gplanet were provided, but values "
+                  "are inconsistent (>5%): g(mplanet) = {:7.1f} cm s-2 and "
+                  "gplanet = {:7.1f} cm s-2.".format(gplanet, phy.gplanet))
   elif phy.gplanet is not None and phy.rplanet is not None:
-    phy.mplanet = phy.gplanet * phy.rplanet**2 / pc.G
+      phy.mplanet = phy.gplanet * phy.rplanet**2 / pc.G
 
-  pyrat.phy.rstar = pt.getparam(inputs.rstar, pyrat.atm.runits, log)
+  phy.rstar = pt.getparam('rstar', inputs.rstar, atm.runits, log)
   isgreater(pyrat.phy.rstar, "cm",   0, True,
-            "Stellar radius ({:.3e} cm) must be > 0.", log)
+      "Stellar radius ({:.3e} cm) must be > 0.", log)
 
-  pyrat.phy.gstar  = pt.getparam(inputs.gstar, "none", log)
+  pyrat.phy.gstar = pt.getparam('gstar', inputs.gstar, "none", log)
   isgreater(pyrat.phy.gstar, "none", 0, True,
-            "Stellar surface gravity ({:.2f} cm s-2) must be > 0.", log)
+      "Stellar surface gravity ({:.2f} cm s-2) must be > 0.", log)
 
-  pyrat.phy.tstar  = pt.getparam(inputs.tstar, "none", log)
+  pyrat.phy.tstar = pt.getparam('tstar', inputs.tstar, "none", log)
   isgreater(pyrat.phy.tstar, "none", 0, True,
-            "Stellar effective temperature ({:.1f} K) must be > 0.", log)
+      "Stellar effective temperature ({:.1f} K) must be > 0.", log)
 
-  pyrat.phy.smaxis = pt.getparam(inputs.smaxis, pyrat.atm.runits, log)
+  pyrat.phy.smaxis = pt.getparam('smaxis', inputs.smaxis, atm.runits, log)
   isgreater(pyrat.phy.smaxis, "cm",   0, True,
-            "Planetary radius ({:.3e} cm) must be > 0.", log)
+      "Planetary radius ({:.3e} cm) must be > 0.", log)
 
-  phy.mstar  = pt.getparam(inputs.mstar, "gram", log)
+  phy.mstar = pt.getparam('mstar', inputs.mstar, "gram", log)
   isgreater(phy.mstar, "msun", 0, True,
-            "Stellar mass ({:.2f} Msun) must be > 0.", log)
+      "Stellar mass ({:.2f} Msun) must be > 0.", log)
 
   pyrat.phy.tint = pt.defaultp(inputs.tint, 100.0,
-            "Planetary internal temperature (tint) defaulted to {:.1f} K.", log)
+      "Planetary internal temperature (tint) defaulted to {:.1f} K.", log)
   isgreater(phy.tint, "none", 0, True,
-            "Planetary internal temperature ({:.1f} K) must be > 0.", log)
+      "Planetary internal temperature ({:.1f} K) must be > 0.", log)
 
   # Compute the Hill radius for the planet:
   if (phy.mstar is not None and phy.mplanet is not None and
       phy.smaxis is not None):
-    phy.rhill = phy.smaxis * (phy.mplanet/(3*phy.mstar))**(1.0/3.0)
+      phy.rhill = phy.smaxis * (phy.mplanet/(3*phy.mstar))**(1.0/3.0)
 
-  pyrat.atm.nlayers = pt.getparam(inputs.nlayers, "none", log, integer=True)
-  isgreater(pyrat.atm.nlayers, "none", 0, True,
-            "The number of atmospheric layers ({:d}) must be > 0.", log)
+  atm.nlayers = pt.getparam('nlayers', inputs.nlayers, 'none', log,integer=True)
+  isgreater(atm.nlayers, "none", 0, True,
+      "The number of atmospheric layers ({:d}) must be > 0.", log)
 
   # Check Voigt-profile arguments:
   pyrat.voigt.extent = pt.defaultp(inputs.vextent, 20.0,
-     "Input Voigt extent (vextent) defaulted to {:g}.", log)
+      "Input Voigt extent (vextent) defaulted to {:g}.", log)
   isgreater(pyrat.voigt.extent, "none", 1, False,
-            "Voigt extent ({:g}) must be >= 1.0", log)
+      "Voigt extent ({:g}) must be >= 1.0", log)
 
   # Doppler width:
   pyrat.voigt.nDop = pt.defaultp(inputs.nDop, 40,
-       "Number of Doppler-width samples (nDop) defaulted to {:d}.", log)
+      "Number of Doppler-width samples (nDop) defaulted to {:d}.", log)
   isgreater(pyrat.voigt.nDop, "none", 1, False,
-       "The number of Doppler-width samples ({:d}) must be >= 1", log)
+      "The number of Doppler-width samples ({:d}) must be >= 1", log)
 
-  pyrat.voigt.Dmin = pt.getparam(inputs.Dmin, "none", log)
+  pyrat.voigt.Dmin = pt.getparam('Dmin', inputs.Dmin, "none", log)
   isgreater(pyrat.voigt.Dmin, "none", 0, True,
-            "Dmin ({:g} cm-1) must be > 0.", log)
+      "Dmin ({:g} cm-1) must be > 0.", log)
 
-  pyrat.voigt.Dmax = pt.getparam(inputs.Dmax, "none", log)
+  pyrat.voigt.Dmax = pt.getparam('Dmax', inputs.Dmax, "none", log)
   isgreater(pyrat.voigt.Dmax, "none", 0, True,
-            "Dmax ({:g} cm-1) must be > 0.", log)
+      "Dmax ({:g} cm-1) must be > 0.", log)
 
   if (pyrat.voigt.Dmin is not None and pyrat.voigt.Dmax is not None and
       pyrat.voigt.Dmax <= pyrat.voigt.Dmin):
-    log.error("Dmax ({:g} cm-1) must be > Dmin ({:g} cm-1).".
-             format(pyrat.voigt.Dmax, pyrat.voigt.Dmin))
+      log.error("Dmax ({:g} cm-1) must be > Dmin ({:g} cm-1).".
+                format(pyrat.voigt.Dmax, pyrat.voigt.Dmin))
 
   # Lorentz width:
   pyrat.voigt.nLor = pt.defaultp(inputs.nLor, 40,
-       "Number of Lorentz-width samples (nLor) defaulted to {:d}.", log)
+      "Number of Lorentz-width samples (nLor) defaulted to {:d}.", log)
   isgreater(pyrat.voigt.nLor, "none", 1, False,
-       "The number of Lorentz-width samples ({:d}) must be >= 1", log)
+      "The number of Lorentz-width samples ({:d}) must be >= 1", log)
 
-  pyrat.voigt.Lmin = pt.getparam(inputs.Lmin, "none", log)
+  pyrat.voigt.Lmin = pt.getparam('Lmin', inputs.Lmin, "none", log)
   isgreater(pyrat.voigt.Lmin, "none", 0, True,
-            "Lmin ({:g} cm-1) must be > 0.", log)
+      "Lmin ({:g} cm-1) must be > 0.", log)
 
-  pyrat.voigt.Lmax = pt.getparam(inputs.Lmax, "none", log)
+  pyrat.voigt.Lmax = pt.getparam('Lmax', inputs.Lmax, "none", log)
   isgreater(pyrat.voigt.Lmax, "none", 0, True,
-            "Lmax ({:g} cm-1) must be > 0.", log)
+      "Lmax ({:g} cm-1) must be > 0.", log)
 
   if (pyrat.voigt.Lmin is not None and pyrat.voigt.Lmax is not None and
       pyrat.voigt.Lmax <= pyrat.voigt.Lmin):
-    log.error("Lmax ({:g} cm-1) must be > Lmin ({:g} cm-1).".
-             format(pyrat.voigt.Lmax, pyrat.voigt.Lmin))
+      log.error("Lmax ({:g} cm-1) must be > Lmin ({:g} cm-1).".
+                format(pyrat.voigt.Lmax, pyrat.voigt.Lmin))
 
   pyrat.voigt.DLratio = pt.defaultp(inputs.DLratio, 0.1,
-     "Doppler/Lorentz-width ratio threshold (DLratio) defaulted to {:g}.", log)
+      "Doppler/Lorentz-width ratio threshold (DLratio) defaulted to {:g}.", log)
   isgreater(pyrat.voigt.DLratio, "none", 0, True,
-     "Doppler/Lorentz-width ratio threshold ({:g}) must be > 0.", log)
+      "Doppler/Lorentz-width ratio threshold ({:g}) must be > 0.", log)
 
   # Check extinction-coefficient arguments:
-  pyrat.ex.ethresh = pt.getparam(inputs.ethresh, "none", log)
+  pyrat.ex.ethresh = pt.getparam('ethresh', inputs.ethresh, "none", log)
   isgreater(pyrat.ex.ethresh, "none", 0, True,
-        "Extinction-coefficient threshold ({:g}) must be positive.", log)
+      "Extinction-coefficient threshold ({:g}) must be positive.", log)
   # Require tmin, tmax:
   if (pyrat.runmode == "opacity" or
       (pyrat.runmode in ["spectrum", "mcmc"] and
@@ -284,11 +287,11 @@ def checkinputs(pyrat):
                "extinction-coefficient grid.")
 
   if inputs.tmin is not None:
-    pyrat.ex.tmin = pt.getparam(inputs.tmin, "kelvin", log)
+    pyrat.ex.tmin = pt.getparam('tmin', inputs.tmin, "kelvin", log)
     isgreater(pyrat.ex.tmin,  "kelvin", 0, True,
           "Minimum temperature sample ({:g} K) must be positive.", log)
   if inputs.tmax is not None:
-    pyrat.ex.tmax  = pt.getparam(inputs.tmax, "kelvin", log)
+    pyrat.ex.tmax  = pt.getparam('tmax', inputs.tmax, "kelvin", log)
     isgreater(pyrat.ex.tmax,  "kelvin", 0, True,
           "Maximum temperature sample ({:g} K) must be positive.", log)
 
@@ -386,8 +389,8 @@ def checkinputs(pyrat):
                "'transit' or 'eclipse'.".format(pyrat.od.path))
 
   # Accept output files:
-  pyrat.spec.outspec = pt.defaultp(inputs.outspec, 'outspec.dat',
-     "Output spectrum filename (outspec) defaulted to '{:s}'.", log)
+  spec.outspec = pt.defaultp(inputs.outspec, 'outspec.dat',
+      "Output spectrum filename (outspec) defaulted to '{:s}'.", log)
 
   # Check system arguments:
   if pyrat.od.path == "transit" and pyrat.phy.rstar is None:
@@ -424,14 +427,14 @@ def checkinputs(pyrat):
     if np.any(np.ediff1d(raygrid) <= 0):
       log.error("raygrid angles must be monotonically increasing.")
   # Store raygrid values in radians:
-  pyrat.spec.raygrid = raygrid * sc.degree
+  spec.raygrid = raygrid * sc.degree
 
   # Gauss quadrature integration variables:
-  pyrat.spec.quadrature = inputs.quadrature
+  spec.quadrature = inputs.quadrature
   if inputs.quadrature is not None:
       qnodes, qweights = ss.p_roots(inputs.quadrature)
-      pyrat.spec.qnodes   = 0.5*(qnodes + 1.0)
-      pyrat.spec.qweights = 0.5 * qweights
+      spec.qnodes   = 0.5*(qnodes + 1.0)
+      spec.qweights = 0.5 * qweights
 
   # Observational parameters:
   pyrat.obs.data   = inputs.data
@@ -463,8 +466,8 @@ def checkinputs(pyrat):
   if pyrat.ret.params is not None:
       pyrat.ret.nparams = len(pyrat.ret.params)
   pyrat.ret.stepsize = inputs.stepsize # FINDME checks
-  pyrat.ret.tlow     = pt.getparam(inputs.tlow,  "kelvin", log)
-  pyrat.ret.thigh    = pt.getparam(inputs.thigh, "kelvin", log)
+  pyrat.ret.tlow     = pt.getparam('tlow',  inputs.tlow,  "kelvin", log)
+  pyrat.ret.thigh    = pt.getparam('thigh', inputs.thigh, "kelvin", log)
 
   # Purely-MCMC variables:
   pyrat.ret.mcmcfile = inputs.mcmcfile
@@ -483,22 +486,21 @@ def checkinputs(pyrat):
   # TBD: implement checks
 
   # Atmospheric model:
-  pyrat.atm.molmodel = inputs.molmodel
-  pyrat.atm.molfree  = inputs.molfree
-  pyrat.atm.molpars  = inputs.molpars
-  pyrat.atm.bulk     = inputs.bulk
+  atm.molmodel = inputs.molmodel
+  atm.molfree  = inputs.molfree
+  atm.molpars  = inputs.molpars
+  atm.bulk     = inputs.bulk
   if inputs.tmodel is not None and inputs.tmodel not in \
           ["TCEA", "isothermal", "MadhuInv", "MadhuNoInv"]:
     log.error("Invalid temperature model '{:s}'.  Select from: "
               "TCEA, MadhuInv, MadhuNoInv or isothermal.".format(inputs.tmodel))
-  pyrat.atm.tmodelname = inputs.tmodel
-
-  pyrat.atm.tpars = inputs.tpars
+  atm.tmodelname = inputs.tmodel
+  atm.tpars = inputs.tpars
 
   if np.abs(pyrat.ret.qcap-0.5) > 0.5:
     log.error("Trace abundances cap (qcap={:.3f}) must lie in the range "
              "between 0.0 and 1.0.".format(pyrat.ret.qcap))
-  if pyrat.atm.tmodelname == "TCEA":
+  if atm.tmodelname == "TCEA":
     if pyrat.phy.rstar is None:
       log.error("Undefined stellar radius (rstar), required for temperature "
                "model.")
@@ -516,7 +518,7 @@ def checkinputs(pyrat):
   if inputs.ncpu is None:
       pyrat.ncpu = 1
   else:
-      pyrat.ncpu = pt.getparam(inputs.ncpu, "none", log, integer=True)
+      pyrat.ncpu = pt.getparam('ncpu', inputs.ncpu, "none", log, integer=True)
   isgreater(pyrat.ncpu, "none", 1, False,
             "The number of processors ({:d}) must be >= 1.", log)
   if pyrat.ncpu >= mp.cpu_count():

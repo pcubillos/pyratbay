@@ -261,24 +261,47 @@ def defaultp(param, default, msg, log):
   return param
 
 
-def getparam(param, units, log=None, integer=False):
+def getparam(parname, param, units, log=None, integer=False):
   """
   Read a parameter that may or may not have units included.
   If it doesn't, default to the 'units' input argument.
 
   Parameters
   ----------
-  param: String
-     The parameter name.
+  parname: String
+      The parameter name.
+  param: String, Float, or integer
+      The parameter value (which may contain the units).
   units: String
-     The default units for the parameter.
+      The default units for the parameter.
   log: Log object
-     Screen-output log handler.
+      Screen-output log handler.
   integer: Bool
-     If True, cast the output into an int.
+      If True, cast the output into an int.
+
+  Returns
+  -------
+  value: Float or integer
+
+  Examples
+  --------
+  >>> import pyratbay.tools as pt
+  >>> for line in ['One km in cm:',
+  >>>              pt.getparam('size', 1.0, 'km'),
+  >>>              "units in 'param' take precedence over 'unit':",
+  >>>              pt.getparam('size', '10', 'none', integer=True),
+  >>>              "# Cast to integer:",
+  >>>              pt.getparam('size', '10', 'none', integer=True)]:
+  >>>     print(line)
+  One km in cm:
+  100000.0
+  units in 'param' take precedence over 'unit':
+  10
+  # Cast to integer:
+  10
   """
   if param is None:
-    return None
+      return None
 
   if log is None:
       log = mu.Log(logname=None)
@@ -286,26 +309,27 @@ def getparam(param, units, log=None, integer=False):
   # Return if it is a numeric value:
   if isinstance(param, numbers.Number):
       if units not in pc.validunits:
-          log.error("Invalid units '{:s}'.".format(units))
-
+          log.error("Invalid units '{:s}' for parameter {:s}.".
+                    format(units, parname), tracklev=-3)
       return param * u(units)
 
   # Split the parameter if it has a white-space:
   par = param.split()
 
-  # If the parameter contains units, read the units:
+  if len(par) > 2:
+      log.error("Invalid input value '{:s}' for parameter {:s}.".
+                format(param, parname), tracklev=-3)
   if len(par) == 2:
       units = par[1]
       if units not in pc.validunits:
-          log.error("Invalid units '{:s}'.".format(units))
+          log.error("Invalid input value '{:s}' for parameter {:s}.".
+                    format(param, parname), tracklev=-3)
 
-  # Get the value of the parameter:
   try:
       value = np.float(par[0])
   except:
-      log.error("Invalid parameter format for '{:s}'.  param must be a float "
-          "or integer.  If it contains units, it must be blank-space "
-          "separated.".format(param), lev=-3)
+      log.error("Invalid input value '{:s}' for parameter {:s}.".
+                format(param, parname), tracklev=-3)
 
   # Apply the units:
   value *= u(units)
