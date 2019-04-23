@@ -271,7 +271,9 @@ def checkinputs(pyrat):
       "Doppler/Lorentz-width ratio threshold ({:g}) must be > 0.", log)
 
   # Check extinction-coefficient arguments:
-  pyrat.ex.ethresh = pt.getparam('ethresh', inputs.ethresh, "none", log)
+  pyrat.ex.ethresh = pt.defaultp(inputs.ethresh, 1e-15,
+      "ethresh defaulted to {}.", log)
+
   isgreater(pyrat.ex.ethresh, "none", 0, True,
       "Extinction-coefficient threshold ({:g}) must be positive.", log)
   # Require tmin, tmax:
@@ -462,12 +464,14 @@ def checkinputs(pyrat):
   # Accept species lists, check after we load the atmospheric model:
   pyrat.ret.retflag  = inputs.retflag
   pyrat.ret.qcap     = inputs.qcap
+  pyrat.ret.qcap = pt.defaultp(inputs.qcap, 0.25, "qcap defaulted to '{}'.", log)
   pyrat.ret.params   = inputs.params
   if pyrat.ret.params is not None:
       pyrat.ret.nparams = len(pyrat.ret.params)
   pyrat.ret.stepsize = inputs.stepsize # FINDME checks
-  pyrat.ret.tlow     = pt.getparam('tlow',  inputs.tlow,  "kelvin", log)
-  pyrat.ret.thigh    = pt.getparam('thigh', inputs.thigh, "kelvin", log)
+  pyrat.ret.tlow  = pt.defaultp(inputs.tlow, 0.0, "tlow defaulted to {}.", log)
+  pyrat.ret.thigh = pt.defaultp(inputs.thigh, np.inf,
+                                "thigh defaulted to {}.", log)
 
   # Purely-MCMC variables:
   pyrat.ret.mcmcfile = inputs.mcmcfile
@@ -476,10 +480,13 @@ def checkinputs(pyrat):
   pyrat.ret.pmax     = inputs.pmax
   pyrat.ret.nsamples = inputs.nsamples
   pyrat.ret.burnin   = inputs.burnin
-  pyrat.ret.thinning = inputs.thinning
+  pyrat.ret.thinning = pt.defaultp(inputs.thinning, 1,
+      "thinning defaulted to {}.", log)
   pyrat.ret.nchains  = inputs.nchains
-  pyrat.ret.grbreak  = inputs.grbreak
-  pyrat.ret.grnmin   = inputs.grnmin
+  pyrat.ret.grbreak  = pt.defaultp(inputs.grbreak, 0.0,
+      "grbreak defaulted to {}.", log)
+  pyrat.ret.grnmin   = pt.defaultp(inputs.grnmin, 0.5,
+      "grnmin defaulted to {}.", log)
   pyrat.ret.prior    = inputs.prior
   pyrat.ret.priorlow = inputs.priorlow
   pyrat.ret.priorup  = inputs.priorup

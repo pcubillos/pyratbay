@@ -88,7 +88,7 @@ def modulation(pyrat):
       pyrat.spec.spectrum = (   pyrat.haze.fpatchy  * pyrat.spec.cloudy +
                              (1-pyrat.haze.fpatchy) * pyrat.spec.clear  )
 
-  pyrat.log.msg("Computed transmission spectrum: '{:s}'.".
+  pyrat.log.msg("Computed transmission spectrum: '{}'.".
                 format(pyrat.spec.outspec), indent=2)
 
 

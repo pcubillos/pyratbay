@@ -1,7 +1,8 @@
 # Copyright (c) 2016-2019 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-__all__ = ["parray", "defaultp", "getparam",
+__all__ = ['log_error',
+           "parray", "defaultp", "getparam",
            "binsearch", "pprint", "divisors", "u", "unpack",
            "ifirst", "ilast",
            "isfile", "addarg", "path", "wrap",
@@ -23,6 +24,7 @@ import numbers
 import textwrap
 import itertools
 from collections import Iterable
+from contextlib import contextmanager
 if sys.version_info.major == 3:
     import configparser
 else:
@@ -38,6 +40,19 @@ sys.path.append(pc.ROOT + "pyratbay/lib/")
 import _indices
 sys.path.append(pc.ROOT + "modules/MCcubed/")
 import MCcubed.utils as mu
+
+
+@contextmanager
+def log_error(log=None, error=None):
+  """Capture exceptions into a log.error() call."""
+  try:
+      yield
+  except Exception as e:
+      if log is None:
+          log = mu.Log(logname=None, verb=1, width=80)
+      if error is None:
+          error = str(e)
+      log.error(error, tracklev=-4)
 
 
 def parray(string):

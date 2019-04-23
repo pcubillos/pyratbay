@@ -4662,3 +4662,15 @@ Refactored tools.getparam(), adding the parameter name for a more
 explicit error report.  Updated docs.
 Updated getparams() calls throughout the package.
 
+
+*****  Di 23. Apr 16:57:38 CEST 2019  *****
+
+Refactored tools.parser() to remove argparse.ArgumentParser().
+Now, it handles the defaults with custom parser functions, this gives
+it a better control to handle errors.
+Added tools.parse_int(), tools.parse_float(), tools.parse_array(),
+and tools.parse_str().
+Implemented tools.log_error() context manager to capture exceptions
+into log.error() calls.
+Documented and tested.
+

@@ -1,17 +1,19 @@
 # Copyright (c) 2016-2019 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-__all__ = ['parse']
+__all__ = ['parse',
+           'parse_str', 'parse_int', 'parse_float', 'parse_array']
 
 import os
 import sys
 import argparse
+from datetime import date
 if sys.version_info.major == 3:
     import configparser
 else:
     import ConfigParser as configparser
+
 import numpy as np
-from datetime import date
 
 from .  import tools as pt
 from .. import VERSION as ver
@@ -19,6 +21,157 @@ from .. import constants as pc
 
 sys.path.append(pc.ROOT + "modules/MCcubed")
 import MCcubed.utils as mu
+
+
+def parse_str(args, param):
+    """Parse a string parameter into args."""
+    if param not in args:
+        args[param] = None
+    else:
+        args[param] = str(args[param])
+
+
+def parse_int(args, param):
+    """
+    Convert a dictionary's parameter from string to integer.
+    Raise ValueError if the operation is not possible.
+    Set parameter to None if it was not in the dictinary.
+
+    Parameters
+    ----------
+    args: dict
+        Dictionary where to operate.
+    param: String
+        Parameter to cast to int.
+
+    Examples
+    --------
+    >>> import pyratbay.tools as pt
+    >>> inputs = ['10', '-10', '+10', '10.0', '1e1',
+    >>>           '10.5', 'None', 'True', 'inf', '10 20']
+    >>> args = {'par{}'.format(i):val for i,val in enumerate(inputs)}
+    >>> for i,var in enumerate(inputs):
+    >>>     try:
+    >>>         par = 'par{}'.format(i)
+    >>>         pt.parse_int(args, par)
+    >>>         print("{:s}: '{:s}' -> {}".format(par, var, args[par]))
+    >>>     except ValueError as e:
+    >>>         print(e)
+    par0: '10' -> 10
+    par1: '-10' -> -10
+    par2: '+10' -> 10
+    par3: '10.0' -> 10
+    par4: '1e1' -> 10
+    Invalid data type for par5, could not convert string to integer: '10.5'
+    Invalid data type for par6, could not convert string to integer: 'None'
+    Invalid data type for par7, could not convert string to integer: 'True'
+    Invalid data type for par8, could not convert string to integer: 'inf'
+    Invalid data type for par9, could not convert string to integer: '10 20'
+    """
+    if param not in args:
+        args[param] = None
+        return
+
+    try:
+        val = np.double(args[param])
+    except:
+        raise ValueError("Invalid data type for {}, could not convert string "
+                         "to integer: '{:s}'".format(param, args[param]))
+    if not np.isfinite(val) or int(val) != val:
+        raise ValueError("Invalid data type for {}, could not convert string "
+                         "to integer: '{:s}'".format(param, args[param]))
+    args[param] = int(val)
+
+
+
+def parse_float(args, param):
+    """
+    Convert a dictionary's parameter from string to float.
+    Raise ValueError if the operation is not possible.
+    Set parameter to None if it was not in the dictinary.
+
+    Parameters
+    ----------
+    args: dict
+        Dictionary where to operate.
+    param: String
+        Parameter to cast to float.
+
+    Examples
+    --------
+    >>> import pyratbay.tools as pt
+    >>> inputs = ['10', '-10', '+10', '10.5', '1e1', 'inf', 'nan',
+    >>>           'None', 'True', '10 20']
+    >>> args = {'par{}'.format(i):val for i,val in enumerate(inputs)}
+    >>> for i,var in enumerate(inputs):
+    >>>     try:
+    >>>         par = 'par{}'.format(i)
+    >>>         pt.parse_float(args, par)
+    >>>         print("{:s}: '{:s}' -> {}".format(par, var, args[par]))
+    >>>     except ValueError as e:
+    >>>         print(e)
+    par0: '10' -> 10.0
+    par1: '-10' -> -10.0
+    par2: '+10' -> 10.0
+    par3: '10.5' -> 10.5
+    par4: '1e5' -> 10.0
+    par5: 'inf' -> inf
+    par6: 'nan' -> nan
+    Invalid data type for par7, could not convert string to float: 'None'
+    Invalid data type for par8, could not convert string to float: 'True'
+    Invalid data type for par9, could not convert string to float: '10 20'
+    """
+    if param not in args:
+        args[param] = None
+        return
+
+    try:
+        val = np.double(args[param])
+    except:
+        raise ValueError("Invalid data type for {}, could not convert string "
+                         "to float: '{:s}'".format(param, args[param]))
+    args[param] = val
+
+
+def parse_array(args, param):
+    r"""
+    Convert a dictionary's parameter from string to iterable.
+    If possible cast into a float numpy array; otherwise,
+    set as a list of strings.
+    Assume any blank character delimits the elements in the string.
+    Set parameter to None if it was not in the dictinary.
+
+    Parameters
+    ----------
+    args: dict
+        Dictionary where to operate.
+    param: String
+        Parameter to cast to array.
+
+    Examples
+    --------
+    >>> import pyratbay.tools as pt
+    >>> inputs = ['10 20', '10.0 20.0', 'a b', 'a\n b']
+    >>> args = {'par{}'.format(i):val for i,val in enumerate(inputs)}
+    >>> for i,var in enumerate(inputs):
+    >>>     par = 'par{}'.format(i)
+    >>>     pt.parse_array(args, par)
+    >>>     print("{:s}: {:s} -> {}".format(par, repr(var), repr(args[par])))
+    par0: '10 20' -> array([10., 20.])
+    par1: '10.0 20.0' -> array([10., 20.])
+    par2: 'a b' -> ['a', 'b']
+    par3: 'a\n b' -> ['a', 'b']
+    """
+    if param not in args:
+        args[param] = None
+        return
+
+    val = args[param].split()
+    try:
+        val = np.asarray(val, np.double)
+    except:
+        pass
+    args[param] = val
 
 
 def parse(cfile):
@@ -52,138 +205,131 @@ def parse(cfile):
       print("\nInvalid configuration file: '{:s}', no [pyrat] section.".
             format(cfile))
       sys.exit(0)
-  defaults = dict(config.items("pyrat"))
+  args = dict(config.items("pyrat"))
 
-  # Use argparse only to define the data types and defaults:
-  parser = argparse.ArgumentParser(
-               formatter_class=argparse.RawDescriptionHelpFormatter,
-               usage='')
-  parser.add_argument("--verb", type=int, default=None)
-  pt.addarg("dblist",      parser, pt.parray, None)
-  pt.addarg("pflist",      parser, pt.parray, None)
-  pt.addarg("dbtype",      parser, pt.parray, None)
-  pt.addarg("tlifile",     parser, pt.parray, None)
-  pt.addarg("csfile",      parser, pt.parray, None)
-  pt.addarg("molfile",     parser, str,       None)
-  pt.addarg("extfile",     parser, str,       None)
-  # Spectrum sampling options:
-  pt.addarg("wlunits",     parser, str,       None)
-  pt.addarg("wllow",       parser, str,       None)
-  pt.addarg("wlhigh",      parser, str,       None)
-  pt.addarg("wnunits",     parser, str,       None)
-  pt.addarg("wnlow",       parser, str,       None)
-  pt.addarg("wnhigh",      parser, str,       None)
-  pt.addarg("wnstep",      parser, str,       None)
-  pt.addarg("wnosamp",     parser, int,       None)
-  pt.addarg("resolution",  parser, np.double, None)
-  # Atmospheric sampling options:
-  pt.addarg("tmodel",      parser, str,       None)
-  pt.addarg("tpars",       parser, pt.parray, None)
-  pt.addarg("radlow",      parser, str,       None)
-  pt.addarg("radhigh",     parser, str,       None)
-  pt.addarg("radstep",     parser, str,       None)
-  pt.addarg("runits",      parser, str,       None)
-  pt.addarg("punits",      parser, str,       None)
-  pt.addarg("nlayers",     parser, int,       None)
-  pt.addarg('ptop',        parser, str,       None)
-  pt.addarg('pbottom',     parser, str,       None)
-  # Variables for TEA calculations:
-  pt.addarg('atmfile',     parser, str,       None)
-  pt.addarg('species',     parser, pt.parray, None)
-  pt.addarg('uniform',     parser, pt.parray, None)
-  pt.addarg('ptfile',      parser, str,       None)
-  pt.addarg('solar',       parser, str,       None)
-  pt.addarg('xsolar',      parser, np.double, None)
-  pt.addarg('atomicfile',  parser, str,       None)
-  pt.addarg('patm',        parser, str,       None)
-  pt.addarg('elements',    parser, pt.parray, None)
-  # Extinction options:
-  pt.addarg("tmin",        parser, np.double, None)
-  pt.addarg("tmax",        parser, np.double, None)
-  pt.addarg("tstep",       parser, np.double, None)
-  pt.addarg("ethresh",     parser, np.double, 1e-15)
-  pt.addarg('ncpu',        parser, int,       None)
-  # Voigt-profile options:
-  pt.addarg("vextent",     parser, np.double, None)
-  pt.addarg("Dmin",        parser, np.double, None)
-  pt.addarg("Dmax",        parser, np.double, None)
-  pt.addarg("nDop",        parser, np.int,    None)
-  pt.addarg("Lmin",        parser, np.double, None)
-  pt.addarg("Lmax",        parser, np.double, None)
-  pt.addarg("nLor",        parser, np.int,    None)
-  pt.addarg("DLratio",     parser, np.double, None)
-  # Hazes and clouds options:
-  pt.addarg("hazes",       parser, pt.parray, None)
-  pt.addarg("hpars",       parser, pt.parray, None)
-  pt.addarg("rayleigh",    parser, pt.parray, None)
-  pt.addarg("rpars",       parser, pt.parray, None)
-  pt.addarg("fpatchy",     parser, np.double, None)
-  # Alkali opacity options:
-  pt.addarg("alkali",      parser, pt.parray, None)
-  # Optical depth options:
-  pt.addarg("path",        parser, str,       None)
-  pt.addarg("maxdepth",    parser, np.double, None)
-  pt.addarg("raygrid",     parser, pt.parray, None)
-  pt.addarg("quadrature",  parser, int,       None)
-  # Data options:
-  pt.addarg("runmode",     parser, str,       None)
-  pt.addarg("data",        parser, pt.parray, None)
-  pt.addarg("uncert",      parser, pt.parray, None)
-  pt.addarg("filter",      parser, pt.parray, None)
-  # Retrieval options:
-  pt.addarg("retflag",     parser, pt.parray, None)
-  pt.addarg("bulk",        parser, pt.parray, None)
-  pt.addarg("molmodel",    parser, pt.parray, None)
-  pt.addarg("molfree",     parser, pt.parray, None)
-  pt.addarg("molpars",     parser, pt.parray, None)
-  pt.addarg("qcap",        parser, np.double, 0.99)
-  pt.addarg("params",      parser, pt.parray, None)
-  pt.addarg("stepsize",    parser, pt.parray, None)
-  pt.addarg('tlow',        parser, np.double, 0.0)
-  pt.addarg("thigh",       parser, np.double, np.inf)
-  # Retrieval variables:
-  pt.addarg('mcmcfile',    parser, str,       None)
-  pt.addarg('pmin',        parser, pt.parray, None)
-  pt.addarg('pmax',        parser, pt.parray, None)
-  pt.addarg('prior',       parser, pt.parray, None)
-  pt.addarg('priorlow',    parser, pt.parray, None)
-  pt.addarg('priorup',     parser, pt.parray, None)
-  pt.addarg('walk',        parser, str,       'snooker')
-  pt.addarg('nsamples',    parser, eval,      int(1e5))
-  pt.addarg('nchains',     parser, int,       7)
-  pt.addarg('burnin',      parser, eval,      0)
-  pt.addarg('thinning',    parser, int,       1)
-  pt.addarg('grbreak',     parser, np.double, 0.0)
-  pt.addarg('grnmin',      parser, eval,      0.5)
-  pt.addarg('resume',      parser, str,       False, action='store_true')
-  # System physical parameters:
-  pt.addarg("starspec",    parser, str,       None)
-  pt.addarg("kurucz",      parser, str,       None)
-  pt.addarg("marcs",       parser, str,       None)
-  pt.addarg("phoenix",     parser, str,       None)
-  pt.addarg("rstar",       parser, str,       None)
-  pt.addarg("gstar",       parser, np.double, None)
-  pt.addarg("tstar",       parser, np.double, None)
-  pt.addarg("mstar",       parser, str,       None)
-  pt.addarg("rplanet",     parser, str,       None)
-  pt.addarg("refpressure", parser, str,       None)
-  pt.addarg("mplanet",     parser, str,       None)
-  pt.addarg("gplanet",     parser, np.double, None)
-  pt.addarg("smaxis",      parser, str,       None)
-  pt.addarg("tint",        parser, np.double, None)
-  # Output file options:
-  pt.addarg("outspec",     parser, str,       None)
-  pt.addarg("logfile",     parser, str,       None)
-  # Output plotting:
-  pt.addarg('logxticks',   parser, pt.parray, None)
-  pt.addarg('yran',        parser, pt.parray, None)
+  with pt.log_error():
+      parse_int(args,   'verb')
+      parse_array(args, 'dblist')
+      parse_array(args, 'pflist')
+      parse_array(args, 'dbtype')
+      parse_array(args, 'tlifile')
+      parse_array(args, 'csfile')
+      parse_str(args,   'molfile')
+      parse_str(args,   'extfile')
+      # Spectrum sampling options:
+      parse_str(args,   'wlunits')
+      parse_str(args,   'wllow')
+      parse_str(args,   'wlhigh')
+      parse_str(args,   'wnunits')
+      parse_str(args,   'wnlow')
+      parse_str(args,   'wnhigh')
+      parse_str(args,   'wnstep')
+      parse_int(args,   'wnosamp')
+      parse_float(args, 'resolution')
+      # Atmospheric sampling options:
+      parse_str(args,   'tmodel')
+      parse_array(args, 'tpars')
+      parse_str(args,   'radlow')
+      parse_str(args,   'radhigh')
+      parse_str(args,   'radstep')
+      parse_str(args,   'runits')
+      parse_str(args,   'punits')
+      parse_int(args,   'nlayers')
+      parse_str(args,   'ptop')
+      parse_str(args,   'pbottom')
+      parse_str(args,   'atmfile')
+      # Variables for TEA calculations
+      parse_array(args, 'species')
+      parse_array(args, 'uniform')
+      parse_str(args,   'ptfile')
+      parse_str(args,   'solar')
+      parse_float(args, 'xsolar')
+      parse_str(args,   'atomicfile')
+      parse_str(args,   'patm')
+      parse_array(args, 'elements')
+      # Extinction options:
+      parse_float(args, 'tmin')
+      parse_float(args, 'tmax')
+      parse_float(args, 'tstep')
+      parse_float(args, 'ethresh')
+      parse_int(args,   'ncpu')
+      # Voigt-profile options:
+      parse_float(args, 'vextent')
+      parse_float(args, 'Dmin')
+      parse_float(args, 'Dmax')
+      parse_int(args,   'nDop')
+      parse_float(args, 'Lmin')
+      parse_float(args, 'Lmax')
+      parse_int(args,   'nLor')
+      parse_float(args, 'DLratio')
+      # Hazes and clouds options:
+      parse_array(args, 'hazes')
+      parse_array(args, 'hpars')
+      parse_array(args, 'rayleigh')
+      parse_array(args, 'rpars')
+      parse_float(args, 'fpatchy')
+      parse_array(args, 'alkali')
+      # Optical depth options:
+      parse_str(args,   'path')
+      parse_float(args, 'maxdepth')
+      parse_array(args, 'raygrid')
+      parse_int(args,   'quadrature')
+      parse_str(args,   'runmode')
+      # Data options:
+      parse_array(args, 'data')
+      parse_array(args, 'uncert')
+      parse_array(args, 'filter')
+      # Retrieval options:
+      parse_array(args, 'retflag')
+      parse_array(args, 'bulk')
+      parse_array(args, 'molmodel')
+      parse_array(args, 'molfree')
+      parse_array(args, 'molpars')
+      parse_float(args, 'qcap')
+      parse_array(args, 'params')
+      parse_array(args, 'stepsize')
+      parse_float(args, 'tlow')
+      parse_float(args, 'thigh')
+      parse_str(args,   'mcmcfile')
+      parse_array(args, 'pmin')
+      parse_array(args, 'pmax')
+      parse_array(args, 'prior')
+      parse_array(args, 'priorlow')
+      parse_array(args, 'priorup')
+      parse_str(args,   'walk')        # 'snooker'
+      parse_int(args,   'nsamples')    # 1e5
+      parse_int(args,   'nchains')     # 7
+      parse_int(args,   'burnin')      # 0
+      parse_int(args,   'thinning')
+      parse_float(args, 'grbreak')
+      parse_float(args, 'grnmin')
+      parse_int(args,   'resume')      # False, action='store_true')
+      parse_str(args,   'starspec')
+      parse_str(args,   'kurucz')
+      parse_str(args,   'marcs')
+      parse_str(args,   'phoenix')
+      # System parameters:
+      parse_str(args,   'rstar')
+      parse_float(args, 'gstar')
+      parse_float(args, 'tstar')
+      parse_str(args,   'mstar')
+      parse_str(args,   'rplanet')
+      parse_str(args,   'refpressure')
+      parse_str(args,   'mplanet')
+      parse_float(args, 'gplanet')
+      parse_str(args,   'smaxis')
+      parse_float(args, 'tint')
+      # Outputs:
+      parse_str(args,   'outspec')
+      parse_str(args,   'logfile')
+      parse_array(args, 'logxticks')
+      parse_array(args, 'yran')
 
-
-  # Set the defaults from the configuration file:
-  parser.set_defaults(**defaults)
-  # Set values from command line:
-  args, unknowns = parser.parse_known_args()
+  # Cast into a Namespace to make my life easier:
+  args = argparse.Namespace(**args)
   args.configfile = cfile
+  if args.verb is None:
+      args.verb = 2
 
 
   # Default log file name:

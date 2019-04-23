@@ -183,7 +183,7 @@ def test_pf_kurucz_H2O():
       '''
          s the temperature increases the minor isotopomers become less
          ccurate because of missing levels.
-         
+
            T      1H1H16O      1H1H17O     1H1H18O     1H2H16O
                    170625       30215       30445       42016 levels
            10       1.328       1.330       1.332       1.399
@@ -371,3 +371,80 @@ def test_ignore_system_exit(flag, output):
         assert dummy_function(flag) is None
     else:
         assert dummy_function(flag) == 1
+
+
+@pytest.mark.parametrize('var, val',
+    [('10',   10),
+     ('-10', -10),
+     ('+10',  10),
+     ('10.0', 10),
+     ('1e5',  100000)])
+def test_parse_int(var, val):
+    args = {'par':var}
+    pt.parse_int(args, 'par')
+    assert args['par'] == val
+
+
+@pytest.mark.parametrize('var',
+    ['10.5', 'None', 'True', 'inf', 'nan', '10 20'])
+def test_parse_int_fail(var):
+    args = {'par':var}
+    with pytest.raises(ValueError, match="Invalid data type for par, "
+        "could not convert string to integer: '{:s}'".format(var)):
+        pt.parse_int(args, 'par')
+
+
+@pytest.mark.parametrize('var, val',
+    [('10',   10.0),
+     ('-10', -10.0),
+     ('+10',  10.0),
+     ('10.0', 10.0),
+     ('10.5', 10.5),
+     ('1e5',  100000.0),
+     ('inf',  np.inf)])
+def test_parse_float(var, val):
+    args = {'par':var}
+    pt.parse_float(args, 'par')
+    assert args['par'] == val
+
+
+def test_parse_float_nan():
+    args = {'par':'nan'}
+    pt.parse_float(args, 'par')
+    assert np.isnan(args['par'])
+
+
+@pytest.mark.parametrize('var',
+    ['None', 'True', '10 20'])
+def test_parse_float_fail(var):
+    args = {'par':var}
+    with pytest.raises(ValueError, match="Invalid data type for par, "
+        "could not convert string to float: '{:s}'".format(var)):
+        pt.parse_float(args, 'par')
+
+
+@pytest.mark.parametrize('var, val',
+    [('10 20',     np.array([10.0, 20.0])),
+     ('10.0 20.0', np.array([10.0, 20.0]))])
+def test_parse_array_floats(var, val):
+    args = {'par':var}
+    pt.parse_array(args, 'par')
+    np.testing.assert_equal(args['par'], val)
+
+
+@pytest.mark.parametrize('var, val',
+    [('a b',    ['a', 'b']),
+     ('a\nb',   ['a', 'b']),
+     ('a b\nc', ['a', 'b', 'c'])])
+def test_parse_array_strings(var, val):
+    args = {'par':var}
+    pt.parse_array(args, 'par')
+    assert args['par'] == val
+
+
+@pytest.mark.parametrize('parser',
+   [pt.parse_str, pt.parse_int, pt.parse_float, pt.parse_array])
+def test_parse_none(parser):
+    args = {}
+    pt.parse_array(args, 'par')
+    assert args['par'] is None
