@@ -739,42 +739,42 @@ def temperature(tmodel, pressure=None, rstar=None, tstar=None, tint=100.0,
   Parameters
   ----------
   tmodel: String
-     Name of the temperature model.
+      Name of the temperature model.
   pressure: 1D float ndarray
-     Atmospheric pressure profile in barye units.
+      Atmospheric pressure profile in barye units.
   rstar: String or float
-     Stellar radius. If string, may contain the units.
+      Stellar radius. If string, may contain the units.
   tstar: String or float
-    Stellar temperature in kelvin degrees.
+      Stellar temperature in kelvin degrees.
   tint: String or float
-    Planetary internal temperature in kelvin degrees.
+      Planetary internal temperature in kelvin degrees.
   gplanet: String or float
-    Planetary atmospheric temperature in cm s-2.
+      Planetary atmospheric temperature in cm s-2.
   smaxis: String or float
-    Orbital semi-major axis. If string, may contain the units.
+      Orbital semi-major axis. If string, may contain the units.
   runits: String
-    Default units for rstar and smaxis.  Available units are: A, nm, um,
-    mm, cm (default), m, km, au, pc, rearth, rjup, rsun.
+      Default units for rstar and smaxis.  Available units are: A, nm, um,
+      mm, cm (default), m, km, au, pc, rearth, rjup, rsun.
   nlayers: Integer
-     Number of pressure layers.
+      Number of pressure layers.
   log: Log object
-     Screen-output log handler.
+      Screen-output log handler.
   tparams: 1D float ndarray
-     Temperature model parameters. If None, return a tuple with the
-     temperature model, its arguments, and the number or required parameters.
+      Temperature model parameters. If None, return a tuple with the
+      temperature model, its arguments, and the number or required parameters.
 
   Returns
   -------
   If tparams is not None:
-   temperature: 1D float ndarray
-      The evaluated atmospheric temperature profile.
+      temperature: 1D float ndarray
+          The evaluated atmospheric temperature profile.
   If tparams is None:
-   Tmodel: Callable
-      The atmospheric temperature model.
-   targs: List
-      The list of additional arguments (besides the model parameters).
-   ntpars: Integer
-      The expected number of model parameters.
+      Tmodel: Callable
+          The atmospheric temperature model.
+      targs: List
+          The list of additional arguments (besides the model parameters).
+      ntpars: Integer
+          The expected number of model parameters.
 
   Examples
   --------
@@ -800,11 +800,11 @@ def temperature(tmodel, pressure=None, rstar=None, tstar=None, tint=100.0,
 
   if tmodel == "TCEA":
     # Parse inputs:
-    rstar   = pt.get_param('rstar',   rstar,   runits,   log)
-    tstar   = pt.get_param('tstar',   tstar,   "kelvin", log)
-    tint    = pt.get_param('tint',    tint,    "kelvin", log)
-    gplanet = pt.get_param('gplanet', gplanet, "none",   log)
-    smaxis  = pt.get_param('smaxis',  smaxis,  runits,   log)
+    rstar   = pt.get_param('rstar',   rstar,   runits,   log, gt=0.0)
+    tstar   = pt.get_param('tstar',   tstar,   "kelvin", log, gt=0.0)
+    tint    = pt.get_param('tint',    tint,    "kelvin", log, gt=0.0)
+    gplanet = pt.get_param('gplanet', gplanet, "none",   log, gt=0.0)
+    smaxis  = pt.get_param('smaxis',  smaxis,  runits,   log, gt=0.0)
     # Define model and arguments:
     Tmodel = temp_TCEA
     targs  = [pressure, rstar, tstar, tint, gplanet, smaxis]

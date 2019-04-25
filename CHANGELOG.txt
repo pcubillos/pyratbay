@@ -4689,3 +4689,17 @@ Removed Inputs() class. Replaced (in a Pyrat() object) with the
 Namespace object.
 Updated test_fails.py covering cases up to pt runmode.
 
+*****
+
+Added conftest.py file.
+Refactored some tests to work in a temporary folder.
+
+*****
+
+Added tests for positive physical property values in tcea run.
+Removed log argument from tools.u(), raise ValueError instead.
+Refactored tools.get_param(): added tracklev argument, and fixed
+bug to check units are valid for single-str value.
+Fixed typo in conftest configs (radunits -> runits).
+Enforced error in mplanet if value does not contain units.
+

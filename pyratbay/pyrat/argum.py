@@ -126,7 +126,7 @@ def checkinputs(pyrat):
       'Planetary reference pressure level', gt=0.0)
   phy.gplanet = inputs.get_default('gplanet',
       'Planetary surface gravity (cm s-2)', gt=0.0)
-  phy.mplanet = inputs.get_param('mplanet', "gram",
+  phy.mplanet = inputs.get_param('mplanet', None,
       'Planetary mass', gt=0.0)
 
   phy.rstar = inputs.get_param('rstar', atm.runits,

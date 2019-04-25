@@ -236,7 +236,7 @@ def unpack(file, n, dtype):
     return output
 
 
-def u(units, log=None):
+def u(units):
   """
   Get the conversion factor (to the CGS system) for units.
 
@@ -247,13 +247,12 @@ def u(units, log=None):
   """
   # Accept only valid units:
   if units not in pc.validunits:
-      print("Units name '{:s}' does not exist.".format(units))
-      sys.exit(0)
+      raise ValueError("Units '{}' does not exist.".format(units))
   factor = getattr(pc, units)
   return factor
 
 
-def get_param(pname, param, units, log=None, gt=None, ge=None):
+def get_param(pname, value, units, log=None, gt=None, ge=None, tracklev=-3):
   """
   Read a parameter that may have units.
   If it doesn't, default to the 'units' input argument.
@@ -262,12 +261,18 @@ def get_param(pname, param, units, log=None, gt=None, ge=None):
   ----------
   pname: String
       The parameter name.
-  param: String, Float, or integer
+  value: String, Float, or integer
       The parameter value (which may contain the units).
   units: String
       The default units for the parameter.
   log: Log object
       Screen-output log handler.
+  gt: Float
+      If not None, check output is greater than gt.
+  ge: Float
+      If not None, check output is greater-equal than gt.
+  tracklev: Integer
+      Error track level.
 
   Returns
   -------
@@ -288,44 +293,42 @@ def get_param(pname, param, units, log=None, gt=None, ge=None):
   # Cast to integer:
   10
   """
-  if param is None:
+  if value is None:
       return None
 
   if log is None:
       log = mu.Log(logname=None)
 
-  # Return if it is a numeric value:
-  if isinstance(param, numbers.Number):
-      if units not in pc.validunits:
-          log.error("Invalid units '{:s}' for parameter {:s}.".
-                    format(units, pname), tracklev=-3)
-      return param * u(units)
-
   # Split the parameter if it has a white-space:
-  par = param.split()
-
-  if len(par) > 2:
-      log.error("Invalid value '{:s}' for parameter {:s}.".
-                format(param, pname), tracklev=-3)
-  if len(par) == 2:
-      units = par[1]
-      if units not in pc.validunits:
+  if isinstance(value, str):
+      par = value.split()
+      if len(par) > 2:
           log.error("Invalid value '{:s}' for parameter {:s}.".
-                    format(param, pname), tracklev=-3)
+                    format(value, pname), tracklev=tracklev)
+      if len(par) == 2:
+          units = par[1]
+          if units not in pc.validunits:
+              log.error("Invalid value '{:s}' for parameter {:s}.".
+                        format(value, pname), tracklev=tracklev)
+      try:
+          value = np.float(par[0])
+      except:
+          log.error("Invalid value '{:s}' for parameter {:s}.".
+                    format(value, pname), tracklev=tracklev)
 
-  try:
-      value = np.float(par[0])
-  except:
-      log.error("Invalid value '{:s}' for parameter {:s}.".
-                format(param, pname), tracklev=-3)
+  # Use given units:
+  if isinstance(value, numbers.Number) or len(par) == 1:
+      if units not in pc.validunits:
+          log.error("Invalid units '{}' for parameter {:s}.".
+                    format(units, pname), tracklev=tracklev)
 
   # Apply the units:
   value *= u(units)
 
   if gt is not None and value <= gt:
-      log.error('{} must be > {}'.format(pname, gt), tracklev=-3)
+      log.error('{} must be > {}'.format(pname, gt), tracklev=tracklev)
   if ge is not None and value < ge:
-      log.error('{} must be >= {}'.format(pname, ge), tracklev=-3)
+      log.error('{} must be >= {}'.format(pname, ge), tracklev=tracklev)
 
   return value
 

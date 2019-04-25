@@ -54,8 +54,8 @@ def run(cfile, init=False):
   # Get gplanet from mplanet and rplanet if necessary:
   if (args.gplanet is None and args.rplanet is not None and
       args.mplanet is not None):
-      mplanet = args.get_param('mplanet', 'gram', 'Planet mass')
-      rplanet = args.get_param('rplanet', args.runits,  'Planet radius')
+      mplanet = args.get_param('mplanet', None,        'Planet mass',   gt=0.0)
+      rplanet = args.get_param('rplanet', args.runits, 'Planet radius', gt=0.0)
       args.gplanet = pc.G * mplanet / rplanet**2
 
   # Compute pressure-temperature profile:

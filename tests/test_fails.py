@@ -6,49 +6,13 @@ import sys
 import subprocess
 import pytest
 
+from conftest import replace
+
 ROOT = os.path.realpath(os.path.dirname(__file__) + '/..') + '/'
 sys.path.append(ROOT)
 import pyratbay as pb
 
 os.chdir(ROOT+'tests')
-
-
-pt_iso_cfg = u"""[pyrat]
-runmode = pt
-punits  = bar
-runits  = km
-ptop    = 1e-6 bar
-pbottom = 100.0 bar
-nlayers = 81
-tmodel  = isothermal
-tpars   = 1500.0
-verb    = 2"""
-
-pt_tcea_cfg = u"""[pyrat]
-runmode  = pt
-punits   = bar
-radunits = km
-ptop    = 1e-6 bar
-pbottom = 100.0 bar
-nlayers = 81
-verb    = 2
-tmodel  = TCEA
-tpars   = -1.5 -0.8 -0.8 0.5 1.0
-rstar   = 0.756 rsun
-tstar   = 5040.0
-smaxis  = 0.031 au
-mplanet = 1.13 mjup
-rplanet = 1.134 rjup
-tint    = 100.0"""
-
-
-def replace(cfg, param, value):
-    list_cfg = cfg.split('\n')
-    i = 0
-    while not list_cfg[i].startswith(param):
-        i += 1
-    list_cfg[i] = '{:s} = {:s}'.format(param, value)
-    return '\n'.join(list_cfg)
 
 
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -114,9 +78,9 @@ def test_run_mcmc_mcmcfile(capfd):
     [('nlayers', '10.5'),
      ('nlayers', '10 20'),
      ('nlayers', 'a')])
-def test_invalid_integer_type(tmp_path, capfd, param, value):
-    cfg = replace(pt_iso_cfg, param, value)
-    path = tmp_path / 'pt_fail.cfg'
+def test_invalid_integer_type(tmp_path, configs, capfd, param, value):
+    cfg = replace(configs['pt_iso'], param, value)
+    path = tmp_path / 'test.cfg'
     path.write_text(cfg)
 
     pyrat = pb.run(str(path))
@@ -130,9 +94,9 @@ def test_invalid_integer_type(tmp_path, capfd, param, value):
 @pytest.mark.parametrize('param, value',
     [('tstar', '100 200'),
      ('tstar', 'a')])
-def test_invalid_float_type(tmp_path, capfd, param, value):
-    cfg = replace(pt_tcea_cfg, param, value)
-    path = tmp_path / 'pt_fail.cfg'
+def test_invalid_float_type(tmp_path, configs, capfd, param, value):
+    cfg = replace(configs['pt_tcea'], param, value)
+    path = tmp_path / 'test.cfg'
     path.write_text(cfg)
 
     pyrat = pb.run(str(path))
@@ -145,13 +109,10 @@ def test_invalid_float_type(tmp_path, capfd, param, value):
 
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 # pt runmode fails:
-@pytest.mark.parametrize('arg_del, error',
-    [('nlayers', 'Undefined number of atmospheric layers (nlayers).'),
-     ('ptop',    'Undefined atmospheric top pressure (ptop)'),
-     ('pbottom', 'Undefined atmospheric bottom pressure (pbottom)')])
-def test_pressure_missing(arg_del, error, capfd, tmp_path):
-    cfg = pt_iso_cfg.replace(arg_del, 'dummy')
-    path = tmp_path / 'pt_fail.cfg'
+@pytest.mark.parametrize('missing', ['nlayers', 'ptop', 'pbottom'])
+def test_pressure_missing(tmp_path, configs, capfd, undefined, missing):
+    cfg = configs['pt_iso'].replace(missing, 'dummy')
+    path = tmp_path / 'test.cfg'
     path.write_text(cfg)
 
     pyrat = pb.run(str(path))
@@ -159,14 +120,14 @@ def test_pressure_missing(arg_del, error, capfd, tmp_path):
     assert pyrat is None
     assert "Error in module: 'driver.py', function: 'check_pressure'" \
            in captured.out
-    assert error in captured.out
+    assert undefined[missing] in captured.out
 
 
 @pytest.mark.parametrize('value', ['a', '10.0 20.0', '10.0 bar 30.0'])
 @pytest.mark.parametrize('param', ['ptop', 'pbottom'])
-def test_pressure_invalid_type(capfd, tmp_path, param, value):
-    cfg = replace(pt_iso_cfg, param, value)
-    path = tmp_path / 'pt_fail.cfg'
+def test_pressure_invalid_type(tmp_path, configs, capfd, param, value):
+    cfg = replace(configs['pt_iso'], param, value)
+    path = tmp_path / 'test.cfg'
     path.write_text(cfg)
 
     pyrat = pb.run(str(path))
@@ -179,9 +140,9 @@ def test_pressure_invalid_type(capfd, tmp_path, param, value):
 
 
 @pytest.mark.parametrize('param', ['ptop', 'pbottom'])
-def test_negative_pressures(capfd, tmp_path, param):
-    cfg = replace(pt_iso_cfg, param, '-10')
-    path = tmp_path / 'pt_fail.cfg'
+def test_negative_pressures(tmp_path, configs, capfd, param):
+    cfg = replace(configs['pt_iso'], param, '-10')
+    path = tmp_path / 'test.cfg'
     path.write_text(cfg)
 
     pyrat = pb.run(str(path))
@@ -191,9 +152,10 @@ def test_negative_pressures(capfd, tmp_path, param):
            in captured.out
     assert "{:s} must be > 0.0".format(param) in captured.out
 
-def test_negative_nlayers(capfd, tmp_path):
-    cfg = replace(pt_iso_cfg, 'nlayers', '-10')
-    path = tmp_path / 'pt_fail.cfg'
+
+def test_negative_nlayers(tmp_path, configs, capfd):
+    cfg = replace(configs['pt_iso'], 'nlayers', '-10')
+    path = tmp_path / 'test.cfg'
     path.write_text(cfg)
 
     pyrat = pb.run(str(path))
@@ -204,9 +166,9 @@ def test_negative_nlayers(capfd, tmp_path):
     assert "Number of atmospheric layers (nlayers) must be > 0" in captured.out
 
 
-def test_pt_invalid_tmodel(capfd, tmp_path):
-    cfg = replace(pt_iso_cfg, 'tmodel', 'invalid')
-    path = tmp_path / 'pt_missing.cfg'
+def test_pt_invalid_tmodel(tmp_path, configs, capfd):
+    cfg = replace(configs['pt_iso'], 'tmodel', 'invalid')
+    path = tmp_path / 'test.cfg'
     path.write_text(cfg)
 
     pyrat = pb.run(str(path))
@@ -219,29 +181,26 @@ def test_pt_invalid_tmodel(capfd, tmp_path):
         assert cap in captured.out
 
 
-@pytest.mark.parametrize('param, error',
-    [('tmodel', 'temperature model (tmodel)'),
-     ('tpars',  'temperature-model parameters (tpars)')])
-def test_pt_temperature_missing(tmp_path, capfd, param, error):
-    cfg = pt_iso_cfg.replace(param, 'dummy')
-    path = tmp_path / 'pt_missing.cfg'
+@pytest.mark.parametrize('missing', ['tmodel', 'tpars'])
+def test_pt_temperature_missing(tmp_path, configs, capfd, missing, undefined):
+    cfg = configs['pt_iso'].replace(missing, 'dummy')
+    path = tmp_path / 'test.cfg'
     path.write_text(cfg)
 
     pyrat = pb.run(str(path))
     assert pyrat is None
     captured = capfd.readouterr()
-    caps = ["Error in module: 'driver.py', function: 'check_temp', line:",
-            "Undefined {:s}.".format(error)]
-    for cap in caps:
-        assert cap in captured.out
+    assert "Error in module: 'driver.py', function: 'check_temp'" \
+           in captured.out
+    assert undefined[missing] in captured.out
 
 
 @pytest.mark.parametrize('cfg_file, error',
-    [(pt_iso_cfg, 'isothermal temperature model (1).'),
-     (pt_tcea_cfg, 'TCEA temperature model (5).')])
-def test_pt_tpars(cfg_file, error, capfd, tmp_path):
-    cfg = replace(cfg_file, 'tpars', '1000.0 2000.0')
-    path = tmp_path / 'pt_fail.cfg'
+    [('pt_iso', 'isothermal temperature model (1).'),
+     ('pt_tcea', 'TCEA temperature model (5).')])
+def test_pt_tpars(cfg_file, configs, error, capfd, tmp_path):
+    cfg = replace(configs[cfg_file], 'tpars', '1000.0 2000.0')
+    path = tmp_path / 'test.cfg'
     path.write_text(cfg)
 
     pyrat = pb.run(str(path))
@@ -253,17 +212,11 @@ def test_pt_tpars(cfg_file, error, capfd, tmp_path):
         assert cap in captured.out
 
 
-@pytest.mark.parametrize('arg_del, error',
-    [('rstar',   'Undefined stellar radius (rstar).'),
-     ('tstar',   'Undefined stellar temperature (tstar).'),
-     ('smaxis',  'Undefined orbital semi-major axis (smaxis).'),
-     ('mplanet', 'Undefined planetary surface gravity, set either '
-                 'gplanet or mplanet and\nrplanet.'),
-     ('rplanet', 'Undefined planetary surface gravity, set either '
-                 'gplanet or mplanet and\nrplanet.')])
-def test_tcea_missing(arg_del, error, capfd, tmp_path):
-    cfg = pt_tcea_cfg.replace(arg_del, 'dummy')
-    path = tmp_path / 'pt_missing.cfg'
+@pytest.mark.parametrize('missing',
+    ['rstar', 'tstar', 'smaxis', 'mplanet', 'rplanet',])
+def test_tcea_missing(tmp_path, configs, capfd, missing, undefined):
+    cfg = configs['pt_tcea'].replace(missing, 'dummy')
+    path = tmp_path / 'test.cfg'
     path.write_text(cfg)
 
     pyrat = pb.run(str(path))
@@ -271,5 +224,31 @@ def test_tcea_missing(arg_del, error, capfd, tmp_path):
     assert pyrat is None
     assert "Error in module: 'driver.py', function: 'check_temp'" \
            in captured.out
-    assert error in captured.out
+    assert undefined[missing] in captured.out
+
+
+@pytest.mark.parametrize('missing',
+    ['rstar', 'tstar', 'smaxis', 'mplanet', 'rplanet',])
+def test_tcea_negatives(tmp_path, configs, capfd, missing):
+    cfg = replace(configs['pt_tcea'], missing, '-10.0')
+    if missing == 'mplanet':
+        cfg = replace(cfg, missing, '-1.0 mjup')
+    path = tmp_path / 'test.cfg'
+    path.write_text(cfg)
+
+    pyrat = pb.run(str(path))
+    captured = capfd.readouterr()
+    assert pyrat is None
+    assert "{:s} must be > 0.0".format(missing) in captured.out
+
+
+def test_tcea_missing_mass_units(tmp_path, configs, capfd):
+    cfg = replace(configs['pt_tcea'], 'mplanet', '1.0')
+    path = tmp_path / 'test.cfg'
+    path.write_text(cfg)
+
+    pyrat = pb.run(str(path))
+    captured = capfd.readouterr()
+    assert pyrat is None
+    assert "Invalid units 'None' for parameter mplanet." in captured.out
 

@@ -5,6 +5,8 @@ import pytest
 
 import numpy as np
 
+from conftest import replace
+
 ROOT = os.path.realpath(os.path.dirname(__file__) + '/..') + '/'
 sys.path.append(ROOT)
 import pyratbay as pb
@@ -83,27 +85,37 @@ def test_tli_tio_schwenke():
     # TBD: asserts on output file
 
 
+def test_pt_isothermal(tmp_path, configs):
+    path = tmp_path / 'test.cfg'
+    path.write_text(configs['pt_iso'])
 
-def test_pt_isothermal():
-    pressure, temperature = pb.run(ROOT+'tests/pt_isothermal_test.cfg')
+    pressure, temperature = pb.run(str(path))
     np.testing.assert_allclose(pressure, expected_pressure, rtol=1e-7)
     np.testing.assert_equal(temperature, np.tile(1500.0, 81))
 
 
-def test_pt_TCEA():
-    pressure, temperature = pb.run(ROOT+'tests/pt_tcea_test.cfg')
+def test_pt_TCEA(tmp_path, configs):
+    path = tmp_path / 'test.cfg'
+    path.write_text(configs['pt_tcea'])
+
+    pressure, temperature = pb.run(str(path))
     np.testing.assert_allclose(pressure, expected_pressure, rtol=1e-7)
     np.testing.assert_allclose(temperature, expected_temperature, atol=1e-10)
 
 
-def test_atmosphere_uniform():
-    atm = pb.run(ROOT+"tests/atmosphere_uniform_test.cfg")
+def test_atmosphere_uniform(tmp_path, configs):
+    atmfile = str(tmp_path / 'test.atm')
+    cfg = replace(configs['atm_uniform'], 'atmfile', atmfile)
+    path = tmp_path / 'test.cfg'
+    path.write_text(cfg)
+
+    atm = pb.run(str(path))
     np.testing.assert_allclose(atm[0], expected_pressure,    rtol=1e-7)
     np.testing.assert_allclose(atm[1], expected_temperature, atol=1e-10)
     q = np.tile([0.85, 0.149, 3.0e-6, 4.0e-4, 1.0e-4, 5.0e-4, 1.0e-7], (81,1))
     np.testing.assert_equal(atm[2], q)
     # Compare against the atmospheric file now:
-    atm = pa.readatm(ROOT+'tests/atmosphere_uniform_test.atm')
+    atm = pa.readatm(atmfile)
     assert atm[0] == ('bar', 'kelvin', 'number', None)
     np.testing.assert_equal(atm[1], np.array('H2 He Na H2O CH4 CO CO2'.split()))
     # File read-write loses precision:
@@ -113,13 +125,18 @@ def test_atmosphere_uniform():
 
 
 @pytest.mark.skip(reason="Skip until implementing the fast TEA")
-def test_atmosphere_tea():
-    atm = pb.run(ROOT+"tests/atmosphere_tea_test.cfg")
+def test_atmosphere_tea(tmp_path, configs):
+    atmfile = str(tmp_path / 'test.atm')
+    cfg = replace(configs['atm_tea'], 'atmfile', atmfile)
+    path = tmp_path / 'test.cfg'
+    path.write_text(cfg)
+
+    atm = pb.run(str(path))
     np.testing.assert_allclose(atm[0], expected_pressure,    rtol=1e-7)
     np.testing.assert_allclose(atm[1], expected_temperature, atol=1e-10)
     np.testing.assert_allclose(atm[2], expected_abundances,  rtol=1e-7)
     # Compare against the atmospheric file now:
-    atm = pa.readatm(ROOT+'tests/atmosphere_tea_test.atm')
+    atm = pa.readatm(atmfile)
     assert atm[0] == ('bar', 'kelvin', 'number', None)
     np.testing.assert_equal(atm[1],
         np.array('H2 He Na K H2O CH4 CO CO2 NH3 HCN N2'.split()))

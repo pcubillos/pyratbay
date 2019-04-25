@@ -153,7 +153,7 @@ def test_read_write_pf(tmpdir):
     pffile = 'PF_Exomol_NH3_test.dat'
     pff = "{}/{}".format(tmpdir, pffile)
     isotopes = ['4111', '5111']
-    temp   = np.linspace(10,100,4)
+    temp   = np.linspace(10, 100, 4)
     pf     = np.array([np.logspace(0,3,4), np.logspace(1,4,4)])
     header = '# Mock partition function for NH3.\n'
     io.write_pf(pff, pf, isotopes, temp, header)

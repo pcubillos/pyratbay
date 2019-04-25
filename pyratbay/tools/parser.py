@@ -126,7 +126,7 @@ class Namespace(argparse.Namespace):
 
     def get_param(self, pname, units, desc, gt=None, ge=None):
         value = getattr(self, pname)
-        return pt.get_param(pname, value, units, self._log, gt, ge)
+        return pt.get_param(pname, value, units, self._log, gt, ge, tracklev=-4)
 
 
 def parse_str(args, param):
