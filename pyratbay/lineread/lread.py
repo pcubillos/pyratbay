@@ -51,8 +51,8 @@ def makeTLI(dblist, pflist, dbtype, tlifile,
   if wlhigh is None:
       log.error("Unspecified high wavelength boundary (wlhigh).")
 
-  wllow  = pt.getparam('wllow',  wllow,  wlunits, log)
-  wlhigh = pt.getparam('wlhigh', wlhigh, wlunits, log)
+  wllow  = pt.get_param('wllow',  wllow,  wlunits, log)
+  wlhigh = pt.get_param('wlhigh', wlhigh, wlunits, log)
 
   if dblist is None:
       log.error("There are no input database files ('dblist').")

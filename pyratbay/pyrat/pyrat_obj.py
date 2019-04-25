@@ -57,7 +57,6 @@ class Pyrat(object):
       >>> pyrat = pb.run('spectrum_transmission.cfg')
       """
       # Sub-classes:
-      self.inputs   = ob.Inputs()          # User inputs
       self.spec     = ob.Spectrum()        # Spectrum data
       self.atm      = ob.Atm()             # Modeling atmospheric model
       self.lt       = ob.Linetransition()  # Line-transition data
@@ -86,9 +85,10 @@ class Pyrat(object):
       # Setup time tracker:
       timer = pt.clock()
 
-      # Add args attributes to pyrat's user inputs:
-      for key, value in vars(args).items():
-          setattr(self.inputs, key, value)
+      # Set args as pyrat's user inputs:
+      self.inputs = args
+      self.inputs.atm = ob.Atm()
+
       self.verb = self.inputs.verb
 
       # Check that user input arguments make sense:

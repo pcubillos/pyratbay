@@ -618,8 +618,8 @@ def pressure(ptop, pbottom, nlayers, units="bar", log=None, verb=0):
   if log is None:
       log = mu.Log(logname=None, verb=verb)
   # Unpack pressure input variables:
-  ptop    = pt.getparam('ptop',    ptop,    units, log)
-  pbottom = pt.getparam('pbottom', pbottom, units, log)
+  ptop    = pt.get_param('ptop',    ptop,    units, log, gt=0.0)
+  pbottom = pt.get_param('pbottom', pbottom, units, log, gt=0.0)
   if ptop >= pbottom:
       log.error("Bottom-layer pressure ({:.2e} bar) must be higher than the "
                 "top-layer pressure ({:.2e} bar).".format(pbottom/pt.u(units),
@@ -628,7 +628,7 @@ def pressure(ptop, pbottom, nlayers, units="bar", log=None, verb=0):
   # Create pressure array in barye (CGS) units:
   press = np.logspace(np.log10(ptop), np.log10(pbottom), nlayers)
   log.msg("Creating {:d}-layer atmospheric model between {:.1e} and "
-     "{:.1e} bar.".format(nlayers, ptop/pt.u(units), pbottom/pt.u(units)))
+      "{:.1e} bar.".format(nlayers, ptop/pt.u(units), pbottom/pt.u(units)))
   return press
 
 
@@ -720,11 +720,11 @@ def temp_TCEA(tparams, pressure, rstar, tstar, tint, gplanet, smaxis,
     if isinstance(tparams, (list, tuple)):
         tparams = np.array(tparams, np.double)
     # Parse inputs:
-    rstar   = pt.getparam('rstar',   rstar,   runits)
-    tstar   = pt.getparam('tstar',   tstar,   "kelvin")
-    tint    = pt.getparam('tint',    tint,    "kelvin")
-    gplanet = pt.getparam('gplanet', gplanet, "none")
-    smaxis  = pt.getparam('smaxis',  smaxis,  runits)
+    rstar   = pt.get_param('rstar',   rstar,   runits)
+    tstar   = pt.get_param('tstar',   tstar,   "kelvin")
+    tint    = pt.get_param('tint',    tint,    "kelvin")
+    gplanet = pt.get_param('gplanet', gplanet, "none")
+    smaxis  = pt.get_param('smaxis',  smaxis,  runits)
     # Define model and arguments:
     targs  = [pressure, rstar, tstar, tint, smaxis, gplanet]
     return PT.TCEA(tparams, *targs)
@@ -800,11 +800,11 @@ def temperature(tmodel, pressure=None, rstar=None, tstar=None, tint=100.0,
 
   if tmodel == "TCEA":
     # Parse inputs:
-    rstar   = pt.getparam('rstar',   rstar,   runits,   log)
-    tstar   = pt.getparam('tstar',   tstar,   "kelvin", log)
-    tint    = pt.getparam('tint',    tint,    "kelvin", log)
-    gplanet = pt.getparam('gplanet', gplanet, "none",   log)
-    smaxis  = pt.getparam('smaxis',  smaxis,  runits,   log)
+    rstar   = pt.get_param('rstar',   rstar,   runits,   log)
+    tstar   = pt.get_param('tstar',   tstar,   "kelvin", log)
+    tint    = pt.get_param('tint',    tint,    "kelvin", log)
+    gplanet = pt.get_param('gplanet', gplanet, "none",   log)
+    smaxis  = pt.get_param('smaxis',  smaxis,  runits,   log)
     # Define model and arguments:
     Tmodel = temp_TCEA
     targs  = [pressure, rstar, tstar, tint, gplanet, smaxis]

@@ -54,8 +54,8 @@ def run(cfile, init=False):
   # Get gplanet from mplanet and rplanet if necessary:
   if (args.gplanet is None and args.rplanet is not None and
       args.mplanet is not None):
-      mplanet = pt.getparam('mplanet', args.mplanet, "gram", log)
-      rplanet = pt.getparam('rplanet', args.rplanet, args.runits, log)
+      mplanet = args.get_param('mplanet', 'gram', 'Planet mass')
+      rplanet = args.get_param('rplanet', args.runits,  'Planet radius')
       args.gplanet = pc.G * mplanet / rplanet**2
 
   # Compute pressure-temperature profile:
@@ -83,7 +83,7 @@ def run(cfile, init=False):
   # Compute atmospheric abundances:
   if args.runmode == "atmosphere" or pt.isfile(args.atmfile) != 1:
       check_atm(args, log)
-      xsolar = pt.getparam('xsolar', args.xsolar, "none", log)
+      xsolar = args.get_default('xsolar', 'Solar-metallicity scale factor')
       abundances = pa.abundances(args.atmfile, pressure, temperature,
           args.species, args.elements, args.uniform, args.punits, xsolar,
           args.solar, log)
@@ -201,14 +201,14 @@ def check_pressure(args, log):
   """
   Check the input arguments to calculate the pressure profile.
   """
-  args.punits = pt.defaultp(args.punits, "bar",
-      "punits input variable defaulted to '{:s}'.", log)
+  args.punits = args.get_default('punits', 'Pressure units', 'bar')
   if args.nlayers is None:
       log.error("Undefined number of atmospheric layers (nlayers).")
   if args.ptop is None:
       log.error("Undefined atmospheric top pressure (ptop)")
   if args.pbottom is None:
       log.error("Undefined atmospheric bottom pressure (pbottom)")
+  args.get_default('nlayers', 'Number of atmospheric layers', gt=0)
 
 
 def check_temp(args, log):
@@ -234,10 +234,9 @@ def check_temp(args, log):
           (args.mplanet is None or args.rplanet is None)):
           log.error("Undefined planetary surface gravity, set either "
                     "gplanet or mplanet and rplanet.")
-      args.tint = pt.defaultp(args.tint, "100.0",
-          "Planetary internal temperature defaulted to {:s} K.", log)
-      args.runits = pt.defaultp(args.runits, "cm",
-          "runits input variable defaulted to '{:s}'.", log)
+      args.tint = args.get_default('tint',
+          'Planetary internal temperature (K)', 100.0)
+      args.runits = args.get_default('runits', 'Distance units', 'cm')
 
   elif args.tmodel == "isothermal":
       if len(args.tpars) != 1:
@@ -253,8 +252,7 @@ def check_atm(args, log):
       log.error("Undefined atmospheric file (atmfile).")
   if args.species is None:
       log.error("Undefined atmospheric species list (species).")
-  args.punits = pt.defaultp(args.punits, "bar",
-      "punits input variable defaulted to '{:s}'.", log)
+  args.punits = args.get_default('punits', 'Pressure units', 'bar')
 
   # Uniform-abundances profile:
   if args.uniform is not None:
@@ -266,11 +264,12 @@ def check_atm(args, log):
   else:  # TEA abundances:
       if args.elements is None:
           log.error("Undefined atmospheric atomic-composition list (elements).")
-      args.solar = pt.defaultp(args.solar, pc.ROOT+"inputs/AsplundEtal2009.txt",
-          "Solar-abundances file defaulted to '{:s}'.", log)
-      args.atomicfile = pt.defaultp(args.atomicfile, "./atomic.tea",
-          "Atomic-composition file defaulted to '{:s}'.", log)
-      args.patm = pt.defaultp(args.patm, "./preatm.tea",
-          "Pre-atmospheric file defaulted to '{:s}'.", log)
-      args.xsolar = pt.defaultp(args.xsolar, 1.0,
-          "Solar-metallicity scaling factor defaulted to {:.2f}.", log)
+      args.solar = args.get_default('solar', 'Solar-abundance file',
+          pc.ROOT+'inputs/AsplundEtal2009.txt')
+
+      args.atomicfile = args.get_default('atomicfile',
+          'Atomic-composition file', './atomic.tea')
+      args.patm = args.get_default('patm',
+          'Pre-atmospheric file', './preatm.tea')
+      args.xsolar = args.get_default('xsolar',
+          'Solar-metallicity scaling factor', 1.0)

@@ -4679,3 +4679,13 @@ Documented and tested.
 
 Added pytest>= 3.9 requirement for testing.
 
+*****
+
+Implemented tools.Namespace() class.
+Removed tools.defaultp() function.
+Renamed tools.getparam() as tools.get_param(), removed integer
+argument.
+Removed Inputs() class. Replaced (in a Pyrat() object) with the
+Namespace object.
+Updated test_fails.py covering cases up to pt runmode.
+

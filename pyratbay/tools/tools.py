@@ -2,7 +2,7 @@
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
 __all__ = ['log_error',
-           "parray", "defaultp", "getparam",
+           "parray", "get_param",
            "binsearch", "pprint", "divisors", "u", "unpack",
            "ifirst", "ilast",
            "isfile", "addarg", "path", "wrap",
@@ -247,43 +247,20 @@ def u(units, log=None):
   """
   # Accept only valid units:
   if units not in pc.validunits:
-      # Throw error:
       print("Units name '{:s}' does not exist.".format(units))
       sys.exit(0)
   factor = getattr(pc, units)
   return factor
 
 
-def defaultp(param, default, msg, log):
+def get_param(pname, param, units, log=None, gt=None, ge=None):
   """
-  Return param if not None, else, return default and print the
-  corresponding warning message.
-
-  Parameters
-  ----------
-  param:  Any
-     Input parameter value.
-  default: Any
-     Default parameter value.
-  msg: String
-     Printed message if param is None.
-  log: Log object
-     Screen-output log handler.
-  """
-  if param is None:
-      log.warning(msg.format(default))
-      return default
-  return param
-
-
-def getparam(parname, param, units, log=None, integer=False):
-  """
-  Read a parameter that may or may not have units included.
+  Read a parameter that may have units.
   If it doesn't, default to the 'units' input argument.
 
   Parameters
   ----------
-  parname: String
+  pname: String
       The parameter name.
   param: String, Float, or integer
       The parameter value (which may contain the units).
@@ -291,8 +268,6 @@ def getparam(parname, param, units, log=None, integer=False):
       The default units for the parameter.
   log: Log object
       Screen-output log handler.
-  integer: Bool
-      If True, cast the output into an int.
 
   Returns
   -------
@@ -302,11 +277,9 @@ def getparam(parname, param, units, log=None, integer=False):
   --------
   >>> import pyratbay.tools as pt
   >>> for line in ['One km in cm:',
-  >>>              pt.getparam('size', 1.0, 'km'),
+  >>>              pt.get_param('size', 1.0, 'km'),
   >>>              "units in 'param' take precedence over 'unit':",
-  >>>              pt.getparam('size', '10', 'none', integer=True),
-  >>>              "# Cast to integer:",
-  >>>              pt.getparam('size', '10', 'none', integer=True)]:
+  >>>              pt.get_param('size', '10 cm', 'km')]
   >>>     print(line)
   One km in cm:
   100000.0
@@ -325,32 +298,34 @@ def getparam(parname, param, units, log=None, integer=False):
   if isinstance(param, numbers.Number):
       if units not in pc.validunits:
           log.error("Invalid units '{:s}' for parameter {:s}.".
-                    format(units, parname), tracklev=-3)
+                    format(units, pname), tracklev=-3)
       return param * u(units)
 
   # Split the parameter if it has a white-space:
   par = param.split()
 
   if len(par) > 2:
-      log.error("Invalid input value '{:s}' for parameter {:s}.".
-                format(param, parname), tracklev=-3)
+      log.error("Invalid value '{:s}' for parameter {:s}.".
+                format(param, pname), tracklev=-3)
   if len(par) == 2:
       units = par[1]
       if units not in pc.validunits:
-          log.error("Invalid input value '{:s}' for parameter {:s}.".
-                    format(param, parname), tracklev=-3)
+          log.error("Invalid value '{:s}' for parameter {:s}.".
+                    format(param, pname), tracklev=-3)
 
   try:
       value = np.float(par[0])
   except:
-      log.error("Invalid input value '{:s}' for parameter {:s}.".
-                format(param, parname), tracklev=-3)
+      log.error("Invalid value '{:s}' for parameter {:s}.".
+                format(param, pname), tracklev=-3)
 
   # Apply the units:
   value *= u(units)
 
-  if integer:
-      return int(value)
+  if gt is not None and value <= gt:
+      log.error('{} must be > {}'.format(pname, gt), tracklev=-3)
+  if ge is not None and value < ge:
+      log.error('{} must be >= {}'.format(pname, ge), tracklev=-3)
 
   return value
 

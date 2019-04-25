@@ -1,7 +1,8 @@
 # Copyright (c) 2016-2019 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-__all__ = ['parse',
+__all__ = ['Namespace',
+           'parse',
            'parse_str', 'parse_int', 'parse_float', 'parse_array']
 
 import os
@@ -21,6 +22,111 @@ from .. import constants as pc
 
 sys.path.append(pc.ROOT + "modules/MCcubed")
 import MCcubed.utils as mu
+
+
+class Namespace(argparse.Namespace):
+    """A container object to hold variables."""
+    def __init__(self, args=None, log=None):
+        if args is not None:
+            super(Namespace, self).__init__(**args)
+        if log is None:
+            self._log = mu.Log(logname=None, verb=2, width=80)
+        else:
+            self._log = log
+
+    def get_path(self, pname, desc='', exists=False):
+        """
+        Extract pname file path (or list of paths) from Namespace,
+        return the canonical path.
+
+        Examples
+        --------
+        >>> import pyratbay.tools as pt
+        >>> ns = pt.Namespace({'f1':'file1', 'f23':['file2', 'file3']})
+        >>> # Get path of a single file:
+        >>> ns.get_path('f1')
+        >>> # Get path of a list of files:
+        >>> ns.get_path('f23')
+        >>> # Attempt to get non-existing file:
+        >>> ns.get_path('f1', desc='Configuration', exists=True)
+        """
+        value = getattr(self, pname)
+        if value is None:
+            return None
+
+        if isinstance(value, str):
+            values = [value]
+            is_list = False
+        else:
+            values = value
+            is_list = True
+
+        for val in values:
+            if exists and not os.path.isfile(val):
+                self._log.error("{} file ({}) does not exist: '{}'".
+                                format(desc, pname, val))
+
+        values = [os.path.realpath(val) for val in values]
+        for val in values:
+            if not os.path.exists(os.path.dirname(val)):
+                self._log.error("Dir for {} file ({}) does not exist: '{}'".
+                                format(desc, pname, val))
+
+        if not is_list:
+            return values[0]
+        return values
+
+    def get_default(self, pname, desc, default=None,
+                    gt=None, ge=None, lt=None, le=None):
+        """
+        Extract pname variable from Namespace; if None, return
+        default.  If any of gt, ge, lt, or le is not None, run
+        greater/lower/equal checks.
+
+        Parameters
+        ----------
+        pname: String
+            Parameter name.
+        desc: String
+            Parameter description.
+        default: Any
+            Parameter default value.
+        gt: Float
+            If not None, check output is greater than gt.
+        ge: Float
+            If not None, check output is greater-equal than gt.
+        lt: Float
+            If not None, check output is lower than gt.
+        le: Float
+            If not None, check output is lower-equal than gt.
+        """
+        value = getattr(self, pname)
+        if value is None and default is not None:
+            #if warn is not None:
+            self._log.warning('{} ({}) defaulted to: {}'.
+                format(desc, pname, default))
+            value = default
+
+        if value is None:
+            return None
+
+        if gt is not None and value <= gt:
+            self._log.error('{} ({}) must be > {}'.format(desc, pname, gt),
+                            tracklev=-3)
+        if ge is not None and value < ge:
+            self._log.error('{} ({}) must be >= {}'.format(desc, pname, ge),
+                            tracklev=-3)
+        if lt is not None and lt <= value:
+            self._log.error('{} ({}) must be < {}'.format(desc, pname, lt),
+                            tracklev=-3)
+        if le is not None and le < value:
+            self._log.error('{} ({}) must be <= {}'.format(desc, pname, le),
+                            tracklev=-3)
+        return value
+
+    def get_param(self, pname, units, desc, gt=None, ge=None):
+        value = getattr(self, pname)
+        return pt.get_param(pname, value, units, self._log, gt, ge)
 
 
 def parse_str(args, param):
@@ -326,7 +432,7 @@ def parse(cfile):
       parse_array(args, 'yran')
 
   # Cast into a Namespace to make my life easier:
-  args = argparse.Namespace(**args)
+  args = Namespace(args)
   args.configfile = cfile
   if args.verb is None:
       args.verb = 2
@@ -348,6 +454,7 @@ def parse(cfile):
   args.logfile = pt.path(args.logfile)
   log = mu.Log(logname=args.logfile, verb=args.verb, width=80,
                append=args.resume)
+  args._log = log
 
   # Welcome message:
   log.msg("{:s}\n"

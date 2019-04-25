@@ -1,7 +1,7 @@
 # Copyright (c) 2016-2019 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-__all__ = ['Inputs', 'Spectrum', 'Atm', 'Linetransition', 'Molecules',
+__all__ = ['Spectrum', 'Atm', 'Linetransition', 'Molecules',
            'Isotopes', 'Voigt', 'Extinction', 'Cross', 'Optdepth',
            'Haze', 'Rayleigh', 'Alkali', 'Observation', 'Physics',
            'Retrieval']
@@ -10,14 +10,6 @@ import numpy  as np
 
 from .. import tools      as pt
 from .. import constants  as pc
-
-
-class Inputs(object):
-  """
-  This is a holder class to store user-input arguments.
-  """
-  def __init__(self):
-    self.atm = Atm()  # Input-file atmospheric model
 
 
 class Spectrum(object):
