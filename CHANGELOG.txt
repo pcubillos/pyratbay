@@ -4674,3 +4674,8 @@ Implemented tools.log_error() context manager to capture exceptions
 into log.error() calls.
 Documented and tested.
 
+
+*****  Do 25. Apr 09:31:19 CEST 2019  *****
+
+Added pytest>= 3.9 requirement for testing.
+
