@@ -4710,3 +4710,10 @@ Added tools.file_exists() function to check that a file exists.
 Documented and tested.
 Removed tools.addarg().
 
+*****
+
+Added list of available temperature, cloud, alkali, and rayleigh
+models into constants module.
+
+*****
+

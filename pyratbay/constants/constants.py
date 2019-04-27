@@ -114,3 +114,32 @@ rmodes = [
     'spectrum',
     'mcmc'
     ]
+
+# Temperature models:
+tmodels = [
+   'isothermal',
+   'TCEA',
+   'MadhuInv',
+   'MadhuNoInv',
+]
+
+# Alkali models:
+amodels = [
+   'SodiumVdWst',
+   'PotassiumVdWst',
+]
+
+# Rayleigh models:
+rmodels = [
+   'dalgarno_H',
+   'dalgarno_H2',
+   'dalgarno_He',
+   'lecavelier',
+]
+
+# Cloud/haze models:
+cmodels = [
+    'deck',
+    'ccsgray',
+]
+
