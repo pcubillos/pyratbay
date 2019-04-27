@@ -4722,3 +4722,34 @@ in atmosphere module's functions.
 
 *****
 
+Refactored Pyrat Bay initialization:
+Moved input-parameter validations from driver.py and argum.py (and
+others) into tools.parse().  If a parameter is defined with invalid
+values, the code will break regardless of whether a parameter will
+be used or not.
+
+Redefined values involving wavenumber to always be in cm-1, thus,
+such parameters must be defined as a floating-point number.
+Removed wnunits input.
+
+In tools.Namespace() class, added get_choices() method, refactored
+get_param() to include the parameter description in the error output,
+and refactored get_default() adding wlog arguments that flags when
+to raise default warning.
+
+Renamed argum.py checkinputs() to check_spectrum(). Pulled out
+parameter parsing into parse(), left spectrum-specific checks.
+
+Refactored Pyrat() init method to parse inputs from the config file
+(taken from driver.py).  Move spectrum initialization into a separate
+setup_spectrum() method for a more streamlined integration with the
+Pyrat Bay driver.
+
+Refactored driver.py's run() function accordingly.  Ideally, this
+function should only run the appropriate checks, call the right
+functions, and return their outputs.  It should not modify the Pyrat
+instance itself.
+
+Tests are working, but wont be updated before some cleaning up in
+next commit.
+

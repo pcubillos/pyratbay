@@ -21,8 +21,7 @@ import MCcubed as mc3
 @pt.ignore_system_exit
 def run(cfile, init=False):
   """
-  Pyrat Bay (Python Radiative Transfer in a Bayesian framework)
-  initialization driver.
+  Pyrat Bay initialization driver.
 
   Parameters
   ----------
@@ -32,107 +31,116 @@ def run(cfile, init=False):
       If True, only initialize a Pyrat object (no spectra calculation).
       This is useful when computing spectra interactively.
   """
-  # Parse command line arguments:
-  args, log = pt.parse(cfile)
-
-  # Check run mode:
-  if args.runmode not in pc.rmodes:
-      log.error("Invalid runmode ({}). Select from: {:s}.".
-                format(args.runmode, str(pc.rmodes)))
+  pyrat = Pyrat(cfile)
+  log = pyrat.log
+  phy = pyrat.phy
+  atm = pyrat.atm
+  inputs = pyrat.inputs
 
   # Call lineread package:
-  if args.runmode == "tli":
-      if args.tlifile is None:
-          log.error('No output TLI file specified.')
-      if args.wlunits is None:
-          args.wlunits = 'um'
-      lr.makeTLI(args.dblist, args.pflist, args.dbtype, args.tlifile[0],
-                 args.wllow, args.wlhigh, args.wlunits, log)
+  if pyrat.runmode == 'tli':
+      if pyrat.lt.tlifile is None:
+          log.error('Undefined TLI file (tlifile).')
+      args = pyrat.inputs
+      lr.makeTLI(args.dblist, args.pflist, args.dbtype, pyrat.lt.tlifile[0],
+                 pyrat.spec.wllow, pyrat.spec.wlhigh, pyrat.spec.wlunits, log)
       return
 
 
   # Get gplanet from mplanet and rplanet if necessary:
-  if (args.gplanet is None and args.rplanet is not None and
-      args.mplanet is not None):
-      mplanet = args.get_param('mplanet', None,        'Planet mass',   gt=0.0)
-      rplanet = args.get_param('rplanet', args.runits, 'Planet radius', gt=0.0)
-      args.gplanet = pc.G * mplanet / rplanet**2
+  mplanet = phy.mplanet is not None
+  gplanet = phy.gplanet is not None
+  rplanet = phy.rplanet is not None
+
+  # Check planetary surface gravity/mass/radius:
+  if mplanet and rplanet and gplanet:
+      gplanet = pc.G * phy.mplanet / phy.rplanet**2
+      if np.abs(gplanet-phy.gplanet)/phy.gplanet > 0.05:
+          log.error("All mplanet, rplanet, and gplanet were provided, but "
+              "values are inconsistent (>5%): g(M,R) = {:7.1f} cm s-2 and "
+              "gplanet = {:7.1f} cm s-2.".format(gplanet, phy.gplanet))
+  elif not mplanet and rplanet and gplanet:
+      phy.mplanet = phy.gplanet * phy.rplanet**2 / pc.G
+  elif mplanet and not rplanet and gplanet:
+      phy.rplanet = np.sqrt(pc.G * phy.mplanet / phy.gplanet)
+  elif mplanet and rplanet and not gplanet:
+      phy.gplanet = pc.G * phy.mplanet / phy.rplanet**2
+
 
   # Compute pressure-temperature profile:
-  if args.runmode in ["pt", "atmosphere"] or pt.isfile(args.atmfile) != 1:
-      # Check if PT file is provided:
-      if args.ptfile is None:
-          check_pressure(args, log)
-          pressure = pa.pressure(args.ptop, args.pbottom, args.nlayers,
-                                 args.punits, log)
-          check_temp(args, log)
-          temperature = pa.temperature(args.tmodel, pressure,
-               args.rstar, args.tstar, args.tint, args.gplanet, args.smaxis,
-               args.runits, args.nlayers, log, args.tpars)
-      # If PT file is provided, read it:
-      elif os.path.isfile(args.ptfile):
+  if pyrat.runmode in ['pt', 'atmosphere'] or pt.isfile(atm.atmfile) != 1:
+      if pt.isfile(atm.ptfile) == 1:
           log.msg("\nReading pressure-temperature file: '{:s}'.".
-                  format(args.ptfile))
-          pressure, temperature = io.read_pt(args.ptfile)
+                  format(atm.ptfile))
+          pressure, temperature = io.read_pt(atm.ptfile)
+      else:
+          check_pressure(pyrat)
+          pressure = pa.pressure(atm.ptop, atm.pbottom, atm.nlayers,
+              'barye', log)
+          check_temp(pyrat)
+          temperature = pa.temperature(atm.tmodelname, pressure,
+               phy.rstar, phy.tstar, phy.tint, phy.gplanet, phy.smaxis,
+               atm.runits, atm.nlayers, log, atm.tpars)
 
   # Return temperature-pressure if requested:
-  if args.runmode == "pt":
+  if pyrat.runmode == 'pt':
       return pressure, temperature
 
 
   # Compute atmospheric abundances:
-  if args.runmode == "atmosphere" or pt.isfile(args.atmfile) != 1:
-      check_atm(args, log)
-      xsolar = args.get_default('xsolar', 'Solar-metallicity scale factor')
-      abundances = pa.abundances(args.atmfile, pressure, temperature,
-          args.species, args.elements, args.uniform, args.punits, xsolar,
-          args.solar, log)
+  if pyrat.runmode == 'atmosphere' or pt.isfile(atm.atmfile) != 1:
+      check_atm(pyrat)
+      abundances = pa.abundances(atm.atmfile, pressure, temperature,
+          inputs.species, inputs.elements, inputs.uniform, atm.punits,
+          inputs.xsolar, inputs.solar, log)
 
   # Return atmospheric model if requested:
-  if args.runmode == "atmosphere":
+  if pyrat.runmode == 'atmosphere':
       return pressure, temperature, abundances
 
+
   # Check status of extinction-coefficient file if necessary:
-  if args.runmode != "spectrum" and pt.isfile(args.extfile) == -1:
-      log.error("Unspecified extinction-coefficient file (extfile).")
+  if pyrat.runmode != 'spectrum' and pt.isfile(pyrat.ex.extfile) == -1:
+      log.error("Undefined extinction-coefficient file (extfile).")
 
   # Force to re-calculate extinction-coefficient file if requested:
-  if args.runmode == "opacity" and pt.isfile(args.extfile) == 1:
-      os.remove(args.extfile)
+  if pyrat.runmode == 'opacity' and pt.isfile(pyrat.ex.extfile) == 1:
+      os.remove(pyrat.ex.extfile)
 
-  if args.runmode == "mcmc" and args.mcmcfile is None:
-      log.error('No MCMC file specified.')
+  if pyrat.runmode == 'mcmc' and pyrat.ret.mcmcfile is None:
+      log.error('Undefined MCMC file (mcmcfile).')
 
   # Initialize pyrat object:
-  if args.resume: # Bypass writting all of the initialization log:
-      pyrat = Pyrat(args, log=None)
-      pyrat.log = log
-  else:
-      pyrat = Pyrat(args, log=log)
+  pyrat.setup_spectrum()
+  #if pyrat.inputs.resume: # Bypass writting all of the initialization log:
+  #    pyrat = Pyrat(args, log=None)
+  #    pyrat.log = log
+  #else:
+  #    pyrat = Pyrat(args, log=log)
 
   # Stop and return if requested:
   if init or pyrat.runmode == 'opacity':
       return pyrat
 
   # Compute spectrum and return pyrat object if requested:
-  if args.runmode == "spectrum":
+  if pyrat.runmode == "spectrum":
       pyrat.run()
       return pyrat
 
   # Retrieval checks:
   if pyrat.od.path == "eclipse" and pyrat.phy.starflux is None:
-      log.error("Unspecified stellar flux model.")
+      log.error("Undefined stellar flux model (kurucz or starspec).")
   if pyrat.od.path == "eclipse" and pyrat.phy.rprs is None:
-      log.error("Undefined Rp/Rs.")
+      log.error("Undefined radius ratio (need rplanet and rstar).")
   if pyrat.obs.filter is None:
-      log.error("Undefined transmission filters.")
+      log.error("Undefined transmission filters (filter).")
   if pyrat.obs.data is None:
-      log.error("Undefined data.")
+      log.error("Undefined transit/eclipse data (data).")
   if pyrat.obs.uncert is None:
-      log.error("Undefined data uncertainties.")
+      log.error("Undefined data uncertainties (uncert).")
 
   muted_log = mc3.utils.Log(None, verb=0, width=80)
-  pyrat.log = muted_log    # Mute logging in PB, but not in MC3
+  pyrat.log = muted_log      # Mute logging in PB, but not in MC3
   pyrat.spec.outspec = None  # Avoid writing spectrum file during MCMC
   retmodel = False  # Return only the band-integrated spectrum
   # Basename of the output files (no path, no extension):
@@ -150,7 +158,7 @@ def run(cfile, init=False):
       hsize=10, kickoff='normal', log=log, nproc=pyrat.ncpu,
       plots=True, showbp=False,
       pnames=ret.pnames, texnames=ret.texnames,
-      resume=args.resume, savefile=ret.mcmcfile)
+      resume=pyrat.inputs.resume, savefile=ret.mcmcfile)
 
   if mc3_out is None:
       log.error("Error in MC3.")
@@ -197,79 +205,73 @@ def run(cfile, init=False):
   return pyrat, bestp
 
 
-def check_pressure(args, log):
+def check_pressure(pyrat):
   """
   Check the input arguments to calculate the pressure profile.
   """
-  args.punits = args.get_default('punits', 'Pressure units', 'bar')
-  if args.nlayers is None:
-      log.error("Undefined number of atmospheric layers (nlayers).")
-  if args.ptop is None:
-      log.error("Undefined atmospheric top pressure (ptop)")
-  if args.pbottom is None:
-      log.error("Undefined atmospheric bottom pressure (pbottom)")
-  args.get_default('nlayers', 'Number of atmospheric layers', gt=0)
+  if pyrat.atm.nlayers is None:
+      pyrat.log.error("Undefined number of atmospheric layers (nlayers).")
+  if pyrat.atm.ptop is None:
+      pyrat.log.error("Undefined atmospheric top pressure (ptop)")
+  if pyrat.atm.pbottom is None:
+      pyrat.log.error("Undefined atmospheric bottom pressure (pbottom)")
 
 
-def check_temp(args, log):
+def check_temp(pyrat):
   """
   Check the input arguments to calculate the temperature profile.
   """
-  if args.tmodel is None:
+  log = pyrat.log
+  atm = pyrat.atm
+  if atm.tmodelname is None:
       log.error("Undefined temperature model (tmodel).")
-  if args.tpars is None:
+  if atm.tpars is None:
       log.error("Undefined temperature-model parameters (tpars).")
 
-  if args.tmodel == "TCEA":
-      if len(args.tpars) != 5:
+  if atm.tmodelname == "isothermal":
+      if len(atm.tpars) != 1:
+          log.error("Wrong number of parameters ({:d}) for the isothermal "
+                    "temperature model (1).".format(len(atm.tpars)))
+
+  elif atm.tmodelname == "TCEA":
+      if len(atm.tpars) != 5:
           log.error("Wrong number of parameters ({:d}) for the TCEA "
-                    "temperature model (5).".format(len(args.tpars)))
-      if args.rstar is None:
+                    "temperature model (5).".format(len(atm.tpars)))
+      if pyrat.phy.rstar is None:
           log.error("Undefined stellar radius (rstar).")
-      if args.tstar is None:
+      if pyrat.phy.tstar is None:
           log.error("Undefined stellar temperature (tstar).")
-      if args.smaxis is None:
+      if pyrat.phy.smaxis is None:
           log.error("Undefined orbital semi-major axis (smaxis).")
-      if (args.gplanet is None and
-          (args.mplanet is None or args.rplanet is None)):
+      if pyrat.phy.gplanet is None:
           log.error("Undefined planetary surface gravity, set either "
                     "gplanet or mplanet and rplanet.")
-      args.tint = args.get_default('tint',
-          'Planetary internal temperature (K)', 100.0)
-      args.runits = args.get_default('runits', 'Distance units', 'cm')
-
-  elif args.tmodel == "isothermal":
-      if len(args.tpars) != 1:
-          log.error("Wrong number of parameters ({:d}) for the isothermal "
-                    "temperature model (1).".format(len(args.tpars)))
 
 
-def check_atm(args, log):
+def check_atm(pyrat):
   """
   Check the input arguments to calculate the atmospheric model.
   """
-  if args.atmfile is None:
+  atm = pyrat.atm
+  if atm.atmfile is None:
       log.error("Undefined atmospheric file (atmfile).")
-  if args.species is None:
+  if pyrat.inputs.species is None:
       log.error("Undefined atmospheric species list (species).")
-  args.punits = args.get_default('punits', 'Pressure units', 'bar')
-
   # Uniform-abundances profile:
-  if args.uniform is not None:
-      if len(args.uniform) != len(args.species):
-          log.error("Number of uniform abundances ({:d}) does not match the "
-                    "number of species ({:d}).".
-                    format(len(args.uniform), len(args.species)))
+  if pyrat.inputs.uniform is not None:
+      if len(pyrat.inputs.uniform) != len(pyrat.inputs.species):
+          pyrat.log.error("Number of uniform abundances ({:d}) does not "
+                          "match the number of species ({:d}).".
+                          format(len(pyrat.inputs.uniform), len(pyrat.inputs.species)))
       return
-  else:  # TEA abundances:
-      if args.elements is None:
-          log.error("Undefined atmospheric atomic-composition list (elements).")
-      args.solar = args.get_default('solar', 'Solar-abundance file',
-          pc.ROOT+'inputs/AsplundEtal2009.txt')
-
-      args.atomicfile = args.get_default('atomicfile',
-          'Atomic-composition file', './atomic.tea')
-      args.patm = args.get_default('patm',
-          'Pre-atmospheric file', './preatm.tea')
-      args.xsolar = args.get_default('xsolar',
-          'Solar-metallicity scaling factor', 1.0)
+  # TEA abundances:
+  if pyrat.inputs.elements is None:
+      pyrat.log.error("Undefined atmospheric atomic composition (elements).")
+  pyrat.inputs.solar = pyrat.inputs.get_default('solar', 'Solar-abundance file',
+      pc.ROOT+'inputs/AsplundEtal2009.txt')
+  pyrat.inputs.atomicfile = pyrat.inputs.get_default('atomicfile',
+      'Atomic-composition file', './atomic.tea')
+  pyrat.inputs.patm = pyrat.inputs.get_default('patm',
+      'Pre-atmospheric file', './preatm.tea')
+  pyrat.inputs.xsolar = pyrat.inputs.get_default('xsolar',
+      'Solar-metallicity scaling factor', 1.0, gt=0.0)

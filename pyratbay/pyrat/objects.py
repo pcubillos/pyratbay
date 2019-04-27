@@ -17,7 +17,6 @@ class Spectrum(object):
     self.outspec   = None  # Modulation/Flux spectrum file
     # Wavenumber:
     self.nwave     = None  # Number of wavenumber spectral samples
-    self.wnunits   = None  # User-input wavenumber physical units
     self.wn        = None  # Wavenumber array
     self.wnlow     = None  # Lowest wavenumber boundary
     self.wnhigh    = None  # Highest wavenumber boundary
@@ -48,7 +47,6 @@ class Spectrum(object):
     pt.wrap(info, "Spectral info:")
     pt.wrap(info, "Wavenumber:", 2)
     pt.wrap(info, "Number of samples:      {:d}".format(self.nwave), 4)
-    pt.wrap(info, "User-input units:       {:s}-1".format(self.wnunits), 4)
     pt.wrap(info, "Pyrat (internal) units: cm-1", 4)
     pt.wrap(info, "Low  boundary:     {:9.3f} cm-1".format(self.wnlow),  4)
     pt.wrap(info, "High boundary:     {:9.3f} cm-1".format(self.wnhigh), 4)

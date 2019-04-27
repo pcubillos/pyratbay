@@ -16,8 +16,8 @@ else:
 
 import numpy as np
 
-from .  import tools as pt
-from .. import VERSION as ver
+from .  import tools     as pt
+from .. import VERSION   as ver
 from .. import constants as pc
 
 sys.path.append(pc.ROOT + "modules/MCcubed")
@@ -76,7 +76,27 @@ class Namespace(argparse.Namespace):
             return values[0]
         return values
 
-    def get_default(self, pname, desc, default=None,
+    def get_choice(self, pname, desc, choices, take_none=True):
+        value = getattr(self, pname)
+        if value is None and take_none:
+            return None
+
+        if isinstance(value, list):
+            values = value
+            is_list = True
+        else:
+            values = [value]
+            is_list = False
+
+        for value in values:
+            if value not in choices:
+                self._log.error("Invalid {:s} ({:s}): {}. Select from: {:s}.".
+                    format(desc, pname, value, str(choices)), tracklev=-3)
+        if not is_list:
+            return values[0]
+        return values
+
+    def get_default(self, pname, desc, default=None, wflag=False,
                     gt=None, ge=None, lt=None, le=None):
         """
         Extract pname variable from Namespace; if None, return
@@ -102,9 +122,9 @@ class Namespace(argparse.Namespace):
         """
         value = getattr(self, pname)
         if value is None and default is not None:
-            #if warn is not None:
-            self._log.warning('{} ({}) defaulted to: {}'.
-                format(desc, pname, default))
+            if wflag:
+                self._log.warning('{} ({}) defaulted to: {}'.
+                                  format(desc, pname, default))
             value = default
 
         if value is None:
@@ -125,8 +145,18 @@ class Namespace(argparse.Namespace):
         return value
 
     def get_param(self, pname, units, desc, gt=None, ge=None):
-        value = getattr(self, pname)
-        return pt.get_param(pname, value, units, self._log, gt, ge, tracklev=-4)
+        value = pt.get_param(pname, getattr(self, pname), units, self._log,
+            tracklev=-4)
+        if value is None:
+            return None
+
+        if gt is not None and value <= gt:
+            self._log.error('{} ({}) must be > {}'.format(desc, pname, gt),
+                            tracklev=-3)
+        if ge is not None and value < ge:
+            self._log.error('{} ({}) must be >= {}'.format(desc, pname, ge),
+                            tracklev=-3)
+        return value
 
 
 def parse_str(args, param):
@@ -280,7 +310,7 @@ def parse_array(args, param):
     args[param] = val
 
 
-def parse(cfile):
+def parse(pyrat, cfile):
   """
   Read the command line arguments.
 
@@ -313,6 +343,7 @@ def parse(cfile):
       sys.exit(0)
   args = dict(config.items("pyrat"))
 
+  # Parse data type:
   with pt.log_error():
       parse_int(args,   'verb')
       parse_array(args, 'dblist')
@@ -326,10 +357,9 @@ def parse(cfile):
       parse_str(args,   'wlunits')
       parse_str(args,   'wllow')
       parse_str(args,   'wlhigh')
-      parse_str(args,   'wnunits')
-      parse_str(args,   'wnlow')
-      parse_str(args,   'wnhigh')
-      parse_str(args,   'wnstep')
+      parse_float(args, 'wnlow')
+      parse_float(args, 'wnhigh')
+      parse_float(args, 'wnstep')
       parse_int(args,   'wnosamp')
       parse_float(args, 'resolution')
       # Atmospheric sampling options:
@@ -434,11 +464,18 @@ def parse(cfile):
   # Cast into a Namespace to make my life easier:
   args = Namespace(args)
   args.configfile = cfile
-  if args.verb is None:
-      args.verb = 2
 
+  pyrat.verb = args.get_default('verb', 'Verbosity', 2, ge=0, lt=5)
+  runmode = pyrat.runmode = args.get_choice('runmode', 'Running mode',
+      pc.rmodes, take_none=False)
 
-  # Default log file name:
+  # Define logfile name and initialize log object:
+  pyrat.lt.tlifile   = args.get_path('tlifile',  'TLI')
+  pyrat.atm.atmfile  = args.get_path('atmfile',  'Atmospheric')
+  pyrat.spec.outspec = args.get_path('outspec',  'Output spectrum')
+  pyrat.ex.extfile   = args.get_path('extfile',  'Extinction-coefficient')
+  pyrat.ret.mcmcfile = args.get_path('mcmcfile', 'MCMC')
+
   if args.logfile is None:
       if args.runmode == 'tli' and args.tlifile is not None:
           args.logfile = os.path.splitext(args.tlifile[0])[0] + '.log'
@@ -452,8 +489,8 @@ def parse(cfile):
           args.logfile = os.path.splitext(args.mcmcfile)[0] + '.log'
 
   args.logfile = pt.path(args.logfile)
-  log = mu.Log(logname=args.logfile, verb=args.verb, width=80,
-               append=args.resume)
+  log = pyrat.log = mu.Log(logname=args.logfile, verb=args.verb, width=80,
+                           append=args.resume)
   args._log = log
 
   # Welcome message:
@@ -468,4 +505,176 @@ def parse(cfile):
   log.msg("Read command-line arguments from configuration file: '{:s}'".
           format(cfile))
 
-  return args, log
+  # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+  # Parse valid inputs and defaults:
+  pyrat.inputs = args
+
+  phy  = pyrat.phy
+  spec = pyrat.spec
+  atm  = pyrat.atm
+
+  pyrat.mol.molfile = args.get_path('molfile', 'Molecular data')
+  pyrat.cs.files    = args.get_path('csfile',  'Cross-section')
+  pyrat.atm.ptfile  = args.get_path('ptfile',  'Pressure-temperature')
+
+  spec.wlunits = args.get_default('wlunits', 'Wavelength units', 'um',
+      wflag=runmode not in ['pt', 'atmosphere'])
+  spec.wllow  = args.get_param('wllow',  spec.wlunits,
+      'Wavelength lower boundary',  gt=0.0)
+  spec.wlhigh = args.get_param('wlhigh', spec.wlunits,
+      'Wavelength higher boundary', gt=0.0)
+
+  spec.wnlow  = args.get_default('wnlow',
+      'Wavenumber lower boundary',  gt=0.0)
+  spec.wnhigh = args.get_default('wnlow',
+      'Wavenumber higher boundary', gt=spec.wnlow)
+
+  spec.wnstep = args.get_default('wnstep',
+      'Wavenumber sampling step', gt=0.0)
+  spec.wnosamp = args.get_default('wnosamp',
+      'Wavenumber oversampling factor', ge=1)
+  spec.resolution = args.get_default('resolution',
+      'Spectral resolution', gt=0.0)
+
+  atm.punits = args.get_default('punits', 'Pressure units', 'bar',
+      wflag=(runmode!='tli'))
+  atm.runits = args.get_default('runits', 'Distance units', 'km',
+      wflag=(runmode!='tli'))
+  atm.nlayers = args.get_default('nlayers',
+      'Number of atmospheric layers', gt=0)
+
+  # Pressure boundaries:
+  atm.pbottom = args.get_param('pbottom', atm.punits,
+      'Pressure at bottom of atmosphere', gt=0.0)
+  atm.ptop = args.get_param('ptop', atm.punits,
+      'Pressure at top of atmosphere', gt=0.0)
+
+  # Radius boundaries:
+  atm.radlow = args.get_param('radlow', atm.runits,
+      'Radius at bottom of atmosphere', ge=0.0)
+  atm.radhigh = args.get_param('radhigh', atm.runits,
+      'Radius at top of atmosphere', gt=0.0)
+  atm.radstep = args.get_param('radstep', atm.runits,
+      'Radius sampling step', gt=0.0)
+
+  # System physical parameters:
+  atm.refpressure = args.get_param('refpressure', atm.punits,
+      'Planetary reference pressure level', gt=0.0)
+  phy.rplanet = args.get_param('rplanet', atm.runits,
+      'Planetary radius', gt=0.0)
+  phy.mplanet = args.get_param('mplanet', None,
+      'Planetary mass', gt=0.0)
+  phy.gplanet = args.get_default('gplanet',
+      'Planetary surface gravity (cm s-2)', gt=0.0)
+  phy.tint = args.get_default('tint',
+      'Planetary internal temperature', 100.0, gt=0)
+
+  phy.smaxis = args.get_param('smaxis', atm.runits,
+      'Orbital semi-major axis', gt=0.0)
+  phy.rstar = args.get_param('rstar', atm.runits,
+      'Stellar radius', gt=0.0)
+  phy.mstar = args.get_param('mstar', 'msun',
+      'Stellar mass', gt=0.0)
+  phy.gstar = args.get_default('gstar',
+      'Stellar surface gravity', gt=0.0)
+  phy.tstar = args.get_default('tstar',
+      'Stellar effective temperature (K)', gt=0.0)
+
+  pyrat.voigt.extent = args.get_default('vextent',
+      'Voigt profile extent', 20.0, ge=1.0,
+      wflag=(runmode not in ['tli', 'pt', 'atmosphere']))
+  pyrat.voigt.nDop = args.get_default('nDop',
+      'Number of Doppler-width samples', 40, ge=1)
+  pyrat.voigt.Dmin = args.get_default('Dmin',
+      'Minimum Doppler HWHM (cm-1)', gt=0.0)
+  pyrat.voigt.Dmax = args.get_default('Dmax',
+      'Maximum Doppler HWHM (cm-1)', gt=0.0)
+  pyrat.voigt.nLor = args.get_default('nLor',
+      'Number of Lorentz-width samples', 40, ge=1)
+  pyrat.voigt.Lmin = args.get_default('Lmin',
+      'Minimum Lorentz HWHM (cm-1)', gt=0.0)
+  pyrat.voigt.Lmax = args.get_default('Lmax',
+      'Maximum Lorentz HWHM (cm-1)', gt=0.0)
+  pyrat.voigt.DLratio = args.get_default('DLratio',
+      'Doppler/Lorentz-width ratio threshold', 0.1, gt=0)
+
+  pyrat.ex.tmin = args.get_param('tmin', 'kelvin',
+      'Minimum temperature of opacity grid', gt=0.0)
+  pyrat.ex.tmax = args.get_param('tmax', 'kelvin',
+      'Maximum temperature of opacity grid', gt=pyrat.ex.tmin)
+  pyrat.ex.tstep = args.get_default('tstep',
+      "Opacity grid's temperature sampling step in K", gt=0.0)
+
+  pyrat.rayleigh.pars = args.rpars
+  pyrat.haze.pars     = args.hpars
+  pyrat.rayleigh.model_names = args.get_choice('rayleigh',
+      'Rayleigh model', pc.rmodels)
+  pyrat.haze.model_names = args.get_choice('hazes',
+      'Haze model', pc.cmodels)
+  pyrat.alkali.model_names = args.get_choice('alkali',
+      'Alkali model', pc.amodels)
+  pyrat.haze.fpatchy = args.get_default('fpatchy',
+      'Patchy-cloud fraction', ge=0.0, le=1.0)
+
+  pyrat.od.path = args.get_choice('path',
+      'Observing geometry', ['transit','eclipse'])
+  pyrat.ex.ethresh = args.get_default('ethresh',
+      'Extinction-cofficient threshold', 1e-15, gt=0.0)
+  pyrat.od.maxdepth = args.get_default('maxdepth',
+      'Maximum optical-depth', 10.0, ge=0.0)
+
+  phy.starspec = args.get_path('starspec', 'Stellar spectrum', exists=True)
+  phy.kurucz   = args.get_path('kurucz',   'Kurucz model',     exists=True)
+  phy.marcs    = args.get_path('marcs',    'MARCS model',      exists=True)
+  phy.phoenix  = args.get_path('phoenix',  'PHOENIX model',    exists=True)
+
+  spec.raygrid = args.get_default('raygrid',
+      'Emission raygrid (deg)', np.array([0, 20, 40, 60, 80.]),
+      wflag=(runmode not in ['tli', 'pt', 'atmosphere']))
+  spec.quadrature = args.get_default('quadrature',
+      'Number of Gaussian-quadrature points', ge=1)
+
+  pyrat.obs.data   = args.data
+  pyrat.obs.uncert = args.uncert
+  pyrat.obs.filter = args.filter
+
+  pyrat.ret.retflag = args.retflag
+
+  pyrat.ret.params   = args.params
+  pyrat.ret.stepsize = args.stepsize
+  pyrat.ret.pmin     = args.pmin
+  pyrat.ret.pmax     = args.pmax
+  pyrat.ret.prior    = args.prior
+  pyrat.ret.priorlow = args.priorlow
+  pyrat.ret.priorup  = args.priorup
+
+  pyrat.ret.qcap = args.get_default('qcap',
+      'Metals abundance cap', 1.0, gt=0, le=1.0)
+  pyrat.ret.params = args.params
+  pyrat.ret.stepsize = args.stepsize
+  pyrat.ret.tlow  = args.get_default('tlow',
+      'Retrieval low-temperature (K) bound', 0, wflag=(runmode=='mcmc'))
+  pyrat.ret.thigh = args.get_default('thigh',
+      'Retrieval high-temperature (K) bound', np.inf, wflag=(runmode=='mcmc'))
+  pyrat.ret.walk     = args.walk
+  pyrat.ret.nsamples = args.get_default('nsamples',
+      'Number of MCMC samples', gt=0)
+  pyrat.ret.burnin   = args.get_default('burnin',
+      'Number of burn-in samples per chain', gt=0)
+  pyrat.ret.thinning = args.get_default('thinning',
+      'MCMC posterior thinning', 1)
+  pyrat.ret.nchains  = args.get_default('nchains',
+      'Number of MCMC parallel chains', ge=1)
+  pyrat.ret.grbreak  = args.get_default('grbreak',
+      'Gelman-Rubin convergence criteria', 0.0, ge=0)
+  pyrat.ret.grnmin   = args.get_default('grnmin',
+      'Gelman-Rubin convergence fraction', 0.5, gt=0.0)
+  atm.molmodel = args.molmodel
+  atm.molfree  = args.molfree
+  atm.molpars  = args.molpars
+  atm.bulk     = args.bulk
+  atm.tmodelname = args.get_choice('tmodel', 'Temperature model', pc.tmodels)
+  atm.tpars = args.tpars
+  pyrat.ncpu = args.get_default('ncpu', 'Number of processors', 1, ge=1)
+
+  return

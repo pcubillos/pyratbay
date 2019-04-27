@@ -32,7 +32,7 @@ class Pyrat(object):
   """
   Main Pyrat object.
   """
-  def __init__(self, args, log):
+  def __init__(self, cfile):
       """
       Parse the command-line arguments into the pyrat object.
 
@@ -74,25 +74,16 @@ class Pyrat(object):
       self.ret      = ob.Retrieval()       # Retrieval variables
       self.timestamps = OrderedDict()
 
-      # Add log into object:
-      if log is None:
-          self.log = mc3.utils.Log(None, self.verb, width=80)
-          self.logfile = ''
-      else:
-          self.log = log
-          self.logfile = log.logname
+      # Parse config file inputs:
+      pt.parse(self, cfile)
+      self.inputs.atm = ob.Atm()
 
+  def setup_spectrum(self):
       # Setup time tracker:
       timer = pt.clock()
 
-      # Set args as pyrat's user inputs:
-      self.inputs = args
-      self.inputs.atm = ob.Atm()
-
-      self.verb = self.inputs.verb
-
       # Check that user input arguments make sense:
-      ar.checkinputs(self)
+      ar.check_spectrum(self)
       self.timestamps['init'] = next(timer)
 
       # Initialize wavenumber sampling:

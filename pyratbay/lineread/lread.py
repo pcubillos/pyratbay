@@ -44,22 +44,19 @@ def makeTLI(dblist, pflist, dbtype, tlifile,
   """
   # Input-not-found error messages:
   if tlifile is None:
-      log.error('No output TLI file specified.')
+      log.error('Undefined TLI file (tlifile).')
 
   if wllow is None:
-      log.error("Unspecified low wavelength boundary (wllow).")
+      log.error("Undefined low wavelength boundary (wllow).")
   if wlhigh is None:
-      log.error("Unspecified high wavelength boundary (wlhigh).")
-
-  wllow  = pt.get_param('wllow',  wllow,  wlunits, log)
-  wlhigh = pt.get_param('wlhigh', wlhigh, wlunits, log)
+      log.error("Undefined high wavelength boundary (wlhigh).")
 
   if dblist is None:
-      log.error("There are no input database files ('dblist').")
+      log.error("There are no input database files (dblist).")
   if dbtype is None:
-      log.error("There are no input database types ('dbtype').")
+      log.error("There are no input database types (dbtype).")
   if pflist is None:
-      log.error("There are no partition-function inputs ('pflist').")
+      log.error("There are no partition-function inputs (pflist).")
 
   # Check number of files match:
   nfiles = len(dblist)
