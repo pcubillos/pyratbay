@@ -410,14 +410,14 @@ def isfile(path):
   Parameters
   ----------
   path:  String
-    Path to check.
+      Path to check.
 
   Returns
   -------
   status: Integer
-    If path is None, return -1.
-    If path is not a regular file, return 0.
-    If path is a regular file, return 1.
+      If path is None, return -1.
+      If path is not a regular file, return 0.
+      If path is a regular file, return 1.
   """
   # None exception:
   if path is None:

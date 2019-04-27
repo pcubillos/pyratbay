@@ -720,11 +720,11 @@ def temp_TCEA(tparams, pressure, rstar, tstar, tint, gplanet, smaxis,
     if isinstance(tparams, (list, tuple)):
         tparams = np.array(tparams, np.double)
     # Parse inputs:
-    rstar   = pt.get_param('rstar',   rstar,   runits)
-    tstar   = pt.get_param('tstar',   tstar,   "kelvin")
-    tint    = pt.get_param('tint',    tint,    "kelvin")
-    gplanet = pt.get_param('gplanet', gplanet, "none")
-    smaxis  = pt.get_param('smaxis',  smaxis,  runits)
+    rstar   = pt.get_param('rstar',   rstar,   runits,   gt=0.0)
+    tstar   = pt.get_param('tstar',   tstar,   'kelvin', gt=0.0)
+    tint    = pt.get_param('tint',    tint,    'kelvin', ge=0.0)
+    gplanet = pt.get_param('gplanet', gplanet, 'none',   gt=0.0)
+    smaxis  = pt.get_param('smaxis',  smaxis,  runits,   gt=0.0)
     # Define model and arguments:
     targs  = [pressure, rstar, tstar, tint, smaxis, gplanet]
     return PT.TCEA(tparams, *targs)
@@ -801,9 +801,9 @@ def temperature(tmodel, pressure=None, rstar=None, tstar=None, tint=100.0,
   if tmodel == "TCEA":
     # Parse inputs:
     rstar   = pt.get_param('rstar',   rstar,   runits,   log, gt=0.0)
-    tstar   = pt.get_param('tstar',   tstar,   "kelvin", log, gt=0.0)
-    tint    = pt.get_param('tint',    tint,    "kelvin", log, gt=0.0)
-    gplanet = pt.get_param('gplanet', gplanet, "none",   log, gt=0.0)
+    tstar   = pt.get_param('tstar',   tstar,   'kelvin', log, gt=0.0)
+    tint    = pt.get_param('tint',    tint,    'kelvin', log, gt=0.0)
+    gplanet = pt.get_param('gplanet', gplanet, 'none',   log, gt=0.0)
     smaxis  = pt.get_param('smaxis',  smaxis,  runits,   log, gt=0.0)
     # Define model and arguments:
     Tmodel = temp_TCEA

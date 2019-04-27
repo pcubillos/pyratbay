@@ -4717,3 +4717,8 @@ models into constants module.
 
 *****
 
+Added greater-than condition for when parsing physical parameters
+in atmosphere module's functions.
+
+*****
+
