@@ -4703,3 +4703,10 @@ bug to check units are valid for single-str value.
 Fixed typo in conftest configs (radunits -> runits).
 Enforced error in mplanet if value does not contain units.
 
+
+*****  Sat Apr 27 18:35:56 CEST 2019  *****
+
+Added tools.file_exists() function to check that a file exists.
+Documented and tested.
+Removed tools.addarg().
+

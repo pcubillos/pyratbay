@@ -5,7 +5,9 @@ __all__ = ['log_error',
            "parray", "get_param",
            "binsearch", "pprint", "divisors", "u", "unpack",
            "ifirst", "ilast",
-           "isfile", "addarg", "path", "wrap",
+           "isfile",
+           'file_exists',
+           "path", "wrap",
            "make_tea", "clock", "get_exomol_mol",
            "pf_exomol", "pf_kurucz",
            "cia_hitran", "cia_borysow",
@@ -425,31 +427,47 @@ def isfile(path):
   return int(os.path.isfile(path))
 
 
-def addarg(variable, parser, type, default, help='', action=None):
-  """
-  Wrapper of an argparse add_argument() method.
+def file_exists(pname, desc, value):
+    """
+    Check that a file or list of files (value) exist.  If not None
+    and file(s) do not exist, raise a ValueError.
 
-  Parameters
-  ----------
-  variable: String
-      The variable name.
-  parser:
-      An argparse parser.
-  type: Callable
-      Type of the variable.
-  default: Any
-      Default value of the variable.
-  help: String
-      Brief description of the argument.
-  action: String
-      Action for the argument.
-  """
-  if action is not None:
-      parser.add_argument("--{:s}".format(variable), dest=variable,
-                      action=action, default=default, help=help)
-  else:
-      parser.add_argument("--{:s}".format(variable), dest=variable,
-                      action="store", type=type, default=default, help=help)
+    Parameters
+    ----------
+    pname: String
+        Parameter name.
+    desc: String
+        Parameter description.
+    value: String or list of strings
+        File path(s) to check.
+
+    Examples
+    --------
+    >>> import pyratbay.tools as pt
+    >>> from pathlib import Path
+    >>> # None is OK:
+    >>> pt.file_exists('none', 'None input', None)
+    >>> # Create a file, check it exists:
+    >>> Path('./new_tmp_file.dat').touch()
+    >>> pt.file_exists('testfile', 'Test', 'new_tmp_file.dat')
+    >>> # Non-existing file throws error:
+    >>> pt.file_exists('testfile', 'Test', 'no_file.dat')
+    ValueError: Test file (testfile) does not exist: 'no_file.dat'
+    """
+    if value is None:
+        return
+
+    if isinstance(value, str):
+        values = [value]
+        is_list = False
+    else:
+        values = value
+        is_list = True
+
+    for value in values:
+        if not os.path.isfile(value):
+            raise ValueError("{} file ({}) does not exist: '{}'".
+                             format(desc, pname, value))
 
 
 def path(filename):

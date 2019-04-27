@@ -26,7 +26,7 @@ def mock_pf(epf, temp, pf):
 
 def test_binsearch_zero():
     with pytest.raises(ValueError,
-    match='Requested binsearch over a zero a zero-sized array.'):
+        match='Requested binsearch over a zero a zero-sized array.'):
         pt.binsearch('dummy.dat', 1.0, 0, nrec=0, upper=True)
 
 
@@ -94,12 +94,6 @@ def test_binsearch_duplicates_hi_edge(wn0, upper, result):
         assert pt.binsearch(tli, wn0, 0, len(wn), upper) == result
 
 
-def test_path():
-    assert pt.path('file.txt')   == "./file.txt"
-    assert pt.path('./file.txt') == "./file.txt"
-    assert pt.path('/home/user/file.txt') == "/home/user/file.txt"
-
-
 @pytest.mark.parametrize('data',
     [[False, True, True, False],
      [0,1,1,0],
@@ -116,6 +110,30 @@ def test_ifirst_type(data):
      np.array([False, True, True, False])])
 def test_ilast_type(data):
     assert pt.ilast(data) == 2
+
+
+def test_file_exists_none():
+    pt.file_exists('none', 'None input', None)
+    assert True
+
+
+def test_file_exists_file(tmp_path):
+    path = tmp_path / 'new_tmp_file.dat'
+    path.touch()
+    pt.file_exists('testfile', 'Test', str(path))
+    assert True
+
+
+def test_file_exists_raise(tmp_path):
+    with pytest.raises(ValueError,
+        match=r"Test file \(testfile\) does not exist: 'no_file.dat'"):
+        pt.file_exists('testfile', 'Test', 'no_file.dat')
+
+
+def test_path():
+    assert pt.path('file.txt')   == "./file.txt"
+    assert pt.path('./file.txt') == "./file.txt"
+    assert pt.path('/home/user/file.txt') == "/home/user/file.txt"
 
 
 def test_wrap():
@@ -330,7 +348,7 @@ def test_resample_outbounds():
     signal = np.array(np.abs(wn-1.5)<0.1, np.double)
     specwn = np.linspace(1.4, 2, 101)
     with pytest.raises(ValueError,
-    match="Resampling signal's wavenumber is not contained in specwn."):
+        match="Resampling signal's wavenumber is not contained in specwn."):
         resampled, wnidx = pt.resample(signal, wn, specwn)
 
 
