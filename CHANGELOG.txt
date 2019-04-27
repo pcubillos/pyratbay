@@ -4753,3 +4753,9 @@ instance itself.
 Tests are working, but wont be updated before some cleaning up in
 next commit.
 
+*****
+
+Updated test_spectrum.py
+Added make_config() function to conftest.py to make config files
+for tests.
+

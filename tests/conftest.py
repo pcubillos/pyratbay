@@ -1,4 +1,9 @@
+import sys
 import pytest
+if sys.version_info.major == 3:
+    import configparser
+else:
+    import ConfigParser as configparser
 
 
 def replace(cfg, param, value):
@@ -10,12 +15,18 @@ def replace(cfg, param, value):
     return '\n'.join(list_cfg)
 
 
-def make_config(tmp_path, cfg, replaces={}, removes=[]):
-    for var, val in replaces:
-        cfg = replace(cfg, var, val)
-    path = tmp_path / 'test.cfg'
-    path.write_text(cfg)
-    return path
+def make_config(path, cfile, reset={}, remove=[]):
+    config = configparser.ConfigParser()
+    config.optionxform = str
+    config.read([cfile])
+    for var in remove:
+        config.remove_option('pyrat', var)
+    for var, val in reset.items():
+        config.set('pyrat', var, val)
+    cfg_file = str(path / 'test.cfg')
+    with open(cfg_file, 'w') as cfg:
+        config.write(cfg)
+    return cfg_file
 
 
 @pytest.fixture

@@ -7,6 +7,8 @@ import pytest
 
 import numpy as np
 
+from conftest import make_config
+
 ROOT = os.path.realpath(os.path.dirname(__file__) + '/..') + '/'
 sys.path.append(ROOT)
 import pyratbay as pb
@@ -27,49 +29,66 @@ expected = {key:np.load("expected_spectrum_transmission_{:s}_test.npz".
 
 
 # TBD: Check output files
-def test_transmission_clear():
+def test_transmission_clear(tmp_path):
     # No opacity whatsoever:
-    clear = pb.run(ROOT+'tests/spectrum_transmission_clear_test.cfg')
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        remove=['tlifile', 'csfile', 'rayleigh', 'alkali', 'hazes'])
+    clear = pb.run(cfg)
     depth_bottom = (clear.atm.radius[-1] / clear.phy.rstar)**2
     np.testing.assert_allclose(clear.spec.spectrum, depth_bottom, rtol=1e-7)
 
 
-def test_transmission_lecavelier():
-    ray = pb.run(ROOT+'tests/spectrum_transmission_lecavelier_test.cfg')
+def test_transmission_lecavelier(tmp_path):
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        remove=['tlifile', 'csfile', 'alkali', 'hazes'])
+    ray = pb.run(cfg)
     np.testing.assert_allclose(ray.spec.spectrum, expected['lec'], rtol=1e-7)
 
 
-def test_transmission_CIA():
-    cia = pb.run(ROOT+'tests/spectrum_transmission_CIA_test.cfg')
+def test_transmission_CIA(tmp_path):
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        remove=['tlifile', 'rayleigh', 'alkali', 'hazes'])
+    cia = pb.run(cfg)
     np.testing.assert_allclose(cia.spec.spectrum, expected['cia'], rtol=1e-7)
 
 
-def test_transmission_alkali():
-    alkali = pb.run(ROOT+'tests/spectrum_transmission_alkali_test.cfg')
+def test_transmission_alkali(tmp_path):
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        remove=['tlifile', 'csfile', 'rayleigh', 'hazes'],
+        reset={'wllow':'0.45 um', 'wlhigh':'1.0 um'})
+    alkali = pb.run(cfg)
     np.testing.assert_allclose(alkali.spec.spectrum, expected['alkali'],
         rtol=1e-7)
 
 
-def test_transmission_deck():
-    deck = pb.run(ROOT+'tests/spectrum_transmission_deck_test.cfg')
+def test_transmission_deck(tmp_path):
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        remove=['tlifile', 'csfile', 'rayleigh', 'alkali'])
+    deck = pb.run(cfg)
     np.testing.assert_allclose(deck.spec.spectrum, expected['deck'], rtol=1e-7)
 
 
-def test_transmission_tli():
-    tli = pb.run(ROOT+'tests/spectrum_transmission_tli_test.cfg')
+def test_transmission_tli(tmp_path):
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        remove=['csfile', 'rayleigh', 'hazes', 'alkali'])
+    tli = pb.run(cfg)
     np.testing.assert_allclose(tli.spec.spectrum, expected['tli'], rtol=1e-7)
 
 
-def test_transmission():
-    # Transmission including all types of opacity:
-    pyrat = pb.run(ROOT+'tests/spectrum_transmission_test.cfg')
+def test_transmission_all(tmp_path):
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        remove=['hazes'])
+    pyrat = pb.run(cfg)
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['all'], rtol=1e-7)
 
 
-def test_transmission_etable():
+def test_transmission_etable(tmp_path):
     # LBL from extinction table:
-    epyrat = pb.run(ROOT+'tests/spectrum_transmission_etable_test.cfg')
-    np.testing.assert_allclose(epyrat.spec.spectrum, expected['etable'],
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        remove=['tlifile', 'hazes'],
+        reset={'extfile':'exttable_test_300-3000K_1.1-1.7um.dat'})
+    pyrat = pb.run(cfg)
+    np.testing.assert_allclose(pyrat.spec.spectrum, expected['etable'],
                                rtol=1e-7)
 
 
@@ -101,53 +120,75 @@ def plot_transmission():
 
 
 # Now try some forward models that modify the atmospheric profile:
-def test_transmission_tmodel_none():
+def test_transmission_tmodel_none(tmp_path):
     # include tmodel, but tpars is None
-    tpyrat = pb.run(ROOT+'tests/spectrum_transmission_tmodel_none_test.cfg')
-    tmodel0 = tpyrat.spec.spectrum
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        remove=['hazes', 'hpars'],
+        reset={'tmodel':'TCEA'})
+    pyrat = pb.run(cfg)
+    tmodel0 = pyrat.spec.spectrum
     np.testing.assert_allclose(tmodel0, expected['all'], rtol=1e-7)
     # Now, re-run with user-input tpars:
-    tpyrat.atm.tpars = np.array([-1.5, -0.8, -0.8,  0.5,  1.0])
-    tpyrat.run()
-    tmodel1 = tpyrat.spec.spectrum
+    pyrat.atm.tpars = np.array([-1.5, -0.8, -0.8,  0.5,  1.0])
+    pyrat.run()
+    tmodel1 = pyrat.spec.spectrum
     np.testing.assert_allclose(tmodel1, expected['tmodel'], rtol=1e-7)
     # np.testing.assert_allclose(tpyrat.atm.temp, tmodel, rtol=1e-7)
 
 
-def test_transmission_tmodel():
+def test_transmission_tmodel(tmp_path):
     # Include tmodel and tpars  in input config file:
-    tpyrat = pb.run(ROOT+'tests/spectrum_transmission_tmodel_test.cfg')
-    tmodel2 = tpyrat.spec.spectrum
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        remove=['hazes', 'hpars'],
+        reset={'tmodel':'TCEA', 'tpars':'-1.5 -0.8 -0.8 0.5 1.0'})
+    pyrat = pb.run(cfg)
+    tmodel2 = pyrat.spec.spectrum
     np.testing.assert_allclose(tmodel2, expected['tmodel'], rtol=1e-7)
 
 
-def test_transmission_vert_none_model():
-    vpyrat = pb.run(ROOT+'tests/spectrum_transmission_vert_none_test.cfg')
-    vmodel0 = vpyrat.spec.spectrum
+def test_transmission_vert_none_model(tmp_path):
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        remove=['hazes', 'hpars'],
+        reset={'molmodel':'vert', 'molfree':'H2O', 'bulk':'H2 He'})
+    pyrat = pb.run(cfg)
+    vmodel0 = pyrat.spec.spectrum
     np.testing.assert_allclose(vmodel0, expected['all'], rtol=1e-7)
-    vpyrat.atm.molpars = [-5]
-    vpyrat.run()
-    vmodel1 = vpyrat.spec.spectrum
+    pyrat.atm.molpars = [-5]
+    pyrat.run()
+    vmodel1 = pyrat.spec.spectrum
     np.testing.assert_allclose(vmodel1, expected['vert'], rtol=1e-7)
-    np.testing.assert_equal(vpyrat.atm.q[:,3], 1e-5)
+    np.testing.assert_equal(pyrat.atm.q[:,3], 1e-5)
 
 
-def test_transmission_vert_model():
-    vpyrat = pb.run(ROOT+'tests/spectrum_transmission_vert_test.cfg')
-    vmodel2 = vpyrat.spec.spectrum
+def test_transmission_vert_model(tmp_path):
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        remove=['hazes', 'hpars'],
+        reset={'molmodel':'vert', 'molfree':'H2O', 'molpars':'-5',
+               'bulk':'H2 He'})
+    pyrat = pb.run(cfg)
+    vmodel2 = pyrat.spec.spectrum
     np.testing.assert_allclose(vmodel2, expected['vert'], rtol=1e-7)
 
 
-def test_transmission_scale_model():
-    spyrat = pb.run(ROOT+'tests/spectrum_transmission_scale_test.cfg')
-    smodel1 = spyrat.spec.spectrum
+def test_transmission_scale_model(tmp_path):
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        remove=['hazes', 'hpars'],
+        reset={'molmodel':'scale', 'molfree':'H2O', 'molpars':'-1',
+               'bulk':'H2 He'})
+    pyrat = pb.run(cfg)
+    smodel1 = pyrat.spec.spectrum
     np.testing.assert_allclose(smodel1, expected['scale'], rtol=1e-7)
-    np.testing.assert_equal(spyrat.atm.q[:,3], 0.1*spyrat.atm.qbase[:,3])
+    np.testing.assert_equal(pyrat.atm.q[:,3], 0.1*pyrat.atm.qbase[:,3])
 
 
-def test_fit():
+def test_fit(tmp_path):
     # Without evaulating params:
-    pyrat = pb.run(ROOT+'tests/spectrum_transmission_fit_test.cfg')
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        reset={'tmodel':'TCEA', 'hpars':'2.0',
+               'molmodel':'vert', 'molfree':'H2O', 'bulk':'H2 He',
+               'retflag':'pt mol ray haze',
+               'params':'-1.5 -0.8 -0.8 0.5 1.0 -4.0 0.0 -4.0 2.0'})
+    pyrat = pb.run(cfg)
     model0 = np.copy(pyrat.spec.spectrum)
     np.testing.assert_allclose(model0, expected['all'])
     # Eval default params:
