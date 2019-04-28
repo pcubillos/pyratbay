@@ -5,7 +5,7 @@ import pytest
 
 import numpy as np
 
-from conftest import replace
+from conftest import make_config
 
 ROOT = os.path.realpath(os.path.dirname(__file__) + '/..') + '/'
 sys.path.append(ROOT)
@@ -15,29 +15,7 @@ import pyratbay.atmosphere as pa
 
 os.chdir(ROOT+'tests')
 
-expected_pressure = np.array(
-      [1.00000000e+00, 1.25892541e+00, 1.58489319e+00, 1.99526231e+00,
-       2.51188643e+00, 3.16227766e+00, 3.98107171e+00, 5.01187234e+00,
-       6.30957344e+00, 7.94328235e+00, 1.00000000e+01, 1.25892541e+01,
-       1.58489319e+01, 1.99526231e+01, 2.51188643e+01, 3.16227766e+01,
-       3.98107171e+01, 5.01187234e+01, 6.30957344e+01, 7.94328235e+01,
-       1.00000000e+02, 1.25892541e+02, 1.58489319e+02, 1.99526231e+02,
-       2.51188643e+02, 3.16227766e+02, 3.98107171e+02, 5.01187234e+02,
-       6.30957344e+02, 7.94328235e+02, 1.00000000e+03, 1.25892541e+03,
-       1.58489319e+03, 1.99526231e+03, 2.51188643e+03, 3.16227766e+03,
-       3.98107171e+03, 5.01187234e+03, 6.30957344e+03, 7.94328235e+03,
-       1.00000000e+04, 1.25892541e+04, 1.58489319e+04, 1.99526231e+04,
-       2.51188643e+04, 3.16227766e+04, 3.98107171e+04, 5.01187234e+04,
-       6.30957344e+04, 7.94328235e+04, 1.00000000e+05, 1.25892541e+05,
-       1.58489319e+05, 1.99526231e+05, 2.51188643e+05, 3.16227766e+05,
-       3.98107171e+05, 5.01187234e+05, 6.30957344e+05, 7.94328235e+05,
-       1.00000000e+06, 1.25892541e+06, 1.58489319e+06, 1.99526231e+06,
-       2.51188643e+06, 3.16227766e+06, 3.98107171e+06, 5.01187234e+06,
-       6.30957344e+06, 7.94328235e+06, 1.00000000e+07, 1.25892541e+07,
-       1.58489319e+07, 1.99526231e+07, 2.51188643e+07, 3.16227766e+07,
-       3.98107171e+07, 5.01187234e+07, 6.30957344e+07, 7.94328235e+07,
-       1.00000000e+08])
-
+expected_pressure    = np.logspace(0, 8, 81)
 expected_temperature = np.array(
       [1047.04535531, 1047.04636729, 1047.04764749, 1047.04926694,
        1047.05131548, 1047.05390677, 1047.05718449, 1047.06133039,
@@ -85,31 +63,28 @@ def test_tli_tio_schwenke():
     # TBD: asserts on output file
 
 
-def test_pt_isothermal(tmp_path, configs):
-    path = tmp_path / 'test.cfg'
-    path.write_text(configs['pt_iso'])
+def test_pt_isothermal(tmp_path):
+    cfg = make_config(tmp_path, ROOT+'tests/pt_isothermal.cfg')
 
-    pressure, temperature = pb.run(str(path))
+    pressure, temperature = pb.run(cfg)
     np.testing.assert_allclose(pressure, expected_pressure, rtol=1e-7)
     np.testing.assert_equal(temperature, np.tile(1500.0, 81))
 
 
-def test_pt_TCEA(tmp_path, configs):
-    path = tmp_path / 'test.cfg'
-    path.write_text(configs['pt_tcea'])
+def test_pt_TCEA(tmp_path):
+    cfg = make_config(tmp_path, ROOT+'tests/pt_tcea.cfg')
 
-    pressure, temperature = pb.run(str(path))
+    pressure, temperature = pb.run(cfg)
     np.testing.assert_allclose(pressure, expected_pressure, rtol=1e-7)
     np.testing.assert_allclose(temperature, expected_temperature, atol=1e-10)
 
 
-def test_atmosphere_uniform(tmp_path, configs):
+def test_atmosphere_uniform(tmp_path):
     atmfile = str(tmp_path / 'test.atm')
-    cfg = replace(configs['atm_uniform'], 'atmfile', atmfile)
-    path = tmp_path / 'test.cfg'
-    path.write_text(cfg)
+    cfg = make_config(tmp_path, ROOT+'tests/atmosphere_uniform_test.cfg',
+        reset={'atmfile':atmfile})
 
-    atm = pb.run(str(path))
+    atm = pb.run(cfg)
     np.testing.assert_allclose(atm[0], expected_pressure,    rtol=1e-7)
     np.testing.assert_allclose(atm[1], expected_temperature, atol=1e-10)
     q = np.tile([0.85, 0.149, 3.0e-6, 4.0e-4, 1.0e-4, 5.0e-4, 1.0e-7], (81,1))
@@ -125,13 +100,12 @@ def test_atmosphere_uniform(tmp_path, configs):
 
 
 @pytest.mark.skip(reason="Skip until implementing the fast TEA")
-def test_atmosphere_tea(tmp_path, configs):
+def test_atmosphere_tea(tmp_path):
     atmfile = str(tmp_path / 'test.atm')
-    cfg = replace(configs['atm_tea'], 'atmfile', atmfile)
-    path = tmp_path / 'test.cfg'
-    path.write_text(cfg)
+    cfg = make_config(tmp_path, ROOT+'tests/atmosphere_tea_test.cfg',
+        reset={'atmfile':atmfile})
 
-    atm = pb.run(str(path))
+    atm = pb.run(cfg)
     np.testing.assert_allclose(atm[0], expected_pressure,    rtol=1e-7)
     np.testing.assert_allclose(atm[1], expected_temperature, atol=1e-10)
     np.testing.assert_allclose(atm[2], expected_abundances,  rtol=1e-7)
@@ -149,8 +123,10 @@ def test_atmosphere_tea(tmp_path, configs):
 # See tests/test_spectrum.py for spectrum tests
 
 
-def test_spectrum_emission():
-    pyrat = pb.run(ROOT+'tests/spectrum_emission_test.cfg')
+def test_spectrum_emission(tmp_path):
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        reset={'path':'eclipse', 'hpars':'-0.5'})
+    pyrat = pb.run(cfg)
     assert pyrat is not None
     # TBD: implement asserts
 
