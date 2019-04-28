@@ -25,7 +25,7 @@ def test_hitran(capfd):
         "Process HITRAN H2O database between records 0 and 887.",
         "[672 148  62   6]",
         "Writing 888 transition lines.",
-        "Generated TLI file: './HITRAN_H2O_1.00-1.01um_test.tli'.",
+        "/HITRAN_H2O_1.00-1.01um_test.tli'.",
         ]
     for cap in caps:
         assert cap in captured.out
@@ -53,7 +53,7 @@ def test_two_files_two_databases(capfd):
         "Process HITRAN CO2 database between records 0 and 138,257.",
         "[12296  5132  3973  2568   147 99541  9119 22521   220  6854     2]",
         "Writing 162,373 transition lines.",
-        "Generated TLI file: 'HITRAN_H2O_CO2_2.0-3.0um_test.tli'.",
+        "/HITRAN_H2O_CO2_2.0-3.0um_test.tli'.",
         ]
     for cap in caps:
         assert cap in captured.out
@@ -79,7 +79,7 @@ def test_two_files_one_database(capfd):
         "Process HITRAN CO2 database between records 0 and 138,257.",
         "[267537  36165  39420   1090   7500    314]",
         "Writing 352,026 transition lines.",
-        "Generated TLI file: 'HITRAN_CO2_2.0-3.0um_test.tli'.",
+        "/HITRAN_CO2_2.0-3.0um_test.tli'.",
         ]
     for cap in caps:
         assert cap in captured.out
@@ -102,7 +102,7 @@ def test_exomol(capfd):
         "Process Exomol NH3 database between records 0 and 499.",
         "[500 500]",
         "Writing 1,000 transition lines.",
-        "Generated TLI file: './ExoMol_NH3_2.0-2.00002um_test.tli'.",
+        "/ExoMol_NH3_2.0-2.00002um_test.tli'.",
         ]
     for cap in caps:
         assert cap in captured.out

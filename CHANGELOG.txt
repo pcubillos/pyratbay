@@ -4767,3 +4767,5 @@ Replaced configs fixture with calls to make_config().
 
 *****
 
+Updated tests/test_pyrat.py and tests/test_tli.py.
+
