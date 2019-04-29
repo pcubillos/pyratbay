@@ -35,7 +35,9 @@ def undefined():
                    'gplanet or mplanet and\nrplanet.',
         'rplanet': 'Undefined planetary surface gravity, set either '
                    'gplanet or mplanet and\nrplanet.',
-#        '':'',
+        'atmfile': 'Undefined atmospheric file (atmfile).',
+        'species': 'Undefined atmospheric species list (species).',
+        'elements': 'Undefined atmospheric atomic composition (elements).',
     }
     return data
 
@@ -89,11 +91,5 @@ def invalid_path():
         'logfile':  'Folder for Log file (logfile) does not exist',
     }
     return data
-
-
-
-
-
-
 
 

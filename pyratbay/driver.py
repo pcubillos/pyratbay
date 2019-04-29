@@ -254,9 +254,9 @@ def check_atm(pyrat):
   """
   atm = pyrat.atm
   if atm.atmfile is None:
-      log.error("Undefined atmospheric file (atmfile).")
+      pyrat.log.error("Undefined atmospheric file (atmfile).")
   if pyrat.inputs.species is None:
-      log.error("Undefined atmospheric species list (species).")
+      pyrat.log.error("Undefined atmospheric species list (species).")
   # Uniform-abundances profile:
   if pyrat.inputs.uniform is not None:
       if len(pyrat.inputs.uniform) != len(pyrat.inputs.species):
@@ -274,4 +274,4 @@ def check_atm(pyrat):
   pyrat.inputs.patm = pyrat.inputs.get_default('patm',
       'Pre-atmospheric file', './preatm.tea')
   pyrat.inputs.xsolar = pyrat.inputs.get_default('xsolar',
-      'Solar-metallicity scaling factor', 1.0, gt=0.0)
+      'Solar-metallicity scaling factor', 1.0, gt=0.0, wflag=True)

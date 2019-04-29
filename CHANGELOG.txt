@@ -4803,3 +4803,9 @@ Bumped Pyrat Bay to version 0.1.1.
 
 Added boundary tests (greater/lower than/equal) for all inputs.
 
+*****
+
+Added tests for atmosphere runs.
+Fixed bugs in driver.check_atm()
+Added default-warning for xsolar in TEA runs.
+

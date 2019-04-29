@@ -281,6 +281,7 @@ def test_pt_pressure_missing(tmp_path, capfd, undefined, param):
     assert undefined[param] in captured.out
 
 
+# This is valid for any get_param() input:
 @pytest.mark.parametrize('value', ['a', '10.0 20.0', '10.0 bar 30.0'])
 @pytest.mark.parametrize('param', ['ptop', 'pbottom'])
 def test_pressure_invalid_type(tmp_path, capfd, param, value):
@@ -309,7 +310,7 @@ def test_pt_temperature_missing(tmp_path, capfd, param, undefined):
 @pytest.mark.parametrize('cfile, error',
     [('pt_isothermal.cfg', 'isothermal temperature model (1).'),
      ('pt_tcea.cfg',       'TCEA temperature model (5).')])
-def test_pt_tpars(tmp_path, capfd, cfile, error):
+def test_pt_tpars_mismatch(tmp_path, capfd, cfile, error):
     cfg = make_config(tmp_path, ROOT+'tests/{:s}'.format(cfile),
         reset={'tpars':'100.0 200.0'})
     pyrat = pb.run(cfg)
@@ -331,5 +332,43 @@ def test_tcea_missing(tmp_path, capfd, param, undefined):
     captured = capfd.readouterr()
     assert "Error in module: 'driver.py', function: 'check_temp'" \
            in captured.out
+    assert undefined[param] in captured.out
+
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+# atmosphere runmode fails:
+
+@pytest.mark.parametrize('param',
+    ['atmfile', 'species'])
+def test_uniform_missing(tmp_path, capfd, param, undefined):
+    cfg = make_config(tmp_path, ROOT+'tests/atmosphere_uniform_test.cfg',
+        remove=[param])
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Error in module: 'driver.py', function: 'check_atm'" \
+           in captured.out
+    assert undefined[param] in captured.out
+
+
+def test_uniform_uniform_mismatch(tmp_path, capfd):
+    cfg = make_config(tmp_path, ROOT+'tests/atmosphere_uniform_test.cfg',
+        reset={'uniform':'0.85 0.15'})
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Error in module: 'driver.py', function: 'check_atm'" in captured.out
+    assert "Number of uniform abundances (2) does not match the number " \
+           "of species (7)." in captured.out
+
+
+@pytest.mark.parametrize('param',
+    ['atmfile', 'species', 'elements'])
+def test_tea_missing(tmp_path, capfd, param, undefined):
+    cfg = make_config(tmp_path, ROOT+'tests/atmosphere_tea_test.cfg',
+        remove=[param])
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Error in module: 'driver.py', function: 'check_atm'" in captured.out
     assert undefined[param] in captured.out
 
