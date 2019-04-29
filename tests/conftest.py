@@ -37,5 +37,63 @@ def undefined():
                    'gplanet or mplanet and\nrplanet.',
 #        '':'',
     }
-
     return data
+
+
+@pytest.fixture
+def invalid():
+    data = {
+        'runmode': 'Invalid running mode (runmode): invalid. Select from',
+        'rayleigh':'Invalid Rayleigh model (rayleigh): invalid. Select from',
+        'hazes':   'Invalid aerosol model (hazes): invalid. Select from',
+        'alkali':  'Invalid alkali model (alkali): invalid. Select from',
+        'path':    'Invalid observing geometry (path): invalid. Select from',
+        'tmodel':  'Invalid temperature model (tmodel): invalid. Select from',
+        'retflag': 'Invalid retrieval flag (retflag): invalid. Select from'
+    }
+    return data
+
+@pytest.fixture
+def invalid_file():
+    data = {
+        'atmfile':  'Atmospheric file (atmfile) does not exist',
+        'tlifile':  'TLI file (tlifile) does not exist',
+        'outspec':  'Output spectrum file (outspec) does not exist',
+        'mcmcfile': 'MCMC file (mcmcfile) does not exist',
+        'extfile':  'Extinction-coefficient file (extfile) does not exist',
+        'ptfile':   'Pressure-temperature file (ptfile) does not exist',
+        'logfile':  'Log file (logfile) does not exist',
+        'starspec': 'Stellar spectrum file (starspec) does not exist',
+        'kurucz':   'Kurucz model file (kurucz) does not exist',
+        'marcs':    'MARCS model file (marcs) does not exist',
+        'phoenix':  'PHOENIX model file (phoenix) does not exist',
+        'filter':   'Filter pass-bands file (filter) does not exist',
+        'dblist':   'Opacity database file (dblist) does not exist',
+        'molfile':  'Molecular data file (molfile) does not exist',
+        'csfile':   'Cross-section file (csfile) does not exist',
+    }
+    return data
+
+
+@pytest.fixture
+def invalid_path():
+    data = {
+        'atmfile':  'Folder for Atmospheric file (atmfile) does not exist',
+        'tlifile':  'Folder for TLI file (tlifile) does not exist',
+        'outspec':  'Folder for Output spectrum file (outspec) does not exist',
+        'mcmcfile': 'Folder for MCMC file (mcmcfile) does not exist',
+        'extfile':  'Folder for Extinction-coefficient file (extfile) does '
+                    'not exist',
+        'ptfile':   'Folder for Pressure-temperature file (ptfile) does '
+                    'not exist',
+        'logfile':  'Folder for Log file (logfile) does not exist',
+    }
+    return data
+
+
+
+
+
+
+
+

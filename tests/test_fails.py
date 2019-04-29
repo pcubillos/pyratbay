@@ -76,7 +76,6 @@ def test_run_mcmc_mcmcfile(tmp_path, capfd):
 
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 # Check integer and float data types:
-# Same applies to any other integer/float input variables.
 @pytest.mark.parametrize('param, value',
     [('nlayers', '10.5'),
      ('nlayers', '10 20'),
@@ -92,6 +91,20 @@ def test_invalid_integer_type(tmp_path, capfd, param, value):
             "integer: '{:s}'".format(param, value)) in captured.out
 
 
+@pytest.mark.parametrize('param',
+    ['verb', 'wnosamp', 'nlayers', 'ncpu', 'nDop', 'nLor', 'quadrature',
+     'nsamples', 'nchains', 'burnin', 'thinning', 'resume'])
+def test_invalid_integer_all_params(tmp_path, capfd, param):
+    cfg = make_config(tmp_path, ROOT+'tests/pt_isothermal.cfg',
+        reset={param:'abc'})
+    pyrat = pb.run(cfg)
+    captured = capfd.readouterr()
+    assert pyrat is None
+    assert "Error in module: 'parser.py', function: 'parse'" in captured.out
+    assert ("Invalid data type for {:s}, could not convert string to "
+            "integer: 'abc'".format(param)) in captured.out
+
+
 @pytest.mark.parametrize('param, value',
     [('tstar', '100 200'),
      ('tstar', 'a')])
@@ -105,6 +118,61 @@ def test_invalid_float_type(tmp_path, capfd, param, value):
     assert ("Invalid data type for {:s}, could not convert string to "
             "float: '{:s}'".format(param, value)) in captured.out
 
+
+@pytest.mark.parametrize('param',
+    ['wnlow', 'wnhigh', 'wnstep', 'resolution', 'xsolar', 'tmin', 'tmax',
+     'tstep', 'ethresh', 'vextent', 'Dmin', 'Dmax', 'Lmin', 'Lmax', 'DLratio',
+     'fpatchy', 'maxdepth', 'qcap', 'tlow', 'thigh', 'grbreak', 'grnmin',
+     'gstar', 'tstar', 'gplanet', 'tint'])
+def test_invalid_float_all_params(tmp_path, capfd, param):
+    cfg = make_config(tmp_path, ROOT+'tests/pt_isothermal.cfg',
+        reset={param:'abc'})
+    pyrat = pb.run(cfg)
+    captured = capfd.readouterr()
+    assert pyrat is None
+    assert "Error in module: 'parser.py', function: 'parse'" in captured.out
+    assert ("Invalid data type for {:s}, could not convert string to "
+            "float: 'abc'".format(param)) in captured.out
+
+
+@pytest.mark.parametrize('param',
+    ['runmode', 'rayleigh', 'hazes', 'alkali', 'path', 'tmodel', 'retflag'])
+def test_invalid_choice(tmp_path, capfd, param, invalid):
+    cfg = make_config(tmp_path, ROOT+'tests/pt_isothermal.cfg',
+        reset={param:'invalid'})
+    pyrat = pb.run(cfg)
+    captured = capfd.readouterr()
+    assert pyrat is None
+    assert "Error in module: 'parser.py', function: 'parse'" in captured.out
+    assert invalid[param] in captured.out
+
+
+@pytest.mark.parametrize('param',
+    ['starspec', 'kurucz', 'marcs', 'phoenix', 'filter',
+     'dblist', 'molfile', 'csfile'])
+def test_file_not_found(tmp_path, capfd, param, invalid_file):
+    cfg = make_config(tmp_path, ROOT+'tests/pt_isothermal.cfg',
+        reset={param:'nope.dat'})
+    pyrat = pb.run(cfg)
+    captured = capfd.readouterr()
+    assert pyrat is None
+    assert "Error in module: 'parser.py', function: 'parse'" in captured.out
+    assert invalid_file[param] in captured.out
+
+
+@pytest.mark.parametrize('param',
+    ['atmfile', 'tlifile', 'extfile', 'mcmcfile', 'outspec', 'ptfile',
+     'logfile'])
+def test_invalid_file_path(tmp_path, capfd, param, invalid_path):
+    cfg = make_config(tmp_path, ROOT+'tests/pt_isothermal.cfg',
+        reset={param:'nope/file.dat'})
+    pyrat = pb.run(cfg)
+    captured = capfd.readouterr()
+    assert pyrat is None
+    assert "Error in module: 'parser.py', function: 'parse'" in captured.out
+    assert invalid_path[param] in captured.out
+    # params from 'test_file_not_found' do not raise folder error since
+    # they catch file not found first.
 
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 # pt runmode fails:

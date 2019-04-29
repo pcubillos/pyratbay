@@ -4788,3 +4788,9 @@ Added path checks for logfile, and file-exist checks for dblist,
 molfile, csfile, and filter.
 Parse retflag with get_choice() now.
 
+*****
+
+Added invalid, invalid_file, and invalid_path fixtures.
+Updated tests/test_fail.py with checks for all integer, float,
+and paths in parse().  Further runmode-specific check are pending.
+
