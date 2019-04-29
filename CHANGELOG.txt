@@ -4794,3 +4794,8 @@ Added invalid, invalid_file, and invalid_path fixtures.
 Updated tests/test_fail.py with checks for all integer, float,
 and paths in parse().  Further runmode-specific check are pending.
 
+*****
+
+Finished main parse development.
+Bumped Pyrat Bay to version 0.1.1.
+
