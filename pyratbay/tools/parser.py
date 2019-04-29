@@ -525,8 +525,8 @@ def parse(pyrat, cfile):
 
   spec.wnlow  = args.get_default('wnlow',
       'Wavenumber lower boundary',  gt=0.0)
-  spec.wnhigh = args.get_default('wnlow',
-      'Wavenumber higher boundary', gt=spec.wnlow)
+  spec.wnhigh = args.get_default('wnhigh',
+      'Wavenumber higher boundary', gt=0.0)
 
   spec.wnstep = args.get_default('wnstep',
       'Wavenumber sampling step', gt=0.0)
@@ -540,7 +540,7 @@ def parse(pyrat, cfile):
   atm.runits = args.get_default('runits', 'Distance units', 'km',
       wflag=(runmode!='tli'))
   atm.nlayers = args.get_default('nlayers',
-      'Number of atmospheric layers', gt=0)
+      'Number of atmospheric layers', gt=1)
 
   # Pressure boundaries:
   atm.pbottom = args.get_param('pbottom', atm.punits,
@@ -566,7 +566,7 @@ def parse(pyrat, cfile):
   phy.gplanet = args.get_default('gplanet',
       'Planetary surface gravity (cm s-2)', gt=0.0)
   phy.tint = args.get_default('tint',
-      'Planetary internal temperature', 100.0, gt=0)
+      'Planetary internal temperature', 100.0, gt=0.0)
 
   phy.smaxis = args.get_param('smaxis', atm.runits,
       'Orbital semi-major axis', gt=0.0)
@@ -595,12 +595,12 @@ def parse(pyrat, cfile):
   pyrat.voigt.Lmax = args.get_default('Lmax',
       'Maximum Lorentz HWHM (cm-1)', gt=0.0)
   pyrat.voigt.DLratio = args.get_default('DLratio',
-      'Doppler/Lorentz-width ratio threshold', 0.1, gt=0)
+      'Doppler/Lorentz-width ratio threshold', 0.1, gt=0.0)
 
   pyrat.ex.tmin = args.get_param('tmin', 'kelvin',
       'Minimum temperature of opacity grid', gt=0.0)
   pyrat.ex.tmax = args.get_param('tmax', 'kelvin',
-      'Maximum temperature of opacity grid', gt=pyrat.ex.tmin)
+      'Maximum temperature of opacity grid', gt=0.0)
   pyrat.ex.tstep = args.get_default('tstep',
       "Opacity grid's temperature sampling step in K", gt=0.0)
 
@@ -648,7 +648,7 @@ def parse(pyrat, cfile):
   pyrat.ret.priorup  = args.priorup
 
   pyrat.ret.qcap = args.get_default('qcap',
-      'Metals abundance cap', 1.0, gt=0, le=1.0)
+      'Metals abundance cap', 1.0, gt=0.0, le=1.0)
   pyrat.ret.params = args.params
   pyrat.ret.stepsize = args.stepsize
   pyrat.ret.tlow  = args.get_default('tlow',
@@ -661,7 +661,7 @@ def parse(pyrat, cfile):
   pyrat.ret.burnin   = args.get_default('burnin',
       'Number of burn-in samples per chain', gt=0)
   pyrat.ret.thinning = args.get_default('thinning',
-      'MCMC posterior thinning', 1)
+      'MCMC posterior thinning', 1, ge=1)
   pyrat.ret.nchains  = args.get_default('nchains',
       'Number of MCMC parallel chains', ge=1)
   pyrat.ret.grbreak  = args.get_default('grbreak',

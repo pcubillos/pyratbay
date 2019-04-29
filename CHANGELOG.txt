@@ -4799,3 +4799,7 @@ and paths in parse().  Further runmode-specific check are pending.
 Finished main parse development.
 Bumped Pyrat Bay to version 0.1.1.
 
+*****
+
+Added boundary tests (greater/lower than/equal) for all inputs.
+

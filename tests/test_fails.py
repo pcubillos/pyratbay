@@ -175,9 +175,102 @@ def test_invalid_file_path(tmp_path, capfd, param, invalid_path):
     # they catch file not found first.
 
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+# Parameter boundaries:
+
+@pytest.mark.parametrize('param, value',
+    [('wllow',   ' -1.0 um'),
+     ('wlhigh',  ' -1.0 um'),
+     ('wnhigh',  ' -1.0'),
+     ('wnlow',   ' -1.0'),
+     ('wnstep',  ' -1.0'),
+     ('resolution', ' -100.0'),
+     ('nlayers',  ' 1'),
+     ('ptop',    ' -1.0 bar'),
+     ('pbottom', ' -1.0 bar'),
+     ('refpressure', ' -1.0 bar'),
+     ('radhigh', ' -1.0 rjup'),
+     ('radstep', ' -100.0 km'),
+     ('pbottom', ' -1.0 bar'),
+     ('mplanet', ' -1.0 mjup'),
+     ('rplanet', ' -1.0 rjup'),
+     ('gplanet', ' -1000.0'),
+     ('tint',    ' -100.0'),
+     ('smaxis',  ' -0.01 au'),
+     ('rstar',   ' -1.0 rsun'),
+     ('mstar',   ' -1.0 msun'),
+     ('gstar',   ' -1000.0'),
+     ('tstar',   ' -5000.0'),
+     ('Dmin',    ' -1e-6'),
+     ('Dmax',    ' -1e-1'),
+     ('Lmin',    ' -1e-6'),
+     ('Lmax',    ' -1e-1'),
+     ('DLratio', ' -0.1'),
+     ('tmin',    ' -100'),
+     ('tmax',    ' -100'),
+     ('tstep',   ' -100'),
+     ('ethresh', ' -1e15'),
+     ('qcap',    ' -0.5'),
+     ('grnmin',  ' -0.5'),
+     ('nsamples', ' 0'),
+     ('burnin',   ' 0'),
+    ])
+def test_greater_than(tmp_path, capfd, param, value):
+    cfg = make_config(tmp_path, ROOT+'tests/pt_tcea.cfg',
+        reset={param:value})
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Error in module: 'parser.py', function: 'parse'" in captured.out
+    assert "({:s}) must be > ".format(param) in captured.out
+
+
+@pytest.mark.parametrize('param',
+    ['verb', 'wnosamp', 'nDop', 'nLor', 'thinning', 'nchains', 'ncpu',
+     'quadrature', 'grbreak', 'radlow', 'fpatchy', 'maxdepth', 'vextent'])
+def test_greater_equal(tmp_path, capfd, param):
+    cfg = make_config(tmp_path, ROOT+'tests/pt_isothermal.cfg',
+        reset={param:'-10'})
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Error in module: 'parser.py', function: 'parse'" in captured.out
+    assert "({:s}) must be >= ".format(param) in captured.out
+
+
+@pytest.mark.parametrize('param', ['verb'])
+def test_lower_than(tmp_path, capfd, param):
+    cfg = make_config(tmp_path, ROOT+'tests/pt_isothermal.cfg',
+        reset={param:'10'})
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Error in module: 'parser.py', function: 'parse'" in captured.out
+    assert "({:s}) must be < ".format(param) in captured.out
+
+
+@pytest.mark.parametrize('param', ['fpatchy', 'qcap'])
+def test_lower_equal(tmp_path, capfd, param):
+    cfg = make_config(tmp_path, ROOT+'tests/pt_isothermal.cfg',
+        reset={param:'1.1'})
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Error in module: 'parser.py', function: 'parse'" in captured.out
+    assert "({:s}) must be <= ".format(param) in captured.out
+
+
+def test_tcea_missing_mass_units(tmp_path, capfd):
+    cfg = make_config(tmp_path, ROOT+'tests/pt_tcea.cfg',
+        reset={'mplanet':'1.0'})
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Invalid units 'None' for parameter mplanet." in captured.out
+
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 # pt runmode fails:
 @pytest.mark.parametrize('param', ['nlayers', 'ptop', 'pbottom'])
-def test_pressure_missing(tmp_path, capfd, undefined, param):
+def test_pt_pressure_missing(tmp_path, capfd, undefined, param):
     cfg = make_config(tmp_path, ROOT+'tests/pt_isothermal.cfg',
         remove=[param])
     pyrat = pb.run(cfg)
@@ -199,40 +292,6 @@ def test_pressure_invalid_type(tmp_path, capfd, param, value):
     assert "Error in module: 'parser.py', function: 'parse'" in captured.out
     assert "Invalid value '{:s}' for parameter {:s}.". \
            format(value, param) in captured.out
-
-
-@pytest.mark.parametrize('param', ['ptop', 'pbottom'])
-def test_negative_pressures(tmp_path, capfd, param):
-    cfg = make_config(tmp_path, ROOT+'tests/pt_isothermal.cfg',
-        reset={param:'-10'})
-    pyrat = pb.run(cfg)
-    captured = capfd.readouterr()
-    assert pyrat is None
-    assert "Error in module: 'parser.py', function: 'parse'" in captured.out
-    assert "({:s}) must be > 0.0".format(param) in captured.out
-
-
-def test_negative_nlayers(tmp_path, capfd):
-    cfg = make_config(tmp_path, ROOT+'tests/pt_isothermal.cfg',
-        reset={'nlayers':'-10'})
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert "Error in module: 'parser.py', function: 'parse'" in captured.out
-    assert "Number of atmospheric layers (nlayers) must be > 0" in captured.out
-
-
-def test_pt_invalid_tmodel(tmp_path, capfd):
-    cfg = make_config(tmp_path, ROOT+'tests/pt_isothermal.cfg',
-        reset={'tmodel':'invalid'})
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    caps = ["Error in module: 'parser.py', function: 'parse'",
-            "Invalid temperature model (tmodel): invalid. Select from: ['isothermal',",
-            "'TCEA', 'MadhuInv', 'MadhuNoInv']."]
-    for cap in caps:
-        assert cap in captured.out
 
 
 @pytest.mark.parametrize('param', ['tmodel', 'tpars'])
@@ -273,28 +332,4 @@ def test_tcea_missing(tmp_path, capfd, param, undefined):
     assert "Error in module: 'driver.py', function: 'check_temp'" \
            in captured.out
     assert undefined[param] in captured.out
-
-
-@pytest.mark.parametrize('param, value',
-    [('rstar', '-1.0 rsun'),
-     ('tstar', '-1000'),
-     ('smaxis', '-0.01 au'),
-     ('mplanet', '-1.0 mjup'),
-     ('rplanet', '-1.0 rjup')])
-def test_tcea_negatives(tmp_path, capfd, param, value):
-    cfg = make_config(tmp_path, ROOT+'tests/pt_tcea.cfg',
-        reset={param:value})
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert "({:s}) must be > 0.0".format(param) in captured.out
-
-
-def test_tcea_missing_mass_units(tmp_path, capfd):
-    cfg = make_config(tmp_path, ROOT+'tests/pt_tcea.cfg',
-        reset={'mplanet':'1.0'})
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert "Invalid units 'None' for parameter mplanet." in captured.out
 
