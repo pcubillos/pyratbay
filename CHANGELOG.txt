@@ -4777,3 +4777,7 @@ replaced with make_config().
 Updated tests/test_fail.py.
 Minor tweaks in error print outs in Namespace.get_choice().
 
+*****
+
+Remove tools.parray(), no longer used.
+

@@ -2,7 +2,7 @@
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
 __all__ = ['log_error',
-           "parray", "get_param",
+           'get_param',
            "binsearch", "pprint", "divisors", "u", "unpack",
            "ifirst", "ilast",
            "isfile",
@@ -55,19 +55,6 @@ def log_error(log=None, error=None):
       if error is None:
           error = str(e)
       log.error(error, tracklev=-4)
-
-
-def parray(string):
-  """
-  Convert a string containing a list of white-space-separated (and/or
-  newline-separated) values into a numpy array.
-  """
-  if string == 'None':
-    return None
-  try:    # If they can be converted into doubles, do it:
-    return np.asarray(string.split(), np.double)
-  except: # Else, return a string array:
-    return string.split()
 
 
 def binsearch(tli, wnumber, rec0, nrec, upper=True):
