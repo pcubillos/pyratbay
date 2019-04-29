@@ -466,7 +466,7 @@ def parse(pyrat, cfile):
   args.configfile = cfile
 
   pyrat.verb = args.get_default('verb', 'Verbosity', 2, ge=0, lt=5)
-  runmode = pyrat.runmode = args.get_choice('runmode', 'Running mode',
+  runmode = pyrat.runmode = args.get_choice('runmode', 'running mode',
       pc.rmodes, take_none=False)
 
   # Define logfile name and initialize log object:
@@ -610,14 +610,14 @@ def parse(pyrat, cfile):
   pyrat.rayleigh.model_names = args.get_choice('rayleigh',
       'Rayleigh model', pc.rmodels)
   pyrat.haze.model_names = args.get_choice('hazes',
-      'Haze model', pc.cmodels)
+      'aerosol model', pc.cmodels)
   pyrat.alkali.model_names = args.get_choice('alkali',
-      'Alkali model', pc.amodels)
+      'alkali model', pc.amodels)
   pyrat.haze.fpatchy = args.get_default('fpatchy',
       'Patchy-cloud fraction', ge=0.0, le=1.0)
 
   pyrat.od.path = args.get_choice('path',
-      'Observing geometry', ['transit','eclipse'])
+      'observing geometry', ['transit','eclipse'])
   pyrat.ex.ethresh = args.get_default('ethresh',
       'Extinction-cofficient threshold', 1e-15, gt=0.0)
   pyrat.od.maxdepth = args.get_default('maxdepth',
@@ -673,7 +673,7 @@ def parse(pyrat, cfile):
   atm.molfree  = args.molfree
   atm.molpars  = args.molpars
   atm.bulk     = args.bulk
-  atm.tmodelname = args.get_choice('tmodel', 'Temperature model', pc.tmodels)
+  atm.tmodelname = args.get_choice('tmodel', 'temperature model', pc.tmodels)
   atm.tpars = args.tpars
   pyrat.ncpu = args.get_default('ncpu', 'Number of processors', 1, ge=1)
 

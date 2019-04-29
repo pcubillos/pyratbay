@@ -4769,3 +4769,11 @@ Replaced configs fixture with calls to make_config().
 
 Updated tests/test_pyrat.py and tests/test_tli.py.
 
+
+*****  Mo 29. Apr 09:08:52 CEST 2019  *****
+
+Removed replace() function and configs fixture in conftest.py,
+replaced with make_config().
+Updated tests/test_fail.py.
+Minor tweaks in error print outs in Namespace.get_choice().
+
