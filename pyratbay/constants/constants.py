@@ -143,3 +143,12 @@ cmodels = [
     'ccsgray',
 ]
 
+# Retrieval flags:
+retflags = [
+    'pt',
+    'rad',
+    'mol',
+    'ray',
+    'haze',
+    'patchy',
+]

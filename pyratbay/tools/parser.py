@@ -64,13 +64,13 @@ class Namespace(argparse.Namespace):
         for val in values:
             if exists and not os.path.isfile(val):
                 self._log.error("{} file ({}) does not exist: '{}'".
-                                format(desc, pname, val))
+                                format(desc, pname, val), tracklev=-3)
 
         values = [os.path.realpath(val) for val in values]
         for val in values:
             if not os.path.exists(os.path.dirname(val)):
-                self._log.error("Dir for {} file ({}) does not exist: '{}'".
-                                format(desc, pname, val))
+                self._log.error("Folder for {} file ({}) does not exist: '{}'".
+                                format(desc, pname, val), tracklev=-3)
 
         if not is_list:
             return values[0]
@@ -327,24 +327,22 @@ def parse(pyrat, cfile):
   log: Log object
       An MCcubed.utils.Log instance to log screen outputs to file.
   """
-  if cfile is None:
-      print("No configuration file specified.")
-      sys.exit(0)
-  elif not os.path.isfile(cfile):
-      print("Configuration file '{:s}' does not exist.".format(cfile))
-      sys.exit(0)
-
-  config = configparser.ConfigParser()
-  config.optionxform = str  # Enable case-sensitive variable names
-  config.read([cfile])
-  if "pyrat" not in config.sections():
-      print("\nInvalid configuration file: '{:s}', no [pyrat] section.".
-            format(cfile))
-      sys.exit(0)
+  with pt.log_error():
+      if not os.path.isfile(cfile):
+          raise ValueError("Configuration file '{:s}' does not exist.".
+                           format(cfile))
+      config = configparser.ConfigParser()
+      config.optionxform = str  # Enable case-sensitive variable names
+      config.read([cfile])
+      if "pyrat" not in config.sections():
+          raise ValueError("\nInvalid configuration file: '{:s}', no [pyrat] "
+                           "section.".format(cfile))
   args = dict(config.items("pyrat"))
 
   # Parse data type:
   with pt.log_error():
+      parse_str(args,   'runmode')
+      parse_int(args,   'ncpu')
       parse_int(args,   'verb')
       parse_array(args, 'dblist')
       parse_array(args, 'pflist')
@@ -388,7 +386,6 @@ def parse(pyrat, cfile):
       parse_float(args, 'tmax')
       parse_float(args, 'tstep')
       parse_float(args, 'ethresh')
-      parse_int(args,   'ncpu')
       # Voigt-profile options:
       parse_float(args, 'vextent')
       parse_float(args, 'Dmin')
@@ -410,7 +407,6 @@ def parse(pyrat, cfile):
       parse_float(args, 'maxdepth')
       parse_array(args, 'raygrid')
       parse_int(args,   'quadrature')
-      parse_str(args,   'runmode')
       # Data options:
       parse_array(args, 'data')
       parse_array(args, 'uncert')
@@ -487,6 +483,8 @@ def parse(pyrat, cfile):
           args.logfile = os.path.splitext(args.extfile)[0] + '.log'
       if args.runmode == 'mcmc' and args.mcmcfile is not None:
           args.logfile = os.path.splitext(args.mcmcfile)[0] + '.log'
+  else:
+      args.logfile = args.get_path('logfile', 'Log')
 
   args.logfile = pt.path(args.logfile)
   log = pyrat.log = mu.Log(logname=args.logfile, verb=args.verb, width=80,
@@ -513,8 +511,9 @@ def parse(pyrat, cfile):
   spec = pyrat.spec
   atm  = pyrat.atm
 
-  pyrat.mol.molfile = args.get_path('molfile', 'Molecular data')
-  pyrat.cs.files    = args.get_path('csfile',  'Cross-section')
+  pyrat.lt.dblist   = args.get_path('dblist',  'Opacity database', exists=True)
+  pyrat.mol.molfile = args.get_path('molfile', 'Molecular data',   exists=True)
+  pyrat.cs.files    = args.get_path('csfile',  'Cross-section',    exists=True)
   pyrat.atm.ptfile  = args.get_path('ptfile',  'Pressure-temperature')
 
   spec.wlunits = args.get_default('wlunits', 'Wavelength units', 'um',
@@ -636,9 +635,9 @@ def parse(pyrat, cfile):
 
   pyrat.obs.data   = args.data
   pyrat.obs.uncert = args.uncert
-  pyrat.obs.filter = args.filter
+  pyrat.obs.filter = args.get_path('filter', 'Filter pass-bands', exists=True)
 
-  pyrat.ret.retflag = args.retflag
+  pyrat.ret.retflag = args.get_choice('retflag', 'retrieval flag', pc.retflags)
 
   pyrat.ret.params   = args.params
   pyrat.ret.stepsize = args.stepsize

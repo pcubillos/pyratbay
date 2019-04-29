@@ -4781,3 +4781,10 @@ Minor tweaks in error print outs in Namespace.get_choice().
 
 Remove tools.parray(), no longer used.
 
+*****
+
+Added list of retrieval-model flags (retflags) into constants.
+Added path checks for logfile, and file-exist checks for dblist,
+molfile, csfile, and filter.
+Parse retflag with get_choice() now.
+
