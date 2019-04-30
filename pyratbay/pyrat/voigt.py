@@ -24,7 +24,7 @@ def voigt(pyrat):
 
   pyrat.log.msg("\nCalculate LBL Voigt profiles:")
   # Calculate Doppler and Lorentz-width boundaries:
-  widthlimits(pyrat)
+  width_limits(pyrat)
 
   # Make Voigt-width arrays:
   voigt = pyrat.voigt
@@ -34,11 +34,11 @@ def voigt(pyrat):
                               np.log10(voigt.Lmax), voigt.nLor)
 
   # Calculate profiles:
-  calcvoigt(pyrat)
+  calc_voigt(pyrat)
   pyrat.log.msg("Voigt grid pre-calculation done.")
 
 
-def widthlimits(pyrat):
+def width_limits(pyrat):
   """
   Calculate the boundaries for the Doppler and Lorentz widths.
   """
@@ -81,7 +81,7 @@ def widthlimits(pyrat):
                 format(voigt.Lmin, voigt.Lmax, voigt.nLor), verb=2, indent=2)
 
 
-def calcvoigt(pyrat):
+def calc_voigt(pyrat):
   """
   Wrapper to the Voigt-profile calculator.
 

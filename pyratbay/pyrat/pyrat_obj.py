@@ -102,7 +102,7 @@ class Pyrat(object):
       ms.make_atmprofiles(self)
       self.timestamps['atm sample'] = next(timer)
 
-      # Set up observational/retrieval parameters:
+      # Setup more observational/retrieval parameters:
       ar.setup(self)
 
       # Extinction Voigt grid:

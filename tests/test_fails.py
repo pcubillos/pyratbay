@@ -569,3 +569,112 @@ def test_spectrum_tcea_gplanet(tmp_path, capfd, param, undefined):
            in captured.out
     assert undefined['gplanet'] in captured.out
 
+
+def test_bulk_not_in_atm(tmp_path, capfd):
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        reset={'bulk':'N2'})
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Error in module: 'argum.py', function: 'setup'" in captured.out
+    assert "These bulk species are not present in the atmosphere: ['N2']." in captured.out
+
+
+def test_molfree_mismatch(tmp_path, capfd):
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        reset={'molmodel':'vert'})
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Error in module: 'argum.py', function: 'setup'" in captured.out
+    assert "molmodel is set, but there are no molfree." in captured.out
+
+
+def test_molfree_mismatch2(tmp_path, capfd):
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        reset={'molmodel':'vert vert', 'molfree':'H2O'})
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Error in module: 'argum.py', function: 'setup'" in captured.out
+    assert "There should be one molfree for each molmodel:" in captured.out
+    assert "molmodel: ['vert', 'vert']" in captured.out
+    assert "molfree: ['H2O']" in captured.out
+
+
+def test_molfree_mismatch3(tmp_path, capfd):
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        reset={'molmodel':'vert', 'molfree':'N2'})
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Error in module: 'argum.py', function: 'setup'" in captured.out
+    assert "These species are not present in the atmosphere: ['N2']." in captured.out
+
+
+def test_bulk_molfree_overlap(tmp_path, capfd):
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        reset={'molmodel':'vert', 'molfree':'H2', 'bulk':'H2'})
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Error in module: 'argum.py', function: 'setup'" in captured.out
+    assert "These species were marked as both bulk and variable-abundance: ['H2']." in captured.out
+
+
+@pytest.mark.parametrize('param', ['tstar', 'gstar'])
+def test_kurucz_missing_pars(tmp_path, capfd, param, undefined):
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        reset={'kurucz':'fp00k0odfnew.pck'},
+        remove=[param])
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Error in module: 'argum.py', function: 'setup'" in captured.out
+    assert undefined[param] in captured.out
+
+
+def test_spectrum_opacity_tmin(tmp_path, capfd):
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        reset={'extfile':str(tmp_path/'new_opacity.dat'),
+               'tmin':'10.0', 'tmax':'1000.0'})
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Error in module: 'extinction.py', function: 'calc_extinction'" \
+           in captured.out
+    assert ("Requested extinction-coefficient table temperature "
+            "(tmin=10.0 K) below the\nlowest available TLI temperature "
+            "(70.0 K).") in captured.out
+
+
+def test_spectrum_opacity_tmax(tmp_path, capfd):
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        reset={'extfile':str(tmp_path/'new_opacity.dat'),
+               'tmin':'1000.0', 'tmax':'5000.0'})
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Error in module: 'extinction.py', function: 'calc_extinction'" \
+           in captured.out
+    assert ("Requested extinction-coefficient table temperature "
+            "(tmax=5000.0 K) above the\nhighest available TLI temperature "
+            "(3000.0 K).") in captured.out
+
+
+@pytest.mark.skip
+def test_molecule_not_in_molfile():
+    pass
+
+@pytest.mark.skip
+def test_incompatible_tli():
+    pass
+
+@pytest.mark.skip
+def test_unbounded_ptop_pbottom():
+    pass
+
+@pytest.mark.skip
+def test_crosssec_mol_not_in_atm():
+    pass
+

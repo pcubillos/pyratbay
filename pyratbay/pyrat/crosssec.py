@@ -19,22 +19,21 @@ def read(pyrat):
   pyrat.log.msg("\nReading cross-section files.")
   # Number of CS files:
   if pyrat.cs.files is None:
-    pyrat.cs.nfiles = 0
+      pyrat.cs.nfiles = 0
   else:
-    pyrat.cs.nfiles = len(pyrat.cs.files)
-    # Allocate molecules array:
-    pyrat.cs.molecules = []
-    pyrat.cs.nmol      = np.zeros(pyrat.cs.nfiles, np.int)
-    # Allocate the number of temperature and wavenumber samples per file:
-    pyrat.cs.ntemp     = np.zeros(pyrat.cs.nfiles, np.int)
-    pyrat.cs.nwave     = np.zeros(pyrat.cs.nfiles, np.int)
+      pyrat.cs.nfiles = len(pyrat.cs.files)
+      # Allocate molecules array:
+      pyrat.cs.molecules = []
+      pyrat.cs.nmol      = np.zeros(pyrat.cs.nfiles, np.int)
+      # Allocate the number of temperature and wavenumber samples per file:
+      pyrat.cs.ntemp     = np.zeros(pyrat.cs.nfiles, np.int)
+      pyrat.cs.nwave     = np.zeros(pyrat.cs.nfiles, np.int)
 
   if pyrat.cs.nfiles == 0:
       pyrat.log.msg("No CS files to read.", indent=2)
       return
 
   for i in range(pyrat.cs.nfiles):
-      # TBD: Catch file-not-found error
       pyrat.log.msg("Read CS file: '{:s}'.".format(pyrat.cs.files[i]), indent=2)
       absorption, molecs, temp, wavenumber = io.read_cs(pyrat.cs.files[i])
 
@@ -43,8 +42,8 @@ def read(pyrat):
       # Check that CS species are in the atmospheric file:
       absent = np.setdiff1d(pyrat.cs.molecules[i], pyrat.mol.name)
       if len(absent) > 0:
-          pyrat.log.error("These species: {:s} are not listed in the "
-                          "atmospheric file.\n".format(str(absent)))
+          pyrat.log.error('These cross-section species {} are not listed in '
+                          'the atmospheric file.\n'.format(str(absent)))
 
       pyrat.cs.temp.append(temp)
       pyrat.cs.ntemp[i] = len(pyrat.cs.temp[i])

@@ -9,15 +9,15 @@ from .. import tools      as pt
 
 
 def init(pyrat):
-  if pyrat.alkali.nmodels > 0:
-    pyrat.log.msg("\nSetup Alkali opacity models.")
-    # Species index in atmosphere:
-    pyrat.alkali.imol = -np.ones(pyrat.alkali.nmodels, int)
-    for i in np.arange(pyrat.alkali.nmodels):
-      imol = np.where(pyrat.mol.name == pyrat.alkali.model[i].mol)[0]
-      if np.size(imol) != 0:
-        pyrat.alkali.imol[i] = imol[0]
-    pyrat.log.msg("Alkali done.")
+    if pyrat.alkali.nmodels > 0:
+        pyrat.log.msg("\nSetup Alkali opacity models.")
+        # Species index in atmosphere:
+        pyrat.alkali.imol = -np.ones(pyrat.alkali.nmodels, int)
+        for i in np.arange(pyrat.alkali.nmodels):
+            imol = np.where(pyrat.mol.name == pyrat.alkali.model[i].mol)[0]
+            if np.size(imol) != 0:
+                pyrat.alkali.imol[i] = imol[0]
+        pyrat.log.msg("Alkali done.")
 
 
 def absorption(pyrat):

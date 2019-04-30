@@ -222,7 +222,7 @@ def setup(pyrat):
   if (atm.bulk is not None and atm.molfree is not None
       and len(np.intersect1d(atm.bulk, atm.molfree)) > 0):
       log.error("These species were marked as both bulk and variable-"
-          "abundance: {:s}.".format(np.intersect1d(atm.bulk, atm.molfree)))
+          "abundance: {}.".format(np.intersect1d(atm.bulk, atm.molfree)))
 
   if pyrat.runmode == "mcmc":
       if ret.retflag is None:
@@ -233,7 +233,7 @@ def setup(pyrat):
                     "options are: {}.".format(ret.retflag, ret.rmodels))
       if atm.bulk is None and "mol" in ret.retflag:
           log.error("Undefined bulk species list (bulk).")
-      if atm.molmodel is None and "mol" in ret.retflag:
+      if atm.molmodel is None and 'mol' in ret.retflag:
           log.error("Species abundances included for retrieval (retflag "
               "contains 'mol') but there are no abundance model (molmodel).")
 
@@ -259,11 +259,11 @@ def setup(pyrat):
   # Kurucz stellar model:
   elif phy.kurucz is not None:
       if phy.tstar is None:
-          log.error("Undefined stellar temperature (tstar), required for "
-                    "Kurucz model.")
+          log.error('Undefined stellar temperature (tstar), required for '
+                    'Kurucz model.')
       if phy.gstar is None:
-          log.error("Undefined stellar gravity (gstar), required for "
-                    "Kurucz model.")
+          log.error('Undefined stellar gravity (gstar), required for '
+                    'Kurucz model.')
       starflux, starwn, kuruczt, kuruczg = ps.read_kurucz(phy.kurucz,
           phy.tstar, np.log10(phy.gstar))
       log.msg("Input stellar params: T={:7.1f} K, log(g)={:4.2f}\n"

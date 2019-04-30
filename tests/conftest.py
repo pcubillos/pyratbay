@@ -30,6 +30,7 @@ def undefined():
         'tpars':   'Undefined temperature-model parameters (tpars)',
         'rstar':   'Undefined stellar radius (rstar)',
         'tstar':   'Undefined stellar temperature (tstar)',
+        'gstar':   'Undefined stellar gravity (gstar)',
         'smaxis':  'Undefined orbital semi-major axis (smaxis)',
         'mplanet': 'Undefined planetary surface gravity, set either '
                    'gplanet or mplanet and\nrplanet.',

@@ -15,7 +15,7 @@ from .. import constants as pc
 from .. import io        as io
 from .  import argum     as ar
 
-sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../lib')
+sys.path.append(pc.ROOT + "pyratbay/lib/")
 import extcoeff as ec
 
 
@@ -25,28 +25,27 @@ def exttable(pyrat):
   """
   # ID list of species with isotopes:
   if np.size(np.where(pyrat.iso.imol>=0)[0]) == 0:
-    pyrat.ex.nmol = 0
+      pyrat.ex.nmol = 0
   else:
-    imols = pyrat.iso.imol[np.where(pyrat.iso.imol>=0)]
-    pyrat.ex.molID = pyrat.mol.ID[np.unique(imols)]
-    pyrat.ex.nmol  = len(pyrat.ex.molID)
+      imols = pyrat.iso.imol[np.where(pyrat.iso.imol>=0)]
+      pyrat.ex.molID = pyrat.mol.ID[np.unique(imols)]
+      pyrat.ex.nmol  = len(pyrat.ex.molID)
 
   # If the extinction file was not defined, skip this step:
   if pyrat.ex.extfile is None:
-    pyrat.log.msg("\nNo extinction-coefficient table requested.")
-    return
+      pyrat.log.msg("\nNo extinction-coefficient table requested.")
+      return
 
   # If the extinction file exists, read it:
   if os.path.isfile(pyrat.ex.extfile):
-    pyrat.log.msg("\nReading extinction-coefficient table file:"
-                  "\n  '{:s}'.".format(pyrat.ex.extfile))
-    read_extinction(pyrat)
-
+      pyrat.log.msg("\nReading extinction-coefficient table file:"
+                    "\n  '{:s}'.".format(pyrat.ex.extfile))
+      read_extinction(pyrat)
   # If the extinction file doesn't exist, calculate it:
   else:
-    pyrat.log.msg("\nGenerating new extinction-coefficient table file:"
-                  "\n  '{:s}'.".format(pyrat.ex.extfile), verb=2)
-    calc_extinction(pyrat)
+      pyrat.log.msg("\nGenerating new extinction-coefficient table file:"
+                    "\n  '{:s}'.".format(pyrat.ex.extfile), verb=2)
+      calc_extinction(pyrat)
 
 
 def read_extinction(pyrat):
@@ -114,19 +113,15 @@ def calc_extinction(pyrat):
   # Extinction-coefficient object:
   ex = pyrat.ex
 
-  # Make temperature sample:
-  if (ex.tmin is None) or (ex.tmax is None):
-    pyrat.log.error("Both, tmin ({}) and tmax ({}), must be defined to produce "
-             "the extinction-coefficient table.".format(ex.tmin, ex.tmax))
   # Temperature boundaries check:
-  if (ex.tmin < pyrat.lt.tmin):
-    pyrat.log.error("The extinction-coefficient table attempted to sample a "
-             "temperature ({:.1f} K) below the lowest allowed TLI temperature "
-             "({:.1f} K).".format(ex.tmin, pyrat.lt.tmin))
-  if (ex.tmax > pyrat.lt.tmax):
-    pyrat.log.error("The extinction-coefficient table attempted to sample a "
-             "temperature ({:.1f} K) above the highest allowed TLI temperature "
-             "({:.1f} K).".format(ex.tmax, pyrat.lt.tmax))
+  if ex.tmin < pyrat.lt.tmin:
+      pyrat.log.error('Requested extinction-coefficient table temperature '
+          '(tmin={:.1f} K) below the lowest available TLI temperature '
+          '({:.1f} K).'.format(ex.tmin, pyrat.lt.tmin))
+  if ex.tmax > pyrat.lt.tmax:
+      pyrat.log.error('Requested extinction-coefficient table temperature '
+          '(tmax={:.1f} K) above the highest available TLI temperature '
+          '({:.1f} K).'.format(ex.tmax, pyrat.lt.tmax))
 
   # Create the temperature array:
   ex.ntemp = int((ex.tmax-ex.tmin)/ex.tstep) + 1
@@ -139,10 +134,10 @@ def calc_extinction(pyrat):
   pyrat.log.msg("Interpolate partition function.", verb=2, indent=2)
   ex.z = np.zeros((pyrat.iso.niso, ex.ntemp), np.double)
   for i in np.arange(pyrat.lt.ndb):           # For each Database
-    for j in np.arange(pyrat.lt.db[i].niso):  # For each isotope in DB
-      zinterp = sip.interp1d(pyrat.lt.db[i].temp, pyrat.lt.db[i].z[j],
-                             kind='slinear')
-      ex.z[pyrat.lt.db[i].iiso+j] = zinterp(ex.temp)
+      for j in np.arange(pyrat.lt.db[i].niso):  # For each isotope in DB
+          zinterp = sip.interp1d(pyrat.lt.db[i].temp, pyrat.lt.db[i].z[j],
+                                 kind='slinear')
+          ex.z[pyrat.lt.db[i].iiso+j] = zinterp(ex.temp)
 
   # Allocate wavenumber, pressure, and isotope arrays:
   ex.wn    = pyrat.spec.wn
@@ -162,12 +157,12 @@ def calc_extinction(pyrat):
   processes = []
   indices = np.arange(ex.ntemp*ex.nlayers) % pyrat.ncpu  # CPU indices
   for i in np.arange(pyrat.ncpu):
-    proc = mpr.Process(target=extinction,           # grid  add
-                args=(pyrat, np.where(indices==i)[0], True, False))
-    processes.append(proc)
-    proc.start()
+      proc = mpr.Process(target=extinction,           # grid  add
+                  args=(pyrat, np.where(indices==i)[0], True, False))
+      processes.append(proc)
+      proc.start()
   for i in np.arange(pyrat.ncpu):
-    processes[i].join()
+      processes[i].join()
 
   # Store values in file:
   io.write_opacity(ex.extfile, ex.molID, ex.temp, ex.press, ex.wn,
