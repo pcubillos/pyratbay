@@ -372,3 +372,201 @@ def test_tea_missing(tmp_path, capfd, param, undefined):
     assert "Error in module: 'driver.py', function: 'check_atm'" in captured.out
     assert undefined[param] in captured.out
 
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+# spectrum runmode fails (setup):
+
+@pytest.mark.parametrize('param',
+    ['wllow', 'wlhigh', 'wnstep', 'wnosamp'])
+def test_spectrum_missing(tmp_path, capfd, param, undefined_spec):
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        remove=[param])
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Error in module: 'makesample.py', function: 'make_wavenumber'" \
+           in captured.out
+    assert undefined_spec[param] in captured.out
+
+
+def test_spectrum_inconsistent_wl_bounds(tmp_path, capfd):
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        reset={'wllow':'2.0 um', 'wlhigh':'1.0 um'})
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Error in module: 'makesample.py', function: 'make_wavenumber'" \
+           in captured.out
+    assert 'Wavenumber low boundary (10000.0 cm-1) must be larger than the ' \
+           'high boundary\n(5000.0 cm-1).' in captured.out
+
+
+@pytest.mark.parametrize('param',
+    ['rstar', 'path', 'outspec'])
+def test_spectrum_transmission_missing(tmp_path, capfd, param, undefined_spec):
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        remove=[param])
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Error in module: 'argum.py', function: 'check_spectrum'" \
+           in captured.out
+    assert undefined_spec[param] in captured.out
+
+
+@pytest.mark.parametrize('param',
+    ['mplanet', 'rplanet', 'gplanet'])
+def test_spectrum_hydrostatic_equilibrium(tmp_path, capfd, param):
+    keep = ['mplanet', 'rplanet', 'gplanet']
+    keep.remove(param)
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        remove=keep)
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Error in module: 'makesample.py', function: 'make_atmprofiles'" \
+           in captured.out
+    assert 'Cannot compute hydrostatic equilibrium.  Must define ' \
+           'at least two of\nmplanet, rplanet, or gplanet.' in captured.out
+
+
+def test_spectrum_refpressure(tmp_path, capfd):
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        remove=['refpressure'])
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Error in module: 'makesample.py', function: 'make_atmprofiles'" \
+           in captured.out
+    assert 'Cannot compute hydrostatic equilibrium.  Undefined reference ' \
+           'pressure level\n(refpressure).' in captured.out
+
+
+def test_spectrum_inconsistent_mass_radius_gravity(tmp_path, capfd):
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        reset={'gplanet':'1400.0'})
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Error in module: 'driver.py', function: 'run'" in captured.out
+    assert 'All mplanet, rplanet, and gplanet were provided, but values ' \
+           'are inconsistent\n(>5%): g(M,R) =  1487.2 cm s-2 and ' \
+           'gplanet =  1400.0 cm s-2.'  in captured.out
+
+
+@pytest.mark.parametrize('param',
+    ['tlifile',])
+def test_spectrum_invalid_file(tmp_path, capfd, param, invalid_file):
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        reset={param:'nope.dat'})
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Error in module: 'argum.py', function: 'check_spectrum'" \
+           in captured.out
+    assert invalid_file[param] in captured.out
+
+
+@pytest.mark.parametrize('vmin,vmax',
+    [('Dmin', 'Dmax'),
+     ('Lmin', 'Lmax')])
+def test_spectrum_inconsistent_voigt_bounds(tmp_path, capfd, vmin, vmax):
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        reset={vmin:'1e5', vmax:'1e4'})
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Error in module: 'argum.py', function: 'check_spectrum'" \
+           in captured.out
+    assert '{:s} (10000 cm-1) must be > {:s} (100000 cm-1).'. \
+           format(vmax,vmin) in captured.out
+
+
+def test_spectrum_rpars_mismatch(tmp_path, capfd):
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        reset={'rpars':'1.0 1.0 1.0'})
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Error in module: 'argum.py', function: 'check_spectrum'" \
+           in captured.out
+    assert 'Number of input Rayleigh parameters (3) does not match the ' \
+           'number of\nrequired model parameters (2).' in captured.out
+
+
+def test_spectrum_hpars_mismatch(tmp_path, capfd):
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        reset={'hpars':'1.0 1.0 1.0'})
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Error in module: 'argum.py', function: 'check_spectrum'" \
+           in captured.out
+    assert 'Number of input haze parameters (3) does not match the number ' \
+           'of required\nmodel parameters (1).' in captured.out
+
+
+@pytest.mark.parametrize('value',
+    ['10 60 90', '0 30 60 100', '0 30 90 60'])
+def test_spectrum_raygrid(tmp_path, capfd, invalid_raygrid, value):
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        reset={'raygrid':value})
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Error in module: 'argum.py', function: 'check_spectrum'" \
+           in captured.out
+    assert invalid_raygrid[value] in captured.out
+
+
+def test_spectrum_uncert_mismatch(tmp_path, capfd):
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        reset={'data':'1.0 2.0', 'uncert':'0.1'})
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Error in module: 'argum.py', function: 'check_spectrum'" \
+           in captured.out
+    assert 'Number of data uncertainty values (1) does not match the ' \
+           'number of data\npoints (2).' in captured.out
+
+
+def test_spectrum_filter_mismatch(tmp_path, capfd):
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        reset={'data':'1.0 2.0',
+               'filter':ROOT+'tests/filters/filter_test_WFC3_G141_1.133um.dat'})
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Error in module: 'argum.py', function: 'check_spectrum'" \
+           in captured.out
+    assert 'Number of filter bands (1) does not match the number of ' \
+           'data points (2).' in captured.out
+
+
+@pytest.mark.parametrize('param', ['rstar', 'tstar', 'smaxis'])
+def test_spectrum_tcea_parameters(tmp_path, capfd, param, undefined):
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        remove=[param],
+        reset={'path':'eclipse', 'tmodel':'TCEA'})
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Error in module: 'argum.py', function: 'check_spectrum'" \
+           in captured.out
+    assert undefined[param] in captured.out
+
+
+@pytest.mark.parametrize('param', ['rplanet', 'mplanet'])
+def test_spectrum_tcea_gplanet(tmp_path, capfd, param, undefined):
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        remove=[param, 'gplanet'],
+        reset={'path':'eclipse', 'tmodel':'TCEA'})
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Error in module: 'argum.py', function: 'check_spectrum'" \
+           in captured.out
+    assert undefined['gplanet'] in captured.out
+
+
+

@@ -33,6 +33,7 @@ def check_spectrum(pyrat):
   phy  = pyrat.phy
   spec = pyrat.spec
   atm  = pyrat.atm
+  obs  = pyrat.obs
 
   # Check that input files exist:
   if pyrat.mol.molfile is None:
@@ -42,7 +43,9 @@ def check_spectrum(pyrat):
       pt.file_exists('atmfile', 'Atmospheric',    pyrat.atm.atmfile)
       pt.file_exists('tlifile', 'TLI',            pyrat.lt.tlifile)
       pt.file_exists('molfile', 'Molecular-data', pyrat.mol.molfile)
-      pt.file_exists('csfile',  'Cross-section',  pyrat.cs.files)
+
+  if pyrat.runmode == 'spectrum' and spec.outspec is None:
+      log.error('Undefined output spectrum file (outspec).')
 
   # Hydrostatic by constant g or g(M,R):
   if pyrat.inputs.mplanet is not None:
@@ -66,11 +69,11 @@ def check_spectrum(pyrat):
 
   if pyrat.runmode == "opacity" or pt.isfile(pyrat.ex.extfile) == 0:
       if pyrat.ex.tmin is None:
-          log.error("Undefined lower temperature boundary (tmin) for "
-                    "extinction-coefficient grid.")
+          log.error('Undefined lower temperature boundary (tmin) for '
+                    'extinction-coefficient grid.')
       if pyrat.ex.tmax is None:
-          log.error("Undefined upper temperature boundary (tmax) for "
-                    "extinction-coefficient grid.")
+          log.error('Undefined upper temperature boundary (tmax) for '
+                    'extinction-coefficient grid.')
 
   # Check haze models:
   if pyrat.haze.model_names is not None:
@@ -83,8 +86,8 @@ def check_spectrum(pyrat):
       # Process the haze parameters:
       if pyrat.haze.pars is not None:
           if nhpars != len(pyrat.haze.pars):
-              log.error("Number of input haze parameters ({:d}) does not "
-                        "match the number of required model parameters ({:d}).".
+              log.error('Number of input haze parameters ({:d}) does not '
+                        'match the number of required model parameters ({:d}).'.
                         format(len(pyrat.haze.pars), nhpars))
           j = 0
           for i in np.arange(pyrat.haze.nmodels):
@@ -103,8 +106,8 @@ def check_spectrum(pyrat):
       # Process the Rayleigh parameters:
       if pyrat.rayleigh.pars is not None:
           if nrpars != len(pyrat.rayleigh.pars):
-              log.error("Number of input Rayleigh parameters ({:d}) does not "
-                        "match the number of required model parameters ({:d}).".
+              log.error('Number of input Rayleigh parameters ({:d}) does not '
+                        'match the number of required model parameters ({:d}).'.
                         format(len(pyrat.rayleigh.pars), nrpars))
           j = 0
           for i in np.arange(pyrat.rayleigh.nmodels):
@@ -126,16 +129,16 @@ def check_spectrum(pyrat):
 
   # Check system arguments:
   if pyrat.od.path == "transit" and phy.rstar is None:
-      log.error("Undefined stellar radius (rstar), required for transmission "
-                "spectrum calculation.")
+      log.error('Undefined stellar radius (rstar), required for transmission '
+                'calculation.')
 
   # Check raygrid:
   if spec.raygrid[0] != 0:
-      log.error("First angle in raygrid must be 0.0 (normal to surface).")
+      log.error('First angle in raygrid must be 0.0 (normal to surface).')
   if np.any(spec.raygrid < 0) or np.any(spec.raygrid > 90):
-      log.error("raygrid angles must lie between 0 and 90 deg.")
+      log.error('raygrid angles must lie between 0 and 90 deg.')
   if np.any(np.ediff1d(spec.raygrid) <= 0):
-      log.error("raygrid angles must be monotonically increasing.")
+      log.error('raygrid angles must be monotonically increasing.')
   # Store raygrid values in radians:
   spec.raygrid *= sc.degree
 
@@ -146,41 +149,37 @@ def check_spectrum(pyrat):
       spec.qweights = 0.5 * qweights
 
   # Number of datapoints and filters:
-  if pyrat.obs.data is not None:
-      pyrat.obs.ndata = len(pyrat.obs.data)
-  if pyrat.obs.filter is not None:
-      pyrat.obs.nfilters = len(pyrat.obs.filter)
+  if obs.data is not None:
+      obs.ndata = len(obs.data)
+  if obs.filter is not None:
+      obs.nfilters = len(obs.filter)
   # Number checks:
   if pyrat.obs.uncert is not None and pyrat.obs.ndata != len(pyrat.obs.uncert):
       log.error("Number of data uncertainty values ({:d}) does not match "
                 "the number of data points ({:d}).".
                 format(len(pyrat.obs.uncert), pyrat.obs.ndata))
-  if pyrat.obs.filter is not None:
-      for f in pyrat.obs.filter:
-          if not os.path.isfile(f):
-              log.error("Filter file: '{:s}' does not exist.".format(f))
-      if pyrat.obs.ndata > 0  and  pyrat.obs.ndata != pyrat.obs.nfilters:
-          log.error("Number of filter bands ({:d}) does not match the "
-                    "number of data points ({:d}).".
-                    format(pyrat.obs.nfilters, pyrat.obs.ndata))
+  if (obs.filter is not None and obs.ndata > 0 and obs.ndata != obs.nfilters):
+      log.error("Number of filter bands ({:d}) does not match the "
+                "number of data points ({:d}).".
+                format(obs.nfilters, obs.ndata))
 
   # Retrieval variables:
   if pyrat.ret.params is not None:
       pyrat.ret.nparams = len(pyrat.ret.params)
 
-  if atm.tmodelname == "TCEA":
-      if pyrat.phy.rstar is None:
-          log.error("Undefined stellar radius (rstar), required for "
-                    "temperature model.")
-      if pyrat.phy.tstar is None:
-          log.error("Undefined stellar temperature (tstar), required for "
-                    "temperature model.")
-      if pyrat.phy.smaxis is None:
-          log.error("Undefined orbital semi-major axis (smaxis), required for "
-                    "temperature model.")
-      if pyrat.phy.gplanet is None:
-          log.error("Undefined planetary surface gravity (gplanet), required "
-                    "for temperature model.")
+  if atm.tmodelname == 'TCEA':
+      if phy.rstar is None:
+          log.error('Undefined stellar radius (rstar), required for '
+                    'temperature model.')
+      if phy.tstar is None:
+          log.error('Undefined stellar temperature (tstar), required for '
+                    'temperature model.')
+      if phy.smaxis is None:
+          log.error('Undefined orbital semi-major axis (smaxis), required for '
+                    'temperature model.')
+      if phy.gplanet is None:
+          log.error('Undefined planetary surface gravity (gplanet), required '
+                    'for temperature model.')
 
   if pyrat.ncpu >= mp.cpu_count():
       log.warning("Number of requested CPUs ({:d}) is >= than the number "

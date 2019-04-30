@@ -10,7 +10,7 @@ from .. import tools     as pt
 from .. import constants as pc
 
 
-def readlinedb(pyrat):
+def read_tli(pyrat):
   """
   Main driver to read the line transition data from TLI files.
   """
@@ -42,7 +42,7 @@ def readlinedb(pyrat):
   # Read line-transition data (if there's no extinction-coefficient table):
   if pyrat.ex.extfile is None or not os.path.isfile(pyrat.ex.extfile):
     for n in np.arange(pyrat.lt.nTLI):
-      readlinetransition(pyrat, tli[n], dbindex[n])
+      read_linetransition(pyrat, tli[n], dbindex[n])
 
   pyrat.log.msg("Read a total of {:,d} line transitions.".
                 format(pyrat.lt.ntransitions), verb=2, indent=2)
@@ -159,7 +159,7 @@ def readheader(pyrat, linefile):
   return Ndb
 
 
-def readlinetransition(pyrat, linefile, dbindex):
+def read_linetransition(pyrat, linefile, dbindex):
   """
   Read the databases line transition info.
   """
@@ -181,9 +181,10 @@ def readlinetransition(pyrat, linefile, dbindex):
   endrec = linefile.tell()
   nrec = (endrec - init_wl)*1.0 / pc.tlireclen
   if nrec != nTransitions:
-    pyrat.log.error("The remaining data file size ({:.1f}) does not correspond "
-             "to the number of transitions ({:d}).".format(nrec, nTransitions))
-  pyrat.log.msg("There are {:,d} line transitions in TLI file.".
+      pyrat.log.error('The remaining data file size ({:.1f}) does not '
+          'correspond to the number of transitions ({:d}).'.
+          format(nrec, nTransitions))
+  pyrat.log.msg('There are {:,d} line transitions in TLI file.'.
                 format(nTransitions), verb=2, indent=2)
 
   # Allocate arrays:

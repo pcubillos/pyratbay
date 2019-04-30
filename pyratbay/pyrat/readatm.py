@@ -9,7 +9,7 @@ from .. import constants  as pc
 from .. import atmosphere as pa
 
 
-def readatm(pyrat):
+def read_atm(pyrat):
   """
   Read the atmospheric file, store variables in pyrat.
   """
@@ -20,10 +20,8 @@ def readatm(pyrat):
   atm    = pyrat.atm
   atm_in = pyrat.inputs.atm
 
-  try:
+  with pt.log_error(pyrat.log):
       atm_inputs = pa.readatm(pyrat.atm.atmfile)
-  except ValueError as e:
-      pyrat.log.error(e.args[0])
 
   # Atmospheric-file units, species, and profiles:
   punits, tunits, qunits, runits = atm_inputs[0]
@@ -31,7 +29,7 @@ def readatm(pyrat):
   pyrat.mol.nmol = len(pyrat.mol.name)
 
   # Read molecular constant values:
-  getconstants(pyrat)
+  get_constants(pyrat)
 
   # Store values in CGS system of units:
   atm_in.press  = atm_inputs[2] * pt.u(punits)
@@ -77,7 +75,7 @@ def readatm(pyrat):
   pyrat.log.msg("Read atmosphere done.")
 
 
-def getconstants(pyrat):
+def get_constants(pyrat):
   """
   Set molecules constant values (ID, mass, radius).
   """
@@ -94,12 +92,12 @@ def getconstants(pyrat):
 
   # Set molecule's values:
   pyrat.mol.ID     = np.zeros(pyrat.mol.nmol, np.int)
-  pyrat.mol.symbol = np.zeros(pyrat.mol.nmol, "U15")
+  pyrat.mol.symbol = np.zeros(pyrat.mol.nmol, 'U15')
   pyrat.mol.mass   = np.zeros(pyrat.mol.nmol)
   pyrat.mol.radius = np.zeros(pyrat.mol.nmol)
 
-  pyrat.log.msg("Molecule   ID   Radius  Mass\n"
-                "                (A)     (gr/mol)", verb=2, indent=4)
+  pyrat.log.msg('Molecule   ID   Radius  Mass\n'
+                '                (A)     (gr/mol)', verb=2, indent=4)
   for i in range(pyrat.mol.nmol):
       # Find the molecule in the list:
       imol = np.where(symbol == pyrat.mol.name[i])[0]
@@ -142,23 +140,19 @@ def reloadatm(pyrat, temp=None, abund=None, radius=None):
 
   # Check temperature boundaries:
   errorlog = ("One or more input temperature values lies out of the {:s} "
-      "temperature boundaries (K): [{:6.1f}, {:6.1f}].")
+              "temperature boundaries (K): [{:6.1f}, {:6.1f}].")
   if pyrat.ex.extfile is not None:
       if np.any(temp > pyrat.ex.tmax) or np.any(temp < pyrat.ex.tmin):
-          pyrat.log.warning(errorlog.format("tabulated EC", pyrat.ex.tmin,
-                                                            pyrat.ex.tmax))
-          return 0
-  else:
-      if (pyrat.lt.ntransitions > 0 and
-         (np.any(temp > pyrat.lt.tmax) or np.any(temp < pyrat.lt.tmin))):
-          pyrat.log.warning(errorlog.format("line-transition", pyrat.lt.tmin,
-                                                               pyrat.lt.tmax))
-          return 0
-      if (pyrat.cs.nfiles > 0 and
-         (np.any(temp > pyrat.cs.tmax) or np.any(temp < pyrat.cs.tmin))):
-          pyrat.log.warning(errorlog.format("cross-section", pyrat.cs.tmin,
-                                                             pyrat.cs.tmax))
-          return 0
+          pyrat.log.error(errorlog.format("tabulated extinction-coefficient",
+                                          pyrat.ex.tmin, pyrat.ex.tmax))
+  elif pyrat.lt.ntransitions > 0:
+      if np.any(temp > pyrat.lt.tmax) or np.any(temp < pyrat.lt.tmin):
+          pyrat.log.error(errorlog.format("line-transition", pyrat.lt.tmin,
+                                                             pyrat.lt.tmax))
+  if (pyrat.cs.nfiles > 0
+      and (np.any(temp > pyrat.cs.tmax) or np.any(temp < pyrat.cs.tmin))):
+      pyrat.log.error(errorlog.format("cross-section", pyrat.cs.tmin,
+                                                       pyrat.cs.tmax))
 
   # Recompute abundance profiles:
   q0 = np.copy(pyrat.atm.qbase)

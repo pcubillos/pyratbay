@@ -87,15 +87,15 @@ class Pyrat(object):
       self.timestamps['init'] = next(timer)
 
       # Initialize wavenumber sampling:
-      ms.makewavenumber(self)
+      ms.make_wavenumber(self)
       self.timestamps['wn sample'] = next(timer)
 
       # Read the atmospheric file:
-      ra.readatm(self)
+      ra.read_atm(self)
       self.timestamps['read atm'] = next(timer)
 
       # Read line database:
-      rl.readlinedb(self)
+      rl.read_tli(self)
       self.timestamps['read tli'] = next(timer)
 
       # Make atmospheric profiles (pressure, radius, temperature, abundances):
@@ -141,7 +141,6 @@ class Pyrat(object):
       status = ra.reloadatm(self, temp, abund, radius)
       if status == 0:
           return
-
       # Interpolate CIA absorption:
       cs.interpolate(self)
       self.timestamps['interp cs'] = next(timer)

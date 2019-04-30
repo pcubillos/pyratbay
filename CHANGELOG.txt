@@ -4809,3 +4809,11 @@ Added tests for atmosphere runs.
 Fixed bugs in driver.check_atm()
 Added default-warning for xsolar in TEA runs.
 
+
+*****  Di 30. Apr 14:25:00 CEST 2019  *****
+
+Added tests for spectrum setup up to make_atmprofiles().
+Minor PEP8/tweaks to make code clearer, add checks, and remove
+redundant code.
+Added invalid_raygrid and undefined_spec fixtures.
+

@@ -28,19 +28,49 @@ def undefined():
         'pbottom': 'Undefined atmospheric bottom pressure (pbottom)',
         'tmodel':  'Undefined temperature model (tmodel)',
         'tpars':   'Undefined temperature-model parameters (tpars)',
-        'rstar':   'Undefined stellar radius (rstar).',
-        'tstar':   'Undefined stellar temperature (tstar).',
-        'smaxis':  'Undefined orbital semi-major axis (smaxis).',
+        'rstar':   'Undefined stellar radius (rstar)',
+        'tstar':   'Undefined stellar temperature (tstar)',
+        'smaxis':  'Undefined orbital semi-major axis (smaxis)',
         'mplanet': 'Undefined planetary surface gravity, set either '
                    'gplanet or mplanet and\nrplanet.',
         'rplanet': 'Undefined planetary surface gravity, set either '
                    'gplanet or mplanet and\nrplanet.',
+        'gplanet': 'Undefined planetary surface gravity (gplanet)',
         'atmfile': 'Undefined atmospheric file (atmfile).',
         'species': 'Undefined atmospheric species list (species).',
         'elements': 'Undefined atmospheric atomic composition (elements).',
     }
     return data
 
+@pytest.fixture
+def undefined_spec():
+    data = {
+        'wllow':   'High wavenumber boundary is undefined.  Either set '
+                   'wnhigh or wllow.',
+        'wlhigh':  'Low wavenumber boundary is undefined.  Either set '
+                   'wnlow or wlhigh.',
+        'wnstep':  'Undefined wavenumber sampling step size (wnstep).',
+        'wnosamp': 'Undefined wavenumber oversampling factor (wnosamp).',
+        'path':    "Undefined observing geometry (path).  Select between "
+                   "'transit' or 'eclipse'.",
+        'outspec': 'Undefined output spectrum file (outspec).',
+        'tlifile': 'TLI file (tlifile) does not exist',
+        ''
+         # Transmission
+        'rstar': 'Undefined stellar radius (rstar), required for '
+                 'transmission calculation.',
+    }
+    return data
+
+
+@pytest.fixture
+def invalid_raygrid():
+    data = {
+        '10 60 90': 'First angle in raygrid must be 0.0 (normal to surface).',
+        '0 30 60 100': 'raygrid angles must lie between 0 and 90 deg.',
+        '0 30 90 60': 'raygrid angles must be monotonically increasing.',
+    }
+    return data
 
 @pytest.fixture
 def invalid():

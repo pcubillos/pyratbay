@@ -6,6 +6,8 @@ __all__ = ["run"]
 import os
 import sys
 
+import numpy as np
+
 from . import tools      as pt
 from . import constants  as pc
 from . import lineread   as lr
