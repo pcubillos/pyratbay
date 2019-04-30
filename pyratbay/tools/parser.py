@@ -668,7 +668,8 @@ def parse(pyrat, cfile):
       'Gelman-Rubin convergence criteria', 0.0, ge=0)
   pyrat.ret.grnmin   = args.get_default('grnmin',
       'Gelman-Rubin convergence fraction', 0.5, gt=0.0)
-  atm.molmodel = args.molmodel
+  atm.molmodel = args.get_choice('molmodel',
+      'molecular-abundance model', pc.molmodels)
   atm.molfree  = args.molfree
   atm.molpars  = args.molpars
   atm.bulk     = args.bulk

@@ -81,6 +81,8 @@ def invalid():
         'alkali':  'Invalid alkali model (alkali): invalid. Select from',
         'path':    'Invalid observing geometry (path): invalid. Select from',
         'tmodel':  'Invalid temperature model (tmodel): invalid. Select from',
+        'molmodel': 'Invalid molecular-abundance model (molmodel): invalid. '
+                    'Select from',
         'retflag': 'Invalid retrieval flag (retflag): invalid. Select from'
     }
     return data

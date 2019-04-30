@@ -136,7 +136,8 @@ def test_invalid_float_all_params(tmp_path, capfd, param):
 
 
 @pytest.mark.parametrize('param',
-    ['runmode', 'rayleigh', 'hazes', 'alkali', 'path', 'tmodel', 'retflag'])
+    ['runmode', 'rayleigh', 'hazes', 'alkali', 'path',
+     'tmodel', 'molmodel', 'retflag'])
 def test_invalid_choice(tmp_path, capfd, param, invalid):
     cfg = make_config(tmp_path, ROOT+'tests/pt_isothermal.cfg',
         reset={param:'invalid'})
@@ -567,6 +568,4 @@ def test_spectrum_tcea_gplanet(tmp_path, capfd, param, undefined):
     assert "Error in module: 'argum.py', function: 'check_spectrum'" \
            in captured.out
     assert undefined['gplanet'] in captured.out
-
-
 

@@ -123,6 +123,12 @@ tmodels = [
    'MadhuNoInv',
 ]
 
+# Molecular-abundance models:
+molmodels = [
+    'vert',
+    'scale'
+]
+
 # Alkali models:
 amodels = [
    'SodiumVdWst',
@@ -152,3 +158,4 @@ retflags = [
     'haze',
     'patchy',
 ]
+

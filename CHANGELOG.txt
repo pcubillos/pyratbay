@@ -4817,3 +4817,7 @@ Minor PEP8/tweaks to make code clearer, add checks, and remove
 redundant code.
 Added invalid_raygrid and undefined_spec fixtures.
 
+*****
+
+Parse molmodel with get_choice(). Added respective checks and tests.
+
