@@ -6,14 +6,25 @@ else:
     import ConfigParser as configparser
 
 
+def pytest_collection_modifyitems(items):
+    """Sort tests with a 'sort' mark by order keyword."""
+    order = [item.get_closest_marker('sort').kwargs['order']
+             if item.get_closest_marker('sort') is not None
+             else -1
+             for item in items]
+    last = max(order) + 1
+    order = {item:val if val >= 0 else last for item,val in zip(items,order)}
+    items[:] = sorted(order, key=order.get)
+
+
 def make_config(path, cfile, reset={}, remove=[]):
     config = configparser.ConfigParser()
     config.optionxform = str
     config.read([cfile])
-    for var in remove:
-        config.remove_option('pyrat', var)
     for var, val in reset.items():
         config.set('pyrat', var, val)
+    for var in remove:
+        config.remove_option('pyrat', var)
     cfg_file = str(path / 'test.cfg')
     with open(cfg_file, 'w') as cfg:
         config.write(cfg)

@@ -4827,3 +4827,11 @@ Fixed bug in make_atmprofiles() to skip hydro-eq for opacity runs.
 Added gstar and gplanet to test spectrum config file.
 Finished tests for spectrum setup (some pending tests left as skip).
 
+
+*****  Wed May  1 15:50:00 CEST 2019  *****
+
+Implemented pytest_collection_modifyitems() pytest hook to enable
+tests sorting using the 'sort' mark.
+Let test_tli_hitran_wfc3() and test_opacity() run first and second,
+because other tests depend on their outputs.
+

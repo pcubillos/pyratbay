@@ -40,6 +40,7 @@ expected_temperature = np.array(
        1665.35997887])
 
 
+@pytest.mark.sort(order=1)
 def test_tli_hitran_wfc3():
     pb.run(ROOT+'tests/tli_hitran_1.1-1.7um_test.cfg')
     # TBD: asserts on output file
@@ -131,6 +132,7 @@ def test_spectrum_emission(tmp_path):
     # TBD: implement asserts
 
 
+@pytest.mark.sort(order=10)
 def test_opacity(capfd):
     pyrat = pb.run(ROOT+'tests/opacity_test.cfg')
     captured = capfd.readouterr()
