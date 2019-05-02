@@ -1,4 +1,5 @@
 import sys
+import itertools
 import pytest
 if sys.version_info.major == 3:
     import configparser
@@ -12,8 +13,9 @@ def pytest_collection_modifyitems(items):
              if item.get_closest_marker('sort') is not None
              else -1
              for item in items]
-    last = max(order) + 1
-    order = {item:val if val >= 0 else last for item,val in zip(items,order)}
+    last = itertools.count(max(order) + 1)
+    order = {item:val if val >= 0 else next(last)
+             for item,val in zip(items,order)}
     items[:] = sorted(order, key=order.get)
 
 

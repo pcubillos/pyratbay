@@ -4840,3 +4840,9 @@ because other tests depend on their outputs.
 Updated molecules.dat, added info for SO2, and updated TiO, VO, N2O,
 and NO.
 
+
+*****  Do 2. Mai 09:52:31 CEST 2019  *****
+
+Tweaked pytest_collection_modifyitems() hook to make sure to preserve
+original order of un-sorted tests.
+
