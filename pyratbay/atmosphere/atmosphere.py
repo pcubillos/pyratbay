@@ -621,9 +621,9 @@ def pressure(ptop, pbottom, nlayers, units="bar", log=None, verb=0):
   ptop    = pt.get_param('ptop',    ptop,    units, log, gt=0.0)
   pbottom = pt.get_param('pbottom', pbottom, units, log, gt=0.0)
   if ptop >= pbottom:
-      log.error("Bottom-layer pressure ({:.2e} bar) must be higher than the "
-                "top-layer pressure ({:.2e} bar).".format(pbottom/pt.u(units),
-                                                          ptop/pt.u(units)))
+      log.error('Bottom-layer pressure ({:.2e} {:s}) must be higher than the '
+                'top-layer pressure ({:.2e} {:s}).'.
+                format(pbottom/pt.u(units), units, ptop/pt.u(units), units))
 
   # Create pressure array in barye (CGS) units:
   press = np.logspace(np.log10(ptop), np.log10(pbottom), nlayers)

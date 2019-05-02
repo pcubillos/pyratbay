@@ -457,6 +457,18 @@ def test_spectrum_unbounded_pressures(tmp_path, capfd, param, value):
             format(param[1:].capitalize(), param, value)) in captured.out
 
 
+def test_spectrum_invalid_pressure_ranges(tmp_path, capfd):
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        reset={'ptop':'1.0e-02 bar', 'pbottom':'1.0e-03 bar'})
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Error in module: 'makesample.py', function: 'make_atmprofiles'" \
+           in captured.out
+    assert ('Bottom-layer pressure (1.00e-03 bar) must be higher than the '
+            'top-layer\npressure (1.00e-02 bar).') in captured.out
+
+
 def test_spectrum_inconsistent_mass_radius_gravity(tmp_path, capfd):
     cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
         reset={'gplanet':'1400.0'})

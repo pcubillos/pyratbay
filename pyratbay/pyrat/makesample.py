@@ -224,6 +224,11 @@ def make_atmprofiles(pyrat):
           format(atm.pbottom/pt.u(atm.punits), atm.punits,
                  np.amin(atm_in.press)/pt.u(atm.punits),
                  np.amax(atm_in.press)/pt.u(atm.punits), atm.punits))
+  if atm.pbottom <= atm.ptop:
+      log.error('Bottom-layer pressure ({:.2e} {:s}) must be higher than the '
+                'top-layer pressure ({:.2e} {:s}).'.
+                format(atm.pbottom/pt.u(atm.punits), atm.punits,
+                       atm.ptop/pt.u(atm.punits), atm.punits))
 
   log.msg('User pressure boundaries: {:.2e}--{:.2e} bar.'.
           format(atm.ptop/pc.bar, atm.pbottom/pc.bar), verb=2, indent=2)
@@ -251,16 +256,16 @@ def make_atmprofiles(pyrat):
 
   else:  # Take the atmospheric-file sampling:
       # Get top-bottom indices:
-      ilow  = np.where(atm_in.press >= atm.ptop)   [0][-1]
-      ihigh = np.where(atm_in.press <= atm.pbottom)[0][ 0]
+      ilow  = np.where(atm_in.press >= atm.ptop)   [0][ 0]
+      ihigh = np.where(atm_in.press <= atm.pbottom)[0][-1]
       # Take values within the boundaries:
-      atm.press = atm_in.press[ihigh:ilow+1]
-      atm.temp  = atm_in.temp [ihigh:ilow+1]
-      atm.mm    = atm_in.mm   [ihigh:ilow+1]
-      atm.q     = atm_in.q    [ihigh:ilow+1]
-      atm.d     = atm_in.d    [ihigh:ilow+1]
+      atm.press = atm_in.press[ilow:ihigh+1]
+      atm.temp  = atm_in.temp [ilow:ihigh+1]
+      atm.mm    = atm_in.mm   [ilow:ihigh+1]
+      atm.q     = atm_in.q    [ilow:ihigh+1]
+      atm.d     = atm_in.d    [ilow:ihigh+1]
       if atm_in.radius is not None:
-          atm.radius = atm_in.radius[ihigh:ilow+1]
+          atm.radius = atm_in.radius[ilow:ihigh+1]
       atm.nlayers = len(atm.press)
       resample = False
 

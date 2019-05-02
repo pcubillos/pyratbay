@@ -4857,3 +4857,9 @@ Fixed ptop/pbottom checks to consider both over and below
 out-of-bound cases for each pressure.
 Added corresponding tests.
 
+*****
+
+Fixed bug when setting pressure boundaries in make_atmprofiles().
+Added check for ptop > pbottom.
+Fixed text for invalid-pressure error in atmosphere.pressure().
+
