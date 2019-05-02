@@ -4875,3 +4875,8 @@ Added checks to make sure retflag models are defined.
 Turn pyrat.ret.retflag from None to an empty list when not defined.
 Updated tests.
 
+*****
+
+Added test for Pyrat.get_ec() method.
+PEP8'ed haze.py and rayleigh.py.
+
