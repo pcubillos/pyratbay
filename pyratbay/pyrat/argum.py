@@ -91,7 +91,7 @@ def check_spectrum(pyrat):
           log.error("Undefined data uncertainties (uncert).")
       if pyrat.obs.filter is None:
           log.error("Undefined transmission filters (filter).")
-      if pyrat.ret.retflag is None:
+      if pyrat.ret.retflag == []:
           log.error('Undefined retrieval model flags.  Select from {}.'.
                     format(pc.retflags))
       if pyrat.ret.walk is None:
@@ -157,6 +157,18 @@ def check_spectrum(pyrat):
   if pyrat.runmode in ['spectrum', 'mcmc'] and pyrat.od.path is None:
       log.error("Undefined observing geometry (path).  Select between "
                 "'transit' or 'eclipse'.")
+
+  if 'pt' in pyrat.ret.retflag and atm.tmodelname is None:
+      log.error('Requested pt in retflag, but there is no tmodel.')
+  if 'mol' in pyrat.ret.retflag:
+      if atm.molmodel is None:
+          log.error("Requested mol in retflag, but there is no 'molmodel'.")
+      if atm.bulk is None:
+          log.error('Requested mol in retflag, but there are no bulk species.')
+  if 'ray' in pyrat.ret.retflag and pyrat.rayleigh.model == []:
+      log.error('Requested ray in retflag, but there are no rayleigh models.')
+  if 'haze' in pyrat.ret.retflag and pyrat.haze.model == []:
+      log.error('Requested haze in retflag, but there are no haze models.')
 
   # Check system arguments:
   if pyrat.od.path == 'transit' and phy.rstar is None:
@@ -255,13 +267,6 @@ def setup(pyrat):
       and len(np.intersect1d(atm.bulk, atm.molfree)) > 0):
       log.error('These species were marked as both bulk and variable-'
           'abundance: {}.'.format(np.intersect1d(atm.bulk, atm.molfree)))
-
-  if pyrat.runmode == 'mcmc':
-      if atm.bulk is None and 'mol' in ret.retflag:
-          log.error('Undefined bulk species list (bulk).')
-      if atm.molmodel is None and 'mol' in ret.retflag:
-          log.error("Species abundances included for retrieval (retflag "
-              "contains 'mol') but there are no abundance model (molmodel).")
 
   # Obtain abundance ratios between the bulk species:
   spec = list(species)
@@ -387,14 +392,12 @@ def setup(pyrat):
   # Haze models:
   nhaze    = 0
   hpnames, htexnames = [], []
-  for i in np.arange(pyrat.haze.nmodels):
-      hpnames   += pyrat.haze.model[i].pnames
-      htexnames += pyrat.haze.model[i].texnames
-      nhaze     += pyrat.haze.model[i].npars
+  for hmodel in pyrat.haze.model:
+      hpnames   += hmodel.pnames
+      htexnames += hmodel.texnames
+      nhaze     += hmodel.npars
 
   # Indices to parse the array of fitting parameters:
-  if ret.retflag is None:
-      ret.retflag = []
   nparams = 0
   ret.pnames, ret.texnames = [], []
   if 'pt' in ret.retflag:

@@ -675,6 +675,24 @@ def test_spectrum_opacity_invalid_tmin(tmp_path, capfd):
             "(70.0 K).") in captured.out
 
 
+@pytest.mark.parametrize('param',
+    ['tmodel', 'hazes', 'rayleigh', 'molmodel', 'bulk'])
+def test_spectrum_missing_retflag_models(tmp_path, capfd, param,undefined_mcmc):
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        reset={'retflag':'pt mol ray haze',
+               'tmodel':'isothermal',
+               'hazes':'deck',
+               'rayleigh':'lecavelier',
+               'molmodel':'vert', 'molfree':'H2O', 'bulk':'H2'},
+        remove=[param])
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Error in module: 'argum.py', function: 'check_spectrum'" \
+           in captured.out
+    assert undefined_mcmc[param] in captured.out
+
+
 def test_spectrum_opacity_invalid_tmax(tmp_path, capfd):
     cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
         reset={'extfile':str(tmp_path/'new_opacity.dat'),
@@ -746,7 +764,7 @@ def test_mcmc_missing(tmp_path, capfd, param, undefined_mcmc):
 
 def test_mcmc_missing_starspec(tmp_path, capfd):
     cfg = make_config(tmp_path, ROOT+'tests/mcmc_transmission_test.cfg',
-        reset={'path':'eclipse'},
+        reset={'path':'eclipse', 'retflag':'mol'},
         remove=['tstar', 'tmodel'])
     pyrat = pb.run(cfg)
     assert pyrat is None

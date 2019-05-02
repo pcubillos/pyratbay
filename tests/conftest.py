@@ -106,6 +106,12 @@ def undefined_mcmc():
         'burnin':   'Undefined number of retrieval burn-in samples (burnin).',
         'nchains':  'Undefined number of retrieval parallel chains (nchains).',
         'rstar':    'Undefined radius ratio (need rplanet and rstar).',
+        'tmodel':   'Requested pt in retflag, but there is no tmodel.',
+        'rayleigh': 'Requested ray in retflag, but there are no rayleigh '
+                    'models.',
+        'hazes':    'Requested haze in retflag, but there are no haze models.',
+        'molmodel': "Requested mol in retflag, but there is no 'molmodel'.",
+        'bulk': 'Requested mol in retflag, but there are no bulk species.',
     }
     return data
 

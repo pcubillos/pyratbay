@@ -638,6 +638,8 @@ def parse(pyrat, cfile):
   pyrat.obs.filter = args.get_path('filter', 'Filter pass-bands', exists=True)
 
   pyrat.ret.retflag = args.get_choice('retflag', 'retrieval flag', pc.retflags)
+  if pyrat.ret.retflag is None:
+      pyrat.ret.retflag = []
 
   pyrat.ret.params   = args.params
   pyrat.ret.stepsize = args.stepsize

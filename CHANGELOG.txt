@@ -4869,3 +4869,9 @@ Added check and tests for mcmc missing parameters.
 Added undefined_mcmc fixture.
 Fixed bugs here and there.
 
+*****
+
+Added checks to make sure retflag models are defined.
+Turn pyrat.ret.retflag from None to an empty list when not defined.
+Updated tests.
+
