@@ -4846,3 +4846,14 @@ and NO.
 Tweaked pytest_collection_modifyitems() hook to make sure to preserve
 original order of un-sorted tests.
 
+*****
+
+Added checks for existing tstep and tlifile when requesting a new
+extinction-coefficient file.
+Fixed bug in pytest_collection_modifyitems() hook, for case when
+there are no sort marks.
+Added undefined_opacity fixture.
+Fixed ptop/pbottom checks to consider both over and below
+out-of-bound cases for each pressure.
+Added corresponding tests.
+

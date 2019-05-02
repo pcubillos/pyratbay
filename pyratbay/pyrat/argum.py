@@ -74,6 +74,12 @@ def check_spectrum(pyrat):
       if pyrat.ex.tmax is None:
           log.error('Undefined upper temperature boundary (tmax) for '
                     'extinction-coefficient grid.')
+      if pyrat.ex.tstep is None:
+          log.error('Undefined temperature sampling step (tstep) for '
+                    'extinction-coefficient grid.')
+      if pyrat.lt.tlifile is None:
+          log.error('Requested extinction-coefficient table, but there '
+                    'are no input TLI files.')
 
   # Check haze models:
   if pyrat.haze.model_names is not None:

@@ -13,7 +13,8 @@ def pytest_collection_modifyitems(items):
              if item.get_closest_marker('sort') is not None
              else -1
              for item in items]
-    last = itertools.count(max(order) + 1)
+
+    last = itertools.count(1 + max(order) if order else 0)
     order = {item:val if val >= 0 else next(last)
              for item,val in zip(items,order)}
     items[:] = sorted(order, key=order.get)
@@ -69,10 +70,24 @@ def undefined_spec():
                    "'transit' or 'eclipse'.",
         'outspec': 'Undefined output spectrum file (outspec).',
         'tlifile': 'TLI file (tlifile) does not exist',
-        ''
          # Transmission
         'rstar': 'Undefined stellar radius (rstar), required for '
                  'transmission calculation.',
+    }
+    return data
+
+
+@pytest.fixture
+def undefined_opacity():
+    data = {
+        'tmin': 'Undefined lower temperature boundary (tmin) for '
+                'extinction-coefficient grid.',
+        'tmax': 'Undefined upper temperature boundary (tmax) for '
+                'extinction-coefficient grid.',
+        'tstep': 'Undefined temperature sampling step (tstep) for '
+                 'extinction-coefficient grid.',
+        'tlifile': 'Requested extinction-coefficient table, but there are '
+                   'no input TLI files.',
     }
     return data
 

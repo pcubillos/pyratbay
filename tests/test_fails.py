@@ -442,6 +442,21 @@ def test_spectrum_refpressure(tmp_path, capfd):
            'pressure level\n(refpressure).' in captured.out
 
 
+@pytest.mark.parametrize('value', ['1.00e-09 bar', '1.00e+03 bar'])
+@pytest.mark.parametrize('param', ['pbottom', 'ptop'])
+def test_spectrum_unbounded_pressures(tmp_path, capfd, param, value):
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        reset={param:value})
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Error in module: 'makesample.py', function: 'make_atmprofiles'" \
+           in captured.out
+    assert ('{}-pressure boundary ({}={}) lies outside of the\n'
+            'atmospheric-file range 1.00e-06--1.00e+02 bar.'.
+            format(param[1:].capitalize(), param, value)) in captured.out
+
+
 def test_spectrum_inconsistent_mass_radius_gravity(tmp_path, capfd):
     cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
         reset={'gplanet':'1400.0'})
@@ -634,10 +649,10 @@ def test_kurucz_missing_pars(tmp_path, capfd, param, undefined):
     assert undefined[param] in captured.out
 
 
-def test_spectrum_opacity_tmin(tmp_path, capfd):
+def test_spectrum_opacity_invalid_tmin(tmp_path, capfd):
     cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
         reset={'extfile':str(tmp_path/'new_opacity.dat'),
-               'tmin':'10.0', 'tmax':'1000.0'})
+               'tmin':'10.0', 'tmax':'1000.0', 'tstep':'900'})
     pyrat = pb.run(cfg)
     assert pyrat is None
     captured = capfd.readouterr()
@@ -648,10 +663,10 @@ def test_spectrum_opacity_tmin(tmp_path, capfd):
             "(70.0 K).") in captured.out
 
 
-def test_spectrum_opacity_tmax(tmp_path, capfd):
+def test_spectrum_opacity_invalid_tmax(tmp_path, capfd):
     cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
         reset={'extfile':str(tmp_path/'new_opacity.dat'),
-               'tmin':'1000.0', 'tmax':'5000.0'})
+               'tmin':'1000.0', 'tmax':'5000.0', 'tstep':'100'})
     pyrat = pb.run(cfg)
     assert pyrat is None
     captured = capfd.readouterr()
@@ -660,6 +675,20 @@ def test_spectrum_opacity_tmax(tmp_path, capfd):
     assert ("Requested extinction-coefficient table temperature "
             "(tmax=5000.0 K) above the\nhighest available TLI temperature "
             "(3000.0 K).") in captured.out
+
+
+@pytest.mark.parametrize('param', ['tmin', 'tmax', 'tstep', 'tlifile'])
+def test_spectrum_opacity_missing(tmp_path, capfd, param, undefined_opacity):
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        reset={'extfile':str(tmp_path/'new_opacity.dat'),
+               'tmin':'300.0', 'tmax':'3000.0', 'tstep':'900'},
+        remove=[param])
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Error in module: 'argum.py', function: 'check_spectrum'" \
+           in captured.out
+    assert undefined_opacity[param] in captured.out
 
 
 @pytest.mark.skip
@@ -671,10 +700,19 @@ def test_incompatible_tli():
     pass
 
 @pytest.mark.skip
-def test_unbounded_ptop_pbottom():
-    pass
-
-@pytest.mark.skip
 def test_crosssec_mol_not_in_atm():
     pass
+
+
+@pytest.mark.parametrize('param', ['tmin', 'tmax', 'tstep', 'tlifile'])
+def test_opacity_missing(tmp_path, capfd, param, undefined_opacity):
+    cfg = make_config(tmp_path, ROOT+'tests/opacity_test.cfg',
+        reset={'extfile':str(tmp_path/'new_opacity.dat')},
+        remove=[param])
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Error in module: 'argum.py', function: 'check_spectrum'" \
+           in captured.out
+    assert undefined_opacity[param] in captured.out
 

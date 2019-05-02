@@ -206,24 +206,26 @@ def make_atmprofiles(pyrat):
       atm.pbottom = np.amax(atm_in.press)
 
   if ibreak != 0 and np.isinf(pyrat.phy.rhill):
-      log.error("Unbounded atmosphere.  Hydrostatic-equilibrium radius "
-          "solution diverges at pressure {:.3e} bar.  Set mstar and smaxis "
-          "to define a Hill radius (top boundary) and avoid error.".
+      log.error('Unbounded atmosphere.  Hydrostatic-equilibrium radius '
+          'solution diverges at pressure {:.3e} bar.  Set mstar and smaxis '
+          'to define a Hill radius (top boundary) and avoid error.'.
           format(atm_in.press[ibreak]/pc.bar))
 
   # Out of bounds errors:
-  if atm.ptop < np.amin(atm_in.press):
-      log.error("User-defined bottom layer (p={:.3e} {:s}) is lower than "
-          "the atmospheric-file bottom layer (p={:.3e} {:s}).".
+  if atm.ptop < np.amin(atm_in.press) or atm.ptop > np.amax(atm_in.press):
+      log.error('Top-pressure boundary (ptop={:.2e} {:s}) lies outside '
+          'of the atmospheric-file range {:.2e}--{:.2e} {:s}.'.
           format(atm.ptop/pt.u(atm.punits), atm.punits,
-                 np.amin(atm_in.press)/pt.u(atm.punits), atm.punits))
-  if atm.pbottom > np.amax(atm_in.press):
-      log.error("User-defined top layer (p={:.3e} {:s}) is higher than "
-          "the atmospheric-file top layer (p={:.3e} {:s}).".
+                 np.amin(atm_in.press)/pt.u(atm.punits),
+                 np.amax(atm_in.press)/pt.u(atm.punits), atm.punits))
+  if atm.pbottom < np.amin(atm_in.press) or atm.pbottom > np.amax(atm_in.press):
+      log.error('Bottom-pressure boundary (pbottom={:.2e} {:s}) lies outside '
+          'of the atmospheric-file range {:.2e}--{:.2e} {:s}.'.
           format(atm.pbottom/pt.u(atm.punits), atm.punits,
+                 np.amin(atm_in.press)/pt.u(atm.punits),
                  np.amax(atm_in.press)/pt.u(atm.punits), atm.punits))
 
-  log.msg("User pressure boundaries: {:.2e}--{:.2e} bar.".
+  log.msg('User pressure boundaries: {:.2e}--{:.2e} bar.'.
           format(atm.ptop/pc.bar, atm.pbottom/pc.bar), verb=2, indent=2)
 
   # Resample to equispaced log-pressure array if requested:
