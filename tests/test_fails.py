@@ -728,3 +728,30 @@ def test_opacity_missing(tmp_path, capfd, param, undefined_opacity):
            in captured.out
     assert undefined_opacity[param] in captured.out
 
+
+@pytest.mark.parametrize('param',
+    ['retflag', 'params', 'data', 'uncert', 'filter', 'rstar',
+     'walk', 'nsamples', 'burnin', 'nchains'])
+def test_mcmc_missing(tmp_path, capfd, param, undefined_mcmc):
+    cfg = make_config(tmp_path, ROOT+'tests/mcmc_transmission_test.cfg',
+        reset={'path':'eclipse', 'kurucz':'fp00k0odfnew.pck'},
+        remove=[param])
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Error in module: 'argum.py', function: 'check_spectrum'" \
+           in captured.out
+    assert undefined_mcmc[param] in captured.out
+
+
+def test_mcmc_missing_starspec(tmp_path, capfd):
+    cfg = make_config(tmp_path, ROOT+'tests/mcmc_transmission_test.cfg',
+        reset={'path':'eclipse'},
+        remove=['tstar', 'tmodel'])
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Error in module: 'argum.py', function: 'setup'" in captured.out
+    assert ('Undefined stellar flux model.  Set starspec, kurucz, or tstar '
+            '(for a\nblackbody spectrum).') in captured.out
+

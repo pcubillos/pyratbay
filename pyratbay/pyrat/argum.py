@@ -20,7 +20,7 @@ from .  import haze      as hz
 from .  import rayleigh  as ray
 from .  import alkali    as al
 
-sys.path.append(pc.ROOT + "/pyratbay/atmosphere/")
+sys.path.append(pc.ROOT + '/pyratbay/atmosphere/')
 import MadhuTP
 
 
@@ -37,7 +37,7 @@ def check_spectrum(pyrat):
 
   # Check that input files exist:
   if pyrat.mol.molfile is None:
-      pyrat.mol.molfile = pc.ROOT + "inputs/molecules.dat"
+      pyrat.mol.molfile = pc.ROOT + 'inputs/molecules.dat'
 
   with pt.log_error(log):
       pt.file_exists('atmfile', 'Atmospheric',    pyrat.atm.atmfile)
@@ -59,15 +59,15 @@ def check_spectrum(pyrat):
   # Check Voigt-profile arguments:
   if (pyrat.voigt.Dmin is not None and pyrat.voigt.Dmax is not None
       and pyrat.voigt.Dmax <= pyrat.voigt.Dmin):
-      log.error("Dmax ({:g} cm-1) must be > Dmin ({:g} cm-1).".
+      log.error('Dmax ({:g} cm-1) must be > Dmin ({:g} cm-1).'.
                 format(pyrat.voigt.Dmax, pyrat.voigt.Dmin))
 
   if (pyrat.voigt.Lmin is not None and pyrat.voigt.Lmax is not None
       and pyrat.voigt.Lmax <= pyrat.voigt.Lmin):
-      log.error("Lmax ({:g} cm-1) must be > Lmin ({:g} cm-1).".
+      log.error('Lmax ({:g} cm-1) must be > Lmin ({:g} cm-1).'.
                 format(pyrat.voigt.Lmax, pyrat.voigt.Lmin))
 
-  if pyrat.runmode == "opacity" or pt.isfile(pyrat.ex.extfile) == 0:
+  if pyrat.runmode == 'opacity' or pt.isfile(pyrat.ex.extfile) == 0:
       if pyrat.ex.tmin is None:
           log.error('Undefined lower temperature boundary (tmin) for '
                     'extinction-coefficient grid.')
@@ -80,6 +80,31 @@ def check_spectrum(pyrat):
       if pyrat.lt.tlifile is None:
           log.error('Requested extinction-coefficient table, but there '
                     'are no input TLI files.')
+
+  if pyrat.runmode == 'mcmc':
+      if pyrat.od.path == 'eclipse':
+          if pyrat.phy.rplanet is None or pyrat.phy.rstar is None:
+              log.error("Undefined radius ratio (need rplanet and rstar).")
+      if pyrat.obs.data is None:
+          log.error("Undefined transit/eclipse data (data).")
+      if pyrat.obs.uncert is None:
+          log.error("Undefined data uncertainties (uncert).")
+      if pyrat.obs.filter is None:
+          log.error("Undefined transmission filters (filter).")
+      if pyrat.ret.retflag is None:
+          log.error('Undefined retrieval model flags.  Select from {}.'.
+                    format(pc.retflags))
+      if pyrat.ret.walk is None:
+          log.error('Undefined retrieval algorithm (walk).  Select from '
+                    '[snooker].')
+      if pyrat.ret.nsamples is None:
+          log.error('Undefined number of retrieval samples (nsamples).')
+      if pyrat.ret.burnin is None:
+          log.error('Undefined number of retrieval burn-in samples (burnin).')
+      if pyrat.ret.nchains is None:
+          log.error('Undefined number of retrieval parallel chains (nchains).')
+      if pyrat.ret.params is None:
+          log.error('Undefined retrieval fitting parameters (params).')
 
   # Check haze models:
   if pyrat.haze.model_names is not None:
@@ -129,12 +154,12 @@ def check_spectrum(pyrat):
           pyrat.alkali.nmodels += 1
 
   # Accept ray-path argument:
-  if pyrat.runmode in ["spectrum", "mcmc"] and pyrat.od.path is None:
+  if pyrat.runmode in ['spectrum', 'mcmc'] and pyrat.od.path is None:
       log.error("Undefined observing geometry (path).  Select between "
                 "'transit' or 'eclipse'.")
 
   # Check system arguments:
-  if pyrat.od.path == "transit" and phy.rstar is None:
+  if pyrat.od.path == 'transit' and phy.rstar is None:
       log.error('Undefined stellar radius (rstar), required for transmission '
                 'calculation.')
 
@@ -161,12 +186,12 @@ def check_spectrum(pyrat):
       obs.nfilters = len(obs.filter)
   # Number checks:
   if pyrat.obs.uncert is not None and pyrat.obs.ndata != len(pyrat.obs.uncert):
-      log.error("Number of data uncertainty values ({:d}) does not match "
-                "the number of data points ({:d}).".
+      log.error('Number of data uncertainty values ({:d}) does not match '
+                'the number of data points ({:d}).'.
                 format(len(pyrat.obs.uncert), pyrat.obs.ndata))
   if (obs.filter is not None and obs.ndata > 0 and obs.ndata != obs.nfilters):
-      log.error("Number of filter bands ({:d}) does not match the "
-                "number of data points ({:d}).".
+      log.error('Number of filter bands ({:d}) does not match the '
+                'number of data points ({:d}).'.
                 format(obs.nfilters, obs.ndata))
 
   # Retrieval variables:
@@ -188,11 +213,11 @@ def check_spectrum(pyrat):
                     'for temperature model.')
 
   if pyrat.ncpu >= mp.cpu_count():
-      log.warning("Number of requested CPUs ({:d}) is >= than the number "
-                  "of available CPUs ({:d}).  Enforced ncpu to {:d}.".
+      log.warning('Number of requested CPUs ({:d}) is >= than the number '
+                  'of available CPUs ({:d}).  Enforced ncpu to {:d}.'.
                   format(pyrat.ncpu, mp.cpu_count(), mp.cpu_count()-1))
       pyrat.ncpu = mp.cpu_count() - 1
-  log.msg("Check spectrum done.")
+  log.msg('Check spectrum done.')
 
 
 def setup(pyrat):
@@ -205,40 +230,35 @@ def setup(pyrat):
   phy = pyrat.phy
   ret = pyrat.ret
   atm = pyrat.atm
+  obs = pyrat.obs
   log = pyrat.log
 
   # Setup bulk and variable-abundance species:
   species = pyrat.mol.name
   # Non-overlapping species:
   if atm.bulk is not None and len(np.setdiff1d(atm.bulk, species)) > 0:
-      log.error("These bulk species are not present in the atmosphere: {:s}.".
-                format(str(np.setdiff1d(atm.bulk, species))))
+      log.error('These bulk species are not present in the atmosphere: {}.'.
+                format(np.setdiff1d(atm.bulk, species)))
 
   if atm.molmodel is not None:
       if atm.molfree is None:
-          log.error("molmodel is set, but there are no molfree.")
+          log.error('molmodel is set, but there are no molfree.')
       if len(atm.molmodel) != len(atm.molfree):
-          log.error("There should be one molfree for each molmodel:\n"
-              "molmodel: {}\nmolfree: {}".format(atm.molmodel, atm.molfree))
+          log.error('There should be one molfree for each molmodel:\n'
+              'molmodel: {}\nmolfree: {}'.format(atm.molmodel, atm.molfree))
       if len(np.setdiff1d(atm.molfree, species)) > 0:
-          log.error("These species are not present in the atmosphere: {:s}.".
-                    format(str(np.setdiff1d(atm.molfree, species))))
+          log.error('These species are not present in the atmosphere: {}.'.
+                    format(np.setdiff1d(atm.molfree, species)))
 
   # Overlapping species:
   if (atm.bulk is not None and atm.molfree is not None
       and len(np.intersect1d(atm.bulk, atm.molfree)) > 0):
-      log.error("These species were marked as both bulk and variable-"
-          "abundance: {}.".format(np.intersect1d(atm.bulk, atm.molfree)))
+      log.error('These species were marked as both bulk and variable-'
+          'abundance: {}.'.format(np.intersect1d(atm.bulk, atm.molfree)))
 
-  if pyrat.runmode == "mcmc":
-      if ret.retflag is None:
-          log.error("Undefined retrieval model flags.  Set the retflag list "
-                    "of models selecting from: {:s}.".format(ret.rmodels))
-      elif not np.all(np.in1d(ret.retflag, ret.rmodels)):
-          log.error("Invalid retrieval model flags in retflag={}.  Available "
-                    "options are: {}.".format(ret.retflag, ret.rmodels))
-      if atm.bulk is None and "mol" in ret.retflag:
-          log.error("Undefined bulk species list (bulk).")
+  if pyrat.runmode == 'mcmc':
+      if atm.bulk is None and 'mol' in ret.retflag:
+          log.error('Undefined bulk species list (bulk).')
       if atm.molmodel is None and 'mol' in ret.retflag:
           log.error("Species abundances included for retrieval (retflag "
               "contains 'mol') but there are no abundance model (molmodel).")
@@ -252,17 +272,16 @@ def setup(pyrat):
       atm.ifree = [spec.index(mol) for mol in atm.molfree]
       nabund = len(atm.ifree)
       # Abundance free-parameter names:
-      mpnames   = ["log({:s})".format(mol) for mol in atm.molfree]
-      mtexnames = [r"$\log_{{10}}(f_{{\rm {:s}}})$".format(mol)
+      mpnames   = ['log({:s})'.format(mol) for mol in atm.molfree]
+      mtexnames = [r'$\log_{{10}}(f_{{\rm {:s}}})$'.format(mol)
                    for mol in atm.molfree]
   else:
       nabund = 0
       mpnames, mtexnames = [], []
 
-  # Read stellar spectrum model:
+  # Read stellar spectrum model (starspec, kurucz, or blackbody(tstar)):
   if phy.starspec is not None:
       starwn, starflux = io.read_spectrum(phy.starspec)
-  # Kurucz stellar model:
   elif phy.kurucz is not None:
       if phy.tstar is None:
           log.error('Undefined stellar temperature (tstar), required for '
@@ -272,64 +291,87 @@ def setup(pyrat):
                     'Kurucz model.')
       starflux, starwn, kuruczt, kuruczg = ps.read_kurucz(phy.kurucz,
           phy.tstar, np.log10(phy.gstar))
-      log.msg("Input stellar params: T={:7.1f} K, log(g)={:4.2f}\n"
-              "Best Kurucz match:    T={:7.1f} K, log(g)={:4.2f}".
+      log.msg('Input stellar params: T={:7.1f} K, log(g)={:4.2f}\n'
+              'Best Kurucz match:    T={:7.1f} K, log(g)={:4.2f}'.
               format(phy.tstar, np.log10(phy.gstar), kuruczt, kuruczg), verb=2)
-  # MARCS stellar model:
   elif phy.marcs is not None:
       pass
-  # PHOENIX stellar model:
   elif phy.phoenix is not None:
       pass
-  # Blackbody stellar model:
   elif phy.tstar is not None:
       starwn   = pyrat.spec.wn
       starflux = ps.bbflux(starwn, phy.tstar)
   else:
       starflux, starwn = None, None
 
-  # Store input stellar spectrum into pyrat:
-  phy.starflux  = starflux
-  phy.starwn    = starwn
+  phy.starflux = starflux
+  phy.starwn   = starwn
+
   # Store interpolated stellar spectrum:
   if phy.starflux is not None:
       sinterp = si.interp1d(phy.starwn, phy.starflux)
       pyrat.spec.starflux = sinterp(pyrat.spec.wn)
 
+  if pyrat.runmode=='mcmc' and pyrat.od.path=='eclipse' and starflux is None:
+      log.error('Undefined stellar flux model.  Set starspec, kurucz, or '
+                'tstar (for a blackbody spectrum).')
+
   # Set observational variables (for given filters and other parameters):
-  setfilters(pyrat.obs, pyrat.spec, pyrat.phy)
+  if obs.filter is not None:
+      bandidx   = []  # Filter wavenumber indices
+      starflux  = []  # Interpolated stellar flux
+      bandtrans = []  # Normalized interpolated filter transmission
+      bandwn    = []  # Band's mean wavenumber
+      for filter in obs.filter:
+          # Read filter wavenumber and transmission curves:
+          filterwn, filtertr = io.read_spectrum(filter)
+          # Resample the filters into the planet wavenumber array:
+          btrans, bidx = pt.resample(filtertr, filterwn, pyrat.spec.wn,
+              normalize=True)
+          bandidx.append(bidx)
+          bandtrans.append(btrans)
+          bandwn.append(np.sum(filterwn*filtertr)/np.sum(filtertr))
+          if phy.starflux is not None:
+              starflux.append(pyrat.spec.starflux[bidx])
+
+      # Per-band variables:
+      obs.bandidx   = bandidx
+      obs.bandtrans = bandtrans
+      obs.starflux  = starflux
+      obs.bandwn    = np.asarray(bandwn)
+      obs.bandflux  = np.zeros(obs.nfilters, np.double)
 
   # Planet-to-star radius ratio:
   if phy.rplanet is not None and phy.rstar is not None:
       phy.rprs = phy.rplanet/phy.rstar
 
   # Temperature models and arguments:
-  if atm.tmodelname == "TCEA":
+  if atm.tmodelname == 'TCEA':
       ntemp = 5
       atm.tmodel = pa.temp_TCEA
       atm.targs  = [pyrat.atm.press, phy.rstar, phy.tstar, phy.tint,
                     phy.gplanet, phy.smaxis]
-      tpnames   = ["log(kappa)", "log(gamma1)", "log(gamma2)", "alpha", "beta"]
-      ttexnames = [r"$\log_{10}(\kappa)$", r"$\log_{10}(\gamma_1)$",
-                   r"$\log_{10}(\gamma2)$", r"$\alpha$", r"$\beta$"]
-  elif atm.tmodelname == "isothermal":
+      tpnames   = ['log(kappa)', 'log(gamma1)', 'log(gamma2)', 'alpha', 'beta']
+      ttexnames = [r'$\log_{10}(\kappa)$', r'$\log_{10}(\gamma_1)$',
+                   r'$\log_{10}(\gamma2)$', r'$\alpha$', r'$\beta$']
+  elif atm.tmodelname == 'isothermal':
       ntemp = 1
       atm.tmodel = pa.temp_isothermal
       atm.targs = [pyrat.atm.nlayers]
-      tpnames   = ["T (K)"]
-      ttexnames = [r"$T\ ({\rm K})$"]
-  elif atm.tmodelname == "MadhuNoInv":
+      tpnames   = ['T (K)']
+      ttexnames = [r'$T\ ({\rm K})$']
+  elif atm.tmodelname == 'MadhuNoInv':
       ntemp = 5
       atm.tmodel = MadhuTP.no_inversion
       atm.targs  = [pyrat.atm.press*1e-6]
-      tpnames    = ["a1", "a2", "p1", "p3", "T3"]
-      ttexnames  = [r"$a_1$", r"$a_2$", r"$p_1$", r"$p_3$", r"$T_3$"]
-  elif atm.tmodelname == "MadhuInv":
+      tpnames    = ['a1', 'a2', 'p1', 'p3', 'T3']
+      ttexnames  = [r'$a_1$', r'$a_2$', r'$p_1$', r'$p_3$', r'$T_3$']
+  elif atm.tmodelname == 'MadhuInv':
       ntemp = 6
       atm.tmodel = MadhuTP.inversion
       atm.targs  = [pyrat.atm.press*1e-6]
-      tpnames    = ["a1", "a2", "p1", "p2", "p3", "T3"]
-      ttexnames  = [r"$a_1$", r"$a_2$", r"$p_1$", r"$p_2$", r"$p_3$", r"$T_3$"]
+      tpnames    = ['a1', 'a2', 'p1', 'p2', 'p3', 'T3']
+      ttexnames  = [r'$a_1$', r'$a_2$', r'$p_1$', r'$p_2$', r'$p_3$', r'$T_3$']
   else:
       ntemp = 0
       tpnames, ttexnames = [], []
@@ -355,85 +397,55 @@ def setup(pyrat):
       ret.retflag = []
   nparams = 0
   ret.pnames, ret.texnames = [], []
-  if "pt" in ret.retflag:
+  if 'pt' in ret.retflag:
       ret.itemp  = np.arange(nparams, nparams + ntemp)
       ret.pnames   += tpnames
       ret.texnames += ttexnames
       nparams += ntemp
-  if "rad" in ret.retflag:
+  if 'rad' in ret.retflag:
       ret.irad   = np.arange(nparams, nparams + 1)  # nrad is always 1
-      ret.pnames   += ["Radius (km)"]
-      ret.texnames += [r"${\rm Radius\ (km)}$"]
+      ret.pnames   += ['Radius (km)']
+      ret.texnames += [r'${\rm Radius\ (km)}$']
       nparams += 1
-  if "mol" in ret.retflag:
+  if 'mol' in ret.retflag:
       ret.iabund = np.arange(nparams, nparams + nabund)
       ret.pnames   += mpnames
       ret.texnames += mtexnames
       nparams += nabund
-  if "ray" in ret.retflag:
+  if 'ray' in ret.retflag:
       ret.iray   = np.arange(nparams, nparams + nray)
       ret.pnames   += rpnames
       ret.texnames += rtexnames
       nparams += nray
-  if "haze" in ret.retflag:
+  if 'haze' in ret.retflag:
       ret.ihaze  = np.arange(nparams, nparams + nhaze)
       ret.pnames   += hpnames
       ret.texnames += htexnames
       nparams += nhaze
-  #if "cloud" in ret.retflag:
+  #if 'cloud' in ret.retflag:
   #  ret.icloud  = np.arange(nparams, nparams + ncloud)
   #  ret.pnames   += cpnames
   #  ret.texnames += ctexnames
   #  nparams += ncloud
-  if "patchy" in ret.retflag:
+  if 'patchy' in ret.retflag:
       ret.ipatchy = np.arange(nparams, nparams + 1)  # npatchy is always 1
-      ret.pnames   += ["f_patchy"]
-      ret.texnames += [r"$f_{\rm patchy}$"]
+      ret.pnames   += ['f_patchy']
+      ret.texnames += [r'$f_{\rm patchy}$']
       nparams += 1
 
-  if pyrat.runmode == "mcmc":
+  if pyrat.runmode == 'mcmc':
       if ret.nparams != nparams:
-          log.error("The input number of fitting parameters ({:d}) does not "
-                    "match the number of model parameters ({:d}).".
+          log.error('The input number of fitting parameters ({:d}) does not '
+                    'match the number of required parameters ({:d}).'.
                     format(ret.nparams, nparams))
 
   # Check for non-retrieval model/parameters:
   if (pyrat.rayleigh.nmodels > 0
-      and (pyrat.runmode != "mcmc" or "ray" not in ret.retflag)
+      and (pyrat.runmode != 'mcmc' or 'ray' not in ret.retflag)
       and pyrat.rayleigh.pars is None):
-      log.error("Rayleigh parameters (rpars) have not been specified.")
+      log.error('Rayleigh parameters (rpars) have not been specified.')
   if (pyrat.haze.nmodels > 0
-      and (pyrat.runmode != "mcmc" or "haze" not in ret.retflag)
+      and (pyrat.runmode != 'mcmc' or 'haze' not in ret.retflag)
       and pyrat.haze.pars is None):
-      log.error("Haze parameters (hpars) have not been specified.")
+      log.error('Haze parameters (hpars) have not been specified.')
 
-
-def setfilters(obs, spec, phy):
-  """
-  Set observational variables (pyrat.obs) based on given parameters.
-  """
-  # Skip if there are no filter bands:
-  if obs.filter is None:
-      return
-  # Load filters:
-  bandidx   = []  # Filter wavenumber indices
-  starflux  = []  # Interpolated stellar flux
-  bandtrans = []  # Normalized interpolated filter transmission
-  bandwn    = []  # Band's mean wavenumber
-  for i in np.arange(obs.nfilters):
-      # Read filter wavenumber and transmission curves:
-      filterwn, filtertr = io.read_spectrum(obs.filter[i])
-      # Resample the filters into the stellar wavenumber array:
-      btrans, bidx = pt.resample(filtertr, filterwn, spec.wn, normalize=True)
-      sflux, dummy = pt.resample(phy.starflux, phy.starwn, spec.wn)
-      bandidx.append(bidx)
-      bandtrans.append(btrans)
-      starflux.append(sflux)
-      bandwn.append(np.sum(filterwn*filtertr)/np.sum(filtertr))
-
-  # Per-band variables:
-  obs.bandidx   = bandidx
-  obs.bandtrans = bandtrans
-  obs.starflux  = starflux
-  obs.bandwn    = np.asarray(bandwn)
-  obs.bandflux  = np.zeros(obs.nfilters, np.double)

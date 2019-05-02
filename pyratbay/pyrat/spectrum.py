@@ -22,16 +22,16 @@ def spectrum(pyrat):
   # Initialize the spectrum array:
   pyrat.spec.spectrum = np.empty(pyrat.spec.nwave, np.double)
   if pyrat.haze.fpatchy is not None:
-    pyrat.spec.clear  = np.empty(pyrat.spec.nwave, np.double)
-    pyrat.spec.cloudy = np.empty(pyrat.spec.nwave, np.double)
+      pyrat.spec.clear  = np.empty(pyrat.spec.nwave, np.double)
+      pyrat.spec.cloudy = np.empty(pyrat.spec.nwave, np.double)
 
   # Call respective function depending on the geometry:
-  if   pyrat.od.path == "transit":
-    modulation(pyrat)
+  if pyrat.od.path == "transit":
+      modulation(pyrat)
 
   elif pyrat.od.path == "eclipse":
-    intensity(pyrat)
-    flux(pyrat)
+      intensity(pyrat)
+      flux(pyrat)
 
   # Print spectrum to file:
   io.write_spectrum(1.0/pyrat.spec.wn, pyrat.spec.spectrum,
@@ -110,8 +110,8 @@ def intensity(pyrat):
   bb.Bwn2D(spec.wn, pyrat.atm.temp, pyrat.od.B, pyrat.od.ideep)
 
   # Plane-parallel radiative-transfer intensity integration:
-  spec.intensity = t.intensity(pyrat.od.depth, pyrat.od.ideep,
-                               pyrat.od.B, np.cos(spec.raygrid), pyrat.atm.rtop)
+  spec.intensity = t.intensity(pyrat.od.depth, pyrat.od.ideep, pyrat.od.B,
+                               np.cos(spec.raygrid), pyrat.atm.rtop)
 
 
 def flux(pyrat):
@@ -129,4 +129,5 @@ def flux(pyrat):
       area = spec.qweights * np.pi
   # Weight-sum the intensities to get the flux:
   spec.spectrum[:] = np.sum(spec.intensity * np.expand_dims(area,1), axis=0)
-  pyrat.log.msg("Computed flux spectrum: '{:s}'.".format(spec.outspec),indent=2)
+  pyrat.log.msg("Computed emission spectrum: '{}'.".format(spec.outspec),
+                indent=2)

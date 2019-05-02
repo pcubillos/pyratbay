@@ -428,10 +428,10 @@ def parse(pyrat, cfile):
       parse_array(args, 'prior')
       parse_array(args, 'priorlow')
       parse_array(args, 'priorup')
-      parse_str(args,   'walk')        # 'snooker'
-      parse_int(args,   'nsamples')    # 1e5
-      parse_int(args,   'nchains')     # 7
-      parse_int(args,   'burnin')      # 0
+      parse_str(args,   'walk')
+      parse_int(args,   'nsamples')
+      parse_int(args,   'nchains')
+      parse_int(args,   'burnin')
       parse_int(args,   'thinning')
       parse_float(args, 'grbreak')
       parse_float(args, 'grnmin')

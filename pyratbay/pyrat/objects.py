@@ -549,8 +549,6 @@ class Observation(object):
 # Retrieval variables:
 class Retrieval(object):
   def __init__(self):
-    # Available model types for retrieval:
-    self.rmodels = ["pt", "rad", "mol", "ray", "haze", "cloud", "patchy"]
     self.retflag = None  # Flags for models to be included for retrieval
     self.nparams = 0     # Number of free parameters
     self.tlow    = None  # Lower-temperature retrieval boundary

@@ -93,6 +93,24 @@ def undefined_opacity():
 
 
 @pytest.fixture
+def undefined_mcmc():
+    data = {
+        'retflag':"Undefined retrieval model flags.  Select from ['pt', "
+                  "'rad', 'mol', 'ray',\n'haze', 'patchy'].",
+        'params': 'Undefined retrieval fitting parameters (params).',
+        'data':   'Undefined transit/eclipse data (data).',
+        'uncert': 'Undefined data uncertainties (uncert).',
+        'filter': 'Undefined transmission filters (filter).',
+        'walk': 'Undefined retrieval algorithm (walk).  Select from [snooker].',
+        'nsamples': 'Undefined number of retrieval samples (nsamples).',
+        'burnin':   'Undefined number of retrieval burn-in samples (burnin).',
+        'nchains':  'Undefined number of retrieval parallel chains (nchains).',
+        'rstar':    'Undefined radius ratio (need rplanet and rstar).',
+    }
+    return data
+
+
+@pytest.fixture
 def invalid_raygrid():
     data = {
         '10 60 90': 'First angle in raygrid must be 0.0 (normal to surface).',

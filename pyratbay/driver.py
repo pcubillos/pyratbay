@@ -37,15 +37,16 @@ def run(cfile, init=False):
   log = pyrat.log
   phy = pyrat.phy
   atm = pyrat.atm
+  ret = pyrat.ret
   inputs = pyrat.inputs
 
   # Call lineread package:
   if pyrat.runmode == 'tli':
       if pyrat.lt.tlifile is None:
           log.error('Undefined TLI file (tlifile).')
-      args = pyrat.inputs
-      lr.makeTLI(args.dblist, args.pflist, args.dbtype, pyrat.lt.tlifile[0],
-                 pyrat.spec.wllow, pyrat.spec.wlhigh, pyrat.spec.wlunits, log)
+      lr.makeTLI(inputs.dblist, inputs.pflist, inputs.dbtype,
+                 pyrat.lt.tlifile[0], pyrat.spec.wllow, pyrat.spec.wlhigh,
+                 pyrat.spec.wlunits, log)
       return
 
 
@@ -129,17 +130,6 @@ def run(cfile, init=False):
       pyrat.run()
       return pyrat
 
-  # Retrieval checks:
-  if pyrat.od.path == "eclipse" and pyrat.phy.starflux is None:
-      log.error("Undefined stellar flux model (kurucz or starspec).")
-  if pyrat.od.path == "eclipse" and pyrat.phy.rprs is None:
-      log.error("Undefined radius ratio (need rplanet and rstar).")
-  if pyrat.obs.filter is None:
-      log.error("Undefined transmission filters (filter).")
-  if pyrat.obs.data is None:
-      log.error("Undefined transit/eclipse data (data).")
-  if pyrat.obs.uncert is None:
-      log.error("Undefined data uncertainties (uncert).")
 
   muted_log = mc3.utils.Log(None, verb=0, width=80)
   pyrat.log = muted_log      # Mute logging in PB, but not in MC3
@@ -147,10 +137,9 @@ def run(cfile, init=False):
   retmodel = False  # Return only the band-integrated spectrum
   # Basename of the output files (no path, no extension):
   outfile = os.path.splitext(os.path.basename(pyrat.ret.mcmcfile))[0]
-  ret = pyrat.ret
 
   # Run MCMC:
-  mc3_out = mc3.mcmc(data=args.data, uncert=args.uncert,
+  mc3_out = mc3.mcmc(data=pyrat.obs.data, uncert=pyrat.obs.uncert,
       func=pyrat.eval, indparams=[retmodel], params=ret.params,
       pmin=ret.pmin, pmax=ret.pmax, stepsize=ret.stepsize,
       prior=ret.prior, priorlow=ret.priorlow, priorup=ret.priorup,
@@ -160,7 +149,7 @@ def run(cfile, init=False):
       hsize=10, kickoff='normal', log=log, nproc=pyrat.ncpu,
       plots=True, showbp=False,
       pnames=ret.pnames, texnames=ret.texnames,
-      resume=pyrat.inputs.resume, savefile=ret.mcmcfile)
+      resume=inputs.resume, savefile=ret.mcmcfile)
 
   if mc3_out is None:
       log.error("Error in MC3.")
@@ -180,7 +169,7 @@ def run(cfile, init=False):
               header, radius=pyrat.atm.radius, runits='km')
 
   # Best-fitting spectrum:
-  pp.spectrum(pyrat=pyrat, logxticks=args.logxticks, yran=args.yran,
+  pp.spectrum(pyrat=pyrat, logxticks=inputs.logxticks, yran=inputs.yran,
               filename="{:s}_bestfit_spectrum.png".format(outfile))
   # Posterior PT profiles:
   if pyrat.atm.tmodelname in ["TCEA", "MadhuInv", "MadhuNoInv"]:
@@ -201,7 +190,7 @@ def run(cfile, init=False):
   pyrat.log = log  # Un-mute
   log.msg("\nOutput MCMC posterior results, log, bestfit atmosphere, "
           "and spectrum:\n'{:s}.npz',\n'{:s}',\n'{:s}',\n'{:s}'.\n\n".
-          format(outfile, os.path.basename(args.logfile), bestatm,
+          format(outfile, os.path.basename(inputs.logfile), bestatm,
                  pyrat.spec.outspec))
   log.close()
   return pyrat, bestp

@@ -4863,3 +4863,9 @@ Fixed bug when setting pressure boundaries in make_atmprofiles().
 Added check for ptop > pbottom.
 Fixed text for invalid-pressure error in atmosphere.pressure().
 
+*****
+
+Added check and tests for mcmc missing parameters.
+Added undefined_mcmc fixture.
+Fixed bugs here and there.
+
