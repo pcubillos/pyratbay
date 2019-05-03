@@ -178,3 +178,19 @@ def invalid_path():
     return data
 
 
+@pytest.fixture
+def invalid_temp():
+    data = {
+        'csfile':  'One or more input temperature values lies out of '
+                   'the cross-section\ntemperature boundaries '
+                   '(K): [  60.0, 3000.0].',
+        'tlifile': 'One or more input temperature values lies out of '
+                   'the line-transition\ntemperature boundaries '
+                   '(K): [  70.0, 3000.0]',
+        'extfile': 'One or more input temperature values lies out of the '
+                   'tabulated\nextinction-coefficient temperature boundaries '
+                   '(K): [ 300.0, 3000.0].',
+    }
+    return data
+
+

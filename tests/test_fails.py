@@ -604,7 +604,8 @@ def test_bulk_not_in_atm(tmp_path, capfd):
     assert pyrat is None
     captured = capfd.readouterr()
     assert "Error in module: 'argum.py', function: 'setup'" in captured.out
-    assert "These bulk species are not present in the atmosphere: ['N2']." in captured.out
+    assert "These bulk species are not present in the atmosphere: ['N2']." \
+           in captured.out
 
 
 def test_molfree_mismatch(tmp_path, capfd):
@@ -772,4 +773,18 @@ def test_mcmc_missing_starspec(tmp_path, capfd):
     assert "Error in module: 'argum.py', function: 'setup'" in captured.out
     assert ('Undefined stellar flux model.  Set starspec, kurucz, or tstar '
             '(for a\nblackbody spectrum).') in captured.out
+
+
+@pytest.mark.parametrize('param', ['tlifile', 'csfile', 'extfile'])
+def test_spectrum_temperature_bounds(tmp_path, capfd, param, invalid_temp):
+    remove = [par for par in ['tlifile', 'csfile', 'extfile'] if par != param]
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        reset={'tmodel':'isothermal', 'tpars':'10.0',
+               'extfile':'exttable_test_300-3000K_1.1-1.7um.dat'},
+        remove=remove)
+    pyrat = pb.run(cfg)
+    assert pyrat is not None
+    captured = capfd.readouterr()
+    assert invalid_temp[param] in captured.out
+    assert pyrat.spec.spectrum is None
 

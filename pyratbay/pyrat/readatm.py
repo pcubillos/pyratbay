@@ -143,16 +143,19 @@ def reloadatm(pyrat, temp=None, abund=None, radius=None):
               "temperature boundaries (K): [{:6.1f}, {:6.1f}].")
   if pyrat.ex.extfile is not None:
       if np.any(temp > pyrat.ex.tmax) or np.any(temp < pyrat.ex.tmin):
-          pyrat.log.error(errorlog.format("tabulated extinction-coefficient",
-                                          pyrat.ex.tmin, pyrat.ex.tmax))
+          pyrat.log.warning(errorlog.format('tabulated extinction-coefficient',
+                                            pyrat.ex.tmin, pyrat.ex.tmax))
+          return 0
   elif pyrat.lt.ntransitions > 0:
       if np.any(temp > pyrat.lt.tmax) or np.any(temp < pyrat.lt.tmin):
-          pyrat.log.error(errorlog.format("line-transition", pyrat.lt.tmin,
-                                                             pyrat.lt.tmax))
-  if (pyrat.cs.nfiles > 0
-      and (np.any(temp > pyrat.cs.tmax) or np.any(temp < pyrat.cs.tmin))):
-      pyrat.log.error(errorlog.format("cross-section", pyrat.cs.tmin,
-                                                       pyrat.cs.tmax))
+          pyrat.log.warning(errorlog.format('line-transition',
+                                            pyrat.lt.tmin, pyrat.lt.tmax))
+          return 0
+  if pyrat.cs.nfiles > 0:
+      if np.any(temp > pyrat.cs.tmax) or np.any(temp < pyrat.cs.tmin):
+          pyrat.log.warning(errorlog.format('cross-section',
+                                            pyrat.cs.tmin, pyrat.cs.tmax))
+          return 0
 
   # Recompute abundance profiles:
   q0 = np.copy(pyrat.atm.qbase)

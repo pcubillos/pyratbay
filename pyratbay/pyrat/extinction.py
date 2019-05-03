@@ -3,7 +3,6 @@
 
 import os
 import sys
-import struct
 import ctypes
 import multiprocessing   as mpr
 
@@ -80,7 +79,7 @@ def read_extinction(pyrat):
 
   # Some checks:
   if ex.nwave != pyrat.spec.nwave or np.sum(np.abs(ex.wn-pyrat.spec.wn)) > 0:
-      pyrat.warning("Wavenumber sampling from extinction-coefficient "
+      pyrat.log.warning("Wavenumber sampling from extinction-coefficient "
           "table does not match the input wavenumber sampling.  Adopting "
           "tabulated array with {:d} samples, spacing of {:.2f} cm-1, "
           "and ranges [{:.2f}, {:.2f}] cm-1.".

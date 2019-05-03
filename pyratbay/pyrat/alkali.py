@@ -12,11 +12,9 @@ def init(pyrat):
     if pyrat.alkali.nmodels > 0:
         pyrat.log.msg("\nSetup Alkali opacity models.")
         # Species index in atmosphere:
-        pyrat.alkali.imol = -np.ones(pyrat.alkali.nmodels, int)
-        for i in np.arange(pyrat.alkali.nmodels):
-            imol = np.where(pyrat.mol.name == pyrat.alkali.model[i].mol)[0]
-            if np.size(imol) != 0:
-                pyrat.alkali.imol[i] = imol[0]
+        for alkali in pyrat.alkali.model:
+            if alkali.mol in pyrat.mol.name:
+                alkali.imol = np.where(pyrat.mol.name==alkali.mol)[0][0]
         pyrat.log.msg("Alkali done.")
 
 
@@ -27,67 +25,66 @@ def absorption(pyrat):
   # Initialize extinction coefficient variable:
   pyrat.alkali.ec = np.zeros((pyrat.atm.nlayers, pyrat.spec.nwave))
 
-  for i in np.arange(pyrat.alkali.nmodels):
-    alkali = pyrat.alkali.model[i]
+  for alkali in pyrat.alkali.model:
+      imol = alkali.imol
 
-    if pyrat.alkali.imol[i] < 0:
-      pyrat.log.warning("Alkali species '{:s}' is not present in the "
-                        "atmospheric file.".format(alkali.mol))
-      continue
-    imol = pyrat.alkali.imol[i]
-    dens = np.expand_dims(pyrat.atm.d[:,imol], axis=1)
-    temp = pyrat.atm.temp
+      if alkali.imol < 0:
+          pyrat.log.warning("Alkali species '{:s}' is not present in the "
+                            "atmospheric file.".format(alkali.mol))
+          continue
+      dens = np.expand_dims(pyrat.atm.d[:,imol], axis=1)
+      temp = pyrat.atm.temp
 
-    # Detuning frequency (cm-1):
-    dsigma = alkali.detuning * (temp/500.0)**0.6
-    # Doppler half width (cm-1):
-    dop = (np.sqrt(2*pc.k*temp / (pyrat.mol.mass[imol]*pc.amu)) *
-           np.expand_dims(alkali.wn, axis=1)/pc.c  )
-    # Lorentz half width (cm-1):
-    lor = alkali.lpar * (temp/2000.0)**(-0.7) * pyrat.atm.press/pc.atm
+      # Detuning frequency (cm-1):
+      dsigma = alkali.detuning * (temp/500.0)**0.6
+      # Doppler half width (cm-1):
+      dop = (np.sqrt(2*pc.k*temp / (pyrat.mol.mass[imol]*pc.amu)) *
+             np.expand_dims(alkali.wn, axis=1)/pc.c  )
+      # Lorentz half width (cm-1):
+      lor = alkali.lpar * (temp/2000.0)**(-0.7) * pyrat.atm.press/pc.atm
 
 
-    # Initialize Voigt model:
-    voigt = broad.Voigt()
-    # Calculate cross section:
-    alkali.ec = np.zeros((pyrat.atm.nlayers, pyrat.spec.nwave), np.double)
-    for k in np.arange(len(alkali.wn)):
-      ec = np.zeros((pyrat.atm.nlayers, pyrat.spec.nwave), np.double)
-      # Update Voigt model:
-      voigt.x0 = alkali.wn[k]
-      fwidth = 0.5346*(2*lor) + np.sqrt(0.2166*(2*lor)**2 + (2*dop[k])**2)
-      # Model spectral sampling rate at alkali.wn:
-      dwave = pyrat.spec.wnstep if pyrat.spec.resolution is None else \
-              alkali.wn[k]/pyrat.spec.resolution
-      for j in np.arange(pyrat.atm.nlayers):
-        # Profile ranges:
-        det = np.abs(pyrat.spec.wn - alkali.wn[k]) < dsigma[j]
-        wlo = pt.ifirst(det, default_ret=-1)
-        whi = pt.ilast( det, default_ret=-2) + 1
-        voigt.hwhmL = lor[j]
-        voigt.hwhmG = dop[k,j]
-        wndet = pyrat.spec.wn[wlo:whi]
-        # EC at the detuning boundary:
-        edet = voigt(alkali.wn[k]+dsigma[j])
-        # Extinction outside the detuning region (power law):
-        ec[j] += edet / (dsigma[j] / np.abs(pyrat.spec.wn-alkali.wn[k]))**-1.5
-        # Extinction in the detuning region (Voigt profile):
-        profile = voigt(wndet)
-        # Correction for undersampled line:
-        if whi>wlo and fwidth[j] < 2.0*dwave:
-          i0 = np.argmin(np.abs(alkali.wn[k]-wndet))
-          profile[i0] = 0.0
-          profile[i0] = 1.0-np.trapz(profile, wndet)
-        ec[j, wlo:whi] = profile
-      # Add up contribution (include exponential cutoff):
-      alkali.ec += (pc.C3 * ec * alkali.gf[k]/alkali.Z * dens
-                    * np.exp(-pc.C2*np.abs(pyrat.spec.wn-alkali.wn[k])
-                             / np.expand_dims(temp,axis=1)))
-      # Note this equation is neglecting the exp(-Elow/T)*(1-exp(-nu0/T))
-      # terms because they are approximately 1.0 at T=[100K--4000K]
+      # Initialize Voigt model:
+      voigt = broad.Voigt()
+      # Calculate cross section:
+      alkali.ec = np.zeros((pyrat.atm.nlayers, pyrat.spec.nwave), np.double)
+      for k in np.arange(len(alkali.wn)):
+          ec = np.zeros((pyrat.atm.nlayers, pyrat.spec.nwave), np.double)
+          # Update Voigt model:
+          voigt.x0 = alkali.wn[k]
+          fwidth = 0.5346*(2*lor) + np.sqrt(0.2166*(2*lor)**2 + (2*dop[k])**2)
+          # Model spectral sampling rate at alkali.wn:
+          dwave = pyrat.spec.wnstep if pyrat.spec.resolution is None else \
+                  alkali.wn[k]/pyrat.spec.resolution
+          for j in np.arange(pyrat.atm.nlayers):
+              # Profile ranges:
+              det = np.abs(pyrat.spec.wn - alkali.wn[k]) < dsigma[j]
+              wlo = pt.ifirst(det, default_ret=-1)
+              whi = pt.ilast( det, default_ret=-2) + 1
+              voigt.hwhmL = lor[j]
+              voigt.hwhmG = dop[k,j]
+              wndet = pyrat.spec.wn[wlo:whi]
+              # EC at the detuning boundary:
+              edet = voigt(alkali.wn[k]+dsigma[j])
+              # Extinction outside the detuning region (power law):
+              ec[j] += edet / (dsigma[j] / np.abs(pyrat.spec.wn-alkali.wn[k]))**-1.5
+              # Extinction in the detuning region (Voigt profile):
+              profile = voigt(wndet)
+              # Correction for undersampled line:
+              if whi > wlo and fwidth[j] < 2.0*dwave:
+                  i0 = np.argmin(np.abs(alkali.wn[k]-wndet))
+                  profile[i0] = 0.0
+                  profile[i0] = 1.0-np.trapz(profile, wndet)
+              ec[j, wlo:whi] = profile
+          # Add up contribution (include exponential cutoff):
+          alkali.ec += (pc.C3 * ec * alkali.gf[k]/alkali.Z * dens
+                        * np.exp(-pc.C2*np.abs(pyrat.spec.wn-alkali.wn[k])
+                                 / np.expand_dims(temp,axis=1)))
+          # Note this equation is neglecting the exp(-Elow/T)*(1-exp(-nu0/T))
+          # terms because they are approximately 1.0 at T=[100K--4000K]
 
-    # Sum alkali extinction coefficient (cm-1):
-    pyrat.alkali.ec += alkali.ec
+      # Sum alkali extinction coefficient (cm-1):
+      pyrat.alkali.ec += alkali.ec
 
 
 def get_ec(pyrat, layer):
@@ -95,13 +92,11 @@ def get_ec(pyrat, layer):
   Extract per-species extinction coefficient at requested layer.
   """
   absorption(pyrat)
-  label = []
-  ec = np.zeros((0, pyrat.spec.nwave))
-  for i in np.arange(pyrat.alkali.nmodels):
-    if pyrat.alkali.imol[i] >= 0:
-      e = pyrat.alkali.model[i].ec[layer]
-      ec = np.vstack((ec, e))
-      label.append(pyrat.alkali.model[i].mol)
+  ec, label = [], []
+  for alkali in pyrat.alkali.model:
+      if alkali.imol >= 0:
+          ec.append(alkali.ec[layer])
+          label.append(alkali.mol)
   return ec, label
 
 
@@ -114,6 +109,7 @@ class SodiumVdWst():
     self.name  = "SodiumVdWst"  # Model name
     self.ec    = None           # Opacity cross section (cm2 molec-1)
     self.mol   = "Na"           # Species causing the extinction
+    self.imol  = -1
     # Line properties (from VALD):
     self.wn    = [16960.87, 16978.07] # Wavenumber in cm-1
     self.elow  = [0.0,      0.0]
@@ -132,6 +128,7 @@ class PotassiumVdWst():
     self.name  = "PotassiumVdWst" # Model name
     self.ec    = None             # Opacity cross section (cm2 molec-1)
     self.mol   = "K"
+    self.imol  = -1
     # Line properties (VALD):
     self.wn    = [12988.76, 13046.486]  # Wavenumber in cm-1
     self.elow  = [0.0,      0.0]

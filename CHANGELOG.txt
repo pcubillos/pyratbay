@@ -4880,3 +4880,13 @@ Updated tests.
 Added test for Pyrat.get_ec() method.
 PEP8'ed haze.py and rayleigh.py.
 
+
+*****  Fr 3. Mai 16:26:47 CEST 2019  *****
+
+PEP8'ed alkali.py and crosssec.py.
+Removed a few pieces of redundant code here and there.
+Added tests for out-of-bound atmospheric temperatures
+This must be a warninig, not an error (to avoid breaking execution
+during a retrieval).
+Added invalid_temp fixture.
+

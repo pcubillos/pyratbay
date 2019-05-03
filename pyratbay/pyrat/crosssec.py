@@ -24,10 +24,10 @@ def read(pyrat):
       pyrat.cs.nfiles = len(pyrat.cs.files)
       # Allocate molecules array:
       pyrat.cs.molecules = []
-      pyrat.cs.nmol      = np.zeros(pyrat.cs.nfiles, np.int)
+      pyrat.cs.nmol  = np.zeros(pyrat.cs.nfiles, np.int)
       # Allocate the number of temperature and wavenumber samples per file:
-      pyrat.cs.ntemp     = np.zeros(pyrat.cs.nfiles, np.int)
-      pyrat.cs.nwave     = np.zeros(pyrat.cs.nfiles, np.int)
+      pyrat.cs.ntemp = np.zeros(pyrat.cs.nfiles, np.int)
+      pyrat.cs.nwave = np.zeros(pyrat.cs.nfiles, np.int)
 
   if pyrat.cs.nfiles == 0:
       pyrat.log.msg("No CS files to read.", indent=2)
@@ -103,52 +103,40 @@ def interpolate(pyrat, layer=None):
   """
   pyrat.log.msg("\nBegin CS interpolation.")
 
-  # Check temperature boundaries:
-  if np.any(pyrat.atm.temp < pyrat.cs.tmin):
-    icold = np.where(pyrat.atm.temp < pyrat.cs.tmin)[0][0]
-    pyrat.log.error("Layer {:d} in the atmospheric model has a lower "
-             "temperature ({:.1f} K) than the lowest allowed CS temperature "
-             "({:.1f} K).".format(icold, pyrat.atm.temp[icold], pyrat.cs.tmin))
-  if np.any(pyrat.atm.temp > pyrat.cs.tmax):
-    ihot = np.where(pyrat.atm.temp > pyrat.cs.tmax)[0][0]
-    pyrat.log.error("Layer {:d} in the atmospheric model has a higher "
-             "temperature ({:.1f} K) than the highest allowed CS temperature "
-             "({:.1f} K).".format(ihot, pyrat.atm.temp[ihot], pyrat.cs.tmax))
-
   # Allocate output extinction-coefficient array:
   if layer is None:   # Take a single layer
-    ec = np.zeros((pyrat.atm.nlayers, pyrat.spec.nwave))
-    li, lf = 0, pyrat.atm.nlayers
+      ec = np.zeros((pyrat.atm.nlayers, pyrat.spec.nwave))
+      li, lf = 0, pyrat.atm.nlayers
   else:               # Take whole atmosphere
-    ec = np.zeros((pyrat.cs.nfiles, pyrat.spec.nwave))
-    li, lf = layer, layer+1
-    label = []
+      ec = np.zeros((pyrat.cs.nfiles, pyrat.spec.nwave))
+      li, lf = layer, layer+1
+      label = []
 
   for i in np.arange(pyrat.cs.nfiles):
-    cs_absorption = np.zeros((lf-li, pyrat.spec.nwave))
-    sp.splinterp_2D(pyrat.cs.iabsorp[i], pyrat.cs.temp[i], pyrat.cs.iz[i],
-                    pyrat.atm.temp[li:lf], cs_absorption,
-                    pyrat.cs.iwnlo[i], pyrat.cs.iwnhi[i])
+      cs_absorption = np.zeros((lf-li, pyrat.spec.nwave))
+      sp.splinterp_2D(pyrat.cs.iabsorp[i], pyrat.cs.temp[i], pyrat.cs.iz[i],
+                      pyrat.atm.temp[li:lf], cs_absorption,
+                      pyrat.cs.iwnlo[i], pyrat.cs.iwnhi[i])
 
-    # Apply density scale factor:
-    dens = 1.0
-    for j in np.arange(pyrat.cs.nmol[i]):
-      # Get index from the pyrat list of molecules:
-      imol = np.where(pyrat.mol.name == pyrat.cs.molecules[i][j])[0][0]
-      # Densities in amagat:
-      dens *= pyrat.atm.d[li:lf,imol] / pc.amagat
+      # Apply density scale factor:
+      dens = 1.0
+      for j in np.arange(pyrat.cs.nmol[i]):
+          # Get index from the pyrat list of molecules:
+          imol = np.where(pyrat.mol.name == pyrat.cs.molecules[i][j])[0][0]
+          # Densities in amagat:
+          dens *= pyrat.atm.d[li:lf,imol] / pc.amagat
 
-    # Compute CS absorption in cm-1 units:
-    if layer is None:
-      ec += cs_absorption * np.expand_dims(dens, axis=1)
-    else:
-      ec[i] = cs_absorption * dens
-      if pyrat.cs.nmol[i] == 2:
-          label.append('CIA ' + '-'.join(pyrat.cs.molecules[i]))
+      # Compute CS absorption in cm-1 units:
+      if layer is None:
+          ec += cs_absorption * np.expand_dims(dens, axis=1)
       else:
-          label.append(pyrat.cs.molecules[i][0])
+          ec[i] = cs_absorption * dens
+          if pyrat.cs.nmol[i] == 2:
+              label.append('CIA ' + '-'.join(pyrat.cs.molecules[i]))
+          else:
+              label.append(pyrat.cs.molecules[i][0])
 
-    pyrat.log.msg("CS extinction: {}".format(ec[:,0]), verb=4, indent=2)
+      pyrat.log.msg("CS extinction: {}".format(ec[:,0]), verb=4, indent=2)
   # Return per-database EC if single-layer run:
   if layer is not None:
       return ec, label
