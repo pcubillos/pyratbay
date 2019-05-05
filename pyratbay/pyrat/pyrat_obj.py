@@ -275,107 +275,107 @@ class Pyrat(object):
 
 
   def band_integrate(self):
-    """
-    Band-integrate transmission spectrum (transit) or planet-to-star
-    flux ratio (eclipse) over transmission band passes.
-    """
-    if self.obs.bandtrans is None:
-        return None
+      """
+      Band-integrate transmission spectrum (transit) or planet-to-star
+      flux ratio (eclipse) over transmission band passes.
+      """
+      if self.obs.bandtrans is None:
+          return None
 
-    spectrum = self.spec.spectrum
-    specwn   = self.spec.wn
-    bandidx  = self.obs.bandidx
+      spectrum = self.spec.spectrum
+      specwn   = self.spec.wn
+      bandidx  = self.obs.bandidx
 
-    if self.od.path == 'transit':
-        bandtrans = self.obs.bandtrans
-    elif self.od.path == 'eclipse':
-        bandtrans = [btrans/sflux * self.phy.rprs**2
-             for btrans, sflux in zip(self.obs.bandtrans, self.obs.starflux)]
+      if self.od.path == 'transit':
+          bandtrans = self.obs.bandtrans
+      elif self.od.path == 'eclipse':
+          bandtrans = [btrans/sflux * self.phy.rprs**2
+               for btrans, sflux in zip(self.obs.bandtrans, self.obs.starflux)]
 
-    self.obs.bandflux = np.array([np.trapz(spectrum[idx]*btrans, specwn[idx])
-                                  for btrans, idx in zip(bandtrans, bandidx)])
+      self.obs.bandflux = np.array([np.trapz(spectrum[idx]*btrans, specwn[idx])
+                                    for btrans, idx in zip(bandtrans, bandidx)])
 
-    return self.obs.bandflux
+      return self.obs.bandflux
 
 
   def hydro(self, pressure, temperature, mu, g, mass, p0, r0):
-    """
-    Hydrostatic-equilibrium driver.
-    Depending on the self.atm.hydrom flag, select between the g=GM/r**2
-    (hydrom=True) or constant-g (hydrom=False) formula to compute
-    the hydrostatic-equilibrium radii of the planet layers.
+      """
+      Hydrostatic-equilibrium driver.
+      Depending on the self.atm.hydrom flag, select between the g=GM/r**2
+      (hydrom=True) or constant-g (hydrom=False) formula to compute
+      the hydrostatic-equilibrium radii of the planet layers.
 
-    Parameters
-    ----------
-    pressure: 1D float ndarray
-       Atmospheric pressure for each layer (in barye).
-    temperature: 1D float ndarray
-       Atmospheric temperature for each layer (in K).
-    mu: 1D float ndarray
-       Mean molecular mass for each layer (in g mol-1).
-    g: Float
-       Atmospheric gravity (in cm s-2).
-    mass: Float
-       Planetary mass (in g).
-    p0: Float
-       Reference pressure level (in barye) where radius(p0) = r0.
-    r0: Float
-       Reference radius level (in cm) corresponding to p0.
-    """
-    # H.E. with  g=GM/r**2:
-    if self.atm.hydrom:
-      return pa.hydro_m(pressure, temperature, mu, mass, p0, r0)
-    # H.E. with constant g:
-    return pa.hydro_g(pressure, temperature, mu, g, p0, r0)
+      Parameters
+      ----------
+      pressure: 1D float ndarray
+         Atmospheric pressure for each layer (in barye).
+      temperature: 1D float ndarray
+         Atmospheric temperature for each layer (in K).
+      mu: 1D float ndarray
+         Mean molecular mass for each layer (in g mol-1).
+      g: Float
+         Atmospheric gravity (in cm s-2).
+      mass: Float
+         Planetary mass (in g).
+      p0: Float
+         Reference pressure level (in barye) where radius(p0) = r0.
+      r0: Float
+         Reference radius level (in cm) corresponding to p0.
+      """
+      # H.E. with  g=GM/r**2:
+      if self.atm.hydrom:
+          return pa.hydro_m(pressure, temperature, mu, mass, p0, r0)
+      # H.E. with constant g:
+      return pa.hydro_g(pressure, temperature, mu, g, p0, r0)
 
 
   def get_ec(self, layer):
-    """
-    Extract extinction-coefficient contribution (in cm-1) from each
-    component of the atmosphere at the requested layer.
+      """
+      Extract extinction-coefficient contribution (in cm-1) from each
+      component of the atmosphere at the requested layer.
 
-    Parameters
-    ----------
-    layer: Integer
-       The index of the atmospheric layer where to extract the EC.
+      Parameters
+      ----------
+      layer: Integer
+         The index of the atmospheric layer where to extract the EC.
 
-    Returns
-    -------
-    ec: 2D float ndarray
-       An array of shape [ncomponents, nwave] with the EC spectra
-       (in cm-1) from each component of the atmosphere.
-    label: List of strings
-       The names of each atmospheric component that contributed to EC.
-    """
-    # Allocate outputs:
-    ec = np.empty((0, self.spec.nwave))
-    label = []
-    # Line-by-line extinction coefficient:
-    if self.ex.nmol != 0:
-      e, lab = ex.get_ec(self, layer)
-      ec = np.vstack((ec, e))
-      label += lab
-    # Cross-section extinction coefficient:
-    if self.cs.nfiles != 0:
-      e, lab = cs.interpolate(self, layer)
-      ec = np.vstack((ec, e))
-      label += lab
-    # Rayleigh scattering extinction coefficient:
-    if self.rayleigh.nmodels != 0:
-      e, lab = ray.get_ec(self, layer)
-      ec = np.vstack((ec, e))
-      label += lab
-    # Haze/clouds extinction coefficient:
-    if self.haze.nmodels != 0:
-      e, lab = hz.get_ec(self, layer)
-      ec = np.vstack((ec, e))
-      label += lab
-    # Alkali resonant lines extinction coefficient:
-    if self.alkali.nmodels != 0:
-      e, lab = al.get_ec(self, layer)
-      ec = np.vstack((ec, e))
-      label += lab
-    return ec, label
+      Returns
+      -------
+      ec: 2D float ndarray
+         An array of shape [ncomponents, nwave] with the EC spectra
+         (in cm-1) from each component of the atmosphere.
+      label: List of strings
+         The names of each atmospheric component that contributed to EC.
+      """
+      # Allocate outputs:
+      ec = np.empty((0, self.spec.nwave))
+      label = []
+      # Line-by-line extinction coefficient:
+      if self.ex.nmol != 0:
+          e, lab = ex.get_ec(self, layer)
+          ec = np.vstack((ec, e))
+          label += lab
+      # Cross-section extinction coefficient:
+      if self.cs.nfiles != 0:
+          e, lab = cs.interpolate(self, layer)
+          ec = np.vstack((ec, e))
+          label += lab
+      # Rayleigh scattering extinction coefficient:
+      if self.rayleigh.nmodels != 0:
+          e, lab = ray.get_ec(self, layer)
+          ec = np.vstack((ec, e))
+          label += lab
+      # Haze/clouds extinction coefficient:
+      if self.haze.nmodels != 0:
+          e, lab = hz.get_ec(self, layer)
+          ec = np.vstack((ec, e))
+          label += lab
+      # Alkali resonant lines extinction coefficient:
+      if self.alkali.nmodels != 0:
+          e, lab = al.get_ec(self, layer)
+          ec = np.vstack((ec, e))
+          label += lab
+      return ec, label
 
 
   def __repr__(self):

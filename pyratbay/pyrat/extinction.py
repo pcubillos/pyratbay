@@ -160,8 +160,8 @@ def calc_extinction(pyrat):
                   args=(pyrat, np.where(indices==i)[0], True, False))
       processes.append(proc)
       proc.start()
-  for i in np.arange(pyrat.ncpu):
-      processes[i].join()
+  for proc in processes:
+      proc.join()
 
   # Store values in file:
   io.write_opacity(ex.extfile, ex.molID, ex.temp, ex.press, ex.wn,
@@ -184,69 +184,68 @@ def extinction(pyrat, indices, grid=False, add=False):
      If True, compute EC per species for EC grid.
      If False, compute EC for atmospheric layer.
   add: Bool
-     If True,  co-add EC contribution (cm-1) from all species.
+     If True, co-add EC contribution (cm-1) from all species.
      If False, keep EC contribution (cm2 molec-1) from each species separated.
   """
   if add:   # Combined or per-species output
-    extinct_coeff = np.zeros((1, pyrat.spec.nwave))
+      extinct_coeff = np.zeros((1, pyrat.spec.nwave))
   else:
-    extinct_coeff = np.zeros((pyrat.ex.nmol, pyrat.spec.nwave))
+      extinct_coeff = np.zeros((pyrat.ex.nmol, pyrat.spec.nwave))
 
   if pyrat.iso.iext is None:
-    # Get species indices in extinction-coefficient table for the isotopes:
-    pyrat.iso.iext = np.zeros(pyrat.iso.niso, np.int)
-    for i in np.arange(pyrat.iso.niso):
-      if pyrat.iso.imol[i] != -1:
-        pyrat.iso.iext[i] = np.where(pyrat.ex.molID ==
-                                   pyrat.mol.ID[pyrat.iso.imol[i]])[0][0]
-      else:
-        pyrat.iso.iext[i] = -1  # Isotope not in atmosphere
-        # FINDME: find patch for this case in ec.extinction()
+      # Get species indices in extinction-coefficient table for the isotopes:
+      pyrat.iso.iext = np.zeros(pyrat.iso.niso, np.int)
+      for i in np.arange(pyrat.iso.niso):
+        if pyrat.iso.imol[i] != -1:
+            pyrat.iso.iext[i] = np.where(pyrat.ex.molID ==
+                                     pyrat.mol.ID[pyrat.iso.imol[i]])[0][0]
+        else:
+            pyrat.iso.iext[i] = -1  # Isotope not in atmosphere
+            # FINDME: find patch for this case in ec.extinction()
 
   # Turn off verb of all processes except the first:
   verb = pyrat.log.verb
   pyrat.log.verb = (0 in indices) * verb
 
   for i,index in enumerate(indices):
-    ilayer = index % pyrat.atm.nlayers  # Layer index
-    # Unpack layer parameters:
-    pressure = pyrat.atm.press[ilayer]  # Layer pressure
-    molq     = pyrat.atm.q    [ilayer]  # Molecular abundance
-    density  = pyrat.atm.d    [ilayer]  # Molecular density
-    if grid:  # Take from grid
-      itemp = int(index / pyrat.atm.nlayers)  # Temp. index in EC table
-      temp   = pyrat.ex.temp[itemp]
-      ziso   = pyrat.ex.z[:,itemp]      # Isotopic ratio
-      pyrat.log.msg("Extinction-coefficient table: layer {:3d}/{:d}, "
-                    "iteration {:3d}/{:d}.".format(ilayer+1, pyrat.atm.nlayers,
-                    i+1, len(indices)), verb=2, indent=2)
-    else:     # Take from atmosphere
-      temp   = pyrat.atm.temp [ilayer]
-      ziso   = pyrat.iso.z  [:,ilayer]  # Isotopic ratio
-      pyrat.log.msg("Calculating extinction at layer {:3d}/{:d} "
-                    "(T={:6.1f} K, p={:.1e} bar).".format(ilayer+1,
-                    pyrat.atm.nlayers, temp, pressure/pc.bar), verb=2, indent=2)
+      ilayer = index % pyrat.atm.nlayers  # Layer index
+      pressure = pyrat.atm.press[ilayer]  # Layer pressure
+      molq     = pyrat.atm.q    [ilayer]  # Molecular abundance
+      density  = pyrat.atm.d    [ilayer]  # Molecular density
+      if grid:  # Take from grid
+          itemp = int(index / pyrat.atm.nlayers)  # Temp. index in EC table
+          temp   = pyrat.ex.temp[itemp]
+          ziso   = pyrat.ex.z[:,itemp]      # Isotopic ratio
+          pyrat.log.msg("Extinction-coefficient table: layer {:3d}/{:d}, "
+              "iteration {:3d}/{:d}.".format(ilayer+1, pyrat.atm.nlayers, i+1,
+                                             len(indices)), verb=2, indent=2)
+      else:     # Take from atmosphere
+          temp = pyrat.atm.temp [ilayer]
+          ziso = pyrat.iso.z  [:,ilayer]  # Isotopic ratio
+          pyrat.log.msg("Calculating extinction at layer {:3d}/{:d} "
+              "(T={:6.1f} K, p={:.1e} bar).".format(ilayer+1,
+              pyrat.atm.nlayers, temp, pressure/pc.bar), verb=2, indent=2)
 
-    # Calculate extinction-coefficient in C:
-    extinct_coeff[:] = 0.0
-    ec.extinction(extinct_coeff,
-                pyrat.voigt.profile, pyrat.voigt.size, pyrat.voigt.index,
-                pyrat.voigt.lorentz, pyrat.voigt.doppler,
-                pyrat.spec.wn, pyrat.spec.own, pyrat.spec.odivisors,
-                density, molq, pyrat.mol.radius, pyrat.mol.mass,
-                pyrat.iso.imol, pyrat.iso.mass, pyrat.iso.ratio,
-                ziso, pyrat.iso.iext,
-                pyrat.lt.wn, pyrat.lt.elow, pyrat.lt.gf, pyrat.lt.isoid,
-                pyrat.ex.ethresh, pressure, temp,
-                verb-10, int(add),
-                int(pyrat.spec.resolution is not None))
-    # Store output:
-    if grid:   # Into grid
-      pyrat.ex.etable[:, itemp, ilayer] = extinct_coeff
-    elif add:  # Into ex.ec array for atmosphere
-      pyrat.ex.ec[ilayer:ilayer+1] = extinct_coeff
-    else:      # return single-layer EC of given layer
-      return extinct_coeff
+      # Calculate extinction-coefficient in C:
+      extinct_coeff[:] = 0.0
+      ec.extinction(extinct_coeff,
+          pyrat.voigt.profile, pyrat.voigt.size, pyrat.voigt.index,
+          pyrat.voigt.lorentz, pyrat.voigt.doppler,
+          pyrat.spec.wn, pyrat.spec.own, pyrat.spec.odivisors,
+          density, molq, pyrat.mol.radius, pyrat.mol.mass,
+          pyrat.iso.imol, pyrat.iso.mass, pyrat.iso.ratio,
+          ziso, pyrat.iso.iext,
+          pyrat.lt.wn, pyrat.lt.elow, pyrat.lt.gf, pyrat.lt.isoid,
+          pyrat.ex.ethresh, pressure, temp,
+          verb-10, int(add),
+          int(pyrat.spec.resolution is not None))
+      # Store output:
+      if grid:   # Into grid
+          pyrat.ex.etable[:, itemp, ilayer] = extinct_coeff
+      elif add:  # Into ex.ec array for atmosphere
+          pyrat.ex.ec[ilayer:ilayer+1] = extinct_coeff
+      else:      # return single-layer EC of given layer
+          return extinct_coeff
 
 
 def get_ec(pyrat, layer):
@@ -255,26 +254,26 @@ def get_ec(pyrat, layer):
   """
   # Interpolate:
   if pyrat.ex.extfile is not None:
-    exc    = np.zeros((pyrat.ex.nmol, pyrat.spec.nwave))
-    label  = []
-    temp   = pyrat.atm.temp[layer]
-    itemp  = np.where(pyrat.ex.temp <= temp)[0][-1]
-    if itemp == len(pyrat.ex.temp):
-      itemp -= 1
-    for i in np.arange(pyrat.ex.nmol):
-      imol = np.where(pyrat.mol.ID == pyrat.ex.molID[i])[0][0]
-      label.append(pyrat.mol.name[imol])
-      etable = pyrat.ex.etable[i,:,layer,:]
-      exc[i] = ((etable[itemp  ] * (pyrat.ex.temp[itemp+1] - temp) +
-                 etable[itemp+1] * (temp - pyrat.ex.temp[itemp]  ) ) /
-                (pyrat.ex.temp[itemp+1] - pyrat.ex.temp[itemp])      )
-      exc[i] *= pyrat.atm.d[layer, imol]
+      exc    = np.zeros((pyrat.ex.nmol, pyrat.spec.nwave))
+      label  = []
+      temp   = pyrat.atm.temp[layer]
+      itemp  = np.where(pyrat.ex.temp <= temp)[0][-1]
+      if itemp == len(pyrat.ex.temp):
+          itemp -= 1
+      for i in np.arange(pyrat.ex.nmol):
+          imol = np.where(pyrat.mol.ID == pyrat.ex.molID[i])[0][0]
+          label.append(pyrat.mol.name[imol])
+          etable = pyrat.ex.etable[i,:,layer,:]
+          exc[i] = ((etable[itemp  ] * (pyrat.ex.temp[itemp+1] - temp) +
+                     etable[itemp+1] * (temp - pyrat.ex.temp[itemp]  ) ) /
+                    (pyrat.ex.temp[itemp+1] - pyrat.ex.temp[itemp])      )
+          exc[i] *= pyrat.atm.d[layer, imol]
   # Line-by-line:
   else:
-    exc = extinction(pyrat, [layer], grid=False, add=False)
-    label = []
-    for i in np.arange(pyrat.ex.nmol):
-      imol = np.where(pyrat.mol.ID == pyrat.ex.molID[i])[0][0]
-      exc[i] *= pyrat.atm.d[layer,imol]
-      label.append(pyrat.mol.name[imol])
+      exc = extinction(pyrat, [layer], grid=False, add=False)
+      label = []
+      for i in np.arange(pyrat.ex.nmol):
+          imol = np.where(pyrat.mol.ID == pyrat.ex.molID[i])[0][0]
+          exc[i] *= pyrat.atm.d[layer,imol]
+          label.append(pyrat.mol.name[imol])
   return exc, label

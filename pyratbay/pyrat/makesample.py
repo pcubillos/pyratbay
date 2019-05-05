@@ -17,7 +17,7 @@ def make_wavenumber(pyrat):
   spec = pyrat.spec
   log  = pyrat.log
 
-  log.msg("\nGenerating wavenumber array.")
+  log.msg('\nGenerating wavenumber array.')
   # Low wavenumber boundary:
   if spec.wnlow is None:
       if spec.wlhigh is None:
@@ -63,9 +63,10 @@ def make_wavenumber(pyrat):
 
   # Re-set final boundary (stay inside given boundaries):
   if spec.wn[-1] != spec.wnhigh:
-    log.warning("Final wavenumber boundary modified from {:.4f} cm-1 (input)"
-              "\n                                     to {:.4f} cm-1 (Pyrat).".
-                format(spec.wnhigh, spec.wn[-1]))
+      log.warning(
+          'Final wavenumber boundary modified from {:.4f} cm-1 (input)\n'
+          '                                     to {:.4f} cm-1 (Pyrat).'.
+          format(spec.wnhigh, spec.wn[-1]))
   # Set the number of spectral samples:
   spec.nwave = len(spec.wn)
 
@@ -91,17 +92,17 @@ def make_wavenumber(pyrat):
 
 
   # Screen output:
-  log.msg("Initial wavenumber boundary:  {:.5e} cm-1  ({:.3e} "
-                "{:s})".format(spec.wnlow, spec.wlhigh/pt.u(spec.wlunits),
-                               spec.wlunits), verb=2, indent=2)
-  log.msg("Final   wavenumber boundary:  {:.5e} cm-1  ({:.3e} "
-                "{:s})".format(spec.wnhigh, spec.wllow/pt.u(spec.wlunits),
-                               spec.wlunits), verb=2, indent=2)
-  log.msg("Wavenumber sampling stepsize: {:.2g} cm-1\n"
-                "Wavenumber sample size:      {:8d}\n"
-                "Wavenumber fine-sample size: {:8d}\n".format(
-                spec.wnstep, spec.nwave, spec.onwave), verb=2, indent=2, si=2)
-  log.msg("Wavenumber sampling done.")
+  log.msg('Initial wavenumber boundary:  {:.5e} cm-1  ({:.3e} {:s})'.
+          format(spec.wnlow, spec.wlhigh/pt.u(spec.wlunits), spec.wlunits),
+          verb=2, indent=2)
+  log.msg('Final   wavenumber boundary:  {:.5e} cm-1  ({:.3e} {:s})'.
+          format(spec.wnhigh, spec.wllow/pt.u(spec.wlunits), spec.wlunits),
+          verb=2, indent=2)
+  log.msg('Wavenumber sampling stepsize: {:.2g} cm-1\n'
+          'Wavenumber sample size:      {:8d}\n'
+          'Wavenumber fine-sample size: {:8d}\n'.
+          format(spec.wnstep, spec.nwave, spec.onwave), verb=2, indent=2, si=2)
+  log.msg('Wavenumber sampling done.')
 
 
 def make_atmprofiles(pyrat):
@@ -118,7 +119,7 @@ def make_atmprofiles(pyrat):
   - Compute partition-function at layers temperatures.
   """
   log = pyrat.log
-  log.msg("\nGenerating atmospheric profile sample.")
+  log.msg('\nGenerating atmospheric profile sample.')
 
   # Pyrat and user-input atmospheric-data objects:
   atm    = pyrat.atm
@@ -135,8 +136,8 @@ def make_atmprofiles(pyrat):
   if sort:       # Layers are in the correct order
       pass
   elif reverse:  # Layers in reverse order
-      log.warning("The atmospheric layers are in reversed order "
-                  "(bottom-top).  Resorting to be from the top down.")
+      log.warning('The atmospheric layers are in reversed order '
+                  '(bottom-top).  Resorting to be from the top down.')
       if atm_in.radius is not None:
           atm_in.radius = np.flipud(atm_in.radius)
       atm_in.press  = np.flipud(atm_in.press)
@@ -145,8 +146,8 @@ def make_atmprofiles(pyrat):
       atm_in.q      = np.flipud(atm_in.q)
       atm_in.d      = np.flipud(atm_in.d)
   else:
-      log.error("The atmospheric layers are neither sorted from the "
-                "bottom up, nor from the top down.")
+      log.error('The atmospheric layers are neither sorted from the '
+                'bottom up, nor from the top down.')
 
   if atm_in.radius is None and pyrat.runmode != "opacity":
       # Check that gplanet exists:
@@ -180,8 +181,8 @@ def make_atmprofiles(pyrat):
 
   # Set the interpolating function (for use later):
   try:
-      radinterp   = sip.interp1d(atm_in.press [ibreak:],
-                             atm_in.radius[ibreak:], kind='slinear')
+      radinterp = sip.interp1d(atm_in.press [ibreak:],
+                               atm_in.radius[ibreak:], kind='slinear')
       pressinterp = sip.interp1d(np.flipud(atm_in.radius[ibreak:]),
                              np.flipud(atm_in.press [ibreak:]), kind='slinear')
   except:
@@ -273,25 +274,25 @@ def make_atmprofiles(pyrat):
   if atm.radius is not None:
       atm.rtop = pt.ifirst(atm.radius < pyrat.phy.rhill, default_ret=0)
   if atm.rtop > 0:
-      log.warning("The atmospheric pressure array extends beyond "
-          "the Hill radius ({:.1f} km) at pressure {:.2e} bar (layer {:d}).  "
-          "Extinction beyond this layer will be neglected.".format(
+      log.warning('The atmospheric pressure array extends beyond '
+          'the Hill radius ({:.1f} km) at pressure {:.2e} bar (layer {:d}).  '
+          'Extinction beyond this layer will be neglected.'.format(
           pyrat.phy.rhill/pc.km, atm_in.press[atm.rtop]/pc.bar, atm.rtop))
 
   # Print radius array:
   if atm.radius is not None:
       radstr = '['+', '.join('{:9.2f}'.format(k) for k in atm.radius/pc.km)+']'
-      log.msg("Radius array (km) =   {:s}".format(radstr),
+      log.msg('Radius array (km) =   {:s}'.format(radstr),
               verb=2, indent=2, si=4)
-      log.msg("Valid upper/lower radius boundaries:    {:8.1f} - {:8.1f} "
-          "{:s}.".format(atm.radius[atm.rtop]/pt.u(atm.runits),
-                         atm.radius[-1]/pt.u(atm.runits),
-                         atm.runits), verb=2, indent=2)
+      log.msg('Valid upper/lower radius boundaries:    {:8.1f} - {:8.1f} '
+              '{:s}.'.format(atm.radius[atm.rtop]/pt.u(atm.runits),
+                             atm.radius[-1]/pt.u(atm.runits),
+                             atm.runits), verb=2, indent=2)
 
-  log.msg("Valid lower/higher pressure boundaries: {:.2e} - "
-          "{:.2e} {:s}.".format(atm.press[atm.rtop]/pt.u(atm.punits),
+  log.msg('Valid lower/higher pressure boundaries: {:.2e} - {:.2e} {:s}.'.
+          format(atm.press[atm.rtop]/pt.u(atm.punits),
           atm.pbottom/pt.u(atm.punits), atm.punits), verb=2, indent=2)
-  log.msg("Number of valid model layers: {:d}.".
+  log.msg('Number of valid model layers: {:d}.'.
           format(atm.nlayers-atm.rtop), verb=2, indent=2)
 
   # Interpolate to new atm-layer sampling if necessary:

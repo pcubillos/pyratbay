@@ -9,15 +9,15 @@ from .. import constants as pc
 from .. import io        as io
 
 sys.path.append(pc.ROOT + 'lib')
-import simpson    as s
-import trapz      as t
+import simpson as s
+import trapz   as t
 
 
 def spectrum(pyrat):
   """
   Spectrum calculation driver.
   """
-  pyrat.log.msg("\nCalculate the planetary spectrum.")
+  pyrat.log.msg('\nCalculate the planetary spectrum.')
 
   # Initialize the spectrum array:
   pyrat.spec.spectrum = np.empty(pyrat.spec.nwave, np.double)
@@ -26,17 +26,17 @@ def spectrum(pyrat):
       pyrat.spec.cloudy = np.empty(pyrat.spec.nwave, np.double)
 
   # Call respective function depending on the geometry:
-  if pyrat.od.path == "transit":
+  if pyrat.od.path == 'transit':
       modulation(pyrat)
 
-  elif pyrat.od.path == "eclipse":
+  elif pyrat.od.path == 'eclipse':
       intensity(pyrat)
       flux(pyrat)
 
   # Print spectrum to file:
   io.write_spectrum(1.0/pyrat.spec.wn, pyrat.spec.spectrum,
                     pyrat.spec.outspec, pyrat.od.path)
-  pyrat.log.msg("Done.")
+  pyrat.log.msg('Done.')
 
 
 def modulation(pyrat):
@@ -97,7 +97,7 @@ def intensity(pyrat):
   Calculate the intensity spectrum [units] for eclipse geometry.
   """
   spec = pyrat.spec
-  pyrat.log.msg("Computing intensity spectrum.", verb=2, indent=2)
+  pyrat.log.msg('Computing intensity spectrum.', verb=2, indent=2)
   if spec.quadrature is not None:
       spec.raygrid = np.arccos(np.sqrt(spec.qnodes))
 

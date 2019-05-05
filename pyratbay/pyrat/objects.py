@@ -14,71 +14,71 @@ from .. import constants  as pc
 
 class Spectrum(object):
   def __init__(self):
-    self.outspec   = None  # Modulation/Flux spectrum file
-    # Wavenumber:
-    self.nwave     = None  # Number of wavenumber spectral samples
-    self.wn        = None  # Wavenumber array
-    self.wnlow     = None  # Lowest wavenumber boundary
-    self.wnhigh    = None  # Highest wavenumber boundary
-    self.wnstep    = None  # Wavenumber sampling interval
-    # Oversampled-wavenumber:
-    self.wnosamp   = None  # Wavenumber oversampling factor
-    self.own       = None  # Oversampled wavenumber array
-    self.ownstep   = None  # Oversampled wavenumber sampling interval
-    self.onwave    = None  # Number of oversampled-wavenumber samples
-    self.odivisors = None  # Oversampling-factor integer divisors
-    # Wavelength:
-    self.wlunits   = None  # User-input wavelength physical units
-    self.wllow     = None  # Lowest wavelength boundary
-    self.wlhigh    = None  # Highest wavelength boundary
-    # Spectrum:
-    self.raygrid   = None  # Array of incident ray-angles (emission)
-    self.intensity = None  # Intensity spectrum array
-    self.spectrum  = None  # Modulation/Flux spectrum
-    self.clear     = None  # Clear modulation spectrum for patchy model
-    self.cloudy    = None  # Cloudy modulation spectrum for patchy model
-    self.starflux  = None  # Stellar flux spectrum
+      self.outspec   = None  # Modulation/Flux spectrum file
+      # Wavenumber:
+      self.nwave     = None  # Number of wavenumber spectral samples
+      self.wn        = None  # Wavenumber array
+      self.wnlow     = None  # Lowest wavenumber boundary
+      self.wnhigh    = None  # Highest wavenumber boundary
+      self.wnstep    = None  # Wavenumber sampling interval
+      # Oversampled-wavenumber:
+      self.wnosamp   = None  # Wavenumber oversampling factor
+      self.own       = None  # Oversampled wavenumber array
+      self.ownstep   = None  # Oversampled wavenumber sampling interval
+      self.onwave    = None  # Number of oversampled-wavenumber samples
+      self.odivisors = None  # Oversampling-factor integer divisors
+      # Wavelength:
+      self.wlunits   = None  # User-input wavelength physical units
+      self.wllow     = None  # Lowest wavelength boundary
+      self.wlhigh    = None  # Highest wavelength boundary
+      # Spectrum:
+      self.raygrid   = None  # Array of incident ray-angles (emission)
+      self.intensity = None  # Intensity spectrum array
+      self.spectrum  = None  # Modulation/Flux spectrum
+      self.clear     = None  # Clear modulation spectrum for patchy model
+      self.cloudy    = None  # Cloudy modulation spectrum for patchy model
+      self.starflux  = None  # Stellar flux spectrum
 
   def __repr__(self):
-    """
-    Print the Spectral info.
-    """
-    info = []
-    pt.wrap(info, "Spectral info:")
-    pt.wrap(info, "Wavenumber:", 2)
-    pt.wrap(info, "Number of samples:      {:d}".format(self.nwave), 4)
-    pt.wrap(info, "Pyrat (internal) units: cm-1", 4)
-    pt.wrap(info, "Low  boundary:     {:9.3f} cm-1".format(self.wnlow),  4)
-    pt.wrap(info, "High boundary:     {:9.3f} cm-1".format(self.wnhigh), 4)
-    pt.wrap(info, "Sampling interval: {:9.3f} cm-1".format(self.wnstep), 4)
-    pt.wrap(info, "Wavenumber array (cm-1):\n  [{:.3f}, {:.3f}, {:.3f}, ..., "
-        "{:.3f}, {:.3f}]".format(self.wn[ 0], self.wn[ 1], self.wn[2],
-                                 self.wn[-2], self.wn[-1]), 4)
-    pt.wrap(info, "Oversampled wavenumber:", 2)
-    pt.wrap(info, "Oversampling factor:    {:d}".format(self.wnosamp),   4)
-    pt.wrap(info, "Number of samples:      {:d}".format(self.onwave),    4)
-    pt.wrap(info, "Sampling interval: {:.3e} cm-1".format(self.ownstep), 4)
-    pt.wrap(info, "Integer divisors for oversampling factor:\n{:s}".
-                  format(str(self.odivisors).replace("\n", "")), 4)
-    pt.wrap(info, "Wavenumber:", 2)
-    pt.wrap(info, "User-input units: {:s}".format(self.wlunits), 4)
-    pt.wrap(info, "Low  boundary: {:7.3f} {:s}".
-                format(self.wllow/pt.u(self.wlunits), self.wlunits),  4)
-    pt.wrap(info, "High boundary: {:7.3f} {:s}".
-                format(self.wlhigh/pt.u(self.wlunits), self.wlunits), 4)
-    pt.wrap(info, "Spectrum:", 2)
-    if self.intensity is not None:
-      pt.wrap(info, "Intensity spectrum array (erg/s/cm/sr): [{:.3f}, {:.3f}, "
-              "{:.3f}, ..., {:.3f}, {:.3f}]".format(self.intensity[ 0],
-                             self.intensity[ 1], self.intensity[ 2],
-                             self.intensity[-2], self.intensity[-1]), 4)
-    if self.spectrum is None:
-        pt.wrap(info, "Modulation/Flux spectrum array: None", 4)
-    else:
-        pt.wrap(info, "Modulation/Flux spectrum array: [{:.3f}, {:.3f}, "
-            "{:.3f}, ..., {:.3f}, {:.3f}]".
-            format(self.spectrum[ 0], self.spectrum[ 1], self.spectrum[2],
-                   self.spectrum[-2], self.spectrum[-1]), 4)
+      """
+      Print the Spectral info.
+      """
+      info = []
+      pt.wrap(info, "Spectral info:")
+      pt.wrap(info, "Wavenumber:", 2)
+      pt.wrap(info, "Number of samples:      {:d}".format(self.nwave), 4)
+      pt.wrap(info, "Pyrat (internal) units: cm-1", 4)
+      pt.wrap(info, "Low  boundary:     {:9.3f} cm-1".format(self.wnlow),  4)
+      pt.wrap(info, "High boundary:     {:9.3f} cm-1".format(self.wnhigh), 4)
+      pt.wrap(info, "Sampling interval: {:9.3f} cm-1".format(self.wnstep), 4)
+      pt.wrap(info, "Wavenumber array (cm-1):\n  [{:.3f}, {:.3f}, {:.3f}, ..., "
+          "{:.3f}, {:.3f}]".format(self.wn[ 0], self.wn[ 1], self.wn[2],
+                                   self.wn[-2], self.wn[-1]), 4)
+      pt.wrap(info, "Oversampled wavenumber:", 2)
+      pt.wrap(info, "Oversampling factor:    {:d}".format(self.wnosamp),   4)
+      pt.wrap(info, "Number of samples:      {:d}".format(self.onwave),    4)
+      pt.wrap(info, "Sampling interval: {:.3e} cm-1".format(self.ownstep), 4)
+      pt.wrap(info, "Integer divisors for oversampling factor:\n{:s}".
+                    format(str(self.odivisors).replace("\n", "")), 4)
+      pt.wrap(info, "Wavenumber:", 2)
+      pt.wrap(info, "User-input units: {:s}".format(self.wlunits), 4)
+      pt.wrap(info, "Low  boundary: {:7.3f} {:s}".
+                  format(self.wllow/pt.u(self.wlunits), self.wlunits),  4)
+      pt.wrap(info, "High boundary: {:7.3f} {:s}".
+                  format(self.wlhigh/pt.u(self.wlunits), self.wlunits), 4)
+      pt.wrap(info, "Spectrum:", 2)
+      if self.intensity is not None:
+        pt.wrap(info, "Intensity spectrum array (erg/s/cm/sr): [{:.3f}, {:.3f}, "
+                "{:.3f}, ..., {:.3f}, {:.3f}]".format(self.intensity[ 0],
+                               self.intensity[ 1], self.intensity[ 2],
+                               self.intensity[-2], self.intensity[-1]), 4)
+      if self.spectrum is None:
+          pt.wrap(info, "Modulation/Flux spectrum array: None", 4)
+      else:
+          pt.wrap(info, "Modulation/Flux spectrum array: [{:.3f}, {:.3f}, "
+              "{:.3f}, ..., {:.3f}, {:.3f}]".
+              format(self.spectrum[ 0], self.spectrum[ 1], self.spectrum[2],
+                     self.spectrum[-2], self.spectrum[-1]), 4)
 
 
 class Atm(object):

@@ -4890,3 +4890,10 @@ This must be a warninig, not an error (to avoid breaking execution
 during a retrieval).
 Added invalid_temp fixture.
 
+
+*****  So 5. Mai 11:44:01 CEST 2019  *****
+
+PEP8'ed extinction.py, makesample.py, objects.py, optdepth.py,
+pyrat_obj.py, readlinedb.py, spectrum.py, and voigt.py.
+Only minor cosmetics.
+
