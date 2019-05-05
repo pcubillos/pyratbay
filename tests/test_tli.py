@@ -121,10 +121,32 @@ def test_repack(capfd):
         "Database (1/1): 'repack hitran CO2' (CO2 molecule)",
         "Number of temperatures: 294",
         "Number of isotopes: 11",
-        "Process repack database between records 0 and 7,814.",
+        "Process repack hitran CO2 database between records 0 and 7,814.",
         "[7438  129  116  132]",
         "Writing 7,815 transition lines.",
         "/repack_HITEMP_CO2_2.50-2.52um.tli'.",
+        ]
+    for cap in caps:
+        assert cap in captured.out
+
+
+def test_pands(capfd):
+    pb.run('tli_pands_test.cfg')
+    captured = capfd.readouterr()
+    caps = [
+        "Read command-line arguments from configuration file: 'tli_pands_test.cfg'",
+        "Reading input database files:",
+        "- Mock_h2ofastfix.bin",
+        "There are 1 input database file(s).",
+        "Initial TLI wavelength (um):   2.500  ( 4000.000 cm-1)",
+        "Final   TLI wavelength (um):   2.501  ( 3998.401 cm-1)",
+        "Database (1/1): 'Partridge & Schwenke (1997)' (H2O molecule)",
+        "Number of temperatures: 5",
+        "Number of isotopes: 4",
+        "Process P&S H2O database between records 38 and 10,220.",
+        "[9625  207  219  132]",
+        "Writing 10,183 transition lines.",
+        "/pands_H2O_2.500-2.501um_test.tli'.",
         ]
     for cap in caps:
         assert cap in captured.out

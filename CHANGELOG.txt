@@ -4907,3 +4907,10 @@ Note: HITRAN updated their partition-function database. There are
 a lot more isotopes and extended temperature ranges that need to
 be updated in the pytips module.
 
+*****
+
+Updated pands.py to work in Python3.
+Updated TLI tests, added test for pands, and required files.
+PEP8'ed lread.y, driver.py, exomol.py, hitran.py, pands.py, and
+repack.py.
+

@@ -195,6 +195,7 @@ def test_pf_exomol_two():
     assert list(iso) == ['41111', '51111']
 
 
+@pytest.mark.sort(order=1)
 def test_pf_kurucz_H2O():
     with open('Mock_h2opartfn.dat', 'w') as f:
         f.write(
