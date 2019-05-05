@@ -4897,3 +4897,13 @@ PEP8'ed extinction.py, makesample.py, objects.py, optdepth.py,
 pyrat_obj.py, readlinedb.py, spectrum.py, and voigt.py.
 Only minor cosmetics.
 
+*****
+
+Updated repack.py to work in Python3.
+Added CO2 isotope 837 info into inputs/isotopes.dat.
+Updated TLI tests, added test for repack, and required files.
+
+Note: HITRAN updated their partition-function database. There are
+a lot more isotopes and extended temperature ranges that need to
+be updated in the pytips module.
+

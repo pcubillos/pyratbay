@@ -102,7 +102,7 @@ class repack(dbdriver):
     data = open(self.dbfile, "rb")
     # Get Total number of transitions in file:
     data.seek(0, 2)
-    nlines   = data.tell() / self.recsize
+    nlines = data.tell() // self.recsize
 
     # Find the record index for iwn and fwn:
     istart = self.binsearch(data, iwn, 0,      nlines-1, 0)
@@ -129,7 +129,7 @@ class repack(dbdriver):
 
     self.log.msg("Process repack database between records {:,d} and {:,d}.".
                  format(istart, istop), verb=2, indent=2)
-    interval = (istop - istart)/10  # Check-point interval
+    interval = (istop - istart)//10  # Check-point interval
     if interval == 0:
         interval = 1
 
@@ -141,7 +141,7 @@ class repack(dbdriver):
       wnumber[i], elow[i], gf[i], iso[i] = \
                              struct.unpack(self.fmt, data.read(self.recsize))
       # Print a checkpoint statement every 10% interval:
-      if (i % interval) == 0.0  and  i != 0:
+      if (i % interval) == 0.0 and i != 0:
         self.log.msg("{:5.1f}% completed.".format(10.*i/interval),
                      verb=2, indent=3)
         self.log.msg("Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} um\n"
@@ -156,6 +156,6 @@ class repack(dbdriver):
     isonamelen = len(str(np.amax(uiso)))  # Count how many digits
     idx = np.zeros(len(uiso), int)
     for i in np.arange(len(uiso)):
-      idx[i] = self.isotopes.index(str(uiso[i]).zfill(isonamelen))
+        idx[i] = self.isotopes.index(str(uiso[i]).zfill(isonamelen))
     isoID = idx[inverse]
     return wnumber, gf, elow, isoID

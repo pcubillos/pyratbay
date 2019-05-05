@@ -47,8 +47,8 @@ def test_two_files_two_databases(capfd):
         "Number of temperatures: 294",
         "Number of isotopes: 6",
         "Database (2/2): 'HITRAN CO2' (CO2 molecule)",
-        "Number of isotopes: 10",
-        "Cumulative number of isotopes per database: [0, 6, 16]",
+        "Number of isotopes: 11",
+        "Cumulative number of isotopes per database: [0, 6, 17]",
         "Process HITRAN H2O database between records 42,645 and 66,776.",
         "Process HITRAN CO2 database between records 0 and 138,257.",
         "[12296  5132  3973  2568   147 99541  9119 22521   220  6854     2]",
@@ -73,8 +73,8 @@ def test_two_files_one_database(capfd):
         "Final   TLI wavelength (um):   3.000  ( 3333.333 cm-1)",
         "Database (1/1): 'HITRAN CO2' (CO2 molecule)",
         "Number of temperatures: 294",
-        "Number of isotopes: 10",
-        "Cumulative number of isotopes per database: [0, 10]",
+        "Number of isotopes: 11",
+        "Cumulative number of isotopes per database: [0, 11]",
         "Process HITRAN CO2 database between records 0 and 213,768.",
         "Process HITRAN CO2 database between records 0 and 138,257.",
         "[267537  36165  39420   1090   7500    314]",
@@ -103,6 +103,28 @@ def test_exomol(capfd):
         "[500 500]",
         "Writing 1,000 transition lines.",
         "/ExoMol_NH3_2.0-2.00002um_test.tli'.",
+        ]
+    for cap in caps:
+        assert cap in captured.out
+
+
+def test_repack(capfd):
+    pb.run('tli_repack_test.cfg')
+    captured = capfd.readouterr()
+    caps = [
+        "Read command-line arguments from configuration file: 'tli_repack_test.cfg'",
+        "Reading input database files:",
+        "- CO2_hitran_2.50-2.52um_repack-0.01_lbl.dat",
+        "There are 1 input database file(s).",
+        "Initial TLI wavelength (um):   2.500  ( 4000.000 cm-1)",
+        "Final   TLI wavelength (um):   2.520  ( 3968.254 cm-1)",
+        "Database (1/1): 'repack hitran CO2' (CO2 molecule)",
+        "Number of temperatures: 294",
+        "Number of isotopes: 11",
+        "Process repack database between records 0 and 7,814.",
+        "[7438  129  116  132]",
+        "Writing 7,815 transition lines.",
+        "/repack_HITEMP_CO2_2.50-2.52um.tli'.",
         ]
     for cap in caps:
         assert cap in captured.out
