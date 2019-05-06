@@ -186,6 +186,9 @@ def reloadatm(pyrat, temp=None, abund=None, radius=None):
   # Take radius if provided, else use hydrostatic-equilibrium equation:
   if radius is not None:
       pyrat.atm.radius = radius
+  if (pyrat.inputs.atm.radius is not None
+      and (pyrat.atm.refpressure is None or pyrat.phy.rplanet is None)):
+          pyrat.atm.radius = pyrat.inputs.atm.radius
   else:
       # Compute gplanet from mass and radius if necessary/possible:
       if pyrat.phy.gplanet is None and     \
@@ -195,15 +198,14 @@ def reloadatm(pyrat, temp=None, abund=None, radius=None):
 
       # Check that the gravity variable is exists:
       if pyrat.phy.rplanet is None:
-          pyrat.log.error("Undefined reference planetary radius (rplanet). "
-           "Either provide the radius profile for the layers or the rplanet.")
+          pyrat.log.error('Undefined reference planetary radius (rplanet). '
+           'Either provide the radius profile or define rplanet.')
       if pyrat.phy.gplanet is None:
-          pyrat.log.error("Undefined atmospheric gravity (gplanet). "
-           "Either provide the radius profile for the layers, the surface "
-           "gravity, or the planetary mass (mplanet).")
+          pyrat.log.error('Undefined atmospheric gravity (gplanet). Either '
+           'provide the radius profile, define gplanet, or define mplanet.')
       if pyrat.atm.refpressure is None:
-          pyrat.log.error("Undefined reference pressure level (refpressure). "
-           "Either provide the radius profile for the layers or refpressure.")
+          pyrat.log.error('Undefined reference pressure level (refpressure). '
+           'Either provide the radius profile or define refpressure.')
       pyrat.atm.radius = pyrat.hydro(pyrat.atm.press, pyrat.atm.temp,
                             pyrat.atm.mm, pyrat.phy.gplanet, pyrat.phy.mplanet,
                             pyrat.atm.refpressure, pyrat.phy.rplanet)

@@ -4920,3 +4920,11 @@ repack.py.
 Corrected pands.py gf calculation.  Current version matches with
 exomol and Morley's emission spectrum.
 
+*****
+
+Fixed bug in reloadatm() to use user-input radius profile when given
+in input atmosphere.  However, if refpressure and rplanet are
+defined at runtime, the code will attempt to compute a hydrostatic-
+equilibrium radius profile.
+Added respective tests and atmospheric file.
+

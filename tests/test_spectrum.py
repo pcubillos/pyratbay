@@ -92,6 +92,16 @@ def test_transmission_etable(tmp_path):
                                rtol=1e-7)
 
 
+@pytest.mark.parametrize('param', ['refpressure', 'rplanet'])
+def test_transmission_input_radius(tmp_path, param):
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        reset={'atmfile':'atmosphere_uniform_radius.atm'},
+        remove=[param, 'mplanet'])
+    pyrat = pb.run(cfg)
+    atm = pa.readatm('atmosphere_uniform_radius.atm')
+    np.testing.assert_allclose(pyrat.atm.radius, atm[5]*pc.km, rtol=1e-7)
+
+
 @pytest.mark.skip(reason="Because I'm lazy. TBI")
 def test_transmission_qmass_input():
     # This is the gist of it, prepare a qmass atmospheric file:
