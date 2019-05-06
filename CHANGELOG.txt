@@ -4914,3 +4914,9 @@ Updated TLI tests, added test for pands, and required files.
 PEP8'ed lread.y, driver.py, exomol.py, hitran.py, pands.py, and
 repack.py.
 
+
+*****  Mo 6. Mai 13:13:39 CEST 2019  *****
+
+Corrected pands.py gf calculation.  Current version matches with
+exomol and Morley's emission spectrum.
+

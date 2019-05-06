@@ -152,7 +152,7 @@ class pands(dbdriver):
               self.log.msg('Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} um\n'
                            'Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}'.
                            format(1.0/ (wl * pc.um), wl, np.abs(ielo[i]),
-                                  self.tablog[np.abs(igf[i])],
+                                  4.0*self.tablog[np.abs(igf[i])],
                                   2*(ielo[i] < 0) + 1*(igf[i] < 0)),
                            verb=3, indent=6)
           i += 1
@@ -160,7 +160,7 @@ class pands(dbdriver):
 
       # Calculate the wavenumber (in cm-1):
       wnumber[:] = 1.0 / (np.exp(iw * self.ratiolog) * pc.nm)
-      gf[:]    = self.tablog[np.abs(igf)]
+      gf[:]    = 4.0 * self.tablog[np.abs(igf)]
       elow[:]  = np.abs(ielo)
       # Assign indices for isotopes based on Kurucz's indices - 1:
       isoID[:] = 2*(ielo < 0) + 1*(igf < 0)
