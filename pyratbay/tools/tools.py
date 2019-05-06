@@ -1,20 +1,21 @@
 # Copyright (c) 2016-2019 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-__all__ = ['log_error',
-           'get_param',
-           "binsearch", "pprint", "divisors", "u", "unpack",
-           "ifirst", "ilast",
-           "isfile",
-           'file_exists',
-           "path", "wrap",
-           "make_tea", "clock", "get_exomol_mol",
-           "pf_exomol", "pf_kurucz",
-           "cia_hitran", "cia_borysow",
-           "tophat",
-           "resample", "band_integrate",
-           "ignore_system_exit",
-          ]
+__all__ = [
+    'log_error',
+    'get_param',
+    'binsearch', 'pprint', 'divisors', 'u', 'unpack',
+    'ifirst', 'ilast',
+    'isfile',
+    'file_exists',
+    'path', 'wrap',
+    'make_tea', 'clock', 'get_exomol_mol',
+    'pf_exomol', 'pf_kurucz',
+    'cia_hitran', 'cia_borysow',
+    'tophat',
+    'resample', 'band_integrate',
+    'ignore_system_exit',
+    ]
 
 
 import os
@@ -38,9 +39,9 @@ import scipy.interpolate as si
 from .. import constants as pc
 from .. import io        as io
 
-sys.path.append(pc.ROOT + "pyratbay/lib/")
+sys.path.append(pc.ROOT + 'pyratbay/lib/')
 import _indices
-sys.path.append(pc.ROOT + "modules/MCcubed/")
+sys.path.append(pc.ROOT + 'modules/MCcubed/')
 import MCcubed.utils as mu
 
 
@@ -175,7 +176,7 @@ def pprint(array, precision=3, fmt=None):
     parray = np.asarray(array, fmt)
 
   # Convert to string and remove line-breaks:
-  sarray = str(array).replace("\n", "")
+  sarray = str(array).replace('\n', '')
   np.set_printoptions(precision=default_prec)
   return sarray
 
@@ -213,13 +214,13 @@ def unpack(file, n, dtype):
      Else, return a tuple with the elements read.
   """
   # Compute the reading format:
-  fmt  = "{:d}{:s}".format(n, dtype)
+  fmt  = '{:d}{:s}'.format(n, dtype)
   # Calculate the number of bytes to read:
   size = struct.calcsize(fmt)
   # Read:
   output = struct.unpack(fmt, file.read(size))
   # Return:
-  if (n == 1) or (dtype == "s"):
+  if (n == 1) or (dtype == 's'):
     return output[0]
   else:
     return output
@@ -504,18 +505,18 @@ def wrap(outlist, text, indent=0, si=None):
     --------
     >>> import pyratbay.tools as pt
     >>> info = []
-    >>> pt.wrap(info, "Pyrat atmospheric model\n")
-    >>> pt.wrap(info, "Pressure = 1.0 bar\nTemperature = 1000.0 K", indent=2)
-    >>> print("\n".join(info))
+    >>> pt.wrap(info, 'Pyrat atmospheric model\n')
+    >>> pt.wrap(info, 'Pressure = 1.0 bar\nTemperature = 1000.0 K', indent=2)
+    >>> print('\n'.join(info))
     Pyrat atmospheric model
       Pressure = 1.0 bar
       Temperature = 1000.0 K
     """
-    indspace = " "*indent
+    indspace = ' '*indent
     if si is None:
         sindspace = indspace
     else:
-        sindspace = " "*si
+        sindspace = ' '*si
     lines = text.splitlines()
     for line in lines:
         outlist.append(textwrap.fill(line, break_long_words=False,
@@ -525,7 +526,7 @@ def wrap(outlist, text, indent=0, si=None):
 
 def make_tea(cfile=None, maxiter=100, save_headers=False, save_outputs=False,
              doprint=False, times=False, location_TEA=None, abun_file=None,
-             location_out="./TEA"):
+             location_out='./TEA'):
   """
   Make a TEA configuration file.
 
@@ -535,41 +536,41 @@ def make_tea(cfile=None, maxiter=100, save_headers=False, save_outputs=False,
       Input configuration file to get arguments for TEA config file.
   """
   if location_TEA is None:
-      location_TEA = os.path.realpath(pc.ROOT + "modules/TEA/")
+      location_TEA = os.path.realpath(pc.ROOT + 'modules/TEA/')
 
   # Open New Config parser:
   config = configparser.SafeConfigParser()
   config.add_section('TEA')
-  config.set("TEA", "maxiter",      str(maxiter))
-  config.set("TEA", "save_headers", str(save_headers))
-  config.set("TEA", "save_outputs", str(save_outputs))
-  config.set("TEA", "doprint",      str(doprint))
-  config.set("TEA", "times",        str(times))
-  config.set("TEA", "location_TEA", str(location_TEA))
-  config.set("TEA", "location_out", str(location_out))
-  config.set("TEA", "abun_file",    str(abun_file))
+  config.set('TEA', 'maxiter',      str(maxiter))
+  config.set('TEA', 'save_headers', str(save_headers))
+  config.set('TEA', 'save_outputs', str(save_outputs))
+  config.set('TEA', 'doprint',      str(doprint))
+  config.set('TEA', 'times',        str(times))
+  config.set('TEA', 'location_TEA', str(location_TEA))
+  config.set('TEA', 'location_out', str(location_out))
+  config.set('TEA', 'abun_file',    str(abun_file))
 
   # Override with input Config parser values:
   if cfile is not None:
       input_config = configparser.ConfigParser()
       input_config.read([cfile])
 
-      keys = ["maxiter", "save_headers", "save_outputs", "doprint",
-              "times", "location_TEA", "abun_file", "location_out"]
+      keys = ['maxiter', 'save_headers', 'save_outputs', 'doprint',
+              'times', 'location_TEA', 'abun_file', 'location_out']
       # Set TEA default arguments:
       for i in np.arange(len(keys)):
-          if input_config.has_option("PBAY", keys[i]):
-              config.set("TEA", keys[i], input_config.get("PBAY", keys[i]))
+          if input_config.has_option('PBAY', keys[i]):
+              config.set('TEA', keys[i], input_config.get('PBAY', keys[i]))
 
   # For completion:
   config.add_section('PRE-ATM')
-  config.set("PRE-ATM", "PT_file",        "None")
-  config.set("PRE-ATM", "pre_atm_name",   "None")
-  config.set("PRE-ATM", "input_elem",     "None")
-  config.set("PRE-ATM", "output_species", "None")
+  config.set('PRE-ATM', 'PT_file',        'None')
+  config.set('PRE-ATM', 'pre_atm_name',   'None')
+  config.set('PRE-ATM', 'input_elem',     'None')
+  config.set('PRE-ATM', 'output_species', 'None')
 
   # Write TEA configuration file:
-  with open("TEA.cfg", 'w') as configfile:
+  with open('TEA.cfg', 'w') as configfile:
       config.write(configfile)
 
 
@@ -620,17 +621,17 @@ def get_exomol_mol(dbfile):
   ('CH4', '21111')
   ('CH4', '21112')
   """
-  atoms = os.path.split(dbfile)[1].split("_")[0].split("-")
+  atoms = os.path.split(dbfile)[1].split('_')[0].split('-')
   elements = []
-  isotope  = ""
+  isotope  = ''
   for atom in atoms:
       match = re.match(r"([0-9]+)([a-z]+)([0-9]*)", atom, re.I)
-      N = 1 if match.group(3) == "" else int(match.group(3))
+      N = 1 if match.group(3) == '' else int(match.group(3))
       elements += N * [match.group(2)]
       isotope  += match.group(1)[-1:] * N
 
   composition = [list(g[1]) for g in itertools.groupby(elements)]
-  molecule = "".join([c[0] + str(len(c))*(len(c)>1)
+  molecule = ''.join([c[0] + str(len(c))*(len(c)>1)
                       for c in composition])
 
   return molecule, isotope
@@ -672,16 +673,16 @@ def pf_exomol(pf_files):
   # Read and extract data from files:
   isotopes = []
   data, temps = [], []
-  molecule = ""
+  molecule = ''
   for pf_file in pf_files:
       # Get info from file name:
       mol, iso = get_exomol_mol(pf_file)
 
       # Check all files correspond to the same molecule.
-      if molecule == "":
+      if molecule == '':
           molecule = mol
       elif molecule != mol:
-          raise ValueError("All files must correspond to the same molecule.")
+          raise ValueError('All files must correspond to the same molecule.')
 
       isotopes.append(iso)
       # Read data:
@@ -699,7 +700,7 @@ def pf_exomol(pf_files):
       for temp in temps:
           if np.any(temp[0:minlen] - temps[0][0:minlen] != 0):
               raise ValueError(
-                  "Temperature sampling in PF files are not compatible.")
+                  'Temperature sampling in PF files are not compatible.')
       print('Warning: Length of PF files do not match.  Zero-padding the '
             'shorter array(s).')
 
@@ -710,9 +711,9 @@ def pf_exomol(pf_files):
           temp = temps[i]
 
   # Write output file:
-  file_out = "PF_Exomol_{:s}.dat".format(molecule)
-  header = ("# This file incorporates the tabulated {:s} partition-function "
-            "data\n# from Exomol\n\n".format(molecule))
+  file_out = 'PF_Exomol_{:s}.dat'.format(molecule)
+  header = ('# This file incorporates the tabulated {:s} partition-function '
+            'data\n# from Exomol\n\n'.format(molecule))
   io.write_pf(file_out, pf, isotopes, temp, header)
 
   print("\nWritten partition-function file:\n  '{:s}'\nfor molecule {:s}, "
@@ -758,7 +759,7 @@ def pf_kurucz(pf_file):
   elif 'tio' in pf_file:
       molecule = 'TiO'
       url = 'http://kurucz.harvard.edu/molecules/tio/tiopart.dat'
-      isotopes = ["66", "76", "86", "96", "06"]
+      isotopes = ['66', '76', '86', '96', '06']
       skiprows = 1
   else:
       print('Invalid Kurucz partition-function file.')
@@ -771,9 +772,9 @@ def pf_kurucz(pf_file):
   pf   = data[1:]
 
   # Write output file:
-  file_out = "PF_kurucz_{:s}.dat".format(molecule)
-  header = ("# This file incorporates the tabulated {:s} partition-function "
-            "data\n# from {:s}\n\n".format(molecule, url))
+  file_out = 'PF_kurucz_{:s}.dat'.format(molecule)
+  header = ('# This file incorporates the tabulated {:s} partition-function '
+            'data\n# from {:s}\n\n'.format(molecule, url))
   io.write_pf(file_out, pf, isotopes, temp, header)
 
   print("\nWritten partition-function file:\n  '{:s}'\nfor molecule {:s}, "
@@ -805,7 +806,7 @@ def cia_hitran(ciafile, tstep=1, wstep=1):
   # Extract CS data:
   with open(ciafile, 'r') as f:
       info = f.readline().strip().split()
-      species = info[0].split("-")
+      species = info[0].split('-')
       temps, data, wave = [], [], []
       wnmin, wnmax = -1, -1
       f.seek(0)
@@ -848,8 +849,8 @@ def cia_hitran(ciafile, tstep=1, wstep=1):
                 format('-'.join(species),
                        1.0/(wn[-1]*pc.um), 1.0/(wn[0]*pc.um),
                        temp[0], temp[-1]))
-      header = ("# This file contains the reformated {:s}-{:s} CIA data from:\n"
-                "# Richard et al. (2012), HITRAN file: {:s}\n\n".
+      header = ('# This file contains the reformated {:s}-{:s} CIA data from:\n'
+                '# Richard et al. (2012), HITRAN file: {:s}\n\n'.
                 format(species[0], species[1], ciafile))
       io.write_cs(csfile, cs, species, temp, wn, header)
       i = j
@@ -891,8 +892,8 @@ def cia_borysow(ciafile, species1, species2):
             format('-'.join(species),
                    1.0/(wn[-1]*pc.um), 1.0/(wn[0]*pc.um),
                    temp[0], temp[-1]))
-  header = ("# This file contains the reformated {:s} CIA data from:\n"
-            "# http://www.astro.ku.dk/~aborysow/programs/{:s}\n\n".
+  header = ('# This file contains the reformated {:s} CIA data from:\n'
+            '# http://www.astro.ku.dk/~aborysow/programs/{:s}\n\n'.
               format('-'.join(species), os.path.basename(ciafile)))
   io.write_cs(csfile, cs, species, temp, wn, header)
 
@@ -938,7 +939,7 @@ def tophat(wl0, width, margin=None, dlambda=None, resolution=None, ffile=None):
       margin = 0.1 * width
 
   if dlambda is None and resolution is None:
-      raise ValueError("Either dlambda or resolution must be defined.")
+      raise ValueError('Either dlambda or resolution must be defined.')
 
   # Wavelength array:
   wllow  = wl0 - 0.5*width - margin
@@ -1046,8 +1047,8 @@ def band_integrate(spectrum, specwn, bandtrans, bandwn):
   >>> import pyratbay.starspec  as ps
   >>> import pyratbay.constants as pc
   >>> # Load Spitzer IRAC filters:
-  >>> wn1, irac1 = io.read_spectrum(pc.ROOT+"inputs/filters/spitzer_irac1_sa.dat")
-  >>> wn2, irac2 = io.read_spectrum(pc.ROOT+"inputs/filters/spitzer_irac2_sa.dat")
+  >>> wn1, irac1 = io.read_spectrum(pc.ROOT+'inputs/filters/spitzer_irac1_sa.dat')
+  >>> wn2, irac2 = io.read_spectrum(pc.ROOT+'inputs/filters/spitzer_irac2_sa.dat')
   >>> # Spectrum to integrate:
   >>> wn = np.arange(1500, 5000.1, 1.0)
   >>> sflux = ps.bbflux(wn, 1800.0)
@@ -1060,16 +1061,16 @@ def band_integrate(spectrum, specwn, bandtrans, bandwn):
   >>> width = 0.5*(np.amax(wn1)-np.amin(wn1)), 0.5*(np.amax(wn2)-np.amin(wn2))
   >>> plt.figure(1)
   >>> plt.clf()
-  >>> plt.semilogy(wn, sflux, "k")
-  >>> plt.plot(wn1, (irac1+1)*4e4, "red")
-  >>> plt.plot(wn2, (irac2+1)*4e4, "blue")
-  >>> plt.errorbar(meanwn[0], bandflux, xerr=width[0], fmt='o', color="red")
-  >>> plt.errorbar(meanwn, bandfluxes, xerr=width, fmt='o', color="none",
+  >>> plt.semilogy(wn, sflux, 'k')
+  >>> plt.plot(wn1, (irac1+1)*4e4, 'red')
+  >>> plt.plot(wn2, (irac2+1)*4e4, 'blue')
+  >>> plt.errorbar(meanwn[0], bandflux, xerr=width[0], fmt='o', color='red')
+  >>> plt.errorbar(meanwn, bandfluxes, xerr=width, fmt='o', color='none',
   >>>              mec='k', ecolor='k')
   >>> plt.xlim(np.amin(wn), np.amax(wn))
   >>> plt.ylim(4e4, 1.2e5)
-  >>> plt.xlabel("Wavenumber  (cm$^{-1}$)")
-  >>> plt.ylabel(r"Flux  (erg s$^{-1}$ cm$^{-2}$ cm)")
+  >>> plt.xlabel('Wavenumber  (cm$^{-1}$)')
+  >>> plt.ylabel(r'Flux  (erg s$^{-1}$ cm$^{-2}$ cm)')
   """
   if not isinstance(bandtrans[0], Iterable):
       bandtrans = [bandtrans]

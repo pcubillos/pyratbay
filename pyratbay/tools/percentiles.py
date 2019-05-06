@@ -42,11 +42,11 @@ def worker(pyrat, idx, models, post, uind):
   ifree = np.where(pyrat.ret.stepsize >0)[0]
   j = 0
   for i in idx:
-    params[ifree] = post[uind[i]]
-    models[i], dummy = pyrat.eval(params)
-    j += 1
-    if 0 in idx and j%(len(idx)/10)==0:
-      print("{:3.0f}% completed.".format(j*100.0/len(idx)))
+      params[ifree] = post[uind[i]]
+      models[i], dummy = pyrat.eval(params)
+      j += 1
+      if 0 in idx and j%(len(idx)/10)==0:
+          print("{:3.0f}% completed.".format(j*100.0/len(idx)))
 
 
 def specpercent(cfile, ncpu=None, nmax=None):
@@ -112,7 +112,7 @@ def specpercent(cfile, ncpu=None, nmax=None):
   post = np.load(path + savefile)["Z"]
   nsamples = np.shape(post)[0]
   if nmax is None:
-    nmax = nsamples  # Default to the size of the sample
+      nmax = nsamples  # Default to the size of the sample
   ini  = nsamples-nmax
   # Take maximum between burn index and user-input index:
   burn = int(np.amax([burn,ini]))
@@ -130,15 +130,15 @@ def specpercent(cfile, ncpu=None, nmax=None):
   # Compute spectra:
   processes = []
   for n in np.arange(ncpu):
-    start =  n    * nruns//ncpu
-    end   = (n+1) * nruns//ncpu
-    idx = np.arange(start, end)
-    proc = mp.Process(target=worker, args=(pyrat, idx, models, post, uind))
-    processes.append(proc)
-    proc.start()
+      start =  n    * nruns//ncpu
+      end   = (n+1) * nruns//ncpu
+      idx = np.arange(start, end)
+      proc = mp.Process(target=worker, args=(pyrat, idx, models, post, uind))
+      processes.append(proc)
+      proc.start()
   # Make sure all processes finish their work:
   for n in np.arange(ncpu):
-    processes[n].join()
+      processes[n].join()
 
   print("\nComputing percentiles:")
   # Compute 1sigma, 2sigma percentiles:
@@ -149,24 +149,24 @@ def specpercent(cfile, ncpu=None, nmax=None):
   high1   = np.zeros(nwave)
   high2   = np.zeros(nwave)
   for i in np.arange(nwave):
-    msample = models[uinv,i]
-    low2[i]  = np.percentile(msample,  2.275)
-    low1[i]  = np.percentile(msample, 15.865)
-    high1[i] = np.percentile(msample, 100-15.865)
-    high2[i] = np.percentile(msample, 100- 2.275)
-    if i % int(nwave//10) == 0:
-      print("{:3.0f}% completed.".format(i*100.0/nwave))
+      msample = models[uinv,i]
+      low2[i]  = np.percentile(msample,  2.275)
+      low1[i]  = np.percentile(msample, 15.865)
+      high1[i] = np.percentile(msample, 100-15.865)
+      high2[i] = np.percentile(msample, 100- 2.275)
+      if i % int(nwave//10) == 0:
+          print("{:3.0f}% completed.".format(i*100.0/nwave))
 
   # Load best-fitting model:
   wn, bestmodel = io.read_spectrum(path + rootname + "_bestfit_spectrum.dat")
 
   # Write to file:
   with open(path + rootname + "_percentiles.dat", "w") as f:
-    f.write("# wl (um)    Depth        -2sigma      -1sigma      "
-                         "+1sigma      +2sigma\n")
-    for i in np.arange(nwave):
-      f.write("{:.5e}  {:.5e}  {:.5e}  {:.5e}  {:.5e}  {:.5e}\n".
-          format(wl[i], bestmodel[i], low2[i], low1[i], high1[i], high2[i]))
+      f.write("# wl (um)    Depth        -2sigma      -1sigma      "
+                           "+1sigma      +2sigma\n")
+      for i in np.arange(nwave):
+          f.write("{:.5e}  {:.5e}  {:.5e}  {:.5e}  {:.5e}  {:.5e}\n".
+              format(wl[i], bestmodel[i], low2[i], low1[i], high1[i], high2[i]))
 
   log.close()
   os.remove("dummy.log")

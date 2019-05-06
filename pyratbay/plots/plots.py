@@ -72,25 +72,25 @@ def spectrum(wlength=None, spectrum=None, data=None, uncert=None,
   """
   # Unpack variables from Pyrat object:
   if pyrat is not None:
-    wlength   = 1.0/(pyrat.spec.wn*pc.um)
-    spectrum  = pyrat.spec.spectrum
-    starflux  = pyrat.spec.starflux
-    data      = pyrat.obs.data
-    uncert    = pyrat.obs.uncert
-    bandflux  = pyrat.obs.bandflux
-    bandtrans = pyrat.obs.bandtrans
-    bandidx   = pyrat.obs.bandidx
-    if pyrat.obs.bandwn is not None:
-      bandwl    = 1/(pyrat.obs.bandwn*pc.um)
-    rprs      = pyrat.phy.rprs
-    path      = pyrat.od.path
+      wlength   = 1.0/(pyrat.spec.wn*pc.um)
+      spectrum  = pyrat.spec.spectrum
+      starflux  = pyrat.spec.starflux
+      data      = pyrat.obs.data
+      uncert    = pyrat.obs.uncert
+      bandflux  = pyrat.obs.bandflux
+      bandtrans = pyrat.obs.bandtrans
+      bandidx   = pyrat.obs.bandidx
+      if pyrat.obs.bandwn is not None:
+        bandwl    = 1/(pyrat.obs.bandwn*pc.um)
+      rprs      = pyrat.phy.rprs
+      path      = pyrat.od.path
 
   if bandtrans is None:
-    nfilters = 0
+      nfilters = 0
   else:
-    nfilters = len(bandtrans)
-    if bandflux is None or np.all(bandflux==0):
-      bandflux = pyrat.band_integrate()
+      nfilters = len(bandtrans)
+      if bandflux is None or np.all(bandflux==0):
+          bandflux = pyrat.band_integrate()
 
   # Plotting setup:
   fs  = 14
@@ -105,46 +105,46 @@ def spectrum(wlength=None, spectrum=None, data=None, uncert=None,
 
   # Setup according to geometry:
   if   path == "eclipse":
-    if starflux is not None:
-      fscale = 1e3
-      gmodel = gaussf(spectrum/starflux * rprs**2.0, gaussbin)
-      plt.ylabel(r"$F_{\rm p}/F_{\rm s}\ (10^{-3})$", fontsize=fs)
-    else:
+      if starflux is not None:
+          fscale = 1e3
+          gmodel = gaussf(spectrum/starflux * rprs**2.0, gaussbin)
+          plt.ylabel(r"$F_{\rm p}/F_{\rm s}\ (10^{-3})$", fontsize=fs)
+      else:
+          fscale = 1.0
+          gmodel = gaussf(spectrum, gaussbin)
+          plt.ylabel(r"$F_{\rm p}\ ({\rm erg\, s^{-1}cm^{-2}cm})$", fontsize=fs)
+  elif path == "transit":
       fscale = 1.0
       gmodel = gaussf(spectrum, gaussbin)
-      plt.ylabel(r"$F_{\rm p}\ ({\rm erg\, s^{-1}cm^{-2}cm})$", fontsize=fs)
-  elif path == "transit":
-    fscale = 1.0
-    gmodel = gaussf(spectrum, gaussbin)
-    plt.ylabel("$(R_p/R_s)^2$", fontsize=fs)
+      plt.ylabel("$(R_p/R_s)^2$", fontsize=fs)
 
   # Plot model:
   plt.plot(wlength, gmodel*fscale, lw=lw, label="Model", color="orange")
   # Plot band-integrated model:
   if bandwl is not None:
-    plt.plot(bandwl, bandflux*fscale, "o", ms=ms, color="orange",
-             mec="k", mew=mew)
+      plt.plot(bandwl, bandflux*fscale, "o", ms=ms, color="orange",
+               mec="k", mew=mew)
   # Plot data:
   if data is not None:
-    plt.errorbar(bandwl, data*fscale, uncert*fscale, fmt="ob", label="Data",
-                 ms=ms, elinewidth=lw, capthick=lw, zorder=3)
+      plt.errorbar(bandwl, data*fscale, uncert*fscale, fmt="ob", label="Data",
+                   ms=ms, elinewidth=lw, capthick=lw, zorder=3)
 
   # Set Y-axis limits:
   if yran is not None:
-    ax.set_ylim(np.array(yran)*fscale)
+      ax.set_ylim(np.array(yran)*fscale)
   yran = ax.get_ylim()  # Note this yran may differ from input (fscale).
 
   # Transmission filters:
   bandh = 0.06*(yran[1] - yran[0])
   for i in np.arange(nfilters):
-    bandtr = bandh * bandtrans[i]/np.amax(bandtrans[i])
-    plt.plot(wlength[bandidx[i]], yran[0]+bandtr, "0.4", zorder=-100)
+      bandtr = bandh * bandtrans[i]/np.amax(bandtrans[i])
+      plt.plot(wlength[bandidx[i]], yran[0]+bandtr, "0.4", zorder=-100)
   ax.set_ylim(yran)
   if logxticks is not None:
-    ax.set_xscale('log')
-    plt.gca().xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
-    ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
-    ax.set_xticks(logxticks)
+      ax.set_xscale('log')
+      plt.gca().xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
+      ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+      ax.set_xticks(logxticks)
 
   ax.tick_params(labelsize=fs-2)
   plt.xlabel("Wavelength  (um)", fontsize=fs)
@@ -152,7 +152,7 @@ def spectrum(wlength=None, spectrum=None, data=None, uncert=None,
   plt.xlim(np.amin(wlength), np.amax(wlength))
 
   if filename is not None:
-    plt.savefig(filename)
+      plt.savefig(filename)
 
   return ax
 
@@ -201,23 +201,23 @@ def cf(bandcf, bandwl, path, pressure, radius, rtop=0,
 
   press = pressure[rtop:]/pc.bar
   rad   = radius[rtop:]/pc.km
-  if   path == "eclipse":
-    yran = np.amax(np.log10(press)), np.amin(np.log10(press))
-    zz = bandcf/np.amax(bandcf)
-    xlabel = 'contribution function'
-    ylabel = ''
-    yright = 0.9
-    cbtop  = 0.5
+  if path == "eclipse":
+      yran = np.amax(np.log10(press)), np.amin(np.log10(press))
+      zz = bandcf/np.amax(bandcf)
+      xlabel = 'contribution function'
+      ylabel = ''
+      yright = 0.9
+      cbtop  = 0.5
   elif path == "transit":
-    zz = bandcf/np.amax(bandcf)
-    yran = np.amin(rad), np.amax(rad)
-    xlabel = r'transmittance'
-    ylabel = r'Impact parameter (km)'
-    yright = 0.84
-    cbtop  = 0.8
+      zz = bandcf/np.amax(bandcf)
+      yran = np.amin(rad), np.amax(rad)
+      xlabel = r'transmittance'
+      ylabel = r'Impact parameter (km)'
+      yright = 0.84
+      cbtop  = 0.8
   else:
-    print("Invalid geometry.  Select from: 'eclipse' or 'transit'.")
-    return
+      print("Invalid geometry.  Select from: 'eclipse' or 'transit'.")
+      return
 
   fs  = 12
   colors = np.asarray(np.linspace(0, 255, nfilters), np.int)
@@ -233,13 +233,13 @@ def cf(bandcf, bandwl, path, pressure, radius, rtop=0,
   plo = np.zeros(nfilters+1)
   phi = np.zeros(nfilters+1)
   for i in np.arange(nfilters):
-    z[:,i, :] = plt.cm.rainbow(colors[i])
-    z[:,i,-1] = zz[i]**(0.5+0.5*(path=='transit'))
-    if path == "eclipse":
-      cumul = np.cumsum(zz[i])/np.sum(zz[i])
-      plo[i], phi[i] = press[cumul>lo][0], press[cumul>hi][0]
-    elif path == "transit":
-      plo[i], phi[i] = press[zz[i]<lo][0], press[zz[i]<hi][0]
+      z[:,i, :] = plt.cm.rainbow(colors[i])
+      z[:,i,-1] = zz[i]**(0.5+0.5*(path=='transit'))
+      if path == "eclipse":
+          cumul = np.cumsum(zz[i])/np.sum(zz[i])
+          plo[i], phi[i] = press[cumul>lo][0], press[cumul>hi][0]
+      elif path == "transit":
+          plo[i], phi[i] = press[zz[i]<lo][0], press[zz[i]<hi][0]
   plo[-1] = plo[-2]
   phi[-1] = phi[-2]
 
@@ -248,26 +248,26 @@ def cf(bandcf, bandwl, path, pressure, radius, rtop=0,
   plt.subplots_adjust(0.105, 0.10, yright, 0.95)
   ax = plt.subplot(111)
   pax = ax.twinx()
-  if   path == "eclipse":
-    ax.imshow(z[:,wlsort], aspect='auto', extent=[0,nfilters,yran[0],yran[1]],
-              origin='upper', interpolation='nearest')
-    ax.yaxis.set_visible(False)
-    pax.spines["left"].set_visible(True)
-    pax.yaxis.set_label_position('left')
-    pax.yaxis.set_ticks_position('left')
+  if path == "eclipse":
+      ax.imshow(z[:,wlsort], aspect='auto', extent=[0,nfilters,yran[0],yran[1]],
+                origin='upper', interpolation='nearest')
+      ax.yaxis.set_visible(False)
+      pax.spines["left"].set_visible(True)
+      pax.yaxis.set_label_position('left')
+      pax.yaxis.set_ticks_position('left')
   elif path == "transit":
-    ax.imshow(z[:,wlsort], aspect='auto', extent=[0,nfilters,yran[0],yran[1]],
-              origin='upper', interpolation='nearest')
-    # Setting the right radius tick labels requires some sorcery:
-    fig.canvas.draw()
-    ylab = [l.get_text() for l in ax.get_yticklabels()]
-    rint = si.interp1d(rad, press, bounds_error=False)
-    pticks = rint(ax.get_yticks())
-    bounds = np.isfinite(pticks)
-    pint = si.interp1d(press, np.linspace(yran[1], yran[0], nlayers),
-                       bounds_error=False)
-    ax.set_yticks(pint(pticks[bounds]))
-    ax.set_yticklabels(np.array(ylab)[bounds])
+      ax.imshow(z[:,wlsort], aspect='auto', extent=[0,nfilters,yran[0],yran[1]],
+                origin='upper', interpolation='nearest')
+      # Setting the right radius tick labels requires some sorcery:
+      fig.canvas.draw()
+      ylab = [l.get_text() for l in ax.get_yticklabels()]
+      rint = si.interp1d(rad, press, bounds_error=False)
+      pticks = rint(ax.get_yticks())
+      bounds = np.isfinite(pticks)
+      pint = si.interp1d(press, np.linspace(yran[1], yran[0], nlayers),
+                         bounds_error=False)
+      ax.set_yticks(pint(pticks[bounds]))
+      ax.set_yticklabels(np.array(ylab)[bounds])
 
   pax.plot(plo, drawstyle="steps-post", color="0.25", lw=0.75, ls="--")
   pax.plot(phi, drawstyle="steps-post", color="0.25", lw=0.75, ls="--")
@@ -283,13 +283,14 @@ def cf(bandcf, bandwl, path, pressure, radius, rtop=0,
 
   # Print filter names/wavelengths:
   for i in np.arange(0, nfilters-thin//2, thin):
-    idx = wlsort[i]
-    fname = " {:5.2f} um ".format(bandwl[idx])
-    # Strip root and file extension:
-    if filters is not None:
-      fname = os.path.split(os.path.splitext(filters[idx])[0])[1] + " @" + fname
-    ax.text(i+0.1, yran[1], fname, rotation=90, ha="left", va="top",
-            fontsize=ffs)
+      idx = wlsort[i]
+      fname = " {:5.2f} um ".format(bandwl[idx])
+      # Strip root and file extension:
+      if filters is not None:
+          fname = (os.path.split(os.path.splitext(filters[idx])[0])[1]
+                   + " @" + fname)
+      ax.text(i+0.1, yran[1], fname, rotation=90, ha="left", va="top",
+              fontsize=ffs)
 
   # Color bar:
   cbar = plt.axes([0.925, 0.10, 0.015, 0.85])
@@ -299,8 +300,8 @@ def cf(bandcf, bandwl, path, pressure, radius, rtop=0,
   cbar.imshow(cz, aspect='auto', extent=[0, 1, 0, 1],
               origin='lower', interpolation='nearest')
   if path == "transit":
-    cbar.axhline(0.1585, color="k", lw=1.0, dashes=(2.5,1))
-    cbar.axhline(0.8415, color="w", lw=1.0, dashes=(2.5,1))
+      cbar.axhline(0.1585, color="k", lw=1.0, dashes=(2.5,1))
+      cbar.axhline(0.8415, color="w", lw=1.0, dashes=(2.5,1))
   cbar.spines["right"].set_visible(True)
   cbar.yaxis.set_label_position('right')
   cbar.yaxis.set_ticks_position('right')
@@ -309,7 +310,7 @@ def cf(bandcf, bandwl, path, pressure, radius, rtop=0,
 
   fig.canvas.draw()
   if filename is not None:
-    plt.savefig(filename)
+      plt.savefig(filename)
 
 
 def PT(posterior, pressure=None, tpars=None, tstepsize=None,
@@ -345,28 +346,28 @@ def PT(posterior, pressure=None, tpars=None, tstepsize=None,
   pyrat: Pyrat instance
   """
   if pyrat is not None:
-    pressure  = pyrat.atm.press
-    targs     = pyrat.atm.targs
-    tpars     = pyrat.ret.params[pyrat.ret.itemp]
-    tstepsize = pyrat.ret.stepsize[pyrat.ret.itemp]
-    tmodel    = pyrat.atm.tmodel
+      pressure  = pyrat.atm.press
+      targs     = pyrat.atm.targs
+      tpars     = pyrat.ret.params[pyrat.ret.itemp]
+      tstepsize = pyrat.ret.stepsize[pyrat.ret.itemp]
+      tmodel    = pyrat.atm.tmodel
   elif (pressure is None  or  tpars   is None  or  tstepsize is None or
         rstar    is None  or  tstar   is None  or  tint      is None or
         smaxis   is None  or  gplanet is None):
-    print("One or more input parameters is missing (pressure, tpars, "
-          "tstepsize, rstar, tstar, tint, smaxis, gplanet).")
+      print("One or more input parameters is missing (pressure, tpars, "
+            "tstepsize, rstar, tstar, tint, smaxis, gplanet).")
 
   if pyrat is None:
-    targs = [pressure, rstar, tstar, tint, smaxis, gplanet]
-    tmodel = PT.TCEA
+      targs = [pressure, rstar, tstar, tint, smaxis, gplanet]
+      tmodel = PT.TCEA
 
   if pyrat is None and pyrat.ret.tmodel=="MadhuInv":
-    targs = [pyrat.atm.press*1e-6]
-    tmodel = MadhuTP.inversion
+      targs = [pyrat.atm.press*1e-6]
+      tmodel = MadhuTP.inversion
 
   if pyrat is None and pyrat.ret.tmodel=="MadhuNoInv":
-    targs = [pyrat.atm.press*1e-6]
-    tmodel = MadhuTP.no_inversion
+      targs = [pyrat.atm.press*1e-6]
+      tmodel = MadhuTP.no_inversion
 
   ifree = tstepsize > 0
   nfree = np.sum(ifree)
@@ -378,8 +379,8 @@ def PT(posterior, pressure=None, tpars=None, tstepsize=None,
   # Evaluate posterior PT profiles:
   PTprofiles = np.zeros((nsamples, nlayers), np.double)
   for i in np.arange(nsamples):
-    tpars[ifree] = posterior[i, ipost]
-    PTprofiles[i] = tmodel(tpars, *targs)
+      tpars[ifree] = posterior[i, ipost]
+      PTprofiles[i] = tmodel(tpars, *targs)
 
   # Get percentiles (for 1,2-sigma boundaries):
   low1 = np.percentile(PTprofiles, 16.0, axis=0)
@@ -398,8 +399,8 @@ def PT(posterior, pressure=None, tpars=None, tstepsize=None,
                    facecolor="#1873CC", edgecolor="#1873CC")
   plt.semilogy(median, pressure/pc.bar, "k-", lw=2, label="Median")
   if besttpars is not None:
-    bestpt = tmodel(besttpars, *targs)
-    plt.semilogy(bestpt, pressure/pc.bar, "r-", lw=2, label="Best fit")
+      bestpt = tmodel(besttpars, *targs)
+      plt.semilogy(bestpt, pressure/pc.bar, "r-", lw=2, label="Best fit")
   plt.ylim(np.amax(pressure/pc.bar), np.amin(pressure/pc.bar))
   plt.legend(loc="best")
   plt.xlabel("Temperature  (K)", size=15)
@@ -407,4 +408,4 @@ def PT(posterior, pressure=None, tpars=None, tstepsize=None,
 
   # Save figure:
   if filename is not None:
-    plt.savefig(filename)
+      plt.savefig(filename)

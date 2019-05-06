@@ -309,19 +309,17 @@ def makeatomic(solar, afile, xsolar=1.0, swap=None):
 
   # Swap abundances if requested:
   if swap is not None:
-    dex0 = dex[np.where(symbol == swap[0])]
-    dex[np.where(symbol == swap[0])] = dex[np.where(symbol == swap[1])]
-    dex[np.where(symbol == swap[1])] = dex0
+      dex0 = dex[np.where(symbol == swap[0])]
+      dex[np.where(symbol == swap[0])] = dex[np.where(symbol == swap[1])]
+      dex[np.where(symbol == swap[1])] = dex0
 
   # Save data to file
   with open(afile, "w") as f:
-    # Write header
-    f.write("# Elemental abundances:\n"
-            "# atomic number, symbol, dex abundance, name, molar mass (u).\n")
-    # Write data
-    for i in np.arange(nelements):
-      f.write("{:3d}  {:2s}  {:5.2f}  {:10s}  {:12.8f}\n".
-              format(index[i], symbol[i], dex[i], name[i], mass[i]))
+      f.write("# Elemental abundances:\n"
+              "# atomic number, symbol, dex abundance, name, molar mass (u).\n")
+      for i in np.arange(nelements):
+        f.write("{:3d}  {:2s}  {:5.2f}  {:10s}  {:12.8f}\n".
+                format(index[i], symbol[i], dex[i], name[i], mass[i]))
 
 
 def readatomic(afile):
@@ -415,13 +413,13 @@ def makepreatm(pressure, temp, afile, elements, species, patm):
   # Load defaults:
   sdefaults = {}
   with open(pc.ROOT + "inputs/TEA_gdata_defaults.txt", "r") as d:
-    for line in d:
-      sdefaults[line.split()[0]] = line.split()[1]
+      for line in d:
+          sdefaults[line.split()[0]] = line.split()[1]
 
   # Check species names:
   for i in np.arange(len(species)):
-    if species[i].find("_") < 0:
-      species[i] = sdefaults[species[i]]
+      if species[i].find("_") < 0:
+          species[i] = sdefaults[species[i]]
 
   # Write species names
   f.write('#SPECIES\n{:s}\n\n'.format(" ".join(species)))
@@ -430,10 +428,8 @@ def makepreatm(pressure, temp, afile, elements, species, patm):
   f.write("#TEADATA\n#Pressure          Temp  " +
           "  ".join(["{:>12s}".format(atom) for atom in symbol[iatoms]]) + "\n")
   for i in np.arange(nlayers):
-    # Pressure, and Temperature:
-    f.write("{:10.4e}     {:>8.2f}  ".format(pressure[i], temp[i]))
-    # Elemental abundance list:
-    f.write("  ".join(["{:12.6e}".format(abun) for abun in nfrac]) + "\n")
+      f.write("{:10.4e}     {:>8.2f}  ".format(pressure[i], temp[i]))
+      f.write("  ".join(["{:12.6e}".format(abun) for abun in nfrac]) + "\n")
   f.close()
 
 
@@ -492,7 +488,8 @@ def abundances(atmfile, pressure, temperature, species, elements=None,
       log = mu.Log(logname=None, verb=verb)
   # Uniform-abundances profile:
   if quniform is not None:
-      q = uniform(pressure, temperature, species, quniform, punits, log, atmfile)
+      q = uniform(pressure, temperature, species, quniform, punits, log,
+                  atmfile)
       log.msg("\nProduced uniform-abundances atmospheric file: '{:s}'.".
               format(atmfile))
       return q
@@ -549,23 +546,23 @@ def TEA2pyrat(teafile, atmfile, req_species):
   nspecies    = len(species)
   nreqspecies = len(req_species)
   nreqspecies = len(req_species)
-  for i in np.arange(nspecies):
-    species[i] = species[i].rpartition("_")[0]
+  for i in range(nspecies):
+      species[i] = species[i].rpartition("_")[0]
 
   # Species indices corresponding to req_species:
   sindex = np.zeros(len(req_species), int)
-  for i in np.arange(len(req_species)):
-    sindex[i] = species.index(req_species[i])
+  for i in range(len(req_species)):
+      sindex[i] = species.index(req_species[i])
 
   # Extract per-layer data:
   nlayers = len(tea) - idata
   temperature = np.zeros(nlayers)
   pressure    = np.zeros(nlayers)
   abundance   = np.zeros((nlayers, nreqspecies))
-  for i in np.arange(nlayers):
-    data = np.asarray(tea[idata+i].split(), np.double)
-    pressure[i], temperature[i] = data[0:2]
-    abundance[i,:] = data[2:][sindex]
+  for i in range(nlayers):
+      data = np.asarray(tea[idata+i].split(), np.double)
+      pressure[i], temperature[i] = data[0:2]
+      abundance[i,:] = data[2:][sindex]
 
   # TEA pressure units are always bars:
   punits = "bar"
@@ -796,40 +793,40 @@ def temperature(tmodel, pressure=None, rstar=None, tstar=None, tint=100.0,
   >>> temp = Tmodel(tparams, *targs)
   """
   if log is None:
-    log = mu.Log(logname=None)
+      log = mu.Log(logname=None)
 
-  if tmodel == "TCEA":
-    # Parse inputs:
-    rstar   = pt.get_param('rstar',   rstar,   runits,   log, gt=0.0)
-    tstar   = pt.get_param('tstar',   tstar,   'kelvin', log, gt=0.0)
-    tint    = pt.get_param('tint',    tint,    'kelvin', log, gt=0.0)
-    gplanet = pt.get_param('gplanet', gplanet, 'none',   log, gt=0.0)
-    smaxis  = pt.get_param('smaxis',  smaxis,  runits,   log, gt=0.0)
-    # Define model and arguments:
-    Tmodel = temp_TCEA
-    targs  = [pressure, rstar, tstar, tint, gplanet, smaxis]
-    ntpars = 5
-  elif tmodel == "isothermal":
-    Tmodel = temp_isothermal
-    targs  = [nlayers]
-    ntpars = 1
-  elif tmodel == "MadhuNoInv":
-    Tmodel = MadhuTP.no_inverision
-    targs = [pressure*pc.bar]
-    ntpars = 5
-  elif tmodel == "MadhuInv":
-    Tmodel = MadhuTP.inversion
-    targs = [pressure*pc.bar]
-    ntpars = 6
+  if tmodel == 'TCEA':
+      # Parse inputs:
+      rstar   = pt.get_param('rstar',   rstar,   runits,   log, gt=0.0)
+      tstar   = pt.get_param('tstar',   tstar,   'kelvin', log, gt=0.0)
+      tint    = pt.get_param('tint',    tint,    'kelvin', log, gt=0.0)
+      gplanet = pt.get_param('gplanet', gplanet, 'none',   log, gt=0.0)
+      smaxis  = pt.get_param('smaxis',  smaxis,  runits,   log, gt=0.0)
+      # Define model and arguments:
+      Tmodel = temp_TCEA
+      targs  = [pressure, rstar, tstar, tint, gplanet, smaxis]
+      ntpars = 5
+  elif tmodel == 'isothermal':
+      Tmodel = temp_isothermal
+      targs  = [nlayers]
+      ntpars = 1
+  elif tmodel == 'MadhuNoInv':
+      Tmodel = MadhuTP.no_inverision
+      targs = [pressure*pc.bar]
+      ntpars = 5
+  elif tmodel == 'MadhuInv':
+      Tmodel = MadhuTP.inversion
+      targs = [pressure*pc.bar]
+      ntpars = 6
   else:
-    log.error("Invalid input temperature model '{:s}'.  Select from: 'TCEA', "
-              " 'MadhuInv', 'MadhuNoInv', or 'isothermal'.".format(tmodel))
+    log.error("Invalid input temperature model '{:s}'.  Select from: {}".
+              format(tmodel, pc.tmodels))
 
   if tparams is None:
       return Tmodel, targs, ntpars
   else:
       temperature = Tmodel(tparams, *targs)
-      log.msg("\nComputed {:s} temperature model.".format(tmodel))
+      log.msg('\nComputed {:s} temperature model.'.format(tmodel))
       return temperature
 
 
@@ -1039,26 +1036,26 @@ def readmol(file):
   file also contain elemental particles.
   """
   with open(file, "r") as molfile:
-    # Skip comment and blank lines:
-    line = molfile.readline().strip()
-    while line == '' or line.startswith('#'):
+      # Skip comment and blank lines:
       line = molfile.readline().strip()
+      while line == '' or line.startswith('#'):
+          line = molfile.readline().strip()
 
-    # Allocate outputs:
-    molID  = [] # Molecule ID
-    symbol = [] # Molecule symbol
-    mass   = [] # Molecule mass
-    diam   = [] # Molecule diameter
+      # Allocate outputs:
+      molID  = [] # Molecule ID
+      symbol = [] # Molecule symbol
+      mass   = [] # Molecule mass
+      diam   = [] # Molecule diameter
 
-    # Read in values:
-    while line != '' and not line.startswith('#'):  # Start reading species
-      molinfo = line.split()
-      # Extract info:
-      molID .append(  int(molinfo[0]))
-      symbol.append(      molinfo[1] )
-      mass  .append(float(molinfo[2]))
-      diam  .append(float(molinfo[3]))
-      line = molfile.readline().strip()  # Read next line
+      # Read in values:
+      while line != '' and not line.startswith('#'):  # Start reading species
+          molinfo = line.split()
+          # Extract info:
+          molID .append(  int(molinfo[0]))
+          symbol.append(      molinfo[1] )
+          mass  .append(float(molinfo[2]))
+          diam  .append(float(molinfo[3]))
+          line = molfile.readline().strip()  # Read next line
 
   molID  = np.asarray(molID)
   symbol = np.asarray(symbol)

@@ -4928,3 +4928,9 @@ defined at runtime, the code will attempt to compute a hydrostatic-
 equilibrium radius profile.
 Added respective tests and atmospheric file.
 
+*****
+
+PEP8'ed MadhuTP.py, atmosphere.py, plots.py, contribfuncs.py,
+percentiles.py, and tools.py.
+Only cosmetic changes.
+
