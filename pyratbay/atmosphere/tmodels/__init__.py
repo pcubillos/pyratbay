@@ -2,14 +2,12 @@
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
 """
-Atmospheric modeling functions.
+Temperature-profile models.
 """
 
-from .qscaling   import *
-from .atmosphere import *
-from . import tmodels
+from .tmodels import *
 
-__all__ = qscaling.__all__ + atmosphere.__all__ + ['tmodels']
+__all__ = tmodels.__all__
 
 # Clean up top-level namespace--delete everything that isn't in __all__
 # or is a magic attribute, and that isn't a submodule of this package

@@ -4948,3 +4948,9 @@ posterior plot from a pyrat instance.
 
 PEP8'ed objects.py and updated the Spectrum repr.
 
+*****
+
+Added tmodels module into atmosphere module to keep all temperature-
+profile models in a single place.
+Clean-up in next commit.
+
