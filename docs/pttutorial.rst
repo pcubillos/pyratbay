@@ -14,7 +14,7 @@ pdf image of the pressure-temperature profile and it returns the
 pressure and temperature arrays.
 
 The temperature model (``tmodel``) can be isothermal,
-three-channel Eddington approximation (TCEA) [Line2013]_, or the Madhusudhan parameterized model for thermally inverted (MadhuInv) or non-inverted (MadhuNoInv) atmospheres [Madhusudhan2009]_.  The
+three-channel Eddington approximation (tcea) [Line2013]_, or the Madhusudhan parameterized model for thermally inverted (madhu_inv) or non-inverted (madhu_noinv) atmospheres [Madhusudhan2009]_.  The
 number of model parameter (``tparams``) and other system parameters
 depend on the temperature model.
 
@@ -33,7 +33,8 @@ Here is an example of a PT configuration file:
   ptop    = 1e-5   ; Top-layer pressure (default units: punits)
   nlayers = 100    ; Number of atmospheric layers
 
-  # Temperature-profile model, select from: [isothermal TCEA MadhuInv MadhuNoInv]
+  # Temperature-profile model, select from [isothermal tcea madhu_inv madhu_noinv]
+
   tmodel  = isothermal
   tparams = 1500.0
   #    log10(kappa) log10(g1) log10(g2) alpha beta
@@ -51,14 +52,14 @@ Here is an example of a PT configuration file:
   verb = 4
 
 The isothermal model has one free parameter: the temperature.
-The TCEA model has five parameters: :math:`\log_{10}(\kappa),
+The tcea model has five parameters: :math:`\log_{10}(\kappa),
 \log_{10}(\gamma1), \log_{10}(\gamma2), \alpha, \beta` as defined in
-[Line2013]_.  The TCEA model also requires the stellar radius
+[Line2013]_.  The tcea model also requires the stellar radius
 (``rstar``), the orbital semi-major axis (``smaxis``), the planetary
 surface gravity (``gplanet``), the stellar effective temperature
 (``tstar``), and the planetary internal temperature (``tint``).
-The MadhuInv model has six parameters: :math:`a_1, a_2, p_1, p_2, p_3,
-T_3` as defined in [Madhusudhan2009]_. The MadhuNoInv model has five
+The madhu_inv model has six parameters: :math:`a_1, a_2, p_1, p_2, p_3,
+T_3` as defined in [Madhusudhan2009]_. The madhu_noinv model has five
 parameters: :math:`a_1, a_2, p_1, p_3, T_3` as defined in
 [Madhusudhan2009]_.
 
@@ -69,7 +70,7 @@ Python interpreter:
 
   # Generate an isothermal PT profile (output values in CGS units):
   pressure, T_isothermal = pb.pbay.run("tutorial_pt-isothermal.cfg")
-  # Generate a TCEA PT profile:
+  # Generate a tcea PT profile:
   pressure, T_tcea = pb.pbay.run("tutorial_pt-tcea.cfg")
 
 Note that the only difference between these configuration files are the

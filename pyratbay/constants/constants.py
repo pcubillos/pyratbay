@@ -118,9 +118,9 @@ rmodes = [
 # Temperature models:
 tmodels = [
    'isothermal',
-   'TCEA',
-   'MadhuInv',
-   'MadhuNoInv',
+   'tcea',
+   'madhu_inv',
+   'madhu_noinv',
 ]
 
 # Molecular-abundance models:

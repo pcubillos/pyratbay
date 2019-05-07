@@ -4954,3 +4954,11 @@ Added tmodels module into atmosphere module to keep all temperature-
 profile models in a single place.
 Clean-up in next commit.
 
+*****
+
+Renamed TCEA, MadhuInv, and MadhuNoInv TP model names to
+tcea, madhu_inv, and madhu_noinv.
+Removed Madhu.py file. Removed atmosphere.temp_isothermal and
+atmosphere.temp_TCEA functions.
+Redirected all TP model call to atmosphere.tmodels module.
+

@@ -89,7 +89,7 @@ def test_pressure_with_units():
     [1500.0, [1500.0], (1500,), np.array([1500.0])])
 def test_temp_isothermal(tparams):
     nlayers = 100
-    temp = pa.temp_isothermal(tparams, nlayers)
+    temp = pa.tmodels.isothermal(tparams, nlayers)
     np.testing.assert_equal(temp, np.tile(1500.0, 100))
 
 
@@ -97,7 +97,7 @@ def test_temp_isothermal(tparams):
     [[-1.5, -0.8, -0.8, 0.5, 1.0],
      np.array([-1.5, -0.8, -0.8, 0.5, 1.0])
     ])
-def test_temp_TCEA_floats(tparams):
+def test_temp_tcea_floats(tparams):
     tparams = [-1.5, -0.8, -0.8, 0.5, 1.0]
     pressure = expected_pressure
     rstar = 0.756 * pc.rsun
@@ -105,11 +105,12 @@ def test_temp_TCEA_floats(tparams):
     tint = 100.0
     gplanet = 2200.0
     smaxis = 0.031 * pc.au
-    temp = pa.temp_TCEA(tparams, pressure, rstar, tstar, tint, gplanet, smaxis)
+    temp = pa.tmodels.tcea(tparams, pressure, rstar, tstar, tint,
+        gplanet, smaxis)
     np.testing.assert_almost_equal(temp, expected_temp, decimal=7)
 
 
-def test_temp_TCEA_units():
+def test_temp_tcea_units():
     tparams = [-1.5, -0.8, -0.8, 0.5, 1.0]
     pressure = expected_pressure
     rstar = "0.756 rsun"
@@ -117,7 +118,8 @@ def test_temp_TCEA_units():
     tint = 100.0
     gplanet = 2200.0
     smaxis = "0.031 au"
-    temp = pa.temp_TCEA(tparams, pressure, rstar, tstar, tint, gplanet, smaxis)
+    temp = pa.tmodels.tcea(tparams, pressure, rstar, tstar, tint,
+        gplanet, smaxis)
     np.testing.assert_almost_equal(temp, expected_temp, decimal=7)
 
 
@@ -128,10 +130,10 @@ def test_temperature_isothermal():
     np.testing.assert_equal(temp, np.tile(tparams, nlayers))
 
 
-def test_temperature_TCEA():
+def test_temperature_tcea():
     pressure = expected_pressure
     tparams = [-1.5, -0.8, -0.8, 0.5, 1.0]
-    temp = pa.temperature("TCEA", pressure, rstar="0.756 rsun", tstar=5040,
+    temp = pa.temperature('tcea', pressure, rstar="0.756 rsun", tstar=5040,
           tint=100.0, gplanet=2200.0, smaxis="0.031 au", tparams=tparams)
     np.testing.assert_almost_equal(temp, expected_temp, decimal=7)
 
@@ -153,7 +155,7 @@ def test_abundances_uniform():
     nlayers = 11
     punits  = 'bar'
     pressure    = pa.pressure(1e-8, 1e2, nlayers, punits)
-    temperature = pa.temp_isothermal(1500.0, nlayers)
+    temperature = pa.tmodels.isothermal(1500.0, nlayers)
     species     = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
     abundances  = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
     qprofiles = pa.abundances(atmfile, pressure, temperature, species,
@@ -170,7 +172,7 @@ def test_abundances_TEA():
     nlayers = 11
     punits  = 'bar'
     pressure    = pa.pressure(1e-8, 1e2, nlayers, punits)
-    temperature = pa.temp_isothermal(1500.0, nlayers)
+    temperature = pa.tmodels.isothermal(1500.0, nlayers)
     species     = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
     elements    = ["H", "He", "C", "O"]
     xsolar      = 1.0
@@ -183,7 +185,7 @@ def test_abundances_TEA():
 def test_hydro_g():
     nlayers = 11
     pressure = pa.pressure(1e-8, 1e2, nlayers, units='bar')
-    temperature = pa.temp_isothermal(1500.0, nlayers)
+    temperature = pa.tmodels.isothermal(1500.0, nlayers)
     mu = np.tile(2.3, nlayers)
     g = pc.G * pc.mjup / pc.rjup**2
     r0 = 1.0 * pc.rjup
@@ -196,7 +198,7 @@ def test_hydro_g():
 def test_hydro_m():
     nlayers = 11
     pressure = pa.pressure(1e-8, 1e2, nlayers, units='bar')
-    temperature = pa.temp_isothermal(1500.0, nlayers)
+    temperature = pa.tmodels.isothermal(1500.0, nlayers)
     mu = np.tile(2.3, nlayers)
     Mp = 1.0 * pc.mjup
     r0 = 1.0 * pc.rjup

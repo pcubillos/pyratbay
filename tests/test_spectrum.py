@@ -134,7 +134,7 @@ def test_transmission_tmodel_none(tmp_path):
     # include tmodel, but tpars is None
     cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
         remove=['hazes', 'hpars'],
-        reset={'tmodel':'TCEA'})
+        reset={'tmodel':'tcea'})
     pyrat = pb.run(cfg)
     tmodel0 = pyrat.spec.spectrum
     np.testing.assert_allclose(tmodel0, expected['all'], rtol=1e-7)
@@ -150,7 +150,7 @@ def test_transmission_tmodel(tmp_path):
     # Include tmodel and tpars  in input config file:
     cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
         remove=['hazes', 'hpars'],
-        reset={'tmodel':'TCEA', 'tpars':'-1.5 -0.8 -0.8 0.5 1.0'})
+        reset={'tmodel':'tcea', 'tpars':'-1.5 -0.8 -0.8 0.5 1.0'})
     pyrat = pb.run(cfg)
     tmodel2 = pyrat.spec.spectrum
     np.testing.assert_allclose(tmodel2, expected['tmodel'], rtol=1e-7)
@@ -194,7 +194,7 @@ def test_transmission_scale_model(tmp_path):
 def test_fit(tmp_path):
     # Without evaulating params:
     cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
-        reset={'tmodel':'TCEA', 'hpars':'2.0',
+        reset={'tmodel':'tcea', 'hpars':'2.0',
                'molmodel':'vert', 'molfree':'H2O', 'bulk':'H2 He',
                'retflag':'pt mol ray haze',
                'params':'-1.5 -0.8 -0.8 0.5 1.0 -4.0 0.0 -4.0 2.0'})

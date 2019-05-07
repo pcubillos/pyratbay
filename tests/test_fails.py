@@ -310,7 +310,7 @@ def test_pt_temperature_missing(tmp_path, capfd, param, undefined):
 
 @pytest.mark.parametrize('cfile, error',
     [('pt_isothermal.cfg', 'isothermal temperature model (1).'),
-     ('pt_tcea.cfg',       'TCEA temperature model (5).')])
+     ('pt_tcea.cfg',       'tcea temperature model (5).')])
 def test_pt_tpars_mismatch(tmp_path, capfd, cfile, error):
     cfg = make_config(tmp_path, ROOT+'tests/{:s}'.format(cfile),
         reset={'tpars':'100.0 200.0'})
@@ -575,7 +575,7 @@ def test_spectrum_filter_mismatch(tmp_path, capfd):
 def test_spectrum_tcea_parameters(tmp_path, capfd, param, undefined):
     cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
         remove=[param],
-        reset={'path':'eclipse', 'tmodel':'TCEA'})
+        reset={'path':'eclipse', 'tmodel':'tcea'})
     pyrat = pb.run(cfg)
     assert pyrat is None
     captured = capfd.readouterr()
@@ -588,7 +588,7 @@ def test_spectrum_tcea_parameters(tmp_path, capfd, param, undefined):
 def test_spectrum_tcea_gplanet(tmp_path, capfd, param, undefined):
     cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
         remove=[param, 'gplanet'],
-        reset={'path':'eclipse', 'tmodel':'TCEA'})
+        reset={'path':'eclipse', 'tmodel':'tcea'})
     pyrat = pb.run(cfg)
     assert pyrat is None
     captured = capfd.readouterr()

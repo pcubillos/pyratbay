@@ -1,12 +1,15 @@
 # Copyright (c) 2016-2019 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-__all__ = ["writeatm", "readatm", "makeatomic",
-           "readatomic", "makepreatm", "TEA2pyrat", "readmol",
-           "pressure",
-           "temp_isothermal", "temp_TCEA", "temperature",
-           "uniform", "abundances",
-           "hydro_g", "hydro_m", "stoich", "meanweight", "IGLdensity"]
+__all__ = [
+    'writeatm', 'readatm', 'makeatomic',
+    'readatomic', 'makepreatm', 'TEA2pyrat', 'readmol',
+    'pressure',
+    'temperature',
+    'uniform', 'abundances',
+    'hydro_g', 'hydro_m',
+    'stoich', 'meanweight', 'IGLdensity',
+    ]
 
 import os
 import sys
@@ -20,11 +23,9 @@ import scipy.interpolate as sip
 
 from .. import tools     as pt
 from .. import constants as pc
-from .  import MadhuTP
+from .  import tmodels
 
-sys.path.append(pc.ROOT + "pyratbay/lib/")
-import pt as PT
-sys.path.append(pc.ROOT + "modules/MCcubed/")
+sys.path.append(pc.ROOT + 'modules/MCcubed/')
 import MCcubed.utils as mu
 
 
@@ -238,10 +239,10 @@ def uniform(pressure, temperature, species, abundances, punits="bar",
   >>> nlayers = 11
   >>> punits  = 'bar'
   >>> pressure    = pa.pressure(1e-8, 1e2, nlayers, punits)
-  >>> temperature = pa.temp_isothermal(1500.0, nlayers)
+  >>> temperature = pa.tmodels.isothermal(1500.0, nlayers)
   >>> species     = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
   >>> abundances  = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
-  >>> qprofiles = pa.abundances(pressure, temperature, species,
+  >>> qprofiles = pa.abundances(atmfile, pressure, temperature, species,
   >>>                           quniform=abundances, punits=punits)
   >>> print(qprofiles)
   [[8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]
@@ -629,104 +630,6 @@ def pressure(ptop, pbottom, nlayers, units="bar", log=None, verb=0):
   return press
 
 
-def temp_isothermal(tparams, nlayers):
-  """
-  Compute isothermal temperature profile.
-
-  Parameters
-  ----------
-  tparams: scalar or iterable
-      Temperature of the isothermal profile (Kelvin degree).
-  nlayers: Integer
-      Number of layers in temperature profile.
-
-  Returns
-  -------
-  temp: 1D float ndarray
-      Temperature profile.
-
-  Examples
-  --------
-  >>> nlayers = 8
-  >>> temp = pa.temp_isothermal(1500.0, nlayers)
-  >>> print(temp)
-  [1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500.]
-  >>> temp = pa.temp_isothermal(np.array([1500.0]), nlayers)
-  >>> print(temp)
-  [1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500.]
-  """
-  # Cast to Numpy double array:
-  if isinstance(tparams, (list, tuple)):
-      tparams = np.array(tparams, np.double)
-  else:
-      tparams = np.array([tparams], np.double)
-
-  # Actually, this is a wrapper of a CPython routine:
-  return PT.isothermal(tparams, nlayers)
-
-
-def temp_TCEA(tparams, pressure, rstar, tstar, tint, gplanet, smaxis,
-              runits="cm"):
-    """
-    Compute Three-channel Eddington Approximation (TCEA) temperature
-    profile model.
-
-    tparams: 1D iterable
-        TCEA model parameters:
-        log10(kappa):  Planck thermal IR opacity in units cm^2/gr
-        log10(gamma1): Visible-to-thermal stream Planck mean opacity ratio
-        log10(gamma2): Visible-to-thermal stream Planck mean opacity ratio
-        alpha: Visible-stream partition (0.0--1.0)
-        beta:  'catch-all' for albedo, emissivity, and day--night
-               redistribution (on the order of unity)
-    pressure: 1D float ndarray
-        Atmospheric pressure profile in barye units.
-    rstar: String or float
-        Stellar radius (default in cm). If string, may specify units.
-    tstar: String or float
-        Stellar temperature in Kelvin degrees.
-    tint: String or float
-        Planetary internal temperature in Kelvin degrees.
-    gplanet: String or float
-        Planetary atmospheric temperature in cm s-2.
-    smaxis: String or float
-        Orbital semi-major axis (default in cm). If string, may specify units.
-    runits: String
-        Default units for rstar and smaxis.
-
-    Examples
-    --------
-    >>> import pyratbay.atmosphere as pa
-    >>> import pyratbay.constants  as pc
-    >>> nlayers = 11
-    >>> pressure = pa.pressure(1e-8, 1e2, nlayers, 'bar')
-    >>> rstar   = 0.756 * pc.rsun
-    >>> tstar   = 5040.0  # K
-    >>> tint    = 100.0   # K
-    >>> gplanet = 2200.0   # cm s-2
-    >>> smaxis  = 0.031 * pc.au
-    >>> tparams = [-1.5, -0.8, -0.8, 0.5, 1.0]
-    >>> temp = pa.temp_TCEA(tparams, pressure, rstar, tstar, tint,
-                            gplanet, smaxis)
-    >>> print(temp)
-    [1047.04157312 1047.04189805 1047.04531644 1047.08118784 1047.45648563
-     1051.34469989 1088.69956369 1311.86379107 1640.12857767 1660.02396061
-     1665.30121021]
-    """
-    # Ensure Numpy array:
-    if isinstance(tparams, (list, tuple)):
-        tparams = np.array(tparams, np.double)
-    # Parse inputs:
-    rstar   = pt.get_param('rstar',   rstar,   runits,   gt=0.0)
-    tstar   = pt.get_param('tstar',   tstar,   'kelvin', gt=0.0)
-    tint    = pt.get_param('tint',    tint,    'kelvin', ge=0.0)
-    gplanet = pt.get_param('gplanet', gplanet, 'none',   gt=0.0)
-    smaxis  = pt.get_param('smaxis',  smaxis,  runits,   gt=0.0)
-    # Define model and arguments:
-    targs  = [pressure, rstar, tstar, tint, smaxis, gplanet]
-    return PT.TCEA(tparams, *targs)
-
-
 def temperature(tmodel, pressure=None, rstar=None, tstar=None, tint=100.0,
                 gplanet=None, smaxis=None, runits="cm", nlayers=None,
                 log=None, tparams=None):
@@ -784,18 +687,17 @@ def temperature(tmodel, pressure=None, rstar=None, tstar=None, tint=100.0,
   >>> # Three-channel Eddington-approximation profile:
   >>> pressure = pa.pressure(1e-8, 1e2, nlayers, "bar")
   >>> tparams = np.array([-1.5, -0.8, -0.8, 0.5, 1.0])
-  >>> temp = pa.temperature("TCEA", pressure, rstar="0.756 rsun", tstar=5040,
+  >>> temp = pa.temperature('tcea', pressure, rstar="0.756 rsun", tstar=5040,
           tint=100.0, gplanet=2200.0, smaxis="0.031 au", tparams=tparams)
   >>> print(temp)
   [1047.04157312 1047.04189805 1047.04531644 1047.08118784 1047.45648563
    1051.34469989 1088.69956369 1311.86379107 1640.12857767 1660.02396061
    1665.30121021]
-  >>> temp = Tmodel(tparams, *targs)
   """
   if log is None:
       log = mu.Log(logname=None)
 
-  if tmodel == 'TCEA':
+  if tmodel == 'tcea':
       # Parse inputs:
       rstar   = pt.get_param('rstar',   rstar,   runits,   log, gt=0.0)
       tstar   = pt.get_param('tstar',   tstar,   'kelvin', log, gt=0.0)
@@ -803,19 +705,19 @@ def temperature(tmodel, pressure=None, rstar=None, tstar=None, tint=100.0,
       gplanet = pt.get_param('gplanet', gplanet, 'none',   log, gt=0.0)
       smaxis  = pt.get_param('smaxis',  smaxis,  runits,   log, gt=0.0)
       # Define model and arguments:
-      Tmodel = temp_TCEA
+      Tmodel = tmodels.tcea
       targs  = [pressure, rstar, tstar, tint, gplanet, smaxis]
       ntpars = 5
   elif tmodel == 'isothermal':
-      Tmodel = temp_isothermal
+      Tmodel = tmodels.isothermal
       targs  = [nlayers]
       ntpars = 1
-  elif tmodel == 'MadhuNoInv':
-      Tmodel = MadhuTP.no_inverision
+  elif tmodel == 'madhu_noinv':
+      Tmodel = tmodels.madhu_noinv
       targs = [pressure*pc.bar]
       ntpars = 5
-  elif tmodel == 'MadhuInv':
-      Tmodel = MadhuTP.inversion
+  elif tmodel == 'madhu_inv':
+      Tmodel = tmodels.madhu_inv
       targs = [pressure*pc.bar]
       ntpars = 6
   else:
@@ -863,9 +765,10 @@ def hydro_g(pressure, temperature, mu, g, p0=None, r0=None):
   Examples
   --------
   >>> import pyratbay.atmosphere as pa
+  >>> import pyratbay.constants as pc
   >>> nlayers = 11
   >>> pressure = pa.pressure(1e-8, 1e2, nlayers, units='bar')
-  >>> temperature = pa.temp_isothermal(1500.0, nlayers)
+  >>> temperature = pa.tmodels.isothermal(1500.0, nlayers)
   >>> mu = np.tile(2.3, nlayers)
   >>> g = pc.G * pc.mjup / pc.rjup**2
   >>> r0 = 1.0 * pc.rjup
@@ -922,9 +825,10 @@ def hydro_m(pressure, temperature, mu, M, p0, r0):
   Examples
   --------
   >>> import pyratbay.atmosphere as pa
+  >>> import pyratbay.constants  as pc
   >>> nlayers = 11
   >>> pressure = pa.pressure(1e-8, 1e2, nlayers, units='bar')
-  >>> temperature = pa.temp_isothermal(1500.0, nlayers)
+  >>> temperature = pa.tmodels.isothermal(1500.0, nlayers)
   >>> mu = np.tile(2.3, nlayers)
   >>> Mp = 1.0 * pc.mjup
   >>> r0 = 1.0 * pc.rjup
@@ -967,9 +871,9 @@ def stoich(species):
   Examples
   --------
   >>> import pyratbay.atmosphere as pa
-  >>> species = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
+  >>> species = ['H2', 'He', 'H2O', 'CO', 'CO2', 'CH4']
   >>> elements, stoichs = pa.stoich(species)
-  >>> print("{}\n{}".format(elements, stoichs))
+  >>> print('{}\n{}'.format(elements, stoichs))
   ['C', 'H', 'He', 'O']
   [[0 2 0 0]
    [0 0 1 0]
@@ -1035,7 +939,7 @@ def readmol(file):
   In all truthfulness, these are species, not only molecules, as the
   file also contain elemental particles.
   """
-  with open(file, "r") as molfile:
+  with open(file, 'r') as molfile:
       # Skip comment and blank lines:
       line = molfile.readline().strip()
       while line == '' or line.startswith('#'):
@@ -1065,7 +969,7 @@ def readmol(file):
   return molID, symbol, mass, diam
 
 
-def meanweight(abundances, species, molfile=pc.ROOT+"inputs/molecules.dat"):
+def meanweight(abundances, species, molfile=pc.ROOT+'inputs/molecules.dat'):
   """
   Calculate the mean molecular weight (a.k.a. mean molecular mass)
   for the given abundances composition.
@@ -1087,7 +991,7 @@ def meanweight(abundances, species, molfile=pc.ROOT+"inputs/molecules.dat"):
   Examples
   --------
   >>> import pyratbay.atmosphere as pa
-  >>> species     = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
+  >>> species     = ['H2', 'He', 'H2O', 'CO', 'CO2', 'CH4']
   >>> abundances  = [[0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]]
   >>> mu = pa.meanweight(abundances, species)
   >>> print(mu)

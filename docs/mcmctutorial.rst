@@ -51,8 +51,8 @@ required variables:
   bulk     = H2 He    ; Bulk (dominant) abundance species
   molscale = H2O      ; Variable-abundance species
 
-  # Temperature-profile model, select from: [isothermal TCEA MadhuInv MadhuNoInv]
-  tmodel = TCEA
+  # Temperature-profile model, select from [isothermal tcea madhu_inv madhu_noinv]
+  tmodel = tcea
 
   # Retrieval models, select from: [pt rad mol ray haze]
   retflag = pt mol

@@ -173,7 +173,7 @@ def run(cfile, init=False):
   pp.spectrum(pyrat=pyrat, logxticks=inputs.logxticks, yran=inputs.yran,
       filename='{:s}_bestfit_spectrum.png'.format(outfile))
 
-  if pyrat.atm.tmodelname in ['TCEA', 'MadhuInv', 'MadhuNoInv']:
+  if pyrat.atm.tmodelname in ['tcea', 'madhu_inv', 'madhu_noinv']:
       pyrat.plot_posterior_pt('{:s}_posterior_PT_profile.png'.format(outfile))
 
   if pyrat.od.path == "eclipse":
@@ -219,14 +219,14 @@ def check_temp(pyrat):
   if atm.tpars is None:
       log.error("Undefined temperature-model parameters (tpars).")
 
-  if atm.tmodelname == "isothermal":
+  if atm.tmodelname == 'isothermal':
       if len(atm.tpars) != 1:
           log.error("Wrong number of parameters ({:d}) for the isothermal "
                     "temperature model (1).".format(len(atm.tpars)))
 
-  elif atm.tmodelname == "TCEA":
+  elif atm.tmodelname == 'tcea':
       if len(atm.tpars) != 5:
-          log.error("Wrong number of parameters ({:d}) for the TCEA "
+          log.error("Wrong number of parameters ({:d}) for the tcea "
                     "temperature model (5).".format(len(atm.tpars)))
       if pyrat.phy.rstar is None:
           log.error("Undefined stellar radius (rstar).")
