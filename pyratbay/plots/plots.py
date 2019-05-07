@@ -1,9 +1,9 @@
 # Copyright (c) 2016-2019 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-__all__ = ["spectrum", "cf", "PT"]
+__all__ = ['spectrum', 'cf', 'posterior_pt']
 
-import os, sys
+import os
 import matplotlib
 
 import numpy as np
@@ -12,12 +12,6 @@ import scipy.interpolate as si
 from scipy.ndimage.filters import gaussian_filter1d as gaussf
 
 from .. import constants as pc
-
-sys.path.append(pc.ROOT + "/pyratbay/lib/")
-import pt as PT
-
-sys.path.append(pc.ROOT + "/pyratbay/atmosphere/")
-import MadhuTP
 
 
 def spectrum(wlength=None, spectrum=None, data=None, uncert=None,
@@ -313,99 +307,82 @@ def cf(bandcf, bandwl, path, pressure, radius, rtop=0,
       plt.savefig(filename)
 
 
-def PT(posterior, pressure=None, tpars=None, tstepsize=None,
-       besttpars=None, rstar=None, tstar=None, tint=None, smaxis=None,
-       gplanet=None, filename=None, pyrat=None):
+def posterior_pt(posterior, tmodel, targs, tpars, ifree, pressure,
+                 bestpars=None, filename=None):
   """
   Plot the posterior PT profile.
 
   Parameters
   ----------
   posterior: 2D float ndarray
-     The MCMC posterior array of shape [nsamples, nparams]
-  pressure: 1D float ndarray
-     The atmospheric pressure profile in barye.
+      MCMC posterior distribution for tmodel (of shape [nparams, nfree]).
+  tmodel: Callable
+      Temperature-profile model.
   tpars: 1D float ndarray
-     The list of temperature-profile parameters.
-  tstepsize: 1D float ndarray
-     Stepsize of the temperature-profile parameters.
-  besttpars: 1D float ndarray
-     Array of best-fitting temperature-profile parameters.
-  rstar: Float
-     Stellar radius in cm.
-  tstar: Float
-     Stellar effective temperature in K.
-  tint: Float
-     Planetary internal temperature in K.
-  smaxis: Float
-     Semi-major axis in cm.
-  gplanet: Float
-     Planetary surface gravity in cm s-2.
+      Temperature-profile parameters (including fixed parameters).
+  ifree: 1D bool ndarray
+      Mask of free (True) and fixed (False) parameters in tpars.
+      The number of free parameters must match nfree in posterior.
+  targs: List
+      List of additional arguments for tmodel.
+  pressure: 1D float ndarray
+      The atmospheric pressure profile in barye.
+  bestpars: 1D float ndarray
+      Best-fitting temperature-profile parameters.
   filename: String
-     Filename of the output figure.
-  pyrat: Pyrat instance
+      If not None, save figure to filename.
   """
-  if pyrat is not None:
-      pressure  = pyrat.atm.press
-      targs     = pyrat.atm.targs
-      tpars     = pyrat.ret.params[pyrat.ret.itemp]
-      tstepsize = pyrat.ret.stepsize[pyrat.ret.itemp]
-      tmodel    = pyrat.atm.tmodel
-  elif (pressure is None  or  tpars   is None  or  tstepsize is None or
-        rstar    is None  or  tstar   is None  or  tint      is None or
-        smaxis   is None  or  gplanet is None):
-      print("One or more input parameters is missing (pressure, tpars, "
-            "tstepsize, rstar, tstar, tint, smaxis, gplanet).")
-
-  if pyrat is None:
-      targs = [pressure, rstar, tstar, tint, smaxis, gplanet]
-      tmodel = PT.TCEA
-
-  if pyrat is None and pyrat.ret.tmodel=="MadhuInv":
-      targs = [pyrat.atm.press*1e-6]
-      tmodel = MadhuTP.inversion
-
-  if pyrat is None and pyrat.ret.tmodel=="MadhuNoInv":
-      targs = [pyrat.atm.press*1e-6]
-      tmodel = MadhuTP.no_inversion
-
-  ifree = tstepsize > 0
-  nfree = np.sum(ifree)
-  ipost = np.arange(nfree)
-
   nlayers = len(pressure)
-  nsamples, npars = np.shape(posterior)
+
+  u, uind, uinv = np.unique(posterior[:,0], return_index=True,
+      return_inverse=True)
+  nsamples = len(u)
 
   # Evaluate posterior PT profiles:
-  PTprofiles = np.zeros((nsamples, nlayers), np.double)
-  for i in np.arange(nsamples):
-      tpars[ifree] = posterior[i, ipost]
-      PTprofiles[i] = tmodel(tpars, *targs)
+  profiles = np.zeros((nsamples, nlayers), np.double)
+  for i in range(nsamples):
+      tpars[ifree] = posterior[uind[i]]
+      profiles[i] = tmodel(tpars, *targs)
 
-  # Get percentiles (for 1,2-sigma boundaries):
-  low1 = np.percentile(PTprofiles, 16.0, axis=0)
-  hi1  = np.percentile(PTprofiles, 84.0, axis=0)
-  low2 = np.percentile(PTprofiles,  2.5, axis=0)
-  hi2  = np.percentile(PTprofiles, 97.5, axis=0)
-  median = np.median(PTprofiles, axis=0)
+  # Get percentiles (for 1,2-sigma boundaries and median):
+  low1   = np.zeros(nlayers, np.double)
+  low2   = np.zeros(nlayers, np.double)
+  median = np.zeros(nlayers, np.double)
+  high1  = np.zeros(nlayers, np.double)
+  high2  = np.zeros(nlayers, np.double)
+  for i in range(nlayers):
+      tpost = profiles[uinv,i]
+      low2[i]   = np.percentile(tpost,  2.275)
+      low1[i]   = np.percentile(tpost, 15.865)
+      median[i] = np.percentile(tpost, 50.000)
+      high1[i]  = np.percentile(tpost, 84.135)
+      high2[i]  = np.percentile(tpost, 97.725)
+
+  # alpha != 0 does not work for ps/eps figures:
+  if filename is not None and filename.endswith('ps'):
+      fc1, fc2 = '#3366ff', '#77aaff'
+      alpha1, alpha2 = 1.0, 1.0
+  else:
+      fc1, fc2 = 'royalblue', 'royalblue'
+      alpha1, alpha2 = 0.8, 0.6
 
   # Plot figure:
-  plt.figure(2)
+  plt.figure(500)
   plt.clf()
-  ax=plt.subplot(111)
-  ax.fill_betweenx(pressure/pc.bar, low2, hi2,
-                   facecolor="#62B1FF", edgecolor="0.5")
-  ax.fill_betweenx(pressure/pc.bar, low1, hi1,
-                   facecolor="#1873CC", edgecolor="#1873CC")
-  plt.semilogy(median, pressure/pc.bar, "k-", lw=2, label="Median")
-  if besttpars is not None:
-      bestpt = tmodel(besttpars, *targs)
+  ax = plt.subplot(111)
+  plt.subplots_adjust(0.15, 0.15, 0.95, 0.95)
+  ax.fill_betweenx(pressure/pc.bar, low2, high2, facecolor=fc2,
+      edgecolor="none", alpha=alpha2)
+  ax.fill_betweenx(pressure/pc.bar, low1, high1, facecolor=fc1,
+      edgecolor="none", alpha=alpha1)
+  plt.semilogy(median, pressure/pc.bar, 'navy', lw=2, label="Median")
+  if bestpars is not None:
+      bestpt = tmodel(bestpars, *targs)
       plt.semilogy(bestpt, pressure/pc.bar, "r-", lw=2, label="Best fit")
   plt.ylim(np.amax(pressure/pc.bar), np.amin(pressure/pc.bar))
   plt.legend(loc="best")
   plt.xlabel("Temperature  (K)", size=15)
   plt.ylabel("Pressure  (bar)",  size=15)
 
-  # Save figure:
   if filename is not None:
       plt.savefig(filename)

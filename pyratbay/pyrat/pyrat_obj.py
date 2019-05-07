@@ -2,7 +2,6 @@
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
 import os
-import sys
 from collections import OrderedDict
 
 import numpy  as np
@@ -10,6 +9,8 @@ import numpy  as np
 from .. import constants  as pc
 from .. import atmosphere as pa
 from .. import tools      as pt
+from .. import plots      as pp
+
 from .  import extinction as ex
 from .  import crosssec   as cs
 from .  import rayleigh   as ray
@@ -23,9 +24,6 @@ from .  import argum      as ar
 from .  import makesample as ms
 from .  import voigt      as v
 from .  import readlinedb as rl
-
-sys.path.append(pc.ROOT + 'modules/MCcubed')
-import MCcubed as mc3
 
 
 class Pyrat(object):
@@ -376,6 +374,23 @@ class Pyrat(object):
           ec = np.vstack((ec, e))
           label += lab
       return ec, label
+
+
+  def plot_posterior_pt(self, filename=None):
+      """Plot posterior distribution of PT profile."""
+      if self.ret.posterior is None:
+          print('pyrat objec does not have a posterior distribution.')
+          return
+
+      posterior = self.ret.posterior
+      ifree = self.ret.stepsize[self.ret.itemp] > 0
+      itemp = np.arange(np.sum(ifree))
+      if filename is None:
+          outfile = os.path.splitext(os.path.basename(self.ret.mcmcfile))[0]
+          filename = '{:s}_posterior_PT_profile.png'.format(outfile)
+      pp.posterior_pt(posterior[:,itemp], self.atm.tmodel, self.atm.targs,
+          self.ret.params[self.ret.itemp], ifree, self.atm.press,
+          self.ret.bestp[self.ret.itemp], filename)
 
 
   def __repr__(self):

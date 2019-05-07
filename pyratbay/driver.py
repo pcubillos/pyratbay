@@ -153,30 +153,30 @@ def run(cfile, init=False):
 
   if mc3_out is None:
       log.error("Error in MC3.")
-  else:
-      bestp, CRlo, CRhi, stdp, posterior, Zchain = mc3_out
+
+  bestp, CRlo, CRhi, stdp, posterior, Zchain = mc3_out
+  pyrat.ret.posterior = posterior
+  pyrat.ret.bestp     = bestp
 
   # Best-fitting model:
   pyrat.spec.outspec = "{:s}_bestfit_spectrum.dat".format(outfile)
   dummy = pyrat.eval(bestp, retmodel=False)
 
-  # Best-fit atmfile header:
+
   header = "# MCMC best-fitting atmospheric model.\n\n"
-  # Write best-fit atmfile:
   bestatm = "{:s}_bestfit_atmosphere.atm".format(outfile)
   pa.writeatm(bestatm, pyrat.atm.press, pyrat.atm.temp,
               pyrat.mol.name, pyrat.atm.q, pyrat.atm.punits,
               header, radius=pyrat.atm.radius, runits='km')
 
-  # Best-fitting spectrum:
+
   pp.spectrum(pyrat=pyrat, logxticks=inputs.logxticks, yran=inputs.yran,
-              filename="{:s}_bestfit_spectrum.png".format(outfile))
-  # Posterior PT profiles:
-  if pyrat.atm.tmodelname in ["TCEA", "MadhuInv", "MadhuNoInv"]:
-      pp.PT(posterior, besttpars=bestp[pyrat.ret.itemp], pyrat=pyrat,
-            filename="{:s}_PT_posterior_profile.png".format(outfile))
-  # Contribution or transmittance functions:
-  if   pyrat.od.path == "eclipse":
+      filename='{:s}_bestfit_spectrum.png'.format(outfile))
+
+  if pyrat.atm.tmodelname in ['TCEA', 'MadhuInv', 'MadhuNoInv']:
+      pyrat.plot_posterior_pt('{:s}_posterior_PT_profile.png'.format(outfile))
+
+  if pyrat.od.path == "eclipse":
       cf  = pt.cf(pyrat.od.depth, pyrat.atm.press, pyrat.od.B)
       bcf = pt.bandcf(cf, pyrat.obs.bandtrans, pyrat.spec.wn, pyrat.obs.bandidx)
   elif pyrat.od.path == "transit":

@@ -4934,3 +4934,13 @@ PEP8'ed MadhuTP.py, atmosphere.py, plots.py, contribfuncs.py,
 percentiles.py, and tools.py.
 Only cosmetic changes.
 
+
+*****  Di 7. Mai 11:07:20 CEST 2019  *****
+
+Renamed plots.PT() to plots.posterior_pt().
+Refactored for more efficient and cleaner code.
+This closes #143
+
+Implemented Pyrat.plot_posterior_pt() method to streamline the PT
+posterior plot from a pyrat instance.
+
