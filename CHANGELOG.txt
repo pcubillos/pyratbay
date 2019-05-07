@@ -4944,3 +4944,7 @@ This closes #143
 Implemented Pyrat.plot_posterior_pt() method to streamline the PT
 posterior plot from a pyrat instance.
 
+*****
+
+PEP8'ed objects.py and updated the Spectrum repr.
+
