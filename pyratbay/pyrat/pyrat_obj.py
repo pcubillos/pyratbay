@@ -376,6 +376,28 @@ class Pyrat(object):
       return ec, label
 
 
+  def plot_spectrum(self, logxticks=None, gaussbin=2.0, yran=None,
+                    filename=None):
+      """Plot emission or transission spectrum."""
+      wavelength = 1.0/(self.spec.wn*pc.um)
+      if self.obs.bandwn is not None:
+          bandwl = 1.0/(self.obs.bandwn*pc.um)
+      else:
+          bandwl = None
+      if self.obs.bandtrans is not None and np.all(self.obs.bandflux==0):
+          bandflux = self.band_integrate()
+      if logxticks is None:
+          logxticks = self.inputs.logxticks
+      if yran is None:
+          yran = self.inputs.yran
+
+      pp.spectrum(self.spec.spectrum, wavelength, self.od.path,
+          self.obs.data, self.obs.uncert, bandwl, self.obs.bandflux,
+          self.obs.bandtrans, self.obs.bandidx,
+          self.spec.starflux, self.phy.rprs,
+          logxticks, gaussbin, yran, filename)
+
+
   def plot_posterior_pt(self, filename=None):
       """Plot posterior distribution of PT profile."""
       if self.ret.posterior is None:

@@ -14,126 +14,106 @@ from scipy.ndimage.filters import gaussian_filter1d as gaussf
 from .. import constants as pc
 
 
-def spectrum(wlength=None, spectrum=None, data=None, uncert=None,
-    bandflux=None, bandtrans=None, bandidx=None, bandwl=None,
-    starflux=None, rprs=None, path=None, logxticks=None, yran=None,
-    pyrat=None, gaussbin=2.0, filename=None, fignum=-11):
+def spectrum(spectrum, wavelength, path,
+             data=None, uncert=None, bandwl=None, bandflux=None,
+             bandtrans=None, bandidx=None,
+             starflux=None, rprs=None, logxticks=None,
+             gaussbin=2.0, yran=None, filename=None, fignum=501):
   """
   Plot a transmission or emission model spectrum with (optional) data
   points with error bars and band-integrated model.
 
   Parameters
   ----------
-  wlength: 1D float ndarray
-     The wavelength of the model in microns.
   spectrum: 1D float ndarray
-     Planetary spectrum evaluated at wlength.
-  data: 1D float ndarray
-     Observing data points at each bandwl.
-  uncert: 1D float ndarray
-     Uncertainty of the data points.
-  bandflux: 1D float ndarray
-     Band-integrated model spectrum at each bandwl.
-  bandtrans: List of 1D float ndarrays
-     Transmission curve for each band.
-  bandidx: List of 1D float ndarrays.
-     The indices in wlength for each bandtrans.
-  bandwl: 1D float ndarray
-     The mean wavelengths for each band.
-  starflux: 1D float ndarray
-     Stellar spectrum evaluated at wlength.
-  rprs: Float
-     Planet-to-star radius ratio.
+      Planetary spectrum evaluated at wavelength.
+  wavelength: 1D float ndarray
+      The wavelength of the model in microns.
   path: String
-     Observing-geometry path: transit or eclipse.
+      Observing-geometry path: transit or eclipse.
+  data: 1D float ndarray
+      Observing data points at each bandwl.
+  uncert: 1D float ndarray
+      Uncertainties of the data points.
+  bandwl: 1D float ndarray
+      The mean wavelength for each band/data point.
+  bandflux: 1D float ndarray
+      Band-integrated model spectrum at each bandwl.
+  bandtrans: List of 1D float ndarrays
+      Transmission curve for each band.
+  bandidx: List of 1D float ndarrays.
+      The indices in wavelength for each bandtrans.
+  starflux: 1D float ndarray
+      Stellar spectrum evaluated at wavelength.
+  rprs: Float
+      Planet-to-star radius ratio.
   logxticks: 1D float ndarray
-     If not None, switch the X-axis scale from linear to log, and set
-     the X-axis ticks at the locations given by logxticks.
-  yran: 1D float ndarray
-     If not None, set the spectrum's Y-axis boundaries.
-  pyrat: Pyrat instance
+      If not None, switch the X-axis scale from linear to log, and set
+      the X-axis ticks at the locations given by logxticks.
   gaussbin: Integer
-     Standard deviation for Gaussian-kernel smoothing (in number of samples).
+      Standard deviation for Gaussian-kernel smoothing (in number of samples).
+  yran: 1D float ndarray
+      Figure's Y-axis boundaries.
   filename: String
-     Filename of the output figure.
+      If not None, save figure to filename.
   fignum: Integer
-     The Figure number.
+      Figure number.
 
   Returns
   -------
   ax: AxesSubplot instance
-    The matplotlib Axes of the figure.
+      The matplotlib Axes of the figure.
   """
-  # Unpack variables from Pyrat object:
-  if pyrat is not None:
-      wlength   = 1.0/(pyrat.spec.wn*pc.um)
-      spectrum  = pyrat.spec.spectrum
-      starflux  = pyrat.spec.starflux
-      data      = pyrat.obs.data
-      uncert    = pyrat.obs.uncert
-      bandflux  = pyrat.obs.bandflux
-      bandtrans = pyrat.obs.bandtrans
-      bandidx   = pyrat.obs.bandidx
-      if pyrat.obs.bandwn is not None:
-        bandwl    = 1/(pyrat.obs.bandwn*pc.um)
-      rprs      = pyrat.phy.rprs
-      path      = pyrat.od.path
-
-  if bandtrans is None:
-      nfilters = 0
-  else:
-      nfilters = len(bandtrans)
-      if bandflux is None or np.all(bandflux==0):
-          bandflux = pyrat.band_integrate()
-
   # Plotting setup:
-  fs  = 14
-  ms  =  5
-  lw  = 1.5
-  mew = 0.4
+  fs  = 14.0
+  ms  =  5.5
+  lw  =  1.5
+  mew =  1.0
 
   plt.figure(fignum, (8, 5))
   plt.clf()
   ax = plt.subplot(111)
-  plt.subplots_adjust(0.14, 0.12, 0.97, 0.95)
+  plt.subplots_adjust(0.15, 0.12, 0.97, 0.95)
+  #fscale = {'':1.0, '%':100.0, 'ppt':1e3, 'ppm':1e6}
 
   # Setup according to geometry:
-  if   path == "eclipse":
-      if starflux is not None:
+  if path == 'eclipse':
+      if starflux is not None and rprs is not None:
           fscale = 1e3
           gmodel = gaussf(spectrum/starflux * rprs**2.0, gaussbin)
-          plt.ylabel(r"$F_{\rm p}/F_{\rm s}\ (10^{-3})$", fontsize=fs)
+          plt.ylabel(r'$F_{\rm p}/F_{\rm s}\ (10^{-3})$', fontsize=fs)
       else:
           fscale = 1.0
           gmodel = gaussf(spectrum, gaussbin)
-          plt.ylabel(r"$F_{\rm p}\ ({\rm erg\, s^{-1}cm^{-2}cm})$", fontsize=fs)
-  elif path == "transit":
-      fscale = 1.0
+          plt.ylabel(r'$F_{\rm p}$ (erg s$^{-1}$ cm$^{-2}$ cm)', fontsize=fs)
+  elif path == 'transit':
+      fscale = 100.0
       gmodel = gaussf(spectrum, gaussbin)
-      plt.ylabel("$(R_p/R_s)^2$", fontsize=fs)
+      plt.ylabel(r'$(R_{\rm p}/R_{\rm s})^2$  (%)', fontsize=fs)
 
   # Plot model:
-  plt.plot(wlength, gmodel*fscale, lw=lw, label="Model", color="orange")
+  plt.plot(wavelength, gmodel*fscale, lw=lw, label='Model', color='orange')
   # Plot band-integrated model:
-  if bandwl is not None:
-      plt.plot(bandwl, bandflux*fscale, "o", ms=ms, color="orange",
-               mec="k", mew=mew)
+  if bandflux is not None and bandwl is not None:
+      plt.plot(bandwl, bandflux*fscale, 'o', ms=ms, color='tomato',
+               mec='crimson', mew=mew)
   # Plot data:
-  if data is not None:
-      plt.errorbar(bandwl, data*fscale, uncert*fscale, fmt="ob", label="Data",
+  if data is not None and uncert is not None and bandwl is not None:
+      plt.errorbar(bandwl, data*fscale, uncert*fscale, fmt='ob', label='Data',
                    ms=ms, elinewidth=lw, capthick=lw, zorder=3)
 
-  # Set Y-axis limits:
   if yran is not None:
-      ax.set_ylim(np.array(yran)*fscale)
-  yran = ax.get_ylim()  # Note this yran may differ from input (fscale).
+      ax.set_ylim(np.array(yran))
+  yran = ax.get_ylim()
 
   # Transmission filters:
-  bandh = 0.06*(yran[1] - yran[0])
-  for i in np.arange(nfilters):
-      bandtr = bandh * bandtrans[i]/np.amax(bandtrans[i])
-      plt.plot(wlength[bandidx[i]], yran[0]+bandtr, "0.4", zorder=-100)
-  ax.set_ylim(yran)
+  if bandtrans is not None and bandidx is not None:
+      bandh = 0.06*(yran[1] - yran[0])
+      for btrans, bidx in zip(bandtrans, bandidx):
+          btrans = bandh * btrans/np.amax(btrans)
+          plt.plot(wavelength[bidx], yran[0]+btrans, '0.4', zorder=-10)
+      ax.set_ylim(yran)
+
   if logxticks is not None:
       ax.set_xscale('log')
       plt.gca().xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
@@ -141,9 +121,9 @@ def spectrum(wlength=None, spectrum=None, data=None, uncert=None,
       ax.set_xticks(logxticks)
 
   ax.tick_params(labelsize=fs-2)
-  plt.xlabel("Wavelength  (um)", fontsize=fs)
-  plt.legend(loc="best", numpoints=1, fontsize=fs-1)
-  plt.xlim(np.amin(wlength), np.amax(wlength))
+  plt.xlabel('Wavelength  (um)', fontsize=fs)
+  plt.legend(loc='best', numpoints=1, fontsize=fs-1)
+  plt.xlim(np.amin(wavelength), np.amax(wavelength))
 
   if filename is not None:
       plt.savefig(filename)
@@ -195,14 +175,14 @@ def cf(bandcf, bandwl, path, pressure, radius, rtop=0,
 
   press = pressure[rtop:]/pc.bar
   rad   = radius[rtop:]/pc.km
-  if path == "eclipse":
+  if path == 'eclipse':
       yran = np.amax(np.log10(press)), np.amin(np.log10(press))
       zz = bandcf/np.amax(bandcf)
       xlabel = 'contribution function'
       ylabel = ''
       yright = 0.9
       cbtop  = 0.5
-  elif path == "transit":
+  elif path == 'transit':
       zz = bandcf/np.amax(bandcf)
       yran = np.amin(rad), np.amax(rad)
       xlabel = r'transmittance'
@@ -229,10 +209,10 @@ def cf(bandcf, bandwl, path, pressure, radius, rtop=0,
   for i in np.arange(nfilters):
       z[:,i, :] = plt.cm.rainbow(colors[i])
       z[:,i,-1] = zz[i]**(0.5+0.5*(path=='transit'))
-      if path == "eclipse":
+      if path == 'eclipse':
           cumul = np.cumsum(zz[i])/np.sum(zz[i])
           plo[i], phi[i] = press[cumul>lo][0], press[cumul>hi][0]
-      elif path == "transit":
+      elif path == 'transit':
           plo[i], phi[i] = press[zz[i]<lo][0], press[zz[i]<hi][0]
   plo[-1] = plo[-2]
   phi[-1] = phi[-2]
@@ -242,14 +222,14 @@ def cf(bandcf, bandwl, path, pressure, radius, rtop=0,
   plt.subplots_adjust(0.105, 0.10, yright, 0.95)
   ax = plt.subplot(111)
   pax = ax.twinx()
-  if path == "eclipse":
+  if path == 'eclipse':
       ax.imshow(z[:,wlsort], aspect='auto', extent=[0,nfilters,yran[0],yran[1]],
                 origin='upper', interpolation='nearest')
       ax.yaxis.set_visible(False)
-      pax.spines["left"].set_visible(True)
+      pax.spines['left'].set_visible(True)
       pax.yaxis.set_label_position('left')
       pax.yaxis.set_ticks_position('left')
-  elif path == "transit":
+  elif path == 'transit':
       ax.imshow(z[:,wlsort], aspect='auto', extent=[0,nfilters,yran[0],yran[1]],
                 origin='upper', interpolation='nearest')
       # Setting the right radius tick labels requires some sorcery:
@@ -263,8 +243,8 @@ def cf(bandcf, bandwl, path, pressure, radius, rtop=0,
       ax.set_yticks(pint(pticks[bounds]))
       ax.set_yticklabels(np.array(ylab)[bounds])
 
-  pax.plot(plo, drawstyle="steps-post", color="0.25", lw=0.75, ls="--")
-  pax.plot(phi, drawstyle="steps-post", color="0.25", lw=0.75, ls="--")
+  pax.plot(plo, drawstyle='steps-post', color='0.25', lw=0.75, ls='--')
+  pax.plot(phi, drawstyle='steps-post', color='0.25', lw=0.75, ls='--')
   pax.set_yscale('log')
   pax.set_ylim(np.amax(press), np.amin(press))
   pax.set_ylabel(r'Pressure (bar)', fontsize=fs)
@@ -273,17 +253,17 @@ def cf(bandcf, bandwl, path, pressure, radius, rtop=0,
   ax.set_ylim(yran)
   ax.set_xticklabels([])
   ax.set_ylabel(ylabel, fontsize=fs)
-  ax.set_xlabel("Band-averaged {:s}".format(xlabel), fontsize=fs)
+  ax.set_xlabel('Band-averaged {:s}'.format(xlabel), fontsize=fs)
 
   # Print filter names/wavelengths:
   for i in np.arange(0, nfilters-thin//2, thin):
       idx = wlsort[i]
-      fname = " {:5.2f} um ".format(bandwl[idx])
+      fname = ' {:5.2f} um '.format(bandwl[idx])
       # Strip root and file extension:
       if filters is not None:
           fname = (os.path.split(os.path.splitext(filters[idx])[0])[1]
-                   + " @" + fname)
-      ax.text(i+0.1, yran[1], fname, rotation=90, ha="left", va="top",
+                   + ' @' + fname)
+      ax.text(i+0.1, yran[1], fname, rotation=90, ha='left', va='top',
               fontsize=ffs)
 
   # Color bar:
@@ -293,10 +273,10 @@ def cf(bandcf, bandwl, path, pressure, radius, rtop=0,
   cz[:,1,3] = np.linspace(0.0,cbtop,100)**(0.5+0.5*(path=='transit'))
   cbar.imshow(cz, aspect='auto', extent=[0, 1, 0, 1],
               origin='lower', interpolation='nearest')
-  if path == "transit":
-      cbar.axhline(0.1585, color="k", lw=1.0, dashes=(2.5,1))
-      cbar.axhline(0.8415, color="w", lw=1.0, dashes=(2.5,1))
-  cbar.spines["right"].set_visible(True)
+  if path == 'transit':
+      cbar.axhline(0.1585, color='k', lw=1.0, dashes=(2.5,1))
+      cbar.axhline(0.8415, color='w', lw=1.0, dashes=(2.5,1))
+  cbar.spines['right'].set_visible(True)
   cbar.yaxis.set_label_position('right')
   cbar.yaxis.set_ticks_position('right')
   cbar.set_ylabel(xlabel.capitalize(), fontsize=fs)
@@ -372,17 +352,18 @@ def posterior_pt(posterior, tmodel, targs, tpars, ifree, pressure,
   ax = plt.subplot(111)
   plt.subplots_adjust(0.15, 0.15, 0.95, 0.95)
   ax.fill_betweenx(pressure/pc.bar, low2, high2, facecolor=fc2,
-      edgecolor="none", alpha=alpha2)
+      edgecolor='none', alpha=alpha2)
   ax.fill_betweenx(pressure/pc.bar, low1, high1, facecolor=fc1,
-      edgecolor="none", alpha=alpha1)
-  plt.semilogy(median, pressure/pc.bar, 'navy', lw=2, label="Median")
+      edgecolor='none', alpha=alpha1)
+  plt.semilogy(median, pressure/pc.bar, 'navy', lw=2, label='Median')
   if bestpars is not None:
       bestpt = tmodel(bestpars, *targs)
-      plt.semilogy(bestpt, pressure/pc.bar, "r-", lw=2, label="Best fit")
+      plt.semilogy(bestpt, pressure/pc.bar, 'r-', lw=2, label='Best fit')
   plt.ylim(np.amax(pressure/pc.bar), np.amin(pressure/pc.bar))
-  plt.legend(loc="best")
-  plt.xlabel("Temperature  (K)", size=15)
-  plt.ylabel("Pressure  (bar)",  size=15)
+  plt.legend(loc='best')
+  plt.xlabel('Temperature  (K)', size=15)
+  plt.ylabel('Pressure  (bar)',  size=15)
+  ax.tick_params(labelsize=12)
 
   if filename is not None:
       plt.savefig(filename)

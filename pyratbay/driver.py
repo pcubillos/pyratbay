@@ -170,8 +170,7 @@ def run(cfile, init=False):
               header, radius=pyrat.atm.radius, runits='km')
 
 
-  pp.spectrum(pyrat=pyrat, logxticks=inputs.logxticks, yran=inputs.yran,
-      filename='{:s}_bestfit_spectrum.png'.format(outfile))
+  pyrat.plot_spectrum(filename='{:s}_bestfit_spectrum.png'.format(outfile))
 
   if pyrat.atm.tmodelname in ['tcea', 'madhu_inv', 'madhu_noinv']:
       pyrat.plot_posterior_pt('{:s}_posterior_PT_profile.png'.format(outfile))

@@ -4962,3 +4962,10 @@ Removed Madhu.py file. Removed atmosphere.temp_isothermal and
 atmosphere.temp_TCEA functions.
 Redirected all TP model call to atmosphere.tmodels module.
 
+*****
+
+Cleaned up plots.spectrum().
+Implemented Pyrat.plot_spectrum() method to streamline the spectrum
+plotting from a pyrat instance.
+Checked it works for transit geometry.
+
