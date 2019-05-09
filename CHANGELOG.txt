@@ -4984,3 +4984,10 @@ posterior 68 and 95-percentile bounds.
 Tweaked Pyrat.plot_spectrum() method, adding 'spec' argument to
 specify model, best-fit, or median plot.
 
+*****
+
+Renamed Pyrat.haze.model to Pyrat.haze.models.
+Tweaked check_spectrum() function, in preparation for pickling.
+
+*****
+

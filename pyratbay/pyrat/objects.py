@@ -418,7 +418,7 @@ class Cross(object):
 class Haze(object):
   def __init__(self):
     self.nmodels = 0     # Number of haze models
-    self.model   = []    # List of haze models
+    self.models  = []    # List of haze models
     self.ec      = None  # Haze extinction coefficient
     self.fpatchy = None  # Patchy-cloud fraction
     self.pars    = None  # Input haze parameters

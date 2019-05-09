@@ -249,7 +249,7 @@ class Pyrat(object):
       if self.ret.ihaze is not None:
           j = 0
           hpars = params[self.ret.ihaze]
-          for hmodel in self.haze.model:
+          for hmodel in self.haze.models:
               hmodel.pars = hpars[j:j+hmodel.npars]
               j += hmodel.npars
 
@@ -525,7 +525,7 @@ class Pyrat(object):
       if self.rayleigh.nmodels != 0:
           for rayleigh in self.rayleigh.model:
               opacities.append(rayleigh.name)
-      for haze in self.haze.model:
+      for haze in self.haze.models:
           opacities.append(haze.name)
       for alkali in self.alkali.model:
           opacities.append(alkali.mol)

@@ -12,7 +12,7 @@ def absorption(pyrat):
   """
   pyrat.haze.ec = np.zeros((pyrat.atm.nlayers, pyrat.spec.nwave))
 
-  for hmodel in pyrat.haze.model:
+  for hmodel in pyrat.haze.models:
       if hmodel.name == "deck":
           hmodel.extinction(pyrat.spec.wn, pyrat.atm.press, pyrat.atm.radius)
           pyrat.haze.ec += hmodel.ec
@@ -33,7 +33,7 @@ def get_ec(pyrat, layer):
   Extract per-model extinction coefficient at requested layer.
   """
   ec, label = [], []
-  for hmodel in pyrat.haze.model:
+  for hmodel in pyrat.haze.models:
       if hmodel.name == "deck":
           hmodel.extinction(pyrat.spec.wn, pyrat.atm.press, pyrat.atm.radius)
           ec.append(hmodel.ec[layer])
@@ -60,7 +60,7 @@ class CCSgray():
       self.texnames = [r"$\log_{10}(f_{\rm gray})$",
                        r"$\log_{10}(p_{\rm top})\ ({\rm bar})$",
                        r"$\log_{10}(p_{\rm bot})\ ({\rm bar})$"]
-      self.s0    = 5.31e-27         # Default coss-section (cm-2 molec-1)
+      self.s0 = 5.31e-27         # Default coss-section (cm-2 molec-1)
 
   def extinction(self, wn, pressure):
       """
@@ -103,16 +103,16 @@ class Deck():
       """
       Calculate gray-cloud absorption (in cm-1) that's optically thin
       above ptop, and becomes nearly-instantly opaque at ptop, with
-         ptop (bar) = 10**pars[0].
+      ptop (bar) = 10**pars[0].
 
       Parameters
       ----------
       wn: 1D float ndarray
-         Wavenumber array (in cm-1).
+          Wavenumber array (in cm-1).
       pressure: 1D float ndarray
-         Atmospheric pressure profile (in barye).
+          Atmospheric pressure profile (in barye).
       radius: 1D float ndarray
-         Atmospheric radius profile (in cm).
+          Atmospheric radius profile (in cm).
       """
       nlayers = len(pressure)
       nwave   = len(wn)

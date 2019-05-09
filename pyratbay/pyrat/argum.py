@@ -106,23 +106,25 @@ def check_spectrum(pyrat):
 
   # Check haze models:
   if pyrat.haze.model_names is not None:
+      pyrat.haze.models = []
       nhpars = 0
-      for hmodel in pyrat.haze.model_names:
-          ihaze = np.where(hz.hnames == hmodel)[0][0]
-          pyrat.haze.model.append(hz.hmodels[ihaze])
-          pyrat.haze.nmodels += 1
-          nhpars += pyrat.haze.model[-1].npars
-      # Process the haze parameters:
+      for hname in pyrat.haze.model_names:
+          ihaze   = np.where(hz.hnames == hname)[0][0]
+          hmodel  = hz.hmodels[ihaze]
+          nhpars += hmodel.npars
+          pyrat.haze.models.append(hmodel)
+      # Parse the haze parameters:
       if pyrat.haze.pars is not None:
           if nhpars != len(pyrat.haze.pars):
               log.error('Number of input haze parameters ({:d}) does not '
                         'match the number of required model parameters ({:d}).'.
                         format(len(pyrat.haze.pars), nhpars))
           j = 0
-          for i in np.arange(pyrat.haze.nmodels):
-              npars = pyrat.haze.model[i].npars
-              pyrat.haze.model[i].pars = pyrat.haze.pars[j:j+npars]
+          for hmodel in pyrat.haze.models:
+              npars = hmodel.npars
+              hmodel.pars = pyrat.haze.pars[j:j+npars]
               j += npars
+      pyrat.haze.nmodels = len(pyrat.haze.models)
 
   # Check Rayleigh models:
   if pyrat.rayleigh.model_names is not None:
@@ -165,7 +167,7 @@ def check_spectrum(pyrat):
           log.error('Requested mol in retflag, but there are no bulk species.')
   if 'ray' in pyrat.ret.retflag and pyrat.rayleigh.model == []:
       log.error('Requested ray in retflag, but there are no rayleigh models.')
-  if 'haze' in pyrat.ret.retflag and pyrat.haze.model == []:
+  if 'haze' in pyrat.ret.retflag and pyrat.haze.models == []:
       log.error('Requested haze in retflag, but there are no haze models.')
 
   # Check system arguments:
@@ -390,7 +392,7 @@ def setup(pyrat):
   # Haze models:
   nhaze    = 0
   hpnames, htexnames = [], []
-  for hmodel in pyrat.haze.model:
+  for hmodel in pyrat.haze.models:
       hpnames   += hmodel.pnames
       htexnames += hmodel.texnames
       nhaze     += hmodel.npars
