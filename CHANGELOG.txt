@@ -4996,3 +4996,8 @@ More tweaks to check_spectrum() function.
 Removed Pyrat.haze.nmodels, Pyrat.rayleigh.models, and
 Pyrat.alkali.models (not used anymore).
 
+*****
+
+Renamed Pyrat.alkali.model to Pyrat.alkali.models.
+More tweaks to check_spectrum() function.
+

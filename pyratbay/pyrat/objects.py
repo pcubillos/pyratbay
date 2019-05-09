@@ -440,7 +440,7 @@ class Rayleigh(object):
 
 class Alkali(object):
   def __init__(self):
-    self.model   = []    # List of alkali models
+    self.models  = []    # List of alkali models
     self.ec      = None  # Alkali extinction coefficient
     self.imol    = None  # Species indices in atmospheric file
     self.doppler = None  # Tabulated Doppler widths

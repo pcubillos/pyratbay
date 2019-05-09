@@ -9,10 +9,10 @@ from .. import tools      as pt
 
 
 def init(pyrat):
-    if pyrat.alkali.model != []:
+    if pyrat.alkali.models != []:
         pyrat.log.msg("\nSetup Alkali opacity models.")
     # Species index in atmosphere:
-    for alkali in pyrat.alkali.model:
+    for alkali in pyrat.alkali.models:
         if alkali.mol in pyrat.mol.name:
             alkali.imol = np.where(pyrat.mol.name==alkali.mol)[0][0]
 
@@ -24,7 +24,7 @@ def absorption(pyrat):
   # Initialize extinction coefficient variable:
   pyrat.alkali.ec = np.zeros((pyrat.atm.nlayers, pyrat.spec.nwave))
 
-  for alkali in pyrat.alkali.model:
+  for alkali in pyrat.alkali.models:
       imol = alkali.imol
 
       if alkali.imol < 0:
@@ -92,7 +92,7 @@ def get_ec(pyrat, layer):
   """
   absorption(pyrat)
   ec, label = [], []
-  for alkali in pyrat.alkali.model:
+  for alkali in pyrat.alkali.models:
       if alkali.imol >= 0:
           ec.append(alkali.ec[layer])
           label.append(alkali.mol)

@@ -371,7 +371,7 @@ class Pyrat(object):
           ec = np.vstack((ec, e))
           label += lab
       # Alkali resonant lines extinction coefficient:
-      if self.alkali.model != []:
+      if self.alkali.models != []:
           e, lab = al.get_ec(self, layer)
           ec = np.vstack((ec, e))
           label += lab
@@ -526,7 +526,7 @@ class Pyrat(object):
           opacities.append(rmodel.name)
       for haze in self.haze.models:
           opacities.append(haze.name)
-      for alkali in self.alkali.model:
+      for alkali in self.alkali.models:
           opacities.append(alkali.mol)
 
       return ("Pyrat atmospheric model\n"

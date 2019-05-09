@@ -148,9 +148,10 @@ def check_spectrum(pyrat):
 
   # Check alkali arguments:
   if pyrat.alkali.model_names is not None:
-      for amodel in pyrat.alkali.model_names:
-          ialkali = np.where(al.mnames == amodel)[0][0]
-          pyrat.alkali.model.append(al.models[ialkali])
+      pyrat.alkali.models = []
+      for aname in pyrat.alkali.model_names:
+          ialkali = np.where(al.mnames == aname)[0][0]
+          pyrat.alkali.models.append(al.models[ialkali])
 
   # Accept ray-path argument:
   if pyrat.runmode in ['spectrum', 'mcmc'] and pyrat.od.path is None:
