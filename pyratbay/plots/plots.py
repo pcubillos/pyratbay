@@ -17,7 +17,8 @@ from .. import constants as pc
 def spectrum(spectrum, wavelength, path,
              data=None, uncert=None, bandwl=None, bandflux=None,
              bandtrans=None, bandidx=None,
-             starflux=None, rprs=None, logxticks=None,
+             starflux=None, rprs=None, label='model', bounds=None,
+             logxticks=None,
              gaussbin=2.0, yran=None, filename=None, fignum=501):
   """
   Plot a transmission or emission model spectrum with (optional) data
@@ -65,10 +66,9 @@ def spectrum(spectrum, wavelength, path,
       The matplotlib Axes of the figure.
   """
   # Plotting setup:
-  fs  = 14.0
-  ms  =  5.5
-  lw  =  1.5
-  mew =  1.0
+  fs = 14.0
+  ms =  6.0
+  lw =  1.25
 
   plt.figure(fignum, (8, 5))
   plt.clf()
@@ -76,31 +76,46 @@ def spectrum(spectrum, wavelength, path,
   plt.subplots_adjust(0.15, 0.12, 0.97, 0.95)
   #fscale = {'':1.0, '%':100.0, 'ppt':1e3, 'ppm':1e6}
 
+  spec_kw = {'label':label}
+  if bounds is None:
+      spec_kw['color'] = 'orange'
+  else:
+      spec_kw['color'] = 'orangered'
+
+
   # Setup according to geometry:
   if path == 'eclipse':
       if starflux is not None and rprs is not None:
+          spectrum = spectrum/starflux * rprs**2.0
+          if bounds is not None:
+              bounds = [bound/starflux * rprs**2.0 for bound in bounds]
           fscale = 1e3
-          gmodel = gaussf(spectrum/starflux * rprs**2.0, gaussbin)
           plt.ylabel(r'$F_{\rm p}/F_{\rm s}\ (10^{-3})$', fontsize=fs)
       else:
           fscale = 1.0
-          gmodel = gaussf(spectrum, gaussbin)
           plt.ylabel(r'$F_{\rm p}$ (erg s$^{-1}$ cm$^{-2}$ cm)', fontsize=fs)
   elif path == 'transit':
       fscale = 100.0
-      gmodel = gaussf(spectrum, gaussbin)
       plt.ylabel(r'$(R_{\rm p}/R_{\rm s})^2$  (%)', fontsize=fs)
 
+  gmodel = gaussf(spectrum, gaussbin)
+  if bounds is not None:
+      gbounds = [gaussf(bound, gaussbin) for bound in bounds]
+      ax.fill_between(wavelength, fscale*gbounds[0], fscale*gbounds[3],
+          facecolor='gold', edgecolor='none')
+      ax.fill_between(wavelength, fscale*gbounds[1], fscale*gbounds[2],
+          facecolor='orange', edgecolor='none')
+
   # Plot model:
-  plt.plot(wavelength, gmodel*fscale, lw=lw, label='Model', color='orange')
+  plt.plot(wavelength, gmodel*fscale, lw=lw, **spec_kw)
   # Plot band-integrated model:
   if bandflux is not None and bandwl is not None:
       plt.plot(bandwl, bandflux*fscale, 'o', ms=ms, color='tomato',
-               mec='crimson', mew=mew)
+               mec='maroon', mew=lw)
   # Plot data:
   if data is not None and uncert is not None and bandwl is not None:
-      plt.errorbar(bandwl, data*fscale, uncert*fscale, fmt='ob', label='Data',
-                   ms=ms, elinewidth=lw, capthick=lw, zorder=3)
+      plt.errorbar(bandwl, data*fscale, uncert*fscale, fmt='o', label='data',
+                   color='blue', ms=ms, elinewidth=lw, capthick=lw, zorder=3)
 
   if yran is not None:
       ax.set_ylim(np.array(yran))
@@ -125,6 +140,12 @@ def spectrum(spectrum, wavelength, path,
   plt.legend(loc='best', numpoints=1, fontsize=fs-1)
   plt.xlim(np.amin(wavelength), np.amax(wavelength))
 
+  ax2 = ax.twinx()
+  ax2.tick_params(right=True, direction='in')
+  ax2.set_yticks(ax.get_yticks())
+  ax2.set_yticklabels([])
+  ax2.set_ylim(ax.get_ylim())
+
   if filename is not None:
       plt.savefig(filename)
 
@@ -140,23 +161,23 @@ def cf(bandcf, bandwl, path, pressure, radius, rtop=0,
   Parameters
   ----------
   bandcf: 2D float ndarray
-     Band-integrated contribution functions [nfilters, nlayers].
+      Band-integrated contribution functions [nfilters, nlayers].
   bandwl: 1D float ndarray
-     Mean wavelength of the bands in microns.
+      Mean wavelength of the bands in microns.
   path: String
-     Observing geometry (transit or eclipse).
+      Observing geometry (transit or eclipse).
   pressure: 1D float ndarray
-     Layer's pressure array (barye units).
+      Layer's pressure array (barye units).
   radius: 1D float ndarray
-     Layer's impact parameter array (cm units).
+      Layer's impact parameter array (cm units).
   rtop: Integer
-     Index of topmost valid layer.
+      Index of topmost valid layer.
   filename: String
-     Filename of the output figure.
+      Filename of the output figure.
   filters: 1D string ndarray
-     Name of the filter bands (optional).
+      Name of the filter bands (optional).
   fignum: Integer
-     Figure number.
+      Figure number.
 
   Notes
   -----

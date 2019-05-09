@@ -4969,3 +4969,18 @@ Implemented Pyrat.plot_spectrum() method to streamline the spectrum
 plotting from a pyrat instance.
 Checked it works for transit geometry.
 
+
+*****  Do 9. Mai 14:35:50 CEST 2019  *****
+
+Refactored plots.spectrum() to enable plotting the posterior
+percentile bounds, and specify the model label.
+Tweaked driver.py to include best-fit spectrum into the pyrat object
+(pyrat.ret.spec_best and pyrat.ret.bestbandflux).
+Now, a retrieval run returns only the pyrat object.
+
+Removed tools.percentiles.py file.
+Implemented Pyrat.percentile_spectrum() method to compute the
+posterior 68 and 95-percentile bounds.
+Tweaked Pyrat.plot_spectrum() method, adding 'spec' argument to
+specify model, best-fit, or median plot.
+

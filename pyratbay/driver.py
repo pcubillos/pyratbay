@@ -160,17 +160,16 @@ def run(cfile, init=False):
 
   # Best-fitting model:
   pyrat.spec.outspec = "{:s}_bestfit_spectrum.dat".format(outfile)
-  dummy = pyrat.eval(bestp, retmodel=False)
+  pyrat.ret.spec_best, pyrat.ret.bestbandflux = pyrat.eval(bestp)
 
-
-  header = "# MCMC best-fitting atmospheric model.\n\n"
+  header  = "# MCMC best-fitting atmospheric model.\n\n"
   bestatm = "{:s}_bestfit_atmosphere.atm".format(outfile)
   pa.writeatm(bestatm, pyrat.atm.press, pyrat.atm.temp,
               pyrat.mol.name, pyrat.atm.q, pyrat.atm.punits,
               header, radius=pyrat.atm.radius, runits='km')
 
-
-  pyrat.plot_spectrum(filename='{:s}_bestfit_spectrum.png'.format(outfile))
+  pyrat.plot_spectrum(spec='best',
+      filename='{:s}_bestfit_spectrum.png'.format(outfile))
 
   if pyrat.atm.tmodelname in ['tcea', 'madhu_inv', 'madhu_noinv']:
       pyrat.plot_posterior_pt('{:s}_posterior_PT_profile.png'.format(outfile))
@@ -191,8 +190,7 @@ def run(cfile, init=False):
           "and spectrum:\n'{:s}.npz',\n'{:s}',\n'{:s}',\n'{:s}'.\n\n".
           format(outfile, os.path.basename(inputs.logfile), bestatm,
                  pyrat.spec.outspec))
-  log.close()
-  return pyrat, bestp
+  return pyrat
 
 
 def check_pressure(pyrat):

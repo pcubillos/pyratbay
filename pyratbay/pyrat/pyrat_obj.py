@@ -2,6 +2,7 @@
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
 import os
+import multiprocessing as mp
 from collections import OrderedDict
 
 import numpy  as np
@@ -272,7 +273,7 @@ class Pyrat(object):
       return self.obs.bandflux
 
 
-  def band_integrate(self):
+  def band_integrate(self, spectrum=None):
       """
       Band-integrate transmission spectrum (transit) or planet-to-star
       flux ratio (eclipse) over transmission band passes.
@@ -280,7 +281,8 @@ class Pyrat(object):
       if self.obs.bandtrans is None:
           return None
 
-      spectrum = self.spec.spectrum
+      if spectrum is None:
+          spectrum = self.spec.spectrum
       specwn   = self.spec.wn
       bandidx  = self.obs.bandidx
 
@@ -376,9 +378,74 @@ class Pyrat(object):
       return ec, label
 
 
-  def plot_spectrum(self, logxticks=None, gaussbin=2.0, yran=None,
-                    filename=None):
-      """Plot emission or transission spectrum."""
+  def percentile_spectrum(self, nmax=None):
+      """Compute spectrum posterior percentiles."""
+      if self.ret.posterior is None:
+          print('pyrat objec does not have a posterior distribution.')
+          return
+
+      nsamples = np.shape(self.ret.posterior)[0]
+      draws = np.arange(nsamples)
+      if nmax is not None:
+          nmax = np.clip(nmax, 0, nsamples)
+          draws = np.random.choice(draws, nmax, replace=False)
+
+      # Unique MCMC samples:
+      u, uind, uinv = np.unique(self.ret.posterior[draws,0],
+          return_index=True, return_inverse=True)
+      print('Computing {:d} models.'.format(len(u)))
+
+      # Array of all model parameters (with unique samples)
+      posterior = np.repeat([self.ret.params], len(u), axis=0)
+      ifree = np.where(self.ret.stepsize >0)[0]
+      posterior[:,ifree] = self.ret.posterior[uind]
+      # Need to keep FILE objects out of pool:
+      logfile, self.log.file = self.log.file, None
+      verb, self.log.verb = self.log.verb, -1
+
+      with mp.Pool(self.ncpu) as pool:
+          models = pool.map(self.eval, posterior)
+      models = np.array([model for model, bandm in models])
+
+      self.log.file = logfile
+      self.log.verb = verb
+
+      nwave = len(self.spec.wn)
+      low1   = np.zeros(nwave)
+      low2   = np.zeros(nwave)
+      median = np.zeros(nwave)
+      high1  = np.zeros(nwave)
+      high2  = np.zeros(nwave)
+      for i in range(nwave):
+          msample = models[uinv,i]
+          low2[i]   = np.percentile(msample,  2.275)
+          low1[i]   = np.percentile(msample, 15.865)
+          median[i] = np.percentile(msample, 50.000)
+          high1[i]  = np.percentile(msample, 84.135)
+          high2[i]  = np.percentile(msample, 97.725)
+
+      self.ret.spec_median = median
+      self.ret.spec_low1 = low1
+      self.ret.spec_low2 = low2
+      self.ret.spec_high1 = high1
+      self.ret.spec_high2 = high2
+
+
+  def plot_spectrum(self, spec='model', logxticks=None, gaussbin=2.0,
+                    yran=None, filename=None):
+      """
+      Plot spectrum.
+
+      Parameters
+      ----------
+      spec: String
+          Flag indicating which model to plot.  By default plot the
+          latest evaulated model (spec='model').  Other options are
+          'best' or 'median' to plot the posterior best-fit or median
+          model, in which case, the code will plot the 1- and 2-sigma
+          boundaries if they have been computed (see
+          self.percentile_spectrum).
+      """
       wavelength = 1.0/(self.spec.wn*pc.um)
       if self.obs.bandwn is not None:
           bandwl = 1.0/(self.obs.bandwn*pc.um)
@@ -386,15 +453,38 @@ class Pyrat(object):
           bandwl = None
       if self.obs.bandtrans is not None and np.all(self.obs.bandflux==0):
           bandflux = self.band_integrate()
+      else:
+          bandflux = None
+
       if logxticks is None:
           logxticks = self.inputs.logxticks
       if yran is None:
           yran = self.inputs.yran
 
-      pp.spectrum(self.spec.spectrum, wavelength, self.od.path,
-          self.obs.data, self.obs.uncert, bandwl, self.obs.bandflux,
+      bounds = None
+      if self.ret.spec_low2 is not None and spec != 'model':
+          bounds = [self.ret.spec_low2,  self.ret.spec_low1,
+                    self.ret.spec_high1, self.ret.spec_high2]
+
+      if spec == 'model':
+          label = 'model'
+          spectrum = self.spec.spectrum
+      elif spec == 'best':
+          label = 'best-fit model'
+          spectrum = self.ret.spec_best
+          bandflux = self.ret.bestbandflux
+      elif spec == 'median':
+          label = 'median model'
+          spectrum = self.ret.spec_median
+          bandflux = self.band_integrate(spectrum)
+      else:
+          print("Invalid 'spec'.  Select from 'model' (default), 'best', "
+                "or 'median'.")
+          return
+      pp.spectrum(spectrum, wavelength, self.od.path,
+          self.obs.data, self.obs.uncert, bandwl, bandflux,
           self.obs.bandtrans, self.obs.bandidx,
-          self.spec.starflux, self.phy.rprs,
+          self.spec.starflux, self.phy.rprs, label, bounds,
           logxticks, gaussbin, yran, filename)
 
 

@@ -559,6 +559,11 @@ class Retrieval(object):
     self.ipatchy = None  # Patchy-model parameter index
     self.posterior = None
     self.bestp     = None
+    self.spec_best = None
+    self.spec_low1 = None
+    self.spec_low2 = None
+    self.spec_high1 = None
+    self.spec_high2 = None
     self.pnames   = []   # Model parameter names (screen)
     self.texnames = []   # Model parameter names (figures)
 

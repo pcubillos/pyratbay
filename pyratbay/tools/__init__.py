@@ -3,12 +3,10 @@
 
 from .tools        import *
 from .contribfuncs import *
-from .percentiles  import *
 from .parser       import *
 
 __all__ = ( tools.__all__
           + contribfuncs.__all__
-          + percentiles.__all__
           + parser.__all__
           )
 
