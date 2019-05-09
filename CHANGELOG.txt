@@ -4991,3 +4991,8 @@ Tweaked check_spectrum() function, in preparation for pickling.
 
 *****
 
+Renamed Pyrat.rayleigh.model to Pyrat.rayleigh.models.
+More tweaks to check_spectrum() function.
+Removed Pyrat.haze.nmodels, Pyrat.rayleigh.models, and
+Pyrat.alkali.models (not used anymore).
+

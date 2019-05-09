@@ -9,13 +9,12 @@ from .. import tools      as pt
 
 
 def init(pyrat):
-    if pyrat.alkali.nmodels > 0:
+    if pyrat.alkali.model != []:
         pyrat.log.msg("\nSetup Alkali opacity models.")
-        # Species index in atmosphere:
-        for alkali in pyrat.alkali.model:
-            if alkali.mol in pyrat.mol.name:
-                alkali.imol = np.where(pyrat.mol.name==alkali.mol)[0][0]
-        pyrat.log.msg("Alkali done.")
+    # Species index in atmosphere:
+    for alkali in pyrat.alkali.model:
+        if alkali.mol in pyrat.mol.name:
+            alkali.imol = np.where(pyrat.mol.name==alkali.mol)[0][0]
 
 
 def absorption(pyrat):
@@ -145,6 +144,6 @@ models = [SodiumVdWst(),
 # Compile list of alkali-model names:
 mnames = []
 for model in models:
-  mnames.append(model.name)
+    mnames.append(model.name)
 mnames = np.asarray(mnames)
 

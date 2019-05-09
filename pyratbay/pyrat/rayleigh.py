@@ -10,7 +10,7 @@ def absorption(pyrat):
   """
   pyrat.rayleigh.ec = np.zeros((pyrat.atm.nlayers, pyrat.spec.nwave))
 
-  for rmodel in pyrat.rayleigh.model:
+  for rmodel in pyrat.rayleigh.models:
       # Calculate the extinction coefficient (in cm2 molecule-1):
       rmodel.extinction(pyrat.spec.wn, pyrat.atm.press)
       # Get molecule index:
@@ -26,7 +26,7 @@ def get_ec(pyrat, layer):
   Extract per-model extinction coefficient at requested layer.
   """
   ec, label = [], []
-  for rmodel in pyrat.rayleigh.model:
+  for rmodel in pyrat.rayleigh.models:
       imol = np.where(pyrat.mol.name == rmodel.mol)[0][0]
       rmodel.extinction(pyrat.spec.wn, pyrat.atm.press)
       ec.append(rmodel.ec * pyrat.atm.d[layer,imol])
@@ -46,7 +46,7 @@ class Dalgarno():
       mol: String
          The species, which can be H, He, or H2.
       """
-      self.name  = "dalgarno_{:s}".format(mol)  # Model name
+      self.name  = 'dalgarno_{:s}'.format(mol)  # Model name
       self.npars = 0              # Number of model fitting parameters
       self.pars  = None           # Model fitting parameters
       self.ec    = None           # Model extinction coefficient (cm2 molec-1)
@@ -54,13 +54,13 @@ class Dalgarno():
       self.pnames   = []          # Fitting-parameter names
       self.texnames = []          # Fitting-parameter names
 
-      if self.mol == "H":
+      if self.mol == 'H':
           self.coef = np.array([5.799e-45, 1.422e-54, 2.784e-64])
           self.extinction = self._extH
-      elif self.mol == "He":
+      elif self.mol == 'He':
           self.coef = np.array([5.484e-46, 2.440e-11, 5.940e-42, 2.900e-11])
           self.extinction = self._extHe
-      elif self.mol == "H2":
+      elif self.mol == 'H2':
           self.coef = np.array([8.140e-45, 1.280e-54, 1.610e-64])
           self.extinction = self._extH
 
@@ -95,14 +95,14 @@ class Lecavelier():
   AA, 485, 865.
   """
   def __init__(self):
-      self.name  = "lecavelier"     # Model name
+      self.name  = 'lecavelier'     # Model name
       self.pars  = [ 0.0,           # Cross-section scale factor (unitless)
                     -4.0]           # Power-law exponent
       self.npars = len(self.pars)   # Number of model fitting parameters
       self.ec    = None             # Model extinction coefficient
-      self.mol   = "H2"             # Species causing the extinction
-      self.pnames   = ["log(f_Ray)", "alpha_Ray"]
-      self.texnames = [r"$\log_{10}(f_{\rm Ray})$", r"$\alpha_{\rm Ray}$"]
+      self.mol   = 'H2'             # Species causing the extinction
+      self.pnames   = ['log(f_Ray)', 'alpha_Ray']
+      self.texnames = [r'$\log_{10}(f_{\rm Ray})$', r'$\alpha_{\rm Ray}$']
       self.s0    = 5.31e-27         # Cross section (cm-2 molec-1) at l0
       self.l0    = 3.5e-5           # Nominal wavelength (cm)
 
@@ -123,9 +123,9 @@ class Lecavelier():
 
 
 # List of available Rayleigh models:
-rmodels = [Dalgarno("H"),
-           Dalgarno("He"),
-           Dalgarno("H2"),
+rmodels = [Dalgarno('H'),
+           Dalgarno('He'),
+           Dalgarno('H2'),
            Lecavelier()]
 
 # Compile list of Rayleigh-model names:

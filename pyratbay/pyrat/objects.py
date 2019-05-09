@@ -417,7 +417,6 @@ class Cross(object):
 
 class Haze(object):
   def __init__(self):
-    self.nmodels = 0     # Number of haze models
     self.models  = []    # List of haze models
     self.ec      = None  # Haze extinction coefficient
     self.fpatchy = None  # Patchy-cloud fraction
@@ -430,8 +429,7 @@ class Haze(object):
 
 class Rayleigh(object):
   def __init__(self):
-    self.nmodels = 0     # Number of Rayleigh models
-    self.model   = []    # List of Rayleigh models
+    self.models  = []    # List of Rayleigh models
     self.ec      = None  # Rayleigh extinction coefficient
     self.pars    = None  # Input rayleigh parameters
 
@@ -442,7 +440,6 @@ class Rayleigh(object):
 
 class Alkali(object):
   def __init__(self):
-    self.nmodels = 0     # Number of alkali models
     self.model   = []    # List of alkali models
     self.ec      = None  # Alkali extinction coefficient
     self.imol    = None  # Species indices in atmospheric file

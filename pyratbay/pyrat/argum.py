@@ -124,26 +124,26 @@ def check_spectrum(pyrat):
               npars = hmodel.npars
               hmodel.pars = pyrat.haze.pars[j:j+npars]
               j += npars
-      pyrat.haze.nmodels = len(pyrat.haze.models)
 
   # Check Rayleigh models:
   if pyrat.rayleigh.model_names is not None:
-      nrpars = 0
-      for rmodel in pyrat.rayleigh.model_names:
-          iray = np.where(ray.rnames == rmodel)[0][0]
-          pyrat.rayleigh.model.append(ray.rmodels[iray])
-          pyrat.rayleigh.nmodels += 1
-          nrpars += pyrat.rayleigh.model[-1].npars
+      pyrat.rayleigh.models = []
+      npars = 0
+      for rname in pyrat.rayleigh.model_names:
+          iray   = np.where(ray.rnames == rname)[0][0]
+          rmodel = ray.rmodels[iray]
+          npars += rmodel.npars
+          pyrat.rayleigh.models.append(rmodel)
       # Process the Rayleigh parameters:
       if pyrat.rayleigh.pars is not None:
-          if nrpars != len(pyrat.rayleigh.pars):
+          if npars != len(pyrat.rayleigh.pars):
               log.error('Number of input Rayleigh parameters ({:d}) does not '
                         'match the number of required model parameters ({:d}).'.
-                        format(len(pyrat.rayleigh.pars), nrpars))
+                        format(len(pyrat.rayleigh.pars), npars))
           j = 0
-          for i in np.arange(pyrat.rayleigh.nmodels):
-              npars = pyrat.rayleigh.model[i].npars
-              pyrat.rayleigh.model[i].pars = pyrat.rayleigh.pars[j:j+npars]
+          for rmodel in pyrat.rayleigh.models:
+              npars = rmodel.npars
+              rmodel.pars = pyrat.rayleigh.pars[j:j+npars]
               j += npars
 
   # Check alkali arguments:
@@ -151,7 +151,6 @@ def check_spectrum(pyrat):
       for amodel in pyrat.alkali.model_names:
           ialkali = np.where(al.mnames == amodel)[0][0]
           pyrat.alkali.model.append(al.models[ialkali])
-          pyrat.alkali.nmodels += 1
 
   # Accept ray-path argument:
   if pyrat.runmode in ['spectrum', 'mcmc'] and pyrat.od.path is None:
@@ -165,7 +164,7 @@ def check_spectrum(pyrat):
           log.error("Requested mol in retflag, but there is no 'molmodel'.")
       if atm.bulk is None:
           log.error('Requested mol in retflag, but there are no bulk species.')
-  if 'ray' in pyrat.ret.retflag and pyrat.rayleigh.model == []:
+  if 'ray' in pyrat.ret.retflag and pyrat.rayleigh.models == []:
       log.error('Requested ray in retflag, but there are no rayleigh models.')
   if 'haze' in pyrat.ret.retflag and pyrat.haze.models == []:
       log.error('Requested haze in retflag, but there are no haze models.')
@@ -382,15 +381,15 @@ def setup(pyrat):
       tpnames, ttexnames = [], []
 
   # Rayleigh models:
-  nray     = 0
+  nray = 0
   rpnames, rtexnames = [], []
-  for i in np.arange(pyrat.rayleigh.nmodels):
-    rpnames   += pyrat.rayleigh.model[i].pnames
-    rtexnames += pyrat.rayleigh.model[i].texnames
-    nray += pyrat.rayleigh.model[i].npars
+  for rmodel in pyrat.rayleigh.models:
+      rpnames   += rmodel.pnames
+      rtexnames += rmodel.texnames
+      nray      += rmodel.npars
 
   # Haze models:
-  nhaze    = 0
+  nhaze = 0
   hpnames, htexnames = [], []
   for hmodel in pyrat.haze.models:
       hpnames   += hmodel.pnames
@@ -443,11 +442,11 @@ def setup(pyrat):
                     format(ret.nparams, nparams))
 
   # Check for non-retrieval model/parameters:
-  if (pyrat.rayleigh.nmodels > 0
+  if (pyrat.rayleigh.models != []
       and (pyrat.runmode != 'mcmc' or 'ray' not in ret.retflag)
       and pyrat.rayleigh.pars is None):
       log.error('Rayleigh parameters (rpars) have not been specified.')
-  if (pyrat.haze.nmodels > 0
+  if (pyrat.haze.models != []
       and (pyrat.runmode != 'mcmc' or 'haze' not in ret.retflag)
       and pyrat.haze.pars is None):
       log.error('Haze parameters (hpars) have not been specified.')

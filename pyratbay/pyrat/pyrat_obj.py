@@ -241,7 +241,7 @@ class Pyrat(object):
       if self.ret.iray is not None:
           j = 0
           rpars = params[self.ret.iray]
-          for rmodel in self.rayleigh.model:
+          for rmodel in self.rayleigh.models:
               rmodel.pars = rpars[j:j+rmodel.npars]
               j += rmodel.npars
 
@@ -361,17 +361,17 @@ class Pyrat(object):
           ec = np.vstack((ec, e))
           label += lab
       # Rayleigh scattering extinction coefficient:
-      if self.rayleigh.nmodels != 0:
+      if self.rayleigh.models != []:
           e, lab = ray.get_ec(self, layer)
           ec = np.vstack((ec, e))
           label += lab
       # Haze/clouds extinction coefficient:
-      if self.haze.nmodels != 0:
+      if self.haze.models != []:
           e, lab = hz.get_ec(self, layer)
           ec = np.vstack((ec, e))
           label += lab
       # Alkali resonant lines extinction coefficient:
-      if self.alkali.nmodels != 0:
+      if self.alkali.model != []:
           e, lab = al.get_ec(self, layer)
           ec = np.vstack((ec, e))
           label += lab
@@ -522,9 +522,8 @@ class Pyrat(object):
                   opacities.append('CIA ' + '-'.join(molecs))
               else:
                   opacities.append(molecs[0])
-      if self.rayleigh.nmodels != 0:
-          for rayleigh in self.rayleigh.model:
-              opacities.append(rayleigh.name)
+      for rmodel in self.rayleigh.models:
+          opacities.append(rmodel.name)
       for haze in self.haze.models:
           opacities.append(haze.name)
       for alkali in self.alkali.model:
