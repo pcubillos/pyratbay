@@ -13,7 +13,7 @@ def absorption(pyrat):
   pyrat.haze.ec = np.zeros((pyrat.atm.nlayers, pyrat.spec.nwave))
 
   for hmodel in pyrat.haze.models:
-      if hmodel.name == "deck":
+      if hmodel.name == 'deck':
           hmodel.extinction(pyrat.spec.wn, pyrat.atm.press, pyrat.atm.radius)
           pyrat.haze.ec += hmodel.ec
           continue
@@ -34,7 +34,7 @@ def get_ec(pyrat, layer):
   """
   ec, label = [], []
   for hmodel in pyrat.haze.models:
-      if hmodel.name == "deck":
+      if hmodel.name == 'deck':
           hmodel.extinction(pyrat.spec.wn, pyrat.atm.press, pyrat.atm.radius)
           ec.append(hmodel.ec[layer])
       else:
@@ -49,17 +49,17 @@ class CCSgray():
   Constant cross-section gray cloud model.
   """
   def __init__(self):
-      self.name  = "ccsgray"       # Model name
+      self.name  = 'ccsgray'       # Model name
       self.pars  = [ 0.0,          # log10 of cross-section scale factor, top,
                      -4, 2]        #  and bottom pressure (bar) boundaries
       self.npars = len(self.pars)  # Number of model fitting parameters
       self.ec    = None            # Model extinction coefficient
-      self.mol   = "H2"            # Species causing the extinction
+      self.mol   = 'H2'            # Species causing the extinction
       # Fitting-parameter names (plain text and figure labels):
-      self.pnames = ["log(f_gray)", "log(p_top)", "log(p_bot)"]
-      self.texnames = [r"$\log_{10}(f_{\rm gray})$",
-                       r"$\log_{10}(p_{\rm top})\ ({\rm bar})$",
-                       r"$\log_{10}(p_{\rm bot})\ ({\rm bar})$"]
+      self.pnames = ['log(f_gray)', 'log(p_top)', 'log(p_bot)']
+      self.texnames = [r'$\log_{10}(f_{\rm gray})$',
+                       r'$\log_{10}(p_{\rm top})\ ({\rm bar})$',
+                       r'$\log_{10}(p_{\rm bot})\ ({\rm bar})$']
       self.s0 = 5.31e-27         # Default coss-section (cm-2 molec-1)
 
   def extinction(self, wn, pressure):
@@ -90,14 +90,14 @@ class Deck():
   Instantly opaque gray cloud deck at given pressure.
   """
   def __init__(self):
-      self.name  = "deck"          # Model name
+      self.name  = 'deck'          # Model name
       self.pars  = [-1.0]          # log10(Pressure[bar]) of cloud top
       self.npars = len(self.pars)  # Number of model fitting parameters
       self.ec    = None            # Model extinction coefficient
       self.mol   = None            # Species causing the extinction
       # Fitting-parameter names (plain text and figure labels):
-      self.pnames = ["log(p_top)"]
-      self.texnames = [r"$\log_{10}(p_{\rm top})$"]
+      self.pnames = ['log(p_top)']
+      self.texnames = [r'$\log_{10}(p_{\rm top})$']
 
   def extinction(self, wn, pressure, radius):
       """

@@ -5001,3 +5001,10 @@ Pyrat.alkali.models (not used anymore).
 Renamed Pyrat.alkali.model to Pyrat.alkali.models.
 More tweaks to check_spectrum() function.
 
+
+*****  Fr 10. Mai 14:28:49 CEST 2019  *****
+
+Tweaked make_wavenumber() to check spectrum boundaries based on the
+user inputs rather than the Pyrat.spec values.
+PEP8'ed haze.py a bit more.
+

@@ -19,25 +19,25 @@ def make_wavenumber(pyrat):
 
   log.msg('\nGenerating wavenumber array.')
   # Low wavenumber boundary:
-  if spec.wnlow is None:
-      if spec.wlhigh is None:
+  if pyrat.inputs.wnlow is None:
+      if pyrat.inputs.wlhigh is None:
           log.error('Low wavenumber boundary is undefined.  Either set '
                     'wnlow or wlhigh.')
       else:
           spec.wnlow = 1.0 / spec.wlhigh
-  elif spec.wlhigh is not None:
+  elif pyrat.inputs.wlhigh is not None:
       log.warning('Both wnlow ({:.2e} cm-1) and wlhigh ({:.2e} cm) were '
                   'defined.  Pyrat will take wnlow and ignore wlhigh.'.
                   format(spec.wnlow, spec.wlhigh))
 
   # High wavenumber boundary:
-  if spec.wnhigh is None:
-      if spec.wllow is None:
+  if pyrat.inputs.wnhigh is None:
+      if pyrat.inputs.wllow is None:
           log.error('High wavenumber boundary is undefined.  Either set '
                     'wnhigh or wllow.')
       else:
           spec.wnhigh = 1.0 / spec.wllow
-  elif spec.wllow is not None:
+  elif pyrat.inputs.wllow is not None:
       log.warning('Both wnhigh ({:.2e} cm-1) and wllow ({:.2e} cm) were '
                   'defined.  Pyrat will take wnhigh and ignore wllow.'.
                   format(spec.wnhigh, spec.wllow))
@@ -235,7 +235,7 @@ def make_atmprofiles(pyrat):
           format(atm.ptop/pc.bar, atm.pbottom/pc.bar), verb=2, indent=2)
 
   # Resample to equispaced log-pressure array if requested:
-  if atm.nlayers is not None:
+  if pyrat.inputs.nlayers is not None:
       atm.press = np.logspace(np.log10(atm.ptop), np.log10(atm.pbottom),
                               atm.nlayers)
       atm.radius = radinterp(atm.press)
