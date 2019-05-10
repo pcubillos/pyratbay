@@ -46,7 +46,7 @@ def opticaldepth(pyrat):
           r += 1
 
   # Calculate the extinction coefficient on the spot:
-  elif pyrat.lt.nTLI > 0:
+  elif pyrat.lt.tlifile is not None:
       sm_ext = mpr.Array(ctypes.c_double,
           np.zeros(pyrat.atm.nlayers*pyrat.spec.nwave, np.double))
       pyrat.ex.ec = np.ctypeslib.as_array(sm_ext.get_obj()).reshape(

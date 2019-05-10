@@ -5008,3 +5008,9 @@ Tweaked make_wavenumber() to check spectrum boundaries based on the
 user inputs rather than the Pyrat.spec values.
 PEP8'ed haze.py a bit more.
 
+*****
+
+Tweaked readlinedb.py to reset the Pyrat.lt instance on call. Tthis
+avoids duplicates when pickling or re-running pyrat.setup_spectrum().
+Removed Pyrat.lt.nTLI (not used anymore).
+

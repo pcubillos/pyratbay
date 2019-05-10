@@ -160,9 +160,8 @@ class Molecules(object):
 
 
 class Linetransition(object):
-  def __init__(self):
-    self.tlifile = None     # Line-transition data file
-    self.nTLI    = 0        # Number of TLI files
+  def __init__(self, tlifile=None):
+    self.tlifile = tlifile  # Line-transition data file
     self.ndb     = 0        # Number of data bases
     self.db      = []       # Data base objects
     self.ntransitions = 0   # Number of line transitions
@@ -176,13 +175,14 @@ class Linetransition(object):
   def __repr__(self):
     info = []
     pt.wrap(info, 'Line-transition info:')
-    pt.wrap(info, 'Number of TLI files:           {:d}'.format(self.nTLI), 2)
-    pt.wrap(info, 'Number of databases (species): {:d}'.format(self.ndb),  2)
-    for i in np.arange(self.ndb):
-        self.db[i].info(2)
-    pt.wrap(info, 'Number of line transitions:    {:d}\n'
-            'Minimum and maximum covered temperatures: [{:.1f}, {:.1f}] K'.
-            format(self.ntransitions, self.tmin, self.tmax), 2)
+    pt.wrap(info, 'Input TLI files (tlifile): {}'.format(self.tlifile), 2)
+    pt.wrap(info, 'Number of databases (ndb): {:d}'.format(self.ndb),  2)
+    for db in self.db:
+        info += [repr(db)]
+        info.append('')
+    pt.wrap(info, 'Total number of line transitions (ntransitions): {:,d}\n'
+        'Minimum and maximum temperatures (tmin, tmax): [{:.1f}, {:.1f}] K'.
+        format(self.ntransitions, self.tmin, self.tmax), 2)
     return '\n'.join(info)
 
 

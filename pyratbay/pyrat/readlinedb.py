@@ -1,48 +1,45 @@
 # Copyright (c) 2016-2019 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-import os
 import sys
 import numpy as np
 
-from .  import objects   as o
 from .. import tools     as pt
 from .. import constants as pc
+from .  import objects   as o
 
 
 def read_tli(pyrat):
   """
   Main driver to read the line transition data from TLI files.
   """
+  pyrat.lt = o.Linetransition(pyrat.lt.tlifile)
   # Count number of TLI files:
   if pyrat.lt.tlifile is None:
-      pyrat.lt.nTLI = 0
       pyrat.log.msg("\nNo line transition file to read.")
-  else:
-      pyrat.lt.nTLI = len(pyrat.lt.tlifile)
-      pyrat.log.msg("\nReading line transition info.")
+      return
 
+  pyrat.log.msg("\nReading line transition info.")
   # TLI file object:
-  tli = []
+  tlis = []
   # Index of first database in TLI file:
   dbindex = [0]
 
   # Read data bases header info:
-  for n in np.arange(pyrat.lt.nTLI):
-      # Open-read TLI data base:
-      tli.append(open(pyrat.lt.tlifile[n], "rb"))
-      pyrat.log.msg("Read TLI file: '{:s}'.".format(pyrat.lt.tlifile[n]),
-                    indent=2)
-      # Read headers info:
-      dbindex.append(dbindex[-1] + readheader(pyrat, tli[n]))
+  for tlifile in pyrat.lt.tlifile:
+      pyrat.log.msg("Read TLI file: '{:s}'.".format(tlifile), indent=2)
+      tli = open(tlifile, "rb")
+      tlis.append(tli)
+      dbindex.append(dbindex[-1] + readheader(pyrat, tli))
 
   # Set link to molecules' indices:
   setimol(pyrat)
 
   # Read line-transition data (if there's no extinction-coefficient table):
-  if pyrat.ex.extfile is None or not os.path.isfile(pyrat.ex.extfile):
-      for n in np.arange(pyrat.lt.nTLI):
-          read_linetransition(pyrat, tli[n], dbindex[n])
+  if pt.isfile(pyrat.ex.extfile) != 1:
+      for tli, dbi in zip(tlis, dbindex):
+          read_linetransition(pyrat, tli, dbi)
+          tli.close()
 
   pyrat.log.msg("Read a total of {:,d} line transitions.".
                 format(pyrat.lt.ntransitions), verb=2, indent=2)

@@ -18,7 +18,7 @@ def voigt(pyrat):
   """
   # Check if reading extinction-coefficient table or no TLI files:
   if ((pyrat.ex.extfile is not None and os.path.isfile(pyrat.ex.extfile))
-      or pyrat.lt.nTLI == 0):
+      or pyrat.lt.tlifile is None):
       pyrat.log.msg('\nSkip LBL Voigt-profile calculation.')
       return
 
