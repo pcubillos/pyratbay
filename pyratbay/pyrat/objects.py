@@ -362,9 +362,9 @@ class Extinction(object):
 
 
 class Cross(object):
-  def __init__(self):
-    self.files      = None    # CS file names
-    self.nfiles     = None    # Number of files read
+  def __init__(self, files=None):
+    self.files      = files   # CS file names
+    self.nfiles     = 0       # Number of files read
     self.nmol       = None    # Number of species per CS file
     self.molecules  = None    # Species involved for each file
     self.ntemp      = None    # Number of temperature samples per file

@@ -5014,3 +5014,8 @@ Tweaked readlinedb.py to reset the Pyrat.lt instance on call. Tthis
 avoids duplicates when pickling or re-running pyrat.setup_spectrum().
 Removed Pyrat.lt.nTLI (not used anymore).
 
+*****
+
+Tweaked readlinedb.py to reset also the Pyrat.iso instance.
+Tweaked crosssec.py to reset the Pyrat.cs instance on call.
+

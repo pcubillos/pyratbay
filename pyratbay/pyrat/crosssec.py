@@ -7,8 +7,9 @@ import numpy as np
 
 from .. import constants as pc
 from .. import io        as io
+from .  import objects as o
 
-sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../lib')
+sys.path.append(pc.ROOT + 'lib')
 import spline as sp
 
 
@@ -17,21 +18,19 @@ def read(pyrat):
   Read a Cross-section (CS) file.
   """
   pyrat.log.msg("\nReading cross-section files.")
-  # Number of CS files:
-  if pyrat.cs.files is None:
-      pyrat.cs.nfiles = 0
-  else:
-      pyrat.cs.nfiles = len(pyrat.cs.files)
-      # Allocate molecules array:
-      pyrat.cs.molecules = []
-      pyrat.cs.nmol  = np.zeros(pyrat.cs.nfiles, np.int)
-      # Allocate the number of temperature and wavenumber samples per file:
-      pyrat.cs.ntemp = np.zeros(pyrat.cs.nfiles, np.int)
-      pyrat.cs.nwave = np.zeros(pyrat.cs.nfiles, np.int)
+  pyrat.cs = o.Cross(pyrat.cs.files)
 
-  if pyrat.cs.nfiles == 0:
+  if pyrat.cs.files is None:
       pyrat.log.msg("No CS files to read.", indent=2)
       return
+
+  pyrat.cs.nfiles = len(pyrat.cs.files)
+  # Allocate molecules array:
+  pyrat.cs.molecules = []
+  pyrat.cs.nmol  = np.zeros(pyrat.cs.nfiles, np.int)
+  # Allocate the number of temperature and wavenumber samples per file:
+  pyrat.cs.ntemp = np.zeros(pyrat.cs.nfiles, np.int)
+  pyrat.cs.nwave = np.zeros(pyrat.cs.nfiles, np.int)
 
   for i in range(pyrat.cs.nfiles):
       pyrat.log.msg("Read CS file: '{:s}'.".format(pyrat.cs.files[i]), indent=2)
