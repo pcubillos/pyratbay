@@ -365,12 +365,9 @@ class Cross(object):
   def __init__(self, files=None):
     self.files      = files   # CS file names
     self.nfiles     = 0       # Number of files read
-    self.nmol       = None    # Number of species per CS file
-    self.molecules  = None    # Species involved for each file
-    self.ntemp      = None    # Number of temperature samples per file
-    self.nwave      = None    # Number of wavenumber samples per file
     self.tmin       =     0.0 # Minimum temperature sampled by all CS files
     self.tmax       = 70000.0 # Maximum temperature sampled by all CS files
+    self.molecules  = []      # Species involved for each file
     self.temp       = []      # Temperature sampling (in Kelvin)
     self.wavenumber = []      # Wavenumber sampling (in cm-1)
     self.absorption = []      # CS extinction (in cm-1 amagat-2)
@@ -381,37 +378,34 @@ class Cross(object):
     self.ec         = None    # Interpolated CS extinction coefficient
                               #  in cm-1 [nlayer, nwave]
 
-  def info(self):
+  def __repr__(self):
     info = []
     pt.wrap(info, 'Cross-section extinction info:')
-    pt.wrap(info, 'Number of CS files: {:d}'.format(self.nfiles), 2)
-    for i in np.arange(self.nfiles):
-        pt.wrap(info, "CS file: '{:s}':".format(self.files[i]), 2)
-        pt.wrap(info, 'Species: {:s}'.
-                format('-'.join(self.molecules[i,0:self.nmol[i]])), 4)
-        pt.wrap(info, 'Number of temperatures:       {:4d}'.
-                format(self.ntemp[i]), 4)
-        pt.wrap(info, 'Number of wavenumber samples: {:4d}'.
-                format(self.nwave[i]), 4)
-        pt.wrap(info, 'Temperature array (K):  {}'.
-                format(str(self.temp[i]).replace('\n', '')), 4, 6)
-        pt.wrap(info, 'Wavenumber array (cm-1): [{:7.1f}, {:7.1f}, ..., '
-                '{:7.1f}]'.format(self.wavenumber[i][0], self.wavenumber[i][1],
-                                  self.wavenumber[i][-1]), 4)
-        np.set_printoptions(formatter={'float': '{: .1e}'.format})
-        pt.wrap(info, 'Tabulated CS extinction coefficient (cm-1 amagat-{:d}) '
-                      '[layer, wave]:'.format(self.nmol[i]), 4)
-        pt.wrap(info, '{}'.format((self.ec)),                6)
-        np.set_printoptions(formatter=None)
-    pt.wrap(info, '\nMinimum and maximum covered temperatures (K): '
+    pt.wrap(info, 'Number of CS files (nfiles): {:d}'.format(self.nfiles), 2)
+    for i in range(self.nfiles):
+        pt.wrap(info, "\nCross-section file name: '{:s}'".
+            format(self.files[i]), 2)
+        pt.wrap(info, 'Species (molecules): {:s}'.
+            format('-'.join(self.molecules[i])), 4)
+        pt.wrap(info, 'Number of temperature samples: {:d}'.
+            format(len(self.temp[i])), 4)
+        pt.wrap(info, 'Number of wavenumber samples: {:d}'.
+            format(len(self.wavenumber[i])), 4)
+        with np.printoptions(precision=1, linewidth=800, threshold=100):
+            pt.wrap(info, 'Temperature array (temp, K):\n  {}'.
+                    format(self.temp[i]), 4, 8)
+            pt.wrap(info, 'Wavenumber array (wavenumber, cm-1):\n  {}'.
+                    format(self.wavenumber[i]), 4, 6)
+        with np.printoptions(formatter={'float': '{: .2e}'.format}):
+            pt.wrap(info, 'Input extinction coefficient (absorption, '
+                'cm-1 amagat-{:d}):\n{}'.
+                format(len(self.molecules[i]), self.absorption[i]), 4)
+    pt.wrap(info, '\nMinimum and maximum temperatures (tmin, tmax) in K: '
                   '[{:.1f}, {:.1f}]'.format(self.tmin, self.tmax), 2)
-    # FINDME iabsorp ?
     if self.ec is not None:
-        np.set_printoptions(formatter={'float': '{: .2e}'.format})
-        pt.wrap(info, 'CS extinction coefficient for the '
-                      'atmospheric model (cm-1) [layer, wave]:', 2)
-        pt.wrap(info, '{}'.format((self.ec)), 2)
-    np.set_printoptions(formatter=None)
+        with np.printoptions(formatter={'float': '{: .2e}'.format}):
+            pt.wrap(info, 'Atmospheric-model extinction coefficient '
+                '(ec, cm-1):\n{}'.format(self.ec), 2)
     return '\n'.join(info)
 
 

@@ -5019,3 +5019,9 @@ Removed Pyrat.lt.nTLI (not used anymore).
 Tweaked readlinedb.py to reset also the Pyrat.iso instance.
 Tweaked crosssec.py to reset the Pyrat.cs instance on call.
 
+*****
+
+Cleaned up/PEP8'ed crosssec.py.
+Removed ntemp, nwave, nmol attributes from Pyrat.cs (no longer used).
+Fixed Cross() repr.
+
