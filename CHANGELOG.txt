@@ -5052,3 +5052,10 @@ Documented and tested.
 Refactored Cross init method to remove arguments, replaced with
 clone_new() method.
 
+*****
+
+Updated io.save_pyrat() to mask the extinction table and posterior
+from the pickle file.
+Added screen output with output pickle file name when using default.
+Updated io.load_pyrat() function to recover MCMC posterior.
+

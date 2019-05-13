@@ -35,8 +35,10 @@ def save_pyrat(pyrat, pfile=None):
     from .. import tools as pt
     if pfile is None:
         pfile = os.path.splitext(pyrat.log.logname)[0] + '.pickle'
+        print('Saving pyrat instance to: {}'.format(pfile))
     # Reset values to reduce pickle size:
     with pt.tmp_reset(pyrat, 'spec.own', 'voigt.profile', 'log.file',
+            'ex.ec', 'ex.etable', 'ret.posterior',
             lt=pyrat.lt.clone_new(pyrat)):
         with open(pfile, 'wb') as f:
             pickle.dump(pyrat, f, pickle.HIGHEST_PROTOCOL)
@@ -56,11 +58,24 @@ def load_pyrat(pfile):
     pyrat: A Pyrat instance
         Loaded object.
     """
+    from .. import tools as pt
     with open(pfile, 'rb') as f:
         pyrat = pickle.load(f)
     pyrat.log.verb = -1
     pyrat.setup_spectrum()
     pyrat.log.verb = pyrat.verb
+    # Recover MCMC posterior:
+    if pt.isfile(pyrat.ret.mcmcfile) == 1:
+        with np.load(pyrat.ret.mcmcfile) as d:
+            Z = d['Z']
+            Zchain = d['Zchain']
+        burnin = pyrat.ret.burnin
+        ipost = np.ones(len(Z), bool)
+        for c in np.unique(Zchain):
+            ipost[np.where(Zchain == c)[0][0:burnin]] = False
+        ipost[np.where(Zchain == -1)] = False
+        pyrat.ret.posterior = Z[ipost]
+
     return pyrat
 
 
