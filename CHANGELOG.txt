@@ -5059,3 +5059,10 @@ from the pickle file.
 Added screen output with output pickle file name when using default.
 Updated io.load_pyrat() function to recover MCMC posterior.
 
+*****
+
+Implemented tools.Formatted_Write() class to handle reprs in
+replacement of tools.wrap().
+Updated Cross() repr.
+TBD: update all other reprs.
+

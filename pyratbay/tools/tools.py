@@ -10,6 +10,7 @@ __all__ = [
     'isfile',
     'file_exists',
     'path', 'wrap',
+    'Formatted_Write',
     'make_tea', 'clock', 'get_exomol_mol',
     'pf_exomol', 'pf_kurucz',
     'cia_hitran', 'cia_borysow',
@@ -530,6 +531,30 @@ def path(filename):
     if path == '':
         path = '.'
     return '{:s}/{:s}'.format(path, filename)
+
+
+class Formatted_Write(object):
+    """Write formatted, wrapped text to string."""
+    def __init__(self, indent=0, si=0):
+        self.text = ''
+        self.indent = indent
+        self.si = si
+
+    def write(self, text, *fmt):
+        text = text.format(*fmt)
+        indspace = ' '*self.indent
+        if self.si is None:
+            sindspace = indspace
+        else:
+            sindspace = ' '*self.si
+
+        for line in text.splitlines():
+            self.text += textwrap.fill(line,
+                break_long_words=False,
+                initial_indent=indspace,
+                subsequent_indent=sindspace,
+                width=80)
+            self.text += '\n'
 
 
 def wrap(outlist, text, indent=0, si=None):

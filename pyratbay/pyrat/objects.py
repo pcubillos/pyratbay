@@ -299,27 +299,27 @@ class Voigt(object):
 
 class Extinction(object):
   def __init__(self):
-    self.ec      = None # Molecular line-transition extinction coefficient
-                        #  in cm-1 [nlayers, nwave]
-    self.ethresh = None # Extinction-coefficient threshold
+      self.ec      = None # Molecular line-transition extinction coefficient
+                          #  in cm-1 [nlayers, nwave]
+      self.ethresh = None # Extinction-coefficient threshold
 
-    self.extfile = None # Extinction-coefficient table filename
-    self.etable  = None # Table of ext. coefficient [nmol, nlayer, ntemp, nwave]
+      self.extfile = None # Extinction-coefficient table filename
+      self.etable  = None # Tabulated extinction coefficient (cm-2 molecule-1)
+                          # with shape [nmol, nlayer, ntemp, nwave]
+      self.tmin    = None # Minimum temperature to sample
+      self.tmax    = None # Maximum temperature to sample
+      self.tstep   = None # Temperature-sample step interval
+      self.z       = None # Partition function at tabulated temperatures
+                          #   [niso, ntemp]
+      self.nmol    = None # Number of species
+      self.ntemp   = None # Number of temperature samples
+      self.nlayers = None # Number of pressure layers
+      self.nwave   = None # Number of wavenumber spectral samples
 
-    self.tmin    = None # Minimum temperature to sample
-    self.tmax    = None # Maximum temperature to sample
-    self.tstep   = None # Temperature-sample step interval
-    self.z       = None # Partition function at tabulated temperatures
-                        #   [niso, ntemp]
-    self.nmol    = None # Number of species
-    self.ntemp   = None # Number of temperature samples
-    self.nlayers = None # Number of pressure layers
-    self.nwave   = None # Number of wavenumber spectral samples
-
-    self.molID   = None # Tabulated species ID
-    self.temp    = None # Tabulated temperatures
-    self.press   = None # Tabulated pressures
-    self.wn      = None # Tabulated wavenumber
+      self.molID   = None # Tabulated species ID
+      self.temp    = None # Tabulated temperatures
+      self.press   = None # Tabulated pressures
+      self.wn      = None # Tabulated wavenumber
 
   def __repr__(self):
     info = []
@@ -393,34 +393,30 @@ class Cross(object):
       return cs
 
   def __repr__(self):
-      info = []
-      pt.wrap(info, 'Cross-section extinction info:')
-      pt.wrap(info, 'Number of CS files (nfiles): {:d}'.format(self.nfiles), 2)
+      rpr = pt.Formatted_Write()
+      rpr.write('Cross-section extinction info:')
+      rpr.write('Number of cross-section files (nfiles): {:d}', self.nfiles)
       for i in range(self.nfiles):
-          pt.wrap(info, "\nCross-section file name: '{:s}'".
-              format(self.files[i]), 2)
-          pt.wrap(info, 'Species (molecules): {:s}'.
-              format('-'.join(self.molecules[i])), 4)
-          pt.wrap(info, 'Number of temperature samples: {:d}'.
-              format(len(self.temp[i])), 4)
-          pt.wrap(info, 'Number of wavenumber samples: {:d}'.
-              format(len(self.wavenumber[i])), 4)
+          rpr.write("\nCross-section file name: '{:s}'", self.files[i])
+          rpr.write('Species (molecules): {:s}', '-'.join(self.molecules[i]))
+          rpr.write('Number of temperature samples: {:d}', len(self.temp[i]))
+          rpr.write('Number of wavenumber samples: {:d}',
+                    len(self.wavenumber[i]))
           with np.printoptions(precision=1, linewidth=800, threshold=100):
-              pt.wrap(info, 'Temperature array (temp, K):\n  {}'.
-                      format(self.temp[i]), 4, 8)
-              pt.wrap(info, 'Wavenumber array (wavenumber, cm-1):\n  {}'.
-                      format(self.wavenumber[i]), 4, 6)
+              rpr.write('Temperature array (temp, K):\n  {}', self.temp[i])
+              rpr.write('Wavenumber array (wavenumber, cm-1):\n  {}',
+                        self.wavenumber[i])
           with np.printoptions(formatter={'float': '{: .2e}'.format}):
-              pt.wrap(info, 'Input extinction coefficient (absorption, '
-                  'cm-1 amagat-{:d}):\n{}'.
-                  format(len(self.molecules[i]), self.absorption[i]), 4)
-      pt.wrap(info, '\nMinimum and maximum temperatures (tmin, tmax) in K: '
-                    '[{:.1f}, {:.1f}]'.format(self.tmin, self.tmax), 2)
+              rpr.write('Input extinction coefficient (absorption, '
+                  'cm-1 amagat-{:d}):\n{}',
+                  len(self.molecules[i]), self.absorption[i])
+      rpr.write('\nMinimum and maximum temperatures (tmin, tmax) in K: '
+                '[{:.1f}, {:.1f}]', self.tmin, self.tmax)
       if self.ec is not None:
           with np.printoptions(formatter={'float': '{: .2e}'.format}):
-              pt.wrap(info, 'Atmospheric-model extinction coefficient '
-                  '(ec, cm-1):\n{}'.format(self.ec), 2)
-      return '\n'.join(info)
+              rpr.write('Atmospheric-model extinction coefficient '
+                        '(ec, cm-1):\n{}', self.ec)
+      return rpr.text
 
 
 class Haze(object):
