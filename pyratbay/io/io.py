@@ -1,19 +1,67 @@
 # Copyright (c) 2016-2019 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-__all__ = ["write_spectrum", "read_spectrum",
-           "write_opacity", "read_opacity",
-           "write_pf", "read_pf",
-           "write_cs", "read_cs",
-           "read_pt",
-          ]
+__all__ = [
+    'save_pyrat', 'load_pyrat',
+    'write_spectrum', 'read_spectrum',
+    'write_opacity',  'read_opacity',
+    'write_pf', 'read_pf',
+    'write_cs', 'read_cs',
+    'read_pt',
+    ]
 
 import os
 import struct
+import pickle
 
 import numpy as np
 
-import pyratbay.constants as pc
+from .. import constants as pc
+
+
+def save_pyrat(pyrat, pfile=None):
+    """
+    Save a pyrat instance into a pickle file.
+
+    Parameters
+    ----------
+    pyrat: A Pyrat instance
+        Object to save.
+    pfile: String
+        Name of output file.  Default to the pyrat logname (changing
+        the extension to '.pickle').
+    """
+    # Note that circular-import issue only occurs in Python2
+    from .. import tools as pt
+    if pfile is None:
+        pfile = os.path.splitext(pyrat.log.logname)[0] + '.pickle'
+    # Reset values to reduce pickle size:
+    with pt.tmp_reset(pyrat, 'spec.own', 'voigt.profile', 'log.file',
+            lt=pyrat.lt.clone_new(pyrat)):
+        with open(pfile, 'wb') as f:
+            pickle.dump(pyrat, f, pickle.HIGHEST_PROTOCOL)
+
+
+def load_pyrat(pfile):
+    """
+    Load a pyrat instance from a pickle file.
+
+    Parameters
+    ----------
+    pfile: String
+        Name of input pickle file.
+
+    Returns
+    -------
+    pyrat: A Pyrat instance
+        Loaded object.
+    """
+    with open(pfile, 'rb') as f:
+        pyrat = pickle.load(f)
+    pyrat.log.verb = -1
+    pyrat.setup_spectrum()
+    pyrat.log.verb = pyrat.verb
+    return pyrat
 
 
 def write_spectrum(wl, spectrum, filename, type, wlunits='um'):

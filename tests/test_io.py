@@ -7,13 +7,33 @@ import pytest
 
 import numpy as np
 
+from conftest import make_config
+
 ROOT = os.path.realpath(os.path.dirname(__file__) + '/..') + '/'
 sys.path.append(ROOT)
+import pyratbay    as pb
 import pyratbay.io as io
 import pyratbay.atmosphere as pa
 import pyratbay.constants  as pc
 
 os.chdir(ROOT+'tests')
+
+
+def test_load_save_pyrat(tmp_path):
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        reset={'hpars':'1.0'})
+    pyrat = pb.run(cfg)
+    spectrum = np.copy(pyrat.spec.spectrum)
+    io.save_pyrat(pyrat)
+
+    pfile = pyrat.log.logname.replace('.log', '.pickle')
+    new_pyrat = io.load_pyrat(pfile)
+    # Check previous spectrum value stand:
+    np.testing.assert_equal(new_pyrat.spec.spectrum, spectrum)
+    # Check re-run reproduces previous spectrum:
+    new_pyrat.run()
+    np.testing.assert_equal(new_pyrat.spec.spectrum, spectrum)
+
 
 
 def test_read_write_spectrum(tmpdir):
