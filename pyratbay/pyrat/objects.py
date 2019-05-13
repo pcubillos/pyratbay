@@ -42,98 +42,128 @@ class Spectrum(object):
 
   def __repr__(self):
       """Print the Spectral info."""
-      info = []
-      pt.wrap(info, 'Spectrum info:')
-      pt.wrap(info, 'Wavenumber units: cm-1')
-      pt.wrap(info, 'Wavelength units (wlunits): {:s}'.format(self.wlunits))
-      pt.wrap(info, 'Low wavenumber boundary (wnlow):   {:9.2f} cm-1  '
-          '(wlhigh = {:.2f} {})'.format(self.wnlow,
-          self.wlhigh/pt.u(self.wlunits), self.wlunits))
-      pt.wrap(info, 'High wavenumber boundary (wnhigh): {:9.2f} cm-1  '
-          '(wllow  = {:.2f} {})'.format(self.wnhigh,
-          self.wllow/pt.u(self.wlunits), self.wlunits))
-      pt.wrap(info, 'Number of samples (nwave): {:d}'.format(self.nwave))
+      rpr = pt.Formatted_Write(si=4)
+      rpr.write('Spectrum info:')
+      rpr.write('Wavenumber units: cm-1')
+      rpr.write('Wavelength units (wlunits): {:s}', self.wlunits)
+      rpr.write('Low wavenumber boundary (wnlow):   {:9.2f} cm-1  '
+          '(wlhigh = {:.2f} {})',
+          self.wnlow, self.wlhigh/pt.u(self.wlunits), self.wlunits)
+      rpr.write('High wavenumber boundary (wnhigh): {:9.2f} cm-1  '
+          '(wllow  = {:.2f} {})',
+          self.wnhigh, self.wllow/pt.u(self.wlunits), self.wlunits)
+      rpr.write('Number of samples (nwave): {:d}', self.nwave)
       if self.resolution is None:
-          pt.wrap(info, 'Sampling interval (wnstep): {:.3f} cm-1'.
-              format(self.wnstep))
+          rpr.write('Sampling interval (wnstep): {:.3f} cm-1', self.wnstep)
       else:
-          pt.wrap(info, 'Spectral resolving power (resolution): {:.1f}'.
-              format(self.resolution))
-      with np.printoptions(precision=3, linewidth=80):
-          pt.wrap(info, 'Wavenumber array (wn, cm-1): {}'.format(self.wn), si=4)
-      pt.wrap(info, 'Oversampling factor (wnosamp): {:d}'.format(self.wnosamp))
+          rpr.write('Spectral resolving power (resolution): {:.1f}',
+              self.resolution)
+      with np.printoptions(precision=3, linewidth=800):
+          rpr.write('Wavenumber array (wn, cm-1):\n    {}', self.wn)
+      rpr.write('Oversampling factor (wnosamp): {:d}', self.wnosamp)
       if self.quadrature is not None:
-          pt.wrap(info, 'Number of Gaussian-quadrature points for intensity '
-              'integration into flux (quadrature): {}'.
-              format(self.quadrature), si=4)
-      with np.printoptions(precision=3, linewidth=80):
-              pt.wrap(info, 'Intensity zenithal angles (raygrid, degree): {}'.
-                  format(self.raygrid/sc.degree), si=4)
+          rpr.write('Number of Gaussian-quadrature points for intensity '
+              'integration into flux (quadrature): {}', self.quadrature)
+      with np.printoptions(precision=3, linewidth=800):
+          rpr.write('Intensity zenithal angles (raygrid, degree): {}',
+              self.raygrid/sc.degree)
       if self.intensity is not None:
-          pt.wrap(info, 'Intensity spectra (intensity, erg s-1 cm-1 sr-1):\n{}'.
-              format(self.intensity), si=4)
-      with np.printoptions(precision=8, linewidth=80):
-          pt.wrap(info, 'Modulation/emission spectrum (spectrum, erg s-1 cm-2 '
-              'cm):\n    {}'.format(self.spectrum), si=4)
-      return '\n'.join(info)
+          rpr.write('Intensity spectra (intensity, erg s-1 cm-1 sr-1):\n{}'.
+              self.intensity)
+      with np.printoptions(precision=8, linewidth=800):
+          rpr.write('Modulation/emission spectrum (spectrum, erg s-1 cm-2 '
+              'cm):\n    {}', self.spectrum)
+      return rpr.text
 
 
 class Atm(object):
   def __init__(self):
-    # From pyrat:
-    self.refpressure = None  # Pressure reference level
-    self.radstep  = None  # Radius sampling interval
-    self.radlow   = None  # Lowest radius boundary
-    self.radhigh  = None  # Highest radius boundary
-    self.ptop     = None  # Lowest pressure boundary
-    self.pbottom  = None  # Highest pressure boundary
-    self.hydrom   = False # Variable/constant-g flag for hydrostatic equilib.
+      self.refpressure = None  # Pressure reference level
+      self.radstep  = None  # Radius sampling interval
+      self.radlow   = None  # Lowest radius boundary
+      self.radhigh  = None  # Highest radius boundary
+      self.ptop     = None  # Lowest pressure boundary
+      self.pbottom  = None  # Highest pressure boundary
+      self.hydrom   = False # Variable/constant-g flag for hydrostatic equilib.
 
-    self.atmfile   = None      # Atmopheric-model file
-    self.qunits    = None      # Input abundance units ('mass' or 'number')
-    self.runits    = None      # Input radius units
-    self.punits    = None      # Input pressure units
-    self.tunits    = 'kelvin'  # Input temperature units
-    self.nlayers   = None      # Number of layers
-    self.radius    = None      # Radius array (cm)            [layers]
-    self.press     = None      # Pressure array (barye)       [layers]
-    self.temp      = None      # Temperature array (K)        [layers]
-    self.mm        = None      # Mean molecular mass (gr/mol) [layers]
-    self.q         = None      # Molecular abundances         [layers, nmol]
-    self.d         = None      # Molecular densities          [layers, nmol]
-    self.tmodel    = None
-    self.tpars     = None
-    self.rtop      = 0         # Index of topmost layer (within Hill radius)
+      self.atmfile   = None     # Atmopheric-model file
+      self.qunits    = None     # Input abundance units ('mass' or 'number')
+      self.runits    = None     # Input radius units
+      self.punits    = None     # Input pressure units
+      self.tunits    = 'kelvin' # Input temperature units
+      self.nlayers   = None     # Number of layers
+      self.radius    = None     # Radius array (cm)            [layers]
+      self.press     = None     # Pressure array (barye)       [layers]
+      self.temp      = None     # Temperature array (K)        [layers]
+      self.mm        = None     # Mean molecular mass (gr/mol) [layers]
+      self.q         = None     # Molecular abundances         [layers, nmol]
+      self.d         = None     # Molecular densities          [layers, nmol]
+      self.tmodel    = None
+      self.tpars     = None
+      self.rtop      = 0        # Index of topmost layer (within Hill radius)
 
   def __repr__(self):
-    info = []
-    pt.wrap(info, 'Atmospheric model info:')
-    #pt.wrap(info, 'Abundance input units:   {:s}.'.format(self.qunits),  2)
-    pt.wrap(info, 'Radius input units:      {:s}.'.format(self.runits),  2)
-    pt.wrap(info, 'Pressure input units:    {:s}.'.format(self.punits),  2)
-    pt.wrap(info, 'Temperature input units: {:s}.'.format(self.tunits),  2)
-    pt.wrap(info, 'Number of layers: {:d}'.        format(self.nlayers), 2)
+      rpr = pt.Formatted_Write(si=4)
+      fmt = {'float': '{: .3e}'.format}
+      press  = self.press/pt.u(self.punits)
+      radius = self.radius/pt.u(self.runits)
+      rpr.write('Atmospheric model info:')
+      rpr.write("Atmospheric file name (atmfile): '{}'", self.atmfile)
+      rpr.write('Number of layers (nlayers): {:d}', self.nlayers)
 
-    radius = self.radius/pt.u(self.runits)
-    press  = self.press /pt.u(self.punits)
-    pt.wrap(info, 'Radius ({:s}):   [{:.3f}, {:.3f}, ..., {:.3f}].'.
-        format(self.runits, radius[0], radius[1], radius[-1]), 4)
-    pt.wrap(info, 'Pressure ({:s}):   [{:.2e}, {:.2e}, ..., {:.2e}].'.
-        format(self.punits, press[0], press[1], press[-1]), 4)
-    pt.wrap(info, 'Temperature (K):   [{:8.2f}, {:8.2f}, ..., {:8.2f}].'.
-        format(self.temp[0], self.temp[1], self.temp[-1]), 4)
-    pt.wrap(info, 'Mean M. Mass (amu): [{:8.4f}, {:8.4f}, ..., {:8.4f}].'.
-        format(self.mm[0],     self.mm[1],     self.mm[-1]),   4)
-    pt.wrap(info, 'Number of species: {:d}'.format(len(self.q[0])),      2)
-    pt.wrap(info, 'Abundances (mole mixing ratio):', 2)
-    for i in np.arange(len(self.q[0])):
-        pt.wrap(info, 'Species [{: 2d}]:       [{:.2e}, {:.2e}, ..., {:.2e}].'.
-                format(i, self.q[0,i], self.q[1,i], self.q[-1,i]), 4)
-    pt.wrap(info, 'Density (gr/cm3):', 2)
-    for i in np.arange(len(self.q[0])):
-        pt.wrap(info, 'Species [{: 2d}]:       [{:.2e}, {:.2e}, ..., {:.2e}].'.
-                format(i, self.d[0,i], self.d[1,i], self.d[-1,i]), 4)
-    return '\n'.join(info)
+      rpr.write('\nPressure units (punits): {}', self.punits)
+      rpr.write('Pressure at top of atmosphere (ptop):        {:.2e} {}',
+          self.ptop/pt.u(self.punits), self.punits)
+      rpr.write('Pressure at bottom of atmosphere (pbottom):  {:.2e} {}',
+          self.pbottom/pt.u(self.punits), self.punits)
+      rpr.write('Reference pressure at rplanet (refpressure): {:.2e} {}',
+          self.refpressure/pt.u(self.punits), self.punits)
+      with np.printoptions(formatter=fmt, threshold=7):
+          rpr.write('Pressure profile (press, {}):\n    {}', self.punits, press)
+
+      with np.printoptions(precision=3, linewidth=800, threshold=7):
+          rpr.write('\nRadius units (runits): {}', self.runits)
+          if self.radstep is not None:
+              rpr.write('Radius step size (radstep): {} {}',
+                  self.radstep/pt.u(self.runits), self.runits)
+          if self.radhigh is not None:
+              rpr.write('Radius at top of atmosphere (radhigh): {} {}',
+                  self.radhigh/pt.u(self.runits), self.runits)
+              rpr.write('Radius at bottom of atmosphere (radlow): {} {}',
+                  self.radlow/pt.u(self.runits), self.runits)
+          rpr.write('Radius profile (radius, {}):\n    {}', self.runits, radius)
+
+          rpr.write('\nTemperature units (tunits): {}', self.tunits)
+          rpr.write('Temperature model name (tmodelname): {}', self.tmodelname)
+          if self.tmodel is not None:
+              rpr.write('  tmodel parameters (tpars): {}', self.tpars)
+              rpr.write('  tmodel arguments (targs): {}', self.targs)
+          rpr.write('Temperature profile (temp, K):\n    {}', self.temp)
+
+
+      rpr.write('\nAbundance units (qunits): {}', self.qunits)
+      rpr.write('Number of atmospheric species: {:d}', len(self.q[0]))
+      if self.molmodel is not None:
+          molpars = [None for _ in self.molmodel] if self.molpars is None \
+                    else self.molpars
+          rpr.write('Abundance models:\n'
+                    '  ifree  molfree     molmodel    molpars')
+          for molvals in zip(self.ifree, self.molfree, self.molmodel, molpars):
+              rpr.write('     {:2d}  {:10s}  {:10s}  {}', *molvals)
+          rpr.write('Bulk species:\n'
+                    '  ibulk  bulk')
+          for ibulk, bulk in zip(self.ibulk, self.bulk):
+              rpr.write('     {:2d}  {:10s}', ibulk, bulk)
+
+      with np.printoptions(formatter=fmt, threshold=4, edgeitems=2):
+          rpr.write('Abundance profiles (q, mole mixing fraction):')
+          for i,q in enumerate(self.q.T):
+              rpr.write('    species [{:2d}]:   {}', i, q)
+          rpr.write('Density profiles (d, g cm-3):')
+          for i,dens in enumerate(self.d.T):
+              rpr.write('    species [{:2d}]:   {}', i, dens)
+          rpr.write('Mean molecular mass (mm, amu):\n    {}', self.mm)
+      return rpr.text
 
 
 class Molecules(object):

@@ -5070,3 +5070,7 @@ TBD: update all other reprs.
 
 PEP8'ed pyratbay/__init__.py.
 
+*****
+
+Updated repr for Spectrum and Atm classes.
+
