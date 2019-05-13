@@ -5066,3 +5066,7 @@ replacement of tools.wrap().
 Updated Cross() repr.
 TBD: update all other reprs.
 
+*****
+
+PEP8'ed pyratbay/__init__.py.
+

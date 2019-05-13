@@ -2,27 +2,27 @@
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
 __all__ = [
-    "constants",
-    "io",
-    "blackbody",
-    "broadening",
-    "lineread",
-    "plots",
-    "starspec",
-    "tools",
-    "atmosphere",
-    "Pyrat",
-    "run",
-]
+    'constants',
+    'io',
+    'tools',
+    'blackbody',
+    'broadening',
+    'lineread',
+    'plots',
+    'starspec',
+    'atmosphere',
+    'Pyrat',
+    'run',
+    ]
 
 from . import constants
 from . import io
+from . import tools
 from . import blackbody
 from . import broadening
 from . import lineread
 from . import plots
 from . import starspec
-from . import tools
 from . import atmosphere
 from .pyrat import Pyrat
 from .driver import run
@@ -31,7 +31,7 @@ from . import VERSION as ver
 
 
 # Pyrat-Bay version:
-__version__ = "{:d}.{:d}.{:d}".format(ver.PBAY_VER, ver.PBAY_MIN, ver.PBAY_REV)
+__version__ = '{:d}.{:d}.{:d}'.format(ver.PBAY_VER, ver.PBAY_MIN, ver.PBAY_REV)
 
 
 # Clean up top-level namespace--delete everything that isn't in __all__
