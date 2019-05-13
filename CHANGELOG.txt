@@ -5025,3 +5025,9 @@ Cleaned up/PEP8'ed crosssec.py.
 Removed ntemp, nwave, nmol attributes from Pyrat.cs (no longer used).
 Fixed Cross() repr.
 
+
+*****  Mo 13. Mai 10:32:43 CEST 2019  *****
+
+Refactored Linetransition init method to remove arguments,
+replaced with clone_new() method.
+

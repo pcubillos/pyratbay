@@ -13,7 +13,7 @@ def read_tli(pyrat):
   """
   Main driver to read the line transition data from TLI files.
   """
-  pyrat.lt  = o.Linetransition(pyrat.lt.tlifile)
+  pyrat.lt  = pyrat.lt.clone_new(pyrat)
   pyrat.iso = o.Isotopes()
   # Count number of TLI files:
   if pyrat.lt.tlifile is None:

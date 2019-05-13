@@ -160,30 +160,38 @@ class Molecules(object):
 
 
 class Linetransition(object):
-  def __init__(self, tlifile=None):
-    self.tlifile = tlifile  # Line-transition data file
-    self.ndb     = 0        # Number of data bases
-    self.db      = []       # Data base objects
-    self.ntransitions = 0   # Number of line transitions
-    self.tmin    = -np.inf  # Minimum temperature sampled by all TLI files
-    self.tmax    =  np.inf  # Maximum temperature sampled by all TLI files
-    self.wn      = np.array([], np.double)  # Line wavenumber
-    self.elow    = np.array([], np.double)  # Line lower energy level
-    self.gf      = np.array([], np.double)  # Line gf value
-    self.isoid   = np.array([], np.int)     # Line isotope index
+  def __init__(self):
+      self.tlifile = None     # Line-transition data file
+      self.dblist  = None
+      self.ndb     = 0        # Number of data bases
+      self.db      = []       # Data base objects
+      self.ntransitions = 0   # Number of line transitions
+      self.tmin    = -np.inf  # Minimum temperature sampled by all TLI files
+      self.tmax    =  np.inf  # Maximum temperature sampled by all TLI files
+      self.wn      = np.array([], np.double)  # Line wavenumber
+      self.elow    = np.array([], np.double)  # Line lower energy level
+      self.gf      = np.array([], np.double)  # Line gf value
+      self.isoid   = np.array([], np.int)     # Line isotope index
+
+  def clone_new(self, pyrat):
+      """Return a new LT instance (as returned by Pyrat.__init__)."""
+      lt = Linetransition()
+      lt.tlifile = pyrat.lt.tlifile
+      lt.dblist  = pyrat.lt.dblist
+      return lt
 
   def __repr__(self):
-    info = []
-    pt.wrap(info, 'Line-transition info:')
-    pt.wrap(info, 'Input TLI files (tlifile): {}'.format(self.tlifile), 2)
-    pt.wrap(info, 'Number of databases (ndb): {:d}'.format(self.ndb),  2)
-    for db in self.db:
-        info += [repr(db)]
-        info.append('')
-    pt.wrap(info, 'Total number of line transitions (ntransitions): {:,d}\n'
-        'Minimum and maximum temperatures (tmin, tmax): [{:.1f}, {:.1f}] K'.
-        format(self.ntransitions, self.tmin, self.tmax), 2)
-    return '\n'.join(info)
+      info = []
+      pt.wrap(info, 'Line-transition info:')
+      pt.wrap(info, 'Input TLI files (tlifile): {}'.format(self.tlifile), 2)
+      pt.wrap(info, 'Number of databases (ndb): {:d}'.format(self.ndb),  2)
+      for db in self.db:
+          info += [repr(db)]
+          info.append('')
+      pt.wrap(info, 'Total number of line transitions (ntransitions): {:,d}\n'
+          'Minimum and maximum temperatures (tmin, tmax): [{:.1f}, {:.1f}] K'.
+          format(self.ntransitions, self.tmin, self.tmax), 2)
+      return '\n'.join(info)
 
 
 class Database(object):
@@ -363,50 +371,50 @@ class Extinction(object):
 
 class Cross(object):
   def __init__(self, files=None):
-    self.files      = files   # CS file names
-    self.nfiles     = 0       # Number of files read
-    self.tmin       =     0.0 # Minimum temperature sampled by all CS files
-    self.tmax       = 70000.0 # Maximum temperature sampled by all CS files
-    self.molecules  = []      # Species involved for each file
-    self.temp       = []      # Temperature sampling (in Kelvin)
-    self.wavenumber = []      # Wavenumber sampling (in cm-1)
-    self.absorption = []      # CS extinction (in cm-1 amagat-2)
-    self.iabsorp    = []      # wn-interpolated CS extinction (in cm-1 amagat-2)
-    self.iz         = []      # Second derivatives of iabsorp
-    self.iwnlo      = []      # Lower-wavenumber index for interpolation
-    self.iwnhi      = []      # Upper-wavenumber index for interpolation
-    self.ec         = None    # Interpolated CS extinction coefficient
+      self.files      = files # CS file names
+      self.nfiles     = 0     # Number of files read
+      self.tmin       = 0.0   # Minimum temperature sampled by all CS files
+      self.tmax       = 1e6   # Maximum temperature sampled by all CS files
+      self.molecules  = []    # Species involved for each file
+      self.temp       = []    # Temperature sampling (in Kelvin)
+      self.wavenumber = []    # Wavenumber sampling (in cm-1)
+      self.absorption = []    # CS extinction (in cm-1 amagat-2)
+      self.iabsorp    = []    # wn-interpolated CS extinction (in cm-1 amagat-2)
+      self.iz         = []    # Second derivatives of iabsorp
+      self.iwnlo      = []    # Lower-wavenumber index for interpolation
+      self.iwnhi      = []    # Upper-wavenumber index for interpolation
+      self.ec         = None  # Interpolated CS extinction coefficient
                               #  in cm-1 [nlayer, nwave]
 
   def __repr__(self):
-    info = []
-    pt.wrap(info, 'Cross-section extinction info:')
-    pt.wrap(info, 'Number of CS files (nfiles): {:d}'.format(self.nfiles), 2)
-    for i in range(self.nfiles):
-        pt.wrap(info, "\nCross-section file name: '{:s}'".
-            format(self.files[i]), 2)
-        pt.wrap(info, 'Species (molecules): {:s}'.
-            format('-'.join(self.molecules[i])), 4)
-        pt.wrap(info, 'Number of temperature samples: {:d}'.
-            format(len(self.temp[i])), 4)
-        pt.wrap(info, 'Number of wavenumber samples: {:d}'.
-            format(len(self.wavenumber[i])), 4)
-        with np.printoptions(precision=1, linewidth=800, threshold=100):
-            pt.wrap(info, 'Temperature array (temp, K):\n  {}'.
-                    format(self.temp[i]), 4, 8)
-            pt.wrap(info, 'Wavenumber array (wavenumber, cm-1):\n  {}'.
-                    format(self.wavenumber[i]), 4, 6)
-        with np.printoptions(formatter={'float': '{: .2e}'.format}):
-            pt.wrap(info, 'Input extinction coefficient (absorption, '
-                'cm-1 amagat-{:d}):\n{}'.
-                format(len(self.molecules[i]), self.absorption[i]), 4)
-    pt.wrap(info, '\nMinimum and maximum temperatures (tmin, tmax) in K: '
-                  '[{:.1f}, {:.1f}]'.format(self.tmin, self.tmax), 2)
-    if self.ec is not None:
-        with np.printoptions(formatter={'float': '{: .2e}'.format}):
-            pt.wrap(info, 'Atmospheric-model extinction coefficient '
-                '(ec, cm-1):\n{}'.format(self.ec), 2)
-    return '\n'.join(info)
+      info = []
+      pt.wrap(info, 'Cross-section extinction info:')
+      pt.wrap(info, 'Number of CS files (nfiles): {:d}'.format(self.nfiles), 2)
+      for i in range(self.nfiles):
+          pt.wrap(info, "\nCross-section file name: '{:s}'".
+              format(self.files[i]), 2)
+          pt.wrap(info, 'Species (molecules): {:s}'.
+              format('-'.join(self.molecules[i])), 4)
+          pt.wrap(info, 'Number of temperature samples: {:d}'.
+              format(len(self.temp[i])), 4)
+          pt.wrap(info, 'Number of wavenumber samples: {:d}'.
+              format(len(self.wavenumber[i])), 4)
+          with np.printoptions(precision=1, linewidth=800, threshold=100):
+              pt.wrap(info, 'Temperature array (temp, K):\n  {}'.
+                      format(self.temp[i]), 4, 8)
+              pt.wrap(info, 'Wavenumber array (wavenumber, cm-1):\n  {}'.
+                      format(self.wavenumber[i]), 4, 6)
+          with np.printoptions(formatter={'float': '{: .2e}'.format}):
+              pt.wrap(info, 'Input extinction coefficient (absorption, '
+                  'cm-1 amagat-{:d}):\n{}'.
+                  format(len(self.molecules[i]), self.absorption[i]), 4)
+      pt.wrap(info, '\nMinimum and maximum temperatures (tmin, tmax) in K: '
+                    '[{:.1f}, {:.1f}]'.format(self.tmin, self.tmax), 2)
+      if self.ec is not None:
+          with np.printoptions(formatter={'float': '{: .2e}'.format}):
+              pt.wrap(info, 'Atmospheric-model extinction coefficient '
+                  '(ec, cm-1):\n{}'.format(self.ec), 2)
+      return '\n'.join(info)
 
 
 class Haze(object):

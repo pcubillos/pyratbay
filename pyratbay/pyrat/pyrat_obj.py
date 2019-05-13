@@ -77,6 +77,7 @@ class Pyrat(object):
       pt.parse(self, cfile)
       self.inputs.atm = ob.Atm()
 
+
   def setup_spectrum(self):
       # Setup time tracker:
       timer = pt.clock()
