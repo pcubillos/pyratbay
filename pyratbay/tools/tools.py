@@ -3,6 +3,7 @@
 
 __all__ = [
     'log_error',
+    'tmp_reset',
     'get_param',
     'binsearch', 'pprint', 'divisors', 'u', 'unpack',
     'ifirst', 'ilast',
@@ -26,6 +27,7 @@ import time
 import numbers
 import textwrap
 import itertools
+import functools
 from collections import Iterable
 from contextlib import contextmanager
 if sys.version_info.major == 3:
@@ -56,6 +58,51 @@ def log_error(log=None, error=None):
       if error is None:
           error = str(e)
       log.error(error, tracklev=-4)
+
+
+def recursive_setattr(obj, attr, val):
+    """Recursive setattr, see https://stackoverflow.com/questions/31174295"""
+    pre, _, post = attr.rpartition('.')
+    return setattr(recursive_getattr(obj, pre) if pre else obj, post, val)
+
+
+def recursive_getattr(obj, attr):
+    """Recursive getattr, see https://stackoverflow.com/questions/31174295"""
+    def _getattr(obj, attr):
+        return getattr(obj, attr)
+    return functools.reduce(_getattr, [obj] + attr.split('.'))
+
+
+@contextmanager
+def tmp_reset(obj, *attrs, **tmp_attrs):
+  """
+  Temporarily remove attributes from an object.
+
+  Examples
+  --------
+  >>> import pyratbay.tools as pt
+  >>> o   = type('obj', (object,), {'x':1.0, 'y':2.0})
+  >>> obj = type('obj', (object,), {'z':3.0, 'w':4.0, 'o':o})
+  >>> # All listed arguments are set to None:
+  >>> with pt.tmp_reset(obj, 'o.x', 'z'):
+  >>>     print(obj.o.x, obj.o.y, obj.z, obj.w)
+  (None, 2.0, None, 4.0)
+  >>> # Keyword arguments can be set to a value, but cannot be recursive:
+  >>> with pt.tmp_reset(obj, 'o.x', z=10):
+  >>>     print(obj.o.x, obj.o.y, obj.z, obj.w)
+  (None, 2.0, 10, 4.0)
+  """
+  orig_attrs = {}
+  for attr in attrs:
+      orig_attrs[attr] = recursive_getattr(obj, attr)
+      recursive_setattr(obj, attr, None)
+  for attr, tmp_val in tmp_attrs.items():
+      orig_attrs[attr] = recursive_getattr(obj, attr)
+      recursive_setattr(obj, attr, tmp_val)
+  yield
+
+  for attr, orig_val in orig_attrs.items():
+      recursive_setattr(obj, attr, orig_val)
 
 
 def binsearch(tli, wnumber, rec0, nrec, upper=True):

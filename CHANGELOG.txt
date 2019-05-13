@@ -5031,3 +5031,11 @@ Fixed Cross() repr.
 Refactored Linetransition init method to remove arguments,
 replaced with clone_new() method.
 
+*****
+
+Implemented tools.tmp_reset() context manager to temporarily reset
+attributes in an object.
+This manager uses the recursive_getattr() and recursive_setattr()
+functions defined in tools.py (though they are not visible to users)
+Documented and tested.
+

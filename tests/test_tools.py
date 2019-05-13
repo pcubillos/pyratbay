@@ -24,6 +24,24 @@ def mock_pf(epf, temp, pf):
         f.write("\n".join("{:7.1f}  {:.10e}".format(t,z)
                           for t,z in zip(temp,pf)))
 
+def test_tmp_reset_listed_arguments():
+     # All listed arguments are set to None:
+     o   = type('obj', (object,), {'x':1.0, 'y':2.0})
+     obj = type('obj', (object,), {'z':3.0, 'w':4.0, 'o':o})
+     with pt.tmp_reset(obj, 'o.x', 'z'):
+         x, y, w, z = obj.o.x, obj.o.y, obj.z, obj.w
+     assert (x, y, w, z) == (None, 2.0, None, 4.0)
+
+
+def test_tmp_reset_keyword_arguments():
+     # Keyword arguments can be set to a value, but cannot be recursive:
+     o   = type('obj', (object,), {'x':1.0, 'y':2.0})
+     obj = type('obj', (object,), {'z':3.0, 'w':4.0, 'o':o})
+     with pt.tmp_reset(obj, 'o.x', z=10):
+         x, y, w, z = obj.o.x, obj.o.y, obj.z, obj.w
+     assert (x,y,w,z) == (None, 2.0, 10, 4.0)
+
+
 def test_binsearch_zero():
     with pytest.raises(ValueError,
         match='Requested binsearch over a zero a zero-sized array.'):
