@@ -5047,3 +5047,8 @@ This function removes some large files before saving to minimize
 file size (this idea still needs to be expanded for mcmc runs).
 Documented and tested.
 
+*****
+
+Refactored Cross init method to remove arguments, replaced with
+clone_new() method.
+

@@ -1,13 +1,11 @@
 # Copyright (c) 2016-2019 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-import os
 import sys
 import numpy as np
 
 from .. import constants as pc
 from .. import io        as io
-from .  import objects as o
 
 sys.path.append(pc.ROOT + 'lib')
 import spline as sp
@@ -18,7 +16,7 @@ def read(pyrat):
   Read a Cross-section (CS) file.
   """
   pyrat.log.msg('\nReading cross-section files.')
-  pyrat.cs = o.Cross(pyrat.cs.files)
+  pyrat.cs = pyrat.cs.clone_new(pyrat)
 
   if pyrat.cs.files is None:
       pyrat.log.msg('No CS files to read.', indent=2)

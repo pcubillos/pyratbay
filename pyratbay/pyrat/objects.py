@@ -370,8 +370,8 @@ class Extinction(object):
 
 
 class Cross(object):
-  def __init__(self, files=None):
-      self.files      = files # CS file names
+  def __init__(self):
+      self.files      = None  # CS file names
       self.nfiles     = 0     # Number of files read
       self.tmin       = 0.0   # Minimum temperature sampled by all CS files
       self.tmax       = 1e6   # Maximum temperature sampled by all CS files
@@ -385,6 +385,12 @@ class Cross(object):
       self.iwnhi      = []    # Upper-wavenumber index for interpolation
       self.ec         = None  # Interpolated CS extinction coefficient
                               #  in cm-1 [nlayer, nwave]
+
+  def clone_new(self, pyrat):
+      """Return a new Cross instance (as returned by Pyrat.__init__)."""
+      cs = Cross()
+      cs.files = pyrat.cs.files
+      return cs
 
   def __repr__(self):
       info = []
