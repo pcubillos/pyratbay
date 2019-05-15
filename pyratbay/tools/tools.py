@@ -9,7 +9,7 @@ __all__ = [
     'ifirst', 'ilast',
     'isfile',
     'file_exists',
-    'path', 'wrap',
+    'path',
     'Formatted_Write',
     'make_tea', 'clock', 'get_exomol_mol',
     'pf_exomol', 'pf_kurucz',
@@ -26,6 +26,7 @@ import re
 import struct
 import time
 import numbers
+import string
 import textwrap
 import itertools
 import functools
@@ -533,15 +534,41 @@ def path(filename):
     return '{:s}/{:s}'.format(path, filename)
 
 
-class Formatted_Write(object):
-    """Write formatted, wrapped text to string."""
+class Formatted_Write(string.Formatter):
+    """
+    Write (and keep) formatted, wrapped text to string.
+
+    Following PEP3101, this class subclasses Formatter to handle
+    None when a specific format is set.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import pyratbay.tools as pt
+    >>> fmt = pt.Formatted_Write()
+    >>> rstar = np.pi/3.14
+    >>> fmt.write('Stellar radius (rstar, rsun):  {:.2f}', rstar)
+    >>> fmt.write('Stellar radius (rstar, rsun):  {:.2f}', None)
+    >>> fmt.write('Stellar radius (rstar, rsun):  {}',     rstar)
+    >>> fmt.write('Stellar radius (rstar, rsun):  {}',     None)
+    >>> print(fmt.text)
+    Stellar radius (rstar, rsun):  1.00
+    Stellar radius (rstar, rsun):  None
+    Stellar radius (rstar, rsun):  1.0005072145190423
+    Stellar radius (rstar, rsun):  None
+    """
     def __init__(self, indent=0, si=0):
         self.text = ''
         self.indent = indent
         self.si = si
 
+    def format_field(self, value, spec):
+        if value is None:
+            return 'None'
+        return super(Formatted_Write, self).format_field(value, spec)
+
     def write(self, text, *fmt):
-        text = text.format(*fmt)
+        text = super(Formatted_Write, self).format(text, *fmt)
         indspace = ' '*self.indent
         if self.si is None:
             sindspace = indspace
@@ -555,45 +582,6 @@ class Formatted_Write(object):
                 subsequent_indent=sindspace,
                 width=80)
             self.text += '\n'
-
-
-def wrap(outlist, text, indent=0, si=None):
-    """
-    Wrap input text, store it into outlist list.
-
-    Parameters
-    ----------
-    outlist: List
-        List where to append the wrapped text.
-    text: String
-        Text to wrap.
-    indent: Integer
-        Number of spaces to indent the first line.
-    si: Integer
-        Number of spaces to indent subsequent lines.  If None, use
-        use same indentation as indent.
-
-    Examples
-    --------
-    >>> import pyratbay.tools as pt
-    >>> info = []
-    >>> pt.wrap(info, 'Pyrat atmospheric model\n')
-    >>> pt.wrap(info, 'Pressure = 1.0 bar\nTemperature = 1000.0 K', indent=2)
-    >>> print('\n'.join(info))
-    Pyrat atmospheric model
-      Pressure = 1.0 bar
-      Temperature = 1000.0 K
-    """
-    indspace = ' '*indent
-    if si is None:
-        sindspace = indspace
-    else:
-        sindspace = ' '*si
-    lines = text.splitlines()
-    for line in lines:
-        outlist.append(textwrap.fill(line, break_long_words=False,
-                                     initial_indent=indspace,
-                                     subsequent_indent=sindspace, width=80))
 
 
 def make_tea(cfile=None, maxiter=100, save_headers=False, save_outputs=False,

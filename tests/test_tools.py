@@ -154,16 +154,17 @@ def test_path():
     assert pt.path('/home/user/file.txt') == "/home/user/file.txt"
 
 
-def test_wrap():
-    info = []
-    text = "Pyrat atmospheric model\n"
-    pt.wrap(info, text)
-    assert info == ['Pyrat atmospheric model']
-    text = "Pressure = 1.0 bar\nTemperature = 1000.0 K"
-    pt.wrap(info, text, indent=2)
-    assert info == ['Pyrat atmospheric model',
-                    '  Pressure = 1.0 bar',
-                    '  Temperature = 1000.0 K']
+def test_Formatted_Write():
+    fmt = pt.Formatted_Write()
+    rstar = np.pi/3.14
+    fmt.write('Stellar radius (rstar, rsun):  {:.2f}', rstar)
+    fmt.write('Stellar radius (rstar, rsun):  {:.2f}', None)
+    fmt.write('Stellar radius (rstar, rsun):  {}',     rstar)
+    fmt.write('Stellar radius (rstar, rsun):  {}',     None)
+    assert fmt.text == ('Stellar radius (rstar, rsun):  1.00\n'
+                        'Stellar radius (rstar, rsun):  None\n'
+                        'Stellar radius (rstar, rsun):  1.0005072145190423\n'
+                        'Stellar radius (rstar, rsun):  None\n')
 
 
 @pytest.mark.parametrize('db, molecule, isotope',

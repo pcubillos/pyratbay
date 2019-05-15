@@ -5074,3 +5074,10 @@ PEP8'ed pyratbay/__init__.py.
 
 Updated repr for Spectrum and Atm classes.
 
+
+*****  Mi 15. Mai 13:25:45 CEST 2019  *****
+
+Refactored tools.Formatted_Write to inherit from string.Formatter
+and handle None when expecting a formatted input.
+Tested and improved docs.
+
