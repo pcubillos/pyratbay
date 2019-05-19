@@ -5081,3 +5081,9 @@ Refactored tools.Formatted_Write to inherit from string.Formatter
 and handle None when expecting a formatted input.
 Tested and improved docs.
 
+
+*****  Sun May 19 22:40:35 CEST 2019  *****
+
+Removed pressure argument from extinction() method of Rayleigh models
+(unused).
+

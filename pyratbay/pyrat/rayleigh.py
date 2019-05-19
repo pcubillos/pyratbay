@@ -12,7 +12,7 @@ def absorption(pyrat):
 
   for rmodel in pyrat.rayleigh.models:
       # Calculate the extinction coefficient (in cm2 molecule-1):
-      rmodel.extinction(pyrat.spec.wn, pyrat.atm.press)
+      rmodel.extinction(pyrat.spec.wn)
       # Get molecule index:
       imol = np.where(pyrat.mol.name == rmodel.mol)[0][0]
       # Densities in molecules cm-3:
@@ -28,7 +28,7 @@ def get_ec(pyrat, layer):
   ec, label = [], []
   for rmodel in pyrat.rayleigh.models:
       imol = np.where(pyrat.mol.name == rmodel.mol)[0][0]
-      rmodel.extinction(pyrat.spec.wn, pyrat.atm.press)
+      rmodel.extinction(pyrat.spec.wn)
       ec.append(rmodel.ec * pyrat.atm.d[layer,imol])
       label.append(rmodel.name)
   return ec, label
@@ -64,7 +64,7 @@ class Dalgarno():
           self.coef = np.array([8.140e-45, 1.280e-54, 1.610e-64])
           self.extinction = self._extH
 
-  def _extH(self, wn, pressure):
+  def _extH(self, wn):
       """
       Calculate the opacity cross-section in cm2 molec-1 units.
 
@@ -76,7 +76,7 @@ class Dalgarno():
       self.ec = (self.coef[0]*wn**4.0 + self.coef[1]*wn**6.0
                                       + self.coef[2]*wn**8.0)
 
-  def _extHe(self, wn, pressure):
+  def _extHe(self, wn):
       """
       Calculate the opacity cross-section in cm2 molec-1 units.
 
@@ -106,7 +106,7 @@ class Lecavelier():
       self.s0    = 5.31e-27         # Cross section (cm-2 molec-1) at l0
       self.l0    = 3.5e-5           # Nominal wavelength (cm)
 
-  def extinction(self, wn, pressure):
+  def extinction(self, wn):
       """
       Calculate the H2 Rayleigh cross section in cm2 molec-1:
          cross section = 10**pars[0] * s0 * (lambda/l0)**(pars[1])
@@ -117,8 +117,8 @@ class Lecavelier():
       wn:  1D float ndarray
          Wavenumber array in cm-1.
       """
-      # Rayleigh opacity cross section in cm2 molec-1 (aka. extinction coef.):
-      self.ec = 10.0**self.pars[0] * self.s0 * (wn * self.l0)**(-self.pars[1])
+      # Rayleigh extinction coefficient in cm2 molec-1:
+      self.ec = 10.0**self.pars[0] * self.s0 * (wn*self.l0)**(-self.pars[1])
 
 
 
