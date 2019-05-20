@@ -67,6 +67,11 @@ amagat = sc.physical_constants[
 # Elementary charge in statcoulombs (from Wolfram Alpha):
 e = 4.803205e-10
 
+# Other non-physical units:
+percent = 1.0e-2  # Percentage
+ppt     = 1.0e-3  # Parts per thousand
+ppm     = 1.0e-6  # Part per million
+
 # No units:
 none = 1
 
@@ -77,7 +82,9 @@ validunits = ['A', 'nm', 'um', 'mm', 'cm', 'm', 'km',
               'kelvin',
               'eV',
               'amu', 'me', 'gram', 'kg', 'mearth', 'mjup', 'msun',
-              'amagat', 'none']
+              'amagat',
+              'percent', 'ppt', 'ppm',
+              'none']
 
 # Other combination of constants:
 C1 = 4 * sc.epsilon_0 * sc.m_e * sc.c**2 / sc.e**2 * 0.01  # cm-1
@@ -115,6 +122,16 @@ rmodes = [
     'mcmc'
     ]
 
+# Retrieval flags:
+retflags = [
+    'pt',
+    'rad',
+    'mol',
+    'ray',
+    'haze',
+    'patchy',
+]
+
 # Temperature models:
 tmodels = [
    'isothermal',
@@ -147,15 +164,5 @@ rmodels = [
 cmodels = [
     'deck',
     'ccsgray',
-]
-
-# Retrieval flags:
-retflags = [
-    'pt',
-    'rad',
-    'mol',
-    'ray',
-    'haze',
-    'patchy',
 ]
 

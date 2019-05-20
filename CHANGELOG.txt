@@ -5087,3 +5087,8 @@ Tested and improved docs.
 Removed pressure argument from extinction() method of Rayleigh models
 (unused).
 
+
+*****  Mo 20. Mai 11:32:21 CEST 2019  *****
+
+Added percent, ppt, and ppm constant values.
+
