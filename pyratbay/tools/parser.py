@@ -616,7 +616,9 @@ def parse(pyrat, cfile):
       'Patchy-cloud fraction', ge=0.0, le=1.0)
 
   pyrat.od.path = args.get_choice('path',
-      'observing geometry', ['transit','eclipse'])
+      'observing geometry', ['transit', 'eclipse'])
+  pyrat.spec._path = pyrat.od.path
+
   pyrat.ex.ethresh = args.get_default('ethresh',
       'Extinction-cofficient threshold', 1e-15, gt=0.0)
   pyrat.od.maxdepth = args.get_default('maxdepth',

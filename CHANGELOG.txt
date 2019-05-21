@@ -5103,3 +5103,8 @@ Replaced Pyrat.__repr__() method with Pyrat.__str__().
 
 Fixed bug in setup.py, test_requires to test_requre.
 
+*****
+
+Added Pyrat.spec._path (a copy of Pyrat.od.path) to let spec know
+the observing geometry.
+
