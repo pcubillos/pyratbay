@@ -25,7 +25,7 @@ def test_call_from_command_line2():
 def test_call_from_interpreter():
     pyrat = pb.run('spectrum_transmission_test.cfg')
     assert pyrat is not None
-    assert repr(pyrat) == (
+    assert str(pyrat) == (
         "Pyrat atmospheric model\n"
         "configuration file:  'spectrum_transmission_test.cfg'\n"
         "Pressure profile (bar):  1.00e-06 -- 1.00e+02 (81 layers)\n"

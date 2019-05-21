@@ -62,7 +62,7 @@ kelvin = 1.0
 
 # Amagat (Loschmidt number) molecules cm-3:
 amagat = sc.physical_constants[
-                 'Loschmidt constant (273.15 K, 101.325 kPa)'][0] * 1e-6
+    'Loschmidt constant (273.15 K, 101.325 kPa)'][0] * 1e-6
 
 # Elementary charge in statcoulombs (from Wolfram Alpha):
 e = 4.803205e-10
@@ -76,15 +76,17 @@ ppm     = 1.0e-6  # Part per million
 none = 1
 
 # Valid units for conversion:
-validunits = ['A', 'nm', 'um', 'mm', 'cm', 'm', 'km',
-              'au', 'pc', 'rearth', 'rjup', 'rsun',
-              'barye', 'mbar', 'pascal', 'bar', 'atm',
-              'kelvin',
-              'eV',
-              'amu', 'me', 'gram', 'kg', 'mearth', 'mjup', 'msun',
-              'amagat',
-              'percent', 'ppt', 'ppm',
-              'none']
+validunits = [
+    'A', 'nm', 'um', 'mm', 'cm', 'm', 'km',
+    'au', 'pc', 'rearth', 'rjup', 'rsun',
+    'barye', 'mbar', 'pascal', 'bar', 'atm',
+    'kelvin',
+    'eV',
+    'amu', 'me', 'gram', 'kg', 'mearth', 'mjup', 'msun',
+    'amagat',
+    'percent', 'ppt', 'ppm',
+    'none',
+    ]
 
 # Other combination of constants:
 C1 = 4 * sc.epsilon_0 * sc.m_e * sc.c**2 / sc.e**2 * 0.01  # cm-1
@@ -124,7 +126,7 @@ rmodes = [
 
 # Retrieval flags:
 retflags = [
-    'pt',
+    'temp',
     'rad',
     'mol',
     'ray',

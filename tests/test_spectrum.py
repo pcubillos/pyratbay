@@ -196,7 +196,7 @@ def test_fit(tmp_path):
     cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
         reset={'tmodel':'tcea', 'hpars':'2.0',
                'molmodel':'vert', 'molfree':'H2O', 'bulk':'H2 He',
-               'retflag':'pt mol ray haze',
+               'retflag':'temp mol ray haze',
                'params':'-1.5 -0.8 -0.8 0.5 1.0 -4.0 0.0 -4.0 2.0'})
     pyrat = pb.run(cfg)
     model0 = np.copy(pyrat.spec.spectrum)

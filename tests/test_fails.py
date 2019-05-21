@@ -680,7 +680,7 @@ def test_spectrum_opacity_invalid_tmin(tmp_path, capfd):
     ['tmodel', 'hazes', 'rayleigh', 'molmodel', 'bulk'])
 def test_spectrum_missing_retflag_models(tmp_path, capfd, param,undefined_mcmc):
     cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
-        reset={'retflag':'pt mol ray haze',
+        reset={'retflag':'temp mol ray haze',
                'tmodel':'isothermal',
                'hazes':'deck',
                'rayleigh':'lecavelier',

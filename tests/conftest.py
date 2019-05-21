@@ -95,7 +95,7 @@ def undefined_opacity():
 @pytest.fixture
 def undefined_mcmc():
     data = {
-        'retflag':"Undefined retrieval model flags.  Select from ['pt', "
+        'retflag':"Undefined retrieval model flags.  Select from ['temp', "
                   "'rad', 'mol', 'ray',\n'haze', 'patchy'].",
         'params': 'Undefined retrieval fitting parameters (params).',
         'data':   'Undefined transit/eclipse data (data).',
@@ -106,7 +106,7 @@ def undefined_mcmc():
         'burnin':   'Undefined number of retrieval burn-in samples (burnin).',
         'nchains':  'Undefined number of retrieval parallel chains (nchains).',
         'rstar':    'Undefined radius ratio (need rplanet and rstar).',
-        'tmodel':   'Requested pt in retflag, but there is no tmodel.',
+        'tmodel':   'Requested temp in retflag, but there is no tmodel.',
         'rayleigh': 'Requested ray in retflag, but there are no rayleigh '
                     'models.',
         'hazes':    'Requested haze in retflag, but there are no haze models.',

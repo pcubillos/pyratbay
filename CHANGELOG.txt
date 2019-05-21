@@ -5092,3 +5092,10 @@ Removed pressure argument from extinction() method of Rayleigh models
 
 Added percent, ppt, and ppm constant values.
 
+
+*****  Di 21. Mai 18:23:00 CEST 2019  *****
+
+Renamed pt retflag to temp.
+Renamed Pyrat.ret.iabund to Pyrat.ret.imol.
+Replaced Pyrat.__repr__() method with Pyrat.__str__().
+

@@ -158,8 +158,8 @@ def check_spectrum(pyrat):
       log.error("Undefined observing geometry (path).  Select between "
                 "'transit' or 'eclipse'.")
 
-  if 'pt' in pyrat.ret.retflag and atm.tmodelname is None:
-      log.error('Requested pt in retflag, but there is no tmodel.')
+  if 'temp' in pyrat.ret.retflag and atm.tmodelname is None:
+      log.error('Requested temp in retflag, but there is no tmodel.')
   if 'mol' in pyrat.ret.retflag:
       if atm.molmodel is None:
           log.error("Requested mol in retflag, but there is no 'molmodel'.")
@@ -400,7 +400,7 @@ def setup(pyrat):
   # Indices to parse the array of fitting parameters:
   nparams = 0
   ret.pnames, ret.texnames = [], []
-  if 'pt' in ret.retflag:
+  if 'temp' in ret.retflag:
       ret.itemp  = np.arange(nparams, nparams + ntemp)
       ret.pnames   += tpnames
       ret.texnames += ttexnames
@@ -411,7 +411,7 @@ def setup(pyrat):
       ret.texnames += [r'${\rm Radius\ (km)}$']
       nparams += 1
   if 'mol' in ret.retflag:
-      ret.iabund = np.arange(nparams, nparams + nabund)
+      ret.imol = np.arange(nparams, nparams + nabund)
       ret.pnames   += mpnames
       ret.texnames += mtexnames
       nparams += nabund

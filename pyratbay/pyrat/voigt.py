@@ -93,7 +93,7 @@ def calc_voigt(pyrat):
   voigt.size  = np.zeros((voigt.nLor, voigt.nDop), np.int)
   voigt.index = np.zeros((voigt.nLor, voigt.nDop), np.int)
   # Calculate the half-size of the profiles:
-  for i in np.arange(voigt.nLor):
+  for i in range(voigt.nLor):
       # Profile half-width in cm-1:
       pwidth = np.maximum(voigt.doppler, voigt.lorentz[i]) * voigt.extent
       # Width in number of spectral samples:

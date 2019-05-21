@@ -218,9 +218,9 @@ class Pyrat(object):
                                format(self.ret.tlow, self.ret.thigh))
 
       # Update abundance profiles if requested:
-      if self.ret.iabund is not None:
+      if self.ret.imol is not None:
           q2 = pa.qscale(q0, self.mol.name, self.atm.molmodel,
-                         self.atm.molfree, params[self.ret.iabund],
+                         self.atm.molfree, params[self.ret.imol],
                          self.atm.bulk,
                          iscale=self.atm.ifree, ibulk=self.atm.ibulk,
                          bratio=self.atm.bulkratio, invsrat=self.atm.invsrat)
@@ -506,7 +506,7 @@ class Pyrat(object):
           self.ret.bestp[self.ret.itemp], filename)
 
 
-  def __repr__(self):
+  def __str__(self):
       if self.spec.resolution is not None:
          wave = "R={:.0f}".format(self.spec.resolution)
       else:
