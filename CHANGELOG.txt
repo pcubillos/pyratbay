@@ -5099,3 +5099,7 @@ Renamed pt retflag to temp.
 Renamed Pyrat.ret.iabund to Pyrat.ret.imol.
 Replaced Pyrat.__repr__() method with Pyrat.__str__().
 
+*****
+
+Fixed bug in setup.py, test_requires to test_requre.
+
