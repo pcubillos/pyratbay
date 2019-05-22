@@ -5108,15 +5108,6 @@ Fixed bug in setup.py, test_requires to test_requre.
 Added Pyrat.spec._path (a copy of Pyrat.od.path) to let spec know
 the observing geometry.
 
-*****
-
-Refactored Alkali models into VanderWaals() base class and derived
-classes SodiumVdWst() and PotassiumVdWst().
-Added __str__() method for printed representation.
-Some minor refactoring in alkali.py
-Tested.
-Added tests/test_str.py to test printed representation of objects.
-
 
 *****  Mi 22. Mai 13:08:29 CEST 2019  *****
 
@@ -5126,4 +5117,15 @@ Added tests/pytest.ini to define custom markers.
 
 Fixed tools.Formatted_Write() for Python 2 compatibility and added
 numpy formating optional arguments.
+
+*****
+
+Added tests/test_str.py to test printed representation of objects.
+Updated test_Formatted_Write() for Python 2 compatibility.
+Moved str(Pyrat) test into test_str.py.
+Refactored Alkali models into VanderWaals() base class and derived
+classes SodiumVdWst() and PotassiumVdWst().
+Added __str__() method for printed representation.
+Some minor refactoring in alkali.py
+Tested.
 

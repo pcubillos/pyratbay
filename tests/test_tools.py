@@ -157,14 +157,15 @@ def test_path():
 def test_Formatted_Write():
     fmt = pt.Formatted_Write()
     rstar = np.pi/3.14
+    default_double_str = str(rstar)
     fmt.write('Stellar radius (rstar, rsun):  {:.2f}', rstar)
     fmt.write('Stellar radius (rstar, rsun):  {:.2f}', None)
     fmt.write('Stellar radius (rstar, rsun):  {}',     rstar)
     fmt.write('Stellar radius (rstar, rsun):  {}',     None)
     assert fmt.text == ('Stellar radius (rstar, rsun):  1.00\n'
                         'Stellar radius (rstar, rsun):  None\n'
-                        'Stellar radius (rstar, rsun):  1.0005072145190423\n'
-                        'Stellar radius (rstar, rsun):  None\n')
+                        'Stellar radius (rstar, rsun):  {:s}\n'
+                        'Stellar radius (rstar, rsun):  None\n').format(default_double_str)
 
 
 @pytest.mark.parametrize('db, molecule, isotope',
