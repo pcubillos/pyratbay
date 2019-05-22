@@ -5129,3 +5129,10 @@ Added __str__() method for printed representation.
 Some minor refactoring in alkali.py
 Tested.
 
+*****
+
+Fixed indexing bug in CCSgray() cloud model (bottom layer).
+Implemented __str__() method for printed representation of cloud
+models.
+Tested.
+

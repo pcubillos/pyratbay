@@ -51,3 +51,49 @@ Extinction-coefficient (ec, cm-1):
  [ 2.134e-08  2.136e-08 ...  5.687e-07  5.693e-07]]
 """
 
+def test_cloud__deck_str(tmp_path):
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        reset={'hazes':'deck', 'hpars':'-3'})
+    pyrat = pb.run(cfg)
+    assert pyrat is not None
+    assert str(pyrat.haze.models[0]) == """\
+Model name (name): 'deck'
+Number of model parameters (npars): 1
+Parameter name     Value
+  (pnames)         (pars)
+  log(p_top)       -3.000e+00
+Extinction-coefficient (ec, cm-1):
+[[ 0.000e+00  0.000e+00  0.000e+00 ...  0.000e+00  0.000e+00  0.000e+00]
+ [ 0.000e+00  0.000e+00  0.000e+00 ...  0.000e+00  0.000e+00  0.000e+00]
+ [ 0.000e+00  0.000e+00  0.000e+00 ...  0.000e+00  0.000e+00  0.000e+00]
+ ...
+ [ 1.401e-02  1.401e-02  1.401e-02 ...  1.401e-02  1.401e-02  1.401e-02]
+ [ 1.764e-02  1.764e-02  1.764e-02 ...  1.764e-02  1.764e-02  1.764e-02]
+ [ 2.220e-02  2.220e-02  2.220e-02 ...  2.220e-02  2.220e-02  2.220e-02]]
+"""
+
+
+def test_cloud_ccsgray_str(tmp_path):
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        reset={'hazes':'ccsgray', 'hpars':'0 -4 2'})
+    pyrat = pb.run(cfg)
+    assert pyrat is not None
+    assert str(pyrat.haze.models[0]) == """\
+Model name (name): 'ccsgray'
+Model species (mol): H2
+Number of model parameters (npars): 3
+Parameter name     Value
+  (pnames)         (pars)
+  log(f_gray)       0.000e+00
+  log(p_top)       -4.000e+00
+  log(p_bot)        2.000e+00
+Extinction-coefficient (ec, cm2 molec-1):
+[[ 0.000e+00  0.000e+00  0.000e+00 ...  0.000e+00  0.000e+00  0.000e+00]
+ [ 0.000e+00  0.000e+00  0.000e+00 ...  0.000e+00  0.000e+00  0.000e+00]
+ [ 0.000e+00  0.000e+00  0.000e+00 ...  0.000e+00  0.000e+00  0.000e+00]
+ ...
+ [ 5.310e-27  5.310e-27  5.310e-27 ...  5.310e-27  5.310e-27  5.310e-27]
+ [ 5.310e-27  5.310e-27  5.310e-27 ...  5.310e-27  5.310e-27  5.310e-27]
+ [ 5.310e-27  5.310e-27  5.310e-27 ...  5.310e-27  5.310e-27  5.310e-27]]
+"""
+

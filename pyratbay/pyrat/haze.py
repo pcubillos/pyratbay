@@ -4,6 +4,7 @@
 import numpy as np
 
 from .. import constants as pc
+from .. import tools     as pt
 
 
 def absorption(pyrat):
@@ -20,7 +21,6 @@ def absorption(pyrat):
 
       # Calculate the extinction coefficient (in cm2 molecule-1):
       hmodel.extinction(pyrat.spec.wn, pyrat.atm.press)
-      # Get molecule index:
       imol = np.where(pyrat.mol.name == hmodel.mol)[0][0]
       # Densities in molecules cm-3:
       dens = pyrat.atm.d[:,imol]
@@ -50,8 +50,8 @@ class CCSgray():
   """
   def __init__(self):
       self.name  = 'ccsgray'       # Model name
-      self.pars  = [ 0.0,          # log10 of cross-section scale factor, top,
-                     -4, 2]        #  and bottom pressure (bar) boundaries
+      self.pars  = [0.0,           # log10 of cross-section scale factor, top,
+                    -4, 2]         #  and bottom pressure (bar) boundaries
       self.npars = len(self.pars)  # Number of model fitting parameters
       self.ec    = None            # Model extinction coefficient
       self.mol   = 'H2'            # Species causing the extinction
@@ -82,7 +82,20 @@ class CCSgray():
       ibottom = np.where(pressure <= 10**self.pars[2]*pc.bar)[0][-1]
       # Gray opacity cross section in cm2 molec-1 (aka. extinction coef.):
       self.ec = np.zeros((nlayers, nwave))
-      self.ec[itop:ibottom,:] = 10**self.pars[0] * self.s0
+      self.ec[itop:ibottom+1,:] = 10**self.pars[0] * self.s0
+
+  def __str__(self):
+      fw = pt.Formatted_Write()
+      fw.write("Model name (name): '{}'", self.name)
+      fw.write('Model species (mol): {}', self.mol)
+      fw.write('Number of model parameters (npars): {}', self.npars)
+      fw.write('Parameter name     Value\n'
+               '  (pnames)         (pars)\n')
+      for pname, param in zip(self.pnames, self.pars):
+          fw.write('  {:15s}  {: .3e}', pname, param)
+      fw.write('Extinction-coefficient (ec, cm2 molec-1):\n{}', self.ec,
+          fmt={'float':'{: .3e}'.format}, edge=3)
+      return fw.text
 
 
 class Deck():
@@ -94,7 +107,6 @@ class Deck():
       self.pars  = [-1.0]          # log10(Pressure[bar]) of cloud top
       self.npars = len(self.pars)  # Number of model fitting parameters
       self.ec    = None            # Model extinction coefficient
-      self.mol   = None            # Species causing the extinction
       # Fitting-parameter names (plain text and figure labels):
       self.pnames = ['log(p_top)']
       self.texnames = [r'$\log_{10}(p_{\rm top})$']
@@ -135,6 +147,18 @@ class Deck():
       # Gray absorption in cm-1:
       self.ec = np.zeros((nlayers, nwave))
       self.ec[itop:,:] = np.expand_dims(ec[itop:], axis=1)
+
+  def __str__(self):
+      fw = pt.Formatted_Write()
+      fw.write("Model name (name): '{}'", self.name)
+      fw.write('Number of model parameters (npars): {}', self.npars)
+      fw.write('Parameter name     Value\n'
+               '  (pnames)         (pars)\n')
+      for pname, param in zip(self.pnames, self.pars):
+          fw.write('  {:15s}  {: .3e}', pname, param)
+      fw.write('Extinction-coefficient (ec, cm-1):\n{}', self.ec,
+          fmt={'float':'{: .3e}'.format}, edge=3)
+      return fw.text
 
 
 # List of available haze models:
