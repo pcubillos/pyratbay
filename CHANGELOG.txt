@@ -5136,3 +5136,10 @@ Implemented __str__() method for printed representation of cloud
 models.
 Tested.
 
+*****
+
+Fixed bug when a Rayleigh model species is not in the atmosphere.
+Implemented __str__() method for printed representation of Rayleigh
+models.
+Tested.
+

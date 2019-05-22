@@ -3,18 +3,23 @@
 
 import numpy as np
 
+from .. import tools as pt
+
 
 def absorption(pyrat):
   """
-  Evaluate the total absorption in the atmosphere.
+  Evaluate the total Rayleigh absorption (cm-1) in the atmosphere.
   """
   pyrat.rayleigh.ec = np.zeros((pyrat.atm.nlayers, pyrat.spec.nwave))
 
   for rmodel in pyrat.rayleigh.models:
-      # Calculate the extinction coefficient (in cm2 molecule-1):
+      # Extinction coefficient (in cm2 molecule-1):
       rmodel.extinction(pyrat.spec.wn)
       # Get molecule index:
+      if rmodel.mol not in pyrat.mol.name:
+          continue
       imol = np.where(pyrat.mol.name == rmodel.mol)[0][0]
+
       # Densities in molecules cm-3:
       dens = pyrat.atm.d[:,imol]
       # Absorption (cm-1):
@@ -27,9 +32,12 @@ def get_ec(pyrat, layer):
   """
   ec, label = [], []
   for rmodel in pyrat.rayleigh.models:
-      imol = np.where(pyrat.mol.name == rmodel.mol)[0][0]
       rmodel.extinction(pyrat.spec.wn)
-      ec.append(rmodel.ec * pyrat.atm.d[layer,imol])
+      if rmodel.mol in pyrat.mol.name:
+          imol = np.where(pyrat.mol.name == rmodel.mol)[0][0]
+          ec.append(rmodel.ec * pyrat.atm.d[layer,imol])
+      else:
+          ec.append(np.zeros_like(pyrat.spec.wn))
       label.append(rmodel.name)
   return ec, label
 
@@ -47,12 +55,12 @@ class Dalgarno():
          The species, which can be H, He, or H2.
       """
       self.name  = 'dalgarno_{:s}'.format(mol)  # Model name
-      self.npars = 0              # Number of model fitting parameters
-      self.pars  = None           # Model fitting parameters
-      self.ec    = None           # Model extinction coefficient (cm2 molec-1)
-      self.mol   = mol            # Species causing the extinction
-      self.pnames   = []          # Fitting-parameter names
-      self.texnames = []          # Fitting-parameter names
+      self.mol   = mol     # Species causing the extinction
+      self.npars = 0       # Number of model fitting parameters
+      self.pars  = []      # Model fitting parameters
+      self.ec    = None    # Model extinction coefficient (cm2 molec-1)
+      self.pnames   = []   # Fitting-parameter names
+      self.texnames = []   # Fitting-parameter names
 
       if self.mol == 'H':
           self.coef = np.array([5.799e-45, 1.422e-54, 2.784e-64])
@@ -63,6 +71,7 @@ class Dalgarno():
       elif self.mol == 'H2':
           self.coef = np.array([8.140e-45, 1.280e-54, 1.610e-64])
           self.extinction = self._extH
+
 
   def _extH(self, wn):
       """
@@ -88,6 +97,15 @@ class Dalgarno():
       self.ec = self.coef[0]*wn**4 * (1 + self.coef[1]*wn**2 +
                              self.coef[2]*wn**4/(1 - self.coef[2]*wn**2))**2
 
+  def __str__(self):
+      fw = pt.Formatted_Write()
+      fw.write("Model name (name): '{}'", self.name)
+      fw.write('Model species (mol): {}', self.mol)
+      fw.write('Number of model parameters (npars): {}', self.npars)
+      fw.write('Extinction-coefficient (ec, cm2 molec-1):\n    {}', self.ec,
+          fmt={'float':'{: .3e}'.format}, edge=3)
+      return fw.text
+
 
 class Lecavelier():
   """
@@ -96,11 +114,11 @@ class Lecavelier():
   """
   def __init__(self):
       self.name  = 'lecavelier'     # Model name
+      self.mol   = 'H2'             # Species causing the extinction
       self.pars  = [ 0.0,           # Cross-section scale factor (unitless)
                     -4.0]           # Power-law exponent
       self.npars = len(self.pars)   # Number of model fitting parameters
       self.ec    = None             # Model extinction coefficient
-      self.mol   = 'H2'             # Species causing the extinction
       self.pnames   = ['log(f_Ray)', 'alpha_Ray']
       self.texnames = [r'$\log_{10}(f_{\rm Ray})$', r'$\alpha_{\rm Ray}$']
       self.s0    = 5.31e-27         # Cross section (cm-2 molec-1) at l0
@@ -115,10 +133,23 @@ class Lecavelier():
       Parameters
       ----------
       wn:  1D float ndarray
-         Wavenumber array in cm-1.
+          Wavenumber array in cm-1.
       """
       # Rayleigh extinction coefficient in cm2 molec-1:
       self.ec = 10.0**self.pars[0] * self.s0 * (wn*self.l0)**(-self.pars[1])
+
+  def __str__(self):
+      fw = pt.Formatted_Write()
+      fw.write("Model name (name): '{}'", self.name)
+      fw.write('Model species (mol): {}', self.mol)
+      fw.write('Number of model parameters (npars): {}', self.npars)
+      fw.write('Parameter name     Value\n'
+               '  (pnames)         (pars)\n')
+      for pname, param in zip(self.pnames, self.pars):
+          fw.write('  {:15s}  {: .3e}', pname, param)
+      fw.write('Extinction-coefficient (ec, cm2 molec-1):\n    {}', self.ec,
+          fmt={'float':'{: .3e}'.format}, edge=3)
+      return fw.text
 
 
 

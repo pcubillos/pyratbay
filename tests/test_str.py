@@ -51,9 +51,9 @@ Extinction-coefficient (ec, cm-1):
  [ 2.134e-08  2.136e-08 ...  5.687e-07  5.693e-07]]
 """
 
-def test_cloud__deck_str(tmp_path):
+def test_cloud_str(tmp_path):
     cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
-        reset={'hazes':'deck', 'hpars':'-3'})
+        reset={'hazes':'deck ccsgray', 'hpars':'-3.0  0.0 -4.0 2.0'})
     pyrat = pb.run(cfg)
     assert pyrat is not None
     assert str(pyrat.haze.models[0]) == """\
@@ -72,13 +72,7 @@ Extinction-coefficient (ec, cm-1):
  [ 2.220e-02  2.220e-02  2.220e-02 ...  2.220e-02  2.220e-02  2.220e-02]]
 """
 
-
-def test_cloud_ccsgray_str(tmp_path):
-    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
-        reset={'hazes':'ccsgray', 'hpars':'0 -4 2'})
-    pyrat = pb.run(cfg)
-    assert pyrat is not None
-    assert str(pyrat.haze.models[0]) == """\
+    assert str(pyrat.haze.models[1]) == """\
 Model name (name): 'ccsgray'
 Model species (mol): H2
 Number of model parameters (npars): 3
@@ -95,5 +89,48 @@ Extinction-coefficient (ec, cm2 molec-1):
  [ 5.310e-27  5.310e-27  5.310e-27 ...  5.310e-27  5.310e-27  5.310e-27]
  [ 5.310e-27  5.310e-27  5.310e-27 ...  5.310e-27  5.310e-27  5.310e-27]
  [ 5.310e-27  5.310e-27  5.310e-27 ...  5.310e-27  5.310e-27  5.310e-27]]
+"""
+
+
+def test_rayleigh_str(tmp_path):
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        reset={'rayleigh':'lecavelier dalgarno_H dalgarno_He dalgarno_H2',
+               'rpars':'0.0 -4.0'})
+    pyrat = pb.run(cfg)
+    assert pyrat is not None
+    assert str(pyrat.rayleigh.models[0]) == """\
+Model name (name): 'lecavelier'
+Model species (mol): H2
+Number of model parameters (npars): 2
+Parameter name     Value
+  (pnames)         (pars)
+  log(f_Ray)        0.000e+00
+  alpha_Ray        -4.000e+00
+Extinction-coefficient (ec, cm2 molec-1):
+    [ 9.540e-30  9.547e-30  9.553e-30 ...  5.436e-29  5.439e-29  5.441e-29]
+"""
+
+    assert str(pyrat.rayleigh.models[1]) == """\
+Model name (name): 'dalgarno_H'
+Model species (mol): H
+Number of model parameters (npars): 0
+Extinction-coefficient (ec, cm2 molec-1):
+    [ 7.002e-30  7.007e-30  7.012e-30 ...  4.038e-29  4.040e-29  4.041e-29]
+"""
+
+    assert str(pyrat.rayleigh.models[2]) == """\
+Model name (name): 'dalgarno_He'
+Model species (mol): He
+Number of model parameters (npars): 0
+Extinction-coefficient (ec, cm2 molec-1):
+    [ 6.577e-31  6.582e-31  6.586e-31 ...  3.757e-30  3.758e-30  3.760e-30]
+"""
+
+    assert str(pyrat.rayleigh.models[3]) == """\
+Model name (name): 'dalgarno_H2'
+Model species (mol): H2
+Number of model parameters (npars): 0
+Extinction-coefficient (ec, cm2 molec-1):
+    [ 9.799e-30  9.806e-30  9.813e-30 ...  5.626e-29  5.629e-29  5.631e-29]
 """
 
