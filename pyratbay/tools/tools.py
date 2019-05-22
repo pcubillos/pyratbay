@@ -534,6 +534,19 @@ def path(filename):
     return '{:s}/{:s}'.format(path, filename)
 
 
+if sys.version_info.major == 2:
+    @contextmanager
+    def printoptions(*args, **kwargs):
+        """Taken from future (numpy 1.15+)."""
+        opts = np.get_printoptions()
+        try:
+            np.set_printoptions(*args, **kwargs)
+            yield np.get_printoptions()
+        finally:
+            np.set_printoptions(**opts)
+    np.printoptions = printoptions
+
+
 class Formatted_Write(string.Formatter):
     """
     Write (and keep) formatted, wrapped text to string.
@@ -557,18 +570,93 @@ class Formatted_Write(string.Formatter):
     Stellar radius (rstar, rsun):  1.0005072145190423
     Stellar radius (rstar, rsun):  None
     """
-    def __init__(self, indent=0, si=0):
+    def __init__(self, indent=0, si=4, fmt=None, edge=None, lw=80, prec=None):
+        """
+        Parameters
+        ----------
+        indent: Integer
+            Number of blanks for indentation in first line.
+        si: Integer
+            Number of blanks for indentation in subsequent lines.
+        fmt: dict of callables.
+            Default formatting for numpy arrays (as in formatting in
+            np.printoptions).
+        edge: Integer
+            Default number of array items in summary at beginning/end
+            (as in edgeitems in np.printoptions).
+        lw: Integer
+            Default number of characters per line (as in linewidth in
+            np.printoptions).
+        prec: Integer
+            Default precision for floating point values (as in precision
+            in np.printoptions).
+        """
         self.text = ''
         self.indent = indent
         self.si = si
+        # Numpy formatting:
+        self.fmt  = fmt
+        self.edge = edge
+        self.lw   = lw
+        self.prec = prec
+
+    if sys.version_info.major == 2:
+        # bugfix: https://stackoverflow.com/questions/27786403
+        def _vformat(self, format_string, args, kwargs, used_args,
+                     recursion_depth, auto_arg_index=0):
+            if recursion_depth < 0:
+                raise ValueError('Max string recursion exceeded')
+            result = []
+            for literal_text, field_name, format_spec, conversion in \
+                    self.parse(format_string):
+                if literal_text:
+                    result.append(literal_text)
+                if field_name is not None:
+                    if field_name == '':
+                        if auto_arg_index is False:
+                            raise ValueError('cannot switch from manual field '
+                                             'specification to automatic field '
+                                             'numbering')
+                        field_name = str(auto_arg_index)
+                        auto_arg_index += 1
+                    elif field_name.isdigit():
+                        if auto_arg_index:
+                            raise ValueError('cannot switch from manual field '
+                                             'specification to automatic field '
+                                             'numbering')
+                        auto_arg_index = False
+                    obj, arg_used = self.get_field(field_name, args, kwargs)
+                    used_args.add(arg_used)
+                    obj = self.convert_field(obj, conversion)
+                    format_spec = self._vformat(format_spec, args, kwargs,
+                                                used_args, recursion_depth-1,
+                                                auto_arg_index=auto_arg_index)
+                    result.append(self.format_field(obj, format_spec))
+            return ''.join(result)
 
     def format_field(self, value, spec):
         if value is None:
             return 'None'
         return super(Formatted_Write, self).format_field(value, spec)
 
-    def write(self, text, *fmt):
-        text = super(Formatted_Write, self).format(text, *fmt)
+    def write(self, text, *format, **numpy_fmt):
+        """
+        Write formatted text.
+        See __init__ arguments for avaiable numpy_fmt items.
+        """
+        numpy_fmt.setdefault('fmt',  self.fmt)
+        numpy_fmt.setdefault('edge', self.edge)
+        numpy_fmt.setdefault('lw',   self.lw)
+        numpy_fmt.setdefault('prec', self.prec)
+        threshold = 2*numpy_fmt['edge'] if numpy_fmt['edge'] is not None \
+                    else None
+        with np.printoptions(
+                formatter=numpy_fmt['fmt'],
+                edgeitems=numpy_fmt['edge'],
+                threshold=threshold,
+                linewidth=numpy_fmt['lw'],
+                precision=numpy_fmt['prec']):
+            text = super(Formatted_Write, self).format(text, *format)
         indspace = ' '*self.indent
         if self.si is None:
             sindspace = indspace

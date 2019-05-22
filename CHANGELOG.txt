@@ -5122,3 +5122,8 @@ Added tests/test_str.py to test printed representation of objects.
 
 Added tests/pytest.ini to define custom markers.
 
+*****
+
+Fixed tools.Formatted_Write() for Python 2 compatibility and added
+numpy formating optional arguments.
+
