@@ -5151,3 +5151,8 @@ appropriate for the Python intended use).
 PEP8'ed heavily objects.py.
 Tested.
 
+*****
+
+Prevented bug with matplotlib 3.1.0. mpl enforces limits in increasing
+order when scale is log.
+

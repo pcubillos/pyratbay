@@ -266,8 +266,8 @@ def cf(bandcf, bandwl, path, pressure, radius, rtop=0,
 
   pax.plot(plo, drawstyle='steps-post', color='0.25', lw=0.75, ls='--')
   pax.plot(phi, drawstyle='steps-post', color='0.25', lw=0.75, ls='--')
-  pax.set_yscale('log')
   pax.set_ylim(np.amax(press), np.amin(press))
+  pax.set_yscale('log')
   pax.set_ylabel(r'Pressure (bar)', fontsize=fs)
 
   ax.set_xlim(0, nfilters)
@@ -376,11 +376,12 @@ def posterior_pt(posterior, tmodel, targs, tpars, ifree, pressure,
       edgecolor='none', alpha=alpha2)
   ax.fill_betweenx(pressure/pc.bar, low1, high1, facecolor=fc1,
       edgecolor='none', alpha=alpha1)
-  plt.semilogy(median, pressure/pc.bar, 'navy', lw=2, label='Median')
+  plt.plot(median, pressure/pc.bar, 'navy', lw=2, label='Median')
   if bestpars is not None:
       bestpt = tmodel(bestpars, *targs)
-      plt.semilogy(bestpt, pressure/pc.bar, 'r-', lw=2, label='Best fit')
-  plt.ylim(np.amax(pressure/pc.bar), np.amin(pressure/pc.bar))
+      plt.plot(bestpt, pressure/pc.bar, 'r-', lw=2, label='Best fit')
+  ax.set_ylim(np.amax(pressure/pc.bar), np.amin(pressure/pc.bar))
+  ax.set_yscale('log')
   plt.legend(loc='best')
   plt.xlabel('Temperature  (K)', size=15)
   plt.ylabel('Pressure  (bar)',  size=15)
