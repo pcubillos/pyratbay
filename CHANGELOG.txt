@@ -5143,3 +5143,11 @@ Implemented __str__() method for printed representation of Rayleigh
 models.
 Tested.
 
+
+*****  Do 23. Mai 15:22:42 CEST 2019  *****
+
+Turned objects __repr__'s into __str__ methods (which is more
+appropriate for the Python intended use).
+PEP8'ed heavily objects.py.
+Tested.
+
