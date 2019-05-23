@@ -5161,3 +5161,7 @@ order when scale is log.
 Renamed voigt variables to lower case: dmax, dmin, lmax, lmin, ndop,
 nlor, and dlratio.
 
+*****
+
+Replaced tools.pprint() with np.printoptions() context manager.
+

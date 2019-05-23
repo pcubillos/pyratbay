@@ -5,7 +5,10 @@ __all__ = [
     'log_error',
     'tmp_reset',
     'get_param',
-    'binsearch', 'pprint', 'divisors', 'u', 'unpack',
+    'binsearch',
+    'divisors',
+    'u',
+    'unpack',
     'ifirst', 'ilast',
     'isfile',
     'file_exists',
@@ -47,6 +50,20 @@ sys.path.append(pc.ROOT + 'pyratbay/lib/')
 import _indices
 sys.path.append(pc.ROOT + 'modules/MCcubed/')
 import MCcubed.utils as mu
+
+
+# Numpy patch for Python 2:
+if sys.version_info.major == 2:
+    @contextmanager
+    def printoptions(*args, **kwargs):
+        """Taken from future (numpy 1.15+)."""
+        opts = np.get_printoptions()
+        try:
+            np.set_printoptions(*args, **kwargs)
+            yield np.get_printoptions()
+        finally:
+            np.set_printoptions(**opts)
+    np.printoptions = printoptions
 
 
 @contextmanager
@@ -200,34 +217,6 @@ def binsearch(tli, wnumber, rec0, nrec, upper=True):
           tli.seek(rec0 + irec*pc.dreclen, 0)
           current = struct.unpack('d', tli.read(8))[0]
       return irec + 1
-
-
-def pprint(array, precision=3, fmt=None):
-  """
-  Pretty print a Numpy array.  Set desired precision and format, and
-  remove line break from the string output.
-
-  Parameters
-  ----------
-  array: 1D ndarray
-     Array to be pretty printed.
-  precision: Integer
-     Precision for floating point values.
-  fmt: format
-     Numeric format.
-  """
-  default_prec = np.get_printoptions().get('precision')
-  np.set_printoptions(precision=precision)
-
-  # Pretty array is a copy of array:
-  parray = np.copy(array)
-  if fmt is not None:
-    parray = np.asarray(array, fmt)
-
-  # Convert to string and remove line-breaks:
-  sarray = str(array).replace('\n', '')
-  np.set_printoptions(precision=default_prec)
-  return sarray
 
 
 def divisors(number):
@@ -532,19 +521,6 @@ def path(filename):
     if path == '':
         path = '.'
     return '{:s}/{:s}'.format(path, filename)
-
-
-if sys.version_info.major == 2:
-    @contextmanager
-    def printoptions(*args, **kwargs):
-        """Taken from future (numpy 1.15+)."""
-        opts = np.get_printoptions()
-        try:
-            np.set_printoptions(*args, **kwargs)
-            yield np.get_printoptions()
-        finally:
-            np.set_printoptions(**opts)
-    np.printoptions = printoptions
 
 
 class Formatted_Write(string.Formatter):

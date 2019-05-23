@@ -69,13 +69,18 @@ def read_extinction(pyrat):
   ex.tmin = np.amin(ex.temp)
   ex.tmax = np.amax(ex.temp)
 
-  pyrat.log.msg("Molecules' IDs: {}\n"
-                "Temperatures (K): {}\n"
-                "Pressure layers (bar): {}\n"
-                "Wavenumber array (cm-1): {}".format(
-                 ex.molID, pt.pprint(ex.temp, fmt=np.int),
-                 pt.pprint(ex.press/pc.bar,3), pt.pprint(ex.wn,1)),
-                 verb=2, indent=2)
+  with np.printoptions(precision=1):
+      str_temp = str(ex.temp)
+  with np.printoptions(formatter={'float':'{: .2f}'.format}):
+      str_wn   = str(ex.wn)
+  with np.printoptions(formatter={'float':'{:.3e}'.format}):
+      str_press = str(ex.press/pc.bar)
+  pyrat.log.msg(
+      "Molecules' IDs: {}\n"
+      "Temperatures (K):\n   {}\n"
+      "Pressure layers (bar):\n{}\n"
+      "Wavenumber array (cm-1):\n   {}".
+      format(ex.molID, str_temp, str_press, str_wn), verb=2, indent=2)
 
   # Some checks:
   if ex.nwave != pyrat.spec.nwave or np.sum(np.abs(ex.wn-pyrat.spec.wn)) > 0:
@@ -126,8 +131,9 @@ def calc_extinction(pyrat):
   ex.ntemp = int((ex.tmax-ex.tmin)/ex.tstep) + 1
   ex.temp  = np.linspace(ex.tmin, ex.tmin + (ex.ntemp-1)*ex.tstep, ex.ntemp)
 
-  pyrat.log.msg("Temperature sample (K): {:s}".format(pt.pprint(ex.temp)),
-                verb=2, indent=2)
+  with np.printoptions(formatter={'float':'{:.1f}'.format}):
+      pyrat.log.msg("Temperature sample (K):\n {}".format(ex.temp),
+          verb=2, indent=2)
 
   # Evaluate the partition function at the given temperatures:
   pyrat.log.msg("Interpolate partition function.", verb=2, indent=2)
