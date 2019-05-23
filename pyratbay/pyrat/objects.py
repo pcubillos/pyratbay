@@ -320,29 +320,29 @@ class Isotopes(object):
 
 class Voigt(object):
   def __init__(self):
-      self.Dmin     = None  # Minimum Doppler width sampled
-      self.Dmax     = None  # Maximum Doppler width sampled
-      self.nDop     = None  # Number of Doppler-width samples
-      self.Lmin     = None  # Minimum Lorentz width sampled
-      self.Lmax     = None  # Maximum Lorentz width sampled
-      self.nLor     = None  # Number of Lorentz-width samples
-      self.doppler  = None  # Doppler-width sample array [nDop]
-      self.lorentz  = None  # Lorentz-width sample array [nLor]
-      self.DLratio  = None  # Doppler-Lorentz ratio threshold
+      self.dmin     = None  # Minimum Doppler width sampled
+      self.dmax     = None  # Maximum Doppler width sampled
+      self.ndop     = None  # Number of Doppler-width samples
+      self.lmin     = None  # Minimum Lorentz width sampled
+      self.lmax     = None  # Maximum Lorentz width sampled
+      self.nlor     = None  # Number of Lorentz-width samples
+      self.doppler  = None  # Doppler-width sample array [ndop]
+      self.lorentz  = None  # Lorentz-width sample array [nlor]
+      self.dlratio  = None  # Doppler-Lorentz ratio threshold
       self.extent   = None  # Extent covered by the profile (in number of HWHM)
       self.profile  = None  # Voigt profile [sum(2*size+1)]
-      self.size     = None  # Profile wavenumber half-size [nDop, nLor]
-      self.index    = None  # Index where each profile starts [nDop, nLor]
+      self.size     = None  # Profile wavenumber half-size [ndop, nlor]
+      self.index    = None  # Index where each profile starts [ndop, nlor]
 
   def __str__(self):
       fw = pt.Formatted_Write(fmt={'float':'{: .3e}'.format}, edge=3)
       fw.write('Voigt-profile information:')
-      fw.write('\nNumber of Doppler-width samples (ndop): {:d}', self.nDop)
-      fw.write('Number of Lorentz-width samples (nlor): {:d}', self.nLor)
+      fw.write('\nNumber of Doppler-width samples (ndop): {:d}', self.ndop)
+      fw.write('Number of Lorentz-width samples (nlor): {:d}', self.nlor)
       fw.write('Doppler HWHM (doppler, cm-1):\n    {}', self.doppler)
       fw.write('Lorentz HWMH (lorentz, cm-1):\n    {}', self.lorentz)
       fw.write('Doppler--Lorentz ratio threshold (dlratio): {:.3e}',
-          self.DLratio)
+          self.dlratio)
       fw.write("\nVoigt-profiles' extent (extent, in HWHMs): {:.1f}",
           self.extent)
       fw.write('Voigt-profile half-sizes (size) of shape [ndop, nlor]:\n{}',
@@ -354,9 +354,9 @@ class Voigt(object):
       fw.write('\nVoigt profiles:\n  profile[ 0, 0]: {}',
           self.profile[index:index+size],
           fmt={'float':'{: .5e}'.format}, edge=2)
-      index =  self.index[self.nDop-1,self.nLor-1]
-      size  = 2*self.size[self.nDop-1,self.nLor-1] + 1
-      fw.write('  ...\n  profile[{:2d},{:2d}]: {}', self.nDop-1, self.nLor-1,
+      index =  self.index[self.ndop-1,self.nlor-1]
+      size  = 2*self.size[self.ndop-1,self.nlor-1] + 1
+      fw.write('  ...\n  profile[{:2d},{:2d}]: {}', self.ndop-1, self.nlor-1,
           self.profile[index:index+size],
           fmt={'float':'{: .5e}'.format}, edge=2)
       return fw.text

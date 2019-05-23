@@ -28,10 +28,10 @@ def voigt(pyrat):
 
   # Make Voigt-width arrays:
   voigt = pyrat.voigt
-  voigt.doppler = np.logspace(np.log10(voigt.Dmin), np.log10(voigt.Dmax),
-                              voigt.nDop)
-  voigt.lorentz = np.logspace(np.log10(voigt.Lmin), np.log10(voigt.Lmax),
-                              voigt.nLor)
+  voigt.doppler = np.logspace(np.log10(voigt.dmin), np.log10(voigt.dmax),
+                              voigt.ndop)
+  voigt.lorentz = np.logspace(np.log10(voigt.lmin), np.log10(voigt.lmax),
+                              voigt.nlor)
 
   # Calculate profiles:
   calc_voigt(pyrat)
@@ -57,28 +57,28 @@ def width_limits(pyrat):
   mols = mols[np.where(mols>=0)]   # Remove -1's
 
   # Estimate min/max Doppler/Lorentz HWHMs from atmospheric properties:
-  Dmin, Lmin = broad.min_widths(tmin, np.amin(pyrat.spec.wn),
-      np.amax(pyrat.mol.mass[mols]), voigt.DLratio)
+  dmin, lmin = broad.min_widths(tmin, np.amin(pyrat.spec.wn),
+      np.amax(pyrat.mol.mass[mols]), voigt.dlratio)
 
-  Dmax, Lmax = broad.max_widths(tmin, tmax, np.amax(pyrat.spec.wn),
+  dmax, lmax = broad.max_widths(tmin, tmax, np.amax(pyrat.spec.wn),
       np.amin(pyrat.mol.mass[mols]), np.amax(pyrat.mol.radius[mols]),
       np.amax(pyrat.atm.press))
 
   # Doppler-width boundaries:
-  if voigt.Dmin is None:
-      voigt.Dmin = Dmin
-  if voigt.Dmax is None:
-      voigt.Dmax = Dmax
+  if voigt.dmin is None:
+      voigt.dmin = dmin
+  if voigt.dmax is None:
+      voigt.dmax = dmax
   pyrat.log.msg('Doppler width limits: {:.1e} -- {:.1e} cm-1 ({:d} samples).'.
-      format(voigt.Dmin, voigt.Dmax, voigt.nDop), verb=2, indent=2)
+      format(voigt.dmin, voigt.dmax, voigt.ndop), verb=2, indent=2)
 
   # Lorentz-width boundaries:
-  if voigt.Lmin is None:
-      voigt.Lmin = Lmin
-  if voigt.Lmax is None:
-      voigt.Lmax = Lmax
+  if voigt.lmin is None:
+      voigt.lmin = lmin
+  if voigt.lmax is None:
+      voigt.lmax = lmax
   pyrat.log.msg('Lorentz width limits: {:.1e} -- {:.1e} cm-1 ({:d} samples).'.
-      format(voigt.Lmin, voigt.Lmax, voigt.nLor), verb=2, indent=2)
+      format(voigt.lmin, voigt.lmax, voigt.nlor), verb=2, indent=2)
 
 
 def calc_voigt(pyrat):
@@ -90,10 +90,10 @@ def calc_voigt(pyrat):
   """
   # Voigt object from pyrat:
   voigt = pyrat.voigt
-  voigt.size  = np.zeros((voigt.nLor, voigt.nDop), np.int)
-  voigt.index = np.zeros((voigt.nLor, voigt.nDop), np.int)
+  voigt.size  = np.zeros((voigt.nlor, voigt.ndop), np.int)
+  voigt.index = np.zeros((voigt.nlor, voigt.ndop), np.int)
   # Calculate the half-size of the profiles:
-  for i in range(voigt.nLor):
+  for i in range(voigt.nlor):
       # Profile half-width in cm-1:
       pwidth = np.maximum(voigt.doppler, voigt.lorentz[i]) * voigt.extent
       # Width in number of spectral samples:
@@ -102,7 +102,7 @@ def calc_voigt(pyrat):
       psize = np.clip(psize, 3, 2*pyrat.spec.onwave+1)
       # Temporarily Set the size to 0 for not calculated profiles:
       # (sizes will be set in vp.grid())
-      psize[np.where(voigt.doppler/voigt.lorentz[i] < voigt.DLratio)[0][1:]] = 0
+      psize[np.where(voigt.doppler/voigt.lorentz[i] < voigt.dlratio)[0][1:]] = 0
       # Store half-size values for this Lorentz width:
       voigt.size[i] = psize//2
   pyrat.log.msg('Voigt half-sizes:\n{}'.format(voigt.size), verb=3, indent=2)

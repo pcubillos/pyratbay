@@ -92,7 +92,7 @@ def test_invalid_integer_type(tmp_path, capfd, param, value):
 
 
 @pytest.mark.parametrize('param',
-    ['verb', 'wnosamp', 'nlayers', 'ncpu', 'nDop', 'nLor', 'quadrature',
+    ['verb', 'wnosamp', 'nlayers', 'ncpu', 'ndop', 'nlor', 'quadrature',
      'nsamples', 'nchains', 'burnin', 'thinning', 'resume'])
 def test_invalid_integer_all_params(tmp_path, capfd, param):
     cfg = make_config(tmp_path, ROOT+'tests/pt_isothermal.cfg',
@@ -121,7 +121,7 @@ def test_invalid_float_type(tmp_path, capfd, param, value):
 
 @pytest.mark.parametrize('param',
     ['wnlow', 'wnhigh', 'wnstep', 'resolution', 'xsolar', 'tmin', 'tmax',
-     'tstep', 'ethresh', 'vextent', 'Dmin', 'Dmax', 'Lmin', 'Lmax', 'DLratio',
+     'tstep', 'ethresh', 'vextent', 'dmin', 'dmax', 'lmin', 'lmax', 'dlratio',
      'fpatchy', 'maxdepth', 'qcap', 'tlow', 'thigh', 'grbreak', 'grnmin',
      'gstar', 'tstar', 'gplanet', 'tint'])
 def test_invalid_float_all_params(tmp_path, capfd, param):
@@ -201,11 +201,11 @@ def test_invalid_file_path(tmp_path, capfd, param, invalid_path):
      ('mstar',   ' -1.0 msun'),
      ('gstar',   ' -1000.0'),
      ('tstar',   ' -5000.0'),
-     ('Dmin',    ' -1e-6'),
-     ('Dmax',    ' -1e-1'),
-     ('Lmin',    ' -1e-6'),
-     ('Lmax',    ' -1e-1'),
-     ('DLratio', ' -0.1'),
+     ('dmin',    ' -1e-6'),
+     ('dmax',    ' -1e-1'),
+     ('lmin',    ' -1e-6'),
+     ('lmax',    ' -1e-1'),
+     ('dlratio', ' -0.1'),
      ('tmin',    ' -100'),
      ('tmax',    ' -100'),
      ('tstep',   ' -100'),
@@ -226,7 +226,7 @@ def test_greater_than(tmp_path, capfd, param, value):
 
 
 @pytest.mark.parametrize('param',
-    ['verb', 'wnosamp', 'nDop', 'nLor', 'thinning', 'nchains', 'ncpu',
+    ['verb', 'wnosamp', 'ndop', 'nlor', 'thinning', 'nchains', 'ncpu',
      'quadrature', 'grbreak', 'radlow', 'fpatchy', 'maxdepth', 'vextent'])
 def test_greater_equal(tmp_path, capfd, param):
     cfg = make_config(tmp_path, ROOT+'tests/pt_isothermal.cfg',
@@ -495,8 +495,8 @@ def test_spectrum_invalid_file(tmp_path, capfd, param, invalid_file):
 
 
 @pytest.mark.parametrize('vmin,vmax',
-    [('Dmin', 'Dmax'),
-     ('Lmin', 'Lmax')])
+    [('dmin', 'dmax'),
+     ('lmin', 'lmax')])
 def test_spectrum_inconsistent_voigt_bounds(tmp_path, capfd, vmin, vmax):
     cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
         reset={vmin:'1e5', vmax:'1e4'})

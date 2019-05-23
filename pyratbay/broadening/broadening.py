@@ -234,7 +234,7 @@ class Voigt(object):
       return self.scale * self.hwhmL/self.hwhmG * self._sqrtpi*self._sqrtln2 * V
 
 
-def min_widths(min_temp, min_wn, max_mass, DLratio=0.1):
+def min_widths(min_temp, min_wn, max_mass, dlratio=0.1):
   """
   Estimate the minimum Doppler and Lorentz half-widths at half maximum
   (cm-1) for a given atmosphere.
@@ -247,7 +247,7 @@ def min_widths(min_temp, min_wn, max_mass, DLratio=0.1):
       Minimum spectral wavenumber (cm-1).
   max_mass: Float
       Maximum mass of molecule/isotope (amu).
-  DLratio: Float
+  dlratio: Float
       Doppler--Lorentz width ratio.
 
   Returns
@@ -268,7 +268,7 @@ def min_widths(min_temp, min_wn, max_mass, DLratio=0.1):
   """
   # Minimum Doppler and Lorenz widths (cm-1):
   dmin = np.sqrt(np.log(2)*2.0*pc.k*min_temp/(max_mass*pc.amu)) * min_wn / pc.c
-  lmin = dmin * DLratio
+  lmin = dmin * dlratio
   return dmin, lmin
 
 

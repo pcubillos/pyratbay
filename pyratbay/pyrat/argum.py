@@ -55,15 +55,15 @@ def check_spectrum(pyrat):
       phy.rhill = phy.smaxis * (phy.mplanet/(3*phy.mstar))**(1.0/3.0)
 
   # Check Voigt-profile arguments:
-  if (pyrat.voigt.Dmin is not None and pyrat.voigt.Dmax is not None
-      and pyrat.voigt.Dmax <= pyrat.voigt.Dmin):
-      log.error('Dmax ({:g} cm-1) must be > Dmin ({:g} cm-1).'.
-                format(pyrat.voigt.Dmax, pyrat.voigt.Dmin))
+  if (pyrat.voigt.dmin is not None and pyrat.voigt.dmax is not None
+      and pyrat.voigt.dmax <= pyrat.voigt.dmin):
+      log.error('dmax ({:g} cm-1) must be > dmin ({:g} cm-1).'.
+                format(pyrat.voigt.dmax, pyrat.voigt.dmin))
 
-  if (pyrat.voigt.Lmin is not None and pyrat.voigt.Lmax is not None
-      and pyrat.voigt.Lmax <= pyrat.voigt.Lmin):
-      log.error('Lmax ({:g} cm-1) must be > Lmin ({:g} cm-1).'.
-                format(pyrat.voigt.Lmax, pyrat.voigt.Lmin))
+  if (pyrat.voigt.lmin is not None and pyrat.voigt.lmax is not None
+      and pyrat.voigt.lmax <= pyrat.voigt.lmin):
+      log.error('lmax ({:g} cm-1) must be > lmin ({:g} cm-1).'.
+                format(pyrat.voigt.lmax, pyrat.voigt.lmin))
 
   if pyrat.runmode == 'opacity' or pt.isfile(pyrat.ex.extfile) == 0:
       if pyrat.ex.tmin is None:

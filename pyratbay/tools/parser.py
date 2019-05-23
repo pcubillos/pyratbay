@@ -388,13 +388,13 @@ def parse(pyrat, cfile):
       parse_float(args, 'ethresh')
       # Voigt-profile options:
       parse_float(args, 'vextent')
-      parse_float(args, 'Dmin')
-      parse_float(args, 'Dmax')
-      parse_int(args,   'nDop')
-      parse_float(args, 'Lmin')
-      parse_float(args, 'Lmax')
-      parse_int(args,   'nLor')
-      parse_float(args, 'DLratio')
+      parse_float(args, 'dmin')
+      parse_float(args, 'dmax')
+      parse_int(args,   'ndop')
+      parse_float(args, 'lmin')
+      parse_float(args, 'lmax')
+      parse_int(args,   'nlor')
+      parse_float(args, 'dlratio')
       # Hazes and clouds options:
       parse_array(args, 'hazes')
       parse_array(args, 'hpars')
@@ -582,19 +582,19 @@ def parse(pyrat, cfile):
   pyrat.voigt.extent = args.get_default('vextent',
       'Voigt profile extent', 20.0, ge=1.0,
       wflag=(runmode not in ['tli', 'pt', 'atmosphere']))
-  pyrat.voigt.nDop = args.get_default('nDop',
+  pyrat.voigt.ndop = args.get_default('ndop',
       'Number of Doppler-width samples', 40, ge=1)
-  pyrat.voigt.Dmin = args.get_default('Dmin',
+  pyrat.voigt.dmin = args.get_default('dmin',
       'Minimum Doppler HWHM (cm-1)', gt=0.0)
-  pyrat.voigt.Dmax = args.get_default('Dmax',
+  pyrat.voigt.dmax = args.get_default('dmax',
       'Maximum Doppler HWHM (cm-1)', gt=0.0)
-  pyrat.voigt.nLor = args.get_default('nLor',
+  pyrat.voigt.nlor = args.get_default('nlor',
       'Number of Lorentz-width samples', 40, ge=1)
-  pyrat.voigt.Lmin = args.get_default('Lmin',
+  pyrat.voigt.lmin = args.get_default('lmin',
       'Minimum Lorentz HWHM (cm-1)', gt=0.0)
-  pyrat.voigt.Lmax = args.get_default('Lmax',
+  pyrat.voigt.lmax = args.get_default('lmax',
       'Maximum Lorentz HWHM (cm-1)', gt=0.0)
-  pyrat.voigt.DLratio = args.get_default('DLratio',
+  pyrat.voigt.dlratio = args.get_default('dlratio',
       'Doppler/Lorentz-width ratio threshold', 0.1, gt=0.0)
 
   pyrat.ex.tmin = args.get_param('tmin', 'kelvin',
