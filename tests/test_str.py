@@ -705,7 +705,7 @@ Number of data points (ndata): 20
 Number of filter pass bands (nfilters): 20
 Wavenumber  Wavelength    Bandflux  Filter name
       cm-1          um        none
-  (bandwn)              (bandflux)  (filter)
+  (bandwn)              (bandflux)  (filters)
    8826.64       1.133     0.00658  filter_test_WFC3_G141_1.133um.dat
    8635.75       1.158     0.00656  filter_test_WFC3_G141_1.158um.dat
    8450.01       1.183     0.00655  filter_test_WFC3_G141_1.183um.dat

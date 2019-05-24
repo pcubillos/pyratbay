@@ -5165,3 +5165,7 @@ nlor, and dlratio.
 
 Replaced tools.pprint() with np.printoptions() context manager.
 
+*****
+
+Renamed filter argument/variable to filters (since it's a list).
+

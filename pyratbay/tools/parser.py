@@ -410,7 +410,7 @@ def parse(pyrat, cfile):
       # Data options:
       parse_array(args, 'data')
       parse_array(args, 'uncert')
-      parse_array(args, 'filter')
+      parse_array(args, 'filters')
       # Retrieval options:
       parse_array(args, 'retflag')
       parse_array(args, 'bulk')
@@ -637,7 +637,7 @@ def parse(pyrat, cfile):
 
   pyrat.obs.data   = args.data
   pyrat.obs.uncert = args.uncert
-  pyrat.obs.filter = args.get_path('filter', 'Filter pass-bands', exists=True)
+  pyrat.obs.filters = args.get_path('filters', 'Filter pass-bands', exists=True)
 
   pyrat.ret.retflag = args.get_choice('retflag', 'retrieval flag', pc.retflags)
   if pyrat.ret.retflag is None:

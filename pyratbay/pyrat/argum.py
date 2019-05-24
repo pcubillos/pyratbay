@@ -87,8 +87,8 @@ def check_spectrum(pyrat):
           log.error("Undefined transit/eclipse data (data).")
       if pyrat.obs.uncert is None:
           log.error("Undefined data uncertainties (uncert).")
-      if pyrat.obs.filter is None:
-          log.error("Undefined transmission filters (filter).")
+      if pyrat.obs.filters is None:
+          log.error("Undefined transmission filters (filters).")
       if pyrat.ret.retflag == []:
           log.error('Undefined retrieval model flags.  Select from {}.'.
                     format(pc.retflags))
@@ -194,14 +194,14 @@ def check_spectrum(pyrat):
   # Number of datapoints and filters:
   if obs.data is not None:
       obs.ndata = len(obs.data)
-  if obs.filter is not None:
-      obs.nfilters = len(obs.filter)
+  if obs.filters is not None:
+      obs.nfilters = len(obs.filters)
   # Number checks:
   if pyrat.obs.uncert is not None and pyrat.obs.ndata != len(pyrat.obs.uncert):
       log.error('Number of data uncertainty values ({:d}) does not match '
                 'the number of data points ({:d}).'.
                 format(len(pyrat.obs.uncert), pyrat.obs.ndata))
-  if (obs.filter is not None and obs.ndata > 0 and obs.ndata != obs.nfilters):
+  if (obs.filters is not None and obs.ndata > 0 and obs.ndata != obs.nfilters):
       log.error('Number of filter bands ({:d}) does not match the '
                 'number of data points ({:d}).'.
                 format(obs.nfilters, obs.ndata))
@@ -322,12 +322,12 @@ def setup(pyrat):
                 'tstar (for a blackbody spectrum).')
 
   # Set observational variables (for given filters and other parameters):
-  if obs.filter is not None:
+  if obs.filters is not None:
       bandidx   = []  # Filter wavenumber indices
       starflux  = []  # Interpolated stellar flux
       bandtrans = []  # Normalized interpolated filter transmission
       bandwn    = []  # Band's mean wavenumber
-      for filter in obs.filter:
+      for filter in obs.filters:
           # Read filter wavenumber and transmission curves:
           filterwn, filtertr = io.read_spectrum(filter)
           # Resample the filters into the planet wavenumber array:

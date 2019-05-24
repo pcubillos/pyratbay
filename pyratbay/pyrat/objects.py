@@ -581,7 +581,7 @@ class Observation(object):
       self.data      = None  # Transit or eclipse data point
       self.uncert    = None  # Data's 1-sigma uncertainty
       self.nfilters  = 0     # Number of filter bands
-      self.filter    = None  # Observing filter filename
+      self.filters   = None  # Observing filter filename
       self.bandidx   = None  # Band wavenumber indices
       self.bandtrans = None  # Band-interpolated transmission function
       self.starflux  = None  # Band-interpolated stellar flux
@@ -593,7 +593,7 @@ class Observation(object):
       units = pt.u(self.units)
       fw = pt.Formatted_Write()
       fw.write('Observing information:')
-      if self.data is not None or self.filter is not None:
+      if self.data is not None or self.filters is not None:
           fw.write('Data/bandflux display units (units): {}', self.units)
           fw.write('Data/bandflux internal units: none')
       fw.write('Number of data points (ndata): {}', self.ndata)
@@ -607,12 +607,12 @@ class Observation(object):
               data/units, uncert/units, bandwn, 1.0/(bandwn*pc.um))
 
       fw.write('\nNumber of filter pass bands (nfilters): {}', self.nfilters)
-      if self.filter is None:
+      if self.filters is None:
           return fw.text
       fw.write('Wavenumber  Wavelength    Bandflux  Filter name\n'
                '      cm-1          um     {:>7s}\n'
-               '  (bandwn)              (bandflux)  (filter)', self.units)
-      for filter, bandwn, bflux in zip(self.filter, self.bandwn, self.bandflux):
+               '  (bandwn)              (bandflux)  (filters)', self.units)
+      for filter,bandwn,bflux in zip(self.filters, self.bandwn, self.bandflux):
           fw.write(' {:9.2f}  {:10.3f}  {:10.5f}  {:s}', bandwn,
               1.0/(bandwn*pc.um), bflux/units, os.path.basename(filter))
       # TBD: Do I want to show bandidx, bandtrans, and starflux?

@@ -149,7 +149,7 @@ def test_invalid_choice(tmp_path, capfd, param, invalid):
 
 
 @pytest.mark.parametrize('param',
-    ['starspec', 'kurucz', 'marcs', 'phoenix', 'filter',
+    ['starspec', 'kurucz', 'marcs', 'phoenix', 'filters',
      'dblist', 'molfile', 'csfile'])
 def test_file_not_found(tmp_path, capfd, param, invalid_file):
     cfg = make_config(tmp_path, ROOT+'tests/pt_isothermal.cfg',
@@ -558,10 +558,10 @@ def test_spectrum_uncert_mismatch(tmp_path, capfd):
            'number of data\npoints (2).' in captured.out
 
 
-def test_spectrum_filter_mismatch(tmp_path, capfd):
+def test_spectrum_filters_mismatch(tmp_path, capfd):
     cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
         reset={'data':'1.0 2.0',
-               'filter':ROOT+'tests/filters/filter_test_WFC3_G141_1.133um.dat'})
+            'filters':ROOT+'tests/filters/filter_test_WFC3_G141_1.133um.dat'})
     pyrat = pb.run(cfg)
     assert pyrat is None
     captured = capfd.readouterr()
@@ -749,7 +749,7 @@ def test_opacity_missing(tmp_path, capfd, param, undefined_opacity):
 
 
 @pytest.mark.parametrize('param',
-    ['retflag', 'params', 'data', 'uncert', 'filter', 'rstar',
+    ['retflag', 'params', 'data', 'uncert', 'filters', 'rstar',
      'walk', 'nsamples', 'burnin', 'nchains'])
 def test_mcmc_missing(tmp_path, capfd, param, undefined_mcmc):
     cfg = make_config(tmp_path, ROOT+'tests/mcmc_transmission_test.cfg',
