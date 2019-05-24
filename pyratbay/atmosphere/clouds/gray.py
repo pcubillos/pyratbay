@@ -5,45 +5,8 @@ __all__ = ['CCSgray', 'Deck']
 
 import numpy as np
 
-from .. import constants as pc
-from .. import tools     as pt
-
-
-def absorption(pyrat):
-  """
-  Evaluate the total cloud absorption in the atmosphere.
-  """
-  pyrat.cloud.ec = np.zeros((pyrat.atm.nlayers, pyrat.spec.nwave))
-
-  for hmodel in pyrat.cloud.models:
-      if hmodel.name == 'deck':
-          hmodel.extinction(pyrat.spec.wn, pyrat.atm.press, pyrat.atm.radius)
-          pyrat.cloud.ec += hmodel.ec
-          continue
-
-      # Calculate the extinction coefficient (in cm2 molecule-1):
-      hmodel.extinction(pyrat.spec.wn, pyrat.atm.press)
-      imol = np.where(pyrat.mol.name == hmodel.mol)[0][0]
-      # Densities in molecules cm-3:
-      dens = pyrat.atm.d[:,imol]
-      # Cloud absorption (cm-1):
-      pyrat.cloud.ec += hmodel.ec * np.expand_dims(dens, axis=1)
-
-
-def get_ec(pyrat, layer):
-  """
-  Extract per-model extinction coefficient at requested layer.
-  """
-  ec, label = [], []
-  for hmodel in pyrat.cloud.models:
-      if hmodel.name == 'deck':
-          hmodel.extinction(pyrat.spec.wn, pyrat.atm.press, pyrat.atm.radius)
-          ec.append(hmodel.ec[layer])
-      else:
-          imol = np.where(pyrat.mol.name == hmodel.mol)[0][0]
-          ec.append(hmodel.ec[layer] * pyrat.atm.d[layer,imol])
-      label.append(hmodel.name)
-  return ec, label
+from ... import constants as pc
+from ... import tools     as pt
 
 
 class CCSgray():
@@ -51,9 +14,9 @@ class CCSgray():
   Constant cross-section gray cloud model.
   """
   def __init__(self):
-      self.name  = 'ccsgray'       # Model name
+      self.name  = 'ccsgray'       # Model name is lowercased class name
       self.pars  = [0.0,           # log10 of cross-section scale factor, top,
-                    -4, 2]         #  and bottom pressure (bar) boundaries
+                   -4.0, 2.0]      #  and bottom pressure (bar) boundaries
       self.npars = len(self.pars)  # Number of model fitting parameters
       self.ec    = None            # Model extinction coefficient
       self.mol   = 'H2'            # Species causing the extinction
@@ -105,7 +68,7 @@ class Deck():
   Instantly opaque gray cloud deck at given pressure.
   """
   def __init__(self):
-      self.name  = 'deck'          # Model name
+      self.name  = 'deck'          # Model name is lowercased class name
       self.pars  = [-1.0]          # log10(Pressure[bar]) of cloud top
       self.npars = len(self.pars)  # Number of model fitting parameters
       self.ec    = None            # Model extinction coefficient
@@ -161,11 +124,4 @@ class Deck():
       fw.write('Extinction-coefficient (ec, cm-1):\n{}', self.ec,
           fmt={'float':'{: .3e}'.format}, edge=3)
       return fw.text
-
-
-# List of available cloud models:
-models = [CCSgray(), Deck()]
-
-# Compile list of cloud-model names:
-names = np.asarray([model.name for model in models])
 

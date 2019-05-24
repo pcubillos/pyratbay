@@ -16,10 +16,8 @@ from .. import starspec   as ps
 from .. import atmosphere as pa
 from .. import io         as io
 
-from .  import gray      as cl
 from .  import rayleigh  as ray
 from .  import alkali    as al
-
 
 
 def check_spectrum(pyrat):
@@ -109,8 +107,7 @@ def check_spectrum(pyrat):
       pyrat.cloud.models = []
       npars = 0
       for name in pyrat.cloud.model_names:
-          icloud = np.where(cl.names == name)[0][0]
-          model  = cl.models[icloud]
+          model  = pa.clouds.get_model(name)()
           npars += model.npars
           pyrat.cloud.models.append(model)
       # Parse the cloud parameters:

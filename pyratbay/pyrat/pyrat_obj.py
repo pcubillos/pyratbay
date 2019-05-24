@@ -15,7 +15,7 @@ from .. import plots      as pp
 from .  import extinction as ex
 from .  import crosssec   as cs
 from .  import rayleigh   as ray
-from .  import gray       as cl
+from .  import clouds     as cl
 from .  import alkali     as al
 from .  import readatm    as ra
 from .  import optdepth   as od

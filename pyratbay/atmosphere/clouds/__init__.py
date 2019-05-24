@@ -1,21 +1,17 @@
 # Copyright (c) 2016-2019 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-"""
-Atmospheric modeling functions.
-"""
+"""Cloud models."""
 
-from .atmosphere import *
-from .qscaling   import *
-from . import tmodels
-from . import clouds
+from .gray import *
 
-__all__ = (
-    atmosphere.__all__
-  + qscaling.__all__
-  + ['tmodels']
-  + ['clouds']
-)
+__all__ = gray.__all__ + ['get_model']
+
+def get_model(name):
+    """Get a cloud model by its name."""
+    for model in __all__:
+        if model.lower() == name:
+            return eval(model)
 
 
 # Clean up top-level namespace--delete everything that isn't in __all__

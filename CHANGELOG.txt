@@ -5178,3 +5178,12 @@ Renamed haze retrieval flag to cloud.
 Renamed Haze() class to Cloud().
 Renamed Pyrat.haze to Pyrat.cloud.
 
+*****
+
+Added clouds module to pyratbay.atmosphere containing cloud models.
+Moved cloud models from pyratbay/pyrat/gray.py to
+pyratbay/atmosphere/clouds/gray.py
+Renamed pyratbay/pyrat/gray.py to pyratbay/pyrat/clouds.py
+Now the cloud models are accessible to the user, which avoids
+non-Pythonic code to add cloud models into a Pyrat object.
+
