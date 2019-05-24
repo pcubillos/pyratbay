@@ -36,6 +36,6 @@ def test_get_ec(tmp_path):
     np.testing.assert_allclose(ec[0], pyrat.ex.ec[50])
     np.testing.assert_allclose(ec[1], pyrat.cs.ec[50])
     np.testing.assert_allclose(ec[2], pyrat.rayleigh.ec[50])
-    np.testing.assert_allclose(ec[3], pyrat.haze.ec[50])
+    np.testing.assert_allclose(ec[3], pyrat.cloud.ec[50])
     np.testing.assert_allclose(ec[4], pyrat.alkali.ec[50])
 

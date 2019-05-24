@@ -5169,3 +5169,12 @@ Replaced tools.pprint() with np.printoptions() context manager.
 
 Renamed filter argument/variable to filters (since it's a list).
 
+
+*****  Fr 24. Mai 14:19:35 CEST 2019  *****
+
+Renamed haze.py file to gray.py.
+Renamed hazes and hpars arguments to clouds and cpars, respectively.
+Renamed haze retrieval flag to cloud.
+Renamed Haze() class to Cloud().
+Renamed Pyrat.haze to Pyrat.cloud.
+

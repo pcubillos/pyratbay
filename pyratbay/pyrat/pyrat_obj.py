@@ -15,7 +15,7 @@ from .. import plots      as pp
 from .  import extinction as ex
 from .  import crosssec   as cs
 from .  import rayleigh   as ray
-from .  import haze       as hz
+from .  import gray       as cl
 from .  import alkali     as al
 from .  import readatm    as ra
 from .  import optdepth   as od
@@ -65,7 +65,7 @@ class Pyrat(object):
       self.ex       = ob.Extinction()      # Extinction-coefficient
       self.cs       = ob.Cross()           # Cross-section extinction
       self.od       = ob.Optdepth()        # Optical depth
-      self.haze     = ob.Haze()            # Hazes
+      self.cloud    = ob.Cloud()           # Cloud models
       self.rayleigh = ob.Rayleigh()        # Rayleigh models
       self.alkali   = ob.Alkali()          # Alkali opacity models
       self.obs      = ob.Observation()     # Observational data
@@ -145,10 +145,10 @@ class Pyrat(object):
       cs.interpolate(self)
       self.timestamps['interp cs'] = next(timer)
 
-      # Calculate haze and Rayleigh absorption:
-      hz.absorption(self)
+      # Calculate cloud and Rayleigh absorption:
+      cl.absorption(self)
       ray.absorption(self)
-      self.timestamps['haze+ray'] = next(timer)
+      self.timestamps['cloud+ray'] = next(timer)
 
       # Calculate the alkali absorption:
       al.absorption(self)
@@ -246,17 +246,17 @@ class Pyrat(object):
               rmodel.pars = rpars[j:j+rmodel.npars]
               j += rmodel.npars
 
-      # Update haze parameters if requested:
-      if self.ret.ihaze is not None:
+      # Update cloud parameters if requested:
+      if self.ret.icloud is not None:
           j = 0
-          hpars = params[self.ret.ihaze]
-          for hmodel in self.haze.models:
-              hmodel.pars = hpars[j:j+hmodel.npars]
-              j += hmodel.npars
+          pars = params[self.ret.icloud]
+          for model in self.cloud.models:
+              model.pars = pars[j:j+model.npars]
+              j += model.npars
 
-      # Update patchy fraction if requested:
+      # Update patchy-cloud fraction if requested:
       if self.ret.ipatchy is not None:
-          self.haze.fpatchy = params[self.ret.ipatchy]
+          self.cloud.fpatchy = params[self.ret.ipatchy]
 
       # Calculate spectrum:
       self.run(temp=temp, abund=q2)
@@ -367,8 +367,8 @@ class Pyrat(object):
           ec = np.vstack((ec, e))
           label += lab
       # Haze/clouds extinction coefficient:
-      if self.haze.models != []:
-          e, lab = hz.get_ec(self, layer)
+      if self.cloud.models != []:
+          e, lab = cl.get_ec(self, layer)
           ec = np.vstack((ec, e))
           label += lab
       # Alkali resonant lines extinction coefficient:
@@ -525,8 +525,8 @@ class Pyrat(object):
                   opacities.append(molecs[0])
       for rmodel in self.rayleigh.models:
           opacities.append(rmodel.name)
-      for haze in self.haze.models:
-          opacities.append(haze.name)
+      for cloud in self.cloud.models:
+          opacities.append(cloud.name)
       for alkali in self.alkali.models:
           opacities.append(alkali.mol)
 

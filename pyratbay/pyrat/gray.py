@@ -1,6 +1,8 @@
 # Copyright (c) 2016-2019 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
+__all__ = ['CCSgray', 'Deck']
+
 import numpy as np
 
 from .. import constants as pc
@@ -9,14 +11,14 @@ from .. import tools     as pt
 
 def absorption(pyrat):
   """
-  Evaluate the total haze absorption in the atmosphere.
+  Evaluate the total cloud absorption in the atmosphere.
   """
-  pyrat.haze.ec = np.zeros((pyrat.atm.nlayers, pyrat.spec.nwave))
+  pyrat.cloud.ec = np.zeros((pyrat.atm.nlayers, pyrat.spec.nwave))
 
-  for hmodel in pyrat.haze.models:
+  for hmodel in pyrat.cloud.models:
       if hmodel.name == 'deck':
           hmodel.extinction(pyrat.spec.wn, pyrat.atm.press, pyrat.atm.radius)
-          pyrat.haze.ec += hmodel.ec
+          pyrat.cloud.ec += hmodel.ec
           continue
 
       # Calculate the extinction coefficient (in cm2 molecule-1):
@@ -24,8 +26,8 @@ def absorption(pyrat):
       imol = np.where(pyrat.mol.name == hmodel.mol)[0][0]
       # Densities in molecules cm-3:
       dens = pyrat.atm.d[:,imol]
-      # Haze absorption (cm-1):
-      pyrat.haze.ec += hmodel.ec * np.expand_dims(dens, axis=1)
+      # Cloud absorption (cm-1):
+      pyrat.cloud.ec += hmodel.ec * np.expand_dims(dens, axis=1)
 
 
 def get_ec(pyrat, layer):
@@ -33,7 +35,7 @@ def get_ec(pyrat, layer):
   Extract per-model extinction coefficient at requested layer.
   """
   ec, label = [], []
-  for hmodel in pyrat.haze.models:
+  for hmodel in pyrat.cloud.models:
       if hmodel.name == 'deck':
           hmodel.extinction(pyrat.spec.wn, pyrat.atm.press, pyrat.atm.radius)
           ec.append(hmodel.ec[layer])
@@ -161,12 +163,9 @@ class Deck():
       return fw.text
 
 
-# List of available haze models:
-hmodels = [CCSgray(), Deck()]
+# List of available cloud models:
+models = [CCSgray(), Deck()]
 
-# Compile list of haze-model names:
-hnames = []
-for hmodel in hmodels:
-    hnames.append(hmodel.name)
-hnames = np.asarray(hnames)
+# Compile list of cloud-model names:
+names = np.asarray([model.name for model in models])
 

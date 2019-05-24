@@ -39,10 +39,10 @@ Extinction-coefficient (ec, cm-1):
 
 def test_cloud_str(tmp_path):
     cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
-        reset={'hazes':'deck ccsgray', 'hpars':'-3.0  0.0 -4.0 2.0'})
+        reset={'clouds':'deck ccsgray', 'cpars':'-3.0  0.0 -4.0 2.0'})
     pyrat = pb.run(cfg)
     assert pyrat is not None
-    assert str(pyrat.haze.models[0]) == """\
+    assert str(pyrat.cloud.models[0]) == """\
 Model name (name): 'deck'
 Number of model parameters (npars): 1
 Parameter name     Value
@@ -58,7 +58,7 @@ Extinction-coefficient (ec, cm-1):
  [ 2.220e-02  2.220e-02  2.220e-02 ...  2.220e-02  2.220e-02  2.220e-02]]
 """
 
-    assert str(pyrat.haze.models[1]) == """\
+    assert str(pyrat.cloud.models[1]) == """\
 Model name (name): 'ccsgray'
 Model species (mol): H2
 Number of model parameters (npars): 3
@@ -403,7 +403,7 @@ Optical depth at each impact parameter, down to max(ideep) (depth):
  [ 4.130e+01  4.131e+01  4.130e+01 ...  4.130e+01  4.130e+01  4.130e+01]]
 """
 
-    assert str(pyrat.haze) == """\
+    assert str(pyrat.cloud) == """\
 Cloud-opacity models (models):
 
 Model name (name): 'deck'

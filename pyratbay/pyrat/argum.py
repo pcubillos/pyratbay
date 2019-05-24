@@ -16,7 +16,7 @@ from .. import starspec   as ps
 from .. import atmosphere as pa
 from .. import io         as io
 
-from .  import haze      as hz
+from .  import gray      as cl
 from .  import rayleigh  as ray
 from .  import alkali    as al
 
@@ -104,25 +104,25 @@ def check_spectrum(pyrat):
       if pyrat.ret.params is None:
           log.error('Undefined retrieval fitting parameters (params).')
 
-  # Check haze models:
-  if pyrat.haze.model_names is not None:
-      pyrat.haze.models = []
-      nhpars = 0
-      for hname in pyrat.haze.model_names:
-          ihaze   = np.where(hz.hnames == hname)[0][0]
-          hmodel  = hz.hmodels[ihaze]
-          nhpars += hmodel.npars
-          pyrat.haze.models.append(hmodel)
-      # Parse the haze parameters:
-      if pyrat.haze.pars is not None:
-          if nhpars != len(pyrat.haze.pars):
-              log.error('Number of input haze parameters ({:d}) does not '
+  # Check cloud models:
+  if pyrat.cloud.model_names is not None:
+      pyrat.cloud.models = []
+      npars = 0
+      for name in pyrat.cloud.model_names:
+          icloud = np.where(cl.names == name)[0][0]
+          model  = cl.models[icloud]
+          npars += model.npars
+          pyrat.cloud.models.append(model)
+      # Parse the cloud parameters:
+      if pyrat.cloud.pars is not None:
+          if npars != len(pyrat.cloud.pars):
+              log.error('Number of input cloud parameters ({:d}) does not '
                         'match the number of required model parameters ({:d}).'.
-                        format(len(pyrat.haze.pars), nhpars))
+                        format(len(pyrat.cloud.pars), npars))
           j = 0
-          for hmodel in pyrat.haze.models:
-              npars = hmodel.npars
-              hmodel.pars = pyrat.haze.pars[j:j+npars]
+          for model in pyrat.cloud.models:
+              npars = model.npars
+              model.pars = pyrat.cloud.pars[j:j+npars]
               j += npars
 
   # Check Rayleigh models:
@@ -167,8 +167,8 @@ def check_spectrum(pyrat):
           log.error('Requested mol in retflag, but there are no bulk species.')
   if 'ray' in pyrat.ret.retflag and pyrat.rayleigh.models == []:
       log.error('Requested ray in retflag, but there are no rayleigh models.')
-  if 'haze' in pyrat.ret.retflag and pyrat.haze.models == []:
-      log.error('Requested haze in retflag, but there are no haze models.')
+  if 'cloud' in pyrat.ret.retflag and pyrat.cloud.models == []:
+      log.error('Requested cloud in retflag, but there are no cloud models.')
 
   # Check system arguments:
   if pyrat.od.path == 'transit' and phy.rstar is None:
@@ -389,13 +389,13 @@ def setup(pyrat):
       rtexnames += rmodel.texnames
       nray      += rmodel.npars
 
-  # Haze models:
-  nhaze = 0
-  hpnames, htexnames = [], []
-  for hmodel in pyrat.haze.models:
-      hpnames   += hmodel.pnames
-      htexnames += hmodel.texnames
-      nhaze     += hmodel.npars
+  # Cloud models:
+  ncloud = 0
+  cpnames, ctexnames = [], []
+  for model in pyrat.cloud.models:
+      cpnames   += model.pnames
+      ctexnames += model.texnames
+      ncloud    += model.npars
 
   # Indices to parse the array of fitting parameters:
   nparams = 0
@@ -420,16 +420,11 @@ def setup(pyrat):
       ret.pnames   += rpnames
       ret.texnames += rtexnames
       nparams += nray
-  if 'haze' in ret.retflag:
-      ret.ihaze  = np.arange(nparams, nparams + nhaze)
-      ret.pnames   += hpnames
-      ret.texnames += htexnames
-      nparams += nhaze
-  #if 'cloud' in ret.retflag:
-  #  ret.icloud  = np.arange(nparams, nparams + ncloud)
-  #  ret.pnames   += cpnames
-  #  ret.texnames += ctexnames
-  #  nparams += ncloud
+  if 'cloud' in ret.retflag:
+      ret.icloud  = np.arange(nparams, nparams + ncloud)
+      ret.pnames   += cpnames
+      ret.texnames += ctexnames
+      nparams += ncloud
   if 'patchy' in ret.retflag:
       ret.ipatchy = np.arange(nparams, nparams + 1)  # npatchy is always 1
       ret.pnames   += ['f_patchy']
@@ -447,8 +442,8 @@ def setup(pyrat):
       and (pyrat.runmode != 'mcmc' or 'ray' not in ret.retflag)
       and pyrat.rayleigh.pars is None):
       log.error('Rayleigh parameters (rpars) have not been specified.')
-  if (pyrat.haze.models != []
-      and (pyrat.runmode != 'mcmc' or 'haze' not in ret.retflag)
-      and pyrat.haze.pars is None):
-      log.error('Haze parameters (hpars) have not been specified.')
+  if (pyrat.cloud.models != []
+      and (pyrat.runmode != 'mcmc' or 'cloud' not in ret.retflag)
+      and pyrat.cloud.pars is None):
+      log.error('Cloud parameters (cpars) have not been specified.')
 

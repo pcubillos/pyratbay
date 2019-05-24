@@ -21,7 +21,7 @@ os.chdir(ROOT+'tests')
 
 def test_load_save_pyrat(tmp_path):
     cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
-        reset={'hpars':'1.0'})
+        reset={'cpars':'1.0'})
     pyrat = pb.run(cfg)
     spectrum = np.copy(pyrat.spec.spectrum)
     io.save_pyrat(pyrat)

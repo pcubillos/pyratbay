@@ -21,7 +21,7 @@ def spectrum(pyrat):
 
   # Initialize the spectrum array:
   pyrat.spec.spectrum = np.empty(pyrat.spec.nwave, np.double)
-  if pyrat.haze.fpatchy is not None:
+  if pyrat.cloud.fpatchy is not None:
       pyrat.spec.clear  = np.empty(pyrat.spec.nwave, np.double)
       pyrat.spec.cloudy = np.empty(pyrat.spec.nwave, np.double)
 
@@ -47,7 +47,7 @@ def modulation(pyrat):
   # The integrand:
   integ = (np.exp(-pyrat.od.depth[rtop:,:]) *
            np.expand_dims(pyrat.atm.radius[rtop:],1))
-  if pyrat.haze.fpatchy is not None:
+  if pyrat.cloud.fpatchy is not None:
       pinteg = (np.exp(-pyrat.od.pdepth[rtop:,:]) *
                 np.expand_dims(pyrat.atm.radius[rtop:],1))
   # Get Delta radius (and simps' integration variables):
@@ -75,18 +75,18 @@ def modulation(pyrat):
       pyrat.spec.spectrum[i] = s.simps(integ[0:nl,i], h[0:nl-1],
                                hsum[p][0:nh], hrat[p][0:nh], hfac[p][0:nh])
       # Extra spectrum for patchy model:
-      if pyrat.haze.fpatchy is not None:
+      if pyrat.cloud.fpatchy is not None:
           pyrat.spec.cloudy[i] = s.simps(pinteg[0:nl,i], h[0:nl-1],
                                hsum[p][0:nh], hrat[p][0:nh], hfac[p][0:nh])
 
   pyrat.spec.spectrum = ((pyrat.atm.radius[rtop]**2 + 2*pyrat.spec.spectrum)
                          / pyrat.phy.rstar**2)
-  if pyrat.haze.fpatchy is not None:
+  if pyrat.cloud.fpatchy is not None:
       pyrat.spec.cloudy = ((pyrat.atm.radius[rtop]**2 + 2*pyrat.spec.cloudy)
                            / pyrat.phy.rstar**2)
       pyrat.spec.clear = pyrat.spec.spectrum
-      pyrat.spec.spectrum = (   pyrat.haze.fpatchy  * pyrat.spec.cloudy +
-                             (1-pyrat.haze.fpatchy) * pyrat.spec.clear  )
+      pyrat.spec.spectrum = (   pyrat.cloud.fpatchy  * pyrat.spec.cloudy +
+                             (1-pyrat.cloud.fpatchy) * pyrat.spec.clear  )
 
   pyrat.log.msg("Computed transmission spectrum: '{}'.".
                 format(pyrat.spec.outspec), indent=2)

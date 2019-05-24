@@ -11,7 +11,7 @@ __all__ = [
     'Extinction',
     'Cross',
     'Optdepth',
-    'Haze',
+    'Cloud',
     'Rayleigh',
     'Alkali',
     'Observation',
@@ -466,12 +466,12 @@ class Cross(object):
       return fw.text
 
 
-class Haze(object):
+class Cloud(object):
   def __init__(self):
-      self.models  = []    # List of haze models
-      self.ec      = None  # Haze extinction coefficient
+      self.models  = []    # List of cloud models
+      self.ec      = None  # Cloud extinction coefficient
       self.fpatchy = None  # Patchy-cloud fraction
-      self.pars    = None  # Input haze parameters
+      self.pars    = None  # Input cloud parameters
 
   def __str__(self):
       fw = pt.Formatted_Write()
@@ -628,8 +628,7 @@ class Retrieval(object):
       self.itemp   = None  # Temperature-model parameter indices
       self.irad    = None  # Reference-radius model parameter index
       self.imol    = None  # Abundance-model parameter indices
-      self.iray    = None  # Haze-model parameter indices
-      self.ihaze   = None  # Haze-model parameter indices
+      self.iray    = None  # Rayleigh-model parameter indices
       self.icloud  = None  # Cloud-model parameter indices
       self.ipatchy = None  # Patchy-model parameter index
       self.posterior = None

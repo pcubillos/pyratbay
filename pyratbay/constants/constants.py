@@ -130,7 +130,7 @@ retflags = [
     'rad',
     'mol',
     'ray',
-    'haze',
+    'cloud',
     'patchy',
 ]
 

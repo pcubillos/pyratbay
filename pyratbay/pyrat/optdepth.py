@@ -28,7 +28,7 @@ def opticaldepth(pyrat):
   od.ec       = np.empty((pyrat.atm.nlayers, pyrat.spec.nwave))
   od.depth    = np.zeros((pyrat.atm.nlayers, pyrat.spec.nwave))
   od.ideep    = np.tile(pyrat.atm.nlayers-1, pyrat.spec.nwave)
-  if pyrat.haze.fpatchy:
+  if pyrat.cloud.fpatchy:
       od.epatchy = np.empty((pyrat.atm.nlayers, pyrat.spec.nwave))
       od.pdepth  = np.zeros((pyrat.atm.nlayers, pyrat.spec.nwave))
 
@@ -67,10 +67,10 @@ def opticaldepth(pyrat):
                   pyrat.rayleigh.ec[rtop:] +
                   pyrat.alkali.ec  [rtop:])
   # Add cloud if not fpatchy, else separate Eclear and Ecloudy:
-  if pyrat.haze.fpatchy is None:
-      od.ec[rtop:] += pyrat.haze.ec[rtop:]
+  if pyrat.cloud.fpatchy is None:
+      od.ec[rtop:] += pyrat.cloud.ec[rtop:]
   else:
-      od.epatchy[rtop:] = np.copy(od.ec[rtop:]) + pyrat.haze.ec[rtop:]
+      od.epatchy[rtop:] = np.copy(od.ec[rtop:]) + pyrat.cloud.ec[rtop:]
 
   # Calculate the optical depth for each wavenumber:
   if od.path == 'eclipse':
@@ -89,7 +89,7 @@ def opticaldepth(pyrat):
           # Optical depth at each level (tau = integral e*ds):
           od.depth[r] = t.optdepth(od.ec[rtop:r+1], od.raypath[r],
                                    od.maxdepth, od.ideep, r)
-          if pyrat.haze.fpatchy is not None:
+          if pyrat.cloud.fpatchy is not None:
               od.pdepth[r] = t.optdepth(od.epatchy[rtop:r+1], od.raypath[r],
                                         np.inf, od.ideep, r)
           r += 1

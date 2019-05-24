@@ -96,7 +96,7 @@ def undefined_opacity():
 def undefined_mcmc():
     data = {
         'retflag':"Undefined retrieval model flags.  Select from ['temp', "
-                  "'rad', 'mol', 'ray',\n'haze', 'patchy'].",
+                  "'rad', 'mol', 'ray',\n'cloud', 'patchy'].",
         'params': 'Undefined retrieval fitting parameters (params).',
         'data':   'Undefined transit/eclipse data (data).',
         'uncert': 'Undefined data uncertainties (uncert).',
@@ -109,7 +109,7 @@ def undefined_mcmc():
         'tmodel':   'Requested temp in retflag, but there is no tmodel.',
         'rayleigh': 'Requested ray in retflag, but there are no rayleigh '
                     'models.',
-        'hazes':    'Requested haze in retflag, but there are no haze models.',
+        'clouds': 'Requested cloud in retflag, but there are no cloud models.',
         'molmodel': "Requested mol in retflag, but there is no 'molmodel'.",
         'bulk': 'Requested mol in retflag, but there are no bulk species.',
     }
@@ -130,7 +130,7 @@ def invalid():
     data = {
         'runmode': 'Invalid running mode (runmode): invalid. Select from',
         'rayleigh':'Invalid Rayleigh model (rayleigh): invalid. Select from',
-        'hazes':   'Invalid aerosol model (hazes): invalid. Select from',
+        'clouds':   'Invalid cloud model (clouds): invalid. Select from',
         'alkali':  'Invalid alkali model (alkali): invalid. Select from',
         'path':    'Invalid observing geometry (path): invalid. Select from',
         'tmodel':  'Invalid temperature model (tmodel): invalid. Select from',

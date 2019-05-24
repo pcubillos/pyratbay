@@ -396,8 +396,8 @@ def parse(pyrat, cfile):
       parse_int(args,   'nlor')
       parse_float(args, 'dlratio')
       # Hazes and clouds options:
-      parse_array(args, 'hazes')
-      parse_array(args, 'hpars')
+      parse_array(args, 'clouds')
+      parse_array(args, 'cpars')
       parse_array(args, 'rayleigh')
       parse_array(args, 'rpars')
       parse_float(args, 'fpatchy')
@@ -605,14 +605,14 @@ def parse(pyrat, cfile):
       "Opacity grid's temperature sampling step in K", gt=0.0)
 
   pyrat.rayleigh.pars = args.rpars
-  pyrat.haze.pars     = args.hpars
+  pyrat.cloud.pars     = args.cpars
   pyrat.rayleigh.model_names = args.get_choice('rayleigh',
       'Rayleigh model', pc.rmodels)
-  pyrat.haze.model_names = args.get_choice('hazes',
-      'aerosol model', pc.cmodels)
+  pyrat.cloud.model_names = args.get_choice('clouds',
+      'cloud model', pc.cmodels)
   pyrat.alkali.model_names = args.get_choice('alkali',
       'alkali model', pc.amodels)
-  pyrat.haze.fpatchy = args.get_default('fpatchy',
+  pyrat.cloud.fpatchy = args.get_default('fpatchy',
       'Patchy-cloud fraction', ge=0.0, le=1.0)
 
   pyrat.od.path = args.get_choice('path',

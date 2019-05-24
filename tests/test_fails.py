@@ -136,7 +136,7 @@ def test_invalid_float_all_params(tmp_path, capfd, param):
 
 
 @pytest.mark.parametrize('param',
-    ['runmode', 'rayleigh', 'hazes', 'alkali', 'path',
+    ['runmode', 'rayleigh', 'clouds', 'alkali', 'path',
      'tmodel', 'molmodel', 'retflag'])
 def test_invalid_choice(tmp_path, capfd, param, invalid):
     cfg = make_config(tmp_path, ROOT+'tests/pt_isothermal.cfg',
@@ -521,15 +521,15 @@ def test_spectrum_rpars_mismatch(tmp_path, capfd):
            'number of\nrequired model parameters (2).' in captured.out
 
 
-def test_spectrum_hpars_mismatch(tmp_path, capfd):
+def test_spectrum_cpars_mismatch(tmp_path, capfd):
     cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
-        reset={'hpars':'1.0 1.0 1.0'})
+        reset={'cpars':'1.0 1.0 1.0'})
     pyrat = pb.run(cfg)
     assert pyrat is None
     captured = capfd.readouterr()
     assert "Error in module: 'argum.py', function: 'check_spectrum'" \
            in captured.out
-    assert 'Number of input haze parameters (3) does not match the number ' \
+    assert 'Number of input cloud parameters (3) does not match the number ' \
            'of required\nmodel parameters (1).' in captured.out
 
 
@@ -677,12 +677,12 @@ def test_spectrum_opacity_invalid_tmin(tmp_path, capfd):
 
 
 @pytest.mark.parametrize('param',
-    ['tmodel', 'hazes', 'rayleigh', 'molmodel', 'bulk'])
+    ['tmodel', 'clouds', 'rayleigh', 'molmodel', 'bulk'])
 def test_spectrum_missing_retflag_models(tmp_path, capfd, param,undefined_mcmc):
     cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
-        reset={'retflag':'temp mol ray haze',
+        reset={'retflag':'temp mol ray cloud',
                'tmodel':'isothermal',
-               'hazes':'deck',
+               'clouds':'deck',
                'rayleigh':'lecavelier',
                'molmodel':'vert', 'molfree':'H2O', 'bulk':'H2'},
         remove=[param])
