@@ -5201,3 +5201,18 @@ Moved rayleigh models from pyratbay/pyrat/rayleigh.py to
 pyratbay/atmosphere/rayleigh/rayleigh.py
 Now the rayleigh models are accessible to the user.
 
+*****
+
+Added alkali module to pyratbay.atmosphere, moved alkali models from
+pyratbay/pyrat/alkali.py to pyratbay/atmosphere/alkali/alkali.py
+Now the alkali models are accessible to the user.
+Renamed model names from SodiumVdWst and PotassiumVdWst to sodium_vdw
+and potassium_vdw, respectively.  For the class names, removed the
+trailing 'st'.
+Refactored VanderWaals() class adding absorption() method to compute
+the opacity.  Refactored VanderWaals.set_imol() into setup() method,
+which now sets additional variables (mass and dwave).
+an alkali model's ec variable now holds the opacity (cm2 molecule-1)
+rather than the extinction coefficient (cm-1).
+Updated tests and examples accordingly.
+

@@ -150,8 +150,8 @@ molmodels = [
 
 # Alkali models:
 amodels = [
-   'SodiumVdWst',
-   'PotassiumVdWst',
+   'sodium_vdw',
+   'potassium_vdw',
 ]
 
 # Rayleigh models:

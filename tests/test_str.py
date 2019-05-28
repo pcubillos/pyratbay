@@ -1,8 +1,5 @@
 import os
 import sys
-import pytest
-
-import numpy as np
 
 from conftest import make_config
 
@@ -17,8 +14,9 @@ def test_alkali_str(tmp_path):
     cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg')
     pyrat = pb.run(cfg)
     assert pyrat is not None
+    print(pyrat.alkali.models[0])
     assert str(pyrat.alkali.models[0]) == """\
-Model name (name): 'SodiumVdWst'
+Model name (name): 'sodium_vdw'
 Model species (mol): Na
 Species index in atmosphere (imol): 2
 Detuning parameter (detuning): 30.0
@@ -29,12 +27,12 @@ Wavenumber  Wavelength          gf   Lower-state energy
       (wn)                    (gf)   (elow)
   16960.87    0.589592   6.546e-01   0.000e+00
   16978.07    0.588995   1.309e+00   0.000e+00
-Extinction-coefficient (ec, cm-1):
-[[ 1.915e-26  1.918e-26 ...  2.621e-24  2.625e-24]
- [ 3.036e-26  3.040e-26 ...  4.154e-24  4.161e-24]
+Extinction-coefficient (ec, cm2 molecule-1):
+[[ 9.230e-34  9.244e-34 ...  1.263e-31  1.265e-31]
+ [ 1.162e-33  1.164e-33 ...  1.590e-31  1.593e-31]
  ...
- [ 1.347e-08  1.349e-08 ...  3.597e-07  3.601e-07]
- [ 2.134e-08  2.136e-08 ...  5.687e-07  5.693e-07]]
+ [ 1.299e-23  1.300e-23 ...  3.468e-22  3.472e-22]
+ [ 1.636e-23  1.637e-23 ...  4.358e-22  4.363e-22]]
 """
 
 def test_cloud_str(tmp_path):
@@ -457,7 +455,7 @@ Total atmospheric Rayleigh extinction-coefficient (ec, cm-1):
     assert str(pyrat.alkali) == """\
 Alkali-opacity models (models):
 
-Model name (name): 'SodiumVdWst'
+Model name (name): 'sodium_vdw'
 Model species (mol): Na
 Species index in atmosphere (imol): 2
 Detuning parameter (detuning): 30.0
@@ -468,12 +466,12 @@ Wavenumber  Wavelength          gf   Lower-state energy
       (wn)                    (gf)   (elow)
   16960.87    0.589592   6.546e-01   0.000e+00
   16978.07    0.588995   1.309e+00   0.000e+00
-Extinction-coefficient (ec, cm-1):
-[[ 1.915e-26  1.918e-26 ...  2.621e-24  2.625e-24]
- [ 3.036e-26  3.040e-26 ...  4.154e-24  4.161e-24]
+Extinction-coefficient (ec, cm2 molecule-1):
+[[ 9.230e-34  9.244e-34 ...  1.263e-31  1.265e-31]
+ [ 1.162e-33  1.164e-33 ...  1.590e-31  1.593e-31]
  ...
- [ 1.347e-08  1.349e-08 ...  3.597e-07  3.601e-07]
- [ 2.134e-08  2.136e-08 ...  5.687e-07  5.693e-07]]
+ [ 1.299e-23  1.300e-23 ...  3.468e-22  3.472e-22]
+ [ 1.636e-23  1.637e-23 ...  4.358e-22  4.363e-22]]
 
 Total atmospheric alkali extinction-coefficient (ec, cm-1):
 [[ 1.915e-26  1.918e-26  1.921e-26 ...  2.617e-24  2.621e-24  2.625e-24]

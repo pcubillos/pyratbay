@@ -1,25 +1,18 @@
 # Copyright (c) 2016-2019 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-"""
-Atmospheric modeling functions.
-"""
+"""Alkali resonant-line models."""
 
-from .atmosphere import *
-from .qscaling   import *
-from . import tmodels
-from . import clouds
-from . import rayleigh
-from . import alkali
+from .alkali import *
 
-__all__ = (
-    atmosphere.__all__
-  + qscaling.__all__
-  + ['tmodels']
-  + ['clouds']
-  + ['rayleigh']
-  + ['alkali']
-)
+__all__ = alkali.__all__ + ['get_model']
+
+def get_model(name):
+    """Get an alkali model by its name."""
+    if name == 'sodium_vdw':
+        return SodiumVdW()
+    if name == 'potassium_vdw':
+        return PotassiumVdW()
 
 
 # Clean up top-level namespace--delete everything that isn't in __all__

@@ -1,8 +1,6 @@
 # Copyright (c) 2016-2019 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-import os
-import sys
 import multiprocessing as mp
 
 import numpy as np
@@ -15,8 +13,6 @@ from .. import constants  as pc
 from .. import starspec   as ps
 from .. import atmosphere as pa
 from .. import io         as io
-
-from .  import alkali as al
 
 
 def check_spectrum(pyrat):
@@ -143,10 +139,8 @@ def check_spectrum(pyrat):
 
   # Check alkali arguments:
   if pyrat.alkali.model_names is not None:
-      pyrat.alkali.models = []
-      for aname in pyrat.alkali.model_names:
-          ialkali = np.where(al.mnames == aname)[0][0]
-          pyrat.alkali.models.append(al.models[ialkali])
+      pyrat.alkali.models = [pa.alkali.get_model(name)
+                             for name in pyrat.alkali.model_names]
 
   # Accept ray-path argument:
   if pyrat.runmode in ['spectrum', 'mcmc'] and pyrat.od.path is None:
