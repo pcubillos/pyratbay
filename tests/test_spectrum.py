@@ -21,7 +21,7 @@ os.chdir(ROOT+'tests')
 # Expected spectra:
 keys = ['lec', 'cia', 'alkali', 'deck', 'tli', 'all', 'etable',
         'tmodel', 'vert', 'scale', 'fit1', 'fit2', 'fit3', 'fit4',
-        'bandflux4']
+        'bandflux4', 'resolution']
 expected = {key:np.load("expected_spectrum_transmission_{:s}_test.npz".
                         format(key))['arr_0']
             for key in keys}
@@ -80,6 +80,15 @@ def test_transmission_all(tmp_path):
         remove=['clouds'])
     pyrat = pb.run(cfg)
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['all'], rtol=1e-7)
+
+
+def test_transmission_resolution(tmp_path):
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        reset={'resolution':'5000.0'},
+        remove=['clouds'])
+    pyrat = pb.run(cfg)
+    np.testing.assert_allclose(pyrat.spec.spectrum, expected['resolution'],
+        rtol=1e-7)
 
 
 def test_transmission_etable(tmp_path):

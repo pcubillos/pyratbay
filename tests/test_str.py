@@ -141,7 +141,7 @@ High wavenumber boundary (wnhigh):   9090.909 cm-1  (wllow  =   1.10 um)
 Number of samples (nwave): 3209
 Sampling interval (wnstep): 1.000 cm-1
 Wavenumber array (wn, cm-1):
-    [5882.353 5883.353 5884.353 ... 9088.353 9089.353 9090.353]
+    [ 5882.353  5883.353  5884.353 ...  9088.353  9089.353  9090.353]
 Oversampling factor (wnosamp): 2160
 
 Modulation spectrum, (Rp/Rs)**2 (spectrum):
@@ -518,6 +518,38 @@ No retrieval parameters set.
 """
 
 
+def test_pyrat_transmission_resolution_str(tmp_path):
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        reset={'resolution':'5000.0'},
+        remove=['clouds'])
+    pyrat = pb.run(cfg)
+    assert pyrat is not None
+    assert str(pyrat) == """\
+Pyrat atmospheric model
+configuration file:  '{:s}/test.cfg'
+Pressure profile (bar):  1.00e-06 -- 1.00e+02 (81 layers)
+Wavelength range (um):  1.10 -- 1.70 (2177 samples, R=5000.0)
+Composition:  ['H2' 'He' 'Na' 'H2O' 'CH4' 'CO' 'CO2']
+Opacity sources:  ['H2O', 'CIA H2-H2', 'CIA H2-He', 'lecavelier', 'Na']""".format(str(tmp_path))
+
+    assert str(pyrat.spec) == """\
+Spectral information:
+Wavenumber internal units: cm-1
+Wavelength internal units: cm
+Wavelength display units (wlunits): um
+Low wavenumber boundary (wnlow):     5882.353 cm-1  (wlhigh =   1.70 um)
+High wavenumber boundary (wnhigh):   9090.909 cm-1  (wllow  =   1.10 um)
+Number of samples (nwave): 2177
+Spectral resolving power (resolution): 5000.0
+Wavenumber array (wn, cm-1):
+    [ 5882.459  5883.636  5884.813 ...  9086.365  9088.182  9090.000]
+Oversampling factor (wnosamp): 2160
+
+Modulation spectrum, (Rp/Rs)**2 (spectrum):
+    [ 6.501e-03  6.519e-03  6.501e-03 ...  6.483e-03  6.436e-03  6.513e-03]
+"""
+
+
 def test_pyrat_emission_str(tmp_path):
     cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
     reset={'path':'eclipse'})
@@ -533,7 +565,7 @@ High wavenumber boundary (wnhigh):   9090.909 cm-1  (wllow  =   1.10 um)
 Number of samples (nwave): 3209
 Sampling interval (wnstep): 1.000 cm-1
 Wavenumber array (wn, cm-1):
-    [5882.353 5883.353 5884.353 ... 9088.353 9089.353 9090.353]
+    [ 5882.353  5883.353  5884.353 ...  9088.353  9089.353  9090.353]
 Oversampling factor (wnosamp): 2160
 
 Intensity zenithal angles (raygrid, degree): [ 0. 20. 40. 60. 80.]

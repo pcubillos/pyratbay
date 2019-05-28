@@ -508,7 +508,7 @@ class Pyrat(object):
 
   def __str__(self):
       if self.spec.resolution is not None:
-         wave = "R={:.0f}".format(self.spec.resolution)
+         wave = "R={:.1f}".format(self.spec.resolution)
       else:
          wave = "dwn={:.3f} cm-1".format(self.spec.wnstep)
 

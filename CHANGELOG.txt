@@ -5216,3 +5216,9 @@ an alkali model's ec variable now holds the opacity (cm2 molecule-1)
 rather than the extinction coefficient (cm-1).
 Updated tests and examples accordingly.
 
+*****
+
+Added spectrum test setting the spectral resolution.
+Minor tweaks in pyrat and spec __str__() methods.
+Tested.
+

@@ -73,7 +73,8 @@ class Spectrum(object):
       else:
           fw.write('Spectral resolving power (resolution): {:.1f}',
               self.resolution)
-      fw.write('Wavenumber array (wn, cm-1):\n    {}', self.wn, prec=3)
+      fw.write('Wavenumber array (wn, cm-1):\n    {}', self.wn,
+          fmt={'float': '{: .3f}'.format})
       fw.write('Oversampling factor (wnosamp): {:d}', self.wnosamp)
 
       if self._path == 'eclipse':
