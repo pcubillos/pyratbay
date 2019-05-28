@@ -5222,3 +5222,7 @@ Added spectrum test setting the spectral resolution.
 Minor tweaks in pyrat and spec __str__() methods.
 Tested.
 
+*****
+
+Added transmission-spectrum test for odd/even-layered atmosphere.
+

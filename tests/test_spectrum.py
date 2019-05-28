@@ -21,7 +21,7 @@ os.chdir(ROOT+'tests')
 # Expected spectra:
 keys = ['lec', 'cia', 'alkali', 'deck', 'tli', 'all', 'etable',
         'tmodel', 'vert', 'scale', 'fit1', 'fit2', 'fit3', 'fit4',
-        'bandflux4', 'resolution']
+        'bandflux4', 'resolution', 'odd_even']
 expected = {key:np.load("expected_spectrum_transmission_{:s}_test.npz".
                         format(key))['arr_0']
             for key in keys}
@@ -88,6 +88,25 @@ def test_transmission_resolution(tmp_path):
         remove=['clouds'])
     pyrat = pb.run(cfg)
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['resolution'],
+        rtol=1e-7)
+
+
+# Optical-depth integration is home made, which depends on whether there is
+# an odd or even number of layers. Thus, the need for this test.
+def test_transmission_odd_even(tmp_path):
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        reset={'rpars':'1.0 -4.0'},
+        remove=['tlifile', 'csfile', 'alkali', 'clouds'])
+    odd = pb.run(cfg)
+
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        reset={'atmfile':'atmosphere_uniform_even_layers.atm',
+               'rpars':'1.0 -4.0'},
+        remove=['tlifile', 'csfile', 'alkali', 'clouds'])
+    even = pb.run(cfg)
+    np.testing.assert_allclose(odd.spec.spectrum, expected['odd_even'],
+        rtol=1e-7)
+    np.testing.assert_allclose(even.spec.spectrum, expected['odd_even'],
         rtol=1e-7)
 
 
