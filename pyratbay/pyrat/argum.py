@@ -16,8 +16,7 @@ from .. import starspec   as ps
 from .. import atmosphere as pa
 from .. import io         as io
 
-from .  import rayleigh  as ray
-from .  import alkali    as al
+from .  import alkali as al
 
 
 def check_spectrum(pyrat):
@@ -126,11 +125,10 @@ def check_spectrum(pyrat):
   if pyrat.rayleigh.model_names is not None:
       pyrat.rayleigh.models = []
       npars = 0
-      for rname in pyrat.rayleigh.model_names:
-          iray   = np.where(ray.rnames == rname)[0][0]
-          rmodel = ray.rmodels[iray]
-          npars += rmodel.npars
-          pyrat.rayleigh.models.append(rmodel)
+      for name in pyrat.rayleigh.model_names:
+          model = pa.rayleigh.get_model(name)
+          npars += model.npars
+          pyrat.rayleigh.models.append(model)
       # Process the Rayleigh parameters:
       if pyrat.rayleigh.pars is not None:
           if npars != len(pyrat.rayleigh.pars):
@@ -138,9 +136,9 @@ def check_spectrum(pyrat):
                         'match the number of required model parameters ({:d}).'.
                         format(len(pyrat.rayleigh.pars), npars))
           j = 0
-          for rmodel in pyrat.rayleigh.models:
-              npars = rmodel.npars
-              rmodel.pars = pyrat.rayleigh.pars[j:j+npars]
+          for model in pyrat.rayleigh.models:
+              npars = model.npars
+              model.pars = pyrat.rayleigh.pars[j:j+npars]
               j += npars
 
   # Check alkali arguments:

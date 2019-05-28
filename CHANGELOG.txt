@@ -5193,3 +5193,11 @@ non-Pythonic code to add cloud models into a Pyrat object.
 Tweaked atmosphere.clouds.get_model() to return instanced model.
 (as will happen with alkali and Rayleigh models).
 
+*****
+
+Added rayleigh module to pyratbay.atmosphere containing the rayleigh
+models.
+Moved rayleigh models from pyratbay/pyrat/rayleigh.py to
+pyratbay/atmosphere/rayleigh/rayleigh.py
+Now the rayleigh models are accessible to the user.
+
