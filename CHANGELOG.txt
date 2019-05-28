@@ -5187,3 +5187,9 @@ Renamed pyratbay/pyrat/gray.py to pyratbay/pyrat/clouds.py
 Now the cloud models are accessible to the user, which avoids
 non-Pythonic code to add cloud models into a Pyrat object.
 
+
+*****  Di 28. Mai 11:01:36 CEST 2019  *****
+
+Tweaked atmosphere.clouds.get_model() to return instanced model.
+(as will happen with alkali and Rayleigh models).
+

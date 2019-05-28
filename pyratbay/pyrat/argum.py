@@ -107,7 +107,7 @@ def check_spectrum(pyrat):
       pyrat.cloud.models = []
       npars = 0
       for name in pyrat.cloud.model_names:
-          model  = pa.clouds.get_model(name)()
+          model  = pa.clouds.get_model(name)
           npars += model.npars
           pyrat.cloud.models.append(model)
       # Parse the cloud parameters:

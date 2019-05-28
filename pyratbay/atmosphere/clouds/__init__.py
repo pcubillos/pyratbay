@@ -11,7 +11,7 @@ def get_model(name):
     """Get a cloud model by its name."""
     for model in __all__:
         if model.lower() == name:
-            return eval(model)
+            return eval('{:s}()'.format(model))
 
 
 # Clean up top-level namespace--delete everything that isn't in __all__
