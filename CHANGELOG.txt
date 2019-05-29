@@ -5237,3 +5237,7 @@ Tweaked tools.get_param() function to accept a nummeric numpy array
 as input value.
 Added tests.
 
+*****
+
+Fixed runits variable name in config files (from radunits).
+
