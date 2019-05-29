@@ -408,6 +408,7 @@ def parse(pyrat, cfile):
       parse_array(args, 'raygrid')
       parse_int(args,   'quadrature')
       # Data options:
+      parse_str(args,   'dunits')
       parse_array(args, 'data')
       parse_array(args, 'uncert')
       parse_array(args, 'filters')
@@ -522,7 +523,6 @@ def parse(pyrat, cfile):
       'Wavelength lower boundary',  gt=0.0)
   spec.wlhigh = args.get_param('wlhigh', spec.wlunits,
       'Wavelength higher boundary', gt=0.0)
-
   spec.wnlow  = args.get_default('wnlow',
       'Wavenumber lower boundary',  gt=0.0)
   spec.wnhigh = args.get_default('wnhigh',
@@ -635,8 +635,10 @@ def parse(pyrat, cfile):
   spec.quadrature = args.get_default('quadrature',
       'Number of Gaussian-quadrature points', ge=1)
 
-  pyrat.obs.data   = args.data
-  pyrat.obs.uncert = args.uncert
+  pyrat.obs.units = args.get_default('dunits', 'Data units', 'none',
+       wflag=args.data is not None)
+  pyrat.obs.data   = args.get_param('data',   pyrat.obs.units, 'Data')
+  pyrat.obs.uncert = args.get_param('uncert', pyrat.obs.units, 'Uncertainties')
   pyrat.obs.filters = args.get_path('filters', 'Filter pass-bands', exists=True)
 
   pyrat.ret.retflag = args.get_choice('retflag', 'retrieval flag', pc.retflags)
