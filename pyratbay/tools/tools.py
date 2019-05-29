@@ -336,7 +336,7 @@ def get_param(pname, value, units, log=None, gt=None, ge=None, tracklev=-3):
       if len(par) == 2:
           units = par[1]
           if units not in pc.validunits:
-              log.error("Invalid value '{:s}' for parameter {:s}.".
+              log.error("Invalid units for value '{:s}' of parameter {:s}.".
                         format(value, pname), tracklev=tracklev)
       try:
           value = np.float(par[0])

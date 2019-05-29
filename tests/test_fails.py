@@ -283,7 +283,7 @@ def test_pt_pressure_missing(tmp_path, capfd, undefined, param):
 
 
 # This is valid for any get_param() input:
-@pytest.mark.parametrize('value', ['a', '10.0 20.0', '10.0 bar 30.0'])
+@pytest.mark.parametrize('value', ['a', '10.0 bar 30.0'])
 @pytest.mark.parametrize('param', ['ptop', 'pbottom'])
 def test_pressure_invalid_type(tmp_path, capfd, param, value):
     cfg = make_config(tmp_path, ROOT+'tests/pt_isothermal.cfg',
@@ -294,6 +294,18 @@ def test_pressure_invalid_type(tmp_path, capfd, param, value):
     assert "Error in module: 'parser.py', function: 'parse'" in captured.out
     assert "Invalid value '{:s}' for parameter {:s}.". \
            format(value, param) in captured.out
+
+
+@pytest.mark.parametrize('param', ['ptop', 'pbottom'])
+def test_pressure_invalid_units(tmp_path, capfd, param):
+    cfg = make_config(tmp_path, ROOT+'tests/pt_isothermal.cfg',
+        reset={param:'10.0 20.0'})
+    pyrat = pb.run(cfg)
+    captured = capfd.readouterr()
+    assert pyrat is None
+    assert "Error in module: 'parser.py', function: 'parse'" in captured.out
+    assert "Invalid units for value '10.0 20.0' of parameter {:s}.". \
+           format(param) in captured.out
 
 
 @pytest.mark.parametrize('param', ['tmodel', 'tpars'])

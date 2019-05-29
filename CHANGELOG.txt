@@ -5241,3 +5241,9 @@ Added tests.
 
 Fixed runits variable name in config files (from radunits).
 
+*****
+
+Modified error message of tools.get_param() to highlight when the
+units are particularly invalid.
+Updated tests.
+
