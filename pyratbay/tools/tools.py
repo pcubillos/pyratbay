@@ -4,11 +4,11 @@
 __all__ = [
     'log_error',
     'tmp_reset',
-    'get_param',
     'binsearch',
     'divisors',
-    'u',
     'unpack',
+    'u',
+    'get_param',
     'ifirst', 'ilast',
     'isfile',
     'file_exists',
@@ -289,7 +289,7 @@ def get_param(pname, value, units, log=None, gt=None, ge=None, tracklev=-3):
   ----------
   pname: String
       The parameter name.
-  value: String, Float, or integer
+  value: String, Float, integer, or ndarray
       The parameter value (which may contain the units).
   units: String
       The default units for the parameter.
@@ -345,7 +345,8 @@ def get_param(pname, value, units, log=None, gt=None, ge=None, tracklev=-3):
                     format(value, pname), tracklev=tracklev)
 
   # Use given units:
-  if isinstance(value, numbers.Number) or len(par) == 1:
+  if (isinstance(value, (numbers.Number, np.ndarray))
+         or (isinstance(value, str) and len(par) == 1)):
       if units not in pc.validunits:
           log.error("Invalid units '{}' for parameter {:s}.".
                     format(units, pname), tracklev=tracklev)

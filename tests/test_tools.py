@@ -112,6 +112,23 @@ def test_binsearch_duplicates_hi_edge(wn0, upper, result):
         assert pt.binsearch(tli, wn0, 0, len(wn), upper) == result
 
 
+@pytest.mark.parametrize('value, result',
+    [(1.0, 100000.0),
+     ('10 cm', 10.0),])
+def test_get_param(value, result):
+    assert pt.get_param('size', value, 'km') == result
+
+
+def test_get_param_array():
+    value = np.array([10.0, 20.0])
+    np.testing.assert_allclose(pt.get_param('size', value, 'km'),
+        np.array([1000000.0, 2000000.0]))
+
+
+def test_get_param_none():
+    assert pt.get_param('size', None, 'km') is None
+
+
 @pytest.mark.parametrize('data',
     [[False, True, True, False],
      [0,1,1,0],
