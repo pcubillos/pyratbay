@@ -5226,3 +5226,8 @@ Tested.
 
 Added transmission-spectrum test for odd/even-layered atmosphere.
 
+
+*****  Mi 29. Mai 13:43:28 CEST 2019  *****
+
+Removed scripts folder (no longer needed).
+
