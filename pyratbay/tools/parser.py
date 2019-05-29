@@ -519,6 +519,8 @@ def parse(pyrat, cfile):
 
   spec.wlunits = args.get_default('wlunits', 'Wavelength units', 'um',
       wflag=runmode not in ['pt', 'atmosphere'])
+  if not hasattr(pc, spec.wlunits):
+      log.error('Invalid wavelength units (wlunits): {}'.format(spec.wlunits))
   spec.wllow  = args.get_param('wllow',  spec.wlunits,
       'Wavelength lower boundary',  gt=0.0)
   spec.wlhigh = args.get_param('wlhigh', spec.wlunits,
@@ -537,8 +539,12 @@ def parse(pyrat, cfile):
 
   atm.punits = args.get_default('punits', 'Pressure units', 'bar',
       wflag=(runmode!='tli'))
-  atm.runits = args.get_default('runits', 'Distance units', 'km',
+  if not hasattr(pc, atm.punits):
+      log.error('Invalid pressure units (punits): {}'.format(atm.punits))
+  atm.runits = args.get_default('runits', 'Radius units', 'km',
       wflag=(runmode!='tli'))
+  if not hasattr(pc, atm.runits):
+      log.error('Invalid radius units (runits): {}'.format(atm.runits))
   atm.nlayers = args.get_default('nlayers',
       'Number of atmospheric layers', gt=1)
 
@@ -637,6 +643,8 @@ def parse(pyrat, cfile):
 
   pyrat.obs.units = args.get_default('dunits', 'Data units', 'none',
        wflag=args.data is not None)
+  if not hasattr(pc, pyrat.obs.units):
+      log.error('Invalid data units (dunits): {}'.format(pyrat.obs.units))
   pyrat.obs.data   = args.get_param('data',   pyrat.obs.units, 'Data')
   pyrat.obs.uncert = args.get_param('uncert', pyrat.obs.units, 'Uncertainties')
   pyrat.obs.filters = args.get_path('filters', 'Filter pass-bands', exists=True)

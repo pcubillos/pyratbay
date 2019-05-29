@@ -75,6 +75,24 @@ def test_run_mcmc_mcmcfile(tmp_path, capfd):
 
 
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+# Check input units:
+@pytest.mark.parametrize('param, var',
+    [('wlunits', 'wavelength'),
+     ('runits', 'radius'),
+     ('punits', 'pressure'),
+     ('dunits', 'data')])
+def test_invalid_units(tmp_path, capfd, param, var):
+    cfg = make_config(tmp_path, ROOT+'tests/pt_isothermal.cfg',
+        reset={param:'invalid'})
+    pyrat = pb.run(cfg)
+    captured = capfd.readouterr()
+    assert pyrat is None
+    assert "Error in module: 'parser.py', function: 'parse'" in captured.out
+    assert "Invalid {:s} units ({:s}): invalid".format(var, param) \
+           in captured.out
+
+
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 # Check integer and float data types:
 @pytest.mark.parametrize('param, value',
     [('nlayers', '10.5'),

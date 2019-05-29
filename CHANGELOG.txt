@@ -5251,3 +5251,8 @@ Updated tests.
 
 Added dunits argument to set the data units.
 
+*****
+
+Added checks and tests to make sure that input wavelength, pressure,
+radius, and data units are valid.
+
