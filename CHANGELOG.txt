@@ -5260,3 +5260,7 @@ radius, and data units are valid.
 
 Replaced pc.valudunits checks with a hasattr(pc, ...) call.
 
+*****
+
+Implemented test for molecule not in molecules info file.
+

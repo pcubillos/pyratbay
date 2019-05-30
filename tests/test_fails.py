@@ -11,6 +11,7 @@ from conftest import make_config
 ROOT = os.path.realpath(os.path.dirname(__file__) + '/..') + '/'
 sys.path.append(ROOT)
 import pyratbay as pb
+import pyratbay.atmosphere as pa
 
 os.chdir(ROOT+'tests')
 
@@ -752,9 +753,25 @@ def test_spectrum_opacity_missing(tmp_path, capfd, param, undefined_opacity):
     assert undefined_opacity[param] in captured.out
 
 
-@pytest.mark.skip
-def test_molecule_not_in_molfile():
-    pass
+def test_molecule_not_in_molfile(tmp_path, capfd):
+    # Modify atm:
+    units, species, press, temp, q, rad = \
+        pa.readatm(ROOT+'tests/atmosphere_uniform_test.atm')
+    press = press * pb.tools.u(units[0])
+    species[-1] = 'X'
+    new_atm = str(tmp_path/'new_atmosphere_uniform_test.atm')
+    pa.writeatm(new_atm, press, temp, species, q, units[0], '# header')
+
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        reset={'atmfile':new_atm})
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Error in module: 'readatm.py', function: 'get_constants'" \
+           in captured.out
+    assert "These species: ['X'] are not listed in the molecules info file" \
+           in captured.out
+
 
 @pytest.mark.skip
 def test_incompatible_tli():
