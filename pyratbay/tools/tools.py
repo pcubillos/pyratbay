@@ -274,7 +274,7 @@ def u(units):
      Name of units
   """
   # Accept only valid units:
-  if units not in pc.validunits:
+  if not hasattr(pc, units):
       raise ValueError("Units '{}' does not exist.".format(units))
   factor = getattr(pc, units)
   return factor
@@ -335,7 +335,7 @@ def get_param(pname, value, units, log=None, gt=None, ge=None, tracklev=-3):
                     format(value, pname), tracklev=tracklev)
       if len(par) == 2:
           units = par[1]
-          if units not in pc.validunits:
+          if not hasattr(pc, units):
               log.error("Invalid units for value '{:s}' of parameter {:s}.".
                         format(value, pname), tracklev=tracklev)
       try:
@@ -347,7 +347,7 @@ def get_param(pname, value, units, log=None, gt=None, ge=None, tracklev=-3):
   # Use given units:
   if (isinstance(value, (numbers.Number, np.ndarray))
          or (isinstance(value, str) and len(par) == 1)):
-      if units not in pc.validunits:
+      if units is None or not hasattr(pc, units):
           log.error("Invalid units '{}' for parameter {:s}.".
                     format(units, pname), tracklev=tracklev)
 

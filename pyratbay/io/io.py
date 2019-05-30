@@ -222,7 +222,7 @@ def read_spectrum(filename, wn=True):
       wlunits = info.split()[1]
   else:
       wlunits = 'um'
-  if wlunits not in pc.validunits:
+  if not hasattr(pc, wlunits):
       wlunits = 'um'
 
   # Convert wavelength to wavenumber in cm-1:

@@ -75,19 +75,6 @@ ppm     = 1.0e-6  # Part per million
 # No units:
 none = 1
 
-# Valid units for conversion:
-validunits = [
-    'A', 'nm', 'um', 'mm', 'cm', 'm', 'km',
-    'au', 'pc', 'rearth', 'rjup', 'rsun',
-    'barye', 'mbar', 'pascal', 'bar', 'atm',
-    'kelvin',
-    'eV',
-    'amu', 'me', 'gram', 'kg', 'mearth', 'mjup', 'msun',
-    'amagat',
-    'percent', 'ppt', 'ppm',
-    'none',
-    ]
-
 # Other combination of constants:
 C1 = 4 * sc.epsilon_0 * sc.m_e * sc.c**2 / sc.e**2 * 0.01  # cm-1
 C2 = sc.h * (sc.c * 100.0) / sc.k                          # cm / Kelvin

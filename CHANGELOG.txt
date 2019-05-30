@@ -5256,3 +5256,7 @@ Added dunits argument to set the data units.
 Added checks and tests to make sure that input wavelength, pressure,
 radius, and data units are valid.
 
+*****  Thu May 30 10:54:13 CEST 2019  *****
+
+Replaced pc.valudunits checks with a hasattr(pc, ...) call.
+
