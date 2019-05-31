@@ -254,6 +254,54 @@ def test_fit_filters():
     np.testing.assert_allclose(model4[1], expected['bandflux4'], rtol=1e-7)
 
 
+def test_multiple_opacities(tmp_path):
+    # Generate TLI files:
+    cfg = make_config(tmp_path, ROOT+'tests/tli_multiple_opacity.cfg')
+    pb.run(cfg)
+    cfg = make_config(tmp_path, ROOT+'tests/tli_multiple_opacity.cfg',
+        reset={'dblist':'02_hit12.par',
+               'tlifile':'HITRAN_CO2_1.5-1.6um_test.tli'})
+    pb.run(cfg)
+    cfg = make_config(tmp_path, ROOT+'tests/tli_multiple_opacity.cfg',
+        reset={'dblist':'06_hit12.par',
+               'tlifile':'HITRAN_CH4_1.5-1.6um_test.tli'})
+    pb.run(cfg)
+
+    # Generate opacity files:
+    cfg = make_config(tmp_path, ROOT+'tests/opacity_multiple.cfg')
+    pb.run(cfg)
+    cfg = make_config(tmp_path, ROOT+'tests/opacity_multiple.cfg',
+        reset={'tlifile':'HITRAN_CO2_1.5-1.6um_test.tli',
+               'extfile':'exttable_CO2_300-3000K_1.5-1.6um.dat'})
+    pb.run(cfg)
+    cfg = make_config(tmp_path, ROOT+'tests/opacity_multiple.cfg',
+        reset={'tlifile':'HITRAN_CH4_1.5-1.6um_test.tli',
+               'extfile':'exttable_CH4_300-3000K_1.5-1.6um.dat'})
+    pb.run(cfg)
+    cfg = make_config(tmp_path, ROOT+'tests/opacity_multiple.cfg',
+        reset={'tlifile':'HITRAN_CO2_1.5-1.6um_test.tli'
+                   '\n    HITRAN_CH4_1.5-1.6um_test.tli',
+               'extfile':'exttable_CO2-CH4_300-3000K_1.5-1.6um.dat'})
+    pb.run(cfg)
+
+    # Compute spectra from opacities:
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        remove=['tlifile', 'clouds'],
+        reset={'extfile':'exttable_H2O_300-3000K_1.5-1.6um.dat'
+                     '\n  exttable_CO2_300-3000K_1.5-1.6um.dat'
+                     '\n  exttable_CH4_300-3000K_1.5-1.6um.dat',
+               'wllow':'1.5', 'wlhigh':'1.6'})
+    pyrat1 = pb.run(cfg)
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        remove=['tlifile', 'clouds'],
+        reset={'extfile':'exttable_H2O_300-3000K_1.5-1.6um.dat'
+                     '\n  exttable_CO2-CH4_300-3000K_1.5-1.6um.dat',
+               'wllow':'1.5', 'wlhigh':'1.6'})
+    pyrat2 = pb.run(cfg)
+    np.testing.assert_allclose(pyrat1.spec.spectrum,
+                               pyrat2.spec.spectrum, rtol=1e-5)
+
+
 # These are extra bits for testing the tests before testing:
 def plot_fit():
     import matplotlib.pyplot as plt

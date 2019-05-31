@@ -350,7 +350,7 @@ def parse(pyrat, cfile):
       parse_array(args, 'tlifile')
       parse_array(args, 'csfile')
       parse_str(args,   'molfile')
-      parse_str(args,   'extfile')
+      parse_array(args, 'extfile')
       # Spectrum sampling options:
       parse_str(args,   'wlunits')
       parse_str(args,   'wllow')
@@ -481,7 +481,7 @@ def parse(pyrat, cfile):
       if args.runmode == 'spectrum' and args.outspec is not None:
           args.logfile = os.path.splitext(args.outspec)[0] + '.log'
       if args.runmode == 'opacity' and args.extfile is not None:
-          args.logfile = os.path.splitext(args.extfile)[0] + '.log'
+          args.logfile = os.path.splitext(args.extfile[0])[0] + '.log'
       if args.runmode == 'mcmc' and args.mcmcfile is not None:
           args.logfile = os.path.splitext(args.mcmcfile)[0] + '.log'
   else:

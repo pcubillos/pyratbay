@@ -312,7 +312,7 @@ LBL extinction coefficient for the atmospheric model (ec, cm-1) [layer, wave]:
  [5.87e-07 8.93e-07 1.00e-06 ... 2.13e-06 1.91e-06 1.59e-06]
  [7.44e-07 1.04e-06 1.17e-06 ... 2.69e-06 2.35e-06 1.95e-06]
  [9.09e-07 1.12e-06 1.26e-06 ... 3.29e-06 2.85e-06 2.39e-06]]
-Extinction-coefficient table filename (extfile): None
+Extinction-coefficient table filename(s) (extfile): None
 """
 
     assert str(pyrat.cs) == """\
@@ -645,7 +645,7 @@ LBL extinction coefficient for the atmospheric model (ec, cm-1) [layer, wave]:
  [5.86e-07 8.75e-07 9.81e-07 ... 2.11e-06 1.88e-06 1.56e-06]
  [7.39e-07 1.00e-06 1.13e-06 ... 2.65e-06 2.31e-06 1.91e-06]
  [9.13e-07 1.15e-06 1.30e-06 ... 3.28e-06 2.85e-06 2.37e-06]]
-Extinction-coefficient table filename (extfile):
+Extinction-coefficient table filename(s) (extfile):
     {:s}/exttable_test_300-3000K_1.1-1.7um.dat
 Minimum temperature (tmin, K):  300.0
 Maximum temperature (tmax, K): 3000.0

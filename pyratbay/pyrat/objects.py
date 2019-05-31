@@ -144,7 +144,6 @@ class Atm(object):
 
       fw.write('\nRadius display units (runits): {}', self.runits)
       fw.write('Radius internal units: cm', self.runits)
-      runits = pt.u(self.runits)
       if self.radstep is not None:
           fw.write('Radius step size (radstep): {} {}',
               self.radstep/pt.u(self.runits), self.runits, prec=3, edge=3)
@@ -381,7 +380,7 @@ class Extinction(object):
       self.nlayers = None # Number of pressure layers
       self.nwave   = None # Number of wavenumber spectral samples
 
-      self.molID   = None # Tabulated species ID
+      self.molID   = []   # Tabulated species ID
       self.temp    = None # Tabulated temperatures
       self.press   = None # Tabulated pressures
       self.wn      = None # Tabulated wavenumber
@@ -395,8 +394,9 @@ class Extinction(object):
       if self.ec is not None:
           fw.write('\nLBL extinction coefficient for the atmospheric model '
               '(ec, cm-1) [layer, wave]:\n{}', self.ec, fmt=fmt)
-      fw.write("Extinction-coefficient table filename (extfile): {}",
-          self.extfile)
+      extfile = ['None'] if self.extfile is None else self.extfile
+      fw.write("Extinction-coefficient table filename(s) (extfile): {}",
+          '\n    '.join(extfile))
       if self.extfile is None:
           return fw.text
       fw.write('Minimum temperature (tmin, K): {:6.1f}', self.tmin)

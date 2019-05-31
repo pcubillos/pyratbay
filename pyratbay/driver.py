@@ -108,7 +108,8 @@ def run(cfile, init=False):
 
   # Force to re-calculate extinction-coefficient file if requested:
   if pyrat.runmode == 'opacity' and pt.isfile(pyrat.ex.extfile) == 1:
-      os.remove(pyrat.ex.extfile)
+      for extfile in pyrat.ex.extfile:
+          os.remove(extfile)
 
   if pyrat.runmode == 'mcmc' and pyrat.ret.mcmcfile is None:
       log.error('Undefined MCMC file (mcmcfile).')

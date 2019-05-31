@@ -36,32 +36,62 @@ def exttable(pyrat):
       return
 
   # If the extinction file exists, read it:
-  if os.path.isfile(pyrat.ex.extfile):
-      pyrat.log.msg("\nReading extinction-coefficient table file:"
-                    "\n  '{:s}'.".format(pyrat.ex.extfile))
+  if pt.isfile(pyrat.ex.extfile) == 1:
+      pyrat.log.msg("\nReading extinction-coefficient table file(s):")
+      for extfile in pyrat.ex.extfile:
+          pyrat.log.msg("  '{}'.".format(extfile))
       read_extinction(pyrat)
   # If the extinction file doesn't exist, calculate it:
   else:
       pyrat.log.msg("\nGenerating new extinction-coefficient table file:"
-                    "\n  '{:s}'.".format(pyrat.ex.extfile), verb=2)
+                    "\n  '{:s}'.".format(pyrat.ex.extfile[0]), verb=2)
       calc_extinction(pyrat)
 
 
 def read_extinction(pyrat):
   """
-  Read an extinction-coefficient table from file.
+  Read extinction-coefficient tables from files.
   """
   ex = pyrat.ex
+  ex.molID, ex.etable = [], []
 
-  edata = io.read_opacity(ex.extfile)
-  # Arrays lengths:
-  ex.nmol, ex.ntemp, ex.nlayers, ex.nwave = edata[0]
-  # Molecule ID, temperature (K), pressure (barye), and wavenumber (cm-1):
-  ex.molID, ex.temp, ex.press, ex.wn = edata[1]
-  # Extinction-coefficient data table (cm-1):
-  pyrat.ex.etable = edata[2]
+  for extfile in ex.extfile:
+      edata = io.read_opacity(extfile)
+      # Array sizes:
+      nmol, ntemp, nlayers, nwave = edata[0]
+      if (ex.ntemp is not None and
+          (ntemp != ex.ntemp or nlayers != ex.nlayers or nwave != ex.nwave)):
+          pyrat.log.error("Shape of the extinction-coefficient file '{:s}' "
+              "does not match with previous file shapes.".
+              format(os.path.basename(extfile)))
+      ex.ntemp, ex.nlayers, ex.nwave = ntemp, nlayers, nwave
 
-  pyrat.log.msg("File has {:d} molecules, {:d} temperature samples, "
+      # Molecule ID, temperature (K), pressure (barye), and wavenumber (cm-1):
+      molID, temp, press, wn = edata[1]
+      if ex.temp is not None and np.any(np.abs(1-temp/ex.temp) > 0.01):
+          pyrat.log.error("Tabulated temperature array of file '{:s}' "
+              "does not match with the previous temperature arrays.".
+              format(os.path.basename(extfile)))
+      if ex.press is not None and np.any(np.abs(1-press/ex.press) > 0.01):
+          pyrat.log.error("Tabulated pressure array of file '{:s}' "
+              "does not match with the previous pressure arrays.".
+              format(os.path.basename(extfile)))
+      if ex.wn is not None and np.any(np.abs(1-wn/ex.wn) > 0.01):
+          pyrat.log.error("Tabulated wavelength array of file '{:s}' "
+              "does not match with the previous wavelength arrays.".
+              format(os.path.basename(extfile)))
+      ex.temp, ex.press, ex.wn = temp, press, wn
+      ex.molID += list(molID)
+      # Extinction-coefficient table (cm2 molecule-1):
+      ex.etable.append(edata[2])
+
+  ex.molID = np.array(ex.molID)
+  ex.nmol = len(ex.molID)
+  ex.etable = np.vstack(ex.etable)
+  if np.ndim(ex.etable) == 3:
+      ex.etable = np.expand_dims(ex.etable, axis=0)
+
+  pyrat.log.msg("File(s) have {:d} molecules, {:d} temperature samples, "
                 "{:d} layers, and {:d} wavenumber samples.".format(ex.nmol,
                 ex.ntemp, ex.nlayers, ex.nwave), verb=2, indent=2)
 
@@ -71,7 +101,7 @@ def read_extinction(pyrat):
 
   with np.printoptions(precision=1):
       str_temp = str(ex.temp)
-  with np.printoptions(formatter={'float':'{: .2f}'.format}):
+  with np.printoptions(formatter={'float':'{: .2f}'.format}, threshold=100):
       str_wn   = str(ex.wn)
   with np.printoptions(formatter={'float':'{:.3e}'.format}):
       str_press = str(ex.press/pc.bar)
@@ -170,10 +200,10 @@ def calc_extinction(pyrat):
       proc.join()
 
   # Store values in file:
-  io.write_opacity(ex.extfile, ex.molID, ex.temp, ex.press, ex.wn,
+  io.write_opacity(ex.extfile[0], ex.molID, ex.temp, ex.press, ex.wn,
                    pyrat.ex.etable)
   pyrat.log.msg("Extinction-coefficient table written to file: '{:s}'.".
-                format(ex.extfile), indent=2)
+                format(ex.extfile[0]), indent=2)
 
 
 def extinction(pyrat, indices, grid=False, add=False):

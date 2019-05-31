@@ -1,11 +1,11 @@
 # Copyright (c) 2016-2019 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-import os
 import sys
 import numpy as np
 
 from .. import constants  as pc
+from .. import tools      as pt
 from .. import broadening as broad
 
 sys.path.append(pc.ROOT+'/lib')
@@ -17,8 +17,7 @@ def voigt(pyrat):
   Driver to calculate a grid of Voigt profiles.
   """
   # Check if reading extinction-coefficient table or no TLI files:
-  if ((pyrat.ex.extfile is not None and os.path.isfile(pyrat.ex.extfile))
-      or pyrat.lt.tlifile is None):
+  if pt.isfile(pyrat.ex.extfile) == 1 or pyrat.lt.tlifile is None:
       pyrat.log.msg('\nSkip LBL Voigt-profile calculation.')
       return
 

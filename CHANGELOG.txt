@@ -5271,3 +5271,13 @@ Refactored tools.isfile() to work on a list of files,
 returning 1 if all files exist, or 0 if any of them don't.
 Documented and tested.
 
+*****
+
+Refactored extfile variable to be a list instead of a string.
+This enables spectrum/mcmc runs with multiple opacity file inputs.
+A constrain is that all opacity files must have the same tabulation.
+Updated travis file to include new hitran files.
+Tested.
+
+Updated paths in travis file to avoid explicit username.
+
