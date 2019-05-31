@@ -5258,9 +5258,16 @@ radius, and data units are valid.
 
 *****  Thu May 30 10:54:13 CEST 2019  *****
 
-Replaced pc.valudunits checks with a hasattr(pc, ...) call.
+Replaced pc.validunits checks with a hasattr(pc, ...) call.
 
 *****
 
 Implemented test for molecule not in molecules info file.
+
+
+*****  Fr 31. Mai 10:15:56 CEST 2019  *****
+
+Refactored tools.isfile() to work on a list of files,
+returning 1 if all files exist, or 0 if any of them don't.
+Documented and tested.
 

@@ -431,27 +431,58 @@ def ilast(data, default_ret=-1):
 
 
 def isfile(path):
-  """
-  Check whether a path is a regular file.
+    """
+    Check whether a path (or list of paths) is a regular file.
 
-  Parameters
-  ----------
-  path:  String
-      Path to check.
+    Parameters
+    ----------
+    path:  String or list
+        Path(s) to check.
 
-  Returns
-  -------
-  status: Integer
-      If path is None, return -1.
-      If path is not a regular file, return 0.
-      If path is a regular file, return 1.
-  """
-  # None exception:
-  if path is None:
-      return -1
+    Returns
+    -------
+    status: Integer
+        If path is None, return -1.
+        If any path is not a regular file, return 0.
+        If all paths are a regular file, return 1.
 
-  # Regular file or not:
-  return int(os.path.isfile(path))
+    Examples (for Python 2.7, import from pathlib2)
+    --------
+    >>> import pyratbay.tools as pt
+    >>> from pathlib import Path
+    >>> # Mock couple files:
+    >>> file1, file2 = './tmp_file1.deleteme', './tmp_file2.deleteme'
+    >>> Path(file1).touch()
+    >>> Path(file2).touch()
+    >>> # Input is None:
+    >>> print(pt.isfile(None))
+    -1
+    >>> # All input files exist:
+    >>> print(pt.isfile(file1))
+    1
+    >>> print(pt.isfile([file1]))
+    1
+    >>> print(pt.isfile([file1, file2]))
+    1
+    >>> # At least one input does not exist:
+    >>> print(pt.isfile('nofile'))
+    0
+    >>> print(pt.isfile(['nofile']))
+    0
+    >>> print(pt.isfile([file1, 'nofile']))
+    0
+    """
+    # None exception:
+    if path is None:
+        return -1
+
+    if isinstance(path, str):
+        paths = [path]
+    else:
+        paths = path
+
+    # Regular file or not:
+    return int(all(os.path.isfile(path) for path in paths))
 
 
 def file_exists(pname, desc, value):
@@ -468,7 +499,7 @@ def file_exists(pname, desc, value):
     value: String or list of strings
         File path(s) to check.
 
-    Examples
+    Examples (for Python 2.7, import from pathlib2)
     --------
     >>> import pyratbay.tools as pt
     >>> from pathlib import Path
@@ -486,10 +517,8 @@ def file_exists(pname, desc, value):
 
     if isinstance(value, str):
         values = [value]
-        is_list = False
     else:
         values = value
-        is_list = True
 
     for value in values:
         if not os.path.isfile(value):

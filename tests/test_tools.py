@@ -147,6 +147,36 @@ def test_ilast_type(data):
     assert pt.ilast(data) == 2
 
 
+def test_isfile_none(tmp_path):
+    assert pt.isfile(None) == -1
+
+
+@pytest.mark.parametrize('inputs',
+    ['file1', ['file1'], ['file1', 'file2']])
+def test_isfile_exists(tmp_path, inputs):
+    path1 = tmp_path / 'file1'
+    path1.touch()
+    path2 = tmp_path / 'file2'
+    path2.touch()
+    if isinstance(inputs, str):
+        inputs = str(tmp_path / inputs)
+    else:
+        inputs = [str(tmp_path/path) for path in inputs]
+    assert pt.isfile(inputs) == 1
+
+
+@pytest.mark.parametrize('inputs',
+    ['nofile', ['nofile1'], ['file1', 'nofile1'], ['nofile1', 'nofile2']])
+def test_isfile_not_exists(tmp_path, inputs):
+    path1 = tmp_path / 'file1'
+    path1.touch()
+    if isinstance(inputs, str):
+        inputs = str(tmp_path / inputs)
+    else:
+        inputs = [str(tmp_path/path) for path in inputs]
+    assert pt.isfile(inputs) == 0
+
+
 def test_file_exists_none():
     pt.file_exists('none', 'None input', None)
     assert True
