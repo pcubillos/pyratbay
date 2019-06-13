@@ -5297,3 +5297,8 @@ Updated the example configuration files.
 
 Some further tweaks to the docs.
 
+*****
+
+Removed (outdated) examples/tutorial/run.py file.
+(the docs do a good-enough job now)
+
