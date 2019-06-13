@@ -54,7 +54,7 @@ Sample Configuration File
 
 Here is an example of a TLI configuration file:
 
-.. literalinclude:: ../examples/tutorial/tutorial_tli.cfg
+.. literalinclude:: ../examples/tutorial/tli_hitran_H2O.cfg
 
 Databases
 ---------
@@ -137,7 +137,7 @@ To create the TLI file, run from the Python interpreter:
 .. code-block:: shell
 
    # Make a TLI file with opacity line-transition info:
-   pbay -c tutorial_tli.cfg
+   pbay -c tli_hitran_H2O.cfg
 
 
 

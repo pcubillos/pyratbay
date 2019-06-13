@@ -18,7 +18,7 @@ Sample Configuration File
 
 Here is an example of an opacity-table configuration file:
 
-.. literalinclude:: ../examples/tutorial/tutorial_opacity.cfg
+.. literalinclude:: ../examples/tutorial/opacity.cfg
 
 
 The ``exttable`` key sets the name of the opacity table.  The
@@ -85,4 +85,4 @@ using the configuration file found at the top of this tutorial:
 
     import pyratbay as pb
 
-    pyrat = pb.run('tutorial_opacity.cfg')
+    pyrat = pb.run('opacity.cfg')

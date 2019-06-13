@@ -22,7 +22,7 @@ key specifying the output atmospheric file name.
 
 Here is an example of a uniform atmosphere configuration file:
 
-.. literalinclude:: ../examples/tutorial/tutorial_atmosphere-uniform.cfg
+.. literalinclude:: ../examples/tutorial/atmosphere_uniform.cfg
 
 
 Thermochemical Equilibrium Abundances
@@ -46,7 +46,7 @@ compositions (must follow the format of `this file
 Here is an example of a thermochemical-equilibrium atmosphere
 configuration file:
 
-.. literalinclude:: ../examples/tutorial/tutorial_atmosphere-tea.cfg
+.. literalinclude:: ../examples/tutorial/atmosphere_tea.cfg
 
 ----------------------------------------------------------------------
 
@@ -68,8 +68,8 @@ previous sections):
     import pyratbay.atmosphere as pa
 
     # Generate a uniform and a thermochemical-equilibrium atmospheric model:
-    pressure, temperature, abundances = pb.run("atm_tea.cfg")
-    pressure, temperature, abundances = pb.run("atm_uniform.cfg")
+    pressure, temperature, abundances = pb.run("atmosphere_tea.cfg")
+    pressure, temperature, abundances = pb.run("atmosphere_uniform.cfg")
 
     # Read the atmospheric files:
     specs, press, temp, q_tea     = pa.readatm("WASP-00b.atm")

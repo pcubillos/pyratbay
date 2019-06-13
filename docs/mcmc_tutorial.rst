@@ -22,7 +22,7 @@ Sample Configuration File
 
 Here is an example of an opacity-table configuration file:
 
-.. literalinclude:: ../examples/tutorial/tutorial_mcmc.cfg
+.. literalinclude:: ../examples/tutorial/mcmc_eclipse.cfg
 
 .. note:: Note that an '*mcmc*' run requires the user to define an
           opacity table (``extfile``) to allow the code to finish
@@ -169,4 +169,4 @@ Just like before, to run the MCMC modeling, simply execute this command:
 
     import pyratbay as pb
 
-    pyrat = pb.run("tutorial_mcmc.cfg")
+    pyrat = pb.run("mcmc_eclipse.cfg")

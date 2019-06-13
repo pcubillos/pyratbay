@@ -56,7 +56,7 @@ parameter (``tpars``): the temperature (:math:`T_0`) at all layers.
 
 Here is an example of a PT configuration file:
 
-.. literalinclude:: ../examples/tutorial/tutorial_pt-isothermal.cfg
+.. literalinclude:: ../examples/tutorial/pt_isothermal.cfg
 
 
 Three-channel Eddington Approximation
@@ -69,7 +69,7 @@ The tcea model has five parameters: |kappa|,
 surface gravity (``gplanet``), the stellar effective temperature
 (``tstar``), and the planetary internal temperature (``tint``).
 
-.. literalinclude:: ../examples/tutorial/tutorial_pt-tcea.cfg
+.. literalinclude:: ../examples/tutorial/pt_tcea.cfg
 
 Note that the units for ``gplanet`` are cm s\ :sup:`-2`, and the units
 for temperature keys (like ``tstar`` and ``tint``) are Kelvin.
@@ -106,8 +106,8 @@ profile, using the parameters shown in the previous sections:
   import pyratbay.constants as pc
 
   # Generate PT profiles:
-  press, T_iso  = pb.run("tutorial_pt-isothermal.cfg")
-  press, T_tcea = pb.run("tutorial_pt-tcea.cfg")
+  press, T_iso  = pb.run("pt_isothermal.cfg")
+  press, T_tcea = pb.run("pt_tcea.cfg")
 
   # Plot the PT profiles:
   plt.figure(11)

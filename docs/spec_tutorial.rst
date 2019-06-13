@@ -26,8 +26,7 @@ Sample Configuration File
 
 Here is a sample configuration file to compute a transmission spectrum:
 
-.. literalinclude:: ../examples/tutorial/tutorial_spectrum.cfg
-..  ../examples/tutorial/spectrum_transmission.cfg
+.. literalinclude:: ../examples/tutorial/spectrum_transmission.cfg
 
 
 Observing Geometry
@@ -561,7 +560,7 @@ this tutorial:
     import pyratbay as pb
     import pyratbay.constants as pc
 
-    pyrat = pb.run('tutorial_spectrum.cfg')
+    pyrat = pb.run('spectrum_transmission.cfg')
 
     # Plot the resulting spectrum:
     plt.figure(-3)
