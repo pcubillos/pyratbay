@@ -5289,3 +5289,7 @@ Got a pretty complete draft of the runmode tutorials.
 Still need to fine tune it, get the API working, and maybe add some
 other sections (plots, post processing, file formats, cookbooks).
 
+*****
+
+Updated the example configuration files.
+
