@@ -5306,3 +5306,7 @@ Removed (outdated) examples/tutorial/run.py file.
 
 Updated names of tutorial config files.
 
+*****
+
+Minor in-line documentation fixes.
+

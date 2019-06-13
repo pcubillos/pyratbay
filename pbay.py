@@ -12,10 +12,9 @@ def main():
     """
     Pyrat Bay: Python Radiative Transfer in a Bayesian framework
 
-    Pyrat Bay is a modification of the GNU-licensed transit code
-    (developed by Patricio Rojo).  Pyrat Bay branched as an alternative
-    of the Bayesian Atmospheric Radiative Transfer (BART) code,
-    developed at UCF: https://github.com/exosports/BART
+    Pyrat Bay is a modification of the GNU GPL v2-licensed transit code
+    (developed by Patricio Rojo); therefore, Pyrat Bay (v1.0+) is also
+    released under the GNU GLP v2 license.
 
     Examples
     --------
@@ -38,7 +37,7 @@ def main():
                        version='Pyrat Bay version {:s}.'.format(pb.__version__))
     group = parser.add_mutually_exclusive_group()
     group.add_argument("-c", dest='cfile', default=None,
-                       help="Configuration file.")
+                       help="Run Pyrat Bay for given configuration file.")
     group.add_argument("-pf", dest='pf', default=None, nargs='+',
                        help="Format a partition-function file.")
     group.add_argument("-cs", dest='cs', default=None, nargs='+',

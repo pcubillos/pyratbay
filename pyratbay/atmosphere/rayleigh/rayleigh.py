@@ -87,7 +87,7 @@ class Lecavelier():
       self.ec    = None             # Model extinction coefficient
       self.pnames   = ['log(f_Ray)', 'alpha_Ray']
       self.texnames = [r'$\log_{10}(f_{\rm Ray})$', r'$\alpha_{\rm Ray}$']
-      self.s0    = 5.31e-27         # Cross section (cm-2 molec-1) at l0
+      self.s0    = 5.31e-27         # Cross section (cm2 molec-1) at l0
       self.l0    = 3.5e-5           # Nominal wavelength (cm)
 
   def extinction(self, wn):
