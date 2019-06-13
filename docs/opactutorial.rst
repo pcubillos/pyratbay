@@ -8,71 +8,81 @@
 Opacity-grid Tutorial
 =====================
 
+To speed up the spectrum calculations, the ``Pyrat Bay`` can compute
+opacity tables that sample the LBL opacities over a pressure,
+temperature, and wavenumber grid.  This is particularly useful for
+MCMC runs, or when planning to model several spectra for a given case.
 
-opacity Mode
-............
+Sample Configuration File
+-------------------------
 
-If you plan to generate multiple spectra for a same planet with
-different atmospheric models, ``Pyrat Bay`` allows you to generate an
-opacity table (as function of wavelength, temperature, and pressure)
-for each species with LBL opacity data (i.e., 4D in total).
+Here is an example of an opacity-table configuration file:
 
-Once this grid is created, the code will interpolate the extinction
-coefficient from the grid instead of repeating the line-by-line
-calculations, significantly speeding up the spectrum calculation.
+.. literalinclude:: ../examples/tutorial/tutorial_opacity.cfg
 
-To create/use an extinction-coefficient grid, the configuration file
-just need the following variables (in addition to a spectrum run):
 
-.. code-block:: python
+The ``exttable`` key sets the name of the opacity table.  The
+``tmin``, ``tmax``, and ``tstep`` keys set the boundaries and sampling
+rate of the temperature grid.  The pressure grid will be taken from
+the atmospheric model, and the wavenumber grid will be taken from the
+wavelength/wavenumber keys in the configuration file.
 
-  [pyrat]
+The ``tlifile`` key determines the LBL opacities to include in the
+opacity table.  Note that one can include opacities from multiple
+species into a single opacity table.
 
-  # Pyrat Bay run mode, select from: [tli pt atmosphere spectrum opacity mcmc]
-  runmode = opacity
-  ...
-  # Opacity file name and temperature range and step
-  extfile = ./opacity_100-3000K_1.0-5.0um.dat
-  tmin    =  100   ; Minimum temperature for grid
-  tmax    = 3000   ; Maximum temperature for grid
-  tstep   =  100   ; Temperature step for grid
-  nproc   =    7   ; Number of parallel processors
+Once this opacity table is created, runs that generate spectra will
+interpolate from this table to compute extinction coefficients, which
+is much faster than rather than the LBL calculations.
 
-The ``extfile`` variable sets the file name of the input/output
-extinction-coefficient file.  The ``tmin``, ``tmax``, and ``tstep``
-variables set the temperature sampling rate of the grid.  The
-``nproc`` variable (default ``nproc=1``) sets the number of parallel
-processors used to compute the extinction-coefficient.
+.. _opacity_io:
 
-The following table describes what ``Pyrat Bay`` outputs depending on
-the ``runmode``, whether ``extfile`` was set in the configuration
-file, and whether the extinction file already exists:
+Opacity Table as Input/output
+-----------------------------
+
+Depending on the ``runmode``, whether ``extfile`` is set in the
+configuration file, and whether the extinction file already exists,
+``Pyrat Bay`` will operate differently.
+The following table describes what the code will output:
 
 +-----------+-----------+-------------+---------------------------------------+
-| Run mode  |``extfile``| File exists | Output                                |
+|``runmode``|``extfile``| File exists | Output                                |
 +===========+===========+=============+=======================================+
-| opacity   | defined   | No          | Generate new grid file                |
+| opacity   | defined   | No          | Generate new opacity table            |
 +           +-----------+-------------+---------------------------------------+
-|           | defined   | Yes         | Overwrite grid file                   |
+|           | defined   | Yes         | Overwrite existing opacity table      |
 +           +-----------+-------------+---------------------------------------+
 |           | undefined | ---         | Error                                 |
 +-----------+-----------+-------------+---------------------------------------+
-| spectrum  | defined   | No          | Generate grid and compute spectrum    |
+| spectrum  | defined   | Yes         | Use existing table to compute spectrum|
 +           +-----------+-------------+---------------------------------------+
-|           | defined   | Yes         | Use existing grid to compute spectrum |
+|           | defined   | No          | Generate grid and compute spectrum    |
 +           +-----------+-------------+---------------------------------------+
 |           | undefined | ---         | LBL-opacity spectrum calculation      |
 +-----------+-----------+-------------+---------------------------------------+
-| mcmc      | defined   | ---         | Same as ``runmode=spectrum``          |
+| mcmc      | defined   | ---         | Same as ``runmode = spectrum``        |
 +           +-----------+-------------+---------------------------------------+
 |           | undefined | ---         | Error                                 |
 +-----------+-----------+-------------+---------------------------------------+
 
-As always, to generate an extinction-coefficient grid, run the
-following script:
+.. note:: It is also important to note that, when the opacity table is
+          an **output**, the configuration file must specify a single file
+          for ``extfile`` (which may contain opacity for multiple
+          species though).  However, when the opacity table is an
+          **input**, the ``extfile`` may contain multiple opacity tables
+          (as long as all of them use the same pressure, temperature,
+          and wavenumber gridding).
+
+
+Examples
+--------
+
+As in a spectrum run, an opacity run returns a '*pyrat*' object in an
+interactive run.  The following Python script computes an opacity file
+using the configuration file found at the top of this tutorial:
 
 .. code-block:: python
 
-  pyrat = pb.pbay.run("tutorial_opacity.cfg")
+    import pyratbay as pb
 
-
+    pyrat = pb.run('tutorial_opacity.cfg')

@@ -2,306 +2,596 @@
 .. |CO2| replace:: CO\ :sub:`2`
 .. |CH4| replace:: CH\ :sub:`4`
 .. |H2|  replace:: H\ :sub:`2`
+.. |Rp|  replace:: :math:`R_{\rm p}`
+.. |Rs|  replace:: :math:`R_{\rm s}`
+.. |Fp|  replace:: :math:`F_{\rm p}`
+.. |Fs|  replace:: :math:`F_{\rm s}`
+.. |kayser| replace:: cm\ :sup:`-1`
+.. |ptop| replace:: :math:`\log(p_{\rm top})`
+.. |pt|   replace:: :math:`\log(p_{\rm t})`
+.. |pb|   replace:: :math:`\log(p_{\rm b})`
+.. |f|    replace:: :math:`\log(f)`
 
 .. _spectutorial:
 
 Spectrum Tutorial
 =================
 
-``Pyrat Bay`` offers a unique driver command that allow multiple
-running modes.  A configuration file defines all of the run settings,
-inputs, and outputs.
-
-As said, all of these calls can either be run from the shell or from
-the Python interpreter.  However, the interpreter has the advantage of
-that you can interact with the outputs.
-
-
-Running Modes
--------------
-
-``Pyrat Bay`` offers a sequence of running modes (``runmode``):
-
-+----------------+------------------------------------------------------------+
-|  Run mode      | Description                                                |
-+================+============================================================+
-| ``tli``        | Generate a transition-line-information file (used for      |
-|                | spectral computation)                                      |
-+----------------+------------------------------------------------------------+
-| ``pt``         | Compute a temperature-pressure profile                     |
-+----------------+------------------------------------------------------------+
-| ``atmosphere`` | Generate a 1D atmospheric model (pressure, temperature,    |
-|                | and abundances)                                            |
-+----------------+------------------------------------------------------------+
-| ``spectrum``   | Compute forwad-modeling spectra (transmission or emission) |
-+----------------+------------------------------------------------------------+
-| ``opacity``    | Generate an extinction-coefficient table (to speed up      |
-|                | spectra computation)                                       |
-+----------------+------------------------------------------------------------+
-| ``mcmc``       | Run an atmospheric retrieval                               |
-+----------------+------------------------------------------------------------+
-
-
-Running modes that require a previous step (e.g., a spectrum
-computation requires an atmospheric model), can do all required
-calculations in a single run, as long as the user provides the
-necessary parameters for each step in the configuration file.
-Depending on the selected running mode, the returned outputs will
-differ.
-
-The following examples show how to run each of these modes from the
-Python interpreter.
-
-.. note:: All of the tutorial commands are briefly summarized into
-          this file:  `/pyratbay/examples/tutorial/run.py <https://github.com/pcubillos/pyratbay/blob/master/examples/tutorial/run.py>`_.
-
-For a better organization, we recommend to work from a newly created
-folder, e.g., from a 'run_tutorial/' folder at the same level than the
-repository, i.e.:
-
-.. code-block:: shell
-
-   #   parentdir/
-   #   |-- pyratbay/
-   #   `-- run_tutorial/
-
-Start by copying the configuration files into the working directory
-and start a Python session:
-
-.. code-block:: shell
-
-   cp ../pyratbay/examples/tutorial/tutorial_*.cfg .
-   ipython --pylab
-
-Also you will need to download a Kurucz stellar model file.  You can
-use the following shell command:
-
-.. code-block:: shell
-
-  curl http://kurucz.harvard.edu/grids/gridp00odfnew/fp00k2odfnew.pck -o fp00k2odfnew.pck
-
-Be sure to include this script each time you open a Python session:
-
-.. code-block:: python
-
-  # This script assumes that you are in a folder at the same level than
-  # the repository, i.e.:
-  #    parentdir/
-  #    |-- pyratbay/
-  #    `-- run_tutorial/
-  #  Alternatively, set the appropriate path in sys.path.append().
-
-  import os
-  import sys
-  import matplotlib
-  import numpy as np
-  import matplotlib.pyplot as plt
-  plt.ion()
-
-  # Edit the path to the Pyrat-Bay package if necessary:
-  sys.path.append("../pyratbay")
-  import pyratbay as pb
-
-
-
-spectrum Mode
-.............
-
-This mode computes a transmission or emission spectrum.  Since this
-mode requires an atmospheric model, the ``atmfile`` variable can work
-as either input or output.  If the atmospheric file already exists, it
-will take it as input; if the atmospheric file doesn't exist, the code
-will generate it (provided the configuration file contains the
-required arguments).
-
-Here is an example configuration file for this mode:
-
-.. code-block:: python
-
-  [pyrat]
-
-  # Pyrat Bay run mode, select from: [tli pt atmosphere spectrum opacity mcmc]
-  runmode = spectrum
-
-  # Atmospheric model:
-  atmfile  = WASP-00b.atm   ; Input/output atmospheric file
-
-  # TLI opacity files:
-  linedb  = ./HITRAN_H2O_0.3-5.0um.tli
-
-  # Cross-section opacity files:
-  csfile  = ../pyratbay/inputs/CIA/CIA_Borysow_H2H2_0060-7000K_0.6-500um.dat
-            ../pyratbay/inputs/CIA/CIA_Borysow_H2He_1000-7000K_0.5-400um.dat
-
-  # Wavelength sampling options:
-  wlunits = um
-  wllow   =  0.3 um ; Spectrum lower boundary (default units: wlunits)
-  wlhigh  =  5.0 um ; Spectrum higher boundary (default units: wlunits)
-
-  # Wavenumber options:
-  wnunits = cm
-  wnstep  = 1.0   ; Sampling rate (default units: wnunits)
-  wnosamp = 2160  ; Wavenumber over-sampling rate
-
-  # System parameters:
-  radunits = km         ; Default distance units
-  punits   = bar        ; Default pressure units
-  rstar    = 1.27 rsun  ; Stellar radius (default units: radunits)
-  rplanet  = 1.0 rjup   ; Planetary radius (default units: radunits)
-  mplanet  = 0.31 mjup  ; Planetary mass
-  refpressure = 0.1     ; Reference pressure at rplanet (default units: punits)
-
-  # Maximum optical depth to calculate:
-  maxdepth = 10.0
-
-  # Observing geometry, select between: [transit eclipse]
-  path = transit
-
-  # Rayleigh models, select from: [lecavelier dalgarno_H dalgarno_He dalgarno_H2]
-  rayleigh = lecavelier
-  # Lecavelier parameters (log10(H2-cross-section), alpha):
-  rpars    = 0.0 -4.0
-
-  # Haze models, select from: [deck ccsgray]
-  hazes = deck   ; Opaque gray cloud deck model
-  hpars = -0.5   ; log10(cloud top pressure[bar])
-
-  # Alkali opacity, select from: [SodiumVdWst PotassiumVdWst]
-  alkali = SodiumVdWst
-
-  # Number of CPUs to use for parallel processing:
-  nproc = 7
-
-  # Verbosity level [1--5]:
-  verb  = 4
-
-  # Output file names:
-  logfile    = ./transmisison_tutorial.log
-  outspec    = ./transmisison_spectrum_tutorial.dat
-
-.. note:: Pro-tip: By specifying the planetary mass (``mplanet``) and
-          radius (``rplanet``), ``Pyrat Bay`` will automatically
-          compute ``gplanet`` using Newton's gravitational law.
-
-
-For a transmission-spectrum configuration (``path=transit``) ``Pyrat
-Bay`` computes the modulation spectrum, a unitless quantity
-proportional to the squared planet-to-star radius ratio
-(:ref:`spectrum`).  For an emission-spectrum configuration
-(``path=eclipse``) ``Pyrat Bay`` computes the day-side hemisphere
-integrated flux-emission spectrum (evaluated at the surface of the
-planet) in erg s\ :sup:`-1` cm\ :sup:`-2` cm (:ref:`spectrum`).
-
-Besides the cross-section and line-by-line opacities, ``Pyrat Bay``
-provides the following alkali resonant-line models (``alkali`` parameter):
-
-====================  ========= =========================
-Alkali Models         Species   Reference      
-====================  ========= =========================
-SodiumVdWst           Na        [Burrows2000]_
-PotassiumVdWst        K         [Burrows2000]_
-====================  ========= =========================
-
-These are the available Rayleigh models (``rayleigh`` parameter):
-
-====================  ======== =======================  ===
-Rayleigh Models       Species  Parameters               Reference
-====================  ======== =======================  ===
-lecavelier            Any      :math:`\log(f), \alpha`  [Lecavelier2008]_
-dalgarno_H            H        None                     [DalgarnoWilliams1962]_
-dalgarno_He           He       None                     [Kurucz1970]_
-dalgarno_H2           |H2|     None                     [Kurucz1970]_
-====================  ======== =======================  ===
-
-And these are the available haze/cloud models (``hazes`` parameter):
-
-====================  ================================================= ==
-Haze/Cloud Models       Parameters                                      Comments
-====================  ================================================= ==
-deck                  :math:`\log(p_{\rm top})`                         Opaque gray cloud deck at :math:`p_{\rm top}` pressure. 
-ccsgray               :math:`\log(f), \log(p_{\rm t}), \log(p_{\rm b}`) Constant cross-section (:math:`\log(f)`) gray cloud between :math:`p_{\rm t}` and :math:`p_{\rm b}`.
-====================  ================================================= ==
-
-The Rayleigh and haze parameters are input throught the ``rpars`` and
-``hpars``, respectively.  For any of these type of models, the user
-can include multiple models, simply by concatenating multiple models
-(and parameters) one after the other in the config file.
-
-.. TBD: Add details about the models' parameters in a different page.
-
-To compute a ``Pyrat`` model spectrum run the following script:
-
-.. code-block:: python
-
-  pyrat = pb.pbay.run("tutorial_spectrum.cfg")
-
-This returns a ``pyrat`` object that contains all the input,
-intermediate, and output variables used.  Until I got a decent
-documentation working, take a look at `objects.py
-<https://github.com/pcubillos/pyratbay/blob/master/pyratbay/pyrat/objects.py>`_
-to see the object's structure.
-
-.. note:: Note that although the user can define the input units,
-          (nearly) all variables are stored in CGS units in the Pyrat
-          object.
-
-To plot the resulting spectrum you can use this script:
-
-.. code-block:: python
-
-  plt.figure(-3)
-  plt.clf()
-  ax = plt.subplot(111)
-  plt.semilogx(1e4/pyrat.spec.wn, pyrat.spec.spectrum, "b-")
-  ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
-  ax.set_xticks([0.3, 0.4, 0.6, 0.8, 1.0, 2.0, 3.0, 4.0, 5.0])
-  plt.xlim(0.3, 5.0)
-  plt.ylabel("Modulation  (Rp/Rs)^2")
-  plt.xlabel("Wavelength  (um)")
-
-.. image:: ./figures/pyrat_transmission-spectrum_tutorial.png
-   :width: 70%
+This run mode computes a transmission or emission spectrum, for a
+given atmospheric model.
+
+
+Here is a sample configuration file to compute a transmission spectrum:
+
+.. literalinclude:: ../examples/tutorial/tutorial_spectrum.cfg
+..  ../examples/tutorial/spectrum_transmission.cfg
+
+
+Observing Geometry
+------------------
+
+The ``path`` key determine the observing geometry.  The following
+table list the available observing geometries:
+
+======= ===================== ===================== =========== 
+path    Observing geometry    Output spectrum       Units
+======= ===================== ===================== ===========
+transit Transmission geometry (|Rp|/|Rs|)\ :sup:`2` ---
+eclipse Emission geometry     |Fp|                  erg s\ :sup:`-1` cm\ :sup:`-2` cm
+======= ===================== ===================== ===========
+
+For transmission geometry ``Pyrat Bay`` computes the transit depth,
+assuming parallel rays that travel from the star to the observer
+across the planetary atmosphere, which is composed of spherically
+symmetric shell layers.
+For emission geometry, ``Pyrat Bay`` computes the planetary flux
+emission spectrum, adopting the plane-parallel approximation, by
+integrating the intensity from the observed (day-side) hemisphere.
+For more details, see [Cubillos2019]_.
+
+
+Atmospheric Model
+-----------------
+
+The ``atmfile`` key sets the input atmospheric model from which to
+compute the spectrum.  If the file pointed by ``atmfile`` does not
+exist, the codel will attempt to produce it (provided all necessary
+input parameters are set in the configuration file).  The atmospheric
+model can be produced with ``Pyrat Bay`` or be a custom input from the
+user (as long as it follows the right format).
+
+
+Spectrum Sampling
+-----------------
+
+The ``wllow`` and ``wlhigh`` keys set the wavelength boundaries for
+the output spectrum (values must contain units; otherwise, set the
+units with the ``wlunits`` key).  Alternatively, the user can set the
+spectrum boundaries by wavenumber using the ``wnlow`` and ``wnhigh``
+keys (values do not contain units, they are always in |kayser|).
+
+By default, the code produces an output spectrum at
+constant-wavenumber sampling rate.  The ``wnstep`` sets the sampling
+rate in |kayser|.  Note that this will be the output sampling rate.
+Internally, ``Pyrat Bay`` must compute line profiles at a higher
+resolution to ensure not to undersample the line profiles.  The
+``wnosamp`` key (an integer) sets the oversampling factor of the
+high-resolution sampling relative to ``wnstep`` (that is, the
+high-resolution sampling rate is ``wnstep/wnosamp``).  Typical values
+for the optical/IR are ``wnstep = 1.0`` and ``wnosamp = 2000``.
+
+
+Alternatively, the user can request a constant-resolution output by
+setting the ``resolution`` key (where the resolution is
+:math:`R=\lambda/\Delta\lambda`).  Note that in this case, the
+configuration file must still define ``wnstep`` and ``wnosamp``.
+
+
+Voigt Profiles
+--------------
+
+To speed up calculations, ``Pyrat Bay`` pre-computes a grid of Voigt
+profiles at a fixed grid of Doppler and Lorentz half-width at half
+maximum (HWHM).  When computing the LBL opacities, the code selects
+the closest profile to a given line, depending on the line properties.
+
+The grid properties are set automatically by the code (based on the
+input atmosphere properties), so the user does not need to set them.
+However, these values can be set configuration file.
+The user can thus set the ``dmin``, ``dmax``, and ``ndop`` keys to set
+the ranges and number of samples for the Doppler HWHM array (in
+|kayser| units).  Similarly, the ``lmin``, ``lmax``, and ``nlor`` keys
+set the ranges and number of samples for the Lorentz HWHM array (in
+|kayser| units).
+
+Finally, the ``vextent`` key sets the Voigt profiles extent from the
+center of the line, in units of HWHM.  Note that there are no known
+physical grounds to set a value for ``vextent``.  Typical (arbitrary)
+values found in the literature are on the order of ~100 HWHM.
+
+The range of HWHM values can vary strongly with pressure, temperature,
+or wavelength, in particular the Lorentz HWHM as it is inversely
+proportional to pressure.  The following Figure, gives you an idea to
+set these values:
+
+.. figure:: ./figures/broadening.png
+   :width: 60%
    :align: center
 
-Or alternatively, use this ``plots`` subpackage's routine:
+   HCN HWHM variation with pressure, temperature, and wavelength in a
+   |H2|-dominated atmosphere (see legend).  Solid and dashed lines
+   denote the HWHM at 2500 and 500 K, respectively ([Cubillos2017b]_).
+
+
+.. dlratio
+
+
+System Parameters
+-----------------
+
+The system parameters have multiple uses.
+
+Hydrostatic Equilibrium
+^^^^^^^^^^^^^^^^^^^^^^^
+
+If not given in the input atmospheric model, ``Pyrat Bay`` computes
+the altitude of the atmospheric layers following the
+hydrostatic-equilibrium (HE) approximation and ideal-gas law.
+
+The code can adopt two approximations to solve these equations,
+depending on the inputs in the configuration file.  If the user sets
+the ``gplanet`` key (planetary surface gravity) and does not set the
+``mplanet`` key (planetary mass), ``Pyrat Bay`` will solve the HE
+equation assuming a constant gravity.  If the user sets the planetary
+mass, ``Pyrat Bay`` will solve the HE equation considering the
+altitude dependence of gravity:
+
+.. math::
+   \frac{dr}{r^2} = -\frac{kT}{\mu G M_p} \frac{dp}{p}
+
+Finally, the ``rplanet`` and ``refpressure`` keys set a reference
+altitude--pressure pair.  These reference values are required to
+obtain a particular solution of the differential equation above.
+
+Note that the values for the altitude--pressure pair is an arbitrary
+choice. But a good practice is to select values close to the transit
+radius of the planet.  Although the pressure at the transit radius is
+a priori unknown for a give particular case ([Griffith2014]_), its
+value lies at around 0.1 bar (Cubillos et al., in prep.).
+
+
+Hill radius
+^^^^^^^^^^^
+
+The ``mstar``, ``mplanet``, and ``smaxis`` keys set the stellar mass,
+planetary mass, and orbital semi-major axis.  If these keys are set in
+the configuration file, the code will compute the planetary Hill
+radius (:math:`R_{\rm H} = a \sqrt[3]{M_{\rm p}/3M_{\rm s}}`).  In
+such case, ``Pyrat Bay`` will neglect atmospheric layers at altitudes
+larger than :math:`R_{\rm H}`, since they should not be
+gravitationally bound to the planet.
+
+
+Stellar spectrum
+^^^^^^^^^^^^^^^^
+
+The ``tstar`` key sets the stellar effective temperature, which can be
+used to define a stellar blackbody spectrum (|Fs|, see :ref:`starspec`).
+
+
+Radius Ratio
+^^^^^^^^^^^^
+
+To compute eclipse depths from the emission spectra (|Fp|), the user
+needs to set the ``rstar`` and ``rplanet`` keys, which define the
+stellar and planetary radius.  The eclipse depths can then be computed as:
+
+.. math::
+    {\rm Eclipse\ depth} = \frac{F_{\rm p}}{F_{\rm s}}
+                  \left(\frac{R_{\rm p}}{R_{\rm s}}\right)^2
+
+
+Line-by-line Opacities
+----------------------
+
+Use the ``tlifile`` key to include TLI file(s) containing LBL
+opacities (to create a TLI file, see :ref:`tlitutorial`).  The user
+can include zero, one, or multiple TLI files if desired.
+
+Note that the ``tlifile`` opacities will be neglected if the
+configuration file sets input LBL opacities through the ``extfile``
+(see the rules in :ref:`opacity_io`).
+
+
+
+Cross-section Opacities
+-----------------------
+
+Use the ``csfile`` key to include opacities from cross-section files.
+A cross-section file contains opacity (in |kayser| amagat\ :sup:`-2`
+units) tabulated as a function of temperature and wavenumber.  Since
+this format is tabulated in wavenumber, it is best suited for
+opacities that vary smoothly with wavenumber, like collision-induced
+absorption (CIA).  However, the code can also process LBL opacities,
+as long as the files follow the right format (more on this later).
+
+The following table list the most-commonly used CIA opacity sources:
+
+========== ============= ==================================
+Sources    Species       References      
+========== ============= ==================================
+`HITRAN`_  Many          [Richard2012]_ [Karman2019]_
+`Borysow`_ |H2|-|H2| CIA [Borysow2001]_ [Borysow2002]_
+`Borysow`_ |H2|-He CIA   [Borysow1988]_ [Borysow1989a]_ [Borysow1989b]_
+========== ============= ==================================
+
+.. _Borysow: https://www.astro.ku.dk/~aborysow/programs/index.html
+.. _HITRAN: https://hitran.org/cia
+
+``Pyrat Bay`` provides commands to format the downloaded cross-section
+files from these databases.
+
+For the **HITRAN** database, these commands re-format the downloaded CIA
+files and thins down the array (to reduce file size):
+
+.. code-block:: python
+    
+    # Re-format HITRAN H2-H2 CIA file for Pyrat Bay:
+    # (last two arguments tell to take every 2nd and 10th temperature and wavenumber samples):
+    pbay -cs hitran H2-H2_2011.cia 2 10
+
+    # And for HITRAN H2-He CIA (taking every 4th and 10th temp and wavenumber samples):
+    pbay -cs hitran H2-He_2011.cia 4 10
+
+For the **Borysow** database, the code provides already-formatted files
+for |H2|-|H2| in the 60--7000K and 0.6--500 um range \[`here
+<https://github.com/pcubillos/pyratbay/blob/master/inputs/CIA/CIA_Borysow_H2H2_0060-7000K_0.6-500um.dat>`_\]
+(this file pieces together the tabulated |H2|-|H2| files described in
+the references above); and for |H2|-He in the 50--3500K and 0.3--100
+um range \[`here
+<https://github.com/pcubillos/pyratbay/blob/master/inputs/CIA/CIA_Borysow_H2He_0050-3500K_0.3-100um.dat>`_\]
+(this file was created using a re-implementation of the code described
+in the references above).
+
+
+Alkali Opacity Models
+---------------------
+
+Use the ``alkali`` key to include opacities from alkali species.
+Currently, the code provides the [Burrows2000]_ models for the sodium
+and potassium resonant lines, based on van der Waals and statistical
+theory.  The following table lists the available alkali model names:
+
+====================  ========= =========================
+Models (``alkali``)   Species   References      
+====================  ========= =========================
+sodium_vdw            Na        [Burrows2000]_
+potassium_vdw         K         [Burrows2000]_
+====================  ========= =========================
+
+This implementation adopts the line parameters from the VALD database
+[Piskunov1995]_ and collisional-broadening half-width from [Iro2005]_. 
+
+
+Rayleigh Opacity Models
+-----------------------
+
+The ``rayleigh`` key sets Rayleigh opacity models.  The following
+table lists the available Rayleigh model names:
+
+===================== ======= =======================  ===
+Models (``rayleigh``) Species Parameters (``rpars``)   References
+===================== ======= =======================  ===
+lecavelier            ---     :math:`\log(f), \alpha`  [Lecavelier2008]_
+dalgarno_H            H       ---                      [Dalgarno1962]_
+dalgarno_He           He      ---                      [Kurucz1970]_
+dalgarno_H2           |H2|    ---                      [Kurucz1970]_
+===================== ======= =======================  ===
+
+The Dalgarno Rayleigh models are tailored for H, He, and |H2| species,
+and thus are not parametric.  The Lecavelier Rayleigh model is more flexible
+and allows the user to modify the absorption strength and wavelength
+dependency according to:
+
+.. math::
+    k(\lambda) = f \kappa_0 \left(\frac{\lambda}{\lambda_0}\right)^\alpha,
+
+where :math:`\lambda_0=0.35` um and :math:`\kappa_0=5.31 \times
+10^{-27}` cm\ :sup:`2` molecule\ :sup:`-1` are constants, and
+:math:`\log(f)` and :math:`\alpha` are fitting parameters that can be
+set through the ``rpars`` key.  Adopting values of :math:`\log(f)=0.0`
+and :math:`\alpha=-4` reduces the Rayleigh opacity to that expected
+for the |H2| molecule.
+
+.. note:: Be aware that the implementation of the Lecavelier model
+          uses the |H2| number-density profile (:math:`n_{\rm H2}`, in
+          molecules cm\ :sup:`-3`) to compute the extinction
+          coefficient (in |kayser| units) for a given atmospheric
+          model: :math:`e(\lambda) = k(\lambda)\ n_{\rm H2}`.  We do
+          this, because we are mostly interested in |H2|-dominated
+          atmospheres, and most people consider a nearly constant |H2|
+          profile.  Obviously, this needs to be fixed at some point in
+          the future for a more general use.
+
+
+Cloud Opacity Models
+--------------------
+
+Use the ``clouds`` key to include aerosol/haze/cloud opacities.
+Currently, the code provides simple gray cloud models (listed below),
+but soon we will include more complex Mie-scattering clouds for use in
+forward- and retrieval modeling.  The following table lists the
+currently available cloud model names:
+
+
+And these are the available haze/cloud models (``clouds`` parameter):
+
+=================== ====================== =============================
+Models (``clouds``) Parameters (``cpars``) Description
+=================== ====================== =============================
+deck                |ptop|                 Opaque gray cloud deck
+ccsgray             |f|, |pt|, |pb|        Constant gray cross-section
+=================== ====================== =============================
+
+Use the ``cpars`` key to set the cloud model parameters.  The '*deck*'
+model makes the atmosphere instantly opaque at/below the |ptop| pressure
+(in bar units).
+
+The '*ccsgray*' model creates a constant cross-section opacity between
+the :math:`p_{\rm t}` and :math:`p_{\rm b}` pressures (in bar units),
+and the |f| parameter scaling the opacity as: :math:`k = f\ k_0`, with
+:math:`\kappa_0=5.31 \times 10^{-27}` cm\ :sup:`2` molecule\
+:sup:`-1`.  This model uses the |H2| number-density profile to compute
+the extinction coefficient as: :math:`e(\lambda) = k\ n_{\rm H2}` (in
+|kayser| units).  Since the |H2| mixing ratio is generally constant,
+the '*ccsgray*' opacity will scale linearly with pressure over the
+atmosphere.
+
+.. For any of these type of models, the user can include multiple
+   models, simply by concatenating multiple models (and parameters)
+   one after the other in the config file.
+
+Temperature Models
+------------------
+
+The user can re-compute the temperature profile of the atmosphere by
+specifying the ``tmodel`` and ``tpars`` keys (see :ref:`pttutorial`).
+
+
+Abundances Scaling
+------------------
+
+Use the ``molmodel`` key to modify the abundance of certain
+atmospheric species (specified by ``molfree``), according to the
+``molpars`` key.  The following table list the currently available
+models:
+
+============ =========================== =====
+``molmodel`` Scaling                     Description
+============ =========================== =====
+vert         :math:`Q(p) = 10^X`         Set abundance to given value 
+scale        :math:`Q(p) = Q_0(p)\ 10^X` Scale input abundance by given value 
+============ =========================== =====
+
+Here, the variable :math:`X` represents the value in the ``molpars``
+key, whereas :math:`Q_0` is the abundance of the given species taken
+from the atmospheric file ``atmfile``.
+Note that the user can specify as many scaling parameters as wished,
+as long as there are corresponding values for these three keys
+(``molmodel``, ``molfree``, ``molpars``).
+
+
+To preserve the sum of the mixing fractions at 1.0 at each layer, the
+code will 'adjust' the values of certain '*bulk*' species.  The user
+needs to set these species through the ``bulk`` key.  A good practice
+is to set here the dominant species in an atmosphere.  If there is
+more than one '*bulk*' species, the ratio of their abundances is
+preserved.
+
+For example, the following configuration will set uniform mole mixing
+fractions for |H2O| and CO of :math:`10^{-3}` and :math:`10^{-4}`,
+respectively (regardless of input values); scale the input TiO profile
+by a factor of 10.0, and adjust the abundances of |H2| and He to
+preserve a total mixing fraction of 1.0 at each layer:
 
 .. code-block:: python
 
-  ax = pb.plots.spectrum(pyrat=pyrat, gaussbin=2)
+  molmodel = vert  vert  scale
+  molfree  =  H2O    CO    TiO
+  molpars  = -3.0  -4.0   -1.0  
+  bulk     = H2 He
 
-  ax.set_xscale('log')
-  ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
-  ax.set_xticks([0.3, 0.4, 0.6, 0.8, 1.0, 2.0, 3.0, 4.0, 5.0])
-  plt.show()
-  plt.savefig("pyrat_transmission-spectrum_tutorial.pdf")
 
-If you want to compute emission spectra, all you need to do is to
-change ``path`` to ``eclipse`` and re run:
+.. _starspec:
+
+Stellar Spectrum
+----------------
+
+``Pyrat Bay`` provides several options to set a stellar spectrum.  The
+stellar spectrum is required to compute eclipse depths as the
+planet-to-star flux spectrum.  In order of precedence:
+
+The ``starspec`` key sets the path to a custom spectrum file
+containing a spectrum. This file should contain in the first column
+the wavelength array in microns, and in the second column the flux
+spectrum in erg s\ :sup:`-1` cm\ :sup:`-2` cm units.
+
+Alternatively, the user can use a Kurucz stellar model
+([Castelli2003]_) by setting the ``kurucz`` key to the path to a
+Kurucz model.  These models can be downloaded from this link:
+http://kurucz.harvard.edu/grids/ In this case, the code selects the
+correct Kurucz model based on the stellar temperature (``tstar`` key)
+and surface gravity (``gstar`` key).
+
+Finally, the user can set a blackbody stellar spectrum by setting the
+``tstar`` key with the stellar effective temperature (in Kelvin
+units).
+
+(MARCS and PHOENIX are TBI upon popular demand)
+
+
+Filter Pass-bands
+-----------------
+
+Use the ``filters`` key to set the path to instrument filter
+pass-bands (see [link to formats?]).  These can be used to compute
+band-integrated values for the transmission or eclipse-depth spectra.
+
+
+Observed Data
+-------------
+
+Use the ``data`` and ``uncert`` keys to set values for observed
+transit- or eclipse-depth values and their uncertainties,
+respectively.  Logically, you want to set data values corresponding to
+the ``filters`` pass-bands.
+
+Use the ``dunits`` key to specify the units of the ``data`` and
+``uncert`` values (default: ``dunits = none``).  Typical values are:
+'*none*', '*percent*', or '*ppm*' (see :ref:`units` section).
+
+.. note:: Note that the ``filters``, ``data``, and ``uncert`` keys are
+          not strictly required for a spectrum run, but they will
+          allow the code to plot these information if requested (see
+          [link to plots]).
+
+
+
+Other Configuration Parameters
+------------------------------
+
+Number of CPUs
+^^^^^^^^^^^^^^
+
+The ``ncpu`` key sets the number of CPUs to use when computing LBL
+opacities or when running retrievals (default: ``ncpu = 1``).
+
+Verbosity
+^^^^^^^^^
+
+The ``verb`` key sets the screen-output and logfile verbosity level.
+Higher ``verb`` values will display increasingly levels of detail
+according to the following table:
+
+========  =====================
+``verb``  Screen Outputs
+========  =====================
+<0        Errors
+0         Warnings
+1         Headers
+2         Details
+3         Debug
+========  =====================
+
+Log File
+^^^^^^^^
+
+Use the ``logfile`` key to set a file name where to save the screen
+outputs (same content as the screen output).  If this is not set by
+the user, the code will default the ``logfile`` to the output file of
+each corresponding ``runmode`` (changing the file extension to
+'*.log*').  The following table lists the files from where the code
+will take the default name for each ``runmode``:
+
+===========  =====================
+``runmode``  Default ``logfile`` name
+===========  =====================
+tli          ``tlifile``
+atmosphere   ``atmfile``
+spectrum     ``outspec``
+opacity      ``extfile``
+mcmc         ``mcmcfile``
+===========  =====================
+
+
+Optical-depth Cutoff
+^^^^^^^^^^^^^^^^^^^^
+
+The ``maxdepth`` key sets an optical-depth cutoff to stop the
+radiative-transfer calculations. Since there is little transmitted
+intensity through a layer when the optical depth is greater than one,
+layers where :math:`\tau \gg 1` won't impact on the resulting
+spectrum.
+
+..  Thus, setting ``maxdepth = 10.0``, for example, will prevent the
+    code to compute
+
+.. ethresh
+
+Plane-parallel Hemispheric Integration
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+For eclipse geometry, the code computes the emergent intensity under
+the plane-parallel approximation, and then it integrates (sums)
+intensity spectra at different angles with respect to the normal to
+model the emitted flux spectrum.  The ``raygrid`` sets the angles (in
+degrees) where to evaluate these intensities (default: ``raygrid = 0
+20 40 60 80``).  The user can set custom values for these angles as
+long as: (1) the first value is zero (normal to the planet's
+'surface'), (2) they lie in the [0,90) range, and (3) they are
+increasing order.
+
+Alternatively, the user can set the ``quadrature`` key to perform a
+Gaussian-quadrature integration, where the ``quadrature`` value sets
+number of Gaussian-quadrature points (in which case, ``raygrid`` will
+be ignored).
+
+.. Plots: logxticks
+          yran
+
+----------------------------------------------------------------------
+
+Examples
+--------
+
+In an interactive run, a spectrum run returns a '*pyrat*' object that
+contains all input, intermediate, and output variables used to compute
+the spectrum.  The following Python script computes and plots a
+transmission spectrum using the configuration file found at the top of
+this tutorial:
 
 .. code-block:: python
 
-  pyrat = pb.pbay.run("tutorial_spectrum.cfg")
+    import matplotlib.pyplot as plt
+    plt.ion()
 
-  
+    import pyratbay as pb
+    import pyratbay.constants as pc
 
-References
-----------
+    pyrat = pb.run('tutorial_spectrum.cfg')
 
-.. [Burrows2000] `Burrows et al. (2000): The Near-Infrared and Optical Spectra of Methane Dwarfs and Brown Dwarfs <http://adsabs.harvard.edu/abs/2000ApJ...531..438B>`_
-.. [Cubillos2017] `An Algorithm to Compress Line-transition Data for Radiative-transfer Calculations <http://adsabs.harvard.edu/abs/2017ApJ...850...32C>`_
-.. [DalgarnoWilliams1962] `Dalgarno & Williams (1962): Rayleigh Scattering by Molecular Hydrogen <http://adsabs.harvard.edu/abs/1962ApJ...136..690D>`_
-.. [Irwin1981] `Irwin (1981): Polynomial partition function approximations of 344 atomic and molecular species <http://adsabs.harvard.edu/abs/1981ApJS...45..621I>`_
-.. [Kurucz1970] `Atlas: a Computer Program for Calculating Model Stellar Atmospheres <http://adsabs.harvard.edu/abs/1970SAOSR.309.....K>`_
-.. [Laraia2011] `Laraia et al. (2011): Total internal partition sums to support planetary remote sensing <http://adsabs.harvard.edu/abs/2011Icar..215..391L>`_
-.. [Lecavelier2008] `Lecavelier des Etangs et al. (2008): Rayleigh Scattering in the Transit Spectrum of HD 189733b <http://adsabs.harvard.edu/abs/2008A%26A...481L..83L>`_
-.. [Line2013] `A Systematic Retrieval Analysis of Secondary Eclipse Spectra. I. A Comparison of Atmospheric Retrieval Techniques <http://adsabs.harvard.edu/abs/2013ApJ...775..137L>`_
-.. [Madhusudhan2009] `Madhusudhan & Seager (2009): A Temperature and Abundance Retrieval Method for Exoplanet Atmospheres. <http://adsabs.harvard.edu/abs/2009ApJ...707...24M>`_
-.. [PS1997] `Partridge & Schwenke (1997): The determination of an accurate isotope dependent potential energy surface for water from extensive ab initio calculations and experimental data <http://adsabs.harvard.edu/abs/1997JChPh.106.4618P>`_
-.. [Plez1998] `Plez (1998): A new TiO line list <http://adsabs.harvard.edu/abs/1998A%26A...337..495P>`_
-.. [Richard2012] `New section of the HITRAN database: Collision-induced absorption (CIA) <http://adsabs.harvard.edu/abs/2012JQSRT.113.1276R>`_
-.. [Rothman2010] `Rothman et al. (2010): HITEMP, the high-temperature molecular spectroscopic database <http://adsabs.harvard.edu/abs/2010JQSRT.111.2139R>`_
-.. [Rothman2013] `Rothman et al. (2013): The HITRAN2012 molecular spectroscopic database <http://adsabs.harvard.edu/abs/2013JQSRT.130....4R>`_
-.. [Schwenke1998] `Schwenke (19988): Opacity of TiO from a coupled electronic state calculation parametrized by AB initio and experimental data <http://adsabs.harvard.edu/abs/1998FaDi..109..321S>`_
-.. [Tennyson2016] `Tennyson et al. (2016): The ExoMol database: Molecular line lists for exoplanet and other hot atmospheres <http://adsabs.harvard.edu/abs/2016JMoSp.327...73T>`_
-.. [terBraak2006] `ter Braak (2006): A Markov Chain Monte Carlo version of the genetic algorithm Differential Evolution <http://dx.doi.org/10.1007/s11222-006-8769-1>`_
-.. [BraakVrugt2008] `ter Braak & Vrugt (2008): Differential Evolution Markov Chain with snooker updater and fewer chains <http://dx.doi.org/10.1007/s11222-008-9104-9>`_
+    # Plot the resulting spectrum:
+    plt.figure(-3)
+    plt.clf()
+    ax = plt.subplot(111)
+    plt.semilogx(1e4/pyrat.spec.wn, pyrat.spec.spectrum, "b-")
+    ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+    ax.set_xticks([0.3, 0.4, 0.6, 0.8, 1.0, 2.0, 3.0, 4.0, 5.0])
+    plt.xlim(0.3, 5.0)
+    plt.ylabel("Modulation  (Rp/Rs)^2")
+    plt.xlabel("Wavelength  (um)")
+
+    # Or, alternatively:
+    ax = pyrat.plot_spectrum(gaussbin=2, logxticks=[0.3, 0.4, 0.6, 0.8, 1.0, 2.0, 3.0, 4.0, 5.0])
+
+And the results should look like this:
+
+.. image:: ./figures/pyrat_transmission-spectrum_tutorial.png
+    :width: 70%
+    :align: center
+
+
+.. note:: Note that although the user can define most input units,
+          nearly all variables are stored in CGS units in the
+          '*pyrat*'.
+
+The '*pyrat*' object is modular, and implements several convenience
+methods to plot and display its content, as in the following example:
+
+.. code-block:: python
+
+    # pyrat object's string representation:
+    print(pyrat)
+
+    # String representation of the spectral variables:
+    print(pyrat.spec)

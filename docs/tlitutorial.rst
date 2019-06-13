@@ -2,113 +2,147 @@
 .. |CO2| replace:: CO\ :sub:`2`
 .. |CH4| replace:: CH\ :sub:`4`
 .. |H2|  replace:: H\ :sub:`2`
+.. |N2O| replace:: N\ :sub:`2`\ O
+.. |NO2| replace:: NO\ :sub:`2`
+
 
 .. _tlitutorial:
 
 TLI Tutorial
 ============
 
-This mode formats the Line-by-line (LBL) line-transition information
-into a TLI file, used by ``Pyrat Bay`` to compute opacities.  The
-following table list the available data bases (Note that cross-section
-opacity files (CS) are not processed into TLI files):
 
-==================== ============================= ==== ====== =========
-Source               Species                       Type Format Reference
-==================== ============================= ==== ====== =========
-HITRAN               |H2O|, CO, |CO2|, |CH4| (+43) LT   LBL    [Rothman2013]_
-HITEMP               |H2O|, CO, |CO2|, NO, OH      LT   LBL    [Rothman2010]_
-ExoMol               |H2O|, CO, |CO2|, |CH4| (+)   LT   LBL/CS [Tennyson2016]_
-Partridge & Schwenke |H2O|                         LT   LBL    [PS1997]_
-Schwenke             TiO                           LT   LBL    [Schwenke1998]_
-Plez                 VO                            LT   LBL    [Plez1998]_
-Borysow              |H2|-|H2|, |H2|-He            CIA  CS     TBD
-HITRAN               |H2|-|H2|, |H2|-He (+12)      CIA  CS     [Richard2012]_
-==================== ============================= ==== ====== =========
+This mode formats the line-by-line (LBL) opacity data into a
+transition-line information (TLI) file, the format used by ``Pyrat
+Bay`` to compute opacities.
+
+Available Databases
+-------------------
+
+The following table lists the available
+LBL opacity databases that are compatible with ``Pyrat Bay``:
+
+======================= ====================================== ===============
+Source                   Species                                References
+======================= ====================================== ===============
+`HITRAN`_               |H2O|, CO, |CO2|, |CH4| (+others)      [Rothman2013]_
+                                                               [Gordon2017]_
+`HITEMP`_               |H2O|, CO, |CO2|, NO, OH, |N2O|, |NO2| [Rothman2010]_
+                                                               [Li2015]_
+                                                               [Hargreaves2019]_
+`ExoMol`_               |H2O|, CO, |CO2|, |CH4|, TiO (+others) [Tennyson2016]_
+`Partridge & Schwenke`_ |H2O|                                  [PS1997]_
+`Schwenke`_             TiO                                    [Schwenke1998]_
+Plez                    VO                                     [Plez1998]_
+======================= ====================================== ===============
 
 ``Pyrat Bay`` is also compatible with the ``repack`` code to compress
-Exomol/HITEMP databases [Cubillos2017]_.
+ExoMol or HITEMP databases (see more details in [Cubillos2017b]_).
 
+.. note:: Note that besides these LBL opacities, there is also
+          collision-induced absorption (CIA) opacities that vary
+          smoothly with wavelength.  These opacities are processed as
+          tabulated cross-section (CS) files as a function of
+          temperature and wavelength.
+
+.. Borysow              |H2|-|H2|, |H2|-He            CIA  CS     TBD
+.. HITRAN               |H2|-|H2|, |H2|-He (+12)      CIA  CS     [Richard2012]_
+
+
+Sample Configuration File
+-------------------------
 
 Here is an example of a TLI configuration file:
 
-.. code-block:: python
+.. literalinclude:: ../examples/tutorial/tutorial_tli.cfg
 
-   [pyrat]
-   # For syntax see:  https://docs.python.org/2/library/configparser.html
+Databases
+---------
 
-   # Pyrat Bay run mode, select from: [tli pt atmosphere spectrum opacity mcmc]
-   runmode = tli
+The ``dblist`` key specifies the opacity database to read (e.g., the
+'`.par`' HITRAN files, or the '`.trans`' ExoMol files).  A TLI
+configuration file can contain as many ``dblist`` values as desired;
+this is particularly useful for molecules whose LBL data is split into
+multiple files (e.g., ExoMol or HITEMP data).
 
-   # List of line-transtion databases:
-   dblist = ./01_hit12.par
-   # Type of line-transition database:
-   dbtype  = hit
-   # List of partition functions for each database:
-   pflist = ctips
+The ``dbtype`` key indicates of what type are the databases listed in
+``dblist``.  There must be one ``dbtype`` value for each ``dblist``
+value.  The following table lists the ``dbtype`` values for each
+database type:
 
-   # Initial wavelength (microns):
-   iwl =  0.3
-   # Final wavelength (microns):
-   fwl =  5.0
+============================ =========== 
+Database                     dbtype      
+============================ =========== 
+HITRAN/HITEMP                hitran      
+ExoMol                       exomol      
+repack                       repack      
+Partridge & Schwenke (|H2O|) pands       
+Schwenke (TiO)               tioschwenke 
+Plez (VO)                    voplez      
+============================ =========== 
 
-   # Output TLI file:
-   outfile = ./HITRAN_H2O_0.3-5.0um.tli
+.. note:: It is possible as well to combine multiple species in a
+           single TLI run.
 
-   # Verbosity level [1--5]:
-   verb  = 4
 
-A TLI run requires as input the set of LBL database files
-(``dblist``), DB type (``dbtype``), and partition function file
-(``pflist``).  Multiple DB files from multiple species can be set in a
-same configuration file, as long as one sets the corresponding list of
-DB types and partition-function files.  The following table shows the
-available DBs and source URLs:
+Partition Functions
+-------------------
 
-====================  =============================   ====== ===
-Database              Species                         dbtype URL
-====================  =============================   ====== ===
-Partridge & Schwenke  |H2O|                           ps     http://kurucz.harvard.edu/molecules/h2o/h2ofastfix.bin
-HITRAN                |H2O|, CO, |CO2|, |CH4| (+43)   hit    http://cfa.harvard.edu/hitran
-HITEMP                |H2O|, CO, |CO2|, NO, OH        hit    http://cfa.harvard.edu/hitran
-Exomol                |H2O|, CO, |CO2|, |CH4| (+43)   emol   http://www.exomol.com/
-Schwenke              TiO                             ts     http://kurucz.harvard.edu/molecules/tio/tioschwenke.bin
-Plez                  VO                              vo     http://www.pages-perso-bertrand-plez.univ-montp2.fr
-repack                Exomol/HITEMP/schwenke-TiO      repack https://github.com/pcubillos/repack
-====================  =============================   ====== ===
+The partition function is a temperature-dependent property of each
+isotope that is required to compute line intensities.  In the TLI
+configuration file, the ``pflist`` key specifies the partition
+function for each ``dblist`` value.
 
-.. VALD                  TBD                             vald   TBD
+For the hitran databases, ``Pyrat Bay`` provides an implementation of
+the Total Internal Partition Sums (TIPS) code to calculate the
+partition functions (see [Laraia2011]_ and [Gamache2017]_).  In this
+case the user can set the ``pflist`` value to '`ctips`'.
 
-The following table lists the available partition-function files and
-source URLs.  See the :ref:`sscripts` section to format the online
-partition-function files into the ``Pyrat Bay`` format.
+The exomol, pands, and tioschwenke databases provide the partition
+function as a table along with the LBL files.  In this case, the user
+must download the partition-function files, and format them into the
+``Pyrat Bay`` format.
 
-====================  =====================  ===
-Database              Temperature range (K)  URL
-====================  =====================  ===
-Partridge & Schwenke  10-6000                http://kurucz.harvard.edu/molecules/h2o/h2opartfn.dat
-HITRAN and HITEMP     70-3000                ctips*
-Schwenke TiO          10-6000                http://kurucz.harvard.edu/molecules/tio/tiopart.dat
-Plez VO               1000-7000              poly**
-====================  =====================  ===
+**TBD: pbay.py -pf kurucz filename**
 
-\* For the HITRAN and HITEMP databases, ``Pyrat Bay``
-provides a modified version of the Total Internal Partition Sums
-(TIPS) code [Laraia2011]_ to calculate the partition functions.
+.. Plez VO               1000-7000              poly**
+   The VO database uses a polynomial formula from [Irwin1981]_.
 
-\** The VO database uses a polynomial formula from [Irwin1981]_.
+Wavelength Boundaries
+---------------------
+
+The user can specify any desired wavelength boundaries for a TLI run,
+by setting the ``wllow`` and ``wlhigh`` keys.  The values for these
+keys must specify the units, along with the numeric value (see
+:ref:`units` for a list of available units).
+
+Output Files
+------------
+
+The ``tlifile`` key (a required key) must specify the name of the
+output TLI file.  The output TLI file will include only the lines
+within the specified wavelength ranges (``wllow`` and ``wlhigh``).
+
+When running, ``Pyrat Bay`` will also create a log file containing the
+screen output.  The log file name can be set explicitly through the
+``logfile`` key; otherwise, it will be created from the ``tlifile``
+name, changing the extension to '`.log`'.
+
 
 .. note:: Before running the tli tutorial, download the HITRAN |H2O|
           file as in :ref:`qexample`.
 
 To create the TLI file, run from the Python interpreter:
 
-.. code-block:: python
+.. code-block:: shell
 
    # Make a TLI file with opacity line-transition info:
-   pb.pbay.run("tutorial_tli.cfg")
+   pbay -c tutorial_tli.cfg
 
-The output TLI file will include only the lines within the specified
-wavelength ranges (``iwl`` and ``fwl``).  The screen output will be
-stored to an ASCII log file with the same name as the TLI file.
 
+
+.. _HITRAN: https://www.cfa.harvard.edu/HITRAN/
+.. _HITEMP: https://www.cfa.harvard.edu/HITRAN/
+.. _ExoMol: http://www.exomol.com
+.. _Partridge & Schwenke: http://kurucz.harvard.edu/molecules/h2o/
+.. _Schwenke: http://kurucz.harvard.edu/molecules/tio/

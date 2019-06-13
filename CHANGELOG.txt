@@ -5281,3 +5281,11 @@ Tested.
 
 Updated paths in travis file to avoid explicit username.
 
+
+*****  Do 13. Jun 15:40:51 CEST 2019  *****
+
+Done some heavy lifting updating the documentation.
+Got a pretty complete draft of the runmode tutorials.
+Still need to fine tune it, get the API working, and maybe add some
+other sections (plots, post processing, file formats, cookbooks).
+

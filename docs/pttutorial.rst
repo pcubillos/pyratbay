@@ -3,105 +3,134 @@
 .. |CH4| replace:: CH\ :sub:`4`
 .. |H2|  replace:: H\ :sub:`2`
 
+.. |kappa|  replace:: :math:`\log_{10}(\kappa)`
+.. |gamma1| replace:: :math:`\log_{10}(\gamma_1)`
+.. |gamma2| replace:: :math:`\log_{10}(\gamma_2)`
+.. |alpha|  replace:: :math:`\alpha`
+.. |beta|   replace:: :math:`\beta`
+
+
 .. _pttutorial:
 
 Pressure-Temperature Tutorial
 =============================
 
-This mode creates a 1D set of pressure-temperature layers.  The
-pressure array is equi-spaced in log-pressure.  This mode produces a
-pdf image of the pressure-temperature profile and it returns the
-pressure and temperature arrays.
+This run mode creates a 1D profile of pressure-temperature layers.
+Currently, there are four available temperature models that can be set
+with the ``tmodel`` key. Each one of these require a different set of
+parameters (``tpars``).  The models, parameters, and references are
+listed in the following table:
 
-The temperature model (``tmodel``) can be isothermal,
-three-channel Eddington approximation (tcea) [Line2013]_, or the Madhusudhan parameterized model for thermally inverted (madhu_inv) or non-inverted (madhu_noinv) atmospheres [Madhusudhan2009]_.  The
-number of model parameter (``tparams``) and other system parameters
-depend on the temperature model.
+=================== ============================================ ==== 
+Models (``tmodel``) Parameters (``tpars``)                       References
+=================== ============================================ ====
+isothermal          :math:`T_0`                                  ---
+tcea                |kappa|, |gamma1|, |gamma2|, |alpha|, |beta| [Line2013]_
+madhu_inv           :math:`a_1, a_2, p_1, p_2, p_3, T_3`         [Madhusudhan2009]_
+madhu_noinv         :math:`a_1, a_2, p_1, p_2, p_3, T_3`         [Madhusudhan2009]_
+=================== ============================================ ====
+
+
+Pressure Profile
+----------------
+
+The pressure profile is an equi-spaced array in log-pressure,
+determined by the pressure at the top of the atmosphere ``ptop``, at
+the bottom of the atmosphere ``pbottom``, and the number of layers
+``nlayers``.
+
+The units for the ``ptop`` and ``pbottom`` pressures may
+be defined in place (as in the sample above) or may be defined with
+the ``punits`` key (in-place units take precedence over ``punits``).
+See :ref:`units` for a list of available units.
+
+
+Temperature Profiles
+--------------------
+
+Isothemal
+^^^^^^^^^
+
+The isothermal model is the simplest model, having just one free
+parameter (``tpars``): the temperature (:math:`T_0`) at all layers.
 
 Here is an example of a PT configuration file:
 
-.. code-block:: python
+.. literalinclude:: ../examples/tutorial/tutorial_pt-isothermal.cfg
 
-  [pyrat]
 
-  # Pyrat Bay run mode, select from: [tli pt atmosphere spectrum opacity mcmc]
-  runmode = pt
+Three-channel Eddington Approximation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-  # Pressure array:
-  punits  = bar    ; Default pressure units
-  pbottom = 100.0  ; Bottom-layer pressure  (default units: punits)
-  ptop    = 1e-5   ; Top-layer pressure (default units: punits)
-  nlayers = 100    ; Number of atmospheric layers
-
-  # Temperature-profile model, select from [isothermal tcea madhu_inv madhu_noinv]
-
-  tmodel  = isothermal
-  tparams = 1500.0
-  #    log10(kappa) log10(g1) log10(g2) alpha beta
-  tparams = -3.0    -0.25     0.0       0.0   1.0
-
-  # System parameters:
-  radunits = km
-  rstar    = 1.27 rsun  ; Stellar radius (default units: radunits)
-  tstar    = 5800.0     ; Stellar effective temperature in K
-  smaxis   = 0.045 au   ; Semi-major axis (default units: radunits)
-  gplanet  = 800.0      ; Planetary surface gravity in cm s-2
-  tint     = 100.0      ; Planetary internal temperature in K
-
-  # Verbosity level [1--5]:
-  verb = 4
-
-The isothermal model has one free parameter: the temperature.
-The tcea model has five parameters: :math:`\log_{10}(\kappa),
-\log_{10}(\gamma1), \log_{10}(\gamma2), \alpha, \beta` as defined in
-[Line2013]_.  The tcea model also requires the stellar radius
+The tcea model has five parameters: |kappa|,
+|gamma1|, |gamma2|, |alpha|, and |beta| as defined in
+[Line2013]_.  This model also requires the stellar radius
 (``rstar``), the orbital semi-major axis (``smaxis``), the planetary
 surface gravity (``gplanet``), the stellar effective temperature
 (``tstar``), and the planetary internal temperature (``tint``).
+
+.. literalinclude:: ../examples/tutorial/tutorial_pt-tcea.cfg
+
+Note that the units for ``gplanet`` are cm s\ :sup:`-2`, and the units
+for temperature keys (like ``tstar`` and ``tint``) are Kelvin.
+
+.. note:: ``Pyrat Bay`` can compute the planetary surface gravity
+          (``gplanet``) from the planetary mass (``mplanet``) and
+          radius (``rplanet``).
+
+Madhu profiles
+^^^^^^^^^^^^^^
+
 The madhu_inv model has six parameters: :math:`a_1, a_2, p_1, p_2, p_3,
-T_3` as defined in [Madhusudhan2009]_. The madhu_noinv model has five
+T_3`, whereas the madhu_noinv model has five
 parameters: :math:`a_1, a_2, p_1, p_3, T_3` as defined in
-[Madhusudhan2009]_.
+[Madhusudhan2009]_.  **[To be reviewed]**
 
-To create an isothermal pressure-temperature profile run from the
-Python interpreter:
+-------------------------------------------------------------------
 
-.. code-block:: python
+Examples
+--------
 
-  # Generate an isothermal PT profile (output values in CGS units):
-  pressure, T_isothermal = pb.pbay.run("tutorial_pt-isothermal.cfg")
-  # Generate a tcea PT profile:
-  pressure, T_tcea = pb.pbay.run("tutorial_pt-tcea.cfg")
+The PT run mode returns a two-element tuple with the pressure and
+temperature arrays (in CGS units).  The following Python script
+creates (and plots) an isothermal and a TCEA pressure-temperature
+profile, using the parameters shown in the previous sections:
 
-Note that the only difference between these configuration files are the
-``tmodel`` and ``tparams`` varables.
-
-Plot the profiles:
 
 .. code-block:: python
+
+  import matplotlib.pyplot as plt
+  plt.ion()
+
+  import pyratbay as pb
+  import pyratbay.constants as pc
+
+  # Generate PT profiles:
+  press, T_iso  = pb.run("tutorial_pt-isothermal.cfg")
+  press, T_tcea = pb.run("tutorial_pt-tcea.cfg")
 
   # Plot the PT profiles:
-  plt.figure(-1)
+  plt.figure(11)
   plt.clf()
-  plt.semilogy(T_isothermal, pressure/pb.constants.bar, color="b",
-               lw=2, label='Isothermal')
-  plt.semilogy(T_tcea, pressure/pb.constants.bar, color="r",
-               lw=2, label='TCEA')
+  plt.semilogy(T_iso,  press/pc.bar, color='b', lw=2, label='Isothermal')
+  plt.semilogy(T_tcea, press/pc.bar, color='r', lw=2, label='TCEA')
   plt.ylim(100, 1e-5)
+  plt.xlim(1200, 1800)
   plt.legend(loc="best")
   plt.xlabel("Temperature  (K)")
   plt.ylabel("Pressure  (bar)")
-  plt.savefig("pyrat_PT_tutorial.pdf")
+
+And the results should look like this:
 
 .. image:: ./figures/pyrat_PT_tutorial.png
    :width: 70%
    :align: center
 
+
 .. note:: If any of the required variables is missing form the
           configuration file, ``Pyrat Bay`` will throw an error
           indicating the missing value, and **stop executing the
-          run.**
-
-.. note:: Similarly, ``Pyrat Bay`` will throw a warning for a missing
-          variable that was defaulted, and **continue executing the run.**
+          run.** Similarly, ``Pyrat Bay`` will throw a warning for a
+          missing variable that was defaulted, and **continue
+          executing the run.**
 

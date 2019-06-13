@@ -3,70 +3,92 @@
 Getting Started
 ===============
 
-``Pyrat Bay`` is a modular package
-that offers a sequence of running modes (``runmode``):
+The main goal of the ``Pyrat Bay`` package is to enable modeling of
+exoplanet atmospheres and their spectra.  Since this involves several
+different physical processes, ``Pyrat Bay`` adopts a modular approach
+allowing the user to execute particular steps or
+concatenate multiple steps in a single run (see figure below).
+
+.. figure:: ./figures/pyrat_user_case.png
+   :width: 60%
+   :align: center
+
+   ``Pyrat Bay`` use-case diagram and the main outputs from each case
+   (italics).  Solid arrows indicate steps that can be directly
+   executed by the user. Dotted arrows indicate steps that can be
+   linked in a single run.
+
+The following table details what each of these steps do.
 
 +----------------+------------------------------------------------------------+
 |  Run mode      | Description                                                |
 +================+============================================================+
-| ``tli``        | Generate a transition-line-information file (used for      |
-|                | spectral computation)                                      |
+| ``tli``        | Format line-by-line (LBL) opacity databases into a         |
+|                | transition-line-information file (TLI, the format used by  |
+|                | ``Pyrat Bay`` for spectral computations)                   |
 +----------------+------------------------------------------------------------+
 | ``pt``         | Compute a temperature-pressure profile                     |
 +----------------+------------------------------------------------------------+
 | ``atmosphere`` | Generate a 1D atmospheric model (pressure, temperature,    |
-|                | and abundances)                                            |
+|                | and abundance profiles)                                    |
 +----------------+------------------------------------------------------------+
-| ``spectrum``   | Compute forwad-modeling spectra (transmission or emission) |
+| ``opacity``    | Generate an opacity table as function of wavenumber,       |
+|                | temperature, pressure, and species                         |
 +----------------+------------------------------------------------------------+
-| ``opacity``    | Generate an extinction-coefficient table (to speed up      |
-|                | spectra computation)                                       |
+| ``spectrum``   | Compute forward-modeling spectra (transmission or          |
+|                | emission)                                                  |
 +----------------+------------------------------------------------------------+
 | ``mcmc``       | Run an atmospheric retrieval                               |
 +----------------+------------------------------------------------------------+
 
+Any of these steps can be run either interactively though the Python
+Interpreter, or from the command line.  To streamline execution,
+``Pyrat Bay`` provides a single command to execute any of these runs.
+To set up any of these runs, ``Pyrat Bay`` uses configuration files
+following the standard `INI format
+<https://docs.python.org/3.6/library/configparser.html#supported-ini-file-structure>`_.
 
-The Pyrat Bay package provides multiple sub packages to compute
-radiative-transfer calculations for exoplanets:
+The :ref:`qexample` section below demonstrates a simple
+forward-modeling spectrum run, while the next sections give a thorough
+detail for each of the running modes.  Finally, most of the low- and
+mid-level routines used for these calculations are available
+through the ``Pyrat Bay`` sub modules (see :ref:`API`).
 
-The ``pyrat`` is the main package that provides the radiative-transfer
-code that computes an emission or transmission spectrum for a given
-atmospheric model.  The ``lineread`` package formats online-available
-line-by-line opacity databases, used later by ``pyrat``.  The ``pbay``
-package provides the retrieval framework (using a Markov-chain Monte
-Carlo algorithm, MCMC) to model and constrain exoplanet atmospheres.
+.. The ``pyrat`` package is the main package that provides the
+   radiative-transfer code that computes an emission or transmission
+   spectrum for a given atmospheric model.  The ``lineread`` package
+   formats online-available line-by-line opacity databases, used later
+   by ``pyrat``.  The ``pbay`` package provides the retrieval
+   framework (using a Markov-chain Monte Carlo algorithm, MCMC) to
+   model and constrain exoplanet atmospheres.
 
-Additional packages provide specific function to read stellar spectra
-(``starspec``); generate, read, and write 1D atmospheric models
-(``atmosphere``), read and process waveband filters (``wine``),
-provide universal and astrophysical constants (``constants``),
-plotting (``plots``) and additional tools (``tools``).
-
-Each one of these can be run either from the shell prompt (through the
-executable file ``pyratbay/pbay.py``) or in an interactive session
-through the Python interpreter.
+.. Additional packages provide specific function to read stellar
+   spectra (``starspec``); generate, read, and write 1D atmospheric
+   models (``atmosphere``), provide universal and astrophysical constants
+   (``constants``), plotting (``plots``) and additional tools
+   (``tools``).
 
 
 System Requirements
 -------------------
 
-Pyrat-Bay (version 0.0) is known to work (at least) on Unix/Linux
-and OS X machines, with the following software:
+Pyrat-Bay (version 1.0+) has been extensively tested to work on
+Unix/Linux and OS X machines, with the following software
+requirements:
 
-* Python (version 2.7)
-* Numpy (version 1.8.2+)
+* Python (version 2.7 or 3.6+)
+* Numpy (version 1.8.1+)
 * Scipy (version 0.13.3+)
 * Matplotlib (version 1.3.1+)
-* Sympy (suggested version 0.7.1.rc1)
-* Sphinx (version 1.3.3+)
+* Sympy (0.7.6+)
 
-``Pyrat Bay`` may work with previous versions of these software.
-However we do not guarantee it nor provide support for that.
+``Pyrat Bay`` may work with previous software versions; however, we do
+not guarantee nor provide support for that.
 
 .. _install:
 
-Install
--------
+Install and Compile
+-------------------
 
 To obtain the current stable ``Pyrat Bay`` code, clone the repository
 to your local machine with the following terminal commands:
@@ -76,10 +98,7 @@ to your local machine with the following terminal commands:
   topdir=`pwd`
   git clone --recursive https://github.com/pcubillos/pyratbay
 
-Compile
--------
-
-Compile the C programs:
+And compile the CPython programs:
 
 .. code-block:: shell
 
@@ -92,8 +111,8 @@ Compile the C programs:
 
 .. _qexample:
 
-Quick Example: pyrat forward modeling
--------------------------------------
+Quick Example
+-------------
 
 The following script quickly you calculate a water transmission
 spectrum between 0.5 and 5.5 um.  These instructions are meant to be
@@ -144,11 +163,13 @@ transmission and emission spectra:
    $topdir/pyratbay/pbay.py -c demo_spectrum-transmission.cfg
    $topdir/pyratbay/pbay.py -c demo_spectrum-emission.cfg
 
-Outputs
-^^^^^^^
+.. Outputs
+   ^^^^^^^
+
+------------------------------------------------------------------------
 
 That's it, now let's see the results.  The screen outputs and any
-warnings raisedare are saved into log files.  The output spectrum is
+warnings raised are saved into log files.  The output spectrum is
 saved to a separate file, to see it, run this Python script (on
 interactive mode, I suggest starting the session with ``ipython
 --pylab``):
@@ -165,9 +186,9 @@ interactive mode, I suggest starting the session with ``ipython
   import pyratbay as pb
   import pyratbay.io as io
 
-  wl, transmission = io.read_pyrat("./transmission_spectrum_demo.dat", wn=False)
-  wl, emission     = io.read_pyrat("./emission_spectrum_demo.dat", wn=False)
-  
+  wl, transmission = io.read_spectrum("./transmission_spectrum_demo.dat", wn=False)
+  wl, emission     = io.read_spectrum("./emission_spectrum_demo.dat", wn=False)
+
   plt.figure(0, figsize=(7,5))
   plt.clf()
   plt.subplots_adjust(0.14, 0.1, 0.95, 0.95, hspace=0.15)
@@ -203,59 +224,47 @@ The output figure should look like this:
    :align: center
 
 
-Configuration Files
--------------------
+Command-line Run
+----------------
 
-``Pyrat Bay`` configuration files follow the `ConfigParser <https://docs.python.org/2/library/configparser.html>`_ format.
-Whether you are executing the call from shell or from the interpreted,
-the configuration file defines all the settings of your run.
+As shown above, ``Pyrat Bay`` enables a command-line entry point to
+execute any of the runs listed above:
 
-All of the running settings, inputs, and outputs are set in the
-configuration file.  For example, here is the configuration file for the transmission spectrum demo: `demo_spectrum-transmission.cfg <https://github.com/pcubillos/pyratbay/blob/master/examples/demo/demo_spectrum-transmission.cfg>`_.
+.. code-block:: shell
 
-Input files can either have absolute or relative paths.
+    .../pyratbay/pbay.py -c config_file.cfg
 
-The configuration file include variables to define the default units
-of some physical variables (mass, length, pressure), e.g.:
+The configuration file determines what run mode to execute by setting
+the ``runmode`` key.  Each of these modes have different
+required/optional keys, which are detailed in further sections.
+
+This same entry point offers a couple of secondary processes (display
+version, re-format files). To display these options, run:
+
+.. code-block:: shell
+
+    .../pyratbay/pbay.py -h
+
+
+Interactive Run
+---------------
+
+The same process can be executed from the Python Interpreter, after
+importing the pyratbay package:
 
 .. code-block:: python
 
-  # Default units:
-  radunits = km
-  # System parameters:
-  rstar   = 6.995e5    ; Stellar radius (default units: radunits)
+    import sys
+    sys.path.append("../pyratbay/")
+    import pyratbay as pb
 
-Equivalently, a variable can explicitly include the units (overriding
-the default units):
+    pyrat = pb.run('config_file.cfg')
 
-.. code-block:: python
+The output ``pyrat`` vary depending on the selected run mode.
+Additional low- and mid-level routines are also available through this
+package (see :ref:`API`).
 
-  # Default units:
-  radunits = km
-  # System parameters:
-  rstar   = 1.0 rsun    ; Stellar radius (default units: radunits)
+------------------------------------------------------------------------
 
-
-This Link contains the list of available units:  :ref:`units`.
-
-
-.. _sscripts:
-
-Scripts
--------
-
-The `scripts
-<https://github.com/pcubillos/pyratbay/tree/master/scripts>`_ folder
-provide Python executable files (from shell) that reformat
-cross-section data from the given online format (Borysow, EXOMOL,
-HITRAN) into the ``Pyrat Bay`` format.
-
-Additionally, there are executable files that reformat the
-partition-function files from the given online format (Partridge &
-Schwenke's |H2O|, Schwenke's TiO, and Barklem's) into the ``Pyrat
-Bay`` format.
-
-More explicit details are TBD. For the moment read the file's
-docstrings for use.
-
-
+In the following sections you can find a more detailed description and
+examples of how to run ``Pyrat Bay`` for each available configuration.
