@@ -5319,3 +5319,16 @@ Long shot at trying to make travis work again.
 Bumped lineread version to 6.5.0.
 Updated TLI reader to check compatibility.
 
+*****
+
+Bumped Pyrat Bay version to 0.9.0.
+This is the list of the (main) changes implemented with this merge:
+- Refactored PB internal structure
+- Unified execution/versioning (lineread, pyrat, pbay)
+- Implemented Pyrat() and submodules string representation.
+- Enabled Python 3
+- Updated docs
+- PEP8 checks
+- Pickling
+- Test most of things via pytest/travis.
+
