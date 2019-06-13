@@ -412,18 +412,19 @@ def parse(pyrat, cfile):
       parse_array(args, 'data')
       parse_array(args, 'uncert')
       parse_array(args, 'filters')
-      # Retrieval options:
-      parse_array(args, 'retflag')
-      parse_array(args, 'bulk')
+      # Abundances:
       parse_array(args, 'molmodel')
       parse_array(args, 'molfree')
       parse_array(args, 'molpars')
+      parse_array(args, 'bulk')
+      # Retrieval options:
+      parse_str(args,   'mcmcfile')
+      parse_array(args, 'retflag')
       parse_float(args, 'qcap')
       parse_array(args, 'params')
       parse_array(args, 'stepsize')
       parse_float(args, 'tlow')
       parse_float(args, 'thigh')
-      parse_str(args,   'mcmcfile')
       parse_array(args, 'pmin')
       parse_array(args, 'pmax')
       parse_array(args, 'prior')
@@ -437,6 +438,7 @@ def parse(pyrat, cfile):
       parse_float(args, 'grbreak')
       parse_float(args, 'grnmin')
       parse_int(args,   'resume')      # False, action='store_true')
+      # Stellar models:
       parse_str(args,   'starspec')
       parse_str(args,   'kurucz')
       parse_str(args,   'marcs')
