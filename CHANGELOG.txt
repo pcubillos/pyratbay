@@ -5310,3 +5310,7 @@ Updated names of tutorial config files.
 
 Minor in-line documentation fixes.
 
+*****
+
+Long shot at trying to make travis work again.
+
