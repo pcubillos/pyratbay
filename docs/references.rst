@@ -35,8 +35,6 @@ References
 
 .. [Iro2005] `Iro et al. (2005): A time-dependent radiative model of HD 209458b <https://ui.adsabs.harvard.edu/abs/2005A&A...436..719I>`_
 
-.. [Irwin1981] `Irwin (1981): Polynomial partition function approximations of 344 atomic and molecular species <http://ui.adsabs.harvard.edu/abs/1981ApJS...45..621I>`_
-
 .. [Karman2019] `Karman et al. (2019): Update of the HITRAN collision-induced absorption section <https://ui.adsabs.harvard.edu/abs/2019Icar..328..160K>`_
 
 .. [Kurucz1970] `Kurucz (1970): Atlas: a Computer Program for Calculating Model Stellar Atmospheres <http://ui.adsabs.harvard.edu/abs/1970SAOSR.309.....K>`_
@@ -74,7 +72,5 @@ References
 .. [Speagle2019] `Speagle (2019): dynesty: A Dynamic Nested Sampling Package for Estimating Bayesian Posteriors and Evidences <https://ui.adsabs.harvard.edu/abs/2019arXiv190402180S>`_
 
 .. [Tennyson2016] `Tennyson et al. (2016): The ExoMol database: Molecular line lists for exoplanet and other hot atmospheres <http://ui.adsabs.harvard.edu/abs/2016JMoSp.327...73T>`_
-
-.. [terBraak2006] `ter Braak (2006): A Markov Chain Monte Carlo version of the genetic algorithm Differential Evolution <http://dx.doi.org/10.1007/s11222-006-8769-1>`_
 
 .. [terBraak2008] `ter Braak & Vrugt (2008): Differential Evolution Markov Chain with snooker updater and fewer chains <http://dx.doi.org/10.1007/s11222-008-9104-9>`_

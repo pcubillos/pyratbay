@@ -21,6 +21,9 @@ This run mode computes a transmission or emission spectrum, for a
 given atmospheric model.
 
 
+Sample Configuration File
+-------------------------
+
 Here is a sample configuration file to compute a transmission spectrum:
 
 .. literalinclude:: ../examples/tutorial/tutorial_spectrum.cfg

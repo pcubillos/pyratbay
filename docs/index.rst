@@ -80,12 +80,12 @@ Documentation
    :maxdepth: 3
 
    getstarted
-   tlitutorial
-   pttutorial
+   tli_tutorial
+   pt_tutorial
    atm_tutorial
-   spectutorial
-   opactutorial
-   mcmctutorial
+   spec_tutorial
+   opac_tutorial
+   mcmc_tutorial
    api
    units
    references

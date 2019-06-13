@@ -17,7 +17,6 @@ parameters and credible regions for the atmospheric parameters in a
 Bayesian (MCMC) framework.
 
 
-
 Sample Configuration File
 -------------------------
 
