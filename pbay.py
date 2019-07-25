@@ -24,6 +24,7 @@ def main():
     # Re-format partition-function files
     python pbay.py -pf exomol 14N-1H3__BYTe.pf 15N-1H3__BYTe-15.pf
     python pbay.py -pf kurucz h2opartfn.dat
+    python pbay.py -pf tips H2O
 
     # Re-format cross-section files:
     python pbay.py -cs hitran H2-H2_2011.cia 2 10
@@ -51,6 +52,10 @@ def main():
             pb.tools.pf_exomol(args.pf[1:])
         elif args.pf[0] == 'kurucz':
             pb.tools.pf_kurucz(args.pf[1])
+        elif args.pf[0] == 'tips':
+            print('TIPS partition function is TBD.')
+        else:
+            print('Invalid partition-function type.')
 
     # Cross-section reformatting:
     elif args.cs is not None:
@@ -58,6 +63,8 @@ def main():
             pb.tools.cia_hitran(args.cs[1], int(args.cs[2]), int(args.cs[3]))
         elif args.cs[0] == 'borysow':
             pb.tools.cia_borysow(*args.cs[1:])
+        else:
+            print('Invalid cross-section type.')
 
     # Pyrat-Bay run:
     elif args.cfile is not None:

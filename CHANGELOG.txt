@@ -5338,3 +5338,8 @@ This is the list of the (main) changes implemented with this merge:
 Updated docs conf.py file.
 Added api.rst (will need update).
 
+*****
+
+Tweaked pbay.py to print out invalid PF/CS calls.
+Added placeholder for tips PF.
+
