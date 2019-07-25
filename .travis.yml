@@ -11,12 +11,12 @@ matrix:
 install:
   - pip install -r requirements.txt
   - pip install -e .
-  - wget --user=HITRAN --password=getdata -N https://www.cfa.harvard.edu/HITRAN/HITRAN2012/HITRAN2012/By-Molecule/Compressed-files/01_hit12.zip && unzip 01_hit12.zip -d ~/pyratbay/tests
-  - wget --user=HITRAN --password=getdata -N https://www.cfa.harvard.edu/HITRAN/HITRAN2012/HITRAN2012/By-Molecule/Compressed-files/02_hit12.zip && unzip 02_hit12.zip -d ~/pyratbay/tests
-  - wget --user=HITRAN --password=getdata -N https://www.cfa.harvard.edu/HITRAN/HITRAN2012/HITRAN2012/By-Molecule/Compressed-files/06_hit12.zip && unzip 06_hit12.zip -d ~/pyratbay/tests
-  - wget --user=HITRAN --password=getdata -N https://www.cfa.harvard.edu/HITRAN/HITEMP-2010/CO2_line_list/02_03750-04000_HITEMP2010.zip && unzip 02_03750-04000_HITEMP2010.zip -d ~/pyratbay/tests
-  - wget --user=HITRAN --password=getdata -N https://www.cfa.harvard.edu/HITRAN/HITEMP-2010/CO2_line_list/02_04000-04500_HITEMP2010.zip && unzip 02_04000-04500_HITEMP2010.zip -d ~/pyratbay/tests
-  - wget http://kurucz.harvard.edu/grids/gridp00odfnew/fp00k0odfnew.pck -P ~/pyratbay/tests
-  - cd ~/pyratbay && make
+  - wget --user=HITRAN --password=getdata -N https://www.cfa.harvard.edu/HITRAN/HITRAN2012/HITRAN2012/By-Molecule/Compressed-files/01_hit12.zip
+  - wget --user=HITRAN --password=getdata -N https://www.cfa.harvard.edu/HITRAN/HITRAN2012/HITRAN2012/By-Molecule/Compressed-files/02_hit12.zip
+  - wget --user=HITRAN --password=getdata -N https://www.cfa.harvard.edu/HITRAN/HITRAN2012/HITRAN2012/By-Molecule/Compressed-files/06_hit12.zip
+  - wget --user=HITRAN --password=getdata -N https://www.cfa.harvard.edu/HITRAN/HITEMP-2010/CO2_line_list/02_03750-04000_HITEMP2010.zip
+  - wget --user=HITRAN --password=getdata -N https://www.cfa.harvard.edu/HITRAN/HITEMP-2010/CO2_line_list/02_04000-04500_HITEMP2010.zip
+  - unzip '*.zip' -d tests/
+  - wget http://kurucz.harvard.edu/grids/gridp00odfnew/fp00k0odfnew.pck -P tests
 
-script: pytest tests/
+script: pytest tests -v

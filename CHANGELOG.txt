@@ -5352,3 +5352,7 @@ Added __all__ for constants module.
 Cleaned up setup.py, added long_description and entry points
 (place holder until truly implementing the entry point).
 
+*****
+
+Attempted to fix the travis file (we will see how it works).
+
