@@ -5343,3 +5343,12 @@ Added api.rst (will need update).
 Tweaked pbay.py to print out invalid PF/CS calls.
 Added placeholder for tips PF.
 
+*****
+
+Added __all__ for constants module.
+
+*****
+
+Cleaned up setup.py, added long_description and entry points
+(place holder until truly implementing the entry point).
+

@@ -1053,7 +1053,7 @@ def cia_borysow(ciafile, species1, species2):
 
 
 def tophat(wl0, width, margin=None, dlambda=None, resolution=None, ffile=None):
-  """
+  r"""
   Generate a top-hat filter function, with transmission = 1.0 from
   wl0-width/2 to wl0+width/2, and an extra margin with transmission
   = 0.0 at each end.
@@ -1242,6 +1242,7 @@ def band_integrate(spectrum, specwn, bandtrans, bandwn):
 
 def ignore_system_exit(func):
     """Decorator to ignore SystemExit exceptions."""
+    @functools.wraps(func)
     def new_func(*args, **kwargs):
         try:
             return func(*args, **kwargs)
