@@ -5332,3 +5332,9 @@ This is the list of the (main) changes implemented with this merge:
 - Pickling
 - Test most of things via pytest/travis.
 
+
+*****  Do 25. Jul 16:39:13 CEST 2019  *****
+
+Updated docs conf.py file.
+Added api.rst (will need update).
+

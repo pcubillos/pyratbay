@@ -480,7 +480,7 @@ according to the following table:
 ========  =====================
 <0        Errors
 0         Warnings
-1         Headers
+1         Headlines
 2         Details
 3         Debug
 ========  =====================
