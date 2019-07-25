@@ -5356,3 +5356,6 @@ Cleaned up setup.py, added long_description and entry points
 
 Attempted to fix the travis file (we will see how it works).
 
+*****
+
+Updated README.md file to add the badges.
