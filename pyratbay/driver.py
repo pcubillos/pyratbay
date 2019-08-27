@@ -7,6 +7,7 @@ import os
 import sys
 
 import numpy as np
+import mc3
 
 from . import tools      as pt
 from . import constants  as pc
@@ -15,9 +16,6 @@ from . import plots      as pp
 from . import atmosphere as pa
 from . import io         as io
 from .pyrat import Pyrat
-
-sys.path.append(pc.ROOT + "modules/MCcubed/")
-import MCcubed as mc3
 
 
 @pt.ignore_system_exit
@@ -132,7 +130,7 @@ def run(cfile, init=False):
       return pyrat
 
 
-  muted_log = mc3.utils.Log(None, verb=0, width=80)
+  muted_log = mc3.utils.Log(verb=0, width=80)
   pyrat.log = muted_log      # Mute logging in PB, but not in MC3
   pyrat.spec.outspec = None  # Avoid writing spectrum file during MCMC
   retmodel = False  # Return only the band-integrated spectrum
@@ -140,14 +138,14 @@ def run(cfile, init=False):
   outfile = os.path.splitext(os.path.basename(pyrat.ret.mcmcfile))[0]
 
   # Run MCMC:
-  mc3_out = mc3.mcmc(data=pyrat.obs.data, uncert=pyrat.obs.uncert,
+  mc3_out = mc3.sample(data=pyrat.obs.data, uncert=pyrat.obs.uncert,
       func=pyrat.eval, indparams=[retmodel], params=ret.params,
-      pmin=ret.pmin, pmax=ret.pmax, stepsize=ret.stepsize,
+      pmin=ret.pmin, pmax=ret.pmax, pstep=ret.stepsize,
       prior=ret.prior, priorlow=ret.priorlow, priorup=ret.priorup,
-      walk=ret.walk, nsamples=ret.nsamples,
+      sampler=ret.walk, nsamples=ret.nsamples,
       nchains=ret.nchains, burnin=ret.burnin, thinning=ret.thinning,
       grtest=True, grbreak=ret.grbreak, grnmin=ret.grnmin,
-      hsize=10, kickoff='normal', log=log, nproc=pyrat.ncpu,
+      log=log, ncpu=pyrat.ncpu,
       plots=True, showbp=False,
       pnames=ret.pnames, texnames=ret.texnames,
       resume=inputs.resume, savefile=ret.mcmcfile)
@@ -155,9 +153,13 @@ def run(cfile, init=False):
   if mc3_out is None:
       log.error("Error in MC3.")
 
-  bestp, CRlo, CRhi, stdp, posterior, Zchain = mc3_out
+  bestp = mc3_out['bestp']
+  CRlo  = mc3_out['CRlo']
+  CRhi  = mc3_out['CRhi']
+  stdp  = mc3_out['stdp']
+  posterior, zchain, zmask = mc3.utils.burn(mc3_out)
   pyrat.ret.posterior = posterior
-  pyrat.ret.bestp     = bestp
+  pyrat.ret.bestp = bestp
 
   # Best-fitting model:
   pyrat.spec.outspec = "{:s}_bestfit_spectrum.dat".format(outfile)

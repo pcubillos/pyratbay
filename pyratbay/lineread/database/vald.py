@@ -162,7 +162,7 @@ class vald(dbdriver):
     nread = istop - istart + 1
 
     self.log.msg("Starting to read VALD database between records {:,d} and "
-                 "{:,d}.".format(istart, istop), verb=2, indent=2)
+                 "{:,d}.".format(istart, istop), indent=2)
 
     interval = (istop - istart)/10  # Check-point interval
     if interval == 0:
@@ -187,12 +187,11 @@ class vald(dbdriver):
 
       # Print a checkpoint statement every 10% interval:
       if (i % interval) == 0 and i != 0:
-        self.log.msg("{:5.1f}% completed.".format(10.*i/interval),
-                     verb=2, indent=3)
-        self.log.msg("Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} A\n"
-                     "Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}".
-                     format(1.0/(wl[i] * pc.A), wl[i], elo[i]*pc.eV,
-                            10**loggf[i], isoID[i]), self.log, verb=3, indent=6)
+          self.log.msg("{:5.1f}% completed.".format(10.*i/interval), indent=3)
+          self.log.debug("Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} A\n"
+                         "Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}".
+                         format(1.0/(wl[i] * pc.A), wl[i], elo[i]*pc.eV,
+                              10**loggf[i], isoID[i]), self.log, indent=6)
       i += 1
 
     # Store data in two arrays for doubles and integers:

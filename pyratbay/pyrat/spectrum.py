@@ -17,7 +17,7 @@ def spectrum(pyrat):
   """
   Spectrum calculation driver.
   """
-  pyrat.log.msg('\nCalculate the planetary spectrum.')
+  pyrat.log.head('\nCalculate the planetary spectrum.')
 
   # Initialize the spectrum array:
   pyrat.spec.spectrum = np.empty(pyrat.spec.nwave, np.double)
@@ -36,7 +36,7 @@ def spectrum(pyrat):
   # Print spectrum to file:
   io.write_spectrum(1.0/pyrat.spec.wn, pyrat.spec.spectrum,
                     pyrat.spec.outspec, pyrat.od.path)
-  pyrat.log.msg('Done.')
+  pyrat.log.head('Done.')
 
 
 def modulation(pyrat):
@@ -88,8 +88,8 @@ def modulation(pyrat):
       pyrat.spec.spectrum = (   pyrat.cloud.fpatchy  * pyrat.spec.cloudy +
                              (1-pyrat.cloud.fpatchy) * pyrat.spec.clear  )
 
-  pyrat.log.msg("Computed transmission spectrum: '{}'.".
-                format(pyrat.spec.outspec), indent=2)
+  pyrat.log.head("Computed transmission spectrum: '{}'.".
+                 format(pyrat.spec.outspec), indent=2)
 
 
 def intensity(pyrat):
@@ -97,7 +97,7 @@ def intensity(pyrat):
   Calculate the intensity spectrum [units] for eclipse geometry.
   """
   spec = pyrat.spec
-  pyrat.log.msg('Computing intensity spectrum.', verb=2, indent=2)
+  pyrat.log.msg('Computing intensity spectrum.', indent=2)
   if spec.quadrature is not None:
       spec.raygrid = np.arccos(np.sqrt(spec.qnodes))
 
@@ -129,5 +129,5 @@ def flux(pyrat):
       area = spec.qweights * np.pi
   # Weight-sum the intensities to get the flux:
   spec.spectrum[:] = np.sum(spec.intensity * np.expand_dims(area,1), axis=0)
-  pyrat.log.msg("Computed emission spectrum: '{}'.".format(spec.outspec),
-                indent=2)
+  pyrat.log.head("Computed emission spectrum: '{}'.".format(spec.outspec),
+                 indent=2)

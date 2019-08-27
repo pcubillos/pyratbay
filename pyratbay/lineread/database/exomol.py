@@ -24,7 +24,7 @@ class exomol(dbdriver):
       pffile: String
           File with the partition function.
       log: Log object
-          An MCcubed.utils.Log instance to log screen outputs to file.
+          An mc3.utils.Log instance to log screen outputs to file.
       """
       super(exomol, self).__init__(dbfile, pffile, log)
 
@@ -150,7 +150,7 @@ class exomol(dbdriver):
       loID    = np.zeros(nread,       int)
 
       self.log.msg('Process {:s} database between records {:,d} and {:,d}.'.
-                    format(self.name, istart, istop), verb=2, indent=2)
+                    format(self.name, istart, istop), indent=2)
 
       interval = (istop - istart) // 10  # Check-point interval
       if interval == 0:
@@ -168,13 +168,13 @@ class exomol(dbdriver):
           if (i % interval) == 0.0  and  i != 0:
               wn    = self.E[upID[i]-1] - self.E[loID[i]-1]
               gfval = self.g[loID[i]-1]*A21[i]*pc.C1 / (8.0*np.pi*pc.c) / wn**2
-              self.log.msg('{:5.1f}% completed.'.format(10.*i/interval), verb=2,
-                           indent=3)
-              self.log.msg('Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} um\n'
-                           'Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}'.
-                           format(wn, 1.0/(wn*pc.um), self.E[loID[i]-1], gfval,
-                                  self.isotopes.index(self.iso)),
-                           verb=3, indent=6)
+              self.log.msg('{:5.1f}% completed.'.format(10.*i/interval),
+                  indent=3)
+              self.log.debug(
+                  'Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} um\n'
+                  'Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}'.
+                  format(wn, 1.0/(wn*pc.um), self.E[loID[i]-1], gfval,
+                         self.isotopes.index(self.iso)), indent=6)
           i += 1
       data.close()
 

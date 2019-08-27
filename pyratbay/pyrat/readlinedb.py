@@ -17,10 +17,10 @@ def read_tli(pyrat):
   pyrat.iso = o.Isotopes()
   # Count number of TLI files:
   if pyrat.lt.tlifile is None:
-      pyrat.log.msg("\nNo line transition file to read.")
+      pyrat.log.head("\nNo line transition file to read.")
       return
 
-  pyrat.log.msg("\nReading line transition info.")
+  pyrat.log.head("\nReading line transition info.")
   # TLI file object:
   tlis = []
   # Index of first database in TLI file:
@@ -28,7 +28,7 @@ def read_tli(pyrat):
 
   # Read data bases header info:
   for tlifile in pyrat.lt.tlifile:
-      pyrat.log.msg("Read TLI file: '{:s}'.".format(tlifile), indent=2)
+      pyrat.log.head("Read TLI file: '{:s}'.".format(tlifile), indent=2)
       tli = open(tlifile, "rb")
       tlis.append(tli)
       dbindex.append(dbindex[-1] + readheader(pyrat, tli))
@@ -43,8 +43,8 @@ def read_tli(pyrat):
           tli.close()
 
   pyrat.log.msg("Read a total of {:,d} line transitions.".
-                format(pyrat.lt.ntransitions), verb=2, indent=2)
-  pyrat.log.msg("Line-transition done.\n")
+                format(pyrat.lt.ntransitions), indent=2)
+  pyrat.log.head("Line-transition done.\n")
 
 
 def readheader(pyrat, linefile):
@@ -59,9 +59,9 @@ def readheader(pyrat, linefile):
   # Read header:
   endian = linefile.read(1).decode()
   if endian == 'b':
-      pyrat.log.msg("TLI data storage: Big endian", verb=2, indent=2)
+      pyrat.log.msg("TLI data storage: Big endian", indent=2)
   elif endian == 'l':
-      pyrat.log.msg("TLI data storage: Little endian", verb=2, indent=2)
+      pyrat.log.msg("TLI data storage: Little endian", indent=2)
 
   # Compare endianness:
   endianness = sys.byteorder
@@ -72,7 +72,7 @@ def readheader(pyrat, linefile):
   # Read TLI version:
   TLI_ver, TLI_min, TLI_rev = pt.unpack(linefile, 3, "h")
   pyrat.log.msg("TLI version: {:d}.{:d}.{:d}.".
-                format(TLI_ver, TLI_min, TLI_rev), verb=2, indent=2)
+                format(TLI_ver, TLI_min, TLI_rev), indent=2)
   if (TLI_ver != 6) or (TLI_min not in [1,2,3,4,5]):
       pyrat.log.error("Incompatible TLI version.  The TLI file must be created "
                       "with Lineread version 6.1-6.5.")
@@ -80,13 +80,13 @@ def readheader(pyrat, linefile):
   # Read initial and final wavenumber from TLI:
   lt_wni, lt_wnf = pt.unpack(linefile, 2, "d")
   pyrat.log.msg("TLI wavenumber range (cm-1): [{:.1f}, {:.1f}]".
-                format(lt_wni, lt_wnf), verb=2, indent=2)
+                format(lt_wni, lt_wnf), indent=2)
   # Check TLI and pyrat wavelength ranges:
   checkrange(pyrat, lt_wni, lt_wnf)
 
   # Read number of data bases:
   Ndb = pt.unpack(linefile, 1, "h")
-  pyrat.log.msg("Number of data bases: {:d}".format(Ndb), verb=2, indent=2)
+  pyrat.log.msg("Number of data bases: {:d}".format(Ndb), indent=2)
 
   # Cumulative isotope index:
   acumiso = pyrat.iso.niso
@@ -96,11 +96,11 @@ def readheader(pyrat, linefile):
       # Read Database name:
       lenDBname = pt.unpack(linefile, 1,         "h")
       db.name   = pt.unpack(linefile, lenDBname, "s").decode()
-      pyrat.log.msg("Data base name: '{:s}'".format(db.name), verb=2, indent=2)
+      pyrat.log.msg("Data base name: '{:s}'".format(db.name), indent=2)
       # Read Molecule name:
       lenMolec   = pt.unpack(linefile, 1,        "h")
       db.molname = pt.unpack(linefile, lenMolec, "s").decode()
-      pyrat.log.msg("Molecule name: '{:s}'".format(db.molname), verb=2,indent=2)
+      pyrat.log.msg("Molecule name: '{:s}'".format(db.molname), indent=2)
       # Read temperature array:
       db.ntemp, db.niso =  pt.unpack(linefile, 2,        "h")
       db.temp = np.asarray(pt.unpack(linefile, db.ntemp, "d"))
@@ -108,7 +108,7 @@ def readheader(pyrat, linefile):
       pyrat.lt.tmin = np.amax((pyrat.lt.tmin, db.temp[ 0]))
       pyrat.lt.tmax = np.amin((pyrat.lt.tmax, db.temp[-1]))
       pyrat.log.msg("Temperature range: {:4.1f} -- {:4.1f} K.".
-                    format(db.temp[0], db.temp[-1]), verb=2, indent=2)
+                    format(db.temp[0], db.temp[-1]), indent=2)
 
       # Allocate arrays for isotopic info:
       name    = np.zeros(db.niso, 'U20')
@@ -128,14 +128,14 @@ def readheader(pyrat, linefile):
 
           # Print info to screen:
           pyrat.log.msg('Isotope: {:s},  mass: {:.4f} u,  isotopic ratio: '
-              '{:.5g}'.format(name[j], mass[j], ratio[j]), verb=2, indent=3)
-          pyrat.log.msg('Z = [{:.2e}, {:.2e}, ..., {:.2e}]'.
-              format(db.z[j,0], db.z[j,1], db.z[j,-1]), verb=3, indent=4)
+              '{:.5g}'.format(name[j], mass[j], ratio[j]), indent=3)
+          pyrat.log.debug('Z = [{:.2e}, {:.2e}, ..., {:.2e}]'.
+              format(db.z[j,0], db.z[j,1], db.z[j,-1]), indent=4)
 
       # Add the number of isotopes read:
       pyrat.iso.niso += db.niso
-      pyrat.log.msg("Number of isotopes: {:d}".format(pyrat.iso.niso),
-                    verb=3, indent=2)
+      pyrat.log.debug("Number of isotopes: {:d}".format(pyrat.iso.niso),
+                      indent=2)
 
       # Store name, mass in isotopes structure:
       pyrat.iso.name    = np.concatenate((pyrat.iso.name,    name))
@@ -148,7 +148,7 @@ def readheader(pyrat, linefile):
       acumiso += db.niso
       pyrat.lt.db.append(db)
       pyrat.log.msg("DB index: {:d}, Cumulative Iso: {:d}\n\n".
-                    format(i+pyrat.lt.ndb, acumiso), verb=2, indent=2)
+                    format(i+pyrat.lt.ndb, acumiso), indent=2)
 
   # Keep count of number of databases:
   pyrat.lt.ndb  += Ndb
@@ -183,7 +183,7 @@ def read_linetransition(pyrat, linefile, dbindex):
           'correspond to the number of transitions ({:d}).'.
           format(nrec, nTransitions))
   pyrat.log.msg('There are {:,d} line transitions in TLI file.'.
-                format(nTransitions), verb=2, indent=2)
+                format(nTransitions), indent=2)
 
   # Allocate arrays:
   wn    = np.zeros(nTransitions)
@@ -212,11 +212,11 @@ def read_linetransition(pyrat, linefile, dbindex):
 
       # Print boundaries:
       linefile.seek(ifirst*pc.dreclen + init_wl, 0)
-      pyrat.log.msg("Found initial transition ({:8d}):  {:13.4f} cm-1".
-          format(ifirst, pt.unpack(linefile, 1, 'd')), verb=3, indent=2)
+      pyrat.log.debug("Found initial transition ({:8d}):  {:13.4f} cm-1".
+          format(ifirst, pt.unpack(linefile, 1, 'd')), indent=2)
       linefile.seek(ilast*pc.dreclen  + init_wl, 0)
-      pyrat.log.msg("Found final   transition ({:8d}):  {:13.4f} cm-1".
-          format(ilast, pt.unpack(linefile, 1, 'd')), verb=3, indent=2)
+      pyrat.log.debug("Found final   transition ({:8d}):  {:13.4f} cm-1".
+          format(ilast, pt.unpack(linefile, 1, 'd')), indent=2)
 
       # Number of transitions to read:
       nread = ilast - ifirst + 1
@@ -238,7 +238,7 @@ def read_linetransition(pyrat, linefile, dbindex):
       linefile.seek(ifirst*pc.dreclen + init_gf,  0)
       gf   [nlt:nlt+nread] = pt.unpack(linefile, nread, 'd')
       pyrat.log.msg("Read {:11,d} transitions for isotope {:2d}.".
-          format(nread, pyrat.lt.db[dbindex].iiso+isoID), verb=2, indent=4)
+          format(nread, pyrat.lt.db[dbindex].iiso+isoID), indent=4)
 
       start  += NisoTran[i]*pc.dreclen
       offset += NisoTran[i]
@@ -295,7 +295,7 @@ def setimol(pyrat):
       else:
           pyrat.iso.imol[i] = np.where(pyrat.mol.symbol == molname)[0]
   pyrat.log.msg("Isotope's molecule indices:\n  {:s}".
-                format(str(pyrat.iso.imol)), verb=2, indent=2)
+                format(str(pyrat.iso.imol)), indent=2)
   # Report missing species:
   imiss = np.unique(pyrat.iso.dbindex[np.where(pyrat.iso.imol < 0)])
   for i in imiss:

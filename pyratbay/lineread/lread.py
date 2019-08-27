@@ -40,7 +40,7 @@ def makeTLI(dblist, pflist, dbtype, tlifile,
   wlunits: String
       Wavelength units (when not specified in wllow nor wlhigh).
   log: Log object
-      An MCcubed.utils.Log instance to log screen outputs to file.
+      An mc3.utils.Log instance to log screen outputs to file.
   """
   # Input-not-found error messages:
   if tlifile is None:
@@ -70,15 +70,15 @@ def makeTLI(dblist, pflist, dbtype, tlifile,
 
   databases = []
   db_names = []
-  log.msg('\nReading input database files:')
+  log.head('\nReading input database files:')
   for (dbase, pf, dtype) in zip(dblist, pflist, dbtype):
       if dtype not in db_readers:
           log.error("Unknown type '{:s}' for database '{:s}'.  Select "
                     "from: {:s}".format(dtype, dbase, str(pc.dbases)))
-      log.msg('- {:s}'.format(dbase))
+      log.head('- {:s}'.format(dbase))
       databases.append(db_readers[dtype](dbase, pf, log))
       db_names.append(databases[-1].name)
-  log.msg('There are {:d} input database file(s).'.format(nfiles), verb=2)
+  log.msg('There are {:d} input database file(s).'.format(nfiles))
 
   # Open output file:
   tli = open(tlifile, 'wb')
@@ -110,11 +110,11 @@ def makeTLI(dblist, pflist, dbtype, tlifile,
           'Final   TLI wavelength ({:s}): {:7.3f}  ({:9.3f} cm-1)'.
           format(sys.byteorder,
                  wlunits, wllow/units,  wnhigh,
-                 wlunits, wlhigh/units, wnlow), verb=2)
-  log.msg('There are {:d} different database(s).'.format(Ndb), verb=2)
+                 wlunits, wlhigh/units, wnlow))
+  log.msg('There are {:d} different database(s).'.format(Ndb))
 
 
-  log.msg('\nReading and writting partition function info.', verb=2)
+  log.msg('\nReading and writting partition function info.')
   idb = 1         # Database correlative number:
   niso_total = 0  # Cumulative number of isotopes
   acum = [0]      # Cumulative number of isotopes per database
@@ -152,20 +152,20 @@ def makeTLI(dblist, pflist, dbtype, tlifile,
       # Store the number of temperature samples and isotopes:
       tli.write(struct.pack('hh', ntemp, niso))
       log.msg("Database ({:d}/{:d}): '{:s}' ({:s} molecule)".
-              format(idb, Ndb, db.name, db.molecule), verb=2, indent=2)
+              format(idb, Ndb, db.name, db.molecule), indent=2)
       log.msg('Number of temperatures: {:d}\n'
-              'Number of isotopes: {:d}'.format(ntemp, niso), verb=2, indent=4)
+              'Number of isotopes: {:d}'.format(ntemp, niso), indent=4)
 
       # Write the temperature array:
       tli.write(struct.pack('{:d}d'.format(ntemp), *temp))
       log.msg('Temperatures (K): [{:6.1f}, {:6.1f}, ..., {:6.1f}]'.
-              format(temp[0], temp[1], temp[-1]), verb=2, indent=4)
+              format(temp[0], temp[1], temp[-1]), indent=4)
 
       # For each isotope, write partition function information.
       for j in range(niso):
           iname = iso_names[j]
           log.msg("Isotope ({:d}/{:d}): '{:s}'".format(j+1, niso, iname),
-                  verb=2, indent=4)
+                  indent=4)
 
           # Store length of isotope name, isotope name, and isotope mass:
           tli.write(struct.pack('h{:d}s'.format(len(iname)),
@@ -179,17 +179,16 @@ def makeTLI(dblist, pflist, dbtype, tlifile,
                   'Isotopic ratio:  {:8.4g}\n'
                   'Part. Function:  [{:.2e}, {:.2e}, ..., {:.2e}]'.
                   format(iso_mass[j], iso_ratio[j], pf[j,0], pf[j,1], pf[j,-1]),
-                         verb=2, indent=6)
+                  indent=6)
 
       # Calculate cumulative number of isotopes per database:
       niso_total += niso
       idb += 1
       acum.append(niso_total)
 
-  log.msg('Cumulative number of isotopes per database: {}'.format(acum), verb=2)
+  log.msg('Cumulative number of isotopes per database: {}'.format(acum))
 
-
-  log.msg('\nExtracting line transition info.')
+  log.head('\nExtracting line transition info.')
   wnumber = np.array([], np.double)
   gf      = np.array([], np.double)
   elow    = np.array([], np.double)
@@ -212,11 +211,10 @@ def makeTLI(dblist, pflist, dbtype, tlifile,
       isoID   = np.concatenate((isoID,   transitions[3]+acum[idb]))
 
       unique_iso = np.unique(transitions[3])
-      log.msg('Isotope in-database indices: {}'.format(unique_iso),
-              verb=2, indent=2)
+      log.msg('Isotope in-database indices: {}'.format(unique_iso), indent=2)
       log.msg('Isotope correlative indices: {}'.format(unique_iso+acum[idb]),
-              verb=2, indent=2)
-      log.msg('Reading time: {:8.3f} seconds'.format(tf-ti), verb=3, indent=2)
+              indent=2)
+      log.debug('Reading time: {:8.3f} seconds'.format(tf-ti), indent=2)
 
 
   # Total number of transitions:
@@ -243,12 +241,12 @@ def makeTLI(dblist, pflist, dbtype, tlifile,
   elow    = elow   [isort]
   isoID   = isoID  [isort]
 
-  log.msg('Sort time:    {:8.3f} seconds'.format(tf-ti), verb=3, indent=2)
-  log.msg('\nTransitions per isotope:\n{}'.format(ntrans_iso), verb=2)
+  log.debug('Sort time:    {:8.3f} seconds'.format(tf-ti), indent=2)
+  log.msg('\nTransitions per isotope:\n{}'.format(ntrans_iso))
 
   # Pack:
   tli.write(struct.pack('i', ntransitions))
-  log.msg('\nWriting {:,d} transition lines.'.format(ntransitions), verb=2)
+  log.msg('\nWriting {:,d} transition lines.'.format(ntransitions))
   # Write the number of transitions for each isotope:
   niso = len(ntrans_iso)
   tli.write(struct.pack('i', niso))
@@ -261,13 +259,13 @@ def makeTLI(dblist, pflist, dbtype, tlifile,
   transinfo += struct.pack(str(ntransitions)+'d', *list(elow))
   transinfo += struct.pack(str(ntransitions)+'d', *list(gf))
   tf = time.time()
-  log.msg('Packing time: {:8.3f} seconds'.format(tf-ti), verb=3)
+  log.debug('Packing time: {:8.3f} seconds'.format(tf-ti))
 
   ti = time.time()
   tli.write(transinfo)
   tf = time.time()
-  log.msg('Writing time: {:8.3f} seconds'.format(tf-ti), verb=3)
+  log.debug('Writing time: {:8.3f} seconds'.format(tf-ti))
 
-  log.msg("Generated TLI file: '{:s}'.".format(tlifile))
+  log.head("Generated TLI file: '{:s}'.".format(tlifile))
   tli.close()
   log.close()

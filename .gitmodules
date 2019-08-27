@@ -1,9 +1,6 @@
 [submodule "pytips"]
 	path = modules/pytips
 	url = https://github.com/pcubillos/pytips
-[submodule "modules/MCcubed"]
-	path = modules/MCcubed
-	url = https://github.com/pcubillos/MCcubed
 [submodule "modules/TEA"]
 	path = modules/TEA
 	url = https://github.com/dzesmin/TEA

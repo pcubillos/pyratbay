@@ -24,7 +24,7 @@ class pands(dbdriver):
       pffile: String
           File with the partition function.
       log: Log object
-          An MCcubed.utils.Log instance to log screen outputs to file.
+          An mc3.utils.Log instance to log screen outputs to file.
       """
       super(pands, self).__init__(dbfile, pffile, log)
 
@@ -133,7 +133,7 @@ class pands(dbdriver):
       igf  = np.zeros(nread, np.short)
 
       self.log.msg('Process P&S H2O database between records {:,d} and {:,d}.'.
-          format(istart, istop), verb=2, indent=2)
+          format(istart, istop), indent=2)
 
       interval = (istop - istart)//10  # Check-point interval
       if interval == 0:
@@ -147,14 +147,14 @@ class pands(dbdriver):
           # Print a checkpoint statement every 10% interval:
           if i%interval == 0 and i != 0:
               wl = np.exp(iw[i] * self.ratiolog) * pc.nm/pc.um
-              self.log.msg('{:5.1f}% completed.'.format(10.*i/interval), verb=2,
-                           indent=3)
-              self.log.msg('Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} um\n'
-                           'Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}'.
-                           format(1.0/ (wl * pc.um), wl, np.abs(ielo[i]),
-                                  4.0*self.tablog[np.abs(igf[i])],
-                                  2*(ielo[i] < 0) + 1*(igf[i] < 0)),
-                           verb=3, indent=6)
+              self.log.msg('{:5.1f}% completed.'.format(10.*i/interval),
+                  indent=3)
+              self.log.debug(
+                  'Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} um\n'
+                  'Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}'.
+                  format(1.0/ (wl * pc.um), wl, np.abs(ielo[i]),
+                         4.0*self.tablog[np.abs(igf[i])],
+                         2*(ielo[i] < 0) + 1*(igf[i] < 0)), indent=6)
           i += 1
       data.close()
 

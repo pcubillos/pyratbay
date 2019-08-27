@@ -14,7 +14,8 @@ def read_atm(pyrat):
   Read the atmospheric file, store variables in pyrat.
   """
   # Check atmfile:
-  pyrat.log.msg("\nReading atmospheric file: '{:s}'.".format(pyrat.atm.atmfile))
+  pyrat.log.head("\nReading atmospheric file: '{:s}'.".
+      format(pyrat.atm.atmfile))
 
   # User-input atmospheric-data object:
   atm    = pyrat.atm
@@ -55,24 +56,24 @@ def read_atm(pyrat):
   atm_in.d = pa.IGLdensity(atm_in.q, atm_in.press, atm_in.temp)
 
   pyrat.log.msg("Species list:\n  {:s}".format(str(pyrat.mol.name)),
-                verb=2, indent=2, si=4)
+                indent=2, si=4)
 
   txt = "volume" if (qunits == "number") else "mass"
   pyrat.log.msg("Abundances are given by {:s} ({:s} mixing ratio).".
-      format(qunits, txt), verb=2, indent=2)
+      format(qunits, txt), indent=2)
   pyrat.log.msg("Unit factors: radius: {}, pressure: {:s}, temperature: {:s}".
-      format(runits, punits, tunits), verb=2, indent=2)
+      format(runits, punits, tunits), indent=2)
 
   pyrat.log.msg("Number of layers in the input atmospheric file: {:d}".
-      format(atm_in.nlayers), verb=2, indent=2)
+      format(atm_in.nlayers), indent=2)
   pyrat.log.msg("Atmospheric file pressure limits: {:.2e}--{:.2e} {:s}.".
       format(atm_in.press[ 0]/pt.u(atm.punits),
-             atm_in.press[-1]/pt.u(atm.punits), atm.punits), verb=2, indent=2)
+             atm_in.press[-1]/pt.u(atm.punits), atm.punits), indent=2)
 
   pyrat.log.msg("Typical mean molecular mass: {:.3f} g mol-1.".
-      format(np.median(atm_in.mm)), verb=2, indent=2)
+      format(np.median(atm_in.mm)), indent=2)
 
-  pyrat.log.msg("Read atmosphere done.")
+  pyrat.log.head("Read atmosphere done.")
 
 
 def get_constants(pyrat):
@@ -81,7 +82,7 @@ def get_constants(pyrat):
   """
   # Read file with molecular info:
   pyrat.log.msg("Taking species constant parameters from: '{:s}'.".
-                format(pyrat.mol.molfile), verb=2, indent=2)
+                format(pyrat.mol.molfile), indent=2)
   molID, symbol, mass, diam = pa.readmol(pyrat.mol.molfile)
 
   # Check that all atmospheric species are listed in molfile:
@@ -97,7 +98,7 @@ def get_constants(pyrat):
   pyrat.mol.radius = np.zeros(pyrat.mol.nmol)
 
   pyrat.log.msg('Molecule   ID   Radius  Mass\n'
-                '                (A)     (gr/mol)', verb=2, indent=4)
+                '                (A)     (gr/mol)', indent=4)
   for i in range(pyrat.mol.nmol):
       # Find the molecule in the list:
       imol = np.where(symbol == pyrat.mol.name[i])[0]
@@ -108,7 +109,7 @@ def get_constants(pyrat):
       pyrat.mol.radius[i] = 0.5*diam[imol] * pc.A
       pyrat.log.msg("{:>10s}:  {:3d}  {:.3f}  {:8.4f}".format(pyrat.mol.name[i],
                     pyrat.mol.ID[i], pyrat.mol.radius[i]/pc.A,
-                    pyrat.mol.mass[i]), verb=2, indent=2)
+                    pyrat.mol.mass[i]), indent=2)
 
 
 def reloadatm(pyrat, temp=None, abund=None, radius=None):

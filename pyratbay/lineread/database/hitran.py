@@ -23,7 +23,7 @@ class hitran(dbdriver):
       pffile: String
           File with the partition function.
       log: Log object
-          An MCcubed.utils.Log instance to log screen outputs to file.
+          An mc3.utils.Log instance to log screen outputs to file.
       """
       super(hitran, self).__init__(dbfile, pffile, log)
 
@@ -134,7 +134,7 @@ class hitran(dbdriver):
       g2      = np.zeros(nread, np.double)
 
       self.log.msg('Process {:s} database between records {:,d} and {:,d}.'.
-          format(self.name, istart, istop), verb=2, indent=2)
+          format(self.name, istart, istop), indent=2)
 
       interval = (istop - istart) // 10  # Check-point interval
       if interval == 0:
@@ -153,12 +153,13 @@ class hitran(dbdriver):
           # Print a checkpoint statement every 10% interval:
           if i%interval == 0.0 and i != 0:
               gfval = A21[i]*g2[i]*pc.C1 / (8.0*np.pi*pc.c) / wnumber[i]**2.0
-              self.log.msg('{:5.1f}% completed.'.format(10.*i/interval), verb=2,
-                           indent=3)
-              self.log.msg('Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} um\n'
-                           'Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}'.
-                           format(wnumber[i], 1.0/(wnumber[i]*pc.um), elow[i],
-                                  gfval, (isoID[i]-1)%10), verb=3, indent=6)
+              self.log.msg('{:5.1f}% completed.'.format(10.*i/interval),
+                  indent=3)
+              self.log.debug(
+                  'Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} um\n'
+                  'Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}'.
+                  format(wnumber[i], 1.0/(wnumber[i]*pc.um), elow[i],
+                         gfval, (isoID[i]-1)%10), indent=6)
           i += 1
       data.close()
 

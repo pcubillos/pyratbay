@@ -18,10 +18,10 @@ def voigt(pyrat):
   """
   # Check if reading extinction-coefficient table or no TLI files:
   if pt.isfile(pyrat.ex.extfile) == 1 or pyrat.lt.tlifile is None:
-      pyrat.log.msg('\nSkip LBL Voigt-profile calculation.')
+      pyrat.log.head('\nSkip LBL Voigt-profile calculation.')
       return
 
-  pyrat.log.msg('\nCalculate LBL Voigt profiles:')
+  pyrat.log.head('\nCalculate LBL Voigt profiles:')
   # Calculate Doppler and Lorentz-width boundaries:
   width_limits(pyrat)
 
@@ -34,7 +34,7 @@ def voigt(pyrat):
 
   # Calculate profiles:
   calc_voigt(pyrat)
-  pyrat.log.msg('Voigt grid pre-calculation done.')
+  pyrat.log.head('Voigt grid pre-calculation done.')
 
 
 def width_limits(pyrat):
@@ -69,7 +69,7 @@ def width_limits(pyrat):
   if voigt.dmax is None:
       voigt.dmax = dmax
   pyrat.log.msg('Doppler width limits: {:.1e} -- {:.1e} cm-1 ({:d} samples).'.
-      format(voigt.dmin, voigt.dmax, voigt.ndop), verb=2, indent=2)
+      format(voigt.dmin, voigt.dmax, voigt.ndop), indent=2)
 
   # Lorentz-width boundaries:
   if voigt.lmin is None:
@@ -77,7 +77,7 @@ def width_limits(pyrat):
   if voigt.lmax is None:
       voigt.lmax = lmax
   pyrat.log.msg('Lorentz width limits: {:.1e} -- {:.1e} cm-1 ({:d} samples).'.
-      format(voigt.lmin, voigt.lmax, voigt.nlor), verb=2, indent=2)
+      format(voigt.lmin, voigt.lmax, voigt.nlor), indent=2)
 
 
 def calc_voigt(pyrat):
@@ -104,10 +104,10 @@ def calc_voigt(pyrat):
       psize[np.where(voigt.doppler/voigt.lorentz[i] < voigt.dlratio)[0][1:]] = 0
       # Store half-size values for this Lorentz width:
       voigt.size[i] = psize//2
-  pyrat.log.msg('Voigt half-sizes:\n{}'.format(voigt.size), verb=3, indent=2)
+  pyrat.log.debug('Voigt half-sizes:\n{}'.format(voigt.size), indent=2)
 
   pyrat.log.msg('Calculating Voigt profiles with Extent: {:.1f} widths.'.
-      format(voigt.extent), verb=2, indent=2)
+      format(voigt.extent), indent=2)
   # Allocate profile arrays (concatenated in a 1D array):
   voigt.profile = np.zeros(np.sum(2*voigt.size+1), np.double)
 
@@ -115,4 +115,4 @@ def calc_voigt(pyrat):
   vp.grid(voigt.profile, voigt.size, voigt.index,
           voigt.lorentz, voigt.doppler,
           pyrat.spec.ownstep, pyrat.verb)
-  pyrat.log.msg('Voigt indices:\n{}'.format(voigt.index), verb=3, indent=2)
+  pyrat.log.debug('Voigt indices:\n{}'.format(voigt.index), indent=2)

@@ -20,13 +20,11 @@ import numpy as np
 import scipy.integrate as si
 import scipy.constants as sc
 import scipy.interpolate as sip
+import mc3.utils as mu
 
 from .. import tools     as pt
 from .. import constants as pc
 from .  import tmodels
-
-sys.path.append(pc.ROOT + 'modules/MCcubed/')
-import MCcubed.utils as mu
 
 
 def writeatm(atmfile, pressure, temperature, species, abundances,
@@ -258,7 +256,7 @@ def uniform(pressure, temperature, species, abundances, punits="bar",
    [8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]]
   """
   if log is None:
-      log = mu.Log(logname=None)
+      log = mu.Log()
 
   nlayers = len(pressure)
   # Safety checks:
@@ -491,12 +489,12 @@ def abundances(atmfile, pressure, temperature, species, elements=None,
   if quniform is not None:
       q = uniform(pressure, temperature, species, quniform, punits, log,
                   atmfile)
-      log.msg("\nProduced uniform-abundances atmospheric file: '{:s}'.".
-              format(atmfile))
+      log.head("\nProduced uniform-abundances atmospheric file: '{:s}'.".
+               format(atmfile))
       return q
 
   # TEA abundances:
-  log.msg("\nRun TEA to compute thermochemical-equilibrium abundances.")
+  log.head("\nRun TEA to compute thermochemical-equilibrium abundances.")
   # Prep up files:
   atomicfile, patm = "PBatomicfile.tea", "PBpreatm.tea"
   makeatomic(solar, atomicfile, xsolar, swap=None)
@@ -515,7 +513,7 @@ def abundances(atmfile, pressure, temperature, species, elements=None,
   os.remove(atomicfile)
   os.remove(patm)
   os.remove("TEA.cfg")
-  log.msg("Produced TEA atmospheric file '{:s}'.".format(atmfile))
+  log.head("Produced TEA atmospheric file '{:s}'.".format(atmfile))
   udummy, sdummy, pdummy, tdummy, q, rdummy = readatm(atmfile)
   return q
 
@@ -614,7 +612,7 @@ def pressure(ptop, pbottom, nlayers, units="bar", log=None, verb=0):
   [1.e-06 1.e-05 1.e-04 1.e-03 1.e-02 1.e-01 1.e+00 1.e+01 1.e+02]
   """
   if log is None:
-      log = mu.Log(logname=None, verb=verb)
+      log = mu.Log(verb=verb)
   # Unpack pressure input variables:
   ptop    = pt.get_param('ptop',    ptop,    units, log, gt=0.0)
   pbottom = pt.get_param('pbottom', pbottom, units, log, gt=0.0)
@@ -625,7 +623,7 @@ def pressure(ptop, pbottom, nlayers, units="bar", log=None, verb=0):
 
   # Create pressure array in barye (CGS) units:
   press = np.logspace(np.log10(ptop), np.log10(pbottom), nlayers)
-  log.msg("Creating {:d}-layer atmospheric model between {:.1e} and "
+  log.head("Creating {:d}-layer atmospheric model between {:.1e} and "
       "{:.1e} bar.".format(nlayers, ptop/pt.u(units), pbottom/pt.u(units)))
   return press
 
@@ -695,7 +693,7 @@ def temperature(tmodel, pressure=None, rstar=None, tstar=None, tint=100.0,
    1665.30121021]
   """
   if log is None:
-      log = mu.Log(logname=None)
+      log = mu.Log()
 
   if tmodel == 'tcea':
       # Parse inputs:
@@ -728,7 +726,7 @@ def temperature(tmodel, pressure=None, rstar=None, tstar=None, tint=100.0,
       return Tmodel, targs, ntpars
   else:
       temperature = Tmodel(tparams, *targs)
-      log.msg('\nComputed {:s} temperature model.'.format(tmodel))
+      log.head('\nComputed {:s} temperature model.'.format(tmodel))
       return temperature
 
 

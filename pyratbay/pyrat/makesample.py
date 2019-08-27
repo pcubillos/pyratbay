@@ -17,7 +17,7 @@ def make_wavenumber(pyrat):
   spec = pyrat.spec
   log  = pyrat.log
 
-  log.msg('\nGenerating wavenumber array.')
+  log.head('\nGenerating wavenumber array.')
   # Low wavenumber boundary:
   if pyrat.inputs.wnlow is None:
       if pyrat.inputs.wlhigh is None:
@@ -94,15 +94,15 @@ def make_wavenumber(pyrat):
   # Screen output:
   log.msg('Initial wavenumber boundary:  {:.5e} cm-1  ({:.3e} {:s})'.
           format(spec.wnlow, spec.wlhigh/pt.u(spec.wlunits), spec.wlunits),
-          verb=2, indent=2)
+          indent=2)
   log.msg('Final   wavenumber boundary:  {:.5e} cm-1  ({:.3e} {:s})'.
           format(spec.wnhigh, spec.wllow/pt.u(spec.wlunits), spec.wlunits),
-          verb=2, indent=2)
+          indent=2)
   log.msg('Wavenumber sampling stepsize: {:.2g} cm-1\n'
           'Wavenumber sample size:      {:8d}\n'
           'Wavenumber fine-sample size: {:8d}\n'.
-          format(spec.wnstep, spec.nwave, spec.onwave), verb=2, indent=2, si=2)
-  log.msg('Wavenumber sampling done.')
+          format(spec.wnstep, spec.nwave, spec.onwave), indent=2, si=2)
+  log.head('Wavenumber sampling done.')
 
 
 def make_atmprofiles(pyrat):
@@ -119,7 +119,7 @@ def make_atmprofiles(pyrat):
   - Compute partition-function at layers temperatures.
   """
   log = pyrat.log
-  log.msg('\nGenerating atmospheric profile sample.')
+  log.head('\nGenerating atmospheric profile sample.')
 
   # Pyrat and user-input atmospheric-data objects:
   atm    = pyrat.atm
@@ -159,15 +159,13 @@ def make_atmprofiles(pyrat):
                     'Undefined reference pressure level (refpressure).')
       # Atmopsheric reference pressure-radius level:
       log.msg('Reference pressure: {:.3e} {:s}.'.
-              format(atm.refpressure/pt.u(atm.punits), atm.punits),
-              verb=2, indent=2)
+              format(atm.refpressure/pt.u(atm.punits), atm.punits), indent=2)
       log.msg('Reference radius: {:8.1f} {:s}.'.
-              format(pyrat.phy.rplanet/pt.u(atm.runits), atm.runits),
-              verb=2, indent=2)
+              format(pyrat.phy.rplanet/pt.u(atm.runits), atm.runits), indent=2)
       if not np.isinf(pyrat.phy.rhill):
           log.msg('Hill radius:      {:8.1f} {:s}.'.
                   format(pyrat.phy.rhill/pt.u(atm.runits), atm.runits),
-                  verb=2, indent=2)
+                  indent=2)
 
       # Calculate radius profile with the hydostatic-equilibrium equation:
       atm_in.radius = pyrat.hydro(atm_in.press, atm_in.temp, atm_in.mm,
@@ -232,7 +230,7 @@ def make_atmprofiles(pyrat):
                        atm.ptop/pt.u(atm.punits), atm.punits))
 
   log.msg('User pressure boundaries: {:.2e}--{:.2e} bar.'.
-          format(atm.ptop/pc.bar, atm.pbottom/pc.bar), verb=2, indent=2)
+          format(atm.ptop/pc.bar, atm.pbottom/pc.bar), indent=2)
 
   # Resample to equispaced log-pressure array if requested:
   if pyrat.inputs.nlayers is not None:
@@ -282,18 +280,17 @@ def make_atmprofiles(pyrat):
   # Print radius array:
   if atm.radius is not None:
       radstr = '['+', '.join('{:9.2f}'.format(k) for k in atm.radius/pc.km)+']'
-      log.msg('Radius array (km) =   {:s}'.format(radstr),
-              verb=2, indent=2, si=4)
+      log.msg('Radius array (km) =   {:s}'.format(radstr), indent=2, si=4)
       log.msg('Valid upper/lower radius boundaries:    {:8.1f} - {:8.1f} '
               '{:s}.'.format(atm.radius[atm.rtop]/pt.u(atm.runits),
                              atm.radius[-1]/pt.u(atm.runits),
-                             atm.runits), verb=2, indent=2)
+                             atm.runits), indent=2)
 
   log.msg('Valid lower/higher pressure boundaries: {:.2e} - {:.2e} {:s}.'.
           format(atm.press[atm.rtop]/pt.u(atm.punits),
-          atm.pbottom/pt.u(atm.punits), atm.punits), verb=2, indent=2)
+          atm.pbottom/pt.u(atm.punits), atm.punits), indent=2)
   log.msg('Number of valid model layers: {:d}.'.
-          format(atm.nlayers-atm.rtop), verb=2, indent=2)
+          format(atm.nlayers-atm.rtop), indent=2)
 
   # Interpolate to new atm-layer sampling if necessary:
   if resample:
@@ -311,17 +308,17 @@ def make_atmprofiles(pyrat):
           atm.d[:,i] = dinterp(atm.press)
 
   # Interpolate isotopes partition function:
-  log.msg('Number of isotopes: {:d}'.format(pyrat.iso.niso), verb=2, indent=2)
+  log.msg('Number of isotopes: {:d}'.format(pyrat.iso.niso), indent=2)
   # Initialize the partition-function array for pyrat.iso:
   pyrat.iso.z = np.zeros((pyrat.iso.niso, atm.nlayers))
   for db in pyrat.lt.db:            # For each Database
       for j in np.arange(db.niso):  # For each isotope in DB
-          log.msg('Interpolating (isotope ID {:2d}) partition function.'.
-                  format(db.iiso+j), verb=3, indent=4)
+          log.debug('Interpolating (isotope ID {:2d}) partition function.'.
+                  format(db.iiso+j), indent=4)
           zinterp = sip.interp1d(db.temp, db.z[j], kind='slinear')
           pyrat.iso.z[db.iiso+j] = zinterp(atm.temp)
 
   # Base abundance profiles:
   atm.qbase = np.copy(atm.q)
 
-  log.msg('Make atmosphere done.')
+  log.head('Make atmosphere done.')

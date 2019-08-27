@@ -5386,3 +5386,8 @@ Changed behavior of runits warning.  Do not default to km anymore.
 Throw error if rplanet units are not defined (and rplanet exists).
 Defaulted units of smaxis and rstar to au and rsun, respectively.
 
+*****
+
+Removed MCcubed as submodule.
+Added mc3 as requirement.
+

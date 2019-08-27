@@ -15,13 +15,11 @@ else:
     import ConfigParser as configparser
 
 import numpy as np
+import mc3.utils as mu
 
 from .  import tools     as pt
 from .. import VERSION   as ver
 from .. import constants as pc
-
-sys.path.append(pc.ROOT + "modules/MCcubed")
-import MCcubed.utils as mu
 
 
 class Namespace(argparse.Namespace):
@@ -350,7 +348,7 @@ def parse(pyrat, cfile):
       Object storing the attributes defined in this function, with
       the values given in cfile.
   log: Log object
-      An MCcubed.utils.Log instance to log screen outputs to file.
+      An mc3.utils.Log instance to log screen outputs to file.
   """
   with pt.log_error():
       if not os.path.isfile(cfile):
@@ -521,16 +519,16 @@ def parse(pyrat, cfile):
   args._log = log
 
   # Welcome message:
-  log.msg("{:s}\n"
-          "  Python Radiative Transfer in a Bayesian framework (Pyrat Bay).\n"
-          "  Version {:d}.{:d}.{:d}.\n"
-          "  Copyright (c) 2016-{:d} Patricio Cubillos and collaborators.\n"
-          "  Pyrat Bay is (temporarily) proprietaty software (see LICENSE).\n"
-          "{:s}\n\n".format(log.sep, ver.PBAY_VER, ver.PBAY_MIN,
-                            ver.PBAY_REV, date.today().year, log.sep), verb=0)
+  log.head("{:s}\n"
+      "  Python Radiative Transfer in a Bayesian framework (Pyrat Bay).\n"
+      "  Version {:d}.{:d}.{:d}.\n"
+      "  Copyright (c) 2016-{:d} Patricio Cubillos and collaborators.\n"
+      "  Pyrat Bay is (temporarily) proprietaty software (see LICENSE).\n"
+      "{:s}\n\n".format(log.sep, ver.PBAY_VER, ver.PBAY_MIN,
+                        ver.PBAY_REV, date.today().year, log.sep))
 
-  log.msg("Read command-line arguments from configuration file: '{:s}'".
-          format(cfile))
+  log.head("Read command-line arguments from configuration file: '{:s}'".
+           format(cfile))
 
   # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
   # Parse valid inputs and defaults:

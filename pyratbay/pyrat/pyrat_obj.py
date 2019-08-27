@@ -40,7 +40,7 @@ class Pyrat(object):
       args: Namespace
           Object storing user-input attributes to initialize Pyrat.
       log: Log object
-          An MCcubed.utils.Log instance to log screen outputs to file.
+          An mc3.utils.Log instance to log screen outputs to file.
 
       Examples
       --------
@@ -164,7 +164,7 @@ class Pyrat(object):
 
       self.log.msg("\nTimestamps (s):\n" +
                    "\n".join("{:10s}: {:10.6f}".format(key,val)
-                             for key,val in self.timestamps.items()), verb=2)
+                             for key,val in self.timestamps.items()))
 
       if len(self.log.warnings) > 0:
           # Write all warnings to file:
@@ -174,7 +174,7 @@ class Pyrat(object):
               f.write("Warnings log:\n\n{:s}\n".format(self.log.sep))
               f.write("\n\n{:s}\n".format(self.log.sep).join(self.log.warnings))
           # Report it:
-          self.log.msg("\n{:s}\n  There were {:d} warnings raised.  "
+          self.log.head("\n{:s}\n  There were {:d} warnings raised.  "
               "See '{:s}'.\n{:s}".format(self.log.sep, len(self.log.warnings),
                                          wfile, self.log.sep))
 
@@ -203,7 +203,7 @@ class Pyrat(object):
       q0 = np.copy(self.atm.qbase)
 
       if self.ret.imass is not None:
-          self.phy.mplanet = params[self.ret.imass][0] * pt.u(self.phy.munits)
+          self.phy.mplanet = params[self.ret.imass][0] * pt.u(self.phy.mpunits)
 
       rejectflag = False
       # Update temperature profile if requested:

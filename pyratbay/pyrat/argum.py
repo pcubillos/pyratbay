@@ -218,7 +218,7 @@ def check_spectrum(pyrat):
                   'of available CPUs ({:d}).  Enforced ncpu to {:d}.'.
                   format(pyrat.ncpu, mp.cpu_count(), mp.cpu_count()-1))
       pyrat.ncpu = mp.cpu_count() - 1
-  log.msg('Check spectrum done.')
+  log.head('Check spectrum done.')
 
 
 def setup(pyrat):
@@ -287,7 +287,7 @@ def setup(pyrat):
           phy.tstar, np.log10(phy.gstar))
       log.msg('Input stellar params: T={:7.1f} K, log(g)={:4.2f}\n'
               'Best Kurucz match:    T={:7.1f} K, log(g)={:4.2f}'.
-              format(phy.tstar, np.log10(phy.gstar), kuruczt, kuruczg), verb=2)
+              format(phy.tstar, np.log10(phy.gstar), kuruczt, kuruczg))
   elif phy.marcs is not None:
       pass
   elif phy.phoenix is not None:

@@ -32,19 +32,19 @@ def exttable(pyrat):
 
   # If the extinction file was not defined, skip this step:
   if pyrat.ex.extfile is None:
-      pyrat.log.msg("\nNo extinction-coefficient table requested.")
+      pyrat.log.head("\nNo extinction-coefficient table requested.")
       return
 
   # If the extinction file exists, read it:
   if pt.isfile(pyrat.ex.extfile) == 1:
-      pyrat.log.msg("\nReading extinction-coefficient table file(s):")
+      pyrat.log.head("\nReading extinction-coefficient table file(s):")
       for extfile in pyrat.ex.extfile:
-          pyrat.log.msg("  '{}'.".format(extfile))
+          pyrat.log.head("  '{}'.".format(extfile))
       read_extinction(pyrat)
   # If the extinction file doesn't exist, calculate it:
   else:
-      pyrat.log.msg("\nGenerating new extinction-coefficient table file:"
-                    "\n  '{:s}'.".format(pyrat.ex.extfile[0]), verb=2)
+      pyrat.log.head("\nGenerating new extinction-coefficient table file:"
+                     "\n  '{:s}'.".format(pyrat.ex.extfile[0]))
       calc_extinction(pyrat)
 
 
@@ -93,7 +93,7 @@ def read_extinction(pyrat):
 
   pyrat.log.msg("File(s) have {:d} molecules, {:d} temperature samples, "
                 "{:d} layers, and {:d} wavenumber samples.".format(ex.nmol,
-                ex.ntemp, ex.nlayers, ex.nwave), verb=2, indent=2)
+                ex.ntemp, ex.nlayers, ex.nwave), indent=2)
 
   # Set tabulated temperature extrema:
   ex.tmin = np.amin(ex.temp)
@@ -110,7 +110,7 @@ def read_extinction(pyrat):
       "Temperatures (K):\n   {}\n"
       "Pressure layers (bar):\n{}\n"
       "Wavenumber array (cm-1):\n   {}".
-      format(ex.molID, str_temp, str_press, str_wn), verb=2, indent=2)
+      format(ex.molID, str_temp, str_press, str_wn), indent=2)
 
   # Some checks:
   if ex.nwave != pyrat.spec.nwave or np.sum(np.abs(ex.wn-pyrat.spec.wn)) > 0:
@@ -136,7 +136,7 @@ def read_extinction(pyrat):
           sinterp = sip.interp1d(pyrat.phy.starwn, pyrat.phy.starflux)
           pyrat.spec.starflux = sinterp(pyrat.spec.wn)
       # Update observational variables:
-      ar.setfilters(pyrat.obs, pyrat.spec, pyrat.phy)
+      pyrat.set_filters()
 
 
 def calc_extinction(pyrat):
@@ -162,11 +162,10 @@ def calc_extinction(pyrat):
   ex.temp  = np.linspace(ex.tmin, ex.tmin + (ex.ntemp-1)*ex.tstep, ex.ntemp)
 
   with np.printoptions(formatter={'float':'{:.1f}'.format}):
-      pyrat.log.msg("Temperature sample (K):\n {}".format(ex.temp),
-          verb=2, indent=2)
+      pyrat.log.msg("Temperature sample (K):\n {}".format(ex.temp), indent=2)
 
   # Evaluate the partition function at the given temperatures:
-  pyrat.log.msg("Interpolate partition function.", verb=2, indent=2)
+  pyrat.log.msg("Interpolate partition function.", indent=2)
   ex.z = np.zeros((pyrat.iso.niso, ex.ntemp), np.double)
   for i in np.arange(pyrat.lt.ndb):           # For each Database
       for j in np.arange(pyrat.lt.db[i].niso):  # For each isotope in DB
@@ -182,7 +181,7 @@ def calc_extinction(pyrat):
   ex.nlayers = pyrat.atm.nlayers
 
   # Allocate extinction-coefficient array:
-  pyrat.log.msg("Calculate extinction coefficient.", verb=2, indent=2)
+  pyrat.log.msg("Calculate extinction coefficient.", indent=2)
   sm_ect = mpr.Array(ctypes.c_double,
                      np.zeros(ex.nmol*ex.ntemp*ex.nlayers*ex.nwave, np.double))
   ex.etable = np.ctypeslib.as_array(sm_ect.get_obj()).reshape(
@@ -202,7 +201,7 @@ def calc_extinction(pyrat):
   # Store values in file:
   io.write_opacity(ex.extfile[0], ex.molID, ex.temp, ex.press, ex.wn,
                    pyrat.ex.etable)
-  pyrat.log.msg("Extinction-coefficient table written to file: '{:s}'.".
+  pyrat.log.head("Extinction-coefficient table written to file: '{:s}'.".
                 format(ex.extfile[0]), indent=2)
 
 
@@ -254,13 +253,13 @@ def extinction(pyrat, indices, grid=False, add=False):
           ziso   = pyrat.ex.z[:,itemp]      # Isotopic ratio
           pyrat.log.msg("Extinction-coefficient table: layer {:3d}/{:d}, "
               "iteration {:3d}/{:d}.".format(ilayer+1, pyrat.atm.nlayers, i+1,
-                                             len(indices)), verb=2, indent=2)
+                                             len(indices)), indent=2)
       else:     # Take from atmosphere
           temp = pyrat.atm.temp [ilayer]
           ziso = pyrat.iso.z  [:,ilayer]  # Isotopic ratio
           pyrat.log.msg("Calculating extinction at layer {:3d}/{:d} "
               "(T={:6.1f} K, p={:.1e} bar).".format(ilayer+1,
-              pyrat.atm.nlayers, temp, pressure/pc.bar), verb=2, indent=2)
+              pyrat.atm.nlayers, temp, pressure/pc.bar), indent=2)
 
       # Calculate extinction-coefficient in C:
       extinct_coeff[:] = 0.0

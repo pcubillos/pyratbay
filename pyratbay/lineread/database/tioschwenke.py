@@ -118,7 +118,7 @@ class tioschwenke(dbdriver):
     isoID   = np.zeros(nread,     int)
 
     self.log.msg("Starting to read Schwenke database between records {:,d} "
-                 "and {:,d}.".format(istart, istop), verb=2, indent=2)
+                 "and {:,d}.".format(istart, istop), indent=2)
 
     interval = (istop - istart)/10  # Check-point interval
     if interval == 0:
@@ -141,12 +141,12 @@ class tioschwenke(dbdriver):
       if (i % interval) == 0 and i != 0:
         wl = np.exp(iw[i] * self.ratiolog) * pc.nm/pc.um
         self.log.msg("{:5.1f}% completed.".format(10.*i/interval),
-                     verb=2, indent=3)
-        self.log.msg("Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} um\n"
-                     "Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}".
-                     format(1.0/(wl*pc.um), wl,
-                            self.tablog[ielo[i]], self.tablog[igf[i]],
-                            np.abs(ieli[i]) - 8950), verb=3, indent=6)
+                     indent=3)
+        self.log.debug("Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} um\n"
+                       "Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}".
+                       format(1.0/(wl*pc.um), wl,
+                              self.tablog[ielo[i]], self.tablog[igf[i]],
+                              np.abs(ieli[i]) - 8950), indent=6)
       i += 1
 
     # Calculate the wavenumber (in cm-1):

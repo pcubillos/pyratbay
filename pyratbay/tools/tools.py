@@ -42,14 +42,13 @@ else:
 
 import numpy as np
 import scipy.interpolate as si
+import mc3.utils as mu
 
 from .. import constants as pc
 from .. import io        as io
 
 sys.path.append(pc.ROOT + 'pyratbay/lib/')
 import _indices
-sys.path.append(pc.ROOT + 'modules/MCcubed/')
-import MCcubed.utils as mu
 
 
 # Numpy patch for Python 2:

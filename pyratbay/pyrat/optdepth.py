@@ -21,7 +21,7 @@ def opticaldepth(pyrat):
   Calculate the optical depth.
   """
   od = pyrat.od
-  pyrat.log.msg('\nBegin optical-depth calculation.')
+  pyrat.log.head('\nBegin optical-depth calculation.')
 
   # Evaluate the extinction coefficient at each layer:
   pyrat.ex.ec = np.zeros((pyrat.atm.nlayers, pyrat.spec.nwave))
@@ -94,7 +94,7 @@ def opticaldepth(pyrat):
                                         np.inf, od.ideep, r)
           r += 1
       od.ideep[od.ideep<0] = pyrat.atm.nlayers - 1
-  pyrat.log.msg('Optical depth done.')
+  pyrat.log.head('Optical depth done.')
 
 
 def path(pyrat):
@@ -127,7 +127,7 @@ def path(pyrat):
               raypath[i] = (np.sqrt(radius[i  ]**2 - radius[r]**2) -
                             np.sqrt(radius[i+1]**2 - radius[r]**2) )
           pyrat.od.raypath.append(raypath)
-          pyrat.log.msg('Raypath[{:3d}]: {}'.format(r, pyrat.od.raypath[r]),
-                        verb=4, indent=2)
+          pyrat.log.debug('Raypath[{:3d}]: {}'.format(r, pyrat.od.raypath[r]),
+                          indent=2)
           r += 1
 

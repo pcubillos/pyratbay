@@ -7,7 +7,7 @@ import numpy as np
 def init(pyrat):
     """Setup alkali models for pyrat's atmosphere."""
     if pyrat.alkali.models != []:
-        pyrat.log.msg("\nSetup Alkali opacity models.")
+        pyrat.log.head("\nSetup Alkali opacity models.")
     for alkali in pyrat.alkali.models:
         # Spectral sampling rate at alkali wn0:
         if pyrat.spec.resolution is None:
