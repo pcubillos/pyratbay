@@ -144,6 +144,31 @@ class Namespace(argparse.Namespace):
                             tracklev=-3)
         return value
 
+    def get_units(self, pname):
+        """
+        Extract units from a value input.
+        Return None if value does not have units or has an invalid format.
+
+        Parameters
+        ----------
+        pname: String
+            Parameter name.
+
+        Returns
+        -------
+        units: String
+        """
+        value = getattr(self, pname)
+        if not isinstance(value, str):
+            return None
+
+        par = value.split()
+        if len(par) != 2:
+            return None
+
+        units = par[1]
+        return units
+
     def get_param(self, pname, units, desc, gt=None, ge=None):
         value = pt.get_param(pname, getattr(self, pname), units, self._log,
             tracklev=-4)
@@ -523,10 +548,12 @@ def parse(pyrat, cfile):
       wflag=runmode not in ['pt', 'atmosphere'])
   if not hasattr(pc, spec.wlunits):
       log.error('Invalid wavelength units (wlunits): {}'.format(spec.wlunits))
+
   spec.wllow  = args.get_param('wllow',  spec.wlunits,
       'Wavelength lower boundary',  gt=0.0)
   spec.wlhigh = args.get_param('wlhigh', spec.wlunits,
       'Wavelength higher boundary', gt=0.0)
+
   spec.wnlow  = args.get_default('wnlow',
       'Wavenumber lower boundary',  gt=0.0)
   spec.wnhigh = args.get_default('wnhigh',

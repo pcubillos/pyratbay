@@ -5359,3 +5359,9 @@ Attempted to fix the travis file (we will see how it works).
 *****
 
 Updated README.md file to add the badges.
+
+
+*****  Di 27. Aug 10:58:15 CEST 2019  *****
+
+Implemented get_units() in parser Namespace class in parser.py
+
