@@ -767,7 +767,7 @@ Retrieval information:
   log(gamma2)       0.000e+00  -3.000e+00   3.000e+00   0.000e+00  temp
   alpha             0.000e+00   0.000e+00   1.000e+00   0.000e+00  temp
   beta              1.000e+00   1.000e-01   2.000e+00   1.000e-01  temp
-  Radius (km)       7.150e+04   3.000e+04   1.500e+05   1.000e+02  rad
+  Rp (km)           7.150e+04   3.000e+04   1.500e+05   1.000e+02  rad
   log(H2O)         -4.000e+00  -9.000e+00  -1.000e+00   5.000e-01  mol
 
 Retrieval algorithm (walk): snooker

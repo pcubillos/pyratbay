@@ -571,10 +571,16 @@ def parse(pyrat, cfile):
       wflag=(runmode!='tli'))
   if not hasattr(pc, atm.punits):
       log.error('Invalid pressure units (punits): {}'.format(atm.punits))
-  atm.runits = args.get_default('runits', 'Radius units', 'km',
-      wflag=(runmode!='tli'))
-  if not hasattr(pc, atm.runits):
+
+  atm.runits = args.get_default('runits', 'Planetary-radius units')
+  if atm.runits is not None and not hasattr(pc, atm.runits):
       log.error('Invalid radius units (runits): {}'.format(atm.runits))
+  rplanet_units = args.get_units('rplanet')
+  if atm.runits is None and rplanet_units is not None:
+      atm.runits = rplanet_units
+  phy.rplanet = args.get_param('rplanet', atm.runits,
+      'Planetary radius', gt=0.0)
+
   atm.nlayers = args.get_default('nlayers',
       'Number of atmospheric layers', gt=1)
 
@@ -595,8 +601,7 @@ def parse(pyrat, cfile):
   # System physical parameters:
   atm.refpressure = args.get_param('refpressure', atm.punits,
       'Planetary reference pressure level', gt=0.0)
-  phy.rplanet = args.get_param('rplanet', atm.runits,
-      'Planetary radius', gt=0.0)
+
 
   phy.mpunits = args.get_default('mpunits', 'Planetary-mass units')
   if phy.mpunits is not None and not hasattr(pc, phy.mpunits):
@@ -611,9 +616,9 @@ def parse(pyrat, cfile):
   phy.tint = args.get_default('tint',
       'Planetary internal temperature', 100.0, gt=0.0)
 
-  phy.smaxis = args.get_param('smaxis', atm.runits,
+  phy.smaxis = args.get_param('smaxis', 'au',
       'Orbital semi-major axis', gt=0.0)
-  phy.rstar = args.get_param('rstar', atm.runits,
+  phy.rstar = args.get_param('rstar', 'rsun',
       'Stellar radius', gt=0.0)
   phy.mstar = args.get_param('mstar', 'msun',
       'Stellar mass', gt=0.0)

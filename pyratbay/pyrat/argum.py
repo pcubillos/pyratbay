@@ -409,9 +409,8 @@ def setup(pyrat):
       nparams += ntemp
   if 'rad' in ret.retflag:
       ret.irad   = np.arange(nparams, nparams + 1)  # nrad is always 1
-      ret.pnames   += ['Radius (km)']
-      ret.texnames += [r'${\rm Radius\ (km)}$']
-      #ret.texnames += [r'$R_{{\rm planet}}$ ({:s})'.format(utex[phy.rpunits])]
+      ret.pnames   += ['Rp ({:s})'.format(atm.runits)]
+      ret.texnames += [r'$R_{{\rm planet}}$ ({:s})'.format(utex[atm.runits])]
       nparams += 1
   if 'mol' in ret.retflag:
       ret.imol = np.arange(nparams, nparams + nabund)

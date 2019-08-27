@@ -239,8 +239,7 @@ class Pyrat(object):
 
       # Update reference radius if requested:
       if self.ret.irad is not None:
-          #self.phy.rplanet = params[self.ret.irad][0] * pt.u(self.phy.runits)
-          self.phy.rplanet = params[self.ret.irad][0] * pc.km
+          self.phy.rplanet = params[self.ret.irad][0] * pt.u(self.atm.runits)
 
       # Update Rayleigh parameters if requested:
       if self.ret.iray is not None:

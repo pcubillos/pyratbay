@@ -5377,3 +5377,12 @@ Added tests in test_pbay.py.
 Enabled mplanet as a retrieval parameter.
 Changes need testing and documentation.
 
+*****
+
+Enabled setting radius units for planet radius retrieval.
+The retrieved value will have units according to runits
+(else, the units of rplanet).
+Changed behavior of runits warning.  Do not default to km anymore.
+Throw error if rplanet units are not defined (and rplanet exists).
+Defaulted units of smaxis and rstar to au and rsun, respectively.
+
