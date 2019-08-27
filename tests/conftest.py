@@ -101,7 +101,8 @@ def undefined_mcmc():
         'data':   'Undefined transit/eclipse data (data).',
         'uncert': 'Undefined data uncertainties (uncert).',
         'filters': 'Undefined transmission filters (filters).',
-        'walk': 'Undefined retrieval algorithm (walk).  Select from [snooker].',
+        'sampler': 'Undefined retrieval algorithm (sampler).  Select '
+                   'from [snooker].',
         'nsamples': 'Undefined number of retrieval samples (nsamples).',
         'burnin':   'Undefined number of retrieval burn-in samples (burnin).',
         'nchains':  'Undefined number of retrieval parallel chains (nchains).',

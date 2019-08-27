@@ -770,7 +770,7 @@ Retrieval information:
   Rp (km)           7.150e+04   3.000e+04   1.500e+05   1.000e+02  rad
   log(H2O)         -4.000e+00  -9.000e+00  -1.000e+00   5.000e-01  mol
 
-Retrieval algorithm (walk): snooker
+Retrieval algorithm (sampler): snooker
 Number of retrieval samples (nsamples): 300
 Number of parallel chains (nchains):   21
 Number of burned-in samples (burnin):  10

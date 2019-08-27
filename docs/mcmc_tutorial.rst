@@ -118,12 +118,12 @@ Retrieval Setup
 ---------------
 
 ``Pyrat Bay`` enables posterior sampling via the Markov-chain Monte
-Carlo (MCMC) or Nested Sampling technique.  Use the ``walk`` key to set
+Carlo (MCMC) or Nested Sampling technique.  Use the ``sampler`` key to set
 the sampling algorithm.   The following table list the available
 options and references of their implementation:
 
 =========== =================================== ================
-``walk``    Algorithm                           References
+``sampler`` Algorithm                           References
 =========== =================================== ================
 snooker     Snooker Differential-Evolution MCMC [Cubillos2017a]_
 dynesty     Dynamic Nested Sampling             [Speagle2019]_

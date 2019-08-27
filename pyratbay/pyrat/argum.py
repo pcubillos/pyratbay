@@ -85,8 +85,8 @@ def check_spectrum(pyrat):
       if pyrat.ret.retflag == []:
           log.error('Undefined retrieval model flags.  Select from {}.'.
                     format(pc.retflags))
-      if pyrat.ret.walk is None:
-          log.error('Undefined retrieval algorithm (walk).  Select from '
+      if pyrat.ret.sampler is None:
+          log.error('Undefined retrieval algorithm (sampler).  Select from '
                     '[snooker].')
       if pyrat.ret.nsamples is None:
           log.error('Undefined number of retrieval samples (nsamples).')

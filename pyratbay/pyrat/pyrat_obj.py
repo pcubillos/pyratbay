@@ -401,7 +401,7 @@ class Pyrat(object):
 
       # Array of all model parameters (with unique samples)
       posterior = np.repeat([self.ret.params], len(u), axis=0)
-      ifree = np.where(self.ret.stepsize >0)[0]
+      ifree = np.where(self.ret.pstep >0)[0]
       posterior[:,ifree] = self.ret.posterior[uind]
       # Need to keep FILE objects out of pool:
       logfile, self.log.file = self.log.file, None
@@ -499,7 +499,7 @@ class Pyrat(object):
           return
 
       posterior = self.ret.posterior
-      ifree = self.ret.stepsize[self.ret.itemp] > 0
+      ifree = self.ret.pstep[self.ret.itemp] > 0
       itemp = np.arange(np.sum(ifree))
       if filename is None:
           outfile = os.path.splitext(os.path.basename(self.ret.mcmcfile))[0]

@@ -453,7 +453,7 @@ def parse(pyrat, cfile):
       parse_array(args, 'prior')
       parse_array(args, 'priorlow')
       parse_array(args, 'priorup')
-      parse_str(args,   'walk')
+      parse_str(args,   'sampler')
       parse_int(args,   'nsamples')
       parse_int(args,   'nchains')
       parse_int(args,   'burnin')
@@ -709,7 +709,7 @@ def parse(pyrat, cfile):
       'Retrieval low-temperature (K) bound', 0, wflag=(runmode=='mcmc'))
   pyrat.ret.thigh = args.get_default('thigh',
       'Retrieval high-temperature (K) bound', np.inf, wflag=(runmode=='mcmc'))
-  pyrat.ret.walk     = args.walk
+  pyrat.ret.sampler = args.sampler
   pyrat.ret.nsamples = args.get_default('nsamples',
       'Number of MCMC samples', gt=0)
   pyrat.ret.burnin   = args.get_default('burnin',

@@ -797,7 +797,7 @@ def test_opacity_missing(tmp_path, capfd, param, undefined_opacity):
 
 @pytest.mark.parametrize('param',
     ['retflag', 'params', 'data', 'uncert', 'filters', 'rstar',
-     'walk', 'nsamples', 'burnin', 'nchains'])
+     'sampler', 'nsamples', 'burnin', 'nchains'])
 def test_mcmc_missing(tmp_path, capfd, param, undefined_mcmc):
     cfg = make_config(tmp_path, ROOT+'tests/mcmc_transmission_test.cfg',
         reset={'path':'eclipse', 'kurucz':'fp00k0odfnew.pck'},

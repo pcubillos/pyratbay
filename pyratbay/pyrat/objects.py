@@ -684,11 +684,11 @@ class Retrieval(object):
                   fw.write('  {:15s}  Gaussian  {:10.3e} -{:.3e}  {:+.3e}',
                       pname, self.prior[i], self.priorlow[i], self.priorup[i])
 
-      fw.write('\nRetrieval algorithm (walk): {}', self.walk)
-      if self.walk is None:
+      fw.write('\nRetrieval algorithm (sampler): {}', self.sampler)
+      if self.sampler is None:
           return fw.text
       fw.write('Number of retrieval samples (nsamples): {:,}', self.nsamples)
-      # if self.walk == 'snooker':
+      # if self.sampler == 'snooker':
       fw.write('Number of parallel chains (nchains):   {}', self.nchains)
       fw.write('Number of burned-in samples (burnin):  {:,}', self.burnin)
       fw.write('Thinning factor (thinning): {}', self.thinning)

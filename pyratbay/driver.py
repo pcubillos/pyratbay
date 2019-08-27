@@ -142,7 +142,7 @@ def run(cfile, init=False):
       func=pyrat.eval, indparams=[retmodel], params=ret.params,
       pmin=ret.pmin, pmax=ret.pmax, pstep=ret.pstep,
       prior=ret.prior, priorlow=ret.priorlow, priorup=ret.priorup,
-      sampler=ret.walk, nsamples=ret.nsamples,
+      sampler=ret.sampler, nsamples=ret.nsamples,
       nchains=ret.nchains, burnin=ret.burnin, thinning=ret.thinning,
       grtest=True, grbreak=ret.grbreak, grnmin=ret.grnmin,
       log=log, ncpu=pyrat.ncpu,
