@@ -40,6 +40,54 @@ expected_temperature = np.array(
        1665.35997887])
 
 
+# Warm up, check when units are well or wrongly set:
+def test_units_variable_not_needed(tmp_path):
+    cfg = make_config(tmp_path, ROOT+'tests/pt_isothermal.cfg')
+    pressure, temperature = pb.run(cfg)
+
+
+def test_units_separate(tmp_path):
+    cfg = make_config(tmp_path, ROOT+'tests/pt_isothermal.cfg',
+        reset={'mplanet':'1.0',
+               'mpunits':'mjup'})
+    pressure, temperature = pb.run(cfg)
+
+
+def test_units_in_value(tmp_path):
+    cfg = make_config(tmp_path, ROOT+'tests/pt_isothermal.cfg',
+        reset={'mplanet':'1.0 rjup'})
+    pressure, temperature = pb.run(cfg)
+
+
+def test_units_missing(tmp_path, capfd):
+    cfg = make_config(tmp_path, ROOT+'tests/pt_isothermal.cfg',
+        reset={'mplanet':'1.0'})
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Invalid units 'None' for parameter mplanet." in captured.out
+
+
+def test_units_invalid(tmp_path, capfd):
+    cfg = make_config(tmp_path, ROOT+'tests/pt_isothermal.cfg',
+        reset={'mplanet':'1.0',
+               'mpunits':'nope'})
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Invalid planet mass units (mpunits): nope" in captured.out
+
+
+def test_units_in_value_invalid(tmp_path, capfd):
+    cfg = make_config(tmp_path, ROOT+'tests/pt_isothermal.cfg',
+        reset={'mplanet':'1.0 nope'})
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Invalid units for value '1.0 nope' of parameter mplanet." \
+        in captured.out
+
+
 @pytest.mark.sort(order=1)
 def test_tli_hitran_wfc3():
     pb.run(ROOT+'tests/tli_hitran_1.1-1.7um_test.cfg')

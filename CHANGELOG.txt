@@ -5365,3 +5365,10 @@ Updated README.md file to add the badges.
 
 Implemented get_units() in parser Namespace class in parser.py
 
+*****
+
+Added mpunits as input argument to set units of mplanet.
+Save variable in pyrat.phy.mpunits.
+Throw error if mplanet units are not defined (and mplanet exists).
+Added tests in test_pbay.py.
+

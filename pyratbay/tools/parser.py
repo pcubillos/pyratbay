@@ -476,6 +476,7 @@ def parse(pyrat, cfile):
       parse_str(args,   'rplanet')
       parse_str(args,   'refpressure')
       parse_str(args,   'mplanet')
+      parse_str(args,   'mpunits')
       parse_float(args, 'gplanet')
       parse_str(args,   'smaxis')
       parse_float(args, 'tint')
@@ -596,8 +597,15 @@ def parse(pyrat, cfile):
       'Planetary reference pressure level', gt=0.0)
   phy.rplanet = args.get_param('rplanet', atm.runits,
       'Planetary radius', gt=0.0)
-  phy.mplanet = args.get_param('mplanet', None,
-      'Planetary mass', gt=0.0)
+
+  phy.mpunits = args.get_default('mpunits', 'Planetary-mass units')
+  if phy.mpunits is not None and not hasattr(pc, phy.mpunits):
+      log.error('Invalid planet mass units (mpunits): {}'.format(phy.mpunits))
+  mplanet_units = args.get_units('mplanet')
+  if phy.mpunits is None and mplanet_units is not None:
+      phy.mpunits = mplanet_units
+  phy.mplanet = args.get_param('mplanet', phy.mpunits, 'Planetary mass', gt=0.0)
+
   phy.gplanet = args.get_default('gplanet',
       'Planetary surface gravity (cm s-2)', gt=0.0)
   phy.tint = args.get_default('tint',
