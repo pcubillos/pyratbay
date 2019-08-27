@@ -202,13 +202,16 @@ class Pyrat(object):
       params = np.asarray(params)
       q0 = np.copy(self.atm.qbase)
 
+      if self.ret.imass is not None:
+          self.phy.mplanet = params[self.ret.imass][0] * pt.u(self.phy.munits)
+
       rejectflag = False
       # Update temperature profile if requested:
       if self.ret.itemp is not None:
           temp = self.atm.tmodel(params[self.ret.itemp], *self.atm.targs)
       else:
           temp = self.atm.temp
-      # Turn-on reject flag if out-of-bounds temperature:
+      # Turn-on reject flag if temperature is out-of-bounds:
       if np.any(temp < self.ret.tlow) or np.any(temp > self.ret.thigh):
           temp[:] = 0.5*(self.ret.tlow + self.ret.thigh)
           rejectflag = True
@@ -236,6 +239,7 @@ class Pyrat(object):
 
       # Update reference radius if requested:
       if self.ret.irad is not None:
+          #self.phy.rplanet = params[self.ret.irad][0] * pt.u(self.phy.runits)
           self.phy.rplanet = params[self.ret.irad][0] * pc.km
 
       # Update Rayleigh parameters if requested:

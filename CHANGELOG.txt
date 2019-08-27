@@ -5372,3 +5372,8 @@ Save variable in pyrat.phy.mpunits.
 Throw error if mplanet units are not defined (and mplanet exists).
 Added tests in test_pbay.py.
 
+*****
+
+Enabled mplanet as a retrieval parameter.
+Changes need testing and documentation.
+

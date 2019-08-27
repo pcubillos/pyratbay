@@ -28,7 +28,6 @@ expected = {key:np.load("expected_spectrum_transmission_{:s}_test.npz".
 #np.savez('expected_spectrum_transmission_fit_test.npz', model1[0])
 
 
-# TBD: Check output files
 def test_transmission_clear(tmp_path):
     # No opacity whatsoever:
     cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
@@ -130,7 +129,7 @@ def test_transmission_input_radius(tmp_path, param):
     np.testing.assert_allclose(pyrat.atm.radius, atm[5]*pc.km, rtol=1e-7)
 
 
-@pytest.mark.skip(reason="Because I'm lazy. TBI")
+@pytest.mark.skip(reason="TBI")
 def test_transmission_qmass_input():
     # This is the gist of it, prepare a qmass atmospheric file:
     units, species, press, temp, q = pa.read('atmosphere_uniform_test.atm')

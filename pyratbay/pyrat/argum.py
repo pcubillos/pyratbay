@@ -386,6 +386,19 @@ def setup(pyrat):
       ctexnames += model.texnames
       ncloud    += model.npars
 
+  # TeX unit conversions:
+  utex = {
+      'mjup':r'$M_{\rm Jup}$',
+      'mearth':r'$M_{\oplus}$',
+      'kg':'kg',
+      'gram':'g',
+      'rjup':r'$R_{\rm Jup}$',
+      'rearth':r'$R_{\oplus}$',
+      'km':'km',
+      'm':'m',
+      'cm':'cm',
+  }
+
   # Indices to parse the array of fitting parameters:
   nparams = 0
   ret.pnames, ret.texnames = [], []
@@ -398,6 +411,7 @@ def setup(pyrat):
       ret.irad   = np.arange(nparams, nparams + 1)  # nrad is always 1
       ret.pnames   += ['Radius (km)']
       ret.texnames += [r'${\rm Radius\ (km)}$']
+      #ret.texnames += [r'$R_{{\rm planet}}$ ({:s})'.format(utex[phy.rpunits])]
       nparams += 1
   if 'mol' in ret.retflag:
       ret.imol = np.arange(nparams, nparams + nabund)
@@ -418,6 +432,11 @@ def setup(pyrat):
       ret.ipatchy = np.arange(nparams, nparams + 1)  # npatchy is always 1
       ret.pnames   += ['f_patchy']
       ret.texnames += [r'$f_{\rm patchy}$']
+      nparams += 1
+  if 'mass' in ret.retflag:
+      ret.imass = np.arange(nparams, nparams + 1)  # nmass is always 1
+      ret.pnames   += ['Mp ({:s})'.format(phy.mpunits)]
+      ret.texnames += [r'$M_{{\rm planet}}$ ({:s})'.format(utex[phy.mpunits])]
       nparams += 1
 
   if pyrat.runmode == 'mcmc':
