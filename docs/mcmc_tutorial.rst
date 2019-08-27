@@ -10,9 +10,8 @@ MCMC Tutorial
 
 
 This mode allows you to fit spectra to observed exoplanet data.
-``Pyrat Bay`` incorporates the ``MC3`` package
-(`github.com/pcubillos/MCcubed
-<https://github.com/pcubillos/MCcubed>`_) to retrieve best-fitting
+``Pyrat Bay`` uses the ``MC3`` package (`https://github.com/pcubillos/mc3
+<https://github.com/pcubillos/mc3>`_) to retrieve best-fitting
 parameters and credible regions for the atmospheric parameters in a
 Bayesian (MCMC) framework.
 

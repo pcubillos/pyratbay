@@ -445,7 +445,7 @@ def parse(pyrat, cfile):
       parse_array(args, 'retflag')
       parse_float(args, 'qcap')
       parse_array(args, 'params')
-      parse_array(args, 'stepsize')
+      parse_array(args, 'pstep')
       parse_float(args, 'tlow')
       parse_float(args, 'thigh')
       parse_array(args, 'pmin')
@@ -694,7 +694,7 @@ def parse(pyrat, cfile):
       pyrat.ret.retflag = []
 
   pyrat.ret.params   = args.params
-  pyrat.ret.stepsize = args.stepsize
+  pyrat.ret.pstep    = args.pstep
   pyrat.ret.pmin     = args.pmin
   pyrat.ret.pmax     = args.pmax
   pyrat.ret.prior    = args.prior
@@ -704,7 +704,7 @@ def parse(pyrat, cfile):
   pyrat.ret.qcap = args.get_default('qcap',
       'Metals abundance cap', 1.0, gt=0.0, le=1.0)
   pyrat.ret.params = args.params
-  pyrat.ret.stepsize = args.stepsize
+  pyrat.ret.pstep = args.pstep
   pyrat.ret.tlow  = args.get_default('tlow',
       'Retrieval low-temperature (K) bound', 0, wflag=(runmode=='mcmc'))
   pyrat.ret.thigh = args.get_default('thigh',

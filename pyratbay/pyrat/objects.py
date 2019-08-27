@@ -657,13 +657,13 @@ class Retrieval(object):
 
       pmin = [None for _ in self.params] if self.pmin is None else self.pmin
       pmax = [None for _ in self.params] if self.pmax is None else self.pmax
-      psteps = [None for _ in self.params] if self.stepsize is None \
-                else self.stepsize
+      psteps = [None for _ in self.params] if self.pstep is None \
+                else self.pstep
 
       fw.write('  Parameter name        value        pmin        pmax'
                '       pstep  Model type')
       fw.write('  {:15}  {:>10}  {:>10}  {:>10}  {:>10}  {}',
-          '(pnames)', '(params)', '(pmin)', '(pmax)', '(stepsize)', '(retflag)')
+          '(pnames)', '(params)', '(pmin)', '(pmax)', '(pstep)', '(retflag)')
       for pname, param, min, max, pstep, flag in zip(self.pnames,
               self.params, pmin, pmax, psteps, flags):
           fw.write('  {:15s}  {:10.3e}  {:10.3e}  {:10.3e}  {:10.3e}  {}',

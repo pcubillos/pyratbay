@@ -761,7 +761,7 @@ Wavenumber  Wavelength    Bandflux  Filter name
     assert str(pyrat.ret) == """\
 Retrieval information:
   Parameter name        value        pmin        pmax       pstep  Model type
-  (pnames)           (params)      (pmin)      (pmax)  (stepsize)  (retflag)
+  (pnames)           (params)      (pmin)      (pmax)     (pstep)  (retflag)
   log(kappa)       -1.000e+00  -3.000e+00   3.000e+00   3.000e-01  temp
   log(gamma1)       0.000e+00  -3.000e+00   3.000e+00   3.000e-01  temp
   log(gamma2)       0.000e+00  -3.000e+00   3.000e+00   0.000e+00  temp

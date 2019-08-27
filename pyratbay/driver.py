@@ -140,7 +140,7 @@ def run(cfile, init=False):
   # Run MCMC:
   mc3_out = mc3.sample(data=pyrat.obs.data, uncert=pyrat.obs.uncert,
       func=pyrat.eval, indparams=[retmodel], params=ret.params,
-      pmin=ret.pmin, pmax=ret.pmax, pstep=ret.stepsize,
+      pmin=ret.pmin, pmax=ret.pmax, pstep=ret.pstep,
       prior=ret.prior, priorlow=ret.priorlow, priorup=ret.priorup,
       sampler=ret.walk, nsamples=ret.nsamples,
       nchains=ret.nchains, burnin=ret.burnin, thinning=ret.thinning,

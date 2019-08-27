@@ -5391,3 +5391,7 @@ Defaulted units of smaxis and rstar to au and rsun, respectively.
 Removed MCcubed as submodule.
 Added mc3 as requirement.
 
+*****
+
+Renamed stepsize to pstep (to follow mc3 suit).
+
