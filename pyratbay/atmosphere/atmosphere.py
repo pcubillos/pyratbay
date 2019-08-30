@@ -484,7 +484,7 @@ def abundances(atmfile, pressure, temperature, species, elements=None,
   >>> Q = pa.abundances("pbtea.atm", press, temp, species)
   """
   if log is None:
-      log = mu.Log(logname=None, verb=verb)
+      log = mu.Log(verb=verb)
   # Uniform-abundances profile:
   if quniform is not None:
       q = uniform(pressure, temperature, species, quniform, punits, log,
@@ -508,13 +508,13 @@ def abundances(atmfile, pressure, temperature, species, elements=None,
   proc = subprocess.Popen([pc.ROOT + "modules/TEA/tea/runatm.py", patm, "TEA"])
   proc.communicate()
   # Reformat the TEA output into the pyrat format:
-  TEA2pyrat("./TEA/TEA/results/TEA.tea", atmfile, species)
-  shutil.rmtree("TEA")
+  TEA2pyrat("TEA.tea", atmfile, species)
   os.remove(atomicfile)
   os.remove(patm)
   os.remove("TEA.cfg")
+  os.remove("TEA.tea")
   log.head("Produced TEA atmospheric file '{:s}'.".format(atmfile))
-  udummy, sdummy, pdummy, tdummy, q, rdummy = readatm(atmfile)
+  q = readatm(atmfile)[4]
   return q
 
 

@@ -59,6 +59,38 @@ q0 = np.array(
        [  8.53190000e-01,   1.45530000e-01,   8.23730000e-04,
           1.36860000e-05,   5.10860000e-09,   4.46510000e-04]])
 
+qtea_expected = np.array(
+      [[7.3360e-01, 9.2056e-02, 9.0541e-21, 7.2656e-05, 1.7382e-01,
+        1.6586e-04, 2.9100e-04, 1.0735e-07, 3.9871e-28],
+       [4.1413e-01, 1.1529e-01, 1.7346e-20, 5.5994e-06, 4.6992e-01,
+        2.9316e-04, 3.6449e-04, 8.7915e-08, 4.0179e-25],
+       [1.7275e-01, 1.3284e-01, 2.5163e-20, 5.2428e-07, 6.9365e-01,
+        3.4373e-04, 4.2000e-04, 8.0466e-08, 9.1401e-23],
+       [6.3491e-02, 1.4078e-01, 2.8797e-20, 5.7232e-08, 7.9492e-01,
+        3.6479e-04, 4.4512e-04, 7.8974e-08, 9.8864e-21],
+       [2.2316e-02, 1.4378e-01, 3.0175e-20, 6.5750e-09, 8.3308e-01,
+        3.7260e-04, 4.5458e-04, 7.8606e-08, 8.1888e-19],
+       [7.7236e-03, 1.4484e-01, 3.0664e-20, 7.6830e-10, 8.4661e-01,
+        3.7536e-04, 4.5794e-04, 7.8498e-08, 6.1850e-17],
+       [2.6591e-03, 1.4521e-01, 3.0834e-20, 9.0295e-11, 8.5130e-01,
+        3.7631e-04, 4.5910e-04, 7.8462e-08, 4.5257e-15],
+       [9.1382e-04, 1.4533e-01, 3.0893e-20, 1.0633e-11, 8.5292e-01,
+        3.7664e-04, 4.5950e-04, 7.8450e-08, 3.2757e-13],
+       [3.1385e-04, 1.4538e-01, 3.0913e-20, 1.2529e-12, 8.5347e-01,
+        3.7675e-04, 4.5964e-04, 7.8446e-08, 2.3621e-11],
+       [1.0777e-04, 1.4539e-01, 3.0920e-20, 1.4768e-13, 8.5367e-01,
+        3.7679e-04, 4.5969e-04, 7.8445e-08, 1.7010e-09],
+       [3.7001e-05, 1.4540e-01, 3.0904e-20, 1.7412e-14, 8.5373e-01,
+        3.7693e-04, 4.5958e-04, 7.8449e-08, 1.2238e-07],
+       [1.2704e-05, 1.4540e-01, 2.9687e-20, 2.0979e-15, 8.5374e-01,
+        3.8528e-04, 4.5126e-04, 7.8733e-08, 8.4610e-06],
+       [4.3609e-06, 1.4546e-01, 1.0486e-20, 3.8006e-16, 8.5348e-01,
+        5.9194e-04, 2.4497e-04, 6.5687e-08, 2.1495e-04],
+       [1.4970e-06, 1.4553e-01, 3.0538e-22, 6.2646e-17, 8.5318e-01,
+        8.2745e-04, 9.9759e-06, 3.7406e-09, 4.5022e-04],
+       [5.1396e-07, 1.4553e-01, 4.3364e-24, 7.4727e-18, 8.5317e-01,
+        8.3731e-04, 1.4335e-07, 5.4391e-11, 4.6007e-04]])
+
 
 def test_pressure_default_units():
     ptop    = 1e-8
@@ -163,23 +195,20 @@ def test_abundances_uniform():
     assert np.shape(qprofiles) == (nlayers, len(species))
     for q in qprofiles:
         np.testing.assert_equal(q, np.array(abundances))
-    # TBD: Check file is there
 
 
-@pytest.mark.skip(reason="Skip until implementing the fast TEA")
-def test_abundances_TEA():
+def test_abundances_tea():
     atmfile = "atm_test.dat"
-    nlayers = 11
+    nlayers = 15
     punits  = 'bar'
-    pressure    = pa.pressure(1e-8, 1e2, nlayers, punits)
+    pressure    = pa.pressure(1e-10, 1e3, nlayers, punits)
     temperature = pa.tmodels.isothermal(1500.0, nlayers)
-    species     = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
-    elements    = ["H", "He", "C", "O"]
+    species     = 'H He C O H2 H2O CO CO2 CH4'.split()
+    elements    = 'H He C O'.split()
     xsolar      = 1.0
-    qprofiles = pa.abundances(atmfile, pressure, temperature, species,
-                              elements, punits=punits, xsolar=xsolar)
-    #solar = pc.ROOT+"inputs/AsplundEtal2009.txt"
-    #index, symbol, dex, name, mass = pa.readatomic(solar)
+    qtea = pa.abundances(atmfile, pressure, temperature, species,
+                         elements, punits=punits, xsolar=xsolar)
+    np.testing.assert_almost_equal(qtea, qtea_expected, decimal=7)
 
 
 def test_hydro_g():

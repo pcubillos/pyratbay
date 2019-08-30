@@ -5404,3 +5404,8 @@ Renamed walk argument to sampler.
 
 Moved filters setup (argum.py) into pyrat.set_filters() method.
 
+*****
+
+Updated TEA submodule.
+Added tests for pa.abundances() and pb.run() functions.
+
