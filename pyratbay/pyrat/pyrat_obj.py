@@ -11,6 +11,7 @@ from .. import constants  as pc
 from .. import atmosphere as pa
 from .. import tools      as pt
 from .. import plots      as pp
+from .. import io         as io
 
 from .  import extinction as ex
 from .  import crosssec   as cs
@@ -331,6 +332,37 @@ class Pyrat(object):
           return pa.hydro_m(pressure, temperature, mu, mass, p0, r0)
       # H.E. with constant g:
       return pa.hydro_g(pressure, temperature, mu, g, p0, r0)
+
+
+  def set_filters(self):
+      """
+      Set observational variables (pyrat.obs) based on given parameters.
+      """
+      if self.obs.filters is None:
+          return
+
+      bandidx   = []  # Filter wavenumber indices
+      starflux  = []  # Interpolated stellar flux
+      bandtrans = []  # Normalized interpolated filter transmission
+      bandwn    = []  # Band's mean wavenumber
+      for filter in self.obs.filters:
+          # Read filter wavenumber and transmission curves:
+          filterwn, filtertr = io.read_spectrum(filter)
+          # Resample the filters into the planet wavenumber array:
+          btrans, bidx = pt.resample(filtertr, filterwn, self.spec.wn,
+              normalize=True)
+          bandidx.append(bidx)
+          bandtrans.append(btrans)
+          bandwn.append(np.sum(filterwn*filtertr)/np.sum(filtertr))
+          if self.phy.starflux is not None:
+              starflux.append(self.spec.starflux[bidx])
+
+      # Per-band variables:
+      self.obs.bandidx   = bandidx
+      self.obs.bandtrans = bandtrans
+      self.obs.starflux  = starflux
+      self.obs.bandwn    = np.asarray(bandwn)
+      self.obs.bandflux  = np.zeros(self.obs.nfilters, np.double)
 
 
   def get_ec(self, layer):

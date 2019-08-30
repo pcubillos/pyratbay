@@ -127,7 +127,7 @@ def read_extinction(pyrat):
       pyrat.spec.wnstep = ex.wn[ 1] - ex.wn[0]
       # Keep wavenumber oversampling factor:
       pyrat.spec.ownstep = pyrat.spec.wnstep / pyrat.spec.wnosamp
-      pyrat.spec.onwave  = (pyrat.spec.nwave - 1) *  pyrat.spec.wnosamp + 1
+      pyrat.spec.onwave  = (pyrat.spec.nwave - 1) * pyrat.spec.wnosamp + 1
       pyrat.spec.own     = np.linspace(pyrat.spec.wn[0], pyrat.spec.wn[-1],
                                        pyrat.spec.onwave)
 

@@ -5399,3 +5399,8 @@ Renamed stepsize to pstep (to follow mc3 suit).
 
 Renamed walk argument to sampler.
 
+
+*****  Fr 30. Aug 14:17:29 CEST 2019  *****
+
+Moved filters setup (argum.py) into pyrat.set_filters() method.
+

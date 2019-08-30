@@ -312,28 +312,7 @@ def setup(pyrat):
 
   # Set observational variables (for given filters and other parameters):
   if obs.filters is not None:
-      bandidx   = []  # Filter wavenumber indices
-      starflux  = []  # Interpolated stellar flux
-      bandtrans = []  # Normalized interpolated filter transmission
-      bandwn    = []  # Band's mean wavenumber
-      for filter in obs.filters:
-          # Read filter wavenumber and transmission curves:
-          filterwn, filtertr = io.read_spectrum(filter)
-          # Resample the filters into the planet wavenumber array:
-          btrans, bidx = pt.resample(filtertr, filterwn, pyrat.spec.wn,
-              normalize=True)
-          bandidx.append(bidx)
-          bandtrans.append(btrans)
-          bandwn.append(np.sum(filterwn*filtertr)/np.sum(filtertr))
-          if phy.starflux is not None:
-              starflux.append(pyrat.spec.starflux[bidx])
-
-      # Per-band variables:
-      obs.bandidx   = bandidx
-      obs.bandtrans = bandtrans
-      obs.starflux  = starflux
-      obs.bandwn    = np.asarray(bandwn)
-      obs.bandflux  = np.zeros(obs.nfilters, np.double)
+      pyrat.set_filters()
 
   # Planet-to-star radius ratio:
   if phy.rplanet is not None and phy.rstar is not None:
