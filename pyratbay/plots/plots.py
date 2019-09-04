@@ -308,7 +308,7 @@ def cf(bandcf, bandwl, path, pressure, radius, rtop=0,
       plt.savefig(filename)
 
 
-def posterior_pt(posterior, tmodel, targs, tpars, ifree, pressure,
+def posterior_pt(posterior, tmodel, tpars, ifree, pressure,
                  bestpars=None, filename=None):
   """
   Plot the posterior PT profile.
@@ -324,8 +324,6 @@ def posterior_pt(posterior, tmodel, targs, tpars, ifree, pressure,
   ifree: 1D bool ndarray
       Mask of free (True) and fixed (False) parameters in tpars.
       The number of free parameters must match nfree in posterior.
-  targs: List
-      List of additional arguments for tmodel.
   pressure: 1D float ndarray
       The atmospheric pressure profile in barye.
   bestpars: 1D float ndarray
@@ -343,7 +341,7 @@ def posterior_pt(posterior, tmodel, targs, tpars, ifree, pressure,
   profiles = np.zeros((nsamples, nlayers), np.double)
   for i in range(nsamples):
       tpars[ifree] = posterior[uind[i]]
-      profiles[i] = tmodel(tpars, *targs)
+      profiles[i] = tmodel(tpars)
 
   # Get percentiles (for 1,2-sigma boundaries and median):
   low1   = np.zeros(nlayers, np.double)
@@ -378,7 +376,7 @@ def posterior_pt(posterior, tmodel, targs, tpars, ifree, pressure,
       edgecolor='none', alpha=alpha1)
   plt.plot(median, pressure/pc.bar, 'navy', lw=2, label='Median')
   if bestpars is not None:
-      bestpt = tmodel(bestpars, *targs)
+      bestpt = tmodel(bestpars)
       plt.plot(bestpt, pressure/pc.bar, 'r-', lw=2, label='Best fit')
   ax.set_ylim(np.amax(pressure/pc.bar), np.amin(pressure/pc.bar))
   ax.set_yscale('log')

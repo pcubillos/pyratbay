@@ -9,6 +9,13 @@
 .. |alpha|  replace:: :math:`\alpha`
 .. |beta|   replace:: :math:`\beta`
 
+.. |logp1| replace:: :math:`\log_{10}(p_1)`
+.. |logp2| replace:: :math:`\log_{10}(p_2)`
+.. |logp3| replace:: :math:`\log_{10}(p_3)`
+.. |a1|    replace:: :math:`a_1`
+.. |a2|    replace:: :math:`a_2`
+.. |T0|    replace:: :math:`T_0`
+
 
 .. _pttutorial:
 
@@ -26,8 +33,7 @@ Models (``tmodel``) Parameters (``tpars``)                       References
 =================== ============================================ ====
 isothermal          :math:`T_0`                                  ---
 tcea                |kappa|, |gamma1|, |gamma2|, |alpha|, |beta| [Line2013]_
-madhu_inv           :math:`a_1, a_2, p_1, p_2, p_3, T_3`         [Madhusudhan2009]_
-madhu_noinv         :math:`a_1, a_2, p_1, p_2, p_3, T_3`         [Madhusudhan2009]_
+madhu               |logp1|, |logp2|, |logp3|, |a1|, |a2|, |T0|  [Madhusudhan2009]_
 =================== ============================================ ====
 
 
@@ -81,10 +87,14 @@ for temperature keys (like ``tstar`` and ``tint``) are Kelvin.
 Madhu profiles
 ^^^^^^^^^^^^^^
 
-The madhu_inv model has six parameters: :math:`a_1, a_2, p_1, p_2, p_3,
-T_3`, whereas the madhu_noinv model has five
-parameters: :math:`a_1, a_2, p_1, p_3, T_3` as defined in
-[Madhusudhan2009]_.  **[To be reviewed]**
+The madhu model has six parameters: |logp1|, |logp2|, |logp3|, |a1|,
+|a2|, and |T0|, as described in [Madhusudhan2009]_, where the pressure
+values must be given in CGS units (barye).  A thermally inverted
+profile will result when :math:`p_1 < p_2`; a non-inverted profile
+will result when :math:`p_2 < p_1`.
+
+.. literalinclude:: ../examples/tutorial/pt_madhu.cfg
+
 
 -------------------------------------------------------------------
 
@@ -106,14 +116,16 @@ profile, using the parameters shown in the previous sections:
   import pyratbay.constants as pc
 
   # Generate PT profiles:
-  press, T_iso  = pb.run("pt_isothermal.cfg")
-  press, T_tcea = pb.run("pt_tcea.cfg")
+  press, t_iso  = pb.run("pt_isothermal.cfg")
+  press, t_tcea = pb.run("pt_tcea.cfg")
+  press, t_madhu = pb.run("pt_madhu.cfg")
 
   # Plot the PT profiles:
   plt.figure(11)
   plt.clf()
-  plt.semilogy(T_iso,  press/pc.bar, color='b', lw=2, label='Isothermal')
-  plt.semilogy(T_tcea, press/pc.bar, color='r', lw=2, label='TCEA')
+  plt.semilogy(t_iso,   press/pc.bar, color='b', lw=2, label='isothermal')
+  plt.semilogy(t_tcea,  press/pc.bar, color='r', lw=2, label='tcea')
+  plt.semilogy(t_madhu, press/pc.bar, color='g', lw=2, label='madhu')
   plt.ylim(100, 1e-5)
   plt.xlim(1200, 1800)
   plt.legend(loc="best")

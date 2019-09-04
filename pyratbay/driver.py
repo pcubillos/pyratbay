@@ -174,7 +174,7 @@ def run(cfile, init=False):
   pyrat.plot_spectrum(spec='best',
       filename='{:s}_bestfit_spectrum.png'.format(outfile))
 
-  if pyrat.atm.tmodelname in ['tcea', 'madhu_inv', 'madhu_noinv']:
+  if pyrat.atm.tmodelname in ['tcea', 'madhu']:
       pyrat.plot_posterior_pt('{:s}_posterior_PT_profile.png'.format(outfile))
 
   if pyrat.od.path == "eclipse":

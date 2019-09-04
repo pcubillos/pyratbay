@@ -13,13 +13,25 @@ import pyratbay.constants  as pc
 os.chdir(ROOT+'tests')
 
 
-expected_pressure = np.array([1.e-02, 1.e-01, 1.e+00, 1.e+01, 1.e+02, 1.e+03,
-                              1.e+04, 1.e+05, 1.e+06, 1.e+07, 1.e+08])
+expected_pressure = np.logspace(-2, 9, 15)
 
-expected_temp = np.array(
-      [1047.04157312, 1047.04189805, 1047.04531644, 1047.08118784,
-       1047.45648563, 1051.34469989, 1088.69956369, 1311.86379107,
-       1640.12857767, 1660.02396061, 1665.30121021])
+expected_temp_tcea = np.array(
+      [1047.04157312, 1047.0417558 , 1047.04291714, 1047.05028832,
+       1047.09700183, 1047.39246504, 1049.25209169, 1060.68633455,
+       1122.94827272, 1339.07083137, 1616.76492877, 1659.69009949,
+       1661.01445599, 1669.01141096, 1715.50699082])
+
+expected_temp_madhu_noinv = np.array(
+      [ 870.23835532,  875.0069192 ,  888.59773802,  911.24902223,
+        942.96082012,  983.73313169, 1033.56595695, 1092.4592959 ,
+       1160.41290637, 1236.232834  , 1300.7457372 , 1372.71764431,
+       1453.77542722, 1460.59618283, 1460.7314666 ])
+
+expected_temp_madhu_inv = np.array(
+      [870.23835532, 875.0069192 , 888.59773802, 911.24902223,
+       942.96037048, 981.51425888, 988.43599566, 952.27744069,
+       927.46081518, 917.22633753, 921.57466482, 940.50529625,
+       971.54884044, 974.31160987, 974.37075759])
 
 # Jupiter radius profile at constant g:
 radius_g = np.array(
@@ -94,55 +106,53 @@ qtea_expected = np.array(
 
 def test_pressure_default_units():
     ptop    = 1e-8
-    pbottom = 1e2
-    nlayers = 11
+    pbottom = 1e3
+    nlayers = 15
     pressure = pa.pressure(ptop, pbottom, nlayers)
-    np.testing.assert_almost_equal(pressure, expected_pressure, decimal=7)
+    np.testing.assert_allclose(pressure, expected_pressure)
 
 
 def test_pressure_floats():
     ptop    = 1e-8
-    pbottom = 1e2
-    nlayers = 11
+    pbottom = 1e3
+    nlayers = 15
     units   = "bar"
     pressure = pa.pressure(ptop, pbottom, nlayers, units)
-    np.testing.assert_almost_equal(pressure, expected_pressure, decimal=7)
+    np.testing.assert_allclose(pressure, expected_pressure)
 
 
 def test_pressure_with_units():
     ptop    = "1e-8 bar"
-    pbottom = "1e2 bar"
-    nlayers = 11
+    pbottom = "1e3 bar"
+    nlayers = 15
     pressure = pa.pressure(ptop, pbottom, nlayers)
-    np.testing.assert_almost_equal(pressure, expected_pressure, decimal=7)
+    np.testing.assert_allclose(pressure, expected_pressure)
 
 
 @pytest.mark.parametrize("tparams",
     [1500.0, [1500.0], (1500,), np.array([1500.0])])
-def test_temp_isothermal(tparams):
+def test_tmodel_isothermal(tparams):
     nlayers = 100
-    temp = pa.tmodels.isothermal(tparams, nlayers)
-    np.testing.assert_equal(temp, np.tile(1500.0, 100))
+    tmodel = pa.tmodels.Isothermal(nlayers)
+    np.testing.assert_equal(tmodel(tparams), np.tile(1500.0, nlayers))
 
 
 @pytest.mark.parametrize("tparams",
     [[-1.5, -0.8, -0.8, 0.5, 1.0],
      np.array([-1.5, -0.8, -0.8, 0.5, 1.0])
     ])
-def test_temp_tcea_floats(tparams):
-    tparams = [-1.5, -0.8, -0.8, 0.5, 1.0]
+def test_tmodel_tcea_floats(tparams):
     pressure = expected_pressure
     rstar = 0.756 * pc.rsun
     tstar = 5040.0
     tint = 100.0
     gplanet = 2200.0
     smaxis = 0.031 * pc.au
-    temp = pa.tmodels.tcea(tparams, pressure, rstar, tstar, tint,
-        gplanet, smaxis)
-    np.testing.assert_almost_equal(temp, expected_temp, decimal=7)
+    tmodel = pa.tmodels.TCEA(pressure, rstar, tstar, tint, gplanet, smaxis)
+    np.testing.assert_allclose(tmodel(tparams), expected_temp_tcea)
 
 
-def test_temp_tcea_units():
+def test_tmodel_tcea_units():
     tparams = [-1.5, -0.8, -0.8, 0.5, 1.0]
     pressure = expected_pressure
     rstar = "0.756 rsun"
@@ -150,14 +160,28 @@ def test_temp_tcea_units():
     tint = 100.0
     gplanet = 2200.0
     smaxis = "0.031 au"
-    temp = pa.tmodels.tcea(tparams, pressure, rstar, tstar, tint,
-        gplanet, smaxis)
-    np.testing.assert_almost_equal(temp, expected_temp, decimal=7)
+    tmodel = pa.tmodels.TCEA(pressure, rstar, tstar, tint, gplanet, smaxis)
+    np.testing.assert_allclose(tmodel(tparams), expected_temp_tcea)
+
+
+
+def test_temp_madhu_no_inv():
+    pressure = expected_pressure
+    tmodel = pa.tmodels.Madhu(pressure)
+    tparams = 5.23, 2.39, 7.45, 0.85, 0.67, 870.0
+    np.testing.assert_allclose(tmodel(tparams), expected_temp_madhu_noinv)
+
+
+def test_temp_madhu_inv():
+    pressure = expected_pressure
+    tmodel = pa.tmodels.Madhu(pressure)
+    tparams = 2.39, 5.23, 7.45, 0.85, 0.67, 870.0
+    np.testing.assert_allclose(tmodel(tparams), expected_temp_madhu_inv)
 
 
 def test_temperature_isothermal():
     tparams = 1500.0
-    nlayers = 11
+    nlayers = 15
     temp = pa.temperature("isothermal", tparams=tparams, nlayers=nlayers)
     np.testing.assert_equal(temp, np.tile(tparams, nlayers))
 
@@ -167,7 +191,14 @@ def test_temperature_tcea():
     tparams = [-1.5, -0.8, -0.8, 0.5, 1.0]
     temp = pa.temperature('tcea', pressure, rstar="0.756 rsun", tstar=5040,
           tint=100.0, gplanet=2200.0, smaxis="0.031 au", tparams=tparams)
-    np.testing.assert_almost_equal(temp, expected_temp, decimal=7)
+    np.testing.assert_allclose(temp, expected_temp_tcea)
+
+
+def test_temperature_madhu():
+    pressure = expected_pressure
+    tparams = 5.23, 2.39, 7.45, 0.85, 0.67, 870.0
+    temp = pa.temperature('madhu', pressure, tparams=tparams)
+    np.testing.assert_allclose(temp, expected_temp_madhu_noinv)
 
 
 def test_uniform():
@@ -187,7 +218,8 @@ def test_abundances_uniform():
     nlayers = 11
     punits  = 'bar'
     pressure    = pa.pressure(1e-8, 1e2, nlayers, punits)
-    temperature = pa.tmodels.isothermal(1500.0, nlayers)
+    tmodel = pa.tmodels.Isothermal(nlayers)
+    temperature = tmodel(1500.0)
     species     = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
     abundances  = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
     qprofiles = pa.abundances(atmfile, pressure, temperature, species,
@@ -201,40 +233,43 @@ def test_abundances_tea():
     atmfile = "atm_test.dat"
     nlayers = 15
     punits  = 'bar'
-    pressure    = pa.pressure(1e-10, 1e3, nlayers, punits)
-    temperature = pa.tmodels.isothermal(1500.0, nlayers)
+    pressure = pa.pressure(1e-10, 1e3, nlayers, punits)
+    tmodel = pa.tmodels.Isothermal(nlayers)
+    temperature = tmodel(1500.0)
     species     = 'H He C O H2 H2O CO CO2 CH4'.split()
     elements    = 'H He C O'.split()
     xsolar      = 1.0
     qtea = pa.abundances(atmfile, pressure, temperature, species,
                          elements, punits=punits, xsolar=xsolar)
-    np.testing.assert_almost_equal(qtea, qtea_expected, decimal=7)
+    np.testing.assert_allclose(qtea, qtea_expected)
 
 
 def test_hydro_g():
     nlayers = 11
     pressure = pa.pressure(1e-8, 1e2, nlayers, units='bar')
-    temperature = pa.tmodels.isothermal(1500.0, nlayers)
+    tmodel = pa.tmodels.Isothermal(nlayers)
+    temperature = tmodel(1500.0)
     mu = np.tile(2.3, nlayers)
     g = pc.G * pc.mjup / pc.rjup**2
     r0 = 1.0 * pc.rjup
     p0 = 1.0 * pc.bar
     # Radius profile in Jupiter radii:
     radius = pa.hydro_g(pressure, temperature, mu, g, p0, r0) / pc.rjup
-    np.testing.assert_almost_equal(radius, radius_g, decimal=7)
+    np.testing.assert_allclose(radius, radius_g)
 
 
 def test_hydro_m():
     nlayers = 11
     pressure = pa.pressure(1e-8, 1e2, nlayers, units='bar')
-    temperature = pa.tmodels.isothermal(1500.0, nlayers)
+    tmodel = pa.tmodels.Isothermal(nlayers)
+    temperature = tmodel(1500.0)
     mu = np.tile(2.3, nlayers)
     Mp = 1.0 * pc.mjup
     r0 = 1.0 * pc.rjup
     p0 = 1.0 * pc.bar
     radius = pa.hydro_m(pressure, temperature, mu, Mp, p0, r0) / pc.rjup
     # Radius profile in Jupiter radii:
-    np.testing.assert_almost_equal(radius, radius_m, decimal=7)
+    np.testing.assert_allclose(radius, radius_m)
 
 
 def test_stoich():
@@ -255,7 +290,7 @@ def test_stoich():
 def test_meanweight(abundances):
     species     = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
     mu = pa.meanweight(abundances, species)
-    np.testing.assert_almost_equal(mu, np.array([2.31928918]), decimal=7)
+    np.testing.assert_allclose(mu, np.array([2.31928918]))
 
 
 def test_IGLdensity():

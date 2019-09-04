@@ -185,8 +185,7 @@ retflags = [
 tmodels = [
    'isothermal',
    'tcea',
-   'madhu_inv',
-   'madhu_noinv',
+   'madhu',
 ]
 
 # Molecular-abundance models:

@@ -321,30 +321,23 @@ def setup(pyrat):
   # Temperature models and arguments:
   if atm.tmodelname == 'tcea':
       ntemp = 5
-      atm.tmodel = pa.tmodels.tcea
-      atm.targs  = [pyrat.atm.press, phy.rstar, phy.tstar, phy.tint,
+      targs  = [pyrat.atm.press, phy.rstar, phy.tstar, phy.tint,
                     phy.gplanet, phy.smaxis]
+      atm.tmodel = pa.tmodels.TCEA(*targs)
       tpnames   = ['log(kappa)', 'log(gamma1)', 'log(gamma2)', 'alpha', 'beta']
       ttexnames = [r'$\log_{10}(\kappa)$', r'$\log_{10}(\gamma_1)$',
                    r'$\log_{10}(\gamma2)$', r'$\alpha$', r'$\beta$']
   elif atm.tmodelname == 'isothermal':
       ntemp = 1
-      atm.tmodel = pa.tmodels.isothermal
-      atm.targs = [pyrat.atm.nlayers]
+      atm.tmodel = pa.tmodels.Isothermal(pyrat.atm.nlayers)
       tpnames   = ['T (K)']
       ttexnames = [r'$T\ ({\rm K})$']
-  elif atm.tmodelname == 'madhu_noinv':
-      ntemp = 5
-      atm.tmodel = pa.tmodels.madhu_noinv
-      atm.targs  = [pyrat.atm.press*1e-6]
-      tpnames    = ['a1', 'a2', 'p1', 'p3', 'T3']
-      ttexnames  = [r'$a_1$', r'$a_2$', r'$p_1$', r'$p_3$', r'$T_3$']
-  elif atm.tmodelname == 'madhu_inv':
+  elif atm.tmodelname == 'madhu':
       ntemp = 6
-      atm.tmodel = pa.tmodels.madhu_inv
-      atm.targs  = [pyrat.atm.press*1e-6]
-      tpnames    = ['a1', 'a2', 'p1', 'p2', 'p3', 'T3']
-      ttexnames  = [r'$a_1$', r'$a_2$', r'$p_1$', r'$p_2$', r'$p_3$', r'$T_3$']
+      atm.tmodel = pa.tmodels.Madhu(pyrat.atm.press)
+      tpnames    = ['logp1', 'logp2', 'logp3', 'a1', 'a2', 'T0']
+      ttexnames  = [r'$\log_{10}(p_1)$', r'$\log_{10}(p_2)$',
+                    r'$\log_{10}(p_3)$', r'$a_1$', r'$a_2$', r'$T_0$']
   else:
       ntemp = 0
       tpnames, ttexnames = [], []

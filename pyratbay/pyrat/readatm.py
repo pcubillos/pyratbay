@@ -129,7 +129,7 @@ def reloadatm(pyrat, temp=None, abund=None, radius=None):
       # Need to null tpars since it does not represent temp anymore
       pyrat.atm.tpars = None
   elif pyrat.atm.tpars is not None:
-      temp = pyrat.atm.tmodel(pyrat.atm.tpars, *pyrat.atm.targs)
+      temp = pyrat.atm.tmodel(pyrat.atm.tpars)
   else:
       temp = pyrat.atm.temp
 

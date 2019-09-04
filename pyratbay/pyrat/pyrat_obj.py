@@ -209,7 +209,7 @@ class Pyrat(object):
       rejectflag = False
       # Update temperature profile if requested:
       if self.ret.itemp is not None:
-          temp = self.atm.tmodel(params[self.ret.itemp], *self.atm.targs)
+          temp = self.atm.tmodel(params[self.ret.itemp])
       else:
           temp = self.atm.temp
       # Turn-on reject flag if temperature is out-of-bounds:
@@ -536,7 +536,7 @@ class Pyrat(object):
       if filename is None:
           outfile = os.path.splitext(os.path.basename(self.ret.mcmcfile))[0]
           filename = '{:s}_posterior_PT_profile.png'.format(outfile)
-      pp.posterior_pt(posterior[:,itemp], self.atm.tmodel, self.atm.targs,
+      pp.posterior_pt(posterior[:,itemp], self.atm.tmodel,
           self.ret.params[self.ret.itemp], ifree, self.atm.press,
           self.ret.bestp[self.ret.itemp], filename)
 

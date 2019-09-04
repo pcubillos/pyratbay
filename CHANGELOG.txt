@@ -5409,3 +5409,13 @@ Moved filters setup (argum.py) into pyrat.set_filters() method.
 Updated TEA submodule.
 Added tests for pa.abundances() and pb.run() functions.
 
+
+*****  Mi 4. Sep 18:21:50 CEST 2019  *****
+
+Refactored the temperature models into classes in tmodels submodule.
+This enables the models to carry their arguments.
+Refactored Madhusudhan models to follow parameterization as described
+in Wellbanks et al. (2019).
+Added examples/tutorial/pt_madhu.cfg file.
+Documented and tested.
+

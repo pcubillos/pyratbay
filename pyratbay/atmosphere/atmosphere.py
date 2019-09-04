@@ -237,10 +237,10 @@ def uniform(pressure, temperature, species, abundances, punits="bar",
   >>> nlayers = 11
   >>> punits  = 'bar'
   >>> pressure    = pa.pressure(1e-8, 1e2, nlayers, punits)
-  >>> temperature = pa.tmodels.isothermal(1500.0, nlayers)
+  >>> tmodel = pa.tmodels.Isothermal(nlayers)
   >>> species     = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
   >>> abundances  = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
-  >>> qprofiles = pa.abundances(atmfile, pressure, temperature, species,
+  >>> qprofiles = pa.abundances(atmfile, pressure, tmodel(1500.0), species,
   >>>                           quniform=abundances, punits=punits)
   >>> print(qprofiles)
   [[8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]
@@ -667,7 +667,7 @@ def temperature(tmodel, pressure=None, rstar=None, tstar=None, tint=100.0,
       temperature: 1D float ndarray
           The evaluated atmospheric temperature profile.
   If tparams is None:
-      Tmodel: Callable
+      temp_model: Callable
           The atmospheric temperature model.
       targs: List
           The list of additional arguments (besides the model parameters).
@@ -686,7 +686,7 @@ def temperature(tmodel, pressure=None, rstar=None, tstar=None, tint=100.0,
   >>> pressure = pa.pressure(1e-8, 1e2, nlayers, "bar")
   >>> tparams = np.array([-1.5, -0.8, -0.8, 0.5, 1.0])
   >>> temp = pa.temperature('tcea', pressure, rstar="0.756 rsun", tstar=5040,
-          tint=100.0, gplanet=2200.0, smaxis="0.031 au", tparams=tparams)
+  >>>     tint=100.0, gplanet=2200.0, smaxis="0.031 au", tparams=tparams)
   >>> print(temp)
   [1047.04157312 1047.04189805 1047.04531644 1047.08118784 1047.45648563
    1051.34469989 1088.69956369 1311.86379107 1640.12857767 1660.02396061
@@ -703,29 +703,25 @@ def temperature(tmodel, pressure=None, rstar=None, tstar=None, tint=100.0,
       gplanet = pt.get_param('gplanet', gplanet, 'none',   log, gt=0.0)
       smaxis  = pt.get_param('smaxis',  smaxis,  runits,   log, gt=0.0)
       # Define model and arguments:
-      Tmodel = tmodels.tcea
       targs  = [pressure, rstar, tstar, tint, gplanet, smaxis]
+      temp_model = tmodels.TCEA(*targs)
       ntpars = 5
   elif tmodel == 'isothermal':
-      Tmodel = tmodels.isothermal
       targs  = [nlayers]
+      temp_model = tmodels.Isothermal(*targs)
       ntpars = 1
-  elif tmodel == 'madhu_noinv':
-      Tmodel = tmodels.madhu_noinv
-      targs = [pressure*pc.bar]
-      ntpars = 5
-  elif tmodel == 'madhu_inv':
-      Tmodel = tmodels.madhu_inv
-      targs = [pressure*pc.bar]
+  elif tmodel == 'madhu':
+      targs = [pressure]
+      temp_model = tmodels.Madhu(*targs)
       ntpars = 6
   else:
-    log.error("Invalid input temperature model '{:s}'.  Select from: {}".
-              format(tmodel, pc.tmodels))
+      log.error("Invalid input temperature model '{:s}'.  Select from: {}".
+          format(tmodel, pc.tmodels))
 
   if tparams is None:
-      return Tmodel, targs, ntpars
+      return temp_model, targs, ntpars
   else:
-      temperature = Tmodel(tparams, *targs)
+      temperature = temp_model(tparams)
       log.head('\nComputed {:s} temperature model.'.format(tmodel))
       return temperature
 
@@ -766,7 +762,7 @@ def hydro_g(pressure, temperature, mu, g, p0=None, r0=None):
   >>> import pyratbay.constants as pc
   >>> nlayers = 11
   >>> pressure = pa.pressure(1e-8, 1e2, nlayers, units='bar')
-  >>> temperature = pa.tmodels.isothermal(1500.0, nlayers)
+  >>> temperature = pa.tmodels.Isothermal(nlayers)(1500.0)
   >>> mu = np.tile(2.3, nlayers)
   >>> g = pc.G * pc.mjup / pc.rjup**2
   >>> r0 = 1.0 * pc.rjup
@@ -826,7 +822,7 @@ def hydro_m(pressure, temperature, mu, M, p0, r0):
   >>> import pyratbay.constants  as pc
   >>> nlayers = 11
   >>> pressure = pa.pressure(1e-8, 1e2, nlayers, units='bar')
-  >>> temperature = pa.tmodels.isothermal(1500.0, nlayers)
+  >>> temperature = pa.tmodels.Isothermal(nlayers)(1500.0)
   >>> mu = np.tile(2.3, nlayers)
   >>> Mp = 1.0 * pc.mjup
   >>> r0 = 1.0 * pc.rjup
