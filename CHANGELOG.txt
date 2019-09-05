@@ -5426,3 +5426,7 @@ Moved atmosphere.readatm() and atmosphere.writeatm() to io module.
 Renamed as read_atm() and write_atm().
 Improved docstrings.
 
+*****
+
+Updated TEA submodule for Python2 compatibility.
+
