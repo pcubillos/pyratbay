@@ -12,8 +12,8 @@ from conftest import make_config
 ROOT = os.path.realpath(os.path.dirname(__file__) + '/..') + '/'
 sys.path.append(ROOT)
 import pyratbay as pb
-import pyratbay.constants  as pc
-import pyratbay.atmosphere as pa
+import pyratbay.constants as pc
+import pyratbay.io as io
 
 os.chdir(ROOT+'tests')
 
@@ -125,18 +125,18 @@ def test_transmission_input_radius(tmp_path, param):
         reset={'atmfile':'atmosphere_uniform_radius.atm'},
         remove=[param, 'mplanet'])
     pyrat = pb.run(cfg)
-    atm = pa.readatm('atmosphere_uniform_radius.atm')
+    atm = io.read_atm('atmosphere_uniform_radius.atm')
     np.testing.assert_allclose(pyrat.atm.radius, atm[5]*pc.km, rtol=1e-7)
 
 
 @pytest.mark.skip(reason="TBI")
 def test_transmission_qmass_input():
     # This is the gist of it, prepare a qmass atmospheric file:
-    units, species, press, temp, q = pa.read('atmosphere_uniform_test.atm')
+    units, species, press, temp, q = io.read_atm('atmosphere_uniform_test.atm')
     molID, symbol, mass, diam = pa.readmol(pc.ROOT+"inputs/molecules.dat")
     mm = pa.meanweight(q, species)
     qmass = qprofiles * molmass / mm
-    pa.writeatm(lalal)
+    io.write_atm(lalal)
     # Then run spectrum, results must be the same as qnumber run:
     pyrat = pb.run(ROOT+'tests/spectrum_transmission_qmass_test.cfg')
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['all'], rtol=1e-7)

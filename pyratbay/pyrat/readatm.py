@@ -7,6 +7,7 @@ import scipy.interpolate as sip
 from .. import tools      as pt
 from .. import constants  as pc
 from .. import atmosphere as pa
+from .. import io as io
 
 
 def read_atm(pyrat):
@@ -22,7 +23,7 @@ def read_atm(pyrat):
   atm_in = pyrat.inputs.atm
 
   with pt.log_error(pyrat.log):
-      atm_inputs = pa.readatm(pyrat.atm.atmfile)
+      atm_inputs = io.read_atm(pyrat.atm.atmfile)
 
   # Atmospheric-file units, species, and profiles:
   punits, tunits, qunits, runits = atm_inputs[0]

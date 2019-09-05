@@ -11,7 +11,7 @@ from conftest import make_config
 ROOT = os.path.realpath(os.path.dirname(__file__) + '/..') + '/'
 sys.path.append(ROOT)
 import pyratbay as pb
-import pyratbay.atmosphere as pa
+import pyratbay.io as io
 
 os.chdir(ROOT+'tests')
 
@@ -756,11 +756,11 @@ def test_spectrum_opacity_missing(tmp_path, capfd, param, undefined_opacity):
 def test_molecule_not_in_molfile(tmp_path, capfd):
     # Modify atm:
     units, species, press, temp, q, rad = \
-        pa.readatm(ROOT+'tests/atmosphere_uniform_test.atm')
+        io.read_atm(ROOT+'tests/atmosphere_uniform_test.atm')
     press = press * pb.tools.u(units[0])
     species[-1] = 'X'
     new_atm = str(tmp_path/'new_atmosphere_uniform_test.atm')
-    pa.writeatm(new_atm, press, temp, species, q, units[0], '# header')
+    io.write_atm(new_atm, press, temp, species, q, units[0], '# header')
 
     cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
         reset={'atmfile':new_atm})

@@ -1,6 +1,5 @@
 import os
 import sys
-import subprocess
 import pytest
 
 import numpy as np
@@ -11,7 +10,7 @@ ROOT = os.path.realpath(os.path.dirname(__file__) + '/..') + '/'
 sys.path.append(ROOT)
 import pyratbay as pb
 import pyratbay.constants  as pc
-import pyratbay.atmosphere as pa
+import pyratbay.io as io
 
 os.chdir(ROOT+'tests')
 
@@ -303,7 +302,7 @@ def test_atmosphere_uniform(tmp_path):
     q = np.tile([0.85, 0.149, 3.0e-6, 4.0e-4, 1.0e-4, 5.0e-4, 1.0e-7], (81,1))
     np.testing.assert_equal(atm[2], q)
     # Compare against the atmospheric file now:
-    atm = pa.readatm(atmfile)
+    atm = io.read_atm(atmfile)
     assert atm[0] == ('bar', 'kelvin', 'number', None)
     np.testing.assert_equal(atm[1], np.array('H2 He Na H2O CH4 CO CO2'.split()))
     # File read-write loses precision:
@@ -322,7 +321,7 @@ def test_atmosphere_tea(tmp_path):
     np.testing.assert_allclose(atm[1], expected_temperature, atol=1e-10)
     np.testing.assert_allclose(atm[2], expected_abundance,   rtol=1e-7)
     # Compare against the atmospheric file now:
-    atmf = pa.readatm(atmfile)
+    atmf = io.read_atm(atmfile)
     assert atmf[0] == ('bar', 'kelvin', 'number', None)
     np.testing.assert_equal(atmf[1],
         np.array('H2 He Na K H2O CH4 CO CO2 NH3 HCN N2'.split()))

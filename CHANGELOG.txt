@@ -5419,3 +5419,10 @@ in Wellbanks et al. (2019).
 Added examples/tutorial/pt_madhu.cfg file.
 Documented and tested.
 
+
+*****  Do 5. Sep 16:13:14 CEST 2019  *****
+
+Moved atmosphere.readatm() and atmosphere.writeatm() to io module.
+Renamed as read_atm() and write_atm().
+Improved docstrings.
+
