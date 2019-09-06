@@ -8,7 +8,7 @@ from .. import constants  as pc
 from .. import tools      as pt
 from .. import broadening as broad
 
-sys.path.append(pc.ROOT+'/lib')
+sys.path.append(pc.ROOT+'pyratbay/lib/')
 import vprofile as vp
 
 

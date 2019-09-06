@@ -1191,8 +1191,8 @@ def band_integrate(spectrum, specwn, bandtrans, bandwn):
   bflux: 1D float list
       Band-integrated values.
 
-  Example
-  -------
+  Examples
+  --------
   >>> import numpy as np
   >>> import matplotlib.pyplot as plt
   >>> import pyratbay.tools     as pt
@@ -1245,7 +1245,7 @@ def ignore_system_exit(func):
     def new_func(*args, **kwargs):
         try:
             return func(*args, **kwargs)
-        except SystemExit as e:
+        except SystemExit:
             return None
     return new_func
 

@@ -5,9 +5,9 @@ import sys
 import numpy as np
 
 from .. import constants as pc
-from .. import io        as io
+from .. import io as io
 
-sys.path.append(pc.ROOT + 'lib')
+sys.path.append(pc.ROOT + 'pyratbay/lib/')
 import spline as sp
 
 

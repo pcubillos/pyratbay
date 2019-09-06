@@ -10,7 +10,7 @@ import numpy as np
 from .  import extinction as ex
 from .. import constants  as pc
 
-sys.path.append(pc.ROOT + 'lib')
+sys.path.append(pc.ROOT + 'pyratbay/lib/')
 import extcoeff as ec
 import cutils   as cu
 import trapz    as t

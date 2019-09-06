@@ -4,7 +4,7 @@
 import os
 import sys
 import ctypes
-import multiprocessing   as mpr
+import multiprocessing as mpr
 
 import numpy as np
 import scipy.interpolate as sip
@@ -12,7 +12,6 @@ import scipy.interpolate as sip
 from .. import tools     as pt
 from .. import constants as pc
 from .. import io        as io
-from .  import argum     as ar
 
 sys.path.append(pc.ROOT + "pyratbay/lib/")
 import extcoeff as ec

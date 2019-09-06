@@ -6,9 +6,9 @@ import numpy as np
 
 from .. import blackbody as bb
 from .. import constants as pc
-from .. import io        as io
+from .. import io as io
 
-sys.path.append(pc.ROOT + 'lib')
+sys.path.append(pc.ROOT + 'pyratbay/lib/')
 import simpson as s
 import trapz   as t
 

@@ -5443,3 +5443,8 @@ pyratbay should also now work as a pip-installable package
 (no need to add path to source package).
 
 
+*****
+
+Some general pyflaking (mostly getting path to lib/ folder right,
+though it seems that this is not necessary).
+
