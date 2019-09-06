@@ -1,18 +1,17 @@
 import os
-import sys
 import pytest
 
 import numpy as np
 
 from conftest import make_config
 
-ROOT = os.path.realpath(os.path.dirname(__file__) + '/..') + '/'
-sys.path.append(ROOT)
 import pyratbay as pb
-import pyratbay.constants  as pc
+import pyratbay.constants as pc
 import pyratbay.io as io
+from pyratbay.constants import ROOT
 
-os.chdir(ROOT+'tests')
+os.chdir(ROOT + 'tests')
+
 
 expected_pressure    = np.logspace(0, 8, 81)
 expected_temperature = np.array(

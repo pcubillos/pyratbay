@@ -2,16 +2,14 @@
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
 import os
-import sys
 import subprocess
 import pytest
 
 from conftest import make_config
 
-ROOT = os.path.realpath(os.path.dirname(__file__) + '/..') + '/'
-sys.path.append(ROOT)
 import pyratbay as pb
 import pyratbay.io as io
+from pyratbay.constants import ROOT
 
 os.chdir(ROOT+'tests')
 
@@ -27,7 +25,7 @@ def test_run_runmode(tmp_path, capfd, runmode, call):
         pyrat = pb.run(cfg)
         assert pyrat is None
     elif call == 'command_line':
-        subprocess.call('../pbay.py -c {:s}'.format(cfg).split())
+        subprocess.call('pbay -c {:s}'.format(cfg).split())
     captured = capfd.readouterr()
     caps = ["Error in module: 'parser.py', function: 'parse'",
             "Invalid running mode (runmode): {:s}. Select from: ['tli', 'pt',".format(runmode)]

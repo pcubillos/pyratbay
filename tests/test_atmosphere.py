@@ -1,16 +1,12 @@
 import os
-import sys
 import pytest
 
 import numpy as np
 
-ROOT = os.path.realpath(os.path.dirname(__file__) + '/..') + '/'
-sys.path.append(ROOT)
 import pyratbay.atmosphere as pa
 import pyratbay.constants  as pc
 
-
-os.chdir(ROOT+'tests')
+os.chdir(pc.ROOT+'tests')
 
 
 expected_pressure = np.logspace(-2, 9, 15)

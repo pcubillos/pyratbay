@@ -2,19 +2,17 @@
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
 import os
-import sys
 import pytest
 
 import numpy as np
 
 from conftest import make_config
 
-ROOT = os.path.realpath(os.path.dirname(__file__) + '/..') + '/'
-sys.path.append(ROOT)
-import pyratbay    as pb
+import pyratbay as pb
 import pyratbay.io as io
 import pyratbay.atmosphere as pa
-import pyratbay.constants  as pc
+import pyratbay.constants as pc
+from pyratbay.constants import ROOT
 
 os.chdir(ROOT+'tests')
 
@@ -189,7 +187,7 @@ def test_read_write_atm_radius(tmpdir):
 def test_read_atm_no_temp():
     with pytest.raises(ValueError, match="Atmospheric file does not have "
                        "'@TEMPERATURE' header"):
-        atm_input = io.read_atm('uniform_notemp_test.atm')
+        dummy = io.read_atm('uniform_notemp_test.atm')
 
 
 def test_read_write_pf(tmpdir):

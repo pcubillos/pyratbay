@@ -5436,3 +5436,10 @@ Updated TEA submodule for Python2 compatibility.
 Replace all instances of np.testing.assert_almost_equal()
 with np.testing.assert_allclose()
 
+*****
+
+Moved pbay.py to pyratbay/__main__.py, enabling the pbay entry point.
+pyratbay should also now work as a pip-installable package
+(no need to add path to source package).
+
+

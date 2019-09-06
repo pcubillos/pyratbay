@@ -2,18 +2,14 @@
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
 import os
-import sys
 import pytest
 
 import numpy as np
 
-ROOT = os.path.realpath(os.path.dirname(__file__) + '/..') + '/'
-sys.path.append(ROOT)
-
 import pyratbay.starspec   as ps
 import pyratbay.constants  as pc
 
-os.chdir(ROOT + 'tests')
+os.chdir(pc.ROOT + 'tests')
 
 
 @pytest.mark.parametrize('wn',
@@ -46,7 +42,7 @@ def test_bbflux_error():
     tsun = 5772.0
     wn = 10.0
     with pytest.raises(ValueError, match='Input wn must be an iterable.'):
-        flux = ps.bbflux(wn, tsun)
+        dummy = ps.bbflux(wn, tsun)
 
 
 def test_read_kurucz_sun():

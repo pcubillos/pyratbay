@@ -5,10 +5,10 @@ import sys
 import os
 import numpy as np
 
-import pyratbay.constants as pc
-import pyratbay.io        as io
+import pyratbay.io as io
+from pyratbay.constants import ROOT
 
-sys.path.append(pc.ROOT + 'modules/pytips')
+sys.path.append(ROOT + 'modules/pytips')
 import pytips as t
 
 
@@ -195,7 +195,7 @@ class dbdriver(object):
           self.log.error('Neither fromfile nor mol were specified.')
 
       # Read isotopes info file:
-      with open(pc.ROOT + 'inputs/isotopes.dat', 'r') as isofile:
+      with open(ROOT + 'inputs/isotopes.dat', 'r') as isofile:
           lines = isofile.readlines()
 
       isotopes = []

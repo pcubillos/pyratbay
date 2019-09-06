@@ -1,12 +1,7 @@
 import os
-import sys
-import pytest
-
-ROOT = os.path.realpath(os.path.dirname(__file__) + '/..') + '/'
-sys.path.append(ROOT)
 import pyratbay as pb
 
-os.chdir(ROOT+'tests')
+os.chdir(pb.constants.ROOT+'tests')
 
 
 def test_hitran(capfd):

@@ -1,15 +1,12 @@
 import os
-import sys
 import pytest
 
 import numpy as np
 
-ROOT = os.path.realpath(os.path.dirname(__file__) + '/..') + '/'
-sys.path.append(ROOT)
 import pyratbay.broadening as pb
 import pyratbay.constants  as pc
 
-os.chdir(ROOT + 'tests')
+os.chdir(pc.ROOT + 'tests')
 
 keys = ['lorentz', 'gauss',
         'voigt0.01', 'voigt0.1', 'voigt1.0', 'voigt10.0', 'voigt100.0']

@@ -12,23 +12,25 @@ def main():
     """
     Pyrat Bay: Python Radiative Transfer in a Bayesian framework
 
-    Pyrat Bay is a modification of the GNU GPL v2-licensed transit code
-    (developed by Patricio Rojo); therefore, Pyrat Bay (v1.0+) is also
+    Pyrat Bay is based on the GNU GPL v2-licensed transit code
+    (developed by Patricio Rojo). Pyrat Bay (v1.0+) is
     released under the GNU GLP v2 license.
+
+    See the documentation at https://pyratbay.readthedocs.io/en/latest/
 
     Examples
     --------
     # Run Pyrat Bay:
-    python pbay.py -c config.cfg
+    pbay -c config.cfg
 
     # Re-format partition-function files
-    python pbay.py -pf exomol 14N-1H3__BYTe.pf 15N-1H3__BYTe-15.pf
-    python pbay.py -pf kurucz h2opartfn.dat
-    python pbay.py -pf tips H2O
+    pbay -pf exomol 14N-1H3__BYTe.pf 15N-1H3__BYTe-15.pf
+    pbay -pf kurucz h2opartfn.dat
+    pbay -pf tips H2O
 
     # Re-format cross-section files:
-    python pbay.py -cs hitran H2-H2_2011.cia 2 10
-    python pbay.py -cs borysow ciah2he_dh_quantmech H2 He
+    pbay -cs hitran H2-H2_2011.cia 2 10
+    pbay -cs borysow ciah2he_dh_quantmech H2 He
     """
     # Parse configuration file:
     parser = argparse.ArgumentParser(description=__doc__, add_help=True,

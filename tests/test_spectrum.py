@@ -2,18 +2,16 @@
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
 import os
-import sys
 import pytest
 
 import numpy as np
 
 from conftest import make_config
 
-ROOT = os.path.realpath(os.path.dirname(__file__) + '/..') + '/'
-sys.path.append(ROOT)
 import pyratbay as pb
 import pyratbay.constants as pc
 import pyratbay.io as io
+from pyratbay.constants import ROOT
 
 os.chdir(ROOT+'tests')
 
@@ -136,7 +134,7 @@ def test_transmission_qmass_input():
     molID, symbol, mass, diam = pa.readmol(pc.ROOT+"inputs/molecules.dat")
     mm = pa.meanweight(q, species)
     qmass = qprofiles * molmass / mm
-    io.write_atm(lalal)
+    io.write_atm(atmfile)
     # Then run spectrum, results must be the same as qnumber run:
     pyrat = pb.run(ROOT+'tests/spectrum_transmission_qmass_test.cfg')
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['all'], rtol=1e-7)

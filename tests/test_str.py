@@ -1,11 +1,9 @@
 import os
-import sys
 
 from conftest import make_config
 
-ROOT = os.path.realpath(os.path.dirname(__file__) + '/..') + '/'
-sys.path.append(ROOT)
 import pyratbay as pb
+from pyratbay.constants import ROOT
 
 os.chdir(ROOT+'tests')
 

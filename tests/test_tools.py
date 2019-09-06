@@ -8,15 +8,12 @@ import pytest
 
 import numpy as np
 
-ROOT = os.path.realpath(os.path.dirname(__file__) + '/..') + '/'
-sys.path.append(ROOT)
-
 import pyratbay.tools as pt
 import pyratbay.io    as io
 import pyratbay.constants as pc
 import pyratbay.starspec  as ps
 
-os.chdir(ROOT+'tests')
+os.chdir(pc.ROOT+'tests')
 
 
 def mock_pf(epf, temp, pf):
