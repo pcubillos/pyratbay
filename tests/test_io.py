@@ -56,7 +56,7 @@ def test_read_write_spectrum(tmpdir):
        6666.66666667, 6250.        , 5882.35294118]), rtol=1e-7)
     np.testing.assert_equal(flux, np.ones(7))
     wl, flux = io.read_spectrum(tmp_file, wn=False)
-    np.testing.assert_almost_equal(wl, np.linspace(1.1, 1.7, 7))
+    np.testing.assert_allclose(wl, np.linspace(1.1, 1.7, 7))
     np.testing.assert_equal(flux, np.ones(7))
 
 
@@ -133,12 +133,11 @@ def test_read_write_opacity(tmpdir):
     assert nwave   == 1001
     assert edata[0] == (nmol, ntemp, nlayers, nwave)
 
-    np.testing.assert_almost_equal(molID, edata[1][0], decimal=7)
-    np.testing.assert_almost_equal(temp,  edata[1][1], decimal=7)
-    np.testing.assert_almost_equal(press, edata[1][2], decimal=7)
-    np.testing.assert_almost_equal(wn,    edata[1][3], decimal=7)
-
-    np.testing.assert_almost_equal(etable, edata[2],   decimal=7)
+    np.testing.assert_allclose(molID, edata[1][0])
+    np.testing.assert_allclose(temp,  edata[1][1])
+    np.testing.assert_allclose(press, edata[1][2])
+    np.testing.assert_allclose(wn,    edata[1][3])
+    np.testing.assert_allclose(etable, edata[2])
 
 
 def test_read_write_atm(tmpdir):

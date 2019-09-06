@@ -5430,3 +5430,9 @@ Improved docstrings.
 
 Updated TEA submodule for Python2 compatibility.
 
+
+*****  Fr 6. Sep 15:15:37 CEST 2019  *****
+
+Replace all instances of np.testing.assert_almost_equal()
+with np.testing.assert_allclose()
+
