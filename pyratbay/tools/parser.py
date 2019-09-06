@@ -17,9 +17,9 @@ else:
 import numpy as np
 import mc3.utils as mu
 
-from .  import tools     as pt
-from .. import VERSION   as ver
+from . import tools as pt
 from .. import constants as pc
+from ..VERSION import __version__
 
 
 class Namespace(argparse.Namespace):
@@ -521,11 +521,10 @@ def parse(pyrat, cfile):
   # Welcome message:
   log.head("{:s}\n"
       "  Python Radiative Transfer in a Bayesian framework (Pyrat Bay).\n"
-      "  Version {:d}.{:d}.{:d}.\n"
+      "  Version {}.\n"
       "  Copyright (c) 2016-{:d} Patricio Cubillos and collaborators.\n"
       "  Pyrat Bay is (temporarily) proprietaty software (see LICENSE).\n"
-      "{:s}\n\n".format(log.sep, ver.PBAY_VER, ver.PBAY_MIN,
-                        ver.PBAY_REV, date.today().year, log.sep))
+      "{:s}\n\n".format(log.sep, __version__, date.today().year, log.sep))
 
   log.head("Read command-line arguments from configuration file: '{:s}'".
            format(cfile))

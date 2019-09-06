@@ -5448,3 +5448,8 @@ pyratbay should also now work as a pip-installable package
 Some general pyflaking (mostly getting path to lib/ folder right,
 though it seems that this is not necessary).
 
+*****
+
+Defined __version__ in VERSION.py to prevent the need to build it
+from PBAY_ constants elsewhere.
+

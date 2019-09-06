@@ -12,3 +12,6 @@ PBAY_REV  =  0  # Revision
 LR_VER    =  6  # Major version
 LR_MIN    =  5  # Minor version
 LR_REV    =  0  # Revision
+
+__version__ = '{}.{}.{}'.format(PBAY_VER, PBAY_MIN, PBAY_REV)
+

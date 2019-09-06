@@ -10,8 +10,8 @@ from setuptools import setup, Extension
 from numpy import get_include
 
 sys.path.append('pyratbay')
-import VERSION as v
-version = "{:d}.{:d}.{:d}".format(v.PBAY_VER, v.PBAY_MIN, v.PBAY_REV)
+from VERSION import as v__version__
+
 
 srcdir = 'src_c/'          # C-code source folder
 incdir = 'src_c/include/'  # Include filder with header files
@@ -37,7 +37,7 @@ with open('README.md', 'r') as f:
     readme = f.read()
 
 setup(name         = "pyratbay",
-      version      = version,
+      version      = __version__,
       author       = "Patricio Cubillos",
       author_email = "patricio.cubillos@oeaw.ac.at",
       url          = "https://github.com/pcubillos/pyratbay",

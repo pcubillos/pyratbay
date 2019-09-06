@@ -18,10 +18,11 @@
 
 import os
 import sys
+import re
 from datetime import date
 
 # Do not add path to the package (following example from astropy).
-sys.path.insert(0, os.path.abspath('..'))
+#sys.path.insert(0, os.path.abspath('..'))
 import pyratbay as pb
 
 # -- General configuration ------------------------------------------------
@@ -62,7 +63,7 @@ author = u'Patricio Cubillos'
 # built documents.
 #
 # The short X.Y version.
-version = pb.__version__
+version = re.search(r'([\.\d]*)', pb.__version__).group(0)
 # The full version, including alpha/beta/rc tags.
 release = pb.__version__
 
@@ -229,8 +230,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  (master_doc, 'pyratbay.tex', u'Pyrat ay Documentation',
-   u'Patricio Cubillos', 'manual'),
+  (master_doc, 'pyratbay.tex', u'Pyrat Bay Documentation',
+   u'Patricio Cubillos', 'howto'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
