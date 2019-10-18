@@ -5459,3 +5459,7 @@ Refactored spline algorithm.
 There are relative differences at the 1e-5 level.
 Updated tests.
 
+*****
+
+Fixed bug in setup.py
+
