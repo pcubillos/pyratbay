@@ -8,7 +8,7 @@ from .. import constants as pc
 from .. import io as io
 
 sys.path.append(pc.ROOT + 'pyratbay/lib/')
-import spline as sp
+import _spline as sp
 
 
 def read(pyrat):
@@ -67,15 +67,16 @@ def read(pyrat):
       # Wavenumber-interpolated CS:
       iabsorp = np.zeros((ntemp, pyrat.spec.nwave), np.double)
       for j in range(ntemp):
-          iabsorp[j] = sp.splinterp(absorption[j], wavenumber,
-                                    pyrat.spec.wn, 0.0)
+          z = sp.second_deriv(absorption[j], wavenumber)
+          iabsorp[j] = sp.splinterp_1D(absorption[j], wavenumber, z,
+              pyrat.spec.wn, 0.0)
       pyrat.cs.iabsorp.append(iabsorp)
       # Array with second derivatives:
       iz   = np.zeros((pyrat.spec.nwave, ntemp), np.double)
       wnlo = np.flatnonzero(pyrat.spec.wn >= wavenumber[ 0])[ 0]
       wnhi = np.flatnonzero(pyrat.spec.wn <= wavenumber[-1])[-1] + 1
       for j in range(wnlo, wnhi):
-          iz[j] = sp.spline_init(iabsorp[:,j], temp)
+          iz[j] = sp.second_deriv(iabsorp[:,j], temp)
       pyrat.cs.iz.append(iz.T)
       pyrat.cs.iwnlo.append(wnlo)
       pyrat.cs.iwnhi.append(wnhi)

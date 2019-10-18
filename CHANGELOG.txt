@@ -5442,7 +5442,6 @@ Moved pbay.py to pyratbay/__main__.py, enabling the pbay entry point.
 pyratbay should also now work as a pip-installable package
 (no need to add path to source package).
 
-
 *****
 
 Some general pyflaking (mostly getting path to lib/ folder right,
@@ -5452,4 +5451,11 @@ though it seems that this is not necessary).
 
 Defined __version__ in VERSION.py to prevent the need to build it
 from PBAY_ constants elsewhere.
+
+
+*****  Fr 18. Okt 11:38:13 CEST 2019  *****
+
+Refactored spline algorithm.
+There are relative differences at the 1e-5 level.
+Updated tests.
 

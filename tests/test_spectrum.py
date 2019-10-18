@@ -172,7 +172,7 @@ def test_transmission_tmodel_none(tmp_path):
 
 
 def test_transmission_tmodel(tmp_path):
-    # Include tmodel and tpars  in input config file:
+    # Include tmodel and tpars in input config file:
     cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
         remove=['clouds', 'cpars'],
         reset={'tmodel':'tcea', 'tpars':'-1.5 -0.8 -0.8 0.5 1.0'})
@@ -201,8 +201,7 @@ def test_transmission_vert_model(tmp_path):
         reset={'molmodel':'vert', 'molfree':'H2O', 'molpars':'-5',
                'bulk':'H2 He'})
     pyrat = pb.run(cfg)
-    vmodel2 = pyrat.spec.spectrum
-    np.testing.assert_allclose(vmodel2, expected['vert'], rtol=1e-7)
+    np.testing.assert_allclose(pyrat.spec.spectrum, expected['vert'], rtol=1e-7)
 
 
 def test_transmission_scale_model(tmp_path):
@@ -211,8 +210,8 @@ def test_transmission_scale_model(tmp_path):
         reset={'molmodel':'scale', 'molfree':'H2O', 'molpars':'-1',
                'bulk':'H2 He'})
     pyrat = pb.run(cfg)
-    smodel1 = pyrat.spec.spectrum
-    np.testing.assert_allclose(smodel1, expected['scale'], rtol=1e-7)
+    np.testing.assert_allclose(pyrat.spec.spectrum, expected['scale'],
+        rtol=1e-7)
     np.testing.assert_equal(pyrat.atm.q[:,3], 0.1*pyrat.atm.qbase[:,3])
 
 
