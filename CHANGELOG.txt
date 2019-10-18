@@ -5463,3 +5463,7 @@ Updated tests.
 
 Fixed bug in setup.py
 
+*****
+
+Updated logo (exclamation mark).
+
