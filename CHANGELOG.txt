@@ -5471,3 +5471,9 @@ Updated logo (exclamation mark).
 
 Updated mc3 requirement version to 3.0.0.
 
+
+*****  Mo 21. Okt 11:00:23 CEST 2019  *****
+
+Fixed io.write_atm() call after MCMC run.
+
+

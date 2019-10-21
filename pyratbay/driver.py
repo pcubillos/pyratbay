@@ -166,9 +166,9 @@ def run(cfile, init=False):
 
   header  = "# MCMC best-fitting atmospheric model.\n\n"
   bestatm = "{:s}_bestfit_atmosphere.atm".format(outfile)
-  pa.writeatm(bestatm, pyrat.atm.press, pyrat.atm.temp,
-              pyrat.mol.name, pyrat.atm.q, pyrat.atm.punits,
-              header, radius=pyrat.atm.radius, runits='km')
+  io.write_atm(bestatm, pyrat.atm.press, pyrat.atm.temp,
+               pyrat.mol.name, pyrat.atm.q, pyrat.atm.punits,
+               header, radius=pyrat.atm.radius, runits='km')
 
   pyrat.plot_spectrum(spec='best',
       filename='{:s}_bestfit_spectrum.png'.format(outfile))
