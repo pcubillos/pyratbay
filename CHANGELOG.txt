@@ -5477,3 +5477,7 @@ Updated mc3 requirement version to 3.0.0.
 Fixed io.write_atm() call after MCMC run.
 
 
+*****  Di 22. Okt 12:07:21 CEST 2019  *****
+
+Added pstep check (required) for MCMC runs.
+

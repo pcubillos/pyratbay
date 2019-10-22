@@ -415,6 +415,8 @@ def setup(pyrat):
           log.error('The input number of fitting parameters ({:d}) does not '
                     'match the number of required parameters ({:d}).'.
                     format(ret.nparams, nparams))
+      if ret.pstep is None:
+          log.error('Missing pstep argument, required for MCMC runs.')
 
   # Check for non-retrieval model/parameters:
   if (pyrat.rayleigh.models != []
