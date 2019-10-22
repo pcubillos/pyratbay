@@ -5486,3 +5486,8 @@ Added pstep check (required) for MCMC runs.
 Tweaked pyrat.plot_spectrum(), fixed condition to compute bandflux.
 Only require that self.obs.bandtrans exists.
 
+*****
+
+Modified reloadatm() to avoid overwriting the radius profile when
+input by the user.
+

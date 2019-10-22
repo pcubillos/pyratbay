@@ -119,11 +119,11 @@ def reloadatm(pyrat, temp=None, abund=None, radius=None):
   ----------
   pyrat: A Pyrat instance
   temp: 1D float ndarray
-     Layer's temperature profile (in Kelvin) sorted from top to bottom.
+      Layer's temperature profile (in Kelvin) sorted from top to bottom.
   abund: 2D float ndarray
-     Species mole mixing ratio profiles [nlayers, nmol].
+      Species mole mixing ratio profiles [nlayers, nmol].
   radius: 1D float ndarray
-     Layer's altitude profile (in cm), same order as temp.
+      Layer's altitude profile (in cm), same order as temp.
   """
   # Recompute temperature profile:
   if temp is not None:
@@ -188,7 +188,7 @@ def reloadatm(pyrat, temp=None, abund=None, radius=None):
   # Take radius if provided, else use hydrostatic-equilibrium equation:
   if radius is not None:
       pyrat.atm.radius = radius
-  if (pyrat.inputs.atm.radius is not None
+  elif (pyrat.inputs.atm.radius is not None
       and (pyrat.atm.refpressure is None or pyrat.phy.rplanet is None)):
           pyrat.atm.radius = pyrat.inputs.atm.radius
   else:
