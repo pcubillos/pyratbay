@@ -5481,3 +5481,8 @@ Fixed io.write_atm() call after MCMC run.
 
 Added pstep check (required) for MCMC runs.
 
+*****
+
+Tweaked pyrat.plot_spectrum(), fixed condition to compute bandflux.
+Only require that self.obs.bandtrans exists.
+

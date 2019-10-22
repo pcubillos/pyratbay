@@ -487,7 +487,7 @@ class Pyrat(object):
           bandwl = 1.0/(self.obs.bandwn*pc.um)
       else:
           bandwl = None
-      if self.obs.bandtrans is not None and np.all(self.obs.bandflux==0):
+      if self.obs.bandtrans is not None:
           bandflux = self.band_integrate()
       else:
           bandflux = None
