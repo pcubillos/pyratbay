@@ -14,10 +14,10 @@
 
 # ID    Molecule  Mass         Diameter  Diameter   Long
 #       Name      g/mol        Angstrom  source     name
- 101    H2O       18.01528     3.2       01         Water           
+ 101    H2O       18.01528     3.2       01         Water
  102    CH4       16.0425      4.0       01         Methane
- 103    CO        28.0101      2.8       01         Carbon Monoxide
- 104    CO2       44.0095      2.8       01         Carbon Dioxide  
+ 103    CO        28.0101      3.76      02         Carbon Monoxide
+ 104    CO2       44.0095      3.3       02         Carbon Dioxide
  105    H2         2.01588     2.89      02         Molecular Helium
  106    NH3       17.03052     3.6       01         Ammonia
  107    TiO       63.8664      4.86      07         Titanium Monoxide

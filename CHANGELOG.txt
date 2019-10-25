@@ -5500,3 +5500,8 @@ set them to 100 and 3000 K.
 Updated tests, but have not commited expected arrays, since they
 might change soon.
 
+*****
+
+Updated CO and CO2 diameter, use larger values from other reference
+since they match better exomol extinction coefficient table.
+
