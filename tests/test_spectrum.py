@@ -68,8 +68,8 @@ def test_transmission_deck(tmp_path):
 def test_transmission_tli(tmp_path):
     cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
         remove=['csfile', 'rayleigh', 'clouds', 'alkali'])
-    tli = pb.run(cfg)
-    np.testing.assert_allclose(tli.spec.spectrum, expected['tli'], rtol=1e-7)
+    pyrat = pb.run(cfg)
+    np.testing.assert_allclose(pyrat.spec.spectrum, expected['tli'], rtol=1e-7)
 
 
 def test_transmission_all(tmp_path):
@@ -223,24 +223,22 @@ def test_fit(tmp_path):
                'retflag':'temp mol ray cloud',
                'params':'-1.5 -0.8 -0.8 0.5 1.0 -4.0 0.0 -4.0 2.0'})
     pyrat = pb.run(cfg)
-    model0 = np.copy(pyrat.spec.spectrum)
-    np.testing.assert_allclose(model0, expected['all'])
+    np.testing.assert_allclose(pyrat.spec.spectrum, expected['all'], rtol=1e-7)
     # Eval default params:
     model1 = pyrat.eval(pyrat.ret.params, retmodel=True)
-    np.testing.assert_allclose(model1[0], expected['fit1'], rtol=1e-7)
+    np.testing.assert_allclose(pyrat.spec.spectrum, expected['fit1'], rtol=1e-7)
+    np.testing.assert_equal(model1[0], pyrat.spec.spectrum)
     assert model1[1] is None
     # Cloud deck:
     params = [-1.5, -0.8, -0.8,  0.5,  1.0, -4.0,  0.0, -4.0,  -3.0]
     model2 = pyrat.eval(params, retmodel=True)
     rmin = np.amin(np.sqrt(pyrat.spec.spectrum)) * pyrat.phy.rstar
     assert np.amax(pyrat.atm.press[pyrat.atm.radius > rmin]) == 1e-3*pc.bar
-    np.testing.assert_allclose(model2[0], expected['fit2'], rtol=1e-7)
-    assert model2[1] is None
+    np.testing.assert_allclose(pyrat.spec.spectrum, expected['fit2'], rtol=1e-7)
     # Depleted H2O:
     params = [-1.5, -0.8, -0.8,  0.5,  1.0, -8.0,  0.0, -4.0,  2.0]
     model3 = pyrat.eval(params, retmodel=True)
-    np.testing.assert_allclose(model3[0], expected['fit3'], rtol=1e-7)
-    assert model3[1] is None
+    np.testing.assert_allclose(pyrat.spec.spectrum, expected['fit3'], rtol=1e-7)
 
 
 def test_fit_filters():

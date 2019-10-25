@@ -42,14 +42,9 @@ def width_limits(pyrat):
   Calculate the boundaries for the Doppler and Lorentz widths.
   """
   voigt = pyrat.voigt
-  # Get minimum temperature:
-  tmin = pyrat.ex.tmin
-  if tmin is None:
-      tmin = np.amin(pyrat.atm.temp)
-  # Get maximum temperature:
-  tmax = pyrat.ex.tmax
-  if tmax is None:
-      tmax = np.amax(pyrat.atm.temp)
+  # Get minimum and maximum temperatures:
+  tmin =  100.0 if pyrat.ex.tmin is None else pyrat.ex.tmin
+  tmax = 3000.0 if pyrat.ex.tmax is None else pyrat.ex.tmax
 
   # Get mass of line-transition molecules:
   mols = np.unique(pyrat.iso.imol) # Molecules with transitions

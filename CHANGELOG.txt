@@ -5491,3 +5491,12 @@ Only require that self.obs.bandtrans exists.
 Modified reloadatm() to avoid overwriting the radius profile when
 input by the user.
 
+
+*****  Fr 25. Okt 17:03:06 CEST 2019  *****
+
+Changed default temperature extrema for voigt profile table.
+Instead of taking profile min/max (which can be isothermal),
+set them to 100 and 3000 K.
+Updated tests, but have not commited expected arrays, since they
+might change soon.
+
