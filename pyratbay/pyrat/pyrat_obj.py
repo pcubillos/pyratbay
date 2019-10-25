@@ -81,27 +81,27 @@ class Pyrat(object):
 
   def setup_spectrum(self):
       # Setup time tracker:
-      timer = pt.clock()
+      timer = pt.Timer()
 
       # Check that user input arguments make sense:
       ar.check_spectrum(self)
-      self.timestamps['init'] = next(timer)
+      self.timestamps['init'] = timer.clock()
 
       # Initialize wavenumber sampling:
       ms.make_wavenumber(self)
-      self.timestamps['wn sample'] = next(timer)
+      self.timestamps['wn sample'] = timer.clock()
 
       # Read the atmospheric file:
       ra.read_atm(self)
-      self.timestamps['read atm'] = next(timer)
+      self.timestamps['read atm'] = timer.clock()
 
       # Read line database:
       rl.read_tli(self)
-      self.timestamps['read tli'] = next(timer)
+      self.timestamps['read tli'] = timer.clock()
 
       # Make atmospheric profiles (pressure, radius, temperature, abundances):
       ms.make_atmprofiles(self)
-      self.timestamps['atm sample'] = next(timer)
+      self.timestamps['atm sample'] = timer.clock()
 
       # Setup more observational/retrieval parameters:
       ar.setup(self)
@@ -110,15 +110,15 @@ class Pyrat(object):
       v.voigt(self)
       # Alkali Voigt grid:
       al.init(self)
-      self.timestamps['voigt'] = next(timer)
+      self.timestamps['voigt'] = timer.clock()
 
       # Calculate extinction-coefficient table:
       ex.exttable(self)
-      self.timestamps['ext table'] = next(timer)
+      self.timestamps['ext table'] = timer.clock()
 
       # Read CIA files:
       cs.read(self)
-      self.timestamps['read cs'] = next(timer)
+      self.timestamps['read cs'] = timer.clock()
 
 
   def run(self, temp=None, abund=None, radius=None):
@@ -136,7 +136,7 @@ class Pyrat(object):
       radius: 1D float ndarray
           Updated atmospheric altitude profile in cm, of size nlayers.
       """
-      timer = pt.clock()
+      timer = pt.Timer()
 
       # Re-calculate atmospheric properties if required:
       status = ra.reloadatm(self, temp, abund, radius)
@@ -144,24 +144,24 @@ class Pyrat(object):
           return
       # Interpolate CIA absorption:
       cs.interpolate(self)
-      self.timestamps['interp cs'] = next(timer)
+      self.timestamps['interp cs'] = timer.clock()
 
       # Calculate cloud and Rayleigh absorption:
       cl.absorption(self)
       ray.absorption(self)
-      self.timestamps['cloud+ray'] = next(timer)
+      self.timestamps['cloud+ray'] = timer.clock()
 
       # Calculate the alkali absorption:
       al.absorption(self)
-      self.timestamps['alkali'] = next(timer)
+      self.timestamps['alkali'] = timer.clock()
 
       # Calculate the optical depth:
       od.opticaldepth(self)
-      self.timestamps['odepth'] = next(timer)
+      self.timestamps['odepth'] = timer.clock()
 
       # Calculate the spectrum:
       sp.spectrum(self)
-      self.timestamps['spectrum'] = next(timer)
+      self.timestamps['spectrum'] = timer.clock()
 
       self.log.msg("\nTimestamps (s):\n" +
                    "\n".join("{:10s}: {:10.6f}".format(key,val)

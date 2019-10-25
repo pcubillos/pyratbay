@@ -14,7 +14,9 @@ __all__ = [
     'file_exists',
     'path',
     'Formatted_Write',
-    'make_tea', 'clock', 'get_exomol_mol',
+    'make_tea',
+    'Timer',
+    'get_exomol_mol',
     'pf_exomol', 'pf_kurucz',
     'cia_hitran', 'cia_borysow',
     'tophat',
@@ -727,15 +729,18 @@ def make_tea(cfile=None, maxiter=100, save_headers=False, save_outputs=False,
       config.write(configfile)
 
 
-def clock(t0=time.time()):
+class Timer(object):
   """
-  Timer generator yields the time (in seconds) since the last call.
+  Timer to get the time (in seconds) since the last call.
   """
-  while True:
+  def __init__(self):
+      self.t0 = time.time()
+
+  def clock(self):
       tnew = time.time()
-      delta = tnew - t0
-      t0 = tnew
-      yield delta
+      delta = tnew - self.t0
+      self.t0 = tnew
+      return delta
 
 
 def get_exomol_mol(dbfile):

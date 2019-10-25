@@ -5505,3 +5505,8 @@ might change soon.
 Updated CO and CO2 diameter, use larger values from other reference
 since they match better exomol extinction coefficient table.
 
+*****
+
+Refactored tools.clock() generator into tools.Timer() class.
+This fixes a bug where the timer did not reset t0 when reinitialized.
+
