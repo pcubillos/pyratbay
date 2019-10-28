@@ -5510,3 +5510,8 @@ since they match better exomol extinction coefficient table.
 Refactored tools.clock() generator into tools.Timer() class.
 This fixes a bug where the timer did not reset t0 when reinitialized.
 
+
+*****  Mo 28. Okt 13:22:13 CET 2019  *****
+
+Updated .gitignore.
+
