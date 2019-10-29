@@ -5528,3 +5528,8 @@ expected for the atmosphere (at the lowest pressures).  After fixing
 this, I can keep dlratio at 0.1 to avoid recomputing identical
 profiles.
 
+*****
+
+Updated collisional radius for CO and CO2 into Allen's Astrophysical
+Quantities, which match better the exomol extinction coefficient.
+
