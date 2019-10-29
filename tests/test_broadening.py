@@ -70,11 +70,15 @@ def test_Voigt(hL, key):
 
 def test_min_widths():
     min_temp = 500.0     # Kelvin
+    max_temp = 2500.0  # Kelvin
     min_wn   = 1.0/(0.6*pc.um)
     max_mass = 27.02534  # HCN molecular mass (amu)
-    dmin, lmin = pb.min_widths(min_temp, min_wn, max_mass)
-    np.testing.assert_approx_equal(dmin, 0.02567273953100574, significant=7)
-    np.testing.assert_approx_equal(lmin, 0.00256727395310057, significant=7)
+    min_rad  = 2.5 * pc.A
+    min_press = 1e-5 * pc.bar
+    dmin, lmin = pb.min_widths(min_temp, max_temp, min_wn, max_mass,
+                               min_rad, min_press)
+    np.testing.assert_allclose(dmin, 0.02567273953100574)
+    np.testing.assert_allclose(lmin, 3.994539916585169e-07)
 
 
 def test_max_widths():
@@ -86,6 +90,6 @@ def test_max_widths():
     max_press = 100 * pc.bar
     dmax, lmax = pb.max_widths(min_temp, max_temp, max_wn, min_mass,
                                max_rad, max_press)
-    np.testing.assert_approx_equal(dmax, 0.014862623078508634, significant=7)
-    np.testing.assert_approx_equal(lmax, 8.009256827016788,    significant=7)
+    np.testing.assert_allclose(dmax, 0.014862623078508634)
+    np.testing.assert_allclose(lmax, 8.009256827016788)
 

@@ -5515,3 +5515,16 @@ This fixes a bug where the timer did not reset t0 when reinitialized.
 
 Updated .gitignore.
 
+
+*****  Di 29. Okt 09:16:33 CET 2019  *****
+
+Refactored broadening.min_widths() to remove dlratio input argument
+rather compute lorentz width from physical inputs.
+
+The problem was that I was setting the Lorentz minimum based on
+dlratio, as a function of the minimum doppler width.  if dlratio is
+not small enough, the min lorentz did not sample the smallest values
+expected for the atmosphere (at the lowest pressures).  After fixing
+this, I can keep dlratio at 0.1 to avoid recomputing identical
+profiles.
+

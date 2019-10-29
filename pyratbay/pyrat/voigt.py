@@ -51,8 +51,9 @@ def width_limits(pyrat):
   mols = mols[np.where(mols>=0)]   # Remove -1's
 
   # Estimate min/max Doppler/Lorentz HWHMs from atmospheric properties:
-  dmin, lmin = broad.min_widths(tmin, np.amin(pyrat.spec.wn),
-      np.amax(pyrat.mol.mass[mols]), voigt.dlratio)
+  dmin, lmin = broad.min_widths(tmin, tmax, np.amin(pyrat.spec.wn),
+      np.amax(pyrat.mol.mass[mols]), np.amin(pyrat.mol.radius[mols]),
+      np.amin(pyrat.atm.press))
 
   dmax, lmax = broad.max_widths(tmin, tmax, np.amax(pyrat.spec.wn),
       np.amin(pyrat.mol.mass[mols]), np.amax(pyrat.mol.radius[mols]),
@@ -94,7 +95,7 @@ def calc_voigt(pyrat):
       psize = 2*np.asarray(pwidth/pyrat.spec.ownstep + 0.5, np.int) + 1
       # Clip to max and min values:
       psize = np.clip(psize, 3, 2*pyrat.spec.onwave+1)
-      # Temporarily Set the size to 0 for not calculated profiles:
+      # Temporarily set the size to 0 for not calculated profiles:
       # (sizes will be set in vp.grid())
       psize[np.where(voigt.doppler/voigt.lorentz[i] < voigt.dlratio)[0][1:]] = 0
       # Store half-size values for this Lorentz width:

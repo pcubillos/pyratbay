@@ -234,7 +234,7 @@ class Voigt(object):
       return self.scale * self.hwhmL/self.hwhmG * self._sqrtpi*self._sqrtln2 * V
 
 
-def min_widths(min_temp, min_wn, max_mass, dlratio=0.1):
+def min_widths(min_temp, max_temp, min_wn, max_mass, min_rad, min_press):
   """
   Estimate the minimum Doppler and Lorentz half-widths at half maximum
   (cm-1) for a given atmosphere.
@@ -243,12 +243,16 @@ def min_widths(min_temp, min_wn, max_mass, dlratio=0.1):
   ----------
   min_temp: Float
       Minimum atmospheric tmperature (Kelvin degrees).
+  max_temp: Float
+      Maximum atmospheric tmperature (Kelvin degrees).
   min_wn: Float
       Minimum spectral wavenumber (cm-1).
   max_mass: Float
       Maximum mass of molecule/isotope (amu).
-  dlratio: Float
-      Doppler--Lorentz width ratio.
+  min_rad: Float
+      Minimum collisional radius (cm).
+  min_press: Float
+      Minimum atmospheric pressure (barye).
 
   Returns
   -------
@@ -259,16 +263,32 @@ def min_widths(min_temp, min_wn, max_mass, dlratio=0.1):
 
   Examples
   --------
-  >>> wn = np.amin(pyrat.spec.wn)
-  >>> temperature = np.amin(pyrat.atm.temp)
-  >>> mols = np.unique(pyrat.iso.imol)
-  >>> mols = mols[np.where(mols>=0)]
-  >>> molmass = np.amax(pyrat.mol.mass[mols])
-  >>> # TBD
+  >>> import pyratbay.broadening as b
+  >>> import pyratbay.constants as pc
+  >>> min_temp =  100.0
+  >>> max_temp = 3000.0
+  >>> min_wn   = 1.0/(10.0*pc.um)
+  >>> max_mass = 18.015    # H2O molecule
+  >>> min_rad  = 1.6*pc.A  # H2O molecule
+  >>> min_press = 1e-5 * pc.bar
+  >>> dmin, lmin = b.min_widths(min_temp, max_temp, min_wn, max_mass,
+  >>>     min_rad, min_press)
+  >>> print('Minimum Doppler half width: {:.2e} cm-1\n'
+  >>>       'Minimum Lorentz half width: {:.2e} cm-1'.format(dmin,lmin))
   """
   # Minimum Doppler and Lorenz widths (cm-1):
   dmin = np.sqrt(np.log(2)*2.0*pc.k*min_temp/(max_mass*pc.amu)) * min_wn / pc.c
-  lmin = dmin * dlratio
+  # TBD: Extract values from atmosphere instead
+  H2_radius = 1.445e-8  # cm
+  H2_mass   = 2.01588   # amu
+
+  # Get max collision diameter:
+  min_diam = H2_radius + min_rad
+
+  # Sum_a (n_a*d_a**2 ...) ~ n_H2*d_H2 ... (assuming H2-dominated atmosphere)
+  lmin = (np.sqrt(2.0/(np.pi * pc.k * max_temp * pc.amu)) * min_press / pc.c *
+                        min_diam**2.0 * np.sqrt(1.0/max_mass + 1.0/H2_mass))
+
   return dmin, lmin
 
 
@@ -287,8 +307,8 @@ def max_widths(min_temp, max_temp, max_wn, min_mass, max_rad, max_press):
       Maximum spectral wavenumber (cm-1).
   min_mass: Float
       Minimum mass of molecule/isotope (amu).
-  max_press: Float
-      Maximum collision radius of molecule/isotope (Angstrom).
+  max_rad: Float
+      Maximum collisional radius (cm).
   max_press: Float
       Maximum atmospheric pressure (barye).
 
@@ -301,21 +321,25 @@ def max_widths(min_temp, max_temp, max_wn, min_mass, max_rad, max_press):
 
   Examples
   --------
-  >>> pmax = np.amax(pyrat.atm.press)
-  >>> wn = np.amax(pyrat.spec.wn)
-  >>> temperature = np.amax(pyrat.atm.temp)
-  >>> mols = np.unique(pyrat.iso.imol) # Molecules with transitions
-  >>> mols = mols[np.where(mols>=0)]   # Remove -1's
-  >>> mmin = np.amin(pyrat.mol.mass[mols])
-  >>> rmax = np.amax(pyrat.mol.radius[mols])
-  >>> # TBD
+  >>> import pyratbay.broadening as b
+  >>> import pyratbay.constants as pc
+  >>> min_temp =  100.0
+  >>> max_temp = 3000.0
+  >>> max_wn   = 1.0/(1.0*pc.um)
+  >>> min_mass = 18.015    # H2O molecule
+  >>> max_rad  = 1.6*pc.A  # H2O molecule
+  >>> max_press = 100.0*pc.bar
+  >>> dmax, lmax = b.max_widths(min_temp, max_temp, max_wn, min_mass,
+  >>>     max_rad, max_press)
+  >>> print('Maximum Doppler half width: {:.2e} cm-1\n'
+  >>>       'Maximum Lorentz half width: {:.2e} cm-1'.format(dmax,lmax))
   """
   # TBD: Extract values from files instead
-  H2_diam = 2.89    # Angstrom
-  H2_mass = 2.01588 # amu
+  H2_radius = 1.445e-8  # cm
+  H2_mass   = 2.01588   # amu
 
   # Get max collision diameter:
-  max_diam = H2_diam*pc.A/2.0 + max_rad
+  max_diam = H2_radius + max_rad
 
   # Doppler widths (cm-1):
   dmax = np.sqrt(np.log(2)*2.0*pc.k*max_temp/(min_mass*pc.amu)) * max_wn / pc.c
