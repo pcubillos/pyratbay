@@ -5533,3 +5533,10 @@ profiles.
 Updated collisional radius for CO and CO2 into Allen's Astrophysical
 Quantities, which match better the exomol extinction coefficient.
 
+*****
+
+Tweaked tools.Namespace.get_path() method to enable {ROOT} replace
+with constants.ROOT in input paths.
+Added tests for tools.Namespace.get_path().
+Updated docs, tests, and examples config files accordingly.
+

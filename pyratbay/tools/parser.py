@@ -59,13 +59,13 @@ class Namespace(argparse.Namespace):
             values = value
             is_list = True
 
+        values = [os.path.realpath(val.replace('{ROOT}', pc.ROOT))
+                  for val in values]
+
         for val in values:
             if exists and not os.path.isfile(val):
                 self._log.error("{} file ({}) does not exist: '{}'".
                                 format(desc, pname, val), tracklev=-3)
-
-        values = [os.path.realpath(val) for val in values]
-        for val in values:
             if not os.path.exists(os.path.dirname(val)):
                 self._log.error("Folder for {} file ({}) does not exist: '{}'".
                                 format(desc, pname, val), tracklev=-3)

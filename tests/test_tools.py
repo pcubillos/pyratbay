@@ -456,6 +456,28 @@ def test_ignore_system_exit(flag, output):
         assert dummy_function(flag) == 1
 
 
+def test_Namespace_get_path_str():
+    ns = pt.Namespace({'path':'file0'})
+    assert ns.get_path('path') == os.getcwd() + '/file0'
+
+
+def test_Namespace_get_path_list():
+    ns = pt.Namespace({'path':['file1', 'file2']})
+    assert ns.get_path('path')[0] == os.getcwd() + '/file1'
+    assert ns.get_path('path')[1] == os.getcwd() + '/file2'
+
+
+def test_Namespace_get_path_root():
+    ns = pt.Namespace({'path':'{ROOT}/rooted_file'})
+    assert ns.get_path('path') == pc.ROOT + 'rooted_file'
+
+
+def test_Namespace_get_path_non_existing():
+    ns = pt.Namespace({'path':'file0'})
+    with pytest.raises(SystemExit):
+        ns.get_path('path', desc='Configuration', exists=True)
+
+
 @pytest.mark.parametrize('var, val',
     [('10',   10),
      ('-10', -10),

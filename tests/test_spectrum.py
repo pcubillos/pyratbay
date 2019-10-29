@@ -161,14 +161,12 @@ def test_transmission_tmodel_none(tmp_path):
         remove=['clouds', 'cpars'],
         reset={'tmodel':'tcea'})
     pyrat = pb.run(cfg)
-    tmodel0 = pyrat.spec.spectrum
-    np.testing.assert_allclose(tmodel0, expected['all'], rtol=1e-7)
+    np.testing.assert_allclose(pyrat.spec.spectrum, expected['all'], rtol=1e-7)
     # Now, re-run with user-input tpars:
     pyrat.atm.tpars = np.array([-1.5, -0.8, -0.8,  0.5,  1.0])
     pyrat.run()
-    tmodel1 = pyrat.spec.spectrum
-    np.testing.assert_allclose(tmodel1, expected['tmodel'], rtol=1e-7)
-    # np.testing.assert_allclose(tpyrat.atm.temp, tmodel, rtol=1e-7)
+    np.testing.assert_allclose(pyrat.spec.spectrum, expected['tmodel'],
+        rtol=1e-7)
 
 
 def test_transmission_tmodel(tmp_path):
@@ -190,8 +188,7 @@ def test_transmission_vert_none_model(tmp_path):
     np.testing.assert_allclose(vmodel0, expected['all'], rtol=1e-7)
     pyrat.atm.molpars = [-5]
     pyrat.run()
-    vmodel1 = pyrat.spec.spectrum
-    np.testing.assert_allclose(vmodel1, expected['vert'], rtol=1e-7)
+    np.testing.assert_allclose(pyrat.spec.spectrum, expected['vert'], rtol=1e-7)
     np.testing.assert_equal(pyrat.atm.q[:,3], 1e-5)
 
 
