@@ -30,39 +30,39 @@ def test_transmission_clear(tmp_path):
     # No opacity whatsoever:
     cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
         remove=['tlifile', 'csfile', 'rayleigh', 'alkali', 'clouds'])
-    clear = pb.run(cfg)
-    depth_bottom = (clear.atm.radius[-1] / clear.phy.rstar)**2
-    np.testing.assert_allclose(clear.spec.spectrum, depth_bottom, rtol=1e-7)
+    pyrat = pb.run(cfg)
+    depth_bottom = (pyrat.atm.radius[-1] / pyrat.phy.rstar)**2
+    np.testing.assert_allclose(pyrat.spec.spectrum, depth_bottom, rtol=1e-7)
 
 
 def test_transmission_lecavelier(tmp_path):
     cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
         remove=['tlifile', 'csfile', 'alkali', 'clouds'])
-    ray = pb.run(cfg)
-    np.testing.assert_allclose(ray.spec.spectrum, expected['lec'], rtol=1e-7)
+    pyrat = pb.run(cfg)
+    np.testing.assert_allclose(pyrat.spec.spectrum, expected['lec'], rtol=1e-7)
 
 
 def test_transmission_CIA(tmp_path):
     cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
         remove=['tlifile', 'rayleigh', 'alkali', 'clouds'])
-    cia = pb.run(cfg)
-    np.testing.assert_allclose(cia.spec.spectrum, expected['cia'], rtol=1e-7)
+    pyrat = pb.run(cfg)
+    np.testing.assert_allclose(pyrat.spec.spectrum, expected['cia'], rtol=1e-7)
 
 
 def test_transmission_alkali(tmp_path):
     cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
         remove=['tlifile', 'csfile', 'rayleigh', 'clouds'],
         reset={'wllow':'0.45 um', 'wlhigh':'1.0 um'})
-    alkali = pb.run(cfg)
-    np.testing.assert_allclose(alkali.spec.spectrum, expected['alkali'],
+    pyrat = pb.run(cfg)
+    np.testing.assert_allclose(pyrat.spec.spectrum, expected['alkali'],
         rtol=1e-7)
 
 
 def test_transmission_deck(tmp_path):
     cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
         remove=['tlifile', 'csfile', 'rayleigh', 'alkali'])
-    deck = pb.run(cfg)
-    np.testing.assert_allclose(deck.spec.spectrum, expected['deck'], rtol=1e-7)
+    pyrat = pb.run(cfg)
+    np.testing.assert_allclose(pyrat.spec.spectrum, expected['deck'], rtol=1e-7)
 
 
 def test_transmission_tli(tmp_path):
@@ -94,16 +94,16 @@ def test_transmission_odd_even(tmp_path):
     cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
         reset={'rpars':'1.0 -4.0'},
         remove=['tlifile', 'csfile', 'alkali', 'clouds'])
-    odd = pb.run(cfg)
+    pyrat = pb.run(cfg)
+    np.testing.assert_allclose(pyrat.spec.spectrum, expected['odd_even'],
+        rtol=1e-7)
 
     cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
         reset={'atmfile':'atmosphere_uniform_even_layers.atm',
                'rpars':'1.0 -4.0'},
         remove=['tlifile', 'csfile', 'alkali', 'clouds'])
-    even = pb.run(cfg)
-    np.testing.assert_allclose(odd.spec.spectrum, expected['odd_even'],
-        rtol=1e-7)
-    np.testing.assert_allclose(even.spec.spectrum, expected['odd_even'],
+    pyrat = pb.run(cfg)
+    np.testing.assert_allclose(pyrat.spec.spectrum, expected['odd_even'],
         rtol=1e-7)
 
 
@@ -138,20 +138,6 @@ def test_transmission_qmass_input():
     # Then run spectrum, results must be the same as qnumber run:
     pyrat = pb.run(ROOT+'tests/spectrum_transmission_qmass_test.cfg')
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['all'], rtol=1e-7)
-
-
-def plot_transmission():
-    import matplotlib.pyplot as plt
-    plt.figure(10)
-    plt.clf()
-    plt.plot(1e4/clear.spec.wn,  clear.spec.spectrum,  'k')
-    plt.plot(1e4/alkali.spec.wn, alkali.spec.spectrum, 'orange')
-    plt.plot(1e4/ray.spec.wn,    ray.spec.spectrum,    'b')
-    plt.plot(1e4/cia.spec.wn,    cia.spec.spectrum,    'r')
-    plt.plot(1e4/deck.spec.wn,   deck.spec.spectrum,   'limegreen')
-    plt.plot(1e4/tli.spec.wn,    tli.spec.spectrum,    '0.5')
-    plt.plot(1e4/pyrat.spec.wn,  pyrat.spec.spectrum,  'navy', alpha=0.6)
-    plt.plot(1e4/epyrat.spec.wn, epyrat.spec.spectrum, 'deepskyblue', alpha=0.6)
 
 
 # Now try some forward models that modify the atmospheric profile:

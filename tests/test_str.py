@@ -391,12 +391,12 @@ Maximum ideep (deepest layer reaching maxdepth): 31
 
 Optical depth at each impact parameter, down to max(ideep) (depth):
 [[ 0.000e+00  0.000e+00  0.000e+00 ...  0.000e+00  0.000e+00  0.000e+00]
- [ 1.941e-08  5.561e-06  1.943e-08 ...  2.251e-07  1.177e-07  1.205e-07]
- [ 3.245e-08  9.298e-06  3.249e-08 ...  3.764e-07  1.969e-07  2.014e-07]
+ [ 3.881e-08  1.112e-05  3.886e-08 ...  4.503e-07  2.355e-07  2.409e-07]
+ [ 6.490e-08  1.860e-05  6.499e-08 ...  7.528e-07  3.938e-07  4.028e-07]
  ...
- [ 3.056e-05  6.899e-03  3.027e-05 ...  2.808e-04  1.473e-04  1.519e-04]
- [ 4.056e-05  8.681e-03  4.010e-05 ...  3.538e-04  1.858e-04  1.918e-04]
- [ 4.130e+01  4.131e+01  4.130e+01 ...  4.130e+01  4.130e+01  4.130e+01]]
+ [ 6.112e-05  1.380e-02  6.054e-05 ...  5.617e-04  2.947e-04  3.037e-04]
+ [ 8.113e-05  1.736e-02  8.019e-05 ...  7.076e-04  3.715e-04  3.837e-04]
+ [ 8.260e+01  8.262e+01  8.260e+01 ...  8.260e+01  8.260e+01  8.260e+01]]
 """
 
     assert str(pyrat.cloud) == """\
@@ -544,7 +544,7 @@ Wavenumber array (wn, cm-1):
 Oversampling factor (wnosamp): 2160
 
 Modulation spectrum, (Rp/Rs)**2 (spectrum):
-    [ 6.501e-03  6.517e-03  6.500e-03 ...  6.480e-03  6.435e-03  6.510e-03]
+    [ 6.522e-03  6.538e-03  6.521e-03 ...  6.506e-03  6.462e-03  6.532e-03]
 """
 
 
@@ -734,26 +734,26 @@ Number of filter pass bands (nfilters): 20
 Wavenumber  Wavelength    Bandflux  Filter name
       cm-1          um        none
   (bandwn)              (bandflux)  (filters)
-   8826.64       1.133     0.00658  filter_test_WFC3_G141_1.133um.dat
-   8635.75       1.158     0.00656  filter_test_WFC3_G141_1.158um.dat
-   8450.01       1.183     0.00655  filter_test_WFC3_G141_1.183um.dat
-   8271.44       1.209     0.00648  filter_test_WFC3_G141_1.209um.dat
-   8097.29       1.235     0.00645  filter_test_WFC3_G141_1.235um.dat
-   7936.90       1.260     0.00644  filter_test_WFC3_G141_1.260um.dat
-   7782.21       1.285     0.00648  filter_test_WFC3_G141_1.285um.dat
-   7631.05       1.310     0.00651  filter_test_WFC3_G141_1.310um.dat
-   7485.12       1.336     0.00662  filter_test_WFC3_G141_1.336um.dat
-   7345.18       1.361     0.00668  filter_test_WFC3_G141_1.361um.dat
-   7207.29       1.387     0.00669  filter_test_WFC3_G141_1.387um.dat
-   7077.43       1.413     0.00669  filter_test_WFC3_G141_1.413um.dat
-   6951.76       1.438     0.00668  filter_test_WFC3_G141_1.438um.dat
-   6830.87       1.464     0.00666  filter_test_WFC3_G141_1.464um.dat
-   6715.97       1.489     0.00661  filter_test_WFC3_G141_1.489um.dat
-   6600.71       1.515     0.00657  filter_test_WFC3_G141_1.515um.dat
-   6493.74       1.540     0.00654  filter_test_WFC3_G141_1.540um.dat
-   6387.78       1.565     0.00650  filter_test_WFC3_G141_1.565um.dat
-   6285.57       1.591     0.00649  filter_test_WFC3_G141_1.591um.dat
-   6188.15       1.616     0.00649  filter_test_WFC3_G141_1.616um.dat
+   8826.64       1.133     0.00661  filter_test_WFC3_G141_1.133um.dat
+   8635.75       1.158     0.00659  filter_test_WFC3_G141_1.158um.dat
+   8450.01       1.183     0.00658  filter_test_WFC3_G141_1.183um.dat
+   8271.44       1.209     0.00651  filter_test_WFC3_G141_1.209um.dat
+   8097.29       1.235     0.00648  filter_test_WFC3_G141_1.235um.dat
+   7936.90       1.260     0.00646  filter_test_WFC3_G141_1.260um.dat
+   7782.21       1.285     0.00651  filter_test_WFC3_G141_1.285um.dat
+   7631.05       1.310     0.00654  filter_test_WFC3_G141_1.310um.dat
+   7485.12       1.336     0.00665  filter_test_WFC3_G141_1.336um.dat
+   7345.18       1.361     0.00671  filter_test_WFC3_G141_1.361um.dat
+   7207.29       1.387     0.00672  filter_test_WFC3_G141_1.387um.dat
+   7077.43       1.413     0.00672  filter_test_WFC3_G141_1.413um.dat
+   6951.76       1.438     0.00671  filter_test_WFC3_G141_1.438um.dat
+   6830.87       1.464     0.00668  filter_test_WFC3_G141_1.464um.dat
+   6715.97       1.489     0.00664  filter_test_WFC3_G141_1.489um.dat
+   6600.71       1.515     0.00660  filter_test_WFC3_G141_1.515um.dat
+   6493.74       1.540     0.00657  filter_test_WFC3_G141_1.540um.dat
+   6387.78       1.565     0.00652  filter_test_WFC3_G141_1.565um.dat
+   6285.57       1.591     0.00651  filter_test_WFC3_G141_1.591um.dat
+   6188.15       1.616     0.00651  filter_test_WFC3_G141_1.616um.dat
 """
 
     assert str(pyrat.ret) == """\

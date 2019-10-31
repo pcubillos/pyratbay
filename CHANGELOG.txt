@@ -5540,3 +5540,11 @@ with constants.ROOT in input paths.
 Added tests for tools.Namespace.get_path().
 Updated docs, tests, and examples config files accordingly.
 
+*****  Do 31. Okt 09:38:04 CET 2019  *****
+
+Fixed bug in transmission optical depth calculation.
+I was missing a factor of two in the tau integral to account for
+path before and after crossing the planet's terminator.
+New results agree well with petitRADTRANS.
+
+

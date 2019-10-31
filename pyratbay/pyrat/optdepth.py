@@ -86,7 +86,7 @@ def opticaldepth(pyrat):
       od.ideep[:] = -1
       r = rtop
       while r < pyrat.atm.nlayers:
-          # Optical depth at each level (tau = integral e*ds):
+          # Optical depth at each level (tau = 2.0*integral e*ds):
           od.depth[r] = t.optdepth(od.ec[rtop:r+1], od.raypath[r],
                                    od.maxdepth, od.ideep, r)
           if pyrat.cloud.fpatchy is not None:

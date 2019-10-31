@@ -155,20 +155,20 @@ PyDoc_STRVAR(optdepth__doc__,
 Parameters                                                  \n\
 ----------                                                  \n\
 data: 2D double ndarray                                     \n\
-   Sampled function (Y-axis) to integrate.                  \n\
+    Sampled function (Y-axis) to integrate.                 \n\
 intervals: 1D double ndarray                                \n\
-   Intervals between the data samples (X-axis).             \n\
+    Intervals between the data samples (X-axis).            \n\
 taumax: Float                                               \n\
-   Maximum optical depth to compute.                        \n\
+    Maximum optical depth to compute.                       \n\
 ideep: 1D integer ndarray                                   \n\
-   Flag of layer that reached taumax                        \n\
+    Flag of layer that reached taumax.                      \n\
 ilay: Integer                                               \n\
-   Current layer index                                      \n\
+    Current layer index.                                    \n\
                                                             \n\
 Returns                                                     \n\
 -------                                                     \n\
-res: double                                                 \n\
-   The integral of data over the given intervals.           \n\
+tau: 1D double ndarray                                      \n\
+    2x the integral of data over the given intervals.       \n\
 ");
 
 static PyObject *optdepth(PyObject *self, PyObject *args){
@@ -177,12 +177,12 @@ static PyObject *optdepth(PyObject *self, PyObject *args){
   double taumax;
   npy_intp dims[1];
 
-  /* Load inputs:                                                           */
+  /* Load inputs: */
   if (!PyArg_ParseTuple(args, "OOdOi",
                         &data, &intervals, &taumax, &ideep, &ilay))
       return NULL;
 
-  /* Get the number of intervals:                                           */
+  /* Get the number of intervals: */
   nint  = (int)PyArray_DIM(intervals, 0);
   nwave = (int)PyArray_DIM(data, 1);
 
@@ -192,13 +192,13 @@ static PyObject *optdepth(PyObject *self, PyObject *args){
   for (j=0; j<nwave; j++){
       INDd(tau,j) = 0.0;
 
-      /* Check for even number of samples (odd number of intervals):        */
       if (INDi(ideep,j) < 0){
           for(i=0; i<nint; i++){
               INDd(tau,j) += INDd(intervals,i)
                              * (IND2d(data,(i+1),j) + IND2d(data,i,j));
           }
-          INDd(tau,j) *= 0.5;
+          /* I should now divide by two, but optical depth in   */
+          /* transmission is twice the integral just calculated */
           if (INDd(tau,j) > taumax){
               INDi(ideep,j) = (int)ilay;
           }
