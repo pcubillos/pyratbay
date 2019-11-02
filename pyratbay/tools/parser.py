@@ -395,6 +395,7 @@ def parse(pyrat, cfile):
       parse_str(args,   'ptop')
       parse_str(args,   'pbottom')
       parse_str(args,   'atmfile')
+      parse_str(args,   'radmodel')
       # Variables for TEA calculations
       parse_array(args, 'species')
       parse_array(args, 'uniform')
@@ -580,6 +581,9 @@ def parse(pyrat, cfile):
 
   atm.nlayers = args.get_default('nlayers',
       'Number of atmospheric layers', gt=1)
+
+  atm.rmodelname = args.get_choice('radmodel',
+      'Radius-profile model', pc.radmodels)
 
   # Pressure boundaries:
   atm.pbottom = args.get_param('pbottom', atm.punits,

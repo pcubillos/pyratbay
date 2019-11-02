@@ -203,9 +203,6 @@ class Pyrat(object):
       params = np.asarray(params)
       q0 = np.copy(self.atm.qbase)
 
-      if self.ret.imass is not None:
-          self.phy.mplanet = params[self.ret.imass][0] * pt.u(self.phy.mpunits)
-
       rejectflag = False
       # Update temperature profile if requested:
       if self.ret.itemp is not None:
@@ -241,6 +238,10 @@ class Pyrat(object):
       # Update reference radius if requested:
       if self.ret.irad is not None:
           self.phy.rplanet = params[self.ret.irad][0] * pt.u(self.atm.runits)
+
+      # Update planetary mass if requested:
+      if self.ret.imass is not None:
+          self.phy.mplanet = params[self.ret.imass][0] * pt.u(self.phy.mpunits)
 
       # Update Rayleigh parameters if requested:
       if self.ret.iray is not None:
@@ -306,8 +307,8 @@ class Pyrat(object):
   def hydro(self, pressure, temperature, mu, g, mass, p0, r0):
       """
       Hydrostatic-equilibrium driver.
-      Depending on the self.atm.hydrom flag, select between the g=GM/r**2
-      (hydrom=True) or constant-g (hydrom=False) formula to compute
+      Depending on self.atm.rmodelname, select between the g=GM/r**2
+      (hydro_m) or constant-g (hydro_g) formula to compute
       the hydrostatic-equilibrium radii of the planet layers.
 
       Parameters
@@ -327,12 +328,15 @@ class Pyrat(object):
       r0: Float
          Reference radius level (in cm) corresponding to p0.
       """
+      if self.atm.rmodelname is None:
+          print('No hydrostatic-equilibrium model defined.')
+          return None
       # H.E. with  g=GM/r**2:
-      if self.atm.hydrom:
+      elif self.atm.rmodelname == 'hydro_m':
           return pa.hydro_m(pressure, temperature, mu, mass, p0, r0)
       # H.E. with constant g:
-      return pa.hydro_g(pressure, temperature, mu, g, p0, r0)
-
+      elif self.atm.rmodelname == 'hydro_g':
+          return pa.hydro_g(pressure, temperature, mu, g, p0, r0)
 
   def set_filters(self):
       """

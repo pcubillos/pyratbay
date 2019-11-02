@@ -98,7 +98,6 @@ def run(cfile, init=False):
   if pyrat.runmode == 'atmosphere':
       return pressure, temperature, abundances
 
-
   # Check status of extinction-coefficient file if necessary:
   if pyrat.runmode != 'spectrum' and pt.isfile(pyrat.ex.extfile) == -1:
       log.error("Undefined extinction-coefficient file (extfile).")

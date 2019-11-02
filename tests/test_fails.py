@@ -443,32 +443,54 @@ def test_spectrum_transmission_missing(tmp_path, capfd, param, undefined_spec):
     assert undefined_spec[param] in captured.out
 
 
+def test_spectrum_no_radius(tmp_path, capfd):
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        remove=['radmodel'])
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Error in module: 'makesample.py', function: 'make_atmprofiles'" \
+           in captured.out
+    assert 'Cannot compute radius profile.  Need to set a radius model ' \
+           '(radmodel) or\nprovide an input radius array in the ' \
+           'atmospheric file.' in captured.out
+
+
 @pytest.mark.parametrize('param',
     ['mplanet', 'rplanet', 'gplanet'])
-def test_spectrum_hydrostatic_equilibrium(tmp_path, capfd, param):
+@pytest.mark.parametrize('atm',
+    ['atmosphere_uniform_test.atm',
+     'atmosphere_uniform_radius.atm'])
+def test_spectrum_hydro_MRGplanet(tmp_path, capfd, param, atm):
     keep = ['mplanet', 'rplanet', 'gplanet']
     keep.remove(param)
     cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        reset={'atmfile':atm},
         remove=keep)
     pyrat = pb.run(cfg)
     assert pyrat is None
     captured = capfd.readouterr()
     assert "Error in module: 'makesample.py', function: 'make_atmprofiles'" \
            in captured.out
-    assert 'Cannot compute hydrostatic equilibrium.  Must define ' \
-           'at least two of\nmplanet, rplanet, or gplanet.' in captured.out
+    assert 'Cannot compute hydrostatic-equilibrium radius profile.  Must ' \
+           'define at least\ntwo of mplanet, rplanet, or gplanet.' \
+           in captured.out
 
 
-def test_spectrum_refpressure(tmp_path, capfd):
+@pytest.mark.parametrize('atm',
+    ['atmosphere_uniform_test.atm',
+     'atmosphere_uniform_radius.atm'])
+def test_spectrum_hydro_refpressure(tmp_path, capfd, atm):
     cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        reset={'atmfile':atm},
         remove=['refpressure'])
     pyrat = pb.run(cfg)
     assert pyrat is None
     captured = capfd.readouterr()
     assert "Error in module: 'makesample.py', function: 'make_atmprofiles'" \
            in captured.out
-    assert 'Cannot compute hydrostatic equilibrium.  Undefined reference ' \
-           'pressure level\n(refpressure).' in captured.out
+    assert 'Cannot compute hydrostatic-equilibrium radius profile.  ' \
+           'Undefined reference\npressure level (refpressure).' in captured.out
 
 
 @pytest.mark.parametrize('value', ['1.00e-09 bar', '1.00e+03 bar'])
@@ -616,7 +638,7 @@ def test_spectrum_tcea_parameters(tmp_path, capfd, param, undefined):
 @pytest.mark.parametrize('param', ['rplanet', 'mplanet'])
 def test_spectrum_tcea_gplanet(tmp_path, capfd, param, undefined):
     cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
-        remove=[param, 'gplanet'],
+        remove=[param, 'gplanet', 'radmodel'],
         reset={'path':'eclipse', 'tmodel':'tcea'})
     pyrat = pb.run(cfg)
     assert pyrat is None

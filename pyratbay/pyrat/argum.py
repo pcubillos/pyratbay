@@ -38,10 +38,6 @@ def check_spectrum(pyrat):
   if pyrat.runmode == 'spectrum' and spec.outspec is None:
       log.error('Undefined output spectrum file (outspec).')
 
-  # Hydrostatic by constant g or g(M,R):
-  if pyrat.inputs.mplanet is not None:
-      atm.hydrom = True
-
   # Compute the Hill radius for the planet:
   if (phy.mstar is not None and phy.mplanet is not None
       and phy.smaxis is not None):
@@ -427,4 +423,3 @@ def setup(pyrat):
       and (pyrat.runmode != 'mcmc' or 'cloud' not in ret.retflag)
       and pyrat.cloud.pars is None):
       log.error('Cloud parameters (cpars) have not been specified.')
-

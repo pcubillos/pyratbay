@@ -5548,3 +5548,13 @@ path before and after crossing the planet's terminator.
 New results agree well with petitRADTRANS.
 
 
+*****  Sa 2. Nov 13:56:41 CET 2019  *****
+
+Added radmodel argument to define hydrostatic-equilibrium model.
+If not defined, take radius from input atmospheric file (if exists).
+Replaced atm.hydrom flag with atm.rmodelname (which is now taken
+from radmodel argument).
+Added/updated tests accordingly.
+Updated config files.
+Updated spectrum tutorial docs.
+

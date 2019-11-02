@@ -162,6 +162,7 @@ Pressure profile (press, bar):
 
 Radius display units (runits): km
 Radius internal units: cm
+Radius model name (rmodelname): hydro_m
 Radius profile (radius, km):
     [74591.6311 74528.7914 74466.0453 ... 69099.5141 69013.8566 68928.3555]
 

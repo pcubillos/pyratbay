@@ -140,24 +140,38 @@ def make_atmprofiles(pyrat):
                   '(bottom-top).  Resorting to be from the top down.')
       if atm_in.radius is not None:
           atm_in.radius = np.flipud(atm_in.radius)
-      atm_in.press  = np.flipud(atm_in.press)
-      atm_in.temp   = np.flipud(atm_in.temp)
-      atm_in.mm     = np.flipud(atm_in.mm)
-      atm_in.q      = np.flipud(atm_in.q)
-      atm_in.d      = np.flipud(atm_in.d)
+      atm_in.press = np.flipud(atm_in.press)
+      atm_in.temp  = np.flipud(atm_in.temp)
+      atm_in.mm    = np.flipud(atm_in.mm)
+      atm_in.q     = np.flipud(atm_in.q)
+      atm_in.d     = np.flipud(atm_in.d)
   else:
       log.error('The atmospheric layers are neither sorted from the '
                 'bottom up, nor from the top down.')
 
-  if atm_in.radius is None and pyrat.runmode != "opacity":
-      # Check that gplanet exists:
-      if pyrat.phy.rplanet is None or pyrat.phy.gplanet is None:
-          log.error('Cannot compute hydrostatic equilibrium.  Must define '
-                    'at least two of mplanet, rplanet, or gplanet.')
-      if atm.refpressure is None:
-          log.error('Cannot compute hydrostatic equilibrium.  '
-                    'Undefined reference pressure level (refpressure).')
-      # Atmopsheric reference pressure-radius level:
+  missing = [
+      pyrat.phy.mplanet is None,
+      pyrat.phy.gplanet is None,
+      pyrat.phy.rplanet is None,
+      atm.refpressure is None,
+      ]
+
+  if pyrat.atm.rmodelname is None and atm_in.radius is None \
+     and pyrat.runmode != "opacity":
+      log.error('Cannot compute radius profile.  Need to set a radius '
+                'model (radmodel) or provide an input radius array in '
+                'the atmospheric file.')
+
+  if pyrat.atm.rmodelname is not None and pyrat.runmode != "opacity":
+      if np.any(missing[0:3]):
+          log.error('Cannot compute hydrostatic-equilibrium radius profile.  '
+              'Must define at least two of mplanet, rplanet, or gplanet.')
+      if missing[3]:
+          log.error('Cannot compute hydrostatic-equilibrium radius profile.  '
+              'Undefined reference pressure level (refpressure).')
+
+  if pyrat.atm.rmodelname is not None and not np.any(missing):
+      # Calculate hydostatic-equilibrium radius profile:
       log.msg('Reference pressure: {:.3e} {:s}.'.
               format(atm.refpressure/pt.u(atm.punits), atm.punits), indent=2)
       log.msg('Reference radius: {:8.1f} {:s}.'.
@@ -166,8 +180,6 @@ def make_atmprofiles(pyrat):
           log.msg('Hill radius:      {:8.1f} {:s}.'.
                   format(pyrat.phy.rhill/pt.u(atm.runits), atm.runits),
                   indent=2)
-
-      # Calculate radius profile with the hydostatic-equilibrium equation:
       atm_in.radius = pyrat.hydro(atm_in.press, atm_in.temp, atm_in.mm,
                                   pyrat.phy.gplanet, pyrat.phy.mplanet,
                                   atm.refpressure, pyrat.phy.rplanet)

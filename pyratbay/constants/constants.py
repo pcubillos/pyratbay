@@ -54,6 +54,7 @@ __all__ = [
     'rmodes',
     'retflags',
     'tmodels',
+    'radmodels',
     'molmodels',
     'amodels',
     'rmodels',
@@ -186,6 +187,12 @@ tmodels = [
    'isothermal',
    'tcea',
    'madhu',
+]
+
+# Radius-profile models:
+radmodels = [
+    'hydro_m',
+    'hydro_g',
 ]
 
 # Molecular-abundance models:

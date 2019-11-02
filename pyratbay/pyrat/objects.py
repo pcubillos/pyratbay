@@ -104,8 +104,6 @@ class Atm(object):
       self.radhigh = None     # Highest radius boundary
       self.ptop    = None     # Lowest pressure boundary
       self.pbottom = None     # Highest pressure boundary
-      self.hydrom  = False    # Variable/constant-g flag for hydrostatic equilib
-
       self.atmfile = None     # Atmopheric-model file
       self.qunits  = None     # Input abundance units ('mass' or 'number')
       self.runits  = None     # Input radius units
@@ -144,6 +142,7 @@ class Atm(object):
 
       fw.write('\nRadius display units (runits): {}', self.runits)
       fw.write('Radius internal units: cm', self.runits)
+      fw.write('Radius model name (rmodelname): {}', self.rmodelname)
       if self.radstep is not None:
           fw.write('Radius step size (radstep): {} {}',
               self.radstep/pt.u(self.runits), self.runits, prec=3, edge=3)
