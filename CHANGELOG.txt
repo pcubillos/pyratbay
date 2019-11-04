@@ -5563,3 +5563,7 @@ Updated spectrum tutorial docs.
 
 Remove phy.rprs to avoid inconsistency when phy.rplanet changes.
 
+*****
+
+Minor changes in docs (assuming pip-installed code).
+

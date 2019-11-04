@@ -158,10 +158,10 @@ transmission and emission spectra:
 
 .. code-block:: shell
 
-   $topdir/pyratbay/pbay.py -c demo_tli-hitran.cfg
+   pbay -c demo_tli-hitran.cfg
 
-   $topdir/pyratbay/pbay.py -c demo_spectrum-transmission.cfg
-   $topdir/pyratbay/pbay.py -c demo_spectrum-emission.cfg
+   pbay -c demo_spectrum-transmission.cfg
+   pbay -c demo_spectrum-emission.cfg
 
 .. Outputs
    ^^^^^^^
@@ -232,7 +232,7 @@ execute any of the runs listed above:
 
 .. code-block:: shell
 
-    .../pyratbay/pbay.py -c config_file.cfg
+    pbay -c config_file.cfg
 
 The configuration file determines what run mode to execute by setting
 the ``runmode`` key.  Each of these modes have different
@@ -243,7 +243,7 @@ version, re-format files). To display these options, run:
 
 .. code-block:: shell
 
-    .../pyratbay/pbay.py -h
+    pbay -h
 
 
 Interactive Run
@@ -254,8 +254,6 @@ importing the pyratbay package:
 
 .. code-block:: python
 
-    import sys
-    sys.path.append("../pyratbay/")
     import pyratbay as pb
 
     pyrat = pb.run('config_file.cfg')
