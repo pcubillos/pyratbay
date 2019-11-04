@@ -310,10 +310,6 @@ def setup(pyrat):
   if obs.filters is not None:
       pyrat.set_filters()
 
-  # Planet-to-star radius ratio:
-  if phy.rplanet is not None and phy.rstar is not None:
-      phy.rprs = phy.rplanet/phy.rstar
-
   # Temperature models and arguments:
   if atm.tmodelname == 'tcea':
       ntemp = 5

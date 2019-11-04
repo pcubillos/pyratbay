@@ -295,7 +295,7 @@ class Pyrat(object):
       if self.od.path == 'transit':
           bandtrans = self.obs.bandtrans
       elif self.od.path == 'eclipse':
-          bandtrans = [btrans/sflux * self.phy.rprs**2
+          bandtrans = [btrans/sflux * (self.phy.rplanet/self.phy.rstar)**2
                for btrans, sflux in zip(self.obs.bandtrans, self.obs.starflux)]
 
       self.obs.bandflux = np.array([np.trapz(spectrum[idx]*btrans, specwn[idx])
@@ -521,10 +521,16 @@ class Pyrat(object):
           print("Invalid 'spec'.  Select from 'model' (default), 'best', "
                 "or 'median'.")
           return
+
+      if self.phy.rplanet is None or self.phy.rstar is None:
+          rprs = None
+      else:
+          rprs = self.phy.rplanet/self.phy.rstar
+
       pp.spectrum(spectrum, wavelength, self.od.path,
           self.obs.data, self.obs.uncert, bandwl, bandflux,
           self.obs.bandtrans, self.obs.bandidx,
-          self.spec.starflux, self.phy.rprs, label, bounds,
+          self.spec.starflux, rprs, label, bounds,
           logxticks, gaussbin, yran, filename)
 
 

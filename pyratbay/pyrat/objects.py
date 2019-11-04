@@ -739,7 +739,6 @@ class Physics(object):
       self.rplanet  = None  # Planetary radius
       self.mplanet  = None  # Planetary mass
       self.gplanet  = None  # Planetary surface gravity
-      self.rprs     = None  # Planet-to-star radius ratio
       self.smaxis   = None  # Orbital semi-major axis
       self.rhill    = np.inf  # Planetary Hill radius
       self.starspec = None  # Stellar spectrum filename
@@ -768,7 +767,8 @@ class Physics(object):
       fw.write('Planetary internal temperature (tint, K):  {:.1f}', self.tint)
       fw.write('Orbital semi-major axis (smaxis, AU): {:.4f}',
           none_div(self.smaxis, pc.au))
-      fw.write('Planet-to-star radius ratio (rprs):   {:.5f}', self.rprs)
+      fw.write('Planet-to-star radius ratio (rprs):   {:.5f}',
+          self.rplanet/self.rstar)
       fw.write('Planetary Hill radius (rhill, Rjup):  {:.3f}',
           none_div(self.rhill, pc.rjup))
 
