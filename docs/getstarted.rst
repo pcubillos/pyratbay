@@ -76,7 +76,7 @@ Pyrat-Bay (version 1.0+) has been extensively tested to work on
 Unix/Linux and OS X machines, with the following software
 requirements:
 
-* Python (version 2.7 or 3.6+)
+* Python (version 3.6+)
 * Numpy (version 1.8.1+)
 * Scipy (version 0.13.3+)
 * Matplotlib (version 1.3.1+)

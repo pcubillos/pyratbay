@@ -106,7 +106,7 @@ Please send feedback or inquiries to:
   Patricio Cubillos (`patricio.cubillos[at]oeaw.ac.at`_)
 
 Pyrat-Bay is open-source software under the GNU GPL v2 license (see
-:ref:`license`), and is compatible with Python 2.7 and 3.6+.
+:ref:`license`), and is compatible with Python 3.6+.
 
 
 Documentation for Previous Releases

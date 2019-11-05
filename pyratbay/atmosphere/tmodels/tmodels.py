@@ -78,7 +78,7 @@ class TCEA(object):
         tint: String or float
             Planetary internal temperature in Kelvin degrees.
         gplanet: String or float
-            Planetary atmospheric temperature in cm s-2.
+            Planetary surface gravity in cm s-2.
         smaxis: String or float
             Orbital semi-major axis.
             If string, may specify units (default in cm units).
