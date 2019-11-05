@@ -716,15 +716,15 @@ def test_kurucz_missing_pars(tmp_path, capfd, param, undefined):
 def test_spectrum_opacity_invalid_tmin(tmp_path, capfd):
     cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
         reset={'extfile':str(tmp_path/'new_opacity.dat'),
-               'tmin':'10.0', 'tmax':'1000.0', 'tstep':'900'})
+               'tmin':'0.1', 'tmax':'1000.0', 'tstep':'900'})
     pyrat = pb.run(cfg)
     assert pyrat is None
     captured = capfd.readouterr()
     assert "Error in module: 'extinction.py', function: 'calc_extinction'" \
            in captured.out
     assert ("Requested extinction-coefficient table temperature "
-            "(tmin=10.0 K) below the\nlowest available TLI temperature "
-            "(70.0 K).") in captured.out
+            "(tmin=0.1 K) below the\nlowest available TLI temperature "
+            "(1.0 K).") in captured.out
 
 
 @pytest.mark.parametrize('param',
@@ -748,15 +748,15 @@ def test_spectrum_missing_retflag_models(tmp_path, capfd, param,undefined_mcmc):
 def test_spectrum_opacity_invalid_tmax(tmp_path, capfd):
     cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
         reset={'extfile':str(tmp_path/'new_opacity.dat'),
-               'tmin':'1000.0', 'tmax':'5000.0', 'tstep':'100'})
+               'tmin':'1000.0', 'tmax':'6000.0', 'tstep':'100'})
     pyrat = pb.run(cfg)
     assert pyrat is None
     captured = capfd.readouterr()
     assert "Error in module: 'extinction.py', function: 'calc_extinction'" \
            in captured.out
     assert ("Requested extinction-coefficient table temperature "
-            "(tmax=5000.0 K) above the\nhighest available TLI temperature "
-            "(3000.0 K).") in captured.out
+            "(tmax=6000.0 K) above the\nhighest available TLI temperature "
+            "(5000.0 K).") in captured.out
 
 
 @pytest.mark.parametrize('param', ['tmin', 'tmax', 'tstep', 'tlifile'])
@@ -846,7 +846,7 @@ def test_mcmc_missing_starspec(tmp_path, capfd):
 def test_spectrum_temperature_bounds(tmp_path, capfd, param, invalid_temp):
     remove = [par for par in ['tlifile', 'csfile', 'extfile'] if par != param]
     cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
-        reset={'tmodel':'isothermal', 'tpars':'10.0',
+        reset={'tmodel':'isothermal', 'tpars':'6000.0',
                'extfile':'exttable_test_300-3000K_1.1-1.7um.dat'},
         remove=remove)
     pyrat = pb.run(cfg)

@@ -187,7 +187,7 @@ def invalid_temp():
                    '(K): [  60.0, 3000.0].',
         'tlifile': 'One or more input temperature values lies out of '
                    'the line-transition\ntemperature boundaries '
-                   '(K): [  70.0, 3000.0]',
+                   '(K): [   1.0, 5000.0]',
         'extfile': 'One or more input temperature values lies out of the '
                    'tabulated\nextinction-coefficient temperature boundaries '
                    '(K): [ 300.0, 3000.0].',

@@ -50,12 +50,13 @@ def main():
 
     # Partition-function reformatting:
     if args.pf is not None:
+        outfile = 'default'
         if args.pf[0] == 'exomol':
-            pb.tools.pf_exomol(args.pf[1:])
+            pb.part_func.exomol(args.pf[1:], outfile=outfile)
         elif args.pf[0] == 'kurucz':
-            pb.tools.pf_kurucz(args.pf[1])
+            pb.part_func.kurucz(args.pf[1], outfile=outfile)
         elif args.pf[0] == 'tips':
-            print('TIPS partition function is TBD.')
+            pb.part_func.tips(args.pf[1], outfile=outfile)
         else:
             print('Invalid partition-function type.')
 

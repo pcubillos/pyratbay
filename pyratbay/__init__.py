@@ -5,6 +5,7 @@ __all__ = [
     'constants',
     'io',
     'tools',
+    'part_func',
     'blackbody',
     'broadening',
     'lineread',
@@ -18,6 +19,7 @@ __all__ = [
 from . import constants
 from . import io
 from . import tools
+from . import part_func
 from . import blackbody
 from . import broadening
 from . import lineread

@@ -5,11 +5,9 @@ import sys
 import os
 import numpy as np
 
-import pyratbay.io as io
-from pyratbay.constants import ROOT
-
-sys.path.append(ROOT + 'modules/pytips')
-import pytips as t
+from ... import io as io
+from ... import part_func as pf
+from ...constants import ROOT
 
 
 class dbdriver(object):
@@ -33,21 +31,8 @@ class dbdriver(object):
       """
       # Calculate the partition-function from the CTIPS module:
       if self.pffile == 'ctips':
-          # Number of isotopes:
-          niso = len(self.isotopes)
-
-          # Array of temperatures (TIPS range of temperature is 70K to 3000K):
-          temp = np.arange(70.0, 3000.1, 10.0)
-          ntemp = len(temp)
-          # Output array for table of Temperature and PF values:
-          PF = np.zeros((niso, ntemp), np.double)
-
-          molID = np.repeat(int(t.molID(self.molecule)), ntemp)
-          # Calculate the partition function for each isotope:
-          for i in np.arange(niso):
-              isoID = np.repeat(int(self.isotopes[i]), ntemp)
-              PF[i] = t.tips(molID, isoID, temp)
-          return temp, PF, self.isotopes
+          pf_data, isotopes, temp = pf.tips(self.molecule)
+          return temp, pf_data, isotopes
 
       # Use polynomial expression:
       elif self.pffile == 'poly':
@@ -55,26 +40,26 @@ class dbdriver(object):
           Ntemp = len(Temp)
           Niso  = len(self.isotopes)
 
-          PF = np.zeros((Niso, Ntemp), np.double)
+          pf_data = np.zeros((Niso, Ntemp), np.double)
           for j in np.arange(Niso):
               for i in np.arange(Ntemp):
                   # Formula from Irwin 1981, ApJS 45, 621 (equation #2):
-                  PF[j,i] = (self.PFcoeffs[j,0]                      +
-                             self.PFcoeffs[j,1]* np.log(Temp[i])     +
-                             self.PFcoeffs[j,2]*(np.log(Temp[i]))**2 +
-                             self.PFcoeffs[j,3]*(np.log(Temp[i]))**3 +
-                             self.PFcoeffs[j,4]*(np.log(Temp[i]))**4 +
-                             self.PFcoeffs[j,5]*(np.log(Temp[i]))**5 )
+                  pf_data[j,i] = (self.PFcoeffs[j,0]                      +
+                                  self.PFcoeffs[j,1]* np.log(Temp[i])     +
+                                  self.PFcoeffs[j,2]*(np.log(Temp[i]))**2 +
+                                  self.PFcoeffs[j,3]*(np.log(Temp[i]))**3 +
+                                  self.PFcoeffs[j,4]*(np.log(Temp[i]))**4 +
+                                  self.PFcoeffs[j,5]*(np.log(Temp[i]))**5 )
           # Get the exponential of log(PF):
-          PF = np.exp(PF)
+          pf_data = np.exp(PF)
 
-          return Temp, PF, self.isotopes
+          return Temp, pf_data, self.isotopes
 
       # Extract the partition-function from the tabulated file:
       else:
           # TBD: Catch file not found error with self.log
-          pf, iso, temp = io.read_pf(self.pffile)
-          return temp, pf, iso
+          pf_data, iso, temp = io.read_pf(self.pffile)
+          return temp, pf_data, iso
 
 
   def dbread(self, iwl, fwl, verb):
@@ -189,8 +174,8 @@ class dbdriver(object):
               self.log.error("Input database file '{:s}' does not exist.".
                              format(self.dbfile))
           with open(self.dbfile, "r") as data:
-              molID  = data.read(self.recmollen)
-          molname = t.molname(int(molID))
+              molID = data.read(self.recmollen)
+          molname = pf.get_tips_molname(int(molID))
       elif molname is None:
           self.log.error('Neither fromfile nor mol were specified.')
 

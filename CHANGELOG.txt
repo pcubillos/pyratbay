@@ -5567,3 +5567,19 @@ Remove phy.rprs to avoid inconsistency when phy.rplanet changes.
 
 Minor changes in docs (assuming pip-installed code).
 
+
+*****  Di 5. Nov 10:09:30 CET 2019  *****
+
+Created pyratbay.part_func module to compute partition functions.
+Moved tools.pf_exomol() and tools.pf_kurucz() funtions to
+part_func.exomol() and part_func.kurucz(), respectively.
+Implemented part_func.tips() to compute HITRAN/TIPS partition
+functions.  This replaces the pytips submodule (removed) and updates
+the TIPS data to that of Gamache et al. (2017).
+Added TIPS data into inputs/tips_2017.pkl.
+Enabled tips PF call from command line.
+Updated tests accordingly.
+
+This update drops support for Python2.7 (which will anyway stop by
+Python this next Jan 1st.).
+

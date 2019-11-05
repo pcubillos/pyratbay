@@ -137,11 +137,10 @@ def makeTLI(dblist, pflist, dbtype, tlifile,
       ntemp = len(temp)
       niso  = len(iso_names)
 
-      # Partition-function sorted according to iso_names:
+      # Extract partition-function info sorted by iso_names:
       pf = np.zeros((niso, ntemp), np.double)
-      for p,iso in zip(partition, pf_iso):
-          idx = iso_names.index(iso)
-          pf[idx] = p
+      for i,iso in enumerate(iso_names):
+          pf[i] = partition[list(pf_iso).index(iso)]
 
       # Store length of and database name:
       tli.write(struct.pack('h{:d}s'.format(len(db.name)),

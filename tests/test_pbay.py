@@ -257,12 +257,6 @@ def test_tli_hitran_wfc3():
 
 
 @pytest.mark.skip(reason="Skip until implementing in Python3")
-def test_tli_pands():
-    pb.run('tli_pands_test.cfg')
-    # TBD: asserts on output file
-
-
-@pytest.mark.skip(reason="Skip until implementing in Python3")
 def test_tli_repack():
     pb.run('tli_repack_test.cfg')
     # TBD: asserts on output file
