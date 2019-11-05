@@ -9,10 +9,7 @@ import os
 import sys
 import argparse
 from datetime import date
-if sys.version_info.major == 3:
-    import configparser
-else:
-    import ConfigParser as configparser
+import configparser
 
 import numpy as np
 import mc3.utils as mu

@@ -36,10 +36,7 @@ import itertools
 import functools
 from collections import Iterable
 from contextlib import contextmanager
-if sys.version_info.major == 3:
-    import configparser
-else:
-    import ConfigParser as configparser
+import configparser
 
 import numpy as np
 import scipy.interpolate as si
@@ -50,20 +47,6 @@ from .. import io        as io
 
 sys.path.append(pc.ROOT + 'pyratbay/lib/')
 import _indices
-
-
-# Numpy patch for Python 2:
-if sys.version_info.major == 2:
-    @contextmanager
-    def printoptions(*args, **kwargs):
-        """Taken from future (numpy 1.15+)."""
-        opts = np.get_printoptions()
-        try:
-            np.set_printoptions(*args, **kwargs)
-            yield np.get_printoptions()
-        finally:
-            np.set_printoptions(**opts)
-    np.printoptions = printoptions
 
 
 @contextmanager
@@ -605,40 +588,6 @@ class Formatted_Write(string.Formatter):
         self.edge = edge
         self.lw   = lw
         self.prec = prec
-
-    if sys.version_info.major == 2:
-        # bugfix: https://stackoverflow.com/questions/27786403
-        def _vformat(self, format_string, args, kwargs, used_args,
-                     recursion_depth, auto_arg_index=0):
-            if recursion_depth < 0:
-                raise ValueError('Max string recursion exceeded')
-            result = []
-            for literal_text, field_name, format_spec, conversion in \
-                    self.parse(format_string):
-                if literal_text:
-                    result.append(literal_text)
-                if field_name is not None:
-                    if field_name == '':
-                        if auto_arg_index is False:
-                            raise ValueError('cannot switch from manual field '
-                                             'specification to automatic field '
-                                             'numbering')
-                        field_name = str(auto_arg_index)
-                        auto_arg_index += 1
-                    elif field_name.isdigit():
-                        if auto_arg_index:
-                            raise ValueError('cannot switch from manual field '
-                                             'specification to automatic field '
-                                             'numbering')
-                        auto_arg_index = False
-                    obj, arg_used = self.get_field(field_name, args, kwargs)
-                    used_args.add(arg_used)
-                    obj = self.convert_field(obj, conversion)
-                    format_spec = self._vformat(format_spec, args, kwargs,
-                                                used_args, recursion_depth-1,
-                                                auto_arg_index=auto_arg_index)
-                    result.append(self.format_field(obj, format_spec))
-            return ''.join(result)
 
     def format_field(self, value, spec):
         if value is None:

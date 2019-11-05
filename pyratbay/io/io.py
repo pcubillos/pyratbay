@@ -18,6 +18,7 @@ import pickle
 import numpy as np
 
 from .. import constants as pc
+from .. import tools as pt
 
 
 def save_pyrat(pyrat, pfile=None):
@@ -32,8 +33,6 @@ def save_pyrat(pyrat, pfile=None):
         Name of output file.  Default to the pyrat logname (changing
         the extension to '.pickle').
     """
-    # Note that circular-import issue only occurs in Python2
-    from .. import tools as pt
     if pfile is None:
         pfile = os.path.splitext(pyrat.log.logname)[0] + '.pickle'
         print('Saving pyrat instance to: {}'.format(pfile))
@@ -59,7 +58,6 @@ def load_pyrat(pfile):
     pyrat: A Pyrat instance
         Loaded object.
     """
-    from .. import tools as pt
     with open(pfile, 'rb') as f:
         pyrat = pickle.load(f)
     pyrat.log.verb = -1
@@ -146,7 +144,6 @@ def write_atm(atmfile, pressure, temperature, species, abundances,
     3.1623e-01     1500.000  8.499000e-01  1.500000e-01  1.000000e-04
     1.0000e+02     1500.000  8.499000e-01  1.500000e-01  1.000000e-04
     """
-    from .. import tools as pt
     f = open(atmfile, "w")
     f.write(header)
 
@@ -338,9 +335,6 @@ def write_spectrum(wl, spectrum, filename, type, wlunits='um'):
   --------
   >>> # See read_spectrum() examples.
   """
-  # Need to import here to avoid circular imports:
-  from .. import tools as pt
-
   if filename is None:
       return
 
@@ -435,8 +429,6 @@ def read_spectrum(filename, wn=True):
   >>> print(flux)
   [1. 1. 1. 1. 1. 1. 1.]
   """
-  # Need to import here to avoid circular imports:
-  from .. import tools as pt
   # Extract data:
   data = np.loadtxt(filename, unpack=True)
   wave, spectrum = data[0], data[1]

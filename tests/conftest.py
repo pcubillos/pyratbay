@@ -1,10 +1,7 @@
 import sys
 import itertools
 import pytest
-if sys.version_info.major == 3:
-    import configparser
-else:
-    import ConfigParser as configparser
+import configparser
 
 
 def pytest_collection_modifyitems(items):

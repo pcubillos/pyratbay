@@ -5583,3 +5583,12 @@ Updated tests accordingly.
 This update drops support for Python2.7 (which will anyway stop by
 Python this next Jan 1st.).
 
+*****
+
+Removed Python 2.7 from travis file.
+Removed a few Python2 nuances:
+- circular imports in io.py
+- defining np.printoptions()
+- Formatted_Write() bugfix
+- configparser import
+
