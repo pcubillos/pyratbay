@@ -93,10 +93,9 @@ isotope that is required to compute line intensities.  In the TLI
 configuration file, the ``pflist`` key specifies the partition
 function for each ``dblist`` value.
 
-For the hitran databases, ``Pyrat Bay`` provides an implementation of
-the Total Internal Partition Sums (TIPS) code to calculate the
-partition functions (see [Laraia2011]_ and [Gamache2017]_).  In this
-case the user can set the ``pflist`` value to '`ctips`'.
+For the hitran databases, ``Pyrat Bay`` provides the Total Internal
+Partition Sums (TIPS) data (see [Laraia2011]_ and [Gamache2017]_).  In
+this case the user can set the ``pflist`` value to '`tips`'.
 
 The exomol, pands, and tioschwenke databases provide the partition
 function as a table along with the LBL files.  In this case, the user

@@ -5592,3 +5592,7 @@ Removed a few Python2 nuances:
 - Formatted_Write() bugfix
 - configparser import
 
+*****
+
+Renamed pflist option from ctips to tips.
+

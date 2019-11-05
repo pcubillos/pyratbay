@@ -30,7 +30,7 @@ class dbdriver(object):
           The names of the tabulated isotopes
       """
       # Calculate the partition-function from the CTIPS module:
-      if self.pffile == 'ctips':
+      if self.pffile == 'tips':
           pf_data, isotopes, temp = pf.tips(self.molecule)
           return temp, pf_data, isotopes
 
