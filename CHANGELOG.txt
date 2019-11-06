@@ -5600,3 +5600,9 @@ Renamed pflist option from ctips to tips.
 
 Some cosmetics.
 
+
+*****  Mi 6. Nov 09:01:45 CET 2019  *****
+
+Updated inputs/isotopes.dat to include new isotopes from new TIPS
+partition function file.
+
