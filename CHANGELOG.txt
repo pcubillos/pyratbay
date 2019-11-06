@@ -5606,3 +5606,7 @@ Some cosmetics.
 Updated inputs/isotopes.dat to include new isotopes from new TIPS
 partition function file.
 
+*****
+
+Removed pytips calls in Makefile.
+

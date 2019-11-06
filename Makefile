@@ -29,8 +29,8 @@ LIBDIR = pyratbay/lib/
 mkfile_dir := $(dir $(lastword $(MAKEFILE_LIST)))
 
 # `make [clean]` should run `make [clean]` on all of the modules.
-all: make_pb make_pytips
-clean: clean_pb clean_pytips
+all: make_pb
+clean: clean_pb
 
 
 make_pb:
@@ -41,15 +41,7 @@ make_pb:
 	@echo "Successful compilation."
 	@echo ""
 
-make_pytips:
-	@cd $(mkfile_dir)/modules/pytips/ && make
-
-
 clean_pb:
 	@rm -rf $(LIBDIR)*.so
 	@echo "Cleaned Pyrat Bay."
-
-clean_pytips:
-	@cd $(mkfile_dir)/modules/pytips/ && make clean
-	@echo "Cleaned pytips."
 
