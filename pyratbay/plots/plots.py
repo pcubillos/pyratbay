@@ -1,11 +1,15 @@
 # Copyright (c) 2016-2019 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-__all__ = ['spectrum', 'cf', 'posterior_pt']
+__all__ = [
+    'spectrum',
+    'cf',
+    'posterior_pt'
+]
 
 import os
-import matplotlib
 
+import matplotlib
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.interpolate as si
@@ -48,6 +52,12 @@ def spectrum(spectrum, wavelength, path,
       Stellar spectrum evaluated at wavelength.
   rprs: Float
       Planet-to-star radius ratio.
+  label: String
+      Label for spectrum curve.
+  bounds: Tuple
+      Tuple with -2, -1, +1, and, +2 sigma boundaries of spectrum.
+      If not None, plot shaded area between +/-1sigma and +/-2sigma
+      boundaries.
   logxticks: 1D float ndarray
       If not None, switch the X-axis scale from linear to log, and set
       the X-axis ticks at the locations given by logxticks.
@@ -73,7 +83,6 @@ def spectrum(spectrum, wavelength, path,
   plt.figure(fignum, (8, 5))
   plt.clf()
   ax = plt.subplot(111)
-  plt.subplots_adjust(0.15, 0.12, 0.97, 0.95)
   #fscale = {'':1.0, '%':100.0, 'ppt':1e3, 'ppm':1e6}
 
   spec_kw = {'label':label}
@@ -145,10 +154,10 @@ def spectrum(spectrum, wavelength, path,
   ax2.set_yticks(ax.get_yticks())
   ax2.set_yticklabels([])
   ax2.set_ylim(ax.get_ylim())
+  plt.tight_layout()
 
   if filename is not None:
       plt.savefig(filename)
-
   return ax
 
 
@@ -178,6 +187,11 @@ def cf(bandcf, bandwl, path, pressure, radius, rtop=0,
       Name of the filter bands (optional).
   fignum: Integer
       Figure number.
+
+  Returns
+  -------
+  ax: AxesSubplot instance
+      The matplotlib Axes of the figure.
 
   Notes
   -----
@@ -306,6 +320,7 @@ def cf(bandcf, bandwl, path, pressure, radius, rtop=0,
   fig.canvas.draw()
   if filename is not None:
       plt.savefig(filename)
+  return ax
 
 
 def posterior_pt(posterior, tmodel, tpars, ifree, pressure,
@@ -330,6 +345,11 @@ def posterior_pt(posterior, tmodel, tpars, ifree, pressure,
       Best-fitting temperature-profile parameters.
   filename: String
       If not None, save figure to filename.
+
+  Returns
+  -------
+  ax: AxesSubplot instance
+      The matplotlib Axes of the figure.
   """
   nlayers = len(pressure)
 
@@ -369,7 +389,6 @@ def posterior_pt(posterior, tmodel, tpars, ifree, pressure,
   plt.figure(500)
   plt.clf()
   ax = plt.subplot(111)
-  plt.subplots_adjust(0.15, 0.15, 0.95, 0.95)
   ax.fill_betweenx(pressure/pc.bar, low2, high2, facecolor=fc2,
       edgecolor='none', alpha=alpha2)
   ax.fill_betweenx(pressure/pc.bar, low1, high1, facecolor=fc1,
@@ -385,5 +404,7 @@ def posterior_pt(posterior, tmodel, tpars, ifree, pressure,
   plt.ylabel('Pressure  (bar)',  size=15)
   ax.tick_params(labelsize=12)
 
+  plt.tight_layout()
   if filename is not None:
       plt.savefig(filename)
+  return ax

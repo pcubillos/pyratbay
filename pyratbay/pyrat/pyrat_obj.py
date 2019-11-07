@@ -485,12 +485,28 @@ class Pyrat(object):
           model, in which case, the code will plot the 1- and 2-sigma
           boundaries if they have been computed (see
           self.percentile_spectrum).
+      logxticks: 1D float ndarray
+          If not None, switch the X-axis scale from linear to log, and set
+          the X-axis ticks at the locations given by logxticks.
+      gaussbin: Integer
+          Standard deviation for Gaussian-kernel smoothing (in number
+          of samples).
+      yran: 1D float ndarray
+          Figure's Y-axis boundaries.
+      filename: String
+          If not None, save figure to filename.
+
+      Returns
+      -------
+      ax: AxesSubplot instance
+          The matplotlib Axes of the figure.
       """
       wavelength = 1.0/(self.spec.wn*pc.um)
       if self.obs.bandwn is not None:
           bandwl = 1.0/(self.obs.bandwn*pc.um)
       else:
           bandwl = None
+
       if self.obs.bandtrans is not None:
           bandflux = self.band_integrate()
       else:
@@ -527,15 +543,28 @@ class Pyrat(object):
       else:
           rprs = self.phy.rplanet/self.phy.rstar
 
-      pp.spectrum(spectrum, wavelength, self.od.path,
+      ax = pp.spectrum(spectrum, wavelength, self.od.path,
           self.obs.data, self.obs.uncert, bandwl, bandflux,
           self.obs.bandtrans, self.obs.bandidx,
           self.spec.starflux, rprs, label, bounds,
           logxticks, gaussbin, yran, filename)
+      return ax
 
 
   def plot_posterior_pt(self, filename=None):
-      """Plot posterior distribution of PT profile."""
+      """
+      Plot posterior distribution of PT profile.
+
+      Parameters
+      ----------
+      filename: String
+          If not None, save figure to filename.
+
+      Returns
+      -------
+      ax: AxesSubplot instance
+          The matplotlib Axes of the figure.
+      """
       if self.ret.posterior is None:
           print('pyrat objec does not have a posterior distribution.')
           return
@@ -546,9 +575,10 @@ class Pyrat(object):
       if filename is None:
           outfile = os.path.splitext(os.path.basename(self.ret.mcmcfile))[0]
           filename = '{:s}_posterior_PT_profile.png'.format(outfile)
-      pp.posterior_pt(posterior[:,itemp], self.atm.tmodel,
+      ax = pp.posterior_pt(posterior[:,itemp], self.atm.tmodel,
           self.ret.params[self.ret.itemp], ifree, self.atm.press,
           self.ret.bestp[self.ret.itemp], filename)
+      return ax
 
 
   def __str__(self):

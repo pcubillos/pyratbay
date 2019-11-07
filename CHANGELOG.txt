@@ -5610,3 +5610,12 @@ partition function file.
 
 Removed pytips calls in Makefile.
 
+
+*****  Do 7. Nov 16:48:55 CET 2019  *****
+
+Modified plots functions to return the axes of the figure.
+Propagated ax return into pyrat plotting method.
+Also use plt.tight_layout() for single-panel plots.
+Updated docstrings.
+
+
