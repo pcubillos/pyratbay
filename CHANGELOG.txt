@@ -5618,4 +5618,9 @@ Propagated ax return into pyrat plotting method.
 Also use plt.tight_layout() for single-panel plots.
 Updated docstrings.
 
+*****
+
+Added self consistency gplanet update in pyrat.eval() method
+when using hydro_g model and rplanet changes.
+
 
