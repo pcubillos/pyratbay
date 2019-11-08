@@ -5655,3 +5655,10 @@ If punits is None, break if any of the pressure inputs does not have
 its own units.
 Updated tests and docs.
 
+*****
+
+Enforced requiring units for mstar, rstar, and smaxis.
+Fix units of other phy variables.  Always display as AU, msun, and
+rsun, irrespective of inputs.
+Updated tests.
+

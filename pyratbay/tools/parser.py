@@ -171,11 +171,9 @@ class Namespace(argparse.Namespace):
             return None
 
         if gt is not None and value <= gt:
-            self._log.error('{} ({}) must be > {}'.format(desc, pname, gt),
-                            tracklev=-3)
+            self._log.error(f'{desc} ({pname}) must be > {gt}', tracklev=-3)
         if ge is not None and value < ge:
-            self._log.error('{} ({}) must be >= {}'.format(desc, pname, ge),
-                            tracklev=-3)
+            self._log.error('{desc} ({pname}) must be >= {ge}', tracklev=-3)
         return value
 
 
@@ -617,11 +615,11 @@ def parse(pyrat, cfile):
   phy.tint = args.get_default('tint',
       'Planetary internal temperature', 100.0, gt=0.0)
 
-  phy.smaxis = args.get_param('smaxis', 'au',
+  phy.smaxis = args.get_param('smaxis', None,
       'Orbital semi-major axis', gt=0.0)
-  phy.rstar = args.get_param('rstar', 'rsun',
+  phy.rstar = args.get_param('rstar', None,
       'Stellar radius', gt=0.0)
-  phy.mstar = args.get_param('mstar', 'msun',
+  phy.mstar = args.get_param('mstar', None,
       'Stellar mass', gt=0.0)
   phy.gstar = args.get_default('gstar',
       'Stellar surface gravity', gt=0.0)

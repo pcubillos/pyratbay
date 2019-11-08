@@ -406,23 +406,13 @@ def test_tea_missing(tmp_path, capfd, param, undefined):
 # spectrum runmode fails (setup):
 
 @pytest.mark.parametrize('param',
-    ['wllow', 'wlhigh', 'wnstep', 'wnosamp'])
-def test_spectrum_missing(tmp_path, capfd, param, undefined_spec):
+    ['wllow', 'wlhigh',
+     'pbottom', 'ptop', 'refpressure',
+     'mstar', 'rstar', 'smaxis',
+    ])
+def test_spectrum_missing_units(tmp_path, capfd, param):
     cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
-        remove=[param])
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert "Error in module: 'makesample.py', function: 'make_wavenumber'" \
-           in captured.out
-    assert undefined_spec[param] in captured.out
-
-
-@pytest.mark.parametrize('param',
-    ['wllow', 'wlhigh'])
-def test_spectrum_missing_wlunits(tmp_path, capfd, param):
-    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
-        reset={param:'1.5'})
+        reset={param:'1.1'})
     pyrat = pb.run(cfg)
     assert pyrat is None
     captured = capfd.readouterr()
@@ -530,19 +520,6 @@ def test_spectrum_invalid_pressure_ranges(tmp_path, capfd):
            in captured.out
     assert ('Bottom-layer pressure (1.00e-03 bar) must be higher than the '
             'top-layer\npressure (1.00e-02 bar).') in captured.out
-
-
-@pytest.mark.parametrize('param',
-    ['pbottom', 'ptop', 'refpressure'])
-def test_spectrum_missing_punits(tmp_path, capfd, param):
-    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
-        reset={param:'1.0'},
-        remove=['punits'])
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert "Error in module: 'parser.py', function: 'parse'" in captured.out
-    assert f"Invalid units 'None' for parameter {param}." in captured.out
 
 
 def test_spectrum_inconsistent_mass_radius_gravity(tmp_path, capfd):
