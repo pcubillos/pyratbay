@@ -602,11 +602,10 @@ def parse(pyrat, cfile):
 
   phy.mpunits = args.get_default('mpunits', 'Planetary-mass units')
   if phy.mpunits is not None and not hasattr(pc, phy.mpunits):
-      log.error('Invalid planet mass units (mpunits): {}'.format(phy.mpunits))
-  mplanet_units = args.get_units('mplanet')
-  if phy.mpunits is None and mplanet_units is not None:
-      phy.mpunits = mplanet_units
+      log.error(f'Invalid planet mass units (mpunits): {phy.mpunits}')
   phy.mplanet = args.get_param('mplanet', phy.mpunits, 'Planetary mass', gt=0.0)
+  if phy.mpunits is None:
+      phy.mpunits = args.get_units('mplanet')
 
   phy.gplanet = args.get_default('gplanet',
       'Planetary surface gravity (cm s-2)', gt=0.0)

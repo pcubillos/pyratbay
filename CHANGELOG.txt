@@ -5640,3 +5640,8 @@ Added corresponding tests.
 Simplified planetary mass units parsing.
 (no change in behavior).
 
+*****
+
+Previous changes were for the planetary radius actually.
+Now, simplified planetary mass units parsing.
+
