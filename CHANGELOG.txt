@@ -5624,3 +5624,7 @@ Added self consistency gplanet update in pyrat.eval() method
 when using hydro_g model and rplanet changes.
 
 
+*****  Fr 8. Nov 12:02:16 CET 2019  *****
+
+Updated tests according to latest changes in isotopes list.
+

@@ -221,7 +221,7 @@ Number of databases (ndb): 1
 
 Database name (name): HITRAN H2O
 Species name (molname):  H2O
-Number of isotopes (niso): 6
+Number of isotopes (niso): 9
 Isotope correlative index (iiso): 0
 Number of temperature samples (ntemp): 503
 Temperature (temp, K):
@@ -233,6 +233,9 @@ Partition function for each isotope (z):
     [ 6.000e+00  6.213e+00  8.396e+00 ...  4.835e+05  4.865e+05  4.895e+05]
     [ 6.000e+00  6.219e+00  8.445e+00 ...  4.702e+05  4.733e+05  4.763e+05]
     [ 3.600e+01  3.729e+01  5.053e+01 ...  2.719e+06  2.737e+06  2.754e+06]
+    [ 6.000e+00  6.343e+00  9.129e+00 ...  9.504e+05  9.578e+05  9.652e+05]
+    [ 6.000e+00  6.353e+00  9.217e+00 ...  9.775e+05  9.850e+05  9.927e+05]
+    [ 3.600e+01  3.809e+01  5.505e+01 ...  5.784e+06  5.829e+06  5.874e+06]
 
 Total number of line transitions (ntransitions): 47,666
 Minimum and maximum temperatures (tmin, tmax): [1.0, 5000.0] K
@@ -248,7 +251,7 @@ Line-transition gf (gf, cm-1):
 
     assert str(pyrat.iso) == """\
 Isotopes information:
-Number of isotopes (niso): 6
+Number of isotopes (niso): 9
 
 Isotope  Molecule      Mass    Isotopic   Database   Extinc-coeff
             index     g/mol       ratio      index    index
@@ -259,6 +262,9 @@ Isotope  Molecule      Mass    Isotopic   Database   Extinc-coeff
     162         3   19.0168   3.107e-04          0   None
     182         3   21.0211   6.230e-07          0   None
     172         3   20.0211   1.158e-07          0   None
+    262         3   20.0210   2.420e-08          0   None
+    282         3   22.0000   0.000e+00          0   None
+    272         3   21.0000   0.000e+00          0   None
 Partition function evaluated at atmosperic layers (z):
     [ 1.325e+03  1.325e+03  1.325e+03 ...  3.407e+03  3.412e+03  3.417e+03]
     [ 1.337e+03  1.337e+03  1.337e+03 ...  3.426e+03  3.430e+03  3.436e+03]
@@ -266,6 +272,9 @@ Partition function evaluated at atmosperic layers (z):
     [ 6.954e+03  6.954e+03  6.954e+03 ...  1.909e+04  1.912e+04  1.915e+04]
     [ 7.066e+03  7.066e+03  7.066e+03 ...  1.940e+04  1.943e+04  1.946e+04]
     [ 4.228e+04  4.228e+04  4.228e+04 ...  1.157e+05  1.158e+05  1.160e+05]
+    [ 8.967e+03  8.967e+03  8.967e+03 ...  2.652e+04  2.656e+04  2.661e+04]
+    [ 9.136e+03  9.136e+03  9.136e+03 ...  2.709e+04  2.713e+04  2.718e+04]
+    [ 5.433e+04  5.433e+04  5.433e+04 ...  1.609e+05  1.611e+05  1.614e+05]
 """
 
     assert str(pyrat.voigt) == """\
