@@ -5628,3 +5628,10 @@ when using hydro_g model and rplanet changes.
 
 Updated tests according to latest changes in isotopes list.
 
+*****
+
+Changed behavior of default wavelength and units inputs.
+Do not show wlunits-default warning anymore.
+If wlunits is None, require that wllow and wlhigh have units.
+Added corresponding tests.
+

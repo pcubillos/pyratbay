@@ -275,13 +275,13 @@ def test_multiple_opacities(tmp_path):
         reset={'extfile':'exttable_H2O_300-3000K_1.5-1.6um.dat'
                      '\n  exttable_CO2_300-3000K_1.5-1.6um.dat'
                      '\n  exttable_CH4_300-3000K_1.5-1.6um.dat',
-               'wllow':'1.5', 'wlhigh':'1.6'})
+               'wllow':'1.5 um', 'wlhigh':'1.6 um'})
     pyrat1 = pb.run(cfg)
     cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
         remove=['tlifile', 'clouds'],
         reset={'extfile':'exttable_H2O_300-3000K_1.5-1.6um.dat'
                      '\n  exttable_CO2-CH4_300-3000K_1.5-1.6um.dat',
-               'wllow':'1.5', 'wlhigh':'1.6'})
+               'wllow':'1.5 um', 'wlhigh':'1.6 um'})
     pyrat2 = pb.run(cfg)
     np.testing.assert_allclose(pyrat1.spec.spectrum,
                                pyrat2.spec.spectrum, rtol=1e-5)

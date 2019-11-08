@@ -540,15 +540,15 @@ def parse(pyrat, cfile):
   pyrat.cs.files    = args.get_path('csfile',  'Cross-section',    exists=True)
   pyrat.atm.ptfile  = args.get_path('ptfile',  'Pressure-temperature')
 
-  spec.wlunits = args.get_default('wlunits', 'Wavelength units', 'um',
-      wflag=runmode not in ['pt', 'atmosphere'])
-  if not hasattr(pc, spec.wlunits):
-      log.error('Invalid wavelength units (wlunits): {}'.format(spec.wlunits))
-
-  spec.wllow  = args.get_param('wllow',  spec.wlunits,
-      'Wavelength lower boundary',  gt=0.0)
+  spec.wlunits = args.get_default('wlunits', 'Wavelength units')
+  if spec.wlunits is not None and not hasattr(pc, spec.wlunits):
+      log.error(f'Invalid wavelength units (wlunits): {spec.wlunits}')
+  spec.wllow = args.get_param('wllow', spec.wlunits,
+      'Wavelength lower boundary', gt=0.0)
   spec.wlhigh = args.get_param('wlhigh', spec.wlunits,
       'Wavelength higher boundary', gt=0.0)
+  if spec.wlunits is None:
+      spec.wlunits = args.get_units('wllow')
 
   spec.wnlow  = args.get_default('wnlow',
       'Wavenumber lower boundary',  gt=0.0)

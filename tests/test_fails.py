@@ -418,6 +418,18 @@ def test_spectrum_missing(tmp_path, capfd, param, undefined_spec):
     assert undefined_spec[param] in captured.out
 
 
+@pytest.mark.parametrize('param',
+    ['wllow', 'wlhigh'])
+def test_spectrum_missing_wlunits(tmp_path, capfd, param):
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        reset={param:'1.5'})
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Error in module: 'parser.py', function: 'parse'" in captured.out
+    assert f"Invalid units 'None' for parameter {param}." in captured.out
+
+
 def test_spectrum_inconsistent_wl_bounds(tmp_path, capfd):
     cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
         reset={'wllow':'2.0 um', 'wlhigh':'1.0 um'})
