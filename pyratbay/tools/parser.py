@@ -569,12 +569,11 @@ def parse(pyrat, cfile):
 
   atm.runits = args.get_default('runits', 'Planetary-radius units')
   if atm.runits is not None and not hasattr(pc, atm.runits):
-      log.error('Invalid radius units (runits): {}'.format(atm.runits))
-  rplanet_units = args.get_units('rplanet')
-  if atm.runits is None and rplanet_units is not None:
-      atm.runits = rplanet_units
+      log.error(f'Invalid radius units (runits): {atm.runits}')
   phy.rplanet = args.get_param('rplanet', atm.runits,
       'Planetary radius', gt=0.0)
+  if atm.runits is None:
+      atm.runits = args.get_units('rplanet')
 
   atm.nlayers = args.get_default('nlayers',
       'Number of atmospheric layers', gt=1)

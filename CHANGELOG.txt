@@ -5635,3 +5635,8 @@ Do not show wlunits-default warning anymore.
 If wlunits is None, require that wllow and wlhigh have units.
 Added corresponding tests.
 
+*****
+
+Simplified planetary mass units parsing.
+(no change in behavior).
+
