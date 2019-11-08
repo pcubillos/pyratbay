@@ -70,10 +70,11 @@ same order as listed above, i.e.: first the temperature parameters,
 then radius, then the mass, the abundance parameters, and so on.
 
 Details on the available models and their parameters are described in
-the :ref:`pttutorial` and :ref:`spectutorial`.
-The number of ``rad`` and ``mass`` parameters is always one each, with
-the values in the same units as specified in the ``rplanet`` and
-``mplanet`` keys, respectively.
+the :ref:`pttutorial` and :ref:`spectutorial`.  The number of ``rad``
+and ``mass`` parameters is always one each, with their units set by
+the ``runits`` or ``mpunits`` keys, respectively.  If these units are
+not set, the parameters will adopt the same units specified in the
+``rplanet`` and ``mplanet`` keys, respectively.
 
 .. note:: Pro-tip: You can use the ``params`` key to run spectrum
           forward models as well.

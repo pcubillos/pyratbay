@@ -160,11 +160,11 @@ Reference pressure at rplanet (refpressure): 1.00e-01 bar
 Pressure profile (press, bar):
     [ 1.000e-06  1.259e-06  1.585e-06 ...  6.310e+01  7.943e+01  1.000e+02]
 
-Radius display units (runits): km
+Radius display units (runits): rjup
 Radius internal units: cm
 Radius model name (rmodelname): hydro_m
-Radius profile (radius, km):
-    [74591.6311 74528.7914 74466.0453 ... 69099.5141 69013.8566 68928.3555]
+Radius profile (radius, rjup):
+    [1.0434 1.0425 1.0416 ... 0.9665 0.9653 0.9641]
 
 Temperature units (tunits): kelvin
 Temperature model name (tmodelname): None

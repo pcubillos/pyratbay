@@ -45,10 +45,10 @@ determined by the pressure at the top of the atmosphere ``ptop``, at
 the bottom of the atmosphere ``pbottom``, and the number of layers
 ``nlayers``.
 
-The units for the ``ptop`` and ``pbottom`` pressures may
-be defined in place (as in the sample above) or may be defined with
-the ``punits`` key (in-place units take precedence over ``punits``).
-See :ref:`units` for a list of available units.
+The units for the ``ptop`` and ``pbottom`` pressures may be defined in
+place with the variable (as in the sample above) or through the
+``punits`` key (in-place units take precedence over ``punits``).  See
+:ref:`units` for a list of available units.
 
 
 Temperature Profiles
@@ -77,8 +77,9 @@ surface gravity (``gplanet``), the stellar effective temperature
 
 .. literalinclude:: ../examples/tutorial/pt_tcea.cfg
 
-Note that the units for ``gplanet`` are cm s\ :sup:`-2`, and the units
-for temperature keys (like ``tstar`` and ``tint``) are Kelvin.
+Note that the units for ``gplanet`` are always cm s\ :sup:`-2`, and
+the units for temperature keys (like ``tstar`` and ``tint``) are
+always Kelvin.  Thus, the user does not need to specify their units.
 
 .. note:: ``Pyrat Bay`` can compute the planetary surface gravity
           (``gplanet``) from the planetary mass (``mplanet``) and

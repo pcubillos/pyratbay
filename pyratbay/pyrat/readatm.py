@@ -30,6 +30,10 @@ def read_atm(pyrat):
   pyrat.mol.name = atm_inputs[1]
   pyrat.mol.nmol = len(pyrat.mol.name)
 
+  # Last resort to set the pressure units:
+  if atm.punits is None:
+      atm.punits = punits
+
   # Read molecular constant values:
   get_constants(pyrat)
 

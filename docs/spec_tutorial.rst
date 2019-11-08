@@ -70,7 +70,8 @@ The ``wllow`` and ``wlhigh`` keys set the wavelength boundaries for
 the output spectrum (values must contain units; otherwise, set the
 units with the ``wlunits`` key).  Alternatively, the user can set the
 spectrum boundaries by wavenumber using the ``wnlow`` and ``wnhigh``
-keys (values do not contain units, they are always in |kayser|).
+keys (wavenumber keys are always in |kayser|; thus, the user should not
+provide units for them).
 
 By default, the code produces an output spectrum at
 constant-wavenumber sampling rate.  The ``wnstep`` sets the sampling
@@ -614,7 +615,7 @@ And the results should look like this:
 
 .. note:: Note that although the user can define most input units,
           nearly all variables are stored in CGS units in the
-          '*pyrat*'.
+          '*pyrat*' object.
 
 The '*pyrat*' object is modular, and implements several convenience
 methods to plot and display its content, as in the following example:

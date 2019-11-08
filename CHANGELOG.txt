@@ -5645,3 +5645,13 @@ Simplified planetary mass units parsing.
 Previous changes were for the planetary radius actually.
 Now, simplified planetary mass units parsing.
 
+*****
+
+Changed behavior of default pressure units.
+Remove punits default and warning.
+If punits is None, attempt to get it from pbottom, ptop, refpressure,
+and the atmfile, respectively.
+If punits is None, break if any of the pressure inputs does not have
+its own units.
+Updated tests and docs.
+

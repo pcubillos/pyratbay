@@ -562,11 +562,6 @@ def parse(pyrat, cfile):
   spec.resolution = args.get_default('resolution',
       'Spectral resolution', gt=0.0)
 
-  atm.punits = args.get_default('punits', 'Pressure units', 'bar',
-      wflag=(runmode!='tli'))
-  if not hasattr(pc, atm.punits):
-      log.error('Invalid pressure units (punits): {}'.format(atm.punits))
-
   atm.runits = args.get_default('runits', 'Planetary-radius units')
   if atm.runits is not None and not hasattr(pc, atm.runits):
       log.error(f'Invalid radius units (runits): {atm.runits}')
@@ -581,11 +576,25 @@ def parse(pyrat, cfile):
   atm.rmodelname = args.get_choice('radmodel',
       'Radius-profile model', pc.radmodels)
 
-  # Pressure boundaries:
+  # Pressure inputs:
+  atm.punits = args.get_default('punits', 'Pressure units')
+  if atm.punits is not None and not hasattr(pc, atm.punits):
+      log.error(f'Invalid pressure units (punits): {atm.punits}')
+
   atm.pbottom = args.get_param('pbottom', atm.punits,
       'Pressure at bottom of atmosphere', gt=0.0)
   atm.ptop = args.get_param('ptop', atm.punits,
       'Pressure at top of atmosphere', gt=0.0)
+  atm.refpressure = args.get_param('refpressure', atm.punits,
+      'Planetary reference pressure level', gt=0.0)
+
+  if atm.punits is None and atm.pbottom is not None:
+      atm.punits = args.get_units('pbottom')
+  elif atm.punits is None and atm.ptop is not None:
+      atm.punits = args.get_units('ptop')
+  elif atm.punits is None and atm.refpressure is not None:
+      atm.punits = args.get_units('refpressure')
+  # else, set atm.punits from atmospheric file in read_atm().
 
   # Radius boundaries:
   atm.radlow = args.get_param('radlow', atm.runits,
@@ -596,10 +605,6 @@ def parse(pyrat, cfile):
       'Radius sampling step', gt=0.0)
 
   # System physical parameters:
-  atm.refpressure = args.get_param('refpressure', atm.punits,
-      'Planetary reference pressure level', gt=0.0)
-
-
   phy.mpunits = args.get_default('mpunits', 'Planetary-mass units')
   if phy.mpunits is not None and not hasattr(pc, phy.mpunits):
       log.error(f'Invalid planet mass units (mpunits): {phy.mpunits}')

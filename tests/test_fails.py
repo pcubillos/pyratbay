@@ -244,7 +244,7 @@ def test_greater_than(tmp_path, capfd, param, value):
 
 @pytest.mark.parametrize('param',
     ['verb', 'wnosamp', 'ndop', 'nlor', 'thinning', 'nchains', 'ncpu',
-     'quadrature', 'grbreak', 'radlow', 'fpatchy', 'maxdepth', 'vextent'])
+     'quadrature', 'grbreak', 'fpatchy', 'maxdepth', 'vextent'])
 def test_greater_equal(tmp_path, capfd, param):
     cfg = make_config(tmp_path, ROOT+'tests/pt_isothermal.cfg',
         reset={param:'-10'})
@@ -530,6 +530,19 @@ def test_spectrum_invalid_pressure_ranges(tmp_path, capfd):
            in captured.out
     assert ('Bottom-layer pressure (1.00e-03 bar) must be higher than the '
             'top-layer\npressure (1.00e-02 bar).') in captured.out
+
+
+@pytest.mark.parametrize('param',
+    ['pbottom', 'ptop', 'refpressure'])
+def test_spectrum_missing_punits(tmp_path, capfd, param):
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        reset={param:'1.0'},
+        remove=['punits'])
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Error in module: 'parser.py', function: 'parse'" in captured.out
+    assert f"Invalid units 'None' for parameter {param}." in captured.out
 
 
 def test_spectrum_inconsistent_mass_radius_gravity(tmp_path, capfd):
