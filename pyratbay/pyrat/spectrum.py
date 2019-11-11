@@ -81,12 +81,18 @@ def modulation(pyrat):
 
   pyrat.spec.spectrum = ((pyrat.atm.radius[rtop]**2 + 2*pyrat.spec.spectrum)
                          / pyrat.phy.rstar**2)
+  if 'deck' in (m.name for m in pyrat.cloud.models):
+      deck = pyrat.cloud.models[pyrat.cloud.model_names.index('deck')]
+      deck_rprs = (deck.rsurf/pyrat.phy.rstar)**2
+      pyrat.spec.spectrum = np.clip(pyrat.spec.spectrum, deck_rprs, np.inf)
+
   if pyrat.cloud.fpatchy is not None:
       pyrat.spec.cloudy = ((pyrat.atm.radius[rtop]**2 + 2*pyrat.spec.cloudy)
                            / pyrat.phy.rstar**2)
       pyrat.spec.clear = pyrat.spec.spectrum
       pyrat.spec.spectrum = (   pyrat.cloud.fpatchy  * pyrat.spec.cloudy +
                              (1-pyrat.cloud.fpatchy) * pyrat.spec.clear  )
+
 
   pyrat.log.head("Computed transmission spectrum: '{}'.".
                  format(pyrat.spec.outspec), indent=2)
@@ -108,6 +114,10 @@ def intensity(pyrat):
   # Calculate the Planck Emission:
   pyrat.od.B = np.zeros((pyrat.atm.nlayers, spec.nwave), np.double)
   bb.Bwn2D(spec.wn, pyrat.atm.temp, pyrat.od.B, pyrat.od.ideep)
+
+  if 'deck' in (m.name for m in pyrat.cloud.models):
+      deck = pyrat.cloud.models[pyrat.cloud.model_names.index('deck')]
+      pyrat.od.B[deck.itop] = bb.Bwn(pyrat.spec.wn, deck.tsurf)
 
   # Plane-parallel radiative-transfer intensity integration:
   spec.intensity = t.intensity(pyrat.od.depth, pyrat.od.ideep, pyrat.od.B,

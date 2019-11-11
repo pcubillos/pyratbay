@@ -72,6 +72,10 @@ def opticaldepth(pyrat):
   else:
       od.epatchy[rtop:] = np.copy(od.ec[rtop:]) + pyrat.cloud.ec[rtop:]
 
+  rbottom = pyrat.atm.nlayers
+  if 'deck' in (m.name for m in pyrat.cloud.models):
+      deck = pyrat.cloud.models[pyrat.cloud.model_names.index('deck')]
+      rbottom = deck.itop + 1
   # Calculate the optical depth for each wavenumber:
   if od.path == 'eclipse':
       i = 0
@@ -85,15 +89,19 @@ def opticaldepth(pyrat):
       od.ideep = np.array(od.ideep, dtype=np.intc)
       od.ideep[:] = -1
       r = rtop
-      while r < pyrat.atm.nlayers:
+      while r < rbottom:
           # Optical depth at each level (tau = 2.0*integral e*ds):
           od.depth[r] = t.optdepth(od.ec[rtop:r+1], od.raypath[r],
-                                   od.maxdepth, od.ideep, r)
-          if pyrat.cloud.fpatchy is not None:
-              od.pdepth[r] = t.optdepth(od.epatchy[rtop:r+1], od.raypath[r],
-                                        np.inf, od.ideep, r)
+                              od.maxdepth, od.ideep, r)
+          # TBD: Unbreak patchy modeling
+          #if pyrat.cloud.fpatchy is not None:
+          #    od.pdepth[r] = t.optdepth(od.epatchy[rtop:r+1], od.raypath[r],
+          #                              np.inf, od.ideep, r)
           r += 1
-      od.ideep[od.ideep<0] = pyrat.atm.nlayers - 1
+      od.ideep[od.ideep<0] = r - 1
+
+  if 'deck' in (m.name for m in pyrat.cloud.models):
+      od.ideep = np.clip(od.ideep, 0, deck.itop)
   pyrat.log.head('Optical depth done.')
 
 

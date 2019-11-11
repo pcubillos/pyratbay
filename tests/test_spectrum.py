@@ -224,7 +224,7 @@ def test_fit(tmp_path):
     params = [-1.5, -0.8, -0.8,  0.5,  1.0, -4.0,  0.0, -4.0,  -3.0]
     model2 = pyrat.eval(params, retmodel=True)
     rmin = np.amin(np.sqrt(pyrat.spec.spectrum)) * pyrat.phy.rstar
-    assert np.amax(pyrat.atm.press[pyrat.atm.radius > rmin]) == 1e-3*pc.bar
+    assert np.amax(pyrat.atm.press[pyrat.atm.radius >= rmin]) == 1e-3*pc.bar
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['fit2'], rtol=1e-7)
     # Depleted H2O:
     params = [-1.5, -0.8, -0.8,  0.5,  1.0, -8.0,  0.0, -4.0,  2.0]

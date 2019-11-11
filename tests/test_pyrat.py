@@ -33,6 +33,8 @@ def test_get_ec(tmp_path):
     np.testing.assert_allclose(ec[0], pyrat.ex.ec[50])
     np.testing.assert_allclose(ec[1], pyrat.cs.ec[50])
     np.testing.assert_allclose(ec[2], pyrat.rayleigh.ec[50])
-    np.testing.assert_allclose(ec[3], pyrat.cloud.ec[50])
+    # Cloud deck model does not use the ec, rather post processed during RT.
+    # This array contains zeros or ones whether one is above or below cloud:
+    np.testing.assert_allclose(ec[3], np.ones(pyrat.spec.nwave))
     np.testing.assert_allclose(ec[4], pyrat.alkali.ec[50])
 

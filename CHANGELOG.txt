@@ -5662,3 +5662,27 @@ Fix units of other phy variables.  Always display as AU, msun, and
 rsun, irrespective of inputs.
 Updated tests.
 
+
+*****  Mo 11. Nov 14:26:13 CET 2019  *****
+
+Found bug in cloud deck model. More of a poor-approximation issue.
+I was setting a vertical optical depth of ~2/3 at the layer below
+the cloud top, whis some variation porportional to the proximity
+of the layer to the cloud top.  The transition didn't turn out to
+be as smooth as expected, with the outputs being 'discretized' to
+the nearest layer.
+
+Refactored the deck cloud model, removing its opacity, and adjusting
+the outcome after the radiative-transfer integration.
+For transmission, clip the output such that the transit depth is
+larger than the cloud top.
+For emission, set the black body emission of the layer below the
+cloud top equal to that of a Planck function at the temperature at
+the cloud top.
+
+Patchy model is breaking now. Needs to be fixed.
+Modified behavior of pyrat.get_ec()  as well.  Return an array of
+zeros or ones depending on whether the requested layer is above or
+below the cloud top, even though the codes does not use this
+extinction coefficient.
+

@@ -12,8 +12,7 @@ def absorption(pyrat):
 
   for model in pyrat.cloud.models:
       if model.name == 'deck':
-          model.extinction(pyrat.spec.wn, pyrat.atm.press, pyrat.atm.radius)
-          pyrat.cloud.ec += model.ec
+          model.extinction(pyrat.atm.press, pyrat.atm.radius, pyrat.atm.temp)
           continue
 
       # Calculate the extinction coefficient (in cm2 molecule-1):
@@ -32,8 +31,10 @@ def get_ec(pyrat, layer):
   ec, label = [], []
   for model in pyrat.cloud.models:
       if model.name == 'deck':
-          model.extinction(pyrat.spec.wn, pyrat.atm.press, pyrat.atm.radius)
-          ec.append(model.ec[layer])
+          model.extinction(pyrat.atm.press, pyrat.atm.radius, pyrat.atm.temp)
+          # Note this is just a filler, the actual code does not use this:
+          e = np.zeros(pyrat.spec.nwave) + int(layer > model.itop)
+          ec.append(e)
       else:
           imol = np.where(pyrat.mol.name == model.mol)[0][0]
           ec.append(model.ec[layer] * pyrat.atm.d[layer,imol])

@@ -4,6 +4,7 @@
 __all__ = ['CCSgray', 'Deck']
 
 import numpy as np
+import scipy.interpolate as si
 
 from ... import constants as pc
 from ... import tools     as pt
@@ -72,11 +73,12 @@ class Deck():
       self.pars  = [-1.0]          # log10(Pressure[bar]) of cloud top
       self.npars = len(self.pars)  # Number of model fitting parameters
       self.ec    = None            # Model extinction coefficient
+      self.itop  = None
       # Fitting-parameter names (plain text and figure labels):
       self.pnames = ['log(p_top)']
       self.texnames = [r'$\log_{10}(p_{\rm top})$']
 
-  def extinction(self, wn, pressure, radius):
+  def extinction(self, pressure, radius, temp):
       """
       Calculate gray-cloud absorption (in cm-1) that's optically thin
       above ptop, and becomes nearly-instantly opaque at ptop, with
@@ -84,34 +86,26 @@ class Deck():
 
       Parameters
       ----------
-      wn: 1D float ndarray
-          Wavenumber array (in cm-1).
       pressure: 1D float ndarray
           Atmospheric pressure profile (in barye).
       radius: 1D float ndarray
           Atmospheric radius profile (in cm).
+      temp: 1D float ndarray
+          Atmospheric temperature profile (in Kelvin degree).
       """
       nlayers = len(pressure)
-      nwave   = len(wn)
       ptop = 10**self.pars[0]*pc.bar
       # Index of layer directly below cloud top:
       if ptop >= pressure[-1]:  # Atmosphere boundary cases
-          itop = nlayers-1
+          self.itop = nlayers-1
       elif ptop < pressure[0]:
-          itop = 1
+          self.itop = 1
       else:
-          itop = np.where(pressure>ptop)[0][0]
+          self.itop = np.where(pressure>ptop)[0][0]
 
-      # Set the extinction at itop such that vertical tau[itop] ~ 2/3:
-      alpha = (2.0/3)/ptop
-      ec = np.zeros(nlayers)
-      ec[itop] = 2*alpha*(pressure[itop])/(radius[itop-1]-radius[itop])
-      # Below itop, scale the extinction proportional to the pressure:
-      ec[itop:] = ec[itop] * pressure[itop:]/pressure[itop]
-
-      # Gray absorption in cm-1:
-      self.ec = np.zeros((nlayers, nwave))
-      self.ec[itop:,:] = np.expand_dims(ec[itop:], axis=1)
+      # Radius and temperature at the cloud top:
+      self.tsurf = float(si.interp1d(pressure, temp)(ptop))
+      self.rsurf = float(si.interp1d(pressure, radius)(ptop))
 
   def __str__(self):
       fw = pt.Formatted_Write()
@@ -121,7 +115,10 @@ class Deck():
                '  (pnames)         (pars)\n')
       for pname, param in zip(self.pnames, self.pars):
           fw.write('  {:15s}  {: .3e}', pname, param)
-      fw.write('Extinction-coefficient (ec, cm-1):\n{}', self.ec,
-          fmt={'float':'{: .3e}'.format}, edge=3)
+      fw.write('Index of atmospheric layer directly below cloud top: {}',
+          self.itop)
+      fw.write('Cloud-top pressure: {:.4e} bar', 10**self.pars[0])
+      fw.write('Cloud-top altitude: {:.2f} km', self.rsurf/pc.km)
+      fw.write('Cloud-top temperature: {:.2f} K', self.tsurf)
       return fw.text
 
