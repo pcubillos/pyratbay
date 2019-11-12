@@ -82,8 +82,8 @@ def opticaldepth(pyrat):
       while i < pyrat.spec.nwave:
           od.ideep[i] = t.cumtrapz(od.depth  [rtop:,i],
                                    od.ec     [rtop:,i],
-                                   od.raypath[rtop:],
-                                   od.maxdepth) + rtop
+                                   od.raypath[rtop:rbottom],
+                                   od.maxdepth) + rtop - 1
           i += 1
   elif od.path == 'transit':
       od.ideep = np.array(od.ideep, dtype=np.intc)
@@ -100,8 +100,6 @@ def opticaldepth(pyrat):
           r += 1
       od.ideep[od.ideep<0] = r - 1
 
-  if 'deck' in (m.name for m in pyrat.cloud.models):
-      od.ideep = np.clip(od.ideep, 0, deck.itop)
   pyrat.log.head('Optical depth done.')
 
 

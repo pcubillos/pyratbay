@@ -5686,3 +5686,10 @@ zeros or ones depending on whether the requested layer is above or
 below the cloud top, even though the codes does not use this
 extinction coefficient.
 
+
+*****  Di 12. Nov 10:34:19 CET 2019  *****
+
+Adjusted opticaldepth() emission calculation to stop at the cloud top
+if existing.
+
+
