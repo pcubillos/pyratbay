@@ -5715,3 +5715,7 @@ rather than below when the cloud sits exactly at the layer.
 
 Updated tests.
 
+*****
+
+Added --show-capture=no option to pytest.ini.
+
