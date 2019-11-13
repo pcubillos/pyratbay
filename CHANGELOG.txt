@@ -5693,3 +5693,11 @@ Adjusted opticaldepth() emission calculation to stop at the cloud top
 if existing.
 
 
+*****  Mi 13. Nov 14:07:01 CET 2019  *****
+
+Reimplemented Simpson integration code to work on a 2D input,
+now, we do the modulation integration at all wavelength in a single
+call to the C code.  Apparently getting a speed up factor of two
+for that step.
+
+

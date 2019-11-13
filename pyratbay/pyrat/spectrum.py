@@ -52,32 +52,24 @@ def modulation(pyrat):
                 np.expand_dims(pyrat.atm.radius[rtop:],1))
   # Get Delta radius (and simps' integration variables):
   h = np.ediff1d(pyrat.atm.radius[rtop:])
-  if (len(h) % 2) == 1:
-        hseven, hreven, hfeven = s.geth(h[0:-1])
-        hsodd,  hrodd,  hfodd  = s.geth(h[0:])
+  if len(h)%2 == 1: # h is odd
+      hs_even, hr_even, hf_even = s.geth(h[0:])   # For even number of layers
+      hs_odd,  hr_odd,  hf_odd  = s.geth(h[0:-1]) # For odd number of layers
   else:
-        hseven, hreven, hfeven = s.geth(h[0:])
-        hsodd,  hrodd,  hfodd  = s.geth(h[0:-1])
-  hsum = [hsodd, hseven]
-  hrat = [hrodd, hreven]
-  hfac = [hfodd, hfeven]
+      hs_even, hr_even, hf_even = s.geth(h[0:-1])
+      hs_odd,  hr_odd,  hf_odd  = s.geth(h[0:])
 
-  nlayers = pyrat.od.ideep - rtop + 1    # Number of layers for integration
-  nhalf   = np.asarray(nlayers//2, int)  # Half-size of used layers
-  # Parity of nlayers (if nlayers is odd, parity is 1, h is even):
-  parity  = nlayers % 2
+  # Number of layers for integration at each wavelength:
+  nlayers = pyrat.od.ideep - rtop + 1
 
-  for i in np.arange(pyrat.spec.nwave):
-      nl = nlayers[i]
-      nh = nhalf  [i]
-      p  = parity [i]
-      # Integrate with Simpson's rule:
-      pyrat.spec.spectrum[i] = s.simps(integ[0:nl,i], h[0:nl-1],
-                               hsum[p][0:nh], hrat[p][0:nh], hfac[p][0:nh])
-      # Extra spectrum for patchy model:
-      if pyrat.cloud.fpatchy is not None:
-          pyrat.spec.cloudy[i] = s.simps(pinteg[0:nl,i], h[0:nl-1],
-                               hsum[p][0:nh], hrat[p][0:nh], hfac[p][0:nh])
+  pyrat.spec.spectrum = s.simps2D(integ, h, nlayers,
+      hs_odd,  hr_odd,  hf_odd,
+      hs_even, hr_even, hf_even)
+  # Extra spectrum for patchy model:
+  if pyrat.cloud.fpatchy is not None:
+      pyrat.spec.cloudy = s.simps2D(pinteg, h, nlayers,
+          hs_odd,  hr_odd,  hf_odd,
+          hs_even, hr_even, hf_even)
 
   pyrat.spec.spectrum = ((pyrat.atm.radius[rtop]**2 + 2*pyrat.spec.spectrum)
                          / pyrat.phy.rstar**2)
@@ -93,9 +85,8 @@ def modulation(pyrat):
       pyrat.spec.spectrum = (   pyrat.cloud.fpatchy  * pyrat.spec.cloudy +
                              (1-pyrat.cloud.fpatchy) * pyrat.spec.clear  )
 
-
-  pyrat.log.head("Computed transmission spectrum: '{}'.".
-                 format(pyrat.spec.outspec), indent=2)
+  pyrat.log.head(f"Computed transmission spectrum: '{pyrat.spec.outspec}'.",
+      indent=2)
 
 
 def intensity(pyrat):
