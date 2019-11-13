@@ -5719,3 +5719,9 @@ Updated tests.
 
 Added --show-capture=no option to pytest.ini.
 
+*****
+
+Allowed defining rayleigh models wothout rpars if and only if the
+models do not require any parameter.
+
+

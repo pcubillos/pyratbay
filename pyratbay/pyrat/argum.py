@@ -122,6 +122,8 @@ def check_spectrum(pyrat):
           npars += model.npars
           pyrat.rayleigh.models.append(model)
       # Process the Rayleigh parameters:
+      if npars == 0 and pyrat.rayleigh.pars is None:
+          pyrat.rayleigh.pars = []
       if pyrat.rayleigh.pars is not None:
           if npars != len(pyrat.rayleigh.pars):
               log.error('Number of input Rayleigh parameters ({:d}) does not '
