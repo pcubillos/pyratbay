@@ -258,7 +258,8 @@ def cf(bandcf, bandwl, path, pressure, radius, rtop=0,
   ax = plt.subplot(111)
   pax = ax.twinx()
   if path == 'eclipse':
-      ax.imshow(z[:,wlsort], aspect='auto', extent=[0,nfilters,yran[0],yran[1]],
+      ax.imshow(z[:,wlsort], aspect='auto',
+                extent=[0, nfilters, yran[0], yran[1]],
                 origin='upper', interpolation='nearest')
       ax.yaxis.set_visible(False)
       pax.spines['left'].set_visible(True)

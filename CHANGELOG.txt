@@ -5724,4 +5724,10 @@ Added --show-capture=no option to pytest.ini.
 Allowed defining rayleigh models wothout rpars if and only if the
 models do not require any parameter.
 
+*****
+
+Modified plots.transmittance() to fill in values below ideep with
+zeros (fully opaque), which fixes a bug in plots.cf(), which was not
+able to set the 68-quantile boundaries.
+
 

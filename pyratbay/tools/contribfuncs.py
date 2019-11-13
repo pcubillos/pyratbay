@@ -59,9 +59,9 @@ def transmittance(optdepth, ideep):
     """
     # Transmittance:
     transmit = np.exp(-optdepth)
-    # Fill-in values beyond ideep:
+    # Fill-in values beyond ideep (completely opaque):
     for i in np.arange(len(ideep)):
-        transmit[ideep[i]:,i] = transmit[ideep[i],i]
+        transmit[ideep[i]:,i] = 0.0
 
     return transmit
 
