@@ -44,7 +44,7 @@ Number of model parameters (npars): 1
 Parameter name     Value
   (pnames)         (pars)
   log(p_top)       -3.000e+00
-Index of atmospheric layer directly below cloud top: 31
+Index of atmospheric layer at or directly below cloud top: 30
 Cloud-top pressure: 1.0000e-03 bar
 Cloud-top altitude: 72750.18 km
 Cloud-top temperature: 1051.39 K
@@ -139,7 +139,7 @@ Wavenumber array (wn, cm-1):
 Oversampling factor (wnosamp): 2160
 
 Modulation spectrum, (Rp/Rs)**2 (spectrum):
-    [ 6.780e-03  6.780e-03  6.780e-03 ...  6.780e-03  6.780e-03  6.780e-03]
+    [ 6.780e-03  6.781e-03  6.780e-03 ...  6.780e-03  6.780e-03  6.780e-03]
 """
 
     assert str(pyrat.atm) == """\
@@ -392,17 +392,17 @@ Distance along the ray path across each layer (outside-in) at each impact
 
 Maximum optical depth to calculate (maxdepth): 10.00
 Layer index where the optical depth reaches maxdepth (ideep):
-    [ 31  31  31  31  31  31  31 ...  31  31  31  31  31  31  31]
-Maximum ideep (deepest layer reaching maxdepth): 31
+    [ 30  30  30  30  30  30  30 ...  30  30  30  30  30  30  30]
+Maximum ideep (deepest layer reaching maxdepth): 30
 
 Optical depth at each impact parameter, down to max(ideep) (depth):
 [[ 0.000e+00  0.000e+00  0.000e+00 ...  0.000e+00  0.000e+00  0.000e+00]
  [ 3.881e-08  1.118e-05  3.886e-08 ...  4.514e-07  2.355e-07  2.410e-07]
  [ 6.490e-08  1.869e-05  6.499e-08 ...  7.547e-07  3.938e-07  4.029e-07]
  ...
+ [ 4.644e-05  1.102e-02  4.610e-05 ...  4.470e-04  2.338e-04  2.406e-04]
  [ 6.113e-05  1.387e-02  6.054e-05 ...  5.631e-04  2.947e-04  3.038e-04]
- [ 8.113e-05  1.745e-02  8.019e-05 ...  7.094e-04  3.716e-04  3.838e-04]
- [ 1.089e-04  2.196e-02  1.073e-04 ...  8.948e-04  4.693e-04  4.862e-04]]
+ [ 8.113e-05  1.745e-02  8.019e-05 ...  7.094e-04  3.716e-04  3.838e-04]]
 """
 
     assert str(pyrat.cloud) == """\
@@ -413,7 +413,7 @@ Number of model parameters (npars): 1
 Parameter name     Value
   (pnames)         (pars)
   log(p_top)       -3.000e+00
-Index of atmospheric layer directly below cloud top: 31
+Index of atmospheric layer at or directly below cloud top: 30
 Cloud-top pressure: 1.0000e-03 bar
 Cloud-top altitude: 72750.18 km
 Cloud-top temperature: 1051.39 K
@@ -597,16 +597,16 @@ Distance across each layer along a normal ray path (raypath, km):
 
 Maximum optical depth to calculate (maxdepth): 10.00
 Layer index where the optical depth reaches maxdepth (ideep):
-    [ 31  31  31  31  31  31  31 ...  31  31  31  31  31  31  31]
-Maximum ideep (deepest layer reaching maxdepth): 31
+    [ 30  30  30  30  30  30  30 ...  30  30  30  30  30  30  30]
+Maximum ideep (deepest layer reaching maxdepth): 30
 
 Planck emission down to max(ideep) (B, erg s-1 cm-2 sr-1 cm):
 [[ 7.487e+02  7.480e+02  7.474e+02 ...  3.370e+01  3.367e+01  3.363e+01]
  [ 7.487e+02  7.480e+02  7.474e+02 ...  3.371e+01  3.367e+01  3.363e+01]
  [ 7.487e+02  7.480e+02  7.474e+02 ...  3.371e+01  3.367e+01  3.364e+01]
  ...
+ [ 7.645e+02  7.639e+02  7.632e+02 ...  3.481e+01  3.478e+01  3.474e+01]
  [ 7.687e+02  7.681e+02  7.674e+02 ...  3.511e+01  3.508e+01  3.504e+01]
- [ 7.741e+02  7.734e+02  7.727e+02 ...  3.549e+01  3.545e+01  3.542e+01]
  [ 7.741e+02  7.734e+02  7.727e+02 ...  3.549e+01  3.545e+01  3.542e+01]]
 
 Optical depth at each layer along a normal ray path into the planet, down to
@@ -615,9 +615,9 @@ Optical depth at each layer along a normal ray path into the planet, down to
  [ 3.984e-10  1.147e-07  3.989e-10 ...  4.633e-09  2.418e-09  2.473e-09]
  [ 8.992e-10  2.590e-07  9.004e-10 ...  1.046e-08  5.457e-09  5.583e-09]
  ...
+ [ 1.080e-06  2.692e-04  1.074e-06 ...  1.090e-05  5.699e-06  5.856e-06]
  [ 1.407e-06  3.386e-04  1.397e-06 ...  1.373e-05  7.179e-06  7.386e-06]
- [ 1.845e-06  4.260e-04  1.829e-06 ...  1.729e-05  9.046e-06  9.320e-06]
- [ 2.442e-06  5.360e-04  2.415e-06 ...  2.179e-05  1.141e-05  1.178e-05]]
+ [ 1.845e-06  4.260e-04  1.829e-06 ...  1.729e-05  9.046e-06  9.320e-06]]
 """
 
 

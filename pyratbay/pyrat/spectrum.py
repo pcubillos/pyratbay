@@ -3,6 +3,7 @@
 
 import sys
 import numpy as np
+from scipy.interpolate import interp1d
 
 from .. import blackbody as bb
 from .. import constants as pc
@@ -52,6 +53,13 @@ def modulation(pyrat):
                 np.expand_dims(pyrat.atm.radius[rtop:],1))
   # Get Delta radius (and simps' integration variables):
   h = np.ediff1d(pyrat.atm.radius[rtop:])
+
+  if 'deck' in (m.name for m in pyrat.cloud.models):
+      # Replace (interpolating) last layer with cloud top:
+      deck = pyrat.cloud.models[pyrat.cloud.model_names.index('deck')]
+      h[deck.itop-1] = deck.rsurf - pyrat.atm.radius[deck.itop-1]
+      integ[deck.itop] = interp1d(pyrat.atm.radius, integ, axis=0)(deck.rsurf)
+
   if len(h)%2 == 1: # h is odd
       hs_even, hr_even, hf_even = s.geth(h[0:])   # For even number of layers
       hs_odd,  hr_odd,  hf_odd  = s.geth(h[0:-1]) # For odd number of layers
@@ -73,11 +81,6 @@ def modulation(pyrat):
 
   pyrat.spec.spectrum = ((pyrat.atm.radius[rtop]**2 + 2*pyrat.spec.spectrum)
                          / pyrat.phy.rstar**2)
-  if 'deck' in (m.name for m in pyrat.cloud.models):
-      deck = pyrat.cloud.models[pyrat.cloud.model_names.index('deck')]
-      deck_rprs = (deck.rsurf/pyrat.phy.rstar)**2
-      pyrat.spec.spectrum = np.clip(pyrat.spec.spectrum, deck_rprs, np.inf)
-
   if pyrat.cloud.fpatchy is not None:
       pyrat.spec.cloudy = ((pyrat.atm.radius[rtop]**2 + 2*pyrat.spec.cloudy)
                            / pyrat.phy.rstar**2)

@@ -101,7 +101,7 @@ class Deck():
       elif ptop < pressure[0]:
           self.itop = 1
       else:
-          self.itop = np.where(pressure>ptop)[0][0]
+          self.itop = np.where(pressure>=ptop)[0][0]
 
       # Radius and temperature at the cloud top:
       self.tsurf = float(si.interp1d(pressure, temp)(ptop))
@@ -115,8 +115,8 @@ class Deck():
                '  (pnames)         (pars)\n')
       for pname, param in zip(self.pnames, self.pars):
           fw.write('  {:15s}  {: .3e}', pname, param)
-      fw.write('Index of atmospheric layer directly below cloud top: {}',
-          self.itop)
+      fw.write('Index of atmospheric layer at or directly below cloud '
+               f'top: {self.itop}')
       fw.write('Cloud-top pressure: {:.4e} bar', 10**self.pars[0])
       fw.write('Cloud-top altitude: {:.2f} km', self.rsurf/pc.km)
       fw.write('Cloud-top temperature: {:.2f} K', self.tsurf)

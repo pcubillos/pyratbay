@@ -5700,4 +5700,18 @@ now, we do the modulation integration at all wavelength in a single
 call to the C code.  Apparently getting a speed up factor of two
 for that step.
 
+*****
+
+It turns out, the transmission code still was not accurate enough
+after the last changes.  Now, when there is a cloud deck, in the last
+integration to get the transmision spectrum, the code replaces the
+layer below the deck with the deck altitude, interpolating the
+integrand.  This now produces a smooth variation when the cloud deck
+crosses the atmospheric model layers.
+
+Tweaked Deck()'s itop variable to be equal to the atmospheric layer
+rather than below when the cloud sits exactly at the layer.
+(This prevents NaNs when computing the transmission spectrum).
+
+Updated tests.
 
