@@ -510,7 +510,7 @@ def parse(pyrat, cfile):
       args.logfile = args.get_path('logfile', 'Log')
 
   args.logfile = pt.path(args.logfile)
-  log = pyrat.log = mu.Log(logname=args.logfile, verb=args.verb, width=80,
+  log = pyrat.log = mu.Log(logname=args.logfile, verb=pyrat.verb, width=80,
                            append=args.resume)
   args._log = log
 
