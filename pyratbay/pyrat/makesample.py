@@ -92,16 +92,16 @@ def make_wavenumber(pyrat):
 
 
   # Screen output:
-  log.msg('Initial wavenumber boundary:  {:.5e} cm-1  ({:.3e} {:s})'.
-          format(spec.wnlow, spec.wlhigh/pt.u(spec.wlunits), spec.wlunits),
-          indent=2)
-  log.msg('Final   wavenumber boundary:  {:.5e} cm-1  ({:.3e} {:s})'.
-          format(spec.wnhigh, spec.wllow/pt.u(spec.wlunits), spec.wlunits),
-          indent=2)
-  log.msg('Wavenumber sampling stepsize: {:.2g} cm-1\n'
-          'Wavenumber sample size:      {:8d}\n'
-          'Wavenumber fine-sample size: {:8d}\n'.
-          format(spec.wnstep, spec.nwave, spec.onwave), indent=2, si=2)
+  log.msg(f'Initial wavenumber boundary:  {spec.wnlow:.5e} cm-1  '
+          f'({spec.wlhigh/pt.u(spec.wlunits):.3e} {spec.wlunits})', indent=2)
+  log.msg(f'Final   wavenumber boundary:  {spec.wnhigh:.5e} cm-1  '
+          f'({spec.wllow/pt.u(spec.wlunits):.3e} {spec.wlunits})', indent=2)
+  if spec.resolution is None:
+      log.msg(f'Wavenumber sampling interval: {spec.wnstep:.2g} cm-1', indent=2)
+  else:
+      log.msg(f'Spectral resolving power: {spec.resolution:.1f}', indent=2)
+  log.msg(f'Wavenumber sample size:      {spec.nwave:8d}\n'
+          f'Wavenumber fine-sample size: {spec.onwave:8d}\n', indent=2)
   log.head('Wavenumber sampling done.')
 
 

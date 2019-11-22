@@ -5736,3 +5736,8 @@ able to set the 68-quantile boundaries.
 Fixed log's verb argument in tools.parser.py to pass the defaulted
 value (pyrat.verb instead of args.verb).
 
+*****
+
+Tweaked makesample.make_wavenumber() to show the resolution when
+resolution argument is not None.
+
