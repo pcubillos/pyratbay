@@ -111,19 +111,31 @@ def read_extinction(pyrat):
       "Wavenumber array (cm-1):\n   {}".
       format(ex.molID, str_temp, str_press, str_wn), indent=2)
 
-  # Some checks:
+  # New wavelength sampling:
   if ex.nwave != pyrat.spec.nwave or np.sum(np.abs(ex.wn-pyrat.spec.wn)) > 0:
-      pyrat.log.warning("Wavenumber sampling from extinction-coefficient "
-          "table does not match the input wavenumber sampling.  Adopting "
-          "tabulated array with {:d} samples, spacing of {:.2f} cm-1, "
-          "and ranges [{:.2f}, {:.2f}] cm-1.".
-            format(ex.nwave, ex.wn[1]-ex.wn[0], ex.wn[0], ex.wn[-1]))
+      wn_mask = (ex.wn >= pyrat.spec.wnlow) & (ex.wn <= pyrat.spec.wnhigh)
+
+      if pyrat.spec.wnlow <= ex.wn[0]:
+          pyrat.spec.wnlow = ex.wn[0]
+      if pyrat.spec.wnhigh >= ex.wn[-1]:
+          pyrat.spec.wnhigh = ex.wn[-1]
+
+      if len(set(np.ediff1d(ex.wn))) == 1:
+          pyrat.spec.wnstep = ex.wn[1] - ex.wn[0]
+          pyrat.spec.resolution = None
+          #pyrat.spec.wnlow = ex.wn[0]
+          sampling_text = f'sampling rate = {pyrat.spec.wnstep:.2f} cm-1'
+      else:
+          g = ex.wn[-2]/ex.wn[-1]
+          # Assuming no one would care to set a R with more than 5 decimals:
+          pyrat.spec.resolution = np.round(0.5*(1+g)/(1-g), decimals=5)
+          #pyrat.spec.wnhigh = 2 * ex.wn[-1]/(1+g)
+          sampling_text = f'R = {pyrat.spec.resolution:.1f}'
+
       # Update wavenumber sampling:
-      pyrat.spec.wn     = ex.wn
-      pyrat.spec.nwave  = ex.nwave
-      pyrat.spec.wnlow  = ex.wn[ 0]
-      pyrat.spec.wnhigh = ex.wn[-1]
-      pyrat.spec.wnstep = ex.wn[ 1] - ex.wn[0]
+      pyrat.spec.wn = ex.wn = ex.wn[wn_mask]
+      pyrat.ex.etable = pyrat.ex.etable[:,:,:,wn_mask]
+      pyrat.spec.nwave = ex.nwave = len(ex.wn)
       # Keep wavenumber oversampling factor:
       pyrat.spec.ownstep = pyrat.spec.wnstep / pyrat.spec.wnosamp
       pyrat.spec.onwave  = (pyrat.spec.nwave - 1) * pyrat.spec.wnosamp + 1
@@ -132,10 +144,17 @@ def read_extinction(pyrat):
 
       # Update interpolated stellar spectrum:
       if pyrat.phy.starflux is not None:
-          sinterp = sip.interp1d(pyrat.phy.starwn, pyrat.phy.starflux)
+          sinterp = sip.interp1d(
+              pyrat.phy.starwn, pyrat.phy.starflux,
+              bounds_error=False,
+              fill_value=(pyrat.phy.starflux[0],pyrat.phy.starflux[-1]))
           pyrat.spec.starflux = sinterp(pyrat.spec.wn)
       # Update observational variables:
       pyrat.set_filters()
+      pyrat.log.warning("Wavenumber sampling from extinction-coefficient "
+          "table does not match the input wavenumber sampling.  Adopting "
+         f"tabulated array with {ex.nwave} samples, {sampling_text}, and "
+         f"ranges [{pyrat.spec.wnlow:.2f}, {pyrat.spec.wnhigh:.2f}] cm-1.")
 
 
 def calc_extinction(pyrat):

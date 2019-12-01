@@ -288,6 +288,22 @@ def test_multiple_opacities(tmp_path):
                                pyrat2.spec.spectrum, rtol=1e-5)
 
 
+@pytest.mark.parametrize('wllow,wlhigh',
+    [('1.1 um', '1.6 um'),
+     ('1.2 um', '1.7 um'),
+     ('1.2 um', '1.6 um')])
+def test_opacity_reset_wn(tmp_path, wllow, wlhigh):
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+        remove=['tlifile', 'clouds'],
+        reset={'extfile':'exttable_test_300-3000K_1.1-1.7um.dat',
+               'wllow':wllow, 'wlhigh':wlhigh})
+    pyrat = pb.run(cfg)
+    wn = np.arange(1/1.7e-4, 1/1.1e-4, 1.0)
+    etab = expected['etable'][(wn>= pyrat.spec.wnlow)
+                            & (wn <=pyrat.spec.wnhigh)]
+    np.testing.assert_allclose(pyrat.spec.spectrum, etab, rtol=1e-7)
+
+
 # These are extra bits for testing the tests before testing:
 def plot_fit():
     import matplotlib.pyplot as plt

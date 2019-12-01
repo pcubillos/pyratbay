@@ -5741,3 +5741,20 @@ value (pyrat.verb instead of args.verb).
 Tweaked makesample.make_wavenumber() to show the resolution when
 resolution argument is not None.
 
+
+*****  Sun Dec  1 23:23:57 GMT 2019  *****
+
+Modified read_extinction() function to update the spectral range
+when ex.wn does not match spec.wn.  If pyrat.spec.wnlow or
+pyrat.spec.wnhigh are narrower than input pyrat.ex.wn, then trim
+the opacity table accordingly.
+Do a check of whether this is constant delta-wavenumber or constant
+resolution.  Preserve sampling from the opacity table (either
+pyrat.spec.wnstep or pyrat.spec.resolution).
+Oversampling values in pyrat.spec won't necessary reflect those used
+for the opacity table, though they won't be used for any calculation
+(should I None them?).
+Re-interpolate pyrat.phy.starflux into pyrat.spec.starflux (if req.)
+Re-compute filter passbands (if required).
+Added tests.
+
