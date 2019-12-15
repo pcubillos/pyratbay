@@ -354,6 +354,46 @@ def test_band_integrate():
     np.testing.assert_allclose(bandfluxes, [98527.148526, 84171.417692])
 
 
+def test_depth_to_radius_scalar():
+    depth = 1.44
+    depth_err = 0.6
+    rprs, rprs_err = pt.depth_to_radius(depth, depth_err)
+    assert rprs == 1.2
+    assert rprs_err == 0.25
+
+
+@pytest.mark.parametrize('func',
+    [list, tuple, np.array, ])
+def test_depth_to_radius_iterable(func):
+    depth = 1.44, 2.25
+    depth_err = 0.6, 0.9
+    depth = func(depth)
+    depth_err = func(depth_err)
+    rprs, rprs_err = pt.depth_to_radius(depth, depth_err)
+    np.testing.assert_allclose(rprs, (1.2,1.5))
+    np.testing.assert_allclose(rprs_err, (0.25,0.3))
+
+
+def test_radius_to_depth_scalar():
+    rprs = 1.2
+    rprs_err = 0.25
+    depth, depth_err = pt.radius_to_depth(rprs, rprs_err)
+    assert depth == 1.44
+    assert depth_err == 0.6
+
+
+@pytest.mark.parametrize('func',
+    [list, tuple, np.array, ])
+def test_radius_to_depth_iterable(func):
+    rprs = 1.2, 1.5
+    rprs_err = 0.25, 0.3
+    rprs = func(rprs)
+    rprs_err = func(rprs_err)
+    depth, depth_err = pt.radius_to_depth(rprs, rprs_err)
+    np.testing.assert_allclose(depth, (1.44, 2.25))
+    np.testing.assert_allclose(depth_err, (0.6,0.9))
+
+
 @pytest.mark.parametrize('flag, output', [(False,1), (True,None)])
 def test_ignore_system_exit(flag, output):
     @pt.ignore_system_exit

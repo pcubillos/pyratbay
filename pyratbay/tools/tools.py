@@ -19,7 +19,10 @@ __all__ = [
     'get_exomol_mol',
     'cia_hitran', 'cia_borysow',
     'tophat',
-    'resample', 'band_integrate',
+    'resample',
+    'band_integrate',
+    'radius_to_depth',
+    'depth_to_radius',
     'ignore_system_exit',
     ]
 
@@ -1045,6 +1048,105 @@ def band_integrate(spectrum, specwn, bandtrans, bandwn):
       bflux.append(np.trapz(spectrum[wnidx]*resampled, specwn[wnidx]))
 
   return bflux
+
+
+def radius_to_depth(rprs, rprs_err):
+    r"""
+    Compute transit depth (and uncertainties) from input
+    planet=to-star radius-ratio, with error propagation.
+
+    Parameters
+    ----------
+    rprs: Float or float iterable
+        Planet-to-star radius ratio.
+    rprs_err: Float or float iterable
+        Uncertainties of the radius ratios.
+
+    Returns
+    -------
+    depth: Float or float ndarray
+        Transit depth for given radius ratio.
+    depth_err: Float or float ndarray
+        Uncertainties of the transit depth.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import pyratbay.tools as pt
+    >>> rprs = 1.2
+    >>> rprs_err = 0.25
+    >>> depth, depth_err = pt.radius_to_depth(rprs, rprs_err)
+    >>> print(f'Depth = {depth} +/- {depth_err}')
+    Depth = 1.44 +/- 0.6
+
+    >>> rprs = [1.2, 1.5]
+    >>> rprs_err = [0.25, 0.3]
+    >>> depth, depth_err = pt.radius_to_depth(rprs, rprs_err)
+    >>> print('Depth    Uncert\n' +
+    >>>     '\n'.join([f'{d} +/- {de:.1f}' for d,de in zip(depth, depth_err)]))
+    Depth    Uncert
+    1.44 +/- 0.6
+    2.25 +/- 0.9
+    """
+    if not isinstance(rprs, Iterable):
+        pass
+    elif not isinstance(rprs, np.ndarray):
+        rprs = np.array(rprs)
+        rprs_err = np.array(rprs_err)
+
+    depth = rprs**2.0
+    depth_err = 2.0 * rprs * rprs_err
+
+    return depth, depth_err
+
+
+def depth_to_radius(depth, depth_err):
+    r"""
+    Compute planet-to-star radius ratio (and uncertainties) from
+    input transit depth, with error propagation.
+
+    Parameters
+    ----------
+    depth: Float or float iterable
+        Transit depth.
+    depth_err: Float or float iterable
+        Uncertainties of the transit depth.
+
+    Returns
+    -------
+    rprs: Float or float ndarray
+        Planet-to-star radius ratio.
+    rprs_err: Float or float ndarray
+        Uncertainties of the radius ratio rprs.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import pyratbay.tools as pt
+    >>> depth = 1.44
+    >>> depth_err = 0.6
+    >>> rprs, rprs_err = pt.depth_to_radius(depth, depth_err)
+    >>> print(f'Rp/Rs = {rprs} +/- {rprs_err}')
+    Rp/Rs = 1.2 +/- 0.25
+
+    >>> depth = [1.44, 2.25]
+    >>> depth_err = [0.6, 0.9]
+    >>> rprs, rprs_err = pt.depth_to_radius(depth, depth_err)
+    >>> print('Rp/Rs   Uncert\n'
+    >>>     + '\n'.join([f'{r} +/- {re}' for r,re in zip(rprs, rprs_err)]))
+    Rp/Rs   Uncert
+    1.2 +/- 0.25
+    1.5 +/- 0.3
+    """
+    if not isinstance(depth, Iterable):
+        pass
+    elif not isinstance(depth, np.ndarray):
+        depth = np.array(depth)
+        depth_err = np.array(depth_err)
+
+    rprs = np.sqrt(depth)
+    rprs_err = 0.5 * depth_err / rprs
+    return rprs, rprs_err
 
 
 def ignore_system_exit(func):

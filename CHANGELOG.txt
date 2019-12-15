@@ -5758,3 +5758,10 @@ Re-interpolate pyrat.phy.starflux into pyrat.spec.starflux (if req.)
 Re-compute filter passbands (if required).
 Added tests.
 
+
+*****  So 15. Dez 15:53:23 CET 2019  *****
+
+Added radius_to_depth() and depth_to_radius() functions into tools
+module.
+Documented and tested.
+
