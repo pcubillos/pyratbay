@@ -23,6 +23,25 @@ def test_call_from_interpreter():
     assert pyrat is not None
 
 
+def test_no_logfile(tmp_path):
+    # Run a spectrum:
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg')
+    pyrat = pb.run(cfg)
+    logfile = pyrat.log.logname
+
+    # Now, initialize without overwritting log:
+    pyrat = pb.Pyrat(cfg, no_logfile=True)
+    assert pyrat.log.logname is None
+    with open(logfile, 'r') as f:
+        log = f.read()
+    assert 'Computed transmission spectrum' in log
+
+    # Continue running, check it doesn't break:
+    pyrat.setup_spectrum()
+    pyrat.run()
+    assert pyrat is not None
+
+
 def test_get_ec(tmp_path):
     cfg = make_config(tmp_path, ROOT + 'tests/spectrum_transmission_test.cfg',
         reset={'csfile': ROOT

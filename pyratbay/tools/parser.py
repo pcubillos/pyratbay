@@ -1,9 +1,14 @@
 # Copyright (c) 2016-2019 Patricio Cubillos and contributors.
 # Pyrat Bay is currently proprietary software (see LICENSE).
 
-__all__ = ['Namespace',
-           'parse',
-           'parse_str', 'parse_int', 'parse_float', 'parse_array']
+__all__ = [
+    'Namespace',
+    'parse',
+    'parse_str',
+    'parse_int',
+    'parse_float',
+    'parse_array',
+    ]
 
 import os
 import sys
@@ -328,7 +333,7 @@ def parse_array(args, param):
     args[param] = val
 
 
-def parse(pyrat, cfile):
+def parse(pyrat, cfile, no_logfile=False):
   """
   Read the command line arguments.
 
@@ -336,19 +341,13 @@ def parse(pyrat, cfile):
   ----------
   cfile: String
       A Pyrat Bay configuration file.
-
-  Returns
-  -------
-  args: Namespace
-      Object storing the attributes defined in this function, with
-      the values given in cfile.
-  log: Log object
-      An mc3.utils.Log instance to log screen outputs to file.
+  no_logfile: Bool
+      If True, enforce not to write outputs to a log file
+      (e.g., to prevent overwritting log of a previous run).
   """
   with pt.log_error():
       if not os.path.isfile(cfile):
-          raise ValueError("Configuration file '{:s}' does not exist.".
-                           format(cfile))
+          raise ValueError(f"Configuration file '{cfile}' does not exist.")
       config = configparser.ConfigParser()
       config.optionxform = str  # Enable case-sensitive variable names
       config.read([cfile])
@@ -508,6 +507,10 @@ def parse(pyrat, cfile):
           args.logfile = os.path.splitext(args.mcmcfile)[0] + '.log'
   else:
       args.logfile = args.get_path('logfile', 'Log')
+
+  # Override logfile if requested:
+  if no_logfile:
+      args.logfile = None
 
   args.logfile = pt.path(args.logfile)
   log = pyrat.log = mu.Log(logname=args.logfile, verb=pyrat.verb, width=80,

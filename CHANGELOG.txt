@@ -5774,3 +5774,11 @@ Updated CNOTRIBUTING.md.
 Added equilibrium_temp() function into atmosphere module.
 Documented and tested.
 
+*****
+
+Added no_logfile argument to tools.parse() and pb.Pyrat()
+enabling runs without writting to log.
+Corrected docstrings of these functions.
+Some f-stringing tweaks.
+Tested.
+

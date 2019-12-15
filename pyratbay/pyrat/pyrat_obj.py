@@ -32,29 +32,28 @@ class Pyrat(object):
   """
   Main Pyrat object.
   """
-  def __init__(self, cfile):
+  def __init__(self, cfile, no_logfile=False):
       """
       Parse the command-line arguments into the pyrat object.
 
       Parameters
       ----------
-      args: Namespace
-          Object storing user-input attributes to initialize Pyrat.
-      log: Log object
-          An mc3.utils.Log instance to log screen outputs to file.
+      cfile: String
+          A Pyrat Bay configuration file.
+      no_logfile: Bool
+          If True, enforce not to write outputs to a log file
+          (e.g., to prevent overwritting log of a previous run).
 
       Examples
       --------
       >>> import pyratbay as pb
-      >>> # There are two ways to initialize a Pyrat object:
-      >>> # Initialize only:
-      >>> pyrat = pb.init('spectrum_transmission.cfg')
-      >>> # This is equivalent to:
-      >>> args, log = pb.tools.parse('spectrum_transmission.cfg')
-      >>> pyrat = pb.Pyrat(args, log)
-
-      >>> # Initialize and compute a spectrum:
+      >>> # Initialize and execute task:
       >>> pyrat = pb.run('spectrum_transmission.cfg')
+
+      >>> # Initialize only:
+      >>> pyrat = pb.Pyrat('spectrum_transmission.cfg')
+      >>> # Then, setup internal varible for spectra evaluation:
+      >>> pyrat.setup_spectrum()
       """
       # Sub-classes:
       self.spec     = ob.Spectrum()        # Spectrum data
@@ -75,7 +74,7 @@ class Pyrat(object):
       self.timestamps = OrderedDict()
 
       # Parse config file inputs:
-      pt.parse(self, cfile)
+      pt.parse(self, cfile, no_logfile)
       self.inputs.atm = ob.Atm()
 
 
@@ -167,17 +166,19 @@ class Pyrat(object):
                    "\n".join("{:10s}: {:10.6f}".format(key,val)
                              for key,val in self.timestamps.items()))
 
-      if len(self.log.warnings) > 0:
+      if len(self.log.warnings) > 0 and self.log.logname is not None:
           # Write all warnings to file:
           wpath, wfile = os.path.split(self.log.logname)
-          wfile = "{:s}/warnings_{:s}".format(wpath, wfile)
-          with open(wfile, "w") as f:
-              f.write("Warnings log:\n\n{:s}\n".format(self.log.sep))
-              f.write("\n\n{:s}\n".format(self.log.sep).join(self.log.warnings))
+          wfile = f'{wpath}/warnings_{wfile}'
+          with open(wfile, 'w') as f:
+              f.write(f'Warnings log:\n\n{self.log.sep}\n')
+              f.write(f'\n\n{self.log.sep}\n'.join(self.log.warnings))
           # Report it:
-          self.log.head("\n{:s}\n  There were {:d} warnings raised.  "
-              "See '{:s}'.\n{:s}".format(self.log.sep, len(self.log.warnings),
-                                         wfile, self.log.sep))
+          self.log.head(
+              f"\n{self.log.sep}"
+              f"\n  There were {len(self.log.warnings)} warnings raised.  "
+              f"See '{wfile}'."
+              f"\n{self.log.sep}")
 
 
   def eval(self, params, retmodel=True, verbose=False):
