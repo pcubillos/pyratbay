@@ -280,6 +280,7 @@ class Pyrat(object):
       if self.obs.bandflux is not None and rejectflag:
           self.obs.bandflux[:] = np.inf
 
+      self.ret.params = params
       if retmodel:
           return self.spec.spectrum, self.obs.bandflux
 

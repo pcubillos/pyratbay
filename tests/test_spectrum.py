@@ -227,6 +227,8 @@ def test_fit(tmp_path):
     rexpected = pyrat.cloud.models[0].rsurf
     np.testing.assert_allclose(rmin, rexpected, rtol=5e-7)
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['fit2'], rtol=1e-7)
+    # Check pyrat.ret.params has been updated:
+    np.testing.assert_equal(pyrat.ret.params, params)
     # Depleted H2O:
     params = [-1.5, -0.8, -0.8,  0.5,  1.0, -8.0,  0.0, -4.0,  2.0]
     model3 = pyrat.eval(params, retmodel=True)

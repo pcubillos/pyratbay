@@ -5782,3 +5782,8 @@ Corrected docstrings of these functions.
 Some f-stringing tweaks.
 Tested.
 
+*****
+
+Update Pyrat.ret.params with input argument on Pyrat.eval() call.
+Tested.
+
