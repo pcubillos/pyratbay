@@ -301,6 +301,32 @@ def test_IGLdensity():
         np.testing.assert_allclose(density, expected_dens*10**i, rtol=1e-7)
 
 
+def test_teq():
+    tstar  = 6091.0
+    rstar  = 1.19 * pc.rsun
+    smaxis = 0.04747 * pc.au
+    tstar_unc  = 10.0
+    rstar_unc  = 0.02 * pc.rsun
+    smaxis_unc = 0.00046 * pc.au
+    A = 0.3
+    f = 1.0
+    teq, teq_unc = pa.equilibrium_temp(tstar, rstar, smaxis, A, f,
+        tstar_unc, rstar_unc, smaxis_unc)
+    np.testing.assert_allclose(teq, 1345.1176526125155)
+    np.testing.assert_allclose(teq_unc, 13.2333537885981)
+
+
+def test_teq_no_uncertainties():
+    tstar  = 6091.0
+    rstar  = 1.19 * pc.rsun
+    smaxis = 0.04747 * pc.au
+    A = 0.3
+    f = 1.0
+    teq, teq_unc = pa.equilibrium_temp(tstar, rstar, smaxis, A, f)
+    np.testing.assert_allclose(teq, 1345.1176526125155)
+    np.testing.assert_equal(teq_unc, 0.0)
+
+
 @pytest.mark.parametrize("qcap,qcap_result",
     [(1e-3, False),
      (1e-4, True)])

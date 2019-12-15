@@ -5769,3 +5769,8 @@ Documented and tested.
 
 Updated CNOTRIBUTING.md.
 
+*****
+
+Added equilibrium_temp() function into atmosphere module.
+Documented and tested.
+

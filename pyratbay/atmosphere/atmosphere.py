@@ -9,6 +9,7 @@ __all__ = [
     'uniform', 'abundances',
     'hydro_g', 'hydro_m',
     'stoich', 'meanweight', 'IGLdensity',
+    'equilibrium_temp',
     ]
 
 import os
@@ -854,3 +855,71 @@ def IGLdensity(abundances, pressure, temperature):
    4.82864869e+02 4.82864869e+06]
   """
   return abundances * np.expand_dims(pressure/temperature, axis=1) / pc.k
+
+
+def equilibrium_temp(tstar, rstar, smaxis, A=0.0, f=1.0,
+    tstar_unc=0.0, rstar_unc=0.0, smaxis_unc=0.0):
+    r"""
+    Calculate equilibrium temperature and uncertainty.
+
+    Parameters
+    ----------
+    tstar: Scalar
+        Effective temperature of host star (in kelvin degrees).
+    rstar: Scalar
+        Radius of host star (in cm).
+    smaxis: Scalar
+        Orbital semi-major axis (in cm).
+    A: Scalar
+        Planetary bond albedo.
+    f: Scalar
+        Planetary energy redistribution factor:
+        f=0.5  no redistribution (total dayside reemission)
+        f=1.0  good redistribution (4pi reemission)
+    tstar_unc: Scalar
+        Effective temperature uncertainty (in kelvin degrees).
+    rstar_unc: Scalar
+        Stellar radius uncertainty (in cm).
+    smaxis_unc: Scalar
+        Semi-major axis uncertainty (in cm).
+
+    Returns
+    -------
+    teq: 1D ndarray
+        Planet equilibrium temperature in kelvin degrees.
+    teq_unc: 1D ndarray
+        Equilibrium temperature uncertainty.
+
+    Examples
+    --------
+    >>> import pyratbay.atmosphere as pa
+    >>> import pyratbay.constants as pc
+    >>> import numpy as np
+    >>> # HD 209458b (Stassun et al. 2017):
+    >>> tstar  = 6091.0
+    >>> rstar  = 1.19 * pc.rsun
+    >>> smaxis = 0.04747 * pc.au
+    >>> tstar_unc  = 10.0
+    >>> rstar_unc  = 0.02 * pc.rsun
+    >>> smaxis_unc = 0.00046 * pc.au
+    >>> A = 0.3
+    >>> f = np.array([1.0, 0.5])
+    >>> teq, teq_unc = pa.equilibrium_temp(tstar, rstar, smaxis, A, f,
+    >>>     tstar_unc, rstar_unc, smaxis_unc)
+    >>> print(f'HD 209458b T_eq =\n    '
+    >>>    f'{teq[0]:.1f} +/- {teq_unc[0]:.1f} K (day--night redistributed)\n'
+    >>>    f'    {teq[1]:.1f} +/- {teq_unc[1]:.1f} K (instant re-emission)')
+    HD 209458b T_eq =
+        1345.1 +/- 13.2 K (day--night redistribution)
+        1599.6 +/- 15.7 K (instant re-emission)
+    """
+    teq = ((1.0-A)/f)**0.25 * (0.5*rstar/smaxis)**0.5 * tstar
+
+    teq_unc = teq * np.sqrt(
+        (    tstar_unc/tstar)**2.0
+      + (0.5*smaxis_unc/smaxis)**2.0
+      + (0.5*rstar_unc/rstar)**2.0
+    )
+
+    return teq, teq_unc
+
