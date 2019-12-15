@@ -5765,3 +5765,7 @@ Added radius_to_depth() and depth_to_radius() functions into tools
 module.
 Documented and tested.
 
+*****
+
+Updated CNOTRIBUTING.md.
+
