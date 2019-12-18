@@ -624,7 +624,7 @@ Optical depth at each layer along a normal ray path into the planet, down to
 def test_pyrat_exfile_str(tmp_path):
     cfg = make_config(tmp_path, ROOT+'tests/mcmc_transmission_test.cfg',
         reset={'runmode':'spectrum',
-               'outspec':'extfiled_spectrum_test.dat'})
+               'specfile':'extfiled_spectrum_test.dat'})
     pyrat = pb.run(cfg)
     assert pyrat is not None
     pyrat.band_integrate()

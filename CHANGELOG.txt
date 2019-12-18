@@ -5787,3 +5787,9 @@ Tested.
 Update Pyrat.ret.params with input argument on Pyrat.eval() call.
 Tested.
 
+
+*****  Mi 18. Dez 11:13:17 CET 2019  *****
+
+Renamed outspec argument to specfile (same naming format as others).
+Updated examples, docs, and tests.
+

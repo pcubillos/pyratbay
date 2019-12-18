@@ -29,7 +29,7 @@ from .. import constants as pc
 
 class Spectrum(object):
   def __init__(self):
-      self.outspec   = None  # Modulation/Flux spectrum file
+      self.specfile  = None  # Transmission/Emission spectrum file
       # Wavenumber:
       self.nwave     = None  # Number of wavenumber spectral samples
       self.wn        = None  # Wavenumber array

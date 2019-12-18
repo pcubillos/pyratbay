@@ -179,7 +179,7 @@ def test_file_not_found(tmp_path, capfd, param, invalid_file):
 
 
 @pytest.mark.parametrize('param',
-    ['atmfile', 'tlifile', 'extfile', 'mcmcfile', 'outspec', 'ptfile',
+    ['atmfile', 'tlifile', 'extfile', 'mcmcfile', 'specfile', 'ptfile',
      'logfile'])
 def test_invalid_file_path(tmp_path, capfd, param, invalid_path):
     cfg = make_config(tmp_path, ROOT+'tests/pt_isothermal.cfg',
@@ -433,7 +433,7 @@ def test_spectrum_inconsistent_wl_bounds(tmp_path, capfd):
 
 
 @pytest.mark.parametrize('param',
-    ['rstar', 'path', 'outspec'])
+    ['rstar', 'path', 'specfile'])
 def test_spectrum_transmission_missing(tmp_path, capfd, param, undefined_spec):
     cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
         remove=[param])

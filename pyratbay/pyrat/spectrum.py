@@ -36,7 +36,7 @@ def spectrum(pyrat):
 
   # Print spectrum to file:
   io.write_spectrum(1.0/pyrat.spec.wn, pyrat.spec.spectrum,
-                    pyrat.spec.outspec, pyrat.od.path)
+                    pyrat.spec.specfile, pyrat.od.path)
   pyrat.log.head('Done.')
 
 
@@ -88,7 +88,7 @@ def modulation(pyrat):
       pyrat.spec.spectrum = (   pyrat.cloud.fpatchy  * pyrat.spec.cloudy +
                              (1-pyrat.cloud.fpatchy) * pyrat.spec.clear  )
 
-  pyrat.log.head(f"Computed transmission spectrum: '{pyrat.spec.outspec}'.",
+  pyrat.log.head(f"Computed transmission spectrum: '{pyrat.spec.specfile}'.",
       indent=2)
 
 
@@ -133,5 +133,4 @@ def flux(pyrat):
       area = spec.qweights * np.pi
   # Weight-sum the intensities to get the flux:
   spec.spectrum[:] = np.sum(spec.intensity * np.expand_dims(area,1), axis=0)
-  pyrat.log.head("Computed emission spectrum: '{}'.".format(spec.outspec),
-                 indent=2)
+  pyrat.log.head(f"Computed emission spectrum: '{spec.specfile}'.", indent=2)

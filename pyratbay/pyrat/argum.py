@@ -35,8 +35,8 @@ def check_spectrum(pyrat):
       pt.file_exists('tlifile', 'TLI',            pyrat.lt.tlifile)
       pt.file_exists('molfile', 'Molecular-data', pyrat.mol.molfile)
 
-  if pyrat.runmode == 'spectrum' and spec.outspec is None:
-      log.error('Undefined output spectrum file (outspec).')
+  if pyrat.runmode == 'spectrum' and spec.specfile is None:
+      log.error('Undefined output spectrum file (specfile).')
 
   # Compute the Hill radius for the planet:
   if (phy.mstar is not None and phy.mplanet is not None

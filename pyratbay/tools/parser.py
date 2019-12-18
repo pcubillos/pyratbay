@@ -474,7 +474,7 @@ def parse(pyrat, cfile, no_logfile=False):
       parse_str(args,   'smaxis')
       parse_float(args, 'tint')
       # Outputs:
-      parse_str(args,   'outspec')
+      parse_str(args,   'specfile')
       parse_str(args,   'logfile')
       parse_array(args, 'logxticks')
       parse_array(args, 'yran')
@@ -490,7 +490,7 @@ def parse(pyrat, cfile, no_logfile=False):
   # Define logfile name and initialize log object:
   pyrat.lt.tlifile   = args.get_path('tlifile',  'TLI')
   pyrat.atm.atmfile  = args.get_path('atmfile',  'Atmospheric')
-  pyrat.spec.outspec = args.get_path('outspec',  'Output spectrum')
+  pyrat.spec.specfile = args.get_path('specfile',  'Spectrum')
   pyrat.ex.extfile   = args.get_path('extfile',  'Extinction-coefficient')
   pyrat.ret.mcmcfile = args.get_path('mcmcfile', 'MCMC')
 
@@ -499,8 +499,8 @@ def parse(pyrat, cfile, no_logfile=False):
           args.logfile = os.path.splitext(args.tlifile[0])[0] + '.log'
       if args.runmode == 'atmosphere' and args.atmfile is not None:
           args.logfile = os.path.splitext(args.atmfile)[0] + '.log'
-      if args.runmode == 'spectrum' and args.outspec is not None:
-          args.logfile = os.path.splitext(args.outspec)[0] + '.log'
+      if args.runmode == 'spectrum' and args.specfile is not None:
+          args.logfile = os.path.splitext(args.specfile)[0] + '.log'
       if args.runmode == 'opacity' and args.extfile is not None:
           args.logfile = os.path.splitext(args.extfile[0])[0] + '.log'
       if args.runmode == 'mcmc' and args.mcmcfile is not None:

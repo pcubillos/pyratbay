@@ -130,7 +130,7 @@ def run(cfile, init=False):
 
   muted_log = mc3.utils.Log(verb=0, width=80)
   pyrat.log = muted_log      # Mute logging in PB, but not in MC3
-  pyrat.spec.outspec = None  # Avoid writing spectrum file during MCMC
+  pyrat.spec.specfile = None  # Avoid writing spectrum file during MCMC
   retmodel = False  # Return only the band-integrated spectrum
   # Basename of the output files (no path, no extension):
   outfile = os.path.splitext(os.path.basename(pyrat.ret.mcmcfile))[0]
@@ -160,7 +160,7 @@ def run(cfile, init=False):
   pyrat.ret.bestp = bestp
 
   # Best-fitting model:
-  pyrat.spec.outspec = "{:s}_bestfit_spectrum.dat".format(outfile)
+  pyrat.spec.specfile = f"{outfile}_bestfit_spectrum.dat"
   pyrat.ret.spec_best, pyrat.ret.bestbandflux = pyrat.eval(bestp)
 
   header  = "# MCMC best-fitting atmospheric model.\n\n"
@@ -188,9 +188,11 @@ def run(cfile, init=False):
 
   pyrat.log = log  # Un-mute
   log.msg("\nOutput MCMC posterior results, log, bestfit atmosphere, "
-          "and spectrum:\n'{:s}.npz',\n'{:s}',\n'{:s}',\n'{:s}'.\n\n".
-          format(outfile, os.path.basename(inputs.logfile), bestatm,
-                 pyrat.spec.outspec))
+      "and spectrum:"
+     f"\n'{outfile}.npz'"
+     f"\n'{os.path.basename(inputs.logfile)}'"
+     f"\n'{bestatm}'"
+     f"\n'{pyrat.spec.specfile}'\n\n")
   return pyrat
 
 

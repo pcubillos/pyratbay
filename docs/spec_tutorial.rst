@@ -530,7 +530,7 @@ will take the default name for each ``runmode``:
 ===========  =====================
 tli          ``tlifile``
 atmosphere   ``atmfile``
-spectrum     ``outspec``
+spectrum     ``specfile``
 opacity      ``extfile``
 mcmc         ``mcmcfile``
 ===========  =====================

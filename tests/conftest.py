@@ -65,7 +65,7 @@ def undefined_spec():
         'wnosamp': 'Undefined wavenumber oversampling factor (wnosamp).',
         'path':    "Undefined observing geometry (path).  Select between "
                    "'transit' or 'eclipse'.",
-        'outspec': 'Undefined output spectrum file (outspec).',
+        'specfile': 'Undefined output spectrum file (specfile).',
         'tlifile': 'TLI file (tlifile) does not exist',
          # Transmission
         'rstar': 'Undefined stellar radius (rstar), required for '
@@ -128,7 +128,7 @@ def invalid():
     data = {
         'runmode': 'Invalid running mode (runmode): invalid. Select from',
         'rayleigh':'Invalid Rayleigh model (rayleigh): invalid. Select from',
-        'clouds':   'Invalid cloud model (clouds): invalid. Select from',
+        'clouds':  'Invalid cloud model (clouds): invalid. Select from',
         'alkali':  'Invalid alkali model (alkali): invalid. Select from',
         'path':    'Invalid observing geometry (path): invalid. Select from',
         'tmodel':  'Invalid temperature model (tmodel): invalid. Select from',
@@ -143,7 +143,7 @@ def invalid_file():
     data = {
         'atmfile':  'Atmospheric file (atmfile) does not exist',
         'tlifile':  'TLI file (tlifile) does not exist',
-        'outspec':  'Output spectrum file (outspec) does not exist',
+        'specfile': 'Spectrum file (specfile) does not exist',
         'mcmcfile': 'MCMC file (mcmcfile) does not exist',
         'extfile':  'Extinction-coefficient file (extfile) does not exist',
         'ptfile':   'Pressure-temperature file (ptfile) does not exist',
@@ -165,7 +165,7 @@ def invalid_path():
     data = {
         'atmfile':  'Folder for Atmospheric file (atmfile) does not exist',
         'tlifile':  'Folder for TLI file (tlifile) does not exist',
-        'outspec':  'Folder for Output spectrum file (outspec) does not exist',
+        'specfile': 'Folder for Spectrum file (specfile) does not exist',
         'mcmcfile': 'Folder for MCMC file (mcmcfile) does not exist',
         'extfile':  'Folder for Extinction-coefficient file (extfile) does '
                     'not exist',
