@@ -332,7 +332,7 @@ def parse_array(args, param):
     args[param] = val
 
 
-def parse(pyrat, cfile, no_logfile=False):
+def parse(pyrat, cfile, no_logfile=False, mute=False):
   """
   Read the command line arguments.
 
@@ -343,6 +343,8 @@ def parse(pyrat, cfile, no_logfile=False):
   no_logfile: Bool
       If True, enforce not to write outputs to a log file
       (e.g., to prevent overwritting log of a previous run).
+  mute: Bool
+      If True, enforce verb to take a value of -1.
   """
   with pt.log_error():
       if not os.path.isfile(cfile):
@@ -482,6 +484,8 @@ def parse(pyrat, cfile, no_logfile=False):
   args = Namespace(args)
   args.configfile = cfile
 
+  if mute:
+      args.verb = -1
   pyrat.verb = args.get_default('verb', 'Verbosity', 2, lt=5)
   runmode = pyrat.runmode = args.get_choice('runmode', 'running mode',
       pc.rmodes, take_none=False)

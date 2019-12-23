@@ -5798,4 +5798,11 @@ Updated examples, docs, and tests.
 
 Allowed verb argument to take negative values
 (a true mute, except for errors).
+ 
+
+*****  Mon Dec 23 09:53:32 CLT 2019  *****
+
+Added mute argument to Pyrat() and tools.parse() to overwrite verb
+from the config file, setting a value of -1.
+Added test.
 

@@ -32,7 +32,7 @@ class Pyrat(object):
   """
   Main Pyrat object.
   """
-  def __init__(self, cfile, no_logfile=False):
+  def __init__(self, cfile, no_logfile=False, mute=False):
       """
       Parse the command-line arguments into the pyrat object.
 
@@ -43,6 +43,8 @@ class Pyrat(object):
       no_logfile: Bool
           If True, enforce not to write outputs to a log file
           (e.g., to prevent overwritting log of a previous run).
+      mute: Bool
+          If True, enforce verb to take a value of -1.
 
       Examples
       --------
@@ -74,7 +76,7 @@ class Pyrat(object):
       self.timestamps = OrderedDict()
 
       # Parse config file inputs:
-      pt.parse(self, cfile, no_logfile)
+      pt.parse(self, cfile, no_logfile, mute)
       self.inputs.atm = ob.Atm()
 
 

@@ -42,6 +42,13 @@ def test_no_logfile(tmp_path):
     assert pyrat is not None
 
 
+def test_mute(tmp_path, capfd):
+    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg')
+    pyrat = pb.Pyrat(cfg, mute=True)
+    captured = capfd.readouterr()
+    assert captured.out == ''
+
+
 def test_get_ec(tmp_path):
     cfg = make_config(tmp_path, ROOT + 'tests/spectrum_transmission_test.cfg',
         reset={'csfile': ROOT
