@@ -5806,3 +5806,7 @@ Added mute argument to Pyrat() and tools.parse() to overwrite verb
 from the config file, setting a value of -1.
 Added test.
 
+*****
+
+Cleaned up and improved docstrings of tools.u() function.
+

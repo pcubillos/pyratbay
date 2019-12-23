@@ -251,19 +251,34 @@ def unpack(file, n, dtype):
 
 
 def u(units):
-  """
-  Get the conversion factor (to the CGS system) for units.
+    """
+    Get the conversion factor (to the CGS system) for units.
 
-  Parameters
-  ----------
-  units: String
-     Name of units
-  """
-  # Accept only valid units:
-  if not hasattr(pc, units):
-      raise ValueError("Units '{}' does not exist.".format(units))
-  factor = getattr(pc, units)
-  return factor
+    Parameters
+    ----------
+    units: String
+        Name of units.
+
+    Returns
+    -------
+    value: Float
+        Value of input units in CGS units.
+
+    Examples
+    --------
+    >>> import pyratbay.tools as pt
+    >>> for units in ['cm', 'm', 'rearth', 'rjup', 'au']:
+    >>>     print(f'{units} = {pt.u(units)} cm')
+    cm = 1.0 cm
+    m = 100.0 cm
+    rearth = 637810000.0 cm
+    rjup = 7149200000.0 cm
+    au = 14959787069100.0 cm
+    """
+    # Accept only valid units:
+    if not hasattr(pc, units):
+        raise ValueError(f"Units '{units}' does not exist.")
+    return getattr(pc, units)
 
 
 def get_param(pname, value, units, log=None, gt=None, ge=None, tracklev=-3):
