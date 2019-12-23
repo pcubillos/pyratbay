@@ -11,7 +11,6 @@ __all__ = [
     ]
 
 import os
-import sys
 import argparse
 from datetime import date
 import configparser
@@ -483,7 +482,7 @@ def parse(pyrat, cfile, no_logfile=False):
   args = Namespace(args)
   args.configfile = cfile
 
-  pyrat.verb = args.get_default('verb', 'Verbosity', 2, ge=0, lt=5)
+  pyrat.verb = args.get_default('verb', 'Verbosity', 2, lt=5)
   runmode = pyrat.runmode = args.get_choice('runmode', 'running mode',
       pc.rmodes, take_none=False)
 

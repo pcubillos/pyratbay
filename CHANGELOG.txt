@@ -5793,3 +5793,9 @@ Tested.
 Renamed outspec argument to specfile (same naming format as others).
 Updated examples, docs, and tests.
 
+
+*****  Sun Dec 22 21:59:12 CLT 2019  *****
+
+Allowed verb argument to take negative values
+(a true mute, except for errors).
+
