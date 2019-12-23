@@ -5815,3 +5815,12 @@ Cleaned up and improved docstrings of tools.u() function.
 Tweaked tools.u() ValueError message to be more explicit.
 Added tests.
 
+*****
+
+Refactored tools.get_param() function to raise ValueError exceptions
+instead of going through Log.error().
+This is much simpler to use, as intended for external users.
+Capture exceptions in Log.error() when caught in tools.parse() call.
+Fixed issue where input and output variables had same name.
+Updated documentation, added tests.
+

@@ -439,8 +439,8 @@ def pressure(ptop, pbottom, nlayers, units="bar", log=None, verb=0):
   if log is None:
       log = mu.Log(verb=verb)
   # Unpack pressure input variables:
-  ptop    = pt.get_param('ptop',    ptop,    units, log, gt=0.0)
-  pbottom = pt.get_param('pbottom', pbottom, units, log, gt=0.0)
+  ptop    = pt.get_param(ptop,    units, gt=0.0)
+  pbottom = pt.get_param(pbottom, units, gt=0.0)
   if ptop >= pbottom:
       log.error('Bottom-layer pressure ({:.2e} {:s}) must be higher than the '
                 'top-layer pressure ({:.2e} {:s}).'.
@@ -522,11 +522,11 @@ def temperature(tmodel, pressure=None, rstar=None, tstar=None, tint=100.0,
 
   if tmodel == 'tcea':
       # Parse inputs:
-      rstar   = pt.get_param('rstar',   rstar,   runits,   log, gt=0.0)
-      tstar   = pt.get_param('tstar',   tstar,   'kelvin', log, gt=0.0)
-      tint    = pt.get_param('tint',    tint,    'kelvin', log, gt=0.0)
-      gplanet = pt.get_param('gplanet', gplanet, 'none',   log, gt=0.0)
-      smaxis  = pt.get_param('smaxis',  smaxis,  runits,   log, gt=0.0)
+      rstar   = pt.get_param(rstar,   runits,   gt=0.0)
+      tstar   = pt.get_param(tstar,   'kelvin', gt=0.0)
+      tint    = pt.get_param(tint,    'kelvin', gt=0.0)
+      gplanet = pt.get_param(gplanet, 'none',   gt=0.0)
+      smaxis  = pt.get_param(smaxis,  runits,   gt=0.0)
       # Define model and arguments:
       targs  = [pressure, rstar, tstar, tint, gplanet, smaxis]
       temp_model = tmodels.TCEA(*targs)

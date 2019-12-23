@@ -246,7 +246,7 @@ def test_units_in_value_invalid(tmp_path, capfd):
     pyrat = pb.run(cfg)
     assert pyrat is None
     captured = capfd.readouterr()
-    assert "Invalid units for value '1.0 nope' of parameter mplanet." \
+    assert "Invalid units for value '1.0 nope' for parameter mplanet." \
         in captured.out
 
 

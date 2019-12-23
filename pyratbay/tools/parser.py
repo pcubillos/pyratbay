@@ -169,8 +169,11 @@ class Namespace(argparse.Namespace):
         return units
 
     def get_param(self, pname, units, desc, gt=None, ge=None):
-        value = pt.get_param(pname, getattr(self, pname), units, self._log,
-            tracklev=-4)
+        try:
+            value = pt.get_param(getattr(self, pname), units)
+        except ValueError as error:
+            self._log.error(f'{error} for parameter {pname}.', tracklev=-3)
+
         if value is None:
             return None
 

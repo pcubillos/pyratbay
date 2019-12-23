@@ -282,27 +282,21 @@ def u(units):
     return getattr(pc, units)
 
 
-def get_param(pname, value, units, log=None, gt=None, ge=None, tracklev=-3):
+def get_param(param, units='none', gt=None, ge=None):
   """
-  Read a parameter that may have units.
+  Read a parameter that may or may not have units.
   If it doesn't, default to the 'units' input argument.
 
   Parameters
   ----------
-  pname: String
-      The parameter name.
-  value: String, Float, integer, or ndarray
+  param: String, Float, integer, or ndarray
       The parameter value (which may contain the units).
   units: String
       The default units for the parameter.
-  log: Log object
-      Screen-output log handler.
   gt: Float
       If not None, check output is greater than gt.
   ge: Float
       If not None, check output is greater-equal than gt.
-  tracklev: Integer
-      Error track level.
 
   Returns
   -------
@@ -311,55 +305,54 @@ def get_param(pname, value, units, log=None, gt=None, ge=None, tracklev=-3):
   Examples
   --------
   >>> import pyratbay.tools as pt
-  >>> for line in ['One km in cm:',
-  >>>              pt.get_param('size', 1.0, 'km'),
-  >>>              "units in 'param' take precedence over 'unit':",
-  >>>              pt.get_param('size', '10 cm', 'km')]
-  >>>     print(line)
-  One km in cm:
-  100000.0
-  units in 'param' take precedence over 'unit':
-  10
-  # Cast to integer:
-  10
+  >>> # One meter in cm:
+  >>> pt.get_param('1.0 m')
+  100.0
+
+  >>> # Alternatively, specify units in second argument:
+  >>> pt.get_param(1.0, 'm')
+  100.0
+
+  >>> # Units in 'param' take precedence over 'unit':
+  >>> pt.get_param('1.0 m', 'km')
+  100.0
+
+  >>> # Request returned value to be positive:
+  >>> pt.get_param('-30.0 kelvin', gt=0.0)
+  ValueError: Value -30.0 must be > 0.0.
   """
-  if value is None:
+  if param is None:
       return None
 
-  if log is None:
-      log = mu.Log(logname=None)
-
   # Split the parameter if it has a white-space:
-  if isinstance(value, str):
-      par = value.split()
+  if isinstance(param, str):
+      par = param.split()
       if len(par) > 2:
-          log.error("Invalid value '{:s}' for parameter {:s}.".
-                    format(value, pname), tracklev=tracklev)
+          raise ValueError(f"Invalid value '{param}'")
       if len(par) == 2:
           units = par[1]
           if not hasattr(pc, units):
-              log.error("Invalid units for value '{:s}' of parameter {:s}.".
-                        format(value, pname), tracklev=tracklev)
+              raise ValueError(f"Invalid units for value '{param}'")
       try:
           value = np.float(par[0])
       except:
-          log.error("Invalid value '{:s}' for parameter {:s}.".
-                    format(value, pname), tracklev=tracklev)
+          raise ValueError(f"Invalid value '{param}'")
+  else:
+      value = param
 
   # Use given units:
-  if (isinstance(value, (numbers.Number, np.ndarray))
-         or (isinstance(value, str) and len(par) == 1)):
+  if isinstance(param, (numbers.Number, np.ndarray)) \
+          or (isinstance(param, str) and len(par) == 1):
       if units is None or not hasattr(pc, units):
-          log.error("Invalid units '{}' for parameter {:s}.".
-                    format(units, pname), tracklev=tracklev)
+          raise ValueError(f"Invalid units '{units}'")
 
   # Apply the units:
   value *= u(units)
 
   if gt is not None and value <= gt:
-      log.error('{} must be > {}'.format(pname, gt), tracklev=tracklev)
+      raise ValueError(f'Value {value} must be > {gt}')
   if ge is not None and value < ge:
-      log.error('{} must be >= {}'.format(pname, ge), tracklev=tracklev)
+      raise ValueError(f'Value {value} must be >= {ge}')
 
   return value
 

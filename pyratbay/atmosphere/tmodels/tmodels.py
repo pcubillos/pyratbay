@@ -86,11 +86,11 @@ class TCEA(object):
             Default units for rstar and smaxis.
         """
         self.pressure = pressure
-        self.rstar   = pt.get_param('rstar',   rstar,   runits,   gt=0.0)
-        self.tstar   = pt.get_param('tstar',   tstar,   'kelvin', gt=0.0)
-        self.tint    = pt.get_param('tint',    tint,    'kelvin', ge=0.0)
-        self.gplanet = pt.get_param('gplanet', gplanet, 'none',   gt=0.0)
-        self.smaxis  = pt.get_param('smaxis',  smaxis,  runits,   gt=0.0)
+        self.rstar   = pt.get_param(rstar,   runits,   gt=0.0)
+        self.tstar   = pt.get_param(tstar,   'kelvin', gt=0.0)
+        self.tint    = pt.get_param(tint,    'kelvin', ge=0.0)
+        self.gplanet = pt.get_param(gplanet, 'none',   gt=0.0)
+        self.smaxis  = pt.get_param(smaxis,  runits,   gt=0.0)
         self.temp = np.zeros_like(pressure)
 
     def __call__(self, params):

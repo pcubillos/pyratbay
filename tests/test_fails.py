@@ -321,8 +321,8 @@ def test_pressure_invalid_units(tmp_path, capfd, param):
     captured = capfd.readouterr()
     assert pyrat is None
     assert "Error in module: 'parser.py', function: 'parse'" in captured.out
-    assert "Invalid units for value '10.0 20.0' of parameter {:s}.". \
-           format(param) in captured.out
+    assert f"Invalid units for value '10.0 20.0' for parameter {param}." \
+           in captured.out
 
 
 @pytest.mark.parametrize('param', ['tmodel', 'tpars'])

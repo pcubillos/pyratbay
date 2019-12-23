@@ -126,17 +126,48 @@ def test_u_error():
     [(1.0, 100000.0),
      ('10 cm', 10.0),])
 def test_get_param(value, result):
-    assert pt.get_param('size', value, 'km') == result
+    assert pt.get_param(value, 'km') == result
 
 
 def test_get_param_array():
     value = np.array([10.0, 20.0])
-    np.testing.assert_allclose(pt.get_param('size', value, 'km'),
-        np.array([1000000.0, 2000000.0]))
+    np.testing.assert_allclose(pt.get_param(value, 'm'),
+        np.array([1000.0, 2000.0]))
 
 
 def test_get_param_none():
-    assert pt.get_param('size', None, 'km') is None
+    assert pt.get_param(None, 'km') is None
+
+
+def test_get_param_invalid_str_value():
+    with pytest.raises(ValueError, match="Invalid value 'val'"):
+        pt.get_param('val')
+
+
+def test_get_param_invalid_str_many_values():
+    with pytest.raises(ValueError, match="Invalid value '1 3 km'"):
+        pt.get_param('1 3 km')
+
+
+def test_get_param_invalid_str_units():
+    with pytest.raises(ValueError, match="Invalid units for value '1 unit'"):
+        pt.get_param('1 unit')
+
+
+def test_get_param_invalid_units():
+    with pytest.raises(ValueError, match="Invalid units 'unit'"):
+        pt.get_param('1.0', 'unit')
+
+
+@pytest.mark.parametrize('value', [-1.0, 0.0])
+def test_get_param_invalid_value_gt(value):
+    with pytest.raises(ValueError, match=f"Value {value} must be > 0.0"):
+        pt.get_param(value, 'kelvin', gt=0.0)
+
+
+def test_get_param_invalid_value_ge():
+    with pytest.raises(ValueError, match="Value -100.0 must be >= 0.0"):
+        pt.get_param(-1.0, 'm', ge=0.0)
 
 
 @pytest.mark.parametrize('data',
