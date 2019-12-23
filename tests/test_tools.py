@@ -104,6 +104,24 @@ def test_binsearch_duplicates_hi_edge(wn0, upper, result):
         assert pt.binsearch(tli, wn0, 0, len(wn), upper) == result
 
 
+@pytest.mark.parametrize('units, value',
+    [('cm', 1.0),
+     ('m', 100.0),
+     ('rearth', 6.3781e8),
+     ('kg', 1000.0),
+     ('mjup', 1.8982e30),
+     ('bar', 1e6),
+    ])
+def test_u(units, value):
+    assert pt.u(units) == value
+
+
+def test_u_error():
+    with pytest.raises(ValueError,
+            match="Units 'fake_units' does not exist in pyratbay.constants."):
+        pt.u('fake_units')
+
+
 @pytest.mark.parametrize('value, result',
     [(1.0, 100000.0),
      ('10 cm', 10.0),])

@@ -277,7 +277,8 @@ def u(units):
     """
     # Accept only valid units:
     if not hasattr(pc, units):
-        raise ValueError(f"Units '{units}' does not exist.")
+        raise ValueError(
+            f"Units '{units}' does not exist in pyratbay.constants.")
     return getattr(pc, units)
 
 

@@ -5810,3 +5810,8 @@ Added test.
 
 Cleaned up and improved docstrings of tools.u() function.
 
+*****
+
+Tweaked tools.u() ValueError message to be more explicit.
+Added tests.
+
