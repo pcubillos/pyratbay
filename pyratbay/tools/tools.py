@@ -283,78 +283,78 @@ def u(units):
 
 
 def get_param(param, units='none', gt=None, ge=None):
-  """
-  Read a parameter that may or may not have units.
-  If it doesn't, default to the 'units' input argument.
+    """
+    Read a parameter that may or may not have units.
+    If it doesn't, default to the 'units' input argument.
 
-  Parameters
-  ----------
-  param: String, Float, integer, or ndarray
-      The parameter value (which may contain the units).
-  units: String
-      The default units for the parameter.
-  gt: Float
-      If not None, check output is greater than gt.
-  ge: Float
-      If not None, check output is greater-equal than gt.
+    Parameters
+    ----------
+    param: String, Float, integer, or ndarray
+        The parameter value (which may contain the units).
+    units: String
+        The default units for the parameter.
+    gt: Float
+        If not None, check output is greater than gt.
+    ge: Float
+        If not None, check output is greater-equal than gt.
 
-  Returns
-  -------
-  value: Float or integer
+    Returns
+    -------
+    value: Float or integer
 
-  Examples
-  --------
-  >>> import pyratbay.tools as pt
-  >>> # One meter in cm:
-  >>> pt.get_param('1.0 m')
-  100.0
+    Examples
+    --------
+    >>> import pyratbay.tools as pt
+    >>> # One meter in cm:
+    >>> pt.get_param('1.0 m')
+    100.0
 
-  >>> # Alternatively, specify units in second argument:
-  >>> pt.get_param(1.0, 'm')
-  100.0
+    >>> # Alternatively, specify units in second argument:
+    >>> pt.get_param(1.0, 'm')
+    100.0
 
-  >>> # Units in 'param' take precedence over 'unit':
-  >>> pt.get_param('1.0 m', 'km')
-  100.0
+    >>> # Units in 'param' take precedence over 'unit':
+    >>> pt.get_param('1.0 m', 'km')
+    100.0
 
-  >>> # Request returned value to be positive:
-  >>> pt.get_param('-30.0 kelvin', gt=0.0)
-  ValueError: Value -30.0 must be > 0.0.
-  """
-  if param is None:
-      return None
+    >>> # Request returned value to be positive:
+    >>> pt.get_param('-30.0 kelvin', gt=0.0)
+    ValueError: Value -30.0 must be > 0.0.
+    """
+    if param is None:
+        return None
 
-  # Split the parameter if it has a white-space:
-  if isinstance(param, str):
-      par = param.split()
-      if len(par) > 2:
-          raise ValueError(f"Invalid value '{param}'")
-      if len(par) == 2:
-          units = par[1]
-          if not hasattr(pc, units):
-              raise ValueError(f"Invalid units for value '{param}'")
-      try:
-          value = np.float(par[0])
-      except:
-          raise ValueError(f"Invalid value '{param}'")
-  else:
-      value = param
+    # Split the parameter if it has a white-space:
+    if isinstance(param, str):
+        par = param.split()
+        if len(par) > 2:
+            raise ValueError(f"Invalid value '{param}'")
+        if len(par) == 2:
+            units = par[1]
+            if not hasattr(pc, units):
+                raise ValueError(f"Invalid units for value '{param}'")
+        try:
+            value = np.float(par[0])
+        except:
+            raise ValueError(f"Invalid value '{param}'")
+    else:
+        value = param
 
-  # Use given units:
-  if isinstance(param, (numbers.Number, np.ndarray)) \
-          or (isinstance(param, str) and len(par) == 1):
-      if units is None or not hasattr(pc, units):
-          raise ValueError(f"Invalid units '{units}'")
+    # Use given units:
+    if isinstance(param, (numbers.Number, np.ndarray)) \
+            or (isinstance(param, str) and len(par) == 1):
+        if units is None or not hasattr(pc, units):
+            raise ValueError(f"Invalid units '{units}'")
 
-  # Apply the units:
-  value *= u(units)
+    # Apply the units:
+    value *= u(units)
 
-  if gt is not None and value <= gt:
-      raise ValueError(f'Value {value} must be > {gt}')
-  if ge is not None and value < ge:
-      raise ValueError(f'Value {value} must be >= {ge}')
+    if gt is not None and value <= gt:
+        raise ValueError(f'Value {value} must be > {gt}')
+    if ge is not None and value < ge:
+        raise ValueError(f'Value {value} must be >= {ge}')
 
-  return value
+    return value
 
 
 def ifirst(data, default_ret=-1):

@@ -5824,3 +5824,7 @@ Capture exceptions in Log.error() when caught in tools.parse() call.
 Fixed issue where input and output variables had same name.
 Updated documentation, added tests.
 
+*****
+
+Re-idented tools.get_params() to 4 spaces.
+
