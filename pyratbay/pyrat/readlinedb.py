@@ -94,12 +94,12 @@ def readheader(pyrat, linefile):
   for i in np.arange(Ndb):
       db = o.Database()
       # Read Database name:
-      lenDBname = pt.unpack(linefile, 1,         "h")
-      db.name   = pt.unpack(linefile, lenDBname, "s").decode()
+      lenDBname = pt.unpack(linefile, 1, "h")
+      db.name   = pt.unpack(linefile, lenDBname, "s")
       pyrat.log.msg("Data base name: '{:s}'".format(db.name), indent=2)
       # Read Molecule name:
       lenMolec   = pt.unpack(linefile, 1,        "h")
-      db.molname = pt.unpack(linefile, lenMolec, "s").decode()
+      db.molname = pt.unpack(linefile, lenMolec, "s")
       pyrat.log.msg("Molecule name: '{:s}'".format(db.molname), indent=2)
       # Read temperature array:
       db.ntemp, db.niso =  pt.unpack(linefile, 2,        "h")
@@ -121,7 +121,7 @@ def readheader(pyrat, linefile):
       for j in np.arange(db.niso):
           dbindex[j] = i + pyrat.lt.ndb
           lenIsoName = pt.unpack(linefile, 1,          "h")
-          name[j]    = pt.unpack(linefile, lenIsoName, "s").decode()
+          name[j]    = pt.unpack(linefile, lenIsoName, "s")
           mass[j]    = pt.unpack(linefile, 1,          "d")
           ratio[j]   = pt.unpack(linefile, 1,          "d")
           db.z[j]    = np.asarray(pt.unpack(linefile, db.ntemp, "d"))

@@ -104,6 +104,33 @@ def test_binsearch_duplicates_hi_edge(wn0, upper, result):
         assert pt.binsearch(tli, wn0, 0, len(wn), upper) == result
 
 
+def test_unpack_string():
+    value = 'H2O'
+    with open('delete_me.dat', 'wb') as bfile:
+        bfile.write(struct.pack('3s', value.encode('utf-8')))
+    with open('delete_me.dat', 'rb') as bfile:
+        output = pt.unpack(bfile, 3, 's')
+    assert output == value
+
+
+def test_unpack_number():
+    value = 8
+    with open('delete_me.dat', 'wb') as bfile:
+        bfile.write(struct.pack('h', value))
+    with open('delete_me.dat', 'rb') as bfile:
+        output = pt.unpack(bfile, 1, 'h')
+    assert output == value
+
+
+def test_unpack_tuple():
+    value = np.pi, np.e, np.inf
+    with open('delete_me.dat', 'wb') as bfile:
+        bfile.write(struct.pack('3f', *value))
+    with open('delete_me.dat', 'rb') as bfile:
+        output = pt.unpack(bfile, 3, 'f')
+    np.testing.assert_allclose(output, value)
+
+
 @pytest.mark.parametrize('units, value',
     [('cm', 1.0),
      ('m', 100.0),

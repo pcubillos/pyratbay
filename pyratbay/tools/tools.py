@@ -218,35 +218,56 @@ def divisors(number):
 
 
 def unpack(file, n, dtype):
-  """
-  Wrapper for struct unpack.
+    r"""
+    Wrapper for struct unpack.
 
-  Parameters
-  ----------
-  file: File object
-     File object to read from.
-  n: Integer
-     Number of elements to read from file.
-  dtype: String
-     Data type of the bytes read.
+    Parameters
+    ----------
+    file: File object
+        File object to read from.
+    n: Integer
+        Number of elements to read from file.
+    dtype: String
+        Data type of the bytes read.
 
-  Returns:
-  --------
-  output: Scalar, tuple, or string
-     If dtype is 's' return the string.
-     If there is a single element to read, return the scalar value.
-     Else, return a tuple with the elements read.
-  """
-  # Compute the reading format:
-  fmt  = '{:d}{:s}'.format(n, dtype)
-  # Calculate the number of bytes to read:
-  size = struct.calcsize(fmt)
-  # Read:
-  output = struct.unpack(fmt, file.read(size))
-  # Return:
-  if (n == 1) or (dtype == 's'):
-    return output[0]
-  else:
+    Returns
+    -------
+    output: Scalar, tuple, or string
+        If dtype is 's' return the string (decoded as UTF-8).
+        If there is a single element to read, return the scalar value.
+        Else, return a tuple with the elements read.
+
+    Examples
+    --------
+    >>> import pyratbay.tools as pt
+    >>> import struct
+    >>> import numpy as np
+    >>> # Store a string and numbers in a binary file:
+    >>> with open('delete_me.dat', 'wb') as bfile:
+    >>>     bfile.write(struct.pack('3s', 'H2O'.encode('utf-8')))
+    >>>     bfile.write(struct.pack('h', 3))
+    >>>     bfile.write(struct.pack('3f', np.pi, np.e, np.inf))
+
+    >>> # Unpack them:
+    >>> with open('delete_me.dat', 'rb') as bfile:
+    >>>     string = pt.unpack(bfile, 3, 's')
+    >>>     number = pt.unpack(bfile, 1, 'h')
+    >>>     values = pt.unpack(bfile, 3, 'f')
+
+    >>> # See outputs:
+    >>> print(string, number, values, sep='\n')
+    H2O
+    3
+    (3.1415927410125732, 2.7182817459106445, inf)
+    """
+    # Calculate number of bytes and read:
+    size = struct.calcsize(f'{n}{dtype}')
+    output = struct.unpack(f'{n}{dtype}', file.read(size))
+
+    if dtype == 's':
+        return output[0].decode('utf-8')
+    elif n == 1:
+        return output[0]
     return output
 
 

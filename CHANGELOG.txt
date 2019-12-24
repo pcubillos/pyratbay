@@ -5828,3 +5828,10 @@ Updated documentation, added tests.
 
 Re-idented tools.get_params() to 4 spaces.
 
+*****
+
+PEP8ed tools.unpack() function.
+Automated decoding of strings as UTF-8.
+Updated docstrings.
+Added tests.
+
