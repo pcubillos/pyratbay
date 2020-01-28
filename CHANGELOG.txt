@@ -5848,3 +5848,9 @@ Updated CONTRIBUTING.md file.
 
 Updated comment in example config files.
 
+*****
+
+Changed showbp from False to True when calling mc3.sampler().
+(show best-fitting value in posteriors).
+
+

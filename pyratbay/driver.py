@@ -1,5 +1,5 @@
-# Copyright (c) 2016-2019 Patricio Cubillos and contributors.
-# Pyrat Bay is currently proprietary software (see LICENSE).
+# Copyright (c) 2016-2020 Patricio Cubillos.
+# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE).
 
 __all__ = ["run"]
 
@@ -144,7 +144,7 @@ def run(cfile, init=False):
       nchains=ret.nchains, burnin=ret.burnin, thinning=ret.thinning,
       grtest=True, grbreak=ret.grbreak, grnmin=ret.grnmin,
       log=log, ncpu=pyrat.ncpu,
-      plots=True, showbp=False,
+      plots=True, showbp=True,
       pnames=ret.pnames, texnames=ret.texnames,
       resume=inputs.resume, savefile=ret.mcmcfile)
 
@@ -251,9 +251,9 @@ def check_atm(pyrat):
   # Uniform-abundances profile:
   if pyrat.inputs.uniform is not None:
       if len(pyrat.inputs.uniform) != len(pyrat.inputs.species):
-          pyrat.log.error("Number of uniform abundances ({:d}) does not "
-                          "match the number of species ({:d}).".
-                          format(len(pyrat.inputs.uniform), len(pyrat.inputs.species)))
+          pyrat.log.error("Number of uniform abundances "
+              "({len(pyrat.inputs.uniform)}) does not match the number of "
+              "species ({len(pyrat.inputs.species)}).")
       return
   # TEA abundances:
   if pyrat.inputs.elements is None:
