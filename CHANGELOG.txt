@@ -5853,4 +5853,7 @@ Updated comment in example config files.
 Changed showbp from False to True when calling mc3.sampler().
 (show best-fitting value in posteriors).
 
+*****
+
+Tweaked main() to force plt.ioff() when running from the command line.
 
