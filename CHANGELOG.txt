@@ -5844,3 +5844,7 @@ Updated LICENSE file to GNU GPLv2.
 
 Updated CONTRIBUTING.md file.
 
+*****
+
+Updated comment in example config files.
+
