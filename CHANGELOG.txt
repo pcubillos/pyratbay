@@ -5840,4 +5840,7 @@ Added tests.
 
 Updated LICENSE file to GNU GPLv2.
 
+*****
+
+Updated CONTRIBUTING.md file.
 

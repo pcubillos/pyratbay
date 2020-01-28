@@ -17,10 +17,9 @@ bug, including steps to reproduce the bug, error output logs, etc.
 
 Make sure to designate appropriate tags to your issue.
 
-An issue asking for a new functionality must include the ``wish list``
-tag.  These issues must include an explanation as to why is such
-feature necessary.  Note that if you also provide ideas, literature
-references, etc. that contribute to the implementation of the
+An issue asking for a new functionality must include an explanation as
+to why is such feature necessary.  Note that if you also provide ideas,
+literature references, etc. that helps to the implementation of the
 requested functionality, there will be more chances of the issue being
 solved.
 
@@ -31,8 +30,9 @@ Everyone has his/her own programming style, I respect that.  However,
 some people have [terrible style](http://www.abstrusegoose.com/432).
 Following good coding practices (see
 [PEP 8](https://www.python.org/dev/peps/pep-0008/),
-[PEP 20](https://www.python.org/dev/peps/pep-0020/), and
-[PEP 257](https://www.python.org/dev/peps/pep-0257/)) makes everyone
+[PEP 20](https://www.python.org/dev/peps/pep-0020/),
+[PEP 257](https://www.python.org/dev/peps/pep-0257/), and
+[PEP 440](https://www.python.org/dev/peps/pep-0440/)) makes everyone
 happier: it will increase the chances of your code being added to the
 main repo, and will make me work less.  I strongly recommend the
 following programming guidelines:
