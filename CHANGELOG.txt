@@ -5721,7 +5721,7 @@ Added --show-capture=no option to pytest.ini.
 
 *****
 
-Allowed defining rayleigh models wothout rpars if and only if the
+Allowed defining rayleigh models without rpars if and only if the
 models do not require any parameter.
 
 *****
@@ -5834,4 +5834,10 @@ PEP8ed tools.unpack() function.
 Automated decoding of strings as UTF-8.
 Updated docstrings.
 Added tests.
+
+
+*****  Di 28. Jan 11:16:21 CET 2020  *****
+
+Updated LICENSE file to GNU GPLv2.
+
 
