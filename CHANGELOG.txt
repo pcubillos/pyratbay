@@ -5878,3 +5878,9 @@ Needs proper testing and documentation.
 Turned radius > rhill warning into a msg to avoid screen outputs
 during a retrieval.
 
+*****
+
+Fixed bug when computing cloud-deck altitude for modulation interp
+when itop is not zero.
+Needs some proper testing.
+
