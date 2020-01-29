@@ -101,7 +101,7 @@ class pands(dbdriver):
       nlines = data.tell() // self.recsize
 
       # Wavelength limits as given in the P&S file:
-      fwl = 1.0 / (iwn * pc.nm)           # cm to nanometer
+      fwl = 1.0 / (iwn * pc.nm)
       iwl = 1.0 / (fwn * pc.nm)
       iwav = np.log(iwl) / self.ratiolog
       fwav = np.log(fwl) / self.ratiolog
@@ -147,14 +147,13 @@ class pands(dbdriver):
           # Print a checkpoint statement every 10% interval:
           if i%interval == 0 and i != 0:
               wl = np.exp(iw[i] * self.ratiolog) * pc.nm/pc.um
-              self.log.msg('{:5.1f}% completed.'.format(10.*i/interval),
-                  indent=3)
+              self.log.msg('{10*i/interval:5.1f}% completed.', indent=3)
               self.log.debug(
-                  'Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} um\n'
-                  'Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}'.
-                  format(1.0/ (wl * pc.um), wl, np.abs(ielo[i]),
-                         4.0*self.tablog[np.abs(igf[i])],
-                         2*(ielo[i] < 0) + 1*(igf[i] < 0)), indent=6)
+                  f'Wavenumber: {1.0/(wl*pc.um):8.2f} cm-1   '
+                  f'Wavelength: {wl:6.3f} um\n'
+                  f'Elow:     {np.abs(ielo[i]):.4e} cm-1   '
+                  f'gf: {4.0*self.tablog[np.abs(igf[i])]:.4e}   '
+                  f'Iso ID: {2*(ielo[i] < 0) + 1*(igf[i] < 0):2d}', indent=6)
           i += 1
       data.close()
 
