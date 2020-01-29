@@ -60,10 +60,10 @@ def makeTLI(dblist, pflist, dbtype, tlifile,
 
   # Check number of files match:
   nfiles = len(dblist)
-  if (nfiles != len(pflist)) or (nfiles != len(dbtype)):
-      log.error('The number of Line-transition files ({:d}) does not match the '
-                'number of partition-function files ({:d}) or database-type '
-                'files ({:d}).'.format(nfiles, len(pflist), len(dbtype)))
+  if nfiles != len(pflist) or nfiles != len(dbtype):
+      log.error(f'The number of Line-transition files ({nfiles}) does not '
+          f'match the number of partition-function files ({len(pflist)}) or '
+          f'database-type files ({len(dbtype)}).')
 
   # Driver routine to read the databases:
   db_readers = {dbname:getattr(database,dbname) for dbname in pc.dbases}
@@ -73,12 +73,12 @@ def makeTLI(dblist, pflist, dbtype, tlifile,
   log.head('\nReading input database files:')
   for (dbase, pf, dtype) in zip(dblist, pflist, dbtype):
       if dtype not in db_readers:
-          log.error("Unknown type '{:s}' for database '{:s}'.  Select "
-                    "from: {:s}".format(dtype, dbase, str(pc.dbases)))
-      log.head('- {:s}'.format(dbase))
+          log.error(f"Unknown type '{dtype}' for database '{dbase}'.  "
+                    f"Select from: {str(pc.dbases)}")
+      log.head(f'- {dbase}')
       databases.append(db_readers[dtype](dbase, pf, log))
       db_names.append(databases[-1].name)
-  log.msg('There are {:d} input database file(s).'.format(nfiles))
+  log.msg(f'There are {nfiles} input database file(s).')
 
   # Open output file:
   tli = open(tlifile, 'wb')
@@ -104,20 +104,18 @@ def makeTLI(dblist, pflist, dbtype, tlifile,
   header += struct.pack('h', Ndb)
   tli.write(header)
 
-  units = pt.u(wlunits)
-  log.msg('\nOS endianness:  {:s}\n'
-          'Initial TLI wavelength ({:s}): {:7.3f}  ({:9.3f} cm-1)\n'
-          'Final   TLI wavelength ({:s}): {:7.3f}  ({:9.3f} cm-1)'.
-          format(sys.byteorder,
-                 wlunits, wllow/units,  wnhigh,
-                 wlunits, wlhigh/units, wnlow))
-  log.msg('There are {:d} different database(s).'.format(Ndb))
+  wll, wlh = wllow/pt.u(wlunits), wlhigh/pt.u(wlunits)
+  log.msg(
+      f'\nOS endianness:  {sys.byteorder}\n'
+      f'Initial TLI wavelength ({wlunits}): {wll:7.3f}  ({wnhigh:9.3f} cm-1)\n'
+      f'Final   TLI wavelength ({wlunits}): {wlh:7.3f}  ({wnlow:9.3f} cm-1)\n'
+      f'There are {Ndb} different database(s).')
 
 
   log.msg('\nReading and writting partition function info.')
   idb = 1         # Database correlative number:
   niso_total = 0  # Cumulative number of isotopes
-  acum = [0]      # Cumulative number of isotopes per database
+  accum = [0]     # Cumulative number of isotopes per database
   db_names = []
   # Loop through the partition files (if more than one) and write the
   # data to a processed TLI file:
@@ -144,49 +142,48 @@ def makeTLI(dblist, pflist, dbtype, tlifile,
           pf[idx] = part
 
       # Store length of and database name:
-      tli.write(struct.pack('h{:d}s'.format(len(db.name)),
-                            len(db.name), db.name.encode('utf-8')))
+      tli.write(struct.pack(f'h{len(db.name)}s',
+          len(db.name), db.name.encode('utf-8')))
       # Store the molecule name:
-      tli.write(struct.pack('h{:d}s'.format(len(db.molecule)),
-                            len(db.molecule), db.molecule.encode('utf-8')))
+      tli.write(struct.pack(f'h{len(db.molecule)}s',
+          len(db.molecule), db.molecule.encode('utf-8')))
       # Store the number of temperature samples and isotopes:
       tli.write(struct.pack('hh', ntemp, niso))
-      log.msg("Database ({:d}/{:d}): '{:s}' ({:s} molecule)".
-              format(idb, Ndb, db.name, db.molecule), indent=2)
-      log.msg('Number of temperatures: {:d}\n'
-              'Number of isotopes: {:d}'.format(ntemp, niso), indent=4)
+      log.msg(f"Database ({idb}/{Ndb}): '{db.name}' ({db.molecule} molecule)",
+              indent=2)
+      log.msg(f'Number of temperatures: {ntemp}\n'
+              f'Number of isotopes: {niso}', indent=4)
 
       # Write the temperature array:
-      tli.write(struct.pack('{:d}d'.format(ntemp), *temp))
-      log.msg('Temperatures (K): [{:6.1f}, {:6.1f}, ..., {:6.1f}]'.
-              format(temp[0], temp[1], temp[-1]), indent=4)
+      tli.write(struct.pack(f'{ntemp}d', *temp))
+      log.msg('Temperatures (K): '
+          f'[{temp[0]:6.1f}, {temp[1]:6.1f}, ..., {temp[-1]:6.1f}]', indent=4)
 
       # For each isotope, write partition function information.
       for j in range(niso):
           iname = iso_names[j]
-          log.msg("Isotope ({:d}/{:d}): '{:s}'".format(j+1, niso, iname),
-                  indent=4)
+          log.msg(f"Isotope ({j+1}/{niso}): '{iname}'", indent=4)
 
           # Store length of isotope name, isotope name, and isotope mass:
-          tli.write(struct.pack('h{:d}s'.format(len(iname)),
-                                len(iname), str(iname).encode('utf-8')))
+          tli.write(struct.pack(f'h{len(iname)}s',
+              len(iname), str(iname).encode('utf-8')))
           tli.write(struct.pack('d', iso_mass[j]))
           tli.write(struct.pack('d', iso_ratio[j]))
 
           # Write the partition function per isotope:
-          tli.write(struct.pack('{:d}d'.format(ntemp), *pf[j]))
-          log.msg('Mass (u):        {:8.4f}\n'
-                  'Isotopic ratio:  {:8.4g}\n'
-                  'Part. Function:  [{:.2e}, {:.2e}, ..., {:.2e}]'.
-                  format(iso_mass[j], iso_ratio[j], pf[j,0], pf[j,1], pf[j,-1]),
-                  indent=6)
+          tli.write(struct.pack(f'{ntemp}d', *pf[j]))
+          log.msg(
+              f'Mass (u):        {iso_mass[j]:8.4f}\n'
+              f'Isotopic ratio:  {iso_ratio[j]:8.4g}\n'
+              f'Part. Function:  '
+              f'[{pf[j,0]:.2e}, {pf[j,1]:.2e}, ..., {pf[j,-1]:.2e}]', indent=6)
 
       # Calculate cumulative number of isotopes per database:
       niso_total += niso
       idb += 1
-      acum.append(niso_total)
+      accum.append(niso_total)
 
-  log.msg('Cumulative number of isotopes per database: {}'.format(acum))
+  log.msg(f'Cumulative number of isotopes per database: {accum}')
 
   log.head('\nExtracting line transition info.')
   wnumber = np.array([], np.double)
@@ -208,13 +205,13 @@ def makeTLI(dblist, pflist, dbtype, tlifile,
       wnumber = np.concatenate((wnumber, transitions[0]))
       gf      = np.concatenate((gf,      transitions[1]))
       elow    = np.concatenate((elow,    transitions[2]))
-      isoID   = np.concatenate((isoID,   transitions[3]+acum[idb]))
+      isoID   = np.concatenate((isoID,   transitions[3]+accum[idb]))
 
       unique_iso = np.unique(transitions[3])
-      log.msg('Isotope in-database indices: {}'.format(unique_iso), indent=2)
-      log.msg('Isotope correlative indices: {}'.format(unique_iso+acum[idb]),
-              indent=2)
-      log.debug('Reading time: {:8.3f} seconds'.format(tf-ti), indent=2)
+      log.msg(
+          f'Isotope in-database indices: {unique_iso}\n'
+          f'Isotope correlative indices: {unique_iso+accum[idb]}', indent=2)
+      log.debug('Reading time: {tf-ti:8.3f} seconds', indent=2)
 
 
   # Total number of transitions:
@@ -241,12 +238,12 @@ def makeTLI(dblist, pflist, dbtype, tlifile,
   elow    = elow   [isort]
   isoID   = isoID  [isort]
 
-  log.debug('Sort time:    {:8.3f} seconds'.format(tf-ti), indent=2)
-  log.msg('\nTransitions per isotope:\n{}'.format(ntrans_iso))
+  log.debug(f'Sort time:    {tf-ti:8.3f} seconds', indent=2)
+  log.msg(f'\nTransitions per isotope:\n{ntrans_iso}')
 
   # Pack:
   tli.write(struct.pack('i', ntransitions))
-  log.msg('\nWriting {:,d} transition lines.'.format(ntransitions))
+  log.msg(f'\nWriting {ntransitions:,d} transition lines.')
   # Write the number of transitions for each isotope:
   niso = len(ntrans_iso)
   tli.write(struct.pack('i', niso))
@@ -259,13 +256,13 @@ def makeTLI(dblist, pflist, dbtype, tlifile,
   transinfo += struct.pack(str(ntransitions)+'d', *list(elow))
   transinfo += struct.pack(str(ntransitions)+'d', *list(gf))
   tf = time.time()
-  log.debug('Packing time: {:8.3f} seconds'.format(tf-ti))
+  log.debug(f'Packing time: {tf-ti:8.3f} seconds')
 
   ti = time.time()
   tli.write(transinfo)
   tf = time.time()
-  log.debug('Writing time: {:8.3f} seconds'.format(tf-ti))
+  log.debug(f'Writing time: {tf-ti:8.3f} seconds')
 
-  log.head("Generated TLI file: '{:s}'.".format(tlifile))
+  log.head(f"Generated TLI file: '{tlifile}'.")
   tli.close()
   log.close()

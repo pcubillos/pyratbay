@@ -5857,3 +5857,8 @@ Changed showbp from False to True when calling mc3.sampler().
 
 Tweaked main() to force plt.ioff() when running from the command line.
 
+
+*****  Wed Jan 29 10:25:50 CET 2020  *****
+
+Housekeeping on lread.py (just cosmetics).
+
