@@ -3,8 +3,9 @@
 
 __all__ = [
     'spectrum',
+    'atmosphere',
     'cf',
-    'posterior_pt'
+    'posterior_pt',
 ]
 
 import os
@@ -16,6 +17,7 @@ import scipy.interpolate as si
 from scipy.ndimage.filters import gaussian_filter1d as gaussf
 
 from .. import constants as pc
+from .. import tools as pt
 
 
 def spectrum(spectrum, wavelength, path,
@@ -23,7 +25,8 @@ def spectrum(spectrum, wavelength, path,
              bandtrans=None, bandidx=None,
              starflux=None, rprs=None, label='model', bounds=None,
              logxticks=None,
-             gaussbin=2.0, yran=None, filename=None, fignum=501):
+             gaussbin=2.0, yran=None, filename=None, fignum=501,
+             axis=None):
   """
   Plot a transmission or emission model spectrum with (optional) data
   points with error bars and band-integrated model.
@@ -69,6 +72,8 @@ def spectrum(spectrum, wavelength, path,
       If not None, save figure to filename.
   fignum: Integer
       Figure number.
+  axis: TBD
+      TBD
 
   Returns
   -------
@@ -80,9 +85,13 @@ def spectrum(spectrum, wavelength, path,
   ms =  6.0
   lw =  1.25
 
-  plt.figure(fignum, (8, 5))
-  plt.clf()
-  ax = plt.subplot(111)
+  if axis is None:
+      plt.figure(fignum, (8, 5))
+      plt.clf()
+      ax = plt.subplot(111)
+  else:
+      ax = axis
+
   #fscale = {'':1.0, '%':100.0, 'ppt':1e3, 'ppm':1e6}
 
   spec_kw = {'label':label}

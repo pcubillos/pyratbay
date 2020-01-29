@@ -5888,3 +5888,8 @@ Needs some proper testing.
 
 Housekeeping in pands.py (only cosmetics)
 
+*****
+
+Added axis argument to plots.spectrum() function.
+Needs docstring update.
+
