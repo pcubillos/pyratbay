@@ -5870,3 +5870,11 @@ no rhill.
 Tweaked atmosphere.hydro_m() to detect when solution breaks.
 Patched, but needs proper solution, handling, and testing.
 
+*****
+
+Implemented atmosphere.rhill() function to compute Hill radius.
+Needs proper testing and documentation.
+
+Turned radius > rhill warning into a msg to avoid screen outputs
+during a retrieval.
+

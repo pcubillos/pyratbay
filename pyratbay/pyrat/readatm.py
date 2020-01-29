@@ -201,13 +201,16 @@ def reloadatm(pyrat, temp=None, abund=None, radius=None):
           pyrat.atm.refpressure, pyrat.phy.rplanet)
 
   # Check radii lie within Hill radius:
+  pyrat.phy.rhill = pa.rhill(
+      pyrat.phy.smaxis, pyrat.phy.mplanet, pyrat.phy.mstar)
   pyrat.atm.rtop = pt.ifirst(pyrat.atm.radius < pyrat.phy.rhill, default_ret=0)
   if pyrat.atm.rtop > 0:
-      pyrat.log.warning("The atmospheric pressure array extends beyond the "
-          "Hill radius ({:.3e} km) at pressure {:.3e} bar (layer {:d}).  "
-          "Extinction beyond this layer will be neglected.".
-          format(pyrat.phy.rhill/pc.km, pyrat.atm.press[pyrat.atm.rtop]/pc.bar,
-                 pyrat.atm.rtop))
+      pyrat.log.msg(
+          "The atmospheric pressure array extends beyond the Hill radius "
+          "({pyrat.phy.rhill/pc.km:.3e} km) at pressure "
+          "{pyrat.atm.press[pyrat.atm.rtop]/pc.bar:.3e} bar (layer "
+          "{pyrat.atm.rtop}).  "
+          "Extinction beyond this layer will be neglected.")
 
   # Partition function:
   for db in pyrat.lt.db:            # For each Database

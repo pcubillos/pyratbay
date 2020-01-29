@@ -215,7 +215,7 @@ def test_ilast_type(data):
     assert pt.ilast(data) == 2
 
 
-def test_isfile_none(tmp_path):
+def test_isfile_none():
     assert pt.isfile(None) == -1
 
 
