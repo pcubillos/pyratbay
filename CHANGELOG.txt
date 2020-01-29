@@ -5897,3 +5897,7 @@ Needs docstring update.
 
 Fixed minor bugs in plots.py and driver.py
 
+*****
+
+Updated tests transmission expected results.
+
