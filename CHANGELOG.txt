@@ -5901,3 +5901,7 @@ Fixed minor bugs in plots.py and driver.py
 
 Updated tests transmission expected results.
 
+******
+
+Bumped Pyrat Bay version to 0.9.0a1
+
