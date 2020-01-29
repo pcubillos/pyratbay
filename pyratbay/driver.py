@@ -251,9 +251,10 @@ def check_atm(pyrat):
   # Uniform-abundances profile:
   if pyrat.inputs.uniform is not None:
       if len(pyrat.inputs.uniform) != len(pyrat.inputs.species):
-          pyrat.log.error("Number of uniform abundances "
-              "({len(pyrat.inputs.uniform)}) does not match the number of "
-              "species ({len(pyrat.inputs.species)}).")
+          pyrat.log.error(
+              f"Number of uniform abundances ({len(pyrat.inputs.uniform)}) "
+               "does not match the number of species "
+              f"({len(pyrat.inputs.species)}).")
       return
   # TEA abundances:
   if pyrat.inputs.elements is None:

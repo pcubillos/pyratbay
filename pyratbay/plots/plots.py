@@ -3,7 +3,6 @@
 
 __all__ = [
     'spectrum',
-    'atmosphere',
     'cf',
     'posterior_pt',
 ]
