@@ -1,5 +1,5 @@
-# Copyright (c) 2016-2019 Patricio Cubillos and contributors.
-# Pyrat Bay is currently proprietary software (see LICENSE).
+# Copyright (c) 2016-2020 Patricio Cubillos.
+# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE).
 
 __all__ = [
     'makeatomic',
@@ -7,7 +7,8 @@ __all__ = [
     'pressure',
     'temperature',
     'uniform', 'abundances',
-    'hydro_g', 'hydro_m',
+    'hydro_g',
+    'hydro_m',
     'stoich', 'meanweight', 'IGLdensity',
     'equilibrium_temp',
     ]
@@ -667,6 +668,12 @@ def hydro_m(pressure, temperature, mu, M, p0, r0):
   I0 = radinterp(p0)
   # Set: radius(p0) = r0
   radius = 1.0/(I - I0 + 1/r0)
+
+  # Search for blips (radius should be monotonically decreasing):
+  for j in range(len(radius)-1):
+      if radius[j] <= radius[j+1]:
+          #radius[0:j+1] = np.inf  # TBD: this shoud be the solution
+          radius[0:j+1] += 2*(radius[j+1] - radius[j])
 
   return radius
 

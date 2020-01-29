@@ -5862,3 +5862,11 @@ Tweaked main() to force plt.ioff() when running from the command line.
 
 Housekeeping on lread.py (just cosmetics).
 
+*****
+
+Modified check_spectrum() to set phy.rhill to phy.rstar if there is
+no rhill.
+
+Tweaked atmosphere.hydro_m() to detect when solution breaks.
+Patched, but needs proper solution, handling, and testing.
+
