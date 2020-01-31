@@ -5913,3 +5913,9 @@ Updated travis file for new path to HITEMP data.
 
 Updated demo TLI config file (tlifile parameter).
 
+
+*****  Fri Jan 31 14:35:13 CET 2020  *****
+
+Updated tests expected values in test_atmosphere.py after updating
+to scipy 1.4.1.
+
