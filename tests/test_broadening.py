@@ -1,3 +1,6 @@
+# Copyright (c) 2016-2020 Patricio Cubillos.
+# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE).
+
 import os
 import pytest
 
@@ -77,8 +80,8 @@ def test_min_widths():
     min_press = 1e-5 * pc.bar
     dmin, lmin = pb.min_widths(min_temp, max_temp, min_wn, max_mass,
                                min_rad, min_press)
-    np.testing.assert_allclose(dmin, 0.02567273953100574)
-    np.testing.assert_allclose(lmin, 3.994539916585169e-07)
+    np.testing.assert_allclose(dmin, 0.025672743788107903)
+    np.testing.assert_allclose(lmin, 3.9945391902150206e-07)
 
 
 def test_max_widths():
@@ -90,6 +93,6 @@ def test_max_widths():
     max_press = 100 * pc.bar
     dmax, lmax = pb.max_widths(min_temp, max_temp, max_wn, min_mass,
                                max_rad, max_press)
-    np.testing.assert_allclose(dmax, 0.014862623078508634)
-    np.testing.assert_allclose(lmax, 8.009256827016788)
+    np.testing.assert_allclose(dmax, 0.01486262554305687)
+    np.testing.assert_allclose(lmax, 8.009255370607491)
 
