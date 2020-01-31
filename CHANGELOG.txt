@@ -5931,3 +5931,6 @@ to scipy 1.4.1.
 
 *****
 
+Updated tests expected values in test_pbay.py after updating
+to scipy 1.4.1.
+
