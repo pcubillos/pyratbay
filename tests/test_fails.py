@@ -1,5 +1,5 @@
-# Copyright (c) 2016-2019 Patricio Cubillos and contributors.
-# Pyrat Bay is currently proprietary software (see LICENSE).
+# Copyright (c) 2016-2020 Patricio Cubillos.
+# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE).
 
 import os
 import subprocess
@@ -530,7 +530,7 @@ def test_spectrum_inconsistent_mass_radius_gravity(tmp_path, capfd):
     captured = capfd.readouterr()
     assert "Error in module: 'driver.py', function: 'run'" in captured.out
     assert 'All mplanet, rplanet, and gplanet were provided, but values ' \
-           'are inconsistent\n(>5%): g(M,R) =  1487.2 cm s-2 and ' \
+           'are inconsistent\n(>5%): g(M,R) =  1487.3 cm s-2 and ' \
            'gplanet =  1400.0 cm s-2.'  in captured.out
 
 

@@ -5923,3 +5923,11 @@ to scipy 1.4.1.
 
 Updated tests expected values in test_broadening.py after updating
 to scipy 1.4.1.
+
+*****
+
+Updated tests expected values in test_fails.py after updating
+to scipy 1.4.1.
+
+*****
+
