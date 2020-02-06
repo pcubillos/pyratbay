@@ -1,5 +1,5 @@
-# Copyright (c) 2016-2019 Patricio Cubillos and contributors.
-# Pyrat Bay is currently proprietary software (see LICENSE).
+# Copyright (c) 2016-2020 Patricio Cubillos.
+# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE).
 
 """Alkali resonant-line models."""
 

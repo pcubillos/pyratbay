@@ -5939,3 +5939,7 @@ to scipy 1.4.1.
 
 Updated requirements for tests in setup.py.
 
+*****
+
+Updated Copyright in (probably most) python files.
+
