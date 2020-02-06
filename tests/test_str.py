@@ -46,7 +46,7 @@ Parameter name     Value
   log(p_top)       -3.000e+00
 Index of atmospheric layer at or directly below cloud top: 30
 Cloud-top pressure: 1.0000e-03 bar
-Cloud-top altitude: 72750.18 km
+Cloud-top altitude: 72750.14 km
 Cloud-top temperature: 1051.39 K
 """
 
@@ -382,13 +382,13 @@ Total atmospheric extinction coefficient (ec, cm-1) [layer, wave]:
 
 Distance along the ray path across each layer (outside-in) at each impact
     parameter (raypath, km):
-    IP[  1]: [3061.15674278]
-    IP[  2]: [1269.01827346 3057.58923561]
-    IP[  3]: [ 974.38612723 1267.64459463 3053.66707207]
+    IP[  1]: [3061.10036832]
+    IP[  2]: [1268.99486459 3057.53305829]
+    IP[  3]: [ 974.36813165 1267.62126565 3053.61109788]
     ...
-    IP[ 80]: [ 164.81938429  165.39608138  165.94478511 ... 1097.08562146
-    1426.24957685
- 3434.27193531]
+    IP[ 80]: [ 164.81603538  165.39273132  165.94143453 ... 1097.06940799
+    1426.2286258
+ 3434.22183058]
 
 Maximum optical depth to calculate (maxdepth): 10.00
 Layer index where the optical depth reaches maxdepth (ideep):
@@ -401,7 +401,7 @@ Optical depth at each impact parameter, down to max(ideep) (depth):
  [ 6.490e-08  1.869e-05  6.499e-08 ...  7.547e-07  3.938e-07  4.029e-07]
  ...
  [ 4.644e-05  1.102e-02  4.610e-05 ...  4.470e-04  2.338e-04  2.406e-04]
- [ 6.113e-05  1.387e-02  6.054e-05 ...  5.631e-04  2.947e-04  3.038e-04]
+ [ 6.112e-05  1.387e-02  6.054e-05 ...  5.631e-04  2.947e-04  3.038e-04]
  [ 8.113e-05  1.745e-02  8.019e-05 ...  7.094e-04  3.716e-04  3.838e-04]]
 """
 
@@ -415,7 +415,7 @@ Parameter name     Value
   log(p_top)       -3.000e+00
 Index of atmospheric layer at or directly below cloud top: 30
 Cloud-top pressure: 1.0000e-03 bar
-Cloud-top altitude: 72750.18 km
+Cloud-top altitude: 72750.14 km
 Cloud-top temperature: 1051.39 K
 
 Patchiness fraction (fpatchy): None
@@ -474,7 +474,7 @@ Extinction-coefficient (ec, cm2 molecule-1):
  [ 1.636e-23  1.637e-23 ...  4.358e-22  4.363e-22]]
 
 Total atmospheric alkali extinction-coefficient (ec, cm-1):
-[[ 1.915e-26  1.918e-26  1.921e-26 ...  2.617e-24  2.621e-24  2.625e-24]
+[[ 1.916e-26  1.918e-26  1.921e-26 ...  2.617e-24  2.621e-24  2.625e-24]
  [ 3.036e-26  3.040e-26  3.045e-26 ...  4.148e-24  4.154e-24  4.161e-24]
  [ 4.812e-26  4.819e-26  4.826e-26 ...  6.574e-24  6.585e-24  6.595e-24]
  ...
@@ -616,8 +616,8 @@ Optical depth at each layer along a normal ray path into the planet, down to
  [ 8.992e-10  2.590e-07  9.004e-10 ...  1.046e-08  5.457e-09  5.583e-09]
  ...
  [ 1.080e-06  2.692e-04  1.074e-06 ...  1.090e-05  5.699e-06  5.856e-06]
- [ 1.407e-06  3.386e-04  1.397e-06 ...  1.373e-05  7.179e-06  7.386e-06]
- [ 1.845e-06  4.260e-04  1.829e-06 ...  1.729e-05  9.046e-06  9.320e-06]]
+ [ 1.407e-06  3.386e-04  1.397e-06 ...  1.373e-05  7.179e-06  7.385e-06]
+ [ 1.845e-06  4.260e-04  1.829e-06 ...  1.729e-05  9.046e-06  9.319e-06]]
 """
 
 

@@ -17,13 +17,15 @@ os.chdir(ROOT+'tests')
 
 
 # Expected spectra:
-keys = ['lec', 'cia', 'alkali', 'deck', 'tli', 'all', 'etable',
-        'tmodel', 'vert', 'scale', 'fit1', 'fit2', 'fit3', 'fit4',
-        'bandflux4', 'resolution', 'odd_even']
-expected = {key:np.load("expected_spectrum_transmission_{:s}_test.npz".
-                        format(key))['arr_0']
-            for key in keys}
-#np.savez('expected_spectrum_transmission_fit_test.npz', model1[0])
+keys = [
+    'lec', 'cia', 'alkali', 'deck', 'tli', 'all', 'etable',
+    'tmodel', 'vert', 'scale', 'fit1', 'fit2', 'fit3', 'fit4',
+    'bandflux4', 'resolution', 'odd_even']
+expected = {
+    key:np.load(
+        f"expected/expected_spectrum_transmission_{key}_test.npz")['arr_0']
+    for key in keys}
+#np.savez('expected/expected_spectrum_transmission_fit_test.npz', model1[0])
 
 
 def test_transmission_clear(tmp_path):
