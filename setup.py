@@ -1,5 +1,5 @@
-# Copyright (c) 2016-2019 Patricio Cubillos and contributors.
-# Pyrat Bay is currently proprietary software (see LICENSE).
+# Copyright (c) 2016-2020 Patricio Cubillos.
+# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE).
 
 import os
 import re
@@ -48,7 +48,10 @@ setup(name         = "pyratbay",
                           'sympy>=0.7.6',
                           'mc3>=3.0.0',
                          ],
-      tests_require = ['pytest>=3.9',],
+      tests_require = [
+          'pytest>=3.9',
+          'scipy>=1.4.1',
+          ],
       license      = "GNU GPLv2",
       description  = "Python Radiative Transfer in a Bayesian Framework.",
       long_description=readme,

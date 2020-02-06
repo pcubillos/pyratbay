@@ -5934,3 +5934,8 @@ to scipy 1.4.1.
 Updated tests expected values in test_pbay.py after updating
 to scipy 1.4.1.
 
+
+*****  Do 6. Feb 18:04:42 CET 2020  *****
+
+Updated requirements for tests in setup.py.
+
