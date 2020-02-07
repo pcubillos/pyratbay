@@ -1,0 +1,20 @@
+include MANIFEST.in
+include CHANGELOG.txt
+include CONTRIBUTING.md
+include README.md
+include LICENSE
+include requirements.txt
+include Makefile
+include tests/*.py
+include tests/pytest.ini
+include tests/configs/*
+include tests/inputs/*
+include tests/filters/*
+include tests/expected/*
+include tests/outputs/.gitignored
+include docs/*
+include src_c/*
+include src_c/include/*.h
+include .travis.yml
+include .readthedocs.yml
+

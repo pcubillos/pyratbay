@@ -5981,3 +5981,7 @@ Tweaked lread.py to allow parsing {ROOT} in input database files.
 
 Added .readthedocs.yml file.
 
+*****
+
+Added MANIFEST.in file.
+
