@@ -5968,3 +5968,9 @@ Moved voigt tests expected profiles into tests/expected/ folder.
 
 Implemented tools.cd() context manager.
 
+*****
+
+Fixed bug in tools.parse() function, ensuring that logfile name
+processes the {ROOT} special value when copying from output files.
+
+

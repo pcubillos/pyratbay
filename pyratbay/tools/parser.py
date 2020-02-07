@@ -511,8 +511,7 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
           args.logfile = os.path.splitext(args.extfile[0])[0] + '.log'
       if args.runmode == 'mcmc' and args.mcmcfile is not None:
           args.logfile = os.path.splitext(args.mcmcfile)[0] + '.log'
-  else:
-      args.logfile = args.get_path('logfile', 'Log')
+  args.logfile = args.get_path('logfile', 'Log')
 
   # Override logfile if requested:
   if no_logfile:
