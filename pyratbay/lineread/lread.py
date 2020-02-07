@@ -1,8 +1,9 @@
 # Copyright (c) 2016-2020 Patricio Cubillos.
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE).
+# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 __all__ = ['makeTLI']
 
+import os
 import sys
 import time
 import struct
@@ -67,6 +68,9 @@ def makeTLI(dblist, pflist, dbtype, tlifile,
 
   # Driver routine to read the databases:
   db_readers = {dbname:getattr(database,dbname) for dbname in pc.dbases}
+
+  dblist = [os.path.realpath(dbase.replace('{ROOT}', pc.ROOT))
+            for dbase in dblist]
 
   databases = []
   db_names = []
