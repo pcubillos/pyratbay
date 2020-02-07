@@ -5949,3 +5949,9 @@ Updated tests/test_spectrum.py and tests/test_str.py expected values
 to match scipy 1.4.1.
 Moved files with expected results to tests/expected/ folder.
 
+
+*****  Fr 7. Feb 11:59:41 CET 2020  *****
+
+Moved testing config files from tests/ to tests/configs/ to declutter
+the tests/ folder.
+
