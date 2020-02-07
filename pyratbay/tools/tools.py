@@ -3,6 +3,7 @@
 
 __all__ = [
     'log_error',
+    'cd',
     'tmp_reset',
     'binsearch',
     'divisors',
@@ -63,6 +64,20 @@ def log_error(log=None, error=None):
       if error is None:
           error = str(e)
       log.error(error, tracklev=-4)
+
+
+@contextmanager
+def cd(newdir):
+  """
+  Context manager for changing the current working directory.
+  Taken from here: https://stackoverflow.com/questions/431684/
+  """
+  olddir = os.getcwd()
+  os.chdir(os.path.expanduser(newdir))
+  try:
+      yield
+  finally:
+      os.chdir(olddir)
 
 
 def recursive_setattr(obj, attr, val):

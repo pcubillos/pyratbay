@@ -5964,3 +5964,7 @@ Modified .gitignore to stop ignoring most tests files.
 Modified tests files to output everything into tests/outputs/ folder.
 Moved voigt tests expected profiles into tests/expected/ folder.
 
+*****
+
+Implemented tools.cd() context manager.
+
