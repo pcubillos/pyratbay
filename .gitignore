@@ -1,12 +1,9 @@
 # Ignore these files in this repository:
-*.pyc
 *.swp
 *.DS_Store
 *~
-tests/*
-!tests/*.py
-!tests/*.npz
-!tests/*.cfg
+tests/inputs/*.par
+tests/inputs/*.pck
 
 
 # Byte-compiled / optimized / DLL files

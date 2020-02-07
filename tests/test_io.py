@@ -18,7 +18,8 @@ os.chdir(ROOT+'tests')
 
 
 def test_load_save_pyrat(tmp_path):
-    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+    cfg = make_config(tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
         reset={'cpars':'1.0'})
     pyrat = pb.run(cfg)
     spectrum = np.copy(pyrat.spec.spectrum)
@@ -187,7 +188,7 @@ def test_read_write_atm_radius(tmpdir):
 def test_read_atm_no_temp():
     with pytest.raises(ValueError, match="Atmospheric file does not have "
                        "'@TEMPERATURE' header"):
-        dummy = io.read_atm('uniform_notemp_test.atm')
+        dummy = io.read_atm('inputs/uniform_notemp_test.atm')
 
 
 def test_read_write_pf(tmpdir):

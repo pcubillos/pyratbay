@@ -13,8 +13,7 @@ os.chdir(pc.ROOT + 'tests')
 
 keys = ['lorentz', 'gauss',
         'voigt0.01', 'voigt0.1', 'voigt1.0', 'voigt10.0', 'voigt100.0']
-expected = {key:np.load("expected_profile_{:s}_test.npz".
-                        format(key))['arr_0']
+expected = {key:np.load(f"expected/expected_profile_{key}_test.npz")['arr_0']
             for key in keys}
 
 

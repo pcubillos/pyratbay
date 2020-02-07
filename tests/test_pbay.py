@@ -207,25 +207,25 @@ expected_abundance = np.array([
 
 # Warm up, check when units are well or wrongly set:
 def test_units_variable_not_needed(tmp_path):
-    cfg = make_config(tmp_path, ROOT+'tests/pt_isothermal.cfg')
+    cfg = make_config(tmp_path, ROOT+'tests/configs/pt_isothermal.cfg')
     pressure, temperature = pb.run(cfg)
 
 
 def test_units_separate(tmp_path):
-    cfg = make_config(tmp_path, ROOT+'tests/pt_isothermal.cfg',
+    cfg = make_config(tmp_path, ROOT+'tests/configs/pt_isothermal.cfg',
         reset={'mplanet':'1.0',
                'mpunits':'mjup'})
     pressure, temperature = pb.run(cfg)
 
 
 def test_units_in_value(tmp_path):
-    cfg = make_config(tmp_path, ROOT+'tests/pt_isothermal.cfg',
+    cfg = make_config(tmp_path, ROOT+'tests/configs/pt_isothermal.cfg',
         reset={'mplanet':'1.0 rjup'})
     pressure, temperature = pb.run(cfg)
 
 
 def test_units_missing(tmp_path, capfd):
-    cfg = make_config(tmp_path, ROOT+'tests/pt_isothermal.cfg',
+    cfg = make_config(tmp_path, ROOT+'tests/configs/pt_isothermal.cfg',
         reset={'mplanet':'1.0'})
     pyrat = pb.run(cfg)
     assert pyrat is None
@@ -234,7 +234,7 @@ def test_units_missing(tmp_path, capfd):
 
 
 def test_units_invalid(tmp_path, capfd):
-    cfg = make_config(tmp_path, ROOT+'tests/pt_isothermal.cfg',
+    cfg = make_config(tmp_path, ROOT+'tests/configs/pt_isothermal.cfg',
         reset={'mplanet':'1.0',
                'mpunits':'nope'})
     pyrat = pb.run(cfg)
@@ -244,7 +244,7 @@ def test_units_invalid(tmp_path, capfd):
 
 
 def test_units_in_value_invalid(tmp_path, capfd):
-    cfg = make_config(tmp_path, ROOT+'tests/pt_isothermal.cfg',
+    cfg = make_config(tmp_path, ROOT+'tests/configs/pt_isothermal.cfg',
         reset={'mplanet':'1.0 nope'})
     pyrat = pb.run(cfg)
     assert pyrat is None
@@ -255,24 +255,24 @@ def test_units_in_value_invalid(tmp_path, capfd):
 
 @pytest.mark.sort(order=1)
 def test_tli_hitran_wfc3():
-    pb.run(ROOT+'tests/tli_hitran_1.1-1.7um_test.cfg')
+    pb.run(ROOT+'tests/configs/tli_hitran_1.1-1.7um_test.cfg')
     # TBD: asserts on output file
 
 
 @pytest.mark.skip(reason="Skip until implementing in Python3")
 def test_tli_repack():
-    pb.run('tli_repack_test.cfg')
+    pb.run('configs/tli_repack_test.cfg')
     # TBD: asserts on output file
 
 
 @pytest.mark.skip(reason="Skip until implementing in Python3")
 def test_tli_tio_schwenke():
-    pb.run('tli_tio_schwenke_test.cfg')
+    pb.run('configs/tli_tio_schwenke_test.cfg')
     # TBD: asserts on output file
 
 
 def test_pt_isothermal(tmp_path):
-    cfg = make_config(tmp_path, ROOT+'tests/pt_isothermal.cfg')
+    cfg = make_config(tmp_path, ROOT+'tests/configs/pt_isothermal.cfg')
 
     pressure, temperature = pb.run(cfg)
     np.testing.assert_allclose(pressure, expected_pressure, rtol=1e-7)
@@ -280,7 +280,7 @@ def test_pt_isothermal(tmp_path):
 
 
 def test_pt_TCEA(tmp_path):
-    cfg = make_config(tmp_path, ROOT+'tests/pt_tcea.cfg')
+    cfg = make_config(tmp_path, ROOT+'tests/configs/pt_tcea.cfg')
     pressure, temperature = pb.run(cfg)
     np.testing.assert_allclose(pressure, expected_pressure, rtol=1e-7)
     np.testing.assert_allclose(temperature, expected_temperature, atol=1e-10)
@@ -288,7 +288,8 @@ def test_pt_TCEA(tmp_path):
 
 def test_atmosphere_uniform(tmp_path):
     atmfile = str(tmp_path / 'test.atm')
-    cfg = make_config(tmp_path, ROOT+'tests/atmosphere_uniform_test.cfg',
+    cfg = make_config(tmp_path,
+        ROOT+'tests/configs/atmosphere_uniform_test.cfg',
         reset={'atmfile':atmfile})
 
     press, temp, abund = pb.run(cfg)
@@ -308,7 +309,8 @@ def test_atmosphere_uniform(tmp_path):
 
 def test_atmosphere_tea(tmp_path):
     atmfile = str(tmp_path / 'test.atm')
-    cfg = make_config(tmp_path, ROOT+'tests/atmosphere_tea_test.cfg',
+    cfg = make_config(tmp_path,
+        ROOT+'tests/configs/atmosphere_tea_test.cfg',
         reset={'atmfile':atmfile})
 
     press, temp, abund = pb.run(cfg)
@@ -330,7 +332,8 @@ def test_atmosphere_tea(tmp_path):
 
 
 def test_spectrum_emission(tmp_path):
-    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+    cfg = make_config(tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
         reset={'path':'eclipse', 'cpars':'-0.5'})
     pyrat = pb.run(cfg)
     assert pyrat is not None
@@ -338,14 +341,14 @@ def test_spectrum_emission(tmp_path):
 
 
 @pytest.mark.sort(order=10)
-def test_opacity(capfd):
-    pyrat = pb.run(ROOT+'tests/opacity_test.cfg')
+def test_opacity_pbay(capfd):
+    pyrat = pb.run(ROOT+'tests/configs/opacity_test.cfg')
     captured = capfd.readouterr()
     assert "Extinction-coefficient table written to file:" in captured.out
     assert "exttable_test_300-3000K_1.1-1.7um.dat'." in captured.out
-    assert "exttable_test_300-3000K_1.1-1.7um.dat" in os.listdir('.')
+    assert "exttable_test_300-3000K_1.1-1.7um.dat" in os.listdir('outputs/')
 
 
 @pytest.mark.skip
 def test_mcmc():
-    pyrat = pb.run(ROOT+'tests/mcmc_transmission_test.cfg')
+    pyrat = pb.run(ROOT+'tests/configs/mcmc_transmission_test.cfg')

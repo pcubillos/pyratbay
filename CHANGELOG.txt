@@ -5955,3 +5955,12 @@ Moved files with expected results to tests/expected/ folder.
 Moved testing config files from tests/ to tests/configs/ to declutter
 the tests/ folder.
 
+*****
+
+Created tests/inputs/ and tests/outputs/ folders for decluttering.
+Modified travis file to put inputs into tests/inputs/ folder.
+Moved LBL testing files into tests/inputs/ folder.
+Modified .gitignore to stop ignoring most tests files.
+Modified tests files to output everything into tests/outputs/ folder.
+Moved voigt tests expected profiles into tests/expected/ folder.
+

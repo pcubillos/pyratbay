@@ -212,7 +212,7 @@ def test_uniform():
 
 
 def test_abundances_uniform():
-    atmfile = "atm_test.dat"
+    atmfile = "outputs/atm_test.dat"
     nlayers = 11
     punits  = 'bar'
     pressure    = pa.pressure(1e-8, 1e2, nlayers, punits)
@@ -228,7 +228,7 @@ def test_abundances_uniform():
 
 
 def test_abundances_tea():
-    atmfile = "atm_test.dat"
+    atmfile = "outputs/atm_test.dat"
     nlayers = 15
     punits  = 'bar'
     pressure = pa.pressure(1e-10, 1e3, nlayers, punits)

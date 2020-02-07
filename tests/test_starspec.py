@@ -46,7 +46,7 @@ def test_bbflux_error():
 
 
 def test_read_kurucz_sun():
-    kfile = 'fp00k0odfnew.pck'
+    kfile = 'inputs/fp00k0odfnew.pck'
     tsun = 5772.0
     gsun = 4.44
     flux, wn, ktemp, klogg = ps.read_kurucz(kfile, tsun, gsun)
@@ -58,7 +58,7 @@ def test_read_kurucz_sun():
 
 
 def test_read_kurucz_all():
-    kfile = 'fp00k0odfnew.pck'
+    kfile = 'inputs/fp00k0odfnew.pck'
     fluxes, wn, ktemp, klogg, continua = ps.read_kurucz(kfile)
     assert np.shape(fluxes) == np.shape(continua) == (476, 1221)
     assert len(wn) == 1221

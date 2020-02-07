@@ -1,16 +1,21 @@
 import os
 import pyratbay as pb
+import pyratbay.tools as pt
+import pyratbay.part_func as pf
 
-os.chdir(pb.constants.ROOT+'tests')
+from pyratbay.constants import ROOT
+
+os.chdir(ROOT+'tests')
 
 
 def test_hitran(capfd):
-    pb.run('tli_hitran_test.cfg')
+    pb.run('configs/tli_hitran_test.cfg')
     captured = capfd.readouterr()
     caps = [
-        "Read command-line arguments from configuration file: 'tli_hitran_test.cfg'",
+        "Read command-line arguments from configuration file:",
+        "'configs/tli_hitran_test.cfg'",
         "Reading input database files:",
-        "- Mock_HITRAN_H2O_1.00-1.01um.par",
+        "tests/inputs/Mock_HITRAN_H2O_1.00-1.01um.par",
         "Initial TLI wavelength (um):   1.000  (10000.000 cm-1)",
         "Final   TLI wavelength (um):   1.010  ( 9900.990 cm-1)",
         "There are 1 input database file(s).",
@@ -27,14 +32,14 @@ def test_hitran(capfd):
 
 
 def test_two_files_two_databases(capfd):
-    pb.run('tli_hitran_two_files_two_db_test.cfg')
+    pb.run('configs/tli_hitran_two_files_two_db_test.cfg')
     captured = capfd.readouterr()
     caps = [
         "Read command-line arguments from configuration file:",
-        "'tli_hitran_two_files_two_db_test.cfg'",
+        "'configs/tli_hitran_two_files_two_db_test.cfg'",
         "Reading input database files:",
-        "- 01_hit12.par",
-        "- 02_4000-4500_HITEMP2010.par",
+        "tests/inputs/01_hit12.par",
+        "tests/inputs/02_4000-4500_HITEMP2010.par",
         "There are 2 input database file(s).",
         "Initial TLI wavelength (um):   2.000  ( 5000.000 cm-1)",
         "Final   TLI wavelength (um):   3.000  ( 3333.333 cm-1)",
@@ -55,14 +60,14 @@ def test_two_files_two_databases(capfd):
 
 
 def test_two_files_one_database(capfd):
-    pb.run('tli_hitran_two_files_one_db_test.cfg')
+    pb.run('configs/tli_hitran_two_files_one_db_test.cfg')
     captured = capfd.readouterr()
     caps = [
         "Read command-line arguments from configuration file:",
-        "'tli_hitran_two_files_one_db_test.cfg'",
+        "'configs/tli_hitran_two_files_one_db_test.cfg'",
         "Reading input database files:",
-        "- 02_3750-4000_HITEMP2010.par",
-        "- 02_4000-4500_HITEMP2010.par",
+        "tests/inputs/02_3750-4000_HITEMP2010.par",
+        "tests/inputs/02_4000-4500_HITEMP2010.par",
         "There are 2 input database file(s).",
         "Initial TLI wavelength (um):   2.000  ( 5000.000 cm-1)",
         "Final   TLI wavelength (um):   3.000  ( 3333.333 cm-1)",
@@ -81,13 +86,14 @@ def test_two_files_one_database(capfd):
 
 
 def test_exomol(capfd):
-    pb.run('tli_exomol_test.cfg')
+    pb.run('configs/tli_exomol_test.cfg')
     captured = capfd.readouterr()
     caps = [
-        "Read command-line arguments from configuration file: 'tli_exomol_test.cfg'",
+        "Read command-line arguments from configuration file:",
+        "'configs/tli_exomol_test.cfg'",
         "Reading input database files:",
-        "- 14N-1H3__MockBYTe__04999-05000.trans",
-        "- 15N-1H3__MockBYTe-15__04999-05000.trans",
+        "tests/inputs/14N-1H3__MockBYTe__04999-05000.trans",
+        "tests/inputs/15N-1H3__MockBYTe-15__04999-05000.trans",
         "There are 2 input database file(s).",
         "Initial TLI wavelength (um):   2.000  ( 5000.000 cm-1)",
         "Final   TLI wavelength (um):   2.000  ( 4999.950 cm-1)",
@@ -104,12 +110,13 @@ def test_exomol(capfd):
 
 
 def test_repack(capfd):
-    pb.run('tli_repack_test.cfg')
+    pb.run('configs/tli_repack_test.cfg')
     captured = capfd.readouterr()
     caps = [
-        "Read command-line arguments from configuration file: 'tli_repack_test.cfg'",
+        "Read command-line arguments from configuration file:",
+        "'configs/tli_repack_test.cfg'",
         "Reading input database files:",
-        "- CO2_hitran_2.50-2.52um_repack-0.01_lbl.dat",
+        "tests/inputs/CO2_hitran_2.50-2.52um_repack-0.01_lbl.dat",
         "There are 1 input database file(s).",
         "Initial TLI wavelength (um):   2.500  ( 4000.000 cm-1)",
         "Final   TLI wavelength (um):   2.520  ( 3968.254 cm-1)",
@@ -126,12 +133,16 @@ def test_repack(capfd):
 
 
 def test_pands(capfd):
-    pb.run('tli_pands_test.cfg')
+    with pt.cd('outputs/'):
+        pf.kurucz(
+            f'{ROOT}tests/inputs/mock_h2opartfn.dat', outfile='default')
+    pb.run('configs/tli_pands_test.cfg')
     captured = capfd.readouterr()
     caps = [
-        "Read command-line arguments from configuration file: 'tli_pands_test.cfg'",
+        "Read command-line arguments from configuration file:",
+        "'configs/tli_pands_test.cfg'",
         "Reading input database files:",
-        "- Mock_h2ofastfix.bin",
+        "tests/inputs/mock_h2ofastfix.bin",
         "There are 1 input database file(s).",
         "Initial TLI wavelength (um):   2.500  ( 4000.000 cm-1)",
         "Final   TLI wavelength (um):   2.501  ( 3998.401 cm-1)",

@@ -1,0 +1,11 @@
+
+         s the temperature increases the minor isotopomers become less
+         ccurate because of missing levels.
+
+           T      1H1H16O      1H1H17O     1H1H18O     1H2H16O
+                   170625       30215       30445       42016 levels
+           10       1.328       1.330       1.332       1.399
+           20       3.349       3.361       3.373       2.945
+           30       6.192       6.217       6.240       5.085
+           40       9.417       9.457       9.492       7.617
+           50      12.962      13.017      13.066      10.476

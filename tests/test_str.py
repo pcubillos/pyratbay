@@ -9,7 +9,8 @@ os.chdir(ROOT+'tests')
 
 
 def test_alkali_str(tmp_path):
-    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg')
+    cfg = make_config(tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg')
     pyrat = pb.run(cfg)
     assert pyrat is not None
     print(pyrat.alkali.models[0])
@@ -34,7 +35,8 @@ Extinction-coefficient (ec, cm2 molecule-1):
 """
 
 def test_cloud_str(tmp_path):
-    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+    cfg = make_config(tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
         reset={'clouds':'deck ccsgray', 'cpars':'-3.0  0.0 -4.0 2.0'})
     pyrat = pb.run(cfg)
     assert pyrat is not None
@@ -71,7 +73,8 @@ Extinction-coefficient (ec, cm2 molec-1):
 
 
 def test_rayleigh_str(tmp_path):
-    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+    cfg = make_config(tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
         reset={'rayleigh':'lecavelier dalgarno_H dalgarno_He dalgarno_H2',
                'rpars':'0.0 -4.0'})
     pyrat = pb.run(cfg)
@@ -114,7 +117,8 @@ Extinction-coefficient (ec, cm2 molec-1):
 
 
 def test_pyrat_transmission_str(tmp_path):
-    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg')
+    cfg = make_config(tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg')
     pyrat = pb.run(cfg)
     assert pyrat is not None
     assert str(pyrat) == """\
@@ -145,7 +149,7 @@ Modulation spectrum, (Rp/Rs)**2 (spectrum):
     assert str(pyrat.atm) == """\
 Atmospheric model information:
 Atmospheric file name (atmfile):
-    '{:s}/atmosphere_uniform_test.atm'
+    '{:s}/inputs/atmosphere_uniform_test.atm'
 Number of layers (nlayers): 81
 
 Pressure display units (punits): bar
@@ -212,7 +216,7 @@ Molecular data taken from (molfile):
     assert str(pyrat.lt) == """\
 Line-transition information:
 Input TLI files (tlifile):
-    ['{:s}/HITRAN_H2O_1.1-1.7um_test.tli']
+    ['{:s}/outputs/HITRAN_H2O_1.1-1.7um_test.tli']
 Number of databases (ndb): 1
 
 Database name (name): HITRAN H2O
@@ -519,7 +523,8 @@ No retrieval parameters set.
 
 
 def test_pyrat_transmission_resolution_str(tmp_path):
-    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+    cfg = make_config(tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
         reset={'resolution':'5000.0'},
         remove=['clouds'])
     pyrat = pb.run(cfg)
@@ -551,7 +556,8 @@ Modulation spectrum, (Rp/Rs)**2 (spectrum):
 
 
 def test_pyrat_emission_str(tmp_path):
-    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
+    cfg = make_config(tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
     reset={'path':'eclipse'})
     pyrat = pb.run(cfg)
     assert pyrat is not None
@@ -622,9 +628,10 @@ Optical depth at each layer along a normal ray path into the planet, down to
 
 
 def test_pyrat_exfile_str(tmp_path):
-    cfg = make_config(tmp_path, ROOT+'tests/mcmc_transmission_test.cfg',
+    cfg = make_config(tmp_path,
+        ROOT+'tests/configs/mcmc_transmission_test.cfg',
         reset={'runmode':'spectrum',
-               'specfile':'extfiled_spectrum_test.dat'})
+               'specfile':f'{ROOT}tests/outputs/extfile_spectrum_test.dat'})
     pyrat = pb.run(cfg)
     assert pyrat is not None
     pyrat.band_integrate()
@@ -646,7 +653,7 @@ LBL extinction coefficient for the atmospheric model (ec, cm-1) [layer, wave]:
  [7.41e-07 9.57e-07 1.08e-06 ... 2.66e-06 2.31e-06 1.91e-06]
  [9.32e-07 1.20e-06 1.36e-06 ... 3.35e-06 2.90e-06 2.41e-06]]
 Extinction-coefficient table filename(s) (extfile):
-    {:s}/exttable_test_300-3000K_1.1-1.7um.dat
+    {:s}/outputs/exttable_test_300-3000K_1.1-1.7um.dat
 Minimum temperature (tmin, K):  300.0
 Maximum temperature (tmax, K): 3000.0
 Temperature sampling interval (tstep, K): None
@@ -781,6 +788,6 @@ Temperature upper boundary (tlow, K):   300.0
 Temperature lower boundary (thigh, K): 3000.0
 
 Retrieval posterior file (mcmcfile):
-    {:s}/MCMC_transmission_test.npz
+    {:s}/outputs/MCMC_transmission_test.npz
 """.format(os.getcwd())
 

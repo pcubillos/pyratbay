@@ -46,9 +46,9 @@ def test_binsearch_zero():
      (2.0, False, -1), (2.0, True,  0),])
 def test_binsearch_one(wn0, upper, result):
     wn = np.array([1.0])
-    with open('tli_test.dat', 'wb') as tli:
+    with open('outputs/binsearch.dat', 'wb') as tli:
         tli.write(struct.pack(str(len(wn))+"d", *list(wn)))
-    with open('tli_test.dat', 'rb') as tli:
+    with open('outputs/binsearch.dat', 'rb') as tli:
         assert pt.binsearch(tli, wn0, 0, len(wn), upper) == result
 
 
@@ -60,9 +60,9 @@ def test_binsearch_one(wn0, upper, result):
      (2.5, False,-1), (2.5, True, 1)])
 def test_binsearch_two(wn0, upper, result):
     wn = np.array([1., 2.])
-    with open('tli_test.dat', 'wb') as tli:
+    with open('outputs/binsearch.dat', 'wb') as tli:
         tli.write(struct.pack(str(len(wn))+"d", *list(wn)))
-    with open('tli_test.dat', 'rb') as tli:
+    with open('outputs/binsearch.dat', 'rb') as tli:
         assert pt.binsearch(tli, wn0, 0, len(wn), upper) == result
 
 
@@ -74,9 +74,9 @@ def test_binsearch_two(wn0, upper, result):
      (2.0, False, 4), (2.0, True, 4)])
 def test_binsearch_duplicates(wn0, upper, result):
     wn = np.array([0.0, 1.0, 1.0, 1.0, 2.0])
-    with open('tli_test.dat', 'wb') as tli:
+    with open('outputs/binsearch.dat', 'wb') as tli:
         tli.write(struct.pack(str(len(wn))+"d", *list(wn)))
-    with open('tli_test.dat', 'rb') as tli:
+    with open('outputs/binsearch.dat', 'rb') as tli:
         assert pt.binsearch(tli, wn0, 0, len(wn), upper) == result
 
 
@@ -86,9 +86,9 @@ def test_binsearch_duplicates(wn0, upper, result):
      (2.0, False, 4), (2.0, True, 5)])
 def test_binsearch_duplicates_low_edge(wn0, upper, result):
     wn = np.array([1.0, 1.0, 1.0, 1.0, 2.0, 2.0])
-    with open('tli_test.dat', 'wb') as tli:
+    with open('outputs/binsearch.dat', 'wb') as tli:
         tli.write(struct.pack(str(len(wn))+"d", *list(wn)))
-    with open('tli_test.dat', 'rb') as tli:
+    with open('outputs/binsearch.dat', 'rb') as tli:
         assert pt.binsearch(tli, wn0, 0, len(wn), upper) == result
 
 
@@ -98,35 +98,35 @@ def test_binsearch_duplicates_low_edge(wn0, upper, result):
      (2.0, False, 2), (2.0, True, 5)])
 def test_binsearch_duplicates_hi_edge(wn0, upper, result):
     wn = np.array([1.0, 1.0, 2.0, 2.0, 2.0, 2.0])
-    with open('tli_test.dat', 'wb') as tli:
+    with open('outputs/binsearch.dat', 'wb') as tli:
         tli.write(struct.pack(str(len(wn))+"d", *list(wn)))
-    with open('tli_test.dat', 'rb') as tli:
+    with open('outputs/binsearch.dat', 'rb') as tli:
         assert pt.binsearch(tli, wn0, 0, len(wn), upper) == result
 
 
 def test_unpack_string():
     value = 'H2O'
-    with open('delete_me.dat', 'wb') as bfile:
+    with open('outputs/packet.dat', 'wb') as bfile:
         bfile.write(struct.pack('3s', value.encode('utf-8')))
-    with open('delete_me.dat', 'rb') as bfile:
+    with open('outputs/packet.dat', 'rb') as bfile:
         output = pt.unpack(bfile, 3, 's')
     assert output == value
 
 
 def test_unpack_number():
     value = 8
-    with open('delete_me.dat', 'wb') as bfile:
+    with open('outputs/packet.dat', 'wb') as bfile:
         bfile.write(struct.pack('h', value))
-    with open('delete_me.dat', 'rb') as bfile:
+    with open('outputs/packet.dat', 'rb') as bfile:
         output = pt.unpack(bfile, 1, 'h')
     assert output == value
 
 
 def test_unpack_tuple():
     value = np.pi, np.e, np.inf
-    with open('delete_me.dat', 'wb') as bfile:
+    with open('outputs/packet.dat', 'wb') as bfile:
         bfile.write(struct.pack('3f', *value))
-    with open('delete_me.dat', 'rb') as bfile:
+    with open('outputs/packet.dat', 'rb') as bfile:
         output = pt.unpack(bfile, 3, 'f')
     np.testing.assert_allclose(output, value)
 

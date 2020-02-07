@@ -11,21 +11,23 @@ os.chdir(ROOT+'tests')
 
 
 def test_call_from_command_line1():
-    subprocess.call('pbay -c spectrum_transmission_test.cfg'.split())
+    subprocess.call('pbay -c configs/spectrum_transmission_test.cfg'.split())
 
 
 def test_call_from_command_line2():
-    subprocess.call('python pbay -c spectrum_transmission_test.cfg'.split())
+    subprocess.call(
+        'python pbay -c configs/spectrum_transmission_test.cfg'.split())
 
 
 def test_call_from_interpreter():
-    pyrat = pb.run('spectrum_transmission_test.cfg')
+    pyrat = pb.run('configs/spectrum_transmission_test.cfg')
     assert pyrat is not None
 
 
 def test_no_logfile(tmp_path):
     # Run a spectrum:
-    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg')
+    cfg = make_config(tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg')
     pyrat = pb.run(cfg)
     logfile = pyrat.log.logname
 
@@ -43,14 +45,16 @@ def test_no_logfile(tmp_path):
 
 
 def test_mute(tmp_path, capfd):
-    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg')
+    cfg = make_config(tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg')
     pyrat = pb.Pyrat(cfg, mute=True)
     captured = capfd.readouterr()
     assert captured.out == ''
 
 
 def test_get_ec(tmp_path):
-    cfg = make_config(tmp_path, ROOT + 'tests/spectrum_transmission_test.cfg',
+    cfg = make_config(tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
         reset={'csfile': ROOT
                + 'inputs/CIA/CIA_Borysow_H2H2_0060-7000K_0.6-500um.dat'})
     pyrat = pb.run(cfg)
