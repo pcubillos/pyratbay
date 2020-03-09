@@ -5985,3 +5985,9 @@ Added .readthedocs.yml file.
 
 Added MANIFEST.in file.
 
+
+*****  Mon Mar  9 22:25:55 CET 2020  *****
+
+Added sec, min, hour, and day time variables to pyratbay.constants.
+Updated values in units.rst.
+

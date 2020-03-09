@@ -34,6 +34,10 @@ __all__ = [
     'amu',
     'me',
     'kelvin',
+    'sec',
+    'min',
+    'hour',
+    'day',
     'amagat',
     'e',
     'percent',
@@ -119,6 +123,12 @@ me     = sc.m_e * 1e3  # Electron mass
 
 # Temperature to Kelvin degree:
 kelvin = 1.0
+
+# Time to seconds:
+sec = 1.0
+min = 60.0
+hour = 3600.0
+day = 86400.0
 
 # Amagat (Loschmidt number) molecules cm-3:
 amagat = sc.physical_constants[
