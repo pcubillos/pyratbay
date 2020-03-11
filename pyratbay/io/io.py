@@ -9,6 +9,7 @@ __all__ = [
     'write_pf', 'read_pf',
     'write_cs', 'read_cs',
     'read_pt',
+    'export_pandexo',
     ]
 
 import os
@@ -828,4 +829,189 @@ def read_pt(ptfile):
     pressure, temperature = np.loadtxt(ptfile, usecols=(0,1), unpack=True)
     pressure *= pc.bar
     return pressure, temperature
+
+
+def export_pandexo(pyrat, baseline, transit_duration,
+    Vmag=None, Jmag=None, Hmag=None, Kmag=None, metal=0.0,
+    instrument=None, n_transits=1, resolution=None,
+    noise_floor=0.0, sat_level=80.0,
+    save_file=True):
+    """
+    Parameters
+    ----------
+    pyrat: A Pyrat instance
+        Pyrat object from which to extract the system physical properties.
+    baseline: Float or string
+        Total observing time in sec (float) or with given units (string).
+    transit_duration: Float or string
+        Transit/eclipse duration in sec (float) or with given units (string).
+    metal: Float
+        Stellar metallicity as log10(Fe/H).
+    Vmag: Float
+        Stellar magnitude in the Johnson V band.
+        Only one of Vmag, Jmag, Hmag, or Kmag should be defined.
+    Jmag: Float
+        Stellar magnitude in the Johnson J band.
+        Only one of Vmag, Jmag, Hmag, or Kmag should be defined.
+    Hmag: Float
+        Stellar magnitude in the Johnson H band.
+        Only one of Vmag, Jmag, Hmag, or Kmag should be defined.
+    Kmag: Float
+        Stellar magnitude in the Johnson Kband.
+        Only one of Vmag, Jmag, Hmag, or Kmag should be defined.
+    instrument: String or list of strings or dict
+        Observing instrument to simulate.
+        If None, this function returns the input dictionary.
+    n_transits: Integer
+        Number of transits/eclipses.
+    resolution: Float
+        Approximate output spectral sampling R = 0.5*lambda/delta-lambda.
+    sat_level: Float
+        Saturation level in percent of full well.
+    noise_floor: Float or string
+        Noise-floor level in ppm at all wavelengths (if float) or
+        wavelength dependent (if string, filepath).
+    save_file: Bool or string
+        If string, store pandexo output pickle file with this filename.
+        If True, store pandexo output with default name based on
+        the pyrat object's output filename.
+
+    Returns
+    -------
+    pandexo_sim: dict
+        Output from pandexo.engine.justdoit.run_pandexo().
+        Note this dict has R=None, noccultations=1 (as suggested in pandexo).
+    wavelengths: List of 1D float arrays
+        Wavelengths of simulated observed spectra for each instrument.
+        Returned only if instrument is not None.
+    spectra: List of 1D float arrays
+        Simulated observed spectra for each instrument.
+        Returned only if instrument is not None.
+    uncertainties: List of 1D float arrays
+        Uncertainties of simulated observed spectra for each instrument.
+        Returned only if instrument is not None.
+
+    Examples
+    --------
+    >>> import pyratbay as pb
+    >>> import pyratbay.io as io
+
+    >>> pyrat = pb.run('demo_spectrum-transmission.cfg')
+    >>> instrument = 'NIRCam F322W2'
+    >>> #instrument = jdi.load_mode_dict(instrument)
+    >>> baseline = '4.0 hour'
+    >>> transit_duration = '2.0 hour'
+    >>> resolution = 100.0
+    >>> n_transits = 2
+    >>> Jmag = 8.0
+    >>> metal = 0.0
+
+    >>> pandexo_sim, wls, spectra, uncerts = io.export_pandexo(
+    >>>     pyrat, baseline, transit_duration,
+    >>>     n_transits=n_transits,
+    >>>     resolution=resolution,
+    >>>     instrument=instrument,
+    >>>     Jmag=Jmag,
+    >>>     metal=metal)
+    """
+    import pandexo.engine.justdoit as jdi
+    import pandexo.engine.justplotit as jpi
+
+    if isinstance(baseline, str):
+        baseline = pt.get_param(baseline)
+    if isinstance(transit_duration, str):
+        transit_duration = pt.get_param(transit_duration)
+
+    ref_wave = {
+        'Vmag':0.55,
+        'Jmag':1.25,
+        'Hmag':1.6,
+        'Kmag':2.22,
+        }
+    mags = {
+        'Vmag':Vmag,
+        'Jmag':Jmag,
+        'Hmag':Hmag,
+        'Kmag':Kmag,
+        }
+    mag = {key:val for key,val in mags.items() if val is not None}
+    if len(mag) != 1:
+        raise ValueError(
+            f'Exactly one of {list(mags.keys())} should be defined')
+    band_mag, mag = mag.popitem()
+
+    exo_dict = jdi.load_exo_dict()
+
+    exo_dict['observation']['sat_level'] = sat_level
+    exo_dict['observation']['sat_unit'] = '%'
+    exo_dict['observation']['noccultations'] = 1
+    exo_dict['observation']['R'] = None
+
+    exo_dict['planet']['transit_duration'] = transit_duration
+    exo_dict['planet']['td_unit'] = 's'
+    exo_dict['observation']['baseline'] = baseline
+    exo_dict['observation']['baseline_unit'] = 'total'
+    exo_dict['observation']['noise_floor'] = noise_floor
+
+    # Stellar flux from erg s-1 cm-2 cm to erg s-1 cm-2 Hz-1:
+    starflux = {'f':pyrat.spec.starflux/pc.c, 'w':1.0/pyrat.spec.wn}
+    exo_dict['star']['type'] = 'user'
+    exo_dict['star']['starpath'] = starflux
+    exo_dict['star']['w_unit'] = 'cm'
+    exo_dict['star']['f_unit'] = 'erg/cm2/s/Hz'
+    exo_dict['star']['mag'] = mag
+    exo_dict['star']['ref_wave'] = ref_wave[band_mag]
+
+    exo_dict['star']['temp'] = pyrat.phy.tstar
+    exo_dict['star']['metal'] = metal
+    exo_dict['star']['logg'] = np.log10(pyrat.phy.gstar)
+    exo_dict['star']['radius'] = pyrat.phy.rstar/pc.rsun
+    exo_dict['star']['r_unit'] = 'R_sun'
+
+    if pyrat.od.path == 'transit':
+        exo_dict['planet']['f_unit'] = 'rp^2/r*^2'
+        spectrum = pyrat.spec.spectrum
+    elif pyrat.od.path == 'eclipse':
+        exo_dict['planet']['f_unit'] = 'fp/f*'
+        rprs = pyrat.phy.rplanet/pyrat.phy.rstar
+        spectrum = pyrat.spec.spectrum/pyrat.spec.starflux * rprs**2
+
+    exo_dict['planet']['type'] ='user'
+    exo_dict['planet']['exopath'] = {'f':spectrum, 'w':1.0/pyrat.spec.wn}
+    exo_dict['planet']['w_unit'] = 'cm'
+    exo_dict['planet']['radius'] = pyrat.phy.rplanet
+    exo_dict['planet']['r_unit'] = 'cm'
+
+    if instrument is None:
+        return exo_dict
+
+    if isinstance(instrument, str):
+        instrument = [instrument]
+
+    if save_file is True:
+        output_path = os.path.dirname(pyrat.log.logname)
+        output_file = os.path.basename(pyrat.log.logname).replace(
+            '.log', '_pandexo.p')
+    elif isinstance(save_file, str):
+        output_path = os.path.dirname(save_file)
+        output_file = os.path.basename(save_file)
+        save_file = True
+    else:
+        save_file = False
+
+    pandexo_sim = jdi.run_pandexo(
+        exo_dict,
+        instrument,
+        save_file=save_file,
+        output_path=output_path,
+        output_file=output_file,
+        num_cores=pyrat.ncpu)
+
+    wavelengths, spectra, uncerts = jpi.jwst_1d_spec(
+        pandexo_sim,
+        R=resolution,
+        num_tran=n_transits,
+        plot=False)
+
+    return pandexo_sim, wavelengths, spectra, uncerts
 

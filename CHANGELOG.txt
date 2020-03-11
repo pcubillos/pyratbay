@@ -6002,3 +6002,13 @@ No major consequences.
 Added modules used during radiative transfer as underscore modules
 into the main pyratbay package (as under to avoid cluttering).
 
+*****
+
+Implemented io.export_pandexo() function to run pandexo simulations
+from a pyrat object or create a pandexo_dict for it.
+There is no testing so far, since pandexo relies on many dependencies
+that are not easy to get into travis or might not be totally
+compatible with the dependencies of pyratbay.
+
+Bumped Pyrat Bay version to 0.9.0a2.
+
