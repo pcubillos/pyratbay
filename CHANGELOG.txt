@@ -5997,3 +5997,8 @@ Updated values in units.rst.
 Fixed bug in Dalgarno() opacity model for He Rayleigh.
 No major consequences.
 
+*****
+
+Added modules used during radiative transfer as underscore modules
+into the main pyratbay package (as under to avoid cluttering).
+
