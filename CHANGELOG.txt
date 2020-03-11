@@ -5991,3 +5991,9 @@ Added MANIFEST.in file.
 Added sec, min, hour, and day time variables to pyratbay.constants.
 Updated values in units.rst.
 
+
+*****  Mi 11. Mär 14:27:47 CET 2020  *****
+
+Fixed bug in Dalgarno() opacity model for He Rayleigh.
+No major consequences.
+

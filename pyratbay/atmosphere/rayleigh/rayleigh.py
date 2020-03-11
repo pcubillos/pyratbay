@@ -61,7 +61,7 @@ class Dalgarno():
          Wavenumber in cm-1.
       """
       self.ec = self.coef[0]*wn**4 * (1 + self.coef[1]*wn**2 +
-                             self.coef[2]*wn**4/(1 - self.coef[2]*wn**2))**2
+                             self.coef[2]*wn**4/(1 - self.coef[3]*wn**2))**2
 
   def __str__(self):
       fw = pt.Formatted_Write()
