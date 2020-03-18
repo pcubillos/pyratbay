@@ -7,7 +7,7 @@ import scipy.integrate as si
 
 from pyratbay.constants import ROOT
 sys.path.append(ROOT + 'pyratbay/lib')
-import simpson as s
+import _simpson as s
 import trapz   as t
 import cutils  as cu
 import _indices

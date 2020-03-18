@@ -6039,3 +6039,7 @@ Renamed src_c/extcoeff.c to src_c/_extcoeff.c.
 
 PEP8ed src_c/_extcoeff.c.
 
+*****
+
+Renamed and PEP8ed src_c/_simpson.c.
+

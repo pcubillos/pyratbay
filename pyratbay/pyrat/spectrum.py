@@ -10,7 +10,7 @@ from .. import constants as pc
 from .. import io as io
 
 sys.path.append(pc.ROOT + 'pyratbay/lib/')
-import simpson as s
+import _simpson as s
 import trapz   as t
 
 
