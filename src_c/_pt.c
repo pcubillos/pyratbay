@@ -1,5 +1,5 @@
-// Copyright (c) 2016-2019 Patricio Cubillos and contributors.
-// Pyrat Bay is currently proprietary software (see LICENSE).
+// Copyright (c) 2016-2020 Patricio Cubillos.
+// Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 #include <Python.h>
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
@@ -10,7 +10,7 @@
 
 double
 xi(double gamma, double tau){
-  return 2.0/3.0 * ( (1/gamma) * (1 + (0.5*gamma*tau-1) * exp(-gamma*tau))   +
+    return 2.0/3.0 * ( (1/gamma) * (1 + (0.5*gamma*tau-1) * exp(-gamma*tau)) +
                      gamma * (1 - 0.5*pow(tau,2)) * expn(2, gamma*tau) + 1.0 );
 }
 
@@ -32,17 +32,17 @@ params: 1D float ndarray                                             \n\
                   redistribution (on the order of unity)             \n\
                                                                      \n\
 pressure: 1D float ndarray                                           \n\
-   Array of pressure values (in barye).                              \n\
+    Array of pressure values (in barye).                             \n\
 R_star: Float                                                        \n\
-   Stellar radius (in cm).                                           \n\
+    Stellar radius (in cm).                                          \n\
 T_star: Float                                                        \n\
-   Stellar effective temperature (in Kelvin degrees).                \n\
-T_int:  Float                                                        \n\
-   Planetary internal heat flux (in Kelvin degrees).                 \n\
-sma:    Float                                                        \n\
-   Semi-major axis (in cm).                                          \n\
-grav:   Float                                                        \n\
-   Planetary surface gravity (in cm s-2).                            \n\
+    Stellar effective temperature (in Kelvin degrees).               \n\
+T_int: Float                                                         \n\
+    Planetary internal heat flux (in Kelvin degrees).                \n\
+sma: Float                                                           \n\
+    Semi-major axis (in cm).                                         \n\
+grav: Float                                                          \n\
+    Planetary surface gravity (in cm s-2).                           \n\
                                                             \n\
 Returns                                                     \n\
 -------                                                     \n\
@@ -90,45 +90,46 @@ Madison Stemm      astromaddie@gmail.com                    \n\
 Patricio Cubillos  pcubillos@fulbrightmail.org");
 
 static PyObject *TCEA(PyObject *self, PyObject *args){
-  PyArrayObject *freepars, *pressure, *temperature;
-  double Rstar, Tstar, Tint, sma, grav,
-         kappa, gamma1, gamma2, alpha, beta, tau, Tirr, xi1, xi2;
-  int i, nlayers;     /* Auxilliary for-loop indices                        */
-  npy_intp size[1];
+    PyArrayObject *freepars, *pressure, *temperature;
+    double Rstar, Tstar, Tint, sma, grav,
+        kappa, gamma1, gamma2, alpha, beta, tau, Tirr, xi1, xi2;
+    int i, nlayers;
+    npy_intp size[1];
 
-  /* Load inputs:                                                           */
-  if (!PyArg_ParseTuple(args, "OOddddd", &freepars, &pressure,
-                                         &Rstar, &Tstar, &Tint, &sma, &grav))
-    return NULL;
+    /* Load inputs: */
+    if (!PyArg_ParseTuple(args, "OOddddd",
+            &freepars, &pressure, &Rstar, &Tstar, &Tint, &sma, &grav))
+        return NULL;
 
-  /* Get array size:                                                        */
-  size[0] = nlayers = (int)PyArray_DIM(pressure, 0);
+    /* Get array size: */
+    size[0] = nlayers = (int)PyArray_DIM(pressure, 0);
 
-  /* Allocate output:                                                       */
-  temperature = (PyArrayObject *) PyArray_SimpleNew(1, size, NPY_DOUBLE);
+    /* Allocate output: */
+    temperature = (PyArrayObject *) PyArray_SimpleNew(1, size, NPY_DOUBLE);
 
-  /* Unpack the model parameters:                                           */
-  kappa  = pow(10.0, INDd(freepars, 0));
-  gamma1 = pow(10.0, INDd(freepars, 1));
-  gamma2 = pow(10.0, INDd(freepars, 2));
-  alpha  = INDd(freepars, 3);
-  beta   = INDd(freepars, 4);
+    /* Unpack the model parameters: */
+    kappa  = pow(10.0, INDd(freepars, 0));
+    gamma1 = pow(10.0, INDd(freepars, 1));
+    gamma2 = pow(10.0, INDd(freepars, 2));
+    alpha  = INDd(freepars, 3);
+    beta   = INDd(freepars, 4);
 
-  /* Stellar input temperature (at top of atmosphere):                      */
-  Tirr = beta * sqrt(Rstar / (2.0*sma)) * Tstar;
+    /* Stellar input temperature (at top of atmosphere): */
+    Tirr = beta * sqrt(Rstar / (2.0*sma)) * Tstar;
 
-  /* Gray IR optical depth:                                                 */
-  for (i=0; i<nlayers; i++){
-    tau = kappa * INDd(pressure,i) / grav;
-    xi1 = xi(gamma1, tau);
-    xi2 = xi(gamma2, tau);
+    /* Gray IR optical depth: */
+    for (i=0; i<nlayers; i++){
+        tau = kappa * INDd(pressure,i) / grav;
+        xi1 = xi(gamma1, tau);
+        xi2 = xi(gamma2, tau);
 
-    INDd(temperature,i) = pow(0.75 * (pow(Tint,4) * (2.0/3.0 + tau) +
-                                      pow(Tirr,4) * (1-alpha) * xi1 +
-                                      pow(Tirr,4) *    alpha  * xi2 ), 0.25);
-  }
+        INDd(temperature,i) = pow(
+            0.75 * (pow(Tint,4) * (2.0/3.0 + tau) +
+                    pow(Tirr,4) * (1-alpha) * xi1 +
+                    pow(Tirr,4) *    alpha  * xi2 ), 0.25);
+    }
 
-  return Py_BuildValue("N", temperature);
+    return Py_BuildValue("N", temperature);
 }
 
 
@@ -138,42 +139,39 @@ PyDoc_STRVAR(isothermal__doc__,
 Inputs                                      \n\
 ------                                      \n\
 T0: 1D float array                          \n\
-   Atmospheric temperature (in Kelvin).     \n\
+    Atmospheric temperature (in Kelvin).    \n\
 nlayers: integer                            \n\
-   Number of atmospheric layers.            \n\
+    Number of atmospheric layers.           \n\
                                             \n\
 Returns                                     \n\
 -------                                     \n\
 T: 1D float ndarray                         \n\
-   Temperature profile.");
+    Temperature profile.");
 
 static PyObject *isothermal(PyObject *self, PyObject *args){
-  PyArrayObject *T0, *temperature;
-  int i, nlayers;     /* Auxilliary for-loop indices                        */
-  npy_intp size[1];
+    PyArrayObject *T0, *temperature;
+    int i, nlayers;
+    npy_intp size[1];
 
-  /* Load inputs:                                                           */
-  if (!PyArg_ParseTuple(args, "Oi", &T0, &nlayers))
-    return NULL;
+    /* Load inputs: */
+    if (!PyArg_ParseTuple(args, "Oi", &T0, &nlayers))
+      return NULL;
 
-  /* Get array size:                                                        */
-  size[0] = nlayers;
-
-  /* Allocate output:                                                       */
-  temperature = (PyArrayObject *) PyArray_SimpleNew(1, size, NPY_DOUBLE);
-  /* Set isothermal temperature:                                            */
-  for (i=0; i<nlayers; i++){
-    INDd(temperature,i) = INDd(T0,0);
-  }
-  return Py_BuildValue("N", temperature);
+    size[0] = nlayers;
+    temperature = (PyArrayObject *) PyArray_SimpleNew(1, size, NPY_DOUBLE);
+    /* Set isothermal temperature: */
+    for (i=0; i<nlayers; i++){
+        INDd(temperature,i) = INDd(T0,0);
+    }
+    return Py_BuildValue("N", temperature);
 }
 
 
-/* The module doc string                                                    */
+/* The module doc string */
 PyDoc_STRVAR(pt__doc__,
-  "Python wrapper for the temperature-profile models.");
+    "Python wrapper for the temperature-profile models.");
 
-/* A list of all the methods defined by this module.                        */
+/* A list of all the methods defined by this module. */
 static PyMethodDef pt_methods[] = {
     {"TCEA",       TCEA,       METH_VARARGS, TCEA__doc__},
     {"isothermal", isothermal, METH_VARARGS, isothermal__doc__},
@@ -181,29 +179,19 @@ static PyMethodDef pt_methods[] = {
 };
 
 
-#if PY_MAJOR_VERSION >= 3
-/* Module definition for Python 3.                                          */
+/* Module definition for Python 3. */
 static struct PyModuleDef moduledef = {
     PyModuleDef_HEAD_INIT,
-    "pt",
+    "_pt",
     pt__doc__,
     -1,
     pt_methods
 };
 
-/* When Python 3 imports a C module named 'X' it loads the module           */
-/* then looks for a method named "PyInit_"+X and calls it.                  */
-PyObject *PyInit_pt (void) {
-  PyObject *module = PyModule_Create(&moduledef);
-  import_array();
-  return module;
+/* When Python 3 imports a C module named 'X' it loads the module */
+/* then looks for a method named "PyInit_"+X and calls it.        */
+PyObject *PyInit__pt (void) {
+    PyObject *module = PyModule_Create(&moduledef);
+    import_array();
+    return module;
 }
-
-#else
-/* When Python 2 imports a C module named 'X' it loads the module           */
-/* then looks for a method named "init"+X and calls it.                     */
-void initpt(void){
-  Py_InitModule3("pt", pt_methods, pt__doc__);
-  import_array();
-}
-#endif

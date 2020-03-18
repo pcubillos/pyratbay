@@ -16,7 +16,7 @@ from ... import tools     as pt
 from ... import constants as pc
 
 sys.path.append(pc.ROOT + 'pyratbay/lib/')
-import pt as PT
+import _pt as PT
 
 
 class Isothermal(object):

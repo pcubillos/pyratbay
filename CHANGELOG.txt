@@ -6043,3 +6043,6 @@ PEP8ed src_c/_extcoeff.c.
 
 Renamed and PEP8ed src_c/_simpson.c.
 
+*****
+
+Renamed and PEP8ed src_c/_pt.c.

@@ -239,7 +239,7 @@ static struct PyModuleDef moduledef = {
 /* When Python 3 imports a C module named 'X' it loads the module */
 /* then looks for a method named "PyInit_"+X and calls it.        */
 PyObject *PyInit__simpson (void) {
-  PyObject *module = PyModule_Create(&moduledef);
-  import_array();
-  return module;
+    PyObject *module = PyModule_Create(&moduledef);
+    import_array();
+    return module;
 }
