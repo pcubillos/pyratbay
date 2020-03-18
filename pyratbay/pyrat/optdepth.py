@@ -11,7 +11,7 @@ from .  import extinction as ex
 from .. import constants  as pc
 
 sys.path.append(pc.ROOT + 'pyratbay/lib/')
-import extcoeff as ec
+import _extcoeff as ec
 import cutils   as cu
 import trapz    as t
 
@@ -40,9 +40,10 @@ def opticaldepth(pyrat):
   if pyrat.ex.extfile is not None:
       r = rtop
       while r < pyrat.atm.nlayers:
-          ec.interp_ec(pyrat.ex.ec[r],
-                       pyrat.ex.etable[:,:,r,:], pyrat.ex.temp, pyrat.ex.molID,
-                       pyrat.atm.temp[r], pyrat.atm.d[r], pyrat.mol.ID)
+          ec.interp_ec(
+              pyrat.ex.ec[r], pyrat.ex.etable[:,:,r,:],
+              pyrat.ex.temp, pyrat.ex.molID,
+              pyrat.atm.temp[r], pyrat.atm.d[r], pyrat.mol.ID)
           r += 1
 
   # Calculate the extinction coefficient on the spot:

@@ -14,7 +14,7 @@ from .. import constants as pc
 from .. import io        as io
 
 sys.path.append(pc.ROOT + "pyratbay/lib/")
-import extcoeff as ec
+import _extcoeff as ec
 
 
 def exttable(pyrat):
