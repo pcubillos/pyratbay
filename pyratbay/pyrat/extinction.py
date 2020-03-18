@@ -289,7 +289,7 @@ def extinction(pyrat, indices, grid=False, add=False):
           pyrat.iso.imol, pyrat.iso.mass, pyrat.iso.ratio,
           ziso, pyrat.iso.iext,
           pyrat.lt.wn, pyrat.lt.elow, pyrat.lt.gf, pyrat.lt.isoid,
-          pyrat.ex.ethresh, pressure, temp,
+          pyrat.voigt.cutoff, pyrat.ex.ethresh, pressure, temp,
           verb-10, int(add),
           int(pyrat.spec.resolution is not None))
       # Store output:

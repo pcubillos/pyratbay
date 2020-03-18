@@ -91,6 +91,9 @@ def calc_voigt(pyrat):
   for i in range(voigt.nlor):
       # Profile half-width in cm-1:
       pwidth = np.maximum(voigt.doppler, voigt.lorentz[i]) * voigt.extent
+      # Apply fixed cutoff:
+      if voigt.cutoff > 0:
+          pwidth = np.minimum(pwidth, voigt.cutoff)
       # Width in number of spectral samples:
       psize = 2*np.asarray(pwidth/pyrat.spec.ownstep + 0.5, np.int) + 1
       # Clip to max and min values:
@@ -102,8 +105,12 @@ def calc_voigt(pyrat):
       voigt.size[i] = psize//2
   pyrat.log.debug('Voigt half-sizes:\n{}'.format(voigt.size), indent=2)
 
-  pyrat.log.msg('Calculating Voigt profiles with Extent: {:.1f} widths.'.
-      format(voigt.extent), indent=2)
+  cutoff_text = ''
+  if voigt.cutoff > 0:
+      cutoff_text = f'\nand fixed cutoff: {voigt.cutoff} cm-1'
+  pyrat.log.msg(
+      f'Calculating Voigt profiles with max extent: {voigt.extent:.1f} HWHM'
+      f'{cutoff_text}.', indent=2)
   # Allocate profile arrays (concatenated in a 1D array):
   voigt.profile = np.zeros(np.sum(2*voigt.size+1), np.double)
 

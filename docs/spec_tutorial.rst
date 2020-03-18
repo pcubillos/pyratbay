@@ -83,6 +83,8 @@ high-resolution sampling relative to ``wnstep`` (that is, the
 high-resolution sampling rate is ``wnstep/wnosamp``).  Typical values
 for the optical/IR are ``wnstep = 1.0`` and ``wnosamp = 2000``.
 
+.. https://en.wikipedia.org/wiki/Highly_composite_number
+
 
 Alternatively, the user can request a constant-resolution output by
 setting the ``resolution`` key (where the resolution is
@@ -107,10 +109,16 @@ the ranges and number of samples for the Doppler HWHM array (in
 set the ranges and number of samples for the Lorentz HWHM array (in
 |kayser| units).
 
-Finally, the ``vextent`` key sets the Voigt profiles extent from the
-center of the line, in units of HWHM.  Note that there are no known
-physical grounds to set a value for ``vextent``.  Typical (arbitrary)
-values found in the literature are on the order of ~100 HWHM.
+Finally, the ``vextent`` and ``vcutoff`` keys set the Voigt profiles
+extent from the center of the line.  ``vextent`` defines the maximum
+extent in units of HWHM (default is 100 HWHM), whereas ``vcutoff``
+defines the maximum extent in units of |kayser| (default is 25.0 |kayser|).
+For any given profile, the code truncates the line wing at the minimum
+value defined by ``vextent`` and ``vcutoff``.  A ``vcutoff`` value of
+zero results in no cutoff (``vextent`` still applies though).
+Note that there are no known physical grounds that set the extent of a
+line profile.  Typical (arbitrary) values found in the literature are
+on the order of ~100 HWHM and 25 |kayser|.
 
 The range of HWHM values can vary strongly with pressure, temperature,
 or wavelength, in particular the Lorentz HWHM as it is inversely

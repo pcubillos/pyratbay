@@ -410,6 +410,7 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
       parse_float(args, 'ethresh')
       # Voigt-profile options:
       parse_float(args, 'vextent')
+      parse_float(args, 'vcutoff')
       parse_float(args, 'dmin')
       parse_float(args, 'dmax')
       parse_int(args,   'ndop')
@@ -635,7 +636,10 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
       'Stellar effective temperature (K)', gt=0.0)
 
   pyrat.voigt.extent = args.get_default('vextent',
-      'Voigt profile extent', 20.0, ge=1.0,
+      'Voigt profile extent in HWHM', 20.0, ge=1.0,
+      wflag=(runmode not in ['tli', 'pt', 'atmosphere']))
+  pyrat.voigt.cutoff = args.get_default('vcutoff',
+      'Voigt profile cutoff in cm-1', 25.0, ge=0.0,
       wflag=(runmode not in ['tli', 'pt', 'atmosphere']))
   pyrat.voigt.ndop = args.get_default('ndop',
       'Number of Doppler-width samples', 40, ge=1)

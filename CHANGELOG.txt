@@ -6012,3 +6012,16 @@ compatible with the dependencies of pyratbay.
 
 Bumped Pyrat Bay version to 0.9.0a2.
 
+
+*****  Wed Mar 18 15:57:07 CET 2020  *****
+
+Implemented Voigt wing cutoff at fixed value (in cm-1).
+This applies when creating the Voigt profiles grid, but it also
+can be modified when computing the extinction coefficient (though
+if so, the cutoff has to be smaller than the input value, duh).
+Set default to 25 cm-1 (typically used in the literature).
+Thus, the code truncates each profile at the minimum value between
+the vextent (in HWHM) and the vcutoff (in cm-1) values.
+A vcutoff value of 0.0 results in no fixed cutoff.
+Updated documentation.
+

@@ -176,13 +176,11 @@ interactive mode, I suggest starting the session with ``ipython
 
 .. code-block:: python
 
-  import sys
   import matplotlib
   from scipy.ndimage.filters import gaussian_filter1d as gaussf
   import matplotlib.pyplot as plt
   plt.ion()
 
-  sys.path.append("../pyratbay/")
   import pyratbay as pb
   import pyratbay.io as io
 

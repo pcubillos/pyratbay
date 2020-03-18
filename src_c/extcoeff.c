@@ -1,5 +1,5 @@
-// Copyright (c) 2016-2019 Patricio Cubillos and contributors.
-// Pyrat Bay is currently proprietary software (see LICENSE).
+// Copyright (c) 2016-2020 Patricio Cubillos.
+// Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 #include <Python.h>
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
@@ -10,6 +10,7 @@
 #include "ind.h"
 #include "constants.h"
 #include "utils.h"
+
 
 PyDoc_STRVAR(extinction__doc__,
 "Calculate the extinction-coefficient for each molecule, at      \n\
@@ -61,6 +62,8 @@ gf: 1D Float ndarray                                             \n\
    Line-transition oscillator strength.                          \n\
 lID: 1D integer ndarray                                          \n\
    Line-transition isotope ID.                                   \n\
+cutoff: Float                                                    \n\
+   Voigt profile cutoff (cm-1).                                  \n\
 ethresh: Float                                                   \n\
    Extinction-coefficient threshold factor.                      \n\
 pressure: Float                                                  \n\
@@ -101,22 +104,24 @@ static PyObject *extinction(PyObject *self, PyObject *args){
       imol, ofactor, iprof,
       nadd=0, nskip=0, neval=0,
       verb, add=0, resolution;
+  int mincut, maxcut;
   int i, j, m, ln; /* Auxilliary for-loop indices    */
   long jj;
-  double pressure, temp, csdiameter, density, minwidth=1e5, vwidth, ethresh,
-         florentz, fdoppler, wnstep, ownstep, dwnstep, wavn, next_wn, k;
+  double pressure, temp, csdiameter, density, minwidth=1e5, vwidth,
+      cutoff, ethresh, florentz, fdoppler, wnstep, ownstep, dwnstep,
+      wavn, next_wn, k;
   double *alphal, *alphad, *kmax, **ktmp, *kprop;
   int *idop, *ilor;
 
   /* Load inputs:                                                           */
-  if (!PyArg_ParseTuple(args, "OOOOOOOOOOOOOOOOOOOOOOdddi|ii",
+  if (!PyArg_ParseTuple(args, "OOOOOOOOOOOOOOOOOOOOOOddddi|ii",
                               &ext,
                               &profile, &psize, &pindex, &lorentz, &doppler,
                               &wn, &own, &divisors,
                               &moldensity, &molq, &molrad, &molmass,
                               &isoimol, &isomass, &isoratio, &isoz, &isoiext,
                               &lwn, &elow, &gf, &lID,
-                              &ethresh, &pressure, &temp,
+                              &cutoff, &ethresh, &pressure, &temp,
                               &verb, &add, &resolution))
     return NULL;
 
@@ -263,10 +268,6 @@ static PyObject *extinction(PyObject *self, PyObject *args){
         break;
     }
 
-    /* Estimate the line-transition width:                                  */
-    vwidth = 0.5346*alphal[i] + sqrt(pow(alphal[i], 2.0)*0.2166 +
-                                     pow(alphad[i]*wavn, 2.0));
-
     /* Skip weakly contributing lines:                                      */
     if (k < ethresh * kmax[m]){
       nskip++;
@@ -296,6 +297,14 @@ static PyObject *extinction(PyObject *self, PyObject *args){
       minj = 0;
     if (maxj > dnwn)
       maxj = dnwn;
+
+    /* Fixed Voigt cutoff: */
+    if (cutoff>0.0){
+        mincut = (int)(idwn - cutoff/dwnstep);
+        if (mincut > minj) minj = mincut;
+        maxcut = (int)(idwn + cutoff/dwnstep);
+        if (maxcut < maxj) maxj = maxcut;
+    }
 
     /* Add the contribution from this line to the opacity spectrum:         */
     iprof = IND2i(pindex, ilor[i], idop[i]);

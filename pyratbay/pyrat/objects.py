@@ -329,6 +329,7 @@ class Voigt(object):
       self.lorentz  = None  # Lorentz-width sample array [nlor]
       self.dlratio  = None  # Doppler-Lorentz ratio threshold
       self.extent   = None  # Extent covered by the profile (in number of HWHM)
+      self.cutoff   = None  # Max cutoff extent (in cm-1)
       self.profile  = None  # Voigt profile [sum(2*size+1)]
       self.size     = None  # Profile wavenumber half-size [ndop, nlor]
       self.index    = None  # Index where each profile starts [ndop, nlor]
@@ -344,6 +345,8 @@ class Voigt(object):
           self.dlratio)
       fw.write("\nVoigt-profiles' extent (extent, in HWHMs): {:.1f}",
           self.extent)
+      fw.write("\nVoigt-profiles' cutoff extent (cutoff in cm-1): {:.1f}",
+          self.cutoff)
       fw.write('Voigt-profile half-sizes (size) of shape [ndop, nlor]:\n{}',
           self.size, edge=2)
       fw.write('Voigt-profile indices (index) of shape [ndop, nlor]:\n{}',
