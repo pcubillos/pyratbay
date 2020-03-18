@@ -345,7 +345,7 @@ class Voigt(object):
           self.dlratio)
       fw.write("\nVoigt-profiles' extent (extent, in HWHMs): {:.1f}",
           self.extent)
-      fw.write("\nVoigt-profiles' cutoff extent (cutoff in cm-1): {:.1f}",
+      fw.write("Voigt-profiles' cutoff extent (cutoff in cm-1): {:.1f}",
           self.cutoff)
       fw.write('Voigt-profile half-sizes (size) of shape [ndop, nlor]:\n{}',
           self.size, edge=2)

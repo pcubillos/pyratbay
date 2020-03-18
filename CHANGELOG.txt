@@ -6025,3 +6025,10 @@ the vextent (in HWHM) and the vcutoff (in cm-1) values.
 A vcutoff value of 0.0 results in no fixed cutoff.
 Updated documentation.
 
+*****
+
+Updated vextent default value from 20.0 to 100.0 HWHM.
+This and the previous commit is expected to change the values of the
+(default) runs.  Updated tests accordingly.
+
+
