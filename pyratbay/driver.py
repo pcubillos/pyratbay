@@ -18,7 +18,7 @@ from .pyrat import Pyrat
 
 
 @pt.ignore_system_exit
-def run(cfile, init=False):
+def run(cfile, init=False, no_logfile=False):
   """
   Pyrat Bay initialization driver.
 
@@ -29,8 +29,11 @@ def run(cfile, init=False):
   init: Bool
       If True, only initialize a Pyrat object (no spectra calculation).
       This is useful when computing spectra interactively.
+  no_logfile: Bool
+      If True, enforce not to write outputs to a log file
+      (e.g., to prevent overwritting log of a previous run).
   """
-  pyrat = Pyrat(cfile)
+  pyrat = Pyrat(cfile, no_logfile=no_logfile)
   log = pyrat.log
   phy = pyrat.phy
   atm = pyrat.atm

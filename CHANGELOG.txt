@@ -6046,3 +6046,9 @@ Renamed and PEP8ed src_c/_simpson.c.
 *****
 
 Renamed and PEP8ed src_c/_pt.c.
+
+
+*****  Thu Apr 2 09:22:00 CEST 2020  *****
+
+Enabled no_logfile argument in pb.run() to prevent writting to log.
+
