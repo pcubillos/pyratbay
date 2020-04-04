@@ -83,12 +83,12 @@ def read_atm(pyrat):
 
 def get_constants(pyrat):
   """
-  Set molecules constant values (ID, mass, radius).
+  Set molecules constant values (mass, radius).
   """
   # Read file with molecular info:
   pyrat.log.msg("Taking species constant parameters from: '{:s}'.".
                 format(pyrat.mol.molfile), indent=2)
-  molID, symbol, mass, diam = pa.readmol(pyrat.mol.molfile)
+  symbol, mass, diam = io.read_molecs(pyrat.mol.molfile)
 
   # Check that all atmospheric species are listed in molfile:
   absent = np.setdiff1d(pyrat.mol.name, symbol)
@@ -97,24 +97,23 @@ def get_constants(pyrat):
           "info file: {:s}.\n".format(str(absent), pyrat.mol.molfile))
 
   # Set molecule's values:
-  pyrat.mol.ID     = np.zeros(pyrat.mol.nmol, np.int)
-  pyrat.mol.symbol = np.zeros(pyrat.mol.nmol, 'U15')
+  pyrat.mol.symbol = np.zeros(pyrat.mol.nmol, 'U20')
   pyrat.mol.mass   = np.zeros(pyrat.mol.nmol)
   pyrat.mol.radius = np.zeros(pyrat.mol.nmol)
 
-  pyrat.log.msg('Molecule   ID   Radius  Mass\n'
-                '                (A)     (gr/mol)', indent=4)
+  pyrat.log.msg('Molecule   Radius  Mass\n'
+                '           (A)     (gr/mol)', indent=4)
   for i in range(pyrat.mol.nmol):
       # Find the molecule in the list:
       imol = np.where(symbol == pyrat.mol.name[i])[0]
-      # Set molecule ID, name, mass, and collision radius:
-      pyrat.mol.ID[i]     = molID [imol]
+      # Set molecule name, mass, and collision radius:
       pyrat.mol.symbol[i] = symbol[imol][0]
       pyrat.mol.mass[i]   = mass  [imol]
       pyrat.mol.radius[i] = 0.5*diam[imol] * pc.A
-      pyrat.log.msg("{:>10s}:  {:3d}  {:.3f}  {:8.4f}".format(pyrat.mol.name[i],
-                    pyrat.mol.ID[i], pyrat.mol.radius[i]/pc.A,
-                    pyrat.mol.mass[i]), indent=2)
+      pyrat.log.msg(
+          f"{pyrat.mol.name[i]:>10s}:  "
+          f"{pyrat.mol.radius[i]/pc.A:.3f}  "
+          f"{pyrat.mol.mass[i]:8.4f}", indent=2)
 
 
 def reloadatm(pyrat, temp=None, abund=None, radius=None):

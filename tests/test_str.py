@@ -199,16 +199,16 @@ Density profiles (d, molecules cm-3):
 Atmospheric species information:
 Number of species (nmol): 7
 
-Molecule    ID   Mass      Radius
-                 g/mol     Angstrom
-(name)     (ID)  (mass)    (radius)
-  H2       105    2.0159   1.445
-  He         2    4.0026   1.400
-  Na        11   22.9898   2.270
-  H2O      101   18.0153   1.600
-  CH4      102   16.0425   2.000
-  CO       103   28.0101   1.690
-  CO2      104   44.0095   1.900
+Molecule    Mass       Radius
+            g/mol      Angstrom
+(name)      (mass)     (radius)
+  H2          2.0159       1.445
+  He          4.0026       1.400
+  Na         22.9898       2.270
+  H2O        18.0153       1.600
+  CH4        16.0425       2.000
+  CO         28.0101       1.690
+  CO2        44.0095       1.900
 Molecular data taken from (molfile):
     '{:s}/molecules.dat'
 """.format(os.path.realpath('./../inputs'))
@@ -654,17 +654,17 @@ LBL extinction coefficient for the atmospheric model (ec, cm-1) [layer, wave]:
  [7.37e-07 9.49e-07 1.07e-06 ... 2.66e-06 2.31e-06 1.91e-06]
  [9.27e-07 1.19e-06 1.34e-06 ... 3.35e-06 2.90e-06 2.41e-06]]
 Extinction-coefficient table filename(s) (extfile):
-    {:s}/outputs/exttable_test_300-3000K_1.1-1.7um.dat
+    {:s}/outputs/exttable_test_300-3000K_1.1-1.7um.npz
 Minimum temperature (tmin, K):  300.0
 Maximum temperature (tmax, K): 3000.0
 Temperature sampling interval (tstep, K): None
 
-Number of species (nmol):               1
+Number of species (nspec):              1
 Number of temperatures (ntemp):        10
 Number of layers (nlayers):            81
 Number of spectral samples (nwave):  3209
 
-Species ID array (molID): [101]
+Species array (species): ['H2O']
 Temperature array (temp, K):
    [ 300.  600.  900. 1200. 1500. 1800. 2100. 2400. 2700. 3000.]
 Partition function (z): None

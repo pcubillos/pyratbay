@@ -3,7 +3,7 @@
 
 __all__ = [
     'makeatomic',
-    'readatomic', 'makepreatm', 'TEA2pyrat', 'readmol',
+    'readatomic', 'makepreatm', 'TEA2pyrat',
     'pressure',
     'temperature',
     'uniform', 'abundances',
@@ -755,61 +755,6 @@ def stoich(species):
   return elements, stoich
 
 
-def readmol(file):
-  """
-  Read a molecules file to extract their ID, symbol, mass, and diameter.
-
-  Parameters
-  ----------
-  file: String
-     The molecule file path.
-
-  Returns
-  -------
-  molID: 1D integer ndarray
-     The molecules' ID.
-  symbol: 1D string ndarray
-     The molecule's name.
-  mass: 1D float ndarray
-     The mass of the molecules (in g mol-1).
-  diam: 1D float ndarray
-     The collisional diameter of the molecules (in Angstrom).
-
-  Notes
-  -----
-  In all truthfulness, these are species, not only molecules, as the
-  file also contain elemental particles.
-  """
-  with open(file, 'r') as molfile:
-      # Skip comment and blank lines:
-      line = molfile.readline().strip()
-      while line == '' or line.startswith('#'):
-          line = molfile.readline().strip()
-
-      # Allocate outputs:
-      molID  = [] # Molecule ID
-      symbol = [] # Molecule symbol
-      mass   = [] # Molecule mass
-      diam   = [] # Molecule diameter
-
-      # Read in values:
-      while line != '' and not line.startswith('#'):  # Start reading species
-          molinfo = line.split()
-          # Extract info:
-          molID .append(  int(molinfo[0]))
-          symbol.append(      molinfo[1] )
-          mass  .append(float(molinfo[2]))
-          diam  .append(float(molinfo[3]))
-          line = molfile.readline().strip()  # Read next line
-
-  molID  = np.asarray(molID)
-  symbol = np.asarray(symbol)
-  mass   = np.asarray(mass)
-  diam   = np.asarray(diam)
-
-  return molID, symbol, mass, diam
-
-
 def meanweight(abundances, species, molfile=pc.ROOT+'inputs/molecules.dat'):
   """
   Calculate the mean molecular weight (a.k.a. mean molecular mass)
@@ -838,8 +783,8 @@ def meanweight(abundances, species, molfile=pc.ROOT+'inputs/molecules.dat'):
   >>> print(mu)
   [2.31928918]
   """
-  molID, symbol, mass, diam = readmol(molfile)
-  molmass = np.array([mass[symbol==spec][0] for spec in species])
+  spec_names, mass, diam = io.read_molecs(molfile)
+  molmass = np.array([mass[spec_names==spec][0] for spec in species])
   return np.sum(np.atleast_2d(abundances)*molmass, axis=1)
 
 

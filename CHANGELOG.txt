@@ -6052,3 +6052,19 @@ Renamed and PEP8ed src_c/_pt.c.
 
 Enabled no_logfile argument in pb.run() to prevent writting to log.
 
+
+*****  Sat Apr 4 14:13:57 CEST 2020  *****
+
+Removed molID from molecules.dat and pyrat object.
+(Not really needed).
+Moved pa.readmol() to io.read_molecs().  Removed no-longer-existing
+molID from output.
+Revamped io.write_opacity() and io.read_opacity() to save to npz file
+insted of binary IO.  This is way faster to handle.  Store species
+names instead of ID.
+Renamed pyrat.ex.nmol to pyrat.ex.nspec.
+Replaced pyrat.ex.molID (ints) with pyrat.ex.species (strings).
+Removed pyrat.mol.ID.
+Refactored _extcoeff.interp_ec() removing mtable and molID arguments,
+requiring that input densities correspond to those in the opacity grid.
+Updated tests, examples, and docs.

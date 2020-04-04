@@ -23,11 +23,11 @@ def exttable(pyrat):
   """
   # ID list of species with isotopes:
   if np.size(np.where(pyrat.iso.imol>=0)[0]) == 0:
-      pyrat.ex.nmol = 0
+      pyrat.ex.nspec = 0
   else:
       imols = pyrat.iso.imol[np.where(pyrat.iso.imol>=0)]
-      pyrat.ex.molID = pyrat.mol.ID[np.unique(imols)]
-      pyrat.ex.nmol  = len(pyrat.ex.molID)
+      pyrat.ex.species = pyrat.mol.name[np.unique(imols)]
+      pyrat.ex.nspec = len(pyrat.ex.species)
 
   # If the extinction file was not defined, skip this step:
   if pyrat.ex.extfile is None:
@@ -52,21 +52,21 @@ def read_extinction(pyrat):
   Read extinction-coefficient tables from files.
   """
   ex = pyrat.ex
-  ex.molID, ex.etable = [], []
+  ex.species, ex.etable = [], []
 
   for extfile in ex.extfile:
       edata = io.read_opacity(extfile)
       # Array sizes:
-      nmol, ntemp, nlayers, nwave = edata[0]
-      if (ex.ntemp is not None and
+      nspec, ntemp, nlayers, nwave = edata[0]
+      if (ex.ntemp > 0 and
           (ntemp != ex.ntemp or nlayers != ex.nlayers or nwave != ex.nwave)):
           pyrat.log.error("Shape of the extinction-coefficient file '{:s}' "
               "does not match with previous file shapes.".
               format(os.path.basename(extfile)))
       ex.ntemp, ex.nlayers, ex.nwave = ntemp, nlayers, nwave
 
-      # Molecule ID, temperature (K), pressure (barye), and wavenumber (cm-1):
-      molID, temp, press, wn = edata[1]
+      # Species name, temperature (K), pressure (barye), and wavenumber (cm-1):
+      species, temp, press, wn = edata[1]
       if ex.temp is not None and np.any(np.abs(1-temp/ex.temp) > 0.01):
           pyrat.log.error("Tabulated temperature array of file '{:s}' "
               "does not match with the previous temperature arrays.".
@@ -80,19 +80,20 @@ def read_extinction(pyrat):
               "does not match with the previous wavelength arrays.".
               format(os.path.basename(extfile)))
       ex.temp, ex.press, ex.wn = temp, press, wn
-      ex.molID += list(molID)
+      ex.species += list(species)
       # Extinction-coefficient table (cm2 molecule-1):
       ex.etable.append(edata[2])
 
-  ex.molID = np.array(ex.molID)
-  ex.nmol = len(ex.molID)
+  ex.species = np.array(ex.species)
+  ex.nspec = len(ex.species)
   ex.etable = np.vstack(ex.etable)
   if np.ndim(ex.etable) == 3:
       ex.etable = np.expand_dims(ex.etable, axis=0)
 
-  pyrat.log.msg("File(s) have {:d} molecules, {:d} temperature samples, "
-                "{:d} layers, and {:d} wavenumber samples.".format(ex.nmol,
-                ex.ntemp, ex.nlayers, ex.nwave), indent=2)
+  pyrat.log.msg(
+      f"File(s) have {ex.nspec} molecules, {ex.ntemp} "
+      f"temperature samples, {ex.nlayers} layers, and {ex.nwave} "
+       "wavenumber samples.", indent=2)
 
   # Set tabulated temperature extrema:
   ex.tmin = np.amin(ex.temp)
@@ -105,11 +106,10 @@ def read_extinction(pyrat):
   with np.printoptions(formatter={'float':'{:.3e}'.format}):
       str_press = str(ex.press/pc.bar)
   pyrat.log.msg(
-      "Molecules' IDs: {}\n"
-      "Temperatures (K):\n   {}\n"
-      "Pressure layers (bar):\n{}\n"
-      "Wavenumber array (cm-1):\n   {}".
-      format(ex.molID, str_temp, str_press, str_wn), indent=2)
+      f"Species names: {ex.species}\n"
+      f"Temperatures (K):\n   {str_temp}\n"
+      f"Pressure layers (bar):\n{str_press}\n"
+      f"Wavenumber array (cm-1):\n   {str_wn}", indent=2)
 
   # New wavelength sampling:
   if ex.nwave != pyrat.spec.nwave or np.sum(np.abs(ex.wn-pyrat.spec.wn)) > 0:
@@ -201,9 +201,9 @@ def calc_extinction(pyrat):
   # Allocate extinction-coefficient array:
   pyrat.log.msg("Calculate extinction coefficient.", indent=2)
   sm_ect = mpr.Array(ctypes.c_double,
-                     np.zeros(ex.nmol*ex.ntemp*ex.nlayers*ex.nwave, np.double))
+      np.zeros(ex.nspec*ex.ntemp*ex.nlayers*ex.nwave, np.double))
   ex.etable = np.ctypeslib.as_array(sm_ect.get_obj()).reshape(
-                             (ex.nmol, ex.ntemp, ex.nlayers, ex.nwave))
+                             (ex.nspec, ex.ntemp, ex.nlayers, ex.nwave))
 
   # Multi-processing extinction calculation (in C):
   processes = []
@@ -217,7 +217,7 @@ def calc_extinction(pyrat):
       proc.join()
 
   # Store values in file:
-  io.write_opacity(ex.extfile[0], ex.molID, ex.temp, ex.press, ex.wn,
+  io.write_opacity(ex.extfile[0], ex.species, ex.temp, ex.press, ex.wn,
                    pyrat.ex.etable)
   pyrat.log.head("Extinction-coefficient table written to file: '{:s}'.".
                 format(ex.extfile[0]), indent=2)
@@ -243,18 +243,18 @@ def extinction(pyrat, indices, grid=False, add=False):
   if add:   # Combined or per-species output
       extinct_coeff = np.zeros((1, pyrat.spec.nwave))
   else:
-      extinct_coeff = np.zeros((pyrat.ex.nmol, pyrat.spec.nwave))
+      extinct_coeff = np.zeros((pyrat.ex.nspec, pyrat.spec.nwave))
 
   if pyrat.iso.iext is None:
-      # Get species indices in extinction-coefficient table for the isotopes:
+      # Get species indices in opacity table for the isotopes:
       pyrat.iso.iext = np.zeros(pyrat.iso.niso, np.int)
       for i in np.arange(pyrat.iso.niso):
-        if pyrat.iso.imol[i] != -1:
-            pyrat.iso.iext[i] = np.where(pyrat.ex.molID ==
-                                     pyrat.mol.ID[pyrat.iso.imol[i]])[0][0]
-        else:
-            pyrat.iso.iext[i] = -1  # Isotope not in atmosphere
-            # FINDME: find patch for this case in ec.extinction()
+          if pyrat.iso.imol[i] != -1:
+              pyrat.iso.iext[i] = np.where(
+                  pyrat.ex.species == pyrat.mol.name[pyrat.iso.imol[i]])[0][0]
+          else:
+              pyrat.iso.iext[i] = -1  # Isotope not in atmosphere
+              # FINDME: find patch for this case in ec.extinction()
 
   # Turn off verb of all processes except the first:
   verb = pyrat.log.verb
@@ -307,14 +307,14 @@ def get_ec(pyrat, layer):
   """
   # Interpolate:
   if pyrat.ex.extfile is not None:
-      exc    = np.zeros((pyrat.ex.nmol, pyrat.spec.nwave))
+      exc    = np.zeros((pyrat.ex.nspec, pyrat.spec.nwave))
       label  = []
       temp   = pyrat.atm.temp[layer]
       itemp  = np.where(pyrat.ex.temp <= temp)[0][-1]
       if itemp == len(pyrat.ex.temp):
           itemp -= 1
-      for i in np.arange(pyrat.ex.nmol):
-          imol = np.where(pyrat.mol.ID == pyrat.ex.molID[i])[0][0]
+      for i in np.arange(pyrat.ex.nspec):
+          imol = np.where(pyrat.mol.name == pyrat.ex.species[i])[0][0]
           label.append(pyrat.mol.name[imol])
           etable = pyrat.ex.etable[i,:,layer,:]
           exc[i] = ((etable[itemp  ] * (pyrat.ex.temp[itemp+1] - temp) +
@@ -325,8 +325,8 @@ def get_ec(pyrat, layer):
   else:
       exc = extinction(pyrat, [layer], grid=False, add=False)
       label = []
-      for i in np.arange(pyrat.ex.nmol):
-          imol = np.where(pyrat.mol.ID == pyrat.ex.molID[i])[0][0]
+      for i in np.arange(pyrat.ex.nspec):
+          imol = np.where(pyrat.mol.name == pyrat.ex.species[i])[0][0]
           exc[i] *= pyrat.atm.d[layer,imol]
           label.append(pyrat.mol.name[imol])
   return exc, label

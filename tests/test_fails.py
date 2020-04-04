@@ -888,7 +888,7 @@ def test_spectrum_temperature_bounds(tmp_path, capfd, param, invalid_temp):
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         reset={'tmodel':'isothermal', 'tpars':'6000.0',
                'extfile':f'{ROOT}tests/outputs/'
-                          'exttable_test_300-3000K_1.1-1.7um.dat'},
+                          'exttable_test_300-3000K_1.1-1.7um.npz'},
         remove=remove)
     pyrat = pb.run(cfg)
     assert pyrat is not None

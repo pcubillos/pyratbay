@@ -109,7 +109,7 @@ def test_read_spectrum_custom_header(tmpdir, header):
 
 
 def test_read_write_opacity(tmpdir):
-    ofile = "{}/opacity_test.dat".format(tmpdir)
+    ofile = "{}/opacity_test.npz".format(tmpdir)
     molID = np.array([101, 105])
     temp  = np.linspace(300, 3000, 28)
     press = np.logspace(-6, 2, 21)
@@ -285,3 +285,15 @@ def test_read_pt(tmpdir):
     pressure, temperature = io.read_pt(ptf)
     np.testing.assert_allclose(pressure, press*pc.bar,  rtol=1e-7)
     np.testing.assert_allclose(temperature, temp,  rtol=1e-7)
+
+
+def test_read_molecs():
+    names, mass, diam = io.read_molecs(ROOT+'inputs/molecules.dat')
+    assert 'H2O' in names
+    assert 'CH4' in names
+    assert 'CO' in names
+    assert 'CO2' in names
+    assert 'H2' in names
+    np.testing.assert_allclose(mass[names == 'H2O'], 18.01528)
+    np.testing.assert_allclose(diam[names == 'H2'], 2.89)
+

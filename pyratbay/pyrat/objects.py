@@ -197,19 +197,18 @@ class Molecules(object):
       self.symbol = None  # Species' symbol             [nmol]
       self.mass   = None  # Species' mass  (gr/mol)     [nmol]
       self.radius = None  # Species' radius (Angstroms) [nmol]
-      self.ID     = None  # Species' universal ID       [nmol]
 
   def __str__(self):
       fw = pt.Formatted_Write()
       fw.write('Atmospheric species information:')
       fw.write('Number of species (nmol): {:d}\n', self.nmol)
 
-      fw.write('\nMolecule    ID   Mass      Radius\n'
-               '                 g/mol     Angstrom\n'
-               '(name)     (ID)  (mass)    (radius)  ')
+      fw.write('\nMolecule    Mass       Radius\n'
+                 '            g/mol      Angstrom\n'
+                 '(name)      (mass)     (radius)  ')
       for i in range(self.nmol):
-          fw.write('  {:7s}  {:3d}  {:8.4f}   {:.3f}',
-              self.name[i], self.ID[i], self.mass[i], self.radius[i]/pc.A)
+          fw.write('  {:8s}  {:8.4f}  {:10.3f}',
+              self.name[i], self.mass[i], self.radius[i]/pc.A)
       fw.write("Molecular data taken from (molfile): '{}'", self.molfile)
       return fw.text
 
@@ -377,12 +376,11 @@ class Extinction(object):
       self.tstep   = None # Temperature-sample step interval
       self.z       = None # Partition function at tabulated temperatures
                           #   [niso, ntemp]
-      self.nmol    = None # Number of species
-      self.ntemp   = None # Number of temperature samples
-      self.nlayers = None # Number of pressure layers
-      self.nwave   = None # Number of wavenumber spectral samples
+      self.nspec   = 0    # Number of species
+      self.ntemp   = 0    # Number of temperature samples
+      self.nlayers = 0    # Number of pressure layers
+      self.nwave   = 0    # Number of wavenumber spectral samples
 
-      self.molID   = []   # Tabulated species ID
       self.temp    = None # Tabulated temperatures
       self.press   = None # Tabulated pressures
       self.wn      = None # Tabulated wavenumber
@@ -404,11 +402,11 @@ class Extinction(object):
       fw.write('Minimum temperature (tmin, K): {:6.1f}', self.tmin)
       fw.write('Maximum temperature (tmax, K): {:6.1f}', self.tmax)
       fw.write('Temperature sampling interval (tstep, K): {:6.1f}', self.tstep)
-      fw.write('\nNumber of species (nmol):           {:5d}', self.nmol)
+      fw.write('\nNumber of species (nspec):          {:5d}', self.nspec)
       fw.write('Number of temperatures (ntemp):     {:5d}', self.ntemp)
       fw.write('Number of layers (nlayers):         {:5d}', self.nlayers)
       fw.write('Number of spectral samples (nwave): {:5d}', self.nwave)
-      fw.write('\nSpecies ID array (molID): {}', self.molID)
+      fw.write('\nSpecies array (species): {}', self.species)
       fw.write('Temperature array (temp, K):\n   {}', self.temp)
       fw.write('Partition function (z): {}', self.z)
       fw.write('Pressure array (press, bar):\n   {}', self.press/pc.bar,

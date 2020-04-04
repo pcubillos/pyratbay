@@ -360,33 +360,26 @@ etable 1D float ndarray                                    \n\
     Tabulated extinction coefficient [nmol, ntemp, nwave]. \n\
 ttable: 1D float ndarray                                   \n\
     Tabulated temperature array [ntemp].                   \n\
-mtable: 1D float ndarray                                   \n\
-    Tabulated molID of species [nmol].                     \n\
 temperature: Float                                         \n\
     Atmospheric layer temperature.                         \n\
 density: 1D float ndarray                                  \n\
-    Density of species in the atmospheric layer [nmol].    \n\
-molID: 1D integer ndarray                                  \n\
-    Molecular ID of species in the atmosphere [nmol].");
+    Density of etable species in the atmospheric layer [nmol].");
 
 static PyObject *interp_ec(PyObject *self, PyObject *args){
-    PyArrayObject *extinction, *etable, *ttable, *mtable, 
-                  *density, *molID; 
-    int tlo, thi, imol;
-    long nwave, nmol, nmolID, ntemp;
+    PyArrayObject *extinction, *etable, *ttable, *density;
+    int tlo, thi;
+    long nwave, nmol, ntemp;
     int i, j;
     double ext, temperature;
 
     /* Load inputs: */
-    if (!PyArg_ParseTuple(args, "OOOOdOO",
-            &extinction, &etable, &ttable, &mtable,
-            &temperature, &density, &molID))
+    if (!PyArg_ParseTuple(args, "OOOdO",
+            &extinction, &etable, &ttable, &temperature, &density))
         return NULL;
 
-    nmol   = PyArray_DIM(etable, 0);  /* species samples       */
-    ntemp  = PyArray_DIM(etable, 1);  /* temperature samples   */
-    nwave  = PyArray_DIM(etable, 2);  /* spectral samples      */
-    nmolID = PyArray_DIM(molID,  0);  /* species in atmosphere */
+    nmol  = PyArray_DIM(etable, 0);  /* species samples       */
+    ntemp = PyArray_DIM(etable, 1);  /* temperature samples   */
+    nwave = PyArray_DIM(etable, 2);  /* spectral samples      */
 
     /* Find index of grid-temperature immediately lower than temperature: */
     tlo = binsearchapprox(ttable, temperature, 0, (int)ntemp-1);
@@ -397,14 +390,13 @@ static PyObject *interp_ec(PyObject *self, PyObject *args){
 
     /* Add contribution from each molecule: */
     for (j=0; j<nmol; j++){
-        imol = valueinarray(molID, INDi(mtable,j), (int)nmolID);
-        for (i=0;  i<nwave; i++){
+        for (i=0; i<nwave; i++){
             /* Linear interpolation of the extinction coefficient: */
             ext = (IND3d(etable,j,tlo,i) * (INDd(ttable,thi) - temperature) +
                    IND3d(etable,j,thi,i) * (temperature - INDd(ttable,tlo)) ) /
                   (INDd(ttable,thi) - INDd(ttable,tlo));
 
-            INDd(extinction, i) += INDd(density,imol) * ext;
+            INDd(extinction, i) += INDd(density,j) * ext;
         }
     }
 

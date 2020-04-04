@@ -127,7 +127,7 @@ def test_transmission_etable(tmp_path):
     cfg = make_config(tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         remove=['tlifile', 'clouds'],
-        reset={'extfile':f'{OUTPUTS}exttable_test_300-3000K_1.1-1.7um.dat'})
+        reset={'extfile':f'{OUTPUTS}exttable_test_300-3000K_1.1-1.7um.npz'})
     pyrat = pb.run(cfg)
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['etable'],
                                rtol=1e-7)
@@ -158,7 +158,7 @@ def test_transmission_qmass_input():
     # This is the gist of it, prepare a qmass atmospheric file:
     atm = io.read_atm('inputs/atmosphere_uniform_test.atm')
     units, species, press, temp, q = atm
-    molID, symbol, mass, diam = pa.readmol(pc.ROOT+"inputs/molecules.dat")
+    symbol, mass, diam = io.read_molecs(pc.ROOT+"inputs/molecules.dat")
     mm = pa.meanweight(q, species)
     qmass = qprofiles * molmass / mm
     io.write_atm(atmfile)
@@ -289,20 +289,20 @@ def test_multiple_opacities(tmp_path):
     cfg = make_config(tmp_path,
         f'{ROOT}tests/configs/opacity_multiple.cfg',
         reset={'tlifile':f'{OUTPUTS}HITRAN_CO2_1.5-1.6um_test.tli',
-               'extfile':f'{OUTPUTS}exttable_CO2_300-3000K_1.5-1.6um.dat'})
+               'extfile':f'{OUTPUTS}exttable_CO2_300-3000K_1.5-1.6um.npz'})
     pyrat = pb.run(cfg)
     assert pyrat is not None
     cfg = make_config(tmp_path,
         f'{ROOT}tests/configs/opacity_multiple.cfg',
         reset={'tlifile':f'{OUTPUTS}HITRAN_CH4_1.5-1.6um_test.tli',
-               'extfile':f'{OUTPUTS}exttable_CH4_300-3000K_1.5-1.6um.dat'})
+               'extfile':f'{OUTPUTS}exttable_CH4_300-3000K_1.5-1.6um.npz'})
     pyrat = pb.run(cfg)
     assert pyrat is not None
     cfg = make_config(tmp_path,
         f'{ROOT}tests/configs/opacity_multiple.cfg',
         reset={'tlifile':f'{OUTPUTS}HITRAN_CO2_1.5-1.6um_test.tli'
                    f'\n    {OUTPUTS}HITRAN_CH4_1.5-1.6um_test.tli',
-               'extfile':f'{OUTPUTS}exttable_CO2-CH4_300-3000K_1.5-1.6um.dat'})
+               'extfile':f'{OUTPUTS}exttable_CO2-CH4_300-3000K_1.5-1.6um.npz'})
     pyrat = pb.run(cfg)
     assert pyrat is not None
 
@@ -310,16 +310,16 @@ def test_multiple_opacities(tmp_path):
     cfg = make_config(tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         remove=['tlifile', 'clouds'],
-        reset={'extfile':f'{OUTPUTS}exttable_H2O_300-3000K_1.5-1.6um.dat'
-                     f'\n  {OUTPUTS}exttable_CO2_300-3000K_1.5-1.6um.dat'
-                     f'\n  {OUTPUTS}exttable_CH4_300-3000K_1.5-1.6um.dat',
+        reset={'extfile':f'{OUTPUTS}exttable_H2O_300-3000K_1.5-1.6um.npz'
+                     f'\n  {OUTPUTS}exttable_CO2_300-3000K_1.5-1.6um.npz'
+                     f'\n  {OUTPUTS}exttable_CH4_300-3000K_1.5-1.6um.npz',
                'wllow':'1.5 um', 'wlhigh':'1.6 um'})
     pyrat1 = pb.run(cfg)
     cfg = make_config(tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         remove=['tlifile', 'clouds'],
-        reset={'extfile':f'{OUTPUTS}exttable_H2O_300-3000K_1.5-1.6um.dat'
-                     f'\n  {OUTPUTS}exttable_CO2-CH4_300-3000K_1.5-1.6um.dat',
+        reset={'extfile':f'{OUTPUTS}exttable_H2O_300-3000K_1.5-1.6um.npz'
+                     f'\n  {OUTPUTS}exttable_CO2-CH4_300-3000K_1.5-1.6um.npz',
                'wllow':'1.5 um', 'wlhigh':'1.6 um'})
     pyrat2 = pb.run(cfg)
     np.testing.assert_allclose(pyrat1.spec.spectrum,
@@ -334,7 +334,7 @@ def test_opacity_reset_wn(tmp_path, wllow, wlhigh):
     cfg = make_config(tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         remove=['tlifile', 'clouds'],
-        reset={'extfile':f'{OUTPUTS}exttable_test_300-3000K_1.1-1.7um.dat',
+        reset={'extfile':f'{OUTPUTS}exttable_test_300-3000K_1.1-1.7um.npz',
                'wllow':wllow, 'wlhigh':wlhigh})
     pyrat = pb.run(cfg)
     wn = np.arange(1/1.7e-4, 1/1.1e-4, 1.0)

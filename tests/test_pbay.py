@@ -345,8 +345,8 @@ def test_opacity_pbay(capfd):
     pyrat = pb.run(ROOT+'tests/configs/opacity_test.cfg')
     captured = capfd.readouterr()
     assert "Extinction-coefficient table written to file:" in captured.out
-    assert "exttable_test_300-3000K_1.1-1.7um.dat'." in captured.out
-    assert "exttable_test_300-3000K_1.1-1.7um.dat" in os.listdir('outputs/')
+    assert "exttable_test_300-3000K_1.1-1.7um.npz'." in captured.out
+    assert "exttable_test_300-3000K_1.1-1.7um.npz" in os.listdir('outputs/')
 
 
 @pytest.mark.skip

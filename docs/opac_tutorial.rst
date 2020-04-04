@@ -21,7 +21,8 @@ Here is an example of an opacity-table configuration file:
 .. literalinclude:: ../examples/tutorial/opacity.cfg
 
 
-The ``exttable`` key sets the name of the opacity table.  The
+The ``exttable`` key sets the name of the opacity table (which is stored
+as a Numpy npz file, thus, the file must have a .npz extension).  The
 ``tmin``, ``tmax``, and ``tstep`` keys set the boundaries and sampling
 rate of the temperature grid.  The pressure grid will be taken from
 the atmospheric model, and the wavenumber grid will be taken from the
@@ -65,7 +66,7 @@ The following table describes what the code will output:
 |           | undefined | ---         | Error                                 |
 +-----------+-----------+-------------+---------------------------------------+
 
-.. note:: It is also important to note that, when the opacity table is
+.. note:: When the opacity table is
           an **output**, the configuration file must specify a single file
           for ``extfile`` (which may contain opacity for multiple
           species though).  However, when the opacity table is an

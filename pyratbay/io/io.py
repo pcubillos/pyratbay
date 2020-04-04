@@ -9,11 +9,11 @@ __all__ = [
     'write_pf', 'read_pf',
     'write_cs', 'read_cs',
     'read_pt',
+    'read_molecs',
     'export_pandexo',
     ]
 
 import os
-import struct
 import pickle
 
 import numpy as np
@@ -458,89 +458,72 @@ def read_spectrum(filename, wn=True):
   return wave, spectrum
 
 
-def write_opacity(ofile, molID, temp, press, wn, etable):
-  """
-  Write an opacity table as a binary file.
+def write_opacity(ofile, species, temp, press, wn, opacity):
+    """
+    Write an opacity table as a binary file.
 
-  Parameters
-  ----------
-  ofile: String
-      Path to a Pyrat Bay opacity file.
-  molID: 1D integer ndarray
-      molecule ID.
-  temp: 1D float ndarray
-      Temperature (Kelvin degree).
-  press: 1D float ndarray
-      Pressure (barye).
-  wn: 1D float ndarray
-      Wavenumber (cm-1).
-  etable: 4D float ndarray
-      Tabulated opacities (cm-1).
-  """
-  # Get array shapes:
-  nmol    = len(molID)
-  ntemp   = len(temp)
-  nlayers = len(press)
-  nwave   = len(wn)
-
-  with open(ofile, "wb") as f:
-      # Size of arrays:
-      f.write(struct.pack("4l", nmol, ntemp, nlayers, nwave))
-      # Arrays:
-      f.write(struct.pack(str(nmol)   +"i", *list(molID)))
-      f.write(struct.pack(str(ntemp)  +"d", *list(temp) ))
-      f.write(struct.pack(str(nlayers)+"d", *list(press)))
-      f.write(struct.pack(str(nwave)  +"d", *list(wn)   ))
-      # Write opacity data in chunks to avoid memory crashes:
-      fmt = str(ntemp * nlayers * nwave) + "d"
-      for i in np.arange(nmol):
-          f.write(struct.pack(fmt, *list(etable[i].flatten())))
+    Parameters
+    ----------
+    ofile: String
+        Output filename where to save the opacity data.
+        File extension must be .npz
+    species: 1D string iterable
+        Species names.
+    temp: 1D float ndarray
+        Temperature array (Kelvin degree).
+    press: 1D float ndarray
+        Pressure array (barye).
+    wn: 1D float ndarray
+        Wavenumber array (cm-1).
+    opacity: 4D float ndarray
+        Tabulated opacities (cm2 molecule-1) of shape
+        [nspec, ntemp, nlayers, nwave].
+    """
+    np.savez(ofile,
+        species=species, temperature=temp, pressure=press, wavenumber=wn,
+        opacity=opacity)
 
 
 def read_opacity(ofile):
-  """
-  Read an opacity table from file.
+    """
+    Read an opacity table from file.
 
-  Parameters
-  ----------
-  ofile: String
-      Path to a Pyrat Bay opacity file.
+    Parameters
+    ----------
+    ofile: String
+        Path to a Pyrat Bay opacity file.
 
-  Returns
-  -------
-  sizes: 4-element integer tuple
-      Sizes of the dimensions of the opacity table:
-      (nmol, ntemp, nlayers, nwave)
-  arrays: 4-element 1D ndarray tuple
-      The dimensions of the opacity table:
-      - molecule ID (integer, unitless, see inputs/molecules.dat)
-      - temperature (float, Kelvin)
-      - pressure    (float, barye)
-      - wavenumber  (float, cm-1)
-  etable: 4D float ndarray tuple
-      The tabulated opacities (cm-1), of shape [nmol, ntemp, nlayers, nwave].
-  """
-  with open(ofile, "rb") as f:
-      # Read arrays lengths:
-      nmol    = struct.unpack('l', f.read(8))[0]
-      ntemp   = struct.unpack('l', f.read(8))[0]
-      nlayers = struct.unpack('l', f.read(8))[0]
-      nwave   = struct.unpack('l', f.read(8))[0]
+    Returns
+    -------
+    sizes: 4-element integer tuple
+        Sizes of the dimensions of the opacity table:
+        (nspec, ntemp, nlayers, nwave)
+    arrays: 4-element 1D ndarray tuple
+        The dimensions of the opacity table:
+        - species     (string, the species names)
+        - temperature (float, Kelvin)
+        - pressure    (float, barye)
+        - wavenumber  (float, cm-1)
+    opacity: 4D float ndarray tuple
+        The tabulated opacities (cm2 molecule-1), of shape
+        [nspec, ntemp, nlayers, nwave].
+    """
+    with np.load(ofile) as f:
+        species = f['species']
+        temp    = f['temperature']
+        press   = f['pressure']
+        wn      = f['wavenumber']
+        opacity = f['opacity']
 
-      # Read wavenumber, temperature, pressure, and isotope arrays:
-      molID = np.asarray(struct.unpack(str(nmol   )+'i', f.read(4*nmol   )))
-      temp  = np.asarray(struct.unpack(str(ntemp  )+'d', f.read(8*ntemp  )))
-      press = np.asarray(struct.unpack(str(nlayers)+'d', f.read(8*nlayers)))
-      wn    = np.asarray(struct.unpack(str(nwave  )+'d', f.read(8*nwave  )))
+    # Arrays lengths:
+    nspec = len(species)
+    ntemp = len(temp)
+    nlayers = len(press)
+    nwave = len(wn)
 
-      # Read extinction-coefficient data table:
-      ndata = nmol * ntemp * nlayers * nwave
-      etable = np.asarray(struct.unpack('d'*ndata, f.read(8*ndata))).reshape(
-                          (nmol, ntemp, nlayers, nwave))
-
-  return ((nmol, ntemp, nlayers, nwave),
-          (molID, temp, press, wn),
-          etable)
+    return ((nspec, ntemp, nlayers, nwave),
+            (species, temp, press, wn),
+            opacity)
 
 
 def write_pf(pffile, pf, isotopes, temp, header=None):
@@ -831,6 +814,58 @@ def read_pt(ptfile):
     return pressure, temperature
 
 
+def read_molecs(file):
+    r"""
+    Read a molecules file to extract their symbol, mass, and diameter.
+
+    Parameters
+    ----------
+    file: String
+        The molecule file path.
+
+    Returns
+    -------
+    symbol: 1D string ndarray
+        The molecule's name.
+    mass: 1D float ndarray
+        The mass of the molecules (in g mol-1).
+    diam: 1D float ndarray
+        The collisional diameter of the molecules (in Angstrom).
+
+    Notes
+    -----
+    In all truthfulness, these are species, not only molecules, as the
+    file also contain elemental particles.
+
+    Examples
+    --------
+    >>> import pyratbay.io as io
+    >>> import pyratbay.constants as pc
+    >>> names, mass, diam = io.read_molecs(pc.ROOT+'inputs/molecules.dat')
+    >>> names = list(names)
+    >>> print(f"H2O: mass = {mass[names.index('H2O')]} g mol-1, "
+    >>>       f"diameter = {diam[names.index('H2O')]} Angstrom.")
+    """
+    symbol = [] # Molecule symbol
+    mass   = [] # Molecule mass
+    diam   = [] # Molecule diameter
+
+    for line in open(file, 'r'):
+        # Skip comment and blank lines:
+        if line.strip() == '' or line.strip().startswith('#'):
+            continue
+        info = line.split()
+        symbol.append(info[0])
+        mass.append(info[1])
+        diam.append(info[2])
+
+    symbol = np.asarray(symbol)
+    mass = np.asarray(mass, np.double)
+    diam = np.asarray(diam, np.double)
+
+    return symbol, mass, diam
+
+
 def export_pandexo(pyrat, baseline, transit_duration,
     Vmag=None, Jmag=None, Hmag=None, Kmag=None, metal=0.0,
     instrument=None, n_transits=1, resolution=None,
@@ -1007,11 +1042,18 @@ def export_pandexo(pyrat, baseline, transit_duration,
         output_file=output_file,
         num_cores=pyrat.ncpu)
 
-    wavelengths, spectra, uncerts = jpi.jwst_1d_spec(
-        pandexo_sim,
-        R=resolution,
-        num_tran=n_transits,
-        plot=False)
+    if isinstance(pandexo_sim, list):
+        pandexo_sim = [sim[list(sim.keys())[0]] for sim in pandexo_sim]
+    else:
+        pandexo_sim = [pandexo_sim]
+
+    wavelengths, spectra, uncerts = [], [], []
+    for sim in pandexo_sim:
+        wl, spec, unc = jpi.jwst_1d_spec(
+            sim, R=resolution, num_tran=n_transits, plot=False)
+        wavelengths += wl
+        spectra += spec
+        uncerts += unc
 
     return pandexo_sim, wavelengths, spectra, uncerts
 

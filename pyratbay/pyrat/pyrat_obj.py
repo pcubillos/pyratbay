@@ -401,7 +401,7 @@ class Pyrat(object):
       ec = np.empty((0, self.spec.nwave))
       label = []
       # Line-by-line extinction coefficient:
-      if self.ex.nmol != 0:
+      if self.ex.nspec != 0:
           e, lab = ex.get_ec(self, layer)
           ec = np.vstack((ec, e))
           label += lab
@@ -598,9 +598,9 @@ class Pyrat(object):
          wave = "dwn={:.3f} cm-1".format(self.spec.wnstep)
 
       opacities = []
-      if self.ex.nmol != 0:
-          for molID in self.ex.molID:
-              imol = np.where(self.mol.ID == molID)[0][0]
+      if self.ex.nspec != 0:
+          for mol in self.ex.species:
+              imol = np.where(self.mol.name == mol)[0][0]
               opacities.append(self.mol.name[imol])
       if self.cs.nfiles != 0:
           for molecs in self.cs.molecules:
