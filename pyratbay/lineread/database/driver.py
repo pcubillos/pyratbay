@@ -166,14 +166,6 @@ class dbdriver(object):
       isoratio: List of integers
           Isotopic terrestrial abundance ratio.
       """
-      # Read isotopes info file:
-      with open(ROOT + 'inputs/isotopes.dat', 'r') as isofile:
-          lines = isofile.readlines()
-
-      isotopes = []
-      mass     = []
-      isoratio = []
-
       if dbtype == 'hitran':
           iiso = 2
       elif dbtype in ['exomol', 'kurucz']:
@@ -181,15 +173,18 @@ class dbdriver(object):
       else:
           self.log.error(f'Invalid database type: {dbtype}')
 
-      # Get values for our molecule:
-      for i in range(len(lines)):
-          if lines[i].startswith('#') or lines[i].strip() == '':
+      isotopes = []
+      mass     = []
+      isoratio = []
+      # Read isotopes info file:
+      for line in open(ROOT + 'inputs/isotopes.dat', 'r'):
+          if line.strip().startswith('#') or line.strip() == '':
               continue
-          info = lines[i].split()
+          info = line.split()
           if info[1] == molname:
               molID = info[0]
               isotopes.append(info[iiso])
               isoratio.append(float(info[4]))
-              mass.    append(float(info[5]))
+              mass.append(float(info[5]))
 
       return molID, molname, isotopes, mass, isoratio

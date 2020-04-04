@@ -6087,3 +6087,6 @@ Some PEP8ing.
 PEP8ed vald database reader (though the code is untested and
 probably outdated).
 
+*****
+
+Rewrote database driver getiso() in a cleaner way.
