@@ -7,6 +7,7 @@ import os
 import numpy as np
 
 from ... import constants as pc
+from ... import part_func as pf
 from .driver import dbdriver
 
 
@@ -27,20 +28,26 @@ class hitran(dbdriver):
       """
       super(hitran, self).__init__(dbfile, pffile, log)
 
-      self.recsize   =   0 # Record length (will be set in self.dbread())
-      self.recisopos =   2 # Isotope        position in record
-      self.recwnpos  =   3 # Wavenumber     position in record
-      self.reclinpos =  15 # Line intensity position in record
-      self.recApos   =  25 # Einstein coef  position in record
-      self.recairpos =  35 # Air broadening position in record
-      self.recelpos  =  45 # Low Energy     position in record
-      self.recelend  =  55 # Low Energy     end position
-      self.recg2pos  = 153 # Low stat weight position in record
-      self.recg2end  = 160 # Low stat weight end position
-      self.recmollen =   2 # Molecule   record length
-      self.recwnlen  =  12 # Wavenumber record length
+      self.recsize      =   0 # Record length (will be set in self.dbread())
+      self.rec_iso      =   2 # Isotope        position in record
+      self.rec_wn       =   3 # Wavenumber     position in record
+      self.rec_strength =  15 # Line intensity position in record
+      self.rec_A21      =  25 # Einstein coef  position in record
+      self.rec_air      =  35 # Air broadening position in record
+      self.rec_elow     =  45 # Lower Energy   position in record
+      self.rec_elow_end =  55 # Lower Energy   end position
+      self.rec_g2       = 146 # Upper state weight position in record
+      self.rec_g2_end   = 153 # Upper state weight end position
+      self.rec_wn_len   =  12 # Wavenumber record length
 
-      ID, mol, isotopes, mass, ratio = self.getiso(fromfile=True)
+      # Open DB file and read first two characters:
+      if not os.path.isfile(self.dbfile):
+          self.log.error(f"Input database file '{self.dbfile}' does not exist.")
+      with open(self.dbfile, "r") as data:
+          molID = int(data.read(2))  # Molecule ID is first two characters
+      molname = pf.get_tips_molname(molID)
+
+      ID, mol, isotopes, mass, ratio = self.getiso(molname, dbtype='hitran')
 
       self.molID    = ID
       self.molecule = mol
@@ -67,8 +74,8 @@ class hitran(dbdriver):
       wavenumber: Float
           Wavenumber value in cm-1.
       """
-      dbfile.seek(irec*self.recsize + self.recwnpos)
-      wavenumber = float(dbfile.read(self.recwnlen))
+      dbfile.seek(irec*self.recsize + self.rec_wn)
+      wavenumber = float(dbfile.read(self.rec_wn_len))
 
       return wavenumber
 
@@ -145,14 +152,15 @@ class hitran(dbdriver):
           # Read a record:
           data.seek((istart+i) * self.recsize)
           line = data.read(self.recsize)
-          isoID  [i] = float(line[self.recisopos:self.recwnpos ])
-          wnumber[i] = float(line[self.recwnpos: self.reclinpos])
-          elow   [i] = float(line[self.recelpos: self.recelend ])
-          A21    [i] = float(line[self.recApos:  self.recairpos])
-          g2     [i] = float(line[self.recg2pos: self.recg2end ])
+          isoID  [i] = float(line[self.rec_iso:self.rec_wn])
+          wnumber[i] = float(line[self.rec_wn:self.rec_strength])
+          elow   [i] = float(line[self.rec_elow:self.rec_elow_end])
+          A21    [i] = float(line[self.rec_A21:self.rec_air])
+          g2     [i] = float(line[self.rec_g2:self.rec_g2_end])
           # Print a checkpoint statement every 10% interval:
           if i%interval == 0.0 and i != 0:
-              gfval = A21[i]*g2[i]*pc.C1 / (8.0*np.pi*pc.c) / wnumber[i]**2.0
+              # Equation (36) of Simeckova et al. (2006)
+              gfval = g2[i]*A21[i]*pc.C1 / (8.0*np.pi*pc.c) / wnumber[i]**2.0
               self.log.msg('{:5.1f}% completed.'.format(10.*i/interval),
                   indent=3)
               self.log.debug(
@@ -167,8 +175,8 @@ class hitran(dbdriver):
       isoID -= 1
       isoID[np.where(isoID < 0)] = 9 # 10th isotope has index 0 --> 10-1=9
 
-      # Equation (36) of Simekova (2006):
-      gf = A21*g2*pc.C1 / (8.0*np.pi*pc.c) / wnumber**2.0
+      # Equation (36) of Simeckova (2006):
+      gf = g2*A21*pc.C1 / (8.0*np.pi*pc.c) / wnumber**2.0
 
       # Remove lines with unknown Elow, see Rothman et al. (1996):
       igood = np.where(elow > 0)

@@ -6068,3 +6068,11 @@ Removed pyrat.mol.ID.
 Refactored _extcoeff.interp_ec() removing mtable and molID arguments,
 requiring that input densities correspond to those in the opacity grid.
 Updated tests, examples, and docs.
+
+*****
+
+Corrected state weight for gf calculation in hitran database reader
+(use upper state instead of lower state).
+Refactored getiso() removing fromfile argument and dbtype default.
+Some PEP8ing.
+

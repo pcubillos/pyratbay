@@ -142,14 +142,12 @@ class dbdriver(object):
       return irec
 
 
-  def getiso(self, fromfile=False, molname=None, dbtype='hitran'):
+  def getiso(self, molname, dbtype):
       """
       Get isotopic info from isotopes.dat file.
 
       Parameters
       ----------
-      fromfile: String
-          If True, extract data based on the database file info (for HITRAN).
       mol: String
           If not None, extract data based on this molecule name.
       dbtype: String
@@ -168,17 +166,6 @@ class dbdriver(object):
       isoratio: List of integers
           Isotopic terrestrial abundance ratio.
       """
-      if fromfile:
-          # Open DB file and read first two characters:
-          if not os.path.isfile(self.dbfile):
-              self.log.error("Input database file '{:s}' does not exist.".
-                             format(self.dbfile))
-          with open(self.dbfile, "r") as data:
-              molID = data.read(self.recmollen)
-          molname = pf.get_tips_molname(int(molID))
-      elif molname is None:
-          self.log.error('Neither fromfile nor mol were specified.')
-
       # Read isotopes info file:
       with open(ROOT + 'inputs/isotopes.dat', 'r') as isofile:
           lines = isofile.readlines()
@@ -192,10 +179,10 @@ class dbdriver(object):
       elif dbtype in ['exomol', 'kurucz']:
           iiso = 3
       else:
-          self.log.error('Invalid database type: {}'.format(dbtype))
+          self.log.error(f'Invalid database type: {dbtype}')
 
       # Get values for our molecule:
-      for i in np.arange(len(lines)):
+      for i in range(len(lines)):
           if lines[i].startswith('#') or lines[i].strip() == '':
               continue
           info = lines[i].split()
