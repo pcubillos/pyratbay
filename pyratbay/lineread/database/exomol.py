@@ -7,7 +7,7 @@ import os
 import numpy as np
 
 from ... import constants as pc
-from ... import tools     as pt
+from ... import tools as pt
 from .driver import dbdriver
 
 
@@ -54,8 +54,8 @@ class exomol(dbdriver):
       # Get info from file name:
       self.molecule, self.iso = pt.get_exomol_mol(dbfile)
       # Get isotopic info:
-      ID, mol, isotopes, mass, ratio = self.getiso(molname=self.molecule,
-                                                   dbtype='exomol')
+      ID, mol, isotopes, mass, ratio = self.getiso(
+          self.molecule, dbtype='exomol')
       self.isotopes = isotopes
       self.mass     = mass
       self.isoratio = ratio
@@ -128,10 +128,10 @@ class exomol(dbdriver):
       DBiwn = self.readwave(data, 0)
       DBfwn = self.readwave(data, nlines-1)
       if iwn > DBfwn or fwn < DBiwn:
-          self.log.warning("Database ('{:s}') wavenumber range ({:.2f}--{:.2f} "
-              "cm-1) does not overlap with the requested wavenumber range "
-              "({:.2f}--{:.2f} cm-1).".format(os.path.basename(self.dbfile),
-                                              DBiwn, DBfwn, iwn, fwn))
+          self.log.warning(
+              f"Database ('{os.path.basename(self.dbfile)}') wavenumber "
+              f"range ({DBiwn:.2f}--{DBfwn:.2f} cm-1) does not overlap with "
+              f"the requested wavenumber range ({iwn:.2f}--{fwn:.2f} cm-1).")
           return None
 
       # Find the record index for iwn and fwn:
@@ -141,16 +141,13 @@ class exomol(dbdriver):
       nread = istop - istart + 1
 
       # Allocate arrays for values to extract:
-      wnumber = np.zeros(nread, np.double)
-      gf      = np.zeros(nread, np.double)
-      elow    = np.zeros(nread, np.double)
-      isoID   = np.zeros(nread,       int)
-      A21     = np.zeros(nread, np.double)
-      upID    = np.zeros(nread,       int)
-      loID    = np.zeros(nread,       int)
+      isoID = np.zeros(nread, int)
+      A21   = np.zeros(nread, np.double)
+      upID  = np.zeros(nread, int)
+      loID  = np.zeros(nread, int)
 
-      self.log.msg('Process {:s} database between records {:,d} and {:,d}.'.
-                    format(self.name, istart, istop), indent=2)
+      self.log.msg(f'Process {self.name} database between records '
+                   f'{istart:,d} and {istop:,d}.', indent=2)
 
       interval = (istop - istart) // 10  # Check-point interval
       if interval == 0:
@@ -166,21 +163,22 @@ class exomol(dbdriver):
           A21 [i] = line[26:36]
           # Print a checkpoint statement every 10% interval:
           if (i % interval) == 0.0  and  i != 0:
-              wn    = self.E[upID[i]-1] - self.E[loID[i]-1]
-              gfval = self.g[loID[i]-1]*A21[i]*pc.C1 / (8.0*np.pi*pc.c) / wn**2
-              self.log.msg('{:5.1f}% completed.'.format(10.*i/interval),
-                  indent=3)
+              wn = self.E[upID[i]-1] - self.E[loID[i]-1]
+              gfval = self.g[upID[i]-1]*A21[i]*pc.C1 / (8.0*np.pi*pc.c) / wn**2
+              self.log.msg(f'{10*i/interval:5.1f}% completed.', indent=3)
               self.log.debug(
-                  'Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} um\n'
-                  'Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}'.
-                  format(wn, 1.0/(wn*pc.um), self.E[loID[i]-1], gfval,
-                         self.isotopes.index(self.iso)), indent=6)
+                  f'Wavenumber: {wn:8.2f} cm-1   '
+                  f'Wavelength: {1.0/(wn*pc.um):6.3f} um\n'
+                  f'Elow:     {self.E[loID[i]-1]:.4e} cm-1   '
+                  f'gf: {gfval:.4e}   '
+                  f'Iso ID: {self.isotopes.index(self.iso):2d}', indent=6)
           i += 1
       data.close()
 
-      wnumber[:] = self.E[upID-1] - self.E[loID-1]
-      gf[:]      = self.g[loID-1] * A21*pc.C1 / (8.0*np.pi*pc.c) / wnumber**2.0
-      elow[:]    = self.E[loID-1]
-      isoID[:]   = self.isotopes.index(self.iso)
+      wnumber = self.E[upID-1] - self.E[loID-1]
+      # Equation (36) of Simeckova et al. (2006):
+      gf = self.g[upID-1] * A21*pc.C1 / (8.0*np.pi*pc.c) / wnumber**2.0
+      elow = self.E[loID-1]
+      isoID[:] = self.isotopes.index(self.iso)
 
       return wnumber, gf, elow, isoID

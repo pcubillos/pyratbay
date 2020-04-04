@@ -6076,3 +6076,8 @@ Corrected state weight for gf calculation in hitran database reader
 Refactored getiso() removing fromfile argument and dbtype default.
 Some PEP8ing.
 
+*****
+
+Corrected state weight for gf calculation in exomol database reader
+(use upper state instead of lower state).
+Some PEP8ing.
