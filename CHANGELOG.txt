@@ -6081,3 +6081,9 @@ Some PEP8ing.
 Corrected state weight for gf calculation in exomol database reader
 (use upper state instead of lower state).
 Some PEP8ing.
+
+*****
+
+PEP8ed vald database reader (though the code is untested and
+probably outdated).
+
