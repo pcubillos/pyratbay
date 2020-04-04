@@ -1,17 +1,17 @@
 # Copyright (c) 2016-2020 Patricio Cubillos.
 # Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE).
 
-__all__ = ['hitran']
+__all__ = ['Hitran']
 
 import os
 import numpy as np
 
 from ... import constants as pc
 from ... import part_func as pf
-from .driver import dbdriver
+from .driver import DB_driver
 
 
-class hitran(dbdriver):
+class Hitran(DB_driver):
   """HITRAN/HITEMP database reader."""
   def __init__(self, dbfile, pffile, log):
       """
@@ -26,7 +26,7 @@ class hitran(dbdriver):
       log: Log object
           An mc3.utils.Log instance to log screen outputs to file.
       """
-      super(hitran, self).__init__(dbfile, pffile, log)
+      super(Hitran, self).__init__(dbfile, pffile, log)
 
       self.recsize      =   0 # Record length (will be set in self.dbread())
       self.rec_iso      =   2 # Isotope        position in record
@@ -120,10 +120,10 @@ class hitran(dbdriver):
       DBiwn = self.readwave(data, 0)
       DBfwn = self.readwave(data, nlines-1)
       if iwn > DBfwn or fwn < DBiwn:
-          self.log.warning("Database ('{:s}') wavenumber range ({:.2f}--{:.2f} "
-              "cm-1) does not overlap with the requested wavenumber range "
-              "({:.2f}--{:.2f} cm-1).".format(os.path.basename(self.dbfile),
-                                              DBiwn, DBfwn, iwn, fwn))
+          self.log.warning(
+              f"Database ('{os.path.basename(self.dbfile)}') wavenumber "
+              f"range ({DBiwn:.2f}--{DBfwn:.2f} cm-1) does not overlap with "
+              f"the requested wavenumber range ({iwn:.2f}--{fwn:.2f} cm-1).")
           return None
 
       # Find the record index for iwn and fwn:
@@ -140,8 +140,8 @@ class hitran(dbdriver):
       A21     = np.zeros(nread, np.double)
       g2      = np.zeros(nread, np.double)
 
-      self.log.msg('Process {:s} database between records {:,d} and {:,d}.'.
-          format(self.name, istart, istop), indent=2)
+      self.log.msg(f'Process {self.name} database between records '
+          f'{istart:,d} and {istop:,d}.', indent=2)
 
       interval = (istop - istart) // 10  # Check-point interval
       if interval == 0:
@@ -161,13 +161,12 @@ class hitran(dbdriver):
           if i%interval == 0.0 and i != 0:
               # Equation (36) of Simeckova et al. (2006)
               gfval = g2[i]*A21[i]*pc.C1 / (8.0*np.pi*pc.c) / wnumber[i]**2.0
-              self.log.msg('{:5.1f}% completed.'.format(10.*i/interval),
-                  indent=3)
+              self.log.msg(f'{10*i/interval:5.1f}% completed.', indent=3)
               self.log.debug(
-                  'Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} um\n'
-                  'Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}'.
-                  format(wnumber[i], 1.0/(wnumber[i]*pc.um), elow[i],
-                         gfval, (isoID[i]-1)%10), indent=6)
+                  f'Wavenumber: {wnumber[i]:8.2f} cm-1   '
+                  f'Wavelength: {1.0/(wnumber[i]*pc.um):6.3f} um\n'
+                  f'Elow:     {elow[i]:.4e} cm-1   '
+                  f'gf: {gfval:.4e}   Iso ID: {isoID[i]-1)%10:2d}', indent=6)
           i += 1
       data.close()
 

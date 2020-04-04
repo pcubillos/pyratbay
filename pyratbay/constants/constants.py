@@ -162,13 +162,13 @@ ROOT = os.path.realpath(os.path.dirname(__file__) + '/../..') + '/'
 
 # Available line-transition databases:
 dbases = [
-    'hitran',
-    'exomol',
-    'repack',
-    'pands',
-    'tioschwenke',
-    'voplez',
-    'vald',
+    'Hitran',
+    'Exomol',
+    'Repack',
+    'Pands',
+    'Tioschwenke',
+    'Voplez',
+    'Vald',
     ]
 
 # Running modes:

@@ -1,17 +1,17 @@
 # Copyright (c) 2016-2020 Patricio Cubillos.
 # Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE).
 
-__all__ = ['vald']
+__all__ = ['Vald']
 
 import os
 import numpy as np
 
 from ... import constants as pc
 from ... import tools as pt
-from .driver import dbdriver
+from .driver import DB_driver
 
 
-class vald(dbdriver):
+class Vald(DB_driver):
   """
   Notes
   -----
@@ -32,7 +32,7 @@ class vald(dbdriver):
       log: File
           File object to store the log.
       """
-      super(vald, self).__init__(dbfile, pffile, log)
+      super(Vald, self).__init__(dbfile, pffile, log)
 
       # Molecule/atom properties:
       self.molecule, self.isotopes, self.mass, self.isoratio, \

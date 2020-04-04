@@ -67,7 +67,8 @@ def makeTLI(dblist, pflist, dbtype, tlifile,
           f'database-type files ({len(dbtype)}).')
 
   # Driver routine to read the databases:
-  db_readers = {dbname:getattr(database,dbname) for dbname in pc.dbases}
+  db_readers = {dbname.lower():getattr(database,dbname)
+                for dbname in pc.dbases}
 
   dblist = [os.path.realpath(dbase.replace('{ROOT}', pc.ROOT))
             for dbase in dblist]

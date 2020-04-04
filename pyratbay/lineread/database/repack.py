@@ -1,17 +1,17 @@
 # Copyright (c) 2016-2020 Patricio Cubillos.
 # Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE).
 
-__all__ = ['repack']
+__all__ = ['Repack']
 
 import os
 import struct
 import numpy as np
 
 from ... import constants as pc
-from .driver import dbdriver
+from .driver import DB_driver
 
 
-class repack(dbdriver):
+class Repack(DB_driver):
   """Repack database reader."""
   def __init__(self, dbfile, pffile, log):
       """
@@ -26,7 +26,7 @@ class repack(dbdriver):
       log: Log object
           An mc3.utils.Log instance to log screen outputs to file.
       """
-      super(repack, self).__init__(dbfile, pffile, log)
+      super(Repack, self).__init__(dbfile, pffile, log)
 
       self.fmt = 'dddi'
       self.recsize = struct.calcsize(self.fmt)
@@ -41,7 +41,7 @@ class repack(dbdriver):
       self.mass     = mass
       self.isoratio = ratio
       # Database name:
-      self.name = 'repack {:s} {:s}'.format(self.dbtype, self.molecule)
+      self.name = f'repack {self.dbtype} {self.molecule}'
 
 
   def readwave(self, dbfile, irec):
@@ -99,10 +99,10 @@ class repack(dbdriver):
       DBiwn = self.readwave(data, 0)
       DBfwn = self.readwave(data, nlines-1)
       if iwn > DBfwn or fwn < DBiwn:
-          self.log.warning("Database ('{:s}') wavenumber range ({:.2f}--{:.2f} "
-              "cm-1) does not overlap with the requested wavenumber range "
-              "({:.2f}--{:.2f} cm-1).".format(os.path.basename(self.dbfile),
-                                              DBiwn, DBfwn, iwn, fwn))
+          self.log.warning(
+              f"Database ('{os.path.basename(self.dbfile)}') wavenumber "
+              f"range ({DBiwn:.2f}--{DBfwn:.2f} cm-1) does not overlap with "
+              f"the requested wavenumber range ({iwn:.2f}--{fwn:.2f} cm-1).")
           return None
 
       # Find the record index for iwn and fwn:
@@ -117,8 +117,8 @@ class repack(dbdriver):
       gf      = np.zeros(nread, np.double)
       iso     = np.zeros(nread,       int)
 
-      self.log.msg('Process {:s} database between records {:,d} and {:,d}.'.
-          format(self.name, istart, istop), indent=2)
+      self.log.msg(f'Process {self.name} database between records '
+          f'{istart:,d} and {istop:,d}.', indent=2)
 
       interval = (istop - istart) // 10  # Check-point interval
       if interval == 0:
@@ -132,13 +132,12 @@ class repack(dbdriver):
               struct.unpack(self.fmt, data.read(self.recsize))
           # Print a checkpoint statement every 10% interval:
           if (i % interval) == 0.0 and i != 0:
-              self.log.msg('{:5.1f}% completed.'.format(10.*i/interval),
-                  indent=3)
+              self.log.msg(f'{10*i/interval:5.1f}% completed.', indent=3)
               self.log.debug(
-                  'Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} um\n'
-                  'Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}'.
-                  format(wnumber[i], 1.0/(wnumber[i]*pc.um), elow[i],
-                         gf[i], iso[i]), indent=6)
+                  f'Wavenumber: {wnumber[i]:8.2f} cm-1   '
+                  f'Wavelength: {1.0/(wnumber[i]*pc.um):6.3f} um\n'
+                  f'Elow:     {elow[i]:.4e} cm-1   gf: {gf[i]:.4e}   '
+                  f'Iso ID: {iso[i]:2d}', indent=6)
           i += 1
       data.close()
 

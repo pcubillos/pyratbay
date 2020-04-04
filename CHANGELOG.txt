@@ -6090,3 +6090,9 @@ probably outdated).
 *****
 
 Rewrote database driver getiso() in a cleaner way.
+
+*****
+
+Renamed database reader classes with capitalized names.
+Some PEP8ing all around.
+

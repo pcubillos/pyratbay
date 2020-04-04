@@ -10,7 +10,7 @@ from ... import part_func as pf
 from ...constants import ROOT
 
 
-class dbdriver(object):
+class DB_driver(object):
   def __init__(self, dbfile, pffile, log):
       self.dbfile = dbfile
       self.pffile = pffile

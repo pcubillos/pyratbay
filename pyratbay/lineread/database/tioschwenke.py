@@ -1,16 +1,16 @@
 # Copyright (c) 2016-2020 Patricio Cubillos.
 # Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE).
 
-__all__ = ["tioschwenke"]
+__all__ = ["Tioschwenke"]
 
 import struct
 import numpy as np
 
 from ... import constants as pc
-from .driver import dbdriver
+from .driver import DB_driver
 
 
-class tioschwenke(dbdriver):
+class Tioschwenke(DB_driver):
   """
   Notes:
   ------
@@ -22,7 +22,7 @@ class tioschwenke(dbdriver):
   function.  One way to fix is, on vim do: :%s/\r/\r/g
   """
   def __init__(self, dbfile, pffile, log):
-    super(tioschwenke, self).__init__(dbfile, pffile, log)
+    super(Tioschwenke, self).__init__(dbfile, pffile, log)
 
     # Database name:
     self.name ="Schwenke TiO (1998)"
@@ -73,22 +73,22 @@ class tioschwenke(dbdriver):
     Parameters
     ----------
     iwn: Scalar
-       Initial wavenumber limit (in cm-1).
+        Initial wavenumber limit (in cm-1).
     fwn: Scalar
-       Final wavenumber limit (in cm-1).
+        Final wavenumber limit (in cm-1).
     verb: Integer
-       Verbosity threshold.
+        Verbosity threshold.
 
     Returns
     -------
     wnumber: 1D float ndarray
-      Line-transition central wavenumber (centimeter-1).
+        Line-transition central wavenumber (centimeter-1).
     gf: 1D float ndarray
-      gf value (unitless).
+        gf value (unitless).
     elow: 1D float ndarray
-      Lower-state energy (centimeter-1).
+        Lower-state energy (centimeter-1).
     isoID: 2D integer ndarray
-      Isotope index (0, 1, 2, 3, ...).
+        Isotope index (0, 1, 2, 3, ...).
     """
     # Open the file:
     data = open(self.dbfile, "rb")
@@ -117,8 +117,8 @@ class tioschwenke(dbdriver):
     elow    = np.zeros(nread, np.double)
     isoID   = np.zeros(nread,     int)
 
-    self.log.msg("Starting to read Schwenke database between records {:,d} "
-                 "and {:,d}.".format(istart, istop), indent=2)
+    self.log.msg("Starting to read Schwenke database between records "
+        f"{istart:,d} and {istop:,d}.", indent=2)
 
     interval = (istop - istart)/10  # Check-point interval
     if interval == 0:
@@ -132,31 +132,31 @@ class tioschwenke(dbdriver):
 
     i   = 0  # Stored record index
     while (i < nread):
-      # Read a record:
-      data.seek((istart+i)*self.recsize)
-      iw[i], ieli[i], ielo[i], igf[i] = struct.unpack('ihhh',
-                                                      data.read(self.recdata))
+        # Read a record:
+        data.seek((istart+i)*self.recsize)
+        iw[i], ieli[i], ielo[i], igf[i] = struct.unpack(
+            'ihhh', data.read(self.recdata))
 
-      # Print a checkpoint statement every 10% interval:
-      if (i % interval) == 0 and i != 0:
-        wl = np.exp(iw[i] * self.ratiolog) * pc.nm/pc.um
-        self.log.msg("{:5.1f}% completed.".format(10.*i/interval),
-                     indent=3)
-        self.log.debug("Wavenumber: {:8.2f} cm-1   Wavelength: {:6.3f} um\n"
-                       "Elow:     {:.4e} cm-1   gf: {:.4e}   Iso ID: {:2d}".
-                       format(1.0/(wl*pc.um), wl,
-                              self.tablog[ielo[i]], self.tablog[igf[i]],
-                              np.abs(ieli[i]) - 8950), indent=6)
-      i += 1
+        # Print a checkpoint statement every 10% interval:
+        if (i % interval) == 0 and i != 0:
+            wl = np.exp(iw[i] * self.ratiolog) * pc.nm/pc.um
+            self.log.msg("{10*i/interval:5.1f}% completed.", indent=3)
+            self.log.debug(
+                f"Wavenumber: {1.0/(wl*pc.um):8.2f} cm-1   "
+                f"Wavelength: {wl:6.3f} um\n"
+                f"Elow:     {self.tablog[ielo[i]]:.4e} cm-1   "
+                f"gf: {self.tablog[igf[i]]:.4e}   "
+                f"Iso ID: {np.abs(ieli[i]) - 8950:2d}", indent=6)
+        i += 1
 
     # Calculate the wavenumber (in cm-1):
     wnumber[:] = 1.0/(np.exp(iw * self.ratiolog) * pc.nm)
     # Get gf from log table:
-    gf[:]      = self.tablog[igf]
+    gf[:] = self.tablog[igf]
     # Get lowest state energy from log table:
-    elow[:]    = self.tablog[ielo]
+    elow[:] = self.tablog[ielo]
     # Get isotopic index:
-    isoID[:]   = np.abs(ieli) - 8950
+    isoID[:] = np.abs(ieli) - 8950
 
     data.close()
 

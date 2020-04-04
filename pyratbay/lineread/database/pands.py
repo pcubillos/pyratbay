@@ -1,17 +1,17 @@
 # Copyright (c) 2016-2020 Patricio Cubillos.
 # Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE).
 
-__all__ = ['pands']
+__all__ = ['Pands']
 
 import os
 import struct
 import numpy as np
 
 from ... import constants as pc
-from .driver import dbdriver
+from .driver import DB_driver
 
 
-class pands(dbdriver):
+class Pands(DB_driver):
   """Partridge & Schwenke (1997) H2O database reader."""
   def __init__(self, dbfile, pffile, log):
       """
@@ -26,7 +26,7 @@ class pands(dbdriver):
       log: Log object
           An mc3.utils.Log instance to log screen outputs to file.
       """
-      super(pands, self).__init__(dbfile, pffile, log)
+      super(Pands, self).__init__(dbfile, pffile, log)
 
       # Isotopes names:
       self.isotopes = ['1H1H16O',   '1H1H17O',   '1H1H18O',   '1H2H16O']
@@ -132,8 +132,8 @@ class pands(dbdriver):
       ielo = np.zeros(nread, np.short)
       igf  = np.zeros(nread, np.short)
 
-      self.log.msg('Process P&S H2O database between records {:,d} and {:,d}.'.
-          format(istart, istop), indent=2)
+      self.log.msg('Process P&S H2O database between records '
+          f'{istart:,d} and {istop:,d}.', indent=2)
 
       interval = (istop - istart)//10  # Check-point interval
       if interval == 0:

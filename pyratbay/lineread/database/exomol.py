@@ -1,17 +1,17 @@
 # Copyright (c) 2016-2020 Patricio Cubillos.
 # Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE).
 
-__all__ = ['exomol']
+__all__ = ['Exomol']
 
 import os
 import numpy as np
 
 from ... import constants as pc
 from ... import tools as pt
-from .driver import dbdriver
+from .driver import DB_driver
 
 
-class exomol(dbdriver):
+class Exomol(DB_driver):
   """Exomol database reader."""
   def __init__(self, dbfile, pffile, log):
       """
@@ -26,7 +26,7 @@ class exomol(dbdriver):
       log: Log object
           An mc3.utils.Log instance to log screen outputs to file.
       """
-      super(exomol, self).__init__(dbfile, pffile, log)
+      super(Exomol, self).__init__(dbfile, pffile, log)
 
       sfile = self.dbfile.replace('trans', 'states')
       if sfile.count('__') == 2:
@@ -37,8 +37,7 @@ class exomol(dbdriver):
       # Check files exist:
       for dfile in [self.dbfile, sfile]:
           if not os.path.isfile(dfile):
-              log.error("File '{:s}' for Exomol database does not exist.".
-                        format(dfile))
+              log.error(f"File '{dfile}' for Exomol database does not exist.")
 
       # Read states:
       if sfile.count('__') == 2:
