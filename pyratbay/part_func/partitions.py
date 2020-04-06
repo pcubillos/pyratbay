@@ -47,7 +47,7 @@ def get_tips_molname(molID):
     return data['mol_ID'][molID]
 
 
-def tips(molecule, isotopes=None, outfile=None, type_flag='as_tips'):
+def tips(molecule, isotopes=None, outfile=None, db_type='as_tips'):
     """
     Extract TIPS 2017 partition-function values for given molecule.
     If requested, write the partition-function into a file for use
@@ -64,6 +64,9 @@ def tips(molecule, isotopes=None, outfile=None, type_flag='as_tips'):
         If not None, save output to file.
         If outfile == 'default', save output to file named as
         PF_tips_molecule.dat
+    db_type: String
+        If db_type == 'as_exomol', return isotopic names following
+        the exomol notation.
 
     Returns
     -------
@@ -87,8 +90,7 @@ def tips(molecule, isotopes=None, outfile=None, type_flag='as_tips'):
     with open(pc.ROOT+'inputs/tips_2017.pkl', 'rb') as p:
         data = pickle.load(p)
     if molecule not in data:
-        raise ValueError("Molecule '{:s}' is not in TIPS database.".
-            format(molecule))
+        raise ValueError(f"Molecule '{molecule}' is not in TIPS database.")
 
     if isotopes is None:
         isotopes = list(data[molecule].keys())
@@ -96,8 +98,8 @@ def tips(molecule, isotopes=None, outfile=None, type_flag='as_tips'):
 
     for iso in isotopes:
         if iso not in data[molecule]:
-            raise ValueError("Molecule '{:s}' does not have isotope '{:s}'".
-                format(molecule, iso))
+            raise ValueError(
+                f"Molecule '{molecule}' does not have isotope '{iso}'")
 
     ntemp = np.amin([data['ntemp'][molecule][iso] for iso in data[molecule]])
     temp = data['temp'][0:ntemp]
@@ -108,22 +110,29 @@ def tips(molecule, isotopes=None, outfile=None, type_flag='as_tips'):
     for i,iso in enumerate(isotopes):
         pf[i] = data[molecule][iso][0:ntemp]
 
+    # Get exomol isotope names if requested:
+    if db_type == 'as_exomol':
+        ID, molecs, hitran, exomol, iso_ratio, iso_mass = \
+            io.read_isotopes(pc.ROOT+'inputs/isotopes.dat')
+        iso_map = {exo:hit for mol, hit, exo in zip(molecs, exomol, hitran)
+                   if mol==molecule}
+        isotopes = [iso_map[iso] for iso in isotopes]
+
     # Write output file:
     if outfile == 'default':
-        outfile = 'PF_tips_{:s}.dat'.format(molecule)
+        outfile = f'PF_tips_{molecule}.dat'
 
     if outfile is not None:
-        header = ('# Tabulated {:s} partition-function data from TIPS.\n\n'.
-                  format(molecule))
+        header = f'# Tabulated {molecule} partition-function from TIPS.\n\n'
         io.write_pf(outfile, pf, isotopes, temp, header)
 
-        print("\nWritten partition-function file:\n  '{:s}'\nfor molecule "
-              "{:s}, with isotopes {},\nand temperature range {:.0f}--{:.0f} "
-              "K.".format(outfile, molecule, isotopes, temp[0], temp[-1]))
+        print(f"\nWritten partition-function file:\n  '{outfile}'"
+              f"\nfor molecule {molecule}, with isotopes {isotopes},"
+              f"\nand temperature range {temp[0]:.0f}--{temp[-1]:.0f} K.")
     return pf, isotopes, temp
 
 
-def exomol(pf_files, outfile=None, type_flag='as_exomol'):
+def exomol(pf_files, outfile=None):
     """
     Extract ExoMol partition-function values from input files.
     If requested, write the partition-function into a file for use
@@ -223,12 +232,11 @@ def exomol(pf_files, outfile=None, type_flag='as_exomol'):
 
     # Write output file:
     if outfile == 'default':
-        outfile = 'PF_exomol_{:s}.dat'.format(molecule)
+        outfile = f'PF_exomol_{molecule}.dat'
 
     if outfile is not None:
-        header = ('# This file incorporates the tabulated {:s} '
-                  'partition-function data\n# from Exomol\n\n'.
-                  format(molecule))
+        header = (f'# This file incorporates the tabulated {molecule} '
+                  'partition-function data\n# from Exomol\n\n')
         io.write_pf(outfile, pf, isotopes, temp, header)
         print("\nWritten partition-function file:\n  '{:s}'\nfor molecule "
               "{:s}, with isotopes {},\nand temperature range {:.0f}--{:.0f} "

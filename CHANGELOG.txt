@@ -6116,3 +6116,8 @@ Refactored database driver's getiso() to use io.read_isotopes()
 renamed as get_iso(), removed redundant mol name return.
 Propagated correction to specific database readers.
 
+*****
+
+Implemented db_type argument into part_func.tips() function
+to enable output isotope naming as exomol notation.
+
