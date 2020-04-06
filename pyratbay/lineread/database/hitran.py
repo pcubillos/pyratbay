@@ -45,14 +45,13 @@ class Hitran(DB_driver):
           self.log.error(f"Input database file '{self.dbfile}' does not exist.")
       with open(self.dbfile, "r") as data:
           molID = int(data.read(2))  # Molecule ID is first two characters
-      molname = pf.get_tips_molname(molID)
+      self.molecule = pf.get_tips_molname(molID)
 
-      ID, mol, isotopes, mass, ratio = self.getiso(molname, dbtype='hitran')
+      ID, isotopes, mass, ratio = self.get_iso(self.molecule, dbtype='hitran')
 
-      self.molID    = ID
-      self.molecule = mol
+      self.molID = ID
       self.isotopes = isotopes
-      self.mass     = mass
+      self.mass = mass
       self.isoratio = ratio
       # Database name:
       self.name = 'HITRAN ' + self.molecule

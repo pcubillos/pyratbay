@@ -142,7 +142,7 @@ class DB_driver(object):
       return irec
 
 
-  def getiso(self, molname, dbtype):
+  def get_iso(self, molname, dbtype):
       """
       Get isotopic info from isotopes.dat file.
 
@@ -157,8 +157,6 @@ class DB_driver(object):
       -------
       molID: Integer
           HITRAN molecule ID.
-      molname: String
-          Molecule's name.
       isotopes: List of strings
           Isotopes names.
       mass: List of floats
@@ -166,25 +164,19 @@ class DB_driver(object):
       isoratio: List of integers
           Isotopic terrestrial abundance ratio.
       """
+      ID, name, hit_iso, exo_iso, iso_ratio, iso_mass = \
+          io.read_isotopes(ROOT + 'inputs/isotopes.dat')
+
       if dbtype == 'hitran':
-          iiso = 2
+          isotopes = hit_iso
       elif dbtype in ['exomol', 'kurucz']:
-          iiso = 3
+          isotopes = exo_iso
       else:
           self.log.error(f'Invalid database type: {dbtype}')
 
-      isotopes = []
-      mass     = []
-      isoratio = []
-      # Read isotopes info file:
-      for line in open(ROOT + 'inputs/isotopes.dat', 'r'):
-          if line.strip().startswith('#') or line.strip() == '':
-              continue
-          info = line.split()
-          if info[1] == molname:
-              molID = info[0]
-              isotopes.append(info[iiso])
-              isoratio.append(float(info[4]))
-              mass.append(float(info[5]))
+      isotopes = [iso   for mol,iso   in zip(name, isotopes) if mol==molname]
+      mass     = [m     for mol,m     in zip(name, iso_mass) if mol==molname]
+      isoratio = [ratio for mol,ratio in zip(name, iso_ratio) if mol==molname]
 
-      return molID, molname, isotopes, mass, isoratio
+      molID = ID[name==molname][0]
+      return molID, isotopes, mass, isoratio

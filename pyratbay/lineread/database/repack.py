@@ -35,8 +35,7 @@ class Repack(DB_driver):
       # Get info from file name:
       self.molecule, self.dbtype = os.path.split(dbfile)[1].split('_')[0:2]
       # Get isotopic info:
-      ID, mol, isotopes, mass, ratio = self.getiso(molname=self.molecule,
-                                                   dbtype=self.dbtype)
+      ID, isotopes, mass, ratio = self.get_iso(self.molecule, self.dbtype)
       self.isotopes = isotopes
       self.mass     = mass
       self.isoratio = ratio

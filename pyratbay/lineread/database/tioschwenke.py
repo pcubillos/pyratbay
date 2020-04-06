@@ -28,8 +28,7 @@ class Tioschwenke(DB_driver):
     self.name ="Schwenke TiO (1998)"
     # Molecule name:
     self.molecule = "TiO"
-    ID, mol, isotopes, mass, ratio = self.getiso(molname=self.molecule,
-                                                 dbtype="exomol")
+    ID, isotopes, mass, ratio = self.get_iso(self.molecule, dbtype="exomol")
     self.isotopes = isotopes
     self.mass     = mass
     self.isoratio = ratio
