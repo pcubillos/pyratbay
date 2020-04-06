@@ -6125,3 +6125,9 @@ to enable output isotope naming as exomol notation.
 
 Enabled db_type through the __main__ entry point for tips() PF.
 
+*****
+
+Implemented io.import_exomol_xs() function to read/import exomol
+opacity cross-section files.
+
+

@@ -11,6 +11,7 @@ __all__ = [
     'read_pt',
     'read_molecs',
     'read_isotopes',
+    'import_exomol_xs',
     'export_pandexo',
     ]
 
@@ -939,6 +940,62 @@ def read_isotopes(file):
     mass = np.asarray(mass, np.double)
 
     return mol_ID, mol, hitran_iso, exomol_iso, ratio, mass
+
+
+def import_exomol_xs(filename, read_all=True, ofile=None):
+    """
+    Read an ExoMol opacity cross-section file, as formated as in
+    Chubb et al. (2020).
+
+    Parameters
+    ----------
+    filename: String
+        The opacity pickle file to read.
+    read_all: Bool
+        If True, extract all contents in the file: cross-section,
+        pressure, temperature, and wavenumber.
+        If False, extract only the cross-section data.
+    ofile: String
+        If not None, store Exomol XS data into a Pyratbay opacity
+        format.
+
+    Returns
+    -------
+    xs: 3D float ndarray
+        Opacity cross-section in cm2 molecule-1.
+        with shape [npress, ntemp, nwave].
+    pressure: 1D float ndarray
+        Pressure sample of the opacity file (in barye units)
+    temperature: 1D float ndarray
+        Temperature sample of the opacity file (in Kelvin degrees units).
+    wavenumber: 1D float ndarray
+        Wavenumber sample of the opacity file (in cm-1 units).
+    species: String
+        The species name.
+
+    Examples
+    --------
+    >>> import pyratbay.io as io
+    >>> filename = 'H2O_pokazatel.R10000.TauREx.pickle'
+    >>> xs_H2O, press, temp, wn, species = io.read_exomol_xs(filename)
+    """
+    with open(filename, 'rb') as f:
+        xs_data = pickle.load(f)
+        xs = xs_data['xsecarr']
+        if read_all or ofile is not None:
+            pressure    = xs_data['p'] * pc.bar
+            temperature = xs_data['t']
+            wavenumber  = xs_data['wno']
+            species     = [xs_data['name']]
+
+    if ofile is not None:
+        nlayers, ntemp, nwave = np.shape(xs)
+        xs_pb = np.swapaxes(xs,0,1).reshape(1,ntemp,nlayers,nwave)
+        write_opacity(ofile, species, temperature, pressure, wavenumber, xs_pb)
+
+    if read_all:
+        return xs, pressure, temperature, wavenumber, species[0]
+    return xs
 
 
 def export_pandexo(pyrat, baseline, transit_duration,
