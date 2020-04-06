@@ -6121,3 +6121,7 @@ Propagated correction to specific database readers.
 Implemented db_type argument into part_func.tips() function
 to enable output isotope naming as exomol notation.
 
+*****
+
+Enabled db_type through the __main__ entry point for tips() PF.
+
