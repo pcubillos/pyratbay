@@ -6106,3 +6106,7 @@ Fixed bug in Hitran() class.
 Implemented io.read_isotopes() to read isotopic data file.
 Documented and tested.
 
+*****
+
+Some updated to isotopes.dat file.
+
