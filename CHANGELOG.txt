@@ -6096,3 +6096,8 @@ Rewrote database driver getiso() in a cleaner way.
 Renamed database reader classes with capitalized names.
 Some PEP8ing all around.
 
+
+*****  Mon Apr 6 13:14:56 CEST 2020  *****
+
+Fixed bug in Hitran() class.
+

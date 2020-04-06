@@ -166,7 +166,7 @@ class Hitran(DB_driver):
                   f'Wavenumber: {wnumber[i]:8.2f} cm-1   '
                   f'Wavelength: {1.0/(wnumber[i]*pc.um):6.3f} um\n'
                   f'Elow:     {elow[i]:.4e} cm-1   '
-                  f'gf: {gfval:.4e}   Iso ID: {isoID[i]-1)%10:2d}', indent=6)
+                  f'gf: {gfval:.4e}   Iso ID: {(isoID[i]-1)%10:2d}', indent=6)
           i += 1
       data.close()
 
