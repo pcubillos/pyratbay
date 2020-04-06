@@ -6101,3 +6101,8 @@ Some PEP8ing all around.
 
 Fixed bug in Hitran() class.
 
+*****
+
+Implemented io.read_isotopes() to read isotopic data file.
+Documented and tested.
+

@@ -10,6 +10,7 @@ __all__ = [
     'write_cs', 'read_cs',
     'read_pt',
     'read_molecs',
+    'read_isotopes',
     'export_pandexo',
     ]
 
@@ -845,6 +846,7 @@ def read_molecs(file):
     >>> names = list(names)
     >>> print(f"H2O: mass = {mass[names.index('H2O')]} g mol-1, "
     >>>       f"diameter = {diam[names.index('H2O')]} Angstrom.")
+    H2O: mass = 18.01528 g mol-1, diameter = 3.2 Angstrom.
     """
     symbol = [] # Molecule symbol
     mass   = [] # Molecule mass
@@ -864,6 +866,79 @@ def read_molecs(file):
     diam = np.asarray(diam, np.double)
 
     return symbol, mass, diam
+
+
+def read_isotopes(file):
+    r"""
+    Read an isotopes file to extract their molecule, hitran name,
+    exomol name, isotopic ratio, and mass.
+
+    Parameters
+    ----------
+    file: String
+        The isotope file path.
+
+    Returns
+    -------
+    mol_ID: 1D integer ndarray
+        HITRAN molecule ID.
+    mol: 1D string ndarray
+        Molecule names.
+    hitran_iso: 1D string ndarray
+        Isotope name as in HITRAN database.
+    exomol_iso: 1D string ndarray
+        Isotope name based on exomol database.
+    iso_ratio: 1D float ndarray
+        Isotopic ratios.
+    iso_mass: 1D float ndarray
+        The mass of the molecules (in g mol-1).
+
+    Examples
+    --------
+    >>> import pyratbay.io as io
+    >>> import pyratbay.constants as pc
+    >>> ID, mol, hit_iso, exo_iso, ratio, mass = \
+    >>>     io.read_isotopes(pc.ROOT+'inputs/isotopes.dat')
+    >>> print("H2O isotopes:\n iso    iso    isotopic  mass"
+    >>>                    "\n hitran exomol ratio     g/mol")
+    >>> for i in range(len(mol)):
+    >>>     if mol[i] == 'H2O':
+    >>>         print(f" {hit_iso[i]:6} {exo_iso[i]:6} "
+    >>>               f"{ratio[i]:.3e} {mass[i]:.4f}")
+    H2O isotopes:
+    iso    iso    isotopic  mass
+    hitran exomol ratio     g/mol
+    161    116    9.973e-01 18.0106
+    181    118    1.999e-03 20.0148
+    171    117    3.719e-04 19.0148
+    162    126    3.107e-04 19.0168
+    182    000    6.230e-07 21.0211
+    172    000    1.158e-07 20.0211
+    262    226    2.420e-08 20.0210
+    282    000    0.000e+00 22.0000
+    272    000    0.000e+00 21.0000
+    """
+    mol_ID, mol, hitran_iso, exomol_iso, ratio, mass = [], [], [], [], [], []
+    for line in open(file, 'r'):
+        # Skip comment and blank lines:
+        if line.strip() == '' or line.strip().startswith('#'):
+            continue
+        info = line.split()
+        mol_ID.append(info[0])
+        mol.append(info[1])
+        hitran_iso.append(info[2])
+        exomol_iso.append(info[3])
+        ratio.append(info[4])
+        mass.append(info[5])
+
+    mol_ID = np.asarray(mol_ID, int)
+    mol = np.asarray(mol)
+    hitran_iso = np.asarray(hitran_iso)
+    exomol_iso = np.asarray(exomol_iso)
+    ratio = np.asarray(ratio, np.double)
+    mass = np.asarray(mass, np.double)
+
+    return mol_ID, mol, hitran_iso, exomol_iso, ratio, mass
 
 
 def export_pandexo(pyrat, baseline, transit_duration,

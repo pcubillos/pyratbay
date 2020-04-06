@@ -297,3 +297,19 @@ def test_read_molecs():
     np.testing.assert_allclose(mass[names == 'H2O'], 18.01528)
     np.testing.assert_allclose(diam[names == 'H2'], 2.89)
 
+
+def test_read_isotopes():
+    ID, mol, hit_iso, exo_iso, ratio, mass = io.read_isotopes(
+        pc.ROOT+'inputs/isotopes.dat')
+    assert 'H2O' in mol
+    assert np.all(ID[mol=='H2O'] == 1)
+    assert list(hit_iso[mol=='H2O']) == \
+        ['161', '181', '171', '162', '182', '172', '262', '282', '272']
+    assert list(exo_iso[mol=='H2O']) == \
+        ['116', '118', '117', '126', '000', '000', '226', '000', '000']
+    np.testing.assert_allclose(ratio[mol=='H2O'],
+        np.array([9.973e-01, 1.999e-03, 3.719e-04, 3.107e-04, 6.230e-07,
+                  1.158e-07, 2.420e-08, 0.000e+00, 0.000e+00]))
+    np.testing.assert_allclose(mass[mol=='H2O'],
+        np.array([18.010565, 20.014811, 19.014781, 19.016841, 21.021088,
+                  20.021058, 20.021,    22.0000, 21.0000]))
