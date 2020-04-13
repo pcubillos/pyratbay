@@ -4,7 +4,9 @@
 # Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE).
 
 import argparse
-import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use('Agg')
+
 import pyratbay as pb
 
 
@@ -76,5 +78,5 @@ def main():
 
 
 if __name__ == "__main__":
-    plt.ioff()
+    matplotlib.pyplot.ioff()
     main()

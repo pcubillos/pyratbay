@@ -6134,3 +6134,7 @@ opacity cross-section files.
 
 Bumped Pyrat Bay version to 0.9.0a3.
 
+
+*****  Mon Apr 13 13:55:40 CEST 2020  *****
+
+Defaulted matplotlib backend to Agg when calling from entry point.
