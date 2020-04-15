@@ -139,7 +139,7 @@ def check_spectrum(pyrat):
 
   # Check alkali arguments:
   if pyrat.alkali.model_names is not None:
-      pyrat.alkali.models = [pa.alkali.get_model(name)
+      pyrat.alkali.models = [pa.alkali.get_model(name, pyrat.alkali.cutoff)
                              for name in pyrat.alkali.model_names]
 
   # Accept ray-path argument:

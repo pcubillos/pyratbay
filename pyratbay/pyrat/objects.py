@@ -505,6 +505,7 @@ class Alkali(object):
   def __init__(self):
       self.models  = []    # List of alkali models
       self.ec      = None  # Alkali extinction coefficient
+      self.cutoff  = 4500  # Profiles cutoff from line center (cm)
 
   def __str__(self):
       fw = pt.Formatted_Write()

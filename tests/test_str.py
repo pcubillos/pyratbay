@@ -10,7 +10,9 @@ os.chdir(ROOT+'tests')
 
 def test_alkali_str(tmp_path):
     cfg = make_config(tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg')
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        reset={'wllow':'0.466 um', 'wlhigh':'0.80252 um',
+               'alkali_cutoff':'4500.0'})
     pyrat = pb.run(cfg)
     assert pyrat is not None
     print(pyrat.alkali.models[0])
@@ -18,6 +20,7 @@ def test_alkali_str(tmp_path):
 Model name (name): 'sodium_vdw'
 Model species (mol): Na
 Species index in atmosphere (imol): 2
+Profile hard cutoff from line center (cutoff, cm-1): 4500.0
 Detuning parameter (detuning): 30.0
 Lorentz-width parameter (lpar): 0.071
 Partition function (Z): 2.0
@@ -27,11 +30,11 @@ Wavenumber  Wavelength          gf   Lower-state energy
   16960.87    0.589592   6.546e-01   0.000e+00
   16978.07    0.588995   1.309e+00   0.000e+00
 Extinction-coefficient (ec, cm2 molecule-1):
-[[ 9.230e-34  9.244e-34 ...  1.263e-31  1.265e-31]
- [ 1.162e-33  1.164e-33 ...  1.590e-31  1.593e-31]
+[[ 0.000e+00  1.021e-29 ...  3.136e-29  3.131e-29]
+ [ 0.000e+00  1.285e-29 ...  3.948e-29  3.941e-29]
  ...
- [ 1.299e-23  1.300e-23 ...  3.468e-22  3.472e-22]
- [ 1.636e-23  1.637e-23 ...  4.358e-22  4.363e-22]]
+ [ 0.000e+00  4.999e-21 ...  1.525e-20  1.523e-20]
+ [ 0.000e+00  6.269e-21 ...  1.912e-20  1.910e-20]]
 """
 
 def test_cloud_str(tmp_path):

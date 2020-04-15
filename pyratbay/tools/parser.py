@@ -425,6 +425,7 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
       parse_array(args, 'rpars')
       parse_float(args, 'fpatchy')
       parse_array(args, 'alkali')
+      parse_float(args, 'alkali_cutoff')
       # Optical depth options:
       parse_str(args,   'path')
       parse_float(args, 'maxdepth')
@@ -671,6 +672,8 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
       'cloud model', pc.cmodels)
   pyrat.alkali.model_names = args.get_choice('alkali',
       'alkali model', pc.amodels)
+  pyrat.alkali.cutoff = args.get_default('alkali_cutoff',
+      'Alkali profiles hard cutoff from line center (cm-1)', 4500.0, gt=0.0)
   pyrat.cloud.fpatchy = args.get_default('fpatchy',
       'Patchy-cloud fraction', ge=0.0, le=1.0)
 

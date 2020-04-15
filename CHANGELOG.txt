@@ -6154,3 +6154,7 @@ Modified pa.alkali.VanderWaals() classes to add a hard cutoff
 parameter that can be set on initialization (default 4500 cm-1).
 Added tests.
 
+*****
+
+Added alkali_cutoff argument to pyrat configuration file.
+
