@@ -6158,3 +6158,7 @@ Added tests.
 
 Added alkali_cutoff argument to pyrat configuration file.
 
+*****
+
+Added Stefan-Boltzmann constant (sigma) to constants module.
+

@@ -7,6 +7,7 @@ __all__ = [
     'k',
     'c',
     'G',
+    'sigma',
     # Conversion factors
     'eV',
     'A',
@@ -82,6 +83,7 @@ h = sc.h * 1e7  # Planck constant in erg s
 k = sc.k * 1e7  # Boltzmann constant in erg K-1
 c = sc.c * 1e2  # Speed of light in cm s-1
 G = sc.G * 1e3  # Graviational constant in dyne cm2 g-2
+sigma = sc.sigma * 1e3  # Stefan-Boltzmann constant in erg s-1 cn-2 K-4
 
 # Convert from eV to cm-1 (kayser):
 # planck   = 6.62620e-34  # Planck constant [J * s]
@@ -178,7 +180,7 @@ rmodes = [
     'atmosphere',
     'opacity',
     'spectrum',
-    'mcmc'
+    'mcmc',
     ]
 
 # Retrieval flags:
