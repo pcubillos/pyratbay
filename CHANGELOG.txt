@@ -6190,3 +6190,8 @@ Updated tests.
 Cleaned atmosphere.pressure() and uniform() functions.
 Fixed a small error in the screen output units for pressure().
 
+*****
+
+PEP8ed atmosphere.temperature(), hydro_g(), hydro_m(), rhill(),
+and stoich().
+

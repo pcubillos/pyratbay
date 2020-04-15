@@ -32,6 +32,162 @@ from .. import io as io
 from .  import tmodels
 
 
+def pressure(ptop, pbottom, nlayers, units="bar", log=None, verb=0):
+    """
+    Compute a log-scale pressure profile.
+
+    Parameters
+    ----------
+    ptop: String or Float
+        Pressure at the top of the atmosphere. If string, may contain units.
+    pbottom: String or Float
+       Pressure at the bottom of the atmosphere. If string, may contain units.
+    nlayers: Integer
+       Number of pressure layers.
+    units: String
+       Pressure input units (if not defined in ptop, pbottom).
+       Available units are: barye, mbar, pascal, bar (default), and atm.
+    log: Log object
+       Screen-output log handler.
+    verb: Integer
+       Verbosity level (when log is None). Print out when verb > 0.
+
+    Returns
+    -------
+    press: 1D float ndarray
+       The pressure profile (in barye units).
+
+    Examples
+    --------
+    >>> import pyratbay.atmosphere as pa
+    >>> import pyratbay.constants  as pc
+    >>> nlayers = 9
+    >>> # These are all equivalent:
+    >>> p1 = pa.pressure(ptop=1e-6,   pbottom=1e2, nlayers=nlayers)
+    >>> p2 = pa.pressure(1e-6,        1e2,         nlayers, 'bar')
+    >>> p3 = pa.pressure('1e-6 bar', '1e2 bar',    nlayers)
+    >>> p4 = pa.pressure(1e-6*pc.bar, 1e2*pc.bar,  nlayers, 'barye')
+    >>> print(p1/pc.bar)
+    [1.e-06 1.e-05 1.e-04 1.e-03 1.e-02 1.e-01 1.e+00 1.e+01 1.e+02]
+    """
+    if log is None:
+        log = mu.Log(verb=verb)
+    # Unpack pressure input variables:
+    ptop    = pt.get_param(ptop,    units, gt=0.0)
+    pbottom = pt.get_param(pbottom, units, gt=0.0)
+
+    ptop_txt = ptop/pt.u(units)
+    pbot_txt = pbottom/pt.u(units)
+
+    if ptop >= pbottom:
+        log.error(f'Bottom-layer pressure ({pbot_txt:.2e} {units}) must be '
+            f'higher than the top-layer pressure ({ptop_txt:.2e} {units}).')
+
+    # Create pressure array in barye (CGS) units:
+    press = np.logspace(np.log10(ptop), np.log10(pbottom), nlayers)
+    log.head(f'Creating {nlayers}-layer atmospheric model between '
+             f'{pbot_txt:.1e} and {ptop_txt:.1e} {units}.')
+    return press
+
+
+def temperature(tmodel, pressure=None, rstar=None, tstar=None, tint=100.0,
+        gplanet=None, smaxis=None, runits="cm", nlayers=None,
+        log=None, tparams=None):
+    """
+    Temperature profile wrapper.
+
+    Parameters
+    ----------
+    tmodel: String
+        Name of the temperature model.
+    pressure: 1D float ndarray
+        Atmospheric pressure profile in barye units.
+    rstar: String or float
+        Stellar radius. If string, may contain the units.
+    tstar: String or float
+        Stellar temperature in kelvin degrees.
+    tint: String or float
+        Planetary internal temperature in kelvin degrees.
+    gplanet: String or float
+        Planetary atmospheric temperature in cm s-2.
+    smaxis: String or float
+        Orbital semi-major axis. If string, may contain the units.
+    runits: String
+        Default units for rstar and smaxis.  Available units are: A, nm, um,
+        mm, cm (default), m, km, au, pc, rearth, rjup, rsun.
+    nlayers: Integer
+        Number of pressure layers.
+    log: Log object
+        Screen-output log handler.
+    tparams: 1D float ndarray
+        Temperature model parameters. If None, return a tuple with the
+        temperature model, its arguments, and the number or required parameters.
+
+    Returns
+    -------
+    If tparams is not None:
+        temperature: 1D float ndarray
+            The evaluated atmospheric temperature profile.
+    If tparams is None:
+        temp_model: Callable
+            The atmospheric temperature model.
+        targs: List
+            The list of additional arguments (besides the model parameters).
+        ntpars: Integer
+            The expected number of model parameters.
+
+    Examples
+    --------
+    >>> import pyratbay.atmosphere as pa
+    >>> nlayers = 11
+    >>> # Isothermal profile:
+    >>> temp_iso = pa.temperature("isothermal", tparams=1500.0, nlayers=nlayers)
+    >>> print(temp_iso)
+    [1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500.]
+    >>> # Three-channel Eddington-approximation profile:
+    >>> pressure = pa.pressure(1e-8, 1e2, nlayers, "bar")
+    >>> tparams = np.array([-1.5, -0.8, -0.8, 0.5, 1.0])
+    >>> temp = pa.temperature('tcea', pressure, rstar="0.756 rsun", tstar=5040,
+    >>>     tint=100.0, gplanet=2200.0, smaxis="0.031 au", tparams=tparams)
+    >>> print(temp)
+    [1047.04157312 1047.04189805 1047.04531644 1047.08118784 1047.45648563
+     1051.34469989 1088.69956369 1311.86379107 1640.12857767 1660.02396061
+     1665.30121021]
+    """
+    if log is None:
+        log = mu.Log()
+
+    if tmodel == 'tcea':
+        # Parse inputs:
+        rstar   = pt.get_param(rstar,   runits,   gt=0.0)
+        tstar   = pt.get_param(tstar,   'kelvin', gt=0.0)
+        tint    = pt.get_param(tint,    'kelvin', gt=0.0)
+        gplanet = pt.get_param(gplanet, 'none',   gt=0.0)
+        smaxis  = pt.get_param(smaxis,  runits,   gt=0.0)
+        # Define model and arguments:
+        targs  = [pressure, rstar, tstar, tint, gplanet, smaxis]
+        temp_model = tmodels.TCEA(*targs)
+        ntpars = 5
+    elif tmodel == 'isothermal':
+        targs  = [nlayers]
+        temp_model = tmodels.Isothermal(*targs)
+        ntpars = 1
+    elif tmodel == 'madhu':
+        targs = [pressure]
+        temp_model = tmodels.Madhu(*targs)
+        ntpars = 6
+    else:
+        log.error(f"Invalid input temperature model '{tmodel}'.  "
+                  f"Select from: {pc.tmodels}")
+
+    if tparams is None:
+        return temp_model, targs, ntpars
+    else:
+        temperature = temp_model(tparams)
+        log.head(f'\nComputed {tmodel} temperature model.')
+        return temperature
+
+
 def uniform(pressure, temperature, species, abundances, punits="bar",
             log=None, atmfile=None):
     """
@@ -204,286 +360,130 @@ def abundance(pressure, temperature, species, elements=None,
     return q
 
 
-def pressure(ptop, pbottom, nlayers, units="bar", log=None, verb=0):
+def hydro_g(pressure, temperature, mu, g, p0=None, r0=None):
     """
-    Compute a log-scale pressure profile.
+    Calculate radii using the hydrostatic-equilibrium equation considering
+    a constant gravity.
 
     Parameters
     ----------
-    ptop: String or Float
-        Pressure at the top of the atmosphere. If string, may contain units.
-    pbottom: String or Float
-       Pressure at the bottom of the atmosphere. If string, may contain units.
-    nlayers: Integer
-       Number of pressure layers.
-    units: String
-       Pressure input units (if not defined in ptop, pbottom).
-       Available units are: barye, mbar, pascal, bar (default), and atm.
-    log: Log object
-       Screen-output log handler.
-    verb: Integer
-       Verbosity level (when log is None). Print out when verb > 0.
+    pressure: 1D float ndarray
+        Atmospheric pressure for each layer (in barye).
+    temperature: 1D float ndarray
+        Atmospheric temperature for each layer (in K).
+    mu: 1D float ndarray
+        Mean molecular mass for each layer (in g mol-1).
+    g: Float
+        Atmospheric gravity (in cm s-2).
+    p0: Float
+        Reference pressure level (in barye) where radius(p0) = r0.
+    r0: Float
+        Reference radius level (in cm) corresponding to p0.
 
     Returns
     -------
-    press: 1D float ndarray
-       The pressure profile (in barye units).
+    radius: 1D float ndarray
+        Radius for each layer (in cm).
+
+    Notes
+    -----
+    If the reference values (p0 and r0) are not given, set radius = 0.0
+    at the bottom of the atmosphere.
+
+    Examples
+    --------
+    >>> import pyratbay.atmosphere as pa
+    >>> import pyratbay.constants as pc
+    >>> nlayers = 11
+    >>> pressure = pa.pressure(1e-8, 1e2, nlayers, units='bar')
+    >>> temperature = pa.tmodels.Isothermal(nlayers)(1500.0)
+    >>> mu = np.tile(2.3, nlayers)
+    >>> g = pc.G * pc.mjup / pc.rjup**2
+    >>> r0 = 1.0 * pc.rjup
+    >>> p0 = 1.0 * pc.bar
+    >>> # Radius profile in Jupiter radii:
+    >>> radius = pa.hydro_g(pressure, temperature, mu, g, p0, r0) / pc.rjup
+    >>> print(radius)
+    [1.0563673  1.04932138 1.04227547 1.03522956 1.02818365 1.02113774
+     1.01409182 1.00704591 1.         0.99295409 0.98590818]
+    """
+    # Apply the HE equation:
+    radius = si.cumtrapz(-pc.k*sc.N_A*temperature / (mu*g), np.log(pressure))
+    radius = np.concatenate(([0.0], radius))
+
+    # Set absolute radii values if p0 and r0 are provided:
+    if p0 is not None and r0 is not None:
+        # Find current radius at p0:
+        radinterp = sip.interp1d(pressure, radius, kind='slinear')
+        r0_interp = radinterp(p0)
+        # Set: radius(p0) = r0
+        radius += r0 - r0_interp
+    # Set radius = 0 at the bottom of the atmosphere:
+    else:
+        radius -= radius[-1]
+
+    return radius
+
+
+def hydro_m(pressure, temperature, mu, mass, p0, r0):
+    """
+    Calculate radii using the hydrostatic-equilibrium equation considering
+    a variable gravity: g(r) = G*mass/r**2
+
+    Parameters
+    ----------
+    pressure: 1D float ndarray
+        Atmospheric pressure for each layer (in barye).
+    temperature: 1D float ndarray
+        Atmospheric temperature for each layer (in K).
+    mu: 1D float ndarray
+        Mean molecular mass for each layer (in g mol-1).
+    mass: Float
+        Object's mass (in g).
+    p0: Float
+        Reference pressure level (in barye) where radius(p0) = r0.
+    r0: Float
+        Reference radius level (in cm) corresponding to p0.
+
+    Returns
+    -------
+    radius: 1D float ndarray
+        Radius for each layer (in cm).
 
     Examples
     --------
     >>> import pyratbay.atmosphere as pa
     >>> import pyratbay.constants  as pc
-    >>> nlayers = 9
-    >>> # These are all equivalent:
-    >>> p1 = pa.pressure(ptop=1e-6,   pbottom=1e2, nlayers=nlayers)
-    >>> p2 = pa.pressure(1e-6,        1e2,         nlayers, 'bar')
-    >>> p3 = pa.pressure('1e-6 bar', '1e2 bar',    nlayers)
-    >>> p4 = pa.pressure(1e-6*pc.bar, 1e2*pc.bar,  nlayers, 'barye')
-    >>> print(p1/pc.bar)
-    [1.e-06 1.e-05 1.e-04 1.e-03 1.e-02 1.e-01 1.e+00 1.e+01 1.e+02]
+    >>> nlayers = 11
+    >>> pressure = pa.pressure(1e-8, 1e2, nlayers, units='bar')
+    >>> temperature = pa.tmodels.Isothermal(nlayers)(1500.0)
+    >>> mu = np.tile(2.3, nlayers)
+    >>> mplanet = 1.0 * pc.mjup
+    >>> r0 = 1.0 * pc.rjup
+    >>> p0 = 1.0 * pc.bar
+    >>> # Radius profile in Jupiter radii:
+    >>> radius = pa.hydro_m(pressure, temperature, mu, mplanet, p0, r0)/pc.rjup
+    >>> print(radius)
+    [1.05973436 1.05188019 1.04414158 1.036516   1.029001   1.02159419
+     1.01429324 1.00709591 1.         0.99300339 0.986104  ]
     """
-    if log is None:
-        log = mu.Log(verb=verb)
-    # Unpack pressure input variables:
-    ptop    = pt.get_param(ptop,    units, gt=0.0)
-    pbottom = pt.get_param(pbottom, units, gt=0.0)
+    # Apply the HE equation:
+    I = si.cumtrapz((pc.k*sc.N_A*temperature)/(pc.G*mu*mass), np.log(pressure))
+    I = np.concatenate(([0.0], I))
 
-    ptop_txt = ptop/pt.u(units)
-    pbot_txt = pbottom/pt.u(units)
+    # Find current radius at p0:
+    radinterp = sip.interp1d(pressure, I, kind='slinear')
+    I0 = radinterp(p0)
+    # Set: radius(p0) = r0
+    radius = 1.0/(I - I0 + 1/r0)
 
-    if ptop >= pbottom:
-        log.error(f'Bottom-layer pressure ({pbot_txt:.2e} {units}) must be '
-            f'higher than the top-layer pressure ({ptop_txt:.2e} {units}).')
+    # Search for blips (radius should be monotonically decreasing):
+    for j in range(len(radius)-1):
+        if radius[j] <= radius[j+1]:
+            #radius[0:j+1] = np.inf  # TBD: this shoud be the solution
+            radius[0:j+1] += 2*(radius[j+1] - radius[j])
 
-    # Create pressure array in barye (CGS) units:
-    press = np.logspace(np.log10(ptop), np.log10(pbottom), nlayers)
-    log.head(f'Creating {nlayers}-layer atmospheric model between '
-             f'{pbot_txt:.1e} and {ptop_txt:.1e} {units}.')
-    return press
-
-
-def temperature(tmodel, pressure=None, rstar=None, tstar=None, tint=100.0,
-                gplanet=None, smaxis=None, runits="cm", nlayers=None,
-                log=None, tparams=None):
-  """
-  Temperature profile wrapper.
-
-  Parameters
-  ----------
-  tmodel: String
-      Name of the temperature model.
-  pressure: 1D float ndarray
-      Atmospheric pressure profile in barye units.
-  rstar: String or float
-      Stellar radius. If string, may contain the units.
-  tstar: String or float
-      Stellar temperature in kelvin degrees.
-  tint: String or float
-      Planetary internal temperature in kelvin degrees.
-  gplanet: String or float
-      Planetary atmospheric temperature in cm s-2.
-  smaxis: String or float
-      Orbital semi-major axis. If string, may contain the units.
-  runits: String
-      Default units for rstar and smaxis.  Available units are: A, nm, um,
-      mm, cm (default), m, km, au, pc, rearth, rjup, rsun.
-  nlayers: Integer
-      Number of pressure layers.
-  log: Log object
-      Screen-output log handler.
-  tparams: 1D float ndarray
-      Temperature model parameters. If None, return a tuple with the
-      temperature model, its arguments, and the number or required parameters.
-
-  Returns
-  -------
-  If tparams is not None:
-      temperature: 1D float ndarray
-          The evaluated atmospheric temperature profile.
-  If tparams is None:
-      temp_model: Callable
-          The atmospheric temperature model.
-      targs: List
-          The list of additional arguments (besides the model parameters).
-      ntpars: Integer
-          The expected number of model parameters.
-
-  Examples
-  --------
-  >>> import pyratbay.atmosphere as pa
-  >>> nlayers = 11
-  >>> # Isothermal profile:
-  >>> temp_iso = pa.temperature("isothermal", tparams=1500.0, nlayers=nlayers)
-  >>> print(temp_iso)
-  [1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500.]
-  >>> # Three-channel Eddington-approximation profile:
-  >>> pressure = pa.pressure(1e-8, 1e2, nlayers, "bar")
-  >>> tparams = np.array([-1.5, -0.8, -0.8, 0.5, 1.0])
-  >>> temp = pa.temperature('tcea', pressure, rstar="0.756 rsun", tstar=5040,
-  >>>     tint=100.0, gplanet=2200.0, smaxis="0.031 au", tparams=tparams)
-  >>> print(temp)
-  [1047.04157312 1047.04189805 1047.04531644 1047.08118784 1047.45648563
-   1051.34469989 1088.69956369 1311.86379107 1640.12857767 1660.02396061
-   1665.30121021]
-  """
-  if log is None:
-      log = mu.Log()
-
-  if tmodel == 'tcea':
-      # Parse inputs:
-      rstar   = pt.get_param(rstar,   runits,   gt=0.0)
-      tstar   = pt.get_param(tstar,   'kelvin', gt=0.0)
-      tint    = pt.get_param(tint,    'kelvin', gt=0.0)
-      gplanet = pt.get_param(gplanet, 'none',   gt=0.0)
-      smaxis  = pt.get_param(smaxis,  runits,   gt=0.0)
-      # Define model and arguments:
-      targs  = [pressure, rstar, tstar, tint, gplanet, smaxis]
-      temp_model = tmodels.TCEA(*targs)
-      ntpars = 5
-  elif tmodel == 'isothermal':
-      targs  = [nlayers]
-      temp_model = tmodels.Isothermal(*targs)
-      ntpars = 1
-  elif tmodel == 'madhu':
-      targs = [pressure]
-      temp_model = tmodels.Madhu(*targs)
-      ntpars = 6
-  else:
-      log.error("Invalid input temperature model '{:s}'.  Select from: {}".
-          format(tmodel, pc.tmodels))
-
-  if tparams is None:
-      return temp_model, targs, ntpars
-  else:
-      temperature = temp_model(tparams)
-      log.head('\nComputed {:s} temperature model.'.format(tmodel))
-      return temperature
-
-
-def hydro_g(pressure, temperature, mu, g, p0=None, r0=None):
-  """
-  Calculate radii using the hydrostatic-equilibrium equation considering
-  a constant gravity.
-
-  Parameters
-  ----------
-  pressure: 1D float ndarray
-     Atmospheric pressure for each layer (in barye).
-  temperature: 1D float ndarray
-     Atmospheric temperature for each layer (in K).
-  mu: 1D float ndarray
-     Mean molecular mass for each layer (in g mol-1).
-  g: Float
-     Atmospheric gravity (in cm s-2).
-  p0: Float
-     Reference pressure level (in barye) where radius(p0) = r0.
-  r0: Float
-     Reference radius level (in cm) corresponding to p0.
-
-  Returns
-  -------
-  radius: 1D float ndarray
-     Radius for each layer (in cm).
-
-  Notes
-  -----
-  If the reference values (p0 and r0) are not given, set radius = 0.0
-  at the bottom of the atmosphere.
-
-  Examples
-  --------
-  >>> import pyratbay.atmosphere as pa
-  >>> import pyratbay.constants as pc
-  >>> nlayers = 11
-  >>> pressure = pa.pressure(1e-8, 1e2, nlayers, units='bar')
-  >>> temperature = pa.tmodels.Isothermal(nlayers)(1500.0)
-  >>> mu = np.tile(2.3, nlayers)
-  >>> g = pc.G * pc.mjup / pc.rjup**2
-  >>> r0 = 1.0 * pc.rjup
-  >>> p0 = 1.0 * pc.bar
-  >>> # Radius profile in Jupiter radii:
-  >>> radius = pa.hydro_g(pressure, temperature, mu, g, p0, r0) / pc.rjup
-  >>> print(radius)
-  [1.0563673  1.04932138 1.04227547 1.03522956 1.02818365 1.02113774
-   1.01409182 1.00704591 1.         0.99295409 0.98590818]
-  """
-  # Apply the HE equation:
-  radius = si.cumtrapz((-pc.k*sc.N_A * temperature) / (mu*g), np.log(pressure))
-  radius = np.concatenate(([0.0], radius))
-
-  # Set absolute radii values if p0 and r0 are provided:
-  if p0 is not None and r0 is not None:
-      # Find current radius at p0:
-      radinterp = sip.interp1d(pressure, radius, kind='slinear')
-      r0_interp = radinterp(p0)
-      # Set: radius(p0) = r0
-      radius += r0 - r0_interp
-  # Set radius = 0 at the bottom of the atmosphere:
-  else:
-      radius -= radius[-1]
-
-  return radius
-
-
-def hydro_m(pressure, temperature, mu, M, p0, r0):
-  """
-  Calculate radii using the hydrostatic-equilibrium equation considering
-  a variable gravity: g=G*M/r**2
-
-  Parameters
-  ----------
-  pressure: 1D float ndarray
-     Atmospheric pressure for each layer (in barye).
-  temperature: 1D float ndarray
-     Atmospheric temperature for each layer (in K).
-  mu: 1D float ndarray
-     Mean molecular mass for each layer (in g mol-1).
-  M: Float
-     Planetary mass (in g).
-  p0: Float
-     Reference pressure level (in barye) where radius(p0) = r0.
-  r0: Float
-     Reference radius level (in cm) corresponding to p0.
-
-  Returns
-  -------
-  radius: 1D float ndarray
-     Radius for each layer (in cm).
-
-  Examples
-  --------
-  >>> import pyratbay.atmosphere as pa
-  >>> import pyratbay.constants  as pc
-  >>> nlayers = 11
-  >>> pressure = pa.pressure(1e-8, 1e2, nlayers, units='bar')
-  >>> temperature = pa.tmodels.Isothermal(nlayers)(1500.0)
-  >>> mu = np.tile(2.3, nlayers)
-  >>> Mp = 1.0 * pc.mjup
-  >>> r0 = 1.0 * pc.rjup
-  >>> p0 = 1.0 * pc.bar
-  >>> # Radius profile in Jupiter radii:
-  >>> radius = pa.hydro_m(pressure, temperature, mu, Mp, p0, r0) / pc.rjup
-  >>> print(radius)
-  [1.05973436 1.05188019 1.04414158 1.036516   1.029001   1.02159419
-   1.01429324 1.00709591 1.         0.99300339 0.986104  ]
-  """
-  # Apply the HE equation:
-  I = si.cumtrapz((pc.k*sc.N_A*temperature)/(pc.G*mu*M), np.log(pressure))
-  I = np.concatenate(([0.0], I))
-
-  # Find current radius at p0:
-  radinterp = sip.interp1d(pressure, I, kind='slinear')
-  I0 = radinterp(p0)
-  # Set: radius(p0) = r0
-  radius = 1.0/(I - I0 + 1/r0)
-
-  # Search for blips (radius should be monotonically decreasing):
-  for j in range(len(radius)-1):
-      if radius[j] <= radius[j+1]:
-          #radius[0:j+1] = np.inf  # TBD: this shoud be the solution
-          radius[0:j+1] += 2*(radius[j+1] - radius[j])
-
-  return radius
+    return radius
 
 
 def rhill(smaxis, mplanet, mstar):
@@ -492,7 +492,17 @@ def rhill(smaxis, mplanet, mstar):
 
     Parameters
     ----------
-    TBD
+    smaxis: Float
+        Orbital semi-major axis (in cm).
+    mplanet: Float
+        Planetary mass (in g).
+    mstar: Float
+        Stellar mass (in g).
+
+    Returns
+    -------
+    rhill: Float
+        Hill radius of planet.
     """
     if smaxis is None or mplanet is None or mstar is None:
         return np.inf
@@ -501,65 +511,65 @@ def rhill(smaxis, mplanet, mstar):
 
 
 def stoich(species):
-  """
-  Extract the elemental composition from a list of species.
+    """
+    Extract the elemental composition from a list of species.
 
-  Parameters
-  ----------
-  species: 1D string list
-     List of species.
+    Parameters
+    ----------
+    species: 1D string list
+        List of species.
 
-  Returns
-  -------
-  elements: 1D string list
-     List of elements contained in species list.
-  stoich: 2D integer ndarray
-     Stoichiometric elemental values for each species (number of elements).
+    Returns
+    -------
+    elements: 1D string list
+        List of elements contained in species list.
+    stoich: 2D integer ndarray
+        Stoichiometric elemental values for each species (number of elements).
 
-  Examples
-  --------
-  >>> import pyratbay.atmosphere as pa
-  >>> species = ['H2', 'He', 'H2O', 'CO', 'CO2', 'CH4']
-  >>> elements, stoichs = pa.stoich(species)
-  >>> print('{}\n{}'.format(elements, stoichs))
-  ['C', 'H', 'He', 'O']
-  [[0 2 0 0]
-   [0 0 1 0]
-   [0 2 0 1]
-   [1 0 0 1]
-   [1 0 0 2]
-   [1 4 0 0]]
-  """
-  # Elemental composition and quantity for each species:
-  comp, n = [], []
+    Examples
+    --------
+    >>> import pyratbay.atmosphere as pa
+    >>> species = ['H2', 'He', 'H2O', 'CO', 'CO2', 'CH4']
+    >>> elements, stoichs = pa.stoich(species)
+    >>> print('{}\n{}'.format(elements, stoichs))
+    ['C', 'H', 'He', 'O']
+    [[0 2 0 0]
+     [0 0 1 0]
+     [0 2 0 1]
+     [1 0 0 1]
+     [1 0 0 2]
+     [1 4 0 0]]
+    """
+    # Elemental composition and quantity for each species:
+    comp, n = [], []
 
-  for spec in species:
-      comp.append([])
-      n.append([])
-      for char in spec:
-          # New element:
-          if char.isupper():
-              comp[-1].append(char)
-              n[-1].append(1)
-          # Same element:
-          elif char.islower():
-              comp[-1][-1] += char
-          # Quantity:
-          elif char.isdigit():
-              n[-1][-1] = int(char)
+    for spec in species:
+        comp.append([])
+        n.append([])
+        for char in spec:
+            # New element:
+            if char.isupper():
+                comp[-1].append(char)
+                n[-1].append(1)
+            # Same element:
+            elif char.islower():
+                comp[-1][-1] += char
+            # Quantity:
+            elif char.isdigit():
+                n[-1][-1] = int(char)
 
-  # Flatten nested list, and get unique set of elements:
-  elements = sorted(set([element for spec    in comp
-                                 for element in spec]))
-  stoich = np.zeros((len(species), len(elements)), int)
+    # Flatten nested list, and get unique set of elements:
+    elements = sorted(set([element for spec    in comp
+                                   for element in spec]))
+    stoich = np.zeros((len(species), len(elements)), int)
 
-  # Count how many elements in each species:
-  for i in range(len(species)):
-      for j in range(len(comp[i])):
-          idx = elements.index(comp[i][j])
-          stoich[i,idx] = n[i][j]
+    # Count how many elements in each species:
+    for i in range(len(species)):
+        for j in range(len(comp[i])):
+            idx = elements.index(comp[i][j])
+            stoich[i,idx] = n[i][j]
 
-  return elements, stoich
+    return elements, stoich
 
 
 def meanweight(abundances, species, molfile=pc.ROOT+'inputs/molecules.dat'):
