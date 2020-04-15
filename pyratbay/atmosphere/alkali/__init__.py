@@ -7,12 +7,12 @@ from .alkali import *
 
 __all__ = alkali.__all__ + ['get_model']
 
-def get_model(name):
+def get_model(name, *args):
     """Get an alkali model by its name."""
     if name == 'sodium_vdw':
-        return SodiumVdW()
+        return SodiumVdW(*args)
     if name == 'potassium_vdw':
-        return PotassiumVdW()
+        return PotassiumVdW(*args)
 
 
 # Clean up top-level namespace--delete everything that isn't in __all__

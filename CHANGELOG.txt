@@ -6144,3 +6144,7 @@ Defaulted matplotlib backend to Agg when calling from entry point.
 
 Updated C2H2 isotope names for exomol database.
 
+*****
+
+Modified pa.alkali.get_model() to accept additional arguments.
+
