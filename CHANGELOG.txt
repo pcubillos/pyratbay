@@ -6178,3 +6178,10 @@ Added tests.
 Updated tools.make_tea() function according to current TEA arguments
 (enabled verb and ncpu arguments).
 
+*****
+
+Renamed atmosphere.abundances() function to abundance().
+Updated list of arguments adding escale and ncpu.
+Updated interface to TEA, made atmfile optional and some cleaning.
+Updated tests.
+

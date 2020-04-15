@@ -5,7 +5,7 @@ __all__ = [
     'pressure',
     'temperature',
     'uniform',
-    'abundances',
+    'abundance',
     'hydro_g',
     'hydro_m',
     'rhill',
@@ -63,15 +63,14 @@ def uniform(pressure, temperature, species, abundances, punits="bar",
   Examples
   --------
   >>> import pyratbay.atmosphere as pa
-  >>> atmfile = "atm_test.dat"
   >>> nlayers = 11
   >>> punits  = 'bar'
   >>> pressure    = pa.pressure(1e-8, 1e2, nlayers, punits)
   >>> tmodel = pa.tmodels.Isothermal(nlayers)
   >>> species     = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
   >>> abundances  = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
-  >>> qprofiles = pa.abundances(atmfile, pressure, tmodel(1500.0), species,
-  >>>                           quniform=abundances, punits=punits)
+  >>> qprofiles = pa.uniform(pressure, tmodel(1500.0), species,
+  >>>     abundances=abundances, punits=punits)
   >>> print(qprofiles)
   [[8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]
    [8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]
@@ -107,90 +106,102 @@ def uniform(pressure, temperature, species, abundances, punits="bar",
                    punits, header)
 
   return qprofiles
-def abundances(atmfile, pressure, temperature, species, elements=None,
-               quniform=None, punits="bar", xsolar=1.0,
-               solar=pc.ROOT+"inputs/AsplundEtal2009.txt",
-               log=None, verb=0):
-  """
-  Wrapper to compute atmospheric abundaces for given pressure and
-  temperature profiles with either uniform abundances or TEA.
 
-  Parameters
-  ----------
-  atmfile: String
-     Output file where to save the atmospheric model.
-  pressure: 1D float ndarray
-     Atmospheric pressure profile (barye).
-  temperature: 1D float ndarray
-     Atmospheric temperature profile (Kelvin).
-  species: 1D string list
-     Atmospheric composition.
-  elements: 1D strings list
-     Elemental composition.
-  quniform: 1D float ndarray
-     If not None, the species abundances at all layers.
-  punits: String
-     Output pressure units.
-  xsolar: Float
-     Metallicity enhancement factor.
-  solar: String
-     Solar elemental abundances file.
-  log: Log object
-     Screen-output log handler.
-  verb: Integer
-     Verbosity level.
 
-  Returns
-  -------
-  q: 2D float ndarray
-     Atmospheric abundances (volume mixing fraction).
+def abundance(pressure, temperature, species, elements=None,
+        quniform=None, atmfile=None, punits='bar', xsolar=1.0,
+        escale={}, solar_file=None, log=None, verb=1, ncpu=1):
+    """
+    Compute atmospheric abundaces for given pressure and
+    temperature profiles with either uniform abundances or TEA.
 
-  Example
-  -------
-  >>> import pyratbay.atmosphere as pa
-  >>> import pyratbay.constants  as pc
-  >>> atmfile = "pbtea.atm"
-  >>> nlayers = 100
-  >>> press = np.logspace(-8, 3, nlayers) * pc.bar
-  >>> temp  = 900+500/(1+np.exp(-(np.log10(press)+1.5)*1.5))
-  >>> species = ['H2O', 'CH4', 'CO', 'CO2', 'NH3', 'C2H2', 'C2H4', 'HCN',
-  >>>            'N2', 'H2', 'H', 'He']
-  >>> # Automatically get 'elements' necessary from the list of species:
-  >>> Q = pa.abundances("pbtea.atm", press, temp, species)
-  """
-  if log is None:
-      log = mu.Log(verb=verb)
-  # Uniform-abundances profile:
-  if quniform is not None:
-      q = uniform(pressure, temperature, species, quniform, punits, log,
-                  atmfile)
-      log.head("\nProduced uniform-abundances atmospheric file: '{:s}'.".
-               format(atmfile))
-      return q
+    Parameters
+    ----------
+    pressure: 1D float ndarray
+        Atmospheric pressure profile (barye).
+    temperature: 1D float ndarray
+        Atmospheric temperature profile (Kelvin).
+    species: 1D string list
+        Output atmospheric composition.
+    elements: 1D strings list
+        Input elemental composition (default to minimum list of elements
+        required to form species).
+    quniform: 1D float ndarray
+        If not None, the output species abundances (isobaric).
+    atmfile: String
+        If not None, output file where to save the atmospheric model.
+    punits: String
+        Output pressure units.
+    xsolar: Float
+        Metallicity enhancement factor.
+    escale: Dict
+        Multiplication factor for specified atoms (dict's keys)
+        by the respective values (on top of the xsolar scaling).
+    solar_file: String
+        Input solar elemental abundances file (Default Asplund et al. 2009).
+    log: Log object
+        Screen-output log handler.
+    verb: Integer
+        Verbosity level.
+    ncpu: Integer
+        Number of parallel CPUs to use in TEA calculation.
 
-  # TEA abundances:
-  log.head("\nRun TEA to compute thermochemical-equilibrium abundances.")
-  # Prep up files:
-  atomicfile, patm = "PBatomicfile.tea", "PBpreatm.tea"
-  make_atomic(xsolar, atomic_file=atomicfile, solar_file=solar)
-  if elements is None:
-     elements, dummy = stoich(species)
-  specs = elements + list(np.setdiff1d(species, elements))
-  make_preatm(pressure/pt.u(punits), temperature, atomicfile, elements,
-             specs, patm)
-  # Run TEA:
-  pt.make_tea(abun_file=atomicfile)
-  proc = subprocess.Popen([pc.ROOT + "modules/TEA/tea/runatm.py", patm, "TEA"])
-  proc.communicate()
-  # Reformat the TEA output into the pyrat format:
-  tea_to_pyrat("TEA.tea", atmfile, species)
-  os.remove(atomicfile)
-  os.remove(patm)
-  os.remove("TEA.cfg")
-  os.remove("TEA.tea")
-  log.head("Produced TEA atmospheric file '{:s}'.".format(atmfile))
-  q = io.read_atm(atmfile)[4]
-  return q
+    Returns
+    -------
+    q: 2D float ndarray
+       Atmospheric volume mixing fraction abundances of shape
+       [nlayers, nspecies].
+
+    Example
+    -------
+    >>> import pyratbay.atmosphere as pa
+    >>> import pyratbay.constants  as pc
+    >>> atmfile = "pbtea.atm"
+    >>> nlayers = 100
+    >>> press = np.logspace(-8, 3, nlayers) * pc.bar
+    >>> temp  = 900+500/(1+np.exp(-(np.log10(press)+1.5)*1.5))
+    >>> species = ['H2O', 'CH4', 'CO', 'CO2', 'NH3', 'C2H2', 'C2H4', 'HCN',
+    >>>            'N2', 'H2', 'H', 'He']
+    >>> # Automatically get 'elements' necessary from the list of species:
+    >>> Q = pa.abundance(press, temp, species)
+    """
+    if solar_file is None:
+        solar_file = pc.ROOT + "inputs/AsplundEtal2009.txt"
+    if log is None:
+        log = mu.Log(verb=verb)
+    # Uniform-abundances profile:
+    if quniform is not None:
+        q = uniform(pressure, temperature, species, quniform, punits, log,
+                    atmfile)
+        log.head(f"\nProduced uniform-abundances atmospheric file '{atmfile}'.")
+        return q
+
+    # TEA abundances:
+    log.head("\nRun TEA to compute thermochemical-equilibrium abundances.")
+    # Prep up files:
+    atomic_file, patm = "PBatomicfile.tea", "PBpreatm.tea"
+    make_atomic(xsolar, atomic_file=atomic_file, solar_file=solar_file)
+    if elements is None:
+       elements, dummy = stoich(species)
+    specs = elements + list(np.setdiff1d(species, elements))
+    make_preatm(
+        pressure/pt.u(punits), temperature, atomic_file, elements, specs, patm)
+    # Run TEA:
+    pt.make_tea(abun_file=atomic_file, verb=verb, ncpu=ncpu)
+    proc = subprocess.Popen([pc.ROOT+"modules/TEA/tea/runatm.py", patm, "TEA"])
+    proc.communicate()
+    # Reformat the TEA output into the pyrat format:
+    if atmfile is not None:
+        log.head(f"Produced TEA atmospheric file '{atmfile}'.")
+    else:
+        atmfile = 'TEA.tea'
+    tea_to_pyrat("TEA.tea", atmfile, species)
+    q = io.read_atm(atmfile)[4]
+    os.remove(atomic_file)
+    os.remove(patm)
+    os.remove("TEA.cfg")
+    os.remove("TEA.tea")
+    return q
 
 
 def pressure(ptop, pbottom, nlayers, units="bar", log=None, verb=0):
@@ -779,7 +790,7 @@ def read_atomic(afile):
     """
     # Allocate arrays:
     nelements = 84  # Fixed number
-    anum   = np.zeros(nelements, np.int)
+    atomic_num = np.zeros(nelements, np.int)
     symbol = np.zeros(nelements, '|U2')
     dex    = np.zeros(nelements, np.double)
     name   = np.zeros(nelements, '|U20')
@@ -791,10 +802,11 @@ def read_atomic(afile):
         f.readline()
         f.readline()
         # Store data into the arrays:
-        for i in np.arange(nelements):
-            anum[i], symbol[i], dex[i], name[i], mass[i] = f.readline().split()
+        for i in range(nelements):
+            atomic_num[i], symbol[i], dex[i], name[i], mass[i] = \
+                f.readline().split()
 
-    return anum, symbol, dex, name, mass
+    return atomic_num, symbol, dex, name, mass
 
 
 def make_preatm(pressure, temp, afile, elements, species, patm):

@@ -210,7 +210,7 @@ def test_uniform():
         np.testing.assert_equal(q, np.array(abundances))
 
 
-def test_abundances_uniform():
+def test_abundance_uniform():
     atmfile = "outputs/atm_test.dat"
     nlayers = 11
     punits  = 'bar'
@@ -219,15 +219,14 @@ def test_abundances_uniform():
     temperature = tmodel(1500.0)
     species     = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
     abundances  = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
-    qprofiles = pa.abundances(atmfile, pressure, temperature, species,
-                              quniform=abundances, punits=punits)
+    qprofiles = pa.abundance(pressure, temperature, species,
+        quniform=abundances, atmfile=atmfile, punits=punits)
     assert np.shape(qprofiles) == (nlayers, len(species))
     for q in qprofiles:
         np.testing.assert_equal(q, np.array(abundances))
 
 
 def test_abundances_tea():
-    atmfile = "outputs/atm_test.dat"
     nlayers = 15
     punits  = 'bar'
     pressure = pa.pressure(1e-10, 1e3, nlayers, punits)
@@ -236,8 +235,8 @@ def test_abundances_tea():
     species     = 'H He C O H2 H2O CO CO2 CH4'.split()
     elements    = 'H He C O'.split()
     xsolar      = 1.0
-    qtea = pa.abundances(atmfile, pressure, temperature, species,
-                         elements, punits=punits, xsolar=xsolar)
+    qtea = pa.abundance(pressure, temperature, species, elements,
+        punits=punits, xsolar=xsolar)
     np.testing.assert_allclose(qtea, qtea_expected)
 
 
