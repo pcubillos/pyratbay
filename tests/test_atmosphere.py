@@ -328,6 +328,43 @@ def test_teq_no_uncertainties():
     np.testing.assert_equal(teq_unc, 0.0)
 
 
+def test_make_atomic_xsolar():
+    z, symbol, dex, names, mass = pa.make_atomic(xsolar=0.1)
+    np.testing.assert_allclose(dex[symbol=='H'][0],  12.0)
+    np.testing.assert_allclose(dex[symbol=='He'][0], 10.93)
+    np.testing.assert_allclose(dex[symbol=='C'][0],  7.43)
+    np.testing.assert_allclose(dex[symbol=='N'][0],  6.83)
+    np.testing.assert_allclose(dex[symbol=='O'][0],  7.69)
+
+
+def test_make_atomic_escale():
+    escale = {'C': 0.1, 'O':10.0}
+    z, symbol, dex, names, mass = pa.make_atomic(escale=escale)
+    np.testing.assert_allclose(dex[symbol=='H'][0],  12.0)
+    np.testing.assert_allclose(dex[symbol=='He'][0], 10.93)
+    np.testing.assert_allclose(dex[symbol=='C'][0],  7.43)
+    np.testing.assert_allclose(dex[symbol=='N'][0],  7.83)
+    np.testing.assert_allclose(dex[symbol=='O'][0],  9.69)
+
+
+def test_make_atomic_xsolar_escale():
+    escale = {'C': 0.1, 'O':10.0}
+    z, symbol, dex, names, mass = pa.make_atomic(xsolar=0.1, escale=escale)
+    np.testing.assert_allclose(dex[symbol=='H'][0],  12.0)
+    np.testing.assert_allclose(dex[symbol=='He'][0], 10.93)
+    np.testing.assert_allclose(dex[symbol=='C'][0],  6.43)
+    np.testing.assert_allclose(dex[symbol=='N'][0],  6.83)
+    np.testing.assert_allclose(dex[symbol=='O'][0],  8.69)
+
+
+@pytest.mark.skip
+def test_make_atomic_file():
+    # TBD: generate file in tmp folder, assert it exists
+    afile = 'sub_solar_elemental_abundance.txt'
+    z, symbol, dex, names, mass = pa.make_atomic(
+        xsolar=0.1, atomic_file=afile)
+
+
 @pytest.mark.parametrize("qcap,qcap_result",
     [(1e-3, False),
      (1e-4, True)])

@@ -172,7 +172,7 @@ def abundances(atmfile, pressure, temperature, species, elements=None,
   log.head("\nRun TEA to compute thermochemical-equilibrium abundances.")
   # Prep up files:
   atomicfile, patm = "PBatomicfile.tea", "PBpreatm.tea"
-  make_atomic(solar, atomicfile, xsolar, swap=None)
+  make_atomic(xsolar, atomic_file=atomicfile, solar_file=solar)
   if elements is None:
      elements, dummy = stoich(species)
   specs = elements + list(np.setdiff1d(species, elements))
@@ -684,46 +684,71 @@ def equilibrium_temp(tstar, rstar, smaxis, A=0.0, f=1.0,
     return teq, teq_unc
 
 
-def make_atomic(solar, afile, xsolar=1.0, swap=None):
+def make_atomic(xsolar=1.0, escale={}, atomic_file=None, solar_file=None):
     """
-    Generate an (atomic) elemental-abundances file by scaling the
-    solar abundances from Asplund et al. (2009).
-    http://adsabs.harvard.edu/abs/2009ARA%26A..47..481A
+    Generate an (atomic) elemental-abundances file by scaling a
+    solar abundance composition.
 
     Parameters
     ----------
-    solar: String
-        Input solar abundances filename.
-    afile: String
-        Output filename of modified atomic abundances.
     xsolar: Integer
         Multiplication factor for metal abundances (everything
         except H and He).
-    swap: 2-element string tuple
-        Swap the abundances of the given elements.
+    escale: Dict
+        Multiplication factor for specified atoms (dict's keys)
+        by the respective values (on top of the xsolar scaling).
+    atomic_file: String
+        Output filename of modified atomic abundances.
+    solar_file: String
+        Base (input) solar abundances filename. Defaulted to
+        Solar atomic composition by Asplund et al. (2009)
+
+    Returns
+    -------
+    z: 1D integer ndarray
+        Atomic number
+    symbol: 1D string ndarray
+        Atom symbols
+    dex: 1D float ndarray
+        Logarithmic abundance respective to hydrogen, where log(H) = 12.
+    name: 1D string ndarray
+        Atom names.
+    mass: 1D float ndarray
+        Atomic mass in amu.
+
+    Examples
+    --------
+    >>> import pyratbay.atmosphere as pa
+    >>> # Compute and store elemental composition with [M/H] = 0.1:
+    >>> afile = 'sub_solar_elemental_abundance.txt'
+    >>> z, symbol, dex, names, mass = pa.make_atomic(
+    >>>     xsolar=0.1, atomic_file=afile)
+    >>> # Compute elemental composition with [M/H] = 10 and [C/H] = 100:
+    >>> escale = {'C': 10.0}
+    >>> z, symbol, dex, names, mass = pa.make_atomic(xsolar=10, escale=escale)
     """
+    if solar_file is None:
+        solar_file = pc.ROOT + 'inputs/AsplundEtal2009.txt'
     # Read the Asplund et al. (2009) solar elementa abundances:
-    index, symbol, dex, name, mass = read_atomic(solar)
-    # Count the number of elements:
-    nelements = len(symbol)
+    index, symbol, dex, name, mass = read_atomic(solar_file)
 
     # Scale the metals aundances:
     imetals = np.where((symbol != "H") & (symbol != "He"))
     dex[imetals] += np.log10(xsolar)
 
-    # Swap abundances if requested:
-    if swap is not None:
-        dex0 = dex[np.where(symbol == swap[0])]
-        dex[np.where(symbol == swap[0])] = dex[np.where(symbol == swap[1])]
-        dex[np.where(symbol == swap[1])] = dex0
+    for atom, fscale in escale.items():
+        dex[symbol == atom] += np.log10(fscale)
 
-    # Save data to file
-    with open(afile, "w") as f:
-        f.write("# Elemental abundances:\n"
-            "# atomic number, symbol, dex abundance, name, molar mass (u).\n")
-        for i in np.arange(nelements):
-            f.write("{:3d}  {:2s}  {:5.2f}  {:10s}  {:12.8f}\n".
-                format(index[i], symbol[i], dex[i], name[i], mass[i]))
+    # Save data to file:
+    if atomic_file is not None:
+        with open(atomic_file, "w") as f:
+            f.write("# Elemental abundances:\n"
+                    "# atomic number, symbol, dex abundance, name, mass (u).\n")
+            nelements = len(symbol)
+            for i in range(nelements):
+                f.write("{:3d}  {:2s}  {:5.2f}  {:10s}  {:12.8f}\n".
+                    format(index[i], symbol[i], dex[i], name[i], mass[i]))
+    return index, symbol, dex, name, mass
 
 
 def read_atomic(afile):
@@ -737,7 +762,7 @@ def read_atomic(afile):
 
     Returns
     -------
-    anum: 1D integer ndarray
+    atomic_num: 1D integer ndarray
         Atomic number (except for Deuterium, which has anum=0).
     symbol: 1D string ndarray
         Elemental chemical symbol.
