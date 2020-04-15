@@ -6173,4 +6173,8 @@ Refactored pa.make_atomic() to scale specific elements, return
 values, and make file-writting optional.
 Added tests.
 
+*****
+
+Updated tools.make_tea() function according to current TEA arguments
+(enabled verb and ncpu arguments).
 
