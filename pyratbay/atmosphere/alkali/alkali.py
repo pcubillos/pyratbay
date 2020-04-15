@@ -15,10 +15,12 @@ class VanderWaals(object):
   Base class for Van der Waals plus statistical theory model
   Burrows et al. (2000), ApJ, 531, 438.
   """
-  def __init__(self):
+  def __init__(self, cutoff):
       self.ec    = None   # Opacity cross section (cm2 molecule-1)
       self.imol  = -1     # Index of mol in the atmosphere
       self.voigt = broad.Voigt()
+      self.cutoff = cutoff  # Hard cutoff from line center (cm-1)
+
 
   def setup(self, molecules, mass, dwave):
       if self.mol in molecules:
@@ -46,22 +48,24 @@ class VanderWaals(object):
 
       # Calculate cross section:
       for wn0, gf, dwave, dop in zip(self.wn, self.gf, self.dwave, doppler):
-          ec = np.zeros((nlayers, nwave), np.double)
+          iwave = np.abs(wn-wn0) < self.cutoff
+          wn_window = wn[iwave]
+          ec = np.zeros((nlayers, len(wn_window)), np.double)
           # Update Voigt model:
           self.voigt.x0 = wn0
           fwidth = 2*(0.5346*lor + np.sqrt(0.2166*lor**2 + dop**2))
           for j in range(nlayers):
               # Profile ranges:
-              det = np.abs(wn - wn0) < dsigma[j]
+              det = np.abs(wn_window - wn0) < dsigma[j]
               wlo = pt.ifirst(det, default_ret=-1)
               whi = pt.ilast( det, default_ret=-2) + 1
               self.voigt.hwhmL = lor[j]
               self.voigt.hwhmG = dop[j]
-              wndet = wn[wlo:whi]
+              wndet = wn_window[wlo:whi]
               # EC at the detuning boundary:
               edet = self.voigt(wn0+dsigma[j])
               # Extinction outside the detuning region (power law):
-              ec[j] += edet * (np.abs(wn-wn0)/dsigma[j])**-1.5
+              ec[j] += edet * (np.abs(wn_window-wn0)/dsigma[j])**-1.5
               # Extinction in the detuning region (Voigt profile):
               profile = self.voigt(wndet)
               # Correction for undersampled line:
@@ -71,8 +75,9 @@ class VanderWaals(object):
                   profile[i0] = 1.0 - np.trapz(profile, wndet)
               ec[j, wlo:whi] = profile
           # Add up contribution (include exponential cutoff):
-          self.ec += (pc.C3 * ec * gf/self.Z
-              * np.exp(-pc.C2*np.abs(wn-wn0) / np.expand_dims(temp, axis=1)))
+          self.ec[:,iwave] += pc.C3 * ec * gf/self.Z \
+              * np.exp(-pc.C2*np.abs(wn_window-wn0)
+                       / np.expand_dims(temp, axis=1))
           # Note this equation neglects the exp(-Elow/T)*(1-exp(-wn0/T))
           # terms because they are approximately 1.0 at T=[100K--4000K]
 
@@ -81,6 +86,8 @@ class VanderWaals(object):
       fw.write("Model name (name): '{}'", self.name)
       fw.write('Model species (mol): {}', self.mol)
       fw.write('Species index in atmosphere (imol): {}', self.imol)
+      fw.write('Profile hard cutoff from line center (cutoff, cm-1): {}',
+               self.cutoff)
       fw.write('Detuning parameter (detuning): {}', self.detuning)
       fw.write('Lorentz-width parameter (lpar): {}', self.lpar)
       fw.write('Partition function (Z): {}', self.Z)
@@ -97,8 +104,9 @@ class VanderWaals(object):
 
 class SodiumVdW(VanderWaals):
   """Sodium Van der Waals model (Burrows et al. 2000, ApJ, 531)."""
-  def __init__(self):
-      super(SodiumVdW, self).__init__()
+  def __init__(self, cutoff=4500.0):
+      # Default cutoff of 4500 cm-1 following Baudino et al. (2017).
+      super(SodiumVdW, self).__init__(cutoff)
       self.name  = 'sodium_vdw'          # Model name
       self.mol   = 'Na'                  # Species causing the extinction
       # Line-transition properties (from VALD, Piskunov 1995):
@@ -112,8 +120,9 @@ class SodiumVdW(VanderWaals):
 
 class PotassiumVdW(VanderWaals):
   """Potassium Van der Waals model (Burrows et al. 2000, ApJ, 531)."""
-  def __init__(self):
-      super(PotassiumVdW, self).__init__()
+  def __init__(self, cutoff=4500.0):
+      # Default cutoff of 4500 cm-1 following Baudino et al. (2017).
+      super(PotassiumVdW, self).__init__(cutoff)
       self.name  = 'potassium_vdw'        # Model name
       self.mol   = 'K'                    # Species causing the extinction
       # Line-transition properties (from VALD, Piskunov 1995):

@@ -6148,3 +6148,9 @@ Updated C2H2 isotope names for exomol database.
 
 Modified pa.alkali.get_model() to accept additional arguments.
 
+*****
+
+Modified pa.alkali.VanderWaals() classes to add a hard cutoff
+parameter that can be set on initialization (default 4500 cm-1).
+Added tests.
+
