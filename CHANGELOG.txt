@@ -6185,3 +6185,8 @@ Updated list of arguments adding escale and ncpu.
 Updated interface to TEA, made atmfile optional and some cleaning.
 Updated tests.
 
+*****
+
+Cleaned atmosphere.pressure() and uniform() functions.
+Fixed a small error in the screen output units for pressure().
+

@@ -34,78 +34,78 @@ from .  import tmodels
 
 def uniform(pressure, temperature, species, abundances, punits="bar",
             log=None, atmfile=None):
-  """
-  Generate an atmospheric file with uniform abundances.
-  Save it into atmfile.
+    """
+    Generate an atmospheric file with uniform abundances.
+    Save it into atmfile.
 
-  Parameters
-  ----------
-  pressure: 1D float ndarray
-      Monotonously decreasing pressure profile (in punits).
-  temperature: 1D float ndarray
-      Temperature profile for pressure layers (in Kelvin).
-  species: 1D string ndarray
-      List of atmospheric species.
-  abundances: 1D float ndarray
-      The species mole mixing ratio.
-  punits:  String
-     Pressure units.
-  log: Log object
-      Screen-output log handler.
-  atmfile: String
-      If not None, filename to save atmospheric model.
+    Parameters
+    ----------
+    pressure: 1D float ndarray
+        Monotonously decreasing pressure profile (in punits).
+    temperature: 1D float ndarray
+        Temperature profile for pressure layers (in Kelvin).
+    species: 1D string ndarray
+        List of atmospheric species.
+    abundances: 1D float ndarray
+        The species mole mixing ratio.
+    punits:  String
+       Pressure units.
+    log: Log object
+        Screen-output log handler.
+    atmfile: String
+        If not None, filename to save atmospheric model.
 
-  Returns
-  -------
-  qprofiles: 2D Float ndarray
-      Abundance profiles of shape [nlayers,nspecies]
+    Returns
+    -------
+    qprofiles: 2D Float ndarray
+        Abundance profiles of shape [nlayers,nspecies]
 
-  Examples
-  --------
-  >>> import pyratbay.atmosphere as pa
-  >>> nlayers = 11
-  >>> punits  = 'bar'
-  >>> pressure    = pa.pressure(1e-8, 1e2, nlayers, punits)
-  >>> tmodel = pa.tmodels.Isothermal(nlayers)
-  >>> species     = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
-  >>> abundances  = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
-  >>> qprofiles = pa.uniform(pressure, tmodel(1500.0), species,
-  >>>     abundances=abundances, punits=punits)
-  >>> print(qprofiles)
-  [[8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]
-   [8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]
-   [8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]
-   [8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]
-   [8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]
-   [8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]
-   [8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]
-   [8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]
-   [8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]
-   [8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]
-   [8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]]
-  """
-  if log is None:
-      log = mu.Log()
+    Examples
+    --------
+    >>> import pyratbay.atmosphere as pa
+    >>> nlayers = 11
+    >>> punits = 'bar'
+    >>> pressure = pa.pressure(1e-8, 1e2, nlayers, punits)
+    >>> tmodel = pa.tmodels.Isothermal(nlayers)
+    >>> species    = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
+    >>> abundances = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
+    >>> qprofiles = pa.uniform(pressure, tmodel(1500.0), species,
+    >>>     abundances=abundances, punits=punits)
+    >>> print(qprofiles)
+    [[8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]
+     [8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]
+     [8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]
+     [8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]
+     [8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]
+     [8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]
+     [8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]
+     [8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]
+     [8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]
+     [8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]
+     [8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]]
+    """
+    if log is None:
+        log = mu.Log()
 
-  nlayers = len(pressure)
-  # Safety checks:
-  if len(temperature) != nlayers:
-      log.error("Pressure array length ({:d}) and Temperature array length "
-                "({:d}) don't match.".format(nlayers, len(temperature)))
-  if len(species) != len(abundances):
-      log.error("Species array length ({:d}) and Abundances array length "
-                "({:d}) don't match.".format(len(species), len(abundances)))
+    nlayers = len(pressure)
+    # Safety checks:
+    if len(temperature) != nlayers:
+        log.error(f"Pressure array length ({nlayers}) and temperature array "
+            f"length ({len(temperature)}) don't match.")
+    if len(species) != len(abundances):
+        log.error(f"Species array length ({len(species)}) and abundances "
+            f"array length ({len(abundances)}) don't match.")
 
-  # Expand abundances to 2D array:
-  qprofiles = np.tile(abundances, (nlayers,1))
+    # Expand abundances to 2D array:
+    qprofiles = np.tile(abundances, (nlayers,1))
 
-  if atmfile is not None:
-      header = ("# This is an atmospheric file with pressure, temperature,\n"
-                "# and uniform mole mixing ratio profiles.\n\n")
-      io.write_atm(atmfile, pressure, temperature, species, qprofiles,
-                   punits, header)
+    if atmfile is not None:
+        header = ("# This is an atmospheric file with pressure, temperature,\n"
+                  "# and uniform mole mixing ratio profiles.\n\n")
+        io.write_atm(atmfile, pressure, temperature, species, qprofiles,
+            punits, header)
 
-  return qprofiles
+    return qprofiles
 
 
 def abundance(pressure, temperature, species, elements=None,
@@ -205,58 +205,61 @@ def abundance(pressure, temperature, species, elements=None,
 
 
 def pressure(ptop, pbottom, nlayers, units="bar", log=None, verb=0):
-  """
-  Compute a log-scale pressure profile.
+    """
+    Compute a log-scale pressure profile.
 
-  Parameters
-  ----------
-  ptop: String or Float
-     Pressure at the top of the atmosphere. If string, may contain the units.
-  pbottom: String or Float
-     Pressure at the bottom of the atmosphere. If string, may contain the units.
-  nlayers: Integer
-     Number of pressure layers.
-  units: String
-     Pressure input units (if not defined in ptop, pbottom).
-     Available units are: barye, mbar, pascal, bar (default), and atm.
-  log: Log object
-     Screen-output log handler.
-  verb: Integer
-     Verbosity level (when log is None). Print out when verb > 0.
+    Parameters
+    ----------
+    ptop: String or Float
+        Pressure at the top of the atmosphere. If string, may contain units.
+    pbottom: String or Float
+       Pressure at the bottom of the atmosphere. If string, may contain units.
+    nlayers: Integer
+       Number of pressure layers.
+    units: String
+       Pressure input units (if not defined in ptop, pbottom).
+       Available units are: barye, mbar, pascal, bar (default), and atm.
+    log: Log object
+       Screen-output log handler.
+    verb: Integer
+       Verbosity level (when log is None). Print out when verb > 0.
 
-  Returns
-  -------
-  press: 1D float ndarray
-     The pressure profile (in barye units).
+    Returns
+    -------
+    press: 1D float ndarray
+       The pressure profile (in barye units).
 
-  Examples
-  --------
-  >>> import pyratbay.atmosphere as pa
-  >>> import pyratbay.constants  as pc
-  >>> nlayers = 9
-  >>> # These are all equivalent:
-  >>> p1 = pa.pressure(ptop=1e-6,   pbottom=1e2, nlayers=nlayers)
-  >>> p2 = pa.pressure(1e-6,        1e2,         nlayers, 'bar')
-  >>> p3 = pa.pressure('1e-6 bar', '1e2 bar',    nlayers)
-  >>> p4 = pa.pressure(1e-6*pc.bar, 1e2*pc.bar,  nlayers, 'barye')
-  >>> print(p1/pc.bar)
-  [1.e-06 1.e-05 1.e-04 1.e-03 1.e-02 1.e-01 1.e+00 1.e+01 1.e+02]
-  """
-  if log is None:
-      log = mu.Log(verb=verb)
-  # Unpack pressure input variables:
-  ptop    = pt.get_param(ptop,    units, gt=0.0)
-  pbottom = pt.get_param(pbottom, units, gt=0.0)
-  if ptop >= pbottom:
-      log.error('Bottom-layer pressure ({:.2e} {:s}) must be higher than the '
-                'top-layer pressure ({:.2e} {:s}).'.
-                format(pbottom/pt.u(units), units, ptop/pt.u(units), units))
+    Examples
+    --------
+    >>> import pyratbay.atmosphere as pa
+    >>> import pyratbay.constants  as pc
+    >>> nlayers = 9
+    >>> # These are all equivalent:
+    >>> p1 = pa.pressure(ptop=1e-6,   pbottom=1e2, nlayers=nlayers)
+    >>> p2 = pa.pressure(1e-6,        1e2,         nlayers, 'bar')
+    >>> p3 = pa.pressure('1e-6 bar', '1e2 bar',    nlayers)
+    >>> p4 = pa.pressure(1e-6*pc.bar, 1e2*pc.bar,  nlayers, 'barye')
+    >>> print(p1/pc.bar)
+    [1.e-06 1.e-05 1.e-04 1.e-03 1.e-02 1.e-01 1.e+00 1.e+01 1.e+02]
+    """
+    if log is None:
+        log = mu.Log(verb=verb)
+    # Unpack pressure input variables:
+    ptop    = pt.get_param(ptop,    units, gt=0.0)
+    pbottom = pt.get_param(pbottom, units, gt=0.0)
 
-  # Create pressure array in barye (CGS) units:
-  press = np.logspace(np.log10(ptop), np.log10(pbottom), nlayers)
-  log.head("Creating {:d}-layer atmospheric model between {:.1e} and "
-      "{:.1e} bar.".format(nlayers, ptop/pt.u(units), pbottom/pt.u(units)))
-  return press
+    ptop_txt = ptop/pt.u(units)
+    pbot_txt = pbottom/pt.u(units)
+
+    if ptop >= pbottom:
+        log.error(f'Bottom-layer pressure ({pbot_txt:.2e} {units}) must be '
+            f'higher than the top-layer pressure ({ptop_txt:.2e} {units}).')
+
+    # Create pressure array in barye (CGS) units:
+    press = np.logspace(np.log10(ptop), np.log10(pbottom), nlayers)
+    log.head(f'Creating {nlayers}-layer atmospheric model between '
+             f'{pbot_txt:.1e} and {ptop_txt:.1e} {units}.')
+    return press
 
 
 def temperature(tmodel, pressure=None, rstar=None, tstar=None, tint=100.0,
