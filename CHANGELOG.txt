@@ -6162,3 +6162,8 @@ Added alkali_cutoff argument to pyrat configuration file.
 
 Added Stefan-Boltzmann constant (sigma) to constants module.
 
+*****
+
+Renamed atomsphere's functions to interact with TEA as
+make_atomic(), read_atomic(), make_preatm(), and tea_to_pyrat().
+

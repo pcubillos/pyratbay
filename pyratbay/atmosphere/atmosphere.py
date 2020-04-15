@@ -2,16 +2,19 @@
 # Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE).
 
 __all__ = [
-    'makeatomic',
-    'readatomic', 'makepreatm', 'TEA2pyrat',
     'pressure',
     'temperature',
-    'uniform', 'abundances',
+    'uniform',
+    'abundances',
     'hydro_g',
     'hydro_m',
     'rhill',
     'stoich', 'meanweight', 'IGLdensity',
     'equilibrium_temp',
+    'make_atomic',
+    'read_atomic',
+    'make_preatm',
+    'tea_to_pyrat',
     ]
 
 import os
@@ -104,161 +107,6 @@ def uniform(pressure, temperature, species, abundances, punits="bar",
                    punits, header)
 
   return qprofiles
-
-
-def makeatomic(solar, afile, xsolar=1.0, swap=None):
-  """
-  Generate an (atomic) elemental-abundances file by scaling the
-  solar abundances from Asplund et al. (2009).
-  http://adsabs.harvard.edu/abs/2009ARA%26A..47..481A
-
-  Parameters
-  ----------
-  solar: String
-     Input solar abundances filename.
-  afile: String
-     Output filename of modified atomic abundances.
-  xsolar: Integer
-     Multiplication factor for metal abundances (everything
-     except H and He).
-  swap: 2-element string tuple
-      Swap the abundances of the given elements.
-  """
-  # Read the Asplund et al. (2009) solar elementa abundances:
-  index, symbol, dex, name, mass = readatomic(solar)
-  # Count the number of elements:
-  nelements = len(symbol)
-
-  # Scale the metals aundances:
-  imetals = np.where((symbol != "H") & (symbol != "He"))
-  dex[imetals] += np.log10(xsolar)
-
-  # Swap abundances if requested:
-  if swap is not None:
-      dex0 = dex[np.where(symbol == swap[0])]
-      dex[np.where(symbol == swap[0])] = dex[np.where(symbol == swap[1])]
-      dex[np.where(symbol == swap[1])] = dex0
-
-  # Save data to file
-  with open(afile, "w") as f:
-      f.write("# Elemental abundances:\n"
-              "# atomic number, symbol, dex abundance, name, molar mass (u).\n")
-      for i in np.arange(nelements):
-        f.write("{:3d}  {:2s}  {:5.2f}  {:10s}  {:12.8f}\n".
-                format(index[i], symbol[i], dex[i], name[i], mass[i]))
-
-
-def readatomic(afile):
-  """
-  Read an elemental (atomic) composition file.
-
-  Parameters
-  ----------
-  afile: String
-    File with atomic composition.
-
-  Returns
-  -------
-  anum: 1D integer ndarray
-     Atomic number (except for Deuterium, which has anum=0).
-  symbol: 1D string ndarray
-     Elemental chemical symbol.
-  dex: 1D float ndarray
-     Logarithmic number-abundance, scaled to log(H) = 12.
-  name: 1D string ndarray
-     Element names.
-  mass: 1D float ndarray
-     Elemental mass in amu.
-
-  Uncredited developers
-  ---------------------
-  Jasmina Blecic
-  """
-  # Allocate arrays:
-  nelements = 84  # Fixed number
-  anum   = np.zeros(nelements, np.int)
-  symbol = np.zeros(nelements, '|U2')
-  dex    = np.zeros(nelements, np.double)
-  name   = np.zeros(nelements, '|U20')
-  mass   = np.zeros(nelements, np.double)
-
-  # Open-read file:
-  with open(afile, 'r') as f:
-      # Read-discard first two lines (header):
-      f.readline()
-      f.readline()
-      # Store data into the arrays:
-      for i in np.arange(nelements):
-          anum[i], symbol[i], dex[i], name[i], mass[i] = f.readline().split()
-
-  return anum, symbol, dex, name, mass
-
-
-def makepreatm(pressure, temp, afile, elements, species, patm):
-  """
-  Generate a pre-atm file for TEA containing the elemental abundances
-  at each atmospheric layer.
-
-  Parameters
-  ----------
-  pressure: String
-     Pressure atmospheric profile (bar).
-  temp: 1D float array
-     Temperature atmospheric profile (in K).
-  afile: String
-     Name of the elemental abundances file.
-  elements: List of strings
-     List of input elemental species.
-  species: List of strings
-     List of output molecular species.
-  patm: String
-     Output pre-atmospheric filename.
-
-  Uncredited developers
-  ---------------------
-  Jasmina Blecic
-  """
-  # Number of layers:
-  nlayers = len(pressure)
-
-  # Get the elemental abundace data:
-  index, symbol, dex, name, mass = readatomic(afile)
-  # Take only the elements we need:
-  iatoms = np.in1d(symbol, elements)
-
-  # Lisf of fractional number of molecules relative to hydrogen:
-  nfrac = (10.0**(dex-dex[np.where(symbol=="H")]))[iatoms].tolist()
-
-  # Write pre-atm file:
-  f = open(patm, 'w')
-
-  # Pre-atm header with basic instructions
-  f.write("# TEA pre-atmosphere file.\n"
-          "# Units: pressure (bar), temperature (K), abundance (unitless).\n\n")
-
-  # Load defaults:
-  sdefaults = {}
-  with open(pc.ROOT + "inputs/TEA_gdata_defaults.txt", "r") as d:
-      for line in d:
-          sdefaults[line.split()[0]] = line.split()[1]
-
-  # Check species names:
-  for i in np.arange(len(species)):
-      if species[i].find("_") < 0:
-          species[i] = sdefaults[species[i]]
-
-  # Write species names
-  f.write('#SPECIES\n{:s}\n\n'.format(" ".join(species)))
-
-  # Write TEA data:
-  f.write("#TEADATA\n#Pressure          Temp  " +
-          "  ".join(["{:>12s}".format(atom) for atom in symbol[iatoms]]) + "\n")
-  for i in np.arange(nlayers):
-      f.write("{:10.4e}     {:>8.2f}  ".format(pressure[i], temp[i]))
-      f.write("  ".join(["{:12.6e}".format(abun) for abun in nfrac]) + "\n")
-  f.close()
-
-
 def abundances(atmfile, pressure, temperature, species, elements=None,
                quniform=None, punits="bar", xsolar=1.0,
                solar=pc.ROOT+"inputs/AsplundEtal2009.txt",
@@ -324,18 +172,18 @@ def abundances(atmfile, pressure, temperature, species, elements=None,
   log.head("\nRun TEA to compute thermochemical-equilibrium abundances.")
   # Prep up files:
   atomicfile, patm = "PBatomicfile.tea", "PBpreatm.tea"
-  makeatomic(solar, atomicfile, xsolar, swap=None)
+  make_atomic(solar, atomicfile, xsolar, swap=None)
   if elements is None:
      elements, dummy = stoich(species)
   specs = elements + list(np.setdiff1d(species, elements))
-  makepreatm(pressure/pt.u(punits), temperature, atomicfile, elements,
+  make_preatm(pressure/pt.u(punits), temperature, atomicfile, elements,
              specs, patm)
   # Run TEA:
   pt.make_tea(abun_file=atomicfile)
   proc = subprocess.Popen([pc.ROOT + "modules/TEA/tea/runatm.py", patm, "TEA"])
   proc.communicate()
   # Reformat the TEA output into the pyrat format:
-  TEA2pyrat("TEA.tea", atmfile, species)
+  tea_to_pyrat("TEA.tea", atmfile, species)
   os.remove(atomicfile)
   os.remove(patm)
   os.remove("TEA.cfg")
@@ -343,61 +191,6 @@ def abundances(atmfile, pressure, temperature, species, elements=None,
   log.head("Produced TEA atmospheric file '{:s}'.".format(atmfile))
   q = io.read_atm(atmfile)[4]
   return q
-
-
-def TEA2pyrat(teafile, atmfile, req_species):
-  """
-  Format a TEA atmospheric file into a Pyrat atmospheric file.
-
-  Paramters
-  ---------
-  teafile:  String
-     Input TEA atmospheric file.
-  atmfile:  String
-     Output Pyrat atmospheric file.
-  req_species: List of strings
-     The requested species for output.
-  """
-  # Open read the TEA file:
-  f = open(teafile, "r")
-  tea = np.asarray(f.readlines())
-  f.close()
-
-  # Line-indices where the species and data are:
-  ispec = np.where(tea == "#SPECIES\n")[0][0] + 1  # Species list
-  idata = np.where(tea == "#TEADATA\n")[0][0] + 2  # data starting line
-
-  # Read and clean species names:
-  species = tea[ispec].split()
-  nspecies    = len(species)
-  nreqspecies = len(req_species)
-  nreqspecies = len(req_species)
-  for i in range(nspecies):
-      species[i] = species[i].rpartition("_")[0]
-
-  # Species indices corresponding to req_species:
-  sindex = np.zeros(len(req_species), int)
-  for i in range(len(req_species)):
-      sindex[i] = species.index(req_species[i])
-
-  # Extract per-layer data:
-  nlayers = len(tea) - idata
-  temperature = np.zeros(nlayers)
-  pressure    = np.zeros(nlayers)
-  abundance   = np.zeros((nlayers, nreqspecies))
-  for i in range(nlayers):
-      data = np.asarray(tea[idata+i].split(), np.double)
-      pressure[i], temperature[i] = data[0:2]
-      abundance[i,:] = data[2:][sindex]
-
-  # TEA pressure units are always bars:
-  punits = "bar"
-  pressure = pressure * pt.u(punits)  # Set in barye units
-  # File header:
-  header = "# TEA atmospheric file formatted for Pyrat.\n\n"
-
-  io.write_atm(atmfile, pressure, temperature, req_species, abundance,
-               punits, header)
 
 
 def pressure(ptop, pbottom, nlayers, units="bar", log=None, verb=0):
@@ -889,4 +682,211 @@ def equilibrium_temp(tstar, rstar, smaxis, A=0.0, f=1.0,
     )
 
     return teq, teq_unc
+
+
+def make_atomic(solar, afile, xsolar=1.0, swap=None):
+    """
+    Generate an (atomic) elemental-abundances file by scaling the
+    solar abundances from Asplund et al. (2009).
+    http://adsabs.harvard.edu/abs/2009ARA%26A..47..481A
+
+    Parameters
+    ----------
+    solar: String
+        Input solar abundances filename.
+    afile: String
+        Output filename of modified atomic abundances.
+    xsolar: Integer
+        Multiplication factor for metal abundances (everything
+        except H and He).
+    swap: 2-element string tuple
+        Swap the abundances of the given elements.
+    """
+    # Read the Asplund et al. (2009) solar elementa abundances:
+    index, symbol, dex, name, mass = read_atomic(solar)
+    # Count the number of elements:
+    nelements = len(symbol)
+
+    # Scale the metals aundances:
+    imetals = np.where((symbol != "H") & (symbol != "He"))
+    dex[imetals] += np.log10(xsolar)
+
+    # Swap abundances if requested:
+    if swap is not None:
+        dex0 = dex[np.where(symbol == swap[0])]
+        dex[np.where(symbol == swap[0])] = dex[np.where(symbol == swap[1])]
+        dex[np.where(symbol == swap[1])] = dex0
+
+    # Save data to file
+    with open(afile, "w") as f:
+        f.write("# Elemental abundances:\n"
+            "# atomic number, symbol, dex abundance, name, molar mass (u).\n")
+        for i in np.arange(nelements):
+            f.write("{:3d}  {:2s}  {:5.2f}  {:10s}  {:12.8f}\n".
+                format(index[i], symbol[i], dex[i], name[i], mass[i]))
+
+
+def read_atomic(afile):
+    """
+    Read an elemental (atomic) composition file.
+
+    Parameters
+    ----------
+    afile: String
+        File with atomic composition.
+
+    Returns
+    -------
+    anum: 1D integer ndarray
+        Atomic number (except for Deuterium, which has anum=0).
+    symbol: 1D string ndarray
+        Elemental chemical symbol.
+    dex: 1D float ndarray
+        Logarithmic number-abundance, scaled to log(H) = 12.
+    name: 1D string ndarray
+        Element names.
+    mass: 1D float ndarray
+        Elemental mass in amu.
+
+    Uncredited developers
+    ---------------------
+    Jasmina Blecic
+    """
+    # Allocate arrays:
+    nelements = 84  # Fixed number
+    anum   = np.zeros(nelements, np.int)
+    symbol = np.zeros(nelements, '|U2')
+    dex    = np.zeros(nelements, np.double)
+    name   = np.zeros(nelements, '|U20')
+    mass   = np.zeros(nelements, np.double)
+
+    # Open-read file:
+    with open(afile, 'r') as f:
+        # Read-discard first two lines (header):
+        f.readline()
+        f.readline()
+        # Store data into the arrays:
+        for i in np.arange(nelements):
+            anum[i], symbol[i], dex[i], name[i], mass[i] = f.readline().split()
+
+    return anum, symbol, dex, name, mass
+
+
+def make_preatm(pressure, temp, afile, elements, species, patm):
+    """
+    Generate a pre-atm file for TEA containing the elemental abundances
+    at each atmospheric layer.
+
+    Parameters
+    ----------
+    pressure: String
+        Pressure atmospheric profile (bar).
+    temp: 1D float array
+        Temperature atmospheric profile (in K).
+    afile: String
+        Name of the elemental abundances file.
+    elements: List of strings
+        List of input elemental species.
+    species: List of strings
+        List of output molecular species.
+    patm: String
+        Output pre-atmospheric filename.
+
+    Uncredited developers
+    ---------------------
+    Jasmina Blecic
+    """
+    # Number of layers:
+    nlayers = len(pressure)
+
+    # Get the elemental abundace data:
+    index, symbol, dex, name, mass = read_atomic(afile)
+    # Take only the elements we need:
+    iatoms = np.in1d(symbol, elements)
+
+    # Lisf of fractional number of molecules relative to hydrogen:
+    nfrac = (10.0**(dex-dex[np.where(symbol=="H")]))[iatoms].tolist()
+
+    # Write pre-atm file:
+    f = open(patm, 'w')
+
+    # Pre-atm header with basic instructions
+    f.write("# TEA pre-atmosphere file.\n"
+        "# Units: pressure (bar), temperature (K), abundance (unitless).\n\n")
+
+    # Load defaults:
+    sdefaults = {}
+    with open(pc.ROOT + "inputs/TEA_gdata_defaults.txt", "r") as d:
+        for line in d:
+            sdefaults[line.split()[0]] = line.split()[1]
+
+    # Check species names:
+    for i in range(len(species)):
+        if species[i].find("_") < 0:
+            species[i] = sdefaults[species[i]]
+
+    # Write species names:
+    f.write(f'#SPECIES\n{" ".join(species)}\n\n')
+
+    # Write TEA data:
+    f.write("#TEADATA\n#Pressure          Temp  " +
+            "  ".join([f"{atom:>12s}" for atom in symbol[iatoms]]) + "\n")
+    for i in range(nlayers):
+        f.write(f"{pressure[i]:10.4e}     {temp[i]:>8.2f}  ")
+        f.write("  ".join([f"{abun:12.6e}" for abun in nfrac]) + "\n")
+    f.close()
+
+
+def tea_to_pyrat(teafile, atmfile, req_species):
+    """
+    Format a TEA atmospheric file into a Pyrat atmospheric file.
+
+    Paramters
+    ---------
+    teafile:  String
+        Input TEA atmospheric file.
+    atmfile:  String
+        Output Pyrat atmospheric file.
+    req_species: List of strings
+        The requested species for output.
+    """
+    # Open read the TEA file:
+    with open(teafile, "r") as f:
+        tea = np.asarray(f.readlines())
+
+    # Line-indices where the species and data are:
+    ispec = np.where(tea == "#SPECIES\n")[0][0] + 1  # Species list
+    idata = np.where(tea == "#TEADATA\n")[0][0] + 2  # data starting line
+
+    # Read and clean species names:
+    species = tea[ispec].split()
+    nspecies    = len(species)
+    nreqspecies = len(req_species)
+    nreqspecies = len(req_species)
+    for i in range(nspecies):
+        species[i] = species[i].rpartition("_")[0]
+
+    # Species indices corresponding to req_species:
+    sindex = np.zeros(len(req_species), int)
+    for i in range(len(req_species)):
+        sindex[i] = species.index(req_species[i])
+
+    # Extract per-layer data:
+    nlayers = len(tea) - idata
+    temperature = np.zeros(nlayers)
+    pressure    = np.zeros(nlayers)
+    abundance   = np.zeros((nlayers, nreqspecies))
+    for i in range(nlayers):
+        data = np.asarray(tea[idata+i].split(), np.double)
+        pressure[i], temperature[i] = data[0:2]
+        abundance[i,:] = data[2:][sindex]
+
+    # TEA pressure units are always bars:
+    punits = "bar"
+    pressure = pressure * pt.u(punits)  # Set in barye units
+    # File header:
+    header = "# TEA atmospheric file formatted for Pyrat.\n\n"
+
+    io.write_atm(atmfile, pressure, temperature, req_species, abundance,
+                 punits, header)
 
