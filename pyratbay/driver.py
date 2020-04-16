@@ -93,9 +93,9 @@ def run(cfile, init=False, no_logfile=False):
   # Compute atmospheric abundances:
   if pyrat.runmode == 'atmosphere' or pt.isfile(atm.atmfile) != 1:
       check_atm(pyrat)
-      abundances = pa.abundances(atm.atmfile, pressure, temperature,
-          inputs.species, inputs.elements, inputs.uniform, atm.punits,
-          inputs.xsolar, inputs.solar, log)
+      abundances = pa.abundance(pressure, temperature, inputs.species,
+          inputs.elements, inputs.uniform, atm.atmfile, atm.punits,
+          inputs.xsolar, atm.escale, inputs.solar, log)
 
   # Return atmospheric model if requested:
   if pyrat.runmode == 'atmosphere':

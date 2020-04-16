@@ -400,6 +400,7 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
       parse_str(args,   'ptfile')
       parse_str(args,   'solar')
       parse_float(args, 'xsolar')
+      parse_array(args, 'escale')
       parse_str(args,   'atomicfile')
       parse_str(args,   'patm')
       parse_array(args, 'elements')
@@ -611,6 +612,11 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
       'Radius at top of atmosphere', gt=0.0)
   atm.radstep = args.get_param('radstep', atm.runits,
       'Radius sampling step', gt=0.0)
+
+  escale = args.get_default('escale',
+      'Elemental abundance scaling factors', [])
+  atm.escale = {atom:float(fscale)
+                for atom,fscale in zip(escale[::2], escale[1::2])}
 
   # System physical parameters:
   phy.mpunits = args.get_default('mpunits', 'Planetary-mass units')
