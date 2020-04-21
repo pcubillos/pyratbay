@@ -52,5 +52,5 @@ def bbflux(wn, teff):
   if isinstance(wn, (list, tuple)):
       wn = np.array(wn, np.double)
   if isinstance(wn[0], Integral):
-      return np.pi * bb.Bwn(np.array(wn, np.double), float(teff))
-  return np.pi * bb.Bwn(wn, float(teff))
+      return np.pi * bb.blackbody_wn(np.array(wn, np.double), float(teff))
+  return np.pi * bb.blackbody_wn(wn, float(teff))

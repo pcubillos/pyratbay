@@ -6207,3 +6207,10 @@ to mean_weight() and ideal_gas_density().
 PEP8ed.
 Updated tests.
 
+
+*****  Tue Apr 21 15:17:29 CEST 2020  *****
+
+PEP8ed _blackbody.c.
+Renamed Bwn() and Bwn2D() functions to blackbody_wn() and
+blackbody_wn_2D(), respectively.
+
