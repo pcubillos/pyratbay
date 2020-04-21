@@ -9,7 +9,9 @@ __all__ = [
     'hydro_g',
     'hydro_m',
     'rhill',
-    'stoich', 'meanweight', 'IGLdensity',
+    'stoich',
+    'mean_weight',
+    'ideal_gas_density',
     'equilibrium_temp',
     'make_atomic',
     'read_atomic',
@@ -572,73 +574,76 @@ def stoich(species):
     return elements, stoich
 
 
-def meanweight(abundances, species, molfile=pc.ROOT+'inputs/molecules.dat'):
-  """
-  Calculate the mean molecular weight (a.k.a. mean molecular mass)
-  for the given abundances composition.
+def mean_weight(abundances, species, molfile=None):
+    """
+    Calculate the mean molecular weight (a.k.a. mean molecular mass)
+    for the given abundances composition.
 
-  Parameters
-  ----------
-  abundances: 2D float iterable
-      Species mol-mixing-fraction array of shape [nlayers,nmol].
-  species: 1D string iterable
-      Species names.
-  molfile: String
-      A molecules file with the species info.
+    Parameters
+    ----------
+    abundances: 2D float iterable
+        Species volume mixing fraction, of shape [nlayers,nmol].
+    species: 1D string iterable
+        Species names.
+    molfile: String
+        A molecules file with the species info.  If None, use
+        pyratbay's default molecules.dat file.
 
-  Returns
-  -------
-  mu: 1D float ndarray
-      Mean molecular weight at each layer for the input abundances.
+    Returns
+    -------
+    mu: 1D float ndarray
+        Mean molecular weight at each layer for the input abundances.
 
-  Examples
-  --------
-  >>> import pyratbay.atmosphere as pa
-  >>> species     = ['H2', 'He', 'H2O', 'CO', 'CO2', 'CH4']
-  >>> abundances  = [[0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]]
-  >>> mu = pa.meanweight(abundances, species)
-  >>> print(mu)
-  [2.31928918]
-  """
-  spec_names, mass, diam = io.read_molecs(molfile)
-  molmass = np.array([mass[spec_names==spec][0] for spec in species])
-  return np.sum(np.atleast_2d(abundances)*molmass, axis=1)
+    Examples
+    --------
+    >>> import pyratbay.atmosphere as pa
+    >>> species     = ['H2', 'He', 'H2O', 'CO', 'CO2', 'CH4']
+    >>> abundances  = [[0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]]
+    >>> mu = pa.mean_weight(abundances, species)
+    >>> print(mu)
+    [2.31928918]
+    """
+    if molfile is None:
+        molfile = pc.ROOT + 'inputs/molecules.dat'
+    names, mass, diam = io.read_molecs(molfile)
+    mass = np.array([mass[names==spec][0] for spec in species])
+    return np.sum(np.atleast_2d(abundances)*mass, axis=1)
 
 
-def IGLdensity(abundances, pressure, temperature):
-  """
-  Use the Ideal gas law to calculate the density in molecules cm-3.
+def ideal_gas_density(abundances, pressure, temperature):
+    """
+    Use the Ideal gas law to calculate number density in molecules cm-3.
 
-  Parameters
-  ----------
-  abundances: 2D float ndarray
-     Species volume mixing ratio profiles, of shape [nlayers,nmol].
-  pressure: 1D ndarray
-     Atmospheric pressure profile (in barye units).
-  temperature: 1D ndarray
-     Atmospheric temperature (in kelvin).
+    Parameters
+    ----------
+    abundances: 2D float ndarray
+        Species volume mixing fraction, of shape [nlayers,nmol].
+    pressure: 1D ndarray
+        Atmospheric pressure profile (in barye units).
+    temperature: 1D ndarray
+        Atmospheric temperature profile (in kelvin).
 
-  Returns
-  -------
-  density: 2D float ndarray
-     Atmospheric density in molecules per centimeter^3.
+    Returns
+    -------
+    density: 2D float ndarray
+        Atmospheric density in molecules cm-3.
 
-  Examples
-  --------
-  >>> import pyratbay.atmosphere as pa
-  >>> atmfile = "uniform_test.atm"
-  >>> nlayers = 11
-  >>> pressure    = pa.pressure(1e-8, 1e2, nlayers, units='bar')
-  >>> temperature = np.tile(1500.0, nlayers)
-  >>> species     = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
-  >>> abundances  = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
-  >>> qprofiles = pa.uniform(pressure, temperature, species, abundances)
-  >>> dens = pa.IGLdensity(qprofiles, pressure, temperature)
-  >>> print(dens[0])
-  [4.10241993e+10 7.24297303e+09 4.82864869e+06 4.82864869e+06
-   4.82864869e+02 4.82864869e+06]
-  """
-  return abundances * np.expand_dims(pressure/temperature, axis=1) / pc.k
+    Examples
+    --------
+    >>> import pyratbay.atmosphere as pa
+    >>> atmfile = "uniform_test.atm"
+    >>> nlayers = 11
+    >>> pressure    = pa.pressure(1e-8, 1e2, nlayers, units='bar')
+    >>> temperature = np.tile(1500.0, nlayers)
+    >>> species     = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
+    >>> abundances  = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
+    >>> qprofiles = pa.uniform(pressure, temperature, species, abundances)
+    >>> dens = pa.ideal_gas_density(qprofiles, pressure, temperature)
+    >>> print(dens[0])
+    [4.10241993e+10 7.24297303e+09 4.82864869e+06 4.82864869e+06
+     4.82864869e+02 4.82864869e+06]
+    """
+    return abundances * np.expand_dims(pressure/temperature, axis=1) / pc.k
 
 
 def equilibrium_temp(tstar, rstar, smaxis, A=0.0, f=1.0,

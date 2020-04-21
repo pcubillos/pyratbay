@@ -283,20 +283,20 @@ def test_stoich():
 @pytest.mark.parametrize("abundances",
     [ [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4],
      [[0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]]])
-def test_meanweight(abundances):
+def test_mean_weight(abundances):
     species     = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
-    mu = pa.meanweight(abundances, species)
+    mu = pa.mean_weight(abundances, species)
     np.testing.assert_allclose(mu, np.array([2.31928918]))
 
 
-def test_IGLdensity():
+def test_ideal_gas_density():
     nlayers = 11
     pressure    = pa.pressure(1e-8, 1e2, nlayers, units='bar')
     temperature = np.tile(1500.0, nlayers)
     species     = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
     abundances  = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
     qprofiles = pa.uniform(pressure, temperature, species, abundances)
-    dens = pa.IGLdensity(qprofiles, pressure, temperature)
+    dens = pa.ideal_gas_density(qprofiles, pressure, temperature)
     for i,density in enumerate(dens):
         np.testing.assert_allclose(density, expected_dens*10**i, rtol=1e-7)
 

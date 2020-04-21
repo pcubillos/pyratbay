@@ -6200,3 +6200,10 @@ and stoich().
 
 Added escale as a config file argument.
 
+*****
+
+Renamed atmosphere.meanweight() and IGLdensity() functions
+to mean_weight() and ideal_gas_density().
+PEP8ed.
+Updated tests.
+

@@ -159,7 +159,7 @@ def test_transmission_qmass_input():
     atm = io.read_atm('inputs/atmosphere_uniform_test.atm')
     units, species, press, temp, q = atm
     symbol, mass, diam = io.read_molecs(pc.ROOT+"inputs/molecules.dat")
-    mm = pa.meanweight(q, species)
+    mm = pa.mean_weight(q, species)
     qmass = qprofiles * molmass / mm
     io.write_atm(atmfile)
     # Then run spectrum, results must be the same as qnumber run:

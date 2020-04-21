@@ -58,7 +58,7 @@ def read_atm(pyrat):
       atm_in.q = atm_in.q * atm_in.mm / pyrat.mol.mass
 
   # Calculate number density profiles for each molecule (in molecules cm-3):
-  atm_in.d = pa.IGLdensity(atm_in.q, atm_in.press, atm_in.temp)
+  atm_in.d = pa.ideal_gas_density(atm_in.q, atm_in.press, atm_in.temp)
 
   pyrat.log.msg("Species list:\n  {:s}".format(str(pyrat.mol.name)),
                 indent=2, si=4)
@@ -186,7 +186,8 @@ def reloadatm(pyrat, temp=None, abund=None, radius=None):
   pyrat.atm.mm = np.sum(pyrat.atm.q*pyrat.mol.mass, axis=1)
 
   # Number density (molecules cm-3):
-  pyrat.atm.d = pa.IGLdensity(pyrat.atm.q, pyrat.atm.press, pyrat.atm.temp)
+  pyrat.atm.d = pa.ideal_gas_density(
+      pyrat.atm.q, pyrat.atm.press, pyrat.atm.temp)
 
   # Take radius if provided, else use hydrostatic-equilibrium equation:
   if radius is not None:
