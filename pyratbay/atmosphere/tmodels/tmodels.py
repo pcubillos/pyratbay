@@ -5,6 +5,7 @@ __all__ = [
     'Isothermal',
     'TCEA',
     'Madhu',
+    'get_model',
     ]
 
 import sys
@@ -13,7 +14,6 @@ from numpy.core.numeric import isscalar
 from scipy.ndimage import gaussian_filter1d
 from collections import Iterable
 
-from ... import tools     as pt
 from ... import constants as pc
 
 sys.path.append(pc.ROOT + 'pyratbay/lib/')
@@ -29,6 +29,10 @@ class Isothermal(object):
         nlayers: Integer
             Number of layers in temperature profile.
         """
+        self.name = 'isothermal'
+        self.pnames = ['T (K)']
+        self.texnames = [r'$T\ ({\rm K})$']
+        self.npars = len(self.pnames)
         self.temp = np.zeros(nlayers, np.double)
 
     def __call__(self, params):
@@ -87,6 +91,16 @@ class TCEA(object):
         be solved without knowing the temperature, thus making this a
         circular problem (shrug emoji).
         """
+        self.name = 'tcea'
+        self.pnames = [
+            "log(kappa')", 'log(gamma1)', 'log(gamma2)',
+            'alpha', 'T_irr (K)', 'T_int (K)']
+        self.texnames = [
+            r"$\log_{10}(\kappa')$", r'$\log_{10}(\gamma_1)$',
+            r'$\log_{10}(\gamma2)$', r'$\alpha$',
+            r'$T_{\rm irr} (K)$',    r'$T_{\rm int} (K)$']
+        self.npars = len(self.pnames)
+
         if gravity is None:
             gravity = np.tile(1.0, len(pressure))
         elif isscalar(gravity):
@@ -147,6 +161,13 @@ class Madhu(object):
         pressure: 1D float ndarray
             Pressure array in barye.
         """
+        self.name = 'madhu'
+        self.pnames = ['logp1', 'logp2', 'logp3', 'a1', 'a2', 'T0']
+        self.texnames = [
+            r'$\log_{10}(p_1)$', r'$\log_{10}(p_2)$', r'$\log_{10}(p_3)$',
+            r'$a_1$', r'$a_2$', r'$T_0$']
+        self.npars = len(self.pnames)
+
         self.logp = np.log10(pressure)
         self.temp = np.zeros_like(pressure)
         self.logp0 = np.amin(self.logp)
@@ -209,3 +230,14 @@ class Madhu(object):
         self.temp = gaussian_filter1d(self.temp, sigma=self.fsmooth,
             mode='nearest')
         return np.copy(self.temp)
+
+
+def get_model(name, *args, **kwargs):
+    """Get a temperature-profile model by its name."""
+    if name == 'isothermal':
+        return Isothermal(*args, kwargs['nlayers'])
+    if name == 'tcea':
+        return TCEA(*args, kwargs['pressure'])
+    if name == 'madhu':
+        return Madhu(*args, kwargs['pressure'])
+

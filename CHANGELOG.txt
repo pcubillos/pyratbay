@@ -6232,4 +6232,13 @@ Updated tests and examples configuration files accordingly.
 Updated docs.
 PEP8ed things on the way.
 
+*****
+
+Implemented atmosphere.tmodels.get_atmosphere() function to get a
+temperature model requested by model name.
+Added name, pnames, texnames, and npars variables to the temperature
+profile models.
+Modified atmosphere.temperature() function to return only the model
+when the user does not specify the model parameters.  Renamed tparams
+argument to params.
 

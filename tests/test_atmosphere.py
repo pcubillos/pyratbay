@@ -127,67 +127,67 @@ def test_pressure_with_units():
     np.testing.assert_allclose(pressure, expected_pressure)
 
 
-@pytest.mark.parametrize("tparams",
+@pytest.mark.parametrize("params",
     [1500.0, [1500.0], (1500,), np.array([1500.0])])
-def test_tmodel_isothermal(tparams):
+def test_tmodel_isothermal(params):
     nlayers = 100
     tmodel = pa.tmodels.Isothermal(nlayers)
-    np.testing.assert_equal(tmodel(tparams), np.tile(1500.0, nlayers))
+    np.testing.assert_equal(tmodel(params), np.tile(1500.0, nlayers))
 
 
-@pytest.mark.parametrize("tparams",
+@pytest.mark.parametrize("params",
     [[-4.84, -0.8, -0.8, 0.5, 1200.0, 100.0],
      np.array([-4.84, -0.8, -0.8, 0.5, 1200.0, 100.0])
     ])
-def test_tmodel_tcea_floats(tparams):
+def test_tmodel_tcea_floats(params):
     pressure = expected_pressure
     tmodel = pa.tmodels.TCEA(pressure)
-    np.testing.assert_allclose(tmodel(tparams), expected_temp_tcea)
+    np.testing.assert_allclose(tmodel(params), expected_temp_tcea)
 
 
 @pytest.mark.parametrize('gravity',
     [None, 2200.0, np.tile(2200.0, len(expected_pressure))])
 def test_tmodel_tcea_gravity(gravity):
-    tparams = np.array([-4.84, -0.8, -0.8, 0.5, 1200.0, 100.0])
+    params = np.array([-4.84, -0.8, -0.8, 0.5, 1200.0, 100.0])
     pressure = expected_pressure
     if gravity is not None:
-        tparams[0] += np.log10(2200.0)
+        params[0] += np.log10(2200.0)
     tmodel = pa.tmodels.TCEA(pressure, gravity)
-    np.testing.assert_allclose(tmodel(tparams), expected_temp_tcea)
+    np.testing.assert_allclose(tmodel(params), expected_temp_tcea)
 
 
 def test_temp_madhu_no_inv():
     pressure = expected_pressure
     tmodel = pa.tmodels.Madhu(pressure)
-    tparams = 5.23, 2.39, 7.45, 0.85, 0.67, 870.0
-    np.testing.assert_allclose(tmodel(tparams), expected_temp_madhu_noinv)
+    params = 5.23, 2.39, 7.45, 0.85, 0.67, 870.0
+    np.testing.assert_allclose(tmodel(params), expected_temp_madhu_noinv)
 
 
 def test_temp_madhu_inv():
     pressure = expected_pressure
     tmodel = pa.tmodels.Madhu(pressure)
-    tparams = 2.39, 5.23, 7.45, 0.85, 0.67, 870.0
-    np.testing.assert_allclose(tmodel(tparams), expected_temp_madhu_inv)
+    params = 2.39, 5.23, 7.45, 0.85, 0.67, 870.0
+    np.testing.assert_allclose(tmodel(params), expected_temp_madhu_inv)
 
 
 def test_temperature_isothermal():
-    tparams = 1500.0
+    params = 1500.0
     nlayers = 15
-    temp = pa.temperature("isothermal", tparams=tparams, nlayers=nlayers)
-    np.testing.assert_equal(temp, np.tile(tparams, nlayers))
+    temp = pa.temperature("isothermal", params=params, nlayers=nlayers)
+    np.testing.assert_equal(temp, np.tile(params, nlayers))
 
 
 def test_temperature_tcea():
     pressure = expected_pressure
-    tparams = [-4.84, -0.8, -0.8, 0.5, 1200.0, 100.0]
-    temp = pa.temperature('tcea', pressure, tparams=tparams)
+    params = [-4.84, -0.8, -0.8, 0.5, 1200.0, 100.0]
+    temp = pa.temperature('tcea', pressure, params=params)
     np.testing.assert_allclose(temp, expected_temp_tcea)
 
 
 def test_temperature_madhu():
     pressure = expected_pressure
-    tparams = 5.23, 2.39, 7.45, 0.85, 0.67, 870.0
-    temp = pa.temperature('madhu', pressure, tparams=tparams)
+    params = 5.23, 2.39, 7.45, 0.85, 0.67, 870.0
+    temp = pa.temperature('madhu', pressure, params=params)
     np.testing.assert_allclose(temp, expected_temp_madhu_noinv)
 
 

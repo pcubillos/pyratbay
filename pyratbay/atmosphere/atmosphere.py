@@ -92,7 +92,7 @@ def pressure(ptop, pbottom, nlayers, units="bar", log=None, verb=0):
     return press
 
 
-def temperature(tmodel, pressure=None, nlayers=None, log=None, tparams=None):
+def temperature(tmodel, pressure=None, nlayers=None, log=None, params=None):
     """
     Temperature profile wrapper.
 
@@ -106,35 +106,31 @@ def temperature(tmodel, pressure=None, nlayers=None, log=None, tparams=None):
         Number of pressure layers.
     log: Log object
         Screen-output log handler.
-    tparams: 1D float ndarray
+    params: 1D float ndarray
         Temperature model parameters. If None, return a tuple with the
         temperature model, its arguments, and the number or required parameters.
 
     Returns
     -------
-    If tparams is not None:
+    If params is not None:
         temperature: 1D float ndarray
             The evaluated atmospheric temperature profile.
-    If tparams is None:
+    If params is None:
         temp_model: Callable
             The atmospheric temperature model.
-        targs: List
-            The list of additional arguments (besides the model parameters).
-        ntpars: Integer
-            The expected number of model parameters.
 
     Examples
     --------
     >>> import pyratbay.atmosphere as pa
     >>> nlayers = 11
     >>> # Isothermal profile:
-    >>> temp_iso = pa.temperature("isothermal", tparams=1500.0, nlayers=nlayers)
+    >>> temp_iso = pa.temperature("isothermal", params=1500.0, nlayers=nlayers)
     >>> print(temp_iso)
     [1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500.]
     >>> # Three-channel Eddington-approximation profile:
     >>> pressure = pa.pressure(1e-8, 1e2, nlayers, "bar")
-    >>> tparams = np.array([-4.84, -0.8, -0.8, 0.5, 1200.0, 100.0])
-    >>> temp = pa.temperature('tcea', pressure, tparams=tparams)
+    >>> params = np.array([-4.84, -0.8, -0.8, 0.5, 1200.0, 100.0])
+    >>> temp = pa.temperature('tcea', pressure, params=params)
     >>> print(temp)
     [1046.89057381 1046.89090056 1046.89433798 1046.93040895 1047.30779086
      1051.21739055 1088.76131307 1312.57904127 1640.18896334 1659.78818839
@@ -143,27 +139,19 @@ def temperature(tmodel, pressure=None, nlayers=None, log=None, tparams=None):
     if log is None:
         log = mu.Log()
 
-    if tmodel == 'tcea':
-        # Define model and arguments:
-        targs  = [pressure]
-        temp_model = tmodels.TCEA(*targs)
-        ntpars = 6
-    elif tmodel == 'isothermal':
-        targs  = [nlayers]
-        temp_model = tmodels.Isothermal(*targs)
-        ntpars = 1
-    elif tmodel == 'madhu':
-        targs = [pressure]
-        temp_model = tmodels.Madhu(*targs)
-        ntpars = 6
+    if pressure is not None and nlayers is None:
+        nlayers = len(pressure)
+    if tmodel in pc.tmodels:
+        temp_model = tmodels.get_model(
+            tmodel, pressure=pressure, nlayers=nlayers)
     else:
-        log.error(f"Invalid input temperature model '{tmodel}'.  "
+        log.error(f"Invalid temperature model '{tmodel}'.  "
                   f"Select from: {pc.tmodels}")
 
-    if tparams is None:
-        return temp_model, targs, ntpars
+    if params is None:
+        return temp_model
     else:
-        temperature = temp_model(tparams)
+        temperature = temp_model(params)
         log.head(f'\nComputed {tmodel} temperature model.')
         return temperature
 

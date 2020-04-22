@@ -301,29 +301,15 @@ def setup(pyrat):
       pyrat.set_filters()
 
   # Temperature models and arguments:
-  if atm.tmodelname == 'tcea':
-      ntemp = 6
-      targs  = [pyrat.atm.press]
-      atm.tmodel = pa.tmodels.TCEA(*targs)
-      tpnames   = ["log(kappa')", 'log(gamma1)', 'log(gamma2)', 'alpha',
-                   'T_irr', 'T_int']
-      ttexnames = [r"$\log_{10}(\kappa')$", r'$\log_{10}(\gamma_1)$',
-                   r'$\log_{10}(\gamma2)$', r'$\alpha$',
-                   r'$T_{\rm irr} (K)$', r'$T_{\rm int} (K)$']
-  elif atm.tmodelname == 'isothermal':
-      ntemp = 1
-      atm.tmodel = pa.tmodels.Isothermal(pyrat.atm.nlayers)
-      tpnames   = ['T (K)']
-      ttexnames = [r'$T\ ({\rm K})$']
-  elif atm.tmodelname == 'madhu':
-      ntemp = 6
-      atm.tmodel = pa.tmodels.Madhu(pyrat.atm.press)
-      tpnames    = ['logp1', 'logp2', 'logp3', 'a1', 'a2', 'T0']
-      ttexnames  = [r'$\log_{10}(p_1)$', r'$\log_{10}(p_2)$',
-                    r'$\log_{10}(p_3)$', r'$a_1$', r'$a_2$', r'$T_0$']
-  else:
+  if atm.tmodelname not in pc.tmodels:
       ntemp = 0
       tpnames, ttexnames = [], []
+  else:
+      atm.tmodel = pa.tmodels.get_model(
+          atm.tmodelname, pressure=pyrat.atm.press, nlayers=pyrat.atm.nlayers)
+      ntemp = atm.tmodel.npars
+      tpnames = atm.tmodel.pnames
+      ttexnames = atm.tmodel.texnames
 
   # Rayleigh models:
   nray = 0
