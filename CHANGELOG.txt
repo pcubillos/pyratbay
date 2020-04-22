@@ -6253,3 +6253,7 @@ Added check for number of free parameters in pyrat.eval() call.
 Defined pyrat.atm.ibulk to prevent crash in qcapcheck() call.
 Added tests.
 
+*****
+
+Moved pa.tea_to_pyrat() to io.import_tea().
+

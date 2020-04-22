@@ -16,7 +16,6 @@ __all__ = [
     'make_atomic',
     'read_atomic',
     'make_preatm',
-    'tea_to_pyrat',
     ]
 
 import os
@@ -319,7 +318,7 @@ def abundance(pressure, temperature, species, elements=None,
         log.head(f"Produced TEA atmospheric file '{atmfile}'.")
     else:
         atmfile = 'TEA.tea'
-    tea_to_pyrat("TEA.tea", atmfile, species)
+    io.import_tea("TEA.tea", atmfile, species)
     q = io.read_atm(atmfile)[4]
     os.remove(atomic_file)
     os.remove(patm)
@@ -856,58 +855,4 @@ def make_preatm(pressure, temp, afile, elements, species, patm):
         f.write(f"{pressure[i]:10.4e}     {temp[i]:>8.2f}  ")
         f.write("  ".join([f"{abun:12.6e}" for abun in nfrac]) + "\n")
     f.close()
-
-
-def tea_to_pyrat(teafile, atmfile, req_species):
-    """
-    Format a TEA atmospheric file into a Pyrat atmospheric file.
-
-    Paramters
-    ---------
-    teafile:  String
-        Input TEA atmospheric file.
-    atmfile:  String
-        Output Pyrat atmospheric file.
-    req_species: List of strings
-        The requested species for output.
-    """
-    # Open read the TEA file:
-    with open(teafile, "r") as f:
-        tea = np.asarray(f.readlines())
-
-    # Line-indices where the species and data are:
-    ispec = np.where(tea == "#SPECIES\n")[0][0] + 1  # Species list
-    idata = np.where(tea == "#TEADATA\n")[0][0] + 2  # data starting line
-
-    # Read and clean species names:
-    species = tea[ispec].split()
-    nspecies    = len(species)
-    nreqspecies = len(req_species)
-    nreqspecies = len(req_species)
-    for i in range(nspecies):
-        species[i] = species[i].rpartition("_")[0]
-
-    # Species indices corresponding to req_species:
-    sindex = np.zeros(len(req_species), int)
-    for i in range(len(req_species)):
-        sindex[i] = species.index(req_species[i])
-
-    # Extract per-layer data:
-    nlayers = len(tea) - idata
-    temperature = np.zeros(nlayers)
-    pressure    = np.zeros(nlayers)
-    abundance   = np.zeros((nlayers, nreqspecies))
-    for i in range(nlayers):
-        data = np.asarray(tea[idata+i].split(), np.double)
-        pressure[i], temperature[i] = data[0:2]
-        abundance[i,:] = data[2:][sindex]
-
-    # TEA pressure units are always bars:
-    punits = "bar"
-    pressure = pressure * pt.u(punits)  # Set in barye units
-    # File header:
-    header = "# TEA atmospheric file formatted for Pyrat.\n\n"
-
-    io.write_atm(atmfile, pressure, temperature, req_species, abundance,
-                 punits, header)
 

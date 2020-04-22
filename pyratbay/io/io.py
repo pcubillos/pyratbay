@@ -12,6 +12,7 @@ __all__ = [
     'read_molecs',
     'read_isotopes',
     'import_exomol_xs',
+    'import_tea',
     'export_pandexo',
     ]
 
@@ -996,6 +997,63 @@ def import_exomol_xs(filename, read_all=True, ofile=None):
     if read_all:
         return xs, pressure, temperature, wavenumber, species[0]
     return xs
+
+
+def import_tea(teafile, atmfile, req_species=None):
+    """
+    Format a TEA atmospheric file into a Pyrat atmospheric file.
+
+    Paramters
+    ---------
+    teafile:  String
+        Input TEA atmospheric file.
+    atmfile:  String
+        Output Pyrat atmospheric file.
+    req_species: List of strings
+        The requested species for output.  If None, request all species
+        in teafile.
+    """
+    # Open read the TEA file:
+    with open(teafile, "r") as f:
+        tea = np.asarray(f.readlines())
+
+    # Line-indices where the species and data are:
+    ispec = np.where(tea == "#SPECIES\n")[0][0] + 1  # Species list
+    idata = np.where(tea == "#TEADATA\n")[0][0] + 2  # data starting line
+
+    # Read and clean species names:
+    species = tea[ispec].split()
+    nspecies = len(species)
+    for i in range(nspecies):
+        species[i] = species[i].rpartition("_")[0]
+
+    if req_species is None:
+        req_species = species
+
+    # Species indices corresponding to req_species:
+    nreqspecies = len(req_species)
+    sindex = np.zeros(len(req_species), int)
+    for i in range(len(req_species)):
+        sindex[i] = species.index(req_species[i])
+
+    # Extract per-layer data:
+    nlayers = len(tea) - idata
+    temperature = np.zeros(nlayers)
+    pressure    = np.zeros(nlayers)
+    abundance   = np.zeros((nlayers, nreqspecies))
+    for i in range(nlayers):
+        data = np.asarray(tea[idata+i].split(), np.double)
+        pressure[i], temperature[i] = data[0:2]
+        abundance[i,:] = data[2:][sindex]
+
+    # TEA pressure units are always bars:
+    punits = "bar"
+    pressure = pressure * pt.u(punits)  # Set in barye units
+    # File header:
+    header = "# TEA atmospheric file formatted for Pyrat.\n\n"
+
+    write_atm(atmfile, pressure, temperature, req_species, abundance,
+              punits, header)
 
 
 def export_pandexo(pyrat, baseline, transit_duration,
