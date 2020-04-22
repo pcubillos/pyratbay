@@ -6246,5 +6246,10 @@ argument to params.
 
 Raise error for mismatch in the number of fitting parameters even
 if it's not an mcmc run.
-Added test.
+
+*****
+
+Added check for number of free parameters in pyrat.eval() call.
+Defined pyrat.atm.ibulk to prevent crash in qcapcheck() call.
+Added tests.
 

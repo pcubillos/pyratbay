@@ -34,11 +34,11 @@ def qcapcheck(Q, qcap, ibulk):
   >>> abundances  = [0.8495, 0.15, 5e-4]
   >>> qprofiles = pa.uniform(pressure, temperature, species, abundances)
   >>> ibulk = [0,1]
-  >>> # Sum of all metals (H2O) is not above qcap:
+  >>> # Sum of all metals (H2O) does not exceed qcap:
   >>> qcap = 1e-3
   >>> print(pa.qcapcheck(qprofiles, qcap, ibulk))
   False
-  >>> # Sum of all metals (H2O) is exceedes qcap:
+  >>> # Sum of all metals (H2O) exceedes qcap:
   >>> qcap = 1e-4
   >>> print(pa.qcapcheck(qprofiles, qcap, ibulk))
   True

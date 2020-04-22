@@ -640,12 +640,25 @@ def test_spectrum_params_misfit(tmp_path, capfd):
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         reset={'tmodel':'tcea',
                'retflag':'temp',
-               'params':'-4.67 -0.8 -0.8 0.5 1486.0 100.0 -4.0'})
+               'params':'-4.67 -0.8'})
     pyrat = pb.run(cfg)
     assert pyrat is None
     captured = capfd.readouterr()
     assert "Error in module: 'argum.py', function: 'setup'" in captured.out
-    assert "The input number of fitting parameters (params, 7) does not " \
+    assert "The number of input fitting parameters (params, 2) does not " \
+           "match\n    the number of required parameters (6)." in captured.out
+
+
+def test_eval_params_misfit(tmp_path, capfd):
+    # Without evaulating params:
+    cfg = make_config(tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        reset={'tmodel':'tcea',
+               'retflag':'temp'})
+    pyrat = pb.run(cfg)
+    pyrat.eval([-4.67, -0.8])
+    captured = capfd.readouterr()
+    assert "The number of input fitting parameters (2) does not " \
            "match\n    the number of required parameters (6)." in captured.out
 
 

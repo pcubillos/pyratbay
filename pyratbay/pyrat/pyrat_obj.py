@@ -206,6 +206,13 @@ class Pyrat(object):
       params = np.asarray(params)
       q0 = np.copy(self.atm.qbase)
 
+      if len(params) != self.ret.nparams:
+          self.log.warning(
+              f'The number of input fitting parameters ({len(params)}) does '
+              f'not match\nthe number of required '
+              f'parameters ({self.ret.nparams}).')
+          return None, None if retmodel else None
+
       rejectflag = False
       # Update temperature profile if requested:
       if self.ret.itemp is not None:
@@ -218,8 +225,7 @@ class Pyrat(object):
           rejectflag = True
           if verbose:
               self.log.warning("Input temperature profile runs out of "
-                               "boundaries ({:.1f--{:.1f}} K)".
-                               format(self.ret.tlow, self.ret.thigh))
+                  f"boundaries ({self.ret.tlow:.1f}--{self.ret.thigh:.1f} K)")
 
       # Update abundance profiles if requested:
       if self.ret.imol is not None:
@@ -236,7 +242,7 @@ class Pyrat(object):
           rejectflag = True
           if verbose:
               self.log.warning("The sum of trace abundances' fraction exceeds "
-                               "the cap of {:.3f}.".format(self.ret.qcap))
+                              f"the cap of {self.ret.qcap:.3f}.")
 
       # Update reference radius if requested:
       if self.ret.irad is not None:

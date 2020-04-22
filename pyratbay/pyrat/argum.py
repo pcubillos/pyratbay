@@ -195,10 +195,6 @@ def check_spectrum(pyrat):
                 'number of data points ({:d}).'.
                 format(obs.nfilters, obs.ndata))
 
-  # Retrieval variables:
-  if pyrat.ret.params is not None:
-      pyrat.ret.nparams = len(pyrat.ret.params)
-
   if pyrat.ncpu >= mp.cpu_count():
       log.warning('Number of requested CPUs ({:d}) is >= than the number '
                   'of available CPUs ({:d}).  Enforced ncpu to {:d}.'.
@@ -258,6 +254,7 @@ def setup(pyrat):
   else:
       nabund = 0
       mpnames, mtexnames = [], []
+      atm.ibulk = None
 
   # Read stellar spectrum model (starspec, kurucz, or blackbody(tstar)):
   if phy.starspec is not None:
@@ -341,48 +338,50 @@ def setup(pyrat):
   }
 
   # Indices to parse the array of fitting parameters:
-  nparams = 0
+  ret.nparams = 0
   ret.pnames, ret.texnames = [], []
   if 'temp' in ret.retflag:
-      ret.itemp  = np.arange(nparams, nparams + ntemp)
+      ret.itemp  = np.arange(ret.nparams, ret.nparams + ntemp)
       ret.pnames   += tpnames
       ret.texnames += ttexnames
-      nparams += ntemp
+      ret.nparams += ntemp
   if 'rad' in ret.retflag:
-      ret.irad   = np.arange(nparams, nparams + 1)  # nrad is always 1
+      ret.irad   = np.arange(ret.nparams, ret.nparams + 1)
       ret.pnames   += [f'Rp ({atm.runits})']
       ret.texnames += [fr'$R_{{\rm planet}}$ ({utex[atm.runits]})']
-      nparams += 1
+      ret.nparams += 1
   if 'mol' in ret.retflag:
-      ret.imol = np.arange(nparams, nparams + nabund)
+      ret.imol = np.arange(ret.nparams, ret.nparams + nabund)
       ret.pnames   += mpnames
       ret.texnames += mtexnames
-      nparams += nabund
+      ret.nparams += nabund
   if 'ray' in ret.retflag:
-      ret.iray   = np.arange(nparams, nparams + nray)
+      ret.iray   = np.arange(ret.nparams, ret.nparams + nray)
       ret.pnames   += rpnames
       ret.texnames += rtexnames
-      nparams += nray
+      ret.nparams += nray
   if 'cloud' in ret.retflag:
-      ret.icloud  = np.arange(nparams, nparams + ncloud)
+      ret.icloud  = np.arange(ret.nparams, ret.nparams + ncloud)
       ret.pnames   += cpnames
       ret.texnames += ctexnames
-      nparams += ncloud
+      ret.nparams += ncloud
   if 'patchy' in ret.retflag:
-      ret.ipatchy = np.arange(nparams, nparams + 1)  # npatchy is always 1
+      ret.ipatchy = np.arange(ret.nparams, ret.nparams + 1)
       ret.pnames   += ['f_patchy']
       ret.texnames += [r'$f_{\rm patchy}$']
-      nparams += 1
+      ret.nparams += 1
   if 'mass' in ret.retflag:
-      ret.imass = np.arange(nparams, nparams + 1)  # nmass is always 1
+      ret.imass = np.arange(ret.nparams, ret.nparams + 1)
       ret.pnames   += [f'Mp ({phy.mpunits})']
       ret.texnames += [fr'$M_{{\rm planet}}$ ({utex[phy.mpunits]})']
-      nparams += 1
+      ret.nparams += 1
 
-  if ret.nparams != nparams:
+  # Retrieval variables:
+  if ret.params is not None and len(ret.params) != ret.nparams:
+      nparams = len(ret.params)
       log.error(
-          f'The input number of fitting parameters (params, {len(ret.params)}) '
-          f'does not match\nthe number of required parameters ({nparams}).')
+          f'The number of input fitting parameters (params, {nparams}) does '
+          f'not match\nthe number of required parameters ({ret.nparams}).')
   if pyrat.runmode == 'mcmc':
       if ret.pstep is None:
           log.error('Missing pstep argument, required for MCMC runs.')
