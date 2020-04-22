@@ -14,7 +14,6 @@ __all__ = [
     'ideal_gas_density',
     'equilibrium_temp',
     'make_atomic',
-    'read_atomic',
     'make_preatm',
     ]
 
@@ -724,7 +723,7 @@ def make_atomic(xsolar=1.0, escale={}, atomic_file=None, solar_file=None):
     if solar_file is None:
         solar_file = pc.ROOT + 'inputs/AsplundEtal2009.txt'
     # Read the Asplund et al. (2009) solar elementa abundances:
-    index, symbol, dex, name, mass = read_atomic(solar_file)
+    index, symbol, dex, name, mass = io.read_atomic(solar_file)
 
     # Scale the metals aundances:
     imetals = np.where((symbol != "H") & (symbol != "He"))
@@ -743,53 +742,6 @@ def make_atomic(xsolar=1.0, escale={}, atomic_file=None, solar_file=None):
                 f.write("{:3d}  {:2s}  {:5.2f}  {:10s}  {:12.8f}\n".
                     format(index[i], symbol[i], dex[i], name[i], mass[i]))
     return index, symbol, dex, name, mass
-
-
-def read_atomic(afile):
-    """
-    Read an elemental (atomic) composition file.
-
-    Parameters
-    ----------
-    afile: String
-        File with atomic composition.
-
-    Returns
-    -------
-    atomic_num: 1D integer ndarray
-        Atomic number (except for Deuterium, which has anum=0).
-    symbol: 1D string ndarray
-        Elemental chemical symbol.
-    dex: 1D float ndarray
-        Logarithmic number-abundance, scaled to log(H) = 12.
-    name: 1D string ndarray
-        Element names.
-    mass: 1D float ndarray
-        Elemental mass in amu.
-
-    Uncredited developers
-    ---------------------
-    Jasmina Blecic
-    """
-    # Allocate arrays:
-    nelements = 84  # Fixed number
-    atomic_num = np.zeros(nelements, np.int)
-    symbol = np.zeros(nelements, '|U2')
-    dex    = np.zeros(nelements, np.double)
-    name   = np.zeros(nelements, '|U20')
-    mass   = np.zeros(nelements, np.double)
-
-    # Open-read file:
-    with open(afile, 'r') as f:
-        # Read-discard first two lines (header):
-        f.readline()
-        f.readline()
-        # Store data into the arrays:
-        for i in range(nelements):
-            atomic_num[i], symbol[i], dex[i], name[i], mass[i] = \
-                f.readline().split()
-
-    return atomic_num, symbol, dex, name, mass
 
 
 def make_preatm(pressure, temp, afile, elements, species, patm):
@@ -820,7 +772,7 @@ def make_preatm(pressure, temp, afile, elements, species, patm):
     nlayers = len(pressure)
 
     # Get the elemental abundace data:
-    index, symbol, dex, name, mass = read_atomic(afile)
+    index, symbol, dex, name, mass = io.read_atomic(afile)
     # Take only the elements we need:
     iatoms = np.in1d(symbol, elements)
 

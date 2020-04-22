@@ -6257,3 +6257,7 @@ Added tests.
 
 Moved pa.tea_to_pyrat() to io.import_tea().
 
+*****
+
+Moved pa.read_atomic() to io.read_atomic().
+

@@ -5,10 +5,11 @@ __all__ = [
     'save_pyrat', 'load_pyrat',
     'write_atm', 'read_atm',
     'write_spectrum', 'read_spectrum',
-    'write_opacity',  'read_opacity',
+    'write_opacity', 'read_opacity',
     'write_pf', 'read_pf',
     'write_cs', 'read_cs',
     'read_pt',
+    'read_atomic',
     'read_molecs',
     'read_isotopes',
     'import_exomol_xs',
@@ -815,6 +816,53 @@ def read_pt(ptfile):
     pressure, temperature = np.loadtxt(ptfile, usecols=(0,1), unpack=True)
     pressure *= pc.bar
     return pressure, temperature
+
+
+def read_atomic(afile):
+    """
+    Read an elemental (atomic) composition file.
+
+    Parameters
+    ----------
+    afile: String
+        File with atomic composition.
+
+    Returns
+    -------
+    atomic_num: 1D integer ndarray
+        Atomic number (except for Deuterium, which has anum=0).
+    symbol: 1D string ndarray
+        Elemental chemical symbol.
+    dex: 1D float ndarray
+        Logarithmic number-abundance, scaled to log(H) = 12.
+    name: 1D string ndarray
+        Element names.
+    mass: 1D float ndarray
+        Elemental mass in amu.
+
+    Uncredited developers
+    ---------------------
+    Jasmina Blecic
+    """
+    # Allocate arrays:
+    nelements = 84  # Fixed number
+    atomic_num = np.zeros(nelements, np.int)
+    symbol = np.zeros(nelements, '|U2')
+    dex    = np.zeros(nelements, np.double)
+    name   = np.zeros(nelements, '|U20')
+    mass   = np.zeros(nelements, np.double)
+
+    # Open-read file:
+    with open(afile, 'r') as f:
+        # Read-discard first two lines (header):
+        f.readline()
+        f.readline()
+        # Store data into the arrays:
+        for i in range(nelements):
+            atomic_num[i], symbol[i], dex[i], name[i], mass[i] = \
+                f.readline().split()
+
+    return atomic_num, symbol, dex, name, mass
 
 
 def read_molecs(file):
