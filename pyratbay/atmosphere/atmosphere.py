@@ -28,7 +28,7 @@ import scipy.constants as sc
 import scipy.interpolate as sip
 import mc3.utils as mu
 
-from .. import tools     as pt
+from .. import tools as pt
 from .. import constants as pc
 from .. import io as io
 from .  import tmodels
@@ -92,9 +92,7 @@ def pressure(ptop, pbottom, nlayers, units="bar", log=None, verb=0):
     return press
 
 
-def temperature(tmodel, pressure=None, rstar=None, tstar=None, tint=100.0,
-        gplanet=None, smaxis=None, runits="cm", nlayers=None,
-        log=None, tparams=None):
+def temperature(tmodel, pressure=None, nlayers=None, log=None, tparams=None):
     """
     Temperature profile wrapper.
 
@@ -104,19 +102,6 @@ def temperature(tmodel, pressure=None, rstar=None, tstar=None, tint=100.0,
         Name of the temperature model.
     pressure: 1D float ndarray
         Atmospheric pressure profile in barye units.
-    rstar: String or float
-        Stellar radius. If string, may contain the units.
-    tstar: String or float
-        Stellar temperature in kelvin degrees.
-    tint: String or float
-        Planetary internal temperature in kelvin degrees.
-    gplanet: String or float
-        Planetary atmospheric temperature in cm s-2.
-    smaxis: String or float
-        Orbital semi-major axis. If string, may contain the units.
-    runits: String
-        Default units for rstar and smaxis.  Available units are: A, nm, um,
-        mm, cm (default), m, km, au, pc, rearth, rjup, rsun.
     nlayers: Integer
         Number of pressure layers.
     log: Log object
@@ -148,28 +133,21 @@ def temperature(tmodel, pressure=None, rstar=None, tstar=None, tint=100.0,
     [1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500.]
     >>> # Three-channel Eddington-approximation profile:
     >>> pressure = pa.pressure(1e-8, 1e2, nlayers, "bar")
-    >>> tparams = np.array([-1.5, -0.8, -0.8, 0.5, 1.0])
-    >>> temp = pa.temperature('tcea', pressure, rstar="0.756 rsun", tstar=5040,
-    >>>     tint=100.0, gplanet=2200.0, smaxis="0.031 au", tparams=tparams)
+    >>> tparams = np.array([-4.84, -0.8, -0.8, 0.5, 1200.0, 100.0])
+    >>> temp = pa.temperature('tcea', pressure, tparams=tparams)
     >>> print(temp)
-    [1047.04157312 1047.04189805 1047.04531644 1047.08118784 1047.45648563
-     1051.34469989 1088.69956369 1311.86379107 1640.12857767 1660.02396061
-     1665.30121021]
+    [1046.89057381 1046.89090056 1046.89433798 1046.93040895 1047.30779086
+     1051.21739055 1088.76131307 1312.57904127 1640.18896334 1659.78818839
+     1665.09706555]
     """
     if log is None:
         log = mu.Log()
 
     if tmodel == 'tcea':
-        # Parse inputs:
-        rstar   = pt.get_param(rstar,   runits,   gt=0.0)
-        tstar   = pt.get_param(tstar,   'kelvin', gt=0.0)
-        tint    = pt.get_param(tint,    'kelvin', gt=0.0)
-        gplanet = pt.get_param(gplanet, 'none',   gt=0.0)
-        smaxis  = pt.get_param(smaxis,  runits,   gt=0.0)
         # Define model and arguments:
-        targs  = [pressure, rstar, tstar, tint, gplanet, smaxis]
+        targs  = [pressure]
         temp_model = tmodels.TCEA(*targs)
-        ntpars = 5
+        ntpars = 6
     elif tmodel == 'isothermal':
         targs  = [nlayers]
         temp_model = tmodels.Isothermal(*targs)

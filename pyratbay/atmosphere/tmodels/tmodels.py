@@ -9,6 +9,7 @@ __all__ = [
 
 import sys
 import numpy as np
+from numpy.core.numeric import isscalar
 from scipy.ndimage import gaussian_filter1d
 from collections import Iterable
 
@@ -16,7 +17,7 @@ from ... import tools     as pt
 from ... import constants as pc
 
 sys.path.append(pc.ROOT + 'pyratbay/lib/')
-import _pt as PT
+import _pt
 
 
 class Isothermal(object):
@@ -62,36 +63,37 @@ class Isothermal(object):
 class TCEA(object):
     """
     Three-channel Eddington Approximation (TCEA) temperature profile
-    model from Line et al. (2013).
+    model from Line et al. (2013), which is based on Guillot (2010).
     """
-    def __init__(self, pressure, rstar, tstar, tint, gplanet, smaxis,
-                 runits='cm'):
+    def __init__(self, pressure, gravity=None):
         """
         Parameters
         ----------
         pressure: 1D float ndarray
-            Atmospheric pressure profile in barye units.
-        rstar: String or float
-            Stellar radius. If string, may specify units (default in cm units).
-        tstar: String or float
-            Stellar temperature in Kelvin degrees.
-        tint: String or float
-            Planetary internal temperature in Kelvin degrees.
-        gplanet: String or float
-            Planetary surface gravity in cm s-2.
-        smaxis: String or float
-            Orbital semi-major axis.
-            If string, may specify units (default in cm units).
-        runits: String
-            Default units for rstar and smaxis.
+            Atmospheric pressure profile (barye).
+        gravity: 1D float ndarray or scalar
+            Atmospheric gravity profile (cm s-2).
+            If None, assume a constant gravity of 1 cm s-2, in which
+            case, one should regard the kappa parameter as
+            kappa' = kappa/gravity.
+
+        Note that the input gravity can be a scalar value used at all
+        atmospheric pressures (as it has been used so far in the
+        literature.  However, from a parametric point of view, this is
+        redundant, as it only acts as a scaling factor for kappa.
+        Idealy, one would wish to input a pressure-dependent gravity,
+        but such profile would need to be derived from a hydrostatic
+        equilibrium calculation, for example.  Unfortunately, HE cannot
+        be solved without knowing the temperature, thus making this a
+        circular problem (shrug emoji).
         """
-        self.pressure = pressure
-        self.rstar   = pt.get_param(rstar,   runits,   gt=0.0)
-        self.tstar   = pt.get_param(tstar,   'kelvin', gt=0.0)
-        self.tint    = pt.get_param(tint,    'kelvin', ge=0.0)
-        self.gplanet = pt.get_param(gplanet, 'none',   gt=0.0)
-        self.smaxis  = pt.get_param(smaxis,  runits,   gt=0.0)
-        self.temp = np.zeros_like(pressure)
+        if gravity is None:
+            gravity = np.tile(1.0, len(pressure))
+        elif isscalar(gravity):
+            gravity = np.tile(gravity, len(pressure))
+        self.pressure = np.asarray(pressure, float)
+        self.gravity = np.asarray(gravity, float)
+        self.temp = np.zeros_like(pressure, float)
 
     def __call__(self, params):
         """
@@ -99,39 +101,40 @@ class TCEA(object):
         ----------
         params: 1D iterable
             TCEA model parameters:
-            log10(kappa):  Planck thermal IR opacity in units cm2 g-1
+            log10(kappa'): Planck thermal IR opacity divided by gravity.
+                This relates to the familiar kappa from Guillot (2010) as
+                kappa' = kappa/g, unless gravity is defined on initialization,
+                in which case the two kappa's are the same.
             log10(gamma1): Visible-to-thermal stream Planck mean opacity ratio
             log10(gamma2): Visible-to-thermal stream Planck mean opacity ratio
             alpha: Visible-stream partition (0.0--1.0)
-            beta:  'catch-all' for albedo, emissivity, and day--night
-                   redistribution (on the order of unity)
+            t_irr: Stellar irradiation temperature (Kelvin degrees)
+                A good approximation is the planet's equilibrium temperature
+                t_irr = t_star * sqrt(0.5*R_star/a) * ((1-A)/f)**0.25
+            t_int: Planetary internal heat flux (in Kelvin degrees)
 
         Returns
         -------
         temp: 1D float ndarray
-            Temperature profile in K.
+            Temperature profile in Kelvin degrees.
 
         Examples
         --------
         >>> import pyratbay.atmosphere as pa
+        >>> import pyratbay.constants as pc
         >>> pressure = pa.pressure(1e-8, 1e2, 10, 'bar')
-        >>> rstar   = '0.756 rsun'
-        >>> tstar   = 5040.0       # K
-        >>> tint    =  100.0       # K
-        >>> gplanet = 2200.0       # cm s-2
-        >>> smaxis  = '0.031 au'
-        >>> tcea = pa.tmodels.TCEA(pressure, rstar, tstar, tint, gplanet, smaxis)
-        >>> params = [-1.5, -0.8, -0.8, 0.5, 1.0]
-        >>> print(tcea(params))
-        [1047.04157312 1047.04189805 1047.04531644 1047.08118784 1047.45648563
-         1051.34469989 1088.69956369 1311.86379107 1640.12857767 1660.02396061
-         1665.30121021]
+        >>> tcea = pa.tmodels.TCEA(pressure)
+        >>> kappa, gamma1, gamma2, alpha = -4.8, -0.8, -0.8, 0.5
+        >>> t_irr = pa.equilibrium_temp(5040, 0.756*pc.rsun, 0.031*pc.au)[0]
+        >>> t_int = 100.0
+        >>> print(tcea([kappa, gamma1, gamma2, alpha, t_irr, t_int]))
+        [1047.04157666 1047.04205435 1047.04857799 1047.13739008 1048.34031821
+         1064.09404968 1215.18944824 1608.78252538 1659.93776642 1665.89970977]
         """
         # Ensure Numpy array:
         if isinstance(params, (list, tuple)):
             params = np.array(params, np.double)
-        self.temp[:] = PT.TCEA(params, self.pressure, self.rstar,
-            self.tstar, self.tint, self.smaxis, self.gplanet)
+        self.temp[:] = _pt.tcea(params, self.pressure, self.gravity)
         return np.copy(self.temp)
 
 

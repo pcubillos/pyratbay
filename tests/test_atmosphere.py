@@ -15,10 +15,10 @@ os.chdir(pc.ROOT+'tests')
 expected_pressure = np.logspace(-2, 9, 15)
 
 expected_temp_tcea = np.array(
-      [1047.04157312, 1047.0417558 , 1047.04291714, 1047.05028832,
-       1047.09700183, 1047.39246504, 1049.25209169, 1060.68633455,
-       1122.94827272, 1339.07083137, 1616.76492877, 1659.69009949,
-       1661.01445599, 1669.01141096, 1715.50699082])
+      [1046.89057381, 1046.89075751, 1046.89192532, 1046.89933754,
+       1046.94631087, 1047.24341507, 1049.11331707, 1060.60902021,
+       1123.15986552, 1339.81840964, 1617.02710403, 1659.45254019,
+       1660.78464365, 1668.82931802, 1715.58904031])
 
 expected_temp_madhu_noinv = np.array(
       [ 870.23835532,  875.0069192 ,  888.59773802,  911.24902223,
@@ -136,29 +136,23 @@ def test_tmodel_isothermal(tparams):
 
 
 @pytest.mark.parametrize("tparams",
-    [[-1.5, -0.8, -0.8, 0.5, 1.0],
-     np.array([-1.5, -0.8, -0.8, 0.5, 1.0])
+    [[-4.84, -0.8, -0.8, 0.5, 1200.0, 100.0],
+     np.array([-4.84, -0.8, -0.8, 0.5, 1200.0, 100.0])
     ])
 def test_tmodel_tcea_floats(tparams):
     pressure = expected_pressure
-    rstar = 0.756 * pc.rsun
-    tstar = 5040.0
-    tint = 100.0
-    gplanet = 2200.0
-    smaxis = 0.031 * pc.au
-    tmodel = pa.tmodels.TCEA(pressure, rstar, tstar, tint, gplanet, smaxis)
+    tmodel = pa.tmodels.TCEA(pressure)
     np.testing.assert_allclose(tmodel(tparams), expected_temp_tcea)
 
 
-def test_tmodel_tcea_units():
-    tparams = [-1.5, -0.8, -0.8, 0.5, 1.0]
+@pytest.mark.parametrize('gravity',
+    [None, 2200.0, np.tile(2200.0, len(expected_pressure))])
+def test_tmodel_tcea_gravity(gravity):
+    tparams = np.array([-4.84, -0.8, -0.8, 0.5, 1200.0, 100.0])
     pressure = expected_pressure
-    rstar = "0.756 rsun"
-    tstar = 5040.0
-    tint = 100.0
-    gplanet = 2200.0
-    smaxis = "0.031 au"
-    tmodel = pa.tmodels.TCEA(pressure, rstar, tstar, tint, gplanet, smaxis)
+    if gravity is not None:
+        tparams[0] += np.log10(2200.0)
+    tmodel = pa.tmodels.TCEA(pressure, gravity)
     np.testing.assert_allclose(tmodel(tparams), expected_temp_tcea)
 
 
@@ -185,9 +179,8 @@ def test_temperature_isothermal():
 
 def test_temperature_tcea():
     pressure = expected_pressure
-    tparams = [-1.5, -0.8, -0.8, 0.5, 1.0]
-    temp = pa.temperature('tcea', pressure, rstar="0.756 rsun", tstar=5040,
-          tint=100.0, gplanet=2200.0, smaxis="0.031 au", tparams=tparams)
+    tparams = [-4.84, -0.8, -0.8, 0.5, 1200.0, 100.0]
+    temp = pa.temperature('tcea', pressure, tparams=tparams)
     np.testing.assert_allclose(temp, expected_temp_tcea)
 
 

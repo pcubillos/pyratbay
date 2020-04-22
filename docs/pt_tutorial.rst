@@ -3,11 +3,13 @@
 .. |CH4| replace:: CH\ :sub:`4`
 .. |H2|  replace:: H\ :sub:`2`
 
-.. |kappa|  replace:: :math:`\log_{10}(\kappa)`
+.. |kappa|  replace:: :math:`\log_{10}(\kappa')`
 .. |gamma1| replace:: :math:`\log_{10}(\gamma_1)`
 .. |gamma2| replace:: :math:`\log_{10}(\gamma_2)`
 .. |alpha|  replace:: :math:`\alpha`
 .. |beta|   replace:: :math:`\beta`
+.. |Tirr|   replace:: :math:`T_{\rm irr}`
+.. |Tint|   replace:: :math:`T_{\rm int}`
 
 .. |logp1| replace:: :math:`\log_{10}(p_1)`
 .. |logp2| replace:: :math:`\log_{10}(p_2)`
@@ -28,13 +30,13 @@ with the ``tmodel`` key. Each one of these require a different set of
 parameters (``tpars``).  The models, parameters, and references are
 listed in the following table:
 
-=================== ============================================ ==== 
-Models (``tmodel``) Parameters (``tpars``)                       References
-=================== ============================================ ====
-isothermal          :math:`T_0`                                  ---
-tcea                |kappa|, |gamma1|, |gamma2|, |alpha|, |beta| [Line2013]_
-madhu               |logp1|, |logp2|, |logp3|, |a1|, |a2|, |T0|  [Madhusudhan2009]_
-=================== ============================================ ====
+=================== ==================================================== ====
+Models (``tmodel``) Parameters (``tpars``)                               References
+=================== ==================================================== ====
+isothermal          :math:`T_0`                                          ---
+tcea                |kappa|, |gamma1|, |gamma2|, |alpha|, |Tirr|, |Tint| [Line2013]_
+madhu               |logp1|, |logp2|, |logp3|, |a1|, |a2|, |T0|          [Madhusudhan2009]_
+=================== ==================================================== ====
 
 
 Pressure Profile
@@ -68,22 +70,13 @@ Here is an example of a PT configuration file:
 Three-channel Eddington Approximation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The tcea model has five parameters: |kappa|,
-|gamma1|, |gamma2|, |alpha|, and |beta| as defined in
-[Line2013]_.  This model also requires the stellar radius
-(``rstar``), the orbital semi-major axis (``smaxis``), the planetary
-surface gravity (``gplanet``), the stellar effective temperature
-(``tstar``), and the planetary internal temperature (``tint``).
+The tcea model has six parameters: |kappa|,
+|gamma1|, |gamma2|, |alpha|, |Tirr|, and |Tint| as defined in
+[Line2013]_, except for :math:`\kappa'`, which in this case corresponds to
+:math:`\kappa' \equiv \kappa/g`.
 
 .. literalinclude:: ../examples/tutorial/pt_tcea.cfg
 
-Note that the units for ``gplanet`` are always cm s\ :sup:`-2`, and
-the units for temperature keys (like ``tstar`` and ``tint``) are
-always Kelvin.  Thus, the user does not need to specify their units.
-
-.. note:: ``Pyrat Bay`` can compute the planetary surface gravity
-          (``gplanet``) from the planetary mass (``mplanet``) and
-          radius (``rplanet``).
 
 Madhu profiles
 ^^^^^^^^^^^^^^
@@ -128,10 +121,12 @@ profile, using the parameters shown in the previous sections:
   plt.semilogy(t_tcea,  press/pc.bar, color='r', lw=2, label='tcea')
   plt.semilogy(t_madhu, press/pc.bar, color='g', lw=2, label='madhu')
   plt.ylim(100, 1e-5)
-  plt.xlim(1200, 1800)
-  plt.legend(loc="best")
-  plt.xlabel("Temperature  (K)")
-  plt.ylabel("Pressure  (bar)")
+  plt.xlim(800, 1200)
+  plt.legend(loc="best", fontsize=12)
+  plt.xlabel("Temperature  (K)", fontsize=12)
+  plt.ylabel("Pressure  (bar)", fontsize=12)
+  plt.tight_layout()
+
 
 And the results should look like this:
 

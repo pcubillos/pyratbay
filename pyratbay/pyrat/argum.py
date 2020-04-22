@@ -199,20 +199,6 @@ def check_spectrum(pyrat):
   if pyrat.ret.params is not None:
       pyrat.ret.nparams = len(pyrat.ret.params)
 
-  if atm.tmodelname == 'tcea':
-      if phy.rstar is None:
-          log.error('Undefined stellar radius (rstar), required for '
-                    'temperature model.')
-      if phy.tstar is None:
-          log.error('Undefined stellar temperature (tstar), required for '
-                    'temperature model.')
-      if phy.smaxis is None:
-          log.error('Undefined orbital semi-major axis (smaxis), required for '
-                    'temperature model.')
-      if phy.gplanet is None:
-          log.error('Undefined planetary surface gravity (gplanet), required '
-                    'for temperature model.')
-
   if pyrat.ncpu >= mp.cpu_count():
       log.warning('Number of requested CPUs ({:d}) is >= than the number '
                   'of available CPUs ({:d}).  Enforced ncpu to {:d}.'.
@@ -316,13 +302,14 @@ def setup(pyrat):
 
   # Temperature models and arguments:
   if atm.tmodelname == 'tcea':
-      ntemp = 5
-      targs  = [pyrat.atm.press, phy.rstar, phy.tstar, phy.tint,
-                    phy.gplanet, phy.smaxis]
+      ntemp = 6
+      targs  = [pyrat.atm.press]
       atm.tmodel = pa.tmodels.TCEA(*targs)
-      tpnames   = ['log(kappa)', 'log(gamma1)', 'log(gamma2)', 'alpha', 'beta']
-      ttexnames = [r'$\log_{10}(\kappa)$', r'$\log_{10}(\gamma_1)$',
-                   r'$\log_{10}(\gamma2)$', r'$\alpha$', r'$\beta$']
+      tpnames   = ["log(kappa')", 'log(gamma1)', 'log(gamma2)', 'alpha',
+                   'T_irr', 'T_int']
+      ttexnames = [r"$\log_{10}(\kappa')$", r'$\log_{10}(\gamma_1)$',
+                   r'$\log_{10}(\gamma2)$', r'$\alpha$',
+                   r'$T_{\rm irr} (K)$', r'$T_{\rm int} (K)$']
   elif atm.tmodelname == 'isothermal':
       ntemp = 1
       atm.tmodel = pa.tmodels.Isothermal(pyrat.atm.nlayers)

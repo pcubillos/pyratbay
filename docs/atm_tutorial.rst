@@ -66,35 +66,36 @@ previous sections):
 
     import pyratbay as pb
     import pyratbay.atmosphere as pa
+    import pyratbay.io as io
 
     # Generate a uniform and a thermochemical-equilibrium atmospheric model:
     pressure, temperature, abundances = pb.run("atmosphere_tea.cfg")
     pressure, temperature, abundances = pb.run("atmosphere_uniform.cfg")
 
     # Read the atmospheric files:
-    specs, press, temp, q_tea     = pa.readatm("WASP-00b.atm")
-    specs, press, temp, q_uniform = pa.readatm("WASP-00c.atm")
+    units, species, press, temp, q_tea, rad = io.read_atm("WASP-00b.atm")
+    units, species, press, temp, q_uniform, rad = io.read_atm("WASP-00c.atm")
 
     # Plot the results:
     plt.figure(12)
     plt.clf()
     ax = plt.subplot(211)
-    for q, spec in zip(q_tea.T, specs):
+    for q, spec in zip(q_tea.T, species):
         plt.loglog(q, press, label=spec, lw=2)
 
     plt.ylim(np.amax(press), np.amin(press))
-    plt.xlim(1e-10, 1.0)
-    plt.legend(loc='best', fontsize=11)
-    plt.ylabel("Pressure  (bar)")
+    plt.xlim(1e-9, 1.0)
+    plt.ylabel("Pressure (bar)", fontsize=11)
     ax = plt.subplot(212)
-    for q, spec in zip(q_uniform.T, specs):
+    for q, spec in zip(q_uniform.T, species):
         plt.loglog(q, press, label=spec, lw=2)
 
     plt.ylim(np.amax(press), np.amin(press))
-    plt.xlim(1e-10, 1.0)
-    plt.xlabel("Mole mixing fraction")
-    plt.ylabel("Pressure  (bar)")
-
+    plt.xlim(1e-9, 1.0)
+    plt.xlabel("Volume mixing fraction", fontsize=11)
+    plt.ylabel("Pressure (bar)", fontsize=11)
+    plt.legend(loc='best', fontsize=10)
+    plt.tight_layout()
 
 And the results should look like this:
 

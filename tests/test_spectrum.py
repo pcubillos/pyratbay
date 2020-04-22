@@ -22,8 +22,8 @@ keys = [
     'tmodel', 'vert', 'scale', 'fit1', 'fit2', 'fit3', 'fit4',
     'bandflux4', 'resolution', 'odd_even']
 expected = {
-    key:np.load(
-        f"expected/expected_spectrum_transmission_{key}_test.npz")['arr_0']
+    key:np.load(f"{ROOT}tests/expected/"
+                f"expected_spectrum_transmission_{key}_test.npz")['arr_0']
     for key in keys}
 #np.savez('expected/expected_spectrum_transmission_fit_test.npz', model1[0])
 
@@ -177,7 +177,7 @@ def test_transmission_tmodel_none(tmp_path):
     pyrat = pb.run(cfg)
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['all'], rtol=1e-7)
     # Now, re-run with user-input tpars:
-    pyrat.atm.tpars = np.array([-1.5, -0.8, -0.8,  0.5,  1.0])
+    pyrat.atm.tpars = np.array([-4.67, -0.8, -0.8, 0.5, 1486.0, 100.0])
     pyrat.run()
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['tmodel'],
         rtol=1e-7)
@@ -188,7 +188,7 @@ def test_transmission_tmodel(tmp_path):
     cfg = make_config(tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         remove=['clouds', 'cpars'],
-        reset={'tmodel':'tcea', 'tpars':'-1.5 -0.8 -0.8 0.5 1.0'})
+        reset={'tmodel':'tcea', 'tpars':'-4.67 -0.8 -0.8 0.5 1486.0 100.0'})
     pyrat = pb.run(cfg)
     tmodel2 = pyrat.spec.spectrum
     np.testing.assert_allclose(tmodel2, expected['tmodel'], rtol=1e-7)
@@ -237,7 +237,7 @@ def test_transmission_fit(tmp_path):
         reset={'tmodel':'tcea', 'cpars':'2.0',
                'molmodel':'vert', 'molfree':'H2O', 'bulk':'H2 He',
                'retflag':'temp mol ray cloud',
-               'params':'-1.5 -0.8 -0.8 0.5 1.0 -4.0 0.0 -4.0 2.0'})
+               'params':'-4.67 -0.8 -0.8 0.5 1486.0 100.0 -4.0 0.0 -4.0 2.0'})
     pyrat = pb.run(cfg)
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['all'], rtol=1e-7)
     # Eval default params:
@@ -246,7 +246,7 @@ def test_transmission_fit(tmp_path):
     np.testing.assert_equal(model1[0], pyrat.spec.spectrum)
     assert model1[1] is None
     # Cloud deck:
-    params = [-1.5, -0.8, -0.8,  0.5,  1.0, -4.0,  0.0, -4.0,  -3.0]
+    params = [-4.67, -0.8, -0.8, 0.5, 1486.0, 100.0, -4.0, 0.0, -4.0, -3.0]
     model2 = pyrat.eval(params, retmodel=True)
     rmin = np.amin(np.sqrt(pyrat.spec.spectrum)) * pyrat.phy.rstar
     rexpected = pyrat.cloud.models[0].rsurf
@@ -255,7 +255,7 @@ def test_transmission_fit(tmp_path):
     # Check pyrat.ret.params has been updated:
     np.testing.assert_equal(pyrat.ret.params, params)
     # Depleted H2O:
-    params = [-1.5, -0.8, -0.8,  0.5,  1.0, -8.0,  0.0, -4.0,  2.0]
+    params = [-4.67, -0.8, -0.8, 0.5, 1486.0, 100.0, -8.0, 0.0, -4.0, 2.0]
     model3 = pyrat.eval(params, retmodel=True)
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['fit3'], rtol=1e-7)
 

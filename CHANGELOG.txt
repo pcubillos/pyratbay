@@ -6214,3 +6214,22 @@ PEP8ed _blackbody.c.
 Renamed Bwn() and Bwn2D() functions to blackbody_wn() and
 blackbody_wn_2D(), respectively.
 
+
+*****  Wed Apr 22 11:50:40 CEST 2020  *****
+
+Refactored the Three-channel Eddington model for temperature profiles
+in the tcea() function in _pt.c.
+Replaced beta with T_irr, moved T_int into the params array, and made
+gravity an optional argument.  This removes the dependency on the
+extra physical parameters (Rstar, Tstar, semi-major axis, and g).
+This greatly simplifies everything.
+Propagated modifications into the atmosphere.tmodels.TCEA() class,
+atmosphere.temperature() function.
+Removed no-longer-needed checks in check_temp() function of driver.py
+and check_spectrum() and setup() functions of argum.py.
+Updated model names in setup().
+Updated tests and examples configuration files accordingly.
+Updated docs.
+PEP8ed things on the way.
+
+

@@ -82,8 +82,7 @@ def run(cfile, init=False, no_logfile=False):
               'barye', log)
           check_temp(pyrat)
           temperature = pa.temperature(atm.tmodelname, pressure,
-               phy.rstar, phy.tstar, phy.tint, phy.gplanet, phy.smaxis,
-               atm.runits, atm.nlayers, log, atm.tpars)
+               atm.nlayers, log, atm.tpars)
 
   # Return temperature-pressure if requested:
   if pyrat.runmode == 'pt':
@@ -212,34 +211,30 @@ def check_pressure(pyrat):
 
 
 def check_temp(pyrat):
-  """
-  Check the input arguments to calculate the temperature profile.
-  """
-  log = pyrat.log
-  atm = pyrat.atm
-  if atm.tmodelname is None:
-      log.error("Undefined temperature model (tmodel).")
-  if atm.tpars is None:
-      log.error("Undefined temperature-model parameters (tpars).")
+    """
+    Check the input arguments to calculate the temperature profile.
+    """
+    log = pyrat.log
+    atm = pyrat.atm
+    if atm.tmodelname is None:
+        log.error("Undefined temperature model (tmodel).")
+    if atm.tpars is None:
+        log.error("Undefined temperature-model parameters (tpars).")
 
-  if atm.tmodelname == 'isothermal':
-      if len(atm.tpars) != 1:
-          log.error("Wrong number of parameters ({:d}) for the isothermal "
-                    "temperature model (1).".format(len(atm.tpars)))
+    if atm.tmodelname == 'isothermal':
+        if len(atm.tpars) != 1:
+            log.error(f"Wrong number of parameters ({len(atm.tpars)}) for "
+                "the isothermal temperature model (1).")
 
-  elif atm.tmodelname == 'tcea':
-      if len(atm.tpars) != 5:
-          log.error("Wrong number of parameters ({:d}) for the tcea "
-                    "temperature model (5).".format(len(atm.tpars)))
-      if pyrat.phy.rstar is None:
-          log.error("Undefined stellar radius (rstar).")
-      if pyrat.phy.tstar is None:
-          log.error("Undefined stellar temperature (tstar).")
-      if pyrat.phy.smaxis is None:
-          log.error("Undefined orbital semi-major axis (smaxis).")
-      if pyrat.phy.gplanet is None:
-          log.error("Undefined planetary surface gravity, set either "
-                    "gplanet or mplanet and rplanet.")
+    elif atm.tmodelname == 'tcea':
+        if len(atm.tpars) != 6:
+            log.error(f"Wrong number of parameters ({len(atm.tpars)}) for "
+                "the tcea temperature model (6).")
+
+    elif atm.tmodelname == 'madhu':
+        if len(atm.tpars) != 6:
+            log.error(f"Wrong number of parameters ({len(atm.tpars)}) for "
+                "the madhu temperature model (6).")
 
 
 def check_atm(pyrat):

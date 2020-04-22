@@ -7,10 +7,32 @@ import scipy.integrate as si
 
 from pyratbay.constants import ROOT
 sys.path.append(ROOT + 'pyratbay/lib')
+import _pt as pt
 import _simpson as s
-import trapz   as t
-import cutils  as cu
+import trapz as t
+import cutils as cu
 import _indices
+
+
+tcea_temp = np.array([
+    1247.34007597, 1247.25420737, 1247.05317072, 1246.58981369,
+    1245.54307503, 1243.2402402 , 1238.35469967, 1228.5250307 ,
+    1210.37410313, 1181.94657437, 1152.76433729, 1158.74965957,
+    1231.41559729, 1343.09186968, 1431.70753501, 1456.94915967,
+    1458.09017515, 1458.86603858, 1460.90529873, 1466.24155921])
+
+@pytest.mark.parametrize('g', [2200.0, None])
+def test_src_tcea(g):
+    nlayers = 20
+    press = np.logspace(-6, 2, nlayers) * 1e6
+    grav = np.tile(2200.0, nlayers)
+    params = np.array([-1.5, -0.8, 0.4, 0.5, 1200.0, 100.0])
+    if g is not None:
+        temp = pt.tcea(params, press, grav)
+    else:
+        params[0] -= np.log10(2200.0)
+        temp = pt.tcea(params, press)
+    np.testing.assert_allclose(temp, tcea_temp)
 
 
 @pytest.mark.parametrize('odd', [0,1])

@@ -15,7 +15,7 @@ xi(double gamma, double tau){
 }
 
 
-PyDoc_STRVAR(TCEA__doc__,
+PyDoc_STRVAR(tcea__doc__,
 "Generate a temperature profile based on the three-channel Eddington \n\
 approximation model (Parmentier and Gillot 2014, AA 562), following  \n\
 the parameterization of Line et al. (2013, ApJ 775).                 \n\
@@ -27,78 +27,55 @@ params: 1D float ndarray                                             \n\
    log10(kappa):  Planck thermal IR opacity in units cm^2/gr         \n\
    log10(gamma1): Visible-to-thermal stream Planck mean opacity ratio\n\
    log10(gamma2): Visible-to-thermal stream Planck mean opacity ratio\n\
-   alpha:         Visible-stream partition (0.0--1.0)                \n\
-   beta:          'catch-all' for albedo, emissivity, and day-night  \n\
-                  redistribution (on the order of unity)             \n\
+   alpha: Weight partition between visible-streams (0.0--1.0)        \n\
+   t_irr: Stellar irradiation temperature (Kelvin degree)            \n\
+          A good guess is the planet's equilibrium temperature.      \n\
+   t_int: Planetary internal heat flux (in Kelvin degrees)           \n\
                                                                      \n\
 pressure: 1D float ndarray                                           \n\
-    Array of pressure values (in barye).                             \n\
-R_star: Float                                                        \n\
-    Stellar radius (in cm).                                          \n\
-T_star: Float                                                        \n\
-    Stellar effective temperature (in Kelvin degrees).               \n\
-T_int: Float                                                         \n\
-    Planetary internal heat flux (in Kelvin degrees).                \n\
-sma: Float                                                           \n\
-    Semi-major axis (in cm).                                         \n\
-grav: Float                                                          \n\
-    Planetary surface gravity (in cm s-2).                           \n\
+    Atmospheric pressure array (barye).                              \n\
+grav: 1D flaot ndarray (optional)                                    \n\
+    Atmospheric gravity at each pressure layer (cm s-2).             \n\
                                                             \n\
 Returns                                                     \n\
 -------                                                     \n\
-T: temperature array                                        \n\
+temperature: 1D float ndarray                               \n\
+    Temperature at each pressure layer (Kelvin degree).     \n\
                                                             \n\
 Example                                                     \n\
 -------                                                     \n\
->>> import pt as pt                                         \n\
->>> import scipy.constants as sc                            \n\
+>>> import _pt as pt                                        \n\
 >>> import matplotlib.pyplot as plt                         \n\
 >>> import numpy as np                                      \n\
                                                             \n\
->>> Rsun = 6.995e8 # Sun radius in meters                   \n\
-                                                            \n\
->>> # Pressure array (barye):                               \n\
->>> press = np.logspace(2, -5, 100) *1e6                    \n\
-                                                            \n\
->>> # Physical (fixed for each planet) parameters:          \n\
->>> Ts = 5040.0  # K                                        \n\
->>> Ti =  100.0  # K                                        \n\
->>> a  = 100.0 * 0.031 * sc.au # cm                         \n\
->>> Rs = 100.0 * 0.756 * Rsun  # cm                         \n\
->>> g  = 2192.8                # cm s-2                     \n\
+>>> # Pressure (barye) and gravity (cm s-2) arrays:         \n\
+>>> nlayers = 20                                            \n\
+>>> press = np.logspace(-8, 2, nlayers) * 1e6               \n\
+>>> grav = np.tile(2200.0, nlayers)                         \n\
                                                             \n\
 >>> # Fitting parameters:                                   \n\
->>> kappa  = -1.5   # log10(3e-2)                           \n\
->>> gamma1 = -0.8   # log10(0.158)                          \n\
->>> gamma2 = -0.8   # log10(0.158)                          \n\
+>>> kappa  = -1.5                                           \n\
+>>> gamma1 = -0.8                                           \n\
+>>> gamma2 = -0.8                                           \n\
 >>> alpha  = 0.5                                            \n\
->>> beta   = 1.0                                            \n\
->>> params = np.array([kappa, gamma1, gamma2, alpha, beta]) \n\
->>> T0 = pt.TCEA(params, press, Rs, Ts, Ti, a, g)           \n\
-                                                            \n\
->>> plt.figure(1)                                           \n\
->>> plt.clf()                                               \n\
->>> plt.semilogy(T0, p, lw=2, color='b')                    \n\
->>> plt.ylim(press[0], press[-1])                           \n\
->>> plt.xlim(1000, 1700)                                    \n\
->>> plt.xlabel('Temperature  (K)')                          \n\
->>> plt.ylabel('Pressure  (bars)')                          \n\
-                                                            \n\
-Developers                                                  \n\
-----------                                                  \n\
-Madison Stemm      astromaddie@gmail.com                    \n\
-Patricio Cubillos  pcubillos@fulbrightmail.org");
+>>> t_irr = 1200.0                                          \n\
+>>> t_int =  100.0                                          \n\
+>>> params = np.array([kappa, gamma1, gamma2, alpha, t_irr, t_int])\n\
+>>> temp = pt.tcea(params, press, grav)                     \n\
+>>> print(temp)                                             \n\
+[1046.89057361 1046.8906572  1046.89094586 1046.89194204 1046.89537746\n\
+ 1046.9072167  1046.94798848 1047.08827618 1047.57026844 1049.22033981\n\
+ 1054.80921126 1073.11749958 1127.5360275  1256.04683354 1458.34379995\n\
+ 1623.82740006 1659.07947584 1659.7176149  1660.94856336 1665.06440703]");
 
-static PyObject *TCEA(PyObject *self, PyObject *args){
-    PyArrayObject *freepars, *pressure, *temperature;
-    double Rstar, Tstar, Tint, sma, grav,
-        kappa, gamma1, gamma2, alpha, beta, tau, Tirr, xi1, xi2;
+static PyObject *tcea(PyObject *self, PyObject *args){
+    PyArrayObject *freepars, *pressure, *temperature, *gravity=NULL;
+    double kappa, gamma1, gamma2, alpha, t_irr, t_int, tau, xi1, xi2, g;
     int i, nlayers;
     npy_intp size[1];
 
     /* Load inputs: */
-    if (!PyArg_ParseTuple(args, "OOddddd",
-            &freepars, &pressure, &Rstar, &Tstar, &Tint, &sma, &grav))
+    if (!PyArg_ParseTuple(args, "OO|O", &freepars, &pressure, &gravity))
         return NULL;
 
     /* Get array size: */
@@ -112,21 +89,23 @@ static PyObject *TCEA(PyObject *self, PyObject *args){
     gamma1 = pow(10.0, INDd(freepars, 1));
     gamma2 = pow(10.0, INDd(freepars, 2));
     alpha  = INDd(freepars, 3);
-    beta   = INDd(freepars, 4);
-
-    /* Stellar input temperature (at top of atmosphere): */
-    Tirr = beta * sqrt(Rstar / (2.0*sma)) * Tstar;
+    t_irr  = INDd(freepars, 4);
+    t_int  = INDd(freepars, 5);
 
     /* Gray IR optical depth: */
     for (i=0; i<nlayers; i++){
-        tau = kappa * INDd(pressure,i) / grav;
+        if (!gravity)
+            g = 1.0;
+        else
+            g = INDd(gravity,i);
+        tau = kappa * INDd(pressure,i) / g;
         xi1 = xi(gamma1, tau);
         xi2 = xi(gamma2, tau);
 
         INDd(temperature,i) = pow(
-            0.75 * (pow(Tint,4) * (2.0/3.0 + tau) +
-                    pow(Tirr,4) * (1-alpha) * xi1 +
-                    pow(Tirr,4) *    alpha  * xi2 ), 0.25);
+            0.75 * (pow(t_int,4) * (2.0/3.0 + tau) +
+                    pow(t_irr,4) * (1-alpha) * xi1 +
+                    pow(t_irr,4) *    alpha  * xi2 ), 0.25);
     }
 
     return Py_BuildValue("N", temperature);
@@ -173,7 +152,7 @@ PyDoc_STRVAR(pt__doc__,
 
 /* A list of all the methods defined by this module. */
 static PyMethodDef pt_methods[] = {
-    {"TCEA",       TCEA,       METH_VARARGS, TCEA__doc__},
+    {"tcea",       tcea,       METH_VARARGS, tcea__doc__},
     {"isothermal", isothermal, METH_VARARGS, isothermal__doc__},
     {NULL,         NULL,       0,            NULL}
 };

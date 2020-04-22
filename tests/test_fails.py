@@ -195,9 +195,18 @@ def test_invalid_file_path(tmp_path, capfd, param, invalid_path):
     # params from 'test_file_not_found' do not raise folder error since
     # they catch file not found first.
 
+
+def test_missing_mass_units(tmp_path, capfd):
+    cfg = make_config(tmp_path, ROOT+'tests/configs/pt_tcea.cfg',
+        reset={'mplanet':'1.0'})
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Invalid units 'None' for parameter mplanet." in captured.out
+
+
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 # Parameter boundaries:
-
 @pytest.mark.parametrize('param, value',
     [('wllow',   ' -1.0 um'),
      ('wlhigh',  ' -1.0 um'),
@@ -280,14 +289,6 @@ def test_lower_equal(tmp_path, capfd, param):
     assert "({:s}) must be <= ".format(param) in captured.out
 
 
-def test_tcea_missing_mass_units(tmp_path, capfd):
-    cfg = make_config(tmp_path, ROOT+'tests/configs/pt_tcea.cfg',
-        reset={'mplanet':'1.0'})
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert "Invalid units 'None' for parameter mplanet." in captured.out
-
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 # pt runmode fails:
 @pytest.mark.parametrize('param', ['nlayers', 'ptop', 'pbottom'])
@@ -342,7 +343,7 @@ def test_pt_temperature_missing(tmp_path, capfd, param, undefined):
 
 @pytest.mark.parametrize('cfile, error',
     [('pt_isothermal.cfg', 'isothermal temperature model (1).'),
-     ('pt_tcea.cfg',       'tcea temperature model (5).')])
+     ('pt_tcea.cfg',       'tcea temperature model (6).')])
 def test_pt_tpars_mismatch(tmp_path, capfd, cfile, error):
     cfg = make_config(tmp_path, f'{ROOT}tests/configs/{cfile}',
         reset={'tpars':'100.0 200.0'})
@@ -354,18 +355,6 @@ def test_pt_tpars_mismatch(tmp_path, capfd, cfile, error):
     for cap in caps:
         assert cap in captured.out
 
-
-@pytest.mark.parametrize('param',
-    ['rstar', 'tstar', 'smaxis', 'mplanet', 'rplanet',])
-def test_tcea_missing(tmp_path, capfd, param, undefined):
-    cfg = make_config(tmp_path, ROOT+'tests/configs/pt_tcea.cfg',
-        remove=[param])
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert "Error in module: 'driver.py', function: 'check_temp'" \
-           in captured.out
-    assert undefined[param] in captured.out
 
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 # atmosphere runmode fails:
@@ -645,32 +634,16 @@ def test_spectrum_filters_mismatch(tmp_path, capfd):
            'data points (2).' in captured.out
 
 
-@pytest.mark.parametrize('param', ['rstar', 'tstar', 'smaxis'])
-def test_spectrum_tcea_parameters(tmp_path, capfd, param, undefined):
+@pytest.mark.skip
+def test_spectrum_eval_params_misfit(tmp_path):
+    # Without evaulating params:
     cfg = make_config(tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        remove=[param],
-        reset={'path':'eclipse', 'tmodel':'tcea'})
+        reset={'tmodel':'tcea', 'cpars':'2.0',
+               'molmodel':'vert', 'molfree':'H2O', 'bulk':'H2 He',
+               'retflag':'temp mol ray cloud',
+               'params':'-4.67 -0.8 -0.8 0.5 1486.0 100.0 -4.0 0.0 -4.0 2.0'})
     pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert "Error in module: 'argum.py', function: 'check_spectrum'" \
-           in captured.out
-    assert undefined[param] in captured.out
-
-
-@pytest.mark.parametrize('param', ['rplanet', 'mplanet'])
-def test_spectrum_tcea_gplanet(tmp_path, capfd, param, undefined):
-    cfg = make_config(tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        remove=[param, 'gplanet', 'radmodel'],
-        reset={'path':'eclipse', 'tmodel':'tcea'})
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert "Error in module: 'argum.py', function: 'check_spectrum'" \
-           in captured.out
-    assert undefined['gplanet'] in captured.out
 
 
 def test_bulk_not_in_atm(tmp_path, capfd):
