@@ -634,16 +634,19 @@ def test_spectrum_filters_mismatch(tmp_path, capfd):
            'data points (2).' in captured.out
 
 
-@pytest.mark.skip
-def test_spectrum_eval_params_misfit(tmp_path):
+def test_spectrum_params_misfit(tmp_path, capfd):
     # Without evaulating params:
     cfg = make_config(tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        reset={'tmodel':'tcea', 'cpars':'2.0',
-               'molmodel':'vert', 'molfree':'H2O', 'bulk':'H2 He',
-               'retflag':'temp mol ray cloud',
-               'params':'-4.67 -0.8 -0.8 0.5 1486.0 100.0 -4.0 0.0 -4.0 2.0'})
+        reset={'tmodel':'tcea',
+               'retflag':'temp',
+               'params':'-4.67 -0.8 -0.8 0.5 1486.0 100.0 -4.0'})
     pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Error in module: 'argum.py', function: 'setup'" in captured.out
+    assert "The input number of fitting parameters (params, 7) does not " \
+           "match\n    the number of required parameters (6)." in captured.out
 
 
 def test_bulk_not_in_atm(tmp_path, capfd):

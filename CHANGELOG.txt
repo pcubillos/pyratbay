@@ -6242,3 +6242,9 @@ Modified atmosphere.temperature() function to return only the model
 when the user does not specify the model parameters.  Renamed tparams
 argument to params.
 
+*****
+
+Raise error for mismatch in the number of fitting parameters even
+if it's not an mcmc run.
+Added test.
+

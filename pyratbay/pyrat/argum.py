@@ -350,8 +350,8 @@ def setup(pyrat):
       nparams += ntemp
   if 'rad' in ret.retflag:
       ret.irad   = np.arange(nparams, nparams + 1)  # nrad is always 1
-      ret.pnames   += ['Rp ({:s})'.format(atm.runits)]
-      ret.texnames += [r'$R_{{\rm planet}}$ ({:s})'.format(utex[atm.runits])]
+      ret.pnames   += [f'Rp ({atm.runits})']
+      ret.texnames += [fr'$R_{{\rm planet}}$ ({utex[atm.runits]})']
       nparams += 1
   if 'mol' in ret.retflag:
       ret.imol = np.arange(nparams, nparams + nabund)
@@ -375,15 +375,15 @@ def setup(pyrat):
       nparams += 1
   if 'mass' in ret.retflag:
       ret.imass = np.arange(nparams, nparams + 1)  # nmass is always 1
-      ret.pnames   += ['Mp ({:s})'.format(phy.mpunits)]
-      ret.texnames += [r'$M_{{\rm planet}}$ ({:s})'.format(utex[phy.mpunits])]
+      ret.pnames   += [f'Mp ({phy.mpunits})']
+      ret.texnames += [fr'$M_{{\rm planet}}$ ({utex[phy.mpunits]})']
       nparams += 1
 
+  if ret.nparams != nparams:
+      log.error(
+          f'The input number of fitting parameters (params, {len(ret.params)}) '
+          f'does not match\nthe number of required parameters ({nparams}).')
   if pyrat.runmode == 'mcmc':
-      if ret.nparams != nparams:
-          log.error('The input number of fitting parameters ({:d}) does not '
-                    'match the number of required parameters ({:d}).'.
-                    format(ret.nparams, nparams))
       if ret.pstep is None:
           log.error('Missing pstep argument, required for MCMC runs.')
 
