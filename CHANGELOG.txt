@@ -6261,3 +6261,10 @@ Moved pa.tea_to_pyrat() to io.import_tea().
 
 Moved pa.read_atomic() to io.read_atomic().
 
+
+*****  Thu Apr 23 10:35:25 CEST 2020  *****
+
+Automated check for correct number of temperature parameters. Moved
+from check_temp() to pa.temperature() (it needs to know the tmodel).
+Updated tests and added case for madhu TP model.
+

@@ -149,6 +149,10 @@ def temperature(tmodel, pressure=None, nlayers=None, log=None, params=None):
     if params is None:
         return temp_model
     else:
+        if np.size(params) != temp_model.npars:
+            log.error(
+                f"Wrong number of parameters ({np.size(params)}) for the "
+                f"{temp_model.name} temperature model ({temp_model.npars}).")
         temperature = temp_model(params)
         log.head(f'\nComputed {tmodel} temperature model.')
         return temperature

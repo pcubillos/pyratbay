@@ -341,19 +341,20 @@ def test_pt_temperature_missing(tmp_path, capfd, param, undefined):
     assert undefined[param] in captured.out
 
 
-@pytest.mark.parametrize('cfile, error',
-    [('pt_isothermal.cfg', 'isothermal temperature model (1).'),
-     ('pt_tcea.cfg',       'tcea temperature model (6).')])
-def test_pt_tpars_mismatch(tmp_path, capfd, cfile, error):
-    cfg = make_config(tmp_path, f'{ROOT}tests/configs/{cfile}',
+@pytest.mark.parametrize('tmodel, npars',
+    [('isothermal', 1),
+     ('tcea', 6),
+     ('madhu', 6)])
+def test_pt_tpars_mismatch(tmp_path, capfd, tmodel, npars):
+    cfg = make_config(tmp_path, f'{ROOT}tests/configs/pt_{tmodel}.cfg',
         reset={'tpars':'100.0 200.0'})
     pyrat = pb.run(cfg)
     assert pyrat is None
     captured = capfd.readouterr()
-    caps = ["Error in module: 'driver.py', function: 'check_temp'",
-            "Wrong number of parameters (2) for the {:s}".format(error)]
-    for cap in caps:
-        assert cap in captured.out
+    assert "Error in module: 'atmosphere.py', function: 'temperature'" \
+           in captured.out
+    assert f"Wrong number of parameters (2) for the {tmodel} temperature " \
+           f"model ({npars})" in captured.out
 
 
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

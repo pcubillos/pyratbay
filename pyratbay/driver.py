@@ -73,8 +73,7 @@ def run(cfile, init=False, no_logfile=False):
   # Compute pressure-temperature profile:
   if pyrat.runmode in ['pt', 'atmosphere'] or pt.isfile(atm.atmfile) != 1:
       if pt.isfile(atm.ptfile) == 1:
-          log.msg("\nReading pressure-temperature file: '{:s}'.".
-                  format(atm.ptfile))
+          log.msg(f"\nReading pressure-temperature file: '{atm.ptfile}'.")
           pressure, temperature = io.read_pt(atm.ptfile)
       else:
           check_pressure(pyrat)
@@ -220,21 +219,6 @@ def check_temp(pyrat):
         log.error("Undefined temperature model (tmodel).")
     if atm.tpars is None:
         log.error("Undefined temperature-model parameters (tpars).")
-
-    if atm.tmodelname == 'isothermal':
-        if len(atm.tpars) != 1:
-            log.error(f"Wrong number of parameters ({len(atm.tpars)}) for "
-                "the isothermal temperature model (1).")
-
-    elif atm.tmodelname == 'tcea':
-        if len(atm.tpars) != 6:
-            log.error(f"Wrong number of parameters ({len(atm.tpars)}) for "
-                "the tcea temperature model (6).")
-
-    elif atm.tmodelname == 'madhu':
-        if len(atm.tpars) != 6:
-            log.error(f"Wrong number of parameters ({len(atm.tpars)}) for "
-                "the madhu temperature model (6).")
 
 
 def check_atm(pyrat):
