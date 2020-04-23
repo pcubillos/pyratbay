@@ -29,7 +29,7 @@ from . import atmosphere
 from .pyrat import Pyrat
 from .driver import run
 
-from .pyrat import readatm  as _ra
+from .pyrat import read_atm as _ra
 from .pyrat import crosssec as _cs
 from .pyrat import clouds   as _cl
 from .pyrat import rayleigh as _ray

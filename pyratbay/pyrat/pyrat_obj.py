@@ -18,7 +18,7 @@ from .  import crosssec   as cs
 from .  import rayleigh   as ray
 from .  import clouds     as cl
 from .  import alkali     as al
-from .  import readatm    as ra
+from .  import read_atm   as ra
 from .  import optdepth   as od
 from .  import spectrum   as sp
 from .  import objects    as ob
@@ -140,7 +140,7 @@ class Pyrat(object):
       timer = pt.Timer()
 
       # Re-calculate atmospheric properties if required:
-      status = ra.reloadatm(self, temp, abund, radius)
+      status = ra.update_atm(self, temp, abund, radius)
       if status == 0:
           return
       # Interpolate CIA absorption:

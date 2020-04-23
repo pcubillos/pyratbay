@@ -6273,3 +6273,8 @@ Updated tests and added case for madhu TP model.
 Implemented pa.tmodel.check_params() decorator to ensure temp calls
 have the right number of parameters.  Decorated the models' methods.
 
+*****
+
+PEP8ed readatm.py file, renamed file to read_atm.py
+Renamed reloadatm() to update_atm().
+
