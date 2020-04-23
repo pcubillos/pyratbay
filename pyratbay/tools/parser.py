@@ -65,11 +65,13 @@ class Namespace(argparse.Namespace):
 
         for val in values:
             if exists and not os.path.isfile(val):
-                self._log.error("{} file ({}) does not exist: '{}'".
-                                format(desc, pname, val), tracklev=-3)
+                self._log.error(
+                    f"{desc} file ({pname}) does not exist: '{val}'",
+                    tracklev=-3)
             if not os.path.exists(os.path.dirname(val)):
-                self._log.error("Folder for {} file ({}) does not exist: '{}'".
-                                format(desc, pname, val), tracklev=-3)
+                self._log.error(
+                    f"Folder for {desc} file ({pname}) does not exist: '{val}'",
+                    tracklev=-3)
 
         if not is_list:
             return values[0]
@@ -89,8 +91,8 @@ class Namespace(argparse.Namespace):
 
         for value in values:
             if value not in choices:
-                self._log.error("Invalid {:s} ({:s}): {}. Select from: {:s}.".
-                    format(desc, pname, value, str(choices)), tracklev=-3)
+                self._log.error(f"Invalid {desc} ({pname}): {value}. "
+                    f"Select from: {choices}.", tracklev=-3)
         if not is_list:
             return values[0]
         return values
@@ -122,25 +124,20 @@ class Namespace(argparse.Namespace):
         value = getattr(self, pname)
         if value is None and default is not None:
             if wflag:
-                self._log.warning('{} ({}) defaulted to: {}'.
-                                  format(desc, pname, default))
+                self._log.warning(f'{desc} ({pname}) defaulted to: {default}')
             value = default
 
         if value is None:
             return None
 
         if gt is not None and value <= gt:
-            self._log.error('{} ({}) must be > {}'.format(desc, pname, gt),
-                            tracklev=-3)
+            self._log.error(f'{desc} ({pname}) must be > {gt}', tracklev=-3)
         if ge is not None and value < ge:
-            self._log.error('{} ({}) must be >= {}'.format(desc, pname, ge),
-                            tracklev=-3)
+            self._log.error(f'{desc} ({pname}) must be >= {ge}', tracklev=-3)
         if lt is not None and lt <= value:
-            self._log.error('{} ({}) must be < {}'.format(desc, pname, lt),
-                            tracklev=-3)
+            self._log.error(f'{desc} ({pname}) must be < {lt}', tracklev=-3)
         if le is not None and le < value:
-            self._log.error('{} ({}) must be <= {}'.format(desc, pname, le),
-                            tracklev=-3)
+            self._log.error(f'{desc} ({pname}) must be <= {le}', tracklev=-3)
         return value
 
     def get_units(self, pname):
@@ -210,12 +207,12 @@ def parse_int(args, param):
     >>> import pyratbay.tools as pt
     >>> inputs = ['10', '-10', '+10', '10.0', '1e1',
     >>>           '10.5', 'None', 'True', 'inf', '10 20']
-    >>> args = {'par{}'.format(i):val for i,val in enumerate(inputs)}
+    >>> args = {f'par{i}':val for i,val in enumerate(inputs)}
     >>> for i,var in enumerate(inputs):
     >>>     try:
-    >>>         par = 'par{}'.format(i)
+    >>>         par = f'par{i}'
     >>>         pt.parse_int(args, par)
-    >>>         print("{:s}: '{:s}' -> {}".format(par, var, args[par]))
+    >>>         print(f"{par}: '{var}' -> {args[par]}")
     >>>     except ValueError as e:
     >>>         print(e)
     par0: '10' -> 10
@@ -236,11 +233,13 @@ def parse_int(args, param):
     try:
         val = np.double(args[param])
     except:
-        raise ValueError("Invalid data type for {}, could not convert string "
-                         "to integer: '{:s}'".format(param, args[param]))
+        raise ValueError(
+            f"Invalid data type for {param}, could not convert string "
+            f"to integer: '{args[param]}'")
     if not np.isfinite(val) or int(val) != val:
-        raise ValueError("Invalid data type for {}, could not convert string "
-                         "to integer: '{:s}'".format(param, args[param]))
+        raise ValueError(
+            f"Invalid data type for {param}, could not convert string "
+            f"to integer: '{args[param]}'")
     args[param] = int(val)
 
 
@@ -263,12 +262,12 @@ def parse_float(args, param):
     >>> import pyratbay.tools as pt
     >>> inputs = ['10', '-10', '+10', '10.5', '1e1', 'inf', 'nan',
     >>>           'None', 'True', '10 20']
-    >>> args = {'par{}'.format(i):val for i,val in enumerate(inputs)}
+    >>> args = {f'par{i}':val for i,val in enumerate(inputs)}
     >>> for i,var in enumerate(inputs):
     >>>     try:
-    >>>         par = 'par{}'.format(i)
+    >>>         par = f'par{i}'
     >>>         pt.parse_float(args, par)
-    >>>         print("{:s}: '{:s}' -> {}".format(par, var, args[par]))
+    >>>         print(f"{par}: '{var}' -> {args[par]}")
     >>>     except ValueError as e:
     >>>         print(e)
     par0: '10' -> 10.0
@@ -289,8 +288,9 @@ def parse_float(args, param):
     try:
         val = np.double(args[param])
     except:
-        raise ValueError("Invalid data type for {}, could not convert string "
-                         "to float: '{:s}'".format(param, args[param]))
+        raise ValueError(
+            f"Invalid data type for {param}, could not convert string "
+            f"to float: '{args[param]}'")
     args[param] = val
 
 
@@ -313,11 +313,11 @@ def parse_array(args, param):
     --------
     >>> import pyratbay.tools as pt
     >>> inputs = ['10 20', '10.0 20.0', 'a b', 'a\n b']
-    >>> args = {'par{}'.format(i):val for i,val in enumerate(inputs)}
+    >>> args = {f'par{i}':val for i,val in enumerate(inputs)}
     >>> for i,var in enumerate(inputs):
-    >>>     par = 'par{}'.format(i)
+    >>>     par = f'par{i}'
     >>>     pt.parse_array(args, par)
-    >>>     print("{:s}: {:s} -> {}".format(par, repr(var), repr(args[par])))
+    >>>     print(f"{par}: {repr(var)} -> {repr(args[par])}")
     par0: '10 20' -> array([10., 20.])
     par1: '10.0 20.0' -> array([10., 20.])
     par2: 'a b' -> ['a', 'b']
@@ -356,8 +356,8 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
       config.optionxform = str  # Enable case-sensitive variable names
       config.read([cfile])
       if "pyrat" not in config.sections():
-          raise ValueError("\nInvalid configuration file: '{:s}', no [pyrat] "
-                           "section.".format(cfile))
+          raise ValueError(
+              f"\nInvalid configuration file: '{cfile}', no [pyrat] section.")
   args = dict(config.items("pyrat"))
 
   # Parse data type:
@@ -526,15 +526,16 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
   args._log = log
 
   # Welcome message:
-  log.head("{:s}\n"
+  log.head(
+     f"{log.sep}\n"
       "  Python Radiative Transfer in a Bayesian framework (Pyrat Bay).\n"
-      "  Version {}.\n"
-      "  Copyright (c) 2016-{:d} Patricio Cubillos and collaborators.\n"
-      "  Pyrat Bay is (temporarily) proprietaty software (see LICENSE).\n"
-      "{:s}\n\n".format(log.sep, __version__, date.today().year, log.sep))
+     f"  Version {__version__}.\n"
+     f"  Copyright (c) 2016-{date.today().year} Patricio Cubillos.\n"
+      "  Pyrat Bay is open-source software under the GNU GPLv2 lincense "
+        "(see LICENSE).\n"
+     f"{log.sep}\n\n")
 
-  log.head("Read command-line arguments from configuration file: '{:s}'".
-           format(cfile))
+  log.head(f"Read command-line arguments from configuration file: '{cfile}'")
 
   # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
   # Parse valid inputs and defaults:
@@ -706,7 +707,7 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
   pyrat.obs.units = args.get_default('dunits', 'Data units', 'none',
        wflag=args.data is not None)
   if not hasattr(pc, pyrat.obs.units):
-      log.error('Invalid data units (dunits): {}'.format(pyrat.obs.units))
+      log.error(f'Invalid data units (dunits): {pyrat.obs.units}')
   pyrat.obs.data   = args.get_param('data',   pyrat.obs.units, 'Data')
   pyrat.obs.uncert = args.get_param('uncert', pyrat.obs.units, 'Uncertainties')
   pyrat.obs.filters = args.get_path('filters', 'Filter pass-bands', exists=True)

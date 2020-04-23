@@ -813,7 +813,7 @@ def test_molecule_not_in_molfile(tmp_path, capfd):
     pyrat = pb.run(cfg)
     assert pyrat is None
     captured = capfd.readouterr()
-    assert "Error in module: 'readatm.py', function: 'get_constants'" \
+    assert "Error in module: 'read_atm.py', function: 'get_constants'" \
            in captured.out
     assert "These species: ['X'] are not listed in the molecules info file" \
            in captured.out
