@@ -9,6 +9,8 @@ __all__ = [
     ]
 
 import sys
+import functools
+
 import numpy as np
 from numpy.core.numeric import isscalar
 from scipy.ndimage import gaussian_filter1d
@@ -18,6 +20,21 @@ from ... import constants as pc
 
 sys.path.append(pc.ROOT + 'pyratbay/lib/')
 import _pt
+
+
+def check_params(func):
+    """Decorator to check that the number of model parameters is correct."""
+    @functools.wraps(func)
+    def new_func(*args, **kwargs):
+        self = args[0]
+        params = kwargs['params'] if 'params' in kwargs else args[1]
+        if np.size(params) != self.npars:
+            raise ValueError(
+                f'Number of temperature parameters ({np.size(params)}) does '
+                f'not match the required number of parameters ({self.npars}) '
+                f'of the {self.name} model')
+        return func(*args, **kwargs)
+    return new_func
 
 
 class Isothermal(object):
@@ -35,6 +52,7 @@ class Isothermal(object):
         self.npars = len(self.pnames)
         self.temp = np.zeros(nlayers, np.double)
 
+    @check_params
     def __call__(self, params):
         """
         Parameters
@@ -109,6 +127,7 @@ class TCEA(object):
         self.gravity = np.asarray(gravity, float)
         self.temp = np.zeros_like(pressure, float)
 
+    @check_params
     def __call__(self, params):
         """
         Parameters
@@ -175,6 +194,7 @@ class Madhu(object):
         self.fsmooth = 0.33/np.ediff1d(self.logp)[0]
         self.loge = np.log10(np.e)
 
+    @check_params
     def __call__(self, params):
         """
         Parameters

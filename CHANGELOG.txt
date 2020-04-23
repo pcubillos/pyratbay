@@ -6268,3 +6268,8 @@ Automated check for correct number of temperature parameters. Moved
 from check_temp() to pa.temperature() (it needs to know the tmodel).
 Updated tests and added case for madhu TP model.
 
+*****
+
+Implemented pa.tmodel.check_params() decorator to ensure temp calls
+have the right number of parameters.  Decorated the models' methods.
+
