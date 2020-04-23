@@ -6282,3 +6282,7 @@ Renamed reloadatm() to update_atm().
 
 PEP8ed parser.py file.
 
+*****
+
+Updated expected transmission spectra arrays.
+
