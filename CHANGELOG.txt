@@ -6286,3 +6286,7 @@ PEP8ed parser.py file.
 
 Updated expected transmission spectra arrays.
 
+*****
+
+Bumped Pyrat Bay version to 0.9.0a4.
+
