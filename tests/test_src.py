@@ -9,7 +9,7 @@ from pyratbay.constants import ROOT
 sys.path.append(ROOT + 'pyratbay/lib')
 import _pt as pt
 import _simpson as s
-import trapz as t
+import _trapz as t
 import cutils as cu
 import _indices
 
@@ -46,7 +46,7 @@ def test_simps(odd):
     hsum, hrat, hfac = s.geth(h)
     integ = s.simps(y, h, hsum, hrat, hfac)
 
-    np_integ = si.simps(y, x, even='last')
+    np_integ = si.simps(y, x, even='first')
     np.testing.assert_approx_equal(integ, np_integ)
 
 

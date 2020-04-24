@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2019 Patricio Cubillos and contributors.
+// Copyright (c) 2016-2020 Patricio Cubillos and contributors.
 // Pyrat Bay is currently proprietary software (see LICENSE).
 
 #include <Python.h>
@@ -12,86 +12,81 @@
 PyDoc_STRVAR(trapz__doc__,
 "Integrate the data array using the trapezoidal rule.       \n\
                                                             \n\
-Parameters:                                                 \n\
------------                                                 \n\
+Parameters                                                  \n\
+----------                                                  \n\
 data: 1D double ndarray                                     \n\
-   Sampled function (Y-axis) to integrate.                  \n\
+    Sampled function (Y-axis) to integrate.                 \n\
 intervals: 1D double ndarray                                \n\
-   Intervals between the data samples (X-axis).             \n\
+    Intervals between the data samples (X-axis).            \n\
                                                             \n\
-Returns:                                                    \n\
---------                                                    \n\
+Returns                                                     \n\
+-------                                                     \n\
 res: double                                                 \n\
-   The integral of data over the given intervals.           \n\
+    The integral of data over the given intervals.          \n\
 ");
 
 static PyObject *trapz(PyObject *self, PyObject *args){
-  PyArrayObject *data, *intervals;
-  int i, nint;  /* Auxilliary for-loop indices                              */
-  double res=0;
+    PyArrayObject *data, *intervals;
+    int i, nint;
+    double res=0;
 
-  /* Load inputs:                                                           */
-  if (!PyArg_ParseTuple(args, "OO", &data, &intervals))
-    return NULL;
+    if (!PyArg_ParseTuple(args, "OO", &data, &intervals))
+        return NULL;
 
-  /* Get the number of intervals:                                           */
-  nint = (int)PyArray_DIM(intervals, 0);
+    /* Get the number of intervals: */
+    nint = (int)PyArray_DIM(intervals, 0);
 
-  /* Empty array case:                                                      */
-  if (nint < 1){
-    return Py_BuildValue("d", 0.0);
-  }
+    /* Empty array case: */
+    if (nint < 1){
+        return Py_BuildValue("d", 0.0);
+    }
 
-  /* Check for even number of samples (odd number of intervals):            */
-  for(i=0; i<nint; i++){
-    res += INDd(intervals,i) * (INDd(data,(i+1)) + INDd(data,i));
-  }
-  return Py_BuildValue("d", 0.5*res);
+    for(i=0; i<nint; i++){
+        res += INDd(intervals,i) * (INDd(data,(i+1)) + INDd(data,i));
+    }
+    return Py_BuildValue("d", 0.5*res);
 }
+
 
 PyDoc_STRVAR(trapz2D__doc__,
 "Integrate the data array using the trapezoidal rule.       \n\
                                                             \n\
-Parameters:                                                 \n\
------------                                                 \n\
+Parameters                                                  \n\
+----------                                                  \n\
 data: 2D double ndarray                                     \n\
-   Sampled function (Y-axis) to integrate.                  \n\
+    Sampled function (Y-axis) to integrate.                 \n\
 intervals: 1D double ndarray                                \n\
-   Intervals between the data samples (X-axis).             \n\
+    Intervals between the data samples (X-axis).            \n\
+nint: 1D integer ndarray                                    \n\
+    Number of intervals to integrate.                       \n\
                                                             \n\
-Returns:                                                    \n\
---------                                                    \n\
-res: double                                                 \n\
-   The integral of data over the given intervals.           \n\
+Returns                                                     \n\
+-------                                                     \n\
+integ: 1D double ndarray                                    \n\
+    The integral of data over the given intervals.          \n\
 ");
 
+
 static PyObject *trapz2D(PyObject *self, PyObject *args){
-  PyArrayObject *data, *intervals, *tau;
-  int i, j, nint, nwave;  /* Auxilliary for-loop indices                    */
-  npy_intp dims[1];
+    PyArrayObject *data, *intervals, *nint, *integ;
+    int i, j, nwave;
+    npy_intp dims[1];
 
-  /* Load inputs:                                                           */
-  if (!PyArg_ParseTuple(args, "OO", &data, &intervals))
-    return NULL;
+    if (!PyArg_ParseTuple(args, "OOO", &data, &intervals, &nint))
+        return NULL;
 
-  /* Get the number of intervals:                                           */
-  nint  = (int)PyArray_DIM(intervals, 0);
-  nwave = (int)PyArray_DIM(data, 1);
+    nwave = dims[0] = (int)PyArray_DIM(data, 1);
+    integ = (PyArrayObject *) PyArray_SimpleNew(1, dims, NPY_DOUBLE);
 
-  dims[0] = nwave;
-  tau = (PyArrayObject *) PyArray_SimpleNew(1, dims, NPY_DOUBLE);
-
-  for (j=0; j<nwave; j++){
-    INDd(tau,j) = 0.0;
-
-    /* Check for even number of samples (odd number of intervals):            */
-    for(i=0; i<nint; i++){
-      INDd(tau,j) += INDd(intervals,i)
-                     * (IND2d(data,(i+1),j) + IND2d(data,i,j));
+    for (j=0; j<nwave; j++){
+        INDd(integ,j) = 0.0;
+        for(i=0; i<INDi(nint,j); i++){
+            INDd(integ,j) += INDd(intervals,i)
+                           * (IND2d(data,i,j) + IND2d(data,(i+1),j));
+        }
+        INDd(integ,j) *= 0.5;
     }
-    INDd(tau,j) *= 0.5;
-  }
-  return Py_BuildValue("N", tau);
+    return Py_BuildValue("N", integ);
 }
 
 
@@ -172,40 +167,40 @@ tau: 1D double ndarray                                      \n\
 ");
 
 static PyObject *optdepth(PyObject *self, PyObject *args){
-  PyArrayObject *data, *intervals, *ideep, *tau;
-  int i, j, ilay, nint, nwave;
-  double taumax;
-  npy_intp dims[1];
+    PyArrayObject *data, *intervals, *ideep, *tau;
+    int i, j, ilay, nint, nwave;
+    double taumax;
+    npy_intp dims[1];
 
-  /* Load inputs: */
-  if (!PyArg_ParseTuple(args, "OOdOi",
-                        &data, &intervals, &taumax, &ideep, &ilay))
-      return NULL;
+    /* Load inputs: */
+    if (!PyArg_ParseTuple(args, "OOdOi",
+                          &data, &intervals, &taumax, &ideep, &ilay))
+        return NULL;
 
-  /* Get the number of intervals: */
-  nint  = (int)PyArray_DIM(intervals, 0);
-  nwave = (int)PyArray_DIM(data, 1);
+    /* Get the number of intervals: */
+    nint  = (int)PyArray_DIM(intervals, 0);
+    nwave = (int)PyArray_DIM(data, 1);
 
-  dims[0] = nwave;
-  tau = (PyArrayObject *) PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+    dims[0] = nwave;
+    tau = (PyArrayObject *) PyArray_SimpleNew(1, dims, NPY_DOUBLE);
 
-  for (j=0; j<nwave; j++){
-      INDd(tau,j) = 0.0;
+    for (j=0; j<nwave; j++){
+        INDd(tau,j) = 0.0;
 
-      if (INDi(ideep,j) < 0){
-          for(i=0; i<nint; i++){
-              INDd(tau,j) += INDd(intervals,i)
-                             * (IND2d(data,(i+1),j) + IND2d(data,i,j));
-          }
-          /* I should now divide by two, but optical depth in   */
-          /* transmission is twice the integral just calculated */
-          if (INDd(tau,j) > taumax){
-              INDi(ideep,j) = (int)ilay;
-          }
-      }
-  }
+        if (INDi(ideep,j) < 0){
+            for(i=0; i<nint; i++){
+                INDd(tau,j) += INDd(intervals,i)
+                               * (IND2d(data,(i+1),j) + IND2d(data,i,j));
+            }
+            /* I should now divide by two, but optical depth in   */
+            /* transmission is twice the integral just calculated */
+            if (INDd(tau,j) > taumax){
+                INDi(ideep,j) = (int)ilay;
+            }
+        }
+    }
 
-  return Py_BuildValue("N", tau);
+    return Py_BuildValue("N", tau);
 }
 
 
@@ -289,11 +284,10 @@ static PyMethodDef trapz_methods[] = {
 };
 
 
-#if PY_MAJOR_VERSION >= 3
 /* Module definition for Python 3.                                          */
 static struct PyModuleDef moduledef = {
     PyModuleDef_HEAD_INIT,
-    "trapz",
+    "_trapz",
     trapzmod__doc__,
     -1,
     trapz_methods
@@ -301,17 +295,9 @@ static struct PyModuleDef moduledef = {
 
 /* When Python 3 imports a C module named 'X' it loads the module           */
 /* then looks for a method named "PyInit_"+X and calls it.                  */
-PyObject *PyInit_trapz (void) {
+PyObject *PyInit__trapz (void) {
   PyObject *module = PyModule_Create(&moduledef);
   import_array();
   return module;
 }
 
-#else
-/* When Python 2 imports a C module named 'X' it loads the module           */
-/* then looks for a method named "init"+X and calls it.                     */
-void inittrapz(void){
-  Py_InitModule3("trapz", trapz_methods, trapzmod__doc__);
-  import_array();
-}
-#endif

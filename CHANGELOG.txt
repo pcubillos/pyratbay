@@ -6297,3 +6297,7 @@ Refactored simpson integration functions to follow scipy's code
 set to even='first' instead of 'last', which is more stable to
 discontinuities due to different number of integrating points.
 
+*****
+
+PEP8ed trapz.c file, renamed to _trapz.c.
+
