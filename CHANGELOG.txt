@@ -6308,3 +6308,7 @@ instead of simpson integration because it is more stable and slightly
 faster, maybe 5 percent.
 Result spectra don't differ by more that 1e-5 (relative diff).
 
+*****
+
+PEP8ed spectrum.py file.
+
