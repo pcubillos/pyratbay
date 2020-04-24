@@ -12,8 +12,8 @@ from .. import constants  as pc
 
 sys.path.append(pc.ROOT + 'pyratbay/lib/')
 import _extcoeff as ec
+import _trapz as t
 import cutils as cu
-import trapz as t
 
 
 def opticaldepth(pyrat):

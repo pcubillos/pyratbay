@@ -11,7 +11,7 @@ from .. import io as io
 
 sys.path.append(pc.ROOT + 'pyratbay/lib/')
 import _simpson as s
-import trapz   as t
+import _trapz as t
 
 
 def spectrum(pyrat):
@@ -41,9 +41,7 @@ def spectrum(pyrat):
 
 
 def modulation(pyrat):
-  """
-  Calculate the modulation spectrum for transit geometry.
-  """
+  """Calculate modulation spectrum for transit geometry."""
   rtop = pyrat.atm.rtop
   # The integrand:
   integ = (np.exp(-pyrat.od.depth[rtop:,:]) *
@@ -62,24 +60,18 @@ def modulation(pyrat):
           integ[deck.itop-rtop] = interp1d(
               pyrat.atm.radius[rtop:], integ, axis=0)(deck.rsurf)
 
-  if len(h)%2 == 1: # h is odd
-      hs_even, hr_even, hf_even = s.geth(h[0:])   # For even number of layers
-      hs_odd,  hr_odd,  hf_odd  = s.geth(h[0:-1]) # For odd number of layers
+  # Setup for simpson integration:
+  if len(h)%2 == 0:
+      hsum, hratio, hfactor = s.geth(h[0:])
   else:
-      hs_even, hr_even, hf_even = s.geth(h[0:-1])
-      hs_odd,  hr_odd,  hf_odd  = s.geth(h[0:])
+      hsum, hratio, hfactor = s.geth(h[0:-1])
 
   # Number of layers for integration at each wavelength:
   nlayers = pyrat.od.ideep - rtop + 1
 
-  pyrat.spec.spectrum = s.simps2D(integ, h, nlayers,
-      hs_odd,  hr_odd,  hf_odd,
-      hs_even, hr_even, hf_even)
-  # Extra spectrum for patchy model:
+  pyrat.spec.spectrum = s.simps2D(integ, h, nlayers, hsum, hratio, hfactor)
   if pyrat.cloud.fpatchy is not None:
-      pyrat.spec.cloudy = s.simps2D(pinteg, h, nlayers,
-          hs_odd,  hr_odd,  hf_odd,
-          hs_even, hr_even, hf_even)
+      pyrat.spec.cloudy = s.simps2D(pinteg, h, nlayers, hsum, hratio, hfactor)
 
   pyrat.spec.spectrum = ((pyrat.atm.radius[rtop]**2 + 2*pyrat.spec.spectrum)
                          / pyrat.phy.rstar**2)

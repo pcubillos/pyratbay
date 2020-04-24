@@ -6290,3 +6290,10 @@ Updated expected transmission spectra arrays.
 
 Bumped Pyrat Bay version to 0.9.0a4.
 
+
+*****  Fri Apr 24 09:27:22 CEST 2020  *****
+
+Refactored simpson integration functions to follow scipy's code
+set to even='first' instead of 'last', which is more stable to
+discontinuities due to different number of integrating points.
+
