@@ -10,7 +10,6 @@ from .. import constants as pc
 from .. import io as io
 
 sys.path.append(pc.ROOT + 'pyratbay/lib/')
-import _simpson as s
 import _trapz as t
 
 
@@ -60,18 +59,11 @@ def modulation(pyrat):
           integ[deck.itop-rtop] = interp1d(
               pyrat.atm.radius[rtop:], integ, axis=0)(deck.rsurf)
 
-  # Setup for simpson integration:
-  if len(h)%2 == 0:
-      hsum, hratio, hfactor = s.geth(h[0:])
-  else:
-      hsum, hratio, hfactor = s.geth(h[0:-1])
-
   # Number of layers for integration at each wavelength:
   nlayers = pyrat.od.ideep - rtop + 1
-
-  pyrat.spec.spectrum = s.simps2D(integ, h, nlayers, hsum, hratio, hfactor)
+  pyrat.spec.spectrum = t.trapz2D(integ, h, nlayers-1)
   if pyrat.cloud.fpatchy is not None:
-      pyrat.spec.cloudy = s.simps2D(pinteg, h, nlayers, hsum, hratio, hfactor)
+      pyrat.spec.cloudy = t.trapz2D(pinteg, h, nlayers-1)
 
   pyrat.spec.spectrum = ((pyrat.atm.radius[rtop]**2 + 2*pyrat.spec.spectrum)
                          / pyrat.phy.rstar**2)

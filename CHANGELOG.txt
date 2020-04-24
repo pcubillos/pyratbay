@@ -6301,3 +6301,10 @@ discontinuities due to different number of integrating points.
 
 PEP8ed trapz.c file, renamed to _trapz.c.
 
+*****
+
+Modified modulation() function to use a trapezoidal integration
+instead of simpson integration because it is more stable and slightly
+faster, maybe 5 percent.
+Result spectra don't differ by more that 1e-5 (relative diff).
+
