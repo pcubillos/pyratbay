@@ -103,7 +103,7 @@ class TCEA(object):
         atmospheric pressures (as it has been used so far in the
         literature.  However, from a parametric point of view, this is
         redundant, as it only acts as a scaling factor for kappa.
-        Idealy, one would wish to input a pressure-dependent gravity,
+        Ideally, one would wish to input a pressure-dependent gravity,
         but such profile would need to be derived from a hydrostatic
         equilibrium calculation, for example.  Unfortunately, HE cannot
         be solved without knowing the temperature, thus making this a

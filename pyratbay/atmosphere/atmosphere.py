@@ -306,7 +306,7 @@ def abundance(pressure, temperature, species, elements=None,
     log.head("\nRun TEA to compute thermochemical-equilibrium abundances.")
     # Prep up files:
     atomic_file, patm = "PBatomicfile.tea", "PBpreatm.tea"
-    make_atomic(xsolar, atomic_file=atomic_file, solar_file=solar_file)
+    make_atomic(xsolar, escale, atomic_file, solar_file)
     if elements is None:
        elements, dummy = stoich(species)
     specs = elements + list(np.setdiff1d(species, elements))

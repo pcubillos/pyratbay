@@ -67,7 +67,7 @@ def modulation(pyrat):
     if pyrat.cloud.fpatchy is not None:
         pyrat.spec.cloudy = t.trapz2D(pinteg, h, nlayers-1)
 
-    pyrat.spec.spectrum = ((radius[rtop]**2 + 2*spectrum) / pyrat.phy.rstar**2)
+    pyrat.spec.spectrum = (radius[rtop]**2 + 2*spectrum) / pyrat.phy.rstar**2
     if pyrat.cloud.fpatchy is not None:
         pyrat.spec.cloudy = ((radius[rtop]**2 + 2*pyrat.spec.cloudy)
                              / pyrat.phy.rstar**2)

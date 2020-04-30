@@ -6312,3 +6312,9 @@ Result spectra don't differ by more that 1e-5 (relative diff).
 
 PEP8ed spectrum.py file.
 
+
+*****  Thu Apr 30 15:36:32 CEST 2020  *****
+
+Fixed bug in pa.abundance() function where escale was being ignored.
+Added tests.
+Some other minor cosmetics.

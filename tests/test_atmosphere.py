@@ -102,6 +102,18 @@ qtea_expected = np.array([
     [5.1396e-07, 1.4553e-01, 4.3365e-24, 7.4728e-18, 8.5317e-01,
      8.3731e-04, 1.4335e-07, 5.4391e-11, 4.6007e-04]])
 
+q_H2O = [[
+     [3.758500e-04, 3.765100e-04, 3.767200e-04, 3.767800e-04, 3.768400e-04,
+      3.800500e-04, 5.315000e-04, 8.237300e-04, 8.373100e-04],
+     [1.501200e-16, 1.518300e-14, 1.523800e-12, 1.525600e-10, 1.526100e-08,
+      1.521900e-06, 1.206600e-04, 7.737300e-04, 8.382700e-04]],
+    [[3.736000e-03, 3.742500e-03, 3.744600e-03, 3.745300e-03, 3.745500e-03,
+      3.748800e-03, 4.027400e-03, 7.363500e-03, 8.393900e-03],
+     [1.389200e-16, 1.405100e-14, 1.410200e-12, 1.411800e-10, 1.412300e-08,
+      1.412100e-06, 1.375500e-04, 4.689100e-03, 8.482200e-03]]
+]
+
+
 def test_pressure_default_units():
     ptop    = 1e-8
     pbottom = 1e3
@@ -227,10 +239,24 @@ def test_abundances_tea():
     temperature = tmodel(1500.0)
     species     = 'H He C O H2 H2O CO CO2 CH4'.split()
     elements    = 'H He C O'.split()
-    xsolar      = 1.0
     qtea = pa.abundance(pressure, temperature, species, elements,
-        punits=punits, xsolar=xsolar)
+        punits=punits)
     np.testing.assert_allclose(qtea, qtea_expected)
+
+
+@pytest.mark.parametrize('xsolar', [1.0, 10.0])
+@pytest.mark.parametrize('escale', [{}, {'C': 5.0}])
+def test_abundances_tea_xsolar_escale(xsolar, escale):
+    nlayers = 9
+    punits  = 'bar'
+    pressure = pa.pressure(1e-5, 1e3, nlayers, punits)
+    tmodel = pa.tmodels.Isothermal(nlayers)
+    temperature = tmodel(1500.0)
+    species     = 'H He C O H2 H2O CO CO2 CH4'.split()
+    elements    = 'H He C O'.split()
+    q = pa.abundance(pressure, temperature, species, elements,
+        punits=punits, xsolar=xsolar, escale=escale)
+    np.testing.assert_allclose(q[:,5], q_H2O[xsolar>1]['C' in escale])
 
 
 def test_hydro_g():
