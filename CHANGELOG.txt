@@ -6318,3 +6318,11 @@ PEP8ed spectrum.py file.
 Fixed bug in pa.abundance() function where escale was being ignored.
 Added tests.
 Some other minor cosmetics.
+
+
+*****  Sun May 3 16:43:32 CEST 2020  *****
+
+Fixed bug in extinction() function of _extcoeff.c
+last transition was co-adding out-of-bounds opacities.
+
+

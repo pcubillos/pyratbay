@@ -253,7 +253,8 @@ static PyObject *extinction(PyObject *self, PyObject *args){
           iown++;
 
       /* Check if the next line falls on the same sampling index: */
-      while (ln+1 != nlines && INDi(lID, (ln+1)) == i){
+      while (ln+1 != nlines && INDi(lID, (ln+1)) == i
+              && INDd(lwn,(ln+1)) <= INDd(own,(onwn-1)) ){
           next_wn = INDd(lwn, (ln+1));
           if (fabs(next_wn - INDd(own,iown)) < ownstep){
               nadd++;
