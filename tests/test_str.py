@@ -552,11 +552,11 @@ High wavenumber boundary (wnhigh):   9090.909 cm-1  (wllow  =   1.10 um)
 Number of samples (nwave): 2177
 Spectral resolving power (resolution): 5000.0
 Wavenumber array (wn, cm-1):
-    [ 5882.459  5883.636  5884.813 ...  9086.365  9088.182  9090.000]
+    [ 5882.353  5883.530  5884.706 ...  9086.201  9088.018  9089.836]
 Oversampling factor (wnosamp): 2160
 
 Modulation spectrum, (Rp/Rs)**2 (spectrum):
-    [ 6.522e-03  6.540e-03  6.523e-03 ...  6.515e-03  6.473e-03  6.531e-03]
+    [ 6.522e-03  6.540e-03  6.523e-03 ...  6.670e-03  6.500e-03  6.475e-03]
 """
 
 

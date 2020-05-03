@@ -58,38 +58,30 @@ def make_wavenumber(pyrat):
   spec.wlhigh = 1.0 / spec.wnlow
   spec.wllow  = 1.0 / spec.wnhigh
 
-  # Make the wavenumber array:
-  spec.wn = np.arange(spec.wnlow, spec.wnhigh, spec.wnstep)
+  if spec.resolution is not None:
+      # Constant-resolving power wavenumber sampling:
+      f = 0.5 / spec.resolution
+      g = (1.0+f) / (1.0-f)
+      spec.nwave = int(np.ceil(-np.log(spec.wnlow/spec.wnhigh) / np.log(g)))
+      spec.wn = spec.wnlow * g**np.arange(spec.nwave)
+  else:
+      # Constant-sampling rate wavenumber sampling:
+      spec.nwave = int((spec.wnhigh-spec.wnlow)/spec.wnstep) + 1
+      spec.wn = spec.wnlow + np.arange(spec.nwave) * spec.wnstep
 
-  # Re-set final boundary (stay inside given boundaries):
-  if spec.wn[-1] != spec.wnhigh:
-      log.warning(
-          'Final wavenumber boundary modified from {:.4f} cm-1 (input)\n'
-          '                                     to {:.4f} cm-1 (Pyrat).'.
-          format(spec.wnhigh, spec.wn[-1]))
-  # Set the number of spectral samples:
-  spec.nwave = len(spec.wn)
-
-  # Make the fine-sampled (oversampled) wavenumber array:
+  # Fine-sampled wavenumber array (constant sampling rate):
   spec.ownstep = spec.wnstep / spec.wnosamp
-  spec.onwave  = (spec.nwave - 1) *  spec.wnosamp + 1
-  spec.own = np.linspace(spec.wn[0], spec.wn[-1], spec.onwave)
+  spec.onwave = int(np.ceil((spec.wn[-1]-spec.wnlow)/spec.ownstep)) + 1
+  spec.own = spec.wnlow + np.arange(spec.onwave) * spec.ownstep
 
   # Get list of divisors:
   spec.odivisors = pt.divisors(spec.wnosamp)
 
-  # User-defined output resolution:
-  if spec.resolution is not None:
-      f = 0.5 / spec.resolution
-      g = (1.0-f) / (1.0+f)
-      imax = int(np.ceil(np.log(spec.wnlow/spec.wnhigh) / np.log(g))) + 1
-      # These are the wavelength edges of each bin:
-      dwn = spec.wnhigh * g**np.arange(imax)
-      # Central wavelength of each bin:
-      spec.wn = 0.5*(dwn[1:]+dwn[:-1])[::-1]
-      # Total number of spectral samples:
-      spec.nwave = imax - 1
-
+  # Re-set final boundary (stay inside given boundaries):
+  if spec.wn[-1] != spec.wnhigh:
+      log.warning(
+          f'Final wavenumber modified from {spec.wnhigh:.4f} cm-1 (input)\n'
+          f'                            to {spec.wn[-1]:.4f} cm-1 (Pyrat).')
 
   # Screen output:
   log.msg(f'Initial wavenumber boundary:  {spec.wnlow:.5e} cm-1  '
