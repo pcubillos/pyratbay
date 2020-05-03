@@ -31,6 +31,12 @@ def read_atm(pyrat):
     if atm.punits is None:
         atm.punits = punits
 
+    # Planetary radius units (if not set by rplanet):
+    if atm.runits is None:
+        atm.runits = runits
+    if atm.runits is None:
+        atm.runits = 'km'
+
     # Read molecular constant values:
     get_constants(pyrat)
 
