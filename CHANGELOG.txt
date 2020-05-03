@@ -6325,4 +6325,7 @@ Some other minor cosmetics.
 Fixed bug in extinction() function of _extcoeff.c
 last transition was co-adding out-of-bounds opacities.
 
+*****
+
+Updated exomol isotope names of H2O and CO2.
 
