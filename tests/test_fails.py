@@ -224,7 +224,6 @@ def test_missing_mass_units(tmp_path, capfd):
      ('mplanet', ' -1.0 mjup'),
      ('rplanet', ' -1.0 rjup'),
      ('gplanet', ' -1000.0'),
-     ('tint',    ' -100.0'),
      ('smaxis',  ' -0.01 au'),
      ('rstar',   ' -1.0 rsun'),
      ('mstar',   ' -1.0 msun'),
@@ -255,7 +254,7 @@ def test_greater_than(tmp_path, capfd, param, value):
 
 
 @pytest.mark.parametrize('param',
-    ['wnosamp', 'ndop', 'nlor', 'thinning', 'nchains', 'ncpu',
+    ['wnosamp', 'ndop', 'nlor', 'thinning', 'nchains', 'ncpu', 'tint',
      'quadrature', 'grbreak', 'fpatchy', 'maxdepth', 'vextent'])
 def test_greater_equal(tmp_path, capfd, param):
     cfg = make_config(tmp_path, ROOT+'tests/configs/pt_isothermal.cfg',

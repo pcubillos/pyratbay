@@ -6329,3 +6329,7 @@ last transition was co-adding out-of-bounds opacities.
 
 Updated exomol isotope names of H2O and CO2.
 
+*****
+
+Allowed tint input argument to take a value of 0.0.
+
