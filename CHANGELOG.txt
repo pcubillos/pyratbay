@@ -6339,3 +6339,13 @@ Refactored constant resolving power spectrum sampling to preserve
 wnlow (rather than wnhigh).
 Some other minor tweaks.
 
+*****
+
+Set default pyart.atm.runits to km if neither rplanet nor atmospheric
+file provide a value.
+
+*****
+
+PEP8ed makesample.py
+
+
