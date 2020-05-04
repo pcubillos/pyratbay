@@ -287,7 +287,7 @@ def make_atmprofiles(pyrat):
 
     # Print radius array:
     if atm.radius is not None:
-        radstr = ', '.join('{k:9.2f}' for k in atm.radius/pc.km)
+        radstr = ', '.join(f'{k:9.2f}' for k in atm.radius/pc.km)
         log.msg(f'Radius array (km) =   [{radstr}]', indent=2, si=4)
         log.msg(
             'Valid upper/lower radius boundaries:    '

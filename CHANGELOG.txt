@@ -6348,4 +6348,8 @@ file provide a value.
 
 PEP8ed makesample.py
 
+*****
+
+Fixed typo in screen output of make_atmprofiles() function
+in makesample.py.
 
