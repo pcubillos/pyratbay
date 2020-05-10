@@ -6353,3 +6353,12 @@ PEP8ed makesample.py
 Fixed typo in screen output of make_atmprofiles() function
 in makesample.py.
 
+
+*****  So 10. Mai 15:27:02 CEST 2020  *****
+
+Created pyratbay.spectrum module.
+In replacement of starspec and blackbody, but with broader scope.
+Moved pt.tophat(), pt.resample(), and pt.band_integrate() into
+spectrum module.
+Updated tests accordingly.
+

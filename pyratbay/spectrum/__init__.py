@@ -1,17 +1,17 @@
 # Copyright (c) 2016-2020 Patricio Cubillos.
 # Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE).
 
-__all__ = [
-    "blackbody_wn",
-    "blackbody_wn_2D",
-    ]
+from .blackbody import *
+from .kurucz import *
+#from .marcs import *
+#from .phoenix import *
+from .spec_tools import *
 
-import os
-import sys
 
-from .. import constants as pc
-sys.path.append(pc.ROOT + 'pyratbay/lib/')
-from _blackbody import blackbody_wn, blackbody_wn_2D
+__all__ = ( blackbody.__all__
+          + kurucz.__all__
+          + spec_tools.__all__
+          )
 
 
 # Clean up top-level namespace--delete everything that isn't in __all__

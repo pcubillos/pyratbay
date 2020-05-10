@@ -5,7 +5,7 @@ import sys
 import numpy as np
 from scipy.interpolate import interp1d
 
-from .. import blackbody as bb
+from .. import spectrum as ps
 from .. import constants as pc
 from .. import io as io
 
@@ -94,11 +94,11 @@ def intensity(pyrat):
 
     # Calculate the Planck Emission:
     pyrat.od.B = np.zeros((pyrat.atm.nlayers, spec.nwave), np.double)
-    bb.blackbody_wn_2D(spec.wn, pyrat.atm.temp, pyrat.od.B, pyrat.od.ideep)
+    ps.blackbody_wn_2D(spec.wn, pyrat.atm.temp, pyrat.od.B, pyrat.od.ideep)
 
     if 'deck' in (m.name for m in pyrat.cloud.models):
         deck = pyrat.cloud.models[pyrat.cloud.model_names.index('deck')]
-        pyrat.od.B[deck.itop] = bb.blackbody_wn(pyrat.spec.wn, deck.tsurf)
+        pyrat.od.B[deck.itop] = ps.blackbody_wn(pyrat.spec.wn, deck.tsurf)
 
     # Plane-parallel radiative-transfer intensity integration:
     spec.intensity = t.intensity(pyrat.od.depth, pyrat.od.ideep, pyrat.od.B,

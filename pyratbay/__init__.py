@@ -6,11 +6,10 @@ __all__ = [
     'io',
     'tools',
     'part_func',
-    'blackbody',
     'broadening',
     'lineread',
     'plots',
-    'starspec',
+    'spectrum',
     'atmosphere',
     'Pyrat',
     'run',
@@ -20,11 +19,10 @@ from . import constants
 from . import io
 from . import tools
 from . import part_func
-from . import blackbody
 from . import broadening
 from . import lineread
 from . import plots
-from . import starspec
+from . import spectrum
 from . import atmosphere
 from .pyrat import Pyrat
 from .driver import run

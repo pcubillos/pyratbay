@@ -10,6 +10,7 @@ import numpy  as np
 from .. import constants  as pc
 from .. import atmosphere as pa
 from .. import tools      as pt
+from .. import spectrum   as ps
 from .. import plots      as pp
 from .. import io         as io
 
@@ -369,7 +370,7 @@ class Pyrat(object):
           # Read filter wavenumber and transmission curves:
           filterwn, filtertr = io.read_spectrum(filter)
           # Resample the filters into the planet wavenumber array:
-          btrans, bidx = pt.resample(filtertr, filterwn, self.spec.wn,
+          btrans, bidx = ps.resample(filtertr, filterwn, self.spec.wn,
               normalize=True)
           bandidx.append(bidx)
           bandtrans.append(btrans)
