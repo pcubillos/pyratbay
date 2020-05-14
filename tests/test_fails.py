@@ -804,7 +804,7 @@ def test_molecule_not_in_molfile(tmp_path, capfd):
     press = press * pb.tools.u(units[0])
     species[-1] = 'X'
     new_atm = str(tmp_path/'new_atmosphere_uniform_test.atm')
-    io.write_atm(new_atm, press, temp, species, q, units[0])
+    io.write_atm(new_atm, press, temp, species, q, punits=units[0])
 
     cfg = make_config(tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',

@@ -229,7 +229,7 @@ def uniform(pressure, temperature, species, abundances, punits="bar",
         header = ("# This is an atmospheric file with pressure, temperature,\n"
                   "# and uniform mole mixing ratio profiles.\n\n")
         io.write_atm(atmfile, pressure, temperature, species, qprofiles,
-            punits, header=header)
+            punits=punits, header=header)
 
     return qprofiles
 
