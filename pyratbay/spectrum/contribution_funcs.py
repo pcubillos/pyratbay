@@ -1,12 +1,16 @@
 # Copyright (c) 2016-2020 Patricio Cubillos.
 # Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE).
 
-__all__ = ["cf", "transmittance", "bandcf"]
+__all__ = [
+    "contribution_function",
+    "transmittance",
+    "band_cf",
+    ]
 
 import numpy as np
 
 
-def cf(optdepth, pressure, B):
+def contribution_function(optdepth, pressure, B):
     """
     Evaluate the contribution function equation as in Knutson et al. (2009)
     ApJ, 690, 822; Equation (2).
@@ -14,16 +18,17 @@ def cf(optdepth, pressure, B):
     Parameters
     ----------
     optdepth: 2D float ndarray
-       Optical depth at each layer and wavenumber [nlayers, nwave].
+        Optical depth at each layer and wavenumber [nlayers, nwave].
     pressure: 1D float ndarray
-       Atmospheric pressure array [nlayers].
+        Atmospheric pressure array [nlayers].
     B: 2D float ndarray
-       Plank emission at each layer and wavenumber [nlayers, nwave].
+        Plank emission at each layer and wavenumber [nlayers, nwave].
 
     Returns
     -------
     cf: 2D float ndarray
-       The contribution function at each layer and wavenumber [nlayers, nwave].
+        The contribution function at each layer and wavenumber
+        of shape [nlayers, nwave].
     """
     # Differential along layers:
     detau = np.diff(np.exp(-optdepth), axis=0)
@@ -52,51 +57,53 @@ def transmittance(optdepth, ideep):
     Parameters
     ----------
     optdepth: 2D float ndarray
-       Optical depth at each layer and wavenumber [nlayers, nwave].
+        Optical depth at each layer and wavenumber [nlayers, nwave].
     ideep: 1D integer ndarray
-       Impact-parameter indices of deepest-calculated optical depth
-       at each wavenumber.
+        Impact-parameter indices of deepest-calculated optical depth
+        at each wavenumber.
     """
     # Transmittance:
     transmit = np.exp(-optdepth)
     # Fill-in values beyond ideep (completely opaque):
-    for i in np.arange(len(ideep)):
+    for i in range(len(ideep)):
         transmit[ideep[i]:,i] = 0.0
 
     return transmit
 
 
-def bandcf(cf, bandtrans, wn, bandidx):
+def band_cf(cf, bandtrans, wn, bandidx):
     """
     Compute band-averaged contribution functions or transmittances.
 
     Parameters
     ----------
     cf: 2D float ndarray
-       The contribution function or transmittance [nlayers, nwave]
+        The contribution function or transmittance of
+        shape [nlayers, nwave].
     bandtrans: List of 1D ndarrays
-       List of band transmission curves.
+        List of band transmission curves.
     wn: 1D float ndarray
-       The wavenumber sampling (in cm-1).
+        The wavenumber sampling (in cm-1).
     bandidx: List of 1D ndarrays
-       List of wavenumber-index arrays for each band transmission curve.
+        List of wavenumber-index arrays for each band transmission curve.
 
     Returns
     -------
     bandcf: 2D float ndarray
-       The band-integrated contribution functions.
+        The band-integrated contribution functions of
+        shape [nlayers, nbands].
     """
     nfilters = len(bandtrans)
     nlayers  = np.shape(cf)[0]
 
     # Allocate arrays for filter cf:
-    bandcf = np.zeros((nfilters, nlayers))
+    bandcf = np.zeros((nlayers, nfilters))
 
     # Number of filters
-    for i in np.arange(nfilters):
+    for i in range(nfilters):
         # Weighted CF (by filter response function):
         wcf = cf[:,bandidx[i]] * bandtrans[i]
         # Integrated CF across bandpass at each layer:
-        bandcf[i] = np.trapz(wcf, wn[bandidx[i]], axis=1)
+        bandcf[:,i] = np.trapz(wcf, wn[bandidx[i]], axis=1)
 
     return bandcf

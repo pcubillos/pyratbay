@@ -3,7 +3,7 @@
 
 __all__ = [
     'spectrum',
-    'cf',
+    'contribution',
     'posterior_pt',
 ]
 
@@ -16,7 +16,6 @@ import scipy.interpolate as si
 from scipy.ndimage.filters import gaussian_filter1d as gaussf
 
 from .. import constants as pc
-from .. import tools as pt
 
 
 def spectrum(spectrum, wavelength, path,
@@ -169,7 +168,7 @@ def spectrum(spectrum, wavelength, path,
   return ax
 
 
-def cf(bandcf, bandwl, path, pressure, radius, rtop=0,
+def contribution(contrib_func, wl, path, pressure, radius, rtop=0,
        filename=None, filters=None, fignum=-21):
   """
   Plot the band-integrated normalized contribution functions
@@ -177,9 +176,9 @@ def cf(bandcf, bandwl, path, pressure, radius, rtop=0,
 
   Parameters
   ----------
-  bandcf: 2D float ndarray
+  contrib_func: 2D float ndarray
       Band-integrated contribution functions [nfilters, nlayers].
-  bandwl: 1D float ndarray
+  wl: 1D float ndarray
       Mean wavelength of the bands in microns.
   path: String
       Observing geometry (transit or eclipse).
@@ -209,24 +208,28 @@ def cf(bandcf, bandwl, path, pressure, radius, rtop=0,
   - If there are more than 80 filters, this code will thin the
     displayed filter names.
   """
-  nfilters = len(bandwl)
+  nfilters = len(wl)
   nlayers  = len(pressure)
 
-  wlsort = np.argsort(bandwl)
+  wlsort = np.argsort(wl)
+  wl = wl[wlsort]
+  contrib_func = contrib_func[:,wlsort]
+  if filters is not None:
+      filters = [filters[i] for i in wlsort]
+
   press = pressure[rtop:]/pc.bar
   rad   = radius  [rtop:]/pc.km
 
   press = pressure[rtop:]/pc.bar
-  rad   = radius[rtop:]/pc.km
+  rad = radius[rtop:]/pc.km
+  zz = contrib_func/np.amax(contrib_func)
   if path == 'eclipse':
       yran = np.amax(np.log10(press)), np.amin(np.log10(press))
-      zz = bandcf/np.amax(bandcf)
       xlabel = 'contribution function'
       ylabel = ''
       yright = 0.9
       cbtop  = 0.5
   elif path == 'transit':
-      zz = bandcf/np.amax(bandcf)
       yran = np.amin(rad), np.amax(rad)
       xlabel = r'transmittance'
       ylabel = r'Impact parameter (km)'
@@ -246,17 +249,17 @@ def cf(bandcf, bandwl, path, pressure, radius, rtop=0,
   thin = (nfilters>80) + (nfilters>125) + (nfilters<100) + nfilters//100
 
   # Colormap and percentile limits:
-  z = np.empty((nlayers, nfilters, 4), dtype=float)
+  z = np.empty((nfilters, nlayers, 4), dtype=float)
   plo = np.zeros(nfilters+1)
   phi = np.zeros(nfilters+1)
   for i in np.arange(nfilters):
-      z[:,i, :] = plt.cm.rainbow(colors[i])
-      z[:,i,-1] = zz[i]**(0.5+0.5*(path=='transit'))
+      z[i] = plt.cm.rainbow(colors[i])
+      z[i,:,-1] = zz[:,i]**(0.5+0.5*(path=='transit'))
       if path == 'eclipse':
-          cumul = np.cumsum(zz[i])/np.sum(zz[i])
+          cumul = np.cumsum(zz[:,i])/np.sum(zz[:,i])
           plo[i], phi[i] = press[cumul>lo][0], press[cumul>hi][0]
       elif path == 'transit':
-          plo[i], phi[i] = press[zz[i]<lo][0], press[zz[i]<hi][0]
+          plo[i], phi[i] = press[zz[:,i]<lo][0], press[zz[:,i]<hi][0]
   plo[-1] = plo[-2]
   phi[-1] = phi[-2]
 
@@ -266,24 +269,25 @@ def cf(bandcf, bandwl, path, pressure, radius, rtop=0,
   ax = plt.subplot(111)
   pax = ax.twinx()
   if path == 'eclipse':
-      ax.imshow(z[:,wlsort], aspect='auto',
-                extent=[0, nfilters, yran[0], yran[1]],
-                origin='upper', interpolation='nearest')
+      ax.imshow(z.swapaxes(0,1), aspect='auto',
+          extent=[0, nfilters, yran[0], yran[1]],
+          origin='upper', interpolation='nearest')
       ax.yaxis.set_visible(False)
       pax.spines['left'].set_visible(True)
       pax.yaxis.set_label_position('left')
       pax.yaxis.set_ticks_position('left')
   elif path == 'transit':
-      ax.imshow(z[:,wlsort], aspect='auto', extent=[0,nfilters,yran[0],yran[1]],
-                origin='upper', interpolation='nearest')
+      ax.imshow(z.swapaxes(0,1), aspect='auto',
+          extent=[0,nfilters,yran[0],yran[1]],
+          origin='upper', interpolation='nearest')
       # Setting the right radius tick labels requires some sorcery:
       fig.canvas.draw()
       ylab = [l.get_text() for l in ax.get_yticklabels()]
       rint = si.interp1d(rad, press, bounds_error=False)
       pticks = rint(ax.get_yticks())
       bounds = np.isfinite(pticks)
-      pint = si.interp1d(press, np.linspace(yran[1], yran[0], nlayers),
-                         bounds_error=False)
+      pint = si.interp1d(
+          press, np.linspace(yran[1], yran[0], nlayers), bounds_error=False)
       ax.set_yticks(pint(pticks[bounds]))
       ax.set_yticklabels(np.array(ylab)[bounds])
 
@@ -297,15 +301,14 @@ def cf(bandcf, bandwl, path, pressure, radius, rtop=0,
   ax.set_ylim(yran)
   ax.set_xticklabels([])
   ax.set_ylabel(ylabel, fontsize=fs)
-  ax.set_xlabel('Band-averaged {:s}'.format(xlabel), fontsize=fs)
+  ax.set_xlabel(f'Band-averaged {xlabel}', fontsize=fs)
 
   # Print filter names/wavelengths:
   for i in np.arange(0, nfilters-thin//2, thin):
-      idx = wlsort[i]
-      fname = ' {:5.2f} um '.format(bandwl[idx])
+      fname = f' {wl[i]:5.2f} um '
       # Strip root and file extension:
       if filters is not None:
-          fname = (os.path.split(os.path.splitext(filters[idx])[0])[1]
+          fname = (os.path.split(os.path.splitext(filters[i])[0])[1]
                    + ' @' + fname)
       ax.text(i+0.1, yran[1], fname, rotation=90, ha='left', va='top',
               fontsize=ffs)
@@ -417,3 +420,4 @@ def posterior_pt(posterior, tmodel, tpars, ifree, pressure,
   if filename is not None:
       plt.savefig(filename)
   return ax
+

@@ -6362,3 +6362,14 @@ Moved pt.tophat(), pt.resample(), and pt.band_integrate() into
 spectrum module.
 Updated tests accordingly.
 
+*****
+
+Moved contribfuncs.py from tools to spectrum module,
+renamed file as contribution_funcs.py, renamed functions
+from cf() to contribution_function() and bandcf() to band_cf().
+Modified band_cf() to preserve dimension order of input and output
+contributions array.
+Renamed plots.cf() to plots.contribution().
+Fixed bug in plots.contribution() when the contributions are not
+sorted.
+

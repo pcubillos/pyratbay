@@ -6,11 +6,12 @@ from .kurucz import *
 #from .marcs import *
 #from .phoenix import *
 from .spec_tools import *
-
+from .contribution_funcs import *
 
 __all__ = ( blackbody.__all__
           + kurucz.__all__
           + spec_tools.__all__
+          + contribution_funcs.__all__
           )
 
 
