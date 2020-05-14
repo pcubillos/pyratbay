@@ -6378,3 +6378,8 @@ sorted.
 
 PEP8ed plots.py.
 
+*****
+
+Tweaked io.write_atm() to set header argument as optional.
+Moved to last place.
+

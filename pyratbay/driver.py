@@ -169,7 +169,7 @@ def run(cfile, init=False, no_logfile=False):
   bestatm = "{:s}_bestfit_atmosphere.atm".format(outfile)
   io.write_atm(bestatm, pyrat.atm.press, pyrat.atm.temp,
                pyrat.mol.name, pyrat.atm.q, pyrat.atm.punits,
-               header, radius=pyrat.atm.radius, runits='km')
+               radius=pyrat.atm.radius, runits='km', header=header)
 
   pyrat.plot_spectrum(spec='best',
       filename='{:s}_bestfit_spectrum.png'.format(outfile))

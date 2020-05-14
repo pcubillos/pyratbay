@@ -172,8 +172,8 @@ def test_read_write_atm_radius(tmpdir):
     qprofiles = pa.uniform(pressure, temperature, species, abundances)
     radius = pa.hydro_g(pressure, temperature, 2.3, 2479.0, pc.bar, pc.rjup)
     io.write_atm(atm, pressure, temperature, species, qprofiles,
-                 punits='bar', header='# Test write atm\n',
-                 radius=radius, runits='km')
+        punits='bar', radius=radius, runits='km',
+        header='# Test write atm\n')
     assert atmfile in os.listdir(str(tmpdir))
 
     atm_input = io.read_atm(atm)

@@ -84,7 +84,7 @@ def load_pyrat(pfile):
 
 
 def write_atm(atmfile, pressure, temperature, species, abundances,
-              punits, header, radius=None, runits=None):
+              punits, radius=None, runits=None, header=None):
     r"""
     Write an atmospheric file following the Pyrat format.
 
@@ -102,12 +102,12 @@ def write_atm(atmfile, pressure, temperature, species, abundances,
         The species mole mixing ratio (of shape [nlayers,nspecies]).
     punits:  String
         Pressure units of output.
-    header:  String
-        Header message (comment) to include at the top of the file.
     radius: 1D float ndarray
         Monotonously increasing radius profile (in cm).
     runits:  String
         Radius units of output.
+    header:  String
+        Header message (comment) to include at the top of the file.
 
     Examples
     --------
@@ -150,7 +150,8 @@ def write_atm(atmfile, pressure, temperature, species, abundances,
     1.0000e+02     1500.000  8.499000e-01  1.500000e-01  1.000000e-04
     """
     f = open(atmfile, "w")
-    f.write(header)
+    if header is not None:
+        f.write(header)
 
     # Set the values units:
     f.write("# Abundance units (by number or mass):\n@ABUNDANCE\nnumber\n")
@@ -176,7 +177,7 @@ def write_atm(atmfile, pressure, temperature, species, abundances,
 
     # Write data for each layer:
     nlayers = len(pressure)
-    for i in np.arange(nlayers):
+    for i in range(nlayers):
         # (radius,) pressure, and temperature:
         if radius is not None:
             f.write("{:10.4e}  ".format(radius[i]))
@@ -1101,7 +1102,7 @@ def import_tea(teafile, atmfile, req_species=None):
     header = "# TEA atmospheric file formatted for Pyrat.\n\n"
 
     write_atm(atmfile, pressure, temperature, req_species, abundance,
-              punits, header)
+              punits, header=header)
 
 
 def export_pandexo(pyrat, baseline, transit_duration,
