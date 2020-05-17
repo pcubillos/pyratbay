@@ -48,25 +48,21 @@ def read_atm(pyrat):
         atm_in.radius = atm_inputs[5] * pt.u(runits)
     atm_in.nlayers = len(atm_in.press)
 
-    # Calculate the mean molecular mass per layer:
+    # Store the abundances as volume mixing ratio:
     if qunits == 'mass':
-        atm_in.mm = 1.0/np.sum(atm_in.q/pyrat.mol.mass, axis=1)
-    elif qunits == 'number':
-        atm_in.mm = np.sum(atm_in.q*pyrat.mol.mass, axis=1)
-    else:
+        atm_in.q /= pyrat.mol.mass * np.sum(atm_in.q/pyrat.mol.mass,axis=1)
+    elif qunits not in ['volume', 'number']:
         pyrat.log.error(f"Invalid input abundance units '{qunits}'.")
 
-    # Store the abundance as volume mixing ratio:
-    if qunits == "mass":
-        atm_in.q = atm_in.q * atm_in.mm / pyrat.mol.mass
+    # Calculate the mean molecular mass per layer:
+    atm_in.mm = np.sum(atm_in.q*pyrat.mol.mass, axis=1)
 
     # Calculate number density profiles for each molecule (in molecules cm-3):
     atm_in.d = pa.ideal_gas_density(atm_in.q, atm_in.press, atm_in.temp)
 
     pyrat.log.msg(f"Species list:\n  {pyrat.mol.name}", indent=2, si=4)
 
-    txt = "volume" if (qunits == "number") else "mass"
-    pyrat.log.msg(f"Abundances are given by {qunits} ({txt} mixing ratio).",
+    pyrat.log.msg(f"Abundances are given by {qunits} mixing ratio.",
         indent=2)
     pyrat.log.msg(f"Unit factors: radius: {runits}, pressure: {punits}, "
         f"temperature: {tunits}", indent=2)

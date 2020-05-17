@@ -105,7 +105,7 @@ class Atm(object):
       self.ptop    = None     # Lowest pressure boundary
       self.pbottom = None     # Highest pressure boundary
       self.atmfile = None     # Atmopheric-model file
-      self.qunits  = None     # Input abundance units ('mass' or 'number')
+      self.qunits  = None     # Input abundance units ('volume' or 'mass')
       self.runits  = None     # Input radius units
       self.punits  = None     # Input pressure units
       self.tunits  = 'kelvin' # Input temperature units

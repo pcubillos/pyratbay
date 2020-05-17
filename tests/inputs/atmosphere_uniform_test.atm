@@ -1,9 +1,9 @@
 # This is an atmospheric file with pressure, temperature,
 # and uniform mole mixing ratio profiles.
 
-# Abundance units (by number or mass):
+# Abundance units (by volume or mass mixing ratio):
 @ABUNDANCE
-number
+volume
 # Pressure units:
 @PRESSURE
 bar

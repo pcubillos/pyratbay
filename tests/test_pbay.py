@@ -299,7 +299,7 @@ def test_atmosphere_uniform(tmp_path):
     np.testing.assert_equal(abund, q)
     # Compare against the atmospheric file now:
     atm = io.read_atm(atmfile)
-    assert atm[0] == ('bar', 'kelvin', 'number', None)
+    assert atm[0] == ('bar', 'kelvin', 'volume', None)
     np.testing.assert_equal(atm[1], np.array('H2 He Na H2O CH4 CO CO2'.split()))
     # File read-write loses precision:
     np.testing.assert_allclose(atm[2]*pc.bar, expected_pressure, rtol=3e-5)
@@ -319,7 +319,7 @@ def test_atmosphere_tea(tmp_path):
     np.testing.assert_allclose(abund, expected_abundance, rtol=1e-7)
     # Compare against the atmospheric file now:
     atmf = io.read_atm(atmfile)
-    assert atmf[0] == ('bar', 'kelvin', 'number', None)
+    assert atmf[0] == ('bar', 'kelvin', 'volume', None)
     np.testing.assert_equal(atmf[1],
         np.array('H2 He Na K H2O CH4 CO CO2 NH3 HCN N2'.split()))
     # File read-write loses precision:

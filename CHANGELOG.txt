@@ -6388,3 +6388,10 @@ Moved to last place.
 Swapped places of radius and punits in io.write_atm().
 Set default value of punits to 'bar'.
 
+
+*****  So 17. Mai 17:12:05 CEST 2020  *****
+
+Refactored io.read_atm() and io.write_atm() to enable files with
+only pressure and temperature.
+Modified abundance units from 'number' to 'volume'.
+ 

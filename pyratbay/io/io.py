@@ -83,7 +83,7 @@ def load_pyrat(pfile):
     return pyrat
 
 
-def write_atm(atmfile, pressure, temperature, species, abundances,
+def write_atm(atmfile, pressure, temperature, species=None, abundances=None,
         radius=None, punits='bar', runits=None, header=None):
     r"""
     Write an atmospheric file following the Pyrat format.
@@ -128,15 +128,16 @@ def write_atm(atmfile, pressure, temperature, species, abundances,
     >>> with open(atmfile, 'r') as f:
     >>>     print(f.read())
     # Example atmospheric file:
-    # Abundance units (by number or mass):
-    @ABUNDANCE
-    number
     # Pressure units:
     @PRESSURE
     bar
     # Temperatures units:
     @TEMPERATURE
     kelvin
+    # Abundance units (mixing ratio):
+    @ABUNDANCE
+    volume
+
     # Atmospheric composition:
     @SPECIES
     H2  He  H2O
@@ -149,27 +150,33 @@ def write_atm(atmfile, pressure, temperature, species, abundances,
     3.1623e-01     1500.000  8.499000e-01  1.500000e-01  1.000000e-04
     1.0000e+02     1500.000  8.499000e-01  1.500000e-01  1.000000e-04
     """
+    if (species is None) != (abundances is None):
+        raise ValueError('Both species and abundances must be defined')
+
     f = open(atmfile, "w")
     if header is not None:
         f.write(header)
 
     # Set the values units:
-    f.write("# Abundance units (by number or mass):\n@ABUNDANCE\nnumber\n")
-    f.write("# Pressure units:\n@PRESSURE\n{:s}\n".format(punits))
-    if radius is not None:
-        f.write("# Radius units:\n@RADIUS\n{:s}\n".format(runits))
+    f.write(f"# Pressure units:\n@PRESSURE\n{punits}\n")
     f.write("# Temperatures units:\n@TEMPERATURE\nkelvin\n")
+    if radius is not None:
+        f.write(f"# Radius units:\n@RADIUS\n{runits}\n")
+    # At the moment, only take volume MR (mass if theres's popular demand)
+    if species is not None:
+        f.write("# Abundance units (mixing fraction):\n@ABUNDANCE\nvolume\n")
+        # Species names:
+        f.write("\n# Atmospheric composition:\n@SPECIES\n" +
+                "  ".join([f"{mol:<s}" for mol in species]) + '\n')
 
-    # Write the species names:
-    f.write("# Atmospheric composition:\n@SPECIES\n" +
-            "  ".join(["{:<s}".format(mol) for mol in species]) + '\n\n')
     # Write the per-layer data:
     if radius is not None:
-        f.write("# Radius    Pressure    Temperature  ")
+        f.write("\n# Radius    Pressure    Temperature  ")
     else:
-        f.write("# Pressure  Temperature  ")
-    f.write("".join(["{:<14s}".format(mol) for mol in species]) + "\n")
-    f.write("@DATA\n")
+        f.write("\n# Pressure  Temperature  ")
+    if species is not None:
+        f.write("".join([f"{mol:<14s}" for mol in species]))
+    f.write("\n@DATA\n")
 
     pressure = pressure/pt.u(punits)
     if radius is not None:
@@ -178,13 +185,12 @@ def write_atm(atmfile, pressure, temperature, species, abundances,
     # Write data for each layer:
     nlayers = len(pressure)
     for i in range(nlayers):
-        # (radius,) pressure, and temperature:
         if radius is not None:
-            f.write("{:10.4e}  ".format(radius[i]))
-        f.write("{:10.4e}  {:11.3f}  ".format(pressure[i], temperature[i]))
-        # Species mole mixing ratios:
-        f.write("  ".join(["{:12.6e}".format(ab) for ab in abundances[i]])
-                + "\n")
+            f.write(f"{radius[i]:10.4e}  ")
+        f.write(f"{pressure[i]:10.4e}  {temperature[i]:11.3f}  ")
+        if species is not None:
+            f.write(f"  ".join([f"{q:12.6e}" for q in abundances[i]]))
+        f.write('\n')
     f.close()
 
 
@@ -249,7 +255,7 @@ def read_atm(atmfile):
             break
         # Skip empty and comment lines:
         elif line == '' or line.startswith('#'):
-            pass
+            continue
         # Extract units, and species from header:
         elif line == '@PRESSURE':
             punits = atmfile.readline().strip()
@@ -262,28 +268,40 @@ def read_atm(atmfile):
         elif line == '@SPECIES':
             species = np.asarray(atmfile.readline().strip().split())
         else:
-            raise ValueError("Atmosphere file has unexpected line: \n'{:s}'".
-                             format(line))
+            raise ValueError(f"Atmosphere file has unexpected line: \n'{line}'")
 
     if punits is None:
         raise ValueError("Atmospheric file does not have '@PRESSURE' header")
     if tunits is None:
         raise ValueError("Atmospheric file does not have '@TEMPERATURE' header")
-    if qunits is None:
+
+    if qunits is None and species is not None:
         raise ValueError("Atmospheric file does not have '@ABUNDANCE' header")
-    if species is None:
+    if species is None and qunits is not None:
         raise ValueError("Atmospheric file does not have '@SPECIES' header")
 
-    nspecies = len(species)
+    has_radius = runits is not None
+    has_q = species is not None
+
+    nspecies = len(species) if has_q else 0
+    nrad = int(has_radius)
 
     # Read first line to count number of columns:
     datastart = atmfile.tell()
     line = atmfile.readline()
-    # Is there a column for the radius:
-    rad = len(line.split()) - nspecies == 3
+    ncolumns = len(line.split())
 
-    if rad and runits is None:
+    if ncolumns == 3 + nspecies and runits is None:
         raise ValueError("Atmospheric file does not have '@RADIUS' header")
+
+    if ncolumns != 2 + nrad + nspecies:
+        rad_txt = ", 1 column for radius" if has_radius else ""
+        q_txt = f", {nspecies} columns for abundances" if has_q else ""
+
+        raise ValueError(
+            f"Inconsistent number of columns ({ncolumns}) in '@DATA', "
+             "expected 2 columns for temperature and pressure"
+            f"{rad_txt}{q_txt}")
 
     # Count number of layers:
     nlayers = 1
@@ -294,23 +312,21 @@ def read_atm(atmfile):
         nlayers += 1
 
     # Initialize arrays:
-    if rad:
-        radius = np.zeros(nlayers, np.double)
-    else:
-        radius = None
+    radius = np.zeros(nlayers, np.double) if has_radius else None
     press = np.zeros(nlayers, np.double)
     temp  = np.zeros(nlayers, np.double)
-    q     = np.zeros((nlayers, nspecies), np.double)
+    q = np.zeros((nlayers, nspecies), np.double) if has_q else None
 
     # Read table:
     atmfile.seek(datastart, 0)
     for i in np.arange(nlayers):
         data = atmfile.readline().split()
-        if rad:
+        if has_radius:
             radius[i] = data[0]
-        press[i] = data[rad+0]
-        temp [i] = data[rad+1]
-        q    [i] = data[rad+2:]
+        press[i] = data[nrad+0]
+        temp [i] = data[nrad+1]
+        if has_q:
+            q[i] = data[nrad+2:]
 
     return (punits, tunits, qunits, runits), \
            species, press, temp, q, radius

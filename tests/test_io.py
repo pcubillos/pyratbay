@@ -139,7 +139,25 @@ def test_read_write_opacity(tmpdir):
     np.testing.assert_allclose(etable, edata[2])
 
 
-def test_read_write_atm(tmpdir):
+def test_read_write_atm_pt(tmpdir):
+    atmfile = "WASP-00b.atm"
+    atm = "{}/{}".format(tmpdir, atmfile)
+    nlayers = 11
+    pressure    = pa.pressure('1e-8 bar', '1e2 bar', nlayers)
+    temperature = pa.tmodels.Isothermal(nlayers)(1500.0)
+    io.write_atm(atm, pressure, temperature, punits='bar')
+    assert atmfile in os.listdir(str(tmpdir))
+
+    atm_input = io.read_atm(atm)
+    assert atm_input[0] == ('bar', 'kelvin', None, None)
+    assert atm_input[1] is None
+    np.testing.assert_allclose(atm_input[2], pressure/pc.bar)
+    np.testing.assert_allclose(atm_input[3], temperature)
+    assert atm_input[4] is None
+    assert atm_input[5] is None
+
+
+def test_read_write_atm_ptq(tmpdir):
     atmfile = "WASP-00b.atm"
     atm = "{}/{}".format(tmpdir, atmfile)
     nlayers = 11
@@ -153,7 +171,7 @@ def test_read_write_atm(tmpdir):
     assert atmfile in os.listdir(str(tmpdir))
 
     atm_input = io.read_atm(atm)
-    assert atm_input[0] == ('bar', 'kelvin', 'number', None)
+    assert atm_input[0] == ('bar', 'kelvin', 'volume', None)
     np.testing.assert_equal(atm_input[1], np.array(species))
     np.testing.assert_allclose(atm_input[2], pressure/pc.bar)
     np.testing.assert_allclose(atm_input[3], temperature)
@@ -161,7 +179,7 @@ def test_read_write_atm(tmpdir):
     assert atm_input[5] is None
 
 
-def test_read_write_atm_radius(tmpdir):
+def test_read_write_atm_ptqr(tmpdir):
     atmfile = "WASP-00b.atm"
     atm = "{}/{}".format(tmpdir, atmfile)
     nlayers = 11
@@ -177,7 +195,7 @@ def test_read_write_atm_radius(tmpdir):
     assert atmfile in os.listdir(str(tmpdir))
 
     atm_input = io.read_atm(atm)
-    assert atm_input[0] == ('bar', 'kelvin', 'number', 'km')
+    assert atm_input[0] == ('bar', 'kelvin', 'volume', 'km')
     np.testing.assert_equal(atm_input[1], np.array(species))
     np.testing.assert_allclose(atm_input[2], pressure/pc.bar)
     np.testing.assert_allclose(atm_input[3], temperature)
