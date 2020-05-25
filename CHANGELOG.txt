@@ -6420,4 +6420,8 @@ Fixed typo in README.md pypi shield.
 
 Updated year in license.rst.
 
+*****
+
+Updated exomol names for N2 isotopes.
+
 
