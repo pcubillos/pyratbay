@@ -81,7 +81,6 @@ Documentation
 
    getstarted
    tli_tutorial
-   pt_tutorial
    atm_tutorial
    spec_tutorial
    opac_tutorial

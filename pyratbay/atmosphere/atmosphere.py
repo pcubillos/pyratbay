@@ -297,13 +297,13 @@ def abundance(pressure, temperature, species, elements=None,
         log = mu.Log(verb=verb)
     # Uniform-abundances profile:
     if quniform is not None:
-        q = uniform(pressure, temperature, species, quniform, punits, log,
-                    atmfile)
-        log.head(f"\nProduced uniform-abundances atmospheric file '{atmfile}'.")
+        log.head(f"\nCompute uniform-abundances profile.")
+        q = uniform(
+            pressure, temperature, species, quniform, punits, log, atmfile)
         return q
 
     # TEA abundances:
-    log.head("\nRun TEA to compute thermochemical-equilibrium abundances.")
+    log.head(f"\nCompute TEA thermochemical-equilibrium abundances profile.")
     # Prep up files:
     atomic_file, patm = "PBatomicfile.tea", "PBpreatm.tea"
     make_atomic(xsolar, escale, atomic_file, solar_file)
@@ -317,9 +317,7 @@ def abundance(pressure, temperature, species, elements=None,
     proc = subprocess.Popen([pc.ROOT+"modules/TEA/tea/runatm.py", patm, "TEA"])
     proc.communicate()
     # Reformat the TEA output into the pyrat format:
-    if atmfile is not None:
-        log.head(f"Produced TEA atmospheric file '{atmfile}'.")
-    else:
+    if atmfile is None:
         atmfile = 'TEA.tea'
     io.import_tea("TEA.tea", atmfile, species)
     q = io.read_atm(atmfile)[4]
@@ -575,6 +573,7 @@ def mean_weight(abundances, species, molfile=None):
         molfile = pc.ROOT + 'inputs/molecules.dat'
     names, mass, diam = io.read_molecs(molfile)
     mass = np.array([mass[names==spec][0] for spec in species])
+
     return np.sum(np.atleast_2d(abundances)*mass, axis=1)
 
 

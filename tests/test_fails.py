@@ -26,10 +26,11 @@ def test_run_runmode(tmp_path, capfd, runmode, call):
         pyrat = pb.run(cfg)
         assert pyrat is None
     elif call == 'command_line':
-        subprocess.call('pbay -c {:s}'.format(cfg).split())
+        subprocess.call(f'pbay -c {cfg}'.split())
     captured = capfd.readouterr()
     caps = ["Error in module: 'parser.py', function: 'parse'",
-            "Invalid running mode (runmode): {:s}. Select from: ['tli', 'pt',".format(runmode)]
+           f"Invalid running mode (runmode): {runmode}. Select from: "
+            "['tli', 'atmosphere',"]
     for cap in caps:
         assert cap in captured.out
 
@@ -359,18 +360,16 @@ def test_pt_tpars_mismatch(tmp_path, capfd, tmodel, npars):
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 # atmosphere runmode fails:
 
-@pytest.mark.parametrize('param',
-    ['atmfile', 'species'])
-def test_uniform_missing(tmp_path, capfd, param, undefined):
+def test_missing_atmfile(tmp_path, capfd, undefined):
     cfg = make_config(tmp_path,
         ROOT+'tests/configs/atmosphere_uniform_test.cfg',
-        remove=[param])
+        remove=['atmfile'])
     pyrat = pb.run(cfg)
     assert pyrat is None
     captured = capfd.readouterr()
     assert "Error in module: 'driver.py', function: 'check_atm'" \
            in captured.out
-    assert undefined[param] in captured.out
+    assert undefined['atmfile'] in captured.out
 
 
 def test_uniform_uniform_mismatch(tmp_path, capfd):
@@ -384,17 +383,6 @@ def test_uniform_uniform_mismatch(tmp_path, capfd):
     assert "Number of uniform abundances (2) does not match the number " \
            "of species (7)." in captured.out
 
-
-@pytest.mark.parametrize('param',
-    ['atmfile', 'species', 'elements'])
-def test_tea_missing(tmp_path, capfd, param, undefined):
-    cfg = make_config(tmp_path, ROOT+'tests/configs/atmosphere_tea_test.cfg',
-        remove=[param])
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert "Error in module: 'driver.py', function: 'check_atm'" in captured.out
-    assert undefined[param] in captured.out
 
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 # spectrum runmode fails (setup):

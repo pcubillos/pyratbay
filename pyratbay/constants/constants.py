@@ -176,7 +176,6 @@ dbases = [
 # Running modes:
 rmodes = [
     'tli',
-    'pt',
     'atmosphere',
     'opacity',
     'spectrum',

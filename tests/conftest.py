@@ -55,7 +55,8 @@ def undefined():
         'gplanet': 'Undefined planetary surface gravity (gplanet)',
         'atmfile': 'Undefined atmospheric file (atmfile).',
         'species': 'Undefined atmospheric species list (species).',
-        'elements': 'Undefined atmospheric atomic composition (elements).',
+        'elements': 'Undefined atmospheric atomic composition (elements) '
+                    'or uniform abundances (uniform).',
     }
     return data
 

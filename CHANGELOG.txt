@@ -6399,3 +6399,16 @@ Modified abundance units from 'number' to 'volume'.
 
 PEP8ed driver.py
 
+
+*****  Mo 25. Mai 13:47:19 CEST 2020  *****
+
+Removed pt running mode, moved into atmosphere mode
+when the input config file only contains the PT arguments.
+Refactored driver.py accordingly, an atmospheric run always return
+a tuple with pressure, temperature, abundances, species, radius.
+(regardless of None fields).
+Implemented check_abundance_args() function to check for abundance
+arguments without breaking the run.
+Updated example config files.
+Updated docs.
+

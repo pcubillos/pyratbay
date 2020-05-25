@@ -28,7 +28,7 @@ def run(cfile, init=False, no_logfile=False):
     cfile: String
         A Pyrat Bay configuration file.
     init: Bool
-        If True, only initialize a Pyrat object (no spectra calculation).
+        If True, only initialize a Pyrat object (no spectra/mcmc calculation).
         This is useful when computing spectra interactively.
     no_logfile: Bool
         If True, enforce not to write outputs to a log file
@@ -72,34 +72,43 @@ def run(cfile, init=False, no_logfile=False):
         phy.gplanet = pc.G * phy.mplanet / phy.rplanet**2
 
 
-    # Compute pressure-temperature profile:
-    if pyrat.runmode in ['pt', 'atmosphere'] or pt.isfile(atm.atmfile) != 1:
+    if pyrat.runmode == 'atmosphere' or pt.isfile(atm.atmfile) != 1:
+        # Compute pressure-temperature profile:
         if pt.isfile(atm.ptfile) == 1:
             log.msg(f"\nReading pressure-temperature file: '{atm.ptfile}'.")
-            pressure, temperature = io.read_pt(atm.ptfile)
+            units, _, pressure, temperature = io.read_atm(atm.ptfile)[2:4]
+            pressure *= pt.u(units[0]) # pressure in barye
         else:
             check_pressure(pyrat)
-            pressure = pa.pressure(atm.ptop, atm.pbottom, atm.nlayers,
-                'barye', log)
+            pressure = pa.pressure(
+                atm.ptop, atm.pbottom, atm.nlayers, 'barye', log)
             check_temp(pyrat)
-            temperature = pa.temperature(atm.tmodelname, pressure,
-                 atm.nlayers, log, atm.tpars)
+            temperature = pa.temperature(
+                atm.tmodelname, pressure, atm.nlayers, log, atm.tpars)
 
-    # Return temperature-pressure if requested:
-    if pyrat.runmode == 'pt':
-        return pressure, temperature
-
-
-    # Compute atmospheric abundances:
-    if pyrat.runmode == 'atmosphere' or pt.isfile(atm.atmfile) != 1:
-        check_atm(pyrat)
-        abundances = pa.abundance(pressure, temperature, inputs.species,
-            inputs.elements, inputs.uniform, atm.atmfile, atm.punits,
-            inputs.xsolar, atm.escale, inputs.solar, log)
+        # Compute abundance profiles:
+        if check_abundance_args(pyrat) or pyrat.runmode != 'atmosphere':
+            check_atm(pyrat)
+            species = inputs.species
+            abundances = pa.abundance(
+                pressure, temperature, species, inputs.elements,
+                inputs.uniform, atm.atmfile, atm.punits, inputs.xsolar,
+                atm.escale, inputs.solar, log)
+        else:
+            abundances = None
+            species = None
 
     # Return atmospheric model if requested:
     if pyrat.runmode == 'atmosphere':
-        return pressure, temperature, abundances
+        header = '# Pyrat bay atmospheric model\n'
+        radius = None
+        if atm.atmfile is not None:
+            io.write_atm(
+                atm.atmfile, pressure, temperature, species,
+                abundances, radius, atm.punits, header=header)
+            log.msg(f"Output atmospheric file: '{atm.atmfile}'.")
+        return pressure, temperature, abundances, species, radius
+
 
     # Check status of extinction-coefficient file if necessary:
     if pyrat.runmode != 'spectrum' and pt.isfile(pyrat.ex.extfile) == -1:
@@ -221,12 +230,23 @@ def check_temp(pyrat):
     """
     Check the input arguments to calculate the temperature profile.
     """
-    log = pyrat.log
-    atm = pyrat.atm
-    if atm.tmodelname is None:
-        log.error("Undefined temperature model (tmodel).")
-    if atm.tpars is None:
-        log.error("Undefined temperature-model parameters (tpars).")
+    if pyrat.atm.tmodelname is None:
+        pyrat.log.error("Undefined temperature model (tmodel).")
+    if pyrat.atm.tpars is None:
+        pyrat.log.error("Undefined temperature-model parameters (tpars).")
+
+
+def check_abundance_args(pyrat):
+    """Check input arguments required to compute abundances."""
+    if pyrat.inputs.species is None:
+        return False
+    if pyrat.inputs.uniform is None and pyrat.inputs.elements is None:
+        pyrat.log.warning(
+            'Defined atmospheric species to compute, but neither elements '
+            'nor uniform argument have been defined.  Output atmospheric '
+            'profile will contain only temperature and pressure.')
+        return False
+    return True
 
 
 def check_atm(pyrat):
@@ -248,7 +268,10 @@ def check_atm(pyrat):
         return
     # TEA abundances:
     if pyrat.inputs.elements is None:
-        pyrat.log.error("Undefined atmospheric atomic composition (elements).")
+        pyrat.log.error(
+            "Undefined atmospheric atomic composition (elements) or uniform "
+            "abundances (uniform).")
+
     pyrat.inputs.solar = pyrat.inputs.get_default('solar',
         'Solar-abundance file',
         pc.ROOT+'inputs/AsplundEtal2009.txt')
