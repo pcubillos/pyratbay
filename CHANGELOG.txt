@@ -6416,4 +6416,8 @@ Updated docs.
 
 Fixed typo in README.md pypi shield.
 
+*****
+
+Updated year in license.rst.
+
 
