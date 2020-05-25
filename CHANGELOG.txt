@@ -6412,3 +6412,8 @@ arguments without breaking the run.
 Updated example config files.
 Updated docs.
 
+*****
+
+Fixed typo in README.md pypi shield.
+
+

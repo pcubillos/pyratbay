@@ -3,7 +3,7 @@
 
 [![Build Status](https://travis-ci.com/pcubillos/pyratbay.svg?branch=master)](https://travis-ci.com/pcubillos/pyratbay)
 [![Documentation Status](https://readthedocs.org/projects/pyratbay/badge/?version=latest)](https://pyratbay.readthedocs.io/en/latest/?badge=latest)
-[![PyPI](https://img.shields.io/pypi/v/ipyratbay.svg)](https://pypi.org/project/pyratbay)
+[![PyPI](https://img.shields.io/pypi/v/pyratbay.svg)](https://pypi.org/project/pyratbay)
 ![GitHub](https://img.shields.io/github/license/pcubillos/pyratbay.svg?color=blue)
 
 Find the full Pyrat Bay documentation at <http://pyratbay.readthedocs.io>.
