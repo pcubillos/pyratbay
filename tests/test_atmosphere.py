@@ -302,10 +302,25 @@ def test_stoich():
 @pytest.mark.parametrize("abundances",
     [ [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4],
      [[0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]]])
-def test_mean_weight(abundances):
-    species     = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
+def test_mean_weight_molfile(abundances):
+    species = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
     mu = pa.mean_weight(abundances, species)
     np.testing.assert_allclose(mu, np.array([2.31928918]))
+
+
+def test_mean_weight_mass():
+    abundances = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
+    species = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
+    mass = np.array([2.01588, 4.0026020, 18.01528, 28.0101, 44.0095, 16.0425])
+    mu = pa.mean_weight(abundances, mass=mass)
+    np.testing.assert_allclose(mu, np.array([2.31928918]))
+
+
+def test_mean_weight_fail():
+    abundances = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
+    with pytest.raises(ValueError,
+            match="Either species or mass arguments must be specified"):
+        mu = pa.mean_weight(abundances)
 
 
 def test_ideal_gas_density():

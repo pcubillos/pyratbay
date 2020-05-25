@@ -540,7 +540,7 @@ def stoich(species):
     return elements, stoich
 
 
-def mean_weight(abundances, species, molfile=None):
+def mean_weight(abundances, species=None, molfile=None, mass=None):
     """
     Calculate the mean molecular weight (a.k.a. mean molecular mass)
     for the given abundances composition.
@@ -554,6 +554,9 @@ def mean_weight(abundances, species, molfile=None):
     molfile: String
         A molecules file with the species info.  If None, use
         pyratbay's default molecules.dat file.
+    mass: 1D float ndarray
+        The mass for each one of the species (g mol-1).
+        If not None, this variable takes precedence over molfile.
 
     Returns
     -------
@@ -569,10 +572,13 @@ def mean_weight(abundances, species, molfile=None):
     >>> print(mu)
     [2.31928918]
     """
-    if molfile is None:
-        molfile = pc.ROOT + 'inputs/molecules.dat'
-    names, mass, diam = io.read_molecs(molfile)
-    mass = np.array([mass[names==spec][0] for spec in species])
+    if mass is None and species is None:
+        raise ValueError('Either species or mass arguments must be specified')
+    if mass is None:
+        if molfile is None:
+            molfile = pc.ROOT + 'inputs/molecules.dat'
+        names, mass, diam = io.read_molecs(molfile)
+        mass = np.array([mass[names==spec][0] for spec in species])
 
     return np.sum(np.atleast_2d(abundances)*mass, axis=1)
 

@@ -6424,4 +6424,8 @@ Updated year in license.rst.
 
 Updated exomol names for N2 isotopes.
 
+*****
+
+Modified pa.mean_weight() to add optional mass argument to set
+the mass of the input species (faster execution).
 
