@@ -21,6 +21,7 @@ import os
 import pickle
 
 import numpy as np
+import mc3
 
 from .. import constants as pc
 from .. import tools as pt
@@ -40,7 +41,7 @@ def save_pyrat(pyrat, pfile=None):
     """
     if pfile is None:
         pfile = os.path.splitext(pyrat.log.logname)[0] + '.pickle'
-        print('Saving pyrat instance to: {}'.format(pfile))
+        print(f'Saving pyrat instance to: {pfile}')
     # Reset values to reduce pickle size:
     with pt.tmp_reset(pyrat, 'spec.own', 'voigt.profile', 'log.file',
             'ex.ec', 'ex.etable', 'ret.posterior',
@@ -70,16 +71,9 @@ def load_pyrat(pfile):
     pyrat.log.verb = pyrat.verb
     # Recover MCMC posterior:
     if pt.isfile(pyrat.ret.mcmcfile) == 1:
-        with np.load(pyrat.ret.mcmcfile) as d:
-            Z = d['Z']
-            Zchain = d['Zchain']
-        burnin = pyrat.ret.burnin
-        ipost = np.ones(len(Z), bool)
-        for c in np.unique(Zchain):
-            ipost[np.where(Zchain == c)[0][0:burnin]] = False
-        ipost[np.where(Zchain == -1)] = False
-        pyrat.ret.posterior = Z[ipost]
-
+        with np.load(pyrat.ret.mcmcfile) as mcmc:
+            posterior, zchain, zmask = mc3.utils.burn(mcmc)
+        pyrat.ret.posterior = posterior
     return pyrat
 
 
