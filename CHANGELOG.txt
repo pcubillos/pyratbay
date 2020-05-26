@@ -6438,4 +6438,7 @@ Updated io.load_pyrat() according to mc3 v3.0+.
 
 Fixed bug in read_extinction() when trying to reload a pyrat object.
 
+*****
+
+Bumped Pyrat Bay version to 0.9.0a6.
 
