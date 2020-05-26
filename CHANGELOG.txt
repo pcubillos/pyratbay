@@ -6434,4 +6434,8 @@ the mass of the input species (faster execution).
 
 Updated io.load_pyrat() according to mc3 v3.0+.
 
+*****
+
+Fixed bug in read_extinction() when trying to reload a pyrat object.
+
 

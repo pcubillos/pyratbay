@@ -54,6 +54,8 @@ def read_extinction(pyrat):
   ex = pyrat.ex
   ex.species, ex.etable = [], []
 
+  ex.ntemp = 0
+  ex.temp = ex.press = ex.wn = None
   for extfile in ex.extfile:
       edata = io.read_opacity(extfile)
       # Array sizes:
