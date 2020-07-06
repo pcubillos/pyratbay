@@ -187,7 +187,7 @@ class Madhu(object):
             r'$a_1$', r'$a_2$', r'$T_0$']
         self.npars = len(self.pnames)
 
-        self.logp = np.log10(pressure)
+        self.logp = np.log10(pressure/pc.bar)
         self.temp = np.zeros_like(pressure)
         self.logp0 = np.amin(self.logp)
         # Standard deviation of smoothing kernel (~0.3 dex in pressure):
@@ -201,8 +201,8 @@ class Madhu(object):
         ----------
         params: 1D float ndarray
             Temperature model parameters: log10(p1), log10(p2), log10(p3),
-            a1, a2, and T0; as defined in MS (2009), with pressure values
-            in barye.
+            a1, a2, and T0; as defined in Madhusudhan & Seager (2009),
+            with the pressure values given in bars.
 
         Returns
         -------
@@ -219,10 +219,10 @@ class Madhu(object):
         >>> madhu = pa.tmodels.Madhu(pressure)
         >>> # Thermally-inverted profile (p2 > p1):
         >>> #       [logp1, logp2, logp3, a1,  a2,  T0]
-        >>> params = 2.39,  5.23,  7.45, 0.85, 0.67, 870.0
+        >>> params = -4.0, -1.0, 1.5, 0.85, 0.67, 870.0
         >>> inv = madhu(params)
         >>> # Non thermally-inverted profile (p1 > p2):
-        >>> params = 5.23,  2.39,  7.45, 0.85, 0.67, 870.0
+        >>> params = -1.0, -4.0, 1.5, 0.85, 0.67, 870.0
         >>> non_inv = madhu(params)
         >>> # Plot the results:
         >>> plt.figure(1)

@@ -104,9 +104,10 @@ Madhu profiles
 
 The madhu model has six parameters: |logp1|, |logp2|, |logp3|, |a1|,
 |a2|, and |T0|, as described in [Madhusudhan2009]_, where the pressure
-values must be given in CGS units (barye).  A thermally inverted
+values must be given in bars.  A thermally inverted
 profile will result when :math:`p_1 < p_2`; a non-inverted profile
-will result when :math:`p_2 < p_1`.
+will result when :math:`p_2 < p_1`.  The pressure parameters must also
+satisfy: :math:`p_1 < p_3`.
 
 .. literalinclude:: ../examples/tutorial/pt_madhu.cfg
 

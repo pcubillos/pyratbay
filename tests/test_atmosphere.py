@@ -171,14 +171,14 @@ def test_tmodel_tcea_gravity(gravity):
 def test_temp_madhu_no_inv():
     pressure = expected_pressure
     tmodel = pa.tmodels.Madhu(pressure)
-    params = 5.23, 2.39, 7.45, 0.85, 0.67, 870.0
+    params = -0.77, -3.61, 1.45, 0.85, 0.67, 870.0
     np.testing.assert_allclose(tmodel(params), expected_temp_madhu_noinv)
 
 
 def test_temp_madhu_inv():
     pressure = expected_pressure
     tmodel = pa.tmodels.Madhu(pressure)
-    params = 2.39, 5.23, 7.45, 0.85, 0.67, 870.0
+    params = -3.61, -0.77, 1.45, 0.85, 0.67, 870.0
     np.testing.assert_allclose(tmodel(params), expected_temp_madhu_inv)
 
 
@@ -198,7 +198,7 @@ def test_temperature_tcea():
 
 def test_temperature_madhu():
     pressure = expected_pressure
-    params = 5.23, 2.39, 7.45, 0.85, 0.67, 870.0
+    params = -0.77, -3.61, 1.45, 0.85, 0.67, 870.0
     temp = pa.temperature('madhu', pressure, params=params)
     np.testing.assert_allclose(temp, expected_temp_madhu_noinv)
 
