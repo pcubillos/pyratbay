@@ -182,6 +182,14 @@ def test_temp_madhu_inv():
     np.testing.assert_allclose(tmodel(params), expected_temp_madhu_inv)
 
 
+def test_temp_madhu_invalid_params():
+    # p1 > p3:
+    pressure = expected_pressure
+    tmodel = pa.tmodels.Madhu(pressure)
+    params = 2.0, -0.77, 1.5, 0.85, 0.67, 870.0
+    np.testing.assert_allclose(tmodel(params), np.tile(0.0,len(pressure)))
+
+
 def test_temperature_isothermal():
     params = 1500.0
     nlayers = 15

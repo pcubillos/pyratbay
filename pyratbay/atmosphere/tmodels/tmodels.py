@@ -232,6 +232,10 @@ class Madhu(object):
         >>> plt.ylim(1e3, 1e-6)
         """
         logp1, logp2, logp3, a1, a2, T0 = params
+        if logp1 > logp3:
+            self.temp[:] = 0.0
+            return np.copy(self.temp)
+
         # Calculate temperatures at layer boundaries:
         T1 = T0 + ((logp1 - self.logp0) / (a1*self.loge))**2
         T2 = T1 - ((logp1 - logp2) / (a2*self.loge))**2

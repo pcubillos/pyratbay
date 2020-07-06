@@ -6451,3 +6451,7 @@ Updated docs, examples, and tests.
 
 *****
 
+Modified Madhu() temperature class to return a zeroed temperature
+profile when p1 > p3.
+Added test.
+
