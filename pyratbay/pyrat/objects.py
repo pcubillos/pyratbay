@@ -158,7 +158,6 @@ class Atm(object):
       fw.write('Temperature model name (tmodelname): {}', self.tmodelname)
       if self.tmodel is not None:
           fw.write('  tmodel parameters (tpars): {}', self.tpars)
-          fw.write('  tmodel arguments (targs): {}', self.targs)
       fw.write('Temperature profile (temp, K):\n    {}', self.temp,
           fmt={'float': '{:9.3f}'.format}, edge=3)
 

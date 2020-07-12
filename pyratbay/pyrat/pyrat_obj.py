@@ -217,6 +217,7 @@ class Pyrat(object):
       rejectflag = False
       # Update temperature profile if requested:
       if self.ret.itemp is not None:
+          self.atm.tpars = params[self.ret.itemp]
           temp = self.atm.tmodel(params[self.ret.itemp])
       else:
           temp = self.atm.temp

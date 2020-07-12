@@ -6455,3 +6455,11 @@ Modified Madhu() temperature class to return a zeroed temperature
 profile when p1 > p3.
 Added test.
 
+
+*****  Sun Jul 12 17:55:04 CEST 2020  *****
+
+Fixed bug in Atmosphere.__str__() method, removed deprecated targs
+variable.
+Updated pyrat.atm.tpars when running pyrat.eval() with temperature
+parameters.
+
