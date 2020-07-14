@@ -26,7 +26,7 @@ from .  import objects    as ob
 from .  import argum      as ar
 from .  import makesample as ms
 from .  import voigt      as v
-from .  import readlinedb as rl
+from .  import read_tli   as rtli
 
 
 class Pyrat(object):
@@ -98,7 +98,7 @@ class Pyrat(object):
       self.timestamps['read atm'] = timer.clock()
 
       # Read line database:
-      rl.read_tli(self)
+      rtli.read_tli(self)
       self.timestamps['read tli'] = timer.clock()
 
       # Make atmospheric profiles (pressure, radius, temperature, abundances):

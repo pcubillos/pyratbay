@@ -6485,3 +6485,7 @@ Updated mcmc_eclipse.cfg tutorial example.
 Added broadening.doppler_hwhm() and lorentz_hwhm() functions.
 Documented and tested.
 
+*****
+
+Fixed bug in pyrat_obj.py (read_tli.py module name change).
+
