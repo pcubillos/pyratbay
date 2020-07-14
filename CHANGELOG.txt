@@ -6476,3 +6476,7 @@ Renamed readlinedb.py to read_tli.py
 
 Updated docs (API, index, MCMC tutorial).
 
+*****
+
+Updated mcmc_eclipse.cfg tutorial example.
+
