@@ -149,20 +149,30 @@ the beginning of each chain.
 .. Gelman-Rubin stuff.
 
 
-Nested-sampling Retrieval
-^^^^^^^^^^^^^^^^^^^^^^^^^
-
-TBD.
+.. Nested-sampling Retrieval
+   ^^^^^^^^^^^^^^^^^^^^^^^^^
+   TBD.
 
 ----------------------------------------------------------------------
 
 Examples
 --------
 
+Since this is an eclipse retrieval, the code requires a stellar
+spectrum model to compute the planet-to-star flux ratios:
+
+.. code-block:: shell
+
+   # Download Kurucz stellar model:
+   wget http://kurucz.harvard.edu/grids/gridp00odfnew/fp00k2odfnew.pck
+
+Also, first be sure to create the opacity file as described in
+:ref:`opactutorial`.
+
+
 As in a spectrum run, an MCMC run returns a '*pyrat*' object in an
 interactive run.  The following Python script computes an opacity file
-using the configuration file found at the top of this tutorial:
-
+using the configuration file found at the top of this tutorial.
 Just like before, to run the MCMC modeling, simply execute this command:
 
 .. code-block:: python

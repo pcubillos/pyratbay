@@ -6472,3 +6472,7 @@ PEP8ed readlinedb.py
 Renamed readlinedb.py to read_tli.py
 
 
+*****  Di 14. Jul 13:55:51 CEST 2020  *****
+
+Updated docs (API, index, MCMC tutorial).
+

@@ -14,19 +14,20 @@ Pyrat Bay:
 |docs|
 |License|
 
-.. TBD: This is MC3's badge! Replace with Pyrat Bay's when published.
-   raw:: html
 
-        <embed>
-        <span class="__dimensions_badge_embed__"
-            data-doi="10.3847/1538-3881/153/1/3"
-            data-style="small_circle"
-            data-legend="always">
-        </span>
-        <script async src="https://badge.dimensions.ai/badge.js" charset="utf-8"></script>
-        </embed>
+.. TBD: This the badge for another paper! Replace with Pyrat Bay's when published.
 
-.. There will probably wont be a |DOI| (as in Zenodo's DOI)
+    .. raw:: html
+
+    <embed>
+    <span class="__dimensions_badge_embed__"
+        data-doi="10.1093/mnras/stw3103"
+        data-style="small_circle"
+        data-legend="always">
+    </span>
+    <script async src="https://badge.dimensions.ai/badge.js" charset="utf-8">
+    </script>
+    </embed>
 
 
 -------------------------------------------------------------------
@@ -97,7 +98,7 @@ Be Kind
 =======
 
 Please reference this paper if you found ``Pyrat Bay`` useful for your research:
-  `Cubillos & Blecic (2019): An Homogeneous Retrieval Analysis of Exoplanet Transmission Spectra I: The Pyrat-Bay Framework <TBD>`_, in prep.
+  `Cubillos & Blecic (2020): The Pyrat Bay Framework for Exoplanet Atmospheric Modeling: A Population Study of Hubble/WFC3 Transmission Spectra <TBD>`_, submitted.
 
 We welcome your feedback, but do not necessarily guarantee support.
 Please send feedback or inquiries to:
@@ -106,12 +107,6 @@ Please send feedback or inquiries to:
 
 Pyrat-Bay is open-source software under the GNU GPL v2 license (see
 :ref:`license`), and is compatible with Python 3.6+.
-
-
-Documentation for Previous Releases
-===================================
-
-- `Pyrat Bay version 0.0.50 <http://geco.oeaw.ac.at/patricio/PB_v0.0.50.pdf>`_ (and earlier versions).
 
 
 .. _Patricio Cubillos: https://github.com/pcubillos/
