@@ -70,6 +70,28 @@ def test_Voigt(hL, key):
     np.testing.assert_allclose(voigt(x), expected[key], rtol=1e-7)
 
 
+def test_doppler_hwhm():
+    temperature = 1000.0
+    wn = 10000.0
+    mass = np.array([18.0, 44.0])
+    dop_hw = pb.doppler_hwhm(temperature, mass, wn)
+    np.testing.assert_allclose(
+        dop_hw, [0.02669241481944169, 0.01707252588229824], rtol=1e-7)
+
+
+def test_lorentz_hwhm():
+    temperature = 1000.0
+    pressure = 1.0 * pc.bar
+    #                  H2O   CO2   H2    He   
+    masses = np.array([18.0, 44.0, 2.0,  4.0])
+    radii  = np.array([1.6,  1.9,  1.45, 1.4]) * pc.A
+    vmr    = np.array([1e-4, 1e-4, 0.85, 0.15])
+    imol = np.array([0, 1])
+    lor_hw = pb.lorentz_hwhm(temperature, pressure, masses, radii, vmr, imol)
+    np.testing.assert_allclose(
+        lor_hw, [0.036911106660883666,0.04308068108378928], rtol=1e-7)
+
+
 def test_min_widths():
     min_temp = 500.0     # Kelvin
     max_temp = 2500.0  # Kelvin

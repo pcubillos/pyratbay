@@ -6480,3 +6480,8 @@ Updated docs (API, index, MCMC tutorial).
 
 Updated mcmc_eclipse.cfg tutorial example.
 
+*****
+
+Added broadening.doppler_hwhm() and lorentz_hwhm() functions.
+Documented and tested.
+

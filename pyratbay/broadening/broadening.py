@@ -1,8 +1,17 @@
 # Copyright (c) 2016-2020 Patricio Cubillos.
 # Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE).
 
-__all__ = ["Lorentz", "Gauss", "Voigt",
-           "min_widths", "max_widths"]
+__all__ = [
+    # Classes:
+    "Lorentz",
+    "Gauss",
+    "Voigt",
+    # Functions:
+    "doppler_hwhm",
+    "lorentz_hwhm",
+    "min_widths",
+    "max_widths",
+    ]
 
 import numpy as np
 import scipy.special as ss
@@ -234,10 +243,104 @@ class Voigt(object):
       return self.scale * self.hwhmL/self.hwhmG * self._sqrtpi*self._sqrtln2 * V
 
 
+def doppler_hwhm(temperature, mass, wn):
+    r"""
+    Get Doppler half-width at half maximum broadening.
+
+    Parameters
+    ----------
+    temperature: Float scalar or ndarray
+        Atmospheric temperature (Kelvin degree).
+    mass: Float scalar or ndarray
+        Mass of the species (AMU).
+    wn: Float scalar or ndarray
+        Wavenumber (cm-1).
+
+    Returns
+    -------
+    dop_hwhm: Float scalar or ndarray
+        The Doppler half-width at half maximum broadening (cm-1).
+
+    Note
+    ----
+    All inputs must have compatible data shapes to be broadcastable.
+
+    Examples
+    --------
+    >>> import pyratbay.broadening as b
+    >>> # Doppler HWHM at 1000K and 1 micron, for H2O and CO2:
+    >>> temperature = 1000.0
+    >>> wn = 10000.0
+    >>> mass = np.array([18.0, 44.0])
+    >>> dop_hw = b.doppler_hwhm(temperature, mass, wn)
+    >>> print(f'Doppler broadening:\n H2O        CO2\n{dop_hw}')
+    Doppler broadening:
+     H2O        CO2
+    [0.02669241 0.01707253]
+    """
+    dop_hwhm = wn / pc.c  \
+               * np.sqrt(2.0*np.log(2) * pc.k*temperature/(mass*pc.amu))
+    return dop_hwhm
+
+
+def lorentz_hwhm(temperature, pressure, masses, radii, vol_mix_ratio, imol):
+    r"""
+    Get Lorentz half-width at half maximum broadening.
+
+    Parameters
+    ----------
+    temperature: Float scalar or ndarray
+        Atmospheric temperature (Kelvin degree).
+    pressure: Float scalar or ndarray
+        Atmospheric pressure (barye).
+    masses: 1D float ndarray
+        Masses of atmospheric species (AMU).
+    radii: 1D float ndarray
+        Collision radius of atmospheric species (cm).
+    vol_mix_ratio: 1D float ndarray
+        Volume mixing ratio of atmospheric species.
+    imol: Integer
+        Index of species to calculate the HWHM (in masses/radii arrays).
+
+    Returns
+    -------
+    lor_hwhm: Float scalar or ndarray
+        The Lorentz half-width at half maximum broadening (cm-1).
+
+    Note
+    ----
+    The temperature, pressure, and imol inputs must have compatible
+    shapes to be broadcastable.
+
+    Examples
+    --------
+    >>> import pyratbay.broadening as b
+    >>> import pyratbay.constants as pc
+    >>> # Lorenz HWHM at 1000K and 1 bar, for H2O and CO2:
+    >>> temperature = 1000.0
+    >>> pressure = 1.0 * pc.bar
+    >>> #                  H2O   CO2   H2    He
+    >>> masses = np.array([18.0, 44.0, 2.0,  4.0])
+    >>> radii  = np.array([1.6,  1.9,  1.45, 1.4]) * pc.A
+    >>> vmr    = np.array([1e-4, 1e-4, 0.85, 0.15])
+    >>> imol = np.array([0, 1])
+    >>> lor_hw = b.lorentz_hwhm(temperature, pressure, masses, radii, vmr, imol)
+    >>> print(f'Lorentz broadening:\n H2O        CO2\n{lor_hw}')
+    Lorentz broadening:
+     H2O        CO2
+    [0.03691111 0.04308068]
+    """
+    lor_hwhm = pressure / pc.c \
+        * np.sqrt(2.0/(np.pi * pc.k * temperature * pc.amu)) \
+        * sum(vmr * (radius+radii[imol])**2 * np.sqrt(1/mass + 1/masses[imol])
+              for radius,mass,vmr in zip(radii, masses, vol_mix_ratio))
+    return lor_hwhm
+
+
 def min_widths(min_temp, max_temp, min_wn, max_mass, min_rad, min_press):
   """
   Estimate the minimum Doppler and Lorentz half-widths at half maximum
-  (cm-1) for a given atmosphere.
+  (cm-1) for an H2-dominated atmosphere.
 
   Parameters
   ----------
@@ -295,7 +398,7 @@ def min_widths(min_temp, max_temp, min_wn, max_mass, min_rad, min_press):
 def max_widths(min_temp, max_temp, max_wn, min_mass, max_rad, max_press):
   """
   Estimate the maximum Doppler and Lorentz half-widths at half maximum
-  (cm-1) for a given atmosphere.
+  (cm-1) for an H2-dominated atmosphere.
 
   Parameters
   ----------
