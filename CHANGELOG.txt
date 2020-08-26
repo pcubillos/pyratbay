@@ -6514,3 +6514,8 @@ Moved and renamed pb.part_func module to pb.opacity.partitions.
 
 Moved pb.broadening module to pb.opacity.broadening.
 
+*****
+
+PEP8ed pyratbay/opacity/lread.py file.
+Renamed makeTLI() function to make_tli().
+

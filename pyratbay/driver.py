@@ -45,7 +45,7 @@ def run(cfile, init=False, no_logfile=False):
     if pyrat.runmode == 'tli':
         if pyrat.lt.tlifile is None:
             log.error('Undefined TLI file (tlifile).')
-        po.makeTLI(
+        po.make_tli(
             inputs.dblist, inputs.pflist, inputs.dbtype,
             pyrat.lt.tlifile[0], pyrat.spec.wllow, pyrat.spec.wlhigh,
             pyrat.spec.wlunits, log)

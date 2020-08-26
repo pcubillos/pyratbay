@@ -2,7 +2,7 @@
 # Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE).
 
 __all__ = [
-    "makeTLI",
+    "make_tli",
     "linelist",
     "partitions",
     "broadening",
