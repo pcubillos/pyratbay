@@ -6489,3 +6489,8 @@ Documented and tested.
 
 Fixed bug in pyrat_obj.py (read_tli.py module name change).
 
+
+*****  Mi 26. Aug 10:26:12 CEST 2020  *****
+
+Updated isotopes.dat with O and C2H4 isotope names for exomol.
+
