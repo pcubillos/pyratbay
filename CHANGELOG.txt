@@ -6494,3 +6494,7 @@ Fixed bug in pyrat_obj.py (read_tli.py module name change).
 
 Updated isotopes.dat with O and C2H4 isotope names for exomol.
 
+*****
+
+Updated default maxiter argument in tools.make_tea() from 100 to 200.
+

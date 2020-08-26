@@ -671,7 +671,7 @@ class Formatted_Write(string.Formatter):
             self.text += '\n'
 
 
-def make_tea(maxiter=100, savefiles=False, times=False, location_TEA=None,
+def make_tea(maxiter=200, savefiles=False, times=False, location_TEA=None,
         abun_file=None, location_out='./TEA', verb=1, ncpu=1):
     """
     Make a TEA configuration file.
