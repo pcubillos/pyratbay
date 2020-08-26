@@ -5,9 +5,9 @@ __all__ = ['SodiumVdW', 'PotassiumVdW']
 
 import numpy as np
 
-from ... import constants  as pc
-from ... import tools      as pt
-from ... import broadening as broad
+from ... import constants as pc
+from ... import tools as pt
+from ...opacity import broadening
 
 
 class VanderWaals(object):
@@ -18,7 +18,7 @@ class VanderWaals(object):
   def __init__(self, cutoff):
       self.ec    = None   # Opacity cross section (cm2 molecule-1)
       self.imol  = -1     # Index of mol in the atmosphere
-      self.voigt = broad.Voigt()
+      self.voigt = broadening.Voigt()
       self.cutoff = cutoff  # Hard cutoff from line center (cm-1)
 
 

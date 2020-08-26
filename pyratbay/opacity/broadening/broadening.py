@@ -16,7 +16,7 @@ __all__ = [
 import numpy as np
 import scipy.special as ss
 
-import pyratbay.constants as pc
+from ... import constants as pc
 
 
 class Lorentz(object):

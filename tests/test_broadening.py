@@ -6,8 +6,9 @@ import pytest
 
 import numpy as np
 
-import pyratbay.broadening as pb
-import pyratbay.constants  as pc
+import pyratbay.opacity.broadening as pb
+import pyratbay.constants as pc
+
 
 os.chdir(pc.ROOT + 'tests')
 

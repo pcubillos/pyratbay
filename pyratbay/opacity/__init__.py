@@ -5,11 +5,13 @@ __all__ = [
     "makeTLI",
     "linelist",
     "partitions",
+    "broadening",
     ]
 
 from .lread import *
 from . import linelist
 from . import partitions
+from . import broadening
 
 from .. import VERSION as ver
 
