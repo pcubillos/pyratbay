@@ -4,14 +4,14 @@
 __all__ = ['Vald']
 
 import os
+import re
 import numpy as np
 
 from ... import constants as pc
-from ... import tools as pt
-from .driver import DB_driver
+from .driver import Linelist
 
 
-class Vald(DB_driver):
+class Vald(Linelist):
   """
   Notes
   -----
@@ -137,7 +137,7 @@ class Vald(DB_driver):
 
       # Number of lines in the file:
       nlines = sum(line.startswith(f"'{self.molecule}")
-                   for line in open(dbfile, 'r'))
+                   for line in open(self.dbfile, 'r'))
       ifirst = 2
       ilast = ifirst + nlines
 

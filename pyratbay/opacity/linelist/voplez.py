@@ -7,10 +7,10 @@ import os
 import numpy as np
 
 from ... import constants as pc
-from .driver import DB_driver
+from .driver import Linelist
 
 
-class Voplez(DB_driver):
+class Voplez(Linelist):
   """
   Download the linelist from:
   """

@@ -8,10 +8,10 @@ import struct
 import numpy as np
 
 from ... import constants as pc
-from .driver import DB_driver
+from .driver import Linelist
 
 
-class Pands(DB_driver):
+class Pands(Linelist):
   """Partridge & Schwenke (1997) H2O database reader."""
   def __init__(self, dbfile, pffile, log):
       """

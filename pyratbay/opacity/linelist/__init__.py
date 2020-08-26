@@ -1,13 +1,13 @@
 # Copyright (c) 2016-2020 Patricio Cubillos.
 # Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE).
 
-from .hitran      import Hitran
-from .exomol      import Exomol
-from .repack      import Repack
-from .pands       import Pands
+from .hitran import Hitran
+from .exomol import Exomol
+from .repack import Repack
+from .pands import Pands
 from .tioschwenke import Tioschwenke
-from .voplez      import Voplez
-from .vald        import Vald
+from .voplez import Voplez
+from .vald import Vald
 
 __all__ = [
     "Hitran",

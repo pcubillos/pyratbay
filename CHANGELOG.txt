@@ -6519,3 +6519,8 @@ Moved pb.broadening module to pb.opacity.broadening.
 PEP8ed pyratbay/opacity/lread.py file.
 Renamed makeTLI() function to make_tli().
 
+*****
+
+Renamed DB_driver class to Linelist in pb.opacity.linelist module.
+Some PEP8ing in the linelist module files.
+

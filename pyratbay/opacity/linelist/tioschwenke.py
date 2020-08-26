@@ -7,10 +7,10 @@ import struct
 import numpy as np
 
 from ... import constants as pc
-from .driver import DB_driver
+from .driver import Linelist
 
 
-class Tioschwenke(DB_driver):
+class Tioschwenke(Linelist):
   """
   Notes:
   ------

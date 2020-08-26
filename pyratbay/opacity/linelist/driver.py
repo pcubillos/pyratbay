@@ -1,8 +1,6 @@
 # Copyright (c) 2016-2020 Patricio Cubillos.
 # Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE).
 
-import sys
-import os
 import numpy as np
 
 from ... import io as io
@@ -10,7 +8,7 @@ from ...constants import ROOT
 from .. import partitions as pf
 
 
-class DB_driver(object):
+class Linelist(object):
   def __init__(self, dbfile, pffile, log):
       self.dbfile = dbfile
       self.pffile = pffile
@@ -36,24 +34,24 @@ class DB_driver(object):
 
       # Use polynomial expression:
       elif self.pffile == 'poly':
-          Temp = np.arange(1000.0, 7001.0, 50.0)
-          Ntemp = len(Temp)
-          Niso  = len(self.isotopes)
+          temp = np.arange(1000.0, 7001.0, 50.0)
+          ntemp = len(temp)
+          niso  = len(self.isotopes)
 
-          pf_data = np.zeros((Niso, Ntemp), np.double)
-          for j in np.arange(Niso):
-              for i in np.arange(Ntemp):
+          pf_data = np.zeros((niso, ntemp), np.double)
+          for j in range(niso):
+              for i in range(ntemp):
                   # Formula from Irwin 1981, ApJS 45, 621 (equation #2):
                   pf_data[j,i] = (self.PFcoeffs[j,0]                      +
-                                  self.PFcoeffs[j,1]* np.log(Temp[i])     +
-                                  self.PFcoeffs[j,2]*(np.log(Temp[i]))**2 +
-                                  self.PFcoeffs[j,3]*(np.log(Temp[i]))**3 +
-                                  self.PFcoeffs[j,4]*(np.log(Temp[i]))**4 +
-                                  self.PFcoeffs[j,5]*(np.log(Temp[i]))**5 )
+                                  self.PFcoeffs[j,1]* np.log(temp[i])     +
+                                  self.PFcoeffs[j,2]*(np.log(temp[i]))**2 +
+                                  self.PFcoeffs[j,3]*(np.log(temp[i]))**3 +
+                                  self.PFcoeffs[j,4]*(np.log(temp[i]))**4 +
+                                  self.PFcoeffs[j,5]*(np.log(temp[i]))**5 )
           # Get the exponential of log(PF):
-          pf_data = np.exp(PF)
+          pf_data = np.exp(pf_data)
 
-          return Temp, pf_data, self.isotopes
+          return temp, pf_data, self.isotopes
 
       # Extract the partition-function from the tabulated file:
       else:

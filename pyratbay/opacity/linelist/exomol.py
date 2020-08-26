@@ -7,11 +7,11 @@ import os
 import numpy as np
 
 from ... import constants as pc
+from .driver import Linelist
 from ... import tools as pt
-from .driver import DB_driver
 
 
-class Exomol(DB_driver):
+class Exomol(Linelist):
   """Exomol database reader."""
   def __init__(self, dbfile, pffile, log):
       """

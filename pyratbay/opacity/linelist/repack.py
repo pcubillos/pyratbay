@@ -8,10 +8,10 @@ import struct
 import numpy as np
 
 from ... import constants as pc
-from .driver import DB_driver
+from .driver import Linelist
 
 
-class Repack(DB_driver):
+class Repack(Linelist):
   """Repack database reader."""
   def __init__(self, dbfile, pffile, log):
       """

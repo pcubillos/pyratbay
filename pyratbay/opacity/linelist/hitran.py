@@ -7,11 +7,11 @@ import os
 import numpy as np
 
 from ... import constants as pc
-from .driver import DB_driver
+from .driver import Linelist
 from .. import partitions as pf
 
 
-class Hitran(DB_driver):
+class Hitran(Linelist):
   """HITRAN/HITEMP database reader."""
   def __init__(self, dbfile, pffile, log):
       """
