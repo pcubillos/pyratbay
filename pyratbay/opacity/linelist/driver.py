@@ -6,8 +6,8 @@ import os
 import numpy as np
 
 from ... import io as io
-from ... import part_func as pf
 from ...constants import ROOT
+from .. import partitions as pf
 
 
 class DB_driver(object):

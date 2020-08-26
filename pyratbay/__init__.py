@@ -5,7 +5,6 @@ __all__ = [
     'constants',
     'io',
     'tools',
-    'part_func',
     'broadening',
     'opacity',
     'plots',
@@ -18,7 +17,6 @@ __all__ = [
 from . import constants
 from . import io
 from . import tools
-from . import part_func
 from . import broadening
 from . import opacity
 from . import plots

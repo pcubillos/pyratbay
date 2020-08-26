@@ -4,10 +4,12 @@
 __all__ = [
     "makeTLI",
     "linelist",
+    "partitions",
     ]
 
 from .lread import *
 from . import linelist
+from . import partitions
 
 from .. import VERSION as ver
 

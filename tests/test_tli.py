@@ -1,7 +1,7 @@
 import os
 import pyratbay as pb
 import pyratbay.tools as pt
-import pyratbay.part_func as pf
+import pyratbay.opacity.partitions as pf
 
 from pyratbay.constants import ROOT
 

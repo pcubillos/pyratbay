@@ -10,7 +10,7 @@ import numpy as np
 import pyratbay.io as io
 import pyratbay.tools as pt
 import pyratbay.constants as pc
-import pyratbay.part_func as pf
+import pyratbay.opacity.partitions as pf
 
 os.chdir(pc.ROOT+'tests')
 

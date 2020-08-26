@@ -13,9 +13,9 @@ import pickle
 import numpy as np
 from numpy.core.numeric import isscalar
 
-from .. import io as io
-from .. import constants as pc
-from .. import tools as pt
+from ... import io as io
+from ... import constants as pc
+from ... import tools as pt
 import mc3.utils as mu
 
 
@@ -35,7 +35,7 @@ def get_tips_molname(molID):
 
     Examples
     --------
-    >>> import pyratbay.part_func as pf
+    >>> import pyratbay.opacity.partitions as pf
     >>> print(pf.get_tips_molname(1), pf.get_tips_molname(6))
     H2O CH4
     """
@@ -79,7 +79,7 @@ def tips(molecule, isotopes=None, outfile=None, db_type='as_tips'):
 
     Examples
     --------
-    >>> import pyratbay.part_func as pf
+    >>> import pyratbay.opacity.partitions as pf
     >>> pf_data, isotopes, temp = pf.tips('H2O', outfile='default')
 
     Written partition-function file:
@@ -163,7 +163,7 @@ def exomol(pf_files, outfile=None):
     >>> # First, download ExoMol data to current dictory, e.g.:
     >>> # wget http://www.exomol.com/db/NH3/14N-1H3/BYTe/14N-1H3__BYTe.pf
     >>> # wget http://www.exomol.com/db/NH3/15N-1H3/BYTe-15/15N-1H3__BYTe-15.pf
-    >>> import pyratbay.part_func as pf
+    >>> import pyratbay.opacity.partitions as pf
     >>> # A single file:
     >>> pf_data, isotopes, temp = pf.exomol('14N-1H3__BYTe.pf',
     >>>     outfile='default')
@@ -278,7 +278,7 @@ def kurucz(pf_file, outfile=None, type_flag='as_exomol'):
     >>> # wget http://kurucz.harvard.edu/molecules/h2o/h2opartfn.dat
     >>> # wget http://kurucz.harvard.edu/molecules/tio/tiopart.dat
 
-    >>> import pyratbay.part_func as pf
+    >>> import pyratbay.opacity.partitions as pf
     >>> pf_data, isotopes, temp = pf.kurucz('h2opartfn.dat', outfile='default')
 
     Written partition-function file:

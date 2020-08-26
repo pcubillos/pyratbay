@@ -6506,3 +6506,7 @@ Renamed pyratbay.lineread module to pyratbay.opacity.
 
 Renamed pb.opacity.database module to pb.opacity.linelist.
 
+*****
+
+Moved and renamed pb.part_func module to pb.opacity.partitions.
+

@@ -7,8 +7,8 @@ import os
 import numpy as np
 
 from ... import constants as pc
-from ... import part_func as pf
 from .driver import DB_driver
+from .. import partitions as pf
 
 
 class Hitran(DB_driver):

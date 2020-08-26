@@ -54,12 +54,13 @@ def main():
     if args.pf is not None:
         outfile = 'default'
         if args.pf[0] == 'exomol':
-            pb.part_func.exomol(args.pf[1:], outfile=outfile)
+            pb.opacity.partitions.exomol(args.pf[1:], outfile=outfile)
         elif args.pf[0] == 'kurucz':
-            pb.part_func.kurucz(args.pf[1], outfile=outfile)
+            pb.opacity.partitions.kurucz(args.pf[1], outfile=outfile)
         elif args.pf[0] == 'tips':
             dbtype = args.pf[2] if len(args.pf) > 2 else 'as_tips'
-            pb.part_func.tips(args.pf[1], outfile=outfile, db_type=dbtype)
+            pb.opacity.partitions.tips(
+                args.pf[1], outfile=outfile, db_type=dbtype)
         else:
             print('Invalid partition-function type.')
 
