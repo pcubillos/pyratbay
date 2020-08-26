@@ -1,7 +1,10 @@
 # Copyright (c) 2016-2020 Patricio Cubillos.
 # Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE).
 
-__all__ = ["makeTLI", "database"]
+__all__ = [
+    "makeTLI",
+    "database",
+    ]
 
 from .lread import *
 from . import database

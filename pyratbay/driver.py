@@ -9,7 +9,7 @@ import numpy as np
 import mc3
 
 from . import tools as pt
-from . import lineread as lr
+from . import opacity as po
 from . import constants as pc
 from . import atmosphere as pa
 from . import spectrum as ps
@@ -45,7 +45,8 @@ def run(cfile, init=False, no_logfile=False):
     if pyrat.runmode == 'tli':
         if pyrat.lt.tlifile is None:
             log.error('Undefined TLI file (tlifile).')
-        lr.makeTLI(inputs.dblist, inputs.pflist, inputs.dbtype,
+        po.makeTLI(
+            inputs.dblist, inputs.pflist, inputs.dbtype,
             pyrat.lt.tlifile[0], pyrat.spec.wllow, pyrat.spec.wlhigh,
             pyrat.spec.wlunits, log)
         return

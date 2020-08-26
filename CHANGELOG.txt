@@ -6498,3 +6498,7 @@ Updated isotopes.dat with O and C2H4 isotope names for exomol.
 
 Updated default maxiter argument in tools.make_tea() from 100 to 200.
 
+*****
+
+Renamed pyratbay.lineread module to pyratbay.opacity.
+

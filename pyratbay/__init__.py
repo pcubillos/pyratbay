@@ -7,7 +7,7 @@ __all__ = [
     'tools',
     'part_func',
     'broadening',
-    'lineread',
+    'opacity',
     'plots',
     'spectrum',
     'atmosphere',
@@ -20,7 +20,7 @@ from . import io
 from . import tools
 from . import part_func
 from . import broadening
-from . import lineread
+from . import opacity
 from . import plots
 from . import spectrum
 from . import atmosphere
