@@ -10,10 +10,10 @@ import struct
 
 import numpy as np
 
-from .  import database
+from .  import linelist
 from .. import constants as pc
-from .. import tools     as pt
-from .. import VERSION   as ver
+from .. import tools as pt
+from .. import VERSION as ver
 
 
 def makeTLI(dblist, pflist, dbtype, tlifile,
@@ -67,7 +67,7 @@ def makeTLI(dblist, pflist, dbtype, tlifile,
           f'database-type files ({len(dbtype)}).')
 
   # Driver routine to read the databases:
-  db_readers = {dbname.lower():getattr(database,dbname)
+  db_readers = {dbname.lower():getattr(linelist,dbname)
                 for dbname in pc.dbases}
 
   dblist = [os.path.realpath(dbase.replace('{ROOT}', pc.ROOT))

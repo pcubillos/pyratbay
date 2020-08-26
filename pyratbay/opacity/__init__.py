@@ -3,17 +3,17 @@
 
 __all__ = [
     "makeTLI",
-    "database",
+    "linelist",
     ]
 
 from .lread import *
-from . import database
+from . import linelist
 
 from .. import VERSION as ver
 
 
 # Lineread version:
-__version__ = "{:d}.{:d}.{:d}".format(ver.LR_VER, ver.LR_MIN, ver.LR_REV)
+__version__ = f"{ver.LR_VER}.{ver.LR_MIN}.{ver.LR_REV}"
 
 
 # Clean up top-level namespace--delete everything that isn't in __all__
