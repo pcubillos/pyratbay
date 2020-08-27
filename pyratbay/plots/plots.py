@@ -2,20 +2,88 @@
 # Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE).
 
 __all__ = [
+    'alphatize',
     'spectrum',
     'contribution',
     'posterior_pt',
+    'abundance',
+    'default_colors',
 ]
 
 import os
+from itertools import cycle
 
 import matplotlib
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.colors import is_color_like, to_rgb
+from cycler import cycler, Cycler
 import scipy.interpolate as si
 from scipy.ndimage.filters import gaussian_filter1d as gaussf
 
 from .. import constants as pc
+from .. import tools as pt
+
+
+default_colors = {
+    'H2O':"navy",
+    'CH4':"orange",
+    'CO':"limegreen",
+    'CO2':"red",
+    'H2':"deepskyblue",
+    'He':"seagreen",
+    'HCN':"0.7",
+    'NH3':"magenta",
+    'C2H2':"brown",
+    'C2H4':"pink",
+    'N2':"gold",
+    'H':"olive",
+    'TiO':"black",
+    'VO':"peru",
+    'Na':"darkviolet",
+    'K':"cornflowerblue",
+}
+
+
+def alphatize(colors, alpha, bg='w'):
+    """
+    Get rgb representation of a color as if it had the specified alpha.
+
+    Parameters
+    ----------
+    colors: color or iterable of colors
+        The color to alphatize.
+    alpha: Float
+        Alpha value to apply.
+    bg: color
+        Background color.
+
+    Returns
+    -------
+    rgb: RGB or list of RGB color arrays
+        The RGB representation of the alphatized color (or list of colors).
+
+    Examples
+    --------
+    >>> import pyrabay.plots as pp
+    >>> pp.alphatize('r', 0.5)
+    array([1. , 0.5, 0.5])
+    >>> pp.alphatize(['r', 'b'], 0.8)
+    [array([1. , 0.2, 0.2]), array([0.2, 0.2, 1. ])]
+    """
+    flatten = False
+    if is_color_like(colors):
+        colors = [colors]
+        flatten = True
+    colors = [np.array(to_rgb(color)) for color in colors]
+    bg = np.array(to_rgb(bg))
+
+    # https://matplotlib.org/tutorials/colors/colors.html
+    rgb = [(1.0-alpha) * bg + alpha*c for c in colors]
+
+    if flatten:
+        return rgb[0]
+    return rgb
 
 
 def spectrum(spectrum, wavelength, path,
@@ -420,6 +488,150 @@ def posterior_pt(posterior, tmodel, tpars, ifree, pressure, bestpars=None,
     ax.tick_params(labelsize=12)
 
     plt.tight_layout()
+    if filename is not None:
+        plt.savefig(filename)
+    return ax
+
+
+def abundance(vol_mix_ratios, pressure, species,
+        highlight=None, xlim=None, punits='bar',
+        colors=None, dashes=None, filename=None,
+        lw=2.0, fignum=505, fs=13, legend_fs=None, ax=None):
+    """
+    Plot atmospheric volume-mixing-ratio abundances.
+
+    Parameters
+    ----------
+    vol_mix_ratios: 2D float ndarray
+        Atmospheric volume mixing ratios to plot [nlayers,nspecies].
+    pressure: 1D float ndarray
+        Atmospheric pressure [nlayers], units are given by punits argument.
+    species: 1D string iterable
+        Atmospheric species names [nspecies].
+    highlight: 1D string iterable
+        List of species names to highlight.  Non-highlighed species are
+        plotted with alpha=0.4, below the highligted species, and are
+        not considered to set the default xlim (e.g., might not be shown
+        if their abundances are too low).
+        If None, all input species are highlighted.
+    xlim: 2-element float iterable
+        Volume mixing ratio plotting boundaries.
+    punits: String
+        Pressure units.
+    colors: 1D string iterable
+        List of colors to use.
+        - If len(colors) >= len(species), colors are assigned to each
+          species irrespective of highlight.
+        - If len(colors) < len(species), the display will cycle the
+          color list using solid, long-dashed, short-dashed, and dotted
+          line styles (all highlight species being displayed before the rest).
+        - If colors == 'default', use pyratbay.plots.default_colors
+          dict to assign colors.
+        - If colors is None, use matplotlib's default color cycler.
+    dashes: 1D dash-sequence iterable
+        List of line-styles for each species, irrespective of highlight.
+        len(dashes) has to be equal to len(species).
+        Alternatively, dashes can by a dash-sequence Cycler.
+    filename: String
+        If not None, save plot to given file name.
+    lw: Float
+        Lines width.
+    fignum: Integer
+        Figure's number (ignored if axis is not None).
+    fs: Float
+        Labels font sizes.
+    legend_fs: Float
+        Legend font size.  If None, default to fs-2.
+    ax: AxesSubplot instance
+        If not None, plot into the given axis.
+
+    Returns
+    -------
+    ax: AxesSubplot instance
+        The matplotlib Axes of the figure.
+
+    Examples
+    --------
+    >>> import pyratbay.atmosphere as pa
+    >>> import pyratbay.plots as pp
+
+    >>> nlayers = 51
+    >>> pressure = pa.pressure('1e-6 bar', '1e2 bar', nlayers)
+    >>> temperature = pa.temperature('isothermal', pressure,  params=1000.0)
+    >>> species = 'H2O CH4 CO CO2 NH3 C2H2 C2H4 HCN N2 TiO VO H2 H He Na K'.split()
+    >>> Q = pa.abundance(pressure, temperature, species, ncpu=3)
+    >>> ax = pp.abundance(Q, pressure, species, colors='default',
+    >>>     highlight='H2O CH4 CO CO2 NH3 HCN H2 H He'.split())
+    """
+    if legend_fs is None:
+        legend_fs = fs - 2
+
+    if highlight is None:
+        highlight = np.copy(species)
+    highlight = [spec for spec in species if spec in highlight]
+    lowlight  = [spec for spec in species if spec not in highlight]
+    sorted_spec = highlight + lowlight
+
+    used_cols = []
+    if colors is None:
+        colors = matplotlib.rcParams['axes.prop_cycle'].by_key()['color']
+
+    if len(colors) >= len(species):
+        cols = colors
+    elif colors == 'default':
+        cols = [default_colors[mol] if mol in default_colors
+                else None
+                for mol in species]
+        used_cols = [c for c in default_colors.values() if c in cols]
+        remaining_cols = [c for c in default_colors.values() if c not in cols]
+        colors = used_cols + remaining_cols
+    else:
+        cols = [None for _ in species]
+
+    if isinstance(dashes, Cycler):
+        dash_cycler = dashes
+        dashes = None
+    else:
+        dash_cycler = cycler(dashes=[(), (8,1.5), (4,1), (1,1)])
+
+    dkws = cycle(dash_cycler * cycler(color=colors))
+    for _ in used_cols:
+        dkw = next(dkws)
+
+    _dashes = [() for _ in species]
+    for i in range(len(species)):
+        ispec = list(species).index(sorted_spec[i])
+        if cols[ispec] is None:
+            dkw = next(dkws)
+            cols[ispec] = dkw['color']
+            _dashes[ispec] = dkw['dashes']
+    if dashes is None or len(dashes) != len(species):
+        dashes = _dashes
+
+    press = pressure / pt.u(punits)
+    # Plot the results:
+    if ax is None:
+        plt.figure(fignum, (7,5))
+        plt.clf()
+        ax = plt.subplot(111)
+    for spec in highlight:
+        imol = list(species).index(spec)
+        ax.loglog(vol_mix_ratios[:,imol], press, label=spec, lw=lw,
+            color=cols[imol], dashes=dashes[imol])
+    if xlim is None:
+        xlim = ax.get_xlim()
+    for spec in lowlight:
+        imol = list(species).index(spec)
+        ax.loglog(
+            vol_mix_ratios[:,imol], press, label=spec, lw=lw, zorder=-1,
+            color=alphatize(cols[imol],alpha=0.4), dashes=dashes[imol])
+    ax.set_xlim(xlim)
+    ax.set_ylim(np.amax(press), np.amin(press))
+    ax.set_xlabel('Volume mixing ratio', fontsize=fs)
+    ax.set_ylabel(f'Pressure ({punits})', fontsize=fs)
+    ax.tick_params(labelsize=fs-2)
+    ax.legend(loc='lower left', fontsize=fs-2)
+
     if filename is not None:
         plt.savefig(filename)
     return ax

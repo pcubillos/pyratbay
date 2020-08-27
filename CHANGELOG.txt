@@ -6524,3 +6524,14 @@ Renamed makeTLI() function to make_tli().
 Renamed DB_driver class to Linelist in pb.opacity.linelist module.
 Some PEP8ing in the linelist module files.
 
+
+*****  Do 27. Aug 17:38:05 CEST 2020  *****
+
+Added abundance() function to plots module to plot the volume mixing
+ratios of an atmosphere.
+Also added to plots module:
+- alphatize() function to simulate alpha-transparency
+- defaults_colors dictionary with defaults coloring for rockstar
+  atmospheric species.
+Updated tests/test_plots.py, but this is not really testing things
+automatically.
