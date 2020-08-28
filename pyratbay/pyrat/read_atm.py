@@ -207,7 +207,11 @@ def update_atm(pyrat, temp=None, abund=None, radius=None):
     pyrat.atm.rtop = pt.ifirst(pyrat.atm.radius<pyrat.phy.rhill, default_ret=0)
     if pyrat.atm.rtop > 0:
         rhill = pyrat.phy.rhill/pt.u(pyrat.atm.runits)
-        pyrat.log.warning(
+        if pyrat.runmode == 'mcmc':
+            logger = pyrat.log.msg
+        else:
+            logger = pyrat.log.warning
+        logger(
             "The atmospheric pressure array extends beyond the Hill radius "
            f"({rhill:.5f} {pyrat.atm.runits}) at pressure "
            f"{pyrat.atm.press[pyrat.atm.rtop]/pc.bar:.3e} bar (layer "

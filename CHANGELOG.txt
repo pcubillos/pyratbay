@@ -6562,3 +6562,10 @@ super-puff atmospheres.
 Print radius array using user-input radius units.
 Added test of ultra-puff hydro_m() calculation.
 
+*****
+
+Removed Hill radius default to stellar radius.
+I will probably regret this, but we will see.  I would not trust
+ultra-puff runs even if rhill is defined (hydrostatic equilibrium
+breaks way before the altitude gets closer to rhill anyway).
+

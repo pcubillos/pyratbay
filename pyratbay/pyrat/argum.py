@@ -42,8 +42,6 @@ def check_spectrum(pyrat):
   if (phy.mstar is not None and phy.mplanet is not None
       and phy.smaxis is not None):
       phy.rhill = phy.smaxis * (phy.mplanet/(3*phy.mstar))**(1.0/3.0)
-  elif phy.rstar is not None:
-      phy.rhill = phy.rstar
 
   # Check Voigt-profile arguments:
   if (pyrat.voigt.dmin is not None and pyrat.voigt.dmax is not None
