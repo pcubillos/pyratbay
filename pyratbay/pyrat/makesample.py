@@ -179,8 +179,8 @@ def make_atmprofiles(pyrat):
 
     # Check if Hydrostatic Eq. breaks down:
     ibreak = 0  # Index and flag at the same time
-    if np.any(np.ediff1d(atm_in.radius) > 0.0):
-        ibreak = np.where(np.ediff1d(atm_in.radius)>0)[0][0] + 1
+    if atm_in.radius is not None and np.any(np.isinf(atm_in.radius)):
+        ibreak = np.where(np.isfinite(atm_in.radius))[0][0]
 
     # Set the interpolating function (for use later):
     try:
@@ -279,19 +279,20 @@ def make_atmprofiles(pyrat):
     if atm.radius is not None:
         atm.rtop = pt.ifirst(atm.radius < pyrat.phy.rhill, default_ret=0)
     if atm.rtop > 0:
+        rhill = pyrat.phy.rhill/runits
         log.warning(
             'The atmospheric pressure array extends beyond the Hill radius '
-           f'({pyrat.phy.rhill/pc.km:.1f} km) at pressure '
+           f'({rhill:.5f} {atm.runits}) at pressure '
            f'{atm_in.press[atm.rtop]/pc.bar:.2e} bar (layer {atm.rtop}).  '
             'Extinction beyond this layer will be neglected.')
 
     # Print radius array:
     if atm.radius is not None:
-        radstr = ', '.join(f'{k:9.2f}' for k in atm.radius/pc.km)
-        log.msg(f'Radius array (km) =   [{radstr}]', indent=2, si=4)
+        radstr = ', '.join(f'{k:.3f}' for k in atm.radius/runits)
+        log.msg(f'Radius array ({atm.runits}) =   [{radstr}]', indent=2, si=4)
         log.msg(
             'Valid upper/lower radius boundaries:    '
-           f'{atm.radius[atm.rtop]/runits:8.1f} - {atm.radius[-1]/runits:8.1f} '
+           f'{atm.radius[atm.rtop]/runits:.5f} - {atm.radius[-1]/runits:.5f} '
            f'{atm.runits}.', indent=2)
 
     log.msg(

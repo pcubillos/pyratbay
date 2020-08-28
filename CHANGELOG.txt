@@ -6555,3 +6555,10 @@ plots.temperature().
 
 Documented and tested.
 
+*****
+
+Fixed 'correction' of hydro_m() function when the model diverges for
+super-puff atmospheres.
+Print radius array using user-input radius units.
+Added test of ultra-puff hydro_m() calculation.
+

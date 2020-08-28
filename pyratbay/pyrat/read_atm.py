@@ -206,9 +206,10 @@ def update_atm(pyrat, temp=None, abund=None, radius=None):
         pyrat.phy.smaxis, pyrat.phy.mplanet, pyrat.phy.mstar)
     pyrat.atm.rtop = pt.ifirst(pyrat.atm.radius<pyrat.phy.rhill, default_ret=0)
     if pyrat.atm.rtop > 0:
-        pyrat.log.msg(
+        rhill = pyrat.phy.rhill/pt.u(pyrat.atm.runits)
+        pyrat.log.warning(
             "The atmospheric pressure array extends beyond the Hill radius "
-           f"({pyrat.phy.rhill/pc.km:.3e} km) at pressure "
+           f"({rhill:.5f} {pyrat.atm.runits}) at pressure "
            f"{pyrat.atm.press[pyrat.atm.rtop]/pc.bar:.3e} bar (layer "
            f"{pyrat.atm.rtop}).  "
             "Extinction beyond this layer will be neglected.")

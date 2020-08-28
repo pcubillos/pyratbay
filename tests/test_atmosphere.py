@@ -295,6 +295,27 @@ def test_hydro_m():
     np.testing.assert_allclose(radius, radius_m)
 
 
+def test_hydro_m_ultra_puff():
+    nlayers = 15
+    pressure = pa.pressure(1e-8, 1e2, nlayers, units='bar')
+    tmodel = pa.tmodels.Isothermal(nlayers)
+    temperature = tmodel(1500.0)
+    mu = np.tile(2.3, nlayers)
+    Mp = 0.1 * pc.mjup
+    r0 = 2.0 * pc.rjup
+    p0 = 1.0 * pc.bar
+    radius = pa.hydro_m(pressure, temperature, mu, Mp, p0, r0) / pc.rjup
+
+    puff_radius = np.array([
+       23.59979187, 10.78753812,  6.99174271,  5.17191017,  4.10376853,
+        3.40130545,  2.90418177,  2.5338435 ,  2.24727349,  2.01893776,
+        1.83272274,  1.67795772,  1.54729571])
+
+    assert np.isinf(radius[0])
+    assert np.isinf(radius[1])
+    np.testing.assert_allclose(radius[2:], puff_radius)
+
+
 def test_stoich():
     species = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
     elements, stoichs = pa.stoich(species)

@@ -419,6 +419,12 @@ def hydro_m(pressure, temperature, mu, mass, p0, r0):
     radius: 1D float ndarray
         Radius for each layer (in cm).
 
+    Notes
+    -----
+    It is possible that this hydrostatic solution diverges when an
+    atmosphere is too puffy.  In such cases, some returned radii
+    will have np.inf values (at the top layers).
+
     Examples
     --------
     >>> import pyratbay.atmosphere as pa
@@ -446,11 +452,10 @@ def hydro_m(pressure, temperature, mu, mass, p0, r0):
     # Set: radius(p0) = r0
     radius = 1.0/(I - I0 + 1/r0)
 
-    # Search for blips (radius should be monotonically decreasing):
+    # Divergent profile (radius should be monotonically decreasing):
     for j in range(len(radius)-1):
         if radius[j] <= radius[j+1]:
-            #radius[0:j+1] = np.inf  # TBD: this shoud be the solution
-            radius[0:j+1] += 2*(radius[j+1] - radius[j])
+            radius[0:j+1] = np.inf
 
     return radius
 
