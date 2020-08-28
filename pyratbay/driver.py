@@ -183,11 +183,11 @@ def run(cfile, init=False, no_logfile=False):
         pyrat.atm.q, radius=pyrat.atm.radius,
         punits=pyrat.atm.punits, runits='km', header=header)
 
-    pyrat.plot_spectrum(spec='best',
-        filename=f'{outfile}_bestfit_spectrum.png')
+    pyrat.plot_spectrum(spec='best', filename=f'{outfile}_bestfit_spectrum.png')
 
     if pyrat.atm.tmodelname in ['tcea', 'madhu']:
-        pyrat.plot_posterior_pt(f'{outfile}_posterior_PT_profile.png')
+        pyrat.plot_temperature(
+            filename=f'{outfile}_posterior_temperature_profile.png')
 
     if pyrat.od.path == "eclipse":
         cf = ps.contribution_function(

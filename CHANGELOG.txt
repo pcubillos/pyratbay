@@ -6535,3 +6535,23 @@ Also added to plots module:
   atmospheric species.
 Updated tests/test_plots.py, but this is not really testing things
 automatically.
+
+
+*****  Fri Aug 28 12:00:52 CEST 2020  *****
+
+Removed temperature posterior calculation from plots.posterior_pt(),
+moved into atmosphere.temperature_posterior().  This function
+computes the median and interquantile region of the 68%/95%
+percentiles for a given distribution.
+
+Renamed plots.posterior_pt() to plots.temperature(), which is now
+a general function to plot temperature profiles.
+Refactored to take any number of profiles, with custom labels and
+colors.
+
+Refactored Pyrat.plot_posterior_pt() method into
+Pyrat.plot_temperature(), enabling passing arguments to
+plots.temperature().
+
+Documented and tested.
+

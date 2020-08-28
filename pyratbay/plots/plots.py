@@ -5,7 +5,7 @@ __all__ = [
     'alphatize',
     'spectrum',
     'contribution',
-    'posterior_pt',
+    'temperature',
     'abundance',
     'default_colors',
 ]
@@ -27,9 +27,9 @@ from .. import tools as pt
 
 default_colors = {
     'H2O':"navy",
-    'CH4':"orange",
-    'CO':"limegreen",
     'CO2':"red",
+    'CO':"limegreen",
+    'CH4':"orange",
     'H2':"deepskyblue",
     'He':"seagreen",
     'HCN':"0.7",
@@ -138,8 +138,8 @@ def spectrum(spectrum, wavelength, path,
         If not None, save figure to filename.
     fignum: Integer
         Figure number.
-    axis: TBD
-        TBD
+    axis: AxesSubplot instance
+        The matplotlib Axes of the figure.
 
     Returns
     -------
@@ -406,87 +406,103 @@ def contribution(contrib_func, wl, path, pressure, radius, rtop=0,
     return ax
 
 
-def posterior_pt(posterior, tmodel, tpars, ifree, pressure, bestpars=None,
-        filename=None):
+def temperature(pressure, profiles=None, labels=None, colors=None,
+        bounds=None, punits='bar', ax=None, filename=None,
+        theme='blue', alpha=[0.8,0.6], fs=13, lw=2.0, fignum=504):
     """
-    Plot the posterior PT profile.
+    Plot temperature profiles.
 
     Parameters
     ----------
-    posterior: 2D float ndarray
-        MCMC posterior distribution for tmodel (of shape [nparams, nfree]).
-    tmodel: Callable
-        Temperature-profile model.
-    tpars: 1D float ndarray
-        Temperature-profile parameters (including fixed parameters).
-    ifree: 1D bool ndarray
-        Mask of free (True) and fixed (False) parameters in tpars.
-        The number of free parameters must match nfree in posterior.
     pressure: 1D float ndarray
         The atmospheric pressure profile in barye.
-    bestpars: 1D float ndarray
-        Best-fitting temperature-profile parameters.
+    profiles: iterable of 1D float ndarrays
+        Temperature profiles to plot.
+    labels: 1D string iterable
+        Labels for temperature profiles.
+    colors: 1D string iterable.
+        Colors for temperature profiles.
+    bounds: Tuple
+        Tuple with -1sigma, +1sigma, -2sigma, and +2sigma temperature
+        boundaries.
+        If not None, plot shaded area between +/-1sigma and +/-2sigma
+        boundaries.
+    punits: String
+        Pressure units for output plot (input units are always barye).
+    ax: AxesSubplot instance
+        If not None, plot into the given axis.
     filename: String
-        If not None, save figure to filename.
+        If not None, save plot to given file name.
+    theme: String
+        The histograms' color theme for bounds regions.
+        Only 'blue' and 'orange' themes are valid at the moment.
+    alpha: 2-element float iterable
+        Alpha transparency for bounds regions.
+    fs: Float
+        Labels font sizes.
+    lw: Float
+        Lines width.
+    fignum: Integer
+        Figure's number (ignored if axis is not None).
 
     Returns
     -------
     ax: AxesSubplot instance
         The matplotlib Axes of the figure.
     """
-    nlayers = len(pressure)
+    press = pressure / pt.u(punits)
 
-    u, uind, uinv = np.unique(posterior[:,0], return_index=True,
-        return_inverse=True)
-    nsamples = len(u)
-
-    # Evaluate posterior PT profiles:
-    profiles = np.zeros((nsamples, nlayers), np.double)
-    for i in range(nsamples):
-        tpars[ifree] = posterior[uind[i]]
-        profiles[i] = tmodel(tpars)
-
-    # Get percentiles (for 1,2-sigma boundaries and median):
-    low1   = np.zeros(nlayers, np.double)
-    low2   = np.zeros(nlayers, np.double)
-    median = np.zeros(nlayers, np.double)
-    high1  = np.zeros(nlayers, np.double)
-    high2  = np.zeros(nlayers, np.double)
-    for i in range(nlayers):
-        tpost = profiles[uinv,i]
-        low2[i]   = np.percentile(tpost,  2.275)
-        low1[i]   = np.percentile(tpost, 15.865)
-        median[i] = np.percentile(tpost, 50.000)
-        high1[i]  = np.percentile(tpost, 84.135)
-        high2[i]  = np.percentile(tpost, 97.725)
-
+    if theme == 'blue':
+        col1, col2 = 'royalblue', 'royalblue'
+    elif theme == 'orange':
+        col1, col2 = 'orange', 'gold'
     # alpha != 0 does not work for ps/eps figures:
+    alpha1, alpha2 = alpha[:]
     if filename is not None and filename.endswith('ps'):
-        fc1, fc2 = '#3366ff', '#77aaff'
-        alpha1, alpha2 = 1.0, 1.0
+        fc2 = alphatize(col2, alpha2, 'white')
+        fc1 = alphatize(col1, alpha1, fc2)
+        alpha1 = alpha2 = 1.0
     else:
-        fc1, fc2 = 'royalblue', 'royalblue'
-        alpha1, alpha2 = 0.8, 0.6
+        fc1, fc2 = col1, col2
 
-    # Plot figure:
-    plt.figure(500)
-    plt.clf()
-    ax = plt.subplot(111)
-    ax.fill_betweenx(pressure/pc.bar, low2, high2, facecolor=fc2,
-        edgecolor='none', alpha=alpha2)
-    ax.fill_betweenx(pressure/pc.bar, low1, high1, facecolor=fc1,
-        edgecolor='none', alpha=alpha1)
-    plt.plot(median, pressure/pc.bar, 'navy', lw=2, label='Median')
-    if bestpars is not None:
-        bestpt = tmodel(bestpars)
-        plt.plot(bestpt, pressure/pc.bar, 'r-', lw=2, label='Best fit')
-    ax.set_ylim(np.amax(pressure/pc.bar), np.amin(pressure/pc.bar))
+    if profiles is None:
+        profiles = []
+    if np.ndim(profiles) == 1 and len(profiles) == len(pressure):
+        profiles = [profiles]
+
+    if labels is None:
+        _labels = [None for _ in profiles]
+    else:
+        _labels = labels
+
+    if colors is None:
+        c = cycle(default_colors.values())
+        colors = [next(c) for _ in profiles]
+
+    if ax is None:
+        plt.figure(fignum, (7,5))
+        plt.clf()
+        ax = plt.subplot(111)
+
+    if bounds is not None and len(bounds) == 4:
+        low2, high2 = bounds[2:4]
+        ax.fill_betweenx(
+            press, low2, high2, facecolor=fc2, edgecolor='none', alpha=alpha2)
+    if bounds is not None and len(bounds) >= 2:
+        low1, high1 = bounds[0:2]
+        ax.fill_betweenx(
+            press, low1, high1, facecolor=fc1, edgecolor='none', alpha=alpha1)
+
+    for profile, color, label in zip(profiles, colors, _labels):
+        plt.plot(profile, press, color, lw=lw, label=label)
+
+    ax.set_ylim(np.amax(press), np.amin(press))
     ax.set_yscale('log')
-    plt.legend(loc='best')
-    plt.xlabel('Temperature  (K)', size=15)
-    plt.ylabel('Pressure  (bar)',  size=15)
-    ax.tick_params(labelsize=12)
-
+    plt.xlabel('Temperature (K)', fontsize=fs)
+    plt.ylabel(f'Pressure ({punits})', fontsize=fs)
+    ax.tick_params(labelsize=fs-2)
+    if labels is not None:
+        plt.legend(loc='best', fontsize=fs-2)
     plt.tight_layout()
     if filename is not None:
         plt.savefig(filename)

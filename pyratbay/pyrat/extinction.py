@@ -242,9 +242,9 @@ def extinction(pyrat, indices, grid=False, add=False):
      If True, co-add EC contribution (cm-1) from all species.
      If False, keep EC contribution (cm2 molec-1) from each species separated.
   """
-  if add:   # Combined or per-species output
+  if add:  # Total extinction coefficient spectrum (cm-1)
       extinct_coeff = np.zeros((1, pyrat.spec.nwave))
-  else:
+  else:  # Opacity spectrum per molecule (cm2 molecule-1)
       extinct_coeff = np.zeros((pyrat.ex.nspec, pyrat.spec.nwave))
 
   if pyrat.iso.iext is None:
@@ -283,7 +283,8 @@ def extinction(pyrat, indices, grid=False, add=False):
 
       # Calculate extinction-coefficient in C:
       extinct_coeff[:] = 0.0
-      ec.extinction(extinct_coeff,
+      ec.extinction(
+          extinct_coeff,
           pyrat.voigt.profile, pyrat.voigt.size, pyrat.voigt.index,
           pyrat.voigt.lorentz, pyrat.voigt.doppler,
           pyrat.spec.wn, pyrat.spec.own, pyrat.spec.odivisors,

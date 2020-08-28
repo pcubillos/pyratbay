@@ -13,6 +13,7 @@ __all__ = [
     'mean_weight',
     'ideal_gas_density',
     'equilibrium_temp',
+    'temperature_posterior',
     'make_atomic',
     'make_preatm',
     ]
@@ -297,13 +298,13 @@ def abundance(pressure, temperature, species, elements=None,
         log = mu.Log(verb=verb)
     # Uniform-abundances profile:
     if quniform is not None:
-        log.head(f"\nCompute uniform-abundances profile.")
+        log.head("\nCompute uniform-abundances profile.")
         q = uniform(
             pressure, temperature, species, quniform, punits, log, atmfile)
         return q
 
     # TEA abundances:
-    log.head(f"\nCompute TEA thermochemical-equilibrium abundances profile.")
+    log.head("\nCompute TEA thermochemical-equilibrium abundances profile.")
     # Prep up files:
     atomic_file, patm = "PBatomicfile.tea", "PBpreatm.tea"
     make_atomic(xsolar, escale, atomic_file, solar_file)
@@ -684,6 +685,89 @@ def equilibrium_temp(tstar, rstar, smaxis, A=0.0, f=1.0,
     )
 
     return teq, teq_unc
+
+
+def temperature_posterior(posterior, tmodel, tpars, ifree, pressure):
+    """
+    Compute the median and inter-quantiles regions (68% and 95%)
+    of a temperature profile posterior.
+
+    Parameters
+    ----------
+    posterior: 2D float ndarray [nsamples, nfree]
+        A posterior distribution for tmodel.
+    tmodel: Callable
+        Temperature-profile model.
+    tpars: 1D float iterable [npars]
+        Temperature-profile parameters (including fixed parameters).
+    ifree: 1D bool iterable [npars]
+        Mask of free (True) and fixed (False) parameters in tpars.
+        The number of free parameters must match nfree in posterior.
+    pressure: 1D float ndarray [nlayers]
+        The atmospheric pressure profile in barye.
+
+    Returns
+    -------
+    median: 1D float ndarray [nlayers]
+        The matplotlib Axes of the figure.
+    low1: 1D float ndarray [nlayers]
+        Lower temperature boundary of the 68%-interquantile range.
+    high1: 1D float ndarray [nlayers]
+        Upper temperature boundary of the 68%-interquantile range.
+    low2: 1D float ndarray [nlayers]
+        Lower temperature boundary of the 95%-interquantile range.
+    high2: 1D float ndarray [nlayers]
+        Upper temperature boundary of the 95%-interquantile range.
+
+    Examples
+    --------
+    >>> import pyratbay.atmosphere as pa
+    >>> import pyratbay.constants as pc
+    >>> import pyratbay.plots as pp
+    >>> import numpy as np
+
+    >>> # Non-inverted temperature profile:
+    >>> pressure = pa.pressure('1e-6 bar', '1e2 bar', nlayers=100)
+    >>> tmodel = pa.tmodels.TCEA(pressure)
+    >>> tpars = np.array([-4.0, -1.0, 0.0, 0.0, 1000.0, 0.0])
+    >>> # Simulate posterior where kappa' and gamma are variable:
+    >>> nsamples = 5000
+    >>> ifree = [True, True, False, False, False, False]
+    >>> posterior = np.array([
+    >>>     np.random.normal(tpars[0], 0.5, nsamples),
+    >>>     np.random.normal(tpars[1], 0.1, nsamples)]).T
+    >>> tpost = pa.temperature_posterior(
+    >>>     posterior, tmodel, tpars, ifree, pressure)
+    >>> ax = pp.temperature(pressure, profiles=tpost[0], bounds=tpost[1:])
+    """
+    nlayers = len(pressure)
+
+    u, uind, uinv = np.unique(
+        posterior[:,0], return_index=True, return_inverse=True)
+    nsamples = len(u)
+
+    # Evaluate posterior PT profiles:
+    profiles = np.zeros((nsamples, nlayers), np.double)
+    tpars = np.array(tpars)
+    ifree = np.array(ifree)
+    for i in range(nsamples):
+        tpars[ifree] = posterior[uind[i]]
+        profiles[i] = tmodel(tpars)
+
+    # Get median and inter-quantile ranges for 68% and 95% percentiles:
+    low1   = np.zeros(nlayers, np.double)
+    low2   = np.zeros(nlayers, np.double)
+    median = np.zeros(nlayers, np.double)
+    high1  = np.zeros(nlayers, np.double)
+    high2  = np.zeros(nlayers, np.double)
+    for i in range(nlayers):
+        tpost = profiles[uinv,i]
+        low2[i]   = np.percentile(tpost,  2.275)
+        low1[i]   = np.percentile(tpost, 15.865)
+        median[i] = np.percentile(tpost, 50.000)
+        high1[i]  = np.percentile(tpost, 84.135)
+        high2[i]  = np.percentile(tpost, 97.725)
+    return median, low1, high1, low2, high2
 
 
 def make_atomic(xsolar=1.0, escale={}, atomic_file=None, solar_file=None):

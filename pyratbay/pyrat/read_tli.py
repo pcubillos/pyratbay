@@ -4,9 +4,9 @@
 import sys
 import numpy as np
 
-from .. import tools     as pt
+from .. import tools as pt
 from .. import constants as pc
-from .  import objects   as o
+from . import objects as o
 
 
 def read_tli(pyrat):

@@ -7,7 +7,7 @@ from collections import OrderedDict
 
 import numpy  as np
 
-from .. import constants  as pc
+from .. import constants as pc
 from .. import atmosphere as pa
 from .. import tools      as pt
 from .. import spectrum   as ps
@@ -490,7 +490,7 @@ class Pyrat(object):
 
 
   def plot_spectrum(self, spec='model', logxticks=None, gaussbin=2.0,
-                    yran=None, filename=None):
+      yran=None, filename=None):
       """
       Plot spectrum.
 
@@ -569,14 +569,17 @@ class Pyrat(object):
       return ax
 
 
-  def plot_posterior_pt(self, filename=None):
+  def plot_temperature(self, **kwargs):
       """
-      Plot posterior distribution of PT profile.
+      Plot temperature profile.
+      If self.ret.posterior exitst, plot the best fit, median, and
+      the '1sigma/2sigma' boundaries of the temperature posterior
+      distribution.
 
       Parameters
       ----------
-      filename: String
-          If not None, save figure to filename.
+      kwargs: dict
+          Dictionary of arguments to pass into plots.temperature().
 
       Returns
       -------
@@ -584,18 +587,22 @@ class Pyrat(object):
           The matplotlib Axes of the figure.
       """
       if self.ret.posterior is None:
-          print('pyrat objec does not have a posterior distribution.')
-          return
+          ax = pp.temperature(
+              self.atm.press, profiles=[self.atm.temp], **kwargs)
+          return ax
 
       posterior = self.ret.posterior
       ifree = self.ret.pstep[self.ret.itemp] > 0
       itemp = np.arange(np.sum(ifree))
-      if filename is None:
-          outfile = os.path.splitext(os.path.basename(self.ret.mcmcfile))[0]
-          filename = '{:s}_posterior_PT_profile.png'.format(outfile)
-      ax = pp.posterior_pt(posterior[:,itemp], self.atm.tmodel,
-          self.ret.params[self.ret.itemp], ifree, self.atm.press,
-          self.ret.bestp[self.ret.itemp], filename)
+      # FINDME: Probably should take this calculation out of this method
+      tpost = pa.temperature_posterior(
+          posterior[:,itemp], self.atm.tmodel,
+          self.ret.params[self.ret.itemp], ifree, self.atm.press)
+
+      ax = pp.temperature(
+          self.atm.press,
+          profiles=[tpost[0], self.ret.bestp[self.ret.itemp]],
+          labels=['median', 'best'], bounds=tpost[1:], **kwargs)
       return ax
 
 
