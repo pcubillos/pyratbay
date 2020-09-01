@@ -85,6 +85,62 @@ def test_two_files_one_database(capfd):
         assert cap in captured.out
 
 
+def test_two_files_one_dbtype(capfd):
+    pb.run('configs/tli_hitran_two_files_one_dbtype.cfg')
+    captured = capfd.readouterr()
+    caps = [
+        "Read command-line arguments from configuration file:",
+        "'configs/tli_hitran_two_files_one_dbtype.cfg'",
+        "Reading input database files:",
+        "tests/inputs/01_hit12.par",
+        "tests/inputs/02_4000-4500_HITEMP2010.par",
+        "There are 2 input database file(s).",
+        "Initial TLI wavelength (um):   2.300 ( 4347.826 cm-1)",
+        "Final   TLI wavelength (um):   2.400 ( 4166.667 cm-1)",
+        "Database (1/2): 'HITRAN H2O' (H2O molecule)",
+        "Number of temperatures: 503",
+        "Number of isotopes: 9",
+        "Database (2/2): 'HITRAN CO2' (CO2 molecule)",
+        "Number of isotopes: 13",
+        "Cumulative number of isotopes per database: [0, 9, 22]",
+        "Process HITRAN H2O database between records 60,574 and 61,991.",
+        "Process HITRAN CO2 database between records 20,424 and 41,477.",
+        "[  610   233   163   411 20937    17    27    73]",
+        "Writing 22,471 transition lines.",
+        "/HITRAN_H2O_CO2_2.3-2.4um_test.tli'.",
+        ]
+    for cap in caps:
+        assert cap in captured.out
+
+
+def test_two_files_one_pflist(capfd):
+    pb.run('configs/tli_hitran_two_files_one_pflist.cfg')
+    captured = capfd.readouterr()
+    caps = [
+        "Read command-line arguments from configuration file:",
+        "'configs/tli_hitran_two_files_one_pflist.cfg'",
+        "Reading input database files:",
+        "tests/inputs/01_hit12.par",
+        "tests/inputs/02_4000-4500_HITEMP2010.par",
+        "There are 2 input database file(s).",
+        "Initial TLI wavelength (um):   2.300 ( 4347.826 cm-1)",
+        "Final   TLI wavelength (um):   2.400 ( 4166.667 cm-1)",
+        "Database (1/2): 'HITRAN H2O' (H2O molecule)",
+        "Number of temperatures: 503",
+        "Number of isotopes: 9",
+        "Database (2/2): 'HITRAN CO2' (CO2 molecule)",
+        "Number of isotopes: 13",
+        "Cumulative number of isotopes per database: [0, 9, 22]",
+        "Process HITRAN H2O database between records 60,574 and 61,991.",
+        "Process HITRAN CO2 database between records 20,424 and 41,477.",
+        "[  610   233   163   411 20937    17    27    73]",
+        "Writing 22,471 transition lines.",
+        "/HITRAN_H2O_CO2_2.3-2.4um_test.tli'.",
+        ]
+    for cap in caps:
+        assert cap in captured.out
+
+
 def test_exomol(capfd):
     pb.run('configs/tli_exomol_test.cfg')
     captured = capfd.readouterr()

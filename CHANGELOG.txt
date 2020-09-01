@@ -6569,3 +6569,10 @@ I will probably regret this, but we will see.  I would not trust
 ultra-puff runs even if rhill is defined (hydrostatic equilibrium
 breaks way before the altitude gets closer to rhill anyway).
 
+
+*****  Di 1. Sep 15:22:46 CEST 2020  *****
+
+Enabled tli runs with a single pflist or dbtype value that applies to
+all dblist values.
+Updated docs and tests.
+

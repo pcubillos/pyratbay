@@ -66,8 +66,9 @@ this is particularly useful for molecules whose LBL data is split into
 multiple files (e.g., ExoMol or HITEMP data).
 
 The ``dbtype`` key indicates of what type are the databases listed in
-``dblist``.  There must be one ``dbtype`` value for each ``dblist``
-value.  The following table lists the ``dbtype`` values for each
+``dblist``.  There must be either one ``dbtype`` value for each ``dblist``
+value, or a single ``dbtype`` value that applies to all ``dblist`` values.
+The following table lists the ``dbtype`` values for each
 database type:
 
 ============================ =========== 
@@ -89,9 +90,10 @@ Partition Functions
 -------------------
 
 The partition function is a temperature-dependent property of each
-isotope that is required to compute line intensities.  In the TLI
-configuration file, the ``pflist`` key specifies the partition
-function for each ``dblist`` value.
+isotope that is required to compute line intensities.
+There must be either one ``pflist`` value for each ``dblist``
+value, or a single ``pflist`` value that applies to all
+``dblist`` values.
 
 For the hitran databases, ``Pyrat Bay`` provides the Total Internal
 Partition Sums (TIPS) data (see [Laraia2011]_ and [Gamache2017]_).  In

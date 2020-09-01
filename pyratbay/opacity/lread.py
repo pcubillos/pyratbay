@@ -27,7 +27,7 @@ def make_tli(dblist, pflist, dbtype, tlifile, wllow,  wlhigh, wlunits, log):
     pflist: List of strings
         Partition function for each of the databases.
     dbtype: List of strings
-        Type of each database.
+        Database type of each database.
     tlifile: String
         Output TLI file name.
     wllow: String or float
@@ -60,6 +60,11 @@ def make_tli(dblist, pflist, dbtype, tlifile, wllow,  wlhigh, wlunits, log):
 
     # Check number of files match:
     nfiles = len(dblist)
+    if len(pflist) == 1:
+        pflist = [pflist[0] for _ in range(nfiles)]
+    if len(dbtype) == 1:
+        dbtype = [dbtype[0] for _ in range(nfiles)]
+
     if nfiles != len(pflist) or nfiles != len(dbtype):
         log.error(
             f'The number of Line-transition files ({nfiles}) does not match '
