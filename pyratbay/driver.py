@@ -87,8 +87,8 @@ def run(cfile, init=False, no_logfile=False):
             temperature = pa.temperature(
                 atm.tmodelname, pressure, atm.nlayers, log, atm.tpars)
 
-        # Compute abundance profiles:
-        if check_abundance_args(pyrat) or pyrat.runmode != 'atmosphere':
+        # Compute volume-mixing-ratio profiles:
+        if pyrat.atm.chemistry is not None or pyrat.runmode != 'atmosphere':
             check_atm(pyrat)
             species = inputs.species
             abundances = pa.abundance(
@@ -237,45 +237,41 @@ def check_temp(pyrat):
         pyrat.log.error("Undefined temperature-model parameters (tpars).")
 
 
-def check_abundance_args(pyrat):
-    """Check input arguments required to compute abundances."""
-    if pyrat.inputs.species is None:
-        return False
-    if pyrat.inputs.uniform is None and pyrat.inputs.elements is None:
-        pyrat.log.warning(
-            'Defined atmospheric species to compute, but neither elements '
-            'nor uniform argument have been defined.  Output atmospheric '
-            'profile will contain only temperature and pressure.')
-        return False
-    return True
-
-
 def check_atm(pyrat):
     """
     Check the input arguments to calculate the atmospheric model.
     """
     atm = pyrat.atm
+    log = pyrat.log
+
+    if atm.chemistry is None:
+        log.error("Undefined chemistry model (chemistry).")
     if atm.atmfile is None:
-        pyrat.log.error("Undefined atmospheric file (atmfile).")
+        log.error("Undefined atmospheric file (atmfile).")
     if pyrat.inputs.species is None:
-        pyrat.log.error("Undefined atmospheric species list (species).")
+        log.error("Undefined atmospheric species list (species).")
+
     # Uniform-abundances profile:
-    if pyrat.inputs.uniform is not None:
-        if len(pyrat.inputs.uniform) != len(pyrat.inputs.species):
-            pyrat.log.error(
-                f"Number of uniform abundances ({len(pyrat.inputs.uniform)}) "
-                 "does not match the number of species "
-                f"({len(pyrat.inputs.species)}).")
+    if atm.chemistry == 'uniform':
+        if pyrat.inputs.uniform is None:
+            log.error("Undefined list of uniform volume mixing ratios "
+                     f"(uniform) for {atm.chemistry} chemistry model.")
+        nuniform = len(pyrat.inputs.uniform)
+        nspecies = len(pyrat.inputs.species)
+        if nuniform != nspecies:
+            pyrat.log.error(f"Number of uniform abundances ({nuniform}) does "
+                            f"not match the number of species ({nspecies}).")
+
         return
+
     # TEA abundances:
-    if pyrat.inputs.elements is None:
-        pyrat.log.error(
-            "Undefined atmospheric atomic composition (elements) or uniform "
-            "abundances (uniform).")
+    if atm.chemistry == 'tea':
+        if pyrat.inputs.elements is None:
+            log.error("Undefined elemental composition list (elements) for "
+                     f"{atm.chemistry} chemistry model.")
 
     pyrat.inputs.solar = pyrat.inputs.get_default('solar',
-        'Solar-abundance file',
-        pc.ROOT+'inputs/AsplundEtal2009.txt')
+        'Solar-abundance file', pc.ROOT+'inputs/AsplundEtal2009.txt')
     pyrat.inputs.atomicfile = pyrat.inputs.get_default('atomicfile',
         'Atomic-composition file', './atomic.tea')
     pyrat.inputs.patm = pyrat.inputs.get_default('patm',

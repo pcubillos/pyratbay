@@ -59,6 +59,7 @@ __all__ = [
     'rmodes',
     'retflags',
     'tmodels',
+    'chemmodels',
     'radmodels',
     'molmodels',
     'amodels',
@@ -198,6 +199,12 @@ tmodels = [
    'isothermal',
    'tcea',
    'madhu',
+]
+
+# Chemistry models:
+chemmodels = [
+    'uniform',
+    'tea',
 ]
 
 # Radius-profile models:

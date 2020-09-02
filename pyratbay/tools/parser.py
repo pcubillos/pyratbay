@@ -394,7 +394,8 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
       parse_str(args,   'pbottom')
       parse_str(args,   'atmfile')
       parse_str(args,   'radmodel')
-      # Variables for TEA calculations
+      # Variables for chemistry calculations
+      parse_str(args,   'chemistry')
       parse_array(args, 'species')
       parse_array(args, 'uniform')
       parse_str(args,   'ptfile')
@@ -613,6 +614,10 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
       'Radius at top of atmosphere', gt=0.0)
   atm.radstep = args.get_param('radstep', atm.runits,
       'Radius sampling step', gt=0.0)
+
+  # Chemistry:
+  atm.chemistry = args.get_choice('chemistry',
+      'Chemical model', pc.chemmodels)
 
   escale = args.get_default('escale',
       'Elemental abundance scaling factors', [])

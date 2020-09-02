@@ -367,12 +367,45 @@ def test_missing_atmfile(tmp_path, capfd, undefined):
     pyrat = pb.run(cfg)
     assert pyrat is None
     captured = capfd.readouterr()
-    assert "Error in module: 'driver.py', function: 'check_atm'" \
-           in captured.out
+    assert "Error in module: 'driver.py', function: 'check_atm'" in captured.out
     assert undefined['atmfile'] in captured.out
 
 
-def test_uniform_uniform_mismatch(tmp_path, capfd):
+@pytest.mark.parametrize('chem', ['uniform', 'tea'])
+def test_atmosphere_missing_species(tmp_path, capfd, undefined, chem):
+    cfg = make_config(tmp_path,
+        f'{ROOT}tests/configs/atmosphere_{chem}_test.cfg',
+        remove=['species'])
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Error in module: 'driver.py', function: 'check_atm'" in captured.out
+    assert undefined['species'] in captured.out
+
+
+def test_atmosphere_uniform_missing_uniform(tmp_path, capfd, undefined):
+    cfg = make_config(tmp_path,
+        ROOT+'tests/configs/atmosphere_uniform_test.cfg',
+        remove=['uniform'])
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Error in module: 'driver.py', function: 'check_atm'" in captured.out
+    assert undefined['uniform'] in captured.out
+
+
+def test_atmosphere_tea_missing_elements(tmp_path, capfd, undefined):
+    cfg = make_config(tmp_path,
+        ROOT+'tests/configs/atmosphere_tea_test.cfg',
+        remove=['elements'])
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Error in module: 'driver.py', function: 'check_atm'" in captured.out
+    assert undefined['elements'] in captured.out
+
+
+def test_atmosphere_uniform_mismatch_uniform(tmp_path, capfd):
     cfg = make_config(tmp_path,
         ROOT+'tests/configs/atmosphere_uniform_test.cfg',
         reset={'uniform':'0.85 0.15'})
@@ -428,6 +461,42 @@ def test_spectrum_transmission_missing(tmp_path, capfd, param, undefined_spec):
     assert "Error in module: 'argum.py', function: 'check_spectrum'" \
            in captured.out
     assert undefined_spec[param] in captured.out
+
+
+def test_spectrum_missing_chemistry_new_atmfile(tmp_path, capfd):
+    cfg = make_config(tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        reset={'atmfile':'{ROOT}tests/inputs/atmosphere_new_test.atm',
+               'ptop':'1e-6 bar',
+               'pbottom':'100.0 bar',
+               'nlayers':'81',
+               'tmodel':'tcea',
+               'tpars':'-4.84 -0.8 -0.8 0.5 1200.0 100.0',
+            })
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Error in module: 'driver.py', function: 'check_atm'" \
+           in captured.out
+    assert 'Undefined chemistry model (chemistry).' in captured.out
+
+
+def test_spectrum_missing_chemistry_no_atmfile(tmp_path, capfd):
+    cfg = make_config(tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        remove=['atmfile'],
+        reset={'ptop':'1e-6 bar',
+               'pbottom':'100.0 bar',
+               'nlayers':'81',
+               'tmodel':'tcea',
+               'tpars':'-4.84 -0.8 -0.8 0.5 1200.0 100.0',
+            })
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Error in module: 'driver.py', function: 'check_atm'" \
+           in captured.out
+    assert 'Undefined chemistry model (chemistry).' in captured.out
 
 
 def test_spectrum_no_radius(tmp_path, capfd):

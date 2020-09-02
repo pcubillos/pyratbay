@@ -6582,3 +6582,14 @@ Updated docs and tests.
 Updated some of the html docs.
 There is still some more work to do.
 
+*****
+
+Added 'chemistry' variable to configuration file to signal a
+chemistry volume mixinf ratio calculation.
+pyrat.atm.chemistry holds the chemistry model.
+Removed check_abundance_args() function in driver.py (no longer used)
+Updated check_atm() in driver.py to check consistency with input
+chemistry model.
+Added constants.chemmodels with list of available models.
+Updated examples and tests.
+
