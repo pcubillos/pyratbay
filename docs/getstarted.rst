@@ -27,10 +27,8 @@ The following table details what each of these steps do.
 |                | transition-line-information file (TLI, the format used by  |
 |                | ``Pyrat Bay`` for spectral computations)                   |
 +----------------+------------------------------------------------------------+
-| ``pt``         | Compute a temperature-pressure profile                     |
-+----------------+------------------------------------------------------------+
 | ``atmosphere`` | Generate a 1D atmospheric model (pressure, temperature,    |
-|                | and abundance profiles)                                    |
+|                | abundances, and altitude profiles)                         |
 +----------------+------------------------------------------------------------+
 | ``opacity``    | Generate an opacity table as function of wavenumber,       |
 |                | temperature, pressure, and species                         |
@@ -90,24 +88,23 @@ not guarantee nor provide support for that.
 Install and Compile
 -------------------
 
-To obtain the current stable ``Pyrat Bay`` code, clone the repository
-to your local machine with the following terminal commands:
+To install ``Pyrat Bay`` run the following command from the terminal:
 
 .. code-block:: shell
 
-  topdir=`pwd`
+  pip install pyratbay
+
+
+Alternatively, (e.g., for developers), you can clone the ``Pyrat Bay``
+repository to your local machine and install with the following
+terminal commands:
+
+.. code-block:: shell
+
   git clone --recursive https://github.com/pcubillos/pyratbay
+  cd pyratbay
+  python setup.py develop
 
-And compile the CPython programs:
-
-.. code-block:: shell
-
-  cd $topdir/pyratbay
-  make
-
-.. To remove the program binaries, execute (from the respective directories):
-   code-block:: shell
-   make clean
 
 .. _qexample:
 
@@ -116,32 +113,22 @@ Quick Example
 
 The following script quickly you calculate a water transmission
 spectrum between 0.5 and 5.5 um.  These instructions are meant to be
-executed from a Shell terminal.  After you installed and compiled the
-package, create a working directory to place the files and execute the
+executed from a Shell terminal.  After you installed the package,
+create a working directory to place the files and execute the
 programs, e.g.:
 
 .. code-block:: shell
 
-   cd $topdir
    mkdir run_demo
    cd run_demo
 
-Download the water line-transition database from the HITRAN server:
+Download the water line-transition database from the HITRAN server and unzip it:
 
 .. code-block:: shell
 
    # Using wget:
-   wget --user=HITRAN --password=getdata -N \
-    https://www.cfa.harvard.edu/HITRAN/HITRAN2012/HITRAN2012/By-Molecule/Compressed-files/01_hit12.zip
-   # Or alternatively, curl:
-   curl -u HITRAN:getdata \
-    https://www.cfa.harvard.edu/HITRAN/HITRAN2012/HITRAN2012/By-Molecule/Compressed-files/01_hit12.zip\
-    -o 01_hit12.zip
-
-Unzip the file:
-
-.. code-block:: shell
-
+   wget https://www.cfa.harvard.edu/HITRAN/HITRAN2012/HITRAN2012/By-Molecule/Compressed-files/01_hit12.zip
+   # Or alternatively: curl https://www.cfa.harvard.edu/HITRAN/HITRAN2012/HITRAN2012/By-Molecule/Compressed-files/01_hit12.zip -o 01_hit12.zip
    unzip 01_hit12.zip
 
 
@@ -191,8 +178,8 @@ interactive mode, I suggest starting the session with ``ipython
   plt.clf()
   plt.subplots_adjust(0.14, 0.1, 0.95, 0.95, hspace=0.15)
   ax = plt.subplot(211)
-  plt.plot(wl, 100*transmission, "b", label="Pyrat transmission model", lw=1.0)
-  plt.plot(wl, gaussf(100*transmission, sigma=5), "orange", lw=1.25)
+  plt.plot(wl, 100*transmission, "b", label="pyrat transmission model", lw=1.0)
+  plt.plot(wl, gaussf(100*transmission, sigma=5.0), "orange", lw=1.25)
   plt.xscale('log')
   plt.ylabel(r"$(R_{\rm p}/R_{\rm s})^2}$  (%)")
   ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
@@ -202,8 +189,8 @@ interactive mode, I suggest starting the session with ``ipython
   plt.legend(loc="upper left")
 
   ax = plt.subplot(212)
-  plt.plot(wl, emission, "b", label="Pyrat emission model", lw=1.0)
-  plt.plot(wl, gaussf(emission, sigma=5), "orange", lw=1.25)
+  plt.plot(wl, emission, "b", label="pyrat emission model", lw=1.0)
+  plt.plot(wl, gaussf(emission, sigma=5.0), "orange", lw=1.25)
   plt.xscale('log')
   plt.xlabel(r"Wavelength  (um)")
   plt.ylabel(r"$F_{\rm planet}$ (erg s$^{-1}$ cm$^{-2}$ cm)")
@@ -248,17 +235,17 @@ Interactive Run
 ---------------
 
 The same process can be executed from the Python Interpreter, after
-importing the pyratbay package:
+importing the ``Pyrat Bay`` package:
 
 .. code-block:: python
 
     import pyratbay as pb
+    pyrat = pb.run('demo_spectrum-transmission.cfg')
+    ax = pyrat.plot_spectrum()
 
-    pyrat = pb.run('config_file.cfg')
-
-The output ``pyrat`` vary depending on the selected run mode.
-Additional low- and mid-level routines are also available through this
-package (see :ref:`API`).
+The output vary depending on the selected run mode.  Additional low-
+and mid-level routines are also available through this package (see
+the :ref:`API`).
 
 ------------------------------------------------------------------------
 

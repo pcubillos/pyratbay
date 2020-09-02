@@ -10,11 +10,11 @@ matrix:
 install:
   - pip install -r requirements.txt
   - pip install -e .
-  - wget --user=HITRAN --password=getdata -N https://www.cfa.harvard.edu/HITRAN/HITRAN2012/HITRAN2012/By-Molecule/Compressed-files/01_hit12.zip
-  - wget --user=HITRAN --password=getdata -N https://www.cfa.harvard.edu/HITRAN/HITRAN2012/HITRAN2012/By-Molecule/Compressed-files/02_hit12.zip
-  - wget --user=HITRAN --password=getdata -N https://www.cfa.harvard.edu/HITRAN/HITRAN2012/HITRAN2012/By-Molecule/Compressed-files/06_hit12.zip
-  - wget -N https://hitran.org/hitemp/data/HITEMP-2010/CO2_line_list/02_03750-04000_HITEMP2010.zip
-  - wget -N https://hitran.org/hitemp/data/HITEMP-2010/CO2_line_list/02_04000-04500_HITEMP2010.zip
+  - wget https://www.cfa.harvard.edu/HITRAN/HITRAN2012/HITRAN2012/By-Molecule/Compressed-files/01_hit12.zip
+  - wget https://www.cfa.harvard.edu/HITRAN/HITRAN2012/HITRAN2012/By-Molecule/Compressed-files/02_hit12.zip
+  - wget https://www.cfa.harvard.edu/HITRAN/HITRAN2012/HITRAN2012/By-Molecule/Compressed-files/06_hit12.zip
+  - wget https://hitran.org/hitemp/data/HITEMP-2010/CO2_line_list/02_03750-04000_HITEMP2010.zip
+  - wget https://hitran.org/hitemp/data/HITEMP-2010/CO2_line_list/02_04000-04500_HITEMP2010.zip
 
   - unzip '*.zip' -d tests/inputs/
   - wget http://kurucz.harvard.edu/grids/gridp00odfnew/fp00k0odfnew.pck -P tests/inputs

@@ -100,14 +100,32 @@ Partition Sums (TIPS) data (see [Laraia2011]_ and [Gamache2017]_).  In
 this case the user can set the ``pflist`` value to '`tips`'.
 
 The exomol, pands, and tioschwenke databases provide the partition
-function as a table along with the LBL files.  In this case, the user
-must download the partition-function files, and format them into the
-``Pyrat Bay`` format.
+function as ascii tables.  In this case, the user must download the
+partition-function files, and format them into the ``Pyrat Bay``
+format.  For example (from the command line):
 
-**TBD: pbay.py -pf kurucz filename**
+.. code-block:: shell
 
-.. Plez VO               1000-7000              poly**
-   The VO database uses a polynomial formula from [Irwin1981]_.
+    # Download NH3 ExoMol partition-function data to current dictory:
+    wget http://www.exomol.com/db/NH3/14N-1H3/BYTe/14N-1H3__BYTe.pf
+    wget http://www.exomol.com/db/NH3/15N-1H3/BYTe-15/15N-1H3__BYTe-15.pf
+
+    # Re-format to pyratbay format:
+    pbay -pf exomol 14N-1H3__BYTe.pf 15N-1H3__BYTe-15.pf
+
+
+The use can also generate TIPS partition-function files from the
+command line:
+
+.. code-block:: shell
+
+    # pbay -pf tips 
+    pbay -pf tips H2O
+
+    # Use the 'as_exomol' flag to generate a TIPS partition-function file
+    # to be used for exomol database (note the output isotope naming differs):
+    pbay -pf tips H2O as_exomol
+
 
 Wavelength Boundaries
 ---------------------
@@ -141,9 +159,8 @@ To create the TLI file, run from the Python interpreter:
    pbay -c tli_hitran_H2O.cfg
 
 
-
-.. _HITRAN: https://www.cfa.harvard.edu/HITRAN/
-.. _HITEMP: https://www.cfa.harvard.edu/HITRAN/
-.. _ExoMol: http://www.exomol.com
+.. _HITRAN: https://hitran.org/lbl/
+.. _HITEMP: https://hitran.org/hitemp/
+.. _ExoMol: http://www.exomol.com/data/molecules/
 .. _Partridge & Schwenke: http://kurucz.harvard.edu/molecules/h2o/
 .. _Schwenke: http://kurucz.harvard.edu/molecules/tio/
