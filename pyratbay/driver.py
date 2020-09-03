@@ -261,7 +261,6 @@ def check_atm(pyrat):
         if nuniform != nspecies:
             pyrat.log.error(f"Number of uniform abundances ({nuniform}) does "
                             f"not match the number of species ({nspecies}).")
-
         return
 
     # TEA abundances:
@@ -272,9 +271,5 @@ def check_atm(pyrat):
 
     pyrat.inputs.solar = pyrat.inputs.get_default('solar',
         'Solar-abundance file', pc.ROOT+'inputs/AsplundEtal2009.txt')
-    pyrat.inputs.atomicfile = pyrat.inputs.get_default('atomicfile',
-        'Atomic-composition file', './atomic.tea')
-    pyrat.inputs.patm = pyrat.inputs.get_default('patm',
-        'Pre-atmospheric file', './preatm.tea')
     pyrat.inputs.xsolar = pyrat.inputs.get_default('xsolar',
         'Solar-metallicity scaling factor', 1.0, gt=0.0, wflag=True)

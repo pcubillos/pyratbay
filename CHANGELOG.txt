@@ -6603,3 +6603,9 @@ Updated getting started and atmosphere tutorial docs.
 Fixed bug in plots.abundance() function.
 Set properly the legend font size, also allow not plotting the
 legend when the fontsize is less equal than zero.
+
+*****
+
+Removed patm and atomicfile input arguments from the config files,
+no longer used (nor needed).
+

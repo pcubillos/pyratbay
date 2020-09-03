@@ -402,8 +402,6 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
       parse_str(args,   'solar')
       parse_float(args, 'xsolar')
       parse_array(args, 'escale')
-      parse_str(args,   'atomicfile')
-      parse_str(args,   'patm')
       parse_array(args, 'elements')
       # Extinction options:
       parse_float(args, 'tmin')
