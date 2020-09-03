@@ -60,7 +60,7 @@ compute the spectrum.  If the file pointed by ``atmfile`` does not
 exist, the codel will attempt to produce it (provided all necessary
 input parameters are set in the configuration file).  The atmospheric
 model can be produced with ``Pyrat Bay`` or be a custom input from the
-user (as long as it follows the right format).
+user (as long as it follows the right format, see the `API <file:///home/pcubillos/Dropbox/IWF/projects/2014_pyratbay/sphinxdoc-pyratbay/html/api.html#pyratbay.io.write_atm>`_).
 
 
 Spectrum Sampling

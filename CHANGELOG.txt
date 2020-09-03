@@ -6593,3 +6593,8 @@ chemistry model.
 Added constants.chemmodels with list of available models.
 Updated examples and tests.
 
+
+*****  Do 3. Sep 11:27:24 CEST 2020  *****
+
+Updated getting started and atmosphere tutorial docs.
+

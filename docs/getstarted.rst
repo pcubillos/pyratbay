@@ -132,12 +132,26 @@ Download the water line-transition database from the HITRAN server and unzip it:
    unzip 01_hit12.zip
 
 
-Copy the input and configuration files for the demo from the examples
-folder to your working directory:
+Copy the input and configuration files for the demo from the `examples
+folder
+<https://github.com/pcubillos/pyratbay/tree/master/examples/demo>`_ to
+your working directory. You can find these files on your local machine
+with the following Python script:
 
-.. code-block:: shell
+.. code-block:: python
 
-   cp $topdir/pyratbay/examples/demo/* .
+    # This Python script shows you where the demo files are located:
+    import pyratbay.constants as pc
+    demo_folder = f'{pc.ROOT}examples/demo'
+    print(demo_folder)
+
+    # You can either copy the file from this folder to your current dir
+    # using the command line or the following Python script:
+    import os
+    import shutil
+    for file in os.listdir(demo_folder):
+        shutil.copy(f'{demo_folder}/{file}', file)
+
 
 Execute these commands from the shell to create a
 Transition-Line-Information (TLI) file, and then to use it to compute

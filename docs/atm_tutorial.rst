@@ -28,7 +28,8 @@ This run mode generates a 1D atmospheric model (pressure, temperature,
 abundances, and altitude profiles), and saves it to a file.  At minimum,
 the user needs to provide the arguments required to compute the
 pressure and temperature profiles.  Further, ``Pyrat Bay`` will
-compute abundance profiles only if the user provides the respective
+compute volume-mixing ratio (abundance) profiles only if the user sets the
+``chemistry`` provides the respective
 arguments.  Likewise, the code will compute the altitude profiles only
 if the user provides the respective arguments (which also require that
 the abundance profiles are defined).
@@ -60,11 +61,10 @@ or through the ``punits`` key (in-place units take precedence over
 Temperature Profiles
 --------------------
 
-Currently, there are three available temperature models that can be
-set with the ``tmodel`` key.
-Each one of these require a different set of parameters (``tpars``).
-The models, parameters, and references are listed in the following
-table:
+Currently, there are three temperature models (``tmodel`` argument) to
+compute temperature profiles.  Each one requires a different set of
+parameters (``tpars``), which is described in the table and sections below:
+
 
 =================== ==================================================== ====
 Models (``tmodel``) Parameters (``tpars``)                               References
@@ -172,8 +172,17 @@ And the results should look like this:
 Abundance Profiles
 ------------------
 
-Currently, ``Pyrat Bay`` implements two abundance models: uniform- and
-thermochemical-equilibrium-abundance (TEA) profiles.
+Currently, there are two chemistry models (``chemistry`` argument) to
+compute volume-mixing-ratio abundances: uniform or thermochemical
+equilibrium.  Each one requires a different set of arguments, which is
+described in the table and sections below:
+
+====================== ==================================================== ====
+Models (``chemistry``) Required arguments [optional arguments]              References
+====================== ==================================================== ====
+uniform                ``species``, ``uniform``                                     ---
+tea                    ``species``, ``elements``, [``xsolar``, ``escale`` ] [Blecic2016]_
+====================== ==================================================== ====
 
 
 Uniform abundances
@@ -195,7 +204,7 @@ Thermochemical-equilibrium Abundances
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 ``Pyrat Bay`` computes abundances in thermochemical equilibrium via
-the TEA package ([Blecic2016]_), by minimizing the Gibbs free energy at
+the TEA package [Blecic2016]_, by minimizing the Gibbs free energy at
 each layer.  To produce a TEA model, the configuration file must
 contain the ``species`` key specifying the species to include in the
 atmosphere, the ``elements`` key specifying the elemental composition.
@@ -203,7 +212,7 @@ An atmosphere config file must also set the ``atmfile`` key specifying
 the output atmospheric file name.
 
 The TEA run assumes a solar elemental composition from [Asplund2009]_;
-however, the user can enhance the metallicity of metals by setting the
+however, the user can scale the abundance of metals by setting the
 ``xsolar`` key, or can scale individual elemental abundances by setting
 the ``escale`` key element and scale factor pairs:
 
@@ -226,39 +235,25 @@ Aprofiles for the configuration files shown above:
     plt.ion()
 
     import pyratbay as pb
-    import pyratbay.atmosphere as pa
-    import pyratbay.constants as pc
+    import pyratbay.plots as pp
 
     # Before running the rest of this script, you'll need to copy the
     # config files to your current folder, you can find them here, e.g.:
-    # print(f'{pc.ROOT}examples/tutorial/atmosphere_tea.cfg')
+    # print(f'{pb.constants.ROOT}examples/tutorial/atmosphere_tea.cfg')
 
     # Generate a uniform and a thermochemical-equilibrium atmospheric model:
     pressure, temp, q_tea, species, radius = pb.run("atmosphere_tea.cfg")
     pressure, temp, q_uniform, species, radius = pb.run("atmosphere_uniform.cfg")
 
-    # Pressure in bar units:
-    press = pressure / pc.bar
-
     # Plot the results:
-    plt.figure(12)
+    plt.figure(12, (6,5))
     plt.clf()
-    ax = plt.subplot(211)
-    for q, spec in zip(q_tea.T, species):
-        plt.loglog(q, press, label=spec, lw=2)
-
-    plt.ylim(np.amax(press), np.amin(press))
-    plt.xlim(1e-11, 1.0)
-    plt.ylabel("Pressure (bar)", fontsize=11)
-    ax = plt.subplot(212)
-    for q, spec in zip(q_uniform.T, species):
-        plt.loglog(q, press, label=spec, lw=2)
-
-    plt.ylim(np.amax(press), np.amin(press))
-    plt.xlim(1e-11, 1.0)
-    plt.xlabel("Volume mixing fraction", fontsize=11)
-    plt.ylabel("Pressure (bar)", fontsize=11)
-    plt.legend(loc='best', fontsize=8)
+    ax1 = pp.abundance(
+        q_tea, pressure, species, colors='default', xlim=[1e-11, 10.0],
+        legend_fs=0, ax=plt.subplot(211))
+    ax2 = pp.abundance(
+        q_uniform, pressure, species, colors='default', xlim=[1e-11, 10.0],
+        legend_fs=8, ax=plt.subplot(212))
     plt.tight_layout()
 
 And the results should look like this:
@@ -267,4 +262,3 @@ And the results should look like this:
    :width: 70%
    :align: center
 
-----------------------------------------------------------------------
