@@ -557,7 +557,8 @@ def abundance(vol_mix_ratios, pressure, species,
     fs: Float
         Labels font sizes.
     legend_fs: Float
-        Legend font size.  If None, default to fs-2.
+        Legend font size.  If legend_fs is None, default to fs-2.
+        If legend_fs <= 0, do not plot a legend.
     ax: AxesSubplot instance
         If not None, plot into the given axis.
 
@@ -646,7 +647,8 @@ def abundance(vol_mix_ratios, pressure, species,
     ax.set_xlabel('Volume mixing ratio', fontsize=fs)
     ax.set_ylabel(f'Pressure ({punits})', fontsize=fs)
     ax.tick_params(labelsize=fs-2)
-    ax.legend(loc='lower left', fontsize=fs-2)
+    if legend_fs > 0:
+        ax.legend(loc='best', fontsize=legend_fs)
 
     if filename is not None:
         plt.savefig(filename)
