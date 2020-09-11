@@ -580,6 +580,7 @@ class Pyrat(object):
       ----------
       kwargs: dict
           Dictionary of arguments to pass into plots.temperature().
+          See help(pyratbay.plots.temperature).
 
       Returns
       -------
@@ -591,18 +592,11 @@ class Pyrat(object):
               self.atm.press, profiles=[self.atm.temp], **kwargs)
           return ax
 
-      posterior = self.ret.posterior
-      ifree = self.ret.pstep[self.ret.itemp] > 0
-      itemp = np.arange(np.sum(ifree))
-      # FINDME: Probably should take this calculation out of this method
-      tpost = pa.temperature_posterior(
-          posterior[:,itemp], self.atm.tmodel,
-          self.ret.params[self.ret.itemp], ifree, self.atm.press)
-
       ax = pp.temperature(
           self.atm.press,
-          profiles=[tpost[0], self.ret.bestp[self.ret.itemp]],
-          labels=['median', 'best'], bounds=tpost[1:], **kwargs)
+          profiles=[self.ret.temp_median, self.ret.temp_best],
+          labels=['median', 'best'],
+          bounds=self.ret.temp_post_boundaries, **kwargs)
       return ax
 
 

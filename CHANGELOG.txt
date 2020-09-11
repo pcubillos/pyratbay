@@ -6623,3 +6623,11 @@ TBD: think of merging it with similar code in make_atmprofiles().
 Bumped Pyrat Bay version to 0.9.1.
 Nearly final shape, I would say.
 
+*****
+
+Refactored calculation of temmperature profiles posteriors after
+the mcmc run.  Created pyrat.ret.temp_best, pyrat.ret.temp_median,
+and pyrat.ret.temp_post_boundaries variables if there is a
+temperature model.
+TBD: I should also check that at least one tparams is free.
+

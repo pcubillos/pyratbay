@@ -198,7 +198,18 @@ def run(cfile, init=False, no_logfile=False):
 
     pyrat.plot_spectrum(spec='best', filename=f'{outfile}_bestfit_spectrum.png')
 
-    if pyrat.atm.tmodelname in ['tcea', 'madhu']:
+    # Temperature profiles:
+    if pyrat.atm.tmodelname is not None:
+        ifree = pyrat.ret.pstep[pyrat.ret.itemp] > 0
+        itemp = np.arange(np.sum(ifree))
+
+        pyrat.ret.temp_best = pyrat.atm.tmodel(bestp[pyrat.ret.itemp])
+        tpost = pa.temperature_posterior(
+            posterior[:,itemp], pyrat.atm.tmodel,
+            pyrat.ret.params[pyrat.ret.itemp], ifree, pyrat.atm.press)
+        pyrat.ret.temp_median = tpost[0]
+        # low1, high1, low2, high2
+        pyrat.ret.temp_post_boundaries = tpost[1:]
         pyrat.plot_temperature(
             filename=f'{outfile}_posterior_temperature_profile.png')
 
