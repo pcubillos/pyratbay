@@ -6618,3 +6618,8 @@ Added tests and updated docs.
 Implemented check_altitude() function in driver.py
 TBD: think of merging it with similar code in make_atmprofiles().
 
+*****
+
+Bumped Pyrat Bay version to 0.9.1.
+Nearly final shape, I would say.
+
