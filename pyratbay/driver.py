@@ -87,26 +87,39 @@ def run(cfile, init=False, no_logfile=False):
             temperature = pa.temperature(
                 atm.tmodelname, pressure, atm.nlayers, log, atm.tpars)
 
+        abundances = None
+        species = None
+        radius = None
         # Compute volume-mixing-ratio profiles:
-        if pyrat.atm.chemistry is not None or pyrat.runmode != 'atmosphere':
+        if atm.chemistry is not None or pyrat.runmode != 'atmosphere':
             check_atm(pyrat)
             species = inputs.species
             abundances = pa.abundance(
                 pressure, temperature, species, inputs.elements,
                 inputs.uniform, atm.atmfile, atm.punits, inputs.xsolar,
                 atm.escale, inputs.solar, log)
-        else:
-            abundances = None
-            species = None
+
+        # Compute altitude profile:
+        if abundances is not None and atm.rmodelname is not None:
+            check_altitude(pyrat)
+
+            # Mean molecular mass:
+            mean_mass = pa.mean_weight(abundances, species)
+            # Altitude profile:
+            radius = pyrat.hydro(
+                pressure, temperature, mean_mass, phy.gplanet,
+                phy.mplanet, atm.refpressure, phy.rplanet)
 
     # Return atmospheric model if requested:
     if pyrat.runmode == 'atmosphere':
         header = '# Pyrat bay atmospheric model\n'
-        radius = None
+        # Guess radius units if not defined (by rplanet):
+        if radius is not None and atm.runits is None:
+            atm.runits = 'rjup' if phy.rplanet > 0.5*pc.rjup else 'rearth'
         if atm.atmfile is not None:
             io.write_atm(
                 atm.atmfile, pressure, temperature, species,
-                abundances, radius, atm.punits, header=header)
+                abundances, radius, atm.punits, atm.runits, header=header)
             log.msg(f"Output atmospheric file: '{atm.atmfile}'.")
         return pressure, temperature, abundances, species, radius
 
@@ -273,3 +286,29 @@ def check_atm(pyrat):
         'Solar-abundance file', pc.ROOT+'inputs/AsplundEtal2009.txt')
     pyrat.inputs.xsolar = pyrat.inputs.get_default('xsolar',
         'Solar-metallicity scaling factor', 1.0, gt=0.0, wflag=True)
+
+
+def check_altitude(pyrat):
+    """Check input arguments to calculate altitude profile."""
+    atm = pyrat.atm
+    phy = pyrat.phy
+    log = pyrat.log
+
+    rad_vars = ['mplanet', 'rplanet', 'gplanet']
+    missing = [rvar for rvar in rad_vars
+               if getattr(phy,rvar) is None]
+
+    if len(missing) == 2:
+        err = f'either {missing[0]} or {missing[1]}'
+    elif len(missing) == 3:
+        err = 'at least two of mplanet, rplanet, or gplanet'
+
+    if len(missing) > 0:
+        log.error('Cannot compute hydrostatic-equilibrium radius profile.  '
+                 f'Must\ndefine {err}.')
+
+    if pyrat.atm.refpressure is None:
+        log.error('Cannot compute hydrostatic-equilibrium radius profile.  '
+            'Undefined reference pressure level (refpressure).')
+
+

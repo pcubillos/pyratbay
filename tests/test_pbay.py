@@ -204,6 +204,29 @@ expected_abundance = np.array([
     [8.5318e-01, 1.4551e-01, 2.9708e-06, 1.8318e-07, 7.6826e-04,
      3.9103e-04, 6.8996e-05, 1.9053e-08, 2.1713e-05, 8.5486e-08, 4.6890e-05]])
 
+expected_radius = np.array([
+    7.33195650e+09, 7.32831268e+09, 7.32467248e+09, 7.32103589e+09,
+    7.31740291e+09, 7.31377352e+09, 7.31014771e+09, 7.30652549e+09,
+    7.30290684e+09, 7.29929175e+09, 7.29568022e+09, 7.29207222e+09,
+    7.28846775e+09, 7.28486679e+09, 7.28126932e+09, 7.27767531e+09,
+    7.27408475e+09, 7.27049760e+09, 7.26691382e+09, 7.26333335e+09,
+    7.25975615e+09, 7.25618213e+09, 7.25261120e+09, 7.24904325e+09,
+    7.24547813e+09, 7.24191566e+09, 7.23835561e+09, 7.23479770e+09,
+    7.23124157e+09, 7.22768677e+09, 7.22413274e+09, 7.22057877e+09,
+    7.21702399e+09, 7.21346729e+09, 7.20990732e+09, 7.20634236e+09,
+    7.20277032e+09, 7.19918862e+09, 7.19559409e+09, 7.19198290e+09,
+    7.18835043e+09, 7.18469120e+09, 7.18099877e+09, 7.17726570e+09,
+    7.17348355e+09, 7.16964296e+09, 7.16573383e+09, 7.16174551e+09,
+    7.15766725e+09, 7.15348861e+09, 7.14920000e+09, 7.14479333e+09,
+    7.14026261e+09, 7.13560460e+09, 7.13081938e+09, 7.12591084e+09,
+    7.12088693e+09, 7.11575961e+09, 7.11054445e+09, 7.10525955e+09,
+    7.09992411e+09, 7.09455648e+09, 7.08917228e+09, 7.08378310e+09,
+    7.07839620e+09, 7.07301531e+09, 7.06764188e+09, 7.06227633e+09,
+    7.05691868e+09, 7.05156887e+09, 7.04622681e+09, 7.04089240e+09,
+    7.03556550e+09, 7.03024596e+09, 7.02493358e+09, 7.01962812e+09,
+    7.01432929e+09, 7.00903671e+09, 7.00374992e+09, 6.99846837e+09,
+    6.99319134e+09])
+
 
 # Warm up, check when units are well or wrongly set:
 def test_units_variable_not_needed(tmp_path):
@@ -326,6 +349,45 @@ def test_atmosphere_tea(tmp_path):
     np.testing.assert_allclose(atmf[2]*pc.bar, expected_pressure, rtol=3e-5)
     np.testing.assert_allclose(atmf[3], expected_temperature, rtol=5e-6)
     np.testing.assert_allclose(atmf[4], expected_abundance, rtol=1e-7)
+
+
+def test_atmosphere_hydro(tmp_path):
+    atmfile = str(tmp_path / 'test.atm')
+    cfg = make_config(tmp_path,
+        ROOT+'tests/configs/atmosphere_hydro_test.cfg',
+        reset={'atmfile':atmfile})
+
+    press, temp, abund, species, radius = pb.run(cfg)
+    np.testing.assert_allclose(press, expected_pressure, rtol=1e-7)
+    np.testing.assert_allclose(temp, expected_temperature, rtol=1e-7)
+    q = np.tile([0.85, 0.149, 3.0e-6, 4.0e-4, 1.0e-4, 5.0e-4, 1.0e-7], (81,1))
+    np.testing.assert_equal(abund, q)
+    np.testing.assert_allclose(radius, expected_radius, rtol=1e-7)
+    # Compare against the atmospheric file now:
+    atmf = io.read_atm(atmfile)
+    assert atmf[0] == ('bar', 'kelvin', 'volume', 'rjup')
+    np.testing.assert_equal(atmf[1],
+        np.array('H2 He Na H2O CH4 CO CO2'.split()))
+    # File read-write loses precision:
+    np.testing.assert_allclose(atmf[2]*pc.bar, expected_pressure, rtol=3e-5)
+    np.testing.assert_allclose(atmf[3], expected_temperature, rtol=5e-6)
+    np.testing.assert_equal(atmf[4], q)
+    np.testing.assert_allclose(atmf[5]*pc.rjup, expected_radius, rtol=5e-5)
+
+
+def test_atmosphere_hydro_default_runits(tmp_path):
+    atmfile = str(tmp_path / 'test.atm')
+    cfg = make_config(tmp_path,
+        ROOT+'tests/configs/atmosphere_hydro_test.cfg',
+        reset={'atmfile':atmfile, 'gplanet':'2478.7504116251885'},
+        remove=['rplanet'])
+
+    press, temp, abund, species, radius = pb.run(cfg)
+    np.testing.assert_allclose(radius, expected_radius, rtol=1e-7)
+    atmf = io.read_atm(atmfile)
+    assert atmf[0] == ('bar', 'kelvin', 'volume', 'rjup')
+    np.testing.assert_allclose(atmf[5]*pc.rjup, expected_radius, rtol=5e-5)
+
 
 
 # See tests/test_spectrum.py for spectrum tests

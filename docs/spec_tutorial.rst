@@ -245,45 +245,8 @@ Radius-profile Models
 ---------------------
 
 The ``radmodel`` key sets the model to compute the atmospheric
-layers's altitude.  The currently available models (see table below)
-solve for the hydrostatic-equilibrium equation, combined with the
-ideal gas law with a pressure-dependent gravity (``radmodel=hydro_m``):
-
-.. math::
-   \frac{dr}{r^2} = -\frac{kT}{\mu G M_p} \frac{dp}{p},
-
-or a constant surface gravity (``radmodel=hydro_g``):
-
-.. math::
-   dr = -\frac{kT}{\mu g} \frac{dp}{p},
-
-where both the mean molecular masss :math:`\mu(r)` and temperature
-:math:`T(r)` are pressure-dependent variables, taken from the
-atmospheric model.  The ``mplanet`` and ``gplanet`` keys set the
-planetary mass (:math:`M_p`) and surface gravity (:math:`g`),
-respectively.
-
-.. Note:: Note that the user can supply its own atmospheric altitude
-          profile (through the input atmospheric model), possibly not
-          in hydrostatic equilibrium.  In this case, do not set the
-          ``radmodel`` key.
-
-To obtain the particular solution of the differential equation above,
-the user needs to supply a pair of radius--pressure reference values
-to define the boundary condition :math:`r(p_0) = R_0`.  The
-``rplanet`` and ``refpressure`` keys set :math:`R_0` and :math:`p_0`,
-respectively.
-
-Note that the selection of the :math:`\{p_0,R_0\}` pair is arbitrary.
-A good practice is to choose values close to the transit radius of
-the planet.  Although the pressure at the transit radius is a priori
-unknown for a give particular case ([Griffith2014]_), its value lies
-at around 0.1 bar (Cubillos et al., in prep.).
-
-.. Note:: Note that the user needs only to define two out of the three
-          :math:`\{R_0, M_p, g\}` variables, since they are related
-          through the equation: :math:`g(R_0) = G M_p / R_0^2`.
-
+layers's altitude assuming hydrostatic equilibrium.  This table shows
+the currently available models:
 
 =====================  =========================
 Models (``radmodel``)  Comments
@@ -292,6 +255,17 @@ hydro_m                Hydrostatic equilibrium with :math:`g(r)=GM/r^2`
 hydro_g                Hydrostatic equilibrium with constant gravity
 [undefined]            Take radius profile from input atmospheric file if exists
 =====================  =========================
+
+See the :ref:`altitude_profile` section for details.
+The ``refpressure``, ``rplanet``, ``mplanet`` and ``gplanet`` keys set
+the planetary reference pressure and radius level (:math:`p_0` and
+:math:`R_0`), the planetary mass (:math:`M_p`) and planetary surface
+gravity (:math:`g`), respectively.
+
+.. Note:: Note that the user can supply its own atmospheric altitude
+          profile (through the input atmospheric model), possibly not
+          in hydrostatic equilibrium.  In this case, do not set the
+          ``radmodel`` key.
 
 
 Alkali Opacity Models
@@ -395,7 +369,7 @@ Temperature Models
 ------------------
 
 The user can re-compute the temperature profile of the atmosphere by
-specifying the ``tmodel`` and ``tpars`` keys (see :ref:`pttutorial`).
+specifying the ``tmodel`` and ``tpars`` keys (see :ref:`temp_profile`).
 
 
 Abundances Scaling

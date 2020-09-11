@@ -290,7 +290,7 @@ def test_lower_equal(tmp_path, capfd, param):
 
 
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-# pt runmode fails:
+# atmosphere (temperature profiles) runmode fails:
 @pytest.mark.parametrize('param', ['nlayers', 'ptop', 'pbottom'])
 def test_pt_pressure_missing(tmp_path, capfd, undefined, param):
     cfg = make_config(tmp_path, ROOT+'tests/configs/pt_isothermal.cfg',
@@ -358,7 +358,7 @@ def test_pt_tpars_mismatch(tmp_path, capfd, tmodel, npars):
 
 
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-# atmosphere runmode fails:
+# atmosphere (chemistry) runmode fails:
 
 def test_missing_atmfile(tmp_path, capfd, undefined):
     cfg = make_config(tmp_path,
@@ -415,6 +415,56 @@ def test_atmosphere_uniform_mismatch_uniform(tmp_path, capfd):
     assert "Error in module: 'driver.py', function: 'check_atm'" in captured.out
     assert "Number of uniform abundances (2) does not match the number " \
            "of species (7)." in captured.out
+
+
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+# atmosphere (altitude) runmode fails:
+
+def test_atmosphere_hydro_missing_refpressure(tmp_path, capfd, undefined):
+    cfg = make_config(tmp_path,
+        ROOT+'tests/configs/atmosphere_hydro_test.cfg',
+        remove=['refpressure'])
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Error in module: 'driver.py', function: 'check_altitude'" \
+        in captured.out
+    assert undefined['refpressure'] in captured.out
+
+
+def test_atmosphere_hydro_missing_all_planet_props(tmp_path, capfd, undefined):
+    cfg = make_config(tmp_path,
+        ROOT+'tests/configs/atmosphere_hydro_test.cfg',
+        remove=['mplanet', 'rplanet', 'gplanet'])
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Error in module: 'driver.py', function: 'check_altitude'" \
+        in captured.out
+    assert ("Cannot compute hydrostatic-equilibrium radius profile.  Must\n"
+            "    define at least two of mplanet, rplanet, or gplanet.") \
+        in captured.out
+
+@pytest.mark.parametrize('param', ['mplanet', 'rplanet', 'gplanet'])
+def test_atmosphere_hydro_missing_two_props(tmp_path, capfd, param):
+    params = {
+        'mplanet': '1.0 mjup',
+        'rplanet': '1.0 rjup',
+        'gplanet': '2479.0'
+    }
+    missing = list(params)
+    missing.remove(param)
+    cfg = make_config(tmp_path,
+        ROOT+'tests/configs/atmosphere_hydro_test.cfg',
+        remove=missing,
+        reset={param:params[param]})
+    pyrat = pb.run(cfg)
+    assert pyrat is None
+    captured = capfd.readouterr()
+    assert "Error in module: 'driver.py', function: 'check_altitude'" \
+        in captured.out
+    assert ("Cannot compute hydrostatic-equilibrium radius profile.  Must\n"
+            f"    define either {missing[0]} or {missing[1]}.") in captured.out
 
 
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

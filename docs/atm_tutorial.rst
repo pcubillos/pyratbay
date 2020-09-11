@@ -57,6 +57,7 @@ or through the ``punits`` key (in-place units take precedence over
 ``punits``).  See :ref:`units` for a list of available units.
 
 
+.. _temp_profile:
 
 Temperature Profiles
 --------------------
@@ -169,6 +170,8 @@ And the results should look like this:
 
 ----------------------------------------------------------------------
 
+.. _abundance_profile:
+
 Abundance Profiles
 ------------------
 
@@ -262,3 +265,98 @@ And the results should look like this:
    :width: 70%
    :align: center
 
+----------------------------------------------------------------------
+
+.. _altitude_profile:
+
+Altitude Profiles
+-----------------
+
+If the user sets the ``radmodel`` key, the code will to compute the
+atmospheric altitude profile (radius profile).  The currently
+available models solve for the hydrostatic-equilibrium equation,
+combined with the ideal gas law with a pressure-dependent gravity
+(``radmodel=hydro_m``, recommended):
+
+.. math::
+   \frac{dr}{r^2} = -\frac{k_{\rm B}T}{\mu G M_p} \frac{dp}{p},
+
+or a constant surface gravity (``radmodel=hydro_g``):
+
+.. math::
+   dr = -\frac{k_{\rm B}T}{\mu g} \frac{dp}{p},
+
+where :math:`M_{\rm p}` is the mass of the planet, :math:`T(p)` is the
+atmospheric temperature, :math:`\mu(p)` is the atmospheric mean
+molecular mass, :math:`k_{\rm B}` is the Boltzmann constant, and
+:math:`G` is the gravitational constant.  Note that :math:`T(p)` and
+:math:`\mu(p)` are computed from the models of the :ref:`temp_profile`
+and :ref:`abundance_profile`, respectively.
+
+
+
+To obtain the particular solution of these differential equations,
+the user needs to supply a pair of radius--pressure reference values
+to define the boundary condition :math:`r(p_0) = R_0`.  The
+``rplanet`` and ``refpressure`` keys set :math:`R_0` and :math:`p_0`,
+respectively.
+The ``mplanet`` and ``gplanet`` keys set the
+planetary mass (:math:`M_p`) and surface gravity (:math:`g`),
+respectively.
+
+.. Note:: Note that the user needs only to define two out of the three
+          :math:`\{R_0, M_p, g\}` variables, since they are related
+          through the equation: :math:`g(R_0) = G M_p / R_0^2`.
+
+Note that the selection of the :math:`\{p_0,R_0\}` pair is arbitrary.
+A good practice is to choose values close to the transit radius of
+the planet.  Although the pressure at the transit radius is a priori
+unknown for a give particular case [Griffith2014]_, its value lies
+at around 0.1 bar.
+
+Here is an example of a hydrostatic-equilibrium atmosphere
+configuration file:
+
+.. literalinclude:: ../examples/tutorial/atmosphere_hydrostatic.cfg
+
+
+Altitude-profile Examples
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The following Python script creates and plots the profiles
+for the configuration file shown above:
+
+.. code-block:: python
+
+    import matplotlib.pyplot as plt
+    plt.ion()
+
+    import pyratbay as pb
+    import pyratbay.constants as pc
+
+    # Before running the rest of this script, you'll need to copy the
+    # config files to your current folder, you can find them here, e.g.:
+    # print(f'{pc.ROOT}examples/tutorial/atmosphere_hydro_m.cfg')
+
+    # Kepler-11c mass and radius:
+    pressure, temp, q, species, radius = pb.run("atmosphere_hydro_m.cfg")
+    pressure, temp, q, species, radius_g = pb.run("atmosphere_hydro_g.cfg")
+
+    # Plot the results:
+    plt.figure(12, (6,5))
+    plt.clf()
+    ax = plt.subplot(111)
+    ax.semilogy(radius_g/pc.rearth, pressure/pc.bar, lw=2, c='navy', label='constant g')
+    ax.semilogy(radius/pc.rearth, pressure/pc.bar, lw=2, c='orange', label='g = g(p)')
+    ax.set_ylim(1e2, 1e-6)
+    ax.set_xlabel(r'Radius $(R_{\oplus})$', fontsize=12)
+    ax.set_ylabel('Pressure (bar)', fontsize=12)
+    ax.tick_params(labelsize=11)
+    ax.legend(loc='upper left', fontsize=12)
+    plt.tight_layout()
+
+And the results should look like this:
+
+.. image:: ./figures/pyrat_hydrostatic_tutorial.png
+   :width: 70%
+   :align: center

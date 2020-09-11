@@ -6609,3 +6609,12 @@ legend when the fontsize is less equal than zero.
 Removed patm and atomicfile input arguments from the config files,
 no longer used (nor needed).
 
+
+*****  Fr 11. Sep 15:33:28 CEST 2020  *****
+
+Enabled altitude profile calculation for atmosphere runs.
+Does not break any previous test.
+Added tests and updated docs.
+Implemented check_altitude() function in driver.py
+TBD: think of merging it with similar code in make_atmprofiles().
+

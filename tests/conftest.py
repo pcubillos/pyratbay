@@ -59,6 +59,8 @@ def undefined():
                     'tea chemistry model.',
         'uniform': 'Undefined list of uniform volume mixing ratios (uniform) '
                    'for uniform\nchemistry model.',
+        'refpressure': 'Cannot compute hydrostatic-equilibrium radius profile.'
+                       '  Undefined reference\npressure level (refpressure).',
     }
     return data
 
