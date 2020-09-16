@@ -6636,3 +6636,11 @@ TBD: I should also check that at least one tparams is free.
 
 Fixed annoying behavior in plots.spectrum() (removed twinx() axis).
 
+*****
+
+Refactored TEA--Pyrat molecules name dictionary for a cleaner code
+in atmosphere.make_preatm() function.
+Added case to process electrons in atmosphere.stoich() function,
+though note that TEA cannot process ions at the moment.
+
+

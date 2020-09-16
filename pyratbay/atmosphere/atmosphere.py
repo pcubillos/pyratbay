@@ -317,6 +317,7 @@ def abundance(pressure, temperature, species, elements=None,
     pt.make_tea(abun_file=atomic_file, verb=verb, ncpu=ncpu)
     proc = subprocess.Popen([pc.ROOT+"modules/TEA/tea/runatm.py", patm, "TEA"])
     proc.communicate()
+
     # Reformat the TEA output into the pyrat format:
     if atmfile is None:
         atmfile = 'TEA.tea'
@@ -521,8 +522,12 @@ def stoich(species):
         comp.append([])
         n.append([])
         for char in spec:
+            # Special case for electrons:
+            if spec == 'e-':
+                comp[-1].append(spec)
+                n[-1].append(1)
             # New element:
-            if char.isupper():
+            elif char.isupper():
                 comp[-1].append(char)
                 n[-1].append(1)
             # Same element:
@@ -884,16 +889,16 @@ def make_preatm(pressure, temp, afile, elements, species, patm):
     f.write("# TEA pre-atmosphere file.\n"
         "# Units: pressure (bar), temperature (K), abundance (unitless).\n\n")
 
-    # Load defaults:
-    sdefaults = {}
-    with open(pc.ROOT + "inputs/TEA_gdata_defaults.txt", "r") as d:
-        for line in d:
-            sdefaults[line.split()[0]] = line.split()[1]
+    # pyrat--TEA name dictionary:
+    pyrat_to_tea = {}
+    for line in open(pc.ROOT+"inputs/TEA_gdata_defaults.txt", "r"):
+        pyrat_name, tea_name = line.split()
+        pyrat_to_tea[pyrat_name] = tea_name
 
     # Check species names:
     for i in range(len(species)):
         if species[i].find("_") < 0:
-            species[i] = sdefaults[species[i]]
+            species[i] = pyrat_to_tea[species[i]]
 
     # Write species names:
     f.write(f'#SPECIES\n{" ".join(species)}\n\n')
@@ -905,4 +910,3 @@ def make_preatm(pressure, temp, afile, elements, species, patm):
         f.write(f"{pressure[i]:10.4e}     {temp[i]:>8.2f}  ")
         f.write("  ".join([f"{abun:12.6e}" for abun in nfrac]) + "\n")
     f.close()
-
