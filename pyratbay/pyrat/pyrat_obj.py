@@ -20,7 +20,7 @@ from .  import rayleigh   as ray
 from .  import clouds     as cl
 from .  import alkali     as al
 from .  import read_atm   as ra
-from .  import optdepth   as od
+from .  import optical_depth as od
 from .  import spectrum   as sp
 from .  import objects    as ob
 from .  import argum      as ar
@@ -158,7 +158,7 @@ class Pyrat(object):
       self.timestamps['alkali'] = timer.clock()
 
       # Calculate the optical depth:
-      od.opticaldepth(self)
+      od.optical_depth(self)
       self.timestamps['odepth'] = timer.clock()
 
       # Calculate the spectrum:

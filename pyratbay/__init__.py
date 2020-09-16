@@ -28,7 +28,7 @@ from .pyrat import crosssec as _cs
 from .pyrat import clouds   as _cl
 from .pyrat import rayleigh as _ray
 from .pyrat import alkali   as _al
-from .pyrat import optdepth as _od
+from .pyrat import optical_depth as _od
 from .pyrat import spectrum as _sp
 __all__ += ['_ra', '_cs', '_cl', '_ray', '_al', '_od', '_sp']
 

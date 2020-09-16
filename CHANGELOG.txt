@@ -6673,4 +6673,9 @@ Added test.
 
 *****
 
-Removed path() function from opt_depth.py
+Removed path() function from optdepth.py
+
+*****
+
+Renamed optdepth.py to optical_depth.py
+
