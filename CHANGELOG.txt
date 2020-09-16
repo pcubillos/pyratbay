@@ -6679,3 +6679,8 @@ Removed path() function from optdepth.py
 
 Renamed optdepth.py to optical_depth.py
 
+*****
+
+Updated pyrat.plot_spectrum() method, added **kwargs.
+Now the user can overwrite any of the default arguments with it.
+

@@ -489,8 +489,7 @@ class Pyrat(object):
       self.ret.spec_high2 = high2
 
 
-  def plot_spectrum(self, spec='model', logxticks=None, gaussbin=2.0,
-      yran=None, filename=None):
+  def plot_spectrum(self, spec='model', **kwargs):
       """
       Plot spectrum.
 
@@ -503,69 +502,61 @@ class Pyrat(object):
           model, in which case, the code will plot the 1- and 2-sigma
           boundaries if they have been computed (see
           self.percentile_spectrum).
-      logxticks: 1D float ndarray
-          If not None, switch the X-axis scale from linear to log, and set
-          the X-axis ticks at the locations given by logxticks.
-      gaussbin: Integer
-          Standard deviation for Gaussian-kernel smoothing (in number
-          of samples).
-      yran: 1D float ndarray
-          Figure's Y-axis boundaries.
-      filename: String
-          If not None, save figure to filename.
+      kwargs: dict
+          Dictionary of arguments to pass into plots.spectrum().
+          See help(pyratbay.plots.spectrum).
 
       Returns
       -------
       ax: AxesSubplot instance
           The matplotlib Axes of the figure.
       """
+      pyrat_args = {
+          'data':self.obs.data,
+          'uncert': self.obs.uncert,
+          'bandtrans': self.obs.bandtrans,
+          'bandidx': self.obs.bandidx,
+          'starflux': self.spec.starflux,
+          'logxticks': self.inputs.logxticks,
+          'yran': self.inputs.yran,
+      }
+
       wavelength = 1.0/(self.spec.wn*pc.um)
       if self.obs.bandwn is not None:
-          bandwl = 1.0/(self.obs.bandwn*pc.um)
-      else:
-          bandwl = None
+          pyrat_args['bandwl'] = 1.0/(self.obs.bandwn*pc.um)
 
       if self.obs.bandtrans is not None:
-          bandflux = self.band_integrate()
-      else:
-          bandflux = None
-
-      if logxticks is None:
-          logxticks = self.inputs.logxticks
-      if yran is None:
-          yran = self.inputs.yran
+          pyrat_args['bandflux'] = self.band_integrate()
 
       bounds = None
       if self.ret.spec_low2 is not None and spec != 'model':
-          bounds = [self.ret.spec_low2,  self.ret.spec_low1,
-                    self.ret.spec_high1, self.ret.spec_high2]
+          pyrat_args['bounds'] = [
+              self.ret.spec_low2,  self.ret.spec_low1,
+              self.ret.spec_high1, self.ret.spec_high2]
 
       if spec == 'model':
-          label = 'model'
+          pyrat_args['label'] = 'model'
           spectrum = self.spec.spectrum
       elif spec == 'best':
-          label = 'best-fit model'
+          pyrat_args['label'] = 'best-fit model'
+          pyrat_args['bandflux'] = self.ret.bestbandflux
           spectrum = self.ret.spec_best
-          bandflux = self.ret.bestbandflux
       elif spec == 'median':
-          label = 'median model'
+          pyrat_args['label'] = 'median model'
+          pyrat_args['bandflux'] = self.band_integrate(spectrum)
           spectrum = self.ret.spec_median
-          bandflux = self.band_integrate(spectrum)
       else:
           print("Invalid 'spec'.  Select from 'model' (default), 'best', "
                 "or 'median'.")
           return
 
-      if self.phy.rplanet is None or self.phy.rstar is None:
-          rprs = None
-      else:
-          rprs = self.phy.rplanet/self.phy.rstar
+      if self.phy.rplanet is not None and self.phy.rstar is not None:
+          pyrat_args['rprs'] = self.phy.rplanet/self.phy.rstar
 
-      ax = pp.spectrum(spectrum, wavelength, self.od.path,
-          self.obs.data, self.obs.uncert, bandwl, bandflux,
-          self.obs.bandtrans, self.obs.bandidx,
-          self.spec.starflux, rprs, label, bounds,
-          logxticks, gaussbin, yran, filename)
+      # kwargs can overwite any of the previous value:
+      pyrat_args.update(kwargs)
+
+      ax = pp.spectrum(spectrum, wavelength, self.od.path, **pyrat_args)
       return ax
 
 
