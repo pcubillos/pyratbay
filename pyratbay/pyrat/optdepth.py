@@ -8,7 +8,8 @@ import multiprocessing as mpr
 import numpy as np
 
 from . import extinction as ex
-from .. import constants  as pc
+from .. import constants as pc
+from .. import atmosphere as pa
 
 sys.path.append(pc.ROOT + 'pyratbay/lib/')
 import _extcoeff as ec
@@ -34,7 +35,10 @@ def optical_depth(pyrat):
 
     rtop = pyrat.atm.rtop
     # Calculate the ray path:
-    path(pyrat)
+    if pyrat.od.path == 'eclipse':
+        pyrat.od.raypath = -cu.ediff(pyrat.atm.radius)
+    elif pyrat.od.path == 'transit':
+        pyrat.od.raypath = pa.transit_path(pyrat.atm.radius, pyrat.atm.rtop)
 
     # Interpolate extinction coefficient from table:
     if pyrat.ex.extfile is not None:
@@ -102,39 +106,3 @@ def optical_depth(pyrat):
         od.ideep[od.ideep<0] = r - 1
 
     pyrat.log.head('Optical depth done.')
-
-
-def path(pyrat):
-  """
-  Calculate the distance along the ray path over each interval (layer).
-
-  Notes
-  -----
-  For eclipse geometry, the path is always the same.
-  For transit geometry, the path is unique to each impact parameter.
-  """
-  if pyrat.od.path == 'eclipse':
-      radius = pyrat.atm.radius
-      diffrad = np.empty(pyrat.atm.nlayers-1, np.double)
-      cu.ediff(radius, diffrad, pyrat.atm.nlayers)
-      pyrat.od.raypath = -diffrad
-
-  elif pyrat.od.path == 'transit':
-      pyrat.od.raypath = []
-      radius  = pyrat.atm.radius[pyrat.atm.rtop:]
-      nlayers = pyrat.atm.nlayers - pyrat.atm.rtop
-      # Empty-filling layers that don't contribute:
-      for r in range(pyrat.atm.rtop):
-          pyrat.od.raypath.append([])
-      # Compute the path for each impact parameter:
-      r = 0
-      while r < nlayers:
-          raypath = np.empty(r, np.double)
-          for i in range(r):
-              raypath[i] = (np.sqrt(radius[i  ]**2 - radius[r]**2) -
-                            np.sqrt(radius[i+1]**2 - radius[r]**2) )
-          pyrat.od.raypath.append(raypath)
-          pyrat.log.debug('Raypath[{:3d}]: {}'.format(r, pyrat.od.raypath[r]),
-                          indent=2)
-          r += 1
-

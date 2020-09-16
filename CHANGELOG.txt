@@ -6671,3 +6671,6 @@ documented and tested.
 Refactored cutils.ediff() C extension to make allocations in house.
 Added test.
 
+*****
+
+Removed path() function from opt_depth.py
