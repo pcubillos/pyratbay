@@ -222,16 +222,11 @@ def spectrum(spectrum, wavelength, path,
         ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
         ax.set_xticks(logxticks)
 
-    ax.tick_params(labelsize=fs-2)
-    plt.xlabel('Wavelength  (um)', fontsize=fs)
+    ax.tick_params(
+        which='both', right=True, top=True, direction='in', labelsize=fs-2)
+    plt.xlabel('Wavelength (um)', fontsize=fs)
     plt.legend(loc='best', numpoints=1, fontsize=fs-1)
     plt.xlim(np.amin(wavelength), np.amax(wavelength))
-
-    ax2 = ax.twinx()
-    ax2.tick_params(right=True, direction='in')
-    ax2.set_yticks(ax.get_yticks())
-    ax2.set_yticklabels([])
-    ax2.set_ylim(ax.get_ylim())
     plt.tight_layout()
 
     if filename is not None:

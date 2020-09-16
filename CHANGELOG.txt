@@ -6631,3 +6631,8 @@ and pyrat.ret.temp_post_boundaries variables if there is a
 temperature model.
 TBD: I should also check that at least one tparams is free.
 
+
+*****  Wed Sep 16 11:25:44 CEST 2020  *****
+
+Fixed annoying behavior in plots.spectrum() (removed twinx() axis).
+
