@@ -882,13 +882,6 @@ def make_preatm(pressure, temp, afile, elements, species, patm):
     # Lisf of fractional number of molecules relative to hydrogen:
     nfrac = (10.0**(dex-dex[np.where(symbol=="H")]))[iatoms].tolist()
 
-    # Write pre-atm file:
-    f = open(patm, 'w')
-
-    # Pre-atm header with basic instructions
-    f.write("# TEA pre-atmosphere file.\n"
-        "# Units: pressure (bar), temperature (K), abundance (unitless).\n\n")
-
     # pyrat--TEA name dictionary:
     pyrat_to_tea = {}
     for line in open(pc.ROOT+"inputs/TEA_gdata_defaults.txt", "r"):
@@ -900,13 +893,18 @@ def make_preatm(pressure, temp, afile, elements, species, patm):
         if species[i].find("_") < 0:
             species[i] = pyrat_to_tea[species[i]]
 
-    # Write species names:
-    f.write(f'#SPECIES\n{" ".join(species)}\n\n')
+    # Write pre-atm file:
+    with open(patm, 'w') as f:
+        # Pre-atm header with basic instructions
+        f.write("# TEA pre-atmosphere file.\n"
+                "# pressure (bar), temperature (K), abundance (unitless).\n\n")
 
-    # Write TEA data:
-    f.write("#TEADATA\n#Pressure          Temp  " +
-            "  ".join([f"{atom:>12s}" for atom in symbol[iatoms]]) + "\n")
-    for i in range(nlayers):
-        f.write(f"{pressure[i]:10.4e}     {temp[i]:>8.2f}  ")
-        f.write("  ".join([f"{abun:12.6e}" for abun in nfrac]) + "\n")
-    f.close()
+        # Write species names:
+        f.write(f'#SPECIES\n{" ".join(species)}\n\n')
+
+        # Write TEA data:
+        f.write("#TEADATA\n#Pressure          Temp  " +
+                "  ".join([f"{atom:>12s}" for atom in symbol[iatoms]]) + "\n")
+        for i in range(nlayers):
+            f.write(f"{pressure[i]:10.4e}     {temp[i]:>8.2f}  ")
+            f.write("  ".join([f"{abun:12.6e}" for abun in nfrac]) + "\n")

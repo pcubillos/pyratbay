@@ -6652,3 +6652,7 @@ Added tests for atmosphere.stoich() with electrons and ions.
 Modified io.import_tea() to use dict of names between pyrat and TEA
 (prevent potential bugs with previous implementation).
 
+*****
+
+Some clean up in atmosphere.patm() function.
+
