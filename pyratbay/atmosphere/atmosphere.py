@@ -13,6 +13,7 @@ __all__ = [
     'mean_weight',
     'ideal_gas_density',
     'equilibrium_temp',
+    'transit_path',
     'temperature_posterior',
     'make_atomic',
     'make_preatm',
@@ -695,6 +696,72 @@ def equilibrium_temp(tstar, rstar, smaxis, A=0.0, f=1.0,
     )
 
     return teq, teq_unc
+
+
+def transit_path(radius, nskip=0):
+    """
+    Calculate the distances between layers for a set of rays grazing
+    an atmosphere defined by concentric spheres at radii radius.
+    Assume that the grazing rays have an impact parameter = radius.
+    See for example, Fig 1 of Molliere et al. (2019), AA, 627, 67.
+
+    Parameters
+    ----------
+    radius: 1D float ndarray
+        Atmospheric radius profile array (from top to bottom).
+    nskip: Integer
+        Number of layers to skip from the top of the atmosphere.
+
+    Returns
+    -------
+    path: List of 1D float ndarrays
+        List where each element is a 1D array of the paths at an
+        impact parameter defined.
+
+    Examples
+    --------
+    >>> import pyratbay.atmosphere as pa
+    >>> nlayers = 5
+    >>> radius = np.linspace(5.0, 1.0, nlayers)
+    >>> path = pa.transit_path(radius)
+    >>> # First path grazes the outer layer (thus, empty path)
+    >>> # Second path is sqrt(5.0**2 - 4.0**2), and so on
+    >>> for p in path:
+    >>>     print(p)
+    []
+    [3.]
+    [1.35424869 2.64575131]
+    [1.11847408 1.22803364 2.23606798]
+    [1.02599614 1.04455622 1.09637632 1.73205081]
+    >>> # Now, ignore the top layer:
+    >>> path = pa.transit_path(radius, nskip=1)
+    >>> for p in path:
+    >>>     print(p)
+    []
+    []
+    [2.64575131]
+    [1.22803364 2.23606798]
+    [1.04455622 1.09637632 1.73205081]
+    """
+    rad = radius[nskip:]
+    nlayers = len(rad)
+
+    # Empty-filling layers that don't contribute:
+    path = []
+    for r in range(nskip):
+        path.append(np.empty(0, np.double))
+
+    # Compute the path for each impact parameter:
+    r = 0
+    while r < nlayers:
+        raypath = np.empty(r, np.double)
+        for i in range(r):
+            raypath[i] = (np.sqrt(rad[i  ]**2 - rad[r]**2) -
+                          np.sqrt(rad[i+1]**2 - rad[r]**2) )
+        path.append(raypath)
+        r += 1
+
+    return path
 
 
 def temperature_posterior(posterior, tmodel, tpars, ifree, pressure):

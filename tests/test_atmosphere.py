@@ -424,6 +424,38 @@ def test_teq_no_uncertainties():
     np.testing.assert_equal(teq_unc, 0.0)
 
 
+def test_transit_path():
+    nlayers = 5
+    radius = np.linspace(5.0, 1.0, nlayers)
+    path = pa.transit_path(radius)
+    assert len(path) == nlayers
+    expected_path =[
+        np.array([]),
+        np.array([3.00000000]),
+        np.array([1.35424869, 2.64575131]),
+        np.array([1.11847408, 1.22803364, 2.23606798]),
+        np.array([1.02599614, 1.04455622, 1.09637632, 1.73205081])
+    ]
+    for i in range(nlayers):
+        np.testing.assert_allclose(path[i], expected_path[i])
+
+
+def test_transit_path_nskip():
+    nlayers = 5
+    radius = np.linspace(5.0, 1.0, nlayers)
+    path = pa.transit_path(radius, nskip=1)
+    assert len(path) == nlayers
+    expected_path =[
+        np.array([]),
+        np.array([]),
+        np.array([2.64575131]),
+        np.array([1.22803364, 2.23606798]),
+        np.array([1.04455622, 1.09637632, 1.73205081])
+    ]
+    for i in range(nlayers):
+        np.testing.assert_allclose(path[i], expected_path[i])
+
+
 def test_make_atomic_xsolar():
     z, symbol, dex, names, mass = pa.make_atomic(xsolar=0.1)
     np.testing.assert_allclose(dex[symbol=='H'][0],  12.0)

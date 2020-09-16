@@ -6661,3 +6661,8 @@ Some clean up in atmosphere.patm() function.
 PEP8ed optdepth.py.
 Renamed opticaldepth() function to optical_depth().
 
+*****
+
+Implemented atmosphere.transit_path() function to compute grazing path
+documented and tested.
+
