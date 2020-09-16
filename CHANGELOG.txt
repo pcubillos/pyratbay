@@ -6666,3 +6666,8 @@ Renamed opticaldepth() function to optical_depth().
 Implemented atmosphere.transit_path() function to compute grazing path
 documented and tested.
 
+*****
+
+Refactored cutils.ediff() C extension to make allocations in house.
+Added test.
+

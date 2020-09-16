@@ -50,6 +50,14 @@ def test_simps(odd):
     np.testing.assert_approx_equal(integ, np_integ)
 
 
+def test_ediff():
+    array = np.array([2.0, 1.0, 0.5, 0.25, 0.0])
+    np.testing.assert_allclose(
+        cu.ediff(array),
+        np.array([-1.0, -0.5, -0.25, -0.25])
+    )
+
+
 def test_ifirst_default():
     assert _indices.ifirst(np.array([0])) == -1
 

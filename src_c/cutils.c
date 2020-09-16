@@ -8,6 +8,7 @@
 #include "ind.h"
 #include "utils.h"
 
+
 PyDoc_STRVAR(ediff__doc__,
 "Calculate the differences between consecutive elements of an array.\n\
                                               \n\
@@ -15,23 +16,28 @@ Parameters                                    \n\
 ----------                                    \n\
 arr: 2D float ndarray                         \n\
    Input array to get the differences from.   \n\
+                                              \n\
+Returns                                       \n\
+-------                                       \n\
 diff: 1D float ndarray                        \n\
-   Array to store the differences.            \n\
-n: Integer                                    \n\
-   Number if elements in arr.");
+   Array wth differences.");
 
 
 static PyObject *ediff(PyObject *self, PyObject *args){
-  PyArrayObject *arr, *diff;
-  int n, i;
+    PyArrayObject *arr, *diff;
+    int n, i;
+    npy_intp size[1];
 
-  /* Load inputs:                                                           */
-  if (!PyArg_ParseTuple(args, "OOi", &arr, &diff, &n))
-    return NULL;
+    /* Load inputs:                                                           */
+    if (!PyArg_ParseTuple(args, "O", &arr))
+      return NULL;
 
-  for (i=0; i<n-1; i++)
-    INDd(diff, i) = INDd(arr, (i+1)) - INDd(arr,i);
-  return Py_BuildValue("i", 1);
+    size[0] = n = (int)PyArray_DIM(arr,0) - 1;
+    diff = (PyArrayObject *) PyArray_SimpleNew(1, size, NPY_DOUBLE);
+
+    for (i=0; i<n; i++)
+        INDd(diff, i) = INDd(arr,(i+1)) - INDd(arr,i);
+    return Py_BuildValue("N", diff);
 }
 
 
