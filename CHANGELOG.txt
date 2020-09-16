@@ -6656,3 +6656,8 @@ Modified io.import_tea() to use dict of names between pyrat and TEA
 
 Some clean up in atmosphere.patm() function.
 
+*****
+
+PEP8ed optdepth.py.
+Renamed opticaldepth() function to optical_depth().
+
