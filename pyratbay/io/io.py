@@ -1080,11 +1080,17 @@ def import_tea(teafile, atmfile, req_species=None):
     ispec = np.where(tea == "#SPECIES\n")[0][0] + 1  # Species list
     idata = np.where(tea == "#TEADATA\n")[0][0] + 2  # data starting line
 
+    # TEA--Pyrat molecules names dictionary:
+    tea_to_pyrat = {}
+    for line in open(pc.ROOT+"inputs/TEA_gdata_defaults.txt", "r"):
+        pyrat_name, tea_name = line.split()
+        tea_to_pyrat[tea_name] = pyrat_name
+
     # Read and clean species names:
     species = tea[ispec].split()
     nspecies = len(species)
     for i in range(nspecies):
-        species[i] = species[i].rpartition("_")[0]
+        species[i] = tea_to_pyrat[species[i]]
 
     if req_species is None:
         req_species = species
