@@ -316,16 +316,50 @@ def test_hydro_m_ultra_puff():
     np.testing.assert_allclose(radius[2:], puff_radius)
 
 
-def test_stoich():
-    species = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
+def test_stoich_neutrals():
+    species = "H2 He H2O CO CO2 CH4".split()
     elements, stoichs = pa.stoich(species)
-    assert elements == ['C', 'H', 'He', 'O']
-    np.testing.assert_equal(stoichs, np.array([[0, 2, 0, 0],
-                                               [0, 0, 1, 0],
-                                               [0, 2, 0, 1],
-                                               [1, 0, 0, 1],
-                                               [1, 0, 0, 2],
-                                               [1, 4, 0, 0]]))
+    assert elements == 'C H He O'.split()
+    np.testing.assert_equal(
+        stoichs,
+        np.array([[0, 2, 0, 0],
+                  [0, 0, 1, 0],
+                  [0, 2, 0, 1],
+                  [1, 0, 0, 1],
+                  [1, 0, 0, 2],
+                  [1, 4, 0, 0]]))
+
+
+def test_stoich_with_electrons():
+    species = "H2 He H2O CO CO2 CH4 e-".split()
+    elements, stoichs = pa.stoich(species)
+    assert elements == 'C H He O e-'.split()
+    np.testing.assert_equal(
+        stoichs,
+        np.array([[0, 2, 0, 0, 0],
+                  [0, 0, 1, 0, 0],
+                  [0, 2, 0, 1, 0],
+                  [1, 0, 0, 1, 0],
+                  [1, 0, 0, 2, 0],
+                  [1, 4, 0, 0, 0],
+                  [0, 0, 0, 0, 1]]))
+
+
+def test_stoich_with_ions():
+    species = "H2 He H2O CO CO2 CH4 H2+ H2- e-".split()
+    elements, stoichs = pa.stoich(species)
+    assert elements == 'C H He O e-'.split()
+    np.testing.assert_equal(
+        stoichs,
+        np.array([[0, 2, 0, 0, 0],
+                  [0, 0, 1, 0, 0],
+                  [0, 2, 0, 1, 0],
+                  [1, 0, 0, 1, 0],
+                  [1, 0, 0, 2, 0],
+                  [1, 4, 0, 0, 0],
+                  [0, 2, 0, 0, 0],
+                  [0, 2, 0, 0, 0],
+                  [0, 0, 0, 0, 1]]))
 
 
 @pytest.mark.parametrize("abundances",

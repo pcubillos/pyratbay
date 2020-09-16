@@ -6643,4 +6643,7 @@ in atmosphere.make_preatm() function.
 Added case to process electrons in atmosphere.stoich() function,
 though note that TEA cannot process ions at the moment.
 
+*****
+
+Added tests for atmosphere.stoich() with electrons and ions.
 
