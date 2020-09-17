@@ -317,7 +317,7 @@ at around 0.1 bar.
 Here is an example of a hydrostatic-equilibrium atmosphere
 configuration file:
 
-.. literalinclude:: ../examples/tutorial/atmosphere_hydrostatic.cfg
+.. literalinclude:: ../examples/tutorial/atmosphere_hydro_m.cfg
 
 
 Altitude-profile Examples

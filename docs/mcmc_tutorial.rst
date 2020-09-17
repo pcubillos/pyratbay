@@ -57,11 +57,12 @@ retrieval.  The following table list the available options:
 ``retflag``  Description
 =========== ===========================
 temp         Include the ``tpars`` temperature parameters in the retrieval
-rad          Include the ``rplanet`` value in the retrieval
-mass         Include the ``mplanet`` value in the retrieval
+rad          Include the ``rplanet`` value as a retrieval parameter
 mol          Include the ``molpars`` abundance parameters in the retrieval
 ray          Include the ``rpars`` Rayleigh parameters in the retrieval
 cloud        Include the ``clouds`` clouds parameters in the retrieval
+patchy       Include the ``fpatchy`` value as a retrieval parameter
+mass         Include the ``mplanet`` value as a retrieval parameter
 =========== ===========================
 
 Use the ``params`` key to set initial values for the retrieval

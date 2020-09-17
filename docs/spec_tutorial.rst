@@ -286,6 +286,7 @@ potassium_vdw         K         [Burrows2000]_
 This implementation adopts the line parameters from the VALD database
 [Piskunov1995]_ and collisional-broadening half-width from [Iro2005]_. 
 
+.. _rayleigh_opacity:
 
 Rayleigh Opacity Models
 -----------------------
@@ -327,6 +328,7 @@ for the |H2| molecule.
           profile.  Obviously, this needs to be fixed at some point in
           the future for a more general use.
 
+.. _cloud_opacity:
 
 Cloud Opacity Models
 --------------------
@@ -364,6 +366,21 @@ atmosphere.
 .. For any of these type of models, the user can include multiple
    models, simply by concatenating multiple models (and parameters)
    one after the other in the config file.
+
+Patchy Cloud/Hazes
+------------------
+
+Set the ``fpatchy`` argument to compute transmission spectra from a
+linear combination of a clear and cloudy/hazy spectra.  The
+cloudy/hazy component will include the opacity defined by the
+:ref:`cloud_opacity` and the ``lecavelier`` :ref:`rayleigh_opacity`.
+For example, for a 45% cloudy / 55% clear atmosphere, set:
+
+.. code-block:: python
+
+  # Patchy fraction, value between [0--1]:
+  fpatchy = 0.45
+
 
 Temperature Models
 ------------------

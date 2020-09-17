@@ -6708,3 +6708,8 @@ Added tests.
 
 Fixed misleading documentation cross-section/extinction-coefficient
 when printing alkali and rayleigh classes.
+
+*****
+
+Updated docs to describe fpatchy argument.
+
