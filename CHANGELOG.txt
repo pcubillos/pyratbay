@@ -6690,3 +6690,12 @@ Now the user can overwrite any of the default arguments with it.
 Fixed issue when setting fpatchy from the pyrat.eval() method
 as a 1-element array instead of a float.  (was this a bug? was not
 even breaking the code).
+
+*****
+
+If fpatchy is not None and using the lecavelier Rayleigh model,
+put it's opacity into the cloud.ec array instead of rayleigh.ec
+such that it gets affected by the fpatchy factor.
+I don't really like this but it makes the code more compatible
+with the Madhu articles.
+
