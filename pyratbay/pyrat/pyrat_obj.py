@@ -278,7 +278,7 @@ class Pyrat(object):
 
       # Update patchy-cloud fraction if requested:
       if self.ret.ipatchy is not None:
-          self.cloud.fpatchy = params[self.ret.ipatchy]
+          self.cloud.fpatchy = params[self.ret.ipatchy][0]
 
       # Calculate spectrum:
       self.run(temp=temp, abund=q2)

@@ -6684,3 +6684,9 @@ Renamed optdepth.py to optical_depth.py
 Updated pyrat.plot_spectrum() method, added **kwargs.
 Now the user can overwrite any of the default arguments with it.
 
+
+*****  Do 17. Sep 15:40:32 CEST 2020  *****
+
+Fixed issue when setting fpatchy from the pyrat.eval() method
+as a 1-element array instead of a float.  (was this a bug? was not
+even breaking the code).
