@@ -1,7 +1,10 @@
 # Copyright (c) 2016-2020 Patricio Cubillos.
 # Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE).
 
-__all__ = ['Dalgarno', 'Lecavelier']
+__all__ = [
+    'Dalgarno',
+    'Lecavelier',
+    ]
 
 import numpy as np
 
@@ -92,7 +95,7 @@ class Lecavelier():
 
   def extinction(self, wn):
       """
-      Calculate the H2 Rayleigh cross section in cm2 molec-1:
+      Calculate the Rayleigh cross section in cm2 molec-1:
          cross section = 10**pars[0] * s0 * (lambda/l0)**(pars[1])
       With lambda the wavelength = 1/wavenumber.
 
@@ -101,7 +104,7 @@ class Lecavelier():
       wn:  1D float ndarray
           Wavenumber array in cm-1.
       """
-      # Rayleigh extinction coefficient in cm2 molec-1:
+      # Rayleigh cross section opacity in cm2 molec-1:
       self.ec = 10.0**self.pars[0] * self.s0 * (wn*self.l0)**(-self.pars[1])
 
   def __str__(self):
@@ -113,6 +116,6 @@ class Lecavelier():
                '  (pnames)         (pars)\n')
       for pname, param in zip(self.pnames, self.pars):
           fw.write('  {:15s}  {: .3e}', pname, param)
-      fw.write('Extinction-coefficient (ec, cm2 molec-1):\n    {}', self.ec,
+      fw.write('Opacity cross section (ec, cm2 molec-1):\n    {}', self.ec,
           fmt={'float':'{: .3e}'.format}, edge=3)
       return fw.text

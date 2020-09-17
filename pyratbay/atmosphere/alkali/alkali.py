@@ -29,7 +29,7 @@ class VanderWaals(object):
       self.dwave = dwave
 
   def absorption(self, press, temp, wn):
-      """Evaluate alkali model's opacity (cm2 molecule-1)."""
+      """Evaluate alkali model's opacity cross section (cm2 molecule-1)."""
       nlayers = len(press)
       nwave   = len(wn)
       self.ec = np.zeros((nlayers, nwave), np.double)
@@ -97,7 +97,7 @@ class VanderWaals(object):
       for wn, gf, elow in zip(self.wn, self.gf, self.elow):
           fw.write('  {:8.2f}  {:10.6f}   {:.3e}   {:.3e}',
               wn, 1.0/(wn*pc.um), gf, elow)
-      fw.write('Extinction-coefficient (ec, cm2 molecule-1):\n{}', self.ec,
+      fw.write('Opacity cross section (ec, cm2 molecule-1):\n{}', self.ec,
           fmt={'float': '{: .3e}'.format}, edge=2)
       return fw.text
 

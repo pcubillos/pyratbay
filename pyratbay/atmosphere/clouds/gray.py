@@ -80,8 +80,8 @@ class Deck():
 
   def extinction(self, pressure, radius, temp):
       """
-      Calculate gray-cloud absorption (in cm-1) that's optically thin
-      above ptop, and becomes nearly-instantly opaque at ptop, with
+      Calculate gray-cloud deck model that's optically thin
+      above ptop, and becomes instantly opaque at ptop, with
       ptop (bar) = 10**pars[0].
 
       Parameters

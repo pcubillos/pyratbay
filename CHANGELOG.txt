@@ -6704,3 +6704,7 @@ with the Madhu articles.
 Got fpatchy transmission calculation back to work.
 Added tests.
 
+*****
+
+Fixed misleading documentation cross-section/extinction-coefficient
+when printing alkali and rayleigh classes.

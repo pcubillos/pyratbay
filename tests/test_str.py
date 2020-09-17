@@ -29,7 +29,7 @@ Wavenumber  Wavelength          gf   Lower-state energy
       (wn)                    (gf)   (elow)
   16960.87    0.589592   6.546e-01   0.000e+00
   16978.07    0.588995   1.309e+00   0.000e+00
-Extinction-coefficient (ec, cm2 molecule-1):
+Opacity cross section (ec, cm2 molecule-1):
 [[ 0.000e+00  1.021e-29 ...  3.136e-29  3.131e-29]
  [ 0.000e+00  1.285e-29 ...  3.948e-29  3.941e-29]
  ...
@@ -90,7 +90,7 @@ Parameter name     Value
   (pnames)         (pars)
   log(f_Ray)        0.000e+00
   alpha_Ray        -4.000e+00
-Extinction-coefficient (ec, cm2 molec-1):
+Opacity cross section (ec, cm2 molec-1):
     [ 9.540e-30  9.547e-30  9.553e-30 ...  5.436e-29  5.439e-29  5.441e-29]
 """
 
@@ -447,7 +447,7 @@ Parameter name     Value
   (pnames)         (pars)
   log(f_Ray)        0.000e+00
   alpha_Ray        -4.000e+00
-Extinction-coefficient (ec, cm2 molec-1):
+Opacity cross section (ec, cm2 molec-1):
     [ 9.540e-30  9.547e-30  9.553e-30 ...  5.436e-29  5.439e-29  5.441e-29]
 
 Total atmospheric Rayleigh extinction-coefficient (ec, cm-1):
@@ -475,7 +475,7 @@ Wavenumber  Wavelength          gf   Lower-state energy
       (wn)                    (gf)   (elow)
   16960.87    0.589592   6.546e-01   0.000e+00
   16978.07    0.588995   1.309e+00   0.000e+00
-Extinction-coefficient (ec, cm2 molecule-1):
+Opacity cross section (ec, cm2 molecule-1):
 [[ 0.000e+00  0.000e+00 ...  0.000e+00  0.000e+00]
  [ 0.000e+00  0.000e+00 ...  0.000e+00  0.000e+00]
  ...
