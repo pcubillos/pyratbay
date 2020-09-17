@@ -13,13 +13,14 @@
 
 
 PyDoc_STRVAR(extinction__doc__,
-"Calculate the extinction-coefficient for each molecule, at       \n\
-a given pressure and temperature, over a wavenumber range.        \n\
+"Calculate the extinction-coefficient (cm-1, if add==1) or the    \n\
+opacity per molecule (cm2 molecule-1), at a given pressure        \n\
+and temperature, over a wavenumber range.                         \n\
                                                                   \n\
 Parameters                                                        \n\
 ----------                                                        \n\
 ext: 2D float ndarray                                             \n\
-    Output extinction coefficient where to put the results.       \n\
+    Output extinction coefficient or opacity [nextinct,nwave].    \n\
 profile: 1D float ndarray                                         \n\
     Array of Voigt profiles.                                      \n\
 psize: 2D integer ndarray                                         \n\
@@ -31,37 +32,37 @@ lorentz: 1D Float ndarray                                         \n\
 doppler: 1D Float ndarray                                         \n\
     Sample of Doppler HWHMs.                                      \n\
 wn: 1D Float ndarray                                              \n\
-    Spectrum wavenumber array (cm-1).                             \n\
+    Spectrum wavenumber array [nwave] (cm-1).                     \n\
 own: 1D Float ndarray                                             \n\
     Oversampled wavenumber array (cm-1).                          \n\
 divisors: 1D integer ndarray                                      \n\
     Integer divisors for oversampling factor.                     \n\
 moldensity: 1D Float ndarray                                      \n\
-    Atmospheric species number density (molecules cm-3).          \n\
+    Number density for each species [nmol] (molecules cm-3).      \n\
 molq: 1D Float ndarray                                            \n\
-    Atmospheric species mole mixing ratio.                        \n\
+    Atmospheric species mole mixing ratio [nmol].                 \n\
 molrad: 1D Float ndarray                                          \n\
-    Atmospheric species collision radius (A).                     \n\
+    Atmospheric species collision radius [nmol] (Angstrom).       \n\
 molmass: 1D Float ndarray                                         \n\
-    Atmospheric species mass (gr mol-1).                          \n\
+    Atmospheric species mass [nmol] (gr mol-1).                   \n\
 isoimol: 1D Float ndarray                                         \n\
-    Isotopes species index (from atmospheric-species array).      \n\
+    Index of atmospheric molecule for each isotope [niso].        \n\
 isomass: 1D Float ndarray                                         \n\
-    Isotopes mass (gr mol-1).                                     \n\
+    Isotopes mass [niso] (g mol-1).                               \n\
 isoratio: 1D Float ndarray                                        \n\
-    Isotopes abundance ratio.                                     \n\
+    Isotopes abundance ratio [niso].                              \n\
 isoz: 1D Float ndarray                                            \n\
-    Isotopes partition function.                                  \n\
+    Isotopes partition function [niso].                           \n\
 isoiext: 1D Float ndarray                                         \n\
-    Isotopes species index in ext. coeff. table.                  \n\
+    Index of molecule (in ext array) for each isotope [niso].     \n\
 lwn: 1D Float ndarray                                             \n\
-    Line-transition wavenumber (cm-1).                            \n\
+    Line-transition wavenumber [nlines] (cm-1).                   \n\
 elow: 1D Float ndarray                                            \n\
-    Line-transition lower-state energy (cm-1).                    \n\
+    Line-transition lower-state energy [nlines] (cm-1).           \n\
 gf: 1D Float ndarray                                              \n\
-    Line-transition oscillator strength.                          \n\
+    Line-transition oscillator strength [nlines].                 \n\
 lID: 1D integer ndarray                                           \n\
-    Line-transition isotope ID.                                   \n\
+    Line-transition isotope ID [nlines].                          \n\
 cutoff: Float                                                     \n\
     Voigt profile cutoff (cm-1).                                  \n\
 ethresh: Float                                                    \n\
@@ -73,9 +74,9 @@ temp: Float                                                       \n\
 verb: Integer                                                     \n\
     Verbosity level.                                              \n\
 add: Integer                                                      \n\
-    Flag, if True calculate the extinction coefficient (in cm-1)  \n\
-    for this layer, if False calculate the extinction coefficient \n\
-    (in cm2 molecules-1) for each species in the layer.           \n\
+    If add=1 calculate the total extinction coefficient (in cm-1) \n\
+    for this layer, if add=0 calculate the opacity per species    \n\
+    (in cm2 molecule-1) in the layer.                             \n\
 resolution: Integer                                               \n\
     Flag, if True perform a linear interpolation of the extinction\n\
     spectrum into the constant-resolution output spectrum.        \n\
@@ -96,7 +97,7 @@ static PyObject *extinction(PyObject *self, PyObject *args){
       *isoz, *isoiext,
       *lwn, *lID, *elow, *gf;
 
-  long nmol, niso, nlines, next, ndivs,
+  long nmol, niso, nlines, nextinct, ndivs,
       onwn, dnwn,
       minj, maxj,
       nLor, nDop;
@@ -105,7 +106,7 @@ static PyObject *extinction(PyObject *self, PyObject *args){
       nadd=0, nskip=0, neval=0,
       verb, add=0, resolution;
   int mincut, maxcut;
-  int i, j, m, ln;
+  int i, j, iext, ln;
   long jj;
   double pressure, temp, collision_diameter, density, minwidth=1e5, vwidth,
       cutoff, ethresh, florentz, fdoppler, wnstep, ownstep, dwnstep,
@@ -133,10 +134,10 @@ static PyObject *extinction(PyObject *self, PyObject *args){
   ndivs  = PyArray_DIM(divisors, 0);  /* divisors of osamp */
   onwn   = PyArray_DIM(own, 0);  /* fine-wavenumber samples */
   nlines = PyArray_DIM(lwn, 0);  /* line transitions */
-  next   = PyArray_DIM(ext, 0);  /* extinction-coefficient species */
+  nextinct = PyArray_DIM(ext, 0);  /* extinction-coefficient species */
 
   if (add)
-      next = 1;
+      nextinct = 1;
 
   /* Constant factors for line widths: */
   fdoppler = sqrt(2*KB*temp/AMU) * SQRTLN2 / LS;
@@ -153,12 +154,11 @@ static PyObject *extinction(PyObject *self, PyObject *args){
   /* Allocate line strength per transition: */
   kprop = (double *)malloc(nlines * sizeof(double));
   /* Array to hold maximum line strength: */
-  kmax = (double *)calloc(next, sizeof(double));
+  kmax = (double *)calloc(nextinct, sizeof(double));
 
-
-  ktmp    = (double **)malloc(next*      sizeof(double *));
-  ktmp[0] = (double  *)calloc(next*onwn, sizeof(double  ));
-  for (i=1; i<next; i++)
+  ktmp = (double **)malloc(nextinct * sizeof(double *));
+  ktmp[0] = (double  *)calloc(nextinct*onwn, sizeof(double));
+  for (i=1; i<nextinct; i++)
       ktmp[i] = ktmp[0] + onwn*i;
 
   /* Calculate the isotopes' widths: */
@@ -179,7 +179,7 @@ static PyObject *extinction(PyObject *self, PyObject *args){
 
       /* Doppler profile width (divided by central wavenumber): */
       alphad[i] = fdoppler / sqrt(INDd(isomass,i));
-      if (i <= 0  &&  verb > 6){
+      if (i <= 0 && verb > 6){
           printf("    Lorentz: %.3e cm-1, Doppler: %.3e cm-1.\n",
                  alphal[i], alphad[i]*INDd(own,0));
       }
@@ -190,7 +190,7 @@ static PyObject *extinction(PyObject *self, PyObject *args){
 
       /* Search for aDop and aLor indices for alphal[i] and alphad[i]: */
       idop[i] = binsearchapprox(doppler, alphad[i]*INDd(own,0), 0, (int)nDop-1);
-      ilor[i] = binsearchapprox(lorentz, alphal[i],             0, (int)nLor-1);
+      ilor[i] = binsearchapprox(lorentz, alphal[i], 0, (int)nLor-1);
   }
 
   wnstep  = INDd(wn, 1) - INDd(wn, 0);
@@ -215,9 +215,9 @@ static PyObject *extinction(PyObject *self, PyObject *args){
       /* Wavelength, isotope index, and species index of line: */
       wavn = INDd(lwn, ln);
       i = INDi(lID, ln);
-      m = INDi(isoiext, i);
-      if (add)  /* Collapse everything into the first index */
-          m = 0;
+      iext = INDi(isoiext, i);
+      if (add)  /* Co-add extinction coefficient */
+          iext = 0;
 
       /* If this line falls beyond limits, skip to next line transition: */
       if ((wavn < INDd(own,0)) || (wavn > INDd(own,(onwn-1))))
@@ -230,16 +230,16 @@ static PyObject *extinction(PyObject *self, PyObject *args){
           (1-exp(-EXPCTE*wavn/temp))         /  /* Induced emission */
           INDd(isoz,i);                         /* Partition function */
       /* Check if this is the maximum k: */
-      kmax[m] = fmax(kmax[m], k);
+      kmax[iext] = fmax(kmax[iext], k);
   }
 
   /* Compute the extinction-coefficient for each species: */
   for (ln=0; ln<nlines; ln++){
       wavn = INDd(lwn, ln);
       i = INDi(lID, ln);
-      m = INDi(isoiext, i);
+      iext = INDi(isoiext, i);
       if (add)
-          m = 0;
+          iext = 0;
 
       if ((wavn < INDd(own,0)) || (wavn > INDd(own,(onwn-1))))
           continue;
@@ -254,7 +254,7 @@ static PyObject *extinction(PyObject *self, PyObject *args){
 
       /* Check if the next line falls on the same sampling index: */
       while (ln+1 != nlines && INDi(lID, (ln+1)) == i
-              && INDd(lwn,(ln+1)) <= INDd(own,(onwn-1)) ){
+             && INDd(lwn,(ln+1)) <= INDd(own,(onwn-1))){
           next_wn = INDd(lwn, (ln+1));
           if (fabs(next_wn - INDd(own,iown)) < ownstep){
               nadd++;
@@ -267,12 +267,12 @@ static PyObject *extinction(PyObject *self, PyObject *args){
       }
 
       /* Skip weakly contributing lines: */
-      if (k < ethresh * kmax[m]){
+      if (k < ethresh * kmax[iext]){
           nskip++;
           continue;
       }
 
-      /* Multiply by the species' number density: */
+      /* Co-add opacity into extinction coefficient: */
       if (add)
           k *= INDd(moldensity, (INDi(isoimol,i)));
 
@@ -307,7 +307,7 @@ static PyObject *extinction(PyObject *self, PyObject *args){
       iprof = IND2i(pindex, ilor[i], idop[i]);
       jj = iprof + ofactor*minj - offset;
       for (j=(int)minj; j<maxj; j++){
-          ktmp[m][j] += k * INDd(profile, jj);
+          ktmp[iext][j] += k * INDd(profile, jj);
           jj += ofactor;
       }
       neval++;
@@ -324,14 +324,14 @@ static PyObject *extinction(PyObject *self, PyObject *args){
 
   /* Interpolate ktmp to constant-R output spectrum: */
   if (resolution == 1){
-      for (m=0; m<next; m++){
-          linterp(ktmp, ext, INDd(wn,0), dwnstep, wn, m);
+      for (iext=0; iext<nextinct; iext++){
+          linterp(ktmp, ext, INDd(wn,0), dwnstep, wn, iext);
       }
   }
   /* Resample ktmp to the final sampling size (constant delta-wavenumber): */
   else{
-      for (m=0; m<next; m++){
-          resample(ktmp, ext, (int)dnwn, (int)round(wnstep/ownstep/ofactor), m);
+      for (iext=0; iext<nextinct; iext++){
+          resample(ktmp, ext, (int)dnwn, (int)round(wnstep/ownstep/ofactor), iext);
       }
   }
 
@@ -355,9 +355,9 @@ values.                                                    \n\
                                                            \n\
 Parameters                                                 \n\
 ----------                                                 \n\
-extinction: 3D float ndarray                               \n\
+extinction: 1D float ndarray                               \n\
     Extinction coefficient array [nwave] to calculate.     \n\
-etable 1D float ndarray                                    \n\
+etable: 3D float ndarray                                   \n\
     Tabulated extinction coefficient [nmol, ntemp, nwave]. \n\
 ttable: 1D float ndarray                                   \n\
     Tabulated temperature array [ntemp].                   \n\

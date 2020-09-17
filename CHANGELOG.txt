@@ -6713,3 +6713,7 @@ when printing alkali and rayleigh classes.
 
 Updated docs to describe fpatchy argument.
 
+*****
+
+Cleaned up src_c/_extcoeff.c.
+
