@@ -18,7 +18,8 @@ os.chdir(ROOT+'tests')
 
 # Expected spectra:
 keys = [
-    'lec', 'cia', 'alkali', 'deck', 'tli', 'all', 'etable',
+    'lec', 'cia', 'alkali', 'deck', 'tli', 'patchy', 'patchy_clear',
+    'patchy_cloudy', 'all', 'etable',
     'tmodel', 'vert', 'scale', 'fit1', 'fit2', 'fit3', 'fit4',
     'bandflux4', 'resolution', 'odd_even']
 expected = {
@@ -89,6 +90,30 @@ def test_transmission_all(tmp_path):
         remove=['clouds'])
     pyrat = pb.run(cfg)
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['all'], rtol=1e-7)
+
+
+def test_transmission_patchy(tmp_path):
+    cfg = make_config(tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        reset={'fpatchy': '0.5',
+               'rpars': '10.0 -15.0'})
+    pyrat = pb.run(cfg)
+    np.testing.assert_allclose(
+        pyrat.spec.spectrum, expected['patchy'], rtol=1e-7)
+    np.testing.assert_allclose(
+        pyrat.spec.clear, expected['patchy_clear'], rtol=1e-7)
+    np.testing.assert_allclose(
+        pyrat.spec.cloudy, expected['patchy_cloudy'], rtol=1e-7)
+
+    pyrat.cloud.fpatchy = 0.0
+    pyrat.run()
+    np.testing.assert_allclose(
+        pyrat.spec.spectrum, expected['patchy_clear'], rtol=1e-7)
+
+    pyrat.cloud.fpatchy = 1.0
+    pyrat.run()
+    np.testing.assert_allclose(
+        pyrat.spec.spectrum, expected['patchy_cloudy'], rtol=1e-7)
 
 
 def test_transmission_resolution(tmp_path):

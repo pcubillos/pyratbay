@@ -45,13 +45,16 @@ def modulation(pyrat):
     radius = pyrat.atm.radius
     depth = pyrat.od.depth
 
-    # The integrand:
-    integ = (np.exp(-depth[rtop:,:]) * np.expand_dims(radius[rtop:],1))
-    if pyrat.cloud.fpatchy is not None:
-        pinteg = (np.exp(-pyrat.od.pdepth[rtop:,:]) *
-                  np.expand_dims(radius[rtop:],1))
     # Get Delta radius (and simps' integration variables):
     h = np.ediff1d(radius[rtop:])
+    # The integrand:
+    integ = (np.exp(-depth[rtop:,:]) * np.expand_dims(radius[rtop:],1))
+
+    if pyrat.cloud.fpatchy is not None:
+        h_clear = np.copy(h)
+        integ_clear = (
+            np.exp(-pyrat.od.depth_clear[rtop:,:]) *
+                  np.expand_dims(radius[rtop:],1))
 
     if 'deck' in (m.name for m in pyrat.cloud.models):
         # Replace (interpolating) last layer with cloud top:
@@ -64,19 +67,23 @@ def modulation(pyrat):
     # Number of layers for integration at each wavelength:
     nlayers = pyrat.od.ideep - rtop + 1
     spectrum = t.trapz2D(integ, h, nlayers-1)
-    if pyrat.cloud.fpatchy is not None:
-        pyrat.spec.cloudy = t.trapz2D(pinteg, h, nlayers-1)
-
     pyrat.spec.spectrum = (radius[rtop]**2 + 2*spectrum) / pyrat.phy.rstar**2
+
     if pyrat.cloud.fpatchy is not None:
-        pyrat.spec.cloudy = ((radius[rtop]**2 + 2*pyrat.spec.cloudy)
+        nlayers = pyrat.od.ideep_clear - rtop + 1
+        pyrat.spec.clear = t.trapz2D(integ_clear, h_clear, nlayers-1)
+
+        pyrat.spec.clear = ((radius[rtop]**2 + 2*pyrat.spec.clear)
                              / pyrat.phy.rstar**2)
-        pyrat.spec.clear = pyrat.spec.spectrum
+        pyrat.spec.cloudy = pyrat.spec.spectrum
         pyrat.spec.spectrum = (   pyrat.cloud.fpatchy  * pyrat.spec.cloudy +
                                (1-pyrat.cloud.fpatchy) * pyrat.spec.clear  )
 
-    pyrat.log.head(f"Computed transmission spectrum: '{pyrat.spec.specfile}'.",
-        indent=2)
+    if pyrat.spec.specfile is not None:
+        specfile = f": '{pyrat.spec.specfile}'"
+    else:
+        specfile = ""
+    pyrat.log.head(f"Computed transmission spectrum{specfile}.", indent=2)
 
 
 def intensity(pyrat):

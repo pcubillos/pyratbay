@@ -6699,3 +6699,8 @@ such that it gets affected by the fpatchy factor.
 I don't really like this but it makes the code more compatible
 with the Madhu articles.
 
+*****
+
+Got fpatchy transmission calculation back to work.
+Added tests.
+
