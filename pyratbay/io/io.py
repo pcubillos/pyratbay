@@ -12,13 +12,14 @@ __all__ = [
     'read_atomic',
     'read_molecs',
     'read_isotopes',
-    'import_exomol_xs',
+    'import_xs',
     'import_tea',
     'export_pandexo',
     ]
 
 import os
 import pickle
+import h5py
 
 import numpy as np
 import mc3
@@ -1002,15 +1003,16 @@ def read_isotopes(file):
     return mol_ID, mol, hitran_iso, exomol_iso, ratio, mass
 
 
-def import_exomol_xs(filename, read_all=True, ofile=None):
+def import_xs(filename, source, read_all=True, ofile=None):
     """
-    Read an ExoMol opacity cross-section file, as formated as in
-    Chubb et al. (2020).
+    Read a cross-section opacity file from an external source.
 
     Parameters
     ----------
     filename: String
         The opacity pickle file to read.
+    source: String
+        The cross-section source: exomol or taurex (see note below).
     read_all: Bool
         If True, extract all contents in the file: cross-section,
         pressure, temperature, and wavenumber.
@@ -1033,20 +1035,43 @@ def import_exomol_xs(filename, read_all=True, ofile=None):
     species: String
         The species name.
 
+    Notes
+    -----
+    - exomol cross sections (Chubb et al. 2020, AA) can be found here:
+    http://www.exomol.com/data/data-types/opacity/
+    - taurex cross sections (Al-Refaie et al. 2019) can be found here:
+    https://taurex3-public.readthedocs.io/en/latest/user/taurex/quickstart.html
+
     Examples
     --------
+    >>> # For this example, you'll need to have/download the following
+    >>> # file into the current folder:
+    >>> # http://www.exomol.com/db/H2O/1H2-16O/POKAZATEL/1H2-16O__POKAZATEL__R15000_0.3-50mu.xsec.TauREx.h5
     >>> import pyratbay.io as io
-    >>> filename = 'H2O_pokazatel.R10000.TauREx.pickle'
-    >>> xs_H2O, press, temp, wn, species = io.read_exomol_xs(filename)
+    >>> filename = '1H2-16O__POKAZATEL__R15000_0.3-50mu.xsec.TauREx.h5'
+    >>> xs_H2O, press, temp, wn, species = io.import_xs(filename, 'exomol')
     """
-    with open(filename, 'rb') as f:
-        xs_data = pickle.load(f)
-        xs = xs_data['xsecarr']
-        if read_all or ofile is not None:
-            pressure    = xs_data['p'] * pc.bar
-            temperature = xs_data['t']
-            wavenumber  = xs_data['wno']
-            species     = [xs_data['name']]
+    if source == 'exomol':
+        with h5py.File(filename, 'r') as xs_data:
+            xs = np.array(xs_data['xsecarr'])
+            if read_all or ofile is not None:
+                pressure    = np.array(xs_data['p']) * pc.bar
+                temperature = np.array(xs_data['t'])
+                wavenumber  = np.array(xs_data['bin_edges'])
+                species     = [xs_data['mol_name'][0]]
+
+    elif source == 'taurex':
+        with open(filename, 'rb') as f:
+            xs_data = pickle.load(f)
+            xs = xs_data['xsecarr']
+            if read_all or ofile is not None:
+                pressure    = xs_data['p'] * pc.bar
+                temperature = xs_data['t']
+                wavenumber  = xs_data['wno']
+                species     = [xs_data['name']]
+
+    else:
+        raise ValueError("Invalid cross-section source type.")
 
     if ofile is not None:
         nlayers, ntemp, nwave = np.shape(xs)

@@ -6717,3 +6717,8 @@ Updated docs to describe fpatchy argument.
 
 Cleaned up src_c/_extcoeff.c.
 
+*****
+
+Refactored io.import_exomol_xs() into io.import_xs() to generalize it
+for different opacity sources.
+
