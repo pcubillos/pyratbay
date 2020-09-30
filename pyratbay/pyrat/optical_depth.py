@@ -1,20 +1,16 @@
 # Copyright (c) 2016-2020 Patricio Cubillos.
 # Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE).
 
-import sys
 import ctypes
 import multiprocessing as mpr
 
 import numpy as np
 
 from . import extinction as ex
-from .. import constants as pc
 from .. import atmosphere as pa
-
-sys.path.append(pc.ROOT + 'pyratbay/lib/')
-import _extcoeff as ec
-import _trapz as t
-import cutils as cu
+from ..lib import _extcoeff as ec
+from ..lib import _trapz as t
+from ..lib import cutils as cu
 
 
 def optical_depth(pyrat):

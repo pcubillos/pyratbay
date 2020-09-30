@@ -1,14 +1,11 @@
 # Copyright (c) 2016-2020 Patricio Cubillos.
 # Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE).
 
-import sys
 import numpy as np
 
 from .. import constants as pc
 from .. import io as io
-
-sys.path.append(pc.ROOT + 'pyratbay/lib/')
-import _spline as sp
+from ..lib import _spline as sp
 
 
 def read(pyrat):

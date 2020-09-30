@@ -8,7 +8,6 @@ __all__ = [
     'get_model',
     ]
 
-import sys
 import functools
 
 import numpy as np
@@ -17,9 +16,7 @@ from scipy.ndimage import gaussian_filter1d
 from collections import Iterable
 
 from ... import constants as pc
-
-sys.path.append(pc.ROOT + 'pyratbay/lib/')
-import _pt
+from ...lib import _pt
 
 
 def check_params(func):

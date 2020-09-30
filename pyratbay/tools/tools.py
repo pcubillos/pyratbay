@@ -26,7 +26,6 @@ __all__ = [
 
 
 import os
-import sys
 import re
 import struct
 import time
@@ -43,10 +42,8 @@ import numpy as np
 import mc3.utils as mu
 
 from .. import constants as pc
-from .. import io        as io
-
-sys.path.append(pc.ROOT + 'pyratbay/lib/')
-import _indices
+from .. import io as io
+from ..lib import _indices
 
 
 @contextmanager

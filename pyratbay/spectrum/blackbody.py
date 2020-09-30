@@ -7,15 +7,12 @@ __all__ = [
     "bbflux",
     ]
 
-import sys
 from numbers import Integral
 from collections import Iterable
 
 import numpy as np
 
-from .. import constants as pc
-sys.path.append(pc.ROOT + 'pyratbay/lib/')
-from _blackbody import blackbody_wn, blackbody_wn_2D
+from ..lib._blackbody import blackbody_wn, blackbody_wn_2D
 
 
 def bbflux(wn, teff):

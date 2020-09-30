@@ -2,7 +2,6 @@
 # Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE).
 
 import os
-import sys
 import ctypes
 import multiprocessing as mpr
 
@@ -12,9 +11,7 @@ import scipy.interpolate as sip
 from .. import tools     as pt
 from .. import constants as pc
 from .. import io        as io
-
-sys.path.append(pc.ROOT + "pyratbay/lib/")
-import _extcoeff as ec
+from ..lib import _extcoeff as ec
 
 
 def exttable(pyrat):

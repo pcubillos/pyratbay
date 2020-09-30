@@ -6722,3 +6722,8 @@ Cleaned up src_c/_extcoeff.c.
 Refactored io.import_exomol_xs() into io.import_xs() to generalize it
 for different opacity sources.
 
+
+*****  Mi 30. Sep 15:54:03 CEST 2020  *****
+
+Sorted out imports of C extensions.
+
