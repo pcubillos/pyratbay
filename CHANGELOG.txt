@@ -6730,3 +6730,8 @@ Sorted out imports of C extensions.
 *****
 
 Fixed typo in tests_io.py.
+
+*****
+
+Tweaked io.import_xs() function to only import h5py when necessary.
+

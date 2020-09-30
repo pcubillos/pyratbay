@@ -19,7 +19,6 @@ __all__ = [
 
 import os
 import pickle
-import h5py
 
 import numpy as np
 import mc3
@@ -1051,6 +1050,12 @@ def import_xs(filename, source, read_all=True, ofile=None):
     >>> filename = '1H2-16O__POKAZATEL__R15000_0.3-50mu.xsec.TauREx.h5'
     >>> xs_H2O, press, temp, wn, species = io.import_xs(filename, 'exomol')
     """
+    try:
+        import h5py
+    except ModuleNotFoundError as e:
+        if source == 'exomol':
+            raise e
+
     if source == 'exomol':
         with h5py.File(filename, 'r') as xs_data:
             xs = np.array(xs_data['xsecarr'])
