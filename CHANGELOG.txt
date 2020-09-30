@@ -6727,3 +6727,6 @@ for different opacity sources.
 
 Sorted out imports of C extensions.
 
+*****
+
+Fixed typo in tests_io.py.

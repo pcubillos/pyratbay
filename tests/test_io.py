@@ -332,7 +332,7 @@ def test_read_isotopes():
         np.array([18.010565, 20.014811, 19.014781, 19.016841, 21.021088,
                   20.021058, 20.021,    22.0000, 21.0000]))
 
-@pytest.makr.skip(
+@pytest.mark.skip(
     reason='This requires either to download a huge file or mock it up.')
 def test_import_xs():
     # wget this file first: http://www.exomol.com/db/H2O/1H2-16O/POKAZATEL/1H2-16O__POKAZATEL__R15000_0.3-50mu.xsec.TauREx.h5
