@@ -82,22 +82,22 @@ class Lecavelier():
   AA, 485, 865.
   """
   def __init__(self):
-      self.name  = 'lecavelier'     # Model name
-      self.mol   = 'H2'             # Species causing the extinction
-      self.pars  = [ 0.0,           # Cross-section scale factor (unitless)
-                    -4.0]           # Power-law exponent
-      self.npars = len(self.pars)   # Number of model fitting parameters
-      self.ec    = None             # Model extinction coefficient
-      self.pnames   = ['log(f_Ray)', 'alpha_Ray']
-      self.texnames = [r'$\log_{10}(f_{\rm Ray})$', r'$\alpha_{\rm Ray}$']
-      self.s0    = 5.31e-27         # Cross section (cm2 molec-1) at l0
-      self.l0    = 3.5e-5           # Nominal wavelength (cm)
+      self.name = 'lecavelier'  # Model name
+      self.mol = 'H2'           # Species causing the extinction
+      self.pars = [ 0.0,        # Cross-section scale factor (unitless)
+                   -4.0]        # Power-law exponent
+      self.npars = len(self.pars)  # Number of model fitting parameters
+      self.ec = None               # Model extinction coefficient
+      self.pnames = ['log(f_ray)', 'alpha_ray']
+      self.texnames = [r'$\log_{10}(f_{\rm ray})$', r'$\alpha_{\rm ray}$']
+      self.s0 = 5.31e-27  # Cross section (cm2 molec-1) at l0
+      self.l0 = 3.5e-5    # Nominal wavelength (cm)
 
   def extinction(self, wn):
       """
       Calculate the Rayleigh cross section in cm2 molec-1:
-         cross section = 10**pars[0] * s0 * (lambda/l0)**(pars[1])
-      With lambda the wavelength = 1/wavenumber.
+          cross section = f_ray * s0 * (lambda/l0)**alpha_ray,
+      parameterized as params = [log10(f_ray), alpha_ray).
 
       Parameters
       ----------
