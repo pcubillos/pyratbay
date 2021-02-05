@@ -246,9 +246,8 @@ def setup(pyrat):
       atm.ifree = [spec.index(mol) for mol in atm.molfree]
       nabund = len(atm.ifree)
       # Abundance free-parameter names:
-      mpnames   = ['log({:s})'.format(mol) for mol in atm.molfree]
-      mtexnames = [r'$\log_{{10}}(f_{{\rm {:s}}})$'.format(mol)
-                   for mol in atm.molfree]
+      mpnames = [f'log({mol})' for mol in atm.molfree]
+      mtexnames = [fr'$\log_{{10}}(X_{{\rm {mol}}})$' for mol in atm.molfree]
   else:
       nabund = 0
       mpnames, mtexnames = [], []
