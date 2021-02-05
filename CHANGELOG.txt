@@ -6745,3 +6745,11 @@ params argument instead pointing to the same object.
 
 Changed the texname of patchy fraction from f to phi.
 
+*****
+
+Changed Rayleigh parameter names to lower-case ray.
+
+*****
+
+Fixed texname of TCEA gamma2 parameter.
+

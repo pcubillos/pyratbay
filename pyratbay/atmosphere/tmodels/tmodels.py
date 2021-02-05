@@ -108,12 +108,19 @@ class TCEA(object):
         """
         self.name = 'tcea'
         self.pnames = [
-            "log(kappa')", 'log(gamma1)', 'log(gamma2)',
-            'alpha', 'T_irr (K)', 'T_int (K)']
+            "log(kappa')",
+            'log(gamma1)',
+            'log(gamma2)',
+            'alpha',
+            'T_irr (K)',
+            'T_int (K)']
         self.texnames = [
-            r"$\log_{10}(\kappa')$", r'$\log_{10}(\gamma_1)$',
-            r'$\log_{10}(\gamma2)$', r'$\alpha$',
-            r'$T_{\rm irr} (K)$',    r'$T_{\rm int} (K)$']
+            r"$\log_{10}(\kappa')$",
+            r'$\log_{10}(\gamma_1)$',
+            r'$\log_{10}(\gamma_2)$',
+            r'$\alpha$',
+            r'$T_{\rm irr} (K)$',
+            r'$T_{\rm int} (K)$']
         self.npars = len(self.pnames)
 
         if gravity is None:
