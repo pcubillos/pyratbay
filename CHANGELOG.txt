@@ -6783,3 +6783,6 @@ Updated copyright text to 2021.
 
 Updated README.md file.
 
+*****
+
+Bumped version to 0.9.2.
