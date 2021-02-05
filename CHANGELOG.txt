@@ -6735,3 +6735,9 @@ Fixed typo in tests_io.py.
 
 Tweaked io.import_xs() function to only import h5py when necessary.
 
+
+*****  Fri Feb 5 10:34:30 CET 2021  *****
+
+Tweaked pyrat.eval() to set pyrat.ret.params a copy of the input
+params argument instead pointing to the same object.
+
