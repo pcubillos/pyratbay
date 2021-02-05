@@ -165,10 +165,12 @@ def make_atmprofiles(pyrat):
     runits = pt.u(atm.runits)
     if pyrat.atm.rmodelname is not None and not np.any(missing):
         # Calculate hydostatic-equilibrium radius profile:
-        log.msg(f'Reference pressure: {atm.refpressure/punits:.3e} '
-                f'{atm.punits}.', indent=2)
-        log.msg(f'Reference radius: {pyrat.phy.rplanet/runits:8.1f} '
-                f'{atm.runits}.', indent=2)
+        log.msg(
+            f'Reference pressure: {atm.refpressure/punits:.3e} {atm.punits}.',
+            indent=2)
+        log.msg(
+            f'Reference radius: {pyrat.phy.rplanet/runits:8.1f} {atm.runits}.',
+            indent=2)
         if not np.isinf(pyrat.phy.rhill):
             log.msg(f'Hill radius:      {pyrat.phy.rhill/runits:8.1f} '
                     f'{atm.runits}.', indent=2)

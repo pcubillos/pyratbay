@@ -36,7 +36,7 @@ class Lorentz(object):
   --------
   >>> import numpy as np
   >>> import matplotlib.pyplot as plt
-  >>> import pyratbay.broadening as b
+  >>> import pyratbay.opacity.broadening as b
   >>> lor = b.Lorentz(x0=0.0, hwhm=2.5, scale=1.0)
   >>> # Half-width at half maximum is ~2.5:
   >>> x = np.linspace(-10.0, 10.0, 100001)
@@ -94,7 +94,7 @@ class Gauss(object):
   --------
   >>> import numpy as np
   >>> import matplotlib.pyplot as plt
-  >>> import pyratbay.broadening as b
+  >>> import pyratbay.opacity.broadening as b
   >>> gauss = b.Gauss(x0=0.0, hwhm=2.5, scale=1.0)
   >>> # Half-width at half maximum is ~2.5:
   >>> x = np.linspace(-10.0, 10.0, 100001)
@@ -157,7 +157,7 @@ class Voigt(object):
   -------
   >>> import numpy as np
   >>> import matplotlib.pyplot as plt
-  >>> import pyratbay.broadening as b
+  >>> import pyratbay.opacity.broadening as b
   >>> Nl = 5
   >>> Nw = 10.0
   >>> hG = 1.0
@@ -267,7 +267,7 @@ def doppler_hwhm(temperature, mass, wn):
 
     Examples
     --------
-    >>> import pyratbay.broadening as b
+    >>> import pyratbay.opacity.broadening as b
     >>> # Doppler HWHM at 1000K and 1 micron, for H2O and CO2:
     >>> temperature = 1000.0
     >>> wn = 10000.0
@@ -314,7 +314,7 @@ def lorentz_hwhm(temperature, pressure, masses, radii, vol_mix_ratio, imol):
 
     Examples
     --------
-    >>> import pyratbay.broadening as b
+    >>> import pyratbay.opacity.broadening as b
     >>> import pyratbay.constants as pc
     >>> # Lorenz HWHM at 1000K and 1 bar, for H2O and CO2:
     >>> temperature = 1000.0
@@ -366,7 +366,7 @@ def min_widths(min_temp, max_temp, min_wn, max_mass, min_rad, min_press):
 
   Examples
   --------
-  >>> import pyratbay.broadening as b
+  >>> import pyratbay.opacity.broadening as b
   >>> import pyratbay.constants as pc
   >>> min_temp =  100.0
   >>> max_temp = 3000.0
@@ -424,7 +424,7 @@ def max_widths(min_temp, max_temp, max_wn, min_mass, max_rad, max_press):
 
   Examples
   --------
-  >>> import pyratbay.broadening as b
+  >>> import pyratbay.opacity.broadening as b
   >>> import pyratbay.constants as pc
   >>> min_temp =  100.0
   >>> max_temp = 3000.0

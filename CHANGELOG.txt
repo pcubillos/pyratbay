@@ -6753,3 +6753,11 @@ Changed Rayleigh parameter names to lower-case ray.
 
 Fixed texname of TCEA gamma2 parameter.
 
+*****
+
+Changed molecules texnames from f_mol to X_mol.
+
+*****
+
+Some PEP8'ing and docstring fixes.
+

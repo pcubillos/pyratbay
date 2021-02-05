@@ -104,8 +104,9 @@ def intensity(pyrat):
         pyrat.od.B[deck.itop] = ps.blackbody_wn(pyrat.spec.wn, deck.tsurf)
 
     # Plane-parallel radiative-transfer intensity integration:
-    spec.intensity = t.intensity(pyrat.od.depth, pyrat.od.ideep, pyrat.od.B,
-                                 np.cos(spec.raygrid), pyrat.atm.rtop)
+    spec.intensity = t.intensity(
+        pyrat.od.depth, pyrat.od.ideep, pyrat.od.B, np.cos(spec.raygrid),
+        pyrat.atm.rtop)
 
 
 def flux(pyrat):

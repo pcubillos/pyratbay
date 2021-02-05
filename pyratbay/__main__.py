@@ -35,18 +35,24 @@ def main():
     pbay -cs borysow ciah2he_dh_quantmech H2 He
     """
     # Parse configuration file:
-    parser = argparse.ArgumentParser(description=__doc__, add_help=True,
-                  formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("-v", "--version", action="version",
-                       help="Show Pyrat Bay's version.",
-                       version='Pyrat Bay version {:s}.'.format(pb.__version__))
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        add_help=True,
+        formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument(
+        "-v", "--version", action="version",
+        help="Show Pyrat Bay's version.",
+        version=f'Pyrat Bay version {pb.__version__}.')
     group = parser.add_mutually_exclusive_group()
-    group.add_argument("-c", dest='cfile', default=None,
-                       help="Run Pyrat Bay for given configuration file.")
-    group.add_argument("-pf", dest='pf', default=None, nargs='+',
-                       help="Format a partition-function file.")
-    group.add_argument("-cs", dest='cs', default=None, nargs='+',
-                       help="Format a cross-section file.")
+    group.add_argument(
+        "-c", dest='cfile', default=None,
+        help="Run Pyrat Bay for given configuration file.")
+    group.add_argument(
+        "-pf", dest='pf', default=None, nargs='+',
+        help="Format a partition-function file.")
+    group.add_argument(
+        "-cs", dest='cs', default=None, nargs='+',
+        help="Format a cross-section file.")
     # Parse command-line args:
     args, unknown = parser.parse_known_args()
 
