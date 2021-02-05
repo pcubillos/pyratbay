@@ -6778,3 +6778,8 @@ PEP8'ed the setup.py file.
 *****
 
 Updated copyright text to 2021.
+
+*****
+
+Updated README.md file.
+
