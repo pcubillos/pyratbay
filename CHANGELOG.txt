@@ -6775,3 +6775,6 @@ Adjusted transmission-depth relative error tolerance to 0.01%.
 
 PEP8'ed the setup.py file.
 
+*****
+
+Updated copyright text to 2021.
