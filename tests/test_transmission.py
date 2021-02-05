@@ -31,6 +31,8 @@ expected = {
 INPUTS = f'{ROOT}tests/inputs/'
 OUTPUTS = f'{ROOT}tests/outputs/'
 
+# Relative tolerance of less than 0.01% difference:
+rtol = 0.01 / 100.0
 
 def test_transmission_clear(tmp_path):
     # No opacity whatsoever:
@@ -39,7 +41,7 @@ def test_transmission_clear(tmp_path):
         remove=['tlifile', 'csfile', 'rayleigh', 'alkali', 'clouds'])
     pyrat = pb.run(cfg)
     depth_bottom = (pyrat.atm.radius[-1] / pyrat.phy.rstar)**2
-    np.testing.assert_allclose(pyrat.spec.spectrum, depth_bottom, rtol=1e-7)
+    np.testing.assert_allclose(pyrat.spec.spectrum, depth_bottom, rtol=rtol)
 
 
 def test_transmission_lecavelier(tmp_path):
@@ -47,7 +49,7 @@ def test_transmission_lecavelier(tmp_path):
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         remove=['tlifile', 'csfile', 'alkali', 'clouds'])
     pyrat = pb.run(cfg)
-    np.testing.assert_allclose(pyrat.spec.spectrum, expected['lec'], rtol=1e-7)
+    np.testing.assert_allclose(pyrat.spec.spectrum, expected['lec'], rtol=rtol)
 
 
 def test_transmission_CIA(tmp_path):
@@ -55,7 +57,7 @@ def test_transmission_CIA(tmp_path):
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         remove=['tlifile', 'rayleigh', 'alkali', 'clouds'])
     pyrat = pb.run(cfg)
-    np.testing.assert_allclose(pyrat.spec.spectrum, expected['cia'], rtol=1e-7)
+    np.testing.assert_allclose(pyrat.spec.spectrum, expected['cia'], rtol=rtol)
 
 
 def test_transmission_alkali(tmp_path):
@@ -64,8 +66,8 @@ def test_transmission_alkali(tmp_path):
         remove=['tlifile', 'csfile', 'rayleigh', 'clouds'],
         reset={'wllow':'0.45 um', 'wlhigh':'1.0 um'})
     pyrat = pb.run(cfg)
-    np.testing.assert_allclose(pyrat.spec.spectrum, expected['alkali'],
-        rtol=1e-7)
+    np.testing.assert_allclose(
+        pyrat.spec.spectrum, expected['alkali'], rtol=rtol)
 
 
 def test_transmission_deck(tmp_path):
@@ -73,7 +75,7 @@ def test_transmission_deck(tmp_path):
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         remove=['tlifile', 'csfile', 'rayleigh', 'alkali'])
     pyrat = pb.run(cfg)
-    np.testing.assert_allclose(pyrat.spec.spectrum, expected['deck'], rtol=1e-7)
+    np.testing.assert_allclose(pyrat.spec.spectrum, expected['deck'], rtol=rtol)
 
 
 def test_transmission_tli(tmp_path):
@@ -81,7 +83,7 @@ def test_transmission_tli(tmp_path):
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         remove=['csfile', 'rayleigh', 'clouds', 'alkali'])
     pyrat = pb.run(cfg)
-    np.testing.assert_allclose(pyrat.spec.spectrum, expected['tli'], rtol=1e-7)
+    np.testing.assert_allclose(pyrat.spec.spectrum, expected['tli'], rtol=rtol)
 
 
 def test_transmission_all(tmp_path):
@@ -89,7 +91,7 @@ def test_transmission_all(tmp_path):
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         remove=['clouds'])
     pyrat = pb.run(cfg)
-    np.testing.assert_allclose(pyrat.spec.spectrum, expected['all'], rtol=1e-7)
+    np.testing.assert_allclose(pyrat.spec.spectrum, expected['all'], rtol=rtol)
 
 
 def test_transmission_patchy(tmp_path):
@@ -99,21 +101,21 @@ def test_transmission_patchy(tmp_path):
                'rpars': '10.0 -15.0'})
     pyrat = pb.run(cfg)
     np.testing.assert_allclose(
-        pyrat.spec.spectrum, expected['patchy'], rtol=1e-7)
+        pyrat.spec.spectrum, expected['patchy'], rtol=rtol)
     np.testing.assert_allclose(
-        pyrat.spec.clear, expected['patchy_clear'], rtol=1e-7)
+        pyrat.spec.clear, expected['patchy_clear'], rtol=rtol)
     np.testing.assert_allclose(
-        pyrat.spec.cloudy, expected['patchy_cloudy'], rtol=1e-7)
+        pyrat.spec.cloudy, expected['patchy_cloudy'], rtol=rtol)
 
     pyrat.cloud.fpatchy = 0.0
     pyrat.run()
     np.testing.assert_allclose(
-        pyrat.spec.spectrum, expected['patchy_clear'], rtol=1e-7)
+        pyrat.spec.spectrum, expected['patchy_clear'], rtol=rtol)
 
     pyrat.cloud.fpatchy = 1.0
     pyrat.run()
     np.testing.assert_allclose(
-        pyrat.spec.spectrum, expected['patchy_cloudy'], rtol=1e-7)
+        pyrat.spec.spectrum, expected['patchy_cloudy'], rtol=rtol)
 
 
 def test_transmission_resolution(tmp_path):
@@ -122,8 +124,8 @@ def test_transmission_resolution(tmp_path):
         reset={'resolution':'5000.0'},
         remove=['clouds'])
     pyrat = pb.run(cfg)
-    np.testing.assert_allclose(pyrat.spec.spectrum, expected['resolution'],
-        rtol=1e-7)
+    np.testing.assert_allclose(
+        pyrat.spec.spectrum, expected['resolution'], rtol=rtol)
 
 
 # Optical-depth integration is home made, which depends on whether there is
@@ -134,8 +136,8 @@ def test_transmission_odd_even(tmp_path):
         reset={'rpars':'1.0 -4.0'},
         remove=['tlifile', 'csfile', 'alkali', 'clouds'])
     pyrat = pb.run(cfg)
-    np.testing.assert_allclose(pyrat.spec.spectrum, expected['odd_even'],
-        rtol=1e-7)
+    np.testing.assert_allclose(
+        pyrat.spec.spectrum, expected['odd_even'], rtol=rtol)
 
     cfg = make_config(tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
@@ -143,8 +145,8 @@ def test_transmission_odd_even(tmp_path):
                'rpars':'1.0 -4.0'},
         remove=['tlifile', 'csfile', 'alkali', 'clouds'])
     pyrat = pb.run(cfg)
-    np.testing.assert_allclose(pyrat.spec.spectrum, expected['odd_even'],
-        rtol=1e-7)
+    np.testing.assert_allclose(
+        pyrat.spec.spectrum, expected['odd_even'], rtol=rtol)
 
 
 def test_transmission_etable(tmp_path):
@@ -154,8 +156,8 @@ def test_transmission_etable(tmp_path):
         remove=['tlifile', 'clouds'],
         reset={'extfile':f'{OUTPUTS}exttable_test_300-3000K_1.1-1.7um.npz'})
     pyrat = pb.run(cfg)
-    np.testing.assert_allclose(pyrat.spec.spectrum, expected['etable'],
-                               rtol=1e-7)
+    np.testing.assert_allclose(
+        pyrat.spec.spectrum, expected['etable'], rtol=rtol)
 
 
 def test_transmission_input_radius(tmp_path):
@@ -165,7 +167,7 @@ def test_transmission_input_radius(tmp_path):
         remove=['radmodel'])
     pyrat = pb.run(cfg)
     atm = io.read_atm('inputs/atmosphere_uniform_radius.atm')
-    np.testing.assert_allclose(pyrat.atm.radius, atm[5]*pc.km, rtol=1e-7)
+    np.testing.assert_allclose(pyrat.atm.radius, atm[5]*pc.km, rtol=rtol)
 
 
 def test_transmission_input_radius_overwrite(tmp_path):
@@ -189,7 +191,7 @@ def test_transmission_qmass_input():
     io.write_atm(atmfile)
     # Then run spectrum, results must be the same as qnumber run:
     pyrat = pb.run(ROOT+'tests/configs/spectrum_transmission_qmass_test.cfg')
-    np.testing.assert_allclose(pyrat.spec.spectrum, expected['all'], rtol=1e-7)
+    np.testing.assert_allclose(pyrat.spec.spectrum, expected['all'], rtol=rtol)
 
 
 # Now try some forward models that modify the atmospheric profile:
@@ -204,8 +206,8 @@ def test_transmission_tmodel_none(tmp_path):
     # Now, re-run with user-input tpars:
     pyrat.atm.tpars = np.array([-4.67, -0.8, -0.8, 0.5, 1486.0, 100.0])
     pyrat.run()
-    np.testing.assert_allclose(pyrat.spec.spectrum, expected['tmodel'],
-        rtol=1e-7)
+    np.testing.assert_allclose(
+        pyrat.spec.spectrum, expected['tmodel'], rtol=rtol)
 
 
 def test_transmission_tmodel(tmp_path):
@@ -216,7 +218,7 @@ def test_transmission_tmodel(tmp_path):
         reset={'tmodel':'tcea', 'tpars':'-4.67 -0.8 -0.8 0.5 1486.0 100.0'})
     pyrat = pb.run(cfg)
     tmodel2 = pyrat.spec.spectrum
-    np.testing.assert_allclose(tmodel2, expected['tmodel'], rtol=1e-7)
+    np.testing.assert_allclose(tmodel2, expected['tmodel'], rtol=rtol)
 
 
 def test_transmission_vert_none_model(tmp_path):
@@ -226,10 +228,10 @@ def test_transmission_vert_none_model(tmp_path):
         reset={'molmodel':'vert', 'molfree':'H2O', 'bulk':'H2 He'})
     pyrat = pb.run(cfg)
     vmodel0 = pyrat.spec.spectrum
-    np.testing.assert_allclose(vmodel0, expected['all'], rtol=1e-7)
+    np.testing.assert_allclose(vmodel0, expected['all'], rtol=rtol)
     pyrat.atm.molpars = [-5]
     pyrat.run()
-    np.testing.assert_allclose(pyrat.spec.spectrum, expected['vert'], rtol=1e-7)
+    np.testing.assert_allclose(pyrat.spec.spectrum, expected['vert'], rtol=rtol)
     np.testing.assert_equal(pyrat.atm.q[:,3], 1e-5)
 
 
@@ -240,7 +242,7 @@ def test_transmission_vert_model(tmp_path):
         reset={'molmodel':'vert', 'molfree':'H2O', 'molpars':'-5',
                'bulk':'H2 He'})
     pyrat = pb.run(cfg)
-    np.testing.assert_allclose(pyrat.spec.spectrum, expected['vert'], rtol=1e-7)
+    np.testing.assert_allclose(pyrat.spec.spectrum, expected['vert'], rtol=rtol)
 
 
 def test_transmission_scale_model(tmp_path):
@@ -250,8 +252,8 @@ def test_transmission_scale_model(tmp_path):
         reset={'molmodel':'scale', 'molfree':'H2O', 'molpars':'-1',
                'bulk':'H2 He'})
     pyrat = pb.run(cfg)
-    np.testing.assert_allclose(pyrat.spec.spectrum, expected['scale'],
-        rtol=1e-7)
+    np.testing.assert_allclose(
+        pyrat.spec.spectrum, expected['scale'], rtol=rtol)
     np.testing.assert_equal(pyrat.atm.q[:,3], 0.1*pyrat.atm.qbase[:,3])
 
 
@@ -264,10 +266,10 @@ def test_transmission_fit(tmp_path):
                'retflag':'temp mol ray cloud',
                'params':'-4.67 -0.8 -0.8 0.5 1486.0 100.0 -4.0 0.0 -4.0 2.0'})
     pyrat = pb.run(cfg)
-    np.testing.assert_allclose(pyrat.spec.spectrum, expected['all'], rtol=1e-7)
+    np.testing.assert_allclose(pyrat.spec.spectrum, expected['all'], rtol=rtol)
     # Eval default params:
     model1 = pyrat.eval(pyrat.ret.params, retmodel=True)
-    np.testing.assert_allclose(pyrat.spec.spectrum, expected['fit1'], rtol=1e-7)
+    np.testing.assert_allclose(pyrat.spec.spectrum, expected['fit1'], rtol=rtol)
     np.testing.assert_equal(model1[0], pyrat.spec.spectrum)
     assert model1[1] is None
     # Cloud deck:
@@ -275,21 +277,21 @@ def test_transmission_fit(tmp_path):
     model2 = pyrat.eval(params, retmodel=True)
     rmin = np.amin(np.sqrt(pyrat.spec.spectrum)) * pyrat.phy.rstar
     rexpected = pyrat.cloud.models[0].rsurf
-    np.testing.assert_allclose(rmin, rexpected, rtol=5e-7)
-    np.testing.assert_allclose(pyrat.spec.spectrum, expected['fit2'], rtol=1e-7)
+    np.testing.assert_allclose(rmin, rexpected, rtol=rtol)
+    np.testing.assert_allclose(pyrat.spec.spectrum, expected['fit2'], rtol=rtol)
     # Check pyrat.ret.params has been updated:
     np.testing.assert_equal(pyrat.ret.params, params)
     # Depleted H2O:
     params = [-4.67, -0.8, -0.8, 0.5, 1486.0, 100.0, -8.0, 0.0, -4.0, 2.0]
     model3 = pyrat.eval(params, retmodel=True)
-    np.testing.assert_allclose(pyrat.spec.spectrum, expected['fit3'], rtol=1e-7)
+    np.testing.assert_allclose(pyrat.spec.spectrum, expected['fit3'], rtol=rtol)
 
 
 def test_transmission_fit_filters():
     pyrat = pb.run(ROOT+'tests/configs/spectrum_transmission_filters_test.cfg')
     model4 = pyrat.eval(pyrat.ret.params, retmodel=True)
-    np.testing.assert_allclose(model4[0], expected['fit4'],      rtol=1e-7)
-    np.testing.assert_allclose(model4[1], expected['bandflux4'], rtol=1e-7)
+    np.testing.assert_allclose(model4[0], expected['fit4'], rtol=rtol)
+    np.testing.assert_allclose(model4[1], expected['bandflux4'], rtol=rtol)
 
 
 def test_multiple_opacities(tmp_path):
@@ -347,8 +349,8 @@ def test_multiple_opacities(tmp_path):
                      f'\n  {OUTPUTS}exttable_CO2-CH4_300-3000K_1.5-1.6um.npz',
                'wllow':'1.5 um', 'wlhigh':'1.6 um'})
     pyrat2 = pb.run(cfg)
-    np.testing.assert_allclose(pyrat1.spec.spectrum,
-                               pyrat2.spec.spectrum, rtol=1e-5)
+    np.testing.assert_allclose(
+        pyrat1.spec.spectrum, pyrat2.spec.spectrum, rtol=rtol)
 
 
 @pytest.mark.parametrize('wllow,wlhigh',
@@ -365,7 +367,7 @@ def test_opacity_reset_wn(tmp_path, wllow, wlhigh):
     wn = np.arange(1/1.7e-4, 1/1.1e-4, 1.0)
     etab = expected['etable'][(wn>= pyrat.spec.wnlow)
                             & (wn <=pyrat.spec.wnhigh)]
-    np.testing.assert_allclose(pyrat.spec.spectrum, etab, rtol=1e-7)
+    np.testing.assert_allclose(pyrat.spec.spectrum, etab, rtol=rtol)
 
 
 # These are extra bits for testing the tests before testing:

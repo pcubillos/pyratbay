@@ -6767,3 +6767,7 @@ Modified profile-width estimation in voigt.calc_voigt() to use
 Olivero (1977) approximation instead of max(Doppler,Lorentz).
 Updated tests accordingly.
 
+*****
+
+Adjusted transmission-depth relative error tolerance to 0.01%.
+
