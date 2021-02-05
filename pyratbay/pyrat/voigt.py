@@ -86,7 +86,9 @@ def calc_voigt(pyrat):
   # Calculate the half-size of the profiles:
   for i in range(voigt.nlor):
       # Profile half-width in cm-1:
-      pwidth = np.maximum(voigt.doppler, voigt.lorentz[i]) * voigt.extent
+      pwidth = voigt.extent * (
+          0.5346*voigt.lorentz[i]
+          + np.sqrt(0.2166*voigt.lorentz[i]**2 + voigt.doppler**2))
       # Apply fixed cutoff:
       if voigt.cutoff > 0:
           pwidth = np.minimum(pwidth, voigt.cutoff)

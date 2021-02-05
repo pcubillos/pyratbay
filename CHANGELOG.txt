@@ -6761,3 +6761,9 @@ Changed molecules texnames from f_mol to X_mol.
 
 Some PEP8'ing and docstring fixes.
 
+*****
+
+Modified profile-width estimation in voigt.calc_voigt() to use
+Olivero (1977) approximation instead of max(Doppler,Lorentz).
+Updated tests accordingly.
+

@@ -88,8 +88,8 @@ Model species (mol): H2
 Number of model parameters (npars): 2
 Parameter name     Value
   (pnames)         (pars)
-  log(f_Ray)        0.000e+00
-  alpha_Ray        -4.000e+00
+  log(f_ray)        0.000e+00
+  alpha_ray        -4.000e+00
 Opacity cross section (ec, cm2 molec-1):
     [ 9.540e-30  9.547e-30  9.553e-30 ...  5.436e-29  5.439e-29  5.441e-29]
 """
@@ -300,11 +300,11 @@ Voigt-profile half-sizes (size) of shape [ndop, nlor]:
  [54000 54000 ... 54000 54000]
  [54000 54000 ... 54000 54000]]
 Voigt-profile indices (index) of shape [ndop, nlor]:
-[[       0     2145 ...   267158   284339]
- [  302488   304633 ...   569646   586827]
+[[       0     2145 ...   267160   284341]
+ [  302490   304635 ...   569650   586831]
  ...
- [14144745 14144745 ... 14144745 14144745]
- [14252746 14252746 ... 14252746 14252746]]
+ [14927707 14927707 ... 14927707 14927707]
+ [15035708 15035708 ... 15035708 15035708]]
 
 Voigt profiles:
   profile[ 0, 0]: [ 2.85913e-08  2.86448e-08 ...  2.86448e-08  2.85913e-08]
@@ -445,8 +445,8 @@ Model species (mol): H2
 Number of model parameters (npars): 2
 Parameter name     Value
   (pnames)         (pars)
-  log(f_Ray)        0.000e+00
-  alpha_Ray        -4.000e+00
+  log(f_ray)        0.000e+00
+  alpha_ray        -4.000e+00
 Opacity cross section (ec, cm2 molec-1):
     [ 9.540e-30  9.547e-30  9.553e-30 ...  5.436e-29  5.439e-29  5.441e-29]
 
