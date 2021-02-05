@@ -6741,3 +6741,7 @@ Tweaked io.import_xs() function to only import h5py when necessary.
 Tweaked pyrat.eval() to set pyrat.ret.params a copy of the input
 params argument instead pointing to the same object.
 
+*****
+
+Changed the texname of patchy fraction from f to phi.
+

@@ -366,7 +366,7 @@ def setup(pyrat):
   if 'patchy' in ret.retflag:
       ret.ipatchy = np.arange(ret.nparams, ret.nparams + 1)
       ret.pnames   += ['f_patchy']
-      ret.texnames += [r'$f_{\rm patchy}$']
+      ret.texnames += [r'$\phi_{\rm patchy}$']
       ret.nparams += 1
   if 'mass' in ret.retflag:
       ret.imass = np.arange(ret.nparams, ret.nparams + 1)
