@@ -6791,3 +6791,8 @@ Bumped version to 0.9.2.
 *****  Mi 31. Mär 13:35:51 CEST 2021  *****
 
 Updated copyright and other cosmetics.
+
+*****
+
+Some docs updates.
+

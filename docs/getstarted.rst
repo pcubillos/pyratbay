@@ -74,11 +74,12 @@ Pyrat-Bay (version 1.0+) has been extensively tested to work on
 Unix/Linux and OS X machines, with the following software
 requirements:
 
-* Python (version 3.6+)
-* Numpy (version 1.8.1+)
-* Scipy (version 0.13.3+)
-* Matplotlib (version 1.3.1+)
-* Sympy (0.7.6+)
+* Python >= 3.6
+* Numpy >= 1.8.1
+* Scipy >= 0.13.3
+* Matplotlib >= 1.3.1
+* Sympy >= 0.7.6
+* mc3 >= 3.0.7
 
 ``Pyrat Bay`` may work with previous software versions; however, we do
 not guarantee nor provide support for that.
@@ -92,18 +93,22 @@ To install ``Pyrat Bay`` run the following command from the terminal:
 
 .. code-block:: shell
 
-  pip install pyratbay
+    pip install pyratbay
 
-
-Alternatively, (e.g., for developers), you can clone the ``Pyrat Bay``
-repository to your local machine and install with the following
-terminal commands:
+Or if you prefer conda:
 
 .. code-block:: shell
 
-  git clone --recursive https://github.com/pcubillos/pyratbay
-  cd pyratbay
-  python setup.py develop
+    conda install -c conda-forge pyratbay
+
+
+Alternatively (e.g., for developers), clone the repository to your local machine with the following terminal commands:
+
+.. code-block:: shell
+
+    git clone --recursive https://github.com/pcubillos/pyratbay
+    cd pyratbay
+    python setup.py develop
 
 
 .. _qexample:

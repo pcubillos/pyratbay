@@ -10,8 +10,9 @@ Pyrat Bay:
 -----------------------------------------------------
 
 |Build Status|
-|PyPI|
 |docs|
+|PyPI|
+|conda|
 |License|
 
 
@@ -97,16 +98,13 @@ Documentation
 Be Kind
 =======
 
-Please reference this paper if you found ``Pyrat Bay`` useful for your research:
-  `Cubillos & Blecic (2020): The Pyrat Bay Framework for Exoplanet Atmospheric Modeling: A Population Study of Hubble/WFC3 Transmission Spectra <TBD>`_, submitted.
+If you found ``Pyrat Bay`` useful for your research, please cite this article:
+  `Cubillos & Blecic (2021): The Pyrat Bay Framework for Exoplanet Atmospheric Modeling: A Population Study of Hubble/WFC3 Transmission Spectra <URL_TBD>`_, MNRAS.
 
-We welcome your feedback, but do not necessarily guarantee support.
-Please send feedback or inquiries to:
+Please prefer to channel your feedback or inquiries through the Github issue tracker: `<https://github.com/pcubillos/pyratbay>`_, or alternatively through this email: `patricio.cubillos[at]oeaw.ac.at`_.
 
-  Patricio Cubillos (`patricio.cubillos[at]oeaw.ac.at`_)
-
-Pyrat-Bay is open-source software under the GNU GPL v2 license (see
-:ref:`license`), and is compatible with Python 3.6+.
+``Pyrat Bay`` is open-source software under the GNU GPL v2 license (see
+:ref:`license`) and is compatible with Python>=3.6.
 
 
 .. _Patricio Cubillos: https://github.com/pcubillos/
@@ -123,6 +121,9 @@ Pyrat-Bay is open-source software under the GNU GPL v2 license (see
 .. |PyPI| image:: https://img.shields.io/pypi/v/pyratbay.svg
     :target:      https://pypi.org/project/pyratbay/
     :alt: Latest Version
+
+.. |conda| image:: https://img.shields.io/conda/vn/conda-forge/pyratbay.svg
+    :target: https://anaconda.org/conda-forge/pyratbay
 
 .. |License| image:: https://img.shields.io/github/license/pcubillos/pyratbay.svg?color=blue
     :target: https://pcubillos.github.io/pyratbay/license.html
