@@ -1,11 +1,11 @@
-# Copyright (c) 2016-2021 Patricio Cubillos.
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE).
+# Copyright (c) 2021 Patricio Cubillos
+# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 import sys
 import numpy as np
 
-from .. import tools as pt
 from .. import constants as pc
+from .. import tools as pt
 from . import objects as o
 
 

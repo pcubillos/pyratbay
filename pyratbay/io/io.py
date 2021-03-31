@@ -1,13 +1,19 @@
-# Copyright (c) 2016-2021 Patricio Cubillos.
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE).
+# Copyright (c) 2021 Patricio Cubillos
+# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 __all__ = [
-    'save_pyrat', 'load_pyrat',
-    'write_atm', 'read_atm',
-    'write_spectrum', 'read_spectrum',
-    'write_opacity', 'read_opacity',
-    'write_pf', 'read_pf',
-    'write_cs', 'read_cs',
+    'save_pyrat',
+    'load_pyrat',
+    'write_atm',
+    'read_atm',
+    'write_spectrum',
+    'read_spectrum',
+    'write_opacity',
+    'read_opacity',
+    'write_pf',
+    'read_pf',
+    'write_cs',
+    'read_cs',
     'read_pt',
     'read_atomic',
     'read_molecs',

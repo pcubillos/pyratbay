@@ -1,5 +1,5 @@
-# Copyright (c) 2016-2021 Patricio Cubillos.
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE).
+# Copyright (c) 2021 Patricio Cubillos
+# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 __all__ = ["run"]
 
@@ -162,7 +162,8 @@ def run(cfile, init=False, no_logfile=False):
     outfile = os.path.splitext(os.path.basename(pyrat.ret.mcmcfile))[0]
 
     # Run MCMC:
-    mc3_out = mc3.sample(data=pyrat.obs.data, uncert=pyrat.obs.uncert,
+    mc3_out = mc3.sample(
+        data=pyrat.obs.data, uncert=pyrat.obs.uncert,
         func=pyrat.eval, indparams=[retmodel], params=ret.params,
         pmin=ret.pmin, pmax=ret.pmax, pstep=ret.pstep,
         prior=ret.prior, priorlow=ret.priorlow, priorup=ret.priorup,

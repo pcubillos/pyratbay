@@ -1,7 +1,9 @@
-# Copyright (c) 2016-2021 Patricio Cubillos.
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE).
+# Copyright (c) 2021 Patricio Cubillos
+# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
-__all__ = ['Hitran']
+__all__ = [
+    'Hitran',
+    ]
 
 import os
 import numpy as np

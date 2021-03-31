@@ -1,5 +1,5 @@
-# Copyright (c) 2016-2021 Patricio Cubillos.
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE).
+# Copyright (c) 2021 Patricio Cubillos
+# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 import os
 import multiprocessing as mp
@@ -7,12 +7,12 @@ from collections import OrderedDict
 
 import numpy  as np
 
-from .. import constants as pc
 from .. import atmosphere as pa
-from .. import tools      as pt
-from .. import spectrum   as ps
-from .. import plots      as pp
-from .. import io         as io
+from .. import constants as pc
+from .. import io as io
+from .. import plots as pp
+from .. import spectrum as ps
+from .. import tools as pt
 
 from .  import extinction as ex
 from .  import crosssec   as cs

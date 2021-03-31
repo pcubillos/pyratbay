@@ -1,11 +1,11 @@
-# Copyright (c) 2016-2021 Patricio Cubillos.
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE).
+# Copyright (c) 2021 Patricio Cubillos
+# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 __all__ = [
-    "make_tli",
-    "linelist",
-    "partitions",
-    "broadening",
+    'make_tli',
+    'linelist',
+    'partitions',
+    'broadening',
     ]
 
 from .lread import *
@@ -17,7 +17,7 @@ from .. import VERSION as ver
 
 
 # Lineread version:
-__version__ = f"{ver.LR_VER}.{ver.LR_MIN}.{ver.LR_REV}"
+__version__ = f'{ver.LR_VER}.{ver.LR_MIN}.{ver.LR_REV}'
 
 
 # Clean up top-level namespace--delete everything that isn't in __all__

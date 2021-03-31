@@ -1,12 +1,12 @@
-# Copyright (c) 2016-2021 Patricio Cubillos.
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE).
+# Copyright (c) 2021 Patricio Cubillos
+# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 __all__ = [
     'get_tips_molname',
     'tips',
     'exomol',
     'kurucz',
-]
+    ]
 
 import pickle
 

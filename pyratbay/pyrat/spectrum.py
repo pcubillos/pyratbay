@@ -1,11 +1,11 @@
-# Copyright (c) 2016-2021 Patricio Cubillos.
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE).
+# Copyright (c) 2021 Patricio Cubillos
+# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 import numpy as np
 from scipy.interpolate import interp1d
 
-from .. import spectrum as ps
 from .. import io as io
+from .. import spectrum as ps
 from ..lib import _trapz as t
 
 

@@ -1,5 +1,5 @@
-# Copyright (c) 2016-2021 Patricio Cubillos.
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE).
+# Copyright (c) 2021 Patricio Cubillos
+# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 __all__ = [
     'alphatize',
@@ -8,16 +8,16 @@ __all__ = [
     'temperature',
     'abundance',
     'default_colors',
-]
+    ]
 
 import os
 from itertools import cycle
 
+from cycler import cycler, Cycler
 import matplotlib
-import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import is_color_like, to_rgb
-from cycler import cycler, Cycler
+import numpy as np
 import scipy.interpolate as si
 from scipy.ndimage.filters import gaussian_filter1d as gaussf
 
@@ -42,7 +42,7 @@ default_colors = {
     'VO':"peru",
     'Na':"darkviolet",
     'K':"cornflowerblue",
-}
+    }
 
 
 def alphatize(colors, alpha, bg='w'):

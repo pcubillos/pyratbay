@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 
-# Copyright (c) 2016-2021 Patricio Cubillos.
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE).
+# Copyright (c) 2021 Patricio Cubillos
+# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 import argparse
 import matplotlib
@@ -14,11 +14,11 @@ def main():
     """
     Pyrat Bay: Python Radiative Transfer in a Bayesian framework
 
-    Pyrat Bay is based on the GNU GPL v2-licensed transit code
-    (developed by Patricio Rojo).  Pyrat Bay (v0.9+) is
-    released under the GNU GLP v2 license.
-
-    See the documentation at https://pyratbay.readthedocs.io/en/latest/
+    Pyrat Bay is open-source software released under the GNU GPL v2
+    license.  The code is compatible with Python >= 3.6
+    Find the source code at https://github.com/pcubillos/pyratbay
+    Find the documentation at https://pyratbay.readthedocs.io/en/latest
+    Part of Pyrat Bay is based on the Transit code written by Patricio Rojo.
 
     Examples
     --------
@@ -42,7 +42,7 @@ def main():
     parser.add_argument(
         "-v", "--version", action="version",
         help="Show Pyrat Bay's version.",
-        version=f'Pyrat Bay version {pb.__version__}.')
+        version=f'Pyrat Bay version {pb.__version__}')
     group = parser.add_mutually_exclusive_group()
     group.add_argument(
         "-c", dest='cfile', default=None,
