@@ -6800,4 +6800,7 @@ Some docs updates.
 
 PEP8ed pyratbay/pyrat/voigt.py
 
+*****
+
+PEP8ed parser.py
 

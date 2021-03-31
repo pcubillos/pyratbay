@@ -336,425 +336,437 @@ def parse_array(args, param):
 
 
 def parse(pyrat, cfile, no_logfile=False, mute=False):
-  """
-  Read the command line arguments.
+    """
+    Read the command line arguments.
 
-  Parameters
-  ----------
-  cfile: String
-      A Pyrat Bay configuration file.
-  no_logfile: Bool
-      If True, enforce not to write outputs to a log file
-      (e.g., to prevent overwritting log of a previous run).
-  mute: Bool
-      If True, enforce verb to take a value of -1.
-  """
-  with pt.log_error():
-      if not os.path.isfile(cfile):
-          raise ValueError(f"Configuration file '{cfile}' does not exist.")
-      config = configparser.ConfigParser()
-      config.optionxform = str  # Enable case-sensitive variable names
-      config.read([cfile])
-      if "pyrat" not in config.sections():
-          raise ValueError(
-              f"\nInvalid configuration file: '{cfile}', no [pyrat] section.")
-  args = dict(config.items("pyrat"))
+    Parameters
+    ----------
+    cfile: String
+        A Pyrat Bay configuration file.
+    no_logfile: Bool
+        If True, enforce not to write outputs to a log file
+        (e.g., to prevent overwritting log of a previous run).
+    mute: Bool
+        If True, enforce verb to take a value of -1.
+    """
+    with pt.log_error():
+        if not os.path.isfile(cfile):
+            raise ValueError(f"Configuration file '{cfile}' does not exist.")
+        config = configparser.ConfigParser()
+        config.optionxform = str  # Enable case-sensitive variable names
+        config.read([cfile])
+        if "pyrat" not in config.sections():
+            raise ValueError(
+                f"\nInvalid configuration file: '{cfile}', no [pyrat] section.")
+    args = dict(config.items("pyrat"))
 
-  # Parse data type:
-  with pt.log_error():
-      parse_str(args,   'runmode')
-      parse_int(args,   'ncpu')
-      parse_int(args,   'verb')
-      parse_array(args, 'dblist')
-      parse_array(args, 'pflist')
-      parse_array(args, 'dbtype')
-      parse_array(args, 'tlifile')
-      parse_array(args, 'csfile')
-      parse_str(args,   'molfile')
-      parse_array(args, 'extfile')
-      # Spectrum sampling options:
-      parse_str(args,   'wlunits')
-      parse_str(args,   'wllow')
-      parse_str(args,   'wlhigh')
-      parse_float(args, 'wnlow')
-      parse_float(args, 'wnhigh')
-      parse_float(args, 'wnstep')
-      parse_int(args,   'wnosamp')
-      parse_float(args, 'resolution')
-      # Atmospheric sampling options:
-      parse_str(args,   'tmodel')
-      parse_array(args, 'tpars')
-      parse_str(args,   'radlow')
-      parse_str(args,   'radhigh')
-      parse_str(args,   'radstep')
-      parse_str(args,   'runits')
-      parse_str(args,   'punits')
-      parse_int(args,   'nlayers')
-      parse_str(args,   'ptop')
-      parse_str(args,   'pbottom')
-      parse_str(args,   'atmfile')
-      parse_str(args,   'radmodel')
-      # Variables for chemistry calculations
-      parse_str(args,   'chemistry')
-      parse_array(args, 'species')
-      parse_array(args, 'uniform')
-      parse_str(args,   'ptfile')
-      parse_str(args,   'solar')
-      parse_float(args, 'xsolar')
-      parse_array(args, 'escale')
-      parse_array(args, 'elements')
-      # Extinction options:
-      parse_float(args, 'tmin')
-      parse_float(args, 'tmax')
-      parse_float(args, 'tstep')
-      parse_float(args, 'ethresh')
-      # Voigt-profile options:
-      parse_float(args, 'vextent')
-      parse_float(args, 'vcutoff')
-      parse_float(args, 'dmin')
-      parse_float(args, 'dmax')
-      parse_int(args,   'ndop')
-      parse_float(args, 'lmin')
-      parse_float(args, 'lmax')
-      parse_int(args,   'nlor')
-      parse_float(args, 'dlratio')
-      # Hazes and clouds options:
-      parse_array(args, 'clouds')
-      parse_array(args, 'cpars')
-      parse_array(args, 'rayleigh')
-      parse_array(args, 'rpars')
-      parse_float(args, 'fpatchy')
-      parse_array(args, 'alkali')
-      parse_float(args, 'alkali_cutoff')
-      # Optical depth options:
-      parse_str(args,   'path')
-      parse_float(args, 'maxdepth')
-      parse_array(args, 'raygrid')
-      parse_int(args,   'quadrature')
-      # Data options:
-      parse_str(args,   'dunits')
-      parse_array(args, 'data')
-      parse_array(args, 'uncert')
-      parse_array(args, 'filters')
-      # Abundances:
-      parse_array(args, 'molmodel')
-      parse_array(args, 'molfree')
-      parse_array(args, 'molpars')
-      parse_array(args, 'bulk')
-      # Retrieval options:
-      parse_str(args,   'mcmcfile')
-      parse_array(args, 'retflag')
-      parse_float(args, 'qcap')
-      parse_array(args, 'params')
-      parse_array(args, 'pstep')
-      parse_float(args, 'tlow')
-      parse_float(args, 'thigh')
-      parse_array(args, 'pmin')
-      parse_array(args, 'pmax')
-      parse_array(args, 'prior')
-      parse_array(args, 'priorlow')
-      parse_array(args, 'priorup')
-      parse_str(args,   'sampler')
-      parse_int(args,   'nsamples')
-      parse_int(args,   'nchains')
-      parse_int(args,   'burnin')
-      parse_int(args,   'thinning')
-      parse_float(args, 'grbreak')
-      parse_float(args, 'grnmin')
-      parse_int(args,   'resume')      # False, action='store_true')
-      # Stellar models:
-      parse_str(args,   'starspec')
-      parse_str(args,   'kurucz')
-      parse_str(args,   'marcs')
-      parse_str(args,   'phoenix')
-      # System parameters:
-      parse_str(args,   'rstar')
-      parse_float(args, 'gstar')
-      parse_float(args, 'tstar')
-      parse_str(args,   'mstar')
-      parse_str(args,   'rplanet')
-      parse_str(args,   'refpressure')
-      parse_str(args,   'mplanet')
-      parse_str(args,   'mpunits')
-      parse_float(args, 'gplanet')
-      parse_str(args,   'smaxis')
-      parse_float(args, 'tint')
-      # Outputs:
-      parse_str(args,   'specfile')
-      parse_str(args,   'logfile')
-      parse_array(args, 'logxticks')
-      parse_array(args, 'yran')
+    # Parse data type:
+    with pt.log_error():
+        parse_str(args,   'runmode')
+        parse_int(args,   'ncpu')
+        parse_int(args,   'verb')
+        parse_array(args, 'dblist')
+        parse_array(args, 'pflist')
+        parse_array(args, 'dbtype')
+        parse_array(args, 'tlifile')
+        parse_array(args, 'csfile')
+        parse_str(args,   'molfile')
+        parse_array(args, 'extfile')
+        # Spectrum sampling options:
+        parse_str(args,   'wlunits')
+        parse_str(args,   'wllow')
+        parse_str(args,   'wlhigh')
+        parse_float(args, 'wnlow')
+        parse_float(args, 'wnhigh')
+        parse_float(args, 'wnstep')
+        parse_int(args,   'wnosamp')
+        parse_float(args, 'resolution')
+        # Atmospheric sampling options:
+        parse_str(args,   'tmodel')
+        parse_array(args, 'tpars')
+        parse_str(args,   'radlow')
+        parse_str(args,   'radhigh')
+        parse_str(args,   'radstep')
+        parse_str(args,   'runits')
+        parse_str(args,   'punits')
+        parse_int(args,   'nlayers')
+        parse_str(args,   'ptop')
+        parse_str(args,   'pbottom')
+        parse_str(args,   'atmfile')
+        parse_str(args,   'radmodel')
+        # Variables for chemistry calculations
+        parse_str(args,   'chemistry')
+        parse_array(args, 'species')
+        parse_array(args, 'uniform')
+        parse_str(args,   'ptfile')
+        parse_str(args,   'solar')
+        parse_float(args, 'xsolar')
+        parse_array(args, 'escale')
+        parse_array(args, 'elements')
+        # Extinction options:
+        parse_float(args, 'tmin')
+        parse_float(args, 'tmax')
+        parse_float(args, 'tstep')
+        parse_float(args, 'ethresh')
+        # Voigt-profile options:
+        parse_float(args, 'vextent')
+        parse_float(args, 'vcutoff')
+        parse_float(args, 'dmin')
+        parse_float(args, 'dmax')
+        parse_int(args,   'ndop')
+        parse_float(args, 'lmin')
+        parse_float(args, 'lmax')
+        parse_int(args,   'nlor')
+        parse_float(args, 'dlratio')
+        # Hazes and clouds options:
+        parse_array(args, 'clouds')
+        parse_array(args, 'cpars')
+        parse_array(args, 'rayleigh')
+        parse_array(args, 'rpars')
+        parse_float(args, 'fpatchy')
+        parse_array(args, 'alkali')
+        parse_float(args, 'alkali_cutoff')
+        # Optical depth options:
+        parse_str(args,   'path')
+        parse_float(args, 'maxdepth')
+        parse_array(args, 'raygrid')
+        parse_int(args,   'quadrature')
+        # Data options:
+        parse_str(args,   'dunits')
+        parse_array(args, 'data')
+        parse_array(args, 'uncert')
+        parse_array(args, 'filters')
+        # Abundances:
+        parse_array(args, 'molmodel')
+        parse_array(args, 'molfree')
+        parse_array(args, 'molpars')
+        parse_array(args, 'bulk')
+        # Retrieval options:
+        parse_str(args,   'mcmcfile')
+        parse_array(args, 'retflag')
+        parse_float(args, 'qcap')
+        parse_array(args, 'params')
+        parse_array(args, 'pstep')
+        parse_float(args, 'tlow')
+        parse_float(args, 'thigh')
+        parse_array(args, 'pmin')
+        parse_array(args, 'pmax')
+        parse_array(args, 'prior')
+        parse_array(args, 'priorlow')
+        parse_array(args, 'priorup')
+        parse_str(args,   'sampler')
+        parse_int(args,   'nsamples')
+        parse_int(args,   'nchains')
+        parse_int(args,   'burnin')
+        parse_int(args,   'thinning')
+        parse_float(args, 'grbreak')
+        parse_float(args, 'grnmin')
+        parse_int(args,   'resume')      # False, action='store_true')
+        # Stellar models:
+        parse_str(args,   'starspec')
+        parse_str(args,   'kurucz')
+        parse_str(args,   'marcs')
+        parse_str(args,   'phoenix')
+        # System parameters:
+        parse_str(args,   'rstar')
+        parse_float(args, 'gstar')
+        parse_float(args, 'tstar')
+        parse_str(args,   'mstar')
+        parse_str(args,   'rplanet')
+        parse_str(args,   'refpressure')
+        parse_str(args,   'mplanet')
+        parse_str(args,   'mpunits')
+        parse_float(args, 'gplanet')
+        parse_str(args,   'smaxis')
+        parse_float(args, 'tint')
+        # Outputs:
+        parse_str(args,   'specfile')
+        parse_str(args,   'logfile')
+        parse_array(args, 'logxticks')
+        parse_array(args, 'yran')
 
-  # Cast into a Namespace to make my life easier:
-  args = Namespace(args)
-  args.configfile = cfile
+    # Cast into a Namespace to make my life easier:
+    args = Namespace(args)
+    args.configfile = cfile
 
-  if mute:
-      args.verb = -1
-  pyrat.verb = args.get_default('verb', 'Verbosity', 2, lt=5)
-  runmode = pyrat.runmode = args.get_choice('runmode', 'running mode',
-      pc.rmodes, take_none=False)
+    if mute:
+        args.verb = -1
+    pyrat.verb = args.get_default('verb', 'Verbosity', 2, lt=5)
+    runmode = pyrat.runmode = args.get_choice(
+        'runmode', 'running mode', pc.rmodes, take_none=False)
 
-  # Define logfile name and initialize log object:
-  pyrat.lt.tlifile   = args.get_path('tlifile',  'TLI')
-  pyrat.atm.atmfile  = args.get_path('atmfile',  'Atmospheric')
-  pyrat.spec.specfile = args.get_path('specfile',  'Spectrum')
-  pyrat.ex.extfile   = args.get_path('extfile',  'Extinction-coefficient')
-  pyrat.ret.mcmcfile = args.get_path('mcmcfile', 'MCMC')
+    # Define logfile name and initialize log object:
+    pyrat.lt.tlifile = args.get_path('tlifile', 'TLI')
+    pyrat.atm.atmfile = args.get_path('atmfile', 'Atmospheric')
+    pyrat.spec.specfile = args.get_path('specfile', 'Spectrum')
+    pyrat.ex.extfile = args.get_path('extfile', 'Extinction-coefficient')
+    pyrat.ret.mcmcfile = args.get_path('mcmcfile', 'MCMC')
 
-  if args.logfile is None:
-      if args.runmode == 'tli' and args.tlifile is not None:
-          args.logfile = os.path.splitext(args.tlifile[0])[0] + '.log'
-      if args.runmode == 'atmosphere' and args.atmfile is not None:
-          args.logfile = os.path.splitext(args.atmfile)[0] + '.log'
-      if args.runmode == 'spectrum' and args.specfile is not None:
-          args.logfile = os.path.splitext(args.specfile)[0] + '.log'
-      if args.runmode == 'opacity' and args.extfile is not None:
-          args.logfile = os.path.splitext(args.extfile[0])[0] + '.log'
-      if args.runmode == 'mcmc' and args.mcmcfile is not None:
-          args.logfile = os.path.splitext(args.mcmcfile)[0] + '.log'
-  args.logfile = args.get_path('logfile', 'Log')
+    outfile_dict = {
+        'tli': args.tlifile,
+        'atmosphere': args.atmfile,
+        'spectrum': args.specfile,
+        'opacity': args.extfile,
+        'mcmc': args.mcmcfile,
+        }
+    outfile = outfile_dict[args.runmode]
+    if args.logfile is None and outfile is not None:
+        if args.runmode in ['tli', 'opacity']:
+            outfile = outfile[0]
+        args.logfile = os.path.splitext(outfile)[0] + '.log'
 
-  # Override logfile if requested:
-  if no_logfile:
-      args.logfile = None
+    args.logfile = args.get_path('logfile', 'Log')
 
-  args.logfile = pt.path(args.logfile)
-  log = pyrat.log = mu.Log(logname=args.logfile, verb=pyrat.verb, width=80,
-                           append=args.resume)
-  args._log = log
+    # Override logfile if requested:
+    if no_logfile:
+        args.logfile = None
 
-  # Welcome message:
-  log.head(
-     f"{log.sep}\n"
-      "  Python Radiative Transfer in a Bayesian framework (Pyrat Bay).\n"
-     f"  Version {__version__}.\n"
-     f"  Copyright (c) 2021-{date.today().year} Patricio Cubillos.\n"
-      "  Pyrat Bay is open-source software under the GNU GPLv2 lincense "
-        "(see LICENSE).\n"
-     f"{log.sep}\n\n")
+    args.logfile = pt.path(args.logfile)
+    log = pyrat.log = mu.Log(
+        logname=args.logfile, verb=pyrat.verb, width=80, append=args.resume)
+    args._log = log
 
-  log.head(f"Read command-line arguments from configuration file: '{cfile}'")
+    # Welcome message:
+    log.head(
+       f"{log.sep}\n"
+        "  Python Radiative Transfer in a Bayesian framework (Pyrat Bay).\n"
+       f"  Version {__version__}.\n"
+       f"  Copyright (c) 2021-{date.today().year} Patricio Cubillos.\n"
+        "  Pyrat Bay is open-source software under the GNU GPLv2 lincense "
+          "(see LICENSE).\n"
+       f"{log.sep}\n\n")
 
-  # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-  # Parse valid inputs and defaults:
-  pyrat.inputs = args
+    log.head(f"Read command-line arguments from configuration file: '{cfile}'")
 
-  phy  = pyrat.phy
-  spec = pyrat.spec
-  atm  = pyrat.atm
+    # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    # Parse valid inputs and defaults:
+    pyrat.inputs = args
 
-  pyrat.lt.dblist   = args.get_path('dblist',  'Opacity database', exists=True)
-  pyrat.mol.molfile = args.get_path('molfile', 'Molecular data',   exists=True)
-  pyrat.cs.files    = args.get_path('csfile',  'Cross-section',    exists=True)
-  pyrat.atm.ptfile  = args.get_path('ptfile',  'Pressure-temperature')
+    phy  = pyrat.phy
+    spec = pyrat.spec
+    atm  = pyrat.atm
 
-  spec.wlunits = args.get_default('wlunits', 'Wavelength units')
-  if spec.wlunits is not None and not hasattr(pc, spec.wlunits):
-      log.error(f'Invalid wavelength units (wlunits): {spec.wlunits}')
-  spec.wllow = args.get_param('wllow', spec.wlunits,
-      'Wavelength lower boundary', gt=0.0)
-  spec.wlhigh = args.get_param('wlhigh', spec.wlunits,
-      'Wavelength higher boundary', gt=0.0)
-  if spec.wlunits is None:
-      spec.wlunits = args.get_units('wllow')
+    pyrat.lt.dblist = args.get_path('dblist', 'Opacity database', exists=True)
+    pyrat.mol.molfile = args.get_path('molfile', 'Molecular data', exists=True)
+    pyrat.cs.files = args.get_path('csfile', 'Cross-section', exists=True)
+    pyrat.atm.ptfile = args.get_path('ptfile', 'Pressure-temperature')
 
-  spec.wnlow  = args.get_default('wnlow',
-      'Wavenumber lower boundary',  gt=0.0)
-  spec.wnhigh = args.get_default('wnhigh',
-      'Wavenumber higher boundary', gt=0.0)
+    spec.wlunits = args.get_default('wlunits', 'Wavelength units')
+    if spec.wlunits is not None and not hasattr(pc, spec.wlunits):
+        log.error(f'Invalid wavelength units (wlunits): {spec.wlunits}')
+    spec.wllow = args.get_param(
+        'wllow', spec.wlunits, 'Wavelength lower boundary', gt=0.0)
+    spec.wlhigh = args.get_param(
+        'wlhigh', spec.wlunits, 'Wavelength higher boundary', gt=0.0)
+    if spec.wlunits is None:
+        spec.wlunits = args.get_units('wllow')
 
-  spec.wnstep = args.get_default('wnstep',
-      'Wavenumber sampling step', gt=0.0)
-  spec.wnosamp = args.get_default('wnosamp',
-      'Wavenumber oversampling factor', ge=1)
-  spec.resolution = args.get_default('resolution',
-      'Spectral resolution', gt=0.0)
+    spec.wnlow  = args.get_default(
+        'wnlow', 'Wavenumber lower boundary',  gt=0.0)
+    spec.wnhigh = args.get_default(
+        'wnhigh', 'Wavenumber higher boundary', gt=0.0)
 
-  atm.runits = args.get_default('runits', 'Planetary-radius units')
-  if atm.runits is not None and not hasattr(pc, atm.runits):
-      log.error(f'Invalid radius units (runits): {atm.runits}')
-  phy.rplanet = args.get_param('rplanet', atm.runits,
-      'Planetary radius', gt=0.0)
-  if atm.runits is None:
-      atm.runits = args.get_units('rplanet')
+    spec.wnstep = args.get_default(
+        'wnstep', 'Wavenumber sampling step', gt=0.0)
+    spec.wnosamp = args.get_default(
+        'wnosamp', 'Wavenumber oversampling factor', ge=1)
+    spec.resolution = args.get_default(
+        'resolution', 'Spectral resolution', gt=0.0)
 
-  atm.nlayers = args.get_default('nlayers',
-      'Number of atmospheric layers', gt=1)
+    atm.runits = args.get_default('runits', 'Planetary-radius units')
+    if atm.runits is not None and not hasattr(pc, atm.runits):
+        log.error(f'Invalid radius units (runits): {atm.runits}')
+    phy.rplanet = args.get_param(
+        'rplanet', atm.runits, 'Planetary radius', gt=0.0)
+    if atm.runits is None:
+        atm.runits = args.get_units('rplanet')
 
-  atm.rmodelname = args.get_choice('radmodel',
-      'Radius-profile model', pc.radmodels)
+    atm.nlayers = args.get_default(
+        'nlayers', 'Number of atmospheric layers', gt=1)
 
-  # Pressure inputs:
-  atm.punits = args.get_default('punits', 'Pressure units')
-  if atm.punits is not None and not hasattr(pc, atm.punits):
-      log.error(f'Invalid pressure units (punits): {atm.punits}')
+    atm.rmodelname = args.get_choice(
+        'radmodel', 'Radius-profile model', pc.radmodels)
 
-  atm.pbottom = args.get_param('pbottom', atm.punits,
-      'Pressure at bottom of atmosphere', gt=0.0)
-  atm.ptop = args.get_param('ptop', atm.punits,
-      'Pressure at top of atmosphere', gt=0.0)
-  atm.refpressure = args.get_param('refpressure', atm.punits,
-      'Planetary reference pressure level', gt=0.0)
+    # Pressure inputs:
+    atm.punits = args.get_default('punits', 'Pressure units')
+    if atm.punits is not None and not hasattr(pc, atm.punits):
+        log.error(f'Invalid pressure units (punits): {atm.punits}')
 
-  if atm.punits is None and atm.pbottom is not None:
-      atm.punits = args.get_units('pbottom')
-  elif atm.punits is None and atm.ptop is not None:
-      atm.punits = args.get_units('ptop')
-  elif atm.punits is None and atm.refpressure is not None:
-      atm.punits = args.get_units('refpressure')
-  # else, set atm.punits from atmospheric file in read_atm().
+    atm.pbottom = args.get_param(
+        'pbottom', atm.punits, 'Pressure at bottom of atmosphere', gt=0.0)
+    atm.ptop = args.get_param(
+        'ptop', atm.punits, 'Pressure at top of atmosphere', gt=0.0)
+    atm.refpressure = args.get_param(
+        'refpressure', atm.punits, 'Planetary reference pressure level', gt=0.0)
 
-  # Radius boundaries:
-  atm.radlow = args.get_param('radlow', atm.runits,
-      'Radius at bottom of atmosphere', ge=0.0)
-  atm.radhigh = args.get_param('radhigh', atm.runits,
-      'Radius at top of atmosphere', gt=0.0)
-  atm.radstep = args.get_param('radstep', atm.runits,
-      'Radius sampling step', gt=0.0)
+    if atm.punits is None and atm.pbottom is not None:
+        atm.punits = args.get_units('pbottom')
+    elif atm.punits is None and atm.ptop is not None:
+        atm.punits = args.get_units('ptop')
+    elif atm.punits is None and atm.refpressure is not None:
+        atm.punits = args.get_units('refpressure')
+    # else, set atm.punits from atmospheric file in read_atm().
 
-  # Chemistry:
-  atm.chemistry = args.get_choice('chemistry',
-      'Chemical model', pc.chemmodels)
+    # Radius boundaries:
+    atm.radlow = args.get_param(
+        'radlow', atm.runits, 'Radius at bottom of atmosphere', ge=0.0)
+    atm.radhigh = args.get_param(
+        'radhigh', atm.runits, 'Radius at top of atmosphere', gt=0.0)
+    atm.radstep = args.get_param(
+        'radstep', atm.runits, 'Radius sampling step', gt=0.0)
 
-  escale = args.get_default('escale',
-      'Elemental abundance scaling factors', [])
-  atm.escale = {atom:float(fscale)
-                for atom,fscale in zip(escale[::2], escale[1::2])}
+    # Chemistry:
+    atm.chemistry = args.get_choice(
+       'chemistry', 'Chemical model', pc.chemmodels)
 
-  # System physical parameters:
-  phy.mpunits = args.get_default('mpunits', 'Planetary-mass units')
-  if phy.mpunits is not None and not hasattr(pc, phy.mpunits):
-      log.error(f'Invalid planet mass units (mpunits): {phy.mpunits}')
-  phy.mplanet = args.get_param('mplanet', phy.mpunits, 'Planetary mass', gt=0.0)
-  if phy.mpunits is None:
-      phy.mpunits = args.get_units('mplanet')
+    escale = args.get_default(
+       'escale', 'Elemental abundance scaling factors', [])
+    atm.escale = {
+        atom: float(fscale)
+        for atom,fscale in zip(escale[::2], escale[1::2])
+        }
 
-  phy.gplanet = args.get_default('gplanet',
-      'Planetary surface gravity (cm s-2)', gt=0.0)
-  phy.tint = args.get_default('tint',
-      'Planetary internal temperature', 100.0, ge=0.0)
+    # System physical parameters:
+    phy.mpunits = args.get_default('mpunits', 'Planetary-mass units')
+    if phy.mpunits is not None and not hasattr(pc, phy.mpunits):
+        log.error(f'Invalid planet mass units (mpunits): {phy.mpunits}')
+    phy.mplanet = args.get_param(
+        'mplanet', phy.mpunits, 'Planetary mass', gt=0.0)
+    if phy.mpunits is None:
+        phy.mpunits = args.get_units('mplanet')
 
-  phy.smaxis = args.get_param('smaxis', None,
-      'Orbital semi-major axis', gt=0.0)
-  phy.rstar = args.get_param('rstar', None,
-      'Stellar radius', gt=0.0)
-  phy.mstar = args.get_param('mstar', None,
-      'Stellar mass', gt=0.0)
-  phy.gstar = args.get_default('gstar',
-      'Stellar surface gravity', gt=0.0)
-  phy.tstar = args.get_default('tstar',
-      'Stellar effective temperature (K)', gt=0.0)
+    phy.gplanet = args.get_default(
+        'gplanet', 'Planetary surface gravity (cm s-2)', gt=0.0)
+    phy.tint = args.get_default(
+        'tint', 'Planetary internal temperature', 100.0, ge=0.0)
 
-  pyrat.voigt.extent = args.get_default('vextent',
-      'Voigt profile extent in HWHM', 100.0, ge=1.0,
-      wflag=(runmode not in ['tli', 'pt', 'atmosphere']))
-  pyrat.voigt.cutoff = args.get_default('vcutoff',
-      'Voigt profile cutoff in cm-1', 25.0, ge=0.0,
-      wflag=(runmode not in ['tli', 'pt', 'atmosphere']))
-  pyrat.voigt.ndop = args.get_default('ndop',
-      'Number of Doppler-width samples', 40, ge=1)
-  pyrat.voigt.dmin = args.get_default('dmin',
-      'Minimum Doppler HWHM (cm-1)', gt=0.0)
-  pyrat.voigt.dmax = args.get_default('dmax',
-      'Maximum Doppler HWHM (cm-1)', gt=0.0)
-  pyrat.voigt.nlor = args.get_default('nlor',
-      'Number of Lorentz-width samples', 40, ge=1)
-  pyrat.voigt.lmin = args.get_default('lmin',
-      'Minimum Lorentz HWHM (cm-1)', gt=0.0)
-  pyrat.voigt.lmax = args.get_default('lmax',
-      'Maximum Lorentz HWHM (cm-1)', gt=0.0)
-  pyrat.voigt.dlratio = args.get_default('dlratio',
-      'Doppler/Lorentz-width ratio threshold', 0.1, gt=0.0)
+    phy.smaxis = args.get_param(
+        'smaxis', None, 'Orbital semi-major axis', gt=0.0)
+    phy.rstar = args.get_param(
+        'rstar', None, 'Stellar radius', gt=0.0)
+    phy.mstar = args.get_param(
+        'mstar', None, 'Stellar mass', gt=0.0)
+    phy.gstar = args.get_default(
+        'gstar', 'Stellar surface gravity', gt=0.0)
+    phy.tstar = args.get_default(
+        'tstar', 'Stellar effective temperature (K)', gt=0.0)
 
-  pyrat.ex.tmin = args.get_param('tmin', 'kelvin',
-      'Minimum temperature of opacity grid', gt=0.0)
-  pyrat.ex.tmax = args.get_param('tmax', 'kelvin',
-      'Maximum temperature of opacity grid', gt=0.0)
-  pyrat.ex.tstep = args.get_default('tstep',
-      "Opacity grid's temperature sampling step in K", gt=0.0)
+    pyrat.voigt.extent = args.get_default(
+        'vextent', 'Voigt profile extent in HWHM', 100.0, ge=1.0,
+        wflag=(runmode not in ['tli', 'atmosphere']))
+    pyrat.voigt.cutoff = args.get_default(
+        'vcutoff', 'Voigt profile cutoff in cm-1', 25.0, ge=0.0,
+        wflag=(runmode not in ['tli', 'atmosphere']))
+    pyrat.voigt.ndop = args.get_default(
+        'ndop', 'Number of Doppler-width samples', 40, ge=1)
+    pyrat.voigt.dmin = args.get_default(
+        'dmin', 'Minimum Doppler HWHM (cm-1)', gt=0.0)
+    pyrat.voigt.dmax = args.get_default(
+        'dmax', 'Maximum Doppler HWHM (cm-1)', gt=0.0)
+    pyrat.voigt.nlor = args.get_default(
+        'nlor', 'Number of Lorentz-width samples', 40, ge=1)
+    pyrat.voigt.lmin = args.get_default(
+        'lmin', 'Minimum Lorentz HWHM (cm-1)', gt=0.0)
+    pyrat.voigt.lmax = args.get_default(
+        'lmax', 'Maximum Lorentz HWHM (cm-1)', gt=0.0)
+    pyrat.voigt.dlratio = args.get_default(
+        'dlratio', 'Doppler/Lorentz-width ratio threshold', 0.1, gt=0.0)
 
-  pyrat.rayleigh.pars = args.rpars
-  pyrat.cloud.pars     = args.cpars
-  pyrat.rayleigh.model_names = args.get_choice('rayleigh',
-      'Rayleigh model', pc.rmodels)
-  pyrat.cloud.model_names = args.get_choice('clouds',
-      'cloud model', pc.cmodels)
-  pyrat.alkali.model_names = args.get_choice('alkali',
-      'alkali model', pc.amodels)
-  pyrat.alkali.cutoff = args.get_default('alkali_cutoff',
-      'Alkali profiles hard cutoff from line center (cm-1)', 4500.0, gt=0.0)
-  pyrat.cloud.fpatchy = args.get_default('fpatchy',
-      'Patchy-cloud fraction', ge=0.0, le=1.0)
+    pyrat.ex.tmin = args.get_param(
+        'tmin', 'kelvin', 'Minimum temperature of opacity grid', gt=0.0)
+    pyrat.ex.tmax = args.get_param(
+        'tmax', 'kelvin', 'Maximum temperature of opacity grid', gt=0.0)
+    pyrat.ex.tstep = args.get_default(
+        'tstep', "Opacity grid's temperature sampling step in K", gt=0.0)
 
-  pyrat.od.path = args.get_choice('path',
-      'observing geometry', ['transit', 'eclipse'])
-  pyrat.spec._path = pyrat.od.path
+    pyrat.rayleigh.pars = args.rpars
+    pyrat.cloud.pars     = args.cpars
+    pyrat.rayleigh.model_names = args.get_choice(
+        'rayleigh', 'Rayleigh model', pc.rmodels)
+    pyrat.cloud.model_names = args.get_choice(
+        'clouds', 'cloud model', pc.cmodels)
+    pyrat.alkali.model_names = args.get_choice(
+        'alkali', 'alkali model', pc.amodels)
+    pyrat.alkali.cutoff = args.get_default(
+        'alkali_cutoff',
+        'Alkali profiles hard cutoff from line center (cm-1)', 4500.0, gt=0.0)
+    pyrat.cloud.fpatchy = args.get_default(
+        'fpatchy', 'Patchy-cloud fraction', ge=0.0, le=1.0)
 
-  pyrat.ex.ethresh = args.get_default('ethresh',
-      'Extinction-cofficient threshold', 1e-15, gt=0.0)
-  pyrat.od.maxdepth = args.get_default('maxdepth',
-      'Maximum optical-depth', 10.0, ge=0.0)
+    pyrat.od.path = args.get_choice(
+        'path', 'observing geometry', ['transit', 'eclipse'])
+    pyrat.spec._path = pyrat.od.path
 
-  phy.starspec = args.get_path('starspec', 'Stellar spectrum', exists=True)
-  phy.kurucz   = args.get_path('kurucz',   'Kurucz model',     exists=True)
-  phy.marcs    = args.get_path('marcs',    'MARCS model',      exists=True)
-  phy.phoenix  = args.get_path('phoenix',  'PHOENIX model',    exists=True)
+    pyrat.ex.ethresh = args.get_default(
+        'ethresh', 'Extinction-cofficient threshold', 1e-15, gt=0.0)
+    pyrat.od.maxdepth = args.get_default(
+        'maxdepth', 'Maximum optical-depth', 10.0, ge=0.0)
 
-  spec.raygrid = args.get_default('raygrid',
-      'Emission raygrid (deg)', np.array([0, 20, 40, 60, 80.]),
-      wflag=(runmode not in ['tli', 'pt', 'atmosphere']))
-  spec.quadrature = args.get_default('quadrature',
-      'Number of Gaussian-quadrature points', ge=1)
+    phy.starspec = args.get_path('starspec', 'Stellar spectrum', exists=True)
+    phy.kurucz   = args.get_path('kurucz',   'Kurucz model',     exists=True)
+    phy.marcs    = args.get_path('marcs',    'MARCS model',      exists=True)
+    phy.phoenix  = args.get_path('phoenix',  'PHOENIX model',    exists=True)
 
-  pyrat.obs.units = args.get_default('dunits', 'Data units', 'none',
-       wflag=args.data is not None)
-  if not hasattr(pc, pyrat.obs.units):
-      log.error(f'Invalid data units (dunits): {pyrat.obs.units}')
-  pyrat.obs.data   = args.get_param('data',   pyrat.obs.units, 'Data')
-  pyrat.obs.uncert = args.get_param('uncert', pyrat.obs.units, 'Uncertainties')
-  pyrat.obs.filters = args.get_path('filters', 'Filter pass-bands', exists=True)
+    spec.raygrid = args.get_default(
+        'raygrid', 'Emission raygrid (deg)', np.array([0, 20, 40, 60, 80.]),
+        wflag=(runmode not in ['tli', 'atmosphere']))
+    spec.quadrature = args.get_default(
+        'quadrature', 'Number of Gaussian-quadrature points', ge=1)
 
-  pyrat.ret.retflag = args.get_choice('retflag', 'retrieval flag', pc.retflags)
-  if pyrat.ret.retflag is None:
-      pyrat.ret.retflag = []
+    pyrat.obs.units = args.get_default(
+        'dunits', 'Data units', 'none', wflag=args.data is not None)
+    if not hasattr(pc, pyrat.obs.units):
+        log.error(f'Invalid data units (dunits): {pyrat.obs.units}')
+    pyrat.obs.data = args.get_param('data', pyrat.obs.units, 'Data')
+    pyrat.obs.uncert = args.get_param(
+        'uncert', pyrat.obs.units, 'Uncertainties')
+    pyrat.obs.filters = args.get_path(
+        'filters', 'Filter pass-bands', exists=True)
 
-  pyrat.ret.params   = args.params
-  pyrat.ret.pstep    = args.pstep
-  pyrat.ret.pmin     = args.pmin
-  pyrat.ret.pmax     = args.pmax
-  pyrat.ret.prior    = args.prior
-  pyrat.ret.priorlow = args.priorlow
-  pyrat.ret.priorup  = args.priorup
+    pyrat.ret.retflag = args.get_choice(
+        'retflag', 'retrieval flag', pc.retflags)
+    if pyrat.ret.retflag is None:
+        pyrat.ret.retflag = []
 
-  pyrat.ret.qcap = args.get_default('qcap',
-      'Metals abundance cap', 1.0, gt=0.0, le=1.0)
-  pyrat.ret.params = args.params
-  pyrat.ret.pstep = args.pstep
-  pyrat.ret.tlow  = args.get_default('tlow',
-      'Retrieval low-temperature (K) bound', 0, wflag=(runmode=='mcmc'))
-  pyrat.ret.thigh = args.get_default('thigh',
-      'Retrieval high-temperature (K) bound', np.inf, wflag=(runmode=='mcmc'))
-  pyrat.ret.sampler = args.sampler
-  pyrat.ret.nsamples = args.get_default('nsamples',
-      'Number of MCMC samples', gt=0)
-  pyrat.ret.burnin   = args.get_default('burnin',
-      'Number of burn-in samples per chain', gt=0)
-  pyrat.ret.thinning = args.get_default('thinning',
-      'MCMC posterior thinning', 1, ge=1)
-  pyrat.ret.nchains  = args.get_default('nchains',
-      'Number of MCMC parallel chains', ge=1)
-  pyrat.ret.grbreak  = args.get_default('grbreak',
-      'Gelman-Rubin convergence criteria', 0.0, ge=0)
-  pyrat.ret.grnmin   = args.get_default('grnmin',
-      'Gelman-Rubin convergence fraction', 0.5, gt=0.0)
-  atm.molmodel = args.get_choice('molmodel',
-      'molecular-abundance model', pc.molmodels)
-  atm.molfree  = args.molfree
-  atm.molpars  = args.molpars
-  atm.bulk     = args.bulk
-  atm.tmodelname = args.get_choice('tmodel', 'temperature model', pc.tmodels)
-  atm.tpars = args.tpars
-  pyrat.ncpu = args.get_default('ncpu', 'Number of processors', 1, ge=1)
+    pyrat.ret.params   = args.params
+    pyrat.ret.pstep    = args.pstep
+    pyrat.ret.pmin     = args.pmin
+    pyrat.ret.pmax     = args.pmax
+    pyrat.ret.prior    = args.prior
+    pyrat.ret.priorlow = args.priorlow
+    pyrat.ret.priorup = args.priorup
 
-  return
+    pyrat.ret.qcap = args.get_default(
+        'qcap', 'Metals volume-mixing-ratio cap', 1.0, gt=0.0, le=1.0)
+    pyrat.ret.params = args.params
+    pyrat.ret.pstep = args.pstep
+    pyrat.ret.tlow = args.get_default(
+        'tlow', 'Retrieval low-temperature (K) bound', 0,
+        wflag=(runmode=='mcmc'))
+    pyrat.ret.thigh = args.get_default(
+        'thigh', 'Retrieval high-temperature (K) bound', np.inf,
+        wflag=(runmode=='mcmc'))
+    pyrat.ret.sampler = args.sampler
+    pyrat.ret.nsamples = args.get_default(
+        'nsamples', 'Number of MCMC samples', gt=0)
+    pyrat.ret.burnin = args.get_default(
+        'burnin', 'Number of burn-in samples per chain', gt=0)
+    pyrat.ret.thinning = args.get_default(
+        'thinning', 'MCMC posterior thinning', 1, ge=1)
+    pyrat.ret.nchains = args.get_default(
+        'nchains', 'Number of MCMC parallel chains', ge=1)
+    pyrat.ret.grbreak = args.get_default(
+        'grbreak', 'Gelman-Rubin convergence criteria', 0.0, ge=0)
+    pyrat.ret.grnmin = args.get_default(
+        'grnmin', 'Gelman-Rubin convergence fraction', 0.5, gt=0.0)
+
+    atm.molmodel = args.get_choice(
+        'molmodel', 'molecular-abundance model', pc.molmodels)
+    atm.molfree = args.molfree
+    atm.molpars = args.molpars
+    atm.bulk = args.bulk
+    atm.tmodelname = args.get_choice('tmodel', 'temperature model', pc.tmodels)
+    atm.tpars = args.tpars
+    pyrat.ncpu = args.get_default('ncpu', 'Number of processors', 1, ge=1)
+
+    return
