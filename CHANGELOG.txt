@@ -6796,3 +6796,8 @@ Updated copyright and other cosmetics.
 
 Some docs updates.
 
+*****
+
+PEP8ed pyratbay/pyrat/voigt.py
+
+
