@@ -48,29 +48,29 @@ from ..lib import _indices
 
 @contextmanager
 def log_error(log=None, error=None):
-  """Capture exceptions into a log.error() call."""
-  try:
-      yield
-  except Exception as e:
-      if log is None:
-          log = mu.Log(logname=None, verb=1, width=80)
-      if error is None:
-          error = str(e)
-      log.error(error, tracklev=-4)
+    """Capture exceptions into a log.error() call."""
+    try:
+        yield
+    except Exception as e:
+        if log is None:
+            log = mu.Log(logname=None, verb=1, width=80)
+        if error is None:
+            error = str(e)
+        log.error(error, tracklev=-4)
 
 
 @contextmanager
 def cd(newdir):
-  """
-  Context manager for changing the current working directory.
-  Taken from here: https://stackoverflow.com/questions/431684/
-  """
-  olddir = os.getcwd()
-  os.chdir(os.path.expanduser(newdir))
-  try:
-      yield
-  finally:
-      os.chdir(olddir)
+    """
+    Context manager for changing the current working directory.
+    Taken from here: https://stackoverflow.com/questions/431684/
+    """
+    olddir = os.getcwd()
+    os.chdir(os.path.expanduser(newdir))
+    try:
+        yield
+    finally:
+        os.chdir(olddir)
 
 
 def recursive_setattr(obj, attr, val):
@@ -88,141 +88,141 @@ def recursive_getattr(obj, attr):
 
 @contextmanager
 def tmp_reset(obj, *attrs, **tmp_attrs):
-  """
-  Temporarily remove attributes from an object.
+    """
+    Temporarily remove attributes from an object.
 
-  Examples
-  --------
-  >>> import pyratbay.tools as pt
-  >>> o   = type('obj', (object,), {'x':1.0, 'y':2.0})
-  >>> obj = type('obj', (object,), {'z':3.0, 'w':4.0, 'o':o})
-  >>> # All listed arguments are set to None:
-  >>> with pt.tmp_reset(obj, 'o.x', 'z'):
-  >>>     print(obj.o.x, obj.o.y, obj.z, obj.w)
-  (None, 2.0, None, 4.0)
-  >>> # Keyword arguments can be set to a value, but cannot be recursive:
-  >>> with pt.tmp_reset(obj, 'o.x', z=10):
-  >>>     print(obj.o.x, obj.o.y, obj.z, obj.w)
-  (None, 2.0, 10, 4.0)
-  """
-  orig_attrs = {}
-  for attr in attrs:
-      orig_attrs[attr] = recursive_getattr(obj, attr)
-      recursive_setattr(obj, attr, None)
-  for attr, tmp_val in tmp_attrs.items():
-      orig_attrs[attr] = recursive_getattr(obj, attr)
-      recursive_setattr(obj, attr, tmp_val)
-  yield
+    Examples
+    --------
+    >>> import pyratbay.tools as pt
+    >>> o   = type('obj', (object,), {'x':1.0, 'y':2.0})
+    >>> obj = type('obj', (object,), {'z':3.0, 'w':4.0, 'o':o})
+    >>> # All listed arguments are set to None:
+    >>> with pt.tmp_reset(obj, 'o.x', 'z'):
+    >>>     print(obj.o.x, obj.o.y, obj.z, obj.w)
+    (None, 2.0, None, 4.0)
+    >>> # Keyword arguments can be set to a value, but cannot be recursive:
+    >>> with pt.tmp_reset(obj, 'o.x', z=10):
+    >>>     print(obj.o.x, obj.o.y, obj.z, obj.w)
+    (None, 2.0, 10, 4.0)
+    """
+    orig_attrs = {}
+    for attr in attrs:
+        orig_attrs[attr] = recursive_getattr(obj, attr)
+        recursive_setattr(obj, attr, None)
+    for attr, tmp_val in tmp_attrs.items():
+        orig_attrs[attr] = recursive_getattr(obj, attr)
+        recursive_setattr(obj, attr, tmp_val)
+    yield
 
-  for attr, orig_val in orig_attrs.items():
-      recursive_setattr(obj, attr, orig_val)
+    for attr, orig_val in orig_attrs.items():
+        recursive_setattr(obj, attr, orig_val)
 
 
 def binsearch(tli, wnumber, rec0, nrec, upper=True):
-  r"""
-  Do a binary+linear search in TLI dbfile for record with wavenumber
-  immediately less equal to wnumber (if upper is True), or greater
-  equal to wnumber (if upper) is False (considering duplicate values
-  in tli file).
+    r"""
+    Do a binary+linear search in TLI dbfile for record with wavenumber
+    immediately less equal to wnumber (if upper is True), or greater
+    equal to wnumber (if upper) is False (considering duplicate values
+    in tli file).
 
-  Parameters
-  ----------
-  tli: File object
-      TLI file where to search.
-  wnumber: Scalar
-      Target wavenumber in cm-1.
-  rec0: Integer
-      File position of first wavenumber record.
-  nrec: Integer
-      Number of wavenumber records.
-  upper: Boolean
-      If True, consider wnumber as an upper boundary. If False,
-      consider wnumber as a lower boundary.
+    Parameters
+    ----------
+    tli: File object
+        TLI file where to search.
+    wnumber: Scalar
+        Target wavenumber in cm-1.
+    rec0: Integer
+        File position of first wavenumber record.
+    nrec: Integer
+        Number of wavenumber records.
+    upper: Boolean
+        If True, consider wnumber as an upper boundary. If False,
+        consider wnumber as a lower boundary.
 
-  Returns
-  -------
-  irec: Integer
-      Index of record nearest to target. Return -1 if out of bounds.
+    Returns
+    -------
+    irec: Integer
+        Index of record nearest to target. Return -1 if out of bounds.
 
-  Examples
-  --------
-  >>> import pyratbay.tools as pt
-  >>> import struct
-  >>> # Mock a TLI file:
-  >>> wn = [0.0, 1.0, 1.0, 1.0, 2.0, 2.0]
-  >>> with open('tli_demo.dat', 'wb') as tli:
-  >>>     tli.write(struct.pack(str(len(wn))+"d", *wn))
-  >>> # Now do bin searches for upper and lower boundaries:
-  >>> with open('tli_demo.dat', 'rb') as tli:
-  >>>     bs_lower = [pt.binsearch(tli, target, 0, len(wn), upper=False)
-  >>>                 for target in [-1.0, 0.0, 0.5, 1.0, 1.5, 2.0, 2.5]]
-  >>>     bs_upper = [pt.binsearch(tli, target, 0, len(wn), upper=True)
-  >>>                 for target in [-1.0, 0.0, 0.5, 1.0, 1.5, 2.0, 2.5]]
-  >>> print(bs_lower, bs_upper, sep='\n')
-  [0, 0, 1, 1, 4, 4, -1]
-  [-1, 0, 0, 3, 3, 5, 5]
-  """
-  if nrec <= 0:
-      raise ValueError('Requested binsearch over a zero a zero-sized array.')
+    Examples
+    --------
+    >>> import pyratbay.tools as pt
+    >>> import struct
+    >>> # Mock a TLI file:
+    >>> wn = [0.0, 1.0, 1.0, 1.0, 2.0, 2.0]
+    >>> with open('tli_demo.dat', 'wb') as tli:
+    >>>     tli.write(struct.pack(str(len(wn))+"d", *wn))
+    >>> # Now do bin searches for upper and lower boundaries:
+    >>> with open('tli_demo.dat', 'rb') as tli:
+    >>>     bs_lower = [pt.binsearch(tli, target, 0, len(wn), upper=False)
+    >>>                 for target in [-1.0, 0.0, 0.5, 1.0, 1.5, 2.0, 2.5]]
+    >>>     bs_upper = [pt.binsearch(tli, target, 0, len(wn), upper=True)
+    >>>                 for target in [-1.0, 0.0, 0.5, 1.0, 1.5, 2.0, 2.5]]
+    >>> print(bs_lower, bs_upper, sep='\n')
+    [0, 0, 1, 1, 4, 4, -1]
+    [-1, 0, 0, 3, 3, 5, 5]
+    """
+    if nrec <= 0:
+        raise ValueError('Requested binsearch over a zero a zero-sized array.')
 
-  # Initialize indices and current record:
-  irec = ilo = 0
-  ihi = nrec - 1
-  tli.seek(rec0, 0)
-  current = first = struct.unpack('d', tli.read(8))[0]
-  tli.seek(rec0 + ihi*pc.dreclen, 0)
-  last = struct.unpack('d', tli.read(8))[0]
+    # Initialize indices and current record:
+    irec = ilo = 0
+    ihi = nrec - 1
+    tli.seek(rec0, 0)
+    current = first = struct.unpack('d', tli.read(8))[0]
+    tli.seek(rec0 + ihi*pc.dreclen, 0)
+    last = struct.unpack('d', tli.read(8))[0]
 
-  # Out of bounds:
-  if wnumber < first and upper:
-      return -1
-  if last < wnumber and not upper:
-      return -1
+    # Out of bounds:
+    if wnumber < first and upper:
+        return -1
+    if last < wnumber and not upper:
+        return -1
 
-  # Binary search:
-  while ihi - ilo > 1:
-      irec = (ihi + ilo) // 2
-      tli.seek(rec0 + irec*pc.dreclen, 0)
-      current = struct.unpack('d', tli.read(8))[0]
+    # Binary search:
+    while ihi - ilo > 1:
+        irec = (ihi + ilo) // 2
+        tli.seek(rec0 + irec*pc.dreclen, 0)
+        current = struct.unpack('d', tli.read(8))[0]
 
-      if current > wnumber:
-          ihi = irec
-      else:
-          ilo = irec
+        if current > wnumber:
+            ihi = irec
+        else:
+            ilo = irec
 
-  # Linear search:
-  if upper and current > wnumber:
-      return irec - 1
-  elif not upper and current < wnumber:
-      return irec + 1
-  elif upper:
-      while current <= wnumber:
-          irec += 1
-          if irec > nrec-1:
-              return nrec-1
-          tli.seek(rec0 + irec*pc.dreclen, 0)
-          current = struct.unpack('d', tli.read(8))[0]
-      return irec - 1
-  else:
-      while current >= wnumber:
-          irec -= 1
-          if irec < 0:
-              return 0
-          tli.seek(rec0 + irec*pc.dreclen, 0)
-          current = struct.unpack('d', tli.read(8))[0]
-      return irec + 1
+    # Linear search:
+    if upper and current > wnumber:
+        return irec - 1
+    elif not upper and current < wnumber:
+        return irec + 1
+    elif upper:
+        while current <= wnumber:
+            irec += 1
+            if irec > nrec-1:
+                return nrec-1
+            tli.seek(rec0 + irec*pc.dreclen, 0)
+            current = struct.unpack('d', tli.read(8))[0]
+        return irec - 1
+    else:
+        while current >= wnumber:
+            irec -= 1
+            if irec < 0:
+                return 0
+            tli.seek(rec0 + irec*pc.dreclen, 0)
+            current = struct.unpack('d', tli.read(8))[0]
+        return irec + 1
 
 
 def divisors(number):
-  """
-  Find all the integer divisors of number.
-  """
-  divs = []
-  for i in np.arange(1, number/2+1):
-    if number % i == 0:
-      divs.append(i)
-  divs.append(number)
-  return np.asarray(divs, np.int)
+    """
+    Find all the integer divisors of number.
+    """
+    divs = []
+    for i in np.arange(1, number/2+1):
+      if number % i == 0:
+        divs.append(i)
+    divs.append(number)
+    return np.asarray(divs, np.int)
 
 
 def unpack(file, n, dtype):
@@ -387,71 +387,71 @@ def get_param(param, units='none', gt=None, ge=None):
 
 
 def ifirst(data, default_ret=-1):
-  """
-  Get the first index where data is True or 1.
+    """
+    Get the first index where data is True or 1.
 
-  Parameters
-  ----------
-  data: 1D bool/integer iterable
-      An array of bools or integers.
-  default_ret: Integer
-      Default returned value when no value in data is True or 1.
+    Parameters
+    ----------
+    data: 1D bool/integer iterable
+        An array of bools or integers.
+    default_ret: Integer
+        Default returned value when no value in data is True or 1.
 
-  Returns
-  -------
-  first: integer
-     First index where data == True or 1.  Return default_ret otherwise.
+    Returns
+    -------
+    first: integer
+       First index where data == True or 1.  Return default_ret otherwise.
 
-  Examples
-  --------
-  >>> import pyratbay.tools as pt
-  >>> import numpy as np
-  >>> print(pt.ifirst([1,0,0]))
-  0
-  >>> print(pt.ifirst(np.arange(5)>2.5))
-  3
-  >>> print(pt.ifirst([False, True, True]))
-  1
-  >>> print(pt.ifirst([False, False, False]))
-  -1
-  >>> print(pt.ifirst([False, False, False], default_ret=0))
-  0
-  """
-  return _indices.ifirst(np.asarray(data, np.int), default_ret)
+    Examples
+    --------
+    >>> import pyratbay.tools as pt
+    >>> import numpy as np
+    >>> print(pt.ifirst([1,0,0]))
+    0
+    >>> print(pt.ifirst(np.arange(5)>2.5))
+    3
+    >>> print(pt.ifirst([False, True, True]))
+    1
+    >>> print(pt.ifirst([False, False, False]))
+    -1
+    >>> print(pt.ifirst([False, False, False], default_ret=0))
+    0
+    """
+    return _indices.ifirst(np.asarray(data, np.int), default_ret)
 
 
 def ilast(data, default_ret=-1):
-  """
-  Get the last index where data is 1 or True.
+    """
+    Get the last index where data is 1 or True.
 
-  Parameters
-  ----------
-  data: 1D bool/integer iterable
-      An array of bools or integers.
-  default_ret: Integer
-      Default returned value when no value in data is True or 1.
+    Parameters
+    ----------
+    data: 1D bool/integer iterable
+        An array of bools or integers.
+    default_ret: Integer
+        Default returned value when no value in data is True or 1.
 
-  Returns
-  -------
-  last: integer
-     Last index where data == 1 or True.  Return default_ret otherwise.
+    Returns
+    -------
+    last: integer
+       Last index where data == 1 or True.  Return default_ret otherwise.
 
-  Examples
-  --------
-  >>> import pyratbay.tools as pt
-  >>> import numpy as np
-  >>> print(pt.ilast([1,0,0]))
-  0
-  >>> print(pt.ilast(np.arange(5)<2.5))
-  2
-  >>> print(pt.ilast([False, True, True]))
-  2
-  >>> print(pt.ilast([False, False, False]))
-  -1
-  >>> print(pt.ilast([False, False, False], default_ret=0))
-  0
-  """
-  return _indices.ilast(np.asarray(data, np.int), default_ret)
+    Examples
+    --------
+    >>> import pyratbay.tools as pt
+    >>> import numpy as np
+    >>> print(pt.ilast([1,0,0]))
+    0
+    >>> print(pt.ilast(np.arange(5)<2.5))
+    2
+    >>> print(pt.ilast([False, True, True]))
+    2
+    >>> print(pt.ilast([False, False, False]))
+    -1
+    >>> print(pt.ilast([False, False, False], default_ret=0))
+    0
+    """
+    return _indices.ilast(np.asarray(data, np.int), default_ret)
 
 
 def isfile(path):
@@ -546,8 +546,7 @@ def file_exists(pname, desc, value):
 
     for value in values:
         if not os.path.isfile(value):
-            raise ValueError("{} file ({}) does not exist: '{}'".
-                             format(desc, pname, value))
+            raise ValueError(f"{desc} file ({pname}) does not exist: '{value}'")
 
 
 def path(filename):
@@ -574,7 +573,7 @@ def path(filename):
     path, filename = os.path.split(filename)
     if path == '':
         path = '.'
-    return '{:s}/{:s}'.format(path, filename)
+    return f'{path}/{filename}'
 
 
 class Formatted_Write(string.Formatter):
@@ -644,15 +643,22 @@ class Formatted_Write(string.Formatter):
         numpy_fmt.setdefault('edge', self.edge)
         numpy_fmt.setdefault('lw',   self.lw)
         numpy_fmt.setdefault('prec', self.prec)
-        threshold = 2*numpy_fmt['edge'] if numpy_fmt['edge'] is not None \
-                    else None
-        with np.printoptions(
-                formatter=numpy_fmt['fmt'],
-                edgeitems=numpy_fmt['edge'],
-                threshold=threshold,
-                linewidth=numpy_fmt['lw'],
-                precision=numpy_fmt['prec']):
+
+        if numpy_fmt['edge'] is None:
+            threshold = None
+        else:
+            threshold = 2*numpy_fmt['edge']
+
+        fmt = {
+            'formatter': numpy_fmt['fmt'],
+            'edgeitems': numpy_fmt['edge'],
+            'threshold': threshold,
+            'linewidth': numpy_fmt['lw'],
+            'precision': numpy_fmt['prec'],
+            }
+        with np.printoptions(**fmt):
             text = super(Formatted_Write, self).format(text, *format)
+
         indspace = ' '*self.indent
         if self.si is None:
             sindspace = indspace
@@ -660,16 +666,14 @@ class Formatted_Write(string.Formatter):
             sindspace = ' '*self.si
 
         for line in text.splitlines():
-            self.text += textwrap.fill(line,
-                break_long_words=False,
-                initial_indent=indspace,
-                subsequent_indent=sindspace,
-                width=80)
+            self.text += textwrap.fill(
+                line, break_long_words=False, initial_indent=indspace,
+                subsequent_indent=sindspace, width=80)
             self.text += '\n'
 
 
 def make_tea(maxiter=200, savefiles=False, times=False, location_TEA=None,
-        abun_file=None, location_out='./TEA', verb=1, ncpu=1):
+    abun_file=None, location_out='./TEA', verb=1, ncpu=1):
     """
     Make a TEA configuration file.
 
@@ -705,185 +709,193 @@ def make_tea(maxiter=200, savefiles=False, times=False, location_TEA=None,
 
 
 class Timer(object):
-  """
-  Timer to get the time (in seconds) since the last call.
-  """
-  def __init__(self):
-      self.t0 = time.time()
+    """
+    Timer to get the time (in seconds) since the last call.
+    """
+    def __init__(self):
+        self.t0 = time.time()
 
-  def clock(self):
-      tnew = time.time()
-      delta = tnew - self.t0
-      self.t0 = tnew
-      return delta
+    def clock(self):
+        tnew = time.time()
+        delta = tnew - self.t0
+        self.t0 = tnew
+        return delta
 
 
 def get_exomol_mol(dbfile):
-  """
-  Parse an exomol file to extract the molecule and isotope name.
+    """
+    Parse an exomol file to extract the molecule and isotope name.
 
-  Parameters
-  ----------
-  dbfile: String
-      An exomol line-list file (must follow ExoMol naming convention).
+    Parameters
+    ----------
+    dbfile: String
+        An exomol line-list file (must follow ExoMol naming convention).
 
-  Returns
-  -------
-  molecule: String
-      Name of the molecule.
-  isotope: String
-      Name of the isotope (See Tennyson et al. 2016, jmosp, 327).
+    Returns
+    -------
+    molecule: String
+        Name of the molecule.
+    isotope: String
+        Name of the isotope (See Tennyson et al. 2016, jmosp, 327).
 
-  Examples
-  --------
-  >>> import pyratbay.tools as pt
-  >>> filenames = [
-  >>>     '1H2-16O__POKAZATEL__00400-00500.trans.bz2',
-  >>>     '1H-2H-16O__VTT__00250-00500.trans.bz2',
-  >>>     '12C-16O2__HITEMP.pf',
-  >>>     '12C-16O-18O__Zak.par',
-  >>>     '12C-1H4__YT10to10__01100-01200.trans.bz2',
-  >>>     '12C-1H3-2H__MockName__01100-01200.trans.bz2'
-  >>>    ]
-  >>> for db in filenames:
-  >>>     print(pt.get_exomol_mol(db))
-  ('H2O', '116')
-  ('H2O', '126')
-  ('CO2', '266')
-  ('CO2', '268')
-  ('CH4', '21111')
-  ('CH4', '21112')
-  """
-  atoms = os.path.split(dbfile)[1].split('_')[0].split('-')
-  elements = []
-  isotope  = ''
-  for atom in atoms:
-      match = re.match(r"([0-9]+)([a-z]+)([0-9]*)", atom, re.I)
-      N = 1 if match.group(3) == '' else int(match.group(3))
-      elements += N * [match.group(2)]
-      isotope  += match.group(1)[-1:] * N
+    Examples
+    --------
+    >>> import pyratbay.tools as pt
+    >>> filenames = [
+    >>>     '1H2-16O__POKAZATEL__00400-00500.trans.bz2',
+    >>>     '1H-2H-16O__VTT__00250-00500.trans.bz2',
+    >>>     '12C-16O2__HITEMP.pf',
+    >>>     '12C-16O-18O__Zak.par',
+    >>>     '12C-1H4__YT10to10__01100-01200.trans.bz2',
+    >>>     '12C-1H3-2H__MockName__01100-01200.trans.bz2'
+    >>>    ]
+    >>> for db in filenames:
+    >>>     print(pt.get_exomol_mol(db))
+    ('H2O', '116')
+    ('H2O', '126')
+    ('CO2', '266')
+    ('CO2', '268')
+    ('CH4', '21111')
+    ('CH4', '21112')
+    """
+    atoms = os.path.split(dbfile)[1].split('_')[0].split('-')
+    elements = []
+    isotope  = ''
+    for atom in atoms:
+        match = re.match(r"([0-9]+)([a-z]+)([0-9]*)", atom, re.I)
+        N = 1 if match.group(3) == '' else int(match.group(3))
+        elements += N * [match.group(2)]
+        isotope  += match.group(1)[-1:] * N
 
-  composition = [list(g[1]) for g in itertools.groupby(elements)]
-  molecule = ''.join([c[0] + str(len(c))*(len(c)>1)
-                      for c in composition])
+    composition = [list(g[1]) for g in itertools.groupby(elements)]
+    molecule = ''.join([
+        c[0] + str(len(c))*(len(c)>1)
+        for c in composition])
 
-  return molecule, isotope
+    return molecule, isotope
 
 
 def cia_hitran(ciafile, tstep=1, wstep=1):
-  """
-  Re-write a HITRAN CIA file into Pyrat Bay format.
-  See Richard et al. (2012) and https://www.cfa.harvard.edu/HITRAN/
+    """
+    Re-write a HITRAN CIA file into Pyrat Bay format.
+    See Richard et al. (2012) and https://www.cfa.harvard.edu/HITRAN/
 
-  Parameters
-  ----------
-  ciafile: String
-      A HITRAN CIA file.
-  tstep: Integer
-      Slicing step size along temperature dimension.
-  wstep: Integer
-      Slicing step size along wavenumber dimension.
+    Parameters
+    ----------
+    ciafile: String
+        A HITRAN CIA file.
+    tstep: Integer
+        Slicing step size along temperature dimension.
+    wstep: Integer
+        Slicing step size along wavenumber dimension.
 
-  Examples
-  --------
-  >>> import pyratbay.tools as pt
-  >>> # Before moving on, download a HITRAN CIA files from the link above.
-  >>> ciafile = 'H2-H2_2011.cia'
-  >>> pt.cia_hitran(ciafile, tstep=2, wstep=10)
-  """
-  # Extract CS data:
-  with open(ciafile, 'r') as f:
-      info = f.readline().strip().split()
-      species = info[0].split('-')
-      temps, data, wave = [], [], []
-      wnmin, wnmax = -1, -1
-      f.seek(0)
-      for line in f:
-          if line.strip().startswith('-'.join(species)):
-              info = line.strip().split()
-              # if wn ranges differ, trigger new set
-              if float(info[1]) != wnmin or float(info[2]) != wnmax:
-                  wnmin = float(info[1])
-                  wnmax = float(info[2])
-              temp = float(info[4])
-              nwave = int  (info[3])
-              wn = np.zeros(nwave, np.double)
-              cs = np.zeros(nwave, np.double)
-              i = 0
-              continue
-          # else, read in opacities
-          wn[i], cs[i] = line.split()[0:2]
-          i += 1
-          if i == nwave:
-              temps.append(temp)
-              # Thin the arrays in wavenumber if requested:
-              data.append(cs[::wstep])
-              wave.append(wn[::wstep])
+    Examples
+    --------
+    >>> import pyratbay.tools as pt
+    >>> # Before moving on, download a HITRAN CIA files from the link above.
+    >>> ciafile = 'H2-H2_2011.cia'
+    >>> pt.cia_hitran(ciafile, tstep=2, wstep=10)
+    """
+    # Extract CS data:
+    with open(ciafile, 'r') as f:
+        info = f.readline().strip().split()
+        species = info[0].split('-')
+        temps, data, wave = [], [], []
+        wnmin, wnmax = -1, -1
+        f.seek(0)
+        for line in f:
+            if line.strip().startswith('-'.join(species)):
+                info = line.strip().split()
+                # if wn ranges differ, trigger new set
+                if float(info[1]) != wnmin or float(info[2]) != wnmax:
+                    wnmin = float(info[1])
+                    wnmax = float(info[2])
+                temp = float(info[4])
+                nwave = int  (info[3])
+                wn = np.zeros(nwave, np.double)
+                cs = np.zeros(nwave, np.double)
+                i = 0
+                continue
+            # else, read in opacities
+            wn[i], cs[i] = line.split()[0:2]
+            i += 1
+            if i == nwave:
+                temps.append(temp)
+                # Thin the arrays in wavenumber if requested:
+                data.append(cs[::wstep])
+                wave.append(wn[::wstep])
 
-  # Identify sets:
-  temps = np.array(temps)
-  ntemps = len(temps)
-  i = 0
-  while i < ntemps:
-      wn = wave[i]
-      j = i
-      while j < ntemps and len(wave[j])==len(wn) and np.all(wave[j]-wn==0):
-          j += 1
-      temp = temps[i:j:tstep]
-      # Set cm-1 amagat-2 units:
-      cs = np.array(data[i:j])[::tstep] * pc.amagat**2
+    # Identify sets:
+    temps = np.array(temps)
+    ntemps = len(temps)
+    i = 0
+    while i < ntemps:
+        wn = wave[i]
+        j = i
+        while j < ntemps and len(wave[j])==len(wn) and np.all(wave[j]-wn==0):
+            j += 1
+        temp = temps[i:j:tstep]
+        # Set cm-1 amagat-2 units:
+        cs = np.array(data[i:j])[::tstep] * pc.amagat**2
 
-      csfile = ('CIA_HITRAN_{:s}_{:.1f}-{:.1f}um_{:.1f}-{:.1f}K.dat'.
-                format('-'.join(species),
-                       1.0/(wn[-1]*pc.um), 1.0/(wn[0]*pc.um),
-                       temp[0], temp[-1]))
-      header = ('# This file contains the reformated {:s}-{:s} CIA data from:\n'
-                '# Richard et al. (2012), HITRAN file: {:s}\n\n'.
-                format(species[0], species[1], ciafile))
-      io.write_cs(csfile, cs, species, temp, wn, header)
-      i = j
+        pair = '-'.join(species)
+        wl_min = 1.0/(wn[-1]*pc.um)
+        wl_max = 1.0/(wn[0]*pc.um)
+
+        csfile = (
+            f'CIA_HITRAN_{pair}_{wl_min:.1f}-{wl_max:.1f}um_'
+            f'{temp[0]:04.0f}-{temp[-1]:04.0f}K.dat')
+        header = (
+            f'# This file contains the reformated {pair} CIA data from\n'
+            f'# HITRAN file: {ciafile}\n\n')
+        io.write_cs(csfile, cs, species, temp, wn, header)
+        i = j
 
 
 def cia_borysow(ciafile, species1, species2):
-  """
-  Re-write a Borysow CIA file into Pyrat Bay format.
-  See http://www.astro.ku.dk/~aborysow/programs/
+    """
+    Re-write a Borysow CIA file into Pyrat Bay format.
+    See http://www.astro.ku.dk/~aborysow/programs/
 
-  Parameters
-  ----------
-  ciafile: String
-      A HITRAN CIA file.
-  species1: String
-      First CIA species.
-  species2: String
-      Second CIA species.
+    Parameters
+    ----------
+    ciafile: String
+        A HITRAN CIA file.
+    species1: String
+        First CIA species.
+    species2: String
+        Second CIA species.
 
-  Examples
-  --------
-  >>> import pyratbay.tools as pt
-  >>> # Before moving on, download a HITRAN CIA files from the link above.
-  >>> ciafile = 'ciah2he_dh_quantmech'
-  >>> pt.cia_borysow(ciafile, 'H2', 'He')
-  """
-  data = np.loadtxt(ciafile, skiprows=3)
-  wn = data[:,0]
-  cs = data[:,1:].T
+    Examples
+    --------
+    >>> import pyratbay.tools as pt
+    >>> # Before moving on, download a HITRAN CIA files from the link above.
+    >>> ciafile = 'ciah2he_dh_quantmech'
+    >>> pt.cia_borysow(ciafile, 'H2', 'He')
+    """
+    data = np.loadtxt(ciafile, skiprows=3)
+    wn = data[:,0]
+    cs = data[:,1:].T
 
-  with open(ciafile) as f:
-      line = f.readline()
-      temp = f.readline().split()[1:]
-  temp = [float(t.replace('K','')) for t in temp]
+    with open(ciafile) as f:
+        line = f.readline()
+        temp = f.readline().split()[1:]
+    temp = [float(t.replace('K','')) for t in temp]
 
-  species = [species1, species2]
+    species = [species1, species2]
 
-  csfile = ('CIA_Borysow_{:s}_{:.1f}-{:.1f}um_{:04.0f}-{:04.0f}K.dat'.
-            format('-'.join(species),
-                   1.0/(wn[-1]*pc.um), 1.0/(wn[0]*pc.um),
-                   temp[0], temp[-1]))
-  header = ('# This file contains the reformated {:s} CIA data from:\n'
-            '# http://www.astro.ku.dk/~aborysow/programs/{:s}\n\n'.
-              format('-'.join(species), os.path.basename(ciafile)))
-  io.write_cs(csfile, cs, species, temp, wn, header)
+    pair = '-'.join(species)
+    wl_min = 1.0/(wn[-1]*pc.um)
+    wl_max = 1.0/(wn[0]*pc.um)
+    file_name = os.path.basename(ciafile)
+
+    csfile = (
+        f'CIA_Borysow_{pair}_{wl_min:.1f}-{wl_max:.1f}um_'
+        f'{temp[0]:04.0f}-{temp[-1]:04.0f}K.dat')
+    header = (
+        f'# This file contains the reformated {pair} CIA data from:\n'
+        f'# http://www.astro.ku.dk/~aborysow/programs/{file_name}\n\n')
+    io.write_cs(csfile, cs, species, temp, wn, header)
 
 
 def radius_to_depth(rprs, rprs_err):

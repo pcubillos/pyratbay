@@ -6823,3 +6823,10 @@ Removed vextent, vcutoff, and raygrid warnings when defaulting values
 
 PEP8ed pyratbay/pyrat/read_atm.py
 
+*****
+
+PEP8ed pyratbay/tools/tools.py
+Split test_Formatted_Write tests into individual tests.
+Implemented test_cia_hitran() test.
+
+

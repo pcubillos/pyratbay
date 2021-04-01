@@ -267,18 +267,29 @@ def test_path():
     assert pt.path('/home/user/file.txt') == "/home/user/file.txt"
 
 
-def test_Formatted_Write():
+@pytest.mark.parametrize('num_fmt', ['{}', '{:.2f}'])
+def test_Formatted_Write_none(num_fmt):
+    fmt = pt.Formatted_Write()
+    rstar = np.pi/3.14
+    default_double_str = str(rstar)
+    fmt.write('Stellar radius (rstar, rsun):  ' + num_fmt, None)
+    assert fmt.text == 'Stellar radius (rstar, rsun):  None\n'
+
+
+def test_Formatted_Write_float_fmt():
     fmt = pt.Formatted_Write()
     rstar = np.pi/3.14
     default_double_str = str(rstar)
     fmt.write('Stellar radius (rstar, rsun):  {:.2f}', rstar)
-    fmt.write('Stellar radius (rstar, rsun):  {:.2f}', None)
-    fmt.write('Stellar radius (rstar, rsun):  {}',     rstar)
-    fmt.write('Stellar radius (rstar, rsun):  {}',     None)
-    assert fmt.text == ('Stellar radius (rstar, rsun):  1.00\n'
-                        'Stellar radius (rstar, rsun):  None\n'
-                        'Stellar radius (rstar, rsun):  {:s}\n'
-                        'Stellar radius (rstar, rsun):  None\n').format(default_double_str)
+    assert fmt.text == 'Stellar radius (rstar, rsun):  1.00\n'
+
+
+def test_Formatted_Write_float_default():
+    fmt = pt.Formatted_Write()
+    rstar = np.pi/3.14
+    default_double_str = str(rstar)
+    fmt.write('Stellar radius (rstar, rsun):  {}', rstar)
+    assert fmt.text == f'Stellar radius (rstar, rsun):  {default_double_str}\n'
 
 
 @pytest.mark.parametrize('db, molecule, isotope',
@@ -294,11 +305,39 @@ def test_get_exomol_mol(db, molecule, isotope):
     assert iso == isotope
 
 
-@pytest.mark.skip(reason='Do I want to wget this file or mock it?')
 def test_cia_hitran():
-    ciafile = 'H2-H_2011.cia'
+    ciafile = 'inputs/mock_H2-H2_2011.cia'
     pt.cia_hitran(ciafile, tstep=1, wstep=1)
-    # TBD: implement check
+    outfile = 'CIA_HITRAN_H2-H2_333.3-500.0um_0200-0300K.dat'
+
+    assert outfile in os.listdir()
+    with open(outfile, 'r') as f:
+        text = f.read()
+    assert text == (
+        '# This file contains the reformated H2-H2 CIA data from\n'
+        '# HITRAN file: inputs/mock_H2-H2_2011.cia\n\n'
+
+        '@SPECIES\n'
+        'H2  H2\n\n'
+
+        '@TEMPERATURES\n'
+        '                 200       225       250       275       300\n\n'
+
+        '# Wavenumber in cm-1, opacity in cm-1 amagat-2:\n'
+        '@DATA\n'
+        '     20.0  1.926e-08 1.717e-08 1.543e-08 1.396e-08 1.287e-08\n'
+        '     21.0  2.116e-08 1.886e-08 1.695e-08 1.534e-08 1.414e-08\n'
+        '     22.0  2.312e-08 2.062e-08 1.854e-08 1.678e-08 1.547e-08\n'
+        '     23.0  2.516e-08 2.244e-08 2.018e-08 1.827e-08 1.685e-08\n'
+        '     24.0  2.725e-08 2.433e-08 2.189e-08 1.983e-08 1.829e-08\n'
+        '     25.0  2.941e-08 2.627e-08 2.365e-08 2.143e-08 1.978e-08\n'
+        '     26.0  3.163e-08 2.827e-08 2.547e-08 2.309e-08 2.132e-08\n'
+        '     27.0  3.390e-08 3.032e-08 2.733e-08 2.479e-08 2.290e-08\n'
+        '     28.0  3.622e-08 3.243e-08 2.925e-08 2.655e-08 2.454e-08\n'
+        '     29.0  3.859e-08 3.458e-08 3.122e-08 2.835e-08 2.621e-08\n'
+        '     30.0  4.100e-08 3.678e-08 3.323e-08 3.019e-08 2.793e-08\n'
+        )
+    os.remove(outfile)
 
 
 @pytest.mark.skip(reason='Do I want to wget this file or mock it?')
