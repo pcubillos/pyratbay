@@ -6815,3 +6815,7 @@ Added test for command-line call.
 
 Added test for command-line --version calls.
 
+*****
+
+Removed vextent, vcutoff, and raygrid warnings when defaulting values
+

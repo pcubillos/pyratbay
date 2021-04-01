@@ -652,11 +652,9 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         'tstar', 'Stellar effective temperature (K)', gt=0.0)
 
     pyrat.voigt.extent = args.get_default(
-        'vextent', 'Voigt profile extent in HWHM', 100.0, ge=1.0,
-        wflag=(runmode not in ['tli', 'atmosphere']))
+        'vextent', 'Voigt profile extent in HWHM', 100.0, ge=1.0)
     pyrat.voigt.cutoff = args.get_default(
-        'vcutoff', 'Voigt profile cutoff in cm-1', 25.0, ge=0.0,
-        wflag=(runmode not in ['tli', 'atmosphere']))
+        'vcutoff', 'Voigt profile cutoff in cm-1', 25.0, ge=0.0)
     pyrat.voigt.ndop = args.get_default(
         'ndop', 'Number of Doppler-width samples', 40, ge=1)
     pyrat.voigt.dmin = args.get_default(
@@ -708,8 +706,7 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
     phy.phoenix  = args.get_path('phoenix',  'PHOENIX model',    exists=True)
 
     spec.raygrid = args.get_default(
-        'raygrid', 'Emission raygrid (deg)', np.array([0, 20, 40, 60, 80.]),
-        wflag=(runmode not in ['tli', 'atmosphere']))
+        'raygrid', 'Emission raygrid (deg)', np.array([0, 20, 40, 60, 80.]))
     spec.quadrature = args.get_default(
         'quadrature', 'Number of Gaussian-quadrature points', ge=1)
 
