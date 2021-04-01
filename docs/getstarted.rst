@@ -66,6 +66,7 @@ through the ``Pyrat Bay`` sub modules (see :ref:`API`).
    (``constants``), plotting (``plots``) and additional tools
    (``tools``).
 
+---------------------------------------------------------------------
 
 System Requirements
 -------------------
@@ -85,6 +86,8 @@ requirements:
 not guarantee nor provide support for that.
 
 .. _install:
+
+---------------------------------------------------------------------
 
 Install and Compile
 -------------------
@@ -110,6 +113,9 @@ Alternatively (e.g., for developers), clone the repository to your local machine
     cd pyratbay
     python setup.py develop
 
+
+
+---------------------------------------------------------------------
 
 .. _qexample:
 
@@ -143,19 +149,15 @@ folder
 your working directory. You can find these files on your local machine
 with the following Python script:
 
-.. code-block:: python
+.. code-block:: shell
 
-    # This Python script shows you where the demo files are located:
-    import pyratbay.constants as pc
-    demo_folder = f'{pc.ROOT}examples/demo'
-    print(demo_folder)
+    # This shell command shows you where the demo files are located:
+    pbay --root
 
-    # You can either copy the file from this folder to your current dir
-    # using the command line or the following Python script:
-    import os
-    import shutil
-    for file in os.listdir(demo_folder):
-        shutil.copy(f'{demo_folder}/{file}', file)
+    # Lets assign that output to a variable and use it to copy
+    # the files required for this demo:
+    pb_root=$(pbay --root)
+    cp $pb_root/examples/demo/* .
 
 
 Execute these commands from the shell to create a

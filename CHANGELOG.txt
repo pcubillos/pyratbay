@@ -6830,3 +6830,7 @@ Split test_Formatted_Write tests into individual tests.
 Implemented test_cia_hitran() test.
 
 
+*****
+
+Minor get-started docs update.
+
