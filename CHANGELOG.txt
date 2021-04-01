@@ -6811,3 +6811,7 @@ Added --root entry-point argument to display the pyratbay ROOT folder
 from the command line.
 Added test for command-line call.
 
+*****
+
+Added test for command-line --version calls.
+

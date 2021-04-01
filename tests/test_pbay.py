@@ -229,6 +229,13 @@ expected_radius = np.array([
     6.99319134e+09])
 
 
+@pytest.mark.parametrize('call', ['-v', '--version'])
+def test_command_line_version(capfd, call):
+    subprocess.call(['pbay', call])
+    captured = capfd.readouterr()
+    assert f'Pyrat Bay version {pb.__version__}' in captured.out
+
+
 def test_command_line_root(capfd):
     subprocess.call('pbay --root'.split())
     captured = capfd.readouterr()
