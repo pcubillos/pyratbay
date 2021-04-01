@@ -4,12 +4,12 @@
 # Pyrat-Bay version:
 PBAY_VER = 0  # Major version
 PBAY_MIN = 9  # Minor version
-PBAY_REV = 2  # Revision
+PBAY_REV = 3  # Revision
 
 # Lineread version:
-LR_VER    =  6  # Major version
-LR_MIN    =  5  # Minor version
-LR_REV    =  0  # Revision
+LR_VER = 6  # Major version
+LR_MIN = 5  # Minor version
+LR_REV = 0  # Revision
 
 __version__ = f'{PBAY_VER}.{PBAY_MIN}.{PBAY_REV}'
 

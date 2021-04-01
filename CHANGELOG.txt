@@ -6834,3 +6834,8 @@ Implemented test_cia_hitran() test.
 
 Minor get-started docs update.
 
+*****
+
+Bumped version to 0.9.3.
+
+*****
