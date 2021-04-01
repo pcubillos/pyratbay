@@ -41,9 +41,9 @@ def read_atm(pyrat):
     get_constants(pyrat)
 
     # Store values in CGS system of units:
-    atm_in.press  = atm_inputs[2] * pt.u(punits)
-    atm_in.temp   = atm_inputs[3] * pt.u(tunits)
-    atm_in.q      = atm_inputs[4]
+    atm_in.press = atm_inputs[2] * pt.u(punits)
+    atm_in.temp = atm_inputs[3] * pt.u(tunits)
+    atm_in.q = atm_inputs[4]
     if atm_inputs[5] is not None:
         atm_in.radius = atm_inputs[5] * pt.u(runits)
     atm_in.nlayers = len(atm_in.press)
@@ -62,20 +62,23 @@ def read_atm(pyrat):
 
     pyrat.log.msg(f"Species list:\n  {pyrat.mol.name}", indent=2, si=4)
 
-    pyrat.log.msg(f"Abundances are given by {qunits} mixing ratio.",
-        indent=2)
-    pyrat.log.msg(f"Unit factors: radius: {runits}, pressure: {punits}, "
+    pyrat.log.msg(
+        f"Abundances are given by {qunits} mixing ratio.", indent=2)
+    pyrat.log.msg(
+        f"Unit factors: radius: {runits}, pressure: {punits}, "
         f"temperature: {tunits}", indent=2)
 
-    pyrat.log.msg("Number of layers in the input atmospheric file: "
-        f"{atm_in.nlayers}", indent=2)
+    pyrat.log.msg(
+        f"Number of layers in the input atmospheric file: {atm_in.nlayers}",
+        indent=2)
     pyrat.log.msg("Atmospheric file pressure limits: "
         f"{atm_in.press[ 0]/pt.u(atm.punits):.2e}--"
         f"{atm_in.press[-1]/pt.u(atm.punits):.2e} {atm.punits}.",
         indent=2)
 
-    pyrat.log.msg(f"Median mean molecular mass: {np.median(atm_in.mm):.3f} "
-        "g mol-1.", indent=2)
+    pyrat.log.msg(
+        f"Median mean molecular mass: {np.median(atm_in.mm):.3f} g mol-1.",
+        indent=2)
 
     pyrat.log.head("Read atmosphere done.")
 
@@ -100,8 +103,10 @@ def get_constants(pyrat):
     pyrat.mol.mass   = np.zeros(pyrat.mol.nmol)
     pyrat.mol.radius = np.zeros(pyrat.mol.nmol)
 
-    pyrat.log.msg('Molecule   Radius  Mass\n'
-                  '           (A)     (gr/mol)', indent=4)
+    pyrat.log.msg(
+        'Molecule   Radius  Mass\n'
+        '           (A)     (gr/mol)',
+        indent=4)
     for i in range(pyrat.mol.nmol):
         # Find the molecule in the list:
         imol = np.where(symbol == pyrat.mol.name[i])[0]
@@ -141,26 +146,28 @@ def update_atm(pyrat, temp=None, abund=None, radius=None):
     # Check that the dimensions match:
     if np.size(temp) != np.size(pyrat.atm.temp):
         pyrat.log.error(
-            f"The temperature array size ({np.size(temp)}) doesn't match the "
-            f"Pyrat's temperature size ({np.size(pyrat.atm.temp)}).")
+            f"The temperature array size ({np.size(temp)}) doesn't match "
+            f"the Pyrat's temperature size ({np.size(pyrat.atm.temp)}).")
 
     # Check temperature boundaries:
-    error = ("One or more input temperature values lies out of the {:s} "
-                "temperature boundaries (K): [{:6.1f}, {:6.1f}].")
+    error = (
+        "One or more input temperature values lies out of the {:s} "
+        "temperature boundaries (K): [{:6.1f}, {:6.1f}].")
     if pyrat.ex.extfile is not None:
         if np.any(temp > pyrat.ex.tmax) or np.any(temp < pyrat.ex.tmin):
-            pyrat.log.warning(error.format('tabulated extinction-coefficient',
-                                           pyrat.ex.tmin, pyrat.ex.tmax))
+            pyrat.log.warning(error.format(
+                'tabulated extinction-coefficient',
+                pyrat.ex.tmin, pyrat.ex.tmax))
             return 0
     elif pyrat.lt.ntransitions > 0:
         if np.any(temp > pyrat.lt.tmax) or np.any(temp < pyrat.lt.tmin):
-            pyrat.log.warning(error.format('line-transition',
-                                           pyrat.lt.tmin, pyrat.lt.tmax))
+            pyrat.log.warning(error.format(
+                'line-transition', pyrat.lt.tmin, pyrat.lt.tmax))
             return 0
     if pyrat.cs.nfiles > 0:
         if np.any(temp > pyrat.cs.tmax) or np.any(temp < pyrat.cs.tmin):
-            pyrat.log.warning(error.format('cross-section',
-                                           pyrat.cs.tmin, pyrat.cs.tmax))
+            pyrat.log.warning(error.format(
+                'cross-section', pyrat.cs.tmin, pyrat.cs.tmax))
             return 0
 
     # Recompute abundance profiles:
@@ -168,7 +175,8 @@ def update_atm(pyrat, temp=None, abund=None, radius=None):
     if abund is not None:
         pyrat.atm.molpars = None
     elif pyrat.atm.molpars is not None:
-        abund = pa.qscale(q0, pyrat.mol.name, pyrat.atm.molmodel,
+        abund = pa.qscale(
+            q0, pyrat.mol.name, pyrat.atm.molmodel,
             pyrat.atm.molfree, pyrat.atm.molpars, pyrat.atm.bulk,
             iscale=pyrat.atm.ifree, ibulk=pyrat.atm.ibulk,
             bratio=pyrat.atm.bulkratio, invsrat=pyrat.atm.invsrat)
@@ -176,8 +184,9 @@ def update_atm(pyrat, temp=None, abund=None, radius=None):
         abund = q0
     if np.shape(abund) != np.shape(pyrat.atm.q):
         pyrat.log.error(
-            f"The shape of the abundances array {np.shape(abund)} doesn't match "
-            f"the shape of the Pyrat's abundance size {np.shape(pyrat.atm.q)}")
+            f"The shape of the abundances array {np.shape(abund)} doesn't "
+             "match the shape of the Pyrat's abundance size "
+            f"{np.shape(pyrat.atm.q)}")
 
     # Update values:
     pyrat.atm.temp = temp

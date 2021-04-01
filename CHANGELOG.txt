@@ -6819,3 +6819,7 @@ Added test for command-line --version calls.
 
 Removed vextent, vcutoff, and raygrid warnings when defaulting values
 
+*****
+
+PEP8ed pyratbay/pyrat/read_atm.py
+
