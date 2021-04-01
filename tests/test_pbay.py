@@ -3,6 +3,7 @@
 
 import os
 import pytest
+import subprocess
 
 import numpy as np
 
@@ -226,6 +227,12 @@ expected_radius = np.array([
     7.03556550e+09, 7.03024596e+09, 7.02493358e+09, 7.01962812e+09,
     7.01432929e+09, 7.00903671e+09, 7.00374992e+09, 6.99846837e+09,
     6.99319134e+09])
+
+
+def test_command_line_root(capfd):
+    subprocess.call('pbay --root'.split())
+    captured = capfd.readouterr()
+    assert pb.constants.ROOT in captured.out
 
 
 # Warm up, check when units are well or wrongly set:

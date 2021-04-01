@@ -40,19 +40,24 @@ def main():
         add_help=True,
         formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument(
-        "-v", "--version", action="version",
+        '-v', '--version', action='version',
         help="Show Pyrat Bay's version.",
         version=f'Pyrat Bay version {pb.__version__}')
+    parser.add_argument(
+        '--root', action='version',
+        help="Show Pyrat Bay's ROOT directory.",
+        version=pb.constants.ROOT)
     group = parser.add_mutually_exclusive_group()
     group.add_argument(
-        "-c", dest='cfile', default=None,
-        help="Run Pyrat Bay for given configuration file.")
+        '-c', dest='cfile', default=None,
+        help='Run Pyrat Bay for given configuration file.')
     group.add_argument(
-        "-pf", dest='pf', default=None, nargs='+',
-        help="Format a partition-function file.")
+        '-pf', dest='pf', default=None, nargs='+',
+        help='Format a partition-function file.')
     group.add_argument(
-        "-cs", dest='cs', default=None, nargs='+',
-        help="Format a cross-section file.")
+        '-cs', dest='cs', default=None, nargs='+',
+        help='Format a cross-section file.')
+
     # Parse command-line args:
     args, unknown = parser.parse_known_args()
 
@@ -84,6 +89,6 @@ def main():
         pb.run(args.cfile)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     matplotlib.pyplot.ioff()
     main()

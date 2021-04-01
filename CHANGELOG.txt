@@ -6804,3 +6804,10 @@ PEP8ed pyratbay/pyrat/voigt.py
 
 PEP8ed parser.py
 
+
+*****  Do 1. Apr 09:25:49 CEST 2021  *****
+
+Added --root entry-point argument to display the pyratbay ROOT folder
+from the command line.
+Added test for command-line call.
+
