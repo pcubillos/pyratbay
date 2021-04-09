@@ -6845,4 +6845,26 @@ Renamed 'init' argument in driver.py's run() to 'run_step'
 (name was not the best).  Made it a string instead of bool.
 enabled 'dry' run in which the code only reads in the config file.
 
+*****
 
+Added transmission_rt, and emission_rt variables to constants module
+to specify the list of available radiative-transfer options for
+transmission and emission geometry.
+Also added rt_paths that combines transmission and emission options.
+
+*****
+
+Renamed 'path' variable to 'rt_path' to allow different
+radiative-transfer schemes for transit or emission geometry.
+Updated example config files.
+Updated tests.
+
+Renamed 'eclipse' rt_path option to 'emission' (more logic).
+
+Changed io.write_spectrum() 'eclipse' option to 'emission'.
+
+In plots.spectrum() changed path argument to rt_path, and enabled
+emission as input (in addition to transit and eclipse).
+
+In plots.contribution() changed path argument to rt_path.
+Allowed emission (instead of eclipse) and transit options.

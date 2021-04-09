@@ -157,10 +157,11 @@ def test_invalid_float_all_params(tmp_path, capfd, param):
 
 
 @pytest.mark.parametrize('param',
-    ['runmode', 'rayleigh', 'clouds', 'alkali', 'path',
+    ['runmode', 'rayleigh', 'clouds', 'alkali', 'rt_path',
      'tmodel', 'molmodel', 'retflag'])
 def test_invalid_choice(tmp_path, capfd, param, invalid):
-    cfg = make_config(tmp_path, ROOT+'tests/configs/pt_isothermal.cfg',
+    cfg = make_config(
+        tmp_path, ROOT+'tests/configs/pt_isothermal.cfg',
         reset={param:'invalid'})
     pyrat = pb.run(cfg)
     captured = capfd.readouterr()
@@ -476,7 +477,8 @@ def test_atmosphere_hydro_missing_two_props(tmp_path, capfd, param):
      'mstar', 'rstar', 'smaxis',
     ])
 def test_spectrum_missing_units(tmp_path, capfd, param):
-    cfg = make_config(tmp_path,
+    cfg = make_config(
+        tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         reset={param:'1.1'})
     pyrat = pb.run(cfg)
@@ -487,7 +489,8 @@ def test_spectrum_missing_units(tmp_path, capfd, param):
 
 
 def test_spectrum_inconsistent_wl_bounds(tmp_path, capfd):
-    cfg = make_config(tmp_path,
+    cfg = make_config(
+        tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         reset={'wllow':'2.0 um', 'wlhigh':'1.0 um'})
     pyrat = pb.run(cfg)
@@ -500,9 +503,10 @@ def test_spectrum_inconsistent_wl_bounds(tmp_path, capfd):
 
 
 @pytest.mark.parametrize('param',
-    ['rstar', 'path', 'specfile'])
+    ['rstar', 'rt_path', 'specfile'])
 def test_spectrum_transmission_missing(tmp_path, capfd, param, undefined_spec):
-    cfg = make_config(tmp_path,
+    cfg = make_config(
+        tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         remove=[param])
     pyrat = pb.run(cfg)
@@ -951,23 +955,27 @@ def test_opacity_missing(tmp_path, capfd, param, undefined_opacity):
     ['retflag', 'params', 'data', 'uncert', 'filters', 'rstar',
      'sampler', 'nsamples', 'burnin', 'nchains'])
 def test_mcmc_missing(tmp_path, capfd, param, undefined_mcmc):
-    cfg = make_config(tmp_path,
+    cfg = make_config(
+        tmp_path,
         ROOT+'tests/configs/mcmc_transmission_test.cfg',
-        reset={'path':'eclipse',
-               'kurucz':f'{ROOT}tests/inputs/fp00k0odfnew.pck'},
+        reset={
+            'rt_path': 'emission',
+            'kurucz': f'{ROOT}tests/inputs/fp00k0odfnew.pck'},
         remove=[param])
     pyrat = pb.run(cfg)
     assert pyrat is None
     captured = capfd.readouterr()
-    assert "Error in module: 'argum.py', function: 'check_spectrum'" \
-           in captured.out
+    assert \
+        "Error in module: 'argum.py', function: 'check_spectrum'" \
+        in captured.out
     assert undefined_mcmc[param] in captured.out
 
 
 def test_mcmc_missing_starspec(tmp_path, capfd):
-    cfg = make_config(tmp_path,
+    cfg = make_config(
+        tmp_path,
         ROOT+'tests/configs/mcmc_transmission_test.cfg',
-        reset={'path':'eclipse', 'retflag':'mol'},
+        reset={'rt_path':'emission', 'retflag':'mol'},
         remove=['tstar', 'tmodel'])
     pyrat = pb.run(cfg)
     assert pyrat is None
@@ -980,11 +988,13 @@ def test_mcmc_missing_starspec(tmp_path, capfd):
 @pytest.mark.parametrize('param', ['tlifile', 'csfile', 'extfile'])
 def test_spectrum_temperature_bounds(tmp_path, capfd, param, invalid_temp):
     remove = [par for par in ['tlifile', 'csfile', 'extfile'] if par != param]
-    cfg = make_config(tmp_path,
+    cfg = make_config(
+        tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        reset={'tmodel':'isothermal', 'tpars':'6000.0',
-               'extfile':f'{ROOT}tests/outputs/'
-                          'exttable_test_300-3000K_1.1-1.7um.npz'},
+        reset={
+            'tmodel': 'isothermal',
+            'tpars': '6000.0',
+            'extfile': f'{ROOT}tests/outputs/exttable_test_300-3000K_1.1-1.7um.npz'},
         remove=remove)
     pyrat = pb.run(cfg)
     assert pyrat is not None

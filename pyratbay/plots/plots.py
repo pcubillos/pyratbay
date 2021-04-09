@@ -86,13 +86,12 @@ def alphatize(colors, alpha, bg='w'):
     return rgb
 
 
-def spectrum(spectrum, wavelength, path,
-        data=None, uncert=None, bandwl=None, bandflux=None,
-        bandtrans=None, bandidx=None,
-        starflux=None, rprs=None, label='model', bounds=None,
-        logxticks=None,
-        gaussbin=2.0, yran=None, filename=None, fignum=501,
-        axis=None):
+def spectrum(spectrum, wavelength, rt_path,
+    data=None, uncert=None, bandwl=None, bandflux=None,
+    bandtrans=None, bandidx=None,
+    starflux=None, rprs=None, label='model', bounds=None,
+    logxticks=None,
+    gaussbin=2.0, yran=None, filename=None, fignum=501, axis=None):
     """
     Plot a transmission or emission model spectrum with (optional) data
     points with error bars and band-integrated model.
@@ -103,8 +102,8 @@ def spectrum(spectrum, wavelength, path,
         Planetary spectrum evaluated at wavelength.
     wavelength: 1D float ndarray
         The wavelength of the model in microns.
-    path: String
-        Observing-geometry path: transit or eclipse.
+    rt_path: String
+        Radiative-transfer observing geometry (transit, eclipse, or emission).
     data: 1D float ndarray
         Observing data points at each bandwl.
     uncert: 1D float ndarray
@@ -148,8 +147,8 @@ def spectrum(spectrum, wavelength, path,
     """
     # Plotting setup:
     fs = 14.0
-    ms =  6.0
-    lw =  1.25
+    ms = 6.0
+    lw = 1.25
 
     if axis is None:
         plt.figure(fignum, (8, 5))
@@ -168,19 +167,19 @@ def spectrum(spectrum, wavelength, path,
 
 
     # Setup according to geometry:
-    if path == 'eclipse':
-        if starflux is not None and rprs is not None:
-            spectrum = spectrum/starflux * rprs**2.0
-            if bounds is not None:
-                bounds = [bound/starflux * rprs**2.0 for bound in bounds]
-            fscale = 1e3
-            plt.ylabel(r'$F_{\rm p}/F_{\rm s}\ (10^{-3})$', fontsize=fs)
-        else:
-            fscale = 1.0
-            plt.ylabel(r'$F_{\rm p}$ (erg s$^{-1}$ cm$^{-2}$ cm)', fontsize=fs)
-    elif path == 'transit':
-        fscale = 100.0
-        plt.ylabel(r'$(R_{\rm p}/R_{\rm s})^2$  (%)', fontsize=fs)
+    if rt_path == 'emission':
+        fscale = 1.0
+        plt.ylabel(r'$F_{\rm p}$ (erg s$^{-1}$ cm$^{-2}$ cm)', fontsize=fs)
+    if rt_path == 'eclipse':
+        #if starflux is not None and rprs is not None:
+        spectrum = spectrum/starflux * rprs**2.0
+        if bounds is not None:
+            bounds = [bound/starflux * rprs**2.0 for bound in bounds]
+        fscale = 1.0 / pc.ppt
+        plt.ylabel(r'$F_{\rm p}/F_{\rm s}\ (ppt)$', fontsize=fs)
+    elif rt_path == 'transit':
+        fscale = 1.0 / pc.percent
+        plt.ylabel(r'$(R_{\rm p}/R_{\rm s})^2$ (%)', fontsize=fs)
 
     gmodel = gaussf(spectrum, gaussbin)
     if bounds is not None:
@@ -196,8 +195,9 @@ def spectrum(spectrum, wavelength, path,
     plt.plot(wavelength, gmodel*fscale, lw=lw, **spec_kw)
     # Plot band-integrated model:
     if bandflux is not None and bandwl is not None:
-        plt.plot(bandwl, bandflux*fscale, 'o', ms=ms, color='tomato',
-                 mec='maroon', mew=lw)
+        plt.plot(
+            bandwl, bandflux*fscale, 'o', ms=ms, color='tomato',
+            mec='maroon', mew=lw)
     # Plot data:
     if data is not None and uncert is not None and bandwl is not None:
         plt.errorbar(
@@ -234,8 +234,8 @@ def spectrum(spectrum, wavelength, path,
     return ax
 
 
-def contribution(contrib_func, wl, path, pressure, radius, rtop=0,
-        filename=None, filters=None, fignum=-21):
+def contribution(contrib_func, wl, rt_path, pressure, radius, rtop=0,
+    filename=None, filters=None, fignum=-21):
     """
     Plot the band-integrated normalized contribution functions
     (emission) or transmittance (transmission).
@@ -246,8 +246,8 @@ def contribution(contrib_func, wl, path, pressure, radius, rtop=0,
         Band-integrated contribution functions [nfilters, nlayers].
     wl: 1D float ndarray
         Mean wavelength of the bands in microns.
-    path: String
-        Observing geometry (transit or eclipse).
+    rt_path: String
+        Radiative-transfer observing geometry (emission or transit).
     pressure: 1D float ndarray
         Layer's pressure array (barye units).
     radius: 1D float ndarray
@@ -275,7 +275,7 @@ def contribution(contrib_func, wl, path, pressure, radius, rtop=0,
       displayed filter names.
     """
     nfilters = len(wl)
-    nlayers  = len(pressure)
+    nlayers = len(pressure)
 
     wlsort = np.argsort(wl)
     wl = wl[wlsort]
@@ -284,25 +284,31 @@ def contribution(contrib_func, wl, path, pressure, radius, rtop=0,
         filters = [filters[i] for i in wlsort]
 
     press = pressure[rtop:]/pc.bar
-    rad   = radius  [rtop:]/pc.km
+    rad = radius[rtop:]/pc.km
 
     press = pressure[rtop:]/pc.bar
     rad = radius[rtop:]/pc.km
     zz = contrib_func/np.amax(contrib_func)
-    if path == 'eclipse':
+
+    is_emission = rt_path == 'emission'
+    is_transit = rt_path == 'transit'
+
+    if is_emission:
         yran = np.amax(np.log10(press)), np.amin(np.log10(press))
         xlabel = 'contribution function'
         ylabel = ''
         yright = 0.9
         cbtop  = 0.5
-    elif path == 'transit':
+    elif is_transit:
         yran = np.amin(rad), np.amax(rad)
-        xlabel = r'transmittance'
-        ylabel = r'Impact parameter (km)'
+        xlabel = 'transmittance'
+        ylabel = 'Impact parameter (km)'
         yright = 0.84
         cbtop  = 0.8
     else:
-        print("Invalid geometry.  Select from: 'eclipse' or 'transit'.")
+        print(
+            "Invalid radiative-transfer geometry.  "
+            "Select from: 'emission' or 'transit'.")
         return
 
     fs  = 12
@@ -320,11 +326,11 @@ def contribution(contrib_func, wl, path, pressure, radius, rtop=0,
     phi = np.zeros(nfilters+1)
     for i in np.arange(nfilters):
         z[i] = plt.cm.rainbow(colors[i])
-        z[i,:,-1] = zz[:,i]**(0.5+0.5*(path=='transit'))
-        if path == 'eclipse':
+        z[i,:,-1] = zz[:,i]**(0.5+0.5*(is_transit))
+        if is_emission:
             cumul = np.cumsum(zz[:,i])/np.sum(zz[:,i])
             plo[i], phi[i] = press[cumul>lo][0], press[cumul>hi][0]
-        elif path == 'transit':
+        elif is_transit:
             plo[i], phi[i] = press[zz[:,i]<lo][0], press[zz[:,i]<hi][0]
     plo[-1] = plo[-2]
     phi[-1] = phi[-2]
@@ -334,16 +340,18 @@ def contribution(contrib_func, wl, path, pressure, radius, rtop=0,
     plt.subplots_adjust(0.105, 0.10, yright, 0.95)
     ax = plt.subplot(111)
     pax = ax.twinx()
-    if path == 'eclipse':
-        ax.imshow(z.swapaxes(0,1), aspect='auto',
+    if is_emission:
+        ax.imshow(
+            z.swapaxes(0,1), aspect='auto',
             extent=[0, nfilters, yran[0], yran[1]],
             origin='upper', interpolation='nearest')
         ax.yaxis.set_visible(False)
         pax.spines['left'].set_visible(True)
         pax.yaxis.set_label_position('left')
         pax.yaxis.set_ticks_position('left')
-    elif path == 'transit':
-        ax.imshow(z.swapaxes(0,1), aspect='auto',
+    elif is_transit:
+        ax.imshow(
+            z.swapaxes(0,1), aspect='auto',
             extent=[0,nfilters,yran[0],yran[1]],
             origin='upper', interpolation='nearest')
         # Setting the right radius tick labels requires some sorcery:
@@ -376,17 +384,19 @@ def contribution(contrib_func, wl, path, pressure, radius, rtop=0,
         if filters is not None:
             fname = (os.path.split(os.path.splitext(filters[i])[0])[1]
                      + ' @' + fname)
-        ax.text(i+0.1, yran[1], fname, rotation=90, ha='left', va='top',
-                fontsize=ffs)
+        ax.text(
+            i+0.1, yran[1], fname, rotation=90, ha='left', va='top',
+            fontsize=ffs)
 
     # Color bar:
     cbar = plt.axes([0.925, 0.10, 0.015, 0.85])
     cz = np.zeros((100, 2, 4), dtype=float)
-    cz[:,0,3] = np.linspace(0.0,cbtop,100)**(0.5+0.5*(path=='transit'))
-    cz[:,1,3] = np.linspace(0.0,cbtop,100)**(0.5+0.5*(path=='transit'))
-    cbar.imshow(cz, aspect='auto', extent=[0, 1, 0, 1],
-                origin='lower', interpolation='nearest')
-    if path == 'transit':
+    cz[:,0,3] = np.linspace(0.0,cbtop,100)**(0.5+0.5*(is_transit))
+    cz[:,1,3] = np.linspace(0.0,cbtop,100)**(0.5+0.5*(is_transit))
+    cbar.imshow(
+        cz, aspect='auto', extent=[0, 1, 0, 1],
+        origin='lower', interpolation='nearest')
+    if is_transit:
         cbar.axhline(0.1585, color='k', lw=1.0, dashes=(2.5,1))
         cbar.axhline(0.8415, color='w', lw=1.0, dashes=(2.5,1))
     cbar.spines['right'].set_visible(True)
@@ -402,8 +412,8 @@ def contribution(contrib_func, wl, path, pressure, radius, rtop=0,
 
 
 def temperature(pressure, profiles=None, labels=None, colors=None,
-        bounds=None, punits='bar', ax=None, filename=None,
-        theme='blue', alpha=[0.8,0.6], fs=13, lw=2.0, fignum=504):
+    bounds=None, punits='bar', ax=None, filename=None,
+    theme='blue', alpha=[0.8,0.6], fs=13, lw=2.0, fignum=504):
     """
     Plot temperature profiles.
 
@@ -505,9 +515,9 @@ def temperature(pressure, profiles=None, labels=None, colors=None,
 
 
 def abundance(vol_mix_ratios, pressure, species,
-        highlight=None, xlim=None, punits='bar',
-        colors=None, dashes=None, filename=None,
-        lw=2.0, fignum=505, fs=13, legend_fs=None, ax=None):
+    highlight=None, xlim=None, punits='bar',
+    colors=None, dashes=None, filename=None,
+    lw=2.0, fignum=505, fs=13, legend_fs=None, ax=None):
     """
     Plot atmospheric volume-mixing-ratio abundances.
 

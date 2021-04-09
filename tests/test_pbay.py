@@ -408,9 +408,10 @@ def test_atmosphere_hydro_default_runits(tmp_path):
 
 
 def test_spectrum_emission(tmp_path):
-    cfg = make_config(tmp_path,
+    cfg = make_config(
+        tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        reset={'path':'eclipse', 'cpars':'-0.5'})
+        reset={'rt_path':'emission', 'cpars':'-0.5'})
     pyrat = pb.run(cfg)
     assert pyrat is not None
     # TBD: implement asserts

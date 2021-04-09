@@ -307,17 +307,19 @@ class Pyrat(object):
 
       if spectrum is None:
           spectrum = self.spec.spectrum
-      specwn   = self.spec.wn
-      bandidx  = self.obs.bandidx
+      specwn = self.spec.wn
+      bandidx = self.obs.bandidx
 
-      if self.od.path == 'transit':
+      if self.od.rt_path in pc.transmission_rt:
           bandtrans = self.obs.bandtrans
-      elif self.od.path == 'eclipse':
-          bandtrans = [btrans/sflux * (self.phy.rplanet/self.phy.rstar)**2
-               for btrans, sflux in zip(self.obs.bandtrans, self.obs.starflux)]
+      elif self.od.rt_path in pc.emission_rt:
+          bandtrans = [
+              btrans/sflux * (self.phy.rplanet/self.phy.rstar)**2
+              for btrans, sflux in zip(self.obs.bandtrans, self.obs.starflux)]
 
-      self.obs.bandflux = np.array([np.trapz(spectrum[idx]*btrans, specwn[idx])
-                                    for btrans, idx in zip(bandtrans, bandidx)])
+      self.obs.bandflux = np.array([
+          np.trapz(spectrum[idx]*btrans, specwn[idx])
+          for btrans, idx in zip(bandtrans, bandidx)])
 
       return self.obs.bandflux
 
@@ -556,7 +558,11 @@ class Pyrat(object):
       # kwargs can overwite any of the previous value:
       pyrat_args.update(kwargs)
 
-      ax = pp.spectrum(spectrum, wavelength, self.od.path, **pyrat_args)
+      if self.od.rt_path in pc.transmission_rt:
+          rt_path = 'transit'
+      elif self.od.rt_path in pc.emission_rt:
+          rt_path = 'eclipse'
+      ax = pp.spectrum(spectrum, wavelength, rt_path, **pyrat_args)
       return ax
 
 

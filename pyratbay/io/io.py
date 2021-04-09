@@ -334,7 +334,7 @@ def read_atm(atmfile):
 
 def write_spectrum(wl, spectrum, filename, type, wlunits='um'):
   """
-  Write a Pyrat spectrum to file.
+  Write a spectrum to file.
 
   Parameters
   ----------
@@ -347,9 +347,9 @@ def write_spectrum(wl, spectrum, filename, type, wlunits='um'):
       Output file name.
   type: String
       Data type:
-      'transit' for transmission,
-      'eclipse' for emission,
-      'filter' for a instrumental filter transmission.
+      - 'transit' for transmission
+      - 'emission' for emission
+      - 'filter' for a instrumental filter transmission
   wlunits: String
       Output units for wavelength.
 
@@ -364,15 +364,15 @@ def write_spectrum(wl, spectrum, filename, type, wlunits='um'):
   if type == "transit":
       spectype  = "(Rp/Rs)**2"
       specunits = "unitless"
-  elif type == "eclipse":
+  elif type == "emission":
       spectype  = "Flux"
       specunits = "erg s-1 cm-2 cm"
   elif type == "filter":
       spectype  = "transmission"
       specunits = "unitless"
   else:
-      raise ValueError("Input 'type' argument must be 'transit', 'eclipse',"
-                       " or 'filter'.")
+      raise ValueError(
+          "Input 'type' argument must be 'transit', 'emission', or 'filter'.")
 
   # Wavelength units in brackets:
   wl = wl/pt.u(wlunits)

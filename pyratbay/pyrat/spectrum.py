@@ -4,6 +4,7 @@
 import numpy as np
 from scipy.interpolate import interp1d
 
+from .. import constants as pc
 from .. import io as io
 from .. import spectrum as ps
 from ..lib import _trapz as t
@@ -22,17 +23,21 @@ def spectrum(pyrat):
         pyrat.spec.cloudy = np.empty(pyrat.spec.nwave, np.double)
 
     # Call respective function depending on the geometry:
-    if pyrat.od.path == 'transit':
+    if pyrat.od.rt_path in pc.transmission_rt:
         modulation(pyrat)
 
-    elif pyrat.od.path == 'eclipse':
+    elif pyrat.od.rt_path in pc.emission_rt:
         intensity(pyrat)
         flux(pyrat)
 
     # Print spectrum to file:
+    if pyrat.od.rt_path in pc.transmission_rt:
+        spec_type = 'transit'
+    elif pyrat.od.rt_path in pc.emission_rt:
+        spec_type = 'emission'
+
     io.write_spectrum(
-        1.0/pyrat.spec.wn, pyrat.spec.spectrum,
-        pyrat.spec.specfile, pyrat.od.path)
+        1.0/pyrat.spec.wn, pyrat.spec.spectrum, pyrat.spec.specfile, spec_type)
     pyrat.log.head('Done.')
 
 

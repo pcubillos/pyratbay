@@ -427,7 +427,7 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         parse_array(args, 'alkali')
         parse_float(args, 'alkali_cutoff')
         # Optical depth options:
-        parse_str(args,   'path')
+        parse_str(args,   'rt_path')
         parse_float(args, 'maxdepth')
         parse_array(args, 'raygrid')
         parse_int(args,   'quadrature')
@@ -691,9 +691,9 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
     pyrat.cloud.fpatchy = args.get_default(
         'fpatchy', 'Patchy-cloud fraction', ge=0.0, le=1.0)
 
-    pyrat.od.path = args.get_choice(
-        'path', 'observing geometry', ['transit', 'eclipse'])
-    pyrat.spec._path = pyrat.od.path
+    pyrat.od.rt_path = args.get_choice(
+        'rt_path', 'radiative-transfer observing geometry', pc.rt_paths)
+    pyrat.spec._rt_path = pyrat.od.rt_path
 
     pyrat.ex.ethresh = args.get_default(
         'ethresh', 'Extinction-cofficient threshold', 1e-15, gt=0.0)

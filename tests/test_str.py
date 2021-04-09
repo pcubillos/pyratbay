@@ -381,7 +381,7 @@ Atmospheric-model extinction coefficient (ec, cm-1):
 
     assert str(pyrat.od) == """\
 Optical depth information:
-Observing geometry (path): transit
+Observing geometry (rt_path): transit
 Total atmospheric extinction coefficient (ec, cm-1) [layer, wave]:
 [[ 5.613e-17  1.806e-14  5.620e-17 ...  7.134e-16  3.406e-16  3.567e-16]
  [ 7.067e-17  2.274e-14  7.076e-17 ...  8.981e-16  4.288e-16  4.490e-16]
@@ -564,9 +564,10 @@ Modulation spectrum, (Rp/Rs)**2 (spectrum):
 
 
 def test_pyrat_emission_str(tmp_path):
-    cfg = make_config(tmp_path,
+    cfg = make_config(
+        tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
-    reset={'path':'eclipse'})
+        reset={'rt_path': 'emission'})
     pyrat = pb.run(cfg)
     assert pyrat is not None
     assert str(pyrat.spec) == """\
@@ -596,7 +597,7 @@ Emission spectrum (spectrum, erg s-1 cm-2 cm):
 
     assert str(pyrat.od) == """\
 Optical depth information:
-Observing geometry (path): eclipse
+Observing geometry (rt_path): emission
 Total atmospheric extinction coefficient (ec, cm-1) [layer, wave]:
 [[ 5.613e-17  1.806e-14  5.620e-17 ...  7.134e-16  3.406e-16  3.567e-16]
  [ 7.067e-17  2.274e-14  7.076e-17 ...  8.981e-16  4.288e-16  4.490e-16]

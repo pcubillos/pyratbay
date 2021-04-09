@@ -69,7 +69,7 @@ def check_spectrum(pyrat):
                     'are no input TLI files.')
 
   if pyrat.runmode == 'mcmc':
-      if pyrat.od.path == 'eclipse':
+      if pyrat.od.rt_path in pc.emission_rt:
           if pyrat.phy.rplanet is None or pyrat.phy.rstar is None:
               log.error("Undefined radius ratio (need rplanet and rstar).")
       if pyrat.obs.data is None:
@@ -137,13 +137,16 @@ def check_spectrum(pyrat):
 
   # Check alkali arguments:
   if pyrat.alkali.model_names is not None:
-      pyrat.alkali.models = [pa.alkali.get_model(name, pyrat.alkali.cutoff)
-                             for name in pyrat.alkali.model_names]
+      pyrat.alkali.models = [
+          pa.alkali.get_model(name, pyrat.alkali.cutoff)
+          for name in pyrat.alkali.model_names]
 
   # Accept ray-path argument:
-  if pyrat.runmode in ['spectrum', 'mcmc'] and pyrat.od.path is None:
-      log.error("Undefined observing geometry (path).  Select between "
-                "'transit' or 'eclipse'.")
+  print(pyrat.od)
+  if pyrat.runmode in ['spectrum', 'mcmc'] and pyrat.od.rt_path is None:
+      log.error(
+          "Undefined radiative-transfer observing geometry (rt_path)."
+          f"  Select from {pc.rt_paths}.")
 
   if 'temp' in pyrat.ret.retflag and atm.tmodelname is None:
       log.error('Requested temp in retflag, but there is no tmodel.')
@@ -158,7 +161,7 @@ def check_spectrum(pyrat):
       log.error('Requested cloud in retflag, but there are no cloud models.')
 
   # Check system arguments:
-  if pyrat.od.path == 'transit' and phy.rstar is None:
+  if pyrat.od.rt_path in pc.transmission_rt and phy.rstar is None:
       log.error('Undefined stellar radius (rstar), required for transmission '
                 'calculation.')
 
@@ -286,7 +289,8 @@ def setup(pyrat):
       sinterp = si.interp1d(phy.starwn, phy.starflux)
       pyrat.spec.starflux = sinterp(pyrat.spec.wn)
 
-  if pyrat.runmode=='mcmc' and pyrat.od.path=='eclipse' and starflux is None:
+  is_emission = pyrat.od.rt_path in pc.emission_rt
+  if pyrat.runmode=='mcmc' and is_emission and starflux is None:
       log.error('Undefined stellar flux model.  Set starspec, kurucz, or '
                 'tstar (for a blackbody spectrum).')
 

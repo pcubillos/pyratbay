@@ -219,25 +219,30 @@ def run(cfile, run_step='run', no_logfile=False):
         pyrat.plot_temperature(
             filename=f'{outfile}_posterior_temperature_profile.png')
 
-    if pyrat.od.path == "eclipse":
+    is_emission = pyrat.od.rt_path in pc.emission_rt
+    is_transit = pyrat.od.rt_path in pc.transmission_rt
+
+    if is_emission:
         cf = ps.contribution_function(
             pyrat.od.depth, pyrat.atm.press, pyrat.od.B)
         bcf = ps.band_cf(
             cf, pyrat.obs.bandtrans, pyrat.spec.wn, pyrat.obs.bandidx)
-    elif pyrat.od.path == "transit":
+    elif is_transmission:
         transmittance = ps.transmittance(pyrat.od.depth, pyrat.od.ideep)
         bcf = ps.band_cf(
             transmittance, pyrat.obs.bandtrans, pyrat.spec.wn,
             pyrat.obs.bandidx)
 
+    path = 'transit' if is_transit else 'emission'
     pp.contribution(
-          bcf, 1.0/(pyrat.obs.bandwn*pc.um), pyrat.od.path,
-          pyrat.atm.press, pyrat.atm.radius,
-          pyrat.atm.rtop, filename=f"{outfile}_bestfit_cf.png")
+        bcf, 1.0/(pyrat.obs.bandwn*pc.um), path,
+        pyrat.atm.press, pyrat.atm.radius,
+        pyrat.atm.rtop, filename=f"{outfile}_bestfit_cf.png")
 
     pyrat.log = log  # Un-mute
-    log.msg("\nOutput MCMC posterior results, log, bestfit atmosphere, "
-        "and spectrum:"
+    log.msg(
+       "\nOutput MCMC posterior results, log, bestfit atmosphere, "
+       "and spectrum:"
        f"\n'{outfile}.npz'"
        f"\n'{os.path.basename(inputs.logfile)}'"
        f"\n'{bestatm}'"
@@ -327,5 +332,4 @@ def check_altitude(pyrat):
     if pyrat.atm.refpressure is None:
         log.error('Cannot compute hydrostatic-equilibrium radius profile.  '
             'Undefined reference pressure level (refpressure).')
-
 

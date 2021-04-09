@@ -18,9 +18,10 @@ os.chdir(ROOT+'tests')
 
 
 def test_load_save_pyrat(tmp_path):
-    cfg = make_config(tmp_path,
+    cfg = make_config(
+        tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        reset={'cpars':'1.0'})
+        reset={'cpars': '1.0'})
     pyrat = pb.run(cfg)
     spectrum = np.copy(pyrat.spec.spectrum)
     io.save_pyrat(pyrat)
@@ -41,8 +42,8 @@ def test_read_write_spectrum(tmpdir):
 
     wl = np.linspace(1.1, 1.7, 7) * 1e-4
     spectrum = np.ones(7)
-    io.write_spectrum(wl, spectrum, filename=tmp_file, type='transit',
-                      wlunits='um')
+    io.write_spectrum(
+        wl, spectrum, filename=tmp_file, type='transit', wlunits='um')
     # Take a look at the output file:
     assert sfile in os.listdir(str(tmpdir))
     with open(tmp_file, 'r') as f:
@@ -84,8 +85,8 @@ def test_read_write_spectrum_filter(tmpdir):
 def test_write_spectrum_bad_type():
     wl = np.linspace(1.4, 1.5, 20)
     trans = np.ones(20)
-    with pytest.raises(ValueError, match="Input 'type' argument must be "
-                                         "'transit', 'eclipse', or 'filter'."):
+    match = "Input 'type' argument must be 'transit', 'emission', or 'filter'."
+    with pytest.raises(ValueError, match=match):
         io.write_spectrum(wl, trans, "tophat_filter.dat", 'bad_type')
 
 

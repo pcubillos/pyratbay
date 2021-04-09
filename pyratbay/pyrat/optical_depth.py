@@ -8,6 +8,7 @@ import numpy as np
 
 from . import extinction as ex
 from .. import atmosphere as pa
+from .. import constants as pc
 from ..lib import _extcoeff as ec
 from ..lib import _trapz as t
 from ..lib import cutils as cu
@@ -33,9 +34,9 @@ def optical_depth(pyrat):
         od.depth_clear = np.zeros((nlayers, nwave))
 
     # Calculate the ray path:
-    if pyrat.od.path == 'eclipse':
+    if pyrat.od.rt_path in pc.emission_rt:
         pyrat.od.raypath = -cu.ediff(pyrat.atm.radius)
-    elif pyrat.od.path == 'transit':
+    elif pyrat.od.rt_path in pc.transmission_rt:
         pyrat.od.raypath = pa.transit_path(pyrat.atm.radius, pyrat.atm.rtop)
 
     # Interpolate extinction coefficient from table:
@@ -81,7 +82,7 @@ def optical_depth(pyrat):
         deck = pyrat.cloud.models[pyrat.cloud.model_names.index('deck')]
         rbottom = deck.itop + 1
     # Calculate the optical depth for each wavenumber:
-    if od.path == 'eclipse':
+    if od.rt_path in pc.emission_rt:
         od.ideep = np.tile(nlayers-1, nwave)
         i = 0
         while i < nwave:
@@ -90,7 +91,7 @@ def optical_depth(pyrat):
                 od.maxdepth)
             i += 1
 
-    elif od.path == 'transit':
+    elif od.rt_path in pc.transmission_rt:
         od.ideep = ideep = np.array(np.tile(-1, nwave), dtype=np.intc)
         r = rtop
         # Optical depth at each level (tau = 2.0*integral e*ds):

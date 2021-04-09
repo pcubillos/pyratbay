@@ -77,7 +77,7 @@ class Spectrum(object):
           fmt={'float': '{: .3f}'.format})
       fw.write('Oversampling factor (wnosamp): {:d}', self.wnosamp)
 
-      if self._path == 'eclipse':
+      if self._rt_path in pc.emission_rt:
           if self.quadrature is not None:
               fw.write('Number of Gaussian-quadrature points for intensity '
                   'integration into flux (quadrature): {}', self.quadrature)
@@ -90,7 +90,7 @@ class Spectrum(object):
                   fw.write('    {}', intensity, fmt=fmt, edge=3)
           fw.write('Emission spectrum (spectrum, erg s-1 cm-2 cm):\n'
                    '    {}', self.spectrum, fmt=fmt, edge=3)
-      elif self._path == 'transit':
+      elif self._rt_path in pc.transmission_rt:
           fw.write('\nModulation spectrum, (Rp/Rs)**2 (spectrum):\n'
                    '    {}', self.spectrum, fmt=fmt, edge=3)
       return fw.text
@@ -519,7 +519,7 @@ class Alkali(object):
 class Optdepth(object):
   def __init__(self):
       self.maxdepth = None  # Maximum optical depth to calculate
-      self.path     = None  # Observing geometry
+      self.rt_path  = None  # Radiative=transfer observing geometry
       self.ec       = None  # Total extinction coefficient [nlayers, nwave]
       self.epatchy  = None  # Cloudy extinction coefficient for patchy model
       self.raypath  = []    # Distance along ray path  [nlayers]
@@ -531,7 +531,7 @@ class Optdepth(object):
   def __str__(self):
       fw = pt.Formatted_Write()
       fw.write('Optical depth information:')
-      fw.write('Observing geometry (path): {}', self.path)
+      fw.write('Observing geometry (rt_path): {}', self.rt_path)
       if self.ec is not None:
           fw.write('Total atmospheric extinction coefficient (ec, cm-1) [layer'
                    ', wave]:\n{}', self.ec, fmt={'float':'{: .3e}'.format})
@@ -541,7 +541,7 @@ class Optdepth(object):
           return fw.text
 
       ideepest = np.amax(self.ideep)
-      if self.path == 'transit':
+      if self.rt_path in pc.transmission_rt:
           fw.write('\nDistance along the ray path across each layer '
                    '(outside-in) at each impact parameter (raypath, km):')
           with np.printoptions(formatter={'float':'{:.1f}'.format},threshold=6):
@@ -553,7 +553,7 @@ class Optdepth(object):
                        self.raypath[len(self.raypath)-1]/pc.km)
           od_text = ('\nOptical depth at each impact parameter, down to '
                      'max(ideep) (depth):')
-      elif self.path == 'eclipse':
+      elif self.rt_path in pc.emission_rt:
           fw.write('\nDistance across each layer along a normal ray path '
               '(raypath, km):\n    {}', self.raypath/pc.km,
               fmt={'float':'{:.1f}'.format}, edge=4)
@@ -566,7 +566,7 @@ class Optdepth(object):
                '\n    {}', self.ideep, fmt={'int': '{:3d}'.format}, edge=7)
       fw.write('Maximum ideep (deepest layer reaching maxdepth): {}', ideepest)
 
-      if self.path == 'eclipse':
+      if self.rt_path in pc.emission_rt:
           fw.write('\nPlanck emission down to max(ideep) (B, erg s-1 cm-2 '
                    'sr-1 cm):\n{}', self.B[0:ideepest+1],
                    fmt={'float':'{: .3e}'.format})

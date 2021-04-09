@@ -73,14 +73,14 @@ def undefined_spec():
                    'wnlow or wlhigh.',
         'wnstep':  'Undefined wavenumber sampling step size (wnstep).',
         'wnosamp': 'Undefined wavenumber oversampling factor (wnosamp).',
-        'path':    "Undefined observing geometry (path).  Select between "
-                   "'transit' or 'eclipse'.",
+        'rt_path': 'Undefined radiative-transfer observing geometry (rt_path).'
+                   '  Select from',
         'specfile': 'Undefined output spectrum file (specfile).',
         'tlifile': 'TLI file (tlifile) does not exist',
          # Transmission
         'rstar': 'Undefined stellar radius (rstar), required for '
                  'transmission calculation.',
-    }
+        }
     return data
 
 
@@ -140,7 +140,8 @@ def invalid():
         'rayleigh':'Invalid Rayleigh model (rayleigh): invalid. Select from',
         'clouds':  'Invalid cloud model (clouds): invalid. Select from',
         'alkali':  'Invalid alkali model (alkali): invalid. Select from',
-        'path':    'Invalid observing geometry (path): invalid. Select from',
+        'rt_path': 'Invalid radiative-transfer observing geometry (rt_path):'
+                   ' invalid. Select\nfrom',
         'tmodel':  'Invalid temperature model (tmodel): invalid. Select from',
         'molmodel': 'Invalid molecular-abundance model (molmodel): invalid. '
                     'Select from',
