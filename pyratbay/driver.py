@@ -1,7 +1,9 @@
 # Copyright (c) 2021 Patricio Cubillos
 # Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
-__all__ = ["run"]
+__all__ = [
+    'run',
+    ]
 
 import os
 
@@ -19,7 +21,7 @@ from .pyrat import Pyrat
 
 
 @pt.ignore_system_exit
-def run(cfile, init=False, no_logfile=False):
+def run(cfile, run_step='run', no_logfile=False):
     """
     Pyrat Bay initialization driver.
 
@@ -27,9 +29,10 @@ def run(cfile, init=False, no_logfile=False):
     ----------
     cfile: String
         A Pyrat Bay configuration file.
-    init: Bool
-        If True, only initialize a Pyrat object (no spectra/mcmc calculation).
-        This is useful when computing spectra interactively.
+    run_step: String
+        If 'dry': only read the configuration file into a Pyrat object
+        If 'init': initialize a Pyrat object (but no spectra calculation).
+        If 'run': run all the way (default).
     no_logfile: Bool
         If True, enforce not to write outputs to a log file
         (e.g., to prevent overwritting log of a previous run).
@@ -41,6 +44,9 @@ def run(cfile, init=False, no_logfile=False):
     ret = pyrat.ret
     inputs = pyrat.inputs
 
+    if run_step == 'dry':
+        return pyrat
+
     # Call lineread package:
     if pyrat.runmode == 'tli':
         if pyrat.lt.tlifile is None:
@@ -50,7 +56,6 @@ def run(cfile, init=False, no_logfile=False):
             pyrat.lt.tlifile[0], pyrat.spec.wllow, pyrat.spec.wlhigh,
             pyrat.spec.wlunits, log)
         return
-
 
     # Get gplanet from mplanet and rplanet if necessary:
     mplanet = phy.mplanet is not None
@@ -145,7 +150,7 @@ def run(cfile, init=False, no_logfile=False):
     #    pyrat = Pyrat(args, log=log)
 
     # Stop and return if requested:
-    if init or pyrat.runmode == 'opacity':
+    if run_step == 'init' or pyrat.runmode == 'opacity':
         return pyrat
 
     # Compute spectrum and return pyrat object if requested:
@@ -190,7 +195,7 @@ def run(cfile, init=False, no_logfile=False):
     pyrat.spec.specfile = f"{outfile}_bestfit_spectrum.dat"
     pyrat.ret.spec_best, pyrat.ret.bestbandflux = pyrat.eval(bestp)
 
-    header  = "# MCMC best-fitting atmospheric model.\n\n"
+    header = "# MCMC best-fitting atmospheric model.\n\n"
     bestatm = f"{outfile}_bestfit_atmosphere.atm"
     io.write_atm(
         bestatm, pyrat.atm.press, pyrat.atm.temp, pyrat.mol.name,

@@ -30,8 +30,9 @@ def spectrum(pyrat):
         flux(pyrat)
 
     # Print spectrum to file:
-    io.write_spectrum(1.0/pyrat.spec.wn, pyrat.spec.spectrum,
-                      pyrat.spec.specfile, pyrat.od.path)
+    io.write_spectrum(
+        1.0/pyrat.spec.wn, pyrat.spec.spectrum,
+        pyrat.spec.specfile, pyrat.od.path)
     pyrat.log.head('Done.')
 
 

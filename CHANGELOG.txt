@@ -6838,4 +6838,11 @@ Minor get-started docs update.
 
 Bumped version to 0.9.3.
 
-*****
+
+*****  Fr 9. Apr 16:43:12 CEST 2021  *****
+
+Renamed 'init' argument in driver.py's run() to 'run_step'
+(name was not the best).  Made it a string instead of bool.
+enabled 'dry' run in which the code only reads in the config file.
+
+
