@@ -6868,3 +6868,8 @@ emission as input (in addition to transit and eclipse).
 
 In plots.contribution() changed path argument to rt_path.
 Allowed emission (instead of eclipse) and transit options.
+
+*****
+
+Minor tweak in README file.
+
