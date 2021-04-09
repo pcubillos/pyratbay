@@ -57,6 +57,9 @@ __all__ = [
     # Choices
     'dbases',
     'rmodes',
+    'transmission_rt',
+    'emission_rt',
+    'rt_paths',
     'retflags',
     'tmodels',
     'chemmodels',
@@ -65,7 +68,7 @@ __all__ = [
     'amodels',
     'rmodels',
     'cmodels',
-]
+    ]
 
 import os
 import scipy.constants as sc
@@ -182,6 +185,19 @@ rmodes = [
     'spectrum',
     'mcmc',
     ]
+
+# Transmission radiative transfer:
+transmission_rt = [
+    'transit',
+    ]
+
+# Emission radiative transfer:
+emission_rt = [
+    'emission',
+    ]
+
+# Radiative-transfer observing geometry:
+rt_paths = transmission_rt + emission_rt
 
 # Retrieval flags:
 retflags = [
