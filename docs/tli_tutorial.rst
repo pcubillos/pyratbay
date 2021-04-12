@@ -22,37 +22,46 @@ Available Databases
 The following table lists the available
 LBL opacity databases that are compatible with ``Pyrat Bay``:
 
-======================= ====================================== ===============
-Source                   Species                                References
-======================= ====================================== ===============
-`HITRAN`_               |H2O|, CO, |CO2|, |CH4| (+others)      [Rothman2013]_
-                                                               [Gordon2017]_
-`HITEMP`_               |H2O|, CO, |CO2|, NO, OH, |N2O|, |NO2| [Rothman2010]_
-                                                               [Li2015]_
-                                                               [Hargreaves2019]_
-`ExoMol`_               |H2O|, CO, |CO2|, |CH4|, TiO (+others) [Tennyson2016]_
-`Partridge & Schwenke`_ |H2O|                                  [PS1997]_
-`Schwenke`_             TiO                                    [Schwenke1998]_
-Plez                    VO                                     [Plez1998]_
-======================= ====================================== ===============
+.. list-table::
+   :header-rows: 1
+
+   * - Source
+     - Species
+     - References
+   * - `HITRAN`_/`HITEMP`_
+     - |H2O|, CO, |CO2|, |CH4| (+others)
+     - [Rothman2010]_ [Rothman2013]_ [Li2015]_ [Gordon2017]_ [Hargreaves2019]_
+   * - `ExoMol`_
+     - |H2O|, CO, |CO2|, |CH4|, TiO (+others)
+     - [Tennyson2016]_
+   * - `Partridge & Schwenke`_
+     - |H2O|
+     - [PS1997]_
+   * - `Schwenke`_
+     - TiO
+     - [Schwenke1998]_
+   * - Plez
+     - VO
+     - [Plez1998]_
+
 
 ``Pyrat Bay`` is also compatible with the ``repack`` code to compress
 ExoMol or HITEMP databases (see more details in [Cubillos2017b]_).
 
-.. note:: Note that besides these LBL opacities, there is also
-          collision-induced absorption (CIA) opacities that vary
-          smoothly with wavelength.  These opacities are processed as
-          tabulated cross-section (CS) files as a function of
-          temperature and wavelength.
+.. note:: Note that besides these LBL opacities, there are also
+          :ref:`collision-induced absorption (CIA)<cia_opacity>`
+          opacities that vary smoothly with wavelength.  These
+          opacities are processed as tabulated cross-section (CS)
+          files as a function of temperature and wavelength.
 
-.. Borysow              |H2|-|H2|, |H2|-He            CIA  CS     TBD
-.. HITRAN               |H2|-|H2|, |H2|-He (+12)      CIA  CS     [Richard2012]_
 
+.. _sample_tli_cfg:
 
 Sample Configuration File
 -------------------------
 
-Here is an example of a TLI configuration file:
+Here is an example of a TLI configuration file (`tli_hitran_H2O.cfg
+<https://github.com/pcubillos/pyratbay/blob/master/examples/tutorial/tli_hitran_H2O.cfg>`_):
 
 .. literalinclude:: ../examples/tutorial/tli_hitran_H2O.cfg
 
@@ -82,8 +91,9 @@ Schwenke (TiO)               tioschwenke
 Plez (VO)                    voplez      
 ============================ =========== 
 
-.. note:: It is possible as well to combine multiple species in a
-           single TLI run.
+..
+  note:: It is possible as well to combine multiple species in a
+         single TLI run. [but I don't recommend it]
 
 
 Partition Functions
@@ -114,7 +124,7 @@ format.  For example (from the command line):
     pbay -pf exomol 14N-1H3__BYTe.pf 15N-1H3__BYTe-15.pf
 
 
-The use can also generate TIPS partition-function files from the
+The user can also generate TIPS partition-function files from the
 command line:
 
 .. code-block:: shell
@@ -149,9 +159,10 @@ name, changing the extension to '`.log`'.
 
 
 .. note:: Before running the tli tutorial, download the HITRAN |H2O|
-          file as in :ref:`qexample`.
+          file as in the :ref:`qexample`.
 
-To create the TLI file, run from the Python interpreter:
+To create the TLI file with this :ref:`sample_tli_cfg`, run from the
+command line:
 
 .. code-block:: shell
 

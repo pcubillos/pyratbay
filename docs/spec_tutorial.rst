@@ -32,24 +32,25 @@ Here is a sample configuration file to compute a transmission spectrum:
 Observing Geometry
 ------------------
 
-The ``path`` key determine the observing geometry.  The following
-table list the available observing geometries:
+The ``rt_path`` key determines the radiative-transfer scheme and
+observing geometry.  The following table list the available options:
 
-======= ===================== ===================== =========== 
-path    Observing geometry    Output spectrum       Units
-======= ===================== ===================== ===========
-transit Transmission geometry (|Rp|/|Rs|)\ :sup:`2` ---
-eclipse Emission geometry     |Fp|                  erg s\ :sup:`-1` cm\ :sup:`-2` cm
-======= ===================== ===================== ===========
+=========== ===================== ===================== ===========
+``rt_path`` Observing geometry    Output spectrum       Units
+=========== ===================== ===================== ===========
+transit     Transmission geometry (|Rp|/|Rs|)\ :sup:`2` ---
+emission    Emission geometry     |Fp|                  erg s\ :sup:`-1` cm\ :sup:`-2` cm
+=========== ===================== ===================== ===========
 
 For transmission geometry ``Pyrat Bay`` computes the transit depth,
 assuming parallel rays that travel from the star to the observer
 across the planetary atmosphere, which is composed of spherically
 symmetric shell layers.
 For emission geometry, ``Pyrat Bay`` computes the planetary flux
-emission spectrum, adopting the plane-parallel approximation, by
-integrating the intensity from the observed (day-side) hemisphere.
-For more details, see [Cubillos2019]_.
+emission spectrum, adopting the plane-parallel approximation,
+evaluating the emergent intensity at multiple angles with respect to
+the normal, and integrating the intensities over the planetary
+hemisphere.  For more details, see [CubillosBlecic2021]_.
 
 
 Atmospheric Model
@@ -70,8 +71,8 @@ The ``wllow`` and ``wlhigh`` keys set the wavelength boundaries for
 the output spectrum (values must contain units; otherwise, set the
 units with the ``wlunits`` key).  Alternatively, the user can set the
 spectrum boundaries by wavenumber using the ``wnlow`` and ``wnhigh``
-keys (wavenumber keys are always in |kayser|; thus, the user should not
-provide units for them).
+keys (wavenumber keys are always in |kayser|; thus, the user should
+not provide units for them).
 
 By default, the code produces an output spectrum at
 constant-wavenumber sampling rate.  The ``wnstep`` sets the sampling
@@ -184,7 +185,7 @@ Note that the ``tlifile`` opacities will be neglected if the
 configuration file sets input LBL opacities through the ``extfile``
 (see the rules in :ref:`opacity_io`).
 
-
+.. _cia_opacity:
 
 Cross-section Opacities
 -----------------------
@@ -200,7 +201,7 @@ as long as the files follow the right format (more on this later).
 The following table list the most-commonly used CIA opacity sources:
 
 ========== ============= ==================================
-Sources    Species       References      
+Sources    Species       References
 ========== ============= ==================================
 `HITRAN`_  Many          [Richard2012]_ [Karman2019]_
 `Borysow`_ |H2|-|H2| CIA [Borysow2001]_ [Borysow2002]_
@@ -217,7 +218,7 @@ For the **HITRAN** database, these commands re-format the downloaded CIA
 files and thins down the array (to reduce file size):
 
 .. code-block:: python
-    
+
     # Re-format HITRAN H2-H2 CIA file for Pyrat Bay:
     # (last two arguments tell to take every 2nd and 10th temperature and wavenumber samples):
     pbay -cs hitran H2-H2_2011.cia 2 10
@@ -277,14 +278,14 @@ and potassium resonant lines, based on van der Waals and statistical
 theory.  The following table lists the available alkali model names:
 
 ====================  ========= =========================
-Models (``alkali``)   Species   References      
+Models (``alkali``)   Species   References
 ====================  ========= =========================
 sodium_vdw            Na        [Burrows2000]_
 potassium_vdw         K         [Burrows2000]_
 ====================  ========= =========================
 
 This implementation adopts the line parameters from the VALD database
-[Piskunov1995]_ and collisional-broadening half-width from [Iro2005]_. 
+[Piskunov1995]_ and collisional-broadening half-width from [Iro2005]_.
 
 .. _rayleigh_opacity:
 
@@ -400,8 +401,8 @@ models:
 ============ =========================== =====
 ``molmodel`` Scaling                     Description
 ============ =========================== =====
-vert         :math:`Q(p) = 10^X`         Set abundance to given value 
-scale        :math:`Q(p) = Q_0(p)\ 10^X` Scale input abundance by given value 
+vert         :math:`Q(p) = 10^X`         Set abundance to given value
+scale        :math:`Q(p) = Q_0(p)\ 10^X` Scale input abundance by given value
 ============ =========================== =====
 
 Here, the variable :math:`X` represents the value in the ``molpars``
@@ -429,7 +430,7 @@ preserve a total mixing fraction of 1.0 at each layer:
 
   molmodel = vert  vert  scale
   molfree  =  H2O    CO    TiO
-  molpars  = -3.0  -4.0   -1.0  
+  molpars  = -3.0  -4.0   -1.0
   bulk     = H2 He
 
 
@@ -542,12 +543,11 @@ The ``maxdepth`` key sets an optical-depth cutoff to stop the
 radiative-transfer calculations. Since there is little transmitted
 intensity through a layer when the optical depth is greater than one,
 layers where :math:`\tau \gg 1` won't impact on the resulting
-spectrum.
+spectrum.  The default value of ``maxdepth = 10.0`` is thus an
+appropriate conservative value.
 
-..  Thus, setting ``maxdepth = 10.0``, for example, will prevent the
-    code to compute
+.. what about ethresh?
 
-.. ethresh
 
 Plane-parallel Hemispheric Integration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -592,18 +592,22 @@ this tutorial:
     pyrat = pb.run('spectrum_transmission.cfg')
 
     # Plot the resulting spectrum:
+    wl = 1.0 / (pyrat.spec.wn*pc.um)
+    depth = pyrat.spec.spectrum / pc.percent
+    wl_ticks = [0.3, 0.5, 0.7, 1.0, 2.0, 3.0, 5.0]
+
     plt.figure(-3)
     plt.clf()
     ax = plt.subplot(111)
-    plt.semilogx(1e4/pyrat.spec.wn, pyrat.spec.spectrum, "b-")
+    plt.semilogx(wl, depth, "-", color='orange', lw=1.0)
     ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
-    ax.set_xticks([0.3, 0.4, 0.6, 0.8, 1.0, 2.0, 3.0, 4.0, 5.0])
+    ax.set_xticks(wl_ticks)
     plt.xlim(0.3, 5.0)
-    plt.ylabel("Modulation  (Rp/Rs)^2")
-    plt.xlabel("Wavelength  (um)")
+    plt.ylabel("Transit depth (Rp/Rs)$^2$ (%)")
+    plt.xlabel("Wavelength (um)")
 
     # Or, alternatively:
-    ax = pyrat.plot_spectrum(gaussbin=2, logxticks=[0.3, 0.4, 0.6, 0.8, 1.0, 2.0, 3.0, 4.0, 5.0])
+    ax = pyrat.plot_spectrum()
 
 And the results should look like this:
 

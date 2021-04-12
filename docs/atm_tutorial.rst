@@ -25,20 +25,20 @@ Atmosphere Tutorial
 ===================
 
 This run mode generates a 1D atmospheric model (pressure, temperature,
-abundances, and altitude profiles), and saves it to a file.  At minimum,
-the user needs to provide the arguments required to compute the
-pressure and temperature profiles.  Further, ``Pyrat Bay`` will
-compute volume-mixing ratio (abundance) profiles only if the user sets the
-``chemistry`` provides the respective
-arguments.  Likewise, the code will compute the altitude profiles only
-if the user provides the respective arguments (which also require that
-the abundance profiles are defined).
+abundances, and altitude profiles), and saves it to a file.  At
+minimum, the user needs to provide the arguments required to compute
+the pressure and temperature profiles.  Further, ``Pyrat Bay`` will
+compute volume-mixing ratio (abundance) profiles only if the user sets
+the ``chemistry`` and respective arguments.  Likewise, the code will
+compute the altitude profiles only if the user provides the
+``radmodel`` and respective arguments (which also require that the
+abundance profiles to be defined).
 
-Regardless of which profiles are computed, in an interactive run, the
+Regardless of which profiles are computed, in an interactive run the
 code returns a five-element tuple containing the pressure profile
-(barye), the temperature profile (Kelvin degree), the abundance
-profiles (volume mixing fraction), the species names, and the altitude
-profile (cm).  The variables not calculated profiles will be ``None``.
+(barye), the temperature profile (Kelvin), the abundance profiles
+(volume mixing fraction), the species names, and the altitude profile
+(cm).  The outputs that were not calculated are set to ``None``.
 Also, regardless of the input units, the output variables will always
 be in CGS units.
 
@@ -90,12 +90,35 @@ Here is an example of an isothermal atmosphere configuration file:
 Three-channel Eddington Approximation (TCEA)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The tcea model has six parameters: |kappa|, |gamma1|, |gamma2|,
-|alpha|, |Tirr|, and |Tint| as defined in [Line2013]_, except for
-:math:`\kappa'`, which corresponds to :math:`\kappa'
-\equiv \kappa/g`.
+The tcea model has six parameters as defined in [Line2013]_: |kappa|,
+|gamma1|, |gamma2|, |alpha|, |Tirr| and |Tint|.  The temperature
+profile is given as:
 
-Here is an example of a tcea atmosphere configuration file:
+.. math::
+   T^4(p) = \frac{3 T_{\rm int}^{4}}{4} \left(\frac{2}{3} + \tau\right)
+    + (1-\alpha) \frac{3 T_{\rm irr}^{4}}{4} \xi_1(\tau)
+    +    \alpha  \frac{3 T_{\rm irr}^{4}}{4} \xi_2(\tau),
+
+with
+
+.. math::
+    \xi_i(\tau) = \frac{2}{3}
+        + \frac{2}{3\gamma_i} \left[1 + \left(\frac{\gamma_i\tau}{2}-1\right)e^{-\gamma_i\tau}\right]
+        + \frac{2\gamma_i}{3} \left(1-\frac{\tau^{2}}{2}\right)E_{2}(\gamma_i\tau),
+
+where :math:`E_{2}(\gamma_{i}\tau)` is the second-order exponential
+integral; |Tint| is the internal heat temperature; and :math:`\tau(p)
+= \kappa' p` (note that this parameterization differs from that of
+[Line2013]_, which are related as :math:`\kappa' \equiv \kappa/g`).
+|Tirr| parametrizes the stellar irradiation absorbed by the planet:
+
+.. math::
+  T_{\rm irr} = \left(\frac{1-A}{f}\right)^{1/4}
+                \left( \frac{R_{\rm s}}{2a}\right)^{1/2} T_{\rm s},
+
+Here is an example of a ``tcea`` atmosphere configuration file
+(`pt_tcea.cfg
+<https://github.com/pcubillos/pyratbay/blob/master/examples/tutorial/pt_tcea.cfg>`_):
 
 .. literalinclude:: ../examples/tutorial/pt_tcea.cfg
 
@@ -105,10 +128,26 @@ Madhu profiles
 
 The madhu model has six parameters: |logp1|, |logp2|, |logp3|, |a1|,
 |a2|, and |T0|, as described in [Madhusudhan2009]_, where the pressure
-values must be given in bars.  A thermally inverted
-profile will result when :math:`p_1 < p_2`; a non-inverted profile
-will result when :math:`p_2 < p_1`.  The pressure parameters must also
-satisfy: :math:`p_1 < p_3`.
+values must be given in bars.  The temperature profile is given as:
+
+.. math::
+  T(p) = \left\{
+  \begin{array}{lll}
+  T_0 + \left[\frac{1}{a_1}\ln(p/p_0)\right]^2 & \text{if } p < p_1
+     & (\rm layer\ 1) \\
+  T_2 + \left[\frac{1}{a_2}\ln(p/p_2)\right]^2 & \text{if } p_1 \le p < p_3
+     & (\rm layer\ 2) \\
+  T_3   & \text{if } p \ge p_3 & (\rm layer\ 3)
+  \end{array} \right.
+
+A thermally inverted profile will
+result when :math:`p_1 < p_2`; a non-inverted profile will result when
+:math:`p_2 < p_1`.  The pressure parameters must also satisfy:
+:math:`p_1 < p_3`.
+
+Here is an example of a ``madhu`` atmosphere configuration file
+(`pt_madhu.cfg
+<https://github.com/pcubillos/pyratbay/blob/master/examples/tutorial/pt_madhu.cfg>`_):
 
 .. literalinclude:: ../examples/tutorial/pt_madhu.cfg
 
@@ -229,7 +268,7 @@ configuration file:
 Abundance-profile Examples
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The following Python script creates and plots the abundance 
+The following Python script creates and plots the abundance
 Aprofiles for the configuration files shown above:
 
 .. code-block:: python

@@ -6873,3 +6873,9 @@ Allowed emission (instead of eclipse) and transit options.
 
 Minor tweak in README file.
 
+
+*****  Mo 12. Apr 14:12:12 CEST 2021  *****
+
+Updated docs.
+Updated transmission spectrum config file for tutorial.
+

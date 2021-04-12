@@ -71,7 +71,7 @@ same order as listed above, i.e.: first the temperature parameters,
 then radius, then the mass, the abundance parameters, and so on.
 
 Details on the available models and their parameters are described in
-the :ref:`pttutorial` and :ref:`spectutorial`.  The number of ``rad``
+the :ref:`atmospheretutorial` and :ref:`spectutorial`.  The number of ``rad``
 and ``mass`` parameters is always one each, with their units set by
 the ``runits`` or ``mpunits`` keys, respectively.  If these units are
 not set, the parameters will adopt the same units specified in the
@@ -128,12 +128,14 @@ options and references of their implementation:
 ``sampler`` Algorithm                           References
 =========== =================================== ================
 snooker     Snooker Differential-Evolution MCMC [Cubillos2017a]_
-dynesty     Dynamic Nested Sampling             [Speagle2019]_
 =========== =================================== ================
 
+.. dynesty     Dynamic Nested Sampling             [Speagle2019]_
+
 The '*snooker*' option implements the DEMC-z algorithm with
-snooker proposals, described in [terBraak2008]_.  The '*dynesty*' option
-implements Dynamic Nested-sampling algorithm described in [Speagle2019]_.
+snooker proposals, described in [terBraak2008]_.
+
+..  The '*dynesty*' option implements Dynamic Nested-sampling algorithm described in [Speagle2019]_.
 
 MCMC Retrieval
 ^^^^^^^^^^^^^^
