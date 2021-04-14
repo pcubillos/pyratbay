@@ -2,9 +2,9 @@
 # Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 # Pyrat-Bay version:
-PBAY_VER = 0  # Major version
-PBAY_MIN = 9  # Minor version
-PBAY_REV = 3  # Revision
+PBAY_VER = 1  # Major version
+PBAY_MIN = 0  # Minor version
+PBAY_REV = '0a1'  # Revision
 
 # Lineread version:
 LR_VER = 6  # Major version

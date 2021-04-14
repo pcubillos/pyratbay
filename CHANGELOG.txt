@@ -6879,3 +6879,8 @@ Minor tweak in README file.
 Updated docs.
 Updated transmission spectrum config file for tutorial.
 
+
+*****  Mi 14. Apr 10:33:42 CEST 2021  *****
+
+Bumped version to 1.0.0a1.
+
