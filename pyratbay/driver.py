@@ -220,7 +220,7 @@ def run(cfile, run_step='run', no_logfile=False):
             filename=f'{outfile}_posterior_temperature_profile.png')
 
     is_emission = pyrat.od.rt_path in pc.emission_rt
-    is_transit = pyrat.od.rt_path in pc.transmission_rt
+    is_transmission = pyrat.od.rt_path in pc.transmission_rt
 
     if is_emission:
         cf = ps.contribution_function(
@@ -233,7 +233,7 @@ def run(cfile, run_step='run', no_logfile=False):
             transmittance, pyrat.obs.bandtrans, pyrat.spec.wn,
             pyrat.obs.bandidx)
 
-    path = 'transit' if is_transit else 'emission'
+    path = 'transit' if is_transmission else 'emission'
     pp.contribution(
         bcf, 1.0/(pyrat.obs.bandwn*pc.um), path,
         pyrat.atm.press, pyrat.atm.radius,
