@@ -6889,3 +6889,7 @@ Bumped version to 1.0.0a1.
 
 Fixed bug in driver.py.
 
+*****
+
+Housekeeping.
+

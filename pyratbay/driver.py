@@ -138,7 +138,7 @@ def run(cfile, run_step='run', no_logfile=False):
         for extfile in pyrat.ex.extfile:
             os.remove(extfile)
 
-    if pyrat.runmode == 'mcmc' and pyrat.ret.mcmcfile is None:
+    if pyrat.runmode == 'mcmc' and ret.mcmcfile is None:
         log.error('Undefined MCMC file (mcmcfile).')
 
     # Initialize pyrat object:
@@ -158,13 +158,12 @@ def run(cfile, run_step='run', no_logfile=False):
         pyrat.run()
         return pyrat
 
-
-    muted_log = mc3.utils.Log(verb=0, width=80)
-    pyrat.log = muted_log      # Mute logging in PB, but not in MC3
+    # Mute logging in pyrat object, but not in mc3:
+    pyrat.log = mc3.utils.Log(verb=0, width=80)
     pyrat.spec.specfile = None  # Avoid writing spectrum file during MCMC
     retmodel = False  # Return only the band-integrated spectrum
     # Basename of the output files (no path, no extension):
-    outfile = os.path.splitext(os.path.basename(pyrat.ret.mcmcfile))[0]
+    outfile = os.path.splitext(os.path.basename(ret.mcmcfile))[0]
 
     # Run MCMC:
     mc3_out = mc3.sample(
@@ -188,34 +187,34 @@ def run(cfile, run_step='run', no_logfile=False):
     CRhi  = mc3_out['CRhi']
     stdp  = mc3_out['stdp']
     posterior, zchain, zmask = mc3.utils.burn(mc3_out)
-    pyrat.ret.posterior = posterior
-    pyrat.ret.bestp = bestp
+    ret.posterior = posterior
+    ret.bestp = bestp
 
     # Best-fitting model:
     pyrat.spec.specfile = f"{outfile}_bestfit_spectrum.dat"
-    pyrat.ret.spec_best, pyrat.ret.bestbandflux = pyrat.eval(bestp)
+    ret.spec_best, ret.bestbandflux = pyrat.eval(bestp)
 
     header = "# MCMC best-fitting atmospheric model.\n\n"
     bestatm = f"{outfile}_bestfit_atmosphere.atm"
     io.write_atm(
-        bestatm, pyrat.atm.press, pyrat.atm.temp, pyrat.mol.name,
-        pyrat.atm.q, radius=pyrat.atm.radius,
-        punits=pyrat.atm.punits, runits='km', header=header)
+        bestatm, atm.press, atm.temp, pyrat.mol.name,
+        atm.q, radius=atm.radius,
+        punits=atm.punits, runits='km', header=header)
 
     pyrat.plot_spectrum(spec='best', filename=f'{outfile}_bestfit_spectrum.png')
 
     # Temperature profiles:
-    if pyrat.atm.tmodelname is not None:
-        ifree = pyrat.ret.pstep[pyrat.ret.itemp] > 0
+    if atm.tmodelname is not None:
+        ifree = ret.pstep[ret.itemp] > 0
         itemp = np.arange(np.sum(ifree))
 
-        pyrat.ret.temp_best = pyrat.atm.tmodel(bestp[pyrat.ret.itemp])
+        ret.temp_best = atm.tmodel(bestp[ret.itemp])
         tpost = pa.temperature_posterior(
-            posterior[:,itemp], pyrat.atm.tmodel,
-            pyrat.ret.params[pyrat.ret.itemp], ifree, pyrat.atm.press)
-        pyrat.ret.temp_median = tpost[0]
-        # low1, high1, low2, high2
-        pyrat.ret.temp_post_boundaries = tpost[1:]
+            posterior[:,itemp], atm.tmodel,
+            ret.params[ret.itemp], ifree, atm.press)
+        ret.temp_median = tpost[0]
+        # 1sigma-low, 1sigma-high, 2sigma-low, 2sigma-high:
+        ret.temp_post_boundaries = tpost[1:]
         pyrat.plot_temperature(
             filename=f'{outfile}_posterior_temperature_profile.png')
 
@@ -224,7 +223,7 @@ def run(cfile, run_step='run', no_logfile=False):
 
     if is_emission:
         cf = ps.contribution_function(
-            pyrat.od.depth, pyrat.atm.press, pyrat.od.B)
+            pyrat.od.depth, atm.press, pyrat.od.B)
         bcf = ps.band_cf(
             cf, pyrat.obs.bandtrans, pyrat.spec.wn, pyrat.obs.bandidx)
     elif is_transmission:
@@ -235,9 +234,8 @@ def run(cfile, run_step='run', no_logfile=False):
 
     path = 'transit' if is_transmission else 'emission'
     pp.contribution(
-        bcf, 1.0/(pyrat.obs.bandwn*pc.um), path,
-        pyrat.atm.press, pyrat.atm.radius,
-        pyrat.atm.rtop, filename=f"{outfile}_bestfit_cf.png")
+        bcf, 1.0/(pyrat.obs.bandwn*pc.um), path, atm.press, atm.radius,
+        atm.rtop, filename=f"{outfile}_bestfit_cf.png")
 
     pyrat.log = log  # Un-mute
     log.msg(
