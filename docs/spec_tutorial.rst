@@ -11,6 +11,7 @@
 .. |pt|   replace:: :math:`\log(p_{\rm t})`
 .. |pb|   replace:: :math:`\log(p_{\rm b})`
 .. |f|    replace:: :math:`\log(f)`
+.. |nu|   replace:: :math:`\nu`
 
 .. _spectutorial:
 
@@ -200,13 +201,16 @@ as long as the files follow the right format (more on this later).
 
 The following table list the most-commonly used CIA opacity sources:
 
-========== ============= ==================================
-Sources    Species       References
-========== ============= ==================================
-`HITRAN`_  Many          [Richard2012]_ [Karman2019]_
-`Borysow`_ |H2|-|H2| CIA [Borysow2001]_ [Borysow2002]_
-`Borysow`_ |H2|-He CIA   [Borysow1988]_ [Borysow1989a]_ [Borysow1989b]_
-========== ============= ==================================
+========== ========== ========== ===================== =====================
+Sources    Species    T range    |nu| range (|kayser|) References
+========== ========== ========== ===================== =====================
+`HITRAN`_  |H2|--|H2|  200--3000 1.0--500.0            [Richard2012]_ [Karman2019]_
+`HITRAN`_  |H2|--H    1000--2500 1.0--100.0            [Richard2012]_ [Karman2019]_
+`HITRAN`_  |H2|--He    200--9900 0.5--500.0            [Richard2012]_ [Karman2019]_
+`Borysow`_ |H2|--|H2|   60--7000 0.6--500.0            [Borysow2001]_ [Borysow2002]_
+`Borysow`_ |H2|--He     50--3000 0.3--30.0             [Borysow1988]_ [Borysow1989a]_ [Borysow1989b]_
+========== ========== ========== ===================== =====================
+
 
 .. _Borysow: https://www.astro.ku.dk/~aborysow/programs/index.html
 .. _HITRAN: https://hitran.org/cia

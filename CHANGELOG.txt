@@ -6902,3 +6902,6 @@ Some more housekeeping, get requirements up to date, clean docs.
 
 Bumped version to 1.0.0.  Ready for release.
 
+*****
+
+Cleaned up LICENSE and CIA-docs.
