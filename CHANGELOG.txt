@@ -6905,3 +6905,8 @@ Bumped version to 1.0.0.  Ready for release.
 *****
 
 Cleaned up LICENSE and CIA-docs.
+
+*****
+
+Fixed badges.
+

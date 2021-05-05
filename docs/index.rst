@@ -127,4 +127,5 @@ Please prefer to channel your feedback or inquiries through the Github issue tra
     :target: https://anaconda.org/conda-forge/pyratbay
 
 .. |License| image:: https://img.shields.io/github/license/pcubillos/pyratbay.svg?color=blue
-    :target: https://pcubillos.github.io/pyratbay/license.html
+    :target: https://pyratbay.readthedocs.io/en/latest/license.html
+

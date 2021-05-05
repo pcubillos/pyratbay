@@ -7,7 +7,8 @@
 [![Documentation Status](https://readthedocs.org/projects/pyratbay/badge/?version=latest)](https://pyratbay.readthedocs.io/en/latest/?badge=latest)
 [![PyPI](https://img.shields.io/pypi/v/pyratbay.svg)](https://pypi.org/project/pyratbay)
 [![Conda Version](https://img.shields.io/conda/vn/conda-forge/pyratbay.svg)](https://anaconda.org/conda-forge/pyratbay)
-![GitHub](https://img.shields.io/github/license/pcubillos/pyratbay.svg?color=blue)
+[![GitHub](https://img.shields.io/github/license/pcubillos/pyratbay.svg?color=blue)](https://pyratbay.readthedocs.io/en/latest/license.html)
+
 
 ### Install as:
 ```
