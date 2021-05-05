@@ -6914,3 +6914,7 @@ Fixed badges.
 
 Removed unnecessary filter files.
 
+*****
+
+Sorted out MANIFEST.in file.
+
