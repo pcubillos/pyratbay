@@ -1,5 +1,5 @@
-# Copyright (c) 2016-2019 Patricio Cubillos and contributors.
-# Pyrat Bay is currently proprietary software (see LICENSE).
+# Copyright (c) 2021 Patricio Cubillos
+# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 __all__ = ["qcapcheck", "balance", "ratio", "qscale"]
 
@@ -34,11 +34,11 @@ def qcapcheck(Q, qcap, ibulk):
   >>> abundances  = [0.8495, 0.15, 5e-4]
   >>> qprofiles = pa.uniform(pressure, temperature, species, abundances)
   >>> ibulk = [0,1]
-  >>> # Sum of all metals (H2O) is not above qcap:
+  >>> # Sum of all metals (H2O) does not exceed qcap:
   >>> qcap = 1e-3
   >>> print(pa.qcapcheck(qprofiles, qcap, ibulk))
   False
-  >>> # Sum of all metals (H2O) is exceedes qcap:
+  >>> # Sum of all metals (H2O) exceedes qcap:
   >>> qcap = 1e-4
   >>> print(pa.qcapcheck(qprofiles, qcap, ibulk))
   True

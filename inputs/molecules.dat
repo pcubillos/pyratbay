@@ -12,43 +12,43 @@
 
 # Mass source: http://www.webqc.org/mmcalc.php
 
-# ID    Molecule  Mass         Diameter  Diameter   Long
-#       Name      g/mol        Angstrom  source     name
- 101    H2O       18.01528     3.2       01         Water           
- 102    CH4       16.0425      4.0       01         Methane
- 103    CO        28.0101      2.8       01         Carbon Monoxide
- 104    CO2       44.0095      2.8       01         Carbon Dioxide  
- 105    H2         2.01588     2.89      02         Molecular Helium
- 106    NH3       17.03052     3.6       01         Ammonia
- 107    TiO       63.8664      4.86      07         Titanium Monoxide
- 108    VO        66.94090     4.77      07         Vanadium Monoxide
- 109    O2        31.99880     3.46      02         Molecular Oxygen
- 110    N2        28.01340     3.64      02         Molecular Nitrogen
- 111    C2H2      26.0373      5.26      05         Acetylene
- 112    C2H4      28.0532      5.69      05         Ethylene
- 113    HCN       27.02534     5.0       05         Hydrogen Cyanide
- 114    HS        33.0729      1.0       xx         Hydrosulfide
- 115    H2S       34.0809      3.6       02         Hydrogen Sulfide
- 116    NO2       46.006       4.25      04         Nitrogen dioxide
- 117    N2O       44.013       3.30      02         Nitrous oxide
- 118    H2O2      34.015       4.19      05         Hydrogen peroxide
- 119    C2H6      30.069       4.4       01         Ethane
- 120    CH3OH     32.042       4.4       01         Methanol
- 121    NO        30.006       3.17      02         Nitric Oxide
- 122    H2CO      30.026       5.16      05         Formaldehyde
- 123    HNO3      63.013       4.95      05         Nitric Acid
- 124    MgSiO3   100.3887      5.0       xx         Enstatite
- 125    SO2       64.066       3.6       08         Sulfur Dioxide
-   1    H          1.007940    2.20      06         Hydrogen
-   2    He         4.0026020   2.80      06         Helium
-   6    C         12.0107      3.40      06         Carbon
-   7    N         14.0067      3.10      06         Nitrogen
-   8    O         15.9994      3.04      06         Oxygen
-  11    Na        22.98976928  4.54      06         Sodium
-  12    Mg        24.305       3.46      06         Magnesium
-  14    Si        28.0855      4.20      06         Silicon
-  16    S         32.065       3.60      06         Sulfur
-  19    K         39.09830     5.50      06         Potassium
-  22    Ti        47.8670      2.94      06         Titanium
-  23    V         50.94150     2.66      06         Vanadium
-  26    Fe        55.845       2.68      06         Iron
+# Molecule  Mass         Diameter  Diameter   Long
+# Name      g/mol        Angstrom  source     name
+H2O         18.01528     3.2       01         Water
+CH4         16.0425      4.0       01         Methane
+CO          28.0101      3.38      07         Carbon Monoxide
+CO2         44.0095      3.8       07         Carbon Dioxide
+H2           2.01588     2.89      02         Molecular Hydrogen
+NH3         17.03052     3.6       01         Ammonia
+TiO         63.8664      4.86      07         Titanium Monoxide
+VO          66.94090     4.77      07         Vanadium Monoxide
+O2          31.99880     3.46      02         Molecular Oxygen
+N2          28.01340     3.64      02         Molecular Nitrogen
+C2H2        26.0373      5.26      05         Acetylene
+C2H4        28.0532      5.69      05         Ethylene
+HCN         27.02534     5.0       05         Hydrogen Cyanide
+HS          33.0729      1.0       xx         Hydrosulfide
+H2S         34.0809      3.6       02         Hydrogen Sulfide
+NO2         46.006       4.25      04         Nitrogen dioxide
+N2O         44.013       3.30      02         Nitrous oxide
+H2O2        34.015       4.19      05         Hydrogen peroxide
+C2H6        30.069       4.4       01         Ethane
+CH3OH       32.042       4.4       01         Methanol
+NO          30.006       3.17      02         Nitric Oxide
+H2CO        30.026       5.16      05         Formaldehyde
+HNO3        63.013       4.95      05         Nitric Acid
+MgSiO3     100.3887      5.0       xx         Enstatite
+SO2         64.066       3.6       08         Sulfur Dioxide
+H            1.007940    2.20      06         Hydrogen
+He           4.0026020   2.80      06         Helium
+C           12.0107      3.40      06         Carbon
+N           14.0067      3.10      06         Nitrogen
+O           15.9994      3.04      06         Oxygen
+Na          22.98976928  4.54      06         Sodium
+Mg          24.305       3.46      06         Magnesium
+Si          28.0855      4.20      06         Silicon
+S           32.065       3.60      06         Sulfur
+K           39.09830     5.50      06         Potassium
+Ti          47.8670      2.94      06         Titanium
+V           50.94150     2.66      06         Vanadium
+Fe          55.845       2.68      06         Iron

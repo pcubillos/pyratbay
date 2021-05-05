@@ -1,10 +1,12 @@
+# Copyright (c) 2021 Patricio Cubillos
+# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+
 import sys
 import itertools
 import pytest
-if sys.version_info.major == 3:
-    import configparser
-else:
-    import ConfigParser as configparser
+import configparser
+import pathlib
+import tempfile
 
 
 def pytest_collection_modifyitems(items):
@@ -53,7 +55,12 @@ def undefined():
         'gplanet': 'Undefined planetary surface gravity (gplanet)',
         'atmfile': 'Undefined atmospheric file (atmfile).',
         'species': 'Undefined atmospheric species list (species).',
-        'elements': 'Undefined atmospheric atomic composition (elements).',
+        'elements': 'Undefined elemental composition list (elements) for '
+                    'tea chemistry model.',
+        'uniform': 'Undefined list of uniform volume mixing ratios (uniform) '
+                   'for uniform\nchemistry model.',
+        'refpressure': 'Cannot compute hydrostatic-equilibrium radius profile.'
+                       '  Undefined reference\npressure level (refpressure).',
     }
     return data
 
@@ -66,14 +73,14 @@ def undefined_spec():
                    'wnlow or wlhigh.',
         'wnstep':  'Undefined wavenumber sampling step size (wnstep).',
         'wnosamp': 'Undefined wavenumber oversampling factor (wnosamp).',
-        'path':    "Undefined observing geometry (path).  Select between "
-                   "'transit' or 'eclipse'.",
-        'outspec': 'Undefined output spectrum file (outspec).',
+        'rt_path': 'Undefined radiative-transfer observing geometry (rt_path).'
+                   '  Select from',
+        'specfile': 'Undefined output spectrum file (specfile).',
         'tlifile': 'TLI file (tlifile) does not exist',
          # Transmission
         'rstar': 'Undefined stellar radius (rstar), required for '
                  'transmission calculation.',
-    }
+        }
     return data
 
 
@@ -96,12 +103,13 @@ def undefined_opacity():
 def undefined_mcmc():
     data = {
         'retflag':"Undefined retrieval model flags.  Select from ['temp', "
-                  "'rad', 'mol', 'ray',\n'cloud', 'patchy'].",
+                  "'rad', 'mol', 'ray',\n'cloud', 'patchy', 'mass'].",
         'params': 'Undefined retrieval fitting parameters (params).',
         'data':   'Undefined transit/eclipse data (data).',
         'uncert': 'Undefined data uncertainties (uncert).',
         'filters': 'Undefined transmission filters (filters).',
-        'walk': 'Undefined retrieval algorithm (walk).  Select from [snooker].',
+        'sampler': 'Undefined retrieval algorithm (sampler).  Select '
+                   'from [snooker].',
         'nsamples': 'Undefined number of retrieval samples (nsamples).',
         'burnin':   'Undefined number of retrieval burn-in samples (burnin).',
         'nchains':  'Undefined number of retrieval parallel chains (nchains).',
@@ -130,9 +138,10 @@ def invalid():
     data = {
         'runmode': 'Invalid running mode (runmode): invalid. Select from',
         'rayleigh':'Invalid Rayleigh model (rayleigh): invalid. Select from',
-        'clouds':   'Invalid cloud model (clouds): invalid. Select from',
+        'clouds':  'Invalid cloud model (clouds): invalid. Select from',
         'alkali':  'Invalid alkali model (alkali): invalid. Select from',
-        'path':    'Invalid observing geometry (path): invalid. Select from',
+        'rt_path': 'Invalid radiative-transfer observing geometry (rt_path):'
+                   ' invalid. Select\nfrom',
         'tmodel':  'Invalid temperature model (tmodel): invalid. Select from',
         'molmodel': 'Invalid molecular-abundance model (molmodel): invalid. '
                     'Select from',
@@ -145,7 +154,7 @@ def invalid_file():
     data = {
         'atmfile':  'Atmospheric file (atmfile) does not exist',
         'tlifile':  'TLI file (tlifile) does not exist',
-        'outspec':  'Output spectrum file (outspec) does not exist',
+        'specfile': 'Spectrum file (specfile) does not exist',
         'mcmcfile': 'MCMC file (mcmcfile) does not exist',
         'extfile':  'Extinction-coefficient file (extfile) does not exist',
         'ptfile':   'Pressure-temperature file (ptfile) does not exist',
@@ -167,7 +176,7 @@ def invalid_path():
     data = {
         'atmfile':  'Folder for Atmospheric file (atmfile) does not exist',
         'tlifile':  'Folder for TLI file (tlifile) does not exist',
-        'outspec':  'Folder for Output spectrum file (outspec) does not exist',
+        'specfile': 'Folder for Spectrum file (specfile) does not exist',
         'mcmcfile': 'Folder for MCMC file (mcmcfile) does not exist',
         'extfile':  'Folder for Extinction-coefficient file (extfile) does '
                     'not exist',
@@ -186,7 +195,7 @@ def invalid_temp():
                    '(K): [  60.0, 3000.0].',
         'tlifile': 'One or more input temperature values lies out of '
                    'the line-transition\ntemperature boundaries '
-                   '(K): [  70.0, 3000.0]',
+                   '(K): [   1.0, 5000.0]',
         'extfile': 'One or more input temperature values lies out of the '
                    'tabulated\nextinction-coefficient temperature boundaries '
                    '(K): [ 300.0, 3000.0].',

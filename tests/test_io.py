@@ -1,27 +1,27 @@
-# Copyright (c) 2016-2019 Patricio Cubillos and contributors.
-# Pyrat Bay is currently proprietary software (see LICENSE).
+# Copyright (c) 2021 Patricio Cubillos
+# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 import os
-import sys
 import pytest
 
 import numpy as np
 
 from conftest import make_config
 
-ROOT = os.path.realpath(os.path.dirname(__file__) + '/..') + '/'
-sys.path.append(ROOT)
-import pyratbay    as pb
+import pyratbay as pb
 import pyratbay.io as io
 import pyratbay.atmosphere as pa
-import pyratbay.constants  as pc
+import pyratbay.constants as pc
+from pyratbay.constants import ROOT
 
 os.chdir(ROOT+'tests')
 
 
 def test_load_save_pyrat(tmp_path):
-    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
-        reset={'cpars':'1.0'})
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        reset={'cpars': '1.0'})
     pyrat = pb.run(cfg)
     spectrum = np.copy(pyrat.spec.spectrum)
     io.save_pyrat(pyrat)
@@ -42,8 +42,8 @@ def test_read_write_spectrum(tmpdir):
 
     wl = np.linspace(1.1, 1.7, 7) * 1e-4
     spectrum = np.ones(7)
-    io.write_spectrum(wl, spectrum, filename=tmp_file, type='transit',
-                      wlunits='um')
+    io.write_spectrum(
+        wl, spectrum, filename=tmp_file, type='transit', wlunits='um')
     # Take a look at the output file:
     assert sfile in os.listdir(str(tmpdir))
     with open(tmp_file, 'r') as f:
@@ -56,7 +56,7 @@ def test_read_write_spectrum(tmpdir):
        6666.66666667, 6250.        , 5882.35294118]), rtol=1e-7)
     np.testing.assert_equal(flux, np.ones(7))
     wl, flux = io.read_spectrum(tmp_file, wn=False)
-    np.testing.assert_almost_equal(wl, np.linspace(1.1, 1.7, 7))
+    np.testing.assert_allclose(wl, np.linspace(1.1, 1.7, 7))
     np.testing.assert_equal(flux, np.ones(7))
 
 
@@ -85,8 +85,8 @@ def test_read_write_spectrum_filter(tmpdir):
 def test_write_spectrum_bad_type():
     wl = np.linspace(1.4, 1.5, 20)
     trans = np.ones(20)
-    with pytest.raises(ValueError, match="Input 'type' argument must be "
-                                         "'transit', 'eclipse', or 'filter'."):
+    match = "Input 'type' argument must be 'transit', 'emission', or 'filter'."
+    with pytest.raises(ValueError, match=match):
         io.write_spectrum(wl, trans, "tophat_filter.dat", 'bad_type')
 
 
@@ -110,7 +110,7 @@ def test_read_spectrum_custom_header(tmpdir, header):
 
 
 def test_read_write_opacity(tmpdir):
-    ofile = "{}/opacity_test.dat".format(tmpdir)
+    ofile = "{}/opacity_test.npz".format(tmpdir)
     molID = np.array([101, 105])
     temp  = np.linspace(300, 3000, 28)
     press = np.logspace(-6, 2, 21)
@@ -133,40 +133,81 @@ def test_read_write_opacity(tmpdir):
     assert nwave   == 1001
     assert edata[0] == (nmol, ntemp, nlayers, nwave)
 
-    np.testing.assert_almost_equal(molID, edata[1][0], decimal=7)
-    np.testing.assert_almost_equal(temp,  edata[1][1], decimal=7)
-    np.testing.assert_almost_equal(press, edata[1][2], decimal=7)
-    np.testing.assert_almost_equal(wn,    edata[1][3], decimal=7)
+    np.testing.assert_allclose(molID, edata[1][0])
+    np.testing.assert_allclose(temp,  edata[1][1])
+    np.testing.assert_allclose(press, edata[1][2])
+    np.testing.assert_allclose(wn,    edata[1][3])
+    np.testing.assert_allclose(etable, edata[2])
 
-    np.testing.assert_almost_equal(etable, edata[2],   decimal=7)
 
-
-def test_read_write_atm(tmpdir):
-    atmfile = "WASP-99b.atm"
+def test_read_write_atm_pt(tmpdir):
+    atmfile = "WASP-00b.atm"
     atm = "{}/{}".format(tmpdir, atmfile)
     nlayers = 11
-    pressure    = np.logspace(-8, 2, nlayers)
-    temperature = np.tile(1500.0, nlayers)
+    pressure    = pa.pressure('1e-8 bar', '1e2 bar', nlayers)
+    temperature = pa.tmodels.Isothermal(nlayers)(1500.0)
+    io.write_atm(atm, pressure, temperature, punits='bar')
+    assert atmfile in os.listdir(str(tmpdir))
+
+    atm_input = io.read_atm(atm)
+    assert atm_input[0] == ('bar', 'kelvin', None, None)
+    assert atm_input[1] is None
+    np.testing.assert_allclose(atm_input[2], pressure/pc.bar)
+    np.testing.assert_allclose(atm_input[3], temperature)
+    assert atm_input[4] is None
+    assert atm_input[5] is None
+
+
+def test_read_write_atm_ptq(tmpdir):
+    atmfile = "WASP-00b.atm"
+    atm = "{}/{}".format(tmpdir, atmfile)
+    nlayers = 11
+    pressure    = pa.pressure('1e-8 bar', '1e2 bar', nlayers)
+    temperature = pa.tmodels.Isothermal(nlayers)(1500.0)
     species     = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
     abundances  = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
     qprofiles = pa.uniform(pressure, temperature, species, abundances)
-    pa.writeatm(atm, pressure, temperature, species, qprofiles,
-                punits='bar', header='# Test write atm\n')
+    io.write_atm(atm, pressure, temperature, species, qprofiles,
+                 punits='bar', header='# Test write atm\n')
     assert atmfile in os.listdir(str(tmpdir))
 
-    atm_input = pa.readatm(atm)
-    assert atm_input[0] == ('bar', 'kelvin', 'number', None)
+    atm_input = io.read_atm(atm)
+    assert atm_input[0] == ('bar', 'kelvin', 'volume', None)
     np.testing.assert_equal(atm_input[1], np.array(species))
-    np.testing.assert_almost_equal(atm_input[2], pressure/pc.bar)
-    np.testing.assert_almost_equal(atm_input[3], temperature)
-    np.testing.assert_almost_equal(atm_input[4], qprofiles)
+    np.testing.assert_allclose(atm_input[2], pressure/pc.bar)
+    np.testing.assert_allclose(atm_input[3], temperature)
+    np.testing.assert_allclose(atm_input[4], qprofiles)
     assert atm_input[5] is None
+
+
+def test_read_write_atm_ptqr(tmpdir):
+    atmfile = "WASP-00b.atm"
+    atm = "{}/{}".format(tmpdir, atmfile)
+    nlayers = 11
+    pressure    = pa.pressure('1e-8 bar', '1e2 bar', nlayers)
+    temperature = pa.tmodels.Isothermal(nlayers)(1500.0)
+    species     = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
+    abundances  = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
+    qprofiles = pa.uniform(pressure, temperature, species, abundances)
+    radius = pa.hydro_g(pressure, temperature, 2.3, 2479.0, pc.bar, pc.rjup)
+    io.write_atm(atm, pressure, temperature, species, qprofiles,
+        radius=radius, punits='bar', runits='km',
+        header='# Test write atm\n')
+    assert atmfile in os.listdir(str(tmpdir))
+
+    atm_input = io.read_atm(atm)
+    assert atm_input[0] == ('bar', 'kelvin', 'volume', 'km')
+    np.testing.assert_equal(atm_input[1], np.array(species))
+    np.testing.assert_allclose(atm_input[2], pressure/pc.bar)
+    np.testing.assert_allclose(atm_input[3], temperature)
+    np.testing.assert_allclose(atm_input[4], qprofiles)
+    np.testing.assert_allclose(atm_input[5], radius/pc.km, rtol=1e-5)
 
 
 def test_read_atm_no_temp():
     with pytest.raises(ValueError, match="Atmospheric file does not have "
                        "'@TEMPERATURE' header"):
-        atm_input = pa.readatm('uniform_notemp_test.atm')
+        dummy = io.read_atm('inputs/uniform_notemp_test.atm')
 
 
 def test_read_write_pf(tmpdir):
@@ -263,3 +304,39 @@ def test_read_pt(tmpdir):
     pressure, temperature = io.read_pt(ptf)
     np.testing.assert_allclose(pressure, press*pc.bar,  rtol=1e-7)
     np.testing.assert_allclose(temperature, temp,  rtol=1e-7)
+
+
+def test_read_molecs():
+    names, mass, diam = io.read_molecs(ROOT+'inputs/molecules.dat')
+    assert 'H2O' in names
+    assert 'CH4' in names
+    assert 'CO' in names
+    assert 'CO2' in names
+    assert 'H2' in names
+    np.testing.assert_allclose(mass[names == 'H2O'], 18.01528)
+    np.testing.assert_allclose(diam[names == 'H2'], 2.89)
+
+
+def test_read_isotopes():
+    ID, mol, hit_iso, exo_iso, ratio, mass = io.read_isotopes(
+        pc.ROOT+'inputs/isotopes.dat')
+    assert 'H2O' in mol
+    assert np.all(ID[mol=='H2O'] == 1)
+    assert list(hit_iso[mol=='H2O']) == \
+        ['161', '181', '171', '162', '182', '172', '262', '282', '272']
+    assert list(exo_iso[mol=='H2O']) == \
+        ['116', '118', '117', '126', '128', '127', '226', '228', '227']
+    np.testing.assert_allclose(ratio[mol=='H2O'],
+        np.array([9.973e-01, 1.999e-03, 3.719e-04, 3.107e-04, 6.230e-07,
+                  1.158e-07, 2.420e-08, 0.000e+00, 0.000e+00]))
+    np.testing.assert_allclose(mass[mol=='H2O'],
+        np.array([18.010565, 20.014811, 19.014781, 19.016841, 21.021088,
+                  20.021058, 20.021,    22.0000, 21.0000]))
+
+@pytest.mark.skip(
+    reason='This requires either to download a huge file or mock it up.')
+def test_import_xs():
+    # wget this file first: http://www.exomol.com/db/H2O/1H2-16O/POKAZATEL/1H2-16O__POKAZATEL__R15000_0.3-50mu.xsec.TauREx.h5
+    filename = '1H2-16O__POKAZATEL__R15000_0.3-50mu.xsec.TauREx.h5'
+    xs_H2O, press, temp, wn, species = io.import_xs(filename, 'exomol')
+

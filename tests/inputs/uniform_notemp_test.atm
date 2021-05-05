@@ -1,0 +1,20 @@
+# This is an atmospheric file with pressure, temperature,
+# and uniform mole mixing ratio profiles.
+
+# Abundance units (by volume or mass mixing ratio):
+@ABUNDANCE
+volume
+# Pressure units:
+@PRESSURE
+bar
+# Atmospheric composition:
+@SPECIES
+H2  He  Na  K  H2O  CH4  CO  CO2
+
+# Pressure  Temperature  H2            He            Na            K             H2O           CH4           CO            CO2           
+@DATA
+1.0000e-06     1400.000  8.500000e-01  1.490000e-01  3.000000e-06  1.800000e-07  4.000000e-04  1.000000e-04  5.000000e-04  1.000000e-07
+1.0000e-04     1400.000  8.500000e-01  1.490000e-01  3.000000e-06  1.800000e-07  4.000000e-04  1.000000e-04  5.000000e-04  1.000000e-07
+1.0000e-02     1400.000  8.500000e-01  1.490000e-01  3.000000e-06  1.800000e-07  4.000000e-04  1.000000e-04  5.000000e-04  1.000000e-07
+1.0000e-00     1400.000  8.500000e-01  1.490000e-01  3.000000e-06  1.800000e-07  4.000000e-04  1.000000e-04  5.000000e-04  1.000000e-07
+1.0000e+02     1400.000  8.500000e-01  1.490000e-01  3.000000e-06  1.800000e-07  4.000000e-04  1.000000e-04  5.000000e-04  1.000000e-07

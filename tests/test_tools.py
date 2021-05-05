@@ -1,5 +1,5 @@
-# Copyright (c) 2016-2019 Patricio Cubillos and contributors.
-# Pyrat Bay is currently proprietary software (see LICENSE).
+# Copyright (c) 2021 Patricio Cubillos
+# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 import os
 import sys
@@ -8,21 +8,11 @@ import pytest
 
 import numpy as np
 
-ROOT = os.path.realpath(os.path.dirname(__file__) + '/..') + '/'
-sys.path.append(ROOT)
-
 import pyratbay.tools as pt
-import pyratbay.io    as io
 import pyratbay.constants as pc
-import pyratbay.starspec  as ps
 
-os.chdir(ROOT+'tests')
+os.chdir(pc.ROOT+'tests')
 
-
-def mock_pf(epf, temp, pf):
-    with open(epf, 'w') as f:
-        f.write("\n".join("{:7.1f}  {:.10e}".format(t,z)
-                          for t,z in zip(temp,pf)))
 
 def test_tmp_reset_listed_arguments():
      # All listed arguments are set to None:
@@ -54,9 +44,9 @@ def test_binsearch_zero():
      (2.0, False, -1), (2.0, True,  0),])
 def test_binsearch_one(wn0, upper, result):
     wn = np.array([1.0])
-    with open('tli_test.dat', 'wb') as tli:
+    with open('outputs/binsearch.dat', 'wb') as tli:
         tli.write(struct.pack(str(len(wn))+"d", *list(wn)))
-    with open('tli_test.dat', 'rb') as tli:
+    with open('outputs/binsearch.dat', 'rb') as tli:
         assert pt.binsearch(tli, wn0, 0, len(wn), upper) == result
 
 
@@ -68,9 +58,9 @@ def test_binsearch_one(wn0, upper, result):
      (2.5, False,-1), (2.5, True, 1)])
 def test_binsearch_two(wn0, upper, result):
     wn = np.array([1., 2.])
-    with open('tli_test.dat', 'wb') as tli:
+    with open('outputs/binsearch.dat', 'wb') as tli:
         tli.write(struct.pack(str(len(wn))+"d", *list(wn)))
-    with open('tli_test.dat', 'rb') as tli:
+    with open('outputs/binsearch.dat', 'rb') as tli:
         assert pt.binsearch(tli, wn0, 0, len(wn), upper) == result
 
 
@@ -82,9 +72,9 @@ def test_binsearch_two(wn0, upper, result):
      (2.0, False, 4), (2.0, True, 4)])
 def test_binsearch_duplicates(wn0, upper, result):
     wn = np.array([0.0, 1.0, 1.0, 1.0, 2.0])
-    with open('tli_test.dat', 'wb') as tli:
+    with open('outputs/binsearch.dat', 'wb') as tli:
         tli.write(struct.pack(str(len(wn))+"d", *list(wn)))
-    with open('tli_test.dat', 'rb') as tli:
+    with open('outputs/binsearch.dat', 'rb') as tli:
         assert pt.binsearch(tli, wn0, 0, len(wn), upper) == result
 
 
@@ -94,9 +84,9 @@ def test_binsearch_duplicates(wn0, upper, result):
      (2.0, False, 4), (2.0, True, 5)])
 def test_binsearch_duplicates_low_edge(wn0, upper, result):
     wn = np.array([1.0, 1.0, 1.0, 1.0, 2.0, 2.0])
-    with open('tli_test.dat', 'wb') as tli:
+    with open('outputs/binsearch.dat', 'wb') as tli:
         tli.write(struct.pack(str(len(wn))+"d", *list(wn)))
-    with open('tli_test.dat', 'rb') as tli:
+    with open('outputs/binsearch.dat', 'rb') as tli:
         assert pt.binsearch(tli, wn0, 0, len(wn), upper) == result
 
 
@@ -106,27 +96,103 @@ def test_binsearch_duplicates_low_edge(wn0, upper, result):
      (2.0, False, 2), (2.0, True, 5)])
 def test_binsearch_duplicates_hi_edge(wn0, upper, result):
     wn = np.array([1.0, 1.0, 2.0, 2.0, 2.0, 2.0])
-    with open('tli_test.dat', 'wb') as tli:
+    with open('outputs/binsearch.dat', 'wb') as tli:
         tli.write(struct.pack(str(len(wn))+"d", *list(wn)))
-    with open('tli_test.dat', 'rb') as tli:
+    with open('outputs/binsearch.dat', 'rb') as tli:
         assert pt.binsearch(tli, wn0, 0, len(wn), upper) == result
+
+
+def test_unpack_string():
+    value = 'H2O'
+    with open('outputs/packet.dat', 'wb') as bfile:
+        bfile.write(struct.pack('3s', value.encode('utf-8')))
+    with open('outputs/packet.dat', 'rb') as bfile:
+        output = pt.unpack(bfile, 3, 's')
+    assert output == value
+
+
+def test_unpack_number():
+    value = 8
+    with open('outputs/packet.dat', 'wb') as bfile:
+        bfile.write(struct.pack('h', value))
+    with open('outputs/packet.dat', 'rb') as bfile:
+        output = pt.unpack(bfile, 1, 'h')
+    assert output == value
+
+
+def test_unpack_tuple():
+    value = np.pi, np.e, np.inf
+    with open('outputs/packet.dat', 'wb') as bfile:
+        bfile.write(struct.pack('3f', *value))
+    with open('outputs/packet.dat', 'rb') as bfile:
+        output = pt.unpack(bfile, 3, 'f')
+    np.testing.assert_allclose(output, value)
+
+
+@pytest.mark.parametrize('units, value',
+    [('cm', 1.0),
+     ('m', 100.0),
+     ('rearth', 6.3781e8),
+     ('kg', 1000.0),
+     ('mjup', 1.8982e30),
+     ('bar', 1e6),
+    ])
+def test_u(units, value):
+    assert pt.u(units) == value
+
+
+def test_u_error():
+    with pytest.raises(ValueError,
+            match="Units 'fake_units' does not exist in pyratbay.constants."):
+        pt.u('fake_units')
 
 
 @pytest.mark.parametrize('value, result',
     [(1.0, 100000.0),
      ('10 cm', 10.0),])
 def test_get_param(value, result):
-    assert pt.get_param('size', value, 'km') == result
+    assert pt.get_param(value, 'km') == result
 
 
 def test_get_param_array():
     value = np.array([10.0, 20.0])
-    np.testing.assert_allclose(pt.get_param('size', value, 'km'),
-        np.array([1000000.0, 2000000.0]))
+    np.testing.assert_allclose(pt.get_param(value, 'm'),
+        np.array([1000.0, 2000.0]))
 
 
 def test_get_param_none():
-    assert pt.get_param('size', None, 'km') is None
+    assert pt.get_param(None, 'km') is None
+
+
+def test_get_param_invalid_str_value():
+    with pytest.raises(ValueError, match="Invalid value 'val'"):
+        pt.get_param('val')
+
+
+def test_get_param_invalid_str_many_values():
+    with pytest.raises(ValueError, match="Invalid value '1 3 km'"):
+        pt.get_param('1 3 km')
+
+
+def test_get_param_invalid_str_units():
+    with pytest.raises(ValueError, match="Invalid units for value '1 unit'"):
+        pt.get_param('1 unit')
+
+
+def test_get_param_invalid_units():
+    with pytest.raises(ValueError, match="Invalid units 'unit'"):
+        pt.get_param('1.0', 'unit')
+
+
+@pytest.mark.parametrize('value', [-1.0, 0.0])
+def test_get_param_invalid_value_gt(value):
+    with pytest.raises(ValueError, match=f"Value {value} must be > 0.0"):
+        pt.get_param(value, 'kelvin', gt=0.0)
+
+
+def test_get_param_invalid_value_ge():
+    with pytest.raises(ValueError, match="Value -100.0 must be >= 0.0"):
+        pt.get_param(-1.0, 'm', ge=0.0)
 
 
 @pytest.mark.parametrize('data',
@@ -147,7 +213,7 @@ def test_ilast_type(data):
     assert pt.ilast(data) == 2
 
 
-def test_isfile_none(tmp_path):
+def test_isfile_none():
     assert pt.isfile(None) == -1
 
 
@@ -201,18 +267,29 @@ def test_path():
     assert pt.path('/home/user/file.txt') == "/home/user/file.txt"
 
 
-def test_Formatted_Write():
+@pytest.mark.parametrize('num_fmt', ['{}', '{:.2f}'])
+def test_Formatted_Write_none(num_fmt):
+    fmt = pt.Formatted_Write()
+    rstar = np.pi/3.14
+    default_double_str = str(rstar)
+    fmt.write('Stellar radius (rstar, rsun):  ' + num_fmt, None)
+    assert fmt.text == 'Stellar radius (rstar, rsun):  None\n'
+
+
+def test_Formatted_Write_float_fmt():
     fmt = pt.Formatted_Write()
     rstar = np.pi/3.14
     default_double_str = str(rstar)
     fmt.write('Stellar radius (rstar, rsun):  {:.2f}', rstar)
-    fmt.write('Stellar radius (rstar, rsun):  {:.2f}', None)
-    fmt.write('Stellar radius (rstar, rsun):  {}',     rstar)
-    fmt.write('Stellar radius (rstar, rsun):  {}',     None)
-    assert fmt.text == ('Stellar radius (rstar, rsun):  1.00\n'
-                        'Stellar radius (rstar, rsun):  None\n'
-                        'Stellar radius (rstar, rsun):  {:s}\n'
-                        'Stellar radius (rstar, rsun):  None\n').format(default_double_str)
+    assert fmt.text == 'Stellar radius (rstar, rsun):  1.00\n'
+
+
+def test_Formatted_Write_float_default():
+    fmt = pt.Formatted_Write()
+    rstar = np.pi/3.14
+    default_double_str = str(rstar)
+    fmt.write('Stellar radius (rstar, rsun):  {}', rstar)
+    assert fmt.text == f'Stellar radius (rstar, rsun):  {default_double_str}\n'
 
 
 @pytest.mark.parametrize('db, molecule, isotope',
@@ -228,95 +305,39 @@ def test_get_exomol_mol(db, molecule, isotope):
     assert iso == isotope
 
 
-def test_pf_exomol_single():
-    # Mock an Exomol PF:
-    epf = '14N-1H4__MockBYTe.pf'
-    mock_pf(epf, np.arange(1,6), np.logspace(0,1,5))
-    pt.pf_exomol(epf)
-    pf, iso, temp = io.read_pf('PF_Exomol_NH4.dat')
-    np.testing.assert_allclose(pf[0,:], np.logspace(0,1,5), rtol=1e-5)
-    np.testing.assert_allclose(temp, np.arange(1,6), rtol=1e-7)
-    assert list(iso) == ['41111']
-
-
-def test_pf_exomol_listed_single():
-    epf = '14N-1H4__MockBYTe.pf'
-    mock_pf(epf, np.arange(1,6), np.logspace(0,1,5))
-    pt.pf_exomol([epf])
-    pf, iso, temp = io.read_pf('PF_Exomol_NH4.dat')
-    np.testing.assert_allclose(pf[0,:], np.logspace(0,1,5), rtol=1e-5)
-    np.testing.assert_allclose(temp, np.arange(1,6), rtol=1e-7)
-    assert list(iso) == ['41111']
-
-
-def test_pf_exomol_two():
-    epf1 = '14N-1H4__MockBYTe.pf'
-    epf2 = '15N-1H4__MockBYTe.pf'
-    mock_pf(epf1, np.arange(1,6), np.logspace(0,1,5))
-    mock_pf(epf2, np.arange(1,9), np.logspace(0,1,8))
-    pt.pf_exomol([epf1, epf2])
-    pf, iso, temp = io.read_pf('PF_Exomol_NH4.dat')
-    np.testing.assert_allclose(pf[0,:5], np.logspace(0,1,5), rtol=1e-5)
-    np.testing.assert_allclose(pf[1,:],  np.logspace(0,1,8), rtol=1e-5)
-    np.testing.assert_allclose(temp, np.arange(1,9), rtol=1e-7)
-    assert list(iso) == ['41111', '51111']
-
-
-@pytest.mark.sort(order=1)
-def test_pf_kurucz_H2O():
-    with open('Mock_h2opartfn.dat', 'w') as f:
-        f.write(
-      '''
-         s the temperature increases the minor isotopomers become less
-         ccurate because of missing levels.
-
-           T      1H1H16O      1H1H17O     1H1H18O     1H2H16O
-                   170625       30215       30445       42016 levels
-           10       1.328       1.330       1.332       1.399
-           20       3.349       3.361       3.373       2.945
-           30       6.192       6.217       6.240       5.085
-           40       9.417       9.457       9.492       7.617
-           50      12.962      13.017      13.066      10.476''')
-    pt.pf_kurucz('Mock_h2opartfn.dat')
-    # Check outputs:
-    pf, iso, temp = io.read_pf('PF_kurucz_H2O.dat')
-    np.testing.assert_equal(iso,
-        np.array(['1H1H16O', '1H1H17O', '1H1H18O', '1H2H16O']))
-    np.testing.assert_equal(temp, np.arange(10, 51, 10.0))
-    np.testing.assert_allclose(pf,
-        np.array([[ 1.328,  3.349,  6.192,  9.417, 12.962],
-                  [ 1.33 ,  3.361,  6.217,  9.457, 13.017],
-                  [ 1.332,  3.373,  6.24 ,  9.492, 13.066],
-                  [ 1.399,  2.945,  5.085,  7.617, 10.476]]))
-
-
-def test_pf_kurucz_TiO():
-    with open('Mock_tiopart.dat', 'w') as f:
-        f.write(
-      '''  T        46TiO       47TiO       48TiO       49TiO       50TiO
-            10      28.829      28.970      29.107      29.240      29.369
-            20      54.866      55.151      55.425      55.692      55.950
-            30      81.572      82.002      82.417      82.821      83.212
-            40     110.039     110.625     111.190     111.741     112.273
-            50     141.079     141.834     142.564     143.273     143.960''')
-    pt.pf_kurucz('Mock_tiopart.dat')
-    # Check outputs:
-    pf, iso, temp = io.read_pf('PF_kurucz_TiO.dat')
-    np.testing.assert_equal(iso, np.array(['66','76','86','96','06']))
-    np.testing.assert_equal(temp, np.arange(10, 51, 10.0))
-    np.testing.assert_allclose(pf,
-        np.array([[ 28.829,  54.866,  81.572, 110.039, 141.079],
-                  [ 28.97 ,  55.151,  82.002, 110.625, 141.834],
-                  [ 29.107,  55.425,  82.417, 111.19 , 142.564],
-                  [ 29.24 ,  55.692,  82.821, 111.741, 143.273],
-                  [ 29.369,  55.95 ,  83.212, 112.273, 143.96 ]]))
-
-
-@pytest.mark.skip(reason='Do I want to wget this file or mock it?')
 def test_cia_hitran():
-    ciafile = 'H2-H_2011.cia'
+    ciafile = 'inputs/mock_H2-H2_2011.cia'
     pt.cia_hitran(ciafile, tstep=1, wstep=1)
-    # TBD: implement check
+    outfile = 'CIA_HITRAN_H2-H2_333.3-500.0um_0200-0300K.dat'
+
+    assert outfile in os.listdir()
+    with open(outfile, 'r') as f:
+        text = f.read()
+    assert text == (
+        '# This file contains the reformated H2-H2 CIA data from\n'
+        '# HITRAN file: inputs/mock_H2-H2_2011.cia\n\n'
+
+        '@SPECIES\n'
+        'H2  H2\n\n'
+
+        '@TEMPERATURES\n'
+        '                 200       225       250       275       300\n\n'
+
+        '# Wavenumber in cm-1, opacity in cm-1 amagat-2:\n'
+        '@DATA\n'
+        '     20.0  1.926e-08 1.717e-08 1.543e-08 1.396e-08 1.287e-08\n'
+        '     21.0  2.116e-08 1.886e-08 1.695e-08 1.534e-08 1.414e-08\n'
+        '     22.0  2.312e-08 2.062e-08 1.854e-08 1.678e-08 1.547e-08\n'
+        '     23.0  2.516e-08 2.244e-08 2.018e-08 1.827e-08 1.685e-08\n'
+        '     24.0  2.725e-08 2.433e-08 2.189e-08 1.983e-08 1.829e-08\n'
+        '     25.0  2.941e-08 2.627e-08 2.365e-08 2.143e-08 1.978e-08\n'
+        '     26.0  3.163e-08 2.827e-08 2.547e-08 2.309e-08 2.132e-08\n'
+        '     27.0  3.390e-08 3.032e-08 2.733e-08 2.479e-08 2.290e-08\n'
+        '     28.0  3.622e-08 3.243e-08 2.925e-08 2.655e-08 2.454e-08\n'
+        '     29.0  3.859e-08 3.458e-08 3.122e-08 2.835e-08 2.621e-08\n'
+        '     30.0  4.100e-08 3.678e-08 3.323e-08 3.019e-08 2.793e-08\n'
+        )
+    os.remove(outfile)
 
 
 @pytest.mark.skip(reason='Do I want to wget this file or mock it?')
@@ -326,124 +347,44 @@ def test_cia_borysow():
     # TBD: implement check
 
 
-def test_tophat_dlambda():
-    wl0     = 1.50
-    width   = 0.50
-    margin  = 0.10
-    dlambda = 0.05
-    wl, trans = pt.tophat(wl0, width, margin, dlambda)
-    np.testing.assert_allclose(wl, np.array(
-       [1.15, 1.2 , 1.25, 1.3 , 1.35, 1.4 , 1.45, 1.5 , 1.55, 1.6 , 1.65,
-        1.7 , 1.75, 1.8 , 1.85]))
-    np.testing.assert_equal(trans, np.array(
-       [0., 0., 0., 1., 1., 1., 1., 1., 1., 1., 1., 1., 0., 0., 0.]))
+def test_depth_to_radius_scalar():
+    depth = 1.44
+    depth_err = 0.6
+    rprs, rprs_err = pt.depth_to_radius(depth, depth_err)
+    assert rprs == 1.2
+    assert rprs_err == 0.25
 
 
-def test_tophat_resolution():
-    wl0     = 1.50
-    width   = 0.50
-    margin  = 0.10
-    resolution = 30.0
-    wl, trans = pt.tophat(wl0, width, margin, resolution=resolution)
-    np.testing.assert_allclose(wl, np.array(
-      [1.14104722, 1.17972679, 1.21971752, 1.26106388, 1.30381181,
-       1.34800882, 1.39370403, 1.44094824, 1.48979394, 1.54029543,
-       1.59250883, 1.64649218, 1.70230548, 1.76001075, 1.81967213]))
-    np.testing.assert_equal(trans, np.array(
-      [0., 0., 0., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 0., 0.]))
+@pytest.mark.parametrize('func',
+    [list, tuple, np.array, ])
+def test_depth_to_radius_iterable(func):
+    depth = 1.44, 2.25
+    depth_err = 0.6, 0.9
+    depth = func(depth)
+    depth_err = func(depth_err)
+    rprs, rprs_err = pt.depth_to_radius(depth, depth_err)
+    np.testing.assert_allclose(rprs, (1.2,1.5))
+    np.testing.assert_allclose(rprs_err, (0.25,0.3))
 
 
-def test_tophat_savefile(tmpdir):
-    ffile = "tophat.dat"
-    tmp_file = "{}/{}".format(tmpdir, ffile)
-    wl0     = 1.50
-    width   = 0.50
-    margin  = 0.10
-    dlambda = 0.05
-    wl, trans = pt.tophat(wl0, width, margin, dlambda, ffile=tmp_file)
-    assert ffile in os.listdir(str(tmpdir))
-    with open(tmp_file, 'r') as f:
-        assert f.readline() == '# Wavelength      transmission\n'
-        assert f.readline() == '#         um          unitless\n'
-        assert f.readline() == '     1.15000   0.000000000e+00\n'
-        assert f.readline() == '     1.20000   0.000000000e+00\n'
-        assert f.readline() == '     1.25000   0.000000000e+00\n'
-        assert f.readline() == '     1.30000   1.000000000e+00\n'
+def test_radius_to_depth_scalar():
+    rprs = 1.2
+    rprs_err = 0.25
+    depth, depth_err = pt.radius_to_depth(rprs, rprs_err)
+    assert depth == 1.44
+    assert depth_err == 0.6
 
 
-@pytest.mark.parametrize('wn',
-    [np.linspace(1.3, 1.7, 11),
-     np.flip(np.linspace(1.3, 1.7, 11), axis=0)])
-def test_resample_flip_wn(wn):
-    signal = np.array(np.abs(wn-1.5)<0.1, np.double) * wn
-    specwn = np.linspace(1, 2, 101)
-    resampled, wnidx = pt.resample(signal, wn, specwn)
-    np.testing.assert_equal(wnidx, np.arange(31, 70))
-    np.testing.assert_allclose(resampled, np.array(
-      [0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.355,
-       0.71 , 1.065, 1.42 , 1.43 , 1.44 , 1.45 , 1.46 , 1.47 , 1.48 ,
-       1.49 , 1.5  , 1.51 , 1.52 , 1.53 , 1.54 , 1.55 , 1.56 , 1.57 ,
-       1.58 , 1.185, 0.79 , 0.395, 0.   , 0.   , 0.   , 0.   , 0.   ,
-       0.   , 0.   , 0.   ]))
-
-
-def test_resample_flip_specwn():
-    wn = np.linspace(1.3, 1.7, 11)
-    signal = np.array(np.abs(wn-1.5)<0.1, np.double) * wn
-    specwn = np.flip(np.linspace(1, 2, 101), axis=0)
-    resampled, wnidx = pt.resample(signal, wn, specwn)
-    np.testing.assert_equal(wnidx, np.arange(31, 70))
-    np.testing.assert_allclose(resampled, np.array(
-      [0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.395,
-       0.79 , 1.185, 1.58 , 1.57 , 1.56 , 1.55 , 1.54 , 1.53 , 1.52 ,
-       1.51 , 1.5  , 1.49 , 1.48 , 1.47 , 1.46 , 1.45 , 1.44 , 1.43 ,
-       1.42 , 1.065, 0.71 , 0.355, 0.   , 0.   , 0.   , 0.   , 0.   ,
-       0.   , 0.   , 0.   ]))
-
-
-def test_resample_normalize():
-    wn = np.linspace(1.3, 1.7, 11)
-    signal = np.array(np.abs(wn-1.5)<0.1, np.double)
-    specwn = np.linspace(1, 2, 101)
-    resampled, wnidx = pt.resample(signal, wn, specwn, normalize=True)
-    # For an equi-spaced specwn:
-    dx = specwn[1] - specwn[0]
-    np.testing.assert_approx_equal(np.sum(resampled)*dx, 1.0)
-
-
-def test_resample_outbounds():
-    wn = np.linspace(1.3, 1.7, 11)
-    signal = np.array(np.abs(wn-1.5)<0.1, np.double)
-    specwn = np.linspace(1.4, 2, 101)
-    with pytest.raises(ValueError,
-        match="Resampling signal's wavenumber is not contained in specwn."):
-        resampled, wnidx = pt.resample(signal, wn, specwn)
-
-
-def test_band_integrate_single():
-    wn = np.arange(1500, 5000.1, 1.0)
-    signal = np.ones_like(wn)
-    wn1, irac1 = io.read_spectrum(pc.ROOT+"inputs/filters/spitzer_irac1_sa.dat")
-    bandflux = pt.band_integrate(signal, wn, irac1, wn1)
-    np.testing.assert_allclose(bandflux, [1.0])
-
-
-def test_band_integrate_multiple():
-    wn = np.arange(1500, 5000.1, 1.0)
-    signal = np.ones_like(wn)
-    wn1, irac1 = io.read_spectrum(pc.ROOT+"inputs/filters/spitzer_irac1_sa.dat")
-    wn2, irac2 = io.read_spectrum(pc.ROOT+"inputs/filters/spitzer_irac2_sa.dat")
-    bandflux = pt.band_integrate(signal, wn, [irac1, irac2], [wn1, wn2])
-    np.testing.assert_allclose(bandflux, [1.0, 1.0])
-
-
-def test_band_integrate():
-    wn = np.arange(1500, 5000.1, 1.0)
-    sflux = ps.bbflux(wn, 1800.0)
-    wn1, irac1 = io.read_spectrum(pc.ROOT+"inputs/filters/spitzer_irac1_sa.dat")
-    wn2, irac2 = io.read_spectrum(pc.ROOT+"inputs/filters/spitzer_irac2_sa.dat")
-    bandfluxes = pt.band_integrate(sflux, wn, [irac1,irac2], [wn1, wn2])
-    np.testing.assert_allclose(bandfluxes, [98527.148526, 84171.417692])
+@pytest.mark.parametrize('func',
+    [list, tuple, np.array, ])
+def test_radius_to_depth_iterable(func):
+    rprs = 1.2, 1.5
+    rprs_err = 0.25, 0.3
+    rprs = func(rprs)
+    rprs_err = func(rprs_err)
+    depth, depth_err = pt.radius_to_depth(rprs, rprs_err)
+    np.testing.assert_allclose(depth, (1.44, 2.25))
+    np.testing.assert_allclose(depth_err, (0.6,0.9))
 
 
 @pytest.mark.parametrize('flag, output', [(False,1), (True,None)])
@@ -457,6 +398,28 @@ def test_ignore_system_exit(flag, output):
         assert dummy_function(flag) is None
     else:
         assert dummy_function(flag) == 1
+
+
+def test_Namespace_get_path_str():
+    ns = pt.Namespace({'path':'file0'})
+    assert ns.get_path('path') == os.getcwd() + '/file0'
+
+
+def test_Namespace_get_path_list():
+    ns = pt.Namespace({'path':['file1', 'file2']})
+    assert ns.get_path('path')[0] == os.getcwd() + '/file1'
+    assert ns.get_path('path')[1] == os.getcwd() + '/file2'
+
+
+def test_Namespace_get_path_root():
+    ns = pt.Namespace({'path':'{ROOT}/rooted_file'})
+    assert ns.get_path('path') == pc.ROOT + 'rooted_file'
+
+
+def test_Namespace_get_path_non_existing():
+    ns = pt.Namespace({'path':'file0'})
+    with pytest.raises(SystemExit):
+        ns.get_path('path', desc='Configuration', exists=True)
 
 
 @pytest.mark.parametrize('var, val',

@@ -1,348 +1,204 @@
-# Copyright (c) 2016-2019 Patricio Cubillos and contributors.
-# Pyrat Bay is currently proprietary software (see LICENSE).
+# Copyright (c) 2021 Patricio Cubillos
+# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 import os
-import sys
 import pytest
 
 import numpy as np
 
-from conftest import make_config
+import pyratbay.spectrum as ps
+import pyratbay.constants as pc
+import pyratbay.io as io
 
-ROOT = os.path.realpath(os.path.dirname(__file__) + '/..') + '/'
-sys.path.append(ROOT)
-import pyratbay as pb
-import pyratbay.constants  as pc
-import pyratbay.atmosphere as pa
-
-os.chdir(ROOT+'tests')
+os.chdir(pc.ROOT + 'tests')
 
 
-# Expected spectra:
-keys = ['lec', 'cia', 'alkali', 'deck', 'tli', 'all', 'etable',
-        'tmodel', 'vert', 'scale', 'fit1', 'fit2', 'fit3', 'fit4',
-        'bandflux4', 'resolution', 'odd_even']
-expected = {key:np.load("expected_spectrum_transmission_{:s}_test.npz".
-                        format(key))['arr_0']
-            for key in keys}
-#np.savez('expected_spectrum_transmission_fit_test.npz', model1[0])
+@pytest.mark.parametrize('wn',
+   [[1.0, 10.0, 100.0, 1000.0, 3000.0],
+    [1  , 10  , 100  , 1000  , 3000  ],
+    (1.0, 10.0, 100.0, 1000.0, 3000.0),
+    (1  , 10  , 100  , 1000  , 3000  ),
+    np.array([1.0, 10.0, 100.0, 1000.0, 3000.0]),
+    np.array([1  , 10  , 100  , 1000  , 3000  ])])
+def test_bbflux_type(wn):
+    tsun = 5772.0
+    flux = ps.bbflux(wn, tsun)
+    np.testing.assert_allclose(flux,
+        np.array([1.50092461e-01, 1.49924158e+01, 1.48248054e+03,
+                  1.32178742e+05, 9.08239148e+05]))
+
+def test_bbflux_sun():
+    tsun = 5772.0
+    wn = np.logspace(-1, 5, 30000)
+    flux = ps.bbflux(wn, tsun)
+    # Solar constant:
+    s = np.trapz(flux, wn) * (pc.rsun/pc.au)**2
+    np.testing.assert_allclose(s, 1361195.40)
+    # Wien's displacement law:
+    np.testing.assert_allclose(wn[np.argmax(flux)], 5.879e10*tsun/pc.c,
+                               rtol=1e-4)
 
 
-# TBD: Check output files
-def test_transmission_clear(tmp_path):
-    # No opacity whatsoever:
-    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
-        remove=['tlifile', 'csfile', 'rayleigh', 'alkali', 'clouds'])
-    clear = pb.run(cfg)
-    depth_bottom = (clear.atm.radius[-1] / clear.phy.rstar)**2
-    np.testing.assert_allclose(clear.spec.spectrum, depth_bottom, rtol=1e-7)
+def test_bbflux_error():
+    tsun = 5772.0
+    wn = 10.0
+    with pytest.raises(ValueError, match='Input wn must be an iterable.'):
+        dummy = ps.bbflux(wn, tsun)
 
 
-def test_transmission_lecavelier(tmp_path):
-    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
-        remove=['tlifile', 'csfile', 'alkali', 'clouds'])
-    ray = pb.run(cfg)
-    np.testing.assert_allclose(ray.spec.spectrum, expected['lec'], rtol=1e-7)
+def test_read_kurucz_sun():
+    kfile = 'inputs/fp00k0odfnew.pck'
+    tsun = 5772.0
+    gsun = 4.44
+    flux, wn, ktemp, klogg = ps.read_kurucz(kfile, tsun, gsun)
+    s = np.trapz(flux, wn) * (pc.rsun/pc.au)**2
+    assert ktemp == 5750.0
+    assert klogg == 4.5
+    assert len(wn) == len(flux) == 1221
+    np.testing.assert_allclose(s, 1339957.11)
 
 
-def test_transmission_CIA(tmp_path):
-    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
-        remove=['tlifile', 'rayleigh', 'alkali', 'clouds'])
-    cia = pb.run(cfg)
-    np.testing.assert_allclose(cia.spec.spectrum, expected['cia'], rtol=1e-7)
+def test_read_kurucz_all():
+    kfile = 'inputs/fp00k0odfnew.pck'
+    fluxes, wn, ktemp, klogg, continua = ps.read_kurucz(kfile)
+    assert np.shape(fluxes) == np.shape(continua) == (476, 1221)
+    assert len(wn) == 1221
+    assert len(ktemp) == len(klogg) == 476
+    np.testing.assert_equal(np.unique(ktemp),
+        np.array([ 3500.,   3750.,   4000.,   4250.,   4500.,   4750.,   5000.,
+                   5250.,   5500.,   5750.,   6000.,   6250.,   6500.,   6750.,
+                   7000.,   7250.,   7500.,   7750.,   8000.,   8250.,   8500.,
+                   8750.,   9000.,   9250.,   9500.,   9750.,  10000.,  10250.,
+                  10500.,  10750.,  11000.,  11250.,  11500.,  11750.,  12000.,
+                  12250.,  12500.,  12750.,  13000.,  14000.,  15000.,  16000.,
+                  17000.,  18000.,  19000.,  20000.,  21000.,  22000.,  23000.,
+                  24000.,  25000.,  26000.,  27000.,  28000.,  29000.,  30000.,
+                  31000.,  32000.,  33000.,  34000.,  35000.,  36000.,  37000.,
+                  38000.,  39000.,  40000.,  41000.,  42000.,  43000.,  44000.,
+                  45000.,  46000.,  47000.,  48000.,  49000.,  50000.]))
+    np.testing.assert_equal(np.unique(klogg), np.linspace(0.0, 5.0, 11))
+    s = np.trapz(fluxes[108], wn) * (pc.rsun/pc.au)**2
+    np.testing.assert_allclose(s, 1339957.11)
+    c = np.trapz(continua[108], wn) * (pc.rsun/pc.au)**2
+    np.testing.assert_allclose(c, 1618263.50)
 
 
-def test_transmission_alkali(tmp_path):
-    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
-        remove=['tlifile', 'csfile', 'rayleigh', 'clouds'],
-        reset={'wllow':'0.45 um', 'wlhigh':'1.0 um'})
-    alkali = pb.run(cfg)
-    np.testing.assert_allclose(alkali.spec.spectrum, expected['alkali'],
-        rtol=1e-7)
+def test_tophat_dlambda():
+    wl0     = 1.50
+    width   = 0.50
+    margin  = 0.10
+    dlambda = 0.05
+    wl, trans = ps.tophat(wl0, width, margin, dlambda)
+    np.testing.assert_allclose(wl, np.array(
+       [1.15, 1.2 , 1.25, 1.3 , 1.35, 1.4 , 1.45, 1.5 , 1.55, 1.6 , 1.65,
+        1.7 , 1.75, 1.8 , 1.85]))
+    np.testing.assert_equal(trans, np.array(
+       [0., 0., 0., 1., 1., 1., 1., 1., 1., 1., 1., 1., 0., 0., 0.]))
 
 
-def test_transmission_deck(tmp_path):
-    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
-        remove=['tlifile', 'csfile', 'rayleigh', 'alkali'])
-    deck = pb.run(cfg)
-    np.testing.assert_allclose(deck.spec.spectrum, expected['deck'], rtol=1e-7)
+def test_tophat_resolution():
+    wl0     = 1.50
+    width   = 0.50
+    margin  = 0.10
+    resolution = 30.0
+    wl, trans = ps.tophat(wl0, width, margin, resolution=resolution)
+    np.testing.assert_allclose(wl, np.array(
+      [1.14104722, 1.17972679, 1.21971752, 1.26106388, 1.30381181,
+       1.34800882, 1.39370403, 1.44094824, 1.48979394, 1.54029543,
+       1.59250883, 1.64649218, 1.70230548, 1.76001075, 1.81967213]))
+    np.testing.assert_equal(trans, np.array(
+      [0., 0., 0., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 0., 0.]))
 
 
-def test_transmission_tli(tmp_path):
-    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
-        remove=['csfile', 'rayleigh', 'clouds', 'alkali'])
-    tli = pb.run(cfg)
-    np.testing.assert_allclose(tli.spec.spectrum, expected['tli'], rtol=1e-7)
+def test_tophat_savefile(tmpdir):
+    ffile = "tophat.dat"
+    tmp_file = "{}/{}".format(tmpdir, ffile)
+    wl0     = 1.50
+    width   = 0.50
+    margin  = 0.10
+    dlambda = 0.05
+    wl, trans = ps.tophat(wl0, width, margin, dlambda, ffile=tmp_file)
+    assert ffile in os.listdir(str(tmpdir))
+    with open(tmp_file, 'r') as f:
+        assert f.readline() == '# Wavelength      transmission\n'
+        assert f.readline() == '#         um          unitless\n'
+        assert f.readline() == '     1.15000   0.000000000e+00\n'
+        assert f.readline() == '     1.20000   0.000000000e+00\n'
+        assert f.readline() == '     1.25000   0.000000000e+00\n'
+        assert f.readline() == '     1.30000   1.000000000e+00\n'
 
 
-def test_transmission_all(tmp_path):
-    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
-        remove=['clouds'])
-    pyrat = pb.run(cfg)
-    np.testing.assert_allclose(pyrat.spec.spectrum, expected['all'], rtol=1e-7)
+@pytest.mark.parametrize('wn',
+    [np.linspace(1.3, 1.7, 11),
+     np.flip(np.linspace(1.3, 1.7, 11), axis=0)])
+def test_resample_flip_wn(wn):
+    signal = np.array(np.abs(wn-1.5)<0.1, np.double) * wn
+    specwn = np.linspace(1, 2, 101)
+    resampled, wnidx = ps.resample(signal, wn, specwn)
+    np.testing.assert_equal(wnidx, np.arange(31, 70))
+    np.testing.assert_allclose(resampled, np.array(
+      [0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.355,
+       0.71 , 1.065, 1.42 , 1.43 , 1.44 , 1.45 , 1.46 , 1.47 , 1.48 ,
+       1.49 , 1.5  , 1.51 , 1.52 , 1.53 , 1.54 , 1.55 , 1.56 , 1.57 ,
+       1.58 , 1.185, 0.79 , 0.395, 0.   , 0.   , 0.   , 0.   , 0.   ,
+       0.   , 0.   , 0.   ]))
 
 
-def test_transmission_resolution(tmp_path):
-    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
-        reset={'resolution':'5000.0'},
-        remove=['clouds'])
-    pyrat = pb.run(cfg)
-    np.testing.assert_allclose(pyrat.spec.spectrum, expected['resolution'],
-        rtol=1e-7)
+def test_resample_flip_specwn():
+    wn = np.linspace(1.3, 1.7, 11)
+    signal = np.array(np.abs(wn-1.5)<0.1, np.double) * wn
+    specwn = np.flip(np.linspace(1, 2, 101), axis=0)
+    resampled, wnidx = ps.resample(signal, wn, specwn)
+    np.testing.assert_equal(wnidx, np.arange(31, 70))
+    np.testing.assert_allclose(resampled, np.array(
+      [0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.395,
+       0.79 , 1.185, 1.58 , 1.57 , 1.56 , 1.55 , 1.54 , 1.53 , 1.52 ,
+       1.51 , 1.5  , 1.49 , 1.48 , 1.47 , 1.46 , 1.45 , 1.44 , 1.43 ,
+       1.42 , 1.065, 0.71 , 0.355, 0.   , 0.   , 0.   , 0.   , 0.   ,
+       0.   , 0.   , 0.   ]))
 
 
-# Optical-depth integration is home made, which depends on whether there is
-# an odd or even number of layers. Thus, the need for this test.
-def test_transmission_odd_even(tmp_path):
-    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
-        reset={'rpars':'1.0 -4.0'},
-        remove=['tlifile', 'csfile', 'alkali', 'clouds'])
-    odd = pb.run(cfg)
-
-    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
-        reset={'atmfile':'atmosphere_uniform_even_layers.atm',
-               'rpars':'1.0 -4.0'},
-        remove=['tlifile', 'csfile', 'alkali', 'clouds'])
-    even = pb.run(cfg)
-    np.testing.assert_allclose(odd.spec.spectrum, expected['odd_even'],
-        rtol=1e-7)
-    np.testing.assert_allclose(even.spec.spectrum, expected['odd_even'],
-        rtol=1e-7)
+def test_resample_normalize():
+    wn = np.linspace(1.3, 1.7, 11)
+    signal = np.array(np.abs(wn-1.5)<0.1, np.double)
+    specwn = np.linspace(1, 2, 101)
+    resampled, wnidx = ps.resample(signal, wn, specwn, normalize=True)
+    # For an equi-spaced specwn:
+    dx = specwn[1] - specwn[0]
+    np.testing.assert_approx_equal(np.sum(resampled)*dx, 1.0)
 
 
-def test_transmission_etable(tmp_path):
-    # LBL from extinction table:
-    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
-        remove=['tlifile', 'clouds'],
-        reset={'extfile':'exttable_test_300-3000K_1.1-1.7um.dat'})
-    pyrat = pb.run(cfg)
-    np.testing.assert_allclose(pyrat.spec.spectrum, expected['etable'],
-                               rtol=1e-7)
+def test_resample_outbounds():
+    wn = np.linspace(1.3, 1.7, 11)
+    signal = np.array(np.abs(wn-1.5)<0.1, np.double)
+    specwn = np.linspace(1.4, 2, 101)
+    with pytest.raises(ValueError,
+        match="Resampling signal's wavenumber is not contained in specwn."):
+        resampled, wnidx = ps.resample(signal, wn, specwn)
 
 
-@pytest.mark.parametrize('param', ['refpressure', 'rplanet'])
-def test_transmission_input_radius(tmp_path, param):
-    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
-        reset={'atmfile':'atmosphere_uniform_radius.atm'},
-        remove=[param, 'mplanet'])
-    pyrat = pb.run(cfg)
-    atm = pa.readatm('atmosphere_uniform_radius.atm')
-    np.testing.assert_allclose(pyrat.atm.radius, atm[5]*pc.km, rtol=1e-7)
+def test_band_integrate_single():
+    wn = np.arange(1500, 5000.1, 1.0)
+    signal = np.ones_like(wn)
+    wn1, irac1 = io.read_spectrum(pc.ROOT+"inputs/filters/spitzer_irac1_sa.dat")
+    bandflux = ps.band_integrate(signal, wn, irac1, wn1)
+    np.testing.assert_allclose(bandflux, [1.0])
 
 
-@pytest.mark.skip(reason="Because I'm lazy. TBI")
-def test_transmission_qmass_input():
-    # This is the gist of it, prepare a qmass atmospheric file:
-    units, species, press, temp, q = pa.read('atmosphere_uniform_test.atm')
-    molID, symbol, mass, diam = pa.readmol(pc.ROOT+"inputs/molecules.dat")
-    mm = pa.meanweight(q, species)
-    qmass = qprofiles * molmass / mm
-    pa.writeatm(lalal)
-    # Then run spectrum, results must be the same as qnumber run:
-    pyrat = pb.run(ROOT+'tests/spectrum_transmission_qmass_test.cfg')
-    np.testing.assert_allclose(pyrat.spec.spectrum, expected['all'], rtol=1e-7)
+def test_band_integrate_multiple():
+    wn = np.arange(1500, 5000.1, 1.0)
+    signal = np.ones_like(wn)
+    wn1, irac1 = io.read_spectrum(pc.ROOT+"inputs/filters/spitzer_irac1_sa.dat")
+    wn2, irac2 = io.read_spectrum(pc.ROOT+"inputs/filters/spitzer_irac2_sa.dat")
+    bandflux = ps.band_integrate(signal, wn, [irac1, irac2], [wn1, wn2])
+    np.testing.assert_allclose(bandflux, [1.0, 1.0])
 
 
-def plot_transmission():
-    import matplotlib.pyplot as plt
-    plt.figure(10)
-    plt.clf()
-    plt.plot(1e4/clear.spec.wn,  clear.spec.spectrum,  'k')
-    plt.plot(1e4/alkali.spec.wn, alkali.spec.spectrum, 'orange')
-    plt.plot(1e4/ray.spec.wn,    ray.spec.spectrum,    'b')
-    plt.plot(1e4/cia.spec.wn,    cia.spec.spectrum,    'r')
-    plt.plot(1e4/deck.spec.wn,   deck.spec.spectrum,   'limegreen')
-    plt.plot(1e4/tli.spec.wn,    tli.spec.spectrum,    '0.5')
-    plt.plot(1e4/pyrat.spec.wn,  pyrat.spec.spectrum,  'navy', alpha=0.6)
-    plt.plot(1e4/epyrat.spec.wn, epyrat.spec.spectrum, 'deepskyblue', alpha=0.6)
-
-
-# Now try some forward models that modify the atmospheric profile:
-def test_transmission_tmodel_none(tmp_path):
-    # include tmodel, but tpars is None
-    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
-        remove=['clouds', 'cpars'],
-        reset={'tmodel':'tcea'})
-    pyrat = pb.run(cfg)
-    tmodel0 = pyrat.spec.spectrum
-    np.testing.assert_allclose(tmodel0, expected['all'], rtol=1e-7)
-    # Now, re-run with user-input tpars:
-    pyrat.atm.tpars = np.array([-1.5, -0.8, -0.8,  0.5,  1.0])
-    pyrat.run()
-    tmodel1 = pyrat.spec.spectrum
-    np.testing.assert_allclose(tmodel1, expected['tmodel'], rtol=1e-7)
-    # np.testing.assert_allclose(tpyrat.atm.temp, tmodel, rtol=1e-7)
-
-
-def test_transmission_tmodel(tmp_path):
-    # Include tmodel and tpars  in input config file:
-    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
-        remove=['clouds', 'cpars'],
-        reset={'tmodel':'tcea', 'tpars':'-1.5 -0.8 -0.8 0.5 1.0'})
-    pyrat = pb.run(cfg)
-    tmodel2 = pyrat.spec.spectrum
-    np.testing.assert_allclose(tmodel2, expected['tmodel'], rtol=1e-7)
-
-
-def test_transmission_vert_none_model(tmp_path):
-    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
-        remove=['clouds', 'cpars'],
-        reset={'molmodel':'vert', 'molfree':'H2O', 'bulk':'H2 He'})
-    pyrat = pb.run(cfg)
-    vmodel0 = pyrat.spec.spectrum
-    np.testing.assert_allclose(vmodel0, expected['all'], rtol=1e-7)
-    pyrat.atm.molpars = [-5]
-    pyrat.run()
-    vmodel1 = pyrat.spec.spectrum
-    np.testing.assert_allclose(vmodel1, expected['vert'], rtol=1e-7)
-    np.testing.assert_equal(pyrat.atm.q[:,3], 1e-5)
-
-
-def test_transmission_vert_model(tmp_path):
-    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
-        remove=['clouds', 'cpars'],
-        reset={'molmodel':'vert', 'molfree':'H2O', 'molpars':'-5',
-               'bulk':'H2 He'})
-    pyrat = pb.run(cfg)
-    vmodel2 = pyrat.spec.spectrum
-    np.testing.assert_allclose(vmodel2, expected['vert'], rtol=1e-7)
-
-
-def test_transmission_scale_model(tmp_path):
-    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
-        remove=['clouds', 'cpars'],
-        reset={'molmodel':'scale', 'molfree':'H2O', 'molpars':'-1',
-               'bulk':'H2 He'})
-    pyrat = pb.run(cfg)
-    smodel1 = pyrat.spec.spectrum
-    np.testing.assert_allclose(smodel1, expected['scale'], rtol=1e-7)
-    np.testing.assert_equal(pyrat.atm.q[:,3], 0.1*pyrat.atm.qbase[:,3])
-
-
-def test_fit(tmp_path):
-    # Without evaulating params:
-    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
-        reset={'tmodel':'tcea', 'cpars':'2.0',
-               'molmodel':'vert', 'molfree':'H2O', 'bulk':'H2 He',
-               'retflag':'temp mol ray cloud',
-               'params':'-1.5 -0.8 -0.8 0.5 1.0 -4.0 0.0 -4.0 2.0'})
-    pyrat = pb.run(cfg)
-    model0 = np.copy(pyrat.spec.spectrum)
-    np.testing.assert_allclose(model0, expected['all'])
-    # Eval default params:
-    model1 = pyrat.eval(pyrat.ret.params, retmodel=True)
-    np.testing.assert_allclose(model1[0], expected['fit1'], rtol=1e-7)
-    assert model1[1] is None
-    # Cloud deck:
-    params = [-1.5, -0.8, -0.8,  0.5,  1.0, -4.0,  0.0, -4.0,  -3.0]
-    model2 = pyrat.eval(params, retmodel=True)
-    rmin = np.amin(np.sqrt(pyrat.spec.spectrum)) * pyrat.phy.rstar
-    assert np.amax(pyrat.atm.press[pyrat.atm.radius > rmin]) == 1e-3*pc.bar
-    np.testing.assert_allclose(model2[0], expected['fit2'], rtol=1e-7)
-    assert model2[1] is None
-    # Depleted H2O:
-    params = [-1.5, -0.8, -0.8,  0.5,  1.0, -8.0,  0.0, -4.0,  2.0]
-    model3 = pyrat.eval(params, retmodel=True)
-    np.testing.assert_allclose(model3[0], expected['fit3'], rtol=1e-7)
-    assert model3[1] is None
-
-
-def test_fit_filters():
-    pyrat = pb.run(ROOT+'tests/spectrum_transmission_filters_test.cfg')
-    model4 = pyrat.eval(pyrat.ret.params, retmodel=True)
-    np.testing.assert_allclose(model4[0], expected['fit4'],      rtol=1e-7)
-    np.testing.assert_allclose(model4[1], expected['bandflux4'], rtol=1e-7)
-
-
-def test_multiple_opacities(tmp_path):
-    # Generate TLI files:
-    cfg = make_config(tmp_path, ROOT+'tests/tli_multiple_opacity.cfg')
-    pb.run(cfg)
-    cfg = make_config(tmp_path, ROOT+'tests/tli_multiple_opacity.cfg',
-        reset={'dblist':'02_hit12.par',
-               'tlifile':'HITRAN_CO2_1.5-1.6um_test.tli'})
-    pb.run(cfg)
-    cfg = make_config(tmp_path, ROOT+'tests/tli_multiple_opacity.cfg',
-        reset={'dblist':'06_hit12.par',
-               'tlifile':'HITRAN_CH4_1.5-1.6um_test.tli'})
-    pb.run(cfg)
-
-    # Generate opacity files:
-    cfg = make_config(tmp_path, ROOT+'tests/opacity_multiple.cfg')
-    pb.run(cfg)
-    cfg = make_config(tmp_path, ROOT+'tests/opacity_multiple.cfg',
-        reset={'tlifile':'HITRAN_CO2_1.5-1.6um_test.tli',
-               'extfile':'exttable_CO2_300-3000K_1.5-1.6um.dat'})
-    pb.run(cfg)
-    cfg = make_config(tmp_path, ROOT+'tests/opacity_multiple.cfg',
-        reset={'tlifile':'HITRAN_CH4_1.5-1.6um_test.tli',
-               'extfile':'exttable_CH4_300-3000K_1.5-1.6um.dat'})
-    pb.run(cfg)
-    cfg = make_config(tmp_path, ROOT+'tests/opacity_multiple.cfg',
-        reset={'tlifile':'HITRAN_CO2_1.5-1.6um_test.tli'
-                   '\n    HITRAN_CH4_1.5-1.6um_test.tli',
-               'extfile':'exttable_CO2-CH4_300-3000K_1.5-1.6um.dat'})
-    pb.run(cfg)
-
-    # Compute spectra from opacities:
-    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
-        remove=['tlifile', 'clouds'],
-        reset={'extfile':'exttable_H2O_300-3000K_1.5-1.6um.dat'
-                     '\n  exttable_CO2_300-3000K_1.5-1.6um.dat'
-                     '\n  exttable_CH4_300-3000K_1.5-1.6um.dat',
-               'wllow':'1.5', 'wlhigh':'1.6'})
-    pyrat1 = pb.run(cfg)
-    cfg = make_config(tmp_path, ROOT+'tests/spectrum_transmission_test.cfg',
-        remove=['tlifile', 'clouds'],
-        reset={'extfile':'exttable_H2O_300-3000K_1.5-1.6um.dat'
-                     '\n  exttable_CO2-CH4_300-3000K_1.5-1.6um.dat',
-               'wllow':'1.5', 'wlhigh':'1.6'})
-    pyrat2 = pb.run(cfg)
-    np.testing.assert_allclose(pyrat1.spec.spectrum,
-                               pyrat2.spec.spectrum, rtol=1e-5)
-
-
-# These are extra bits for testing the tests before testing:
-def plot_fit():
-    import matplotlib.pyplot as plt
-    plt.figure(0)
-    plt.clf()
-    plt.plot(1e4/pyrat.spec.wn, model0, 'blue')
-    plt.plot(1e4/pyrat.spec.wn, model1[0], 'orange',    alpha=0.6)
-    plt.plot(1e4/pyrat.spec.wn, model2[0], 'limegreen', alpha=0.6)
-    plt.plot(1e4/pyrat.spec.wn, model3[0], 'red',       alpha=0.6)
-    plt.plot(1e4/pyrat.spec.wn, model4[0], 'black',     alpha=0.6)
-
-
-def spectrum_fm():
-    from scipy.ndimage.filters import gaussian_filter1d as gaussf
-    pyrat = pb.run(ROOT+'tests/spectrum_transmission_filters_test.cfg')
-    params = [-1.5, -0.8, 0.0,  1.0,  1.0,  71500.0, -3.4, 2.0]
-    model = pyrat.eval(params, retmodel=True)
-    bandflux = pyrat.obs.bandflux
-
-    plt.figure(1)
-    plt.clf()
-    plt.plot(1e4/pyrat.spec.wn, pyrat.spec.spectrum, 'blue')
-    plt.plot(1e4/pyrat.spec.wn, gaussf(pyrat.spec.spectrum, 5), 'navy')
-    plt.plot(1e4/pyrat.obs.bandwn, bandflux, "o", c='orange')
-
-    # Now, add noise:
-    SNR = 350.0
-    std = 35.0
-    np.random.seed(209458)
-    snr = np.random.normal(SNR, std, len(bandflux))
-    uncert = bandflux/snr
-
-    data = bandflux + np.random.normal(0.0, uncert)
-    plt.errorbar(1e4/pyrat.obs.bandwn, data, uncert, fmt='or', zorder=10)
-
-
-def spectrum_exomol():
-    pyrat = pb.run(ROOT+'tests/spectrum_transmission_exomol.cfg')
-
-    plt.figure(1)
-    plt.clf()
-    plt.plot(1e4/hcn[0], hcn[1], 'b')
-    plt.plot(1e4/pyrat.spec.wn, pyrat.spec.spectrum, 'orange', alpha=0.5)
+def test_band_integrate():
+    wn = np.arange(1500, 5000.1, 1.0)
+    sflux = ps.bbflux(wn, 1800.0)
+    wn1, irac1 = io.read_spectrum(pc.ROOT+"inputs/filters/spitzer_irac1_sa.dat")
+    wn2, irac2 = io.read_spectrum(pc.ROOT+"inputs/filters/spitzer_irac2_sa.dat")
+    bandfluxes = ps.band_integrate(sflux, wn, [irac1,irac2], [wn1, wn2])
+    np.testing.assert_allclose(bandfluxes, [98527.148526, 84171.417692])
 

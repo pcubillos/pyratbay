@@ -1,5 +1,5 @@
-# Copyright (c) 2016-2019 Patricio Cubillos and contributors.
-# Pyrat Bay is currently proprietary software (see LICENSE).
+# Copyright (c) 2021 Patricio Cubillos
+# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 import os
 import multiprocessing as mp
@@ -7,53 +7,56 @@ from collections import OrderedDict
 
 import numpy  as np
 
-from .. import constants  as pc
 from .. import atmosphere as pa
-from .. import tools      as pt
-from .. import plots      as pp
+from .. import constants as pc
+from .. import io as io
+from .. import plots as pp
+from .. import spectrum as ps
+from .. import tools as pt
 
 from .  import extinction as ex
 from .  import crosssec   as cs
 from .  import rayleigh   as ray
 from .  import clouds     as cl
 from .  import alkali     as al
-from .  import readatm    as ra
-from .  import optdepth   as od
+from .  import read_atm   as ra
+from .  import optical_depth as od
 from .  import spectrum   as sp
 from .  import objects    as ob
 from .  import argum      as ar
 from .  import makesample as ms
 from .  import voigt      as v
-from .  import readlinedb as rl
+from .  import read_tli   as rtli
 
 
 class Pyrat(object):
   """
   Main Pyrat object.
   """
-  def __init__(self, cfile):
+  def __init__(self, cfile, no_logfile=False, mute=False):
       """
       Parse the command-line arguments into the pyrat object.
 
       Parameters
       ----------
-      args: Namespace
-          Object storing user-input attributes to initialize Pyrat.
-      log: Log object
-          An MCcubed.utils.Log instance to log screen outputs to file.
+      cfile: String
+          A Pyrat Bay configuration file.
+      no_logfile: Bool
+          If True, enforce not to write outputs to a log file
+          (e.g., to prevent overwritting log of a previous run).
+      mute: Bool
+          If True, enforce verb to take a value of -1.
 
       Examples
       --------
       >>> import pyratbay as pb
-      >>> # There are two ways to initialize a Pyrat object:
-      >>> # Initialize only:
-      >>> pyrat = pb.init('spectrum_transmission.cfg')
-      >>> # This is equivalent to:
-      >>> args, log = pb.tools.parse('spectrum_transmission.cfg')
-      >>> pyrat = pb.Pyrat(args, log)
-
-      >>> # Initialize and compute a spectrum:
+      >>> # Initialize and execute task:
       >>> pyrat = pb.run('spectrum_transmission.cfg')
+
+      >>> # Initialize only:
+      >>> pyrat = pb.Pyrat('spectrum_transmission.cfg')
+      >>> # Then, setup internal varible for spectra evaluation:
+      >>> pyrat.setup_spectrum()
       """
       # Sub-classes:
       self.spec     = ob.Spectrum()        # Spectrum data
@@ -74,33 +77,33 @@ class Pyrat(object):
       self.timestamps = OrderedDict()
 
       # Parse config file inputs:
-      pt.parse(self, cfile)
+      pt.parse(self, cfile, no_logfile, mute)
       self.inputs.atm = ob.Atm()
 
 
   def setup_spectrum(self):
       # Setup time tracker:
-      timer = pt.clock()
+      timer = pt.Timer()
 
       # Check that user input arguments make sense:
       ar.check_spectrum(self)
-      self.timestamps['init'] = next(timer)
+      self.timestamps['init'] = timer.clock()
 
       # Initialize wavenumber sampling:
       ms.make_wavenumber(self)
-      self.timestamps['wn sample'] = next(timer)
+      self.timestamps['wn sample'] = timer.clock()
 
       # Read the atmospheric file:
       ra.read_atm(self)
-      self.timestamps['read atm'] = next(timer)
+      self.timestamps['read atm'] = timer.clock()
 
       # Read line database:
-      rl.read_tli(self)
-      self.timestamps['read tli'] = next(timer)
+      rtli.read_tli(self)
+      self.timestamps['read tli'] = timer.clock()
 
       # Make atmospheric profiles (pressure, radius, temperature, abundances):
       ms.make_atmprofiles(self)
-      self.timestamps['atm sample'] = next(timer)
+      self.timestamps['atm sample'] = timer.clock()
 
       # Setup more observational/retrieval parameters:
       ar.setup(self)
@@ -109,15 +112,15 @@ class Pyrat(object):
       v.voigt(self)
       # Alkali Voigt grid:
       al.init(self)
-      self.timestamps['voigt'] = next(timer)
+      self.timestamps['voigt'] = timer.clock()
 
       # Calculate extinction-coefficient table:
       ex.exttable(self)
-      self.timestamps['ext table'] = next(timer)
+      self.timestamps['ext table'] = timer.clock()
 
       # Read CIA files:
       cs.read(self)
-      self.timestamps['read cs'] = next(timer)
+      self.timestamps['read cs'] = timer.clock()
 
 
   def run(self, temp=None, abund=None, radius=None):
@@ -135,48 +138,50 @@ class Pyrat(object):
       radius: 1D float ndarray
           Updated atmospheric altitude profile in cm, of size nlayers.
       """
-      timer = pt.clock()
+      timer = pt.Timer()
 
       # Re-calculate atmospheric properties if required:
-      status = ra.reloadatm(self, temp, abund, radius)
+      status = ra.update_atm(self, temp, abund, radius)
       if status == 0:
           return
       # Interpolate CIA absorption:
       cs.interpolate(self)
-      self.timestamps['interp cs'] = next(timer)
+      self.timestamps['interp cs'] = timer.clock()
 
       # Calculate cloud and Rayleigh absorption:
       cl.absorption(self)
       ray.absorption(self)
-      self.timestamps['cloud+ray'] = next(timer)
+      self.timestamps['cloud+ray'] = timer.clock()
 
       # Calculate the alkali absorption:
       al.absorption(self)
-      self.timestamps['alkali'] = next(timer)
+      self.timestamps['alkali'] = timer.clock()
 
       # Calculate the optical depth:
-      od.opticaldepth(self)
-      self.timestamps['odepth'] = next(timer)
+      od.optical_depth(self)
+      self.timestamps['odepth'] = timer.clock()
 
       # Calculate the spectrum:
       sp.spectrum(self)
-      self.timestamps['spectrum'] = next(timer)
+      self.timestamps['spectrum'] = timer.clock()
 
       self.log.msg("\nTimestamps (s):\n" +
                    "\n".join("{:10s}: {:10.6f}".format(key,val)
-                             for key,val in self.timestamps.items()), verb=2)
+                             for key,val in self.timestamps.items()))
 
-      if len(self.log.warnings) > 0:
+      if len(self.log.warnings) > 0 and self.log.logname is not None:
           # Write all warnings to file:
           wpath, wfile = os.path.split(self.log.logname)
-          wfile = "{:s}/warnings_{:s}".format(wpath, wfile)
-          with open(wfile, "w") as f:
-              f.write("Warnings log:\n\n{:s}\n".format(self.log.sep))
-              f.write("\n\n{:s}\n".format(self.log.sep).join(self.log.warnings))
+          wfile = f'{wpath}/warnings_{wfile}'
+          with open(wfile, 'w') as f:
+              f.write(f'Warnings log:\n\n{self.log.sep}\n')
+              f.write(f'\n\n{self.log.sep}\n'.join(self.log.warnings))
           # Report it:
-          self.log.msg("\n{:s}\n  There were {:d} warnings raised.  "
-              "See '{:s}'.\n{:s}".format(self.log.sep, len(self.log.warnings),
-                                         wfile, self.log.sep))
+          self.log.head(
+              f"\n{self.log.sep}"
+              f"\n  There were {len(self.log.warnings)} warnings raised.  "
+              f"See '{wfile}'."
+              f"\n{self.log.sep}")
 
 
   def eval(self, params, retmodel=True, verbose=False):
@@ -202,20 +207,27 @@ class Pyrat(object):
       params = np.asarray(params)
       q0 = np.copy(self.atm.qbase)
 
+      if len(params) != self.ret.nparams:
+          self.log.warning(
+              f'The number of input fitting parameters ({len(params)}) does '
+              f'not match\nthe number of required '
+              f'parameters ({self.ret.nparams}).')
+          return None, None if retmodel else None
+
       rejectflag = False
       # Update temperature profile if requested:
       if self.ret.itemp is not None:
-          temp = self.atm.tmodel(params[self.ret.itemp], *self.atm.targs)
+          self.atm.tpars = params[self.ret.itemp]
+          temp = self.atm.tmodel(params[self.ret.itemp])
       else:
           temp = self.atm.temp
-      # Turn-on reject flag if out-of-bounds temperature:
+      # Turn-on reject flag if temperature is out-of-bounds:
       if np.any(temp < self.ret.tlow) or np.any(temp > self.ret.thigh):
           temp[:] = 0.5*(self.ret.tlow + self.ret.thigh)
           rejectflag = True
           if verbose:
               self.log.warning("Input temperature profile runs out of "
-                               "boundaries ({:.1f--{:.1f}} K)".
-                               format(self.ret.tlow, self.ret.thigh))
+                  f"boundaries ({self.ret.tlow:.1f}--{self.ret.thigh:.1f} K)")
 
       # Update abundance profiles if requested:
       if self.ret.imol is not None:
@@ -232,11 +244,21 @@ class Pyrat(object):
           rejectflag = True
           if verbose:
               self.log.warning("The sum of trace abundances' fraction exceeds "
-                               "the cap of {:.3f}.".format(self.ret.qcap))
+                              f"the cap of {self.ret.qcap:.3f}.")
 
       # Update reference radius if requested:
       if self.ret.irad is not None:
-          self.phy.rplanet = params[self.ret.irad][0] * pc.km
+          self.phy.rplanet = params[self.ret.irad][0] * pt.u(self.atm.runits)
+
+      # Update planetary mass if requested:
+      if self.ret.imass is not None:
+          self.phy.mplanet = params[self.ret.imass][0] * pt.u(self.phy.mpunits)
+
+      # Keep M-g-R0 consistency:
+      if self.atm.rmodelname == 'hydro_g': # and self.ret.igrav is None:
+          self.phy.gplanet = pc.G * self.phy.mplanet / self.phy.rplanet**2
+      #if self.atm.rmodelname == 'hydro_m' and self.ret.igrav is not None:
+      #    self.phy.mplanet = self.phy.gplanet * self.phy.rplanet**2 / pc.G
 
       # Update Rayleigh parameters if requested:
       if self.ret.iray is not None:
@@ -256,7 +278,7 @@ class Pyrat(object):
 
       # Update patchy-cloud fraction if requested:
       if self.ret.ipatchy is not None:
-          self.cloud.fpatchy = params[self.ret.ipatchy]
+          self.cloud.fpatchy = params[self.ret.ipatchy][0]
 
       # Calculate spectrum:
       self.run(temp=temp, abund=q2)
@@ -268,6 +290,7 @@ class Pyrat(object):
       if self.obs.bandflux is not None and rejectflag:
           self.obs.bandflux[:] = np.inf
 
+      self.ret.params = np.copy(params)
       if retmodel:
           return self.spec.spectrum, self.obs.bandflux
 
@@ -284,17 +307,19 @@ class Pyrat(object):
 
       if spectrum is None:
           spectrum = self.spec.spectrum
-      specwn   = self.spec.wn
-      bandidx  = self.obs.bandidx
+      specwn = self.spec.wn
+      bandidx = self.obs.bandidx
 
-      if self.od.path == 'transit':
+      if self.od.rt_path in pc.transmission_rt:
           bandtrans = self.obs.bandtrans
-      elif self.od.path == 'eclipse':
-          bandtrans = [btrans/sflux * self.phy.rprs**2
-               for btrans, sflux in zip(self.obs.bandtrans, self.obs.starflux)]
+      elif self.od.rt_path in pc.emission_rt:
+          bandtrans = [
+              btrans/sflux * (self.phy.rplanet/self.phy.rstar)**2
+              for btrans, sflux in zip(self.obs.bandtrans, self.obs.starflux)]
 
-      self.obs.bandflux = np.array([np.trapz(spectrum[idx]*btrans, specwn[idx])
-                                    for btrans, idx in zip(bandtrans, bandidx)])
+      self.obs.bandflux = np.array([
+          np.trapz(spectrum[idx]*btrans, specwn[idx])
+          for btrans, idx in zip(bandtrans, bandidx)])
 
       return self.obs.bandflux
 
@@ -302,8 +327,8 @@ class Pyrat(object):
   def hydro(self, pressure, temperature, mu, g, mass, p0, r0):
       """
       Hydrostatic-equilibrium driver.
-      Depending on the self.atm.hydrom flag, select between the g=GM/r**2
-      (hydrom=True) or constant-g (hydrom=False) formula to compute
+      Depending on self.atm.rmodelname, select between the g=GM/r**2
+      (hydro_m) or constant-g (hydro_g) formula to compute
       the hydrostatic-equilibrium radii of the planet layers.
 
       Parameters
@@ -323,11 +348,45 @@ class Pyrat(object):
       r0: Float
          Reference radius level (in cm) corresponding to p0.
       """
+      if self.atm.rmodelname is None:
+          print('No hydrostatic-equilibrium model defined.')
+          return None
       # H.E. with  g=GM/r**2:
-      if self.atm.hydrom:
+      elif self.atm.rmodelname == 'hydro_m':
           return pa.hydro_m(pressure, temperature, mu, mass, p0, r0)
       # H.E. with constant g:
-      return pa.hydro_g(pressure, temperature, mu, g, p0, r0)
+      elif self.atm.rmodelname == 'hydro_g':
+          return pa.hydro_g(pressure, temperature, mu, g, p0, r0)
+
+  def set_filters(self):
+      """
+      Set observational variables (pyrat.obs) based on given parameters.
+      """
+      if self.obs.filters is None:
+          return
+
+      bandidx   = []  # Filter wavenumber indices
+      starflux  = []  # Interpolated stellar flux
+      bandtrans = []  # Normalized interpolated filter transmission
+      bandwn    = []  # Band's mean wavenumber
+      for filter in self.obs.filters:
+          # Read filter wavenumber and transmission curves:
+          filterwn, filtertr = io.read_spectrum(filter)
+          # Resample the filters into the planet wavenumber array:
+          btrans, bidx = ps.resample(filtertr, filterwn, self.spec.wn,
+              normalize=True)
+          bandidx.append(bidx)
+          bandtrans.append(btrans)
+          bandwn.append(np.sum(filterwn*filtertr)/np.sum(filtertr))
+          if self.phy.starflux is not None:
+              starflux.append(self.spec.starflux[bidx])
+
+      # Per-band variables:
+      self.obs.bandidx   = bandidx
+      self.obs.bandtrans = bandtrans
+      self.obs.starflux  = starflux
+      self.obs.bandwn    = np.asarray(bandwn)
+      self.obs.bandflux  = np.zeros(self.obs.nfilters, np.double)
 
 
   def get_ec(self, layer):
@@ -352,7 +411,7 @@ class Pyrat(object):
       ec = np.empty((0, self.spec.nwave))
       label = []
       # Line-by-line extinction coefficient:
-      if self.ex.nmol != 0:
+      if self.ex.nspec != 0:
           e, lab = ex.get_ec(self, layer)
           ec = np.vstack((ec, e))
           label += lab
@@ -398,7 +457,7 @@ class Pyrat(object):
 
       # Array of all model parameters (with unique samples)
       posterior = np.repeat([self.ret.params], len(u), axis=0)
-      ifree = np.where(self.ret.stepsize >0)[0]
+      ifree = np.where(self.ret.pstep >0)[0]
       posterior[:,ifree] = self.ret.posterior[uind]
       # Need to keep FILE objects out of pool:
       logfile, self.log.file = self.log.file, None
@@ -432,8 +491,7 @@ class Pyrat(object):
       self.ret.spec_high2 = high2
 
 
-  def plot_spectrum(self, spec='model', logxticks=None, gaussbin=2.0,
-                    yran=None, filename=None):
+  def plot_spectrum(self, spec='model', **kwargs):
       """
       Plot spectrum.
 
@@ -446,64 +504,97 @@ class Pyrat(object):
           model, in which case, the code will plot the 1- and 2-sigma
           boundaries if they have been computed (see
           self.percentile_spectrum).
+      kwargs: dict
+          Dictionary of arguments to pass into plots.spectrum().
+          See help(pyratbay.plots.spectrum).
+
+      Returns
+      -------
+      ax: AxesSubplot instance
+          The matplotlib Axes of the figure.
       """
+      pyrat_args = {
+          'data':self.obs.data,
+          'uncert': self.obs.uncert,
+          'bandtrans': self.obs.bandtrans,
+          'bandidx': self.obs.bandidx,
+          'starflux': self.spec.starflux,
+          'logxticks': self.inputs.logxticks,
+          'yran': self.inputs.yran,
+      }
+
       wavelength = 1.0/(self.spec.wn*pc.um)
       if self.obs.bandwn is not None:
-          bandwl = 1.0/(self.obs.bandwn*pc.um)
-      else:
-          bandwl = None
-      if self.obs.bandtrans is not None and np.all(self.obs.bandflux==0):
-          bandflux = self.band_integrate()
-      else:
-          bandflux = None
+          pyrat_args['bandwl'] = 1.0/(self.obs.bandwn*pc.um)
 
-      if logxticks is None:
-          logxticks = self.inputs.logxticks
-      if yran is None:
-          yran = self.inputs.yran
+      if self.obs.bandtrans is not None:
+          pyrat_args['bandflux'] = self.band_integrate()
 
       bounds = None
       if self.ret.spec_low2 is not None and spec != 'model':
-          bounds = [self.ret.spec_low2,  self.ret.spec_low1,
-                    self.ret.spec_high1, self.ret.spec_high2]
+          pyrat_args['bounds'] = [
+              self.ret.spec_low2,  self.ret.spec_low1,
+              self.ret.spec_high1, self.ret.spec_high2]
 
       if spec == 'model':
-          label = 'model'
+          pyrat_args['label'] = 'model'
           spectrum = self.spec.spectrum
       elif spec == 'best':
-          label = 'best-fit model'
+          pyrat_args['label'] = 'best-fit model'
+          pyrat_args['bandflux'] = self.ret.bestbandflux
           spectrum = self.ret.spec_best
-          bandflux = self.ret.bestbandflux
       elif spec == 'median':
-          label = 'median model'
+          pyrat_args['label'] = 'median model'
+          pyrat_args['bandflux'] = self.band_integrate(spectrum)
           spectrum = self.ret.spec_median
-          bandflux = self.band_integrate(spectrum)
       else:
           print("Invalid 'spec'.  Select from 'model' (default), 'best', "
                 "or 'median'.")
           return
-      pp.spectrum(spectrum, wavelength, self.od.path,
-          self.obs.data, self.obs.uncert, bandwl, bandflux,
-          self.obs.bandtrans, self.obs.bandidx,
-          self.spec.starflux, self.phy.rprs, label, bounds,
-          logxticks, gaussbin, yran, filename)
+
+      if self.phy.rplanet is not None and self.phy.rstar is not None:
+          pyrat_args['rprs'] = self.phy.rplanet/self.phy.rstar
+
+      # kwargs can overwite any of the previous value:
+      pyrat_args.update(kwargs)
+
+      if self.od.rt_path in pc.transmission_rt:
+          rt_path = 'transit'
+      elif self.od.rt_path in pc.emission_rt:
+          rt_path = 'eclipse'
+      ax = pp.spectrum(spectrum, wavelength, rt_path, **pyrat_args)
+      return ax
 
 
-  def plot_posterior_pt(self, filename=None):
-      """Plot posterior distribution of PT profile."""
+  def plot_temperature(self, **kwargs):
+      """
+      Plot temperature profile.
+      If self.ret.posterior exitst, plot the best fit, median, and
+      the '1sigma/2sigma' boundaries of the temperature posterior
+      distribution.
+
+      Parameters
+      ----------
+      kwargs: dict
+          Dictionary of arguments to pass into plots.temperature().
+          See help(pyratbay.plots.temperature).
+
+      Returns
+      -------
+      ax: AxesSubplot instance
+          The matplotlib Axes of the figure.
+      """
       if self.ret.posterior is None:
-          print('pyrat objec does not have a posterior distribution.')
-          return
+          ax = pp.temperature(
+              self.atm.press, profiles=[self.atm.temp], **kwargs)
+          return ax
 
-      posterior = self.ret.posterior
-      ifree = self.ret.stepsize[self.ret.itemp] > 0
-      itemp = np.arange(np.sum(ifree))
-      if filename is None:
-          outfile = os.path.splitext(os.path.basename(self.ret.mcmcfile))[0]
-          filename = '{:s}_posterior_PT_profile.png'.format(outfile)
-      pp.posterior_pt(posterior[:,itemp], self.atm.tmodel, self.atm.targs,
-          self.ret.params[self.ret.itemp], ifree, self.atm.press,
-          self.ret.bestp[self.ret.itemp], filename)
+      ax = pp.temperature(
+          self.atm.press,
+          profiles=[self.ret.temp_median, self.ret.temp_best],
+          labels=['median', 'best'],
+          bounds=self.ret.temp_post_boundaries, **kwargs)
+      return ax
 
 
   def __str__(self):
@@ -513,9 +604,9 @@ class Pyrat(object):
          wave = "dwn={:.3f} cm-1".format(self.spec.wnstep)
 
       opacities = []
-      if self.ex.nmol != 0:
-          for molID in self.ex.molID:
-              imol = np.where(self.mol.ID == molID)[0][0]
+      if self.ex.nspec != 0:
+          for mol in self.ex.species:
+              imol = np.where(self.mol.name == mol)[0][0]
               opacities.append(self.mol.name[imol])
       if self.cs.nfiles != 0:
           for molecs in self.cs.molecules:

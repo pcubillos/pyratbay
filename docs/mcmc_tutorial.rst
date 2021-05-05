@@ -10,9 +10,8 @@ MCMC Tutorial
 
 
 This mode allows you to fit spectra to observed exoplanet data.
-``Pyrat Bay`` incorporates the ``MC3`` package
-(`github.com/pcubillos/MCcubed
-<https://github.com/pcubillos/MCcubed>`_) to retrieve best-fitting
+``Pyrat Bay`` uses the ``MC3`` package (`https://github.com/pcubillos/mc3
+<https://github.com/pcubillos/mc3>`_) to retrieve best-fitting
 parameters and credible regions for the atmospheric parameters in a
 Bayesian (MCMC) framework.
 
@@ -58,11 +57,12 @@ retrieval.  The following table list the available options:
 ``retflag``  Description
 =========== ===========================
 temp         Include the ``tpars`` temperature parameters in the retrieval
-rad          Include the ``rplanet`` value in the retrieval
-mass         Include the ``mplanet`` value in the retrieval
+rad          Include the ``rplanet`` value as a retrieval parameter
 mol          Include the ``molpars`` abundance parameters in the retrieval
 ray          Include the ``rpars`` Rayleigh parameters in the retrieval
 cloud        Include the ``clouds`` clouds parameters in the retrieval
+patchy       Include the ``fpatchy`` value as a retrieval parameter
+mass         Include the ``mplanet`` value as a retrieval parameter
 =========== ===========================
 
 Use the ``params`` key to set initial values for the retrieval
@@ -71,10 +71,11 @@ same order as listed above, i.e.: first the temperature parameters,
 then radius, then the mass, the abundance parameters, and so on.
 
 Details on the available models and their parameters are described in
-the :ref:`pttutorial` and :ref:`spectutorial`.
-The number of ``rad`` and ``mass`` parameters is always one each, with
-the values in the same units as specified in the ``rplanet`` and
-``mplanet`` keys, respectively.
+the :ref:`atmospheretutorial` and :ref:`spectutorial`.  The number of ``rad``
+and ``mass`` parameters is always one each, with their units set by
+the ``runits`` or ``mpunits`` keys, respectively.  If these units are
+not set, the parameters will adopt the same units specified in the
+``rplanet`` and ``mplanet`` keys, respectively.
 
 .. note:: Pro-tip: You can use the ``params`` key to run spectrum
           forward models as well.
@@ -119,20 +120,22 @@ Retrieval Setup
 ---------------
 
 ``Pyrat Bay`` enables posterior sampling via the Markov-chain Monte
-Carlo (MCMC) or Nested Sampling technique.  Use the ``walk`` key to set
+Carlo (MCMC) or Nested Sampling technique.  Use the ``sampler`` key to set
 the sampling algorithm.   The following table list the available
 options and references of their implementation:
 
 =========== =================================== ================
-``walk``    Algorithm                           References
+``sampler`` Algorithm                           References
 =========== =================================== ================
 snooker     Snooker Differential-Evolution MCMC [Cubillos2017a]_
-dynesty     Dynamic Nested Sampling             [Speagle2019]_
 =========== =================================== ================
 
+.. dynesty     Dynamic Nested Sampling             [Speagle2019]_
+
 The '*snooker*' option implements the DEMC-z algorithm with
-snooker proposals, described in [terBraak2008]_.  The '*dynesty*' option
-implements Dynamic Nested-sampling algorithm described in [Speagle2019]_.
+snooker proposals, described in [terBraak2008]_.
+
+..  The '*dynesty*' option implements Dynamic Nested-sampling algorithm described in [Speagle2019]_.
 
 MCMC Retrieval
 ^^^^^^^^^^^^^^
@@ -149,20 +152,30 @@ the beginning of each chain.
 .. Gelman-Rubin stuff.
 
 
-Nested-sampling Retrieval
-^^^^^^^^^^^^^^^^^^^^^^^^^
-
-TBD.
+.. Nested-sampling Retrieval
+   ^^^^^^^^^^^^^^^^^^^^^^^^^
+   TBD.
 
 ----------------------------------------------------------------------
 
 Examples
 --------
 
+Since this is an eclipse retrieval, the code requires a stellar
+spectrum model to compute the planet-to-star flux ratios:
+
+.. code-block:: shell
+
+   # Download Kurucz stellar model:
+   wget http://kurucz.harvard.edu/grids/gridp00odfnew/fp00k2odfnew.pck
+
+Also, first be sure to create the opacity file as described in
+:ref:`opactutorial`.
+
+
 As in a spectrum run, an MCMC run returns a '*pyrat*' object in an
 interactive run.  The following Python script computes an opacity file
-using the configuration file found at the top of this tutorial:
-
+using the configuration file found at the top of this tutorial.
 Just like before, to run the MCMC modeling, simply execute this command:
 
 .. code-block:: python

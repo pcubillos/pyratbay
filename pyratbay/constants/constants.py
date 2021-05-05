@@ -1,5 +1,74 @@
-# Copyright (c) 2016-2019 Patricio Cubillos and contributors.
-# Pyrat Bay is currently proprietary software (see LICENSE).
+# Copyright (c) 2021 Patricio Cubillos
+# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+
+__all__ = [
+    # Constants
+    'h',
+    'k',
+    'c',
+    'G',
+    'sigma',
+    # Conversion factors
+    'eV',
+    'A',
+    'nm',
+    'um',
+    'mm',
+    'cm',
+    'm',
+    'km',
+    'au',
+    'pc',
+    'rearth',
+    'rjup',
+    'rsun',
+    'barye',
+    'mbar',
+    'pascal',
+    'bar',
+    'atm',
+    'gram',
+    'kg',
+    'mearth',
+    'mjup',
+    'msun',
+    'amu',
+    'me',
+    'kelvin',
+    'sec',
+    'min',
+    'hour',
+    'day',
+    'amagat',
+    'e',
+    'percent',
+    'ppt',
+    'ppm',
+    'none',
+    # Other constants
+    'C1',
+    'C2',
+    'C3',
+    'tlireclen',
+    'dreclen',
+    'ireclen',
+    'sreclen',
+    'ROOT',
+    # Choices
+    'dbases',
+    'rmodes',
+    'transmission_rt',
+    'emission_rt',
+    'rt_paths',
+    'retflags',
+    'tmodels',
+    'chemmodels',
+    'radmodels',
+    'molmodels',
+    'amodels',
+    'rmodels',
+    'cmodels',
+    ]
 
 import os
 import scipy.constants as sc
@@ -18,6 +87,7 @@ h = sc.h * 1e7  # Planck constant in erg s
 k = sc.k * 1e7  # Boltzmann constant in erg K-1
 c = sc.c * 1e2  # Speed of light in cm s-1
 G = sc.G * 1e3  # Graviational constant in dyne cm2 g-2
+sigma = sc.sigma * 1e3  # Stefan-Boltzmann constant in erg s-1 cn-2 K-4
 
 # Convert from eV to cm-1 (kayser):
 # planck   = 6.62620e-34  # Planck constant [J * s]
@@ -60,6 +130,12 @@ me     = sc.m_e * 1e3  # Electron mass
 # Temperature to Kelvin degree:
 kelvin = 1.0
 
+# Time to seconds:
+sec = 1.0
+min = 60.0
+hour = 3600.0
+day = 86400.0
+
 # Amagat (Loschmidt number) molecules cm-3:
 amagat = sc.physical_constants[
     'Loschmidt constant (273.15 K, 101.325 kPa)'][0] * 1e-6
@@ -92,24 +168,36 @@ ROOT = os.path.realpath(os.path.dirname(__file__) + '/../..') + '/'
 
 # Available line-transition databases:
 dbases = [
-    'hitran',
-    'exomol',
-    'repack',
-    'pands',
-    'tioschwenke',
-    'voplez',
-    'vald',
+    'Hitran',
+    'Exomol',
+    'Repack',
+    'Pands',
+    'Tioschwenke',
+    'Voplez',
+    'Vald',
     ]
 
 # Running modes:
 rmodes = [
     'tli',
-    'pt',
     'atmosphere',
     'opacity',
     'spectrum',
-    'mcmc'
+    'mcmc',
     ]
+
+# Transmission radiative transfer:
+transmission_rt = [
+    'transit',
+    ]
+
+# Emission radiative transfer:
+emission_rt = [
+    'emission',
+    ]
+
+# Radiative-transfer observing geometry:
+rt_paths = transmission_rt + emission_rt
 
 # Retrieval flags:
 retflags = [
@@ -119,14 +207,26 @@ retflags = [
     'ray',
     'cloud',
     'patchy',
+    'mass',
 ]
 
 # Temperature models:
 tmodels = [
    'isothermal',
    'tcea',
-   'madhu_inv',
-   'madhu_noinv',
+   'madhu',
+]
+
+# Chemistry models:
+chemmodels = [
+    'uniform',
+    'tea',
+]
+
+# Radius-profile models:
+radmodels = [
+    'hydro_m',
+    'hydro_g',
 ]
 
 # Molecular-abundance models:

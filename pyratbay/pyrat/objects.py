@@ -1,5 +1,5 @@
-# Copyright (c) 2016-2019 Patricio Cubillos and contributors.
-# Pyrat Bay is currently proprietary software (see LICENSE).
+# Copyright (c) 2021 Patricio Cubillos
+# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 __all__ = [
     'Spectrum',
@@ -29,7 +29,7 @@ from .. import constants as pc
 
 class Spectrum(object):
   def __init__(self):
-      self.outspec   = None  # Modulation/Flux spectrum file
+      self.specfile  = None  # Transmission/Emission spectrum file
       # Wavenumber:
       self.nwave     = None  # Number of wavenumber spectral samples
       self.wn        = None  # Wavenumber array
@@ -77,7 +77,7 @@ class Spectrum(object):
           fmt={'float': '{: .3f}'.format})
       fw.write('Oversampling factor (wnosamp): {:d}', self.wnosamp)
 
-      if self._path == 'eclipse':
+      if self._rt_path in pc.emission_rt:
           if self.quadrature is not None:
               fw.write('Number of Gaussian-quadrature points for intensity '
                   'integration into flux (quadrature): {}', self.quadrature)
@@ -90,7 +90,7 @@ class Spectrum(object):
                   fw.write('    {}', intensity, fmt=fmt, edge=3)
           fw.write('Emission spectrum (spectrum, erg s-1 cm-2 cm):\n'
                    '    {}', self.spectrum, fmt=fmt, edge=3)
-      elif self._path == 'transit':
+      elif self._rt_path in pc.transmission_rt:
           fw.write('\nModulation spectrum, (Rp/Rs)**2 (spectrum):\n'
                    '    {}', self.spectrum, fmt=fmt, edge=3)
       return fw.text
@@ -104,10 +104,8 @@ class Atm(object):
       self.radhigh = None     # Highest radius boundary
       self.ptop    = None     # Lowest pressure boundary
       self.pbottom = None     # Highest pressure boundary
-      self.hydrom  = False    # Variable/constant-g flag for hydrostatic equilib
-
       self.atmfile = None     # Atmopheric-model file
-      self.qunits  = None     # Input abundance units ('mass' or 'number')
+      self.qunits  = None     # Input abundance units ('volume' or 'mass')
       self.runits  = None     # Input radius units
       self.punits  = None     # Input pressure units
       self.tunits  = 'kelvin' # Input temperature units
@@ -144,6 +142,7 @@ class Atm(object):
 
       fw.write('\nRadius display units (runits): {}', self.runits)
       fw.write('Radius internal units: cm', self.runits)
+      fw.write('Radius model name (rmodelname): {}', self.rmodelname)
       if self.radstep is not None:
           fw.write('Radius step size (radstep): {} {}',
               self.radstep/pt.u(self.runits), self.runits, prec=3, edge=3)
@@ -159,7 +158,6 @@ class Atm(object):
       fw.write('Temperature model name (tmodelname): {}', self.tmodelname)
       if self.tmodel is not None:
           fw.write('  tmodel parameters (tpars): {}', self.tpars)
-          fw.write('  tmodel arguments (targs): {}', self.targs)
       fw.write('Temperature profile (temp, K):\n    {}', self.temp,
           fmt={'float': '{:9.3f}'.format}, edge=3)
 
@@ -198,19 +196,18 @@ class Molecules(object):
       self.symbol = None  # Species' symbol             [nmol]
       self.mass   = None  # Species' mass  (gr/mol)     [nmol]
       self.radius = None  # Species' radius (Angstroms) [nmol]
-      self.ID     = None  # Species' universal ID       [nmol]
 
   def __str__(self):
       fw = pt.Formatted_Write()
       fw.write('Atmospheric species information:')
       fw.write('Number of species (nmol): {:d}\n', self.nmol)
 
-      fw.write('\nMolecule    ID   Mass      Radius\n'
-               '                 g/mol     Angstrom\n'
-               '(name)     (ID)  (mass)    (radius)  ')
+      fw.write('\nMolecule    Mass       Radius\n'
+                 '            g/mol      Angstrom\n'
+                 '(name)      (mass)     (radius)  ')
       for i in range(self.nmol):
-          fw.write('  {:7s}  {:3d}  {:8.4f}   {:.3f}',
-              self.name[i], self.ID[i], self.mass[i], self.radius[i]/pc.A)
+          fw.write('  {:8s}  {:8.4f}  {:10.3f}',
+              self.name[i], self.mass[i], self.radius[i]/pc.A)
       fw.write("Molecular data taken from (molfile): '{}'", self.molfile)
       return fw.text
 
@@ -330,6 +327,7 @@ class Voigt(object):
       self.lorentz  = None  # Lorentz-width sample array [nlor]
       self.dlratio  = None  # Doppler-Lorentz ratio threshold
       self.extent   = None  # Extent covered by the profile (in number of HWHM)
+      self.cutoff   = None  # Max cutoff extent (in cm-1)
       self.profile  = None  # Voigt profile [sum(2*size+1)]
       self.size     = None  # Profile wavenumber half-size [ndop, nlor]
       self.index    = None  # Index where each profile starts [ndop, nlor]
@@ -345,6 +343,8 @@ class Voigt(object):
           self.dlratio)
       fw.write("\nVoigt-profiles' extent (extent, in HWHMs): {:.1f}",
           self.extent)
+      fw.write("Voigt-profiles' cutoff extent (cutoff in cm-1): {:.1f}",
+          self.cutoff)
       fw.write('Voigt-profile half-sizes (size) of shape [ndop, nlor]:\n{}',
           self.size, edge=2)
       fw.write('Voigt-profile indices (index) of shape [ndop, nlor]:\n{}',
@@ -375,12 +375,11 @@ class Extinction(object):
       self.tstep   = None # Temperature-sample step interval
       self.z       = None # Partition function at tabulated temperatures
                           #   [niso, ntemp]
-      self.nmol    = None # Number of species
-      self.ntemp   = None # Number of temperature samples
-      self.nlayers = None # Number of pressure layers
-      self.nwave   = None # Number of wavenumber spectral samples
+      self.nspec   = 0    # Number of species
+      self.ntemp   = 0    # Number of temperature samples
+      self.nlayers = 0    # Number of pressure layers
+      self.nwave   = 0    # Number of wavenumber spectral samples
 
-      self.molID   = []   # Tabulated species ID
       self.temp    = None # Tabulated temperatures
       self.press   = None # Tabulated pressures
       self.wn      = None # Tabulated wavenumber
@@ -402,11 +401,11 @@ class Extinction(object):
       fw.write('Minimum temperature (tmin, K): {:6.1f}', self.tmin)
       fw.write('Maximum temperature (tmax, K): {:6.1f}', self.tmax)
       fw.write('Temperature sampling interval (tstep, K): {:6.1f}', self.tstep)
-      fw.write('\nNumber of species (nmol):           {:5d}', self.nmol)
+      fw.write('\nNumber of species (nspec):          {:5d}', self.nspec)
       fw.write('Number of temperatures (ntemp):     {:5d}', self.ntemp)
       fw.write('Number of layers (nlayers):         {:5d}', self.nlayers)
       fw.write('Number of spectral samples (nwave): {:5d}', self.nwave)
-      fw.write('\nSpecies ID array (molID): {}', self.molID)
+      fw.write('\nSpecies array (species): {}', self.species)
       fw.write('Temperature array (temp, K):\n   {}', self.temp)
       fw.write('Partition function (z): {}', self.z)
       fw.write('Pressure array (press, bar):\n   {}', self.press/pc.bar,
@@ -505,6 +504,7 @@ class Alkali(object):
   def __init__(self):
       self.models  = []    # List of alkali models
       self.ec      = None  # Alkali extinction coefficient
+      self.cutoff  = 4500  # Profiles cutoff from line center (cm)
 
   def __str__(self):
       fw = pt.Formatted_Write()
@@ -519,7 +519,7 @@ class Alkali(object):
 class Optdepth(object):
   def __init__(self):
       self.maxdepth = None  # Maximum optical depth to calculate
-      self.path     = None  # Observing geometry
+      self.rt_path  = None  # Radiative=transfer observing geometry
       self.ec       = None  # Total extinction coefficient [nlayers, nwave]
       self.epatchy  = None  # Cloudy extinction coefficient for patchy model
       self.raypath  = []    # Distance along ray path  [nlayers]
@@ -531,7 +531,7 @@ class Optdepth(object):
   def __str__(self):
       fw = pt.Formatted_Write()
       fw.write('Optical depth information:')
-      fw.write('Observing geometry (path): {}', self.path)
+      fw.write('Observing geometry (rt_path): {}', self.rt_path)
       if self.ec is not None:
           fw.write('Total atmospheric extinction coefficient (ec, cm-1) [layer'
                    ', wave]:\n{}', self.ec, fmt={'float':'{: .3e}'.format})
@@ -541,7 +541,7 @@ class Optdepth(object):
           return fw.text
 
       ideepest = np.amax(self.ideep)
-      if self.path == 'transit':
+      if self.rt_path in pc.transmission_rt:
           fw.write('\nDistance along the ray path across each layer '
                    '(outside-in) at each impact parameter (raypath, km):')
           with np.printoptions(formatter={'float':'{:.1f}'.format},threshold=6):
@@ -553,7 +553,7 @@ class Optdepth(object):
                        self.raypath[len(self.raypath)-1]/pc.km)
           od_text = ('\nOptical depth at each impact parameter, down to '
                      'max(ideep) (depth):')
-      elif self.path == 'eclipse':
+      elif self.rt_path in pc.emission_rt:
           fw.write('\nDistance across each layer along a normal ray path '
               '(raypath, km):\n    {}', self.raypath/pc.km,
               fmt={'float':'{:.1f}'.format}, edge=4)
@@ -566,7 +566,7 @@ class Optdepth(object):
                '\n    {}', self.ideep, fmt={'int': '{:3d}'.format}, edge=7)
       fw.write('Maximum ideep (deepest layer reaching maxdepth): {}', ideepest)
 
-      if self.path == 'eclipse':
+      if self.rt_path in pc.emission_rt:
           fw.write('\nPlanck emission down to max(ideep) (B, erg s-1 cm-2 '
                    'sr-1 cm):\n{}', self.B[0:ideepest+1],
                    fmt={'float':'{: .3e}'.format})
@@ -632,6 +632,7 @@ class Retrieval(object):
       self.iray    = None  # Rayleigh-model parameter indices
       self.icloud  = None  # Cloud-model parameter indices
       self.ipatchy = None  # Patchy-model parameter index
+      self.imass   = None
       self.posterior = None
       self.bestp     = None
       self.spec_best = None
@@ -656,13 +657,13 @@ class Retrieval(object):
 
       pmin = [None for _ in self.params] if self.pmin is None else self.pmin
       pmax = [None for _ in self.params] if self.pmax is None else self.pmax
-      psteps = [None for _ in self.params] if self.stepsize is None \
-                else self.stepsize
+      psteps = [None for _ in self.params] if self.pstep is None \
+                else self.pstep
 
       fw.write('  Parameter name        value        pmin        pmax'
                '       pstep  Model type')
       fw.write('  {:15}  {:>10}  {:>10}  {:>10}  {:>10}  {}',
-          '(pnames)', '(params)', '(pmin)', '(pmax)', '(stepsize)', '(retflag)')
+          '(pnames)', '(params)', '(pmin)', '(pmax)', '(pstep)', '(retflag)')
       for pname, param, min, max, pstep, flag in zip(self.pnames,
               self.params, pmin, pmax, psteps, flags):
           fw.write('  {:15s}  {:10.3e}  {:10.3e}  {:10.3e}  {:10.3e}  {}',
@@ -683,11 +684,11 @@ class Retrieval(object):
                   fw.write('  {:15s}  Gaussian  {:10.3e} -{:.3e}  {:+.3e}',
                       pname, self.prior[i], self.priorlow[i], self.priorup[i])
 
-      fw.write('\nRetrieval algorithm (walk): {}', self.walk)
-      if self.walk is None:
+      fw.write('\nRetrieval algorithm (sampler): {}', self.sampler)
+      if self.sampler is None:
           return fw.text
       fw.write('Number of retrieval samples (nsamples): {:,}', self.nsamples)
-      # if self.walk == 'snooker':
+      # if self.sampler == 'snooker':
       fw.write('Number of parallel chains (nchains):   {}', self.nchains)
       fw.write('Number of burned-in samples (burnin):  {:,}', self.burnin)
       fw.write('Thinning factor (thinning): {}', self.thinning)
@@ -739,7 +740,6 @@ class Physics(object):
       self.rplanet  = None  # Planetary radius
       self.mplanet  = None  # Planetary mass
       self.gplanet  = None  # Planetary surface gravity
-      self.rprs     = None  # Planet-to-star radius ratio
       self.smaxis   = None  # Orbital semi-major axis
       self.rhill    = np.inf  # Planetary Hill radius
       self.starspec = None  # Stellar spectrum filename
@@ -768,7 +768,8 @@ class Physics(object):
       fw.write('Planetary internal temperature (tint, K):  {:.1f}', self.tint)
       fw.write('Orbital semi-major axis (smaxis, AU): {:.4f}',
           none_div(self.smaxis, pc.au))
-      fw.write('Planet-to-star radius ratio (rprs):   {:.5f}', self.rprs)
+      fw.write('Planet-to-star radius ratio (rprs):   {:.5f}',
+          self.rplanet/self.rstar)
       fw.write('Planetary Hill radius (rhill, Rjup):  {:.3f}',
           none_div(self.rhill, pc.rjup))
 

@@ -1,5 +1,5 @@
-# Copyright (c) 2016-2019 Patricio Cubillos and contributors.
-# Pyrat Bay is currently proprietary software (see LICENSE).
+# Copyright (c) 2021 Patricio Cubillos
+# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 import multiprocessing as mp
 
@@ -10,7 +10,7 @@ import scipy.special     as ss
 
 from .. import tools      as pt
 from .. import constants  as pc
-from .. import starspec   as ps
+from .. import spectrum   as ps
 from .. import atmosphere as pa
 from .. import io         as io
 
@@ -35,12 +35,8 @@ def check_spectrum(pyrat):
       pt.file_exists('tlifile', 'TLI',            pyrat.lt.tlifile)
       pt.file_exists('molfile', 'Molecular-data', pyrat.mol.molfile)
 
-  if pyrat.runmode == 'spectrum' and spec.outspec is None:
-      log.error('Undefined output spectrum file (outspec).')
-
-  # Hydrostatic by constant g or g(M,R):
-  if pyrat.inputs.mplanet is not None:
-      atm.hydrom = True
+  if pyrat.runmode == 'spectrum' and spec.specfile is None:
+      log.error('Undefined output spectrum file (specfile).')
 
   # Compute the Hill radius for the planet:
   if (phy.mstar is not None and phy.mplanet is not None
@@ -73,7 +69,7 @@ def check_spectrum(pyrat):
                     'are no input TLI files.')
 
   if pyrat.runmode == 'mcmc':
-      if pyrat.od.path == 'eclipse':
+      if pyrat.od.rt_path in pc.emission_rt:
           if pyrat.phy.rplanet is None or pyrat.phy.rstar is None:
               log.error("Undefined radius ratio (need rplanet and rstar).")
       if pyrat.obs.data is None:
@@ -85,8 +81,8 @@ def check_spectrum(pyrat):
       if pyrat.ret.retflag == []:
           log.error('Undefined retrieval model flags.  Select from {}.'.
                     format(pc.retflags))
-      if pyrat.ret.walk is None:
-          log.error('Undefined retrieval algorithm (walk).  Select from '
+      if pyrat.ret.sampler is None:
+          log.error('Undefined retrieval algorithm (sampler).  Select from '
                     '[snooker].')
       if pyrat.ret.nsamples is None:
           log.error('Undefined number of retrieval samples (nsamples).')
@@ -126,6 +122,8 @@ def check_spectrum(pyrat):
           npars += model.npars
           pyrat.rayleigh.models.append(model)
       # Process the Rayleigh parameters:
+      if npars == 0 and pyrat.rayleigh.pars is None:
+          pyrat.rayleigh.pars = []
       if pyrat.rayleigh.pars is not None:
           if npars != len(pyrat.rayleigh.pars):
               log.error('Number of input Rayleigh parameters ({:d}) does not '
@@ -139,13 +137,16 @@ def check_spectrum(pyrat):
 
   # Check alkali arguments:
   if pyrat.alkali.model_names is not None:
-      pyrat.alkali.models = [pa.alkali.get_model(name)
-                             for name in pyrat.alkali.model_names]
+      pyrat.alkali.models = [
+          pa.alkali.get_model(name, pyrat.alkali.cutoff)
+          for name in pyrat.alkali.model_names]
 
   # Accept ray-path argument:
-  if pyrat.runmode in ['spectrum', 'mcmc'] and pyrat.od.path is None:
-      log.error("Undefined observing geometry (path).  Select between "
-                "'transit' or 'eclipse'.")
+  print(pyrat.od)
+  if pyrat.runmode in ['spectrum', 'mcmc'] and pyrat.od.rt_path is None:
+      log.error(
+          "Undefined radiative-transfer observing geometry (rt_path)."
+          f"  Select from {pc.rt_paths}.")
 
   if 'temp' in pyrat.ret.retflag and atm.tmodelname is None:
       log.error('Requested temp in retflag, but there is no tmodel.')
@@ -160,7 +161,7 @@ def check_spectrum(pyrat):
       log.error('Requested cloud in retflag, but there are no cloud models.')
 
   # Check system arguments:
-  if pyrat.od.path == 'transit' and phy.rstar is None:
+  if pyrat.od.rt_path in pc.transmission_rt and phy.rstar is None:
       log.error('Undefined stellar radius (rstar), required for transmission '
                 'calculation.')
 
@@ -195,30 +196,12 @@ def check_spectrum(pyrat):
                 'number of data points ({:d}).'.
                 format(obs.nfilters, obs.ndata))
 
-  # Retrieval variables:
-  if pyrat.ret.params is not None:
-      pyrat.ret.nparams = len(pyrat.ret.params)
-
-  if atm.tmodelname == 'tcea':
-      if phy.rstar is None:
-          log.error('Undefined stellar radius (rstar), required for '
-                    'temperature model.')
-      if phy.tstar is None:
-          log.error('Undefined stellar temperature (tstar), required for '
-                    'temperature model.')
-      if phy.smaxis is None:
-          log.error('Undefined orbital semi-major axis (smaxis), required for '
-                    'temperature model.')
-      if phy.gplanet is None:
-          log.error('Undefined planetary surface gravity (gplanet), required '
-                    'for temperature model.')
-
   if pyrat.ncpu >= mp.cpu_count():
       log.warning('Number of requested CPUs ({:d}) is >= than the number '
                   'of available CPUs ({:d}).  Enforced ncpu to {:d}.'.
                   format(pyrat.ncpu, mp.cpu_count(), mp.cpu_count()-1))
       pyrat.ncpu = mp.cpu_count() - 1
-  log.msg('Check spectrum done.')
+  log.head('Check spectrum done.')
 
 
 def setup(pyrat):
@@ -266,12 +249,12 @@ def setup(pyrat):
       atm.ifree = [spec.index(mol) for mol in atm.molfree]
       nabund = len(atm.ifree)
       # Abundance free-parameter names:
-      mpnames   = ['log({:s})'.format(mol) for mol in atm.molfree]
-      mtexnames = [r'$\log_{{10}}(f_{{\rm {:s}}})$'.format(mol)
-                   for mol in atm.molfree]
+      mpnames = [f'log({mol})' for mol in atm.molfree]
+      mtexnames = [fr'$\log_{{10}}(X_{{\rm {mol}}})$' for mol in atm.molfree]
   else:
       nabund = 0
       mpnames, mtexnames = [], []
+      atm.ibulk = None
 
   # Read stellar spectrum model (starspec, kurucz, or blackbody(tstar)):
   if phy.starspec is not None:
@@ -283,11 +266,11 @@ def setup(pyrat):
       if phy.gstar is None:
           log.error('Undefined stellar gravity (gstar), required for '
                     'Kurucz model.')
-      starflux, starwn, kuruczt, kuruczg = ps.read_kurucz(phy.kurucz,
-          phy.tstar, np.log10(phy.gstar))
+      starflux, starwn, kuruczt, kuruczg = ps.read_kurucz(
+          phy.kurucz, phy.tstar, np.log10(phy.gstar))
       log.msg('Input stellar params: T={:7.1f} K, log(g)={:4.2f}\n'
               'Best Kurucz match:    T={:7.1f} K, log(g)={:4.2f}'.
-              format(phy.tstar, np.log10(phy.gstar), kuruczt, kuruczg), verb=2)
+              format(phy.tstar, np.log10(phy.gstar), kuruczt, kuruczg))
   elif phy.marcs is not None:
       pass
   elif phy.phoenix is not None:
@@ -306,69 +289,25 @@ def setup(pyrat):
       sinterp = si.interp1d(phy.starwn, phy.starflux)
       pyrat.spec.starflux = sinterp(pyrat.spec.wn)
 
-  if pyrat.runmode=='mcmc' and pyrat.od.path=='eclipse' and starflux is None:
+  is_emission = pyrat.od.rt_path in pc.emission_rt
+  if pyrat.runmode=='mcmc' and is_emission and starflux is None:
       log.error('Undefined stellar flux model.  Set starspec, kurucz, or '
                 'tstar (for a blackbody spectrum).')
 
   # Set observational variables (for given filters and other parameters):
   if obs.filters is not None:
-      bandidx   = []  # Filter wavenumber indices
-      starflux  = []  # Interpolated stellar flux
-      bandtrans = []  # Normalized interpolated filter transmission
-      bandwn    = []  # Band's mean wavenumber
-      for filter in obs.filters:
-          # Read filter wavenumber and transmission curves:
-          filterwn, filtertr = io.read_spectrum(filter)
-          # Resample the filters into the planet wavenumber array:
-          btrans, bidx = pt.resample(filtertr, filterwn, pyrat.spec.wn,
-              normalize=True)
-          bandidx.append(bidx)
-          bandtrans.append(btrans)
-          bandwn.append(np.sum(filterwn*filtertr)/np.sum(filtertr))
-          if phy.starflux is not None:
-              starflux.append(pyrat.spec.starflux[bidx])
-
-      # Per-band variables:
-      obs.bandidx   = bandidx
-      obs.bandtrans = bandtrans
-      obs.starflux  = starflux
-      obs.bandwn    = np.asarray(bandwn)
-      obs.bandflux  = np.zeros(obs.nfilters, np.double)
-
-  # Planet-to-star radius ratio:
-  if phy.rplanet is not None and phy.rstar is not None:
-      phy.rprs = phy.rplanet/phy.rstar
+      pyrat.set_filters()
 
   # Temperature models and arguments:
-  if atm.tmodelname == 'tcea':
-      ntemp = 5
-      atm.tmodel = pa.tmodels.tcea
-      atm.targs  = [pyrat.atm.press, phy.rstar, phy.tstar, phy.tint,
-                    phy.gplanet, phy.smaxis]
-      tpnames   = ['log(kappa)', 'log(gamma1)', 'log(gamma2)', 'alpha', 'beta']
-      ttexnames = [r'$\log_{10}(\kappa)$', r'$\log_{10}(\gamma_1)$',
-                   r'$\log_{10}(\gamma2)$', r'$\alpha$', r'$\beta$']
-  elif atm.tmodelname == 'isothermal':
-      ntemp = 1
-      atm.tmodel = pa.tmodels.isothermal
-      atm.targs = [pyrat.atm.nlayers]
-      tpnames   = ['T (K)']
-      ttexnames = [r'$T\ ({\rm K})$']
-  elif atm.tmodelname == 'madhu_noinv':
-      ntemp = 5
-      atm.tmodel = pa.tmodels.madhu_noinv
-      atm.targs  = [pyrat.atm.press*1e-6]
-      tpnames    = ['a1', 'a2', 'p1', 'p3', 'T3']
-      ttexnames  = [r'$a_1$', r'$a_2$', r'$p_1$', r'$p_3$', r'$T_3$']
-  elif atm.tmodelname == 'madhu_inv':
-      ntemp = 6
-      atm.tmodel = pa.tmodels.madhu_inv
-      atm.targs  = [pyrat.atm.press*1e-6]
-      tpnames    = ['a1', 'a2', 'p1', 'p2', 'p3', 'T3']
-      ttexnames  = [r'$a_1$', r'$a_2$', r'$p_1$', r'$p_2$', r'$p_3$', r'$T_3$']
-  else:
+  if atm.tmodelname not in pc.tmodels:
       ntemp = 0
       tpnames, ttexnames = [], []
+  else:
+      atm.tmodel = pa.tmodels.get_model(
+          atm.tmodelname, pressure=pyrat.atm.press, nlayers=pyrat.atm.nlayers)
+      ntemp = atm.tmodel.npars
+      tpnames = atm.tmodel.pnames
+      ttexnames = atm.tmodel.texnames
 
   # Rayleigh models:
   nray = 0
@@ -386,45 +325,67 @@ def setup(pyrat):
       ctexnames += model.texnames
       ncloud    += model.npars
 
+  # TeX unit conversions:
+  utex = {
+      'mjup':r'$M_{\rm Jup}$',
+      'mearth':r'$M_{\oplus}$',
+      'kg':'kg',
+      'gram':'g',
+      'rjup':r'$R_{\rm Jup}$',
+      'rearth':r'$R_{\oplus}$',
+      'km':'km',
+      'm':'m',
+      'cm':'cm',
+  }
+
   # Indices to parse the array of fitting parameters:
-  nparams = 0
+  ret.nparams = 0
   ret.pnames, ret.texnames = [], []
   if 'temp' in ret.retflag:
-      ret.itemp  = np.arange(nparams, nparams + ntemp)
+      ret.itemp  = np.arange(ret.nparams, ret.nparams + ntemp)
       ret.pnames   += tpnames
       ret.texnames += ttexnames
-      nparams += ntemp
+      ret.nparams += ntemp
   if 'rad' in ret.retflag:
-      ret.irad   = np.arange(nparams, nparams + 1)  # nrad is always 1
-      ret.pnames   += ['Radius (km)']
-      ret.texnames += [r'${\rm Radius\ (km)}$']
-      nparams += 1
+      ret.irad   = np.arange(ret.nparams, ret.nparams + 1)
+      ret.pnames   += [f'Rp ({atm.runits})']
+      ret.texnames += [fr'$R_{{\rm planet}}$ ({utex[atm.runits]})']
+      ret.nparams += 1
   if 'mol' in ret.retflag:
-      ret.imol = np.arange(nparams, nparams + nabund)
+      ret.imol = np.arange(ret.nparams, ret.nparams + nabund)
       ret.pnames   += mpnames
       ret.texnames += mtexnames
-      nparams += nabund
+      ret.nparams += nabund
   if 'ray' in ret.retflag:
-      ret.iray   = np.arange(nparams, nparams + nray)
+      ret.iray   = np.arange(ret.nparams, ret.nparams + nray)
       ret.pnames   += rpnames
       ret.texnames += rtexnames
-      nparams += nray
+      ret.nparams += nray
   if 'cloud' in ret.retflag:
-      ret.icloud  = np.arange(nparams, nparams + ncloud)
+      ret.icloud  = np.arange(ret.nparams, ret.nparams + ncloud)
       ret.pnames   += cpnames
       ret.texnames += ctexnames
-      nparams += ncloud
+      ret.nparams += ncloud
   if 'patchy' in ret.retflag:
-      ret.ipatchy = np.arange(nparams, nparams + 1)  # npatchy is always 1
+      ret.ipatchy = np.arange(ret.nparams, ret.nparams + 1)
       ret.pnames   += ['f_patchy']
-      ret.texnames += [r'$f_{\rm patchy}$']
-      nparams += 1
+      ret.texnames += [r'$\phi_{\rm patchy}$']
+      ret.nparams += 1
+  if 'mass' in ret.retflag:
+      ret.imass = np.arange(ret.nparams, ret.nparams + 1)
+      ret.pnames   += [f'Mp ({phy.mpunits})']
+      ret.texnames += [fr'$M_{{\rm planet}}$ ({utex[phy.mpunits]})']
+      ret.nparams += 1
 
+  # Retrieval variables:
+  if ret.params is not None and len(ret.params) != ret.nparams:
+      nparams = len(ret.params)
+      log.error(
+          f'The number of input fitting parameters (params, {nparams}) does '
+          f'not match\nthe number of required parameters ({ret.nparams}).')
   if pyrat.runmode == 'mcmc':
-      if ret.nparams != nparams:
-          log.error('The input number of fitting parameters ({:d}) does not '
-                    'match the number of required parameters ({:d}).'.
-                    format(ret.nparams, nparams))
+      if ret.pstep is None:
+          log.error('Missing pstep argument, required for MCMC runs.')
 
   # Check for non-retrieval model/parameters:
   if (pyrat.rayleigh.models != []
@@ -435,4 +396,3 @@ def setup(pyrat):
       and (pyrat.runmode != 'mcmc' or 'cloud' not in ret.retflag)
       and pyrat.cloud.pars is None):
       log.error('Cloud parameters (cpars) have not been specified.')
-

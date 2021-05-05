@@ -1,5 +1,5 @@
-# Copyright (c) 2016-2019 Patricio Cubillos and contributors.
-# Pyrat Bay is currently proprietary software (see LICENSE).
+# Copyright (c) 2021 Patricio Cubillos
+# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 import numpy as np
 
@@ -11,7 +11,7 @@ def absorption(pyrat):
     pyrat.rayleigh.ec = np.zeros((pyrat.atm.nlayers, pyrat.spec.nwave))
 
     for rmodel in pyrat.rayleigh.models:
-        # Extinction coefficient (in cm2 molecule-1):
+        # Opacity cross section (in cm2 molecule-1):
         rmodel.extinction(pyrat.spec.wn)
         # Get molecule index:
         if rmodel.mol not in pyrat.mol.name:
@@ -20,8 +20,13 @@ def absorption(pyrat):
 
         # Densities in molecules cm-3:
         dens = pyrat.atm.d[:,imol]
-        # Absorption (cm-1):
-        pyrat.rayleigh.ec += rmodel.ec * np.expand_dims(dens, axis=1)
+        # Extinction coefficient (cm-1):
+        if rmodel.name == 'lecavelier' and pyrat.cloud.fpatchy is not None:
+            # Put it in cloud.ec because we want to apply the fpatchy factor
+            # to this 'unknown' haze source.
+            pyrat.cloud.ec += rmodel.ec * np.expand_dims(dens, axis=1)
+        else:
+            pyrat.rayleigh.ec += rmodel.ec * np.expand_dims(dens, axis=1)
 
 
 def get_ec(pyrat, layer):

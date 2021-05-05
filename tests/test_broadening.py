@@ -1,20 +1,20 @@
+# Copyright (c) 2021 Patricio Cubillos
+# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+
 import os
-import sys
 import pytest
 
 import numpy as np
 
-ROOT = os.path.realpath(os.path.dirname(__file__) + '/..') + '/'
-sys.path.append(ROOT)
-import pyratbay.broadening as pb
-import pyratbay.constants  as pc
+import pyratbay.opacity.broadening as pb
+import pyratbay.constants as pc
 
-os.chdir(ROOT + 'tests')
+
+os.chdir(pc.ROOT + 'tests')
 
 keys = ['lorentz', 'gauss',
         'voigt0.01', 'voigt0.1', 'voigt1.0', 'voigt10.0', 'voigt100.0']
-expected = {key:np.load("expected_profile_{:s}_test.npz".
-                        format(key))['arr_0']
+expected = {key:np.load(f"expected/expected_profile_{key}_test.npz")['arr_0']
             for key in keys}
 
 
@@ -71,13 +71,39 @@ def test_Voigt(hL, key):
     np.testing.assert_allclose(voigt(x), expected[key], rtol=1e-7)
 
 
+def test_doppler_hwhm():
+    temperature = 1000.0
+    wn = 10000.0
+    mass = np.array([18.0, 44.0])
+    dop_hw = pb.doppler_hwhm(temperature, mass, wn)
+    np.testing.assert_allclose(
+        dop_hw, [0.02669241481944169, 0.01707252588229824], rtol=1e-7)
+
+
+def test_lorentz_hwhm():
+    temperature = 1000.0
+    pressure = 1.0 * pc.bar
+    #                  H2O   CO2   H2    He   
+    masses = np.array([18.0, 44.0, 2.0,  4.0])
+    radii  = np.array([1.6,  1.9,  1.45, 1.4]) * pc.A
+    vmr    = np.array([1e-4, 1e-4, 0.85, 0.15])
+    imol = np.array([0, 1])
+    lor_hw = pb.lorentz_hwhm(temperature, pressure, masses, radii, vmr, imol)
+    np.testing.assert_allclose(
+        lor_hw, [0.036911106660883666,0.04308068108378928], rtol=1e-7)
+
+
 def test_min_widths():
     min_temp = 500.0     # Kelvin
+    max_temp = 2500.0  # Kelvin
     min_wn   = 1.0/(0.6*pc.um)
     max_mass = 27.02534  # HCN molecular mass (amu)
-    dmin, lmin = pb.min_widths(min_temp, min_wn, max_mass)
-    np.testing.assert_approx_equal(dmin, 0.02567273953100574, significant=7)
-    np.testing.assert_approx_equal(lmin, 0.00256727395310057, significant=7)
+    min_rad  = 2.5 * pc.A
+    min_press = 1e-5 * pc.bar
+    dmin, lmin = pb.min_widths(min_temp, max_temp, min_wn, max_mass,
+                               min_rad, min_press)
+    np.testing.assert_allclose(dmin, 0.025672743788107903)
+    np.testing.assert_allclose(lmin, 3.9945391902150206e-07)
 
 
 def test_max_widths():
@@ -89,6 +115,6 @@ def test_max_widths():
     max_press = 100 * pc.bar
     dmax, lmax = pb.max_widths(min_temp, max_temp, max_wn, min_mass,
                                max_rad, max_press)
-    np.testing.assert_approx_equal(dmax, 0.014862623078508634, significant=7)
-    np.testing.assert_approx_equal(lmax, 8.009256827016788,    significant=7)
+    np.testing.assert_allclose(dmax, 0.01486262554305687)
+    np.testing.assert_allclose(lmax, 8.009255370607491)
 

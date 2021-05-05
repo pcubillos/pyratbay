@@ -5332,3 +5332,1573 @@ This is the list of the (main) changes implemented with this merge:
 - Pickling
 - Test most of things via pytest/travis.
 
+
+*****  Do 25. Jul 16:39:13 CEST 2019  *****
+
+Updated docs conf.py file.
+Added api.rst (will need update).
+
+*****
+
+Tweaked pbay.py to print out invalid PF/CS calls.
+Added placeholder for tips PF.
+
+*****
+
+Added __all__ for constants module.
+
+*****
+
+Cleaned up setup.py, added long_description and entry points
+(place holder until truly implementing the entry point).
+
+*****
+
+Attempted to fix the travis file (we will see how it works).
+
+*****
+
+Updated README.md file to add the badges.
+
+
+*****  Di 27. Aug 10:58:15 CEST 2019  *****
+
+Implemented get_units() in parser Namespace class in parser.py
+
+*****
+
+Added mpunits as input argument to set units of mplanet.
+Save variable in pyrat.phy.mpunits.
+Throw error if mplanet units are not defined (and mplanet exists).
+Added tests in test_pbay.py.
+
+*****
+
+Enabled mplanet as a retrieval parameter.
+Changes need testing and documentation.
+
+*****
+
+Enabled setting radius units for planet radius retrieval.
+The retrieved value will have units according to runits
+(else, the units of rplanet).
+Changed behavior of runits warning.  Do not default to km anymore.
+Throw error if rplanet units are not defined (and rplanet exists).
+Defaulted units of smaxis and rstar to au and rsun, respectively.
+
+*****
+
+Removed MCcubed as submodule.
+Added mc3 as requirement.
+
+*****
+
+Renamed stepsize to pstep (to follow mc3 suit).
+
+*****
+
+Renamed walk argument to sampler.
+
+
+*****  Fr 30. Aug 14:17:29 CEST 2019  *****
+
+Moved filters setup (argum.py) into pyrat.set_filters() method.
+
+*****
+
+Updated TEA submodule.
+Added tests for pa.abundances() and pb.run() functions.
+
+
+*****  Mi 4. Sep 18:21:50 CEST 2019  *****
+
+Refactored the temperature models into classes in tmodels submodule.
+This enables the models to carry their arguments.
+Refactored Madhusudhan models to follow parameterization as described
+in Wellbanks et al. (2019).
+Added examples/tutorial/pt_madhu.cfg file.
+Documented and tested.
+
+
+*****  Do 5. Sep 16:13:14 CEST 2019  *****
+
+Moved atmosphere.readatm() and atmosphere.writeatm() to io module.
+Renamed as read_atm() and write_atm().
+Improved docstrings.
+
+*****
+
+Updated TEA submodule for Python2 compatibility.
+
+
+*****  Fr 6. Sep 15:15:37 CEST 2019  *****
+
+Replace all instances of np.testing.assert_almost_equal()
+with np.testing.assert_allclose()
+
+*****
+
+Moved pbay.py to pyratbay/__main__.py, enabling the pbay entry point.
+pyratbay should also now work as a pip-installable package
+(no need to add path to source package).
+
+*****
+
+Some general pyflaking (mostly getting path to lib/ folder right,
+though it seems that this is not necessary).
+
+*****
+
+Defined __version__ in VERSION.py to prevent the need to build it
+from PBAY_ constants elsewhere.
+
+
+*****  Fr 18. Okt 11:38:13 CEST 2019  *****
+
+Refactored spline algorithm.
+There are relative differences at the 1e-5 level.
+Updated tests.
+
+*****
+
+Fixed bug in setup.py
+
+*****
+
+Updated logo (exclamation mark).
+
+*****
+
+Updated mc3 requirement version to 3.0.0.
+
+
+*****  Mo 21. Okt 11:00:23 CEST 2019  *****
+
+Fixed io.write_atm() call after MCMC run.
+
+
+*****  Di 22. Okt 12:07:21 CEST 2019  *****
+
+Added pstep check (required) for MCMC runs.
+
+*****
+
+Tweaked pyrat.plot_spectrum(), fixed condition to compute bandflux.
+Only require that self.obs.bandtrans exists.
+
+*****
+
+Modified reloadatm() to avoid overwriting the radius profile when
+input by the user.
+
+
+*****  Fr 25. Okt 17:03:06 CEST 2019  *****
+
+Changed default temperature extrema for voigt profile table.
+Instead of taking profile min/max (which can be isothermal),
+set them to 100 and 3000 K.
+Updated tests, but have not commited expected arrays, since they
+might change soon.
+
+*****
+
+Updated CO and CO2 diameter, use larger values from other reference
+since they match better exomol extinction coefficient table.
+
+*****
+
+Refactored tools.clock() generator into tools.Timer() class.
+This fixes a bug where the timer did not reset t0 when reinitialized.
+
+
+*****  Mo 28. Okt 13:22:13 CET 2019  *****
+
+Updated .gitignore.
+
+
+*****  Di 29. Okt 09:16:33 CET 2019  *****
+
+Refactored broadening.min_widths() to remove dlratio input argument
+rather compute lorentz width from physical inputs.
+
+The problem was that I was setting the Lorentz minimum based on
+dlratio, as a function of the minimum doppler width.  if dlratio is
+not small enough, the min lorentz did not sample the smallest values
+expected for the atmosphere (at the lowest pressures).  After fixing
+this, I can keep dlratio at 0.1 to avoid recomputing identical
+profiles.
+
+*****
+
+Updated collisional radius for CO and CO2 into Allen's Astrophysical
+Quantities, which match better the exomol extinction coefficient.
+
+*****
+
+Tweaked tools.Namespace.get_path() method to enable {ROOT} replace
+with constants.ROOT in input paths.
+Added tests for tools.Namespace.get_path().
+Updated docs, tests, and examples config files accordingly.
+
+*****  Do 31. Okt 09:38:04 CET 2019  *****
+
+Fixed bug in transmission optical depth calculation.
+I was missing a factor of two in the tau integral to account for
+path before and after crossing the planet's terminator.
+New results agree well with petitRADTRANS.
+
+
+*****  Sa 2. Nov 13:56:41 CET 2019  *****
+
+Added radmodel argument to define hydrostatic-equilibrium model.
+If not defined, take radius from input atmospheric file (if exists).
+Replaced atm.hydrom flag with atm.rmodelname (which is now taken
+from radmodel argument).
+Added/updated tests accordingly.
+Updated config files.
+Updated spectrum tutorial docs.
+
+
+*****  Mo 4. Nov 09:10:00 CET 2019  *****
+
+Remove phy.rprs to avoid inconsistency when phy.rplanet changes.
+
+*****
+
+Minor changes in docs (assuming pip-installed code).
+
+
+*****  Di 5. Nov 10:09:30 CET 2019  *****
+
+Created pyratbay.part_func module to compute partition functions.
+Moved tools.pf_exomol() and tools.pf_kurucz() funtions to
+part_func.exomol() and part_func.kurucz(), respectively.
+Implemented part_func.tips() to compute HITRAN/TIPS partition
+functions.  This replaces the pytips submodule (removed) and updates
+the TIPS data to that of Gamache et al. (2017).
+Added TIPS data into inputs/tips_2017.pkl.
+Enabled tips PF call from command line.
+Updated tests accordingly.
+
+This update drops support for Python2.7 (which will anyway stop by
+Python this next Jan 1st.).
+
+*****
+
+Removed Python 2.7 from travis file.
+Removed a few Python2 nuances:
+- circular imports in io.py
+- defining np.printoptions()
+- Formatted_Write() bugfix
+- configparser import
+
+*****
+
+Renamed pflist option from ctips to tips.
+
+*****
+
+Some cosmetics.
+
+
+*****  Mi 6. Nov 09:01:45 CET 2019  *****
+
+Updated inputs/isotopes.dat to include new isotopes from new TIPS
+partition function file.
+
+*****
+
+Removed pytips calls in Makefile.
+
+
+*****  Do 7. Nov 16:48:55 CET 2019  *****
+
+Modified plots functions to return the axes of the figure.
+Propagated ax return into pyrat plotting method.
+Also use plt.tight_layout() for single-panel plots.
+Updated docstrings.
+
+*****
+
+Added self consistency gplanet update in pyrat.eval() method
+when using hydro_g model and rplanet changes.
+
+
+*****  Fr 8. Nov 12:02:16 CET 2019  *****
+
+Updated tests according to latest changes in isotopes list.
+
+*****
+
+Changed behavior of default wavelength and units inputs.
+Do not show wlunits-default warning anymore.
+If wlunits is None, require that wllow and wlhigh have units.
+Added corresponding tests.
+
+*****
+
+Simplified planetary mass units parsing.
+(no change in behavior).
+
+*****
+
+Previous changes were for the planetary radius actually.
+Now, simplified planetary mass units parsing.
+
+*****
+
+Changed behavior of default pressure units.
+Remove punits default and warning.
+If punits is None, attempt to get it from pbottom, ptop, refpressure,
+and the atmfile, respectively.
+If punits is None, break if any of the pressure inputs does not have
+its own units.
+Updated tests and docs.
+
+*****
+
+Enforced requiring units for mstar, rstar, and smaxis.
+Fix units of other phy variables.  Always display as AU, msun, and
+rsun, irrespective of inputs.
+Updated tests.
+
+
+*****  Mo 11. Nov 14:26:13 CET 2019  *****
+
+Found bug in cloud deck model. More of a poor-approximation issue.
+I was setting a vertical optical depth of ~2/3 at the layer below
+the cloud top, whis some variation porportional to the proximity
+of the layer to the cloud top.  The transition didn't turn out to
+be as smooth as expected, with the outputs being 'discretized' to
+the nearest layer.
+
+Refactored the deck cloud model, removing its opacity, and adjusting
+the outcome after the radiative-transfer integration.
+For transmission, clip the output such that the transit depth is
+larger than the cloud top.
+For emission, set the black body emission of the layer below the
+cloud top equal to that of a Planck function at the temperature at
+the cloud top.
+
+Patchy model is breaking now. Needs to be fixed.
+Modified behavior of pyrat.get_ec()  as well.  Return an array of
+zeros or ones depending on whether the requested layer is above or
+below the cloud top, even though the codes does not use this
+extinction coefficient.
+
+
+*****  Di 12. Nov 10:34:19 CET 2019  *****
+
+Adjusted opticaldepth() emission calculation to stop at the cloud top
+if existing.
+
+
+*****  Mi 13. Nov 14:07:01 CET 2019  *****
+
+Reimplemented Simpson integration code to work on a 2D input,
+now, we do the modulation integration at all wavelength in a single
+call to the C code.  Apparently getting a speed up factor of two
+for that step.
+
+*****
+
+It turns out, the transmission code still was not accurate enough
+after the last changes.  Now, when there is a cloud deck, in the last
+integration to get the transmision spectrum, the code replaces the
+layer below the deck with the deck altitude, interpolating the
+integrand.  This now produces a smooth variation when the cloud deck
+crosses the atmospheric model layers.
+
+Tweaked Deck()'s itop variable to be equal to the atmospheric layer
+rather than below when the cloud sits exactly at the layer.
+(This prevents NaNs when computing the transmission spectrum).
+
+Updated tests.
+
+*****
+
+Added --show-capture=no option to pytest.ini.
+
+*****
+
+Allowed defining rayleigh models without rpars if and only if the
+models do not require any parameter.
+
+*****
+
+Modified plots.transmittance() to fill in values below ideep with
+zeros (fully opaque), which fixes a bug in plots.cf(), which was not
+able to set the 68-quantile boundaries.
+
+
+*****  Fri Nov 22 16:56:58 CET 2019  *****
+
+Fixed log's verb argument in tools.parser.py to pass the defaulted
+value (pyrat.verb instead of args.verb).
+
+*****
+
+Tweaked makesample.make_wavenumber() to show the resolution when
+resolution argument is not None.
+
+
+*****  Sun Dec  1 23:23:57 GMT 2019  *****
+
+Modified read_extinction() function to update the spectral range
+when ex.wn does not match spec.wn.  If pyrat.spec.wnlow or
+pyrat.spec.wnhigh are narrower than input pyrat.ex.wn, then trim
+the opacity table accordingly.
+Do a check of whether this is constant delta-wavenumber or constant
+resolution.  Preserve sampling from the opacity table (either
+pyrat.spec.wnstep or pyrat.spec.resolution).
+Oversampling values in pyrat.spec won't necessary reflect those used
+for the opacity table, though they won't be used for any calculation
+(should I None them?).
+Re-interpolate pyrat.phy.starflux into pyrat.spec.starflux (if req.)
+Re-compute filter passbands (if required).
+Added tests.
+
+
+*****  So 15. Dez 15:53:23 CET 2019  *****
+
+Added radius_to_depth() and depth_to_radius() functions into tools
+module.
+Documented and tested.
+
+*****
+
+Updated CNOTRIBUTING.md.
+
+*****
+
+Added equilibrium_temp() function into atmosphere module.
+Documented and tested.
+
+*****
+
+Added no_logfile argument to tools.parse() and pb.Pyrat()
+enabling runs without writting to log.
+Corrected docstrings of these functions.
+Some f-stringing tweaks.
+Tested.
+
+*****
+
+Update Pyrat.ret.params with input argument on Pyrat.eval() call.
+Tested.
+
+
+*****  Mi 18. Dez 11:13:17 CET 2019  *****
+
+Renamed outspec argument to specfile (same naming format as others).
+Updated examples, docs, and tests.
+
+
+*****  Sun Dec 22 21:59:12 CLT 2019  *****
+
+Allowed verb argument to take negative values
+(a true mute, except for errors).
+ 
+
+*****  Mon Dec 23 09:53:32 CLT 2019  *****
+
+Added mute argument to Pyrat() and tools.parse() to overwrite verb
+from the config file, setting a value of -1.
+Added test.
+
+*****
+
+Cleaned up and improved docstrings of tools.u() function.
+
+*****
+
+Tweaked tools.u() ValueError message to be more explicit.
+Added tests.
+
+*****
+
+Refactored tools.get_param() function to raise ValueError exceptions
+instead of going through Log.error().
+This is much simpler to use, as intended for external users.
+Capture exceptions in Log.error() when caught in tools.parse() call.
+Fixed issue where input and output variables had same name.
+Updated documentation, added tests.
+
+*****
+
+Re-idented tools.get_params() to 4 spaces.
+
+*****
+
+PEP8ed tools.unpack() function.
+Automated decoding of strings as UTF-8.
+Updated docstrings.
+Added tests.
+
+
+*****  Di 28. Jan 11:16:21 CET 2020  *****
+
+Updated LICENSE file to GNU GPLv2.
+
+*****
+
+Updated CONTRIBUTING.md file.
+
+*****
+
+Updated comment in example config files.
+
+*****
+
+Changed showbp from False to True when calling mc3.sampler().
+(show best-fitting value in posteriors).
+
+*****
+
+Tweaked main() to force plt.ioff() when running from the command line.
+
+
+*****  Wed Jan 29 10:25:50 CET 2020  *****
+
+Housekeeping on lread.py (just cosmetics).
+
+*****
+
+Modified check_spectrum() to set phy.rhill to phy.rstar if there is
+no rhill.
+
+Tweaked atmosphere.hydro_m() to detect when solution breaks.
+Patched, but needs proper solution, handling, and testing.
+
+*****
+
+Implemented atmosphere.rhill() function to compute Hill radius.
+Needs proper testing and documentation.
+
+Turned radius > rhill warning into a msg to avoid screen outputs
+during a retrieval.
+
+*****
+
+Fixed bug when computing cloud-deck altitude for modulation interp
+when itop is not zero.
+Needs some proper testing.
+
+*****
+
+Housekeeping in pands.py (only cosmetics)
+
+*****
+
+Added axis argument to plots.spectrum() function.
+Needs docstring update.
+
+*****
+
+Fixed minor bugs in plots.py and driver.py
+
+*****
+
+Updated tests transmission expected results.
+
+*****
+
+Bumped Pyrat Bay version to 0.9.0a1
+
+*****
+
+Updated travis file for new path to HITEMP data.
+
+*****
+
+Updated demo TLI config file (tlifile parameter).
+
+
+*****  Fri Jan 31 14:35:13 CET 2020  *****
+
+Updated tests expected values in test_atmosphere.py after updating
+to scipy 1.4.1.
+
+*****
+
+Updated tests expected values in test_broadening.py after updating
+to scipy 1.4.1.
+
+*****
+
+Updated tests expected values in test_fails.py after updating
+to scipy 1.4.1.
+
+*****
+
+Updated tests expected values in test_pbay.py after updating
+to scipy 1.4.1.
+
+
+*****  Do 6. Feb 18:04:42 CET 2020  *****
+
+Updated requirements for tests in setup.py.
+
+*****
+
+Updated Copyright in (probably most) python files.
+
+*****
+
+Updated tests/test_spectrum.py and tests/test_str.py expected values
+to match scipy 1.4.1.
+Moved files with expected results to tests/expected/ folder.
+
+
+*****  Fr 7. Feb 11:59:41 CET 2020  *****
+
+Moved testing config files from tests/ to tests/configs/ to declutter
+the tests/ folder.
+
+*****
+
+Created tests/inputs/ and tests/outputs/ folders for decluttering.
+Modified travis file to put inputs into tests/inputs/ folder.
+Moved LBL testing files into tests/inputs/ folder.
+Modified .gitignore to stop ignoring most tests files.
+Modified tests files to output everything into tests/outputs/ folder.
+Moved voigt tests expected profiles into tests/expected/ folder.
+
+*****
+
+Implemented tools.cd() context manager.
+
+*****
+
+Fixed bug in tools.parse() function, ensuring that logfile name
+processes the {ROOT} special value when copying from output files.
+
+*****
+
+Tweaked lread.py to allow parsing {ROOT} in input database files.
+
+*****
+
+Added .readthedocs.yml file.
+
+*****
+
+Added MANIFEST.in file.
+
+
+*****  Mon Mar  9 22:25:55 CET 2020  *****
+
+Added sec, min, hour, and day time variables to pyratbay.constants.
+Updated values in units.rst.
+
+
+*****  Mi 11. Mär 14:27:47 CET 2020  *****
+
+Fixed bug in Dalgarno() opacity model for He Rayleigh.
+No major consequences.
+
+*****
+
+Added modules used during radiative transfer as underscore modules
+into the main pyratbay package (as under to avoid cluttering).
+
+*****
+
+Implemented io.export_pandexo() function to run pandexo simulations
+from a pyrat object or create a pandexo_dict for it.
+There is no testing so far, since pandexo relies on many dependencies
+that are not easy to get into travis or might not be totally
+compatible with the dependencies of pyratbay.
+
+Bumped Pyrat Bay version to 0.9.0a2.
+
+
+*****  Wed Mar 18 15:57:07 CET 2020  *****
+
+Implemented Voigt wing cutoff at fixed value (in cm-1).
+This applies when creating the Voigt profiles grid, but it also
+can be modified when computing the extinction coefficient (though
+if so, the cutoff has to be smaller than the input value, duh).
+Set default to 25 cm-1 (typically used in the literature).
+Thus, the code truncates each profile at the minimum value between
+the vextent (in HWHM) and the vcutoff (in cm-1) values.
+A vcutoff value of 0.0 results in no fixed cutoff.
+Updated documentation.
+
+*****
+
+Updated vextent default value from 20.0 to 100.0 HWHM.
+This and the previous commit is expected to change the values of the
+(default) runs.  Updated tests accordingly.
+
+*****
+
+Renamed src_c/extcoeff.c to src_c/_extcoeff.c.
+
+*****
+
+PEP8ed src_c/_extcoeff.c.
+
+*****
+
+Renamed and PEP8ed src_c/_simpson.c.
+
+*****
+
+Renamed and PEP8ed src_c/_pt.c.
+
+
+*****  Thu Apr 2 09:22:00 CEST 2020  *****
+
+Enabled no_logfile argument in pb.run() to prevent writting to log.
+
+
+*****  Sat Apr 4 14:13:57 CEST 2020  *****
+
+Removed molID from molecules.dat and pyrat object.
+(Not really needed).
+Moved pa.readmol() to io.read_molecs().  Removed no-longer-existing
+molID from output.
+Revamped io.write_opacity() and io.read_opacity() to save to npz file
+insted of binary IO.  This is way faster to handle.  Store species
+names instead of ID.
+Renamed pyrat.ex.nmol to pyrat.ex.nspec.
+Replaced pyrat.ex.molID (ints) with pyrat.ex.species (strings).
+Removed pyrat.mol.ID.
+Refactored _extcoeff.interp_ec() removing mtable and molID arguments,
+requiring that input densities correspond to those in the opacity grid.
+Updated tests, examples, and docs.
+
+*****
+
+Corrected state weight for gf calculation in hitran database reader
+(use upper state instead of lower state).
+Refactored getiso() removing fromfile argument and dbtype default.
+Some PEP8ing.
+
+*****
+
+Corrected state weight for gf calculation in exomol database reader
+(use upper state instead of lower state).
+Some PEP8ing.
+
+*****
+
+PEP8ed vald database reader (though the code is untested and
+probably outdated).
+
+*****
+
+Rewrote database driver getiso() in a cleaner way.
+
+*****
+
+Renamed database reader classes with capitalized names.
+Some PEP8ing all around.
+
+
+*****  Mon Apr 6 13:14:56 CEST 2020  *****
+
+Fixed bug in Hitran() class.
+
+*****
+
+Implemented io.read_isotopes() to read isotopic data file.
+Documented and tested.
+
+*****
+
+Some updated to isotopes.dat file.
+
+*****
+
+Refactored database driver's getiso() to use io.read_isotopes()
+renamed as get_iso(), removed redundant mol name return.
+Propagated correction to specific database readers.
+
+*****
+
+Implemented db_type argument into part_func.tips() function
+to enable output isotope naming as exomol notation.
+
+*****
+
+Enabled db_type through the __main__ entry point for tips() PF.
+
+*****
+
+Implemented io.import_exomol_xs() function to read/import exomol
+opacity cross-section files.
+
+*****
+
+Bumped Pyrat Bay version to 0.9.0a3.
+
+
+*****  Mon Apr 13 13:55:40 CEST 2020  *****
+
+Defaulted matplotlib backend to Agg when calling from entry point.
+
+
+*****  Wed Apr 15 11:12:08 CEST 2020  *****
+
+Updated C2H2 isotope names for exomol database.
+
+*****
+
+Modified pa.alkali.get_model() to accept additional arguments.
+
+*****
+
+Modified pa.alkali.VanderWaals() classes to add a hard cutoff
+parameter that can be set on initialization (default 4500 cm-1).
+Added tests.
+
+*****
+
+Added alkali_cutoff argument to pyrat configuration file.
+
+*****
+
+Added Stefan-Boltzmann constant (sigma) to constants module.
+
+*****
+
+Renamed atomsphere's functions to interact with TEA as
+make_atomic(), read_atomic(), make_preatm(), and tea_to_pyrat().
+
+*****
+
+Refactored pa.make_atomic() to scale specific elements, return
+values, and make file-writting optional.
+Added tests.
+
+*****
+
+Updated tools.make_tea() function according to current TEA arguments
+(enabled verb and ncpu arguments).
+
+*****
+
+Renamed atmosphere.abundances() function to abundance().
+Updated list of arguments adding escale and ncpu.
+Updated interface to TEA, made atmfile optional and some cleaning.
+Updated tests.
+
+*****
+
+Cleaned atmosphere.pressure() and uniform() functions.
+Fixed a small error in the screen output units for pressure().
+
+*****
+
+PEP8ed atmosphere.temperature(), hydro_g(), hydro_m(), rhill(),
+and stoich().
+
+
+*****  Thu Apr 16 08:46:29 CEST 2020  *****
+
+Added escale as a config file argument.
+
+*****
+
+Renamed atmosphere.meanweight() and IGLdensity() functions
+to mean_weight() and ideal_gas_density().
+PEP8ed.
+Updated tests.
+
+
+*****  Tue Apr 21 15:17:29 CEST 2020  *****
+
+PEP8ed _blackbody.c.
+Renamed Bwn() and Bwn2D() functions to blackbody_wn() and
+blackbody_wn_2D(), respectively.
+
+
+*****  Wed Apr 22 11:50:40 CEST 2020  *****
+
+Refactored the Three-channel Eddington model for temperature profiles
+in the tcea() function in _pt.c.
+Replaced beta with T_irr, moved T_int into the params array, and made
+gravity an optional argument.  This removes the dependency on the
+extra physical parameters (Rstar, Tstar, semi-major axis, and g).
+This greatly simplifies everything.
+Propagated modifications into the atmosphere.tmodels.TCEA() class,
+atmosphere.temperature() function.
+Removed no-longer-needed checks in check_temp() function of driver.py
+and check_spectrum() and setup() functions of argum.py.
+Updated model names in setup().
+Updated tests and examples configuration files accordingly.
+Updated docs.
+PEP8ed things on the way.
+
+*****
+
+Implemented atmosphere.tmodels.get_atmosphere() function to get a
+temperature model requested by model name.
+Added name, pnames, texnames, and npars variables to the temperature
+profile models.
+Modified atmosphere.temperature() function to return only the model
+when the user does not specify the model parameters.  Renamed tparams
+argument to params.
+
+*****
+
+Raise error for mismatch in the number of fitting parameters even
+if it's not an mcmc run.
+
+*****
+
+Added check for number of free parameters in pyrat.eval() call.
+Defined pyrat.atm.ibulk to prevent crash in qcapcheck() call.
+Added tests.
+
+*****
+
+Moved pa.tea_to_pyrat() to io.import_tea().
+
+*****
+
+Moved pa.read_atomic() to io.read_atomic().
+
+
+*****  Thu Apr 23 10:35:25 CEST 2020  *****
+
+Automated check for correct number of temperature parameters. Moved
+from check_temp() to pa.temperature() (it needs to know the tmodel).
+Updated tests and added case for madhu TP model.
+
+*****
+
+Implemented pa.tmodel.check_params() decorator to ensure temp calls
+have the right number of parameters.  Decorated the models' methods.
+
+*****
+
+PEP8ed readatm.py file, renamed file to read_atm.py
+Renamed reloadatm() to update_atm().
+
+*****
+
+PEP8ed parser.py file.
+
+*****
+
+Updated expected transmission spectra arrays.
+
+*****
+
+Bumped Pyrat Bay version to 0.9.0a4.
+
+
+*****  Fri Apr 24 09:27:22 CEST 2020  *****
+
+Refactored simpson integration functions to follow scipy's code
+set to even='first' instead of 'last', which is more stable to
+discontinuities due to different number of integrating points.
+
+*****
+
+PEP8ed trapz.c file, renamed to _trapz.c.
+
+*****
+
+Modified modulation() function to use a trapezoidal integration
+instead of simpson integration because it is more stable and slightly
+faster, maybe 5 percent.
+Result spectra don't differ by more that 1e-5 (relative diff).
+
+*****
+
+PEP8ed spectrum.py file.
+
+
+*****  Thu Apr 30 15:36:32 CEST 2020  *****
+
+Fixed bug in pa.abundance() function where escale was being ignored.
+Added tests.
+Some other minor cosmetics.
+
+
+*****  Sun May 3 16:43:32 CEST 2020  *****
+
+Fixed bug in extinction() function of _extcoeff.c
+last transition was co-adding out-of-bounds opacities.
+
+*****
+
+Updated exomol isotope names of H2O and CO2.
+
+*****
+
+Allowed tint input argument to take a value of 0.0.
+
+*****
+
+Refactored constant resolving power spectrum sampling to preserve
+wnlow (rather than wnhigh).
+Some other minor tweaks.
+
+*****
+
+Set default pyart.atm.runits to km if neither rplanet nor atmospheric
+file provide a value.
+
+*****
+
+PEP8ed makesample.py
+
+*****
+
+Fixed typo in screen output of make_atmprofiles() function
+in makesample.py.
+
+
+*****  So 10. Mai 15:27:02 CEST 2020  *****
+
+Created pyratbay.spectrum module.
+In replacement of starspec and blackbody, but with broader scope.
+Moved pt.tophat(), pt.resample(), and pt.band_integrate() into
+spectrum module.
+Updated tests accordingly.
+
+
+*****  Do 14. Mai 17:08:43 CEST 2020  *****
+
+Moved contribfuncs.py from tools to spectrum module,
+renamed file as contribution_funcs.py, renamed functions
+from cf() to contribution_function() and bandcf() to band_cf().
+Modified band_cf() to preserve dimension order of input and output
+contributions array.
+Renamed plots.cf() to plots.contribution().
+Fixed bug in plots.contribution() when the contributions are not
+sorted.
+
+*****
+
+PEP8ed plots.py.
+
+*****
+
+Tweaked io.write_atm() to set header argument as optional.
+Moved to last place.
+
+*****
+
+Swapped places of radius and punits in io.write_atm().
+Set default value of punits to 'bar'.
+
+
+*****  So 17. Mai 17:12:05 CEST 2020  *****
+
+Refactored io.read_atm() and io.write_atm() to enable files with
+only pressure and temperature.
+Modified abundance units from 'number' to 'volume'.
+ 
+*****
+
+PEP8ed driver.py
+
+
+*****  Mo 25. Mai 13:47:19 CEST 2020  *****
+
+Removed pt running mode, moved into atmosphere mode
+when the input config file only contains the PT arguments.
+Refactored driver.py accordingly, an atmospheric run always return
+a tuple with pressure, temperature, abundances, species, radius.
+(regardless of None fields).
+Implemented check_abundance_args() function to check for abundance
+arguments without breaking the run.
+Updated example config files.
+Updated docs.
+
+*****
+
+Fixed typo in README.md pypi shield.
+
+*****
+
+Updated year in license.rst.
+
+*****
+
+Updated exomol names for N2 isotopes.
+
+*****
+
+Modified pa.mean_weight() to add optional mass argument to set
+the mass of the input species (faster execution).
+
+
+*****  Di 26. Mai 10:32:51 CEST 2020  *****
+
+Updated io.load_pyrat() according to mc3 v3.0+.
+
+*****
+
+Fixed bug in read_extinction() when trying to reload a pyrat object.
+
+*****
+
+Bumped Pyrat Bay version to 0.9.0a6.
+
+
+*****  Mon Jul 6 11:41:15 CEST 2020  *****
+
+Tweaked Madhu() temperature class to receive pressure parameters in
+bar instead of barye.
+Updated docs, examples, and tests.
+
+*****
+
+Modified Madhu() temperature class to return a zeroed temperature
+profile when p1 > p3.
+Added test.
+
+
+*****  Sun Jul 12 17:55:04 CEST 2020  *****
+
+Fixed bug in Atmosphere.__str__() method, removed deprecated targs
+variable.
+Updated pyrat.atm.tpars when running pyrat.eval() with temperature
+parameters.
+
+*****
+
+PEP8ed readlinedb.py
+
+*****
+
+Renamed readlinedb.py to read_tli.py
+
+
+*****  Di 14. Jul 13:55:51 CEST 2020  *****
+
+Updated docs (API, index, MCMC tutorial).
+
+*****
+
+Updated mcmc_eclipse.cfg tutorial example.
+
+*****
+
+Added broadening.doppler_hwhm() and lorentz_hwhm() functions.
+Documented and tested.
+
+*****
+
+Fixed bug in pyrat_obj.py (read_tli.py module name change).
+
+
+*****  Mi 26. Aug 10:26:12 CEST 2020  *****
+
+Updated isotopes.dat with O and C2H4 isotope names for exomol.
+
+*****
+
+Updated default maxiter argument in tools.make_tea() from 100 to 200.
+
+*****
+
+Renamed pyratbay.lineread module to pyratbay.opacity.
+
+*****
+
+Renamed pb.opacity.database module to pb.opacity.linelist.
+
+*****
+
+Moved and renamed pb.part_func module to pb.opacity.partitions.
+
+*****
+
+Moved pb.broadening module to pb.opacity.broadening.
+
+*****
+
+PEP8ed pyratbay/opacity/lread.py file.
+Renamed makeTLI() function to make_tli().
+
+*****
+
+Renamed DB_driver class to Linelist in pb.opacity.linelist module.
+Some PEP8ing in the linelist module files.
+
+
+*****  Do 27. Aug 17:38:05 CEST 2020  *****
+
+Added abundance() function to plots module to plot the volume mixing
+ratios of an atmosphere.
+Also added to plots module:
+- alphatize() function to simulate alpha-transparency
+- defaults_colors dictionary with defaults coloring for rockstar
+  atmospheric species.
+Updated tests/test_plots.py, but this is not really testing things
+automatically.
+
+
+*****  Fri Aug 28 12:00:52 CEST 2020  *****
+
+Removed temperature posterior calculation from plots.posterior_pt(),
+moved into atmosphere.temperature_posterior().  This function
+computes the median and interquantile region of the 68%/95%
+percentiles for a given distribution.
+
+Renamed plots.posterior_pt() to plots.temperature(), which is now
+a general function to plot temperature profiles.
+Refactored to take any number of profiles, with custom labels and
+colors.
+
+Refactored Pyrat.plot_posterior_pt() method into
+Pyrat.plot_temperature(), enabling passing arguments to
+plots.temperature().
+
+Documented and tested.
+
+*****
+
+Fixed 'correction' of hydro_m() function when the model diverges for
+super-puff atmospheres.
+Print radius array using user-input radius units.
+Added test of ultra-puff hydro_m() calculation.
+
+*****
+
+Removed Hill radius default to stellar radius.
+I will probably regret this, but we will see.  I would not trust
+ultra-puff runs even if rhill is defined (hydrostatic equilibrium
+breaks way before the altitude gets closer to rhill anyway).
+
+
+*****  Di 1. Sep 15:22:46 CEST 2020  *****
+
+Enabled tli runs with a single pflist or dbtype value that applies to
+all dblist values.
+Updated docs and tests.
+
+
+*****  Mi 2. Sep 16:09:06 CEST 2020  *****
+
+Updated some of the html docs.
+There is still some more work to do.
+
+*****
+
+Added 'chemistry' variable to configuration file to signal a
+chemistry volume mixinf ratio calculation.
+pyrat.atm.chemistry holds the chemistry model.
+Removed check_abundance_args() function in driver.py (no longer used)
+Updated check_atm() in driver.py to check consistency with input
+chemistry model.
+Added constants.chemmodels with list of available models.
+Updated examples and tests.
+
+
+*****  Do 3. Sep 11:27:24 CEST 2020  *****
+
+Updated getting started and atmosphere tutorial docs.
+
+*****
+
+Fixed bug in plots.abundance() function.
+Set properly the legend font size, also allow not plotting the
+legend when the fontsize is less equal than zero.
+
+*****
+
+Removed patm and atomicfile input arguments from the config files,
+no longer used (nor needed).
+
+
+*****  Fr 11. Sep 15:33:28 CEST 2020  *****
+
+Enabled altitude profile calculation for atmosphere runs.
+Does not break any previous test.
+Added tests and updated docs.
+Implemented check_altitude() function in driver.py
+TBD: think of merging it with similar code in make_atmprofiles().
+
+*****
+
+Bumped Pyrat Bay version to 0.9.1.
+Nearly final shape, I would say.
+
+*****
+
+Refactored calculation of temmperature profiles posteriors after
+the mcmc run.  Created pyrat.ret.temp_best, pyrat.ret.temp_median,
+and pyrat.ret.temp_post_boundaries variables if there is a
+temperature model.
+TBD: I should also check that at least one tparams is free.
+
+
+*****  Wed Sep 16 11:25:44 CEST 2020  *****
+
+Fixed annoying behavior in plots.spectrum() (removed twinx() axis).
+
+*****
+
+Refactored TEA--Pyrat molecules name dictionary for a cleaner code
+in atmosphere.make_preatm() function.
+Added case to process electrons in atmosphere.stoich() function,
+though note that TEA cannot process ions at the moment.
+
+*****
+
+Added tests for atmosphere.stoich() with electrons and ions.
+
+*****
+
+Modified io.import_tea() to use dict of names between pyrat and TEA
+(prevent potential bugs with previous implementation).
+
+*****
+
+Some clean up in atmosphere.patm() function.
+
+*****
+
+PEP8ed optdepth.py.
+Renamed opticaldepth() function to optical_depth().
+
+*****
+
+Implemented atmosphere.transit_path() function to compute grazing path
+documented and tested.
+
+*****
+
+Refactored cutils.ediff() C extension to make allocations in house.
+Added test.
+
+*****
+
+Removed path() function from optdepth.py
+
+*****
+
+Renamed optdepth.py to optical_depth.py
+
+*****
+
+Updated pyrat.plot_spectrum() method, added **kwargs.
+Now the user can overwrite any of the default arguments with it.
+
+
+*****  Do 17. Sep 15:40:32 CEST 2020  *****
+
+Fixed issue when setting fpatchy from the pyrat.eval() method
+as a 1-element array instead of a float.  (was this a bug? was not
+even breaking the code).
+
+*****
+
+If fpatchy is not None and using the lecavelier Rayleigh model,
+put it's opacity into the cloud.ec array instead of rayleigh.ec
+such that it gets affected by the fpatchy factor.
+I don't really like this but it makes the code more compatible
+with the Madhu articles.
+
+*****
+
+Got fpatchy transmission calculation back to work.
+Added tests.
+
+*****
+
+Fixed misleading documentation cross-section/extinction-coefficient
+when printing alkali and rayleigh classes.
+
+*****
+
+Updated docs to describe fpatchy argument.
+
+*****
+
+Cleaned up src_c/_extcoeff.c.
+
+*****
+
+Refactored io.import_exomol_xs() into io.import_xs() to generalize it
+for different opacity sources.
+
+
+*****  Mi 30. Sep 15:54:03 CEST 2020  *****
+
+Sorted out imports of C extensions.
+
+*****
+
+Fixed typo in tests_io.py.
+
+*****
+
+Tweaked io.import_xs() function to only import h5py when necessary.
+
+
+*****  Fri Feb 5 10:34:30 CET 2021  *****
+
+Tweaked pyrat.eval() to set pyrat.ret.params a copy of the input
+params argument instead pointing to the same object.
+
+*****
+
+Changed the texname of patchy fraction from f to phi.
+
+*****
+
+Changed Rayleigh parameter names to lower-case ray.
+
+*****
+
+Fixed texname of TCEA gamma2 parameter.
+
+*****
+
+Changed molecules texnames from f_mol to X_mol.
+
+*****
+
+Some PEP8'ing and docstring fixes.
+
+*****
+
+Modified profile-width estimation in voigt.calc_voigt() to use
+Olivero (1977) approximation instead of max(Doppler,Lorentz).
+Updated tests accordingly.
+
+*****
+
+Adjusted transmission-depth relative error tolerance to 0.01%.
+
+*****
+
+PEP8'ed the setup.py file.
+
+*****
+
+Updated copyright text to 2021.
+
+*****
+
+Updated README.md file.
+
+*****
+
+Bumped version to 0.9.2.
+
+
+*****  Mi 31. Mär 13:35:51 CEST 2021  *****
+
+Updated copyright and other cosmetics.
+
+*****
+
+Some docs updates.
+
+*****
+
+PEP8ed pyratbay/pyrat/voigt.py
+
+*****
+
+PEP8ed parser.py
+
+
+*****  Do 1. Apr 09:25:49 CEST 2021  *****
+
+Added --root entry-point argument to display the pyratbay ROOT folder
+from the command line.
+Added test for command-line call.
+
+*****
+
+Added test for command-line --version calls.
+
+*****
+
+Removed vextent, vcutoff, and raygrid warnings when defaulting values
+
+*****
+
+PEP8ed pyratbay/pyrat/read_atm.py
+
+*****
+
+PEP8ed pyratbay/tools/tools.py
+Split test_Formatted_Write tests into individual tests.
+Implemented test_cia_hitran() test.
+
+
+*****
+
+Minor get-started docs update.
+
+*****
+
+Bumped version to 0.9.3.
+
+
+*****  Fr 9. Apr 16:43:12 CEST 2021  *****
+
+Renamed 'init' argument in driver.py's run() to 'run_step'
+(name was not the best).  Made it a string instead of bool.
+enabled 'dry' run in which the code only reads in the config file.
+
+*****
+
+Added transmission_rt, and emission_rt variables to constants module
+to specify the list of available radiative-transfer options for
+transmission and emission geometry.
+Also added rt_paths that combines transmission and emission options.
+
+*****
+
+Renamed 'path' variable to 'rt_path' to allow different
+radiative-transfer schemes for transit or emission geometry.
+Updated example config files.
+Updated tests.
+
+Renamed 'eclipse' rt_path option to 'emission' (more logic).
+
+Changed io.write_spectrum() 'eclipse' option to 'emission'.
+
+In plots.spectrum() changed path argument to rt_path, and enabled
+emission as input (in addition to transit and eclipse).
+
+In plots.contribution() changed path argument to rt_path.
+Allowed emission (instead of eclipse) and transit options.
+
+*****
+
+Minor tweak in README file.
+
+
+*****  Mo 12. Apr 14:12:12 CEST 2021  *****
+
+Updated docs.
+Updated transmission spectrum config file for tutorial.
+
+
+*****  Mi 14. Apr 10:33:42 CEST 2021  *****
+
+Bumped version to 1.0.0a1.
+
+
+*****  Fr 16. Apr 16:26:23 CEST 2021  *****
+
+Fixed bug in driver.py.
+
+*****
+
+Housekeeping.
+
+
+*****  Mi 5. Mai 12:57:25 CEST 2021  *****
+
+Some more housekeeping, get requirements up to date, clean docs.
+
+*****
+
+Bumped version to 1.0.0.  Ready for release.
+

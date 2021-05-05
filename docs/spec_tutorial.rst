@@ -32,24 +32,25 @@ Here is a sample configuration file to compute a transmission spectrum:
 Observing Geometry
 ------------------
 
-The ``path`` key determine the observing geometry.  The following
-table list the available observing geometries:
+The ``rt_path`` key determines the radiative-transfer scheme and
+observing geometry.  The following table list the available options:
 
-======= ===================== ===================== =========== 
-path    Observing geometry    Output spectrum       Units
-======= ===================== ===================== ===========
-transit Transmission geometry (|Rp|/|Rs|)\ :sup:`2` ---
-eclipse Emission geometry     |Fp|                  erg s\ :sup:`-1` cm\ :sup:`-2` cm
-======= ===================== ===================== ===========
+=========== ===================== ===================== ===========
+``rt_path`` Observing geometry    Output spectrum       Units
+=========== ===================== ===================== ===========
+transit     Transmission geometry (|Rp|/|Rs|)\ :sup:`2` ---
+emission    Emission geometry     |Fp|                  erg s\ :sup:`-1` cm\ :sup:`-2` cm
+=========== ===================== ===================== ===========
 
 For transmission geometry ``Pyrat Bay`` computes the transit depth,
 assuming parallel rays that travel from the star to the observer
 across the planetary atmosphere, which is composed of spherically
 symmetric shell layers.
 For emission geometry, ``Pyrat Bay`` computes the planetary flux
-emission spectrum, adopting the plane-parallel approximation, by
-integrating the intensity from the observed (day-side) hemisphere.
-For more details, see [Cubillos2019]_.
+emission spectrum, adopting the plane-parallel approximation,
+evaluating the emergent intensity at multiple angles with respect to
+the normal, and integrating the intensities over the planetary
+hemisphere.  For more details, see [CubillosBlecic2021]_.
 
 
 Atmospheric Model
@@ -60,7 +61,7 @@ compute the spectrum.  If the file pointed by ``atmfile`` does not
 exist, the codel will attempt to produce it (provided all necessary
 input parameters are set in the configuration file).  The atmospheric
 model can be produced with ``Pyrat Bay`` or be a custom input from the
-user (as long as it follows the right format).
+user (as long as it follows the right format, see the `API <file:///home/pcubillos/Dropbox/IWF/projects/2014_pyratbay/sphinxdoc-pyratbay/html/api.html#pyratbay.io.write_atm>`_).
 
 
 Spectrum Sampling
@@ -70,7 +71,8 @@ The ``wllow`` and ``wlhigh`` keys set the wavelength boundaries for
 the output spectrum (values must contain units; otherwise, set the
 units with the ``wlunits`` key).  Alternatively, the user can set the
 spectrum boundaries by wavenumber using the ``wnlow`` and ``wnhigh``
-keys (values do not contain units, they are always in |kayser|).
+keys (wavenumber keys are always in |kayser|; thus, the user should
+not provide units for them).
 
 By default, the code produces an output spectrum at
 constant-wavenumber sampling rate.  The ``wnstep`` sets the sampling
@@ -81,6 +83,8 @@ resolution to ensure not to undersample the line profiles.  The
 high-resolution sampling relative to ``wnstep`` (that is, the
 high-resolution sampling rate is ``wnstep/wnosamp``).  Typical values
 for the optical/IR are ``wnstep = 1.0`` and ``wnosamp = 2000``.
+
+.. https://en.wikipedia.org/wiki/Highly_composite_number
 
 
 Alternatively, the user can request a constant-resolution output by
@@ -106,10 +110,16 @@ the ranges and number of samples for the Doppler HWHM array (in
 set the ranges and number of samples for the Lorentz HWHM array (in
 |kayser| units).
 
-Finally, the ``vextent`` key sets the Voigt profiles extent from the
-center of the line, in units of HWHM.  Note that there are no known
-physical grounds to set a value for ``vextent``.  Typical (arbitrary)
-values found in the literature are on the order of ~100 HWHM.
+Finally, the ``vextent`` and ``vcutoff`` keys set the Voigt profiles
+extent from the center of the line.  ``vextent`` defines the maximum
+extent in units of HWHM (default is 100 HWHM), whereas ``vcutoff``
+defines the maximum extent in units of |kayser| (default is 25.0 |kayser|).
+For any given profile, the code truncates the line wing at the minimum
+value defined by ``vextent`` and ``vcutoff``.  A ``vcutoff`` value of
+zero results in no cutoff (``vextent`` still applies though).
+Note that there are no known physical grounds that set the extent of a
+line profile.  Typical (arbitrary) values found in the literature are
+on the order of ~100 HWHM and 25 |kayser|.
 
 The range of HWHM values can vary strongly with pressure, temperature,
 or wavelength, in particular the Lorentz HWHM as it is inversely
@@ -132,35 +142,6 @@ System Parameters
 -----------------
 
 The system parameters have multiple uses.
-
-Hydrostatic Equilibrium
-^^^^^^^^^^^^^^^^^^^^^^^
-
-If not given in the input atmospheric model, ``Pyrat Bay`` computes
-the altitude of the atmospheric layers following the
-hydrostatic-equilibrium (HE) approximation and ideal-gas law.
-
-The code can adopt two approximations to solve these equations,
-depending on the inputs in the configuration file.  If the user sets
-the ``gplanet`` key (planetary surface gravity) and does not set the
-``mplanet`` key (planetary mass), ``Pyrat Bay`` will solve the HE
-equation assuming a constant gravity.  If the user sets the planetary
-mass, ``Pyrat Bay`` will solve the HE equation considering the
-altitude dependence of gravity:
-
-.. math::
-   \frac{dr}{r^2} = -\frac{kT}{\mu G M_p} \frac{dp}{p}
-
-Finally, the ``rplanet`` and ``refpressure`` keys set a reference
-altitude--pressure pair.  These reference values are required to
-obtain a particular solution of the differential equation above.
-
-Note that the values for the altitude--pressure pair is an arbitrary
-choice. But a good practice is to select values close to the transit
-radius of the planet.  Although the pressure at the transit radius is
-a priori unknown for a give particular case ([Griffith2014]_), its
-value lies at around 0.1 bar (Cubillos et al., in prep.).
-
 
 Hill radius
 ^^^^^^^^^^^
@@ -204,7 +185,7 @@ Note that the ``tlifile`` opacities will be neglected if the
 configuration file sets input LBL opacities through the ``extfile``
 (see the rules in :ref:`opacity_io`).
 
-
+.. _cia_opacity:
 
 Cross-section Opacities
 -----------------------
@@ -220,7 +201,7 @@ as long as the files follow the right format (more on this later).
 The following table list the most-commonly used CIA opacity sources:
 
 ========== ============= ==================================
-Sources    Species       References      
+Sources    Species       References
 ========== ============= ==================================
 `HITRAN`_  Many          [Richard2012]_ [Karman2019]_
 `Borysow`_ |H2|-|H2| CIA [Borysow2001]_ [Borysow2002]_
@@ -237,7 +218,7 @@ For the **HITRAN** database, these commands re-format the downloaded CIA
 files and thins down the array (to reduce file size):
 
 .. code-block:: python
-    
+
     # Re-format HITRAN H2-H2 CIA file for Pyrat Bay:
     # (last two arguments tell to take every 2nd and 10th temperature and wavenumber samples):
     pbay -cs hitran H2-H2_2011.cia 2 10
@@ -245,15 +226,47 @@ files and thins down the array (to reduce file size):
     # And for HITRAN H2-He CIA (taking every 4th and 10th temp and wavenumber samples):
     pbay -cs hitran H2-He_2011.cia 4 10
 
-For the **Borysow** database, the code provides already-formatted files
-for |H2|-|H2| in the 60--7000K and 0.6--500 um range \[`here
+For the **Borysow** database, the code provides already-formatted
+files for |H2|-|H2| in the 60--7000K and 0.6--500 um range \[`here
 <https://github.com/pcubillos/pyratbay/blob/master/inputs/CIA/CIA_Borysow_H2H2_0060-7000K_0.6-500um.dat>`_\]
 (this file pieces together the tabulated |H2|-|H2| files described in
 the references above); and for |H2|-He in the 50--3500K and 0.3--100
 um range \[`here
 <https://github.com/pcubillos/pyratbay/blob/master/inputs/CIA/CIA_Borysow_H2He_0050-3500K_0.3-100um.dat>`_\]
 (this file was created using a re-implementation of the code described
-in the references above).
+in the references above).  The user can access these files via the
+``{ROOT}`` shortcut, as in the example below:
+
+.. code-block:: python
+
+    csfile = {ROOT}/inputs/CIA/CIA_Borysow_H2H2_0060-7000K_0.6-500um.dat
+
+
+Radius-profile Models
+---------------------
+
+The ``radmodel`` key sets the model to compute the atmospheric
+layers's altitude assuming hydrostatic equilibrium.  This table shows
+the currently available models:
+
+=====================  =========================
+Models (``radmodel``)  Comments
+=====================  =========================
+hydro_m                Hydrostatic equilibrium with :math:`g(r)=GM/r^2`
+hydro_g                Hydrostatic equilibrium with constant gravity
+[undefined]            Take radius profile from input atmospheric file if exists
+=====================  =========================
+
+See the :ref:`altitude_profile` section for details.
+The ``refpressure``, ``rplanet``, ``mplanet`` and ``gplanet`` keys set
+the planetary reference pressure and radius level (:math:`p_0` and
+:math:`R_0`), the planetary mass (:math:`M_p`) and planetary surface
+gravity (:math:`g`), respectively.
+
+.. Note:: Note that the user can supply its own atmospheric altitude
+          profile (through the input atmospheric model), possibly not
+          in hydrostatic equilibrium.  In this case, do not set the
+          ``radmodel`` key.
 
 
 Alkali Opacity Models
@@ -265,15 +278,16 @@ and potassium resonant lines, based on van der Waals and statistical
 theory.  The following table lists the available alkali model names:
 
 ====================  ========= =========================
-Models (``alkali``)   Species   References      
+Models (``alkali``)   Species   References
 ====================  ========= =========================
 sodium_vdw            Na        [Burrows2000]_
 potassium_vdw         K         [Burrows2000]_
 ====================  ========= =========================
 
 This implementation adopts the line parameters from the VALD database
-[Piskunov1995]_ and collisional-broadening half-width from [Iro2005]_. 
+[Piskunov1995]_ and collisional-broadening half-width from [Iro2005]_.
 
+.. _rayleigh_opacity:
 
 Rayleigh Opacity Models
 -----------------------
@@ -315,6 +329,7 @@ for the |H2| molecule.
           profile.  Obviously, this needs to be fixed at some point in
           the future for a more general use.
 
+.. _cloud_opacity:
 
 Cloud Opacity Models
 --------------------
@@ -353,11 +368,26 @@ atmosphere.
    models, simply by concatenating multiple models (and parameters)
    one after the other in the config file.
 
+Patchy Cloud/Hazes
+------------------
+
+Set the ``fpatchy`` argument to compute transmission spectra from a
+linear combination of a clear and cloudy/hazy spectra.  The
+cloudy/hazy component will include the opacity defined by the
+:ref:`cloud_opacity` and the ``lecavelier`` :ref:`rayleigh_opacity`.
+For example, for a 45% cloudy / 55% clear atmosphere, set:
+
+.. code-block:: python
+
+  # Patchy fraction, value between [0--1]:
+  fpatchy = 0.45
+
+
 Temperature Models
 ------------------
 
 The user can re-compute the temperature profile of the atmosphere by
-specifying the ``tmodel`` and ``tpars`` keys (see :ref:`pttutorial`).
+specifying the ``tmodel`` and ``tpars`` keys (see :ref:`temp_profile`).
 
 
 Abundances Scaling
@@ -371,8 +401,8 @@ models:
 ============ =========================== =====
 ``molmodel`` Scaling                     Description
 ============ =========================== =====
-vert         :math:`Q(p) = 10^X`         Set abundance to given value 
-scale        :math:`Q(p) = Q_0(p)\ 10^X` Scale input abundance by given value 
+vert         :math:`Q(p) = 10^X`         Set abundance to given value
+scale        :math:`Q(p) = Q_0(p)\ 10^X` Scale input abundance by given value
 ============ =========================== =====
 
 Here, the variable :math:`X` represents the value in the ``molpars``
@@ -400,7 +430,7 @@ preserve a total mixing fraction of 1.0 at each layer:
 
   molmodel = vert  vert  scale
   molfree  =  H2O    CO    TiO
-  molpars  = -3.0  -4.0   -1.0  
+  molpars  = -3.0  -4.0   -1.0
   bulk     = H2 He
 
 
@@ -480,7 +510,7 @@ according to the following table:
 ========  =====================
 <0        Errors
 0         Warnings
-1         Headers
+1         Headlines
 2         Details
 3         Debug
 ========  =====================
@@ -500,7 +530,7 @@ will take the default name for each ``runmode``:
 ===========  =====================
 tli          ``tlifile``
 atmosphere   ``atmfile``
-spectrum     ``outspec``
+spectrum     ``specfile``
 opacity      ``extfile``
 mcmc         ``mcmcfile``
 ===========  =====================
@@ -513,12 +543,11 @@ The ``maxdepth`` key sets an optical-depth cutoff to stop the
 radiative-transfer calculations. Since there is little transmitted
 intensity through a layer when the optical depth is greater than one,
 layers where :math:`\tau \gg 1` won't impact on the resulting
-spectrum.
+spectrum.  The default value of ``maxdepth = 10.0`` is thus an
+appropriate conservative value.
 
-..  Thus, setting ``maxdepth = 10.0``, for example, will prevent the
-    code to compute
+.. what about ethresh?
 
-.. ethresh
 
 Plane-parallel Hemispheric Integration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -563,18 +592,22 @@ this tutorial:
     pyrat = pb.run('spectrum_transmission.cfg')
 
     # Plot the resulting spectrum:
+    wl = 1.0 / (pyrat.spec.wn*pc.um)
+    depth = pyrat.spec.spectrum / pc.percent
+    wl_ticks = [0.3, 0.5, 0.7, 1.0, 2.0, 3.0, 5.0]
+
     plt.figure(-3)
     plt.clf()
     ax = plt.subplot(111)
-    plt.semilogx(1e4/pyrat.spec.wn, pyrat.spec.spectrum, "b-")
+    plt.semilogx(wl, depth, "-", color='orange', lw=1.0)
     ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
-    ax.set_xticks([0.3, 0.4, 0.6, 0.8, 1.0, 2.0, 3.0, 4.0, 5.0])
+    ax.set_xticks(wl_ticks)
     plt.xlim(0.3, 5.0)
-    plt.ylabel("Modulation  (Rp/Rs)^2")
-    plt.xlabel("Wavelength  (um)")
+    plt.ylabel("Transit depth (Rp/Rs)$^2$ (%)")
+    plt.xlabel("Wavelength (um)")
 
     # Or, alternatively:
-    ax = pyrat.plot_spectrum(gaussbin=2, logxticks=[0.3, 0.4, 0.6, 0.8, 1.0, 2.0, 3.0, 4.0, 5.0])
+    ax = pyrat.plot_spectrum()
 
 And the results should look like this:
 
@@ -585,7 +618,7 @@ And the results should look like this:
 
 .. note:: Note that although the user can define most input units,
           nearly all variables are stored in CGS units in the
-          '*pyrat*'.
+          '*pyrat*' object.
 
 The '*pyrat*' object is modular, and implements several convenience
 methods to plot and display its content, as in the following example:

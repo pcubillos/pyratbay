@@ -1,5 +1,5 @@
-# Copyright (c) 2016-2019 Patricio Cubillos and contributors.
-# Pyrat Bay is currently proprietary software (see LICENSE).
+# Copyright (c) 2021 Patricio Cubillos
+# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 import numpy as np
 
@@ -7,7 +7,7 @@ import numpy as np
 def init(pyrat):
     """Setup alkali models for pyrat's atmosphere."""
     if pyrat.alkali.models != []:
-        pyrat.log.msg("\nSetup Alkali opacity models.")
+        pyrat.log.head("\nSetup Alkali opacity models.")
     for alkali in pyrat.alkali.models:
         # Spectral sampling rate at alkali wn0:
         if pyrat.spec.resolution is None:
