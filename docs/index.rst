@@ -111,6 +111,7 @@ Please prefer to channel your feedback or inquiries through the Github issue tra
 .. _patricio.cubillos[at]oeaw.ac.at: patricio.cubillos@oeaw.ac.at
 .. _Space Research Institute (IWF): http://iwf.oeaw.ac.at/
 
+
 .. |Build Status| image:: https://travis-ci.com/pcubillos/pyratbay.svg?branch=master
    :target: https://travis-ci.com/pcubillos/pyratbay
 
@@ -127,6 +128,3 @@ Please prefer to channel your feedback or inquiries through the Github issue tra
 
 .. |License| image:: https://img.shields.io/github/license/pcubillos/pyratbay.svg?color=blue
     :target: https://pcubillos.github.io/pyratbay/license.html
-
-.. |DOI| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.0000000.svg
-    :target: https://doi.org/10.5281/zenodo.0000000

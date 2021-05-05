@@ -49,7 +49,7 @@ setup(
         'scipy>=0.13.3',
         'matplotlib>=1.3.1',
         'sympy>=0.7.6',
-        'mc3>=3.0.0',
+        'mc3>=3.0.7',
         ],
     tests_require = [
         'pytest>=3.9',
