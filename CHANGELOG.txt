@@ -6910,3 +6910,7 @@ Cleaned up LICENSE and CIA-docs.
 
 Fixed badges.
 
+*****
+
+Removed unnecessary filter files.
+
