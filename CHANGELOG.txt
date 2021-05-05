@@ -6918,3 +6918,7 @@ Removed unnecessary filter files.
 
 Sorted out MANIFEST.in file.
 
+****
+
+Added pyproject.toml file.
+
