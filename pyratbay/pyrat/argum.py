@@ -28,7 +28,7 @@ def check_spectrum(pyrat):
 
   # Check that input files exist:
   if pyrat.mol.molfile is None:
-      pyrat.mol.molfile = pc.ROOT + 'inputs/molecules.dat'
+      pyrat.mol.molfile = pc.ROOT + 'pyratbay/data/molecules.dat'
 
   with pt.log_error(log):
       pt.file_exists('atmfile', 'Atmospheric',    pyrat.atm.atmfile)

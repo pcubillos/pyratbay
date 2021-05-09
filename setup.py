@@ -37,6 +37,18 @@ extensions = [
 with open('README.md', 'r') as f:
     readme = f.read()
 
+package_data = {'pyratbay': [
+    'data/AsplundEtal2009.txt',
+    'data/atoms.dat',
+    'data/molecules.dat',
+    'data/isotopes.dat',
+    'data/TEA_gdata_defaults.txt',
+    'data/tips_2017.pkl',
+    'data/filters/*.dat',
+    'data/CIA/*.dat',
+    ]}
+
+
 setup(
     name = 'pyratbay',
     version = __version__,
@@ -44,6 +56,7 @@ setup(
     author_email = 'patricio.cubillos@oeaw.ac.at',
     url = 'https://github.com/pcubillos/pyratbay',
     packages = setuptools.find_packages(),
+    package_data = package_data,
     install_requires = [
         'numpy>=1.8.1',
         'scipy>=0.13.3',
@@ -55,7 +68,7 @@ setup(
         'pytest>=3.9',
         'scipy>=1.4.1',
         ],
-    license = 'GNU GPLv2',
+    license = 'GPLv2',
     description = 'Python Radiative Transfer in a Bayesian Framework.',
     long_description = readme,
     long_description_content_type = 'text/markdown',

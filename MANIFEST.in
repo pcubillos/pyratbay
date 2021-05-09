@@ -8,8 +8,6 @@ include docs/*
 include docs/figures/*
 include examples/demo/*
 include examples/tutorial/*
-include inputs/*
-include inputs/CIA/*
 include modules/TEA/ACKNOWLEDGING-TEA
 include modules/TEA/RR-LICENSE-0.3.txt
 include modules/TEA/lib/abundances.txt
@@ -17,6 +15,8 @@ include modules/TEA/lib/stoich.txt
 include modules/TEA/lib/TEA.cfg
 include modules/TEA/gdata/*.txt
 include modules/TEA/*/*.py
+include pyratbay/data/*
+include pyratbay/data/CIA/*
 include src_c/include/*
 include tests/pytest.ini
 include tests/*.py

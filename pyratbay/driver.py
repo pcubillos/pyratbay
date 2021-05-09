@@ -302,10 +302,12 @@ def check_atm(pyrat):
             log.error("Undefined elemental composition list (elements) for "
                      f"{atm.chemistry} chemistry model.")
 
-    pyrat.inputs.solar = pyrat.inputs.get_default('solar',
-        'Solar-abundance file', pc.ROOT+'inputs/AsplundEtal2009.txt')
-    pyrat.inputs.xsolar = pyrat.inputs.get_default('xsolar',
-        'Solar-metallicity scaling factor', 1.0, gt=0.0, wflag=True)
+    pyrat.inputs.solar = pyrat.inputs.get_default(
+        'solar', 'Solar-abundance file',
+        pc.ROOT+'pyratbay/data/AsplundEtal2009.txt')
+    pyrat.inputs.xsolar = pyrat.inputs.get_default(
+        'xsolar', 'Solar-metallicity scaling factor',
+        1.0, gt=0.0, wflag=True)
 
 
 def check_altitude(pyrat):

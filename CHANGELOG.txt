@@ -6922,3 +6922,12 @@ Sorted out MANIFEST.in file.
 
 Added pyproject.toml file.
 
+
+*****  Sun May 9 20:34:08 CEST 2021  *****
+
+Moved non-code data files from inputs to pyratbay/data
+(make them available for pip intalls)
+Udated setup.py (adding package_data argument) and MANIFEST.in files
+accordingly.
+Updated paths in config files and code accordingly.
+

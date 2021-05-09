@@ -909,7 +909,7 @@ def read_molecs(file):
     --------
     >>> import pyratbay.io as io
     >>> import pyratbay.constants as pc
-    >>> names, mass, diam = io.read_molecs(pc.ROOT+'inputs/molecules.dat')
+    >>> names, mass, diam = io.read_molecs(pc.ROOT+'pyratbay/data/molecules.dat')
     >>> names = list(names)
     >>> print(f"H2O: mass = {mass[names.index('H2O')]} g mol-1, "
     >>>       f"diameter = {diam[names.index('H2O')]} Angstrom.")
@@ -965,7 +965,7 @@ def read_isotopes(file):
     >>> import pyratbay.io as io
     >>> import pyratbay.constants as pc
     >>> ID, mol, hit_iso, exo_iso, ratio, mass = \
-    >>>     io.read_isotopes(pc.ROOT+'inputs/isotopes.dat')
+    >>>     io.read_isotopes(pc.ROOT+'pyratbay/data/isotopes.dat')
     >>> print("H2O isotopes:\n iso    iso    isotopic  mass"
     >>>                    "\n hitran exomol ratio     g/mol")
     >>> for i in range(len(mol)):
@@ -1118,7 +1118,7 @@ def import_tea(teafile, atmfile, req_species=None):
 
     # TEA--Pyrat molecules names dictionary:
     tea_to_pyrat = {}
-    for line in open(pc.ROOT+"inputs/TEA_gdata_defaults.txt", "r"):
+    for line in open(pc.ROOT+"pyratbay/data/TEA_gdata_defaults.txt", "r"):
         pyrat_name, tea_name = line.split()
         tea_to_pyrat[tea_name] = pyrat_name
 
