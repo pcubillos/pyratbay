@@ -59,7 +59,7 @@ def test_get_ec(tmp_path):
     cfg = make_config(tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         reset={'csfile': ROOT
-               + 'inputs/CIA/CIA_Borysow_H2H2_0060-7000K_0.6-500um.dat'})
+               + 'pyratbay/data/CIA/CIA_Borysow_H2H2_0060-7000K_0.6-500um.dat'})
     pyrat = pb.run(cfg)
     ec, label = pyrat.get_ec(50)
     assert label == ['H2O', 'CIA H2-H2', 'lecavelier', 'deck', 'Na']

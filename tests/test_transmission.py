@@ -185,7 +185,7 @@ def test_transmission_qmass_input():
     # This is the gist of it, prepare a qmass atmospheric file:
     atm = io.read_atm('inputs/atmosphere_uniform_test.atm')
     units, species, press, temp, q = atm
-    symbol, mass, diam = io.read_molecs(pc.ROOT+"inputs/molecules.dat")
+    symbol, mass, diam = io.read_molecs(pc.ROOT+"pyratbay/data/molecules.dat")
     mm = pa.mean_weight(q, species)
     qmass = qprofiles * molmass / mm
     io.write_atm(atmfile)

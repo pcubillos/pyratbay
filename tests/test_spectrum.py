@@ -180,7 +180,8 @@ def test_resample_outbounds():
 def test_band_integrate_single():
     wn = np.arange(1500, 5000.1, 1.0)
     signal = np.ones_like(wn)
-    wn1, irac1 = io.read_spectrum(pc.ROOT+"inputs/filters/spitzer_irac1_sa.dat")
+    wn1, irac1 = io.read_spectrum(
+        pc.ROOT+"pyratbay/data/filters/spitzer_irac1_sa.dat")
     bandflux = ps.band_integrate(signal, wn, irac1, wn1)
     np.testing.assert_allclose(bandflux, [1.0])
 
@@ -188,8 +189,10 @@ def test_band_integrate_single():
 def test_band_integrate_multiple():
     wn = np.arange(1500, 5000.1, 1.0)
     signal = np.ones_like(wn)
-    wn1, irac1 = io.read_spectrum(pc.ROOT+"inputs/filters/spitzer_irac1_sa.dat")
-    wn2, irac2 = io.read_spectrum(pc.ROOT+"inputs/filters/spitzer_irac2_sa.dat")
+    wn1, irac1 = io.read_spectrum(
+        pc.ROOT+"pyratbay/data/filters/spitzer_irac1_sa.dat")
+    wn2, irac2 = io.read_spectrum(
+        pc.ROOT+"pyratbay/data/filters/spitzer_irac2_sa.dat")
     bandflux = ps.band_integrate(signal, wn, [irac1, irac2], [wn1, wn2])
     np.testing.assert_allclose(bandflux, [1.0, 1.0])
 
@@ -197,8 +200,10 @@ def test_band_integrate_multiple():
 def test_band_integrate():
     wn = np.arange(1500, 5000.1, 1.0)
     sflux = ps.bbflux(wn, 1800.0)
-    wn1, irac1 = io.read_spectrum(pc.ROOT+"inputs/filters/spitzer_irac1_sa.dat")
-    wn2, irac2 = io.read_spectrum(pc.ROOT+"inputs/filters/spitzer_irac2_sa.dat")
+    wn1, irac1 = io.read_spectrum(
+        pc.ROOT+"pyratbay/data/filters/spitzer_irac1_sa.dat")
+    wn2, irac2 = io.read_spectrum(
+        pc.ROOT+"pyratbay/data/filters/spitzer_irac2_sa.dat")
     bandfluxes = ps.band_integrate(sflux, wn, [irac1,irac2], [wn1, wn2])
     np.testing.assert_allclose(bandfluxes, [98527.148526, 84171.417692])
 
