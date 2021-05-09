@@ -6940,3 +6940,8 @@ Updated tests according to new data file path.
 
 Updated docs.
 
+*****
+
+Moved TEA submodule from modules/TEA to pyratbay/TEA
+(pip compatibility)
+

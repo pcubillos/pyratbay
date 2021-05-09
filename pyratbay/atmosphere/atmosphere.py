@@ -316,7 +316,7 @@ def abundance(pressure, temperature, species, elements=None,
         pressure/pt.u(punits), temperature, atomic_file, elements, specs, patm)
     # Run TEA:
     pt.make_tea(abun_file=atomic_file, verb=verb, ncpu=ncpu)
-    proc = subprocess.Popen([pc.ROOT+"modules/TEA/tea/runatm.py", patm, "TEA"])
+    proc = subprocess.Popen([pc.ROOT+"pyratbay/TEA/tea/runatm.py", patm, "TEA"])
     proc.communicate()
 
     # Reformat the TEA output into the pyrat format:
