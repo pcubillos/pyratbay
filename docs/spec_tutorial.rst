@@ -232,18 +232,18 @@ files and thins down the array (to reduce file size):
 
 For the **Borysow** database, the code provides already-formatted
 files for |H2|-|H2| in the 60--7000K and 0.6--500 um range \[`here
-<https://github.com/pcubillos/pyratbay/blob/master/inputs/CIA/CIA_Borysow_H2H2_0060-7000K_0.6-500um.dat>`_\]
+<https://github.com/pcubillos/pyratbay/blob/master/pyratbay/data/CIA/CIA_Borysow_H2H2_0060-7000K_0.6-500um.dat>`_\]
 (this file pieces together the tabulated |H2|-|H2| files described in
 the references above); and for |H2|-He in the 50--3500K and 0.3--100
 um range \[`here
-<https://github.com/pcubillos/pyratbay/blob/master/inputs/CIA/CIA_Borysow_H2He_0050-3500K_0.3-100um.dat>`_\]
+<https://github.com/pcubillos/pyratbay/blob/master/pyratbay/data/CIA/CIA_Borysow_H2He_0050-3500K_0.3-100um.dat>`_\]
 (this file was created using a re-implementation of the code described
 in the references above).  The user can access these files via the
 ``{ROOT}`` shortcut, as in the example below:
 
 .. code-block:: python
 
-    csfile = {ROOT}/inputs/CIA/CIA_Borysow_H2H2_0060-7000K_0.6-500um.dat
+    csfile = {ROOT}/pyratbay/data/CIA/CIA_Borysow_H2H2_0060-7000K_0.6-500um.dat
 
 
 Radius-profile Models
