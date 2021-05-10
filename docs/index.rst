@@ -71,8 +71,8 @@ Bayesian (MCMC) posterior sampling of atmospheric parameters:
 Contributors
 ============
 
-- `Patricio Cubillos`_ (IWF) `patricio.cubillos[at]oeaw.ac.at`_
-- Jasmina Blecic (NYU Abu Dhabi)
+- `Patricio Cubillos`_ (IWF, Austra) `patricio.cubillos[at]oeaw.ac.at`_
+- Jasmina Blecic (NYU, Abu Dhabi)
 
 
 Documentation

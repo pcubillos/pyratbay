@@ -19,7 +19,8 @@ Bayesian (MCMC) framework.
 Sample Configuration File
 -------------------------
 
-Here is an example of an opacity-table configuration file:
+Here is an example of an opacity-table configuration file (`mcmc_eclipse.cfg
+<https://github.com/pcubillos/pyratbay/blob/master/examples/tutorial/mcmc_eclipse.cfg>`_):
 
 .. literalinclude:: ../examples/tutorial/mcmc_eclipse.cfg
 
@@ -162,14 +163,29 @@ Examples
 --------
 
 Since this is an eclipse retrieval, the code requires a stellar
-spectrum model to compute the planet-to-star flux ratios:
+spectrum model to compute the planet-to-star flux ratios.  You will
+also to download the configuration file shown above and the observing
+filter files, e.g., with these shell commands:
 
 .. code-block:: shell
 
    # Download Kurucz stellar model:
    wget http://kurucz.harvard.edu/grids/gridp00odfnew/fp00k2odfnew.pck
 
-Also, first be sure to create the opacity file as described in
+   tutorial_path=https://raw.githubusercontent.com/pcubillos/pyratbay/master/examples/tutorial
+   # Download the configuration file:
+   wget $tutorial_path/mcmc_eclipse.cfg
+
+   # Download the filter files:
+   for i in {0..9}
+   do
+   wget $tutorial_path/filters/tutorial_band0${i}.dat
+   done
+   mkdir filters/
+   mv filters/tutorial_band0?.dat filters/
+
+
+Also, be sure to have create the opacity file as described in
 :ref:`opactutorial`.
 
 

@@ -145,8 +145,11 @@ by setting the ``wllow`` and ``wlhigh`` keys.  The values for these
 keys must specify the units, along with the numeric value (see
 :ref:`units` for a list of available units).
 
-Output Files
-------------
+
+.. _tli_tutorial_example:
+
+TLI Example
+-----------
 
 The ``tlifile`` key (a required key) must specify the name of the
 output TLI file.  The output TLI file will include only the lines
@@ -159,7 +162,14 @@ name, changing the extension to '`.log`'.
 
 
 .. note:: Before running the tli tutorial, download the HITRAN |H2O|
-          file as in the :ref:`qexample`.
+          file as in the :ref:`qexample`, and download the
+          configuration file shown above, for example, with these shell
+          commands:
+
+          .. code-block:: shell
+
+              tutorial_path=https://raw.githubusercontent.com/pcubillos/pyratbay/master/examples/tutorial
+              wget $tutorial_path/tli_hitran_H2O.cfg
 
 To create the TLI file with this :ref:`sample_tli_cfg`, run from the
 command line:

@@ -6949,3 +6949,9 @@ Moved TEA submodule from modules/TEA to pyratbay/TEA
 *****  Mo 10. Mai 10:06:18 CEST 2021  *****
 
 Updated setup.py to include TEA files.
+
+*****
+
+Updated docs.
+Added tutorial filter files for MCMC example.
+

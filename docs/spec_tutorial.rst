@@ -25,7 +25,8 @@ given atmospheric model.
 Sample Configuration File
 -------------------------
 
-Here is a sample configuration file to compute a transmission spectrum:
+Here is a sample configuration file to compute a transmission spectrum (`spectrum_transmission.cfg
+<https://github.com/pcubillos/pyratbay/blob/master/examples/tutorial/spectrum_transmission.cfg>`_):
 
 .. literalinclude:: ../examples/tutorial/spectrum_transmission.cfg
 
@@ -579,6 +580,18 @@ be ignored).
 Examples
 --------
 
+.. note:: Before running this example, make sure that you have
+   generated the TLI file from the :ref:`tli_tutorial_example`,
+   generated the atmospheric profiles from the
+   :ref:`abundance_tutorial_example`, and download the configuration
+   file shown above, e.g., with these shell commands:
+
+   .. code-block:: shell
+
+       tutorial_path=https://raw.githubusercontent.com/pcubillos/pyratbay/master/examples/tutorial
+       wget $tutorial_path/spectrum_transmission.cfg
+
+
 In an interactive run, a spectrum run returns a '*pyrat*' object that
 contains all input, intermediate, and output variables used to compute
 the spectrum.  The following Python script computes and plots a
@@ -600,7 +613,7 @@ this tutorial:
     depth = pyrat.spec.spectrum / pc.percent
     wl_ticks = [0.3, 0.5, 0.7, 1.0, 2.0, 3.0, 5.0]
 
-    plt.figure(-3)
+    plt.figure(-3, (7,4))
     plt.clf()
     ax = plt.subplot(111)
     plt.semilogx(wl, depth, "-", color='orange', lw=1.0)
