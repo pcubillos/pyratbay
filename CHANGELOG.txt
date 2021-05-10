@@ -6964,3 +6964,8 @@ Fixed minor issue in README.md file.
 *****
 
 Updated mcmc_eclipse.cfg tutorial file.
+
+*****
+
+Another tiny tweak to the README.md file.
+
