@@ -46,6 +46,11 @@ package_data = {'pyratbay': [
     'data/tips_2017.pkl',
     'data/filters/*.dat',
     'data/CIA/*.dat',
+    'TEA/lib/abundances.txt',
+    'TEA/lib/stoich.txt',
+    'TEA/lib/TEA.cfg',
+    'TEA/lib/gdata/*.txt',
+    'TEA/*/*.py',
     ]}
 
 

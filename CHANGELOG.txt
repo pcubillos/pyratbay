@@ -6945,3 +6945,7 @@ Updated docs.
 Moved TEA submodule from modules/TEA to pyratbay/TEA
 (pip compatibility)
 
+
+*****  Mo 10. Mai 10:06:18 CEST 2021  *****
+
+Updated setup.py to include TEA files.
