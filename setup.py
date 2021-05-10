@@ -34,8 +34,60 @@ extensions = [
     for cfile in cfiles
     ]
 
-with open('README.md', 'r') as f:
-    readme = f.read()
+long_description = """
+.. image:: https://raw.githubusercontent.com/pcubillos/pyratbay/master/docs/figures/pyrat_logo.png
+   :width: 50%
+
+|Build Status|  |docs|  |PyPI|  |conda|  |License|
+
+``Pyrat Bay``: Python Radiative Transfer in a Bayesian framework
+
+
+Install as:
+
+.. code-block:: shell
+
+    pip install pyratbay
+
+Or:
+
+.. code-block:: shell
+
+    conda install -c conda-forge pyratbay
+
+Docs at: https://github.com/pcubillos/pyratbay
+
+Cite as:
+
+.. code-block:: bibtex
+
+  @ARTICLE{CubillosBlecic2021mnrasPyratBay,
+         author = {{Cubillos}, Patricio E. and {Blecic}, Jasmina},
+          title = "The {Pyrat Bay} Framework for Exoplanet Atmospheric Modeling: A Population Study of Hubble/WFC3 Transmission Spectra",
+           year = 2021,
+        journal = {\mnras},
+            doi = {10.1093/mnras/stx0000},
+         adsurl = {https://ui.adsabs.harvard.edu/abs/2021MNRAS.000.0000C},
+        adsnote = {Provided by the SAO/NASA Astrophysics Data System},
+  }
+.. |Build Status| image:: https://travis-ci.com/pcubillos/pyratbay.svg?branch=master
+   :target: https://travis-ci.com/pcubillos/pyratbay
+
+.. |docs| image:: https://readthedocs.org/projects/pyratbay/badge/?version=latest
+    :target: https://pyratbay.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
+
+.. |PyPI| image:: https://img.shields.io/pypi/v/pyratbay.svg
+    :target:      https://pypi.org/project/pyratbay/
+    :alt: Latest Version
+
+.. |conda| image:: https://img.shields.io/conda/vn/conda-forge/pyratbay.svg
+    :target: https://anaconda.org/conda-forge/pyratbay
+
+.. |License| image:: https://img.shields.io/github/license/pcubillos/pyratbay.svg?color=blue
+    :target: https://pyratbay.readthedocs.io/en/latest/license.html
+"""
+
 
 package_data = {'pyratbay': [
     'data/AsplundEtal2009.txt',
@@ -75,8 +127,8 @@ setup(
         ],
     license = 'GPLv2',
     description = 'Python Radiative Transfer in a Bayesian Framework.',
-    long_description = readme,
-    long_description_content_type = 'text/markdown',
+    long_description = long_description,
+    long_description_content_type = 'text/x-rst',
     include_dirs = inc,
     entry_points = {'console_scripts': ['pbay = pyratbay.__main__:main']},
     ext_modules = extensions,

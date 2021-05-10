@@ -6955,3 +6955,9 @@ Updated setup.py to include TEA files.
 Updated docs.
 Added tutorial filter files for MCMC example.
 
+*****
+
+Separated setup.py's long_description from README content
+because it needs to be rst instead of markdown to work properly.
+Fixed minor issue in README.md file.
+

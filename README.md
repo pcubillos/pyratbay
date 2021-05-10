@@ -1,6 +1,6 @@
 # Pyrat Bay: Python Radiative Transfer in a Bayesian framework
 
-# <img alt="bibmanager" src="https://github.com/pcubillos/pyratbay/blob/master/docs/figures/pyrat_logo.png" width="170">
+<img alt="pyratbay" src="https://github.com/pcubillos/pyratbay/blob/master/docs/figures/pyrat_logo.png" width="170">
 > A Forward-modeling and retrieval code to model exoplanet atmospheres and spectra.
 
 [![Build Status](https://travis-ci.com/pcubillos/pyratbay.svg?branch=master)](https://travis-ci.com/pcubillos/pyratbay)
