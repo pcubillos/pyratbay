@@ -6961,3 +6961,6 @@ Separated setup.py's long_description from README content
 because it needs to be rst instead of markdown to work properly.
 Fixed minor issue in README.md file.
 
+*****
+
+Updated mcmc_eclipse.cfg tutorial file.
