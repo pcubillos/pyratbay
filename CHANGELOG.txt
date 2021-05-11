@@ -6969,3 +6969,7 @@ Updated mcmc_eclipse.cfg tutorial file.
 
 Another tiny tweak to the README.md file.
 
+*****
+
+Updated API docs.
+

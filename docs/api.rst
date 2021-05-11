@@ -41,7 +41,7 @@ ________
     >>> # Then, setup internal varible for spectra evaluation:
     >>> pyrat.setup_spectrum()
 
-.. py:function:: run(cfile, init=False, no_logfile=False)
+.. py:function:: run(cfile, run_step='run', no_logfile=False)
 .. code-block:: pycon
 
     Pyrat Bay initialization driver.
@@ -50,9 +50,10 @@ ________
     ----------
     cfile: String
         A Pyrat Bay configuration file.
-    init: Bool
-        If True, only initialize a Pyrat object (no spectra/mcmc calculation).
-        This is useful when computing spectra interactively.
+    run_step: String
+        If 'dry': only read the configuration file into a Pyrat object
+        If 'init': initialize a Pyrat object (but no spectra calculation).
+        If 'run': run all the way (default).
     no_logfile: Bool
         If True, enforce not to write outputs to a log file
         (e.g., to prevent overwritting log of a previous run).
@@ -272,7 +273,7 @@ __________________
 .. py:data:: C1
 .. code-block:: pycon
 
-  1129583488326.6306
+  1129583487711.6638
 
 .. py:data:: C2
 .. code-block:: pycon
@@ -307,7 +308,7 @@ __________________
 .. py:data:: ROOT
 .. code-block:: pycon
 
-  ROOT = os.path.realpath(os.path.dirname(__file__) + '/../..') + '/'
+  os.path.realpath(os.path.dirname(__file__) + '/../..') + '/'
 
 
 .. py:data:: dbases
@@ -320,6 +321,21 @@ __________________
 
   ['tli', 'atmosphere', 'opacity', 'spectrum', 'mcmc']
 
+.. py:data:: transmission_rt
+.. code-block:: pycon
+
+  ['transit']
+
+.. py:data:: emission_rt
+.. code-block:: pycon
+
+  ['emission']
+
+.. py:data:: rt_paths
+.. code-block:: pycon
+
+  ['transit', 'emission']
+
 .. py:data:: retflags
 .. code-block:: pycon
 
@@ -329,6 +345,11 @@ __________________
 .. code-block:: pycon
 
   ['isothermal', 'tcea', 'madhu']
+
+.. py:data:: chemmodels
+.. code-block:: pycon
+
+  ['uniform', 'tea']
 
 .. py:data:: radmodels
 .. code-block:: pycon
@@ -512,7 +533,7 @@ ___________
 .. py:function:: write_spectrum(wl, spectrum, filename, type, wlunits='um')
 .. code-block:: pycon
 
-    Write a Pyrat spectrum to file.
+    Write a spectrum to file.
 
     Parameters
     ----------
@@ -525,9 +546,9 @@ ___________
         Output file name.
     type: String
         Data type:
-        'transit' for transmission,
-        'eclipse' for emission,
-        'filter' for a instrumental filter transmission.
+        - 'transit' for transmission
+        - 'emission' for emission
+        - 'filter' for a instrumental filter transmission
     wlunits: String
         Output units for wavelength.
 
@@ -866,7 +887,7 @@ ___________
     --------
     >>> import pyratbay.io as io
     >>> import pyratbay.constants as pc
-    >>> names, mass, diam = io.read_molecs(pc.ROOT+'inputs/molecules.dat')
+    >>> names, mass, diam = io.read_molecs(pc.ROOT+'pyratbay/data/molecules.dat')
     >>> names = list(names)
     >>> print(f"H2O: mass = {mass[names.index('H2O')]} g mol-1, "
     >>>       f"diameter = {diam[names.index('H2O')]} Angstrom.")
@@ -903,7 +924,7 @@ ___________
     >>> import pyratbay.io as io
     >>> import pyratbay.constants as pc
     >>> ID, mol, hit_iso, exo_iso, ratio, mass = \
-    >>>     io.read_isotopes(pc.ROOT+'inputs/isotopes.dat')
+    >>>     io.read_isotopes(pc.ROOT+'pyratbay/data/isotopes.dat')
     >>> print("H2O isotopes:\n iso    iso    isotopic  mass"
     >>>                    "\n hitran exomol ratio     g/mol")
     >>> for i in range(len(mol)):
@@ -923,16 +944,17 @@ ___________
     282    000    0.000e+00 22.0000
     272    000    0.000e+00 21.0000
 
-.. py:function:: import_exomol_xs(filename, read_all=True, ofile=None)
+.. py:function:: import_xs(filename, source, read_all=True, ofile=None)
 .. code-block:: pycon
 
-    Read an ExoMol opacity cross-section file, as formated as in
-    Chubb et al. (2020).
+    Read a cross-section opacity file from an external source.
 
     Parameters
     ----------
     filename: String
         The opacity pickle file to read.
+    source: String
+        The cross-section source: exomol or taurex (see note below).
     read_all: Bool
         If True, extract all contents in the file: cross-section,
         pressure, temperature, and wavenumber.
@@ -955,11 +977,21 @@ ___________
     species: String
         The species name.
 
+    Notes
+    -----
+    - exomol cross sections (Chubb et al. 2020, AA) can be found here:
+    http://www.exomol.com/data/data-types/opacity/
+    - taurex cross sections (Al-Refaie et al. 2019) can be found here:
+    https://taurex3-public.readthedocs.io/en/latest/user/taurex/quickstart.html
+
     Examples
     --------
+    >>> # For this example, you'll need to have/download the following
+    >>> # file into the current folder:
+    >>> # http://www.exomol.com/db/H2O/1H2-16O/POKAZATEL/1H2-16O__POKAZATEL__R15000_0.3-50mu.xsec.TauREx.h5
     >>> import pyratbay.io as io
-    >>> filename = 'H2O_pokazatel.R10000.TauREx.pickle'
-    >>> xs_H2O, press, temp, wn, species = io.read_exomol_xs(filename)
+    >>> filename = '1H2-16O__POKAZATEL__R15000_0.3-50mu.xsec.TauREx.h5'
+    >>> xs_H2O, press, temp, wn, species = io.import_xs(filename, 'exomol')
 
 .. py:function:: import_tea(teafile, atmfile, req_species=None)
 .. code-block:: pycon
@@ -1454,7 +1486,7 @@ ______________
         Default precision for floating point values (as in precision
         in np.printoptions).
 
-.. py:function:: make_tea(maxiter=100, savefiles=False, times=False, location_TEA=None, abun_file=None, location_out='./TEA', verb=1, ncpu=1)
+.. py:function:: make_tea(maxiter=200, savefiles=False, times=False, location_TEA=None, abun_file=None, location_out='./TEA', verb=1, ncpu=1)
 .. code-block:: pycon
 
     Make a TEA configuration file.
@@ -1774,421 +1806,16 @@ ______________
     par3: 'a\n b' -> ['a', 'b']
 
 
-pyratbay.part_func
-__________________
+pyratbay.opacity
+________________
 
 
-.. py:module:: pyratbay.part_func
+.. py:module:: pyratbay.opacity
 
-.. py:function:: get_tips_molname(molID)
+.. py:function:: make_tli(dblist, pflist, dbtype, tlifile, wllow, wlhigh, wlunits, log)
 .. code-block:: pycon
 
-    Get the TIPS molecule name for given molecule ID.
-
-    Parameters
-    ----------
-    molID: Integer
-        HITRAN molecule ID. See for example: https://hitran.org/lbl/
-
-    Returns
-    -------
-    molname: String
-        Name of molecule.
-
-    Examples
-    --------
-    >>> import pyratbay.part_func as pf
-    >>> print(pf.get_tips_molname(1), pf.get_tips_molname(6))
-    H2O CH4
-
-.. py:function:: tips(molecule, isotopes=None, outfile=None, db_type='as_tips')
-.. code-block:: pycon
-
-    Extract TIPS 2017 partition-function values for given molecule.
-    If requested, write the partition-function into a file for use
-    with Pyrat Bay.
-    Reference: Gamache et al. (2017), JQSRT, 203, 70.
-
-    Parameters
-    ----------
-    molecule: String
-        Name of the molecule.
-    isotopes: String or list of strings
-        If not None, only extract the requested isotopes.
-    outfile: String
-        If not None, save output to file.
-        If outfile == 'default', save output to file named as
-        PF_tips_molecule.dat
-    db_type: String
-        If db_type == 'as_exomol', return isotopic names following
-        the exomol notation.
-
-    Returns
-    -------
-    pf: 2D float ndarray
-        TIPS partition function for input molecule.
-    isotopes: 1D string list
-        List of isotopes.
-    temp: 1D float ndarray
-        Partition-function temperature samples (K).
-
-    Examples
-    --------
-    >>> import pyratbay.part_func as pf
-    >>> pf_data, isotopes, temp = pf.tips('H2O', outfile='default')
-
-    Written partition-function file:
-      'PF_tips_H2O.dat'
-    for molecule H2O, with isotopes ['161', '181', '171', '162', '182', '172', '262', '282', '272'],
-    and temperature range 1--5000 K.
-
-.. py:function:: exomol(pf_files, outfile=None)
-.. code-block:: pycon
-
-    Extract ExoMol partition-function values from input files.
-    If requested, write the partition-function into a file for use
-    with Pyrat Bay.
-
-    Parameters
-    ----------
-    pf_files: String or List of strings
-        Input Exomol partition-function filenames.  If there are
-        multiple isotopes, all of them must correspond to the same
-        molecule.
-    outfile: String
-        If not None, save output to file.
-        If outfile == 'default', save output to file named as
-        PF_exomol_molecule.dat
-
-    Returns
-    -------
-    pf: 2D float ndarray
-        TIPS partition function for input molecule.
-    isotopes: 1D string list
-        List of isotopes.
-    temp: 1D float ndarray
-        Partition-function temperature samples (K).
-
-    Examples
-    --------
-    >>> # First, download ExoMol data to current dictory, e.g.:
-    >>> # wget http://www.exomol.com/db/NH3/14N-1H3/BYTe/14N-1H3__BYTe.pf
-    >>> # wget http://www.exomol.com/db/NH3/15N-1H3/BYTe-15/15N-1H3__BYTe-15.pf
-    >>> import pyratbay.part_func as pf
-    >>> # A single file:
-    >>> pf_data, isotopes, temp = pf.exomol('14N-1H3__BYTe.pf',
-    >>>     outfile='default')
-    Written partition-function file:
-      'PF_exomol_NH3.dat'
-    for molecule NH3, with isotopes ['4111'],
-    and temperature range 1--1600 K.
-
-    >>> # Multiple files (isotopes) for a molecule:
-    >>> pf_data, isotopes, temp = pf.exomol(
-    >>>     ['14N-1H3__BYTe.pf', '15N-1H3__BYTe-15.pf'], outfile='default')
-
-    ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-      Warning:
-        Length of PF files do not match.  Trimming to shorter size.
-    ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-    Written partition-function file:
-      'PF_exomol_NH3.dat'
-    for molecule NH3, with isotopes ['4111', '5111'],
-    and temperature range 1--1600 K.
-
-.. py:function:: kurucz(pf_file, outfile=None, type_flag='as_exomol')
-.. code-block:: pycon
-
-    Extract Kurucz partition-function values from input file.
-    If requested, write the partition-function into a file for use
-    with Pyrat Bay.
-
-    Parameters
-    ----------
-    pf_file: String
-        Input partition-function from Kurucz webpage.  Currently only H2O
-        and TiO are available (probably there's no need for any other support).
-        Files can be downloaded from these links:
-          http://kurucz.harvard.edu/molecules/h2o/h2opartfn.dat
-          http://kurucz.harvard.edu/molecules/tio/tiopart.dat
-    outfile: String
-        If not None, save output to file.
-        If outfile == 'default', save output to file named as
-        PF_kurucz_molecule.dat
-
-    Returns
-    -------
-    pf: 2D float ndarray
-        TIPS partition function for input molecule.
-    isotopes: 1D string list
-        List of isotopes.
-    temp: 1D float ndarray
-        Partition-function temperature samples (K).
-
-    Examples
-    --------
-    >>> # First, download kurucz data to current dictory, e.g.:
-    >>> # wget http://kurucz.harvard.edu/molecules/h2o/h2opartfn.dat
-    >>> # wget http://kurucz.harvard.edu/molecules/tio/tiopart.dat
-
-    >>> import pyratbay.part_func as pf
-    >>> pf_data, isotopes, temp = pf.kurucz('h2opartfn.dat', outfile='default')
-
-    Written partition-function file:
-      'PF_kurucz_H2O.dat'
-    for molecule H2O, with isotopes ['1H1H16O', '1H1H17O', '1H1H18O', '1H2H16O'],
-    and temperature range 10--6000 K.
-
-    >>> pf_data, isotopes, temp = pf.kurucz('tiopart.dat', outfile='default')
-
-    Written partition-function file:
-      'PF_kurucz_TiO.dat'
-    for molecule TiO, with isotopes ['66', '76', '86', '96', '06'],
-    and temperature range 10--6000 K.
-
-
-pyratbay.broadening
-___________________
-
-
-.. py:module:: pyratbay.broadening
-
-.. py:class:: Lorentz(x0=0.0, hwhm=1.0, scale=1.0)
-
-.. code-block:: pycon
-
-    1D Lorentz profile model.
-
-    Parameters
-    ----------
-    x0: Float
-       Profile center location.
-    hwhm: Float
-       Profile's half-width at half maximum.
-    scale: Float
-       Scale of the profile (scale=1 returns a profile with integral=1.0).
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> import matplotlib.pyplot as plt
-    >>> import pyratbay.broadening as b
-    >>> lor = b.Lorentz(x0=0.0, hwhm=2.5, scale=1.0)
-    >>> # Half-width at half maximum is ~2.5:
-    >>> x = np.linspace(-10.0, 10.0, 100001)
-    >>> print(0.5 * np.ptp(x[lor(x)>0.5*np.amax(lor(x))]))
-    2.4998
-    >>> # Integral is ~ 1.0:
-    >>> x = np.linspace(-5000.0, 5000.0, 100001)
-    >>> print(np.trapz(lor(x), x))
-    0.999681690140321
-    >>> # Take a look at a Lorenzt profile:
-    >>> x = linspace(-10, 10, 101)
-    >>> plt.plot(x, lor(x))
-
-  .. code-block:: pycon
-
-    Initialize self.  See help(type(self)) for accurate signature.
-
-.. py:class:: Gauss(x0=0.0, hwhm=1.0, scale=1.0)
-
-.. code-block:: pycon
-
-    1D Gaussian profile model.
-
-    Parameters
-    ----------
-    x0: Float
-       Profile center location.
-    hwhm: Float
-       Profile's half-width at half maximum.
-    scale: Float
-       Scale of the profile (scale=1 returns a profile with integral=1.0).
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> import matplotlib.pyplot as plt
-    >>> import pyratbay.broadening as b
-    >>> gauss = b.Gauss(x0=0.0, hwhm=2.5, scale=1.0)
-    >>> # Half-width at half maximum is ~2.5:
-    >>> x = np.linspace(-10.0, 10.0, 100001)
-    >>> print(0.5 * np.ptp(x[gauss(x)>0.5*np.amax(gauss(x))]))
-    2.4998
-    >>> # Integral is ~ 1.0:
-    >>> x = np.linspace(-5000.0, 5000.0, 100001)
-    >>> print(np.trapz(gauss(x), x))
-    1.0
-    >>> # Take a look at a Lorenzt profile:
-    >>> x = linspace(-10, 10, 101)
-    >>> plt.plot(x, gauss(x))
-
-  .. code-block:: pycon
-
-    Initialize self.  See help(type(self)) for accurate signature.
-
-.. py:class:: Voigt(x0=0.0, hwhmL=1.0, hwhmG=1.0, scale=1.0)
-
-.. code-block:: pycon
-
-    1D Voigt profile model.
-
-    Parameters
-    ----------
-    x0: Float
-       Line center location.
-    hwhmL: Float
-       Half-width at half maximum of the Lorentz distribution.
-    hwhmG: Float
-       Half-width at half maximum of the Gaussian distribution.
-    scale: Float
-       Scale of the profile (scale=1 returns a profile with integral=1.0).
-
-    Example
-    -------
-    >>> import numpy as np
-    >>> import matplotlib.pyplot as plt
-    >>> import pyratbay.broadening as b
-    >>> Nl = 5
-    >>> Nw = 10.0
-    >>> hG = 1.0
-    >>> HL = np.logspace(-2, 2, Nl)
-    >>> l = b.Lorentz(x0=0.0)
-    >>> d = b.Gauss  (x0=0.0, hwhm=hG)
-    >>> v = b.Voigt  (x0=0.0, hwhmG=hG)
-
-    >>> plt.figure(11, (6,6))
-    >>> plt.clf()
-    >>> plt.subplots_adjust(0.15, 0.1, 0.95, 0.95, wspace=0, hspace=0)
-    >>> for i in np.arange(Nl):
-    >>>   hL = HL[i]
-    >>>   ax = plt.subplot(Nl, 1, 1+i)
-    >>>   v.hwhmL = hL
-    >>>   l.hwhm  = hL
-    >>>   width = 0.5346*hL + np.sqrt(0.2166*hL**2+hG**2)
-    >>>   x = np.arange(-Nw*width, Nw*width, width/1000.0)
-    >>>   plt.plot(x/width, l(x), lw=2.0, color="b",         label="Lorentz")
-    >>>   plt.plot(x/width, d(x), lw=2.0, color="limegreen", label="Doppler")
-    >>>   plt.plot(x/width, v(x), lw=2.0, color="orange",    label="Voigt",
-    >>>            dashes=(8,2))
-    >>>   plt.ylim(np.amin([l(x), v(x)]), 3*np.amax([l(x), v(x), d(x)]))
-    >>>   ax.set_yscale("log")
-    >>>   plt.text(0.025, 0.75, r"$\rm HW_L/HW_G={:4g}$".format(hL/hG),
-    >>>            transform=ax.transAxes)
-    >>>   plt.xlim(-Nw, Nw)
-    >>>   plt.xlabel(r"$\rm x/HW_V$", fontsize=12)
-    >>>   plt.ylabel(r"$\rm Profile$")
-    >>>   if i != Nl-1:
-    >>>       ax.set_xticklabels([""])
-    >>>   if i == 0:
-    >>>       plt.legend(loc="upper right", fontsize=11)
-
-  .. code-block:: pycon
-
-    Initialize self.  See help(type(self)) for accurate signature.
-
-.. py:function:: min_widths(min_temp, max_temp, min_wn, max_mass, min_rad, min_press)
-.. code-block:: pycon
-
-      Estimate the minimum Doppler and Lorentz half-widths at half maximum
-      (cm-1) for a given atmosphere.
-
-      Parameters
-      ----------
-      min_temp: Float
-          Minimum atmospheric tmperature (Kelvin degrees).
-      max_temp: Float
-          Maximum atmospheric tmperature (Kelvin degrees).
-      min_wn: Float
-          Minimum spectral wavenumber (cm-1).
-      max_mass: Float
-          Maximum mass of molecule/isotope (amu).
-      min_rad: Float
-          Minimum collisional radius (cm).
-      min_press: Float
-          Minimum atmospheric pressure (barye).
-
-      Returns
-      -------
-      dmin: Float
-          Minimum Doppler HWHM (cm-1).
-      lmin: Float
-          Minimum Lorentz HWHM (cm-1).
-
-      Examples
-      --------
-      >>> import pyratbay.broadening as b
-      >>> import pyratbay.constants as pc
-      >>> min_temp =  100.0
-      >>> max_temp = 3000.0
-      >>> min_wn   = 1.0/(10.0*pc.um)
-      >>> max_mass = 18.015    # H2O molecule
-      >>> min_rad  = 1.6*pc.A  # H2O molecule
-      >>> min_press = 1e-5 * pc.bar
-      >>> dmin, lmin = b.min_widths(min_temp, max_temp, min_wn, max_mass,
-      >>>     min_rad, min_press)
-      >>> print('Minimum Doppler half width: {:.2e} cm-1
-    '
-      >>>       'Minimum Lorentz half width: {:.2e} cm-1'.format(dmin,lmin))
-  
-
-.. py:function:: max_widths(min_temp, max_temp, max_wn, min_mass, max_rad, max_press)
-.. code-block:: pycon
-
-      Estimate the maximum Doppler and Lorentz half-widths at half maximum
-      (cm-1) for a given atmosphere.
-
-      Parameters
-      ----------
-      min_temp: Float
-          Minimum atmospheric tmperature (Kelvin degrees).
-      max_temp: Float
-          Maximum atmospheric tmperature (Kelvin degrees).
-      max_wn: Float
-          Maximum spectral wavenumber (cm-1).
-      min_mass: Float
-          Minimum mass of molecule/isotope (amu).
-      max_rad: Float
-          Maximum collisional radius (cm).
-      max_press: Float
-          Maximum atmospheric pressure (barye).
-
-      Returns
-      -------
-      dmax: Float
-          Maximum Doppler HWHM (cm-1).
-      lmax: Float
-          Maximum Lorentz HWHM (cm-1).
-
-      Examples
-      --------
-      >>> import pyratbay.broadening as b
-      >>> import pyratbay.constants as pc
-      >>> min_temp =  100.0
-      >>> max_temp = 3000.0
-      >>> max_wn   = 1.0/(1.0*pc.um)
-      >>> min_mass = 18.015    # H2O molecule
-      >>> max_rad  = 1.6*pc.A  # H2O molecule
-      >>> max_press = 100.0*pc.bar
-      >>> dmax, lmax = b.max_widths(min_temp, max_temp, max_wn, min_mass,
-      >>>     max_rad, max_press)
-      >>> print('Maximum Doppler half width: {:.2e} cm-1
-    '
-      >>>       'Maximum Lorentz half width: {:.2e} cm-1'.format(dmax,lmax))
-  
-
-
-pyratbay.lineread
-_________________
-
-
-.. py:module:: pyratbay.lineread
-
-.. py:function:: makeTLI(dblist, pflist, dbtype, tlifile, wllow, wlhigh, wlunits, log)
-.. code-block:: pycon
-
-    Driver function to create a TLI file.
+    Create a transition-line-information (TLI) file.
 
     Parameters
     ----------
@@ -2197,7 +1824,7 @@ _________________
     pflist: List of strings
         Partition function for each of the databases.
     dbtype: List of strings
-        Type of each database.
+        Database type of each database.
     tlifile: String
         Output TLI file name.
     wllow: String or float
@@ -2213,11 +1840,11 @@ _________________
         An mc3.utils.Log instance to log screen outputs to file.
 
 
-pyratbay.lineread.database
-__________________________
+pyratbay.opacity.linelist
+_________________________
 
 
-.. py:module:: pyratbay.lineread.database
+.. py:module:: pyratbay.opacity.linelist
 
 .. py:class:: Hitran(dbfile, pffile, log)
 
@@ -2346,6 +1973,495 @@ __________________________
         File object to store the log.
 
 
+pyratbay.opacity.partitions
+___________________________
+
+
+.. py:module:: pyratbay.opacity.partitions
+
+.. py:function:: get_tips_molname(molID)
+.. code-block:: pycon
+
+    Get the TIPS molecule name for given molecule ID.
+
+    Parameters
+    ----------
+    molID: Integer
+        HITRAN molecule ID. See for example: https://hitran.org/lbl/
+
+    Returns
+    -------
+    molname: String
+        Name of molecule.
+
+    Examples
+    --------
+    >>> import pyratbay.opacity.partitions as pf
+    >>> print(pf.get_tips_molname(1), pf.get_tips_molname(6))
+    H2O CH4
+
+.. py:function:: tips(molecule, isotopes=None, outfile=None, db_type='as_tips')
+.. code-block:: pycon
+
+    Extract TIPS 2017 partition-function values for given molecule.
+    If requested, write the partition-function into a file for use
+    with Pyrat Bay.
+    Reference: Gamache et al. (2017), JQSRT, 203, 70.
+
+    Parameters
+    ----------
+    molecule: String
+        Name of the molecule.
+    isotopes: String or list of strings
+        If not None, only extract the requested isotopes.
+    outfile: String
+        If not None, save output to file.
+        If outfile == 'default', save output to file named as
+        PF_tips_molecule.dat
+    db_type: String
+        If db_type == 'as_exomol', return isotopic names following
+        the exomol notation.
+
+    Returns
+    -------
+    pf: 2D float ndarray
+        TIPS partition function for input molecule.
+    isotopes: 1D string list
+        List of isotopes.
+    temp: 1D float ndarray
+        Partition-function temperature samples (K).
+
+    Examples
+    --------
+    >>> import pyratbay.opacity.partitions as pf
+    >>> pf_data, isotopes, temp = pf.tips('H2O', outfile='default')
+
+    Written partition-function file:
+      'PF_tips_H2O.dat'
+    for molecule H2O, with isotopes ['161', '181', '171', '162', '182', '172', '262', '282', '272'],
+    and temperature range 1--5000 K.
+
+.. py:function:: exomol(pf_files, outfile=None)
+.. code-block:: pycon
+
+    Extract ExoMol partition-function values from input files.
+    If requested, write the partition-function into a file for use
+    with Pyrat Bay.
+
+    Parameters
+    ----------
+    pf_files: String or List of strings
+        Input Exomol partition-function filenames.  If there are
+        multiple isotopes, all of them must correspond to the same
+        molecule.
+    outfile: String
+        If not None, save output to file.
+        If outfile == 'default', save output to file named as
+        PF_exomol_molecule.dat
+
+    Returns
+    -------
+    pf: 2D float ndarray
+        TIPS partition function for input molecule.
+    isotopes: 1D string list
+        List of isotopes.
+    temp: 1D float ndarray
+        Partition-function temperature samples (K).
+
+    Examples
+    --------
+    >>> # First, download ExoMol data to current dictory, e.g.:
+    >>> # wget http://www.exomol.com/db/NH3/14N-1H3/BYTe/14N-1H3__BYTe.pf
+    >>> # wget http://www.exomol.com/db/NH3/15N-1H3/BYTe-15/15N-1H3__BYTe-15.pf
+    >>> import pyratbay.opacity.partitions as pf
+    >>> # A single file:
+    >>> pf_data, isotopes, temp = pf.exomol('14N-1H3__BYTe.pf',
+    >>>     outfile='default')
+    Written partition-function file:
+      'PF_exomol_NH3.dat'
+    for molecule NH3, with isotopes ['4111'],
+    and temperature range 1--1600 K.
+
+    >>> # Multiple files (isotopes) for a molecule:
+    >>> pf_data, isotopes, temp = pf.exomol(
+    >>>     ['14N-1H3__BYTe.pf', '15N-1H3__BYTe-15.pf'], outfile='default')
+
+    ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+      Warning:
+        Length of PF files do not match.  Trimming to shorter size.
+    ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+    Written partition-function file:
+      'PF_exomol_NH3.dat'
+    for molecule NH3, with isotopes ['4111', '5111'],
+    and temperature range 1--1600 K.
+
+.. py:function:: kurucz(pf_file, outfile=None, type_flag='as_exomol')
+.. code-block:: pycon
+
+    Extract Kurucz partition-function values from input file.
+    If requested, write the partition-function into a file for use
+    with Pyrat Bay.
+
+    Parameters
+    ----------
+    pf_file: String
+        Input partition-function from Kurucz webpage.  Currently only H2O
+        and TiO are available (probably there's no need for any other support).
+        Files can be downloaded from these links:
+          http://kurucz.harvard.edu/molecules/h2o/h2opartfn.dat
+          http://kurucz.harvard.edu/molecules/tio/tiopart.dat
+    outfile: String
+        If not None, save output to file.
+        If outfile == 'default', save output to file named as
+        PF_kurucz_molecule.dat
+
+    Returns
+    -------
+    pf: 2D float ndarray
+        TIPS partition function for input molecule.
+    isotopes: 1D string list
+        List of isotopes.
+    temp: 1D float ndarray
+        Partition-function temperature samples (K).
+
+    Examples
+    --------
+    >>> # First, download kurucz data to current dictory, e.g.:
+    >>> # wget http://kurucz.harvard.edu/molecules/h2o/h2opartfn.dat
+    >>> # wget http://kurucz.harvard.edu/molecules/tio/tiopart.dat
+
+    >>> import pyratbay.opacity.partitions as pf
+    >>> pf_data, isotopes, temp = pf.kurucz('h2opartfn.dat', outfile='default')
+
+    Written partition-function file:
+      'PF_kurucz_H2O.dat'
+    for molecule H2O, with isotopes ['1H1H16O', '1H1H17O', '1H1H18O', '1H2H16O'],
+    and temperature range 10--6000 K.
+
+    >>> pf_data, isotopes, temp = pf.kurucz('tiopart.dat', outfile='default')
+
+    Written partition-function file:
+      'PF_kurucz_TiO.dat'
+    for molecule TiO, with isotopes ['66', '76', '86', '96', '06'],
+    and temperature range 10--6000 K.
+
+
+pyratbay.opacity.broadening
+___________________________
+
+
+.. py:module:: pyratbay.opacity.broadening
+
+.. py:class:: Lorentz(x0=0.0, hwhm=1.0, scale=1.0)
+
+.. code-block:: pycon
+
+    1D Lorentz profile model.
+
+    Parameters
+    ----------
+    x0: Float
+       Profile center location.
+    hwhm: Float
+       Profile's half-width at half maximum.
+    scale: Float
+       Scale of the profile (scale=1 returns a profile with integral=1.0).
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import matplotlib.pyplot as plt
+    >>> import pyratbay.opacity.broadening as b
+    >>> lor = b.Lorentz(x0=0.0, hwhm=2.5, scale=1.0)
+    >>> # Half-width at half maximum is ~2.5:
+    >>> x = np.linspace(-10.0, 10.0, 100001)
+    >>> print(0.5 * np.ptp(x[lor(x)>0.5*np.amax(lor(x))]))
+    2.4998
+    >>> # Integral is ~ 1.0:
+    >>> x = np.linspace(-5000.0, 5000.0, 100001)
+    >>> print(np.trapz(lor(x), x))
+    0.999681690140321
+    >>> # Take a look at a Lorenzt profile:
+    >>> x = linspace(-10, 10, 101)
+    >>> plt.plot(x, lor(x))
+
+  .. code-block:: pycon
+
+    Initialize self.  See help(type(self)) for accurate signature.
+
+.. py:class:: Gauss(x0=0.0, hwhm=1.0, scale=1.0)
+
+.. code-block:: pycon
+
+    1D Gaussian profile model.
+
+    Parameters
+    ----------
+    x0: Float
+       Profile center location.
+    hwhm: Float
+       Profile's half-width at half maximum.
+    scale: Float
+       Scale of the profile (scale=1 returns a profile with integral=1.0).
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import matplotlib.pyplot as plt
+    >>> import pyratbay.opacity.broadening as b
+    >>> gauss = b.Gauss(x0=0.0, hwhm=2.5, scale=1.0)
+    >>> # Half-width at half maximum is ~2.5:
+    >>> x = np.linspace(-10.0, 10.0, 100001)
+    >>> print(0.5 * np.ptp(x[gauss(x)>0.5*np.amax(gauss(x))]))
+    2.4998
+    >>> # Integral is ~ 1.0:
+    >>> x = np.linspace(-5000.0, 5000.0, 100001)
+    >>> print(np.trapz(gauss(x), x))
+    1.0
+    >>> # Take a look at a Lorenzt profile:
+    >>> x = linspace(-10, 10, 101)
+    >>> plt.plot(x, gauss(x))
+
+  .. code-block:: pycon
+
+    Initialize self.  See help(type(self)) for accurate signature.
+
+.. py:class:: Voigt(x0=0.0, hwhmL=1.0, hwhmG=1.0, scale=1.0)
+
+.. code-block:: pycon
+
+    1D Voigt profile model.
+
+    Parameters
+    ----------
+    x0: Float
+       Line center location.
+    hwhmL: Float
+       Half-width at half maximum of the Lorentz distribution.
+    hwhmG: Float
+       Half-width at half maximum of the Gaussian distribution.
+    scale: Float
+       Scale of the profile (scale=1 returns a profile with integral=1.0).
+
+    Example
+    -------
+    >>> import numpy as np
+    >>> import matplotlib.pyplot as plt
+    >>> import pyratbay.opacity.broadening as b
+    >>> Nl = 5
+    >>> Nw = 10.0
+    >>> hG = 1.0
+    >>> HL = np.logspace(-2, 2, Nl)
+    >>> l = b.Lorentz(x0=0.0)
+    >>> d = b.Gauss  (x0=0.0, hwhm=hG)
+    >>> v = b.Voigt  (x0=0.0, hwhmG=hG)
+
+    >>> plt.figure(11, (6,6))
+    >>> plt.clf()
+    >>> plt.subplots_adjust(0.15, 0.1, 0.95, 0.95, wspace=0, hspace=0)
+    >>> for i in np.arange(Nl):
+    >>>   hL = HL[i]
+    >>>   ax = plt.subplot(Nl, 1, 1+i)
+    >>>   v.hwhmL = hL
+    >>>   l.hwhm  = hL
+    >>>   width = 0.5346*hL + np.sqrt(0.2166*hL**2+hG**2)
+    >>>   x = np.arange(-Nw*width, Nw*width, width/1000.0)
+    >>>   plt.plot(x/width, l(x), lw=2.0, color="b",         label="Lorentz")
+    >>>   plt.plot(x/width, d(x), lw=2.0, color="limegreen", label="Doppler")
+    >>>   plt.plot(x/width, v(x), lw=2.0, color="orange",    label="Voigt",
+    >>>            dashes=(8,2))
+    >>>   plt.ylim(np.amin([l(x), v(x)]), 3*np.amax([l(x), v(x), d(x)]))
+    >>>   ax.set_yscale("log")
+    >>>   plt.text(0.025, 0.75, r"$\rm HW_L/HW_G={:4g}$".format(hL/hG),
+    >>>            transform=ax.transAxes)
+    >>>   plt.xlim(-Nw, Nw)
+    >>>   plt.xlabel(r"$\rm x/HW_V$", fontsize=12)
+    >>>   plt.ylabel(r"$\rm Profile$")
+    >>>   if i != Nl-1:
+    >>>       ax.set_xticklabels([""])
+    >>>   if i == 0:
+    >>>       plt.legend(loc="upper right", fontsize=11)
+
+  .. code-block:: pycon
+
+    Initialize self.  See help(type(self)) for accurate signature.
+
+.. py:function:: doppler_hwhm(temperature, mass, wn)
+.. code-block:: pycon
+
+    Get Doppler half-width at half maximum broadening.
+
+    Parameters
+    ----------
+    temperature: Float scalar or ndarray
+        Atmospheric temperature (Kelvin degree).
+    mass: Float scalar or ndarray
+        Mass of the species (AMU).
+    wn: Float scalar or ndarray
+        Wavenumber (cm-1).
+
+    Returns
+    -------
+    dop_hwhm: Float scalar or ndarray
+        The Doppler half-width at half maximum broadening (cm-1).
+
+    Note
+    ----
+    All inputs must have compatible data shapes to be broadcastable.
+
+    Examples
+    --------
+    >>> import pyratbay.opacity.broadening as b
+    >>> # Doppler HWHM at 1000K and 1 micron, for H2O and CO2:
+    >>> temperature = 1000.0
+    >>> wn = 10000.0
+    >>> mass = np.array([18.0, 44.0])
+    >>> dop_hw = b.doppler_hwhm(temperature, mass, wn)
+    >>> print(f'Doppler broadening:\n H2O        CO2\n{dop_hw}')
+    Doppler broadening:
+     H2O        CO2
+    [0.02669241 0.01707253]
+
+.. py:function:: lorentz_hwhm(temperature, pressure, masses, radii, vol_mix_ratio, imol)
+.. code-block:: pycon
+
+    Get Lorentz half-width at half maximum broadening.
+
+    Parameters
+    ----------
+    temperature: Float scalar or ndarray
+        Atmospheric temperature (Kelvin degree).
+    pressure: Float scalar or ndarray
+        Atmospheric pressure (barye).
+    masses: 1D float ndarray
+        Masses of atmospheric species (AMU).
+    radii: 1D float ndarray
+        Collision radius of atmospheric species (cm).
+    vol_mix_ratio: 1D float ndarray
+        Volume mixing ratio of atmospheric species.
+    imol: Integer
+        Index of species to calculate the HWHM (in masses/radii arrays).
+
+    Returns
+    -------
+    lor_hwhm: Float scalar or ndarray
+        The Lorentz half-width at half maximum broadening (cm-1).
+
+    Note
+    ----
+    The temperature, pressure, and imol inputs must have compatible
+    shapes to be broadcastable.
+
+    Examples
+    --------
+    >>> import pyratbay.opacity.broadening as b
+    >>> import pyratbay.constants as pc
+    >>> # Lorenz HWHM at 1000K and 1 bar, for H2O and CO2:
+    >>> temperature = 1000.0
+    >>> pressure = 1.0 * pc.bar
+    >>> #                  H2O   CO2   H2    He
+    >>> masses = np.array([18.0, 44.0, 2.0,  4.0])
+    >>> radii  = np.array([1.6,  1.9,  1.45, 1.4]) * pc.A
+    >>> vmr    = np.array([1e-4, 1e-4, 0.85, 0.15])
+    >>> imol = np.array([0, 1])
+    >>> lor_hw = b.lorentz_hwhm(temperature, pressure, masses, radii, vmr, imol)
+    >>> print(f'Lorentz broadening:\n H2O        CO2\n{lor_hw}')
+    Lorentz broadening:
+     H2O        CO2
+    [0.03691111 0.04308068]
+
+.. py:function:: min_widths(min_temp, max_temp, min_wn, max_mass, min_rad, min_press)
+.. code-block:: pycon
+
+      Estimate the minimum Doppler and Lorentz half-widths at half maximum
+      (cm-1) for an H2-dominated atmosphere.
+
+      Parameters
+      ----------
+      min_temp: Float
+          Minimum atmospheric tmperature (Kelvin degrees).
+      max_temp: Float
+          Maximum atmospheric tmperature (Kelvin degrees).
+      min_wn: Float
+          Minimum spectral wavenumber (cm-1).
+      max_mass: Float
+          Maximum mass of molecule/isotope (amu).
+      min_rad: Float
+          Minimum collisional radius (cm).
+      min_press: Float
+          Minimum atmospheric pressure (barye).
+
+      Returns
+      -------
+      dmin: Float
+          Minimum Doppler HWHM (cm-1).
+      lmin: Float
+          Minimum Lorentz HWHM (cm-1).
+
+      Examples
+      --------
+      >>> import pyratbay.opacity.broadening as b
+      >>> import pyratbay.constants as pc
+      >>> min_temp =  100.0
+      >>> max_temp = 3000.0
+      >>> min_wn   = 1.0/(10.0*pc.um)
+      >>> max_mass = 18.015    # H2O molecule
+      >>> min_rad  = 1.6*pc.A  # H2O molecule
+      >>> min_press = 1e-5 * pc.bar
+      >>> dmin, lmin = b.min_widths(min_temp, max_temp, min_wn, max_mass,
+      >>>     min_rad, min_press)
+      >>> print('Minimum Doppler half width: {:.2e} cm-1
+    '
+      >>>       'Minimum Lorentz half width: {:.2e} cm-1'.format(dmin,lmin))
+  
+
+.. py:function:: max_widths(min_temp, max_temp, max_wn, min_mass, max_rad, max_press)
+.. code-block:: pycon
+
+      Estimate the maximum Doppler and Lorentz half-widths at half maximum
+      (cm-1) for an H2-dominated atmosphere.
+
+      Parameters
+      ----------
+      min_temp: Float
+          Minimum atmospheric tmperature (Kelvin degrees).
+      max_temp: Float
+          Maximum atmospheric tmperature (Kelvin degrees).
+      max_wn: Float
+          Maximum spectral wavenumber (cm-1).
+      min_mass: Float
+          Minimum mass of molecule/isotope (amu).
+      max_rad: Float
+          Maximum collisional radius (cm).
+      max_press: Float
+          Maximum atmospheric pressure (barye).
+
+      Returns
+      -------
+      dmax: Float
+          Maximum Doppler HWHM (cm-1).
+      lmax: Float
+          Maximum Lorentz HWHM (cm-1).
+
+      Examples
+      --------
+      >>> import pyratbay.opacity.broadening as b
+      >>> import pyratbay.constants as pc
+      >>> min_temp =  100.0
+      >>> max_temp = 3000.0
+      >>> max_wn   = 1.0/(1.0*pc.um)
+      >>> min_mass = 18.015    # H2O molecule
+      >>> max_rad  = 1.6*pc.A  # H2O molecule
+      >>> max_press = 100.0*pc.bar
+      >>> dmax, lmax = b.max_widths(min_temp, max_temp, max_wn, min_mass,
+      >>>     max_rad, max_press)
+      >>> print('Maximum Doppler half width: {:.2e} cm-1
+    '
+      >>>       'Maximum Lorentz half width: {:.2e} cm-1'.format(dmax,lmax))
+  
+
+
 pyratbay.plots
 ______________
 
@@ -2379,7 +2495,7 @@ ______________
     >>> pp.alphatize(['r', 'b'], 0.8)
     [array([1. , 0.2, 0.2]), array([0.2, 0.2, 1. ])]
 
-.. py:function:: spectrum(spectrum, wavelength, path, data=None, uncert=None, bandwl=None, bandflux=None, bandtrans=None, bandidx=None, starflux=None, rprs=None, label='model', bounds=None, logxticks=None, gaussbin=2.0, yran=None, filename=None, fignum=501, axis=None)
+.. py:function:: spectrum(spectrum, wavelength, rt_path, data=None, uncert=None, bandwl=None, bandflux=None, bandtrans=None, bandidx=None, starflux=None, rprs=None, label='model', bounds=None, logxticks=None, gaussbin=2.0, yran=None, filename=None, fignum=501, axis=None)
 .. code-block:: pycon
 
     Plot a transmission or emission model spectrum with (optional) data
@@ -2391,8 +2507,8 @@ ______________
         Planetary spectrum evaluated at wavelength.
     wavelength: 1D float ndarray
         The wavelength of the model in microns.
-    path: String
-        Observing-geometry path: transit or eclipse.
+    rt_path: String
+        Radiative-transfer observing geometry (transit, eclipse, or emission).
     data: 1D float ndarray
         Observing data points at each bandwl.
     uncert: 1D float ndarray
@@ -2426,15 +2542,15 @@ ______________
         If not None, save figure to filename.
     fignum: Integer
         Figure number.
-    axis: TBD
-        TBD
+    axis: AxesSubplot instance
+        The matplotlib Axes of the figure.
 
     Returns
     -------
     ax: AxesSubplot instance
         The matplotlib Axes of the figure.
 
-.. py:function:: contribution(contrib_func, wl, path, pressure, radius, rtop=0, filename=None, filters=None, fignum=-21)
+.. py:function:: contribution(contrib_func, wl, rt_path, pressure, radius, rtop=0, filename=None, filters=None, fignum=-21)
 .. code-block:: pycon
 
     Plot the band-integrated normalized contribution functions
@@ -2446,8 +2562,8 @@ ______________
         Band-integrated contribution functions [nfilters, nlayers].
     wl: 1D float ndarray
         Mean wavelength of the bands in microns.
-    path: String
-        Observing geometry (transit or eclipse).
+    rt_path: String
+        Radiative-transfer observing geometry (emission or transit).
     pressure: 1D float ndarray
         Layer's pressure array (barye units).
     radius: 1D float ndarray
@@ -2474,57 +2590,122 @@ ______________
     - If there are more than 80 filters, this code will thin the
       displayed filter names.
 
-.. py:function:: posterior_pt(posterior, tmodel, tpars, ifree, pressure, bestpars=None, filename=None)
+.. py:function:: temperature(pressure, profiles=None, labels=None, colors=None, bounds=None, punits='bar', ax=None, filename=None, theme='blue', alpha=[0.8, 0.6], fs=13, lw=2.0, fignum=504)
 .. code-block:: pycon
 
-    Plot the posterior PT profile.
+    Plot temperature profiles.
 
     Parameters
     ----------
-    posterior: 2D float ndarray
-        MCMC posterior distribution for tmodel (of shape [nparams, nfree]).
-    tmodel: Callable
-        Temperature-profile model.
-    tpars: 1D float ndarray
-        Temperature-profile parameters (including fixed parameters).
-    ifree: 1D bool ndarray
-        Mask of free (True) and fixed (False) parameters in tpars.
-        The number of free parameters must match nfree in posterior.
     pressure: 1D float ndarray
         The atmospheric pressure profile in barye.
-    bestpars: 1D float ndarray
-        Best-fitting temperature-profile parameters.
+    profiles: iterable of 1D float ndarrays
+        Temperature profiles to plot.
+    labels: 1D string iterable
+        Labels for temperature profiles.
+    colors: 1D string iterable.
+        Colors for temperature profiles.
+    bounds: Tuple
+        Tuple with -1sigma, +1sigma, -2sigma, and +2sigma temperature
+        boundaries.
+        If not None, plot shaded area between +/-1sigma and +/-2sigma
+        boundaries.
+    punits: String
+        Pressure units for output plot (input units are always barye).
+    ax: AxesSubplot instance
+        If not None, plot into the given axis.
     filename: String
-        If not None, save figure to filename.
+        If not None, save plot to given file name.
+    theme: String
+        The histograms' color theme for bounds regions.
+        Only 'blue' and 'orange' themes are valid at the moment.
+    alpha: 2-element float iterable
+        Alpha transparency for bounds regions.
+    fs: Float
+        Labels font sizes.
+    lw: Float
+        Lines width.
+    fignum: Integer
+        Figure's number (ignored if axis is not None).
 
     Returns
     -------
     ax: AxesSubplot instance
         The matplotlib Axes of the figure.
 
-.. py:function:: abundance(abundances, pressure, species, highlight=None, xlim=None, punits='bar', colors=None, dashes=None, lw=2.0, filename=None, fignum=505, fs=13, axis=None)
+.. py:function:: abundance(vol_mix_ratios, pressure, species, highlight=None, xlim=None, punits='bar', colors=None, dashes=None, filename=None, lw=2.0, fignum=505, fs=13, legend_fs=None, ax=None)
 .. code-block:: pycon
 
     Plot atmospheric volume-mixing-ratio abundances.
 
+    Parameters
+    ----------
+    vol_mix_ratios: 2D float ndarray
+        Atmospheric volume mixing ratios to plot [nlayers,nspecies].
+    pressure: 1D float ndarray
+        Atmospheric pressure [nlayers], units are given by punits argument.
+    species: 1D string iterable
+        Atmospheric species names [nspecies].
+    highlight: 1D string iterable
+        List of species names to highlight.  Non-highlighed species are
+        plotted with alpha=0.4, below the highligted species, and are
+        not considered to set the default xlim (e.g., might not be shown
+        if their abundances are too low).
+        If None, all input species are highlighted.
+    xlim: 2-element float iterable
+        Volume mixing ratio plotting boundaries.
+    punits: String
+        Pressure units.
+    colors: 1D string iterable
+        List of colors to use.
+        - If len(colors) >= len(species), colors are assigned to each
+          species irrespective of highlight.
+        - If len(colors) < len(species), the display will cycle the
+          color list using solid, long-dashed, short-dashed, and dotted
+          line styles (all highlight species being displayed before the rest).
+        - If colors == 'default', use pyratbay.plots.default_colors
+          dict to assign colors.
+        - If colors is None, use matplotlib's default color cycler.
+    dashes: 1D dash-sequence iterable
+        List of line-styles for each species, irrespective of highlight.
+        len(dashes) has to be equal to len(species).
+        Alternatively, dashes can by a dash-sequence Cycler.
+    filename: String
+        If not None, save plot to given file name.
+    lw: Float
+        Lines width.
+    fignum: Integer
+        Figure's number (ignored if axis is not None).
+    fs: Float
+        Labels font sizes.
+    legend_fs: Float
+        Legend font size.  If legend_fs is None, default to fs-2.
+        If legend_fs <= 0, do not plot a legend.
+    ax: AxesSubplot instance
+        If not None, plot into the given axis.
+
+    Returns
+    -------
+    ax: AxesSubplot instance
+        The matplotlib Axes of the figure.
+
     Examples
     --------
-    import pyratbay.atmosphere as pa
-    import pyratbay.plots as pp
+    >>> import pyratbay.atmosphere as pa
+    >>> import pyratbay.plots as pp
 
-    nlayers = 51
-    pressure = pa.pressure('1e-6 bar', '1e2 bar', nlayers)
-    temperature = pa.temperature('isothermal', pressure,  params=1000.0)
-    species = 'H2O CH4 CO CO2 NH3 C2H2 C2H4 HCN N2 TiO VO H2 H He Na K'.split()
-    Q = pa.abundance(pressure, temperature, species, ncpu=3)
-    #importlib.reload(pp)
-    axes = pp.abundance(Q, pressure, species, colors='default',
-        highlight=['H2O', 'CH4', 'CO', 'CO2', 'NH3', 'HCN', 'H2', 'H', 'He'])
+    >>> nlayers = 51
+    >>> pressure = pa.pressure('1e-6 bar', '1e2 bar', nlayers)
+    >>> temperature = pa.temperature('isothermal', pressure,  params=1000.0)
+    >>> species = 'H2O CH4 CO CO2 NH3 C2H2 C2H4 HCN N2 TiO VO H2 H He Na K'.split()
+    >>> Q = pa.abundance(pressure, temperature, species, ncpu=3)
+    >>> ax = pp.abundance(Q, pressure, species, colors='default',
+    >>>     highlight='H2O CH4 CO CO2 NH3 HCN H2 H He'.split())
 
 .. py:data:: default_colors
 .. code-block:: pycon
 
-  {'H2O': 'navy', 'CH4': 'orange', 'CO': 'limegreen', 'CO2': 'red', 'H2': 'deepskyblue', 'He': 'seagreen', 'HCN': '0.7', 'NH3': 'magenta', 'C2H2': 'brown', 'C2H4': 'pink', 'N2': 'gold', 'H': 'olive', 'TiO': 'black', 'VO': 'peru', 'Na': 'darkviolet', 'K': 'cornflowerblue'}
+  {'H2O': 'navy', 'CO2': 'red', 'CO': 'limegreen', 'CH4': 'orange', 'H2': 'deepskyblue', 'He': 'seagreen', 'HCN': '0.7', 'NH3': 'magenta', 'C2H2': 'brown', 'C2H4': 'pink', 'N2': 'gold', 'H': 'olive', 'TiO': 'black', 'VO': 'peru', 'Na': 'darkviolet', 'K': 'cornflowerblue'}
 
 
 pyratbay.spectrum
@@ -2782,9 +2963,9 @@ _________________
     >>> import pyratbay.constants as pc
     >>> # Load Spitzer IRAC filters:
     >>> wn1, irac1 = io.read_spectrum(
-    >>>     pc.ROOT+'inputs/filters/spitzer_irac1_sa.dat')
+    >>>     pc.ROOT+'pyratbay/data/filters/spitzer_irac1_sa.dat')
     >>> wn2, irac2 = io.read_spectrum(
-    >>>     pc.ROOT+'inputs/filters/spitzer_irac2_sa.dat')
+    >>>     pc.ROOT+'pyratbay/data/filters/spitzer_irac2_sa.dat')
     >>> # Spectrum to integrate:
     >>> wn = np.arange(1500, 5000.1, 1.0)
     >>> sflux = ps.bbflux(wn, 1800.0)
@@ -3139,6 +3320,12 @@ ___________________
     radius: 1D float ndarray
         Radius for each layer (in cm).
 
+    Notes
+    -----
+    It is possible that this hydrostatic solution diverges when an
+    atmosphere is too puffy.  In such cases, some returned radii
+    will have np.inf values (at the top layers).
+
     Examples
     --------
     >>> import pyratbay.atmosphere as pa
@@ -3330,6 +3517,106 @@ ___________________
     HD 209458b T_eq =
         1345.1 +/- 13.2 K (day--night redistribution)
         1599.6 +/- 15.7 K (instant re-emission)
+
+.. py:function:: transit_path(radius, nskip=0)
+.. code-block:: pycon
+
+    Calculate the distances between layers for a set of rays grazing
+    an atmosphere defined by concentric spheres at radii radius.
+    Assume that the grazing rays have an impact parameter = radius.
+    See for example, Fig 1 of Molliere et al. (2019), AA, 627, 67.
+
+    Parameters
+    ----------
+    radius: 1D float ndarray
+        Atmospheric radius profile array (from top to bottom).
+    nskip: Integer
+        Number of layers to skip from the top of the atmosphere.
+
+    Returns
+    -------
+    path: List of 1D float ndarrays
+        List where each element is a 1D array of the paths at an
+        impact parameter defined.
+
+    Examples
+    --------
+    >>> import pyratbay.atmosphere as pa
+    >>> nlayers = 5
+    >>> radius = np.linspace(5.0, 1.0, nlayers)
+    >>> path = pa.transit_path(radius)
+    >>> # First path grazes the outer layer (thus, empty path)
+    >>> # Second path is sqrt(5.0**2 - 4.0**2), and so on
+    >>> for p in path:
+    >>>     print(p)
+    []
+    [3.]
+    [1.35424869 2.64575131]
+    [1.11847408 1.22803364 2.23606798]
+    [1.02599614 1.04455622 1.09637632 1.73205081]
+    >>> # Now, ignore the top layer:
+    >>> path = pa.transit_path(radius, nskip=1)
+    >>> for p in path:
+    >>>     print(p)
+    []
+    []
+    [2.64575131]
+    [1.22803364 2.23606798]
+    [1.04455622 1.09637632 1.73205081]
+
+.. py:function:: temperature_posterior(posterior, tmodel, tpars, ifree, pressure)
+.. code-block:: pycon
+
+    Compute the median and inter-quantiles regions (68% and 95%)
+    of a temperature profile posterior.
+
+    Parameters
+    ----------
+    posterior: 2D float ndarray [nsamples, nfree]
+        A posterior distribution for tmodel.
+    tmodel: Callable
+        Temperature-profile model.
+    tpars: 1D float iterable [npars]
+        Temperature-profile parameters (including fixed parameters).
+    ifree: 1D bool iterable [npars]
+        Mask of free (True) and fixed (False) parameters in tpars.
+        The number of free parameters must match nfree in posterior.
+    pressure: 1D float ndarray [nlayers]
+        The atmospheric pressure profile in barye.
+
+    Returns
+    -------
+    median: 1D float ndarray [nlayers]
+        The matplotlib Axes of the figure.
+    low1: 1D float ndarray [nlayers]
+        Lower temperature boundary of the 68%-interquantile range.
+    high1: 1D float ndarray [nlayers]
+        Upper temperature boundary of the 68%-interquantile range.
+    low2: 1D float ndarray [nlayers]
+        Lower temperature boundary of the 95%-interquantile range.
+    high2: 1D float ndarray [nlayers]
+        Upper temperature boundary of the 95%-interquantile range.
+
+    Examples
+    --------
+    >>> import pyratbay.atmosphere as pa
+    >>> import pyratbay.constants as pc
+    >>> import pyratbay.plots as pp
+    >>> import numpy as np
+
+    >>> # Non-inverted temperature profile:
+    >>> pressure = pa.pressure('1e-6 bar', '1e2 bar', nlayers=100)
+    >>> tmodel = pa.tmodels.TCEA(pressure)
+    >>> tpars = np.array([-4.0, -1.0, 0.0, 0.0, 1000.0, 0.0])
+    >>> # Simulate posterior where kappa' and gamma are variable:
+    >>> nsamples = 5000
+    >>> ifree = [True, True, False, False, False, False]
+    >>> posterior = np.array([
+    >>>     np.random.normal(tpars[0], 0.5, nsamples),
+    >>>     np.random.normal(tpars[1], 0.1, nsamples)]).T
+    >>> tpost = pa.temperature_posterior(
+    >>>     posterior, tmodel, tpars, ifree, pressure)
+    >>> ax = pp.temperature(pressure, profiles=tpost[0], bounds=tpost[1:])
 
 .. py:function:: make_atomic(xsolar=1.0, escale={}, atomic_file=None, solar_file=None)
 .. code-block:: pycon
@@ -3706,7 +3993,7 @@ __________________________
 
     Sodium Van der Waals model (Burrows et al. 2000, ApJ, 531).
 
-    .. code-block:: pycon
+  .. code-block:: pycon
 
     Initialize self.  See help(type(self)) for accurate signature.
 
