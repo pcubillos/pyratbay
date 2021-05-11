@@ -36,7 +36,7 @@ extensions = [
 
 long_description = """
 .. image:: https://raw.githubusercontent.com/pcubillos/pyratbay/master/docs/figures/pyrat_logo.png
-   :width: 50%
+   :width: 35%
 
 |Build Status|  |docs|  |PyPI|  |conda|  |License|
 
