@@ -71,8 +71,8 @@ Bayesian (MCMC) posterior sampling of atmospheric parameters:
 Contributors
 ============
 
-- `Patricio Cubillos`_ (IWF) `patricio.cubillos[at]oeaw.ac.at`_
-- Jasmina Blecic (NYU Abu Dhabi)
+- `Patricio Cubillos`_ (IWF, Austria) `patricio.cubillos[at]oeaw.ac.at`_
+- Jasmina Blecic (NYU, Abu Dhabi)
 
 
 Documentation
@@ -99,7 +99,7 @@ Be Kind
 =======
 
 If you found ``Pyrat Bay`` useful for your research, please cite this article:
-  `Cubillos & Blecic (2021): The Pyrat Bay Framework for Exoplanet Atmospheric Modeling: A Population Study of Hubble/WFC3 Transmission Spectra <URL_TBD>`_, MNRAS.
+  `Cubillos & Blecic (2021): The Pyrat Bay Framework for Exoplanet Atmospheric Modeling: A Population Study of Hubble/WFC3 Transmission Spectra <https://drive.google.com/file/d/1cxo8EBdTpK6nFCB0fAVKIevLYfe63in1/view?usp=sharing>`_, MNRAS.
 
 Please prefer to channel your feedback or inquiries through the Github issue tracker: `<https://github.com/pcubillos/pyratbay>`_, or alternatively through this email: `patricio.cubillos[at]oeaw.ac.at`_.
 

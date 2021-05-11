@@ -165,9 +165,9 @@ def band_integrate(spectrum, specwn, bandtrans, bandwn):
     >>> import pyratbay.constants as pc
     >>> # Load Spitzer IRAC filters:
     >>> wn1, irac1 = io.read_spectrum(
-    >>>     pc.ROOT+'inputs/filters/spitzer_irac1_sa.dat')
+    >>>     pc.ROOT+'pyratbay/data/filters/spitzer_irac1_sa.dat')
     >>> wn2, irac2 = io.read_spectrum(
-    >>>     pc.ROOT+'inputs/filters/spitzer_irac2_sa.dat')
+    >>>     pc.ROOT+'pyratbay/data/filters/spitzer_irac2_sa.dat')
     >>> # Spectrum to integrate:
     >>> wn = np.arange(1500, 5000.1, 1.0)
     >>> sflux = ps.bbflux(wn, 1800.0)

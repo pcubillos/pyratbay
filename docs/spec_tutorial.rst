@@ -25,7 +25,8 @@ given atmospheric model.
 Sample Configuration File
 -------------------------
 
-Here is a sample configuration file to compute a transmission spectrum:
+Here is a sample configuration file to compute a transmission spectrum (`spectrum_transmission.cfg
+<https://github.com/pcubillos/pyratbay/blob/master/examples/tutorial/spectrum_transmission.cfg>`_):
 
 .. literalinclude:: ../examples/tutorial/spectrum_transmission.cfg
 
@@ -232,18 +233,18 @@ files and thins down the array (to reduce file size):
 
 For the **Borysow** database, the code provides already-formatted
 files for |H2|-|H2| in the 60--7000K and 0.6--500 um range \[`here
-<https://github.com/pcubillos/pyratbay/blob/master/inputs/CIA/CIA_Borysow_H2H2_0060-7000K_0.6-500um.dat>`_\]
+<https://github.com/pcubillos/pyratbay/blob/master/pyratbay/data/CIA/CIA_Borysow_H2H2_0060-7000K_0.6-500um.dat>`_\]
 (this file pieces together the tabulated |H2|-|H2| files described in
 the references above); and for |H2|-He in the 50--3500K and 0.3--100
 um range \[`here
-<https://github.com/pcubillos/pyratbay/blob/master/inputs/CIA/CIA_Borysow_H2He_0050-3500K_0.3-100um.dat>`_\]
+<https://github.com/pcubillos/pyratbay/blob/master/pyratbay/data/CIA/CIA_Borysow_H2He_0050-3500K_0.3-100um.dat>`_\]
 (this file was created using a re-implementation of the code described
 in the references above).  The user can access these files via the
 ``{ROOT}`` shortcut, as in the example below:
 
 .. code-block:: python
 
-    csfile = {ROOT}/inputs/CIA/CIA_Borysow_H2H2_0060-7000K_0.6-500um.dat
+    csfile = {ROOT}/pyratbay/data/CIA/CIA_Borysow_H2H2_0060-7000K_0.6-500um.dat
 
 
 Radius-profile Models
@@ -579,6 +580,18 @@ be ignored).
 Examples
 --------
 
+.. note:: Before running this example, make sure that you have
+   generated the TLI file from the :ref:`tli_tutorial_example`,
+   generated the atmospheric profiles from the
+   :ref:`abundance_tutorial_example`, and download the configuration
+   file shown above, e.g., with these shell commands:
+
+   .. code-block:: shell
+
+       tutorial_path=https://raw.githubusercontent.com/pcubillos/pyratbay/master/examples/tutorial
+       wget $tutorial_path/spectrum_transmission.cfg
+
+
 In an interactive run, a spectrum run returns a '*pyrat*' object that
 contains all input, intermediate, and output variables used to compute
 the spectrum.  The following Python script computes and plots a
@@ -600,7 +613,7 @@ this tutorial:
     depth = pyrat.spec.spectrum / pc.percent
     wl_ticks = [0.3, 0.5, 0.7, 1.0, 2.0, 3.0, 5.0]
 
-    plt.figure(-3)
+    plt.figure(-3, (7,4))
     plt.clf()
     ax = plt.subplot(111)
     plt.semilogx(wl, depth, "-", color='orange', lw=1.0)

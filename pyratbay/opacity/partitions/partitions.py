@@ -39,7 +39,7 @@ def get_tips_molname(molID):
     >>> print(pf.get_tips_molname(1), pf.get_tips_molname(6))
     H2O CH4
     """
-    with open(pc.ROOT+'inputs/tips_2017.pkl', 'rb') as p:
+    with open(pc.ROOT+'pyratbay/data/tips_2017.pkl', 'rb') as p:
         data = pickle.load(p)
     if molID not in data['mol_ID']:
         raise ValueError('TIPS 2017 database does not contain molecule ID: {}'
@@ -87,7 +87,7 @@ def tips(molecule, isotopes=None, outfile=None, db_type='as_tips'):
     for molecule H2O, with isotopes ['161', '181', '171', '162', '182', '172', '262', '282', '272'],
     and temperature range 1--5000 K.
     """
-    with open(pc.ROOT+'inputs/tips_2017.pkl', 'rb') as p:
+    with open(pc.ROOT+'pyratbay/data/tips_2017.pkl', 'rb') as p:
         data = pickle.load(p)
     if molecule not in data:
         raise ValueError(f"Molecule '{molecule}' is not in TIPS database.")
@@ -113,7 +113,7 @@ def tips(molecule, isotopes=None, outfile=None, db_type='as_tips'):
     # Get exomol isotope names if requested:
     if db_type == 'as_exomol':
         ID, molecs, hitran, exomol, iso_ratio, iso_mass = \
-            io.read_isotopes(pc.ROOT+'inputs/isotopes.dat')
+            io.read_isotopes(pc.ROOT+'pyratbay/data/isotopes.dat')
         iso_map = {exo:hit for mol, hit, exo in zip(molecs, exomol, hitran)
                    if mol==molecule}
         isotopes = [iso_map[iso] for iso in isotopes]

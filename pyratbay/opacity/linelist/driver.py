@@ -163,7 +163,7 @@ class Linelist(object):
           Isotopic terrestrial abundance ratio.
       """
       ID, name, hit_iso, exo_iso, iso_ratio, iso_mass = \
-          io.read_isotopes(ROOT + 'inputs/isotopes.dat')
+          io.read_isotopes(ROOT + 'pyratbay/data/isotopes.dat')
 
       if dbtype == 'hitran':
           isotopes = hit_iso

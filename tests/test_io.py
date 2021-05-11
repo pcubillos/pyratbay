@@ -205,8 +205,8 @@ def test_read_write_atm_ptqr(tmpdir):
 
 
 def test_read_atm_no_temp():
-    with pytest.raises(ValueError, match="Atmospheric file does not have "
-                       "'@TEMPERATURE' header"):
+    match = "Atmospheric file does not have '@TEMPERATURE' header"
+    with pytest.raises(ValueError, match=match):
         dummy = io.read_atm('inputs/uniform_notemp_test.atm')
 
 
@@ -307,7 +307,7 @@ def test_read_pt(tmpdir):
 
 
 def test_read_molecs():
-    names, mass, diam = io.read_molecs(ROOT+'inputs/molecules.dat')
+    names, mass, diam = io.read_molecs(ROOT+'pyratbay/data/molecules.dat')
     assert 'H2O' in names
     assert 'CH4' in names
     assert 'CO' in names
@@ -319,7 +319,7 @@ def test_read_molecs():
 
 def test_read_isotopes():
     ID, mol, hit_iso, exo_iso, ratio, mass = io.read_isotopes(
-        pc.ROOT+'inputs/isotopes.dat')
+        pc.ROOT+'pyratbay/data/isotopes.dat')
     assert 'H2O' in mol
     assert np.all(ID[mol=='H2O'] == 1)
     assert list(hit_iso[mol=='H2O']) == \

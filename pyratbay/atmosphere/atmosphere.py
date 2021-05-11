@@ -294,7 +294,7 @@ def abundance(pressure, temperature, species, elements=None,
     >>> Q = pa.abundance(press, temp, species)
     """
     if solar_file is None:
-        solar_file = pc.ROOT + "inputs/AsplundEtal2009.txt"
+        solar_file = pc.ROOT + "pyratbay/data/AsplundEtal2009.txt"
     if log is None:
         log = mu.Log(verb=verb)
     # Uniform-abundances profile:
@@ -316,7 +316,7 @@ def abundance(pressure, temperature, species, elements=None,
         pressure/pt.u(punits), temperature, atomic_file, elements, specs, patm)
     # Run TEA:
     pt.make_tea(abun_file=atomic_file, verb=verb, ncpu=ncpu)
-    proc = subprocess.Popen([pc.ROOT+"modules/TEA/tea/runatm.py", patm, "TEA"])
+    proc = subprocess.Popen([pc.ROOT+"pyratbay/TEA/tea/runatm.py", patm, "TEA"])
     proc.communicate()
 
     # Reformat the TEA output into the pyrat format:
@@ -588,7 +588,7 @@ def mean_weight(abundances, species=None, molfile=None, mass=None):
         raise ValueError('Either species or mass arguments must be specified')
     if mass is None:
         if molfile is None:
-            molfile = pc.ROOT + 'inputs/molecules.dat'
+            molfile = pc.ROOT + 'pyratbay/data/molecules.dat'
         names, mass, diam = io.read_molecs(molfile)
         mass = np.array([mass[names==spec][0] for spec in species])
 
@@ -891,7 +891,7 @@ def make_atomic(xsolar=1.0, escale={}, atomic_file=None, solar_file=None):
     >>> z, symbol, dex, names, mass = pa.make_atomic(xsolar=10, escale=escale)
     """
     if solar_file is None:
-        solar_file = pc.ROOT + 'inputs/AsplundEtal2009.txt'
+        solar_file = pc.ROOT + 'pyratbay/data/AsplundEtal2009.txt'
     # Read the Asplund et al. (2009) solar elementa abundances:
     index, symbol, dex, name, mass = io.read_atomic(solar_file)
 
@@ -951,7 +951,7 @@ def make_preatm(pressure, temp, afile, elements, species, patm):
 
     # pyrat--TEA name dictionary:
     pyrat_to_tea = {}
-    for line in open(pc.ROOT+"inputs/TEA_gdata_defaults.txt", "r"):
+    for line in open(pc.ROOT+"pyratbay/data/TEA_gdata_defaults.txt", "r"):
         pyrat_name, tea_name = line.split()
         pyrat_to_tea[pyrat_name] = tea_name
 

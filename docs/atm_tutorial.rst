@@ -157,6 +157,17 @@ Here is an example of a ``madhu`` atmosphere configuration file
 Temperature-profile Examples
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+.. note:: Before running this example, download the configuration
+          files shown above, e.g., with these shell commands:
+
+          .. code-block:: shell
+
+              tutorial_path=https://raw.githubusercontent.com/pcubillos/pyratbay/master/examples/tutorial
+              wget $tutorial_path/pt_isothermal.cfg
+              wget $tutorial_path/pt_tcea.cfg
+              wget $tutorial_path/pt_madhu.cfg
+
+
 The following Python script creates and plots the pressure-temperature
 profiles for the configuration files shown above:
 
@@ -169,10 +180,6 @@ profiles for the configuration files shown above:
   import pyratbay as pb
   import pyratbay.constants as pc
 
-  # Before running the rest of this script, you'll need to copy the
-  # config files to your current folder, you can find them here, e.g.:
-  # print(f'{pc.ROOT}examples/tutorial/pt_isothermal.cfg')
-
   # Generate PT profiles:
   press, t_iso   = pb.run("pt_isothermal.cfg")[0:2]
   press, t_tcea  = pb.run("pt_tcea.cfg")[0:2]
@@ -181,9 +188,9 @@ profiles for the configuration files shown above:
   # Plot the PT profiles:
   plt.figure(11)
   plt.clf()
-  plt.semilogy(t_iso,   press/pc.bar, color='b', lw=2, label='isothermal')
-  plt.semilogy(t_tcea,  press/pc.bar, color='r', lw=2, label='tcea')
-  plt.semilogy(t_madhu, press/pc.bar, color='g', lw=2, label='madhu')
+  plt.semilogy(t_iso,   press/pc.bar, color='mediumblue', lw=2, label='isothermal')
+  plt.semilogy(t_tcea,  press/pc.bar, color='orange', lw=2, label='tcea')
+  plt.semilogy(t_madhu, press/pc.bar, color='tab:green', lw=2, label='madhu')
   plt.ylim(100, 1e-5)
   plt.xlim(800, 1200)
   plt.legend(loc="best", fontsize=12)
@@ -237,7 +244,8 @@ specifying the mole mixing fraction for each of the species listed in
 ``species``.  An atmosphere config file must also set the ``atmfile``
 key specifying the output atmospheric file name.
 
-Here is an example of a uniform atmosphere configuration file:
+Here is an example of a uniform atmosphere configuration file (`atmosphere_uniform.cfg
+<https://github.com/pcubillos/pyratbay/blob/master/examples/tutorial/atmosphere_uniform.cfg>`_):
 
 .. literalinclude:: ../examples/tutorial/atmosphere_uniform.cfg
 
@@ -259,14 +267,26 @@ however, the user can scale the abundance of metals by setting the
 the ``escale`` key element and scale factor pairs:
 
 Here is an example of a thermochemical-equilibrium atmosphere
-configuration file:
+configuration file (`atmosphere_tea.cfg
+<https://github.com/pcubillos/pyratbay/blob/master/examples/tutorial/atmosphere_tea.cfg>`_):
 
 .. literalinclude:: ../examples/tutorial/atmosphere_tea.cfg
 
 ----------------------------------------------------------------------
 
+.. _abundance_tutorial_example:
+
 Abundance-profile Examples
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. note:: Before running this example, download the configuration
+          files shown above, e.g., with these shell commands:
+
+          .. code-block:: shell
+
+              tutorial_path=https://raw.githubusercontent.com/pcubillos/pyratbay/master/examples/tutorial
+              wget $tutorial_path/atmosphere_tea.cfg
+              wget $tutorial_path/atmosphere_uniform.cfg
 
 The following Python script creates and plots the abundance
 Aprofiles for the configuration files shown above:
@@ -278,10 +298,6 @@ Aprofiles for the configuration files shown above:
 
     import pyratbay as pb
     import pyratbay.plots as pp
-
-    # Before running the rest of this script, you'll need to copy the
-    # config files to your current folder, you can find them here, e.g.:
-    # print(f'{pb.constants.ROOT}examples/tutorial/atmosphere_tea.cfg')
 
     # Generate a uniform and a thermochemical-equilibrium atmospheric model:
     pressure, temp, q_tea, species, radius = pb.run("atmosphere_tea.cfg")
@@ -354,13 +370,23 @@ unknown for a give particular case [Griffith2014]_, its value lies
 at around 0.1 bar.
 
 Here is an example of a hydrostatic-equilibrium atmosphere
-configuration file:
+configuration file (`atmosphere_hydro_m.cfg
+<https://github.com/pcubillos/pyratbay/blob/master/examples/tutorial/atmosphere_hydro_m.cfg>`_):
 
 .. literalinclude:: ../examples/tutorial/atmosphere_hydro_m.cfg
 
 
 Altitude-profile Examples
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. note:: Before running this example, download the configuration
+          files shown above, e.g., with these shell commands:
+
+          .. code-block:: shell
+
+              tutorial_path=https://raw.githubusercontent.com/pcubillos/pyratbay/master/examples/tutorial
+              wget $tutorial_path/atmosphere_hydro_m.cfg
+              wget $tutorial_path/atmosphere_hydro_g.cfg
 
 The following Python script creates and plots the profiles
 for the configuration file shown above:
@@ -372,10 +398,6 @@ for the configuration file shown above:
 
     import pyratbay as pb
     import pyratbay.constants as pc
-
-    # Before running the rest of this script, you'll need to copy the
-    # config files to your current folder, you can find them here, e.g.:
-    # print(f'{pc.ROOT}examples/tutorial/atmosphere_hydro_m.cfg')
 
     # Kepler-11c mass and radius:
     pressure, temp, q, species, radius = pb.run("atmosphere_hydro_m.cfg")

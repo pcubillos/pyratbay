@@ -201,7 +201,7 @@ Density profiles (d, molecules cm-3):
     species [ 6]:   [ 6.918e+05  8.708e+05 ...  3.457e+13  4.349e+13]
 """.format(os.getcwd())
 
-    assert str(pyrat.mol) == """\
+    assert str(pyrat.mol) == f"""\
 Atmospheric species information:
 Number of species (nmol): 7
 
@@ -216,13 +216,13 @@ Molecule    Mass       Radius
   CO         28.0101       1.690
   CO2        44.0095       1.900
 Molecular data taken from (molfile):
-    '{:s}/molecules.dat'
-""".format(os.path.realpath('./../inputs'))
+    '{os.path.realpath('./../pyratbay/data')}/molecules.dat'
+"""
 
-    assert str(pyrat.lt) == """\
+    assert str(pyrat.lt) == f"""\
 Line-transition information:
 Input TLI files (tlifile):
-    ['{:s}/outputs/HITRAN_H2O_1.1-1.7um_test.tli']
+    ['{os.getcwd()}/outputs/HITRAN_H2O_1.1-1.7um_test.tli']
 Number of databases (ndb): 1
 
 Database name (name): HITRAN H2O
@@ -253,7 +253,7 @@ Line-transition lower-state energy (elow, cm-1):
     [ 1.807e+03  2.106e+03  2.630e+03 ...  1.244e+03  5.201e+02  6.531e+02]
 Line-transition gf (gf, cm-1):
     [ 1.399e-08  1.188e-09  1.210e-08 ...  5.498e-06  1.558e-07  1.076e-06]
-""".format(os.getcwd())
+"""
 
     assert str(pyrat.iso) == """\
 Isotopes information:
@@ -335,7 +335,7 @@ Cross-section extinction information:
 Number of cross-section files (nfiles): 2
 
 Cross-section file name (files[0]):
-    '{:s}/inputs/CIA/CIA_Borysow_H2H2_0060-7000K_0.6-500um.dat'
+    '{:s}/pyratbay/data/CIA/CIA_Borysow_H2H2_0060-7000K_0.6-500um.dat'
 Cross-section species (molecules): H2-H2
 Number of temperature samples: 20
 Number of wavenumber samples: 824
@@ -352,7 +352,7 @@ Input extinction coefficient (absorption, cm-1 amagat-2):
  [ 3.87e-09  1.55e-08 ...  2.23e-09  2.20e-09]]
 
 Cross-section file name (files[1]):
-    '{:s}/inputs/CIA/CIA_Borysow_H2He_0050-3000K_0.3-030um.dat'
+    '{:s}/pyratbay/data/CIA/CIA_Borysow_H2He_0050-3000K_0.3-030um.dat'
 Cross-section species (molecules): H2-He
 Number of temperature samples: 20
 Number of wavenumber samples: 1652

@@ -30,7 +30,7 @@ The following table details what each of these steps do.
 | ``atmosphere`` | Generate a 1D atmospheric model (pressure, temperature,    |
 |                | abundances, and altitude profiles)                         |
 +----------------+------------------------------------------------------------+
-| ``opacity``    | Generate an opacity table as function of wavenumber,       |
+| ``opacity``    | Generate a cross-section table as function of wavenumber,  |
 |                | temperature, pressure, and species                         |
 +----------------+------------------------------------------------------------+
 | ``spectrum``   | Compute forward-modeling spectra (transmission or          |
@@ -146,18 +146,15 @@ Download the water line-transition database from the HITRAN server and unzip it:
 Copy the input and configuration files for the demo from the `examples
 folder
 <https://github.com/pcubillos/pyratbay/tree/master/examples/demo>`_ to
-your working directory. You can find these files on your local machine
-with the following Python script:
+your working directory.  For example, use the following shell commands:
 
 .. code-block:: shell
 
-    # This shell command shows you where the demo files are located:
-    pbay --root
-
-    # Lets assign that output to a variable and use it to copy
-    # the files required for this demo:
-    pb_root=$(pbay --root)
-    cp $pb_root/examples/demo/* .
+    demo_path=https://raw.githubusercontent.com/pcubillos/pyratbay/master/examples/demo
+    wget $demo_path/demo_spectrum-emission.cfg
+    wget $demo_path/demo_spectrum-transmission.cfg
+    wget $demo_path/demo_tli-hitran.cfg
+    wget $demo_path/uniform.atm
 
 
 Execute these commands from the shell to create a
@@ -166,8 +163,10 @@ transmission and emission spectra:
 
 .. code-block:: shell
 
+   # Format line-by-line opacity:
    pbay -c demo_tli-hitran.cfg
 
+   # Compute transmission and emission spectra:
    pbay -c demo_spectrum-transmission.cfg
    pbay -c demo_spectrum-emission.cfg
 

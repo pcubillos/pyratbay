@@ -682,7 +682,7 @@ def make_tea(maxiter=200, savefiles=False, times=False, location_TEA=None,
     TBD
     """
     if location_TEA is None:
-        location_TEA = os.path.realpath(pc.ROOT + 'modules/TEA/')
+        location_TEA = os.path.realpath(pc.ROOT + 'pyratbay/TEA/')
 
     # Open new configparser:
     config = configparser.ConfigParser()

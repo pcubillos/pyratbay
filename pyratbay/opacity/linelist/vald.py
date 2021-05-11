@@ -63,7 +63,7 @@ class Vald(Linelist):
       name = name.split()[0]      # Keep the species only
 
       # Read atomic info file from inputs folder:
-      with open(f'{pc.ROOT}inputs/atoms.dat', 'r') as afile:
+      with open(f'{pc.ROOT}pyratbay/data/atoms.dat', 'r') as afile:
           atoms = afile.readlines()
 
       isotopes = []

@@ -6922,3 +6922,59 @@ Sorted out MANIFEST.in file.
 
 Added pyproject.toml file.
 
+
+*****  Sun May 9 20:34:08 CEST 2021  *****
+
+Moved non-code data files from inputs to pyratbay/data
+(make them available for pip intalls)
+
+Udated setup.py (adding package_data argument) and MANIFEST.in files
+accordingly.
+Updated paths in config files and code accordingly.
+
+*****
+
+Updated tests according to new data file path.
+
+*****
+
+Updated docs.
+
+*****
+
+Moved TEA submodule from modules/TEA to pyratbay/TEA
+(pip compatibility)
+
+
+*****  Mo 10. Mai 10:06:18 CEST 2021  *****
+
+Updated setup.py to include TEA files.
+
+*****
+
+Updated docs.
+Added tutorial filter files for MCMC example.
+
+*****
+
+Separated setup.py's long_description from README content
+because it needs to be rst instead of markdown to work properly.
+Fixed minor issue in README.md file.
+
+*****
+
+Updated mcmc_eclipse.cfg tutorial file.
+
+*****
+
+Another tiny tweak to the README.md file.
+
+*****
+
+Updated API docs.
+
+
+*****  Di 11. Mai 18:16:16 CEST 2021  *****
+
+Updated link to draft in docs.
+

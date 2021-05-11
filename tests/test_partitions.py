@@ -35,7 +35,7 @@ def test_get_tips_molname_error():
 def test_pf_tips():
     expected_temp = np.array([1] + [i for i in range(5,19,5)]
                                  + [i for i in range(20,5001,10)], float)
-    with open(pc.ROOT+'inputs/tips_2017.pkl', 'rb') as p:
+    with open(pc.ROOT+'pyratbay/data/tips_2017.pkl', 'rb') as p:
         expected_pf = pickle.load(p)['H2O']
     with pt.cd('outputs/'):
         pf_data, isotopes, temp = pf.tips('H2O', outfile='default')
