@@ -6992,3 +6992,8 @@ Also, only tighten when the user does not provide the ax argument.
 *****
 
 Updated Bibtex with link to ADS and Bibtex entry.
+
+*****
+
+Updated docs, link to ADS, and added cookbook section.
+

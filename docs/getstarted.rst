@@ -98,7 +98,7 @@ To install ``Pyrat Bay`` run the following command from the terminal:
 
     pip install pyratbay
 
-Or if you prefer conda (soon!):
+Or if you prefer conda:
 
 .. code-block:: shell
 

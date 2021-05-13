@@ -87,19 +87,19 @@ Documentation
    spec_tutorial
    opac_tutorial
    mcmc_tutorial
+   cookbook
    api
    units
    references
    contributing
    license
 
-.. add: references section
 
 Be Kind
 =======
 
 If you found ``Pyrat Bay`` useful for your research, please cite this article:
-  `Cubillos & Blecic (2021): The Pyrat Bay Framework for Exoplanet Atmospheric Modeling: A Population Study of Hubble/WFC3 Transmission Spectra <https://drive.google.com/file/d/1cxo8EBdTpK6nFCB0fAVKIevLYfe63in1/view?usp=sharing>`_, MNRAS.
+  `Cubillos & Blecic (2021): The Pyrat Bay Framework for Exoplanet Atmospheric Modeling: A Population Study of Hubble/WFC3 Transmission Spectra <https://ui.adsabs.harvard.edu/abs/2021arXiv210505598C>`_, MNRAS.
 
 Please prefer to channel your feedback or inquiries through the Github issue tracker: `<https://github.com/pcubillos/pyratbay>`_, or alternatively through this email: `patricio.cubillos[at]oeaw.ac.at`_.
 
