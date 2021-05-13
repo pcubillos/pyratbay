@@ -1294,10 +1294,10 @@ def export_pandexo(pyrat, baseline, transit_duration,
     exo_dict['star']['radius'] = pyrat.phy.rstar/pc.rsun
     exo_dict['star']['r_unit'] = 'R_sun'
 
-    if pyrat.od.path == 'transit':
+    if pyrat.od.rt_path == 'transit':
         exo_dict['planet']['f_unit'] = 'rp^2/r*^2'
         spectrum = pyrat.spec.spectrum
-    elif pyrat.od.path == 'eclipse':
+    elif pyrat.od.rt_path == 'emission':
         exo_dict['planet']['f_unit'] = 'fp/f*'
         rprs = pyrat.phy.rplanet/pyrat.phy.rstar
         spectrum = pyrat.spec.spectrum/pyrat.spec.starflux * rprs**2

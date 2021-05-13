@@ -6978,3 +6978,8 @@ Updated API docs.
 
 Updated link to draft in docs.
 
+
+*****  Thu May 13 15:47:52 CEST 2021  *****
+
+Fixed pyrat.od.path to rt_path variable name in export_pandexo().
+
