@@ -15,7 +15,7 @@
 ```
 pip install pyratbay
 ```
-or (soon!):
+or:
 ```
 conda install -c conda-forge pyratbay
 ```
@@ -23,16 +23,23 @@ conda install -c conda-forge pyratbay
 ### Docs at:
 <https://pyratbay.readthedocs.io/en/latest/>
 
-### Cite as:
+### Cite as ([ADS](https://ui.adsabs.harvard.edu/abs/2021arXiv210505598C)):
+
 ```bibtex
-  @ARTICLE{CubillosBlecic2021mnrasPyratBay,
-         author = {{Cubillos}, Patricio E. and {Blecic}, Jasmina},
-          title = "The {Pyrat Bay} Framework for Exoplanet Atmospheric Modeling: A Population Study of Hubble/WFC3 Transmission Spectra",
-           year = 2021,
-        journal = {\mnras},
-            doi = {10.1093/mnras/stx0000},
-         adsurl = {https://ui.adsabs.harvard.edu/abs/2021MNRAS.000.0000C},
-        adsnote = {Provided by the SAO/NASA Astrophysics Data System},
-  }
+@ARTICLE{CubillosBlecic2021mnrasPyratBay,
+       author = {{Cubillos}, Patricio E. and {Blecic}, Jasmina},
+        title = "{The {Pyrat Bay} Framework for Exoplanet Atmospheric Modeling: A Population Study of Hubble/WFC3 Transmission Spectra}",
+      journal = {arXiv e-prints},
+     keywords = {Astrophysics - Earth and Planetary Astrophysics, Astrophysics - Instrumentation and Methods for Astrophysics},
+         year = 2021,
+        month = may,
+          eid = {arXiv:2105.05598},
+        pages = {arXiv:2105.05598},
+archivePrefix = {arXiv},
+       eprint = {2105.05598},
+ primaryClass = {astro-ph.EP},
+       adsurl = {https://ui.adsabs.harvard.edu/abs/2021arXiv210505598C},
+      adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+}
 ```
 

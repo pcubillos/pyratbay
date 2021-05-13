@@ -6978,3 +6978,26 @@ Updated API docs.
 
 Updated link to draft in docs.
 
+
+*****  Thu May 13 15:47:52 CEST 2021  *****
+
+Fixed pyrat.od.path to rt_path variable name in export_pandexo().
+
+*****
+
+Tweaked plots.temperature() to enable the user to provide the theme
+argument as a two-element tuple of color names.
+Also, only tighten when the user does not provide the ax argument.
+
+*****
+
+Updated Bibtex with link to ADS and Bibtex entry.
+
+*****
+
+Updated docs, link to ADS, and added cookbook section.
+
+*****
+
+Bumped version to 1.0.1.
+
