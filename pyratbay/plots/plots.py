@@ -441,6 +441,7 @@ def temperature(pressure, profiles=None, labels=None, colors=None,
     theme: String
         The histograms' color theme for bounds regions.
         Only 'blue' and 'orange' themes are valid at the moment.
+        Alternatively, provide a two-element iterable to provide the colors.
     alpha: 2-element float iterable
         Alpha transparency for bounds regions.
     fs: Float
@@ -461,6 +462,8 @@ def temperature(pressure, profiles=None, labels=None, colors=None,
         col1, col2 = 'royalblue', 'royalblue'
     elif theme == 'orange':
         col1, col2 = 'orange', 'gold'
+    else:  # Custom pair of colors:
+        col1, col2 = theme
     # alpha != 0 does not work for ps/eps figures:
     alpha1, alpha2 = alpha[:]
     if filename is not None and filename.endswith('ps'):
@@ -484,6 +487,7 @@ def temperature(pressure, profiles=None, labels=None, colors=None,
         c = cycle(default_colors.values())
         colors = [next(c) for _ in profiles]
 
+    tighten = ax is None
     if ax is None:
         plt.figure(fignum, (7,5))
         plt.clf()
@@ -508,7 +512,8 @@ def temperature(pressure, profiles=None, labels=None, colors=None,
     ax.tick_params(labelsize=fs-2)
     if labels is not None:
         plt.legend(loc='best', fontsize=fs-2)
-    plt.tight_layout()
+    if tighten:
+        plt.tight_layout()
     if filename is not None:
         plt.savefig(filename)
     return ax

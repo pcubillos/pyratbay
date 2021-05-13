@@ -6983,3 +6983,9 @@ Updated link to draft in docs.
 
 Fixed pyrat.od.path to rt_path variable name in export_pandexo().
 
+*****
+
+Tweaked plots.temperature() to enable the user to provide the theme
+argument as a two-element tuple of color names.
+Also, only tighten when the user does not provide the ax argument.
+
