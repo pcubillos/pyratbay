@@ -6997,3 +6997,7 @@ Updated Bibtex with link to ADS and Bibtex entry.
 
 Updated docs, link to ADS, and added cookbook section.
 
+*****
+
+Bumped version to 1.0.1.
+
