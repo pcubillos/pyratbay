@@ -62,8 +62,8 @@ class VanderWaals(object):
               det = np.abs(wn_window - wn0) < dsigma[j]
               wlo = pt.ifirst(det, default_ret=-1)
               whi = pt.ilast( det, default_ret=-2) + 1
-              self.voigt.hwhmL = lor[j]
-              self.voigt.hwhmG = dop[j]
+              self.voigt.hwhm_L = lor[j]
+              self.voigt.hwhm_G = dop[j]
               wndet = wn_window[wlo:whi]
               # EC at the detuning boundary:
               edet = self.voigt(wn0+dsigma[j])

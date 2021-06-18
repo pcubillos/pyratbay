@@ -12,10 +12,14 @@ import pyratbay.constants as pc
 
 os.chdir(pc.ROOT + 'tests')
 
-keys = ['lorentz', 'gauss',
-        'voigt0.01', 'voigt0.1', 'voigt1.0', 'voigt10.0', 'voigt100.0']
-expected = {key:np.load(f"expected/expected_profile_{key}_test.npz")['arr_0']
-            for key in keys}
+keys = [
+    'lorentz', 'gauss',
+    'voigt0.01', 'voigt0.1', 'voigt1.0', 'voigt10.0', 'voigt100.0',
+]
+expected = {
+    key:np.load(f"expected/expected_profile_{key}_test.npz")['arr_0']
+    for key in keys
+}
 
 
 def test_Lorentz_hwhm():
@@ -56,19 +60,48 @@ def test_Gauss():
     np.testing.assert_allclose(gauss(x), expected['gauss'], rtol=1e-7)
 
 
-@pytest.mark.parametrize("hL, key",
-    [(0.01,  'voigt0.01'),
-     (0.1,   'voigt0.1'),
-     (1.0,   'voigt1.0'),
-     (10.0,  'voigt10.0'),
-     (100.0, 'voigt100.0')])
-def test_Voigt(hL, key):
-    Nw = 10.0
-    hG = 1.0
-    voigt = pb.Voigt(x0=0.0, hwhmG=hG, hwhmL=hL)
-    width = 0.5346*hL + np.sqrt(0.2166*hL**2+hG**2)
-    x = np.arange(-Nw*width, Nw*width, width/300.0)
-    np.testing.assert_allclose(voigt(x), expected[key], rtol=1e-7)
+def test_Voigt_Gauss_hwhm():
+    hwhm_L = 1.0e-10
+    hwhm_G = 1.0
+    voigt = pb.Voigt(x0=0.0, hwhm_L=hwhm_L, hwhm_G=hwhm_G)
+    x = np.linspace(-10.0, 10.0, 100001)
+    profile = voigt(x)
+    voigt_hwhm = 0.5*np.ptp(x[profile>0.5*np.amax(profile)])
+    np.testing.assert_approx_equal(voigt_hwhm, 1.0, 3)
+
+
+def test_Voigt_Lorentz_hwhm():
+    hwhm_L = 1.0
+    hwhm_G = 1.0e-10
+    voigt = pb.Voigt(x0=0.0, hwhm_L=hwhm_L, hwhm_G=hwhm_G)
+    x = np.linspace(-10.0, 10.0, 100001)
+    profile = voigt(x)
+    voigt_hwhm = 0.5*np.ptp(x[profile>0.5*np.amax(profile)])
+    np.testing.assert_approx_equal(voigt_hwhm, 1.0, 3)
+
+
+@pytest.mark.parametrize("hwhm_L, hwhm_G",
+    [(1e-10, 1.0),
+     (1e-2, 1.0),
+     (1.0, 1.0),
+     (1.0, 1e-2),
+     (1.0, 1e-10)])
+def test_Voigt_integral(hwhm_L, hwhm_G):
+    voigt = pb.Voigt(x0=0.0, hwhm_L=hwhm_L, hwhm_G=hwhm_G, scale=1.0)
+    x = np.linspace(-1000.0, 1000.0, 100001)
+    np.testing.assert_approx_equal(np.trapz(voigt(x),x), 1.0, 3)
+
+
+@pytest.mark.parametrize("hwhm_L",
+    (0.01, 0.1, 1.0, 10.0, 100.0,))
+def test_Voigt(hwhm_L):
+    nwidths = 10.0
+    hwhm_G = 1.0
+    voigt = pb.Voigt(x0=0.0, hwhm_G=hwhm_G, hwhm_L=hwhm_L)
+    width = 0.5346*hwhm_L + np.sqrt(0.2166*hwhm_L**2+hwhm_G**2)
+    x = np.arange(-nwidths*width, nwidths*width, width/300.0)
+    expected_voigt = expected['voigt'+str(hwhm_L)]
+    np.testing.assert_allclose(voigt(x), expected_voigt, rtol=1e-7)
 
 
 def test_doppler_hwhm():

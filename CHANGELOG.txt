@@ -7001,3 +7001,26 @@ Updated docs, link to ADS, and added cookbook section.
 
 Bumped version to 1.0.1.
 
+
+*****  Fr 18. Jun 10:05:09 CEST 2021  *****
+
+Corrected factor of sqrt(2) in broadening.Voigt()'s Gauss HWMH.
+Updated current tests and added tests to check for correct width
+and scale.
+
+*****
+
+Renamed broadening.Voigt argument and parameters hwhmL, hwhmG
+to hwhm_L, hwhm_G, respectively.
+This is a non-backward compatible modification (which is not a
+good idea in general, but it had to be done).
+
+*****
+
+Simplified calculations in broadening.Voigt().
+Some PEP8 cleaning.
+
+*****
+
+Bumped pyratbay version to 1.0.2.
+
