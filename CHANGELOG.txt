@@ -7015,3 +7015,8 @@ to hwhm_L, hwhm_G, respectively.
 This is a non-backward compatible modification (which is not a
 good idea in general, but it had to be done).
 
+*****
+
+Simplified calculations in broadening.Voigt().
+Some PEP8 cleaning.
+
