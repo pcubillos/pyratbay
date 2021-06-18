@@ -226,17 +226,16 @@ class Voigt(object):
          The line profile at the x locations.
       """
       if self.hwhmL/self.hwhmG < 0.1:
-          # sigma * sqrt(2):
-          sigmaroot2 = self.hwhmG / (self._sqrtln2 * np.sqrt(2))
-          z = (x + 1j * self.hwhmL - self.x0) / sigmaroot2
-          return self.scale * ss.wofz(z).real / (sigmaroot2 * self._sqrtpi)
+          sigma = self.hwhmG / (self._sqrtln2 * np.sqrt(2))
+          z = (x + 1j * self.hwhmL - self.x0) / (sigma * np.sqrt(2))
+          return self.scale * ss.wofz(z).real / (sigma * np.sqrt(2*np.pi))
 
       # This is faster than the previous script (but fails for HWl/HWg > 1.0):
       X = (x-self.x0) * self._sqrtln2 / self.hwhmG
       Y = self.hwhmL * self._sqrtln2 / self.hwhmG
 
       V = 0.0
-      for i in np.arange(4):
+      for i in range(4):
           V += (self._C[i]*(Y-self._A[i]) + self._D[i]*(X-self._B[i])) \
                / ((Y-self._A[i])**2 + (X-self._B[i])**2)
       V /= np.pi * self.hwhmL
