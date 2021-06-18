@@ -7020,3 +7020,7 @@ good idea in general, but it had to be done).
 Simplified calculations in broadening.Voigt().
 Some PEP8 cleaning.
 
+*****
+
+Bumped pyratbay version to 1.0.2.
+
