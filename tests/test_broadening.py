@@ -63,7 +63,7 @@ def test_Gauss():
 def test_Voigt_Gauss_hwhm():
     hwhm_L = 1.0e-10
     hwhm_G = 1.0
-    voigt = pb.Voigt(x0=0.0, hwhmL=hwhm_L, hwhmG=hwhm_G)
+    voigt = pb.Voigt(x0=0.0, hwhm_L=hwhm_L, hwhm_G=hwhm_G)
     x = np.linspace(-10.0, 10.0, 100001)
     profile = voigt(x)
     voigt_hwhm = 0.5*np.ptp(x[profile>0.5*np.amax(profile)])
@@ -73,7 +73,7 @@ def test_Voigt_Gauss_hwhm():
 def test_Voigt_Lorentz_hwhm():
     hwhm_L = 1.0
     hwhm_G = 1.0e-10
-    voigt = pb.Voigt(x0=0.0, hwhmL=hwhm_L, hwhmG=hwhm_G)
+    voigt = pb.Voigt(x0=0.0, hwhm_L=hwhm_L, hwhm_G=hwhm_G)
     x = np.linspace(-10.0, 10.0, 100001)
     profile = voigt(x)
     voigt_hwhm = 0.5*np.ptp(x[profile>0.5*np.amax(profile)])
@@ -87,7 +87,7 @@ def test_Voigt_Lorentz_hwhm():
      (1.0, 1e-2),
      (1.0, 1e-10)])
 def test_Voigt_integral(hwhm_L, hwhm_G):
-    voigt = pb.Voigt(x0=0.0, hwhmL=hwhm_L, hwhmG=hwhm_G, scale=1.0)
+    voigt = pb.Voigt(x0=0.0, hwhm_L=hwhm_L, hwhm_G=hwhm_G, scale=1.0)
     x = np.linspace(-1000.0, 1000.0, 100001)
     np.testing.assert_approx_equal(np.trapz(voigt(x),x), 1.0, 3)
 
@@ -97,7 +97,7 @@ def test_Voigt_integral(hwhm_L, hwhm_G):
 def test_Voigt(hwhm_L):
     nwidths = 10.0
     hwhm_G = 1.0
-    voigt = pb.Voigt(x0=0.0, hwhmG=hwhm_G, hwhmL=hwhm_L)
+    voigt = pb.Voigt(x0=0.0, hwhm_G=hwhm_G, hwhm_L=hwhm_L)
     width = 0.5346*hwhm_L + np.sqrt(0.2166*hwhm_L**2+hwhm_G**2)
     x = np.arange(-nwidths*width, nwidths*width, width/300.0)
     expected_voigt = expected['voigt'+str(hwhm_L)]

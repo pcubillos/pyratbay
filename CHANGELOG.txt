@@ -7008,3 +7008,10 @@ Corrected factor of sqrt(2) in broadening.Voigt()'s Gauss HWMH.
 Updated current tests and added tests to check for correct width
 and scale.
 
+*****
+
+Renamed broadening.Voigt argument and parameters hwhmL, hwhmG
+to hwhm_L, hwhm_G, respectively.
+This is a non-backward compatible modification (which is not a
+good idea in general, but it had to be done).
+

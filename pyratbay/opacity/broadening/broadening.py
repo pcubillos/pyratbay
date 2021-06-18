@@ -145,26 +145,27 @@ class Voigt(object):
   Parameters
   ----------
   x0: Float
-     Line center location.
-  hwhmL: Float
-     Half-width at half maximum of the Lorentz distribution.
-  hwhmG: Float
-     Half-width at half maximum of the Gaussian distribution.
+      Line center location.
+  hwhm_L: Float
+      Half-width at half maximum of the Lorentz distribution.
+  hwhm_G: Float
+      Half-width at half maximum of the Gaussian distribution.
   scale: Float
-     Scale of the profile (scale=1 returns a profile with integral=1.0).
+      Scale of the profile (scale=1 returns a profile with integral=1.0).
 
-  Example
-  -------
+  Examples
+  --------
   >>> import numpy as np
   >>> import matplotlib.pyplot as plt
   >>> import pyratbay.opacity.broadening as b
+
   >>> Nl = 5
   >>> Nw = 10.0
-  >>> hG = 1.0
+  >>> hwhm_G = 1.0
   >>> HL = np.logspace(-2, 2, Nl)
   >>> l = b.Lorentz(x0=0.0)
-  >>> d = b.Gauss  (x0=0.0, hwhm=hG)
-  >>> v = b.Voigt  (x0=0.0, hwhmG=hG)
+  >>> d = b.Gauss(x0=0.0, hwhm=hwhm_G)
+  >>> v = b.Voigt(x0=0.0, hwhm_G=hwhm_G)
 
   >>> plt.figure(11, (6,6))
   >>> plt.clf()
@@ -172,9 +173,9 @@ class Voigt(object):
   >>> for i in np.arange(Nl):
   >>>   hL = HL[i]
   >>>   ax = plt.subplot(Nl, 1, 1+i)
-  >>>   v.hwhmL = hL
+  >>>   v.hwhm_L = hL
   >>>   l.hwhm  = hL
-  >>>   width = 0.5346*hL + np.sqrt(0.2166*hL**2+hG**2)
+  >>>   width = 0.5346*hL + np.sqrt(0.2166*hL**2+hwhm_G**2)
   >>>   x = np.arange(-Nw*width, Nw*width, width/1000.0)
   >>>   plt.plot(x/width, l(x), lw=2.0, color="b",         label="Lorentz")
   >>>   plt.plot(x/width, d(x), lw=2.0, color="limegreen", label="Doppler")
@@ -182,7 +183,7 @@ class Voigt(object):
   >>>            dashes=(8,2))
   >>>   plt.ylim(np.amin([l(x), v(x)]), 3*np.amax([l(x), v(x), d(x)]))
   >>>   ax.set_yscale("log")
-  >>>   plt.text(0.025, 0.75, r"$\rm HW_L/HW_G={:4g}$".format(hL/hG),
+  >>>   plt.text(0.025, 0.75, r"$\rm HW_L/HW_G={:4g}$".format(hL/hwhm_G),
   >>>            transform=ax.transAxes)
   >>>   plt.xlim(-Nw, Nw)
   >>>   plt.xlabel(r"$\rm x/HW_V$", fontsize=12)
@@ -192,11 +193,11 @@ class Voigt(object):
   >>>   if i == 0:
   >>>       plt.legend(loc="upper right", fontsize=11)
   """
-  def __init__(self, x0=0.0, hwhmL=1.0, hwhmG=1.0, scale=1.0):
+  def __init__(self, x0=0.0, hwhm_L=1.0, hwhm_G=1.0, scale=1.0):
       # Profile parameters:
       self.x0    = x0
-      self.hwhmL = hwhmL
-      self.hwhmG = hwhmG
+      self.hwhm_L = hwhm_L
+      self.hwhm_G = hwhm_G
       self.scale = scale
       # Constants:
       self._A = np.array([-1.2150, -1.3509, -1.2150, -1.3509])
@@ -225,21 +226,21 @@ class Voigt(object):
       v: 1D float ndarray
          The line profile at the x locations.
       """
-      if self.hwhmL/self.hwhmG < 0.1:
-          sigma = self.hwhmG / (self._sqrtln2 * np.sqrt(2))
-          z = (x + 1j * self.hwhmL - self.x0) / (sigma * np.sqrt(2))
+      if self.hwhm_L/self.hwhm_G < 0.1:
+          sigma = self.hwhm_G / (self._sqrtln2 * np.sqrt(2))
+          z = (x + 1j * self.hwhm_L - self.x0) / (sigma * np.sqrt(2))
           return self.scale * ss.wofz(z).real / (sigma * np.sqrt(2*np.pi))
 
       # This is faster than the previous script (but fails for HWl/HWg > 1.0):
-      X = (x-self.x0) * self._sqrtln2 / self.hwhmG
-      Y = self.hwhmL * self._sqrtln2 / self.hwhmG
+      X = (x-self.x0) * self._sqrtln2 / self.hwhm_G
+      Y = self.hwhm_L * self._sqrtln2 / self.hwhm_G
 
       V = 0.0
       for i in range(4):
           V += (self._C[i]*(Y-self._A[i]) + self._D[i]*(X-self._B[i])) \
                / ((Y-self._A[i])**2 + (X-self._B[i])**2)
-      V /= np.pi * self.hwhmL
-      return self.scale * self.hwhmL/self.hwhmG * self._sqrtpi*self._sqrtln2 * V
+      V /= np.pi * self.hwhm_L
+      return self.scale * self.hwhm_L/self.hwhm_G * self._sqrtpi*self._sqrtln2 * V
 
 
 def doppler_hwhm(temperature, mass, wn):
