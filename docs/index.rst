@@ -16,13 +16,11 @@ Pyrat Bay:
 |License|
 
 
-.. TBD: This the badge for another paper! Replace with Pyrat Bay's when published.
-
-    .. raw:: html
+.. raw:: html
 
     <embed>
     <span class="__dimensions_badge_embed__"
-        data-doi="10.1093/mnras/stw3103"
+        data-doi="10.1093/mnras/stab1405"
         data-style="small_circle"
         data-legend="always">
     </span>
@@ -99,7 +97,7 @@ Be Kind
 =======
 
 If you found ``Pyrat Bay`` useful for your research, please cite this article:
-  `Cubillos & Blecic (2021): The Pyrat Bay Framework for Exoplanet Atmospheric Modeling: A Population Study of Hubble/WFC3 Transmission Spectra <https://ui.adsabs.harvard.edu/abs/2021arXiv210505598C>`_, MNRAS.
+  `Cubillos & Blecic (2021): The Pyrat Bay Framework for Exoplanet Atmospheric Modeling: A Population Study of Hubble/WFC3 Transmission Spectra <https://ui.adsabs.harvard.edu/abs/2021MNRAS.505.2675C>`_, *MNRAS, 505, 2675.*
 
 Please prefer to channel your feedback or inquiries through the Github issue tracker: `<https://github.com/pcubillos/pyratbay>`_, or alternatively through this email: `patricio.cubillos[at]oeaw.ac.at`_.
 

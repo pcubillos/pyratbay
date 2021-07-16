@@ -7024,3 +7024,8 @@ Some PEP8 cleaning.
 
 Bumped pyratbay version to 1.0.2.
 
+
+*****  Fr 16. Jul 12:44:14 CEST 2021  *****
+
+Updated docs with link to citations badge and updated ADS link.
+
