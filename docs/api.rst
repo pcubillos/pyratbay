@@ -310,7 +310,6 @@ __________________
 
   os.path.realpath(os.path.dirname(__file__) + '/../..') + '/'
 
-
 .. py:data:: dbases
 .. code-block:: pycon
 
@@ -2227,7 +2226,7 @@ ___________________________
 
     Initialize self.  See help(type(self)) for accurate signature.
 
-.. py:class:: Voigt(x0=0.0, hwhmL=1.0, hwhmG=1.0, scale=1.0)
+.. py:class:: Voigt(x0=0.0, hwhm_L=1.0, hwhm_G=1.0, scale=1.0)
 
 .. code-block:: pycon
 
@@ -2236,52 +2235,67 @@ ___________________________
     Parameters
     ----------
     x0: Float
-       Line center location.
-    hwhmL: Float
-       Half-width at half maximum of the Lorentz distribution.
-    hwhmG: Float
-       Half-width at half maximum of the Gaussian distribution.
+        Line center location.
+    hwhm_L: Float
+        Half-width at half maximum of the Lorentz distribution.
+    hwhm_G: Float
+        Half-width at half maximum of the Gaussian distribution.
     scale: Float
-       Scale of the profile (scale=1 returns a profile with integral=1.0).
+        Scale of the profile (scale=1 returns a profile with integral=1.0).
 
-    Example
-    -------
+    Examples
+    --------
     >>> import numpy as np
     >>> import matplotlib.pyplot as plt
     >>> import pyratbay.opacity.broadening as b
-    >>> Nl = 5
-    >>> Nw = 10.0
-    >>> hG = 1.0
-    >>> HL = np.logspace(-2, 2, Nl)
-    >>> l = b.Lorentz(x0=0.0)
-    >>> d = b.Gauss  (x0=0.0, hwhm=hG)
-    >>> v = b.Voigt  (x0=0.0, hwhmG=hG)
 
+    >>> hwhm_G = 1.0
+    >>> hwhm_L = 1.0
+    >>> voigt = b.Voigt(x0=0.0, hwhm_L=hwhm_L, hwhm_G=hwhm_G)
+
+    >>> plt.figure('A Voigt profile', (6,4))
+    >>> plt.clf()
+    >>> ax = plt.subplot(1, 1, 1)
+    >>> x = np.linspace(-15.0, 15.0, 3001)
+    >>> plt.plot(x, voigt(x), lw=2.0, color="orange")
+    >>> plt.xlim(np.amin(x), np.amax(x))
+    >>> plt.xlabel(r"x", fontsize=12)
+    >>> plt.ylabel(r"Voigt profile", fontsize=12)
+
+    >>> # Compare a range of Voigt, Lorentz, and Doppler profiles:
+    >>> lorentz = b.Lorentz(x0=0.0, hwhm=hwhm_L)
+    >>> doppler = b.Gauss(x0=0.0, hwhm=hwhm_G)
+    >>> nplots = 5
+    >>> HWHM_L = np.logspace(-2, 2, nplots)
+    >>> nwidths = 10.0
     >>> plt.figure(11, (6,6))
     >>> plt.clf()
     >>> plt.subplots_adjust(0.15, 0.1, 0.95, 0.95, wspace=0, hspace=0)
-    >>> for i in np.arange(Nl):
-    >>>   hL = HL[i]
-    >>>   ax = plt.subplot(Nl, 1, 1+i)
-    >>>   v.hwhmL = hL
-    >>>   l.hwhm  = hL
-    >>>   width = 0.5346*hL + np.sqrt(0.2166*hL**2+hG**2)
-    >>>   x = np.arange(-Nw*width, Nw*width, width/1000.0)
-    >>>   plt.plot(x/width, l(x), lw=2.0, color="b",         label="Lorentz")
-    >>>   plt.plot(x/width, d(x), lw=2.0, color="limegreen", label="Doppler")
-    >>>   plt.plot(x/width, v(x), lw=2.0, color="orange",    label="Voigt",
-    >>>            dashes=(8,2))
-    >>>   plt.ylim(np.amin([l(x), v(x)]), 3*np.amax([l(x), v(x), d(x)]))
-    >>>   ax.set_yscale("log")
-    >>>   plt.text(0.025, 0.75, r"$\rm HW_L/HW_G={:4g}$".format(hL/hG),
-    >>>            transform=ax.transAxes)
-    >>>   plt.xlim(-Nw, Nw)
-    >>>   plt.xlabel(r"$\rm x/HW_V$", fontsize=12)
-    >>>   plt.ylabel(r"$\rm Profile$")
-    >>>   if i != Nl-1:
-    >>>       ax.set_xticklabels([""])
-    >>>   if i == 0:
-    >>>       plt.legend(loc="upper right", fontsize=11)
+    >>> for i,hwhm_L in enumerate(HWHM_L):
+    >>>     ax = plt.subplot(nplots, 1, 1+i)
+    >>>     voigt.hwhm_L = lorentz.hwhm = hwhm_L
+    >>>     width = 0.5346*hwhm_L + np.sqrt(0.2166*hwhm_L**2+hwhm_G**2)
+    >>>     x = np.arange(-nwidths*width, nwidths*width, width/1000.0)
+    >>>     plt.plot(x/width, lorentz(x), lw=2.0, color="blue", label="Lorentz")
+    >>>     plt.plot(
+    >>>         x/width, doppler(x), lw=2.0, color="limegreen", label="Doppler")
+    >>>     plt.plot(
+    >>>         x/width, voigt(x), lw=2.0, color="orange", label="Voigt",
+    >>>         dashes=(4,1))
+    >>>     ymin = np.amin([lorentz(x), voigt(x)])
+    >>>     ymax = np.amax([lorentz(x), voigt(x), doppler(x)])
+    >>>     plt.ylim(ymin, 3*ymax)
+    >>>     ax.set_yscale("log")
+    >>>     plt.text(
+    >>>         0.025, 0.75, rf"$\rm HWHM_L/HWHM_G={hwhm_L/hwhm_G:4g}$",
+    >>>         transform=ax.transAxes)
+    >>>     plt.xlim(-nwidths, nwidths)
+    >>>     plt.xlabel(r"$\rm x/HWHM_V$", fontsize=12)
+    >>>     plt.ylabel("Profile")
+    >>>     if i != nplots-1:
+    >>>         ax.set_xticklabels([])
+    >>>     if i == 0:
+    >>>         plt.legend(loc="upper right", fontsize=11)
 
   .. code-block:: pycon
 
@@ -2619,6 +2633,7 @@ ______________
     theme: String
         The histograms' color theme for bounds regions.
         Only 'blue' and 'orange' themes are valid at the moment.
+        Alternatively, provide a two-element iterable to provide the colors.
     alpha: 2-element float iterable
         Alpha transparency for bounds regions.
     fs: Float
