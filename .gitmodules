@@ -1,3 +1,0 @@
-[submodule "modules/TEA"]
-	path = pyratbay/TEA
-	url = https://github.com/dzesmin/TEA

@@ -7044,3 +7044,11 @@ Some minor edits to fix pytest warnings.
 Updated test_tli_hitran_wfc3() to include check that the output file
 was created.
 
+*****
+
+Removed TEA submodule.
+At this point, the user needs to manually clone/install the
+TEA package.  Thi should be automated in the future after TEA gets
+updated to be pip-installable, and become a requirement for the
+pyratbay package.
+
