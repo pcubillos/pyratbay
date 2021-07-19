@@ -312,7 +312,7 @@ def contribution(contrib_func, wl, rt_path, pressure, radius, rtop=0,
         return
 
     fs  = 12
-    colors = np.asarray(np.linspace(0, 255, nfilters), np.int)
+    colors = np.asarray(np.linspace(0, 255, nfilters), int)
     # 68% percentile boundaries of the central cumulative function:
     lo = 0.5*(1-0.683)
     hi = 1.0 - lo

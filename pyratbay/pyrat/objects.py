@@ -224,7 +224,7 @@ class Linetransition(object):
       self.wn      = np.array([], np.double)  # Line wavenumber
       self.elow    = np.array([], np.double)  # Line lower energy level
       self.gf      = np.array([], np.double)  # Line gf value
-      self.isoid   = np.array([], np.int)     # Line isotope index
+      self.isoid   = np.array([], int)     # Line isotope index
 
   def clone_new(self, pyrat):
       """Return a new LT instance (as returned by Pyrat.__init__)."""
@@ -287,8 +287,8 @@ class Isotopes(object):
       self.name    = np.array([])          # Isotope's name [niso]
       self.mass    = np.array([])          # Isotope's mass [niso]
       self.ratio   = np.array([])          # Isotopic abundance ratio  [niso]
-      self.dbindex = np.array([], np.int)  # Isotope's data base index [niso]
-      self.imol    = np.array([], np.int)  # Isotope's molecule index  [niso]
+      self.dbindex = np.array([], int)  # Isotope's data base index [niso]
+      self.imol    = np.array([], int)  # Isotope's molecule index  [niso]
       self.iext    = None                  # Molecule index in ext-coef. table
       self.z       = None                  # Isotopes' partition function at
                                            #   atmospheric layer [niso, nlayers]

@@ -7,7 +7,7 @@ __all__ = [
     'band_integrate',
     ]
 
-from collections import Iterable
+from collections.abc import Iterable
 
 import numpy as np
 import scipy.interpolate as si

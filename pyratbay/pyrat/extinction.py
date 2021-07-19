@@ -246,7 +246,7 @@ def extinction(pyrat, indices, grid=False, add=False):
 
   if pyrat.iso.iext is None:
       # Get species indices in opacity table for the isotopes:
-      pyrat.iso.iext = np.zeros(pyrat.iso.niso, np.int)
+      pyrat.iso.iext = np.zeros(pyrat.iso.niso, int)
       for i in np.arange(pyrat.iso.niso):
           if pyrat.iso.imol[i] != -1:
               pyrat.iso.iext[i] = np.where(

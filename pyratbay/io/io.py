@@ -863,7 +863,7 @@ def read_atomic(afile):
     """
     # Allocate arrays:
     nelements = 84  # Fixed number
-    atomic_num = np.zeros(nelements, np.int)
+    atomic_num = np.zeros(nelements, int)
     symbol = np.zeros(nelements, '|U2')
     dex    = np.zeros(nelements, np.double)
     name   = np.zeros(nelements, '|U20')

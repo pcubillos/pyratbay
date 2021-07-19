@@ -9,11 +9,11 @@ __all__ = [
     ]
 
 import functools
+from collections.abc import Iterable
 
 import numpy as np
 from numpy.core.numeric import isscalar
 from scipy.ndimage import gaussian_filter1d
-from collections import Iterable
 
 from ... import constants as pc
 from ...lib import _pt

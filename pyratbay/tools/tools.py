@@ -34,7 +34,7 @@ import string
 import textwrap
 import itertools
 import functools
-from collections import Iterable
+from collections.abc import Iterable
 from contextlib import contextmanager
 import configparser
 
@@ -222,7 +222,7 @@ def divisors(number):
       if number % i == 0:
         divs.append(i)
     divs.append(number)
-    return np.asarray(divs, np.int)
+    return np.asarray(divs, int)
 
 
 def unpack(file, n, dtype):
@@ -363,7 +363,7 @@ def get_param(param, units='none', gt=None, ge=None):
             if not hasattr(pc, units):
                 raise ValueError(f"Invalid units for value '{param}'")
         try:
-            value = np.float(par[0])
+            value = float(par[0])
         except:
             raise ValueError(f"Invalid value '{param}'")
     else:
@@ -417,7 +417,7 @@ def ifirst(data, default_ret=-1):
     >>> print(pt.ifirst([False, False, False], default_ret=0))
     0
     """
-    return _indices.ifirst(np.asarray(data, np.int), default_ret)
+    return _indices.ifirst(np.asarray(data, int), default_ret)
 
 
 def ilast(data, default_ret=-1):
@@ -451,7 +451,7 @@ def ilast(data, default_ret=-1):
     >>> print(pt.ilast([False, False, False], default_ret=0))
     0
     """
-    return _indices.ilast(np.asarray(data, np.int), default_ret)
+    return _indices.ilast(np.asarray(data, int), default_ret)
 
 
 def isfile(path):

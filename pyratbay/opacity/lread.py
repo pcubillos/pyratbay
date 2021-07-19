@@ -200,7 +200,7 @@ def make_tli(dblist, pflist, dbtype, tlifile, wllow,  wlhigh, wlunits, log):
     wnumber = np.array([], np.double)
     gf      = np.array([], np.double)
     elow    = np.array([], np.double)
-    isoID   = np.array([], np.int)
+    isoID   = np.array([], int)
     # Read from file and write the transition info:
     for db in databases:
         # Get database index:
@@ -214,9 +214,9 @@ def make_tli(dblist, pflist, dbtype, tlifile, wllow,  wlhigh, wlunits, log):
             continue
 
         wnumber = np.concatenate((wnumber, transitions[0]))
-        gf      = np.concatenate((gf,      transitions[1]))
-        elow    = np.concatenate((elow,    transitions[2]))
-        isoID   = np.concatenate((isoID,   transitions[3]+accum[idb]))
+        gf      = np.concatenate((gf, transitions[1]))
+        elow    = np.concatenate((elow, transitions[2]))
+        isoID   = np.concatenate((isoID, transitions[3]+accum[idb]))
 
         unique_iso = np.unique(transitions[3])
         log.msg(

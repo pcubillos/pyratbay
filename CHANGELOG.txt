@@ -7033,3 +7033,9 @@ Updated docs with link to citations badge and updated ADS link.
 
 Updated API.
 
+
+*****  Mo 19. Jul 14:40:01 CEST 2021  *****
+
+Moved pytest.ini to parent folder (where it should have been).
+Some minor edits to fix pytest warnings.
+
