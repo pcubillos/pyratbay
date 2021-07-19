@@ -7039,3 +7039,8 @@ Updated API.
 Moved pytest.ini to parent folder (where it should have been).
 Some minor edits to fix pytest warnings.
 
+*****
+
+Updated test_tli_hitran_wfc3() to include check that the output file
+was created.
+

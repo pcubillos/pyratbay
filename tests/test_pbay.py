@@ -293,7 +293,7 @@ def test_units_in_value_invalid(tmp_path, capfd):
 @pytest.mark.sort(order=1)
 def test_tli_hitran_wfc3():
     pb.run(ROOT+'tests/configs/tli_hitran_1.1-1.7um_test.cfg')
-    # TBD: asserts on output file
+    assert 'HITRAN_H2O_1.1-1.7um_test.tli' in os.listdir('outputs/')
 
 
 @pytest.mark.skip(reason="Skip until implementing in Python3")
@@ -346,7 +346,8 @@ def test_atmosphere_uniform(tmp_path):
 
 def test_atmosphere_tea(tmp_path):
     atmfile = str(tmp_path / 'test.atm')
-    cfg = make_config(tmp_path,
+    cfg = make_config(
+        tmp_path,
         ROOT+'tests/configs/atmosphere_tea_test.cfg',
         reset={'atmfile':atmfile})
 
