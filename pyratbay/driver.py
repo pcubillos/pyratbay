@@ -98,11 +98,17 @@ def run(cfile, run_step='run', no_logfile=False):
         # Compute volume-mixing-ratio profiles:
         if atm.chemistry is not None or pyrat.runmode != 'atmosphere':
             check_atm(pyrat)
-            species = inputs.species
-            abundances = pa.abundance(
-                pressure, temperature, species, inputs.elements,
-                inputs.uniform, atm.atmfile, atm.punits, inputs.xsolar,
-                atm.escale, inputs.solar, log)
+            chem_net = pa.chemistry(
+                atm.chemistry,
+                pressure, temperature, inputs.species,
+                atm.metallicity, atm.e_scale,
+                solar_file=inputs.solar, log=log,
+                atmfile=atm.atmfile, punits=atm.punits,
+                q_uniform=inputs.uniform,
+                )
+
+            abundances = chem_net.vmr
+            species = chem_net.species
 
         # Compute altitude profile:
         if abundances is not None and atm.rmodelname is not None:
@@ -296,17 +302,13 @@ def check_atm(pyrat):
                             f"not match the number of species ({nspecies}).")
         return
 
-    # TEA abundances:
-    if atm.chemistry == 'tea':
-        if pyrat.inputs.elements is None:
-            log.error("Undefined elemental composition list (elements) for "
-                     f"{atm.chemistry} chemistry model.")
-
     pyrat.inputs.solar = pyrat.inputs.get_default(
-        'solar', 'Solar-abundance file',
+        'solar',
+        'Solar-abundance file',
         pc.ROOT+'pyratbay/data/AsplundEtal2009.txt')
     pyrat.inputs.xsolar = pyrat.inputs.get_default(
-        'xsolar', 'Solar-metallicity scaling factor',
+        'xsolar',
+        'Solar-metallicity scaling factor',
         1.0, gt=0.0, wflag=True)
 
 

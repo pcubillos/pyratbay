@@ -7052,3 +7052,29 @@ TEA package.  Thi should be automated in the future after TEA gets
 updated to be pip-installable, and become a requirement for the
 pyratbay package.
 
+
+*****  Di 20. Jul 10:16:31 CEST 2021  *****
+
+Replaced current TEA submodule call with temporary TEA dependency
+(which uses the C-implemented newton optimization).
+Removed make_preatm and make_atomic (no longer needed).
+
+
+*****  Do 22. Jul 16:18:30 CEST 2021  *****
+
+Implemented atmosphere.chemistry() to compute atmospheric chemistry
+but returns a callable object which enables further chemical
+equilibrium calculations, as opposed to atmosphere.abundance().
+Removed atmosphere.make_atomic() and atmosphere.make_preatm()
+which are no longer used.
+Added e_scale and metallicity options to pyratbay configuration files.
+Updated some tests (but more is needed).
+
+There are still many loose ties:
+- deprecation warnings,
+- testing,
+- connecting pyratbay--tea arguments,
+- officializing TEA as a pip-installable requirement,
+- phase out atmosphere.abundance().
+- remove tools.make_tea()
+

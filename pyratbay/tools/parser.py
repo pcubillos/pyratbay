@@ -401,7 +401,9 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         parse_str(args,   'ptfile')
         parse_str(args,   'solar')
         parse_float(args, 'xsolar')
+        parse_float(args, 'metallicity')
         parse_array(args, 'escale')
+        parse_array(args, 'e_scale')
         parse_array(args, 'elements')
         # Extinction options:
         parse_float(args, 'tmin')
@@ -562,7 +564,7 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         spec.wlunits = args.get_units('wllow')
 
     spec.wnlow  = args.get_default(
-        'wnlow', 'Wavenumber lower boundary',  gt=0.0)
+        'wnlow', 'Wavenumber lower boundary', gt=0.0)
     spec.wnhigh = args.get_default(
         'wnhigh', 'Wavenumber higher boundary', gt=0.0)
 
@@ -618,12 +620,29 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
     # Chemistry:
     atm.chemistry = args.get_choice(
        'chemistry', 'Chemical model', pc.chemmodels)
-
+    xsolar = args.get_default(
+        'xsolar', 'Atmospheric metallicity',)
+    if xsolar is not None:
+        args.metallicity = np.log10(xsolar)
+        # TBD: Throw 'deprecated' warning
+    atm.metallicity = args.get_default(
+        'metallicity',
+        'Atmospheric metallicity (dex, relative to solar)',
+        default=0.0)
     escale = args.get_default(
-       'escale', 'Elemental abundance scaling factors', [])
-    atm.escale = {
+       'escale', 'Elemental abundance scaling factors')
+    if escale is not None:
+        # TBD: Throw 'deprecated' warning
+        atm.e_scale = {
+            atom: np.log10(float(fscale))
+            for atom,fscale in zip(escale[::2], escale[1::2])
+        }
+
+    e_scale = args.get_default(
+       'escale', 'Elemental abundance scaling factors (dex)', [])
+    atm.e_scale = {
         atom: float(fscale)
-        for atom,fscale in zip(escale[::2], escale[1::2])
+        for atom,fscale in zip(e_scale[::2], e_scale[1::2])
         }
 
     # System physical parameters:
@@ -725,11 +744,11 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
     if pyrat.ret.retflag is None:
         pyrat.ret.retflag = []
 
-    pyrat.ret.params   = args.params
-    pyrat.ret.pstep    = args.pstep
-    pyrat.ret.pmin     = args.pmin
-    pyrat.ret.pmax     = args.pmax
-    pyrat.ret.prior    = args.prior
+    pyrat.ret.params = args.params
+    pyrat.ret.pstep = args.pstep
+    pyrat.ret.pmin = args.pmin
+    pyrat.ret.pmax = args.pmax
+    pyrat.ret.prior = args.prior
     pyrat.ret.priorlow = args.priorlow
     pyrat.ret.priorup = args.priorup
 

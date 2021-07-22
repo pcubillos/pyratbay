@@ -4,6 +4,7 @@
 __all__ = [
     'pressure',
     'temperature',
+    'chemistry',
     'uniform',
     'abundance',
     'hydro_g',
@@ -15,18 +16,16 @@ __all__ = [
     'equilibrium_temp',
     'transit_path',
     'temperature_posterior',
-    'make_atomic',
-    'make_preatm',
     ]
 
 import os
-import subprocess
 
 import numpy as np
 import scipy.integrate as si
 import scipy.constants as sc
 import scipy.interpolate as sip
 import mc3.utils as mu
+import tea.thermal_properties as tea
 
 from .. import tools as pt
 from .. import constants as pc
@@ -236,9 +235,118 @@ def uniform(pressure, temperature, species, abundances, punits="bar",
     return qprofiles
 
 
-def abundance(pressure, temperature, species, elements=None,
-        quniform=None, atmfile=None, punits='bar', xsolar=1.0,
-        escale={}, solar_file=None, log=None, verb=1, ncpu=1):
+def chemistry(
+    chem_model, pressure, temperature, species,
+    metallicity=0.0, e_scale={},
+    q_uniform=None,
+    solar_file=None, log=None, verb=1,
+    atmfile=None, punits='bar',
+    ):
+    """
+    Compute atmospheric abundaces for given pressure and
+    temperature profiles with either uniform abundances or TEA.
+
+    Parameters
+    ----------
+    chem_model: String
+        Name of chemistry model.
+    pressure: 1D float ndarray
+        Atmospheric pressure profile (barye).
+    temperature: 1D float ndarray
+        Atmospheric temperature profile (Kelvin).
+    species: 1D string list
+        Output atmospheric composition.
+    metallicity: Float
+        Metallicity enhancement factor in dex units relative to solar.
+    e_scale: Dict
+        Scaling abundance factor for specified atoms by the respective
+        values (in dex units, in addition to metallicity scaling).
+        E.g. (3x solar): e_scale = {'C': np.log10(3.0)}
+    solar_file: String
+        Input solar elemental abundances file (Default Asplund et al. 2009).
+    log: Log object
+        Screen-output log handler.
+    verb: Integer
+        Verbosity level.
+    atmfile: String
+        If not None, output file where to save the atmospheric model.
+    punits: String
+        Output pressure units.
+
+    Returns
+    -------
+    model: Callable
+        The atmospheric chemistry-network model.
+
+    Example
+    -------
+    >>> import pyratbay.atmosphere as pa
+    >>> import matplotlib.pyplot as plt
+    >>> import pyratbay.plots as pp
+
+    >>> nlayers = 100
+    >>> T0 = 1500.0
+    >>> pressure = pa.pressure('1e-8 bar', '1e3 bar', nlayers)
+    >>> temperature = pa.temperature('isothermal', pressure, nlayers, params=T0)
+    >>> species = 'H2O CH4 CO CO2 NH3 C2H2 C2H4 HCN N2 H2 H He H+ e-'.split()
+    >>> # Equilibrium abundances model:
+    >>> chem_model = 'tea'
+    >>> chem_network = pa.chemistry(
+    >>>     chem_model, pressure, temperature, species,)
+
+    >>> q_uniform = np.array([
+    >>>     5e-4, 3e-5, 2e-4, 1e-8,  1e-6, 1e-14, 1e-13, 5e-10,
+    >>>     1e-4, 0.85, 5e-3, 0.14,  3e-23, 1e-23])
+    >>> chem_model = 'uniform'
+    >>> chem_network_unif = pa.chemistry(
+    >>>     chem_model, pressure, temperature, species, q_uniform=q_uniform)
+
+    >>> # Plot the results:
+    >>> ax1 = pp.abundance(
+    >>>     chem_network.vmr, pressure, chem_network.species,
+    >>>     colors='default', xlim=[1e-30, 3.0])
+
+    >>> ax2 = pp.abundance(
+    >>>     chem_network_unif.vmr, pressure, chem_network_unif.species,
+    >>>     colors='default', xlim=[1e-30, 3.0], fignum=506)
+    """
+    if solar_file is None:
+        solar_file = f'{pc.ROOT}pyratbay/data/AsplundEtal2009.txt'
+    if log is None:
+        log = mu.Log(verb=verb)
+
+    log.head("\nCompute chemical abundances.")
+    chem_network = tea.Tea_Network(
+        pressure/pc.bar, temperature, species,
+        metallicity=metallicity,
+        e_scale=e_scale,
+        #e_ratio=e_ratio,
+        #solar_file,
+        )
+    if chem_model == 'uniform':
+        print(species)
+        print(chem_network.species)
+        print(q_uniform)
+        abundances = [
+            q_uniform[list(species).index(spec)]
+            for spec in chem_network.species
+        ]
+        chem_network.vmr = uniform(
+            pressure, temperature, chem_network.species, abundances=abundances)
+
+    elif chem_model == 'tea':
+        chem_network.thermochemical_equilibrium()
+    return chem_network
+
+
+def abundance(
+    pressure, temperature, species, elements=None,
+    quniform=None, atmfile=None, punits='bar',
+    metallicity=0.0, e_scale={},
+    solar_file=None, log=None, verb=1,
+    # To be deprecated:
+    ncpu=1, xsolar=None, escale={},
+    ):
     """
     Compute atmospheric abundaces for given pressure and
     temperature profiles with either uniform abundances or TEA.
@@ -260,11 +368,12 @@ def abundance(pressure, temperature, species, elements=None,
         If not None, output file where to save the atmospheric model.
     punits: String
         Output pressure units.
-    xsolar: Float
-        Metallicity enhancement factor.
-    escale: Dict
-        Multiplication factor for specified atoms (dict's keys)
-        by the respective values (on top of the xsolar scaling).
+    metallicity: Float
+        Metallicity enhancement factor in dex units relative to solar.
+    e_scale: Dict
+        Scaling abundance factor for specified atoms by the respective
+        values (in dex units, in addition to metallicity scaling).
+        E.g. (3x solar): e_scale = {'C': np.log10(3.0)}
     solar_file: String
         Input solar elemental abundances file (Default Asplund et al. 2009).
     log: Log object
@@ -273,6 +382,13 @@ def abundance(pressure, temperature, species, elements=None,
         Verbosity level.
     ncpu: Integer
         Number of parallel CPUs to use in TEA calculation.
+
+    xsolar: Float [DEPRECATED]
+        Metallicity enhancement factor.  Deprecated, use metallicity instead.
+    escale: Dict [DEPRECATED]
+        Multiplication factor for specified atoms (dict's keys)
+        by the respective values (on top of the xsolar scaling).
+        Deprecated, use e_scale instead.
 
     Returns
     -------
@@ -284,19 +400,19 @@ def abundance(pressure, temperature, species, elements=None,
     -------
     >>> import pyratbay.atmosphere as pa
     >>> import pyratbay.constants  as pc
-    >>> atmfile = "pbtea.atm"
+
     >>> nlayers = 100
     >>> press = np.logspace(-8, 3, nlayers) * pc.bar
-    >>> temp  = 900+500/(1+np.exp(-(np.log10(press)+1.5)*1.5))
-    >>> species = ['H2O', 'CH4', 'CO', 'CO2', 'NH3', 'C2H2', 'C2H4', 'HCN',
-    >>>            'N2', 'H2', 'H', 'He']
-    >>> # Automatically get 'elements' necessary from the list of species:
+    >>> temp  = np.tile(900.0, nlayers)
+    >>> species = 'H2O CH4 CO CO2 NH3 C2H2 C2H4 HCN N2 H2 H He'.split()
+    >>> # Thermochemical equilibrium abundances for requested species:
     >>> Q = pa.abundance(press, temp, species)
     """
     if solar_file is None:
         solar_file = pc.ROOT + "pyratbay/data/AsplundEtal2009.txt"
     if log is None:
         log = mu.Log(verb=verb)
+
     # Uniform-abundances profile:
     if quniform is not None:
         log.head("\nCompute uniform-abundances profile.")
@@ -304,31 +420,31 @@ def abundance(pressure, temperature, species, elements=None,
             pressure, temperature, species, quniform, punits, log, atmfile)
         return q
 
+    # Deprecated arguments:
+    if not e_scale and escale:
+        e_scale = {key: np.log10(val) for key,val in escale.items()}
+        # Deprecation warning
+    if xsolar is not None:
+        metallicity = np.log10(xsolar)
+        # Deprecation warning
+
     # TEA abundances:
     log.head("\nCompute TEA thermochemical-equilibrium abundances profile.")
-    # Prep up files:
-    atomic_file, patm = "PBatomicfile.tea", "PBpreatm.tea"
-    make_atomic(xsolar, escale, atomic_file, solar_file)
-    if elements is None:
-       elements, dummy = stoich(species)
-    specs = elements + list(np.setdiff1d(species, elements))
-    make_preatm(
-        pressure/pt.u(punits), temperature, atomic_file, elements, specs, patm)
-    # Run TEA:
-    pt.make_tea(abun_file=atomic_file, verb=verb, ncpu=ncpu)
-    proc = subprocess.Popen([pc.ROOT+"pyratbay/TEA/tea/runatm.py", patm, "TEA"])
-    proc.communicate()
-
-    # Reformat the TEA output into the pyrat format:
-    if atmfile is None:
-        atmfile = 'TEA.tea'
-    io.import_tea("TEA.tea", atmfile, species)
-    q = io.read_atm(atmfile)[4]
-    os.remove(atomic_file)
-    os.remove(patm)
-    os.remove("TEA.cfg")
-    os.remove("TEA.tea")
-    return q
+    tea_net = chemistry(
+        'tea', pressure, temperature, species,
+        metallicity=metallicity, e_scale=e_scale,
+        solar_file=solar_file, log=log, verb=verb,
+        #e_ratio=e_ratio,
+        #solar_file,
+        )
+    abundances = tea_net.vmr
+    if atmfile is not None:
+        header = "# TEA atmospheric file\n\n"
+        io.write_atm(
+            atmfile, pressure, temperature,
+            tea_net.species, abundances,
+            punits=punits, header=header)
+    return abundances
 
 
 def hydro_g(pressure, temperature, mu, g, p0=None, r0=None):
@@ -846,132 +962,3 @@ def temperature_posterior(posterior, tmodel, tpars, ifree, pressure):
         high2[i]  = np.percentile(tpost, 97.725)
     return median, low1, high1, low2, high2
 
-
-def make_atomic(xsolar=1.0, escale={}, atomic_file=None, solar_file=None):
-    """
-    Generate an (atomic) elemental-abundances file by scaling a
-    solar abundance composition.
-
-    Parameters
-    ----------
-    xsolar: Integer
-        Multiplication factor for metal abundances (everything
-        except H and He).
-    escale: Dict
-        Multiplication factor for specified atoms (dict's keys)
-        by the respective values (on top of the xsolar scaling).
-    atomic_file: String
-        Output filename of modified atomic abundances.
-    solar_file: String
-        Base (input) solar abundances filename. Defaulted to
-        Solar atomic composition by Asplund et al. (2009)
-
-    Returns
-    -------
-    z: 1D integer ndarray
-        Atomic number
-    symbol: 1D string ndarray
-        Atom symbols
-    dex: 1D float ndarray
-        Logarithmic abundance respective to hydrogen, where log(H) = 12.
-    name: 1D string ndarray
-        Atom names.
-    mass: 1D float ndarray
-        Atomic mass in amu.
-
-    Examples
-    --------
-    >>> import pyratbay.atmosphere as pa
-    >>> # Compute and store elemental composition with [M/H] = 0.1:
-    >>> afile = 'sub_solar_elemental_abundance.txt'
-    >>> z, symbol, dex, names, mass = pa.make_atomic(
-    >>>     xsolar=0.1, atomic_file=afile)
-    >>> # Compute elemental composition with [M/H] = 10 and [C/H] = 100:
-    >>> escale = {'C': 10.0}
-    >>> z, symbol, dex, names, mass = pa.make_atomic(xsolar=10, escale=escale)
-    """
-    if solar_file is None:
-        solar_file = pc.ROOT + 'pyratbay/data/AsplundEtal2009.txt'
-    # Read the Asplund et al. (2009) solar elementa abundances:
-    index, symbol, dex, name, mass = io.read_atomic(solar_file)
-
-    # Scale the metals aundances:
-    imetals = np.where((symbol != "H") & (symbol != "He"))
-    dex[imetals] += np.log10(xsolar)
-
-    for atom, fscale in escale.items():
-        dex[symbol == atom] += np.log10(fscale)
-
-    # Save data to file:
-    if atomic_file is not None:
-        with open(atomic_file, "w") as f:
-            f.write("# Elemental abundances:\n"
-                    "# atomic number, symbol, dex abundance, name, mass (u).\n")
-            nelements = len(symbol)
-            for i in range(nelements):
-                f.write("{:3d}  {:2s}  {:5.2f}  {:10s}  {:12.8f}\n".
-                    format(index[i], symbol[i], dex[i], name[i], mass[i]))
-    return index, symbol, dex, name, mass
-
-
-def make_preatm(pressure, temp, afile, elements, species, patm):
-    """
-    Generate a pre-atm file for TEA containing the elemental abundances
-    at each atmospheric layer.
-
-    Parameters
-    ----------
-    pressure: String
-        Pressure atmospheric profile (bar).
-    temp: 1D float array
-        Temperature atmospheric profile (in K).
-    afile: String
-        Name of the elemental abundances file.
-    elements: List of strings
-        List of input elemental species.
-    species: List of strings
-        List of output molecular species.
-    patm: String
-        Output pre-atmospheric filename.
-
-    Uncredited developers
-    ---------------------
-    Jasmina Blecic
-    """
-    # Number of layers:
-    nlayers = len(pressure)
-
-    # Get the elemental abundace data:
-    index, symbol, dex, name, mass = io.read_atomic(afile)
-    # Take only the elements we need:
-    iatoms = np.in1d(symbol, elements)
-
-    # Lisf of fractional number of molecules relative to hydrogen:
-    nfrac = (10.0**(dex-dex[np.where(symbol=="H")]))[iatoms].tolist()
-
-    # pyrat--TEA name dictionary:
-    pyrat_to_tea = {}
-    for line in open(pc.ROOT+"pyratbay/data/TEA_gdata_defaults.txt", "r"):
-        pyrat_name, tea_name = line.split()
-        pyrat_to_tea[pyrat_name] = tea_name
-
-    # Check species names:
-    for i in range(len(species)):
-        if species[i].find("_") < 0:
-            species[i] = pyrat_to_tea[species[i]]
-
-    # Write pre-atm file:
-    with open(patm, 'w') as f:
-        # Pre-atm header with basic instructions
-        f.write("# TEA pre-atmosphere file.\n"
-                "# pressure (bar), temperature (K), abundance (unitless).\n\n")
-
-        # Write species names:
-        f.write(f'#SPECIES\n{" ".join(species)}\n\n')
-
-        # Write TEA data:
-        f.write("#TEADATA\n#Pressure          Temp  " +
-                "  ".join([f"{atom:>12s}" for atom in symbol[iatoms]]) + "\n")
-        for i in range(nlayers):
-            f.write(f"{pressure[i]:10.4e}     {temp[i]:>8.2f}  ")
-            f.write("  ".join([f"{abun:12.6e}" for abun in nfrac]) + "\n")

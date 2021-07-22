@@ -395,17 +395,6 @@ def test_atmosphere_uniform_missing_uniform(tmp_path, capfd, undefined):
     assert undefined['uniform'] in captured.out
 
 
-def test_atmosphere_tea_missing_elements(tmp_path, capfd, undefined):
-    cfg = make_config(tmp_path,
-        ROOT+'tests/configs/atmosphere_tea_test.cfg',
-        remove=['elements'])
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert "Error in module: 'driver.py', function: 'check_atm'" in captured.out
-    assert undefined['elements'] in captured.out
-
-
 def test_atmosphere_uniform_mismatch_uniform(tmp_path, capfd):
     cfg = make_config(tmp_path,
         ROOT+'tests/configs/atmosphere_uniform_test.cfg',
@@ -422,7 +411,8 @@ def test_atmosphere_uniform_mismatch_uniform(tmp_path, capfd):
 # atmosphere (altitude) runmode fails:
 
 def test_atmosphere_hydro_missing_refpressure(tmp_path, capfd, undefined):
-    cfg = make_config(tmp_path,
+    cfg = make_config(
+        tmp_path,
         ROOT+'tests/configs/atmosphere_hydro_test.cfg',
         remove=['refpressure'])
     pyrat = pb.run(cfg)
