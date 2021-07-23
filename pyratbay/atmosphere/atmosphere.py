@@ -81,13 +81,15 @@ def pressure(ptop, pbottom, nlayers, units="bar", log=None, verb=0):
     pbot_txt = pbottom/pt.u(units)
 
     if ptop >= pbottom:
-        log.error(f'Bottom-layer pressure ({pbot_txt:.2e} {units}) must be '
+        log.error(
+            f'Bottom-layer pressure ({pbot_txt:.2e} {units}) must be '
             f'higher than the top-layer pressure ({ptop_txt:.2e} {units}).')
 
     # Create pressure array in barye (CGS) units:
     press = np.logspace(np.log10(ptop), np.log10(pbottom), nlayers)
-    log.head(f'Creating {nlayers}-layer atmospheric model between '
-             f'{pbot_txt:.1e} and {ptop_txt:.1e} {units}.')
+    log.head(
+        f'Creating {nlayers}-layer atmospheric model between '
+        f'{pbot_txt:.1e} and {ptop_txt:.1e} {units}.')
     return press
 
 
@@ -227,9 +229,11 @@ def uniform(pressure, temperature, species, abundances, punits="bar",
     qprofiles = np.tile(abundances, (nlayers,1))
 
     if atmfile is not None:
-        header = ("# This is an atmospheric file with pressure, temperature,\n"
-                  "# and uniform mole mixing ratio profiles.\n\n")
-        io.write_atm(atmfile, pressure, temperature, species, qprofiles,
+        header = (
+            "# This is an atmospheric file with pressure, temperature,\n"
+            "# and uniform mole mixing ratio profiles.\n\n")
+        io.write_atm(
+            atmfile, pressure, temperature, species, qprofiles,
             punits=punits, header=header)
 
     return qprofiles
@@ -324,9 +328,6 @@ def chemistry(
         #solar_file,
         )
     if chem_model == 'uniform':
-        print(species)
-        print(chem_network.species)
-        print(q_uniform)
         abundances = [
             q_uniform[list(species).index(spec)]
             for spec in chem_network.species
@@ -336,6 +337,14 @@ def chemistry(
 
     elif chem_model == 'tea':
         chem_network.thermochemical_equilibrium()
+
+    if atmfile is not None:
+        header = "# TEA atmospheric file\n\n"
+        io.write_atm(
+            atmfile, pressure, temperature,
+            chem_network.species, chem_network.vmr,
+            punits=punits, header=header)
+
     return chem_network
 
 
@@ -694,18 +703,23 @@ def mean_weight(abundances, species=None, molfile=None, mass=None):
     Examples
     --------
     >>> import pyratbay.atmosphere as pa
-    >>> species     = ['H2', 'He', 'H2O', 'CO', 'CO2', 'CH4']
-    >>> abundances  = [[0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]]
+    >>> species = 'H2 He H2O CO CO2 CH4'.split()
+    >>> abundances = [[0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]]
     >>> mu = pa.mean_weight(abundances, species)
     >>> print(mu)
-    [2.31928918]
+    [2.31939114]
     """
     if mass is None and species is None:
         raise ValueError('Either species or mass arguments must be specified')
     if mass is None:
         if molfile is None:
             molfile = pc.ROOT + 'pyratbay/data/molecules.dat'
-        names, mass, diam = io.read_molecs(molfile)
+        names, mass, radius = io.read_molecs(molfile)
+
+        if np.any(~np.isin(species, names)):
+            with pt.log_error():
+                missing = species[~np.isin(species, names)]
+                raise ValueError(f"Missing species masses for {missing}")
         mass = np.array([mass[names==spec][0] for spec in species])
 
     return np.sum(np.atleast_2d(abundances)*mass, axis=1)
