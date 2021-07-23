@@ -157,69 +157,74 @@ def read_extinction(pyrat):
 
 
 def calc_extinction(pyrat):
-  """
-  Compute the extinction-coefficient (per species) for a tabulated grid of
-  temperatures and pressures, over a wavenumber array.
-  """
-  # Extinction-coefficient object:
-  ex = pyrat.ex
+    """
+    Compute the extinction-coefficient (per species) for a tabulated grid of
+    temperatures and pressures, over a wavenumber array.
+    """
+    # Extinction-coefficient object:
+    ex = pyrat.ex
 
-  # Temperature boundaries check:
-  if ex.tmin < pyrat.lt.tmin:
-      pyrat.log.error('Requested extinction-coefficient table temperature '
-          '(tmin={:.1f} K) below the lowest available TLI temperature '
-          '({:.1f} K).'.format(ex.tmin, pyrat.lt.tmin))
-  if ex.tmax > pyrat.lt.tmax:
-      pyrat.log.error('Requested extinction-coefficient table temperature '
-          '(tmax={:.1f} K) above the highest available TLI temperature '
-          '({:.1f} K).'.format(ex.tmax, pyrat.lt.tmax))
+    # Temperature boundaries check:
+    if ex.tmin < pyrat.lt.tmin:
+        pyrat.log.error(
+            'Requested extinction-coefficient table temperature '
+            f'(tmin={ex.tmin:.1f} K) below the lowest available TLI '
+            f'temperature ({pyrat.lt.tmin:.1f} K).')
+    if ex.tmax > pyrat.lt.tmax:
+        pyrat.log.error(
+            'Requested extinction-coefficient table temperature '
+            f'(tmax={ex.tmax:.1f} K) above the highest available TLI '
+            f'temperature ({pyrat.lt.tmax:.1f} K).')
 
-  # Create the temperature array:
-  ex.ntemp = int((ex.tmax-ex.tmin)/ex.tstep) + 1
-  ex.temp  = np.linspace(ex.tmin, ex.tmin + (ex.ntemp-1)*ex.tstep, ex.ntemp)
+    # Create the temperature array:
+    ex.ntemp = int((ex.tmax-ex.tmin)/ex.tstep) + 1
+    ex.temp = np.linspace(ex.tmin, ex.tmin + (ex.ntemp-1)*ex.tstep, ex.ntemp)
 
-  with np.printoptions(formatter={'float':'{:.1f}'.format}):
-      pyrat.log.msg("Temperature sample (K):\n {}".format(ex.temp), indent=2)
+    with np.printoptions(formatter={'float':'{:.1f}'.format}):
+        pyrat.log.msg(f"Temperature sample (K):\n {ex.temp}", indent=2)
 
-  # Evaluate the partition function at the given temperatures:
-  pyrat.log.msg("Interpolate partition function.", indent=2)
-  ex.z = np.zeros((pyrat.iso.niso, ex.ntemp), np.double)
-  for i in np.arange(pyrat.lt.ndb):           # For each Database
-      for j in np.arange(pyrat.lt.db[i].niso):  # For each isotope in DB
-          zinterp = sip.interp1d(pyrat.lt.db[i].temp, pyrat.lt.db[i].z[j],
-                                 kind='slinear')
-          ex.z[pyrat.lt.db[i].iiso+j] = zinterp(ex.temp)
+    # Evaluate the partition function at the given temperatures:
+    pyrat.log.msg("Interpolate partition function.", indent=2)
+    ex.z = np.zeros((pyrat.iso.niso, ex.ntemp), np.double)
+    for i in np.arange(pyrat.lt.ndb):           # For each Database
+        for j in np.arange(pyrat.lt.db[i].niso):  # For each isotope in DB
+            zinterp = sip.interp1d(
+                pyrat.lt.db[i].temp, pyrat.lt.db[i].z[j], kind='slinear')
+            ex.z[pyrat.lt.db[i].iiso+j] = zinterp(ex.temp)
 
-  # Allocate wavenumber, pressure, and isotope arrays:
-  ex.wn    = pyrat.spec.wn
-  ex.nwave = pyrat.spec.nwave
+    # Allocate wavenumber, pressure, and isotope arrays:
+    ex.wn = pyrat.spec.wn
+    ex.nwave = pyrat.spec.nwave
 
-  ex.press = pyrat.atm.press
-  ex.nlayers = pyrat.atm.nlayers
+    ex.press = pyrat.atm.press
+    ex.nlayers = pyrat.atm.nlayers
 
-  # Allocate extinction-coefficient array:
-  pyrat.log.msg("Calculate extinction coefficient.", indent=2)
-  sm_ect = mpr.Array(ctypes.c_double,
-      np.zeros(ex.nspec*ex.ntemp*ex.nlayers*ex.nwave, np.double))
-  ex.etable = np.ctypeslib.as_array(sm_ect.get_obj()).reshape(
-                             (ex.nspec, ex.ntemp, ex.nlayers, ex.nwave))
+    # Allocate extinction-coefficient array:
+    pyrat.log.msg("Calculate extinction coefficient.", indent=2)
+    sm_ect = mpr.Array(
+        ctypes.c_double,
+        np.zeros(ex.nspec*ex.ntemp*ex.nlayers*ex.nwave, np.double))
+    ex.etable = np.ctypeslib.as_array(
+        sm_ect.get_obj()).reshape((ex.nspec, ex.ntemp, ex.nlayers, ex.nwave))
 
-  # Multi-processing extinction calculation (in C):
-  processes = []
-  indices = np.arange(ex.ntemp*ex.nlayers) % pyrat.ncpu  # CPU indices
-  for i in np.arange(pyrat.ncpu):
-      proc = mpr.Process(target=extinction,           # grid  add
-                  args=(pyrat, np.where(indices==i)[0], True, False))
-      processes.append(proc)
-      proc.start()
-  for proc in processes:
-      proc.join()
+    # Multi-processing extinction calculation (in C):
+    processes = []
+    indices = np.arange(ex.ntemp*ex.nlayers) % pyrat.ncpu  # CPU indices
+    for i in range(pyrat.ncpu):
+        proc = mpr.Process(
+            target=extinction,                    # grid  add
+            args=(pyrat, np.where(indices==i)[0], True, False))
+        processes.append(proc)
+        proc.start()
+    for proc in processes:
+        proc.join()
 
-  # Store values in file:
-  io.write_opacity(ex.extfile[0], ex.species, ex.temp, ex.press, ex.wn,
-                   pyrat.ex.etable)
-  pyrat.log.head("Extinction-coefficient table written to file: '{:s}'.".
-                format(ex.extfile[0]), indent=2)
+    # Store values in file:
+    io.write_opacity(
+        ex.extfile[0], ex.species, ex.temp, ex.press, ex.wn, pyrat.ex.etable)
+    pyrat.log.head(
+        f"Extinction-coefficient table written to file: '{ex.extfile[0]}'.",
+        indent=2)
 
 
 def extinction(pyrat, indices, grid=False, add=False):
@@ -262,12 +267,12 @@ def extinction(pyrat, indices, grid=False, add=False):
   for i,index in enumerate(indices):
       ilayer = index % pyrat.atm.nlayers  # Layer index
       pressure = pyrat.atm.press[ilayer]  # Layer pressure
-      molq     = pyrat.atm.q    [ilayer]  # Molecular abundance
-      density  = pyrat.atm.d    [ilayer]  # Molecular density
+      molq     = pyrat.atm.q[ilayer]  # Molecular abundance
+      density  = pyrat.atm.d[ilayer]  # Molecular density
       if grid:  # Take from grid
           itemp = int(index / pyrat.atm.nlayers)  # Temp. index in EC table
-          temp   = pyrat.ex.temp[itemp]
-          ziso   = pyrat.ex.z[:,itemp]      # Isotopic ratio
+          temp = pyrat.ex.temp[itemp]
+          ziso = pyrat.ex.z[:,itemp]      # Isotopic ratio
           pyrat.log.msg("Extinction-coefficient table: layer {:3d}/{:d}, "
               "iteration {:3d}/{:d}.".format(ilayer+1, pyrat.atm.nlayers, i+1,
                                              len(indices)), indent=2)

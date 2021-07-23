@@ -20,19 +20,19 @@ def check_spectrum(pyrat):
   Check that user input arguments make sense.
   """
   # Shortcuts:
-  log  = pyrat.log
-  phy  = pyrat.phy
+  log = pyrat.log
+  phy = pyrat.phy
   spec = pyrat.spec
-  atm  = pyrat.atm
-  obs  = pyrat.obs
+  atm = pyrat.atm
+  obs = pyrat.obs
 
   # Check that input files exist:
   if pyrat.mol.molfile is None:
       pyrat.mol.molfile = pc.ROOT + 'pyratbay/data/molecules.dat'
 
   with pt.log_error(log):
-      pt.file_exists('atmfile', 'Atmospheric',    pyrat.atm.atmfile)
-      pt.file_exists('tlifile', 'TLI',            pyrat.lt.tlifile)
+      pt.file_exists('atmfile', 'Atmospheric', pyrat.atm.atmfile)
+      pt.file_exists('tlifile', 'TLI', pyrat.lt.tlifile)
       pt.file_exists('molfile', 'Molecular-data', pyrat.mol.molfile)
 
   if pyrat.runmode == 'spectrum' and spec.specfile is None:

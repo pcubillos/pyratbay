@@ -15,18 +15,18 @@ from .. import spectrum as ps
 from .. import tools as pt
 
 from .  import extinction as ex
-from .  import crosssec   as cs
-from .  import rayleigh   as ray
-from .  import clouds     as cl
-from .  import alkali     as al
-from .  import read_atm   as ra
+from .  import crosssec as cs
+from .  import rayleigh as ray
+from .  import clouds as cl
+from .  import alkali as al
+from .  import read_atm as ra
 from .  import optical_depth as od
-from .  import spectrum   as sp
-from .  import objects    as ob
-from .  import argum      as ar
+from .  import spectrum as sp
+from .  import objects as ob
+from .  import argum as ar
 from .  import makesample as ms
-from .  import voigt      as v
-from .  import read_tli   as rtli
+from .  import voigt as v
+from .  import read_tli as rtli
 
 
 class Pyrat(object):
@@ -59,21 +59,21 @@ class Pyrat(object):
       >>> pyrat.setup_spectrum()
       """
       # Sub-classes:
-      self.spec     = ob.Spectrum()        # Spectrum data
-      self.atm      = ob.Atm()             # Modeling atmospheric model
-      self.lt       = ob.Linetransition()  # Line-transition data
-      self.mol      = ob.Molecules()       # Molecules data
-      self.iso      = ob.Isotopes()        # Isotopes data
-      self.voigt    = ob.Voigt()           # Voigt profile
-      self.ex       = ob.Extinction()      # Extinction-coefficient
-      self.cs       = ob.Cross()           # Cross-section extinction
-      self.od       = ob.Optdepth()        # Optical depth
-      self.cloud    = ob.Cloud()           # Cloud models
-      self.rayleigh = ob.Rayleigh()        # Rayleigh models
-      self.alkali   = ob.Alkali()          # Alkali opacity models
-      self.obs      = ob.Observation()     # Observational data
-      self.phy      = ob.Physics()         # System physical parameters
-      self.ret      = ob.Retrieval()       # Retrieval variables
+      self.spec = ob.Spectrum()       # Spectrum data
+      self.atm = ob.Atm()             # Modeling atmospheric model
+      self.lt = ob.Linetransition()   # Line-transition data
+      self.mol = ob.Molecules()       # Molecules data
+      self.iso = ob.Isotopes()        # Isotopes data
+      self.voigt = ob.Voigt()         # Voigt profile
+      self.ex = ob.Extinction()       # Extinction-coefficient
+      self.cs = ob.Cross()            # Cross-section extinction
+      self.od = ob.Optdepth()         # Optical depth
+      self.cloud = ob.Cloud()         # Cloud models
+      self.rayleigh = ob.Rayleigh()   # Rayleigh models
+      self.alkali = ob.Alkali()       # Alkali opacity models
+      self.obs = ob.Observation()     # Observational data
+      self.phy = ob.Physics()         # System physical parameters
+      self.ret = ob.Retrieval()       # Retrieval variables
       self.timestamps = OrderedDict()
 
       # Parse config file inputs:
