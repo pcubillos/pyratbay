@@ -7,7 +7,7 @@ import pytest
 import numpy as np
 
 import pyratbay.atmosphere as pa
-import pyratbay.constants  as pc
+import pyratbay.constants as pc
 
 os.chdir(pc.ROOT+'tests')
 
@@ -381,18 +381,16 @@ def test_stoich_with_ions():
                   [0, 0, 0, 0, 1]]))
 
 
-@pytest.mark.parametrize("abundances",
-    [ [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4],
-     [[0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]]])
-def test_mean_weight_molfile(abundances):
-    species = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
+def test_mean_weight_molfile():
+    abundances = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
+    species = "H2 He H2O CO CO2 CH4".split()
     mu = pa.mean_weight(abundances, species)
-    np.testing.assert_allclose(mu, np.array([2.31928918]))
+    np.testing.assert_allclose(mu, np.array([2.31939114]))
 
 
 def test_mean_weight_mass():
+    # species = "H2 He H2O CO CO2 CH4".split()
     abundances = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
-    species = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
     mass = np.array([2.01588, 4.0026020, 18.01528, 28.0101, 44.0095, 16.0425])
     mu = pa.mean_weight(abundances, mass=mass)
     np.testing.assert_allclose(mu, np.array([2.31928918]))

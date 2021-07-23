@@ -89,7 +89,7 @@ def get_constants(pyrat):
     pyrat.log.msg(
         f"Taking species constant parameters from: '{pyrat.mol.molfile}'.",
         indent=2)
-    symbol, mass, diam = io.read_molecs(pyrat.mol.molfile)
+    symbol, mass, radius = io.read_molecs(pyrat.mol.molfile)
 
     # Check that all atmospheric species are listed in molfile:
     absent = np.setdiff1d(pyrat.mol.name, symbol)
@@ -100,7 +100,7 @@ def get_constants(pyrat):
 
     # Set molecule's values:
     pyrat.mol.symbol = np.zeros(pyrat.mol.nmol, 'U20')
-    pyrat.mol.mass   = np.zeros(pyrat.mol.nmol)
+    pyrat.mol.mass = np.zeros(pyrat.mol.nmol)
     pyrat.mol.radius = np.zeros(pyrat.mol.nmol)
 
     pyrat.log.msg(
@@ -112,8 +112,8 @@ def get_constants(pyrat):
         imol = np.where(symbol == pyrat.mol.name[i])[0]
         # Set molecule name, mass, and collision radius:
         pyrat.mol.symbol[i] = symbol[imol][0]
-        pyrat.mol.mass[i]   = mass  [imol]
-        pyrat.mol.radius[i] = 0.5*diam[imol] * pc.A
+        pyrat.mol.mass[i] = mass[imol]
+        pyrat.mol.radius[i] = radius[imol] * pc.A
         pyrat.log.msg(
             f"{pyrat.mol.name[i]:>10s}:  "
             f"{pyrat.mol.radius[i]/pc.A:.3f}  "

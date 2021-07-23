@@ -7087,3 +7087,10 @@ Changed diameters column to radii.
 *****
 
 Updated io.read_molecs() and tests after diameter-to-radius change.
+
+*****
+
+Fixed get_constants() to receive radius instead of diameter from
+molecules file.
+Updated tests according to changed values in molecules.dat file.
+

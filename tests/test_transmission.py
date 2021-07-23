@@ -36,7 +36,8 @@ rtol = 0.01 / 100.0
 
 def test_transmission_clear(tmp_path):
     # No opacity whatsoever:
-    cfg = make_config(tmp_path,
+    cfg = make_config(
+        tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         remove=['tlifile', 'csfile', 'rayleigh', 'alkali', 'clouds'])
     pyrat = pb.run(cfg)
@@ -45,7 +46,8 @@ def test_transmission_clear(tmp_path):
 
 
 def test_transmission_lecavelier(tmp_path):
-    cfg = make_config(tmp_path,
+    cfg = make_config(
+        tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         remove=['tlifile', 'csfile', 'alkali', 'clouds'])
     pyrat = pb.run(cfg)
@@ -53,7 +55,8 @@ def test_transmission_lecavelier(tmp_path):
 
 
 def test_transmission_CIA(tmp_path):
-    cfg = make_config(tmp_path,
+    cfg = make_config(
+        tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         remove=['tlifile', 'rayleigh', 'alkali', 'clouds'])
     pyrat = pb.run(cfg)
@@ -61,7 +64,8 @@ def test_transmission_CIA(tmp_path):
 
 
 def test_transmission_alkali(tmp_path):
-    cfg = make_config(tmp_path,
+    cfg = make_config(
+        tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         remove=['tlifile', 'csfile', 'rayleigh', 'clouds'],
         reset={'wllow':'0.45 um', 'wlhigh':'1.0 um'})
@@ -71,7 +75,8 @@ def test_transmission_alkali(tmp_path):
 
 
 def test_transmission_deck(tmp_path):
-    cfg = make_config(tmp_path,
+    cfg = make_config(
+        tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         remove=['tlifile', 'csfile', 'rayleigh', 'alkali'])
     pyrat = pb.run(cfg)
@@ -79,7 +84,8 @@ def test_transmission_deck(tmp_path):
 
 
 def test_transmission_tli(tmp_path):
-    cfg = make_config(tmp_path,
+    cfg = make_config(
+        tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         remove=['csfile', 'rayleigh', 'clouds', 'alkali'])
     pyrat = pb.run(cfg)
@@ -87,7 +93,8 @@ def test_transmission_tli(tmp_path):
 
 
 def test_transmission_all(tmp_path):
-    cfg = make_config(tmp_path,
+    cfg = make_config(
+        tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         remove=['clouds'])
     pyrat = pb.run(cfg)
@@ -95,7 +102,8 @@ def test_transmission_all(tmp_path):
 
 
 def test_transmission_patchy(tmp_path):
-    cfg = make_config(tmp_path,
+    cfg = make_config(
+        tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         reset={'fpatchy': '0.5',
                'rpars': '10.0 -15.0'})
@@ -365,8 +373,8 @@ def test_opacity_reset_wn(tmp_path, wllow, wlhigh):
                'wllow':wllow, 'wlhigh':wlhigh})
     pyrat = pb.run(cfg)
     wn = np.arange(1/1.7e-4, 1/1.1e-4, 1.0)
-    etab = expected['etable'][(wn>= pyrat.spec.wnlow)
-                            & (wn <=pyrat.spec.wnhigh)]
+    wn_range = (wn>= pyrat.spec.wnlow) & (wn <=pyrat.spec.wnhigh)
+    etab = expected['etable'][wn_range]
     np.testing.assert_allclose(pyrat.spec.spectrum, etab, rtol=rtol)
 
 

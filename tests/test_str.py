@@ -41,7 +41,8 @@ Opacity cross section (ec, cm2 molecule-1):
 """
 
 def test_cloud_str(tmp_path):
-    cfg = make_config(tmp_path,
+    cfg = make_config(
+        tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         reset={'clouds':'deck ccsgray', 'cpars':'-3.0  0.0 -4.0 2.0'})
     pyrat = pb.run(cfg)
@@ -54,7 +55,7 @@ Parameter name     Value
   log(p_top)       -3.000e+00
 Index of atmospheric layer at or directly below cloud top: 30
 Cloud-top pressure: 1.0000e-03 bar
-Cloud-top altitude: 72750.14 km
+Cloud-top altitude: 72750.08 km
 Cloud-top temperature: 1051.39 K
 """
 
@@ -178,7 +179,7 @@ Temperature profile (temp, K):
     [ 1047.045  1047.046  1047.048 ...  1663.181  1664.146  1665.360]
 
 Mean molecular mass (mm, amu):
-    [  2.3328   2.3328   2.3328 ...   2.3328   2.3328   2.3328]
+    [  2.3329   2.3329   2.3329 ...   2.3329   2.3329   2.3329]
 
 Abundance units (qunits): None
 Abundance internal units: mole mixing fraction
@@ -208,13 +209,13 @@ Number of species (nmol): 7
 Molecule    Mass       Radius
             g/mol      Angstrom
 (name)      (mass)     (radius)
-  H2          2.0159       1.445
+  H2          2.0160       1.440
   He          4.0026       1.400
-  Na         22.9898       2.270
-  H2O        18.0153       1.600
-  CH4        16.0425       2.000
-  CO         28.0101       1.690
-  CO2        44.0095       1.900
+  Na         22.9898       2.200
+  H2O        18.0150       1.600
+  CH4        16.0430       2.000
+  CO         28.0100       1.690
+  CO2        44.0090       1.900
 Molecular data taken from (molfile):
     '{os.path.realpath('./../pyratbay/data')}/molecules.dat'
 """
@@ -303,14 +304,14 @@ Voigt-profile half-sizes (size) of shape [ndop, nlor]:
  [54000 54000 ... 54000 54000]
  [54000 54000 ... 54000 54000]]
 Voigt-profile indices (index) of shape [ndop, nlor]:
-[[       0     2145 ...   267160   284341]
- [  302490   304635 ...   569650   586831]
+[[       0     2145 ...   267162   284343]
+ [  302492   304637 ...   569654   586835]
  ...
- [14927707 14927707 ... 14927707 14927707]
- [15035708 15035708 ... 15035708 15035708]]
+ [14927817 14927817 ... 14927817 14927817]
+ [15035818 15035818 ... 15035818 15035818]]
 
 Voigt profiles:
-  profile[ 0, 0]: [ 2.85913e-08  2.86448e-08 ...  2.86448e-08  2.85913e-08]
+  profile[ 0, 0]: [ 2.85914e-08  2.86448e-08 ...  2.86448e-08  2.85914e-08]
   ...
   profile[39,39]: [ 4.99389e-03  4.99404e-03 ...  4.99404e-03  4.99389e-03]
 """
@@ -393,13 +394,13 @@ Total atmospheric extinction coefficient (ec, cm-1) [layer, wave]:
 
 Distance along the ray path across each layer (outside-in) at each impact
     parameter (raypath, km):
-    IP[  1]: [3061.10036832]
-    IP[  2]: [1268.99486459 3057.53305829]
-    IP[  3]: [ 974.36813165 1267.62126565 3053.61109788]
+    IP[  1]: [3061.02491505]
+    IP[  2]: [1268.96353345 3057.45786888]
+    IP[  3]: [ 974.34404583 1267.59004145 3053.53618033]
     ...
-    IP[ 80]: [ 164.81603538  165.39273132  165.94143453 ... 1097.06940799
-    1426.2286258
- 3434.22183058]
+    IP[ 80]: [ 164.81155312  165.38824754  165.93695005 ... 1097.04770713
+    1426.20058392
+ 3434.15476801]
 
 Maximum optical depth to calculate (maxdepth): 10.00
 Layer index where the optical depth reaches maxdepth (ideep):
@@ -409,10 +410,10 @@ Maximum ideep (deepest layer reaching maxdepth): 30
 Optical depth at each impact parameter, down to max(ideep) (depth):
 [[ 0.000e+00  0.000e+00  0.000e+00 ...  0.000e+00  0.000e+00  0.000e+00]
  [ 3.881e-08  1.249e-05  3.887e-08 ...  4.933e-07  2.355e-07  2.466e-07]
- [ 6.490e-08  2.088e-05  6.499e-08 ...  8.248e-07  3.938e-07  4.124e-07]
+ [ 6.490e-08  2.088e-05  6.499e-08 ...  8.248e-07  3.938e-07  4.123e-07]
  ...
- [ 4.661e-05  1.232e-02  4.708e-05 ...  4.890e-04  2.336e-04  2.463e-04]
- [ 6.141e-05  1.550e-02  6.217e-05 ...  6.163e-04  2.944e-04  3.112e-04]
+ [ 4.661e-05  1.232e-02  4.708e-05 ...  4.890e-04  2.335e-04  2.463e-04]
+ [ 6.141e-05  1.550e-02  6.217e-05 ...  6.163e-04  2.943e-04  3.112e-04]
  [ 8.157e-05  1.950e-02  8.275e-05 ...  7.768e-04  3.710e-04  3.931e-04]]
 """
 
@@ -426,7 +427,7 @@ Parameter name     Value
   log(p_top)       -3.000e+00
 Index of atmospheric layer at or directly below cloud top: 30
 Cloud-top pressure: 1.0000e-03 bar
-Cloud-top altitude: 72750.14 km
+Cloud-top altitude: 72750.08 km
 Cloud-top temperature: 1051.39 K
 
 Patchiness fraction (fpatchy): None
@@ -627,12 +628,12 @@ Planck emission down to max(ideep) (B, erg s-1 cm-2 sr-1 cm):
 Optical depth at each layer along a normal ray path into the planet, down to
     max(ideep) (depth):
 [[ 0.000e+00  0.000e+00  0.000e+00 ...  0.000e+00  0.000e+00  0.000e+00]
- [ 3.984e-10  1.282e-07  3.989e-10 ...  5.063e-09  2.418e-09  2.531e-09]
- [ 8.992e-10  2.893e-07  9.005e-10 ...  1.143e-08  5.457e-09  5.713e-09]
+ [ 3.983e-10  1.282e-07  3.989e-10 ...  5.063e-09  2.417e-09  2.531e-09]
+ [ 8.992e-10  2.893e-07  9.004e-10 ...  1.143e-08  5.456e-09  5.713e-09]
  ...
- [ 1.083e-06  3.008e-04  1.092e-06 ...  1.193e-05  5.695e-06  5.995e-06]
- [ 1.412e-06  3.784e-04  1.426e-06 ...  1.502e-05  7.172e-06  7.562e-06]
- [ 1.853e-06  4.760e-04  1.875e-06 ...  1.892e-05  9.036e-06  9.544e-06]]
+ [ 1.083e-06  3.007e-04  1.092e-06 ...  1.193e-05  5.695e-06  5.995e-06]
+ [ 1.412e-06  3.783e-04  1.426e-06 ...  1.502e-05  7.172e-06  7.562e-06]
+ [ 1.853e-06  4.760e-04  1.875e-06 ...  1.892e-05  9.035e-06  9.543e-06]]
 """
 
 
