@@ -884,7 +884,7 @@ def read_atomic(afile):
 
 def read_molecs(file):
     r"""
-    Read a molecules file to extract their symbol, mass, and diameter.
+    Read a molecules file to extract their symbol, mass, and radius.
 
     Parameters
     ----------
@@ -897,8 +897,8 @@ def read_molecs(file):
         The molecule's name.
     mass: 1D float ndarray
         The mass of the molecules (in g mol-1).
-    diam: 1D float ndarray
-        The collisional diameter of the molecules (in Angstrom).
+    radius: 1D float ndarray
+        The collisional radius of the molecules (in angstrom).
 
     Notes
     -----
@@ -909,15 +909,15 @@ def read_molecs(file):
     --------
     >>> import pyratbay.io as io
     >>> import pyratbay.constants as pc
-    >>> names, mass, diam = io.read_molecs(pc.ROOT+'pyratbay/data/molecules.dat')
+    >>> names, mass, rad = io.read_molecs(pc.ROOT+'pyratbay/data/molecules.dat')
     >>> names = list(names)
     >>> print(f"H2O: mass = {mass[names.index('H2O')]} g mol-1, "
-    >>>       f"diameter = {diam[names.index('H2O')]} Angstrom.")
-    H2O: mass = 18.01528 g mol-1, diameter = 3.2 Angstrom.
+    >>>       f"radius = {rad[names.index('H2O')]} angstrom.")
+    H2O: mass = 18.015 g mol-1, radius = 1.6 Angstrom.
     """
     symbol = [] # Molecule symbol
-    mass   = [] # Molecule mass
-    diam   = [] # Molecule diameter
+    mass = [] # Molecule mass
+    radius = [] # Molecule radius
 
     for line in open(file, 'r'):
         # Skip comment and blank lines:
@@ -926,13 +926,13 @@ def read_molecs(file):
         info = line.split()
         symbol.append(info[0])
         mass.append(info[1])
-        diam.append(info[2])
+        radius.append(info[2])
 
     symbol = np.asarray(symbol)
     mass = np.asarray(mass, np.double)
-    diam = np.asarray(diam, np.double)
+    radius = np.asarray(radius, np.double)
 
-    return symbol, mass, diam
+    return symbol, mass, radius
 
 
 def read_isotopes(file):

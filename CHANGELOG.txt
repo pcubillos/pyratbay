@@ -7084,3 +7084,6 @@ Updated pyratbay/data/molecules.dat to include all species from
 Woitke et al. (2018), AA, 614.
 Changed diameters column to radii.
 
+*****
+
+Updated io.read_molecs() and tests after diameter-to-radius change.

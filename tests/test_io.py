@@ -307,14 +307,14 @@ def test_read_pt(tmpdir):
 
 
 def test_read_molecs():
-    names, mass, diam = io.read_molecs(ROOT+'pyratbay/data/molecules.dat')
+    names, mass, radius = io.read_molecs(ROOT+'pyratbay/data/molecules.dat')
     assert 'H2O' in names
     assert 'CH4' in names
     assert 'CO' in names
     assert 'CO2' in names
     assert 'H2' in names
-    np.testing.assert_allclose(mass[names == 'H2O'], 18.01528)
-    np.testing.assert_allclose(diam[names == 'H2'], 2.89)
+    np.testing.assert_allclose(mass[names == 'H2O'], 18.015)
+    np.testing.assert_allclose(radius[names == 'H2'], 1.44)
 
 
 def test_read_isotopes():
