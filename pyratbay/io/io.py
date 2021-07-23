@@ -189,7 +189,7 @@ def write_atm(atmfile, pressure, temperature, species=None, abundances=None,
             f.write(f"{radius[i]:10.4e}  ")
         f.write(f"{pressure[i]:10.4e}  {temperature[i]:11.3f}  ")
         if species is not None:
-            f.write(f"  ".join([f"{q:12.6e}" for q in abundances[i]]))
+            f.write("  ".join([f"{q:12.6e}" for q in abundances[i]]))
         f.write('\n')
     f.close()
 
@@ -884,7 +884,9 @@ def read_atomic(afile):
 
 def read_molecs(file):
     r"""
-    Read a molecules file to extract their symbol, mass, and radius.
+    Read a molecules file to extract their names, masses, and radii.
+    The output also includes the ions denoted by a '-' and '+'
+    character appended at the end of the species names.
 
     Parameters
     ----------
@@ -893,11 +895,11 @@ def read_molecs(file):
 
     Returns
     -------
-    symbol: 1D string ndarray
-        The molecule's name.
-    mass: 1D float ndarray
+    names: 1D string ndarray
+        The molecules' names.
+    masses: 1D float ndarray
         The mass of the molecules (in g mol-1).
-    radius: 1D float ndarray
+    radii: 1D float ndarray
         The collisional radius of the molecules (in angstrom).
 
     Notes
@@ -909,30 +911,44 @@ def read_molecs(file):
     --------
     >>> import pyratbay.io as io
     >>> import pyratbay.constants as pc
-    >>> names, mass, rad = io.read_molecs(pc.ROOT+'pyratbay/data/molecules.dat')
+    >>> names, masses, radii = io.read_molecs(
+    >>>     pc.ROOT+'pyratbay/data/molecules.dat')
     >>> names = list(names)
-    >>> print(f"H2O: mass = {mass[names.index('H2O')]} g mol-1, "
-    >>>       f"radius = {rad[names.index('H2O')]} angstrom.")
+    >>> print(f"H2O: mass = {masses[names.index('H2O')]} g mol-1, "
+    >>>       f"radius = {radii[names.index('H2O')]} angstrom.")
     H2O: mass = 18.015 g mol-1, radius = 1.6 Angstrom.
     """
-    symbol = [] # Molecule symbol
-    mass = [] # Molecule mass
-    radius = [] # Molecule radius
+    names = [] # Molecule names
+    masses = [] # Molecule masses
+    radii = [] # Molecule radii
 
     for line in open(file, 'r'):
         # Skip comment and blank lines:
         if line.strip() == '' or line.strip().startswith('#'):
             continue
         info = line.split()
-        symbol.append(info[0])
-        mass.append(info[1])
-        radius.append(info[2])
+        names.append(info[0])
+        masses.append(info[1])
+        radii.append(info[2])
 
-    symbol = np.asarray(symbol)
-    mass = np.asarray(mass, np.double)
-    radius = np.asarray(radius, np.double)
+    electron_index = names.index('e-')
+    names.pop(electron_index)
+    e_mass = masses.pop(electron_index)
+    e_radius = radii.pop(electron_index)
 
-    return symbol, mass, radius
+    names = np.array(
+        names
+        + ['e-']
+        + [f'{name}-' for name in names]
+        + [f'{name}+' for name in names])
+    masses = np.array(
+        masses + [e_mass] + masses + masses,
+        np.double)
+    radii = np.array(
+        radii + [e_radius] + radii + radii,
+        np.double)
+
+    return names, masses, radii
 
 
 def read_isotopes(file):

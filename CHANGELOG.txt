@@ -7094,3 +7094,7 @@ Fixed get_constants() to receive radius instead of diameter from
 molecules file.
 Updated tests according to changed values in molecules.dat file.
 
+*****
+
+Refactored io.read_molecs() to include the ions of the read species.
+
