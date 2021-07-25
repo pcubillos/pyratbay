@@ -7107,3 +7107,15 @@ not in molecules.dat
 
 Cosmetics.
 
+
+*****  So 25. Jul 17:27:29 CEST 2021  *****
+
+Enabled two-stream emission RT calculation.
+Added emission_two_stream to available rt_path options.
+Added beta_irr input variable to control the stellar irradiation
+fraction into the planetary atmosphere.
+Implemented two_stream() function in spectrum.py following
+equations from Heng2014 and Malik2017.
+
+*****
+

@@ -194,6 +194,7 @@ transmission_rt = [
 # Emission radiative transfer:
 emission_rt = [
     'emission',
+    'emission_two_stream',
     ]
 
 # Radiative-transfer observing geometry:

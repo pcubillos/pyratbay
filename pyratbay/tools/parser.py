@@ -481,6 +481,7 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         parse_float(args, 'gplanet')
         parse_str(args,   'smaxis')
         parse_float(args, 'tint')
+        parse_float(args, 'beta_irr')
         # Outputs:
         parse_str(args,   'specfile')
         parse_str(args,   'logfile')
@@ -658,6 +659,8 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         'gplanet', 'Planetary surface gravity (cm s-2)', gt=0.0)
     phy.tint = args.get_default(
         'tint', 'Planetary internal temperature', 100.0, ge=0.0)
+    phy.beta_irr = args.get_default(
+        'beta_irr', 'Stellar irradiation beta factor', 1.0)
 
     phy.smaxis = args.get_param(
         'smaxis', None, 'Orbital semi-major axis', gt=0.0)
