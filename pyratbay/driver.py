@@ -78,12 +78,17 @@ def run(cfile, run_step='run', no_logfile=False):
         phy.gplanet = pc.G * phy.mplanet / phy.rplanet**2
 
 
-    if pyrat.runmode == 'atmosphere' or pt.isfile(atm.atmfile) != 1:
+    if pyrat.runmode in ['atmosphere', 'radeq'] or pt.isfile(atm.atmfile) != 1:
         # Compute pressure-temperature profile:
         if pt.isfile(atm.ptfile) == 1:
             log.msg(f"\nReading pressure-temperature file: '{atm.ptfile}'.")
             units, _, pressure, temperature = io.read_atm(atm.ptfile)[2:4]
             pressure *= pt.u(units[0]) # pressure in barye
+        elif pyrat.runmode=='radeq' and pt.isfile(atm.atmfile)==1:
+            units, inputs.species, pressure, temperature, _, _ = \
+                io.read_atm(atm.atmfile)
+            pressure *= pt.u(units[0]) # pressure in barye
+
         else:
             check_pressure(pyrat)
             pressure = pa.pressure(
@@ -107,6 +112,7 @@ def run(cfile, run_step='run', no_logfile=False):
                 q_uniform=inputs.uniform,
                 )
 
+            atm.chem_model = chem_net
             abundances = chem_net.vmr
             species = chem_net.species
 
@@ -162,6 +168,10 @@ def run(cfile, run_step='run', no_logfile=False):
     # Compute spectrum and return pyrat object if requested:
     if pyrat.runmode == "spectrum":
         pyrat.run()
+        return pyrat
+
+    if pyrat.runmode == 'radeq':
+        pyrat.radiative_equilibrium()
         return pyrat
 
     # Mute logging in pyrat object, but not in mc3:

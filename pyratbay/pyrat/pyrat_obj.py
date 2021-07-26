@@ -4,8 +4,10 @@
 import os
 import multiprocessing as mp
 from collections import OrderedDict
+import sys
 
 import numpy  as np
+from scipy.ndimage.filters import gaussian_filter1d as gaussf
 
 from .. import atmosphere as pa
 from .. import constants as pc
@@ -165,9 +167,11 @@ class Pyrat(object):
       sp.spectrum(self)
       self.timestamps['spectrum'] = timer.clock()
 
-      self.log.msg("\nTimestamps (s):\n" +
-                   "\n".join("{:10s}: {:10.6f}".format(key,val)
-                             for key,val in self.timestamps.items()))
+      self.log.msg(
+          "\nTimestamps (s):\n" +
+          "\n".join(
+              "{:10s}: {:10.6f}".format(key,val)
+              for key,val in self.timestamps.items()))
 
       if len(self.log.warnings) > 0 and self.log.logname is not None:
           # Write all warnings to file:
@@ -295,6 +299,107 @@ class Pyrat(object):
           return self.spec.spectrum, self.obs.bandflux
 
       return self.obs.bandflux
+
+
+  def radiative_equilibrium(self, nsamples=None, cont=False):
+      """
+      Compute radiative-thermochemical equilibrium atmosphere.
+      Currently there is no convergence criteria implemented,
+      some 100--300 iterations are typically sufficient to converge
+      to a stable temperature-profile solution.
+
+      Parameters
+      ----------
+      nsamples: Integer
+          Number of radiative-equilibrium iterations to run.
+      cont: Bool
+          If True, continue from a previous radiative-equil. run.
+
+      Returns
+      -------
+      There are no returned values, but this method updates the
+      temperature profile (self.atm.temp) and abundances (self.atm.q)
+      with the values from the last radiative-equilibrium iteration.
+
+      This method also defines pyrat.atm.radeq_temps, a 2D array
+      containing all temperature-profile iterations.
+      """
+      spec = self.spec
+      phy = self.phy
+      atm = self.atm
+
+      if nsamples is None:
+          nsamples = self.inputs.nsamples
+      new_temps = np.zeros((nsamples, atm.nlayers))
+      if not hasattr(atm, 'radeq_temps') or not cont:
+          atm.radeq_temps = np.copy(np.atleast_2d(self.atm.temp))
+      k = np.shape(atm.radeq_temps)[0] - 1
+      nsamples += k
+      temp = atm.radeq_temps = np.vstack((atm.radeq_temps, new_temps))
+
+      self.log.verb = 0  # Mute it
+      self.od.rt_path = 'emission_two_stream'  # Enforce two-stream RT
+      tmin = np.amax((self.cs.tmin, self.ex.tmin))
+      tmax = np.amin((self.cs.tmax, self.ex.tmax))
+
+      maxf = 3.0e6  # Maximum temperature scale factor
+      # Initial temperature scale factor
+      if not hasattr(atm, '_fscale'):
+          fscale = atm._fscale = np.tile(1.0e5, atm.nlayers)
+      else:
+          fscale = atm._fscale
+      new_fscale = fscale
+      Fsign = np.tile(2.0, atm.nlayers)
+
+      dpress = np.ediff1d(np.log(atm.press), to_begin=1.0)
+      Fint = pc.sigma * phy.tint**4
+
+      print("Radiative-thermochemical equilibrium calculation:")
+      for k in range(k, nsamples):
+          sys.stdout.write(f"\rIteration {k+1:3d}/{nsamples}.")
+          sys.stdout.flush()
+          # Update atmosphere:
+          q = atm.chem_model.thermochemical_equilibrium(temp[k])
+          self.run(temp=temp[k], abund=q)
+
+          # Bolometric net fluxes through each layer:
+          Qup = np.trapz(spec.flux_up, spec.wn, axis=1)
+          Qdown = np.trapz(spec.flux_down, spec.wn, axis=1)
+          dQ = Qup - Qdown - Fint
+          dF = np.ediff1d(dQ, to_begin=0)
+
+          # Update scaling factor:
+          idiff = np.sign(dF) != Fsign
+          fscale[ idiff] *= 0.90
+          fscale[~idiff] *= 1.05
+          new_fscale = np.clip(new_fscale, 0, maxf)
+          # Adaptive temperature update:
+          dT = new_fscale * np.sign(dF) * np.abs(dF)**0.1 \
+               / (pc.sigma * atm.temp**3 * dpress)
+          temp[k+1] = atm.temp + dT
+          temp[k+1,0] = temp[k+1,1]  # Isothermal top
+
+          # Smooth out kinks and wiggles:
+          dtm = np.mean(np.abs(np.diff(temp[:k+1], n=1, axis=0)), axis=1)
+          if np.size(dtm) > 0:
+              sigma = np.clip(0.5*np.mean(dtm[-5:]), 0.5, 1.0)
+          else:
+              sigma = 1.0
+          temp[k+1,:-1] = gaussf(temp[k+1], sigma)[:-1]
+          temp[k+1] = np.clip(temp[k+1], tmin, tmax)
+
+          Fsign = np.sign(dF)
+          atm._fscale = fscale = new_fscale
+
+      # Update last tempertature iteration and save to file:
+      self.atm.temp = temp[k+1]
+      io.write_atm(
+          spec.specfile.replace('.dat', '.atm'),
+          self.atm.press, self.atm.temp,
+          self.mol.name, q, punits="bar",
+          header="# Radiative-thermochemical equilibrium profile.\n\n")
+
+      self.log.verb = self.verb
 
 
   def band_integrate(self, spectrum=None):

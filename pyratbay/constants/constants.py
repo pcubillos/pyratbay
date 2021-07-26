@@ -183,6 +183,7 @@ rmodes = [
     'atmosphere',
     'opacity',
     'spectrum',
+    'radeq',
     'mcmc',
     ]
 

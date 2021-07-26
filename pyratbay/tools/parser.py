@@ -509,6 +509,7 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         'tli': args.tlifile,
         'atmosphere': args.atmfile,
         'spectrum': args.specfile,
+        'radeq': args.specfile,
         'opacity': args.extfile,
         'mcmc': args.mcmcfile,
         }

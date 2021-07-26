@@ -7121,3 +7121,12 @@ equations from Heng2014 and Malik2017.
 
 Added tests for emission spectra.
 
+
+*****  Mo 26. Jul 11:29:21 CEST 2021  *****
+
+Implemented pyrat.radiative_equilibrium() method to compute
+radiative and thermochemical equilibrium temperature profiles.
+Enabled radeq runmode.
+All tests and documentation for this feature are TBD.
+
+

@@ -114,7 +114,8 @@ def test_emission_two_sstream(tmp_path):
         reset={'rt_path': 'emission_two_stream'},
         remove=['clouds'])
     pyrat = pb.run(cfg)
-    np.testing.assert_allclose(pyrat.spec.spectrum, expected['all'], rtol=rtol)
+    np.testing.assert_allclose(
+        pyrat.spec.spectrum, expected['two_stream'], rtol=rtol)
 
 
 def test_emission_resolution(tmp_path):
