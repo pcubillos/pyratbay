@@ -301,7 +301,8 @@ class Pyrat(object):
       return self.obs.bandflux
 
 
-  def radiative_equilibrium(self, nsamples=None, cont=False):
+  def radiative_equilibrium(
+      self, nsamples=None, continue_run=False, no_convection=False):
       """
       Compute radiative-thermochemical equilibrium atmosphere.
       Currently there is no convergence criteria implemented,
@@ -312,8 +313,11 @@ class Pyrat(object):
       ----------
       nsamples: Integer
           Number of radiative-equilibrium iterations to run.
-      cont: Bool
+      continue_run: Bool
           If True, continue from a previous radiative-equil. run.
+      no_convection: Bool
+          If True, skip convective flux calculation in the radiative
+          equilibrium calculation.
 
       Returns
       -------
@@ -331,7 +335,7 @@ class Pyrat(object):
       if nsamples is None:
           nsamples = self.inputs.nsamples
       new_temps = np.zeros((nsamples, atm.nlayers))
-      if not hasattr(atm, 'radeq_temps') or not cont:
+      if not hasattr(atm, 'radeq_temps') or not continue_run:
           atm.radeq_temps = np.copy(np.atleast_2d(self.atm.temp))
       k = np.shape(atm.radeq_temps)[0] - 1
       nsamples += k
@@ -354,7 +358,7 @@ class Pyrat(object):
       dpress = np.ediff1d(np.log(atm.press), to_begin=1.0)
       Fint = pc.sigma * phy.tint**4
 
-      print("Radiative-thermochemical equilibrium calculation:")
+      print("\nRadiative-thermochemical equilibrium calculation:")
       for k in range(k, nsamples):
           sys.stdout.write(f"\rIteration {k+1:3d}/{nsamples}.")
           sys.stdout.flush()
@@ -388,8 +392,45 @@ class Pyrat(object):
           temp[k+1,:-1] = gaussf(temp[k+1], sigma)[:-1]
           temp[k+1] = np.clip(temp[k+1], tmin, tmax)
 
+          if no_convection:
+              Fsign = np.sign(dF)
+              atm._fscale = fscale = new_fscale
+              continue
+
+          # Radiative flux balance with convection:
+          heat_capacity = atm.chem_model.heat_capacity(temp[k+1])
+          cp = np.sum(heat_capacity * atm.q, axis=1) * pc.k/pc.amu
+          gplanet = pc.G * phy.mplanet / atm.radius**2
+          rho = np.sum(atm.d*self.mol.mass, axis=1) * pc.amu
+
+          conv_flux = ps.convective_flux(
+              atm.press,
+              temp[k+1],
+              cp,
+              gplanet, atm.mm, rho,
+          )
+          dF = np.ediff1d(dQ + conv_flux, to_begin=0)
+          # Update scaling factor:
+          idiff = np.sign(dF) != Fsign
+          fscale[ idiff] *= 0.90
+          fscale[~idiff] *= 1.05
+          atm._fscale = fscale = np.clip(fscale, 0, maxf)
           Fsign = np.sign(dF)
-          atm._fscale = fscale = new_fscale
+          # Adaptive temperature update:
+          dT = fscale * Fsign * np.abs(dF)**0.1 \
+              / (pc.sigma * atm.temp**3 * dpress)
+          temp[k+1] = atm.temp + dT
+          temp[k+1,0] = temp[k+1,1]
+
+          # Smooth out kinks and wiggles:
+          dtm = np.mean(np.abs(np.diff(temp[:k+1], n=1, axis=0)), axis=1)
+          if np.size(dtm) > 0:
+              sigma = np.clip(0.5*np.mean(dtm[-5:]), 0.5, 1.0)
+          else:
+              sigma = 1.0
+          temp[k+1,:-1] = gaussf(temp[k+1], sigma)[:-1]
+          temp[k+1] = np.clip(temp[k+1], tmin, tmax)
+
 
       # Update last tempertature iteration and save to file:
       self.atm.temp = temp[k+1]

@@ -7135,3 +7135,12 @@ All tests and documentation for this feature are TBD.
 Modified default xsolar value setting by metallicity.
 Removed warning when defaulted.
 
+*****
+
+Enabled convective flux estimation via mixing-length theory
+for radiative-equilibrium calculation.
+In pyrat.radiative_equilibrium() changed argument name from cont
+to continue_run.
+Added pyratbay/spectrum/convection.py file with function to compute
+the convective flux for an atmosphere.
+
