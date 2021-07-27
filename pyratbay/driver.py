@@ -316,10 +316,10 @@ def check_atm(pyrat):
         'solar',
         'Solar-abundance file',
         pc.ROOT+'pyratbay/data/AsplundEtal2009.txt')
-    pyrat.inputs.xsolar = pyrat.inputs.get_default(
-        'xsolar',
-        'Solar-metallicity scaling factor',
-        1.0, gt=0.0, wflag=True)
+    pyrat.inputs.metallicity = pyrat.inputs.get_default(
+        'metallicity',
+        'Metallicity scaling factor (dex, relative to solar)',
+        0.0, gt=0.0)
 
 
 def check_altitude(pyrat):

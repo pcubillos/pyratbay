@@ -7130,3 +7130,8 @@ Enabled radeq runmode.
 All tests and documentation for this feature are TBD.
 
 
+*****  Tue Jul 27 12:48:44 CEST 2021  *****
+
+Modified default xsolar value setting by metallicity.
+Removed warning when defaulted.
+
