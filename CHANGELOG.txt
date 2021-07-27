@@ -7152,3 +7152,6 @@ Removed sympy from requirements.
 
 Fixed bug in metallicity input check.
 
+*****
+
+Bumped pyratbay version to beta 1.1.0b1.
