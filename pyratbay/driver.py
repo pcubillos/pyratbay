@@ -319,7 +319,7 @@ def check_atm(pyrat):
     pyrat.inputs.metallicity = pyrat.inputs.get_default(
         'metallicity',
         'Metallicity scaling factor (dex, relative to solar)',
-        0.0, gt=0.0)
+        default=0.0)
 
 
 def check_altitude(pyrat):

@@ -7148,3 +7148,7 @@ the convective flux for an atmosphere.
 
 Removed sympy from requirements.
 
+*****
+
+Fixed bug in metallicity input check.
+
