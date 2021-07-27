@@ -118,7 +118,6 @@ setup(
         'numpy>=1.8.1',
         'scipy>=0.13.3',
         'matplotlib>=1.3.1',
-        'sympy>=0.7.6',
         'mc3>=3.0.7',
         ],
     tests_require = [

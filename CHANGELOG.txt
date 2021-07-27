@@ -7144,3 +7144,7 @@ to continue_run.
 Added pyratbay/spectrum/convection.py file with function to compute
 the convective flux for an atmosphere.
 
+*****
+
+Removed sympy from requirements.
+
