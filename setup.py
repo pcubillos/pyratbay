@@ -98,11 +98,6 @@ package_data = {'pyratbay': [
     'data/tips_2017.pkl',
     'data/filters/*.dat',
     'data/CIA/*.dat',
-    'TEA/lib/abundances.txt',
-    'TEA/lib/stoich.txt',
-    'TEA/lib/TEA.cfg',
-    'TEA/lib/gdata/*.txt',
-    'TEA/*/*.py',
     ]}
 
 
@@ -119,6 +114,7 @@ setup(
         'scipy>=0.13.3',
         'matplotlib>=1.3.1',
         'mc3>=3.0.7',
+        #'tea',
         ],
     tests_require = [
         'pytest>=3.9',

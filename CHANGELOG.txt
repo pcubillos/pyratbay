@@ -7155,3 +7155,9 @@ Fixed bug in metallicity input check.
 *****
 
 Bumped pyratbay version to beta 1.1.0b1.
+
+
+*****  Mi 4. Aug 10:43:05 CEST 2021  *****
+
+Removed no longer needed package_data files from setup.py.
+
