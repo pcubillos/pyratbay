@@ -7167,4 +7167,8 @@ Removed no longer needed package_data files from setup.py.
 Enforced multiprocessing to use fork starting method
 (to prevent crashing on OSX).
 
+*****
+
+Updated travis.yml file to include python 3.7, 3.8, and 3.9.
+
 
