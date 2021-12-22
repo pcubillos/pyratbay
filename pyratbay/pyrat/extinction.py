@@ -3,14 +3,14 @@
 
 import os
 import ctypes
-import multiprocessing as mpr
+import multiprocessing as mp
 
 import numpy as np
 import scipy.interpolate as sip
 
-from .. import tools     as pt
+from .. import tools as pt
 from .. import constants as pc
-from .. import io        as io
+from .. import io as io
 from ..lib import _extcoeff as ec
 
 
@@ -201,7 +201,7 @@ def calc_extinction(pyrat):
 
     # Allocate extinction-coefficient array:
     pyrat.log.msg("Calculate extinction coefficient.", indent=2)
-    sm_ect = mpr.Array(
+    sm_ect = mp.Array(
         ctypes.c_double,
         np.zeros(ex.nspec*ex.ntemp*ex.nlayers*ex.nwave, np.double))
     ex.etable = np.ctypeslib.as_array(
@@ -211,9 +211,11 @@ def calc_extinction(pyrat):
     processes = []
     indices = np.arange(ex.ntemp*ex.nlayers) % pyrat.ncpu  # CPU indices
     for i in range(pyrat.ncpu):
-        proc = mpr.Process(
-            target=extinction,                    # grid  add
-            args=(pyrat, np.where(indices==i)[0], True, False))
+        grid = True
+        add = False
+        proc = mp.get_context('fork').Process(
+            target=extinction,
+            args=(pyrat, np.where(indices==i)[0], grid, add))
         processes.append(proc)
         proc.start()
     for proc in processes:

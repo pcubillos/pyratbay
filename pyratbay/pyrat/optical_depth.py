@@ -2,7 +2,7 @@
 # Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 import ctypes
-import multiprocessing as mpr
+import multiprocessing as mp
 
 import numpy as np
 
@@ -51,15 +51,18 @@ def optical_depth(pyrat):
 
     # Calculate the extinction coefficient on the spot:
     elif pyrat.lt.tlifile is not None:
-        sm_ext = mpr.Array(ctypes.c_double,
-            np.zeros(nlayers*nwave, np.double))
+        sm_ext = mp.Array(
+            ctypes.c_double, np.zeros(nlayers*nwave, np.double))
         pyrat.ex.ec = np.ctypeslib.as_array(
             sm_ext.get_obj()).reshape((nlayers, nwave))
         processes = []
         indices = np.arange(rtop, nlayers) % pyrat.ncpu
         for i in range(pyrat.ncpu):
-            proc = mpr.Process(target=ex.extinction,   #      grid   add
-                        args=(pyrat, np.where(indices==i)[0], False, True))
+            grid = False
+            add = True
+            proc = mp.get_context('fork').Process(
+                target=ex.extinction,
+                args=(pyrat, np.where(indices==i)[0], grid, add))
             processes.append(proc)
             proc.start()
         for proc in processes:

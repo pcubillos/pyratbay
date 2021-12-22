@@ -609,7 +609,7 @@ class Pyrat(object):
       logfile, self.log.file = self.log.file, None
       verb, self.log.verb = self.log.verb, -1
 
-      with mp.Pool(self.ncpu) as pool:
+      with mp.get_context('fork').Pool(self.ncpu) as pool:
           models = pool.map(self.eval, posterior)
       models = np.array([model for model, bandm in models])
 
