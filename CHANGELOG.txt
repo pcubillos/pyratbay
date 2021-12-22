@@ -7171,4 +7171,8 @@ Enforced multiprocessing to use fork starting method
 
 Updated travis.yml file to include python 3.7, 3.8, and 3.9.
 
+*****
+
+Updated pytest.ini file, removed no longer needed filters.
+
 
