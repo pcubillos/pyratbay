@@ -7184,3 +7184,9 @@ Removed .gitmodules file.
 
 Added python 3.10 to travis.yml file.
 
+*****
+
+Try temporary solution to include TEA dependency
+(while it's still not pip installable).
+
+
