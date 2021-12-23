@@ -7180,3 +7180,7 @@ Updated pytest.ini file, removed no longer needed filters.
 
 Removed .gitmodules file.
 
+*****
+
+Added python 3.10 to travis.yml file.
+
