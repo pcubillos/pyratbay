@@ -8,7 +8,6 @@ jobs:
   - python: 3.7
   - python: 3.8
   - python: 3.9
-  - python: 3.10
 
 install:
   - pip install -r requirements.txt
@@ -22,10 +21,8 @@ install:
   - unzip '*.zip' -d tests/inputs/
   - wget http://kurucz.harvard.edu/grids/gridp00odfnew/fp00k0odfnew.pck -P tests/inputs
 
-  # Temporary TEA
-  - git clone -b cea https://github.com/pcubillos/TEA
-  - cd TEA
-  - python setup.py install
-  - cd ..
+  # Temporary TEA install
+  - git clone -b cea https://github.com/pcubillos/TEA TEA
+  - pip install -e TEA/
 
 script: pytest tests -v

@@ -7189,4 +7189,11 @@ Added python 3.10 to travis.yml file.
 Try temporary solution to include TEA dependency
 (while it's still not pip installable).
 
+*****
+
+Removed Python 3.10 from .travis.yml file:
+Unable to download 3.10 archive. The archive may not exist. Please
+consider a different version.
+
+Retry TEA install with pip.
 
