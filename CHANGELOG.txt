@@ -7202,3 +7202,7 @@ Retry TEA install with pip.
 
 Updated pyproject.toml to use oldest-supported-numpy dependency.
 
+*****
+
+Updated temporary TEA path in .travis.yml file.
+
