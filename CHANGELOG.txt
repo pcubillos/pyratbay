@@ -7197,3 +7197,8 @@ consider a different version.
 
 Retry TEA install with pip.
 
+
+*****  Tue Feb 15 12:20:16 CET 2022  *****
+
+Updated pyproject.toml to use oldest-supported-numpy dependency.
+
