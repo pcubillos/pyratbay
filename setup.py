@@ -13,7 +13,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), 'pyratbay'))
 from VERSION import __version__
 
 
-srcdir = 'src_c/'          # C-code source folder
+srcdir = 'src_c/'  # C-code source folder
 incdir = 'src_c/include/'  # Include filder with header files
 
 cfiles = os.listdir(srcdir)
@@ -114,7 +114,7 @@ setup(
         'scipy>=0.13.3',
         'matplotlib>=1.3.1',
         'mc3>=3.0.7',
-        #'tea',
+        #'tea_chemistry',
         ],
     tests_require = [
         'pytest>=3.9',

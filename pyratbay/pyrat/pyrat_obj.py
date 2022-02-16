@@ -131,7 +131,6 @@ class Pyrat(object):
 
       Parameters
       ----------
-      pyrat: A Pyrat instance
       temp: 1D float ndarray
           Updated atmospheric temperature profile in Kelvin, of size nlayers.
       abund: 2D float ndarray

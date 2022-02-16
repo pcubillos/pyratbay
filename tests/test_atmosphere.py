@@ -70,66 +70,49 @@ q0 = np.array(
        [  8.53190000e-01,   1.45530000e-01,   8.23730000e-04,
           1.36860000e-05,   5.10860000e-09,   4.46510000e-04]])
 
-qtea_expected = np.array([
-    [7.33918917e-01, 9.20325288e-02, 9.04409507e-21, 7.30152372e-05,
-     1.73519070e-01, 1.65436843e-04, 2.90924973e-04, 1.07436461e-07,
-     3.89720850e-28],
-    [4.14510683e-01, 1.15263065e-01, 1.73061626e-20, 5.63391902e-06,
-     4.69563070e-01, 2.93053885e-04, 3.64405726e-04, 8.80895544e-08,
-     3.93029911e-25],
-    [1.72947643e-01, 1.32825259e-01, 2.51143066e-20, 5.27388768e-07,
-     6.93462849e-01, 3.43691232e-04, 4.19949733e-04, 8.06172974e-08,
-     8.95256339e-23],
-    [6.35708181e-02, 1.40776941e-01, 2.87461835e-20, 5.75648620e-08,
-     7.94842234e-01, 3.64774280e-04, 4.45096655e-04, 7.91194531e-08,
-     9.68868272e-21],
-    [2.23443781e-02, 1.43774079e-01, 3.01239077e-20, 6.61311322e-09,
-     8.33054288e-01, 3.72594549e-04, 4.54574809e-04, 7.87506649e-08,
-     8.02644889e-19],
-    [7.73364433e-03, 1.44836270e-01, 3.06131223e-20, 7.72743928e-10,
-     8.46596719e-01, 3.75353825e-04, 4.57933858e-04, 7.86416635e-08,
-     6.06274321e-17],
-    [2.66256822e-03, 1.45204933e-01, 3.07830265e-20, 9.08164972e-11,
-     8.51297010e-01, 3.76310163e-04, 4.59099710e-04, 7.86063316e-08,
-     4.43633950e-15],
-    [9.15014143e-04, 1.45331979e-01, 3.08415900e-20, 1.06941868e-11,
-     8.52916787e-01, 3.76639574e-04, 4.59501476e-04, 7.85944482e-08,
-     3.21102868e-13],
-    [3.14256169e-04, 1.45375654e-01, 3.08617206e-20, 1.26015353e-12,
-     8.53473619e-01, 3.76752820e-04, 4.59639568e-04, 7.85903983e-08,
-     2.31546006e-11],
-    [1.07906288e-04, 1.45390656e-01, 3.08683912e-20, 1.48525643e-13,
-     8.53664879e-01, 3.76793354e-04, 4.59685366e-04, 7.85890735e-08,
-     1.66751073e-09],
-    [3.70491038e-05, 1.45395841e-01, 3.08531298e-20, 1.75125140e-14,
-     8.53730403e-01, 3.76925092e-04, 4.59583460e-04, 7.85930900e-08,
-     1.19967440e-07],
-    [1.27202322e-05, 1.45399989e-01, 2.96606854e-20, 2.10915021e-15,
-     8.53742380e-01, 3.85116022e-04, 4.51415838e-04, 7.88727911e-08,
-     8.30042617e-06],
-    [4.36660565e-06, 1.45460135e-01, 1.05845471e-20, 3.81020567e-16,
-     8.53485481e-01, 5.90028815e-04, 2.46876771e-04, 6.61063204e-08,
-     2.13045784e-04],
-    [1.49892871e-06, 1.45529258e-01, 3.10890062e-22, 6.29938264e-17,
-     8.53181783e-01, 8.27255485e-04, 1.01703473e-05, 3.81961453e-09,
-     4.50029755e-04],
-    [5.14626555e-07, 1.45532249e-01, 4.41627598e-24, 7.51582031e-18,
-     8.53169719e-01, 8.37304339e-04, 1.46229494e-07, 5.55864013e-11,
-     4.60067093e-04]])
+expected_vmr_tea = np.array([
+       [7.35957328e-01, 8.90269702e-02, 1.06589477e-20, 6.66282723e-05,
+        1.74484284e-01, 1.51805109e-04, 3.12878172e-04, 1.05436507e-07,
+        4.64430853e-28],
+       [2.19474062e-01, 1.25416170e-01, 2.78559084e-20, 8.51833917e-07,
+        6.54361069e-01, 3.06933225e-04, 4.40833548e-04, 8.00915609e-08,
+        3.03561249e-23],
+       [3.79045613e-02, 1.38205640e-01, 3.49420852e-20, 1.77461950e-08,
+        8.23064740e-01, 3.39164796e-04, 4.85798817e-04, 7.75387678e-08,
+        1.07129952e-19],
+       [5.94139822e-03, 1.40457056e-01, 3.62009876e-20, 4.12812431e-10,
+        8.52763045e-01, 3.44709029e-04, 4.93714144e-04, 7.73010740e-08,
+        2.11870876e-16],
+       [9.17432396e-04, 1.40810933e-01, 3.63990999e-20, 9.76057843e-12,
+        8.57431021e-01, 3.45578144e-04, 4.94958268e-04, 7.72682954e-08,
+        3.82986201e-13],
+       [1.41337243e-04, 1.40865600e-01, 3.64295874e-20, 2.31355566e-13,
+        8.58152122e-01, 3.45713033e-04, 4.95149777e-04, 7.72633851e-08,
+        6.82773904e-10],
+       [2.17662862e-05, 1.40874362e-01, 3.62190415e-20, 5.50509324e-15,
+        8.58261672e-01, 3.46941233e-04, 4.93973914e-04, 7.73438678e-08,
+        1.20745370e-06],
+       [3.35103135e-06, 1.40971226e-01, 5.74741400e-21, 2.58401370e-16,
+        8.57843429e-01, 6.86395395e-04, 1.55156394e-04, 4.80863353e-08,
+        3.40394582e-04],
+       [5.15975068e-07, 1.41015154e-01, 4.70780082e-24, 7.51632062e-18,
+        8.57646822e-01, 8.41754217e-04, 1.55892694e-07, 5.92636304e-11,
+        4.95597544e-04]])
 
-q_H2O = [
-    [[3.75844225e-04, 3.76505465e-04, 3.76715031e-04, 3.76781665e-04,
-      3.76834538e-04, 3.79982716e-04, 5.29791757e-04, 8.23468187e-04,
-      8.37304339e-04],
-     [1.47151089e-16, 1.48833605e-14, 1.49374072e-12, 1.49545393e-10,
-      1.49595458e-08, 1.49197537e-06, 1.18737317e-04, 7.72554290e-04,
-      8.38257597e-04]],
-    [[3.73594105e-03, 3.74250184e-03, 3.74458110e-03, 3.74523938e-03,
-      3.74547884e-03, 3.74867460e-03, 4.02249162e-03, 7.34889074e-03,
-      8.39363322e-03],
-     [1.36178455e-16, 1.37736334e-14, 1.38237052e-12, 1.38395812e-10,
-      1.38445690e-08, 1.38425073e-06, 1.34907833e-04, 4.65145869e-03,
-      8.48049921e-03]]]
+expected_vmr_tea_H2O = [
+      [[3.44846449e-04, 3.45454768e-04, 3.45647563e-04, 3.45708952e-04,
+        3.45766288e-04, 3.49506982e-04, 5.15325967e-04, 8.27013608e-04,
+        8.41754217e-04],
+       [1.34318585e-16, 1.35854196e-14, 1.36347433e-12, 1.36503787e-10,
+        1.36549953e-08, 1.36234049e-06, 1.11005412e-04, 7.73010902e-04,
+        8.42796258e-04],],
+      [[3.42626988e-03, 3.43230384e-03, 3.43421613e-03, 3.43482164e-03,
+        3.43505041e-03, 3.43884079e-03, 3.75750334e-03, 7.32956730e-03,
+        8.44006218e-03],
+       [1.23528363e-16, 1.24941383e-14, 1.25395526e-12, 1.25539518e-10,
+        1.25584800e-08, 1.25570443e-06, 1.22785048e-04, 4.53001025e-03,
+        8.53482480e-03],]
+]
 
 
 def test_pressure_default_units():
@@ -245,7 +228,7 @@ def test_abundance_uniform():
     atmfile = "outputs/atm_test.dat"
     nlayers = 11
     punits  = 'bar'
-    pressure    = pa.pressure(1e-8, 1e2, nlayers, punits)
+    pressure = pa.pressure(1e-8, 1e2, nlayers, punits)
     tmodel = pa.tmodels.Isothermal(nlayers)
     temperature = tmodel(1500.0)
     species     = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
@@ -258,32 +241,32 @@ def test_abundance_uniform():
 
 
 def test_abundances_tea():
-    nlayers = 15
-    punits  = 'bar'
-    pressure = pa.pressure(1e-10, 1e3, nlayers, punits)
+    nlayers = 9
+    pressure = pa.pressure(1e-10, 1e3, nlayers, units='bar')
     tmodel = pa.tmodels.Isothermal(nlayers)
     temperature = tmodel(1500.0)
-    species     = 'H He C O H2 H2O CO CO2 CH4'.split()
-    elements    = 'H He C O'.split()
-    qtea = pa.abundance(pressure, temperature, species, elements,
-        punits=punits)
-    np.testing.assert_allclose(qtea, qtea_expected)
+    species = 'H He C O H2 H2O CO CO2 CH4'.split()
+    elements = 'H He C O'.split()
+    vmr = pa.abundance(pressure, temperature, species, elements)
+    np.testing.assert_allclose(vmr, expected_vmr_tea)
 
 
 @pytest.mark.parametrize('metallicity', [0.0, 1.0])
 @pytest.mark.parametrize('e_scale', [{}, {'C': 0.7}])
 def test_abundances_tea_metallciity_escale(metallicity, e_scale):
     nlayers = 9
-    punits  = 'bar'
-    pressure = pa.pressure(1e-5, 1e3, nlayers, punits)
+    pressure = pa.pressure(1e-5, 1e3, nlayers, units='bar')
     tmodel = pa.tmodels.Isothermal(nlayers)
     temperature = tmodel(1500.0)
     species = 'H He C O H2 H2O CO CO2 CH4'.split()
     elements = 'H He C O'.split()
-    q = pa.abundance(
+    i_H2O = species.index('H2O')
+    vmr = pa.abundance(
         pressure, temperature, species, elements,
-        punits=punits, metallicity=metallicity, e_scale=e_scale)
-    np.testing.assert_allclose(q[:,5], q_H2O[metallicity!=0]['C' in e_scale])
+        metallicity=metallicity, e_scale=e_scale,
+    )
+    expected_vmr = expected_vmr_tea_H2O[metallicity!=0]['C' in e_scale]
+    np.testing.assert_allclose(vmr[:,i_H2O], expected_vmr)
 
 
 def test_hydro_g():
@@ -398,8 +381,8 @@ def test_mean_weight_mass():
 
 def test_mean_weight_fail():
     abundances = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
-    with pytest.raises(ValueError,
-            match="Either species or mass arguments must be specified"):
+    match = "Either species or mass arguments must be specified"
+    with pytest.raises(ValueError, match=match):
         mu = pa.mean_weight(abundances)
 
 
@@ -480,14 +463,14 @@ def test_chemistry_solar():
     species = 'H2O CH4 CO CO2 NH3 C2H2 C2H4 HCN N2 H2 H He'.split()
     chem_model = 'tea'
     chem_network = pa.chemistry(chem_model, pressure, temperature, species)
-    np.testing.assert_equal(
-        chem_network.elements,
-        ['C', 'H', 'He', 'N', 'O'],
-    )
+
+    expected_elements = 'C H He N O'.split()
+    np.testing.assert_equal(chem_network.elements, expected_elements)
+
+    expected_rel_abundance = np.array(
+        [2.88403150e-04, 1.0, 8.20351544e-02, 6.76082975e-05, 4.89778819e-04])
     np.testing.assert_allclose(
-        chem_network.element_rel_abundance,
-        [2.69153480e-04, 1.0, 8.51138038e-02, 6.76082975e-05, 4.89778819e-04],
-    )
+        chem_network.element_rel_abundance, expected_rel_abundance)
 
 
 def test_chemistry_metallicity():
@@ -498,10 +481,10 @@ def test_chemistry_metallicity():
     chem_model = 'tea'
     chem_network = pa.chemistry(
         chem_model, pressure, temperature, species, metallicity=-1.0)
+    expected_rel_abundance = np.array(
+        [2.88403150e-05, 1.0, 8.20351544e-02, 6.76082975e-06, 4.89778819e-05])
     np.testing.assert_allclose(
-        chem_network.element_rel_abundance,
-        [2.69153480e-05, 1.0, 8.51138038e-02, 6.76082975e-06, 4.89778819e-05],
-    )
+        chem_network.element_rel_abundance, expected_rel_abundance)
 
 
 def test_chemistry_escale():
@@ -509,14 +492,15 @@ def test_chemistry_escale():
     pressure = np.logspace(-8, 3, nlayers) * pc.bar
     temperature = np.tile(900.0, nlayers)
     species = 'H2O CH4 CO CO2 NH3 C2H2 C2H4 HCN N2 H2 H He'.split()
-    e_scale = {'C': -1.0, 'O':1.0}
+    e_scale = {'C': -1.0, 'O': 1.0}
     chem_model = 'tea'
     chem_network = pa.chemistry(
         chem_model, pressure, temperature, species, e_scale=e_scale)
+
+    expected_rel_abundance = np.array(
+        [2.88403150e-05, 1.0, 8.20351544e-02, 6.76082975e-05, 4.89778819e-03])
     np.testing.assert_allclose(
-        chem_network.element_rel_abundance,
-        [2.69153480e-05, 1.0, 8.51138038e-02, 6.76082975e-05, 4.89778819e-03],
-    )
+        chem_network.element_rel_abundance, expected_rel_abundance)
 
 
 def test_chemistry_metallicity_escale():
@@ -529,10 +513,11 @@ def test_chemistry_metallicity_escale():
     chem_network = pa.chemistry(
         chem_model, pressure, temperature, species,
         metallicity=-1.0, e_scale=e_scale)
+
+    expected_rel_abundance = np.array(
+        [2.88403150e-06, 1.0, 8.20351544e-02, 6.76082975e-06, 4.89778819e-04])
     np.testing.assert_allclose(
-        chem_network.element_rel_abundance,
-        [2.69153480e-06, 1.0, 8.51138038e-02, 6.76082975e-06, 4.89778819e-04],
-    )
+        chem_network.element_rel_abundance, expected_rel_abundance)
 
 
 @pytest.mark.parametrize("qcap,qcap_result",

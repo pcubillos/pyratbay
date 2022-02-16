@@ -41,7 +41,7 @@ expected_temperature = np.array([
     1661.55228907, 1662.16097781, 1662.92632193, 1663.88833303,
     1665.09706555])
 
-expected_abundance = np.load(
+expected_vmr = np.load(
     f'{ROOT}/tests/expected/expected_tea_profile.npz')['arr_0']
 
 expected_radius = np.array([
@@ -198,10 +198,10 @@ def test_atmosphere_tea(tmp_path):
         reset={'atmfile':atmfile},
     )
 
-    press, temp, abundance, species, radius = pb.run(cfg)
+    press, temp, vmr, species, radius = pb.run(cfg)
     np.testing.assert_allclose(press, expected_pressure, rtol=1e-7)
-    np.testing.assert_allclose(temp,  expected_temperature, atol=1e-7)
-    np.testing.assert_allclose(abundance, expected_abundance, rtol=1e-7)
+    np.testing.assert_allclose(temp, expected_temperature, atol=1e-7)
+    np.testing.assert_allclose(vmr, expected_vmr, rtol=1e-7)
     # Compare against the atmospheric file now:
     atmf = io.read_atm(atmfile)
     assert atmf[0] == ('bar', 'kelvin', 'volume', None)
@@ -210,7 +210,7 @@ def test_atmosphere_tea(tmp_path):
     # File read-write loses precision:
     np.testing.assert_allclose(atmf[2]*pc.bar, expected_pressure, rtol=3e-5)
     np.testing.assert_allclose(atmf[3], expected_temperature, rtol=5e-6)
-    np.testing.assert_allclose(atmf[4], expected_abundance, rtol=1e-6)
+    np.testing.assert_allclose(atmf[4], expected_vmr, rtol=1e-6)
 
 
 def test_atmosphere_hydro(tmp_path):

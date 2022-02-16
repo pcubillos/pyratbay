@@ -312,10 +312,6 @@ def check_atm(pyrat):
                             f"not match the number of species ({nspecies}).")
         return
 
-    pyrat.inputs.solar = pyrat.inputs.get_default(
-        'solar',
-        'Solar-abundance file',
-        pc.ROOT+'pyratbay/data/AsplundEtal2009.txt')
     pyrat.inputs.metallicity = pyrat.inputs.get_default(
         'metallicity',
         'Metallicity scaling factor (dex, relative to solar)',

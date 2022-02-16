@@ -25,7 +25,7 @@ import scipy.integrate as si
 import scipy.constants as sc
 import scipy.interpolate as sip
 import mc3.utils as mu
-import tea.thermal_properties as tea
+import tea
 
 from .. import tools as pt
 from .. import constants as pc
@@ -262,12 +262,12 @@ def chemistry(
         Output atmospheric composition.
     metallicity: Float
         Metallicity enhancement factor in dex units relative to solar.
-    e_scale: Dict
+    e_scale: Dictionary
         Scaling abundance factor for specified atoms by the respective
         values (in dex units, in addition to metallicity scaling).
         E.g. (3x solar): e_scale = {'C': np.log10(3.0)}
     solar_file: String
-        Input solar elemental abundances file (Default Asplund et al. 2009).
+        Input solar elemental abundances file (default Asplund et al. 2021).
     log: Log object
         Screen-output log handler.
     verb: Integer
@@ -315,7 +315,7 @@ def chemistry(
     >>>     colors='default', xlim=[1e-30, 3.0], fignum=506)
     """
     if solar_file is None:
-        solar_file = f'{pc.ROOT}pyratbay/data/AsplundEtal2009.txt'
+        solar_file = 'asplund_2021'
     if log is None:
         log = mu.Log(verb=verb)
 
@@ -325,8 +325,9 @@ def chemistry(
         metallicity=metallicity,
         e_scale=e_scale,
         #e_ratio=e_ratio,
-        #solar_file,
+        e_source=solar_file,
         )
+
     if chem_model == 'uniform':
         abundances = [
             q_uniform[list(species).index(spec)]
@@ -334,7 +335,6 @@ def chemistry(
         ]
         chem_network.vmr = uniform(
             pressure, temperature, chem_network.species, abundances=abundances)
-
     elif chem_model == 'tea':
         chem_network.thermochemical_equilibrium()
 
@@ -384,7 +384,7 @@ def abundance(
         values (in dex units, in addition to metallicity scaling).
         E.g. (3x solar): e_scale = {'C': np.log10(3.0)}
     solar_file: String
-        Input solar elemental abundances file (Default Asplund et al. 2009).
+        Input solar elemental abundances file (default Asplund et al. 2021).
     log: Log object
         Screen-output log handler.
     verb: Integer
@@ -408,17 +408,17 @@ def abundance(
     Example
     -------
     >>> import pyratbay.atmosphere as pa
-    >>> import pyratbay.constants  as pc
+    >>> import pyratbay.constants as pc
 
     >>> nlayers = 100
     >>> press = np.logspace(-8, 3, nlayers) * pc.bar
     >>> temp  = np.tile(900.0, nlayers)
     >>> species = 'H2O CH4 CO CO2 NH3 C2H2 C2H4 HCN N2 H2 H He'.split()
     >>> # Thermochemical equilibrium abundances for requested species:
-    >>> Q = pa.abundance(press, temp, species)
+    >>> vmr = pa.abundance(press, temp, species)
     """
     if solar_file is None:
-        solar_file = pc.ROOT + "pyratbay/data/AsplundEtal2009.txt"
+        solar_file = 'asplund_2021'
     if log is None:
         log = mu.Log(verb=verb)
 
@@ -444,7 +444,6 @@ def abundance(
         metallicity=metallicity, e_scale=e_scale,
         solar_file=solar_file, log=log, verb=verb,
         #e_ratio=e_ratio,
-        #solar_file,
         )
     abundances = tea_net.vmr
     if atmfile is not None:

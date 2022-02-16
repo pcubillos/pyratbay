@@ -94,7 +94,7 @@ def band_cf(cf, bandtrans, wn, bandidx):
         shape [nlayers, nbands].
     """
     nfilters = len(bandtrans)
-    nlayers  = np.shape(cf)[0]
+    nlayers = np.shape(cf)[0]
 
     # Allocate arrays for filter cf:
     bandcf = np.zeros((nlayers, nfilters))

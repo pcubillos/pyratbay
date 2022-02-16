@@ -7206,3 +7206,11 @@ Updated pyproject.toml to use oldest-supported-numpy dependency.
 
 Updated temporary TEA path in .travis.yml file.
 
+
+*****  Wed Feb 16 10:46:55 CET 2022  *****
+
+Updated tea dependency.
+Changed default tea solar elemental abundance from Asplund+2009 to
+Asplund+2021.
+Updated tests.
+
