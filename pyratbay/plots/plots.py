@@ -586,8 +586,9 @@ def abundance(vol_mix_ratios, pressure, species,
     >>> pressure = pa.pressure('1e-6 bar', '1e2 bar', nlayers)
     >>> temperature = pa.temperature('isothermal', pressure,  params=1000.0)
     >>> species = 'H2O CH4 CO CO2 NH3 C2H2 C2H4 HCN N2 TiO VO H2 H He Na K'.split()
-    >>> Q = pa.abundance(pressure, temperature, species, ncpu=3)
-    >>> ax = pp.abundance(Q, pressure, species, colors='default',
+    >>> vmr = pa.chemistry(pressure, temperature, species).vmr
+    >>> ax = pp.abundance(
+    >>>     vmr, pressure, species, colors='default',
     >>>     highlight='H2O CH4 CO CO2 NH3 HCN H2 H He'.split())
     """
     if legend_fs is None:

@@ -241,7 +241,7 @@ def uniform(pressure, temperature, species, abundances, punits="bar",
 
 def chemistry(
     chem_model, pressure, temperature, species,
-    metallicity=0.0, e_scale={},
+    metallicity=0.0, e_scale={}, e_ratio={},
     q_uniform=None,
     solar_file=None, log=None, verb=1,
     atmfile=None, punits='bar',
@@ -266,6 +266,13 @@ def chemistry(
         Scaling abundance factor for specified atoms by the respective
         values (in dex units, in addition to metallicity scaling).
         E.g. (3x solar): e_scale = {'C': np.log10(3.0)}
+    e_ratio: Dictionary
+        Custom elemental abundances scaled relative to another element.
+        The dict contains the pair of elements joined by an underscore
+        and their ratio in dex units, e.g., for a C/O ratio of 0.8 set
+        e_ratio = {'C_O': np.log10(0.8)}.
+        These values modify the abundances after metallicity and
+        e_scale have been applied.
     solar_file: String
         Input solar elemental abundances file (default Asplund et al. 2021).
     log: Log object
@@ -324,7 +331,7 @@ def chemistry(
         pressure/pc.bar, temperature, species,
         metallicity=metallicity,
         e_scale=e_scale,
-        #e_ratio=e_ratio,
+        e_ratio=e_ratio,
         e_source=solar_file,
         )
 

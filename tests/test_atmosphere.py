@@ -458,7 +458,7 @@ def test_transit_path_nskip():
 
 def test_chemistry_solar():
     nlayers = 100
-    pressure = np.logspace(-8, 3, nlayers) * pc.bar
+    pressure = pa.pressure(1.0e-08, 1.0e+03, nlayers, units='bar')
     temperature = np.tile(900.0, nlayers)
     species = 'H2O CH4 CO CO2 NH3 C2H2 C2H4 HCN N2 H2 H He'.split()
     chem_model = 'tea'
@@ -475,7 +475,7 @@ def test_chemistry_solar():
 
 def test_chemistry_metallicity():
     nlayers = 100
-    pressure = np.logspace(-8, 3, nlayers) * pc.bar
+    pressure = pa.pressure(1.0e-08, 1.0e+03, nlayers, units='bar')
     temperature = np.tile(900.0, nlayers)
     species = 'H2O CH4 CO CO2 NH3 C2H2 C2H4 HCN N2 H2 H He'.split()
     chem_model = 'tea'
@@ -489,7 +489,7 @@ def test_chemistry_metallicity():
 
 def test_chemistry_escale():
     nlayers = 100
-    pressure = np.logspace(-8, 3, nlayers) * pc.bar
+    pressure = pa.pressure(1.0e-08, 1.0e+03, nlayers, units='bar')
     temperature = np.tile(900.0, nlayers)
     species = 'H2O CH4 CO CO2 NH3 C2H2 C2H4 HCN N2 H2 H He'.split()
     e_scale = {'C': -1.0, 'O': 1.0}
@@ -503,9 +503,25 @@ def test_chemistry_escale():
         chem_network.element_rel_abundance, expected_rel_abundance)
 
 
+def test_chemistry_eratio():
+    nlayers = 100
+    pressure = pa.pressure(1.0e-08, 1.0e+03, nlayers, units='bar')
+    temperature = pa.tmodels.Isothermal(nlayers)(900.0)
+    species = 'H2O CH4 CO CO2 NH3 C2H2 C2H4 HCN N2 H2 H He'.split()
+    e_ratio = {'C_O': np.log10(2.0)}
+    chem_model = 'tea'
+    chem_network = pa.chemistry(
+        chem_model, pressure, temperature, species, e_ratio=e_ratio)
+
+    expected_rel_abundance = np.array(
+        [9.79557639e-04, 1.0, 8.20351544e-02, 6.76082975e-05, 4.89778819e-04])
+    np.testing.assert_allclose(
+        chem_network.element_rel_abundance, expected_rel_abundance)
+
+
 def test_chemistry_metallicity_escale():
     nlayers = 100
-    pressure = np.logspace(-8, 3, nlayers) * pc.bar
+    pressure = pa.pressure(1.0e-08, 1.0e+03, nlayers, units='bar')
     temperature = np.tile(900.0, nlayers)
     species = 'H2O CH4 CO CO2 NH3 C2H2 C2H4 HCN N2 H2 H He'.split()
     e_scale = {'C': -1.0, 'O':1.0}

@@ -7214,3 +7214,10 @@ Changed default tea solar elemental abundance from Asplund+2009 to
 Asplund+2021.
 Updated tests.
 
+*****
+
+Added e_ratio argument into pa.chemistry() function to set custom
+elemental ratios for equilibrium-chemistry calculations.
+Added test.
+
+
