@@ -7221,3 +7221,11 @@ elemental ratios for equilibrium-chemistry calculations.
 Added test.
 
 
+*****  Fri Feb 18 12:33:45 CET 2022  *****
+
+Updated two_stream() function to replace Malik+2017 implementation
+with Heng+2014 with linear Plank function, which is more stable.
+Tests probably need double checking to see what happens if Tint is
+None or if the stellar flux is undefined.
+
+

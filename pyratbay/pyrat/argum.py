@@ -178,7 +178,7 @@ def check_spectrum(pyrat):
   # Gauss quadrature integration variables:
   if spec.quadrature is not None:
       qnodes, qweights = ss.p_roots(spec.quadrature)
-      spec.qnodes   = 0.5*(qnodes + 1.0)
+      spec.qnodes = 0.5*(qnodes + 1.0)
       spec.qweights = 0.5 * qweights
 
   # Number of datapoints and filters:

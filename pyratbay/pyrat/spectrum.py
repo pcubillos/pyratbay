@@ -42,6 +42,11 @@ def spectrum(pyrat):
 
     io.write_spectrum(
         1.0/pyrat.spec.wn, pyrat.spec.spectrum, pyrat.spec.specfile, spec_type)
+    if pyrat.spec.specfile is not None:
+        specfile = f": '{pyrat.spec.specfile}'"
+    else:
+        specfile = ""
+    pyrat.log.head(f"Computed {spec_type} spectrum{specfile}.", indent=2)
     pyrat.log.head('Done.')
 
 
@@ -84,12 +89,6 @@ def modulation(pyrat):
         pyrat.spec.cloudy = pyrat.spec.spectrum
         pyrat.spec.spectrum = (   pyrat.cloud.fpatchy  * pyrat.spec.cloudy +
                                (1-pyrat.cloud.fpatchy) * pyrat.spec.clear  )
-
-    if pyrat.spec.specfile is not None:
-        specfile = f": '{pyrat.spec.specfile}'"
-    else:
-        specfile = ""
-    pyrat.log.head(f"Computed transmission spectrum{specfile}.", indent=2)
 
 
 def intensity(pyrat):
@@ -134,12 +133,12 @@ def flux(pyrat):
         area = spec.qweights * np.pi
     # Weight-sum the intensities to get the flux:
     spec.spectrum[:] = np.sum(spec.intensity * np.expand_dims(area,1), axis=0)
-    pyrat.log.head(f"Computed emission spectrum: '{spec.specfile}'.", indent=2)
 
 
 def two_stream(pyrat):
     """
-    Two-stream approximation radiative transfer.
+    Two-stream approximation radiative transfer
+    following Heng et al. (2014)
 
     This function defines downward (flux_down) and uppward fluxes
     (flux_up) into pyrat.spec, and sets the emission spectrum as the
@@ -177,17 +176,22 @@ def two_stream(pyrat):
     # Top boundary condition:
     spec.flux_down[0] = \
         phy.beta_irr * (0.5*phy.rstar/phy.smaxis)**2 * spec.starflux
-    # (Corrected) Eqs. 10 of Malik et al. (2017),
-    # setting the diffusivity factor to D=2 (epsilon=0.5):
+    # Eqs. (B6) of Heng et al. (2014):
     for i in range(nlayers-1):
-        spec.flux_down[i+1] = \
-            trans[i] * spec.flux_down[i] \
-            + np.pi*(B[i+1] - trans[i]*B[i] - 0.5*Bp[i]*(1-trans[i]))
+        spec.flux_down[i+1] = (
+            trans[i] * spec.flux_down[i]
+            + np.pi * B[i] * (1-trans[i])
+            + np.pi * Bp[i] * (
+                  -2/3 * (1-np.exp(-dtau0[i])) + dtau0[i]*(1-trans[i]/3))
+        )
 
     spec.flux_up[nlayers-1] = spec.flux_down[nlayers-1] + spec.f_int
     for i in reversed(range(nlayers-1)):
-        spec.flux_up[i] = \
-            trans[i] * spec.flux_up[i+1] \
-            + np.pi*(B[i] - trans[i]*B[i+1] + 0.5*Bp[i]*(1-trans[i]))
+        spec.flux_up[i] = (
+            trans[i] * spec.flux_up[i+1]
+            + np.pi * B[i+1] * (1-trans[i])
+            + np.pi * Bp[i] * (
+                  2/3 * (1-np.exp(-dtau0[i])) - dtau0[i]*(1-trans[i]/3))
+        )
 
     spec.spectrum = spec.flux_up[0]
