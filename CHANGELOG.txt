@@ -7229,3 +7229,10 @@ Tests probably need double checking to see what happens if Tint is
 None or if the stellar flux is undefined.
 
 
+*****  Fri Feb 25 15:11:58 CET 2022  *****
+
+Updated pa.chemistry() docs according to current e_ratio usage.
+(the actual ratio instead of log10(ratio)).
+Updated tests.
+
+

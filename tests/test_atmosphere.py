@@ -508,7 +508,7 @@ def test_chemistry_eratio():
     pressure = pa.pressure(1.0e-08, 1.0e+03, nlayers, units='bar')
     temperature = pa.tmodels.Isothermal(nlayers)(900.0)
     species = 'H2O CH4 CO CO2 NH3 C2H2 C2H4 HCN N2 H2 H He'.split()
-    e_ratio = {'C_O': np.log10(2.0)}
+    e_ratio = {'C_O': 2.0}
     chem_model = 'tea'
     chem_network = pa.chemistry(
         chem_model, pressure, temperature, species, e_ratio=e_ratio)

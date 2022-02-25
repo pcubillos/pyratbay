@@ -270,7 +270,7 @@ def chemistry(
         Custom elemental abundances scaled relative to another element.
         The dict contains the pair of elements joined by an underscore
         and their ratio in dex units, e.g., for a C/O ratio of 0.8 set
-        e_ratio = {'C_O': np.log10(0.8)}.
+        e_ratio = {'C_O': 0.8}.
         These values modify the abundances after metallicity and
         e_scale have been applied.
     solar_file: String
@@ -333,7 +333,7 @@ def chemistry(
         e_scale=e_scale,
         e_ratio=e_ratio,
         e_source=solar_file,
-        )
+    )
 
     if chem_model == 'uniform':
         abundances = [
@@ -450,7 +450,7 @@ def abundance(
         'tea', pressure, temperature, species,
         metallicity=metallicity, e_scale=e_scale,
         solar_file=solar_file, log=log, verb=verb,
-        #e_ratio=e_ratio,
+        e_ratio=e_ratio,
         )
     abundances = tea_net.vmr
     if atmfile is not None:
