@@ -7235,4 +7235,9 @@ Updated pa.chemistry() docs according to current e_ratio usage.
 (the actual ratio instead of log10(ratio)).
 Updated tests.
 
+*****
+
+Prevent the code to crash for missing irradiation flux in two_stream.
+Radiative-equilibrium runs should though have a warning (TBD).
+Refactored the beta_irr factor into (1-A)*f as in Guillot (2010).
 

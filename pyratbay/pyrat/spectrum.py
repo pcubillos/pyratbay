@@ -173,9 +173,15 @@ def two_stream(pyrat):
     spec.flux_down = np.zeros((nlayers, spec.nwave))
     spec.flux_up = np.zeros((nlayers, spec.nwave))
 
+    is_irradiation = (
+        spec.starflux is not None
+        and phy.smaxis is not None
+        and phy.rstar is not None
+    )
     # Top boundary condition:
-    spec.flux_down[0] = \
-        phy.beta_irr * (0.5*phy.rstar/phy.smaxis)**2 * spec.starflux
+    if is_irradiation:
+        spec.flux_down[0] = \
+            phy.beta_irr * (phy.rstar/phy.smaxis)**2 * spec.starflux
     # Eqs. (B6) of Heng et al. (2014):
     for i in range(nlayers-1):
         spec.flux_down[i+1] = (

@@ -368,8 +368,8 @@ class Pyrat(object):
           # Bolometric net fluxes through each layer:
           Qup = np.trapz(spec.flux_up, spec.wn, axis=1)
           Qdown = np.trapz(spec.flux_down, spec.wn, axis=1)
-          dQ = Qup - Qdown - Fint
-          dF = np.ediff1d(dQ, to_begin=0)
+          Q_net = Qup - Qdown - Fint
+          dF = np.ediff1d(Q_net, to_begin=0)
 
           # Update scaling factor:
           idiff = np.sign(dF) != Fsign
@@ -408,7 +408,7 @@ class Pyrat(object):
               cp,
               gplanet, atm.mm, rho,
           )
-          dF = np.ediff1d(dQ + conv_flux, to_begin=0)
+          dF = np.ediff1d(Q_net + conv_flux, to_begin=0)
           # Update scaling factor:
           idiff = np.sign(dF) != Fsign
           fscale[ idiff] *= 0.90

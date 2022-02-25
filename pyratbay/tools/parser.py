@@ -661,7 +661,7 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
     phy.tint = args.get_default(
         'tint', 'Planetary internal temperature', 100.0, ge=0.0)
     phy.beta_irr = args.get_default(
-        'beta_irr', 'Stellar irradiation beta factor', 1.0)
+        'beta_irr', 'Stellar irradiation beta factor', 0.25)
 
     phy.smaxis = args.get_param(
         'smaxis', None, 'Orbital semi-major axis', gt=0.0)
