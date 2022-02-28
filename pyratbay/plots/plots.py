@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import is_color_like, to_rgb
 import numpy as np
 import scipy.interpolate as si
-from scipy.ndimage.filters import gaussian_filter1d as gaussf
+from scipy.ndimage import gaussian_filter1d as gaussf
 
 from .. import constants as pc
 from .. import tools as pt
@@ -42,7 +42,7 @@ default_colors = {
     'VO':"peru",
     'Na':"darkviolet",
     'K':"cornflowerblue",
-    }
+}
 
 
 def alphatize(colors, alpha, bg='w'):
@@ -586,7 +586,7 @@ def abundance(vol_mix_ratios, pressure, species,
     >>> pressure = pa.pressure('1e-6 bar', '1e2 bar', nlayers)
     >>> temperature = pa.temperature('isothermal', pressure,  params=1000.0)
     >>> species = 'H2O CH4 CO CO2 NH3 C2H2 C2H4 HCN N2 TiO VO H2 H He Na K'.split()
-    >>> vmr = pa.chemistry(pressure, temperature, species).vmr
+    >>> vmr = pa.chemistry('tea', pressure, temperature, species).vmr
     >>> ax = pp.abundance(
     >>>     vmr, pressure, species, colors='default',
     >>>     highlight='H2O CH4 CO CO2 NH3 HCN H2 H He'.split())

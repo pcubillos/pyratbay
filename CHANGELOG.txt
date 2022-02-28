@@ -7247,3 +7247,7 @@ Refactored the beta_irr factor into (1-A)*f as in Guillot (2010).
 Starting preparing code for equilibrium runs:
 Added 'equil' to constants.molmodels.
 
+*****
+
+Fixed bug in docs of plots.abundance().
+
