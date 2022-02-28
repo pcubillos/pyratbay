@@ -7262,3 +7262,8 @@ Changed default value of molmodel from None to [].
 This simplifies handling cases when checking its values.
 Tests and documentation is pending.
 
+*****
+
+Corrected parameter names for equilibrium chemistry pars
+(ret.pnames and ret.texnames).
+

@@ -258,11 +258,22 @@ def setup(pyrat):
           spec.index(mol) for mol,model in zip(atm.molfree,atm.molmodel)
           if model != 'equil']
       # Abundance free-parameter names:
-      mpnames = [f'log({mol})' for mol in atm.molfree]
-      mtexnames = [fr'$\log_{{10}}(X_{{\rm {mol}}})$' for mol in atm.molfree]
+      mol_pnames = []
+      mol_tex_names = []
+      for mol in atm.molfree:
+          if mol == 'metal':
+              mol_pnames.append('[Z/H]')
+              mol_tex_names.append('[Z/H]')
+          elif '_' in mol:
+              mol_pnames.append(mol.replace('_','/'))
+              mol_tex_names.append(mol.replace('_','/'))
+          else:
+              mol_pnames.append(f'log({mol})')
+              mol_tex_names.append(fr'$\log_{{10}}(X_{{\rm {mol}}})$')
+
   else:
       nabund = 0
-      mpnames, mtexnames = [], []
+      mol_pnames, mol_tex_names = [], []
       atm.ibulk = None
 
   # Read stellar spectrum model (starspec, kurucz, or blackbody(tstar)):
@@ -356,14 +367,14 @@ def setup(pyrat):
       ret.texnames += ttexnames
       ret.nparams += ntemp
   if 'rad' in ret.retflag:
-      ret.irad   = np.arange(ret.nparams, ret.nparams + 1)
+      ret.irad = np.arange(ret.nparams, ret.nparams + 1)
       ret.pnames   += [f'Rp ({atm.runits})']
       ret.texnames += [fr'$R_{{\rm planet}}$ ({utex[atm.runits]})']
       ret.nparams += 1
   if 'mol' in ret.retflag:
       ret.imol = np.arange(ret.nparams, ret.nparams + nabund)
-      ret.pnames   += mpnames
-      ret.texnames += mtexnames
+      ret.pnames += mol_pnames
+      ret.texnames += mol_tex_names
       ret.nparams += nabund
   if 'ray' in ret.retflag:
       ret.iray   = np.arange(ret.nparams, ret.nparams + nray)
