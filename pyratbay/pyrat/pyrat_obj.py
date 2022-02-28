@@ -7,7 +7,7 @@ from collections import OrderedDict
 import sys
 
 import numpy  as np
-from scipy.ndimage.filters import gaussian_filter1d as gaussf
+from scipy.ndimage import gaussian_filter1d as gaussf
 
 from .. import atmosphere as pa
 from .. import constants as pc
@@ -207,8 +207,9 @@ class Pyrat(object):
       bandflux: 1D float ndarray
          The waveband-integrated spectrum values.
       """
+      atm = self.atm
       params = np.asarray(params)
-      q0 = np.copy(self.atm.qbase)
+      q0 = np.copy(atm.qbase)
 
       if len(params) != self.ret.nparams:
           self.log.warning(
@@ -221,10 +222,10 @@ class Pyrat(object):
 
       # Update temperature profile if requested:
       if self.ret.itemp is not None:
-          self.atm.tpars = params[self.ret.itemp]
-          temp = self.atm.tmodel(params[self.ret.itemp])
+          atm.tpars = params[self.ret.itemp]
+          temp = atm.tmodel(params[self.ret.itemp])
       else:
-          temp = self.atm.temp
+          temp = atm.temp
       # Turn-on reject flag if temperature is out-of-bounds:
       if np.any(temp < self.ret.tlow) or np.any(temp > self.ret.thigh):
           temp[:] = 0.5*(self.ret.tlow + self.ret.thigh)
@@ -235,21 +236,29 @@ class Pyrat(object):
 
       # Update abundance profiles if requested:
       if self.ret.imol is None:
-          q2 = self.atm.q
-      elif 'equil' in self.atm.molmodel:
-          # TBD: Parse metallicity and elemental ratios.
-          pass
+          q2 = atm.q
+      elif 'equil' in atm.molmodel:
+          molpars = params[self.ret.imol]
+          metal = None
+          e_ratio = {}
+          for model,var,val in zip(atm.molmodel, atm.molfree, molpars):
+              if model == 'equil' and var=='metal':
+                  metal = val
+              if model == 'equil' and '_' in var:
+                  e_ratio[var] = val
+          q2 = atm.chem_model.thermochemical_equilibrium(
+              temp, metallicity=metal, e_ratio=e_ratio)
       else:
           q2 = pa.qscale(
-              q0, self.mol.name, self.atm.molmodel,
-              self.atm.molfree, params[self.ret.imol],
-              self.atm.bulk,
-              iscale=self.atm.ifree, ibulk=self.atm.ibulk,
-              bratio=self.atm.bulkratio, invsrat=self.atm.invsrat,
+              q0, self.mol.name, atm.molmodel,
+              atm.molfree, params[self.ret.imol],
+              atm.bulk,
+              iscale=atm.ifree, ibulk=atm.ibulk,
+              bratio=atm.bulkratio, invsrat=atm.invsrat,
           )
 
       # Check abundaces stay within bounds:
-      if pa.qcapcheck(q2, self.ret.qcap, self.atm.ibulk):
+      if pa.qcapcheck(q2, self.ret.qcap, atm.ibulk):
           rejectflag = True
           if verbose:
               self.log.warning(
@@ -258,16 +267,16 @@ class Pyrat(object):
 
       # Update reference radius if requested:
       if self.ret.irad is not None:
-          self.phy.rplanet = params[self.ret.irad][0] * pt.u(self.atm.runits)
+          self.phy.rplanet = params[self.ret.irad][0] * pt.u(atm.runits)
 
       # Update planetary mass if requested:
       if self.ret.imass is not None:
           self.phy.mplanet = params[self.ret.imass][0] * pt.u(self.phy.mpunits)
 
       # Keep M-g-R0 consistency:
-      if self.atm.rmodelname == 'hydro_g': # and self.ret.igrav is None:
+      if atm.rmodelname == 'hydro_g': # and self.ret.igrav is None:
           self.phy.gplanet = pc.G * self.phy.mplanet / self.phy.rplanet**2
-      #if self.atm.rmodelname == 'hydro_m' and self.ret.igrav is not None:
+      #if atm.rmodelname == 'hydro_m' and self.ret.igrav is not None:
       #    self.phy.mplanet = self.phy.gplanet * self.phy.rplanet**2 / pc.G
 
       # Update Rayleigh parameters if requested:

@@ -7251,3 +7251,14 @@ Added 'equil' to constants.molmodels.
 
 Fixed bug in docs of plots.abundance().
 
+*****
+
+Enabled setting molmodel values as 'equil'.
+Updated pyrat.eval() to handle equilibrium-chemistry calculations,
+this includes parameterized metallicity and X/Y elemental ratios.
+There are many loose ends and corner-cases yet to fix.
+
+Changed default value of molmodel from None to [].
+This simplifies handling cases when checking its values.
+Tests and documentation is pending.
+

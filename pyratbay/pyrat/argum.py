@@ -142,7 +142,6 @@ def check_spectrum(pyrat):
           for name in pyrat.alkali.model_names]
 
   # Accept ray-path argument:
-  print(pyrat.od)
   if pyrat.runmode in ['spectrum', 'mcmc'] and pyrat.od.rt_path is None:
       log.error(
           "Undefined radiative-transfer observing geometry (rt_path)."
@@ -151,8 +150,9 @@ def check_spectrum(pyrat):
   if 'temp' in pyrat.ret.retflag and atm.tmodelname is None:
       log.error('Requested temp in retflag, but there is no tmodel.')
   if 'mol' in pyrat.ret.retflag:
-      if atm.molmodel is None:
+      if atm.molmodel == []:
           log.error("Requested mol in retflag, but there is no 'molmodel'.")
+      # TBD: This will break for pure eq-chem runs
       if atm.bulk is None:
           log.error('Requested mol in retflag, but there are no bulk species.')
   if 'ray' in pyrat.ret.retflag and pyrat.rayleigh.models == []:
@@ -224,15 +224,21 @@ def setup(pyrat):
       log.error('These bulk species are not present in the atmosphere: {}.'.
                 format(np.setdiff1d(atm.bulk, species)))
 
-  if atm.molmodel is not None:
+  if atm.molmodel != []:
       if atm.molfree is None:
           log.error('molmodel is set, but there are no molfree.')
       if len(atm.molmodel) != len(atm.molfree):
-          log.error('There should be one molfree for each molmodel:\n'
-              'molmodel: {}\nmolfree: {}'.format(atm.molmodel, atm.molfree))
-      if len(np.setdiff1d(atm.molfree, species)) > 0:
-          log.error('These species are not present in the atmosphere: {}.'.
-                    format(np.setdiff1d(atm.molfree, species)))
+          log.error(
+              'There should be one molfree for each molmodel:\n'
+              f'molmodel: {atm.molmodel}\nmolfree: {atm.molfree}')
+      free_molecules = [
+          mol for mol,model in zip(atm.molfree,atm.molmodel)
+          if model != 'equil']
+      missing_molecules = np.setdiff1d(free_molecules, species)
+      if len(missing_molecules) > 0:
+          log.error(
+              'These molfree species are not present in the '
+              f'atmosphere: {missing_molecules}.')
 
   # Overlapping species:
   if (atm.bulk is not None and atm.molfree is not None
@@ -245,9 +251,12 @@ def setup(pyrat):
   if atm.bulk is not None:
       atm.ibulk = [spec.index(mol) for mol in atm.bulk]
       atm.bulkratio, atm.invsrat = pa.ratio(pyrat.atm.q, atm.ibulk)
-  if atm.molmodel is not None:
-      atm.ifree = [spec.index(mol) for mol in atm.molfree]
-      nabund = len(atm.ifree)
+  if atm.molmodel != []:
+      nabund = len(atm.molmodel)
+      # TBD: set ifree to something when model is equil
+      atm.ifree = [
+          spec.index(mol) for mol,model in zip(atm.molfree,atm.molmodel)
+          if model != 'equil']
       # Abundance free-parameter names:
       mpnames = [f'log({mol})' for mol in atm.molfree]
       mtexnames = [fr'$\log_{{10}}(X_{{\rm {mol}}})$' for mol in atm.molfree]

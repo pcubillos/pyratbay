@@ -782,6 +782,8 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
 
     atm.molmodel = args.get_choice(
         'molmodel', 'molecular-abundance model', pc.molmodels)
+    if atm.molmodel is None:
+        atm.molmodel = []
     atm.molfree = args.molfree
     atm.molpars = args.molpars
     atm.bulk = args.bulk

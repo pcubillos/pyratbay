@@ -807,7 +807,7 @@ def test_molfree_mismatch3(tmp_path, capfd):
     assert pyrat is None
     captured = capfd.readouterr()
     assert "Error in module: 'argum.py', function: 'setup'" in captured.out
-    assert "These species are not present in the atmosphere: ['N2']." in captured.out
+    assert "These molfree species are not present in the atmosphere: ['N2']." in captured.out
 
 
 def test_bulk_molfree_overlap(tmp_path, capfd):

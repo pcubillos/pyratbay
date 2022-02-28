@@ -77,18 +77,25 @@ def run(cfile, run_step='run', no_logfile=False):
     elif mplanet and rplanet and not gplanet:
         phy.gplanet = pc.G * phy.mplanet / phy.rplanet**2
 
+    require_atmospheric_model = (
+        pyrat.runmode in ['atmosphere', 'radeq']
+        or pt.isfile(atm.atmfile) != 1
+        or 'equil' in atm.molmodel)
 
-    if pyrat.runmode in ['atmosphere', 'radeq'] or pt.isfile(atm.atmfile) != 1:
+    if require_atmospheric_model:
         # Compute pressure-temperature profile:
+        read_atmosphere = (
+            pt.isfile(atm.atmfile) == 1
+            and (pyrat.runmode == 'radeq' or 'equil' in atm.molmodel)
+        )
         if pt.isfile(atm.ptfile) == 1:
             log.msg(f"\nReading pressure-temperature file: '{atm.ptfile}'.")
-            units, _, pressure, temperature = io.read_atm(atm.ptfile)[2:4]
+            units, _, pressure, temperature = io.read_atm(atm.ptfile)[0:4]
             pressure *= pt.u(units[0]) # pressure in barye
-        elif pyrat.runmode=='radeq' and pt.isfile(atm.atmfile)==1:
+        elif read_atmosphere:
             units, inputs.species, pressure, temperature, _, _ = \
                 io.read_atm(atm.atmfile)
             pressure *= pt.u(units[0]) # pressure in barye
-
         else:
             check_pressure(pyrat)
             pressure = pa.pressure(
@@ -100,6 +107,8 @@ def run(cfile, run_step='run', no_logfile=False):
         abundances = None
         species = None
         radius = None
+        if 'equil' in atm.molmodel:
+            atm.chemistry = 'tea'
         # Compute volume-mixing-ratio profiles:
         if atm.chemistry is not None or pyrat.runmode != 'atmosphere':
             check_atm(pyrat)
@@ -110,7 +119,7 @@ def run(cfile, run_step='run', no_logfile=False):
                 solar_file=inputs.solar, log=log,
                 atmfile=atm.atmfile, punits=atm.punits,
                 q_uniform=inputs.uniform,
-                )
+            )
 
             atm.chem_model = chem_net
             abundances = chem_net.vmr

@@ -380,7 +380,7 @@ def test_opacity_reset_wn(tmp_path, wllow, wlhigh):
 
 # These are extra bits for testing the tests before testing:
 def spectrum_fm():
-    from scipy.ndimage.filters import gaussian_filter1d as gaussf
+    from scipy.ndimage import gaussian_filter1d as gaussf
     pyrat = pb.run(ROOT+'tests/configs/spectrum_transmission_filters_test.cfg')
     params = [-1.5, -0.8, 0.0,  1.0,  1.0,  71500.0, -3.4, 2.0]
     model = pyrat.eval(params, retmodel=True)
