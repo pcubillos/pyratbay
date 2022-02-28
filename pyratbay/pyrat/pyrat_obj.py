@@ -213,11 +213,12 @@ class Pyrat(object):
       if len(params) != self.ret.nparams:
           self.log.warning(
               f'The number of input fitting parameters ({len(params)}) does '
-              f'not match\nthe number of required '
+               'not match\nthe number of required '
               f'parameters ({self.ret.nparams}).')
           return None, None if retmodel else None
 
       rejectflag = False
+
       # Update temperature profile if requested:
       if self.ret.itemp is not None:
           self.atm.tpars = params[self.ret.itemp]
@@ -233,21 +234,27 @@ class Pyrat(object):
                   f"boundaries ({self.ret.tlow:.1f}--{self.ret.thigh:.1f} K)")
 
       # Update abundance profiles if requested:
-      if self.ret.imol is not None:
-          q2 = pa.qscale(q0, self.mol.name, self.atm.molmodel,
-                         self.atm.molfree, params[self.ret.imol],
-                         self.atm.bulk,
-                         iscale=self.atm.ifree, ibulk=self.atm.ibulk,
-                         bratio=self.atm.bulkratio, invsrat=self.atm.invsrat)
-      else:
+      if self.ret.imol is None:
           q2 = self.atm.q
+      elif 'equil' in self.atm.molmodel:
+          # TBD: Parse metallicity and elemental ratios.
+          pass
+      else:
+          q2 = pa.qscale(
+              q0, self.mol.name, self.atm.molmodel,
+              self.atm.molfree, params[self.ret.imol],
+              self.atm.bulk,
+              iscale=self.atm.ifree, ibulk=self.atm.ibulk,
+              bratio=self.atm.bulkratio, invsrat=self.atm.invsrat,
+          )
 
       # Check abundaces stay within bounds:
       if pa.qcapcheck(q2, self.ret.qcap, self.atm.ibulk):
           rejectflag = True
           if verbose:
-              self.log.warning("The sum of trace abundances' fraction exceeds "
-                              f"the cap of {self.ret.qcap:.3f}.")
+              self.log.warning(
+                  "The sum of trace abundances' fraction exceeds "
+                  f"the cap of {self.ret.qcap:.3f}.")
 
       # Update reference radius if requested:
       if self.ret.irad is not None:

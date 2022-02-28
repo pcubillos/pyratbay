@@ -107,6 +107,7 @@ def test_emission_all(tmp_path):
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['all'], rtol=rtol)
 
 
+@pytest.mark.skip(reason="Wait until settling on calculating algorithms")
 def test_emission_two_sstream(tmp_path):
     cfg = make_config(
         tmp_path,

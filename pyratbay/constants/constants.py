@@ -234,7 +234,8 @@ radmodels = [
 # Molecular-abundance models:
 molmodels = [
     'vert',
-    'scale'
+    'scale',
+    'equil',
 ]
 
 # Alkali models:

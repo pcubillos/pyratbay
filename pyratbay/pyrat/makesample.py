@@ -113,18 +113,18 @@ def make_atmprofiles(pyrat):
     log.head('\nGenerating atmospheric profile sample.')
 
     # Pyrat and user-input atmospheric-data objects:
-    atm    = pyrat.atm
+    atm = pyrat.atm
     atm_in = pyrat.inputs.atm
 
     # Check that the layers are sorted from the top to the bottom of
-    #  the atmosphere:
+    # the atmosphere:
     sort    = np.all(np.ediff1d(atm_in.press) > 0)  # Top to bottom
     reverse = np.all(np.ediff1d(atm_in.press) < 0)  # Bottom to top
     if atm_in.radius is not None:
         sort    *= np.all(np.ediff1d(atm_in.radius) < 0)
         reverse *= np.all(np.ediff1d(atm_in.radius) > 0)
 
-    if sort:       # Layers are in the correct order
+    if sort:  # Layers are in the correct order
         pass
     elif reverse:  # Layers in reverse order
         log.warning('The atmospheric layers are in reversed order '
@@ -145,7 +145,7 @@ def make_atmprofiles(pyrat):
         pyrat.phy.gplanet is None,
         pyrat.phy.rplanet is None,
         atm.refpressure is None,
-        ]
+    ]
 
     if pyrat.atm.rmodelname is None and atm_in.radius is None \
        and pyrat.runmode != "opacity":
@@ -306,9 +306,9 @@ def make_atmprofiles(pyrat):
     # Interpolate to new atm-layer sampling if necessary:
     if resample:
         tempinterp = sip.interp1d(atm_in.press, atm_in.temp, kind='slinear')
-        mminterp   = sip.interp1d(atm_in.press, atm_in.mm,   kind='slinear')
+        mminterp = sip.interp1d(atm_in.press, atm_in.mm, kind='slinear')
         atm.temp = tempinterp(atm.press)
-        atm.m    =   mminterp(atm.press)
+        atm.m = mminterp(atm.press)
         # Interpolate abundance profiles:
         atm.q = np.zeros((atm.nlayers, pyrat.mol.nmol))
         atm.d = np.zeros((atm.nlayers, pyrat.mol.nmol))

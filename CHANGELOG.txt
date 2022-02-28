@@ -7241,3 +7241,9 @@ Prevent the code to crash for missing irradiation flux in two_stream.
 Radiative-equilibrium runs should though have a warning (TBD).
 Refactored the beta_irr factor into (1-A)*f as in Guillot (2010).
 
+
+*****  Mon Feb 28 11:40:24 CET 2022  *****
+
+Starting preparing code for equilibrium runs:
+Added 'equil' to constants.molmodels.
+

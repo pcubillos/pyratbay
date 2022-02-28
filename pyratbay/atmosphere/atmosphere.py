@@ -358,7 +358,7 @@ def chemistry(
 def abundance(
     pressure, temperature, species, elements=None,
     quniform=None, atmfile=None, punits='bar',
-    metallicity=0.0, e_scale={},
+    metallicity=0.0, e_scale={}, e_ratio={},
     solar_file=None, log=None, verb=1,
     # To be deprecated:
     ncpu=1, xsolar=None, escale={},

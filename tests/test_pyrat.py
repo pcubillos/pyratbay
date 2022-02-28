@@ -39,7 +39,7 @@ def test_no_logfile(tmp_path):
     assert pyrat.log.logname is None
     with open(logfile, 'r') as f:
         log = f.read()
-    assert 'Computed transmission spectrum' in log
+    assert 'Computed transit spectrum' in log
 
     # Continue running, check it doesn't break:
     pyrat.setup_spectrum()
