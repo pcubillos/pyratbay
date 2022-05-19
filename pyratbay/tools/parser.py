@@ -631,8 +631,7 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         'metallicity',
         'Atmospheric metallicity (dex, relative to solar)',
         default=0.0)
-    escale = args.get_default(
-       'escale', 'Elemental abundance scaling factors')
+    escale = args.get_default('escale', 'Elemental abundance scaling factors')
     if escale is not None:
         # TBD: Throw 'deprecated' warning
         atm.e_scale = {
@@ -641,11 +640,11 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         }
 
     e_scale = args.get_default(
-       'escale', 'Elemental abundance scaling factors (dex)', [])
+       'e_scale', 'Elemental abundance scaling factors (dex)', [])
     atm.e_scale = {
         atom: float(fscale)
         for atom,fscale in zip(e_scale[::2], e_scale[1::2])
-        }
+    }
 
     # System physical parameters:
     phy.mpunits = args.get_default('mpunits', 'Planetary-mass units')
