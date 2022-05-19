@@ -767,8 +767,10 @@ def ideal_gas_density(abundances, pressure, temperature):
     return abundances * np.expand_dims(pressure/temperature, axis=1) / pc.k
 
 
-def equilibrium_temp(tstar, rstar, smaxis, A=0.0, f=1.0,
-    tstar_unc=0.0, rstar_unc=0.0, smaxis_unc=0.0):
+def equilibrium_temp(
+        tstar, rstar, smaxis, A=0.0, f=1.0,
+        tstar_unc=0.0, rstar_unc=0.0, smaxis_unc=0.0,
+    ):
     r"""
     Calculate equilibrium temperature and uncertainty.
 

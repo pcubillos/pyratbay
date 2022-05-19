@@ -300,18 +300,22 @@ Aprofiles for the configuration files shown above:
     import pyratbay.plots as pp
 
     # Generate a uniform and a thermochemical-equilibrium atmospheric model:
-    pressure, temp, q_tea, species, radius = pb.run("atmosphere_tea.cfg")
-    pressure, temp, q_uniform, species, radius = pb.run("atmosphere_uniform.cfg")
+    pressure, temp, vmr_tea, species_tea, radius = pb.run("atmosphere_tea.cfg")
+    pressure, temp, vmr_uni, species_uni, radius = pb.run("atmosphere_uniform.cfg")
 
     # Plot the results:
     plt.figure(12, (6,5))
     plt.clf()
+    ax = plt.subplot(211)
     ax1 = pp.abundance(
-        q_tea, pressure, species, colors='default', xlim=[1e-11, 10.0],
-        legend_fs=0, ax=plt.subplot(211))
+        vmr_tea, pressure, species_tea,
+        colors='default', xlim=[1e-11, 10.0], legend_fs=0, ax=ax,
+    )
+    ax = plt.subplot(212)
     ax2 = pp.abundance(
-        q_uniform, pressure, species, colors='default', xlim=[1e-11, 10.0],
-        legend_fs=8, ax=plt.subplot(212))
+        vmr_uni, pressure, species_uni,
+        colors='default', xlim=[1e-11, 10.0], legend_fs=8, ax=ax,
+    )
     plt.tight_layout()
 
 And the results should look like this:

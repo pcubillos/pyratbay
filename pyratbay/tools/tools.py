@@ -15,14 +15,13 @@ __all__ = [
     'file_exists',
     'path',
     'Formatted_Write',
-    'make_tea',
     'Timer',
     'get_exomol_mol',
     'cia_hitran', 'cia_borysow',
     'radius_to_depth',
     'depth_to_radius',
     'ignore_system_exit',
-    ]
+]
 
 
 import os
@@ -670,42 +669,6 @@ class Formatted_Write(string.Formatter):
                 line, break_long_words=False, initial_indent=indspace,
                 subsequent_indent=sindspace, width=80)
             self.text += '\n'
-
-
-def make_tea(maxiter=200, savefiles=False, times=False, location_TEA=None,
-    abun_file=None, location_out='./TEA', verb=1, ncpu=1):
-    """
-    Make a TEA configuration file.
-
-    Parameters
-    ----------
-    TBD
-    """
-    if location_TEA is None:
-        location_TEA = os.path.realpath(pc.ROOT + 'pyratbay/TEA/')
-
-    # Open new configparser:
-    config = configparser.ConfigParser()
-    config.add_section('TEA')
-    config.set('TEA', 'maxiter',      str(maxiter))
-    config.set('TEA', 'savefiles',    str(savefiles))
-    config.set('TEA', 'times',        str(times))
-    config.set('TEA', 'location_TEA', str(location_TEA))
-    config.set('TEA', 'location_out', str(location_out))
-    config.set('TEA', 'abun_file',    str(abun_file))
-    config.set('TEA', 'verb',         str(verb))
-    config.set('TEA', 'ncpu',         str(ncpu))
-
-    # For completeness:
-    config.add_section('PRE-ATM')
-    config.set('PRE-ATM', 'PT_file',        'None')
-    config.set('PRE-ATM', 'pre_atm_name',   'None')
-    config.set('PRE-ATM', 'input_elem',     'None')
-    config.set('PRE-ATM', 'output_species', 'None')
-
-    # Write TEA configuration file:
-    with open('TEA.cfg', 'w') as config_file:
-        config.write(config_file)
 
 
 class Timer(object):

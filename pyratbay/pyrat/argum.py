@@ -221,8 +221,9 @@ def setup(pyrat):
   species = pyrat.mol.name
   # Non-overlapping species:
   if atm.bulk is not None and len(np.setdiff1d(atm.bulk, species)) > 0:
-      log.error('These bulk species are not present in the atmosphere: {}.'.
-                format(np.setdiff1d(atm.bulk, species)))
+      missing = np.setdiff1d(atm.bulk, species)
+      log.error(
+          f'These bulk species are not present in the atmosphere: {missing}.')
 
   if atm.molmodel != []:
       if atm.molfree is None:
@@ -241,10 +242,13 @@ def setup(pyrat):
               f'atmosphere: {missing_molecules}.')
 
   # Overlapping species:
-  if (atm.bulk is not None and atm.molfree is not None
-      and len(np.intersect1d(atm.bulk, atm.molfree)) > 0):
-      log.error('These species were marked as both bulk and variable-'
-          'abundance: {}.'.format(np.intersect1d(atm.bulk, atm.molfree)))
+  if atm.bulk is not None and atm.molfree is not None:
+      bulk_free_species = np.intersect1d(atm.bulk, atm.molfree)
+      if len(bulk_free_species) > 0:
+          log.error(
+              'These species were marked as both bulk and '
+              f'variable-abundance: {bulk_free_species}.'
+          )
 
   # Obtain abundance ratios between the bulk species:
   spec = list(species)
@@ -255,8 +259,10 @@ def setup(pyrat):
       nabund = len(atm.molmodel)
       # TBD: set ifree to something when model is equil
       atm.ifree = [
-          spec.index(mol) for mol,model in zip(atm.molfree,atm.molmodel)
-          if model != 'equil']
+          spec.index(mol)
+          for mol,model in zip(atm.molfree,atm.molmodel)
+          if model != 'equil'
+      ]
       # Abundance free-parameter names:
       mol_pnames = []
       mol_tex_names = []

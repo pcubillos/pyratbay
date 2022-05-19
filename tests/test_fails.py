@@ -599,17 +599,21 @@ def test_spectrum_hydro_refpressure(tmp_path, capfd, atm):
 @pytest.mark.parametrize('value', ['1.00e-09 bar', '1.00e+03 bar'])
 @pytest.mark.parametrize('param', ['pbottom', 'ptop'])
 def test_spectrum_unbounded_pressures(tmp_path, capfd, param, value):
-    cfg = make_config(tmp_path,
+    cfg = make_config(
+        tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        reset={param:value})
+        reset={param: value})
     pyrat = pb.run(cfg)
     assert pyrat is None
     captured = capfd.readouterr()
     assert "Error in module: 'makesample.py', function: 'make_atmprofiles'" \
            in captured.out
-    assert ('{}-pressure boundary ({}={}) lies outside of the\n'
-            'atmospheric-file range 1.00e-06--1.00e+02 bar.'.
-            format(param[1:].capitalize(), param, value)) in captured.out
+    error_msg = (
+        f'{param[1:].capitalize()}-pressure boundary ({param}={value}) '
+        'lies outside of\n    '
+        'the atmospheric file range 1.00e-06--1.00e+02 bar.'
+    )
+    assert error_msg in captured.out
 
 
 def test_spectrum_invalid_pressure_ranges(tmp_path, capfd):

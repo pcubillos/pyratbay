@@ -7267,3 +7267,11 @@ Tests and documentation is pending.
 Corrected parameter names for equilibrium chemistry pars
 (ret.pnames and ret.texnames).
 
+
+*****  Thu May 19 11:47:24 CEST 2022  *****
+
+Removed make_tea() from tools.py, no longer used.
+Small corrections here and there.
+Updated example files (mostly cosmetics).
+
+

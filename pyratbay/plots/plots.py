@@ -8,7 +8,7 @@ __all__ = [
     'temperature',
     'abundance',
     'default_colors',
-    ]
+]
 
 import os
 from itertools import cycle
@@ -290,8 +290,8 @@ def contribution(contrib_func, wl, rt_path, pressure, radius, rtop=0,
     rad = radius[rtop:]/pc.km
     zz = contrib_func/np.amax(contrib_func)
 
-    is_emission = rt_path == 'emission'
-    is_transit = rt_path == 'transit'
+    is_emission = rt_path in pc.emission_rt
+    is_transit = rt_path in pc.transmission_rt
 
     if is_emission:
         yran = np.amax(np.log10(press)), np.amin(np.log10(press))
@@ -307,8 +307,7 @@ def contribution(contrib_func, wl, rt_path, pressure, radius, rtop=0,
         cbtop  = 0.8
     else:
         print(
-            "Invalid radiative-transfer geometry.  "
-            "Select from: 'emission' or 'transit'.")
+            f"Invalid radiative-transfer geometry. Select from: {pc.rt_paths}.")
         return
 
     fs  = 12
@@ -519,10 +518,12 @@ def temperature(pressure, profiles=None, labels=None, colors=None,
     return ax
 
 
-def abundance(vol_mix_ratios, pressure, species,
-    highlight=None, xlim=None, punits='bar',
-    colors=None, dashes=None, filename=None,
-    lw=2.0, fignum=505, fs=13, legend_fs=None, ax=None):
+def abundance(
+        vol_mix_ratios, pressure, species,
+        highlight=None, xlim=None, punits='bar',
+        colors=None, dashes=None, filename=None,
+        lw=2.0, fignum=505, fs=13, legend_fs=None, ax=None,
+    ):
     """
     Plot atmospheric volume-mixing-ratio abundances.
 
@@ -657,7 +658,8 @@ def abundance(vol_mix_ratios, pressure, species,
     ax.set_ylim(np.amax(press), np.amin(press))
     ax.set_xlabel('Volume mixing ratio', fontsize=fs)
     ax.set_ylabel(f'Pressure ({punits})', fontsize=fs)
-    ax.tick_params(labelsize=fs-2)
+    ax.tick_params(
+        which='both', right=True, top=True, direction='in', labelsize=fs-2)
     if legend_fs > 0:
         ax.legend(loc='best', fontsize=legend_fs)
 

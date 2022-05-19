@@ -224,13 +224,13 @@ def make_atmprofiles(pyrat):
     pmax = np.amax(atm_in.press)
     if atm.ptop < pmin or atm.ptop > pmax:
         log.error(
-           f'Top-pressure boundary (ptop={atm.ptop/punits:.2e} {atm.punits}) '
-            'lies outside of the atmospheric-file range '
+           f'Top-pressure boundary (ptop={atm.ptop/punits:.2e} '
+           f'{atm.punits}) lies outside of\nthe atmospheric file range '
            f'{pmin/punits:.2e}--{pmax/punits:.2e} {atm.punits}.')
     if atm.pbottom < pmin or atm.pbottom > pmax:
         log.error(
            f'Bottom-pressure boundary (pbottom={atm.pbottom/punits:.2e} '
-           f'{atm.punits}) lies outside of the atmospheric-file range '
+           f'{atm.punits}) lies outside of\nthe atmospheric file range '
            f'{pmin/punits:.2e}--{pmax/punits:.2e} {atm.punits}.')
     if atm.pbottom <= atm.ptop:
         log.error(
