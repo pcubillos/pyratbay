@@ -1,4 +1,4 @@
-# Copyright (c) 2021 Patricio Cubillos
+# Copyright (c) 2021-2022 Patricio Cubillos
 # Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -16,9 +16,9 @@ __all__ = [
     'equilibrium_temp',
     'transit_path',
     'temperature_posterior',
-    ]
+]
 
-import os
+import warnings
 
 import numpy as np
 import scipy.integrate as si
@@ -30,7 +30,7 @@ import tea
 from .. import tools as pt
 from .. import constants as pc
 from .. import io as io
-from .  import tmodels
+from . import tmodels
 
 
 def pressure(ptop, pbottom, nlayers, units="bar", log=None, verb=0):
@@ -161,8 +161,10 @@ def temperature(tmodel, pressure=None, nlayers=None, log=None, params=None):
         return temperature
 
 
-def uniform(pressure, temperature, species, abundances, punits="bar",
-            log=None, atmfile=None):
+def uniform(
+        pressure, temperature, species, abundances, punits="bar",
+        log=None, atmfile=None,
+    ):
     """
     Generate an atmospheric file with uniform abundances.
     Save it into atmfile.
@@ -240,11 +242,11 @@ def uniform(pressure, temperature, species, abundances, punits="bar",
 
 
 def chemistry(
-    chem_model, pressure, temperature, species,
-    metallicity=0.0, e_scale={}, e_ratio={},
-    q_uniform=None,
-    solar_file=None, log=None, verb=1,
-    atmfile=None, punits='bar',
+        chem_model, pressure, temperature, species,
+        metallicity=0.0, e_scale={}, e_ratio={},
+        q_uniform=None,
+        solar_file=None, log=None, verb=1,
+        atmfile=None, punits='bar',
     ):
     """
     Compute atmospheric abundaces for given pressure and
@@ -356,12 +358,12 @@ def chemistry(
 
 
 def abundance(
-    pressure, temperature, species, elements=None,
-    quniform=None, atmfile=None, punits='bar',
-    metallicity=0.0, e_scale={}, e_ratio={},
-    solar_file=None, log=None, verb=1,
-    # To be deprecated:
-    ncpu=1, xsolar=None, escale={},
+        pressure, temperature, species, elements=None,
+        quniform=None, atmfile=None, punits='bar',
+        metallicity=0.0, e_scale={}, e_ratio={},
+        solar_file=None, log=None, verb=1,
+        # To be deprecated:
+        ncpu=None, xsolar=None, escale=None,
     ):
     """
     Compute atmospheric abundaces for given pressure and
@@ -396,9 +398,9 @@ def abundance(
         Screen-output log handler.
     verb: Integer
         Verbosity level.
-    ncpu: Integer
-        Number of parallel CPUs to use in TEA calculation.
 
+    ncpu: Integer [DEPRECATED]
+        Number of parallel CPUs to use in TEA calculation.
     xsolar: Float [DEPRECATED]
         Metallicity enhancement factor.  Deprecated, use metallicity instead.
     escale: Dict [DEPRECATED]
@@ -408,7 +410,7 @@ def abundance(
 
     Returns
     -------
-    q: 2D float ndarray
+    vmr: 2D float ndarray
        Atmospheric volume mixing fraction abundances of shape
        [nlayers, nspecies].
 
@@ -432,17 +434,31 @@ def abundance(
     # Uniform-abundances profile:
     if quniform is not None:
         log.head("\nCompute uniform-abundances profile.")
-        q = uniform(
+        vmr = uniform(
             pressure, temperature, species, quniform, punits, log, atmfile)
-        return q
+        return vmr
 
     # Deprecated arguments:
-    if not e_scale and escale:
+    if ncpu is not None:
+        warning_msg = (
+            "The 'ncpu' argument is deprecated and no longer has any "
+            "effect, it will be removed in the near future"
+        )
+        warnings.warn(warning_msg, category=DeprecationWarning)
+    if not e_scale and escale is not None:
         e_scale = {key: np.log10(val) for key,val in escale.items()}
-        # Deprecation warning
+        warning_msg = (
+            "The 'escale' argument is deprecated and will be removed in "
+            "the near future, use 'e_scale' instead"
+        )
+        warnings.warn(warning_msg, category=DeprecationWarning)
     if xsolar is not None:
         metallicity = np.log10(xsolar)
-        # Deprecation warning
+        warning_msg = (
+            "The 'xsolar' argument is deprecated and will be removed in "
+            "the near future, use 'metallicity' instead"
+        )
+        warnings.warn(warning_msg, category=DeprecationWarning)
 
     # TEA abundances:
     log.head("\nCompute TEA thermochemical-equilibrium abundances profile.")
@@ -451,15 +467,15 @@ def abundance(
         metallicity=metallicity, e_scale=e_scale,
         solar_file=solar_file, log=log, verb=verb,
         e_ratio=e_ratio,
-        )
-    abundances = tea_net.vmr
+    )
+    vmr = tea_net.vmr
     if atmfile is not None:
         header = "# TEA atmospheric file\n\n"
         io.write_atm(
-            atmfile, pressure, temperature,
-            tea_net.species, abundances,
-            punits=punits, header=header)
-    return abundances
+            atmfile, pressure, temperature, tea_net.species, vmr,
+            punits=punits, header=header,
+        )
+    return vmr
 
 
 def hydro_g(pressure, temperature, mu, g, p0=None, r0=None):

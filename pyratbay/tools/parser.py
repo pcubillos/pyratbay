@@ -1,4 +1,4 @@
-# Copyright (c) 2021 Patricio Cubillos
+# Copyright (c) 2021-2022 Patricio Cubillos
 # Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -8,12 +8,13 @@ __all__ = [
     'parse_int',
     'parse_float',
     'parse_array',
-    ]
+]
 
 import os
 import argparse
 from datetime import date
 import configparser
+import warnings
 
 import numpy as np
 import mc3.utils as mu
@@ -241,7 +242,6 @@ def parse_int(args, param):
             f"Invalid data type for {param}, could not convert string "
             f"to integer: '{args[param]}'")
     args[param] = int(val)
-
 
 
 def parse_float(args, param):
@@ -626,14 +626,22 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         'xsolar', 'Atmospheric metallicity',)
     if xsolar is not None:
         args.metallicity = np.log10(xsolar)
-        # TBD: Throw 'deprecated' warning
+        warning_msg = (
+            "The 'xsolar' argument is deprecated and will be removed in "
+            "the near future, use 'metallicity' instead"
+        )
+        warnings.warn(warning_msg, category=DeprecationWarning)
     atm.metallicity = args.get_default(
         'metallicity',
         'Atmospheric metallicity (dex, relative to solar)',
         default=0.0)
     escale = args.get_default('escale', 'Elemental abundance scaling factors')
     if escale is not None:
-        # TBD: Throw 'deprecated' warning
+        warning_msg = (
+            "The 'escale' argument is deprecated and will be removed in "
+            "the near future, use 'e_scale' instead"
+        )
+        warnings.warn(warning_msg, category=DeprecationWarning)
         atm.e_scale = {
             atom: np.log10(float(fscale))
             for atom,fscale in zip(escale[::2], escale[1::2])

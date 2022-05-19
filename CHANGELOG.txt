@@ -7274,8 +7274,9 @@ Removed make_tea() from tools.py, no longer used.
 Small corrections here and there.
 Updated example files (mostly cosmetics).
 
-*****
-
 Fixed bug with input e_scale parameter name in parser.py.
 
+Added deprecation warnings for xsolar, escale, and ncpu
+when computing atmospheric models.
 
+*****
