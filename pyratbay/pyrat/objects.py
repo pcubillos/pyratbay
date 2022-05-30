@@ -166,9 +166,12 @@ class Atm(object):
       fw.write('\nAbundance units (qunits): {}', self.qunits)
       fw.write('Abundance internal units: mole mixing fraction')
       fw.write('Number of atmospheric species: {:d}', len(self.q[0]))
-      if self.molmodel is not None:
-          molpars = [None for _ in self.molmodel] if self.molpars is None \
-                    else self.molpars
+      if hasattr(self, 'ifree'):
+      # if molmodel is not None: [TBD: this needs some reingeneering]
+          molpars = self.molpars
+          if self.molpars is None:
+              molpars = [None for _ in self.molmodel]
+
           fw.write('Abundance models:\n'
                    '  ifree  molfree     molmodel    molpars')
           for molvals in zip(self.ifree, self.molfree, self.molmodel, molpars):

@@ -1,4 +1,4 @@
-# Copyright (c) 2021 Patricio Cubillos
+# Copyright (c) 2021-2022 Patricio Cubillos
 # Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -116,11 +116,11 @@ def run(cfile, run_step='run', no_logfile=False):
                 atm.chemistry,
                 pressure, temperature, inputs.species,
                 atm.metallicity, atm.e_scale,
+                e_ratio=atm.e_ratio,
                 solar_file=inputs.solar, log=log,
                 atmfile=atm.atmfile, punits=atm.punits,
                 q_uniform=inputs.uniform,
             )
-
             atm.chem_model = chem_net
             abundances = chem_net.vmr
             species = chem_net.species
@@ -208,12 +208,9 @@ def run(cfile, run_step='run', no_logfile=False):
         log.error("Error in MC3.")
 
     bestp = mc3_out['bestp']
-    CRlo  = mc3_out['CRlo']
-    CRhi  = mc3_out['CRhi']
-    stdp  = mc3_out['stdp']
+    ret.bestp = bestp
     posterior, zchain, zmask = mc3.utils.burn(mc3_out)
     ret.posterior = posterior
-    ret.bestp = bestp
 
     # Best-fitting model:
     pyrat.spec.specfile = f"{outfile}_bestfit_spectrum.dat"
@@ -329,7 +326,6 @@ def check_atm(pyrat):
 
 def check_altitude(pyrat):
     """Check input arguments to calculate altitude profile."""
-    atm = pyrat.atm
     phy = pyrat.phy
     log = pyrat.log
 

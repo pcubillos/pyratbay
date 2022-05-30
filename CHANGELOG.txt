@@ -7279,4 +7279,9 @@ Fixed bug with input e_scale parameter name in parser.py.
 Added deprecation warnings for xsolar, escale, and ncpu
 when computing atmospheric models.
 
-*****
+
+*****  Mon May 30 11:55:33 CEST 2022  *****
+
+Added e_ratio to list of available config file variables.
+Added tests for pa.abundance() with an e_ratio value.
+

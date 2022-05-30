@@ -404,6 +404,7 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         parse_float(args, 'metallicity')
         parse_array(args, 'escale')
         parse_array(args, 'e_scale')
+        parse_array(args, 'e_ratio')
         parse_array(args, 'elements')
         # Extinction options:
         parse_float(args, 'tmin')
@@ -652,6 +653,12 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
     atm.e_scale = {
         atom: float(fscale)
         for atom,fscale in zip(e_scale[::2], e_scale[1::2])
+    }
+    e_ratio = args.get_default(
+       'e_ratio', 'Elemental abundance ratios', [])
+    atm.e_ratio = {
+        pair: float(ratio)
+        for pair,ratio in zip(e_ratio[::2], e_ratio[1::2])
     }
 
     # System physical parameters:

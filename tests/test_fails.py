@@ -113,7 +113,7 @@ def test_invalid_integer_type(tmp_path, capfd, param, value):
 
 
 @pytest.mark.parametrize('param',
-    ['verb', 'wnosamp', 'nlayers', 'ncpu', 'ndop', 'nlor', 'quadrature',
+    ['verb', 'wnosamp', 'nlayers', 'ndop', 'nlor', 'quadrature',
      'nsamples', 'nchains', 'burnin', 'thinning', 'resume'])
 def test_invalid_integer_all_params(tmp_path, capfd, param):
     cfg = make_config(tmp_path, ROOT+'tests/configs/pt_isothermal.cfg',

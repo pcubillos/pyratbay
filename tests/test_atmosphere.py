@@ -240,7 +240,7 @@ def test_abundance_uniform():
         np.testing.assert_equal(q, np.array(abundances))
 
 
-def test_abundances_tea():
+def test_abundances_tea_basic():
     nlayers = 9
     pressure = pa.pressure(1e-10, 1e3, nlayers, units='bar')
     tmodel = pa.tmodels.Isothermal(nlayers)
@@ -253,7 +253,7 @@ def test_abundances_tea():
 
 @pytest.mark.parametrize('metallicity', [0.0, 1.0])
 @pytest.mark.parametrize('e_scale', [{}, {'C': 0.7}])
-def test_abundances_tea_metallciity_escale(metallicity, e_scale):
+def test_abundances_tea_metallicity_escale(metallicity, e_scale):
     nlayers = 9
     pressure = pa.pressure(1e-5, 1e3, nlayers, units='bar')
     tmodel = pa.tmodels.Isothermal(nlayers)
@@ -266,6 +266,24 @@ def test_abundances_tea_metallciity_escale(metallicity, e_scale):
         metallicity=metallicity, e_scale=e_scale,
     )
     expected_vmr = expected_vmr_tea_H2O[metallicity!=0]['C' in e_scale]
+    np.testing.assert_allclose(vmr[:,i_H2O], expected_vmr)
+
+
+@pytest.mark.parametrize('e_ratio', [{}, {'C_O': 2.9512092}])
+def test_abundances_tea_metallicity_eratio(e_ratio):
+    nlayers = 9
+    pressure = pa.pressure(1e-5, 1e3, nlayers, units='bar')
+    tmodel = pa.tmodels.Isothermal(nlayers)
+    temperature = tmodel(1500.0)
+    species = 'H He C O H2 H2O CO CO2 CH4'.split()
+    elements = 'H He C O'.split()
+    i_H2O = species.index('H2O')
+    vmr = pa.abundance(
+        pressure, temperature, species, elements,
+        e_ratio=e_ratio,
+    )
+    # (this C/O ratio leads to same composition as e_scale C=0.7 above)
+    expected_vmr = expected_vmr_tea_H2O[0]['C_O' in e_ratio]
     np.testing.assert_allclose(vmr[:,i_H2O], expected_vmr)
 
 
