@@ -7285,3 +7285,11 @@ when computing atmospheric models.
 Added e_ratio to list of available config file variables.
 Added tests for pa.abundance() with an e_ratio value.
 
+
+*****  Wed Jun 1 16:38:20 CEST 2022  *****
+
+Renamed HS to SH and COS to OCS in molecules.dat
+(to match names in HITRAN/Exomol databases).
+Added all molecules listed in the HITRAN and Exomol databases.
+(as of today).
+
