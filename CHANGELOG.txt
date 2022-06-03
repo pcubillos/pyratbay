@@ -7303,4 +7303,12 @@ Tweaked make_tli() function to ignore isotopes listed in partition
 function files that do not exist in isotopes.dat.
 Updated tests accordingly.
 
+*****
+
+Moved radiative_equilibrium() method into it's own file
+in radiative_transfer.py to work as a function in spectrum module.
+(the idea is to enable calls without needing to have a pyrat object,
+making it more modular and flexible).
+Tests are TBD.
+
 

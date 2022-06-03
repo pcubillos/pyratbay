@@ -1,4 +1,4 @@
-# Copyright (c) 2021 Patricio Cubillos
+# Copyright (c) 2021-2022 Patricio Cubillos
 # Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 import os
@@ -107,8 +107,7 @@ def test_emission_all(tmp_path):
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['all'], rtol=rtol)
 
 
-@pytest.mark.skip(reason="Wait until settling on calculating algorithms")
-def test_emission_two_sstream(tmp_path):
+def test_emission_two_stream(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_emission_test.cfg',
