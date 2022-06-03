@@ -1,7 +1,9 @@
-# Copyright (c) 2021 Patricio Cubillos
+# Copyright (c) 2021-2022 Patricio Cubillos
 # Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
-__all__ = ['make_tli']
+__all__ = [
+    'make_tli',
+]
 
 import os
 import sys
@@ -10,7 +12,7 @@ import struct
 
 import numpy as np
 
-from .  import linelist
+from . import linelist
 from .. import constants as pc
 from .. import tools as pt
 from .. import VERSION as ver
@@ -72,11 +74,14 @@ def make_tli(dblist, pflist, dbtype, tlifile, wllow,  wlhigh, wlunits, log):
             f'database-type files ({len(dbtype)}).')
 
     # Driver routine to read the databases:
-    db_readers = {dbname.lower():getattr(linelist,dbname)
-                  for dbname in pc.dbases}
-
-    dblist = [os.path.realpath(dbase.replace('{ROOT}', pc.ROOT))
-              for dbase in dblist]
+    db_readers = {
+        dbname.lower():getattr(linelist,dbname)
+        for dbname in pc.dbases
+    }
+    dblist = [
+        os.path.realpath(dbase.replace('{ROOT}', pc.ROOT))
+        for dbase in dblist
+    ]
 
     databases = []
     db_names = []
@@ -100,11 +105,11 @@ def make_tli(dblist, pflist, dbtype, tlifile, wllow,  wlhigh, wlunits, log):
         endian = 'l'
 
     # Start storing TLI header values:
-    header  = struct.pack('s', endian.encode())
+    header = struct.pack('s', endian.encode())
     header += struct.pack('3h', ver.LR_VER, ver.LR_MIN, ver.LR_REV)
 
     # Boundaries in wavenumber space (in cm-1):
-    wnlow  = 1.0/wlhigh
+    wnlow = 1.0/wlhigh
     wnhigh = 1.0/wllow
 
     # Add initial and final wavenumber boundaries (in cm-1):
@@ -138,16 +143,19 @@ def make_tli(dblist, pflist, dbtype, tlifile, wllow,  wlhigh, wlunits, log):
         # Get partition function values:
         temp, partition, pf_iso = db.getpf(log.verb)
         iso_names = db.isotopes
-        iso_mass  = db.mass
+        iso_mass = db.mass
         iso_ratio = db.isoratio
 
         # Number of temperature samples and isotopes:
         ntemp = len(temp)
-        niso  = len(iso_names)
+        niso = len(iso_names)
 
         # Extract partition-function info sorted by iso_names:
         pf = np.zeros((niso, ntemp), np.double)
         for part,iso in zip(partition, pf_iso):
+            # Ignore PF isotopes that don't exist in isotopes.dat:
+            if iso not in iso_names:
+                continue
             idx = iso_names.index(iso)
             pf[idx] = part
 

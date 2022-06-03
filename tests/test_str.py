@@ -228,7 +228,7 @@ Number of databases (ndb): 1
 
 Database name (name): HITRAN H2O
 Species name (molname):  H2O
-Number of isotopes (niso): 9
+Number of isotopes (niso): 7
 Isotope correlative index (iiso): 0
 Number of temperature samples (ntemp): 503
 Temperature (temp, K):
@@ -241,8 +241,6 @@ Partition function for each isotope (z):
     [ 6.000e+00  6.219e+00  8.445e+00 ...  4.702e+05  4.733e+05  4.763e+05]
     [ 3.600e+01  3.729e+01  5.053e+01 ...  2.719e+06  2.737e+06  2.754e+06]
     [ 6.000e+00  6.343e+00  9.129e+00 ...  9.504e+05  9.578e+05  9.652e+05]
-    [ 6.000e+00  6.353e+00  9.217e+00 ...  9.775e+05  9.850e+05  9.927e+05]
-    [ 3.600e+01  3.809e+01  5.505e+01 ...  5.784e+06  5.829e+06  5.874e+06]
 
 Total number of line transitions (ntransitions): 47,666
 Minimum and maximum temperatures (tmin, tmax): [1.0, 5000.0] K
@@ -258,20 +256,18 @@ Line-transition gf (gf, cm-1):
 
     assert str(pyrat.iso) == """\
 Isotopes information:
-Number of isotopes (niso): 9
+Number of isotopes (niso): 7
 
 Isotope  Molecule      Mass    Isotopic   Database   Extinc-coeff
             index     g/mol       ratio      index    index
  (name)    (imol)    (mass)     (ratio)   (dbindex)  (iext)
     161         3   18.0106   9.973e-01          0   None
-    181         3   20.0148   1.999e-03          0   None
+    181         3   20.0148   2.000e-03          0   None
     171         3   19.0148   3.719e-04          0   None
-    162         3   19.0168   3.107e-04          0   None
-    182         3   21.0211   6.230e-07          0   None
-    172         3   20.0211   1.158e-07          0   None
-    262         3   20.0210   2.420e-08          0   None
-    282         3   22.0000   0.000e+00          0   None
-    272         3   21.0000   0.000e+00          0   None
+    162         3   19.0167   3.107e-04          0   None
+    182         3   21.0210   6.230e-07          0   None
+    172         3   20.0210   1.159e-07          0   None
+    262         3   20.0229   2.420e-08          0   None
 Partition function evaluated at atmosperic layers (z):
     [ 1.325e+03  1.325e+03  1.325e+03 ...  3.407e+03  3.412e+03  3.417e+03]
     [ 1.337e+03  1.337e+03  1.337e+03 ...  3.426e+03  3.430e+03  3.436e+03]
@@ -280,8 +276,6 @@ Partition function evaluated at atmosperic layers (z):
     [ 7.066e+03  7.066e+03  7.066e+03 ...  1.940e+04  1.943e+04  1.946e+04]
     [ 4.228e+04  4.228e+04  4.228e+04 ...  1.157e+05  1.158e+05  1.160e+05]
     [ 8.967e+03  8.967e+03  8.967e+03 ...  2.652e+04  2.656e+04  2.661e+04]
-    [ 9.136e+03  9.136e+03  9.136e+03 ...  2.709e+04  2.713e+04  2.718e+04]
-    [ 5.433e+04  5.433e+04  5.433e+04 ...  1.609e+05  1.611e+05  1.614e+05]
 """
 
     assert str(pyrat.voigt) == """\
@@ -560,7 +554,7 @@ Wavenumber array (wn, cm-1):
 Oversampling factor (wnosamp): 2160
 
 Modulation spectrum, (Rp/Rs)**2 (spectrum):
-    [ 6.522e-03  6.540e-03  6.523e-03 ...  6.670e-03  6.500e-03  6.475e-03]
+    [ 6.522e-03  6.540e-03  6.523e-03 ...  6.670e-03  6.500e-03  6.473e-03]
 """
 
 
@@ -710,7 +704,7 @@ Tabulated extinction coefficient (etable, cm2 molecule-1) of shape
   [[2.06e-31 3.91e-24 ... 6.80e-27 1.11e-26]
    [2.06e-31 3.91e-24 ... 6.80e-27 1.11e-26]
    ...
-   [3.07e-24 4.90e-24 ... 1.17e-23 9.96e-24]
+   [3.07e-24 4.91e-24 ... 1.17e-23 9.96e-24]
    [3.23e-24 4.23e-24 ... 1.14e-23 9.48e-24]]
 
   [[1.64e-31 3.12e-24 ... 6.85e-27 1.13e-26]

@@ -210,7 +210,7 @@ def test_transmission_tmodel_none(tmp_path):
         remove=['clouds', 'cpars'],
         reset={'tmodel':'tcea'})
     pyrat = pb.run(cfg)
-    np.testing.assert_allclose(pyrat.spec.spectrum, expected['all'], rtol=1e-7)
+    np.testing.assert_allclose(pyrat.spec.spectrum, expected['all'], rtol=rtol)
     # Now, re-run with user-input tpars:
     pyrat.atm.tpars = np.array([-4.67, -0.8, -0.8, 0.5, 1486.0, 100.0])
     pyrat.run()

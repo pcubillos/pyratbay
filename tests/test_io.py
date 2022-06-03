@@ -321,20 +321,24 @@ def test_read_molecs():
 
 
 def test_read_isotopes():
-    ID, mol, hit_iso, exo_iso, ratio, mass = io.read_isotopes(
-        pc.ROOT+'pyratbay/data/isotopes.dat')
+    iso_data = io.read_isotopes(pc.ROOT+'pyratbay/data/isotopes.dat')
+    ID, mol, hit_iso, exo_iso, ratio, mass = iso_data
+
+    hitran_iso = ['161', '181', '171', '162', '182', '172', '262']
+    exomol_iso = ['116', '118', '117', '126', '000', '000', '226']
+    abundances = np.array([
+        9.973173e-01, 1.999827e-03, 3.718840e-04, 3.106930e-04,
+        6.230030e-07, 1.158530e-07, 2.419740e-08,
+    ])
+    masses = np.array([
+        18.01056, 20.01481, 19.01478, 19.01674, 21.02098, 20.02096, 20.02292])
+
     assert 'H2O' in mol
     assert np.all(ID[mol=='H2O'] == 1)
-    assert list(hit_iso[mol=='H2O']) == \
-        ['161', '181', '171', '162', '182', '172', '262', '282', '272']
-    assert list(exo_iso[mol=='H2O']) == \
-        ['116', '118', '117', '126', '128', '127', '226', '228', '227']
-    np.testing.assert_allclose(ratio[mol=='H2O'],
-        np.array([9.973e-01, 1.999e-03, 3.719e-04, 3.107e-04, 6.230e-07,
-                  1.158e-07, 2.420e-08, 0.000e+00, 0.000e+00]))
-    np.testing.assert_allclose(mass[mol=='H2O'],
-        np.array([18.010565, 20.014811, 19.014781, 19.016841, 21.021088,
-                  20.021058, 20.021,    22.0000, 21.0000]))
+    assert list(hit_iso[mol=='H2O']) == hitran_iso
+    assert list(exo_iso[mol=='H2O']) == exomol_iso
+    np.testing.assert_allclose(ratio[mol=='H2O'], abundances)
+    np.testing.assert_allclose(mass[mol=='H2O'], masses)
 
 @pytest.mark.skip(
     reason='This requires either to download a huge file or mock it up.')

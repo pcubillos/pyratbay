@@ -7293,3 +7293,14 @@ Renamed HS to SH and COS to OCS in molecules.dat
 Added all molecules listed in the HITRAN and Exomol databases.
 (as of today).
 
+
+*****  Fri Jun 3 10:43:53 CEST 2022  *****
+
+Updated isotopes.dat to include all isotopes listed in HITRAN/Exomol
+About a hundred isotopes were added.
+Some (zero-abundance) isotopes were removed.
+Tweaked make_tli() function to ignore isotopes listed in partition
+function files that do not exist in isotopes.dat.
+Updated tests accordingly.
+
+
