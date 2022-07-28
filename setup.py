@@ -30,9 +30,10 @@ extensions = [
         sources=[f'{srcdir}{cfile}'],
         include_dirs=inc,
         extra_compile_args=eca,
-        extra_link_args=ela)
+        extra_link_args=ela,
+    )
     for cfile in cfiles
-    ]
+]
 
 long_description = """
 .. image:: https://raw.githubusercontent.com/pcubillos/pyratbay/master/docs/figures/pyrat_logo.png
@@ -94,7 +95,6 @@ package_data = {'pyratbay': [
     'data/atoms.dat',
     'data/molecules.dat',
     'data/isotopes.dat',
-    'data/TEA_gdata_defaults.txt',
     'data/tips_2017.pkl',
     'data/filters/*.dat',
     'data/CIA/*.dat',
@@ -111,14 +111,13 @@ setup(
     package_data = package_data,
     install_requires = [
         'numpy>=1.8.1',
-        'scipy>=0.13.3',
-        'matplotlib>=1.3.1',
+        'scipy>=1.4.1',
+        'matplotlib>=3.3.4',
         'mc3>=3.0.7',
-        #'tea_chemistry',
+        'chemcat>=0.3.1',
         ],
     tests_require = [
         'pytest>=3.9',
-        'scipy>=1.4.1',
         ],
     license = 'GPLv2',
     description = 'Python Radiative Transfer in a Bayesian Framework.',

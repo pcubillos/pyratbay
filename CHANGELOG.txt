@@ -7312,3 +7312,9 @@ making it more modular and flexible).
 Tests are TBD.
 
 
+*****  Thu Jul 28 10:35:08 CEST 2022  *****
+
+Updated requirements (versions for numpy, scipy, and matplotlib),
+added chemcat.
+Updated MANIFEST file (removed TEA files).
+
