@@ -257,7 +257,7 @@ def uniform(
 
 def chemistry(
         chem_model, pressure, temperature, species,
-        metallicity=0.0, e_scale={}, e_ratio={},
+        metallicity=0.0, e_abundances={}, e_scale={}, e_ratio={},
         q_uniform=None,
         solar_file=None, log=None, verb=1,
         atmfile=None, punits='bar',
@@ -278,6 +278,11 @@ def chemistry(
         Output atmospheric composition.
     metallicity: Float
         Metallicity enhancement factor in dex units relative to solar.
+    e_abundances: Dictionary
+        Custom elemental abundances.
+        The dict contains the name of the element and their custom
+        abundance in dex units relative to H=12.0.
+        These values override metallicity.
     e_scale: Dictionary
         Scaling abundance factor for specified atoms by the respective
         values (in dex units, in addition to metallicity scaling).
@@ -346,6 +351,7 @@ def chemistry(
     chem_network = cat.Network(
         pressure/pc.bar, temperature, species,
         metallicity=metallicity,
+        e_abundances=e_abundances,
         e_scale=e_scale,
         e_ratio=e_ratio,
         e_source=solar_file,
@@ -374,7 +380,7 @@ def chemistry(
 def abundance(
         pressure, temperature, species, elements=None,
         quniform=None, atmfile=None, punits='bar',
-        metallicity=0.0, e_scale={}, e_ratio={},
+        metallicity=0.0, e_abundances={}, e_scale={}, e_ratio={},
         solar_file=None, log=None, verb=1,
         # To be deprecated:
         ncpu=None, xsolar=None, escale=None,
@@ -402,6 +408,11 @@ def abundance(
         Output pressure units.
     metallicity: Float
         Metallicity enhancement factor in dex units relative to solar.
+    e_abundances: Dictionary
+        Custom elemental abundances.
+        The dict contains the name of the element and their custom
+        abundance in dex units relative to H=12.0.
+        These values override metallicity.
     e_scale: Dict
         Scaling abundance factor for specified atoms by the respective
         values (in dex units, in addition to metallicity scaling).
@@ -476,17 +487,22 @@ def abundance(
 
     # TEA abundances:
     log.head("\nCompute TEA thermochemical-equilibrium abundances profile.")
-    tea_net = chemistry(
-        'tea', pressure, temperature, species,
-        metallicity=metallicity, e_scale=e_scale,
-        solar_file=solar_file, log=log, verb=verb,
+    chem_network = chemistry(
+        'tea',
+        pressure, temperature, species,
+        metallicity=metallicity,
+        e_abundances=e_abundances,
+        e_scale=e_scale,
         e_ratio=e_ratio,
+        solar_file=solar_file,
+        log=log,
+        verb=verb,
     )
-    vmr = tea_net.vmr
+    vmr = chem_network.vmr
     if atmfile is not None:
         header = "# TEA atmospheric file\n\n"
         io.write_atm(
-            atmfile, pressure, temperature, tea_net.species, vmr,
+            atmfile, pressure, temperature, chem_network.species, vmr,
             punits=punits, header=header,
         )
     return vmr

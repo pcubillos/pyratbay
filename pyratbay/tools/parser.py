@@ -405,6 +405,7 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         parse_array(args, 'escale')
         parse_array(args, 'e_scale')
         parse_array(args, 'e_ratio')
+        parse_array(args, 'e_abundances')
         parse_array(args, 'elements')
         # Extinction options:
         parse_float(args, 'tmin')
@@ -649,16 +650,27 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         }
 
     e_scale = args.get_default(
-       'e_scale', 'Elemental abundance scaling factors (dex)', [])
+       'e_scale', 'Elemental abundance scaling factors (dex)', [],
+    )
     atm.e_scale = {
         atom: float(fscale)
         for atom,fscale in zip(e_scale[::2], e_scale[1::2])
     }
+
     e_ratio = args.get_default(
-       'e_ratio', 'Elemental abundance ratios', [])
+       'e_ratio', 'Elemental abundance ratios', [],
+    )
     atm.e_ratio = {
         pair: float(ratio)
         for pair,ratio in zip(e_ratio[::2], e_ratio[1::2])
+    }
+
+    e_abundances = args.get_default(
+       'e_abundances', 'Elemental abundances (dex relative to H=12)', [],
+    )
+    atm.e_abundances = {
+        atom: float(abundance)
+        for atom,abundance in zip(e_abundances[::2], e_abundances[1::2])
     }
 
     # System physical parameters:

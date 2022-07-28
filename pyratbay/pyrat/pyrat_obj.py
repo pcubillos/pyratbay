@@ -184,7 +184,8 @@ class Pyrat(object):
               f"\n{self.log.sep}"
               f"\n  There were {len(self.log.warnings)} warnings raised.  "
               f"See '{wfile}'."
-              f"\n{self.log.sep}")
+              f"\n{self.log.sep}"
+          )
 
 
   def eval(self, params, retmodel=True, verbose=False):
@@ -231,23 +232,40 @@ class Pyrat(object):
           temp[:] = 0.5*(self.ret.tlow + self.ret.thigh)
           rejectflag = True
           if verbose:
-              self.log.warning("Input temperature profile runs out of "
-                  f"boundaries ({self.ret.tlow:.1f}--{self.ret.thigh:.1f} K)")
+              self.log.warning(
+                  "Input temperature profile runs out of "
+                  f"boundaries ({self.ret.tlow:.1f}--{self.ret.thigh:.1f} K)"
+              )
 
       # Update abundance profiles if requested:
       if self.ret.imol is None:
           q2 = atm.q
+
       elif 'equil' in atm.molmodel:
+          # TBD: These need to be tested  properly
           molpars = params[self.ret.imol]
           metal = None
+          e_abundances = {}
           e_ratio = {}
+          e_scale = {}
           for model,var,val in zip(atm.molmodel, atm.molfree, molpars):
-              if model == 'equil' and var=='metal':
-                  metal = val
-              if model == 'equil' and '_' in var:
-                  e_ratio[var] = val
+              if model == 'equil':
+                  if var == 'metal':
+                      metallicity = val
+                  elif '_' in var:
+                      e_ratio[var] = val
+                  elif var.startswith('[') and var.endswith(']'):
+                      var = var.lstrip('[').rstrip(']')
+                      e_scale[var] = val
+                  else:
+                      e_abundances[var] = val
           q2 = atm.chem_model.thermochemical_equilibrium(
-              temp, metallicity=metal, e_ratio=e_ratio)
+              temp,
+              metallicity=metallicity,
+              e_abundances=e_abundances,
+              e_ratio=e_ratio,
+              e_scale=e_scale,
+          )
       else:
           q2 = pa.qscale(
               q0, self.mol.name, atm.molmodel,
@@ -263,7 +281,8 @@ class Pyrat(object):
           if verbose:
               self.log.warning(
                   "The sum of trace abundances' fraction exceeds "
-                  f"the cap of {self.ret.qcap:.3f}.")
+                  f"the cap of {self.ret.qcap:.3f}."
+              )
 
       # Update reference radius if requested:
       if self.ret.irad is not None:

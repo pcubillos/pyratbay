@@ -7322,3 +7322,16 @@ Updated MANIFEST file (removed TEA files).
 
 Replaced tea calls with chemcat calls.
 
+*****
+
+Cosmetics.
+
+*****
+
+Incorporated e_abundances argument, and added into chemistry() calls
+Tested.
+Docs are pending.
+Incorporated equilibrium chemistry calculation into pyrat.eval()
+This should enable chemically-consistent retrievals, ha.
+Tests and docs are pending.
+

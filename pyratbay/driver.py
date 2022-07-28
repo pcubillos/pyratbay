@@ -115,9 +115,12 @@ def run(cfile, run_step='run', no_logfile=False):
             chem_net = pa.chemistry(
                 atm.chemistry,
                 pressure, temperature, inputs.species,
-                atm.metallicity, atm.e_scale,
+                metallicity=atm.metallicity,
+                e_abundances=atm.e_abundances,
+                e_scale=atm.e_scale,
                 e_ratio=atm.e_ratio,
-                solar_file=inputs.solar, log=log,
+                solar_file=inputs.solar,
+                log=log,
                 atmfile=atm.atmfile, punits=atm.punits,
                 q_uniform=inputs.uniform,
             )
@@ -245,7 +248,8 @@ def run(cfile, run_step='run', no_logfile=False):
 
     if is_emission:
         cf = ps.contribution_function(
-            pyrat.od.depth, atm.press, pyrat.od.B)
+            pyrat.od.depth, atm.press, pyrat.od.B,
+        )
         bcf = ps.band_cf(
             cf, pyrat.obs.bandtrans, pyrat.spec.wn, pyrat.obs.bandidx)
     elif is_transmission:
