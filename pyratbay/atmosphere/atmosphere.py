@@ -25,7 +25,7 @@ import scipy.integrate as si
 import scipy.constants as sc
 import scipy.interpolate as sip
 import mc3.utils as mu
-import tea
+import chemcat as cat
 
 from .. import tools as pt
 from .. import constants as pc
@@ -61,20 +61,21 @@ def pressure(ptop, pbottom, nlayers, units="bar", log=None, verb=0):
     Examples
     --------
     >>> import pyratbay.atmosphere as pa
-    >>> import pyratbay.constants  as pc
+    >>> import pyratbay.constants as pc
+
     >>> nlayers = 9
     >>> # These are all equivalent:
-    >>> p1 = pa.pressure(ptop=1e-6,   pbottom=1e2, nlayers=nlayers)
-    >>> p2 = pa.pressure(1e-6,        1e2,         nlayers, 'bar')
-    >>> p3 = pa.pressure('1e-6 bar', '1e2 bar',    nlayers)
-    >>> p4 = pa.pressure(1e-6*pc.bar, 1e2*pc.bar,  nlayers, 'barye')
+    >>> p1 = pa.pressure(ptop=1e-6, pbottom=1e2, nlayers=nlayers)
+    >>> p2 = pa.pressure(1e-6, 1e2, nlayers, 'bar')
+    >>> p3 = pa.pressure('1e-6 bar', '1e2 bar', nlayers)
+    >>> p4 = pa.pressure(1e-6*pc.bar, 1e2*pc.bar, nlayers, 'barye')
     >>> print(p1/pc.bar)
     [1.e-06 1.e-05 1.e-04 1.e-03 1.e-02 1.e-01 1.e+00 1.e+01 1.e+02]
     """
     if log is None:
         log = mu.Log(verb=verb)
     # Unpack pressure input variables:
-    ptop    = pt.get_param(ptop,    units, gt=0.0)
+    ptop = pt.get_param(ptop, units, gt=0.0)
     pbottom = pt.get_param(pbottom, units, gt=0.0)
 
     ptop_txt = ptop/pt.u(units)
@@ -83,13 +84,15 @@ def pressure(ptop, pbottom, nlayers, units="bar", log=None, verb=0):
     if ptop >= pbottom:
         log.error(
             f'Bottom-layer pressure ({pbot_txt:.2e} {units}) must be '
-            f'higher than the top-layer pressure ({ptop_txt:.2e} {units}).')
+            f'higher than the top-layer pressure ({ptop_txt:.2e} {units}).'
+        )
 
     # Create pressure array in barye (CGS) units:
     press = np.logspace(np.log10(ptop), np.log10(pbottom), nlayers)
     log.head(
         f'Creating {nlayers}-layer atmospheric model between '
-        f'{pbot_txt:.1e} and {ptop_txt:.1e} {units}.')
+        f'{pbot_txt:.1e} and {ptop_txt:.1e} {units}.'
+    )
     return press
 
 
@@ -123,11 +126,13 @@ def temperature(tmodel, pressure=None, nlayers=None, log=None, params=None):
     Examples
     --------
     >>> import pyratbay.atmosphere as pa
+
     >>> nlayers = 11
     >>> # Isothermal profile:
     >>> temp_iso = pa.temperature("isothermal", params=1500.0, nlayers=nlayers)
     >>> print(temp_iso)
     [1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500.]
+
     >>> # Three-channel Eddington-approximation profile:
     >>> pressure = pa.pressure(1e-8, 1e2, nlayers, "bar")
     >>> params = np.array([-4.84, -0.8, -0.8, 0.5, 1200.0, 100.0])
@@ -144,10 +149,12 @@ def temperature(tmodel, pressure=None, nlayers=None, log=None, params=None):
         nlayers = len(pressure)
     if tmodel in pc.tmodels:
         temp_model = tmodels.get_model(
-            tmodel, pressure=pressure, nlayers=nlayers)
+            tmodel, pressure=pressure, nlayers=nlayers,
+        )
     else:
-        log.error(f"Invalid temperature model '{tmodel}'.  "
-                  f"Select from: {pc.tmodels}")
+        log.error(
+            f"Invalid temperature model '{tmodel}'.  Select from: {pc.tmodels}"
+        )
 
     if params is None:
         return temp_model
@@ -155,7 +162,8 @@ def temperature(tmodel, pressure=None, nlayers=None, log=None, params=None):
         if np.size(params) != temp_model.npars:
             log.error(
                 f"Wrong number of parameters ({np.size(params)}) for the "
-                f"{temp_model.name} temperature model ({temp_model.npars}).")
+                f"{temp_model.name} temperature model ({temp_model.npars})."
+            )
         temperature = temp_model(params)
         log.head(f'\nComputed {tmodel} temperature model.')
         return temperature
@@ -221,11 +229,15 @@ def uniform(
     nlayers = len(pressure)
     # Safety checks:
     if len(temperature) != nlayers:
-        log.error(f"Pressure array length ({nlayers}) and temperature array "
-            f"length ({len(temperature)}) don't match.")
+        log.error(
+            f"Pressure array length ({nlayers}) and temperature array "
+            f"length ({len(temperature)}) don't match."
+        )
     if len(species) != len(abundances):
-        log.error(f"Species array length ({len(species)}) and abundances "
-            f"array length ({len(abundances)}) don't match.")
+        log.error(
+            f"Species array length ({len(species)}) and abundances "
+            f"array length ({len(abundances)}) don't match."
+        )
 
     # Expand abundances to 2D array:
     qprofiles = np.tile(abundances, (nlayers,1))
@@ -233,10 +245,12 @@ def uniform(
     if atmfile is not None:
         header = (
             "# This is an atmospheric file with pressure, temperature,\n"
-            "# and uniform mole mixing ratio profiles.\n\n")
+            "# and uniform mole mixing ratio profiles.\n\n"
+        )
         io.write_atm(
             atmfile, pressure, temperature, species, qprofiles,
-            punits=punits, header=header)
+            punits=punits, header=header,
+        )
 
     return qprofiles
 
@@ -329,7 +343,7 @@ def chemistry(
         log = mu.Log(verb=verb)
 
     log.head("\nCompute chemical abundances.")
-    chem_network = tea.Tea_Network(
+    chem_network = cat.Network(
         pressure/pc.bar, temperature, species,
         metallicity=metallicity,
         e_scale=e_scale,
@@ -578,6 +592,7 @@ def hydro_m(pressure, temperature, mu, mass, p0, r0):
     --------
     >>> import pyratbay.atmosphere as pa
     >>> import pyratbay.constants  as pc
+
     >>> nlayers = 11
     >>> pressure = pa.pressure(1e-8, 1e2, nlayers, units='bar')
     >>> temperature = pa.tmodels.Isothermal(nlayers)(1500.0)
@@ -654,7 +669,7 @@ def stoich(species):
     >>> import pyratbay.atmosphere as pa
     >>> species = ['H2', 'He', 'H2O', 'CO', 'CO2', 'CH4']
     >>> elements, stoichs = pa.stoich(species)
-    >>> print('{}\n{}'.format(elements, stoichs))
+    >>> print(f'{elements}\n{stoichs}')
     ['C', 'H', 'He', 'O']
     [[0 2 0 0]
      [0 0 1 0]
@@ -686,8 +701,11 @@ def stoich(species):
                 n[-1][-1] = int(char)
 
     # Flatten nested list, and get unique set of elements:
-    elements = sorted(set([element for spec    in comp
-                                   for element in spec]))
+    elements = sorted(set([
+        element
+        for spec in comp
+        for element in spec
+    ]))
     stoich = np.zeros((len(species), len(elements)), int)
 
     # Count how many elements in each species:
@@ -784,7 +802,8 @@ def ideal_gas_density(abundances, pressure, temperature):
 
 
 def equilibrium_temp(
-        tstar, rstar, smaxis, A=0.0, f=1.0,
+        tstar, rstar, smaxis,
+        A=0.0, f=1.0,
         tstar_unc=0.0, rstar_unc=0.0, smaxis_unc=0.0,
     ):
     r"""
@@ -910,8 +929,10 @@ def transit_path(radius, nskip=0):
     while r < nlayers:
         raypath = np.empty(r, np.double)
         for i in range(r):
-            raypath[i] = (np.sqrt(rad[i  ]**2 - rad[r]**2) -
-                          np.sqrt(rad[i+1]**2 - rad[r]**2) )
+            raypath[i] = (
+                np.sqrt(rad[i  ]**2 - rad[r]**2) -
+                np.sqrt(rad[i+1]**2 - rad[r]**2)
+            )
         path.append(raypath)
         r += 1
 
@@ -974,7 +995,8 @@ def temperature_posterior(posterior, tmodel, tpars, ifree, pressure):
     nlayers = len(pressure)
 
     u, uind, uinv = np.unique(
-        posterior[:,0], return_index=True, return_inverse=True)
+        posterior[:,0], return_index=True, return_inverse=True,
+    )
     nsamples = len(u)
 
     # Evaluate posterior PT profiles:

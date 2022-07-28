@@ -7318,3 +7318,7 @@ Updated requirements (versions for numpy, scipy, and matplotlib),
 added chemcat.
 Updated MANIFEST file (removed TEA files).
 
+*****
+
+Replaced tea calls with chemcat calls.
+

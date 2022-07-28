@@ -110,7 +110,7 @@ setup(
     packages = setuptools.find_packages(),
     package_data = package_data,
     install_requires = [
-        'numpy>=1.8.1',
+        'numpy>=1.15.1',
         'scipy>=1.4.1',
         'matplotlib>=3.3.4',
         'mc3>=3.0.7',
