@@ -1,4 +1,4 @@
-# Copyright (c) 2021 Patricio Cubillos
+# Copyright (c) 2021-2022 Patricio Cubillos
 # Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -21,7 +21,7 @@ __all__ = [
     'import_xs',
     'import_tea',
     'export_pandexo',
-    ]
+]
 
 import os
 import pickle
@@ -49,7 +49,9 @@ def save_pyrat(pyrat, pfile=None):
         pfile = os.path.splitext(pyrat.log.logname)[0] + '.pickle'
         print(f'Saving pyrat instance to: {pfile}')
     # Reset values to reduce pickle size:
-    with pt.tmp_reset(pyrat, 'spec.own', 'voigt.profile', 'log.file',
+    with pt.tmp_reset(
+            pyrat,
+            'spec.own', 'voigt.profile', 'log.file',
             'ex.ec', 'ex.etable', 'ret.posterior',
             lt=pyrat.lt.clone_new(pyrat)):
         with open(pfile, 'wb') as f:
@@ -301,7 +303,8 @@ def read_atm(atmfile):
         raise ValueError(
             f"Inconsistent number of columns ({ncolumns}) in '@DATA', "
              "expected 2 columns for temperature and pressure"
-            f"{rad_txt}{q_txt}")
+            f"{rad_txt}{q_txt}"
+        )
 
     # Count number of layers:
     nlayers = 1
@@ -314,7 +317,7 @@ def read_atm(atmfile):
     # Initialize arrays:
     radius = np.zeros(nlayers, np.double) if has_radius else None
     press = np.zeros(nlayers, np.double)
-    temp  = np.zeros(nlayers, np.double)
+    temp = np.zeros(nlayers, np.double)
     q = np.zeros((nlayers, nspecies), np.double) if has_q else None
 
     # Read table:
@@ -328,155 +331,155 @@ def read_atm(atmfile):
         if has_q:
             q[i] = data[nrad+2:]
 
-    return (punits, tunits, qunits, runits), \
-           species, press, temp, q, radius
+    units = (punits, tunits, qunits, runits)
+    return units, species, press, temp, q, radius
 
 
 def write_spectrum(wl, spectrum, filename, type, wlunits='um'):
-  """
-  Write a spectrum to file.
+    """
+    Write a spectrum to file.
 
-  Parameters
-  ----------
-  wl: 1D float iterable
-      Wavelength array in cm units.
-  spectrum: 1D float iterable
-      Spectrum array. (rp/rs)**2 for transmission (unitless),
-      planetary flux for emission (erg s-1 cm-2 cm units).
-  filename: String
-      Output file name.
-  type: String
-      Data type:
-      - 'transit' for transmission
-      - 'emission' for emission
-      - 'filter' for a instrumental filter transmission
-  wlunits: String
-      Output units for wavelength.
+    Parameters
+    ----------
+    wl: 1D float iterable
+        Wavelength array in cm units.
+    spectrum: 1D float iterable
+        Spectrum array. (rp/rs)**2 for transmission (unitless),
+        planetary flux for emission (erg s-1 cm-2 cm units).
+    filename: String
+        Output file name.
+    type: String
+        Data type:
+        - 'transit' for transmission
+        - 'emission' for emission
+        - 'filter' for a instrumental filter transmission
+    wlunits: String
+        Output units for wavelength.
 
-  Examples
-  --------
-  >>> # See read_spectrum() examples.
-  """
-  if filename is None:
-      return
+    Examples
+    --------
+    >>> # See read_spectrum() examples.
+    """
+    if filename is None:
+        return
 
-  # Type of spectrum and units:
-  if type == "transit":
-      spectype  = "(Rp/Rs)**2"
-      specunits = "unitless"
-  elif type == "emission":
-      spectype  = "Flux"
-      specunits = "erg s-1 cm-2 cm"
-  elif type == "filter":
-      spectype  = "transmission"
-      specunits = "unitless"
-  else:
-      raise ValueError(
-          "Input 'type' argument must be 'transit', 'emission', or 'filter'.")
+    # Type of spectrum and units:
+    if type == "transit":
+        spectype  = "(Rp/Rs)**2"
+        specunits = "unitless"
+    elif type == "emission":
+        spectype  = "Flux"
+        specunits = "erg s-1 cm-2 cm"
+    elif type == "filter":
+        spectype  = "transmission"
+        specunits = "unitless"
+    else:
+        raise ValueError(
+            "Input 'type' argument must be 'transit', 'emission', or 'filter'."
+        )
 
-  # Wavelength units in brackets:
-  wl = wl/pt.u(wlunits)
-  # Precision of 5 decimal places (or better if needed):
-  precision = -np.floor(np.log10(np.amin(np.abs(np.ediff1d(wl)))))
-  precision = int(np.clip(precision+1, 5, np.inf))
-  buff = precision + 5
+    # Wavelength units in brackets:
+    wl = wl/pt.u(wlunits)
+    # Precision of 5 decimal places (or better if needed):
+    precision = -np.floor(np.log10(np.amin(np.abs(np.ediff1d(wl)))))
+    precision = int(np.clip(precision+1, 5, np.inf))
+    buff = precision + 5
 
-  # Open-write file:
-  with open(filename, "w") as f:
-      # Write header:
-      f.write("# {:>{:d}s}   {:>15s}\n".format("Wavelength", buff, spectype))
-      f.write("# {:>{:d}s}   {:>15s}\n".format(wlunits, buff, specunits))
-      # Write the spectrum values:
-      for wave, flux in zip(wl, spectrum):
-          f.write("{:>{:d}.{:d}f}   {:.9e}\n".
-                  format(wave, buff+2, precision, flux))
+    # Open-write file:
+    with open(filename, 'w') as f:
+        # Write header:
+        f.write(f'# {"Wavelength":>{buff:d}s}   {spectype:>15s}\n')
+        f.write(f"# {wlunits:>{buff:d}s}   {specunits:>15s}\n")
+        # Write the spectrum values:
+        for wave, flux in zip(wl, spectrum):
+            f.write(f"{wave:>{buff+2:d}.{precision:d}f}   {flux:.9e}\n")
 
 
 def read_spectrum(filename, wn=True):
-  """
-  Read a Pyrat spectrum file, a plain text file with two-columns: the
-  wavelength and signal.  If wn is true, this function converts
-  wavelength to wavenumber in cm-1.  The very last comment line sets
-  the wavelength units (the first string following a blank, e.g., the
-  string '# um' sets the wavelength units as microns).
-  If the units are not defined, assume wavelength units are microns.
+    """
+    Read a Pyrat spectrum file, a plain text file with two-columns: the
+    wavelength and signal.  If wn is true, this function converts
+    wavelength to wavenumber in cm-1.  The very last comment line sets
+    the wavelength units (the first string following a blank, e.g., the
+    string '# um' sets the wavelength units as microns).
+    If the units are not defined, assume wavelength units are microns.
 
-  Parameters
-  ----------
-  filename: String
-     Path to output Transit spectrum file to read.
-  wn: Boolean
-     If True convert wavelength to wavenumber.
+    Parameters
+    ----------
+    filename: String
+       Path to output Transit spectrum file to read.
+    wn: Boolean
+       If True convert wavelength to wavenumber.
 
-  Return
-  ------
-  wave: 1D float ndarray
-     The spectrum's wavenumber (in cm units) or wavelength array (in
-     the input file's units).
-  spectrum: 1D float ndarray
-     The spectrum in the input file.
+    Return
+    ------
+    wave: 1D float ndarray
+       The spectrum's wavenumber (in cm units) or wavelength array (in
+       the input file's units).
+    spectrum: 1D float ndarray
+       The spectrum in the input file.
 
-  Examples
-  --------
-  >>> import pyratbay.io as io
-  >>> # Write a spectrum to file:
-  >>> nwave = 7
-  >>> wl = np.linspace(1.1, 1.7, nwave) * 1e-4
-  >>> spectrum = np.ones(nwave)
-  >>> io.write_spectrum(wl, spectrum,
-  >>>     filename='sample_spectrum.dat', type='transit', wlunits='um')
-  >>> # Take a look at the output file:
-  >>> with open('sample_spectrum.dat', 'r') as f:
-  >>>     print("".join(f.readlines()))
-  # Wavelength        (Rp/Rs)**2
-  #         um          unitless
-       1.10000   1.000000000e+00
-       1.20000   1.000000000e+00
-       1.30000   1.000000000e+00
-       1.40000   1.000000000e+00
-       1.50000   1.000000000e+00
-       1.60000   1.000000000e+00
-       1.70000   1.000000000e+00
-  >>> # Now, read from file (getting wavenumber array):
-  >>> wn, flux = io.read_spectrum('sample_spectrum.dat')
-  >>> print(wn)
-  [9090.90909091 8333.33333333 7692.30769231 7142.85714286 6666.66666667
-   6250.         5882.35294118]
-  >>> print(flux)
-  [1. 1. 1. 1. 1. 1. 1.]
-  >>> # Read from file (getting wavelength array):
-  >>> wl, flux = io.read_spectrum('sample_spectrum.dat', wn=False)
-  >>> print(wl)
-  [1.1 1.2 1.3 1.4 1.5 1.6 1.7]
-  >>> print(flux)
-  [1. 1. 1. 1. 1. 1. 1.]
-  """
-  # Extract data:
-  data = np.loadtxt(filename, unpack=True)
-  wave, spectrum = data[0], data[1]
+    Examples
+    --------
+    >>> import pyratbay.io as io
+    >>> # Write a spectrum to file:
+    >>> nwave = 7
+    >>> wl = np.linspace(1.1, 1.7, nwave) * 1e-4
+    >>> spectrum = np.ones(nwave)
+    >>> io.write_spectrum(wl, spectrum,
+    >>>     filename='sample_spectrum.dat', type='transit', wlunits='um')
+    >>> # Take a look at the output file:
+    >>> with open('sample_spectrum.dat', 'r') as f:
+    >>>     print("".join(f.readlines()))
+    # Wavelength        (Rp/Rs)**2
+    #         um          unitless
+         1.10000   1.000000000e+00
+         1.20000   1.000000000e+00
+         1.30000   1.000000000e+00
+         1.40000   1.000000000e+00
+         1.50000   1.000000000e+00
+         1.60000   1.000000000e+00
+         1.70000   1.000000000e+00
+    >>> # Now, read from file (getting wavenumber array):
+    >>> wn, flux = io.read_spectrum('sample_spectrum.dat')
+    >>> print(wn)
+    [9090.90909091 8333.33333333 7692.30769231 7142.85714286 6666.66666667
+     6250.         5882.35294118]
+    >>> print(flux)
+    [1. 1. 1. 1. 1. 1. 1.]
+    >>> # Read from file (getting wavelength array):
+    >>> wl, flux = io.read_spectrum('sample_spectrum.dat', wn=False)
+    >>> print(wl)
+    [1.1 1.2 1.3 1.4 1.5 1.6 1.7]
+    >>> print(flux)
+    [1. 1. 1. 1. 1. 1. 1.]
+    """
+    # Extract data:
+    data = np.loadtxt(filename, unpack=True)
+    wave, spectrum = data[0], data[1]
 
-  if not wn:
-      return wave, spectrum
+    if not wn:
+        return wave, spectrum
 
-  # Check 'header' (last comment line) for wavelength units:
-  with open(filename, "r") as f:
-      for line in f:
-          info = line
-          if not line.strip().startswith('#') and line.strip() != '':
-              break
+    # Check 'header' (last comment line) for wavelength units:
+    with open(filename, "r") as f:
+        for line in f:
+            info = line
+            if not line.strip().startswith('#') and line.strip() != '':
+                break
 
-  # Get wavelength units from last line of comments:
-  if len(info.split()) > 1:
-      wlunits = info.split()[1]
-  else:
-      wlunits = 'um'
-  if not hasattr(pc, wlunits):
-      wlunits = 'um'
+    # Get wavelength units from last line of comments:
+    if len(info.split()) > 1:
+        wlunits = info.split()[1]
+    else:
+        wlunits = 'um'
+    if not hasattr(pc, wlunits):
+        wlunits = 'um'
 
-  # Convert wavelength to wavenumber in cm-1:
-  wave = 1.0/(wave*pt.u(wlunits))
+    # Convert wavelength to wavenumber in cm-1:
+    wave = 1.0/(wave*pt.u(wlunits))
 
-  return wave, spectrum
+    return wave, spectrum
 
 
 def write_opacity(ofile, species, temp, press, wn, opacity):
@@ -1092,10 +1095,10 @@ def import_xs(filename, source, read_all=True, ofile=None):
             xs_data = pickle.load(f)
             xs = xs_data['xsecarr']
             if read_all or ofile is not None:
-                pressure    = xs_data['p'] * pc.bar
+                pressure = xs_data['p'] * pc.bar
                 temperature = xs_data['t']
-                wavenumber  = xs_data['wno']
-                species     = [xs_data['name']]
+                wavenumber = xs_data['wno']
+                species = [xs_data['name']]
 
     else:
         raise ValueError("Invalid cross-section source type.")

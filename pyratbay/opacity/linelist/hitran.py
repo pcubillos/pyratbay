@@ -1,9 +1,9 @@
-# Copyright (c) 2021 Patricio Cubillos
+# Copyright (c) 2021-2022 Patricio Cubillos
 # Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 __all__ = [
     'Hitran',
-    ]
+]
 
 import os
 import numpy as np
@@ -124,7 +124,8 @@ class Hitran(Linelist):
           self.log.warning(
               f"Database ('{os.path.basename(self.dbfile)}') wavenumber "
               f"range ({DBiwn:.2f}--{DBfwn:.2f} cm-1) does not overlap with "
-              f"the requested wavenumber range ({iwn:.2f}--{fwn:.2f} cm-1).")
+              f"the requested wavenumber range ({iwn:.2f}--{fwn:.2f} cm-1)."
+          )
           return None
 
       # Find the record index for iwn and fwn:
@@ -141,8 +142,11 @@ class Hitran(Linelist):
       A21     = np.zeros(nread, np.double)
       g2      = np.zeros(nread, np.double)
 
-      self.log.msg(f'Process {self.name} database between records '
-          f'{istart:,d} and {istop:,d}.', indent=2)
+      self.log.msg(
+          f'Process {self.name} database between records '
+          f'{istart:,d} and {istop:,d}.',
+          indent=2,
+      )
 
       interval = (istop - istart) // 10  # Check-point interval
       if interval == 0:
@@ -167,7 +171,9 @@ class Hitran(Linelist):
                   f'Wavenumber: {wnumber[i]:8.2f} cm-1   '
                   f'Wavelength: {1.0/(wnumber[i]*pc.um):6.3f} um\n'
                   f'Elow:     {elow[i]:.4e} cm-1   '
-                  f'gf: {gfval:.4e}   Iso ID: {(isoID[i]-1)%10:2d}', indent=6)
+                  f'gf: {gfval:.4e}   Iso ID: {(isoID[i]-1)%10:2d}',
+                  indent=6,
+              )
           i += 1
       data.close()
 

@@ -1,5 +1,13 @@
-# Copyright (c) 2021 Patricio Cubillos
+# Copyright (c) 2021-2022 Patricio Cubillos
 # Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+
+__all__ = [
+    'spectrum',
+    'modulation',
+    'intensity',
+    'flux',
+    'two_stream',
+]
 
 import numpy as np
 from scipy.interpolate import interp1d
@@ -62,10 +70,11 @@ def modulation(pyrat):
     integ = (np.exp(-depth[rtop:,:]) * np.expand_dims(radius[rtop:],1))
 
     if pyrat.cloud.fpatchy is not None:
+        depth_clear = pyrat.od.depth_clear
         h_clear = np.copy(h)
         integ_clear = (
-            np.exp(-pyrat.od.depth_clear[rtop:,:]) *
-                  np.expand_dims(radius[rtop:],1))
+            np.exp(-depth_clear[rtop:,:]) * np.expand_dims(radius[rtop:],1)
+        )
 
     if 'deck' in (m.name for m in pyrat.cloud.models):
         # Replace (interpolating) last layer with cloud top:
@@ -84,11 +93,14 @@ def modulation(pyrat):
         nlayers = pyrat.od.ideep_clear - rtop + 1
         pyrat.spec.clear = t.trapz2D(integ_clear, h_clear, nlayers-1)
 
-        pyrat.spec.clear = ((radius[rtop]**2 + 2*pyrat.spec.clear)
-                             / pyrat.phy.rstar**2)
+        pyrat.spec.clear = (
+            (radius[rtop]**2 + 2*pyrat.spec.clear) / pyrat.phy.rstar**2
+        )
         pyrat.spec.cloudy = pyrat.spec.spectrum
-        pyrat.spec.spectrum = (   pyrat.cloud.fpatchy  * pyrat.spec.cloudy +
-                               (1-pyrat.cloud.fpatchy) * pyrat.spec.clear  )
+        pyrat.spec.spectrum = (
+            pyrat.spec.cloudy * pyrat.cloud.fpatchy +
+            pyrat.spec.clear * (1-pyrat.cloud.fpatchy)
+        )
 
 
 def intensity(pyrat):
@@ -115,7 +127,8 @@ def intensity(pyrat):
     # Plane-parallel radiative-transfer intensity integration:
     spec.intensity = t.intensity(
         pyrat.od.depth, pyrat.od.ideep, pyrat.od.B, np.cos(spec.raygrid),
-        pyrat.atm.rtop)
+        pyrat.atm.rtop,
+    )
 
 
 def flux(pyrat):
