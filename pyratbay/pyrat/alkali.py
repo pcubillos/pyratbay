@@ -1,5 +1,5 @@
-# Copyright (c) 2021 Patricio Cubillos
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+# Copyright (c) 2021-2022 Patricio Cubillos
+# Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import numpy as np
 
@@ -28,7 +28,7 @@ def absorption(pyrat):
         # Number density of alkali species:
         dens = np.expand_dims(pyrat.atm.d[:,alkali.imol], axis=1)
         # Calculate extinction coefficient (cm2 molecule-1):
-        alkali.absorption(pyrat.atm.press, pyrat.atm.temp, pyrat.spec.wn)
+        alkali.c_absorption(pyrat.atm.press, pyrat.atm.temp, pyrat.spec.wn)
         # Sum alkali extinction coefficient (cm-1):
         pyrat.alkali.ec += alkali.ec * dens
 

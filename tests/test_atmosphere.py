@@ -634,3 +634,14 @@ def test_alkali_cutoff(cutoff, alkali):
     na = pa.alkali.get_model('sodium_vdw', cutoff)
     assert na.cutoff == float(cutoff)
 
+
+@pytest.mark.skip(reason='TBD')
+def test_alkali_c_absorption():
+    pass
+
+
+@pytest.mark.skip(reason='TBD')
+def test_alkali_voigt_det():
+    pass
+
+

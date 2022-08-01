@@ -1,5 +1,5 @@
-# Copyright (c) 2021 Patricio Cubillos
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+# Copyright (c) 2021-2022 Patricio Cubillos
+# Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
     # Classes:
@@ -11,7 +11,7 @@ __all__ = [
     'lorentz_hwhm',
     'min_widths',
     'max_widths',
-    ]
+]
 
 import numpy as np
 import scipy.special as ss

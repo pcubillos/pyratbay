@@ -7335,3 +7335,15 @@ Incorporated equilibrium chemistry calculation into pyrat.eval()
 This should enable chemically-consistent retrievals, ha.
 Tests and docs are pending.
 
+
+*****  Mon Aug 1 12:53:21 CEST 2022  *****
+
+Added ATM, C2, and C3 constants into constants.h.
+Added src_c/_alkali.c file which implements alkali extinction
+in C.  This is a 10x speed up compared to the Python code.
+Profile is computed as a Lorentz rather than a Voigt.
+Undersampling in the core is not taken into account.
+Implemented VanderWaals.voigt_det() method that computes the
+size of the detuning region at given temperature-profile values.
+All tests and proper documentation are TBD.
+

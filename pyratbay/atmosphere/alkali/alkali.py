@@ -1,16 +1,18 @@
-# Copyright (c) 2021 Patricio Cubillos
+# Copyright (c) 2021-2022 Patricio Cubillos
 # Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 __all__ = [
     'SodiumVdW',
     'PotassiumVdW',
-    ]
+]
 
 import numpy as np
 
 from ... import constants as pc
 from ... import tools as pt
 from ...opacity import broadening
+
+from ...lib import _alkali
 
 
 class VanderWaals(object):
@@ -31,21 +33,65 @@ class VanderWaals(object):
           self.mass = mass[self.imol]
       self.dwave = dwave
 
+
+  def voigt_det(self, press, temp):
+      nlayers = len(press)
+      nlines = len(self.wn)
+      # Detuning frequency (cm-1):
+      dsigma = self.detuning * (temp/500.0)**0.6
+      # Lorentz half width (cm-1):
+      lor = self.lpar * (temp/2000.0)**(-0.7) * press/pc.atm
+
+      voigt_det = np.zeros((nlayers,nlines))
+      for j in range(nlines):
+          wn0 = self.wn[j]
+          dwave = self.dwave[j]
+          # Doppler half width (cm-1):
+          dop = np.sqrt(2*pc.k*temp / (self.mass*pc.amu)) * wn0 / pc.c
+          fwidth = 2*(0.5346*lor + np.sqrt(0.2166*lor**2 + dop**2))
+          self.voigt.x0 = wn0
+          for i in range(nlayers):
+              self.voigt.hwhm_L = lor[i]
+              self.voigt.hwhm_G = dop[i]
+              # EC at the detuning boundary:
+              voigt_det[i,j] = self.voigt(wn0+dsigma[i])
+      return voigt_det
+
+
+  def c_absorption(self, press, temp, wn):
+      nlayers = len(press)
+      nwave = len(wn)
+      self.ec = np.zeros((nlayers, nwave), np.double)
+
+      if self.imol < 0:
+          return self.ec
+
+      _alkali.alkali_cross_section(
+          press, wn, temp,
+          self.voigt_det(press, temp),
+          self.ec,
+          self.detuning, self.mass, self.lpar, self.Z, self.cutoff,
+          np.array(self.wn), np.array(self.gf), np.array(self.dwave),
+      )
+
+
   def absorption(self, press, temp, wn):
       """Evaluate alkali model's opacity cross section (cm2 molecule-1)."""
       nlayers = len(press)
-      nwave   = len(wn)
+      nwave = len(wn)
       self.ec = np.zeros((nlayers, nwave), np.double)
 
       # Species is not in atmosphere:
       if self.imol < 0:
-          return np.zeros((nlayers, nwave), np.double)
+          return self.ec
 
       # Detuning frequency (cm-1):
       dsigma = self.detuning * (temp/500.0)**0.6
       # Doppler half width (cm-1):
-      doppler = (np.sqrt(2*pc.k*temp / (self.mass*pc.amu))
-                 * np.expand_dims(self.wn, axis=1)/pc.c)
+      doppler = (
+          np.sqrt(2*pc.k*temp / (self.mass*pc.amu))
+          * np.expand_dims(self.wn, axis=1) / pc.c
+      )
       # Lorentz half width (cm-1):
       lor = self.lpar * (temp/2000.0)**(-0.7) * press/pc.atm
 
