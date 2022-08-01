@@ -7347,3 +7347,7 @@ Implemented VanderWaals.voigt_det() method that computes the
 size of the detuning region at given temperature-profile values.
 All tests and proper documentation are TBD.
 
+*****
+
+Updated pyratbay version to 1.1.1b1.
+
