@@ -28,19 +28,20 @@ TBD                                                              \n\
 ");
 
 static PyObject *alkali_cross_section(PyObject *self, PyObject *args){
-    PyArrayObject *wn, *temp, *pressure, *wn0, *gf, *dwave, *voigt_det, *ec;
+    PyArrayObject *wn, *temp, *pressure, *wn0, *gf, *dwave, *voigt_det,
+        *i_wn0, *ec;
     int i, j, k, ilast, nwave, nlayers, nlines;
     npy_intp dims[2];
     double factor, detuning_wn, dsigma, mass, lorentz_par, part_func, cutoff,
-        lorentz, doppler, full_width, dwn, abs_dwn;
+        lorentz, doppler, full_width, dwn, abs_dwn, lor_val, lor_sum;
 
     /* Load inputs: */
     if (!PyArg_ParseTuple(
             args,
-            "OOOOOdddddOOO",
+            "OOOOOdddddOOOO",
             &pressure, &wn, &temp, &voigt_det, &ec,
             &detuning_wn, &mass, &lorentz_par, &part_func, &cutoff,
-            &wn0, &gf, &dwave
+            &wn0, &gf, &dwave, &i_wn0
     ))
         return NULL;
 
@@ -67,6 +68,7 @@ static PyObject *alkali_cross_section(PyObject *self, PyObject *args){
             // Detuning frequency (cm-1):
             dsigma = detuning_wn * pow(INDd(temp,i)/500.0, 0.6);
 
+            lor_sum = 0.0;
             for (k=0; k<nwave; k++){
                 dwn = INDd(wn,k) - INDd(wn0,j);
                 abs_dwn = fabs(dwn);
@@ -83,21 +85,21 @@ static PyObject *alkali_cross_section(PyObject *self, PyObject *args){
                         * exp(-C2*(abs_dwn-dsigma) / INDd(temp,i));
                 else {
                     // Lorentz profile in the core (detuning region):
-                    IND2d(ec,i,k) +=
-                        lorentz / PI / (pow(lorentz,2.0) + pow(dwn,2.0))
-                        * C3 * INDd(gf,j) / part_func
-                        * exp(-0.0*C2*abs_dwn / INDd(temp,i));
+                    lor_val = lorentz / PI / (pow(lorentz,2.0) + pow(dwn,2.0));
+                    IND2d(ec,i,k) += lor_val * C3 * INDd(gf,j) / part_func;
                     // Note this equation neglects exp(-Elow/T)*(1-exp(-wn0/T))
                     // because it is approximately 1.0 at T=[100K--4000K]
+                    if (k != INDi(i_wn0,j))
+                        lor_sum += (INDd(wn,(k+1))-INDd(wn,(k-1))) * lor_val;
                 }
             }
-            // Correction for undersampled lines:
-            // if (whi > wlo & full_width < 2.0*INDd(dwave,j)){
-            // if (full_width < 2.0*INDd(dwave,j)){
-            //     printf("Undersampled profile\n");
-            //     IND2d(ec,i,i_nearest_wn0) = 0.0
-            //     IND2d(ec,i,i_nearest_wn0) = 1.0 - trapz(profile, wndet)
-            //}
+            // Core correction for undersampled lines:
+            if (full_width < 2.0*INDd(dwave,j) & lor_sum>0.0){
+                k = INDi(i_wn0,j);
+                lor_val = (2.0-lor_sum) / (INDd(wn,(k+1))-INDd(wn,(k-1)));
+                IND2d(ec,i,INDi(i_wn0,j)) =
+                    lor_val * C3 * INDd(gf,j) / part_func;
+            }
         }
     }
     return Py_BuildValue("i", 1);

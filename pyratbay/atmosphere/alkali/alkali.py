@@ -66,12 +66,14 @@ class VanderWaals(object):
       if self.imol < 0:
           return self.ec
 
+      i_nearest_wn0 = np.argmin(np.abs(np.expand_dims(self.wn,1)-wn), axis=1)
       _alkali.alkali_cross_section(
           press, wn, temp,
           self.voigt_det(press, temp),
           self.ec,
           self.detuning, self.mass, self.lpar, self.Z, self.cutoff,
           np.array(self.wn), np.array(self.gf), np.array(self.dwave),
+          i_nearest_wn0,
       )
 
 

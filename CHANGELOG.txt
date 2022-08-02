@@ -7351,3 +7351,10 @@ All tests and proper documentation are TBD.
 
 Updated pyratbay version to 1.1.1b1.
 
+
+*****  Tue Aug 2 11:56:18 CEST 2022  *****
+
+Updated C alkali_cross_section() function to perform correction
+at the wavelength nearest the core for under-sampled lines
+(enforce the sum of the Lorentz profile to add to one).
+
