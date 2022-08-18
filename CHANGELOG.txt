@@ -7358,3 +7358,9 @@ Updated C alkali_cross_section() function to perform correction
 at the wavelength nearest the core for under-sampled lines
 (enforce the sum of the Lorentz profile to add to one).
 
+
+*****  Thu Aug 18 10:16:11 CEST 2022  *****
+
+Fixed bug in new C alkali cross-section calculation.
+Updates tests.
+

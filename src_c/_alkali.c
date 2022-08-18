@@ -30,9 +30,8 @@ TBD                                                              \n\
 static PyObject *alkali_cross_section(PyObject *self, PyObject *args){
     PyArrayObject *wn, *temp, *pressure, *wn0, *gf, *dwave, *voigt_det,
         *i_wn0, *ec;
-    int i, j, k, ilast, nwave, nlayers, nlines;
-    npy_intp dims[2];
-    double factor, detuning_wn, dsigma, mass, lorentz_par, part_func, cutoff,
+    int i, j, k, nwave, nlayers, nlines;
+    double detuning_wn, dsigma, mass, lorentz_par, part_func, cutoff,
         lorentz, doppler, full_width, dwn, abs_dwn, lor_val, lor_sum;
 
     /* Load inputs: */
@@ -46,12 +45,12 @@ static PyObject *alkali_cross_section(PyObject *self, PyObject *args){
         return NULL;
 
     /* Get the spectrum size: */
-    dims[0] = nlayers = (int)PyArray_DIM(temp, 0);
-    dims[1] = nwave = (int)PyArray_DIM(wn, 0);
+    nlayers = (int)PyArray_DIM(temp, 0);
+    nwave = (int)PyArray_DIM(wn, 0);
     nlines = (int)PyArray_DIM(wn0, 0);
 
     // Calculate the cross sections:
-    for (j=0; j <= nlines; j++){
+    for (j=0; j<nlines; j++){
         for (i=0; i<nlayers; i++){
             // Doppler half width (cm-1):
             doppler =
@@ -94,7 +93,7 @@ static PyObject *alkali_cross_section(PyObject *self, PyObject *args){
                 }
             }
             // Core correction for undersampled lines:
-            if (full_width < 2.0*INDd(dwave,j) & lor_sum>0.0){
+            if ((full_width < 2.0*INDd(dwave,j)) & (lor_sum>0.0)){
                 k = INDi(i_wn0,j);
                 lor_val = (2.0-lor_sum) / (INDd(wn,(k+1))-INDd(wn,(k-1)));
                 IND2d(ec,i,INDi(i_wn0,j)) =
