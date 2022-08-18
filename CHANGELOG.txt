@@ -7364,3 +7364,7 @@ at the wavelength nearest the core for under-sampled lines
 Fixed bug in new C alkali cross-section calculation.
 Updates tests.
 
+*****
+
+PEP8 tests.
+

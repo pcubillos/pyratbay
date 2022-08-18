@@ -12,13 +12,19 @@ os.chdir(ROOT+'tests')
 
 
 def test_alkali_str(tmp_path):
-    cfg = make_config(tmp_path,
+    reset = {
+        'wllow': '0.466 um',
+        'wlhigh': '0.80252 um',
+        'alkali_cutoff': '4500.0',
+    }
+    cfg = make_config(
+        tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        reset={'wllow':'0.466 um', 'wlhigh':'0.80252 um',
-               'alkali_cutoff':'4500.0'})
+        reset=reset,
+    )
     pyrat = pb.run(cfg)
     assert pyrat is not None
-    print(pyrat.alkali.models[0])
+    # print(pyrat.alkali.models[0])
     assert str(pyrat.alkali.models[0]) == """\
 Model name (name): 'sodium_vdw'
 Model species (mol): Na
@@ -33,18 +39,19 @@ Wavenumber  Wavelength          gf   Lower-state energy
   16960.87    0.589592   6.546e-01   0.000e+00
   16978.07    0.588995   1.309e+00   0.000e+00
 Opacity cross section (ec, cm2 molecule-1):
-[[ 0.000e+00  1.021e-29 ...  3.136e-29  3.131e-29]
- [ 0.000e+00  1.285e-29 ...  3.948e-29  3.941e-29]
+[[ 0.000e+00  1.089e-29 ...  3.344e-29  3.338e-29]
+ [ 0.000e+00  1.371e-29 ...  4.210e-29  4.203e-29]
  ...
- [ 0.000e+00  4.999e-21 ...  1.525e-20  1.523e-20]
- [ 0.000e+00  6.269e-21 ...  1.912e-20  1.910e-20]]
+ [ 0.000e+00  5.273e-21 ...  1.608e-20  1.606e-20]
+ [ 0.000e+00  6.612e-21 ...  2.017e-20  2.014e-20]]
 """
 
 def test_cloud_str(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        reset={'clouds':'deck ccsgray', 'cpars':'-3.0  0.0 -4.0 2.0'})
+        reset={'clouds':'deck ccsgray', 'cpars':'-3.0  0.0 -4.0 2.0'},
+    )
     pyrat = pb.run(cfg)
     assert pyrat is not None
     assert str(pyrat.cloud.models[0]) == """\
@@ -124,8 +131,10 @@ Extinction-coefficient (ec, cm2 molec-1):
 
 
 def test_pyrat_transmission_str(tmp_path):
-    cfg = make_config(tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg')
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+    )
     pyrat = pb.run(cfg)
     assert pyrat is not None
     assert str(pyrat) == """\
@@ -526,10 +535,12 @@ No retrieval parameters set.
 
 
 def test_pyrat_transmission_resolution_str(tmp_path):
-    cfg = make_config(tmp_path,
+    cfg = make_config(
+        tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         reset={'resolution':'5000.0'},
-        remove=['clouds'])
+        remove=['clouds'],
+    )
     pyrat = pb.run(cfg)
     assert pyrat is not None
     assert str(pyrat) == """\
@@ -562,7 +573,8 @@ def test_pyrat_emission_str(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        reset={'rt_path': 'emission'})
+        reset={'rt_path': 'emission'},
+    )
     pyrat = pb.run(cfg)
     assert pyrat is not None
     assert str(pyrat.spec) == """\
@@ -632,10 +644,15 @@ Optical depth at each layer along a normal ray path into the planet, down to
 
 
 def test_pyrat_exfile_str(tmp_path):
-    cfg = make_config(tmp_path,
+    reset = {
+        'runmode': 'spectrum',
+        'specfile': f'{ROOT}tests/outputs/extfile_spectrum_test.dat',
+    }
+    cfg = make_config(
+        tmp_path,
         ROOT+'tests/configs/mcmc_transmission_test.cfg',
-        reset={'runmode':'spectrum',
-               'specfile':f'{ROOT}tests/outputs/extfile_spectrum_test.dat'})
+        reset=reset,
+    )
     pyrat = pb.run(cfg)
     assert pyrat is not None
     pyrat.band_integrate()
