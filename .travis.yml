@@ -21,8 +21,4 @@ install:
   - unzip '*.zip' -d tests/inputs/
   - wget http://kurucz.harvard.edu/grids/gridp00odfnew/fp00k0odfnew.pck -P tests/inputs
 
-  # Temporary TEA install
-  - git clone -b packaging https://github.com/pcubillos/TEA tea
-  - pip install -e tea/
-
 script: pytest tests -v

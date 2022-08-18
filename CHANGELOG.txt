@@ -7368,3 +7368,7 @@ Updates tests.
 
 PEP8 tests.
 
+*****
+
+Removed TEA installation from .travis.yml script.
+
