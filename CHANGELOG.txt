@@ -7408,3 +7408,8 @@ Added wlstep argument, if defined, compute spectrum at given
 delta-wavenumber sampling.
 Tests and docs are TBD!  (added placeholders)
 
+*****
+
+Refactored delta-wn calculation at the core of the alkali lines
+in alkali.init() to be independent of the sampling type.
+

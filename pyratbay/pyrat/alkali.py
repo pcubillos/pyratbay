@@ -10,10 +10,15 @@ def init(pyrat):
         pyrat.log.head("\nSetup Alkali opacity models.")
     for alkali in pyrat.alkali.models:
         # Spectral sampling rate at alkali wn0:
-        if pyrat.spec.resolution is None:
-            dwave = [pyrat.spec.wnstep for _ in alkali.wn]
-        else:
-            dwave = alkali.wn/pyrat.spec.resolution
+        dwave = []
+        for i,wn0 in enumerate(alkali.wn):
+            i_wn = np.argmin(np.abs(pyrat.spec.wn-wn0))
+            is_last = i_wn == pyrat.spec.nwave-1
+            is_over = i_wn > 0 and pyrat.spec.wn[i_wn] > wn0
+            if is_over or is_last:
+                i_wn -= 1
+            dwave.append(pyrat.spec.wn[i_wn+1]-pyrat.spec.wn[i_wn])
+
         alkali.setup(pyrat.mol.name, pyrat.mol.mass, dwave)
 
 
