@@ -7393,3 +7393,7 @@ partition function values.
 Fixed issue with pickle protocol for TIPS data file.
 Fixed tests.
 
+*****
+
+Updated pyratbay version to 1.1.2rc1.
+
