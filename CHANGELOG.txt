@@ -7397,3 +7397,7 @@ Fixed tests.
 
 Updated pyratbay version to 1.1.2rc1.
 
+*****
+
+Updated references to the bibtex in docs and README files.
+
