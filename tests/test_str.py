@@ -1,7 +1,8 @@
 # Copyright (c) 2021-2022 Patricio Cubillos
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+# Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import os
+import pytest
 
 from conftest import make_config
 
@@ -651,6 +652,41 @@ Pyrat atmospheric model
 configuration file:  '{:s}/test.cfg'
 Pressure profile (bar):  1.00e-06 -- 1.00e+02 (81 layers)
 Wavelength range (um):  1.10 -- 1.70 (2177 samples, R=5000.0)
+Composition:  ['H2' 'He' 'Na' 'H2O' 'CH4' 'CO' 'CO2']
+Opacity sources:  ['H2O', 'CIA H2-H2', 'CIA H2-He', 'lecavelier', 'Na']""".format(str(tmp_path))
+
+    assert str(pyrat.spec) == """\
+Spectral information:
+Wavenumber internal units: cm-1
+Wavelength internal units: cm
+Wavelength display units (wlunits): um
+Low wavenumber boundary (wnlow):     5882.353 cm-1  (wlhigh =   1.70 um)
+High wavenumber boundary (wnhigh):   9090.909 cm-1  (wllow  =   1.10 um)
+Number of samples (nwave): 2177
+Spectral resolving power (resolution): 5000.0
+Wavenumber array (wn, cm-1):
+    [ 5882.353  5883.530  5884.706 ...  9086.201  9088.018  9089.836]
+Oversampling factor (wnosamp): 2160
+
+Modulation spectrum, (Rp/Rs)**2 (spectrum):
+    [ 6.522e-03  6.540e-03  6.523e-03 ...  6.670e-03  6.500e-03  6.473e-03]
+"""
+
+@pytest.mark.skip(reason="TBD")
+def test_pyrat_transmission_wl_step_str(tmp_path):
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        reset={'wlstep':'1e-5 um'},
+        remove=['clouds'],
+    )
+    pyrat = pb.run(cfg)
+    assert pyrat is not None
+    assert str(pyrat) == """\
+Pyrat atmospheric model
+configuration file:  '{:s}/test.cfg'
+Pressure profile (bar):  1.00e-06 -- 1.00e+02 (81 layers)
+Wavelength range (um):  1.10 -- 1.70 (2177 samples, dwl=1e-05 um)
 Composition:  ['H2' 'He' 'Na' 'H2O' 'CH4' 'CO' 'CO2']
 Opacity sources:  ['H2O', 'CIA H2-H2', 'CIA H2-He', 'lecavelier', 'Na']""".format(str(tmp_path))
 

@@ -1,5 +1,5 @@
-# Copyright (c) 2021 Patricio Cubillos
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+# Copyright (c) 2021-2022 Patricio Cubillos
+# Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import numpy as np
 import scipy.interpolate as sip
@@ -12,11 +12,11 @@ def make_wavenumber(pyrat):
     """
     Make the wavenumber sample from user inputs.
     """
-    # Alias for Pyrat's Spectrum object:
     spec = pyrat.spec
-    log  = pyrat.log
+    log = pyrat.log
 
     log.head('\nGenerating wavenumber array.')
+    wl_units = pt.u(spec.wlunits)
     # Low wavenumber boundary:
     if pyrat.inputs.wnlow is None:
         if pyrat.inputs.wlhigh is None:
@@ -62,6 +62,14 @@ def make_wavenumber(pyrat):
         g = (1.0+f) / (1.0-f)
         spec.nwave = int(np.ceil(-np.log(spec.wnlow/spec.wnhigh) / np.log(g)))
         spec.wn = spec.wnlow * g**np.arange(spec.nwave)
+        spec.wlstep = None
+    elif spec.wlstep is not None:
+        # Constant-sampling rate wavelength sampling:
+        wl = np.arange(spec.wllow, spec.wlhigh, spec.wlstep)
+        spec.nwave = len(wl)
+        spec.wn = 1.0/np.flip(wl)
+        spec.wnlow = spec.wn[0]
+        spec.resolution = None
     else:
         # Constant-sampling rate wavenumber sampling:
         spec.nwave = int((spec.wnhigh-spec.wnlow)/spec.wnstep) + 1
@@ -83,14 +91,23 @@ def make_wavenumber(pyrat):
 
     # Screen output:
     log.msg(f'Initial wavenumber boundary:  {spec.wnlow:.5e} cm-1  '
-            f'({spec.wlhigh/pt.u(spec.wlunits):.3e} {spec.wlunits})', indent=2)
+            f'({spec.wlhigh/wl_units:.3e} {spec.wlunits})', indent=2)
     log.msg(f'Final   wavenumber boundary:  {spec.wnhigh:.5e} cm-1  '
-            f'({spec.wllow/pt.u(spec.wlunits):.3e} {spec.wlunits})', indent=2)
-    if spec.resolution is None:
-        log.msg(f'Wavenumber sampling interval: {spec.wnstep:.2g} cm-1',
-            indent=2)
-    else:
+            f'({spec.wllow/wl_units:.3e} {spec.wlunits})', indent=2)
+
+    if spec.resolution is not None:
         log.msg(f'Spectral resolving power: {spec.resolution:.1f}', indent=2)
+    elif spec.wlstep is not None:
+        wl_step = spec.wlstep / wl_units
+        log.msg(
+            f'Wavelength sampling interval: {wl_step:.2g} {spec.wlunits}',
+            indent=2,
+        )
+    else:
+        log.msg(
+            f'Wavenumber sampling interval: {spec.wnstep:.2g} cm-1',
+            indent=2,
+        )
     log.msg(f'Wavenumber sample size:      {spec.nwave:8d}\n'
             f'Wavenumber fine-sample size: {spec.onwave:8d}\n', indent=2)
     log.head('Wavenumber sampling done.')

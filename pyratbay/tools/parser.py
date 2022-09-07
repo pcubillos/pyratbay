@@ -381,6 +381,7 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         parse_float(args, 'wnstep')
         parse_int(args,   'wnosamp')
         parse_float(args, 'resolution')
+        parse_float(args, 'wlstep')
         # Atmospheric sampling options:
         parse_str(args,   'tmodel')
         parse_array(args, 'tpars')
@@ -578,6 +579,8 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         'wnosamp', 'Wavenumber oversampling factor', ge=1)
     spec.resolution = args.get_default(
         'resolution', 'Spectral resolution', gt=0.0)
+    spec.wlstep = args.get_param(
+        'wlstep', spec.wlunits, 'Wavelength sampling step', gt=0.0)
 
     atm.runits = args.get_default('runits', 'Planetary-radius units')
     if atm.runits is not None and not hasattr(pc, atm.runits):

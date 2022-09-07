@@ -127,13 +127,28 @@ def test_transmission_patchy(tmp_path):
 
 
 def test_transmission_resolution(tmp_path):
-    cfg = make_config(tmp_path,
+    cfg = make_config(
+        tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         reset={'resolution':'5000.0'},
-        remove=['clouds'])
+        remove=['clouds'],
+    )
     pyrat = pb.run(cfg)
     np.testing.assert_allclose(
         pyrat.spec.spectrum, expected['resolution'], rtol=rtol)
+
+
+@pytest.mark.skip(reason="TBD")
+def test_transmission_wl_step(tmp_path):
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        reset={'wl_step':'1e-5 um'},
+        remove=['clouds'],
+    )
+    pyrat = pb.run(cfg)
+    np.testing.assert_allclose(
+        pyrat.spec.spectrum, expected['wl_step'], rtol=rtol)
 
 
 # Optical-depth integration is home made, which depends on whether there is

@@ -1,5 +1,5 @@
-# Copyright (c) 2021 Patricio Cubillos
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+# Copyright (c) 2021-2022 Patricio Cubillos
+# Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import os
 import ctypes
@@ -287,6 +287,10 @@ def extinction(pyrat, indices, grid=False, add=False):
 
       # Calculate extinction-coefficient in C:
       extinct_coeff[:] = 0.0
+      interpolate_flag = int(
+          pyrat.spec.resolution is not None
+          or pyrat.spec.wnstep is not None
+      )
       ec.extinction(
           extinct_coeff,
           pyrat.voigt.profile, pyrat.voigt.size, pyrat.voigt.index,
@@ -298,7 +302,8 @@ def extinction(pyrat, indices, grid=False, add=False):
           pyrat.lt.wn, pyrat.lt.elow, pyrat.lt.gf, pyrat.lt.isoid,
           pyrat.voigt.cutoff, pyrat.ex.ethresh, pressure, temp,
           verb-10, int(add),
-          int(pyrat.spec.resolution is not None))
+          interpolate_flag,
+      )
       # Store output:
       if grid:   # Into grid
           pyrat.ex.etable[:, itemp, ilayer] = extinct_coeff

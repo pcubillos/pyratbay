@@ -331,7 +331,8 @@ static PyObject *extinction(PyObject *self, PyObject *args){
   /* Resample ktmp to the final sampling size (constant delta-wavenumber): */
   else{
       for (iext=0; iext<nextinct; iext++){
-          resample(ktmp, ext, (int)dnwn, (int)round(wnstep/ownstep/ofactor), iext);
+          resample(
+              ktmp, ext, (int)dnwn, (int)round(wnstep/ownstep/ofactor), iext);
       }
   }
 
