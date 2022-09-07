@@ -2,6 +2,8 @@
 # Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 import os
+import pathlib
+import tempfile
 
 from conftest import make_config
 
@@ -9,6 +11,16 @@ import pyratbay as pb
 from pyratbay.constants import ROOT
 
 os.chdir(ROOT+'tests')
+
+
+transit_tmp_path = tempfile.TemporaryDirectory()
+transit_tmp_path = pathlib.Path(transit_tmp_path.name)
+transit_tmp_path.mkdir()
+cfg = make_config(
+    transit_tmp_path,
+    ROOT+'tests/configs/spectrum_transmission_test.cfg',
+)
+transit_pyrat = pb.run(cfg)
 
 
 def test_alkali_str(tmp_path):
@@ -130,22 +142,19 @@ Extinction-coefficient (ec, cm2 molec-1):
 """
 
 
-def test_pyrat_transmission_str(tmp_path):
-    cfg = make_config(
-        tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
-    )
-    pyrat = pb.run(cfg)
-    assert pyrat is not None
-    assert str(pyrat) == """\
+def test_pyrat_transmission_str():
+    assert transit_pyrat is not None
+    assert str(transit_pyrat) == """\
 Pyrat atmospheric model
 configuration file:  '{:s}/test.cfg'
 Pressure profile (bar):  1.00e-06 -- 1.00e+02 (81 layers)
 Wavelength range (um):  1.10 -- 1.70 (3209 samples, dwn=1.000 cm-1)
 Composition:  ['H2' 'He' 'Na' 'H2O' 'CH4' 'CO' 'CO2']
-Opacity sources:  ['H2O', 'CIA H2-H2', 'CIA H2-He', 'lecavelier', 'deck', 'Na']""".format(str(tmp_path))
+Opacity sources:  ['H2O', 'CIA H2-H2', 'CIA H2-He', 'lecavelier', 'deck', 'Na']""".format(str(transit_tmp_path))
 
-    assert str(pyrat.spec) == """\
+
+def test_pyrat_transmission_spec_str():
+    assert str(transit_pyrat.spec) == """\
 Spectral information:
 Wavenumber internal units: cm-1
 Wavelength internal units: cm
@@ -162,7 +171,9 @@ Modulation spectrum, (Rp/Rs)**2 (spectrum):
     [ 6.780e-03  6.781e-03  6.780e-03 ...  6.780e-03  6.780e-03  6.780e-03]
 """
 
-    assert str(pyrat.atm) == """\
+
+def test_pyrat_transmission_atm_str():
+    assert str(transit_pyrat.atm) == """\
 Atmospheric model information:
 Atmospheric file name (atmfile):
     '{:s}/inputs/atmosphere_uniform_test.atm'
@@ -211,7 +222,8 @@ Density profiles (d, molecules cm-3):
     species [ 6]:   [ 6.918e+05  8.708e+05 ...  3.457e+13  4.349e+13]
 """.format(os.getcwd())
 
-    assert str(pyrat.mol) == f"""\
+def test_pyrat_transmission_mol_str():
+    assert str(transit_pyrat.mol) == f"""\
 Atmospheric species information:
 Number of species (nmol): 7
 
@@ -229,7 +241,9 @@ Molecular data taken from (molfile):
     '{os.path.realpath('./../pyratbay/data')}/molecules.dat'
 """
 
-    assert str(pyrat.lt) == f"""\
+
+def test_pyrat_transmission_lt_str():
+    assert str(transit_pyrat.lt) == f"""\
 Line-transition information:
 Input TLI files (tlifile):
     ['{os.getcwd()}/outputs/HITRAN_H2O_1.1-1.7um_test.tli']
@@ -239,17 +253,17 @@ Database name (name): HITRAN H2O
 Species name (molname):  H2O
 Number of isotopes (niso): 7
 Isotope correlative index (iiso): 0
-Number of temperature samples (ntemp): 503
+Number of temperature samples (ntemp): 1001
 Temperature (temp, K):
-    [1.00e+00 5.00e+00 1.00e+01 ... 4.98e+03 4.99e+03 5.00e+03]
+    [1.000e+00 5.000e+00 1.000e+01 ... 4.990e+03 4.995e+03 5.000e+03]
 Partition function for each isotope (z):
-    [ 1.000e+00  1.010e+00  1.328e+00 ...  8.301e+04  8.358e+04  8.416e+04]
-    [ 1.000e+00  1.010e+00  1.332e+00 ...  7.706e+04  7.758e+04  7.811e+04]
-    [ 6.000e+00  6.059e+00  7.981e+00 ...  4.623e+05  4.654e+05  4.686e+05]
-    [ 6.000e+00  6.213e+00  8.396e+00 ...  4.835e+05  4.865e+05  4.895e+05]
-    [ 6.000e+00  6.219e+00  8.445e+00 ...  4.702e+05  4.733e+05  4.763e+05]
-    [ 3.600e+01  3.729e+01  5.053e+01 ...  2.719e+06  2.737e+06  2.754e+06]
-    [ 6.000e+00  6.343e+00  9.129e+00 ...  9.504e+05  9.578e+05  9.652e+05]
+    [ 1.000e+00  1.010e+00  1.328e+00 ...  8.358e+04  8.387e+04  8.416e+04]
+    [ 1.000e+00  1.010e+00  1.332e+00 ...  7.758e+04  7.785e+04  7.811e+04]
+    [ 6.000e+00  6.058e+00  7.981e+00 ...  4.655e+05  4.670e+05  4.686e+05]
+    [ 6.000e+00  6.213e+00  8.396e+00 ...  4.865e+05  4.880e+05  4.895e+05]
+    [ 6.000e+00  6.219e+00  8.445e+00 ...  4.733e+05  4.748e+05  4.763e+05]
+    [ 3.600e+01  3.729e+01  5.053e+01 ...  2.737e+06  2.746e+06  2.754e+06]
+    [ 6.000e+00  6.343e+00  9.129e+00 ...  9.578e+05  9.615e+05  9.652e+05]
 
 Total number of line transitions (ntransitions): 47,666
 Minimum and maximum temperatures (tmin, tmax): [1.0, 5000.0] K
@@ -263,7 +277,8 @@ Line-transition gf (gf, cm-1):
     [ 1.399e-08  1.188e-09  1.210e-08 ...  5.498e-06  1.558e-07  1.076e-06]
 """
 
-    assert str(pyrat.iso) == """\
+def test_pyrat_transmission_iso_str():
+    assert str(transit_pyrat.iso) == """\
 Isotopes information:
 Number of isotopes (niso): 7
 
@@ -280,14 +295,15 @@ Isotope  Molecule      Mass    Isotopic   Database   Extinc-coeff
 Partition function evaluated at atmosperic layers (z):
     [ 1.325e+03  1.325e+03  1.325e+03 ...  3.407e+03  3.412e+03  3.417e+03]
     [ 1.337e+03  1.337e+03  1.337e+03 ...  3.426e+03  3.430e+03  3.436e+03]
-    [ 7.980e+03  7.980e+03  7.980e+03 ...  2.042e+04  2.045e+04  2.048e+04]
+    [ 7.979e+03  7.979e+03  7.979e+03 ...  2.042e+04  2.045e+04  2.048e+04]
     [ 6.954e+03  6.954e+03  6.954e+03 ...  1.909e+04  1.912e+04  1.915e+04]
     [ 7.066e+03  7.066e+03  7.066e+03 ...  1.940e+04  1.943e+04  1.946e+04]
-    [ 4.228e+04  4.228e+04  4.228e+04 ...  1.157e+05  1.158e+05  1.160e+05]
+    [ 4.228e+04  4.228e+04  4.228e+04 ...  1.156e+05  1.158e+05  1.160e+05]
     [ 8.967e+03  8.967e+03  8.967e+03 ...  2.652e+04  2.656e+04  2.661e+04]
 """
 
-    assert str(pyrat.voigt) == """\
+def test_pyrat_transmission_voigt_str():
+    assert str(transit_pyrat.voigt) == """\
 Voigt-profile information:
 
 Number of Doppler-width samples (ndop): 40
@@ -319,7 +335,8 @@ Voigt profiles:
   profile[39,39]: [ 4.99389e-03  4.99404e-03 ...  4.99404e-03  4.99389e-03]
 """
 
-    assert str(pyrat.ex) == """\
+def test_pyrat_transmission_ex_str():
+    assert str(transit_pyrat.ex) == """\
 Extinction-coefficient information:
 Line-transition strength threshold (ethresh): 1.00e-15
 
@@ -334,7 +351,8 @@ LBL extinction coefficient for the atmospheric model (ec, cm-1) [layer, wave]:
 Extinction-coefficient table filename(s) (extfile): None
 """
 
-    assert str(pyrat.cs) == """\
+def test_pyrat_transmission_cs_str():
+    assert str(transit_pyrat.cs) == """\
 Cross-section extinction information:
 Number of cross-section files (nfiles): 2
 
@@ -383,7 +401,9 @@ Atmospheric-model extinction coefficient (ec, cm-1):
  [ 3.00e-04  2.99e-04  2.99e-04 ...  1.39e-05  1.39e-05  1.39e-05]]
 """.format(os.path.realpath('./..'), os.path.realpath('./..'))
 
-    assert str(pyrat.od) == """\
+
+def test_pyrat_transmission_od_str():
+    assert str(transit_pyrat.od) == """\
 Optical depth information:
 Observing geometry (rt_path): transit
 Total atmospheric extinction coefficient (ec, cm-1) [layer, wave]:
@@ -420,7 +440,9 @@ Optical depth at each impact parameter, down to max(ideep) (depth):
  [ 8.157e-05  1.950e-02  8.275e-05 ...  7.768e-04  3.710e-04  3.931e-04]]
 """
 
-    assert str(pyrat.cloud) == """\
+
+def test_pyrat_transmission_cloud_str():
+    assert str(transit_pyrat.cloud) == """\
 Cloud-opacity models (models):
 
 Model name (name): 'deck'
@@ -444,7 +466,9 @@ Total atmospheric cloud extinction-coefficient (ec, cm-1):
  [ 0.000e+00  0.000e+00  0.000e+00 ...  0.000e+00  0.000e+00  0.000e+00]]
 """
 
-    assert str(pyrat.rayleigh) == """\
+
+def test_pyrat_transmission_rayleigh_str():
+    assert str(transit_pyrat.rayleigh) == """\
 Rayleigh-opacity models (models):
 
 Model name (name): 'lecavelier'
@@ -467,7 +491,9 @@ Total atmospheric Rayleigh extinction-coefficient (ec, cm-1):
  [ 3.527e-09  3.529e-09  3.532e-09 ...  2.010e-08  2.011e-08  2.011e-08]]
 """
 
-    assert str(pyrat.alkali) == """\
+
+def test_pyrat_transmission_alkali_str():
+    assert str(transit_pyrat.alkali) == """\
 Alkali-opacity models (models):
 
 Model name (name): 'sodium_vdw'
@@ -499,14 +525,17 @@ Total atmospheric alkali extinction-coefficient (ec, cm-1):
  [ 0.000e+00  0.000e+00  0.000e+00 ...  0.000e+00  0.000e+00  0.000e+00]]
 """
 
-    assert str(pyrat.obs) == """\
+def test_pyrat_transmission_obs_str():
+    assert str(transit_pyrat.obs) == """\
 Observing information:
 Number of data points (ndata): 0
 
 Number of filter pass bands (nfilters): 0
 """
 
-    assert str(pyrat.phy) == """\
+
+def test_pyrat_transmission_phy_str():
+    assert str(transit_pyrat.phy) == """\
 Physical properties information:
 
 Stellar effective temperature (tstar, K): 5800.0
@@ -528,7 +557,8 @@ Stellar flux spectrum (starflux, erg s-1 cm-2 cm):
     [ 2.306e+06  2.307e+06  2.307e+06 ...  3.293e+06  3.293e+06  3.293e+06]
 """
 
-    assert str(pyrat.ret) == """\
+def test_pyrat_transmission_ret_str():
+    assert str(transit_pyrat.ret) == """\
 Retrieval information:
 No retrieval parameters set.
 """
@@ -637,8 +667,8 @@ Optical depth at each layer along a normal ray path into the planet, down to
  [ 3.983e-10  1.282e-07  3.989e-10 ...  5.063e-09  2.417e-09  2.531e-09]
  [ 8.992e-10  2.893e-07  9.004e-10 ...  1.143e-08  5.456e-09  5.713e-09]
  ...
- [ 1.083e-06  3.007e-04  1.092e-06 ...  1.193e-05  5.695e-06  5.995e-06]
- [ 1.412e-06  3.783e-04  1.426e-06 ...  1.502e-05  7.172e-06  7.562e-06]
+ [ 1.083e-06  3.008e-04  1.092e-06 ...  1.193e-05  5.695e-06  5.995e-06]
+ [ 1.412e-06  3.784e-04  1.426e-06 ...  1.502e-05  7.172e-06  7.562e-06]
  [ 1.853e-06  4.760e-04  1.875e-06 ...  1.892e-05  9.035e-06  9.543e-06]]
 """
 

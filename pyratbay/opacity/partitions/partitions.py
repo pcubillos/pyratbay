@@ -1,4 +1,4 @@
-# Copyright (c) 2021 Patricio Cubillos
+# Copyright (c) 2021-2022 Patricio Cubillos
 # Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -39,20 +39,22 @@ def get_tips_molname(molID):
     >>> print(pf.get_tips_molname(1), pf.get_tips_molname(6))
     H2O CH4
     """
-    with open(pc.ROOT+'pyratbay/data/tips_2017.pkl', 'rb') as p:
+    with open(pc.ROOT+'pyratbay/data/tips_2021.pkl', 'rb') as p:
         data = pickle.load(p)
     if molID not in data['mol_ID']:
-        raise ValueError('TIPS 2017 database does not contain molecule ID: {}'
-            .format(molID))
+        raise ValueError(
+            f'TIPS 2021 database does not contain molecule ID: {molID}')
     return data['mol_ID'][molID]
 
 
 def tips(molecule, isotopes=None, outfile=None, db_type='as_tips'):
     """
-    Extract TIPS 2017 partition-function values for given molecule.
+    Extract TIPS 2021 partition-function values for given molecule.
     If requested, write the partition-function into a file for use
     with Pyrat Bay.
-    Reference: Gamache et al. (2017), JQSRT, 203, 70.
+    References:
+        Gamache et al. (2017), JQSRT, 203, 70.
+        Gamache et al. (2021), JQSRT, 271, 107713.
 
     Parameters
     ----------
@@ -87,7 +89,7 @@ def tips(molecule, isotopes=None, outfile=None, db_type='as_tips'):
     for molecule H2O, with isotopes ['161', '181', '171', '162', '182', '172', '262', '282', '272'],
     and temperature range 1--5000 K.
     """
-    with open(pc.ROOT+'pyratbay/data/tips_2017.pkl', 'rb') as p:
+    with open(pc.ROOT+'pyratbay/data/tips_2021.pkl', 'rb') as p:
         data = pickle.load(p)
     if molecule not in data:
         raise ValueError(f"Molecule '{molecule}' is not in TIPS database.")
@@ -101,7 +103,10 @@ def tips(molecule, isotopes=None, outfile=None, db_type='as_tips'):
             raise ValueError(
                 f"Molecule '{molecule}' does not have isotope '{iso}'")
 
-    ntemp = np.amin([data['ntemp'][molecule][iso] for iso in data[molecule]])
+    ntemp = np.amin([
+        len(data[molecule][iso])
+        for iso in data[molecule]
+    ])
     temp = data['temp'][0:ntemp]
 
     # Compute partition function:
@@ -114,8 +119,11 @@ def tips(molecule, isotopes=None, outfile=None, db_type='as_tips'):
     if db_type == 'as_exomol':
         ID, molecs, hitran, exomol, iso_ratio, iso_mass = \
             io.read_isotopes(pc.ROOT+'pyratbay/data/isotopes.dat')
-        iso_map = {exo:hit for mol, hit, exo in zip(molecs, exomol, hitran)
-                   if mol==molecule}
+        iso_map = {
+            exo:hit
+            for mol, hit, exo in zip(molecs, exomol, hitran)
+            if mol==molecule
+        }
         isotopes = [iso_map[iso] for iso in isotopes]
 
     # Write output file:
@@ -126,9 +134,11 @@ def tips(molecule, isotopes=None, outfile=None, db_type='as_tips'):
         header = f'# Tabulated {molecule} partition-function from TIPS.\n\n'
         io.write_pf(outfile, pf, isotopes, temp, header)
 
-        print(f"\nWritten partition-function file:\n  '{outfile}'"
-              f"\nfor molecule {molecule}, with isotopes {isotopes},"
-              f"\nand temperature range {temp[0]:.0f}--{temp[-1]:.0f} K.")
+        print(
+            f"\nWritten partition-function file:\n  '{outfile}'"
+            f"\nfor molecule {molecule}, with isotopes {isotopes},"
+            f"\nand temperature range {temp[0]:.0f}--{temp[-1]:.0f} K."
+        )
     return pf, isotopes, temp
 
 

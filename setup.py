@@ -1,4 +1,4 @@
-# Copyright (c) 2021 Patricio Cubillos
+# Copyright (c) 2021-2022 Patricio Cubillos
 # Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 import os
@@ -95,7 +95,7 @@ package_data = {'pyratbay': [
     'data/atoms.dat',
     'data/molecules.dat',
     'data/isotopes.dat',
-    'data/tips_2017.pkl',
+    'data/tips_2021.pkl',
     'data/filters/*.dat',
     'data/CIA/*.dat',
     ]}

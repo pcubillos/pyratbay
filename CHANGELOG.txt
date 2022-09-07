@@ -7372,3 +7372,14 @@ PEP8 tests.
 
 Removed TEA installation from .travis.yml script.
 
+
+*****  Wed Sep 7 11:09:50 CEST 2022  *****
+
+Updated HITRAN TIPS partition function data with values from
+Gamache et al. (2021), JQSRT, 271, 107713.
+For O3, CH4, and NO2 PFs at higher temperatures were patched with
+data from 2017.
+This fixes a bug in the previous dataset where some molecules
+pointed to the wrong arrays.
+Updates docs and tests.
+
