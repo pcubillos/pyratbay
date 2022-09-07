@@ -7388,3 +7388,8 @@ Updates docs and tests.
 Updated write_pf() to have two more significant digits for
 partition function values.
 
+*****
+
+Fixed issue with pickle protocol for TIPS data file.
+Fixed tests.
+

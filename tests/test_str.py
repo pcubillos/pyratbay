@@ -1,9 +1,7 @@
-# Copyright (c) 2021 Patricio Cubillos
+# Copyright (c) 2021-2022 Patricio Cubillos
 # Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 import os
-import pathlib
-import tempfile
 
 from conftest import make_config
 
@@ -11,16 +9,6 @@ import pyratbay as pb
 from pyratbay.constants import ROOT
 
 os.chdir(ROOT+'tests')
-
-
-transit_tmp_path = tempfile.TemporaryDirectory()
-transit_tmp_path = pathlib.Path(transit_tmp_path.name)
-transit_tmp_path.mkdir()
-cfg = make_config(
-    transit_tmp_path,
-    ROOT+'tests/configs/spectrum_transmission_test.cfg',
-)
-transit_pyrat = pb.run(cfg)
 
 
 def test_alkali_str(tmp_path):
@@ -142,19 +130,29 @@ Extinction-coefficient (ec, cm2 molec-1):
 """
 
 
-def test_pyrat_transmission_str():
-    assert transit_pyrat is not None
-    assert str(transit_pyrat) == """\
+def test_pyrat_transmission_str(tmp_path):
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+    )
+    pyrat = pb.run(cfg)
+    assert pyrat is not None
+    assert str(pyrat) == """\
 Pyrat atmospheric model
 configuration file:  '{:s}/test.cfg'
 Pressure profile (bar):  1.00e-06 -- 1.00e+02 (81 layers)
 Wavelength range (um):  1.10 -- 1.70 (3209 samples, dwn=1.000 cm-1)
 Composition:  ['H2' 'He' 'Na' 'H2O' 'CH4' 'CO' 'CO2']
-Opacity sources:  ['H2O', 'CIA H2-H2', 'CIA H2-He', 'lecavelier', 'deck', 'Na']""".format(str(transit_tmp_path))
+Opacity sources:  ['H2O', 'CIA H2-H2', 'CIA H2-He', 'lecavelier', 'deck', 'Na']""".format(str(tmp_path))
 
 
-def test_pyrat_transmission_spec_str():
-    assert str(transit_pyrat.spec) == """\
+def test_pyrat_transmission_spec_str(tmp_path):
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+    )
+    pyrat = pb.run(cfg)
+    assert str(pyrat.spec) == """\
 Spectral information:
 Wavenumber internal units: cm-1
 Wavelength internal units: cm
@@ -172,8 +170,13 @@ Modulation spectrum, (Rp/Rs)**2 (spectrum):
 """
 
 
-def test_pyrat_transmission_atm_str():
-    assert str(transit_pyrat.atm) == """\
+def test_pyrat_transmission_atm_str(tmp_path):
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+    )
+    pyrat = pb.run(cfg)
+    assert str(pyrat.atm) == """\
 Atmospheric model information:
 Atmospheric file name (atmfile):
     '{:s}/inputs/atmosphere_uniform_test.atm'
@@ -222,8 +225,14 @@ Density profiles (d, molecules cm-3):
     species [ 6]:   [ 6.918e+05  8.708e+05 ...  3.457e+13  4.349e+13]
 """.format(os.getcwd())
 
-def test_pyrat_transmission_mol_str():
-    assert str(transit_pyrat.mol) == f"""\
+
+def test_pyrat_transmission_mol_str(tmp_path):
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+    )
+    pyrat = pb.run(cfg)
+    assert str(pyrat.mol) == f"""\
 Atmospheric species information:
 Number of species (nmol): 7
 
@@ -242,8 +251,13 @@ Molecular data taken from (molfile):
 """
 
 
-def test_pyrat_transmission_lt_str():
-    assert str(transit_pyrat.lt) == f"""\
+def test_pyrat_transmission_lt_str(tmp_path):
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+    )
+    pyrat = pb.run(cfg)
+    assert str(pyrat.lt) == f"""\
 Line-transition information:
 Input TLI files (tlifile):
     ['{os.getcwd()}/outputs/HITRAN_H2O_1.1-1.7um_test.tli']
@@ -277,8 +291,14 @@ Line-transition gf (gf, cm-1):
     [ 1.399e-08  1.188e-09  1.210e-08 ...  5.498e-06  1.558e-07  1.076e-06]
 """
 
-def test_pyrat_transmission_iso_str():
-    assert str(transit_pyrat.iso) == """\
+
+def test_pyrat_transmission_iso_str(tmp_path):
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+    )
+    pyrat = pb.run(cfg)
+    assert str(pyrat.iso) == """\
 Isotopes information:
 Number of isotopes (niso): 7
 
@@ -302,8 +322,14 @@ Partition function evaluated at atmosperic layers (z):
     [ 8.967e+03  8.967e+03  8.967e+03 ...  2.652e+04  2.656e+04  2.661e+04]
 """
 
-def test_pyrat_transmission_voigt_str():
-    assert str(transit_pyrat.voigt) == """\
+
+def test_pyrat_transmission_voigt_str(tmp_path):
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+    )
+    pyrat = pb.run(cfg)
+    assert str(pyrat.voigt) == """\
 Voigt-profile information:
 
 Number of Doppler-width samples (ndop): 40
@@ -335,8 +361,14 @@ Voigt profiles:
   profile[39,39]: [ 4.99389e-03  4.99404e-03 ...  4.99404e-03  4.99389e-03]
 """
 
-def test_pyrat_transmission_ex_str():
-    assert str(transit_pyrat.ex) == """\
+
+def test_pyrat_transmission_ex_str(tmp_path):
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+    )
+    pyrat = pb.run(cfg)
+    assert str(pyrat.ex) == """\
 Extinction-coefficient information:
 Line-transition strength threshold (ethresh): 1.00e-15
 
@@ -351,8 +383,14 @@ LBL extinction coefficient for the atmospheric model (ec, cm-1) [layer, wave]:
 Extinction-coefficient table filename(s) (extfile): None
 """
 
-def test_pyrat_transmission_cs_str():
-    assert str(transit_pyrat.cs) == """\
+
+def test_pyrat_transmission_cs_str(tmp_path):
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+    )
+    pyrat = pb.run(cfg)
+    assert str(pyrat.cs) == """\
 Cross-section extinction information:
 Number of cross-section files (nfiles): 2
 
@@ -402,8 +440,13 @@ Atmospheric-model extinction coefficient (ec, cm-1):
 """.format(os.path.realpath('./..'), os.path.realpath('./..'))
 
 
-def test_pyrat_transmission_od_str():
-    assert str(transit_pyrat.od) == """\
+def test_pyrat_transmission_od_str(tmp_path):
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+    )
+    pyrat = pb.run(cfg)
+    assert str(pyrat.od) == """\
 Optical depth information:
 Observing geometry (rt_path): transit
 Total atmospheric extinction coefficient (ec, cm-1) [layer, wave]:
@@ -441,8 +484,13 @@ Optical depth at each impact parameter, down to max(ideep) (depth):
 """
 
 
-def test_pyrat_transmission_cloud_str():
-    assert str(transit_pyrat.cloud) == """\
+def test_pyrat_transmission_cloud_str(tmp_path):
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+    )
+    pyrat = pb.run(cfg)
+    assert str(pyrat.cloud) == """\
 Cloud-opacity models (models):
 
 Model name (name): 'deck'
@@ -467,8 +515,13 @@ Total atmospheric cloud extinction-coefficient (ec, cm-1):
 """
 
 
-def test_pyrat_transmission_rayleigh_str():
-    assert str(transit_pyrat.rayleigh) == """\
+def test_pyrat_transmission_rayleigh_str(tmp_path):
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+    )
+    pyrat = pb.run(cfg)
+    assert str(pyrat.rayleigh) == """\
 Rayleigh-opacity models (models):
 
 Model name (name): 'lecavelier'
@@ -492,8 +545,13 @@ Total atmospheric Rayleigh extinction-coefficient (ec, cm-1):
 """
 
 
-def test_pyrat_transmission_alkali_str():
-    assert str(transit_pyrat.alkali) == """\
+def test_pyrat_transmission_alkali_str(tmp_path):
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+    )
+    pyrat = pb.run(cfg)
+    assert str(pyrat.alkali) == """\
 Alkali-opacity models (models):
 
 Model name (name): 'sodium_vdw'
@@ -525,8 +583,13 @@ Total atmospheric alkali extinction-coefficient (ec, cm-1):
  [ 0.000e+00  0.000e+00  0.000e+00 ...  0.000e+00  0.000e+00  0.000e+00]]
 """
 
-def test_pyrat_transmission_obs_str():
-    assert str(transit_pyrat.obs) == """\
+def test_pyrat_transmission_obs_str(tmp_path):
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+    )
+    pyrat = pb.run(cfg)
+    assert str(pyrat.obs) == """\
 Observing information:
 Number of data points (ndata): 0
 
@@ -534,8 +597,13 @@ Number of filter pass bands (nfilters): 0
 """
 
 
-def test_pyrat_transmission_phy_str():
-    assert str(transit_pyrat.phy) == """\
+def test_pyrat_transmission_phy_str(tmp_path):
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+    )
+    pyrat = pb.run(cfg)
+    assert str(pyrat.phy) == """\
 Physical properties information:
 
 Stellar effective temperature (tstar, K): 5800.0
@@ -557,8 +625,13 @@ Stellar flux spectrum (starflux, erg s-1 cm-2 cm):
     [ 2.306e+06  2.307e+06  2.307e+06 ...  3.293e+06  3.293e+06  3.293e+06]
 """
 
-def test_pyrat_transmission_ret_str():
-    assert str(transit_pyrat.ret) == """\
+def test_pyrat_transmission_ret_str(tmp_path):
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+    )
+    pyrat = pb.run(cfg)
+    assert str(pyrat.ret) == """\
 Retrieval information:
 No retrieval parameters set.
 """
