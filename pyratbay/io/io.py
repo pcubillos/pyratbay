@@ -582,15 +582,15 @@ def write_pf(pffile, pf, isotopes, temp, header=None):
     with open(pffile, "w") as f:
         if header is not None:
             f.write(header)
-        f.write("@ISOTOPES\n           "
-              + "  ".join(["{:>11s}".format(iso) for iso in isotopes])
+        f.write("@ISOTOPES\n            "
+              + "  ".join(["{:13s}".format(iso) for iso in isotopes])
               + "\n\n")
 
         f.write("# Temperature (K), partition function for each isotope:\n")
         f.write("@DATA\n")
         for t, z in zip(temp, pf.T):
-            f.write("  {:7.1f}  ".format(t)
-                  + "  ".join("{:.5e}".format(d) for d in z) + "\n")
+            f.write("  {:7.1f}   ".format(t)
+                  + "  ".join("{:.7e}".format(d) for d in z) + "\n")
 
 
 def read_pf(pffile):
