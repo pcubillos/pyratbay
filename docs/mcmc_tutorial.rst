@@ -59,9 +59,10 @@ retrieval.  The following table list the available options:
 =========== ===========================
 temp         Include the ``tpars`` temperature parameters in the retrieval
 rad          Include the ``rplanet`` value as a retrieval parameter
+press        Include log ``refpressure`` value as a retrieval parameter
 mol          Include the ``molpars`` abundance parameters in the retrieval
 ray          Include the ``rpars`` Rayleigh parameters in the retrieval
-cloud        Include the ``clouds`` clouds parameters in the retrieval
+cloud        Include the ``cpars`` clouds parameters in the retrieval
 patchy       Include the ``fpatchy`` value as a retrieval parameter
 mass         Include the ``mplanet`` value as a retrieval parameter
 =========== ===========================
@@ -72,11 +73,12 @@ same order as listed above, i.e.: first the temperature parameters,
 then radius, then the mass, the abundance parameters, and so on.
 
 Details on the available models and their parameters are described in
-the :ref:`atmospheretutorial` and :ref:`spectutorial`.  The number of ``rad``
-and ``mass`` parameters is always one each, with their units set by
-the ``runits`` or ``mpunits`` keys, respectively.  If these units are
-not set, the parameters will adopt the same units specified in the
-``rplanet`` and ``mplanet`` keys, respectively.
+the :ref:`atmospheretutorial` and :ref:`spectutorial`.  The number of
+``rad``, ``press``, and ``mass`` parameters is always one each.
+The units for log ``refpressure`` are always bars.
+The units for ``rplanet`` and ``mplanet`` are set by the ``runits``
+and ``mpunits`` keys, or else, will adopted from the units
+specified in the ``rplanet`` and ``mplanet`` inputs.
 
 .. note:: Pro-tip: You can use the ``params`` key to run spectrum
           forward models as well.

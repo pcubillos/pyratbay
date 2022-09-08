@@ -3,6 +3,7 @@
 
 import os
 import subprocess
+import pytest
 
 import numpy as np
 
@@ -24,6 +25,15 @@ def test_call_from_command_line2():
 
 def test_call_from_interpreter():
     pyrat = pb.run('configs/spectrum_transmission_test.cfg')
+    assert pyrat is not None
+
+
+@pytest.mark.skip(reason="TBD")
+def test_call_eval_function():
+    pyrat = pb.run('configs/spectrum_transmission_test.cfg')
+    # Ideally test all types of params in separate tests.
+    params = []
+    pyrat.eval(params)
     assert pyrat is not None
 
 

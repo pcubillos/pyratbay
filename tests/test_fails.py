@@ -85,14 +85,16 @@ def test_run_mcmc_mcmcfile(tmp_path, capfd):
      ('punits', 'pressure'),
      ('dunits', 'data')])
 def test_invalid_units(tmp_path, capfd, param, var):
-    cfg = make_config(tmp_path, ROOT+'tests/configs/pt_isothermal.cfg',
-        reset={param:'invalid'})
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/pt_isothermal.cfg',
+        reset={param:'invalid'},
+    )
     pyrat = pb.run(cfg)
     captured = capfd.readouterr()
     assert pyrat is None
     assert "Error in module: 'parser.py', function: 'parse'" in captured.out
-    assert "Invalid {:s} units ({:s}): invalid".format(var, param) \
-           in captured.out
+    assert f"Invalid {var} units ({param}): invalid" in captured.out
 
 
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

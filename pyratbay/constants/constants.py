@@ -205,6 +205,7 @@ rt_paths = transmission_rt + emission_rt
 retflags = [
     'temp',
     'rad',
+    'press',
     'mol',
     'ray',
     'cloud',

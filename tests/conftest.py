@@ -101,7 +101,7 @@ def undefined_opacity():
 def undefined_mcmc():
     data = {
         'retflag':"Undefined retrieval model flags.  Select from ['temp', "
-                  "'rad', 'mol', 'ray',\n'cloud', 'patchy', 'mass'].",
+                  "'rad', 'press',\n'mol', 'ray', 'cloud', 'patchy', 'mass'].",
         'params': 'Undefined retrieval fitting parameters (params).',
         'data':   'Undefined transit/eclipse data (data).',
         'uncert': 'Undefined data uncertainties (uncert).',

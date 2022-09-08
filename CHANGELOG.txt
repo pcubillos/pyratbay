@@ -7413,3 +7413,11 @@ Tests and docs are TBD!  (added placeholders)
 Refactored delta-wn calculation at the core of the alkali lines
 in alkali.init() to be independent of the sampling type.
 
+
+*****  Thu Sep 8 17:33:03 CEST 2022  *****
+
+Enabled pref as a fitting parameter.
+Added a couple lines in docs (not sure what's the best place so far,
+maybe cookbooks...)
+Tests are TBD (added one placeholder in test_spectrum.py).
+

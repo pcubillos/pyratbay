@@ -1,5 +1,5 @@
-# Copyright (c) 2021 Patricio Cubillos
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+# Copyright (c) 2021-2022 Patricio Cubillos
+# Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import multiprocessing as mp
 
@@ -287,22 +287,26 @@ def setup(pyrat):
       starwn, starflux = io.read_spectrum(phy.starspec)
   elif phy.kurucz is not None:
       if phy.tstar is None:
-          log.error('Undefined stellar temperature (tstar), required for '
-                    'Kurucz model.')
+          log.error(
+              'Undefined stellar temperature (tstar), required for Kurucz model'
+          )
       if phy.gstar is None:
           log.error('Undefined stellar gravity (gstar), required for '
                     'Kurucz model.')
       starflux, starwn, kuruczt, kuruczg = ps.read_kurucz(
-          phy.kurucz, phy.tstar, np.log10(phy.gstar))
-      log.msg('Input stellar params: T={:7.1f} K, log(g)={:4.2f}\n'
-              'Best Kurucz match:    T={:7.1f} K, log(g)={:4.2f}'.
-              format(phy.tstar, np.log10(phy.gstar), kuruczt, kuruczg))
+          phy.kurucz, phy.tstar, np.log10(phy.gstar),
+      )
+      logg = np.log10(phy.gstar)
+      log.msg(
+          f'Input stellar params: T={phy.tstar:7.1f} K, log(g)={logg:4.2f}\n'
+          f'Best Kurucz match:    T={kuruczt:7.1f} K, log(g)={kuruczg:4.2f}'
+      )
   elif phy.marcs is not None:
       pass
   elif phy.phoenix is not None:
       pass
   elif phy.tstar is not None:
-      starwn   = pyrat.spec.wn
+      starwn = pyrat.spec.wn
       starflux = ps.bbflux(starwn, phy.tstar)
   else:
       starflux, starwn = None, None
@@ -330,7 +334,8 @@ def setup(pyrat):
       tpnames, ttexnames = [], []
   else:
       atm.tmodel = pa.tmodels.get_model(
-          atm.tmodelname, pressure=pyrat.atm.press, nlayers=pyrat.atm.nlayers)
+          atm.tmodelname, pressure=pyrat.atm.press, nlayers=pyrat.atm.nlayers,
+      )
       ntemp = atm.tmodel.npars
       tpnames = atm.tmodel.pnames
       ttexnames = atm.tmodel.texnames
@@ -377,6 +382,11 @@ def setup(pyrat):
       ret.pnames   += [f'Rp ({atm.runits})']
       ret.texnames += [fr'$R_{{\rm planet}}$ ({utex[atm.runits]})']
       ret.nparams += 1
+  if 'press' in ret.retflag:
+      ret.ipress = np.arange(ret.nparams, ret.nparams + 1)
+      ret.pnames   += ['log(P_ref) (bar)']
+      ret.texnames += [r'$\log p_{{\rm ref}}$']
+      ret.nparams += 1
   if 'mol' in ret.retflag:
       ret.imol = np.arange(ret.nparams, ret.nparams + nabund)
       ret.pnames += mol_pnames
@@ -408,7 +418,8 @@ def setup(pyrat):
       nparams = len(ret.params)
       log.error(
           f'The number of input fitting parameters (params, {nparams}) does '
-          f'not match\nthe number of required parameters ({ret.nparams}).')
+          f'not match\nthe number of required parameters ({ret.nparams}).'
+      )
   if pyrat.runmode == 'mcmc':
       if ret.pstep is None:
           log.error('Missing pstep argument, required for MCMC runs.')

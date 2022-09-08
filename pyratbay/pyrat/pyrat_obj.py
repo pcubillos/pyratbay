@@ -1,5 +1,5 @@
 # Copyright (c) 2021-2022 Patricio Cubillos
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+# Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import os
 import multiprocessing as mp
@@ -215,8 +215,9 @@ class Pyrat(object):
       if len(params) != self.ret.nparams:
           self.log.warning(
               f'The number of input fitting parameters ({len(params)}) does '
-               'not match\nthe number of required '
-              f'parameters ({self.ret.nparams}).')
+               'not match\nthe number of required parameters '
+              f'({self.ret.nparams}).'
+          )
           return None, None if retmodel else None
 
       rejectflag = False
@@ -287,6 +288,9 @@ class Pyrat(object):
       # Update reference radius if requested:
       if self.ret.irad is not None:
           self.phy.rplanet = params[self.ret.irad][0] * pt.u(atm.runits)
+      elif self.ret.ipress is not None:
+          p_ref = 10.0**params[self.ret.ipress][0] * pc.bar
+          self.atm.refpressure = p_ref
 
       # Update planetary mass if requested:
       if self.ret.imass is not None:
@@ -664,8 +668,10 @@ class Pyrat(object):
           pyrat_args['bandflux'] = self.band_integrate(spectrum)
           spectrum = self.ret.spec_median
       else:
-          print("Invalid 'spec'.  Select from 'model' (default), 'best', "
-                "or 'median'.")
+          print(
+              "Invalid 'spec'.  Select from 'model' (default), 'best', "
+              "or 'median'."
+          )
           return
 
       if self.phy.rplanet is not None and self.phy.rstar is not None:
@@ -716,6 +722,8 @@ class Pyrat(object):
   def __str__(self):
       if self.spec.resolution is not None:
          wave = "R={:.1f}".format(self.spec.resolution)
+      elif self.spec.wlstep is not None:
+         wave = f'delta-wl={self.spec.wlstep:.2f}'
       else:
          wave = "dwn={:.3f} cm-1".format(self.spec.wnstep)
 
@@ -737,7 +745,8 @@ class Pyrat(object):
       for alkali in self.alkali.models:
           opacities.append(alkali.mol)
 
-      return ("Pyrat atmospheric model\n"
+      return (
+          "Pyrat atmospheric model\n"
           "configuration file:  '{:s}'\n"
           "Pressure profile (bar):  {:.2e} -- {:.2e} ({:d} layers)\n"
           "Wavelength range (um):  {:.2f} -- {:.2f} ({:d} samples, {:s})\n"
@@ -752,5 +761,6 @@ class Pyrat(object):
           self.spec.nwave,
           wave,
           self.mol.name,
-          opacities))
+          opacities)
+      )
 
