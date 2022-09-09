@@ -631,6 +631,7 @@ class Retrieval(object):
       self.thigh   = None  # Higher-temperature retrieval boundary
       self.itemp   = None  # Temperature-model parameter indices
       self.irad    = None  # Reference-radius model parameter index
+      self.ipress  = None  # Reference-pressuew model parameter index
       self.imol    = None  # Abundance-model parameter indices
       self.iray    = None  # Rayleigh-model parameter indices
       self.icloud  = None  # Cloud-model parameter indices

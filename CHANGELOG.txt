@@ -7421,3 +7421,8 @@ Added a couple lines in docs (not sure what's the best place so far,
 maybe cookbooks...)
 Tests are TBD (added one placeholder in test_spectrum.py).
 
+*****
+
+Added ipress attribute to pyrat.ret object.
+(to prevent breaking the code).
+
