@@ -1,5 +1,5 @@
 # Copyright (c) 2021-2022 Patricio Cubillos
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+# Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
     'make_tli',
@@ -15,7 +15,7 @@ import numpy as np
 from . import linelist
 from .. import constants as pc
 from .. import tools as pt
-from .. import VERSION as ver
+from .. import version as ver
 
 
 def make_tli(dblist, pflist, dbtype, tlifile, wllow,  wlhigh, wlunits, log):

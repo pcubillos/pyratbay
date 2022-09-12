@@ -1,5 +1,5 @@
 # Copyright (c) 2021-2022 Patricio Cubillos
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+# Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
     'constants',
@@ -34,7 +34,7 @@ from .pyrat import optical_depth as _od
 from .pyrat import spectrum as _sp
 __all__ += ['_ra', '_cs', '_cl', '_ray', '_al', '_od', '_sp']
 
-from .VERSION import __version__
+from .version import __version__
 
 
 # Display deprecation warnings when running in the interpreter:

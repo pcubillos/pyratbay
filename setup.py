@@ -10,7 +10,7 @@ from setuptools import setup, Extension
 from numpy import get_include
 
 sys.path.append(os.path.join(os.path.dirname(__file__), 'pyratbay'))
-from VERSION import __version__
+from version import __version__
 
 
 srcdir = 'src_c/'  # C-code source folder

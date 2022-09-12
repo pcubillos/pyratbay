@@ -1,5 +1,5 @@
 # Copyright (c) 2021-2022 Patricio Cubillos
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+# Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
     'Namespace',
@@ -21,7 +21,7 @@ import mc3.utils as mu
 
 from . import tools as pt
 from .. import constants as pc
-from ..VERSION import __version__
+from ..version import __version__
 
 
 class Namespace(argparse.Namespace):

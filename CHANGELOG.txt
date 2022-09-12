@@ -7438,3 +7438,7 @@ Added IND4d() definition into src_c/include/ind.h.
 
 Cosmetics.
 
+*****
+
+Renamed VERSION.py file to version.py.
+
