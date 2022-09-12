@@ -7426,3 +7426,11 @@ Tests are TBD (added one placeholder in test_spectrum.py).
 Added ipress attribute to pyrat.ret object.
 (to prevent breaking the code).
 
+
+*****  Mon Sep 12 16:32:07 CEST 2022  *****
+
+Refactored interp_ec() function in _extcoeff.c for better performance
+Got a ten percent improvement, approx.
+There are no changes in the calculation outputs.
+Added IND4d() definition into src_c/include/ind.h.
+

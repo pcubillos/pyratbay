@@ -1,5 +1,5 @@
-# Copyright (c) 2021 Patricio Cubillos
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+# Copyright (c) 2021-2022 Patricio Cubillos
+# Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import ctypes
 import multiprocessing as mp
@@ -43,11 +43,10 @@ def optical_depth(pyrat):
     if pyrat.ex.extfile is not None:
         r = rtop
         imol = [list(pyrat.mol.name).index(mol) for mol in pyrat.ex.species]
-        while r < nlayers:
-            ec.interp_ec(
-                pyrat.ex.ec[r], pyrat.ex.etable[:,:,r,:],
-                pyrat.ex.temp, pyrat.atm.temp[r], pyrat.atm.d[r,imol])
-            r += 1
+        ec.interp_ec(
+            pyrat.ex.ec, pyrat.ex.etable,
+            pyrat.ex.temp, pyrat.atm.temp, pyrat.atm.d[:,imol], rtop,
+        )
 
     # Calculate the extinction coefficient on the spot:
     elif pyrat.lt.tlifile is not None:

@@ -1,5 +1,5 @@
-// Copyright (c) 2021 Patricio Cubillos
-// Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+// Copyright (c) 2021-2022 Patricio Cubillos
+// Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 #include <Python.h>
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
@@ -365,43 +365,53 @@ ttable: 1D float ndarray                                   \n\
 temperature: Float                                         \n\
     Atmospheric layer temperature.                         \n\
 density: 1D float ndarray                                  \n\
-    Density of etable species in the atmospheric layer [nmol].");
+    Density of etable species in the atmospheric layer [nmol].\n\
+rtop: Integer\n\
+    Index of top layer of the atmosphere array.");
 
 static PyObject *interp_ec(PyObject *self, PyObject *args){
-    PyArrayObject *extinction, *etable, *ttable, *density;
-    int tlo, thi;
-    long nwave, nmol, ntemp;
-    int i, j;
-    double ext, temperature;
+    PyArrayObject *extinction, *etable, *ttable, *temperatures, *density;
+    int tlo, thi, rtop;
+    long nwave, nmol, ntemp, nlayers;
+    int i, j, k;
+    double ext1, ext2, temperature, delta_t1, delta_t2;
 
-    /* Load inputs: */
-    if (!PyArg_ParseTuple(args, "OOOdO",
-            &extinction, &etable, &ttable, &temperature, &density))
+    // Load inputs:
+    if (!PyArg_ParseTuple(args, "OOOOOi",
+            &extinction, &etable, &ttable, &temperatures, &density, &rtop))
         return NULL;
 
-    nmol  = PyArray_DIM(etable, 0);  /* species samples       */
-    ntemp = PyArray_DIM(etable, 1);  /* temperature samples   */
-    nwave = PyArray_DIM(etable, 2);  /* spectral samples      */
+    nmol  = PyArray_DIM(etable, 0);   // species samples
+    ntemp = PyArray_DIM(etable, 1);   // temperature samples
+    nlayers = PyArray_DIM(etable, 2); // pressure samples
+    nwave = PyArray_DIM(etable, 3);   // spectral samples
 
-    /* Find index of grid-temperature immediately lower than temperature: */
-    tlo = binsearchapprox(ttable, temperature, 0, (int)ntemp-1);
-    if (temperature < INDd(ttable,tlo) || tlo == ntemp-1){
-        tlo--;
-    }
-    thi = tlo + 1;
+    for (k=rtop; k<nlayers; k++){
+        // Find index of grid-temperature immediately lower than temperature:
+        temperature = INDd(temperatures,k);
+        tlo = binsearchapprox(ttable, temperature, 0, (int)ntemp-1);
+        if (temperature < INDd(ttable,tlo) || tlo == ntemp-1){
+            tlo--;
+        }
+        thi = tlo + 1;
+        delta_t1 = INDd(ttable,thi) - temperature;
+        delta_t2 = temperature - INDd(ttable,tlo);
+        delta_t1 /= (INDd(ttable,thi) - INDd(ttable,tlo));
+        delta_t2 /= (INDd(ttable,thi) - INDd(ttable,tlo));
 
-    /* Add contribution from each molecule: */
-    for (j=0; j<nmol; j++){
-        for (i=0; i<nwave; i++){
-            /* Linear interpolation of the extinction coefficient: */
-            ext = (IND3d(etable,j,tlo,i) * (INDd(ttable,thi) - temperature) +
-                   IND3d(etable,j,thi,i) * (temperature - INDd(ttable,tlo)) ) /
-                  (INDd(ttable,thi) - INDd(ttable,tlo));
-
-            INDd(extinction, i) += INDd(density,j) * ext;
+        // Add contribution from each molecule:
+        for (j=0; j<nmol; j++){
+            ext1 = delta_t1 * IND2d(density,k,j);
+            ext2 = delta_t2 * IND2d(density,k,j);
+            for (i=0; i<nwave; i++){
+                // Linear interpolation of the extinction coefficient:
+                IND2d(extinction,k,i) += (
+                    IND4d(etable,j,tlo,k,i) * ext1 +
+                    IND4d(etable,j,thi,k,i) * ext2
+                );
+            }
         }
     }
-
     return Py_BuildValue("i", 1);
 }
 
