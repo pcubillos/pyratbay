@@ -3,7 +3,7 @@
 
 __all__ = [
     'run',
-    ]
+]
 
 import os
 
@@ -137,7 +137,8 @@ def run(cfile, run_step='run', no_logfile=False):
             # Altitude profile:
             radius = pyrat.hydro(
                 pressure, temperature, mean_mass, phy.gplanet,
-                phy.mplanet, atm.refpressure, phy.rplanet)
+                phy.mplanet, atm.refpressure, phy.rplanet,
+            )
 
     # Return atmospheric model if requested:
     if pyrat.runmode == 'atmosphere':
@@ -313,13 +314,17 @@ def check_atm(pyrat):
     # Uniform-abundances profile:
     if atm.chemistry == 'uniform':
         if pyrat.inputs.uniform is None:
-            log.error("Undefined list of uniform volume mixing ratios "
-                     f"(uniform) for {atm.chemistry} chemistry model.")
+            log.error(
+                "Undefined list of uniform volume mixing ratios "
+                f"(uniform) for {atm.chemistry} chemistry model."
+            )
         nuniform = len(pyrat.inputs.uniform)
         nspecies = len(pyrat.inputs.species)
         if nuniform != nspecies:
-            pyrat.log.error(f"Number of uniform abundances ({nuniform}) does "
-                            f"not match the number of species ({nspecies}).")
+            pyrat.log.error(
+                f"Number of uniform abundances ({nuniform}) does "
+                f"not match the number of species ({nspecies})."
+            )
         return
 
     pyrat.inputs.metallicity = pyrat.inputs.get_default(
@@ -343,10 +348,14 @@ def check_altitude(pyrat):
         err = 'at least two of mplanet, rplanet, or gplanet'
 
     if len(missing) > 0:
-        log.error('Cannot compute hydrostatic-equilibrium radius profile.  '
-                 f'Must\ndefine {err}.')
+        log.error(
+            'Cannot compute hydrostatic-equilibrium radius profile.  '
+            f'Must\ndefine {err}.'
+        )
 
     if pyrat.atm.refpressure is None:
-        log.error('Cannot compute hydrostatic-equilibrium radius profile.  '
-            'Undefined reference pressure level (refpressure).')
+        log.error(
+            'Cannot compute hydrostatic-equilibrium radius profile.  '
+            'Undefined reference pressure level (refpressure).'
+        )
 

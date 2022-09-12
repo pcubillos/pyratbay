@@ -1,5 +1,5 @@
-# Copyright (c) 2021 Patricio Cubillos
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+# Copyright (c) 2021-2022 Patricio Cubillos
+# Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
     # Constants
@@ -68,7 +68,7 @@ __all__ = [
     'amodels',
     'rmodels',
     'cmodels',
-    ]
+]
 
 import os
 import scipy.constants as sc
@@ -175,7 +175,7 @@ dbases = [
     'Tioschwenke',
     'Voplez',
     'Vald',
-    ]
+]
 
 # Running modes:
 rmodes = [
@@ -185,18 +185,18 @@ rmodes = [
     'spectrum',
     'radeq',
     'mcmc',
-    ]
+]
 
 # Transmission radiative transfer:
 transmission_rt = [
     'transit',
-    ]
+]
 
 # Emission radiative transfer:
 emission_rt = [
     'emission',
     'emission_two_stream',
-    ]
+]
 
 # Radiative-transfer observing geometry:
 rt_paths = transmission_rt + emission_rt
