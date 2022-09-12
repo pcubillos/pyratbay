@@ -1,10 +1,10 @@
 # Copyright (c) 2021-2022 Patricio Cubillos
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+# Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 # Pyrat-Bay version:
 PBAY_VER = 1  # Major version
 PBAY_MIN = 1  # Minor version
-PBAY_REV = '2rc1'  # Revision
+PBAY_REV = '3'  # Revision
 
 # Lineread version:
 LR_VER = 6  # Major version

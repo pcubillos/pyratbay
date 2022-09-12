@@ -7442,3 +7442,6 @@ Cosmetics.
 
 Renamed VERSION.py file to version.py.
 
+*****
+
+Updated pyratbay version to 1.1.3.
