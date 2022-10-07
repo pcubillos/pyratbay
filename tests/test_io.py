@@ -340,6 +340,22 @@ def test_read_isotopes():
     np.testing.assert_allclose(ratio[mol=='H2O'], abundances)
     np.testing.assert_allclose(mass[mol=='H2O'], masses)
 
+
+@pytest.mark.skip(reason='TBD')
+def test_read_observations_filters():
+    pass
+
+
+@pytest.mark.skip(reason='TBD')
+def test_read_observations_data_filters():
+    pass
+
+
+@pytest.mark.skip(reason='TBD')
+def test_read_observations_ROOT_filters():
+    pass
+
+
 @pytest.mark.skip(
     reason='This requires either to download a huge file or mock it up.')
 def test_import_xs():

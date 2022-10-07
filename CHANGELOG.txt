@@ -7452,3 +7452,8 @@ Updated pyratbay version to 1.1.3.
 Implemented PassBand() and Tophat() classes in pyratbay.spectrum
 Documented but not tested (only placeholders).
 
+*****
+
+Implemented pyratbay.io.read_observations() to process observing data
+Docstrings are to be revised, tests are TBD.
+

@@ -1,5 +1,5 @@
 # Copyright (c) 2021-2022 Patricio Cubillos
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+# Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
     'save_pyrat',
@@ -15,6 +15,7 @@ __all__ = [
     'write_cs',
     'read_cs',
     'read_pt',
+    'read_observations',
     'read_atomic',
     'read_molecs',
     'read_isotopes',
@@ -31,6 +32,7 @@ import mc3
 
 from .. import constants as pc
 from .. import tools as pt
+from .. import spectrum as ps
 
 
 def save_pyrat(pyrat, pfile=None):
@@ -454,7 +456,6 @@ def read_spectrum(filename, wn=True):
     >>> print(flux)
     [1. 1. 1. 1. 1. 1. 1.]
     """
-    # Extract data:
     data = np.loadtxt(filename, unpack=True)
     wave, spectrum = data[0], data[1]
 
@@ -836,6 +837,95 @@ def read_pt(ptfile):
     pressure, temperature = np.loadtxt(ptfile, usecols=(0,1), unpack=True)
     pressure *= pc.bar
     return pressure, temperature
+
+
+def read_observations(obs_file):
+    r"""
+    Read an observations file.
+
+    Parameters
+    ----------
+    obs_file: String
+        Path to file containing observations info. This file contains
+        one observation per line, containing either:
+        - the data, uncertainties, and passband info
+        or
+        - the passband info.
+
+    Returns
+    -------
+    filters: List
+        Filter passband objects.
+    data: 1D string list
+        The transit or eclipse depths for each filter.
+    uncert: 1D float ndarray
+        The depth uncertainties.
+
+    Examples
+    --------
+    >>> import pyratbay.io as io
+    >>> obs_file = 'observations.dat'
+    >>> filters, data, uncert = io.read_observations(obs_file)
+
+    >>> obs_file = 'observation_filters.dat'
+    >>> filters = io.read_observations(obs_file)
+    """
+    if not os.path.isfile(obs_file):
+        raise ValueError(f"Observation file '{obs_file}' does not exist")
+
+    # Skip comment and blank lines:
+    lines = []
+    for line in open(obs_file, 'r'):
+        line = line.strip()
+        if line == '' or line.startswith('#'):
+            continue
+        lines.append(line)
+
+    # Number of header lines (to skip when reading the tabulated data):
+    i = 0
+    nlines = len(lines)
+    for i in range(nlines):
+        line = lines[i]
+        # Stop when the tabulated data begins:
+        if line == "@DATA":
+            i += 1
+            break
+        # Get species:
+        elif line == "@WL_UNITS":
+            wl_units = lines[i+1]
+        # Get the sampled temperatures:
+        elif line == "@DEPTH_UNITS":
+            depth_units = lines[i+1]
+
+    nobs = nlines - i
+    has_data = len(lines[i].split()) > 2
+
+    filters = []
+    data = np.zeros(nobs)
+    uncert = np.zeros(nobs)
+
+    # Read the data:
+    for j in range(nobs):
+        info = lines[i+j].split()
+        ndata = 0
+        if has_data:
+            data[j] = info[0]
+            uncert[j] = info[1]
+            ndata = 2
+
+        if len(info) - ndata == 1:
+            filter_file = info[ndata].replace('{ROOT}', pc.ROOT)
+            filter_file = os.path.realpath(filter_file)
+            filters.append(ps.PassBand(filter_file))
+        elif len(info) - ndata == 2:
+            wl0, half_width = np.array(info[ndata:ndata+2], np.double)
+            filters.append(ps.Tophat(wl0, half_width))
+
+    if has_data:
+        data *= pt.u(depth_units)
+        uncert *= pt.u(depth_units)
+        return filters, data, uncert
+    return filters
 
 
 def read_atomic(afile):
