@@ -13,6 +13,91 @@ import pyratbay.io as io
 os.chdir(pc.ROOT + 'tests')
 
 
+@pytest.mark.skip(reason="TBD!")
+def test_PassBand_wl():
+    filter_file = f'{pc.ROOT}pyratbay/data/filters/spitzer_irac2_sa.dat'
+    band = ps.PassBand(filter_file)
+    wl = np.arange(3.5, 5.5, 0.001)
+    out_wl, out_response = band(wl)
+
+    # TBD: assertions
+    #(band.wl, band.response/np.amax(band.response))
+    #(out_wl, out_response/np.amax(out_response))
+    #(wl[band.idx], out_response/np.amax(out_response))
+    #print(np.trapz(band.response, band.wn))
+
+
+@pytest.mark.skip(reason="TBD!")
+def test_PassBand_wl_reversed():
+    filter_file = f'{pc.ROOT}pyratbay/data/filters/spitzer_irac2_sa.dat'
+    band = ps.PassBand(filter_file)
+    wl = np.flip(np.arange(3.5, 5.5, 0.001))
+    out_wl, out_response = band(wl)
+    # TBD: assertions
+
+
+@pytest.mark.skip(reason="TBD!")
+def test_PassBand_wn():
+    filter_file = f'{pc.ROOT}pyratbay/data/filters/spitzer_irac2_sa.dat'
+    band = ps.PassBand(filter_file)
+    wn = 1e4 / np.flip(np.arange(3.5, 5.5, 0.001))
+    out_wl, out_response = band(wn=wn)
+    # TBD: assertions
+
+
+@pytest.mark.skip(reason="TBD!")
+def test_PassBand_wn_reversed():
+    filter_file = f'{pc.ROOT}pyratbay/data/filters/spitzer_irac2_sa.dat'
+    band = ps.PassBand(filter_file)
+    wn = 1e4 / np.arange(3.5, 5.5, 0.001)
+    out_wl, out_response = band(wn=wn)
+    # TBD: assertions
+
+
+@pytest.mark.skip(reason="TBD!")
+def test_PassBand_bad_input():
+    # Both wn and wl were provided in call
+    # None of wn or wl were provided in call
+    pass
+
+
+@pytest.mark.skip(reason="TBD!")
+def test_PassBand_bad_spectral_range():
+    # Band range not contained in requested wl/wn range
+    pass
+
+
+@pytest.mark.skip(reason="TBD!")
+def test_Tophat_wl():
+    pass
+
+
+@pytest.mark.skip(reason="TBD!")
+def test_Tophat_wl_reversed():
+    pass
+
+
+@pytest.mark.skip(reason="TBD!")
+def test_Tophat_wn():
+    pass
+
+
+@pytest.mark.skip(reason="TBD!")
+def test_Tophat_wn_reversed():
+    pass
+
+
+@pytest.mark.skip(reason="TBD!")
+def test_Tophat_bad_input():
+    pass
+
+
+@pytest.mark.skip(reason="TBD!")
+def test_Tophat_bad_spectral_range():
+    # Band range not contained in requested wl/wn range
+    pass
+
+
 @pytest.mark.parametrize('wn',
    [[1.0, 10.0, 100.0, 1000.0, 3000.0],
     [1  , 10  , 100  , 1000  , 3000  ],

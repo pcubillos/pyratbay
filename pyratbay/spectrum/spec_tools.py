@@ -2,18 +2,279 @@
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
+    'PassBand',
+    'Tophat',
     'tophat',
     'resample',
     'band_integrate',
 ]
 
 from collections.abc import Iterable
+import operator
 
 import numpy as np
 import scipy.interpolate as si
 
 from .. import constants as pc
 from .. import io as io
+
+
+class PassBand(object):
+    """
+    A Filter passband object.
+    """
+    def __init__(self, filter_file, wn=None):
+        """
+        Parameters
+        ----------
+        filter_file: String
+            Path to filter file.
+
+        Examples
+        --------
+        >>> import pyratbay.spectrum as ps
+        >>> import pyratbay.constants as pc
+        >>> import matplotlib.pyplot as plt
+        >>> import numpy as np
+
+        >>> filter_file = f'{pc.ROOT}pyratbay/data/filters/spitzer_irac2_sa.dat'
+        >>> band = ps.PassBand(filter_file)
+
+        >>> # Evaluate over a wavelength array (um):
+        >>> wl = np.arange(3.5, 5.5, 0.001)
+        >>> out_wl, out_response = band(wl)
+
+        >>> plt.figure(1)
+        >>> plt.clf()
+        >>> plt.plot(out_wl, out_response)
+        >>> plt.plot(band.wl, band.response)  # Same variables
+        >>> # Note wl differs from band.wl, but original array can be used as:
+        >>> plt.plot(wl[band.idx], band.response)
+
+        >>> # Evaluate over a wavenumber array:
+        >>> wn = 1e4 / wl
+        >>> band(wn=wn)
+        >>> plt.figure(1)
+        >>> plt.clf()
+        >>> plt.plot(band.wn, band.response, dashes=(5,3))
+        >>> plt.plot(wn[band.idx], out_response)
+        """
+        # Read filter wavenumber and transmission curves:
+        input_wn, input_response = io.read_spectrum(filter_file)
+        self.wn0 = np.sum(input_wn*input_response) / np.sum(input_response)
+        self.wl0 = 1.0 / (self.wn0 * pc.um)
+
+        # Sort it in increasing wavenumber order, store it:
+        wn_sort = np.argsort(input_wn)
+        self.input_response = input_response[wn_sort]
+        self.input_wn = input_wn[wn_sort]
+
+        self.response = np.copy(input_response[wn_sort])
+        self.wn = np.copy(input_wn[wn_sort])
+        self.wl = 1.0 / (self.wn * pc.um)
+
+        # Resample the filters into the planet wavenumber array:
+        if wn is not None:
+            self.__eval__(wn=wn)
+
+    def __call__(self, wl=None, wn=None, wl_units='um'):
+        """
+        Interpolate filter response function at specified spectral array.
+        The response funciton is normalized such that the integral over
+        wavenumber equals one.
+
+        Parameters
+        ----------
+        wl: 1D float array
+            Wavelength array at which evaluate the passband response's
+            in micron units.
+            (only one of wl or wn should be provided on call)
+        wn: 1D float array
+            Wavenumber array at which evaluate the passband response's
+            in cm-1 units.
+            (only one of wl or wn should be provided on call)
+
+        Defines
+        -------
+        self.response  Normalized interpolated response function
+        self.idx       IndicesWavenumber indices
+        self.wn        Passband's wavenumber array
+        self.wl        Passband's wavelength array
+
+        Returns
+        -------
+        out_wave: 1D float array
+            Same as self.wl or self.wn depending on the input argument.
+        out_response: 1D float array
+            Same as self.response
+
+        Examples
+        --------
+        >>> # See examples in help(ps.PassBand.__init__)
+        """
+        if not operator.xor(wl is None, wn is None):
+            raise ValueError('Need to set wavenumber or wavelength array')
+        input_is_wl = wn is None
+        if input_is_wl:
+            wn = 1.0 / (wl*pc.um)
+
+        sign = np.sign(np.ediff1d(wn)[0])
+        if sign == 0.0:
+            raise ValueError(
+                'Wavelength array has to be strictly increasing or decreasing'
+            )
+        response, wn_idx = resample(
+            self.input_response, self.input_wn, wn, normalize=True,
+        )
+
+        self.response = sign * response
+        self.wn = wn[wn_idx]
+        self.wl = 1.0 / (self.wn * pc.um)
+
+        if input_is_wl:
+            self.idx = wn_idx
+            out_wave = self.wl
+        else:
+            self.idx = np.flip(wn_idx)
+            out_wave = self.wn
+
+        return out_wave, self.response
+
+    def save_filter(save_file):
+        io.write_spectrum(
+            self.wl*pc.um, self.response, save_file, type='filter',
+        )
+
+
+class Tophat(object):
+    """
+    A Filter passband object with a tophat-shaped passband.
+    """
+    def __init__(
+        self, wl0, half_width,
+        margin=None, dlambda=None, resolution=None,
+    ):
+        """
+        Parameters
+        ----------
+        wl0: Float
+            The passband's central wavelength (um units).
+        half_width: Float
+            The passband's half-width (um units).
+
+        Examples
+        --------
+        >>> import pyratbay.spectrum as ps
+        >>> import matplotlib.pyplot as plt
+        >>> import numpy as np
+
+        >>> hat = ps.Tophat(4.5, 0.5)
+
+        >>> # Evaluate over a wavelength array (um units):
+        >>> wl = np.arange(3.5, 5.5, 0.001)
+        >>> out_wl, out_response = hat(wl)
+
+        >>> plt.figure(1)
+        >>> plt.clf()
+        >>> plt.plot(out_wl, out_response)
+        >>> plt.plot(hat.wl, hat.response)  # Same variables
+        >>> # Note wl differs from hat.wl, but original array can be used as:
+        >>> plt.plot(wl[hat.idx], hat.response)
+
+        >>> # Evaluate over a wavenumber array:
+        >>> wn = 1e4 / wl
+        >>> hat(wn=wn)
+        >>> plt.figure(1)
+        >>> plt.clf()
+        >>> plt.plot(hat.wn, hat.response, dashes=(5,3))
+        >>> plt.plot(wn[hat.idx], out_response)
+        """
+        self.wl0 = wl0
+        self.half_width = half_width
+        # Read filter wavenumber and transmission curves:
+        self.wn0 = 1.0 / (self.wl0 * pc.um)
+
+        if margin is None:
+            margin = 0.1 * self.half_width
+        self.margin = margin
+
+        self.dlambda = dlambda
+        self.resolution = resolution
+
+    def __call__(self, wl=None, wn=None, wl_units='um'):
+        """
+        Interpolate filter response function at specified spectral array.
+        The response funciton is normalized such that the integral over
+        wavenumber equals one.
+
+        Parameters
+        ----------
+        wl: 1D float array
+            Wavelength array at which evaluate the passband response's
+            in micron units.
+            (only one of wl or wn should be provided on call)
+        wn: 1D float array
+            Wavenumber array at which evaluate the passband response's
+            in cm-1 units.
+            (only one of wl or wn should be provided on call)
+
+        Defines
+        -------
+        self.response  Normalized interpolated response function
+        self.idx       IndicesWavenumber indices
+        self.wn        Passband's wavenumber array
+        self.wl        Passband's wavelength array
+
+        Returns
+        -------
+        out_wave: 1D float array
+            Same as self.wl or self.wn depending on the input argument.
+        out_response: 1D float array
+            Same as self.response
+
+        Examples
+        --------
+        >>> # See examples in help(ps.Tophat.__init__)
+        """
+        if not operator.xor(wl is None, wn is None):
+            raise ValueError('Need to set wavenumber or wavelength array')
+        input_is_wn = wl is None
+        if input_is_wn:
+            wl = 1.0 / (wn*pc.um)
+
+        nwave = len(wl)
+        sign = -np.sign(np.ediff1d(wl)[0])
+        if sign == 0.0:
+            raise ValueError(
+                'Wavelength array has to be strictly increasing or decreasing'
+            )
+
+        wl_low  = self.wl0 - self.half_width
+        wl_high = self.wl0 + self.half_width
+
+        idx = (wl >= wl_low) & (wl <= wl_high)
+        indices = np.where(idx)[0]
+
+        # One sample as margin:
+        idx_first = indices[0]
+        idx_last = indices[-1] + 1
+
+        if idx_first > 0:
+            idx_first -= 1
+        if idx_last < nwave:
+            idx_last += 1
+
+        self.response = np.array(idx[idx_first:idx_last], np.double)
+        self.wl = wl[idx_first:idx_last]
+        self.wn = 1.0 / (self.wl * pc.um)
+
+        if input_is_wn:
+            self.idx = np.flip(np.arange(idx_first, idx_last))
+        else:
+            self.idx = np.arange(idx_first, idx_last)
+
+        self.response /= np.trapz(self.response, self.wn) * sign
+        return self.wl, self.response
 
 
 def tophat(wl0, width, margin=None, dlambda=None, resolution=None, ffile=None):
@@ -120,8 +381,9 @@ def resample(signal, wn, specwn, normalize=False):
      0. ]
     """
     if np.amin(wn) < np.amin(specwn) or np.amax(wn) > np.amax(specwn):
-        raise ValueError("Resampling signal's wavenumber is not contained "
-                         "in specwn.")
+        raise ValueError(
+            "Resampling signal's wavenumber is not contained in specwn."
+        )
 
     # Indices in the spectrum wavenumber array included in the band
     # wavenumber range:
