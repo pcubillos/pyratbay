@@ -429,17 +429,20 @@ class Pyrat(object):
           spectrum = self.spec.spectrum
       specwn = self.spec.wn
       bandidx = self.obs.bandidx
+      rprs_square = (self.phy.rplanet/self.phy.rstar)**2.0
 
       if self.od.rt_path in pc.transmission_rt:
           bandtrans = self.obs.bandtrans
       elif self.od.rt_path in pc.emission_rt:
           bandtrans = [
-              btrans/sflux * (self.phy.rplanet/self.phy.rstar)**2
-              for btrans, sflux in zip(self.obs.bandtrans, self.obs.starflux)]
+              btrans/sflux * rprs_square
+              for btrans, sflux in zip(self.obs.bandtrans, self.obs.starflux)
+          ]
 
       self.obs.bandflux = np.array([
           np.trapz(spectrum[idx]*btrans, specwn[idx])
-          for btrans, idx in zip(bandtrans, bandidx)])
+          for btrans, idx in zip(bandtrans, bandidx)
+      ])
 
       return self.obs.bandflux
 
@@ -478,6 +481,7 @@ class Pyrat(object):
       elif self.atm.rmodelname == 'hydro_g':
           return pa.hydro_g(pressure, temperature, mu, g, p0, r0)
 
+
   def set_filters(self):
       """
       Set observational variables (pyrat.obs) based on given parameters.
@@ -489,22 +493,19 @@ class Pyrat(object):
       starflux  = []  # Interpolated stellar flux
       bandtrans = []  # Normalized interpolated filter transmission
       bandwn    = []  # Band's mean wavenumber
-      for filter in self.obs.filters:
-          # Read filter wavenumber and transmission curves:
-          filterwn, filtertr = io.read_spectrum(filter)
+      for passband in self.obs.filters:
           # Resample the filters into the planet wavenumber array:
-          btrans, bidx = ps.resample(filtertr, filterwn, self.spec.wn,
-              normalize=True)
-          bandidx.append(bidx)
-          bandtrans.append(btrans)
-          bandwn.append(np.sum(filterwn*filtertr)/np.sum(filtertr))
+          passband(wn=self.spec.wn)
+          bandidx.append(passband.idx)
+          bandtrans.append(passband.response)
+          bandwn.append(passband.wn0)
           if self.phy.starflux is not None:
-              starflux.append(self.spec.starflux[bidx])
+              starflux.append(self.spec.starflux[passband.idx])
 
       # Per-band variables:
+      self.obs.starflux  = starflux
       self.obs.bandidx   = bandidx
       self.obs.bandtrans = bandtrans
-      self.obs.starflux  = starflux
       self.obs.bandwn    = np.asarray(bandwn)
       self.obs.bandflux  = np.zeros(self.obs.nfilters, np.double)
 

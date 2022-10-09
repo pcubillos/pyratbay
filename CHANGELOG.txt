@@ -7468,3 +7468,9 @@ Made internal wavenumber array always monotonically increasing.
 Cleaned up Tophat() class. Updated docstrings and added tests.
 Made internal wavenumber array always monotonically increasing.
 
+*****
+
+Replaced pyrat.obs.filters as list of files into list of PassBand()
+objects.  TBD: Users should be warned not to mix inputs from
+obs_file vs data, uncert, and filters arguments.
+

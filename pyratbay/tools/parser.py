@@ -21,6 +21,8 @@ import mc3.utils as mu
 
 from . import tools as pt
 from .. import constants as pc
+from .. import io as io
+from .. import spectrum as ps
 from ..version import __version__
 
 
@@ -61,8 +63,10 @@ class Namespace(argparse.Namespace):
             values = value
             is_list = True
 
-        values = [os.path.realpath(val.replace('{ROOT}', pc.ROOT))
-                  for val in values]
+        values = [
+            os.path.realpath(val.replace('{ROOT}', pc.ROOT))
+            for val in values
+        ]
 
         for val in values:
             if exists and not os.path.isfile(val):
@@ -441,6 +445,7 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         parse_array(args, 'data')
         parse_array(args, 'uncert')
         parse_array(args, 'filters')
+        parse_str(args,   'obsfile')
         # Abundances:
         parse_array(args, 'molmodel')
         parse_array(args, 'molfree')
@@ -766,11 +771,27 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         'dunits', 'Data units', 'none', wflag=args.data is not None)
     if not hasattr(pc, pyrat.obs.units):
         log.error(f'Invalid data units (dunits): {pyrat.obs.units}')
+
     pyrat.obs.data = args.get_param('data', pyrat.obs.units, 'Data')
     pyrat.obs.uncert = args.get_param(
         'uncert', pyrat.obs.units, 'Uncertainties')
-    pyrat.obs.filters = args.get_path(
-        'filters', 'Filter pass-bands', exists=True)
+
+    filters = args.get_path('filters', 'Filter pass-bands', exists=True)
+    if filters is not None:
+        pyrat.obs.filters = [
+            ps.PassBand(filter_file) for filter_file in filters
+        ]
+
+    pyrat.obs.obsfile = args.get_path(
+        'obsfile', 'Observations data file', exists=True,
+    )
+    if pyrat.obs.obsfile is not None:
+        # TBD: Throw error if data, uncert, or filters already exist
+        obs_data = io.read_observations(pyrat.obs.obsfile)
+        if len(obs_data) == 3:
+            pyrat.obs.filters, pyrat.obs.data, pyrat.obs.uncert = obs_data
+        elif len(obs_data) == 1:
+            pyrat.obs.filters = obs_data
 
     pyrat.ret.retflag = args.get_choice(
         'retflag', 'retrieval flag', pc.retflags)
