@@ -103,35 +103,64 @@ def test_PassBand_save_filter(tmpdir):
     assert save_file in os.listdir(str(tmpdir))
 
 
-@pytest.mark.skip(reason="TBD!")
-def test_Tophat_wl():
-    pass
+@pytest.mark.parametrize('flip', (False, True))
+def test_Tophat_wl(flip):
+    hat = ps.Tophat(4.5, 0.5)
+    wl = np.arange(3.5, 5.5, 0.001)
+    if flip:
+        wl = np.flip(wl)
+    out_wl, out_response = hat(wl)
+
+    np.testing.assert_equal(out_response, hat.response)
+    np.testing.assert_equal(out_wl, hat.wl)
+    np.testing.assert_allclose(wl[hat.idx], hat.wl)
+
+    wn_integral = np.trapz(hat.response, hat.wn)
+    np.testing.assert_allclose(wn_integral, 1.0)
 
 
-@pytest.mark.skip(reason="TBD!")
-def test_Tophat_wl_reversed():
-    pass
+@pytest.mark.parametrize('flip', (False, True))
+def test_Tophat_wn(flip):
+    hat = ps.Tophat(4.5, 0.5)
+    wn = 1e4 / np.flip(np.arange(3.5, 5.5, 0.001))
+    if flip:
+        wn = np.flip(wn)
+    out_wn, out_response = hat(wn=wn)
+
+    np.testing.assert_equal(out_response, hat.response)
+    np.testing.assert_equal(out_wn, hat.wn)
+    np.testing.assert_allclose(wn[hat.idx], hat.wn)
+
+    wn_integral = np.trapz(hat.response, hat.wn)
+    np.testing.assert_allclose(wn_integral, 1.0)
 
 
-@pytest.mark.skip(reason="TBD!")
-def test_Tophat_wn():
-    pass
+@pytest.mark.parametrize('wl_wn', ('both', 'none'))
+def test_Tophat_bad_input(wl_wn):
+    hat = ps.Tophat(4.5, 0.5)
+    wl = None
+    wn = None
+    if wl_wn == 'both':
+        wl = np.arange(3.5, 5.5, 0.001)
+        wn = 1e4 / wl
+
+    error = 'Either provide wavelength or wavenumber array, not both'
+    with pytest.raises(ValueError, match=error):
+        out_wn, out_response = hat(wl, wn=wn)
 
 
-@pytest.mark.skip(reason="TBD!")
-def test_Tophat_wn_reversed():
-    pass
-
-
-@pytest.mark.skip(reason="TBD!")
-def test_Tophat_bad_input():
-    pass
-
-
-@pytest.mark.skip(reason="TBD!")
-def test_Tophat_bad_spectral_range():
+def test_PassBand_bad_spectral_range():
     # Band range not contained in requested wl/wn range
-    pass
+    hat = ps.Tophat(4.5, 0.5)
+    wl = np.arange(3.5, 5.5, 0.001)
+    wl[10] = wl[11]
+
+    error = (
+        'Input wavelength/wavenumber array must be strictly '
+        'increasing or decreasing'
+    )
+    with pytest.raises(ValueError, match=error):
+        out_wn, out_response = hat(wl)
 
 
 @pytest.mark.parametrize('wn',

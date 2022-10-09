@@ -7463,3 +7463,8 @@ Docstrings are to be revised, tests are TBD.
 Cleaned up PassBand() class. Updated docstrings and added tests.
 Made internal wavenumber array always monotonically increasing.
 
+*****
+
+Cleaned up Tophat() class. Updated docstrings and added tests.
+Made internal wavenumber array always monotonically increasing.
+

@@ -258,25 +258,31 @@ class Tophat(object):
         >>> # See examples in help(ps.Tophat.__init__)
         """
         if not operator.xor(wl is None, wn is None):
-            raise ValueError('Need to set wavenumber or wavelength array')
-        input_is_wn = wl is None
-        if input_is_wn:
-            wl = 1.0 / (wn*pc.um)
-
-        nwave = len(wl)
-        sign = -np.sign(np.ediff1d(wl)[0])
-        if sign == 0.0:
             raise ValueError(
-                'Wavelength array has to be strictly increasing or decreasing'
+                'Either provide wavelength or wavenumber array, not both'
             )
+        input_is_wl = wn is None
+        if input_is_wl:
+            wn = 1.0 / (wl*pc.um)
+
+        sign = np.sign(np.ediff1d(wn))
+        if not (np.all(sign == 1) or np.all(sign == -1)):
+            raise ValueError(
+                'Input wavelength/wavenumber array must be strictly '
+                'increasing or decreasing'
+            )
+        sign = sign[0]
+        nwave = len(wn)
 
         wl_low  = self.wl0 - self.half_width
         wl_high = self.wl0 + self.half_width
 
-        idx = (wl >= wl_low) & (wl <= wl_high)
+        wn_low = 1.0 / (wl_high*pc.um)
+        wn_high = 1.0 / (wl_low*pc.um)
+        idx = (wn >= wn_low) & (wn <= wn_high)
         indices = np.where(idx)[0]
 
-        # One sample as margin:
+        # One spectral point as margin:
         idx_first = indices[0]
         idx_last = indices[-1] + 1
 
@@ -285,17 +291,22 @@ class Tophat(object):
         if idx_last < nwave:
             idx_last += 1
 
-        self.response = np.array(idx[idx_first:idx_last], np.double)
-        self.wl = wl[idx_first:idx_last]
-        self.wn = 1.0 / (self.wl * pc.um)
-
-        if input_is_wn:
+        if sign < 0.0:
             self.idx = np.flip(np.arange(idx_first, idx_last))
         else:
             self.idx = np.arange(idx_first, idx_last)
 
-        self.response /= np.trapz(self.response, self.wn) * sign
-        return self.wl, self.response
+        self.wn = wn[self.idx]
+        self.response = np.array(idx[self.idx], np.double)
+        self.response /= np.trapz(self.response, self.wn)
+
+        self.wl = 1.0 / (self.wn * pc.um)
+        if input_is_wl:
+            out_wave = self.wl
+        else:
+            out_wave = self.wn
+
+        return out_wave, self.response
 
 
 def tophat(wl0, width, margin=None, dlambda=None, resolution=None, ffile=None):
