@@ -7479,3 +7479,7 @@ obs_file vs data, uncert, and filters arguments.
 Added repr and str dunder methods to PassBand() and Tophat() objects
 Added docs and tests.
 
+*****
+
+PEP8 fixes, mainly in argum.py check_spectrum() function.
+

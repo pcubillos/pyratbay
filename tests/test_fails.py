@@ -1,5 +1,5 @@
-# Copyright (c) 2021 Patricio Cubillos
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+# Copyright (c) 2021-2022 Patricio Cubillos
+# Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import os
 import subprocess
@@ -12,6 +12,8 @@ import pyratbay.io as io
 from pyratbay.constants import ROOT
 
 os.chdir(ROOT+'tests')
+
+check_spectrum_err = "Error in module: 'argum.py', function: 'check_spectrum'"
 
 
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -504,8 +506,7 @@ def test_spectrum_transmission_missing(tmp_path, capfd, param, undefined_spec):
     pyrat = pb.run(cfg)
     assert pyrat is None
     captured = capfd.readouterr()
-    assert "Error in module: 'argum.py', function: 'check_spectrum'" \
-           in captured.out
+    assert check_spectrum_err in captured.out
     assert undefined_spec[param] in captured.out
 
 
@@ -653,8 +654,7 @@ def test_spectrum_invalid_file(tmp_path, capfd, param, invalid_file):
     pyrat = pb.run(cfg)
     assert pyrat is None
     captured = capfd.readouterr()
-    assert "Error in module: 'argum.py', function: 'check_spectrum'" \
-           in captured.out
+    assert check_spectrum_err in captured.out
     assert invalid_file[param] in captured.out
 
 
@@ -662,16 +662,17 @@ def test_spectrum_invalid_file(tmp_path, capfd, param, invalid_file):
     [('dmin', 'dmax'),
      ('lmin', 'lmax')])
 def test_spectrum_inconsistent_voigt_bounds(tmp_path, capfd, vmin, vmax):
-    cfg = make_config(tmp_path,
+    cfg = make_config(
+        tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        reset={vmin:'1e5', vmax:'1e4'})
+        reset={vmin:'1e5', vmax:'1e4'},
+    )
     pyrat = pb.run(cfg)
     assert pyrat is None
     captured = capfd.readouterr()
-    assert "Error in module: 'argum.py', function: 'check_spectrum'" \
-           in captured.out
-    assert '{:s} (10000 cm-1) must be > {:s} (100000 cm-1).'. \
-           format(vmax,vmin) in captured.out
+    assert check_spectrum_err in captured.out
+    error_msg = f'{vmax:s} (10000 cm-1) must be > {vmin:s} (100000 cm-1)'
+    assert error_msg in captured.out
 
 
 def test_spectrum_rpars_mismatch(tmp_path, capfd):
@@ -681,10 +682,9 @@ def test_spectrum_rpars_mismatch(tmp_path, capfd):
     pyrat = pb.run(cfg)
     assert pyrat is None
     captured = capfd.readouterr()
-    assert "Error in module: 'argum.py', function: 'check_spectrum'" \
-           in captured.out
+    assert check_spectrum_err in captured.out
     assert 'Number of input Rayleigh parameters (3) does not match the ' \
-           'number of\nrequired model parameters (2).' in captured.out
+           'number of\nrequired model parameters (2)' in captured.out
 
 
 def test_spectrum_cpars_mismatch(tmp_path, capfd):
@@ -694,10 +694,9 @@ def test_spectrum_cpars_mismatch(tmp_path, capfd):
     pyrat = pb.run(cfg)
     assert pyrat is None
     captured = capfd.readouterr()
-    assert "Error in module: 'argum.py', function: 'check_spectrum'" \
-           in captured.out
+    assert check_spectrum_err in captured.out
     assert 'Number of input cloud parameters (3) does not match the number ' \
-           'of required\nmodel parameters (1).' in captured.out
+           'of required\nmodel parameters (1)' in captured.out
 
 
 @pytest.mark.parametrize('value',
@@ -709,8 +708,7 @@ def test_spectrum_raygrid(tmp_path, capfd, invalid_raygrid, value):
     pyrat = pb.run(cfg)
     assert pyrat is None
     captured = capfd.readouterr()
-    assert "Error in module: 'argum.py', function: 'check_spectrum'" \
-           in captured.out
+    assert check_spectrum_err in captured.out
     assert invalid_raygrid[value] in captured.out
 
 
@@ -721,24 +719,31 @@ def test_spectrum_uncert_mismatch(tmp_path, capfd):
     pyrat = pb.run(cfg)
     assert pyrat is None
     captured = capfd.readouterr()
-    assert "Error in module: 'argum.py', function: 'check_spectrum'" \
-           in captured.out
+    assert check_spectrum_err in captured.out
     assert 'Number of data uncertainty values (1) does not match the ' \
-           'number of data\npoints (2).' in captured.out
+           'number of data\npoints (2)' in captured.out
 
 
 def test_spectrum_filters_mismatch(tmp_path, capfd):
-    cfg = make_config(tmp_path,
+    reset = {
+        'data': '1.0 2.0',
+        'filters': ROOT+'tests/filters/filter_test_WFC3_G141_1.133um.dat',
+    }
+    cfg = make_config(
+        tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        reset={'data':'1.0 2.0',
-            'filters':ROOT+'tests/filters/filter_test_WFC3_G141_1.133um.dat'})
+        reset=reset,
+    )
     pyrat = pb.run(cfg)
     assert pyrat is None
+
     captured = capfd.readouterr()
-    assert "Error in module: 'argum.py', function: 'check_spectrum'" \
-           in captured.out
-    assert 'Number of filter bands (1) does not match the number of ' \
-           'data points (2).' in captured.out
+    assert check_spectrum_err in captured.out
+    error_msg = (
+        'Number of filter bands (1) does not match the number of '
+        'data points (2)'
+    )
+    assert error_msg in captured.out
 
 
 def test_spectrum_params_misfit(tmp_path, capfd):
@@ -869,8 +874,7 @@ def test_spectrum_missing_retflag_models(tmp_path, capfd, param,undefined_mcmc):
     pyrat = pb.run(cfg)
     assert pyrat is None
     captured = capfd.readouterr()
-    assert "Error in module: 'argum.py', function: 'check_spectrum'" \
-           in captured.out
+    assert check_spectrum_err in captured.out
     assert undefined_mcmc[param] in captured.out
 
 
@@ -891,16 +895,22 @@ def test_spectrum_opacity_invalid_tmax(tmp_path, capfd):
 
 @pytest.mark.parametrize('param', ['tmin', 'tmax', 'tstep', 'tlifile'])
 def test_spectrum_opacity_missing(tmp_path, capfd, param, undefined_opacity):
-    cfg = make_config(tmp_path,
+    reset = {
+        'extfile': str(tmp_path/'new_opacity.dat'),
+        'tmin':'300.0',
+        'tmax':'3000.0',
+        'tstep':'900',
+    }
+    cfg = make_config(
+        tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        reset={'extfile':str(tmp_path/'new_opacity.dat'),
-               'tmin':'300.0', 'tmax':'3000.0', 'tstep':'900'},
-        remove=[param])
+        reset=reset,
+        remove=[param],
+    )
     pyrat = pb.run(cfg)
     assert pyrat is None
     captured = capfd.readouterr()
-    assert "Error in module: 'argum.py', function: 'check_spectrum'" \
-           in captured.out
+    assert check_spectrum_err in captured.out
     assert undefined_opacity[param] in captured.out
 
 
@@ -942,8 +952,7 @@ def test_opacity_missing(tmp_path, capfd, param, undefined_opacity):
     pyrat = pb.run(cfg)
     assert pyrat is None
     captured = capfd.readouterr()
-    assert "Error in module: 'argum.py', function: 'check_spectrum'" \
-           in captured.out
+    assert check_spectrum_err in captured.out
     assert undefined_opacity[param] in captured.out
 
 
@@ -951,19 +960,20 @@ def test_opacity_missing(tmp_path, capfd, param, undefined_opacity):
     ['retflag', 'params', 'data', 'uncert', 'filters', 'rstar',
      'sampler', 'nsamples', 'burnin', 'nchains'])
 def test_mcmc_missing(tmp_path, capfd, param, undefined_mcmc):
+    reset={
+        'rt_path': 'emission',
+        'kurucz': f'{ROOT}tests/inputs/fp00k0odfnew.pck',
+    }
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/mcmc_transmission_test.cfg',
-        reset={
-            'rt_path': 'emission',
-            'kurucz': f'{ROOT}tests/inputs/fp00k0odfnew.pck'},
-        remove=[param])
+        reset=reset,
+        remove=[param],
+    )
     pyrat = pb.run(cfg)
     assert pyrat is None
     captured = capfd.readouterr()
-    assert \
-        "Error in module: 'argum.py', function: 'check_spectrum'" \
-        in captured.out
+    assert check_spectrum_err in captured.out
     assert undefined_mcmc[param] in captured.out
 
 
