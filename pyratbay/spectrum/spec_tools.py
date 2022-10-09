@@ -11,6 +11,7 @@ __all__ = [
 
 from collections.abc import Iterable
 import operator
+import os
 
 import numpy as np
 import scipy.interpolate as si
@@ -62,7 +63,9 @@ class PassBand(object):
         >>> plt.plot(wn[band.idx], out_response)
         """
         # Read filter wavenumber and transmission curves:
-        input_wl, input_response = io.read_spectrum(filter_file, wn=False)
+        filter_file = filter_file.replace('{ROOT}', pc.ROOT)
+        self.filter_file = os.path.realpath(filter_file)
+        input_wl, input_response = io.read_spectrum(self.filter_file, wn=False)
 
         self.wl0 = np.sum(input_wl*input_response) / np.sum(input_response)
         input_wn = 1.0 / (input_wl * pc.um)
@@ -78,11 +81,20 @@ class PassBand(object):
         self.wn = np.copy(input_wn[wn_sort])
         self.wl = 1.0 / (self.wn * pc.um)
 
+        self.name = os.path.splitext(os.path.basename(filter_file))[0]
+
         # Resample the filters into the planet wavenumber array:
         if wn is not None:
             self.__eval__(wn=wn)
 
-    def __call__(self, wl=None, wn=None, wl_units='um'):
+    def __repr__(self):
+        return f"pyratbay.spectrum.PassBand('{self.filter_file}')"
+
+    def __str__(self):
+        return f'{self.name}'
+
+
+    def __call__(self, wl=None, wn=None):
         """
         Interpolate filter response function at specified spectral array.
         The response funciton is normalized such that the integral over
@@ -167,13 +179,13 @@ class PassBand(object):
         )
 
 
-class Tophat(object):
+class Tophat(PassBand):
     """
     A Filter passband object with a tophat-shaped passband.
     """
     def __init__(
         self, wl0, half_width,
-        margin=None, dlambda=None, resolution=None,
+        name='tophat',
     ):
         """
         Parameters
@@ -182,6 +194,9 @@ class Tophat(object):
             The passband's central wavelength (um units).
         half_width: Float
             The passband's half-width (um units).
+        name: Str
+            A user-defined name for the filter when calling str(self),
+            e.g., to identify the instrument provenance of this filter.
 
         Examples
         --------
@@ -215,14 +230,16 @@ class Tophat(object):
         # Read filter wavenumber and transmission curves:
         self.wn0 = 1.0 / (self.wl0 * pc.um)
 
-        if margin is None:
-            margin = 0.1 * self.half_width
-        self.margin = margin
+        self.name = name
 
-        self.dlambda = dlambda
-        self.resolution = resolution
+    def __repr__(self):
+        return f'pyratbay.spectrum.Tophat({self.wl0}, {self.half_width})'
 
-    def __call__(self, wl=None, wn=None, wl_units='um'):
+    def __str__(self):
+        return f'{self.name}_{self.wl0}um'
+
+
+    def __call__(self, wl=None, wn=None):
         """
         Interpolate filter response function at specified spectral array.
         The response funciton is normalized such that the integral over

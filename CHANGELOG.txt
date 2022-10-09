@@ -7474,3 +7474,8 @@ Replaced pyrat.obs.filters as list of files into list of PassBand()
 objects.  TBD: Users should be warned not to mix inputs from
 obs_file vs data, uncert, and filters arguments.
 
+*****
+
+Added repr and str dunder methods to PassBand() and Tophat() objects
+Added docs and tests.
+

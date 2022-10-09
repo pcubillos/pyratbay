@@ -618,7 +618,7 @@ class Observation(object):
                '  (bandwn)              (bandflux)  (filters)', self.units)
       for filter,bandwn,bflux in zip(self.filters, self.bandwn, self.bandflux):
           fw.write(' {:9.2f}  {:10.3f}  {:10.5f}  {:s}', bandwn,
-              1.0/(bandwn*pc.um), bflux/units, os.path.basename(filter))
+              1.0/(bandwn*pc.um), bflux/units, str(filter))
       # TBD: Do I want to show bandidx, bandtrans, and starflux?
       return fw.text
 
