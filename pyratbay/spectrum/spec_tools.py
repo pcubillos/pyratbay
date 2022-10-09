@@ -28,7 +28,9 @@ class PassBand(object):
         Parameters
         ----------
         filter_file: String
-            Path to filter file.
+            Path to filter file containing wavelength (um) and passband
+            response in two columns.
+            Comment and blank lines are ignored.
 
         Examples
         --------
@@ -60,14 +62,17 @@ class PassBand(object):
         >>> plt.plot(wn[band.idx], out_response)
         """
         # Read filter wavenumber and transmission curves:
-        input_wn, input_response = io.read_spectrum(filter_file)
-        self.wn0 = np.sum(input_wn*input_response) / np.sum(input_response)
-        self.wl0 = 1.0 / (self.wn0 * pc.um)
+        input_wl, input_response = io.read_spectrum(filter_file, wn=False)
+
+        self.wl0 = np.sum(input_wl*input_response) / np.sum(input_response)
+        input_wn = 1.0 / (input_wl * pc.um)
+        self.wn0 = 1.0 / (self.wl0 * pc.um)
 
         # Sort it in increasing wavenumber order, store it:
         wn_sort = np.argsort(input_wn)
         self.input_response = input_response[wn_sort]
         self.input_wn = input_wn[wn_sort]
+        self.input_wl = input_wl[wn_sort]
 
         self.response = np.copy(input_response[wn_sort])
         self.wn = np.copy(input_wn[wn_sort])
@@ -113,34 +118,50 @@ class PassBand(object):
         >>> # See examples in help(ps.PassBand.__init__)
         """
         if not operator.xor(wl is None, wn is None):
-            raise ValueError('Need to set wavenumber or wavelength array')
+            raise ValueError(
+                'Either provide wavelength or wavenumber array, not both'
+            )
         input_is_wl = wn is None
         if input_is_wl:
             wn = 1.0 / (wl*pc.um)
 
-        sign = np.sign(np.ediff1d(wn)[0])
-        if sign == 0.0:
+        sign = np.sign(np.ediff1d(wn))
+        if not (np.all(sign == 1) or np.all(sign == -1)):
             raise ValueError(
-                'Wavelength array has to be strictly increasing or decreasing'
+                'Input wavelength/wavenumber array must be strictly '
+                'increasing or decreasing'
             )
+        sign = sign[0]
+
         response, wn_idx = resample(
             self.input_response, self.input_wn, wn, normalize=True,
         )
 
-        self.response = sign * response
-        self.wn = wn[wn_idx]
-        self.wl = 1.0 / (self.wn * pc.um)
+        # Internally, wavenumber is always monotonically increasing:
+        wn_sort = np.argsort(wn[wn_idx])
 
+        self.response = response[wn_sort] * sign
+        self.wn = wn[wn_idx][wn_sort]
+        self.idx = wn_idx[wn_sort]
+
+        self.wl = 1.0 / (self.wn * pc.um)
         if input_is_wl:
-            self.idx = wn_idx
             out_wave = self.wl
         else:
-            self.idx = np.flip(wn_idx)
             out_wave = self.wn
 
         return out_wave, self.response
 
-    def save_filter(save_file):
+    def save_filter(self, save_file):
+        """
+        Write filter response function data to file, into two columns
+        the wavelength (um) and the response function.
+
+        Parameters
+        ----------
+        save_file: String
+            File where to save the filter data.
+        """
         io.write_spectrum(
             self.wl*pc.um, self.response, save_file, type='filter',
         )

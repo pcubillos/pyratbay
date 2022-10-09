@@ -7457,3 +7457,9 @@ Documented but not tested (only placeholders).
 Implemented pyratbay.io.read_observations() to process observing data
 Docstrings are to be revised, tests are TBD.
 
+
+*****  Sun Oct 9 13:50:50 CEST 2022  *****
+
+Cleaned up PassBand() class. Updated docstrings and added tests.
+Made internal wavenumber array always monotonically increasing.
+

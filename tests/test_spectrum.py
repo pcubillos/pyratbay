@@ -1,5 +1,5 @@
-# Copyright (c) 2021 Patricio Cubillos
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+# Copyright (c) 2021-2022 Patricio Cubillos
+# Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import os
 import pytest
@@ -13,58 +13,94 @@ import pyratbay.io as io
 os.chdir(pc.ROOT + 'tests')
 
 
-@pytest.mark.skip(reason="TBD!")
-def test_PassBand_wl():
+def test_PassBand_init():
+    filter_file = f'{pc.ROOT}pyratbay/data/filters/spitzer_irac2_sa.dat'
+    band = ps.PassBand(filter_file)
+
+    # wl0 is passband's wavelength center of mass
+    np.testing.assert_allclose(band.wl0, 4.47065351)
+    # wn0 is 1/wl0 (which differs from wavenumber center of mass)
+    np.testing.assert_allclose(band.wn0, 2236.80944)
+    np.testing.assert_equal(band.response, band.input_response)
+    np.testing.assert_allclose(band.wl, band.input_wl)
+    np.testing.assert_allclose(band.wn, band.input_wn)
+
+
+@pytest.mark.parametrize('flip', (False, True))
+def test_PassBand_wl(flip):
+    filter_file = f'{pc.ROOT}pyratbay/data/filters/spitzer_irac2_sa.dat'
+    band = ps.PassBand(filter_file)
+    wl = np.arange(3.5, 5.5, 0.001)
+    if flip:
+        wl = np.flip(wl)
+    out_wl, out_response = band(wl)
+
+    np.testing.assert_equal(out_response, band.response)
+    np.testing.assert_equal(out_wl, band.wl)
+    np.testing.assert_allclose(wl[band.idx], band.wl)
+
+    wn_integral = np.trapz(band.response, band.wn)
+    np.testing.assert_allclose(wn_integral, 1.0)
+
+
+@pytest.mark.parametrize('flip', (False, True))
+def test_PassBand_wn(flip):
+    filter_file = f'{pc.ROOT}pyratbay/data/filters/spitzer_irac2_sa.dat'
+    band = ps.PassBand(filter_file)
+    wn = 1e4 / np.flip(np.arange(3.5, 5.5, 0.001))
+    if flip:
+        wn = np.flip(wn)
+    out_wn, out_response = band(wn=wn)
+
+    np.testing.assert_equal(out_response, band.response)
+    np.testing.assert_equal(out_wn, band.wn)
+    np.testing.assert_allclose(wn[band.idx], band.wn)
+
+    wn_integral = np.trapz(band.response, band.wn)
+    np.testing.assert_allclose(wn_integral, 1.0)
+
+
+@pytest.mark.parametrize('wl_wn', ('both', 'none'))
+def test_PassBand_bad_input(wl_wn):
+    filter_file = f'{pc.ROOT}pyratbay/data/filters/spitzer_irac2_sa.dat'
+    band = ps.PassBand(filter_file)
+    wl = None
+    wn = None
+    if wl_wn == 'both':
+        wl = np.arange(3.5, 5.5, 0.001)
+        wn = 1e4 / wl
+
+    error = 'Either provide wavelength or wavenumber array, not both'
+    with pytest.raises(ValueError, match=error):
+        out_wn, out_response = band(wl, wn=wn)
+
+
+def test_PassBand_bad_spectral_range():
+    # Band range not contained in requested wl/wn range
+    filter_file = f'{pc.ROOT}pyratbay/data/filters/spitzer_irac2_sa.dat'
+    band = ps.PassBand(filter_file)
+    wl = np.arange(3.5, 5.5, 0.001)
+    wl[10] = wl[11]
+
+    error = (
+        'Input wavelength/wavenumber array must be strictly '
+        'increasing or decreasing'
+    )
+    with pytest.raises(ValueError, match=error):
+        out_wn, out_response = band(wl)
+
+
+def test_PassBand_save_filter(tmpdir):
     filter_file = f'{pc.ROOT}pyratbay/data/filters/spitzer_irac2_sa.dat'
     band = ps.PassBand(filter_file)
     wl = np.arange(3.5, 5.5, 0.001)
     out_wl, out_response = band(wl)
 
-    # TBD: assertions
-    #(band.wl, band.response/np.amax(band.response))
-    #(out_wl, out_response/np.amax(out_response))
-    #(wl[band.idx], out_response/np.amax(out_response))
-    #print(np.trapz(band.response, band.wn))
+    save_file = 'spitzer_irac.dat'
+    tmp_file = f'{tmpdir}/{save_file}'
+    band.save_filter(tmp_file)
 
-
-@pytest.mark.skip(reason="TBD!")
-def test_PassBand_wl_reversed():
-    filter_file = f'{pc.ROOT}pyratbay/data/filters/spitzer_irac2_sa.dat'
-    band = ps.PassBand(filter_file)
-    wl = np.flip(np.arange(3.5, 5.5, 0.001))
-    out_wl, out_response = band(wl)
-    # TBD: assertions
-
-
-@pytest.mark.skip(reason="TBD!")
-def test_PassBand_wn():
-    filter_file = f'{pc.ROOT}pyratbay/data/filters/spitzer_irac2_sa.dat'
-    band = ps.PassBand(filter_file)
-    wn = 1e4 / np.flip(np.arange(3.5, 5.5, 0.001))
-    out_wl, out_response = band(wn=wn)
-    # TBD: assertions
-
-
-@pytest.mark.skip(reason="TBD!")
-def test_PassBand_wn_reversed():
-    filter_file = f'{pc.ROOT}pyratbay/data/filters/spitzer_irac2_sa.dat'
-    band = ps.PassBand(filter_file)
-    wn = 1e4 / np.arange(3.5, 5.5, 0.001)
-    out_wl, out_response = band(wn=wn)
-    # TBD: assertions
-
-
-@pytest.mark.skip(reason="TBD!")
-def test_PassBand_bad_input():
-    # Both wn and wl were provided in call
-    # None of wn or wl were provided in call
-    pass
-
-
-@pytest.mark.skip(reason="TBD!")
-def test_PassBand_bad_spectral_range():
-    # Band range not contained in requested wl/wn range
-    pass
+    assert save_file in os.listdir(str(tmpdir))
 
 
 @pytest.mark.skip(reason="TBD!")
