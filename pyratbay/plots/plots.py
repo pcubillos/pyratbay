@@ -1,5 +1,5 @@
-# Copyright (c) 2021 Patricio Cubillos
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+# Copyright (c) 2021-2022 Patricio Cubillos
+# Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
     'alphatize',
@@ -10,7 +10,6 @@ __all__ = [
     'default_colors',
 ]
 
-import os
 from itertools import cycle
 
 from cycler import cycler, Cycler
@@ -26,22 +25,22 @@ from .. import tools as pt
 
 
 default_colors = {
-    'H2O':"navy",
-    'CO2':"red",
-    'CO':"limegreen",
-    'CH4':"orange",
-    'H2':"deepskyblue",
-    'He':"seagreen",
-    'HCN':"0.7",
-    'NH3':"magenta",
-    'C2H2':"brown",
-    'C2H4':"pink",
-    'N2':"gold",
-    'H':"olive",
-    'TiO':"black",
-    'VO':"peru",
-    'Na':"darkviolet",
-    'K':"cornflowerblue",
+    'H2O': "navy",
+    'CO2': "red",
+    'CO': "limegreen",
+    'CH4': "orange",
+    'H2': "deepskyblue",
+    'He': "seagreen",
+    'HCN': "0.7",
+    'NH3': "magenta",
+    'C2H2': "brown",
+    'C2H4': "pink",
+    'N2': "gold",
+    'H': "olive",
+    'TiO': "black",
+    'VO': "peru",
+    'Na': "darkviolet",
+    'K': "cornflowerblue",
 }
 
 
@@ -86,7 +85,8 @@ def alphatize(colors, alpha, bg='w'):
     return rgb
 
 
-def spectrum(spectrum, wavelength, rt_path,
+def spectrum(
+    spectrum, wavelength, rt_path,
     data=None, uncert=None, bandwl=None, bandflux=None,
     bandtrans=None, bandidx=None,
     starflux=None, rprs=None, label='model', bounds=None,
@@ -157,8 +157,6 @@ def spectrum(spectrum, wavelength, rt_path,
     else:
         ax = axis
 
-    #fscale = {'':1.0, '%':100.0, 'ppt':1e3, 'ppm':1e6}
-
     spec_kw = {'label':label}
     if bounds is None:
         spec_kw['color'] = 'orange'
@@ -186,10 +184,12 @@ def spectrum(spectrum, wavelength, rt_path,
         gbounds = [gaussf(bound, gaussbin) for bound in bounds]
         ax.fill_between(
             wavelength, fscale*gbounds[0], fscale*gbounds[3],
-            facecolor='gold', edgecolor='none')
+            facecolor='gold', edgecolor='none',
+        )
         ax.fill_between(
             wavelength, fscale*gbounds[1], fscale*gbounds[2],
-            facecolor='orange', edgecolor='none')
+            facecolor='orange', edgecolor='none',
+        )
 
     # Plot model:
     plt.plot(wavelength, gmodel*fscale, lw=lw, **spec_kw)
@@ -197,12 +197,14 @@ def spectrum(spectrum, wavelength, rt_path,
     if bandflux is not None and bandwl is not None:
         plt.plot(
             bandwl, bandflux*fscale, 'o', ms=ms, color='tomato',
-            mec='maroon', mew=lw)
+            mec='maroon', mew=lw,
+        )
     # Plot data:
     if data is not None and uncert is not None and bandwl is not None:
         plt.errorbar(
             bandwl, data*fscale, uncert*fscale, fmt='o', label='data',
-            color='blue', ms=ms, elinewidth=lw, capthick=lw, zorder=3)
+            color='blue', ms=ms, elinewidth=lw, capthick=lw, zorder=3,
+        )
 
     if yran is not None:
         ax.set_ylim(np.array(yran))
@@ -218,12 +220,13 @@ def spectrum(spectrum, wavelength, rt_path,
 
     if logxticks is not None:
         ax.set_xscale('log')
-        plt.gca().xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
-        ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+        ax.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
+        ax.xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
         ax.set_xticks(logxticks)
 
     ax.tick_params(
-        which='both', right=True, top=True, direction='in', labelsize=fs-2)
+        which='both', right=True, top=True, direction='in', labelsize=fs-2,
+    )
     plt.xlabel('Wavelength (um)', fontsize=fs)
     plt.legend(loc='best', numpoints=1, fontsize=fs-1)
     plt.xlim(np.amin(wavelength), np.amax(wavelength))
@@ -234,8 +237,10 @@ def spectrum(spectrum, wavelength, rt_path,
     return ax
 
 
-def contribution(contrib_func, wl, rt_path, pressure, radius, rtop=0,
-    filename=None, filters=None, fignum=-21):
+def contribution(
+        contrib_func, wl, rt_path, pressure, radius, rtop=0,
+        filename=None, filters=None, fignum=-21,
+    ):
     """
     Plot the band-integrated normalized contribution functions
     (emission) or transmittance (transmission).
@@ -306,8 +311,8 @@ def contribution(contrib_func, wl, rt_path, pressure, radius, rtop=0,
         yright = 0.84
         cbtop  = 0.8
     else:
-        print(
-            f"Invalid radiative-transfer geometry. Select from: {pc.rt_paths}.")
+        rt_paths = pc.rt_paths
+        print(f"Invalid radiative-transfer geometry. Select from: {rt_paths}.")
         return
 
     fs  = 12
@@ -343,7 +348,8 @@ def contribution(contrib_func, wl, rt_path, pressure, radius, rtop=0,
         ax.imshow(
             z.swapaxes(0,1), aspect='auto',
             extent=[0, nfilters, yran[0], yran[1]],
-            origin='upper', interpolation='nearest')
+            origin='upper', interpolation='nearest',
+        )
         ax.yaxis.set_visible(False)
         pax.spines['left'].set_visible(True)
         pax.yaxis.set_label_position('left')
@@ -352,7 +358,8 @@ def contribution(contrib_func, wl, rt_path, pressure, radius, rtop=0,
         ax.imshow(
             z.swapaxes(0,1), aspect='auto',
             extent=[0,nfilters,yran[0],yran[1]],
-            origin='upper', interpolation='nearest')
+            origin='upper', interpolation='nearest',
+        )
         # Setting the right radius tick labels requires some sorcery:
         fig.canvas.draw()
         ylab = [l.get_text() for l in ax.get_yticklabels()]
@@ -360,7 +367,8 @@ def contribution(contrib_func, wl, rt_path, pressure, radius, rtop=0,
         pticks = rint(ax.get_yticks())
         bounds = np.isfinite(pticks)
         pint = si.interp1d(
-            press, np.linspace(yran[1], yran[0], nlayers), bounds_error=False)
+            press, np.linspace(yran[1], yran[0], nlayers), bounds_error=False,
+        )
         ax.set_yticks(pint(pticks[bounds]))
         ax.set_yticklabels(np.array(ylab)[bounds])
 
@@ -377,15 +385,15 @@ def contribution(contrib_func, wl, rt_path, pressure, radius, rtop=0,
     ax.set_xlabel(f'Band-averaged {xlabel}', fontsize=fs)
 
     # Print filter names/wavelengths:
-    for i in np.arange(0, nfilters-thin//2, thin):
+    for i in range(0, nfilters-thin//2, thin):
         fname = f' {wl[i]:5.2f} um '
         # Strip root and file extension:
         if filters is not None:
-            fname = (os.path.split(os.path.splitext(filters[i])[0])[1]
-                     + ' @' + fname)
+            fname = str(filters[i]) + ' @' + fname
         ax.text(
-            i+0.1, yran[1], fname, rotation=90, ha='left', va='top',
-            fontsize=ffs)
+            i+0.1, yran[1], fname,
+            rotation=90, ha='left', va='top', fontsize=ffs,
+        )
 
     # Color bar:
     cbar = plt.axes([0.925, 0.10, 0.015, 0.85])
@@ -394,7 +402,8 @@ def contribution(contrib_func, wl, rt_path, pressure, radius, rtop=0,
     cz[:,1,3] = np.linspace(0.0,cbtop,100)**(0.5+0.5*(is_transit))
     cbar.imshow(
         cz, aspect='auto', extent=[0, 1, 0, 1],
-        origin='lower', interpolation='nearest')
+        origin='lower', interpolation='nearest',
+    )
     if is_transit:
         cbar.axhline(0.1585, color='k', lw=1.0, dashes=(2.5,1))
         cbar.axhline(0.8415, color='w', lw=1.0, dashes=(2.5,1))
@@ -410,9 +419,11 @@ def contribution(contrib_func, wl, rt_path, pressure, radius, rtop=0,
     return ax
 
 
-def temperature(pressure, profiles=None, labels=None, colors=None,
-    bounds=None, punits='bar', ax=None, filename=None,
-    theme='blue', alpha=[0.8,0.6], fs=13, lw=2.0, fignum=504):
+def temperature(
+        pressure, profiles=None, labels=None, colors=None,
+        bounds=None, punits='bar', ax=None, filename=None,
+        theme='blue', alpha=[0.8,0.6], fs=13, lw=2.0, fignum=504,
+    ):
     """
     Plot temperature profiles.
 
@@ -495,11 +506,13 @@ def temperature(pressure, profiles=None, labels=None, colors=None,
     if bounds is not None and len(bounds) == 4:
         low2, high2 = bounds[2:4]
         ax.fill_betweenx(
-            press, low2, high2, facecolor=fc2, edgecolor='none', alpha=alpha2)
+            press, low2, high2, facecolor=fc2, edgecolor='none', alpha=alpha2,
+        )
     if bounds is not None and len(bounds) >= 2:
         low1, high1 = bounds[0:2]
         ax.fill_betweenx(
-            press, low1, high1, facecolor=fc1, edgecolor='none', alpha=alpha1)
+            press, low1, high1, facecolor=fc1, edgecolor='none', alpha=alpha1,
+        )
 
     for profile, color, label in zip(profiles, colors, _labels):
         plt.plot(profile, press, color, lw=lw, label=label)
@@ -608,9 +621,11 @@ def abundance(
     if len(colors) >= len(species):
         cols = colors
     elif colors == 'default':
-        cols = [default_colors[mol] if mol in default_colors
-                else None
-                for mol in species]
+        cols = [
+            default_colors[mol] if mol in default_colors
+            else None
+            for mol in species
+        ]
         used_cols = [c for c in default_colors.values() if c in cols]
         remaining_cols = [c for c in default_colors.values() if c not in cols]
         colors = used_cols + remaining_cols
@@ -645,21 +660,25 @@ def abundance(
         ax = plt.subplot(111)
     for spec in highlight:
         imol = list(species).index(spec)
-        ax.loglog(vol_mix_ratios[:,imol], press, label=spec, lw=lw,
-            color=cols[imol], dashes=dashes[imol])
+        ax.loglog(
+            vol_mix_ratios[:,imol], press, label=spec, lw=lw,
+            color=cols[imol], dashes=dashes[imol],
+        )
     if xlim is None:
         xlim = ax.get_xlim()
     for spec in lowlight:
         imol = list(species).index(spec)
         ax.loglog(
             vol_mix_ratios[:,imol], press, label=spec, lw=lw, zorder=-1,
-            color=alphatize(cols[imol],alpha=0.4), dashes=dashes[imol])
+            color=alphatize(cols[imol],alpha=0.4), dashes=dashes[imol],
+        )
     ax.set_xlim(xlim)
     ax.set_ylim(np.amax(press), np.amin(press))
     ax.set_xlabel('Volume mixing ratio', fontsize=fs)
     ax.set_ylabel(f'Pressure ({punits})', fontsize=fs)
     ax.tick_params(
-        which='both', right=True, top=True, direction='in', labelsize=fs-2)
+        which='both', right=True, top=True, direction='in', labelsize=fs-2,
+    )
     if legend_fs > 0:
         ax.legend(loc='best', fontsize=legend_fs)
 

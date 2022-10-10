@@ -7488,3 +7488,9 @@ PEP8 fixes, mainly in argum.py check_spectrum() function.
 
 Continue PEP8 cleaning argum.py and objects.py.
 
+*****
+
+Added wavelength ranges of extracted lines at end of make_tli().
+Some more PEP8.
+
+
