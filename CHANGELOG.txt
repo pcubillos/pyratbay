@@ -7483,3 +7483,8 @@ Added docs and tests.
 
 PEP8 fixes, mainly in argum.py check_spectrum() function.
 
+
+*****  Mon Oct 10 05:56:00 CEST 2022  *****
+
+Continue PEP8 cleaning argum.py and objects.py.
+
