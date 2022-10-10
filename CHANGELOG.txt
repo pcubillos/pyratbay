@@ -7498,3 +7498,7 @@ Some more PEP8.
 Refactored Exomol() class to handle gaps in the states file.
 Code look as bit cleaner.
 
+*****
+
+Updated SO info in isotopes.dat.
+
