@@ -7506,3 +7506,7 @@ Updated SO info in isotopes.dat.
 
 PEP8 cleaning crosssec.py.
 
+*****
+
+PEP8 cleaning extinction.py.
+
