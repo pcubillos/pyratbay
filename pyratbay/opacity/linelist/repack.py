@@ -1,9 +1,9 @@
-# Copyright (c) 2021 Patricio Cubillos
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+# Copyright (c) 2021-2022 Patricio Cubillos
+# Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
     'Repack',
-    ]
+]
 
 import os
 import struct
@@ -146,7 +146,7 @@ class Repack(Linelist):
       uiso, inverse = np.unique(iso, return_inverse=True)
       isonamelen = len(str(np.amax(uiso)))  # Count how many digits
       idx = np.zeros(len(uiso), int)
-      for i in np.arange(len(uiso)):
+      for i in range(len(uiso)):
           idx[i] = self.isotopes.index(str(uiso[i]).zfill(isonamelen))
       isoID = idx[inverse]
 

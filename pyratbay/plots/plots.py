@@ -328,7 +328,7 @@ def contribution(
     z = np.empty((nfilters, nlayers, 4), dtype=float)
     plo = np.zeros(nfilters+1)
     phi = np.zeros(nfilters+1)
-    for i in np.arange(nfilters):
+    for i in range(nfilters):
         z[i] = plt.cm.rainbow(colors[i])
         z[i,:,-1] = zz[:,i]**(0.5+0.5*(is_transit))
         if is_emission:

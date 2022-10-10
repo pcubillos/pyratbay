@@ -327,10 +327,12 @@ class Isotopes(object):
           '\nIsotope  Molecule      Mass    Isotopic   Database   Extinc-coeff'
           '\n            index     g/mol       ratio      index    index'
           '\n (name)    (imol)    (mass)     (ratio)   (dbindex)  (iext)')
-      for i in np.arange(self.niso):
-          fw.write('{:>7s}  {:8d}  {:8.4f}   {:.3e}   {:8d}   {}',
+      for i in range(self.niso):
+          fw.write(
+              '{:>7s}  {:8d}  {:8.4f}   {:.3e}   {:8d}   {}',
               self.name[i], self.imol[i], self.mass[i], self.ratio[i],
-              self.dbindex[i], iext[i])
+              self.dbindex[i], iext[i],
+          )
       fw.write('Partition function evaluated at atmosperic layers (z):')
       for z in self.z:
           fw.write('    {}', z, fmt={'float':'{: .3e}'.format}, edge=3)

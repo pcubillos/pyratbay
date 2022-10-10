@@ -214,8 +214,8 @@ class Pyrat(object):
 
       if len(params) != self.ret.nparams:
           self.log.warning(
-              f'The number of input fitting parameters ({len(params)}) does '
-               'not match\nthe number of required parameters '
+              f'The number of input fitting parameters ({len(params)}) '
+               'does not match\nthe number of required parameters '
               f'({self.ret.nparams}).'
           )
           return None, None if retmodel else None

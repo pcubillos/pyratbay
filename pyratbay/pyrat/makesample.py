@@ -329,7 +329,7 @@ def make_atmprofiles(pyrat):
         # Interpolate abundance profiles:
         atm.q = np.zeros((atm.nlayers, pyrat.mol.nmol))
         atm.d = np.zeros((atm.nlayers, pyrat.mol.nmol))
-        for i in np.arange(pyrat.mol.nmol):
+        for i in range(pyrat.mol.nmol):
             qinterp = sip.interp1d(atm_in.press, atm_in.q[:, i], kind='slinear')
             dinterp = sip.interp1d(atm_in.press, atm_in.d[:, i], kind='slinear')
             atm.q[:,i] = qinterp(atm.press)
@@ -339,8 +339,8 @@ def make_atmprofiles(pyrat):
     log.msg(f'Number of isotopes: {pyrat.iso.niso}', indent=2)
     # Initialize the partition-function array for pyrat.iso:
     pyrat.iso.z = np.zeros((pyrat.iso.niso, atm.nlayers))
-    for db in pyrat.lt.db:            # For each Database
-        for j in np.arange(db.niso):  # For each isotope in DB
+    for db in pyrat.lt.db:
+        for j in range(db.niso):
             log.debug(
                 f'Interpolating (isotope ID {db.iiso+j}) partition function.',
                 indent=4)

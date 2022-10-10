@@ -324,7 +324,7 @@ def read_atm(atmfile):
 
     # Read table:
     atmfile.seek(datastart, 0)
-    for i in np.arange(nlayers):
+    for i in range(nlayers):
         data = atmfile.readline().split()
         if has_radius:
             radius[i] = data[0]
