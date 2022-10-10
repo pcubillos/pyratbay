@@ -1,9 +1,9 @@
-# Copyright (c) 2021 Patricio Cubillos
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+# Copyright (c) 2021-2022 Patricio Cubillos
+# Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
     'Exomol',
-    ]
+]
 
 import os
 import numpy as np
@@ -47,17 +47,24 @@ class Exomol(Linelist):
       with open(sfile, 'r') as f:
           lines = f.readlines()
       nstates = len(lines)
-      self.E = np.zeros(nstates, np.double)  # State energy
-      self.g = np.zeros(nstates, int)        # State degeneracy (incl. ns)
-      for i in np.arange(nstates):
-          self.E[i], self.g[i] = lines[i].split()[1:3]
+      state_id = np.zeros(nstates, int)
+      state_E = np.zeros(nstates, np.double)  # State energy
+      state_g = np.zeros(nstates, int)        # State degeneracy (incl. ns)
+      for i in range(nstates):
+          state_id[i], state_E[i], state_g[i] = lines[i].split()[0:3]
+      # In case of gaps:
+      nstates = np.amax(state_id) + 1
+      self.E = np.zeros(nstates, np.double)
+      self.g = np.zeros(nstates, int)
+      self.E[state_id] = state_E
+      self.g[state_id] = state_g
 
       # Get info from file name:
       self.molecule, self.iso = pt.get_exomol_mol(dbfile)
       # Get isotopic info:
       ID, isotopes, mass, ratio = self.get_iso(self.molecule, dbtype='exomol')
       self.isotopes = isotopes
-      self.mass     = mass
+      self.mass = mass
       self.isoratio = ratio
       # Database name:
       self.name = 'Exomol ' + self.molecule
@@ -83,7 +90,7 @@ class Exomol(Linelist):
       line = dbfile.readline()
       up  = int(line[ 0:12])
       low = int(line[13:25])
-      wavenumber = self.E[up-1] - self.E[low-1]
+      wavenumber = self.E[up] - self.E[low]
 
       return wavenumber
 
@@ -131,7 +138,8 @@ class Exomol(Linelist):
           self.log.warning(
               f"Database ('{os.path.basename(self.dbfile)}') wavenumber "
               f"range ({DBiwn:.2f}--{DBfwn:.2f} cm-1) does not overlap with "
-              f"the requested wavenumber range ({iwn:.2f}--{fwn:.2f} cm-1).")
+              f"the requested wavenumber range ({iwn:.2f}--{fwn:.2f} cm-1)."
+          )
           return None
 
       # Find the record index for iwn and fwn:
@@ -142,19 +150,22 @@ class Exomol(Linelist):
 
       # Allocate arrays for values to extract:
       isoID = np.zeros(nread, int)
-      A21   = np.zeros(nread, np.double)
-      upID  = np.zeros(nread, int)
-      loID  = np.zeros(nread, int)
+      A21 = np.zeros(nread, np.double)
+      upID = np.zeros(nread, int)
+      loID = np.zeros(nread, int)
 
-      self.log.msg(f'Process {self.name} database between records '
-                   f'{istart:,d} and {istop:,d}.', indent=2)
+      self.log.msg(
+          f'Process {self.name} database between records '
+          f'{istart:,d} and {istop:,d}.',
+          indent=2,
+      )
 
       interval = (istop - istart) // 10  # Check-point interval
       if interval == 0:
           interval = 1
 
       i = 0
-      while (i < nread):
+      while i < nread:
           # Read a record:
           data.seek((istart+i) * self.recsize)
           line = data.read(self.recsize)
@@ -162,23 +173,25 @@ class Exomol(Linelist):
           loID[i] = line[13:25]
           A21 [i] = line[26:36]
           # Print a checkpoint statement every 10% interval:
-          if (i % interval) == 0.0  and  i != 0:
-              wn = self.E[upID[i]-1] - self.E[loID[i]-1]
-              gfval = self.g[upID[i]-1]*A21[i]*pc.C1 / (8.0*np.pi*pc.c) / wn**2
+          if (i % interval) == 0.0 and i != 0:
+              wn = self.E[upID[i]] - self.E[loID[i]]
+              gfval = self.g[upID[i]]*A21[i]*pc.C1 / (8.0*np.pi*pc.c) / wn**2
               self.log.msg(f'{10*i/interval:5.1f}% completed.', indent=3)
               self.log.debug(
                   f'Wavenumber: {wn:8.2f} cm-1   '
                   f'Wavelength: {1.0/(wn*pc.um):6.3f} um\n'
-                  f'Elow:     {self.E[loID[i]-1]:.4e} cm-1   '
+                  f'Elow:     {self.E[loID[i]]:.4e} cm-1   '
                   f'gf: {gfval:.4e}   '
-                  f'Iso ID: {self.isotopes.index(self.iso):2d}', indent=6)
+                  f'Iso ID: {self.isotopes.index(self.iso):2d}',
+                  indent=6,
+              )
           i += 1
       data.close()
 
-      wnumber = self.E[upID-1] - self.E[loID-1]
+      wnumber = self.E[upID] - self.E[loID]
       # Equation (36) of Simeckova et al. (2006):
-      gf = self.g[upID-1] * A21*pc.C1 / (8.0*np.pi*pc.c) / wnumber**2.0
-      elow = self.E[loID-1]
+      gf = self.g[upID] * A21*pc.C1 / (8.0*np.pi*pc.c) / wnumber**2.0
+      elow = self.E[loID]
       isoID[:] = self.isotopes.index(self.iso)
 
       return wnumber, gf, elow, isoID

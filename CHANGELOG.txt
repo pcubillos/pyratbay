@@ -7493,4 +7493,8 @@ Continue PEP8 cleaning argum.py and objects.py.
 Added wavelength ranges of extracted lines at end of make_tli().
 Some more PEP8.
 
+*****
+
+Refactored Exomol() class to handle gaps in the states file.
+Code look as bit cleaner.
 
