@@ -846,11 +846,7 @@ def read_observations(obs_file):
     Parameters
     ----------
     obs_file: String
-        Path to file containing observations info. This file contains
-        one observation per line, containing either:
-        - the data, uncertainties, and passband info
-        or
-        - the passband info.
+        Path to file containing observations info, see Notes below.
 
     Returns
     -------
@@ -861,14 +857,32 @@ def read_observations(obs_file):
     uncert: 1D float ndarray
         The depth uncertainties.
 
+    Notes
+    -----
+    An obs_file contains passband info (indicated by a '@DATA' flag),
+    one line per passband. The passband info could be:
+    (1) a path to a file containing the spectral response, or
+    (2) a tophat filter defined by a central wavelength, half-width,
+    and optionally a name.
+
+    A @DEPTH_UNITS flag sets the depth and uncert units (which can be
+    set to: none, percent, ppt, ppm).
+    This flag also indicates that there's data and uncerts to read
+    as two columns before the passband info.
+
+    Comment and blank lines are ignored,
+    central-wavelength and half-width units are always microns.
+
     Examples
     --------
     >>> import pyratbay.io as io
+    >>> # File including depths and uncertainties:
     >>> obs_file = 'observations.dat'
-    >>> filters, data, uncert = io.read_observations(obs_file)
+    >>> bands, data, uncert = io.read_observations(obs_file)
 
-    >>> obs_file = 'observation_filters.dat'
-    >>> filters = io.read_observations(obs_file)
+    >>> # File including only the passband info:
+    >>> obs_file = 'filters.dat'
+    >>> bands = io.read_observations(obs_file)
     """
     if not os.path.isfile(obs_file):
         raise ValueError(f"Observation file '{obs_file}' does not exist")
@@ -883,6 +897,7 @@ def read_observations(obs_file):
 
     # Number of header lines (to skip when reading the tabulated data):
     i = 0
+    depth_units = None
     nlines = len(lines)
     for i in range(nlines):
         line = lines[i]
@@ -890,15 +905,12 @@ def read_observations(obs_file):
         if line == "@DATA":
             i += 1
             break
-        # Get species:
-        elif line == "@WL_UNITS":
-            wl_units = lines[i+1]
         # Get the sampled temperatures:
         elif line == "@DEPTH_UNITS":
             depth_units = lines[i+1]
 
     nobs = nlines - i
-    has_data = len(lines[i].split()) > 2
+    has_data = depth_units is not None
 
     filters = []
     data = np.zeros(nobs)
@@ -920,6 +932,20 @@ def read_observations(obs_file):
         elif len(info) - ndata == 2:
             wl0, half_width = np.array(info[ndata:ndata+2], np.double)
             filters.append(ps.Tophat(wl0, half_width))
+        elif len(info) - ndata == 3:
+            wl0, half_width = np.array(info[ndata:ndata+2], np.double)
+            name = info[ndata+2]
+            filters.append(ps.Tophat(wl0, half_width, name))
+        else:
+            error_msg = 'Invalid number of values in obs_file'
+            if has_data and len(info) in [1,2]:
+                error_msg += (
+                    ", perhaps remove the '@DEPTH_UNITS' flag if there's no "
+                    "depth/uncert data"
+                )
+            elif not has_data and len(info) in [4,5]:
+                error_msg += ", perhaps the '@DEPTH_UNITS' flag is missing"
+            raise ValueError(error_msg)
 
     if has_data:
         data *= pt.u(depth_units)

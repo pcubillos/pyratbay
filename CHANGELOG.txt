@@ -7523,4 +7523,12 @@ Renamed qscaling.py to vmr_scaling.py.
 Minor cosmetics.
 
 
+*****  Wed Oct 12 09:09:21 CEST 2022  *****
+
+Final touch on io.read_observations() function, linked depth_units
+flag to reading depth and uncertainties, removed wavelength units
+flag (always use um) update docs, added errors.
+Implemented tests.
+A jupyter notebook is nearly ready to upload to the cookbooks,
+just need to find the right way to sort that out.
 
