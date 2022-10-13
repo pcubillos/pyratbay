@@ -735,7 +735,7 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         'tstep', "Opacity grid's temperature sampling step in K", gt=0.0)
 
     pyrat.rayleigh.pars = args.rpars
-    pyrat.cloud.pars     = args.cpars
+    pyrat.cloud.pars = args.cpars
     pyrat.rayleigh.model_names = args.get_choice(
         'rayleigh', 'Rayleigh model', pc.rmodels)
     pyrat.cloud.model_names = args.get_choice(
@@ -837,6 +837,13 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
     atm.molfree = args.molfree
     atm.molpars = args.molpars
     atm.bulk = args.bulk
+    if args.tmodel == 'tcea':
+        args.tmodel = 'guillot'
+        warning_msg = (
+            "The 'tcea' temperature model is deprecated, it has been renamed"
+            "as 'guillot', please update your config files in the future"
+        )
+        warnings.warn(warning_msg, category=DeprecationWarning)
     atm.tmodelname = args.get_choice('tmodel', 'temperature model', pc.tmodels)
     atm.tpars = args.tpars
     pyrat.ncpu = args.get_default('ncpu', 'Number of processors', 1, ge=1)

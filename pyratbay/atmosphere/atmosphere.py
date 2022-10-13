@@ -1,5 +1,5 @@
 # Copyright (c) 2021-2022 Patricio Cubillos
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+# Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
     'pressure',
@@ -136,7 +136,7 @@ def temperature(tmodel, pressure=None, nlayers=None, log=None, params=None):
     >>> # Three-channel Eddington-approximation profile:
     >>> pressure = pa.pressure(1e-8, 1e2, nlayers, "bar")
     >>> params = np.array([-4.84, -0.8, -0.8, 0.5, 1200.0, 100.0])
-    >>> temp = pa.temperature('tcea', pressure, params=params)
+    >>> temp = pa.temperature('guillot', pressure, params=params)
     >>> print(temp)
     [1046.89057381 1046.89090056 1046.89433798 1046.93040895 1047.30779086
      1051.21739055 1088.76131307 1312.57904127 1640.18896334 1659.78818839
@@ -996,7 +996,7 @@ def temperature_posterior(posterior, tmodel, tpars, ifree, pressure):
 
     >>> # Non-inverted temperature profile:
     >>> pressure = pa.pressure('1e-6 bar', '1e2 bar', nlayers=100)
-    >>> tmodel = pa.tmodels.TCEA(pressure)
+    >>> tmodel = pa.tmodels.Guillot(pressure)
     >>> tpars = np.array([-4.0, -1.0, 0.0, 0.0, 1000.0, 0.0])
     >>> # Simulate posterior where kappa' and gamma are variable:
     >>> nsamples = 5000

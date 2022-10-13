@@ -14,7 +14,7 @@ os.chdir(pc.ROOT+'tests')
 
 expected_pressure = np.logspace(-2, 9, 15)
 
-expected_temp_tcea = np.array(
+expected_temp_guillot = np.array(
       [1046.89057381, 1046.89075751, 1046.89192532, 1046.89933754,
        1046.94631087, 1047.24341507, 1049.11331707, 1060.60902021,
        1123.15986552, 1339.81840964, 1617.02710403, 1659.45254019,
@@ -152,21 +152,21 @@ def test_tmodel_isothermal(params):
     [[-4.84, -0.8, -0.8, 0.5, 1200.0, 100.0],
      np.array([-4.84, -0.8, -0.8, 0.5, 1200.0, 100.0])
     ])
-def test_tmodel_tcea_floats(params):
+def test_tmodel_guillot_floats(params):
     pressure = expected_pressure
     tmodel = pa.tmodels.TCEA(pressure)
-    np.testing.assert_allclose(tmodel(params), expected_temp_tcea)
+    np.testing.assert_allclose(tmodel(params), expected_temp_guillot)
 
 
 @pytest.mark.parametrize('gravity',
     [None, 2200.0, np.tile(2200.0, len(expected_pressure))])
-def test_tmodel_tcea_gravity(gravity):
+def test_tmodel_guillot_gravity(gravity):
     params = np.array([-4.84, -0.8, -0.8, 0.5, 1200.0, 100.0])
     pressure = expected_pressure
     if gravity is not None:
         params[0] += np.log10(2200.0)
     tmodel = pa.tmodels.TCEA(pressure, gravity)
-    np.testing.assert_allclose(tmodel(params), expected_temp_tcea)
+    np.testing.assert_allclose(tmodel(params), expected_temp_guillot)
 
 
 def test_temp_madhu_no_inv():
@@ -198,11 +198,11 @@ def test_temperature_isothermal():
     np.testing.assert_equal(temp, np.tile(params, nlayers))
 
 
-def test_temperature_tcea():
+def test_temperature_guillot():
     pressure = expected_pressure
     params = [-4.84, -0.8, -0.8, 0.5, 1200.0, 100.0]
-    temp = pa.temperature('tcea', pressure, params=params)
-    np.testing.assert_allclose(temp, expected_temp_tcea)
+    temp = pa.temperature('guillot', pressure, params=params)
+    np.testing.assert_allclose(temp, expected_temp_guillot)
 
 
 def test_temperature_madhu():

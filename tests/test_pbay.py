@@ -142,13 +142,13 @@ def test_tli_hitran_wfc3():
     assert 'HITRAN_H2O_1.1-1.7um_test.tli' in os.listdir('outputs/')
 
 
-@pytest.mark.skip(reason="Skip until implementing in Python3")
+@pytest.mark.skip(reason="TBD")
 def test_tli_repack():
     pb.run('configs/tli_repack_test.cfg')
     # TBD: asserts on output file
 
 
-@pytest.mark.skip(reason="Skip until implementing in Python3")
+@pytest.mark.skip(reason="Outdated dataset")
 def test_tli_tio_schwenke():
     pb.run('configs/tli_tio_schwenke_test.cfg')
     # TBD: asserts on output file
@@ -162,8 +162,29 @@ def test_pt_isothermal(tmp_path):
     np.testing.assert_equal(temperature, np.tile(1500.0, 81))
 
 
-def test_pt_TCEA(tmp_path):
-    cfg = make_config(tmp_path, ROOT+'tests/configs/pt_tcea.cfg')
+def test_pt_guillot(tmp_path):
+    cfg = make_config(tmp_path, ROOT+'tests/configs/pt_guillot.cfg')
+    pressure, temperature, abundances, species, radius = pb.run(cfg)
+    np.testing.assert_allclose(pressure, expected_pressure, rtol=1e-7)
+    np.testing.assert_allclose(temperature, expected_temperature, rtol=1e-7)
+
+
+def test_pt_tcea(tmp_path):
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/pt_guillot.cfg',
+        reset={'tmodel':'tcea'},
+    )
+    # Allowed, but discouraged:
+    with pytest.warns(DeprecationWarning):
+        pressure, temperature, abundances, species, radius = pb.run(cfg)
+    np.testing.assert_allclose(pressure, expected_pressure, rtol=1e-7)
+    np.testing.assert_allclose(temperature, expected_temperature, rtol=1e-7)
+
+
+@pytest.mark.skip(reason="TBD")
+def test_pt_madhu(tmp_path):
+    cfg = make_config(tmp_path, ROOT+'tests/configs/pt_madhu.cfg')
     pressure, temperature, abundances, species, radius = pb.run(cfg)
     np.testing.assert_allclose(pressure, expected_pressure, rtol=1e-7)
     np.testing.assert_allclose(temperature, expected_temperature, rtol=1e-7)
@@ -171,9 +192,11 @@ def test_pt_TCEA(tmp_path):
 
 def test_atmosphere_uniform(tmp_path):
     atmfile = str(tmp_path / 'test.atm')
-    cfg = make_config(tmp_path,
+    cfg = make_config(
+        tmp_path,
         ROOT+'tests/configs/atmosphere_uniform_test.cfg',
-        reset={'atmfile':atmfile})
+        reset={'atmfile':atmfile},
+    )
 
     press, temp, abund, species, radius = pb.run(cfg)
     np.testing.assert_allclose(press, expected_pressure, rtol=1e-7)

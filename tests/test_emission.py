@@ -217,7 +217,7 @@ def test_emission_tmodel_none(tmp_path):
         tmp_path,
         ROOT+'tests/configs/spectrum_emission_test.cfg',
         remove=['clouds', 'cpars'],
-        reset={'tmodel':'tcea'},
+        reset={'tmodel': 'guillot'},
     )
     pyrat = pb.run(cfg)
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['all'], rtol=rtol)
@@ -234,7 +234,7 @@ def test_emission_tmodel(tmp_path):
         tmp_path,
         ROOT+'tests/configs/spectrum_emission_test.cfg',
         remove=['clouds', 'cpars'],
-        reset={'tmodel':'tcea', 'tpars':'-4.67 -0.8 -0.8 0.5 1486.0 100.0'},
+        reset={'tmodel':'guillot', 'tpars':'-4.67 -0.8 -0.8 0.5 1486.0 100.0'},
     )
     pyrat = pb.run(cfg)
     np.testing.assert_allclose(
@@ -301,7 +301,7 @@ def test_emission_scale_model(tmp_path):
 def test_emission_fit(tmp_path):
     # Without evaulating params:
     reset = {
-        'tmodel': 'tcea',
+        'tmodel': 'guillot',
         'cpars': '2.0',
         'molmodel': 'vert',
         'molfree': 'H2O',

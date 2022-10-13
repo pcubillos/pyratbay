@@ -1,12 +1,13 @@
-# Copyright (c) 2021 Patricio Cubillos
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+# Copyright (c) 2021-2022 Patricio Cubillos
+# Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
     'Isothermal',
+    'Guillot',
     'TCEA',
     'Madhu',
     'get_model',
-    ]
+]
 
 import functools
 from collections.abc import Iterable
@@ -79,10 +80,10 @@ class Isothermal(object):
         return np.copy(self.temp)
 
 
-class TCEA(object):
+class Guillot(object):
     """
-    Three-channel Eddington Approximation (TCEA) temperature profile
-    model from Line et al. (2013), which is based on Guillot (2010).
+    Guillot (2010) temperature profile based on the three-channel
+    Eddington approximation, as described Line et al. (2013)
     """
     def __init__(self, pressure, gravity=None):
         """
@@ -106,21 +107,23 @@ class TCEA(object):
         be solved without knowing the temperature, thus making this a
         circular problem (shrug emoji).
         """
-        self.name = 'tcea'
+        self.name = 'guillot'
         self.pnames = [
             "log(kappa')",
             'log(gamma1)',
             'log(gamma2)',
             'alpha',
             'T_irr (K)',
-            'T_int (K)']
+            'T_int (K)',
+        ]
         self.texnames = [
             r"$\log_{10}(\kappa')$",
             r'$\log_{10}(\gamma_1)$',
             r'$\log_{10}(\gamma_2)$',
             r'$\alpha$',
             r'$T_{\rm irr} (K)$',
-            r'$T_{\rm int} (K)$']
+            r'$T_{\rm int} (K)$',
+        ]
         self.npars = len(self.pnames)
 
         if gravity is None:
@@ -137,7 +140,7 @@ class TCEA(object):
         Parameters
         ----------
         params: 1D iterable
-            TCEA model parameters:
+            Guillot model parameters:
             log10(kappa'): Planck thermal IR opacity divided by gravity.
                 This relates to the familiar kappa from Guillot (2010) as
                 kappa' = kappa/g, unless gravity is defined on initialization,
@@ -160,19 +163,23 @@ class TCEA(object):
         >>> import pyratbay.atmosphere as pa
         >>> import pyratbay.constants as pc
         >>> pressure = pa.pressure(1e-8, 1e2, 10, 'bar')
-        >>> tcea = pa.tmodels.TCEA(pressure)
+        >>> guillot = pa.tmodels.Guillot(pressure)
         >>> kappa, gamma1, gamma2, alpha = -4.8, -0.8, -0.8, 0.5
         >>> t_irr = pa.equilibrium_temp(5040, 0.756*pc.rsun, 0.031*pc.au)[0]
         >>> t_int = 100.0
-        >>> print(tcea([kappa, gamma1, gamma2, alpha, t_irr, t_int]))
+        >>> print(guillot([kappa, gamma1, gamma2, alpha, t_irr, t_int]))
         [1047.04157666 1047.04205435 1047.04857799 1047.13739008 1048.34031821
          1064.09404968 1215.18944824 1608.78252538 1659.93776642 1665.89970977]
         """
         # Ensure Numpy array:
         if isinstance(params, (list, tuple)):
             params = np.array(params, np.double)
-        self.temp[:] = _pt.tcea(params, self.pressure, self.gravity)
+        self.temp[:] = _pt.guillot(params, self.pressure, self.gravity)
         return np.copy(self.temp)
+
+
+# For backwards compatibility:
+TCEA = Guillot
 
 
 class Madhu(object):
@@ -187,8 +194,13 @@ class Madhu(object):
         self.name = 'madhu'
         self.pnames = ['logp1', 'logp2', 'logp3', 'a1', 'a2', 'T0']
         self.texnames = [
-            r'$\log_{10}(p_1)$', r'$\log_{10}(p_2)$', r'$\log_{10}(p_3)$',
-            r'$a_1$', r'$a_2$', r'$T_0$']
+            r'$\log_{10}(p_1)$',
+            r'$\log_{10}(p_2)$',
+            r'$\log_{10}(p_3)$',
+            r'$a_1$',
+            r'$a_2$',
+            r'$T_0$',
+        ]
         self.npars = len(self.pnames)
 
         self.logp = np.log10(pressure/pc.bar)
@@ -231,7 +243,7 @@ class Madhu(object):
         >>> # Plot the results:
         >>> plt.figure(1)
         >>> plt.clf()
-        >>> plt.semilogy(inv,     pressure/pc.bar, color='orange')
+        >>> plt.semilogy(inv, pressure/pc.bar, color='orange')
         >>> plt.semilogy(non_inv, pressure/pc.bar, color='b')
         >>> plt.ylim(1e3, 1e-6)
         """
@@ -255,8 +267,9 @@ class Madhu(object):
         self.temp[layer3] = np.tile(T3, np.sum(layer3))
 
         # Smooth PT profile:
-        self.temp = gaussian_filter1d(self.temp, sigma=self.fsmooth,
-            mode='nearest')
+        self.temp = gaussian_filter1d(
+            self.temp, sigma=self.fsmooth, mode='nearest',
+        )
         return np.copy(self.temp)
 
 
@@ -264,8 +277,8 @@ def get_model(name, *args, **kwargs):
     """Get a temperature-profile model by its name."""
     if name == 'isothermal':
         return Isothermal(*args, kwargs['nlayers'])
-    if name == 'tcea':
-        return TCEA(*args, kwargs['pressure'])
+    if name in ['tcea', 'guillot']:
+        return Guillot(*args, kwargs['pressure'])
     if name == 'madhu':
         return Madhu(*args, kwargs['pressure'])
 

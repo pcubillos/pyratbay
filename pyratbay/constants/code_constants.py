@@ -95,7 +95,7 @@ retflags = [
 # Temperature models:
 tmodels = [
    'isothermal',
-   'tcea',
+   'guillot',
    'madhu',
 ]
 

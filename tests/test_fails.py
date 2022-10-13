@@ -20,7 +20,7 @@ setup_err = "Error in module: 'argum.py', function: 'setup'"
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 # Check runmode and command_line vs interpreter runs:
 @pytest.mark.parametrize('runmode', ['None', 'invalid'])
-@pytest.mark.parametrize('call',    ['command_line', 'interpreter'])
+@pytest.mark.parametrize('call', ['command_line', 'interpreter'])
 def test_run_runmode(tmp_path, capfd, runmode, call):
     cfg = make_config(
         tmp_path,
@@ -155,7 +155,7 @@ def test_invalid_integer_all_params(tmp_path, capfd, param):
 def test_invalid_float_type(tmp_path, capfd, param, value):
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/pt_tcea.cfg',
+        ROOT+'tests/configs/pt_guillot.cfg',
         reset={param:value},
     )
     pyrat = pb.run(cfg)
@@ -241,7 +241,7 @@ def test_invalid_file_path(tmp_path, capfd, param, invalid_path):
 def test_missing_mass_units(tmp_path, capfd):
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/pt_tcea.cfg',
+        ROOT+'tests/configs/pt_guillot.cfg',
         reset={'mplanet':'1.0'},
     )
     pyrat = pb.run(cfg)
@@ -291,7 +291,7 @@ def test_missing_mass_units(tmp_path, capfd):
 def test_greater_than(tmp_path, capfd, param, value):
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/pt_tcea.cfg',
+        ROOT+'tests/configs/pt_guillot.cfg',
         reset={param:value},
     )
     pyrat = pb.run(cfg)
@@ -410,7 +410,7 @@ def test_pt_temperature_missing(tmp_path, capfd, param, undefined):
 
 @pytest.mark.parametrize('tmodel, npars',
     [('isothermal', 1),
-     ('tcea', 6),
+     ('guillot', 6),
      ('madhu', 6)])
 def test_pt_tpars_mismatch(tmp_path, capfd, tmodel, npars):
     cfg = make_config(
@@ -595,7 +595,7 @@ def test_spectrum_missing_chemistry_new_atmfile(tmp_path, capfd):
         'ptop': '1e-6 bar',
         'pbottom': '100.0 bar',
         'nlayers': '81',
-        'tmodel': 'tcea',
+        'tmodel': 'guillot',
         'tpars': '-4.84 -0.8 -0.8 0.5 1200.0 100.0',
     }
     cfg = make_config(
@@ -616,7 +616,7 @@ def test_spectrum_missing_chemistry_no_atmfile(tmp_path, capfd):
         'ptop': '1e-6 bar',
         'pbottom': '100.0 bar',
         'nlayers': '81',
-        'tmodel': 'tcea',
+        'tmodel': 'guillot',
         'tpars': '-4.84 -0.8 -0.8 0.5 1200.0 100.0',
     }
     cfg = make_config(
@@ -861,7 +861,7 @@ def test_spectrum_filters_mismatch(tmp_path, capfd):
 def test_spectrum_params_misfit(tmp_path, capfd):
     # Without evaulating params:
     reset = {
-        'tmodel':'tcea',
+        'tmodel':'guillot',
         'retflag':'temp',
         'params':'-4.67 -0.8',
     }
@@ -880,10 +880,15 @@ def test_spectrum_params_misfit(tmp_path, capfd):
 
 def test_eval_params_misfit(tmp_path, capfd):
     # Without evaulating params:
-    cfg = make_config(tmp_path,
+    reset = {
+        'tmodel': 'guillot',
+        'retflag': 'temp',
+    }
+    cfg = make_config(
+        tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        reset={'tmodel':'tcea',
-               'retflag':'temp'})
+        reset=reset,
+    )
     pyrat = pb.run(cfg)
     pyrat.eval([-4.67, -0.8])
     captured = capfd.readouterr()

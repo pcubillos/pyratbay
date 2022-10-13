@@ -7541,3 +7541,11 @@ Updated pyratbay version to 1.1.4.
 
 Split constants.py into astrophysical and code constants.
 
+*****
+
+Renamed TCEA temperature model to Guillot. The code still accepts
+'tcea' in configuration files for backwards compatibility, but this
+should be removed at some point in the future.
+Added warning when user requests a tcea model.
+Docs and tests have been updated.
+
