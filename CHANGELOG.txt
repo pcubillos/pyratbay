@@ -7549,3 +7549,8 @@ should be removed at some point in the future.
 Added warning when user requests a tcea model.
 Docs and tests have been updated.
 
+
+*****  Fri Oct 21 11:46:03 CEST 2022  *****
+
+Updated C2H2 info in isotopes.dat.
+
