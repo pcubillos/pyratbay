@@ -632,8 +632,7 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
     # Chemistry:
     atm.chemistry = args.get_choice(
        'chemistry', 'Chemical model', pc.chemmodels)
-    xsolar = args.get_default(
-        'xsolar', 'Atmospheric metallicity',)
+    xsolar = args.get_default('xsolar', 'Atmospheric metallicity')
     if xsolar is not None:
         args.metallicity = np.log10(xsolar)
         warning_msg = (
@@ -682,16 +681,18 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
     }
 
     # System physical parameters:
+    phy.gplanet = args.get_default(
+        'gplanet', 'Planetary surface gravity (cm s-2)', gt=0.0,
+    )
     phy.mpunits = args.get_default('mpunits', 'Planetary-mass units')
     if phy.mpunits is not None and not hasattr(pc, phy.mpunits):
         log.error(f'Invalid planet mass units (mpunits): {phy.mpunits}')
+
     phy.mplanet = args.get_param(
         'mplanet', phy.mpunits, 'Planetary mass', gt=0.0)
     if phy.mpunits is None:
         phy.mpunits = args.get_units('mplanet')
 
-    phy.gplanet = args.get_default(
-        'gplanet', 'Planetary surface gravity (cm s-2)', gt=0.0)
     phy.tint = args.get_default(
         'tint', 'Planetary internal temperature', 100.0, ge=0.0)
     phy.beta_irr = args.get_default(
@@ -840,7 +841,7 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
     if args.tmodel == 'tcea':
         args.tmodel = 'guillot'
         warning_msg = (
-            "The 'tcea' temperature model is deprecated, it has been renamed"
+            "The 'tcea' temperature model is deprecated, it has been renamed "
             "as 'guillot', please update your config files in the future"
         )
         warnings.warn(warning_msg, category=DeprecationWarning)

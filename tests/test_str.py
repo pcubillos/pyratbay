@@ -614,7 +614,7 @@ Stellar surface gravity (gstar, cm s-2): 22908.0
 
 Planetary radius (rplanet, Rjup): 1.000
 Planetary mass (mplanet, Mjup):   0.600
-Planetary surface gravity (gplanet, cm s-2): 1487.2
+Planetary surface gravity (gplanet, cm s-2): 1487.3
 Planetary internal temperature (tint, K):  100.0
 Orbital semi-major axis (smaxis, AU): 0.0450
 Planet-to-star radius ratio (rprs):   0.08092

@@ -7596,3 +7596,15 @@ Fixed link to jupyter notebooks in docs/cookbooks.
 
 Bumped pyratbay version to 1.1.6.
 
+
+*****  Mon Oct 24 00:22:30 CEST 2022  *****
+
+Updated Physics() class in objects.py to automate planet gravity
+and mass consistency (see MassGravity descriptor object).
+Whenever one variable is edited, the other is modified accordingly
+as gplanet = G*mplanet/rplanet**2.
+This removes a lot of code in other places.
+Simplified the logic: not calculating rplanet from mass and gravity
+when missing, throw error instead if needed.
+Updated docs and tests.
+

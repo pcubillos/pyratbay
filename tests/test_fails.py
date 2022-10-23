@@ -485,57 +485,63 @@ def test_atmosphere_uniform_mismatch_uniform(tmp_path, capfd):
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 # atmosphere (altitude) runmode fails:
 
-def test_atmosphere_hydro_missing_refpressure(tmp_path, capfd, undefined):
-    cfg = make_config(
-        tmp_path,
-        ROOT+'tests/configs/atmosphere_hydro_test.cfg',
-        remove=['refpressure'],
-    )
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert "Error in module: 'driver.py', function: 'check_altitude'" \
-        in captured.out
-    assert undefined['refpressure'] in captured.out
-
-
 def test_atmosphere_hydro_missing_all_planet_props(tmp_path, capfd, undefined):
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/atmosphere_hydro_test.cfg',
-        remove=['mplanet', 'rplanet', 'gplanet'],
+        f'{ROOT}tests/configs/atmosphere_hydro_test.cfg',
+        remove=['rplanet', 'mplanet', 'gplanet', 'refpressure'],
     )
     pyrat = pb.run(cfg)
+
     assert pyrat is None
     captured = capfd.readouterr()
-    assert "Error in module: 'driver.py', function: 'check_altitude'" \
-        in captured.out
-    assert ("Cannot compute hydrostatic-equilibrium radius profile.  Must\n"
-            "    define at least two of mplanet, rplanet, or gplanet.") \
-        in captured.out
+    error_messages = [
+        "Error in module: 'driver.py', function: 'check_altitude'",
+        'Cannot compute hydrostatic-equilibrium radius profile.',
+        'Undefined planet radius (rplanet).',
+        'Undefined planet mass (mplanet) or surface gravity (gplanet).',
+        'Undefined reference pressure level (refpressure).',
+    ]
+    for msg in error_messages:
+        assert msg in captured.out
 
-@pytest.mark.parametrize('param', ['mplanet', 'rplanet', 'gplanet'])
-def test_atmosphere_hydro_missing_two_props(tmp_path, capfd, param):
-    params = reset = {
-        'mplanet': '1.0 mjup',
-        'rplanet': '1.0 rjup',
-        'gplanet': '2479.0'
-    }
-    missing = list(params)
-    missing.remove(param)
+
+def test_atmosphere_hydro_missing_refpressure(tmp_path, capfd, undefined):
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/atmosphere_hydro_test.cfg',
-        reset=reset,
-        remove=missing,
+        f'{ROOT}tests/configs/atmosphere_hydro_test.cfg',
+        remove=['refpressure'],
     )
     pyrat = pb.run(cfg)
+
     assert pyrat is None
     captured = capfd.readouterr()
-    assert "Error in module: 'driver.py', function: 'check_altitude'" \
-        in captured.out
-    assert ("Cannot compute hydrostatic-equilibrium radius profile.  Must\n"
-            f"    define either {missing[0]} or {missing[1]}.") in captured.out
+    error_messages = [
+        "Error in module: 'driver.py', function: 'check_altitude'",
+        'Cannot compute hydrostatic-equilibrium radius profile.',
+        'Undefined reference pressure level (refpressure).',
+    ]
+    for msg in error_messages:
+        assert msg in captured.out
+
+
+def test_atmosphere_hydro_missing_mass_gravity(tmp_path, capfd):
+    cfg = make_config(
+        tmp_path,
+        f'{ROOT}tests/configs/atmosphere_hydro_test.cfg',
+        remove=['mplanet', 'gplanet'],
+    )
+    pyrat = pb.run(cfg)
+
+    assert pyrat is None
+    captured = capfd.readouterr()
+    error_messages = [
+        "Error in module: 'driver.py', function: 'check_altitude'",
+        'Cannot compute hydrostatic-equilibrium radius profile.',
+        'Undefined planet mass (mplanet) or surface gravity (gplanet).',
+    ]
+    for msg in error_messages:
+        assert msg in captured.out
 
 
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -730,21 +736,6 @@ def test_spectrum_invalid_pressure_ranges(tmp_path, capfd):
            in captured.out
     assert ('Bottom-layer pressure (1.00e-03 bar) must be higher than the '
             'top-layer\npressure (1.00e-02 bar).') in captured.out
-
-
-def test_spectrum_inconsistent_mass_radius_gravity(tmp_path, capfd):
-    cfg = make_config(
-        tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        reset={'gplanet':'1400.0'},
-    )
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert "Error in module: 'driver.py', function: 'run'" in captured.out
-    assert 'All mplanet, rplanet, and gplanet were provided, but values ' \
-           'are inconsistent\n(>5%): g(M,R) =  1487.3 cm s-2 and ' \
-           'gplanet =  1400.0 cm s-2.'  in captured.out
 
 
 @pytest.mark.parametrize('param',

@@ -1,5 +1,5 @@
 # Copyright (c) 2021-2022 Patricio Cubillos
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+# Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
     'run',
@@ -54,28 +54,9 @@ def run(cfile, run_step='run', no_logfile=False):
         po.make_tli(
             inputs.dblist, inputs.pflist, inputs.dbtype,
             pyrat.lt.tlifile[0], pyrat.spec.wllow, pyrat.spec.wlhigh,
-            pyrat.spec.wlunits, log)
+            pyrat.spec.wlunits, log,
+        )
         return
-
-    # Get gplanet from mplanet and rplanet if necessary:
-    mplanet = phy.mplanet is not None
-    gplanet = phy.gplanet is not None
-    rplanet = phy.rplanet is not None
-
-    # Check planetary surface gravity/mass/radius:
-    if mplanet and rplanet and gplanet:
-        gplanet = pc.G * phy.mplanet / phy.rplanet**2
-        if np.abs(gplanet-phy.gplanet)/phy.gplanet > 0.05:
-            log.error(
-                "All mplanet, rplanet, and gplanet were provided, but "
-               f"values are inconsistent (>5%): g(M,R) = {gplanet:7.1f} "
-               f"cm s-2 and gplanet = {phy.gplanet:7.1f} cm s-2.")
-    elif not mplanet and rplanet and gplanet:
-        phy.mplanet = phy.gplanet * phy.rplanet**2 / pc.G
-    elif mplanet and not rplanet and gplanet:
-        phy.rplanet = np.sqrt(pc.G * phy.mplanet / phy.gplanet)
-    elif mplanet and rplanet and not gplanet:
-        phy.gplanet = pc.G * phy.mplanet / phy.rplanet**2
 
     require_atmospheric_model = (
         pyrat.runmode in ['atmosphere', 'radeq']
@@ -336,26 +317,21 @@ def check_atm(pyrat):
 def check_altitude(pyrat):
     """Check input arguments to calculate altitude profile."""
     phy = pyrat.phy
-    log = pyrat.log
 
-    rad_vars = ['mplanet', 'rplanet', 'gplanet']
-    missing = [rvar for rvar in rad_vars
-               if getattr(phy,rvar) is None]
-
-    if len(missing) == 2:
-        err = f'either {missing[0]} or {missing[1]}'
-    elif len(missing) == 3:
-        err = 'at least two of mplanet, rplanet, or gplanet'
-
-    if len(missing) > 0:
-        log.error(
-            'Cannot compute hydrostatic-equilibrium radius profile.  '
-            f'Must\ndefine {err}.'
-        )
-
+    err = []
+    if phy.rplanet is None:
+        err += ['Undefined planet radius (rplanet).']
+    if phy.mplanet is None and phy.gplanet is None:
+        err += ['Undefined planet mass (mplanet) or surface gravity (gplanet).']
     if pyrat.atm.refpressure is None:
-        log.error(
-            'Cannot compute hydrostatic-equilibrium radius profile.  '
-            'Undefined reference pressure level (refpressure).'
-        )
+        err += ['Undefined reference pressure level (refpressure).']
+
+    if len(err) == 0:
+        return
+
+    error_message = '\n'.join(err)
+    pyrat.log.error(
+        'Cannot compute hydrostatic-equilibrium radius profile.\n'
+        f'{error_message}'
+    )
 

@@ -261,32 +261,7 @@ def test_atmosphere_hydro(tmp_path):
     np.testing.assert_allclose(atmf[5]*pc.rjup, expected_radius, rtol=5e-5)
 
 
-def test_atmosphere_hydro_default_runits(tmp_path):
-    atmfile = str(tmp_path / 'test.atm')
-    cfg = make_config(tmp_path,
-        ROOT+'tests/configs/atmosphere_hydro_test.cfg',
-        reset={'atmfile':atmfile, 'gplanet':'2478.7504116251885'},
-        remove=['rplanet'])
-
-    press, temp, abund, species, radius = pb.run(cfg)
-    np.testing.assert_allclose(radius, expected_radius, rtol=1e-7)
-    atmf = io.read_atm(atmfile)
-    assert atmf[0] == ('bar', 'kelvin', 'volume', 'rjup')
-    np.testing.assert_allclose(atmf[5]*pc.rjup, expected_radius, rtol=5e-5)
-
-
-
-# See tests/test_spectrum.py for spectrum tests
-
-
-def test_spectrum_emission(tmp_path):
-    cfg = make_config(
-        tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        reset={'rt_path':'emission', 'cpars':'-0.5'})
-    pyrat = pb.run(cfg)
-    assert pyrat is not None
-    # TBD: implement asserts
+# See test_emission.py and test_transmission.py for spectrum tests
 
 
 @pytest.mark.sort(order=10)

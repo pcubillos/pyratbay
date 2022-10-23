@@ -359,13 +359,14 @@ the user needs to supply a pair of radius--pressure reference values
 to define the boundary condition :math:`r(p_0) = R_0`.  The
 ``rplanet`` and ``refpressure`` keys set :math:`R_0` and :math:`p_0`,
 respectively.
-The ``mplanet`` and ``gplanet`` keys set the
-planetary mass (:math:`M_p`) and surface gravity (:math:`g`),
-respectively.
+The ``mplanet`` and ``gplanet`` keys set the planetary mass (:math:`M_p`)
+and surface gravity (:math:`g`) corresponding to ``rplanet``, respectively.
 
-.. Note:: Note that the user needs only to define two out of the three
-          :math:`\{R_0, M_p, g\}` variables, since they are related
-          through the equation: :math:`g(R_0) = G M_p / R_0^2`.
+.. Note:: Note that the user needs only to define one variable between
+    ``mplanet`` and ``gplanet`` since they are related
+    through the equation: :math:`g(R_0) = G M_p / R_0^2`.  Whenever
+    ``mplanet`` is set to a given value, ``gplanet`` is updated
+    consistently, and vice versa.
 
 Note that the selection of the :math:`\{p_0,R_0\}` pair is arbitrary.
 A good practice is to choose values close to the transit radius of

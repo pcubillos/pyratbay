@@ -23,7 +23,7 @@ import os
 import numpy as np
 import scipy.constants as sc
 
-from .. import tools     as pt
+from .. import tools as pt
 from .. import constants as pc
 
 
@@ -815,22 +815,54 @@ def none_div(a, b):
     return a/b
 
 
+class MassGravity:
+    """
+    Descriptor object that keeps the planet mass and gravity
+    consistent with each other by ensuring that
+        gplanet = G * mplanet / rplanet**2
+    whenever one of these two variables are modified.
+
+    To understand this sorcery see:
+    https://docs.python.org/3/howto/descriptor.html
+    """
+    def __set_name__(self, obj, name):
+        self.private_name = '_' + name
+
+    def __get__(self, obj, objtype=None):
+        value = getattr(obj, self.private_name)
+        return value
+
+    def __set__(self, obj, value):
+        priv_name = self.private_name
+        var_name = self.private_name[1:]
+        if hasattr(obj, priv_name) and value == getattr(obj, priv_name):
+            return
+        setattr(obj, priv_name, value)
+
+        if obj.rplanet is not None and value is not None:
+            if var_name == 'mplanet':
+                obj.gplanet = pc.G * obj.mplanet / obj.rplanet**2
+            elif var_name == 'gplanet':
+                obj.mplanet = obj.gplanet * obj.rplanet**2 / pc.G
+
+
 class Physics(object):
+  mplanet = MassGravity()  # Planetary mass
+  gplanet = MassGravity()  # Planetary surface gravity (at rplanet)
+  """A container of physical properties about the planet and star"""
   def __init__(self):
-      self.tstar    = None  # Stellar effective temperature
-      self.rstar    = None  # Stellar radius
-      self.mstar    = None  # Stellar mass
-      self.gstar    = None  # Stellar surface gravity
-      self.rplanet  = None  # Planetary radius
-      self.mplanet  = None  # Planetary mass
-      self.gplanet  = None  # Planetary surface gravity
-      self.smaxis   = None  # Orbital semi-major axis
-      self.rhill    = np.inf  # Planetary Hill radius
+      self.tstar = None  # Stellar effective temperature
+      self.rstar = None  # Stellar radius
+      self.mstar = None  # Stellar mass
+      self.gstar = None  # Stellar surface gravity
+      self.rplanet = None  # Planetary radius
+      self.smaxis = None  # Orbital semi-major axis
+      self.rhill = np.inf  # Planetary Hill radius
       self.starspec = None  # Stellar spectrum filename
-      self.kurucz   = None  # Kurucz stellar spectrum
-      self.marcs    = None  # MARCS stellar spectrum
-      self.phoenix  = None  # PHOENIX stellar spectrum
-      self.starwn   = None  # Input stellar wavenumber array
+      self.kurucz = None  # Kurucz stellar spectrum
+      self.marcs = None  # MARCS stellar spectrum
+      self.phoenix = None  # PHOENIX stellar spectrum
+      self.starwn = None  # Input stellar wavenumber array
       self.starflux = None  # Input stellar flux spectrum in  FINDME units
 
   def __str__(self):

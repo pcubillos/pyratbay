@@ -285,7 +285,7 @@ class Pyrat(object):
                   f"the cap of {self.ret.qcap:.3f}."
               )
 
-      # Update reference radius if requested:
+      # Update reference radius/pressure if requested:
       if self.ret.irad is not None:
           self.phy.rplanet = params[self.ret.irad][0] * pt.u(atm.runits)
       elif self.ret.ipress is not None:
@@ -295,12 +295,6 @@ class Pyrat(object):
       # Update planetary mass if requested:
       if self.ret.imass is not None:
           self.phy.mplanet = params[self.ret.imass][0] * pt.u(self.phy.mpunits)
-
-      # Keep M-g-R0 consistency:
-      if atm.rmodelname == 'hydro_g': # and self.ret.igrav is None:
-          self.phy.gplanet = pc.G * self.phy.mplanet / self.phy.rplanet**2
-      #if atm.rmodelname == 'hydro_m' and self.ret.igrav is not None:
-      #    self.phy.mplanet = self.phy.gplanet * self.phy.rplanet**2 / pc.G
 
       # Update Rayleigh parameters if requested:
       if self.ret.iray is not None:

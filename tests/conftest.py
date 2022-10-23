@@ -52,17 +52,10 @@ def undefined():
         'tstar':   'Undefined stellar temperature (tstar)',
         'gstar':   'Undefined stellar gravity (gstar)',
         'smaxis':  'Undefined orbital semi-major axis (smaxis)',
-        'mplanet': 'Undefined planetary surface gravity, set either '
-                   'gplanet or mplanet and\nrplanet',
-        'rplanet': 'Undefined planetary surface gravity, set either '
-                   'gplanet or mplanet and\nrplanet',
-        'gplanet': 'Undefined planetary surface gravity (gplanet)',
         'atmfile': 'Undefined atmospheric file (atmfile)',
         'species': 'Undefined atmospheric species list (species)',
         'uniform': 'Undefined list of uniform volume mixing ratios (uniform) '
                    'for uniform\nchemistry model',
-        'refpressure': 'Cannot compute hydrostatic-equilibrium radius profile.'
-                       '  Undefined reference\npressure level (refpressure)',
     }
     return data
 
