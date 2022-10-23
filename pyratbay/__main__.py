@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 
-# Copyright (c) 2021 Patricio Cubillos
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+# Copyright (c) 2021-2022 Patricio Cubillos
+# Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import argparse
 import matplotlib
@@ -38,25 +38,33 @@ def main():
     parser = argparse.ArgumentParser(
         description=__doc__,
         add_help=True,
-        formatter_class=argparse.RawDescriptionHelpFormatter)
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
     parser.add_argument(
-        '-v', '--version', action='version',
+        '-v', '--version',
+        action='version',
         help="Show Pyrat Bay's version.",
-        version=f'Pyrat Bay version {pb.__version__}')
+        version=f'Pyrat Bay version {pb.__version__}',
+    )
     parser.add_argument(
-        '--root', action='version',
+        '--root',
+        action='version',
         help="Show Pyrat Bay's ROOT directory.",
-        version=pb.constants.ROOT)
+        version=pb.constants.ROOT,
+    )
     group = parser.add_mutually_exclusive_group()
     group.add_argument(
         '-c', dest='cfile', default=None,
-        help='Run Pyrat Bay for given configuration file.')
+        help='Run Pyrat Bay for given configuration file.',
+    )
     group.add_argument(
         '-pf', dest='pf', default=None, nargs='+',
-        help='Format a partition-function file.')
+        help='Format a partition-function file.',
+    )
     group.add_argument(
         '-cs', dest='cs', default=None, nargs='+',
-        help='Format a cross-section file.')
+        help='Format a cross-section file.',
+    )
 
     # Parse command-line args:
     args, unknown = parser.parse_known_args()

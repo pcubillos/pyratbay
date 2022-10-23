@@ -18,8 +18,8 @@ os.chdir(ROOT+'tests')
 
 # Expected spectra:
 keys = [
-    'lec', 'cia', 'alkali', 'deck', 'tli', 'patchy', 'patchy_clear',
-    'patchy_cloudy', 'all', 'etable',
+    'lec', 'cia', 'alkali', 'deck', 'tli',
+    'patchy', 'patchy_clear', 'patchy_cloudy', 'all', 'etable',
     'tmodel', 'vert', 'scale', 'fit1', 'fit2', 'fit3', 'fit4',
     'bandflux4', 'resolution', 'odd_even',
 ]
@@ -37,12 +37,14 @@ OUTPUTS = f'{ROOT}tests/outputs/'
 # Relative tolerance of less than 0.01% difference:
 rtol = 0.01 / 100.0
 
+
 def test_transmission_clear(tmp_path):
     # No opacity whatsoever:
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        remove=['tlifile', 'csfile', 'rayleigh', 'alkali', 'clouds'])
+        remove=['tlifile', 'csfile', 'rayleigh', 'alkali', 'clouds'],
+    )
     pyrat = pb.run(cfg)
     depth_bottom = (pyrat.atm.radius[-1] / pyrat.phy.rstar)**2
     np.testing.assert_allclose(pyrat.spec.spectrum, depth_bottom, rtol=rtol)
@@ -52,7 +54,8 @@ def test_transmission_lecavelier(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        remove=['tlifile', 'csfile', 'alkali', 'clouds'])
+        remove=['tlifile', 'csfile', 'alkali', 'clouds'],
+    )
     pyrat = pb.run(cfg)
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['lec'], rtol=rtol)
 
@@ -61,7 +64,8 @@ def test_transmission_CIA(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        remove=['tlifile', 'rayleigh', 'alkali', 'clouds'])
+        remove=['tlifile', 'rayleigh', 'alkali', 'clouds'],
+    )
     pyrat = pb.run(cfg)
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['cia'], rtol=rtol)
 
@@ -71,7 +75,8 @@ def test_transmission_alkali(tmp_path):
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         remove=['tlifile', 'csfile', 'rayleigh', 'clouds'],
-        reset={'wllow':'0.45 um', 'wlhigh':'1.0 um'})
+        reset={'wllow':'0.45 um', 'wlhigh':'1.0 um'},
+    )
     pyrat = pb.run(cfg)
     np.testing.assert_allclose(
         pyrat.spec.spectrum, expected['alkali'], rtol=rtol)
@@ -81,7 +86,8 @@ def test_transmission_deck(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        remove=['tlifile', 'csfile', 'rayleigh', 'alkali'])
+        remove=['tlifile', 'csfile', 'rayleigh', 'alkali'],
+    )
     pyrat = pb.run(cfg)
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['deck'], rtol=rtol)
 
@@ -90,7 +96,8 @@ def test_transmission_tli(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        remove=['csfile', 'rayleigh', 'clouds', 'alkali'])
+        remove=['csfile', 'rayleigh', 'clouds', 'alkali'],
+    )
     pyrat = pb.run(cfg)
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['tli'], rtol=rtol)
 
@@ -99,7 +106,8 @@ def test_transmission_all(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        remove=['clouds'])
+        remove=['clouds'],
+    )
     pyrat = pb.run(cfg)
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['all'], rtol=rtol)
 
@@ -159,19 +167,26 @@ def test_transmission_wl_step(tmp_path):
 # Optical-depth integration is home made, which depends on whether there is
 # an odd or even number of layers. Thus, the need for this test.
 def test_transmission_odd_even(tmp_path):
-    cfg = make_config(tmp_path,
+    cfg = make_config(
+        tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         reset={'rpars':'1.0 -4.0'},
-        remove=['tlifile', 'csfile', 'alkali', 'clouds'])
+        remove=['tlifile', 'csfile', 'alkali', 'clouds'],
+    )
     pyrat = pb.run(cfg)
     np.testing.assert_allclose(
         pyrat.spec.spectrum, expected['odd_even'], rtol=rtol)
 
-    cfg = make_config(tmp_path,
+    reset = {
+        'atmfile': f'{INPUTS}atmosphere_uniform_even_layers.atm',
+        'rpars': '1.0 -4.0',
+    }
+    cfg = make_config(
+        tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        reset={'atmfile':f'{INPUTS}atmosphere_uniform_even_layers.atm',
-               'rpars':'1.0 -4.0'},
-        remove=['tlifile', 'csfile', 'alkali', 'clouds'])
+        reset=reset,
+        remove=['tlifile', 'csfile', 'alkali', 'clouds'],
+    )
     pyrat = pb.run(cfg)
     spectrum = pyrat.spec.spectrum
     np.testing.assert_allclose(spectrum, expected['odd_even'], rtol=rtol)
@@ -179,20 +194,24 @@ def test_transmission_odd_even(tmp_path):
 
 def test_transmission_etable(tmp_path):
     # LBL from extinction table:
-    cfg = make_config(tmp_path,
+    cfg = make_config(
+        tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         remove=['tlifile', 'clouds'],
-        reset={'extfile':f'{OUTPUTS}exttable_test_300-3000K_1.1-1.7um.npz'})
+        reset={'extfile':f'{OUTPUTS}exttable_test_300-3000K_1.1-1.7um.npz'},
+    )
     pyrat = pb.run(cfg)
     np.testing.assert_allclose(
         pyrat.spec.spectrum, expected['etable'], rtol=rtol)
 
 
 def test_transmission_input_radius(tmp_path):
-    cfg = make_config(tmp_path,
+    cfg = make_config(
+        tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         reset={'atmfile':f'{INPUTS}atmosphere_uniform_radius.atm'},
-        remove=['radmodel'])
+        remove=['radmodel'],
+    )
     pyrat = pb.run(cfg)
     atm = io.read_atm('inputs/atmosphere_uniform_radius.atm')
     np.testing.assert_allclose(pyrat.atm.radius, atm[5]*pc.km, rtol=rtol)
@@ -234,20 +253,24 @@ def test_transmission_tmodel_none(tmp_path):
 
 def test_transmission_tmodel(tmp_path):
     # Include tmodel and tpars in input config file:
-    cfg = make_config(tmp_path,
+    cfg = make_config(
+        tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         remove=['clouds', 'cpars'],
-        reset={'tmodel':'guillot', 'tpars':'-4.67 -0.8 -0.8 0.5 1486.0 100.0'})
+        reset={'tmodel':'guillot', 'tpars':'-4.67 -0.8 -0.8 0.5 1486.0 100.0'},
+    )
     pyrat = pb.run(cfg)
     tmodel2 = pyrat.spec.spectrum
     np.testing.assert_allclose(tmodel2, expected['tmodel'], rtol=rtol)
 
 
 def test_transmission_vert_none_model(tmp_path):
-    cfg = make_config(tmp_path,
+    cfg = make_config(
+        tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         remove=['clouds', 'cpars'],
-        reset={'molmodel':'vert', 'molfree':'H2O', 'bulk':'H2 He'})
+        reset={'molmodel':'vert', 'molfree':'H2O', 'bulk':'H2 He'},
+    )
     pyrat = pb.run(cfg)
     vmodel0 = pyrat.spec.spectrum
     np.testing.assert_allclose(vmodel0, expected['all'], rtol=rtol)
