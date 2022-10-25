@@ -7608,3 +7608,13 @@ Simplified the logic: not calculating rplanet from mass and gravity
 when missing, throw error instead if needed.
 Updated docs and tests.
 
+*****
+
+Cosmetics.
+
+
+*****  Tue Oct 25 09:59:29 CEST 2022  *****
+
+Updated docs, set up cookbooks section,
+added passbands.rst sub-section.
+
