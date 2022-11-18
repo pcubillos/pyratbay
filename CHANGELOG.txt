@@ -7583,3 +7583,7 @@ Updated API docs.
 
 Cosmetics docs.
 
+*****
+
+Bumped pyratbay version to beta 1.1.5.
+
