@@ -7570,3 +7570,8 @@ Updated internal variables of Guillot() and Madhu() models
 all temperature models now).
 Updated docstrings.
 
+*****
+
+Completely reformated cookbooks docs.
+Added first couple of tutorials (ideally more to come).
+
