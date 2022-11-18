@@ -7565,4 +7565,8 @@ updated docs and tests.
 
 *****
 
+Updated internal variables of Guillot() and Madhu() models
+(both have .temperature and .pressure, which standardizes
+all temperature models now).
+Updated docstrings.
 

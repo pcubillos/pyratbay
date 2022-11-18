@@ -128,9 +128,9 @@ class Guillot(object):
             'T_int (K)',
         ]
         self.texnames = [
-            r"$\log_{10}(\kappa')$",
-            r'$\log_{10}(\gamma_1)$',
-            r'$\log_{10}(\gamma_2)$',
+            r"$\log (\kappa')$",
+            r'$\log (\gamma_1)$',
+            r'$\log (\gamma_2)$',
             r'$\alpha$',
             r'$T_{\rm irr} (K)$',
             r'$T_{\rm int} (K)$',
@@ -143,7 +143,7 @@ class Guillot(object):
             gravity = np.tile(gravity, len(pressure))
         self.pressure = np.asarray(pressure, float)
         self.gravity = np.asarray(gravity, float)
-        self.temp = np.zeros_like(pressure, float)
+        self.temperature = np.zeros_like(pressure, float)
 
     @check_params
     def __call__(self, params):
@@ -173,20 +173,30 @@ class Guillot(object):
         --------
         >>> import pyratbay.atmosphere as pa
         >>> import pyratbay.constants as pc
-        >>> pressure = pa.pressure(1e-8, 1e2, 10, 'bar')
+
+        >>> nlayers = 101
+        >>> pressure = pa.pressure('1e-7 bar', '100 bar', nlayers)
         >>> guillot = pa.tmodels.Guillot(pressure)
-        >>> kappa, gamma1, gamma2, alpha = -4.8, -0.8, -0.8, 0.5
-        >>> t_irr = pa.equilibrium_temp(5040, 0.756*pc.rsun, 0.031*pc.au)[0]
-        >>> t_int = 100.0
-        >>> print(guillot([kappa, gamma1, gamma2, alpha, t_irr, t_int]))
-        [1047.04157666 1047.04205435 1047.04857799 1047.13739008 1048.34031821
-         1064.09404968 1215.18944824 1608.78252538 1659.93776642 1665.89970977]
+
+        >>> log_k, log_g1 = -4.8, -0.6
+        >>> log_g2, alpha = 0.0, 0.0
+        >>> t_irr, t_int = 1200.0, 100.0
+        >>> tp_inv = guillot([log_k, log_g1, log_g2, alpha, t_irr, t_int])
+        >>> log_g1 = 0.2
+        >>> tp_non_inv = guillot([log_k, log_g1, log_g2, alpha, t_irr, t_int])
+
+        >>> # Plot the profiles:
+        >>> plt.figure(1)
+        >>> plt.clf()
+        >>> plt.semilogy(tp_inv, pressure/pc.bar, color='darkorange')
+        >>> plt.semilogy(tp_non_inv, pressure/pc.bar, color='red')
+        >>> plt.ylim(1e2, 1e-7)
         """
         # Ensure Numpy array:
         if isinstance(params, (list, tuple)):
             params = np.array(params, np.double)
-        self.temp[:] = _pt.guillot(params, self.pressure, self.gravity)
-        return np.copy(self.temp)
+        self.temperature[:] = _pt.guillot(params, self.pressure, self.gravity)
+        return np.copy(self.temperature)
 
 
 # For backwards compatibility:
@@ -205,17 +215,18 @@ class Madhu(object):
         self.name = 'madhu'
         self.pnames = ['logp1', 'logp2', 'logp3', 'a1', 'a2', 'T0']
         self.texnames = [
-            r'$\log_{10}(p_1)$',
-            r'$\log_{10}(p_2)$',
-            r'$\log_{10}(p_3)$',
+            r'$\log (p_1)$',
+            r'$\log (p_2)$',
+            r'$\log (p_3)$',
             r'$a_1$',
             r'$a_2$',
             r'$T_0$',
         ]
         self.npars = len(self.pnames)
 
+        self.pressure = pressure
         self.logp = np.log10(pressure/pc.bar)
-        self.temp = np.zeros_like(pressure)
+        self.temperature = np.zeros_like(pressure)
         self.logp0 = np.amin(self.logp)
         # Standard deviation of smoothing kernel (~0.3 dex in pressure):
         self.fsmooth = 0.33/np.ediff1d(self.logp)[0]
@@ -241,27 +252,30 @@ class Madhu(object):
         >>> import pyratbay.atmosphere as pa
         >>> import pyratbay.constants as pc
         >>> import matplotlib.pyplot as plt
-        >>> # array of pressures, equally spaced in log space
-        >>> pressure = pa.pressure(1e-6, 1e3, 100, 'bar')
+
+        >>> nlayers = 101
+        >>> pressure = pa.pressure('1e-7 bar', '100 bar', nlayers)
+
         >>> madhu = pa.tmodels.Madhu(pressure)
         >>> # Thermally-inverted profile (p2 > p1):
         >>> #       [logp1, logp2, logp3, a1,  a2,  T0]
-        >>> params = -4.0, -1.0, 1.5, 0.85, 0.67, 870.0
+        >>> params = -3.5, 0.0, 0.5, 3.0, 0.5, 1500.0
         >>> inv = madhu(params)
         >>> # Non thermally-inverted profile (p1 > p2):
-        >>> params = -1.0, -4.0, 1.5, 0.85, 0.67, 870.0
+        >>> params = -3.5, -4.0, 0.5, 3.0, 0.5, 1100.0
         >>> non_inv = madhu(params)
-        >>> # Plot the results:
+
+        >>> # Plot the profiles:
         >>> plt.figure(1)
         >>> plt.clf()
-        >>> plt.semilogy(inv, pressure/pc.bar, color='orange')
-        >>> plt.semilogy(non_inv, pressure/pc.bar, color='b')
-        >>> plt.ylim(1e3, 1e-6)
+        >>> plt.semilogy(inv, pressure/pc.bar, color='darkgreen')
+        >>> plt.semilogy(non_inv, pressure/pc.bar, color='limegreen')
+        >>> plt.ylim(1e2, 1e-7)
         """
         logp1, logp2, logp3, a1, a2, T0 = params
         if logp1 > logp3:
-            self.temp[:] = 0.0
-            return np.copy(self.temp)
+            self.temperature[:] = 0.0
+            return np.copy(self.temperature)
 
         # Calculate temperatures at layer boundaries:
         T1 = T0 + ((logp1 - self.logp0) / (a1*self.loge))**2
@@ -272,16 +286,17 @@ class Madhu(object):
         layer2 = (self.logp >= logp1) & (self.logp < logp3)
         layer3 =  self.logp >= logp3
 
-        self.temp[layer1] = T0 + ((self.logp[layer1]-self.logp0)
-                                  / (a1*self.loge))**2
-        self.temp[layer2] = T2 + ((self.logp[layer2]-logp2) / (a2*self.loge))**2
-        self.temp[layer3] = np.tile(T3, np.sum(layer3))
+        self.temperature[layer1] = \
+            T0 + ((self.logp[layer1]-self.logp0) / (a1*self.loge))**2
+        self.temperature[layer2] = \
+            T2 + ((self.logp[layer2]-logp2) / (a2*self.loge))**2
+        self.temperature[layer3] = np.tile(T3, np.sum(layer3))
 
         # Smooth PT profile:
-        self.temp = gaussian_filter1d(
-            self.temp, sigma=self.fsmooth, mode='nearest',
+        self.temperature = gaussian_filter1d(
+            self.temperature, sigma=self.fsmooth, mode='nearest',
         )
-        return np.copy(self.temp)
+        return np.copy(self.temperature)
 
 
 def get_model(name, *args, **kwargs):
