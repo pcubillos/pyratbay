@@ -15,7 +15,7 @@ shapes.
 
 Let’s start by importing some necessary modules:
 
-.. code:: ipython3
+.. code:: python
 
     import pyratbay.io as io
     import pyratbay.spectrum as ps
@@ -35,7 +35,7 @@ Passband objects can be created by reading from a plain text file
 that tabulates the wavelength (in microns, first column) and its
 response function (second column), e.g.:
 
-.. code:: ipython3
+.. code:: python
 
     filter_file = f'{pc.ROOT}pyratbay/data/filters/spitzer_irac2_sa.dat'
     band = ps.PassBand(filter_file)
@@ -43,7 +43,7 @@ response function (second column), e.g.:
 
 Display some useful data that is contained in the object:
 
-.. code:: ipython3
+.. code:: python
 
     print(f'Filter name: {band.name}')
     print(f'Central wavelength: {band.wl0:.3f} um\n')
@@ -68,7 +68,7 @@ Display some useful data that is contained in the object:
 
 Evaluate passband over a specific wavelength array (um):
 
-.. code:: ipython3
+.. code:: python
 
     wl = np.arange(3.5, 5.5, 0.001)
     out_wl, out_response = band(wl)
@@ -96,7 +96,7 @@ Evaluate passband over a specific wavelength array (um):
 The band response function is scaled such that the
 integral over wavenumber equals one:
 
-.. code:: ipython3
+.. code:: python
 
     band_integral = np.trapz(band.response, band.wn)
     print(f'Integral of response function: {band_integral:.3f}')
@@ -109,7 +109,7 @@ integral over wavenumber equals one:
 
 It is possible to evaluate the passband over a wavenumber array:
 
-.. code:: ipython3
+.. code:: python
 
     wn = 1e4 / wl
     out_wn, out_response = band(wn=wn)
@@ -130,13 +130,13 @@ It is possible to evaluate the passband over a wavenumber array:
 Top-hat passband objects can be created by setting
 their central wavelength and half-width (in micron units):
 
-.. code:: ipython3
+.. code:: python
 
     wl0 = 4.5
     half_width = 0.5
     band = ps.Tophat(wl0, half_width)
 
-.. code:: ipython3
+.. code:: python
 
     # Evaluate passband over a specific wavelength array (um):
     wl = np.arange(3.5, 5.5, 0.001)
@@ -158,7 +158,7 @@ their central wavelength and half-width (in micron units):
 Same as with ``ps.Passband()``, a tophat response function is scaled
 such that the integral over wavenumber equals one:
 
-.. code:: ipython3
+.. code:: python
 
     band_integral = np.trapz(band.response, band.wn)
     print(f'Integral of response function: {band_integral:.3f}')
@@ -208,7 +208,7 @@ one below (not how you can combine top-hat and from filter files):
 
 Load this data and print a brief summary to screen:
 
-.. code:: ipython3
+.. code:: python
 
     # Loading:
     obs_file = 'observations.dat'
@@ -244,7 +244,7 @@ Load this data and print a brief summary to screen:
 
 Plot the data and passbands:
 
-.. code:: ipython3
+.. code:: python
 
     nbands = len(bands)
     colors = [plt.cm.plasma_r(0.1 + 0.1*i) for i in range(nbands)]

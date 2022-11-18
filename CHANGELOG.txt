@@ -7579,3 +7579,7 @@ Added first couple of tutorials (ideally more to come).
 
 Updated API docs.
 
+*****
+
+Cosmetics docs.
+

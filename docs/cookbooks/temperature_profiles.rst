@@ -15,7 +15,7 @@ Currently, there are three temperature models: ``isothermal``,
 
 Let’s start by importing some necessary modules:
 
-.. code:: ipython3
+.. code:: python
 
     import pyratbay.constants as pc
     import pyratbay.atmosphere as pa
@@ -24,7 +24,7 @@ Let’s start by importing some necessary modules:
     import numpy as np
     np.set_printoptions(precision=4)
 
-.. code:: ipython3
+.. code:: python
 
     # Define a pressure profile where to evaluate the temperature models:
     nlayers = 101
@@ -39,12 +39,12 @@ Let’s start by importing some necessary modules:
 1. Isothermal Profile
 ---------------------
 
-.. code:: ipython3
+.. code:: python
 
     # To initialize an isothermal TP model, provide the number of layers:
     tp_iso = pa.tmodels.Isothermal(pressure)
 
-.. code:: ipython3
+.. code:: python
 
     # Evaluate a TP profile at a given tempperature:
     temp_iso_1500K = tp_iso(1500.0)
@@ -67,7 +67,7 @@ Let’s start by importing some necessary modules:
 .. image:: temperature_profiles_files/temperature_profiles_5_1.png
 
 
-.. code:: ipython3
+.. code:: python
 
     # This is some useful data contained in the object:
     print(f'TP model name: {tp_iso.name}\n')
@@ -151,7 +151,7 @@ stellar irradiation absorbed by the planet as:
      T_{\rm irr} = \left(\frac{1-A}{f}\right)^{1/4}
                    \left( \frac{R_{\rm s}}{2a}\right)^{1/2} T_{\rm s}, 
 
-.. code:: ipython3
+.. code:: python
 
     # To initialize a Guillot TP model, provide the pressure array (in CGS units):
     tp_guillot = pa.tmodels.Guillot(pressure_cgs)
@@ -182,7 +182,7 @@ stellar irradiation absorbed by the planet as:
 .. image:: temperature_profiles_files/temperature_profiles_8_1.png
 
 
-.. code:: ipython3
+.. code:: python
 
     # This is some useful data contained in the object:
     print(f'TP model name: {tp_guillot.name}\n')
@@ -241,7 +241,7 @@ stellar irradiation absorbed by the planet as:
 2.1 Understanding the parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. code:: ipython3
+.. code:: python
 
     # log_kappa sets the pressure where the profile changes:
     # Think it as: log_P0_bars approx 6 + log_kappa
@@ -292,7 +292,7 @@ stellar irradiation absorbed by the planet as:
 .. image:: temperature_profiles_files/temperature_profiles_11_1.png
 
 
-.. code:: ipython3
+.. code:: python
 
     # T_irr sets how much incident flux the atmosphere receives:
     # Think it as: higher T_irr, higher overall temperature
@@ -340,7 +340,7 @@ stellar irradiation absorbed by the planet as:
 .. image:: temperature_profiles_files/temperature_profiles_12_1.png
 
 
-.. code:: ipython3
+.. code:: python
 
     # A non-zero alpha (in combination with gamma2) enables a linear combination
     # of two profiles with different gamma values:
@@ -395,7 +395,7 @@ non-inverted profile will result when :math:`p_2 < p_1`.
 The pressure parameters must also satisfy: :math:`p_1 < p_3` (otherwise
 the model will return zeros).
 
-.. code:: ipython3
+.. code:: python
 
     # To initialize a Madhu TP model, provide the pressure array (in CGS units):
     tp_madhu = pa.tmodels.Madhu(pressure_cgs)
@@ -427,7 +427,7 @@ the model will return zeros).
 .. image:: temperature_profiles_files/temperature_profiles_15_1.png
 
 
-.. code:: ipython3
+.. code:: python
 
     # This is some useful data contained in the object:
     print(f'TP model name: {tp_madhu.name}\n')
@@ -486,7 +486,7 @@ the model will return zeros).
 3.1 Understanding the parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. code:: ipython3
+.. code:: python
 
     # Preamble:
     log_p2_ninv = -4.0
@@ -494,7 +494,7 @@ the model will return zeros).
     T0_ninv = 1100.0
     T0_inv = 1500.0
 
-.. code:: ipython3
+.. code:: python
 
     # a1 sets the gradient above the p1 pressure level:
     # a1 >> 0.0: isothermal layer, a1>0: T increases away from P0
@@ -538,7 +538,7 @@ the model will return zeros).
 .. image:: temperature_profiles_files/temperature_profiles_19_0.png
 
 
-.. code:: ipython3
+.. code:: python
 
     # log_p1 sets the location of the top layer:
     # Note that since this is a piece-wise constructed model, the value
@@ -583,7 +583,7 @@ the model will return zeros).
 .. image:: temperature_profiles_files/temperature_profiles_20_0.png
 
 
-.. code:: ipython3
+.. code:: python
 
     # a2 sets the temperature gradient between p3 < p < p1:
     # a2 >> 0.0: isothermal layer, a2>0: T increases away from p2
@@ -628,7 +628,7 @@ the model will return zeros).
 .. image:: temperature_profiles_files/temperature_profiles_21_0.png
 
 
-.. code:: ipython3
+.. code:: python
 
     # log_p2 determines whether the atmosphere is thermally inverted
     # (p1 < p2) or not (p1 > p2).
@@ -675,7 +675,7 @@ the model will return zeros).
 .. image:: temperature_profiles_files/temperature_profiles_22_0.png
 
 
-.. code:: ipython3
+.. code:: python
 
     # logp3 sets the pressure of the isothermal lower layer:
     # Note that p2 is allowed to be at a deeper location than p3
@@ -718,7 +718,7 @@ the model will return zeros).
 .. image:: temperature_profiles_files/temperature_profiles_23_0.png
 
 
-.. code:: ipython3
+.. code:: python
 
     # T0 sets the temperature at the top of the profile:
     # This shifts the entire profile
