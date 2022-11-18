@@ -7554,3 +7554,15 @@ Docs and tests have been updated.
 
 Updated C2H2 info in isotopes.dat.
 
+
+*****  Fri Nov 18 16:04:28 CET 2022  *****
+
+Refactored Isothermal() object to be initialized with pressure
+array instead of the number of layers.  This standarizes all
+temperature models, and enables the isothermal model to keep
+track of the pressure array.
+updated docs and tests.
+
+*****
+
+

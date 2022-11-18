@@ -148,9 +148,7 @@ def temperature(tmodel, pressure=None, nlayers=None, log=None, params=None):
     if pressure is not None and nlayers is None:
         nlayers = len(pressure)
     if tmodel in pc.tmodels:
-        temp_model = tmodels.get_model(
-            tmodel, pressure=pressure, nlayers=nlayers,
-        )
+        temp_model = tmodels.get_model(tmodel, pressure=pressure)
     else:
         log.error(
             f"Invalid temperature model '{tmodel}'.  Select from: {pc.tmodels}"

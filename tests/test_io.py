@@ -144,8 +144,8 @@ def test_read_write_atm_pt(tmpdir):
     atmfile = "WASP-00b.atm"
     atm = "{}/{}".format(tmpdir, atmfile)
     nlayers = 11
-    pressure    = pa.pressure('1e-8 bar', '1e2 bar', nlayers)
-    temperature = pa.tmodels.Isothermal(nlayers)(1500.0)
+    pressure = pa.pressure('1e-8 bar', '1e2 bar', nlayers)
+    temperature = pa.tmodels.Isothermal(pressure)(1500.0)
     io.write_atm(atm, pressure, temperature, punits='bar')
     assert atmfile in os.listdir(str(tmpdir))
 
@@ -162,8 +162,8 @@ def test_read_write_atm_ptq(tmpdir):
     atmfile = "WASP-00b.atm"
     atm = "{}/{}".format(tmpdir, atmfile)
     nlayers = 11
-    pressure    = pa.pressure('1e-8 bar', '1e2 bar', nlayers)
-    temperature = pa.tmodels.Isothermal(nlayers)(1500.0)
+    pressure = pa.pressure('1e-8 bar', '1e2 bar', nlayers)
+    temperature = pa.tmodels.Isothermal(pressure)(1500.0)
     species     = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
     abundances  = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
     qprofiles = pa.uniform(pressure, temperature, species, abundances)
@@ -184,8 +184,8 @@ def test_read_write_atm_ptqr(tmpdir):
     atmfile = "WASP-00b.atm"
     atm = "{}/{}".format(tmpdir, atmfile)
     nlayers = 11
-    pressure    = pa.pressure('1e-8 bar', '1e2 bar', nlayers)
-    temperature = pa.tmodels.Isothermal(nlayers)(1500.0)
+    pressure = pa.pressure('1e-8 bar', '1e2 bar', nlayers)
+    temperature = pa.tmodels.Isothermal(pressure)(1500.0)
     species     = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
     abundances  = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
     qprofiles = pa.uniform(pressure, temperature, species, abundances)
@@ -251,10 +251,10 @@ def test_read_write_cs(species, tmpdir):
     csfile = 'CS_Mock.dat'
     csf = "{}/{}".format(tmpdir, csfile)
     temp = np.linspace(100, 1000, 3)
-    wn   = np.arange(10, 15, 1.0)
-    cs   = np.array([np.logspace( 0,-4,5),
-                     np.logspace(-1,-5,5),
-                     np.logspace(-2,-6,5)])
+    wn = np.arange(10, 15, 1.0)
+    cs = np.array([np.logspace( 0,-4,5),
+                   np.logspace(-1,-5,5),
+                   np.logspace(-2,-6,5)])
     header = '# Mock cross-section.\n'
     io.write_cs(csf, cs, species, temp, wn, header)
     assert csfile in os.listdir(str(tmpdir))

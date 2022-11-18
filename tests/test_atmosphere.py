@@ -144,7 +144,8 @@ def test_pressure_with_units():
     [1500.0, [1500.0], (1500,), np.array([1500.0])])
 def test_tmodel_isothermal(params):
     nlayers = 100
-    tmodel = pa.tmodels.Isothermal(nlayers)
+    pressure = np.logspace(-8, 2, nlayers)
+    tmodel = pa.tmodels.Isothermal(pressure)
     np.testing.assert_equal(tmodel(params), np.tile(1500.0, nlayers))
 
 
@@ -193,8 +194,9 @@ def test_temp_madhu_invalid_params():
 
 def test_temperature_isothermal():
     params = 1500.0
-    nlayers = 15
-    temp = pa.temperature("isothermal", params=params, nlayers=nlayers)
+    pressure = expected_pressure
+    nlayers = len(pressure)
+    temp = pa.temperature("isothermal", pressure, params=params)
     np.testing.assert_equal(temp, np.tile(params, nlayers))
 
 
@@ -229,7 +231,7 @@ def test_abundance_uniform():
     nlayers = 11
     punits  = 'bar'
     pressure = pa.pressure(1e-8, 1e2, nlayers, punits)
-    tmodel = pa.tmodels.Isothermal(nlayers)
+    tmodel = pa.tmodels.Isothermal(pressure)
     temperature = tmodel(1500.0)
     species     = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
     abundances  = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
@@ -243,7 +245,7 @@ def test_abundance_uniform():
 def test_abundances_tea_basic():
     nlayers = 9
     pressure = pa.pressure(1e-10, 1e3, nlayers, units='bar')
-    tmodel = pa.tmodels.Isothermal(nlayers)
+    tmodel = pa.tmodels.Isothermal(pressure)
     temperature = tmodel(1500.0)
     species = 'H He C O H2 H2O CO CO2 CH4'.split()
     elements = 'H He C O'.split()
@@ -256,7 +258,7 @@ def test_abundances_tea_basic():
 def test_abundances_tea_metallicity_escale(metallicity, e_scale):
     nlayers = 9
     pressure = pa.pressure(1e-5, 1e3, nlayers, units='bar')
-    tmodel = pa.tmodels.Isothermal(nlayers)
+    tmodel = pa.tmodels.Isothermal(pressure)
     temperature = tmodel(1500.0)
     species = 'H He C O H2 H2O CO CO2 CH4'.split()
     elements = 'H He C O'.split()
@@ -273,7 +275,7 @@ def test_abundances_tea_metallicity_escale(metallicity, e_scale):
 def test_abundances_tea_metallicity_eratio(e_ratio):
     nlayers = 9
     pressure = pa.pressure(1e-5, 1e3, nlayers, units='bar')
-    tmodel = pa.tmodels.Isothermal(nlayers)
+    tmodel = pa.tmodels.Isothermal(pressure)
     temperature = tmodel(1500.0)
     species = 'H He C O H2 H2O CO CO2 CH4'.split()
     elements = 'H He C O'.split()
@@ -291,7 +293,7 @@ def test_abundances_tea_metallicity_eratio(e_ratio):
 def test_abundances_tea_metallicity_eabundances(e_abundances):
     nlayers = 9
     pressure = pa.pressure(1e-5, 1e3, nlayers, units='bar')
-    tmodel = pa.tmodels.Isothermal(nlayers)
+    tmodel = pa.tmodels.Isothermal(pressure)
     temperature = tmodel(1500.0)
     species = 'H He C O H2 H2O CO CO2 CH4'.split()
     elements = 'H He C O'.split()
@@ -308,7 +310,7 @@ def test_abundances_tea_metallicity_eabundances(e_abundances):
 def test_hydro_g():
     nlayers = 11
     pressure = pa.pressure(1e-8, 1e2, nlayers, units='bar')
-    tmodel = pa.tmodels.Isothermal(nlayers)
+    tmodel = pa.tmodels.Isothermal(pressure)
     temperature = tmodel(1500.0)
     mu = np.tile(2.3, nlayers)
     g = pc.G * pc.mjup / pc.rjup**2
@@ -322,7 +324,7 @@ def test_hydro_g():
 def test_hydro_m():
     nlayers = 11
     pressure = pa.pressure(1e-8, 1e2, nlayers, units='bar')
-    tmodel = pa.tmodels.Isothermal(nlayers)
+    tmodel = pa.tmodels.Isothermal(pressure)
     temperature = tmodel(1500.0)
     mu = np.tile(2.3, nlayers)
     Mp = 1.0 * pc.mjup
@@ -336,7 +338,7 @@ def test_hydro_m():
 def test_hydro_m_ultra_puff():
     nlayers = 15
     pressure = pa.pressure(1e-8, 1e2, nlayers, units='bar')
-    tmodel = pa.tmodels.Isothermal(nlayers)
+    tmodel = pa.tmodels.Isothermal(pressure)
     temperature = tmodel(1500.0)
     mu = np.tile(2.3, nlayers)
     Mp = 0.1 * pc.mjup
@@ -542,7 +544,7 @@ def test_chemistry_escale():
 def test_chemistry_eratio():
     nlayers = 100
     pressure = pa.pressure(1.0e-08, 1.0e+03, nlayers, units='bar')
-    temperature = pa.tmodels.Isothermal(nlayers)(900.0)
+    temperature = pa.tmodels.Isothermal(pressure)(900.0)
     species = 'H2O CH4 CO CO2 NH3 C2H2 C2H4 HCN N2 H2 H He'.split()
     e_ratio = {'C_O': 2.0}
     chem_model = 'tea'

@@ -37,18 +37,19 @@ def check_params(func):
 
 class Isothermal(object):
     """Isothermal temperature profile model."""
-    def __init__(self, nlayers):
+    def __init__(self, pressure):
         """
         Parameters
         ----------
-        nlayers: Integer
-            Number of layers in temperature profile.
+        pressure: 1D float iterable
+            Pressure array where to evaluate the temperature profile.
         """
         self.name = 'isothermal'
-        self.pnames = ['T (K)']
+        self.pnames = ['T_iso (K)']
         self.texnames = [r'$T\ ({\rm K})$']
         self.npars = len(self.pnames)
-        self.temp = np.zeros(nlayers, np.double)
+        self.pressure = pressure
+        self.temperature = np.zeros(len(pressure), np.double)
 
     @check_params
     def __call__(self, params):
@@ -60,24 +61,34 @@ class Isothermal(object):
 
         Returns
         -------
-        temp: 1D float ndarray
+        temperature: 1D float ndarray
             Temperature profile in K.
 
         Examples
         --------
         >>> import pyratbay.atmosphere as pa
-        >>> nlayers = 8
-        >>> iso = pa.tmodels.Isothermal(nlayers)
+
+        >>> nlayers = 51
+        >>> pressure = pa.pressure('1e-7 bar', '100 bar', nlayers)
+        >>> iso = pa.tmodels.Isothermal(pressure)
         >>> print(iso(1500.0))
-        [1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500.]
+        [1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500.
+         1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500.
+         1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500.
+         1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500.
+         1500. 1500. 1500.]
         >>> print(iso([1500.0]))
-        [1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500.]
+        [1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500.
+         1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500.
+         1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500.
+         1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500.
+         1500. 1500. 1500.]
         """
         if isinstance(params, Iterable):
-            self.temp[:] = params[0]
+            self.temperature[:] = params[0]
         else:
-            self.temp[:] = params
-        return np.copy(self.temp)
+            self.temperature[:] = params
+        return np.copy(self.temperature)
 
 
 class Guillot(object):
@@ -276,7 +287,7 @@ class Madhu(object):
 def get_model(name, *args, **kwargs):
     """Get a temperature-profile model by its name."""
     if name == 'isothermal':
-        return Isothermal(*args, kwargs['nlayers'])
+        return Isothermal(*args, kwargs['pressure'])
     if name in ['tcea', 'guillot']:
         return Guillot(*args, kwargs['pressure'])
     if name == 'madhu':
