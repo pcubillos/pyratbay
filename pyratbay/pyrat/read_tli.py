@@ -117,7 +117,7 @@ def read_header(pyrat, linefile):
         name    = np.zeros(db.niso, 'U20')
         mass    = np.zeros(db.niso)
         ratio   = np.zeros(db.niso)
-        dbindex = np.zeros(db.niso, np.int)
+        dbindex = np.zeros(db.niso, int)
         db.z    = np.zeros((db.niso, db.ntemp))
 
         # Store per-isotope info:
@@ -293,7 +293,7 @@ def setimol(pyrat):
     Set the molecule index for the list of isotopes.
     """
     # Allocate imol array:
-    pyrat.iso.imol = np.zeros(pyrat.iso.niso, np.int)
+    pyrat.iso.imol = np.zeros(pyrat.iso.niso, int)
     # For each isotope:
     for i in range(pyrat.iso.niso):
         # Get molecule name from database object:

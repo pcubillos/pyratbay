@@ -1,9 +1,9 @@
-# Copyright (c) 2021 Patricio Cubillos
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+# Copyright (c) 2021-2022 Patricio Cubillos
+# Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
     'read_kurucz',
-    ]
+]
 
 import numpy as np
 
@@ -113,7 +113,7 @@ def read_kurucz(filename, temp=None, logg=None):
 
     # Convert intensity per unit frequency to surface flux per unit
     # wavenumber (erg s-1 cm-2 cm):
-    flux      = np.flip(intensity, axis=1) * 4.0*np.pi * pc.c
+    flux = np.flip(intensity, axis=1) * 4.0*np.pi * pc.c
     continuum = np.flip(continuum, axis=1) * 4.0*np.pi * pc.c
 
     if temp is not None and logg is not None:

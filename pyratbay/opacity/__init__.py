@@ -1,19 +1,19 @@
-# Copyright (c) 2021 Patricio Cubillos
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+# Copyright (c) 2021-2022 Patricio Cubillos
+# Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
     'make_tli',
     'linelist',
     'partitions',
     'broadening',
-    ]
+]
 
 from .lread import *
 from . import linelist
 from . import partitions
 from . import broadening
 
-from .. import VERSION as ver
+from .. import version as ver
 
 
 # Lineread version:

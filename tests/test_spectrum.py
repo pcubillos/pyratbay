@@ -1,5 +1,5 @@
-# Copyright (c) 2021 Patricio Cubillos
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+# Copyright (c) 2021-2022 Patricio Cubillos
+# Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import os
 import pytest
@@ -11,6 +11,177 @@ import pyratbay.constants as pc
 import pyratbay.io as io
 
 os.chdir(pc.ROOT + 'tests')
+
+
+def test_PassBand_init():
+    filter_file = f'{pc.ROOT}pyratbay/data/filters/spitzer_irac2_sa.dat'
+    band = ps.PassBand(filter_file)
+
+    # wl0 is passband's wavelength center of mass
+    np.testing.assert_allclose(band.wl0, 4.47065351)
+    # wn0 is 1/wl0 (which differs from wavenumber center of mass)
+    np.testing.assert_allclose(band.wn0, 2236.80944)
+    np.testing.assert_equal(band.response, band.input_response)
+    np.testing.assert_allclose(band.wl, band.input_wl)
+    np.testing.assert_allclose(band.wn, band.input_wn)
+
+
+@pytest.mark.parametrize('flip', (False, True))
+def test_PassBand_wl(flip):
+    filter_file = f'{pc.ROOT}pyratbay/data/filters/spitzer_irac2_sa.dat'
+    band = ps.PassBand(filter_file)
+    wl = np.arange(3.5, 5.5, 0.001)
+    if flip:
+        wl = np.flip(wl)
+    out_wl, out_response = band(wl)
+
+    np.testing.assert_equal(out_response, band.response)
+    np.testing.assert_equal(out_wl, band.wl)
+    np.testing.assert_allclose(wl[band.idx], band.wl)
+
+    wn_integral = np.trapz(band.response, band.wn)
+    np.testing.assert_allclose(wn_integral, 1.0)
+
+
+@pytest.mark.parametrize('flip', (False, True))
+def test_PassBand_wn(flip):
+    filter_file = f'{pc.ROOT}pyratbay/data/filters/spitzer_irac2_sa.dat'
+    band = ps.PassBand(filter_file)
+    wn = 1e4 / np.flip(np.arange(3.5, 5.5, 0.001))
+    if flip:
+        wn = np.flip(wn)
+    out_wn, out_response = band(wn=wn)
+
+    np.testing.assert_equal(out_response, band.response)
+    np.testing.assert_equal(out_wn, band.wn)
+    np.testing.assert_allclose(wn[band.idx], band.wn)
+
+    wn_integral = np.trapz(band.response, band.wn)
+    np.testing.assert_allclose(wn_integral, 1.0)
+
+
+def test_PassBand_name():
+    filter_file = f'{pc.ROOT}pyratbay/data/filters/spitzer_irac2_sa.dat'
+    band = ps.PassBand(filter_file)
+    assert str(band) == 'spitzer_irac2_sa'
+    band_repr = repr(band)
+    assert band_repr.startswith("pyratbay.spectrum.PassBand(")
+    assert band_repr.endswith("pyratbay/data/filters/spitzer_irac2_sa.dat')")
+
+
+@pytest.mark.parametrize('wl_wn', ('both', 'none'))
+def test_PassBand_bad_input(wl_wn):
+    filter_file = f'{pc.ROOT}pyratbay/data/filters/spitzer_irac2_sa.dat'
+    band = ps.PassBand(filter_file)
+    wl = None
+    wn = None
+    if wl_wn == 'both':
+        wl = np.arange(3.5, 5.5, 0.001)
+        wn = 1e4 / wl
+
+    error = 'Either provide wavelength or wavenumber array, not both'
+    with pytest.raises(ValueError, match=error):
+        out_wn, out_response = band(wl, wn=wn)
+
+
+def test_PassBand_bad_spectral_range():
+    # Band range not contained in requested wl/wn range
+    filter_file = f'{pc.ROOT}pyratbay/data/filters/spitzer_irac2_sa.dat'
+    band = ps.PassBand(filter_file)
+    wl = np.arange(3.5, 5.5, 0.001)
+    wl[10] = wl[11]
+
+    error = (
+        'Input wavelength/wavenumber array must be strictly '
+        'increasing or decreasing'
+    )
+    with pytest.raises(ValueError, match=error):
+        out_wn, out_response = band(wl)
+
+
+def test_PassBand_save_filter(tmpdir):
+    filter_file = f'{pc.ROOT}pyratbay/data/filters/spitzer_irac2_sa.dat'
+    band = ps.PassBand(filter_file)
+    wl = np.arange(3.5, 5.5, 0.001)
+    out_wl, out_response = band(wl)
+
+    save_file = 'spitzer_irac.dat'
+    tmp_file = f'{tmpdir}/{save_file}'
+    band.save_filter(tmp_file)
+
+    assert save_file in os.listdir(str(tmpdir))
+
+
+@pytest.mark.parametrize('flip', (False, True))
+def test_Tophat_wl(flip):
+    hat = ps.Tophat(4.5, 0.5)
+    wl = np.arange(3.5, 5.5, 0.001)
+    if flip:
+        wl = np.flip(wl)
+    out_wl, out_response = hat(wl)
+
+    np.testing.assert_equal(out_response, hat.response)
+    np.testing.assert_equal(out_wl, hat.wl)
+    np.testing.assert_allclose(wl[hat.idx], hat.wl)
+
+    wn_integral = np.trapz(hat.response, hat.wn)
+    np.testing.assert_allclose(wn_integral, 1.0)
+
+
+@pytest.mark.parametrize('flip', (False, True))
+def test_Tophat_wn(flip):
+    hat = ps.Tophat(4.5, 0.5)
+    wn = 1e4 / np.flip(np.arange(3.5, 5.5, 0.001))
+    if flip:
+        wn = np.flip(wn)
+    out_wn, out_response = hat(wn=wn)
+
+    np.testing.assert_equal(out_response, hat.response)
+    np.testing.assert_equal(out_wn, hat.wn)
+    np.testing.assert_allclose(wn[hat.idx], hat.wn)
+
+    wn_integral = np.trapz(hat.response, hat.wn)
+    np.testing.assert_allclose(wn_integral, 1.0)
+
+
+def test_Tophat_name():
+    hat = ps.Tophat(4.5, 0.5)
+    assert str(hat) == 'tophat_4.5um'
+    assert repr(hat) == 'pyratbay.spectrum.Tophat(4.5, 0.5)'
+
+
+def test_Tophat_given_name():
+    hat = ps.Tophat(1.2, 0.05, name='HST_WFC3')
+    assert str(hat) == 'HST_WFC3_1.2um'
+    assert repr(hat) == 'pyratbay.spectrum.Tophat(1.2, 0.05)'
+
+
+@pytest.mark.parametrize('wl_wn', ('both', 'none'))
+def test_Tophat_bad_input(wl_wn):
+    hat = ps.Tophat(4.5, 0.5)
+    wl = None
+    wn = None
+    if wl_wn == 'both':
+        wl = np.arange(3.5, 5.5, 0.001)
+        wn = 1e4 / wl
+
+    error = 'Either provide wavelength or wavenumber array, not both'
+    with pytest.raises(ValueError, match=error):
+        out_wn, out_response = hat(wl, wn=wn)
+
+
+def test_PassBand_bad_spectral_range():
+    # Band range not contained in requested wl/wn range
+    hat = ps.Tophat(4.5, 0.5)
+    wl = np.arange(3.5, 5.5, 0.001)
+    wl[10] = wl[11]
+
+    error = (
+        'Input wavelength/wavenumber array must be strictly '
+        'increasing or decreasing'
+    )
+    with pytest.raises(ValueError, match=error):
+        out_wn, out_response = hat(wl)
 
 
 @pytest.mark.parametrize('wn',
@@ -64,21 +235,27 @@ def test_read_kurucz_all():
     assert np.shape(fluxes) == np.shape(continua) == (476, 1221)
     assert len(wn) == 1221
     assert len(ktemp) == len(klogg) == 476
-    np.testing.assert_equal(np.unique(ktemp),
-        np.array([ 3500.,   3750.,   4000.,   4250.,   4500.,   4750.,   5000.,
-                   5250.,   5500.,   5750.,   6000.,   6250.,   6500.,   6750.,
-                   7000.,   7250.,   7500.,   7750.,   8000.,   8250.,   8500.,
-                   8750.,   9000.,   9250.,   9500.,   9750.,  10000.,  10250.,
-                  10500.,  10750.,  11000.,  11250.,  11500.,  11750.,  12000.,
-                  12250.,  12500.,  12750.,  13000.,  14000.,  15000.,  16000.,
-                  17000.,  18000.,  19000.,  20000.,  21000.,  22000.,  23000.,
-                  24000.,  25000.,  26000.,  27000.,  28000.,  29000.,  30000.,
-                  31000.,  32000.,  33000.,  34000.,  35000.,  36000.,  37000.,
-                  38000.,  39000.,  40000.,  41000.,  42000.,  43000.,  44000.,
-                  45000.,  46000.,  47000.,  48000.,  49000.,  50000.]))
-    np.testing.assert_equal(np.unique(klogg), np.linspace(0.0, 5.0, 11))
+
+    expected_kurucz_temps = np.array([
+         3500.,   3750.,   4000.,   4250.,   4500.,   4750.,   5000.,
+         5250.,   5500.,   5750.,   6000.,   6250.,   6500.,   6750.,
+         7000.,   7250.,   7500.,   7750.,   8000.,   8250.,   8500.,
+         8750.,   9000.,   9250.,   9500.,   9750.,  10000.,  10250.,
+        10500.,  10750.,  11000.,  11250.,  11500.,  11750.,  12000.,
+        12250.,  12500.,  12750.,  13000.,  14000.,  15000.,  16000.,
+        17000.,  18000.,  19000.,  20000.,  21000.,  22000.,  23000.,
+        24000.,  25000.,  26000.,  27000.,  28000.,  29000.,  30000.,
+        31000.,  32000.,  33000.,  34000.,  35000.,  36000.,  37000.,
+        38000.,  39000.,  40000.,  41000.,  42000.,  43000.,  44000.,
+        45000.,  46000.,  47000.,  48000.,  49000.,  50000.,
+    ])
+    expected_kurucz_logg = np.linspace(0.0, 5.0, 11)
+    np.testing.assert_equal(np.unique(ktemp), expected_kurucz_temps)
+    np.testing.assert_equal(np.unique(klogg), expected_kurucz_logg)
+
     s = np.trapz(fluxes[108], wn) * (pc.rsun/pc.au)**2
     np.testing.assert_allclose(s, 1339957.11)
+
     c = np.trapz(continua[108], wn) * (pc.rsun/pc.au)**2
     np.testing.assert_allclose(c, 1618263.50)
 
@@ -172,38 +349,41 @@ def test_resample_outbounds():
     wn = np.linspace(1.3, 1.7, 11)
     signal = np.array(np.abs(wn-1.5)<0.1, np.double)
     specwn = np.linspace(1.4, 2, 101)
-    with pytest.raises(ValueError,
-        match="Resampling signal's wavenumber is not contained in specwn."):
+    error_msg ="Resampling signal's wavenumber is not contained in specwn."
+    with pytest.raises(ValueError, match=error_msg):
         resampled, wnidx = ps.resample(signal, wn, specwn)
 
 
 def test_band_integrate_single():
     wn = np.arange(1500, 5000.1, 1.0)
     signal = np.ones_like(wn)
-    wn1, irac1 = io.read_spectrum(
-        pc.ROOT+"pyratbay/data/filters/spitzer_irac1_sa.dat")
+    filter_file = pc.ROOT+"pyratbay/data/filters/spitzer_irac1_sa.dat"
+    wn1, irac1 = io.read_spectrum(filter_file)
     bandflux = ps.band_integrate(signal, wn, irac1, wn1)
     np.testing.assert_allclose(bandflux, [1.0])
 
 
-def test_band_integrate_multiple():
+def test_band_integrate_multiple_constant():
     wn = np.arange(1500, 5000.1, 1.0)
     signal = np.ones_like(wn)
-    wn1, irac1 = io.read_spectrum(
-        pc.ROOT+"pyratbay/data/filters/spitzer_irac1_sa.dat")
-    wn2, irac2 = io.read_spectrum(
-        pc.ROOT+"pyratbay/data/filters/spitzer_irac2_sa.dat")
+    filter_file1 = pc.ROOT+"pyratbay/data/filters/spitzer_irac1_sa.dat"
+    filter_file2 = pc.ROOT+"pyratbay/data/filters/spitzer_irac2_sa.dat"
+    wn1, irac1 = io.read_spectrum(filter_file1)
+    wn2, irac2 = io.read_spectrum(filter_file2)
+
     bandflux = ps.band_integrate(signal, wn, [irac1, irac2], [wn1, wn2])
     np.testing.assert_allclose(bandflux, [1.0, 1.0])
 
 
-def test_band_integrate():
+def test_band_integrate_multiple_blackbody():
     wn = np.arange(1500, 5000.1, 1.0)
     sflux = ps.bbflux(wn, 1800.0)
-    wn1, irac1 = io.read_spectrum(
-        pc.ROOT+"pyratbay/data/filters/spitzer_irac1_sa.dat")
-    wn2, irac2 = io.read_spectrum(
-        pc.ROOT+"pyratbay/data/filters/spitzer_irac2_sa.dat")
+    filter_file1 = pc.ROOT+"pyratbay/data/filters/spitzer_irac1_sa.dat"
+    filter_file2 = pc.ROOT+"pyratbay/data/filters/spitzer_irac2_sa.dat"
+    wn1, irac1 = io.read_spectrum(filter_file1)
+    wn2, irac2 = io.read_spectrum(filter_file2)
+
+    bandfluxes = ps.band_integrate(sflux, wn, [irac1,irac2], [wn1, wn2])
     bandfluxes = ps.band_integrate(sflux, wn, [irac1,irac2], [wn1, wn2])
     np.testing.assert_allclose(bandfluxes, [98527.148526, 84171.417692])
 

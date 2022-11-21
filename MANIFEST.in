@@ -10,11 +10,7 @@ include examples/demo/*
 include examples/tutorial/*
 include pyratbay/data/*
 include pyratbay/data/CIA/*
-include pyratbay/TEA/lib/abundances.txt
-include pyratbay/TEA/lib/stoich.txt
-include pyratbay/TEA/lib/TEA.cfg
-include pyratbay/TEA/lib/gdata/*.txt
-include pyratbay/TEA/*/*.py
+include src_c/*
 include src_c/include/*
 include tests/pytest.ini
 include tests/*.py

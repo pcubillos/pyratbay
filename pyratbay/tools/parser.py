@@ -1,5 +1,5 @@
-# Copyright (c) 2021 Patricio Cubillos
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+# Copyright (c) 2021-2022 Patricio Cubillos
+# Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
     'Namespace',
@@ -8,19 +8,22 @@ __all__ = [
     'parse_int',
     'parse_float',
     'parse_array',
-    ]
+]
 
 import os
 import argparse
 from datetime import date
 import configparser
+import warnings
 
 import numpy as np
 import mc3.utils as mu
 
 from . import tools as pt
 from .. import constants as pc
-from ..VERSION import __version__
+from .. import io as io
+from .. import spectrum as ps
+from ..version import __version__
 
 
 class Namespace(argparse.Namespace):
@@ -60,8 +63,10 @@ class Namespace(argparse.Namespace):
             values = value
             is_list = True
 
-        values = [os.path.realpath(val.replace('{ROOT}', pc.ROOT))
-                  for val in values]
+        values = [
+            os.path.realpath(val.replace('{ROOT}', pc.ROOT))
+            for val in values
+        ]
 
         for val in values:
             if exists and not os.path.isfile(val):
@@ -243,7 +248,6 @@ def parse_int(args, param):
     args[param] = int(val)
 
 
-
 def parse_float(args, param):
     """
     Convert a dictionary's parameter from string to float.
@@ -381,6 +385,7 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         parse_float(args, 'wnstep')
         parse_int(args,   'wnosamp')
         parse_float(args, 'resolution')
+        parse_float(args, 'wlstep')
         # Atmospheric sampling options:
         parse_str(args,   'tmodel')
         parse_array(args, 'tpars')
@@ -401,7 +406,11 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         parse_str(args,   'ptfile')
         parse_str(args,   'solar')
         parse_float(args, 'xsolar')
+        parse_float(args, 'metallicity')
         parse_array(args, 'escale')
+        parse_array(args, 'e_scale')
+        parse_array(args, 'e_ratio')
+        parse_array(args, 'e_abundances')
         parse_array(args, 'elements')
         # Extinction options:
         parse_float(args, 'tmin')
@@ -436,6 +445,7 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         parse_array(args, 'data')
         parse_array(args, 'uncert')
         parse_array(args, 'filters')
+        parse_str(args,   'obsfile')
         # Abundances:
         parse_array(args, 'molmodel')
         parse_array(args, 'molfree')
@@ -479,6 +489,7 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         parse_float(args, 'gplanet')
         parse_str(args,   'smaxis')
         parse_float(args, 'tint')
+        parse_float(args, 'beta_irr')
         # Outputs:
         parse_str(args,   'specfile')
         parse_str(args,   'logfile')
@@ -506,6 +517,7 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         'tli': args.tlifile,
         'atmosphere': args.atmfile,
         'spectrum': args.specfile,
+        'radeq': args.specfile,
         'opacity': args.extfile,
         'mcmc': args.mcmcfile,
         }
@@ -562,7 +574,7 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         spec.wlunits = args.get_units('wllow')
 
     spec.wnlow  = args.get_default(
-        'wnlow', 'Wavenumber lower boundary',  gt=0.0)
+        'wnlow', 'Wavenumber lower boundary', gt=0.0)
     spec.wnhigh = args.get_default(
         'wnhigh', 'Wavenumber higher boundary', gt=0.0)
 
@@ -572,6 +584,8 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         'wnosamp', 'Wavenumber oversampling factor', ge=1)
     spec.resolution = args.get_default(
         'resolution', 'Spectral resolution', gt=0.0)
+    spec.wlstep = args.get_param(
+        'wlstep', spec.wlunits, 'Wavelength sampling step', gt=0.0)
 
     atm.runits = args.get_default('runits', 'Planetary-radius units')
     if atm.runits is not None and not hasattr(pc, atm.runits):
@@ -618,13 +632,54 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
     # Chemistry:
     atm.chemistry = args.get_choice(
        'chemistry', 'Chemical model', pc.chemmodels)
-
-    escale = args.get_default(
-       'escale', 'Elemental abundance scaling factors', [])
-    atm.escale = {
-        atom: float(fscale)
-        for atom,fscale in zip(escale[::2], escale[1::2])
+    xsolar = args.get_default(
+        'xsolar', 'Atmospheric metallicity',)
+    if xsolar is not None:
+        args.metallicity = np.log10(xsolar)
+        warning_msg = (
+            "The 'xsolar' argument is deprecated and will be removed in "
+            "the near future, use 'metallicity' instead"
+        )
+        warnings.warn(warning_msg, category=DeprecationWarning)
+    atm.metallicity = args.get_default(
+        'metallicity',
+        'Atmospheric metallicity (dex, relative to solar)',
+        default=0.0)
+    escale = args.get_default('escale', 'Elemental abundance scaling factors')
+    if escale is not None:
+        warning_msg = (
+            "The 'escale' argument is deprecated and will be removed in "
+            "the near future, use 'e_scale' instead"
+        )
+        warnings.warn(warning_msg, category=DeprecationWarning)
+        atm.e_scale = {
+            atom: np.log10(float(fscale))
+            for atom,fscale in zip(escale[::2], escale[1::2])
         }
+
+    e_scale = args.get_default(
+       'e_scale', 'Elemental abundance scaling factors (dex)', [],
+    )
+    atm.e_scale = {
+        atom: float(fscale)
+        for atom,fscale in zip(e_scale[::2], e_scale[1::2])
+    }
+
+    e_ratio = args.get_default(
+       'e_ratio', 'Elemental abundance ratios', [],
+    )
+    atm.e_ratio = {
+        pair: float(ratio)
+        for pair,ratio in zip(e_ratio[::2], e_ratio[1::2])
+    }
+
+    e_abundances = args.get_default(
+       'e_abundances', 'Elemental abundances (dex relative to H=12)', [],
+    )
+    atm.e_abundances = {
+        atom: float(abundance)
+        for atom,abundance in zip(e_abundances[::2], e_abundances[1::2])
+    }
 
     # System physical parameters:
     phy.mpunits = args.get_default('mpunits', 'Planetary-mass units')
@@ -639,6 +694,8 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         'gplanet', 'Planetary surface gravity (cm s-2)', gt=0.0)
     phy.tint = args.get_default(
         'tint', 'Planetary internal temperature', 100.0, ge=0.0)
+    phy.beta_irr = args.get_default(
+        'beta_irr', 'Stellar irradiation beta factor', 0.25)
 
     phy.smaxis = args.get_param(
         'smaxis', None, 'Orbital semi-major axis', gt=0.0)
@@ -678,7 +735,7 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         'tstep', "Opacity grid's temperature sampling step in K", gt=0.0)
 
     pyrat.rayleigh.pars = args.rpars
-    pyrat.cloud.pars     = args.cpars
+    pyrat.cloud.pars = args.cpars
     pyrat.rayleigh.model_names = args.get_choice(
         'rayleigh', 'Rayleigh model', pc.rmodels)
     pyrat.cloud.model_names = args.get_choice(
@@ -714,22 +771,38 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         'dunits', 'Data units', 'none', wflag=args.data is not None)
     if not hasattr(pc, pyrat.obs.units):
         log.error(f'Invalid data units (dunits): {pyrat.obs.units}')
+
     pyrat.obs.data = args.get_param('data', pyrat.obs.units, 'Data')
     pyrat.obs.uncert = args.get_param(
         'uncert', pyrat.obs.units, 'Uncertainties')
-    pyrat.obs.filters = args.get_path(
-        'filters', 'Filter pass-bands', exists=True)
+
+    filters = args.get_path('filters', 'Filter pass-bands', exists=True)
+    if filters is not None:
+        pyrat.obs.filters = [
+            ps.PassBand(filter_file) for filter_file in filters
+        ]
+
+    pyrat.obs.obsfile = args.get_path(
+        'obsfile', 'Observations data file', exists=True,
+    )
+    if pyrat.obs.obsfile is not None:
+        # TBD: Throw error if data, uncert, or filters already exist
+        obs_data = io.read_observations(pyrat.obs.obsfile)
+        if len(obs_data) == 3:
+            pyrat.obs.filters, pyrat.obs.data, pyrat.obs.uncert = obs_data
+        elif len(obs_data) == 1:
+            pyrat.obs.filters = obs_data
 
     pyrat.ret.retflag = args.get_choice(
         'retflag', 'retrieval flag', pc.retflags)
     if pyrat.ret.retflag is None:
         pyrat.ret.retflag = []
 
-    pyrat.ret.params   = args.params
-    pyrat.ret.pstep    = args.pstep
-    pyrat.ret.pmin     = args.pmin
-    pyrat.ret.pmax     = args.pmax
-    pyrat.ret.prior    = args.prior
+    pyrat.ret.params = args.params
+    pyrat.ret.pstep = args.pstep
+    pyrat.ret.pmin = args.pmin
+    pyrat.ret.pmax = args.pmax
+    pyrat.ret.prior = args.prior
     pyrat.ret.priorlow = args.priorlow
     pyrat.ret.priorup = args.priorup
 
@@ -759,9 +832,18 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
 
     atm.molmodel = args.get_choice(
         'molmodel', 'molecular-abundance model', pc.molmodels)
+    if atm.molmodel is None:
+        atm.molmodel = []
     atm.molfree = args.molfree
     atm.molpars = args.molpars
     atm.bulk = args.bulk
+    if args.tmodel == 'tcea':
+        args.tmodel = 'guillot'
+        warning_msg = (
+            "The 'tcea' temperature model is deprecated, it has been renamed"
+            "as 'guillot', please update your config files in the future"
+        )
+        warnings.warn(warning_msg, category=DeprecationWarning)
     atm.tmodelname = args.get_choice('tmodel', 'temperature model', pc.tmodels)
     atm.tpars = args.tpars
     pyrat.ncpu = args.get_default('ncpu', 'Number of processors', 1, ge=1)

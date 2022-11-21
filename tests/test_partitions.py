@@ -1,4 +1,4 @@
-# Copyright (c) 2021 Patricio Cubillos
+# Copyright (c) 2021-2022 Patricio Cubillos
 # Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 import os
@@ -27,18 +27,20 @@ def test_get_tips_molname():
 
 
 def test_get_tips_molname_error():
-    with pytest.raises(ValueError,
-            match='TIPS 2017 database does not contain molecule ID: 0'):
+    match = 'TIPS 2021 database does not contain molecule ID: 0'
+    with pytest.raises(ValueError, match=match):
         dummy = pf.get_tips_molname(0)
 
 
 def test_pf_tips():
-    expected_temp = np.array([1] + [i for i in range(5,19,5)]
-                                 + [i for i in range(20,5001,10)], float)
-    with open(pc.ROOT+'pyratbay/data/tips_2017.pkl', 'rb') as p:
+    expected_temp = np.arange(0, 5001, 5.0)
+    expected_temp[0] = 1.0
+
+    with open(f'{pc.ROOT}pyratbay/data/tips_2021.pkl', 'rb') as p:
         expected_pf = pickle.load(p)['H2O']
     with pt.cd('outputs/'):
         pf_data, isotopes, temp = pf.tips('H2O', outfile='default')
+
     np.testing.assert_equal(temp, expected_temp)
     np.testing.assert_equal(pf_data[0], expected_pf['161'])
     assert isotopes == list(expected_pf.keys())

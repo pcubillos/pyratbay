@@ -1,11 +1,11 @@
-# Copyright (c) 2021 Patricio Cubillos
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+# Copyright (c) 2021-2022 Patricio Cubillos
+# Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import os
 import multiprocessing as mp
 from collections import OrderedDict
 
-import numpy  as np
+import numpy as np
 
 from .. import atmosphere as pa
 from .. import constants as pc
@@ -15,18 +15,18 @@ from .. import spectrum as ps
 from .. import tools as pt
 
 from .  import extinction as ex
-from .  import crosssec   as cs
-from .  import rayleigh   as ray
-from .  import clouds     as cl
-from .  import alkali     as al
-from .  import read_atm   as ra
+from .  import crosssec as cs
+from .  import rayleigh as ray
+from .  import clouds as cl
+from .  import alkali as al
+from .  import read_atm as ra
 from .  import optical_depth as od
-from .  import spectrum   as sp
-from .  import objects    as ob
-from .  import argum      as ar
+from .  import spectrum as sp
+from .  import objects as ob
+from .  import argum as ar
 from .  import makesample as ms
-from .  import voigt      as v
-from .  import read_tli   as rtli
+from .  import voigt as v
+from .  import read_tli as rtli
 
 
 class Pyrat(object):
@@ -59,21 +59,21 @@ class Pyrat(object):
       >>> pyrat.setup_spectrum()
       """
       # Sub-classes:
-      self.spec     = ob.Spectrum()        # Spectrum data
-      self.atm      = ob.Atm()             # Modeling atmospheric model
-      self.lt       = ob.Linetransition()  # Line-transition data
-      self.mol      = ob.Molecules()       # Molecules data
-      self.iso      = ob.Isotopes()        # Isotopes data
-      self.voigt    = ob.Voigt()           # Voigt profile
-      self.ex       = ob.Extinction()      # Extinction-coefficient
-      self.cs       = ob.Cross()           # Cross-section extinction
-      self.od       = ob.Optdepth()        # Optical depth
-      self.cloud    = ob.Cloud()           # Cloud models
-      self.rayleigh = ob.Rayleigh()        # Rayleigh models
-      self.alkali   = ob.Alkali()          # Alkali opacity models
-      self.obs      = ob.Observation()     # Observational data
-      self.phy      = ob.Physics()         # System physical parameters
-      self.ret      = ob.Retrieval()       # Retrieval variables
+      self.spec = ob.Spectrum()       # Spectrum data
+      self.atm = ob.Atm()             # Modeling atmospheric model
+      self.lt = ob.Linetransition()   # Line-transition data
+      self.mol = ob.Molecules()       # Molecules data
+      self.iso = ob.Isotopes()        # Isotopes data
+      self.voigt = ob.Voigt()         # Voigt profile
+      self.ex = ob.Extinction()       # Extinction-coefficient
+      self.cs = ob.Cross()            # Cross-section extinction
+      self.od = ob.Optdepth()         # Optical depth
+      self.cloud = ob.Cloud()         # Cloud models
+      self.rayleigh = ob.Rayleigh()   # Rayleigh models
+      self.alkali = ob.Alkali()       # Alkali opacity models
+      self.obs = ob.Observation()     # Observational data
+      self.phy = ob.Physics()         # System physical parameters
+      self.ret = ob.Retrieval()       # Retrieval variables
       self.timestamps = OrderedDict()
 
       # Parse config file inputs:
@@ -129,7 +129,6 @@ class Pyrat(object):
 
       Parameters
       ----------
-      pyrat: A Pyrat instance
       temp: 1D float ndarray
           Updated atmospheric temperature profile in Kelvin, of size nlayers.
       abund: 2D float ndarray
@@ -165,9 +164,13 @@ class Pyrat(object):
       sp.spectrum(self)
       self.timestamps['spectrum'] = timer.clock()
 
-      self.log.msg("\nTimestamps (s):\n" +
-                   "\n".join("{:10s}: {:10.6f}".format(key,val)
-                             for key,val in self.timestamps.items()))
+      self.log.msg(
+          "\nTimestamps (s):\n" +
+          "\n".join(
+              f"{key:10s}: {val:10.6f}"
+              for key,val in self.timestamps.items()
+          )
+      )
 
       if len(self.log.warnings) > 0 and self.log.logname is not None:
           # Write all warnings to file:
@@ -181,7 +184,8 @@ class Pyrat(object):
               f"\n{self.log.sep}"
               f"\n  There were {len(self.log.warnings)} warnings raised.  "
               f"See '{wfile}'."
-              f"\n{self.log.sep}")
+              f"\n{self.log.sep}"
+          )
 
 
   def eval(self, params, retmodel=True, verbose=False):
@@ -204,60 +208,98 @@ class Pyrat(object):
       bandflux: 1D float ndarray
          The waveband-integrated spectrum values.
       """
+      atm = self.atm
       params = np.asarray(params)
-      q0 = np.copy(self.atm.qbase)
+      q0 = np.copy(atm.qbase)
 
       if len(params) != self.ret.nparams:
           self.log.warning(
-              f'The number of input fitting parameters ({len(params)}) does '
-              f'not match\nthe number of required '
-              f'parameters ({self.ret.nparams}).')
+              f'The number of input fitting parameters ({len(params)}) '
+               'does not match\nthe number of required parameters '
+              f'({self.ret.nparams}).'
+          )
           return None, None if retmodel else None
 
       rejectflag = False
+
       # Update temperature profile if requested:
       if self.ret.itemp is not None:
-          self.atm.tpars = params[self.ret.itemp]
-          temp = self.atm.tmodel(params[self.ret.itemp])
+          atm.tpars = params[self.ret.itemp]
+          temp = atm.tmodel(params[self.ret.itemp])
       else:
-          temp = self.atm.temp
+          temp = atm.temp
       # Turn-on reject flag if temperature is out-of-bounds:
       if np.any(temp < self.ret.tlow) or np.any(temp > self.ret.thigh):
           temp[:] = 0.5*(self.ret.tlow + self.ret.thigh)
           rejectflag = True
           if verbose:
-              self.log.warning("Input temperature profile runs out of "
-                  f"boundaries ({self.ret.tlow:.1f}--{self.ret.thigh:.1f} K)")
+              self.log.warning(
+                  "Input temperature profile runs out of "
+                  f"boundaries ({self.ret.tlow:.1f}--{self.ret.thigh:.1f} K)"
+              )
 
       # Update abundance profiles if requested:
-      if self.ret.imol is not None:
-          q2 = pa.qscale(q0, self.mol.name, self.atm.molmodel,
-                         self.atm.molfree, params[self.ret.imol],
-                         self.atm.bulk,
-                         iscale=self.atm.ifree, ibulk=self.atm.ibulk,
-                         bratio=self.atm.bulkratio, invsrat=self.atm.invsrat)
+      if self.ret.imol is None:
+          q2 = atm.q
+
+      elif 'equil' in atm.molmodel:
+          # TBD: These need to be tested  properly
+          molpars = params[self.ret.imol]
+          metal = None
+          e_abundances = {}
+          e_ratio = {}
+          e_scale = {}
+          for model,var,val in zip(atm.molmodel, atm.molfree, molpars):
+              if model == 'equil':
+                  if var == 'metal':
+                      metallicity = val
+                  elif '_' in var:
+                      e_ratio[var] = val
+                  elif var.startswith('[') and var.endswith(']'):
+                      var = var.lstrip('[').rstrip(']')
+                      e_scale[var] = val
+                  else:
+                      e_abundances[var] = val
+          q2 = atm.chem_model.thermochemical_equilibrium(
+              temp,
+              metallicity=metallicity,
+              e_abundances=e_abundances,
+              e_ratio=e_ratio,
+              e_scale=e_scale,
+          )
       else:
-          q2 = self.atm.q
+          q2 = pa.qscale(
+              q0, self.mol.name, atm.molmodel,
+              atm.molfree, params[self.ret.imol],
+              atm.bulk,
+              iscale=atm.ifree, ibulk=atm.ibulk,
+              bratio=atm.bulkratio, invsrat=atm.invsrat,
+          )
 
       # Check abundaces stay within bounds:
-      if pa.qcapcheck(q2, self.ret.qcap, self.atm.ibulk):
+      if pa.qcapcheck(q2, self.ret.qcap, atm.ibulk):
           rejectflag = True
           if verbose:
-              self.log.warning("The sum of trace abundances' fraction exceeds "
-                              f"the cap of {self.ret.qcap:.3f}.")
+              self.log.warning(
+                  "The sum of trace abundances' fraction exceeds "
+                  f"the cap of {self.ret.qcap:.3f}."
+              )
 
       # Update reference radius if requested:
       if self.ret.irad is not None:
-          self.phy.rplanet = params[self.ret.irad][0] * pt.u(self.atm.runits)
+          self.phy.rplanet = params[self.ret.irad][0] * pt.u(atm.runits)
+      elif self.ret.ipress is not None:
+          p_ref = 10.0**params[self.ret.ipress][0] * pc.bar
+          self.atm.refpressure = p_ref
 
       # Update planetary mass if requested:
       if self.ret.imass is not None:
           self.phy.mplanet = params[self.ret.imass][0] * pt.u(self.phy.mpunits)
 
       # Keep M-g-R0 consistency:
-      if self.atm.rmodelname == 'hydro_g': # and self.ret.igrav is None:
+      if atm.rmodelname == 'hydro_g': # and self.ret.igrav is None:
           self.phy.gplanet = pc.G * self.phy.mplanet / self.phy.rplanet**2
-      #if self.atm.rmodelname == 'hydro_m' and self.ret.igrav is not None:
+      #if atm.rmodelname == 'hydro_m' and self.ret.igrav is not None:
       #    self.phy.mplanet = self.phy.gplanet * self.phy.rplanet**2 / pc.G
 
       # Update Rayleigh parameters if requested:
@@ -297,6 +339,84 @@ class Pyrat(object):
       return self.obs.bandflux
 
 
+  def radiative_equilibrium(
+          self, nsamples=None, continue_run=False, convection=False,
+      ):
+      """
+      Compute radiative-thermochemical equilibrium atmosphere.
+      Currently there is no convergence criteria implemented,
+      some 100--300 iterations are typically sufficient to converge
+      to a stable temperature-profile solution.
+
+      Parameters
+      ----------
+      nsamples: Integer
+          Number of radiative-equilibrium iterations to run.
+      continue_run: Bool
+          If True, continue from a previous radiative-equilibrimu run.
+      convection: Bool
+          If True, skip convective flux calculation in the radiative
+          equilibrium calculation.
+
+      Returns
+      -------
+      There are no returned values, but this method updates the
+      temperature profile (self.atm.temp) and abundances (self.atm.q)
+      with the values from the last radiative-equilibrium iteration.
+
+      This method also defines pyrat.atm.radeq_temps, a 2D array
+      containing all temperature-profile iterations.
+      """
+      atm = self.atm
+
+      if nsamples is None:
+          nsamples = self.inputs.nsamples
+
+      self.log.verb = 0  # Mute it
+      # Enforce two-stream RT:
+      rt_path = self.od.rt_path
+      self.od.rt_path = 'emission_two_stream'
+      tmin = np.amax((self.cs.tmin, self.ex.tmin))
+      tmax = np.amin((self.cs.tmax, self.ex.tmax))
+
+      # Initial temperature scale factor
+      f_scale = atm._fscale if hasattr(atm,'_fscale') else None
+
+      if hasattr(atm, 'radeq_temps') and continue_run:
+          radeq_temps = atm.radeq_temps
+          f_scale = None
+      else:
+          radeq_temps = None
+
+      print("\nRadiative-thermochemical equilibrium calculation:")
+      radeq_temps, f_scale = ps.radiative_equilibrium(
+          atm.press, atm.temp, nsamples,
+          atm.chem_model,
+          self.run,
+          self.spec.wn,
+          self.spec,
+          self.atm,
+          radeq_temps,
+          convection,
+          tmin, tmax,
+          f_scale,
+          self.phy.mplanet, self.mol.mass,
+      )
+      print("\nDone.")
+
+      # Update last tempertature iteration and save to file:
+      atm.temp = radeq_temps[-1]
+      io.write_atm(
+          self.spec.specfile.replace('.dat','.atm'),
+          atm.press, atm.temp, self.mol.name, atm.q,
+          punits="bar",
+          header="# Radiative-thermochemical equilibrium profile.\n\n",
+      )
+      self.atm._fscale = f_scale
+      self.od.rt_path = rt_path
+      self.log.verb = self.verb
+
+
   def band_integrate(self, spectrum=None):
       """
       Band-integrate transmission spectrum (transit) or planet-to-star
@@ -309,17 +429,20 @@ class Pyrat(object):
           spectrum = self.spec.spectrum
       specwn = self.spec.wn
       bandidx = self.obs.bandidx
+      rprs_square = (self.phy.rplanet/self.phy.rstar)**2.0
 
       if self.od.rt_path in pc.transmission_rt:
           bandtrans = self.obs.bandtrans
       elif self.od.rt_path in pc.emission_rt:
           bandtrans = [
-              btrans/sflux * (self.phy.rplanet/self.phy.rstar)**2
-              for btrans, sflux in zip(self.obs.bandtrans, self.obs.starflux)]
+              btrans/sflux * rprs_square
+              for btrans, sflux in zip(self.obs.bandtrans, self.obs.starflux)
+          ]
 
       self.obs.bandflux = np.array([
           np.trapz(spectrum[idx]*btrans, specwn[idx])
-          for btrans, idx in zip(bandtrans, bandidx)])
+          for btrans, idx in zip(bandtrans, bandidx)
+      ])
 
       return self.obs.bandflux
 
@@ -358,6 +481,7 @@ class Pyrat(object):
       elif self.atm.rmodelname == 'hydro_g':
           return pa.hydro_g(pressure, temperature, mu, g, p0, r0)
 
+
   def set_filters(self):
       """
       Set observational variables (pyrat.obs) based on given parameters.
@@ -369,22 +493,19 @@ class Pyrat(object):
       starflux  = []  # Interpolated stellar flux
       bandtrans = []  # Normalized interpolated filter transmission
       bandwn    = []  # Band's mean wavenumber
-      for filter in self.obs.filters:
-          # Read filter wavenumber and transmission curves:
-          filterwn, filtertr = io.read_spectrum(filter)
+      for passband in self.obs.filters:
           # Resample the filters into the planet wavenumber array:
-          btrans, bidx = ps.resample(filtertr, filterwn, self.spec.wn,
-              normalize=True)
-          bandidx.append(bidx)
-          bandtrans.append(btrans)
-          bandwn.append(np.sum(filterwn*filtertr)/np.sum(filtertr))
+          passband(wn=self.spec.wn)
+          bandidx.append(passband.idx)
+          bandtrans.append(passband.response)
+          bandwn.append(passband.wn0)
           if self.phy.starflux is not None:
-              starflux.append(self.spec.starflux[bidx])
+              starflux.append(self.spec.starflux[passband.idx])
 
       # Per-band variables:
+      self.obs.starflux  = starflux
       self.obs.bandidx   = bandidx
       self.obs.bandtrans = bandtrans
-      self.obs.starflux  = starflux
       self.obs.bandwn    = np.asarray(bandwn)
       self.obs.bandflux  = np.zeros(self.obs.nfilters, np.double)
 
@@ -463,7 +584,7 @@ class Pyrat(object):
       logfile, self.log.file = self.log.file, None
       verb, self.log.verb = self.log.verb, -1
 
-      with mp.Pool(self.ncpu) as pool:
+      with mp.get_context('fork').Pool(self.ncpu) as pool:
           models = pool.map(self.eval, posterior)
       models = np.array([model for model, bandm in models])
 
@@ -548,8 +669,10 @@ class Pyrat(object):
           pyrat_args['bandflux'] = self.band_integrate(spectrum)
           spectrum = self.ret.spec_median
       else:
-          print("Invalid 'spec'.  Select from 'model' (default), 'best', "
-                "or 'median'.")
+          print(
+              "Invalid 'spec'.  Select from 'model' (default), 'best', "
+              "or 'median'."
+          )
           return
 
       if self.phy.rplanet is not None and self.phy.rstar is not None:
@@ -600,6 +723,8 @@ class Pyrat(object):
   def __str__(self):
       if self.spec.resolution is not None:
          wave = "R={:.1f}".format(self.spec.resolution)
+      elif self.spec.wlstep is not None:
+         wave = f'delta-wl={self.spec.wlstep:.2f}'
       else:
          wave = "dwn={:.3f} cm-1".format(self.spec.wnstep)
 
@@ -621,7 +746,8 @@ class Pyrat(object):
       for alkali in self.alkali.models:
           opacities.append(alkali.mol)
 
-      return ("Pyrat atmospheric model\n"
+      return (
+          "Pyrat atmospheric model\n"
           "configuration file:  '{:s}'\n"
           "Pressure profile (bar):  {:.2e} -- {:.2e} ({:d} layers)\n"
           "Wavelength range (um):  {:.2f} -- {:.2f} ({:d} samples, {:s})\n"
@@ -636,5 +762,6 @@ class Pyrat(object):
           self.spec.nwave,
           wave,
           self.mol.name,
-          opacities))
+          opacities)
+      )
 

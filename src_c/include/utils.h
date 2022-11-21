@@ -112,43 +112,46 @@ imax(PyArrayObject *array){
 }
 
 
-/* Resample from a higher-resolution array (hopefully, true line-by-line) */
+// Resample from a higher-resolution array (hopefully, true line-by-line)
 int
-resample(double **input,     /* Input array                               */
-         PyArrayObject *out, /* 2D Output array                           */
-         int n,              /* Number of elements in the input array     */
-         int scale,          /* Resampling factor                         */
-         int index){         /* index where to store output               */
-  /* Simple resample to low-res array by taking corresponding values
-     from hi-res array.                                                   */
-  int j;
-  int m = 1 + (n-1)/scale;   /* Number of points in the resampled array   */
-  for (j=0; j<m; j++){
-    IND2d(out,index,j) = input[index][scale*j];
-  }
-  return 0;
+resample(
+        double **input,     // Input array
+        PyArrayObject *out, // 2D Output array
+        int n,              // Number of elements in the input array
+        int scale,          // Resampling factor
+        int index           // index where to store output
+    ){
+    // Simple resample to low-res array by taking corresponding values
+    // from hi-res array
+    int j;
+    int m = 1 + (n-1)/scale;   /* Number of points in the resampled array   */
+    for (j=0; j<m; j++){
+        IND2d(out,index,j) = input[index][scale*j];
+    }
+    return 0;
 }
 
 
-/* 1D linear interpolation */
+// 1D linear interpolation from a constant-step array
 int
-linterp(double **input,
-        PyArrayObject *out,
-        double wn0,
-        double wnstep,
-        PyArrayObject *wnout,
-        int index){
-
+linterp(
+        double **input,        // 2D input matrix
+        PyArrayObject *out,    // 2D Output array
+        double wn0,            // Initial X value of input array
+        double wnstep,         // X-array step size (constant)
+        PyArrayObject *wnout,  // X-array of output array
+        int index              // index where to store output
+    ){
     double wnlo;
     int i, ilo = 0;
-    int nwave_out = (int)PyArray_DIM(wnout, 0);  /* Number of output samples */
+    int nwave_out = (int)PyArray_DIM(wnout, 0);  // Number of output samples
 
-    /* Find input wavenumber index immediately lower than wn out:   */
+    // Find input wavenumber index immediately lower than wn out:
     for (i=0;  i<nwave_out; i++){
         ilo = (int)((INDd(wnout,i)-wn0)/wnstep);
         wnlo = wn0 + wnstep*ilo;
 
-        /* Linear interpolation of the extinction coefficient:        */
+        // Linear interpolation of the extinction coefficient:
         IND2d(out,index,i) +=
             ( input[index][ilo  ] * (wnlo + wnstep - INDd(wnout,i))
             + input[index][ilo+1] * (INDd(wnout,i) - wnlo      )) / wnstep;

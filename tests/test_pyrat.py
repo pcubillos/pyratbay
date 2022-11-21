@@ -3,6 +3,7 @@
 
 import os
 import subprocess
+import pytest
 
 import numpy as np
 
@@ -27,6 +28,15 @@ def test_call_from_interpreter():
     assert pyrat is not None
 
 
+@pytest.mark.skip(reason="TBD")
+def test_call_eval_function():
+    pyrat = pb.run('configs/spectrum_transmission_test.cfg')
+    # Ideally test all types of params in separate tests.
+    params = []
+    pyrat.eval(params)
+    assert pyrat is not None
+
+
 def test_no_logfile(tmp_path):
     # Run a spectrum:
     cfg = make_config(tmp_path,
@@ -39,7 +49,7 @@ def test_no_logfile(tmp_path):
     assert pyrat.log.logname is None
     with open(logfile, 'r') as f:
         log = f.read()
-    assert 'Computed transmission spectrum' in log
+    assert 'Computed transit spectrum' in log
 
     # Continue running, check it doesn't break:
     pyrat.setup_spectrum()

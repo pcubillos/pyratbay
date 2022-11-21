@@ -28,17 +28,19 @@ conda install -c conda-forge pyratbay
 ```bibtex
 @ARTICLE{CubillosBlecic2021mnrasPyratBay,
        author = {{Cubillos}, Patricio E. and {Blecic}, Jasmina},
-        title = "{The {Pyrat Bay} Framework for Exoplanet Atmospheric Modeling: A Population Study of Hubble/WFC3 Transmission Spectra}",
-      journal = {arXiv e-prints},
-     keywords = {Astrophysics - Earth and Planetary Astrophysics, Astrophysics - Instrumentation and Methods for Astrophysics},
+        title = "{The PYRAT BAY framework for exoplanet atmospheric modelling: a population study of Hubble/WFC3 transmission spectra}",
+      journal = {\mnras},
+     keywords = {radiative transfer, methods: statistical, planets and satellites: atmosphere, Astrophysics - Earth and Planetary Astrophysics, Astrophysics - Instrumentation and Methods for Astrophysics},
          year = 2021,
-        month = may,
-          eid = {arXiv:2105.05598},
-        pages = {arXiv:2105.05598},
+        month = aug,
+       volume = {505},
+       number = {2},
+        pages = {2675-2702},
+          doi = {10.1093/mnras/stab1405},
 archivePrefix = {arXiv},
        eprint = {2105.05598},
  primaryClass = {astro-ph.EP},
-       adsurl = {https://ui.adsabs.harvard.edu/abs/2021arXiv210505598C},
+       adsurl = {https://ui.adsabs.harvard.edu/abs/2021MNRAS.505.2675C},
       adsnote = {Provided by the SAO/NASA Astrophysics Data System}
 }
 ```

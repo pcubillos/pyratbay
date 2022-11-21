@@ -1,5 +1,5 @@
-# Copyright (c) 2021 Patricio Cubillos
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+# Copyright (c) 2021-2022 Patricio Cubillos
+# Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import numpy as np
 import scipy.interpolate as sip
@@ -12,11 +12,11 @@ def make_wavenumber(pyrat):
     """
     Make the wavenumber sample from user inputs.
     """
-    # Alias for Pyrat's Spectrum object:
     spec = pyrat.spec
-    log  = pyrat.log
+    log = pyrat.log
 
     log.head('\nGenerating wavenumber array.')
+    wl_units = pt.u(spec.wlunits)
     # Low wavenumber boundary:
     if pyrat.inputs.wnlow is None:
         if pyrat.inputs.wlhigh is None:
@@ -62,6 +62,14 @@ def make_wavenumber(pyrat):
         g = (1.0+f) / (1.0-f)
         spec.nwave = int(np.ceil(-np.log(spec.wnlow/spec.wnhigh) / np.log(g)))
         spec.wn = spec.wnlow * g**np.arange(spec.nwave)
+        spec.wlstep = None
+    elif spec.wlstep is not None:
+        # Constant-sampling rate wavelength sampling:
+        wl = np.arange(spec.wllow, spec.wlhigh, spec.wlstep)
+        spec.nwave = len(wl)
+        spec.wn = 1.0/np.flip(wl)
+        spec.wnlow = spec.wn[0]
+        spec.resolution = None
     else:
         # Constant-sampling rate wavenumber sampling:
         spec.nwave = int((spec.wnhigh-spec.wnlow)/spec.wnstep) + 1
@@ -83,14 +91,23 @@ def make_wavenumber(pyrat):
 
     # Screen output:
     log.msg(f'Initial wavenumber boundary:  {spec.wnlow:.5e} cm-1  '
-            f'({spec.wlhigh/pt.u(spec.wlunits):.3e} {spec.wlunits})', indent=2)
+            f'({spec.wlhigh/wl_units:.3e} {spec.wlunits})', indent=2)
     log.msg(f'Final   wavenumber boundary:  {spec.wnhigh:.5e} cm-1  '
-            f'({spec.wllow/pt.u(spec.wlunits):.3e} {spec.wlunits})', indent=2)
-    if spec.resolution is None:
-        log.msg(f'Wavenumber sampling interval: {spec.wnstep:.2g} cm-1',
-            indent=2)
-    else:
+            f'({spec.wllow/wl_units:.3e} {spec.wlunits})', indent=2)
+
+    if spec.resolution is not None:
         log.msg(f'Spectral resolving power: {spec.resolution:.1f}', indent=2)
+    elif spec.wlstep is not None:
+        wl_step = spec.wlstep / wl_units
+        log.msg(
+            f'Wavelength sampling interval: {wl_step:.2g} {spec.wlunits}',
+            indent=2,
+        )
+    else:
+        log.msg(
+            f'Wavenumber sampling interval: {spec.wnstep:.2g} cm-1',
+            indent=2,
+        )
     log.msg(f'Wavenumber sample size:      {spec.nwave:8d}\n'
             f'Wavenumber fine-sample size: {spec.onwave:8d}\n', indent=2)
     log.head('Wavenumber sampling done.')
@@ -113,18 +130,18 @@ def make_atmprofiles(pyrat):
     log.head('\nGenerating atmospheric profile sample.')
 
     # Pyrat and user-input atmospheric-data objects:
-    atm    = pyrat.atm
+    atm = pyrat.atm
     atm_in = pyrat.inputs.atm
 
     # Check that the layers are sorted from the top to the bottom of
-    #  the atmosphere:
+    # the atmosphere:
     sort    = np.all(np.ediff1d(atm_in.press) > 0)  # Top to bottom
     reverse = np.all(np.ediff1d(atm_in.press) < 0)  # Bottom to top
     if atm_in.radius is not None:
         sort    *= np.all(np.ediff1d(atm_in.radius) < 0)
         reverse *= np.all(np.ediff1d(atm_in.radius) > 0)
 
-    if sort:       # Layers are in the correct order
+    if sort:  # Layers are in the correct order
         pass
     elif reverse:  # Layers in reverse order
         log.warning('The atmospheric layers are in reversed order '
@@ -145,7 +162,7 @@ def make_atmprofiles(pyrat):
         pyrat.phy.gplanet is None,
         pyrat.phy.rplanet is None,
         atm.refpressure is None,
-        ]
+    ]
 
     if pyrat.atm.rmodelname is None and atm_in.radius is None \
        and pyrat.runmode != "opacity":
@@ -224,13 +241,13 @@ def make_atmprofiles(pyrat):
     pmax = np.amax(atm_in.press)
     if atm.ptop < pmin or atm.ptop > pmax:
         log.error(
-           f'Top-pressure boundary (ptop={atm.ptop/punits:.2e} {atm.punits}) '
-            'lies outside of the atmospheric-file range '
+           f'Top-pressure boundary (ptop={atm.ptop/punits:.2e} '
+           f'{atm.punits}) lies outside of\nthe atmospheric file range '
            f'{pmin/punits:.2e}--{pmax/punits:.2e} {atm.punits}.')
     if atm.pbottom < pmin or atm.pbottom > pmax:
         log.error(
            f'Bottom-pressure boundary (pbottom={atm.pbottom/punits:.2e} '
-           f'{atm.punits}) lies outside of the atmospheric-file range '
+           f'{atm.punits}) lies outside of\nthe atmospheric file range '
            f'{pmin/punits:.2e}--{pmax/punits:.2e} {atm.punits}.')
     if atm.pbottom <= atm.ptop:
         log.error(
@@ -306,13 +323,13 @@ def make_atmprofiles(pyrat):
     # Interpolate to new atm-layer sampling if necessary:
     if resample:
         tempinterp = sip.interp1d(atm_in.press, atm_in.temp, kind='slinear')
-        mminterp   = sip.interp1d(atm_in.press, atm_in.mm,   kind='slinear')
+        mminterp = sip.interp1d(atm_in.press, atm_in.mm, kind='slinear')
         atm.temp = tempinterp(atm.press)
-        atm.m    =   mminterp(atm.press)
+        atm.m = mminterp(atm.press)
         # Interpolate abundance profiles:
         atm.q = np.zeros((atm.nlayers, pyrat.mol.nmol))
         atm.d = np.zeros((atm.nlayers, pyrat.mol.nmol))
-        for i in np.arange(pyrat.mol.nmol):
+        for i in range(pyrat.mol.nmol):
             qinterp = sip.interp1d(atm_in.press, atm_in.q[:, i], kind='slinear')
             dinterp = sip.interp1d(atm_in.press, atm_in.d[:, i], kind='slinear')
             atm.q[:,i] = qinterp(atm.press)
@@ -322,8 +339,8 @@ def make_atmprofiles(pyrat):
     log.msg(f'Number of isotopes: {pyrat.iso.niso}', indent=2)
     # Initialize the partition-function array for pyrat.iso:
     pyrat.iso.z = np.zeros((pyrat.iso.niso, atm.nlayers))
-    for db in pyrat.lt.db:            # For each Database
-        for j in np.arange(db.niso):  # For each isotope in DB
+    for db in pyrat.lt.db:
+        for j in range(db.niso):
             log.debug(
                 f'Interpolating (isotope ID {db.iiso+j}) partition function.',
                 indent=4)

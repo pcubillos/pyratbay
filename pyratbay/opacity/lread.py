@@ -1,7 +1,9 @@
-# Copyright (c) 2021 Patricio Cubillos
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+# Copyright (c) 2021-2022 Patricio Cubillos
+# Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
-__all__ = ['make_tli']
+__all__ = [
+    'make_tli',
+]
 
 import os
 import sys
@@ -10,10 +12,10 @@ import struct
 
 import numpy as np
 
-from .  import linelist
+from . import linelist
 from .. import constants as pc
 from .. import tools as pt
-from .. import VERSION as ver
+from .. import version as ver
 
 
 def make_tli(dblist, pflist, dbtype, tlifile, wllow,  wlhigh, wlunits, log):
@@ -47,16 +49,16 @@ def make_tli(dblist, pflist, dbtype, tlifile, wllow,  wlhigh, wlunits, log):
         log.error('Undefined TLI file (tlifile).')
 
     if wllow is None:
-        log.error('Undefined low wavelength boundary (wllow).')
+        log.error('Undefined low wavelength boundary (wllow)')
     if wlhigh is None:
-        log.error('Undefined high wavelength boundary (wlhigh).')
+        log.error('Undefined high wavelength boundary (wlhigh)')
 
     if dblist is None:
-        log.error('There are no input database files (dblist).')
+        log.error('There are no input database files (dblist)')
     if dbtype is None:
-        log.error('There are no input database types (dbtype).')
+        log.error('There are no input database types (dbtype)')
     if pflist is None:
-        log.error('There are no partition-function inputs (pflist).')
+        log.error('There are no partition-function inputs (pflist)')
 
     # Check number of files match:
     nfiles = len(dblist)
@@ -69,22 +71,28 @@ def make_tli(dblist, pflist, dbtype, tlifile, wllow,  wlhigh, wlunits, log):
         log.error(
             f'The number of Line-transition files ({nfiles}) does not match '
             f'the number of partition-function files ({len(pflist)}) or '
-            f'database-type files ({len(dbtype)}).')
+            f'database-type files ({len(dbtype)})'
+        )
 
     # Driver routine to read the databases:
-    db_readers = {dbname.lower():getattr(linelist,dbname)
-                  for dbname in pc.dbases}
-
-    dblist = [os.path.realpath(dbase.replace('{ROOT}', pc.ROOT))
-              for dbase in dblist]
+    db_readers = {
+        dbname.lower():getattr(linelist,dbname)
+        for dbname in pc.dbases
+    }
+    dblist = [
+        os.path.realpath(dbase.replace('{ROOT}', pc.ROOT))
+        for dbase in dblist
+    ]
 
     databases = []
     db_names = []
     log.head('\nReading input database files:')
     for (dbase, pf, dtype) in zip(dblist, pflist, dbtype):
         if dtype not in db_readers:
-            log.error(f"Unknown type '{dtype}' for database '{dbase}'.  "
-                      f"Select from: {str(pc.dbases)}")
+            log.error(
+                f"Unknown type '{dtype}' for database '{dbase}'.  "
+                f"Select from: {str(pc.dbases)}"
+            )
         log.head(f'- {dbase}')
         databases.append(db_readers[dtype](dbase, pf, log))
         db_names.append(databases[-1].name)
@@ -100,11 +108,11 @@ def make_tli(dblist, pflist, dbtype, tlifile, wllow,  wlhigh, wlunits, log):
         endian = 'l'
 
     # Start storing TLI header values:
-    header  = struct.pack('s', endian.encode())
+    header = struct.pack('s', endian.encode())
     header += struct.pack('3h', ver.LR_VER, ver.LR_MIN, ver.LR_REV)
 
     # Boundaries in wavenumber space (in cm-1):
-    wnlow  = 1.0/wlhigh
+    wnlow = 1.0/wlhigh
     wnhigh = 1.0/wllow
 
     # Add initial and final wavenumber boundaries (in cm-1):
@@ -119,7 +127,8 @@ def make_tli(dblist, pflist, dbtype, tlifile, wllow,  wlhigh, wlunits, log):
         f'\nOS endianness:  {sys.byteorder}\n'
         f'Initial TLI wavelength ({wlunits}): {wll:7.3f} ({wnhigh:9.3f} cm-1)\n'
         f'Final   TLI wavelength ({wlunits}): {wlh:7.3f} ({wnlow:9.3f} cm-1)\n'
-        f'There are {Ndb} different database(s).')
+        f'There are {Ndb} different database(s).'
+    )
 
 
     log.msg('\nReading and writting partition function info.')
@@ -138,36 +147,49 @@ def make_tli(dblist, pflist, dbtype, tlifile, wllow,  wlhigh, wlunits, log):
         # Get partition function values:
         temp, partition, pf_iso = db.getpf(log.verb)
         iso_names = db.isotopes
-        iso_mass  = db.mass
+        iso_mass = db.mass
         iso_ratio = db.isoratio
 
         # Number of temperature samples and isotopes:
         ntemp = len(temp)
-        niso  = len(iso_names)
+        niso = len(iso_names)
 
         # Extract partition-function info sorted by iso_names:
         pf = np.zeros((niso, ntemp), np.double)
         for part,iso in zip(partition, pf_iso):
+            # Ignore PF isotopes that don't exist in isotopes.dat:
+            if iso not in iso_names:
+                continue
             idx = iso_names.index(iso)
             pf[idx] = part
 
         # Store length of and database name:
-        tli.write(struct.pack(f'h{len(db.name)}s',
-            len(db.name), db.name.encode('utf-8')))
+        name = db.name
+        pack = struct.pack(f'h{len(name)}s', len(name), name.encode('utf-8'))
+        tli.write(pack)
         # Store the molecule name:
-        tli.write(struct.pack(f'h{len(db.molecule)}s',
-            len(db.molecule), db.molecule.encode('utf-8')))
+        mol = db.molecule
+        pack = struct.pack(f'h{len(mol)}s', len(mol), mol.encode('utf-8'))
+        tli.write(pack)
         # Store the number of temperature samples and isotopes:
         tli.write(struct.pack('hh', ntemp, niso))
-        log.msg(f"Database ({idb}/{Ndb}): '{db.name}' ({db.molecule} molecule)",
-                indent=2)
-        log.msg(f'Number of temperatures: {ntemp}\n'
-                f'Number of isotopes: {niso}', indent=4)
+        log.msg(
+            f"Database ({idb}/{Ndb}): '{db.name}' ({db.molecule} molecule)",
+            indent=2,
+        )
+        log.msg(
+            f'Number of temperatures: {ntemp}\n'
+            f'Number of isotopes: {niso}',
+            indent=4,
+        )
 
         # Write the temperature array:
         tli.write(struct.pack(f'{ntemp}d', *temp))
-        log.msg('Temperatures (K): '
-            f'[{temp[0]:6.1f}, {temp[1]:6.1f}, ..., {temp[-1]:6.1f}]', indent=4)
+        log.msg(
+            'Temperatures (K): '
+            f'[{temp[0]:6.1f}, {temp[1]:6.1f}, ..., {temp[-1]:6.1f}]',
+            indent=4,
+        )
 
         # For each isotope, write partition function information.
         for j in range(niso):
@@ -175,8 +197,10 @@ def make_tli(dblist, pflist, dbtype, tlifile, wllow,  wlhigh, wlunits, log):
             log.msg(f"Isotope ({j+1}/{niso}): '{iname}'", indent=4)
 
             # Store length of isotope name, isotope name, and isotope mass:
-            tli.write(struct.pack(f'h{len(iname)}s',
-                len(iname), str(iname).encode('utf-8')))
+            pack = struct.pack(
+                f'h{len(iname)}s', len(iname), str(iname).encode('utf-8'),
+            )
+            tli.write(pack)
             tli.write(struct.pack('d', iso_mass[j]))
             tli.write(struct.pack('d', iso_ratio[j]))
 
@@ -187,7 +211,8 @@ def make_tli(dblist, pflist, dbtype, tlifile, wllow,  wlhigh, wlunits, log):
                 f'Isotopic ratio:  {iso_ratio[j]:8.4g}\n'
                 f'Part. Function:  '
                 f'[{pf[j,0]:.2e}, {pf[j,1]:.2e}, ..., {pf[j,-1]:.2e}]',
-                indent=6)
+                indent=6,
+            )
 
         # Calculate cumulative number of isotopes per database:
         niso_total += niso
@@ -198,9 +223,9 @@ def make_tli(dblist, pflist, dbtype, tlifile, wllow,  wlhigh, wlunits, log):
 
     log.head('\nExtracting line transition info.')
     wnumber = np.array([], np.double)
-    gf      = np.array([], np.double)
-    elow    = np.array([], np.double)
-    isoID   = np.array([], np.int)
+    gf = np.array([], np.double)
+    elow = np.array([], np.double)
+    isoID = np.array([], int)
     # Read from file and write the transition info:
     for db in databases:
         # Get database index:
@@ -214,14 +239,16 @@ def make_tli(dblist, pflist, dbtype, tlifile, wllow,  wlhigh, wlunits, log):
             continue
 
         wnumber = np.concatenate((wnumber, transitions[0]))
-        gf      = np.concatenate((gf,      transitions[1]))
-        elow    = np.concatenate((elow,    transitions[2]))
-        isoID   = np.concatenate((isoID,   transitions[3]+accum[idb]))
+        gf = np.concatenate((gf, transitions[1]))
+        elow = np.concatenate((elow, transitions[2]))
+        isoID = np.concatenate((isoID, transitions[3]+accum[idb]))
 
         unique_iso = np.unique(transitions[3])
         log.msg(
             f'Isotope in-database indices: {unique_iso}\n'
-            f'Isotope correlative indices: {unique_iso+accum[idb]}', indent=2)
+            f'Isotope correlative indices: {unique_iso+accum[idb]}',
+            indent=2,
+        )
         log.debug('Reading time: {tf-ti:8.3f} seconds', indent=2)
 
 
@@ -237,7 +264,7 @@ def make_tli(dblist, pflist, dbtype, tlifile, wllow,  wlhigh, wlunits, log):
     # Sort each isotope by wavenumber:
     ihi = 0
     for ntrans in ntrans_iso:
-        ilo  = ihi
+        ilo = ihi
         ihi += ntrans
         wnsort = np.argsort(wnumber[isort][ilo:ihi])
         isort[ilo:ihi] = isort[ilo:ihi][wnsort]
@@ -245,16 +272,25 @@ def make_tli(dblist, pflist, dbtype, tlifile, wllow,  wlhigh, wlunits, log):
 
     # Actual sorting:
     wnumber = wnumber[isort]
-    gf      = gf     [isort]
-    elow    = elow   [isort]
-    isoID   = isoID  [isort]
+    gf = gf[isort]
+    elow = elow[isort]
+    isoID = isoID[isort]
 
     log.debug(f'Sort time:    {tf-ti:8.3f} seconds', indent=2)
     log.msg(f'\nTransitions per isotope:\n{ntrans_iso}')
 
     # Pack:
     tli.write(struct.pack('i', ntransitions))
-    log.msg(f'\nWriting {ntransitions:,d} transition lines.')
+    wn_min = np.amin(wnumber)
+    wn_max = np.amax(wnumber)
+    wl_min = 1.0 / wn_max / pc.um
+    wl_max = 1.0 / wn_min / pc.um
+    log.msg(
+        f'\nWriting {ntransitions:,d} transition lines '
+        f'between wavenumbers {wn_min:.2f} and {wn_max:.2f} cm-1 '
+        f'({wl_min:.3f} -- {wl_max:.3f} um).'
+    )
+
     # Write the number of transitions for each isotope:
     niso = len(ntrans_iso)
     tli.write(struct.pack('i', niso))

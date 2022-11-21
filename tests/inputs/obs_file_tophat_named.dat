@@ -1,0 +1,21 @@
+# Observations data file
+
+# Passband info could be (1) a path to a file or (2) a tophat filter
+# defined by a central wavelength, half-width, and optionally a name
+
+# Comment lines (like this one) and blank lines are ignored,
+# central-wavelength and half-width units are always microns
+
+# @DEPTH_UNITS sets the depth and uncert units (none, percent, ppt, ppm)
+# and also indicates that there's data and uncerts to read
+# as two columns before the passband info
+
+# depth uncert  wavelength half_width passband_name
+# depth uncert  passband_file
+@DATA
+1.148    0.046  HST_WFC3
+1.240    0.046  HST_WFC3
+1.332    0.046  HST_WFC3
+1.424    0.046  HST_WFC3
+1.516    0.046  HST_WFC3
+1.608    0.046  HST_WFC3

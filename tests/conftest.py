@@ -1,5 +1,5 @@
-# Copyright (c) 2021 Patricio Cubillos
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+# Copyright (c) 2021-2022 Patricio Cubillos
+# Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import sys
 import itertools
@@ -11,14 +11,18 @@ import tempfile
 
 def pytest_collection_modifyitems(items):
     """Sort tests with a 'sort' mark by order keyword."""
-    order = [item.get_closest_marker('sort').kwargs['order']
-             if item.get_closest_marker('sort') is not None
-             else -1
-             for item in items]
+    order = [
+        item.get_closest_marker('sort').kwargs['order']
+        if item.get_closest_marker('sort') is not None
+        else -1
+        for item in items
+    ]
 
     last = itertools.count(1 + max(order) if order else 0)
-    order = {item:val if val >= 0 else next(last)
-             for item,val in zip(items,order)}
+    order = {
+        item:val if val >= 0 else next(last)
+        for item,val in zip(items,order)
+    }
     items[:] = sorted(order, key=order.get)
 
 
@@ -39,7 +43,7 @@ def make_config(path, cfile, reset={}, remove=[]):
 @pytest.fixture
 def undefined():
     data = {
-        'nlayers': 'Undefined number of atmospheric layers (nlayers).',
+        'nlayers': 'Undefined number of atmospheric layers (nlayers)',
         'ptop':    'Undefined atmospheric top pressure (ptop)',
         'pbottom': 'Undefined atmospheric bottom pressure (pbottom)',
         'tmodel':  'Undefined temperature model (tmodel)',
@@ -49,38 +53,36 @@ def undefined():
         'gstar':   'Undefined stellar gravity (gstar)',
         'smaxis':  'Undefined orbital semi-major axis (smaxis)',
         'mplanet': 'Undefined planetary surface gravity, set either '
-                   'gplanet or mplanet and\nrplanet.',
+                   'gplanet or mplanet and\nrplanet',
         'rplanet': 'Undefined planetary surface gravity, set either '
-                   'gplanet or mplanet and\nrplanet.',
+                   'gplanet or mplanet and\nrplanet',
         'gplanet': 'Undefined planetary surface gravity (gplanet)',
-        'atmfile': 'Undefined atmospheric file (atmfile).',
-        'species': 'Undefined atmospheric species list (species).',
-        'elements': 'Undefined elemental composition list (elements) for '
-                    'tea chemistry model.',
+        'atmfile': 'Undefined atmospheric file (atmfile)',
+        'species': 'Undefined atmospheric species list (species)',
         'uniform': 'Undefined list of uniform volume mixing ratios (uniform) '
-                   'for uniform\nchemistry model.',
+                   'for uniform\nchemistry model',
         'refpressure': 'Cannot compute hydrostatic-equilibrium radius profile.'
-                       '  Undefined reference\npressure level (refpressure).',
+                       '  Undefined reference\npressure level (refpressure)',
     }
     return data
 
 @pytest.fixture
 def undefined_spec():
     data = {
-        'wllow':   'High wavenumber boundary is undefined.  Either set '
-                   'wnhigh or wllow.',
-        'wlhigh':  'Low wavenumber boundary is undefined.  Either set '
-                   'wnlow or wlhigh.',
-        'wnstep':  'Undefined wavenumber sampling step size (wnstep).',
-        'wnosamp': 'Undefined wavenumber oversampling factor (wnosamp).',
+        'wllow': 'High wavenumber boundary is undefined.  Either set '
+                 'wnhigh or wllow',
+        'wlhigh': 'Low wavenumber boundary is undefined.  Either set '
+                  'wnlow or wlhigh',
+        'wnstep': 'Undefined wavenumber sampling step size (wnstep)',
+        'wnosamp': 'Undefined wavenumber oversampling factor (wnosamp)',
         'rt_path': 'Undefined radiative-transfer observing geometry (rt_path).'
                    '  Select from',
-        'specfile': 'Undefined output spectrum file (specfile).',
+        'specfile': 'Undefined output spectrum file (specfile)',
         'tlifile': 'TLI file (tlifile) does not exist',
          # Transmission
         'rstar': 'Undefined stellar radius (rstar), required for '
-                 'transmission calculation.',
-        }
+                 'transmission calculation',
+    }
     return data
 
 
@@ -88,13 +90,13 @@ def undefined_spec():
 def undefined_opacity():
     data = {
         'tmin': 'Undefined lower temperature boundary (tmin) for '
-                'extinction-coefficient grid.',
+                'extinction-coefficient grid',
         'tmax': 'Undefined upper temperature boundary (tmax) for '
-                'extinction-coefficient grid.',
+                'extinction-coefficient grid',
         'tstep': 'Undefined temperature sampling step (tstep) for '
-                 'extinction-coefficient grid.',
+                 'extinction-coefficient grid',
         'tlifile': 'Requested extinction-coefficient table, but there are '
-                   'no input TLI files.',
+                   'no input TLI files',
     }
     return data
 
@@ -103,23 +105,23 @@ def undefined_opacity():
 def undefined_mcmc():
     data = {
         'retflag':"Undefined retrieval model flags.  Select from ['temp', "
-                  "'rad', 'mol', 'ray',\n'cloud', 'patchy', 'mass'].",
-        'params': 'Undefined retrieval fitting parameters (params).',
-        'data':   'Undefined transit/eclipse data (data).',
-        'uncert': 'Undefined data uncertainties (uncert).',
-        'filters': 'Undefined transmission filters (filters).',
+                  "'rad', 'press',\n'mol', 'ray', 'cloud', 'patchy', 'mass']",
+        'params': 'Undefined retrieval fitting parameters (params)',
+        'data':   'Undefined transit/eclipse data (data)',
+        'uncert': 'Undefined data uncertainties (uncert)',
+        'filters': 'Undefined transmission filters (filters)',
         'sampler': 'Undefined retrieval algorithm (sampler).  Select '
-                   'from [snooker].',
-        'nsamples': 'Undefined number of retrieval samples (nsamples).',
-        'burnin':   'Undefined number of retrieval burn-in samples (burnin).',
-        'nchains':  'Undefined number of retrieval parallel chains (nchains).',
-        'rstar':    'Undefined radius ratio (need rplanet and rstar).',
-        'tmodel':   'Requested temp in retflag, but there is no tmodel.',
+                   'from [snooker]',
+        'nsamples': 'Undefined number of retrieval samples (nsamples)',
+        'burnin':   'Undefined number of retrieval burn-in samples (burnin)',
+        'nchains':  'Undefined number of retrieval parallel chains (nchains)',
+        'rstar':    'Undefined radius ratio (need rplanet and rstar)',
+        'tmodel':   'Requested temp in retflag, but there is no tmodel',
         'rayleigh': 'Requested ray in retflag, but there are no rayleigh '
-                    'models.',
-        'clouds': 'Requested cloud in retflag, but there are no cloud models.',
-        'molmodel': "Requested mol in retflag, but there is no 'molmodel'.",
-        'bulk': 'Requested mol in retflag, but there are no bulk species.',
+                    'models',
+        'clouds': 'Requested cloud in retflag, but there are no cloud models',
+        'molmodel': "Requested mol in retflag, but there is no 'molmodel'",
+        'bulk': 'Requested mol in retflag, but there are no bulk species',
     }
     return data
 
@@ -127,9 +129,9 @@ def undefined_mcmc():
 @pytest.fixture
 def invalid_raygrid():
     data = {
-        '10 60 90': 'First angle in raygrid must be 0.0 (normal to surface).',
-        '0 30 60 100': 'raygrid angles must lie between 0 and 90 deg.',
-        '0 30 90 60': 'raygrid angles must be monotonically increasing.',
+        '10 60 90': 'First angle in raygrid must be 0.0 (normal to surface)',
+        '0 30 60 100': 'raygrid angles must lie between 0 and 90 deg',
+        '0 30 90 60': 'raygrid angles must be monotonically increasing',
     }
     return data
 

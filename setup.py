@@ -1,4 +1,4 @@
-# Copyright (c) 2021 Patricio Cubillos
+# Copyright (c) 2021-2022 Patricio Cubillos
 # Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 import os
@@ -10,10 +10,10 @@ from setuptools import setup, Extension
 from numpy import get_include
 
 sys.path.append(os.path.join(os.path.dirname(__file__), 'pyratbay'))
-from VERSION import __version__
+from version import __version__
 
 
-srcdir = 'src_c/'          # C-code source folder
+srcdir = 'src_c/'  # C-code source folder
 incdir = 'src_c/include/'  # Include filder with header files
 
 cfiles = os.listdir(srcdir)
@@ -30,9 +30,10 @@ extensions = [
         sources=[f'{srcdir}{cfile}'],
         include_dirs=inc,
         extra_compile_args=eca,
-        extra_link_args=ela)
+        extra_link_args=ela,
+    )
     for cfile in cfiles
-    ]
+]
 
 long_description = """
 .. image:: https://raw.githubusercontent.com/pcubillos/pyratbay/master/docs/figures/pyrat_logo.png
@@ -61,15 +62,24 @@ Cite as:
 
 .. code-block:: bibtex
 
-  @ARTICLE{CubillosBlecic2021mnrasPyratBay,
-         author = {{Cubillos}, Patricio E. and {Blecic}, Jasmina},
-          title = "The {Pyrat Bay} Framework for Exoplanet Atmospheric Modeling: A Population Study of Hubble/WFC3 Transmission Spectra",
-           year = 2021,
-        journal = {\mnras},
-            doi = {10.1093/mnras/stx0000},
-         adsurl = {https://ui.adsabs.harvard.edu/abs/2021MNRAS.000.0000C},
-        adsnote = {Provided by the SAO/NASA Astrophysics Data System},
-  }
+    @ARTICLE{CubillosBlecic2021mnrasPyratBay,
+           author = {{Cubillos}, Patricio E. and {Blecic}, Jasmina},
+            title = "{The PYRAT BAY framework for exoplanet atmospheric modelling: a population study of Hubble/WFC3 transmission spectra}",
+          journal = {\mnras},
+         keywords = {radiative transfer, methods: statistical, planets and satellites: atmosphere, Astrophysics - Earth and Planetary Astrophysics, Astrophysics - Instrumentation and Methods for Astrophysics},
+             year = 2021,
+            month = aug,
+           volume = {505},
+           number = {2},
+            pages = {2675-2702},
+              doi = {10.1093/mnras/stab1405},
+    archivePrefix = {arXiv},
+           eprint = {2105.05598},
+     primaryClass = {astro-ph.EP},
+           adsurl = {https://ui.adsabs.harvard.edu/abs/2021MNRAS.505.2675C},
+          adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+    }
+
 .. |Build Status| image:: https://travis-ci.com/pcubillos/pyratbay.svg?branch=master
    :target: https://travis-ci.com/pcubillos/pyratbay
 
@@ -94,15 +104,9 @@ package_data = {'pyratbay': [
     'data/atoms.dat',
     'data/molecules.dat',
     'data/isotopes.dat',
-    'data/TEA_gdata_defaults.txt',
-    'data/tips_2017.pkl',
+    'data/tips_2021.pkl',
     'data/filters/*.dat',
     'data/CIA/*.dat',
-    'TEA/lib/abundances.txt',
-    'TEA/lib/stoich.txt',
-    'TEA/lib/TEA.cfg',
-    'TEA/lib/gdata/*.txt',
-    'TEA/*/*.py',
     ]}
 
 
@@ -115,15 +119,14 @@ setup(
     packages = setuptools.find_packages(),
     package_data = package_data,
     install_requires = [
-        'numpy>=1.8.1',
-        'scipy>=0.13.3',
-        'matplotlib>=1.3.1',
-        'sympy>=0.7.6',
+        'numpy>=1.15.1',
+        'scipy>=1.4.1',
+        'matplotlib>=3.3.4',
         'mc3>=3.0.7',
+        'chemcat>=0.3.1',
         ],
     tests_require = [
         'pytest>=3.9',
-        'scipy>=1.4.1',
         ],
     license = 'GPLv2',
     description = 'Python Radiative Transfer in a Bayesian Framework.',
@@ -132,4 +135,4 @@ setup(
     include_dirs = inc,
     entry_points = {'console_scripts': ['pbay = pyratbay.__main__:main']},
     ext_modules = extensions,
-    )
+)

@@ -1,5 +1,5 @@
-# Copyright (c) 2021 Patricio Cubillos
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+# Copyright (c) 2021-2022 Patricio Cubillos
+# Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import os
 import pyratbay as pb
@@ -23,13 +23,13 @@ def test_hitran(capfd):
         "Final   TLI wavelength (um):   1.010 ( 9900.990 cm-1)",
         "There are 1 input database file(s).",
         "Database (1/1): 'HITRAN H2O' (H2O molecule)",
-        "Number of temperatures: 503",
-        "Number of isotopes: 9",
+        "Number of temperatures: 1001",
+        "Number of isotopes: 7",
         "Process HITRAN H2O database between records 0 and 887.",
         "[672 148  62   6]",
-        "Writing 888 transition lines.",
+        "Writing 888 transition lines between wavenumbers 9901.39 and 9999.96 cm-1 (1.000\n-- 1.010 um)",
         "/HITRAN_H2O_1.00-1.01um_test.tli'.",
-        ]
+    ]
     for cap in caps:
         assert cap in captured.out
 
@@ -47,17 +47,17 @@ def test_two_files_two_databases(capfd):
         "Initial TLI wavelength (um):   2.000 ( 5000.000 cm-1)",
         "Final   TLI wavelength (um):   3.000 ( 3333.333 cm-1)",
         "Database (1/2): 'HITRAN H2O' (H2O molecule)",
-        "Number of temperatures: 503",
-        "Number of isotopes: 9",
+        "Number of temperatures: 1001",
+        "Number of isotopes: 7",
         "Database (2/2): 'HITRAN CO2' (CO2 molecule)",
         "Number of isotopes: 13",
-        "Cumulative number of isotopes per database: [0, 9, 22]",
+        "Cumulative number of isotopes per database: [0, 7, 20]",
         "Process HITRAN H2O database between records 42,645 and 66,776.",
         "Process HITRAN CO2 database between records 0 and 138,257.",
         "[12296  5132  3973  2568   147 99541  9119 22521   220  6854     2]",
-        "Writing 162,373 transition lines.",
+        "Writing 162,373 transition lines between wavenumbers 3333.35 and 5000.00 cm-1\n(2.000 -- 3.000 um)",
         "/HITRAN_H2O_CO2_2.0-3.0um_test.tli'.",
-        ]
+    ]
     for cap in caps:
         assert cap in captured.out
 
@@ -75,15 +75,15 @@ def test_two_files_one_database(capfd):
         "Initial TLI wavelength (um):   2.000 ( 5000.000 cm-1)",
         "Final   TLI wavelength (um):   3.000 ( 3333.333 cm-1)",
         "Database (1/1): 'HITRAN CO2' (CO2 molecule)",
-        "Number of temperatures: 353",
+        "Number of temperatures: 701",
         "Number of isotopes: 13",
         "Cumulative number of isotopes per database: [0, 13]",
         "Process HITRAN CO2 database between records 0 and 213,768.",
         "Process HITRAN CO2 database between records 0 and 138,257.",
         "[267537  36165  39420   1090   7500    314]",
-        "Writing 352,026 transition lines.",
+        "Writing 352,026 transition lines between wavenumbers 3750.00 and 4500.00 cm-1\n(2.222 -- 2.667 um)",
         "/HITRAN_CO2_2.0-3.0um_test.tli'.",
-        ]
+    ]
     for cap in caps:
         assert cap in captured.out
 
@@ -101,17 +101,17 @@ def test_two_files_one_dbtype(capfd):
         "Initial TLI wavelength (um):   2.300 ( 4347.826 cm-1)",
         "Final   TLI wavelength (um):   2.400 ( 4166.667 cm-1)",
         "Database (1/2): 'HITRAN H2O' (H2O molecule)",
-        "Number of temperatures: 503",
-        "Number of isotopes: 9",
+        "Number of temperatures: 1001",
+        "Number of isotopes: 7",
         "Database (2/2): 'HITRAN CO2' (CO2 molecule)",
         "Number of isotopes: 13",
-        "Cumulative number of isotopes per database: [0, 9, 22]",
+        "Cumulative number of isotopes per database: [0, 7, 20]",
         "Process HITRAN H2O database between records 60,574 and 61,991.",
         "Process HITRAN CO2 database between records 20,424 and 41,477.",
         "[  610   233   163   411 20937    17    27    73]",
-        "Writing 22,471 transition lines.",
+        "Writing 22,471 transition lines between wavenumbers 4166.70 and 4347.82 cm-1\n(2.300 -- 2.400 um)",
         "/HITRAN_H2O_CO2_2.3-2.4um_test.tli'.",
-        ]
+    ]
     for cap in caps:
         assert cap in captured.out
 
@@ -129,17 +129,17 @@ def test_two_files_one_pflist(capfd):
         "Initial TLI wavelength (um):   2.300 ( 4347.826 cm-1)",
         "Final   TLI wavelength (um):   2.400 ( 4166.667 cm-1)",
         "Database (1/2): 'HITRAN H2O' (H2O molecule)",
-        "Number of temperatures: 503",
-        "Number of isotopes: 9",
+        "Number of temperatures: 1001",
+        "Number of isotopes: 7",
         "Database (2/2): 'HITRAN CO2' (CO2 molecule)",
         "Number of isotopes: 13",
-        "Cumulative number of isotopes per database: [0, 9, 22]",
+        "Cumulative number of isotopes per database: [0, 7, 20]",
         "Process HITRAN H2O database between records 60,574 and 61,991.",
         "Process HITRAN CO2 database between records 20,424 and 41,477.",
         "[  610   233   163   411 20937    17    27    73]",
-        "Writing 22,471 transition lines.",
+        "Writing 22,471 transition lines between wavenumbers 4166.70 and 4347.82 cm-1\n(2.300 -- 2.400 um)",
         "/HITRAN_H2O_CO2_2.3-2.4um_test.tli'.",
-        ]
+    ]
     for cap in caps:
         assert cap in captured.out
 
@@ -161,9 +161,9 @@ def test_exomol(capfd):
         "Number of isotopes: 2",
         "Process Exomol NH3 database between records 0 and 499.",
         "[500 500]",
-        "Writing 1,000 transition lines.",
+        "Writing 1,000 transition lines between wavenumbers 4999.96 and 5000.00 cm-1\n(2.000 -- 2.000 um)",
         "/ExoMol_NH3_2.0-2.00002um_test.tli'.",
-        ]
+    ]
     for cap in caps:
         assert cap in captured.out
 
@@ -184,9 +184,9 @@ def test_repack(capfd):
         "Number of isotopes: 13",
         "Process repack hitran CO2 database between records 0 and 7,814.",
         "[7438  129  116  132]",
-        "Writing 7,815 transition lines.",
+        "Writing 7,815 transition lines between wavenumbers 3970.00 and 4000.00 cm-1\n(2.500 -- 2.519 um).",
         "/repack_HITEMP_CO2_2.50-2.52um.tli'.",
-        ]
+    ]
     for cap in caps:
         assert cap in captured.out
 
@@ -194,7 +194,9 @@ def test_repack(capfd):
 def test_pands(capfd):
     with pt.cd('outputs/'):
         pf.kurucz(
-            f'{ROOT}tests/inputs/mock_h2opartfn.dat', outfile='default')
+            f'{ROOT}tests/inputs/mock_h2opartfn.dat',
+            outfile='default',
+        )
     pb.run('configs/tli_pands_test.cfg')
     captured = capfd.readouterr()
     caps = [
@@ -210,9 +212,9 @@ def test_pands(capfd):
         "Number of isotopes: 4",
         "Process P&S H2O database between records 38 and 10,220.",
         "[9625  207  219  132]",
-        "Writing 10,183 transition lines.",
+        "Writing 10,183 transition lines between wavenumbers 3998.40 and 4000.00 cm-1\n(2.500 -- 2.501 um)",
         "/pands_H2O_2.500-2.501um_test.tli'.",
-        ]
+    ]
     for cap in caps:
         assert cap in captured.out
 

@@ -1,5 +1,5 @@
-# Copyright (c) 2021 Patricio Cubillos
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+# Copyright (c) 2021-2022 Patricio Cubillos
+# Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import os
 import pytest
@@ -144,8 +144,8 @@ def test_read_write_atm_pt(tmpdir):
     atmfile = "WASP-00b.atm"
     atm = "{}/{}".format(tmpdir, atmfile)
     nlayers = 11
-    pressure    = pa.pressure('1e-8 bar', '1e2 bar', nlayers)
-    temperature = pa.tmodels.Isothermal(nlayers)(1500.0)
+    pressure = pa.pressure('1e-8 bar', '1e2 bar', nlayers)
+    temperature = pa.tmodels.Isothermal(pressure)(1500.0)
     io.write_atm(atm, pressure, temperature, punits='bar')
     assert atmfile in os.listdir(str(tmpdir))
 
@@ -162,8 +162,8 @@ def test_read_write_atm_ptq(tmpdir):
     atmfile = "WASP-00b.atm"
     atm = "{}/{}".format(tmpdir, atmfile)
     nlayers = 11
-    pressure    = pa.pressure('1e-8 bar', '1e2 bar', nlayers)
-    temperature = pa.tmodels.Isothermal(nlayers)(1500.0)
+    pressure = pa.pressure('1e-8 bar', '1e2 bar', nlayers)
+    temperature = pa.tmodels.Isothermal(pressure)(1500.0)
     species     = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
     abundances  = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
     qprofiles = pa.uniform(pressure, temperature, species, abundances)
@@ -184,8 +184,8 @@ def test_read_write_atm_ptqr(tmpdir):
     atmfile = "WASP-00b.atm"
     atm = "{}/{}".format(tmpdir, atmfile)
     nlayers = 11
-    pressure    = pa.pressure('1e-8 bar', '1e2 bar', nlayers)
-    temperature = pa.tmodels.Isothermal(nlayers)(1500.0)
+    pressure = pa.pressure('1e-8 bar', '1e2 bar', nlayers)
+    temperature = pa.tmodels.Isothermal(pressure)(1500.0)
     species     = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
     abundances  = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
     qprofiles = pa.uniform(pressure, temperature, species, abundances)
@@ -251,10 +251,10 @@ def test_read_write_cs(species, tmpdir):
     csfile = 'CS_Mock.dat'
     csf = "{}/{}".format(tmpdir, csfile)
     temp = np.linspace(100, 1000, 3)
-    wn   = np.arange(10, 15, 1.0)
-    cs   = np.array([np.logspace( 0,-4,5),
-                     np.logspace(-1,-5,5),
-                     np.logspace(-2,-6,5)])
+    wn = np.arange(10, 15, 1.0)
+    cs = np.array([np.logspace( 0,-4,5),
+                   np.logspace(-1,-5,5),
+                   np.logspace(-2,-6,5)])
     header = '# Mock cross-section.\n'
     io.write_cs(csf, cs, species, temp, wn, header)
     assert csfile in os.listdir(str(tmpdir))
@@ -307,31 +307,213 @@ def test_read_pt(tmpdir):
 
 
 def test_read_molecs():
-    names, mass, diam = io.read_molecs(ROOT+'pyratbay/data/molecules.dat')
+    names, masses, radii = io.read_molecs(ROOT+'pyratbay/data/molecules.dat')
     assert 'H2O' in names
     assert 'CH4' in names
     assert 'CO' in names
     assert 'CO2' in names
     assert 'H2' in names
-    np.testing.assert_allclose(mass[names == 'H2O'], 18.01528)
-    np.testing.assert_allclose(diam[names == 'H2'], 2.89)
+    assert 'e-' in names
+    assert 'H-' in names
+    assert 'H+' in names
+    np.testing.assert_allclose(masses[names == 'H2O'], 18.015)
+    np.testing.assert_allclose(radii[names == 'H2'], 1.44)
 
 
 def test_read_isotopes():
-    ID, mol, hit_iso, exo_iso, ratio, mass = io.read_isotopes(
-        pc.ROOT+'pyratbay/data/isotopes.dat')
+    iso_data = io.read_isotopes(pc.ROOT+'pyratbay/data/isotopes.dat')
+    ID, mol, hit_iso, exo_iso, ratio, mass = iso_data
+
+    hitran_iso = ['161', '181', '171', '162', '182', '172', '262']
+    exomol_iso = ['116', '118', '117', '126', '000', '000', '226']
+    abundances = np.array([
+        9.973173e-01, 1.999827e-03, 3.718840e-04, 3.106930e-04,
+        6.230030e-07, 1.158530e-07, 2.419740e-08,
+    ])
+    masses = np.array([
+        18.01056, 20.01481, 19.01478, 19.01674, 21.02098, 20.02096, 20.02292])
+
     assert 'H2O' in mol
     assert np.all(ID[mol=='H2O'] == 1)
-    assert list(hit_iso[mol=='H2O']) == \
-        ['161', '181', '171', '162', '182', '172', '262', '282', '272']
-    assert list(exo_iso[mol=='H2O']) == \
-        ['116', '118', '117', '126', '128', '127', '226', '228', '227']
-    np.testing.assert_allclose(ratio[mol=='H2O'],
-        np.array([9.973e-01, 1.999e-03, 3.719e-04, 3.107e-04, 6.230e-07,
-                  1.158e-07, 2.420e-08, 0.000e+00, 0.000e+00]))
-    np.testing.assert_allclose(mass[mol=='H2O'],
-        np.array([18.010565, 20.014811, 19.014781, 19.016841, 21.021088,
-                  20.021058, 20.021,    22.0000, 21.0000]))
+    assert list(hit_iso[mol=='H2O']) == hitran_iso
+    assert list(exo_iso[mol=='H2O']) == exomol_iso
+    np.testing.assert_allclose(ratio[mol=='H2O'], abundances)
+    np.testing.assert_allclose(mass[mol=='H2O'], masses)
+
+
+def test_read_observations_passband_file():
+    obs_file = 'inputs/obs_file_passband_file.dat'
+    bands = io.read_observations(obs_file)
+
+    expected_names = [
+        'TESS_passband',
+        'spitzer_irac2_sa',
+        'spitzer_irac2_sa',
+    ]
+    expected_wl0 = [0.792, 4.471, 4.471]
+    expected_nbands = len(expected_names)
+
+    assert len(bands) == expected_nbands
+    for i in range(expected_nbands):
+        assert bands[i].name == expected_names[i]
+    wl0 = [band.wl0 for band in bands]
+    np.testing.assert_allclose(wl0, expected_wl0, rtol=1.0e-3)
+
+
+def test_read_observations_tophat():
+    obs_file = 'inputs/obs_file_tophat.dat'
+    bands = io.read_observations(obs_file)
+
+    expected_wl0 = [1.148, 1.240, 1.332, 1.424, 1.516, 1.608]
+    expected_nbands = len(expected_wl0)
+
+    assert len(bands) == expected_nbands
+    for i in range(expected_nbands):
+        assert bands[i].name == 'tophat'
+    wl0 = [band.wl0 for band in bands]
+    np.testing.assert_allclose(wl0, expected_wl0, rtol=1.0e-3)
+
+
+def test_read_observations_named_tophat():
+    obs_file = 'inputs/obs_file_tophat_named.dat'
+    bands = io.read_observations(obs_file)
+
+    expected_wl0 = [1.148, 1.240, 1.332, 1.424, 1.516, 1.608]
+    expected_nbands = len(expected_wl0)
+
+    assert len(bands) == expected_nbands
+    for i in range(expected_nbands):
+        assert bands[i].name == 'HST_WFC3'
+    wl0 = [band.wl0 for band in bands]
+    np.testing.assert_allclose(wl0, expected_wl0, rtol=1.0e-3)
+
+
+def test_read_observations_data_passband_file():
+    obs_file = 'inputs/obs_file_data_passband_file.dat'
+    bands, data, uncert = io.read_observations(obs_file)
+
+    expected_names = [
+        'TESS_passband',
+        'spitzer_irac2_sa',
+        'spitzer_irac2_sa',
+    ]
+    expected_wl0 = [0.792, 4.471, 4.471]
+    expected_nbands = len(expected_names)
+    expected_data = np.array([0.000139, 0.003448, 0.003375])
+    expected_uncert = np.array([8.0e-06, 6.4e-05, 8.2e-05])
+
+    assert len(bands) == expected_nbands
+    for i in range(expected_nbands):
+        assert bands[i].name == expected_names[i]
+    wl0 = [band.wl0 for band in bands]
+    np.testing.assert_allclose(wl0, expected_wl0, rtol=1.0e-3)
+    np.testing.assert_allclose(data, expected_data)
+    np.testing.assert_allclose(uncert, expected_uncert)
+
+
+def test_read_observations_data_tophat():
+    obs_file = 'inputs/obs_file_data_tophat.dat'
+    bands, data, uncert = io.read_observations(obs_file)
+
+    expected_wl0 = [1.148, 1.240, 1.332, 1.424, 1.516, 1.608]
+    expected_nbands = len(expected_wl0)
+    expected_data = np.array([
+        0.000214, 0.000325, 0.000415, 0.000621, 0.000765, 0.000732,
+    ])
+    expected_uncert = np.array([
+        4.2e-05, 4.3e-05, 4.2e-05, 4.7e-05, 5.1e-05, 5.7e-05,
+    ])
+
+    assert len(bands) == expected_nbands
+    for i in range(expected_nbands):
+        assert bands[i].name == 'tophat'
+    wl0 = [band.wl0 for band in bands]
+    np.testing.assert_allclose(wl0, expected_wl0, rtol=1.0e-3)
+    np.testing.assert_allclose(data, expected_data)
+    np.testing.assert_allclose(uncert, expected_uncert)
+
+
+def test_read_observations_data_named_tophat():
+    obs_file = 'inputs/obs_file_data_tophat_named.dat'
+    bands, data, uncert = io.read_observations(obs_file)
+
+    expected_wl0 = [1.148, 1.240, 1.332, 1.424, 1.516, 1.608]
+    expected_nbands = len(expected_wl0)
+    expected_data = np.array([
+        0.000214, 0.000325, 0.000415, 0.000621, 0.000765, 0.000732,
+    ])
+    expected_uncert = np.array([
+        4.2e-05, 4.3e-05, 4.2e-05, 4.7e-05, 5.1e-05, 5.7e-05,
+    ])
+
+    assert len(bands) == expected_nbands
+    for i in range(expected_nbands):
+        assert bands[i].name == 'HST_WFC3'
+    wl0 = [band.wl0 for band in bands]
+    np.testing.assert_allclose(wl0, expected_wl0, rtol=1.0e-3)
+    np.testing.assert_allclose(data, expected_data)
+    np.testing.assert_allclose(uncert, expected_uncert)
+
+
+def test_read_observations_mix():
+    obs_file = 'inputs/obs_file_data_mix.dat'
+    bands, data, uncert = io.read_observations(obs_file)
+
+    expected_names = [
+        'TESS_passband',
+        'tophat',
+        'HST_WFC3',
+        'HST_WFC3',
+        'HST_WFC3',
+        'HST_WFC3',
+        'HST_WFC3',
+        'HST_WFC3',
+        'spitzer_irac2_sa',
+        'spitzer_irac2_sa',
+    ]
+    expected_wl0 = [
+        0.792, 1.0, 1.148, 1.240, 1.332, 1.424, 1.516, 1.608, 4.471, 4.471,
+    ]
+    expected_nbands = len(expected_names)
+    expected_data = np.array([
+        0.000139, 0.0002  , 0.000214, 0.000325, 0.000415, 0.000621,
+        0.000765, 0.000732, 0.003448, 0.003375,
+    ])
+    expected_uncert = np.array([
+        8.0e-06, 5.0e-05, 4.2e-05, 4.3e-05, 4.2e-05, 4.7e-05, 5.1e-05,
+        5.7e-05, 6.4e-05, 8.2e-05,
+    ])
+
+    assert len(bands) == expected_nbands
+    for i in range(expected_nbands):
+        assert bands[i].name == expected_names[i]
+    wl0 = [band.wl0 for band in bands]
+    np.testing.assert_allclose(wl0, expected_wl0, rtol=1.0e-3)
+    np.testing.assert_allclose(data, expected_data)
+    np.testing.assert_allclose(uncert, expected_uncert)
+
+
+def test_read_observations_error_too_few_values():
+    obs_file = 'inputs/obs_file_extra_depth_flag.dat'
+
+    error_msg = (
+        "Invalid number of values in obs_file, perhaps remove the "
+        "'@DEPTH_UNITS' flag if there's no depth/uncert data"
+    )
+    with pytest.raises(ValueError, match=error_msg):
+        passband_data = io.read_observations(obs_file)
+
+
+def test_read_observations_error_too_many_values():
+    obs_file = 'inputs/obs_file_missing_depth_flag.dat'
+
+    error_msg = (
+        "Invalid number of values in obs_file, perhaps "
+        "the '@DEPTH_UNITS' flag is missing"
+    )
+    with pytest.raises(ValueError, match=error_msg):
+        passband_data = io.read_observations(obs_file)
+
 
 @pytest.mark.skip(
     reason='This requires either to download a huge file or mock it up.')

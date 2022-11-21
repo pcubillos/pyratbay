@@ -25,7 +25,7 @@ References
 
 .. [Cubillos2017b] `Cubillos (2017): An Algorithm to Compress Line-transition Data for Radiative-transfer Calculations <http://ui.adsabs.harvard.edu/abs/2017ApJ...850...32C>`_
 
-.. [CubillosBlecic2021] `Cubillos & Blecic (2021): The Pyrat-Bay Framework ifor Exoplanet Atmospheric Modeling: A Population Study of Hubble/WFC3 Transmission Spectra <https://www.youtube.com/watch?v=dQw4w9WgXcQ>`_
+.. [CubillosBlecic2021] `Cubillos & Blecic (2021): The Pyrat-Bay Framework ifor Exoplanet Atmospheric Modeling: A Population Study of Hubble/WFC3 Transmission Spectra <https://ui.adsabs.harvard.edu/abs/2021MNRAS.505.2675C>`_
 
 .. [Dalgarno1962] `Dalgarno & Williams (1962): Rayleigh Scattering by Molecular Hydrogen <http://ui.adsabs.harvard.edu/abs/1962ApJ...136..690D>`_
 

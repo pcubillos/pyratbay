@@ -16,7 +16,7 @@ def read_atm(pyrat):
     pyrat.log.head(f"\nReading atmospheric file: '{pyrat.atm.atmfile}'.")
 
     # User-input atmospheric-data object:
-    atm    = pyrat.atm
+    atm = pyrat.atm
     atm_in = pyrat.inputs.atm
 
     with pt.log_error(pyrat.log):
@@ -27,6 +27,9 @@ def read_atm(pyrat):
     pyrat.mol.name = atm_inputs[1]
     pyrat.mol.nmol = len(pyrat.mol.name)
 
+    # Read molecular constant values:
+    get_constants(pyrat)
+
     # Last resort to set the pressure units:
     if atm.punits is None:
         atm.punits = punits
@@ -36,9 +39,6 @@ def read_atm(pyrat):
         atm.runits = runits
     if atm.runits is None:
         atm.runits = 'km'
-
-    # Read molecular constant values:
-    get_constants(pyrat)
 
     # Store values in CGS system of units:
     atm_in.press = atm_inputs[2] * pt.u(punits)
@@ -89,7 +89,7 @@ def get_constants(pyrat):
     pyrat.log.msg(
         f"Taking species constant parameters from: '{pyrat.mol.molfile}'.",
         indent=2)
-    symbol, mass, diam = io.read_molecs(pyrat.mol.molfile)
+    symbol, mass, radius = io.read_molecs(pyrat.mol.molfile)
 
     # Check that all atmospheric species are listed in molfile:
     absent = np.setdiff1d(pyrat.mol.name, symbol)
@@ -100,7 +100,7 @@ def get_constants(pyrat):
 
     # Set molecule's values:
     pyrat.mol.symbol = np.zeros(pyrat.mol.nmol, 'U20')
-    pyrat.mol.mass   = np.zeros(pyrat.mol.nmol)
+    pyrat.mol.mass = np.zeros(pyrat.mol.nmol)
     pyrat.mol.radius = np.zeros(pyrat.mol.nmol)
 
     pyrat.log.msg(
@@ -112,15 +112,17 @@ def get_constants(pyrat):
         imol = np.where(symbol == pyrat.mol.name[i])[0]
         # Set molecule name, mass, and collision radius:
         pyrat.mol.symbol[i] = symbol[imol][0]
-        pyrat.mol.mass[i]   = mass  [imol]
-        pyrat.mol.radius[i] = 0.5*diam[imol] * pc.A
+        pyrat.mol.mass[i] = mass[imol]
+        pyrat.mol.radius[i] = radius[imol] * pc.A
         pyrat.log.msg(
             f"{pyrat.mol.name[i]:>10s}:  "
             f"{pyrat.mol.radius[i]/pc.A:.3f}  "
             f"{pyrat.mol.mass[i]:8.4f}", indent=2)
 
 
-def update_atm(pyrat, temp=None, abund=None, radius=None):
+def update_atm(pyrat, temp=None, vmr=None, radius=None,
+    # Deprecated
+    abund=None):
     """
     Update temperature, abundances, and radius profiles of a pyrat object.
 
@@ -134,7 +136,7 @@ def update_atm(pyrat, temp=None, abund=None, radius=None):
     radius: 1D float ndarray
         Layer's altitude profile (in cm), same order as temp.
     """
-    # Recompute temperature profile:
+    # Temperature profile:
     if temp is not None:
         # Need to null tpars since it does not represent temp anymore
         pyrat.atm.tpars = None
@@ -143,63 +145,63 @@ def update_atm(pyrat, temp=None, abund=None, radius=None):
     else:
         temp = pyrat.atm.temp
 
-    # Check that the dimensions match:
-    if np.size(temp) != np.size(pyrat.atm.temp):
-        pyrat.log.error(
-            f"The temperature array size ({np.size(temp)}) doesn't match "
-            f"the Pyrat's temperature size ({np.size(pyrat.atm.temp)}).")
+    if temp is not None:
+        # Check that the dimensions match:
+        if np.size(temp) != pyrat.atm.nlayers:
+            pyrat.log.error(
+                f"The temperature array size ({np.size(temp)}) doesn't match "
+                f"the Pyrat's temperature size ({np.size(pyrat.atm.temp)}).")
 
-    # Check temperature boundaries:
-    error = (
-        "One or more input temperature values lies out of the {:s} "
-        "temperature boundaries (K): [{:6.1f}, {:6.1f}].")
-    if pyrat.ex.extfile is not None:
-        if np.any(temp > pyrat.ex.tmax) or np.any(temp < pyrat.ex.tmin):
-            pyrat.log.warning(error.format(
-                'tabulated extinction-coefficient',
-                pyrat.ex.tmin, pyrat.ex.tmax))
-            return 0
-    elif pyrat.lt.ntransitions > 0:
-        if np.any(temp > pyrat.lt.tmax) or np.any(temp < pyrat.lt.tmin):
-            pyrat.log.warning(error.format(
-                'line-transition', pyrat.lt.tmin, pyrat.lt.tmax))
-            return 0
-    if pyrat.cs.nfiles > 0:
-        if np.any(temp > pyrat.cs.tmax) or np.any(temp < pyrat.cs.tmin):
-            pyrat.log.warning(error.format(
-                'cross-section', pyrat.cs.tmin, pyrat.cs.tmax))
-            return 0
+        # Check temperature boundaries:
+        msg = (
+            "One or more input temperature values lies out of the {:s} "
+            "temperature boundaries (K): [{:6.1f}, {:6.1f}].")
+        if pyrat.ex.extfile is not None:
+            if np.any(temp > pyrat.ex.tmax) or np.any(temp < pyrat.ex.tmin):
+                msg = msg.format(
+                    'tabulated extinction-coefficient',
+                    pyrat.ex.tmin, pyrat.ex.tmax)
+                pyrat.log.warning(msg)
+                return 0
+        elif pyrat.lt.ntransitions > 0:
+            if np.any(temp > pyrat.lt.tmax) or np.any(temp < pyrat.lt.tmin):
+                msg = msg.format('line-transition', pyrat.lt.tmin, pyrat.lt.tmax)
+                pyrat.log.warning(msg)
+                return 0
+        if pyrat.cs.nfiles > 0:
+            if np.any(temp > pyrat.cs.tmax) or np.any(temp < pyrat.cs.tmin):
+                msg = msg.format('cross-section', pyrat.cs.tmin, pyrat.cs.tmax)
+                pyrat.log.warning(msg)
+                return 0
+        pyrat.atm.temp = temp
 
-    # Recompute abundance profiles:
-    q0 = np.copy(pyrat.atm.qbase)
-    if abund is not None:
+
+    # Volume mixing ratios:
+    base_vmr = np.copy(pyrat.atm.qbase)
+    if vmr is not None:
         pyrat.atm.molpars = None
     elif pyrat.atm.molpars is not None:
-        abund = pa.qscale(
-            q0, pyrat.mol.name, pyrat.atm.molmodel,
+        vmr = pa.qscale(
+            base_vmr, pyrat.mol.name, pyrat.atm.molmodel,
             pyrat.atm.molfree, pyrat.atm.molpars, pyrat.atm.bulk,
             iscale=pyrat.atm.ifree, ibulk=pyrat.atm.ibulk,
             bratio=pyrat.atm.bulkratio, invsrat=pyrat.atm.invsrat)
     else:
-        abund = q0
-    if np.shape(abund) != np.shape(pyrat.atm.q):
-        pyrat.log.error(
-            f"The shape of the abundances array {np.shape(abund)} doesn't "
-             "match the shape of the Pyrat's abundance size "
-            f"{np.shape(pyrat.atm.q)}")
+        vmr = base_vmr
 
-    # Update values:
-    pyrat.atm.temp = temp
-    pyrat.atm.q    = abund
+    if vmr is not None:
+        if np.shape(vmr) != np.shape(pyrat.atm.q):
+            pyrat.log.error(
+                f"The shape of the abundances array {np.shape(vmr)} doesn't "
+                 "match the shape of the Pyrat's abundance size "
+                f"{np.shape(pyrat.atm.q)}")
+        pyrat.atm.q = vmr
 
     # Mean molecular mass:
     pyrat.atm.mm = np.sum(pyrat.atm.q*pyrat.mol.mass, axis=1)
 
-    # Number density (molecules cm-3):
-    pyrat.atm.d = pa.ideal_gas_density(
-        pyrat.atm.q, pyrat.atm.press, pyrat.atm.temp)
 
-    # Take radius if provided, else use hydrostatic-equilibrium equation:
+    # Radius profile:
     if radius is not None:
         pyrat.atm.radius = radius
     elif pyrat.atm.rmodelname is None:
@@ -209,6 +211,11 @@ def update_atm(pyrat, temp=None, abund=None, radius=None):
             pyrat.atm.press, pyrat.atm.temp, pyrat.atm.mm,
             pyrat.phy.gplanet, pyrat.phy.mplanet,
             pyrat.atm.refpressure, pyrat.phy.rplanet)
+
+
+    # Number density (molecules cm-3):
+    pyrat.atm.d = pa.ideal_gas_density(
+        pyrat.atm.q, pyrat.atm.press, pyrat.atm.temp)
 
     # Check radii lie within Hill radius:
     pyrat.phy.rhill = pa.rhill(
@@ -228,7 +235,8 @@ def update_atm(pyrat, temp=None, abund=None, radius=None):
             "Extinction beyond this layer will be neglected.")
 
     # Partition function:
-    for db in pyrat.lt.db:            # For each Database
-        for j in np.arange(db.niso):  # For each isotope in DB
-            zinterp = sip.interp1d(db.temp, db.z[j], kind='slinear')
-            pyrat.iso.z[db.iiso+j] = zinterp(pyrat.atm.temp)
+    for database in pyrat.lt.db:
+        for i_isotope in range(database.niso):
+            zinterp = sip.interp1d(
+                database.temp, database.z[i_isotope], kind='slinear')
+            pyrat.iso.z[database.iiso+i_isotope] = zinterp(pyrat.atm.temp)

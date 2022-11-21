@@ -15,9 +15,9 @@ xi(double gamma, double tau){
 }
 
 
-PyDoc_STRVAR(tcea__doc__,
+PyDoc_STRVAR(guillot__doc__,
 "Generate a temperature profile based on the three-channel Eddington \n\
-approximation model (Parmentier and Gillot 2014, AA 562), following  \n\
+approximation model (Gillot 2010, AA 520), following the             \n\
 the parameterization of Line et al. (2013, ApJ 775).                 \n\
                                                                      \n\
 Inputs                                                               \n\
@@ -61,14 +61,14 @@ Example                                                     \n\
 >>> t_irr = 1200.0                                          \n\
 >>> t_int =  100.0                                          \n\
 >>> params = np.array([kappa, gamma1, gamma2, alpha, t_irr, t_int])\n\
->>> temp = pt.tcea(params, press, grav)                     \n\
+>>> temp = pt.guillot(params, press, grav)                  \n\
 >>> print(temp)                                             \n\
 [1046.89057361 1046.8906572  1046.89094586 1046.89194204 1046.89537746\n\
  1046.9072167  1046.94798848 1047.08827618 1047.57026844 1049.22033981\n\
  1054.80921126 1073.11749958 1127.5360275  1256.04683354 1458.34379995\n\
  1623.82740006 1659.07947584 1659.7176149  1660.94856336 1665.06440703]");
 
-static PyObject *tcea(PyObject *self, PyObject *args){
+static PyObject *guillot(PyObject *self, PyObject *args){
     PyArrayObject *freepars, *pressure, *temperature, *gravity=NULL;
     double kappa, gamma1, gamma2, alpha, t_irr, t_int, tau, xi1, xi2, g;
     int i, nlayers;
@@ -147,14 +147,16 @@ static PyObject *isothermal(PyObject *self, PyObject *args){
 
 
 /* The module doc string */
-PyDoc_STRVAR(pt__doc__,
-    "Python wrapper for the temperature-profile models.");
+PyDoc_STRVAR(
+    pt__doc__,
+    "Python wrapper for the temperature-profile models."
+);
 
 /* A list of all the methods defined by this module. */
 static PyMethodDef pt_methods[] = {
-    {"tcea",       tcea,       METH_VARARGS, tcea__doc__},
+    {"guillot", guillot, METH_VARARGS, guillot__doc__},
     {"isothermal", isothermal, METH_VARARGS, isothermal__doc__},
-    {NULL,         NULL,       0,            NULL}
+    {NULL, NULL, 0, NULL}
 };
 
 

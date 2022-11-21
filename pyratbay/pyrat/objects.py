@@ -1,5 +1,5 @@
-# Copyright (c) 2021 Patricio Cubillos
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+# Copyright (c) 2021-2022 Patricio Cubillos
+# Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
     'Spectrum',
@@ -17,7 +17,7 @@ __all__ = [
     'Observation',
     'Physics',
     'Retrieval',
-    ]
+]
 
 import os
 import numpy as np
@@ -61,38 +61,57 @@ class Spectrum(object):
       fw.write('Wavenumber internal units: cm-1')
       fw.write('Wavelength internal units: cm')
       fw.write('Wavelength display units (wlunits): {:s}', self.wlunits)
-      fw.write('Low wavenumber boundary (wnlow):   {:10.3f} cm-1  '
-               '(wlhigh = {:6.2f} {})', self.wnlow,
-               self.wlhigh/pt.u(self.wlunits), self.wlunits)
-      fw.write('High wavenumber boundary (wnhigh): {:10.3f} cm-1  '
-               '(wllow  = {:6.2f} {})', self.wnhigh,
-               self.wllow/pt.u(self.wlunits), self.wlunits)
+      fw.write(
+          'Low wavenumber boundary (wnlow):   {:10.3f} cm-1  '
+          '(wlhigh = {:6.2f} {})',
+          self.wnlow, self.wlhigh/pt.u(self.wlunits), self.wlunits,
+      )
+      fw.write(
+          'High wavenumber boundary (wnhigh): {:10.3f} cm-1  '
+          '(wllow  = {:6.2f} {})',
+          self.wnhigh, self.wllow/pt.u(self.wlunits), self.wlunits,
+      )
       fw.write('Number of samples (nwave): {:d}', self.nwave)
       if self.resolution is None:
           fw.write('Sampling interval (wnstep): {:.3f} cm-1', self.wnstep)
       else:
-          fw.write('Spectral resolving power (resolution): {:.1f}',
-              self.resolution)
-      fw.write('Wavenumber array (wn, cm-1):\n    {}', self.wn,
-          fmt={'float': '{: .3f}'.format})
+          fw.write(
+              'Spectral resolving power (resolution): {:.1f}',
+              self.resolution,
+          )
+      fw.write(
+          'Wavenumber array (wn, cm-1):\n    {}',
+          self.wn,
+          fmt={'float': '{: .3f}'.format},
+      )
       fw.write('Oversampling factor (wnosamp): {:d}', self.wnosamp)
 
       if self._rt_path in pc.emission_rt:
           if self.quadrature is not None:
-              fw.write('Number of Gaussian-quadrature points for intensity '
-                  'integration into flux (quadrature): {}', self.quadrature)
-          fw.write('\nIntensity zenithal angles (raygrid, degree): {}',
-              self.raygrid/sc.degree, prec=3)
+              fw.write(
+                  'Number of Gaussian-quadrature points for intensity '
+                  'integration into flux (quadrature): {}',
+                  self.quadrature,
+              )
+          fw.write(
+              '\nIntensity zenithal angles (raygrid, degree): {}',
+              self.raygrid/sc.degree,
+              prec=3,
+          )
           fw.write('raygrid internal units: radian')
           if self.intensity is not None:
               fw.write('Intensity spectra (intensity, erg s-1 cm-2 sr-1 cm):')
               for intensity in self.intensity:
                   fw.write('    {}', intensity, fmt=fmt, edge=3)
-          fw.write('Emission spectrum (spectrum, erg s-1 cm-2 cm):\n'
-                   '    {}', self.spectrum, fmt=fmt, edge=3)
+          fw.write(
+              'Emission spectrum (spectrum, erg s-1 cm-2 cm):\n    {}',
+              self.spectrum, fmt=fmt, edge=3,
+          )
       elif self._rt_path in pc.transmission_rt:
-          fw.write('\nModulation spectrum, (Rp/Rs)**2 (spectrum):\n'
-                   '    {}', self.spectrum, fmt=fmt, edge=3)
+          fw.write(
+              '\nModulation spectrum, (Rp/Rs)**2 (spectrum):\n    {}',
+              self.spectrum, fmt=fmt, edge=3,
+          )
       return fw.text
 
 
@@ -166,9 +185,12 @@ class Atm(object):
       fw.write('\nAbundance units (qunits): {}', self.qunits)
       fw.write('Abundance internal units: mole mixing fraction')
       fw.write('Number of atmospheric species: {:d}', len(self.q[0]))
-      if self.molmodel is not None:
-          molpars = [None for _ in self.molmodel] if self.molpars is None \
-                    else self.molpars
+      if hasattr(self, 'ifree'):
+      # if molmodel is not None: [TBD: this needs some reingeneering]
+          molpars = self.molpars
+          if self.molpars is None:
+              molpars = [None for _ in self.molmodel]
+
           fw.write('Abundance models:\n'
                    '  ifree  molfree     molmodel    molpars')
           for molvals in zip(self.ifree, self.molfree, self.molmodel, molpars):
@@ -224,7 +246,7 @@ class Linetransition(object):
       self.wn      = np.array([], np.double)  # Line wavenumber
       self.elow    = np.array([], np.double)  # Line lower energy level
       self.gf      = np.array([], np.double)  # Line gf value
-      self.isoid   = np.array([], np.int)     # Line isotope index
+      self.isoid   = np.array([], int)     # Line isotope index
 
   def clone_new(self, pyrat):
       """Return a new LT instance (as returned by Pyrat.__init__)."""
@@ -287,8 +309,8 @@ class Isotopes(object):
       self.name    = np.array([])          # Isotope's name [niso]
       self.mass    = np.array([])          # Isotope's mass [niso]
       self.ratio   = np.array([])          # Isotopic abundance ratio  [niso]
-      self.dbindex = np.array([], np.int)  # Isotope's data base index [niso]
-      self.imol    = np.array([], np.int)  # Isotope's molecule index  [niso]
+      self.dbindex = np.array([], int)  # Isotope's data base index [niso]
+      self.imol    = np.array([], int)  # Isotope's molecule index  [niso]
       self.iext    = None                  # Molecule index in ext-coef. table
       self.z       = None                  # Isotopes' partition function at
                                            #   atmospheric layer [niso, nlayers]
@@ -305,10 +327,12 @@ class Isotopes(object):
           '\nIsotope  Molecule      Mass    Isotopic   Database   Extinc-coeff'
           '\n            index     g/mol       ratio      index    index'
           '\n (name)    (imol)    (mass)     (ratio)   (dbindex)  (iext)')
-      for i in np.arange(self.niso):
-          fw.write('{:>7s}  {:8d}  {:8.4f}   {:.3e}   {:8d}   {}',
+      for i in range(self.niso):
+          fw.write(
+              '{:>7s}  {:8d}  {:8.4f}   {:.3e}   {:8d}   {}',
               self.name[i], self.imol[i], self.mass[i], self.ratio[i],
-              self.dbindex[i], iext[i])
+              self.dbindex[i], iext[i],
+          )
       fw.write('Partition function evaluated at atmosperic layers (z):')
       for z in self.z:
           fw.write('    {}', z, fmt={'float':'{: .3e}'.format}, edge=3)
@@ -533,17 +557,25 @@ class Optdepth(object):
       fw.write('Optical depth information:')
       fw.write('Observing geometry (rt_path): {}', self.rt_path)
       if self.ec is not None:
-          fw.write('Total atmospheric extinction coefficient (ec, cm-1) [layer'
-                   ', wave]:\n{}', self.ec, fmt={'float':'{: .3e}'.format})
+          fw.write(
+              'Total atmospheric extinction coefficient (ec, cm-1) [layer'
+              ', wave]:\n{}',
+              self.ec,
+              fmt={'float':'{: .3e}'.format},
+          )
       if self.depth is None:
-          fw.write('\nMaximum optical depth to calculate (maxdepth): {:.2f}',
-              self.maxdepth)
+          fw.write(
+              '\nMaximum optical depth to calculate (maxdepth): {:.2f}',
+              self.maxdepth,
+          )
           return fw.text
 
       ideepest = np.amax(self.ideep)
       if self.rt_path in pc.transmission_rt:
-          fw.write('\nDistance along the ray path across each layer '
-                   '(outside-in) at each impact parameter (raypath, km):')
+          fw.write(
+              '\nDistance along the ray path across each layer '
+              '(outside-in) at each impact parameter (raypath, km):',
+          )
           with np.printoptions(formatter={'float':'{:.1f}'.format},threshold=6):
               fw.write('    IP[{:3d}]: {}', 1, self.raypath[1]/pc.km)
               fw.write('    IP[{:3d}]: {}', 2, self.raypath[2]/pc.km)
@@ -551,28 +583,48 @@ class Optdepth(object):
               fw.write('    ...')
               fw.write('    IP[{:3d}]: {}', len(self.raypath)-1,
                        self.raypath[len(self.raypath)-1]/pc.km)
-          od_text = ('\nOptical depth at each impact parameter, down to '
-                     'max(ideep) (depth):')
+          od_text = (
+              '\nOptical depth at each impact parameter, down to '
+              'max(ideep) (depth):'
+          )
       elif self.rt_path in pc.emission_rt:
-          fw.write('\nDistance across each layer along a normal ray path '
-              '(raypath, km):\n    {}', self.raypath/pc.km,
-              fmt={'float':'{:.1f}'.format}, edge=4)
-          od_text = ('\nOptical depth at each layer along a normal ray '
-                     'path into the planet, down to max(ideep) (depth):')
+          fw.write(
+              '\nDistance across each layer along a normal ray path '
+              '(raypath, km):\n    {}',
+              self.raypath/pc.km,
+              fmt={'float':'{:.1f}'.format},
+              edge=4,
+          )
+          od_text = (
+              '\nOptical depth at each layer along a normal ray '
+              'path into the planet, down to max(ideep) (depth):'
+          )
 
-      fw.write('\nMaximum optical depth to calculate (maxdepth): {:.2f}',
-               self.maxdepth)
-      fw.write('Layer index where the optical depth reaches maxdepth (ideep):'
-               '\n    {}', self.ideep, fmt={'int': '{:3d}'.format}, edge=7)
+      fw.write(
+          '\nMaximum optical depth to calculate (maxdepth): {:.2f}',
+          self.maxdepth,
+      )
+      fw.write(
+          'Layer index where the optical depth reaches maxdepth (ideep):'
+          '\n    {}',
+          self.ideep,
+          fmt={'int': '{:3d}'.format},
+          edge=7,
+      )
       fw.write('Maximum ideep (deepest layer reaching maxdepth): {}', ideepest)
 
       if self.rt_path in pc.emission_rt:
-          fw.write('\nPlanck emission down to max(ideep) (B, erg s-1 cm-2 '
-                   'sr-1 cm):\n{}', self.B[0:ideepest+1],
-                   fmt={'float':'{: .3e}'.format})
+          fw.write(
+              '\nPlanck emission down to max(ideep) (B, erg s-1 cm-2 '
+              'sr-1 cm):\n{}',
+              self.B[0:ideepest+1],
+              fmt={'float':'{: .3e}'.format},
+          )
 
-      fw.write('{}\n{}', od_text, self.depth[0:ideepest+1],
-               fmt={'float':'{: .3e}'.format})
+      fw.write(
+          '{}\n{}', od_text, self.depth[0:ideepest+1],
+          fmt={'float':'{: .3e}'.format},
+      )
       return fw.text
 
 
@@ -610,12 +662,17 @@ class Observation(object):
       fw.write('\nNumber of filter pass bands (nfilters): {}', self.nfilters)
       if self.filters is None:
           return fw.text
-      fw.write('Wavenumber  Wavelength    Bandflux  Filter name\n'
-               '      cm-1          um     {:>7s}\n'
-               '  (bandwn)              (bandflux)  (filters)', self.units)
+      fw.write(
+          'Wavenumber  Wavelength    Bandflux  Filter name\n'
+          '      cm-1          um     {:>7s}\n'
+          '  (bandwn)              (bandflux)  (filters)',
+          self.units,
+      )
       for filter,bandwn,bflux in zip(self.filters, self.bandwn, self.bandflux):
-          fw.write(' {:9.2f}  {:10.3f}  {:10.5f}  {:s}', bandwn,
-              1.0/(bandwn*pc.um), bflux/units, os.path.basename(filter))
+          fw.write(
+              ' {:9.2f}  {:10.3f}  {:10.5f}  {:s}',
+              bandwn, 1.0/(bandwn*pc.um), bflux/units, str(filter),
+          )
       # TBD: Do I want to show bandidx, bandtrans, and starflux?
       return fw.text
 
@@ -628,6 +685,7 @@ class Retrieval(object):
       self.thigh   = None  # Higher-temperature retrieval boundary
       self.itemp   = None  # Temperature-model parameter indices
       self.irad    = None  # Reference-radius model parameter index
+      self.ipress  = None  # Reference-pressuew model parameter index
       self.imol    = None  # Abundance-model parameter indices
       self.iray    = None  # Rayleigh-model parameter indices
       self.icloud  = None  # Cloud-model parameter indices
@@ -657,32 +715,45 @@ class Retrieval(object):
 
       pmin = [None for _ in self.params] if self.pmin is None else self.pmin
       pmax = [None for _ in self.params] if self.pmax is None else self.pmax
-      psteps = [None for _ in self.params] if self.pstep is None \
-                else self.pstep
+      psteps = [None for _ in self.params] if self.pstep is None else self.pstep
 
-      fw.write('  Parameter name        value        pmin        pmax'
-               '       pstep  Model type')
-      fw.write('  {:15}  {:>10}  {:>10}  {:>10}  {:>10}  {}',
-          '(pnames)', '(params)', '(pmin)', '(pmax)', '(pstep)', '(retflag)')
-      for pname, param, min, max, pstep, flag in zip(self.pnames,
-              self.params, pmin, pmax, psteps, flags):
-          fw.write('  {:15s}  {:10.3e}  {:10.3e}  {:10.3e}  {:10.3e}  {}',
-              pname, param, min, max, pstep, flag)
+      fw.write(
+          '  Parameter name        value        pmin        pmax'
+          '       pstep  Model type',
+      )
+      fw.write(
+          '  {:15}  {:>10}  {:>10}  {:>10}  {:>10}  {}',
+          '(pnames)', '(params)', '(pmin)', '(pmax)', '(pstep)', '(retflag)',
+      )
+      n_obs = len(self.pnames)
+
+      for i in range(n_obs):
+          fw.write(
+              '  {:15s}  {:10.3e}  {:10.3e}  {:10.3e}  {:10.3e}  {}',
+              self.pnames[i], self.params[i], pmin[i], pmax[i], psteps[i],
+              flags[i],
+          )
 
       if self.prior is not None:
           fw.write('\nParameter name     Prior')
-          for i, pname in enumerate(self.pnames):
+          for i in range(n_obs):
+              pname = self.pnames[i]
+              val = self.params[i]
               if psteps[i] == 0.0:
-                  fw.write('  {:15s}  Fixed at  {:10.3e}', pname,self.params[i])
+                  fw.write('  {:15s}  Fixed at  {:10.3e}', pname, val)
               elif psteps[i] < 0.0:
                   j = -int(psteps[i]) - 1
                   fw.write('  {:15s}  Shared with  {}', pname, self.pnames[j])
               elif self.priorlow[i]==0 and self.priorup[i]==0:
-                  fw.write('  {:15s}  Uniform between     [{:10.3e}, {:10.3e}]',
-                      pname, pmin[i], pmax[i])
+                  fw.write(
+                      '  {:15s}  Uniform between     [{:10.3e}, {:10.3e}]',
+                      pname, pmin[i], pmax[i],
+                  )
               else:
-                  fw.write('  {:15s}  Gaussian  {:10.3e} -{:.3e}  {:+.3e}',
-                      pname, self.prior[i], self.priorlow[i], self.priorup[i])
+                  fw.write(
+                      '  {:15s}  Gaussian  {:10.3e} -{:.3e}  {:+.3e}',
+                      pname, self.prior[i], self.priorlow[i], self.priorup[i],
+                  )
 
       fw.write('\nRetrieval algorithm (sampler): {}', self.sampler)
       if self.sampler is None:
@@ -693,35 +764,48 @@ class Retrieval(object):
       fw.write('Number of burned-in samples (burnin):  {:,}', self.burnin)
       fw.write('Thinning factor (thinning): {}', self.thinning)
       if self.grbreak > 0.0:
-          fw.write('Gelman-Rubin convergence criterion to stop (grbreak): {}',
-              self.grbreak)
+          fw.write(
+              'Gelman-Rubin convergence criterion to stop (grbreak): '
+              f'{self.grbreak}',
+          )
           if self.grnmin > 1:
-              fw.write('Minimum number of samples before GR stop (grnmin): {}',
-                  int(self.grnmin))
+              fw.write(
+                  'Minimum number of samples before GR stop (grnmin): '
+                  f'{int(self.grnmin)}'
+              )
           else:
-              fw.write('Minimum fraction of samples before GR stop (grnmin): '
-                  ' {}', self.grnmin)
+              fw.write(
+                  'Minimum fraction of samples before GR stop (grnmin): '
+                  f'{self.grnmin}'
+              )
 
-      fw.write('\nUpper boundary for sum of metal abundances (qcap): {}',
-          self.qcap)
-      fw.write('Temperature upper boundary (tlow, K):  {:6.1f}', self.tlow)
-      fw.write('Temperature lower boundary (thigh, K): {:6.1f}', self.thigh)
+      fw.write(
+          f'\nUpper boundary for sum of metal abundances (qcap): {self.qcap}',
+      )
+      fw.write(f'Temperature upper boundary (tlow, K):  {self.tlow:6.1f}')
+      fw.write(f'Temperature lower boundary (thigh, K): {self.thigh:6.1f}')
 
       fw.write('\nRetrieval posterior file (mcmcfile): {}', self.mcmcfile)
       if self.posterior is not None:
-          fw.write('\nParameter name     Best-fit   Posterior distribution '
-                   'of shape [{},{}]\n'
-                   '                   (bestp)    (posterior)',
-                   *self.posterior.shape)
+          nsamples, nparams = np.shape(self.posterior)
+          fw.write(
+              '\nParameter name     Best-fit   Posterior distribution '
+              f'of shape [{nsamples},{nparams}]\n'
+              '                   (bestp)    (posterior)',
+          )
           post = iter(self.posterior.T)
           for pname, bestp, pstep in zip(self.pnames, self.bestp, psteps):
               if pstep > 0:
-                  fw.write('  {:15} {:10.3e}  {}', pname, bestp, next(post),
-                      fmt={'float':'{: .3e}'.format}, edge=2)
+                  fw.write(
+                      '  {:15} {:10.3e}  {}', pname, bestp, next(post),
+                      fmt={'float':'{: .3e}'.format}, edge=2,
+                  )
               else:
                   fw.write('  {:15} {:10.3e}', pname, bestp)
-          fw.write('\nBest-fit spectrum (spec_best):\n    {}', self.spec_best,
-              fmt={'float':'{: .3e}'.format})
+          fw.write(
+              '\nBest-fit spectrum (spec_best):\n    {}', self.spec_best,
+              fmt={'float':'{: .3e}'.format},
+          )
       return fw.text
 
 
@@ -752,26 +836,27 @@ class Physics(object):
   def __str__(self):
       fw = pt.Formatted_Write()
       fw.write('Physical properties information:')
+
+      rstar = none_div(self.rstar, pc.rsun)
+      mstar = none_div(self.mstar, pc.msun)
       fw.write('\nStellar effective temperature (tstar, K): {:.1f}', self.tstar)
-      fw.write('Stellar radius (rstar, Rsun): {:.3f}',
-          none_div(self.rstar, pc.rsun))
-      fw.write('Stellar mass (mstar, Msun):   {:.3f}',
-          none_div(self.mstar, pc.msun))
+      fw.write('Stellar radius (rstar, Rsun): {:.3f}', rstar)
+      fw.write('Stellar mass (mstar, Msun):   {:.3f}', mstar)
       fw.write('Stellar surface gravity (gstar, cm s-2): {:.1f}', self.gstar)
 
-      fw.write('\nPlanetary radius (rplanet, Rjup): {:.3f}',
-          none_div(self.rplanet, pc.rjup))
-      fw.write('Planetary mass (mplanet, Mjup):   {:.3f}',
-          none_div(self.mplanet, pc.mjup))
-      fw.write('Planetary surface gravity (gplanet, cm s-2): {:.1f}',
-          self.gplanet)
+      rplanet = none_div(self.rplanet, pc.rjup)
+      mplanet = none_div(self.mplanet, pc.mjup)
+      gplanet = self.gplanet
+      smaxis = none_div(self.smaxis, pc.au)
+      rprs = self.rplanet/self.rstar
+      rhill = none_div(self.rhill, pc.rjup)
+      fw.write('\nPlanetary radius (rplanet, Rjup): {:.3f}', rplanet)
+      fw.write('Planetary mass (mplanet, Mjup):   {:.3f}', mplanet)
+      fw.write('Planetary surface gravity (gplanet, cm s-2): {:.1f}', gplanet)
       fw.write('Planetary internal temperature (tint, K):  {:.1f}', self.tint)
-      fw.write('Orbital semi-major axis (smaxis, AU): {:.4f}',
-          none_div(self.smaxis, pc.au))
-      fw.write('Planet-to-star radius ratio (rprs):   {:.5f}',
-          self.rplanet/self.rstar)
-      fw.write('Planetary Hill radius (rhill, Rjup):  {:.3f}',
-          none_div(self.rhill, pc.rjup))
+      fw.write('Orbital semi-major axis (smaxis, AU): {:.4f}', smaxis)
+      fw.write('Planet-to-star radius ratio (rprs):   {:.5f}', rprs)
+      fw.write('Planetary Hill radius (rhill, Rjup):  {:.3f}', rhill)
 
       if self.starspec is not None:
           fw.write("\nInput stellar spectrum (starspec): '{}'", self.starspec)
@@ -780,8 +865,9 @@ class Physics(object):
       elif self.marcs is not None:
           fw.write("Input MARCS stellar spectrum (marcs): '{}'", self.marcs)
       elif self.phoenix is not None:
-          fw.write("Input PHOENIX stellar spectrum (phoenix): '{}'",
-              self.phoenix)
+          fw.write(
+              f"Input PHOENIX stellar spectrum (phoenix): '{self.phoenix}'",
+          )
       elif self.starflux is not None:
           fw.write("Input stellar spectrum is a blackbody at Teff = {:.1f} K.",
               self.tstar)

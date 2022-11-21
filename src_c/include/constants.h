@@ -14,6 +14,7 @@
 #define H   (6.6260755e-27)           /* Planck's constant (erg * s)        */
 #define EC  (4.8032068e-10)           /* Electronic charge (statcoulomb)    */
 #define ME  (9.1093897e-28)           /* Electron mass (g)                  */
+#define ATM (1010000.0)       // 1 atm in barye
 
 /* Other constants:                                                         */
 #define SIGCTE  (PI*EC*EC/LS/LS/ME)
@@ -35,4 +36,7 @@
 #define B2  0.27525510
 #define B3  0.05176536
 #define B4  2.72474500
+
+#define C2  1.4387768775039338
+#define C3  8.852821681767784e-13
 

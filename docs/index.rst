@@ -85,7 +85,7 @@ Documentation
    spec_tutorial
    opac_tutorial
    mcmc_tutorial
-   cookbook
+   cookbooks/recipes
    api
    units
    references

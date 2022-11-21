@@ -71,13 +71,13 @@ parameters (``tpars``), which is described in the table and sections below:
 Models (``tmodel``) Parameters (``tpars``)                               References
 =================== ==================================================== ====
 isothermal          :math:`T_0`                                          ---
-tcea                |kappa|, |gamma1|, |gamma2|, |alpha|, |Tirr|, |Tint| [Line2013]_
+guillot             |kappa|, |gamma1|, |gamma2|, |alpha|, |Tirr|, |Tint| [Line2013]_
 madhu               |logp1|, |logp2|, |logp3|, |a1|, |a2|, |T0|          [Madhusudhan2009]_
 =================== ==================================================== ====
 
 
-Isothemal
-^^^^^^^^^
+Isothemal profile
+^^^^^^^^^^^^^^^^^
 
 The isothermal model is the simplest model, having just one free
 parameter (``tpars``): the temperature (:math:`T_0`) at all layers.
@@ -87,10 +87,10 @@ Here is an example of an isothermal atmosphere configuration file:
 .. literalinclude:: ../examples/tutorial/pt_isothermal.cfg
 
 
-Three-channel Eddington Approximation (TCEA)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Guillot profile
+^^^^^^^^^^^^^^^
 
-The tcea model has six parameters as defined in [Line2013]_: |kappa|,
+The guillot model has six parameters as defined in [Line2013]_: |kappa|,
 |gamma1|, |gamma2|, |alpha|, |Tirr| and |Tint|.  The temperature
 profile is given as:
 
@@ -116,15 +116,15 @@ integral; |Tint| is the internal heat temperature; and :math:`\tau(p)
   T_{\rm irr} = \left(\frac{1-A}{f}\right)^{1/4}
                 \left( \frac{R_{\rm s}}{2a}\right)^{1/2} T_{\rm s},
 
-Here is an example of a ``tcea`` atmosphere configuration file
-(`pt_tcea.cfg
-<https://github.com/pcubillos/pyratbay/blob/master/examples/tutorial/pt_tcea.cfg>`_):
+Here is an example of a ``guillot`` atmosphere configuration file
+(`pt_guillot.cfg
+<https://github.com/pcubillos/pyratbay/blob/master/examples/tutorial/pt_guillot.cfg>`_):
 
-.. literalinclude:: ../examples/tutorial/pt_tcea.cfg
+.. literalinclude:: ../examples/tutorial/pt_guillot.cfg
 
 
-Madhu profiles
-^^^^^^^^^^^^^^
+Madhu profile
+^^^^^^^^^^^^^
 
 The madhu model has six parameters: |logp1|, |logp2|, |logp3|, |a1|,
 |a2|, and |T0|, as described in [Madhusudhan2009]_, where the pressure
@@ -164,7 +164,7 @@ Temperature-profile Examples
 
               tutorial_path=https://raw.githubusercontent.com/pcubillos/pyratbay/master/examples/tutorial
               wget $tutorial_path/pt_isothermal.cfg
-              wget $tutorial_path/pt_tcea.cfg
+              wget $tutorial_path/pt_guillot.cfg
               wget $tutorial_path/pt_madhu.cfg
 
 
@@ -181,15 +181,15 @@ profiles for the configuration files shown above:
   import pyratbay.constants as pc
 
   # Generate PT profiles:
-  press, t_iso   = pb.run("pt_isothermal.cfg")[0:2]
-  press, t_tcea  = pb.run("pt_tcea.cfg")[0:2]
+  press, t_iso = pb.run("pt_isothermal.cfg")[0:2]
+  press, t_guillot = pb.run("pt_guillot.cfg")[0:2]
   press, t_madhu = pb.run("pt_madhu.cfg")[0:2]
 
   # Plot the PT profiles:
   plt.figure(11)
   plt.clf()
-  plt.semilogy(t_iso,   press/pc.bar, color='mediumblue', lw=2, label='isothermal')
-  plt.semilogy(t_tcea,  press/pc.bar, color='orange', lw=2, label='tcea')
+  plt.semilogy(t_iso, press/pc.bar, color='mediumblue', lw=2, label='isothermal')
+  plt.semilogy(t_guillot, press/pc.bar, color='orange', lw=2, label='guillot')
   plt.semilogy(t_madhu, press/pc.bar, color='tab:green', lw=2, label='madhu')
   plt.ylim(100, 1e-5)
   plt.xlim(800, 1200)
@@ -300,18 +300,22 @@ Aprofiles for the configuration files shown above:
     import pyratbay.plots as pp
 
     # Generate a uniform and a thermochemical-equilibrium atmospheric model:
-    pressure, temp, q_tea, species, radius = pb.run("atmosphere_tea.cfg")
-    pressure, temp, q_uniform, species, radius = pb.run("atmosphere_uniform.cfg")
+    pressure, temp, vmr_tea, species_tea, radius = pb.run("atmosphere_tea.cfg")
+    pressure, temp, vmr_uni, species_uni, radius = pb.run("atmosphere_uniform.cfg")
 
     # Plot the results:
     plt.figure(12, (6,5))
     plt.clf()
+    ax = plt.subplot(211)
     ax1 = pp.abundance(
-        q_tea, pressure, species, colors='default', xlim=[1e-11, 10.0],
-        legend_fs=0, ax=plt.subplot(211))
+        vmr_tea, pressure, species_tea,
+        colors='default', xlim=[1e-11, 10.0], legend_fs=0, ax=ax,
+    )
+    ax = plt.subplot(212)
     ax2 = pp.abundance(
-        q_uniform, pressure, species, colors='default', xlim=[1e-11, 10.0],
-        legend_fs=8, ax=plt.subplot(212))
+        vmr_uni, pressure, species_uni,
+        colors='default', xlim=[1e-11, 10.0], legend_fs=8, ax=ax,
+    )
     plt.tight_layout()
 
 And the results should look like this:

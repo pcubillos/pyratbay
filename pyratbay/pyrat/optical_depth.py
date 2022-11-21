@@ -1,8 +1,8 @@
-# Copyright (c) 2021 Patricio Cubillos
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+# Copyright (c) 2021-2022 Patricio Cubillos
+# Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import ctypes
-import multiprocessing as mpr
+import multiprocessing as mp
 
 import numpy as np
 
@@ -43,23 +43,25 @@ def optical_depth(pyrat):
     if pyrat.ex.extfile is not None:
         r = rtop
         imol = [list(pyrat.mol.name).index(mol) for mol in pyrat.ex.species]
-        while r < nlayers:
-            ec.interp_ec(
-                pyrat.ex.ec[r], pyrat.ex.etable[:,:,r,:],
-                pyrat.ex.temp, pyrat.atm.temp[r], pyrat.atm.d[r,imol])
-            r += 1
+        ec.interp_ec(
+            pyrat.ex.ec, pyrat.ex.etable,
+            pyrat.ex.temp, pyrat.atm.temp, pyrat.atm.d[:,imol], rtop,
+        )
 
     # Calculate the extinction coefficient on the spot:
     elif pyrat.lt.tlifile is not None:
-        sm_ext = mpr.Array(ctypes.c_double,
-            np.zeros(nlayers*nwave, np.double))
+        sm_ext = mp.Array(
+            ctypes.c_double, np.zeros(nlayers*nwave, np.double))
         pyrat.ex.ec = np.ctypeslib.as_array(
             sm_ext.get_obj()).reshape((nlayers, nwave))
         processes = []
         indices = np.arange(rtop, nlayers) % pyrat.ncpu
         for i in range(pyrat.ncpu):
-            proc = mpr.Process(target=ex.extinction,   #      grid   add
-                        args=(pyrat, np.where(indices==i)[0], False, True))
+            grid = False
+            add = True
+            proc = mp.get_context('fork').Process(
+                target=ex.extinction,
+                args=(pyrat, np.where(indices==i)[0], grid, add))
             processes.append(proc)
             proc.start()
         for proc in processes:
@@ -84,11 +86,14 @@ def optical_depth(pyrat):
     # Calculate the optical depth for each wavenumber:
     if od.rt_path in pc.emission_rt:
         od.ideep = np.tile(nlayers-1, nwave)
+        maxdepth = np.inf if od.rt_path=='emission_two_stream' else od.maxdepth
         i = 0
         while i < nwave:
             od.ideep[i] = rtop - 1 + t.cumtrapz(
-                od.depth[rtop:,i], od.ec[rtop:,i], od.raypath[rtop:rbottom],
-                od.maxdepth)
+                od.depth[rtop:,i],
+                od.ec[rtop:,i],
+                od.raypath[rtop:rbottom],
+                maxdepth)
             i += 1
 
     elif od.rt_path in pc.transmission_rt:

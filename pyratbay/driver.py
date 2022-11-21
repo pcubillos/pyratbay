@@ -1,9 +1,9 @@
-# Copyright (c) 2021 Patricio Cubillos
+# Copyright (c) 2021-2022 Patricio Cubillos
 # Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 __all__ = [
     'run',
-    ]
+]
 
 import os
 
@@ -77,12 +77,24 @@ def run(cfile, run_step='run', no_logfile=False):
     elif mplanet and rplanet and not gplanet:
         phy.gplanet = pc.G * phy.mplanet / phy.rplanet**2
 
+    require_atmospheric_model = (
+        pyrat.runmode in ['atmosphere', 'radeq']
+        or pt.isfile(atm.atmfile) != 1
+        or 'equil' in atm.molmodel)
 
-    if pyrat.runmode == 'atmosphere' or pt.isfile(atm.atmfile) != 1:
+    if require_atmospheric_model:
         # Compute pressure-temperature profile:
+        read_atmosphere = (
+            pt.isfile(atm.atmfile) == 1
+            and (pyrat.runmode == 'radeq' or 'equil' in atm.molmodel)
+        )
         if pt.isfile(atm.ptfile) == 1:
             log.msg(f"\nReading pressure-temperature file: '{atm.ptfile}'.")
-            units, _, pressure, temperature = io.read_atm(atm.ptfile)[2:4]
+            units, _, pressure, temperature = io.read_atm(atm.ptfile)[0:4]
+            pressure *= pt.u(units[0]) # pressure in barye
+        elif read_atmosphere:
+            units, inputs.species, pressure, temperature, _, _ = \
+                io.read_atm(atm.atmfile)
             pressure *= pt.u(units[0]) # pressure in barye
         else:
             check_pressure(pyrat)
@@ -95,14 +107,26 @@ def run(cfile, run_step='run', no_logfile=False):
         abundances = None
         species = None
         radius = None
+        if 'equil' in atm.molmodel:
+            atm.chemistry = 'tea'
         # Compute volume-mixing-ratio profiles:
         if atm.chemistry is not None or pyrat.runmode != 'atmosphere':
             check_atm(pyrat)
-            species = inputs.species
-            abundances = pa.abundance(
-                pressure, temperature, species, inputs.elements,
-                inputs.uniform, atm.atmfile, atm.punits, inputs.xsolar,
-                atm.escale, inputs.solar, log)
+            chem_net = pa.chemistry(
+                atm.chemistry,
+                pressure, temperature, inputs.species,
+                metallicity=atm.metallicity,
+                e_abundances=atm.e_abundances,
+                e_scale=atm.e_scale,
+                e_ratio=atm.e_ratio,
+                solar_file=inputs.solar,
+                log=log,
+                atmfile=atm.atmfile, punits=atm.punits,
+                q_uniform=inputs.uniform,
+            )
+            atm.chem_model = chem_net
+            abundances = chem_net.vmr
+            species = chem_net.species
 
         # Compute altitude profile:
         if abundances is not None and atm.rmodelname is not None:
@@ -113,7 +137,8 @@ def run(cfile, run_step='run', no_logfile=False):
             # Altitude profile:
             radius = pyrat.hydro(
                 pressure, temperature, mean_mass, phy.gplanet,
-                phy.mplanet, atm.refpressure, phy.rplanet)
+                phy.mplanet, atm.refpressure, phy.rplanet,
+            )
 
     # Return atmospheric model if requested:
     if pyrat.runmode == 'atmosphere':
@@ -158,6 +183,10 @@ def run(cfile, run_step='run', no_logfile=False):
         pyrat.run()
         return pyrat
 
+    if pyrat.runmode == 'radeq':
+        pyrat.radiative_equilibrium()
+        return pyrat
+
     # Mute logging in pyrat object, but not in mc3:
     pyrat.log = mc3.utils.Log(verb=0, width=80)
     pyrat.spec.specfile = None  # Avoid writing spectrum file during MCMC
@@ -183,12 +212,9 @@ def run(cfile, run_step='run', no_logfile=False):
         log.error("Error in MC3.")
 
     bestp = mc3_out['bestp']
-    CRlo  = mc3_out['CRlo']
-    CRhi  = mc3_out['CRhi']
-    stdp  = mc3_out['stdp']
+    ret.bestp = bestp
     posterior, zchain, zmask = mc3.utils.burn(mc3_out)
     ret.posterior = posterior
-    ret.bestp = bestp
 
     # Best-fitting model:
     pyrat.spec.specfile = f"{outfile}_bestfit_spectrum.dat"
@@ -223,7 +249,8 @@ def run(cfile, run_step='run', no_logfile=False):
 
     if is_emission:
         cf = ps.contribution_function(
-            pyrat.od.depth, atm.press, pyrat.od.B)
+            pyrat.od.depth, atm.press, pyrat.od.B,
+        )
         bcf = ps.band_cf(
             cf, pyrat.obs.bandtrans, pyrat.spec.wn, pyrat.obs.bandidx)
     elif is_transmission:
@@ -287,32 +314,27 @@ def check_atm(pyrat):
     # Uniform-abundances profile:
     if atm.chemistry == 'uniform':
         if pyrat.inputs.uniform is None:
-            log.error("Undefined list of uniform volume mixing ratios "
-                     f"(uniform) for {atm.chemistry} chemistry model.")
+            log.error(
+                "Undefined list of uniform volume mixing ratios "
+                f"(uniform) for {atm.chemistry} chemistry model."
+            )
         nuniform = len(pyrat.inputs.uniform)
         nspecies = len(pyrat.inputs.species)
         if nuniform != nspecies:
-            pyrat.log.error(f"Number of uniform abundances ({nuniform}) does "
-                            f"not match the number of species ({nspecies}).")
+            pyrat.log.error(
+                f"Number of uniform abundances ({nuniform}) does "
+                f"not match the number of species ({nspecies})."
+            )
         return
 
-    # TEA abundances:
-    if atm.chemistry == 'tea':
-        if pyrat.inputs.elements is None:
-            log.error("Undefined elemental composition list (elements) for "
-                     f"{atm.chemistry} chemistry model.")
-
-    pyrat.inputs.solar = pyrat.inputs.get_default(
-        'solar', 'Solar-abundance file',
-        pc.ROOT+'pyratbay/data/AsplundEtal2009.txt')
-    pyrat.inputs.xsolar = pyrat.inputs.get_default(
-        'xsolar', 'Solar-metallicity scaling factor',
-        1.0, gt=0.0, wflag=True)
+    pyrat.inputs.metallicity = pyrat.inputs.get_default(
+        'metallicity',
+        'Metallicity scaling factor (dex, relative to solar)',
+        default=0.0)
 
 
 def check_altitude(pyrat):
     """Check input arguments to calculate altitude profile."""
-    atm = pyrat.atm
     phy = pyrat.phy
     log = pyrat.log
 
@@ -326,10 +348,14 @@ def check_altitude(pyrat):
         err = 'at least two of mplanet, rplanet, or gplanet'
 
     if len(missing) > 0:
-        log.error('Cannot compute hydrostatic-equilibrium radius profile.  '
-                 f'Must\ndefine {err}.')
+        log.error(
+            'Cannot compute hydrostatic-equilibrium radius profile.  '
+            f'Must\ndefine {err}.'
+        )
 
     if pyrat.atm.refpressure is None:
-        log.error('Cannot compute hydrostatic-equilibrium radius profile.  '
-            'Undefined reference pressure level (refpressure).')
+        log.error(
+            'Cannot compute hydrostatic-equilibrium radius profile.  '
+            'Undefined reference pressure level (refpressure).'
+        )
 

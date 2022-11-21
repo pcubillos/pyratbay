@@ -9,7 +9,8 @@
 #include "utils.h"
 
 
-PyDoc_STRVAR(ediff__doc__,
+PyDoc_STRVAR(
+    ediff__doc__,
 "Calculate the differences between consecutive elements of an array.\n\
                                               \n\
 Parameters                                    \n\
@@ -41,7 +42,8 @@ static PyObject *ediff(PyObject *self, PyObject *args){
 }
 
 
-PyDoc_STRVAR(arrbinsearch__doc__,
+PyDoc_STRVAR(
+    arrbinsearch__doc__,
 "Binary search of the indices in array for the closest element to\n\
 each value.                                   \n\
                                               \n\
@@ -83,12 +85,12 @@ PyDoc_STRVAR(cutils__doc__, "Wrapper for the Planck emission calculation.");
 
 /* A list of all the methods defined by this module.                        */
 static PyMethodDef cutils_methods[] = {
-    {"ediff",        ediff,        METH_VARARGS, ediff__doc__},
+    {"ediff", ediff, METH_VARARGS, ediff__doc__},
     {"arrbinsearch", arrbinsearch, METH_VARARGS, arrbinsearch__doc__},
-    {NULL,           NULL,         0,            NULL}          /* sentinel */
+    {NULL, NULL, 0, NULL}  // sentinel
 };
 
-#if PY_MAJOR_VERSION >= 3
+
 /* Module definition for Python 3.                                          */
 static struct PyModuleDef moduledef = {
     PyModuleDef_HEAD_INIT,
@@ -106,11 +108,3 @@ PyObject *PyInit_cutils (void) {
   return module;
 }
 
-#else
-/* When Python 2 imports a C module named 'X' it loads the module           */
-/* then looks for a method named "init"+X and calls it.                     */
-void initcutils(void){
-  Py_InitModule3("cutils", cutils_methods, cutils__doc__);
-  import_array();
-}
-#endif

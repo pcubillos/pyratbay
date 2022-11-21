@@ -7033,3 +7033,557 @@ Updated docs with link to citations badge and updated ADS link.
 
 Updated API.
 
+
+*****  Mo 19. Jul 14:40:01 CEST 2021  *****
+
+Moved pytest.ini to parent folder (where it should have been).
+Some minor edits to fix pytest warnings.
+
+*****
+
+Updated test_tli_hitran_wfc3() to include check that the output file
+was created.
+
+*****
+
+Removed TEA submodule.
+At this point, the user needs to manually clone/install the
+TEA package.  Thi should be automated in the future after TEA gets
+updated to be pip-installable, and become a requirement for the
+pyratbay package.
+
+
+*****  Di 20. Jul 10:16:31 CEST 2021  *****
+
+Replaced current TEA submodule call with temporary TEA dependency
+(which uses the C-implemented newton optimization).
+Removed make_preatm and make_atomic (no longer needed).
+
+
+*****  Do 22. Jul 16:18:30 CEST 2021  *****
+
+Implemented atmosphere.chemistry() to compute atmospheric chemistry
+but returns a callable object which enables further chemical
+equilibrium calculations, as opposed to atmosphere.abundance().
+Removed atmosphere.make_atomic() and atmosphere.make_preatm()
+which are no longer used.
+Added e_scale and metallicity options to pyratbay configuration files.
+Updated some tests (but more is needed).
+
+There are still many loose ties:
+- deprecation warnings,
+- testing,
+- connecting pyratbay--tea arguments,
+- officializing TEA as a pip-installable requirement,
+- phase out atmosphere.abundance().
+- remove tools.make_tea()
+
+*****
+
+Updated pyratbay/data/molecules.dat to include all species from
+Woitke et al. (2018), AA, 614.
+Changed diameters column to radii.
+
+*****
+
+Updated io.read_molecs() and tests after diameter-to-radius change.
+
+*****
+
+Fixed get_constants() to receive radius instead of diameter from
+molecules file.
+Updated tests according to changed values in molecules.dat file.
+
+*****
+
+Refactored io.read_molecs() to include the ions of the read species.
+
+*****
+
+Added error when attempting to extract mass for a species that is
+not in molecules.dat
+
+*****
+
+Cosmetics.
+
+
+*****  So 25. Jul 17:27:29 CEST 2021  *****
+
+Enabled two-stream emission RT calculation.
+Added emission_two_stream to available rt_path options.
+Added beta_irr input variable to control the stellar irradiation
+fraction into the planetary atmosphere.
+Implemented two_stream() function in spectrum.py following
+equations from Heng2014 and Malik2017.
+
+*****
+
+Added tests for emission spectra.
+
+
+*****  Mo 26. Jul 11:29:21 CEST 2021  *****
+
+Implemented pyrat.radiative_equilibrium() method to compute
+radiative and thermochemical equilibrium temperature profiles.
+Enabled radeq runmode.
+All tests and documentation for this feature are TBD.
+
+
+*****  Tue Jul 27 12:48:44 CEST 2021  *****
+
+Modified default xsolar value setting by metallicity.
+Removed warning when defaulted.
+
+*****
+
+Enabled convective flux estimation via mixing-length theory
+for radiative-equilibrium calculation.
+In pyrat.radiative_equilibrium() changed argument name from cont
+to continue_run.
+Added pyratbay/spectrum/convection.py file with function to compute
+the convective flux for an atmosphere.
+
+*****
+
+Removed sympy from requirements.
+
+*****
+
+Fixed bug in metallicity input check.
+
+*****
+
+Bumped pyratbay version to beta 1.1.0b1.
+
+
+*****  Mi 4. Aug 10:43:05 CEST 2021  *****
+
+Removed no longer needed package_data files from setup.py.
+
+
+*****  Wed Dec 22 16:42:22 CET 2021  *****
+
+Enforced multiprocessing to use fork starting method
+(to prevent crashing on OSX).
+
+*****
+
+Updated travis.yml file to include python 3.7, 3.8, and 3.9.
+
+*****
+
+Updated pytest.ini file, removed no longer needed filters.
+
+
+*****  Thu Dec 23 15:02:39 CET 2021  *****
+
+Removed .gitmodules file.
+
+*****
+
+Added python 3.10 to travis.yml file.
+
+*****
+
+Try temporary solution to include TEA dependency
+(while it's still not pip installable).
+
+*****
+
+Removed Python 3.10 from .travis.yml file:
+Unable to download 3.10 archive. The archive may not exist. Please
+consider a different version.
+
+Retry TEA install with pip.
+
+
+*****  Tue Feb 15 12:20:16 CET 2022  *****
+
+Updated pyproject.toml to use oldest-supported-numpy dependency.
+
+*****
+
+Updated temporary TEA path in .travis.yml file.
+
+
+*****  Wed Feb 16 10:46:55 CET 2022  *****
+
+Updated tea dependency.
+Changed default tea solar elemental abundance from Asplund+2009 to
+Asplund+2021.
+Updated tests.
+
+*****
+
+Added e_ratio argument into pa.chemistry() function to set custom
+elemental ratios for equilibrium-chemistry calculations.
+Added test.
+
+
+*****  Fri Feb 18 12:33:45 CET 2022  *****
+
+Updated two_stream() function to replace Malik+2017 implementation
+with Heng+2014 with linear Plank function, which is more stable.
+Tests probably need double checking to see what happens if Tint is
+None or if the stellar flux is undefined.
+
+
+*****  Fri Feb 25 15:11:58 CET 2022  *****
+
+Updated pa.chemistry() docs according to current e_ratio usage.
+(the actual ratio instead of log10(ratio)).
+Updated tests.
+
+*****
+
+Prevent the code to crash for missing irradiation flux in two_stream.
+Radiative-equilibrium runs should though have a warning (TBD).
+Refactored the beta_irr factor into (1-A)*f as in Guillot (2010).
+
+
+*****  Mon Feb 28 11:40:24 CET 2022  *****
+
+Starting preparing code for equilibrium runs:
+Added 'equil' to constants.molmodels.
+
+*****
+
+Fixed bug in docs of plots.abundance().
+
+*****
+
+Enabled setting molmodel values as 'equil'.
+Updated pyrat.eval() to handle equilibrium-chemistry calculations,
+this includes parameterized metallicity and X/Y elemental ratios.
+There are many loose ends and corner-cases yet to fix.
+
+Changed default value of molmodel from None to [].
+This simplifies handling cases when checking its values.
+Tests and documentation is pending.
+
+*****
+
+Corrected parameter names for equilibrium chemistry pars
+(ret.pnames and ret.texnames).
+
+
+*****  Thu May 19 11:47:24 CEST 2022  *****
+
+Removed make_tea() from tools.py, no longer used.
+Small corrections here and there.
+Updated example files (mostly cosmetics).
+
+Fixed bug with input e_scale parameter name in parser.py.
+
+Added deprecation warnings for xsolar, escale, and ncpu
+when computing atmospheric models.
+
+
+*****  Mon May 30 11:55:33 CEST 2022  *****
+
+Added e_ratio to list of available config file variables.
+Added tests for pa.abundance() with an e_ratio value.
+
+
+*****  Wed Jun 1 16:38:20 CEST 2022  *****
+
+Renamed HS to SH and COS to OCS in molecules.dat
+(to match names in HITRAN/Exomol databases).
+Added all molecules listed in the HITRAN and Exomol databases.
+(as of today).
+
+
+*****  Fri Jun 3 10:43:53 CEST 2022  *****
+
+Updated isotopes.dat to include all isotopes listed in HITRAN/Exomol
+About a hundred isotopes were added.
+Some (zero-abundance) isotopes were removed.
+Tweaked make_tli() function to ignore isotopes listed in partition
+function files that do not exist in isotopes.dat.
+Updated tests accordingly.
+
+*****
+
+Moved radiative_equilibrium() method into it's own file
+in radiative_transfer.py to work as a function in spectrum module.
+(the idea is to enable calls without needing to have a pyrat object,
+making it more modular and flexible).
+Tests are TBD.
+
+
+*****  Thu Jul 28 10:35:08 CEST 2022  *****
+
+Updated requirements (versions for numpy, scipy, and matplotlib),
+added chemcat.
+Updated MANIFEST file (removed TEA files).
+
+*****
+
+Replaced tea calls with chemcat calls.
+
+*****
+
+Cosmetics.
+
+*****
+
+Incorporated e_abundances argument, and added into chemistry() calls
+Tested.
+Docs are pending.
+Incorporated equilibrium chemistry calculation into pyrat.eval()
+This should enable chemically-consistent retrievals, ha.
+Tests and docs are pending.
+
+
+*****  Mon Aug 1 12:53:21 CEST 2022  *****
+
+Added ATM, C2, and C3 constants into constants.h.
+Added src_c/_alkali.c file which implements alkali extinction
+in C.  This is a 10x speed up compared to the Python code.
+Profile is computed as a Lorentz rather than a Voigt.
+Undersampling in the core is not taken into account.
+Implemented VanderWaals.voigt_det() method that computes the
+size of the detuning region at given temperature-profile values.
+All tests and proper documentation are TBD.
+
+*****
+
+Updated pyratbay version to 1.1.1b1.
+
+
+*****  Tue Aug 2 11:56:18 CEST 2022  *****
+
+Updated C alkali_cross_section() function to perform correction
+at the wavelength nearest the core for under-sampled lines
+(enforce the sum of the Lorentz profile to add to one).
+
+
+*****  Thu Aug 18 10:16:11 CEST 2022  *****
+
+Fixed bug in new C alkali cross-section calculation.
+Updates tests.
+
+*****
+
+PEP8 tests.
+
+*****
+
+Removed TEA installation from .travis.yml script.
+
+
+*****  Wed Sep 7 11:09:50 CEST 2022  *****
+
+Updated HITRAN TIPS partition function data with values from
+Gamache et al. (2021), JQSRT, 271, 107713.
+the PFs for O3, CH4, and NO2 were patched at higher temperatures with
+data from 2017 (scale-adjusted to last value in 2021).
+This fixes a bug in the previous dataset where some molecules
+pointed to the wrong arrays.
+Updates docs and tests.
+
+*****
+
+Updated write_pf() to have two more significant digits for
+partition function values.
+
+*****
+
+Fixed issue with pickle protocol for TIPS data file.
+Fixed tests.
+
+*****
+
+Updated pyratbay version to 1.1.2rc1.
+
+*****
+
+Updated references to the bibtex in docs and README files.
+
+*****
+
+Enabled constant delta-wavelength sampling.
+Added wlstep argument, if defined, compute spectrum at given
+delta-wavenumber sampling.
+Tests and docs are TBD!  (added placeholders)
+
+*****
+
+Refactored delta-wn calculation at the core of the alkali lines
+in alkali.init() to be independent of the sampling type.
+
+
+*****  Thu Sep 8 17:33:03 CEST 2022  *****
+
+Enabled pref as a fitting parameter.
+Added a couple lines in docs (not sure what's the best place so far,
+maybe cookbooks...)
+Tests are TBD (added one placeholder in test_spectrum.py).
+
+*****
+
+Added ipress attribute to pyrat.ret object.
+(to prevent breaking the code).
+
+
+*****  Mon Sep 12 16:32:07 CEST 2022  *****
+
+Refactored interp_ec() function in _extcoeff.c for better performance
+Got a ten percent improvement, approx.
+There are no changes in the calculation outputs.
+Added IND4d() definition into src_c/include/ind.h.
+
+*****
+
+Cosmetics.
+
+*****
+
+Renamed VERSION.py file to version.py.
+
+*****
+
+Updated pyratbay version to 1.1.3.
+
+
+*****  Fri Oct 7 15:50:52 CEST 2022  *****
+
+Implemented PassBand() and Tophat() classes in pyratbay.spectrum
+Documented but not tested (only placeholders).
+
+*****
+
+Implemented pyratbay.io.read_observations() to process observing data
+Docstrings are to be revised, tests are TBD.
+
+
+*****  Sun Oct 9 13:50:50 CEST 2022  *****
+
+Cleaned up PassBand() class. Updated docstrings and added tests.
+Made internal wavenumber array always monotonically increasing.
+
+*****
+
+Cleaned up Tophat() class. Updated docstrings and added tests.
+Made internal wavenumber array always monotonically increasing.
+
+*****
+
+Replaced pyrat.obs.filters as list of files into list of PassBand()
+objects.  TBD: Users should be warned not to mix inputs from
+obs_file vs data, uncert, and filters arguments.
+
+*****
+
+Added repr and str dunder methods to PassBand() and Tophat() objects
+Added docs and tests.
+
+*****
+
+PEP8 fixes, mainly in argum.py check_spectrum() function.
+
+
+*****  Mon Oct 10 05:56:00 CEST 2022  *****
+
+Continue PEP8 cleaning argum.py and objects.py.
+
+*****
+
+Added wavelength ranges of extracted lines at end of make_tli().
+Some more PEP8.
+
+*****
+
+Refactored Exomol() class to handle gaps in the states file.
+Code look as bit cleaner.
+
+*****
+
+Updated SO info in isotopes.dat.
+
+*****
+
+PEP8 cleaning crosssec.py.
+
+*****
+
+PEP8 cleaning extinction.py.
+
+*****
+
+PEP8 cleaning qscaling.py.
+
+*****
+
+Renamed qscaling.py to vmr_scaling.py.
+
+*****
+
+Minor cosmetics.
+
+
+*****  Wed Oct 12 09:09:21 CEST 2022  *****
+
+Final touch on io.read_observations() function, linked depth_units
+flag to reading depth and uncertainties, removed wavelength units
+flag (always use um) update docs, added errors.
+Implemented tests.
+A jupyter notebook is nearly ready to upload to the cookbooks,
+just need to find the right way to sort that out.
+
+*****
+
+Updated pyratbay version to 1.1.4.
+
+
+*****  Thu Oct 13 12:39:19 CEST 2022  *****
+
+Split constants.py into astrophysical and code constants.
+
+*****
+
+Renamed TCEA temperature model to Guillot. The code still accepts
+'tcea' in configuration files for backwards compatibility, but this
+should be removed at some point in the future.
+Added warning when user requests a tcea model.
+Docs and tests have been updated.
+
+
+*****  Fri Oct 21 11:46:03 CEST 2022  *****
+
+Updated C2H2 info in isotopes.dat.
+
+
+*****  Fri Nov 18 16:04:28 CET 2022  *****
+
+Refactored Isothermal() object to be initialized with pressure
+array instead of the number of layers.  This standarizes all
+temperature models, and enables the isothermal model to keep
+track of the pressure array.
+updated docs and tests.
+
+*****
+
+Updated internal variables of Guillot() and Madhu() models
+(both have .temperature and .pressure, which standardizes
+all temperature models now).
+Updated docstrings.
+
+*****
+
+Completely reformated cookbooks docs.
+Added first couple of tutorials (ideally more to come).
+
+*****
+
+Updated API docs.
+
+*****
+
+Cosmetics docs.
+
+*****
+
+Bumped pyratbay version to beta 1.1.5.
+
