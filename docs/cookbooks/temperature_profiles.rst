@@ -11,7 +11,7 @@ Currently, there are three temperature models: ``isothermal``,
     You can also find this tutorial as a `Python scrip here
     <https://github.com/pcubillos/pyratbay/blob/master/docs/cookbooks/temperature_profiles.py>`_
     or as a `jupyter notebook here
-    <https://github.com/pcubillos/pyratbay/blob/master/docs/cookbooks/temperature_profiles.pynb>`_.
+    <https://github.com/pcubillos/pyratbay/blob/master/docs/cookbooks/temperature_profiles.ipynb>`_.
 
 Let’s start by importing some necessary modules:
 
@@ -568,7 +568,6 @@ the model will return zeros).
         ax.plot(temps_madhu[i][0], pressure, color='xkcd:darkgreen', lw=2.0, label=labels[0])
         ax.plot(temps_madhu[i][1], pressure, color='forestgreen', lw=2.0, label=labels[1])
         ax.plot(temps_madhu[i][2], pressure, color='limegreen', lw=2.0, label=labels[2])
-        ax.axhline(10**log_p1, lw=0.75, dashes=(6,2), color='0.8')
         ax.axhline(10**log_p3, lw=0.75, dashes=(6,2), color='0.8')
         ax.set_yscale('log')
         ax.tick_params(which='both', right=True, top=True, direction='in')

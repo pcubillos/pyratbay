@@ -7587,3 +7587,8 @@ Cosmetics docs.
 
 Bumped pyratbay version to beta 1.1.5.
 
+
+*****  Tue Nov 22 11:26:06 CET 2022  *****
+
+Fixed link to jupyter notebooks in docs/cookbooks.
+
