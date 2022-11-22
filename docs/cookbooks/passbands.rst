@@ -11,7 +11,7 @@ shapes.
     You can also find this tutorial as a `Python scrip here
     <https://github.com/pcubillos/pyratbay/blob/master/docs/cookbooks/passbands.py>`_
     or as a `jupyter notebook here
-    <https://github.com/pcubillos/pyratbay/blob/master/docs/cookbooks/passbands.pynb>`_.
+    <https://github.com/pcubillos/pyratbay/blob/master/docs/cookbooks/passbands.ipynb>`_.
 
 Let’s start by importing some necessary modules:
 
