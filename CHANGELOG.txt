@@ -7592,3 +7592,7 @@ Bumped pyratbay version to beta 1.1.5.
 
 Fixed link to jupyter notebooks in docs/cookbooks.
 
+*****
+
+Bumped pyratbay version to 1.1.6.
+
