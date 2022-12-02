@@ -7636,3 +7636,8 @@ in driver.py, makesample.py, and read_atm.py.
 Code is breaking, by the way, there are details to fine tune
 further ahead.
 
+*****
+
+Updated io.write_atm() to add two more digits to the radius and
+pressure.
+

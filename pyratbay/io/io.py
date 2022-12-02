@@ -175,7 +175,7 @@ def write_atm(atmfile, pressure, temperature, species=None, abundances=None,
 
     # Write the per-layer data:
     if radius is not None:
-        f.write("\n# Radius    Pressure    Temperature  ")
+        f.write("\n# Radius      Pressure    Temperature  ")
     else:
         f.write("\n# Pressure  Temperature  ")
     if species is not None:
@@ -190,8 +190,8 @@ def write_atm(atmfile, pressure, temperature, species=None, abundances=None,
     nlayers = len(pressure)
     for i in range(nlayers):
         if radius is not None:
-            f.write(f"{radius[i]:10.4e}  ")
-        f.write(f"{pressure[i]:10.4e}  {temperature[i]:11.3f}  ")
+            f.write(f"{radius[i]:12.6e}  ")
+        f.write(f"{pressure[i]:12e}  {temperature[i]:9.3f}  ")
         if species is not None:
             f.write("  ".join([f"{q:12.6e}" for q in abundances[i]]))
         f.write('\n')
