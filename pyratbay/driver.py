@@ -39,7 +39,6 @@ def run(cfile, run_step='run', no_logfile=False):
     """
     pyrat = Pyrat(cfile, no_logfile=no_logfile)
     log = pyrat.log
-    phy = pyrat.phy
     atm = pyrat.atm
     ret = pyrat.ret
     inputs = pyrat.inputs
@@ -47,7 +46,7 @@ def run(cfile, run_step='run', no_logfile=False):
     if run_step == 'dry':
         return pyrat
 
-    # Call lineread package:
+    # Call lineread:
     if pyrat.runmode == 'tli':
         if pyrat.lt.tlifile is None:
             log.error('Undefined TLI file (tlifile).')
@@ -58,81 +57,11 @@ def run(cfile, run_step='run', no_logfile=False):
         )
         return
 
-    require_atmospheric_model = (
-        pyrat.runmode in ['atmosphere', 'radeq']
-        or pt.isfile(atm.atmfile) != 1
-        or 'equil' in atm.molmodel)
 
-    if require_atmospheric_model:
-        # Compute pressure-temperature profile:
-        read_atmosphere = (
-            pt.isfile(atm.atmfile) == 1
-            and (pyrat.runmode == 'radeq' or 'equil' in atm.molmodel)
-        )
-        if pt.isfile(atm.ptfile) == 1:
-            log.msg(f"\nReading pressure-temperature file: '{atm.ptfile}'.")
-            units, _, pressure, temperature = io.read_atm(atm.ptfile)[0:4]
-            pressure *= pt.u(units[0]) # pressure in barye
-        elif read_atmosphere:
-            units, inputs.species, pressure, temperature, _, _ = \
-                io.read_atm(atm.atmfile)
-            pressure *= pt.u(units[0]) # pressure in barye
-        else:
-            check_pressure(pyrat)
-            pressure = pa.pressure(
-                atm.ptop, atm.pbottom, atm.nlayers, 'barye', log)
-            check_temp(pyrat)
-            temperature = pa.temperature(
-                atm.tmodelname, pressure, atm.nlayers, log, atm.tpars)
-
-        abundances = None
-        species = None
-        radius = None
-        if 'equil' in atm.molmodel:
-            atm.chemistry = 'tea'
-        # Compute volume-mixing-ratio profiles:
-        if atm.chemistry is not None or pyrat.runmode != 'atmosphere':
-            check_atm(pyrat)
-            chem_net = pa.chemistry(
-                atm.chemistry,
-                pressure, temperature, inputs.species,
-                metallicity=atm.metallicity,
-                e_abundances=atm.e_abundances,
-                e_scale=atm.e_scale,
-                e_ratio=atm.e_ratio,
-                solar_file=inputs.solar,
-                log=log,
-                atmfile=atm.atmfile, punits=atm.punits,
-                q_uniform=inputs.uniform,
-            )
-            atm.chem_model = chem_net
-            abundances = chem_net.vmr
-            species = chem_net.species
-
-        # Compute altitude profile:
-        if abundances is not None and atm.rmodelname is not None:
-            check_altitude(pyrat)
-
-            # Mean molecular mass:
-            mean_mass = pa.mean_weight(abundances, species)
-            # Altitude profile:
-            radius = pyrat.hydro(
-                pressure, temperature, mean_mass, phy.gplanet,
-                phy.mplanet, atm.refpressure, phy.rplanet,
-            )
-
-    # Return atmospheric model if requested:
+    # Initialize atmosphere:
+    pyrat.set_atmosphere()
     if pyrat.runmode == 'atmosphere':
-        header = '# Pyrat bay atmospheric model\n'
-        # Guess radius units if not defined (by rplanet):
-        if radius is not None and atm.runits is None:
-            atm.runits = 'rjup' if phy.rplanet > 0.5*pc.rjup else 'rearth'
-        if atm.atmfile is not None:
-            io.write_atm(
-                atm.atmfile, pressure, temperature, species,
-                abundances, radius, atm.punits, atm.runits, header=header)
-            log.msg(f"Output atmospheric file: '{atm.atmfile}'.")
-        return pressure, temperature, abundances, species, radius
+        return pyrat.atm
 
 
     # Check status of extinction-coefficient file if necessary:
@@ -148,7 +77,7 @@ def run(cfile, run_step='run', no_logfile=False):
         log.error('Undefined MCMC file (mcmcfile).')
 
     # Initialize pyrat object:
-    pyrat.setup_spectrum()
+    pyrat.set_spectrum()
     #if pyrat.inputs.resume: # Bypass writting all of the initialization log:
     #    pyrat = Pyrat(args, log=None)
     #    pyrat.log = log
@@ -187,7 +116,8 @@ def run(cfile, run_step='run', no_logfile=False):
         log=log, ncpu=pyrat.ncpu,
         plots=True, showbp=True,
         pnames=ret.pnames, texnames=ret.texnames,
-        resume=inputs.resume, savefile=ret.mcmcfile)
+        resume=inputs.resume, savefile=ret.mcmcfile,
+    )
 
     if mc3_out is None:
         log.error("Error in MC3.")
@@ -254,84 +184,3 @@ def run(cfile, run_step='run', no_logfile=False):
        f"\n'{bestatm}'"
        f"\n'{pyrat.spec.specfile}'\n\n")
     return pyrat
-
-
-def check_pressure(pyrat):
-    """
-    Check the input arguments to calculate the pressure profile.
-    """
-    if pyrat.atm.nlayers is None:
-        pyrat.log.error("Undefined number of atmospheric layers (nlayers).")
-    if pyrat.atm.ptop is None:
-        pyrat.log.error("Undefined atmospheric top pressure (ptop)")
-    if pyrat.atm.pbottom is None:
-        pyrat.log.error("Undefined atmospheric bottom pressure (pbottom)")
-
-
-def check_temp(pyrat):
-    """
-    Check the input arguments to calculate the temperature profile.
-    """
-    if pyrat.atm.tmodelname is None:
-        pyrat.log.error("Undefined temperature model (tmodel).")
-    if pyrat.atm.tpars is None:
-        pyrat.log.error("Undefined temperature-model parameters (tpars).")
-
-
-def check_atm(pyrat):
-    """
-    Check the input arguments to calculate the atmospheric model.
-    """
-    atm = pyrat.atm
-    log = pyrat.log
-
-    if atm.chemistry is None:
-        log.error("Undefined chemistry model (chemistry).")
-    if atm.atmfile is None:
-        log.error("Undefined atmospheric file (atmfile).")
-    if pyrat.inputs.species is None:
-        log.error("Undefined atmospheric species list (species).")
-
-    # Uniform-abundances profile:
-    if atm.chemistry == 'uniform':
-        if pyrat.inputs.uniform is None:
-            log.error(
-                "Undefined list of uniform volume mixing ratios "
-                f"(uniform) for {atm.chemistry} chemistry model."
-            )
-        nuniform = len(pyrat.inputs.uniform)
-        nspecies = len(pyrat.inputs.species)
-        if nuniform != nspecies:
-            pyrat.log.error(
-                f"Number of uniform abundances ({nuniform}) does "
-                f"not match the number of species ({nspecies})."
-            )
-        return
-
-    pyrat.inputs.metallicity = pyrat.inputs.get_default(
-        'metallicity',
-        'Metallicity scaling factor (dex, relative to solar)',
-        default=0.0)
-
-
-def check_altitude(pyrat):
-    """Check input arguments to calculate altitude profile."""
-    phy = pyrat.phy
-
-    err = []
-    if phy.rplanet is None:
-        err += ['Undefined planet radius (rplanet).']
-    if phy.mplanet is None and phy.gplanet is None:
-        err += ['Undefined planet mass (mplanet) or surface gravity (gplanet).']
-    if pyrat.atm.refpressure is None:
-        err += ['Undefined reference pressure level (refpressure).']
-
-    if len(err) == 0:
-        return
-
-    error_message = '\n'.join(err)
-    pyrat.log.error(
-        'Cannot compute hydrostatic-equilibrium radius profile.\n'
-        f'{error_message}'
-    )
-

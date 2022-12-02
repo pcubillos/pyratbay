@@ -120,9 +120,8 @@ def make_atmprofiles(pyrat):
     Notes
     -----
     There are multiple things going on in this functions, here's a summary:
-    - Compute hydrostatic-equilibrium radius profile if necessary.
     - Reset (pressure/radius) boundaries if requested.
-    - Resample (pressure/radius/abundance/temperature) profiles if requested.
+    - Resample (radius) profiles if requested.
     - Check whether top of atmosphere crosses the Hill radius.
     - Compute partition-function at layers temperatures.
     """
@@ -132,30 +131,6 @@ def make_atmprofiles(pyrat):
     # Pyrat and user-input atmospheric-data objects:
     atm = pyrat.atm
     atm_in = pyrat.inputs.atm
-
-    # Check that the layers are sorted from the top to the bottom of
-    # the atmosphere:
-    sort    = np.all(np.ediff1d(atm_in.press) > 0)  # Top to bottom
-    reverse = np.all(np.ediff1d(atm_in.press) < 0)  # Bottom to top
-    if atm_in.radius is not None:
-        sort    *= np.all(np.ediff1d(atm_in.radius) < 0)
-        reverse *= np.all(np.ediff1d(atm_in.radius) > 0)
-
-    if sort:  # Layers are in the correct order
-        pass
-    elif reverse:  # Layers in reverse order
-        log.warning('The atmospheric layers are in reversed order '
-                    '(bottom-top).  Resorting to be from the top down.')
-        if atm_in.radius is not None:
-            atm_in.radius = np.flipud(atm_in.radius)
-        atm_in.press = np.flipud(atm_in.press)
-        atm_in.temp  = np.flipud(atm_in.temp)
-        atm_in.mm    = np.flipud(atm_in.mm)
-        atm_in.q     = np.flipud(atm_in.q)
-        atm_in.d     = np.flipud(atm_in.d)
-    else:
-        log.error('The atmospheric layers are neither sorted from the '
-                  'bottom up, nor from the top down.')
 
     missing = [
         pyrat.phy.mplanet is None,
@@ -183,11 +158,10 @@ def make_atmprofiles(pyrat):
     if pyrat.atm.rmodelname is not None and not np.any(missing):
         # Calculate hydostatic-equilibrium radius profile:
         log.msg(
-            f'Reference pressure: {atm.refpressure/punits:.3e} {atm.punits}.',
-            indent=2)
-        log.msg(
-            f'Reference radius: {pyrat.phy.rplanet/runits:8.1f} {atm.runits}.',
-            indent=2)
+            f'Reference pressure: {atm.refpressure/punits:.3e} {atm.punits}\n'
+            f'Reference radius: {pyrat.phy.rplanet/runits:8.1f} {atm.runits}',
+            indent=2,
+        )
         if not np.isinf(pyrat.phy.rhill):
             log.msg(f'Hill radius:      {pyrat.phy.rhill/runits:8.1f} '
                     f'{atm.runits}.', indent=2)
@@ -259,14 +233,14 @@ def make_atmprofiles(pyrat):
            f'{atm.ptop/pc.bar:.2e}--{atm.pbottom/pc.bar:.2e} bar.', indent=2)
 
     # Resample to equispaced log-pressure array if requested:
-    if pyrat.inputs.nlayers is not None:
-        atm.press = np.logspace(
-            np.log10(atm.ptop), np.log10(atm.pbottom), atm.nlayers)
-        atm.radius = radinterp(atm.press)
-        resample = True
+    #if pyrat.inputs.nlayers is not None:
+    #    atm.press = np.logspace(
+    #        np.log10(atm.ptop), np.log10(atm.pbottom), atm.nlayers)
+    #    atm.radius = radinterp(atm.press)
+    #    resample = True
 
     # Resample to equispaced radius array if requested:
-    elif atm.radstep is not None:
+    if atm.radstep is not None:
         # Make equispaced radius array:
         if atm.radlow is None:
             atm.radlow  = radinterp(atm.pbottom)[0]
@@ -279,22 +253,22 @@ def make_atmprofiles(pyrat):
         atm.press = pressinterp(atm.radius)
         resample = True
 
-    else:  # Take the atmospheric-file sampling:
-        # Get top-bottom indices:
-        ilow  = np.where(atm_in.press >= atm.ptop)   [0][ 0]
-        ihigh = np.where(atm_in.press <= atm.pbottom)[0][-1]
-        # Take values within the boundaries:
-        atm.press = atm_in.press[ilow:ihigh+1]
-        atm.temp  = atm_in.temp [ilow:ihigh+1]
-        atm.mm    = atm_in.mm   [ilow:ihigh+1]
-        atm.q     = atm_in.q    [ilow:ihigh+1]
-        atm.d     = atm_in.d    [ilow:ihigh+1]
-        if atm_in.radius is not None:
-            atm.radius = atm_in.radius[ilow:ihigh+1]
-        atm.nlayers = len(atm.press)
-        resample = False
+    #else:  # Take the atmospheric-file sampling:
+    #    # Get top-bottom indices:
+    #    ilow  = np.where(atm_in.press >= atm.ptop)   [0][ 0]
+    #    ihigh = np.where(atm_in.press <= atm.pbottom)[0][-1]
+    #    # Take values within the boundaries:
+    #    atm.press = atm_in.press[ilow:ihigh+1]
+    #    atm.temp  = atm_in.temp [ilow:ihigh+1]
+    #    atm.mm    = atm_in.mm   [ilow:ihigh+1]
+    #    atm.q     = atm_in.q    [ilow:ihigh+1]
+    #    atm.d     = atm_in.d    [ilow:ihigh+1]
+    #    if atm_in.radius is not None:
+    #        atm.radius = atm_in.radius[ilow:ihigh+1]
+    #    atm.nlayers = len(atm.press)
+    #    resample = False
 
-    # Check the radii that lie within Hill radius:
+    # Check that the radii lie within Hill radius:
     if atm.radius is not None:
         atm.rtop = pt.ifirst(atm.radius < pyrat.phy.rhill, default_ret=0)
     if atm.rtop > 0:
@@ -335,6 +309,7 @@ def make_atmprofiles(pyrat):
             atm.q[:,i] = qinterp(atm.press)
             atm.d[:,i] = dinterp(atm.press)
 
+    # TBD: Need to keep this one (somewhere)
     # Interpolate isotopes partition function:
     log.msg(f'Number of isotopes: {pyrat.iso.niso}', indent=2)
     # Initialize the partition-function array for pyrat.iso:

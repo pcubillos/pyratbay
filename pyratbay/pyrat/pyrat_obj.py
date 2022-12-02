@@ -56,7 +56,8 @@ class Pyrat(object):
       >>> # Initialize only:
       >>> pyrat = pb.Pyrat('spectrum_transmission.cfg')
       >>> # Then, setup internal varible for spectra evaluation:
-      >>> pyrat.setup_spectrum()
+      >>> pyrat.set_atmosphere()
+      >>> pyrat.set_spectrum()
       """
       # Sub-classes:
       self.spec = ob.Spectrum()       # Spectrum data
@@ -81,29 +82,34 @@ class Pyrat(object):
       self.inputs.atm = ob.Atm()
 
 
-  def setup_spectrum(self):
+  def set_atmosphere(self):
       # Setup time tracker:
       timer = pt.Timer()
-
-      # Check that user input arguments make sense:
-      ar.check_spectrum(self)
       self.timestamps['init'] = timer.clock()
 
-      # Initialize wavenumber sampling:
-      ms.make_wavenumber(self)
-      self.timestamps['wn sample'] = timer.clock()
+      # Check that user input arguments make sense:
+      ar.check_atmosphere(self)  # TBD: Need this here?
 
       # Read the atmospheric file:
-      ra.read_atm(self)
+      ra.make_atmosphere(self)
       self.timestamps['read atm'] = timer.clock()
+
+      # TBD: Revise and repurpose this function:
+      #ms.make_atmprofiles(self)
+      #self.timestamps['atm sample'] = timer.clock()
+
+
+  def set_spectrum(self):
+      timer = pt.Timer()
+      ar.check_spectrum(self)
 
       # Read line database:
       rtli.read_tli(self)
       self.timestamps['read tli'] = timer.clock()
 
-      # Make atmospheric profiles (pressure, radius, temperature, abundances):
-      ms.make_atmprofiles(self)
-      self.timestamps['atm sample'] = timer.clock()
+      # Initialize wavenumber sampling:
+      ms.make_wavenumber(self)
+      self.timestamps['wn sample'] = timer.clock()
 
       # Setup more observational/retrieval parameters:
       ar.setup(self)
@@ -245,7 +251,7 @@ class Pyrat(object):
       elif 'equil' in atm.molmodel:
           # TBD: These need to be tested  properly
           molpars = params[self.ret.imol]
-          metal = None
+          metallicity = None
           e_abundances = {}
           e_ratio = {}
           e_scale = {}
@@ -645,7 +651,6 @@ class Pyrat(object):
       if self.obs.bandtrans is not None:
           pyrat_args['bandflux'] = self.band_integrate()
 
-      bounds = None
       if self.ret.spec_low2 is not None and spec != 'model':
           pyrat_args['bounds'] = [
               self.ret.spec_low2,  self.ret.spec_low1,

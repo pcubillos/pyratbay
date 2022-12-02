@@ -7618,3 +7618,21 @@ Cosmetics.
 Updated docs, set up cookbooks section,
 added passbands.rst sub-section.
 
+
+*****  Fri Dec 2 13:03:26 CET 2022  *****
+
+Implemented make_atmosphere() in read_atm.py to take care
+in a single function the reading, interpolating, or computing
+of the atmospheric profiles.
+This is triggered through pyrat.set_atmosphere() in driver.py,
+which is now separated from pyrat.setup_spectrum(), which can
+enable the user to create an object only containing the
+atmospheric properties (no spectral properties).
+Implemented tests (for behavior) in test_run_atmosphere.py.
+
+This function replaces other scattered pieces of code that were
+in driver.py, makesample.py, and read_atm.py.
+
+Code is breaking, by the way, there are details to fine tune
+further ahead.
+
