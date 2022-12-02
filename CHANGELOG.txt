@@ -7641,3 +7641,18 @@ further ahead.
 Updated io.write_atm() to add two more digits to the radius and
 pressure.
 
+*****
+
+Change of behavior for atmfile input argument.
+Before it was used for both input and output depending on context,
+which was not always clear.
+Now there are two arguments, input_atmfile will be used only as
+input and won't be ever modified.
+The atmfile argument will be used exclusively for outputs and is
+the filename where pyratbay writes its outputs.
+
+Renamed atm.q to atm.vmr (variable is always in VMR units).
+Updates many tests and other pieces of the code to unbreak the
+execution (still there are pending breaking tests).
+
+

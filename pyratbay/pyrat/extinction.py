@@ -292,7 +292,7 @@ def extinction(pyrat, indices, grid=False, add=False):
     for i,index in enumerate(indices):
         ilayer = index % atm.nlayers  # Layer index
         pressure = atm.press[ilayer]  # Layer pressure
-        molq     = atm.q[ilayer]  # Molecular abundance
+        molq = atm.vmr[ilayer]  # Molecular abundance
         density  = atm.d[ilayer]  # Molecular density
         if grid:  # Take from grid
             itemp = int(index / atm.nlayers)  # Temp. index in EC table

@@ -103,13 +103,13 @@ class Pyrat(object):
       timer = pt.Timer()
       ar.check_spectrum(self)
 
-      # Read line database:
-      rtli.read_tli(self)
-      self.timestamps['read tli'] = timer.clock()
-
       # Initialize wavenumber sampling:
       ms.make_wavenumber(self)
       self.timestamps['wn sample'] = timer.clock()
+
+      # Read line database:
+      rtli.read_tli(self)
+      self.timestamps['read tli'] = timer.clock()
 
       # Setup more observational/retrieval parameters:
       ar.setup(self)
@@ -129,7 +129,7 @@ class Pyrat(object):
       self.timestamps['read cs'] = timer.clock()
 
 
-  def run(self, temp=None, abund=None, radius=None):
+  def run(self, temp=None, vmr=None, radius=None):
       """
       Evaluate a Pyrat spectroscopic model
 
@@ -146,7 +146,7 @@ class Pyrat(object):
       timer = pt.Timer()
 
       # Re-calculate atmospheric properties if required:
-      status = ra.update_atm(self, temp, abund, radius)
+      status = ra.update_atm(self, temp, vmr, radius)
       if status == 0:
           return
       # Interpolate CIA absorption:
@@ -216,7 +216,7 @@ class Pyrat(object):
       """
       atm = self.atm
       params = np.asarray(params)
-      q0 = np.copy(atm.qbase)
+      base_vmr = np.copy(atm.base_vmr)
 
       if len(params) != self.ret.nparams:
           self.log.warning(
@@ -246,7 +246,7 @@ class Pyrat(object):
 
       # Update abundance profiles if requested:
       if self.ret.imol is None:
-          q2 = atm.q
+          new_vmr = atm.vmr
 
       elif 'equil' in atm.molmodel:
           # TBD: These need to be tested  properly
@@ -266,7 +266,7 @@ class Pyrat(object):
                       e_scale[var] = val
                   else:
                       e_abundances[var] = val
-          q2 = atm.chem_model.thermochemical_equilibrium(
+          new_vmr = atm.chem_model.thermochemical_equilibrium(
               temp,
               metallicity=metallicity,
               e_abundances=e_abundances,
@@ -274,8 +274,8 @@ class Pyrat(object):
               e_scale=e_scale,
           )
       else:
-          q2 = pa.qscale(
-              q0, self.mol.name, atm.molmodel,
+          new_vmr = pa.qscale(
+              base_vmr, self.mol.name, atm.molmodel,
               atm.molfree, params[self.ret.imol],
               atm.bulk,
               iscale=atm.ifree, ibulk=atm.ibulk,
@@ -283,7 +283,7 @@ class Pyrat(object):
           )
 
       # Check abundaces stay within bounds:
-      if pa.qcapcheck(q2, self.ret.qcap, atm.ibulk):
+      if pa.qcapcheck(new_vmr, self.ret.qcap, atm.ibulk):
           rejectflag = True
           if verbose:
               self.log.warning(
@@ -323,7 +323,7 @@ class Pyrat(object):
           self.cloud.fpatchy = params[self.ret.ipatchy][0]
 
       # Calculate spectrum:
-      self.run(temp=temp, abund=q2)
+      self.run(temp=temp, vmr=new_vmr)
 
       # Band-integrate spectrum:
       self.obs.bandflux = self.band_integrate()
@@ -361,7 +361,7 @@ class Pyrat(object):
       Returns
       -------
       There are no returned values, but this method updates the
-      temperature profile (self.atm.temp) and abundances (self.atm.q)
+      temperature profile (self.atm.temp) and abundances (self.atm.vmr)
       with the values from the last radiative-equilibrium iteration.
 
       This method also defines pyrat.atm.radeq_temps, a 2D array
@@ -408,7 +408,7 @@ class Pyrat(object):
       atm.temp = radeq_temps[-1]
       io.write_atm(
           self.spec.specfile.replace('.dat','.atm'),
-          atm.press, atm.temp, self.mol.name, atm.q,
+          atm.press, atm.temp, self.mol.name, atm.vmr,
           punits="bar",
           header="# Radiative-thermochemical equilibrium profile.\n\n",
       )

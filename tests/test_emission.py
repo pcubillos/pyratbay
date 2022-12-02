@@ -156,7 +156,8 @@ def test_emission_etable(tmp_path):
 # Optical-depth integration is home made, which depends on whether there is
 # an odd or even number of layers. Thus, the need for this test.
 def test_emission_odd_even(tmp_path):
-    cfg = make_config(tmp_path,
+    cfg = make_config(
+        tmp_path,
         ROOT+'tests/configs/spectrum_emission_test.cfg',
         reset={'rpars':'1.0 -4.0'},
         remove=['tlifile', 'alkali', 'clouds'],
@@ -165,9 +166,9 @@ def test_emission_odd_even(tmp_path):
     np.testing.assert_allclose(
         pyrat.spec.spectrum, expected['odd_even'], rtol=rtol)
 
-    reset={
-        'atmfile':f'{INPUTS}atmosphere_uniform_even_layers.atm',
-        'rpars':'1.0 -4.0',
+    reset = {
+        'input_atmfile': f'{INPUTS}atmosphere_uniform_even_layers.atm',
+        'rpars': '1.0 -4.0',
     }
     cfg = make_config(
         tmp_path,
@@ -225,20 +226,26 @@ def test_emission_tmodel_none(tmp_path):
     pyrat.atm.tpars = np.array([-4.67, -0.8, -0.8, 0.5, 1486.0, 100.0])
     pyrat.run()
     np.testing.assert_allclose(
-        pyrat.spec.spectrum, expected['tmodel'], rtol=rtol)
+        pyrat.spec.spectrum, expected['tmodel'], rtol=rtol,
+    )
 
 
 def test_emission_tmodel(tmp_path):
     # Include tmodel and tpars in input config file:
+    reset = {
+        'tmodel':'guillot',
+        'tpars':'-4.67 -0.8 -0.8 0.5 1486.0 100.0',
+    }
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_emission_test.cfg',
         remove=['clouds', 'cpars'],
-        reset={'tmodel':'guillot', 'tpars':'-4.67 -0.8 -0.8 0.5 1486.0 100.0'},
+        reset=reset,
     )
     pyrat = pb.run(cfg)
     np.testing.assert_allclose(
-        pyrat.spec.spectrum, expected['tmodel'], rtol=rtol)
+        pyrat.spec.spectrum, expected['tmodel'], rtol=rtol,
+    )
 
 
 def test_emission_vert_none_model(tmp_path):
@@ -258,7 +265,7 @@ def test_emission_vert_none_model(tmp_path):
     pyrat.atm.molpars = [-5]
     pyrat.run()
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['vert'], rtol=rtol)
-    np.testing.assert_equal(pyrat.atm.q[:,3], 1e-5)
+    np.testing.assert_equal(pyrat.atm.vmr[:,3], 1e-5)
 
 
 def test_emission_vert_model(tmp_path):
@@ -294,7 +301,7 @@ def test_emission_scale_model(tmp_path):
     pyrat = pb.run(cfg)
     np.testing.assert_allclose(
         pyrat.spec.spectrum, expected['scale'], rtol=rtol)
-    np.testing.assert_equal(pyrat.atm.q[:,3], 0.1*pyrat.atm.qbase[:,3])
+    np.testing.assert_equal(pyrat.atm.vmr[:,3], 0.1*pyrat.atm.base_vmr[:,3])
 
 
 @pytest.mark.skip(reason="")

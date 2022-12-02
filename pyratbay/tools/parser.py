@@ -387,18 +387,19 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         parse_float(args, 'resolution')
         parse_float(args, 'wlstep')
         # Atmospheric sampling options:
-        parse_str(args,   'tmodel')
+        parse_str(args, 'input_atmfile')
+        parse_str(args, 'tmodel')
         parse_array(args, 'tpars')
-        parse_str(args,   'radlow')
-        parse_str(args,   'radhigh')
-        parse_str(args,   'radstep')
-        parse_str(args,   'runits')
-        parse_str(args,   'punits')
-        parse_int(args,   'nlayers')
-        parse_str(args,   'ptop')
-        parse_str(args,   'pbottom')
-        parse_str(args,   'atmfile')
-        parse_str(args,   'radmodel')
+        parse_str(args, 'radlow')
+        parse_str(args, 'radhigh')
+        parse_str(args, 'radstep')
+        parse_str(args, 'runits')
+        parse_str(args, 'punits')
+        parse_int(args, 'nlayers')
+        parse_str(args, 'ptop')
+        parse_str(args, 'pbottom')
+        parse_str(args, 'atmfile')
+        parse_str(args, 'radmodel')
         # Variables for chemistry calculations
         parse_str(args,   'chemistry')
         parse_array(args, 'species')
@@ -509,6 +510,7 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
     # Define logfile name and initialize log object:
     pyrat.lt.tlifile = args.get_path('tlifile', 'TLI')
     pyrat.atm.atmfile = args.get_path('atmfile', 'Atmospheric')
+    pyrat.atm.input_atmfile = args.get_path('input_atmfile', 'Atmospheric')
     pyrat.spec.specfile = args.get_path('specfile', 'Spectrum')
     pyrat.ex.extfile = args.get_path('extfile', 'Extinction-coefficient')
     pyrat.ret.mcmcfile = args.get_path('mcmcfile', 'MCMC')
@@ -520,7 +522,7 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         'radeq': args.specfile,
         'opacity': args.extfile,
         'mcmc': args.mcmcfile,
-        }
+    }
     outfile = outfile_dict[args.runmode]
     if args.logfile is None and outfile is not None:
         if args.runmode in ['tli', 'opacity']:
@@ -594,7 +596,6 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         'rplanet', atm.runits, 'Planetary radius', gt=0.0)
     if atm.runits is None:
         atm.runits = args.get_units('rplanet')
-
     atm.nlayers = args.get_default(
         'nlayers', 'Number of atmospheric layers', gt=1)
 

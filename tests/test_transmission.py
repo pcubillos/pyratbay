@@ -178,7 +178,7 @@ def test_transmission_odd_even(tmp_path):
         pyrat.spec.spectrum, expected['odd_even'], rtol=rtol)
 
     reset = {
-        'atmfile': f'{INPUTS}atmosphere_uniform_even_layers.atm',
+        'input_atmfile': f'{INPUTS}atmosphere_uniform_even_layers.atm',
         'rpars': '1.0 -4.0',
     }
     cfg = make_config(
@@ -209,7 +209,7 @@ def test_transmission_input_radius(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        reset={'atmfile':f'{INPUTS}atmosphere_uniform_radius.atm'},
+        reset={'input_atmfile': f'{INPUTS}atmosphere_uniform_radius.atm'},
         remove=['radmodel'],
     )
     pyrat = pb.run(cfg)
@@ -221,7 +221,7 @@ def test_transmission_input_radius_overwrite(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        reset={'atmfile':f'{INPUTS}/atmosphere_uniform_radius.atm'},
+        reset={'input_atmfile':f'{INPUTS}/atmosphere_uniform_radius.atm'},
     )
     pyrat = pb.run(cfg)
     atm = io.read_atm('inputs/atmosphere_uniform_radius.atm')
@@ -277,7 +277,7 @@ def test_transmission_vert_none_model(tmp_path):
     pyrat.atm.molpars = [-5]
     pyrat.run()
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['vert'], rtol=rtol)
-    np.testing.assert_equal(pyrat.atm.q[:,3], 1e-5)
+    np.testing.assert_equal(pyrat.atm.vmr[:,3], 1e-5)
 
 
 def test_transmission_vert_model(tmp_path):
@@ -313,7 +313,7 @@ def test_transmission_scale_model(tmp_path):
     pyrat = pb.run(cfg)
     spectrum = pyrat.spec.spectrum
     np.testing.assert_allclose(spectrum, expected['scale'], rtol=rtol)
-    np.testing.assert_equal(pyrat.atm.q[:,3], 0.1*pyrat.atm.qbase[:,3])
+    np.testing.assert_equal(pyrat.atm.vmr[:,3], 0.1*pyrat.atm.base_vmr[:,3])
 
 
 def test_transmission_fit(tmp_path):

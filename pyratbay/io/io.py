@@ -77,7 +77,8 @@ def load_pyrat(pfile):
     with open(pfile, 'rb') as f:
         pyrat = pickle.load(f)
     pyrat.log.verb = -1
-    pyrat.setup_spectrum()
+    pyrat.set_atmosphere()
+    pyrat.set_spectrum()
     pyrat.log.verb = pyrat.verb
     # Recover MCMC posterior:
     if pt.isfile(pyrat.ret.mcmcfile) == 1:

@@ -22,13 +22,13 @@ def make_atmosphere(pyrat):
 
     The rules are simple:
     - if there is a model in the config file, calculate the property
-    - else, read from an input profile file
+    - else, read from an input atmfile if provided
     - otherwise, skip the calculation
-    - read VMR from profile only if already read T
     - if calculate p, any further read (T,VMR,r) will interpolate
     """
     log = pyrat.log
     atm = pyrat.atm
+    mol = pyrat.mol
     inputs = pyrat.inputs
     log.head('\nGenerating atmospheric profile')
 
@@ -37,10 +37,9 @@ def make_atmosphere(pyrat):
         input_atm_source = 'ptfile'
         input_atm_file = atm.ptfile
     # Existing atmospheric file:
-    #elif pt.isfile(atm.atmfile) == 1 and pyrat.runmode != 'atmosphere':
-    elif pt.isfile(atm.atmfile) == 1:
+    elif pt.isfile(atm.input_atmfile) == 1:
         input_atm_source = 'atmfile'
-        input_atm_file = atm.atmfile
+        input_atm_file = atm.input_atmfile
     else:
         input_atm_source = None
 
@@ -61,7 +60,12 @@ def make_atmosphere(pyrat):
             inputs.atm_species = input_atmosphere[1]
             inputs.vmr = input_atmosphere[4]
             inputs.radius = input_atmosphere[5]
-        # TBD: Check for reversed layers order from make_atmprofiles()
+        # Always store the abundances as volume mixing ratios:
+        if inputs.vmr is not None:
+            if vmr_units == 'mass':
+                inputs.vmr /= mol.mass * np.sum(inputs.vmr/mol.mass, axis=1)
+            elif vmr_units not in ['volume', 'number']:
+                log.error(f"Invalid input abundance units '{vmr_units}'.")
 
     # Figure out where to start:
     p_status = check_pressure(pyrat)
@@ -148,7 +152,6 @@ def make_atmosphere(pyrat):
     elif vmr_status == 'skip':
         vmr = None
     atm.vmr = vmr
-    # TBD: Deprecate q
 
     # Set values of species properties:
     pyrat.atm.species = pyrat.mol.name = species
@@ -168,15 +171,62 @@ def make_atmosphere(pyrat):
         )
     elif r_status == 'read':
         radius = inputs.radius
+        if atm.runits is None:
+            atm.runits = r_units
     atm.radius = radius
+    # Planetary radius units (if not set by rplanet nor atmfile):
+    if atm.runits is None:
+        if pyrat.phy.rplanet is not None:
+            atm.runits = 'rjup' if pyrat.phy.rplanet > 0.5*pc.rjup else 'rearth'
+        else:
+            atm.runits = 'rearth'
+
+    # Mean molecular mass and number densities:
+    mmm_text = ''
+    if atm.vmr is not None:
+        atm.mm = np.sum(atm.vmr*mol.mass, axis=1)
+        # Number density profiles for each molecule (in molecules cm-3):
+        atm.d = pa.ideal_gas_density(atm.vmr, atm.press, atm.temp)
+        mmm_text += (
+            f"\nMedian mean molecular mass: {np.median(atm.mm):.3f} g mol-1."
+        )
+        # Base abundance profiles:
+        atm.base_vmr = np.copy(atm.vmr)
+
+    # Print radius array:
+    if atm.radius is not None:
+        radius_arr = atm.radius / pt.u(atm.runits)
+        log.msg(
+            f'Radius array ({atm.runits}) = \n{radius_arr}', indent=2, si=4,
+        )
+        log.msg(
+            'Upper/lower radius boundaries:    '
+            f'{radius_arr[atm.rtop]:.5f} - {radius_arr[-1]:.5f} {atm.runits}.',
+            indent=2,
+        )
+
+    #log.msg(
+    #    'Lower/higher pressure boundaries: '
+    #   f'{atm.press[atm.rtop]/punits:.2e} - {atm.pbottom/punits:.2e} '
+    #   f'{atm.punits}.', indent=2)
+    #log.msg(f'Number of model layers: {atm.nlayers-atm.rtop}.', indent=2)
+
+    log.msg(f"Species list:\n  {mol.name}", indent=2, si=4)
+    min_p = atm.press[ 0] / pt.u(atm.punits)
+    max_p = atm.press[-1] / pt.u(atm.punits)
+    log.msg(
+        f"Abundances are given by volume mixing ratio.\n"
+        f"Unit factors: radius: {atm.runits}, pressure: {atm.punits}, "
+        f"temperature: {atm.tunits}\n"
+        f"Number of layers in atmospheric profile: {atm.nlayers}\n"
+        f"Atmospheric pressure limits: {min_p:.2e}--{max_p:.2e} {atm.punits}."
+        f"{mmm_text}",
+        indent=2,
+    )
     # TBD: Add extra bits/logs from makesample.make_atmosphere()
-    # TBD: Same for read_atm() below?
 
     # Return atmospheric model if requested:
     if atm.atmfile is not None:
-        # Guess radius units if not defined (by rplanet):
-        #if radius is not None and atm.runits is None:
-        #    atm.runits = 'rjup' if phy.rplanet > 0.5*pc.rjup else 'rearth'
         header = '# pyrat bay atmospheric model\n'
         io.write_atm(
             atm.atmfile, pressure, temperature, species,
@@ -185,67 +235,6 @@ def make_atmosphere(pyrat):
         log.msg(f"Output atmospheric file: '{atm.atmfile}'.")
 
     return
-
-
-# TBD: Delete, function no longer used
-def read_atm(pyrat):
-    """Read an atmospheric file, store variables into pyrat object."""
-    log = pyrat.log
-
-    # User-input atmospheric-data object:
-    atm = pyrat.atm
-    atm_in = pyrat.inputs.atm
-
-    with pt.log_error(log):
-        atm_inputs = io.read_atm(pyrat.atm.atmfile)
-
-    punits, tunits, qunits, runits = atm_inputs[0]
-
-    # Planetary radius units (if not set by rplanet):
-    if atm.runits is None:
-        atm.runits = runits
-    if atm.runits is None:
-        atm.runits = 'rearth'
-
-    # Store values in CGS system of units:
-    atm_in.press = atm_inputs[2] * pt.u(punits)
-    atm_in.temp = atm_inputs[3] * pt.u(tunits)
-    atm_in.q = atm_inputs[4]
-    if atm_inputs[5] is not None:
-        atm_in.radius = atm_inputs[5] * pt.u(runits)
-    atm_in.nlayers = len(atm_in.press)
-
-    # Store the abundances as volume mixing ratio:
-    if qunits == 'mass':
-        atm_in.q /= pyrat.mol.mass * np.sum(atm_in.q/pyrat.mol.mass,axis=1)
-    elif qunits not in ['volume', 'number']:
-        log.error(f"Invalid input abundance units '{qunits}'.")
-
-    # Calculate the mean molecular mass per layer:
-    atm_in.mm = np.sum(atm_in.q*pyrat.mol.mass, axis=1)
-
-    # Calculate number density profiles for each molecule (in molecules cm-3):
-    atm_in.d = pa.ideal_gas_density(atm_in.q, atm_in.press, atm_in.temp)
-
-    log.msg(f"Species list:\n  {pyrat.mol.name}", indent=2, si=4)
-
-    log.msg(
-        f"Abundances are given by {qunits} mixing ratio.", indent=2)
-    log.msg(
-        f"Unit factors: radius: {runits}, pressure: {punits}, "
-        f"temperature: {tunits}", indent=2)
-
-    log.msg(
-        f"Number of layers in the input atmospheric file: {atm_in.nlayers}",
-        indent=2)
-    log.msg("Atmospheric file pressure limits: "
-        f"{atm_in.press[ 0]/pt.u(atm.punits):.2e}--"
-        f"{atm_in.press[-1]/pt.u(atm.punits):.2e} {atm.punits}.",
-        indent=2)
-
-    log.msg(
-        f"Median mean molecular mass: {np.median(atm_in.mm):.3f} g mol-1.",
-        indent=2)
 
 
 def get_constants(pyrat):
@@ -347,7 +336,7 @@ def update_atm(
 
 
     # Volume mixing ratios:
-    base_vmr = np.copy(atm.qbase)
+    base_vmr = np.copy(atm.base_vmr)
     if vmr is not None:
         atm.molpars = None
     elif atm.molpars is not None:
@@ -361,15 +350,15 @@ def update_atm(
         vmr = base_vmr
 
     if vmr is not None:
-        if np.shape(vmr) != np.shape(atm.q):
+        if np.shape(vmr) != np.shape(atm.vmr):
             pyrat.log.error(
                 f"The shape of the abundances array {np.shape(vmr)} doesn't "
                  "match the shape of the Pyrat's abundance size "
-                f"{np.shape(atm.q)}")
-        atm.q = vmr
+                f"{np.shape(atm.vmr)}")
+        atm.vmr = vmr
 
     # Mean molecular mass:
-    atm.mm = np.sum(atm.q*pyrat.mol.mass, axis=1)
+    atm.mm = np.sum(atm.vmr * pyrat.mol.mass, axis=1)
 
     # Radius profile:
     if radius is not None:
@@ -383,9 +372,8 @@ def update_atm(
             atm.refpressure, pyrat.phy.rplanet,
         )
 
-
     # Number density (molecules cm-3):
-    atm.d = pa.ideal_gas_density(atm.q, atm.press, atm.temp)
+    atm.d = pa.ideal_gas_density(atm.vmr, atm.press, atm.temp)
 
     # Check radii lie within Hill radius:
     pyrat.phy.rhill = pa.rhill(
@@ -473,7 +461,7 @@ def check_pressure(pyrat):
     pyrat.log.error(
         'Cannot compute pressure profile, either set {ptop, pbottom, nlayers} '
         'parameters, or provide an input PT profile (ptfile) or atmospheric '
-        'file (atmfile)'
+        'file (input_atmfile)'
     )
 
 
@@ -484,6 +472,8 @@ def check_temperature(pyrat):
     """
     # A model takes precedence:
     if pyrat.atm.tmodelname is not None:
+        if pyrat.atm.tpars is None and pyrat.inputs.temperature is not None:
+            return 'read'
         if pyrat.atm.tpars is None:
             pyrat.log.error('Undefined temperature-model parameters (tpars)')
         return 'calculate'
@@ -495,7 +485,7 @@ def check_temperature(pyrat):
     pyrat.log.error(
         'Cannot compute temperature profile, either set a temperature model '
         '(tmodelname) and parameters (tpars), or provide an input PT '
-        'profile (ptfile) or atmospheric file (atmfile)'
+        'profile (ptfile) or atmospheric file (input_atmfile)'
     )
 
 
@@ -506,31 +496,33 @@ def check_chemistry(pyrat, t_status):
     """
     atm = pyrat.atm
     log = pyrat.log
+    inputs = pyrat.inputs
 
+    # No model:
     if atm.chemistry is None:
-        if t_status == 'read' and pyrat.inputs.vmr is not None:
-            if pyrat.inputs.species is not None:
-                pyrat.log.warning(
-                    "Composition will be taken from input atmospheric file, "
-                    "user input 'species' will be ingnored"
-                )
-            return 'read'
-        return 'skip'
+        if inputs.vmr is None:
+            return 'skip'
+        if inputs.species is not None:
+            log.warning(
+                "Composition will be taken from input atmospheric file, "
+                "user input 'species' will be ingnored"
+            )
+        return 'read'
 
-    if pyrat.inputs.species is None:
+    if inputs.species is None:
         log.error('Undefined atmospheric species list (species).')
 
     # Uniform-abundances profile:
     if atm.chemistry == 'uniform':
-        if pyrat.inputs.uniform is None:
+        if inputs.uniform is None:
             log.error(
                 'Undefined list of uniform volume mixing ratios '
                 f'(uniform) for {atm.chemistry} chemistry model.'
             )
-        nuniform = len(pyrat.inputs.uniform)
-        nspecies = len(pyrat.inputs.species)
+        nuniform = len(inputs.uniform)
+        nspecies = len(inputs.species)
         if nuniform != nspecies:
-            pyrat.log.error(
+            log.error(
                 f'Number of uniform abundances ({nuniform}) does '
                 f'not match the number of species ({nspecies}).'
             )

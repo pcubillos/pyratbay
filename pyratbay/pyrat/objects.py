@@ -19,7 +19,6 @@ __all__ = [
     'Retrieval',
 ]
 
-import os
 import numpy as np
 import scipy.constants as sc
 
@@ -123,7 +122,8 @@ class Atm(object):
       self.radhigh = None     # Highest radius boundary
       self.ptop    = None     # Lowest pressure boundary
       self.pbottom = None     # Highest pressure boundary
-      self.atmfile = None     # Atmopheric-model file
+      self.input_atmfile = None # Input atmopheric file
+      self.atmfile = None       # Output atmopheric file
       self.qunits  = None     # Input abundance units ('volume' or 'mass')
       self.runits  = None     # Input radius units
       self.punits  = None     # Input pressure units
@@ -133,8 +133,8 @@ class Atm(object):
       self.press   = None     # Pressure array (barye)       [layers]
       self.temp    = None     # Temperature array (K)        [layers]
       self.mm      = None     # Mean molecular mass (gr/mol) [layers]
-      self.q       = None     # Molecular abundances         [layers, nmol]
-      self.d       = None     # Molecular densities          [layers, nmol]
+      self.vmr     = None     # Volume mixing ratios [layers, nmol]
+      self.d       = None     # Number densities [layers, nmol]
       self.tmodel  = None
       self.tpars   = None
       self.rtop    = 0        # Index of topmost layer (within Hill radius)
@@ -145,7 +145,10 @@ class Atm(object):
       press  = self.press/pt.u(self.punits)
       radius = self.radius/pt.u(self.runits)
       fw.write('Atmospheric model information:')
-      fw.write("Atmospheric file name (atmfile): '{}'", self.atmfile)
+      fw.write(
+          f"Input atmospheric file name (input_atmfile): '{self.input_atmfile}'"
+      )
+      fw.write("Output atmospheric file name (atmfile): '{}'", self.atmfile)
       fw.write('Number of layers (nlayers): {:d}', self.nlayers)
 
       fw.write('\nPressure display units (punits): {}', self.punits)
@@ -212,11 +215,11 @@ class Atm(object):
 
 class Molecules(object):
   def __init__(self):
-      self.molfile = None  # Molecular-properties file
+      self.molfile = None # Molecular-properties file
       self.nmol   = 0     # Number of species
-      self.name   = None  # Species' name               [nmol]
-      self.symbol = None  # Species' symbol             [nmol]
-      self.mass   = None  # Species' mass  (gr/mol)     [nmol]
+      self.name   = None  # Species' name [nmol]
+      self.symbol = None  # Species' symbol [nmol]
+      self.mass   = None  # Species' mass  (gr/mol) [nmol]
       self.radius = None  # Species' radius (Angstroms) [nmol]
 
   def __str__(self):
@@ -224,12 +227,16 @@ class Molecules(object):
       fw.write('Atmospheric species information:')
       fw.write('Number of species (nmol): {:d}\n', self.nmol)
 
-      fw.write('\nMolecule    Mass       Radius\n'
-                 '            g/mol      Angstrom\n'
-                 '(name)      (mass)     (radius)  ')
+      fw.write(
+          '\nMolecule    Mass       Radius\n'
+          '            g/mol      Angstrom\n'
+          '(name)      (mass)     (radius)  '
+      )
       for i in range(self.nmol):
-          fw.write('  {:8s}  {:8.4f}  {:10.3f}',
-              self.name[i], self.mass[i], self.radius[i]/pc.A)
+          fw.write(
+              '  {:8s}  {:8.4f}  {:10.3f}',
+              self.name[i], self.mass[i], self.radius[i]/pc.A,
+          )
       fw.write("Molecular data taken from (molfile): '{}'", self.molfile)
       return fw.text
 

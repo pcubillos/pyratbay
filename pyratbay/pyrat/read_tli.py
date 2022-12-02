@@ -1,8 +1,10 @@
-# Copyright (c) 2021 Patricio Cubillos
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+# Copyright (c) 2021-2022 Patricio Cubillos
+# Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import sys
+
 import numpy as np
+import scipy.interpolate as sip
 
 from .. import constants as pc
 from .. import tools as pt
@@ -13,7 +15,7 @@ def read_tli(pyrat):
     """
     Main driver to read the line transition data from TLI files.
     """
-    pyrat.lt  = pyrat.lt.clone_new(pyrat)
+    pyrat.lt = pyrat.lt.clone_new(pyrat)
     pyrat.iso = o.Isotopes()
     # Count number of TLI files:
     if pyrat.lt.tlifile is None:
@@ -42,8 +44,24 @@ def read_tli(pyrat):
             read_linetransition(pyrat, tli, dbi)
             tli.close()
 
-    pyrat.log.msg(f"Read a total of {pyrat.lt.ntransitions:,d} line "
-        "transitions.", indent=2)
+    pyrat.log.msg(f'Number of isotopes: {pyrat.iso.niso}', indent=2)
+    # Initialize and evaluate partition functions at atmospheric temeratures:
+    pyrat.iso.z = np.zeros((pyrat.iso.niso, pyrat.atm.nlayers))
+    for database in pyrat.lt.db:
+        for j in range(database.niso):
+            iso_id = database.iiso + j
+            pyrat.log.debug(
+                f'Interpolating (isotope ID {iso_id}) partition function.',
+                indent=4,
+            )
+            zinterp = sip.interp1d(database.temp, database.z[j], kind='slinear')
+            pyrat.iso.z[iso_id] = zinterp(pyrat.atm.temp)
+
+
+    pyrat.log.msg(
+        f"Read a total of {pyrat.lt.ntransitions:,d} line transitions.",
+        indent=2,
+    )
     pyrat.log.head("Line-transition done.\n")
 
 
@@ -218,11 +236,10 @@ def read_linetransition(pyrat, linefile, dbindex):
         linefile.seek(ilast*pc.dreclen  + init_wl, 0)
         last = pt.unpack(linefile, 1, 'd')
         pyrat.log.debug(
-            f"Found initial transition ({ifirst:8d}):  {first:13.4f} cm-1",
-            indent=2)
-        pyrat.log.debug(
+            f"Found initial transition ({ifirst:8d}):  {first:13.4f} cm-1\n"
             f"Found final   transition ({ilast:8d}):  {last:13.4f} cm-1",
-            indent=2)
+            indent=2,
+        )
 
         # Number of transitions to read:
         nread = ilast - ifirst + 1

@@ -1,5 +1,5 @@
-# Copyright (c) 2021 Patricio Cubillos
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+# Copyright (c) 2021-2022 Patricio Cubillos
+# Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import os
 import subprocess
@@ -39,8 +39,10 @@ def test_call_eval_function():
 
 def test_no_logfile(tmp_path):
     # Run a spectrum:
-    cfg = make_config(tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg')
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+    )
     pyrat = pb.run(cfg)
     logfile = pyrat.log.logname
 
@@ -52,14 +54,17 @@ def test_no_logfile(tmp_path):
     assert 'Computed transit spectrum' in log
 
     # Continue running, check it doesn't break:
-    pyrat.setup_spectrum()
+    pyrat.set_atmosphere()
+    pyrat.set_spectrum()
     pyrat.run()
     assert pyrat is not None
 
 
 def test_mute(tmp_path, capfd):
-    cfg = make_config(tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg')
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+    )
     pyrat = pb.Pyrat(cfg, mute=True)
     captured = capfd.readouterr()
     assert captured.out == ''

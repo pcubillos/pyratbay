@@ -45,7 +45,7 @@ def radiative_equilibrium(
     Returns
     -------
     There are no returned values, but this method updates the
-    temperature profile (self.atm.temp) and abundances (self.atm.q)
+    temperature profile (self.atm.temp) and abundances (self.atm.vmr)
     with the values from the last radiative-equilibrium iteration.
 
     This method also defines pyrat.atm.radeq_temps, a 2D array

@@ -42,6 +42,11 @@ code returns a five-element tuple containing the pressure profile
 Also, regardless of the input units, the output variables will always
 be in CGS units.
 
+In the config file, the user can set the ``input_atmfile``
+key to specify an atmospheric file to use as inputs for the pressure,
+temperature, volume mixing ratios, or altitude profiles.
+The ``atmfile`` key instead can be set to specify a file name where
+to store the outputs.
 
 Pressure Profile
 ----------------
@@ -241,8 +246,7 @@ To produce a uniform-abundance model, the configuration file must
 contain the ``species`` key specifying a list of the name of the
 species to include in the atmosphere, and the ``uniform`` key
 specifying the mole mixing fraction for each of the species listed in
-``species``.  An atmosphere config file must also set the ``atmfile``
-key specifying the output atmospheric file name.
+``species``.
 
 Here is an example of a uniform atmosphere configuration file (`atmosphere_uniform.cfg
 <https://github.com/pcubillos/pyratbay/blob/master/examples/tutorial/atmosphere_uniform.cfg>`_):
@@ -258,8 +262,6 @@ the TEA package [Blecic2016]_, by minimizing the Gibbs free energy at
 each layer.  To produce a TEA model, the configuration file must
 contain the ``species`` key specifying the species to include in the
 atmosphere, the ``elements`` key specifying the elemental composition.
-An atmosphere config file must also set the ``atmfile`` key specifying
-the output atmospheric file name.
 
 The TEA run assumes a solar elemental composition from [Asplund2009]_;
 however, the user can scale the abundance of metals by setting the
