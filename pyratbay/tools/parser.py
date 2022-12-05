@@ -71,12 +71,12 @@ class Namespace(argparse.Namespace):
         for val in values:
             if exists and not os.path.isfile(val):
                 self._log.error(
-                    f"{desc} file ({pname}) does not exist: '{val}'",
-                    tracklev=-3)
+                    f"{desc} file ({pname}) does not exist: '{val}'"
+                )
             if not os.path.exists(os.path.dirname(val)):
                 self._log.error(
-                    f"Folder for {desc} file ({pname}) does not exist: '{val}'",
-                    tracklev=-3)
+                    f"Folder for {desc} file ({pname}) does not exist: '{val}'"
+                )
 
         if not is_list:
             return values[0]
@@ -96,8 +96,9 @@ class Namespace(argparse.Namespace):
 
         for value in values:
             if value not in choices:
-                self._log.error(f"Invalid {desc} ({pname}): {value}. "
-                    f"Select from: {choices}.", tracklev=-3)
+                self._log.error(
+                    f"Invalid {desc} ({pname}): '{value}'. Select from: {choices}"
+                )
         if not is_list:
             return values[0]
         return values
@@ -136,13 +137,13 @@ class Namespace(argparse.Namespace):
             return None
 
         if gt is not None and value <= gt:
-            self._log.error(f'{desc} ({pname}) must be > {gt}', tracklev=-3)
+            self._log.error(f'{desc} ({pname}) must be > {gt}')
         if ge is not None and value < ge:
-            self._log.error(f'{desc} ({pname}) must be >= {ge}', tracklev=-3)
+            self._log.error(f'{desc} ({pname}) must be >= {ge}')
         if lt is not None and lt <= value:
-            self._log.error(f'{desc} ({pname}) must be < {lt}', tracklev=-3)
+            self._log.error(f'{desc} ({pname}) must be < {lt}')
         if le is not None and le < value:
-            self._log.error(f'{desc} ({pname}) must be <= {le}', tracklev=-3)
+            self._log.error(f'{desc} ({pname}) must be <= {le}')
         return value
 
     def get_units(self, pname):
@@ -174,15 +175,15 @@ class Namespace(argparse.Namespace):
         try:
             value = pt.get_param(getattr(self, pname), units)
         except ValueError as error:
-            self._log.error(f'{error} for parameter {pname}.', tracklev=-3)
+            self._log.error(f'{error} for parameter {pname}')
 
         if value is None:
             return None
 
         if gt is not None and value <= gt:
-            self._log.error(f'{desc} ({pname}) must be > {gt}', tracklev=-3)
+            self._log.error(f'{desc} ({pname}) must be > {gt}')
         if ge is not None and value < ge:
-            self._log.error('{desc} ({pname}) must be >= {ge}', tracklev=-3)
+            self._log.error('{desc} ({pname}) must be >= {ge}')
         return value
 
 

@@ -72,10 +72,6 @@ def make_atmosphere(pyrat):
     t_status = check_temperature(pyrat)
     vmr_status = check_chemistry(pyrat, t_status)
     r_status = check_altitude(pyrat, vmr_status)
-    #print(
-    #    f"Status:\nP {p_status}\nT {t_status}\n"
-    #    f"VMR {vmr_status}\nR {r_status}"
-    #)
 
     # Pressure profile:
     if p_status == 'calculate':
@@ -87,6 +83,9 @@ def make_atmosphere(pyrat):
         atm.nlayers = len(pressure)
         if atm.punits is None:
             atm.punits = p_units
+        # TBD: Do I want to update with input ptop/pbottom?
+        atm.ptop = np.amin(pressure)
+        atm.pbottom = np.amax(pressure)
     atm.press = pressure
 
     if p_status == 'calculate' and 'read' in [t_status, vmr_status, r_status]:
@@ -211,6 +210,15 @@ def make_atmosphere(pyrat):
     #   f'{atm.punits}.', indent=2)
     #log.msg(f'Number of model layers: {atm.nlayers-atm.rtop}.', indent=2)
 
+    # Provide a summary of what happened here:
+    log.msg(
+        f'Provenance status for main atmospheric properties:\n'
+        f'Pressure profile: {p_status}\n'
+        f'Temperature profile: {t_status}\n'
+        f'VMR profiles: {vmr_status}\n'
+        f'Radius profile: {r_status}',
+        indent=2,
+    )
     log.msg(f"Species list:\n  {mol.name}", indent=2, si=4)
     min_p = atm.press[ 0] / pt.u(atm.punits)
     max_p = atm.press[-1] / pt.u(atm.punits)
@@ -242,7 +250,8 @@ def get_constants(pyrat):
     # Read file with molecular info:
     pyrat.log.msg(
         f"Taking species constant parameters from: '{pyrat.mol.molfile}'.",
-        indent=2)
+        indent=2,
+    )
     symbol, mass, radius = io.read_molecs(pyrat.mol.molfile)
 
     # Check that all atmospheric species are listed in molfile:
@@ -250,7 +259,8 @@ def get_constants(pyrat):
     if len(absent) > 0:
         pyrat.log.error(
             f"These species: {absent} are not listed in the molecules "
-            f"info file: {pyrat.mol.molfile}.")
+            f"info file: {pyrat.mol.molfile}."
+        )
 
     # Set molecule's values:
     pyrat.mol.symbol = np.zeros(pyrat.mol.nmol, 'U20')
@@ -295,6 +305,9 @@ def update_atm(
         Layer's altitude profile (in cm), same order as temp.
     """
     atm = pyrat.atm
+    phy = pyrat.phy
+    ex = pyrat.ex
+    lt = pyrat.lt
     # Temperature profile:
     if temp is not None:
         # Need to null tpars since it does not represent temp anymore
@@ -302,29 +315,29 @@ def update_atm(
     elif atm.tpars is not None:
         temp = atm.tmodel(atm.tpars)
     else:
-        temp = atm.temp
+        pass
 
     if temp is not None:
         # Check that the dimensions match:
         if np.size(temp) != atm.nlayers:
             pyrat.log.error(
                 f"The temperature array size ({np.size(temp)}) doesn't match "
-                f"the Pyrat's temperature size ({np.size(atm.temp)}).")
+                f"the Pyrat's temperature size ({np.size(atm.temp)})"
+            )
 
         # Check temperature boundaries:
         msg = (
-            "One or more input temperature values lies out of the {:s} "
-            "temperature boundaries (K): [{:6.1f}, {:6.1f}].")
-        if pyrat.ex.extfile is not None:
-            if np.any(temp > pyrat.ex.tmax) or np.any(temp < pyrat.ex.tmin):
-                msg = msg.format(
-                    'tabulated extinction-coefficient',
-                    pyrat.ex.tmin, pyrat.ex.tmax)
+            "Atmospheric temperature values lie out of the {:s} "
+            "boundaries (K): [{:6.1f}, {:6.1f}]."
+        )
+        if ex.extfile is not None:
+            if np.any(temp > ex.tmax) or np.any(temp < ex.tmin):
+                msg = msg.format('extinction-coefficient', ex.tmin, ex.tmax)
                 pyrat.log.warning(msg)
                 return 0
-        elif pyrat.lt.ntransitions > 0:
-            if np.any(temp > pyrat.lt.tmax) or np.any(temp < pyrat.lt.tmin):
-                msg = msg.format('line-transition', pyrat.lt.tmin, pyrat.lt.tmax)
+        elif lt.ntransitions > 0:
+            if np.any(temp > lt.tmax) or np.any(temp < lt.tmin):
+                msg = msg.format('line-transition', lt.tmin, lt.tmax)
                 pyrat.log.warning(msg)
                 return 0
         if pyrat.cs.nfiles > 0:
@@ -354,39 +367,38 @@ def update_atm(
             pyrat.log.error(
                 f"The shape of the abundances array {np.shape(vmr)} doesn't "
                  "match the shape of the Pyrat's abundance size "
-                f"{np.shape(atm.vmr)}")
+                f"{np.shape(atm.vmr)}"
+            )
         atm.vmr = vmr
 
     # Mean molecular mass:
     atm.mm = np.sum(atm.vmr * pyrat.mol.mass, axis=1)
 
-    # Radius profile:
+    # Radius profile (take input, re-compute, or keep current):
     if radius is not None:
         atm.radius = radius
-    elif atm.rmodelname is None:
-        atm.radius = pyrat.inputs.atm.radius
-    else:
+    elif atm.rmodelname is not None:
         atm.radius = pyrat.hydro(
             atm.press, atm.temp, atm.mm,
-            pyrat.phy.gplanet, pyrat.phy.mplanet,
-            atm.refpressure, pyrat.phy.rplanet,
+            phy.gplanet, phy.mplanet,
+            atm.refpressure, phy.rplanet,
         )
+    else:
+        pass
 
     # Number density (molecules cm-3):
     atm.d = pa.ideal_gas_density(atm.vmr, atm.press, atm.temp)
 
     # Check radii lie within Hill radius:
-    pyrat.phy.rhill = pa.rhill(
-        pyrat.phy.smaxis, pyrat.phy.mplanet, pyrat.phy.mstar,
-    )
-    atm.rtop = pt.ifirst(atm.radius<pyrat.phy.rhill, default_ret=0)
+    phy.rhill = pa.hill_radius(phy.smaxis, phy.mplanet, phy.mstar)
+    atm.rtop = pt.ifirst(atm.radius<phy.rhill, default_ret=0)
     if atm.rtop > 0:
-        rhill = pyrat.phy.rhill/pt.u(atm.runits)
+        rhill = phy.rhill / pt.u(atm.runits)
         if pyrat.runmode == 'mcmc':
-            logger = pyrat.log.msg
+            log_call = pyrat.log.msg
         else:
-            logger = pyrat.log.warning
-        logger(
+            log_call = pyrat.log.warning
+        log_call(
             "The atmospheric pressure array extends beyond the Hill radius "
             f"({rhill:.5f} {atm.runits}) at pressure "
             f"{atm.press[atm.rtop]/pc.bar:.3e} bar (layer {atm.rtop}).  "
@@ -394,11 +406,12 @@ def update_atm(
         )
 
     # Partition function:
-    for database in pyrat.lt.db:
-        for i_isotope in range(database.niso):
+    for database in lt.db:
+        for j in range(database.niso):
             zinterp = sip.interp1d(
-                database.temp, database.z[i_isotope], kind='slinear')
-            pyrat.iso.z[database.iiso+i_isotope] = zinterp(atm.temp)
+                database.temp, database.z[j], kind='slinear'
+            )
+            pyrat.iso.z[database.iiso+j] = zinterp(atm.temp)
 
 
 
@@ -446,6 +459,16 @@ def check_pressure(pyrat):
     Determine whether to calculate or read the atmospheric pressure
     profile.
     """
+    if pyrat.atm.ptop is not None and pyrat.atm.pbottom is not None:
+        if pyrat.atm.pbottom <= pyrat.atm.ptop:
+            pbottom = pyrat.atm.pbottom / pt.u(pyrat.atm.punits)
+            ptop = pyrat.atm.ptop / pt.u(pyrat.atm.punits)
+            pyrat.log.error(
+               f'Bottom-layer pressure ({pbottom:.2e} {pyrat.atm.punits}) '
+                'must be higher than the top-layer pressure '
+               f'({ptop:.2e} {pyrat.atm.punits})'
+            )
+
     all_parameters_defined = (
         pyrat.atm.nlayers is not None and
         pyrat.atm.ptop is not None and
@@ -517,14 +540,14 @@ def check_chemistry(pyrat, t_status):
         if inputs.uniform is None:
             log.error(
                 'Undefined list of uniform volume mixing ratios '
-                f'(uniform) for {atm.chemistry} chemistry model.'
+                f'(uniform) for {atm.chemistry} chemistry model'
             )
         nuniform = len(inputs.uniform)
         nspecies = len(inputs.species)
         if nuniform != nspecies:
             log.error(
                 f'Number of uniform abundances ({nuniform}) does '
-                f'not match the number of species ({nspecies}).'
+                f'not match the number of species ({nspecies})'
             )
 
     return 'calculate'

@@ -1,12 +1,9 @@
 # Copyright (c) 2021-2022 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
-import sys
 import itertools
 import pytest
 import configparser
-import pathlib
-import tempfile
 
 
 def pytest_collection_modifyitems(items):
@@ -43,36 +40,17 @@ def make_config(path, cfile, reset={}, remove=[]):
 @pytest.fixture
 def undefined():
     data = {
-        'nlayers': 'Undefined number of atmospheric layers (nlayers)',
-        'ptop':    'Undefined atmospheric top pressure (ptop)',
-        'pbottom': 'Undefined atmospheric bottom pressure (pbottom)',
-        'tmodel':  'Undefined temperature model (tmodel)',
-        'tpars':   'Undefined temperature-model parameters (tpars)',
-        'rstar':   'Undefined stellar radius (rstar)',
-        'tstar':   'Undefined stellar temperature (tstar)',
-        'gstar':   'Undefined stellar gravity (gstar)',
-        'smaxis':  'Undefined orbital semi-major axis (smaxis)',
-        'atmfile': 'Undefined atmospheric file (atmfile)',
-        'species': 'Undefined atmospheric species list (species)',
-        'uniform': 'Undefined list of uniform volume mixing ratios (uniform) '
-                   'for uniform\nchemistry model',
+        'tstar': 'Undefined stellar temperature (tstar)',
+        'gstar': 'Undefined stellar gravity (gstar)',
     }
     return data
 
 @pytest.fixture
 def undefined_spec():
     data = {
-        'wllow': 'High wavenumber boundary is undefined.  Either set '
-                 'wnhigh or wllow',
-        'wlhigh': 'Low wavenumber boundary is undefined.  Either set '
-                  'wnlow or wlhigh',
-        'wnstep': 'Undefined wavenumber sampling step size (wnstep)',
-        'wnosamp': 'Undefined wavenumber oversampling factor (wnosamp)',
         'rt_path': 'Undefined radiative-transfer observing geometry (rt_path).'
                    '  Select from',
         'specfile': 'Undefined output spectrum file (specfile)',
-        'tlifile': 'TLI file (tlifile) does not exist',
-         # Transmission
         'rstar': 'Undefined stellar radius (rstar), required for '
                  'transmission calculation',
     }
@@ -98,7 +76,7 @@ def undefined_opacity():
 def undefined_mcmc():
     data = {
         'retflag':"Undefined retrieval model flags.  Select from ['temp', "
-                  "'rad', 'press',\n'mol', 'ray', 'cloud', 'patchy', 'mass']",
+                  "'rad', 'press', 'mol', 'ray', 'cloud', 'patchy', 'mass']",
         'params': 'Undefined retrieval fitting parameters (params)',
         'data':   'Undefined transit/eclipse data (data)',
         'uncert': 'Undefined data uncertainties (uncert)',
@@ -128,21 +106,6 @@ def invalid_raygrid():
     }
     return data
 
-@pytest.fixture
-def invalid():
-    data = {
-        'runmode': 'Invalid running mode (runmode): invalid. Select from',
-        'rayleigh':'Invalid Rayleigh model (rayleigh): invalid. Select from',
-        'clouds':  'Invalid cloud model (clouds): invalid. Select from',
-        'alkali':  'Invalid alkali model (alkali): invalid. Select from',
-        'rt_path': 'Invalid radiative-transfer observing geometry (rt_path):'
-                   ' invalid. Select\nfrom',
-        'tmodel':  'Invalid temperature model (tmodel): invalid. Select from',
-        'molmodel': 'Invalid molecular-abundance model (molmodel): invalid. '
-                    'Select from',
-        'retflag': 'Invalid retrieval flag (retflag): invalid. Select from'
-    }
-    return data
 
 @pytest.fixture
 def invalid_file():

@@ -21,18 +21,19 @@ def test_load_save_pyrat(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        reset={'cpars': '1.0'})
+        reset={'cpars': '1.0'},
+    )
     pyrat = pb.run(cfg)
     spectrum = np.copy(pyrat.spec.spectrum)
     io.save_pyrat(pyrat)
 
     pfile = pyrat.log.logname.replace('.log', '.pickle')
     new_pyrat = io.load_pyrat(pfile)
-    # Check previous spectrum value stand:
-    np.testing.assert_equal(new_pyrat.spec.spectrum, spectrum)
+    # Check previous spectrum value still exists:
+    np.testing.assert_allclose(new_pyrat.spec.spectrum, spectrum)
     # Check re-run reproduces previous spectrum:
     new_pyrat.run()
-    np.testing.assert_equal(new_pyrat.spec.spectrum, spectrum)
+    np.testing.assert_allclose(new_pyrat.spec.spectrum, spectrum)
 
 
 

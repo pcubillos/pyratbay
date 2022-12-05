@@ -3,6 +3,7 @@
 
 import os
 import pytest
+import re
 import shutil
 
 import numpy as np
@@ -603,12 +604,12 @@ def test_run_atmosphere_calc_pt_missing_q(capfd, tmp_path, atm_input, reset_jupi
         reset=reset,
         remove=remove,
     )
-    atm_model = pb.run(cfg)
-
-    # TBD: Let it break
-    captured = capfd.readouterr()
-    error_msg = 'Cannot compute hydrostatic-equilibrium radius profile.'
-    assert error_msg in captured.out
+    error = re.escape(
+        'Cannot compute hydrostatic-equilibrium radius profile.\n'
+        'radius model needs to know the composition'
+    )
+    with pytest.raises(ValueError, match=error):
+        pb.run(cfg)
 
 
 @pytest.mark.parametrize('press', ('read', 'calc'))
@@ -628,46 +629,44 @@ def test_run_atmosphere_missing_q_from_pt(capfd, tmp_path, press, temp):
         reset=reset,
         remove=remove,
     )
-    atm_model = pb.run(cfg)
+    error = re.escape(
+        'Cannot compute hydrostatic-equilibrium radius profile.\n'
+        'radius model needs to know the composition'
+    )
+    with pytest.raises(ValueError, match=error):
+        pb.run(cfg)
 
-    # TBD: Let it break
-    captured = capfd.readouterr()
-    error_msg = 'Cannot compute hydrostatic-equilibrium radius profile.'
-    assert error_msg in captured.out
 
-
-def test_run_atmosphere_missing_p(capfd, tmp_path):
-    reset = {}
+def test_run_atmosphere_missing_p(tmp_path):
     remove = ['input_atmfile', 'chemistry', 'nlayers']
-
     cfg = make_config(
         tmp_path,
         'configs/atmosphere_jupiter_calc.cfg',
-        reset=reset,
         remove=remove,
     )
-    atm_model = pb.run(cfg)
 
-    # TBD: Let it break
-    captured = capfd.readouterr()
-    error_msg = 'Cannot compute pressure profile, either set'
-    assert error_msg in captured.out
+    error = re.escape(
+        'Cannot compute pressure profile, either set {ptop, pbottom, '
+        'nlayers} parameters, or provide an input PT profile (ptfile) '
+        'or atmospheric file (input_atmfile)'
+    )
+    with pytest.raises(ValueError, match=error):
+        pb.run(cfg)
 
 
 def test_run_atmosphere_calc_p_missing_t(capfd, tmp_path):
-    reset = {}
     remove = ['input_atmfile', 'chemistry', 'tmodel']
-
     cfg = make_config(
         tmp_path,
         'configs/atmosphere_jupiter_calc.cfg',
-        reset=reset,
         remove=remove,
     )
-    atm_model = pb.run(cfg)
 
-    # TBD: Let it break
-    captured = capfd.readouterr()
-    error_msg = 'Cannot compute temperature profile, either set a temperature model'
-    assert error_msg in captured.out
+    error = re.escape(
+        'Cannot compute temperature profile, either set a temperature model '
+        '(tmodelname) and parameters (tpars), or provide an input PT '
+        'profile (ptfile) or atmospheric file (input_atmfile)'
+    )
+    with pytest.raises(ValueError, match=error):
+        pb.run(cfg)
 

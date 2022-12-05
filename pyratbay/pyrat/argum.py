@@ -15,6 +15,18 @@ from .. import atmosphere as pa
 from .. import io as io
 
 
+def check_atmosphere(pyrat):
+    """
+    Check that user input arguments make sense.
+    """
+    # Check that input files exist:
+    if pyrat.mol.molfile is None:
+        pyrat.mol.molfile = pc.ROOT + 'pyratbay/data/molecules.dat'
+
+    with pt.log_error(pyrat.log):
+        pt.file_exists('molfile', 'Molecular-data', pyrat.mol.molfile)
+
+
 def check_spectrum(pyrat):
     """
     Check that user input arguments make sense.
@@ -38,10 +50,21 @@ def check_spectrum(pyrat):
     if pyrat.runmode == 'spectrum' and spec.specfile is None:
         log.error('Undefined output spectrum file (specfile).')
 
+    if atm.vmr is None and atm.chemistry is None:
+        log.error(
+            'Missing atmospheric volume mixing ratios. Need to either read '
+            'an input profile or compute one via a chemistry model (chemistry)'
+        )
+
     # Compute the Hill radius for the planet:
-    if (phy.mstar is not None and phy.mplanet is not None
-        and phy.smaxis is not None):
-        phy.rhill = phy.smaxis * (phy.mplanet/(3*phy.mstar))**(1.0/3.0)
+    phy.rhill = pa.hill_radius(phy.smaxis, phy.mplanet, phy.mstar)
+
+    # Check that the radius profile exists or can be computed:
+    if atm.radius is None and pyrat.runmode != 'opacity':
+        log.error(
+            'Missing atmospheric radius profile.  Need to either read an '
+            'input profile or compute one via the radmodel argument'
+        )
 
     # Check Voigt-profile arguments:
     dmin = pyrat.voigt.dmin
@@ -285,7 +308,7 @@ def setup(pyrat):
     spec = list(species)
     if atm.bulk is not None:
         atm.ibulk = [spec.index(mol) for mol in atm.bulk]
-        atm.bulkratio, atm.invsrat = pa.ratio(pyrat.atm.q, atm.ibulk)
+        atm.bulkratio, atm.invsrat = pa.ratio(pyrat.atm.vmr, atm.ibulk)
     if atm.molmodel != []:
         nabund = len(atm.molmodel)
         # TBD: set ifree to something when model is equil
@@ -457,7 +480,7 @@ def setup(pyrat):
         nparams = len(ret.params)
         log.error(
             f'The number of input fitting parameters (params, {nparams}) does '
-            f'not match\nthe number of required parameters ({ret.nparams})'
+            f'not match the number of required parameters ({ret.nparams})'
         )
     if pyrat.runmode == 'mcmc':
         if ret.pstep is None:

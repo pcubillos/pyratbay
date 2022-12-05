@@ -1,5 +1,5 @@
 # Copyright (c) 2021-2022 Patricio Cubillos
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+# Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import os
 import re
@@ -122,7 +122,7 @@ setup(
         'numpy>=1.15.1',
         'scipy>=1.4.1',
         'matplotlib>=3.3.4',
-        'mc3>=3.0.7',
+        'mc3>=3.1.0',
         'chemcat>=0.3.1',
         ],
     tests_require = [

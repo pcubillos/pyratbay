@@ -77,7 +77,9 @@ def load_pyrat(pfile):
     with open(pfile, 'rb') as f:
         pyrat = pickle.load(f)
     pyrat.log.verb = -1
-    pyrat.set_atmosphere()
+    # TBD: I think I do not need to re-run pyrat.set_atmosphere(), right?
+    # I just need to reload the pyrat.atm object from the pickle
+    # Is there anything to be fixed??
     pyrat.set_spectrum()
     pyrat.log.verb = pyrat.verb
     # Recover MCMC posterior:

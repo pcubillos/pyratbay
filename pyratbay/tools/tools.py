@@ -1,5 +1,5 @@
-# Copyright (c) 2021 Patricio Cubillos
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+# Copyright (c) 2021-2022 Patricio Cubillos
+# Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
     'log_error',
@@ -17,10 +17,10 @@ __all__ = [
     'Formatted_Write',
     'Timer',
     'get_exomol_mol',
+    'get_exomol_composition',
     'cia_hitran', 'cia_borysow',
     'radius_to_depth',
     'depth_to_radius',
-    'ignore_system_exit',
 ]
 
 
@@ -55,7 +55,7 @@ def log_error(log=None, error=None):
             log = mu.Log(logname=None, verb=1, width=80)
         if error is None:
             error = str(e)
-        log.error(error, tracklev=-4)
+        log.error(error, ValueError)
 
 
 @contextmanager
@@ -685,6 +685,55 @@ class Timer(object):
         return delta
 
 
+def get_exomol_composition(dbfile):
+    """
+    Parse an exomol file to extract the molecule and isotope name.
+
+    Parameters
+    ----------
+    dbfile: String
+        An exomol line-list file (must follow ExoMol naming convention).
+
+    Returns
+    -------
+    molecule: String
+        Name of the molecule.
+    isotope: String
+        Name of the isotope (See Tennyson et al. 2016, jmosp, 327).
+
+    Examples
+    --------
+    >>> import pyratbay.tools as pt
+    >>> filenames = [
+    >>>     '1H2-16O__POKAZATEL__00400-00500.trans.bz2',
+    >>>     '1H-2H-16O__VTT__00250-00500.trans.bz2',
+    >>>     '12C-16O2__HITEMP.pf',
+    >>>     '12C-16O-18O__Zak.par',
+    >>>     '12C-1H4__YT10to10__01100-01200.trans.bz2',
+    >>>     '12C-1H3-2H__MockName__01100-01200.trans.bz2'
+    >>>    ]
+    >>> for db in filenames:
+    >>>     print(pt.get_exomol_mol(db))
+    ('H2O', '116')
+    ('H2O', '126')
+    ('CO2', '266')
+    ('CO2', '268')
+    ('CH4', '21111')
+    ('CH4', '21112')
+    """
+    atoms = os.path.split(dbfile)[1].split('_')[0].split('-')
+    elements = []
+    atomic_numbers = []
+    isotope  = ''
+    for atom in atoms:
+        match = re.match(r"([0-9]+)([a-z]+)([0-9]*)", atom, re.I)
+        N = 1 if match.group(3) == '' else int(match.group(3))
+        elements += N * [match.group(2)]
+        atomic_numbers += N * [int(''.join(match.group(1)))]
+
+    return elements, atomic_numbers
+
+
 def get_exomol_mol(dbfile):
     """
     Parse an exomol file to extract the molecule and isotope name.
@@ -728,7 +777,7 @@ def get_exomol_mol(dbfile):
         match = re.match(r"([0-9]+)([a-z]+)([0-9]*)", atom, re.I)
         N = 1 if match.group(3) == '' else int(match.group(3))
         elements += N * [match.group(2)]
-        isotope  += match.group(1)[-1:] * N
+        isotope += match.group(1)[-1:] * N
 
     composition = [list(g[1]) for g in itertools.groupby(elements)]
     molecule = ''.join([
@@ -958,15 +1007,3 @@ def depth_to_radius(depth, depth_err):
     rprs = np.sqrt(depth)
     rprs_err = 0.5 * depth_err / rprs
     return rprs, rprs_err
-
-
-def ignore_system_exit(func):
-    """Decorator to ignore SystemExit exceptions."""
-    @functools.wraps(func)
-    def new_func(*args, **kwargs):
-        try:
-            return func(*args, **kwargs)
-        except SystemExit:
-            return None
-    return new_func
-

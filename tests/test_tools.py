@@ -387,19 +387,6 @@ def test_radius_to_depth_iterable(func):
     np.testing.assert_allclose(depth_err, (0.6,0.9))
 
 
-@pytest.mark.parametrize('flag, output', [(False,1), (True,None)])
-def test_ignore_system_exit(flag, output):
-    @pt.ignore_system_exit
-    def dummy_function(flag):
-        if flag:
-            sys.exit()
-        return 1
-    if flag:
-        assert dummy_function(flag) is None
-    else:
-        assert dummy_function(flag) == 1
-
-
 def test_Namespace_get_path_str():
     ns = pt.Namespace({'path':'file0'})
     assert ns.get_path('path') == os.getcwd() + '/file0'
@@ -417,8 +404,8 @@ def test_Namespace_get_path_root():
 
 
 def test_Namespace_get_path_non_existing():
-    ns = pt.Namespace({'path':'file0'})
-    with pytest.raises(SystemExit):
+    ns = pt.Namespace({'path': 'file0'})
+    with pytest.raises(ValueError):
         ns.get_path('path', desc='Configuration', exists=True)
 
 

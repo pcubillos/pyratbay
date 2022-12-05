@@ -189,13 +189,13 @@ def calc_extinction(pyrat):
         log.error(
             'Requested extinction-coefficient table temperature '
             f'(tmin={ex.tmin:.1f} K) below the lowest available TLI '
-            f'temperature ({pyrat.lt.tmin:.1f} K).'
+            f'temperature ({pyrat.lt.tmin:.1f} K)'
         )
     if ex.tmax > pyrat.lt.tmax:
         log.error(
             'Requested extinction-coefficient table temperature '
             f'(tmax={ex.tmax:.1f} K) above the highest available TLI '
-            f'temperature ({pyrat.lt.tmax:.1f} K).'
+            f'temperature ({pyrat.lt.tmax:.1f} K)'
         )
 
     # Create the temperature array:

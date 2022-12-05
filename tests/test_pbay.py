@@ -3,6 +3,7 @@
 
 import os
 import pytest
+import re
 import subprocess
 
 import numpy as np
@@ -104,38 +105,39 @@ def test_units_in_value(tmp_path):
     # TBD: assert atmosphere.munits == 'mjup'
 
 
-def test_units_missing(tmp_path, capfd):
+def test_units_missing(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/pt_isothermal.cfg',
-        reset={'mplanet':'1.0'})
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert "Invalid units 'None' for parameter mplanet." in captured.out
+        reset={'mplanet':'1.0'},
+    )
+    error = re.escape("Invalid units 'None' for parameter mplanet")
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
-def test_units_invalid(tmp_path, capfd):
+def test_units_invalid(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/pt_isothermal.cfg',
-        reset={'mplanet':'1.0', 'mpunits':'nope'})
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert "Invalid planet mass units (mpunits): nope" in captured.out
+        reset={'mplanet':'1.0', 'mpunits':'nope'},
+    )
+    error = re.escape("Invalid planet mass units (mpunits): nope")
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
-def test_units_in_value_invalid(tmp_path, capfd):
+def test_units_in_value_invalid(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/pt_isothermal.cfg',
-        reset={'mplanet':'1.0 nope'})
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert "Invalid units for value '1.0 nope' for parameter mplanet." \
-        in captured.out
+        reset={'mplanet':'1.0 nope'},
+    )
+    error = re.escape(
+        "Invalid units for value '1.0 nope' for parameter mplanet"
+    )
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
 @pytest.mark.sort(order=1)

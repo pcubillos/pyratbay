@@ -2,5 +2,5 @@ numpy>=1.15.1
 scipy>=1.4.1
 matplotlib>=3.3.4
 pytest>=3.9
-mc3>=3.0.7
+mc3>=3.1.0
 chemcat>=0.3.1

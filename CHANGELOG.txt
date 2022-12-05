@@ -7656,3 +7656,18 @@ Updates many tests and other pieces of the code to unbreak the
 execution (still there are pending breaking tests).
 
 
+*****  Mon Dec 5 10:50:25 CET 2022  *****
+
+Let the errors break the code and show python's traceback
+instead of capturing it and print 'nicely'. In hindsight, this is
+below optimal, as the user get's less information of what is breaking
+Known errors are still being captured in the logs, so, there is
+no major problems with this.
+
+This required to update mc3 to version >= 3.1.0, which actually
+implements the behavior of the Log() object.
+
+Removed tools.ignore_system_exit() decorator.
+Updated a ton of tests.
+
+

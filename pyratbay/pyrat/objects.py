@@ -187,7 +187,7 @@ class Atm(object):
           fmt={'float': '{:8.4f}'.format}, edge=3)
       fw.write('\nAbundance units (qunits): {}', self.qunits)
       fw.write('Abundance internal units: mole mixing fraction')
-      fw.write('Number of atmospheric species: {:d}', len(self.q[0]))
+      fw.write('Number of atmospheric species: {:d}', len(self.vmr[0]))
       if hasattr(self, 'ifree'):
       # if molmodel is not None: [TBD: this needs some reingeneering]
           molpars = self.molpars
@@ -204,7 +204,7 @@ class Atm(object):
               fw.write('     {:2d}  {:10s}', ibulk, bulk)
 
       fw.write('Abundance profiles (q, mole mixing fraction):')
-      for i, q in enumerate(self.q.T):
+      for i, q in enumerate(self.vmr.T):
           fw.write('    species [{:2d}]:   {}', i, q,    fmt=fmt, edge=2)
       fw.write('Density profiles (d, molecules cm-3):')
       for i, dens in enumerate(self.d.T):

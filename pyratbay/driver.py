@@ -20,7 +20,7 @@ from . import plots as pp
 from .pyrat import Pyrat
 
 
-@pt.ignore_system_exit
+#@pt.ignore_system_exit
 def run(cfile, run_step='run', no_logfile=False):
     """
     Pyrat Bay initialization driver.

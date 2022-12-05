@@ -4,6 +4,7 @@
 import os
 import subprocess
 import pytest
+import re
 
 from conftest import make_config
 
@@ -27,69 +28,54 @@ def test_run_runmode(tmp_path, capfd, runmode, call):
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         reset={'runmode':runmode},
     )
+    error = (
+        f"Invalid running mode (runmode): '{runmode}'. Select from: "
+    )
     if call == 'interpreter':
-        pyrat = pb.run(cfg)
-        assert pyrat is None
+        with pytest.raises(ValueError, match=re.escape(error)):
+            pyrat = pb.run(cfg)
     elif call == 'command_line':
         subprocess.call(f'pbay -c {cfg}'.split())
-    captured = capfd.readouterr()
-    caps = [
-        "Error in module: 'parser.py', function: 'parse'",
-        f"Invalid running mode (runmode): {runmode}. Select from: "
-    ]
-    for cap in caps:
-        assert cap in captured.out
+        captured = capfd.readouterr()
+        assert error in captured.err
 
 
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 # Check output for each case is defined:
-def test_run_tli(tmp_path, capfd):
+def test_run_tli2(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/tli_hitran_1.1-1.7um_test.cfg',
         remove=['tlifile'],
     )
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    caps = ["Error in module: 'driver.py', function: 'run'",
-            "Undefined TLI file (tlifile)."]
-    for cap in caps:
-        assert cap in captured.out
+    error = "Undefined TLI file (tlifile)."
+    with pytest.raises(ValueError, match=re.escape(error)):
+        pyrat = pb.run(cfg)
 
 
-@pytest.mark.parametrize('cfile',
-    ['opacity_test.cfg', 'mcmc_transmission_test.cfg'])
-def test_run_opacity_extfile(tmp_path, capfd, cfile):
+@pytest.mark.parametrize(
+    'cfile', ['opacity_test.cfg', 'mcmc_transmission_test.cfg'],
+)
+def test_run_opacity_extfile(tmp_path, cfile):
     cfg = make_config(
         tmp_path,
         f'{ROOT}tests/configs/{cfile}',
         remove=['extfile'],
     )
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    caps = ["Error in module: 'driver.py', function: 'run'",
-            "Undefined extinction-coefficient file (extfile)."]
-    for cap in caps:
-        assert cap in captured.out
+    error = "Undefined extinction-coefficient file (extfile)."
+    with pytest.raises(ValueError, match=re.escape(error)):
+        pyrat = pb.run(cfg)
 
 
-def test_run_mcmc_mcmcfile(tmp_path, capfd):
+def test_run_mcmc_mcmcfile(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/mcmc_transmission_test.cfg',
         remove=['mcmcfile'],
     )
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    caps = [
-        "Error in module: 'driver.py', function: 'run'",
-        "Undefined MCMC file (mcmcfile).",
-    ]
-    for cap in caps:
-        assert cap in captured.out
+    error = "Undefined MCMC file (mcmcfile)."
+    with pytest.raises(ValueError, match=re.escape(error)):
+        pyrat = pb.run(cfg)
 
 
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -99,17 +85,15 @@ def test_run_mcmc_mcmcfile(tmp_path, capfd):
      ('runits', 'radius'),
      ('punits', 'pressure'),
      ('dunits', 'data')])
-def test_invalid_units(tmp_path, capfd, param, var):
+def test_invalid_units(tmp_path, param, var):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/pt_isothermal.cfg',
         reset={param:'invalid'},
     )
-    pyrat = pb.run(cfg)
-    captured = capfd.readouterr()
-    assert pyrat is None
-    assert "Error in module: 'parser.py', function: 'parse'" in captured.out
-    assert f"Invalid {var} units ({param}): invalid" in captured.out
+    error = f"Invalid {var} units ({param}): invalid"
+    with pytest.raises(ValueError, match=re.escape(error)):
+        pyrat = pb.run(cfg)
 
 
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -118,55 +102,49 @@ def test_invalid_units(tmp_path, capfd, param, var):
     [('nlayers', '10.5'),
      ('nlayers', '10 20'),
      ('nlayers', 'a')])
-def test_invalid_integer_type(tmp_path, capfd, param, value):
+def test_invalid_integer_type(tmp_path, param, value):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/pt_isothermal.cfg',
         reset={param:value},
     )
-    pyrat = pb.run(cfg)
-    captured = capfd.readouterr()
-    assert pyrat is None
-    assert "Error in module: 'parser.py', function: 'parse'" in captured.out
-    assert ("Invalid data type for {:s}, could not convert string to "
-            "integer: '{:s}'".format(param, value)) in captured.out
+    error = (
+        f"Invalid data type for {param}, could not convert string to "
+        f"integer: '{value}'")
+    with pytest.raises(ValueError, match=re.escape(error)):
+        pyrat = pb.run(cfg)
 
 
 @pytest.mark.parametrize('param',
     ['verb', 'wnosamp', 'nlayers', 'ndop', 'nlor', 'quadrature',
      'nsamples', 'nchains', 'burnin', 'thinning', 'resume'])
-def test_invalid_integer_all_params(tmp_path, capfd, param):
+def test_invalid_integer_all_params(tmp_path, param):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/pt_isothermal.cfg',
         reset={param:'abc'},
     )
-    pyrat = pb.run(cfg)
-    captured = capfd.readouterr()
-    assert pyrat is None
-    assert "Error in module: 'parser.py', function: 'parse'" in captured.out
-    assert (f"Invalid data type for {param}, could not convert string to "
-            "integer: 'abc'") in captured.out
+    error = (
+        f"Invalid data type for {param}, could not convert string to "
+        "integer: 'abc'")
+    with pytest.raises(ValueError, match=re.escape(error)):
+        pyrat = pb.run(cfg)
 
 
 @pytest.mark.parametrize('param, value',
     [('tstar', '100 200'),
      ('tstar', 'a')])
-def test_invalid_float_type(tmp_path, capfd, param, value):
+def test_invalid_float_type(tmp_path, param, value):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/pt_guillot.cfg',
         reset={param:value},
     )
-    pyrat = pb.run(cfg)
-    captured = capfd.readouterr()
-    assert pyrat is None
-    assert "Error in module: 'parser.py', function: 'parse'" in captured.out
-    error_msg = (
+    error = (
         f"Invalid data type for {param}, could not convert string to "
-        f"float: '{value}'"
-    )
-    assert error_msg in captured.out
+        f"float: '{value}'")
+    with pytest.raises(ValueError, match=re.escape(error)):
+        pyrat = pb.run(cfg)
 
 
 @pytest.mark.parametrize('param',
@@ -174,80 +152,85 @@ def test_invalid_float_type(tmp_path, capfd, param, value):
      'tstep', 'ethresh', 'vextent', 'dmin', 'dmax', 'lmin', 'lmax', 'dlratio',
      'fpatchy', 'maxdepth', 'qcap', 'tlow', 'thigh', 'grbreak', 'grnmin',
      'gstar', 'tstar', 'gplanet', 'tint'])
-def test_invalid_float_all_params(tmp_path, capfd, param):
+def test_invalid_float_all_params(tmp_path, param):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/pt_isothermal.cfg',
         reset={param:'abc'},
     )
-    pyrat = pb.run(cfg)
-    captured = capfd.readouterr()
-    assert pyrat is None
-    assert "Error in module: 'parser.py', function: 'parse'" in captured.out
-    assert (f"Invalid data type for {param}, could not convert string to "
-            "float: 'abc'") in captured.out
+    error = (
+        f"Invalid data type for {param}, could not convert string to "
+        "float: 'abc'")
+    with pytest.raises(ValueError, match=re.escape(error)):
+        pyrat = pb.run(cfg)
 
 
-@pytest.mark.parametrize('param',
-    ['runmode', 'rayleigh', 'clouds', 'alkali', 'rt_path',
-     'tmodel', 'molmodel', 'retflag'])
-def test_invalid_choice(tmp_path, capfd, param, invalid):
+@pytest.mark.parametrize(
+    'param, reason',
+    [
+        ('runmode',  "running mode"),
+        ('rayleigh', "Rayleigh model"),
+        ('clouds',   "cloud model"),
+        ('alkali',   "alkali model"),
+        ('rt_path',  "radiative-transfer observing geometry"),
+        ('tmodel',   "temperature model"),
+        ('molmodel', "molecular-abundance model"),
+        ('retflag',  "retrieval flag"),
+    ]
+)
+def test_invalid_choice(tmp_path, param, reason):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/pt_isothermal.cfg',
         reset={param:'invalid'},
     )
-    pyrat = pb.run(cfg)
-    captured = capfd.readouterr()
-    assert pyrat is None
-    assert "Error in module: 'parser.py', function: 'parse'" in captured.out
-    assert invalid[param] in captured.out
+    error = (
+        re.escape(f"Invalid {reason} ({param}): 'invalid'.")
+        + " Select from: *"
+    )
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
 @pytest.mark.parametrize('param',
     ['starspec', 'kurucz', 'marcs', 'phoenix', 'filters',
      'dblist', 'molfile', 'csfile'])
-def test_file_not_found(tmp_path, capfd, param, invalid_file):
+def test_file_not_found(tmp_path, param, invalid_file):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/pt_isothermal.cfg',
         reset={param:'nope.dat'},
     )
-    pyrat = pb.run(cfg)
-    captured = capfd.readouterr()
-    assert pyrat is None
-    assert "Error in module: 'parser.py', function: 'parse'" in captured.out
-    assert invalid_file[param] in captured.out
+    error = re.escape(invalid_file[param]) + '*.'
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
 @pytest.mark.parametrize('param',
     ['atmfile', 'tlifile', 'extfile', 'mcmcfile', 'specfile', 'ptfile',
      'logfile'])
-def test_invalid_file_path(tmp_path, capfd, param, invalid_path):
+def test_invalid_file_path(tmp_path, param, invalid_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/pt_isothermal.cfg',
         reset={param:'nope/file.dat'},
     )
-    pyrat = pb.run(cfg)
-    captured = capfd.readouterr()
-    assert pyrat is None
-    assert "Error in module: 'parser.py', function: 'parse'" in captured.out
-    assert invalid_path[param] in captured.out
+    error = re.escape(invalid_path[param])
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
     # params from 'test_file_not_found' do not raise folder error since
     # they catch file not found first.
 
 
-def test_missing_mass_units(tmp_path, capfd):
+def test_missing_mass_units(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/pt_guillot.cfg',
         reset={'mplanet':'1.0'},
     )
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert "Invalid units 'None' for parameter mplanet." in captured.out
+    error = "Invalid units 'None' for parameter mplanet"
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -288,336 +271,274 @@ def test_missing_mass_units(tmp_path, capfd):
      ('nsamples', ' 0'),
      ('burnin',   ' 0'),
     ])
-def test_greater_than(tmp_path, capfd, param, value):
+def test_greater_than(tmp_path, param, value):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/pt_guillot.cfg',
         reset={param:value},
     )
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert "Error in module: 'parser.py', function: 'parse'" in captured.out
-    assert "({:s}) must be > ".format(param) in captured.out
+    error = re.escape(f"({param}) must be > ") + '*.'
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
 @pytest.mark.parametrize('param',
     ['wnosamp', 'ndop', 'nlor', 'thinning', 'nchains', 'ncpu', 'tint',
      'quadrature', 'grbreak', 'fpatchy', 'maxdepth', 'vextent'])
-def test_greater_equal(tmp_path, capfd, param):
+def test_greater_equal(tmp_path, param):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/pt_isothermal.cfg',
         reset={param:'-10'},
     )
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert "Error in module: 'parser.py', function: 'parse'" in captured.out
-    assert f"({param}) must be >= " in captured.out
+    error = re.escape(f"({param}) must be >= ") + '*.'
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
 @pytest.mark.parametrize('param', ['verb'])
-def test_lower_than(tmp_path, capfd, param):
+def test_lower_than(tmp_path, param):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/pt_isothermal.cfg',
         reset={param:'10'},
     )
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert "Error in module: 'parser.py', function: 'parse'" in captured.out
-    assert f"({param}) must be < " in captured.out
+    error = re.escape(f"({param}) must be < ") + '*.'
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
 @pytest.mark.parametrize('param', ['fpatchy', 'qcap'])
-def test_lower_equal(tmp_path, capfd, param):
+def test_lower_equal(tmp_path, param):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/pt_isothermal.cfg',
         reset={param:'1.1'},
     )
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert "Error in module: 'parser.py', function: 'parse'" in captured.out
-    assert f"({param}) must be <= " in captured.out
+    error = re.escape(f"({param}) must be <= ") + '*.'
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 # atmosphere (temperature profiles) runmode fails:
 @pytest.mark.parametrize('param', ['nlayers', 'ptop', 'pbottom'])
-def test_pt_pressure_missing(tmp_path, capfd, undefined, param):
+def test_pt_pressure_missing(tmp_path, param):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/pt_isothermal.cfg',
-        remove=[param],
+        remove=['input_atmfile', param],
     )
-    pyrat = pb.run(cfg)
-    captured = capfd.readouterr()
-    assert pyrat is None
-    assert "Error in module: 'driver.py', function: 'check_pressure'" \
-           in captured.out
-    assert undefined[param] in captured.out
+    error = re.escape(
+        'Cannot compute pressure profile, either set {ptop, pbottom, '
+        'nlayers} parameters, or provide an input PT profile (ptfile) '
+        'or atmospheric file (input_atmfile)'
+    )
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
 # This is valid for any get_param() input:
 @pytest.mark.parametrize('value', ['a', '10.0 bar 30.0'])
 @pytest.mark.parametrize('param', ['ptop', 'pbottom'])
-def test_pressure_invalid_type(tmp_path, capfd, param, value):
+def test_pressure_invalid_type(tmp_path, param, value):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/pt_isothermal.cfg',
         reset={param:value},
     )
-    pyrat = pb.run(cfg)
-    captured = capfd.readouterr()
-    assert pyrat is None
-    assert "Error in module: 'parser.py', function: 'parse'" in captured.out
-    assert f"Invalid value '{value}' for parameter {param}." in captured.out
+    error = f"Invalid value '{value}' for parameter {param}"
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
 @pytest.mark.parametrize('param', ['ptop', 'pbottom'])
-def test_pressure_invalid_units(tmp_path, capfd, param):
+def test_pressure_invalid_units(tmp_path, param):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/pt_isothermal.cfg',
         reset={param:'10.0 20.0'},
     )
-    pyrat = pb.run(cfg)
-    captured = capfd.readouterr()
-    assert pyrat is None
-    assert "Error in module: 'parser.py', function: 'parse'" in captured.out
-    assert f"Invalid units for value '10.0 20.0' for parameter {param}." \
-           in captured.out
+    error = f"Invalid units for value '10.0 20.0' for parameter {param}"
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
 @pytest.mark.parametrize('param', ['tmodel', 'tpars'])
-def test_pt_temperature_missing(tmp_path, capfd, param, undefined):
+def test_pt_temperature_missing(tmp_path, param):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/pt_isothermal.cfg',
-        remove=[param],
+        remove=['input_atmfile', 'tmodel'],
     )
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert "Error in module: 'driver.py', function: 'check_temp'" \
-           in captured.out
-    assert undefined[param] in captured.out
+    error = re.escape(
+        'Cannot compute temperature profile, either set a temperature model '
+        '(tmodelname) and parameters (tpars), or provide an input PT '
+        'profile (ptfile) or atmospheric file (input_atmfile)'
+    )
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
 @pytest.mark.parametrize('tmodel, npars',
     [('isothermal', 1),
      ('guillot', 6),
      ('madhu', 6)])
-def test_pt_tpars_mismatch(tmp_path, capfd, tmodel, npars):
+def test_pt_tpars_mismatch(tmp_path, tmodel, npars):
     cfg = make_config(
         tmp_path,
         f'{ROOT}tests/configs/pt_{tmodel}.cfg',
         reset={'tpars':'100.0 200.0'},
     )
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert "Error in module: 'atmosphere.py', function: 'temperature'" \
-           in captured.out
-    assert f"Wrong number of parameters (2) for the {tmodel} temperature " \
-           f"model ({npars})" in captured.out
+    error = re.escape(
+        'Number of temperature parameters (2) does not match the '
+        f'required number of parameters ({npars}) of the {tmodel} model'
+    )
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 # atmosphere (chemistry) runmode fails:
 
-def test_missing_atmfile(tmp_path, capfd, undefined):
-    cfg = make_config(
-        tmp_path,
-        ROOT+'tests/configs/atmosphere_uniform_test.cfg',
-        remove=['atmfile'],
-    )
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert "Error in module: 'driver.py', function: 'check_atm'" in captured.out
-    assert undefined['atmfile'] in captured.out
-
-
 @pytest.mark.parametrize('chem', ['uniform', 'tea'])
-def test_atmosphere_missing_species(tmp_path, capfd, undefined, chem):
+def test_atmosphere_missing_species(tmp_path, chem):
     cfg = make_config(
         tmp_path,
         f'{ROOT}tests/configs/atmosphere_{chem}_test.cfg',
         remove=['species'],
     )
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert "Error in module: 'driver.py', function: 'check_atm'" in captured.out
-    assert undefined['species'] in captured.out
+    error = re.escape('Undefined atmospheric species list (species)')
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
-def test_atmosphere_uniform_missing_uniform(tmp_path, capfd, undefined):
+def test_atmosphere_uniform_missing_uniform(tmp_path):
     cfg = make_config(tmp_path,
         ROOT+'tests/configs/atmosphere_uniform_test.cfg',
         remove=['uniform'])
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert "Error in module: 'driver.py', function: 'check_atm'" in captured.out
-    assert undefined['uniform'] in captured.out
+    error = re.escape(
+        'Undefined list of uniform volume mixing ratios (uniform) '
+        'for uniform chemistry model'
+    )
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
-def test_atmosphere_uniform_mismatch_uniform(tmp_path, capfd):
+def test_atmosphere_uniform_mismatch_uniform(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/atmosphere_uniform_test.cfg',
         reset={'uniform':'0.85 0.15'},
     )
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert "Error in module: 'driver.py', function: 'check_atm'" in captured.out
-    assert "Number of uniform abundances (2) does not match the number " \
-           "of species (7)." in captured.out
+    error = re.escape(
+        'Number of uniform abundances (2) does not match the number '
+        'of species (7)'
+    )
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 # atmosphere (altitude) runmode fails:
 
-def test_atmosphere_hydro_missing_all_planet_props(tmp_path, capfd, undefined):
+def test_atmosphere_hydro_missing_all_planet_props(tmp_path):
     cfg = make_config(
         tmp_path,
         f'{ROOT}tests/configs/atmosphere_hydro_test.cfg',
         remove=['rplanet', 'mplanet', 'gplanet', 'refpressure'],
     )
-    pyrat = pb.run(cfg)
-
-    assert pyrat is None
-    captured = capfd.readouterr()
-    error_messages = [
-        "Error in module: 'driver.py', function: 'check_altitude'",
-        'Cannot compute hydrostatic-equilibrium radius profile.',
-        'Undefined planet radius (rplanet).',
-        'Undefined planet mass (mplanet) or surface gravity (gplanet).',
-        'Undefined reference pressure level (refpressure).',
-    ]
-    for msg in error_messages:
-        assert msg in captured.out
+    error = re.escape(
+        'Cannot compute hydrostatic-equilibrium radius profile.\n'
+        'Undefined planet radius (rplanet).\n'
+        'Undefined planet mass (mplanet) or surface gravity (gplanet).\n'
+        'Undefined reference pressure level (refpressure).'
+    )
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
-def test_atmosphere_hydro_missing_refpressure(tmp_path, capfd, undefined):
+def test_atmosphere_hydro_missing_refpressure(tmp_path):
     cfg = make_config(
         tmp_path,
         f'{ROOT}tests/configs/atmosphere_hydro_test.cfg',
         remove=['refpressure'],
     )
-    pyrat = pb.run(cfg)
-
-    assert pyrat is None
-    captured = capfd.readouterr()
-    error_messages = [
-        "Error in module: 'driver.py', function: 'check_altitude'",
-        'Cannot compute hydrostatic-equilibrium radius profile.',
-        'Undefined reference pressure level (refpressure).',
-    ]
-    for msg in error_messages:
-        assert msg in captured.out
+    error = re.escape(
+        'Cannot compute hydrostatic-equilibrium radius profile.\n'
+        'Undefined reference pressure level (refpressure).'
+    )
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
-def test_atmosphere_hydro_missing_mass_gravity(tmp_path, capfd):
+def test_atmosphere_hydro_missing_mass_gravity(tmp_path):
     cfg = make_config(
         tmp_path,
         f'{ROOT}tests/configs/atmosphere_hydro_test.cfg',
         remove=['mplanet', 'gplanet'],
     )
-    pyrat = pb.run(cfg)
-
-    assert pyrat is None
-    captured = capfd.readouterr()
-    error_messages = [
-        "Error in module: 'driver.py', function: 'check_altitude'",
-        'Cannot compute hydrostatic-equilibrium radius profile.',
-        'Undefined planet mass (mplanet) or surface gravity (gplanet).',
-    ]
-    for msg in error_messages:
-        assert msg in captured.out
+    error = re.escape(
+        'Cannot compute hydrostatic-equilibrium radius profile.\n'
+        'Undefined planet mass (mplanet) or surface gravity (gplanet).'
+    )
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 # spectrum runmode fails (setup):
 
-@pytest.mark.parametrize('param',
-    ['wllow', 'wlhigh',
-     'pbottom', 'ptop', 'refpressure',
-     'mstar', 'rstar', 'smaxis',
+@pytest.mark.parametrize(
+    'param',
+    [
+        'wllow',
+        'wlhigh',
+        'pbottom',
+        'ptop',
+        'refpressure',
+        'mstar',
+        'rstar',
+        'smaxis',
     ])
-def test_spectrum_missing_units(tmp_path, capfd, param):
+def test_spectrum_missing_units(tmp_path, param):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         reset={param:'1.1'},
     )
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert "Error in module: 'parser.py', function: 'parse'" in captured.out
-    assert f"Invalid units 'None' for parameter {param}." in captured.out
+    error = f"Invalid units 'None' for parameter {param}"
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
-def test_spectrum_inconsistent_wl_bounds(tmp_path, capfd):
+def test_spectrum_inconsistent_wl_bounds(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         reset={'wllow':'2.0 um', 'wlhigh':'1.0 um'},
     )
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert "Error in module: 'makesample.py', function: 'make_wavenumber'" \
-           in captured.out
-    assert 'Wavenumber low boundary (10000.0 cm-1) must be larger than the ' \
-           'high boundary\n(5000.0 cm-1).' in captured.out
+    error = re.escape(
+        'Wavenumber low boundary (10000.0 cm-1) must be larger than the '
+        'high boundary (5000.0 cm-1)')
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
 @pytest.mark.parametrize('param',
     ['rstar', 'rt_path', 'specfile'])
-def test_spectrum_transmission_missing(tmp_path, capfd, param, undefined_spec):
+def test_spectrum_transmission_missing(tmp_path, param, undefined_spec):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         remove=[param],
     )
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert check_spectrum_err in captured.out
-    assert undefined_spec[param] in captured.out
+    error = re.escape(undefined_spec[param])
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
-def test_spectrum_missing_chemistry_new_atmfile(tmp_path, capfd):
-    reset = {
-        'atmfile': '{ROOT}tests/inputs/atmosphere_new_test.atm',
-        'ptop': '1e-6 bar',
-        'pbottom': '100.0 bar',
-        'nlayers': '81',
-        'tmodel': 'guillot',
-        'tpars': '-4.84 -0.8 -0.8 0.5 1200.0 100.0',
-    }
-    cfg = make_config(
-        tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        reset=reset,
-    )
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert "Error in module: 'driver.py', function: 'check_atm'" \
-           in captured.out
-    assert 'Undefined chemistry model (chemistry).' in captured.out
-
-
-def test_spectrum_missing_chemistry_no_atmfile(tmp_path, capfd):
+def test_spectrum_missing_chemistry(tmp_path):
     reset = {
         'ptop': '1e-6 bar',
         'pbottom': '100.0 bar',
@@ -628,98 +549,103 @@ def test_spectrum_missing_chemistry_no_atmfile(tmp_path, capfd):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        remove=['atmfile'],
         reset=reset,
+        remove=['input_atmfile', 'radmodel'],
     )
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert "Error in module: 'driver.py', function: 'check_atm'" \
-           in captured.out
-    assert 'Undefined chemistry model (chemistry).' in captured.out
+    error = re.escape(
+        'Missing atmospheric volume mixing ratios. Need to either read '
+        'an input profile or compute one via a chemistry model (chemistry)'
+    )
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
-def test_spectrum_no_radius(tmp_path, capfd):
+def test_spectrum_no_radius(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         remove=['radmodel'],
     )
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert "Error in module: 'makesample.py', function: 'make_atmprofiles'" \
-           in captured.out
-    assert 'Cannot compute radius profile.  Need to set a radius model ' \
-           '(radmodel) or\nprovide an input radius array in the ' \
-           'atmospheric file.' in captured.out
+    error = re.escape(
+        'Missing atmospheric radius profile.  Need to either read an '
+        'input profile or compute one via the radmodel argument'
+    )
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
-@pytest.mark.parametrize('param',
-    ['mplanet', 'rplanet', 'gplanet'])
 @pytest.mark.parametrize('atm',
     [f'{ROOT}/tests/inputs/atmosphere_uniform_test.atm',
      f'{ROOT}/tests/inputs/atmosphere_uniform_radius.atm'])
-def test_spectrum_hydro_MRGplanet(tmp_path, capfd, param, atm):
-    keep = ['mplanet', 'rplanet', 'gplanet']
-    keep.remove(param)
+def test_spectrum_hydro_missing_MGplanet(tmp_path, atm):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        reset={'atmfile':atm},
-        remove=keep,
+        reset={'input_atmfile': atm},
+        remove=['mplanet', 'gplanet'],
     )
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert "Error in module: 'makesample.py', function: 'make_atmprofiles'" \
-           in captured.out
-    assert 'Cannot compute hydrostatic-equilibrium radius profile.  Must ' \
-           'define at least\ntwo of mplanet, rplanet, or gplanet.' \
-           in captured.out
+    error = re.escape(
+        'Cannot compute hydrostatic-equilibrium radius profile.\n'
+        'Undefined planet mass (mplanet) or surface gravity (gplanet).'
+    )
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
 @pytest.mark.parametrize('atm',
     [f'{ROOT}/tests/inputs/atmosphere_uniform_test.atm',
      f'{ROOT}/tests/inputs/atmosphere_uniform_radius.atm'])
-def test_spectrum_hydro_refpressure(tmp_path, capfd, atm):
+def test_spectrum_hydro_missing_rplanet(tmp_path, atm):
+    #keep = ['mplanet', 'gplanet']
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        reset={'input_atmfile': atm},
+        remove=['rplanet'],
+    )
+    error = re.escape(
+        'Cannot compute hydrostatic-equilibrium radius profile.\n'
+        'Undefined planet radius (rplanet).'
+    )
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
+
+
+@pytest.mark.parametrize('atm',
+    [f'{ROOT}/tests/inputs/atmosphere_uniform_test.atm',
+     f'{ROOT}/tests/inputs/atmosphere_uniform_radius.atm'])
+def test_spectrum_hydro_refpressure(tmp_path, atm):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         reset={'atmfile':atm},
         remove=['refpressure'],
     )
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert "Error in module: 'makesample.py', function: 'make_atmprofiles'" \
-           in captured.out
-    assert 'Cannot compute hydrostatic-equilibrium radius profile.  ' \
-           'Undefined reference\npressure level (refpressure).' in captured.out
+    error = re.escape(
+        'Cannot compute hydrostatic-equilibrium radius profile.\n'
+        'Undefined reference pressure level (refpressure)')
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
+@pytest.mark.skip(reason='Do I want to reset boundaries?')
 @pytest.mark.parametrize('value', ['1.00e-09 bar', '1.00e+03 bar'])
 @pytest.mark.parametrize('param', ['pbottom', 'ptop'])
-def test_spectrum_unbounded_pressures(tmp_path, capfd, param, value):
+def test_spectrum_unbounded_pressures(tmp_path, param, value):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         reset={param:value},
     )
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert "Error in module: 'makesample.py', function: 'make_atmprofiles'" \
-           in captured.out
-    error_msg = (
+    error = re.escape(
         f'{param[1:].capitalize()}-pressure boundary ({param}={value}) '
-        'lies outside of\n    '
-        'the atmospheric file range 1.00e-06--1.00e+02 bar.'
+        'lies outside of the atmospheric file range 1.00e-06--1.00e+02 bar'
     )
-    assert error_msg in captured.out
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
-def test_spectrum_invalid_pressure_ranges(tmp_path, capfd):
+def test_spectrum_invalid_pressure_ranges(tmp_path):
     reset = {
         'ptop': '1.0e-02 bar',
         'pbottom': '1.0e-03 bar',
@@ -729,105 +655,97 @@ def test_spectrum_invalid_pressure_ranges(tmp_path, capfd):
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         reset=reset,
     )
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert "Error in module: 'makesample.py', function: 'make_atmprofiles'" \
-           in captured.out
-    assert ('Bottom-layer pressure (1.00e-03 bar) must be higher than the '
-            'top-layer\npressure (1.00e-02 bar).') in captured.out
+    error = re.escape(
+        'Bottom-layer pressure (1.00e-03 bar) must be higher than the '
+        'top-layer pressure (1.00e-02 bar)'
+    )
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
 @pytest.mark.parametrize('param',
     ['tlifile',])
-def test_spectrum_invalid_file(tmp_path, capfd, param, invalid_file):
+def test_spectrum_invalid_file(tmp_path, param, invalid_file):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         reset={param:'nope.dat'},
     )
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert check_spectrum_err in captured.out
-    assert invalid_file[param] in captured.out
+    error = re.escape(invalid_file[param]) + '*.'
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
 @pytest.mark.parametrize('vmin,vmax',
     [('dmin', 'dmax'),
      ('lmin', 'lmax')])
-def test_spectrum_inconsistent_voigt_bounds(tmp_path, capfd, vmin, vmax):
+def test_spectrum_inconsistent_voigt_bounds(tmp_path, vmin, vmax):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         reset={vmin:'1e5', vmax:'1e4'},
     )
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert check_spectrum_err in captured.out
-    error_msg = f'{vmax:s} (10000 cm-1) must be > {vmin:s} (100000 cm-1)'
-    assert error_msg in captured.out
+    error = re.escape(f'{vmax} (10000 cm-1) must be > {vmin} (100000 cm-1)')
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
-def test_spectrum_rpars_mismatch(tmp_path, capfd):
+def test_spectrum_rpars_mismatch(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         reset={'rpars':'1.0 1.0 1.0'},
     )
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert check_spectrum_err in captured.out
-    assert 'Number of input Rayleigh parameters (3) does not match the ' \
-           'number of\nrequired model parameters (2)' in captured.out
+    error = re.escape(
+        'Number of input Rayleigh parameters (3) does not match the '
+        'number of required model parameters (2)'
+    )
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
-def test_spectrum_cpars_mismatch(tmp_path, capfd):
+def test_spectrum_cpars_mismatch(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         reset={'cpars':'1.0 1.0 1.0'},
     )
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert check_spectrum_err in captured.out
-    assert 'Number of input cloud parameters (3) does not match the number ' \
-           'of required\nmodel parameters (1)' in captured.out
+    error = re.escape(
+        'Number of input cloud parameters (3) does not match the number '
+        'of required model parameters (1)'
+    )
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
 @pytest.mark.parametrize('value',
     ['10 60 90', '0 30 60 100', '0 30 90 60'])
-def test_spectrum_raygrid(tmp_path, capfd, invalid_raygrid, value):
+def test_spectrum_raygrid(tmp_path, invalid_raygrid, value):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         reset={'raygrid':value},
     )
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert check_spectrum_err in captured.out
-    assert invalid_raygrid[value] in captured.out
+    error = re.escape(invalid_raygrid[value])
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
-def test_spectrum_uncert_mismatch(tmp_path, capfd):
+def test_spectrum_uncert_mismatch(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         reset={'data':'1.0 2.0', 'uncert':'0.1'},
     )
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert check_spectrum_err in captured.out
-    assert 'Number of data uncertainty values (1) does not match the ' \
-           'number of data\npoints (2)' in captured.out
+    error = re.escape(
+        'Number of data uncertainty values (1) does not match the '
+        'number of data points (2)'
+    )
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
-def test_spectrum_filters_mismatch(tmp_path, capfd):
+def test_spectrum_filters_mismatch(tmp_path):
     reset = {
         'data': '1.0 2.0',
         'filters': ROOT+'tests/filters/filter_test_WFC3_G141_1.133um.dat',
@@ -837,19 +755,15 @@ def test_spectrum_filters_mismatch(tmp_path, capfd):
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         reset=reset,
     )
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-
-    captured = capfd.readouterr()
-    assert check_spectrum_err in captured.out
-    error_msg = (
+    error = re.escape(
         'Number of filter bands (1) does not match the number of '
         'data points (2)'
     )
-    assert error_msg in captured.out
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
-def test_spectrum_params_misfit(tmp_path, capfd):
+def test_spectrum_params_misfit(tmp_path):
     # Without evaulating params:
     reset = {
         'tmodel':'guillot',
@@ -861,12 +775,12 @@ def test_spectrum_params_misfit(tmp_path, capfd):
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         reset=reset,
     )
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert setup_err in captured.out
-    assert "The number of input fitting parameters (params, 2) does not " \
-           "match\n    the number of required parameters (6)" in captured.out
+    error = re.escape(
+        "The number of input fitting parameters (params, 2) does not "
+        "match the number of required parameters (6)"
+    )
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
 def test_eval_params_misfit(tmp_path, capfd):
@@ -881,68 +795,69 @@ def test_eval_params_misfit(tmp_path, capfd):
         reset=reset,
     )
     pyrat = pb.run(cfg)
+    captured = capfd.readouterr()
+
+    # Now
+    warning = (
+        "The number of input fitting parameters (2) does not match\n"
+        "    the number of required parameters (6)"
+    )
     pyrat.eval([-4.67, -0.8])
     captured = capfd.readouterr()
-    assert "The number of input fitting parameters (2) does not " \
-           "match\n    the number of required parameters (6)" in captured.out
+    assert warning in captured.out
 
 
-def test_bulk_not_in_atm(tmp_path, capfd):
+def test_bulk_not_in_atm(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         reset={'bulk':'N2'},
     )
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert setup_err in captured.out
-    assert "These bulk species are not present in the atmosphere: ['N2']" \
-           in captured.out
+    error = re.escape(
+        "These bulk species are not present in the atmosphere: ['N2']"
+    )
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
-def test_molfree_mismatch(tmp_path, capfd):
+def test_molfree_mismatch(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         reset={'molmodel':'vert'},
     )
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert setup_err in captured.out
-    assert "molmodel is set, but there are no molfree" in captured.out
+    error = "molmodel is set, but there are no molfree"
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
-def test_molfree_mismatch2(tmp_path, capfd):
+def test_molfree_mismatch2(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         reset={'molmodel':'vert vert', 'molfree':'H2O'},
     )
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert setup_err in captured.out
-    assert "There should be one molfree for each molmodel:" in captured.out
-    assert "molmodel: ['vert', 'vert']" in captured.out
-    assert "molfree: ['H2O']" in captured.out
+    error = re.escape(
+        "There should be one molfree for each molmodel:\n"
+        "molmodel: ['vert', 'vert']\n"
+        "molfree: ['H2O']")
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
-def test_molfree_mismatch3(tmp_path, capfd):
+def test_molfree_mismatch3(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         reset={'molmodel':'vert', 'molfree':'N2'},
     )
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert setup_err in captured.out
-    assert "These molfree species are not present in the atmosphere: ['N2']" in captured.out
+    error = re.escape(
+        "These molfree species are not present in the atmosphere: ['N2']")
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
-def test_bulk_molfree_overlap(tmp_path, capfd):
+def test_bulk_molfree_overlap(tmp_path):
     reset = {
         'molmodel': 'vert',
         'molfree': 'H2',
@@ -953,53 +868,29 @@ def test_bulk_molfree_overlap(tmp_path, capfd):
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         reset=reset,
     )
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert setup_err in captured.out
-    assert "These species were marked as both bulk and variable-abundance: ['H2']" in captured.out
+    error = re.escape(
+        "These species were marked as both bulk and variable-abundance: ['H2']"
+    )
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
 @pytest.mark.parametrize('param', ['tstar', 'gstar'])
-def test_kurucz_missing_pars(tmp_path, capfd, param, undefined):
+def test_kurucz_missing_pars(tmp_path, param, undefined):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         reset={'kurucz':f'{ROOT}/tests/inputs/fp00k0odfnew.pck'},
         remove=[param],
     )
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert setup_err in captured.out
-    assert undefined[param] in captured.out
-
-
-def test_spectrum_opacity_invalid_tmin(tmp_path, capfd):
-    reset = {
-        'extfile': str(tmp_path/'new_opacity.dat'),
-        'tmin': '0.1',
-        'tmax': '1000.0',
-        'tstep': '900',
-    }
-    cfg = make_config(
-        tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        reset=reset,
-    )
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert "Error in module: 'extinction.py', function: 'calc_extinction'" \
-           in captured.out
-    assert ("Requested extinction-coefficient table temperature "
-            "(tmin=0.1 K) below the\nlowest available TLI temperature "
-            "(1.0 K).") in captured.out
+    error = re.escape(undefined[param])
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
 @pytest.mark.parametrize('param',
     ['tmodel', 'clouds', 'rayleigh', 'molmodel', 'bulk'])
-def test_spectrum_missing_retflag_models(tmp_path, capfd, param,undefined_mcmc):
+def test_spectrum_missing_retflag_models(tmp_path, param, undefined_mcmc):
     reset = {
         'retflag': 'temp mol ray cloud',
         'tmodel': 'isothermal',
@@ -1015,14 +906,31 @@ def test_spectrum_missing_retflag_models(tmp_path, capfd, param,undefined_mcmc):
         remove=[param],
         reset=reset,
     )
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert check_spectrum_err in captured.out
-    assert undefined_mcmc[param] in captured.out
+    error = undefined_mcmc[param]
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
-def test_spectrum_opacity_invalid_tmax(tmp_path, capfd):
+def test_spectrum_opacity_invalid_tmin(tmp_path):
+    reset = {
+        'extfile': str(tmp_path/'new_opacity.dat'),
+        'tmin': '0.1',
+        'tmax': '1000.0',
+        'tstep': '900',
+    }
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        reset=reset,
+    )
+    error = re.escape(
+        "Requested extinction-coefficient table temperature "
+        "(tmin=0.1 K) below the lowest available TLI temperature (1.0 K)")
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
+
+
+def test_spectrum_opacity_invalid_tmax(tmp_path):
     reset = {
         'extfile': str(tmp_path/'new_opacity.dat'),
         'tmin':'1000.0',
@@ -1034,18 +942,16 @@ def test_spectrum_opacity_invalid_tmax(tmp_path, capfd):
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         reset=reset,
     )
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert "Error in module: 'extinction.py', function: 'calc_extinction'" \
-           in captured.out
-    assert ("Requested extinction-coefficient table temperature "
-            "(tmax=6000.0 K) above the\nhighest available TLI temperature "
-            "(5000.0 K).") in captured.out
+    error = re.escape(
+        "Requested extinction-coefficient table temperature "
+        "(tmax=6000.0 K) above the highest available TLI temperature "
+        "(5000.0 K)")
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
 @pytest.mark.parametrize('param', ['tmin', 'tmax', 'tstep', 'tlifile'])
-def test_spectrum_opacity_missing(tmp_path, capfd, param, undefined_opacity):
+def test_spectrum_opacity_missing(tmp_path, param, undefined_opacity):
     reset = {
         'extfile': str(tmp_path/'new_opacity.dat'),
         'tmin':'300.0',
@@ -1058,14 +964,12 @@ def test_spectrum_opacity_missing(tmp_path, capfd, param, undefined_opacity):
         reset=reset,
         remove=[param],
     )
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert check_spectrum_err in captured.out
-    assert undefined_opacity[param] in captured.out
+    error = re.escape(undefined_opacity[param])
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
-def test_molecule_not_in_molfile(tmp_path, capfd):
+def test_molecule_not_in_molfile(tmp_path):
     # Modify atm:
     units, species, press, temp, q, rad = \
         io.read_atm(ROOT+'tests/inputs/atmosphere_uniform_test.atm')
@@ -1077,15 +981,13 @@ def test_molecule_not_in_molfile(tmp_path, capfd):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        reset={'atmfile':new_atm},
+        reset={'input_atmfile':new_atm},
     )
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert "Error in module: 'read_atm.py', function: 'get_constants'" \
-           in captured.out
-    assert "These species: ['X'] are not listed in the molecules info file" \
-           in captured.out
+    error = re.escape(
+        "These species: ['X'] are not listed in the molecules info file:"
+    )
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
 @pytest.mark.skip
@@ -1098,24 +1000,34 @@ def test_crosssec_mol_not_in_atm():
 
 
 @pytest.mark.parametrize('param', ['tmin', 'tmax', 'tstep', 'tlifile'])
-def test_opacity_missing(tmp_path, capfd, param, undefined_opacity):
+def test_opacity_missing(tmp_path, param, undefined_opacity):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/opacity_test.cfg',
         reset={'extfile':str(tmp_path/'new_opacity.dat')},
         remove=[param],
     )
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert check_spectrum_err in captured.out
-    assert undefined_opacity[param] in captured.out
+    error = re.escape(undefined_opacity[param])
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
-@pytest.mark.parametrize('param',
-    ['retflag', 'params', 'data', 'uncert', 'filters', 'rstar',
-     'sampler', 'nsamples', 'burnin', 'nchains'])
-def test_mcmc_missing(tmp_path, capfd, param, undefined_mcmc):
+@pytest.mark.parametrize(
+    'param',
+    [
+        'retflag',
+        'params',
+        'data',
+        'uncert',
+        'filters',
+        'rstar',
+        'sampler',
+        'nsamples',
+        'burnin',
+        'nchains',
+    ]
+)
+def test_mcmc_missing(tmp_path, param, undefined_mcmc):
     reset = {
         'rt_path': 'emission',
         'kurucz': f'{ROOT}tests/inputs/fp00k0odfnew.pck',
@@ -1126,28 +1038,27 @@ def test_mcmc_missing(tmp_path, capfd, param, undefined_mcmc):
         reset=reset,
         remove=[param],
     )
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert check_spectrum_err in captured.out
-    assert undefined_mcmc[param] in captured.out
+    error = re.escape(undefined_mcmc[param])
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
-def test_mcmc_missing_starspec(tmp_path, capfd):
+def test_mcmc_missing_starspec(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/mcmc_transmission_test.cfg',
         reset={'rt_path':'emission', 'retflag':'mol'},
         remove=['tstar', 'tmodel'],
     )
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert setup_err in captured.out
-    assert ('Undefined stellar flux model.  Set starspec, kurucz, or tstar '
-            '(for a\nblackbody spectrum)') in captured.out
+    error = re.escape(
+        'Undefined stellar flux model.  Set starspec, kurucz, or tstar '
+        '(for a blackbody spectrum)')
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
+
+@pytest.mark.skip(reason='TBD: warning or error...')
 @pytest.mark.parametrize('param', ['tlifile', 'csfile', 'extfile'])
 def test_spectrum_temperature_bounds(tmp_path, capfd, param, invalid_temp):
     reset = {

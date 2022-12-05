@@ -19,37 +19,45 @@ def make_wavenumber(pyrat):
     # Low wavenumber boundary:
     if pyrat.inputs.wnlow is None:
         if pyrat.inputs.wlhigh is None:
-            log.error('Low wavenumber boundary is undefined.  Either set '
-                      'wnlow or wlhigh.')
+            log.error(
+                'Low wavenumber boundary is undefined.  Either set '
+                'wnlow or wlhigh'
+            )
         else:
             spec.wnlow = 1.0 / spec.wlhigh
     elif pyrat.inputs.wlhigh is not None:
         log.warning(
             f'Both wnlow ({spec.wnlow:.2e} cm-1) and wlhigh ({spec.wlhigh:.2e} '
-             'cm) were defined.  Pyrat will take wnlow and ignore wlhigh.')
+             'cm) were defined.  Pyrat will take wnlow and ignore wlhigh'
+        )
 
     # High wavenumber boundary:
     if pyrat.inputs.wnhigh is None:
         if pyrat.inputs.wllow is None:
-            log.error('High wavenumber boundary is undefined.  Either set '
-                      'wnhigh or wllow.')
+            log.error(
+                'High wavenumber boundary is undefined.  Either set '
+                'wnhigh or wllow'
+            )
         else:
             spec.wnhigh = 1.0 / spec.wllow
     elif pyrat.inputs.wllow is not None:
         log.warning(
             f'Both wnhigh ({spec.wnhigh:.2e} cm-1) and wllow ({spec.wllow:.2e}'
-             ' cm) were defined.  Pyrat will take wnhigh and ignore wllow.')
+             ' cm) were defined.  Pyrat will take wnhigh and ignore wllow'
+        )
 
     # Consistency check (wnlow < wnhigh):
     if spec.wnlow > spec.wnhigh:
-      log.error(f'Wavenumber low boundary ({spec.wnlow:.1f} cm-1) must be '
-                f'larger than the high boundary ({spec.wnhigh:.1f} cm-1).')
+        log.error(
+            f'Wavenumber low boundary ({spec.wnlow:.1f} cm-1) must be '
+            f'larger than the high boundary ({spec.wnhigh:.1f} cm-1)'
+        )
 
     if spec.wnstep is None:
-        log.error('Undefined wavenumber sampling step size (wnstep).')
+        log.error('Undefined wavenumber sampling step size (wnstep)')
 
     if spec.wnosamp is None:
-        log.error('Undefined wavenumber oversampling factor (wnosamp).')
+        log.error('Undefined wavenumber oversampling factor (wnosamp)')
 
     # Set wavelength limits based on the wavenumber limits:
     spec.wlhigh = 1.0 / spec.wnlow
@@ -86,29 +94,31 @@ def make_wavenumber(pyrat):
     if spec.wn[-1] != spec.wnhigh:
         log.warning(
             f'Final wavenumber modified from {spec.wnhigh:.4f} cm-1 (input)\n'
-            f'                            to {spec.wn[-1]:.4f} cm-1 (Pyrat).')
+            f'                            to {spec.wn[-1]:.4f} cm-1 (Pyrat)'
+        )
 
     # Screen output:
-    log.msg(f'Initial wavenumber boundary:  {spec.wnlow:.5e} cm-1  '
-            f'({spec.wlhigh/wl_units:.3e} {spec.wlunits})', indent=2)
-    log.msg(f'Final   wavenumber boundary:  {spec.wnhigh:.5e} cm-1  '
-            f'({spec.wllow/wl_units:.3e} {spec.wlunits})', indent=2)
+    log.msg(
+        f'Initial wavenumber boundary:  {spec.wnlow:.5e} cm-1  '
+        f'({spec.wlhigh/wl_units:.3e} {spec.wlunits})\n'
+        f'Final   wavenumber boundary:  {spec.wnhigh:.5e} cm-1  '
+        f'({spec.wllow/wl_units:.3e} {spec.wlunits})',
+        indent=2,
+    )
 
     if spec.resolution is not None:
-        log.msg(f'Spectral resolving power: {spec.resolution:.1f}', indent=2)
+        msg = f'Spectral resolving power: {spec.resolution:.1f}'
     elif spec.wlstep is not None:
         wl_step = spec.wlstep / wl_units
-        log.msg(
-            f'Wavelength sampling interval: {wl_step:.2g} {spec.wlunits}',
-            indent=2,
-        )
+        msg = f'Wavelength sampling interval: {wl_step:.2g} {spec.wlunits}'
     else:
-        log.msg(
-            f'Wavenumber sampling interval: {spec.wnstep:.2g} cm-1',
-            indent=2,
-        )
-    log.msg(f'Wavenumber sample size:      {spec.nwave:8d}\n'
-            f'Wavenumber fine-sample size: {spec.onwave:8d}\n', indent=2)
+        msg = f'Wavenumber sampling interval: {spec.wnstep:.2g} cm-1'
+    log.msg(
+        f'{msg}\n'
+        f'Wavenumber sample size:      {spec.nwave:8d}\n'
+        f'Wavenumber fine-sample size: {spec.onwave:8d}\n',
+        indent=2,
+    )
     log.head('Wavenumber sampling done.')
 
 
@@ -135,12 +145,15 @@ def make_atmprofiles(pyrat):
     runits = pt.u(atm.runits)
     if pyrat.atm.rmodelname is not None and not np.any(missing):
         if not np.isinf(pyrat.phy.rhill):
-            log.msg(f'Hill radius:      {pyrat.phy.rhill/runits:8.1f} '
-                    f'{atm.runits}.', indent=2)
+            log.msg(
+                f'Hill radius: {pyrat.phy.rhill/runits:8.1f} {atm.runits}.',
+                indent=2,
+            )
         atm.radius = pyrat.hydro(
             atm_in.press, atm_in.temp, atm_in.mm,
             pyrat.phy.gplanet, pyrat.phy.mplanet,
-            atm.refpressure, pyrat.phy.rplanet)
+            atm.refpressure, pyrat.phy.rplanet,
+        )
 
     # Check if Hydrostatic Eq. breaks down:
     if atm_in.radius is not None and np.any(np.isinf(atm_in.radius)):
@@ -176,21 +189,27 @@ def make_atmprofiles(pyrat):
     if atm.ptop < pmin or atm.ptop > pmax:
         log.error(
            f'Top-pressure boundary (ptop={atm.ptop/punits:.2e} '
-           f'{atm.punits}) lies outside of\nthe atmospheric file range '
-           f'{pmin/punits:.2e}--{pmax/punits:.2e} {atm.punits}.')
+           f'{atm.punits}) lies outside of the atmospheric file range '
+           f'{pmin/punits:.2e}--{pmax/punits:.2e} {atm.punits}'
+        )
     if atm.pbottom < pmin or atm.pbottom > pmax:
         log.error(
            f'Bottom-pressure boundary (pbottom={atm.pbottom/punits:.2e} '
-           f'{atm.punits}) lies outside of\nthe atmospheric file range '
-           f'{pmin/punits:.2e}--{pmax/punits:.2e} {atm.punits}.')
+           f'{atm.punits}) lies outside of the atmospheric file range '
+           f'{pmin/punits:.2e}--{pmax/punits:.2e} {atm.punits}'
+        )
     if atm.pbottom <= atm.ptop:
         log.error(
            f'Bottom-layer pressure ({atm.pbottom/punits:.2e} {atm.punits}) '
             'must be higher than the top-layer pressure '
-           f'({atm.ptop/punits:.2e} {atm.punits}).')
+           f'({atm.ptop/punits:.2e} {atm.punits})'
+        )
 
-    log.msg('User pressure boundaries: '
-           f'{atm.ptop/pc.bar:.2e}--{atm.pbottom/pc.bar:.2e} bar.', indent=2)
+    log.msg(
+        'User pressure boundaries: '
+        f'{atm.ptop/pc.bar:.2e}--{atm.pbottom/pc.bar:.2e} bar.',
+        indent=2,
+    )
 
     # Resample to equispaced radius array if requested:
     if atm.radstep is not None:
