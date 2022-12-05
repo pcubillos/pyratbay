@@ -9,7 +9,7 @@ __all__ = [
     'abundance',
     'hydro_g',
     'hydro_m',
-    'rhill',
+    'hill_radius',
     'stoich',
     'mean_weight',
     'ideal_gas_density',
@@ -638,7 +638,7 @@ def hydro_m(pressure, temperature, mu, mass, p0, r0):
     return radius
 
 
-def rhill(smaxis, mplanet, mstar):
+def hill_radius(smaxis, mplanet, mstar):
     """
     Compute the Hill radius.  If any argument is None, return inf.
 
@@ -658,7 +658,7 @@ def rhill(smaxis, mplanet, mstar):
     """
     if smaxis is None or mplanet is None or mstar is None:
         return np.inf
-    rhill = smaxis * (mplanet/(3*mstar))**(1.0/3.0)
+    rhill = smaxis * (mplanet/(3.0*mstar))**(1.0/3.0)
     return rhill
 
 

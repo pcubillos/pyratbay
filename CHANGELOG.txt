@@ -7670,4 +7670,7 @@ implements the behavior of the Log() object.
 Removed tools.ignore_system_exit() decorator.
 Updated a ton of tests.
 
+*****
+
+Renamed atmosphere.rhill() function to atmosphere.hill_radius().
 
