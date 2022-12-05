@@ -45,17 +45,14 @@ def read_tli(pyrat):
             tli.close()
 
     pyrat.log.msg(f'Number of isotopes: {pyrat.iso.niso}', indent=2)
-    # Initialize and evaluate partition functions at atmospheric temeratures:
+    # Initialize partition functions:
     pyrat.iso.z = np.zeros((pyrat.iso.niso, pyrat.atm.nlayers))
-    # TBD: Store Z interpolator function here, once
-    #for database in pyrat.lt.db:
-    #    for j in range(database.niso):
-    #        iso_id = database.iiso + j
-    #        pyrat.log.debug(
-    #            f'Interpolating (isotope ID {iso_id}) partition function.',
-    #            indent=4,
-    #        )
-    #        zinterp = sip.interp1d(database.temp, database.z[j], kind='slinear')
+    pyrat.iso.zinterp = []
+    for database in pyrat.lt.db:
+        for j in range(database.niso):
+            pyrat.iso.zinterp.append(
+                sip.interp1d(database.temp, database.z[j], kind='slinear')
+            )
 
     pyrat.log.msg(
         f"Read a total of {pyrat.lt.ntransitions:,d} line transitions.",

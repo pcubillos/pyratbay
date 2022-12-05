@@ -7674,3 +7674,9 @@ Updated a ton of tests.
 
 Renamed atmosphere.rhill() function to atmosphere.hill_radius().
 
+*****
+
+Refactored partition function interpolation, generate interpolator
+functions only once, store them in the pyrat.iso.zinterp list
+for use later.
+

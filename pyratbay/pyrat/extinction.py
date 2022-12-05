@@ -208,12 +208,8 @@ def calc_extinction(pyrat):
     # Evaluate the partition function at the given temperatures:
     log.msg("Interpolate partition function.", indent=2)
     ex.z = np.zeros((pyrat.iso.niso, ex.ntemp), np.double)
-    for i in range(pyrat.lt.ndb):           # For each Database
-        for j in range(pyrat.lt.db[i].niso):  # For each isotope in DB
-            zinterp = sip.interp1d(
-                pyrat.lt.db[i].temp, pyrat.lt.db[i].z[j], kind='slinear',
-            )
-            ex.z[pyrat.lt.db[i].iiso+j] = zinterp(ex.temp)
+    for i in range(pyrat.iso.niso):
+        ex.z[i] = pyrat.iso.zinterp[i](ex.temp)
 
     # Allocate wavenumber, pressure, and isotope arrays:
     ex.wn = spec.wn

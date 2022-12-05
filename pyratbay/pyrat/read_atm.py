@@ -406,12 +406,8 @@ def update_atm(
         )
 
     # Partition function:
-    for database in lt.db:
-        for j in range(database.niso):
-            zinterp = sip.interp1d(
-                database.temp, database.z[j], kind='slinear'
-            )
-            pyrat.iso.z[database.iiso+j] = zinterp(atm.temp)
+    for i in range(pyrat.iso.niso):
+        pyrat.iso.z[i] = pyrat.iso.zinterp[i](atm.temp)
 
 
 
