@@ -74,8 +74,8 @@ def radiative_equilibrium(
     dpress = np.ediff1d(np.log(pressure), to_begin=1.0)
     df_sign = np.zeros((nsamples, nlayers))
 
-    for k in range(k, nsamples):
-        sys.stdout.write(f"\rIteration {k+1:3d}/{nsamples}.")
+    for k in range(k, nsamples-1):
+        sys.stdout.write(f"\rIteration {k+1:3d}/{nsamples-1}.")
         sys.stdout.flush()
         # Update atmosphere:
         temperature = temp[k]

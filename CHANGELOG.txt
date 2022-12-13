@@ -7680,3 +7680,8 @@ Refactored partition function interpolation, generate interpolator
 functions only once, store them in the pyrat.iso.zinterp list
 for use later.
 
+
+*****  Tue Dec 13 11:06:16 CET 2022  *****
+
+Fixed indexing bug in radiative_equilibrium() function.
+
