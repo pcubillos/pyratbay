@@ -7685,3 +7685,11 @@ for use later.
 
 Fixed indexing bug in radiative_equilibrium() function.
 
+
+*****  Mon Feb 6 12:36:02 CET 2023  *****
+
+Fixed bug in update_atm() function, require atm.chemistry value,
+and perform uniform vs tea calculations accordingly.
+In make_atmosphere() function: take input species from input file
+if provided.
+

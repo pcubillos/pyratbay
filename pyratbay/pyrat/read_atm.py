@@ -60,6 +60,8 @@ def make_atmosphere(pyrat):
             inputs.atm_species = input_atmosphere[1]
             inputs.vmr = input_atmosphere[4]
             inputs.radius = input_atmosphere[5]
+            if inputs.species is None:
+                inputs.species = inputs.atm_species
         # Always store the abundances as volume mixing ratios:
         if inputs.vmr is not None:
             if vmr_units == 'mass':
@@ -132,15 +134,15 @@ def make_atmosphere(pyrat):
     if vmr_status == 'calculate':
         chem_net = pa.chemistry(
             atm.chemistry,
-            pressure, temperature, pyrat.inputs.species,
+            pressure, temperature, inputs.species,
             metallicity=atm.metallicity,
             e_abundances=atm.e_abundances,
             e_scale=atm.e_scale,
             e_ratio=atm.e_ratio,
-            solar_file=pyrat.inputs.solar,
+            solar_file=inputs.solar,
             log=log,
             punits=atm.punits,
-            q_uniform=pyrat.inputs.uniform,
+            q_uniform=inputs.uniform,
         )
         atm.chem_model = chem_net
         vmr = chem_net.vmr
@@ -349,18 +351,42 @@ def update_atm(
 
 
     # Volume mixing ratios:
-    base_vmr = np.copy(atm.base_vmr)
     if vmr is not None:
         atm.molpars = None
-    elif atm.molpars is not None:
+    elif atm.chemistry == 'tea':
+        metallicity = None
+        e_abundances = {}
+        e_ratio = {}
+        e_scale = {}
+        for model,var,val in zip(atm.molmodel, atm.molfree, atm.molpars):
+            if model != 'equil':
+                continue
+            if var == 'metal':
+                metallicity = val
+            elif '_' in var:
+                e_ratio[var] = val
+            elif var.startswith('[') and var.endswith(']'):
+                var = var.lstrip('[').rstrip(']')
+                e_scale[var] = val
+            else:
+                e_abundances[var] = val
+        vmr = atm.chem_model.thermochemical_equilibrium(
+            atm.temp,
+            metallicity=metallicity,
+            e_abundances=e_abundances,
+            e_ratio=e_ratio,
+            e_scale=e_scale,
+        )
+    elif atm.chemistry == 'uniform':
         vmr = pa.qscale(
-            base_vmr, pyrat.mol.name, atm.molmodel,
+            np.copy(atm.base_vmr),
+            pyrat.mol.name, atm.molmodel,
             atm.molfree, atm.molpars, atm.bulk,
             iscale=atm.ifree, ibulk=atm.ibulk,
             bratio=atm.bulkratio, invsrat=atm.invsrat,
         )
     else:
-        vmr = base_vmr
+        vmr = np.copy(atm.base_vmr)
 
     if vmr is not None:
         if np.shape(vmr) != np.shape(atm.vmr):
