@@ -7693,3 +7693,7 @@ and perform uniform vs tea calculations accordingly.
 In make_atmosphere() function: take input species from input file
 if provided.
 
+*****
+
+Updated mc3 requirements to 3.1.0b1.
+
