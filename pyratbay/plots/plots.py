@@ -91,7 +91,9 @@ def spectrum(
     bandtrans=None, bandidx=None,
     starflux=None, rprs=None, label='model', bounds=None,
     logxticks=None,
-    gaussbin=2.0, yran=None, filename=None, fignum=501, axis=None):
+    gaussbin=2.0, yran=None, filename=None, fignum=501, axis=None,
+    ms=5.0, lw=1.25,
+    ):
     """
     Plot a transmission or emission model spectrum with (optional) data
     points with error bars and band-integrated model.
@@ -147,8 +149,6 @@ def spectrum(
     """
     # Plotting setup:
     fs = 14.0
-    ms = 6.0
-    lw = 1.25
 
     if axis is None:
         plt.figure(fignum, (8, 5))

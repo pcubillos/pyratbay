@@ -7697,3 +7697,10 @@ if provided.
 
 Updated mc3 requirements to 3.1.0b1.
 
+
+*****  Tue Feb 7 17:46:34 CET 2023  *****
+
+Enabled ms and lw arguments for plots.spectrum() function
+to set the marker size and line width.
+
+
