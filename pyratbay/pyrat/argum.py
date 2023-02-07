@@ -322,21 +322,25 @@ def setup(pyrat):
         mol_tex_names = []
         for mol in atm.molfree:
             if mol == 'metal':
-                mol_pnames.append('[Z/H]')
-                mol_tex_names.append('[Z/H]')
+                mol_pnames.append('[M/H]')
+                mol_tex_names.append('[M/H]')
+            elif mol.endswith('_metal'):
+                var = mol.rstrip('_metal')
+                mol_pnames.append(f'[{var}/H]')
+                mol_tex_names.append(f'[{var}/H]')
             elif '_' in mol:
                 mol_pnames.append(mol.replace('_','/'))
                 mol_tex_names.append(mol.replace('_','/'))
             else:
                 mol_pnames.append(f'log({mol})')
-                mol_tex_names.append(fr'$\log_{{10}}(X_{{\rm {mol}}})$')
+                mol_tex_names.append(fr'$\log\ X_{{\rm {mol}}}$')
 
     else:
         nabund = 0
         mol_pnames, mol_tex_names = [], []
         atm.ibulk = None
 
-    # Read stellar spectrum model (starspec, kurucz, or blackbody(tstar)):
+    # Read stellar spectrum model: starspec, kurucz, or blackbody
     if phy.starspec is not None:
         starwn, starflux = io.read_spectrum(phy.starspec)
     elif phy.kurucz is not None:
