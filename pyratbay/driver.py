@@ -97,7 +97,7 @@ def run(cfile, run_step='run', no_logfile=False):
         return pyrat
 
     # Mute logging in pyrat object, but not in mc3:
-    pyrat.log = mc3.utils.Log(verb=0, width=80)
+    pyrat.log = mc3.utils.Log(verb=-1, width=80)
     pyrat.spec.specfile = None  # Avoid writing spectrum file during MCMC
     retmodel = False  # Return only the band-integrated spectrum
     # Basename of the output files (no path, no extension):

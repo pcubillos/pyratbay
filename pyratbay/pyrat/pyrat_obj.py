@@ -195,7 +195,7 @@ class Pyrat(object):
           )
 
 
-  def eval(self, params, retmodel=True, verbose=False):
+  def eval(self, params, retmodel=True):
       """
       Fitting routine for atmospheric retrieval
 
@@ -205,8 +205,6 @@ class Pyrat(object):
          Array of fitting parameters that define the atmosphere.
       retmodel: Bool
          Flag to include the model spectra in the return.
-      verbose: Bool
-         Flag to print out if a run failed.
 
       Returns
       -------
@@ -279,19 +277,17 @@ class Pyrat(object):
       if np.any(temp < ret.tlow) or np.any(temp > ret.thigh):
           temp[:] = 0.0
           reject_flag = True
-          if verbose:
-              self.log.warning(
-                  "Input temperature profile runs out of "
-                  f"boundaries ({ret.tlow:.1f}--{ret.thigh:.1f} K)"
-              )
+          self.log.warning(
+              "Input temperature profile runs out of "
+              f"boundaries ({ret.tlow:.1f}--{ret.thigh:.1f} K)"
+          )
       # Check abundaces stay within bounds:
       if pa.qcapcheck(atm.vmr, ret.qcap, atm.ibulk):
           reject_flag = True
-          if verbose:
-              self.log.warning(
-                  "The sum of trace abundances' fraction exceeds "
-                  f"the cap of {ret.qcap:.3f}"
-              )
+          self.log.warning(
+              "The sum of trace abundances' fraction exceeds "
+              f"the cap of {ret.qcap:.3f}"
+          )
 
       # Band-integrate spectrum:
       self.obs.bandflux = self.band_integrate()

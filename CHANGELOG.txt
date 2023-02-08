@@ -7730,3 +7730,11 @@ runs in pyrat.eval().
 
 *****
 
+Set the log verbosity to -1 when running a retrieval.
+This will skip warning screen outputs if they occur.
+
+Removed verbose argument from pyrat.eval().
+Ideally, you want to set the log verbosity level to -1 if need
+to skip screen print outputs.
+
+
