@@ -312,8 +312,8 @@ def test_transmission_scale_model(tmp_path):
     )
     pyrat = pb.run(cfg)
     spectrum = pyrat.spec.spectrum
-    np.testing.assert_allclose(spectrum, expected['scale'], rtol=rtol)
     np.testing.assert_equal(pyrat.atm.vmr[:,3], 0.1*pyrat.atm.base_vmr[:,3])
+    np.testing.assert_allclose(spectrum, expected['scale'], rtol=rtol)
 
 
 def test_transmission_fit(tmp_path):

@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Patricio Cubillos
+# Copyright (c) 2021-2023 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -20,7 +20,6 @@ from . import plots as pp
 from .pyrat import Pyrat
 
 
-#@pt.ignore_system_exit
 def run(cfile, run_step='run', no_logfile=False):
     """
     Pyrat Bay initialization driver.

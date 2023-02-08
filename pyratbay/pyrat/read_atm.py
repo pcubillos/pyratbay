@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Patricio Cubillos
+# Copyright (c) 2021-2023 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import numpy as np
@@ -22,9 +22,9 @@ def make_atmosphere(pyrat):
 
     The rules are simple:
     - if there is a model in the config file, calculate the property
-    - else, read from an input atmfile if provided
-    - otherwise, skip the calculation
-    - if calculate p, any further read (T,VMR,r) will interpolate
+    - else if there is an input_atmfile or ptfile, read properties from file
+    - else, skip the calculation
+    - if calculate p, any further reads (T,VMR,r) will interpolate
     """
     log = pyrat.log
     atm = pyrat.atm
@@ -60,8 +60,6 @@ def make_atmosphere(pyrat):
             inputs.atm_species = input_atmosphere[1]
             inputs.vmr = input_atmosphere[4]
             inputs.radius = input_atmosphere[5]
-            if inputs.species is None:
-                inputs.species = inputs.atm_species
         # Always store the abundances as volume mixing ratios:
         if inputs.vmr is not None:
             if vmr_units == 'mass':
@@ -310,6 +308,7 @@ def update_atm(
     phy = pyrat.phy
     ex = pyrat.ex
     lt = pyrat.lt
+
     # Temperature profile:
     if temp is not None:
         # Need to null tpars since it does not represent temp anymore
@@ -317,43 +316,45 @@ def update_atm(
     elif atm.tpars is not None:
         temp = atm.tmodel(atm.tpars)
     else:
-        pass
+        temp = atm.temp
 
-    if temp is not None:
-        # Check that the dimensions match:
-        if np.size(temp) != atm.nlayers:
-            pyrat.log.error(
-                f"The temperature array size ({np.size(temp)}) doesn't match "
-                f"the Pyrat's temperature size ({np.size(atm.temp)})"
-            )
-
-        # Check temperature boundaries:
-        msg = (
-            "Atmospheric temperature values lie out of the {:s} "
-            "boundaries (K): [{:6.1f}, {:6.1f}]."
+    # Check that the dimensions match:
+    if np.size(temp) != atm.nlayers:
+        pyrat.log.error(
+            f"The temperature array size ({np.size(temp)}) doesn't match "
+            f"the Pyrat's temperature size ({np.size(atm.temp)})"
         )
-        if ex.extfile is not None:
-            if np.any(temp > ex.tmax) or np.any(temp < ex.tmin):
-                msg = msg.format('extinction-coefficient', ex.tmin, ex.tmax)
-                pyrat.log.warning(msg)
-                return 0
-        elif lt.ntransitions > 0:
-            if np.any(temp > lt.tmax) or np.any(temp < lt.tmin):
-                msg = msg.format('line-transition', lt.tmin, lt.tmax)
-                pyrat.log.warning(msg)
-                return 0
-        if pyrat.cs.nfiles > 0:
-            if np.any(temp > pyrat.cs.tmax) or np.any(temp < pyrat.cs.tmin):
-                msg = msg.format('cross-section', pyrat.cs.tmin, pyrat.cs.tmax)
-                pyrat.log.warning(msg)
-                return 0
-        atm.temp = temp
+
+    # Check temperature boundaries:
+    msg = (
+        "Atmospheric temperature values lie out of the {:s} "
+        "boundaries (K): [{:6.1f}, {:6.1f}]."
+    )
+    # TBD: Check if retrieval runs need to pass a verbosity to mute warnings
+    if ex.extfile is not None:
+        if np.any(temp > ex.tmax) or np.any(temp < ex.tmin):
+            msg = msg.format('extinction-coefficient', ex.tmin, ex.tmax)
+            pyrat.log.warning(msg)
+            return 0
+    elif lt.ntransitions > 0:
+        if np.any(temp > lt.tmax) or np.any(temp < lt.tmin):
+            msg = msg.format('line-transition', lt.tmin, lt.tmax)
+            pyrat.log.warning(msg)
+            return 0
+    if pyrat.cs.nfiles > 0:
+        if np.any(temp > pyrat.cs.tmax) or np.any(temp < pyrat.cs.tmin):
+            msg = msg.format('cross-section', pyrat.cs.tmin, pyrat.cs.tmax)
+            pyrat.log.warning(msg)
+            return 0
+    atm.temp = temp
 
 
     # Volume mixing ratios:
     if vmr is not None:
         atm.molpars = None
+
     elif atm.chemistry == 'tea':
+        net = atm.chem_model
         metallicity = None
         e_abundances = {}
         e_ratio = {}
@@ -363,21 +364,24 @@ def update_atm(
                 continue
             if var == 'metal':
                 metallicity = val
+            elif var.endswith('_metal'):
+                var = var.rstrip('_metal')
+                idx = list(net._base_composition).index(var)
+                solar_abundance = net._base_dex_abundances[idx]
+                e_abundances[var] = solar_abundance + val
             elif '_' in var:
                 e_ratio[var] = val
-            elif var.startswith('[') and var.endswith(']'):
-                var = var.lstrip('[').rstrip(']')
-                e_scale[var] = val
             else:
                 e_abundances[var] = val
-        vmr = atm.chem_model.thermochemical_equilibrium(
+        vmr = net.thermochemical_equilibrium(
             atm.temp,
             metallicity=metallicity,
             e_abundances=e_abundances,
             e_ratio=e_ratio,
             e_scale=e_scale,
         )
-    elif atm.chemistry == 'uniform':
+    # TBD: Check this is the right (best) criterion
+    elif atm.molpars is not None: #atm.chemistry == 'uniform':
         vmr = pa.qscale(
             np.copy(atm.base_vmr),
             pyrat.mol.name, atm.molmodel,
@@ -388,14 +392,13 @@ def update_atm(
     else:
         vmr = np.copy(atm.base_vmr)
 
-    if vmr is not None:
-        if np.shape(vmr) != np.shape(atm.vmr):
-            pyrat.log.error(
-                f"The shape of the abundances array {np.shape(vmr)} doesn't "
-                 "match the shape of the Pyrat's abundance size "
-                f"{np.shape(atm.vmr)}"
-            )
-        atm.vmr = vmr
+    if np.shape(vmr) != np.shape(atm.vmr):
+        pyrat.log.error(
+            f"The shape of the abundances array {np.shape(vmr)} doesn't "
+             "match the shape of the Pyrat's abundance size "
+            f"{np.shape(atm.vmr)}"
+        )
+    atm.vmr = vmr
 
     # Mean molecular mass:
     atm.mm = np.sum(atm.vmr * pyrat.mol.mass, axis=1)
@@ -549,13 +552,17 @@ def check_chemistry(pyrat, t_status):
             return 'skip'
         if inputs.species is not None:
             log.warning(
-                "Composition will be taken from input atmospheric file, "
-                "user input 'species' will be ingnored"
+                "Composition will be taken from input atmospheric file. "
+                "The input variable 'species' will be ingnored"
             )
         return 'read'
 
     if inputs.species is None:
-        log.error('Undefined atmospheric species list (species).')
+        inputs.species = inputs.atm_species
+    if inputs.species is None:
+        log.error(
+            'Cannot compute VMRs. Undefined atmospheric species list (species)'
+        )
 
     # Uniform-abundances profile:
     if atm.chemistry == 'uniform':

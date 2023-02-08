@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Patricio Cubillos
+# Copyright (c) 2021-2023 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import os
@@ -258,7 +258,6 @@ def test_run_atmosphere_calc_ptqr(tmp_path, atm_input, reset_jupiter):
     np.testing.assert_equal(atm_model.species, expected_species)
     np.testing.assert_allclose(output_vmr, expected_vmr)
     np.testing.assert_allclose(atm_model.radius, expected_calc_radius)
-
 
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 # From pt or atm file:
@@ -561,7 +560,9 @@ def test_run_atmosphere_read_p_interp_tqr_from_atm(tmp_path, reset_jupiter):
     np.testing.assert_allclose(atm_model.radius, expected_interp_tq_radius)
 
 
-def test_run_atmosphere_calc_p_interp_tq_calc_r_from_atm(tmp_path, reset_jupiter):
+def test_run_atmosphere_calc_p_interp_tq_calc_r_from_atm(
+        tmp_path, reset_jupiter,
+    ):
     reset = {}
     remove = ['tmodel', 'chemistry']
     reset['input_atmfile'] = 'inputs/jupiter_isothermal_uniform_vmr.atm'
@@ -585,6 +586,36 @@ def test_run_atmosphere_calc_p_interp_tq_calc_r_from_atm(tmp_path, reset_jupiter
     np.testing.assert_equal(atm_model.species, expected_species)
     np.testing.assert_allclose(output_vmr, expected_vmr)
     np.testing.assert_allclose(atm_model.radius, expected_interp_tq_calc_radius)
+
+
+def test_run_atmosphere_take_species_from_atm(tmp_path, reset_jupiter):
+    reset = {}
+    # Read P and T
+    remove = ['nlayers', 'tmodel', 'species']
+    reset['input_atmfile'] = 'inputs/jupiter_isothermal_uniform_vmr.atm'
+    # Calculate VMRs, but take species from input_atmfile
+    reset['chemistry'] = 'tea'
+
+    cfg = make_config(
+        tmp_path,
+        'configs/atmosphere_jupiter_calc.cfg',
+        reset=reset,
+        remove=remove,
+    )
+    atm_model = pb.run(cfg)
+
+    expected_pressure = np.logspace(pmin, pmax, read_nlayers)
+    expected_temperature = np.tile(read_t, read_nlayers)
+    expected_species = ['H2', 'He', 'H2O', 'CO']
+    expected_vmr = np.array([
+        8.58283368e-01, 1.40875555e-01, 3.45814052e-04, 4.95262722e-04,
+    ])
+    output_vmr = atm_model.vmr[0]
+
+    np.testing.assert_allclose(atm_model.press, expected_pressure, rtol=1e-6)
+    np.testing.assert_allclose(atm_model.temp, expected_temperature)
+    np.testing.assert_equal(atm_model.species, expected_species)
+    np.testing.assert_allclose(output_vmr, expected_vmr)
 
 
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -669,4 +700,27 @@ def test_run_atmosphere_calc_p_missing_t(capfd, tmp_path):
     )
     with pytest.raises(ValueError, match=error):
         pb.run(cfg)
+
+
+@pytest.mark.parametrize('atm_input', ('none', 'pt'))
+def test_run_atmosphere_calc_q_missing_species(capfd, tmp_path, atm_input, reset_jupiter):
+    reset = {}
+    remove = ['species']
+    if atm_input == 'none':
+        remove += ['input_atmfile']
+    elif atm_input == 'pt':
+        reset['ptfile'] = 'inputs/jupiter_isothermal_uniform_vmr.atm'
+
+    cfg = make_config(
+        tmp_path,
+        'configs/atmosphere_jupiter_calc.cfg',
+        reset=reset,
+        remove=remove,
+    )
+    error = re.escape(
+        'Cannot compute VMRs. Undefined atmospheric species list (species)'
+    )
+    with pytest.raises(ValueError, match=error):
+        pb.run(cfg)
+
 
