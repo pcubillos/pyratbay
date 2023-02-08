@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Patricio Cubillos
+# Copyright (c) 2021-2023 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import os
@@ -148,6 +148,7 @@ class Pyrat(object):
       # Re-calculate atmospheric properties if required:
       status = ra.update_atm(self, temp, vmr, radius)
       if status == 0:
+          self.spec.spectrum[:] = 0.0
           return
       # Interpolate CIA absorption:
       cs.interpolate(self)
@@ -196,7 +197,7 @@ class Pyrat(object):
 
   def eval(self, params, retmodel=True, verbose=False):
       """
-      Fitting routine for MCMC.
+      Fitting routine for atmospheric retrieval
 
       Parameters
       ----------
@@ -215,124 +216,95 @@ class Pyrat(object):
          The waveband-integrated spectrum values.
       """
       atm = self.atm
+      ret = self.ret
       params = np.asarray(params)
-      base_vmr = np.copy(atm.base_vmr)
 
-      if len(params) != self.ret.nparams:
+      if len(params) != ret.nparams:
           self.log.warning(
-              f'The number of input fitting parameters ({len(params)}) '
-               'does not match\nthe number of required parameters '
-              f'({self.ret.nparams}).'
+              f'The number of input fitting parameters ({len(params)}) does '
+              f'not match\nthe number of required parameters ({ret.nparams})'
           )
           return None, None if retmodel else None
 
-      rejectflag = False
 
-      # Update temperature profile if requested:
-      if self.ret.itemp is not None:
-          atm.tpars = params[self.ret.itemp]
-          temp = atm.tmodel(params[self.ret.itemp])
+      # Update temperature parameters (or null them otherwise):
+      if ret.itemp is None:
+          atm.tpars = None
       else:
-          temp = atm.temp
-      # Turn-on reject flag if temperature is out-of-bounds:
-      if np.any(temp < self.ret.tlow) or np.any(temp > self.ret.thigh):
-          temp[:] = 0.5*(self.ret.tlow + self.ret.thigh)
-          rejectflag = True
-          if verbose:
-              self.log.warning(
-                  "Input temperature profile runs out of "
-                  f"boundaries ({self.ret.tlow:.1f}--{self.ret.thigh:.1f} K)"
-              )
+          atm.tpars = params[ret.itemp]
 
-      # Update abundance profiles if requested:
-      if self.ret.imol is None:
-          new_vmr = atm.vmr
-
-      elif 'equil' in atm.molmodel:
-          # TBD: These need to be tested  properly
-          molpars = params[self.ret.imol]
-          metallicity = None
-          e_abundances = {}
-          e_ratio = {}
-          e_scale = {}
-          for model,var,val in zip(atm.molmodel, atm.molfree, molpars):
-              if model == 'equil':
-                  if var == 'metal':
-                      metallicity = val
-                  elif '_' in var:
-                      e_ratio[var] = val
-                  elif var.startswith('[') and var.endswith(']'):
-                      var = var.lstrip('[').rstrip(']')
-                      e_scale[var] = val
-                  else:
-                      e_abundances[var] = val
-          new_vmr = atm.chem_model.thermochemical_equilibrium(
-              temp,
-              metallicity=metallicity,
-              e_abundances=e_abundances,
-              e_ratio=e_ratio,
-              e_scale=e_scale,
-          )
+      # Update abundance parameters:
+      if ret.imol is None:
+          atm.molpars = None
       else:
-          new_vmr = pa.qscale(
-              base_vmr, self.mol.name, atm.molmodel,
-              atm.molfree, params[self.ret.imol],
-              atm.bulk,
-              iscale=atm.ifree, ibulk=atm.ibulk,
-              bratio=atm.bulkratio, invsrat=atm.invsrat,
-          )
-
-      # Check abundaces stay within bounds:
-      if pa.qcapcheck(new_vmr, self.ret.qcap, atm.ibulk):
-          rejectflag = True
-          if verbose:
-              self.log.warning(
-                  "The sum of trace abundances' fraction exceeds "
-                  f"the cap of {self.ret.qcap:.3f}."
-              )
+          atm.molpars = params[ret.imol]
 
       # Update reference radius/pressure if requested:
-      if self.ret.irad is not None:
-          self.phy.rplanet = params[self.ret.irad][0] * pt.u(atm.runits)
-      elif self.ret.ipress is not None:
-          p_ref = 10.0**params[self.ret.ipress][0] * pc.bar
+      if ret.irad is not None:
+          self.phy.rplanet = params[ret.irad][0] * pt.u(atm.runits)
+      elif ret.ipress is not None:
+          p_ref = 10.0**params[ret.ipress][0] * pc.bar
           self.atm.refpressure = p_ref
 
       # Update planetary mass if requested:
-      if self.ret.imass is not None:
-          self.phy.mplanet = params[self.ret.imass][0] * pt.u(self.phy.mpunits)
+      if ret.imass is not None:
+          self.phy.mplanet = params[ret.imass][0] * pt.u(self.phy.mpunits)
 
       # Update Rayleigh parameters if requested:
-      if self.ret.iray is not None:
+      if ret.iray is not None:
           j = 0
-          rpars = params[self.ret.iray]
+          rpars = params[ret.iray]
           for rmodel in self.rayleigh.models:
               rmodel.pars = rpars[j:j+rmodel.npars]
               j += rmodel.npars
 
       # Update cloud parameters if requested:
-      if self.ret.icloud is not None:
+      if ret.icloud is not None:
           j = 0
-          pars = params[self.ret.icloud]
+          pars = params[ret.icloud]
           for model in self.cloud.models:
               model.pars = pars[j:j+model.npars]
               j += model.npars
 
       # Update patchy-cloud fraction if requested:
-      if self.ret.ipatchy is not None:
-          self.cloud.fpatchy = params[self.ret.ipatchy][0]
+      if ret.ipatchy is not None:
+          self.cloud.fpatchy = params[ret.ipatchy][0]
 
-      # Calculate spectrum:
-      self.run(temp=temp, vmr=new_vmr)
+      # Calculate atmosphere and spectrum:
+      self.run()
+
+      reject_flag = False
+      # Turn-on reject flag if temperature is out-of-bounds:
+      temp = atm.temp
+      if np.any(temp < ret.tlow) or np.any(temp > ret.thigh):
+          temp[:] = 0.0
+          reject_flag = True
+          if verbose:
+              self.log.warning(
+                  "Input temperature profile runs out of "
+                  f"boundaries ({ret.tlow:.1f}--{ret.thigh:.1f} K)"
+              )
+      # Check abundaces stay within bounds:
+      if pa.qcapcheck(atm.vmr, ret.qcap, atm.ibulk):
+          reject_flag = True
+          if verbose:
+              self.log.warning(
+                  "The sum of trace abundances' fraction exceeds "
+                  f"the cap of {ret.qcap:.3f}"
+              )
 
       # Band-integrate spectrum:
       self.obs.bandflux = self.band_integrate()
 
+      # update_atm() in self.run() broke:
+      if not np.any(self.obs.bandflux):
+          reject_flag = True
+
       # Reject this iteration if there are invalid temperatures or radii:
-      if self.obs.bandflux is not None and rejectflag:
+      if self.obs.bandflux is not None and reject_flag:
           self.obs.bandflux[:] = np.inf
 
-      self.ret.params = np.copy(params)
+      ret.params = np.copy(params)
       if retmodel:
           return self.spec.spectrum, self.obs.bandflux
 

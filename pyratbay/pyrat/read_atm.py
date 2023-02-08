@@ -348,7 +348,6 @@ def update_atm(
             return 0
     atm.temp = temp
 
-
     # Volume mixing ratios:
     if vmr is not None:
         atm.molpars = None

@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Patricio Cubillos
+# Copyright (c) 2021-2023 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import os
@@ -179,8 +179,9 @@ def test_pyrat_transmission_atm_str(tmp_path):
     pyrat = pb.run(cfg)
     assert str(pyrat.atm) == """\
 Atmospheric model information:
-Atmospheric file name (atmfile):
+Input atmospheric file name (input_atmfile):
     '{:s}/inputs/atmosphere_uniform_test.atm'
+Output atmospheric file name (atmfile): 'None'
 Number of layers (nlayers): 81
 
 Pressure display units (punits): bar

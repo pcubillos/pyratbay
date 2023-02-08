@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Patricio Cubillos
+# Copyright (c) 2021-2023 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import numpy as np
@@ -86,6 +86,7 @@ def make_wavenumber(pyrat):
     spec.ownstep = spec.wnstep / spec.wnosamp
     spec.onwave = int(np.ceil((spec.wn[-1]-spec.wnlow)/spec.ownstep)) + 1
     spec.own = spec.wnlow + np.arange(spec.onwave) * spec.ownstep
+    spec.spectrum = np.empty(spec.nwave, np.double)
 
     # Get list of divisors:
     spec.odivisors = pt.divisors(spec.wnosamp)

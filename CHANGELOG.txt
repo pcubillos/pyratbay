@@ -7718,4 +7718,15 @@ and some cosmetics.
 
 *****
 
+Outsourced calculation of atmospheric properties (T,VMR) from
+pyrat.eval() into update_atm(), which is called via pyrat.run()
+later in eval().
+Now, eval() only sets up the parameters and makes checks after
+the properties have been computed, which removed code duplication.
+
+Edited pyrat.run() to set the pyrat.spec.spectra to zeros when
+update_atm() breaks, this can later be used as a flag to reject
+runs in pyrat.eval().
+
+*****
 
