@@ -350,7 +350,7 @@ def update_atm(
 
     # Volume mixing ratios:
     if vmr is not None:
-        atm.molpars = None
+        atm.molpars = []
 
     elif atm.chemistry == 'tea':
         net = atm.chem_model
@@ -379,8 +379,8 @@ def update_atm(
             e_ratio=e_ratio,
             e_scale=e_scale,
         )
-    # TBD: Check this is the right (best) criterion
-    elif atm.molpars is not None: #atm.chemistry == 'uniform':
+    # TBD: Check this is the right (best) criterion (this is not explicit)
+    elif len(atm.molpars) > 0:
         vmr = pa.qscale(
             np.copy(atm.base_vmr),
             pyrat.mol.name, atm.molmodel,

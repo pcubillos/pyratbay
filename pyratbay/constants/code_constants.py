@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Patricio Cubillos
+# Copyright (c) 2021-2023 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -22,6 +22,7 @@ __all__ = [
     'amodels',
     'rmodels',
     'cmodels',
+    'h_ion_models',
 ]
 
 import os
@@ -138,3 +139,7 @@ cmodels = [
     'ccsgray',
 ]
 
+# H- opacity models:
+h_ion_models = [
+    'h_ion_john1988',
+]

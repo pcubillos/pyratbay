@@ -10,6 +10,7 @@ import numpy as np
 from .. import atmosphere as pa
 from .. import constants as pc
 from .. import io as io
+from .. import opacity as op
 from .. import plots as pp
 from .. import spectrum as ps
 from .. import tools as pt
@@ -114,6 +115,13 @@ class Pyrat(object):
       # Setup more observational/retrieval parameters:
       ar.setup(self)
 
+      # Hydrogen ion opacity:
+      self.h_ion = op.Hydrogen_Ion_Opacity(
+          1.0/self.spec.wn/pc.um, self.mol.name,
+      )
+      # At the moment work as an on/off flag, as there's only one model
+      self.h_ion.has_opacity &= self.od.h_ion_models is not None
+
       # Extinction Voigt grid:
       v.voigt(self)
       # Alkali Voigt grid:
@@ -154,9 +162,10 @@ class Pyrat(object):
       cs.interpolate(self)
       self.timestamps['interp cs'] = timer.clock()
 
-      # Calculate cloud and Rayleigh absorption:
+      # Calculate cloud, Rayleigh, and H-  absorption:
       cl.absorption(self)
       ray.absorption(self)
+      self.h_ion.absorption(self.atm.temp, self.atm.d)
       self.timestamps['cloud+ray'] = timer.clock()
 
       # Calculate the alkali absorption:
@@ -233,7 +242,7 @@ class Pyrat(object):
 
       # Update abundance parameters:
       if ret.imol is None:
-          atm.molpars = None
+          atm.molpars = []
       else:
           atm.molpars = params[ret.imol]
 

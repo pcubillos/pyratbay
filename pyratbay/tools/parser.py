@@ -437,6 +437,7 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         parse_float(args, 'fpatchy')
         parse_array(args, 'alkali')
         parse_float(args, 'alkali_cutoff')
+        parse_array(args, 'h_ion')
         # Optical depth options:
         parse_str(args,   'rt_path')
         parse_float(args, 'maxdepth')
@@ -750,6 +751,9 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         'Alkali profiles hard cutoff from line center (cm-1)', 4500.0, gt=0.0)
     pyrat.cloud.fpatchy = args.get_default(
         'fpatchy', 'Patchy-cloud fraction', ge=0.0, le=1.0)
+    pyrat.od.h_ion_models = args.get_choice(
+        'h_ion', 'H- opacity model', pc.h_ion_models,
+    )
 
     pyrat.od.rt_path = args.get_choice(
         'rt_path', 'radiative-transfer observing geometry', pc.rt_paths)
@@ -789,11 +793,12 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         'obsfile', 'Observations data file', exists=True,
     )
     if pyrat.obs.obsfile is not None:
-        # TBD: Throw error if data, uncert, or filters already exist
+        # TBD: Throw error if filters already exist
         obs_data = io.read_observations(pyrat.obs.obsfile)
-        if len(obs_data) == 3:
+        if np.ndim(obs_data) == 3:
+            # TBD: Throw error if data or uncert already exist
             pyrat.obs.filters, pyrat.obs.data, pyrat.obs.uncert = obs_data
-        elif len(obs_data) == 1:
+        elif  np.ndim(obs_data)== 1:
             pyrat.obs.filters = obs_data
 
     pyrat.ret.retflag = args.get_choice(
@@ -837,8 +842,9 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         'molmodel', 'molecular-abundance model', pc.molmodels)
     if atm.molmodel is None:
         atm.molmodel = []
-    atm.molfree = args.molfree
-    atm.molpars = args.molpars
+    atm.molfree = args.molfree if args.molfree is not None else []
+    atm.molpars = args.molpars if args.molpars is not None else []
+
     atm.bulk = args.bulk
     if args.tmodel == 'tcea':
         args.tmodel = 'guillot'

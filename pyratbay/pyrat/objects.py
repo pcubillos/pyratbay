@@ -191,7 +191,7 @@ class Atm(object):
       if hasattr(self, 'ifree'):
       # if molmodel is not None: [TBD: this needs some reingeneering]
           molpars = self.molpars
-          if self.molpars is None:
+          if self.molpars == []:
               molpars = [None for _ in self.molmodel]
 
           fw.write('Abundance models:\n'

@@ -276,8 +276,8 @@ def setup(pyrat):
             f'These bulk species are not present in the atmosphere: {missing}'
         )
 
-    if atm.molmodel != []:
-        if atm.molfree is None:
+    if len(atm.molmodel) > 0:
+        if len(atm.molfree) == 0:
             log.error('molmodel is set, but there are no molfree')
         if len(atm.molmodel) != len(atm.molfree):
             log.error(
@@ -309,7 +309,7 @@ def setup(pyrat):
     if atm.bulk is not None:
         atm.ibulk = [spec.index(mol) for mol in atm.bulk]
         atm.bulkratio, atm.invsrat = pa.ratio(pyrat.atm.vmr, atm.ibulk)
-    if atm.molmodel != []:
+    if len(atm.molmodel) > 0:
         nabund = len(atm.molmodel)
         # TBD: set ifree to something when model is equil
         atm.ifree = [

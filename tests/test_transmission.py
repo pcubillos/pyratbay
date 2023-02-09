@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Patricio Cubillos
+# Copyright (c) 2021-2023 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import os
@@ -19,7 +19,7 @@ os.chdir(ROOT+'tests')
 # Expected spectra:
 keys = [
     'lec', 'cia', 'alkali', 'deck', 'tli',
-    'patchy', 'patchy_clear', 'patchy_cloudy', 'all', 'etable',
+    'patchy', 'patchy_clear', 'patchy_cloudy', 'h_ion', 'all', 'etable',
     'tmodel', 'vert', 'scale', 'fit1', 'fit2', 'fit3', 'fit4',
     'bandflux4', 'resolution', 'odd_even',
 ]
@@ -100,6 +100,26 @@ def test_transmission_tli(tmp_path):
     )
     pyrat = pb.run(cfg)
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['tli'], rtol=rtol)
+
+
+def test_transmission_h_ion(tmp_path):
+    cfg = f'{ROOT}tests/configs/spectrum_transmission_h_ion.cfg'
+    pyrat = pb.run(cfg)
+    desired = expected['h_ion']
+    np.testing.assert_allclose(pyrat.spec.spectrum, desired, rtol=rtol)
+
+
+def test_transmission_ignore_h_ion(tmp_path):
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        remove=['tlifile', 'csfile', 'alkali', 'clouds'],
+        reset={'h_ion': 'h_ion_john1988'},
+    )
+    # All opacities except lecavelier (ignore H- because no ions in atmosphere)
+    pyrat = pb.run(cfg)
+    assert not pyrat.h_ion.has_opacity
+    np.testing.assert_allclose(pyrat.spec.spectrum, expected['lec'], rtol=rtol)
 
 
 def test_transmission_all(tmp_path):

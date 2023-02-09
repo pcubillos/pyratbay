@@ -75,6 +75,9 @@ def optical_depth(pyrat):
         + pyrat.cloud.ec[rtop:]
         + pyrat.alkali.ec[rtop:]
     )
+    if pyrat.h_ion.ec is not None:
+        od.ec[rtop:] += pyrat.h_ion.ec[rtop:]
+
     # If fpatchy, compute a separate spectrum with clear skies:
     if pyrat.cloud.fpatchy is not None:
         od.ec_clear[rtop:] = np.copy(od.ec[rtop:]) - pyrat.cloud.ec[rtop:]

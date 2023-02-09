@@ -7738,3 +7738,18 @@ Ideally, you want to set the log verbosity level to -1 if need
 to skip screen print outputs.
 
 
+*****  Thu Feb 9 14:11:18 CET 2023  *****
+
+Implemented H- bound-free and free-free opacity model
+as a stand-alone modeling object.
+Documented and tested.
+
+In pyrat.set_spectrum() fixed bug that was turning on ion_opacity
+even if there were no ions in the atmosphere.
+(could be a prettier fix in theory ...)
+
+Refactored molmodel, molfree, and molpars arguments to initialize
+by default as zero-length iterables instead of None.
+This fixes an error when a user launches a run with tea chemistry
+by no modeling paramters.
+
