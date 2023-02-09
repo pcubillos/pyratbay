@@ -528,6 +528,11 @@ class Pyrat(object):
           e, lab = cl.get_ec(self, layer)
           ec = np.vstack((ec, e))
           label += lab
+      # H- opacity:
+      if self.h_ion.has_opacity:
+          e, lab = self.h_ion.get_ec(self.atm.temp[layer], self.atm.d[layer])
+          ec = np.vstack((ec, e))
+          label += [lab]
       # Alkali resonant lines extinction coefficient:
       if self.alkali.models != []:
           e, lab = al.get_ec(self, layer)
@@ -702,7 +707,7 @@ class Pyrat(object):
       elif self.spec.wlstep is not None:
          wave = f'delta-wl={self.spec.wlstep:.2f}'
       else:
-         wave = "dwn={:.3f} cm-1".format(self.spec.wnstep)
+         wave = f"delta-wn={self.spec.wnstep:.3f} cm-1"
 
       opacities = []
       if self.ex.nspec != 0:
@@ -721,23 +726,21 @@ class Pyrat(object):
           opacities.append(cloud.name)
       for alkali in self.alkali.models:
           opacities.append(alkali.mol)
+      if self.h_ion.has_opacity:
+          opacities.append(self.h_ion.name)
 
+      pmin = self.atm.press[ 0]/pc.bar
+      pmax = self.atm.press[-1]/pc.bar
+      wlmin = 1.0/(self.spec.wn[-1]*pc.um)
+      wlmax = 1.0/(self.spec.wn[ 0]*pc.um)
       return (
           "Pyrat atmospheric model\n"
-          "configuration file:  '{:s}'\n"
-          "Pressure profile (bar):  {:.2e} -- {:.2e} ({:d} layers)\n"
-          "Wavelength range (um):  {:.2f} -- {:.2f} ({:d} samples, {:s})\n"
-          "Composition:  {}\n"
-          "Opacity sources:  {}".format(
-          self.inputs.configfile,
-          self.atm.press[ 0]/pc.bar,
-          self.atm.press[-1]/pc.bar,
-          self.atm.nlayers,
-          1.0/(self.spec.wn[-1]*pc.um),
-          1.0/(self.spec.wn[ 0]*pc.um),
-          self.spec.nwave,
-          wave,
-          self.mol.name,
-          opacities)
+          f"configuration file:  '{self.inputs.configfile}'\n"
+          f"Pressure profile:  {pmin:.2e} -- {pmax:.2e} bar"
+          f"({self.atm.nlayers:d} layers)\n"
+          f"Wavelength range:  {wlmin:.2f} -- {wlmax:.2f} um"
+          f"({self.spec.nwave:d} samples, {wave})\n"
+          f"Composition:\n  {self.mol.name}\n"
+          f"Opacity sources:\n  {opacities}"
       )
 

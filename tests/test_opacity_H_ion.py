@@ -42,6 +42,7 @@ def test_h_ion_init_no_species():
     wl = np.logspace(-1.0, 1.0, 10)
     h_ion = op.Hydrogen_Ion_Opacity(wl)
 
+    assert h_ion.name == 'H- bf/ff'
     assert not h_ion.has_opacity
     assert h_ion.ec is None
     np.testing.assert_allclose(h_ion.wl, wl)
@@ -94,7 +95,7 @@ def test_h_ion_ff_cross_section_multiple_temps():
     np.testing.assert_allclose(sigma_ff, expected_ff_temps)
 
 
-def test_h_ion_ff_extinction_coefficients():
+def test_h_ion_extinction_coefficients():
     wl = np.logspace(-1.0, 1.0, 10)
     species = 'H H2 H- e-'.split()
     h_ion = op.Hydrogen_Ion_Opacity(wl, species)
@@ -111,4 +112,16 @@ def test_h_ion_ff_extinction_coefficients():
     assert np.shape(h_ion.ec) == (ntemp,nwave)
     np.testing.assert_allclose(h_ion.ec, expected_ec)
 
+
+def test_h_ion_single_layer_extinction_coefficients():
+    wl = np.logspace(-1.0, 1.0, 10)
+    species = 'H H2 H- e-'.split()
+    h_ion = op.Hydrogen_Ion_Opacity(wl, species)
+    temperature = 1500.0
+    number_density = np.array([2.0e16, 2.0e17, 8.0e05, 8.0e10])
+    ec, labels = h_ion.get_ec(temperature, number_density)
+
+    nwave = len(wl)
+    assert len(ec) == nwave
+    np.testing.assert_allclose(ec, expected_ec[0])
 

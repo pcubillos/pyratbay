@@ -22,6 +22,7 @@ class Hydrogen_Ion_Opacity():
             pre-load the indices of H, H-, and e-, which are needed
             later to compute extinction coefficients.
         """
+        self.name = 'H- bf/ff'
         self.wl = wl
         self.ec = None
         self.cross_section_bf = self.bound_free_cross_section()
@@ -235,3 +236,33 @@ class Hydrogen_Ion_Opacity():
         )
         self.ec = ec_bf + ec_ff
 
+
+    def get_ec(self, temperature, number_density):
+        """
+        Calculate the H- extinction coefficient for a single layer.
+
+        Parameters
+        ----------
+        temperature: float
+            A temperature value (in K).
+        number_density: 1D float array
+            The number densities of the atmospheric species for
+            the requested layer (molecule cm-3). The indices of
+            H, H-, and e- are assumed to be already known.
+
+        Returns
+        -------
+        ec: 1D float array
+            The extinction coefficient spectrum (cm-1) for the
+            requested temperaure and number density values.
+        label: List of string
+            The name of this opacity model.
+        """
+        ec_bf = self.cross_section_bf * number_density[self._h_ion_idx]
+        ec_ff = (
+            number_density[self._h_idx] *
+            number_density[self._e_idx] *
+            self.free_free_cross_section(temperature)[0]
+        )
+        ec = ec_bf + ec_ff
+        return ec, self.name

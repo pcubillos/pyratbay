@@ -7753,3 +7753,11 @@ by default as zero-length iterables instead of None.
 This fixes an error when a user launches a run with tea chemistry
 by no modeling paramters.
 
+*****
+
+Added self.name to Hydrogen_Ion_Opacity objects.
+Added get_ec() method to get extinciton coefficient at a single layer
+Updated tests.
+
+Added H- info into pyrat.get_ec() and pyrat.__str__() methods.
+
