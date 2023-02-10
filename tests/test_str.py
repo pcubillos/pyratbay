@@ -613,7 +613,7 @@ Physical properties information:
 Stellar effective temperature (tstar, K): 5800.0
 Stellar radius (rstar, Rsun): 1.270
 Stellar mass (mstar, Msun):   None
-Stellar surface gravity (gstar, cm s-2): 22908.0
+Stellar surface gravity (log_gstar, cm s-2): 4.36
 
 Planetary radius (rplanet, Rjup): 1.000
 Planetary mass (mplanet, Mjup):   0.600

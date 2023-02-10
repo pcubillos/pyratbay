@@ -482,7 +482,8 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         parse_str(args,   'phoenix')
         # System parameters:
         parse_str(args,   'rstar')
-        parse_float(args, 'gstar')
+        parse_float(args, 'gstar')  # Deprecated
+        parse_float(args, 'log_gstar')
         parse_float(args, 'tstar')
         parse_str(args,   'mstar')
         parse_str(args,   'rplanet')
@@ -707,11 +708,16 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         'rstar', None, 'Stellar radius', gt=0.0)
     phy.mstar = args.get_param(
         'mstar', None, 'Stellar mass', gt=0.0)
-    phy.gstar = args.get_default(
-        'gstar', 'Stellar surface gravity', gt=0.0)
     phy.tstar = args.get_default(
         'tstar', 'Stellar effective temperature (K)', gt=0.0)
-
+    phy.log_gstar = args.get_default(
+        'log_gstar', 'Stellar surface gravity (log10(cm s-2))')
+    gstar = args.get_default('gstar', 'Stellar surface gravity', gt=0.0)
+    if gstar is not None:
+        warning_msg = "'gstar' argument is deprecated, use 'log_gstar' instead"
+        warnings.warn(warning_msg, category=DeprecationWarning)
+        if phy.log_gstar is None:
+            phy.log_gstar = np.log10(gstar)
     pyrat.voigt.extent = args.get_default(
         'vextent', 'Voigt profile extent in HWHM', 100.0, ge=1.0)
     pyrat.voigt.cutoff = args.get_default(

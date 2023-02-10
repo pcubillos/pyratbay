@@ -38,14 +38,6 @@ def make_config(path, cfile, reset={}, remove=[]):
 
 
 @pytest.fixture
-def undefined():
-    data = {
-        'tstar': 'Undefined stellar temperature (tstar)',
-        'gstar': 'Undefined stellar gravity (gstar)',
-    }
-    return data
-
-@pytest.fixture
 def undefined_spec():
     data = {
         'rt_path': 'Undefined radiative-transfer observing geometry (rt_path).'

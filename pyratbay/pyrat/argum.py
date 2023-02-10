@@ -349,18 +349,15 @@ def setup(pyrat):
                 'Undefined stellar temperature (tstar), required for '
                 'Kurucz model'
             )
-        if phy.gstar is None:
+        if phy.log_gstar is None:
             log.error(
-                'Undefined stellar gravity (gstar), required for Kurucz model'
+                'Undefined stellar gravity (log_gstar) needed for Kurucz model'
             )
         starflux, starwn, kuruczt, kuruczg = ps.read_kurucz(
-            phy.kurucz,
-            phy.tstar,
-            np.log10(phy.gstar),
+            phy.kurucz, phy.tstar, phy.log_gstar,
         )
-        logg = np.log10(phy.gstar)
         log.msg(
-            f'Input stellar params: T={phy.tstar:7.1f} K, log(g)={logg:4.2f}\n'
+            f'Input stellar params: T={phy.tstar:7.1f} K, log(g)={phy.log_gstar:4.2f}\n'
             f'Best Kurucz match:    T={kuruczt:7.1f} K, log(g)={kuruczg:4.2f}'
         )
     elif phy.marcs is not None:

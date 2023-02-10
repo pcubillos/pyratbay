@@ -458,7 +458,7 @@ Alternatively, the user can use a Kurucz stellar model
 Kurucz model.  These models can be downloaded from this link:
 http://kurucz.harvard.edu/grids/ In this case, the code selects the
 correct Kurucz model based on the stellar temperature (``tstar`` key)
-and surface gravity (``gstar`` key).
+and surface gravity (``log_gstar`` key).
 
 Finally, the user can set a blackbody stellar spectrum by setting the
 ``tstar`` key with the stellar effective temperature (in Kelvin

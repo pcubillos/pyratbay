@@ -861,7 +861,7 @@ class Physics(object):
       self.tstar = None  # Stellar effective temperature
       self.rstar = None  # Stellar radius
       self.mstar = None  # Stellar mass
-      self.gstar = None  # Stellar surface gravity
+      self.log_gstar = None  # Stellar surface gravity
       self.rplanet = None  # Planetary radius
       self.smaxis = None  # Orbital semi-major axis
       self.rhill = np.inf  # Planetary Hill radius
@@ -881,7 +881,7 @@ class Physics(object):
       fw.write('\nStellar effective temperature (tstar, K): {:.1f}', self.tstar)
       fw.write('Stellar radius (rstar, Rsun): {:.3f}', rstar)
       fw.write('Stellar mass (mstar, Msun):   {:.3f}', mstar)
-      fw.write('Stellar surface gravity (gstar, cm s-2): {:.1f}', self.gstar)
+      fw.write('Stellar surface gravity (log_gstar, cm s-2): {:.2f}', self.log_gstar)
 
       rplanet = none_div(self.rplanet, pc.rjup)
       mplanet = none_div(self.mplanet, pc.mjup)

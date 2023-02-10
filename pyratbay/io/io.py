@@ -1428,7 +1428,7 @@ def export_pandexo(pyrat, baseline, transit_duration,
 
     exo_dict['star']['temp'] = pyrat.phy.tstar
     exo_dict['star']['metal'] = metal
-    exo_dict['star']['logg'] = np.log10(pyrat.phy.gstar)
+    exo_dict['star']['logg'] = pyrat.phy.log_gstar
     exo_dict['star']['radius'] = pyrat.phy.rstar/pc.rsun
     exo_dict['star']['r_unit'] = 'R_sun'
 

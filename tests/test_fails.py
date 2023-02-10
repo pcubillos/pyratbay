@@ -151,7 +151,7 @@ def test_invalid_float_type(tmp_path, param, value):
     ['wnlow', 'wnhigh', 'wnstep', 'resolution', 'xsolar', 'tmin', 'tmax',
      'tstep', 'ethresh', 'vextent', 'dmin', 'dmax', 'lmin', 'lmax', 'dlratio',
      'fpatchy', 'maxdepth', 'qcap', 'tlow', 'thigh', 'grbreak', 'grnmin',
-     'gstar', 'tstar', 'gplanet', 'tint'])
+     'log_gstar', 'tstar', 'gplanet', 'tint'])
 def test_invalid_float_all_params(tmp_path, param):
     cfg = make_config(
         tmp_path,
@@ -255,7 +255,6 @@ def test_missing_mass_units(tmp_path):
      ('smaxis',  ' -0.01 au'),
      ('rstar',   ' -1.0 rsun'),
      ('mstar',   ' -1.0 msun'),
-     ('gstar',   ' -1000.0'),
      ('tstar',   ' -5000.0'),
      ('dmin',    ' -1e-6'),
      ('dmax',    ' -1e-1'),
@@ -875,15 +874,18 @@ def test_bulk_molfree_overlap(tmp_path):
         pyrat = pb.run(cfg)
 
 
-@pytest.mark.parametrize('param', ['tstar', 'gstar'])
-def test_kurucz_missing_pars(tmp_path, param, undefined):
+@pytest.mark.parametrize('param', ['tstar', 'log_gstar'])
+def test_kurucz_missing_pars(tmp_path, param):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         reset={'kurucz':f'{ROOT}/tests/inputs/fp00k0odfnew.pck'},
         remove=[param],
     )
-    error = re.escape(undefined[param])
+    if param == 'tstar':
+        error = re.escape('Undefined stellar temperature (tstar)')
+    elif param == 'log_gstar':
+        error = re.escape('Undefined stellar gravity (log_gstar)')
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
 
