@@ -138,13 +138,15 @@ def test_pyrat_transmission_str(tmp_path):
     )
     pyrat = pb.run(cfg)
     assert pyrat is not None
-    assert str(pyrat) == """\
+    assert str(pyrat) == f"""\
 Pyrat atmospheric model
-configuration file:  '{:s}/test.cfg'
-Pressure profile (bar):  1.00e-06 -- 1.00e+02 (81 layers)
-Wavelength range (um):  1.10 -- 1.70 (3209 samples, dwn=1.000 cm-1)
-Composition:  ['H2' 'He' 'Na' 'H2O' 'CH4' 'CO' 'CO2']
-Opacity sources:  ['H2O', 'CIA H2-H2', 'CIA H2-He', 'lecavelier', 'deck', 'Na']""".format(str(tmp_path))
+configuration file:  '{tmp_path}/test.cfg'
+Pressure profile:  1.00e-06 -- 1.00e+02 bar (81 layers)
+Wavelength range:  1.10 -- 1.70 um (3209 samples, delta-wn=1.000 cm-1)
+Composition:
+  ['H2' 'He' 'Na' 'H2O' 'CH4' 'CO' 'CO2']
+Opacity sources:
+  ['H2O', 'CIA H2-H2', 'CIA H2-He', 'lecavelier', 'deck', 'Na']"""
 
 
 def test_pyrat_transmission_spec_str(tmp_path):
@@ -648,13 +650,15 @@ def test_pyrat_transmission_resolution_str(tmp_path):
     )
     pyrat = pb.run(cfg)
     assert pyrat is not None
-    assert str(pyrat) == """\
+    assert str(pyrat) == f"""\
 Pyrat atmospheric model
-configuration file:  '{:s}/test.cfg'
-Pressure profile (bar):  1.00e-06 -- 1.00e+02 (81 layers)
-Wavelength range (um):  1.10 -- 1.70 (2177 samples, R=5000.0)
-Composition:  ['H2' 'He' 'Na' 'H2O' 'CH4' 'CO' 'CO2']
-Opacity sources:  ['H2O', 'CIA H2-H2', 'CIA H2-He', 'lecavelier', 'Na']""".format(str(tmp_path))
+configuration file:  '{tmp_path}/test.cfg'
+Pressure profile:  1.00e-06 -- 1.00e+02 bar (81 layers)
+Wavelength range:  1.10 -- 1.70 um (2177 samples, R=5000.0)
+Composition:
+  ['H2' 'He' 'Na' 'H2O' 'CH4' 'CO' 'CO2']
+Opacity sources:
+  ['H2O', 'CIA H2-H2', 'CIA H2-He', 'lecavelier', 'Na']"""
 
     assert str(pyrat.spec) == """\
 Spectral information:
