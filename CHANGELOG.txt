@@ -7766,3 +7766,7 @@ Added H- info into pyrat.get_ec() and pyrat.__str__() methods.
 
 Minor corrections in screen output of pyrat.__str__().
 
+*****
+
+Updated pyratbay version to 1.1.8b1.
+
