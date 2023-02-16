@@ -184,6 +184,28 @@ def test_PassBand_bad_spectral_range():
         out_wn, out_response = hat(wl)
 
 
+def test_constant_resolution_spectrum():
+    wl_min = 0.5
+    wl_max = 4.0
+    resolution = 5.5
+    wl = ps.constant_resolution_spectrum(wl_min, wl_max, resolution)
+
+    expected_wl = np.array([
+        0.5,        0.6,        0.72,       0.864,      1.0368,     1.24416,
+        1.492992,   1.7915904,  2.14990848, 2.57989018, 3.09586821, 3.71504185,
+    ])
+    np.testing.assert_allclose(wl, expected_wl)
+
+    # Not exactly the same because wl and res are not centered at same place:
+    res = wl[1:] / np.ediff1d(wl)
+    expected_res = np.tile(6.0, len(wl)-1)
+    np.testing.assert_allclose(res, expected_res)
+
+    res = wl[:-1] / np.ediff1d(wl)
+    expected_res = np.tile(5.0, len(wl)-1)
+    np.testing.assert_allclose(res, expected_res)
+
+
 @pytest.mark.parametrize('wn',
    [[1.0, 10.0, 100.0, 1000.0, 3000.0],
     [1  , 10  , 100  , 1000  , 3000  ],
@@ -194,9 +216,13 @@ def test_PassBand_bad_spectral_range():
 def test_bbflux_type(wn):
     tsun = 5772.0
     flux = ps.bbflux(wn, tsun)
-    np.testing.assert_allclose(flux,
-        np.array([1.50092461e-01, 1.49924158e+01, 1.48248054e+03,
-                  1.32178742e+05, 9.08239148e+05]))
+
+    expected_flux = np.array([
+        1.50092461e-01, 1.49924158e+01, 1.48248054e+03,
+        1.32178742e+05, 9.08239148e+05,
+    ])
+    np.testing.assert_allclose(flux, expected_flux)
+
 
 def test_bbflux_sun():
     tsun = 5772.0

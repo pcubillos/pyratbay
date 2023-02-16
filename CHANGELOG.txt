@@ -7794,6 +7794,11 @@ Created pyrat.compute_opacity() method which outsources calculation
 into ex.compute_opacity() function.
 Added and updated tests.
 
+*****
 
+Implemented pb.spectrum.constant_resolution_spectrum() function
+that can compute a wavenumber or wavelength sampling array at
+constant resolving power.
+Documented and tested.
 
 
