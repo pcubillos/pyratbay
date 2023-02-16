@@ -38,11 +38,11 @@ def read_tli(pyrat):
     # Set link to molecules' indices:
     setimol(pyrat)
 
-    # Read line-transition data (if there's no extinction-coefficient table):
-    if pt.isfile(pyrat.ex.extfile) != 1:
-        for tli, dbi in zip(tlis, dbindex):
+    for tli, dbi in zip(tlis, dbindex):
+        # If there's a cross-section table, skip TLI LBL data
+        if pyrat.ex.etable is None:
             read_linetransition(pyrat, tli, dbi)
-            tli.close()
+        tli.close()
 
     pyrat.log.msg(f'Number of isotopes: {pyrat.iso.niso}', indent=2)
     # Initialize partition functions:
@@ -53,6 +53,14 @@ def read_tli(pyrat):
             pyrat.iso.zinterp.append(
                 sip.interp1d(database.temp, database.z[j], kind='slinear')
             )
+
+    # Link IDs species with isotopes:
+    if np.size(np.where(pyrat.iso.imol>=0)[0]) == 0:
+        pyrat.ex.nspec = 0
+    else:
+        imols = pyrat.iso.imol[np.where(pyrat.iso.imol>=0)]
+        pyrat.ex.species = pyrat.mol.name[np.unique(imols)]
+        pyrat.ex.nspec = len(pyrat.ex.species)
 
     pyrat.log.msg(
         f"Read a total of {pyrat.lt.ntransitions:,d} line transitions.",

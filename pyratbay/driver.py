@@ -56,35 +56,28 @@ def run(cfile, run_step='run', no_logfile=False):
         )
         return
 
-
     # Initialize atmosphere:
     pyrat.set_atmosphere()
     if pyrat.runmode == 'atmosphere':
         return pyrat.atm
 
-
     # Check status of extinction-coefficient file if necessary:
     if pyrat.runmode != 'spectrum' and pt.isfile(pyrat.ex.extfile) == -1:
         log.error("Undefined extinction-coefficient file (extfile).")
-
-    # Force to re-calculate extinction-coefficient file if requested:
-    if pyrat.runmode == 'opacity' and pt.isfile(pyrat.ex.extfile) == 1:
-        for extfile in pyrat.ex.extfile:
-            os.remove(extfile)
 
     if pyrat.runmode == 'mcmc' and ret.mcmcfile is None:
         log.error('Undefined MCMC file (mcmcfile).')
 
     # Initialize pyrat object:
     pyrat.set_spectrum()
-    #if pyrat.inputs.resume: # Bypass writting all of the initialization log:
-    #    pyrat = Pyrat(args, log=None)
-    #    pyrat.log = log
-    #else:
-    #    pyrat = Pyrat(args, log=log)
+
+    # Calculate extinction-coefficient file if requested:
+    if pyrat.runmode == 'opacity':
+        pyrat.compute_opacity()
+        return pyrat
 
     # Stop and return if requested:
-    if run_step == 'init' or pyrat.runmode == 'opacity':
+    if run_step == 'init':
         return pyrat
 
     # Compute spectrum and return pyrat object if requested:
@@ -95,6 +88,12 @@ def run(cfile, run_step='run', no_logfile=False):
     if pyrat.runmode == 'radeq':
         pyrat.radiative_equilibrium()
         return pyrat
+
+    #if pyrat.inputs.resume: # Bypass writting all of the initialization log:
+    #    pyrat = Pyrat(args, log=None)
+    #    pyrat.log = log
+    #else:
+    #    pyrat = Pyrat(args, log=log)
 
     # Mute logging in pyrat object, but not in mc3:
     pyrat.log = mc3.utils.Log(verb=-1, width=80)

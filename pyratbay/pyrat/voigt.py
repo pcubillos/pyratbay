@@ -1,9 +1,8 @@
-# Copyright (c) 2021 Patricio Cubillos
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+# Copyright (c) 2021-2023 Patricio Cubillos
+# Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import numpy as np
 
-from .. import tools as pt
 from ..opacity import broadening
 from ..lib import vprofile as vp
 
@@ -12,8 +11,8 @@ def voigt(pyrat):
     """
     Driver to calculate a grid of Voigt profiles.
     """
-    # Check if reading extinction-coefficient table or no TLI files:
-    if pt.isfile(pyrat.ex.extfile) == 1 or pyrat.lt.tlifile is None:
+    # Check if there's cross-section data or no TLI files:
+    if pyrat.lt.tlifile is None or pyrat.ex.etable is not None:
         pyrat.log.head('\nSkip LBL Voigt-profile calculation.')
         return
 

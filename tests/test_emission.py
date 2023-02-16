@@ -142,11 +142,14 @@ def test_emission_resolution(tmp_path):
 
 def test_emission_etable(tmp_path):
     # LBL from extinction table:
+    reset = {
+        'extfile': f'{OUTPUTS}exttable_test_300-3000K_1.1-1.7um.npz',
+    }
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_emission_test.cfg',
         remove=['tlifile', 'clouds'],
-        reset={'extfile':f'{OUTPUTS}exttable_test_300-3000K_1.1-1.7um.npz'},
+        reset=reset,
     )
     pyrat = pb.run(cfg)
     np.testing.assert_allclose(

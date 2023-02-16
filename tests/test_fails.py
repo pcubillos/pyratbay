@@ -913,9 +913,10 @@ def test_spectrum_missing_retflag_models(tmp_path, param, undefined_mcmc):
         pyrat = pb.run(cfg)
 
 
-def test_spectrum_opacity_invalid_tmin(tmp_path):
+def test_compute_opacity_invalid_tmin(tmp_path):
     reset = {
-        'extfile': str(tmp_path/'new_opacity.dat'),
+        'runmode': 'opacity',
+        'extfile': str(tmp_path/'new_opacity.npz'),
         'tmin': '0.1',
         'tmax': '1000.0',
         'tstep': '900',
@@ -926,15 +927,17 @@ def test_spectrum_opacity_invalid_tmin(tmp_path):
         reset=reset,
     )
     error = re.escape(
-        "Requested extinction-coefficient table temperature "
-        "(tmin=0.1 K) below the lowest available TLI temperature (1.0 K)")
+        "Requested cross-section table temperature (tmin=0.1 K) "
+        "below the lowest available TLI temperature (1.0 K)"
+    )
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
 
 
-def test_spectrum_opacity_invalid_tmax(tmp_path):
+def test_compute_opacity_invalid_tmax(tmp_path):
     reset = {
-        'extfile': str(tmp_path/'new_opacity.dat'),
+        'runmode': 'opacity',
+        'extfile': str(tmp_path/'new_opacity.npz'),
         'tmin':'1000.0',
         'tmax':'6000.0',
         'tstep':'100',
@@ -945,17 +948,99 @@ def test_spectrum_opacity_invalid_tmax(tmp_path):
         reset=reset,
     )
     error = re.escape(
-        "Requested extinction-coefficient table temperature "
-        "(tmax=6000.0 K) above the highest available TLI temperature "
-        "(5000.0 K)")
+        "Requested cross-section table temperature (tmax=6000.0 K) "
+        "above the highest available TLI temperature (5000.0 K)"
+    )
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
+
+
+def test_read_opacity_missing_extfile(tmp_path):
+    efile = str(tmp_path/'non_existent_exttable_test_300-3000K_1.1-1.7um.npz')
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        reset={'extfile':efile},
+    )
+    error = re.escape(f"Missing cross-section files: ['{efile}']")
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
+
+
+def test_compute_opacity_make_multiple_extfiles(tmp_path):
+    extfiles = [
+        str(tmp_path/'new_opacity1.npz'),
+        str(tmp_path/'new_opacity2.npz'),
+    ]
+    reset = {
+        'runmode': 'opacity',
+        'extfile': '\n  '.join(extfiles),
+        'tmin':'1000.0',
+        'tmax':'6000.0',
+        'tstep':'100',
+    }
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        reset=reset,
+    )
+    error = re.escape(
+        'Computing cross-section table, but there is more than one'
+        'cross-section file set (extfile)'
+    )
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
+
+
+@pytest.mark.skip(reason='TBI')
+def test_read_opacity_mismatched_sizes(tmp_path):
+    extfiles = [
+        str(tmp_path/'new_opacity.npz'),
+        str(tmp_path/'new_opacity.npz'),
+    ]
+    reset = {
+        'extfile': '\n    '.join(extfiles),
+    }
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        reset=reset,
+    )
+    error = re.escape(
+        f"Shape of the cross-section file '{extfiles[1]}' "
+        "does not match with previous file shapes."
+    )
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
+
+
+@pytest.mark.skip(reason='TBI')
+def test_read_opacity_mismatched_values(tmp_path):
+    efiles = [
+        f'{ROOT}tests/outputs/exttable_test_300-3000K_1.1-1.7um.npz',
+        str(tmp_path/'new_opacity.npz'),
+    ]
+    reset = {
+        'extfile': '\n    '.join(efiles),
+    }
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        reset=reset,
+    )
+    error = re.escape(
+        f"Tabulated temperature values in file '{efiles[1]}' "
+        "do not match with previous arrays"
+    )
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
 
 
 @pytest.mark.parametrize('param', ['tmin', 'tmax', 'tstep', 'tlifile'])
-def test_spectrum_opacity_missing(tmp_path, param, undefined_opacity):
+def test_compute_opacity_missing(tmp_path, param, undefined_opacity):
     reset = {
-        'extfile': str(tmp_path/'new_opacity.dat'),
+        'runmode': 'opacity',
+        'extfile': str(tmp_path/'new_opacity.npz'),
         'tmin':'300.0',
         'tmax':'3000.0',
         'tstep':'900',
@@ -1006,7 +1091,7 @@ def test_opacity_missing(tmp_path, param, undefined_opacity):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/opacity_test.cfg',
-        reset={'extfile':str(tmp_path/'new_opacity.dat')},
+        reset={'extfile':str(tmp_path/'new_opacity.npz')},
         remove=[param],
     )
     error = re.escape(undefined_opacity[param])

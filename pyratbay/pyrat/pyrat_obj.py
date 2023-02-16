@@ -91,6 +91,10 @@ class Pyrat(object):
       # Check that user input arguments make sense:
       ar.check_atmosphere(self)  # TBD: Need this here?
 
+      # Read opacity tables (if needed):
+      ex.read_opacity(self)
+      self.timestamps['read opacity'] = timer.clock()
+
       # Read the atmospheric file:
       ra.make_atmosphere(self)
       self.timestamps['read atm'] = timer.clock()
@@ -115,6 +119,12 @@ class Pyrat(object):
       # Setup more observational/retrieval parameters:
       ar.setup(self)
 
+      # Extinction Voigt grid:
+      v.voigt(self)
+      # Alkali Voigt grid:
+      al.init(self)
+      self.timestamps['voigt'] = timer.clock()
+
       # Hydrogen ion opacity:
       self.h_ion = op.Hydrogen_Ion_Opacity(
           1.0/self.spec.wn/pc.um, self.mol.name,
@@ -122,19 +132,17 @@ class Pyrat(object):
       # At the moment work as an on/off flag, as there's only one model
       self.h_ion.has_opacity &= self.od.h_ion_models is not None
 
-      # Extinction Voigt grid:
-      v.voigt(self)
-      # Alkali Voigt grid:
-      al.init(self)
-      self.timestamps['voigt'] = timer.clock()
-
-      # Calculate extinction-coefficient table:
-      ex.exttable(self)
-      self.timestamps['ext table'] = timer.clock()
-
       # Read CIA files:
       cs.read(self)
       self.timestamps['read cs'] = timer.clock()
+
+
+  def compute_opacity(self):
+      """
+      Calculate opacity (cm2 molecule-1) tabulated over
+      temperature, pressure, and wavenumber arrays
+      """
+      ex.compute_opacity(self)
 
 
   def run(self, temp=None, vmr=None, radius=None):

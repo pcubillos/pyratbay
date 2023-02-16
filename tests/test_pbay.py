@@ -255,7 +255,7 @@ def test_atmosphere_hydro(tmp_path):
         [0.85, 0.149, 3.0e-6, 4.0e-4, 1.0e-4, 5.0e-4, 1.0e-7],
         (81,1),
     )
-    print(atmosphere.runits)
+    #print(atmosphere.runits)
     np.testing.assert_allclose(atmosphere.press, expected_pressure)
     np.testing.assert_allclose(atmosphere.temp, expected_temperature)
     np.testing.assert_allclose(atmosphere.vmr, expected_vmr)
@@ -279,7 +279,7 @@ def test_atmosphere_hydro(tmp_path):
 def test_opacity_pbay(capfd):
     pyrat = pb.run(ROOT+'tests/configs/opacity_test.cfg')
     captured = capfd.readouterr()
-    assert "Extinction-coefficient table written to file:" in captured.out
+    assert "Cross-section table written to file:" in captured.out
     assert "exttable_test_300-3000K_1.1-1.7um.npz'." in captured.out
     assert "exttable_test_300-3000K_1.1-1.7um.npz" in os.listdir('outputs/')
 

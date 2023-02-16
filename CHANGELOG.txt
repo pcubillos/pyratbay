@@ -7776,3 +7776,24 @@ Added log_gstar argument to replace gstar (which is still usable,
 but deprecated).
 Updated docs and tests.
 
+
+*****  Thu Feb 16 14:11:31 CET 2023  *****
+
+Refactored tabulated cross section reading/computation
+for a more reasonable code.
+Only compute the cross-sections if runmode=='opacity'
+(this is a change of behavior).
+Now, if there's any input cross-section file(s), read at the beginning
+this will allow the code to set the pressure profile and wavelength
+arrays in a single function for each (and avoid some re-calculations).
+Removed ex.exttable() functon, no longer needed.
+
+Renamed ex.read_extinction() to ex.read_opacity().
+Renamed ex.calc_extinction() to ex.compute_opacity().
+Created pyrat.compute_opacity() method which outsources calculation
+into ex.compute_opacity() function.
+Added and updated tests.
+
+
+
+

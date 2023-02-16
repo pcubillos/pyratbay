@@ -12,6 +12,7 @@ def make_wavenumber(pyrat):
     Make the wavenumber sample from user inputs.
     """
     spec = pyrat.spec
+    ex = pyrat.ex
     log = pyrat.log
 
     log.head('\nGenerating wavenumber array.')
@@ -122,6 +123,48 @@ def make_wavenumber(pyrat):
         indent=2,
     )
     log.head('Wavenumber sampling done.')
+
+
+    # If there are opacity tables:
+    modify_from_opacity = (
+        ex.wn is not None and
+        (ex.nwave != spec.nwave or np.sum(np.abs(ex.wn-spec.wn)) > 0)
+    )
+    if modify_from_opacity:
+        wn_mask = (ex.wn >= spec.wnlow) & (ex.wn <= spec.wnhigh)
+
+        if spec.wnlow <= ex.wn[0]:
+            spec.wnlow = ex.wn[0]
+        if spec.wnhigh >= ex.wn[-1]:
+            spec.wnhigh = ex.wn[-1]
+
+        if len(set(np.ediff1d(ex.wn))) == 1:
+            spec.wnstep = ex.wn[1] - ex.wn[0]
+            spec.resolution = None
+            #spec.wnlow = ex.wn[0]
+            sampling_text = f'sampling rate = {spec.wnstep:.2f} cm-1'
+        else:
+            g = ex.wn[-2]/ex.wn[-1]
+            # Assuming no one would care to set a R with more than 5 decimals:
+            spec.resolution = np.round(0.5*(1+g)/(1-g), decimals=5)
+            #spec.wnhigh = 2 * ex.wn[-1]/(1+g)
+            sampling_text = f'R = {spec.resolution:.1f}'
+
+        # Update wavenumber sampling:
+        spec.wn = ex.wn = ex.wn[wn_mask]
+        ex.etable = ex.etable[:,:,:,wn_mask]
+        spec.nwave = ex.nwave = len(ex.wn)
+        # Keep wavenumber oversampling factor:
+        spec.ownstep = spec.wnstep / spec.wnosamp
+        spec.onwave = (spec.nwave - 1) * spec.wnosamp + 1
+        spec.own = np.linspace(spec.wn[0], spec.wn[-1], spec.onwave)
+
+        log.warning(
+            "Wavenumber sampling from extinction-coefficient "
+            "table does not match the input wavenumber sampling.  Adopting "
+            f"tabulated array with {ex.nwave} samples, {sampling_text}, and "
+            f"ranges [{spec.wnlow:.2f}, {spec.wnhigh:.2f}] cm-1."
+        )
 
 
 def make_atmprofiles(pyrat):
