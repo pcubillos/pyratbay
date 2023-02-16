@@ -3,8 +3,9 @@
 
 import numpy as np
 
-from .. import tools as pt
 from .. import constants as pc
+from .. import spectrum as ps
+from .. import tools as pt
 
 
 def make_wavenumber(pyrat):
@@ -66,10 +67,11 @@ def make_wavenumber(pyrat):
 
     if spec.resolution is not None:
         # Constant-resolving power wavenumber sampling:
-        f = 0.5 / spec.resolution
-        g = (1.0+f) / (1.0-f)
-        spec.nwave = int(np.ceil(-np.log(spec.wnlow/spec.wnhigh) / np.log(g)))
-        spec.wn = spec.wnlow * g**np.arange(spec.nwave)
+        print(spec.wnlow, spec.wnhigh, spec.resolution)
+        spec.wn = ps.constant_resolution_spectrum(
+            spec.wnlow, spec.wnhigh, spec.resolution,
+        )
+        spec.nwave = len(spec.wn)
         spec.wlstep = None
     elif spec.wlstep is not None:
         # Constant-sampling rate wavelength sampling:

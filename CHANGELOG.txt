@@ -7801,4 +7801,7 @@ that can compute a wavenumber or wavelength sampling array at
 constant resolving power.
 Documented and tested.
 
+*****
+
+Incorporated ps.constant_resolution_spectrum() into the framework.
 
