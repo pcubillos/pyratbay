@@ -7805,3 +7805,12 @@ Documented and tested.
 
 Incorporated ps.constant_resolution_spectrum() into the framework.
 
+
+*****  Sat Feb 18 12:39:23 CET 2023  *****
+
+Replaced downloaded Kurucz file fp00k0odfnew.pck with a mock file
+with same format but fewer models.  There's no need to download now.
+Updated tests.
+This is a first step to remove all downloads for testing
+(and eventually get rid of travis, to be replaced with github actions)
+

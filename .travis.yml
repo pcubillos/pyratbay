@@ -19,6 +19,5 @@ install:
   - wget https://hitran.org/hitemp/data/HITEMP-2010/CO2_line_list/02_04000-04500_HITEMP2010.zip
 
   - unzip '*.zip' -d tests/inputs/
-  - wget http://kurucz.harvard.edu/grids/gridp00odfnew/fp00k0odfnew.pck -P tests/inputs
 
 script: pytest tests -v

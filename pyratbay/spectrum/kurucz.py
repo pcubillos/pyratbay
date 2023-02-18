@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Patricio Cubillos
+# Copyright (c) 2021-2023 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -72,20 +72,24 @@ def read_kurucz(filename, temp=None, logg=None):
     with open(filename, 'r') as f:
         lines = f.readlines()
 
-    iheaders = [i for i,line in enumerate(lines) if line.startswith('TEFF')]
+    iheaders = [
+        i
+        for i,line in enumerate(lines)
+        if line.startswith('TEFF')
+    ]
     headers = [lines[i].strip() for i in iheaders]
     ktemp = np.array([line[ 5:12] for line in headers], np.double)
     klogg = np.array([line[22:29] for line in headers], np.double)
 
-    # Get wavelength array (in nm):
+    # Get wavelength array (originally in nm):
     i = 0
     while lines[i].strip() != 'END':
         i += 1
     wl_start = i + 1
     wl_end = iheaders[0]
     wavelength = np.array(''.join(lines[wl_start:wl_end]).split(), np.double)
-    wavenumber = 1.0/(wavelength*pc.nm)
     # Sort by increasing wavenumber:
+    wavenumber = 1.0/(wavelength*pc.nm)
     wavenumber = np.flip(wavenumber, axis=0)
 
     nmodels = len(headers)

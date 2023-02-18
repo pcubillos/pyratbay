@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Patricio Cubillos
+# Copyright (c) 2021-2023 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import os
@@ -879,7 +879,7 @@ def test_kurucz_missing_pars(tmp_path, param):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        reset={'kurucz':f'{ROOT}/tests/inputs/fp00k0odfnew.pck'},
+        reset={'kurucz':f'{ROOT}/tests/inputs/mock_fp00k0odfnew.pck'},
         remove=[param],
     )
     if param == 'tstar':
@@ -1117,7 +1117,7 @@ def test_opacity_missing(tmp_path, param, undefined_opacity):
 def test_mcmc_missing(tmp_path, param, undefined_mcmc):
     reset = {
         'rt_path': 'emission',
-        'kurucz': f'{ROOT}tests/inputs/fp00k0odfnew.pck',
+        'kurucz': f'{ROOT}tests/inputs/mock_fp00k0odfnew.pck',
     }
     cfg = make_config(
         tmp_path,
