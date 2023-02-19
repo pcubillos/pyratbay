@@ -7821,3 +7821,9 @@ Removed a couple other HITRAN file downloads from .travis file,
 replaced with local mocked files (compressed and smaller in size).
 Updated tests.
 
+*****
+
+Removed another couple other HITEMP file downloads from .travis file,
+replaced with local mocked files (compressed and smaller in size).
+Updated tests.
+
