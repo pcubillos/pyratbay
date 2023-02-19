@@ -12,12 +12,12 @@ jobs:
 install:
   - pip install -r requirements.txt
   - pip install -e .
+
   - wget https://www.cfa.harvard.edu/HITRAN/HITRAN2012/HITRAN2012/By-Molecule/Compressed-files/01_hit12.zip
-  - wget https://www.cfa.harvard.edu/HITRAN/HITRAN2012/HITRAN2012/By-Molecule/Compressed-files/02_hit12.zip
-  - wget https://www.cfa.harvard.edu/HITRAN/HITRAN2012/HITRAN2012/By-Molecule/Compressed-files/06_hit12.zip
   - wget https://hitran.org/hitemp/data/HITEMP-2010/CO2_line_list/02_03750-04000_HITEMP2010.zip
   - wget https://hitran.org/hitemp/data/HITEMP-2010/CO2_line_list/02_04000-04500_HITEMP2010.zip
-
   - unzip '*.zip' -d tests/inputs/
+  - tar -xf tests/inputs/mock_02_hit12.tar.gz -C tests/inputs/
+  - tar -xf tests/inputs/mock_06_hit12.tar.gz -C tests/inputs/
 
 script: pytest tests -v

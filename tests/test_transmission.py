@@ -383,22 +383,13 @@ def test_transmission_fit_filters():
 
 def test_multiple_opacities(tmp_path):
     # Generate TLI files:
-    tli_cfg = f'{ROOT}tests/configs/tli_multiple_opacity.cfg'
-    cfg = make_config(tmp_path, tli_cfg)
+    cfg = f'{ROOT}tests/configs/tli_multiple_opacity_H2O.cfg'
     pyrat = pb.run(cfg)
 
-    reset = {
-        'dblist': f'{INPUTS}02_hit12.par',
-        'tlifile': f'{OUTPUTS}HITRAN_CO2_1.5-1.6um_test.tli',
-    }
-    cfg = make_config(tmp_path, tli_cfg, reset=reset)
+    cfg = f'{ROOT}tests/configs/tli_multiple_opacity_CH4.cfg'
     pyrat = pb.run(cfg)
 
-    reset = {
-        'dblist': f'{INPUTS}06_hit12.par',
-        'tlifile': f'{OUTPUTS}HITRAN_CH4_1.5-1.6um_test.tli',
-    }
-    cfg = make_config(tmp_path, tli_cfg, reset=reset)
+    cfg = f'{ROOT}tests/configs/tli_multiple_opacity_CO2.cfg'
     pyrat = pb.run(cfg)
 
     # Generate opacity files:
@@ -408,57 +399,43 @@ def test_multiple_opacities(tmp_path):
     assert pyrat is not None
 
     reset = {
-        'tlifile': f'{OUTPUTS}HITRAN_CO2_1.5-1.6um_test.tli',
-        'extfile': f'{OUTPUTS}exttable_CO2_300-3000K_1.5-1.6um.npz',
+        'tlifile': f'{OUTPUTS}HITRAN_CO2_1.5-1.51um_test.tli',
+        'extfile': f'{OUTPUTS}exttable_CO2_300-3000K_1.5-1.51um.npz',
     }
     cfg = make_config(tmp_path, opac_cfg, reset=reset)
     pyrat = pb.run(cfg)
     assert pyrat is not None
 
     reset = {
-        'tlifile':f'{OUTPUTS}HITRAN_CH4_1.5-1.6um_test.tli',
-        'extfile': f'{OUTPUTS}exttable_CH4_300-3000K_1.5-1.6um.npz',
+        'tlifile': f'{OUTPUTS}HITRAN_CH4_1.5-1.51um_test.tli',
+        'extfile': f'{OUTPUTS}exttable_CH4_300-3000K_1.5-1.51um.npz',
     }
     cfg = make_config(tmp_path, opac_cfg, reset=reset)
     pyrat = pb.run(cfg)
     assert pyrat is not None
 
+    # Two species at a time:
     reset = {
         'tlifile':
-            f'{OUTPUTS}HITRAN_CO2_1.5-1.6um_test.tli'
-            f'\n    {OUTPUTS}HITRAN_CH4_1.5-1.6um_test.tli',
-        'extfile': f'{OUTPUTS}exttable_CO2-CH4_300-3000K_1.5-1.6um.npz',
+            f'{OUTPUTS}HITRAN_CO2_1.5-1.51um_test.tli'
+            f'\n    {OUTPUTS}HITRAN_CH4_1.5-1.51um_test.tli',
+        'extfile': f'{OUTPUTS}exttable_CO2-CH4_300-3000K_1.5-1.51um.npz',
     }
     cfg = make_config(tmp_path, opac_cfg, reset=reset)
     pyrat = pb.run(cfg)
     assert pyrat is not None
 
     # Compute spectra from opacities:
-    spec_cfg = f'{ROOT}tests/configs/spectrum_transmission_test.cfg'
-    reset = {
-        'extfile':
-            f'{OUTPUTS}exttable_H2O_300-3000K_1.5-1.6um.npz'
-            f'\n  {OUTPUTS}exttable_CO2_300-3000K_1.5-1.6um.npz'
-            f'\n  {OUTPUTS}exttable_CH4_300-3000K_1.5-1.6um.npz',
-        'wllow':'1.5 um',
-        'wlhigh':'1.6 um',
-    }
-    cfg = make_config(
-        tmp_path, spec_cfg, reset=reset, remove=['tlifile','clouds'],
-    )
+    cfg = f'{ROOT}tests/configs/spectrum_transmission_multiple_opacities.cfg'
     pyrat = pb.run(cfg)
     spectrum1 = pyrat.spec.spectrum
 
     reset = {
         'extfile':
-            f'{OUTPUTS}exttable_H2O_300-3000K_1.5-1.6um.npz'
-            f'\n  {OUTPUTS}exttable_CO2-CH4_300-3000K_1.5-1.6um.npz',
-        'wllow':'1.5 um',
-        'wlhigh':'1.6 um',
+            f'{OUTPUTS}exttable_H2O_300-3000K_1.5-1.51um.npz'
+            f'\n  {OUTPUTS}exttable_CO2-CH4_300-3000K_1.5-1.51um.npz',
     }
-    cfg = make_config(
-        tmp_path, spec_cfg, reset=reset, remove=['tlifile','clouds'],
-    )
+    cfg = make_config(tmp_path, cfg, reset=reset)
     pyrat = pb.run(cfg)
     spectrum2 = pyrat.spec.spectrum
     np.testing.assert_allclose(spectrum1, spectrum2, rtol=rtol)
