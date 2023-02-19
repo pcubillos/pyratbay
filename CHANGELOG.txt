@@ -7841,4 +7841,7 @@ Added expected_spectrum_transmission_h_ion_test.npz file.
 Updated python-package.yml workflow to unzip tar.gz test files.
 (hopefully)
 
+*****
+
+Added 01_hit12.zip wget call into workflow.
 

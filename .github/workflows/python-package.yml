@@ -53,7 +53,8 @@ jobs:
         tar -xf tests/inputs/mock_06_hit12.tar.gz -C tests/inputs/
         tar -xf tests/inputs/mock_02_3750-4000_HITEMP2010.tar.gz -C tests/inputs/
         tar -xf tests/inputs/mock_02_4000-4500_HITEMP2010.tar.gz -C tests/inputs/
-        ls tests/inputs/
+        wget https://www.cfa.harvard.edu/HITRAN/HITRAN2012/HITRAN2012/By-Molecule/Compressed-files/01_hit12.zip
+        unzip 01_hit12.zip -d tests/inputs/
     - name: Test with pytest
       run: |
         pytest tests -v
