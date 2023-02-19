@@ -7827,3 +7827,8 @@ Removed another couple other HITEMP file downloads from .travis file,
 replaced with local mocked files (compressed and smaller in size).
 Updated tests.
 
+*****
+
+Removed some unused code from make_atmprofiles() function.
+Some more cleaning is needed to delete this unused function entirely.
+

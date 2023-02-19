@@ -183,45 +183,32 @@ def make_atmprofiles(pyrat):
     - Compute partition-function at layers temperatures.
     """
     log = pyrat.log
-
-    # Pyrat and user-input atmospheric-data objects:
     atm = pyrat.atm
     atm_in = pyrat.inputs.atm
 
     punits = pt.u(atm.punits)
     runits = pt.u(atm.runits)
-    if pyrat.atm.rmodelname is not None and not np.any(missing):
-        if not np.isinf(pyrat.phy.rhill):
-            log.msg(
-                f'Hill radius: {pyrat.phy.rhill/runits:8.1f} {atm.runits}.',
-                indent=2,
-            )
-        atm.radius = pyrat.hydro(
-            atm_in.press, atm_in.temp, atm_in.mm,
-            pyrat.phy.gplanet, pyrat.phy.mplanet,
-            atm.refpressure, pyrat.phy.rplanet,
-        )
 
     # Check if Hydrostatic Eq. breaks down:
     if atm_in.radius is not None and np.any(np.isinf(atm_in.radius)):
         ibreak = np.where(np.isfinite(atm_in.radius))[0][0]
 
     # Set radius/pressure boundaries if exist:
-    if atm.ptop is not None:
-        if atm.ptop >= atm_in.press[ibreak]:
-            ibreak = 0   # Turn-off break flag
-    elif atm.radhigh is not None:
-        if atm.radhigh <= atm_in.radius[ibreak]:
-            ibreak = 0   # Turn-off break flag
-            atm.ptop = pressinterp(atm.radhigh)[0]
-        #else:
-        #  out-of-bounds error
-    else:
-        atm.ptop = np.amin(atm_in.press)
-    if atm.radlow is not None:
-        atm.pbottom = pressinterp(atm.radlow)[0]
-    elif atm.pbottom is None:
-        atm.pbottom = np.amax(atm_in.press)
+    #if atm.ptop is not None:
+    #    if atm.ptop >= atm_in.press[ibreak]:
+    #        ibreak = 0   # Turn-off break flag
+    #elif atm.radhigh is not None:
+    #    if atm.radhigh <= atm_in.radius[ibreak]:
+    #        ibreak = 0   # Turn-off break flag
+    #        atm.ptop = pressinterp(atm.radhigh)[0]
+    #    #else:
+    #    #  out-of-bounds error
+    #else:
+    #    atm.ptop = np.amin(atm_in.press)
+    #if atm.radlow is not None:
+    #    atm.pbottom = pressinterp(atm.radlow)[0]
+    #elif atm.pbottom is None:
+    #    atm.pbottom = np.amax(atm_in.press)
 
     if ibreak != 0 and np.isinf(pyrat.phy.rhill):
         log.error(
@@ -261,26 +248,14 @@ def make_atmprofiles(pyrat):
     # Resample to equispaced radius array if requested:
     if atm.radstep is not None:
         # Make equispaced radius array:
-        if atm.radlow is None:
-            atm.radlow  = radinterp(atm.pbottom)[0]
-        if atm.radhigh is None:
-            atm.radhigh = radinterp(atm.ptop)[0]
+        #if atm.radlow is None:
+        #    atm.radlow  = radinterp(atm.pbottom)[0]
+        #if atm.radhigh is None:
+        #    atm.radhigh = radinterp(atm.ptop)[0]
 
         atm.radius = np.arange(atm.radlow, atm.radhigh, atm.radstep)
         atm.nlayers = len(atm.radius)
         # Interpolate to pressure array:
-        atm.press = pressinterp(atm.radius)
-
-    # Check that the radii lie within Hill radius:
-    if atm.radius is not None:
-        atm.rtop = pt.ifirst(atm.radius < pyrat.phy.rhill, default_ret=0)
-    if atm.rtop > 0:
-        rhill = pyrat.phy.rhill/runits
-        log.warning(
-            'The atmospheric pressure array extends beyond the Hill radius '
-           f'({rhill:.5f} {atm.runits}) at pressure '
-           f'{atm_in.press[atm.rtop]/pc.bar:.2e} bar (layer {atm.rtop}).  '
-            'Extinction beyond this layer will be neglected.')
-
+        #atm.press = pressinterp(atm.radius)
 
     log.head('Make atmosphere done.')
