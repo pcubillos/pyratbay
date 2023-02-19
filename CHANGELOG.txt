@@ -7836,4 +7836,9 @@ Some more cleaning is needed to delete this unused function entirely.
 
 Added expected_spectrum_transmission_h_ion_test.npz file.
 
+*****
+
+Updated python-package.yml workflow to unzip tar.gz test files.
+(hopefully)
+
 

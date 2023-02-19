@@ -47,6 +47,13 @@ jobs:
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    - name: Unpack
+      run: |
+        tar -xf tests/inputs/mock_02_hit12.tar.gz -C tests/inputs
+        tar -xf tests/inputs/mock_06_hit12.tar.gz -C tests/inputs
+        tar -xf tests/inputs/mock_02_3750-4000_HITEMP2010.tar.gz -C tests/inputs
+        tar -xf tests/inputs/mock_02_4000-4500_HITEMP2010.tar.gz -C tests/inputs
+
     - name: Test with pytest
       run: |
         pytest tests -v
