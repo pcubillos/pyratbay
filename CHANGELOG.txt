@@ -7832,3 +7832,8 @@ Updated tests.
 Removed some unused code from make_atmprofiles() function.
 Some more cleaning is needed to delete this unused function entirely.
 
+*****
+
+Added expected_spectrum_transmission_h_ion_test.npz file.
+
+
