@@ -269,6 +269,8 @@ def setup(pyrat):
 
     # Setup bulk and variable-abundance species:
     species = pyrat.mol.name
+    if atm.chemistry == 'tea':
+        elements = atm.chem_model.elements
     # Non-overlapping species:
     if atm.bulk is not None and len(np.setdiff1d(atm.bulk, species)) > 0:
         missing = np.setdiff1d(atm.bulk, species)
@@ -295,23 +297,52 @@ def setup(pyrat):
                 f'atmosphere: {missing_molecules}'
             )
 
-    # Overlapping species:
-    if atm.bulk is not None and atm.molfree is not None:
-        bulk_free_species = np.intersect1d(atm.bulk, atm.molfree)
-        if len(bulk_free_species) > 0:
-            log.error(
-                'These species were marked as both bulk and '
-                f'variable-abundance: {bulk_free_species}'
+        # Overlapping species:
+        if atm.bulk is not None:
+            bulk_free_species = np.intersect1d(atm.bulk, free_molecules)
+            if len(bulk_free_species) > 0:
+                log.error(
+                    'These species were marked as both bulk and '
+                    f'variable-abundance: {bulk_free_species}'
+                )
+
+        # Validate equilibrium composition variables:
+        if 'equil' in atm.molmodel and atm.chemistry != 'tea':
+            raise ValueError(
+                "Requested 'equil' molmodel require to set chemistry=tea"
+                f" '{atm.chemistry}'"
             )
+
+        for model,var in zip(atm.molmodel, atm.molfree):
+            missing_elements = []
+            if model != 'equil' or var == 'metal':
+                continue
+            if var.endswith('_metal'):
+                element = var.rstrip('_metal')
+                if element not in elements:
+                    missing_elements.append(element)
+            elif '_' in var:
+                idx = var.index('_')
+                if var[0:idx] not in elements:
+                    missing_elements.append(var[0:idx])
+                if var[idx+1:] not in elements:
+                    missing_elements.append(var[idx+1:])
+            else:
+                raise ValueError(f"Unrecognized molfree variable name: '{var}'")
+            if len(missing_elements) > 0:
+                raise ValueError(
+                    f"Invalid molfree variable '{var}', "
+                    f"element {missing_elements} is not in the atmosphere"
+                )
 
     # Obtain abundance ratios between the bulk species:
     spec = list(species)
     if atm.bulk is not None:
         atm.ibulk = [spec.index(mol) for mol in atm.bulk]
         atm.bulkratio, atm.invsrat = pa.ratio(pyrat.atm.vmr, atm.ibulk)
+
     if len(atm.molmodel) > 0:
         nabund = len(atm.molmodel)
-        # TBD: set ifree to something when model is equil
         atm.ifree = [
             spec.index(mol)
             for mol,model in zip(atm.molfree,atm.molmodel)
@@ -320,20 +351,21 @@ def setup(pyrat):
         # Abundance free-parameter names:
         mol_pnames = []
         mol_tex_names = []
-        for mol in atm.molfree:
-            if mol == 'metal':
+        for model,var in zip(atm.molmodel, atm.molfree):
+            if model != 'equil':
+                # TBD: This name wont be accurate for 'scale' molmodel
+                mol_pnames.append(f'log({var})')
+                mol_tex_names.append(fr'$\log\ X_{{\rm {var}}}$')
+            elif var == 'metal':
                 mol_pnames.append('[M/H]')
                 mol_tex_names.append('[M/H]')
-            elif mol.endswith('_metal'):
-                var = mol.rstrip('_metal')
-                mol_pnames.append(f'[{var}/H]')
-                mol_tex_names.append(f'[{var}/H]')
-            elif '_' in mol:
-                mol_pnames.append(mol.replace('_','/'))
-                mol_tex_names.append(mol.replace('_','/'))
-            else:
-                mol_pnames.append(f'log({mol})')
-                mol_tex_names.append(fr'$\log\ X_{{\rm {mol}}}$')
+            elif var.endswith('_metal'):
+                element = var.rstrip('_metal')
+                mol_pnames.append(f'[{element}/H]')
+                mol_tex_names.append(f'[{element}/H]')
+            elif '_' in var:
+                mol_pnames.append(var.replace('_','/'))
+                mol_tex_names.append(var.replace('_','/'))
 
     else:
         nabund = 0

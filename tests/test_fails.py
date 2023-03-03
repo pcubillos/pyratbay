@@ -874,6 +874,75 @@ def test_bulk_molfree_overlap(tmp_path):
         pyrat = pb.run(cfg)
 
 
+def test_invalid_equil_without_tea(tmp_path):
+    reset = {
+        'molmodel': 'equil',
+        'molfree': 'metal',
+    }
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        reset=reset,
+    )
+    error = re.escape("Requested 'equil' molmodel require to set chemistry=tea")
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
+
+
+def test_invalid_equil_molfree(tmp_path):
+    reset = {
+        'chemistry': 'tea',
+        'molmodel': 'equil',
+        'molfree': 'nope',
+    }
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        reset=reset,
+    )
+    error = re.escape("Unrecognized molfree variable name: 'nope'")
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
+
+
+def test_invalid_metal_molfree(tmp_path):
+    reset = {
+        'chemistry': 'tea',
+        'molmodel': 'equil',
+        'molfree': 'X_metal',
+    }
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        reset=reset,
+    )
+    error = re.escape(
+        "Invalid molfree variable 'X_metal', "
+        "element ['X'] is not in the atmosphere"
+    )
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
+
+
+def test_invalid_ratio_molfree(tmp_path):
+    reset = {
+        'chemistry': 'tea',
+        'molmodel': 'equil',
+        'molfree': 'C_O_X',
+    }
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        reset=reset,
+    )
+    error = re.escape(
+        "Invalid molfree variable 'C_O_X', "
+        "element ['O_X'] is not in the atmosphere"
+    )
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
+
+
 @pytest.mark.parametrize('param', ['tstar', 'log_gstar'])
 def test_kurucz_missing_pars(tmp_path, param):
     cfg = make_config(

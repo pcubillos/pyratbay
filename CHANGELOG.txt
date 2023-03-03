@@ -7845,3 +7845,9 @@ Updated python-package.yml workflow to unzip tar.gz test files.
 
 Added 01_hit12.zip wget call into workflow.
 
+
+*****  Fri Mar 3 14:26:23 CET 2023  *****
+
+Added checks to validate chemical equilibrium variables.
+Added corresponding tests.
+
