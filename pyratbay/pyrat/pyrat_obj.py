@@ -285,6 +285,15 @@ class Pyrat(object):
       if ret.ipatchy is not None:
           self.cloud.fpatchy = params[ret.ipatchy][0]
 
+      # Update stellar effective temperature:
+      if ret.itstar is not None:
+          self.phy.tstar = params[ret.itstar][0]
+          self.spec.starflux = self.spec.flux_interp(self.phy.tstar)
+          self.obs.starflux = [
+              self.spec.starflux[band.idx]
+              for band in self.obs.filters
+          ]
+
       # Calculate atmosphere and spectrum:
       self.run()
 

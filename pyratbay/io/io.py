@@ -8,6 +8,8 @@ __all__ = [
     'read_atm',
     'write_spectrum',
     'read_spectrum',
+    'write_spectra',
+    'read_spectra',
     'write_opacity',
     'read_opacity',
     'write_pf',
@@ -26,6 +28,7 @@ __all__ = [
 
 import os
 import pickle
+from decimal import Decimal
 
 import numpy as np
 import mc3
@@ -338,6 +341,93 @@ def read_atm(atmfile):
 
     units = (punits, tunits, qunits, runits)
     return units, species, press, temp, q, radius
+
+
+def write_spectra(spectra, wl, temperatures, filename):
+    """
+    Write flux spectra as function of wavelength and temperature to file.
+
+    Parameters
+    ----------
+    spectra: 1D float iterable
+        Flux spectra arrays (erg s-1 cm-2 cm units).
+    wl: 1D float iterable
+        Wavelength array in microns.
+    temperatures: 1D float iterable
+        Effective temperature array in Kelvin degrees.
+    filename: String
+        Output file name.
+    """
+    # Precision of 5 decimal places (or better if needed):
+    min_diff = np.amin(np.abs(np.ediff1d(wl)))
+    dec_place = Decimal(min_diff).adjusted()
+    dec = np.clip(1 - dec_place, 5, 20)
+
+    ntemps, nwave = np.shape(spectra)
+    with open(filename, 'w') as f:
+        # Write header:
+        f.write(
+            "# Temperature units: K\n"
+            "# Wavelength units: um\n"
+            "# Flux units: erg s-1 cm-2 cm\n"
+        )
+        f.write(f"\n@TEMPERATURES\n{'':{dec+4}}")
+        for temp in temperatures:
+            f.write(f"{temp:>15.1f}")
+        f.write('\n\n@SPECTRA')
+        # Write the spectrum values:
+        for i in range(nwave):
+            f.write(f"\n{wl[i]:>{dec+4}.{dec}f}")
+            for j in range(ntemps):
+                f.write(f"{spectra[j,i]:15.7e}")
+
+
+def read_spectra(filename):
+    """
+    Write flux spectra as function of wavelength and temperature to file.
+
+    Parameters
+    ----------
+    filename: String
+        Input file name.
+
+    Returns
+    -------
+    spectra: 1D float iterable
+        Flux spectra arrays (erg s-1 cm-2 cm units).
+    wn: 1D float iterable
+        Wavenumber array in cm-1.
+    temperatures: 1D float iterable
+        Effective temperature array in Kelvin degrees.
+    """
+    with open(filename, 'r') as f:
+        lines = [line.strip() for line in f.readlines()]
+
+    # Old style:
+    if '@SPECTRA' not in lines:
+        wn, spectra = read_spectrum(filename)
+        temperatures = np.array([0])
+        return spectra, wn, temperatures
+
+    # Remove comments and blanks:
+    lines = [
+        line for line in lines
+        if not line.startswith('#') and line != ''
+    ]
+
+    itemp = lines.index('@TEMPERATURES')
+    temperatures = np.array(lines[itemp+1].split(), np.double)
+    ntemps = len(temperatures)
+
+    iflux = lines.index('@SPECTRA') + 1
+    nwave = len(lines) - iflux
+    data = np.zeros((nwave, ntemps+1))
+    for i in range(nwave):
+        data[i] = lines[i+iflux].split()
+    spectra = data[:, 1:].T
+    wn = 1.0/data[:,0]/pc.um
+
+    return spectra, wn, temperatures
 
 
 def write_spectrum(wl, spectrum, filename, type, wlunits='um'):

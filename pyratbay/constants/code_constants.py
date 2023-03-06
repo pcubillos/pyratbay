@@ -91,6 +91,7 @@ retflags = [
     'cloud',
     'patchy',
     'mass',
+    'tstar',
 ]
 
 # Temperature models:

@@ -374,7 +374,7 @@ def setup(pyrat):
 
     # Read stellar spectrum model: starspec, kurucz, or blackbody
     if phy.starspec is not None:
-        starwn, starflux = io.read_spectrum(phy.starspec)
+        starflux, starwn, star_temps = io.read_spectra(phy.starspec)
     elif phy.kurucz is not None:
         if phy.tstar is None:
             log.error(
@@ -407,8 +407,16 @@ def setup(pyrat):
 
     # Store interpolated stellar spectrum:
     if phy.starflux is not None:
-        sinterp = si.interp1d(phy.starwn, phy.starflux)
-        pyrat.spec.starflux = sinterp(pyrat.spec.wn)
+        # 1D spectra
+        if np.ndim(phy.starflux) == 1:
+            sinterp = si.interp1d(phy.starwn, phy.starflux)
+            pyrat.spec.starflux = sinterp(pyrat.spec.wn)
+        # 2D spectra
+        else:
+            sinterp = si.interp1d(phy.starwn, phy.starflux, axis=1)
+            starflux = sinterp(pyrat.spec.wn)
+            pyrat.spec.flux_interp = si.interp1d(star_temps, starflux, axis=0)
+            pyrat.spec.starflux = pyrat.spec.flux_interp(phy.tstar)
 
     is_emission = pyrat.od.rt_path in pc.emission_rt
     if pyrat.runmode=='mcmc' and is_emission and starflux is None:
@@ -506,6 +514,11 @@ def setup(pyrat):
         ret.imass = np.arange(ret.nparams, ret.nparams + 1)
         ret.pnames   += [f'Mp ({phy.mpunits})']
         ret.texnames += [fr'$M_{{\rm planet}}$ ({utex[phy.mpunits]})']
+        ret.nparams += 1
+    if 'tstar' in ret.retflag:
+        ret.itstar = np.arange(ret.nparams, ret.nparams + 1)
+        ret.pnames   += ['T_eff']
+        ret.texnames += [r'$T_{\rm eff}$ (K)']
         ret.nparams += 1
 
     # Retrieval variables:

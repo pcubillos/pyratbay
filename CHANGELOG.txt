@@ -7851,3 +7851,16 @@ Added 01_hit12.zip wget call into workflow.
 Added checks to validate chemical equilibrium variables.
 Added corresponding tests.
 
+
+*****  Mon Mar 6 10:12:56 CET 2023  *****
+
+Implemented io.write_spectra() and io.read_spectra() functions
+to work with spectra files tabulated by their effective temperatures.
+Added tstar retflag.
+When setting tstar as a retrieval parameter, interpolate from
+grid of stellar spectra (which must be a 2D array).
+A change in tstar in pyrat.eval() triggers an update in
+self.spec.starflux and self.obs.starflux (regardless of whether
+there are filters, there are no checks).
+All tests and docs are TBD.
+
