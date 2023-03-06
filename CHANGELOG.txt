@@ -7868,4 +7868,8 @@ All tests and docs are TBD.
 
 Fixed bug when calling pyrat.eval() with ret.itstar undefined.
 
+*****
+
+Updated test for missing retflag error screen output (add tstar).
+
 

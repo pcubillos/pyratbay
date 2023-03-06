@@ -67,8 +67,8 @@ def undefined_opacity():
 @pytest.fixture
 def undefined_mcmc():
     data = {
-        'retflag':"Undefined retrieval model flags.  Select from ['temp', "
-                  "'rad', 'press', 'mol', 'ray', 'cloud', 'patchy', 'mass']",
+        'retflag': "Undefined retrieval model flags.  Select from ['temp', "
+                  "'rad', 'press', 'mol', 'ray', 'cloud', 'patchy', 'mass', 'tstar']",
         'params': 'Undefined retrieval fitting parameters (params)',
         'data':   'Undefined transit/eclipse data (data)',
         'uncert': 'Undefined data uncertainties (uncert)',
