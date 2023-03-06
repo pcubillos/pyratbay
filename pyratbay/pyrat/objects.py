@@ -698,6 +698,7 @@ class Retrieval(object):
       self.icloud  = None  # Cloud-model parameter indices
       self.ipatchy = None  # Patchy-model parameter index
       self.imass   = None
+      self.itstar = None
       self.posterior = None
       self.bestp     = None
       self.spec_best = None

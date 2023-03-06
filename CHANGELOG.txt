@@ -7864,3 +7864,8 @@ self.spec.starflux and self.obs.starflux (regardless of whether
 there are filters, there are no checks).
 All tests and docs are TBD.
 
+*****
+
+Fixed bug when calling pyrat.eval() with ret.itstar undefined.
+
+
