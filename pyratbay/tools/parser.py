@@ -801,10 +801,10 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
     if pyrat.obs.obsfile is not None:
         # TBD: Throw error if filters already exist
         obs_data = io.read_observations(pyrat.obs.obsfile)
-        if np.ndim(obs_data) == 3:
+        if np.ndim(obs_data) == 2:
             # TBD: Throw error if data or uncert already exist
             pyrat.obs.filters, pyrat.obs.data, pyrat.obs.uncert = obs_data
-        elif  np.ndim(obs_data)== 1:
+        elif  np.ndim(obs_data) == 1:
             pyrat.obs.filters = obs_data
 
     pyrat.ret.retflag = args.get_choice(

@@ -7872,4 +7872,8 @@ Fixed bug when calling pyrat.eval() with ret.itstar undefined.
 
 Updated test for missing retflag error screen output (add tstar).
 
+*****
+
+Fixed bug detecting outputs format of io.read_observations()
+(with without depths/errors)
 
