@@ -483,10 +483,10 @@ class Pyrat(object):
       if self.obs.filters is None:
           return
 
-      bandidx   = []  # Filter wavenumber indices
-      starflux  = []  # Interpolated stellar flux
+      bandidx = []  # Filter wavenumber indices
+      starflux = []  # Interpolated stellar flux
       bandtrans = []  # Normalized interpolated filter transmission
-      bandwn    = []  # Band's mean wavenumber
+      bandwn = []  # Band's mean wavenumber
       for passband in self.obs.filters:
           # Resample the filters into the planet wavenumber array:
           passband(wn=self.spec.wn)
@@ -497,11 +497,11 @@ class Pyrat(object):
               starflux.append(self.spec.starflux[passband.idx])
 
       # Per-band variables:
-      self.obs.starflux  = starflux
-      self.obs.bandidx   = bandidx
+      self.obs.starflux = starflux
+      self.obs.bandidx = bandidx
       self.obs.bandtrans = bandtrans
-      self.obs.bandwn    = np.asarray(bandwn)
-      self.obs.bandflux  = np.zeros(self.obs.nfilters, np.double)
+      self.obs.bandwn = np.asarray(bandwn)
+      self.obs.bandflux = np.zeros(self.obs.nfilters, np.double)
 
 
   def get_ec(self, layer):

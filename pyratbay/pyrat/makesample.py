@@ -67,7 +67,6 @@ def make_wavenumber(pyrat):
 
     if spec.resolution is not None:
         # Constant-resolving power wavenumber sampling:
-        print(spec.wnlow, spec.wnhigh, spec.resolution)
         spec.wn = ps.constant_resolution_spectrum(
             spec.wnlow, spec.wnhigh, spec.resolution,
         )

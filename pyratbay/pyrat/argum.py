@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Patricio Cubillos
+# Copyright (c) 2021-2023 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import multiprocessing as mp
@@ -482,7 +482,7 @@ def setup(pyrat):
         ret.nparams += ntemp
     if 'rad' in ret.retflag:
         ret.irad = np.arange(ret.nparams, ret.nparams + 1)
-        ret.pnames   += [f'Rp ({atm.runits})']
+        ret.pnames += [f'Rp ({atm.runits})']
         ret.texnames += [fr'$R_{{\rm planet}}$ ({utex[atm.runits]})']
         ret.nparams += 1
     if 'press' in ret.retflag:

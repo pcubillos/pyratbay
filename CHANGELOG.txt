@@ -7877,3 +7877,6 @@ Updated test for missing retflag error screen output (add tstar).
 Fixed bug detecting outputs format of io.read_observations()
 (with without depths/errors)
 
+*****
+
+Updated pyratbay version to 1.1.9b1.
