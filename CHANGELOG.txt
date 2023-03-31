@@ -7887,3 +7887,8 @@ Updated pyratbay version to 1.1.9b1.
 Fixed bug when getting element name of metallicity equilibrium
 parameters.
 
+*****
+
+Changed default qcap value from 1.0 to None.
+Tweaked qcapcheck() to skip calculations when qcap is None.
+

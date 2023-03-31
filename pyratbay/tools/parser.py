@@ -103,8 +103,10 @@ class Namespace(argparse.Namespace):
             return values[0]
         return values
 
-    def get_default(self, pname, desc, default=None, wflag=False,
-                    gt=None, ge=None, lt=None, le=None):
+    def get_default(
+        self, pname, desc, default=None, wflag=False,
+        gt=None, ge=None, lt=None, le=None,
+    ):
         """
         Extract pname variable from Namespace; if None, return
         default.  If any of gt, ge, lt, or le is not None, run
@@ -821,7 +823,7 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
     pyrat.ret.priorup = args.priorup
 
     pyrat.ret.qcap = args.get_default(
-        'qcap', 'Metals volume-mixing-ratio cap', 1.0, gt=0.0, le=1.0)
+        'qcap', 'Metals volume-mixing-ratio cap', gt=0.0, le=1.0)
     pyrat.ret.params = args.params
     pyrat.ret.pstep = args.pstep
     pyrat.ret.tlow = args.get_default(

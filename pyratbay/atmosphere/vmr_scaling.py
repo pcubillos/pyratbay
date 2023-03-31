@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Patricio Cubillos
+# Copyright (c) 2021-2023 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -13,7 +13,7 @@ import numpy as np
 
 def qcapcheck(vmr, qcap, ibulk):
     """
-    Check if the cummulative abundance of traces exceed qcap.
+    Check if the cummulative abundance of traces exceeds qcap.
 
     Parameters
     ----------
@@ -48,6 +48,9 @@ def qcapcheck(vmr, qcap, ibulk):
     >>> print(pa.qcapcheck(qprofiles, qcap, ibulk))
     True
     """
+    if qcap is None:
+        return False
+
     # The shape of things:
     nlayers, nspecies = np.shape(vmr)
 
