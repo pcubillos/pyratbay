@@ -632,8 +632,8 @@ class Pyrat(object):
       if self.obs.bandwn is not None:
           pyrat_args['bandwl'] = 1.0/(self.obs.bandwn*pc.um)
 
-      if self.obs.bandtrans is not None:
-          pyrat_args['bandflux'] = self.band_integrate()
+      if self.obs.bandflux is not None:
+          pyrat_args['bandflux'] = self.obs.bandflux
 
       if self.ret.spec_low2 is not None and spec != 'model':
           pyrat_args['bounds'] = [

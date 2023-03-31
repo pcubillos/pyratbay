@@ -7905,3 +7905,7 @@ Updated texnames, shorter names.
 
 Removed warnings file report after running pyrat.run().
 
+*****
+
+Stop calling pyrat.band_integrate() when calling plot_spectrum()
+use existing pyrat.obs.bandflux instead.
