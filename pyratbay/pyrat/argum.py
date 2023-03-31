@@ -318,7 +318,7 @@ def setup(pyrat):
             if model != 'equil' or var == 'metal':
                 continue
             if var.endswith('_metal'):
-                element = var.rstrip('_metal')
+                element = var[0:var.index('_metal')]
                 if element not in elements:
                     missing_elements.append(element)
             elif '_' in var:
@@ -360,7 +360,7 @@ def setup(pyrat):
                 mol_pnames.append('[M/H]')
                 mol_tex_names.append('[M/H]')
             elif var.endswith('_metal'):
-                element = var.rstrip('_metal')
+                element = var[0:var.index('_metal')]
                 mol_pnames.append(f'[{element}/H]')
                 mol_tex_names.append(f'[{element}/H]')
             elif '_' in var:

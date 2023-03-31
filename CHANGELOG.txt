@@ -7880,3 +7880,10 @@ Fixed bug detecting outputs format of io.read_observations()
 *****
 
 Updated pyratbay version to 1.1.9b1.
+
+
+*****  Fri Mar 31 23:32:08 CEST 2023  *****
+
+Fixed bug when getting element name of metallicity equilibrium
+parameters.
+

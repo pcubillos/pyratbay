@@ -364,7 +364,7 @@ def update_atm(
             if var == 'metal':
                 metallicity = val
             elif var.endswith('_metal'):
-                var = var.rstrip('_metal')
+                var = var[0:var.index('_metal')]
                 idx = list(net._base_composition).index(var)
                 solar_abundance = net._base_dex_abundances[idx]
                 e_abundances[var] = solar_abundance + val
