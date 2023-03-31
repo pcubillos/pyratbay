@@ -7901,3 +7901,7 @@ PEP8ed rayleigh.py
 Updated pnames to remove blank spaces.
 Updated texnames, shorter names.
 
+*****
+
+Removed warnings file report after running pyrat.run().
+

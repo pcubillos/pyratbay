@@ -196,21 +196,6 @@ class Pyrat(object):
           )
       )
 
-      if len(self.log.warnings) > 0 and self.log.logname is not None:
-          # Write all warnings to file:
-          wpath, wfile = os.path.split(self.log.logname)
-          wfile = f'{wpath}/warnings_{wfile}'
-          with open(wfile, 'w') as f:
-              f.write(f'Warnings log:\n\n{self.log.sep}\n')
-              f.write(f'\n\n{self.log.sep}\n'.join(self.log.warnings))
-          # Report it:
-          self.log.head(
-              f"\n{self.log.sep}"
-              f"\n  There were {len(self.log.warnings)} warnings raised.  "
-              f"See '{wfile}'."
-              f"\n{self.log.sep}"
-          )
-
 
   def eval(self, params, retmodel=True):
       """
@@ -634,7 +619,7 @@ class Pyrat(object):
           The matplotlib Axes of the figure.
       """
       pyrat_args = {
-          'data':self.obs.data,
+          'data': self.obs.data,
           'uncert': self.obs.uncert,
           'bandtrans': self.obs.bandtrans,
           'bandidx': self.obs.bandidx,
