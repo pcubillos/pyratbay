@@ -7892,3 +7892,7 @@ parameters.
 Changed default qcap value from 1.0 to None.
 Tweaked qcapcheck() to skip calculations when qcap is None.
 
+*****
+
+PEP8ed rayleigh.py
+
