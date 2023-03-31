@@ -45,7 +45,7 @@ class Isothermal(object):
             Pressure array where to evaluate the temperature profile.
         """
         self.name = 'isothermal'
-        self.pnames = ['T_iso (K)']
+        self.pnames = ['T_iso']
         self.texnames = [r'$T\ ({\rm K})$']
         self.npars = len(self.pnames)
         self.pressure = pressure
@@ -124,13 +124,13 @@ class Guillot(object):
             'log(gamma1)',
             'log(gamma2)',
             'alpha',
-            'T_irr (K)',
-            'T_int (K)',
+            'T_irr',
+            'T_int',
         ]
         self.texnames = [
-            r"$\log (\kappa')$",
-            r'$\log (\gamma_1)$',
-            r'$\log (\gamma_2)$',
+            r"$\log\ \kappa'$",
+            r'$\log\ \gamma_1$',
+            r'$\log\ \gamma_2$',
             r'$\alpha$',
             r'$T_{\rm irr} (K)$',
             r'$T_{\rm int} (K)$',
@@ -213,11 +213,11 @@ class Madhu(object):
             Pressure array in barye.
         """
         self.name = 'madhu'
-        self.pnames = ['logp1', 'logp2', 'logp3', 'a1', 'a2', 'T0']
+        self.pnames = ['log(p1)', 'log(p2)', 'log(p3)', 'a1', 'a2', 'T0']
         self.texnames = [
-            r'$\log (p_1)$',
-            r'$\log (p_2)$',
-            r'$\log (p_3)$',
+            r'$\log\ p_1$',
+            r'$\log\ p_2$',
+            r'$\log\ p_3$',
             r'$a_1$',
             r'$a_2$',
             r'$T_0$',

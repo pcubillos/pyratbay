@@ -476,18 +476,18 @@ def setup(pyrat):
     ret.nparams = 0
     ret.pnames, ret.texnames = [], []
     if 'temp' in ret.retflag:
-        ret.itemp  = np.arange(ret.nparams, ret.nparams + ntemp)
-        ret.pnames   += tpnames
+        ret.itemp = np.arange(ret.nparams, ret.nparams + ntemp)
+        ret.pnames += tpnames
         ret.texnames += ttexnames
         ret.nparams += ntemp
     if 'rad' in ret.retflag:
         ret.irad = np.arange(ret.nparams, ret.nparams + 1)
-        ret.pnames += [f'Rp ({atm.runits})']
-        ret.texnames += [fr'$R_{{\rm planet}}$ ({utex[atm.runits]})']
+        ret.pnames += [f'R_planet']
+        ret.texnames += [fr'$R_{{\rm p}}$ ({utex[atm.runits]})']
         ret.nparams += 1
     if 'press' in ret.retflag:
         ret.ipress = np.arange(ret.nparams, ret.nparams + 1)
-        ret.pnames   += ['log(P_ref) (bar)']
+        ret.pnames += ['log(p_ref)']
         ret.texnames += [r'$\log p_{{\rm ref}}$']
         ret.nparams += 1
     if 'mol' in ret.retflag:
@@ -496,24 +496,24 @@ def setup(pyrat):
         ret.texnames += mol_tex_names
         ret.nparams += nabund
     if 'ray' in ret.retflag:
-        ret.iray   = np.arange(ret.nparams, ret.nparams + nray)
-        ret.pnames   += rpnames
+        ret.iray = np.arange(ret.nparams, ret.nparams + nray)
+        ret.pnames += rpnames
         ret.texnames += rtexnames
         ret.nparams += nray
     if 'cloud' in ret.retflag:
-        ret.icloud  = np.arange(ret.nparams, ret.nparams + ncloud)
-        ret.pnames   += cpnames
+        ret.icloud = np.arange(ret.nparams, ret.nparams + ncloud)
+        ret.pnames += cpnames
         ret.texnames += ctexnames
         ret.nparams += ncloud
     if 'patchy' in ret.retflag:
         ret.ipatchy = np.arange(ret.nparams, ret.nparams + 1)
-        ret.pnames   += ['f_patchy']
+        ret.pnames += ['f_patchy']
         ret.texnames += [r'$\phi_{\rm patchy}$']
         ret.nparams += 1
     if 'mass' in ret.retflag:
         ret.imass = np.arange(ret.nparams, ret.nparams + 1)
-        ret.pnames   += [f'Mp ({phy.mpunits})']
-        ret.texnames += [fr'$M_{{\rm planet}}$ ({utex[phy.mpunits]})']
+        ret.pnames += [f'M_planet']
+        ret.texnames += [fr'$M_{{\rm p}}$ ({utex[phy.mpunits]})']
         ret.nparams += 1
     if 'tstar' in ret.retflag:
         ret.itstar = np.arange(ret.nparams, ret.nparams + 1)

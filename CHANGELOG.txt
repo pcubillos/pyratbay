@@ -7896,3 +7896,8 @@ Tweaked qcapcheck() to skip calculations when qcap is None.
 
 PEP8ed rayleigh.py
 
+*****
+
+Updated pnames to remove blank spaces.
+Updated texnames, shorter names.
+
