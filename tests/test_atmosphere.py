@@ -613,15 +613,14 @@ def test_ratio():
 def test_qscale():
     spec = np.array(["H2", "He", "H2O", "CO", "CO2", "CH4"])
     bulk = np.array(['H2', 'He'])
-    molmodel = ['vert', 'scale']
-    molfree  = ['H2O', 'CO']
-    molpars  = [-4, 1.0]
-    q2 = pa.qscale(q0, spec, molmodel, molfree, molpars, bulk)
+    molvars = ['log_H2O', 'scale_CO']
+    molpars = [-4, 1.0]
+    vmr = pa.qscale(q0, spec, molvars, molpars, bulk)
     nlayers, nspec = np.shape(q0)
     # All H2O abundances set to constant value:
-    np.testing.assert_equal(q2[:,2], np.tile(10**molpars[0], nlayers))
+    np.testing.assert_equal(vmr[:,2], np.tile(10**molpars[0], nlayers))
     # All CO abundances scaled by value:
-    np.testing.assert_allclose(q2[:,3], q0[:,3]*10**molpars[1], rtol=1e-7)
+    np.testing.assert_allclose(vmr[:,3], q0[:,3]*10**molpars[1], rtol=1e-7)
 
 
 @pytest.mark.parametrize('alkali', ['sodium_vdw', 'potassium_vdw'])

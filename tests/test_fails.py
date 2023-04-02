@@ -174,7 +174,6 @@ def test_invalid_float_all_params(tmp_path, param):
         ('alkali',   "alkali model"),
         ('rt_path',  "radiative-transfer observing geometry"),
         ('tmodel',   "temperature model"),
-        ('molmodel', "molecular-abundance model"),
         ('retflag',  "retrieval flag"),
     ]
 )
@@ -819,47 +818,22 @@ def test_bulk_not_in_atm(tmp_path):
         pyrat = pb.run(cfg)
 
 
-def test_molfree_mismatch(tmp_path):
+def test_molvars_missing_vmr(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        reset={'molmodel':'vert'},
-    )
-    error = "molmodel is set, but there are no molfree"
-    with pytest.raises(ValueError, match=error):
-        pyrat = pb.run(cfg)
-
-
-def test_molfree_mismatch2(tmp_path):
-    cfg = make_config(
-        tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        reset={'molmodel':'vert vert', 'molfree':'H2O'},
+        reset={'molvars': 'log_N2'},
     )
     error = re.escape(
-        "There should be one molfree for each molmodel:\n"
-        "molmodel: ['vert', 'vert']\n"
-        "molfree: ['H2O']")
-    with pytest.raises(ValueError, match=error):
-        pyrat = pb.run(cfg)
-
-
-def test_molfree_mismatch3(tmp_path):
-    cfg = make_config(
-        tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        reset={'molmodel':'vert', 'molfree':'N2'},
+        "Invalid molvars variable 'log_N2', species N2 is not in the atmosphere"
     )
-    error = re.escape(
-        "These molfree species are not present in the atmosphere: ['N2']")
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
 
 
 def test_bulk_molfree_overlap(tmp_path):
     reset = {
-        'molmodel': 'vert',
-        'molfree': 'H2',
+        'molvars': 'log_H2',
         'bulk': 'H2',
     }
     cfg = make_config(
@@ -876,40 +850,37 @@ def test_bulk_molfree_overlap(tmp_path):
 
 def test_invalid_equil_without_tea(tmp_path):
     reset = {
-        'molmodel': 'equil',
-        'molfree': 'metal',
+        'molvars': 'metal',
     }
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         reset=reset,
     )
-    error = re.escape("Requested 'equil' molmodel require to set chemistry=tea")
+    error = re.escape("molvars variable 'metal' requires chemistry=tea")
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
 
 
-def test_invalid_equil_molfree(tmp_path):
+def test_invalid_equil_molvars(tmp_path):
     reset = {
         'chemistry': 'tea',
-        'molmodel': 'equil',
-        'molfree': 'nope',
+        'molvars': 'zen',
     }
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         reset=reset,
     )
-    error = re.escape("Unrecognized molfree variable name: 'nope'")
+    error = re.escape("Unrecognized molvars variable name: 'zen'")
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
 
 
-def test_invalid_metal_molfree(tmp_path):
+def test_invalid_metal_molvars(tmp_path):
     reset = {
         'chemistry': 'tea',
-        'molmodel': 'equil',
-        'molfree': 'X_metal',
+        'molvars': '[X/H]',
     }
     cfg = make_config(
         tmp_path,
@@ -917,18 +888,17 @@ def test_invalid_metal_molfree(tmp_path):
         reset=reset,
     )
     error = re.escape(
-        "Invalid molfree variable 'X_metal', "
-        "element ['X'] is not in the atmosphere"
+        "Invalid molvars variable '[X/H]', "
+        "element 'X' is not in the atmosphere"
     )
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
 
 
-def test_invalid_ratio_molfree(tmp_path):
+def test_invalid_ratio_molvars(tmp_path):
     reset = {
         'chemistry': 'tea',
-        'molmodel': 'equil',
-        'molfree': 'C_O_X',
+        'molvars': 'C/O/X',
     }
     cfg = make_config(
         tmp_path,
@@ -936,8 +906,8 @@ def test_invalid_ratio_molfree(tmp_path):
         reset=reset,
     )
     error = re.escape(
-        "Invalid molfree variable 'C_O_X', "
-        "element ['O_X'] is not in the atmosphere"
+        "Invalid molvars variable 'C/O/X', "
+        "element 'O/X' is not in the atmosphere"
     )
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
@@ -960,15 +930,14 @@ def test_kurucz_missing_pars(tmp_path, param):
 
 
 @pytest.mark.parametrize('param',
-    ['tmodel', 'clouds', 'rayleigh', 'molmodel', 'bulk'])
+    ['tmodel', 'clouds', 'rayleigh', 'molvars', 'bulk'])
 def test_spectrum_missing_retflag_models(tmp_path, param, undefined_mcmc):
     reset = {
         'retflag': 'temp mol ray cloud',
         'tmodel': 'isothermal',
         'clouds': 'deck',
         'rayleigh': 'lecavelier',
-        'molmodel': 'vert',
-        'molfree': 'H2O',
+        'molvars': 'log_H2O',
         'bulk': 'H2',
     }
     cfg = make_config(
@@ -1171,7 +1140,6 @@ def test_opacity_missing(tmp_path, param, undefined_opacity):
 @pytest.mark.parametrize(
     'param',
     [
-        'retflag',
         'params',
         'data',
         'uncert',

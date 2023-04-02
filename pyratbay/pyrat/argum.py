@@ -13,6 +13,7 @@ from .. import constants as pc
 from .. import spectrum as ps
 from .. import atmosphere as pa
 from .. import io as io
+from . import objects as ob
 
 
 def check_atmosphere(pyrat):
@@ -109,9 +110,8 @@ def check_spectrum(pyrat):
             log.error("Undefined data uncertainties (uncert)")
         if obs.filters is None:
             log.error("Undefined transmission filters (filters)")
-        if pyrat.ret.retflag == []:
-            flags = pc.retflags
-            log.error(f'Undefined retrieval model flags.  Select from {flags}')
+        if len(pyrat.ret.retflag) == 0:
+            log.error('Undefined fitting parameters (retrieval_params)')
         if pyrat.ret.sampler is None:
             log.error(
                 'Undefined retrieval algorithm (sampler).  '
@@ -126,53 +126,15 @@ def check_spectrum(pyrat):
         if pyrat.ret.params is None:
             log.error('Undefined retrieval fitting parameters (params)')
 
-    # Check cloud models:
-    if pyrat.cloud.model_names is not None:
-        pyrat.cloud.models = []
-        npars = 0
-        for name in pyrat.cloud.model_names:
-            model  = pa.clouds.get_model(name)
-            npars += model.npars
-            pyrat.cloud.models.append(model)
-        # Parse the cloud parameters:
-        input_npars = len(pyrat.cloud.pars)
-        if pyrat.cloud.pars is not None:
-            if npars != input_npars:
-                log.error(
-                    f'Number of input cloud parameters ({input_npars}) '
-                    'does not match the number of required '
-                    f'model parameters ({npars})'
-                )
-            j = 0
-            for model in pyrat.cloud.models:
-                npars = model.npars
-                model.pars = pyrat.cloud.pars[j:j+npars]
-                j += npars
+    # Initialize cloud models:
+    pyrat.cloud = ob.Cloud(
+        pyrat.inputs.clouds, pyrat.inputs.cpars, pyrat.inputs.fpatchy, log,
+    )
 
-    # Check Rayleigh models:
-    if pyrat.rayleigh.model_names is not None:
-        pyrat.rayleigh.models = []
-        npars = 0
-        for name in pyrat.rayleigh.model_names:
-            model = pa.rayleigh.get_model(name)
-            npars += model.npars
-            pyrat.rayleigh.models.append(model)
-        # Process the Rayleigh parameters:
-        if npars == 0 and pyrat.rayleigh.pars is None:
-            pyrat.rayleigh.pars = []
-        if pyrat.rayleigh.pars is not None:
-            input_npars = len(pyrat.rayleigh.pars)
-            if npars != input_npars:
-                log.error(
-                    f'Number of input Rayleigh parameters ({input_npars}) '
-                    'does not match the number of required '
-                    f'model parameters ({npars})'
-                )
-            j = 0
-            for model in pyrat.rayleigh.models:
-                npars = model.npars
-                model.pars = pyrat.rayleigh.pars[j:j+npars]
-                j += npars
+    # Initialize Rayleigh models:
+    pyrat.rayleigh = ob.Rayleigh(
+        pyrat.inputs.rayleigh, pyrat.inputs.rpars, log,
+    )
 
     # Check alkali arguments:
     if pyrat.alkali.model_names is not None:
@@ -187,19 +149,6 @@ def check_spectrum(pyrat):
             "Undefined radiative-transfer observing geometry (rt_path)."
             f"  Select from {pc.rt_paths}"
         )
-
-    if 'temp' in pyrat.ret.retflag and atm.tmodelname is None:
-        log.error('Requested temp in retflag, but there is no tmodel')
-    if 'mol' in pyrat.ret.retflag:
-        if atm.molmodel == []:
-            log.error("Requested mol in retflag, but there is no 'molmodel'")
-        # TBD: This will break for pure eq-chem runs
-        if atm.bulk is None:
-            log.error('Requested mol in retflag, but there are no bulk species')
-    if 'ray' in pyrat.ret.retflag and pyrat.rayleigh.models == []:
-        log.error('Requested ray in retflag, but there are no rayleigh models')
-    if 'cloud' in pyrat.ret.retflag and pyrat.cloud.models == []:
-        log.error('Requested cloud in retflag, but there are no cloud models')
 
     # Check system arguments:
     if pyrat.od.rt_path in pc.transmission_rt and phy.rstar is None:
@@ -256,11 +205,12 @@ def check_spectrum(pyrat):
 
 def setup(pyrat):
     """
-    Process retrieval variables: bulk, molmodel.
+    Process retrieval variables: bulk, molvars, molpars.
     Process stellar spectrum.
     Process the oberving filter bands.
     """
     # Shortcuts:
+    inputs = pyrat.inputs
     phy = pyrat.phy
     ret = pyrat.ret
     atm = pyrat.atm
@@ -268,9 +218,7 @@ def setup(pyrat):
     log = pyrat.log
 
     # Setup bulk and variable-abundance species:
-    species = pyrat.mol.name
-    if atm.chemistry == 'tea':
-        elements = atm.chem_model.elements
+    species = pyrat.atm.species = pyrat.mol.name
     # Non-overlapping species:
     if atm.bulk is not None and len(np.setdiff1d(atm.bulk, species)) > 0:
         missing = np.setdiff1d(atm.bulk, species)
@@ -278,99 +226,32 @@ def setup(pyrat):
             f'These bulk species are not present in the atmosphere: {missing}'
         )
 
-    if len(atm.molmodel) > 0:
-        if len(atm.molfree) == 0:
-            log.error('molmodel is set, but there are no molfree')
-        if len(atm.molmodel) != len(atm.molfree):
+    atm.parse_abundance_parameters(pyrat.inputs.molvars, log)
+    atm.molpars = inputs.molpars
+    # TBD: Do I want to allow null molpars?
+    if len(inputs.molvars) > 0 and len(atm.molpars) > 0:
+        #if len(inputs.molpars) == 0:
+        #    log.error('molvars is set, but there are no molpars')
+        if len(inputs.molvars) != len(inputs.molpars):
             log.error(
-                'There should be one molfree for each molmodel:\n'
-                f'molmodel: {atm.molmodel}\nmolfree: {atm.molfree}'
+                'There should be one molpars for each molvars:\n'
+                f'molvars: {atm.mol_pnames}\nmolpars: {atm.molpars}'
             )
-        free_molecules = [
-            mol for mol,model in zip(atm.molfree,atm.molmodel)
-            if model != 'equil'
-        ]
-        missing_molecules = np.setdiff1d(free_molecules, species)
-        if len(missing_molecules) > 0:
+
+    # Overlapping species:
+    if atm.bulk is not None:
+        free_vmr = species[atm.ifree]
+        bulk_free_species = np.intersect1d(atm.bulk, free_vmr)
+        if len(bulk_free_species) > 0:
             log.error(
-                'These molfree species are not present in the '
-                f'atmosphere: {missing_molecules}'
+                'These species were marked as both bulk and '
+                f'variable-abundance: {bulk_free_species}'
             )
-
-        # Overlapping species:
-        if atm.bulk is not None:
-            bulk_free_species = np.intersect1d(atm.bulk, free_molecules)
-            if len(bulk_free_species) > 0:
-                log.error(
-                    'These species were marked as both bulk and '
-                    f'variable-abundance: {bulk_free_species}'
-                )
-
-        # Validate equilibrium composition variables:
-        if 'equil' in atm.molmodel and atm.chemistry != 'tea':
-            raise ValueError(
-                "Requested 'equil' molmodel require to set chemistry=tea"
-                f" '{atm.chemistry}'"
-            )
-
-        for model,var in zip(atm.molmodel, atm.molfree):
-            missing_elements = []
-            if model != 'equil' or var == 'metal':
-                continue
-            if var.endswith('_metal'):
-                element = var[0:var.index('_metal')]
-                if element not in elements:
-                    missing_elements.append(element)
-            elif '_' in var:
-                idx = var.index('_')
-                if var[0:idx] not in elements:
-                    missing_elements.append(var[0:idx])
-                if var[idx+1:] not in elements:
-                    missing_elements.append(var[idx+1:])
-            else:
-                raise ValueError(f"Unrecognized molfree variable name: '{var}'")
-            if len(missing_elements) > 0:
-                raise ValueError(
-                    f"Invalid molfree variable '{var}', "
-                    f"element {missing_elements} is not in the atmosphere"
-                )
 
     # Obtain abundance ratios between the bulk species:
-    spec = list(species)
     if atm.bulk is not None:
-        atm.ibulk = [spec.index(mol) for mol in atm.bulk]
+        atm.ibulk = [list(species).index(mol) for mol in atm.bulk]
         atm.bulkratio, atm.invsrat = pa.ratio(pyrat.atm.vmr, atm.ibulk)
-
-    if len(atm.molmodel) > 0:
-        nabund = len(atm.molmodel)
-        atm.ifree = [
-            spec.index(mol)
-            for mol,model in zip(atm.molfree,atm.molmodel)
-            if model != 'equil'
-        ]
-        # Abundance free-parameter names:
-        mol_pnames = []
-        mol_tex_names = []
-        for model,var in zip(atm.molmodel, atm.molfree):
-            if model != 'equil':
-                # TBD: This name wont be accurate for 'scale' molmodel
-                mol_pnames.append(f'log({var})')
-                mol_tex_names.append(fr'$\log\ X_{{\rm {var}}}$')
-            elif var == 'metal':
-                mol_pnames.append('[M/H]')
-                mol_tex_names.append('[M/H]')
-            elif var.endswith('_metal'):
-                element = var[0:var.index('_metal')]
-                mol_pnames.append(f'[{element}/H]')
-                mol_tex_names.append(f'[{element}/H]')
-            elif '_' in var:
-                mol_pnames.append(var.replace('_','/'))
-                mol_tex_names.append(var.replace('_','/'))
-
-    else:
-        nabund = 0
-        mol_pnames, mol_tex_names = [], []
-        atm.ibulk = None
 
     # Read stellar spectrum model: starspec, kurucz, or blackbody
     if phy.starspec is not None:
@@ -443,21 +324,7 @@ def setup(pyrat):
         tpnames = atm.tmodel.pnames
         ttexnames = atm.tmodel.texnames
 
-    # Rayleigh models:
-    nray = 0
-    rpnames, rtexnames = [], []
-    for rmodel in pyrat.rayleigh.models:
-        rpnames   += rmodel.pnames
-        rtexnames += rmodel.texnames
-        nray      += rmodel.npars
-
-    # Cloud models:
-    ncloud = 0
-    cpnames, ctexnames = [], []
-    for model in pyrat.cloud.models:
-        cpnames   += model.pnames
-        ctexnames += model.texnames
-        ncloud    += model.npars
+    setup_retrieval_parameters_retflag(pyrat)
 
     # TeX unit conversions for masses and radii:
     utex = {
@@ -471,55 +338,6 @@ def setup(pyrat):
         'm': 'm',
         'cm': 'cm',
     }
-
-    # Indices to parse the array of fitting parameters:
-    ret.nparams = 0
-    ret.pnames, ret.texnames = [], []
-    if 'temp' in ret.retflag:
-        ret.itemp = np.arange(ret.nparams, ret.nparams + ntemp)
-        ret.pnames += tpnames
-        ret.texnames += ttexnames
-        ret.nparams += ntemp
-    if 'rad' in ret.retflag:
-        ret.irad = np.arange(ret.nparams, ret.nparams + 1)
-        ret.pnames += [f'R_planet']
-        ret.texnames += [fr'$R_{{\rm p}}$ ({utex[atm.runits]})']
-        ret.nparams += 1
-    if 'press' in ret.retflag:
-        ret.ipress = np.arange(ret.nparams, ret.nparams + 1)
-        ret.pnames += ['log(p_ref)']
-        ret.texnames += [r'$\log p_{{\rm ref}}$']
-        ret.nparams += 1
-    if 'mol' in ret.retflag:
-        ret.imol = np.arange(ret.nparams, ret.nparams + nabund)
-        ret.pnames += mol_pnames
-        ret.texnames += mol_tex_names
-        ret.nparams += nabund
-    if 'ray' in ret.retflag:
-        ret.iray = np.arange(ret.nparams, ret.nparams + nray)
-        ret.pnames += rpnames
-        ret.texnames += rtexnames
-        ret.nparams += nray
-    if 'cloud' in ret.retflag:
-        ret.icloud = np.arange(ret.nparams, ret.nparams + ncloud)
-        ret.pnames += cpnames
-        ret.texnames += ctexnames
-        ret.nparams += ncloud
-    if 'patchy' in ret.retflag:
-        ret.ipatchy = np.arange(ret.nparams, ret.nparams + 1)
-        ret.pnames += ['f_patchy']
-        ret.texnames += [r'$\phi_{\rm patchy}$']
-        ret.nparams += 1
-    if 'mass' in ret.retflag:
-        ret.imass = np.arange(ret.nparams, ret.nparams + 1)
-        ret.pnames += [f'M_planet']
-        ret.texnames += [fr'$M_{{\rm p}}$ ({utex[phy.mpunits]})']
-        ret.nparams += 1
-    if 'tstar' in ret.retflag:
-        ret.itstar = np.arange(ret.nparams, ret.nparams + 1)
-        ret.pnames   += ['T_eff']
-        ret.texnames += [r'$T_{\rm eff}$ (K)']
-        ret.nparams += 1
 
     # Retrieval variables:
     if ret.params is not None and len(ret.params) != ret.nparams:
@@ -541,3 +359,108 @@ def setup(pyrat):
         and (pyrat.runmode != 'mcmc' or 'cloud' not in ret.retflag)
         and pyrat.cloud.pars is None):
         log.error('Cloud parameters (cpars) have not been specified')
+
+
+def setup_retrieval_parameters_retflag(pyrat):
+    """
+    Check and setup retrieval parameters via retflag argument.
+    To be deprecated, use retrieval_parameters instead.
+    """
+    log = pyrat.log
+    atm = pyrat.atm
+    ret = pyrat.ret
+    retflag = pyrat.ret.retflag
+
+    if 'temp' in retflag and pyrat.atm.tmodelname is None:
+        log.error('Requested temp in retflag, but there is no tmodel')
+    if 'mol' in retflag:
+        if pyrat.inputs.molvars == []:
+            log.error("Requested mol in retflag, but there is no 'molvars'")
+        # TBD: This will break for pure eq-chem runs
+        if pyrat.atm.bulk is None:
+            log.error('Requested mol in retflag, but there are no bulk species')
+    if 'ray' in retflag and pyrat.rayleigh.models == []:
+        log.error('Requested ray in retflag, but there are no rayleigh models')
+    if 'cloud' in retflag and pyrat.cloud.models == []:
+        log.error('Requested cloud in retflag, but there are no cloud models')
+
+    # TeX unit conversions for masses and radii:
+    utex = {
+        'mjup': r'$M_{\rm Jup}$',
+        'mearth': r'$M_{\oplus}$',
+        'kg': 'kg',
+        'gram': 'g',
+        'rjup': r'$R_{\rm Jup}$',
+        'rearth': r'$R_{\oplus}$',
+        'km': 'km',
+        'm': 'm',
+        'cm': 'cm',
+    }
+
+    # Indices to parse the array of fitting parameters:
+    ret.nparams = 0
+    ret.pnames = []
+    ret.texnames = []
+    if 'temp' in retflag:
+        ntemp = pyrat.atm.tmodel.npars
+        ret.itemp = np.arange(ret.nparams, ret.nparams + ntemp)
+        ret.pnames += pyrat.atm.tmodel.pnames
+        ret.texnames += pyrat.atm.tmodel.texnames
+        ret.nparams += ntemp
+    if 'rad' in retflag:
+        ret.irad = np.arange(ret.nparams, ret.nparams + 1)
+        ret.pnames += ['R_planet']
+        ret.texnames += [fr'$R_{{\rm p}}$ ({utex[pyrat.atm.runits]})']
+        ret.nparams += 1
+    if 'press' in retflag:
+        ret.ipress = np.arange(ret.nparams, ret.nparams + 1)
+        ret.pnames += ['log(p_ref)']
+        ret.texnames += [r'$\log p_{{\rm ref}}$']
+        ret.nparams += 1
+    if 'mol' in retflag:
+        nabund = len(atm.mol_pnames)
+        ret.imol = np.arange(ret.nparams, ret.nparams + nabund)
+        ret.pnames += atm.mol_pnames
+        ret.texnames += atm.mol_texnames
+        ret.nparams += nabund
+    if 'ray' in retflag:
+        nray = pyrat.rayleigh.npars
+        ret.iray = np.arange(ret.nparams, ret.nparams + nray)
+        ret.pnames += pyrat.rayleigh.pnames
+        ret.texnames += pyrat.rayleigh.texnames
+        ret.nparams += nray
+    if 'cloud' in retflag:
+        ncloud = pyrat.cloud.npars
+        ret.icloud = np.arange(ret.nparams, ret.nparams + ncloud)
+        ret.pnames += pyrat.cloud.pnames
+        ret.texnames += pyrat.cloud.texnames
+        ret.nparams += ncloud
+    if 'patchy' in retflag:
+        ret.ipatchy = np.arange(ret.nparams, ret.nparams + 1)
+        ret.pnames += ['f_patchy']
+        ret.texnames += [r'$\phi_{\rm patchy}$']
+        ret.nparams += 1
+    if 'mass' in retflag:
+        ret.imass = np.arange(ret.nparams, ret.nparams + 1)
+        ret.pnames += ['M_planet']
+        ret.texnames += [fr'$M_{{\rm p}}$ ({utex[pyrat.phy.mpunits]})']
+        ret.nparams += 1
+    if 'tstar' in retflag:
+        ret.itstar = np.arange(ret.nparams, ret.nparams + 1)
+        ret.pnames   += ['T_eff']
+        ret.texnames += [r'$T_{\rm eff}$ (K)']
+        ret.nparams += 1
+    if 'offset' in retflag:
+        n_offset = len(ret.inst_offset)
+        ret.ioffset = np.arange(ret.nparams, ret.nparams + n_offset)
+        ret.pnames   += list(ret.inst_offset)
+        ret.texnames += list(ret.inst_offset)
+        ret.nparams += n_offset
+
+        band_names = [band.name for band in pyrat.obs.filters]
+        offset_indices = []
+        for inst in ret.inst_offset:
+            flags = [inst in name for name in band_names]
+            offset_indices.append(flags)
+        pyrat.obs.offset_indices = offset_indices
+

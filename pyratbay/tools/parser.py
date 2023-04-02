@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Patricio Cubillos
+# Copyright (c) 2021-2023 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -452,8 +452,7 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         parse_array(args, 'filters')
         parse_str(args,   'obsfile')
         # Abundances:
-        parse_array(args, 'molmodel')
-        parse_array(args, 'molfree')
+        parse_array(args, 'molvars')
         parse_array(args, 'molpars')
         parse_array(args, 'bulk')
         # Retrieval options:
@@ -746,19 +745,20 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
     pyrat.ex.tstep = args.get_default(
         'tstep', "Opacity grid's temperature sampling step in K", gt=0.0)
 
-    pyrat.rayleigh.pars = args.rpars
-    pyrat.cloud.pars = args.cpars
-    pyrat.rayleigh.model_names = args.get_choice(
+    pyrat.inputs.rayleigh = args.get_choice(
         'rayleigh', 'Rayleigh model', pc.rmodels)
-    pyrat.cloud.model_names = args.get_choice(
+
+    pyrat.inputs.clouds = args.get_choice(
         'clouds', 'cloud model', pc.cmodels)
+    pyrat.inputs.fpatchy = args.get_default(
+        'fpatchy', 'Patchy-cloud fraction', ge=0.0, le=1.0)
+
     pyrat.alkali.model_names = args.get_choice(
         'alkali', 'alkali model', pc.amodels)
     pyrat.alkali.cutoff = args.get_default(
         'alkali_cutoff',
         'Alkali profiles hard cutoff from line center (cm-1)', 4500.0, gt=0.0)
-    pyrat.cloud.fpatchy = args.get_default(
-        'fpatchy', 'Patchy-cloud fraction', ge=0.0, le=1.0)
+
     pyrat.od.h_ion_models = args.get_choice(
         'h_ion', 'H- opacity model', pc.h_ion_models,
     )
@@ -846,12 +846,11 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
     pyrat.ret.grnmin = args.get_default(
         'grnmin', 'Gelman-Rubin convergence fraction', 0.5, gt=0.0)
 
-    atm.molmodel = args.get_choice(
-        'molmodel', 'molecular-abundance model', pc.molmodels)
-    if atm.molmodel is None:
-        atm.molmodel = []
-    atm.molfree = args.molfree if args.molfree is not None else []
-    atm.molpars = args.molpars if args.molpars is not None else []
+    # Keep in inputs
+    if args.molvars is None:
+        pyrat.inputs.molvars = []
+    if args.molpars is None:
+        pyrat.inputs.molpars = []
 
     atm.bulk = args.bulk
     if args.tmodel == 'tcea':

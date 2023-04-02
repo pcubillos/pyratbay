@@ -7909,3 +7909,15 @@ Removed warnings file report after running pyrat.run().
 
 Stop calling pyrat.band_integrate() when calling plot_spectrum()
 use existing pyrat.obs.bandflux instead.
+
+*****
+
+Refactored Rayleigh() object to move initialization logic into it.
+Refactored Cloud() object to move initialization logic into it.
+Refactored Atm() object to move (some) initialization logic into it.
+
+Removed molmodel and molfree arguments. Replaced with molvars.
+Refactored qscale() function to read in molvars argument.
+
+Updated tests and docs.
+

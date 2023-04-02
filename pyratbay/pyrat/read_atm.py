@@ -357,34 +357,31 @@ def update_atm(
         metallicity = None
         e_abundances = {}
         e_ratio = {}
-        e_scale = {}
-        for model,var,val in zip(atm.molmodel, atm.molfree, atm.molpars):
-            if model != 'equil':
-                continue
+        equil_vars = np.array(atm.mol_pnames)[atm._equil_var]
+        equil_pars = np.array(atm.molpars)[atm._equil_var]
+        for var,val in zip(equil_vars, equil_pars):
             if var == 'metal':
                 metallicity = val
-            elif var.endswith('_metal'):
-                var = var[0:var.index('_metal')]
-                idx = list(net._base_composition).index(var)
+            elif var.startswith('[') and var.endswith('/H]'):
+                element = var[1:-3]
+                idx = list(net._base_composition).index(element)
                 solar_abundance = net._base_dex_abundances[idx]
                 e_abundances[var] = solar_abundance + val
-            elif '_' in var:
-                e_ratio[var] = val
-            else:
-                e_abundances[var] = val
+            elif '/' in var:
+                e_ratio[var] = val.replace('/','_')
         vmr = net.thermochemical_equilibrium(
             atm.temp,
             metallicity=metallicity,
             e_abundances=e_abundances,
             e_ratio=e_ratio,
-            e_scale=e_scale,
         )
-    # TBD: Check this is the right (best) criterion (this is not explicit)
-    elif len(atm.molpars) > 0:
+    elif np.any(~atm._equil_var) and len(atm.molpars)>0:
+        vmr_vars = np.array(atm.mol_pnames)[~atm._equil_var]
+        vmr_pars = np.array(atm.molpars)[~atm._equil_var]
         vmr = pa.qscale(
             np.copy(atm.base_vmr),
-            pyrat.mol.name, atm.molmodel,
-            atm.molfree, atm.molpars, atm.bulk,
+            pyrat.mol.name,
+            vmr_vars, vmr_pars, atm.bulk,
             iscale=atm.ifree, ibulk=atm.ibulk,
             bratio=atm.bulkratio, invsrat=atm.invsrat,
         )

@@ -18,7 +18,6 @@ __all__ = [
     'tmodels',
     'chemmodels',
     'radmodels',
-    'molmodels',
     'amodels',
     'rmodels',
     'cmodels',
@@ -111,13 +110,6 @@ chemmodels = [
 radmodels = [
     'hydro_m',
     'hydro_g',
-]
-
-# Molecular-abundance models:
-molmodels = [
-    'vert',
-    'scale',
-    'equil',
 ]
 
 # Alkali models:

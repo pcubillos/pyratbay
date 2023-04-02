@@ -398,45 +398,69 @@ specifying the ``tmodel`` and ``tpars`` keys (see :ref:`temp_profile`).
 Abundances Scaling
 ------------------
 
-Use the ``molmodel`` key to modify the abundance of certain
-atmospheric species (specified by ``molfree``), according to the
-``molpars`` key.  The following table list the currently available
-models:
+Use the ``molvars`` and ``molpars`` keys to modify the abundance of
+certain atmospheric species.  There are two sets of options depending
+on whether the atmosphere is modeled in chemical equilibrium or not.
+The following tables describe the available models (when the
+corresponding ``molpars`` is :math:`x`).
 
-============ =========================== =====
-``molmodel`` Scaling                     Description
-============ =========================== =====
-vert         :math:`Q(p) = 10^X`         Set abundance to given value
-scale        :math:`Q(p) = Q_0(p)\ 10^X` Scale input abundance by given value
-============ =========================== =====
+For runs with free abundances:
 
-Here, the variable :math:`X` represents the value in the ``molpars``
-key, whereas :math:`Q_0` is the abundance of the given species taken
-from the atmospheric file ``atmfile``.
-Note that the user can specify as many scaling parameters as wished,
-as long as there are corresponding values for these three keys
-(``molmodel``, ``molfree``, ``molpars``).
+============ =========================================== =====
+``molvars``  Scaling                                     Description
+============ =========================================== =====
+log_mol      :math:`\log_{10}{\rm VMR} = x`              Set log(VMR) of species 'mol' to given value (constant with altitude)
+scale_mol    :math:`{\rm VMR}(p) = {\rm VMR}_0(p)\ 10^x` Scale existing VMR of species 'mol' abundance by given value
+============ =========================================== =====
 
-
-To preserve the sum of the mixing fractions at 1.0 at each layer, the
-code will 'adjust' the values of certain '*bulk*' species.  The user
-needs to set these species through the ``bulk`` key.  A good practice
-is to set here the dominant species in an atmosphere.  If there is
-more than one '*bulk*' species, the ratio of their abundances is
-preserved.
+In this case the parameters modify directly the VMR of specific
+species.  To preserve the sum of the VMR at 1.0 at each layer, the
+code will adjust the values of custom '*bulk*' species defined using
+the ``bulk`` key.  A good practice is to set here the dominant species
+in an atmosphere (e.g., ``bulk = H2 He`` for primary atmospheres).  If there
+is more than one '*bulk*' species, the code preserves the relative
+VMRs ratios between the bulk species.
 
 For example, the following configuration will set uniform mole mixing
 fractions for |H2O| and CO of :math:`10^{-3}` and :math:`10^{-4}`,
-respectively (regardless of input values); scale the input TiO profile
-by a factor of 10.0, and adjust the abundances of |H2| and He to
+respectively; and adjust the abundances of |H2| and He to
 preserve a total mixing fraction of 1.0 at each layer:
 
 .. code-block:: python
 
-  molmodel = vert  vert  scale
-  molfree  =  H2O    CO    TiO
-  molpars  = -3.0  -4.0   -1.0
-  bulk     = H2 He
+  molvars = log_H2O log_CO
+  molpars = -3.0    -4.0
+  bulk = H2 He
+
+
+For runs in thermochemical equilibrium (``chemistry = tea``):
+
+============ ================================= =====
+``molvars``  Scaling                           Description
+============ ================================= =====
+metal        :math:`{\rm [M/H]} = x`           Set metallicity (dex units) of all metal species (everything except H and He)
+[X/H]        :math:`{\rm [X/H]} = x`           Set metallicity (dex units) of element 'X' relative to solar (overrided metal)
+X/Y          ...                               Set abundance of element 'X' relative to that of element 'Y' (note not in dex units)
+============ ================================= =====
+
+
+key, whereas :math:`Q_0` is the abundance of the given species taken
+from the atmospheric file ``atmfile``.
+Note that the user can specify as many scaling parameters as wished,
+as long as there are corresponding values for these three keys
+(``molvars``, ``molpars``).
+
+
+For example, the following configuration will compute abundances in
+thermochemical equilibrium assuming 30x solar abundances for carbon
+and oxygen, and 10x solar for all other metals:
+
+
+.. code-block:: python
+
+  chemistry = tea
+  molvars = metal [C/H] [O/H]
+  molpars = 1.0   1.5    1.5
 
 
 .. _starspec:

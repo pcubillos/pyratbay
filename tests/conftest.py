@@ -67,8 +67,6 @@ def undefined_opacity():
 @pytest.fixture
 def undefined_mcmc():
     data = {
-        'retflag': "Undefined retrieval model flags.  Select from ['temp', "
-                  "'rad', 'press', 'mol', 'ray', 'cloud', 'patchy', 'mass', 'tstar']",
         'params': 'Undefined retrieval fitting parameters (params)',
         'data':   'Undefined transit/eclipse data (data)',
         'uncert': 'Undefined data uncertainties (uncert)',
@@ -83,7 +81,7 @@ def undefined_mcmc():
         'rayleigh': 'Requested ray in retflag, but there are no rayleigh '
                     'models',
         'clouds': 'Requested cloud in retflag, but there are no cloud models',
-        'molmodel': "Requested mol in retflag, but there is no 'molmodel'",
+        'molvars': "Requested mol in retflag, but there is no 'molvars'",
         'bulk': 'Requested mol in retflag, but there are no bulk species',
     }
     return data

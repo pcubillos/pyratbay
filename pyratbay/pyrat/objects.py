@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Patricio Cubillos
+# Copyright (c) 2021-2023 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -24,6 +24,7 @@ import scipy.constants as sc
 
 from .. import tools as pt
 from .. import constants as pc
+from .. import atmosphere as pa
 
 
 class Spectrum(object):
@@ -139,6 +140,77 @@ class Atm(object):
       self.tpars   = None
       self.rtop    = 0        # Index of topmost layer (within Hill radius)
 
+  def validate_species(self, var, log, molec=None, elements=[]):
+      # Validate composition variables:
+      if molec is not None:
+          if molec not in self.species:
+              log.error(
+                  f"Invalid molvars variable '{var}', "
+                  f"species {molec} is not in the atmosphere"
+              )
+          return
+
+      in_equillibrium = self.chemistry == 'tea'
+      if not in_equillibrium:
+          log.error(f"molvars variable '{var}' requires chemistry=tea")
+      for element in elements:
+          if element not in self.chem_model.elements:
+              log.error(
+                  f"Invalid molvars variable '{var}', "
+                  f"element '{element}' is not in the atmosphere"
+              )
+
+  def parse_abundance_parameters(self, molvars, log=None):
+      # Sort out abundance free-parameters:
+      self.mol_pnames = []
+      self.mol_texnames = []
+
+      free_vmr = []
+      self._equil_var = np.zeros(len(molvars), bool)
+      for i,var in enumerate(molvars):
+          # VMR variables
+          if var.startswith('log_'):
+              molec = var[4:]
+              free_vmr.append(molec)
+              self.validate_species(var, log, molec=molec)
+              self.mol_pnames.append(var)
+              self.mol_texnames.append(fr'$\log\ X_{{\rm {molec}}}$')
+          elif var.startswith('scale_'):
+              molec = var[6:]
+              free_vmr.append(molec)
+              self.validate_species(var, log, molec=molec)
+              self.mol_pnames.append(var)
+              self.mol_texnames.append(fr'$\log\ X_{{\rm {molec}}}$')
+          # Equillibrium variables
+          elif var == 'metal':
+              self._equil_var[i] = True
+              self.validate_species(var, log)
+              self.mol_pnames.append('[M/H]')
+              self.mol_texnames.append('[M/H]')
+          elif var.startswith('[') and var.endswith('/H]'):
+              self._equil_var[i] = True
+              self.validate_species(var, log, elements=[var[1:-3]])
+              self.mol_pnames.append(var)
+              self.mol_texnames.append(var)
+          elif '/' in var:
+              self._equil_var[i] = True
+              idx = var.index('/')
+              elements = [var[0:idx], var[idx+1:]]
+              self.validate_species(var, log, elements=elements)
+              self.mol_pnames.append(var)
+              self.mol_texnames.append(var)
+          else:
+              log.error(f"Unrecognized molvars variable name: '{var}'")
+
+      self.ifree = [
+          list(self.species).index(mol)
+          for mol in free_vmr
+      ]
+
+      if len(molvars) == 0:
+          self.ibulk = None
+
+
   def __str__(self):
       fmt = {'float': '{: .3e}'.format}
       fw = pt.Formatted_Write()
@@ -188,22 +260,19 @@ class Atm(object):
       fw.write('\nAbundance units (qunits): {}', self.qunits)
       fw.write('Abundance internal units: mole mixing fraction')
       fw.write('Number of atmospheric species: {:d}', len(self.vmr[0]))
-      if hasattr(self, 'ifree'):
-      # if molmodel is not None: [TBD: this needs some reingeneering]
+      if len(self.mol_pnames) > 0:
           molpars = self.molpars
           if self.molpars == []:
-              molpars = [None for _ in self.molmodel]
+              molpars = [None for _ in self.mol_pnames]
 
-          fw.write('Abundance models:\n'
-                   '  ifree  molfree     molmodel    molpars')
-          for molvals in zip(self.ifree, self.molfree, self.molmodel, molpars):
-              fw.write('     {:2d}  {:10s}  {:10s}  {}', *molvals)
-          fw.write('Bulk species:\n'
-                   '  ibulk  bulk')
+          fw.write('Abundance models:\n  molvars    molpars  ifree')
+          for var, val in zip(self.mol_pnames, self.molpars):
+              fw.write(f'  {var:15s}  {val:10s}')
+          fw.write('Bulk species:\n  ibulk  bulk')
           for ibulk, bulk in zip(self.ibulk, self.bulk):
               fw.write('     {:2d}  {:10s}', ibulk, bulk)
 
-      fw.write('Abundance profiles (q, mole mixing fraction):')
+      fw.write('Abundance profiles (vmr, mole mixing fraction):')
       for i, q in enumerate(self.vmr.T):
           fw.write('    species [{:2d}]:   {}', i, q,    fmt=fmt, edge=2)
       fw.write('Density profiles (d, molecules cm-3):')
@@ -498,37 +567,97 @@ class Cross(object):
 
 
 class Cloud(object):
-  def __init__(self):
-      self.models  = []    # List of cloud models
-      self.ec      = None  # Cloud extinction coefficient
-      self.fpatchy = None  # Patchy-cloud fraction
-      self.pars    = None  # Input cloud parameters
+    """Interface to collect all Rayleigh opacity models"""
+    def __init__(self, model_names, pars, fpatchy=None, log=None):
+        self.model_names = model_names
+        self.models = []    # List of cloud models
+        self.pars = []
+        self.pnames = []
+        self.texnames = []
+        self.npars = 0
+        self.ec = None  # Cloud extinction coefficient
+        self.fpatchy = fpatchy
 
-  def __str__(self):
-      fw = pt.Formatted_Write()
-      fw.write('Cloud-opacity models (models):')
-      for model in self.models:
-          fw.write('\n' + str(model))
-      fw.write('\nPatchiness fraction (fpatchy): {:.3f}', self.fpatchy)
-      fw.write('Total atmospheric cloud extinction-coefficient '
-               '(ec, cm-1):\n{}', self.ec, fmt={'float':' {:.3e}'.format})
-      return fw.text
+        if model_names is None:
+            return
+        for name in model_names:
+            model = pa.clouds.get_model(name)
+            self.models.append(model)
+            self.npars += model.npars
+            self.pnames += model.pnames
+            self.texnames += model.texnames
+
+        # Parse the cloud parameters:
+        if pars is None:
+            return
+        input_npars = len(pars)
+        if self.npars != input_npars:
+            log.error(
+                f'Number of input cloud parameters ({input_npars}) '
+                'does not match the number of required '
+                f'model parameters ({self.npars})'
+            )
+        j = 0
+        for model in self.models:
+            model.pars = pars[j:j+model.npars]
+            j += model.npars
+
+    def __str__(self):
+        fw = pt.Formatted_Write()
+        fw.write('Cloud-opacity models (models):')
+        for model in self.models:
+            fw.write('\n' + str(model))
+        fw.write('\nPatchiness fraction (fpatchy): {:.3f}', self.fpatchy)
+        fw.write('Total atmospheric cloud extinction-coefficient '
+                 '(ec, cm-1):\n{}', self.ec, fmt={'float':' {:.3e}'.format})
+        return fw.text
 
 
 class Rayleigh(object):
-  def __init__(self):
-      self.models  = []    # List of Rayleigh models
-      self.ec      = None  # Rayleigh extinction coefficient
-      self.pars    = None  # Input rayleigh parameters
+    """Interface to collect all Rayleigh opacity models"""
+    def __init__(self, model_names, pars, log=None):
+        self.model_names = model_names
+        self.models = []  # List of Rayleigh models
+        self.pars = []
+        self.pnames = []
+        self.texnames = []
+        self.npars = 0
+        self.ec = None    # Rayleigh extinction coefficient
 
-  def __str__(self):
-      fw = pt.Formatted_Write()
-      fw.write('Rayleigh-opacity models (models):')
-      for model in self.models:
-          fw.write('\n' + str(model))
-      fw.write('\nTotal atmospheric Rayleigh extinction-coefficient '
-               '(ec, cm-1):\n{}', self.ec, fmt={'float': '{: .3e}'.format})
-      return fw.text
+        if model_names is None:
+            return
+
+        for name in model_names:
+            model = pa.rayleigh.get_model(name)
+            self.models.append(model)
+            self.npars += model.npars
+            self.pnames += model.pnames
+            self.texnames += model.texnames
+
+        # Process Rayleigh parameters if necessary:
+        if self.models == [] or pars is None:
+            return
+        input_npars = len(pars)
+        if self.npars != input_npars:
+            log.error(
+                f'Number of input Rayleigh parameters ({input_npars}) '
+                'does not match the number of required '
+                f'model parameters ({self.npars})'
+            )
+        j = 0
+        for model in self.models:
+            model.pars = pars[j:j+model.npars]
+            j += model.npars
+
+
+    def __str__(self):
+        fw = pt.Formatted_Write()
+        fw.write('Rayleigh-opacity models (models):')
+        for model in self.models:
+            fw.write('\n' + str(model))
+        fw.write('\nTotal atmospheric Rayleigh extinction-coefficient '
+                 '(ec, cm-1):\n{}', self.ec, fmt={'float': '{: .3e}'.format})
+        return fw.text
 
 
 class Alkali(object):
@@ -686,7 +815,7 @@ class Observation(object):
 
 class Retrieval(object):
   def __init__(self):
-      self.retflag = None  # Flags for models to be included for retrieval
+      self.retflag = None
       self.nparams = 0     # Number of free parameters
       self.tlow    = None  # Lower-temperature retrieval boundary
       self.thigh   = None  # Higher-temperature retrieval boundary
@@ -710,11 +839,6 @@ class Retrieval(object):
       self.texnames = []   # Model parameter names (figures)
 
   def __str__(self):
-      {'float':'{: .3e}'.format}
-      flags = []
-      for flag in self.retflag:
-          flags += [flag for _ in getattr(self, 'i'+flag)]
-
       fw = pt.Formatted_Write()
       fw.write('Retrieval information:')
       if self.params is None:
@@ -726,20 +850,18 @@ class Retrieval(object):
       psteps = [None for _ in self.params] if self.pstep is None else self.pstep
 
       fw.write(
-          '  Parameter name        value        pmin        pmax'
-          '       pstep  Model type',
+          '  Parameter name        value        pmin        pmax       pstep',
       )
       fw.write(
-          '  {:15}  {:>10}  {:>10}  {:>10}  {:>10}  {}',
-          '(pnames)', '(params)', '(pmin)', '(pmax)', '(pstep)', '(retflag)',
+          '  {:15}  {:>10}  {:>10}  {:>10}  {:>10}',
+          '(pnames)', '(params)', '(pmin)', '(pmax)', '(pstep)',
       )
       n_obs = len(self.pnames)
 
       for i in range(n_obs):
           fw.write(
-              '  {:15s}  {:10.3e}  {:10.3e}  {:10.3e}  {:10.3e}  {}',
+              '  {:15s}  {:10.3e}  {:10.3e}  {:10.3e}  {:10.3e}',
               self.pnames[i], self.params[i], pmin[i], pmax[i], psteps[i],
-              flags[i],
           )
 
       if self.prior is not None:
@@ -818,6 +940,9 @@ class Retrieval(object):
 
 
 def none_div(a, b):
+    """
+    Non-breaking division when values are None.
+    """
     if a is None:
         return None
     return a/b

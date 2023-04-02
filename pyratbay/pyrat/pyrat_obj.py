@@ -1,7 +1,6 @@
 # Copyright (c) 2021-2023 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
-import os
 import multiprocessing as mp
 from collections import OrderedDict
 
@@ -70,8 +69,6 @@ class Pyrat(object):
       self.ex = ob.Extinction()       # Extinction-coefficient
       self.cs = ob.Cross()            # Cross-section extinction
       self.od = ob.Optdepth()         # Optical depth
-      self.cloud = ob.Cloud()         # Cloud models
-      self.rayleigh = ob.Rayleigh()   # Rayleigh models
       self.alkali = ob.Alkali()       # Alkali opacity models
       self.obs = ob.Observation()     # Observational data
       self.phy = ob.Physics()         # System physical parameters

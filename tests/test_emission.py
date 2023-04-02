@@ -253,8 +253,7 @@ def test_emission_tmodel(tmp_path):
 
 def test_emission_vert_none_model(tmp_path):
     reset = {
-        'molmodel': 'vert',
-        'molfree': 'H2O',
+        'molvars': 'log_H2O',
         'bulk': 'H2 He',
     }
     cfg = make_config(
@@ -273,8 +272,7 @@ def test_emission_vert_none_model(tmp_path):
 
 def test_emission_vert_model(tmp_path):
     reset={
-        'molmodel': 'vert',
-        'molfree': 'H2O',
+        'molvars': 'log_H2O',
         'molpars': '-5',
         'bulk': 'H2 He',
     }
@@ -290,8 +288,7 @@ def test_emission_vert_model(tmp_path):
 
 def test_emission_scale_model(tmp_path):
     reset={
-        'molmodel': 'scale',
-        'molfree': 'H2O',
+        'molvars': 'scale_H2O',
         'molpars': '-1',
         'bulk': 'H2 He',
     }
@@ -313,8 +310,7 @@ def test_emission_fit(tmp_path):
     reset = {
         'tmodel': 'guillot',
         'cpars': '2.0',
-        'molmodel': 'vert',
-        'molfree': 'H2O',
+        'molvars': 'log_H2O',
         'bulk': 'H2 He',
         'retflag': 'temp mol ray cloud',
         'params': '-4.67 -0.8 -0.8 0.5 1486.0 100.0 -4.0 0.0 -4.0 2.0',

@@ -211,7 +211,7 @@ Mean molecular mass (mm, amu):
 Abundance units (qunits): None
 Abundance internal units: mole mixing fraction
 Number of atmospheric species: 7
-Abundance profiles (q, mole mixing fraction):
+Abundance profiles (vmr, mole mixing fraction):
     species [ 0]:   [ 8.500e-01  8.500e-01 ...  8.500e-01  8.500e-01]
     species [ 1]:   [ 1.490e-01  1.490e-01 ...  1.490e-01  1.490e-01]
     species [ 2]:   [ 3.000e-06  3.000e-06 ...  3.000e-06  3.000e-06]
@@ -932,16 +932,16 @@ Wavenumber  Wavelength    Bandflux  Filter name
 
     assert str(pyrat.ret) == """\
 Retrieval information:
-  Parameter name        value        pmin        pmax       pstep  Model type
-  (pnames)           (params)      (pmin)      (pmax)     (pstep)  (retflag)
-  log(kappa')      -5.000e+00  -9.000e+00   5.000e+00   3.000e-01  temp
-  log(gamma1)       0.000e+00  -3.000e+00   3.000e+00   3.000e-01  temp
-  log(gamma2)       0.000e+00  -3.000e+00   3.000e+00   0.000e+00  temp
-  alpha             0.000e+00   0.000e+00   1.000e+00   0.000e+00  temp
-  T_irr (K)         1.486e+03   0.000e+00   7.000e+03   5.000e+01  temp
-  T_int (K)         1.000e+02   0.000e+00   5.000e+02   0.000e+00  temp
-  Rp (km)           7.150e+04   3.000e+04   1.500e+05   1.000e+02  rad
-  log(H2O)         -4.000e+00  -9.000e+00  -1.000e+00   5.000e-01  mol
+  Parameter name        value        pmin        pmax       pstep
+  (pnames)           (params)      (pmin)      (pmax)     (pstep)
+  log(kappa')      -5.000e+00  -9.000e+00   5.000e+00   3.000e-01
+  log(gamma1)       0.000e+00  -3.000e+00   3.000e+00   3.000e-01
+  log(gamma2)       0.000e+00  -3.000e+00   3.000e+00   0.000e+00
+  alpha             0.000e+00   0.000e+00   1.000e+00   0.000e+00
+  T_irr             1.486e+03   0.000e+00   7.000e+03   5.000e+01
+  T_int             1.000e+02   0.000e+00   5.000e+02   0.000e+00
+  R_planet          7.150e+04   3.000e+04   1.500e+05   1.000e+02
+  log_H2O          -4.000e+00  -9.000e+00  -1.000e+00   5.000e-01
 
 Retrieval algorithm (sampler): snooker
 Number of retrieval samples (nsamples): 300
@@ -949,7 +949,7 @@ Number of parallel chains (nchains):   21
 Number of burned-in samples (burnin):  10
 Thinning factor (thinning): 1
 
-Upper boundary for sum of metal abundances (qcap): 1.0
+Upper boundary for sum of metal abundances (qcap): None
 Temperature upper boundary (tlow, K):   300.0
 Temperature lower boundary (thigh, K): 3000.0
 
