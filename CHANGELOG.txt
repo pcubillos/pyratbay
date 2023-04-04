@@ -7963,3 +7963,9 @@ Updated pnames Lecavelier() Rayleigh model.
 Replaced parentheses with underscores.
 Updated docs.
 
+*****
+
+Updated pnames for Cloud models.
+Replaced parentheses with underscores.
+Updated docs.
+

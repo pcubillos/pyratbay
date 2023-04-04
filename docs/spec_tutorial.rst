@@ -349,20 +349,20 @@ currently available cloud model names:
 
 And these are the available haze/cloud models (``clouds`` parameter):
 
-=================== ====================== =============================
-Models (``clouds``) Parameters (``cpars``) Description
-=================== ====================== =============================
-deck                |ptop|                 Opaque gray cloud deck
-ccsgray             |f|, |pt|, |pb|        Constant gray cross-section
-=================== ====================== =============================
+=================== ============================================ =============================
+Models (``clouds``) Parameter names                              Description
+=================== ============================================ =============================
+deck                ``log_p_cl``                                 Opaque gray cloud deck
+ccsgray             ``log_k_gray``, ``log_p_top``, ``log_p_bot`` Constant gray cross-section
+=================== ============================================ =============================
 
 Use the ``cpars`` key to set the cloud model parameters.  The '*deck*'
-model makes the atmosphere instantly opaque at/below the |ptop| pressure
+model makes the atmosphere instantly opaque at the :math:`\log(p_{\rm cl})` pressure
 (in bar units).
 
 The '*ccsgray*' model creates a constant cross-section opacity between
 the :math:`p_{\rm t}` and :math:`p_{\rm b}` pressures (in bar units),
-and the |f| parameter scaling the opacity as: :math:`k = f\ k_0`, with
+and the |f| parameter scaling the opacity as: :math:`k = \kappa_{\rm gray}\ \kappa_0`, with
 :math:`\kappa_0=5.31 \times 10^{-27}` cm\ :sup:`2` molecule\
 :sup:`-1`.  This model uses the |H2| number-density profile to compute
 the extinction coefficient as: :math:`e(\lambda) = k\ n_{\rm H2}` (in
@@ -407,12 +407,12 @@ corresponding ``molpars`` is :math:`x`).
 
 For runs with free abundances:
 
-============ =========================================== =====
-``molvars``  Scaling                                     Description
-============ =========================================== =====
-log_mol      :math:`\log_{10}{\rm VMR} = x`              Set log(VMR) of species 'mol' to given value (constant with altitude)
-scale_mol    :math:`{\rm VMR}(p) = {\rm VMR}_0(p)\ 10^x` Scale existing VMR of species 'mol' abundance by given value
-============ =========================================== =====
+============= =========================================== =====
+``molvars``   Scaling                                     Description
+============= =========================================== =====
+``log_mol``   :math:`\log_{10}{\rm VMR} = x`              Set log(VMR) of species 'mol' to given value (constant with altitude)
+``scale_mol`` :math:`{\rm VMR}(p) = {\rm VMR}_0(p)\ 10^x` Scale existing VMR of species 'mol' abundance by given value
+============= =========================================== =====
 
 In this case the parameters modify directly the VMR of specific
 species.  To preserve the sum of the VMR at 1.0 at each layer, the
@@ -436,13 +436,13 @@ preserve a total mixing fraction of 1.0 at each layer:
 
 For runs in thermochemical equilibrium (``chemistry = tea``):
 
-============ ================================= =====
-``molvars``  Scaling                           Description
-============ ================================= =====
-metal        :math:`{\rm [M/H]} = x`           Set metallicity (dex units) of all metal species (everything except H and He)
-[X/H]        :math:`{\rm [X/H]} = x`           Set metallicity (dex units) of element 'X' relative to solar (overrided metal)
-X/Y          ...                               Set abundance of element 'X' relative to that of element 'Y' (note not in dex units)
-============ ================================= =====
+================ ================================= =====
+``molvars``      Scaling                           Description
+================ ================================= =====
+``metal``        :math:`{\rm [M/H]} = x`           Set metallicity (dex units) of all metal species (everything except H and He)
+``[X/H]``        :math:`{\rm [X/H]} = x`           Set metallicity (dex units) of element 'X' relative to solar (overrided metal)
+``X/Y``          ...                               Set abundance of element 'X' relative to that of element 'Y' (note not in dex units)
+================ ================================= =====
 
 
 key, whereas :math:`Q_0` is the abundance of the given species taken
