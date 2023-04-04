@@ -8016,3 +8016,8 @@ Updated CI testing badges.
 
 Enabled custom units in plots.spectrum().
 There are no checks that the input units are valid.
+
+*****
+
+More colorful spectrum plots.
+

@@ -142,6 +142,14 @@ def spectrum(
         Figure number.
     axis: AxesSubplot instance
         The matplotlib Axes of the figure.
+    ms: Float
+        Marker sizes.
+    lw: Float
+        Line widths.
+    fs: Float
+        Font sizes.
+    units: String
+        Flux units. Select from: 'percent', 'ppt', 'ppm', 'none'.
 
     Returns
     -------
@@ -223,15 +231,28 @@ def spectrum(
         ax.set_ylim(np.array(yran))
     yran = ax.get_ylim()
 
+    xmin = np.amin(wavelength)
+    xmax = np.amax(wavelength)
+    is_log = logxticks is not None
+    def color(x, is_log):
+        if is_log:
+            return np.log(x/xmin) / np.log(xmax/xmin)
+        else:
+            return (x-xmin) / (xmax-xmin)
+
     # Transmission filters:
     if bandtrans is not None and bandidx is not None:
-        bandh = 0.06*(yran[1] - yran[0])
-        for btrans, bidx in zip(bandtrans, bandidx):
-            btrans = bandh * btrans/np.amax(btrans)
-            plt.plot(wavelength[bidx], yran[0]+btrans, '0.4', zorder=-10)
+        band_height = 0.05*(yran[1] - yran[0])
+        for response, bidx, wl0 in zip(bandtrans, bandidx, bandwl):
+            col = plt.cm.viridis_r(color(wl0, is_log))
+            btrans = band_height * response/np.amax(response)
+            plt.plot(
+                wavelength[bidx], yran[0]+btrans,
+                color=col, lw=1.0, zorder=-10,
+            )
         ax.set_ylim(yran)
 
-    if logxticks is not None:
+    if is_log:
         ax.set_xscale('log')
         ax.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
         ax.xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
@@ -240,9 +261,9 @@ def spectrum(
     ax.tick_params(
         which='both', right=True, top=True, direction='in', labelsize=fs-2,
     )
-    plt.xlabel('Wavelength (um)', fontsize=fs)
-    plt.legend(loc='best', numpoints=1, fontsize=fs-1)
-    plt.xlim(np.amin(wavelength), np.amax(wavelength))
+    ax.set_xlabel('Wavelength (um)', fontsize=fs)
+    ax.legend(loc='best', numpoints=1, fontsize=fs-1)
+    ax.set_xlim(xmin, xmax)
     plt.tight_layout()
 
     if filename is not None:
