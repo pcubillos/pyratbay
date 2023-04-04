@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Patricio Cubillos
+# Copyright (c) 2021-2023 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -17,6 +17,7 @@ __all__ = [
     'write_cs',
     'read_cs',
     'read_pt',
+    'write_observations',
     'read_observations',
     'read_atomic',
     'read_molecs',
@@ -26,9 +27,10 @@ __all__ = [
     'export_pandexo',
 ]
 
+from decimal import Decimal
+import inspect
 import os
 import pickle
-from decimal import Decimal
 
 import numpy as np
 import mc3
@@ -932,6 +934,107 @@ def read_pt(ptfile):
     return pressure, temperature
 
 
+def write_observations(
+        obs_file, inst_names, wl, wl_half_width,
+        depth=None, depth_err=None, depth_units='none',
+    ):
+    r"""
+    Write an observation file for use in pyrat bay.
+
+    Parameters
+    ----------
+    obs_file: String
+        Name of observation file.
+    inst_names: 1D string iterable
+        Name for the bandpasses.  If this is of type str, use
+        the same name for all bands.
+    wl: 1D string ndarray
+        Central wavelength of the bands (in microns).
+    wl_half_width: 2D float ndarray
+        Bandpass half-width (in microns).
+    data: 1D float ndarray
+        Transit of eclipse depth corresponding to  each band.
+        If not None, include this data into the observation file.
+    depth_err: 1D float ndarray
+        Depth uncertainties.
+    depth_units:  String
+        Units of input depth data.
+
+    Examples
+    --------
+    >>> import pyratbay.io as io
+    >>> wl = [2.144, 2.333, 2.523]
+    >>> half_widths = [0.095, 0.095, 0.095]
+    >>> io.write_observations('obs_file.txt', 'HST', wl, half_widths)
+
+    >>> data = np.array([329.6, 344.5, 301.4])
+    >>> uncert = np.array([20.4, 21.9, 23.5])
+    >>> io.write_observations(
+    >>>     'obs_file.txt', 'HST', wl, half_widths, data, uncert, 'ppm',
+    >>> )
+    """
+    default_header = inspect.cleandoc(
+        """
+        # Passband info could be (1) a path to a filter file or
+        # (2) a tophat filter defined by a central wavelength, half-width,
+        # and optionally a name
+
+        # Comment lines (like this one) and blank lines are ignored,
+        # central-wavelength and half-width units are always microns
+
+        # @DEPTH_UNITS sets the depth and uncert units (none, percent, ppt, ppm)
+        # and also indicates that there's data and uncertainties to read
+        # as two columns before the passband info
+        """
+    )
+    # Consistency checks TBD:
+    ndata = len(wl)
+    if isinstance(inst_names, str):
+         inst_names = np.tile(inst_names, ndata)
+
+    has_data = depth is not None and depth_err is not None
+
+    # Position of least significant digit
+    wl_dec = [Decimal(width).adjusted() for width in wl_half_width]
+    wl_dec += [
+        Decimal(wl_diff).adjusted()
+        for wl_diff in np.ediff1d(sorted(wl))
+    ]
+    wl_dec = np.clip(-np.amin(wl_dec) + 2, 1, 10)
+    wl_len = wl_dec + 4
+
+    depth_header1 = ''
+    depth_header2 = ''
+    if has_data:
+        depth_dec = np.amin([Decimal(err).adjusted() for err in depth_err])
+        depth_dec = np.clip(-depth_dec + 2, 1, 10)
+        depth_len = depth_dec + 6
+        depth_header1 = f'\n\n@DEPTH_UNITS\n{depth_units}'
+        depth_header2 = 'depth    depth_err'
+
+    with open(obs_file, 'w') as f:
+        f.write(default_header)
+
+        f.write(
+            f'{depth_header1}'
+            f'\n\n# {depth_header2}     wl  half_width    instrument\n@DATA\n'
+        )
+        for i in range(ndata):
+            if has_data:
+                f.write(
+                    f'{depth[i]:{depth_len}.{depth_dec}f}  '
+                    f'{depth_err[i]:{depth_len}.{depth_dec}f}   '
+                )
+            #if wl[i] is None or not np.isfinite(wl[i]):
+            #    f.write('{inst_names[i]}\n')
+            #else:
+            f.write(
+                f'{wl[i]:{wl_len}.{wl_dec}f}  '
+                f'{wl_half_width[i]:{wl_len}.{wl_dec}f}    '
+                f'{inst_names[i]}\n'
+            )
+
+
 def read_observations(obs_file):
     r"""
     Read an observations file.
@@ -945,9 +1048,9 @@ def read_observations(obs_file):
     -------
     filters: List
         Filter passband objects.
-    data: 1D string list
+    depth: 1D string list
         The transit or eclipse depths for each filter.
-    uncert: 1D float ndarray
+    depth_err: 1D float ndarray
         The depth uncertainties.
 
     Notes
@@ -971,7 +1074,7 @@ def read_observations(obs_file):
     >>> import pyratbay.io as io
     >>> # File including depths and uncertainties:
     >>> obs_file = 'observations.dat'
-    >>> bands, data, uncert = io.read_observations(obs_file)
+    >>> bands, depth, depth_err = io.read_observations(obs_file)
 
     >>> # File including only the passband info:
     >>> obs_file = 'filters.dat'
@@ -1006,16 +1109,16 @@ def read_observations(obs_file):
     has_data = depth_units is not None
 
     filters = []
-    data = np.zeros(nobs)
-    uncert = np.zeros(nobs)
+    depth = np.zeros(nobs)
+    depth_err = np.zeros(nobs)
 
     # Read the data:
     for j in range(nobs):
         info = lines[i+j].split()
         ndata = 0
         if has_data:
-            data[j] = info[0]
-            uncert[j] = info[1]
+            depth[j] = info[0]
+            depth_err[j] = info[1]
             ndata = 2
 
         if len(info) - ndata == 1:
@@ -1041,9 +1144,9 @@ def read_observations(obs_file):
             raise ValueError(error_msg)
 
     if has_data:
-        data *= pt.u(depth_units)
-        uncert *= pt.u(depth_units)
-        return filters, data, uncert
+        depth *= pt.u(depth_units)
+        depth_err *= pt.u(depth_units)
+        return filters, depth, depth_err
     return filters
 
 

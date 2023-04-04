@@ -342,6 +342,47 @@ def test_read_isotopes():
     np.testing.assert_allclose(mass[mol=='H2O'], masses)
 
 
+def test_write_observations_no_depths(tmpdir):
+    obsfile = 'obs_file.dat'
+    tmp_file = f"{tmpdir}/{obsfile}"
+
+    wl = [2.144, 2.333, 2.523]
+    half_widths = [0.095, 0.095, 0.095]
+    inst_names = 'HST_WFC3'
+    io.write_observations(tmp_file, inst_names, wl, half_widths)
+    assert obsfile in os.listdir(str(tmpdir))
+    # TBD: Assert content is OK
+
+
+def test_write_observations_with_names(tmpdir):
+    obsfile = 'obs_file.dat'
+    tmp_file = f"{tmpdir}/{obsfile}"
+
+    wl = [2.144, 2.333, 2.523]
+    half_widths = [0.095, 0.095, 0.095]
+    inst_names = ['HST_WFC1', 'HST_WFC2', 'HST_WFC3']
+    io.write_observations(tmp_file, inst_names, wl, half_widths)
+    assert obsfile in os.listdir(str(tmpdir))
+    # TBD: Assert content is OK
+
+
+def test_write_observations_with_depths(tmpdir):
+    obsfile = 'obs_file.dat'
+    tmp_file = f"{tmpdir}/{obsfile}"
+
+    wl = [2.144, 2.333, 2.523]
+    half_widths = [0.095, 0.095, 0.095]
+    inst_names = 'HST_WFC3'
+    data = np.array([329.6, 344.5, 301.4])
+    uncert = np.array([20.4, 21.9, 23.5])
+    io.write_observations(
+         tmp_file, inst_names, wl, half_widths, data, uncert, 'ppm',
+    )
+    assert obsfile in os.listdir(str(tmpdir))
+    # TBD: Assert content is OK
+
+
+
 def test_read_observations_passband_file():
     obs_file = 'inputs/obs_file_passband_file.dat'
     bands = io.read_observations(obs_file)

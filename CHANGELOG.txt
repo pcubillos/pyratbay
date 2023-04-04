@@ -7969,3 +7969,9 @@ Updated pnames for Cloud models.
 Replaced parentheses with underscores.
 Updated docs.
 
+*****
+
+Implemented io.write_observations() function.
+Currently it only works for Tophat type of bandpasses.
+Documented and tested.
+
