@@ -90,8 +90,8 @@ class Lecavelier():
         # Cross-section scale factor (unitless) and power-law exponent
         self.pars = [ 0.0, -4.0]
         self.npars = len(self.pars)
-        self.pnames = ['log(f_ray)', 'alpha_ray']
-        self.texnames = [r'$\log\ f_{\rm ray}$', r'$\alpha_{\rm ray}$']
+        self.pnames = ['log_k_ray', 'alpha_ray']
+        self.texnames = [r'$\log\ \kappa_{\rm ray}$', r'$\alpha_{\rm ray}$']
         self.ec = None  # Model extinction coefficient
         self.s0 = 5.31e-27  # Cross section (cm2 molec-1) at l0
         self.l0 = 3.5e-5    # Nominal wavelength (cm)
@@ -99,8 +99,8 @@ class Lecavelier():
     def extinction(self, wn):
         """
         Calculate the Rayleigh cross section in cm2 molec-1:
-            cross section = f_ray * s0 * (lambda/l0)**alpha_ray,
-        parameterized as params = [log10(f_ray), alpha_ray).
+            cross section = k_ray * s0 * (lambda/l0)**alpha_ray,
+        parameterized as params = [log10(k_ray), alpha_ray).
 
         Parameters
         ----------

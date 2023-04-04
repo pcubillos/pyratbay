@@ -7957,3 +7957,9 @@ Refactored pa.temperature_posterior() function to simplify usage.
 Updated docs.
 This should really be moved as a method of tmodel objects.
 
+*****
+
+Updated pnames Lecavelier() Rayleigh model.
+Replaced parentheses with underscores.
+Updated docs.
+

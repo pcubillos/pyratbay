@@ -300,14 +300,14 @@ Rayleigh Opacity Models
 The ``rayleigh`` key sets Rayleigh opacity models.  The following
 table lists the available Rayleigh model names:
 
-===================== ======= =======================  ===
-Models (``rayleigh``) Species Parameters (``rpars``)   References
-===================== ======= =======================  ===
-lecavelier            ---     :math:`\log(f), \alpha`  [Lecavelier2008]_
-dalgarno_H            H       ---                      [Dalgarno1962]_
-dalgarno_He           He      ---                      [Kurucz1970]_
-dalgarno_H2           |H2|    ---                      [Kurucz1970]_
-===================== ======= =======================  ===
+===================== ======= ============================  ===
+Models (``rayleigh``) Species Parameter names               References
+===================== ======= ============================  ===
+lecavelier            ---     ``log_k_ray``, ``alpha_ray``  [Lecavelier2008]_
+dalgarno_H            H       ---                           [Dalgarno1962]_
+dalgarno_He           He      ---                           [Kurucz1970]_
+dalgarno_H2           |H2|    ---                           [Kurucz1970]_
+===================== ======= ============================  ===
 
 The Dalgarno Rayleigh models are tailored for H, He, and |H2| species,
 and thus are not parametric.  The Lecavelier Rayleigh model is more flexible
@@ -315,14 +315,15 @@ and allows the user to modify the absorption strength and wavelength
 dependency according to:
 
 .. math::
-    k(\lambda) = f \kappa_0 \left(\frac{\lambda}{\lambda_0}\right)^\alpha,
+    k(\lambda) = \kappa_{\rm ray} \kappa_0 \left(\frac{\lambda}{\lambda_0}\right)^{\alpha_{\rm ray}},
 
 where :math:`\lambda_0=0.35` um and :math:`\kappa_0=5.31 \times
 10^{-27}` cm\ :sup:`2` molecule\ :sup:`-1` are constants, and
-:math:`\log(f)` and :math:`\alpha` are fitting parameters that can be
-set through the ``rpars`` key.  Adopting values of :math:`\log(f)=0.0`
-and :math:`\alpha=-4` reduces the Rayleigh opacity to that expected
-for the |H2| molecule.
+:math:`\log(\kappa_{\rm ray})` and :math:`\alpha_{\rm ray}` are
+fitting parameters that can be set through the ``rpars`` key.
+Adopting values of :math:`\log(\kappa_{\rm ray})=0.0` and
+:math:`\alpha_{\rm ray}=-4` reduces the Rayleigh opacity to that
+expected for the |H2| molecule.
 
 .. note:: Be aware that the implementation of the Lecavelier model
           uses the |H2| number-density profile (:math:`n_{\rm H2}`, in
