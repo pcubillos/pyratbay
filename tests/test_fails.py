@@ -760,6 +760,111 @@ def test_spectrum_filters_mismatch(tmp_path):
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
 
+@pytest.mark.parametrize(
+    'ncolumns',
+    [1, 3, 4, 6, 9],
+)
+def test_spectrum_invalid_retrieval_params_entry(tmp_path, ncolumns):
+    #        pname  val     pmin   pmax   pstep  prior prior_lo prior_hi
+    entry = 'T_iso 1500.0 300.0 3500.0 10.0 900.0 100.0 100.0 1.0'.split()
+    ret_pars = " ".join(entry[0:ncolumns])
+    reset = {
+        'tmodel':'isothermal',
+        'retrieval_params': ret_pars,
+    }
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        reset=reset,
+    )
+    error = re.escape(
+        f"Invalid number of fields for retrieval_params entry\n'{ret_pars}'"
+    )
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
+
+
+def test_spectrum_invalid_retrieval_params_pname(tmp_path):
+    reset = {
+        'tmodel':'isothermal',
+        'retrieval_params': 'log_H2O -3.0',
+    }
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        reset=reset,
+    )
+    error = re.escape(
+        "Invalid retrieval parameter 'log_H2O'. Possible values are:\n"
+        "['log_p_ref', 'R_planet', 'M_planet', 'f_patchy', 'T_eff', "
+        "'T_iso', 'log(f_ray)', 'alpha_ray', 'log(p_top)']"
+    )
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
+
+
+def test_spectrum_insuficient_retrieval_params_temp(tmp_path):
+    reset = {
+        'tmodel': 'isothermal',
+        'retrieval_params': 'R_planet -3.0',
+    }
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        reset=reset,
+    )
+    error = re.escape('Not all temperature parameters were defined (tpars)')
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
+
+
+def test_spectrum_insuficient_retrieval_params_mol(tmp_path):
+    reset = {
+        'chemistry': 'tea',
+        'molvars': 'metal',
+        'retrieval_params': 'R_planet -3.0',
+    }
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        reset=reset,
+    )
+    error = re.escape('Not all abundance parameters were defined (molpars)')
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
+
+
+def test_spectrum_insuficient_retrieval_params_cloud(tmp_path):
+    reset = {
+        'cloud': 'deck',
+        'retrieval_params': 'R_planet -3.0',
+    }
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        reset=reset,
+        remove=['cpars'],
+    )
+    error = re.escape('Not all Cloud parameters were defined (cpars)')
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
+
+
+def test_spectrum_insuficient_retrieval_params_rayleigh(tmp_path):
+    reset = {
+        'rayleigh': 'lecavelier',
+        'retrieval_params': 'R_planet -3.0',
+    }
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        reset=reset,
+        remove=['rpars'],
+    )
+    error = re.escape('Not all Rayleigh parameters were defined (rpars)')
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
+
 
 def test_spectrum_params_misfit(tmp_path):
     # Without evaulating params:
@@ -784,8 +889,9 @@ def test_spectrum_params_misfit(tmp_path):
 def test_eval_params_misfit(tmp_path, capfd):
     # Without evaulating params:
     reset = {
-        'tmodel': 'guillot',
+        'tmodel': 'isothermal',
         'retflag': 'temp',
+        'tpars': '1500.0',
     }
     cfg = make_config(
         tmp_path,
@@ -795,12 +901,12 @@ def test_eval_params_misfit(tmp_path, capfd):
     pyrat = pb.run(cfg)
     captured = capfd.readouterr()
 
-    # Now
+    # Now, only a warning
     warning = (
         "The number of input fitting parameters (2) does not match\n"
-        "    the number of required parameters (6)"
+        "    the number of required parameters (1)"
     )
-    pyrat.eval([-4.67, -0.8])
+    pyrat.eval([1200.0, 0.5])
     captured = capfd.readouterr()
     assert warning in captured.out
 

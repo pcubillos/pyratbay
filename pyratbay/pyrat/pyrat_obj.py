@@ -100,7 +100,6 @@ class Pyrat(object):
       #ms.make_atmprofiles(self)
       #self.timestamps['atm sample'] = timer.clock()
 
-
   def set_spectrum(self):
       timer = pt.Timer()
       ar.check_spectrum(self)
@@ -201,16 +200,16 @@ class Pyrat(object):
       Parameters
       ----------
       params: 1D float iterable
-         Array of fitting parameters that define the atmosphere.
+          Array of fitting parameters that define the atmosphere.
       retmodel: Bool
-         Flag to include the model spectra in the return.
+          Flag to include the model spectra in the return.
 
       Returns
       -------
       spectrum: 1D float ndarray
-         The output model spectra.  Returned only if retmodel=True.
+          The output model spectra.  Returned only if retmodel=True.
       bandflux: 1D float ndarray
-         The waveband-integrated spectrum values.
+          The waveband-integrated spectrum values.
       """
       atm = self.atm
       ret = self.ret
@@ -224,17 +223,15 @@ class Pyrat(object):
           return None, None if retmodel else None
 
 
-      # Update temperature parameters (or null them otherwise):
-      if ret.itemp is None:
-          atm.tpars = None
-      else:
-          atm.tpars = params[ret.itemp]
+      # Update temperature parameters (if necessary):
+      if ret.itemp is not None:
+          ifree = ret.map_pars['temp']
+          atm.tpars[ifree] = params[ret.itemp]
 
       # Update abundance parameters:
-      if ret.imol is None:
-          atm.molpars = []
-      else:
-          atm.molpars = params[ret.imol]
+      if ret.imol is not None:
+          ifree = ret.map_pars['mol']
+          atm.molpars[ifree] = params[ret.imol]
 
       # Update reference radius/pressure if requested:
       if ret.irad is not None:
@@ -249,18 +246,20 @@ class Pyrat(object):
 
       # Update Rayleigh parameters if requested:
       if ret.iray is not None:
+          ifree = ret.map_pars['ray']
+          self.rayleigh.pars[ifree] = params[ret.iray]
           j = 0
-          rpars = params[ret.iray]
           for rmodel in self.rayleigh.models:
-              rmodel.pars = rpars[j:j+rmodel.npars]
+              rmodel.pars = self.rayleigh.pars[j:j+rmodel.npars]
               j += rmodel.npars
 
       # Update cloud parameters if requested:
       if ret.icloud is not None:
+          ifree = ret.map_pars['cloud']
+          self.cloud.pars[ifree] = params[ret.icloud]
           j = 0
-          pars = params[ret.icloud]
           for model in self.cloud.models:
-              model.pars = pars[j:j+model.npars]
+              model.pars = self.cloud.pars[j:j+model.npars]
               j += model.npars
 
       # Update patchy-cloud fraction if requested:

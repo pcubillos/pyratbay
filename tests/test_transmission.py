@@ -350,12 +350,7 @@ def test_transmission_fit(tmp_path):
         reset=reset,
     )
     pyrat = pb.run(cfg)
-    np.testing.assert_allclose(pyrat.spec.spectrum, expected['all'], rtol=rtol)
-    # Eval default params:
-    model1 = pyrat.eval(pyrat.ret.params, retmodel=True)
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['fit1'], rtol=rtol)
-    np.testing.assert_equal(model1[0], pyrat.spec.spectrum)
-    assert model1[1] is None
     # Cloud deck:
     params = [-4.67, -0.8, -0.8, 0.5, 1486.0, 100.0, -4.0, 0.0, -4.0, -3.0]
     model2 = pyrat.eval(params, retmodel=True)

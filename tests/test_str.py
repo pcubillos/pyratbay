@@ -810,13 +810,13 @@ Extinction-coefficient information:
 Line-transition strength threshold (ethresh): 1.00e-15
 
 LBL extinction coefficient for the atmospheric model (ec, cm-1) [layer, wave]:
-[[1.99e-21 1.67e-14 3.74e-21 ... 5.24e-16 2.13e-17 3.54e-17]
- [3.28e-21 2.11e-14 6.21e-21 ... 6.59e-16 2.69e-17 4.46e-17]
- [5.20e-21 2.65e-14 9.78e-21 ... 8.30e-16 3.38e-17 5.62e-17]
+[[3.54e-22 3.71e-15 6.34e-22 ... 2.42e-16 2.24e-18 5.66e-18]
+ [4.46e-22 4.67e-15 7.98e-22 ... 3.05e-16 2.82e-18 7.13e-18]
+ [5.80e-22 5.88e-15 1.04e-21 ... 3.84e-16 3.56e-18 8.98e-18]
  ...
- [6.41e-07 1.03e-06 1.13e-06 ... 2.07e-06 1.77e-06 1.49e-06]
- [8.07e-07 1.04e-06 1.17e-06 ... 2.64e-06 2.23e-06 1.83e-06]
- [1.02e-06 1.31e-06 1.47e-06 ... 3.32e-06 2.80e-06 2.30e-06]]
+ [1.92e-07 3.05e-07 3.31e-07 ... 5.78e-07 4.89e-07 4.07e-07]
+ [2.39e-07 3.07e-07 3.42e-07 ... 7.36e-07 6.18e-07 5.05e-07]
+ [3.01e-07 3.86e-07 4.30e-07 ... 9.27e-07 7.78e-07 6.36e-07]]
 Extinction-coefficient table filename(s) (extfile):
     {:s}/outputs/exttable_test_300-3000K_1.1-1.7um.npz
 Minimum temperature (tmin, K):  300.0
@@ -908,24 +908,24 @@ Number of filter pass bands (nfilters): 20
 Wavenumber  Wavelength    Bandflux  Filter name
       cm-1          um        none
   (bandwn)              (bandflux)  (filters)
-   8826.31       1.133     0.00661  filter_test_WFC3_G141_1.133um
-   8635.38       1.158     0.00659  filter_test_WFC3_G141_1.158um
-   8449.69       1.183     0.00658  filter_test_WFC3_G141_1.183um
-   8271.12       1.209     0.00651  filter_test_WFC3_G141_1.209um
-   8097.00       1.235     0.00648  filter_test_WFC3_G141_1.235um
-   7936.66       1.260     0.00646  filter_test_WFC3_G141_1.260um
-   7781.94       1.285     0.00651  filter_test_WFC3_G141_1.285um
-   7630.82       1.310     0.00654  filter_test_WFC3_G141_1.310um
-   7484.88       1.336     0.00666  filter_test_WFC3_G141_1.336um
-   7344.98       1.361     0.00672  filter_test_WFC3_G141_1.361um
-   7207.07       1.388     0.00672  filter_test_WFC3_G141_1.387um
-   7077.26       1.413     0.00672  filter_test_WFC3_G141_1.413um
+   8826.31       1.133     0.00657  filter_test_WFC3_G141_1.133um
+   8635.38       1.158     0.00655  filter_test_WFC3_G141_1.158um
+   8449.69       1.183     0.00654  filter_test_WFC3_G141_1.183um
+   8271.12       1.209     0.00648  filter_test_WFC3_G141_1.209um
+   8097.00       1.235     0.00646  filter_test_WFC3_G141_1.235um
+   7936.66       1.260     0.00645  filter_test_WFC3_G141_1.260um
+   7781.94       1.285     0.00648  filter_test_WFC3_G141_1.285um
+   7630.82       1.310     0.00651  filter_test_WFC3_G141_1.310um
+   7484.88       1.336     0.00664  filter_test_WFC3_G141_1.336um
+   7344.98       1.361     0.00670  filter_test_WFC3_G141_1.361um
+   7207.07       1.388     0.00670  filter_test_WFC3_G141_1.387um
+   7077.26       1.413     0.00671  filter_test_WFC3_G141_1.413um
    6951.56       1.439     0.00671  filter_test_WFC3_G141_1.438um
-   6830.71       1.464     0.00668  filter_test_WFC3_G141_1.464um
-   6715.80       1.489     0.00664  filter_test_WFC3_G141_1.489um
-   6600.55       1.515     0.00660  filter_test_WFC3_G141_1.515um
-   6493.61       1.540     0.00657  filter_test_WFC3_G141_1.540um
-   6387.63       1.566     0.00652  filter_test_WFC3_G141_1.565um
+   6830.71       1.464     0.00667  filter_test_WFC3_G141_1.464um
+   6715.80       1.489     0.00662  filter_test_WFC3_G141_1.489um
+   6600.55       1.515     0.00657  filter_test_WFC3_G141_1.515um
+   6493.61       1.540     0.00654  filter_test_WFC3_G141_1.540um
+   6387.63       1.566     0.00651  filter_test_WFC3_G141_1.565um
    6285.45       1.591     0.00651  filter_test_WFC3_G141_1.591um
    6188.02       1.616     0.00651  filter_test_WFC3_G141_1.616um
 """
@@ -934,9 +934,9 @@ Wavenumber  Wavelength    Bandflux  Filter name
 Retrieval information:
   Parameter name        value        pmin        pmax       pstep
   (pnames)           (params)      (pmin)      (pmax)     (pstep)
-  log(kappa')      -5.000e+00  -9.000e+00   5.000e+00   3.000e-01
-  log(gamma1)       0.000e+00  -3.000e+00   3.000e+00   3.000e-01
-  log(gamma2)       0.000e+00  -3.000e+00   3.000e+00   0.000e+00
+  log_kappa'       -5.000e+00  -9.000e+00   5.000e+00   3.000e-01
+  log_gamma1        0.000e+00  -3.000e+00   3.000e+00   3.000e-01
+  log_gamma2        0.000e+00  -3.000e+00   3.000e+00   0.000e+00
   alpha             0.000e+00   0.000e+00   1.000e+00   0.000e+00
   T_irr             1.486e+03   0.000e+00   7.000e+03   5.000e+01
   T_int             1.000e+02   0.000e+00   5.000e+02   0.000e+00

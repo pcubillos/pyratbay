@@ -1,0 +1,25 @@
+# Passband info could be (1) a path to a file or (2) a tophat filter
+# defined by a central wavelength, half-width, and optionally a name
+
+# Comment lines (like this one) and blank lines are ignored,
+# Wavelength and half-width units are always microns
+
+# @DEPTH_UNITS sets the depth and uncert units (none, percent, ppt, ppm)
+# and also indicates that there's data and uncert values to read
+# as two columns before the passband info
+@DEPTH_UNITS
+percent
+
+@DATA
+# depth     uncert  wavelength  half_width
+  0.03296   0.00204      2.144       0.095
+  0.03445   0.00219      2.333       0.095
+  0.03014   0.00235      2.523       0.095
+  0.02637   0.00250      2.713       0.095
+  0.03159   0.00264      2.903       0.095
+  0.04956   0.00280      3.094       0.095
+  0.06660   0.00295      3.284       0.095
+  0.07359   0.00311      3.474       0.095
+  0.09185   0.00327      3.664       0.095
+  0.09853   0.00342      3.854       0.095
+

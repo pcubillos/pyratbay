@@ -457,8 +457,9 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         parse_array(args, 'bulk')
         # Retrieval options:
         parse_str(args,   'mcmcfile')
-        parse_array(args, 'retflag')
+        parse_array(args, 'retflag')   # Deprecated
         parse_float(args, 'qcap')
+        parse_str(args, 'retrieval_params')
         parse_array(args, 'params')
         parse_array(args, 'pstep')
         parse_float(args, 'tlow')
@@ -811,21 +812,71 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
 
     pyrat.ret.retflag = args.get_choice(
         'retflag', 'retrieval flag', pc.retflags)
-    if pyrat.ret.retflag is None:
-        pyrat.ret.retflag = []
+    if pyrat.ret.retflag is not None:
+        warning_msg = (
+            "The 'retflag' argument is deprecated and will be removed in "
+            "the near future, use 'retrieval_params' instead"
+        )
+        warnings.warn(warning_msg, category=DeprecationWarning)
 
-    pyrat.ret.params = args.params
-    pyrat.ret.pstep = args.pstep
-    pyrat.ret.pmin = args.pmin
-    pyrat.ret.pmax = args.pmax
-    pyrat.ret.prior = args.prior
-    pyrat.ret.priorlow = args.priorlow
-    pyrat.ret.priorup = args.priorup
+    # Overrides retflag. At some point this will be the only way.
+    if args.retrieval_params is not None:
+        pars = [
+            par for par in args.retrieval_params.splitlines()
+            if par != ''
+        ]
+        nparams = len(pars)
+        pnames = []
+        params = np.zeros(nparams)
+        pmin = np.tile(-np.inf, nparams)
+        pmax = np.tile(np.inf, nparams)
+        pstep = np.zeros(nparams)
+        prior = np.zeros(nparams)
+        priorlow = np.zeros(nparams)
+        priorup = np.zeros(nparams)
+        for i,par in enumerate(pars):
+            fields = par.split()
+            nfields = len(fields)
+            if nfields not in [2, 5, 7, 8]:
+                log.error(
+                    "Invalid number of fields for retrieval_params entry\n"
+                    f"'{par}'"
+                )
+            pnames.append(fields[0])
+            params[i] = fields[1]
+            if nfields == 2:
+                continue
+            pmin[i] = fields[2]
+            pmax[i] = fields[3]
+            pstep[i] = fields[4]
+            if nfields == 5:
+                continue
+            prior[i] = fields[5]
+            priorlow[i] = fields[6]
+            if nfields == 6:
+                priorup[i] = fields[6]
+            else:
+                priorup[i] = fields[7]
+
+        pyrat.ret.pnames = pnames
+        pyrat.ret.params = params
+        pyrat.ret.pstep = pstep
+        pyrat.ret.pmin = pmin
+        pyrat.ret.pmax = pmax
+        pyrat.ret.prior = prior
+        pyrat.ret.priorlow = priorlow
+        pyrat.ret.priorup = priorup
+    else:
+        pyrat.ret.params = args.params
+        pyrat.ret.pstep = args.pstep
+        pyrat.ret.pmin = args.pmin
+        pyrat.ret.pmax = args.pmax
+        pyrat.ret.prior = args.prior
+        pyrat.ret.priorlow = args.priorlow
+        pyrat.ret.priorup = args.priorup
 
     pyrat.ret.qcap = args.get_default(
         'qcap', 'Metals volume-mixing-ratio cap', gt=0.0, le=1.0)
-    pyrat.ret.params = args.params
-    pyrat.ret.pstep = args.pstep
     pyrat.ret.tlow = args.get_default(
         'tlow', 'Retrieval low-temperature (K) bound', 0,
         wflag=(runmode=='mcmc'))
@@ -849,8 +900,6 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
     # Keep in inputs
     if args.molvars is None:
         pyrat.inputs.molvars = []
-    if args.molpars is None:
-        pyrat.inputs.molpars = []
 
     atm.bulk = args.bulk
     if args.tmodel == 'tcea':

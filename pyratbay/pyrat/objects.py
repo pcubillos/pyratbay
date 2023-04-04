@@ -164,9 +164,10 @@ class Atm(object):
       # Sort out abundance free-parameters:
       self.mol_pnames = []
       self.mol_texnames = []
+      self.mol_npars = len(molvars)
 
       free_vmr = []
-      self._equil_var = np.zeros(len(molvars), bool)
+      self._equil_var = np.zeros(self.mol_npars, bool)
       for i,var in enumerate(molvars):
           # VMR variables
           if var.startswith('log_'):
@@ -491,7 +492,8 @@ class Extinction(object):
       fw.write('Line-transition strength threshold (ethresh): {:.2e}',
           self.ethresh)
       if self.ec is not None:
-          fw.write('\nLBL extinction coefficient for the atmospheric model '
+          fw.write(
+              '\nLBL extinction coefficient for the atmospheric model '
               '(ec, cm-1) [layer, wave]:\n{}', self.ec, fmt=fmt)
       extfile = ['None'] if self.extfile is None else self.extfile
       fw.write("Extinction-coefficient table filename(s) (extfile): {}",
@@ -571,10 +573,10 @@ class Cloud(object):
     def __init__(self, model_names, pars, fpatchy=None, log=None):
         self.model_names = model_names
         self.models = []    # List of cloud models
-        self.pars = []
         self.pnames = []
         self.texnames = []
         self.npars = 0
+        self.pars = None
         self.ec = None  # Cloud extinction coefficient
         self.fpatchy = fpatchy
 
@@ -587,10 +589,11 @@ class Cloud(object):
             self.pnames += model.pnames
             self.texnames += model.texnames
 
-        # Parse the cloud parameters:
+        # Parse parameters:
         if pars is None:
             return
-        input_npars = len(pars)
+        self.pars = pars
+        input_npars = len(self.pars)
         if self.npars != input_npars:
             log.error(
                 f'Number of input cloud parameters ({input_npars}) '
@@ -599,7 +602,7 @@ class Cloud(object):
             )
         j = 0
         for model in self.models:
-            model.pars = pars[j:j+model.npars]
+            model.pars = self.pars[j:j+model.npars]
             j += model.npars
 
     def __str__(self):
@@ -618,15 +621,14 @@ class Rayleigh(object):
     def __init__(self, model_names, pars, log=None):
         self.model_names = model_names
         self.models = []  # List of Rayleigh models
-        self.pars = []
         self.pnames = []
         self.texnames = []
         self.npars = 0
+        self.pars = None
         self.ec = None    # Rayleigh extinction coefficient
 
         if model_names is None:
             return
-
         for name in model_names:
             model = pa.rayleigh.get_model(name)
             self.models.append(model)
@@ -634,10 +636,11 @@ class Rayleigh(object):
             self.pnames += model.pnames
             self.texnames += model.texnames
 
-        # Process Rayleigh parameters if necessary:
-        if self.models == [] or pars is None:
+        # Parse parameters:
+        if pars is None:
             return
-        input_npars = len(pars)
+        self.pars = pars
+        input_npars = len(self.pars)
         if self.npars != input_npars:
             log.error(
                 f'Number of input Rayleigh parameters ({input_npars}) '
@@ -646,7 +649,7 @@ class Rayleigh(object):
             )
         j = 0
         for model in self.models:
-            model.pars = pars[j:j+model.npars]
+            model.pars = self.pars[j:j+model.npars]
             j += model.npars
 
 
@@ -828,6 +831,7 @@ class Retrieval(object):
       self.ipatchy = None  # Patchy-model parameter index
       self.imass   = None
       self.itstar = None
+      self.ioffset = None
       self.posterior = None
       self.bestp     = None
       self.spec_best = None

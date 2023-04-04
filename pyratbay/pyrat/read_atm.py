@@ -357,8 +357,12 @@ def update_atm(
         metallicity = None
         e_abundances = {}
         e_ratio = {}
-        equil_vars = np.array(atm.mol_pnames)[atm._equil_var]
-        equil_pars = np.array(atm.molpars)[atm._equil_var]
+        #e_scale = {}
+        if np.any(atm._equil_var):
+            equil_vars = np.array(atm.mol_pnames)[atm._equil_var]
+            equil_pars = np.array(atm.molpars)[atm._equil_var]
+        else:
+            equil_vars, equil_pars = [], []
         for var,val in zip(equil_vars, equil_pars):
             if var == 'metal':
                 metallicity = val
@@ -374,8 +378,9 @@ def update_atm(
             metallicity=metallicity,
             e_abundances=e_abundances,
             e_ratio=e_ratio,
+            #e_scale=e_scale,
         )
-    elif np.any(~atm._equil_var) and len(atm.molpars)>0:
+    elif np.any(~atm._equil_var) and atm.molpars is not None:
         vmr_vars = np.array(atm.mol_pnames)[~atm._equil_var]
         vmr_pars = np.array(atm.molpars)[~atm._equil_var]
         vmr = pa.qscale(

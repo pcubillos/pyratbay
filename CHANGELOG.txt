@@ -7921,3 +7921,28 @@ Refactored qscale() function to read in molvars argument.
 
 Updated tests and docs.
 
+
+*****  Tue Apr 4 10:58:27 CEST 2023  *****
+
+Implemented retrieval_params argument which enables flagging
+custom parameters for retrieval, when called by pyrat.eval().
+This effectively replaces the 'retflag' argument, which is now
+deprecated and will be removed in the future.
+
+With this now one does not need to specify all parameters in a
+model as fitting parameters.
+
+Implemented ret.map_pars variable to map pyrat.ret.params into
+specific model params (e.g., atm.tpars, cloud.pars, etc).
+
+Only behavior change is that now it's not allowed to initialize
+models and not provide parameters.  Parameter will be taken from
+the repective params argument. If not, they will be taken from
+retrieval_params argument.  If any parameter value is left undefined
+the code will break.
+
+Fixed multiple bugs here and there.
+Updated tests.
+Updated opacity and mcmc tutorial config files.
+Added tutorial observation_file.dat to replace filters.
+
