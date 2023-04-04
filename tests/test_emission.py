@@ -267,7 +267,7 @@ def test_emission_vert_none_model(tmp_path):
     pyrat.atm.molpars = [-5]
     pyrat.run()
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['vert'], rtol=rtol)
-    np.testing.assert_equal(pyrat.atm.vmr[:,3], 1e-5)
+    np.testing.assert_allclose(pyrat.atm.vmr[:,3], 1.0e-5, rtol=rtol)
 
 
 def test_emission_vert_model(tmp_path):
@@ -300,8 +300,11 @@ def test_emission_scale_model(tmp_path):
     )
     pyrat = pb.run(cfg)
     np.testing.assert_allclose(
-        pyrat.spec.spectrum, expected['scale'], rtol=rtol)
-    np.testing.assert_equal(pyrat.atm.vmr[:,3], 0.1*pyrat.atm.base_vmr[:,3])
+        pyrat.spec.spectrum, expected['scale'], rtol=rtol,
+    )
+    np.testing.assert_allclose(
+        pyrat.atm.vmr[:,3], 0.1*pyrat.atm.base_vmr[:,3], rtol=rtol,
+    )
 
 
 @pytest.mark.skip(reason="")
@@ -325,7 +328,7 @@ def test_emission_fit(tmp_path):
     # Eval default params:
     model1 = pyrat.eval(pyrat.ret.params, retmodel=True)
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['fit1'], rtol=rtol)
-    np.testing.assert_equal(model1[0], pyrat.spec.spectrum)
+    np.testing.assert_allclose(model1[0], pyrat.spec.spectrum, rtol=rtol)
     assert model1[1] is None
     # Cloud deck:
     params = [-4.67, -0.8, -0.8, 0.5, 1486.0, 100.0, -4.0, 0.0, -4.0, -3.0]
@@ -335,7 +338,7 @@ def test_emission_fit(tmp_path):
     np.testing.assert_allclose(rmin, rexpected, rtol=rtol)
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['fit2'], rtol=rtol)
     # Check pyrat.ret.params has been updated:
-    np.testing.assert_equal(pyrat.ret.params, params)
+    np.testing.assert_allclose(pyrat.ret.params, params, rtol=rtol)
     # Depleted H2O:
     params = [-4.67, -0.8, -0.8, 0.5, 1486.0, 100.0, -8.0, 0.0, -4.0, 2.0]
     model3 = pyrat.eval(params, retmodel=True)

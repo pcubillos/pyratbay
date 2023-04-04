@@ -8000,3 +8000,7 @@ Updated tests.
 
 Updated mc3 requirements.
 
+*****
+
+Updated some tests calls (change assert equal to allclose).
+

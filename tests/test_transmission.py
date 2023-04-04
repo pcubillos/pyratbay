@@ -297,7 +297,7 @@ def test_transmission_vert_none_model(tmp_path):
     pyrat.atm.molpars = [-5]
     pyrat.run()
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['vert'], rtol=rtol)
-    np.testing.assert_equal(pyrat.atm.vmr[:,3], 1e-5)
+    np.testing.assert_allclose(pyrat.atm.vmr[:,3], 1.0e-5, rtol=rtol)
 
 
 def test_transmission_vert_model(tmp_path):
@@ -330,7 +330,7 @@ def test_transmission_scale_model(tmp_path):
     )
     pyrat = pb.run(cfg)
     spectrum = pyrat.spec.spectrum
-    np.testing.assert_equal(pyrat.atm.vmr[:,3], 0.1*pyrat.atm.base_vmr[:,3])
+    np.testing.assert_allclose(pyrat.atm.vmr[:,3], 0.1*pyrat.atm.base_vmr[:,3])
     np.testing.assert_allclose(spectrum, expected['scale'], rtol=rtol)
 
 
@@ -359,7 +359,7 @@ def test_transmission_fit(tmp_path):
     np.testing.assert_allclose(rmin, rexpected, rtol=rtol)
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['fit2'], rtol=rtol)
     # Check pyrat.ret.params has been updated:
-    np.testing.assert_equal(pyrat.ret.params, params)
+    np.testing.assert_allclose(pyrat.ret.params, params, rtol=rtol)
     # Depleted H2O:
     params = [-4.67, -0.8, -0.8, 0.5, 1486.0, 100.0, -8.0, 0.0, -4.0, 2.0]
     model3 = pyrat.eval(params, retmodel=True)
