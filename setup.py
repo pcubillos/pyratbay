@@ -119,8 +119,8 @@ setup(
     packages = setuptools.find_packages(),
     package_data = package_data,
     install_requires = [
-        'numpy>=1.15.1',
-        'scipy>=1.4.1',
+        'numpy>=1.19.5',
+        'scipy>=1.5.4',
         'matplotlib>=3.3.4',
         'mc3>=3.1.0',
         'chemcat>=0.3.1',

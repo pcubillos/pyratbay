@@ -8004,3 +8004,7 @@ Updated mc3 requirements.
 
 Updated some tests calls (change assert equal to allclose).
 
+*****
+
+Updated numpy and scipy dependencies.
+
