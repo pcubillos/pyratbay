@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Patricio Cubillos
+# Copyright (c) 2021-2023 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -92,7 +92,8 @@ def spectrum(
     starflux=None, rprs=None, label='model', bounds=None,
     logxticks=None,
     gaussbin=2.0, yran=None, filename=None, fignum=501, axis=None,
-    ms=5.0, lw=1.25,
+    ms=5.0, lw=1.25, fs=14,
+    units=None,
     ):
     """
     Plot a transmission or emission model spectrum with (optional) data
@@ -105,7 +106,7 @@ def spectrum(
     wavelength: 1D float ndarray
         The wavelength of the model in microns.
     rt_path: String
-        Radiative-transfer observing geometry (transit, eclipse, or emission).
+        Observing geometry: transit, eclipse, or emission.
     data: 1D float ndarray
         Observing data points at each bandwl.
     uncert: 1D float ndarray
@@ -148,7 +149,20 @@ def spectrum(
         The matplotlib Axes of the figure.
     """
     # Plotting setup:
-    fs = 14.0
+    if units is None:
+        if rt_path == 'emission':
+            units = 'ppm'
+        elif rt_path == 'transit':
+            units = 'percent'
+        else:
+            units = 'none'
+
+    flux_scale = 1.0/pt.u(units)
+    str_units = f'({units})'
+    if str_units == '(none)':
+        str_units = ''
+    elif str_units == '(percent)':
+        str_units = '(%)'
 
     if axis is None:
         plt.figure(fignum, (8, 5))
@@ -166,44 +180,43 @@ def spectrum(
 
     # Setup according to geometry:
     if rt_path == 'emission':
-        fscale = 1.0
         plt.ylabel(r'$F_{\rm p}$ (erg s$^{-1}$ cm$^{-2}$ cm)', fontsize=fs)
     if rt_path == 'eclipse':
         #if starflux is not None and rprs is not None:
         spectrum = spectrum/starflux * rprs**2.0
         if bounds is not None:
             bounds = [bound/starflux * rprs**2.0 for bound in bounds]
-        fscale = 1.0 / pc.ppt
-        plt.ylabel(r'$F_{\rm p}/F_{\rm s}\ (ppt)$', fontsize=fs)
+        plt.ylabel(fr'$F_{{\rm p}}/F_{{\rm s}}$ {str_units}', fontsize=fs)
     elif rt_path == 'transit':
-        fscale = 1.0 / pc.percent
-        plt.ylabel(r'$(R_{\rm p}/R_{\rm s})^2$ (%)', fontsize=fs)
+        plt.ylabel(fr'$(R_{{\rm p}}/R_{{\rm s}})^2$ {str_units}', fontsize=fs)
 
     gmodel = gaussf(spectrum, gaussbin)
     if bounds is not None:
         gbounds = [gaussf(bound, gaussbin) for bound in bounds]
         ax.fill_between(
-            wavelength, fscale*gbounds[0], fscale*gbounds[3],
+            wavelength, flux_scale*gbounds[0], flux_scale*gbounds[3],
             facecolor='gold', edgecolor='none',
         )
         ax.fill_between(
-            wavelength, fscale*gbounds[1], fscale*gbounds[2],
+            wavelength, flux_scale*gbounds[1], flux_scale*gbounds[2],
             facecolor='orange', edgecolor='none',
         )
 
     # Plot model:
-    plt.plot(wavelength, gmodel*fscale, lw=lw, **spec_kw)
+    plt.plot(wavelength, gmodel*flux_scale, lw=lw, **spec_kw)
     # Plot band-integrated model:
     if bandflux is not None and bandwl is not None:
         plt.plot(
-            bandwl, bandflux*fscale, 'o', ms=ms, color='tomato',
+            bandwl, bandflux*flux_scale, 'o', ms=ms, color='tomato',
             mec='maroon', mew=lw,
         )
     # Plot data:
     if data is not None and uncert is not None and bandwl is not None:
         plt.errorbar(
-            bandwl, data*fscale, uncert*fscale, fmt='o', label='data',
-            color='blue', ms=ms, elinewidth=lw, capthick=lw, zorder=3,
+            bandwl, data*flux_scale, uncert*flux_scale,
+            fmt='o', label='data',
+            mfc='0.45', mec='black', ecolor='0.2',
+            ms=ms, elinewidth=lw, capthick=lw, zorder=3,
         )
 
     if yran is not None:
