@@ -110,8 +110,8 @@ Please prefer to channel your feedback or inquiries through the Github issue tra
 .. _Space Research Institute (IWF): http://iwf.oeaw.ac.at/
 
 
-.. |Build Status| image:: https://travis-ci.com/pcubillos/pyratbay.svg?branch=master
-   :target: https://travis-ci.com/pcubillos/pyratbay
+.. |Build Status| image:: https://github.com/pcubillos/pyratbay/actions/workflows/python-package.yml/badge.svg?branch=master
+    :target: https://github.com/pcubillos/pyratbay/actions/workflows/python-package.yml?query=branch%3Amaster
 
 .. |docs| image:: https://readthedocs.org/projects/pyratbay/badge/?version=latest
     :target: https://pyratbay.readthedocs.io/en/latest/?badge=latest
