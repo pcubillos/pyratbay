@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Patricio Cubillos
+# Copyright (c) 2021-2023 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -120,9 +120,9 @@ class Guillot(object):
         """
         self.name = 'guillot'
         self.pnames = [
-            "log(kappa')",
-            'log(gamma1)',
-            'log(gamma2)',
+            "log_kappa'",
+            'log_gamma1',
+            'log_gamma2',
             'alpha',
             'T_irr',
             'T_int',
@@ -213,7 +213,7 @@ class Madhu(object):
             Pressure array in barye.
         """
         self.name = 'madhu'
-        self.pnames = ['log(p1)', 'log(p2)', 'log(p3)', 'a1', 'a2', 'T0']
+        self.pnames = ['log_p1', 'log_p2', 'log_p3', 'a1', 'a2', 'T0']
         self.texnames = [
             r'$\log\ p_1$',
             r'$\log\ p_2$',

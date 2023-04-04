@@ -7946,3 +7946,9 @@ Updated tests.
 Updated opacity and mcmc tutorial config files.
 Added tutorial observation_file.dat to replace filters.
 
+*****
+
+Updated pnames of Guillot() and Madhu() temperature models.
+Replaced parentheses with underscores.
+
+
