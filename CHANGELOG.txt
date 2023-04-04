@@ -7975,3 +7975,19 @@ Implemented io.write_observations() function.
 Currently it only works for Tophat type of bandpasses.
 Documented and tested.
 
+*****
+
+Implemented inst_offset argument to flag instrumental offsets.
+Variable names begin with 'offset_' followed by a string which
+will be matched against bandpass names.  Any instrument that
+contains the string will be affected by the offset.
+Offset values are defined by the dunits argument.
+This is work in progress, at the moment, only retrieval_params
+can set the offset values.
+
+In practice, during a pyrat.eval() call, the obs.bandflux values
+will be shifted (in the opposite direction) such that data is not
+modified (retrieval issues).
+
+No tests and no documentation has been done.
+

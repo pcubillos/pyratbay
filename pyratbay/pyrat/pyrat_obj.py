@@ -213,6 +213,7 @@ class Pyrat(object):
       """
       atm = self.atm
       ret = self.ret
+      obs = self.obs
       params = np.asarray(params)
 
       if len(params) != ret.nparams:
@@ -270,9 +271,9 @@ class Pyrat(object):
       if ret.itstar is not None:
           self.phy.tstar = params[ret.itstar][0]
           self.spec.starflux = self.spec.flux_interp(self.phy.tstar)
-          self.obs.starflux = [
+          obs.starflux = [
               self.spec.starflux[band.idx]
-              for band in self.obs.filters
+              for band in obs.filters
           ]
 
       # Calculate atmosphere and spectrum:
@@ -297,21 +298,29 @@ class Pyrat(object):
           )
 
       # Band-integrate spectrum:
-      self.obs.bandflux = self.band_integrate()
+      obs.bandflux = self.band_integrate()
+
+      # Instrumental offset:
+      if obs.offset_instruments is not None:
+          if ret.ioffset is not None:
+              ifree = ret.map_pars['offset']
+              obs.offset_pars[ifree] = params[ret.ioffset]
+          for j, offset in enumerate(obs.offset_pars):
+              obs.bandflux[obs.offset_indices[j]] -= offset*obs._dunits
 
       # update_atm() in self.run() broke:
-      if not np.any(self.obs.bandflux):
+      if not np.any(obs.bandflux):
           reject_flag = True
 
       # Reject this iteration if there are invalid temperatures or radii:
-      if self.obs.bandflux is not None and reject_flag:
-          self.obs.bandflux[:] = np.inf
+      if obs.bandflux is not None and reject_flag:
+          obs.bandflux[:] = np.inf
 
       ret.params = np.copy(params)
       if retmodel:
-          return self.spec.spectrum, self.obs.bandflux
+          return self.spec.spectrum, obs.bandflux
 
-      return self.obs.bandflux
+      return obs.bandflux
 
 
   def radiative_equilibrium(

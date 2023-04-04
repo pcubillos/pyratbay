@@ -778,8 +778,31 @@ class Observation(object):
       self.bandtrans = None  # Band-interpolated transmission function
       self.starflux  = None  # Band-interpolated stellar flux
       self.bandflux  = None  # Band-integrated flux
+      self.offset_indices = []
       self.bandwn    = None  # Filter mean wavenumber
       self.units     = 'none' # Data units
+
+  def set_offsets(self, log):
+      """Parse instrumental offsets if any."""
+      if self.offset_instruments is None:
+          return
+
+      self.offset_pars = np.zeros(len(self.offset_instruments))
+      band_names = [band.name for band in self.filters]
+      for var in self.offset_instruments:
+          inst = var.replace('offset_', '', 1)
+          flags = [inst in name for name in band_names]
+          self.offset_indices.append(flags)
+          if np.sum(flags) == 0:
+              log.error(
+                  f"Invalid retrieval parameter '{var}'. "
+                  f"There is no instrument matching the name '{inst}'"
+              )
+      offsets = np.sum(self.offset_indices, axis=0)
+      if np.any(offsets > 1):
+          log.error('Multiple instrumental offsets apply to a same bandpass')
+
+
 
   def __str__(self):
       units = pt.u(self.units)

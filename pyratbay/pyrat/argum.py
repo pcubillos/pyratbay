@@ -308,6 +308,11 @@ def setup(pyrat):
     if obs.filters is not None:
         pyrat.set_filters()
 
+    obs.set_offsets(log)
+    offset_pnames = obs.offset_instruments
+    if offset_pnames is None:
+        offset_pnames = []
+
     # Test run with no tmodel
     if atm.tmodelname in pc.tmodels:
         atm.tmodel = pa.tmodels.get_model(
@@ -365,7 +370,8 @@ def setup(pyrat):
         temp_pnames +
         atm.mol_pnames +
         pyrat.rayleigh.pnames +
-        pyrat.cloud.pnames
+        pyrat.cloud.pnames +
+        offset_pnames
     )
 
     for i,pname in enumerate(ret.pnames):
@@ -405,7 +411,11 @@ def setup(pyrat):
             idx = pyrat.cloud.pnames.index(pname)
             map_pars['cloud'].append(idx)
             ret.texnames[i] = pyrat.cloud.texnames[idx]
-
+        elif pname in offset_pnames:
+            ioffset.append(i)
+            idx = offset_pnames.index(pname)
+            map_pars['offset'].append(idx)
+            ret.texnames[i] = pname
         else:
             log.error(
                 f"Invalid retrieval parameter '{pname}'. Possible "
@@ -420,6 +430,8 @@ def setup(pyrat):
         ret.icloud = icloud
     if len(iray) > 0:
         ret.iray = iray
+    if len(ioffset) > 0:
+        ret.ioffset = ioffset
 
     # Patch missing parameters if possible:
     patch_temp = (
@@ -572,15 +584,15 @@ def setup_retrieval_parameters_retflag(pyrat):
         ret.texnames += [r'$T_{\rm eff}$ (K)']
         ret.nparams += 1
     if 'offset' in retflag:
-        n_offset = len(ret.inst_offset)
+        n_offset = len(ret.offset_instruments)
         ret.ioffset = np.arange(ret.nparams, ret.nparams + n_offset)
-        ret.pnames   += list(ret.inst_offset)
-        ret.texnames += list(ret.inst_offset)
+        ret.pnames   += list(ret.offset_instruments)
+        ret.texnames += list(ret.offset_instruments)
         ret.nparams += n_offset
 
         band_names = [band.name for band in pyrat.obs.filters]
         offset_indices = []
-        for inst in ret.inst_offset:
+        for inst in ret.offset_instruments:
             flags = [inst in name for name in band_names]
             offset_indices.append(flags)
         pyrat.obs.offset_indices = offset_indices

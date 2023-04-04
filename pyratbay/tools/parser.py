@@ -451,6 +451,7 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         parse_array(args, 'uncert')
         parse_array(args, 'filters')
         parse_str(args,   'obsfile')
+        parse_array(args, 'inst_offset')
         # Abundances:
         parse_array(args, 'molvars')
         parse_array(args, 'molpars')
@@ -787,6 +788,7 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         'dunits', 'Data units', 'none', wflag=args.data is not None)
     if not hasattr(pc, pyrat.obs.units):
         log.error(f'Invalid data units (dunits): {pyrat.obs.units}')
+    pyrat.obs._dunits = pt.u(pyrat.obs.units)
 
     pyrat.obs.data = args.get_param('data', pyrat.obs.units, 'Data')
     pyrat.obs.uncert = args.get_param(
@@ -809,6 +811,10 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
             pyrat.obs.filters, pyrat.obs.data, pyrat.obs.uncert = obs_data
         elif  np.ndim(obs_data) == 1:
             pyrat.obs.filters = obs_data
+
+    pyrat.obs.offset_instruments = args.get_default(
+        'inst_offset', 'Instrumental offsets',
+    )
 
     pyrat.ret.retflag = args.get_choice(
         'retflag', 'retrieval flag', pc.retflags)
