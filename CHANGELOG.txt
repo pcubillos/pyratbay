@@ -7951,4 +7951,9 @@ Added tutorial observation_file.dat to replace filters.
 Updated pnames of Guillot() and Madhu() temperature models.
 Replaced parentheses with underscores.
 
+*****
+
+Refactored pa.temperature_posterior() function to simplify usage.
+Updated docs.
+This should really be moved as a method of tmodel objects.
 

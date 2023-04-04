@@ -953,24 +953,18 @@ def transit_path(radius, nskip=0):
     return path
 
 
-def temperature_posterior(posterior, tmodel, tpars, ifree, pressure):
+def temperature_posterior(posterior, tmodel):
     """
     Compute the median and inter-quantiles regions (68% and 95%)
     of a temperature profile posterior.
 
     Parameters
     ----------
-    posterior: 2D float ndarray [nsamples, nfree]
-        A posterior distribution for tmodel.
+    posterior: 2D float ndarray
+        A posterior distribution for the parameters of tmodel
+        of shape [nsamples, npars].
     tmodel: Callable
         Temperature-profile model.
-    tpars: 1D float iterable [npars]
-        Temperature-profile parameters (including fixed parameters).
-    ifree: 1D bool iterable [npars]
-        Mask of free (True) and fixed (False) parameters in tpars.
-        The number of free parameters must match nfree in posterior.
-    pressure: 1D float ndarray [nlayers]
-        The atmospheric pressure profile in barye.
 
     Returns
     -------
@@ -988,51 +982,47 @@ def temperature_posterior(posterior, tmodel, tpars, ifree, pressure):
     Examples
     --------
     >>> import pyratbay.atmosphere as pa
-    >>> import pyratbay.constants as pc
     >>> import pyratbay.plots as pp
     >>> import numpy as np
 
     >>> # Non-inverted temperature profile:
     >>> pressure = pa.pressure('1e-6 bar', '1e2 bar', nlayers=100)
     >>> tmodel = pa.tmodels.Guillot(pressure)
-    >>> tpars = np.array([-4.0, -1.0, 0.0, 0.0, 1000.0, 0.0])
-    >>> # Simulate posterior where kappa' and gamma are variable:
+
+    >>> # Simulate posterior where log_kappa' and log_gamma1 vary:
     >>> nsamples = 5000
-    >>> ifree = [True, True, False, False, False, False]
-    >>> posterior = np.array([
-    >>>     np.random.normal(tpars[0], 0.5, nsamples),
-    >>>     np.random.normal(tpars[1], 0.1, nsamples)]).T
-    >>> tpost = pa.temperature_posterior(
-    >>>     posterior, tmodel, tpars, ifree, pressure)
+    >>> posterior = np.tile([-4.0, -1.0, 0.0, 0.0, 1000.0, 0.0], (nsamples,1))
+    >>> posterior[:,0] = np.random.normal(-4.0, 0.5, nsamples)
+    >>> posterior[:,1] = np.random.normal(-1.0, 0.5, nsamples)
+
+    >>> # Compute posterior and take a look at it:
+    >>> tpost = pa.temperature_posterior(posterior, tmodel)
     >>> ax = pp.temperature(pressure, profiles=tpost[0], bounds=tpost[1:])
     """
-    nlayers = len(pressure)
-
     u, uind, uinv = np.unique(
         posterior[:,0], return_index=True, return_inverse=True,
     )
+    nlayers = len(tmodel.pressure)
+    npars = len(posterior[0])
     nsamples = len(u)
 
     # Evaluate posterior PT profiles:
     profiles = np.zeros((nsamples, nlayers), np.double)
-    tpars = np.array(tpars)
-    ifree = np.array(ifree)
     for i in range(nsamples):
-        tpars[ifree] = posterior[uind[i]]
-        profiles[i] = tmodel(tpars)
+        profiles[i] = tmodel(posterior[uind[i]])
 
     # Get median and inter-quantile ranges for 68% and 95% percentiles:
-    low1   = np.zeros(nlayers, np.double)
-    low2   = np.zeros(nlayers, np.double)
     median = np.zeros(nlayers, np.double)
-    high1  = np.zeros(nlayers, np.double)
-    high2  = np.zeros(nlayers, np.double)
+    low1 = np.zeros(nlayers, np.double)
+    low2 = np.zeros(nlayers, np.double)
+    high1 = np.zeros(nlayers, np.double)
+    high2 = np.zeros(nlayers, np.double)
     for i in range(nlayers):
         tpost = profiles[uinv,i]
-        low2[i]   = np.percentile(tpost,  2.275)
-        low1[i]   = np.percentile(tpost, 15.865)
         median[i] = np.percentile(tpost, 50.000)
-        high1[i]  = np.percentile(tpost, 84.135)
-        high2[i]  = np.percentile(tpost, 97.725)
+        low2[i] = np.percentile(tpost,  2.275)
+        low1[i] = np.percentile(tpost, 15.865)
+        high1[i] = np.percentile(tpost, 84.135)
+        high2[i] = np.percentile(tpost, 97.725)
     return median, low1, high1, low2, high2
 

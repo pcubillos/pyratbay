@@ -140,15 +140,20 @@ def run(cfile, run_step='run', no_logfile=False):
 
     # Temperature profiles:
     if atm.tmodelname is not None:
-        ifree = ret.pstep[ret.itemp] > 0
-        itemp = np.arange(np.sum(ifree))
+        tparams = atm.tpars
+        tparams[ret.map_pars['temp']] = bestp[ret.itemp]
+        ret.temp_best = atm.tmodel(tparams)
 
-        ret.temp_best = atm.tmodel(bestp[ret.itemp])
-        tpost = pa.temperature_posterior(
-            posterior[:,itemp], atm.tmodel,
-            ret.params[ret.itemp], ifree, atm.press)
+        nsamples, nfree = np.shape(posterior)
+        t_posterior = np.tile(tparams, (nsamples,1))
+        # Map temperature free parameters from posterior to tparams:
+        ifree = np.where(pyrat.ret.pstep>0)[0]
+        for j, imap in zip(ret.itemp, ret.map_pars['temp']):
+            if j in ifree:
+                ipost = list(ifree).index(j)
+                t_posterior[:,imap] = posterior[:,ipost]
+        tpost = pa.temperature_posterior(t_posterior, atm.tmodel)
         ret.temp_median = tpost[0]
-        # 1sigma-low, 1sigma-high, 2sigma-low, 2sigma-high:
         ret.temp_post_boundaries = tpost[1:]
         pyrat.plot_temperature(
             filename=f'{outfile}_posterior_temperature_profile.png')
@@ -166,7 +171,8 @@ def run(cfile, run_step='run', no_logfile=False):
         transmittance = ps.transmittance(pyrat.od.depth, pyrat.od.ideep)
         bcf = ps.band_cf(
             transmittance, pyrat.obs.bandtrans, pyrat.spec.wn,
-            pyrat.obs.bandidx)
+            pyrat.obs.bandidx,
+        )
 
     path = 'transit' if is_transmission else 'emission'
     pp.contribution(
