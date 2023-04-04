@@ -797,7 +797,7 @@ def test_spectrum_invalid_retrieval_params_pname(tmp_path):
     error = re.escape(
         "Invalid retrieval parameter 'log_H2O'. Possible values are:\n"
         "['log_p_ref', 'R_planet', 'M_planet', 'f_patchy', 'T_eff', "
-        "'T_iso', 'log(f_ray)', 'alpha_ray', 'log(p_top)']"
+        "'T_iso', 'log_k_ray', 'alpha_ray', 'log_p_cl']"
     )
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)

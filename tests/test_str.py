@@ -60,7 +60,7 @@ Model name (name): 'deck'
 Number of model parameters (npars): 1
 Parameter name     Value
   (pnames)         (pars)
-  log(p_top)       -3.000e+00
+  log_p_cl         -3.000e+00
 Index of atmospheric layer at or directly below cloud top: 30
 Cloud-top pressure: 1.0000e-03 bar
 Cloud-top altitude: 72750.08 km
@@ -73,9 +73,9 @@ Model species (mol): H2
 Number of model parameters (npars): 3
 Parameter name     Value
   (pnames)         (pars)
-  log(f_gray)       0.000e+00
-  log(p_top)       -4.000e+00
-  log(p_bot)        2.000e+00
+  log_k_gray        0.000e+00
+  log_p_top        -4.000e+00
+  log_p_bot         2.000e+00
 Extinction-coefficient (ec, cm2 molec-1):
 [[ 0.000e+00  0.000e+00  0.000e+00 ...  0.000e+00  0.000e+00  0.000e+00]
  [ 0.000e+00  0.000e+00  0.000e+00 ...  0.000e+00  0.000e+00  0.000e+00]
@@ -100,7 +100,7 @@ Model species (mol): H2
 Number of model parameters (npars): 2
 Parameter name     Value
   (pnames)         (pars)
-  log(f_ray)        0.000e+00
+  log_k_ray         0.000e+00
   alpha_ray        -4.000e+00
 Opacity cross section (ec, cm2 molec-1):
     [ 9.540e-30  9.547e-30  9.553e-30 ...  5.436e-29  5.439e-29  5.441e-29]
@@ -501,7 +501,7 @@ Model name (name): 'deck'
 Number of model parameters (npars): 1
 Parameter name     Value
   (pnames)         (pars)
-  log(p_top)       -3.000e+00
+  log_p_cl         -3.000e+00
 Index of atmospheric layer at or directly below cloud top: 30
 Cloud-top pressure: 1.0000e-03 bar
 Cloud-top altitude: 72750.08 km
@@ -533,7 +533,7 @@ Model species (mol): H2
 Number of model parameters (npars): 2
 Parameter name     Value
   (pnames)         (pars)
-  log(f_ray)        0.000e+00
+  log_k_ray         0.000e+00
   alpha_ray        -4.000e+00
 Opacity cross section (ec, cm2 molec-1):
     [ 9.540e-30  9.547e-30  9.553e-30 ...  5.436e-29  5.439e-29  5.441e-29]
