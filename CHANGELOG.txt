@@ -8021,3 +8021,7 @@ There are no checks that the input units are valid.
 
 More colorful spectrum plots.
 
+*****
+
+Fixed mistyped version.
+
