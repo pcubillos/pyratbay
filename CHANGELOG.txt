@@ -7996,3 +7996,7 @@ No tests and no documentation has been done.
 Updated pyratbay version to 1.1.10b1.
 Updated tests.
 
+*****
+
+Updated mc3 requirements.
+
