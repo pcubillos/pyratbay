@@ -859,7 +859,7 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
                 continue
             prior[i] = fields[5]
             priorlow[i] = fields[6]
-            if nfields == 6:
+            if nfields == 7:
                 priorup[i] = fields[6]
             else:
                 priorup[i] = fields[7]
