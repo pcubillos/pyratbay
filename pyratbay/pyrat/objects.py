@@ -186,7 +186,7 @@ class Atm(object):
           elif var == 'metal':
               self._equil_var[i] = True
               self.validate_species(var, log)
-              self.mol_pnames.append('[M/H]')
+              self.mol_pnames.append(var)
               self.mol_texnames.append('[M/H]')
           elif var.startswith('[') and var.endswith('/H]'):
               self._equil_var[i] = True
@@ -801,8 +801,6 @@ class Observation(object):
       offsets = np.sum(self.offset_indices, axis=0)
       if np.any(offsets > 1):
           log.error('Multiple instrumental offsets apply to a same bandpass')
-
-
 
   def __str__(self):
       units = pt.u(self.units)

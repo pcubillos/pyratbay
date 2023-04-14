@@ -372,7 +372,7 @@ def update_atm(
                 solar_abundance = net._base_dex_abundances[idx]
                 e_abundances[var] = solar_abundance + val
             elif '/' in var:
-                e_ratio[var] = val.replace('/','_')
+                e_ratio[var.replace('/','_')] = val
         vmr = net.thermochemical_equilibrium(
             atm.temp,
             metallicity=metallicity,

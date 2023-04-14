@@ -8034,3 +8034,7 @@ when including priors.
 
 Updated instrumental offset parameter tex name (prettier, shorter)
 
+*****
+
+Fixed bugs with equilibrium chemistry parameter names.
+
