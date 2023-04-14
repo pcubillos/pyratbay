@@ -415,7 +415,7 @@ def setup(pyrat):
             ioffset.append(i)
             idx = offset_pnames.index(pname)
             map_pars['offset'].append(idx)
-            ret.texnames[i] = pname
+            ret.texnames[i] = pname.replace('offset_', '$\Delta$')
         else:
             log.error(
                 f"Invalid retrieval parameter '{pname}'. Possible "

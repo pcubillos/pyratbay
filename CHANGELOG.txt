@@ -8030,3 +8030,7 @@ Fixed mistyped version.
 Fixed bug with number of fields in retrieval_params
 when including priors.
 
+*****
+
+Updated instrumental offset parameter tex name (prettier, shorter)
+
