@@ -16,7 +16,6 @@ from .. import tools as pt
 
 from .  import extinction as ex
 from .  import crosssec as cs
-from .  import rayleigh as ray
 from .  import clouds as cl
 from .  import alkali as al
 from .  import read_atm as ra
@@ -102,11 +101,11 @@ class Pyrat(object):
 
   def set_spectrum(self):
       timer = pt.Timer()
-      ar.check_spectrum(self)
-
       # Initialize wavenumber sampling:
       ms.make_wavenumber(self)
       self.timestamps['wn sample'] = timer.clock()
+
+      ar.check_spectrum(self)
 
       # Read line database:
       rtli.read_tli(self)
@@ -166,9 +165,9 @@ class Pyrat(object):
       cs.interpolate(self)
       self.timestamps['interp cs'] = timer.clock()
 
-      # Calculate cloud, Rayleigh, and H-  absorption:
+      # Calculate cloud, Rayleigh, and H- absorption:
       cl.absorption(self)
-      ray.absorption(self)
+      self.rayleigh.absorption(self.atm.d)
       self.h_ion.absorption(self.atm.temp, self.atm.d)
       self.timestamps['cloud+ray'] = timer.clock()
 
@@ -249,10 +248,6 @@ class Pyrat(object):
       if ret.iray is not None:
           ifree = ret.map_pars['ray']
           self.rayleigh.pars[ifree] = params[ret.iray]
-          j = 0
-          for rmodel in self.rayleigh.models:
-              rmodel.pars = self.rayleigh.pars[j:j+rmodel.npars]
-              j += rmodel.npars
 
       # Update cloud parameters if requested:
       if ret.icloud is not None:
@@ -527,7 +522,7 @@ class Pyrat(object):
           label += lab
       # Rayleigh scattering extinction coefficient:
       if self.rayleigh.models != []:
-          e, lab = ray.get_ec(self, layer)
+          e, lab = self.rayleigh.get_ec(self.atm.d, layer)
           ec = np.vstack((ec, e))
           label += lab
       # Haze/clouds extinction coefficient:

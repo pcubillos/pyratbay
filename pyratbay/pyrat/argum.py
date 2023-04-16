@@ -14,6 +14,7 @@ from .. import spectrum as ps
 from .. import atmosphere as pa
 from .. import io as io
 from . import objects as ob
+from .rayleigh import Rayleigh
 
 
 def check_atmosphere(pyrat):
@@ -132,8 +133,13 @@ def check_spectrum(pyrat):
     )
 
     # Initialize Rayleigh models:
-    pyrat.rayleigh = ob.Rayleigh(
-        pyrat.inputs.rayleigh, pyrat.inputs.rpars, log,
+    pyrat.rayleigh = Rayleigh(
+        pyrat.inputs.rayleigh,
+        pyrat.inputs.rpars,
+        pyrat.mol.name,
+        pyrat.spec.wn,
+        log,
+        pyrat.cloud,
     )
 
     # Check alkali arguments:

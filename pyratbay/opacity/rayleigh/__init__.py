@@ -1,20 +1,11 @@
-# Copyright (c) 2021 Patricio Cubillos
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+# Copyright (c) 2021-2023 Patricio Cubillos
+# Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
-"""Cloud models."""
+"""Rayleigh opacity models"""
 
 from .rayleigh import *
 
-__all__ = rayleigh.__all__ + ['get_model']
-
-
-def get_model(name):
-    """Get a Rayleigh model by its name."""
-    if name.startswith('dalgarno_'):
-        mol = name.split('_')[1]
-        return Dalgarno(mol)
-    if name == 'lecavelier':
-        return Lecavelier()
+__all__ = rayleigh.__all__
 
 
 # Clean up top-level namespace--delete everything that isn't in __all__

@@ -102,32 +102,40 @@ Parameter name     Value
   (pnames)         (pars)
   log_k_ray         0.000e+00
   alpha_ray        -4.000e+00
-Opacity cross section (ec, cm2 molec-1):
-    [ 9.540e-30  9.547e-30  9.553e-30 ...  5.436e-29  5.439e-29  5.441e-29]
+Wavenumber (wn, cm-1):
+   [5882.35 5883.35 5884.35 ... 9088.35 9089.35 9090.35]
+Cross section (cross_section, cm2 molec-1):
+   [ 9.540e-30  9.547e-30  9.553e-30 ...  5.436e-29  5.439e-29  5.441e-29]
 """
 
     assert str(pyrat.rayleigh.models[1]) == """\
 Model name (name): 'dalgarno_H'
 Model species (mol): H
 Number of model parameters (npars): 0
-Extinction-coefficient (ec, cm2 molec-1):
-    [ 7.002e-30  7.007e-30  7.012e-30 ...  4.038e-29  4.040e-29  4.041e-29]
+Wavenumber (wn, cm-1):
+   [5882.35 5883.35 5884.35 ... 9088.35 9089.35 9090.35]
+Cross section (cross_section, cm2 molec-1):
+   [7.002e-30 7.007e-30 7.012e-30 ... 4.038e-29 4.040e-29 4.041e-29]
 """
 
     assert str(pyrat.rayleigh.models[2]) == """\
 Model name (name): 'dalgarno_He'
 Model species (mol): He
 Number of model parameters (npars): 0
-Extinction-coefficient (ec, cm2 molec-1):
-    [ 6.577e-31  6.582e-31  6.586e-31 ...  3.757e-30  3.758e-30  3.760e-30]
+Wavenumber (wn, cm-1):
+   [5882.35 5883.35 5884.35 ... 9088.35 9089.35 9090.35]
+Cross section (cross_section, cm2 molec-1):
+   [6.577e-31 6.582e-31 6.586e-31 ... 3.757e-30 3.758e-30 3.760e-30]
 """
 
     assert str(pyrat.rayleigh.models[3]) == """\
 Model name (name): 'dalgarno_H2'
 Model species (mol): H2
 Number of model parameters (npars): 0
-Extinction-coefficient (ec, cm2 molec-1):
-    [ 9.799e-30  9.806e-30  9.813e-30 ...  5.626e-29  5.629e-29  5.631e-29]
+Wavenumber (wn, cm-1):
+   [5882.35 5883.35 5884.35 ... 9088.35 9089.35 9090.35]
+Cross section (cross_section, cm2 molec-1):
+   [9.799e-30 9.806e-30 9.813e-30 ... 5.626e-29 5.629e-29 5.631e-29]
 """
 
 
@@ -535,8 +543,10 @@ Parameter name     Value
   (pnames)         (pars)
   log_k_ray         0.000e+00
   alpha_ray        -4.000e+00
-Opacity cross section (ec, cm2 molec-1):
-    [ 9.540e-30  9.547e-30  9.553e-30 ...  5.436e-29  5.439e-29  5.441e-29]
+Wavenumber (wn, cm-1):
+   [5882.35 5883.35 5884.35 ... 9088.35 9089.35 9090.35]
+Cross section (cross_section, cm2 molec-1):
+   [ 9.540e-30  9.547e-30  9.553e-30 ...  5.436e-29  5.439e-29  5.441e-29]
 
 Total atmospheric Rayleigh extinction-coefficient (ec, cm-1):
 [[ 5.610e-17  5.614e-17  5.617e-17 ...  3.197e-16  3.198e-16  3.199e-16]

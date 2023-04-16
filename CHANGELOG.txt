@@ -8054,5 +8054,12 @@ Updated docs and tests.
 
 Moved Rayleigh opacity models from atmosphere module to opacity.
 
-
 *****
+
+Moved Rayleigh() class from pyrat/objects.py into pyrat/rayleigh.py
+Merged function from pyrat/rayleigh.py as methods of Rayleigh(),
+which makes them accessible to the user now (via pyrat.rayleigh).
+
+Removed get_model() function from rayleigh module (no longer needed).
+Updated docs (cookbooks) and tests.
+
