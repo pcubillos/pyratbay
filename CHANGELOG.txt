@@ -8044,3 +8044,15 @@ Fixed bugs with equilibrium chemistry parameter names.
 Tweaked atmosphere.ideal_gas_law() function to allow 1D vmr input.
 Updated docs and tests.
 
+*****
+
+Refactored Dalgarno() and Lecavelier() models:
+Made them self suficient to compute extinction coefficients
+by moving functions from pyratbay/pyrat/rayleigh.py as methods.
+Renamed method names into more sensible names.
+Updated docs and tests.
+
+Moved Rayleigh opacity models from atmosphere module to opacity.
+
+
+*****

@@ -5,11 +5,13 @@ __all__ = [
     'broadening',
     'linelist',
     'partitions',
+    'rayleigh',
 ]
 
 from . import broadening
 from . import linelist
 from . import partitions
+from . import rayleigh
 from .lread import *
 from .hydrogen_ion import *
 

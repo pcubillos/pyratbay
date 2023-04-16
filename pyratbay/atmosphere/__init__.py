@@ -9,7 +9,6 @@ from .atmosphere import *
 from .vmr_scaling import *
 from . import tmodels
 from . import clouds
-from . import rayleigh
 from . import alkali
 
 __all__ = (
@@ -17,7 +16,6 @@ __all__ = (
   + vmr_scaling.__all__
   + ['tmodels']
   + ['clouds']
-  + ['rayleigh']
   + ['alkali']
 )
 
