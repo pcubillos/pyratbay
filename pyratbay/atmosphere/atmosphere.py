@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Patricio Cubillos
+# Copyright (c) 2021-2023 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -781,20 +781,21 @@ def mean_weight(abundances, species=None, molfile=None, mass=None):
 
 def ideal_gas_density(abundances, pressure, temperature):
     """
-    Use the Ideal gas law to calculate number density in molecules cm-3.
+    Use the ideal gas law to calculate number density in molecules cm-3.
 
     Parameters
     ----------
-    abundances: 2D float ndarray
-        Species volume mixing fraction, of shape [nlayers,nmol].
-    pressure: 1D ndarray
+    abundances: 2D float array
+        Species volume mixing fraction.
+        Can have a 2D shape of [nlayers,nmol] or a 1D shape of [nlayers]
+    pressure: 1D array
         Atmospheric pressure profile (in barye units).
-    temperature: 1D ndarray
+    temperature: 1D array
         Atmospheric temperature profile (in kelvin).
 
     Returns
     -------
-    density: 2D float ndarray
+    density: 2D float array
         Atmospheric density in molecules cm-3.
 
     Examples
@@ -802,16 +803,18 @@ def ideal_gas_density(abundances, pressure, temperature):
     >>> import pyratbay.atmosphere as pa
     >>> atmfile = "uniform_test.atm"
     >>> nlayers = 11
-    >>> pressure    = pa.pressure(1e-8, 1e2, nlayers, units='bar')
+    >>> pressure = pa.pressure(1e-8, 1e2, nlayers, units='bar')
     >>> temperature = np.tile(1500.0, nlayers)
-    >>> species     = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
-    >>> abundances  = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
+    >>> species = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
+    >>> abundances = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
     >>> qprofiles = pa.uniform(pressure, temperature, species, abundances)
     >>> dens = pa.ideal_gas_density(qprofiles, pressure, temperature)
     >>> print(dens[0])
     [4.10241993e+10 7.24297303e+09 4.82864869e+06 4.82864869e+06
      4.82864869e+02 4.82864869e+06]
     """
+    if np.shape(abundances) == np.shape(pressure):
+        return abundances * pressure/temperature / pc.k
     return abundances * np.expand_dims(pressure/temperature, axis=1) / pc.k
 
 
@@ -1003,7 +1006,6 @@ def temperature_posterior(posterior, tmodel):
         posterior[:,0], return_index=True, return_inverse=True,
     )
     nlayers = len(tmodel.pressure)
-    npars = len(posterior[0])
     nsamples = len(u)
 
     # Evaluate posterior PT profiles:

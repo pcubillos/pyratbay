@@ -1,5 +1,5 @@
-# Copyright (c) 2021 Patricio Cubillos
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+# Copyright (c) 2021-2023 Patricio Cubillos
+# Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import os
 import pytest
@@ -109,9 +109,9 @@ expected_vmr_tea_H2O = [
       [[3.42626988e-03, 3.43230384e-03, 3.43421613e-03, 3.43482164e-03,
         3.43505041e-03, 3.43884079e-03, 3.75750334e-03, 7.32956730e-03,
         8.44006218e-03],
-       [1.23528363e-16, 1.24941383e-14, 1.25395526e-12, 1.25539518e-10,
-        1.25584800e-08, 1.25570443e-06, 1.22785048e-04, 4.53001025e-03,
-        8.53482480e-03],]
+       [5.89500056e-03, 5.90536636e-03, 5.90865151e-03, 5.90969120e-03,
+        5.91003098e-03, 5.91123064e-03, 6.01443782e-03, 7.84463736e-03,
+        8.42759310e-03],]
 ]
 
 
@@ -424,16 +424,30 @@ def test_mean_weight_fail():
         mu = pa.mean_weight(abundances)
 
 
-def test_ideal_gas_density():
+def test_ideal_gas_density_2D():
     nlayers = 11
-    pressure    = pa.pressure(1e-8, 1e2, nlayers, units='bar')
+    pressure = pa.pressure(1e-8, 1e2, nlayers, units='bar')
     temperature = np.tile(1500.0, nlayers)
-    species     = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
-    abundances  = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
+    species = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
+    abundances = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
     qprofiles = pa.uniform(pressure, temperature, species, abundances)
     dens = pa.ideal_gas_density(qprofiles, pressure, temperature)
     for i,density in enumerate(dens):
         np.testing.assert_allclose(density, expected_dens*10**i, rtol=1e-7)
+
+
+def test_ideal_gas_density_1D():
+    nlayers = 11
+    pressure = pa.pressure(1e-8, 1e2, nlayers, units='bar')
+    temperature = np.tile(1500.0, nlayers)
+    vmr = np.tile(0.8496, nlayers)
+    density = pa.ideal_gas_density(vmr, pressure, temperature)
+    expected_density = np.array([
+       4.1024185e+10, 4.1024185e+11, 4.1024185e+12, 4.1024185e+13,
+       4.1024185e+14, 4.1024185e+15, 4.1024185e+16, 4.1024185e+17,
+       4.1024185e+18, 4.1024185e+19, 4.1024185e+20,
+    ])
+    np.testing.assert_allclose(density, expected_density, rtol=1e-7)
 
 
 def test_teq():
@@ -562,14 +576,17 @@ def test_chemistry_metallicity_escale():
     pressure = pa.pressure(1.0e-08, 1.0e+03, nlayers, units='bar')
     temperature = np.tile(900.0, nlayers)
     species = 'H2O CH4 CO CO2 NH3 C2H2 C2H4 HCN N2 H2 H He'.split()
-    e_scale = {'C': -1.0, 'O':1.0}
+    metallicity = -1.0
+    e_scale = {'C': -1.0, 'O': 1.0}
     chem_model = 'tea'
     chem_network = pa.chemistry(
         chem_model, pressure, temperature, species,
-        metallicity=-1.0, e_scale=e_scale)
+        metallicity=metallicity,
+        e_scale=e_scale,
+    )
 
     expected_rel_abundance = np.array(
-        [2.88403150e-06, 1.0, 8.20351544e-02, 6.76082975e-06, 4.89778819e-04])
+        [2.88403150e-05, 1.0, 8.20351544e-02, 6.76082975e-06, 4.89778819e-03])
     np.testing.assert_allclose(
         chem_network.element_rel_abundance, expected_rel_abundance)
 

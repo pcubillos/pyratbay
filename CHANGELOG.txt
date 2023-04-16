@@ -8038,3 +8038,9 @@ Updated instrumental offset parameter tex name (prettier, shorter)
 
 Fixed bugs with equilibrium chemistry parameter names.
 
+
+*****  Sun Apr 16 18:55:40 CEST 2023  *****
+
+Tweaked atmosphere.ideal_gas_law() function to allow 1D vmr input.
+Updated docs and tests.
+
