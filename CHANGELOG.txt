@@ -8063,3 +8063,7 @@ which makes them accessible to the user now (via pyrat.rayleigh).
 Removed get_model() function from rayleigh module (no longer needed).
 Updated docs (cookbooks) and tests.
 
+*****
+
+PEP8ed atmosphere/alkali/alkali.py
+
