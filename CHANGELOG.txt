@@ -8067,3 +8067,12 @@ Updated docs (cookbooks) and tests.
 
 PEP8ed atmosphere/alkali/alkali.py
 
+
+*****  Tue Apr 18 12:27:06 CEST 2023  *****
+
+Refactored atmosphere/alkali/alkali.py to be self-suficient
+to compute extinction coefficients by moving functions from
+pyratbay/pyrat/alkali.py as methods.
+Renamed method names into more sensible names.
+
+
