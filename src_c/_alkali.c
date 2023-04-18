@@ -30,7 +30,7 @@ TBD                                                              \n\
 static PyObject *alkali_cross_section(PyObject *self, PyObject *args){
     PyArrayObject *wn, *temp, *pressure, *wn0, *gf, *dwave, *voigt_det,
         *i_wn0, *ec;
-    int i, j, k, nwave, nlayers, nlines;
+    int i, j, k, t, flip, nwave, nlayers, nlines;
     double detuning_wn, dsigma, mass, lorentz_par, part_func, cutoff,
         lorentz, doppler, full_width, dwn, abs_dwn, lor_val, lor_sum;
 
@@ -48,6 +48,9 @@ static PyObject *alkali_cross_section(PyObject *self, PyObject *args){
     nlayers = (int)PyArray_DIM(temp, 0);
     nwave = (int)PyArray_DIM(wn, 0);
     nlines = (int)PyArray_DIM(wn0, 0);
+
+    // if wn is in decreasing order, flip the indexing
+    flip = signbit(INDd(wn,1)-INDd(wn,0));
 
     // Calculate the cross sections:
     for (j=0; j<nlines; j++){
@@ -69,7 +72,11 @@ static PyObject *alkali_cross_section(PyObject *self, PyObject *args){
 
             lor_sum = 0.0;
             for (k=0; k<nwave; k++){
-                dwn = INDd(wn,k) - INDd(wn0,j);
+                if (flip)
+                    t = nwave - k - 1;
+                else
+                    t = k;
+                dwn = INDd(wn,t) - INDd(wn0,j);
                 abs_dwn = fabs(dwn);
                 if (dwn < -cutoff)
                     continue;
@@ -78,24 +85,24 @@ static PyObject *alkali_cross_section(PyObject *self, PyObject *args){
 
                 // Extinction outside the detuning region (power law):
                 if (abs_dwn >= dsigma)
-                    IND2d(ec,i,k) +=
+                    IND2d(ec,i,t) +=
                         IND2d(voigt_det,i,j) * pow(abs_dwn/dsigma,-1.5)
                         * C3 * INDd(gf,j) / part_func
                         * exp(-C2*(abs_dwn-dsigma) / INDd(temp,i));
                 else {
                     // Lorentz profile in the core (detuning region):
                     lor_val = lorentz / PI / (pow(lorentz,2.0) + pow(dwn,2.0));
-                    IND2d(ec,i,k) += lor_val * C3 * INDd(gf,j) / part_func;
+                    IND2d(ec,i,t) += lor_val * C3 * INDd(gf,j) / part_func;
                     // Note this equation neglects exp(-Elow/T)*(1-exp(-wn0/T))
                     // because it is approximately 1.0 at T=[100K--4000K]
-                    if (k != INDi(i_wn0,j))
-                        lor_sum += (INDd(wn,(k+1))-INDd(wn,(k-1))) * lor_val;
+                    if (t != INDi(i_wn0,j))
+                        lor_sum += fabs(INDd(wn,(t+1))-INDd(wn,(t-1)))*lor_val;
                 }
             }
             // Core correction for undersampled lines:
             if ((full_width < 2.0*INDd(dwave,j)) & (lor_sum>0.0)){
                 k = INDi(i_wn0,j);
-                lor_val = (2.0-lor_sum) / (INDd(wn,(k+1))-INDd(wn,(k-1)));
+                lor_val = (2.0-lor_sum) / fabs(INDd(wn,(k+1))-INDd(wn,(k-1)));
                 IND2d(ec,i,INDi(i_wn0,j)) =
                     lor_val * C3 * INDd(gf,j) / part_func;
             }

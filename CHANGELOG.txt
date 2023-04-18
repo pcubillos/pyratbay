@@ -8075,4 +8075,9 @@ to compute extinction coefficients by moving functions from
 pyratbay/pyrat/alkali.py as methods.
 Renamed method names into more sensible names.
 
+*****
+
+Updated alkali_cross_section() C extension to consider case
+when the wavelength are sorted in decreasing order.
+Tests comming up.
 
