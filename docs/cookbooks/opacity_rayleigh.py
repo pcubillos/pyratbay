@@ -4,7 +4,7 @@
 ## Rayleigh Opacities Tutorial
 
 # This tutorial shows how to create Rayleigh opacity objects and compute their extinction coefficient spectra for a given atmospheric profile.
-# Let's start by importing some necessary modules:
+# Lets start by importing some necessary modules:
 
 
 import pyratbay.atmosphere as pa
@@ -75,7 +75,6 @@ print(H2_rayleigh)
 # Evaluate passband over a specific wavelength array (um):
 H2_ec = H2_rayleigh.calc_extinction_coefficient(H2_number_density)
 
-
 plt.figure(2)
 plt.clf()
 ax = plt.subplot(111)
@@ -105,7 +104,6 @@ print(lec_rayleigh)
 # reproduces the H2 Rayleigh opacity:
 lec_ec = lec_rayleigh.calc_extinction_coefficient(H2_number_density)
 
-
 # Compare to Dalgarno model:
 plt.figure(2)
 plt.clf()
@@ -134,7 +132,6 @@ enhanced_ray_ec = lec_rayleigh.calc_extinction_coefficient(
     H2_number_density,
     pars=[1.0, -4.0],
 )
-
 
 # See results:
 plt.figure(2)

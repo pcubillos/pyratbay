@@ -17,9 +17,10 @@ Recipes list:
 
 - :ref:`passbands` shows how to create and use instrumental response passbands
 
-- Opacity models:
+- Models to calculate opacities:
 
-  - :ref:`opacity_rayleigh` Rayleigh-scattering opacity models
+  - :ref:`opacity_alkali`
+  - :ref:`opacity_rayleigh`
 
 .. toctree::
    :caption: These are the available recipes
@@ -29,5 +30,6 @@ Recipes list:
    compendia
    temperature_profiles
    passbands
+   opacity_alkali
    opacity_rayleigh
 

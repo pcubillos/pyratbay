@@ -12,7 +12,7 @@ their extinction coefficient spectra for a given atmospheric profile.
     or as a `jupyter notebook here
     <https://github.com/pcubillos/pyratbay/blob/master/docs/cookbooks/opacity_rayleigh.ipynb>`_.
 
-Let’s start by importing some necessary modules:
+Lets start by importing some necessary modules:
 
 .. code:: ipython3
 
@@ -25,7 +25,22 @@ Let’s start by importing some necessary modules:
     import matplotlib
     import numpy as np
 
+Preamble
+--------
+
+We will sample the models over a wavelength array and over an
+atmospheric profile. Lets create these first:
+
 .. code:: ipython3
+
+    # Sample the opacity over a constant-resolution wavelength array
+    # (values in micron units)
+    wl_min = 0.2
+    wl_max = 6.0
+    resolution = 15000.0
+    wl = ps.constant_resolution_spectrum(wl_min, wl_max, resolution)
+
+
 
     # First, let's consider a simple solar-abundance isothermal atmosphere
     nlayers = 81
@@ -70,22 +85,13 @@ Let’s start by importing some necessary modules:
 .. image:: opacity_rayleigh/output_2_2.png
 
 
-1. Non-parametric models (H, H2, and He)
-----------------------------------------
+Non-parametric models (H, H2, and He)
+-------------------------------------
 
 .. code:: ipython3
-
-    # We will sample the opacity over a constant-resolution wavelength array
-    # (boundaries in micron units)
-    wl_min = 0.2
-    wl_max = 6.0
-    resolution = 15000.0
-    wl = ps.constant_resolution_spectrum(wl_min, wl_max, resolution)
-    
+   
     # Models for H, H2, and He based on Dalgarno models (from Kurucz 1970)
     H2_rayleigh = op.rayleigh.Dalgarno(wn=1e4/wl, mol='H2')
-
-.. code:: ipython3
 
     # A print() call shows some useful info about the object:
     print(H2_rayleigh)
@@ -100,8 +106,8 @@ Let’s start by importing some necessary modules:
        [50000.00 49996.67 49993.33 ... 1667.00 1666.88 1666.77]
     Cross section (cross_section, cm2 molec-1):
        [7.716e-26 7.714e-26 7.711e-26 ... 6.289e-32 6.287e-32 6.285e-32]
-    
 
+---------------------------------------------------------------------
 
 .. code:: ipython3
 
@@ -129,8 +135,8 @@ Let’s start by importing some necessary modules:
 .. image:: opacity_rayleigh/output_6_1.png
 
 
-2. Lecavelier parametric model
-------------------------------
+Lecavelier parametric model
+---------------------------
 
 .. code:: ipython3
 
@@ -154,6 +160,7 @@ Let’s start by importing some necessary modules:
     Cross section (cross_section, cm2 molec-1):
        [ 4.980e-26  4.979e-26  4.978e-26 ...  6.153e-32  6.152e-32  6.150e-32]
     
+---------------------------------------------------------------------
 
 
 .. code:: ipython3
