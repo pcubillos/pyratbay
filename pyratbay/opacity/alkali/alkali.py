@@ -80,7 +80,7 @@ class VanderWaals():
         return voigt_det
 
 
-    def calc_cross_section(self, temperature):
+    def calc_cross_section(self, temperature, layer=None):
         """
         Calculate cross section (cm2 molecule-1) at given temperatures
         Saves value into self.cross_section.
@@ -89,21 +89,44 @@ class VanderWaals():
         ----------
         temperature: 1D float array
             Temperature profile in Kelvin (must match self.pressure array)
+        layer: Interger
+            If not None, index at which to calculate the cross section.
+
+        Returns
+        -------
+        cross_section: 2D/1D float array
+            If layer is None, cross-section spectra (cm2 molec-1) at each
+            pressure-temperature point (also sets self.cross_section).
+            If layer is not None, cross-section spectrum at a single layer.
         """
-        self.cross_section = np.zeros((self.nlayers, self.nwave), np.double)
+        voigt_det = self.voigt_det(temperature)
+        if layer is None:
+            nlayers = self.nlayers
+            pressure = self.pressure
+        else:
+            nlayers = 1
+            pressure = self.pressure[layer:layer+1]
+            temperature = temperature[layer:layer+1]
+            voigt_det = voigt_det[layer:layer+1]
 
         i_nearest_wn0 = np.argmin(
             np.abs(np.expand_dims(self.wn0,1)-self.wn),
             axis=1,
         )
+        cross_section = np.zeros((nlayers, self.nwave), np.double)
         _alkali.alkali_cross_section(
-            self.pressure, self.wn, temperature,
-            self.voigt_det(temperature),
-            self.cross_section,
+            pressure, self.wn, temperature, voigt_det,
+            cross_section,
             self.detuning, self.mass, self.lpar, self.Z, self.cutoff,
             np.array(self.wn0), np.array(self.gf), np.array(self._dwave),
             i_nearest_wn0,
         )
+        if layer is None:
+            self.cross_section = cross_section
+        else:
+            cross_section = cross_section[0]
+        return cross_section
+
 
     def _calc_cross_section(self, temperature):
         """
@@ -158,7 +181,7 @@ class VanderWaals():
             # terms because they are approximately 1.0 at T <= 4000K
 
 
-    def calc_extinction_coefficient(self, temperature, density):
+    def calc_extinction_coefficient(self, temperature, density, layer=None):
         """
         Calculate extinction coefficient (cm-1) for given temperature
         and number-density profiles.
@@ -170,6 +193,10 @@ class VanderWaals():
         density: 1D float array
             Number density profile (molecules per cm3) of self.mol.
             (must match self.pressure array)
+        layer: Interger
+            If not None, calculate the extinction coefficient at a
+            single layer pointed by this index. In this case the output
+            is a 1D array.
 
         Returns
         -------
@@ -177,8 +204,10 @@ class VanderWaals():
             Alkali extinction coefficient spectrum (units of cm-1)
             of shape [nlayers, nwave].
         """
-        self.calc_cross_section(temperature)
-        return self.cross_section * np.expand_dims(density, axis=1)
+        cross_section = self.calc_cross_section(temperature, layer)
+        if layer is not None:
+            return cross_section * density[layer]
+        return cross_section * np.expand_dims(density, axis=1)
 
 
     def __str__(self):

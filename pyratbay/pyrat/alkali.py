@@ -51,12 +51,14 @@ class Alkali(object):
         """
         Extract per-species extinction coefficient (cm-1) at requested layer.
         """
-        self.calc_extinction_coefficient(temperature, densities)
         ec, label = [], []
         for imol,model in zip(self.imol, self.models):
             if imol is None:
                 continue
-            ec.append(model.cross_section[layer] * densities[layer,imol])
+            ext_coeff = model.calc_extinction_coefficient(
+                temperature, densities[:,imol], layer,
+            )
+            ec.append(ext_coeff)
             label.append(model.mol)
         return ec, label
 

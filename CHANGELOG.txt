@@ -8091,3 +8091,9 @@ Updated alkali tests.
 Moved Alkali() interface from objects.py to pyratbay/pyrat/alkali.py
 Updated tests.
 
+*****
+
+Enabled layer argument in alkali models to compute extinction
+coefficients at a single layer.
+Updated tests.
+

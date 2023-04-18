@@ -151,3 +151,24 @@ def test_potassium_extinction_coefficient():
     ec2 = alkali.calc_extinction_coefficient(temperature2, K_density)
     np.testing.assert_allclose(alkali.cross_section, expected_cs2)
     np.testing.assert_allclose(ec2, expected_ec2)
+
+
+
+def test_sodium_layer_extinction_coefficient():
+    wn_min = 1e4/0.65
+    wn_max = 1e4/0.55
+    resolution = 15000.0
+    wn = ps.constant_resolution_spectrum(wn_min, wn_max, resolution)
+    alkali = op.alkali.SodiumVdW(pressure, wn, cutoff=1000.0)
+
+    with np.load(f'{root}expected_alkali_Na_opacity.npz') as d:
+        expected_cs1 = d['expected_cs1']
+        expected_cs2 = d['expected_cs2']
+        expected_ec1 = d['expected_ec1']
+        expected_ec2 = d['expected_ec2']
+
+    layer = 1
+    temperature1 = np.tile(1000.0, nlayers)
+    ec1 = alkali.calc_extinction_coefficient(temperature1, Na_density, layer)
+    np.testing.assert_allclose(ec1, expected_ec1[layer])
+
