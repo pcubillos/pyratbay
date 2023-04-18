@@ -755,9 +755,9 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
     pyrat.inputs.fpatchy = args.get_default(
         'fpatchy', 'Patchy-cloud fraction', ge=0.0, le=1.0)
 
-    pyrat.alkali.model_names = args.get_choice(
+    pyrat.inputs.model_names = args.get_choice(
         'alkali', 'alkali model', pc.amodels)
-    pyrat.alkali.cutoff = args.get_default(
+    pyrat.inputs.alkali_cutoff = args.get_default(
         'alkali_cutoff',
         'Alkali profiles hard cutoff from line center (cm-1)', 4500.0, gt=0.0)
 

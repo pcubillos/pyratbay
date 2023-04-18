@@ -8086,3 +8086,8 @@ Tests comming up.
 Moved atmosphere/alkali/alkali.py to opacity/alkali/alkali.py
 Updated alkali tests.
 
+*****
+
+Moved Alkali() interface from objects.py to pyratbay/pyrat/alkali.py
+Updated tests.
+

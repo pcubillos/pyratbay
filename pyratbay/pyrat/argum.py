@@ -142,13 +142,6 @@ def check_spectrum(pyrat):
         pyrat.cloud,
     )
 
-    # Check alkali arguments:
-    if pyrat.alkali.model_names is not None:
-        pyrat.alkali.models = [
-            pa.alkali.get_model(name, pyrat.alkali.cutoff)
-            for name in pyrat.alkali.model_names
-        ]
-
     # Accept ray-path argument:
     if pyrat.runmode in ['spectrum', 'mcmc'] and pyrat.od.rt_path is None:
         log.error(

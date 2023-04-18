@@ -72,10 +72,11 @@ def optical_depth(pyrat):
         + pyrat.ex.ec[rtop:]
         + pyrat.cs.ec[rtop:]
         + pyrat.cloud.ec[rtop:]
-        + pyrat.alkali.ec[rtop:]
     )
     if pyrat.rayleigh.ec is not None:
         od.ec[rtop:] += pyrat.rayleigh.ec[rtop:]
+    if pyrat.alkali.ec is not None:
+        od.ec[rtop:] += pyrat.alkali.ec[rtop:]
     if pyrat.h_ion.ec is not None:
         od.ec[rtop:] += pyrat.h_ion.ec[rtop:]
 

@@ -12,7 +12,6 @@ __all__ = [
     'Cross',
     'Optdepth',
     'Cloud',
-    'Alkali',
     'Observation',
     'Physics',
     'Retrieval',
@@ -266,7 +265,7 @@ class Atm(object):
               molpars = [None for _ in self.mol_pnames]
 
           fw.write('Abundance models:\n  molvars    molpars  ifree')
-          for var, val in zip(self.mol_pnames, self.molpars):
+          for var, val in zip(self.mol_pnames, molpars):
               fw.write(f'  {var:15s}  {val:10s}')
           fw.write('Bulk species:\n  ibulk  bulk')
           for ibulk, bulk in zip(self.ibulk, self.bulk):
@@ -613,22 +612,6 @@ class Cloud(object):
         fw.write('Total atmospheric cloud extinction-coefficient '
                  '(ec, cm-1):\n{}', self.ec, fmt={'float':' {:.3e}'.format})
         return fw.text
-
-
-class Alkali(object):
-  def __init__(self):
-      self.models  = []    # List of alkali models
-      self.ec      = None  # Alkali extinction coefficient
-      self.cutoff  = 4500  # Profiles cutoff from line center (cm)
-
-  def __str__(self):
-      fw = pt.Formatted_Write()
-      fw.write('Alkali-opacity models (models):')
-      for model in self.models:
-          fw.write('\n' + str(model))
-      fw.write('\nTotal atmospheric alkali extinction-coefficient '
-               '(ec, cm-1):\n{}', self.ec, fmt={'float': '{: .3e}'.format})
-      return fw.text
 
 
 class Optdepth(object):

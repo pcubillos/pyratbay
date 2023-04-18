@@ -68,7 +68,6 @@ class Pyrat(object):
       self.ex = ob.Extinction()       # Extinction-coefficient
       self.cs = ob.Cross()            # Cross-section extinction
       self.od = ob.Optdepth()         # Optical depth
-      self.alkali = ob.Alkali()       # Alkali opacity models
       self.obs = ob.Observation()     # Observational data
       self.phy = ob.Physics()         # System physical parameters
       self.ret = ob.Retrieval()       # Retrieval variables
@@ -99,6 +98,7 @@ class Pyrat(object):
       #ms.make_atmprofiles(self)
       #self.timestamps['atm sample'] = timer.clock()
 
+
   def set_spectrum(self):
       timer = pt.Timer()
       # Initialize wavenumber sampling:
@@ -116,8 +116,16 @@ class Pyrat(object):
 
       # Extinction Voigt grid:
       v.voigt(self)
-      # Alkali Voigt grid:
-      al.init(self)
+
+      # Alkali opacity models:
+      self.alkali = al.Alkali(
+          self.inputs.model_names,
+          self.atm.press,
+          self.spec.wn,
+          self.inputs.alkali_cutoff,
+          self.mol.name,
+          self.log,
+      )
       self.timestamps['voigt'] = timer.clock()
 
       # Hydrogen ion opacity:
@@ -172,7 +180,7 @@ class Pyrat(object):
       self.timestamps['cloud+ray'] = timer.clock()
 
       # Calculate the alkali absorption:
-      al.absorption(self)
+      self.alkali.calc_extinction_coefficient(self.atm.temp, self.atm.d)
       self.timestamps['alkali'] = timer.clock()
 
       # Calculate the optical depth:
@@ -537,7 +545,7 @@ class Pyrat(object):
           label += [lab]
       # Alkali resonant lines extinction coefficient:
       if self.alkali.models != []:
-          e, lab = al.get_ec(self, layer)
+          e, lab = self.alkali.get_ec(self.atm.temp, self.atm.d, layer)
           ec = np.vstack((ec, e))
           label += lab
       return ec, label

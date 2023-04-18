@@ -1,52 +1,75 @@
-# Copyright (c) 2021-2022 Patricio Cubillos
+# Copyright (c) 2021-2023 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import numpy as np
+from .. import opacity as op
+from .. import tools as pt
 
 
-def init(pyrat):
-    """Setup alkali models for pyrat's atmosphere."""
-    if pyrat.alkali.models != []:
-        pyrat.log.head("\nSetup Alkali opacity models.")
-    for alkali in pyrat.alkali.models:
-        # Spectral sampling rate at alkali wn0:
-        dwave = []
-        for i,wn0 in enumerate(alkali.wn):
-            i_wn = np.argmin(np.abs(pyrat.spec.wn-wn0))
-            is_last = i_wn == pyrat.spec.nwave-1
-            is_over = i_wn > 0 and pyrat.spec.wn[i_wn] > wn0
-            if is_over or is_last:
-                i_wn -= 1
-            dwave.append(pyrat.spec.wn[i_wn+1]-pyrat.spec.wn[i_wn])
+class Alkali(object):
+    """Interface between Alkali opacity models and pyrat object"""
+    def __init__(self, model_names, pressure, wn, cutoff, species, log):
+        self.models = []
+        self.imol = []
+        self.ec = None
 
-        alkali.setup(pyrat.mol.name, pyrat.mol.mass, dwave)
+        if model_names is None:
+            return
 
+        for name in model_names:
+            model = op.alkali.get_model(name, pressure, wn, cutoff)
+            self.models.append(model)
 
-def absorption(pyrat):
-    """
-    Evaluate the total alkali absorption in the atmosphere.
-    """
-    # Initialize extinction coefficient:
-    pyrat.alkali.ec = np.zeros((pyrat.atm.nlayers, pyrat.spec.nwave))
+            if model.mol in species:
+                imol = list(species).index(model.mol)
+            else:
+                imol = None
+            self.imol.append(imol)
 
-    for alkali in pyrat.alkali.models:
-        # Number density of alkali species:
-        dens = np.expand_dims(pyrat.atm.d[:,alkali.imol], axis=1)
-        # Calculate extinction coefficient (cm2 molecule-1):
-        alkali.c_absorption(pyrat.atm.press, pyrat.atm.temp, pyrat.spec.wn)
-        # Sum alkali extinction coefficient (cm-1):
-        pyrat.alkali.ec += alkali.ec * dens
+        log.head("\nSetup Alkali opacity models.")
 
 
-def get_ec(pyrat, layer):
-    """
-    Extract per-species extinction coefficient (cm-1) at requested layer.
-    """
-    absorption(pyrat)
-    ec, label = [], []
-    for alkali in pyrat.alkali.models:
-        if alkali.imol >= 0:
-            ec.append(alkali.ec[layer] * pyrat.atm.d[layer,alkali.imol])
-            label.append(alkali.mol)
-    return ec, label
+
+    def calc_extinction_coefficient(self, temperature, densities):
+        """
+        Evaluate the total alkali absorption in the atmosphere.
+        """
+        ec = 0.0
+        for imol,model in zip(self.imol, self.models):
+            if imol is None:
+                continue
+            # Number density of alkali species:
+            dens = densities[:,imol]
+            # Calculate extinction coefficient (cm-1):
+            ec += model.calc_extinction_coefficient(temperature, dens)
+
+        if not np.isscalar(ec):
+            self.ec = ec
+
+
+    def get_ec(self, temperature, densities, layer):
+        """
+        Extract per-species extinction coefficient (cm-1) at requested layer.
+        """
+        self.calc_extinction_coefficient(temperature, densities)
+        ec, label = [], []
+        for imol,model in zip(self.imol, self.models):
+            if imol is None:
+                continue
+            ec.append(model.cross_section[layer] * densities[layer,imol])
+            label.append(model.mol)
+        return ec, label
+
+
+    def __str__(self):
+        fw = pt.Formatted_Write()
+        fw.write('Alkali-opacity models (models):')
+        for model in self.models:
+            fw.write('\n' + str(model))
+        fw.write(
+            '\nTotal atmospheric alkali extinction-coefficient (ec, cm-1):\n{}',
+            self.ec,
+            fmt={'float': '{:.3e}'.format},
+        )
+        return fw.text
 
