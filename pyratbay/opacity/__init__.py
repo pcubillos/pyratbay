@@ -2,12 +2,14 @@
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
+    'alkali',
     'broadening',
     'linelist',
     'partitions',
     'rayleigh',
 ]
 
+from . import alkali
 from . import broadening
 from . import linelist
 from . import partitions

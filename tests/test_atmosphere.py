@@ -638,28 +638,3 @@ def test_qscale():
     np.testing.assert_equal(vmr[:,2], np.tile(10**molpars[0], nlayers))
     # All CO abundances scaled by value:
     np.testing.assert_allclose(vmr[:,3], q0[:,3]*10**molpars[1], rtol=1e-7)
-
-
-@pytest.mark.parametrize('alkali', ['sodium_vdw', 'potassium_vdw'])
-def test_alkali_cutoff_default(alkali):
-    na = pa.alkali.get_model('sodium_vdw')
-    assert na.cutoff == 4500.0
-
-
-@pytest.mark.parametrize('cutoff', [4500, 4500.0, 5000.0])
-@pytest.mark.parametrize('alkali', ['sodium_vdw', 'potassium_vdw'])
-def test_alkali_cutoff(cutoff, alkali):
-    na = pa.alkali.get_model('sodium_vdw', cutoff)
-    assert na.cutoff == float(cutoff)
-
-
-@pytest.mark.skip(reason='TBD')
-def test_alkali_c_absorption():
-    pass
-
-
-@pytest.mark.skip(reason='TBD')
-def test_alkali_voigt_det():
-    pass
-
-

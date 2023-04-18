@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Patricio Cubillos
+# Copyright (c) 2021-2023 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 """
@@ -9,14 +9,12 @@ from .atmosphere import *
 from .vmr_scaling import *
 from . import tmodels
 from . import clouds
-from . import alkali
 
 __all__ = (
     atmosphere.__all__
   + vmr_scaling.__all__
   + ['tmodels']
   + ['clouds']
-  + ['alkali']
 )
 
 

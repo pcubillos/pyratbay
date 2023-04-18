@@ -11,7 +11,7 @@ import numpy as np
 from ... import constants as pc
 from ... import tools as pt
 from ... import io as io
-from ...opacity import broadening
+from .. import broadening
 
 from ...lib import _alkali
 

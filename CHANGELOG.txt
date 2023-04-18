@@ -8081,3 +8081,8 @@ Updated alkali_cross_section() C extension to consider case
 when the wavelength are sorted in decreasing order.
 Tests comming up.
 
+*****
+
+Moved atmosphere/alkali/alkali.py to opacity/alkali/alkali.py
+Updated alkali tests.
+
