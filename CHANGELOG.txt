@@ -8110,3 +8110,10 @@ Updated docs and tests.
 
 *****
 
+Refactored ex.read_opacity() to put opacity data into shared memory
+when possible and when needed (MPI runs via mpi4py).
+Refactored make_wavenumber() function to check opacity wavenumber
+array as input (when exists) without needing to process the opacity
+files already.
+Moved ex.read_opacoty() to after ms.make_wavenumber().
+

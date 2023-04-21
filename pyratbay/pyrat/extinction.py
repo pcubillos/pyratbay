@@ -3,6 +3,7 @@
 
 import os
 import ctypes
+import importlib
 import multiprocessing as mp
 
 import numpy as np
@@ -13,7 +14,7 @@ from .. import io as io
 from ..lib import _extcoeff as ec
 
 
-def read_opacity(pyrat):
+def read_opacity(pyrat, wn_mask=None):
     """
     Read opacity table(s), which are actually cross-section tables
     with units of (cm2 molecule-1).
@@ -37,25 +38,38 @@ def read_opacity(pyrat):
     for extfile in ex.extfile:
         log.head(f"  '{extfile}'.")
 
-    ex.species, ex.etable = [], []
+    # Load opacities into shared memory if and only if possible and needed:
+    use_shared_memory = False
+    mpi_exists = importlib.util.find_spec('mpi4py') is not None
+    if mpi_exists:
+        from mpi4py import MPI
+        comm = MPI.COMM_WORLD
+        use_shared_memory = comm.size > 1
+
+    # Get dimensions first:
+    species, ex.temp, ex.press, ex.wn = io.read_opacity(
+        ex.extfile[0], extract='arrays',
+    )
+    ex.ntemp = len(ex.temp)
+    ex.nlayers = len(ex.press)
+    ex.nwave = len(ex.wn)
+
+    ex.species = []
+    species_per_file = []
     for extfile in ex.extfile:
-        edata = io.read_opacity(extfile)
         efile = os.path.basename(extfile)
-        # Array sizes:
-        nspec, ntemp, nlayers, nwave = edata[0]
-        size_mismatch = (
-            ex.temp is not None and
-            (ntemp != ex.ntemp or nlayers != ex.nlayers or nwave != ex.nwave)
-        )
-        if size_mismatch:
+        species, temp, press, wn = io.read_opacity(extfile, extract='arrays')
+        species_per_file.append(list(species))
+        ntemp = len(temp)
+        nlayers = len(press)
+        nwave = len(wn)
+
+        if ntemp != ex.ntemp or nlayers != ex.nlayers or nwave != ex.nwave:
             log.error(
                 f"Shape of the cross-section file '{efile}' "
                 "does not match with previous file shapes."
             )
-        ex.ntemp, ex.nlayers, ex.nwave = ntemp, nlayers, nwave
-
         # Species, temperature (K), pressure (barye), and wavenumber (cm-1):
-        species, temp, press, wn = edata[1]
         if ex.temp is not None:
             value_mismatch = [
                 np.any(np.abs(1.0-temp/ex.temp) > 0.01),
@@ -69,16 +83,51 @@ def read_opacity(pyrat):
                     f"Tabulated {mismatch} values in file '{efile}' "
                     "do not match with previous arrays"
                 )
-        ex.temp, ex.press, ex.wn = temp, press, wn
-        ex.species += list(species)
-        # Extinction-coefficient table (cm2 molecule-1):
-        ex.etable.append(edata[2])
+        # Add new species:
+        ex.species += [
+            spec
+            for spec in species
+            if spec not in ex.species
+        ]
 
+    spec_indices = []
+    for species in species_per_file:
+        spec_indices.append([
+            ex.species.index(spec) for spec in species
+        ])
     ex.species = np.array(ex.species)
     ex.nspec = len(ex.species)
-    ex.etable = np.vstack(ex.etable)
-    if np.ndim(ex.etable) == 3:
-        ex.etable = np.expand_dims(ex.etable, axis=0)
+
+    if wn_mask is None:
+        wn_mask = np.ones(len(ex.wn), bool)
+    ex.wn = ex.wn[wn_mask]
+    ex.nwave = len(ex.wn)
+
+    # Cross-sections table (cm2 molecule-1):
+    cs_shape = (ex.nspec, ex.ntemp, ex.nlayers, ex.nwave)
+    if not use_shared_memory:
+        ex.etable = np.zeros(cs_shape)
+        for idx,extfile in zip(spec_indices, ex.extfile):
+            ex.etable[idx] += \
+                io.read_opacity(extfile, extract='opacity')[:,:,:,wn_mask]
+    else:
+        itemsize = MPI.DOUBLE.Get_size()
+        if comm.rank == 0:
+            nbytes = np.prod(cs_shape) * itemsize
+        else:
+            nbytes = 0
+        # on rank 0, create the shared block
+        # else get a handle to it
+        win = MPI.Win.Allocate_shared(nbytes, itemsize, comm=comm)
+
+        buf, itemsize = win.Shared_query(0)
+        assert itemsize == MPI.DOUBLE.Get_size()
+        ex.etable = np.ndarray(buffer=buf, dtype='d', shape=cs_shape)
+        if comm.rank == 0:
+            for idx,extfile in zip(spec_indices, ex.extfile):
+                ex.etable[idx] += \
+                    io.read_opacity(extfile, extract='opacity')[:,:,:,wn_mask]
+        comm.Barrier()
 
     log.msg(
         f"File(s) have {ex.nspec} species, {ex.ntemp} temperature "

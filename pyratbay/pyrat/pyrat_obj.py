@@ -86,10 +86,6 @@ class Pyrat(object):
       # Check that user input arguments make sense:
       ar.check_atmosphere(self)  # TBD: Need this here?
 
-      # Read opacity tables (if needed):
-      ex.read_opacity(self)
-      self.timestamps['read opacity'] = timer.clock()
-
       # Read the atmospheric file:
       ra.make_atmosphere(self)
       self.timestamps['read atm'] = timer.clock()
@@ -104,6 +100,10 @@ class Pyrat(object):
       # Initialize wavenumber sampling:
       ms.make_wavenumber(self)
       self.timestamps['wn sample'] = timer.clock()
+
+      # Read opacity tables (if needed):
+      ex.read_opacity(self, self.spec._wn_mask)
+      self.timestamps['read opacity'] = timer.clock()
 
       ar.check_spectrum(self)
 

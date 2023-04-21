@@ -4,9 +4,9 @@
 import numpy as np
 
 from .. import constants as pc
+from .. import io
 from .. import spectrum as ps
 from .. import tools as pt
-
 
 def make_wavenumber(pyrat):
     """
@@ -126,35 +126,37 @@ def make_wavenumber(pyrat):
     log.head('Wavenumber sampling done.')
 
 
-    # If there are opacity tables:
-    modify_from_opacity = (
-        ex.wn is not None and
-        (ex.nwave != spec.nwave or np.sum(np.abs(ex.wn-spec.wn)) > 0)
-    )
+    # If there are cross-section tables:
+    modify_from_opacity = False
+    if pt.isfile(ex.extfile) == 1 and pyrat.runmode != 'opacity':
+        wn = io.read_opacity(pyrat.ex.extfile[0], extract='arrays')[3]
+        if spec.nwave != len(wn) or np.sum(np.abs(wn-spec.wn)) > 0:
+            modify_from_opacity = True
+
+    spec._wn_mask = None
     if modify_from_opacity:
-        wn_mask = (ex.wn >= spec.wnlow) & (ex.wn <= spec.wnhigh)
+        # Update wavenumber sampling:
+        spec._wn_mask = (wn >= spec.wnlow) & (wn <= spec.wnhigh)
+        spec.wn = wn[spec._wn_mask]
+        spec.nwave = len(spec.wn)
 
-        if spec.wnlow <= ex.wn[0]:
-            spec.wnlow = ex.wn[0]
-        if spec.wnhigh >= ex.wn[-1]:
-            spec.wnhigh = ex.wn[-1]
+        if spec.wnlow <= spec.wn[0]:
+            spec.wnlow = spec.wn[0]
+        if spec.wnhigh >= spec.wn[-1]:
+            spec.wnhigh = spec.wn[-1]
 
-        if len(set(np.ediff1d(ex.wn))) == 1:
-            spec.wnstep = ex.wn[1] - ex.wn[0]
+        if len(set(np.ediff1d(spec.wn))) == 1:
+            spec.wnstep = spec.wn[1] - spec.wn[0]
             spec.resolution = None
             #spec.wnlow = ex.wn[0]
             sampling_text = f'sampling rate = {spec.wnstep:.2f} cm-1'
         else:
-            g = ex.wn[-2]/ex.wn[-1]
+            g = spec.wn[-2]/spec.wn[-1]
             # Assuming no one would care to set a R with more than 5 decimals:
             spec.resolution = np.round(0.5*(1+g)/(1-g), decimals=5)
             #spec.wnhigh = 2 * ex.wn[-1]/(1+g)
             sampling_text = f'R = {spec.resolution:.1f}'
 
-        # Update wavenumber sampling:
-        spec.wn = ex.wn = ex.wn[wn_mask]
-        ex.etable = ex.etable[:,:,:,wn_mask]
-        spec.nwave = ex.nwave = len(ex.wn)
         # Keep wavenumber oversampling factor:
         spec.ownstep = spec.wnstep / spec.wnosamp
         spec.onwave = (spec.nwave - 1) * spec.wnosamp + 1
