@@ -8101,3 +8101,12 @@ Updated tests.
 
 Added alkali models cookbook.
 
+
+*****  Fri Apr 21 22:20:17 CEST 2023  *****
+
+Added extract argument into io.read_opacity() function to specity
+what data to extract.
+Updated docs and tests.
+
+*****
+

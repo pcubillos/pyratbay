@@ -604,7 +604,7 @@ def write_opacity(ofile, species, temp, press, wn, opacity):
         opacity=opacity)
 
 
-def read_opacity(ofile):
+def read_opacity(ofile, extract='all'):
     """
     Read an opacity table from file.
 
@@ -612,6 +612,11 @@ def read_opacity(ofile):
     ----------
     ofile: String
         Path to a Pyrat Bay opacity file.
+    extract: String
+        Information to extract, select between:
+        - 'arrays' for the species, temperature, pressure, and wavenumber
+        - 'opacities' for the opacity grid
+        - 'all' to get both and the array dimensions.
 
     Returns
     -------
@@ -629,21 +634,25 @@ def read_opacity(ofile):
         [nspec, ntemp, nlayers, nwave].
     """
     with np.load(ofile) as f:
-        species = f['species']
-        temp    = f['temperature']
-        press   = f['pressure']
-        wn      = f['wavenumber']
-        opacity = f['opacity']
+        if extract in ['arrays', 'all']:
+            species = f['species']
+            temp = f['temperature']
+            press = f['pressure']
+            wn = f['wavenumber']
+        if extract in ['opacity', 'all']:
+            opacity = f['opacity']
 
-    # Arrays lengths:
-    nspec = len(species)
-    ntemp = len(temp)
-    nlayers = len(press)
-    nwave = len(wn)
-
-    return ((nspec, ntemp, nlayers, nwave),
+    if extract == 'opacity':
+        return opacity
+    if extract == 'arrays':
+        return (species, temp, press, wn)
+    if extract == 'all':
+        shape = np.shape(opacity)
+        return (
+            shape,
             (species, temp, press, wn),
-            opacity)
+            opacity,
+        )
 
 
 def write_pf(pffile, pf, isotopes, temp, header=None):

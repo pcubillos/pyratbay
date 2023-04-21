@@ -110,35 +110,87 @@ def test_read_spectrum_custom_header(tmpdir, header):
     np.testing.assert_allclose(wn, np.array([10000.0, 5000.0, 2500.0]))
 
 
-def test_read_write_opacity(tmpdir):
+@pytest.mark.parametrize(
+    'extract',
+    [None, 'all'],
+)
+def test_read_write_opacity_all(tmpdir, extract):
     ofile = "{}/opacity_test.npz".format(tmpdir)
     molID = np.array([101, 105])
     temp  = np.linspace(300, 3000, 28)
     press = np.logspace(-6, 2, 21)
     wn    = np.linspace(1000, 2000, 1001)
 
-    nmol    = len(molID)
-    ntemp   = len(temp)
+    nmol = len(molID)
+    ntemp = len(temp)
     nlayers = len(press)
-    nwave   = len(wn)
+    nwave = len(wn)
 
-    etable = np.linspace(0.0, 1.0, nmol*ntemp*nlayers*nwave).reshape(
-                         (nmol, ntemp, nlayers, nwave))
+    etable = np.linspace(0.0, 1.0, nmol*ntemp*nlayers*nwave)
+    etable = etable.reshape((nmol, ntemp, nlayers, nwave))
 
     io.write_opacity(ofile, molID, temp, press, wn, etable)
-    edata = io.read_opacity(ofile)
+    if extract is None:
+        edata = io.read_opacity(ofile)
+    else:
+        edata = io.read_opacity(ofile, extract=extract)
 
-    assert nmol    ==    2
-    assert ntemp   ==   28
-    assert nlayers ==   21
-    assert nwave   == 1001
+    assert nmol == 2
+    assert ntemp == 28
+    assert nlayers == 21
+    assert nwave == 1001
     assert edata[0] == (nmol, ntemp, nlayers, nwave)
 
     np.testing.assert_allclose(molID, edata[1][0])
-    np.testing.assert_allclose(temp,  edata[1][1])
+    np.testing.assert_allclose(temp, edata[1][1])
     np.testing.assert_allclose(press, edata[1][2])
-    np.testing.assert_allclose(wn,    edata[1][3])
+    np.testing.assert_allclose(wn, edata[1][3])
     np.testing.assert_allclose(etable, edata[2])
+
+
+def test_read_write_opacity_arrays(tmpdir):
+    ofile = "{}/opacity_test.npz".format(tmpdir)
+    molID = np.array([101, 105])
+    temp  = np.linspace(300, 3000, 28)
+    press = np.logspace(-6, 2, 21)
+    wn    = np.linspace(1000, 2000, 1001)
+
+    nmol = len(molID)
+    ntemp = len(temp)
+    nlayers = len(press)
+    nwave = len(wn)
+
+    etable = np.linspace(0.0, 1.0, nmol*ntemp*nlayers*nwave)
+    etable = etable.reshape((nmol, ntemp, nlayers, nwave))
+
+    io.write_opacity(ofile, molID, temp, press, wn, etable)
+    edata = io.read_opacity(ofile, extract='arrays')
+
+    np.testing.assert_allclose(molID, edata[0])
+    np.testing.assert_allclose(temp, edata[1])
+    np.testing.assert_allclose(press, edata[2])
+    np.testing.assert_allclose(wn, edata[3])
+
+
+def test_read_write_opacity_opacity(tmpdir):
+    ofile = "{}/opacity_test.npz".format(tmpdir)
+    molID = np.array([101, 105])
+    temp  = np.linspace(300, 3000, 28)
+    press = np.logspace(-6, 2, 21)
+    wn    = np.linspace(1000, 2000, 1001)
+
+    nmol = len(molID)
+    ntemp = len(temp)
+    nlayers = len(press)
+    nwave = len(wn)
+
+    etable = np.linspace(0.0, 1.0, nmol*ntemp*nlayers*nwave)
+    etable = etable.reshape((nmol, ntemp, nlayers, nwave))
+
+    io.write_opacity(ofile, molID, temp, press, wn, etable)
+    edata = io.read_opacity(ofile, extract='opacity')
+
+    np.testing.assert_allclose(etable, edata)
 
 
 def test_read_write_atm_pt(tmpdir):
