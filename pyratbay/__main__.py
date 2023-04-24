@@ -86,7 +86,15 @@ def main():
     # Cross-section reformatting:
     elif args.cs is not None:
         if args.cs[0] == 'hitran':
-            pb.tools.cia_hitran(args.cs[1], int(args.cs[2]), int(args.cs[3]))
+            if len(args.cs) < 3:
+                t_step = 1
+            else:
+                t_step = int(args.cs[2])
+            if len(args.cs) < 4:
+                wn_step = 1
+            else:
+                wn_step = int(args.cs[3])
+            pb.tools.cia_hitran(args.cs[1], t_step, wn_step)
         elif args.cs[0] == 'borysow':
             pb.tools.cia_borysow(*args.cs[1:])
         else:

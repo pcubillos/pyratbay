@@ -8117,3 +8117,9 @@ array as input (when exists) without needing to process the opacity
 files already.
 Moved ex.read_opacoty() to after ms.make_wavenumber().
 
+
+*****  Mon Apr 24 11:01:47 CEST 2023  *****
+
+Tweaked 'pbay -cs hitran' call to default temp and wn steps to one
+when values are not provided.
+
