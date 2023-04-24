@@ -16,10 +16,15 @@ from . import partitions
 from . import rayleigh
 from .lread import *
 from .hydrogen_ion import *
-
+from .cia import *
 from .. import version as ver
 
-__all__ += hydrogen_ion.__all__ + lread.__all__
+__all__ = (
+    __all__
+    + cia.__all__
+    + hydrogen_ion.__all__
+    + lread.__all__
+)
 
 # Lineread version:
 __version__ = f'{ver.LR_VER}.{ver.LR_MIN}.{ver.LR_REV}'

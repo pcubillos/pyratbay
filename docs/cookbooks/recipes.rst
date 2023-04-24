@@ -20,6 +20,7 @@ Recipes list:
 - Models to calculate opacities:
 
   - :ref:`opacity_alkali`
+  - :ref:`opacity_cia`
   - :ref:`opacity_rayleigh`
 
 .. toctree::
@@ -31,5 +32,6 @@ Recipes list:
    temperature_profiles
    passbands
    opacity_alkali
+   opacity_cia
    opacity_rayleigh
 

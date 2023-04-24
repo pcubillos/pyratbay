@@ -8136,3 +8136,9 @@ which combines low- and high-temperature CIA data from Borysov
 joined at the 1000K point.
 Updated docs.
 
+*****
+
+Implemented Collision_Induced() class to model CIA opacities
+in a self-suficient object.
+Added tests and docs.
+
