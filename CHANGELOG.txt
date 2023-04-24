@@ -8123,3 +8123,9 @@ Moved ex.read_opacoty() to after ms.make_wavenumber().
 Tweaked 'pbay -cs hitran' call to default temp and wn steps to one
 when values are not provided.
 
+*****
+
+Added lin_interp_2D() function into _spline.c C extension
+for 1D linear interpolations into a 2D numpy array.
+Tests are TBD.
+
