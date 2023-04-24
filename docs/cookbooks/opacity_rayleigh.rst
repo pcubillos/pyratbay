@@ -111,7 +111,7 @@ Non-parametric models (H, H2, and He)
 
 .. code:: ipython3
 
-    # Evaluate passband over a specific wavelength array (um):
+    # Calculate extinction-coefficient spectra (cm-1) over the profile
     H2_ec = H2_rayleigh.calc_extinction_coefficient(H2_number_density)
     
     

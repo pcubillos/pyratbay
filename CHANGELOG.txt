@@ -8151,3 +8151,7 @@ to model the CIA.
 Updated tests.
 Added self.name into Collision_Induced() objects.
 
+*****
+
+Minor edits in docs.
+

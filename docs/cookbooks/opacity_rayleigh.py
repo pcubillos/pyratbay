@@ -72,7 +72,7 @@ H2_rayleigh = op.rayleigh.Dalgarno(wn=1e4/wl, mol='H2')
 print(H2_rayleigh)
 
 
-# Evaluate passband over a specific wavelength array (um):
+# Calculate extinction-coefficient spectra (cm-1) over the profile
 H2_ec = H2_rayleigh.calc_extinction_coefficient(H2_number_density)
 
 plt.figure(2)
