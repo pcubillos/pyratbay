@@ -8129,3 +8129,10 @@ Added lin_interp_2D() function into _spline.c C extension
 for 1D linear interpolations into a 2D numpy array.
 Tests are TBD.
 
+*****
+
+Added CIA_Borysow_H2He_0050-7000K_0.5-031um.dat file
+which combines low- and high-temperature CIA data from Borysov
+joined at the 1000K point.
+Updated docs.
+

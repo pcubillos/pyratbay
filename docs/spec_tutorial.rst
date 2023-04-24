@@ -209,42 +209,42 @@ Sources    Species    T range    |nu| range (|kayser|) References
 `HITRAN`_  |H2|--H    1000--2500 1.0--100.0            [Richard2012]_ [Karman2019]_
 `HITRAN`_  |H2|--He    200--9900 0.5--500.0            [Richard2012]_ [Karman2019]_
 `Borysow`_ |H2|--|H2|   60--7000 0.6--500.0            [Borysow2001]_ [Borysow2002]_
-`Borysow`_ |H2|--He     50--3000 0.3--30.0             [Borysow1988]_ [Borysow1989a]_ [Borysow1989b]_
+`Borysow`_ |H2|--He     50--7000 0.5--31.25            [Borysow1988]_ [Borysow1989a]_ [Borysow1989b]_ [Jorgensen2000]_
 ========== ========== ========== ===================== =====================
 
 
 .. _Borysow: https://www.astro.ku.dk/~aborysow/programs/index.html
 .. _HITRAN: https://hitran.org/cia
 
-``Pyrat Bay`` provides commands to format the downloaded cross-section
-files from these databases.
 
-For the **HITRAN** database, these commands re-format the downloaded CIA
-files and thins down the array (to reduce file size):
+For the **HITRAN** CIA database, ``Pyrat Bay`` provides these shell commands to re-format the downloaded CIA files
 
-.. code-block:: python
+.. code-block:: shell
 
-    # Re-format HITRAN H2-H2 CIA file for Pyrat Bay:
-    # (last two arguments tell to take every 2nd and 10th temperature and wavenumber samples):
-    pbay -cs hitran H2-H2_2011.cia 2 10
+    # Download and format HITRAN H2-H2 CIA file for Pyrat Bay:
+    $ wget https://hitran.org/data/CIA/H2-H2_2011.cia
+    $ pbay -cs hitran H2-H2_2011.cia
 
-    # And for HITRAN H2-He CIA (taking every 4th and 10th temp and wavenumber samples):
-    pbay -cs hitran H2-He_2011.cia 4 10
+    # And for HITRAN H2-He CIA
+    $ wget https://hitran.org/data/CIA/H2-H2_2011.cia
+    $ pbay -cs hitran H2-He_2011.cia
 
-For the **Borysow** database, the code provides already-formatted
+For the **Borysow** CIA database, the code provides already-formatted
 files for |H2|-|H2| in the 60--7000K and 0.6--500 um range \[`here
 <https://github.com/pcubillos/pyratbay/blob/master/pyratbay/data/CIA/CIA_Borysow_H2H2_0060-7000K_0.6-500um.dat>`_\]
 (this file pieces together the tabulated |H2|-|H2| files described in
-the references above); and for |H2|-He in the 50--3500K and 0.3--100
+the references above); and for |H2|-He in the 50--7000K and 0.5--31.25
 um range \[`here
-<https://github.com/pcubillos/pyratbay/blob/master/pyratbay/data/CIA/CIA_Borysow_H2He_0050-3500K_0.3-100um.dat>`_\]
+<https://github.com/pcubillos/pyratbay/blob/master/pyratbay/data/CIA/CIA_Borysow_H2He_0050-7000K_0.5-031um.dat>`_\]
 (this file was created using a re-implementation of the code described
 in the references above).  The user can access these files via the
 ``{ROOT}`` shortcut, as in the example below:
 
 .. code-block:: python
 
-    csfile = {ROOT}/pyratbay/data/CIA/CIA_Borysow_H2H2_0060-7000K_0.6-500um.dat
+    csfile =
+        {ROOT}pyratbay/data/CIA/CIA_Borysow_H2H2_0060-7000K_0.6-500um.dat
+        {ROOT}pyratbay/data/CIA/CIA_Borysow_H2He_0050-7000K_0.5-031um.dat
 
 
 Radius-profile Models

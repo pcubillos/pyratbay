@@ -35,6 +35,8 @@ References
 
 .. [Iro2005] `Iro et al. (2005): A time-dependent radiative model of HD 209458b <https://ui.adsabs.harvard.edu/abs/2005A&A...436..719I>`_
 
+.. [Jorgensen2000] `Jorgensen et al. (2000): The atmospheres of cool, helium-rich white dwarfs <https://ui.adsabs.harvard.edu/abs/2000A%26A...361..283J/abstract>`_
+
 .. [Karman2019] `Karman et al. (2019): Update of the HITRAN collision-induced absorption section <https://ui.adsabs.harvard.edu/abs/2019Icar..328..160K>`_
 
 .. [Kurucz1970] `Kurucz (1970): Atlas: a Computer Program for Calculating Model Stellar Atmospheres <http://ui.adsabs.harvard.edu/abs/1970SAOSR.309.....K>`_
