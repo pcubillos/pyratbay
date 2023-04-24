@@ -418,52 +418,40 @@ def test_pyrat_transmission_cs_str(tmp_path):
     )
     pyrat = pb.run(cfg)
     assert str(pyrat.cs) == """\
-Cross-section extinction information:
-Number of cross-section files (nfiles): 2
+CIA extinction information:
+Number of CIA files (nfiles): 2
 
-Cross-section file name (files[0]):
+CIA file name (files[0]):
     '{:s}/pyratbay/data/CIA/CIA_Borysow_H2H2_0060-7000K_0.6-500um.dat'
-Cross-section species (molecules): H2-H2
+CIA species: H2-H2
 Number of temperature samples: 20
-Number of wavenumber samples: 824
+Number of wavenumber samples: 3209
 Temperature array (temp, K):
   [  60.  100.  150.  200.  250.  300.  350.  400.  500.  600.  700.  800.  900.
     1000. 2000. 3000. 4000. 5000. 6000. 7000.]
 Wavenumber array (wavenumber, cm-1):
-  [20.0 40.0 60.0 ... 16440.0 16460.0 16480.0]
-Input extinction coefficient (absorption, cm-1 amagat-2):
-[[ 3.88e-08  9.56e-08 ...  3.39e-13  3.32e-13]
- [ 3.70e-08  1.09e-07 ...  3.79e-13  3.72e-13]
- ...
- [ 3.51e-09  1.41e-08 ...  1.35e-09  1.33e-09]
- [ 3.87e-09  1.55e-08 ...  2.23e-09  2.20e-09]]
+  [5882.4 5883.4 5884.4 ... 9088.4 9089.4 9090.4]
 
-Cross-section file name (files[1]):
+CIA file name (files[1]):
     '{:s}/pyratbay/data/CIA/CIA_Borysow_H2He_0050-3000K_0.3-030um.dat'
-Cross-section species (molecules): H2-He
+CIA species: H2-He
 Number of temperature samples: 20
-Number of wavenumber samples: 1652
+Number of wavenumber samples: 3209
 Temperature array (temp, K):
   [  50.   75.  100.  150.  200.  250.  300.  350.  400.  500.  600.  700.  800.
     900. 1000. 1250. 1500. 2000. 2500. 3000.]
 Wavenumber array (wavenumber, cm-1):
-  [320.0 340.0 360.0 ... 33300.0 33320.0 33340.0]
-Input extinction coefficient (absorption, cm-1 amagat-2):
-[[ 5.14e-07  8.42e-07 ...  6.65e-23  6.49e-23]
- [ 6.02e-07  7.64e-07 ...  4.20e-29  4.05e-29]
- ...
- [ 2.93e-06  3.20e-06 ...  1.25e-13  1.25e-13]
- [ 3.09e-06  3.36e-06 ...  4.06e-13  4.05e-13]]
+  [5882.4 5883.4 5884.4 ... 9088.4 9089.4 9090.4]
 
 Minimum and maximum temperatures (tmin, tmax) in K: [60.0, 3000.0]
-Atmospheric-model extinction coefficient (ec, cm-1):
-[[ 2.67e-20  2.66e-20  2.65e-20 ...  2.56e-21  2.56e-21  2.55e-21]
- [ 4.23e-20  4.21e-20  4.20e-20 ...  4.05e-21  4.05e-21  4.05e-21]
- [ 6.70e-20  6.68e-20  6.66e-20 ...  6.42e-21  6.42e-21  6.41e-21]
+CIA extinction coefficient (ec, cm-1):
+[[2.78e-20 2.77e-20 2.77e-20 ... 2.57e-21 2.57e-21 2.57e-21]
+ [4.41e-20 4.40e-20 4.38e-20 ... 4.08e-21 4.07e-21 4.07e-21]
+ [6.99e-20 6.97e-20 6.95e-20 ... 6.46e-21 6.45e-21 6.45e-21]
  ...
- [ 1.19e-04  1.19e-04  1.19e-04 ...  5.55e-06  5.55e-06  5.55e-06]
- [ 1.89e-04  1.89e-04  1.88e-04 ...  8.79e-06  8.79e-06  8.78e-06]
- [ 3.00e-04  2.99e-04  2.99e-04 ...  1.39e-05  1.39e-05  1.39e-05]]
+ [1.24e-04 1.24e-04 1.23e-04 ... 5.64e-06 5.64e-06 5.63e-06]
+ [1.96e-04 1.96e-04 1.95e-04 ... 8.93e-06 8.92e-06 8.92e-06]
+ [3.11e-04 3.10e-04 3.10e-04 ... 1.41e-05 1.41e-05 1.41e-05]]
 """.format(os.path.realpath('./..'), os.path.realpath('./..'))
 
 
@@ -477,13 +465,13 @@ def test_pyrat_transmission_od_str(tmp_path):
 Optical depth information:
 Observing geometry (rt_path): transit
 Total atmospheric extinction coefficient (ec, cm-1) [layer, wave]:
-[[ 5.613e-17  1.806e-14  5.620e-17 ...  7.134e-16  3.406e-16  3.567e-16]
- [ 7.067e-17  2.274e-14  7.076e-17 ...  8.981e-16  4.288e-16  4.490e-16]
+[[ 5.613e-17  1.806e-14  5.621e-17 ...  7.134e-16  3.406e-16  3.567e-16]
+ [ 7.067e-17  2.274e-14  7.077e-17 ...  8.981e-16  4.288e-16  4.490e-16]
  [ 8.898e-17  2.863e-14  8.911e-17 ...  1.131e-15  5.399e-16  5.653e-16]
  ...
- [ 1.200e-04  1.202e-04  1.201e-04 ...  7.658e-06  7.355e-06  7.066e-06]
- [ 1.901e-04  1.899e-04  1.897e-04 ...  1.148e-05  1.106e-05  1.065e-05]
- [ 3.010e-04  3.006e-04  3.002e-04 ...  1.730e-05  1.677e-05  1.626e-05]]
+ [ 1.245e-04  1.246e-04  1.245e-04 ...  7.748e-06  7.443e-06  7.152e-06]
+ [ 1.970e-04  1.969e-04  1.966e-04 ...  1.162e-05  1.120e-05  1.079e-05]
+ [ 3.119e-04  3.116e-04  3.112e-04 ...  1.752e-05  1.699e-05  1.647e-05]]
 
 Distance along the ray path across each layer (outside-in) at each impact
     parameter (raypath, km):
@@ -505,9 +493,9 @@ Optical depth at each impact parameter, down to max(ideep) (depth):
  [ 3.881e-08  1.249e-05  3.887e-08 ...  4.933e-07  2.355e-07  2.466e-07]
  [ 6.490e-08  2.088e-05  6.499e-08 ...  8.248e-07  3.938e-07  4.123e-07]
  ...
- [ 4.661e-05  1.232e-02  4.708e-05 ...  4.890e-04  2.335e-04  2.463e-04]
- [ 6.141e-05  1.550e-02  6.217e-05 ...  6.163e-04  2.943e-04  3.112e-04]
- [ 8.157e-05  1.950e-02  8.275e-05 ...  7.768e-04  3.710e-04  3.931e-04]]
+ [ 4.696e-05  1.232e-02  4.744e-05 ...  4.890e-04  2.336e-04  2.463e-04]
+ [ 6.197e-05  1.550e-02  6.274e-05 ...  6.163e-04  2.944e-04  3.112e-04]
+ [ 8.247e-05  1.950e-02  8.365e-05 ...  7.768e-04  3.710e-04  3.931e-04]]
 """
 
 
@@ -714,7 +702,7 @@ Wavenumber array (wn, cm-1):
 Oversampling factor (wnosamp): 2160
 
 Modulation spectrum, (Rp/Rs)**2 (spectrum):
-    [ 6.522e-03  6.540e-03  6.523e-03 ...  6.670e-03  6.500e-03  6.473e-03]
+    [ 6.525e-03  6.541e-03  6.525e-03 ...  6.670e-03  6.501e-03  6.473e-03]
 """
 
 @pytest.mark.skip(reason="TBD")
@@ -790,13 +778,13 @@ Emission spectrum (spectrum, erg s-1 cm-2 cm):
 Optical depth information:
 Observing geometry (rt_path): emission
 Total atmospheric extinction coefficient (ec, cm-1) [layer, wave]:
-[[ 5.613e-17  1.806e-14  5.620e-17 ...  7.134e-16  3.406e-16  3.567e-16]
- [ 7.067e-17  2.274e-14  7.076e-17 ...  8.981e-16  4.288e-16  4.490e-16]
+[[ 5.613e-17  1.806e-14  5.621e-17 ...  7.134e-16  3.406e-16  3.567e-16]
+ [ 7.067e-17  2.274e-14  7.077e-17 ...  8.981e-16  4.288e-16  4.490e-16]
  [ 8.898e-17  2.863e-14  8.911e-17 ...  1.131e-15  5.399e-16  5.653e-16]
  ...
- [ 1.200e-04  1.202e-04  1.201e-04 ...  7.658e-06  7.355e-06  7.066e-06]
- [ 1.901e-04  1.899e-04  1.897e-04 ...  1.148e-05  1.106e-05  1.065e-05]
- [ 3.010e-04  3.006e-04  3.002e-04 ...  1.730e-05  1.677e-05  1.626e-05]]
+ [ 1.245e-04  1.246e-04  1.245e-04 ...  7.748e-06  7.443e-06  7.152e-06]
+ [ 1.970e-04  1.969e-04  1.966e-04 ...  1.162e-05  1.120e-05  1.079e-05]
+ [ 3.119e-04  3.116e-04  3.112e-04 ...  1.752e-05  1.699e-05  1.647e-05]]
 
 Distance across each layer along a normal ray path (raypath, km):
     [62.8 62.7 62.6 62.5 ... 86.0 85.8 85.7 85.5]
@@ -818,12 +806,12 @@ Planck emission down to max(ideep) (B, erg s-1 cm-2 sr-1 cm):
 Optical depth at each layer along a normal ray path into the planet, down to
     max(ideep) (depth):
 [[ 0.000e+00  0.000e+00  0.000e+00 ...  0.000e+00  0.000e+00  0.000e+00]
- [ 3.983e-10  1.282e-07  3.989e-10 ...  5.063e-09  2.417e-09  2.531e-09]
+ [ 3.984e-10  1.282e-07  3.989e-10 ...  5.063e-09  2.417e-09  2.531e-09]
  [ 8.992e-10  2.893e-07  9.004e-10 ...  1.143e-08  5.456e-09  5.713e-09]
  ...
- [ 1.083e-06  3.008e-04  1.092e-06 ...  1.193e-05  5.695e-06  5.995e-06]
- [ 1.412e-06  3.784e-04  1.426e-06 ...  1.502e-05  7.172e-06  7.562e-06]
- [ 1.853e-06  4.760e-04  1.875e-06 ...  1.892e-05  9.035e-06  9.543e-06]]
+ [ 1.090e-06  3.008e-04  1.099e-06 ...  1.193e-05  5.695e-06  5.995e-06]
+ [ 1.422e-06  3.784e-04  1.436e-06 ...  1.502e-05  7.172e-06  7.562e-06]
+ [ 1.869e-06  4.760e-04  1.891e-06 ...  1.892e-05  9.036e-06  9.544e-06]]
 """
 
 
@@ -954,7 +942,7 @@ Wavenumber  Wavelength    Bandflux  Filter name
    8271.12       1.209     0.00648  filter_test_WFC3_G141_1.209um
    8097.00       1.235     0.00646  filter_test_WFC3_G141_1.235um
    7936.66       1.260     0.00645  filter_test_WFC3_G141_1.260um
-   7781.94       1.285     0.00648  filter_test_WFC3_G141_1.285um
+   7781.94       1.285     0.00649  filter_test_WFC3_G141_1.285um
    7630.82       1.310     0.00651  filter_test_WFC3_G141_1.310um
    7484.88       1.336     0.00664  filter_test_WFC3_G141_1.336um
    7344.98       1.361     0.00670  filter_test_WFC3_G141_1.361um
@@ -964,7 +952,7 @@ Wavenumber  Wavelength    Bandflux  Filter name
    6830.71       1.464     0.00667  filter_test_WFC3_G141_1.464um
    6715.80       1.489     0.00662  filter_test_WFC3_G141_1.489um
    6600.55       1.515     0.00657  filter_test_WFC3_G141_1.515um
-   6493.61       1.540     0.00654  filter_test_WFC3_G141_1.540um
+   6493.61       1.540     0.00655  filter_test_WFC3_G141_1.540um
    6387.63       1.566     0.00651  filter_test_WFC3_G141_1.565um
    6285.45       1.591     0.00651  filter_test_WFC3_G141_1.591um
    6188.02       1.616     0.00651  filter_test_WFC3_G141_1.616um

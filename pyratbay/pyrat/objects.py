@@ -9,7 +9,6 @@ __all__ = [
     'Isotopes',
     'Voigt',
     'Extinction',
-    'Cross',
     'Optdepth',
     'Cloud',
     'Observation',
@@ -514,55 +513,6 @@ class Extinction(object):
       fw.write('Tabulated extinction coefficient (etable, cm2 molecule-1) '
                'of shape\n    [nmol, ntemp, nlayers, nwave]:\n{}', self.etable,
                fmt=fmt, edge=2)
-      return fw.text
-
-
-class Cross(object):
-  def __init__(self):
-      self.files      = None  # CS file names
-      self.nfiles     = 0     # Number of files read
-      self.tmin       = 0.0   # Minimum temperature sampled by all CS files
-      self.tmax       = 1e6   # Maximum temperature sampled by all CS files
-      self.molecules  = []    # Species involved for each file
-      self.temp       = []    # Temperature sampling (in Kelvin)
-      self.wavenumber = []    # Wavenumber sampling (in cm-1)
-      self.absorption = []    # CS extinction (in cm-1 amagat-2)
-      self.iabsorp    = []    # wn-interpolated CS extinction (in cm-1 amagat-2)
-      self.iz         = []    # Second derivatives of iabsorp
-      self.iwnlo      = []    # Lower-wavenumber index for interpolation
-      self.iwnhi      = []    # Upper-wavenumber index for interpolation
-      self.ec         = None  # Interpolated CS extinction coefficient
-                              #  in cm-1 [nlayer, nwave]
-
-  def clone_new(self, pyrat):
-      """Return a new Cross instance (as returned by Pyrat.__init__)."""
-      cs = Cross()
-      cs.files = pyrat.cs.files
-      return cs
-
-  def __str__(self):
-      fw = pt.Formatted_Write()
-      fw.write('Cross-section extinction information:')
-      fw.write('Number of cross-section files (nfiles): {:d}', self.nfiles)
-      for i in range(self.nfiles):
-          fw.write("\nCross-section file name (files[{}]): '{:s}'", i,
-              self.files[i])
-          fw.write('Cross-section species (molecules): {:s}',
-              '-'.join(self.molecules[i]))
-          fw.write('Number of temperature samples: {}', len(self.temp[i]))
-          fw.write('Number of wavenumber samples: {}', len(self.wavenumber[i]))
-          fw.write('Temperature array (temp, K):\n  {}', self.temp[i],
-              prec=1, lw=800, edge=50)
-          fw.write('Wavenumber array (wavenumber, cm-1):\n  {}',
-              self.wavenumber[i], fmt={'float':'{:.1f}'.format}, lw=80, edge=3)
-          fw.write('Input extinction coefficient (absorption, cm-1 '
-              'amagat-{:d}):\n{}', len(self.molecules[i]), self.absorption[i],
-              fmt={'float': '{: .2e}'.format}, edge=2)
-      fw.write('\nMinimum and maximum temperatures (tmin, tmax) in K: '
-                '[{:.1f}, {:.1f}]', self.tmin, self.tmax)
-      if self.ec is not None:
-          fw.write('Atmospheric-model extinction coefficient (ec, cm-1):\n{}',
-                   self.ec, fmt={'float':'{: .2e}'.format})
       return fw.text
 
 

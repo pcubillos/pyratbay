@@ -26,12 +26,10 @@ from .pyrat import Pyrat
 from .driver import run
 
 from .pyrat import read_atm as _ra
-from .pyrat import crosssec as _cs
 from .pyrat import clouds as _cl
-from .pyrat import alkali as _al
 from .pyrat import optical_depth as _od
 from .pyrat import spectrum as _sp
-__all__ += ['_ra', '_cs', '_cl', '_al', '_od', '_sp']
+__all__ += ['_ra', '_cl', '_od', '_sp']
 
 from .version import __version__
 

@@ -8142,3 +8142,12 @@ Implemented Collision_Induced() class to model CIA opacities
 in a self-suficient object.
 Added tests and docs.
 
+*****
+
+Refactored Cross() class into CIA() class, merged with functions
+in crosssec.py, which are now methods of CIA() object.
+Now they use the opacity.Collision_Induced() as the base objects
+to model the CIA.
+Updated tests.
+Added self.name into Collision_Induced() objects.
+

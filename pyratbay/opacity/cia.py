@@ -32,6 +32,7 @@ class Collision_Induced():
 
         self.species = species
         self.nspec = len(self.species)
+        self.name = 'CIA ' + '-'.join(self.species)
 
         # Temperature must be sorted in increasing order
         t_sort = np.argsort(temps)

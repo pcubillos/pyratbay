@@ -30,7 +30,7 @@ class Namespace(argparse.Namespace):
     """A container object to hold variables."""
     def __init__(self, args=None, log=None):
         if args is not None:
-            super(Namespace, self).__init__(**args)
+            super().__init__(**args)
         if log is None:
             self._log = mu.Log(logname=None, verb=2, width=80)
         else:
@@ -568,7 +568,7 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
 
     pyrat.lt.dblist = args.get_path('dblist', 'Opacity database', exists=True)
     pyrat.mol.molfile = args.get_path('molfile', 'Molecular data', exists=True)
-    pyrat.cs.files = args.get_path('csfile', 'Cross-section', exists=True)
+    pyrat.inputs.cia_files = args.get_path('csfile', 'Cross-section', exists=True)
     pyrat.atm.ptfile = args.get_path('ptfile', 'Pressure-temperature')
 
     spec.wlunits = args.get_default('wlunits', 'Wavelength units')

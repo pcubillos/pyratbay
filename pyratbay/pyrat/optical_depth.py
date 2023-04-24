@@ -70,7 +70,6 @@ def optical_depth(pyrat):
     # Sum all contributions to the extinction:
     od.ec[rtop:] = (
         + pyrat.ex.ec[rtop:]
-        + pyrat.cs.ec[rtop:]
         + pyrat.cloud.ec[rtop:]
     )
     if pyrat.rayleigh.ec is not None:
@@ -79,6 +78,8 @@ def optical_depth(pyrat):
         od.ec[rtop:] += pyrat.alkali.ec[rtop:]
     if pyrat.h_ion.ec is not None:
         od.ec[rtop:] += pyrat.h_ion.ec[rtop:]
+    if pyrat.cs.ec is not None:
+        od.ec[rtop:] += pyrat.cs.ec[rtop:]
 
     # If fpatchy, compute a separate spectrum with clear skies:
     if pyrat.cloud.fpatchy is not None:

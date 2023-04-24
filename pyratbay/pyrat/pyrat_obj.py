@@ -66,7 +66,6 @@ class Pyrat(object):
       self.iso = ob.Isotopes()        # Isotopes data
       self.voigt = ob.Voigt()         # Voigt profile
       self.ex = ob.Extinction()       # Extinction-coefficient
-      self.cs = ob.Cross()            # Cross-section extinction
       self.od = ob.Optdepth()         # Optical depth
       self.obs = ob.Observation()     # Observational data
       self.phy = ob.Physics()         # System physical parameters
@@ -135,8 +134,13 @@ class Pyrat(object):
       # At the moment work as an on/off flag, as there's only one model
       self.h_ion.has_opacity &= self.od.h_ion_models is not None
 
-      # Read CIA files:
-      cs.read(self)
+      # CIA opacity:
+      self.cs = cs.CIA(
+          self.inputs.cia_files,
+          self.spec.wn,
+          self.mol.name,
+          self.log,
+      )
       self.timestamps['read cs'] = timer.clock()
 
 
@@ -170,7 +174,7 @@ class Pyrat(object):
           self.spec.spectrum[:] = 0.0
           return
       # Interpolate CIA absorption:
-      cs.interpolate(self)
+      self.cs.calc_extinction_coefficient(self.atm.temp, self.atm.d)
       self.timestamps['interp cs'] = timer.clock()
 
       # Calculate cloud, Rayleigh, and H- absorption:
@@ -525,7 +529,7 @@ class Pyrat(object):
           label += lab
       # Cross-section extinction coefficient:
       if self.cs.nfiles != 0:
-          e, lab = cs.interpolate(self, layer)
+          e, lab = self.cs.get_ec(self.atm.temp, self.atm.d, layer)
           ec = np.vstack((ec, e))
           label += lab
       # Rayleigh scattering extinction coefficient:
@@ -724,12 +728,9 @@ class Pyrat(object):
           for mol in self.ex.species:
               imol = np.where(self.mol.name == mol)[0][0]
               opacities.append(self.mol.name[imol])
-      if self.cs.nfiles != 0:
-          for molecs in self.cs.molecules:
-              if len(molecs) == 2:
-                  opacities.append('CIA ' + '-'.join(molecs))
-              else:
-                  opacities.append(molecs[0])
+      if self.cs.nfiles > 0:
+          for cia in self.cs.models:
+              opacities.append(cia.name)
       for rmodel in self.rayleigh.models:
           opacities.append(rmodel.name)
       for cloud in self.cloud.models:
