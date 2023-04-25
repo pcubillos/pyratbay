@@ -8155,3 +8155,8 @@ Added self.name into Collision_Induced() objects.
 
 Minor edits in docs.
 
+
+*****  Tue Apr 25 13:43:37 CEST 2023  *****
+
+Make sure Rayleigh mol indices are set before parsing the  parameters
+

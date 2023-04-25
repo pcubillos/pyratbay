@@ -37,6 +37,14 @@ class Rayleigh():
             self.pnames += model.pnames
             self.texnames += model.texnames
 
+        # Set index of species for each Rayleigh model:
+        for model in self.models:
+            mol = model.mol
+            if mol not in species:
+                self.mol_indices.append(None)
+            else:
+                self.mol_indices.append(list(species).index(mol))
+
         # Parse parameters:
         if pars is None:
             return
@@ -52,14 +60,6 @@ class Rayleigh():
         for model in self.models:
             model.pars = self.pars[j:j+model.npars]
             j += model.npars
-
-        # Set index of species for each Rayleigh model:
-        for model in self.models:
-            mol = model.mol
-            if mol not in species:
-                self.mol_indices.append(None)
-            else:
-                self.mol_indices.append(list(species).index(mol))
 
 
     def absorption(self, densities):
