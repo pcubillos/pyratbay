@@ -14,6 +14,7 @@ from .. import plots as pp
 from .. import spectrum as ps
 from .. import tools as pt
 
+from .atmosphere import Atmosphere
 from .  import extinction as ex
 from .  import crosssec as cs
 from .  import clouds as cl
@@ -60,9 +61,7 @@ class Pyrat(object):
       """
       # Sub-classes:
       self.spec = ob.Spectrum()       # Spectrum data
-      self.atm = ob.Atm()             # Modeling atmospheric model
       self.lt = ob.Linetransition()   # Line-transition data
-      self.mol = ob.Molecules()       # Molecules data
       self.iso = ob.Isotopes()        # Isotopes data
       self.voigt = ob.Voigt()         # Voigt profile
       self.ex = ob.Extinction()       # Extinction-coefficient
@@ -74,24 +73,16 @@ class Pyrat(object):
 
       # Parse config file inputs:
       pt.parse(self, cfile, no_logfile, mute)
-      self.inputs.atm = ob.Atm()
 
-
-  def set_atmosphere(self):
       # Setup time tracker:
       timer = pt.Timer()
       self.timestamps['init'] = timer.clock()
 
-      # Check that user input arguments make sense:
-      ar.check_atmosphere(self)  # TBD: Need this here?
 
-      # Read the atmospheric file:
-      ra.make_atmosphere(self)
+  def set_atmosphere(self):
+      timer = pt.Timer()
+      self.atm = Atmosphere(self.inputs, self.log)
       self.timestamps['read atm'] = timer.clock()
-
-      # TBD: Revise and repurpose this function:
-      #ms.make_atmprofiles(self)
-      #self.timestamps['atm sample'] = timer.clock()
 
 
   def set_spectrum(self):
@@ -122,14 +113,15 @@ class Pyrat(object):
           self.atm.press,
           self.spec.wn,
           self.inputs.alkali_cutoff,
-          self.mol.name,
+          self.atm.species,
           self.log,
       )
       self.timestamps['voigt'] = timer.clock()
 
       # Hydrogen ion opacity:
-      self.h_ion = op.Hydrogen_Ion_Opacity(
-          1.0/self.spec.wn/pc.um, self.mol.name,
+      self.h_ion = op.Hydrogen_Ion(
+          #self.spec.wn, self.mol.name
+          1.0/self.spec.wn/pc.um, self.atm.species,
       )
       # At the moment work as an on/off flag, as there's only one model
       self.h_ion.has_opacity &= self.od.h_ion_models is not None
@@ -138,7 +130,7 @@ class Pyrat(object):
       self.cs = cs.CIA(
           self.inputs.cia_files,
           self.spec.wn,
-          self.mol.name,
+          self.atm.species,
           self.log,
       )
       self.timestamps['read cs'] = timer.clock()
@@ -180,7 +172,7 @@ class Pyrat(object):
       # Calculate cloud, Rayleigh, and H- absorption:
       cl.absorption(self)
       self.rayleigh.absorption(self.atm.d)
-      self.h_ion.absorption(self.atm.temp, self.atm.d)
+      self.h_ion.calc_extinction_coefficient(self.atm.temp, self.atm.d)
       self.timestamps['cloud+ray'] = timer.clock()
 
       # Calculate the alkali absorption:
@@ -247,14 +239,14 @@ class Pyrat(object):
 
       # Update reference radius/pressure if requested:
       if ret.irad is not None:
-          self.phy.rplanet = params[ret.irad][0] * pt.u(atm.runits)
+          self.atm.rplanet = params[ret.irad][0] * pt.u(atm.runits)
       elif ret.ipress is not None:
           p_ref = 10.0**params[ret.ipress][0] * pc.bar
           self.atm.refpressure = p_ref
 
       # Update planetary mass if requested:
       if ret.imass is not None:
-          self.phy.mplanet = params[ret.imass][0] * pt.u(self.phy.mpunits)
+          self.atm.mplanet = params[ret.imass][0] * pt.u(self.atm.mass_units)
 
       # Update Rayleigh parameters if requested:
       if ret.iray is not None:
@@ -391,7 +383,7 @@ class Pyrat(object):
           convection,
           tmin, tmax,
           f_scale,
-          self.phy.mplanet, self.mol.mass,
+          self.atm.mplanet, self.atm.mol_mass,
       )
       print("\nDone.")
 
@@ -399,7 +391,7 @@ class Pyrat(object):
       atm.temp = radeq_temps[-1]
       io.write_atm(
           self.spec.specfile.replace('.dat','.atm'),
-          atm.press, atm.temp, self.mol.name, atm.vmr,
+          atm.press, atm.temp, self.atm.species, atm.vmr,
           punits="bar",
           header="# Radiative-thermochemical equilibrium profile.\n\n",
       )
@@ -420,7 +412,7 @@ class Pyrat(object):
           spectrum = self.spec.spectrum
       specwn = self.spec.wn
       bandidx = self.obs.bandidx
-      rprs_square = (self.phy.rplanet/self.phy.rstar)**2.0
+      rprs_square = (self.atm.rplanet/self.phy.rstar)**2.0
 
       if self.od.rt_path in pc.transmission_rt:
           bandtrans = self.obs.bandtrans
@@ -436,41 +428,6 @@ class Pyrat(object):
       ])
 
       return self.obs.bandflux
-
-
-  def hydro(self, pressure, temperature, mu, g, mass, p0, r0):
-      """
-      Hydrostatic-equilibrium driver.
-      Depending on self.atm.rmodelname, select between the g=GM/r**2
-      (hydro_m) or constant-g (hydro_g) formula to compute
-      the hydrostatic-equilibrium radii of the planet layers.
-
-      Parameters
-      ----------
-      pressure: 1D float ndarray
-         Atmospheric pressure for each layer (in barye).
-      temperature: 1D float ndarray
-         Atmospheric temperature for each layer (in K).
-      mu: 1D float ndarray
-         Mean molecular mass for each layer (in g mol-1).
-      g: Float
-         Atmospheric gravity (in cm s-2).
-      mass: Float
-         Planetary mass (in g).
-      p0: Float
-         Reference pressure level (in barye) where radius(p0) = r0.
-      r0: Float
-         Reference radius level (in cm) corresponding to p0.
-      """
-      if self.atm.rmodelname is None:
-          print('No hydrostatic-equilibrium model defined.')
-          return None
-      # H.E. with  g=GM/r**2:
-      elif self.atm.rmodelname == 'hydro_m':
-          return pa.hydro_m(pressure, temperature, mu, mass, p0, r0)
-      # H.E. with constant g:
-      elif self.atm.rmodelname == 'hydro_g':
-          return pa.hydro_g(pressure, temperature, mu, g, p0, r0)
 
 
   def set_filters(self):
@@ -670,8 +627,8 @@ class Pyrat(object):
           )
           return
 
-      if self.phy.rplanet is not None and self.phy.rstar is not None:
-          pyrat_args['rprs'] = self.phy.rplanet/self.phy.rstar
+      if self.atm.rplanet is not None and self.phy.rstar is not None:
+          pyrat_args['rprs'] = self.atm.rplanet/self.phy.rstar
 
       # kwargs can overwite any of the previous value:
       pyrat_args.update(kwargs)
@@ -726,8 +683,8 @@ class Pyrat(object):
       opacities = []
       if self.ex.nspec != 0:
           for mol in self.ex.species:
-              imol = np.where(self.mol.name == mol)[0][0]
-              opacities.append(self.mol.name[imol])
+              imol = np.where(self.atm.species == mol)[0][0]
+              opacities.append(self.atm.species[imol])
       if self.cs.nfiles > 0:
           for cia in self.cs.models:
               opacities.append(cia.name)
@@ -751,7 +708,7 @@ class Pyrat(object):
           f"({self.atm.nlayers:d} layers)\n"
           f"Wavelength range:  {wlmin:.2f} -- {wlmax:.2f} um "
           f"({self.spec.nwave:d} samples, {wave})\n"
-          f"Composition:\n  {self.mol.name}\n"
+          f"Composition:\n  {self.atm.species}\n"
           f"Opacity sources:\n  {opacities}"
       )
 

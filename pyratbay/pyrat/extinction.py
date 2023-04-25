@@ -263,7 +263,7 @@ def extinction(pyrat, indices, grid=False, add=False):
         for i in range(pyrat.iso.niso):
             if pyrat.iso.imol[i] != -1:
                 pyrat.iso.iext[i] = np.where(
-                    pyrat.ex.species == pyrat.mol.name[pyrat.iso.imol[i]])[0][0]
+                    pyrat.ex.species == pyrat.atm.species[pyrat.iso.imol[i]])[0][0]
             else:
                 pyrat.iso.iext[i] = -1  # Isotope not in atmosphere
                 # FINDME: find patch for this case in ec.extinction()
@@ -307,7 +307,7 @@ def extinction(pyrat, indices, grid=False, add=False):
             pyrat.voigt.profile, pyrat.voigt.size, pyrat.voigt.index,
             pyrat.voigt.lorentz, pyrat.voigt.doppler,
             pyrat.spec.wn, pyrat.spec.own, pyrat.spec.odivisors,
-            density, molq, pyrat.mol.radius, pyrat.mol.mass,
+            density, molq, pyrat.atm.mol_radius, pyrat.atm.mol_mass,
             pyrat.iso.imol, pyrat.iso.mass, pyrat.iso.ratio,
             ziso, pyrat.iso.iext,
             pyrat.lt.wn, pyrat.lt.elow, pyrat.lt.gf, pyrat.lt.isoid,
@@ -337,8 +337,8 @@ def get_ec(pyrat, layer):
         if itemp == len(pyrat.ex.temp):
             itemp -= 1
         for i in range(pyrat.ex.nspec):
-            imol = np.where(pyrat.mol.name == pyrat.ex.species[i])[0][0]
-            label.append(pyrat.mol.name[imol])
+            imol = np.where(pyrat.atm.species == pyrat.ex.species[i])[0][0]
+            label.append(pyrat.atm.species[imol])
             etable = pyrat.ex.etable[i,:,layer,:]
             exc[i] = ((etable[itemp  ] * (pyrat.ex.temp[itemp+1] - temp) +
                        etable[itemp+1] * (temp - pyrat.ex.temp[itemp]  ) ) /
@@ -349,7 +349,7 @@ def get_ec(pyrat, layer):
         exc = extinction(pyrat, [layer], grid=False, add=False)
         label = []
         for i in range(pyrat.ex.nspec):
-            imol = np.where(pyrat.mol.name == pyrat.ex.species[i])[0][0]
+            imol = np.where(pyrat.atm.species == pyrat.ex.species[i])[0][0]
             exc[i] *= pyrat.atm.d[layer,imol]
-            label.append(pyrat.mol.name[imol])
+            label.append(pyrat.atm.species[imol])
     return exc, label

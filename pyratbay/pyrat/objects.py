@@ -3,8 +3,6 @@
 
 __all__ = [
     'Spectrum',
-    'Atm',
-    'Molecules',
     'Linetransition',
     'Isotopes',
     'Voigt',
@@ -112,103 +110,6 @@ class Spectrum(object):
       return fw.text
 
 
-class Atm(object):
-  def __init__(self):
-      self.refpressure = None  # Pressure reference level
-      self.radstep = None     # Radius sampling interval
-      self.radlow  = None     # Lowest radius boundary
-      self.radhigh = None     # Highest radius boundary
-      self.ptop    = None     # Lowest pressure boundary
-      self.pbottom = None     # Highest pressure boundary
-      self.input_atmfile = None # Input atmopheric file
-      self.atmfile = None       # Output atmopheric file
-      self.qunits  = None     # Input abundance units ('volume' or 'mass')
-      self.runits  = None     # Input radius units
-      self.punits  = None     # Input pressure units
-      self.tunits  = 'kelvin' # Input temperature units
-      self.nlayers = None     # Number of layers
-      self.radius  = None     # Radius array (cm)            [layers]
-      self.press   = None     # Pressure array (barye)       [layers]
-      self.temp    = None     # Temperature array (K)        [layers]
-      self.mm      = None     # Mean molecular mass (gr/mol) [layers]
-      self.vmr     = None     # Volume mixing ratios [layers, nmol]
-      self.d       = None     # Number densities [layers, nmol]
-      self.tmodel  = None
-      self.tpars   = None
-      self.rtop    = 0        # Index of topmost layer (within Hill radius)
-
-  def validate_species(self, var, log, molec=None, elements=[]):
-      # Validate composition variables:
-      if molec is not None:
-          if molec not in self.species:
-              log.error(
-                  f"Invalid molvars variable '{var}', "
-                  f"species {molec} is not in the atmosphere"
-              )
-          return
-
-      in_equillibrium = self.chemistry == 'tea'
-      if not in_equillibrium:
-          log.error(f"molvars variable '{var}' requires chemistry=tea")
-      for element in elements:
-          if element not in self.chem_model.elements:
-              log.error(
-                  f"Invalid molvars variable '{var}', "
-                  f"element '{element}' is not in the atmosphere"
-              )
-
-  def parse_abundance_parameters(self, molvars, log=None):
-      # Sort out abundance free-parameters:
-      self.mol_pnames = []
-      self.mol_texnames = []
-      self.mol_npars = len(molvars)
-
-      free_vmr = []
-      self._equil_var = np.zeros(self.mol_npars, bool)
-      for i,var in enumerate(molvars):
-          # VMR variables
-          if var.startswith('log_'):
-              molec = var[4:]
-              free_vmr.append(molec)
-              self.validate_species(var, log, molec=molec)
-              self.mol_pnames.append(var)
-              self.mol_texnames.append(fr'$\log\ X_{{\rm {molec}}}$')
-          elif var.startswith('scale_'):
-              molec = var[6:]
-              free_vmr.append(molec)
-              self.validate_species(var, log, molec=molec)
-              self.mol_pnames.append(var)
-              self.mol_texnames.append(fr'$\log\ X_{{\rm {molec}}}$')
-          # Equillibrium variables
-          elif var == 'metal':
-              self._equil_var[i] = True
-              self.validate_species(var, log)
-              self.mol_pnames.append(var)
-              self.mol_texnames.append('[M/H]')
-          elif var.startswith('[') and var.endswith('/H]'):
-              self._equil_var[i] = True
-              self.validate_species(var, log, elements=[var[1:-3]])
-              self.mol_pnames.append(var)
-              self.mol_texnames.append(var)
-          elif '/' in var:
-              self._equil_var[i] = True
-              idx = var.index('/')
-              elements = [var[0:idx], var[idx+1:]]
-              self.validate_species(var, log, elements=elements)
-              self.mol_pnames.append(var)
-              self.mol_texnames.append(var)
-          else:
-              log.error(f"Unrecognized molvars variable name: '{var}'")
-
-      self.ifree = [
-          list(self.species).index(mol)
-          for mol in free_vmr
-      ]
-
-      if len(molvars) == 0:
-          self.ibulk = None
-
-
   def __str__(self):
       fmt = {'float': '{: .3e}'.format}
       fw = pt.Formatted_Write()
@@ -277,34 +178,6 @@ class Atm(object):
       for i, dens in enumerate(self.d.T):
           fw.write('    species [{:2d}]:   {}', i, dens, fmt=fmt, edge=2)
 
-      return fw.text
-
-
-class Molecules(object):
-  def __init__(self):
-      self.molfile = None # Molecular-properties file
-      self.nmol   = 0     # Number of species
-      self.name   = None  # Species' name [nmol]
-      self.symbol = None  # Species' symbol [nmol]
-      self.mass   = None  # Species' mass  (gr/mol) [nmol]
-      self.radius = None  # Species' radius (Angstroms) [nmol]
-
-  def __str__(self):
-      fw = pt.Formatted_Write()
-      fw.write('Atmospheric species information:')
-      fw.write('Number of species (nmol): {:d}\n', self.nmol)
-
-      fw.write(
-          '\nMolecule    Mass       Radius\n'
-          '            g/mol      Angstrom\n'
-          '(name)      (mass)     (radius)  '
-      )
-      for i in range(self.nmol):
-          fw.write(
-              '  {:8s}  {:8.4f}  {:10.3f}',
-              self.name[i], self.mass[i], self.radius[i]/pc.A,
-          )
-      fw.write("Molecular data taken from (molfile): '{}'", self.molfile)
       return fw.text
 
 
@@ -890,15 +763,12 @@ class MassGravity:
 
 
 class Physics(object):
-  mplanet = MassGravity()  # Planetary mass
-  gplanet = MassGravity()  # Planetary surface gravity (at rplanet)
   """A container of physical properties about the planet and star"""
   def __init__(self):
       self.tstar = None  # Stellar effective temperature
       self.rstar = None  # Stellar radius
       self.mstar = None  # Stellar mass
       self.log_gstar = None  # Stellar surface gravity
-      self.rplanet = None  # Planetary radius
       self.smaxis = None  # Orbital semi-major axis
       self.rhill = np.inf  # Planetary Hill radius
       self.starspec = None  # Stellar spectrum filename
@@ -919,18 +789,11 @@ class Physics(object):
       fw.write('Stellar mass (mstar, Msun):   {:.3f}', mstar)
       fw.write('Stellar surface gravity (log_gstar, cm s-2): {:.2f}', self.log_gstar)
 
-      rplanet = none_div(self.rplanet, pc.rjup)
-      mplanet = none_div(self.mplanet, pc.mjup)
-      gplanet = self.gplanet
       smaxis = none_div(self.smaxis, pc.au)
-      rprs = self.rplanet/self.rstar
       rhill = none_div(self.rhill, pc.rjup)
-      fw.write('\nPlanetary radius (rplanet, Rjup): {:.3f}', rplanet)
-      fw.write('Planetary mass (mplanet, Mjup):   {:.3f}', mplanet)
-      fw.write('Planetary surface gravity (gplanet, cm s-2): {:.1f}', gplanet)
-      fw.write('Planetary internal temperature (tint, K):  {:.1f}', self.tint)
+      fw.write('\nPlanetary internal temperature (tint, K):  {:.1f}', self.tint)
       fw.write('Orbital semi-major axis (smaxis, AU): {:.4f}', smaxis)
-      fw.write('Planet-to-star radius ratio (rprs):   {:.5f}', rprs)
+      #fw.write('Planet-to-star radius ratio (rprs):   {:.5f}', rprs)
       fw.write('Planetary Hill radius (rhill, Rjup):  {:.3f}', rhill)
 
       if self.starspec is not None:

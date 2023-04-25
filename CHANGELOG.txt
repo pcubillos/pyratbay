@@ -8160,3 +8160,12 @@ Minor edits in docs.
 
 Make sure Rayleigh mol indices are set before parsing the  parameters
 
+*****
+
+Moved Atm() class and read_atm() function into Atmosphere() class
+Also merged Molecules() into Atmosphere().
+Moved rplanet, mplanet, and gplanet from Physics() into Atmosphere().
+Renamed atm.tmodel to temp_model.
+Moved pyrat.hydro to pyrat.atm.rad_model.
+Made parser routine independent of pyrat.atm module.
+

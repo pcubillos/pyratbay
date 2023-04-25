@@ -38,7 +38,6 @@ def run(cfile, run_step='run', no_logfile=False):
     """
     pyrat = Pyrat(cfile, no_logfile=no_logfile)
     log = pyrat.log
-    atm = pyrat.atm
     ret = pyrat.ret
     inputs = pyrat.inputs
 
@@ -58,6 +57,7 @@ def run(cfile, run_step='run', no_logfile=False):
 
     # Initialize atmosphere:
     pyrat.set_atmosphere()
+    atm = pyrat.atm
     if pyrat.runmode == 'atmosphere':
         return pyrat.atm
 
@@ -79,6 +79,7 @@ def run(cfile, run_step='run', no_logfile=False):
     # Stop and return if requested:
     if run_step == 'init':
         return pyrat
+
 
     # Compute spectrum and return pyrat object if requested:
     if pyrat.runmode == "spectrum":
@@ -132,17 +133,17 @@ def run(cfile, run_step='run', no_logfile=False):
     header = "# MCMC best-fitting atmospheric model.\n\n"
     bestatm = f"{outfile}_bestfit_atmosphere.atm"
     io.write_atm(
-        bestatm, atm.press, atm.temp, pyrat.mol.name,
+        bestatm, atm.press, atm.temp, atm.species,
         atm.vmr, radius=atm.radius,
         punits=atm.punits, runits='km', header=header)
 
     pyrat.plot_spectrum(spec='best', filename=f'{outfile}_bestfit_spectrum.png')
 
     # Temperature profiles:
-    if atm.tmodelname is not None:
+    if atm.temp_model is not None:
         tparams = atm.tpars
         tparams[ret.map_pars['temp']] = bestp[ret.itemp]
-        ret.temp_best = atm.tmodel(tparams)
+        ret.temp_best = atm.temp_model(tparams)
 
         nsamples, nfree = np.shape(posterior)
         t_posterior = np.tile(tparams, (nsamples,1))
@@ -152,7 +153,7 @@ def run(cfile, run_step='run', no_logfile=False):
             if j in ifree:
                 ipost = list(ifree).index(j)
                 t_posterior[:,imap] = posterior[:,ipost]
-        tpost = pa.temperature_posterior(t_posterior, atm.tmodel)
+        tpost = pa.temperature_posterior(t_posterior, atm.temp_model)
         ret.temp_median = tpost[0]
         ret.temp_post_boundaries = tpost[1:]
         pyrat.plot_temperature(
@@ -162,21 +163,16 @@ def run(cfile, run_step='run', no_logfile=False):
     is_transmission = pyrat.od.rt_path in pc.transmission_rt
 
     if is_emission:
-        cf = ps.contribution_function(
-            pyrat.od.depth, atm.press, pyrat.od.B,
-        )
-        bcf = ps.band_cf(
-            cf, pyrat.obs.bandtrans, pyrat.spec.wn, pyrat.obs.bandidx)
+        contrib = ps.contribution_function(pyrat.od.depth, atm.press, pyrat.od.B)
     elif is_transmission:
-        transmittance = ps.transmittance(pyrat.od.depth, pyrat.od.ideep)
-        bcf = ps.band_cf(
-            transmittance, pyrat.obs.bandtrans, pyrat.spec.wn,
-            pyrat.obs.bandidx,
-        )
+        contrib = ps.transmittance(pyrat.od.depth, pyrat.od.ideep)
+    band_cf = ps.band_cf(
+        contrib, pyrat.obs.bandtrans, pyrat.spec.wn, pyrat.obs.bandidx,
+    )
 
     path = 'transit' if is_transmission else 'emission'
     pp.contribution(
-        bcf, 1.0/(pyrat.obs.bandwn*pc.um), path, atm.press, atm.radius,
+        band_cf, 1.0/(pyrat.obs.bandwn*pc.um), path, atm.press, atm.radius,
         atm.rtop, filename=f"{outfile}_bestfit_cf.png")
 
     pyrat.log = log  # Un-mute

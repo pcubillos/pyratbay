@@ -17,18 +17,6 @@ from . import objects as ob
 from .rayleigh import Rayleigh
 
 
-def check_atmosphere(pyrat):
-    """
-    Check that user input arguments make sense.
-    """
-    # Check that input files exist:
-    if pyrat.mol.molfile is None:
-        pyrat.mol.molfile = pc.ROOT + 'pyratbay/data/molecules.dat'
-
-    with pt.log_error(pyrat.log):
-        pt.file_exists('molfile', 'Molecular-data', pyrat.mol.molfile)
-
-
 def check_spectrum(pyrat):
     """
     Check that user input arguments make sense.
@@ -40,14 +28,10 @@ def check_spectrum(pyrat):
     atm = pyrat.atm
     obs = pyrat.obs
 
-    # Check that input files exist:
-    if pyrat.mol.molfile is None:
-        pyrat.mol.molfile = pc.ROOT + 'pyratbay/data/molecules.dat'
-
     with pt.log_error(log):
         pt.file_exists('atmfile', 'Atmospheric', atm.atmfile)
         pt.file_exists('tlifile', 'TLI', pyrat.lt.tlifile)
-        pt.file_exists('molfile', 'Molecular-data', pyrat.mol.molfile)
+        pt.file_exists('molfile', 'Molecular-data', atm.molfile)
 
     if pyrat.runmode == 'spectrum' and spec.specfile is None:
         log.error('Undefined output spectrum file (specfile).')
@@ -59,7 +43,7 @@ def check_spectrum(pyrat):
         )
 
     # Compute the Hill radius for the planet:
-    phy.rhill = pa.hill_radius(phy.smaxis, phy.mplanet, phy.mstar)
+    phy.rhill = pa.hill_radius(phy.smaxis, atm.mplanet, phy.mstar)
 
     # Check that the radius profile exists or can be computed:
     if atm.radius is None and pyrat.runmode != 'opacity':
@@ -103,7 +87,7 @@ def check_spectrum(pyrat):
 
     if pyrat.runmode == 'mcmc':
         if pyrat.od.rt_path in pc.emission_rt:
-            if phy.rplanet is None or phy.rstar is None:
+            if atm.rplanet is None or phy.rstar is None:
                 log.error("Undefined radius ratio (need rplanet and rstar)")
         if obs.data is None:
             log.error("Undefined transit/eclipse data (data)")
@@ -136,7 +120,7 @@ def check_spectrum(pyrat):
     pyrat.rayleigh = Rayleigh(
         pyrat.inputs.rayleigh,
         pyrat.inputs.rpars,
-        pyrat.mol.name,
+        pyrat.atm.species,
         pyrat.spec.wn,
         log,
         pyrat.cloud,
@@ -217,7 +201,7 @@ def setup(pyrat):
     log = pyrat.log
 
     # Setup bulk and variable-abundance species:
-    species = pyrat.atm.species = pyrat.mol.name
+    species = pyrat.atm.species
     # Non-overlapping species:
     if atm.bulk is not None and len(np.setdiff1d(atm.bulk, species)) > 0:
         missing = np.setdiff1d(atm.bulk, species)
@@ -312,14 +296,9 @@ def setup(pyrat):
     if offset_pnames is None:
         offset_pnames = []
 
-    # Test run with no tmodel
+    # TBD: test run with no tmodel
     if atm.tmodelname in pc.tmodels:
-        atm.tmodel = pa.tmodels.get_model(
-            atm.tmodelname,
-            pressure=pyrat.atm.press,
-            nlayers=pyrat.atm.nlayers,
-        )
-        temp_pnames = atm.tmodel.pnames
+        temp_pnames = atm.temp_model.pnames
     else:
         temp_pnames = []
 
@@ -392,9 +371,9 @@ def setup(pyrat):
 
         elif pname in temp_pnames:
             itemp.append(i)
-            idx = atm.tmodel.pnames.index(pname)
+            idx = atm.temp_model.pnames.index(pname)
             map_pars['temp'].append(idx)
-            ret.texnames[i] = atm.tmodel.texnames[idx]
+            ret.texnames[i] = atm.temp_model.texnames[idx]
         elif pname in atm.mol_pnames:
             imol.append(i)
             idx = atm.mol_pnames.index(pname)
@@ -414,7 +393,7 @@ def setup(pyrat):
             ioffset.append(i)
             idx = offset_pnames.index(pname)
             map_pars['offset'].append(idx)
-            ret.texnames[i] = pname.replace('offset_', '$\Delta$')
+            ret.texnames[i] = pname.replace('offset_', r'$\Delta$')
         else:
             log.error(
                 f"Invalid retrieval parameter '{pname}'. Possible "
@@ -436,10 +415,10 @@ def setup(pyrat):
     patch_temp = (
         atm.tpars is None and
         ret.itemp is not None and
-        len(map_pars['temp']) == atm.tmodel.npars
+        len(map_pars['temp']) == atm.temp_model.npars
     )
     if patch_temp:
-        atm.tpars = np.zeros(atm.tmodel.npars)
+        atm.tpars = np.zeros(atm.temp_model.npars)
         atm.tpars[map_pars['temp']] = ret.params[ret.itemp]
 
     patch_abundance = (
@@ -469,7 +448,7 @@ def setup(pyrat):
         pyrat.cloud.pars = np.zeros(pyrat.cloud.npars)
         pyrat.cloud.pars[map_pars['cloud']] = ret.params[ret.icloud]
 
-    if atm.tpars is None and atm.tmodel is not None:
+    if atm.tpars is None and atm.temp_model is not None:
         log.error('Not all temperature parameters were defined (tpars)')
     if atm.molpars is None and atm.mol_npars > 0:
         log.error('Not all abundance parameters were defined (molpars)')
@@ -530,10 +509,10 @@ def setup_retrieval_parameters_retflag(pyrat):
     ret.pnames = []
     ret.texnames = []
     if 'temp' in retflag:
-        ntemp = pyrat.atm.tmodel.npars
+        ntemp = pyrat.atm.temp_model.npars
         ret.itemp = np.arange(ret.nparams, ret.nparams + ntemp)
-        ret.pnames += pyrat.atm.tmodel.pnames
-        ret.texnames += pyrat.atm.tmodel.texnames
+        ret.pnames += pyrat.atm.temp_model.pnames
+        ret.texnames += pyrat.atm.temp_model.texnames
         ret.nparams += ntemp
         ret.map_pars['temp'] = np.arange(ntemp)
     if 'rad' in retflag:
@@ -610,9 +589,9 @@ def setup_retrieval_parameters_retflag(pyrat):
 
     # Patch missing parameters if possible, otherwise break:
     if atm.tpars is None and ret.itemp is not None:
-        if len(ret.map_pars['temp']) < atm.tmodel.npars:
+        if len(ret.map_pars['temp']) < atm.temp_model.npars:
             log.error('Not all temp parameters are defined (tpars)')
-        atm.tpars = np.zeros(atm.tmodel.npars)
+        atm.tpars = np.zeros(atm.temp_model.npars)
         atm.tpars[ret.map_pars['temp']] = ret.params[ret.itemp]
     if atm.molpars is None and ret.imol is not None:
         if len(ret.map_pars['mol']) < len(atm.mol_pnames):

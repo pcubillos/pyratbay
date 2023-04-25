@@ -1639,7 +1639,7 @@ def export_pandexo(pyrat, baseline, transit_duration,
         spectrum = pyrat.spec.spectrum
     elif pyrat.od.rt_path == 'emission':
         exo_dict['planet']['f_unit'] = 'fp/f*'
-        rprs = pyrat.phy.rplanet/pyrat.phy.rstar
+        rprs = pyrat.atm.rplanet/pyrat.phy.rstar
         spectrum = pyrat.spec.spectrum/pyrat.spec.starflux * rprs**2
 
     exo_dict['planet']['type'] ='user'

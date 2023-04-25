@@ -42,7 +42,7 @@ def optical_depth(pyrat):
     # Interpolate extinction coefficient from table:
     if pyrat.ex.extfile is not None:
         r = rtop
-        imol = [list(pyrat.mol.name).index(mol) for mol in pyrat.ex.species]
+        imol = [list(pyrat.atm.species).index(mol) for mol in pyrat.ex.species]
         ec.interp_ec(
             pyrat.ex.ec, pyrat.ex.etable,
             pyrat.ex.temp, pyrat.atm.temp, pyrat.atm.d[:,imol], rtop,

@@ -47,12 +47,12 @@ def width_limits(pyrat):
 
     # Estimate min/max Doppler/Lorentz HWHMs from atmospheric properties:
     dmin, lmin = broadening.min_widths(
-        tmin, tmax, np.amin(pyrat.spec.wn), np.amax(pyrat.mol.mass[mols]),
-        np.amin(pyrat.mol.radius[mols]), np.amin(pyrat.atm.press))
+        tmin, tmax, np.amin(pyrat.spec.wn), np.amax(pyrat.atm.mol_mass[mols]),
+        np.amin(pyrat.atm.mol_radius[mols]), np.amin(pyrat.atm.press))
 
     dmax, lmax = broadening.max_widths(
-        tmin, tmax, np.amax(pyrat.spec.wn), np.amin(pyrat.mol.mass[mols]),
-        np.amax(pyrat.mol.radius[mols]), np.amax(pyrat.atm.press))
+        tmin, tmax, np.amax(pyrat.spec.wn), np.amin(pyrat.atm.mol_mass[mols]),
+        np.amax(pyrat.atm.mol_radius[mols]), np.amax(pyrat.atm.press))
 
     # Doppler-width boundaries:
     if voigt.dmin is None:

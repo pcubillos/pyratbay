@@ -17,7 +17,7 @@ def absorption(pyrat):
 
       # Calculate the extinction coefficient (in cm2 molecule-1):
       model.extinction(pyrat.spec.wn, pyrat.atm.press)
-      imol = np.where(pyrat.mol.name == model.mol)[0][0]
+      imol = np.where(pyrat.atm.species == model.mol)[0][0]
       # Densities in molecules cm-3:
       dens = pyrat.atm.d[:,imol]
       # Cloud absorption (cm-1):
@@ -36,7 +36,7 @@ def get_ec(pyrat, layer):
           e = np.zeros(pyrat.spec.nwave) + int(layer > model.itop)
           ec.append(e)
       else:
-          imol = np.where(pyrat.mol.name == model.mol)[0][0]
+          imol = np.where(pyrat.atm.species == model.mol)[0][0]
           ec.append(model.ec[layer] * pyrat.atm.d[layer,imol])
       label.append(model.name)
   return ec, label

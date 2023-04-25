@@ -377,7 +377,7 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         parse_array(args, 'dbtype')
         parse_array(args, 'tlifile')
         parse_array(args, 'csfile')
-        parse_str(args,   'molfile')
+        parse_str(args, 'molfile')
         parse_array(args, 'extfile')
         # Spectrum sampling options:
         parse_str(args,   'wlunits')
@@ -489,7 +489,7 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         parse_float(args, 'log_gstar')
         parse_float(args, 'tstar')
         parse_str(args,   'mstar')
-        parse_str(args,   'rplanet')
+        parse_str(args, 'rplanet')
         parse_str(args,   'refpressure')
         parse_str(args,   'mplanet')
         parse_str(args,   'mpunits')
@@ -515,8 +515,8 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
 
     # Define logfile name and initialize log object:
     pyrat.lt.tlifile = args.get_path('tlifile', 'TLI')
-    pyrat.atm.atmfile = args.get_path('atmfile', 'Atmospheric')
-    pyrat.atm.input_atmfile = args.get_path('input_atmfile', 'Atmospheric')
+    args.atmfile = args.get_path('atmfile', 'Atmospheric')
+    args.input_atmfile = args.get_path('input_atmfile', 'Atmospheric')
     pyrat.spec.specfile = args.get_path('specfile', 'Spectrum')
     pyrat.ex.extfile = args.get_path('extfile', 'Extinction-coefficient')
     pyrat.ret.mcmcfile = args.get_path('mcmcfile', 'MCMC')
@@ -564,12 +564,11 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
 
     phy  = pyrat.phy
     spec = pyrat.spec
-    atm  = pyrat.atm
 
     pyrat.lt.dblist = args.get_path('dblist', 'Opacity database', exists=True)
-    pyrat.mol.molfile = args.get_path('molfile', 'Molecular data', exists=True)
+    args.molfile = args.get_path('molfile', 'Molecular data', exists=True)
     pyrat.inputs.cia_files = args.get_path('csfile', 'Cross-section', exists=True)
-    pyrat.atm.ptfile = args.get_path('ptfile', 'Pressure-temperature')
+    args.ptfile = args.get_path('ptfile', 'Pressure-temperature')
 
     spec.wlunits = args.get_default('wlunits', 'Wavelength units')
     if spec.wlunits is not None and not hasattr(pc, spec.wlunits):
@@ -595,49 +594,42 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
     spec.wlstep = args.get_param(
         'wlstep', spec.wlunits, 'Wavelength sampling step', gt=0.0)
 
-    atm.runits = args.get_default('runits', 'Planetary-radius units')
-    if atm.runits is not None and not hasattr(pc, atm.runits):
-        log.error(f'Invalid radius units (runits): {atm.runits}')
-    phy.rplanet = args.get_param(
-        'rplanet', atm.runits, 'Planetary radius', gt=0.0)
-    if atm.runits is None:
-        atm.runits = args.get_units('rplanet')
-    atm.nlayers = args.get_default(
-        'nlayers', 'Number of atmospheric layers', gt=1)
+    runits = args.get_default('runits', 'Planetary-radius units')
+    if runits is not None and not hasattr(pc, runits):
+        log.error(f'Invalid radius units (runits): {runits}')
+    args.rplanet = args.get_param(
+        'rplanet', runits, 'Planetary radius', gt=0.0)
+    if runits is None:
+        runits = args.get_units('rplanet')
+    args.runits = runits
 
-    atm.rmodelname = args.get_choice(
+    args.rmodelname = args.get_choice(
         'radmodel', 'Radius-profile model', pc.radmodels)
 
     # Pressure inputs:
-    atm.punits = args.get_default('punits', 'Pressure units')
-    if atm.punits is not None and not hasattr(pc, atm.punits):
-        log.error(f'Invalid pressure units (punits): {atm.punits}')
+    args.nlayers = args.get_default(
+        'nlayers', 'Number of atmospheric layers', gt=1)
+    punits = args.get_default('punits', 'Pressure units')
+    if punits is not None and not hasattr(pc, punits):
+        log.error(f'Invalid pressure units (punits): {punits}')
+    if punits is None and args.pbottom is not None:
+        punits = args.get_units('pbottom')
+    elif punits is None and args.ptop is not None:
+        punits = args.get_units('ptop')
+    elif punits is None and args.refpressure is not None:
+        punits = args.get_units('refpressure')
+    # else, set atm.punits from atmospheric file
+    args.punits = punits
 
-    atm.pbottom = args.get_param(
-        'pbottom', atm.punits, 'Pressure at bottom of atmosphere', gt=0.0)
-    atm.ptop = args.get_param(
-        'ptop', atm.punits, 'Pressure at top of atmosphere', gt=0.0)
-    atm.refpressure = args.get_param(
-        'refpressure', atm.punits, 'Planetary reference pressure level', gt=0.0)
-
-    if atm.punits is None and atm.pbottom is not None:
-        atm.punits = args.get_units('pbottom')
-    elif atm.punits is None and atm.ptop is not None:
-        atm.punits = args.get_units('ptop')
-    elif atm.punits is None and atm.refpressure is not None:
-        atm.punits = args.get_units('refpressure')
-    # else, set atm.punits from atmospheric file in read_atm().
-
-    # Radius boundaries:
-    atm.radlow = args.get_param(
-        'radlow', atm.runits, 'Radius at bottom of atmosphere', ge=0.0)
-    atm.radhigh = args.get_param(
-        'radhigh', atm.runits, 'Radius at top of atmosphere', gt=0.0)
-    atm.radstep = args.get_param(
-        'radstep', atm.runits, 'Radius sampling step', gt=0.0)
+    args.pbottom = args.get_param(
+        'pbottom', punits, 'Pressure at bottom of atmosphere', gt=0.0)
+    args.ptop = args.get_param(
+        'ptop', punits, 'Pressure at top of atmosphere', gt=0.0)
+    args.refpressure = args.get_param(
+        'refpressure', punits, 'Planetary reference pressure level', gt=0.0)
 
     # Chemistry:
-    atm.chemistry = args.get_choice(
+    args.chemistry = args.get_choice(
        'chemistry', 'Chemical model', pc.chemmodels)
     xsolar = args.get_default('xsolar', 'Atmospheric metallicity')
     if xsolar is not None:
@@ -647,7 +639,7 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
             "the near future, use 'metallicity' instead"
         )
         warnings.warn(warning_msg, category=DeprecationWarning)
-    atm.metallicity = args.get_default(
+    args.metallicity = args.get_default(
         'metallicity',
         'Atmospheric metallicity (dex, relative to solar)',
         default=0.0)
@@ -658,7 +650,7 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
             "the near future, use 'e_scale' instead"
         )
         warnings.warn(warning_msg, category=DeprecationWarning)
-        atm.e_scale = {
+        args.e_scale = {
             atom: np.log10(float(fscale))
             for atom,fscale in zip(escale[::2], escale[1::2])
         }
@@ -666,7 +658,7 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
     e_scale = args.get_default(
        'e_scale', 'Elemental abundance scaling factors (dex)', [],
     )
-    atm.e_scale = {
+    args.e_scale = {
         atom: float(fscale)
         for atom,fscale in zip(e_scale[::2], e_scale[1::2])
     }
@@ -674,7 +666,7 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
     e_ratio = args.get_default(
        'e_ratio', 'Elemental abundance ratios', [],
     )
-    atm.e_ratio = {
+    args.e_ratio = {
         pair: float(ratio)
         for pair,ratio in zip(e_ratio[::2], e_ratio[1::2])
     }
@@ -682,23 +674,23 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
     e_abundances = args.get_default(
        'e_abundances', 'Elemental abundances (dex relative to H=12)', [],
     )
-    atm.e_abundances = {
+    args.e_abundances = {
         atom: float(abundance)
         for atom,abundance in zip(e_abundances[::2], e_abundances[1::2])
     }
 
     # System physical parameters:
-    phy.gplanet = args.get_default(
+    args.gplanet = args.get_default(
         'gplanet', 'Planetary surface gravity (cm s-2)', gt=0.0,
     )
-    phy.mpunits = args.get_default('mpunits', 'Planetary-mass units')
-    if phy.mpunits is not None and not hasattr(pc, phy.mpunits):
-        log.error(f'Invalid planet mass units (mpunits): {phy.mpunits}')
-
-    phy.mplanet = args.get_param(
-        'mplanet', phy.mpunits, 'Planetary mass', gt=0.0)
-    if phy.mpunits is None:
-        phy.mpunits = args.get_units('mplanet')
+    mass_units = args.get_default('mpunits', 'Planetary-mass units')
+    if mass_units is not None and not hasattr(pc, mass_units):
+        log.error(f'Invalid planet mass units (mpunits): {mass_units}')
+    if mass_units is None:
+        mass_units = args.get_units('mplanet')
+    args.mass_units = mass_units
+    args.mplanet = args.get_param(
+        'mplanet', mass_units, 'Planetary mass', gt=0.0)
 
     phy.tint = args.get_default(
         'tint', 'Planetary internal temperature', 100.0, ge=0.0)
@@ -907,7 +899,6 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
     if args.molvars is None:
         pyrat.inputs.molvars = []
 
-    atm.bulk = args.bulk
     if args.tmodel == 'tcea':
         args.tmodel = 'guillot'
         warning_msg = (
@@ -915,8 +906,7 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
             "as 'guillot', please update your config files in the future"
         )
         warnings.warn(warning_msg, category=DeprecationWarning)
-    atm.tmodelname = args.get_choice('tmodel', 'temperature model', pc.tmodels)
-    atm.tpars = args.tpars
+    args.tmodelname = args.get_choice('tmodel', 'temperature model', pc.tmodels)
     pyrat.ncpu = args.get_default('ncpu', 'Number of processors', 1, ge=1)
 
     return

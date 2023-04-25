@@ -59,7 +59,7 @@ def read_tli(pyrat):
         pyrat.ex.nspec = 0
     else:
         imols = pyrat.iso.imol[np.where(pyrat.iso.imol>=0)]
-        pyrat.ex.species = pyrat.mol.name[np.unique(imols)]
+        pyrat.ex.species = pyrat.atm.species[np.unique(imols)]
         pyrat.ex.nspec = len(pyrat.ex.species)
 
     pyrat.log.msg(
@@ -320,10 +320,10 @@ def setimol(pyrat):
         # Get molecule name from database object:
         molname = pyrat.lt.db[pyrat.iso.dbindex[i]].molname
         # Set index:
-        if molname not in pyrat.mol.symbol:  # Isotope's not in molecule list
+        if molname not in pyrat.atm.species:  # Isotope's not in molecule list
             pyrat.iso.imol[i] = -1
         else:
-            pyrat.iso.imol[i] = np.where(pyrat.mol.symbol == molname)[0]
+            pyrat.iso.imol[i] = np.where(pyrat.atm.species == molname)[0]
     pyrat.log.msg(f"Isotope's molecule indices:\n  {pyrat.iso.imol}", indent=2)
     # Report missing species:
     imiss = np.unique(pyrat.iso.dbindex[np.where(pyrat.iso.imol < 0)])

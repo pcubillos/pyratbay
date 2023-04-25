@@ -217,6 +217,10 @@ Reference pressure at rplanet (refpressure): 1.00e-01 bar
 Pressure profile (press, bar):
     [ 1.000e-06  1.259e-06  1.585e-06 ...  6.310e+01  7.943e+01  1.000e+02]
 
+Planetary radius (rplanet, Rjup): 1.000
+Planetary mass (mplanet, Mjup): 0.600
+Planetary surface gravity (gplanet, cm s-2): 1487.3
+
 Radius display units (runits): rjup
 Radius internal units: cm
 Radius model name (rmodelname): hydro_m
@@ -231,7 +235,7 @@ Temperature profile (temp, K):
 Mean molecular mass (mm, amu):
     [  2.3329   2.3329   2.3329 ...   2.3329   2.3329   2.3329]
 
-Abundance units (qunits): None
+Abundance units (qunits): vmr
 Abundance internal units: mole mixing fraction
 Number of atmospheric species: 7
 Abundance profiles (vmr, mole mixing fraction):
@@ -251,31 +255,6 @@ Density profiles (d, molecules cm-3):
     species [ 5]:   [ 3.459e+09  4.354e+09 ...  1.729e+17  2.175e+17]
     species [ 6]:   [ 6.918e+05  8.708e+05 ...  3.457e+13  4.349e+13]
 """.format(os.getcwd())
-
-
-def test_pyrat_transmission_mol_str(tmp_path):
-    cfg = make_config(
-        tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
-    )
-    pyrat = pb.run(cfg)
-    assert str(pyrat.mol) == f"""\
-Atmospheric species information:
-Number of species (nmol): 7
-
-Molecule    Mass       Radius
-            g/mol      Angstrom
-(name)      (mass)     (radius)
-  H2          2.0160       1.440
-  He          4.0026       1.400
-  Na         22.9898       2.200
-  H2O        18.0150       1.600
-  CH4        16.0430       2.000
-  CO         28.0100       1.690
-  CO2        44.0090       1.900
-Molecular data taken from (molfile):
-    '{os.path.realpath('./../pyratbay/data')}/molecules.dat'
-"""
 
 
 def test_pyrat_transmission_lt_str(tmp_path):

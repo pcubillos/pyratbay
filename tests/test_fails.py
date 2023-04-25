@@ -245,8 +245,6 @@ def test_missing_mass_units(tmp_path):
      ('ptop',    ' -1.0 bar'),
      ('pbottom', ' -1.0 bar'),
      ('refpressure', ' -1.0 bar'),
-     ('radhigh', ' -1.0 rjup'),
-     ('radstep', ' -100.0 km'),
      ('pbottom', ' -1.0 bar'),
      ('mplanet', ' -1.0 mjup'),
      ('rplanet', ' -1.0 rjup'),
