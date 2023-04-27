@@ -731,56 +731,74 @@ def none_div(a, b):
 
 
 class Physics(object):
-  """A container of physical properties about the planet and star"""
-  def __init__(self):
-      self.tstar = None  # Stellar effective temperature
-      self.rstar = None  # Stellar radius
-      self.mstar = None  # Stellar mass
-      self.log_gstar = None  # Stellar surface gravity
-      self.smaxis = None  # Orbital semi-major axis
-      self.rhill = np.inf  # Planetary Hill radius
-      self.starspec = None  # Stellar spectrum filename
-      self.kurucz = None  # Kurucz stellar spectrum
-      self.marcs = None  # MARCS stellar spectrum
-      self.phoenix = None  # PHOENIX stellar spectrum
-      self.starwn = None  # Input stellar wavenumber array
-      self.starflux = None  # Input stellar flux spectrum in  FINDME units
+    """Physical properties about the planet and star"""
+    def __init__(self, inputs):
+        # Stellar properties
+        self.tstar = inputs.tstar
+        self.rstar = inputs.rstar
+        self.mstar = inputs.mstar
+        self.log_gstar = inputs.log_gstar
 
-  def __str__(self):
-      fw = pt.Formatted_Write()
-      fw.write('Physical properties information:')
+        self.tint = inputs.tint
+        self.beta_irr = inputs.beta_irr
+        self.rhill = np.inf
+        self.smaxis = inputs.smaxis
 
-      rstar = none_div(self.rstar, pc.rsun)
-      mstar = none_div(self.mstar, pc.msun)
-      fw.write('\nStellar effective temperature (tstar, K): {:.1f}', self.tstar)
-      fw.write('Stellar radius (rstar, Rsun): {:.3f}', rstar)
-      fw.write('Stellar mass (mstar, Msun):   {:.3f}', mstar)
-      fw.write('Stellar surface gravity (log_gstar, cm s-2): {:.2f}', self.log_gstar)
+        # Stellar spectrum filename
+        self.starspec = inputs.starspec
+        self.kurucz = inputs.kurucz
+        self.marcs = inputs.marcs
+        self.phoenix = inputs.phoenix
 
-      smaxis = none_div(self.smaxis, pc.au)
-      rhill = none_div(self.rhill, pc.rjup)
-      fw.write('\nPlanetary internal temperature (tint, K):  {:.1f}', self.tint)
-      fw.write('Orbital semi-major axis (smaxis, AU): {:.4f}', smaxis)
-      #fw.write('Planet-to-star radius ratio (rprs):   {:.5f}', rprs)
-      fw.write('Planetary Hill radius (rhill, Rjup):  {:.3f}', rhill)
+        self.starwn = None  # Input stellar wavenumber array
+        self.starflux = None  # Input stellar flux spectrum in  FINDME units
 
-      if self.starspec is not None:
-          fw.write("\nInput stellar spectrum (starspec): '{}'", self.starspec)
-      elif self.kurucz is not None:
-          fw.write("Input Kurucz stellar spectrum (kurucz): '{}'", self.kurucz)
-      elif self.marcs is not None:
-          fw.write("Input MARCS stellar spectrum (marcs): '{}'", self.marcs)
-      elif self.phoenix is not None:
-          fw.write(
-              f"Input PHOENIX stellar spectrum (phoenix): '{self.phoenix}'",
-          )
-      elif self.starflux is not None:
-          fw.write("Input stellar spectrum is a blackbody at Teff = {:.1f} K.",
-              self.tstar)
-      fw.write('Stellar spectrum wavenumber (starwn, cm-1):\n    {}',
-          self.starwn, fmt={'float': '{:10.3f}'.format})
-      fw.write('Stellar flux spectrum (starflux, erg s-1 cm-2 cm):\n    {}',
-          self.starflux, fmt={'float': '{: .3e}'.format})
-      return fw.text
+    def __str__(self):
+        fw = pt.Formatted_Write()
+        fw.write('Physical properties information:')
+
+        rstar = none_div(self.rstar, pc.rsun)
+        mstar = none_div(self.mstar, pc.msun)
+        fw.write(
+            '\nStellar effective temperature (tstar, K): {:.1f}',
+            self.tstar,
+        )
+        fw.write('Stellar radius (rstar, Rsun): {:.3f}', rstar)
+        fw.write('Stellar mass (mstar, Msun):   {:.3f}', mstar)
+        fw.write(
+            'Stellar surface gravity (log_gstar, cm s-2): {:.2f}',
+            self.log_gstar,
+        )
+
+        smaxis = none_div(self.smaxis, pc.au)
+        rhill = none_div(self.rhill, pc.rjup)
+        fw.write(
+            '\nPlanetary internal temperature (tint, K):  {:.1f}',
+            self.tint,
+        )
+        fw.write('Orbital semi-major axis (smaxis, AU): {:.4f}', smaxis)
+        #fw.write('Planet-to-star radius ratio (rprs):   {:.5f}', rprs)
+        fw.write('Planetary Hill radius (rhill, Rjup):  {:.3f}', rhill)
+
+        if self.starspec is not None:
+            fw.write(f"\nInput stellar spectrum (starspec): '{self.starspec}'")
+        elif self.kurucz is not None:
+            fw.write(f"Input Kurucz stellar spectrum (kurucz): '{self.kurucz}'")
+        elif self.marcs is not None:
+            fw.write(f"Input MARCS stellar spectrum (marcs): '{self.marcs}'")
+        elif self.phoenix is not None:
+            fw.write(
+                f"Input PHOENIX stellar spectrum (phoenix): '{self.phoenix}'",
+            )
+        elif self.starflux is not None:
+            fw.write(
+                "Input stellar spectrum is a blackbody at Teff = {:.1f} K.",
+                self.tstar,
+            )
+        fw.write('Stellar spectrum wavenumber (starwn, cm-1):\n    {}',
+            self.starwn, fmt={'float': '{:10.3f}'.format})
+        fw.write('Stellar flux spectrum (starflux, erg s-1 cm-2 cm):\n    {}',
+            self.starflux, fmt={'float': '{: .3e}'.format})
+        return fw.text
 
 

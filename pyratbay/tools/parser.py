@@ -562,7 +562,6 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
     # Parse valid inputs and defaults:
     pyrat.inputs = args
 
-    phy  = pyrat.phy
     spec = pyrat.spec
 
     pyrat.lt.dblist = args.get_path('dblist', 'Opacity database', exists=True)
@@ -692,27 +691,28 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
     args.mplanet = args.get_param(
         'mplanet', mass_units, 'Planetary mass', gt=0.0)
 
-    phy.tint = args.get_default(
+    args.tint = args.get_default(
         'tint', 'Planetary internal temperature', 100.0, ge=0.0)
-    phy.beta_irr = args.get_default(
+    args.beta_irr = args.get_default(
         'beta_irr', 'Stellar irradiation beta factor', 0.25)
 
-    phy.smaxis = args.get_param(
+    args.smaxis = args.get_param(
         'smaxis', None, 'Orbital semi-major axis', gt=0.0)
-    phy.rstar = args.get_param(
+    args.rstar = args.get_param(
         'rstar', None, 'Stellar radius', gt=0.0)
-    phy.mstar = args.get_param(
+    args.mstar = args.get_param(
         'mstar', None, 'Stellar mass', gt=0.0)
-    phy.tstar = args.get_default(
+    args.tstar = args.get_default(
         'tstar', 'Stellar effective temperature (K)', gt=0.0)
-    phy.log_gstar = args.get_default(
+
+    args.log_gstar = args.get_default(
         'log_gstar', 'Stellar surface gravity (log10(cm s-2))')
     gstar = args.get_default('gstar', 'Stellar surface gravity', gt=0.0)
     if gstar is not None:
         warning_msg = "'gstar' argument is deprecated, use 'log_gstar' instead"
         warnings.warn(warning_msg, category=DeprecationWarning)
-        if phy.log_gstar is None:
-            phy.log_gstar = np.log10(gstar)
+        if args.log_gstar is None:
+            args.log_gstar = np.log10(gstar)
     pyrat.voigt.extent = args.get_default(
         'vextent', 'Voigt profile extent in HWHM', 100.0, ge=1.0)
     pyrat.voigt.cutoff = args.get_default(
@@ -766,10 +766,10 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
     pyrat.od.maxdepth = args.get_default(
         'maxdepth', 'Maximum optical-depth', 10.0, ge=0.0)
 
-    phy.starspec = args.get_path('starspec', 'Stellar spectrum', exists=True)
-    phy.kurucz   = args.get_path('kurucz',   'Kurucz model',     exists=True)
-    phy.marcs    = args.get_path('marcs',    'MARCS model',      exists=True)
-    phy.phoenix  = args.get_path('phoenix',  'PHOENIX model',    exists=True)
+    args.starspec = args.get_path('starspec', 'Stellar spectrum', exists=True)
+    args.kurucz = args.get_path('kurucz', 'Kurucz model', exists=True)
+    args.marcs = args.get_path('marcs', 'MARCS model', exists=True)
+    args.phoenix = args.get_path('phoenix', 'PHOENIX model', exists=True)
 
     spec.raygrid = args.get_default(
         'raygrid', 'Emission raygrid (deg)', np.array([0, 20, 40, 60, 80.]))

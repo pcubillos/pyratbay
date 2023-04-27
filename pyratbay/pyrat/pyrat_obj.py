@@ -67,12 +67,12 @@ class Pyrat(object):
       self.ex = ob.Extinction()       # Extinction-coefficient
       self.od = ob.Optdepth()         # Optical depth
       self.obs = ob.Observation()     # Observational data
-      self.phy = ob.Physics()         # System physical parameters
       self.timestamps = OrderedDict()
 
       # Parse config file inputs:
       pt.parse(self, cfile, no_logfile, mute)
 
+      self.phy = ob.Physics(self.inputs)
       self.ret = ob.Retrieval(self.inputs, self.log)
 
       # Setup time tracker:
