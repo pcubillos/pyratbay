@@ -8169,3 +8169,8 @@ Renamed atm.tmodel to temp_model.
 Moved pyrat.hydro to pyrat.atm.rad_model.
 Made parser routine independent of pyrat.atm module.
 
+
+*****  Thu Apr 27 17:20:50 CEST 2023  *****
+
+Made parser independent of pyrat.ret.
+

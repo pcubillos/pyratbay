@@ -519,7 +519,7 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
     args.input_atmfile = args.get_path('input_atmfile', 'Atmospheric')
     pyrat.spec.specfile = args.get_path('specfile', 'Spectrum')
     pyrat.ex.extfile = args.get_path('extfile', 'Extinction-coefficient')
-    pyrat.ret.mcmcfile = args.get_path('mcmcfile', 'MCMC')
+    args.mcmcfile = args.get_path('mcmcfile', 'MCMC')
 
     outfile_dict = {
         'tli': args.tlifile,
@@ -808,91 +808,34 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         'inst_offset', 'Instrumental offsets',
     )
 
-    pyrat.ret.retflag = args.get_choice(
-        'retflag', 'retrieval flag', pc.retflags)
-    if pyrat.ret.retflag is not None:
+    args.retflag = args.get_choice('retflag', 'retrieval flag', pc.retflags)
+    if args.retflag is not None:
         warning_msg = (
             "The 'retflag' argument is deprecated and will be removed in "
             "the near future, use 'retrieval_params' instead"
         )
         warnings.warn(warning_msg, category=DeprecationWarning)
 
-    # Overrides retflag. At some point this will be the only way.
-    if args.retrieval_params is not None:
-        pars = [
-            par for par in args.retrieval_params.splitlines()
-            if par != ''
-        ]
-        nparams = len(pars)
-        pnames = []
-        params = np.zeros(nparams)
-        pmin = np.tile(-np.inf, nparams)
-        pmax = np.tile(np.inf, nparams)
-        pstep = np.zeros(nparams)
-        prior = np.zeros(nparams)
-        priorlow = np.zeros(nparams)
-        priorup = np.zeros(nparams)
-        for i,par in enumerate(pars):
-            fields = par.split()
-            nfields = len(fields)
-            if nfields not in [2, 5, 7, 8]:
-                log.error(
-                    "Invalid number of fields for retrieval_params entry\n"
-                    f"'{par}'"
-                )
-            pnames.append(fields[0])
-            params[i] = fields[1]
-            if nfields == 2:
-                continue
-            pmin[i] = fields[2]
-            pmax[i] = fields[3]
-            pstep[i] = fields[4]
-            if nfields == 5:
-                continue
-            prior[i] = fields[5]
-            priorlow[i] = fields[6]
-            if nfields == 7:
-                priorup[i] = fields[6]
-            else:
-                priorup[i] = fields[7]
-
-        pyrat.ret.pnames = pnames
-        pyrat.ret.params = params
-        pyrat.ret.pstep = pstep
-        pyrat.ret.pmin = pmin
-        pyrat.ret.pmax = pmax
-        pyrat.ret.prior = prior
-        pyrat.ret.priorlow = priorlow
-        pyrat.ret.priorup = priorup
-    else:
-        pyrat.ret.params = args.params
-        pyrat.ret.pstep = args.pstep
-        pyrat.ret.pmin = args.pmin
-        pyrat.ret.pmax = args.pmax
-        pyrat.ret.prior = args.prior
-        pyrat.ret.priorlow = args.priorlow
-        pyrat.ret.priorup = args.priorup
-
-    pyrat.ret.qcap = args.get_default(
+    args.qcap = args.get_default(
         'qcap', 'Metals volume-mixing-ratio cap', gt=0.0, le=1.0)
-    pyrat.ret.tlow = args.get_default(
-        'tlow', 'Retrieval low-temperature (K) bound', 0,
+    args.tlow = args.get_default(
+        'tlow', 'Retrieval low-temperature (K) bound', 0.0,
         wflag=(runmode=='mcmc'))
-    pyrat.ret.thigh = args.get_default(
+    args.thigh = args.get_default(
         'thigh', 'Retrieval high-temperature (K) bound', np.inf,
         wflag=(runmode=='mcmc'))
-    pyrat.ret.sampler = args.sampler
-    pyrat.ret.nsamples = args.get_default(
+
+    args.nsamples = args.get_default(
         'nsamples', 'Number of MCMC samples', gt=0)
-    pyrat.ret.burnin = args.get_default(
+    args.burnin = args.get_default(
         'burnin', 'Number of burn-in samples per chain', gt=0)
-    pyrat.ret.thinning = args.get_default(
+    args.thinning = args.get_default(
         'thinning', 'MCMC posterior thinning', 1, ge=1)
-    pyrat.ret.nchains = args.get_default(
+    args.nchains = args.get_default(
         'nchains', 'Number of MCMC parallel chains', ge=1)
-    pyrat.ret.grbreak = args.get_default(
+    args.grbreak = args.get_default(
         'grbreak', 'Gelman-Rubin convergence criteria', 0.0, ge=0)
-    pyrat.ret.grnmin = args.get_default(
+    args.grnmin = args.get_default(
         'grnmin', 'Gelman-Rubin convergence fraction', 0.5, gt=0.0)
 
     # Keep in inputs

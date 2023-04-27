@@ -110,77 +110,6 @@ class Spectrum(object):
       return fw.text
 
 
-  def __str__(self):
-      fmt = {'float': '{: .3e}'.format}
-      fw = pt.Formatted_Write()
-      press  = self.press/pt.u(self.punits)
-      radius = self.radius/pt.u(self.runits)
-      fw.write('Atmospheric model information:')
-      fw.write(
-          f"Input atmospheric file name (input_atmfile): '{self.input_atmfile}'"
-      )
-      fw.write("Output atmospheric file name (atmfile): '{}'", self.atmfile)
-      fw.write('Number of layers (nlayers): {:d}', self.nlayers)
-
-      fw.write('\nPressure display units (punits): {}', self.punits)
-      fw.write('Pressure internal units: barye')
-      fw.write('Pressure at top of atmosphere (ptop):        {:.2e} {}',
-          self.ptop/pt.u(self.punits), self.punits)
-      fw.write('Pressure at bottom of atmosphere (pbottom):  {:.2e} {}',
-          self.pbottom/pt.u(self.punits), self.punits)
-      fw.write('Reference pressure at rplanet (refpressure): {:.2e} {}',
-          self.refpressure/pt.u(self.punits), self.punits)
-      fw.write('Pressure profile (press, {}):\n    {}', self.punits, press,
-          fmt=fmt, edge=3)
-
-      fw.write('\nRadius display units (runits): {}', self.runits)
-      fw.write('Radius internal units: cm', self.runits)
-      fw.write('Radius model name (rmodelname): {}', self.rmodelname)
-      if self.radstep is not None:
-          fw.write('Radius step size (radstep): {} {}',
-              self.radstep/pt.u(self.runits), self.runits, prec=3, edge=3)
-      if self.radhigh is not None:
-          fw.write('Radius at top of atmosphere (radhigh): {} {}',
-              self.radhigh/pt.u(self.runits), self.runits, prec=3, edge=3)
-          fw.write('Radius at bottom of atmosphere (radlow): {} {}',
-              self.radlow/pt.u(self.runits), self.runits, prec=3, edge=3)
-      fw.write('Radius profile (radius, {}):\n    {}', self.runits, radius,
-          prec=4, edge=3, lw=800)
-
-      fw.write('\nTemperature units (tunits): {}', self.tunits)
-      fw.write('Temperature model name (tmodelname): {}', self.tmodelname)
-      if self.tmodel is not None:
-          fw.write('  tmodel parameters (tpars): {}', self.tpars)
-      fw.write('Temperature profile (temp, K):\n    {}', self.temp,
-          fmt={'float': '{:9.3f}'.format}, edge=3)
-
-      fw.write('\nMean molecular mass (mm, amu):\n    {}', self.mm,
-          fmt={'float': '{:8.4f}'.format}, edge=3)
-      fw.write('\nAbundance units (qunits): {}', self.qunits)
-      fw.write('Abundance internal units: mole mixing fraction')
-      fw.write('Number of atmospheric species: {:d}', len(self.vmr[0]))
-      if len(self.mol_pnames) > 0:
-          molpars = self.molpars
-          if self.molpars == []:
-              molpars = [None for _ in self.mol_pnames]
-
-          fw.write('Abundance models:\n  molvars    molpars  ifree')
-          for var, val in zip(self.mol_pnames, molpars):
-              fw.write(f'  {var:15s}  {val:10s}')
-          fw.write('Bulk species:\n  ibulk  bulk')
-          for ibulk, bulk in zip(self.ibulk, self.bulk):
-              fw.write('     {:2d}  {:10s}', ibulk, bulk)
-
-      fw.write('Abundance profiles (vmr, mole mixing fraction):')
-      for i, q in enumerate(self.vmr.T):
-          fw.write('    species [{:2d}]:   {}', i, q,    fmt=fmt, edge=2)
-      fw.write('Density profiles (d, molecules cm-3):')
-      for i, dens in enumerate(self.d.T):
-          fw.write('    species [{:2d}]:   {}', i, dens, fmt=fmt, edge=2)
-
-      return fw.text
-
-
 class Linetransition(object):
   def __init__(self):
       self.tlifile = None     # Line-transition data file
@@ -595,12 +524,10 @@ class Observation(object):
       return fw.text
 
 
-class Retrieval(object):
-  def __init__(self):
+class Retrieval():
+  def __init__(self, inputs, log):
       self.retflag = None
       self.nparams = 0     # Number of free parameters
-      self.tlow    = None  # Lower-temperature retrieval boundary
-      self.thigh   = None  # Higher-temperature retrieval boundary
       self.itemp   = None  # Temperature-model parameter indices
       self.irad    = None  # Reference-radius model parameter index
       self.ipress  = None  # Reference-pressuew model parameter index
@@ -620,6 +547,78 @@ class Retrieval(object):
       self.spec_high2 = None
       self.pnames   = []   # Model parameter names (screen)
       self.texnames = []   # Model parameter names (figures)
+
+      self.mcmcfile = inputs.mcmcfile
+      self.retflag = inputs.retflag
+      self.qcap = inputs.qcap
+      # Lower and upper temperature retrieval boundaries
+      self.tlow = inputs.tlow
+      self.thigh = inputs.thigh
+
+      self.sampler = inputs.sampler
+      # MCMC options
+      self.nsamples = inputs.nsamples
+      self.burnin = inputs.burnin
+      self.thinning = inputs.thinning
+      self.nchains = inputs.nchains
+      self.grbreak = inputs.grbreak
+      self.grnmin = inputs.grnmin
+
+      # Overrides retflag. At some point this will be the only way.
+      if inputs.retrieval_params is not None:
+          pars = [
+              par for par in inputs.retrieval_params.splitlines()
+              if par != ''
+          ]
+          nparams = len(pars)
+          pnames = []
+          params = np.zeros(nparams)
+          pmin = np.tile(-np.inf, nparams)
+          pmax = np.tile(np.inf, nparams)
+          pstep = np.zeros(nparams)
+          prior = np.zeros(nparams)
+          priorlow = np.zeros(nparams)
+          priorup = np.zeros(nparams)
+          for i,par in enumerate(pars):
+              fields = par.split()
+              nfields = len(fields)
+              if nfields not in [2, 5, 7, 8]:
+                  log.error(
+                      "Invalid number of fields for retrieval_params entry\n"
+                      f"'{par}'"
+                  )
+              pnames.append(fields[0])
+              params[i] = fields[1]
+              if nfields == 2:
+                  continue
+              pmin[i] = fields[2]
+              pmax[i] = fields[3]
+              pstep[i] = fields[4]
+              if nfields == 5:
+                  continue
+              prior[i] = fields[5]
+              priorlow[i] = fields[6]
+              if nfields == 7:
+                  priorup[i] = fields[6]
+              else:
+                  priorup[i] = fields[7]
+          self.pnames = pnames
+          self.params = params
+          self.pstep = pstep
+          self.pmin = pmin
+          self.pmax = pmax
+          self.prior = prior
+          self.priorlow = priorlow
+          self.priorup = priorup
+      else:
+          self.params = inputs.params
+          self.pstep = inputs.pstep
+          self.pmin = inputs.pmin
+          self.pmax = inputs.pmax
+          self.prior = inputs.prior
+          self.priorlow = inputs.priorlow
+          self.priorup = inputs.priorup
+
 
   def __str__(self):
       fw = pt.Formatted_Write()
@@ -729,37 +728,6 @@ def none_div(a, b):
     if a is None:
         return None
     return a/b
-
-
-class MassGravity:
-    """
-    Descriptor object that keeps the planet mass and gravity
-    consistent with each other by ensuring that
-        gplanet = G * mplanet / rplanet**2
-    whenever one of these two variables are modified.
-
-    To understand this sorcery see:
-    https://docs.python.org/3/howto/descriptor.html
-    """
-    def __set_name__(self, obj, name):
-        self.private_name = '_' + name
-
-    def __get__(self, obj, objtype=None):
-        value = getattr(obj, self.private_name)
-        return value
-
-    def __set__(self, obj, value):
-        priv_name = self.private_name
-        var_name = self.private_name[1:]
-        if hasattr(obj, priv_name) and value == getattr(obj, priv_name):
-            return
-        setattr(obj, priv_name, value)
-
-        if obj.rplanet is not None and value is not None:
-            if var_name == 'mplanet':
-                obj.gplanet = pc.G * obj.mplanet / obj.rplanet**2
-            elif var_name == 'gplanet':
-                obj.mplanet = obj.gplanet * obj.rplanet**2 / pc.G
 
 
 class Physics(object):
