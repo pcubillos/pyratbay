@@ -216,6 +216,21 @@ Pressure at bottom of atmosphere (pbottom):  1.00e+02 bar
 Reference pressure at rplanet (refpressure): 1.00e-01 bar
 Pressure profile (press, bar):
     [ 1.000e-06  1.259e-06  1.585e-06 ...  6.310e+01  7.943e+01  1.000e+02]
+Atmospheric species information:
+Number of species (nmol): 7
+
+Molecule    Mass       Radius
+            g/mol      Angstrom
+(name)      (mass)     (radius)
+  H2          2.0160       1.440
+  He          4.0026       1.400
+  Na         22.9898       2.200
+  H2O        18.0150       1.600
+  CH4        16.0430       2.000
+  CO         28.0100       1.690
+  CO2        44.0090       1.900
+Molecular data taken from (molfile):
+    '/Users/pato/Dropbox/IWF/projects/2014_pyratbay/pyratbay/pyratbay/data/molecules.dat'
 
 Planetary radius (rplanet, Rjup): 1.000
 Planetary mass (mplanet, Mjup): 0.600
@@ -602,6 +617,8 @@ def test_pyrat_transmission_obs_str(tmp_path):
     pyrat = pb.run(cfg)
     assert str(pyrat.obs) == """\
 Observing information:
+Data/bandflux display units (units): none
+Data/bandflux internal units: none
 Number of data points (ndata): 0
 
 Number of filter pass bands (nfilters): 0
@@ -622,12 +639,8 @@ Stellar radius (rstar, Rsun): 1.270
 Stellar mass (mstar, Msun):   None
 Stellar surface gravity (log_gstar, cm s-2): 4.36
 
-Planetary radius (rplanet, Rjup): 1.000
-Planetary mass (mplanet, Mjup):   0.600
-Planetary surface gravity (gplanet, cm s-2): 1487.3
 Planetary internal temperature (tint, K):  100.0
 Orbital semi-major axis (smaxis, AU): 0.0450
-Planet-to-star radius ratio (rprs):   0.08092
 Planetary Hill radius (rhill, Rjup):  inf
 Input stellar spectrum is a blackbody at Teff = 5800.0 K.
 Stellar spectrum wavenumber (starwn, cm-1):

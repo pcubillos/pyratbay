@@ -9,7 +9,6 @@ __all__ = [
     'Extinction',
     'Optdepth',
     'Cloud',
-    'Observation',
     'Physics',
     'Retrieval',
 ]
@@ -451,76 +450,6 @@ class Optdepth(object):
           '{}\n{}', od_text, self.depth[0:ideepest+1],
           fmt={'float':'{: .3e}'.format},
       )
-      return fw.text
-
-
-class Observation(object):
-  def __init__(self):
-      self.ndata     = 0     # Number of data points
-      self.data      = None  # Transit or eclipse data point
-      self.uncert    = None  # Data's 1-sigma uncertainty
-      self.nfilters  = 0     # Number of filter bands
-      self.filters   = None  # Observing filter filename
-      self.bandidx   = None  # Band wavenumber indices
-      self.bandtrans = None  # Band-interpolated transmission function
-      self.starflux  = None  # Band-interpolated stellar flux
-      self.bandflux  = None  # Band-integrated flux
-      self.offset_indices = []
-      self.bandwn    = None  # Filter mean wavenumber
-      self.units     = 'none' # Data units
-
-  def set_offsets(self, log):
-      """Parse instrumental offsets if any."""
-      if self.offset_instruments is None:
-          return
-
-      self.offset_pars = np.zeros(len(self.offset_instruments))
-      band_names = [band.name for band in self.filters]
-      for var in self.offset_instruments:
-          inst = var.replace('offset_', '', 1)
-          flags = [inst in name for name in band_names]
-          self.offset_indices.append(flags)
-          if np.sum(flags) == 0:
-              log.error(
-                  f"Invalid retrieval parameter '{var}'. "
-                  f"There is no instrument matching the name '{inst}'"
-              )
-      offsets = np.sum(self.offset_indices, axis=0)
-      if np.any(offsets > 1):
-          log.error('Multiple instrumental offsets apply to a same bandpass')
-
-  def __str__(self):
-      units = pt.u(self.units)
-      fw = pt.Formatted_Write()
-      fw.write('Observing information:')
-      if self.data is not None or self.filters is not None:
-          fw.write('Data/bandflux display units (units): {}', self.units)
-          fw.write('Data/bandflux internal units: none')
-      fw.write('Number of data points (ndata): {}', self.ndata)
-      if self.data is not None:
-          fw.write('        Data  Uncertainty   Wavenumber  Wavelength\n'
-                   '     {:>7s}      {:>7s}         cm-1          um\n'
-                   '      (data)     (uncert)     (bandwn)',
-                   self.units, self.units)
-          for data, uncert, bandwn in zip(self.data, self.uncert, self.bandwn):
-              fw.write('  {:10.5f}   {:10.5f}    {:9.2f}  {:10.3f}',
-              data/units, uncert/units, bandwn, 1.0/(bandwn*pc.um))
-
-      fw.write('\nNumber of filter pass bands (nfilters): {}', self.nfilters)
-      if self.filters is None:
-          return fw.text
-      fw.write(
-          'Wavenumber  Wavelength    Bandflux  Filter name\n'
-          '      cm-1          um     {:>7s}\n'
-          '  (bandwn)              (bandflux)  (filters)',
-          self.units,
-      )
-      for filter,bandwn,bflux in zip(self.filters, self.bandwn, self.bandflux):
-          fw.write(
-              ' {:9.2f}  {:10.3f}  {:10.5f}  {:s}',
-              bandwn, 1.0/(bandwn*pc.um), bflux/units, str(filter),
-          )
-      # TBD: Do I want to show bandidx, bandtrans, and starflux?
       return fw.text
 
 

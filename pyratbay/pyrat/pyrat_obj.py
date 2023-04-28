@@ -15,6 +15,7 @@ from .. import spectrum as ps
 from .. import tools as pt
 
 from .atmosphere import Atmosphere
+from .observation import Observation
 from .  import extinction as ex
 from .  import crosssec as cs
 from .  import clouds as cl
@@ -66,7 +67,6 @@ class Pyrat(object):
       self.voigt = ob.Voigt()         # Voigt profile
       self.ex = ob.Extinction()       # Extinction-coefficient
       self.od = ob.Optdepth()         # Optical depth
-      self.obs = ob.Observation()     # Observational data
       self.timestamps = OrderedDict()
 
       # Parse config file inputs:
@@ -96,6 +96,7 @@ class Pyrat(object):
       ex.read_opacity(self, self.spec._wn_mask)
       self.timestamps['read opacity'] = timer.clock()
 
+      self.obs = Observation(self.inputs, self.spec.wn, self.log)
       ar.check_spectrum(self)
 
       # Read line database:
@@ -271,10 +272,6 @@ class Pyrat(object):
       if ret.itstar is not None:
           self.phy.tstar = params[ret.itstar][0]
           self.spec.starflux = self.spec.flux_interp(self.phy.tstar)
-          obs.starflux = [
-              self.spec.starflux[band.idx]
-              for band in obs.filters
-          ]
 
       # Calculate atmosphere and spectrum:
       self.run()
@@ -406,57 +403,22 @@ class Pyrat(object):
       Band-integrate transmission spectrum (transit) or planet-to-star
       flux ratio (eclipse) over transmission band passes.
       """
-      if self.obs.bandtrans is None:
+      if self.obs.filters is None:
           return None
 
       if spectrum is None:
           spectrum = self.spec.spectrum
-      specwn = self.spec.wn
-      bandidx = self.obs.bandidx
-      rprs_square = (self.atm.rplanet/self.phy.rstar)**2.0
 
-      if self.od.rt_path in pc.transmission_rt:
-          bandtrans = self.obs.bandtrans
-      elif self.od.rt_path in pc.emission_rt:
-          bandtrans = [
-              btrans/sflux * rprs_square
-              for btrans, sflux in zip(self.obs.bandtrans, self.obs.starflux)
-          ]
+      rprs_square = (self.atm.rplanet/self.phy.rstar)**2.0
+      if self.od.rt_path in pc.emission_rt:
+          spectrum = spectrum / self.spec.starflux * rprs_square
 
       self.obs.bandflux = np.array([
-          np.trapz(spectrum[idx]*btrans, specwn[idx])
-          for btrans, idx in zip(bandtrans, bandidx)
+          np.trapz(spectrum[band.idx]*band.response, band.wn)
+          for band in self.obs.filters
       ])
 
       return self.obs.bandflux
-
-
-  def set_filters(self):
-      """
-      Set observational variables (pyrat.obs) based on given parameters.
-      """
-      if self.obs.filters is None:
-          return
-
-      bandidx = []  # Filter wavenumber indices
-      starflux = []  # Interpolated stellar flux
-      bandtrans = []  # Normalized interpolated filter transmission
-      bandwn = []  # Band's mean wavenumber
-      for passband in self.obs.filters:
-          # Resample the filters into the planet wavenumber array:
-          passband(wn=self.spec.wn)
-          bandidx.append(passband.idx)
-          bandtrans.append(passband.response)
-          bandwn.append(passband.wn0)
-          if self.phy.starflux is not None:
-              starflux.append(self.spec.starflux[passband.idx])
-
-      # Per-band variables:
-      self.obs.starflux = starflux
-      self.obs.bandidx = bandidx
-      self.obs.bandtrans = bandtrans
-      self.obs.bandwn = np.asarray(bandwn)
-      self.obs.bandflux = np.zeros(self.obs.nfilters, np.double)
 
 
   def get_ec(self, layer):
@@ -591,8 +553,7 @@ class Pyrat(object):
       pyrat_args = {
           'data': self.obs.data,
           'uncert': self.obs.uncert,
-          'bandtrans': self.obs.bandtrans,
-          'bandidx': self.obs.bandidx,
+          'bands': self.obs.filters,
           'starflux': self.spec.starflux,
           'logxticks': self.inputs.logxticks,
           'yran': self.inputs.yran,

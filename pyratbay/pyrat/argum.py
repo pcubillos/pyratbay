@@ -93,7 +93,7 @@ def check_spectrum(pyrat):
             log.error("Undefined transit/eclipse data (data)")
         if obs.uncert is None:
             log.error("Undefined data uncertainties (uncert)")
-        if obs.filters is None:
+        if obs.nfilters == 0:
             log.error("Undefined transmission filters (filters)")
         if pyrat.inputs.retrieval_params is None and pyrat.ret.retflag is None:
             log.error('Undefined fitting parameters (retrieval_params)')
@@ -155,26 +155,6 @@ def check_spectrum(pyrat):
         qnodes, qweights = ss.p_roots(spec.quadrature)
         spec.qnodes = 0.5*(qnodes + 1.0)
         spec.qweights = 0.5 * qweights
-
-    # Number of datapoints and filters:
-    if obs.data is not None:
-        obs.ndata = len(obs.data)
-    if obs.filters is not None:
-        obs.nfilters = len(obs.filters)
-    # Number checks:
-    if obs.uncert is not None:
-        n_uncert = len(obs.uncert)
-        if obs.ndata != n_uncert:
-            log.error(
-                f'Number of data uncertainty values ({n_uncert}) does not '
-                f'match the number of data points ({obs.ndata})'
-            )
-
-    if obs.filters is not None and obs.ndata > 0 and obs.ndata != obs.nfilters:
-        log.error(
-            f'Number of filter bands ({obs.nfilters}) does not match the '
-            f'number of data points ({obs.ndata})'
-        )
 
     if pyrat.ncpu >= mp.cpu_count():
         n_cpu = mp.cpu_count()
@@ -287,11 +267,6 @@ def setup(pyrat):
             'tstar (for a blackbody spectrum)'
         )
 
-    # Set observational variables (for given filters and other parameters):
-    if obs.filters is not None:
-        pyrat.set_filters()
-
-    obs.set_offsets(log)
     offset_pnames = obs.offset_instruments
     if offset_pnames is None:
         offset_pnames = []

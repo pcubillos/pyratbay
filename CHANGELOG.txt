@@ -8184,3 +8184,17 @@ Made parser independent of pyrat.phy.
 Got no-spectrum error for PassBand() objects a bit more explicit.
 Updated tests.
 
+*****
+
+pyratbay/driver.py
+
+*****
+
+Moved Observation() class from objects.py into observation.py file.
+Made its initialization actually initialize stuff (moved code from
+parser, argum, and pyrat into it)
+Removed redundant obs.bandidx, obs.bandtrans, obs.starflux variables
+(they already exist in obs.filters objects).
+Updated tests.
+
+
