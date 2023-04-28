@@ -8203,3 +8203,7 @@ Refactored plots.spectrum() and pyrat.plot_spectrum()
 for a simpler interface.
 Added (emission) tests.
 
+*****
+
+Fixed band_cf() call.
+

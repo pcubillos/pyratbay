@@ -166,9 +166,9 @@ def run(cfile, run_step='run', no_logfile=False):
         contrib = ps.contribution_function(pyrat.od.depth, atm.press, pyrat.od.B)
     elif is_transmission:
         contrib = ps.transmittance(pyrat.od.depth, pyrat.od.ideep)
-    band_cf = ps.band_cf(
-        contrib, pyrat.obs.bandtrans, pyrat.spec.wn, pyrat.obs.bandidx,
-    )
+    bands_idx = [band.idx for band in pyrat.obs.filters]
+    bands_response = [band.response for band in pyrat.obs.filters]
+    band_cf = ps.band_cf(contrib, bands_response, pyrat.spec.wn, bands_idx)
 
     path = 'transit' if is_transmission else 'emission'
     pp.contribution(
