@@ -3,6 +3,7 @@
 
 import os
 import pytest
+import re
 
 import numpy as np
 
@@ -69,18 +70,25 @@ def test_PassBand_name():
     assert band_repr.endswith("pyratbay/data/filters/spitzer_irac2_sa.dat')")
 
 
-@pytest.mark.parametrize('wl_wn', ('both', 'none'))
-def test_PassBand_bad_input(wl_wn):
+def test_PassBand_bad_input_both():
+    filter_file = f'{pc.ROOT}pyratbay/data/filters/spitzer_irac2_sa.dat'
+    band = ps.PassBand(filter_file)
+    wl = np.arange(3.5, 5.5, 0.001)
+    wn = 1e4 / wl
+
+    error = 'Either provide wavelength or wavenumber array, not both'
+    with pytest.raises(ValueError, match=error):
+        out_wn, out_response = band(wl, wn=wn)
+
+
+def test_PassBand_bad_input_none():
     filter_file = f'{pc.ROOT}pyratbay/data/filters/spitzer_irac2_sa.dat'
     band = ps.PassBand(filter_file)
     wl = None
     wn = None
-    if wl_wn == 'both':
-        wl = np.arange(3.5, 5.5, 0.001)
-        wn = 1e4 / wl
 
-    error = 'Either provide wavelength or wavenumber array, not both'
-    with pytest.raises(ValueError, match=error):
+    error = 'Neither of wavelength (wl) nor wavenumber (wn) were provided'
+    with pytest.raises(ValueError, match=re.escape(error)):
         out_wn, out_response = band(wl, wn=wn)
 
 

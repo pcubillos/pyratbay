@@ -21,7 +21,7 @@ from .. import constants as pc
 from .. import io as io
 
 
-class PassBand(object):
+class PassBand():
     """
     A Filter passband object.
     """
@@ -130,7 +130,11 @@ class PassBand(object):
         --------
         >>> # See examples in help(ps.PassBand.__init__)
         """
-        if not operator.xor(wl is None, wn is None):
+        if wl is None and wn is None:
+            raise ValueError(
+                'Neither of wavelength (wl) nor wavenumber (wn) were provided'
+            )
+        if wl is not None and wn is not None:
             raise ValueError(
                 'Either provide wavelength or wavenumber array, not both'
             )

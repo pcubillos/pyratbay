@@ -8178,3 +8178,9 @@ Made parser independent of pyrat.ret.
 
 Made parser independent of pyrat.phy.
 
+
+*****  Fri Apr 28 11:43:52 CEST 2023  *****
+
+Got no-spectrum error for PassBand() objects a bit more explicit.
+Updated tests.
+
