@@ -16,8 +16,9 @@ class CIA(object):
         self.nfiles = 0
         self.models = []
         self.mol_indices = []
-        self.tmin = 0.0   # Minimum temperature sampled by all CS files
-        self.tmax = 1e6   # Maximum temperature sampled by all CS files
+        # Min/max temperatures that can be sampled
+        self.tmin = -np.inf
+        self.tmax = np.inf
         self.ec = None  # extinction coefficient in cm-1 [nlayer, nwave]
 
         log.head('\nReading collision induced absorption files.')
@@ -98,10 +99,19 @@ class CIA(object):
         return fw.text
 
 
-    def calc_extinction_coefficient(self, temperature, densities):
+    def calc_extinction_coefficient(self, temperature, densities, log):
         """
         Interpolate the CS absorption into the planetary model temperature.
         """
+        good_status = True
+        if np.any(temperature > self.tmax) or np.any(temperature < self.tmin):
+            log.warning(
+                "Atmospheric temperature values lie out of the CIA "
+                f"boundaries (K): [{self.tmin:6.1f}, {self.tmax:6.1f}]"
+            )
+            good_status = False
+            return good_status
+
         ec = 0.0
         for i,cia in enumerate(self.models):
             density = densities[:,self.mol_indices[i]]
@@ -109,6 +119,7 @@ class CIA(object):
 
         if not np.isscalar(ec):
             self.ec = ec
+        return good_status
 
 
     def get_ec(self, temperature, densities, layer):

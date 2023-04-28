@@ -6,7 +6,7 @@ import multiprocessing as mp
 
 import numpy as np
 
-from . import extinction as ex
+from . import extinction as ex_mod
 from .. import atmosphere as pa
 from .. import constants as pc
 from ..lib import _extcoeff as ec
@@ -19,16 +19,19 @@ def optical_depth(pyrat):
     Calculate the optical depth.
     """
     od = pyrat.od
+    ex = pyrat.ex
+    lt = pyrat.lt
     nwave = pyrat.spec.nwave
     nlayers = pyrat.atm.nlayers
     rtop = pyrat.atm.rtop
+    good_status = True
 
     pyrat.log.head('\nBegin optical-depth calculation.')
 
     # Evaluate the extinction coefficient at each layer:
-    pyrat.ex.ec = np.zeros((nlayers, nwave))
-    od.ec       = np.empty((nlayers, nwave))
-    od.depth    = np.zeros((nlayers, nwave))
+    ex.ec = np.zeros((nlayers, nwave))
+    od.ec = np.empty((nlayers, nwave))
+    od.depth = np.zeros((nlayers, nwave))
     if pyrat.cloud.fpatchy is not None:
         od.ec_clear = np.empty((nlayers, nwave))
         od.depth_clear = np.zeros((nlayers, nwave))
@@ -40,19 +43,35 @@ def optical_depth(pyrat):
         pyrat.od.raypath = pa.transit_path(pyrat.atm.radius, pyrat.atm.rtop)
 
     # Interpolate extinction coefficient from table:
-    if pyrat.ex.extfile is not None:
+    if ex.extfile is not None:
+        if np.any(pyrat.atm.temp > ex.tmax) or np.any(pyrat.atm.temp < ex.tmin):
+            pyrat.log.warning(
+                "Atmospheric temperature values lie out of the cross-section "
+                f"boundaries (K): [{ex.tmin:6.1f}, {ex.tmax:6.1f}]"
+            )
+            good_status = False
+            return good_status
+
         r = rtop
-        imol = [list(pyrat.atm.species).index(mol) for mol in pyrat.ex.species]
+        imol = [list(pyrat.atm.species).index(mol) for mol in ex.species]
         ec.interp_ec(
-            pyrat.ex.ec, pyrat.ex.etable,
-            pyrat.ex.temp, pyrat.atm.temp, pyrat.atm.d[:,imol], rtop,
+            ex.ec, ex.etable,
+            ex.temp, pyrat.atm.temp, pyrat.atm.d[:,imol], rtop,
         )
 
     # Calculate the extinction coefficient on the spot:
-    elif pyrat.lt.tlifile is not None:
+    elif lt.tlifile is not None:
+        if np.any(pyrat.atm.temp > lt.tmax) or np.any(pyrat.atm.temp < lt.tmin):
+            pyrat.log.warning(
+                "Atmospheric temperature values lie out of the line-transition "
+                f"boundaries (K): [{lt.tmin:6.1f}, {lt.tmax:6.1f}]"
+            )
+            good_status = False
+            return good_status
+
         sm_ext = mp.Array(
             ctypes.c_double, np.zeros(nlayers*nwave, np.double))
-        pyrat.ex.ec = np.ctypeslib.as_array(
+        ex.ec = np.ctypeslib.as_array(
             sm_ext.get_obj()).reshape((nlayers, nwave))
         processes = []
         indices = np.arange(rtop, nlayers) % pyrat.ncpu
@@ -60,7 +79,7 @@ def optical_depth(pyrat):
             grid = False
             add = True
             proc = mp.get_context('fork').Process(
-                target=ex.extinction,
+                target=ex_mod.extinction,
                 args=(pyrat, np.where(indices==i)[0], grid, add))
             processes.append(proc)
             proc.start()
@@ -69,7 +88,7 @@ def optical_depth(pyrat):
 
     # Sum all contributions to the extinction:
     od.ec[rtop:] = (
-        + pyrat.ex.ec[rtop:]
+        + ex.ec[rtop:]
         + pyrat.cloud.ec[rtop:]
     )
     if pyrat.rayleigh.ec is not None:
@@ -121,3 +140,4 @@ def optical_depth(pyrat):
             ideep[ideep<0] = r
 
     pyrat.log.head('Optical depth done.')
+    return good_status

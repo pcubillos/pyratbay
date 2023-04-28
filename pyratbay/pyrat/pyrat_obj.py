@@ -14,12 +14,12 @@ from .. import plots as pp
 from .. import spectrum as ps
 from .. import tools as pt
 
+from .alkali import Alkali
 from .atmosphere import Atmosphere
+from .crosssec import CIA
 from .observation import Observation
 from .  import extinction as ex
-from .  import crosssec as cs
 from .  import clouds as cl
-from .  import alkali as al
 from .  import read_atm as ra
 from .  import optical_depth as od
 from .  import spectrum as sp
@@ -110,7 +110,7 @@ class Pyrat(object):
       v.voigt(self)
 
       # Alkali opacity models:
-      self.alkali = al.Alkali(
+      self.alkali = Alkali(
           self.inputs.model_names,
           self.atm.press,
           self.spec.wn,
@@ -129,7 +129,7 @@ class Pyrat(object):
       self.h_ion.has_opacity &= self.od.h_ion_models is not None
 
       # CIA opacity:
-      self.cs = cs.CIA(
+      self.cs = CIA(
           self.inputs.cia_files,
           self.spec.wn,
           self.atm.species,
@@ -163,12 +163,11 @@ class Pyrat(object):
       timer = pt.Timer()
 
       # Re-calculate atmospheric properties if required:
-      status = ra.update_atm(self, temp, vmr, radius)
-      if status == 0:
-          self.spec.spectrum[:] = 0.0
-          return
+      good_status = ra.update_atm(self, temp, vmr, radius)
       # Interpolate CIA absorption:
-      self.cs.calc_extinction_coefficient(self.atm.temp, self.atm.d)
+      good_status &= self.cs.calc_extinction_coefficient(
+          self.atm.temp, self.atm.d, self.log,
+      )
       self.timestamps['interp cs'] = timer.clock()
 
       # Calculate cloud, Rayleigh, and H- absorption:
@@ -182,8 +181,12 @@ class Pyrat(object):
       self.timestamps['alkali'] = timer.clock()
 
       # Calculate the optical depth:
-      od.optical_depth(self)
+      good_status &= od.optical_depth(self)
       self.timestamps['odepth'] = timer.clock()
+
+      if not good_status:
+          self.spec.spectrum[:] = 0.0
+          return
 
       # Calculate the spectrum:
       sp.spectrum(self)

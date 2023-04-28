@@ -8212,3 +8212,7 @@ Fixed band_cf() call.
 Added error verification when observation files miss a @DATA header
 in read_observations()
 
+*****
+
+Moved opacity in-bounds temperature checks out of update_atm().
+
