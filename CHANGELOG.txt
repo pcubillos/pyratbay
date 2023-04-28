@@ -8207,3 +8207,8 @@ Added (emission) tests.
 
 Fixed band_cf() call.
 
+*****
+
+Added error verification when observation files miss a @DATA header
+in read_observations()
+

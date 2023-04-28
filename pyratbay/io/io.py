@@ -1100,6 +1100,9 @@ def read_observations(obs_file):
             continue
         lines.append(line)
 
+    if '@DATA' not in lines:
+        raise ValueError(f"Observation file does not have a '@DATA' header")
+
     # Number of header lines (to skip when reading the tabulated data):
     i = 0
     depth_units = None
