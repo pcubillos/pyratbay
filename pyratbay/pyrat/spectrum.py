@@ -170,10 +170,10 @@ def two_stream(pyrat):
     nlayers = pyrat.atm.nlayers
 
     # Set internal net bolometric flux to sigma*Tint**4:
-    spec.f_int = ps.blackbody_wn(spec.wn, phy.tint)
+    spec.f_int = ps.blackbody_wn(spec.wn, pyrat.atm.tint)
     total_f_int = np.trapz(spec.f_int, spec.wn)
     if total_f_int > 0:
-        spec.f_int *= pc.sigma * phy.tint**4 / total_f_int
+        spec.f_int *= pc.sigma * pyrat.atm.tint**4 / total_f_int
 
     # Diffusivity factor (Eq. B5 of Heng et al. 2014):
     dtau0 = np.diff(pyrat.od.depth, n=1, axis=0)
@@ -188,13 +188,13 @@ def two_stream(pyrat):
 
     is_irradiation = (
         spec.starflux is not None
-        and phy.smaxis is not None
+        and pyrat.atm.smaxis is not None
         and phy.rstar is not None
     )
     # Top boundary condition:
     if is_irradiation:
         spec.flux_down[0] = \
-            phy.beta_irr * (phy.rstar/phy.smaxis)**2 * spec.starflux
+            pyrat.atm.beta_irr * (phy.rstar/pyrat.atm.smaxis)**2 * spec.starflux
     # Eqs. (B6) of Heng et al. (2014):
     for i in range(nlayers-1):
         spec.flux_down[i+1] = (

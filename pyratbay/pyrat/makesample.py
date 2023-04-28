@@ -211,7 +211,7 @@ def make_atmprofiles(pyrat):
     #elif atm.pbottom is None:
     #    atm.pbottom = np.amax(atm_in.press)
 
-    if ibreak != 0 and np.isinf(pyrat.phy.rhill):
+    if ibreak != 0 and np.isinf(pyrat.atm.rhill):
         log.error(
             'Unbounded atmosphere.  Hydrostatic-equilibrium radius solution '
            f'diverges at pressure {atm_in.press[ibreak]/pc.bar:.3e} bar.  '

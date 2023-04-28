@@ -8220,3 +8220,8 @@ Moved opacity in-bounds temperature checks out of update_atm().
 
 Moved none_div() into tools module.
 
+*****
+
+Moved smaxis, tint, rhill, and beta_irr from Physics() into
+Atmosphere().
+

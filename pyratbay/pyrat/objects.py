@@ -650,15 +650,6 @@ class Retrieval():
       return fw.text
 
 
-def none_div(a, b):
-    """
-    Non-breaking division when values are None.
-    """
-    if a is None:
-        return None
-    return a/b
-
-
 class Physics(object):
     """Physical properties about the planet and star"""
     def __init__(self, inputs):
@@ -667,11 +658,6 @@ class Physics(object):
         self.rstar = inputs.rstar
         self.mstar = inputs.mstar
         self.log_gstar = inputs.log_gstar
-
-        self.tint = inputs.tint
-        self.beta_irr = inputs.beta_irr
-        self.rhill = np.inf
-        self.smaxis = inputs.smaxis
 
         # Stellar spectrum filename
         self.starspec = inputs.starspec
@@ -686,8 +672,8 @@ class Physics(object):
         fw = pt.Formatted_Write()
         fw.write('Physical properties information:')
 
-        rstar = none_div(self.rstar, pc.rsun)
-        mstar = none_div(self.mstar, pc.msun)
+        rstar = pt.none_div(self.rstar, pc.rsun)
+        mstar = pt.none_div(self.mstar, pc.msun)
         fw.write(
             '\nStellar effective temperature (tstar, K): {:.1f}',
             self.tstar,
@@ -699,16 +685,7 @@ class Physics(object):
             self.log_gstar,
         )
 
-        smaxis = none_div(self.smaxis, pc.au)
-        rhill = none_div(self.rhill, pc.rjup)
-        fw.write(
-            '\nPlanetary internal temperature (tint, K):  {:.1f}',
-            self.tint,
-        )
-        fw.write('Orbital semi-major axis (smaxis, AU): {:.4f}', smaxis)
         #fw.write('Planet-to-star radius ratio (rprs):   {:.5f}', rprs)
-        fw.write('Planetary Hill radius (rhill, Rjup):  {:.3f}', rhill)
-
         if self.starspec is not None:
             fw.write(f"\nInput stellar spectrum (starspec): '{self.starspec}'")
         elif self.kurucz is not None:

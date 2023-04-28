@@ -43,7 +43,7 @@ def check_spectrum(pyrat):
         )
 
     # Compute the Hill radius for the planet:
-    phy.rhill = pa.hill_radius(phy.smaxis, atm.mplanet, phy.mstar)
+    atm.rhill = pa.hill_radius(atm.smaxis, atm.mplanet, phy.mstar)
 
     # Check that the radius profile exists or can be computed:
     if atm.radius is None and pyrat.runmode != 'opacity':
