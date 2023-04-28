@@ -19,6 +19,7 @@ __all__ = [
     'get_exomol_mol',
     'get_exomol_composition',
     'cia_hitran', 'cia_borysow',
+    'none_div',
     'radius_to_depth',
     'depth_to_radius',
 ]
@@ -908,6 +909,15 @@ def cia_borysow(ciafile, species1, species2):
         f'# This file contains the reformated {pair} CIA data from:\n'
         f'# http://www.astro.ku.dk/~aborysow/programs/{file_name}\n\n')
     io.write_cs(csfile, cs, species, temp, wn, header)
+
+
+def none_div(a, b):
+    """
+    Non-breaking division when values are None.
+    """
+    if a is None:
+        return None
+    return a/b
 
 
 def radius_to_depth(rprs, rprs_err):

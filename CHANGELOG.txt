@@ -8216,3 +8216,7 @@ in read_observations()
 
 Moved opacity in-bounds temperature checks out of update_atm().
 
+*****
+
+Moved none_div() into tools module.
+
