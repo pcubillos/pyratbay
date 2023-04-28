@@ -27,11 +27,10 @@ from .pyrat import Pyrat
 from .pyrat.atmosphere import *
 from .driver import run
 
-from .pyrat import read_atm as _ra
 from .pyrat import clouds as _cl
 from .pyrat import optical_depth as _od
 from .pyrat import spectrum as _sp
-__all__ += ['_ra', '_cl', '_od', '_sp']
+__all__ += ['_cl', '_od', '_sp']
 
 from .version import __version__
 

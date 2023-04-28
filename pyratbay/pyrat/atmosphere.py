@@ -70,6 +70,11 @@ class Atmosphere():
         self.runits = inputs.runits
         self.punits = inputs.punits
 
+        self.tint = inputs.tint
+        self.beta_irr = inputs.beta_irr
+        self.rhill = np.inf
+        self.smaxis = inputs.smaxis
+
         self.refpressure = inputs.refpressure
         self.tmodelname = inputs.tmodelname
         self.tpars = inputs.tpars
@@ -361,6 +366,126 @@ class Atmosphere():
             log.msg(f"Output atmospheric file: '{self.atmfile}'.")
 
 
+    def calc_profiles(
+            self, temp=None, vmr=None, radius=None, mstar=None, log=None,
+            # Deprecated parameters:
+            abund=None,
+        ):
+        """
+        Update temperature, abundances, and radius profiles
+
+        Parameters
+        ----------
+        temp: 1D float ndarray
+            Layer's temperature profile (Kelvin) sorted from top to bottom.
+        vmr: 2D float ndarray
+            Species mole mixing ratio profiles [nlayers, nmol].
+        radius: 1D float ndarray
+            Layer's altitude profile (in cm), same order as temp.
+        """
+        # Temperature profile:
+        if temp is not None:
+            # Need to null tpars since it does not represent temp anymore
+            self.tpars = None
+        elif self.tpars is not None:
+            temp = self.temp_model(self.tpars)
+        else:
+            temp = self.temp
+
+        # Check that the dimensions match:
+        if np.size(temp) != self.nlayers:
+            log.error(
+                f"The temperature array size ({np.size(temp)}) doesn't match "
+                f"the Pyrat's temperature size ({np.size(self.temp)})"
+            )
+        self.temp = temp
+
+
+        # Volume mixing ratios:
+        if vmr is not None:
+            self.molpars = []
+
+        elif self.chemistry == 'tea':
+            net = self.chem_model
+            metallicity = None
+            e_abundances = {}
+            e_ratio = {}
+            #e_scale = {}
+            if np.any(self._equil_var):
+                equil_vars = np.array(self.mol_pnames)[self._equil_var]
+                equil_pars = np.array(self.molpars)[self._equil_var]
+            else:
+                equil_vars, equil_pars = [], []
+            for var,val in zip(equil_vars, equil_pars):
+                if var == 'metal':
+                    metallicity = val
+                elif var.startswith('[') and var.endswith('/H]'):
+                    element = var[1:-3]
+                    idx = list(net._base_composition).index(element)
+                    solar_abundance = net._base_dex_abundances[idx]
+                    e_abundances[var] = solar_abundance + val
+                elif '/' in var:
+                    e_ratio[var.replace('/','_')] = val
+            vmr = net.thermochemical_equilibrium(
+                self.temp,
+                metallicity=metallicity,
+                e_abundances=e_abundances,
+                e_ratio=e_ratio,
+                #e_scale=e_scale,
+            )
+        elif np.any(~self._equil_var) and self.molpars is not None:
+            vmr_vars = np.array(self.mol_pnames)[~self._equil_var]
+            vmr_pars = np.array(self.molpars)[~self._equil_var]
+            vmr = pa.qscale(
+                np.copy(self.base_vmr),
+                self.species,
+                vmr_vars, vmr_pars, self.bulk,
+                iscale=self.ifree, ibulk=self.ibulk,
+                bratio=self.bulkratio, invsrat=self.invsrat,
+            )
+        else:
+            vmr = np.copy(self.base_vmr)
+
+        if np.shape(vmr) != np.shape(self.vmr):
+            log.error(
+                f"The shape of the abundances array {np.shape(vmr)} doesn't "
+                 "match the shape of the Pyrat's abundance size "
+                f"{np.shape(self.vmr)}"
+            )
+        self.vmr = vmr
+
+        # Mean molecular mass:
+        self.mm = np.sum(self.vmr * self.mol_mass, axis=1)
+
+
+        # Radius profile:
+        if radius is not None:
+            self.radius = radius
+        elif self.rmodelname is not None:
+            self.radius = self.rad_model(
+                self.press, self.temp, self.mm,
+                self.mplanet, self.gplanet,
+                self.refpressure, self.rplanet,
+            )
+        else:
+            pass
+
+        # Number density (molecules cm-3):
+        self.d = pa.ideal_gas_density(self.vmr, self.press, self.temp)
+
+        # Check radii lie within Hill radius:
+        self.rhill = pa.hill_radius(self.smaxis, self.mplanet, mstar)
+        self.rtop = pt.ifirst(self.radius<self.rhill, default_ret=0)
+        if self.rtop > 0:
+            rhill = self.rhill / pt.u(self.runits)
+            log.warning(
+                "The atmospheric pressure array extends beyond the Hill radius "
+                f"({rhill:.5f} {self.runits}) at pressure "
+                f"{self.press[self.rtop]/pc.bar:.3e} bar (layer {self.rtop}).  "
+                "Extinction beyond this layer will be neglected."
+            )
+
+
     def rad_model(self, pressure, temperature, mu, mplanet, gplanet, p0, r0):
         """
         Calculate radius profile in hydrostatic equilibrium.
@@ -511,9 +636,17 @@ class Atmosphere():
         rplanet = None if self.rplanet is None else self.rplanet/pc.rjup
         mplanet = None if self.mplanet is None else self.mplanet/pc.mjup
         gplanet = self.gplanet
+        smaxis = pt.none_div(self.smaxis, pc.au)
+        rhill = pt.none_div(self.rhill, pc.rjup)
         fw.write('\nPlanetary radius (rplanet, Rjup): {:.3f}', rplanet)
         fw.write('Planetary mass (mplanet, Mjup): {:.3f}', mplanet)
         fw.write('Planetary surface gravity (gplanet, cm s-2): {:.1f}', gplanet)
+        fw.write(
+            'Planetary internal temperature (tint, K):  {:.1f}',
+            self.tint,
+        )
+        fw.write('Planetary Hill radius (rhill, Rjup):  {:.3f}', rhill)
+        fw.write('Orbital semi-major axis (smaxis, AU): {:.4f}', smaxis)
 
         fw.write('\nRadius display units (runits): {}', self.runits)
         fw.write('Radius internal units: cm', self.runits)

@@ -69,6 +69,10 @@ def optical_depth(pyrat):
             good_status = False
             return good_status
 
+        # Update partition functions:
+        for i in range(pyrat.iso.niso):
+            pyrat.iso.z[i] = pyrat.iso.zinterp[i](pyrat.atm.temp)
+
         sm_ext = mp.Array(
             ctypes.c_double, np.zeros(nlayers*nwave, np.double))
         ex.ec = np.ctypeslib.as_array(

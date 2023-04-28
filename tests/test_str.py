@@ -235,6 +235,9 @@ Molecular data taken from (molfile):
 Planetary radius (rplanet, Rjup): 1.000
 Planetary mass (mplanet, Mjup): 0.600
 Planetary surface gravity (gplanet, cm s-2): 1487.3
+Planetary internal temperature (tint, K):  100.0
+Planetary Hill radius (rhill, Rjup):  inf
+Orbital semi-major axis (smaxis, AU): 0.0450
 
 Radius display units (runits): rjup
 Radius internal units: cm
@@ -639,9 +642,6 @@ Stellar radius (rstar, Rsun): 1.270
 Stellar mass (mstar, Msun):   None
 Stellar surface gravity (log_gstar, cm s-2): 4.36
 
-Planetary internal temperature (tint, K):  100.0
-Orbital semi-major axis (smaxis, AU): 0.0450
-Planetary Hill radius (rhill, Rjup):  inf
 Input stellar spectrum is a blackbody at Teff = 5800.0 K.
 Stellar spectrum wavenumber (starwn, cm-1):
     [  5882.353   5883.353   5884.353 ...   9088.353   9089.353   9090.353]

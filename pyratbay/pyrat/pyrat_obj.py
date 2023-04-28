@@ -20,7 +20,6 @@ from .crosssec import CIA
 from .observation import Observation
 from .  import extinction as ex
 from .  import clouds as cl
-from .  import read_atm as ra
 from .  import optical_depth as od
 from .  import spectrum as sp
 from .  import objects as ob
@@ -163,9 +162,10 @@ class Pyrat(object):
       timer = pt.Timer()
 
       # Re-calculate atmospheric properties if required:
-      good_status = ra.update_atm(self, temp, vmr, radius)
+      self.atm.calc_profiles(temp, vmr, radius, self.phy.mstar, self.log)
+
       # Interpolate CIA absorption:
-      good_status &= self.cs.calc_extinction_coefficient(
+      good_status = self.cs.calc_extinction_coefficient(
           self.atm.temp, self.atm.d, self.log,
       )
       self.timestamps['interp cs'] = timer.clock()

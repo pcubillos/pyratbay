@@ -8225,3 +8225,8 @@ Moved none_div() into tools module.
 Moved smaxis, tint, rhill, and beta_irr from Physics() into
 Atmosphere().
 
+*****
+
+Removed read_atm.py file, moved update_atm() funtion into a
+method of Atmosphere(), renamed as calc_profiles().
+
