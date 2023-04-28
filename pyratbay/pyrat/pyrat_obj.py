@@ -550,38 +550,36 @@ class Pyrat(object):
       ax: AxesSubplot instance
           The matplotlib Axes of the figure.
       """
-      pyrat_args = {
+      args = {
+          'wavelength': 1.0/(self.spec.wn*pc.um),
           'data': self.obs.data,
           'uncert': self.obs.uncert,
-          'bands': self.obs.filters,
-          'starflux': self.spec.starflux,
           'logxticks': self.inputs.logxticks,
           'yran': self.inputs.yran,
       }
 
-      wavelength = 1.0/(self.spec.wn*pc.um)
-      if self.obs.bandwn is not None:
-          pyrat_args['bandwl'] = 1.0/(self.obs.bandwn*pc.um)
-
-      if self.obs.bandflux is not None:
-          pyrat_args['bandflux'] = self.obs.bandflux
+      if self.obs.nfilters > 0:
+          args['bands_wl0'] = [band.wl0 for band in self.obs.filters]
+          args['bands_wl'] = [band.wl for band in self.obs.filters]
+          args['bands_response'] = [band.response for band in self.obs.filters]
+          args['bands_flux'] = self.obs.bandflux
 
       if self.ret.spec_low2 is not None and spec != 'model':
-          pyrat_args['bounds'] = [
+          args['bounds'] = [
               self.ret.spec_low2,  self.ret.spec_low1,
               self.ret.spec_high1, self.ret.spec_high2]
 
       if spec == 'model':
-          pyrat_args['label'] = 'model'
-          spectrum = self.spec.spectrum
+          args['label'] = 'model'
+          spectrum = np.copy(self.spec.spectrum)
       elif spec == 'best':
-          pyrat_args['label'] = 'best-fit model'
-          pyrat_args['bandflux'] = self.ret.bestbandflux
-          spectrum = self.ret.spec_best
+          args['label'] = 'best-fit model'
+          spectrum = np.copy(self.ret.spec_best)
+          args['bands_flux'] = self.ret.bestbandflux
       elif spec == 'median':
-          pyrat_args['label'] = 'median model'
-          pyrat_args['bandflux'] = self.band_integrate(spectrum)
-          spectrum = self.ret.spec_median
+          args['label'] = 'median model'
+          spectrum = np.copy(self.ret.spec_median)
+          args['bands_flux'] = self.band_integrate(spectrum)
       else:
           print(
               "Invalid 'spec'.  Select from 'model' (default), 'best', "
@@ -589,17 +587,30 @@ class Pyrat(object):
           )
           return
 
-      if self.atm.rplanet is not None and self.phy.rstar is not None:
-          pyrat_args['rprs'] = self.atm.rplanet/self.phy.rstar
-
       # kwargs can overwite any of the previous value:
-      pyrat_args.update(kwargs)
+      args.update(kwargs)
+
+      is_eclipse = (
+          self.od.rt_path in pc.emission_rt and
+          self.spec.starflux is not None and
+          self.atm.rplanet is not None and
+          self.phy.rstar is not None
+      )
 
       if self.od.rt_path in pc.transmission_rt:
-          rt_path = 'transit'
-      elif self.od.rt_path in pc.emission_rt:
-          rt_path = 'eclipse'
-      ax = pp.spectrum(spectrum, wavelength, rt_path, **pyrat_args)
+          args['rt_path'] = 'transit'
+      elif is_eclipse:
+          args['rt_path'] = 'eclipse'
+          rprs = self.atm.rplanet/self.phy.rstar
+          spectrum = spectrum/self.spec.starflux * rprs**2.0
+          if 'bounds' in args:
+              args['bounds'] = [
+                  bound/self.spec.starflux * rprs**2.0
+                  for bound in args['bounds']
+              ]
+      else:
+          args['rt_path'] = 'emission'
+      ax = pp.spectrum(spectrum, **args)
       return ax
 
 

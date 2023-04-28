@@ -1,5 +1,5 @@
-# Copyright (c) 2021 Patricio Cubillos
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+# Copyright (c) 2021-2023 Patricio Cubillos
+# Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import os
 
@@ -29,7 +29,7 @@ Q = pa.abundance(pressure, temperature, species)
 
 @pytest.mark.parametrize("ndim", ['1d', '2d'])
 def test_temperature_minimal(ndim):
-    tmodel = pa.tmodels.TCEA(pressure)
+    tmodel = pa.tmodels.Guillot(pressure)
     profile = tmodel([-4.0, -1.0, 0.0, 0.0, 1000.0, 0.0])
     if ndim == '2d':
         profile = [profile]
@@ -37,19 +37,19 @@ def test_temperature_minimal(ndim):
 
 
 def test_temperature_labels():
-    tmodel = pa.tmodels.TCEA(pressure)
+    tmodel = pa.tmodels.Guillot(pressure)
     profile = tmodel([-4.0, -1.0, 0.0, 0.0, 1000.0, 0.0])
     ax = pp.temperature(pressure, profiles=profile, labels=['model'])
 
 
 def test_temperature_custom_colors():
-    tmodel = pa.tmodels.TCEA(pressure)
+    tmodel = pa.tmodels.Guillot(pressure)
     profile = tmodel([-4.0, -1.0, 0.0, 0.0, 1000.0, 0.0])
     ax = pp.temperature(pressure, profiles=profile, colors=['r'])
 
 
 def test_temperature_bounds_1sigma():
-    tmodel = pa.tmodels.TCEA(pressure)
+    tmodel = pa.tmodels.Guillot(pressure)
     profile = tmodel([-4.0, -1.0, 0.0, 0.0, 1000.0, 0.0])
     bounds = [
         tmodel([-4.0, -0.9, 0.0, 0.0, 1000.0, 0.0]),
@@ -59,7 +59,7 @@ def test_temperature_bounds_1sigma():
 
 
 def test_temperature_bounds_2sigma():
-    tmodel = pa.tmodels.TCEA(pressure)
+    tmodel = pa.tmodels.Guillot(pressure)
     profile = tmodel([-4.0, -1.0, 0.0, 0.0, 1000.0, 0.0])
     bounds = [
         tmodel([-4.0, -0.9, 0.0, 0.0, 1000.0, 0.0]),
@@ -71,7 +71,7 @@ def test_temperature_bounds_2sigma():
 
 
 def test_temperature_ax():
-    tmodel = pa.tmodels.TCEA(pressure)
+    tmodel = pa.tmodels.Guillot(pressure)
     profile = tmodel([-4.0, -1.0, 0.0, 0.0, 1000.0, 0.0])
     plt.figure(0)
     plt.clf()
@@ -100,9 +100,11 @@ def test_abundance_custom_colors():
 
 def test_abundance_custom_dashes_and_colors():
     colors = 'b r g y m k 0.5'.split()
-    ax = pp.abundance(Q, pressure, species, colors=colors,
+    ax = pp.abundance(
+        Q, pressure, species, colors=colors,
         dashes=cycler(dashes=[(8,1), (3,1)]),
-        highlight='H2O CH4 CO CO2 NH3 HCN H2 H He'.split())
+        highlight='H2O CH4 CO CO2 NH3 HCN H2 H He'.split(),
+    )
 
 
 def test_abundance_custom_colors_a():

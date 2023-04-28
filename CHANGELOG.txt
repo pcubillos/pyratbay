@@ -8197,4 +8197,9 @@ Removed redundant obs.bandidx, obs.bandtrans, obs.starflux variables
 (they already exist in obs.filters objects).
 Updated tests.
 
+*****
+
+Refactored plots.spectrum() and pyrat.plot_spectrum()
+for a simpler interface.
+Added (emission) tests.
 

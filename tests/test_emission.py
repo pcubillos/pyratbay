@@ -345,12 +345,30 @@ def test_emission_fit(tmp_path):
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['fit3'], rtol=rtol)
 
 
-@pytest.mark.skip(reason="")
-def test_emission_fit_filters():
-    pyrat = pb.run(ROOT+'tests/configs/spectrum_transmission_filters_test.cfg')
-    model4 = pyrat.eval(pyrat.ret.params, retmodel=True)
-    np.testing.assert_allclose(model4[0], expected['fit4'], rtol=rtol)
-    np.testing.assert_allclose(model4[1], expected['bandflux4'], rtol=rtol)
+def test_emission_band_integrate_no_data():
+    pyrat = pb.run(ROOT+'tests/configs/spectrum_emission_filters_test.cfg')
+    ev_spectrum, ev_bandflux = pyrat.eval(pyrat.ret.params, retmodel=True)
+    spectrum = np.copy(pyrat.spec.spectrum)
+    bandfux = pyrat.band_integrate()
+
+    expected_bandflux = [
+        2.0621078e-04, 2.2950131e-04, 2.4087257e-04, 2.8043267e-04,
+        3.0165531e-04, 3.1973589e-04, 3.3395063e-04, 3.3559967e-04,
+        3.2103227e-04, 2.4189737e-04, 2.6202111e-04, 2.6207215e-04,
+        2.6118045e-04, 3.1019368e-04, 3.3239329e-04, 3.9211419e-04,
+        4.5874042e-04, 4.9164080e-04, 5.3169888e-04, 5.5380121e-04,
+        5.7081022e-04,
+    ]
+    np.testing.assert_allclose(pyrat.spec.spectrum, spectrum)
+    np.testing.assert_allclose(bandfux, expected_bandflux)
+    np.testing.assert_allclose(ev_bandflux, expected_bandflux)
+
+
+def test_emission_plot_spectrum_band_integrate():
+    pyrat = pb.run(ROOT+'tests/configs/spectrum_emission_filters_test.cfg')
+    ev_spectrum, ev_bandflux = pyrat.eval(pyrat.ret.params, retmodel=True)
+    filename = f'{pc.ROOT}tests/outputs/emission_spectrum_filters.png'
+    ax = pyrat.plot_spectrum(filename=filename)
 
 
 @pytest.mark.skip(reason="")

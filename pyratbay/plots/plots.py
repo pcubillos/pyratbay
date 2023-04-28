@@ -87,10 +87,9 @@ def alphatize(colors, alpha, bg='w'):
 
 def spectrum(
     spectrum, wavelength, rt_path,
-    data=None, uncert=None, bandwl=None, bandflux=None,
-    bandtrans=None, bandidx=None,
-    starflux=None, rprs=None, label='model', bounds=None,
-    logxticks=None,
+    data=None, uncert=None,
+    bands_wl0=None, bands_flux=None, bands_response=None, bands_wl=None,
+    label='model', bounds=None, logxticks=None,
     gaussbin=2.0, yran=None, filename=None, fignum=501, axis=None,
     ms=5.0, lw=1.25, fs=14,
     units=None,
@@ -108,21 +107,17 @@ def spectrum(
     rt_path: String
         Observing geometry: transit, eclipse, or emission.
     data: 1D float ndarray
-        Observing data points at each bandwl.
+        Observing data points at each bands_wl0.
     uncert: 1D float ndarray
         Uncertainties of the data points.
-    bandwl: 1D float ndarray
+    bands_wl0: 1D float ndarray
         The mean wavelength for each band/data point.
-    bandflux: 1D float ndarray
+    bands_flux: 1D float ndarray
         Band-integrated model spectrum at each bandwl.
-    bandtrans: List of 1D float ndarrays
-        Transmission curve for each band.
-    bandidx: List of 1D float ndarrays.
-        The indices in wavelength for each bandtrans.
-    starflux: 1D float ndarray
-        Stellar spectrum evaluated at wavelength.
-    rprs: Float
-        Planet-to-star radius ratio.
+    bands_response: Iterable of 1D float ndarrays
+        Transmission response curve for each band.
+    bands_wl: Iterable of 1D float ndarrays.
+        The wavelength arrasy for each bands_response curve.
     label: String
         Label for spectrum curve.
     bounds: Tuple
@@ -158,7 +153,7 @@ def spectrum(
     """
     # Plotting setup:
     if units is None:
-        if rt_path == 'emission':
+        if rt_path == 'eclipse':
             units = 'ppm'
         elif rt_path == 'transit':
             units = 'percent'
@@ -190,10 +185,6 @@ def spectrum(
     if rt_path == 'emission':
         plt.ylabel(r'$F_{\rm p}$ (erg s$^{-1}$ cm$^{-2}$ cm)', fontsize=fs)
     if rt_path == 'eclipse':
-        #if starflux is not None and rprs is not None:
-        spectrum = spectrum/starflux * rprs**2.0
-        if bounds is not None:
-            bounds = [bound/starflux * rprs**2.0 for bound in bounds]
         plt.ylabel(fr'$F_{{\rm p}}/F_{{\rm s}}$ {str_units}', fontsize=fs)
     elif rt_path == 'transit':
         plt.ylabel(fr'$(R_{{\rm p}}/R_{{\rm s}})^2$ {str_units}', fontsize=fs)
@@ -213,15 +204,15 @@ def spectrum(
     # Plot model:
     plt.plot(wavelength, gmodel*flux_scale, lw=lw, **spec_kw)
     # Plot band-integrated model:
-    if bandflux is not None and bandwl is not None:
+    if bands_flux is not None and bands_wl0 is not None:
         plt.plot(
-            bandwl, bandflux*flux_scale, 'o', ms=ms, color='tomato',
-            mec='maroon', mew=lw,
+            bands_wl0, bands_flux*flux_scale,
+            marker='o', ms=ms, color='tomato', mec='maroon', mew=lw,
         )
     # Plot data:
-    if data is not None and uncert is not None and bandwl is not None:
+    if data is not None and uncert is not None and bands_wl0 is not None:
         plt.errorbar(
-            bandwl, data*flux_scale, uncert*flux_scale,
+            bands_wl0, data*flux_scale, uncert*flux_scale,
             fmt='o', label='data',
             mfc='0.45', mec='black', ecolor='0.2',
             ms=ms, elinewidth=lw, capthick=lw, zorder=3,
@@ -241,15 +232,12 @@ def spectrum(
             return (x-xmin) / (xmax-xmin)
 
     # Transmission filters:
-    if bandtrans is not None and bandidx is not None:
+    if bands_response is not None and bands_wl is not None:
         band_height = 0.05*(yran[1] - yran[0])
-        for response, bidx, wl0 in zip(bandtrans, bandidx, bandwl):
+        for response, wl, wl0 in zip(bands_response, bands_wl, bands_wl0):
             col = plt.cm.viridis_r(color(wl0, is_log))
             btrans = band_height * response/np.amax(response)
-            plt.plot(
-                wavelength[bidx], yran[0]+btrans,
-                color=col, lw=1.0, zorder=-10,
-            )
+            plt.plot(wl, yran[0]+btrans, color=col, lw=1.0, zorder=-10)
         ax.set_ylim(yran)
 
     if is_log:
