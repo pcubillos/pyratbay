@@ -336,13 +336,24 @@ def test_transmission_scale_model(tmp_path):
 
 def test_transmission_fit(tmp_path):
     # Without evaulating params:
+    retrieval_params = """
+        log_kappa'  -4.67
+        log_gamma1  -0.8
+        log_gamma2  -0.8
+        alpha        0.5
+        T_irr        1486.0
+        T_int        100.0
+        log_H2O      -4.0
+        log_k_ray     0.0
+        alpha_ray    -4.0
+        log_p_cl      2.0
+    """
     reset = {
         'tmodel': 'guillot',
         'cpars': '2.0',
         'molvars': 'log_H2O',
         'bulk': 'H2 He',
-        'retflag': 'temp mol ray cloud',
-        'params': '-4.67 -0.8 -0.8 0.5 1486.0 100.0 -4.0 0.0 -4.0 2.0',
+        'retrieval_params': retrieval_params,
     }
     cfg = make_config(
         tmp_path,

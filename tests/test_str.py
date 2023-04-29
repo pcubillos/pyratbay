@@ -641,7 +641,6 @@ Stellar effective temperature (tstar, K): 5800.0
 Stellar radius (rstar, Rsun): 1.270
 Stellar mass (mstar, Msun):   None
 Stellar surface gravity (log_gstar, cm s-2): 4.36
-
 Input stellar spectrum is a blackbody at Teff = 5800.0 K.
 Stellar spectrum wavenumber (starwn, cm-1):
     [  5882.353   5883.353   5884.353 ...   9088.353   9089.353   9090.353]
@@ -962,6 +961,16 @@ Retrieval information:
   T_int             1.000e+02   0.000e+00   5.000e+02   0.000e+00
   R_planet          7.150e+04   3.000e+04   1.500e+05   1.000e+02
   log_H2O          -4.000e+00  -9.000e+00  -1.000e+00   5.000e-01
+
+Parameter name     Prior
+  log_kappa'       Uniform between     [-9.000e+00,  5.000e+00]
+  log_gamma1       Uniform between     [-3.000e+00,  3.000e+00]
+  log_gamma2       Fixed at   0.000e+00
+  alpha            Fixed at   0.000e+00
+  T_irr            Uniform between     [ 0.000e+00,  7.000e+03]
+  T_int            Fixed at   1.000e+02
+  R_planet         Uniform between     [ 3.000e+04,  1.500e+05]
+  log_H2O          Uniform between     [-9.000e+00, -1.000e+00]
 
 Retrieval algorithm (sampler): snooker
 Number of retrieval samples (nsamples): 300

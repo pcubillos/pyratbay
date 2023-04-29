@@ -868,8 +868,7 @@ def test_spectrum_params_misfit(tmp_path):
     # Without evaulating params:
     reset = {
         'tmodel':'guillot',
-        'retflag':'temp',
-        'params':'-4.67 -0.8',
+        'retrieval_params': 'T_iso 1500.0 ',
     }
     cfg = make_config(
         tmp_path,
@@ -877,8 +876,10 @@ def test_spectrum_params_misfit(tmp_path):
         reset=reset,
     )
     error = re.escape(
-        "The number of input fitting parameters (params, 2) does not "
-        "match the number of required parameters (6)"
+        """Invalid retrieval parameter 'T_iso'. Possible values are:\n"""
+        """['log_p_ref', 'R_planet', 'M_planet', 'f_patchy', 'T_eff',"""
+        """ "log_kappa'", 'log_gamma1', 'log_gamma2', 'alpha', 'T_irr', """
+        """'T_int', 'log_k_ray', 'alpha_ray', 'log_p_cl']"""
     )
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
@@ -888,8 +889,7 @@ def test_eval_params_misfit(tmp_path, capfd):
     # Without evaulating params:
     reset = {
         'tmodel': 'isothermal',
-        'retflag': 'temp',
-        'tpars': '1500.0',
+        'retrieval_params': 'T_iso 1500.0 ',
     }
     cfg = make_config(
         tmp_path,
@@ -1033,6 +1033,7 @@ def test_kurucz_missing_pars(tmp_path, param):
         pyrat = pb.run(cfg)
 
 
+@pytest.mark.filterwarnings("ignore: The 'retflag' argument")
 @pytest.mark.parametrize('param',
     ['tmodel', 'clouds', 'rayleigh', 'molvars', 'bulk'])
 def test_spectrum_missing_retflag_models(tmp_path, param, undefined_mcmc):
@@ -1244,7 +1245,6 @@ def test_opacity_missing(tmp_path, param, undefined_opacity):
 @pytest.mark.parametrize(
     'param',
     [
-        'params',
         'data',
         'uncert',
         'filters',
@@ -1259,6 +1259,7 @@ def test_mcmc_missing(tmp_path, param, undefined_mcmc):
     reset = {
         'rt_path': 'emission',
         'kurucz': f'{ROOT}tests/inputs/mock_fp00k0odfnew.pck',
+        'log_gstar': '4.5',
     }
     cfg = make_config(
         tmp_path,
@@ -1275,7 +1276,7 @@ def test_mcmc_missing_starspec(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/mcmc_transmission_test.cfg',
-        reset={'rt_path':'emission', 'retflag':'mol'},
+        reset={'rt_path':'emission'},
         remove=['tstar', 'tmodel'],
     )
     error = re.escape(

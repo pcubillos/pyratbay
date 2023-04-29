@@ -8235,3 +8235,7 @@ method of Atmosphere(), renamed as calc_profiles().
 
 Fixed bug in band_cf() function.
 
+*****
+
+Updated test mcmc config files replacing out retflags.
+
