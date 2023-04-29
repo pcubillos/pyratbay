@@ -455,7 +455,7 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         parse_array(args, 'molpars')
         parse_array(args, 'bulk')
         # Retrieval options:
-        parse_str(args,   'mcmcfile')
+        parse_str(args, 'mcmcfile')
         parse_array(args, 'retflag')   # Deprecated
         parse_float(args, 'qcap')
         parse_str(args, 'retrieval_params')

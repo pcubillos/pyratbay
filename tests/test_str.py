@@ -959,7 +959,7 @@ Retrieval information:
   alpha             0.000e+00   0.000e+00   1.000e+00   0.000e+00
   T_irr             1.486e+03   0.000e+00   7.000e+03   5.000e+01
   T_int             1.000e+02   0.000e+00   5.000e+02   0.000e+00
-  R_planet          7.150e+04   3.000e+04   1.500e+05   1.000e+02
+  R_planet          1.020e+00   5.000e-01   4.500e+00   3.000e-02
   log_H2O          -4.000e+00  -9.000e+00  -1.000e+00   5.000e-01
 
 Parameter name     Prior
@@ -969,7 +969,7 @@ Parameter name     Prior
   alpha            Fixed at   0.000e+00
   T_irr            Uniform between     [ 0.000e+00,  7.000e+03]
   T_int            Fixed at   1.000e+02
-  R_planet         Uniform between     [ 3.000e+04,  1.500e+05]
+  R_planet         Uniform between     [ 5.000e-01,  4.500e+00]
   log_H2O          Uniform between     [-9.000e+00, -1.000e+00]
 
 Retrieval algorithm (sampler): snooker

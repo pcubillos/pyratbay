@@ -100,8 +100,8 @@ def run(cfile, run_step='run', no_logfile=False):
     pyrat.log = mc3.utils.Log(verb=-1, width=80)
     pyrat.spec.specfile = None  # Avoid writing spectrum file during MCMC
     retmodel = False  # Return only the band-integrated spectrum
-    # Basename of the output files (no path, no extension):
-    outfile = os.path.splitext(os.path.basename(ret.mcmcfile))[0]
+    # Basename of the output files (no extension):
+    outfile = os.path.splitext(ret.mcmcfile)[0]
 
     # Run MCMC:
     mc3_out = mc3.sample(
@@ -173,14 +173,16 @@ def run(cfile, run_step='run', no_logfile=False):
     path = 'transit' if is_transmission else 'emission'
     pp.contribution(
         band_cf, 1.0/(pyrat.obs.bandwn*pc.um), path, atm.press, atm.radius,
-        atm.rtop, filename=f"{outfile}_bestfit_cf.png")
+        atm.rtop, filename=f"{outfile}_bestfit_cf.png"
+    )
 
     pyrat.log = log  # Un-mute
     log.msg(
-       "\nOutput MCMC posterior results, log, bestfit atmosphere, "
-       "and spectrum:"
-       f"\n'{outfile}.npz'"
-       f"\n'{os.path.basename(inputs.logfile)}'"
-       f"\n'{bestatm}'"
-       f"\n'{pyrat.spec.specfile}'\n\n")
+        "\nOutput MCMC posterior results, log, bestfit atmosphere, "
+        "and spectrum:"
+        f"\n  {outfile}.npz"
+        f"\n  {inputs.logfile}"
+        f"\n  {bestatm}"
+        f"\n  {pyrat.spec.specfile}\n\n"
+    )
     return pyrat
