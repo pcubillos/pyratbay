@@ -8243,3 +8243,7 @@ Updated test mcmc config files replacing out retflags.
 
 Fixed bug in driver, output files were not being save in correct
 folder when config had an output with path.
+
+*****
+
+Added quick test for retrieval mcmc run.
