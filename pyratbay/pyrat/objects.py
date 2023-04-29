@@ -681,10 +681,9 @@ class Physics(object):
         fw.write('Stellar radius (rstar, Rsun): {:.3f}', rstar)
         fw.write('Stellar mass (mstar, Msun):   {:.3f}', mstar)
         fw.write(
-            'Stellar surface gravity (log_gstar, cm s-2): {:.2f}\n',
+            'Stellar surface gravity (log_gstar, cm s-2): {:.2f}',
             self.log_gstar,
         )
-
         #fw.write('Planet-to-star radius ratio (rprs):   {:.5f}', rprs)
         if self.starspec is not None:
             fw.write(f"Input stellar spectrum (starspec): '{self.starspec}'")

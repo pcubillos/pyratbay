@@ -8230,3 +8230,8 @@ Atmosphere().
 Removed read_atm.py file, moved update_atm() funtion into a
 method of Atmosphere(), renamed as calc_profiles().
 
+
+*****  Sat Apr 29 20:24:30 CEST 2023  *****
+
+Fixed bug in band_cf() function.
+
