@@ -19,7 +19,7 @@ os.chdir(ROOT+'tests')
 
 # Expected spectra:
 keys = [
-    'lec', 'cia', 'alkali', 'deck', 'tli', 'all', 'etable',
+    'lec', 'cia', 'alkali', 'deck', 'tli', 'all', 'quadrature', 'etable',
     'resolution', 'two_stream', 'odd_even',
     'tmodel', 'vert', 'scale',
     #'fit1', 'fit2', 'fit3', 'fit4',
@@ -114,6 +114,18 @@ def test_emission_all(tmp_path):
     )
     pyrat = pb.run(cfg)
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['all'], rtol=rtol)
+
+
+def test_emission_quadrature(tmp_path):
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_emission_test.cfg',
+        reset={'quadrature': '5'},
+        remove=['clouds'],
+    )
+    pyrat = pb.run(cfg)
+    spectrum = pyrat.spec.spectrum
+    np.testing.assert_allclose(spectrum, expected['quadrature'], rtol=rtol)
 
 
 def test_emission_two_stream(tmp_path):

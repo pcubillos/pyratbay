@@ -8268,3 +8268,7 @@ Removed references to pyrat.spec in parser.
 Implemented H_Ion() interface between pyrat and Hydrogen_Ion() model.
 Updated tests.
 
+*****
+
+Added quadrature emission spectrum test.
+
