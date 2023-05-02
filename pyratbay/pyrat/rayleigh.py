@@ -62,7 +62,7 @@ class Rayleigh():
             j += model.npars
 
 
-    def absorption(self, densities):
+    def calc_extinction_coefficient(self, densities):
         """
         Evaluate the total Rayleigh absorption (cm-1) in the atmosphere.
 

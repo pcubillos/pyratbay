@@ -7,12 +7,12 @@ from .. import opacity as op
 from .. import tools as pt
 
 
-class CIA(object):
+class CIA():
     def __init__(self, cia_files, wn, atm_species, log):
         """
         Read collision induced absorption (CIA) files.
         """
-        self.files = None  # CS file names
+        self.files = None
         self.nfiles = 0
         self.models = []
         self.mol_indices = []

@@ -161,11 +161,10 @@ class Collision_Induced():
 
         Returns
         -------
-        cross_section: 1D or 2D float array
-            Cross section spectra (cm-1 /(molec cm-3)**N)
-            where N is the number of species.
-            If temperature is scalar, cross_section is 1D of length self.nwave.
-            Otherwise, cross_section is a 2D array of shape [nlayers,nwave]
+        extinction_coefficient: 1D or 2D float array
+            Extinction coefficient spectra (cm-1)
+            If temperature is scalar, output is a 1D array of length nwave.
+            Otherwise, outout is a 2D array of shape [nlayers,nwave]
         """
         # Dimentional checks:
         is_scalar = np.isscalar(temperature)

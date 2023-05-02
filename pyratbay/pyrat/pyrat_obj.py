@@ -168,7 +168,7 @@ class Pyrat(object):
 
       # Calculate cloud, Rayleigh, and H- absorption:
       cl.absorption(self)
-      self.rayleigh.absorption(self.atm.d)
+      self.rayleigh.calc_extinction_coefficient(self.atm.d)
       self.h_ion.calc_extinction_coefficient(self.atm.temp, self.atm.d)
       self.timestamps['cloud+ray'] = timer.clock()
 

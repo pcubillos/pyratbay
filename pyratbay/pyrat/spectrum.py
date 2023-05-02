@@ -2,7 +2,7 @@
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
-    'Spectrum'
+    'Spectrum',
     'spectrum',
     'modulation',
     'intensity',
