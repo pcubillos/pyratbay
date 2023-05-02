@@ -8247,3 +8247,15 @@ folder when config had an output with path.
 *****
 
 Added quick test for retrieval mcmc run.
+
+
+*****  Tue May 2 18:50:24 CEST 2023  *****
+
+Refactored Hydrogen_Ion() opacity model.
+Renamed from Hydrogen_Ion_Opacity().
+Made it independent of atmospheric species (densities must be passed
+as argument of calc_extinction_coefficient).
+Initialize with wavenumber array instead of wavelength.
+Standardized method names (just like other opacity models).
+Updated tests.
+

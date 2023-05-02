@@ -2,52 +2,40 @@
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
-    'Hydrogen_Ion_Opacity',
+    'Hydrogen_Ion',
 ]
 
 import numpy as np
 from .. import constants as pc
 
 
-class Hydrogen_Ion_Opacity():
+class Hydrogen_Ion():
     """Hydrogen ion opacity model based on John (1988)"""
-    def __init__(self, wl, species=None):
+    def __init__(self, wn):
         """
         Parameters
         ----------
-        wl: 1D float array
-            Wavelength array where to compute the opacities (in microns).
-        species: 1D string iterable
-            List of atmospheric species names.  If provided, this will
-            pre-load the indices of H, H-, and e-, which are needed
-            later to compute extinction coefficients.
+        wn: 1D float array
+            Wavenumber array where to sample the opacities (cm-1).
         """
         self.name = 'H- bf/ff'
-        self.wl = wl
-        self.ec = None
-        self.cross_section_bf = self.bound_free_cross_section()
+        self.wn = wn
+        self.nwave = len(self.wn)
+        self._alpha = pc.h * pc.c / pc.k
+        # Photo-detachment wn threshold in cm-1 (wl0 = 1.6419 um):
+        self._wn0_bf = 6090.5
+
+        self.sigma_bf = self.sigma_bound_free()
         self.free_free_setup()
 
-        # Pre-load indices for a known atmosphere:
-        self.has_opacity = False
-        if species is not None:
-            self.has_opacity = np.all(np.in1d(('H', 'H-', 'e-'), species))
-            self._h_ion_idx = np.where(np.array(species) == 'H-')[0]
-            self._h_idx = np.where(np.array(species) == 'H')[0]
-            self._e_idx = np.where(np.array(species) == 'e-')[0]
 
-    def bound_free_cross_section(self):
+    def sigma_bound_free(self):
         """
         Compute the bound-free cross section for H- in cm2 units.
         Follows Equation (4) of John 1988, AA, 193, 189.
 
         Examples
         --------
-        >>> import pyratbay.opacity.hydrogen_ion as h
-        >>> import numpy as np
-
-        >>> wl = np.logspace(-1.0, 2.0, 1000)
-        >>> h_ion = h.Hydrogen_Ion_Opacity(wl)
         >>> # H- cross sections in cm2 / H-_molec and cm5 / elec / H_molec
 	>>> temperature = 2000.0
         >>> sigma_bf = h_ion.cross_section_bf
@@ -98,22 +86,19 @@ class Hydrogen_Ion_Opacity():
         >>> plt.xlabel('Wavelength (um)')
         >>> plt.ylabel('Extinction coefficient (cm-1)')
         """
-        wl = self.wl
-        # Photo-detachment threshold (microns):
-        wl0_bf = 1.6419
         # Bound-free photo-detachment cross section constants:
         c_bf = [152.519, 49.534, -118.858, 92.536, -34.194, 4.982]
 
-        wl_mask = wl < wl0_bf
-        reduced_wl = np.sqrt(1.0/wl[wl_mask] - 1/wl0_bf)
+        wn_mask = self.wn > self._wn0_bf
+        reduced_wl = 1e-2*np.sqrt(self.wn[wn_mask] - self._wn0_bf)
         # Equation (5):
-        f_lambda = np.zeros(np.sum(wl_mask))
+        f_lambda = np.zeros(np.sum(wn_mask))
         for n in range(6):
             f_lambda += c_bf[n] * reduced_wl**n
 
         # bound-free cross section in cm2 per H- molecule, Equation (4):
-        sigma = np.zeros(len(wl))
-        sigma[wl_mask] = 1.0e-18 * wl[wl_mask]**3.0 * reduced_wl**3.0 * f_lambda
+        sigma = np.zeros(len(self.wn))
+        sigma[wn_mask] = 1.0e-6 * (reduced_wl/self.wn[wn_mask])**3.0 * f_lambda
 
         return sigma
 
@@ -121,8 +106,10 @@ class Hydrogen_Ion_Opacity():
     def free_free_setup(self):
         """
         Equation (6) of John 1988, AA, 193, 189.
+
+        Pre-compute this on initialization.
         """
-        wl = self.wl
+        wl = 1e4/self.wn
         a_short = [ 518.1021,   473.2636, -482.2089, 115.5291]
         b_short = [-734.8666,  1443.4137, -737.1616, 169.6374]
         c_short = [1021.1775, -1977.3395, 1096.8827, -245.649]
@@ -165,10 +152,10 @@ class Hydrogen_Ion_Opacity():
                 e_long[i]/wl_long**3.0 +
                 f_long[i]/wl_long**4.0
             )
-        self.ff_sw_factors = 1.0e-29 * np.expand_dims(ff_sw_factors.T,axis=2)
-        self.ff_lw_factors = 1.0e-29 * np.expand_dims(ff_lw_factors.T,axis=2)
-        self.sw_mask = sw_mask
-        self.lw_mask = lw_mask
+        self._ff_sw_factors = 1.0e-29 * np.expand_dims(ff_sw_factors.T,axis=2)
+        self._ff_lw_factors = 1.0e-29 * np.expand_dims(ff_lw_factors.T,axis=2)
+        self._sw_mask = sw_mask
+        self._lw_mask = lw_mask
 
 
     def free_free_cross_section(self, temperature):
@@ -177,92 +164,100 @@ class Hydrogen_Ion_Opacity():
 
         Equation (6) of John 1988, AA, 193, 189.
         """
-        if np.isscalar(temperature):
+        scalar_temp = np.isscalar(temperature)
+        if scalar_temp:
             temperature = np.array([temperature])
         # Do not go beyond valid ranges of polynomial domain:
         temperature = np.clip(temperature, 1000.0, 10080.0)
 
-        sigma_ff = np.zeros((len(self.wl),len(temperature)))
-        beta = np.sqrt(5040.0/temperature)
-        beta_arr = np.array([beta**(i+2) for i in range(6)])
+        sigma_ff = np.zeros((self.nwave,len(temperature)))
+        beta = np.array([
+            np.sqrt(5040.0/temperature)**(i+2)
+            for i in range(6)
+        ])
 
-        sigma_ff[self.sw_mask] = np.sum(beta_arr[0:4]*self.ff_sw_factors,axis=1)
-        sigma_ff[self.lw_mask] = np.sum(beta_arr[1:6]*self.ff_lw_factors,axis=1)
+        sigma_ff[self._sw_mask] = np.sum(beta[0:4]*self._ff_sw_factors, axis=1)
+        sigma_ff[self._lw_mask] = np.sum(beta[1:6]*self._ff_lw_factors, axis=1)
         # Cross section in cm5 / H_molecule / electron
-        # (but how? physics explanation TBD)
+        # (electron number density = e_pressure / kT)
         sigma_ff *= pc.k * temperature
-        self.sigma_ff = sigma_ff.T
-        return self.sigma_ff
+        cross_section_ff = sigma_ff.T
+        if scalar_temp:
+            print(f'HERE {cross_section_ff[0].shape}')
+            return cross_section_ff[0]
+        return cross_section_ff
 
 
-    def absorption(self, temperature, number_density, species=None):
+    def bound_free_cross_section(self, temperature):
         """
-        Evaluate the H- extinction coefficient spectrum (cm-1)
-        over the given atmospheric model.
+        Compute the free-free cross section for H- in cm5/H_mol/electron.
 
-        If either H, H-, or e- are not present in the species
-        the H- extinction coefficient will not be computed and set
-        to None.
-
-        Parameters
-        ----------
-        temperature: 1D float array
-            A temperature profile (in K).
-        number_density: 2D float array
-            The atmospheric number densities array (molecule cm-3)
-            with shape nlayers (same as temperature) by nspecies
-            (same as species list).
-        species: 1D string iterable
-            The list of atmospheric species.  If this was preset on
-            initialization, it can be skipped here.
+        Equation (4) of John 1988, AA, 193, 189.
         """
-        # Get species indices if needed:
-        if species is not None:
-            self.has_opacity = np.all(np.in1d(('H', 'H-', 'e-'), species))
-            self._h_ion_idx = np.where(np.array(species) == 'H-')[0]
-            self._h_idx = np.where(np.array(species) == 'H')[0]
-            self._e_idx = np.where(np.array(species) == 'e-')[0]
+        scalar_temp = np.isscalar(temperature)
+        if not scalar_temp:
+            temperature = np.expand_dims(temperature, axis=1)
 
-        if not self.has_opacity:
-            self.ec = None
-            return
-
-        # Total H- extinction coefficient (cm-1)
-        ec_bf = self.cross_section_bf * number_density[:,self._h_ion_idx]
-        ec_ff = (
-            number_density[:,self._h_idx] *
-            number_density[:,self._e_idx] *
-            self.free_free_cross_section(temperature)
+        # Cross section in cm5 / H_molecule / electron
+        cross_section_bf = (
+            0.75 * temperature**-1.5 * pc.k
+            * np.exp(self._wn0_bf * self._alpha/temperature)
+            * (1.0-np.exp(-self.wn*self._alpha/temperature))
+            * self.sigma_bf
         )
-        self.ec = ec_bf + ec_ff
+
+        return cross_section_bf
 
 
-    def get_ec(self, temperature, number_density):
+    def calc_extinction_coefficient(self, temperature, densities):
         """
-        Calculate the H- extinction coefficient for a single layer.
+        Calculate extinction coefficient spectra (cm-1) for given
+        temperature and number-density profiles.
 
         Parameters
         ----------
-        temperature: float
-            A temperature value (in K).
-        number_density: 1D float array
-            The number densities of the atmospheric species for
-            the requested layer (molecule cm-3). The indices of
-            H, H-, and e- are assumed to be already known.
+        temperature: Float or 1D float array
+            Temperature profile in Kelvin (of size ntemp)
+        densities: 1D/2D float array
+            Number density profiles (molecules per cm3) of H and electron
+            over the given temperature array.
+            If temperature is 1D array, must be of shape [2, ntemp]
+            If temperature is scalar, densities must be of size 2.
 
         Returns
         -------
-        ec: 1D float array
-            The extinction coefficient spectrum (cm-1) for the
-            requested temperaure and number density values.
-        label: List of string
-            The name of this opacity model.
+        extinction_coefficient: 1D/2D float array
+            H- extinction coefficient spectrum (cm-1)
+            If temperature is scalar, output is a 1D array of length nwave.
+            Otherwise, outout is a 2D array of shape [ntemp,nwave]
         """
-        ec_bf = self.cross_section_bf * number_density[self._h_ion_idx]
-        ec_ff = (
-            number_density[self._h_idx] *
-            number_density[self._e_idx] *
-            self.free_free_cross_section(temperature)[0]
+        # Dimentional checks:
+        is_scalar = np.isscalar(temperature)
+        if is_scalar:
+            if np.size(densities) != 2:
+                raise ValueError(
+                    'Incompatible dimensions, if temperature is scalar '
+                    'densities must have 2 elements (H and e- densities)'
+                )
+        elif np.shape(densities) != (len(temperature), 2):
+            ntemp = len(temperature)
+            raise ValueError(
+                'Incompatible dimensions, densities must be a 2D array '
+                f'of shape [{ntemp}, 2], i.e., [ntemp, 2]'
+            )
+
+        cross_section = (
+            self.bound_free_cross_section(temperature) +
+            self.free_free_cross_section(temperature)
         )
-        ec = ec_bf + ec_ff
-        return ec, self.name
+
+        if is_scalar:
+            return cross_section * np.prod(densities)
+
+        # Total H- extinction coefficient (cm-1)
+        extinction_coefficient = (
+            cross_section *
+            np.prod(densities, axis=1, keepdims=True)
+        )
+        return extinction_coefficient
+
