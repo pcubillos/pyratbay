@@ -90,7 +90,7 @@ def undefined_mcmc():
 @pytest.fixture
 def invalid_raygrid():
     data = {
-        '10 60 90': 'First angle in raygrid must be 0.0 (normal to surface)',
+        '10 60 90': 'First angle in raygrid must be 0.0 (normal)',
         '0 30 60 100': 'raygrid angles must lie between 0 and 90 deg',
         '0 30 90 60': 'raygrid angles must be monotonically increasing',
     }

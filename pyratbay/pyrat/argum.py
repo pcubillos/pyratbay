@@ -4,9 +4,7 @@
 import multiprocessing as mp
 
 import numpy as np
-import scipy.constants as sc
 import scipy.interpolate as si
-import scipy.special as ss
 
 from .. import tools as pt
 from .. import constants as pc
@@ -44,6 +42,9 @@ def check_spectrum(pyrat):
 
     # Compute the Hill radius for the planet:
     atm.rhill = pa.hill_radius(atm.smaxis, atm.mplanet, phy.mstar)
+
+    # Radiative-transfer path:
+    pyrat.od.rt_path = pyrat.inputs.rt_path
 
     # Check that the radius profile exists or can be computed:
     if atm.radius is None and pyrat.runmode != 'opacity':
@@ -139,22 +140,6 @@ def check_spectrum(pyrat):
             'Undefined stellar radius (rstar), required for transmission '
             'calculation'
         )
-
-    # Check raygrid:
-    if spec.raygrid[0] != 0:
-        log.error('First angle in raygrid must be 0.0 (normal to surface)')
-    if np.any(spec.raygrid < 0) or np.any(spec.raygrid > 90):
-        log.error('raygrid angles must lie between 0 and 90 deg')
-    if np.any(np.ediff1d(spec.raygrid) <= 0):
-        log.error('raygrid angles must be monotonically increasing')
-    # Store raygrid values in radians:
-    spec.raygrid *= sc.degree
-
-    # Gauss quadrature integration variables:
-    if spec.quadrature is not None:
-        qnodes, qweights = ss.p_roots(spec.quadrature)
-        spec.qnodes = 0.5*(qnodes + 1.0)
-        spec.qweights = 0.5 * qweights
 
     if pyrat.ncpu >= mp.cpu_count():
         n_cpu = mp.cpu_count()

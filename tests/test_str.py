@@ -191,7 +191,12 @@ Wavenumber array (wn, cm-1):
     [ 5882.353  5883.353  5884.353 ...  9088.353  9089.353  9090.353]
 Oversampling factor (wnosamp): 2160
 
-Modulation spectrum, (Rp/Rs)**2 (spectrum):
+Gaussian quadrature cos(theta) angles (quadrature_mu):
+    [1.    0.94  0.766 0.5   0.174]
+Gaussian quadrature weights (quadrature_weights):
+    [0.095 0.691 1.058 0.931 0.367]
+
+Transmission spectrum, (Rp/Rs)**2 (spectrum):
     [ 6.780e-03  6.781e-03  6.780e-03 ...  6.780e-03  6.780e-03  6.780e-03]
 """
 
@@ -692,7 +697,12 @@ Wavenumber array (wn, cm-1):
     [ 5882.353  5883.530  5884.706 ...  9086.201  9088.018  9089.836]
 Oversampling factor (wnosamp): 2160
 
-Modulation spectrum, (Rp/Rs)**2 (spectrum):
+Gaussian quadrature cos(theta) angles (quadrature_mu):
+    [1.    0.94  0.766 0.5   0.174]
+Gaussian quadrature weights (quadrature_weights):
+    [0.095 0.691 1.058 0.931 0.367]
+
+Transmission spectrum, (Rp/Rs)**2 (spectrum):
     [ 6.525e-03  6.541e-03  6.525e-03 ...  6.670e-03  6.501e-03  6.473e-03]
 """
 
@@ -753,8 +763,10 @@ Wavenumber array (wn, cm-1):
     [ 5882.353  5883.353  5884.353 ...  9088.353  9089.353  9090.353]
 Oversampling factor (wnosamp): 2160
 
-Intensity zenithal angles (raygrid, degree): [ 0. 20. 40. 60. 80.]
-raygrid internal units: radian
+Gaussian quadrature cos(theta) angles (quadrature_mu):
+    [1.    0.94  0.766 0.5   0.174]
+Gaussian quadrature weights (quadrature_weights):
+    [0.095 0.691 1.058 0.931 0.367]
 Intensity spectra (intensity, erg s-1 cm-2 sr-1 cm):
     [ 7.741e+02  7.734e+02  7.727e+02 ...  3.549e+01  3.545e+01  3.542e+01]
     [ 7.741e+02  7.734e+02  7.727e+02 ...  3.549e+01  3.545e+01  3.542e+01]

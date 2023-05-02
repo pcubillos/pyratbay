@@ -378,13 +378,13 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         parse_str(args, 'molfile')
         parse_array(args, 'extfile')
         # Spectrum sampling options:
-        parse_str(args,   'wlunits')
-        parse_str(args,   'wllow')
-        parse_str(args,   'wlhigh')
+        parse_str(args, 'wlunits')
+        parse_str(args, 'wllow')
+        parse_str(args, 'wlhigh')
         parse_float(args, 'wnlow')
         parse_float(args, 'wnhigh')
         parse_float(args, 'wnstep')
-        parse_int(args,   'wnosamp')
+        parse_int(args, 'wnosamp')
         parse_float(args, 'resolution')
         parse_float(args, 'wlstep')
         # Atmospheric sampling options:
@@ -439,7 +439,7 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         parse_float(args, 'alkali_cutoff')
         parse_array(args, 'h_ion')
         # Optical depth options:
-        parse_str(args,   'rt_path')
+        parse_str(args, 'rt_path')
         parse_float(args, 'maxdepth')
         parse_array(args, 'raygrid')
         parse_int(args,   'quadrature')
@@ -515,8 +515,8 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
     pyrat.lt.tlifile = args.get_path('tlifile', 'TLI')
     args.atmfile = args.get_path('atmfile', 'Atmospheric')
     args.input_atmfile = args.get_path('input_atmfile', 'Atmospheric')
-    pyrat.spec.specfile = args.get_path('specfile', 'Spectrum')
-    pyrat.ex.extfile = args.get_path('extfile', 'Extinction-coefficient')
+    args.specfile = args.get_path('specfile', 'Spectrum')
+    args.extfile = args.get_path('extfile', 'Extinction-coefficient')
     args.mcmcfile = args.get_path('mcmcfile', 'MCMC')
 
     outfile_dict = {
@@ -560,36 +560,40 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
     # Parse valid inputs and defaults:
     pyrat.inputs = args
 
-    spec = pyrat.spec
-
     pyrat.lt.dblist = args.get_path('dblist', 'Opacity database', exists=True)
     args.molfile = args.get_path('molfile', 'Molecular data', exists=True)
-    pyrat.inputs.cia_files = args.get_path('csfile', 'Cross-section', exists=True)
+    args.cia_files = args.get_path('csfile', 'Cross-section', exists=True)
     args.ptfile = args.get_path('ptfile', 'Pressure-temperature')
 
-    spec.wlunits = args.get_default('wlunits', 'Wavelength units')
-    if spec.wlunits is not None and not hasattr(pc, spec.wlunits):
-        log.error(f'Invalid wavelength units (wlunits): {spec.wlunits}')
-    spec.wllow = args.get_param(
-        'wllow', spec.wlunits, 'Wavelength lower boundary', gt=0.0)
-    spec.wlhigh = args.get_param(
-        'wlhigh', spec.wlunits, 'Wavelength higher boundary', gt=0.0)
-    if spec.wlunits is None:
-        spec.wlunits = args.get_units('wllow')
+    wlunits = args.get_default('wlunits', 'Wavelength units')
+    if wlunits is None:
+        wlunits = args.get_units('wllow')
+    if wlunits is None:
+        wlunits = args.get_units('wlhigh')
+    if wlunits is None:
+        wlunits = args.get_units('wlstep')
+    if wlunits is not None and not hasattr(pc, wlunits):
+        log.error(f'Invalid wavelength units (wlunits): {wlunits}')
+    args.wlunits = wlunits
 
-    spec.wnlow  = args.get_default(
+    args.wllow = args.get_param(
+        'wllow', wlunits, 'Wavelength lower boundary', gt=0.0)
+    args.wlhigh = args.get_param(
+        'wlhigh', wlunits, 'Wavelength higher boundary', gt=0.0)
+    args.wlstep = args.get_param(
+        'wlstep', wlunits, 'Wavelength sampling step', gt=0.0)
+
+    args.wnlow  = args.get_default(
         'wnlow', 'Wavenumber lower boundary', gt=0.0)
-    spec.wnhigh = args.get_default(
+    args.wnhigh = args.get_default(
         'wnhigh', 'Wavenumber higher boundary', gt=0.0)
 
-    spec.wnstep = args.get_default(
+    args.wnstep = args.get_default(
         'wnstep', 'Wavenumber sampling step', gt=0.0)
-    spec.wnosamp = args.get_default(
+    args.wnosamp = args.get_default(
         'wnosamp', 'Wavenumber oversampling factor', ge=1)
-    spec.resolution = args.get_default(
+    args.resolution = args.get_default(
         'resolution', 'Spectral resolution', gt=0.0)
-    spec.wlstep = args.get_param(
-        'wlstep', spec.wlunits, 'Wavelength sampling step', gt=0.0)
 
     runits = args.get_default('runits', 'Planetary-radius units')
     if runits is not None and not hasattr(pc, runits):
@@ -751,13 +755,13 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         'alkali_cutoff',
         'Alkali profiles hard cutoff from line center (cm-1)', 4500.0, gt=0.0)
 
-    pyrat.od.h_ion_models = args.get_choice(
+    args.h_ion = args.get_choice(
         'h_ion', 'H- opacity model', pc.h_ion_models,
     )
 
-    pyrat.od.rt_path = args.get_choice(
-        'rt_path', 'radiative-transfer observing geometry', pc.rt_paths)
-    pyrat.spec._rt_path = pyrat.od.rt_path
+    args.rt_path = args.get_choice(
+        'rt_path', 'radiative-transfer observing geometry', pc.rt_paths,
+    )
 
     pyrat.ex.ethresh = args.get_default(
         'ethresh', 'Extinction-cofficient threshold', 1e-15, gt=0.0)
@@ -769,9 +773,9 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
     args.marcs = args.get_path('marcs', 'MARCS model', exists=True)
     args.phoenix = args.get_path('phoenix', 'PHOENIX model', exists=True)
 
-    spec.raygrid = args.get_default(
+    args.raygrid = args.get_default(
         'raygrid', 'Emission raygrid (deg)', np.array([0, 20, 40, 60, 80.]))
-    spec.quadrature = args.get_default(
+    args.quadrature = args.get_default(
         'quadrature', 'Number of Gaussian-quadrature points', ge=1)
 
 

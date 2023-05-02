@@ -50,8 +50,8 @@ def run(cfile, run_step='run', no_logfile=False):
             log.error('Undefined TLI file (tlifile).')
         po.make_tli(
             inputs.dblist, inputs.pflist, inputs.dbtype,
-            pyrat.lt.tlifile[0], pyrat.spec.wllow, pyrat.spec.wlhigh,
-            pyrat.spec.wlunits, log,
+            pyrat.lt.tlifile[0], inputs.wllow, inputs.wlhigh,
+            inputs.wlunits, log,
         )
         return
 
@@ -62,7 +62,7 @@ def run(cfile, run_step='run', no_logfile=False):
         return pyrat.atm
 
     # Check status of extinction-coefficient file if necessary:
-    if pyrat.runmode != 'spectrum' and pt.isfile(pyrat.ex.extfile) == -1:
+    if pyrat.runmode != 'spectrum' and pt.isfile(pyrat.inputs.extfile) == -1:
         log.error("Undefined extinction-coefficient file (extfile).")
 
     if pyrat.runmode == 'mcmc' and ret.mcmcfile is None:

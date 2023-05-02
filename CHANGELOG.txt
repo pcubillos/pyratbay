@@ -8259,3 +8259,12 @@ Initialize with wavenumber array instead of wavelength.
 Standardized method names (just like other opacity models).
 Updated tests.
 
+*****
+
+Moved Spectrum() class from objects.py into pyrat/spectrum.py
+Merged code from makewavenumber as initializer method.
+Removed references to pyrat.spec in parser.
+
+Implemented H_Ion() interface between pyrat and Hydrogen_Ion() model.
+Updated tests.
+

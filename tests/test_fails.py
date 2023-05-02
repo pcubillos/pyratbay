@@ -488,8 +488,6 @@ def test_atmosphere_hydro_missing_mass_gravity(tmp_path):
 @pytest.mark.parametrize(
     'param',
     [
-        'wllow',
-        'wlhigh',
         'pbottom',
         'ptop',
         'refpressure',
@@ -504,6 +502,17 @@ def test_spectrum_missing_units(tmp_path, param):
         reset={param:'1.1'},
     )
     error = f"Invalid units 'None' for parameter {param}"
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
+
+
+def test_spectrum_missing_wl_units(tmp_path):
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        reset={'wllow': '1.1', 'wlhigh': '2.0'},
+    )
+    error = f"Invalid units 'None' for parameter wllow"
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
 
@@ -715,7 +724,11 @@ def test_spectrum_cpars_mismatch(tmp_path):
 
 
 @pytest.mark.parametrize('value',
-    ['10 60 90', '0 30 60 100', '0 30 90 60'])
+    ['10 60 90',
+     '0 30 60 100',
+     '0 30 90 60',
+    ]
+)
 def test_spectrum_raygrid(tmp_path, invalid_raygrid, value):
     cfg = make_config(
         tmp_path,
@@ -725,6 +738,24 @@ def test_spectrum_raygrid(tmp_path, invalid_raygrid, value):
     error = re.escape(invalid_raygrid[value])
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
+
+
+def test_transmission_h_ion_missing_species(tmp_path):
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        remove=['tlifile', 'csfile', 'alkali', 'clouds'],
+        reset={'h_ion': 'h_ion_john1988'},
+    )
+    # All opacities except lecavelier (ignore H- because no ions in atmosphere)
+    error = re.escape(
+        "'h_ion' opacity model requires the atmosphere to contain "
+        "H, H-, and e- species"
+    )
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
+
+
 
 
 def test_spectrum_uncert_mismatch(tmp_path):

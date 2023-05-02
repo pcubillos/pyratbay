@@ -6,7 +6,7 @@ from .. import opacity as op
 from .. import tools as pt
 
 
-class Alkali(object):
+class Alkali():
     """Interface between Alkali opacity models and pyrat object"""
     def __init__(self, model_names, pressure, wn, cutoff, species, log):
         self.models = []
@@ -27,7 +27,6 @@ class Alkali(object):
             self.imol.append(imol)
 
         log.head("\nSetup Alkali opacity models.")
-
 
 
     def calc_extinction_coefficient(self, temperature, densities):

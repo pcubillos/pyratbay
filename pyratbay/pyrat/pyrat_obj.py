@@ -9,7 +9,6 @@ import numpy as np
 from .. import atmosphere as pa
 from .. import constants as pc
 from .. import io as io
-from .. import opacity as op
 from .. import plots as pp
 from .. import spectrum as ps
 from .. import tools as pt
@@ -17,14 +16,14 @@ from .. import tools as pt
 from .alkali import Alkali
 from .atmosphere import Atmosphere
 from .crosssec import CIA
+from .h_ion import H_Ion
 from .observation import Observation
+from . import spectrum as sp
 from .  import extinction as ex
 from .  import clouds as cl
 from .  import optical_depth as od
-from .  import spectrum as sp
 from .  import objects as ob
 from .  import argum as ar
-from .  import makesample as ms
 from .  import voigt as v
 from .  import read_tli as rtli
 
@@ -60,22 +59,22 @@ class Pyrat(object):
       >>> pyrat.set_spectrum()
       """
       # Sub-classes:
-      self.spec = ob.Spectrum()       # Spectrum data
       self.lt = ob.Linetransition()   # Line-transition data
-      self.iso = ob.Isotopes()        # Isotopes data
       self.voigt = ob.Voigt()         # Voigt profile
+
       self.ex = ob.Extinction()       # Extinction-coefficient
       self.od = ob.Optdepth()         # Optical depth
-      self.timestamps = OrderedDict()
 
       # Parse config file inputs:
       pt.parse(self, cfile, no_logfile, mute)
 
+      self.iso = ob.Isotopes()
       self.phy = ob.Physics(self.inputs)
       self.ret = ob.Retrieval(self.inputs, self.log)
 
       # Setup time tracker:
       timer = pt.Timer()
+      self.timestamps = OrderedDict()
       self.timestamps['init'] = timer.clock()
 
 
@@ -88,7 +87,7 @@ class Pyrat(object):
   def set_spectrum(self):
       timer = pt.Timer()
       # Initialize wavenumber sampling:
-      ms.make_wavenumber(self)
+      self.spec = sp.Spectrum(self.inputs, self.log)
       self.timestamps['wn sample'] = timer.clock()
 
       # Read opacity tables (if needed):
@@ -107,8 +106,8 @@ class Pyrat(object):
 
       # Extinction Voigt grid:
       v.voigt(self)
+      self.timestamps['voigt'] = timer.clock()
 
-      # Alkali opacity models:
       self.alkali = Alkali(
           self.inputs.model_names,
           self.atm.press,
@@ -117,17 +116,14 @@ class Pyrat(object):
           self.atm.species,
           self.log,
       )
-      self.timestamps['voigt'] = timer.clock()
 
-      # Hydrogen ion opacity:
-      self.h_ion = op.Hydrogen_Ion(
-          #self.spec.wn, self.mol.name
-          1.0/self.spec.wn/pc.um, self.atm.species,
+      self.h_ion = H_Ion(
+          self.inputs,
+          self.spec.wn,
+          self.atm.species,
+          self.log,
       )
-      # At the moment work as an on/off flag, as there's only one model
-      self.h_ion.has_opacity &= self.od.h_ion_models is not None
 
-      # CIA opacity:
       self.cs = CIA(
           self.inputs.cia_files,
           self.spec.wn,
@@ -450,7 +446,7 @@ class Pyrat(object):
           e, lab = ex.get_ec(self, layer)
           ec = np.vstack((ec, e))
           label += lab
-      # Cross-section extinction coefficient:
+      # CIA extinction coefficient:
       if self.cs.nfiles != 0:
           e, lab = self.cs.get_ec(self.atm.temp, self.atm.d, layer)
           ec = np.vstack((ec, e))
@@ -465,9 +461,9 @@ class Pyrat(object):
           e, lab = cl.get_ec(self, layer)
           ec = np.vstack((ec, e))
           label += lab
-      # H- opacity:
-      if self.h_ion.has_opacity:
-          e, lab = self.h_ion.get_ec(self.atm.temp[layer], self.atm.d[layer])
+      # H- extinction coefficient:
+      if self.h_ion.model is not None:
+          e, lab = self.h_ion.get_ec(self.atm.temp, self.atm.d, layer)
           ec = np.vstack((ec, e))
           label += [lab]
       # Alkali resonant lines extinction coefficient:
@@ -670,8 +666,8 @@ class Pyrat(object):
           opacities.append(cloud.name)
       for alkali in self.alkali.models:
           opacities.append(alkali.mol)
-      if self.h_ion.has_opacity:
-          opacities.append(self.h_ion.name)
+      if self.h_ion.model is not None:
+          opacities.append(self.h_ion.model.name)
 
       pmin = self.atm.press[ 0]/pc.bar
       pmax = self.atm.press[-1]/pc.bar

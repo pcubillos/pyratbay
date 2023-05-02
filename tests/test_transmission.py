@@ -109,19 +109,6 @@ def test_transmission_h_ion(tmp_path):
     np.testing.assert_allclose(pyrat.spec.spectrum, desired, rtol=rtol)
 
 
-def test_transmission_ignore_h_ion(tmp_path):
-    cfg = make_config(
-        tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        remove=['tlifile', 'csfile', 'alkali', 'clouds'],
-        reset={'h_ion': 'h_ion_john1988'},
-    )
-    # All opacities except lecavelier (ignore H- because no ions in atmosphere)
-    pyrat = pb.run(cfg)
-    assert not pyrat.h_ion.has_opacity
-    np.testing.assert_allclose(pyrat.spec.spectrum, expected['lec'], rtol=rtol)
-
-
 def test_transmission_all(tmp_path):
     cfg = make_config(
         tmp_path,

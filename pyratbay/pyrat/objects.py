@@ -2,7 +2,6 @@
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
-    'Spectrum',
     'Linetransition',
     'Isotopes',
     'Voigt',
@@ -14,99 +13,10 @@ __all__ = [
 ]
 
 import numpy as np
-import scipy.constants as sc
 
 from .. import tools as pt
 from .. import constants as pc
 from .. import atmosphere as pa
-
-
-class Spectrum(object):
-  def __init__(self):
-      self.specfile  = None  # Transmission/Emission spectrum file
-      # Wavenumber:
-      self.nwave     = None  # Number of wavenumber spectral samples
-      self.wn        = None  # Wavenumber array
-      self.wnlow     = None  # Lowest wavenumber boundary
-      self.wnhigh    = None  # Highest wavenumber boundary
-      self.wnstep    = None  # Wavenumber sampling interval
-      # Oversampled-wavenumber:
-      self.wnosamp   = None  # Wavenumber oversampling factor
-      self.own       = None  # Oversampled wavenumber array
-      self.ownstep   = None  # Oversampled wavenumber sampling interval
-      self.onwave    = None  # Number of oversampled-wavenumber samples
-      self.odivisors = None  # Oversampling-factor integer divisors
-      # Wavelength:
-      self.wlunits   = None  # User-input wavelength physical units
-      self.wllow     = None  # Lowest wavelength boundary
-      self.wlhigh    = None  # Highest wavelength boundary
-      # Spectrum:
-      self.raygrid   = None  # Array of incident ray-angles (emission)
-      self.intensity = None  # Intensity spectrum array
-      self.spectrum  = None  # Modulation/Flux spectrum
-      self.clear     = None  # Clear modulation spectrum for patchy model
-      self.cloudy    = None  # Cloudy modulation spectrum for patchy model
-      self.starflux  = None  # Stellar flux spectrum
-
-  def __str__(self):
-      fmt = {'float': '{: .3e}'.format}
-      fw = pt.Formatted_Write()
-      fw.write('Spectral information:')
-      fw.write('Wavenumber internal units: cm-1')
-      fw.write('Wavelength internal units: cm')
-      fw.write('Wavelength display units (wlunits): {:s}', self.wlunits)
-      fw.write(
-          'Low wavenumber boundary (wnlow):   {:10.3f} cm-1  '
-          '(wlhigh = {:6.2f} {})',
-          self.wnlow, self.wlhigh/pt.u(self.wlunits), self.wlunits,
-      )
-      fw.write(
-          'High wavenumber boundary (wnhigh): {:10.3f} cm-1  '
-          '(wllow  = {:6.2f} {})',
-          self.wnhigh, self.wllow/pt.u(self.wlunits), self.wlunits,
-      )
-      fw.write('Number of samples (nwave): {:d}', self.nwave)
-      if self.resolution is None:
-          fw.write('Sampling interval (wnstep): {:.3f} cm-1', self.wnstep)
-      else:
-          fw.write(
-              'Spectral resolving power (resolution): {:.1f}',
-              self.resolution,
-          )
-      fw.write(
-          'Wavenumber array (wn, cm-1):\n    {}',
-          self.wn,
-          fmt={'float': '{: .3f}'.format},
-      )
-      fw.write('Oversampling factor (wnosamp): {:d}', self.wnosamp)
-
-      if self._rt_path in pc.emission_rt:
-          if self.quadrature is not None:
-              fw.write(
-                  'Number of Gaussian-quadrature points for intensity '
-                  'integration into flux (quadrature): {}',
-                  self.quadrature,
-              )
-          fw.write(
-              '\nIntensity zenithal angles (raygrid, degree): {}',
-              self.raygrid/sc.degree,
-              prec=3,
-          )
-          fw.write('raygrid internal units: radian')
-          if self.intensity is not None:
-              fw.write('Intensity spectra (intensity, erg s-1 cm-2 sr-1 cm):')
-              for intensity in self.intensity:
-                  fw.write('    {}', intensity, fmt=fmt, edge=3)
-          fw.write(
-              'Emission spectrum (spectrum, erg s-1 cm-2 cm):\n    {}',
-              self.spectrum, fmt=fmt, edge=3,
-          )
-      elif self._rt_path in pc.transmission_rt:
-          fw.write(
-              '\nModulation spectrum, (Rp/Rs)**2 (spectrum):\n    {}',
-              self.spectrum, fmt=fmt, edge=3,
-          )
-      return fw.text
 
 
 class Linetransition(object):
@@ -365,10 +275,10 @@ class Cloud(object):
         return fw.text
 
 
-class Optdepth(object):
+class Optdepth():
   def __init__(self):
       self.maxdepth = None  # Maximum optical depth to calculate
-      self.rt_path  = None  # Radiative=transfer observing geometry
+      self.rt_path  = None  # Radiative-transfer observing geometry
       self.ec       = None  # Total extinction coefficient [nlayers, nwave]
       self.epatchy  = None  # Cloudy extinction coefficient for patchy model
       self.raypath  = []    # Distance along ray path  [nlayers]
@@ -376,6 +286,7 @@ class Optdepth(object):
       self.pdepth   = None  # Cloudy optical depth for patchy model
       self.B        = None  # Blackbody Planck emission [nlayers, nwave]
       self.ideep    = None  # Layer index where depth reached maxdepth [nwave]
+
 
   def __str__(self):
       fw = pt.Formatted_Write()

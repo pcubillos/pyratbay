@@ -21,6 +21,7 @@ def read_opacity(pyrat, wn_mask=None):
     """
     ex = pyrat.ex
     log = pyrat.log
+    ex.extfile = pyrat.inputs.extfile
 
     # No need to read anything:
     if pyrat.runmode == 'opacity' or ex.extfile is None:
