@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Patricio Cubillos
+# Copyright (c) 2021-2023 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import ctypes
@@ -20,7 +20,7 @@ def optical_depth(pyrat):
     """
     od = pyrat.od
     ex = pyrat.ex
-    lt = pyrat.lt
+    lbl = pyrat.lbl
     nwave = pyrat.spec.nwave
     nlayers = pyrat.atm.nlayers
     rtop = pyrat.atm.rtop
@@ -60,23 +60,23 @@ def optical_depth(pyrat):
         )
 
     # Calculate the extinction coefficient on the spot:
-    elif lt.tlifile is not None:
-        imol = pyrat.lt.mol_index[pyrat.lt.mol_index>=0]
+    elif lbl.tlifile is not None:
+        imol = lbl.mol_index[lbl.mol_index>=0]
         ex.species = pyrat.atm.species[np.unique(imol)]
         ex.nspec = len(ex.species)
 
-        if np.any(pyrat.atm.temp > lt.tmax) or np.any(pyrat.atm.temp < lt.tmin):
+        if np.any(pyrat.atm.temp>lbl.tmax) or np.any(pyrat.atm.temp<lbl.tmin):
             pyrat.log.warning(
                 "Atmospheric temperature values lie out of the line-transition "
-                f"boundaries (K): [{lt.tmin:6.1f}, {lt.tmax:6.1f}]"
+                f"boundaries (K): [{lbl.tmin:6.1f}, {lbl.tmax:6.1f}]"
             )
             good_status = False
             return good_status
 
         # Update partition functions:
-        lt.iso_pf = np.zeros((lt.niso, nlayers))
-        for i in range(lt.niso):
-            lt.iso_pf[i] = lt.iso_pf_interp[i](pyrat.atm.temp)
+        lbl.iso_pf = np.zeros((lbl.niso, nlayers))
+        for i in range(lbl.niso):
+            lbl.iso_pf[i] = lbl.iso_pf_interp[i](pyrat.atm.temp)
 
         sm_ext = mp.Array(
             ctypes.c_double, np.zeros(nlayers*nwave, np.double))

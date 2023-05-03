@@ -175,24 +175,24 @@ def compute_opacity(pyrat):
     extfile = ex.extfile[0]
     log.head(f"\nGenerating new cross-section table file:\n  '{extfile}'")
     # Temperature boundaries check:
-    if ex.tmin < pyrat.lt.tmin:
+    if ex.tmin < pyrat.lbl.tmin:
         log.error(
             'Requested cross-section table temperature '
             f'(tmin={ex.tmin:.1f} K) below the lowest available TLI '
-            f'temperature ({pyrat.lt.tmin:.1f} K)'
+            f'temperature ({pyrat.lbl.tmin:.1f} K)'
         )
-    if ex.tmax > pyrat.lt.tmax:
+    if ex.tmax > pyrat.lbl.tmax:
         log.error(
             'Requested cross-section table temperature '
             f'(tmax={ex.tmax:.1f} K) above the highest available TLI '
-            f'temperature ({pyrat.lt.tmax:.1f} K)'
+            f'temperature ({pyrat.lbl.tmax:.1f} K)'
         )
 
     # Create the temperature array:
     ex.ntemp = int((ex.tmax-ex.tmin)/ex.tstep) + 1
     ex.temp = np.linspace(ex.tmin, ex.tmin + (ex.ntemp-1)*ex.tstep, ex.ntemp)
 
-    imol = pyrat.lt.mol_index[pyrat.lt.mol_index>=0]
+    imol = pyrat.lbl.mol_index[pyrat.lbl.mol_index>=0]
     ex.species = pyrat.atm.species[np.unique(imol)]
     ex.nspec = len(pyrat.ex.species)
 
@@ -201,9 +201,9 @@ def compute_opacity(pyrat):
 
     # Evaluate the partition function at the given temperatures:
     log.msg("Interpolate partition function.", indent=2)
-    ex.z = np.zeros((pyrat.lt.niso, ex.ntemp), np.double)
-    for i in range(pyrat.lt.niso):
-        ex.z[i] = pyrat.lt.iso_pf_interp[i](ex.temp)
+    ex.z = np.zeros((pyrat.lbl.niso, ex.ntemp), np.double)
+    for i in range(pyrat.lbl.niso):
+        ex.z[i] = pyrat.lbl.iso_pf_interp[i](ex.temp)
 
     # Allocate wavenumber, pressure, and isotope arrays:
     ex.wn = spec.wn
@@ -263,9 +263,9 @@ def extinction(pyrat, indices, grid=False, add=False):
         extinct_coeff = np.zeros((pyrat.ex.nspec, pyrat.spec.nwave))
 
     # Get species indices in opacity table for the isotopes:
-    iext = np.zeros(pyrat.lt.niso, int)
-    for i in range(pyrat.lt.niso):
-        mol_index = pyrat.lt.mol_index[i]
+    iext = np.zeros(pyrat.lbl.niso, int)
+    for i in range(pyrat.lbl.niso):
+        mol_index = pyrat.lbl.mol_index[i]
         if mol_index != -1:
             iext[i] = np.where(
                 pyrat.ex.species == pyrat.atm.species[mol_index])[0][0]
@@ -294,7 +294,7 @@ def extinction(pyrat, indices, grid=False, add=False):
             )
         else: # Take from atmosphere
             temp = atm.temp[ilayer]
-            iso_pf = pyrat.lt.iso_pf[:,ilayer]
+            iso_pf = pyrat.lbl.iso_pf[:,ilayer]
             pyrat.log.msg(
                 f"Calculating extinction at layer {ilayer+1:3d}/{atm.nlayers} "
                 f"(T={temp:6.1f} K, p={pressure/pc.bar:.1e} bar).",
@@ -313,9 +313,9 @@ def extinction(pyrat, indices, grid=False, add=False):
             pyrat.voigt.lorentz, pyrat.voigt.doppler,
             pyrat.spec.wn, pyrat.spec.own, pyrat.spec.odivisors,
             density, molq, pyrat.atm.mol_radius, pyrat.atm.mol_mass,
-            pyrat.lt.mol_index, pyrat.lt.iso_mass, pyrat.lt.iso_ratio,
+            pyrat.lbl.mol_index, pyrat.lbl.iso_mass, pyrat.lbl.iso_ratio,
             iso_pf, iext,
-            pyrat.lt.wn, pyrat.lt.elow, pyrat.lt.gf, pyrat.lt.isoid,
+            pyrat.lbl.wn, pyrat.lbl.elow, pyrat.lbl.gf, pyrat.lbl.isoid,
             pyrat.voigt.cutoff, pyrat.ex.ethresh, pressure, temp,
             verb-10, int(add),
             interpolate_flag,

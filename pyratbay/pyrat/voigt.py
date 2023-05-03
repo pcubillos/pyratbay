@@ -12,7 +12,7 @@ def voigt(pyrat):
     Driver to calculate a grid of Voigt profiles.
     """
     # Check if there's cross-section data or no TLI files:
-    if pyrat.lt.tlifile is None or pyrat.ex.etable is not None:
+    if pyrat.lbl.tlifile is None or pyrat.ex.etable is not None:
         pyrat.log.head('\nSkip LBL Voigt-profile calculation.')
         return
 
@@ -42,7 +42,7 @@ def width_limits(pyrat):
     tmax = 3000.0 if pyrat.ex.tmax is None else pyrat.ex.tmax
 
     # Get mass of line-transition molecules:
-    mols = np.unique(pyrat.lt.mol_index) # Molecules with transitions
+    mols = np.unique(pyrat.lbl.mol_index) # Molecules with transitions
     mols = mols[np.where(mols>=0)]   # Remove -1's
 
     # Estimate min/max Doppler/Lorentz HWHMs from atmospheric properties:

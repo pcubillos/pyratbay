@@ -286,7 +286,7 @@ def test_pyrat_transmission_lt_str(tmp_path):
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
     )
     pyrat = pb.run(cfg)
-    assert str(pyrat.lt) == f"""\
+    assert str(pyrat.lbl) == f"""\
 Line-transition information:
 Input TLI files (tlifile):
     ['{os.getcwd()}/outputs/HITRAN_H2O_1.1-1.7um_test.tli']
@@ -812,7 +812,7 @@ def test_pyrat_exfile_str(tmp_path):
     pyrat = pb.run(cfg)
     assert pyrat is not None
     pyrat.band_integrate()
-    assert str(pyrat.lt) == """\
+    assert str(pyrat.lbl) == """\
 Line-transition information:
 No input TLI files.
 """

@@ -8286,3 +8286,7 @@ Merged with code from read_tli.py as initialization.
 Removed references to pyrat.lt in parser.
 Updated docs.
 
+*****
+
+Renamed pyrat.lt to pyrat.tli.
+

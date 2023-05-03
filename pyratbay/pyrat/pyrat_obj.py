@@ -95,7 +95,7 @@ class Pyrat(object):
       ar.check_spectrum(self)
 
       # Read line-by-line data:
-      self.lt = Line_By_Line(
+      self.lbl = Line_By_Line(
           self.inputs,
           list(self.atm.species),
           self.spec.wnlow, self.spec.wnhigh,
