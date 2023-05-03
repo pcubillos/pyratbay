@@ -2,8 +2,6 @@
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
-    'Linetransition',
-    'Isotopes',
     'Voigt',
     'Extinction',
     'Optdepth',
@@ -17,111 +15,6 @@ import numpy as np
 from .. import tools as pt
 from .. import constants as pc
 from .. import atmosphere as pa
-
-
-class Linetransition(object):
-  def __init__(self):
-      self.tlifile = None     # Line-transition data file
-      self.dblist  = None
-      self.ndb     = 0        # Number of data bases
-      self.db      = []       # Data base objects
-      self.ntransitions = 0   # Number of line transitions
-      self.tmin    = -np.inf  # Minimum temperature sampled by all TLI files
-      self.tmax    =  np.inf  # Maximum temperature sampled by all TLI files
-      self.wn      = np.array([], np.double)  # Line wavenumber
-      self.elow    = np.array([], np.double)  # Line lower energy level
-      self.gf      = np.array([], np.double)  # Line gf value
-      self.isoid   = np.array([], int)     # Line isotope index
-
-  def clone_new(self, pyrat):
-      """Return a new LT instance (as returned by Pyrat.__init__)."""
-      lt = Linetransition()
-      lt.tlifile = pyrat.lt.tlifile
-      lt.dblist  = pyrat.lt.dblist
-      return lt
-
-  def __str__(self):
-      fw = pt.Formatted_Write()
-      fw.write('Line-transition information:')
-      if self.tlifile is None:
-          fw.write('No input TLI files.')
-          return fw.text
-      fw.write('Input TLI files (tlifile): {}', self.tlifile)
-      fw.write('Number of databases (ndb): {:d}', self.ndb)
-      for db in self.db:
-          fw.write('\n'+str(db))
-      fw.write('\nTotal number of line transitions (ntransitions): {:,d}\n'
-          'Minimum and maximum temperatures (tmin, tmax): [{:.1f}, {:.1f}] K',
-          self.ntransitions, self.tmin, self.tmax)
-      fw.write('Line-transition isotope IDs (isoid):\n    {}', self.isoid,
-          edge=7)
-      fw.write('Line-transition wavenumbers (wn, cm-1):\n    {}',
-          self.wn,   fmt={'float':'{:.3f}'.format}, edge=3)
-      fw.write('Line-transition lower-state energy (elow, cm-1):\n    {}',
-          self.elow, fmt={'float':'{: .3e}'.format}, edge=3)
-      fw.write('Line-transition gf (gf, cm-1):\n    {}',
-          self.gf,   fmt={'float':'{: .3e}'.format}, edge=3)
-      return fw.text
-
-
-class Database(object):
-  def __init__(self):
-      self.name    = None  # Data base name
-      self.molname = None  # Molecule name
-      self.niso    = None  # Number of isotopes in database
-      self.iiso    = None  # Isotope correlative index
-      self.ntemp   = None  # Number of temperature samples
-      self.temp    = None  # Temperature array
-      self.z       = None  # Isotopes' partition function array [niso, ntemp]
-
-  def __str__(self):
-      fw = pt.Formatted_Write()
-      fw.write('Database name (name): {:s}', self.name)
-      fw.write('Species name (molname):  {:s}', self.molname)
-      fw.write('Number of isotopes (niso): {:d}', self.niso)
-      fw.write('Isotope correlative index (iiso): {:d}', self.iiso)
-      fw.write('Number of temperature samples (ntemp): {:d}', self.ntemp)
-      fw.write('Temperature (temp, K):\n    {}', self.temp, prec=3, edge=3)
-      fw.write('Partition function for each isotope (z):')
-      for z in self.z:
-          fw.write('    {}', z, fmt={'float':'{: .3e}'.format}, edge=3)
-      return fw.text
-
-
-class Isotopes(object):
-  def __init__(self):
-      self.niso    = 0                     # Number of isotopes
-      self.name    = np.array([])          # Isotope's name [niso]
-      self.mass    = np.array([])          # Isotope's mass [niso]
-      self.ratio   = np.array([])          # Isotopic abundance ratio  [niso]
-      self.dbindex = np.array([], int)  # Isotope's data base index [niso]
-      self.imol    = np.array([], int)  # Isotope's molecule index  [niso]
-      self.iext    = None                  # Molecule index in ext-coef. table
-      self.z       = None                  # Isotopes' partition function at
-                                           #   atmospheric layer [niso, nlayers]
-
-  def __str__(self):
-      fw = pt.Formatted_Write()
-      if self.iext is None:
-          iext = [None for _ in self.name]
-      else:
-          iext = self.iext
-      fw.write('Isotopes information:')
-      fw.write('Number of isotopes (niso): {:d}', self.niso)
-      fw.write(
-          '\nIsotope  Molecule      Mass    Isotopic   Database   Extinc-coeff'
-          '\n            index     g/mol       ratio      index    index'
-          '\n (name)    (imol)    (mass)     (ratio)   (dbindex)  (iext)')
-      for i in range(self.niso):
-          fw.write(
-              '{:>7s}  {:8d}  {:8.4f}   {:.3e}   {:8d}   {}',
-              self.name[i], self.imol[i], self.mass[i], self.ratio[i],
-              self.dbindex[i], iext[i],
-          )
-      fw.write('Partition function evaluated at atmosperic layers (z):')
-      for z in self.z:
-          fw.write('    {}', z, fmt={'float':'{: .3e}'.format}, edge=3)
-      return fw.text
 
 
 class Voigt(object):
@@ -616,5 +509,3 @@ class Physics(object):
         fw.write('Stellar flux spectrum (starflux, erg s-1 cm-2 cm):\n    {}',
             self.starflux, fmt={'float': '{: .3e}'.format})
         return fw.text
-
-

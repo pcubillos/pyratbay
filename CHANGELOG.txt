@@ -8272,3 +8272,17 @@ Updated tests.
 
 Added quadrature emission spectrum test.
 
+*****
+
+Cosmetics.
+
+*****
+
+Refactored Linetransition() into Line_By_Line().
+Simplified code separating tli reading from iso settings.
+Merged Isotopes() into Line_By_Line().
+Moved from objects.py into line_by_line.py.
+Merged with code from read_tli.py as initialization.
+Removed references to pyrat.lt in parser.
+Updated docs.
+

@@ -25,10 +25,8 @@ def check_spectrum(pyrat):
     spec = pyrat.spec
     atm = pyrat.atm
     obs = pyrat.obs
-
     with pt.log_error(log):
         pt.file_exists('atmfile', 'Atmospheric', atm.atmfile)
-        pt.file_exists('tlifile', 'TLI', pyrat.lt.tlifile)
         pt.file_exists('molfile', 'Molecular-data', atm.molfile)
 
     if pyrat.runmode == 'spectrum' and spec.specfile is None:
@@ -80,7 +78,7 @@ def check_spectrum(pyrat):
                 'Undefined temperature sampling step (tstep) for '
                 'extinction-coefficient grid',
             )
-        if pyrat.lt.tlifile is None:
+        if pyrat.inputs.tlifile is None:
             log.error(
                 'Requested extinction-coefficient table, but there '
                 'are no input TLI files',

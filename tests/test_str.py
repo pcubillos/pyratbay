@@ -295,7 +295,6 @@ Number of databases (ndb): 1
 Database name (name): HITRAN H2O
 Species name (molname):  H2O
 Number of isotopes (niso): 7
-Isotope correlative index (iiso): 0
 Number of temperature samples (ntemp): 1001
 Temperature (temp, K):
     [1.000e+00 5.000e+00 1.000e+01 ... 4.990e+03 4.995e+03 5.000e+03]
@@ -318,37 +317,19 @@ Line-transition lower-state energy (elow, cm-1):
     [ 1.807e+03  2.106e+03  2.630e+03 ...  1.244e+03  5.201e+02  6.531e+02]
 Line-transition gf (gf, cm-1):
     [ 1.399e-08  1.188e-09  1.210e-08 ...  5.498e-06  1.558e-07  1.076e-06]
-"""
-
-
-def test_pyrat_transmission_iso_str(tmp_path):
-    cfg = make_config(
-        tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
-    )
-    pyrat = pb.run(cfg)
-    assert str(pyrat.iso) == """\
 Isotopes information:
 Number of isotopes (niso): 7
 
-Isotope  Molecule      Mass    Isotopic   Database   Extinc-coeff
-            index     g/mol       ratio      index    index
- (name)    (imol)    (mass)     (ratio)   (dbindex)  (iext)
-    161         3   18.0106   9.973e-01          0   None
-    181         3   20.0148   2.000e-03          0   None
-    171         3   19.0148   3.719e-04          0   None
-    162         3   19.0167   3.107e-04          0   None
-    182         3   21.0210   6.230e-07          0   None
-    172         3   20.0210   1.159e-07          0   None
-    262         3   20.0229   2.420e-08          0   None
-Partition function evaluated at atmosperic layers (z):
-    [ 1.325e+03  1.325e+03  1.325e+03 ...  3.407e+03  3.412e+03  3.417e+03]
-    [ 1.337e+03  1.337e+03  1.337e+03 ...  3.426e+03  3.430e+03  3.436e+03]
-    [ 7.979e+03  7.979e+03  7.979e+03 ...  2.042e+04  2.045e+04  2.048e+04]
-    [ 6.954e+03  6.954e+03  6.954e+03 ...  1.909e+04  1.912e+04  1.915e+04]
-    [ 7.066e+03  7.066e+03  7.066e+03 ...  1.940e+04  1.943e+04  1.946e+04]
-    [ 4.228e+04  4.228e+04  4.228e+04 ...  1.156e+05  1.158e+05  1.160e+05]
-    [ 8.967e+03  8.967e+03  8.967e+03 ...  2.652e+04  2.656e+04  2.661e+04]
+Isotope  Molecule      Mass    Isotopic   Database
+            index     g/mol       ratio
+ (name)    (imol)    (mass)     (ratio)
+    161         3   18.0106   9.973e-01   HITRAN H2O
+    181         3   20.0148   2.000e-03   HITRAN H2O
+    171         3   19.0148   3.719e-04   HITRAN H2O
+    162         3   19.0167   3.107e-04   HITRAN H2O
+    182         3   21.0210   6.230e-07   HITRAN H2O
+    172         3   20.0210   1.159e-07   HITRAN H2O
+    262         3   20.0229   2.420e-08   HITRAN H2O
 """
 
 

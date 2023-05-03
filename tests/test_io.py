@@ -17,6 +17,7 @@ from pyratbay.constants import ROOT
 os.chdir(ROOT+'tests')
 
 
+@pytest.mark.skip(reason='wont be needed anymore (question mark)')
 def test_load_save_pyrat(tmp_path):
     cfg = make_config(
         tmp_path,

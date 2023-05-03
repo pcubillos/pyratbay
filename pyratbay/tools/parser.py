@@ -512,7 +512,7 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         'runmode', 'running mode', pc.rmodes, take_none=False)
 
     # Define logfile name and initialize log object:
-    pyrat.lt.tlifile = args.get_path('tlifile', 'TLI')
+    args.tlifile = args.get_path('tlifile', 'TLI')
     args.atmfile = args.get_path('atmfile', 'Atmospheric')
     args.input_atmfile = args.get_path('input_atmfile', 'Atmospheric')
     args.specfile = args.get_path('specfile', 'Spectrum')
@@ -560,7 +560,7 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
     # Parse valid inputs and defaults:
     pyrat.inputs = args
 
-    pyrat.lt.dblist = args.get_path('dblist', 'Opacity database', exists=True)
+    args.dblist = args.get_path('dblist', 'Opacity database', exists=True)
     args.molfile = args.get_path('molfile', 'Molecular data', exists=True)
     args.cia_files = args.get_path('csfile', 'Cross-section', exists=True)
     args.ptfile = args.get_path('ptfile', 'Pressure-temperature')

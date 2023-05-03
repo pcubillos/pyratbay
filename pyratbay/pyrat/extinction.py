@@ -192,14 +192,18 @@ def compute_opacity(pyrat):
     ex.ntemp = int((ex.tmax-ex.tmin)/ex.tstep) + 1
     ex.temp = np.linspace(ex.tmin, ex.tmin + (ex.ntemp-1)*ex.tstep, ex.ntemp)
 
+    imol = pyrat.lt.mol_index[pyrat.lt.mol_index>=0]
+    ex.species = pyrat.atm.species[np.unique(imol)]
+    ex.nspec = len(pyrat.ex.species)
+
     with np.printoptions(formatter={'float':'{:.1f}'.format}):
         log.msg(f"Temperature sample (K):\n {ex.temp}", indent=2)
 
     # Evaluate the partition function at the given temperatures:
     log.msg("Interpolate partition function.", indent=2)
-    ex.z = np.zeros((pyrat.iso.niso, ex.ntemp), np.double)
-    for i in range(pyrat.iso.niso):
-        ex.z[i] = pyrat.iso.zinterp[i](ex.temp)
+    ex.z = np.zeros((pyrat.lt.niso, ex.ntemp), np.double)
+    for i in range(pyrat.lt.niso):
+        ex.z[i] = pyrat.lt.iso_pf_interp[i](ex.temp)
 
     # Allocate wavenumber, pressure, and isotope arrays:
     ex.wn = spec.wn
@@ -258,16 +262,16 @@ def extinction(pyrat, indices, grid=False, add=False):
     else:  # Cross-section spectra for each species (cm2 molecule-1)
         extinct_coeff = np.zeros((pyrat.ex.nspec, pyrat.spec.nwave))
 
-    if pyrat.iso.iext is None:
-        # Get species indices in opacity table for the isotopes:
-        pyrat.iso.iext = np.zeros(pyrat.iso.niso, int)
-        for i in range(pyrat.iso.niso):
-            if pyrat.iso.imol[i] != -1:
-                pyrat.iso.iext[i] = np.where(
-                    pyrat.ex.species == pyrat.atm.species[pyrat.iso.imol[i]])[0][0]
-            else:
-                pyrat.iso.iext[i] = -1  # Isotope not in atmosphere
-                # FINDME: find patch for this case in ec.extinction()
+    # Get species indices in opacity table for the isotopes:
+    iext = np.zeros(pyrat.lt.niso, int)
+    for i in range(pyrat.lt.niso):
+        mol_index = pyrat.lt.mol_index[i]
+        if mol_index != -1:
+            iext[i] = np.where(
+                pyrat.ex.species == pyrat.atm.species[mol_index])[0][0]
+        else:
+            iext[i] = -1  # Isotope not in atmosphere
+            # FINDME: find patch for this case in ec.extinction()
 
     # Turn off verb of all processes except the first:
     verb = pyrat.log.verb
@@ -277,11 +281,11 @@ def extinction(pyrat, indices, grid=False, add=False):
         ilayer = index % atm.nlayers  # Layer index
         pressure = atm.press[ilayer]  # Layer pressure
         molq = atm.vmr[ilayer]  # Molecular abundance
-        density  = atm.d[ilayer]  # Molecular density
+        density = atm.d[ilayer]  # Molecular density
         if grid:  # Take from grid
             itemp = int(index / atm.nlayers)  # Temp. index in EC table
             temp = pyrat.ex.temp[itemp]
-            ziso = pyrat.ex.z[:,itemp]      # Isotopic ratio
+            iso_pf = pyrat.ex.z[:,itemp]
             pyrat.log.msg(
                 "Extinction-coefficient table: "
                 f"layer {ilayer+1:3d}/{atm.nlayers}, "
@@ -289,8 +293,8 @@ def extinction(pyrat, indices, grid=False, add=False):
                 indent=2,
             )
         else: # Take from atmosphere
-            temp = atm.temp [ilayer]
-            ziso = pyrat.iso.z  [:,ilayer]  # Isotopic ratio
+            temp = atm.temp[ilayer]
+            iso_pf = pyrat.lt.iso_pf[:,ilayer]
             pyrat.log.msg(
                 f"Calculating extinction at layer {ilayer+1:3d}/{atm.nlayers} "
                 f"(T={temp:6.1f} K, p={pressure/pc.bar:.1e} bar).",
@@ -301,7 +305,7 @@ def extinction(pyrat, indices, grid=False, add=False):
         extinct_coeff[:] = 0.0
         interpolate_flag = int(
             pyrat.spec.resolution is not None
-            or pyrat.spec.wnstep is not None
+            or pyrat.spec.wlstep is not None
         )
         ec.extinction(
             extinct_coeff,
@@ -309,8 +313,8 @@ def extinction(pyrat, indices, grid=False, add=False):
             pyrat.voigt.lorentz, pyrat.voigt.doppler,
             pyrat.spec.wn, pyrat.spec.own, pyrat.spec.odivisors,
             density, molq, pyrat.atm.mol_radius, pyrat.atm.mol_mass,
-            pyrat.iso.imol, pyrat.iso.mass, pyrat.iso.ratio,
-            ziso, pyrat.iso.iext,
+            pyrat.lt.mol_index, pyrat.lt.iso_mass, pyrat.lt.iso_ratio,
+            iso_pf, iext,
             pyrat.lt.wn, pyrat.lt.elow, pyrat.lt.gf, pyrat.lt.isoid,
             pyrat.voigt.cutoff, pyrat.ex.ethresh, pressure, temp,
             verb-10, int(add),

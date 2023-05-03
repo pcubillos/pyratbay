@@ -42,7 +42,7 @@ def width_limits(pyrat):
     tmax = 3000.0 if pyrat.ex.tmax is None else pyrat.ex.tmax
 
     # Get mass of line-transition molecules:
-    mols = np.unique(pyrat.iso.imol) # Molecules with transitions
+    mols = np.unique(pyrat.lt.mol_index) # Molecules with transitions
     mols = mols[np.where(mols>=0)]   # Remove -1's
 
     # Estimate min/max Doppler/Lorentz HWHMs from atmospheric properties:

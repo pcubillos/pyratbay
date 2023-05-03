@@ -17,6 +17,7 @@ from .alkali import Alkali
 from .atmosphere import Atmosphere
 from .crosssec import CIA
 from .h_ion import H_Ion
+from .line_by_line import Line_By_Line
 from .observation import Observation
 from . import spectrum as sp
 from .  import extinction as ex
@@ -25,7 +26,6 @@ from .  import optical_depth as od
 from .  import objects as ob
 from .  import argum as ar
 from .  import voigt as v
-from .  import read_tli as rtli
 
 
 class Pyrat(object):
@@ -59,16 +59,13 @@ class Pyrat(object):
       >>> pyrat.set_spectrum()
       """
       # Sub-classes:
-      self.lt = ob.Linetransition()   # Line-transition data
       self.voigt = ob.Voigt()         # Voigt profile
-
       self.ex = ob.Extinction()       # Extinction-coefficient
       self.od = ob.Optdepth()         # Optical depth
 
       # Parse config file inputs:
       pt.parse(self, cfile, no_logfile, mute)
 
-      self.iso = ob.Isotopes()
       self.phy = ob.Physics(self.inputs)
       self.ret = ob.Retrieval(self.inputs, self.log)
 
@@ -97,8 +94,14 @@ class Pyrat(object):
       self.obs = Observation(self.inputs, self.spec.wn, self.log)
       ar.check_spectrum(self)
 
-      # Read line database:
-      rtli.read_tli(self)
+      # Read line-by-line data:
+      self.lt = Line_By_Line(
+          self.inputs,
+          list(self.atm.species),
+          self.spec.wnlow, self.spec.wnhigh,
+          self.log,
+      )
+
       self.timestamps['read tli'] = timer.clock()
 
       # Setup more observational/retrieval parameters:

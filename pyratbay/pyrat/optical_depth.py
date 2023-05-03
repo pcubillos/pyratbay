@@ -61,6 +61,10 @@ def optical_depth(pyrat):
 
     # Calculate the extinction coefficient on the spot:
     elif lt.tlifile is not None:
+        imol = pyrat.lt.mol_index[pyrat.lt.mol_index>=0]
+        ex.species = pyrat.atm.species[np.unique(imol)]
+        ex.nspec = len(ex.species)
+
         if np.any(pyrat.atm.temp > lt.tmax) or np.any(pyrat.atm.temp < lt.tmin):
             pyrat.log.warning(
                 "Atmospheric temperature values lie out of the line-transition "
@@ -70,8 +74,9 @@ def optical_depth(pyrat):
             return good_status
 
         # Update partition functions:
-        for i in range(pyrat.iso.niso):
-            pyrat.iso.z[i] = pyrat.iso.zinterp[i](pyrat.atm.temp)
+        lt.iso_pf = np.zeros((lt.niso, nlayers))
+        for i in range(lt.niso):
+            lt.iso_pf[i] = lt.iso_pf_interp[i](pyrat.atm.temp)
 
         sm_ext = mp.Array(
             ctypes.c_double, np.zeros(nlayers*nwave, np.double))
