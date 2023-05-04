@@ -742,17 +742,17 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
     pyrat.ex.tstep = args.get_default(
         'tstep', "Opacity grid's temperature sampling step in K", gt=0.0)
 
-    pyrat.inputs.rayleigh = args.get_choice(
+    args.rayleigh = args.get_choice(
         'rayleigh', 'Rayleigh model', pc.rmodels)
 
-    pyrat.inputs.clouds = args.get_choice(
+    args.clouds = args.get_choice(
         'clouds', 'cloud model', pc.cmodels)
-    pyrat.inputs.fpatchy = args.get_default(
+    args.fpatchy = args.get_default(
         'fpatchy', 'Patchy-cloud fraction', ge=0.0, le=1.0)
 
-    pyrat.inputs.model_names = args.get_choice(
+    args.alkali_models = args.get_choice(
         'alkali', 'alkali model', pc.amodels)
-    pyrat.inputs.alkali_cutoff = args.get_default(
+    args.alkali_cutoff = args.get_default(
         'alkali_cutoff',
         'Alkali profiles hard cutoff from line center (cm-1)', 4500.0, gt=0.0)
 

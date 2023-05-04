@@ -116,7 +116,7 @@ class Pyrat(object):
       ar.setup(self)
 
       self.alkali = Alkali(
-          self.inputs.model_names,
+          self.inputs.alkali_models,
           self.atm.press,
           self.spec.wn,
           self.inputs.alkali_cutoff,
