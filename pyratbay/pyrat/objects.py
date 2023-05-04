@@ -2,7 +2,6 @@
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
-    'Voigt',
     'Extinction',
     'Optdepth',
     'Cloud',
@@ -15,53 +14,6 @@ import numpy as np
 from .. import tools as pt
 from .. import constants as pc
 from .. import atmosphere as pa
-
-
-class Voigt(object):
-  def __init__(self):
-      self.dmin     = None  # Minimum Doppler width sampled
-      self.dmax     = None  # Maximum Doppler width sampled
-      self.ndop     = None  # Number of Doppler-width samples
-      self.lmin     = None  # Minimum Lorentz width sampled
-      self.lmax     = None  # Maximum Lorentz width sampled
-      self.nlor     = None  # Number of Lorentz-width samples
-      self.doppler  = None  # Doppler-width sample array [ndop]
-      self.lorentz  = None  # Lorentz-width sample array [nlor]
-      self.dlratio  = None  # Doppler-Lorentz ratio threshold
-      self.extent   = None  # Extent covered by the profile (in number of HWHM)
-      self.cutoff   = None  # Max cutoff extent (in cm-1)
-      self.profile  = None  # Voigt profile [sum(2*size+1)]
-      self.size     = None  # Profile wavenumber half-size [ndop, nlor]
-      self.index    = None  # Index where each profile starts [ndop, nlor]
-
-  def __str__(self):
-      fw = pt.Formatted_Write(fmt={'float':'{: .3e}'.format}, edge=3)
-      fw.write('Voigt-profile information:')
-      fw.write('\nNumber of Doppler-width samples (ndop): {:d}', self.ndop)
-      fw.write('Number of Lorentz-width samples (nlor): {:d}', self.nlor)
-      fw.write('Doppler HWHM (doppler, cm-1):\n    {}', self.doppler)
-      fw.write('Lorentz HWMH (lorentz, cm-1):\n    {}', self.lorentz)
-      fw.write('Doppler--Lorentz ratio threshold (dlratio): {:.3e}',
-          self.dlratio)
-      fw.write("\nVoigt-profiles' extent (extent, in HWHMs): {:.1f}",
-          self.extent)
-      fw.write("Voigt-profiles' cutoff extent (cutoff in cm-1): {:.1f}",
-          self.cutoff)
-      fw.write('Voigt-profile half-sizes (size) of shape [ndop, nlor]:\n{}',
-          self.size, edge=2)
-      fw.write('Voigt-profile indices (index) of shape [ndop, nlor]:\n{}',
-          self.index, edge=2)
-
-      index, size = self.index[0,0], 2*self.size[0,0]+1
-      fw.write('\nVoigt profiles:\n  profile[ 0, 0]: {}',
-          self.profile[index:index+size],
-          fmt={'float':'{: .5e}'.format}, edge=2)
-      index =  self.index[self.ndop-1,self.nlor-1]
-      size  = 2*self.size[self.ndop-1,self.nlor-1] + 1
-      fw.write('  ...\n  profile[{:2d},{:2d}]: {}', self.ndop-1, self.nlor-1,
-          self.profile[index:index+size],
-          fmt={'float':'{: .5e}'.format}, edge=2)
-      return fw.text
 
 
 class Extinction(object):

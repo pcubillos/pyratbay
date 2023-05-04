@@ -51,17 +51,6 @@ def check_spectrum(pyrat):
             'input profile or compute one via the radmodel argument'
         )
 
-    # Check Voigt-profile arguments:
-    dmin = pyrat.voigt.dmin
-    dmax = pyrat.voigt.dmax
-    if dmin is not None and dmax is not None and dmax <= dmin:
-        log.error(f'dmax ({dmax:g} cm-1) must be > dmin ({dmin:g} cm-1)')
-
-    lmin = pyrat.voigt.lmin
-    lmax = pyrat.voigt.lmax
-    if lmin is not None and lmax is not None and lmax <= lmin:
-        log.error(f'lmax ({lmax:g} cm-1) must be > lmin ({lmin:g} cm-1)')
-
     if pyrat.runmode == 'opacity' or pt.isfile(pyrat.ex.extfile) == 0:
         if pyrat.ex.tmin is None:
             log.error(

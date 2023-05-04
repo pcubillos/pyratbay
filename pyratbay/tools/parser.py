@@ -715,23 +715,24 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         warnings.warn(warning_msg, category=DeprecationWarning)
         if args.log_gstar is None:
             args.log_gstar = np.log10(gstar)
-    pyrat.voigt.extent = args.get_default(
+
+    args.voigt_extent = args.get_default(
         'vextent', 'Voigt profile extent in HWHM', 100.0, ge=1.0)
-    pyrat.voigt.cutoff = args.get_default(
+    args.voigt_cutoff = args.get_default(
         'vcutoff', 'Voigt profile cutoff in cm-1', 25.0, ge=0.0)
-    pyrat.voigt.ndop = args.get_default(
+    args.voigt_ndop = args.get_default(
         'ndop', 'Number of Doppler-width samples', 40, ge=1)
-    pyrat.voigt.dmin = args.get_default(
+    args.voigt_dmin = args.get_default(
         'dmin', 'Minimum Doppler HWHM (cm-1)', gt=0.0)
-    pyrat.voigt.dmax = args.get_default(
+    args.voigt_dmax = args.get_default(
         'dmax', 'Maximum Doppler HWHM (cm-1)', gt=0.0)
-    pyrat.voigt.nlor = args.get_default(
+    args.voigt_nlor = args.get_default(
         'nlor', 'Number of Lorentz-width samples', 40, ge=1)
-    pyrat.voigt.lmin = args.get_default(
+    args.voigt_lmin = args.get_default(
         'lmin', 'Minimum Lorentz HWHM (cm-1)', gt=0.0)
-    pyrat.voigt.lmax = args.get_default(
+    args.voigt_lmax = args.get_default(
         'lmax', 'Maximum Lorentz HWHM (cm-1)', gt=0.0)
-    pyrat.voigt.dlratio = args.get_default(
+    args.voigt_dlratio = args.get_default(
         'dlratio', 'Doppler/Lorentz-width ratio threshold', 0.1, gt=0.0)
 
     pyrat.ex.tmin = args.get_param(

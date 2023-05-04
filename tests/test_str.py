@@ -345,13 +345,13 @@ Voigt-profile information:
 Number of Doppler-width samples (ndop): 40
 Number of Lorentz-width samples (nlor): 40
 Doppler HWHM (doppler, cm-1):
-    [ 4.963e-03  5.243e-03  5.538e-03 ...  3.765e-02  3.977e-02  4.201e-02]
+    [4.963e-03 5.243e-03 5.538e-03 ... 3.765e-02 3.977e-02 4.201e-02]
 Lorentz HWMH (lorentz, cm-1):
-    [ 2.210e-08  3.702e-08  6.202e-08 ...  4.313e+00  7.225e+00  1.210e+01]
+    [2.210e-08 3.702e-08 6.202e-08 ... 4.313e+00 7.225e+00 1.210e+01]
 Doppler--Lorentz ratio threshold (dlratio): 1.000e-01
 
-Voigt-profiles' extent (extent, in HWHMs): 100.0
-Voigt-profiles' cutoff extent (cutoff in cm-1): 25.0
+Voigt-profiles extent (extent, in HWHMs): 100.0
+Voigt-profiles cutoff extent (cutoff in cm-1): 25.0
 Voigt-profile half-sizes (size) of shape [ndop, nlor]:
 [[ 1072  1132 ...  8590  9074]
  [ 1072  1132 ...  8590  9074]
@@ -366,9 +366,9 @@ Voigt-profile indices (index) of shape [ndop, nlor]:
  [15035818 15035818 ... 15035818 15035818]]
 
 Voigt profiles:
-  profile[ 0, 0]: [ 2.85914e-08  2.86448e-08 ...  2.86448e-08  2.85914e-08]
+  profile[ 0, 0]: [2.85914e-08 2.86448e-08 ... 2.86448e-08 2.85914e-08]
   ...
-  profile[39,39]: [ 4.99389e-03  4.99404e-03 ...  4.99404e-03  4.99389e-03]
+  profile[39,39]: [4.99389e-03 4.99404e-03 ... 4.99404e-03 4.99389e-03]
 """
 
 

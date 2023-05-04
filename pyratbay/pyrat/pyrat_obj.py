@@ -19,13 +19,13 @@ from .crosssec import CIA
 from .h_ion import H_Ion
 from .line_by_line import Line_By_Line
 from .observation import Observation
+from .voigt import Voigt
 from . import spectrum as sp
 from .  import extinction as ex
 from .  import clouds as cl
 from .  import optical_depth as od
 from .  import objects as ob
 from .  import argum as ar
-from .  import voigt as v
 
 
 class Pyrat(object):
@@ -59,9 +59,8 @@ class Pyrat(object):
       >>> pyrat.set_spectrum()
       """
       # Sub-classes:
-      self.voigt = ob.Voigt()         # Voigt profile
-      self.ex = ob.Extinction()       # Extinction-coefficient
-      self.od = ob.Optdepth()         # Optical depth
+      self.ex = ob.Extinction()  # Extinction-coefficient
+      self.od = ob.Optdepth()   # Optical depth
 
       # Parse config file inputs:
       pt.parse(self, cfile, no_logfile, mute)
@@ -101,15 +100,20 @@ class Pyrat(object):
           self.spec.wnlow, self.spec.wnhigh,
           self.log,
       )
-
       self.timestamps['read tli'] = timer.clock()
+
+      self.voigt = Voigt(
+          self.inputs,
+          self.lbl,
+          self.ex,
+          self.spec,
+          self.atm,
+          self.log,
+      )
+      self.timestamps['voigt'] = timer.clock()
 
       # Setup more observational/retrieval parameters:
       ar.setup(self)
-
-      # Extinction Voigt grid:
-      v.voigt(self)
-      self.timestamps['voigt'] = timer.clock()
 
       self.alkali = Alkali(
           self.inputs.model_names,

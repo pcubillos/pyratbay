@@ -8290,3 +8290,11 @@ Updated docs.
 
 Renamed pyrat.lt to pyrat.tli.
 
+
+*****  Thu May 4 10:23:52 CEST 2023  *****
+
+Refactored Voigt() class, moved from objects.py to voigt.py.
+Merged code from voigt.py as initialization method.
+Removed references to pyrat.voigt in parser.
+Updated tests.
+

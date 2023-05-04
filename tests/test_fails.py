@@ -690,7 +690,9 @@ def test_spectrum_inconsistent_voigt_bounds(tmp_path, vmin, vmax):
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         reset={vmin:'1e5', vmax:'1e4'},
     )
-    error = re.escape(f'{vmax} (10000 cm-1) must be > {vmin} (100000 cm-1)')
+    error = re.escape(
+        f'Voigt {vmax} (1.0000e+04 cm-1) must be > {vmin} (1.0000e+05 cm-1)'
+    )
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
 
