@@ -61,10 +61,6 @@ def run(cfile, run_step='run', no_logfile=False):
     if pyrat.runmode == 'atmosphere':
         return pyrat.atm
 
-    # Check status of extinction-coefficient file if necessary:
-    if pyrat.runmode != 'spectrum' and pt.isfile(pyrat.inputs.extfile) == -1:
-        log.error("Undefined extinction-coefficient file (extfile).")
-
     if pyrat.runmode == 'mcmc' and ret.mcmcfile is None:
         log.error('Undefined MCMC file (mcmcfile).')
 

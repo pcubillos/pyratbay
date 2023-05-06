@@ -53,20 +53,6 @@ def test_run_tli2(tmp_path):
         pyrat = pb.run(cfg)
 
 
-@pytest.mark.parametrize(
-    'cfile', ['opacity_test.cfg', 'mcmc_transmission_test.cfg'],
-)
-def test_run_opacity_extfile(tmp_path, cfile):
-    cfg = make_config(
-        tmp_path,
-        f'{ROOT}tests/configs/{cfile}',
-        remove=['extfile'],
-    )
-    error = "Undefined extinction-coefficient file (extfile)."
-    with pytest.raises(ValueError, match=re.escape(error)):
-        pyrat = pb.run(cfg)
-
-
 def test_run_mcmc_mcmcfile(tmp_path):
     cfg = make_config(
         tmp_path,
@@ -512,7 +498,7 @@ def test_spectrum_missing_wl_units(tmp_path):
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         reset={'wllow': '1.1', 'wlhigh': '2.0'},
     )
-    error = f"Invalid units 'None' for parameter wllow"
+    error = "Invalid units 'None' for parameter wllow"
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
 
@@ -1138,7 +1124,7 @@ def test_read_opacity_missing_extfile(tmp_path):
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         reset={'extfile':efile},
     )
-    error = re.escape(f"Missing cross-section files: ['{efile}']")
+    error = re.escape(f"Missing opacity files: ['{efile}']")
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
 
@@ -1161,8 +1147,8 @@ def test_compute_opacity_make_multiple_extfiles(tmp_path):
         reset=reset,
     )
     error = re.escape(
-        'Computing cross-section table, but there is more than one'
-        'cross-section file set (extfile)'
+        'Computing opacity table, but there is more than one'
+        'output opacity file set (extfile)'
     )
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
@@ -1212,22 +1198,30 @@ def test_read_opacity_mismatched_values(tmp_path):
         pyrat = pb.run(cfg)
 
 
-@pytest.mark.parametrize('param', ['tmin', 'tmax', 'tstep', 'tlifile'])
-def test_compute_opacity_missing(tmp_path, param, undefined_opacity):
-    reset = {
-        'runmode': 'opacity',
-        'extfile': str(tmp_path/'new_opacity.npz'),
-        'tmin':'300.0',
-        'tmax':'3000.0',
-        'tstep':'900',
-    }
+@pytest.mark.parametrize(
+    'param',
+    ['extfile', 'tmin', 'tmax', 'tstep', 'tlifile'],
+)
+def test_opacity_missing(tmp_path, param):
+    reset = {'extfile': str(tmp_path/'new_opacity.npz')}
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        ROOT+'tests/configs/opacity_test.cfg',
         reset=reset,
         remove=[param],
     )
-    error = re.escape(undefined_opacity[param])
+    if param == 'extfile':
+        err = 'output opacity file (extfile)'
+    if param == 'tlifile':
+        err = 'input TLI files (tlifile)'
+    if param == 'tmin':
+        err = 'lower temperature boundary (tmin)'
+    if param == 'tmax':
+        err = 'upper temperature boundary (tmax)'
+    if param == 'tstep':
+        err = 'temperature sampling step (tstep)'
+    error = re.escape(f'Undefined {err} needed to compute opacity table')
+
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
 
@@ -1260,19 +1254,6 @@ def test_incompatible_tli():
 @pytest.mark.skip
 def test_crosssec_mol_not_in_atm():
     pass
-
-
-@pytest.mark.parametrize('param', ['tmin', 'tmax', 'tstep', 'tlifile'])
-def test_opacity_missing(tmp_path, param, undefined_opacity):
-    cfg = make_config(
-        tmp_path,
-        ROOT+'tests/configs/opacity_test.cfg',
-        reset={'extfile':str(tmp_path/'new_opacity.npz')},
-        remove=[param],
-    )
-    error = re.escape(undefined_opacity[param])
-    with pytest.raises(ValueError, match=error):
-        pyrat = pb.run(cfg)
 
 
 @pytest.mark.parametrize(

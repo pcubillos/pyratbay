@@ -1,158 +1,14 @@
 # Copyright (c) 2021-2023 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
-import os
 import ctypes
-import importlib
 import multiprocessing as mp
 
 import numpy as np
 
-from .. import tools as pt
 from .. import constants as pc
 from .. import io as io
 from ..lib import _extcoeff as ec
-
-
-def read_opacity(pyrat, wn_mask=None):
-    """
-    Read opacity table(s), which are actually cross-section tables
-    with units of (cm2 molecule-1).
-    """
-    ex = pyrat.ex
-    log = pyrat.log
-    ex.extfile = pyrat.inputs.extfile
-
-    # No need to read anything:
-    if pyrat.runmode == 'opacity' or ex.extfile is None:
-        return
-
-    if pt.isfile(ex.extfile) == 0:
-         missing_files = [
-             extfile
-             for extfile in ex.extfile
-             if pt.isfile(extfile) == 0
-         ]
-         log.error(f'Missing cross-section files: {missing_files}')
-
-    log.head("\nReading cross-section table file(s):")
-    for extfile in ex.extfile:
-        log.head(f"  '{extfile}'.")
-
-    # Load opacities into shared memory if and only if possible and needed:
-    use_shared_memory = False
-    mpi_exists = importlib.util.find_spec('mpi4py') is not None
-    if mpi_exists:
-        from mpi4py import MPI
-        comm = MPI.COMM_WORLD
-        use_shared_memory = comm.size > 1
-
-    # Get dimensions first:
-    species, ex.temp, ex.press, ex.wn = io.read_opacity(
-        ex.extfile[0], extract='arrays',
-    )
-    ex.ntemp = len(ex.temp)
-    ex.nlayers = len(ex.press)
-    ex.nwave = len(ex.wn)
-
-    ex.species = []
-    species_per_file = []
-    for extfile in ex.extfile:
-        efile = os.path.basename(extfile)
-        species, temp, press, wn = io.read_opacity(extfile, extract='arrays')
-        species_per_file.append(list(species))
-        ntemp = len(temp)
-        nlayers = len(press)
-        nwave = len(wn)
-
-        if ntemp != ex.ntemp or nlayers != ex.nlayers or nwave != ex.nwave:
-            log.error(
-                f"Shape of the cross-section file '{efile}' "
-                "does not match with previous file shapes."
-            )
-        # Species, temperature (K), pressure (barye), and wavenumber (cm-1):
-        if ex.temp is not None:
-            value_mismatch = [
-                np.any(np.abs(1.0-temp/ex.temp) > 0.01),
-                np.any(np.abs(1.0-press/ex.press) > 0.01),
-                np.any(np.abs(1.0-wn/ex.wn) > 0.01),
-            ]
-            if np.any(value_mismatch):
-                vals = np.array(['temperature', 'pressure', 'wavenumber'])
-                mismatch = ', '.join(vals[value_mismatch])
-                log.error(
-                    f"Tabulated {mismatch} values in file '{efile}' "
-                    "do not match with previous arrays"
-                )
-        # Add new species:
-        ex.species += [
-            spec
-            for spec in species
-            if spec not in ex.species
-        ]
-
-    spec_indices = []
-    for species in species_per_file:
-        spec_indices.append([
-            ex.species.index(spec) for spec in species
-        ])
-    ex.species = np.array(ex.species)
-    ex.nspec = len(ex.species)
-
-    if wn_mask is None:
-        wn_mask = np.ones(len(ex.wn), bool)
-    ex.wn = ex.wn[wn_mask]
-    ex.nwave = len(ex.wn)
-
-    # Cross-sections table (cm2 molecule-1):
-    cs_shape = (ex.nspec, ex.ntemp, ex.nlayers, ex.nwave)
-    if not use_shared_memory:
-        ex.etable = np.zeros(cs_shape)
-        for idx,extfile in zip(spec_indices, ex.extfile):
-            ex.etable[idx] += \
-                io.read_opacity(extfile, extract='opacity')[:,:,:,wn_mask]
-    else:
-        itemsize = MPI.DOUBLE.Get_size()
-        if comm.rank == 0:
-            nbytes = np.prod(cs_shape) * itemsize
-        else:
-            nbytes = 0
-        # on rank 0, create the shared block
-        # else get a handle to it
-        win = MPI.Win.Allocate_shared(nbytes, itemsize, comm=comm)
-
-        buf, itemsize = win.Shared_query(0)
-        assert itemsize == MPI.DOUBLE.Get_size()
-        ex.etable = np.ndarray(buffer=buf, dtype='d', shape=cs_shape)
-        if comm.rank == 0:
-            for idx,extfile in zip(spec_indices, ex.extfile):
-                ex.etable[idx] += \
-                    io.read_opacity(extfile, extract='opacity')[:,:,:,wn_mask]
-        comm.Barrier()
-
-    log.msg(
-        f"File(s) have {ex.nspec} species, {ex.ntemp} temperature "
-        f"samples, {ex.nlayers} layers, and {ex.nwave} wavenumber samples.",
-        indent=2,
-    )
-
-    # Set tabulated temperature extrema:
-    ex.tmin = np.amin(ex.temp)
-    ex.tmax = np.amax(ex.temp)
-
-    with np.printoptions(precision=1):
-        str_temp = str(ex.temp)
-    with np.printoptions(formatter={'float':'{: .2f}'.format}, threshold=100):
-        str_wn = str(ex.wn)
-    with np.printoptions(formatter={'float':'{:.3e}'.format}):
-        str_press = str(ex.press/pc.bar)
-    log.msg(
-        f"Species names: {ex.species}\n"
-        f"Temperatures (K):\n   {str_temp}\n"
-        f"Pressure layers (bar):\n{str_press}\n"
-        f"Wavenumber array (cm-1):\n   {str_wn}",
-        indent=2,
-    )
 
 
 def compute_opacity(pyrat):
@@ -165,11 +21,34 @@ def compute_opacity(pyrat):
     log = pyrat.log
 
     if ex.extfile is None:
-        log.error('Undefined extinction-coefficient file (extfile)')
+        log.error(
+            'Undefined output opacity file (extfile) needed to '
+            'compute opacity table'
+        )
     if len(ex.extfile) > 1:
         log.error(
-            'Computing cross-section table, but there is more than one'
-            'cross-section file set (extfile)'
+            'Computing opacity table, but there is more than one'
+            'output opacity file set (extfile)',
+        )
+    if ex.tmin is None:
+        log.error(
+            'Undefined lower temperature boundary (tmin) needed to '
+            'compute opacity table',
+        )
+    if ex.tmax is None:
+        log.error(
+            'Undefined upper temperature boundary (tmax) needed to '
+            'compute opacity table',
+        )
+    if ex.tstep is None:
+        log.error(
+            'Undefined temperature sampling step (tstep) needed to '
+            'compute opacity table',
+        )
+    if pyrat.inputs.tlifile is None:
+        log.error(
+            'Undefined input TLI files (tlifile) needed to compute '
+            'opacity table',
         )
 
     extfile = ex.extfile[0]
@@ -333,28 +212,11 @@ def get_ec(pyrat, layer):
     """
     Compute per-species extinction coefficient at requested layer.
     """
-    # Interpolate:
-    if pyrat.ex.extfile is not None:
-        exc = np.zeros((pyrat.ex.nspec, pyrat.spec.nwave))
-        label = []
-        temp = pyrat.atm.temp[layer]
-        itemp = np.where(pyrat.ex.temp <= temp)[0][-1]
-        if itemp == len(pyrat.ex.temp):
-            itemp -= 1
-        for i in range(pyrat.ex.nspec):
-            imol = np.where(pyrat.atm.species == pyrat.ex.species[i])[0][0]
-            label.append(pyrat.atm.species[imol])
-            etable = pyrat.ex.etable[i,:,layer,:]
-            exc[i] = ((etable[itemp  ] * (pyrat.ex.temp[itemp+1] - temp) +
-                       etable[itemp+1] * (temp - pyrat.ex.temp[itemp]  ) ) /
-                      (pyrat.ex.temp[itemp+1] - pyrat.ex.temp[itemp])      )
-            exc[i] *= pyrat.atm.d[layer, imol]
     # Line-by-line:
-    else:
-        exc = extinction(pyrat, [layer], grid=False, add=False)
-        label = []
-        for i in range(pyrat.ex.nspec):
-            imol = np.where(pyrat.atm.species == pyrat.ex.species[i])[0][0]
-            exc[i] *= pyrat.atm.d[layer,imol]
-            label.append(pyrat.atm.species[imol])
+    exc = extinction(pyrat, [layer], grid=False, add=False)
+    label = []
+    for i in range(pyrat.ex.nspec):
+        imol = np.where(pyrat.atm.species == pyrat.ex.species[i])[0][0]
+        exc[i] *= pyrat.atm.d[layer,imol]
+        label.append(pyrat.atm.species[imol])
     return exc, label

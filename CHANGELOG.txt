@@ -8316,4 +8316,18 @@ line-sampling opacities separately per species.
 Changed input of interp_ec() adding one extra integer argument
 to define now starting and ending layer indices to interpolate.
 
+*****
+
+Implemented Opacity() class in pyrat/opacity.py
+as interface between Line_Sample() and pyrat object.
+The plan is to incorporate other opacity models into it.
+Removed read_opacity() from extintion.py (now Line_Sample() init
+method).
+Moved other bits out of optical_depth.py.
+Refactored pyrat.Extinction() class, actually initializing variable
+on declaration, and shifting variables into Opacity or Line_Sample().
+Might be removed in the future.
+
+Removed all references to pyrat.ex in parser() function.
+Updated tests.
 

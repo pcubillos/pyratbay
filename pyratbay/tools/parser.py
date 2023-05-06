@@ -735,11 +735,11 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
     args.voigt_dlratio = args.get_default(
         'dlratio', 'Doppler/Lorentz-width ratio threshold', 0.1, gt=0.0)
 
-    pyrat.ex.tmin = args.get_param(
+    args.tmin = args.get_param(
         'tmin', 'kelvin', 'Minimum temperature of opacity grid', gt=0.0)
-    pyrat.ex.tmax = args.get_param(
+    args.tmax = args.get_param(
         'tmax', 'kelvin', 'Maximum temperature of opacity grid', gt=0.0)
-    pyrat.ex.tstep = args.get_default(
+    args.tstep = args.get_default(
         'tstep', "Opacity grid's temperature sampling step in K", gt=0.0)
 
     args.rayleigh = args.get_choice(
@@ -764,7 +764,7 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         'rt_path', 'radiative-transfer observing geometry', pc.rt_paths,
     )
 
-    pyrat.ex.ethresh = args.get_default(
+    args.ethresh = args.get_default(
         'ethresh', 'Extinction-cofficient threshold', 1e-15, gt=0.0)
     pyrat.od.maxdepth = args.get_default(
         'maxdepth', 'Maximum optical-depth', 10.0, ge=0.0)

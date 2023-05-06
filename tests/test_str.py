@@ -817,75 +817,11 @@ Line-transition information:
 No input TLI files.
 """
 
-    assert str(pyrat.ex) == """\
-Extinction-coefficient information:
-Line-transition strength threshold (ethresh): 1.00e-15
-
-LBL extinction coefficient for the atmospheric model (ec, cm-1) [layer, wave]:
-[[3.54e-22 3.71e-15 6.34e-22 ... 2.42e-16 2.24e-18 5.66e-18]
- [4.46e-22 4.67e-15 7.98e-22 ... 3.05e-16 2.82e-18 7.13e-18]
- [5.80e-22 5.88e-15 1.04e-21 ... 3.84e-16 3.56e-18 8.98e-18]
- ...
- [1.92e-07 3.05e-07 3.31e-07 ... 5.78e-07 4.89e-07 4.07e-07]
- [2.39e-07 3.07e-07 3.42e-07 ... 7.36e-07 6.18e-07 5.05e-07]
- [3.01e-07 3.86e-07 4.30e-07 ... 9.27e-07 7.78e-07 6.36e-07]]
-Extinction-coefficient table filename(s) (extfile):
-    {:s}/outputs/exttable_test_300-3000K_1.1-1.7um.npz
-Minimum temperature (tmin, K):  300.0
-Maximum temperature (tmax, K): 3000.0
-Temperature sampling interval (tstep, K): None
-
-Number of species (nspec):              1
-Number of temperatures (ntemp):        10
-Number of layers (nlayers):            81
-Number of spectral samples (nwave):  3209
-
-Species array (species): ['H2O']
-Temperature array (temp, K):
-   [ 300.  600.  900. 1200. 1500. 1800. 2100. 2400. 2700. 3000.]
-Partition function (z): None
-Pressure array (press, bar):
-   [1.00e-06 1.26e-06 1.58e-06 2.00e-06 2.51e-06 3.16e-06 3.98e-06 5.01e-06
-    6.31e-06 7.94e-06 1.00e-05 1.26e-05 1.58e-05 2.00e-05 2.51e-05 3.16e-05
-    3.98e-05 5.01e-05 6.31e-05 7.94e-05 1.00e-04 1.26e-04 1.58e-04 2.00e-04
-    2.51e-04 3.16e-04 3.98e-04 5.01e-04 6.31e-04 7.94e-04 1.00e-03 1.26e-03
-    1.58e-03 2.00e-03 2.51e-03 3.16e-03 3.98e-03 5.01e-03 6.31e-03 7.94e-03
-    1.00e-02 1.26e-02 1.58e-02 2.00e-02 2.51e-02 3.16e-02 3.98e-02 5.01e-02
-    6.31e-02 7.94e-02 1.00e-01 1.26e-01 1.58e-01 2.00e-01 2.51e-01 3.16e-01
-    3.98e-01 5.01e-01 6.31e-01 7.94e-01 1.00e+00 1.26e+00 1.58e+00 2.00e+00
-    2.51e+00 3.16e+00 3.98e+00 5.01e+00 6.31e+00 7.94e+00 1.00e+01 1.26e+01
-    1.58e+01 2.00e+01 2.51e+01 3.16e+01 3.98e+01 5.01e+01 6.31e+01 7.94e+01
-    1.00e+02]
-Wavenumber array (wn, cm-1):
-    [5882.3529 5883.3529 5884.3529 ... 9088.3529 9089.3529 9090.3529]
-Tabulated extinction coefficient (etable, cm2 molecule-1) of shape
-    [nmol, ntemp, nlayers, nwave]:
-[[[[1.16e-32 1.09e-26 ... 1.48e-26 3.73e-28]
-   [1.92e-32 1.09e-26 ... 1.48e-26 3.73e-28]
-   ...
-   [3.61e-25 4.10e-25 ... 1.46e-24 1.18e-24]
-   [3.34e-25 3.67e-25 ... 1.46e-24 1.24e-24]]
-
-  [[1.88e-31 1.44e-24 ... 1.35e-26 7.00e-27]
-   [3.11e-31 1.44e-24 ... 1.35e-26 7.00e-27]
-   ...
-   [2.95e-24 3.32e-24 ... 4.11e-24 3.39e-24]
-   [2.95e-24 3.32e-24 ... 4.11e-24 3.39e-24]]
-
-  ...
-
-  [[2.06e-31 3.91e-24 ... 6.80e-27 1.11e-26]
-   [2.06e-31 3.91e-24 ... 6.80e-27 1.11e-26]
-   ...
-   [3.07e-24 4.91e-24 ... 1.17e-23 9.96e-24]
-   [3.23e-24 4.23e-24 ... 1.14e-23 9.48e-24]]
-
-  [[1.64e-31 3.12e-24 ... 6.85e-27 1.13e-26]
-   [1.64e-31 3.12e-24 ... 6.85e-27 1.13e-26]
-   ...
-   [2.47e-24 3.95e-24 ... 9.96e-24 8.48e-24]
-   [2.62e-24 3.45e-24 ... 9.71e-24 8.05e-24]]]]
-""".format(os.getcwd())
+    assert str(pyrat.opacity) == """\
+Opacity extinction information:
+Model           type           T_min   T_max
+H2O             line_sample    300.0  3000.0
+"""
 
     assert str(pyrat.obs) == """\
 Observing information:

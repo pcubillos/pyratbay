@@ -9,7 +9,6 @@ import numpy as np
 from . import extinction as ex_mod
 from .. import atmosphere as pa
 from .. import constants as pc
-from ..lib import _extcoeff as ec
 from ..lib import _trapz as t
 from ..lib import cutils as cu
 
@@ -42,25 +41,14 @@ def optical_depth(pyrat):
     elif pyrat.od.rt_path in pc.transmission_rt:
         pyrat.od.raypath = pa.transit_path(pyrat.atm.radius, pyrat.atm.rtop)
 
-    # Interpolate extinction coefficient from table:
-    if ex.extfile is not None:
-        if np.any(pyrat.atm.temp > ex.tmax) or np.any(pyrat.atm.temp < ex.tmin):
-            pyrat.log.warning(
-                "Atmospheric temperature values lie out of the cross-section "
-                f"boundaries (K): [{ex.tmin:6.1f}, {ex.tmax:6.1f}]"
-            )
-            good_status = False
-            return good_status
-
-        r = rtop
-        imol = [list(pyrat.atm.species).index(mol) for mol in ex.species]
-        ec.interp_ec(
-            ex.ec, ex.etable,
-            ex.temp, pyrat.atm.temp, pyrat.atm.d[:,imol], rtop,
-        )
+    # Interpolate extinction coefficient from line-sample opacity:
+    pyrat.opacity.calc_extinction_coefficient(
+        pyrat.atm.temp,
+        pyrat.atm.d,
+    )
 
     # Calculate the extinction coefficient on the spot:
-    elif lbl.tlifile is not None:
+    if lbl.tlifile is not None:
         imol = lbl.mol_index[lbl.mol_index>=0]
         ex.species = pyrat.atm.species[np.unique(imol)]
         ex.nspec = len(ex.species)
@@ -97,6 +85,7 @@ def optical_depth(pyrat):
 
     # Sum all contributions to the extinction:
     od.ec[rtop:] = (
+        + pyrat.opacity.ec[rtop:]
         + ex.ec[rtop:]
         + pyrat.cloud.ec[rtop:]
     )
@@ -112,6 +101,7 @@ def optical_depth(pyrat):
     # If fpatchy, compute a separate spectrum with clear skies:
     if pyrat.cloud.fpatchy is not None:
         od.ec_clear[rtop:] = np.copy(od.ec[rtop:]) - pyrat.cloud.ec[rtop:]
+
 
     rbottom = nlayers
     if 'deck' in (m.name for m in pyrat.cloud.models):

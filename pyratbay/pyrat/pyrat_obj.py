@@ -19,6 +19,7 @@ from .crosssec import CIA
 from .h_ion import H_Ion
 from .line_by_line import Line_By_Line
 from .observation import Observation
+from .opacity import Opacity
 from .voigt import Voigt
 from . import spectrum as sp
 from .  import extinction as ex
@@ -59,7 +60,6 @@ class Pyrat(object):
       >>> pyrat.set_spectrum()
       """
       # Sub-classes:
-      self.ex = ob.Extinction()  # Extinction-coefficient
       self.od = ob.Optdepth()   # Optical depth
 
       # Parse config file inputs:
@@ -67,6 +67,7 @@ class Pyrat(object):
 
       self.phy = ob.Physics(self.inputs)
       self.ret = ob.Retrieval(self.inputs, self.log)
+      self.ex = ob.Extinction(self.inputs, self.log)
 
       # Setup time tracker:
       timer = pt.Timer()
@@ -86,12 +87,17 @@ class Pyrat(object):
       self.spec = sp.Spectrum(self.inputs, self.log)
       self.timestamps['wn sample'] = timer.clock()
 
-      # Read opacity tables (if needed):
-      ex.read_opacity(self, self.spec._wn_mask)
-      self.timestamps['read opacity'] = timer.clock()
-
       self.obs = Observation(self.inputs, self.spec.wn, self.log)
       ar.check_spectrum(self)
+      # Read opacity tables (if needed):
+      self.opacity = Opacity(
+          self.inputs,
+          self.spec.wn,
+          self.atm.species,
+          self.atm.press,
+          self.log,
+      )
+      self.timestamps['read opacities'] = timer.clock()
 
       # Read line-by-line data:
       self.lbl = Line_By_Line(
@@ -167,11 +173,23 @@ class Pyrat(object):
       # Re-calculate atmospheric properties if required:
       self.atm.calc_profiles(temp, vmr, radius, self.phy.mstar, self.log)
 
+      oob = self.opacity.check_temp_bounds(self.atm.temp)
+      if len(oob) > 0:
+          good_status = False
+          self.log.warning(
+              "Temperature values lie out of the cross-section "
+              f"boundaries for: {oob}"
+          )
+
       # Interpolate CIA absorption:
       good_status = self.cs.calc_extinction_coefficient(
           self.atm.temp, self.atm.d, self.log,
       )
       self.timestamps['interp cs'] = timer.clock()
+
+      if not good_status:
+          self.spec.spectrum[:] = 0.0
+          return
 
       # Calculate cloud, Rayleigh, and H- absorption:
       cl.absorption(self)
@@ -184,12 +202,8 @@ class Pyrat(object):
       self.timestamps['alkali'] = timer.clock()
 
       # Calculate the optical depth:
-      good_status &= od.optical_depth(self)
+      od.optical_depth(self)
       self.timestamps['odepth'] = timer.clock()
-
-      if not good_status:
-          self.spec.spectrum[:] = 0.0
-          return
 
       # Calculate the spectrum:
       sp.spectrum(self)
@@ -448,8 +462,13 @@ class Pyrat(object):
       # Allocate outputs:
       ec = np.empty((0, self.spec.nwave))
       label = []
+      # Line-sample extinction coefficient:
+      if len(self.opacity.models) > 0:
+          e, lab = self.opacity.get_ec(self.atm.temp, self.atm.d, layer)
+          ec = np.vstack((ec, e))
+          label += lab
       # Line-by-line extinction coefficient:
-      if self.ex.nspec != 0:
+      if self.lbl.ntransitions != 0:
           e, lab = ex.get_ec(self, layer)
           ec = np.vstack((ec, e))
           label += lab
@@ -570,10 +589,11 @@ class Pyrat(object):
           args['bands_response'] = [band.response for band in self.obs.filters]
           args['bands_flux'] = self.obs.bandflux
 
-      if self.ret.spec_low2 is not None and spec != 'model':
+      if self.ret.spec_low2 is not None:
           args['bounds'] = [
               self.ret.spec_low2,  self.ret.spec_low1,
-              self.ret.spec_high1, self.ret.spec_high2]
+              self.ret.spec_high1, self.ret.spec_high2,
+          ]
 
       if spec == 'model':
           args['label'] = 'model'

@@ -16,60 +16,36 @@ from .. import constants as pc
 from .. import atmosphere as pa
 
 
-class Extinction(object):
-  def __init__(self):
-      self.ec      = None # Molecular line-transition extinction coefficient
-                          #  in cm-1 [nlayers, nwave]
-      self.ethresh = None # Extinction-coefficient threshold
-      self.extfile = None # Extinction-coefficient table filename
-      self.etable  = None # Tabulated extinction coefficient (cm-2 molecule-1)
-                          # with shape [nmol, nlayer, ntemp, nwave]
-      self.tmin    = None # Minimum temperature to sample
-      self.tmax    = None # Maximum temperature to sample
-      self.tstep   = None # Temperature-sample step interval
-      self.z       = None # Partition function at tabulated temperatures
-                          #   [niso, ntemp]
-      self.nspec   = 0    # Number of species
-      self.ntemp   = 0    # Number of temperature samples
-      self.nlayers = 0    # Number of pressure layers
-      self.nwave   = 0    # Number of wavenumber spectral samples
+class Extinction():
+    def __init__(self, inputs, log):
+        self.ec = None # line-transition extinction coefficient in cm-1
+        self.extfile = inputs.extfile
+        # Temperature sampling to compute opacity grid
+        self.tmin = inputs.tmin
+        self.tmax = inputs.tmax
+        self.tstep = inputs.tstep
+        self.ethresh = inputs.ethresh
 
-      self.temp    = None # Tabulated temperatures
-      self.press   = None # Tabulated pressures
-      self.wn      = None # Tabulated wavenumber
 
-  def __str__(self):
-      fmt = {'float': '{:.2e}'.format}
-      fw = pt.Formatted_Write()
-      fw.write('Extinction-coefficient information:')
-      fw.write('Line-transition strength threshold (ethresh): {:.2e}',
-          self.ethresh)
-      if self.ec is not None:
-          fw.write(
-              '\nLBL extinction coefficient for the atmospheric model '
-              '(ec, cm-1) [layer, wave]:\n{}', self.ec, fmt=fmt)
-      extfile = ['None'] if self.extfile is None else self.extfile
-      fw.write("Extinction-coefficient table filename(s) (extfile): {}",
-          '\n    '.join(extfile))
-      if self.extfile is None:
-          return fw.text
-      fw.write('Minimum temperature (tmin, K): {:6.1f}', self.tmin)
-      fw.write('Maximum temperature (tmax, K): {:6.1f}', self.tmax)
-      fw.write('Temperature sampling interval (tstep, K): {:6.1f}', self.tstep)
-      fw.write('\nNumber of species (nspec):          {:5d}', self.nspec)
-      fw.write('Number of temperatures (ntemp):     {:5d}', self.ntemp)
-      fw.write('Number of layers (nlayers):         {:5d}', self.nlayers)
-      fw.write('Number of spectral samples (nwave): {:5d}', self.nwave)
-      fw.write('\nSpecies array (species): {}', self.species)
-      fw.write('Temperature array (temp, K):\n   {}', self.temp)
-      fw.write('Partition function (z): {}', self.z)
-      fw.write('Pressure array (press, bar):\n   {}', self.press/pc.bar,
-               fmt=fmt, lw=8000)
-      fw.write('Wavenumber array (wn, cm-1):\n    {}', self.wn, prec=4)
-      fw.write('Tabulated extinction coefficient (etable, cm2 molecule-1) '
-               'of shape\n    [nmol, ntemp, nlayers, nwave]:\n{}', self.etable,
-               fmt=fmt, edge=2)
-      return fw.text
+    def __str__(self):
+        fmt = {'float': '{:.2e}'.format}
+        fw = pt.Formatted_Write()
+        fw.write('Extinction-coefficient information:')
+        fw.write('Line-transition strength threshold (ethresh): {:.2e}',
+            self.ethresh)
+        if self.ec is not None:
+            fw.write(
+                '\nLBL extinction coefficient for the atmospheric model '
+                '(ec, cm-1) [layer, wave]:\n{}', self.ec, fmt=fmt)
+        extfile = ['None'] if self.extfile is None else self.extfile
+        fw.write("Extinction-coefficient table filename(s) (extfile): {}",
+            '\n    '.join(extfile))
+        if self.extfile is None:
+            return fw.text
+        fw.write('Minimum temperature (tmin, K): {:6.1f}', self.tmin)
+        fw.write('Maximum temperature (tmax, K): {:6.1f}', self.tmax)
+        fw.write('Temperature sampling interval (tstep, K): {self.tstep:6.1f}')
+        return fw.text
 
 
 class Cloud(object):

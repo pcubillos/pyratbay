@@ -50,21 +50,6 @@ def undefined_spec():
 
 
 @pytest.fixture
-def undefined_opacity():
-    data = {
-        'tmin': 'Undefined lower temperature boundary (tmin) for '
-                'extinction-coefficient grid',
-        'tmax': 'Undefined upper temperature boundary (tmax) for '
-                'extinction-coefficient grid',
-        'tstep': 'Undefined temperature sampling step (tstep) for '
-                 'extinction-coefficient grid',
-        'tlifile': 'Requested extinction-coefficient table, but there are '
-                   'no input TLI files',
-    }
-    return data
-
-
-@pytest.fixture
 def undefined_mcmc():
     data = {
         'params': 'Undefined retrieval fitting parameters (params)',

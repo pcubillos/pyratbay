@@ -70,7 +70,7 @@ def test_mute(tmp_path, capfd):
     assert captured.out == ''
 
 
-def test_get_ec(tmp_path):
+def test_get_ec_lbl(tmp_path):
     cfile = f'{ROOT}pyratbay/data/CIA/CIA_Borysow_H2H2_0060-7000K_0.6-500um.dat'
     cfg = make_config(
         tmp_path,
@@ -78,13 +78,30 @@ def test_get_ec(tmp_path):
         reset={'csfile': cfile},
     )
     pyrat = pb.run(cfg)
-    ec, label = pyrat.get_ec(50)
-    assert label == ['H2O', 'CIA H2-H2', 'lecavelier', 'deck', 'Na']
-    np.testing.assert_allclose(ec[0], pyrat.ex.ec[50])
-    np.testing.assert_allclose(ec[1], pyrat.cs.ec[50])
-    np.testing.assert_allclose(ec[2], pyrat.rayleigh.ec[50])
+
+    layer = 50
+    ec, labels = pyrat.get_ec(layer)
+    assert labels == ['H2O', 'CIA H2-H2', 'lecavelier', 'deck', 'Na']
+    np.testing.assert_allclose(ec[0], pyrat.ex.ec[layer])
+    np.testing.assert_allclose(ec[1], pyrat.cs.ec[layer])
+    np.testing.assert_allclose(ec[2], pyrat.rayleigh.ec[layer])
     # Cloud deck model does not use the ec, rather post processed during RT.
     # This array contains zeros or ones whether one is above or below cloud:
     np.testing.assert_allclose(ec[3], np.ones(pyrat.spec.nwave))
-    np.testing.assert_allclose(ec[4], pyrat.alkali.ec[50])
+    np.testing.assert_allclose(ec[4], pyrat.alkali.ec[layer])
+
+
+def test_get_ec_line_sample(tmp_path):
+    extfile = ROOT+'tests/outputs/exttable_test_300-3000K_1.1-1.7um.npz'
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        reset={'extfile': extfile},
+        remove=['tlifile'],
+    )
+    pyrat = pb.run(cfg)
+    layer = 50
+    ec, labels = pyrat.get_ec(layer)
+    assert labels == ['H2O', 'CIA H2-H2', 'CIA H2-He', 'lecavelier', 'deck', 'Na']
+    np.testing.assert_allclose(ec[0], pyrat.opacity.ec[layer])
 

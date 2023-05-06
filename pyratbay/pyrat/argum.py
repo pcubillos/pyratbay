@@ -51,28 +51,6 @@ def check_spectrum(pyrat):
             'input profile or compute one via the radmodel argument'
         )
 
-    if pyrat.runmode == 'opacity' or pt.isfile(pyrat.ex.extfile) == 0:
-        if pyrat.ex.tmin is None:
-            log.error(
-                'Undefined lower temperature boundary (tmin) for '
-                'extinction-coefficient grid',
-            )
-        if pyrat.ex.tmax is None:
-            log.error(
-                'Undefined upper temperature boundary (tmax) for '
-                'extinction-coefficient grid',
-            )
-        if pyrat.ex.tstep is None:
-            log.error(
-                'Undefined temperature sampling step (tstep) for '
-                'extinction-coefficient grid',
-            )
-        if pyrat.inputs.tlifile is None:
-            log.error(
-                'Requested extinction-coefficient table, but there '
-                'are no input TLI files',
-            )
-
     if pyrat.runmode == 'mcmc':
         if pyrat.od.rt_path in pc.emission_rt:
             if atm.rplanet is None or phy.rstar is None:
