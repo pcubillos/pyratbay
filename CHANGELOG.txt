@@ -8309,4 +8309,11 @@ Implemented opacity.Line_Sample() class to take care of
 line-sampling from LBL opacities.
 Tested and documented.
 
+*****
+
+Implemented interp_ec_per_mol() C extension to interpolate
+line-sampling opacities separately per species.
+Changed input of interp_ec() adding one extra integer argument
+to define now starting and ending layer indices to interpolate.
+
 

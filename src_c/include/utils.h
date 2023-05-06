@@ -71,18 +71,18 @@ pyramidsearch(PyArrayObject *array, double value, int lo, int hi){
 
 int
 binsearchapprox(PyArrayObject *array, double value, int lo, int hi){
-  /* Last case, value limited between consecutive indices of array:         */
-  if (hi-lo <= 1){
-    /* Return closest array index to value:                                 */
-    if (fabs(INDd(array,hi)-value) < fabs(INDd(array,lo)-value))
-      return hi;
-    return lo;
-  }
-  /* Compare to middle point and search in corresponding sub-array:         */
-  else if (INDd(array,((hi+lo)/2)) > value)
-    return binsearchapprox(array, value, lo, (hi+lo)/2);
-  else
-    return binsearchapprox(array, value, (hi+lo)/2, hi);
+    // Last case, value limited between consecutive indices of array
+    if (hi-lo <= 1){
+        // Return closest array index to value
+        if (fabs(INDd(array,hi)-value) < fabs(INDd(array,lo)-value))
+            return hi;
+        return lo;
+    }
+    // Compare to middle point and search in corresponding sub-array
+    else if (INDd(array,((hi+lo)/2)) > value)
+        return binsearchapprox(array, value, lo, (hi+lo)/2);
+    else
+        return binsearchapprox(array, value, (hi+lo)/2, hi);
 }
 
 

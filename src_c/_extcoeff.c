@@ -356,29 +356,32 @@ values.                                                    \n\
                                                            \n\
 Parameters                                                 \n\
 ----------                                                 \n\
-extinction: 1D float ndarray                               \n\
+extinction: 2D float ndarray                               \n\
     Extinction coefficient array [nwave] to calculate.     \n\
-etable: 3D float ndarray                                   \n\
+etable: 4D float ndarray                                   \n\
     Tabulated extinction coefficient [nmol, ntemp, nwave]. \n\
 ttable: 1D float ndarray                                   \n\
     Tabulated temperature array [ntemp].                   \n\
-temperature: Float                                         \n\
-    Atmospheric layer temperature.                         \n\
-density: 1D float ndarray                                  \n\
-    Density of etable species in the atmospheric layer [nmol].\n\
+temperature: 1D float array                                \n\
+    Atmospheric temperatures at each layer.                \n\
+density: 2D float ndarray                                  \n\
+    Atmospheric number densities of species at each layer.\n\
 rtop: Integer\n\
     Index of top layer of the atmosphere array.");
 
 static PyObject *interp_ec(PyObject *self, PyObject *args){
     PyArrayObject *extinction, *etable, *ttable, *temperatures, *density;
-    int tlo, thi, rtop;
+    int tlo, thi, lay1, lay2;
     long nwave, nmol, ntemp, nlayers;
     int i, j, k;
     double ext1, ext2, temperature, delta_t1, delta_t2;
 
     // Load inputs:
-    if (!PyArg_ParseTuple(args, "OOOOOi",
-            &extinction, &etable, &ttable, &temperatures, &density, &rtop))
+    if (!PyArg_ParseTuple(
+        args,
+        "OOOOOii",
+        &extinction, &etable, &ttable, &temperatures, &density, &lay1, &lay2
+    ))
         return NULL;
 
     nmol  = PyArray_DIM(etable, 0);   // species samples
@@ -386,7 +389,10 @@ static PyObject *interp_ec(PyObject *self, PyObject *args){
     nlayers = PyArray_DIM(etable, 2); // pressure samples
     nwave = PyArray_DIM(etable, 3);   // spectral samples
 
-    for (k=rtop; k<nlayers; k++){
+    if (lay2 > nlayers)
+        lay2 = nlayers;
+
+    for (k=lay1; k<lay2; k++){
         // Find index of grid-temperature immediately lower than temperature:
         temperature = INDd(temperatures,k);
         tlo = binsearchapprox(ttable, temperature, 0, (int)ntemp-1);
@@ -416,6 +422,60 @@ static PyObject *interp_ec(PyObject *self, PyObject *args){
 }
 
 
+// Same as interp_ec_per_mol() except extinction is a 3D array
+static PyObject *interp_ec_per_mol(PyObject *self, PyObject *args){
+    PyArrayObject *extinction, *etable, *ttable, *temperatures, *density;
+    int tlo, thi, lay1, lay2;
+    long nwave, nmol, ntemp, nlayers;
+    int i, j, k;
+    double ext1, ext2, temperature, delta_t1, delta_t2;
+
+    // Load inputs:
+    if (!PyArg_ParseTuple(
+        args,
+        "OOOOOii",
+        &extinction, &etable, &ttable, &temperatures, &density, &lay1, &lay2
+    ))
+        return NULL;
+
+    nmol  = PyArray_DIM(etable, 0);   // species samples
+    ntemp = PyArray_DIM(etable, 1);   // temperature samples
+    nlayers = PyArray_DIM(etable, 2); // pressure samples
+    nwave = PyArray_DIM(etable, 3);   // spectral samples
+
+    if (lay2 > nlayers)
+        lay2 = nlayers;
+
+    for (k=lay1; k<lay2; k++){
+        // Find index of grid-temperature immediately lower than temperature:
+        temperature = INDd(temperatures,k);
+        tlo = binsearchapprox(ttable, temperature, 0, (int)ntemp-1);
+        if (temperature < INDd(ttable,tlo) || tlo == ntemp-1){
+            tlo--;
+        }
+        thi = tlo + 1;
+        delta_t1 = INDd(ttable,thi) - temperature;
+        delta_t2 = temperature - INDd(ttable,tlo);
+        delta_t1 /= (INDd(ttable,thi) - INDd(ttable,tlo));
+        delta_t2 /= (INDd(ttable,thi) - INDd(ttable,tlo));
+
+        // Add contribution from each molecule:
+        for (j=0; j<nmol; j++){
+            ext1 = delta_t1 * IND2d(density,k,j);
+            ext2 = delta_t2 * IND2d(density,k,j);
+            for (i=0; i<nwave; i++){
+                // Linear interpolation of the extinction coefficient:
+                IND3d(extinction,j,k,i) += (
+                    IND4d(etable,j,tlo,k,i) * ext1 +
+                    IND4d(etable,j,thi,k,i) * ext2
+                );
+            }
+        }
+    }
+    return Py_BuildValue("i", 1);
+}
+
+
 /* The module doc string: */
 PyDoc_STRVAR(extcoeff__doc__,
     "Python wrapper for the extinction-coefficient calculation.");
@@ -424,6 +484,7 @@ PyDoc_STRVAR(extcoeff__doc__,
 static PyMethodDef extcoeff_methods[] = {
     {"extinction", extinction, METH_VARARGS, extinction__doc__},
     {"interp_ec",  interp_ec,  METH_VARARGS, interp_ec__doc__},
+    {"interp_ec_per_mol", interp_ec_per_mol, METH_VARARGS, interp_ec__doc__},
     {NULL,         NULL,       0,            NULL} /* sentinel */
 };
 
