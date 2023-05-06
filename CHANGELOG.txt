@@ -8302,3 +8302,11 @@ Updated tests.
 
 Cosmetics.
 
+
+*****  Sat May 6 22:12:03 CEST 2023  *****
+
+Implemented opacity.Line_Sample() class to take care of
+line-sampling from LBL opacities.
+Tested and documented.
+
+

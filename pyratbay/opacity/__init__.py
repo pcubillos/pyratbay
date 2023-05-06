@@ -14,9 +14,10 @@ from . import broadening
 from . import linelist
 from . import partitions
 from . import rayleigh
-from .lread import *
-from .hydrogen_ion import *
 from .cia import *
+from .hydrogen_ion import *
+from .line_sampling import *
+from .lread import *
 from .. import version as ver
 
 __all__ = (
@@ -24,6 +25,7 @@ __all__ = (
     + cia.__all__
     + hydrogen_ion.__all__
     + lread.__all__
+    + line_sampling.__all__
 )
 
 # Lineread version:
