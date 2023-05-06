@@ -8342,3 +8342,7 @@ Fixed bug identifying sampling mode from line-sampled tables.
 Removed pyrat/h_ion.py file, incorporated H- interface into Opacity()
 Updated tests.
 
+*****
+
+Removed references to pyrat.od in parser() function.
+

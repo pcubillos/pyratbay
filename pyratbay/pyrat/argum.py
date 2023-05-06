@@ -41,9 +41,6 @@ def check_spectrum(pyrat):
     # Compute the Hill radius for the planet:
     atm.rhill = pa.hill_radius(atm.smaxis, atm.mplanet, phy.mstar)
 
-    # Radiative-transfer path:
-    pyrat.od.rt_path = pyrat.inputs.rt_path
-
     # Check that the radius profile exists or can be computed:
     if atm.radius is None and pyrat.runmode != 'opacity':
         log.error(

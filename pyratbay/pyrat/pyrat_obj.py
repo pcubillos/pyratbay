@@ -58,8 +58,6 @@ class Pyrat(object):
       >>> pyrat.set_atmosphere()
       >>> pyrat.set_spectrum()
       """
-      # Sub-classes:
-      self.od = ob.Optdepth()   # Optical depth
 
       # Parse config file inputs:
       pt.parse(self, cfile, no_logfile, mute)
@@ -67,6 +65,7 @@ class Pyrat(object):
       self.phy = ob.Physics(self.inputs)
       self.ret = ob.Retrieval(self.inputs, self.log)
       self.ex = ob.Extinction(self.inputs, self.log)
+      self.od = ob.Optdepth(self.inputs, self.log)
 
       # Setup time tracker:
       timer = pt.Timer()

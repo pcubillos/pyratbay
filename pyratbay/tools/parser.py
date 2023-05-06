@@ -766,7 +766,7 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
 
     args.ethresh = args.get_default(
         'ethresh', 'Extinction-cofficient threshold', 1e-15, gt=0.0)
-    pyrat.od.maxdepth = args.get_default(
+    args.maxdepth = args.get_default(
         'maxdepth', 'Maximum optical-depth', 10.0, ge=0.0)
 
     args.starspec = args.get_path('starspec', 'Stellar spectrum', exists=True)

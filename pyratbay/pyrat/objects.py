@@ -97,17 +97,15 @@ class Cloud(object):
 
 
 class Optdepth():
-  def __init__(self):
-      self.maxdepth = None  # Maximum optical depth to calculate
-      self.rt_path  = None  # Radiative-transfer observing geometry
-      self.ec       = None  # Total extinction coefficient [nlayers, nwave]
-      self.epatchy  = None  # Cloudy extinction coefficient for patchy model
-      self.raypath  = []    # Distance along ray path  [nlayers]
-      self.depth    = None  # Optical depth at raypath [nlayers, nwave]
-      self.pdepth   = None  # Cloudy optical depth for patchy model
-      self.B        = None  # Blackbody Planck emission [nlayers, nwave]
-      self.ideep    = None  # Layer index where depth reached maxdepth [nwave]
+  def __init__(self, inputs, log):
+      self.ec = None  # Total extinction coefficient [nlayers, nwave]
+      self.raypath = []  # Distance along ray path  [nlayers]
+      self.depth = None  # Optical depth at raypath [nlayers, nwave]
+      self.B = None  # Blackbody Planck emission [nlayers, nwave]
+      self.ideep = None  # Layer index where depth reached maxdepth [nwave]
 
+      self.maxdepth = inputs.maxdepth  # Maximum optical depth to calculate
+      self.rt_path = inputs.rt_path  # Radiative-transfer observing geometry
 
   def __str__(self):
       fw = pt.Formatted_Write()
