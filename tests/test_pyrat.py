@@ -93,15 +93,29 @@ def test_get_ec_lbl(tmp_path):
 
 def test_get_ec_line_sample(tmp_path):
     extfile = ROOT+'tests/outputs/exttable_test_300-3000K_1.1-1.7um.npz'
+    reset = {
+        'extfile': extfile,
+        'chemistry': 'tea',
+        'species': 'H2 H He Na K H2O CH4 CO CO2 e- H- H+ H2+ Na- Na+ K+ K-',
+        'h_ion': 'h_ion_john1988',
+    }
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        reset={'extfile': extfile},
-        remove=['tlifile'],
+        reset=reset,
+        remove=['tlifile', 'clouds'],
     )
     pyrat = pb.run(cfg)
     layer = 50
     ec, labels = pyrat.get_ec(layer)
-    assert labels == ['H2O', 'CIA H2-H2', 'CIA H2-He', 'lecavelier', 'deck', 'Na']
-    np.testing.assert_allclose(ec[0], pyrat.opacity.ec[layer])
+
+    expected_labels = [
+        'H2O', 'H- bf/ff', 'CIA H2-H2', 'CIA H2-He', 'lecavelier', 'Na',
+    ]
+    with np.load(ROOT+'tests/expected/get_ec_ls_Hion.npz') as d:
+        expected_extinction = d['ec']
+
+    assert labels == expected_labels
+    for i in range(len(labels)):
+        np.testing.assert_allclose(ec[i], expected_extinction[i])
 

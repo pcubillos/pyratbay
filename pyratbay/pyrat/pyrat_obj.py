@@ -16,7 +16,6 @@ from .. import tools as pt
 from .alkali import Alkali
 from .atmosphere import Atmosphere
 from .crosssec import CIA
-from .h_ion import H_Ion
 from .line_by_line import Line_By_Line
 from .observation import Observation
 from .opacity import Opacity
@@ -130,13 +129,6 @@ class Pyrat(object):
           self.log,
       )
 
-      self.h_ion = H_Ion(
-          self.inputs,
-          self.spec.wn,
-          self.atm.species,
-          self.log,
-      )
-
       self.cs = CIA(
           self.inputs.cia_files,
           self.spec.wn,
@@ -191,10 +183,15 @@ class Pyrat(object):
           self.spec.spectrum[:] = 0.0
           return
 
+      # extinction coefficient from line-sample/H- opacity:
+      self.opacity.calc_extinction_coefficient(
+          self.atm.temp,
+          self.atm.d,
+      )
+
       # Calculate cloud, Rayleigh, and H- absorption:
       cl.absorption(self)
       self.rayleigh.calc_extinction_coefficient(self.atm.d)
-      self.h_ion.calc_extinction_coefficient(self.atm.temp, self.atm.d)
       self.timestamps['cloud+ray'] = timer.clock()
 
       # Calculate the alkali absorption:
@@ -462,7 +459,7 @@ class Pyrat(object):
       # Allocate outputs:
       ec = np.empty((0, self.spec.nwave))
       label = []
-      # Line-sample extinction coefficient:
+      # Line-sample and H- extinction coefficient:
       if len(self.opacity.models) > 0:
           e, lab = self.opacity.get_ec(self.atm.temp, self.atm.d, layer)
           ec = np.vstack((ec, e))
@@ -487,11 +484,6 @@ class Pyrat(object):
           e, lab = cl.get_ec(self, layer)
           ec = np.vstack((ec, e))
           label += lab
-      # H- extinction coefficient:
-      if self.h_ion.model is not None:
-          e, lab = self.h_ion.get_ec(self.atm.temp, self.atm.d, layer)
-          ec = np.vstack((ec, e))
-          label += [lab]
       # Alkali resonant lines extinction coefficient:
       if self.alkali.models != []:
           e, lab = self.alkali.get_ec(self.atm.temp, self.atm.d, layer)
@@ -693,8 +685,6 @@ class Pyrat(object):
           opacities.append(cloud.name)
       for alkali in self.alkali.models:
           opacities.append(alkali.mol)
-      if self.h_ion.model is not None:
-          opacities.append(self.h_ion.model.name)
 
       pmin = self.atm.press[ 0]/pc.bar
       pmax = self.atm.press[-1]/pc.bar

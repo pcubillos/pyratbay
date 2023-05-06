@@ -8337,3 +8337,8 @@ Fixed bug in Spectrum() initialization.
 Made sure self.resolution and self.wlstep defined as defaults (None).
 Fixed bug identifying sampling mode from line-sampled tables.
 
+*****
+
+Removed pyrat/h_ion.py file, incorporated H- interface into Opacity()
+Updated tests.
+

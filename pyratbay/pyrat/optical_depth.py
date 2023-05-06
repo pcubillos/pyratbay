@@ -41,12 +41,6 @@ def optical_depth(pyrat):
     elif pyrat.od.rt_path in pc.transmission_rt:
         pyrat.od.raypath = pa.transit_path(pyrat.atm.radius, pyrat.atm.rtop)
 
-    # Interpolate extinction coefficient from line-sample opacity:
-    pyrat.opacity.calc_extinction_coefficient(
-        pyrat.atm.temp,
-        pyrat.atm.d,
-    )
-
     # Calculate the extinction coefficient on the spot:
     if lbl.tlifile is not None:
         imol = lbl.mol_index[lbl.mol_index>=0]
@@ -93,8 +87,6 @@ def optical_depth(pyrat):
         od.ec[rtop:] += pyrat.rayleigh.ec[rtop:]
     if pyrat.alkali.ec is not None:
         od.ec[rtop:] += pyrat.alkali.ec[rtop:]
-    if pyrat.h_ion.model is not None:
-        od.ec[rtop:] += pyrat.h_ion.ec[rtop:]
     if pyrat.cs.ec is not None:
         od.ec[rtop:] += pyrat.cs.ec[rtop:]
 

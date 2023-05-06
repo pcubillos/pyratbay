@@ -183,7 +183,6 @@ class Hydrogen_Ion():
         sigma_ff *= pc.k * temperature
         cross_section_ff = sigma_ff.T
         if scalar_temp:
-            print(f'HERE {cross_section_ff[0].shape}')
             return cross_section_ff[0]
         return cross_section_ff
 
@@ -209,7 +208,7 @@ class Hydrogen_Ion():
         return cross_section_bf
 
 
-    def calc_extinction_coefficient(self, temperature, densities):
+    def calc_extinction_coefficient(self, temperature, densities, layer=None):
         """
         Calculate extinction coefficient spectra (cm-1) for given
         temperature and number-density profiles.
@@ -223,6 +222,9 @@ class Hydrogen_Ion():
             over the given temperature array.
             If temperature is 1D array, must be of shape [2, ntemp]
             If temperature is scalar, densities must be of size 2.
+        layer: Integer
+            If not None, compute extinction coefficient only at selected layer.
+            In this case, the output array dimension is reduced by 1.
 
         Returns
         -------
@@ -245,6 +247,10 @@ class Hydrogen_Ion():
                 'Incompatible dimensions, densities must be a 2D array '
                 f'of shape [{ntemp}, 2], i.e., [ntemp, 2]'
             )
+        if not is_scalar and layer is not None:
+            temperature = temperature[layer]
+            densities = densities[layer]
+            is_scalar = True
 
         cross_section = (
             self.bound_free_cross_section(temperature) +

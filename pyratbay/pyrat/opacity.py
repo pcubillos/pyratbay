@@ -21,14 +21,15 @@ class Opacity():
         self.tmin = {}
         self.tmax = {}
         # extinction coefficient in cm-1
-        nwave = len(wn)
+        self.nwave = len(wn)
         nlayers = len(pressure)
-        self.ec = np.zeros((nlayers, nwave))
+        self.ec = np.zeros((nlayers, self.nwave))
 
         min_wn = np.amin(wn)
         max_wn = np.amax(wn)
         species = list(species)
 
+        self.nspec = []
         #if len(inputs.extfile) > 0:
         # TBD: without runmode?
         if inputs.extfile is not None and inputs.runmode != 'opacity':
@@ -66,6 +67,22 @@ class Opacity():
                 f"Pressure layers (bar):\n{str_press}\n"
                 f"Wavenumber array (cm-1):\n   {str_wn}",
             )
+            self.nspec.append(ls.nspec)
+
+        if inputs.h_ion is not None:
+            model = op.Hydrogen_Ion(wn)
+            self.models.append(model)
+            self.models_type.append(model.name)
+
+            if not np.all(np.in1d(['H','H-','e-'], species)):
+                log.error(
+                    "'h_ion' opacity model requires the atmosphere to "
+                    "contain H, H-, and e- species"
+            )
+            # For calculations only H and e- are necessary:
+            imol = [species.index(mol) for mol in ['H', 'e-']]
+            self.mol_indices.append(imol)
+            self.nspec.append(1)
 
 
     def calc_extinction_coefficient(self, temperature, densities):
@@ -77,6 +94,7 @@ class Opacity():
         for i,model in enumerate(self.models):
             density = densities[:,self.mol_indices[i]]
             self.ec += model.calc_extinction_coefficient(temperature, density)
+
         return self.ec
 
 
@@ -84,36 +102,42 @@ class Opacity():
         """
         Interpolate the CS absorption into the planetary model temperature.
         """
-        ec = []
+        ec = np.zeros((np.sum(self.nspec),self.nwave))
         label = []
+        j = 0
         for i,model in enumerate(self.models):
             imol = self.mol_indices[i]
             density = densities[:,imol]
+            args = {
+                'temperature': temperature,
+                'densities': density,
+                'layer': layer,
+            }
+            if self.models_type[i] == 'line_sample':
+                args['per_mol'] = True
 
-            extinction = model.calc_extinction_coefficient(
-                temperature, density, layer, per_mol=True,
-            )
-            ec += list(extinction)
-            label += list(model.species)
+            extinction = model.calc_extinction_coefficient(**args)
+            ec[j:j+self.nspec[i]] = extinction
+            j += self.nspec[i]
 
-        ## CIA
-        ##for i,cia in enumerate(self.models):
+            if self.models_type[i] == 'line_sample':
+                label += list(model.species)
+            else:
+                label.append(model.name)
+
+        ##   CIA
         #    ext_coeff = model.calc_extinction_coefficient(
         #        temperature[layer], densities[layer,imol],
         #    )
         #    label.append(model.name)
+
         ## Alkali
-        ##for imol,model in zip(self.imol, self.models):
         #    ext_coeff = model.calc_extinction_coefficient(
         #        temperature, density, layer,
         #    )
         #    label.append(model.mol)
-        ## H-
-        ##for imol,model in zip(self.imol, self.models):
-        #    ext_coeff = model.calc_extinction_coefficient(
-        #        temperature, density, layer,
-        #    )
-        #    label.append(model.mol)
+        ## Ray
+        #    calc_extinction_coefficient(self, density, pars=None, layer=None)
 
         return ec, label
 
