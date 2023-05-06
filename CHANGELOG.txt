@@ -8331,3 +8331,9 @@ Might be removed in the future.
 Removed all references to pyrat.ex in parser() function.
 Updated tests.
 
+*****
+
+Fixed bug in Spectrum() initialization.
+Made sure self.resolution and self.wlstep defined as defaults (None).
+Fixed bug identifying sampling mode from line-sampled tables.
+

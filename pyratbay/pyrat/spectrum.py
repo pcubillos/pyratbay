@@ -115,15 +115,15 @@ class Spectrum():
                 f'larger than the high boundary ({self.wnhigh:.1f} cm-1)'
             )
 
+        self.resolution = None
+        self.wlstep = None
 
         # If there are cross-section tables, take sampling from there:
-        self._wn_mask = None
         if pt.isfile(inputs.extfile) == 1 and inputs.runmode != 'opacity':
             wn = io.read_opacity(inputs.extfile[0], extract='arrays')[3]
 
             # Update wavenumber sampling:
-            self._wn_mask = (wn >= self.wnlow) & (wn <= self.wnhigh)
-            self.wn = wn[self._wn_mask]
+            self.wn = wn[(wn >= self.wnlow) & (wn <= self.wnhigh)]
             self.nwave = len(self.wn)
 
             if self.wnlow <= self.wn[0]:
@@ -136,11 +136,13 @@ class Spectrum():
             dwl = np.ediff1d(np.abs(1.0/self.wn))
             res = np.abs(self.wn[1:]/dwn)
 
-            if np.std(dwn) < np.std(dwl) and np.std(dwn) < np.std(res):
+            std_dwn = np.std(dwn/np.mean(dwn))
+            std_dwl = np.std(dwl/np.mean(dwl))
+            std_res = np.std(res/np.mean(res))
+            if std_dwn < std_dwl and std_dwn < std_res:
                 self.wnstep = self.wn[1] - self.wn[0]
-                self.resolution = None
                 sampling_text = f'sampling rate = {self.wnstep:.2f} cm-1'
-            elif np.std(dwl) < np.std(dwn) and np.std(dwl) < np.std(res):
+            elif std_dwl < std_dwn and std_dwl < std_res:
                 self.wlstep = np.abs(1/self.wn[0] - 1/self.wn[1]) / pc.um
                 sampling_text = f'sampling rate = {self.wlstep:.6f} um'
             else:
@@ -149,11 +151,6 @@ class Spectrum():
                 self.resolution = np.round(0.5*(1+g)/(1-g), decimals=5)
                 #self.wnhigh = 2 * ex.wn[-1]/(1+g)
                 sampling_text = f'R = {self.resolution:.1f}'
-
-            # Keep wavenumber oversampling factor:
-            #self.ownstep = self.wnstep / self.wnosamp
-            #self.onwave = (self.nwave - 1) * self.wnosamp + 1
-            #self.own = np.linspace(self.wn[0], self.wn[-1], self.onwave)
 
             log.msg(
                 "Reading spectral sampling from extinction-coefficient "
