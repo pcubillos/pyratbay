@@ -8361,3 +8361,8 @@ Still a boolean, but avoiding double negatives.
 
 Fixed issue with mute argument not muting.
 
+*****
+
+Removed pressure and molq arguments from extinction() C extension
+(redundant).
+

@@ -39,8 +39,6 @@ divisors: 1D integer ndarray                                      \n\
     Integer divisors for oversampling factor.                     \n\
 moldensity: 1D Float ndarray                                      \n\
     Number density for each species [nmol] (molecules cm-3).      \n\
-molq: 1D Float ndarray                                            \n\
-    Atmospheric species mole mixing ratio [nmol].                 \n\
 molrad: 1D Float ndarray                                          \n\
     Atmospheric species collision radius [nmol] (Angstrom).       \n\
 molmass: 1D Float ndarray                                         \n\
@@ -67,8 +65,6 @@ cutoff: Float                                                     \n\
     Voigt profile cutoff (cm-1).                                  \n\
 ethresh: Float                                                    \n\
     Extinction-coefficient threshold factor.                      \n\
-pressure: Float                                                   \n\
-    Atmospheric-layer pressure (barye).                           \n\
 temp: Float                                                       \n\
     Atmospheric-layer temperature (K).                            \n\
 verb: Integer                                                     \n\
@@ -92,7 +88,7 @@ static PyObject *extinction(PyObject *self, PyObject *args){
       *profile, *psize, *pindex,
       *lorentz, *doppler,
       *wn, *own, *divisors,
-      *moldensity, *molq, *molrad, *molmass,
+      *moldensity, *molrad, *molmass,
       *isoimol, *isomass, *isoratio,
       *isoz, *isoiext,
       *lwn, *lID, *elow, *gf;
@@ -108,21 +104,21 @@ static PyObject *extinction(PyObject *self, PyObject *args){
   int mincut, maxcut;
   int i, j, iext, ln;
   long jj;
-  double pressure, temp, collision_diameter, density, minwidth=1e5, vwidth,
+  double temp, collision_diameter, minwidth=1e5, vwidth,
       cutoff, ethresh, florentz, fdoppler, wnstep, ownstep, dwnstep,
       wavn, next_wn, k;
   double *alphal, *alphad, *kmax, **ktmp, *kprop;
   int *idop, *ilor;
 
   /* Load inputs: */
-  if (!PyArg_ParseTuple(args, "OOOOOOOOOOOOOOOOOOOOOOddddi|ii",
+  if (!PyArg_ParseTuple(args, "OOOOOOOOOOOOOOOOOOOOOdddi|ii",
           &ext,
           &profile, &psize, &pindex, &lorentz, &doppler,
           &wn, &own, &divisors,
-          &moldensity, &molq, &molrad, &molmass,
+          &moldensity, &molrad, &molmass,
           &isoimol, &isomass, &isoratio, &isoz, &isoiext,
           &lwn, &elow, &gf, &lID,
-          &cutoff, &ethresh, &pressure, &temp,
+          &cutoff, &ethresh, &temp,
           &verb, &add, &resolution))
       return NULL;
 
@@ -168,12 +164,10 @@ static PyObject *extinction(PyObject *self, PyObject *args){
       alphal[i] = 0.0;
       for (j=0; j<nmol; j++){
           collision_diameter = INDd(molrad, imol) + INDd(molrad, j);
-          density = INDd(molq,j) * pressure / (KB*temp);
-          alphal[i] += density * collision_diameter * collision_diameter *
-                       sqrt(1/INDd(isomass,i) + 1/INDd(molmass,j));
-          if (i==-1)
-              printf("j:%d,  %.6e,  %.6e,  %.6e\n", j,
-                     density, collision_diameter, INDd(molmass,j));
+          alphal[i] +=
+              INDd(moldensity, j) *
+              collision_diameter * collision_diameter *
+              sqrt(1/INDd(isomass,i) + 1/INDd(molmass,j));
       }
       alphal[i] *= florentz;
 
