@@ -142,7 +142,6 @@ class Pyrat():
       """
       ex.compute_opacity(self)
 
-
   def run(self, temp=None, vmr=None, radius=None):
       """
       Evaluate a Pyrat spectroscopic model
@@ -194,6 +193,9 @@ class Pyrat():
       # Calculate the alkali absorption:
       self.alkali.calc_extinction_coefficient(self.atm.temp, self.atm.d)
       self.timestamps['alkali'] = timer.clock()
+
+      self.lbl.calc_extinction_coefficient(self.atm.temp, self.atm.d, self)
+      self.timestamps['lbl'] = timer.clock()
 
       # Calculate the optical depth:
       od.optical_depth(self)
@@ -463,6 +465,7 @@ class Pyrat():
           label += lab
       # Line-by-line extinction coefficient:
       if self.lbl.ntransitions != 0:
+          #e, lab = self.lbl.get_ec(self.atm.temp, self.atm.d, layer)
           e, lab = ex.get_ec(self, layer)
           ec = np.vstack((ec, e))
           label += lab
@@ -670,10 +673,14 @@ class Pyrat():
          wave = f"delta-wn={self.spec.wnstep:.3f} cm-1"
 
       opacities = []
-      if self.ex.nspec != 0:
-          for mol in self.ex.species:
-              imol = np.where(self.atm.species == mol)[0][0]
-              opacities.append(self.atm.species[imol])
+      if len(self.opacity.models) > 0:
+        for i,model in enumerate(self.models):
+            if self.models_type[i] == 'line_sample':
+                opacities += list(model.species)
+            else:
+                opacities.append(model.name)
+      if self.lbl.nspec > 0:
+          opacities += list(self.lbl.species)
       if self.cs.nfiles > 0:
           for cia in self.cs.models:
               opacities.append(cia.name)

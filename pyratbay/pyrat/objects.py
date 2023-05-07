@@ -24,15 +24,12 @@ class Extinction():
         self.tmin = inputs.tmin
         self.tmax = inputs.tmax
         self.tstep = inputs.tstep
-        self.ethresh = inputs.ethresh
 
 
     def __str__(self):
         fmt = {'float': '{:.2e}'.format}
         fw = pt.Formatted_Write()
         fw.write('Extinction-coefficient information:')
-        fw.write('Line-transition strength threshold (ethresh): {:.2e}',
-            self.ethresh)
         if self.ec is not None:
             fw.write(
                 '\nLBL extinction coefficient for the atmospheric model '

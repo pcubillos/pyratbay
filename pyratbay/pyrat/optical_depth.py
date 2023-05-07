@@ -1,12 +1,8 @@
 # Copyright (c) 2021-2023 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
-import ctypes
-import multiprocessing as mp
-
 import numpy as np
 
-from . import extinction as ex_mod
 from .. import atmosphere as pa
 from .. import constants as pc
 from ..lib import _trapz as t
@@ -19,7 +15,6 @@ def optical_depth(pyrat):
     """
     od = pyrat.od
     ex = pyrat.ex
-    lbl = pyrat.lbl
     nwave = pyrat.spec.nwave
     nlayers = pyrat.atm.nlayers
     rtop = pyrat.atm.rtop
@@ -28,7 +23,6 @@ def optical_depth(pyrat):
     pyrat.log.head('\nBegin optical-depth calculation.')
 
     # Evaluate the extinction coefficient at each layer:
-    ex.ec = np.zeros((nlayers, nwave))
     od.ec = np.empty((nlayers, nwave))
     od.depth = np.zeros((nlayers, nwave))
     if pyrat.cloud.fpatchy is not None:
@@ -41,46 +35,10 @@ def optical_depth(pyrat):
     elif pyrat.od.rt_path in pc.transmission_rt:
         pyrat.od.raypath = pa.transit_path(pyrat.atm.radius, pyrat.atm.rtop)
 
-    # Calculate the extinction coefficient on the spot:
-    if lbl.tlifile is not None:
-        imol = lbl.mol_index[lbl.mol_index>=0]
-        ex.species = pyrat.atm.species[np.unique(imol)]
-        ex.nspec = len(ex.species)
-
-        if np.any(pyrat.atm.temp>lbl.tmax) or np.any(pyrat.atm.temp<lbl.tmin):
-            pyrat.log.warning(
-                "Atmospheric temperature values lie out of the line-transition "
-                f"boundaries (K): [{lbl.tmin:6.1f}, {lbl.tmax:6.1f}]"
-            )
-            good_status = False
-            return good_status
-
-        # Update partition functions:
-        lbl.iso_pf = np.zeros((lbl.niso, nlayers))
-        for i in range(lbl.niso):
-            lbl.iso_pf[i] = lbl.iso_pf_interp[i](pyrat.atm.temp)
-
-        sm_ext = mp.Array(
-            ctypes.c_double, np.zeros(nlayers*nwave, np.double))
-        ex.ec = np.ctypeslib.as_array(
-            sm_ext.get_obj()).reshape((nlayers, nwave))
-        processes = []
-        indices = np.arange(rtop, nlayers) % pyrat.ncpu
-        for i in range(pyrat.ncpu):
-            grid = False
-            add = True
-            proc = mp.get_context('fork').Process(
-                target=ex_mod.extinction,
-                args=(pyrat, np.where(indices==i)[0], grid, add))
-            processes.append(proc)
-            proc.start()
-        for proc in processes:
-            proc.join()
-
     # Sum all contributions to the extinction:
     od.ec[rtop:] = (
         + pyrat.opacity.ec[rtop:]
-        + ex.ec[rtop:]
+        + pyrat.lbl.ec[rtop:]
         + pyrat.cloud.ec[rtop:]
     )
     if pyrat.rayleigh.ec is not None:

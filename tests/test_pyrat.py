@@ -75,7 +75,7 @@ def test_get_ec_lbl(tmp_path):
     layer = 50
     ec, labels = pyrat.get_ec(layer)
     assert labels == ['H2O', 'CIA H2-H2', 'lecavelier', 'deck', 'Na']
-    np.testing.assert_allclose(ec[0], pyrat.ex.ec[layer])
+    np.testing.assert_allclose(ec[0], pyrat.lbl.ec[layer])
     np.testing.assert_allclose(ec[1], pyrat.cs.ec[layer])
     np.testing.assert_allclose(ec[2], pyrat.rayleigh.ec[layer])
     # Cloud deck model does not use the ec, rather post processed during RT.
@@ -105,10 +105,9 @@ def test_get_ec_line_sample(tmp_path):
     expected_labels = [
         'H2O', 'H- bf/ff', 'CIA H2-H2', 'CIA H2-He', 'lecavelier', 'Na',
     ]
-    with np.load(ROOT+'tests/expected/get_ec_ls_Hion.npz') as d:
+    with np.load(ROOT+'tests/expected/expected_get_ec_ls_Hion.npz') as d:
         expected_extinction = d['ec']
 
     assert labels == expected_labels
     for i in range(len(labels)):
         np.testing.assert_allclose(ec[i], expected_extinction[i])
-

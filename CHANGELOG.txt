@@ -8366,3 +8366,12 @@ Fixed issue with mute argument not muting.
 Removed pressure and molq arguments from extinction() C extension
 (redundant).
 
+*****
+
+Moved lbl extinction calculation out of optical_depth()
+into lbl.calc_extinction_coefficient().
+Still need to sort out final details.
+Moved ethresh from pyrat.ex into pyrat.lbl.
+Made lbl species not found in atmosphere an error (was warning before)
+Updated tests.
+

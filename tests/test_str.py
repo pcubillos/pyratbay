@@ -280,7 +280,7 @@ Density profiles (d, molecules cm-3):
 """.format(os.getcwd())
 
 
-def test_pyrat_transmission_lt_str(tmp_path):
+def test_pyrat_transmission_lbl_str(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
@@ -317,6 +317,7 @@ Line-transition lower-state energy (elow, cm-1):
     [ 1.807e+03  2.106e+03  2.630e+03 ...  1.244e+03  5.201e+02  6.531e+02]
 Line-transition gf (gf, cm-1):
     [ 1.399e-08  1.188e-09  1.210e-08 ...  5.498e-06  1.558e-07  1.076e-06]
+Line-transition strength threshold (ethresh): 1.00e-15
 Isotopes information:
 Number of isotopes (niso): 7
 
@@ -369,28 +370,6 @@ Voigt profiles:
   profile[ 0, 0]: [2.85914e-08 2.86448e-08 ... 2.86448e-08 2.85914e-08]
   ...
   profile[39,39]: [4.99389e-03 4.99404e-03 ... 4.99404e-03 4.99389e-03]
-"""
-
-
-def test_pyrat_transmission_ex_str(tmp_path):
-    cfg = make_config(
-        tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
-    )
-    pyrat = pb.run(cfg)
-    assert str(pyrat.ex) == """\
-Extinction-coefficient information:
-Line-transition strength threshold (ethresh): 1.00e-15
-
-LBL extinction coefficient for the atmospheric model (ec, cm-1) [layer, wave]:
-[[2.08e-21 1.80e-14 3.89e-21 ... 3.94e-16 2.08e-17 3.67e-17]
- [2.62e-21 2.27e-14 4.90e-21 ... 4.96e-16 2.62e-17 4.62e-17]
- [5.52e-21 2.85e-14 1.03e-20 ... 6.24e-16 3.30e-17 5.82e-17]
- ...
- [6.43e-07 1.04e-06 1.15e-06 ... 2.10e-06 1.79e-06 1.51e-06]
- [8.11e-07 1.04e-06 1.18e-06 ... 2.67e-06 2.25e-06 1.85e-06]
- [1.02e-06 1.31e-06 1.48e-06 ... 3.36e-06 2.84e-06 2.33e-06]]
-Extinction-coefficient table filename(s) (extfile): None
 """
 
 

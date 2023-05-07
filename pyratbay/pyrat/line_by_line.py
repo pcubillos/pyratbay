@@ -1,13 +1,16 @@
 # Copyright (c) 2021-2023 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
+import ctypes
 import sys
+import multiprocessing as mp
 
 import numpy as np
 import scipy.interpolate as sip
 
 from .. import constants as pc
 from .. import tools as pt
+from . import extinction as ex
 
 
 class Database():
@@ -71,6 +74,8 @@ class Line_By_Line():
         self.tmin = -np.inf
         self.tmax =  np.inf
         self.db = []
+        self.species = []
+        self.nspec = 0
         self.ntransitions = 0
         self.ndb = 0
         # LBL data
@@ -81,6 +86,7 @@ class Line_By_Line():
 
         # Line-transition data file
         self.tlifile = None
+        self.ethresh = inputs.ethresh
         # If there's a cross-section table, skip TLI LBL data
         # TBD
         #if pyrat.ex.etable is None:
@@ -135,18 +141,28 @@ class Line_By_Line():
             self.iso_mass[iso_mask] = db.iso_mass
             self.iso_ratio[iso_mask] = db.iso_ratio
             if db.molname in species:
+                self.species.append(db.molname)
                 mol_index = species.index(db.molname)
                 self.mol_index[iso_mask] = mol_index
             else:
                 self.mol_index[iso_mask] = -1
-                log.warning(
+                log.error(
                     f"The species '{db.molname}' for isotopes "
-                    f"{db.iso_name} is not present in the atmosphere."
+                    f"{db.iso_name} is not present in the atmosphere"
                 )
             for j in range(db.niso):
                 pf_interp = sip.interp1d(db.temp, db.iso_pf[j], kind='slinear')
                 self.iso_pf_interp.append(pf_interp)
             total_niso += db.niso
+
+
+        self.species = np.unique(self.species)
+        self.nspec = len(self.species)
+        # Get species indices in opacity table for the isotopes:
+        self.iso_mol_index = np.array([
+            list(self.species).index(species[i])
+            for i in self.mol_index
+        ])
 
         self.iso_name = np.array(self.iso_name)
         log.msg(
@@ -156,6 +172,51 @@ class Line_By_Line():
         )
         log.debug(f"Isotope's molecule indices:\n  {self.mol_index}", indent=2)
         log.head("Read LBL transitions done.\n")
+
+
+
+    def check_temperature_bounds(self, temperature):
+        return (
+            np.amax(temperature) > self.tmax or
+            np.amin(temperature) < self.tmin
+        )
+
+    def calc_extinction_coefficient(
+        self, temperature, densities, pyrat, layer=None,
+    ):
+        # Calculate the extinction coefficient on the spot:
+        nlayers = len(temperature)
+        nwave = pyrat.spec.nwave
+        self.ec = np.zeros((nlayers, nwave))
+        if self.tlifile is None:
+            return
+
+        # Update partition functions:
+        self.iso_pf = np.zeros((self.niso, nlayers))
+        for i in range(self.niso):
+            self.iso_pf[i] = self.iso_pf_interp[i](pyrat.atm.temp)
+
+        sm_ext = mp.Array(
+            ctypes.c_double,
+            np.zeros(nlayers*nwave, np.double),
+        )
+        self.ec = np.ctypeslib.as_array(
+            sm_ext.get_obj()).reshape((nlayers, nwave))
+
+        processes = []
+        indices = np.arange(nlayers) % pyrat.ncpu
+        for i in range(pyrat.ncpu):
+            grid = False
+            add = True
+            args = (pyrat, np.where(indices==i)[0], grid, add)
+            proc = mp.get_context('fork').Process(
+                target=ex.extinction,
+                args=args,
+            )
+            processes.append(proc)
+            proc.start()
+        for proc in processes:
+            proc.join()
 
 
     def __str__(self):
@@ -180,6 +241,8 @@ class Line_By_Line():
             self.elow, fmt={'float':'{: .3e}'.format}, edge=3)
         fw.write('Line-transition gf (gf, cm-1):\n    {}',
             self.gf,   fmt={'float':'{: .3e}'.format}, edge=3)
+        fw.write('Line-transition strength threshold (ethresh): {:.2e}',
+            self.ethresh)
 
         fw.write('Isotopes information:')
         fw.write('Number of isotopes (niso): {:d}', self.niso)
