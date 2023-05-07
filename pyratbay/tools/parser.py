@@ -340,7 +340,7 @@ def parse_array(args, param):
     args[param] = val
 
 
-def parse(pyrat, cfile, no_logfile=False, mute=False):
+def parse(cfile, with_log=True, mute=False):
     """
     Read the command line arguments.
 
@@ -348,8 +348,8 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
     ----------
     cfile: String
         A Pyrat Bay configuration file.
-    no_logfile: Bool
-        If True, enforce not to write outputs to a log file
+    with_log: Bool
+        Flag to save screen outputs to file (True) or not (False)
         (e.g., to prevent overwritting log of a previous run).
     mute: Bool
         If True, enforce verb to take a value of -1.
@@ -360,16 +360,17 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         config = configparser.ConfigParser()
         config.optionxform = str  # Enable case-sensitive variable names
         config.read([cfile])
-        if "pyrat" not in config.sections():
+        if 'pyrat' not in config.sections():
             raise ValueError(
-                f"\nInvalid configuration file: '{cfile}', no [pyrat] section.")
+                f"\nInvalid configuration file: '{cfile}', no [pyrat] section."
+            )
     args = dict(config.items("pyrat"))
 
     # Parse data type:
     with pt.log_error():
-        parse_str(args,   'runmode')
-        parse_int(args,   'ncpu')
-        parse_int(args,   'verb')
+        parse_str(args, 'runmode')
+        parse_int(args, 'ncpu')
+        parse_int(args, 'verb')
         parse_array(args, 'dblist')
         parse_array(args, 'pflist')
         parse_array(args, 'dbtype')
@@ -442,13 +443,13 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         parse_str(args, 'rt_path')
         parse_float(args, 'maxdepth')
         parse_array(args, 'raygrid')
-        parse_int(args,   'quadrature')
+        parse_int(args, 'quadrature')
         # Data options:
-        parse_str(args,   'dunits')
+        parse_str(args, 'dunits')
         parse_array(args, 'data')
         parse_array(args, 'uncert')
         parse_array(args, 'filters')
-        parse_str(args,   'obsfile')
+        parse_str(args, 'obsfile')
         parse_array(args, 'inst_offset')
         # Abundances:
         parse_array(args, 'molvars')
@@ -507,9 +508,12 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
 
     if mute:
         args.verb = -1
-    pyrat.verb = args.get_default('verb', 'Verbosity', 2, lt=5)
-    runmode = pyrat.runmode = args.get_choice(
-        'runmode', 'running mode', pc.rmodes, take_none=False)
+    else:
+        args.verb = args.get_default('verb', 'Verbosity', 2, lt=5)
+
+    args.runmode = args.get_choice(
+        'runmode', 'running mode', pc.rmodes, take_none=False,
+    )
 
     # Define logfile name and initialize log object:
     args.tlifile = args.get_path('tlifile', 'TLI')
@@ -536,13 +540,13 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
     args.logfile = args.get_path('logfile', 'Log')
 
     # Override logfile if requested:
-    if no_logfile:
+    if not with_log:
         args.logfile = None
 
     args.logfile = pt.path(args.logfile)
-    log = pyrat.log = mu.Log(
-        logname=args.logfile, verb=pyrat.verb, width=80, append=args.resume)
-    args._log = log
+    log = mu.Log(
+        logname=args.logfile, verb=args.verb, width=80, append=args.resume,
+    )
 
     # Welcome message:
     log.head(
@@ -556,10 +560,10 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
 
     log.head(f"Read command-line arguments from configuration file: '{cfile}'")
 
+    # Temporary reference to log in args (will be deleted at the end):
+    args._log = log
     # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     # Parse valid inputs and defaults:
-    pyrat.inputs = args
-
     args.dblist = args.get_path('dblist', 'Opacity database', exists=True)
     args.molfile = args.get_path('molfile', 'Molecular data', exists=True)
     args.cia_files = args.get_path('csfile', 'Cross-section', exists=True)
@@ -807,10 +811,10 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         'qcap', 'Metals volume-mixing-ratio cap', gt=0.0, le=1.0)
     args.tlow = args.get_default(
         'tlow', 'Retrieval low-temperature (K) bound', 0.0,
-        wflag=(runmode=='mcmc'))
+        wflag=(args.runmode=='mcmc'))
     args.thigh = args.get_default(
         'thigh', 'Retrieval high-temperature (K) bound', np.inf,
-        wflag=(runmode=='mcmc'))
+        wflag=(args.runmode=='mcmc'))
 
     args.nsamples = args.get_default(
         'nsamples', 'Number of MCMC samples', gt=0)
@@ -825,9 +829,8 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
     args.grnmin = args.get_default(
         'grnmin', 'Gelman-Rubin convergence fraction', 0.5, gt=0.0)
 
-    # Keep in inputs
     if args.molvars is None:
-        pyrat.inputs.molvars = []
+        args.molvars = []
 
     if args.tmodel == 'tcea':
         args.tmodel = 'guillot'
@@ -837,6 +840,7 @@ def parse(pyrat, cfile, no_logfile=False, mute=False):
         )
         warnings.warn(warning_msg, category=DeprecationWarning)
     args.tmodelname = args.get_choice('tmodel', 'temperature model', pc.tmodels)
-    pyrat.ncpu = args.get_default('ncpu', 'Number of processors', 1, ge=1)
+    args.ncpu = args.get_default('ncpu', 'Number of processors', 1, ge=1)
 
-    return
+    del args._log
+    return args, log

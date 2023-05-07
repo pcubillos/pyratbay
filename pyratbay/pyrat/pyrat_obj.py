@@ -28,20 +28,20 @@ from .  import objects as ob
 from .  import argum as ar
 
 
-class Pyrat(object):
+class Pyrat():
   """
   Main Pyrat object.
   """
-  def __init__(self, cfile, no_logfile=False, mute=False):
+  def __init__(self, cfg_file, log=True, mute=False):
       """
       Parse the command-line arguments into the pyrat object.
 
       Parameters
       ----------
-      cfile: String
+      cfg_file: String
           A Pyrat Bay configuration file.
-      no_logfile: Bool
-          If True, enforce not to write outputs to a log file
+      log: Bool
+          Flag to save screen outputs to file (True) or not (False)
           (e.g., to prevent overwritting log of a previous run).
       mute: Bool
           If True, enforce verb to take a value of -1.
@@ -49,44 +49,42 @@ class Pyrat(object):
       Examples
       --------
       >>> import pyratbay as pb
-      >>> # Initialize and execute task:
       >>> pyrat = pb.run('spectrum_transmission.cfg')
-
-      >>> # Initialize only:
-      >>> pyrat = pb.Pyrat('spectrum_transmission.cfg')
-      >>> # Then, setup internal varible for spectra evaluation:
-      >>> pyrat.set_atmosphere()
-      >>> pyrat.set_spectrum()
       """
+      # Setup time tracker:
+      timer = pt.Timer()
+      self.timestamps = OrderedDict()
+      self.timestamps['init'] = timer.clock()
 
       # Parse config file inputs:
-      pt.parse(self, cfile, no_logfile, mute)
+      if isinstance(cfg_file, str):
+          self.inputs, self.log = pt.parse(cfg_file, log, mute)
+      else:
+          # If cfg file was already parsed (pb.run), sneakily use log
+          # argument as the logging object instead of a boolean flag
+          self.inputs = cfg_file
+          self.log = log
+
+      self.ncpu = self.inputs.ncpu
+      self.runmode = self.inputs.runmode
 
       self.phy = ob.Physics(self.inputs)
       self.ret = ob.Retrieval(self.inputs, self.log)
       self.ex = ob.Extinction(self.inputs, self.log)
       self.od = ob.Optdepth(self.inputs, self.log)
 
-      # Setup time tracker:
-      timer = pt.Timer()
-      self.timestamps = OrderedDict()
-      self.timestamps['init'] = timer.clock()
-
-
-  def set_atmosphere(self):
-      timer = pt.Timer()
+      # Initialize Atmosphere:
       self.atm = Atmosphere(self.inputs, self.log)
-      self.timestamps['read atm'] = timer.clock()
+      self.timestamps['atmosphere'] = timer.clock()
 
-
-  def set_spectrum(self):
-      timer = pt.Timer()
       # Initialize wavenumber sampling:
       self.spec = sp.Spectrum(self.inputs, self.log)
-      self.timestamps['wn sample'] = timer.clock()
+      self.timestamps['spectrum'] = timer.clock()
 
       self.obs = Observation(self.inputs, self.spec.wn, self.log)
+
       ar.check_spectrum(self)
+
       # Read opacity tables (if needed):
       self.opacity = Opacity(
           self.inputs,
@@ -658,13 +656,14 @@ class Pyrat(object):
           self.atm.press,
           profiles=[self.ret.temp_median, self.ret.temp_best],
           labels=['median', 'best'],
-          bounds=self.ret.temp_post_boundaries, **kwargs)
+          bounds=self.ret.temp_post_boundaries, **kwargs,
+      )
       return ax
 
 
   def __str__(self):
       if self.spec.resolution is not None:
-         wave = "R={:.1f}".format(self.spec.resolution)
+         wave = f"R={self.spec.resolution:.1f}"
       elif self.spec.wlstep is not None:
          wave = f'delta-wl={self.spec.wlstep:.2f}'
       else:

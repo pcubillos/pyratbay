@@ -8346,3 +8346,18 @@ Updated tests.
 
 Removed references to pyrat.od in parser() function.
 
+
+*****  Sun May 7 12:02:52 CEST 2023  *****
+
+Removed all remaining references to pyrat object in parser() function
+This is great! Now one can effectively call the parser before
+initializing a pyrat object(). This disentangles pt.parse() from
+pb.run() from pb.Pyrat(), and enables initializing atmosphere models
+without going through Pyrat().
+Removed pyrat.set_atmosphere() and pyrat.set_spectrum() arguments.
+
+Replace Pyrat() no_logfile argument with log.
+Still a boolean, but avoiding double negatives.
+
+Fixed issue with mute argument not muting.
+

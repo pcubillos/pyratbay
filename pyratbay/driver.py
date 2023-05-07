@@ -10,17 +10,17 @@ import os
 import numpy as np
 import mc3
 
-from . import tools as pt
-from . import opacity as po
-from . import constants as pc
 from . import atmosphere as pa
-from . import spectrum as ps
+from . import constants as pc
 from . import io as io
+from . import opacity as po
 from . import plots as pp
-from .pyrat import Pyrat
+from . import spectrum as ps
+from . import tools as pt
+from . import Pyrat, Atmosphere
 
 
-def run(cfile, run_step='run', no_logfile=False):
+def run(cfile, run_step=None, with_log=True):
     """
     Pyrat Bay initialization driver.
 
@@ -29,25 +29,22 @@ def run(cfile, run_step='run', no_logfile=False):
     cfile: String
         A Pyrat Bay configuration file.
     run_step: String
-        If 'dry': only read the configuration file into a Pyrat object
-        If 'init': initialize a Pyrat object (but no spectra calculation).
-        If 'run': run all the way (default).
-    no_logfile: Bool
-        If True, enforce not to write outputs to a log file
+        DEPRECATED
+    with_log: Bool
+        Flag to save screen outputs to file (True) or not (False)
         (e.g., to prevent overwritting log of a previous run).
     """
-    pyrat = Pyrat(cfile, no_logfile=no_logfile)
-    log = pyrat.log
-    ret = pyrat.ret
-    inputs = pyrat.inputs
+    inputs, log = pt.parse(cfile, with_log)
+    runmode = inputs.runmode
 
+    # TBD: deprecate run_step
     if run_step == 'dry':
-        return pyrat
+        return inputs
 
     # Call lineread:
-    if pyrat.runmode == 'tli':
-        if pyrat.inputs.tlifile is None:
-            log.error('Undefined TLI file (tlifile).')
+    if runmode == 'tli':
+        if inputs.tlifile is None:
+            log.error('Undefined TLI file (tlifile)')
         po.make_tli(
             inputs.dblist, inputs.pflist, inputs.dbtype,
             inputs.tlifile[0], inputs.wllow, inputs.wlhigh,
@@ -55,20 +52,17 @@ def run(cfile, run_step='run', no_logfile=False):
         )
         return
 
-    # Initialize atmosphere:
-    pyrat.set_atmosphere()
-    atm = pyrat.atm
-    if pyrat.runmode == 'atmosphere':
-        return pyrat.atm
 
-    if pyrat.runmode == 'mcmc' and ret.mcmcfile is None:
-        log.error('Undefined MCMC file (mcmcfile).')
+    # Initialize atmosphere:
+    if runmode == 'atmosphere':
+        return Atmosphere(inputs, log)
+
 
     # Initialize pyrat object:
-    pyrat.set_spectrum()
+    pyrat = Pyrat(inputs, log)
 
     # Calculate extinction-coefficient file if requested:
-    if pyrat.runmode == 'opacity':
+    if runmode == 'opacity':
         pyrat.compute_opacity()
         return pyrat
 
@@ -76,16 +70,18 @@ def run(cfile, run_step='run', no_logfile=False):
     if run_step == 'init':
         return pyrat
 
-
     # Compute spectrum and return pyrat object if requested:
-    if pyrat.runmode == "spectrum":
+    if runmode == "spectrum":
         pyrat.run()
         return pyrat
 
-    if pyrat.runmode == 'radeq':
+    if runmode == 'radeq':
         pyrat.radiative_equilibrium()
         return pyrat
 
+    ret = pyrat.ret
+    if runmode == 'mcmc' and ret.mcmcfile is None:
+        log.error('Undefined MCMC file (mcmcfile)')
     #if pyrat.inputs.resume: # Bypass writting all of the initialization log:
     #    pyrat = Pyrat(args, log=None)
     #    pyrat.log = log
@@ -126,6 +122,7 @@ def run(cfile, run_step='run', no_logfile=False):
     pyrat.spec.specfile = f"{outfile}_bestfit_spectrum.dat"
     ret.spec_best, ret.bestbandflux = pyrat.eval(bestp)
 
+    atm = pyrat.atm
     header = "# MCMC best-fitting atmospheric model.\n\n"
     bestatm = f"{outfile}_bestfit_atmosphere.atm"
     io.write_atm(

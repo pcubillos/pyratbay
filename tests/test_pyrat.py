@@ -44,20 +44,13 @@ def test_no_logfile(tmp_path):
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
     )
     pyrat = pb.run(cfg)
-    logfile = pyrat.log.logname
-
-    # Now, initialize without overwritting log:
-    pyrat = pb.Pyrat(cfg, no_logfile=True)
-    assert pyrat.log.logname is None
-    with open(logfile, 'r') as f:
+    with open(pyrat.log.logname, 'r') as f:
         log = f.read()
     assert 'Computed transit spectrum' in log
 
-    # Continue running, check it doesn't break:
-    pyrat.set_atmosphere()
-    pyrat.set_spectrum()
-    pyrat.run()
-    assert pyrat is not None
+    # Now, initialize without overwritting log:
+    pyrat = pb.Pyrat(cfg, log=False)
+    assert pyrat.log.logname is None
 
 
 def test_mute(tmp_path, capfd):

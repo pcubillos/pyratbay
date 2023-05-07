@@ -48,7 +48,7 @@ def test_run_tli2(tmp_path):
         ROOT+'tests/configs/tli_hitran_1.1-1.7um_test.cfg',
         remove=['tlifile'],
     )
-    error = "Undefined TLI file (tlifile)."
+    error = "Undefined TLI file (tlifile)"
     with pytest.raises(ValueError, match=re.escape(error)):
         pyrat = pb.run(cfg)
 
@@ -59,7 +59,7 @@ def test_run_mcmc_mcmcfile(tmp_path):
         ROOT+'tests/configs/mcmc_transmission_test.cfg',
         remove=['mcmcfile'],
     )
-    error = "Undefined MCMC file (mcmcfile)."
+    error = "Undefined MCMC file (mcmcfile)"
     with pytest.raises(ValueError, match=re.escape(error)):
         pyrat = pb.run(cfg)
 
