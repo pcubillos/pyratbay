@@ -8387,3 +8387,7 @@ lbl.mol_index
 For each lbl species, their index in pyrat.atm
 Enabled single-layer calculation in lbl.calc_extinction_coefficient()
 
+*****
+
+Updated pyratbay version to 1.1.11b1.
+
