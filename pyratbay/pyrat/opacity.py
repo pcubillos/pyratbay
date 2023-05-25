@@ -6,11 +6,11 @@ import numpy as np
 from .. import constants as pc
 from .. import opacity as op
 from .. import tools as pt
-
+from .line_by_line import Line_By_Line
 
 class Opacity():
     """Interface between opacity models and pyrat object"""
-    def __init__(self, inputs, wn, species, pressure, log):
+    def __init__(self, inputs, wn, species, pressure, log, pyrat):
         """
         Read collision induced absorption (CIA) files.
         """
@@ -34,15 +34,11 @@ class Opacity():
         # TBD: without runmode?
         if inputs.extfile is not None and inputs.runmode != 'opacity':
             log.head("\nReading cross-section table file(s):")
-            #for cs_file in self.cs_files:
+            #for cs_file in self.extfile:
             #    log.head(f"  '{cs_file}'.")
 
-            ls = op.Line_Sample(
-                inputs.extfile, # TBD: self.ls_files?
-                min_wn,
-                max_wn,
-                log,
-            )
+            # TBD: self.ls_files?
+            ls = op.Line_Sample(inputs.extfile, min_wn, max_wn, log)
             self.models.append(ls)
             self.models_type.append('line_sample')
             imol = [species.index(mol) for mol in ls.species]
@@ -69,6 +65,16 @@ class Opacity():
             )
             self.nspec.append(ls.nspec)
 
+        if inputs.tlifile is not None:
+            lbl = Line_By_Line(inputs, species, min_wn, max_wn, log, pyrat)
+            self.models.append(lbl)
+            self.models_type.append('lbl')
+            imol = [species.index(mol) for mol in lbl.species]
+            self.mol_indices.append(imol)
+            self.tmin['lbl'] = lbl.tmin
+            self.tmax['lbl'] = lbl.tmax
+            self.nspec.append(lbl.nspec)
+
         if inputs.h_ion is not None:
             model = op.Hydrogen_Ion(wn)
             self.models.append(model)
@@ -93,7 +99,11 @@ class Opacity():
         self.ec[:] = 0.0
         for i,model in enumerate(self.models):
             density = densities[:,self.mol_indices[i]]
-            self.ec += model.calc_extinction_coefficient(temperature, density)
+            args = {
+                'temperature': temperature,
+                'densities': density,
+            }
+            self.ec += model.calc_extinction_coefficient(**args)
 
         return self.ec
 
@@ -122,22 +132,23 @@ class Opacity():
 
             if self.models_type[i] == 'line_sample':
                 label += list(model.species)
+            elif self.models_type[i] == 'lbl':
+                label += list(model.species)
             else:
                 label.append(model.name)
 
-        ##   CIA
-        #    ext_coeff = model.calc_extinction_coefficient(
-        #        temperature[layer], densities[layer,imol],
-        #    )
-        #    label.append(model.name)
+        ## CIA
+        # ext_coeff = model.calc_extinction_coefficient(
+        #        temperature[layer], densities[layer,imol])
+        # label.append(model.name)
 
         ## Alkali
-        #    ext_coeff = model.calc_extinction_coefficient(
-        #        temperature, density, layer,
-        #    )
-        #    label.append(model.mol)
+        # ext_coeff = model.calc_extinction_coefficient(
+        #        temperature, density, layer)
+        # label.append(model.mol)
+
         ## Ray
-        #    calc_extinction_coefficient(self, density, pars=None, layer=None)
+        # calc_extinction_coefficient(self, density, pars=None, layer=None)
 
         return ec, label
 
@@ -182,9 +193,9 @@ class Opacity():
                 t_lims = f' {self.tmin[mtype]:7.1f} {self.tmax[mtype]:7.1f}'
             else:
                 t_lims = ''
-            if mtype == 'line_sample':
+            if mtype in ['line_sample', 'lbl']:
                 for j in range(model.nspec):
-                    info = f'{model.species[j]:15} {mtype:10} {t_lims}'
+                    info = f'{model.species[j]:15} {mtype:11} {t_lims}'
                     fw.write(info)
         return fw.text
 

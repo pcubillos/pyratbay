@@ -70,7 +70,7 @@ class Database():
 
 class Line_By_Line():
     """All Line-by-line data"""
-    def __init__(self, inputs, species, wn_low, wn_high, log):
+    def __init__(self, inputs, species, wn_low, wn_high, log, pyrat):
         self.tmin = -np.inf
         self.tmax =  np.inf
         self.db = []
@@ -84,19 +84,25 @@ class Line_By_Line():
         self.gf = np.array([], np.double)
         self.isoid = np.array([], int)
 
+        self.pyrat = pyrat
+        self.nwave = pyrat.spec.nwave
+        self.nlayers = pyrat.atm.nlayers
         # Line-transition data file
         self.tlifile = None
         self.ethresh = inputs.ethresh
-        # If there's a cross-section table, skip TLI LBL data
-        # TBD
-        #if pyrat.ex.etable is None:
-        #    log.head("\nSkip LBL data (use tabulated), use cross sections.")
-        #    return
 
         # Count number of TLI files:
         if inputs.tlifile is None:
             log.head("\nNo line transition file to read.")
             return
+
+        self.ec = np.zeros((self.nlayers, self.nwave))
+        sm_ext = mp.Array(
+            ctypes.c_double,
+            np.zeros(self.nlayers*self.nwave, np.double),
+        )
+        self.ec = np.ctypeslib.as_array(
+            sm_ext.get_obj()).reshape((self.nlayers, self.nwave))
 
         log.head("\nReading line-by-line info.")
         with pt.log_error(log):
@@ -133,23 +139,20 @@ class Line_By_Line():
         self.iso_name = []
         self.iso_mass = np.zeros(niso)
         self.iso_ratio = np.zeros(niso)
-        self.mol_index = np.zeros(niso, int)
+        self.iso_atm_index = np.zeros(niso, int)
         self.iso_pf_interp = []
         for j,db in enumerate(self.db):
             iso_mask = np.arange(total_niso, total_niso+db.niso)
             self.iso_name += list(db.iso_name)
             self.iso_mass[iso_mask] = db.iso_mass
             self.iso_ratio[iso_mask] = db.iso_ratio
-            if db.molname in species:
-                self.species.append(db.molname)
-                mol_index = species.index(db.molname)
-                self.mol_index[iso_mask] = mol_index
-            else:
-                self.mol_index[iso_mask] = -1
+            if db.molname not in species:
                 log.error(
                     f"The species '{db.molname}' for isotopes "
                     f"{db.iso_name} is not present in the atmosphere"
                 )
+            self.species.append(db.molname)
+            self.iso_atm_index[iso_mask] = species.index(db.molname)
             for j in range(db.niso):
                 pf_interp = sip.interp1d(db.temp, db.iso_pf[j], kind='slinear')
                 self.iso_pf_interp.append(pf_interp)
@@ -158,10 +161,14 @@ class Line_By_Line():
 
         self.species = np.unique(self.species)
         self.nspec = len(self.species)
-        # Get species indices in opacity table for the isotopes:
+        self.mol_index = [
+            species.index(mol)
+            for mol in self.species
+        ]
+        # Get species indices in opacity table for each isotopes:
         self.iso_mol_index = np.array([
             list(self.species).index(species[i])
-            for i in self.mol_index
+            for i in self.iso_atm_index
         ])
 
         self.iso_name = np.array(self.iso_name)
@@ -170,45 +177,34 @@ class Line_By_Line():
             f"Read a total of {self.ntransitions:,d} line transitions.",
             indent=2,
         )
-        log.debug(f"Isotope's molecule indices:\n  {self.mol_index}", indent=2)
+        log.debug(f"Isotope's molecule indices:\n  {self.iso_atm_index}", indent=2)
         log.head("Read LBL transitions done.\n")
 
 
-
-    def check_temperature_bounds(self, temperature):
-        return (
-            np.amax(temperature) > self.tmax or
-            np.amin(temperature) < self.tmin
-        )
-
-    def calc_extinction_coefficient(
-        self, temperature, densities, pyrat, layer=None,
-    ):
-        # Calculate the extinction coefficient on the spot:
-        nlayers = len(temperature)
-        nwave = pyrat.spec.nwave
-        self.ec = np.zeros((nlayers, nwave))
-        if self.tlifile is None:
-            return
-
+    def calc_extinction_coefficient(self, temperature, densities, layer=None):
+        """
+        Calculate the extinction coefficient on the spot over
+        temperature and number density profiles.
+        """
         # Update partition functions:
-        self.iso_pf = np.zeros((self.niso, nlayers))
+        self.iso_pf = np.zeros((self.niso, self.nlayers))
         for i in range(self.niso):
-            self.iso_pf[i] = self.iso_pf_interp[i](pyrat.atm.temp)
+            self.iso_pf[i] = self.iso_pf_interp[i](temperature)
 
-        sm_ext = mp.Array(
-            ctypes.c_double,
-            np.zeros(nlayers*nwave, np.double),
-        )
-        self.ec = np.ctypeslib.as_array(
-            sm_ext.get_obj()).reshape((nlayers, nwave))
+        # Single layer:
+        if layer is not None:
+            ec = ex.extinction(self.pyrat, [layer], grid=False, add=False)
+            for i in range(self.nspec):
+                ec[i] *= densities[layer]
+            return ec
 
+        self.ec[:] = 0.0
         processes = []
-        indices = np.arange(nlayers) % pyrat.ncpu
-        for i in range(pyrat.ncpu):
+        indices = np.arange(self.nlayers) % self.pyrat.ncpu
+        for i in range(self.pyrat.ncpu):
             grid = False
             add = True
-            args = (pyrat, np.where(indices==i)[0], grid, add)
+            args = (self.pyrat, np.where(indices==i)[0], grid, add)
             proc = mp.get_context('fork').Process(
                 target=ex.extinction,
                 args=args,
@@ -217,6 +213,8 @@ class Line_By_Line():
             proc.start()
         for proc in processes:
             proc.join()
+
+        return self.ec
 
 
     def __str__(self):
@@ -256,7 +254,7 @@ class Line_By_Line():
         for i in range(self.niso):
             fw.write(
                 '{:>7s}  {:8d}  {:8.4f}   {:.3e}   {}',
-                self.iso_name[i], self.mol_index[i], self.iso_mass[i],
+                self.iso_name[i], self.iso_atm_index[i], self.iso_mass[i],
                 self.iso_ratio[i], self.db[db_index].name,
             )
             iso_index += 1

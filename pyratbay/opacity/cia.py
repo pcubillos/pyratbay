@@ -194,6 +194,7 @@ class Collision_Induced():
         )
         return extinction_coefficient
 
+
     def __str__(self):
         fw = pt.Formatted_Write()
         fw.write(f"CIA file name (cia_file): '{self.cia_file}'")

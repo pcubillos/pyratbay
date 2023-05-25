@@ -51,28 +51,29 @@ def compute_opacity(pyrat):
             'opacity table',
         )
 
+    i_lbl = pyrat.opacity.models_type.index('lbl')
+    lbl = pyrat.opacity.models[i_lbl]
+
     extfile = ex.extfile[0]
     log.head(f"\nGenerating new cross-section table file:\n  '{extfile}'")
     # Temperature boundaries check:
-    if ex.tmin < pyrat.lbl.tmin:
+    if ex.tmin < lbl.tmin:
         log.error(
             'Requested cross-section table temperature '
             f'(tmin={ex.tmin:.1f} K) below the lowest available TLI '
-            f'temperature ({pyrat.lbl.tmin:.1f} K)'
+            f'temperature ({lbl.tmin:.1f} K)'
         )
-    if ex.tmax > pyrat.lbl.tmax:
+    if ex.tmax > lbl.tmax:
         log.error(
             'Requested cross-section table temperature '
             f'(tmax={ex.tmax:.1f} K) above the highest available TLI '
-            f'temperature ({pyrat.lbl.tmax:.1f} K)'
+            f'temperature ({lbl.tmax:.1f} K)'
         )
 
     # Create the temperature array:
     ex.ntemp = int((ex.tmax-ex.tmin)/ex.tstep) + 1
     ex.temp = np.linspace(ex.tmin, ex.tmin + (ex.ntemp-1)*ex.tstep, ex.ntemp)
-
-    imol = pyrat.lbl.mol_index[pyrat.lbl.mol_index>=0]
-    ex.species = pyrat.atm.species[np.unique(imol)]
+    ex.species = lbl.species
     ex.nspec = len(pyrat.ex.species)
 
     with np.printoptions(formatter={'float':'{:.1f}'.format}):
@@ -80,9 +81,9 @@ def compute_opacity(pyrat):
 
     # Evaluate the partition function at the given temperatures:
     log.msg("Interpolate partition function.", indent=2)
-    ex.z = np.zeros((pyrat.lbl.niso, ex.ntemp), np.double)
-    for i in range(pyrat.lbl.niso):
-        ex.z[i] = pyrat.lbl.iso_pf_interp[i](ex.temp)
+    ex.z = np.zeros((lbl.niso, ex.ntemp), np.double)
+    for i in range(lbl.niso):
+        ex.z[i] = lbl.iso_pf_interp[i](ex.temp)
 
     # Allocate wavenumber, pressure, and isotope arrays:
     ex.wn = spec.wn
@@ -137,7 +138,8 @@ def extinction(pyrat, indices, grid=False, add=False):
     """
     atm = pyrat.atm
     spec = pyrat.spec
-    lbl = pyrat.lbl
+    i_lbl = pyrat.opacity.models_type.index('lbl')
+    lbl = pyrat.opacity.models[i_lbl]
     voigt = pyrat.voigt
     log = pyrat.log
 
@@ -184,7 +186,7 @@ def extinction(pyrat, indices, grid=False, add=False):
             voigt.lorentz, voigt.doppler,
             spec.wn, spec.own, spec.odivisors,
             density, atm.mol_radius, atm.mol_mass,
-            lbl.mol_index, lbl.iso_mass, lbl.iso_ratio,
+            lbl.iso_atm_index, lbl.iso_mass, lbl.iso_ratio,
             iso_pf, lbl.iso_mol_index,
             lbl.wn, lbl.elow, lbl.gf, lbl.isoid,
             voigt.cutoff, lbl.ethresh, temp,
@@ -198,15 +200,3 @@ def extinction(pyrat, indices, grid=False, add=False):
         else:      # return single-layer EC of given layer
             return extinct_coeff
 
-
-def get_ec(pyrat, layer):
-    """
-    Compute per-species extinction coefficient at requested layer.
-    """
-    # Line-by-line:
-    exc = extinction(pyrat, [layer], grid=False, add=False)
-    for i in range(pyrat.lbl.nspec):
-        imol = list(pyrat.atm.species).index(pyrat.lbl.species[i])
-        exc[i] *= pyrat.atm.d[layer,imol]
-    label = list(pyrat.lbl.species)
-    return exc, label

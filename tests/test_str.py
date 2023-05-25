@@ -286,7 +286,10 @@ def test_pyrat_transmission_lbl_str(tmp_path):
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
     )
     pyrat = pb.run(cfg)
-    assert str(pyrat.lbl) == f"""\
+    lbl_index = pyrat.opacity.models_type.index('lbl')
+    lbl = pyrat.opacity.models[lbl_index]
+
+    assert str(lbl) == f"""\
 Line-transition information:
 Input TLI files (tlifile):
     ['{os.getcwd()}/outputs/HITRAN_H2O_1.1-1.7um_test.tli']
@@ -307,7 +310,7 @@ Partition function for each isotope (z):
     [ 3.600e+01  3.729e+01  5.053e+01 ...  2.737e+06  2.746e+06  2.754e+06]
     [ 6.000e+00  6.343e+00  9.129e+00 ...  9.578e+05  9.615e+05  9.652e+05]
 
-Total number of line transitions (ntransitions): 47,666
+Total number of line transitions (ntransitions): 47,658
 Minimum and maximum temperatures (tmin, tmax): [1.0, 5000.0] K
 Line-transition isotope IDs (isoid):
     [0 0 0 0 0 0 0 ... 3 3 3 3 3 3 3]
@@ -791,10 +794,6 @@ def test_pyrat_exfile_str(tmp_path):
     pyrat = pb.run(cfg)
     assert pyrat is not None
     pyrat.band_integrate()
-    assert str(pyrat.lbl) == """\
-Line-transition information:
-No input TLI files.
-"""
 
     assert str(pyrat.opacity) == """\
 Opacity extinction information:

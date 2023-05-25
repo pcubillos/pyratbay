@@ -85,34 +85,29 @@ class Pyrat():
 
       ar.check_spectrum(self)
 
-      # Read opacity tables (if needed):
+      # Setup opacity models:
       self.opacity = Opacity(
           self.inputs,
           self.spec.wn,
           self.atm.species,
           self.atm.press,
           self.log,
+          self,
       )
       self.timestamps['read opacities'] = timer.clock()
 
-      # Read line-by-line data:
-      self.lbl = Line_By_Line(
-          self.inputs,
-          list(self.atm.species),
-          self.spec.wnlow, self.spec.wnhigh,
-          self.log,
-      )
-      self.timestamps['read tli'] = timer.clock()
-
-      self.voigt = Voigt(
-          self.inputs,
-          self.lbl,
-          self.ex,
-          self.spec,
-          self.atm,
-          self.log,
-      )
-      self.timestamps['voigt'] = timer.clock()
+      if 'lbl' in self.opacity.models_type:
+          i_lbl = self.opacity.models_type.index('lbl')
+          lbl = self.opacity.models[i_lbl]
+          self.voigt = Voigt(
+              self.inputs,
+              lbl,
+              self.ex,
+              self.spec,
+              self.atm,
+              self.log,
+          )
+          self.timestamps['voigt'] = timer.clock()
 
       # Setup more observational/retrieval parameters:
       ar.setup(self)
@@ -162,15 +157,15 @@ class Pyrat():
       self.atm.calc_profiles(temp, vmr, radius, self.phy.mstar, self.log)
 
       oob = self.opacity.check_temp_bounds(self.atm.temp)
-      if len(oob) > 0:
-          good_status = False
+      good_status = len(oob) == 0
+      if not good_status:
           self.log.warning(
               "Temperature values lie out of the cross-section "
               f"boundaries for: {oob}"
           )
 
-      # Interpolate CIA absorption:
-      good_status = self.cs.calc_extinction_coefficient(
+      # Interpolate CIA extinction coefficient:
+      good_status &= self.cs.calc_extinction_coefficient(
           self.atm.temp, self.atm.d, self.log,
       )
       self.timestamps['interp cs'] = timer.clock()
@@ -179,23 +174,18 @@ class Pyrat():
           self.spec.spectrum[:] = 0.0
           return
 
-      # extinction coefficient from line-sample/H- opacity:
-      self.opacity.calc_extinction_coefficient(
-          self.atm.temp,
-          self.atm.d,
-      )
+      # extinction coefficient from line-sample, lbl, H-:
+      self.opacity.calc_extinction_coefficient(self.atm.temp, self.atm.d)
+      self.timestamps['extinction'] = timer.clock()
 
-      # Calculate cloud, Rayleigh, and H- absorption:
+      # Calculate cloud, Rayleigh, and alkali absorption:
       cl.absorption(self)
+      #self.cloud.calc_extinction_coefficient(pyrat.atm.temp, pyrat.atm.radius)
       self.rayleigh.calc_extinction_coefficient(self.atm.d)
       self.timestamps['cloud+ray'] = timer.clock()
-
       # Calculate the alkali absorption:
       self.alkali.calc_extinction_coefficient(self.atm.temp, self.atm.d)
       self.timestamps['alkali'] = timer.clock()
-
-      self.lbl.calc_extinction_coefficient(self.atm.temp, self.atm.d, self)
-      self.timestamps['lbl'] = timer.clock()
 
       # Calculate the optical depth:
       od.optical_depth(self)
@@ -458,15 +448,9 @@ class Pyrat():
       # Allocate outputs:
       ec = np.empty((0, self.spec.nwave))
       label = []
-      # Line-sample and H- extinction coefficient:
+      # Line-sample, lbl, and H- extinction coefficient:
       if len(self.opacity.models) > 0:
           e, lab = self.opacity.get_ec(self.atm.temp, self.atm.d, layer)
-          ec = np.vstack((ec, e))
-          label += lab
-      # Line-by-line extinction coefficient:
-      if self.lbl.ntransitions != 0:
-          #e, lab = self.lbl.get_ec(self.atm.temp, self.atm.d, layer)
-          e, lab = ex.get_ec(self, layer)
           ec = np.vstack((ec, e))
           label += lab
       # CIA extinction coefficient:
@@ -666,21 +650,19 @@ class Pyrat():
 
   def __str__(self):
       if self.spec.resolution is not None:
-         wave = f"R={self.spec.resolution:.1f}"
+          wave = f"R={self.spec.resolution:.1f}"
       elif self.spec.wlstep is not None:
-         wave = f'delta-wl={self.spec.wlstep:.2f}'
+          wave = f'delta-wl={self.spec.wlstep:.2f}'
       else:
-         wave = f"delta-wn={self.spec.wnstep:.3f} cm-1"
+          wave = f"delta-wn={self.spec.wnstep:.3f} cm-1"
 
       opacities = []
       if len(self.opacity.models) > 0:
-        for i,model in enumerate(self.models):
-            if self.models_type[i] == 'line_sample':
-                opacities += list(model.species)
-            else:
-                opacities.append(model.name)
-      if self.lbl.nspec > 0:
-          opacities += list(self.lbl.species)
+          for i,model in enumerate(self.opacity.models):
+              if self.opacity.models_type[i] in ['line_sample', 'lbl']:
+                  opacities += list(model.species)
+              else:
+                  opacities.append(model.name)
       if self.cs.nfiles > 0:
           for cia in self.cs.models:
               opacities.append(cia.name)

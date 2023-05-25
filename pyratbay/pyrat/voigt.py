@@ -36,7 +36,7 @@ class Voigt():
         max_temp = 3000.0 if ex.tmax is None else ex.tmax
 
         # Get mass of line-transition molecules:
-        mol_indices = np.unique(lbl.mol_index[lbl.mol_index>=0])
+        mol_indices = np.unique(lbl.iso_atm_index)
         min_mass = np.amin(atm.mol_mass[mol_indices])
         max_mass = np.amax(atm.mol_mass[mol_indices])
         min_rad = np.amin(atm.mol_radius[mol_indices])

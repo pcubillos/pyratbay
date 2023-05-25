@@ -18,7 +18,6 @@ def optical_depth(pyrat):
     nwave = pyrat.spec.nwave
     nlayers = pyrat.atm.nlayers
     rtop = pyrat.atm.rtop
-    good_status = True
 
     pyrat.log.head('\nBegin optical-depth calculation.')
 
@@ -38,7 +37,6 @@ def optical_depth(pyrat):
     # Sum all contributions to the extinction:
     od.ec[rtop:] = (
         + pyrat.opacity.ec[rtop:]
-        + pyrat.lbl.ec[rtop:]
         + pyrat.cloud.ec[rtop:]
     )
     if pyrat.rayleigh.ec is not None:
@@ -89,4 +87,3 @@ def optical_depth(pyrat):
             ideep[ideep<0] = r
 
     pyrat.log.head('Optical depth done.')
-    return good_status

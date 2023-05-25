@@ -75,7 +75,7 @@ def test_get_ec_lbl(tmp_path):
     layer = 50
     ec, labels = pyrat.get_ec(layer)
     assert labels == ['H2O', 'CIA H2-H2', 'lecavelier', 'deck', 'Na']
-    np.testing.assert_allclose(ec[0], pyrat.lbl.ec[layer])
+    np.testing.assert_allclose(ec[0], pyrat.opacity.models[0].ec[layer])
     np.testing.assert_allclose(ec[1], pyrat.cs.ec[layer])
     np.testing.assert_allclose(ec[2], pyrat.rayleigh.ec[layer])
     # Cloud deck model does not use the ec, rather post processed during RT.

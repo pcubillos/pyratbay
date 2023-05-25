@@ -8375,3 +8375,15 @@ Moved ethresh from pyrat.ex into pyrat.lbl.
 Made lbl species not found in atmosphere an error (was warning before)
 Updated tests.
 
+
+*****  Thu May 25 13:47:36 CEST 2023  *****
+
+Incorporated lbl into pyrat.opacity list of opacity sources.
+Moved pyrat argument from lbl.ec() call to lbl.init().
+Renamed variables in lbl:
+lbl.mol_index --> lbl.iso_atm_index
+For each isotope, the idex of their precursor molecule in pyrat.atm
+lbl.mol_index
+For each lbl species, their index in pyrat.atm
+Enabled single-layer calculation in lbl.calc_extinction_coefficient()
+
