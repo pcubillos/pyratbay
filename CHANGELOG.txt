@@ -8391,3 +8391,7 @@ Enabled single-layer calculation in lbl.calc_extinction_coefficient()
 
 Updated pyratbay version to 1.1.11b1.
 
+*****
+
+Housekeeping.
+

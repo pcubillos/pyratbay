@@ -14,7 +14,6 @@ def optical_depth(pyrat):
     Calculate the optical depth.
     """
     od = pyrat.od
-    ex = pyrat.ex
     nwave = pyrat.spec.nwave
     nlayers = pyrat.atm.nlayers
     rtop = pyrat.atm.rtop

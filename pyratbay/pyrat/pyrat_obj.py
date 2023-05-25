@@ -16,7 +16,6 @@ from .. import tools as pt
 from .alkali import Alkali
 from .atmosphere import Atmosphere
 from .crosssec import CIA
-from .line_by_line import Line_By_Line
 from .observation import Observation
 from .opacity import Opacity
 from .voigt import Voigt

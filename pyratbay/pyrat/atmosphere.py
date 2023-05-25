@@ -51,8 +51,22 @@ class Atmosphere():
 
     def __init__(self, inputs, log):
         """
-        Initialize atmosphere.
+        Initialize an atmospheric model object
+        There are four main properties to compute (in this order):
+        The pressure, the temperature, the volume mixing ratios (VMRs),
+        and the radius profiles.
+
+        Properties can be read from input profiles, computed by models,
+        or skipped, depending on the configuration file.
+
+        The rules are simple:
+        - if there is a model in the config file, calculate the property
+        - else if there is an input_atmfile or ptfile, read properties from file
+        - else, skip the calculation
+        - if calculate p, any further reads (T,VMR,r) will interpolate
         """
+        log.head('\nGenerating atmospheric model')
+
         self.rtop = 0  # Index of topmost layer (within Hill radius)
 
         # Check that input files exist:
@@ -96,23 +110,6 @@ class Atmosphere():
         self.mplanet = inputs.mplanet
         self.mass_units = inputs.mass_units
 
-        """
-        Create an atmospheric model object for a given configuration file
-        There are four main properties to compute (in this order):
-        The pressure, the temperature, the volume mixing ratios (VMRs),
-        and the radius profiles.
-
-        Properties can be read from input profiles, computed by models,
-        or skipped, depending on the configuration file.
-
-        The rules are simple:
-        - if there is a model in the config file, calculate the property
-        - else if there is an input_atmfile or ptfile, read properties from file
-        - else, skip the calculation
-        - if calculate p, any further reads (T,VMR,r) will interpolate
-        """
-        log.head('\nGenerating atmospheric model')
-
         # User-provided PT profile:
         if pt.isfile(inputs.ptfile) == 1:
             input_atm_source = 'ptfile'
@@ -146,7 +143,9 @@ class Atmosphere():
             # Always store the abundances as volume mixing ratios:
             if inputs.vmr is not None:
                 if vmr_units == 'mass':
-                    inputs.vmr /= mol.mass * np.sum(inputs.vmr/mol.mass, axis=1)
+                    # TBD: get masses for these species
+                    #inputs.vmr /= mol.mass * np.sum(inputs.vmr/mol.mass, axis=1)
+                    pass
                 elif vmr_units not in ['volume', 'number']:
                     log.error(f"Invalid input abundance units '{vmr_units}'.")
 
