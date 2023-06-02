@@ -8428,3 +8428,7 @@ Set default colors from theme for profiles curves.
 
 Tweaked Pyrat.plot_temperature() method.
 
+*****
+
+Fixed bug in Atmosphere.calc_profiles() for equilibrium chemistry.
+

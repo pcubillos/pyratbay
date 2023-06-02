@@ -422,7 +422,7 @@ class Atmosphere():
                     element = var[1:-3]
                     idx = list(net._base_composition).index(element)
                     solar_abundance = net._base_dex_abundances[idx]
-                    e_abundances[var] = solar_abundance + val
+                    e_abundances[element] = solar_abundance + val
                 elif '/' in var:
                     e_ratio[var.replace('/','_')] = val
             vmr = net.thermochemical_equilibrium(
