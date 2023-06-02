@@ -8424,3 +8424,7 @@ Furhter automated color theming in plots.temperature() function.
 Now users can set any valid mc3 theme or matplotlib color.
 Set default colors from theme for profiles curves.
 
+*****
+
+Tweaked Pyrat.plot_temperature() method.
+

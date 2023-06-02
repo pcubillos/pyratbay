@@ -633,17 +633,15 @@ class Pyrat():
       ax: AxesSubplot instance
           The matplotlib Axes of the figure.
       """
+      kwargs['pressure'] = self.atm.press
       if self.ret.posterior is None:
-          ax = pp.temperature(
-              self.atm.press, profiles=[self.atm.temp], **kwargs)
-          return ax
+          kwargs['profiles'] = [self.atm.temp]
+      else:
+          kwargs['profiles'] = [self.ret.temp_median, self.ret.temp_best]
+          kwargs['labels'] = ['median', 'best-fit']
+          kwargs['bounds'] = self.ret.temp_post_boundaries
 
-      ax = pp.temperature(
-          self.atm.press,
-          profiles=[self.ret.temp_median, self.ret.temp_best],
-          labels=['median', 'best'],
-          bounds=self.ret.temp_post_boundaries, **kwargs,
-      )
+      ax = pp.temperature(**kwargs)
       return ax
 
 
