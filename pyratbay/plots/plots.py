@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import is_color_like, to_rgb
 import numpy as np
 from scipy.ndimage import gaussian_filter1d as gaussf
-import mc3
+import mc3.plots.colors as mc3_colors
 
 from .. import constants as pc
 from .. import tools as pt
@@ -85,6 +85,18 @@ def alphatize(colors, alpha, bg='w'):
     return rgb
 
 
+def resolve_theme(theme):
+    if isinstance(theme, mc3_colors.Theme) or theme is None:
+        pass
+    elif isinstance(theme, str) and theme in mc3_colors.THEMES:
+        theme = mc3_colors.THEMES[theme]
+    elif is_color_like(theme):
+        theme = mc3_colors.Theme(theme)
+    else:
+        raise ValueError('Invalid color theme')
+    return theme
+
+
 def spectrum(
     spectrum, wavelength, rt_path,
     data=None, uncert=None,
@@ -146,7 +158,7 @@ def spectrum(
         Flux units. Select from: 'percent', 'ppt', 'ppm', 'none'.
     dpi: Integer
         The resolution in dots per inch for saved files.
-    theme: mc3.plots.Theme object
+    theme: string or mc3.plots.Theme object
         A color theme for the models.
 
     Returns
@@ -178,8 +190,9 @@ def spectrum(
     else:
         ax = axis
 
+    theme = resolve_theme(theme)
     if theme is None:
-        theme = mc3.plots.THEMES['orange']
+        theme = mc3_colors.THEMES['orange']
         theme.dark_color = 'maroon'
         theme.color = 'orangered'
         theme.light_color = 'orange'
@@ -429,7 +442,7 @@ def contribution(
 def temperature(
         pressure, profiles=None, labels=None, colors=None,
         bounds=None, punits='bar', ax=None, filename=None,
-        theme='blue', alpha=[0.8,0.6], fs=13, lw=2.0, fignum=504,
+        theme='blue', alpha=[0.75,0.5], fs=13, lw=2.0, fignum=504,
         dpi=300,
     ):
     """
@@ -456,10 +469,8 @@ def temperature(
         If not None, plot into the given axis.
     filename: String
         If not None, save plot to given file name.
-    theme: String
-        The histograms' color theme for bounds regions.
-        Only 'blue' and 'orange' themes are valid at the moment.
-        Alternatively, provide a two-element iterable to provide the colors.
+    theme: string or mc3.plots.Theme object
+        A color theme for the profiles and credible regions.
     alpha: 2-element float iterable
         Alpha transparency for bounds regions.
     fs: Float
@@ -478,34 +489,26 @@ def temperature(
     """
     press = pressure / pt.u(punits)
 
-    if theme == 'blue':
-        col1, col2 = 'royalblue', 'royalblue'
-    elif theme == 'orange':
-        col1, col2 = 'orange', 'gold'
-    else:  # Custom pair of colors:
-        col1, col2 = theme
-    # alpha != 0 does not work for ps/eps figures:
-    alpha1, alpha2 = alpha[:]
-    if filename is not None and filename.endswith('ps'):
-        fc2 = alphatize(col2, alpha2, 'white')
-        fc1 = alphatize(col1, alpha1, fc2)
-        alpha1 = alpha2 = 1.0
-    else:
-        fc1, fc2 = col1, col2
-
     if profiles is None:
         profiles = []
     if np.ndim(profiles) == 1 and len(profiles) == len(pressure):
         profiles = [profiles]
+    nprofiles, nlayers = np.shape(profiles)
+
+    theme = resolve_theme(theme)
+    if theme is None:
+        theme = mc3_colors.THEMES['blue']
+
+    if colors is None and nprofiles <= 2:
+        colors = [theme.color, theme.dark_color]
+    elif colors is None:
+        c = cycle(default_colors.values())
+        colors = [next(c) for _ in profiles]
 
     if labels is None:
         _labels = [None for _ in profiles]
     else:
         _labels = labels
-
-    if colors is None:
-        c = cycle(default_colors.values())
-        colors = [next(c) for _ in profiles]
 
     tighten = ax is None
     if ax is None:
@@ -513,15 +516,16 @@ def temperature(
         plt.clf()
         ax = plt.subplot(111)
 
+    # Note alpha != 0 does not work for ps/eps figures
     if bounds is not None and len(bounds) == 4:
-        low2, high2 = bounds[2:4]
         ax.fill_betweenx(
-            press, low2, high2, facecolor=fc2, edgecolor='none', alpha=alpha2,
+            press, bounds[2], bounds[3],
+            facecolor=theme.light_color, edgecolor='none', alpha=alpha[1],
         )
     if bounds is not None and len(bounds) >= 2:
-        low1, high1 = bounds[0:2]
         ax.fill_betweenx(
-            press, low1, high1, facecolor=fc1, edgecolor='none', alpha=alpha1,
+            press, bounds[0], bounds[1],
+            facecolor=theme.light_color, edgecolor='none', alpha=alpha[0],
         )
 
     for profile, color, label in zip(profiles, colors, _labels):

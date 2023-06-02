@@ -8418,3 +8418,9 @@ Some other minor adjustments.
 Added dpi argument into plots.abundance() function.
 Some other minor adjustments.
 
+*****
+
+Furhter automated color theming in plots.temperature() function.
+Now users can set any valid mc3 theme or matplotlib color.
+Set default colors from theme for profiles curves.
+
