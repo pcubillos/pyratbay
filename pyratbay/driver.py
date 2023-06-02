@@ -165,8 +165,9 @@ def run(cfile, run_step=None, with_log=True):
 
     path = 'transit' if is_transmission else 'emission'
     pp.contribution(
-        band_cf, 1.0/(pyrat.obs.bandwn*pc.um), path, atm.press, atm.radius,
-        atm.rtop, filename=f"{outfile}_bestfit_cf.png"
+        band_cf, 1.0/(pyrat.obs.bandwn*pc.um),
+        path, atm.press,
+        filename=f'{outfile}_bestfit_cf.png',
     )
 
     pyrat.log = log  # Un-mute

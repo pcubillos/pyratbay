@@ -8402,3 +8402,9 @@ Added dpi and theme arguments into plots.spectrum() function.
 Now theme manages the colors of the model and credible intervals,
 enabling the user to customize the color theme of the plot.
 
+*****
+
+Refactored plots.contribution() function,
+removed rtop and radius arguments, removed impact parameter
+axis (only plot as a function of pressure).
+

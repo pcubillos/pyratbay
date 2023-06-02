@@ -17,7 +17,6 @@ import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.colors import is_color_like, to_rgb
 import numpy as np
-import scipy.interpolate as si
 from scipy.ndimage import gaussian_filter1d as gaussf
 import mc3
 
@@ -267,8 +266,8 @@ def spectrum(
 
 
 def contribution(
-        contrib_func, wl, rt_path, pressure, radius, rtop=0,
-        filename=None, filters=None, fignum=-21,
+        contrib_func, wl, rt_path, pressure,
+        filename=None, filters=None, fignum=-21, dpi=300,
     ):
     """
     Plot the band-integrated normalized contribution functions
@@ -284,16 +283,14 @@ def contribution(
         Radiative-transfer observing geometry (emission or transit).
     pressure: 1D float ndarray
         Layer's pressure array (barye units).
-    radius: 1D float ndarray
-        Layer's impact parameter array (cm units).
-    rtop: Integer
-        Index of topmost valid layer.
     filename: String
         Filename of the output figure.
     filters: 1D string ndarray
         Name of the filter bands (optional).
     fignum: Integer
         Figure number.
+    dpi: Integer
+        The resolution in dots per inch for saved files.
 
     Returns
     -------
@@ -317,34 +314,25 @@ def contribution(
     if filters is not None:
         filters = [filters[i] for i in wlsort]
 
-    press = pressure[rtop:]/pc.bar
-    rad = radius[rtop:]/pc.km
-
-    press = pressure[rtop:]/pc.bar
-    rad = radius[rtop:]/pc.km
-    zz = contrib_func/np.amax(contrib_func)
-
     is_emission = rt_path in pc.emission_rt
     is_transit = rt_path in pc.transmission_rt
 
+    press = pressure / pc.bar
+    p_ranges = np.amax(press), np.amin(press)
+    log_p_ranges = np.log10(p_ranges)
+
     if is_emission:
-        yran = np.amax(np.log10(press)), np.amin(np.log10(press))
-        xlabel = 'contribution function'
-        ylabel = ''
-        yright = 0.9
+        xlabel = 'contribution functions'
         cbtop  = 0.5
     elif is_transit:
-        yran = np.amin(rad), np.amax(rad)
         xlabel = 'transmittance'
-        ylabel = 'Impact parameter (km)'
-        yright = 0.84
         cbtop  = 0.8
     else:
         rt_paths = pc.rt_paths
-        print(f"Invalid radiative-transfer geometry. Select from: {rt_paths}.")
+        print(f"Invalid radiative-transfer geometry. Select from: {rt_paths}")
         return
 
-    fs  = 12
+    fs = 12
     colors = np.asarray(np.linspace(0, 255, nfilters), int)
     # 68% percentile boundaries of the central cumulative function:
     lo = 0.5*(1-0.683)
@@ -354,6 +342,7 @@ def contribution(
     thin = (nfilters>80) + (nfilters>125) + (nfilters<100) + nfilters//100
 
     # Colormap and percentile limits:
+    zz = contrib_func / np.amax(contrib_func)
     z = np.empty((nfilters, nlayers, 4), dtype=float)
     plo = np.zeros(nfilters+1)
     phi = np.zeros(nfilters+1)
@@ -367,65 +356,54 @@ def contribution(
             plo[i], phi[i] = press[zz[:,i]<lo][0], press[zz[:,i]<hi][0]
     plo[-1] = plo[-2]
     phi[-1] = phi[-2]
+    log_p_lo = np.log10(plo)
+    log_p_hi = np.log10(phi)
 
-    fig = plt.figure(fignum, (8.5, 5))
+    fig = plt.figure(fignum)
+    fig.set_size_inches(8.5, 4.5)
     plt.clf()
-    plt.subplots_adjust(0.105, 0.10, yright, 0.95)
+    plt.subplots_adjust(0.09, 0.10, 0.9, 0.95)
     ax = plt.subplot(111)
-    pax = ax.twinx()
-    if is_emission:
-        ax.imshow(
-            z.swapaxes(0,1), aspect='auto',
-            extent=[0, nfilters, yran[0], yran[1]],
-            origin='upper', interpolation='nearest',
-        )
-        ax.yaxis.set_visible(False)
-        pax.spines['left'].set_visible(True)
-        pax.yaxis.set_label_position('left')
-        pax.yaxis.set_ticks_position('left')
-    elif is_transit:
-        ax.imshow(
-            z.swapaxes(0,1), aspect='auto',
-            extent=[0,nfilters,yran[0],yran[1]],
-            origin='upper', interpolation='nearest',
-        )
-        # Setting the right radius tick labels requires some sorcery:
-        fig.canvas.draw()
-        ylab = [l.get_text() for l in ax.get_yticklabels()]
-        rint = si.interp1d(rad, press, bounds_error=False)
-        pticks = rint(ax.get_yticks())
-        bounds = np.isfinite(pticks)
-        pint = si.interp1d(
-            press, np.linspace(yran[1], yran[0], nlayers), bounds_error=False,
-        )
-        ax.set_yticks(pint(pticks[bounds]))
-        ax.set_yticklabels(np.array(ylab)[bounds])
+    ax.imshow(
+        z.swapaxes(0,1),
+        aspect='auto',
+        extent=[0, nfilters, log_p_ranges[0], log_p_ranges[1]],
+        origin='upper',
+        interpolation='nearest',
+    )
+    ax.plot(log_p_lo, drawstyle='steps-post', color='0.25', lw=0.75, ls='--')
+    ax.plot(log_p_hi, drawstyle='steps-post', color='0.25', lw=0.75, ls='--')
+    ax.yaxis.set_visible(False)
+    ax.set_xticklabels([])
+    ax.set_xlabel(f'Band-averaged {xlabel}', fontsize=fs)
+    ax.tick_params(which='both', top=True, direction='in', labelsize=fs-2)
+    ax.set_xlim(0, nfilters)
+    ax.set_ylim(log_p_ranges)
 
-    pax.plot(plo, drawstyle='steps-post', color='0.25', lw=0.75, ls='--')
-    pax.plot(phi, drawstyle='steps-post', color='0.25', lw=0.75, ls='--')
-    pax.set_ylim(np.amax(press), np.amin(press))
+    # ax works in log(p) space because imshow only works with linear axes
+    # pax shows the pressure axis as intended in log units
+    pax = ax.twinx()
+    pax.spines['left'].set_visible(True)
+    pax.yaxis.set_label_position('left')
+    pax.yaxis.set_ticks_position('left')
+    pax.set_ylim(p_ranges)
     pax.set_yscale('log')
     pax.set_ylabel(r'Pressure (bar)', fontsize=fs)
+    pax.tick_params(which='both', right=True, direction='in', labelsize=fs-2)
 
-    ax.set_xlim(0, nfilters)
-    ax.set_ylim(yran)
-    ax.set_xticklabels([])
-    ax.set_ylabel(ylabel, fontsize=fs)
-    ax.set_xlabel(f'Band-averaged {xlabel}', fontsize=fs)
-
-    # Print filter names/wavelengths:
+    # Bandpass names/wavelengths:
     for i in range(0, nfilters-thin//2, thin):
         fname = f' {wl[i]:5.2f} um '
         # Strip root and file extension:
         if filters is not None:
             fname = str(filters[i]) + ' @' + fname
         ax.text(
-            i+0.1, yran[1], fname,
+            i+0.1, log_p_ranges[1], fname,
             rotation=90, ha='left', va='top', fontsize=ffs,
         )
 
     # Color bar:
-    cbar = plt.axes([0.925, 0.10, 0.015, 0.85])
+    cbar = plt.axes([0.912, 0.10, 0.020, 0.85])
     cz = np.zeros((100, 2, 4), dtype=float)
     cz[:,0,3] = np.linspace(0.0,cbtop,100)**(0.5+0.5*(is_transit))
     cz[:,1,3] = np.linspace(0.0,cbtop,100)**(0.5+0.5*(is_transit))
@@ -441,10 +419,10 @@ def contribution(
     cbar.yaxis.set_ticks_position('right')
     cbar.set_ylabel(xlabel.capitalize(), fontsize=fs)
     cbar.xaxis.set_visible(False)
+    cbar.axes.tick_params(which='both', direction='in', labelsize=fs-2)
 
-    fig.canvas.draw()
     if filename is not None:
-        plt.savefig(filename)
+        plt.savefig(filename, dpi=dpi)
     return ax
 
 
