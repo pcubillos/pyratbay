@@ -23,6 +23,31 @@ def test_tmp_reset_listed_arguments():
      assert (x, y, w, z) == (None, 2.0, None, 4.0)
 
 
+def test_eta_seconds():
+    str_time = pt.eta(45.0, 101, 200)
+    assert str_time == '44.11 sec'
+
+
+def test_eta_minutes():
+    str_time = pt.eta(145.0, 101, 200)
+    assert str_time == '2.37 min'
+
+
+def test_eta_hours():
+    str_time = pt.eta(345.0, 11, 200)
+    assert str_time == '1.65 hours'
+
+
+def test_eta_days():
+    str_time = pt.eta(945.0, 11, 2000)
+    assert str_time == '1.98 days'
+
+
+def test_eta_fmt():
+    str_time = pt.eta(45.0, 101, 200, fmt='.5e')
+    assert str_time == '4.41089e+01 sec'
+
+
 def test_tmp_reset_keyword_arguments():
      # Keyword arguments can be set to a value, but cannot be recursive:
      o   = type('obj', (object,), {'x':1.0, 'y':2.0})

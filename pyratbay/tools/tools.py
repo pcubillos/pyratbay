@@ -1,10 +1,11 @@
-# Copyright (c) 2021-2022 Patricio Cubillos
+# Copyright (c) 2021-2023 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
     'log_error',
     'cd',
     'tmp_reset',
+    'eta',
     'binsearch',
     'divisors',
     'unpack',
@@ -36,7 +37,6 @@ import itertools
 import functools
 from collections.abc import Iterable
 from contextlib import contextmanager
-import configparser
 
 import numpy as np
 import mc3.utils as mu
@@ -116,6 +116,45 @@ def tmp_reset(obj, *attrs, **tmp_attrs):
 
     for attr, orig_val in orig_attrs.items():
         recursive_setattr(obj, attr, orig_val)
+
+
+def eta(time_seconds, n_completed, n_total, fmt='.2f'):
+    """
+    Find most appropriate units to report the remaining time
+    (seconds, minutes, hours, days)
+
+    Parameters
+    ----------
+    time_seconds: Float
+        An amount of time in seconds.
+    n_completed: Integer
+        Number of completed steps.
+    n_total: Integer
+        Total number of steps to complete.
+
+    Returns
+    -------
+    delta_time: Float
+        The time_seconds in the recalculated units.
+    """
+    delta_time = time_seconds * (n_total-n_completed) / n_completed
+    units = 'sec'
+    if delta_time < 60.0:
+        return f'{delta_time:{fmt}} {units}'
+
+    delta_time /= 60.0
+    units = 'min'
+    if delta_time < 60.0:
+        return f'{delta_time:{fmt}} {units}'
+
+    delta_time /= 60.0
+    units = 'hours'
+    if delta_time < 24.0:
+        return f'{delta_time:{fmt}} {units}'
+
+    delta_time /= 24.0
+    units = 'days'
+    return f'{delta_time:{fmt}} {units}'
 
 
 def binsearch(tli, wnumber, rec0, nrec, upper=True):
@@ -725,7 +764,6 @@ def get_exomol_composition(dbfile):
     atoms = os.path.split(dbfile)[1].split('_')[0].split('-')
     elements = []
     atomic_numbers = []
-    isotope  = ''
     for atom in atoms:
         match = re.match(r"([0-9]+)([a-z]+)([0-9]*)", atom, re.I)
         N = 1 if match.group(3) == '' else int(match.group(3))
@@ -891,7 +929,7 @@ def cia_borysow(ciafile, species1, species2):
     cs = data[:,1:].T
 
     with open(ciafile) as f:
-        line = f.readline()
+        dummy_line = f.readline()
         temp = f.readline().split()[1:]
     temp = [float(t.replace('K','')) for t in temp]
 
