@@ -8413,3 +8413,8 @@ axis (only plot as a function of pressure).
 Added dpi argument into plots.temperature() function.
 Some other minor adjustments.
 
+*****
+
+Added dpi argument into plots.abundance() function.
+Some other minor adjustments.
+

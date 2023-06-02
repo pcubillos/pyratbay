@@ -547,7 +547,7 @@ def abundance(
         vol_mix_ratios, pressure, species,
         highlight=None, xlim=None, punits='bar',
         colors=None, dashes=None, filename=None,
-        lw=2.0, fignum=505, fs=13, legend_fs=None, ax=None,
+        lw=2.0, fignum=505, fs=13, legend_fs=None, ax=None, dpi=300,
     ):
     """
     Plot atmospheric volume-mixing-ratio abundances.
@@ -597,6 +597,8 @@ def abundance(
         If legend_fs <= 0, do not plot a legend.
     ax: AxesSubplot instance
         If not None, plot into the given axis.
+    dpi: Integer
+        The resolution in dots per inch for saved files.
 
     Returns
     -------
@@ -695,6 +697,5 @@ def abundance(
         ax.legend(loc='best', fontsize=legend_fs)
 
     if filename is not None:
-        plt.savefig(filename)
+        plt.savefig(filename, dpi=dpi)
     return ax
-
