@@ -24,7 +24,6 @@ def check_spectrum(pyrat):
     phy = pyrat.phy
     spec = pyrat.spec
     atm = pyrat.atm
-    obs = pyrat.obs
     with pt.log_error(log):
         pt.file_exists('atmfile', 'Atmospheric', atm.atmfile)
         pt.file_exists('molfile', 'Molecular-data', atm.molfile)
@@ -48,31 +47,12 @@ def check_spectrum(pyrat):
             'input profile or compute one via the radmodel argument'
         )
 
-    if pyrat.runmode == 'mcmc':
-        if pyrat.od.rt_path in pc.emission_rt:
-            if atm.rplanet is None or phy.rstar is None:
-                log.error("Undefined radius ratio (need rplanet and rstar)")
-        if obs.data is None:
-            log.error("Undefined transit/eclipse data (data)")
-        if obs.uncert is None:
-            log.error("Undefined data uncertainties (uncert)")
-        if obs.nfilters == 0:
-            log.error("Undefined transmission filters (filters)")
-        if pyrat.inputs.retrieval_params is None and pyrat.ret.retflag is None:
-            log.error('Undefined fitting parameters (retrieval_params)')
-        if pyrat.ret.sampler is None:
-            log.error(
-                'Undefined retrieval algorithm (sampler).  '
-                'Select from [snooker]'
-            )
-        if pyrat.ret.nsamples is None:
-            log.error('Undefined number of retrieval samples (nsamples)')
-        if pyrat.ret.burnin is None:
-            log.error('Undefined number of retrieval burn-in samples (burnin)')
-        if pyrat.ret.nchains is None:
-            log.error('Undefined number of retrieval parallel chains (nchains)')
-        if pyrat.ret.params is None:
-            log.error('Undefined retrieval fitting parameters (params)')
+    missing_radius_ratio = (
+        pyrat.od.rt_path in pc.emission_rt and
+        (atm.rplanet is None or phy.rstar is None)
+    )
+    if missing_radius_ratio:
+        log.error("Undefined radius ratio, need to define rplanet and rstar")
 
     # Initialize cloud models:
     pyrat.cloud = ob.Cloud(
@@ -115,16 +95,13 @@ def check_spectrum(pyrat):
 
 def setup(pyrat):
     """
-    Process retrieval variables: bulk, molvars, molpars.
     Process stellar spectrum.
     Process the oberving filter bands.
     """
     # Shortcuts:
     inputs = pyrat.inputs
     phy = pyrat.phy
-    ret = pyrat.ret
     atm = pyrat.atm
-    obs = pyrat.obs
     log = pyrat.log
 
     # Setup bulk and variable-abundance species:
@@ -208,326 +185,9 @@ def setup(pyrat):
             pyrat.spec.starflux = pyrat.spec.flux_interp(phy.tstar)
 
     is_emission = pyrat.od.rt_path in pc.emission_rt
-    if pyrat.runmode=='mcmc' and is_emission and starflux is None:
+    if is_emission and starflux is None:
         log.error(
             'Undefined stellar flux model.  Set starspec, kurucz, or '
             'tstar (for a blackbody spectrum)'
         )
-
-    offset_pnames = obs.offset_instruments
-    if offset_pnames is None:
-        offset_pnames = []
-
-    # TBD: test run with no tmodel
-    if atm.tmodelname in pc.tmodels:
-        temp_pnames = atm.temp_model.pnames
-    else:
-        temp_pnames = []
-
-    if pyrat.inputs.retrieval_params is None:
-        setup_retrieval_parameters_retflag(pyrat)
-        return
-
-    # TeX unit conversions for masses and radii:
-    utex = {
-        'mjup': r'$M_{\rm Jup}$',
-        'mearth': r'$M_{\oplus}$',
-        'kg': 'kg',
-        'gram': 'g',
-        'rjup': r'$R_{\rm Jup}$',
-        'rearth': r'$R_{\oplus}$',
-        'km': 'km',
-        'm': 'm',
-        'cm': 'cm',
-    }
-
-    # Indices to map free parameters of each model:
-    ret.map_pars = map_pars = {
-        'temp': [],
-        'mol': [],
-        'ray': [],
-        'cloud': [],
-        'offset': [],
-    }
-    ret.nparams = len(ret.pnames)
-    ret.texnames = [None for _ in ret.pnames]
-    # Indices to parse the array of fitting parameters:
-    itemp = []
-    imol = []
-    iray = []
-    icloud = []
-    ioffset = []
-
-    solo_params = [
-        'log_p_ref',
-        'R_planet',
-        'M_planet',
-        'f_patchy',
-        'T_eff',
-    ]
-    all_available_params = (
-        solo_params +
-        temp_pnames +
-        atm.mol_pnames +
-        pyrat.rayleigh.pnames +
-        pyrat.cloud.pnames +
-        offset_pnames
-    )
-
-    for i,pname in enumerate(ret.pnames):
-        if pname == 'log_p_ref':
-            ret.ipress = np.array([i])
-            ret.texnames[i] = r'$\log p_{{\rm ref}}$'
-        elif pname == 'R_planet':
-            ret.irad = np.array([i])
-            ret.texnames[i] = fr'$R_{{\rm p}}$ ({utex[pyrat.atm.runits]})'
-        elif pname == 'M_planet':
-            ret.imass = np.array([i])
-            ret.texnames[i] = fr'$M_{{\rm p}}$ ({utex[pyrat.phy.mpunits]})'
-        elif pname =='f_patchy':
-            ret.ipatchy = np.array([i])
-            ret.texnames[i] = r'$\phi_{\rm patchy}$'
-        elif pname == 'T_eff':
-            ret.itstar = np.array([i])
-            ret.texnames[i] = r'$T_{\rm eff}$ (K)'
-
-        elif pname in temp_pnames:
-            itemp.append(i)
-            idx = atm.temp_model.pnames.index(pname)
-            map_pars['temp'].append(idx)
-            ret.texnames[i] = atm.temp_model.texnames[idx]
-        elif pname in atm.mol_pnames:
-            imol.append(i)
-            idx = atm.mol_pnames.index(pname)
-            map_pars['mol'].append(idx)
-            ret.texnames[i] = atm.mol_texnames[idx]
-        elif pname in pyrat.rayleigh.pnames:
-            iray.append(i)
-            idx = pyrat.rayleigh.pnames.index(pname)
-            map_pars['ray'].append(idx)
-            ret.texnames[i] = pyrat.rayleigh.texnames[idx]
-        elif pname in pyrat.cloud.pnames:
-            icloud.append(i)
-            idx = pyrat.cloud.pnames.index(pname)
-            map_pars['cloud'].append(idx)
-            ret.texnames[i] = pyrat.cloud.texnames[idx]
-        elif pname in offset_pnames:
-            ioffset.append(i)
-            idx = offset_pnames.index(pname)
-            map_pars['offset'].append(idx)
-            ret.texnames[i] = pname.replace('offset_', r'$\Delta$')
-        else:
-            log.error(
-                f"Invalid retrieval parameter '{pname}'. Possible "
-                f"values are:\n{all_available_params}"
-            )
-
-    if len(itemp) > 0:
-        ret.itemp = itemp
-    if len(imol) > 0:
-        ret.imol = imol
-    if len(icloud) > 0:
-        ret.icloud = icloud
-    if len(iray) > 0:
-        ret.iray = iray
-    if len(ioffset) > 0:
-        ret.ioffset = ioffset
-
-    # Patch missing parameters if possible:
-    patch_temp = (
-        atm.tpars is None and
-        ret.itemp is not None and
-        len(map_pars['temp']) == atm.temp_model.npars
-    )
-    if patch_temp:
-        atm.tpars = np.zeros(atm.temp_model.npars)
-        atm.tpars[map_pars['temp']] = ret.params[ret.itemp]
-
-    patch_abundance = (
-        atm.molpars is None and
-        ret.imol is not None and
-        len(map_pars['mol']) == atm.mol_npars
-    )
-    if patch_abundance:
-        atm.molpars = np.zeros(len(atm.mol_pnames))
-        atm.molpars[map_pars['mol']] = ret.params[ret.imol]
-
-    patch_rayleigh = (
-        pyrat.rayleigh.pars is None and
-        ret.iray is not None and
-        len(map_pars['ray']) == pyrat.rayleigh.npars
-    )
-    if patch_rayleigh:
-        pyrat.rayleigh.pars = np.zeros(pyrat.rayleigh.npars)
-        pyrat.rayleigh.pars[map_pars['ray']] = ret.params[ret.iray]
-
-    patch_cloud = (
-        pyrat.cloud.pars is None and
-        ret.icloud is not None and
-        len(map_pars['cloud']) == pyrat.cloud.npars
-    )
-    if patch_cloud:
-        pyrat.cloud.pars = np.zeros(pyrat.cloud.npars)
-        pyrat.cloud.pars[map_pars['cloud']] = ret.params[ret.icloud]
-
-    if atm.tpars is None and atm.temp_model is not None:
-        log.error('Not all temperature parameters were defined (tpars)')
-    if atm.molpars is None and atm.mol_npars > 0:
-        log.error('Not all abundance parameters were defined (molpars)')
-    if pyrat.cloud.pars is None and pyrat.cloud.npars > 0:
-        log.error('Not all Cloud parameters were defined (cpars)')
-    if pyrat.rayleigh.pars is None and pyrat.rayleigh.npars > 0:
-        log.error('Not all Rayleigh parameters were defined (rpars)')
-
-
-def setup_retrieval_parameters_retflag(pyrat):
-    """
-    Check and setup retrieval parameters via retflag argument.
-    To be deprecated, use retrieval_parameters instead.
-    """
-    log = pyrat.log
-    atm = pyrat.atm
-    ret = pyrat.ret
-    retflag = pyrat.ret.retflag
-
-    if retflag is None:
-        return
-
-    if 'temp' in retflag and pyrat.atm.tmodelname is None:
-        log.error('Requested temp in retflag, but there is no tmodel')
-    if 'mol' in retflag:
-        if pyrat.inputs.molvars == []:
-            log.error("Requested mol in retflag, but there is no 'molvars'")
-        # TBD: This will break for pure eq-chem runs
-        if pyrat.atm.bulk is None:
-            log.error('Requested mol in retflag, but there are no bulk species')
-    if 'ray' in retflag and pyrat.rayleigh.models == []:
-        log.error('Requested ray in retflag, but there are no rayleigh models')
-    if 'cloud' in retflag and pyrat.cloud.models == []:
-        log.error('Requested cloud in retflag, but there are no cloud models')
-
-    # TeX unit conversions for masses and radii:
-    utex = {
-        'mjup': r'$M_{\rm Jup}$',
-        'mearth': r'$M_{\oplus}$',
-        'kg': 'kg',
-        'gram': 'g',
-        'rjup': r'$R_{\rm Jup}$',
-        'rearth': r'$R_{\oplus}$',
-        'km': 'km',
-        'm': 'm',
-        'cm': 'cm',
-    }
-
-    ret.map_pars = {
-        'temp': [],
-        'mol': [],
-        'ray': [],
-        'cloud': [],
-        'offset': [],
-    }
-    # Indices to parse the array of fitting parameters:
-    ret.nparams = 0
-    ret.pnames = []
-    ret.texnames = []
-    if 'temp' in retflag:
-        ntemp = pyrat.atm.temp_model.npars
-        ret.itemp = np.arange(ret.nparams, ret.nparams + ntemp)
-        ret.pnames += pyrat.atm.temp_model.pnames
-        ret.texnames += pyrat.atm.temp_model.texnames
-        ret.nparams += ntemp
-        ret.map_pars['temp'] = np.arange(ntemp)
-    if 'rad' in retflag:
-        ret.irad = np.arange(ret.nparams, ret.nparams + 1)
-        ret.pnames += ['R_planet']
-        ret.texnames += [fr'$R_{{\rm p}}$ ({utex[pyrat.atm.runits]})']
-        ret.nparams += 1
-    if 'press' in retflag:
-        ret.ipress = np.arange(ret.nparams, ret.nparams + 1)
-        ret.pnames += ['log(p_ref)']
-        ret.texnames += [r'$\log p_{{\rm ref}}$']
-        ret.nparams += 1
-    if 'mol' in retflag:
-        nabund = len(atm.mol_pnames)
-        ret.imol = np.arange(ret.nparams, ret.nparams + nabund)
-        ret.pnames += atm.mol_pnames
-        ret.texnames += atm.mol_texnames
-        ret.nparams += nabund
-        ret.map_pars['mol'] = np.arange(nabund)
-    if 'ray' in retflag:
-        nray = pyrat.rayleigh.npars
-        ret.iray = np.arange(ret.nparams, ret.nparams + nray)
-        ret.pnames += pyrat.rayleigh.pnames
-        ret.texnames += pyrat.rayleigh.texnames
-        ret.nparams += nray
-        ret.map_pars['ray'] = np.arange(nray)
-    if 'cloud' in retflag:
-        ncloud = pyrat.cloud.npars
-        ret.icloud = np.arange(ret.nparams, ret.nparams + ncloud)
-        ret.pnames += pyrat.cloud.pnames
-        ret.texnames += pyrat.cloud.texnames
-        ret.nparams += ncloud
-        ret.map_pars['cloud'] = np.arange(ncloud)
-    if 'patchy' in retflag:
-        ret.ipatchy = np.arange(ret.nparams, ret.nparams + 1)
-        ret.pnames += ['f_patchy']
-        ret.texnames += [r'$\phi_{\rm patchy}$']
-        ret.nparams += 1
-    if 'mass' in retflag:
-        ret.imass = np.arange(ret.nparams, ret.nparams + 1)
-        ret.pnames += ['M_planet']
-        ret.texnames += [fr'$M_{{\rm p}}$ ({utex[pyrat.phy.mpunits]})']
-        ret.nparams += 1
-    if 'tstar' in retflag:
-        ret.itstar = np.arange(ret.nparams, ret.nparams + 1)
-        ret.pnames   += ['T_eff']
-        ret.texnames += [r'$T_{\rm eff}$ (K)']
-        ret.nparams += 1
-    if 'offset' in retflag:
-        n_offset = len(ret.offset_instruments)
-        ret.ioffset = np.arange(ret.nparams, ret.nparams + n_offset)
-        ret.pnames   += list(ret.offset_instruments)
-        ret.texnames += list(ret.offset_instruments)
-        ret.nparams += n_offset
-
-        band_names = [band.name for band in pyrat.obs.filters]
-        offset_indices = []
-        for inst in ret.offset_instruments:
-            flags = [inst in name for name in band_names]
-            offset_indices.append(flags)
-        pyrat.obs.offset_indices = offset_indices
-
-
-    # Retrieval variables:
-    if ret.params is not None and len(ret.params) != ret.nparams:
-        nparams = len(ret.params)
-        log.error(
-            f'The number of input fitting parameters (params, {nparams}) does '
-            f'not match the number of required parameters ({ret.nparams})'
-        )
-    if pyrat.runmode == 'mcmc':
-        if ret.pstep is None:
-            log.error('Missing pstep argument, required for MCMC runs')
-
-    # Patch missing parameters if possible, otherwise break:
-    if atm.tpars is None and ret.itemp is not None:
-        if len(ret.map_pars['temp']) < atm.temp_model.npars:
-            log.error('Not all temp parameters are defined (tpars)')
-        atm.tpars = np.zeros(atm.temp_model.npars)
-        atm.tpars[ret.map_pars['temp']] = ret.params[ret.itemp]
-    if atm.molpars is None and ret.imol is not None:
-        if len(ret.map_pars['mol']) < len(atm.mol_pnames):
-            log.error('Not all abundance parameters are defined (molpars)')
-        atm.molpars = np.zeros(len(atm.mol_pnames))
-        atm.molpars[ret.map_pars['mol']] = ret.params[ret.imol]
-    if pyrat.rayleigh.pars is None and ret.iray is not None:
-        if len(ret.map_pars['ray']) < pyrat.rayleigh.npars:
-            log.error('Not all Rayleigh parameters are defined (rpars)')
-        pyrat.rayleigh.pars = np.zeros(pyrat.rayleigh.npars)
-        pyrat.rayleigh.pars[ret.map_pars['ray']] = ret.params[ret.iray]
-    if pyrat.cloud.pars is None and ret.icloud is not None:
-        if len(ret.map_pars['cloud']) < pyrat.cloud.npars:
-            log.error('Not all Cloud parameters are defined (cpars)')
-        pyrat.cloud.pars = np.zeros(pyrat.cloud.npars)
-        pyrat.cloud.pars[ret.map_pars['cloud']] = ret.params[ret.icloud]
 

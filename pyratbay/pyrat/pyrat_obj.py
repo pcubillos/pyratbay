@@ -18,6 +18,7 @@ from .atmosphere import Atmosphere
 from .crosssec import CIA
 from .observation import Observation
 from .opacity import Opacity
+from .retrieval import Retrieval
 from .voigt import Voigt
 from . import spectrum as sp
 from .  import extinction as ex
@@ -68,7 +69,6 @@ class Pyrat():
       self.runmode = self.inputs.runmode
 
       self.phy = ob.Physics(self.inputs)
-      self.ret = ob.Retrieval(self.inputs, self.log)
       self.ex = ob.Extinction(self.inputs, self.log)
       self.od = ob.Optdepth(self.inputs, self.log)
 
@@ -110,6 +110,12 @@ class Pyrat():
 
       # Setup more observational/retrieval parameters:
       ar.setup(self)
+      self.ret = Retrieval(
+          self.inputs,
+          self.atm, self.phy, self.obs,
+          self.rayleigh, self.cloud,
+          self.log,
+      )
 
       self.alkali = Alkali(
           self.inputs.alkali_models,
@@ -233,34 +239,28 @@ class Pyrat():
           )
           return None, None if retmodel else None
 
-
-      # Update temperature parameters (if necessary):
+      # Update models parameters:
       if ret.itemp is not None:
           ifree = ret.map_pars['temp']
           atm.tpars[ifree] = params[ret.itemp]
 
-      # Update abundance parameters:
       if ret.imol is not None:
           ifree = ret.map_pars['mol']
           atm.molpars[ifree] = params[ret.imol]
 
-      # Update reference radius/pressure if requested:
       if ret.irad is not None:
           self.atm.rplanet = params[ret.irad][0] * pt.u(atm.runits)
       elif ret.ipress is not None:
           p_ref = 10.0**params[ret.ipress][0] * pc.bar
           self.atm.refpressure = p_ref
 
-      # Update planetary mass if requested:
       if ret.imass is not None:
           self.atm.mplanet = params[ret.imass][0] * pt.u(self.atm.mass_units)
 
-      # Update Rayleigh parameters if requested:
       if ret.iray is not None:
           ifree = ret.map_pars['ray']
           self.rayleigh.pars[ifree] = params[ret.iray]
 
-      # Update cloud parameters if requested:
       if ret.icloud is not None:
           ifree = ret.map_pars['cloud']
           self.cloud.pars[ifree] = params[ret.icloud]
@@ -269,11 +269,9 @@ class Pyrat():
               model.pars = self.cloud.pars[j:j+model.npars]
               j += model.npars
 
-      # Update patchy-cloud fraction if requested:
       if ret.ipatchy is not None:
           self.cloud.fpatchy = params[ret.ipatchy][0]
 
-      # Update stellar effective temperature:
       if ret.itstar is not None:
           self.phy.tstar = params[ret.itstar][0]
           self.spec.starflux = self.spec.flux_interp(self.phy.tstar)
