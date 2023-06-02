@@ -8408,3 +8408,8 @@ Refactored plots.contribution() function,
 removed rtop and radius arguments, removed impact parameter
 axis (only plot as a function of pressure).
 
+*****
+
+Added dpi argument into plots.temperature() function.
+Some other minor adjustments.
+

@@ -430,6 +430,7 @@ def temperature(
         pressure, profiles=None, labels=None, colors=None,
         bounds=None, punits='bar', ax=None, filename=None,
         theme='blue', alpha=[0.8,0.6], fs=13, lw=2.0, fignum=504,
+        dpi=300,
     ):
     """
     Plot temperature profiles.
@@ -467,6 +468,8 @@ def temperature(
         Lines width.
     fignum: Integer
         Figure's number (ignored if axis is not None).
+    dpi: Integer
+        The resolution in dots per inch for saved files.
 
     Returns
     -------
@@ -522,19 +525,21 @@ def temperature(
         )
 
     for profile, color, label in zip(profiles, colors, _labels):
-        plt.plot(profile, press, color, lw=lw, label=label)
+        plt.plot(profile, press, color=color, lw=lw, label=label)
 
     ax.set_ylim(np.amax(press), np.amin(press))
     ax.set_yscale('log')
     plt.xlabel('Temperature (K)', fontsize=fs)
     plt.ylabel(f'Pressure ({punits})', fontsize=fs)
-    ax.tick_params(labelsize=fs-2)
+    ax.tick_params(
+        which='both', right=True, top=True, direction='in', labelsize=fs-2,
+    )
     if labels is not None:
         plt.legend(loc='best', fontsize=fs-2)
     if tighten:
         plt.tight_layout()
     if filename is not None:
-        plt.savefig(filename)
+        plt.savefig(filename, dpi=dpi)
     return ax
 
 
