@@ -19,6 +19,7 @@ from matplotlib.colors import is_color_like, to_rgb
 import numpy as np
 import scipy.interpolate as si
 from scipy.ndimage import gaussian_filter1d as gaussf
+import mc3
 
 from .. import constants as pc
 from .. import tools as pt
@@ -91,8 +92,7 @@ def spectrum(
     bands_wl0=None, bands_flux=None, bands_response=None, bands_wl=None,
     label='model', bounds=None, logxticks=None,
     gaussbin=2.0, yran=None, filename=None, fignum=501, axis=None,
-    ms=5.0, lw=1.25, fs=14,
-    units=None,
+    ms=5.0, lw=1.25, fs=14, units=None, dpi=300, theme=None,
     ):
     """
     Plot a transmission or emission model spectrum with (optional) data
@@ -145,6 +145,10 @@ def spectrum(
         Font sizes.
     units: String
         Flux units. Select from: 'percent', 'ppt', 'ppm', 'none'.
+    dpi: Integer
+        The resolution in dots per inch for saved files.
+    theme: mc3.plots.Theme object
+        A color theme for the models.
 
     Returns
     -------
@@ -168,18 +172,18 @@ def spectrum(
         str_units = '(%)'
 
     if axis is None:
-        plt.figure(fignum, (8, 5))
+        fig = plt.figure(fignum)
+        fig.set_size_inches(8.5, 4.5)
         plt.clf()
         ax = plt.subplot(111)
     else:
         ax = axis
 
-    spec_kw = {'label':label}
-    if bounds is None:
-        spec_kw['color'] = 'orange'
-    else:
-        spec_kw['color'] = 'orangered'
-
+    if theme is None:
+        theme = mc3.plots.THEMES['orange']
+        theme.dark_color = 'maroon'
+        theme.color = 'orangered'
+        theme.light_color = 'orange'
 
     # Setup according to geometry:
     if rt_path == 'emission':
@@ -194,20 +198,23 @@ def spectrum(
         gbounds = [gaussf(bound, gaussbin) for bound in bounds]
         ax.fill_between(
             wavelength, flux_scale*gbounds[0], flux_scale*gbounds[3],
-            facecolor='gold', edgecolor='none',
+            facecolor=theme.light_color, edgecolor='none', alpha=0.5,
         )
         ax.fill_between(
             wavelength, flux_scale*gbounds[1], flux_scale*gbounds[2],
-            facecolor='orange', edgecolor='none',
+            facecolor=theme.light_color, edgecolor='none', alpha=1.0,
         )
 
     # Plot model:
-    plt.plot(wavelength, gmodel*flux_scale, lw=lw, **spec_kw)
+    plt.plot(
+        wavelength, gmodel*flux_scale, lw=lw, color=theme.color, label=label,
+    )
     # Plot band-integrated model:
     if bands_flux is not None and bands_wl0 is not None:
         plt.plot(
             bands_wl0, bands_flux*flux_scale,
-            marker='o', ms=ms, color='tomato', mec='maroon', mew=lw,
+            ls='', marker='o', ms=ms, mew=lw,
+            color=theme.color, mec=theme.dark_color,
         )
     # Plot data:
     if data is not None and uncert is not None and bands_wl0 is not None:
@@ -255,7 +262,7 @@ def spectrum(
     plt.tight_layout()
 
     if filename is not None:
-        plt.savefig(filename)
+        plt.savefig(filename, dpi=dpi)
     return ax
 
 

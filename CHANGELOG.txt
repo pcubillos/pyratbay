@@ -8395,3 +8395,10 @@ Updated pyratbay version to 1.1.11b1.
 
 Housekeeping.
 
+
+*****  Fri Jun 2 13:34:36 CEST 2023  *****
+
+Added dpi and theme arguments into plots.spectrum() function.
+Now theme manages the colors of the model and credible intervals,
+enabling the user to customize the color theme of the plot.
+
