@@ -3,8 +3,10 @@
 
 import multiprocessing as mp
 from collections import OrderedDict
+import os
 
 import numpy as np
+import mc3
 
 from .. import atmosphere as pa
 from .. import constants as pc
@@ -108,7 +110,7 @@ class Pyrat():
           )
           self.timestamps['voigt'] = timer.clock()
 
-      # Setup more observational/retrieval parameters:
+      # Setup more retrieval parameters:
       ar.setup(self)
       self.ret = Retrieval(
           self.inputs,
@@ -141,6 +143,7 @@ class Pyrat():
       temperature, pressure, and wavenumber arrays
       """
       ex.compute_opacity(self)
+
 
   def run(self, temp=None, vmr=None, radius=None):
       """
@@ -185,7 +188,7 @@ class Pyrat():
 
       # Calculate cloud, Rayleigh, and alkali absorption:
       cl.absorption(self)
-      #self.cloud.calc_extinction_coefficient(pyrat.atm.temp, pyrat.atm.radius)
+      #self.cloud.calc_extinction_coefficient(self.atm.temp, self.atm.radius)
       self.rayleigh.calc_extinction_coefficient(self.atm.d)
       self.timestamps['cloud+ray'] = timer.clock()
       # Calculate the alkali absorption:
@@ -308,7 +311,7 @@ class Pyrat():
           for j, offset in enumerate(obs.offset_pars):
               obs.bandflux[obs.offset_indices[j]] -= offset*obs._dunits
 
-      # update_atm() in self.run() broke:
+      # Invalid model:
       if not np.any(obs.bandflux):
           reject_flag = True
 
@@ -321,6 +324,142 @@ class Pyrat():
           return self.spec.spectrum, obs.bandflux
 
       return obs.bandflux
+
+
+  def retrieval(self):
+      ret = self.ret
+      obs = self.obs
+      log = self.log
+
+      if ret.mcmcfile is None:
+          log.error('Undefined MCMC file (mcmcfile)')
+      if ret.sampler is None:
+          log.error(
+              'Undefined retrieval algorithm (sampler).  '
+              f'Select from {pc.samplers}'
+          )
+      if ret.params is None:
+          log.error('Undefined retrieval fitting parameters (retrieval_params)')
+      if ret.pstep is None:
+          log.error('Missing pstep argument, required for retrieval runs')
+
+      if obs.data is None:
+          log.error("Undefined transit/eclipse data (data)")
+      if obs.uncert is None:
+          log.error("Undefined data uncertainties (uncert)")
+      if obs.nfilters == 0:
+          log.error("Undefined transmission filters (filters)")
+
+      if ret.sampler == 'snooker':
+          if ret.nsamples is None:
+              log.error('Undefined number of retrieval samples (nsamples)')
+          if ret.burnin is None:
+              log.error('Undefined number of retrieval burn-in samples (burnin)')
+          if ret.nchains is None:
+              log.error('Undefined number of retrieval parallel chains (nchains)')
+
+
+      #if self.inputs.resume: # Bypass writting all of the initialization log:
+      #    pyrat = Pyrat(args, log=None)
+      #    self.log = log
+      #else:
+      #    pyrat = Pyrat(args, log=log)
+
+      # Mute logging in pyrat object, but not in mc3:
+      self.log = mc3.utils.Log(verb=-1, width=80)
+      self.spec.specfile = None  # Avoid writing spectrum file during MCMC
+      retmodel = False  # Return only the band-integrated spectrum
+      # Basename of the output files (no extension):
+      outfile = os.path.splitext(ret.mcmcfile)[0]
+
+      # Run MCMC:
+      mc3_out = mc3.sample(
+          data=self.obs.data, uncert=self.obs.uncert,
+          func=self.eval, indparams=[retmodel], params=ret.params,
+          pmin=ret.pmin, pmax=ret.pmax, pstep=ret.pstep,
+          prior=ret.prior, priorlow=ret.priorlow, priorup=ret.priorup,
+          sampler=ret.sampler, nsamples=ret.nsamples,
+          nchains=ret.nchains, burnin=ret.burnin, thinning=ret.thinning,
+          grtest=True, grbreak=ret.grbreak, grnmin=ret.grnmin,
+          log=log, ncpu=self.ncpu,
+          plots=True, showbp=True,
+          pnames=ret.pnames, texnames=ret.texnames,
+          resume=ret.resume, savefile=ret.mcmcfile,
+      )
+
+      if mc3_out is None:
+          log.error("Error in mc3")
+
+      bestp = mc3_out['bestp']
+      ret.bestp = bestp
+      posterior, zchain, zmask = mc3.utils.burn(mc3_out)
+      ret.posterior = posterior
+
+      # Best-fitting model:
+      self.spec.specfile = f"{outfile}_bestfit_spectrum.dat"
+      ret.spec_best, ret.bestbandflux = self.eval(bestp)
+
+      atm = self.atm
+      header = "# MCMC best-fitting atmospheric model.\n\n"
+      bestatm = f"{outfile}_bestfit_atmosphere.atm"
+      io.write_atm(
+          bestatm, atm.press, atm.temp, atm.species,
+          atm.vmr, radius=atm.radius,
+          punits=atm.punits, runits='km', header=header,
+      )
+
+      self.plot_spectrum(
+          spec='best',
+          filename=f'{outfile}_bestfit_spectrum.png',
+      )
+
+      # Temperature profiles:
+      if atm.temp_model is not None:
+          tparams = atm.tpars
+          tparams[ret.map_pars['temp']] = bestp[ret.itemp]
+          ret.temp_best = atm.temp_model(tparams)
+
+          nsamples, nfree = np.shape(posterior)
+          t_posterior = np.tile(tparams, (nsamples,1))
+          # Map temperature free parameters from posterior to tparams:
+          ifree = np.where(self.ret.pstep>0)[0]
+          for j, imap in zip(ret.itemp, ret.map_pars['temp']):
+              if j in ifree:
+                  ipost = list(ifree).index(j)
+                  t_posterior[:,imap] = posterior[:,ipost]
+          tpost = pa.temperature_posterior(t_posterior, atm.temp_model)
+          ret.temp_median = tpost[0]
+          ret.temp_post_boundaries = tpost[1:]
+          self.plot_temperature(
+              filename=f'{outfile}_posterior_temperature_profile.png')
+
+      is_emission = self.od.rt_path in pc.emission_rt
+      is_transmission = self.od.rt_path in pc.transmission_rt
+
+      if is_emission:
+          contrib = ps.contribution_function(self.od.depth, atm.press, self.od.B)
+      elif is_transmission:
+          contrib = ps.transmittance(self.od.depth, self.od.ideep)
+      bands_idx = [band.idx for band in self.obs.filters]
+      bands_response = [band.response for band in self.obs.filters]
+      band_cf = ps.band_cf(contrib, bands_response, self.spec.wn, bands_idx)
+
+      path = 'transit' if is_transmission else 'emission'
+      pp.contribution(
+          band_cf, 1.0/(self.obs.bandwn*pc.um),
+          path, atm.press,
+          filename=f'{outfile}_bestfit_cf.png',
+      )
+
+      self.log = log  # Un-mute
+      log.msg(
+          "\nOutput MCMC posterior results, log, bestfit atmosphere, "
+          "and spectrum:"
+          f"\n  {outfile}.npz"
+          f"\n  {log.logname}"
+          f"\n  {bestatm}"
+          f"\n  {self.spec.specfile}\n\n"
+      )
 
 
   def radiative_equilibrium(
@@ -348,7 +487,7 @@ class Pyrat():
       temperature profile (self.atm.temp) and abundances (self.atm.vmr)
       with the values from the last radiative-equilibrium iteration.
 
-      This method also defines pyrat.atm.radeq_temps, a 2D array
+      This method also defines self.atm.radeq_temps, a 2D array
       containing all temperature-profile iterations.
       """
       atm = self.atm

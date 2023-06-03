@@ -38,6 +38,7 @@ class Retrieval():
         self.nchains = inputs.nchains
         self.grbreak = inputs.grbreak
         self.grnmin = inputs.grnmin
+        self.resume = inputs.resume
 
         # Overrides retflag. At some point this will be the only way.
         if inputs.retrieval_params is not None:
@@ -94,7 +95,9 @@ class Retrieval():
             self.prior = inputs.prior
             self.priorlow = inputs.priorlow
             self.priorup = inputs.priorup
-            # setup_retrieval_parameters_retflag(pyrat)
+            setup_retrieval_parameters_retflag(
+                inputs, self, atm, obs, phy, rayleigh, cloud, log,
+            )
             return
 
         # TeX unit conversions for masses and radii:
@@ -138,7 +141,6 @@ class Retrieval():
             'M_planet',
             'f_patchy',
             'T_eff',
-            #'x_dilution',
         ]
         all_available_params = (
             solo_params +
@@ -155,7 +157,6 @@ class Retrieval():
         self.ipatchy = None
         self.imass = None
         self.itstar = None
-        #self.idilut = None
         self.itemp = None
         self.imol = None
         self.icloud = None
@@ -183,9 +184,6 @@ class Retrieval():
             elif pname == 'T_eff':
                 self.itstar = np.array([i])
                 self.texnames[i] = r'$T_{\rm eff}$ (K)'
-            #elif pname == 'x_dilution':
-            #    self.idilut = np.array([i])
-            #    self.texnames[i] = r'$x_{\rm dilut}$'
 
             elif pname in temp_pnames:
                 itemp.append(i)
@@ -275,36 +273,6 @@ class Retrieval():
             log.error('Not all Cloud parameters were defined (cpars)')
         if rayleigh.pars is None and rayleigh.npars > 0:
             log.error('Not all Rayleigh parameters were defined (rpars)')
-
-
-    def run_mcmc(self, log):
-        # General
-        if self.sampler is None:
-            log.error(
-                'Undefined retrieval algorithm (sampler).  '
-                'Select from [snooker multinest]'
-            )
-        if self.retrieval_params is None and self.retflag is None:
-            log.error('Undefined fitting parameters (retrieval_params)')
-        if obs.data is None:
-            log.error("Undefined transit/eclipse data (data)")
-        if obs.uncert is None:
-            log.error("Undefined data uncertainties (uncert)")
-        if obs.nfilters == 0:
-            log.error("Undefined transmission filters (filters)")
-
-        if self.params is None:
-            log.error('Undefined retrieval fitting parameters (params)')
-        if self.pstep is None:
-            log.error('Missing pstep argument, required for MCMC runs')
-
-        # MCMC
-        if self.nsamples is None:
-            log.error('Undefined number of retrieval samples (nsamples)')
-        if self.burnin is None:
-            log.error('Undefined number of retrieval burn-in samples (burnin)')
-        if self.nchains is None:
-            log.error('Undefined number of retrieval parallel chains (nchains)')
 
 
     def __str__(self):
