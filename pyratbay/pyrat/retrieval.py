@@ -141,6 +141,7 @@ class Retrieval():
             'M_planet',
             'f_patchy',
             'T_eff',
+            'f_dilution',
         ]
         all_available_params = (
             solo_params +
@@ -157,6 +158,7 @@ class Retrieval():
         self.ipatchy = None
         self.imass = None
         self.itstar = None
+        self.idilut = None
         self.itemp = None
         self.imol = None
         self.icloud = None
@@ -184,6 +186,9 @@ class Retrieval():
             elif pname == 'T_eff':
                 self.itstar = np.array([i])
                 self.texnames[i] = r'$T_{\rm eff}$ (K)'
+            elif pname == 'f_dilution':
+                self.idilut = np.array([i])
+                self.texnames[i] = r'$F_{\rm dilut}$'
 
             elif pname in temp_pnames:
                 itemp.append(i)

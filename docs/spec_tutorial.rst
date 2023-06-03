@@ -389,6 +389,21 @@ For example, for a 45% cloudy / 55% clear atmosphere, set:
   fpatchy = 0.45
 
 
+Flux dilution factor
+--------------------
+
+Set the ``f_dilution`` argument to set an flux dilution factor
+[Taylor2020]_, with values between 0--1, which compensates for
+emission from an inhomogeneous atmosphere.  The dilution factor
+represents the fractional area of the hottest region on the planet
+(assuming that the colder regions flux is negligible in comparison).
+
+.. code-block:: python
+
+  # Flux dilution factor, value between [0--1]:
+  f_dilution = 0.85
+
+
 Temperature Models
 ------------------
 

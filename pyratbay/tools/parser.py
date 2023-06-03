@@ -444,6 +444,7 @@ def parse(cfile, with_log=True, mute=False):
         parse_float(args, 'maxdepth')
         parse_array(args, 'raygrid')
         parse_int(args, 'quadrature')
+        parse_float(args, 'f_dilution')
         # Data options:
         parse_str(args, 'dunits')
         parse_array(args, 'data')
@@ -478,10 +479,10 @@ def parse(cfile, with_log=True, mute=False):
         parse_float(args, 'grnmin')
         parse_int(args,   'resume')      # False, action='store_true')
         # Stellar models:
-        parse_str(args,   'starspec')
-        parse_str(args,   'kurucz')
-        parse_str(args,   'marcs')
-        parse_str(args,   'phoenix')
+        parse_str(args, 'starspec')
+        parse_str(args, 'kurucz')
+        parse_str(args, 'marcs')
+        parse_str(args, 'phoenix')
         # System parameters:
         parse_str(args,   'rstar')
         parse_float(args, 'gstar')  # Deprecated
@@ -752,7 +753,8 @@ def parse(cfile, with_log=True, mute=False):
     args.clouds = args.get_choice(
         'clouds', 'cloud model', pc.cmodels)
     args.fpatchy = args.get_default(
-        'fpatchy', 'Patchy-cloud fraction', ge=0.0, le=1.0)
+        'fpatchy', 'Patchy-cloud fraction', ge=0.0, le=1.0,
+    )
 
     args.alkali_models = args.get_choice(
         'alkali', 'alkali model', pc.amodels)
@@ -782,7 +784,9 @@ def parse(cfile, with_log=True, mute=False):
         'raygrid', 'Emission raygrid (deg)', np.array([0, 20, 40, 60, 80.]))
     args.quadrature = args.get_default(
         'quadrature', 'Number of Gaussian-quadrature points', ge=1)
-
+    args.f_dilution = args.get_default(
+        'f_dilution', 'Flux dilution factor', ge=0.0, le=1.0,
+    )
 
     args.dunits = args.get_default(
         'dunits', 'Data units', 'none', wflag=args.data is not None)

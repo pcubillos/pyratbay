@@ -73,6 +73,8 @@ References
 
 .. [Speagle2019] `Speagle (2019): dynesty: A Dynamic Nested Sampling Package for Estimating Bayesian Posteriors and Evidences <https://ui.adsabs.harvard.edu/abs/2019arXiv190402180S>`_
 
+.. [Taylor2020] `Understanding and mitigating biases when studying inhomogeneous emission spectra with JWST <https://ui.adsabs.harvard.edu/abs/2020MNRAS.493.4342T>`
+
 .. [Tennyson2016] `Tennyson et al. (2016): The ExoMol database: Molecular line lists for exoplanet and other hot atmospheres <http://ui.adsabs.harvard.edu/abs/2016JMoSp.327...73T>`_
 
 .. [terBraak2008] `ter Braak & Vrugt (2008): Differential Evolution Markov Chain with snooker updater and fewer chains <http://dx.doi.org/10.1007/s11222-008-9104-9>`_

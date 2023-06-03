@@ -60,6 +60,7 @@ class Spectrum():
 
         self.quadrature_weights = np.expand_dims(weights, axis=1)
         self.nangles = len(self.quadrature_mu)
+        self.f_dilution = inputs.f_dilution
 
         # Radiative-transfer path:
         self._rt_path = inputs.rt_path
@@ -334,6 +335,9 @@ def spectrum(pyrat):
 
     elif pyrat.od.rt_path == 'emission_two_stream':
         two_stream(pyrat)
+
+    if pyrat.spec.f_dilution is not None and pyrat.od.rt_path in pc.emission_rt:
+        pyrat.spec.spectrum *= pyrat.spec.f_dilution
 
     # Print spectrum to file:
     if pyrat.od.rt_path in pc.transmission_rt:

@@ -8455,3 +8455,9 @@ Added constants.samplers variable.
 
 Fixed bug in pyrat/spectrum.py, define spec.spectrum.
 
+*****
+
+Added f_dilution argument for (emission) flux dilution factor
+as in Taylor et al. (2020).
+Added tests and docs.
+

@@ -168,6 +168,20 @@ def test_emission_etable(tmp_path):
         pyrat.spec.spectrum, expected['etable'], rtol=rtol)
 
 
+def test_emission_dilution(tmp_path):
+    reset = {
+        'f_dilution': '0.75',
+    }
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_emission_test.cfg',
+        reset=reset,
+        remove=['clouds'],
+    )
+    pyrat = pb.run(cfg)
+    np.testing.assert_allclose(pyrat.spec.spectrum, 0.75*expected['all'], rtol=rtol)
+
+
 # Optical-depth integration is home made, which depends on whether there is
 # an odd or even number of layers. Thus, the need for this test.
 def test_emission_odd_even(tmp_path):

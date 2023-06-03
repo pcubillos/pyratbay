@@ -279,6 +279,9 @@ class Pyrat():
           self.phy.tstar = params[ret.itstar][0]
           self.spec.starflux = self.spec.flux_interp(self.phy.tstar)
 
+      if ret.idilut is not None:
+          self.spec.f_dilution = params[ret.idilut][0]
+
       # Calculate atmosphere and spectrum:
       self.run()
 
