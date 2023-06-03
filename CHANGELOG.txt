@@ -8451,3 +8451,7 @@ Moved retrieval code from driver.py into a Pyrat() method.
 
 Added constants.samplers variable.
 
+*****
+
+Fixed bug in pyrat/spectrum.py, define spec.spectrum.
+

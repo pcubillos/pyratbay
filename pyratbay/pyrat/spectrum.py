@@ -31,7 +31,6 @@ class Spectrum():
 
         self.specfile = inputs.specfile # Transmission/Emission spectrum file
         self.intensity = None  # Intensity spectrum array
-        self.spectrum  = None  # Modulation/Flux spectrum
         self.clear     = None  # Clear modulation spectrum for patchy model
         self.cloudy    = None  # Cloudy modulation spectrum for patchy model
         self.starflux  = None  # Stellar flux spectrum
@@ -125,6 +124,7 @@ class Spectrum():
             # Update wavenumber sampling:
             self.wn = wn[(wn >= self.wnlow) & (wn <= self.wnhigh)]
             self.nwave = len(self.wn)
+            self.spectrum = np.zeros(self.nwave, np.double)
 
             if self.wnlow <= self.wn[0]:
                 self.wnlow = self.wn[0]
@@ -215,8 +215,7 @@ class Spectrum():
         self.ownstep = self.wnstep / self.wnosamp
         self.onwave = int(np.ceil((self.wn[-1]-self.wnlow)/self.ownstep)) + 1
         self.own = self.wnlow + np.arange(self.onwave) * self.ownstep
-        if self.spectrum is None:
-            self.spectrum = np.zeros(self.nwave, np.double)
+        self.spectrum = np.zeros(self.nwave, np.double)
 
         # Get list of divisors:
         self.odivisors = pt.divisors(self.wnosamp)
@@ -335,7 +334,6 @@ def spectrum(pyrat):
 
     elif pyrat.od.rt_path == 'emission_two_stream':
         two_stream(pyrat)
-
 
     # Print spectrum to file:
     if pyrat.od.rt_path in pc.transmission_rt:
