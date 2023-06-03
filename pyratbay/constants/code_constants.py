@@ -11,6 +11,7 @@ __all__ = [
     # Choices
     'dbases',
     'rmodes',
+    'samplers',
     'transmission_rt',
     'emission_rt',
     'rt_paths',
@@ -64,6 +65,10 @@ rmodes = [
     'spectrum',
     'radeq',
     'mcmc',
+]
+
+samplers = [
+    'snooker',
 ]
 
 # Transmission radiative transfer:

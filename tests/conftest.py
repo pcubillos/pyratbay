@@ -57,11 +57,11 @@ def undefined_mcmc():
         'uncert': 'Undefined data uncertainties (uncert)',
         'filters': 'Undefined transmission filters (filters)',
         'sampler': 'Undefined retrieval algorithm (sampler).  Select '
-                   'from [snooker]',
+                   "from ['snooker', 'multinest']",
         'nsamples': 'Undefined number of retrieval samples (nsamples)',
         'burnin':   'Undefined number of retrieval burn-in samples (burnin)',
         'nchains':  'Undefined number of retrieval parallel chains (nchains)',
-        'rstar':    'Undefined radius ratio (need rplanet and rstar)',
+        'rstar':    'Undefined radius ratio, need to define rplanet and rstar',
         'tmodel':   'Requested temp in retflag, but there is no tmodel',
         'rayleigh': 'Requested ray in retflag, but there are no rayleigh '
                     'models',

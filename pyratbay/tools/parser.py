@@ -469,7 +469,7 @@ def parse(cfile, with_log=True, mute=False):
         parse_array(args, 'prior')
         parse_array(args, 'priorlow')
         parse_array(args, 'priorup')
-        parse_str(args,   'sampler')
+        parse_str(args, 'sampler')
         parse_int(args,   'nsamples')
         parse_int(args,   'nchains')
         parse_int(args,   'burnin')
@@ -799,6 +799,7 @@ def parse(cfile, with_log=True, mute=False):
         'inst_offset', 'Instrumental offsets',
     )
 
+    args.sampler = args.get_choice('sampler', 'posterior sampler', pc.samplers)
     args.retflag = args.get_choice('retflag', 'retrieval flag', pc.retflags)
     if args.retflag is not None:
         warning_msg = (
