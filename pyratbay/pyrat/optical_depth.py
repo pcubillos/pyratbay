@@ -37,8 +37,6 @@ def optical_depth(pyrat):
     od.ec[rtop:] = pyrat.opacity.ec[rtop:]
     if pyrat.alkali.ec is not None:
         od.ec[rtop:] += pyrat.alkali.ec[rtop:]
-    if pyrat.cs.ec is not None:
-        od.ec[rtop:] += pyrat.cs.ec[rtop:]
 
     # If fpatchy, compute clear and cloudy spectra separately:
     if pyrat.cloud.fpatchy is not None:

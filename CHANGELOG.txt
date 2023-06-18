@@ -8478,3 +8478,12 @@ Added ec_cloud variable into pyrat.opacity.
 Make clouds.py module to store opacity in pyrat.opacity.ec_cloud
 This file will be re-implemented.
 
+*****
+
+Moved CIA models from pyrat.cs into pyrat.opacity.
+Removed pyrat/crosssec.py, replaced with code in pyrat/opacity.py.
+
+Implemented check_species_exists() function in pyrat/opacity.py
+This will take care of checking that opacity species exist in the
+atmospheric model.
+

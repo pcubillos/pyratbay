@@ -17,7 +17,6 @@ from .. import tools as pt
 
 from .alkali import Alkali
 from .atmosphere import Atmosphere
-from .crosssec import CIA
 from .observation import Observation
 from .opacity import Opacity
 from .retrieval import Retrieval
@@ -128,13 +127,6 @@ class Pyrat():
           self.log,
       )
 
-      self.cs = CIA(
-          self.inputs.cia_files,
-          self.spec.wn,
-          self.atm.species,
-          self.log,
-      )
-      self.timestamps['read cs'] = timer.clock()
 
 
   def compute_opacity(self):
@@ -171,14 +163,6 @@ class Pyrat():
               "Temperature values lie out of the cross-section "
               f"boundaries for: {oob}"
           )
-
-      # Interpolate CIA extinction coefficient:
-      good_status &= self.cs.calc_extinction_coefficient(
-          self.atm.temp, self.atm.d, self.log,
-      )
-      self.timestamps['interp cs'] = timer.clock()
-
-      if not good_status:
           self.spec.spectrum[:] = 0.0
           return
 
@@ -187,7 +171,7 @@ class Pyrat():
       #self.cloud.calc_extinction_coefficient(self.atm.temp, self.atm.radius)
       self.timestamps['cloud'] = timer.clock()
 
-      # extinction coefficient from line-sample, lbl, rayleigh, H-:
+      # extinction coefficient from line-sample, lbl, CIA, rayleigh, H-:
       self.opacity.calc_extinction_coefficient(self.atm.temp, self.atm.d)
       self.timestamps['extinction'] = timer.clock()
 
@@ -594,11 +578,6 @@ class Pyrat():
       # Line-sample, lbl, Rayleigh, and H- extinction coefficient:
       if len(self.opacity.models) > 0:
           e, lab = self.opacity.get_ec(self.atm.temp, self.atm.d, layer)
-          ec = np.vstack((ec, e))
-          label += lab
-      # CIA extinction coefficient:
-      if self.cs.nfiles != 0:
-          e, lab = self.cs.get_ec(self.atm.temp, self.atm.d, layer)
           ec = np.vstack((ec, e))
           label += lab
       # Haze/clouds extinction coefficient:

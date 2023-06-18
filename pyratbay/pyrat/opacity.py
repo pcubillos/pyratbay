@@ -9,6 +9,18 @@ from .. import tools as pt
 from .line_by_line import Line_By_Line
 
 
+def check_species_exists(species, atm_species, opa_model, log):
+    """
+    Check when a required species is not found in list of atmospheric species
+    """
+    absent = np.setdiff1d(species, atm_species)
+    if len(absent) > 0:
+        log.error(
+            f'Species {absent}, required for opacity model {opa_model}, '
+            'are not present in the atmosphere'
+        )
+
+
 class Opacity():
     """Interface between opacity models and pyrat object"""
     def __init__(self, inputs, wn, species, pressure, log, pyrat):
@@ -81,6 +93,33 @@ class Opacity():
             self.nspec.append(lbl.nspec)
             self.pnames.append([])
 
+        if inputs.cia_files is not None:
+            tmin = []
+            tmax = []
+            for cia_file in inputs.cia_files:
+                log.head(f"Read CIA file: '{cia_file}'.", indent=2)
+                cia = op.Collision_Induced(cia_file, wn)
+                log.msg(
+                    f'{cia.name} opacity:\n'
+                    f'Read {cia.nwave} wave and {cia.ntemp} temperature samples.\n'
+                    f'Temperature ranges: {cia.tmin:.1f}--{cia.tmax:.1f} K\n'
+                    f'Wavenumber ranges: {cia.wn[cia._wn_lo_idx]:.1f}--'
+                    f'{cia.wn[cia._wn_hi_idx-1]:.1f} cm-1',
+                    indent=4,
+                )
+
+                self.models.append(cia)
+                self.models_type.append('cia')
+                tmin.append(cia.tmin)
+                tmax.append(cia.tmax)
+                check_species_exists(cia.species, species, cia.name, log)
+                imol = [species.index(mol) for mol in cia.species]
+                self.mol_indices.append(imol)
+                self.nspec.append(1)
+                self.pnames.append([])
+            self.tmin['cia'] = np.amax(tmin)
+            self.tmax['cia'] = np.amin(tmax)
+
         if inputs.rayleigh is not None:
             npars = 0
             for name in inputs.rayleigh:
@@ -99,7 +138,7 @@ class Opacity():
                     #log.error('Species not found in atmosphere')
                     self.mol_indices.append(None)
                 else:
-                    self.mol_indices.append(list(species).index(model.mol))
+                    self.mol_indices.append(species.index(model.mol))
                 # Parse parameters:
                 if inputs.rpars is None:
                     model.pars = np.tile(np.nan, model.npars)
@@ -177,13 +216,18 @@ class Opacity():
             }
             if model_type in ['rayleigh', 'cloud']:
                 args['density'] = density
+            elif model_type == 'cia':
+                args['temperature'] = temperature[layer]
+                args['densities'] = density[layer]
+                args.pop('layer')
             else:
                 args['temperature'] = temperature
                 args['densities'] = density
-            if hasattr(model, 'pars'):
-                args['pars'] = model.pars
             if self.models_type[i] == 'line_sample':
                 args['per_mol'] = True
+
+            if hasattr(model, 'pars'):
+                args['pars'] = model.pars
 
             extinction = model.calc_extinction_coefficient(**args)
             ec[j:j+self.nspec[i]] = extinction
@@ -196,18 +240,10 @@ class Opacity():
             else:
                 label.append(model.name)
 
-        ## CIA
-        # ext_coeff = model.calc_extinction_coefficient(
-        #        temperature[layer], densities[layer,imol])
-        # label.append(model.name)
-
         ## Alkali
         # ext_coeff = model.calc_extinction_coefficient(
         #        temperature, density, layer)
         # label.append(model.mol)
-
-        ## Ray
-        # calc_extinction_coefficient(self, density, pars=None, layer=None)
 
         return ec, label
 
