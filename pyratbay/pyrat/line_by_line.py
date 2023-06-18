@@ -71,6 +71,7 @@ class Database():
 class Line_By_Line():
     """All Line-by-line data"""
     def __init__(self, inputs, species, wn_low, wn_high, log, pyrat):
+        self.name = 'line by line'
         self.tmin = -np.inf
         self.tmax =  np.inf
         self.db = []

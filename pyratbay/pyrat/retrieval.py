@@ -12,7 +12,7 @@ from .. import constants as pc
 
 
 class Retrieval():
-    def __init__(self, inputs, atm, phy, obs, rayleigh, cloud, log):
+    def __init__(self, inputs, atm, phy, obs, opacity, cloud, log):
         self.nparams = 0     # Number of free parameters
         self.posterior = None
         self.bestp = None
@@ -42,7 +42,6 @@ class Retrieval():
 
         # Overrides retflag. At some point this will be the only way.
         if inputs.retrieval_params is not None:
-            #self.pnames = []   # Model parameter names (screen)
             pars = [
                 par for par in inputs.retrieval_params.splitlines()
                 if par != ''
@@ -95,10 +94,9 @@ class Retrieval():
             self.prior = inputs.prior
             self.priorlow = inputs.priorlow
             self.priorup = inputs.priorup
-            setup_retrieval_parameters_retflag(
-                inputs, self, atm, obs, phy, rayleigh, cloud, log,
+            self.pnames = collect_pnames_from_retflag(
+                inputs, self, atm, opacity, cloud, log,
             )
-            return
 
         # TeX unit conversions for masses and radii:
         utex = {
@@ -113,10 +111,13 @@ class Retrieval():
             'cm': 'cm',
         }
 
+        temp_pnames = []
         if atm.tmodelname in pc.tmodels:
             temp_pnames = atm.temp_model.pnames
-        else:
-            temp_pnames = []
+
+        opacity_pnames = []
+        for names in opacity.pnames:
+            opacity_pnames += names
 
         offset_pnames = obs.offset_instruments
         if offset_pnames is None:
@@ -126,14 +127,13 @@ class Retrieval():
         self.map_pars = map_pars = {
             'temp': [],
             'mol': [],
-            'ray': [],
+            'opacity': [[] for model in opacity.models],
             'cloud': [],
             'offset': [],
         }
         # Model parameter names
         self.nparams = len(self.pnames)
         self.texnames = [None for _ in self.pnames]
-        # Indices to parse the array of fitting parameters:
 
         solo_params = [
             'log_p_ref',
@@ -147,7 +147,7 @@ class Retrieval():
             solo_params +
             temp_pnames +
             atm.mol_pnames +
-            rayleigh.pnames +
+            opacity_pnames +
             cloud.pnames +
             offset_pnames
         )
@@ -161,13 +161,12 @@ class Retrieval():
         self.idilut = None
         self.itemp = None
         self.imol = None
+        self.iopacity = [[] for model in opacity.models]
         self.icloud = None
-        self.iray = None
         self.ioffset = None
 
         itemp = []
         imol = []
-        iray = []
         icloud = []
         ioffset = []
         for i,pname in enumerate(self.pnames):
@@ -200,11 +199,16 @@ class Retrieval():
                 idx = atm.mol_pnames.index(pname)
                 map_pars['mol'].append(idx)
                 self.texnames[i] = atm.mol_texnames[idx]
-            elif pname in rayleigh.pnames:
-                iray.append(i)
-                idx = rayleigh.pnames.index(pname)
-                map_pars['ray'].append(idx)
-                self.texnames[i] = rayleigh.texnames[idx]
+            elif pname in opacity_pnames:
+                for j,model in enumerate(opacity.models):
+                    if pname in opacity.pnames[j]:
+                        self.iopacity[j].append(i)
+                        idx = model.pnames.index(pname)
+                        map_pars['opacity'][j].append(idx)
+                        self.texnames[i] = model.texnames[idx]
+                        if not np.isfinite(model.pars[idx]):
+                            model.pars[idx] = self.params[i]
+                        break
             elif pname in cloud.pnames:
                 icloud.append(i)
                 idx = cloud.pnames.index(pname)
@@ -228,8 +232,6 @@ class Retrieval():
             self.imol = imol
         if len(icloud) > 0:
             self.icloud = icloud
-        if len(iray) > 0:
-            self.iray = iray
         if len(ioffset) > 0:
             self.ioffset = ioffset
 
@@ -252,15 +254,6 @@ class Retrieval():
             atm.molpars = np.zeros(len(atm.mol_pnames))
             atm.molpars[map_pars['mol']] = self.params[self.imol]
 
-        patch_rayleigh = (
-            rayleigh.pars is None and
-            self.iray is not None and
-            len(map_pars['ray']) == rayleigh.npars
-        )
-        if patch_rayleigh:
-            rayleigh.pars = np.zeros(rayleigh.npars)
-            rayleigh.pars[map_pars['ray']] = self.params[self.iray]
-
         patch_cloud = (
             cloud.pars is None and
             self.icloud is not None and
@@ -270,14 +263,20 @@ class Retrieval():
             cloud.pars = np.zeros(cloud.npars)
             cloud.pars[map_pars['cloud']] = self.params[self.icloud]
 
+
         if atm.tpars is None and atm.temp_model is not None:
             log.error('Not all temperature parameters were defined (tpars)')
+
         if atm.molpars is None and atm.mol_npars > 0:
             log.error('Not all abundance parameters were defined (molpars)')
+        bad_models = ''
+        for j,model in enumerate(opacity.models):
+            if hasattr(model, 'pars') and not np.all(np.isfinite(model.pars)):
+                bad_models = f"{opacity.models_type[j]} model '{model.name}', "
+        if len(bad_models) > 0:
+            log.error(f'Undefined parameter values for {bad_models[:-2]}')
         if cloud.pars is None and cloud.npars > 0:
             log.error('Not all Cloud parameters were defined (cpars)')
-        if rayleigh.pars is None and rayleigh.npars > 0:
-            log.error('Not all Rayleigh parameters were defined (rpars)')
 
 
     def __str__(self):
@@ -381,15 +380,25 @@ class Retrieval():
         return fw.text
 
 
-def setup_retrieval_parameters_retflag(inputs, ret, atm, obs, phy, rayleigh, cloud, log):
+def collect_pnames_from_retflag(
+        inputs, ret, atm, opacity, cloud, log,
+    ):
     """
     Check and setup retrieval parameters via retflag argument.
     To be deprecated, use retrieval_parameters instead.
     """
     retflag = ret.retflag
+    pnames = []
 
     if retflag is None:
-        return
+        return pnames
+
+    rayleigh_pnames = []
+    for model in opacity.models:
+        if inputs.rayleigh is None:
+            continue
+        if model.name in inputs.rayleigh and hasattr(model, 'pnames'):
+            rayleigh_pnames += model.pnames
 
     if 'temp' in retflag and atm.tmodelname is None:
         log.error('Requested temp in retflag, but there is no tmodel')
@@ -399,131 +408,38 @@ def setup_retrieval_parameters_retflag(inputs, ret, atm, obs, phy, rayleigh, clo
         # TBD: This will break for pure eq-chem runs
         if atm.bulk is None:
             log.error('Requested mol in retflag, but there are no bulk species')
-    if 'ray' in retflag and rayleigh.models == []:
+    if 'ray' in retflag and inputs.rayleigh is None:
         log.error('Requested ray in retflag, but there are no rayleigh models')
+
     if 'cloud' in retflag and cloud.models == []:
         log.error('Requested cloud in retflag, but there are no cloud models')
 
-    # TeX unit conversions for masses and radii:
-    utex = {
-        'mjup': r'$M_{\rm Jup}$',
-        'mearth': r'$M_{\oplus}$',
-        'kg': 'kg',
-        'gram': 'g',
-        'rjup': r'$R_{\rm Jup}$',
-        'rearth': r'$R_{\oplus}$',
-        'km': 'km',
-        'm': 'm',
-        'cm': 'cm',
-    }
-
-    ret.map_pars = {
-        'temp': [],
-        'mol': [],
-        'ray': [],
-        'cloud': [],
-        'offset': [],
-    }
-    # Indices to parse the array of fitting parameters:
-    ret.nparams = 0
-    ret.pnames = []
-    ret.texnames = []
-
     if 'temp' in retflag:
-        ntemp = atm.temp_model.npars
-        ret.itemp = np.arange(ret.nparams, ret.nparams + ntemp)
-        ret.pnames += atm.temp_model.pnames
-        ret.texnames += atm.temp_model.texnames
-        ret.nparams += ntemp
-        ret.map_pars['temp'] = np.arange(ntemp)
+        pnames += atm.temp_model.pnames
     if 'rad' in retflag:
-        ret.irad = np.arange(ret.nparams, ret.nparams + 1)
-        ret.pnames += ['R_planet']
-        ret.texnames += [fr'$R_{{\rm p}}$ ({utex[atm.runits]})']
-        ret.nparams += 1
+        pnames += ['R_planet']
     if 'press' in retflag:
-        ret.ipress = np.arange(ret.nparams, ret.nparams + 1)
-        ret.pnames += ['log(p_ref)']
-        ret.texnames += [r'$\log p_{{\rm ref}}$']
-        ret.nparams += 1
+        pnames += ['log_p_ref']
     if 'mol' in retflag:
-        nabund = len(atm.mol_pnames)
-        ret.imol = np.arange(ret.nparams, ret.nparams + nabund)
-        ret.pnames += atm.mol_pnames
-        ret.texnames += atm.mol_texnames
-        ret.nparams += nabund
-        ret.map_pars['mol'] = np.arange(nabund)
+        pnames += atm.mol_pnames
     if 'ray' in retflag:
-        nray = rayleigh.npars
-        ret.iray = np.arange(ret.nparams, ret.nparams + nray)
-        ret.pnames += rayleigh.pnames
-        ret.texnames += rayleigh.texnames
-        ret.nparams += nray
-        ret.map_pars['ray'] = np.arange(nray)
+        pnames += rayleigh_pnames
     if 'cloud' in retflag:
-        ncloud = cloud.npars
-        ret.icloud = np.arange(ret.nparams, ret.nparams + ncloud)
-        ret.pnames += cloud.pnames
-        ret.texnames += cloud.texnames
-        ret.nparams += ncloud
-        ret.map_pars['cloud'] = np.arange(ncloud)
+        pnames += cloud.pnames
     if 'patchy' in retflag:
-        ret.ipatchy = np.arange(ret.nparams, ret.nparams + 1)
-        ret.pnames += ['f_patchy']
-        ret.texnames += [r'$\phi_{\rm patchy}$']
-        ret.nparams += 1
+        pnames += ['f_patchy']
     if 'mass' in retflag:
-        ret.imass = np.arange(ret.nparams, ret.nparams + 1)
-        ret.pnames += ['M_planet']
-        ret.texnames += [fr'$M_{{\rm p}}$ ({utex[phy.mpunits]})']
-        ret.nparams += 1
+        pnames += ['M_planet']
     if 'tstar' in retflag:
-        ret.itstar = np.arange(ret.nparams, ret.nparams + 1)
-        ret.pnames   += ['T_eff']
-        ret.texnames += [r'$T_{\rm eff}$ (K)']
-        ret.nparams += 1
+        pnames += ['T_eff']
     if 'offset' in retflag:
-        n_offset = len(ret.offset_instruments)
-        ret.ioffset = np.arange(ret.nparams, ret.nparams + n_offset)
-        ret.pnames   += list(ret.offset_instruments)
-        ret.texnames += list(ret.offset_instruments)
-        ret.nparams += n_offset
-
-        band_names = [band.name for band in obs.filters]
-        offset_indices = []
-        for inst in ret.offset_instruments:
-            flags = [inst in name for name in band_names]
-            offset_indices.append(flags)
-        obs.offset_indices = offset_indices
-
+        pnames += list(ret.offset_instruments)
 
     # Retrieval variables:
-    if ret.params is not None and len(ret.params) != ret.nparams:
+    if ret.params is not None and len(ret.params) != len(pnames):
         nparams = len(ret.params)
         log.error(
             f'The number of input fitting parameters (params, {nparams}) does '
-            f'not match the number of required parameters ({ret.nparams})'
+            f'not match the number of required parameters ({len(pnames)})'
         )
-
-    # Patch missing parameters if possible, otherwise break:
-    if atm.tpars is None and ret.itemp is not None:
-        if len(ret.map_pars['temp']) < atm.temp_model.npars:
-            log.error('Not all temp parameters are defined (tpars)')
-        atm.tpars = np.zeros(atm.temp_model.npars)
-        atm.tpars[ret.map_pars['temp']] = ret.params[ret.itemp]
-    if atm.molpars is None and ret.imol is not None:
-        if len(ret.map_pars['mol']) < len(atm.mol_pnames):
-            log.error('Not all abundance parameters are defined (molpars)')
-        atm.molpars = np.zeros(len(atm.mol_pnames))
-        atm.molpars[ret.map_pars['mol']] = ret.params[ret.imol]
-    if rayleigh.pars is None and ret.iray is not None:
-        if len(ret.map_pars['ray']) < rayleigh.npars:
-            log.error('Not all Rayleigh parameters are defined (rpars)')
-        rayleigh.pars = np.zeros(rayleigh.npars)
-        rayleigh.pars[ret.map_pars['ray']] = ret.params[ret.iray]
-    if cloud.pars is None and ret.icloud is not None:
-        if len(ret.map_pars['cloud']) < cloud.npars:
-            log.error('Not all Cloud parameters are defined (cpars)')
-        cloud.pars = np.zeros(cloud.npars)
-        cloud.pars[ret.map_pars['cloud']] = ret.params[ret.icloud]
-
+    return pnames

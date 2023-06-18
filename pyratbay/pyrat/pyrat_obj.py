@@ -115,7 +115,7 @@ class Pyrat():
       self.ret = Retrieval(
           self.inputs,
           self.atm, self.phy, self.obs,
-          self.rayleigh, self.cloud,
+          self.opacity, self.cloud,
           self.log,
       )
 
@@ -182,15 +182,15 @@ class Pyrat():
           self.spec.spectrum[:] = 0.0
           return
 
-      # extinction coefficient from line-sample, lbl, H-:
+      # Calculate cloud absorption:
+      cl.absorption(self)
+      #self.cloud.calc_extinction_coefficient(self.atm.temp, self.atm.radius)
+      self.timestamps['cloud'] = timer.clock()
+
+      # extinction coefficient from line-sample, lbl, rayleigh, H-:
       self.opacity.calc_extinction_coefficient(self.atm.temp, self.atm.d)
       self.timestamps['extinction'] = timer.clock()
 
-      # Calculate cloud, Rayleigh, and alkali absorption:
-      cl.absorption(self)
-      #self.cloud.calc_extinction_coefficient(self.atm.temp, self.atm.radius)
-      self.rayleigh.calc_extinction_coefficient(self.atm.d)
-      self.timestamps['cloud+ray'] = timer.clock()
       # Calculate the alkali absorption:
       self.alkali.calc_extinction_coefficient(self.atm.temp, self.atm.d)
       self.timestamps['alkali'] = timer.clock()
@@ -260,9 +260,13 @@ class Pyrat():
       if ret.imass is not None:
           self.atm.mplanet = params[ret.imass][0] * pt.u(self.atm.mass_units)
 
-      if ret.iray is not None:
-          ifree = ret.map_pars['ray']
-          self.rayleigh.pars[ifree] = params[ret.iray]
+      ifree = ret.map_pars['opacity']
+      for j,model in enumerate(self.opacity.models):
+          if ifree[j] == []:
+              continue
+          idx = ifree[j]
+          ipar = ret.iopacity[j]
+          model.pars[idx] = params[ipar]
 
       if ret.icloud is not None:
           ifree = ret.map_pars['cloud']
@@ -587,7 +591,7 @@ class Pyrat():
       # Allocate outputs:
       ec = np.empty((0, self.spec.nwave))
       label = []
-      # Line-sample, lbl, and H- extinction coefficient:
+      # Line-sample, lbl, Rayleigh, and H- extinction coefficient:
       if len(self.opacity.models) > 0:
           e, lab = self.opacity.get_ec(self.atm.temp, self.atm.d, layer)
           ec = np.vstack((ec, e))
@@ -595,11 +599,6 @@ class Pyrat():
       # CIA extinction coefficient:
       if self.cs.nfiles != 0:
           e, lab = self.cs.get_ec(self.atm.temp, self.atm.d, layer)
-          ec = np.vstack((ec, e))
-          label += lab
-      # Rayleigh scattering extinction coefficient:
-      if self.rayleigh.models != []:
-          e, lab = self.rayleigh.get_ec(self.atm.d, layer)
           ec = np.vstack((ec, e))
           label += lab
       # Haze/clouds extinction coefficient:

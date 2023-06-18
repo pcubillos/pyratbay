@@ -8,6 +8,7 @@ from .. import opacity as op
 from .. import tools as pt
 from .line_by_line import Line_By_Line
 
+
 class Opacity():
     """Interface between opacity models and pyrat object"""
     def __init__(self, inputs, wn, species, pressure, log, pyrat):
@@ -17,6 +18,7 @@ class Opacity():
         self.models = []
         self.models_type = []
         self.mol_indices = []
+        self.pnames = []
         # Min/max temperatures that can be sampled
         self.tmin = {}
         self.tmax = {}
@@ -24,6 +26,8 @@ class Opacity():
         self.nwave = len(wn)
         nlayers = len(pressure)
         self.ec = np.zeros((nlayers, self.nwave))
+        self.ec_cloud = np.zeros((nlayers, self.nwave))
+        self.is_patchy = inputs.fpatchy is not None
 
         min_wn = np.amin(wn)
         max_wn = np.amax(wn)
@@ -64,6 +68,7 @@ class Opacity():
                 f"Wavenumber array (cm-1):\n   {str_wn}",
             )
             self.nspec.append(ls.nspec)
+            self.pnames.append([])
 
         if inputs.tlifile is not None:
             lbl = Line_By_Line(inputs, species, min_wn, max_wn, log, pyrat)
@@ -74,6 +79,41 @@ class Opacity():
             self.tmin['lbl'] = lbl.tmin
             self.tmax['lbl'] = lbl.tmax
             self.nspec.append(lbl.nspec)
+            self.pnames.append([])
+
+        if inputs.rayleigh is not None:
+            npars = 0
+            for name in inputs.rayleigh:
+                if name.startswith('dalgarno_'):
+                    mol = name.split('_')[1]
+                    model = op.rayleigh.Dalgarno(wn, mol)
+                    self.models_type.append('rayleigh')
+                if name == 'lecavelier':
+                    model = op.rayleigh.Lecavelier(wn)
+                    self.models_type.append('cloud')
+                self.models.append(model)
+                self.nspec.append(1)
+                self.pnames.append(model.pnames)
+
+                if model.mol not in species:
+                    #log.error('Species not found in atmosphere')
+                    self.mol_indices.append(None)
+                else:
+                    self.mol_indices.append(list(species).index(model.mol))
+                # Parse parameters:
+                if inputs.rpars is None:
+                    model.pars = np.tile(np.nan, model.npars)
+                elif len(inputs.rpars) >= npars+model.npars:
+                    model.pars = inputs.rpars[npars:npars+model.npars]
+                npars += model.npars
+
+            n_input = npars if inputs.rpars is None else len(inputs.rpars)
+            if n_input != npars:
+                log.error(
+                    f'Number of input Rayleigh parameters ({n_input}) '
+                    'does not match the number of required '
+                    f'model parameters ({npars})'
+                )
 
         if inputs.h_ion is not None:
             model = op.Hydrogen_Ion(wn)
@@ -89,6 +129,7 @@ class Opacity():
             imol = [species.index(mol) for mol in ['H', 'e-']]
             self.mol_indices.append(imol)
             self.nspec.append(1)
+            self.pnames.append([])
 
 
     def calc_extinction_coefficient(self, temperature, densities):
@@ -97,13 +138,25 @@ class Opacity():
         number density profiles.
         """
         self.ec[:] = 0.0
+        self.ec_cloud[:] = 0.0
         for i,model in enumerate(self.models):
-            density = densities[:,self.mol_indices[i]]
-            args = {
-                'temperature': temperature,
-                'densities': density,
-            }
-            self.ec += model.calc_extinction_coefficient(**args)
+            imol = self.mol_indices[i]
+            model_type = self.models_type[i]
+            density = densities[:,imol]
+            args = {}
+
+            if model_type in ['rayleigh', 'cloud']:
+                args['density'] = density
+            else:
+                args['temperature'] = temperature
+                args['densities'] = density
+
+            if hasattr(model, 'pars'):
+                args['pars'] = model.pars
+            if model_type == 'cloud' and self.is_patchy:
+                self.ec_cloud += model.calc_extinction_coefficient(**args)
+            else:
+                self.ec += model.calc_extinction_coefficient(**args)
 
         return self.ec
 
@@ -117,12 +170,18 @@ class Opacity():
         j = 0
         for i,model in enumerate(self.models):
             imol = self.mol_indices[i]
+            model_type = self.models_type[i]
             density = densities[:,imol]
             args = {
-                'temperature': temperature,
-                'densities': density,
                 'layer': layer,
             }
+            if model_type in ['rayleigh', 'cloud']:
+                args['density'] = density
+            else:
+                args['temperature'] = temperature
+                args['densities'] = density
+            if hasattr(model, 'pars'):
+                args['pars'] = model.pars
             if self.models_type[i] == 'line_sample':
                 args['per_mol'] = True
 

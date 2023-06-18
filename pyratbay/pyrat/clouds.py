@@ -21,7 +21,7 @@ def absorption(pyrat):
       # Densities in molecules cm-3:
       dens = pyrat.atm.d[:,imol]
       # Cloud absorption (cm-1):
-      pyrat.cloud.ec += model.ec * np.expand_dims(dens, axis=1)
+      pyrat.opacity.ec_cloud += model.ec * np.expand_dims(dens, axis=1)
 
 
 def get_ec(pyrat, layer):

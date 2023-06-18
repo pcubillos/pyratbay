@@ -161,6 +161,7 @@ def test_invalid_float_all_params(tmp_path, param):
         ('rt_path',  "radiative-transfer observing geometry"),
         ('tmodel',   "temperature model"),
         ('retflag',  "retrieval flag"),
+        ('sampler',  "posterior sampler"),
     ]
 )
 def test_invalid_choice(tmp_path, param, reason):
@@ -814,7 +815,7 @@ def test_spectrum_invalid_retrieval_params_pname(tmp_path):
     error = re.escape(
         "Invalid retrieval parameter 'log_H2O'. Possible values are:\n"
         "['log_p_ref', 'R_planet', 'M_planet', 'f_patchy', 'T_eff', "
-        "'T_iso', 'log_k_ray', 'alpha_ray', 'log_p_cl']"
+        "'f_dilution', 'T_iso', 'log_k_ray', 'alpha_ray', 'log_p_cl']"
     )
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
@@ -878,7 +879,7 @@ def test_spectrum_insuficient_retrieval_params_rayleigh(tmp_path):
         reset=reset,
         remove=['rpars'],
     )
-    error = re.escape('Not all Rayleigh parameters were defined (rpars)')
+    error = re.escape("Undefined parameter values for cloud model 'lecavelier'")
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
 
@@ -896,9 +897,9 @@ def test_spectrum_params_misfit(tmp_path):
     )
     error = re.escape(
         """Invalid retrieval parameter 'T_iso'. Possible values are:\n"""
-        """['log_p_ref', 'R_planet', 'M_planet', 'f_patchy', 'T_eff',"""
-        """ "log_kappa'", 'log_gamma1', 'log_gamma2', 'alpha', 'T_irr', """
-        """'T_int', 'log_k_ray', 'alpha_ray', 'log_p_cl']"""
+        """['log_p_ref', 'R_planet', 'M_planet', 'f_patchy', 'T_eff', """
+        """'f_dilution', "log_kappa'", 'log_gamma1', 'log_gamma2', 'alpha', """
+        """'T_irr', 'T_int', 'log_k_ray', 'alpha_ray', 'log_p_cl']"""
     )
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
@@ -1274,6 +1275,7 @@ def test_mcmc_missing(tmp_path, param, undefined_mcmc):
         'rt_path': 'emission',
         'kurucz': f'{ROOT}tests/inputs/mock_fp00k0odfnew.pck',
         'log_gstar': '4.5',
+        'sampler': 'snooker',
     }
     cfg = make_config(
         tmp_path,

@@ -3,6 +3,7 @@
 
 import os
 import pytest
+import re
 
 import numpy as np
 
@@ -241,24 +242,6 @@ def test_emission_input_radius_overwrite(tmp_path):
 
 
 # Now try some forward models that modify the atmospheric profile:
-def test_emission_tmodel_none(tmp_path):
-    # include tmodel, but tpars is None
-    cfg = make_config(
-        tmp_path,
-        ROOT+'tests/configs/spectrum_emission_test.cfg',
-        remove=['clouds', 'cpars'],
-        reset={'tmodel': 'guillot'},
-    )
-    pyrat = pb.run(cfg)
-    np.testing.assert_allclose(pyrat.spec.spectrum, expected['all'], rtol=rtol)
-    # Now, re-run with user-input tpars:
-    pyrat.atm.tpars = np.array([-4.67, -0.8, -0.8, 0.5, 1486.0, 100.0])
-    pyrat.run()
-    np.testing.assert_allclose(
-        pyrat.spec.spectrum, expected['tmodel'], rtol=rtol,
-    )
-
-
 def test_emission_tmodel(tmp_path):
     # Include tmodel and tpars in input config file:
     reset = {
@@ -277,23 +260,17 @@ def test_emission_tmodel(tmp_path):
     )
 
 
-def test_emission_vert_none_model(tmp_path):
-    reset = {
-        'molvars': 'log_H2O',
-        'bulk': 'H2 He',
-    }
+def test_emission_tmodel_no_tpars(tmp_path):
+    # include tmodel, but tpars is None
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_emission_test.cfg',
         remove=['clouds', 'cpars'],
-        reset=reset,
+        reset={'tmodel': 'guillot'},
     )
-    pyrat = pb.run(cfg)
-    np.testing.assert_allclose(pyrat.spec.spectrum, expected['all'], rtol=rtol)
-    pyrat.atm.molpars = [-5]
-    pyrat.run()
-    np.testing.assert_allclose(pyrat.spec.spectrum, expected['vert'], rtol=rtol)
-    np.testing.assert_allclose(pyrat.atm.vmr[:,3], 1.0e-5, rtol=rtol)
+    error = re.escape('Not all temperature parameters were defined (tpars)')
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
 def test_emission_vert_model(tmp_path):
@@ -310,6 +287,22 @@ def test_emission_vert_model(tmp_path):
     )
     pyrat = pb.run(cfg)
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['vert'], rtol=rtol)
+
+
+def test_emission_vert_model_no_molpars(tmp_path):
+    reset = {
+        'molvars': 'log_H2O',
+        'bulk': 'H2 He',
+    }
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_emission_test.cfg',
+        remove=['clouds', 'cpars'],
+        reset=reset,
+    )
+    error = re.escape('Not all abundance parameters were defined (molpars)')
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
 def test_emission_scale_model(tmp_path):

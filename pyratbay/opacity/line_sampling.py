@@ -57,6 +57,7 @@ class Line_Sample():
         >>> plt.plot(wl, cs_per_mol[1,50], alpha=0.6, color='orange', lw=1.0)
         >>> plt.yscale('log')
         """
+        self.name = 'line sampling'
         self.nspec = 0
         if log is None:
             log = mc3.utils.Log(width=80)

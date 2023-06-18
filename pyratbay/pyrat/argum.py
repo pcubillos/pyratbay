@@ -12,7 +12,6 @@ from .. import spectrum as ps
 from .. import atmosphere as pa
 from .. import io as io
 from . import objects as ob
-from .rayleigh import Rayleigh
 
 
 def check_spectrum(pyrat):
@@ -57,16 +56,6 @@ def check_spectrum(pyrat):
     # Initialize cloud models:
     pyrat.cloud = ob.Cloud(
         pyrat.inputs.clouds, pyrat.inputs.cpars, pyrat.inputs.fpatchy, log,
-    )
-
-    # Initialize Rayleigh models:
-    pyrat.rayleigh = Rayleigh(
-        pyrat.inputs.rayleigh,
-        pyrat.inputs.rpars,
-        pyrat.atm.species,
-        pyrat.spec.wn,
-        log,
-        pyrat.cloud,
     )
 
     # Accept ray-path argument:

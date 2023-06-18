@@ -8461,3 +8461,20 @@ Added f_dilution argument for (emission) flux dilution factor
 as in Taylor et al. (2020).
 Added tests and docs.
 
+
+*****  Sun Jun 18 15:18:50 CEST 2023  *****
+
+Moved Pyrat Rayleigh models from pyrat.rayleigh into pyrat.opacity.
+Moved Rayleigh initialization from argum.py to pyrat.opacity.__init__().
+Removed pyrat/rayleigh.py, replaced with code in pyrat/opacity.py
+
+Change of behavior: when a parametric model is selected, the code
+will require that the parameters are defined either via the parameter
+pars or via retrieval_parameters. Otherwise the code will break.
+
+Added pnames list into pyrat.opacity.
+Added ec_cloud variable into pyrat.opacity.
+
+Make clouds.py module to store opacity in pyrat.opacity.ec_cloud
+This file will be re-implemented.
+

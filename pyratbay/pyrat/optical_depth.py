@@ -34,20 +34,16 @@ def optical_depth(pyrat):
         pyrat.od.raypath = pa.transit_path(pyrat.atm.radius, pyrat.atm.rtop)
 
     # Sum all contributions to the extinction:
-    od.ec[rtop:] = (
-        + pyrat.opacity.ec[rtop:]
-        + pyrat.cloud.ec[rtop:]
-    )
-    if pyrat.rayleigh.ec is not None:
-        od.ec[rtop:] += pyrat.rayleigh.ec[rtop:]
+    od.ec[rtop:] = pyrat.opacity.ec[rtop:]
     if pyrat.alkali.ec is not None:
         od.ec[rtop:] += pyrat.alkali.ec[rtop:]
     if pyrat.cs.ec is not None:
         od.ec[rtop:] += pyrat.cs.ec[rtop:]
 
-    # If fpatchy, compute a separate spectrum with clear skies:
+    # If fpatchy, compute clear and cloudy spectra separately:
     if pyrat.cloud.fpatchy is not None:
-        od.ec_clear[rtop:] = np.copy(od.ec[rtop:]) - pyrat.cloud.ec[rtop:]
+        od.ec_clear[rtop:] = np.copy(od.ec[rtop:])
+        od.ec[rtop:] += pyrat.opacity.ec_cloud[rtop:]
 
 
     rbottom = nlayers

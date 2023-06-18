@@ -68,20 +68,20 @@ def test_get_ec_lbl(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        reset={'csfile': cfile},
+        reset={'csfile': cfile, 'wllow': '0.55'},
     )
     pyrat = pb.run(cfg)
-
     layer = 50
     ec, labels = pyrat.get_ec(layer)
-    assert labels == ['H2O', 'CIA H2-H2', 'lecavelier', 'deck', 'Na']
-    np.testing.assert_allclose(ec[0], pyrat.opacity.models[0].ec[layer])
-    np.testing.assert_allclose(ec[1], pyrat.cs.ec[layer])
-    np.testing.assert_allclose(ec[2], pyrat.rayleigh.ec[layer])
+
+    expected_labels = ['H2O', 'lecavelier', 'CIA H2-H2', 'deck', 'Na']
+    with np.load(f'{ROOT}tests/expected/expected_get_ec_lbl.npz') as d:
+        expected_extinction = d['ec']
+
+    assert labels == expected_labels
+    np.testing.assert_allclose(ec, expected_extinction)
     # Cloud deck model does not use the ec, rather post processed during RT.
     # This array contains zeros or ones whether one is above or below cloud:
-    np.testing.assert_allclose(ec[3], np.ones(pyrat.spec.nwave))
-    np.testing.assert_allclose(ec[4], pyrat.alkali.ec[layer])
 
 
 def test_get_ec_line_sample(tmp_path):
@@ -103,11 +103,10 @@ def test_get_ec_line_sample(tmp_path):
     ec, labels = pyrat.get_ec(layer)
 
     expected_labels = [
-        'H2O', 'H- bf/ff', 'CIA H2-H2', 'CIA H2-He', 'lecavelier', 'Na',
+        'H2O', 'lecavelier', 'H- bf/ff', 'CIA H2-H2', 'CIA H2-He', 'Na',
     ]
-    with np.load(ROOT+'tests/expected/expected_get_ec_ls_Hion.npz') as d:
+    with np.load(ROOT+'tests/expected/expected_get_ec_ls.npz') as d:
         expected_extinction = d['ec']
 
     assert labels == expected_labels
-    for i in range(len(labels)):
-        np.testing.assert_allclose(ec[i], expected_extinction[i])
+    np.testing.assert_allclose(ec, expected_extinction)
