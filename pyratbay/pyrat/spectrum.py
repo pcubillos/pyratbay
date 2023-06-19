@@ -321,7 +321,7 @@ def spectrum(pyrat):
 
     # Initialize the spectrum array:
     pyrat.spec.spectrum = np.empty(pyrat.spec.nwave, np.double)
-    if pyrat.cloud.fpatchy is not None:
+    if pyrat.opacity.is_patchy:
         pyrat.spec.clear  = np.empty(pyrat.spec.nwave, np.double)
         pyrat.spec.cloudy = np.empty(pyrat.spec.nwave, np.double)
 
@@ -366,27 +366,28 @@ def modulation(pyrat):
     # The integrand:
     integ = (np.exp(-depth[rtop:,:]) * np.expand_dims(radius[rtop:],1))
 
-    if pyrat.cloud.fpatchy is not None:
+    if pyrat.opacity.is_patchy:
         depth_clear = pyrat.od.depth_clear
         h_clear = np.copy(h)
         integ_clear = (
             np.exp(-depth_clear[rtop:,:]) * np.expand_dims(radius[rtop:],1)
         )
 
-    if 'deck' in (m.name for m in pyrat.cloud.models):
-        # Replace (interpolating) last layer with cloud top:
-        deck = pyrat.cloud.models[pyrat.cloud.model_names.index('deck')]
-        if deck.itop > rtop:
-            h[deck.itop-rtop-1] = deck.rsurf - radius[deck.itop-1]
-            integ[deck.itop-rtop] = interp1d(
-                radius[rtop:], integ, axis=0)(deck.rsurf)
+    for model in pyrat.opacity.models:
+        if model.name == 'deck':
+            # Replace (by interpolating) last layer with cloud top:
+            if model.itop > rtop:
+                h[model.itop-rtop-1] = model.rsurf - radius[model.itop-1]
+                integ[model.itop-rtop] = interp1d(
+                    radius[rtop:], integ, axis=0)(model.rsurf)
+            break
 
     # Number of layers for integration at each wavelength:
     nlayers = pyrat.od.ideep - rtop + 1
     spectrum = t.trapz2D(integ, h, nlayers-1)
     pyrat.spec.spectrum = (radius[rtop]**2 + 2*spectrum) / pyrat.phy.rstar**2
 
-    if pyrat.cloud.fpatchy is not None:
+    if pyrat.opacity.is_patchy:
         nlayers = pyrat.od.ideep_clear - rtop + 1
         pyrat.spec.clear = t.trapz2D(integ_clear, h_clear, nlayers-1)
 
@@ -395,8 +396,8 @@ def modulation(pyrat):
         )
         pyrat.spec.cloudy = pyrat.spec.spectrum
         pyrat.spec.spectrum = (
-            pyrat.spec.cloudy * pyrat.cloud.fpatchy +
-            pyrat.spec.clear * (1-pyrat.cloud.fpatchy)
+            pyrat.spec.cloudy * pyrat.opacity.fpatchy +
+            pyrat.spec.clear * (1-pyrat.opacity.fpatchy)
         )
 
 
@@ -415,9 +416,9 @@ def intensity(pyrat):
     pyrat.od.B = np.zeros((pyrat.atm.nlayers, spec.nwave), np.double)
     ps.blackbody_wn_2D(spec.wn, pyrat.atm.temp, pyrat.od.B, pyrat.od.ideep)
 
-    if 'deck' in (m.name for m in pyrat.cloud.models):
-        deck = pyrat.cloud.models[pyrat.cloud.model_names.index('deck')]
-        pyrat.od.B[deck.itop] = ps.blackbody_wn(pyrat.spec.wn, deck.tsurf)
+    for model in pyrat.opacity.models:
+        if model.name == 'deck':
+            pyrat.od.B[model.itop] = ps.blackbody_wn(pyrat.spec.wn, model.tsurf)
 
     # Plane-parallel radiative-transfer intensity integration:
     spec.intensity = t.intensity(

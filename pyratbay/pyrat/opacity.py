@@ -3,6 +3,7 @@
 
 import numpy as np
 
+from .. import atmosphere as pa
 from .. import constants as pc
 from .. import opacity as op
 from .. import tools as pt
@@ -39,7 +40,8 @@ class Opacity():
         nlayers = len(pressure)
         self.ec = np.zeros((nlayers, self.nwave))
         self.ec_cloud = np.zeros((nlayers, self.nwave))
-        self.is_patchy = inputs.fpatchy is not None
+        self.fpatchy = inputs.fpatchy
+        self.is_patchy = self.fpatchy is not None
 
         min_wn = np.amin(wn)
         max_wn = np.amax(wn)
@@ -160,9 +162,35 @@ class Opacity():
             n_input = npars if inputs.rpars is None else len(inputs.rpars)
             if n_input != npars:
                 log.error(
-                    f'Number of input Rayleigh parameters ({n_input}) '
-                    'does not match the number of required '
-                    f'model parameters ({npars})'
+                    f'Number of input Rayleigh parameters ({n_input}) does not '
+                    f'match the number of required model parameters ({npars})'
+                )
+
+        if inputs.clouds is not None:
+            npars = 0
+            for name in inputs.clouds:
+                if name == 'ccsgray':
+                    model = pa.clouds.CCSgray(pressure, wn)
+                if name == 'deck':
+                    model = pa.clouds.Deck(pressure, wn)
+                self.models.append(model)
+                self.models_type.append('cloud')
+                self.mol_indices.append(None)
+                self.nspec.append(1)
+                self.pnames.append(model.pnames)
+
+                # Parse parameters:
+                if inputs.cpars is None:
+                    model.pars = np.tile(np.nan, model.npars)
+                elif len(inputs.cpars) >= npars+model.npars:
+                    model.pars = inputs.cpars[npars:npars+model.npars]
+                npars += model.npars
+
+            n_input = npars if inputs.cpars is None else len(inputs.cpars)
+            if n_input != npars:
+                log.error(
+                    f'Number of input cloud parameters ({n_input}) does not '
+                    f'match the number of required model parameters ({npars})'
                 )
 
         if inputs.h_ion is not None:
@@ -182,7 +210,7 @@ class Opacity():
             self.pnames.append([])
 
 
-    def calc_extinction_coefficient(self, temperature, densities):
+    def calc_extinction_coefficient(self, temperature, radius, densities):
         """
         Compute extinction coefficient over temperature and
         number density profiles.
@@ -195,7 +223,10 @@ class Opacity():
             density = densities[:,imol]
             args = {}
 
-            if model_type in ['rayleigh', 'cloud']:
+            if model.name == 'deck':
+                args['radius'] = radius
+                args['temperature'] = temperature
+            elif model_type in ['rayleigh', 'cloud']:
                 args['density'] = density
             elif model_type == 'alkali':
                 args['temperature'] = temperature
@@ -228,7 +259,10 @@ class Opacity():
             args = {
                 'layer': layer,
             }
-            if model_type in ['rayleigh', 'cloud']:
+            if model.name == 'deck':
+                args['temperature'] = temperature
+                args['radius'] = None
+            elif model_type in ['rayleigh', 'cloud']:
                 args['density'] = density
             elif model_type == 'cia':
                 args['temperature'] = temperature[layer]
@@ -240,9 +274,9 @@ class Opacity():
             else:
                 args['temperature'] = temperature
                 args['densities'] = density
+
             if self.models_type[i] == 'line_sample':
                 args['per_mol'] = True
-
             if hasattr(model, 'pars'):
                 args['pars'] = model.pars
 

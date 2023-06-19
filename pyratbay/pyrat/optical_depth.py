@@ -17,13 +17,13 @@ def optical_depth(pyrat):
     nwave = pyrat.spec.nwave
     nlayers = pyrat.atm.nlayers
     rtop = pyrat.atm.rtop
-
+    f_patchy = pyrat.opacity.fpatchy
     pyrat.log.head('\nBegin optical-depth calculation.')
 
     # Evaluate the extinction coefficient at each layer:
     od.ec = np.empty((nlayers, nwave))
     od.depth = np.zeros((nlayers, nwave))
-    if pyrat.cloud.fpatchy is not None:
+    if f_patchy is not None:
         od.ec_clear = np.empty((nlayers, nwave))
         od.depth_clear = np.zeros((nlayers, nwave))
 
@@ -37,15 +37,16 @@ def optical_depth(pyrat):
     od.ec[rtop:] = pyrat.opacity.ec[rtop:]
 
     # If fpatchy, compute clear and cloudy spectra separately:
-    if pyrat.cloud.fpatchy is not None:
+    if f_patchy is not None:
         od.ec_clear[rtop:] = np.copy(od.ec[rtop:])
         od.ec[rtop:] += pyrat.opacity.ec_cloud[rtop:]
 
 
     rbottom = nlayers
-    if 'deck' in (m.name for m in pyrat.cloud.models):
-        deck = pyrat.cloud.models[pyrat.cloud.model_names.index('deck')]
-        rbottom = deck.itop + 1
+    for model in pyrat.opacity.models:
+        if model.name == 'deck':
+            rbottom = model.itop + 1
+            break
     # Calculate the optical depth for each wavenumber:
     if od.rt_path in pc.emission_rt:
         od.ideep = np.tile(nlayers-1, nwave)
@@ -68,7 +69,7 @@ def optical_depth(pyrat):
                 od.ec[rtop:r+1], od.raypath[r], od.maxdepth, ideep, r)
         ideep[ideep<0] = r
 
-        if pyrat.cloud.fpatchy is not None:
+        if f_patchy is not None:
             rbottom = nlayers
             od.ideep_clear = ideep = np.array(np.tile(-1,nwave), dtype=np.intc)
             for r in range(rtop, rbottom):

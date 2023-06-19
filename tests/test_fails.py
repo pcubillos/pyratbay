@@ -863,7 +863,7 @@ def test_spectrum_insuficient_retrieval_params_cloud(tmp_path):
         reset=reset,
         remove=['cpars'],
     )
-    error = re.escape('Not all Cloud parameters were defined (cpars)')
+    error = re.escape("Undefined parameter values for cloud model 'deck'")
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
 

@@ -7,12 +7,12 @@ __all__ = [
 
 import numpy as np
 
-from .. import tools as pt
 from .. import constants as pc
+from .. import tools as pt
 
 
 class Retrieval():
-    def __init__(self, inputs, atm, phy, obs, opacity, cloud, log):
+    def __init__(self, inputs, atm, phy, obs, opacity, log):
         self.nparams = 0     # Number of free parameters
         self.posterior = None
         self.bestp = None
@@ -95,7 +95,7 @@ class Retrieval():
             self.priorlow = inputs.priorlow
             self.priorup = inputs.priorup
             self.pnames = collect_pnames_from_retflag(
-                inputs, self, atm, opacity, cloud, log,
+                inputs, self, atm, opacity, log,
             )
 
         # TeX unit conversions for masses and radii:
@@ -128,7 +128,6 @@ class Retrieval():
             'temp': [],
             'mol': [],
             'opacity': [[] for model in opacity.models],
-            'cloud': [],
             'offset': [],
         }
         # Model parameter names
@@ -148,7 +147,6 @@ class Retrieval():
             temp_pnames +
             atm.mol_pnames +
             opacity_pnames +
-            cloud.pnames +
             offset_pnames
         )
 
@@ -162,12 +160,10 @@ class Retrieval():
         self.itemp = None
         self.imol = None
         self.iopacity = [[] for model in opacity.models]
-        self.icloud = None
         self.ioffset = None
 
         itemp = []
         imol = []
-        icloud = []
         ioffset = []
         for i,pname in enumerate(self.pnames):
             if pname == 'log_p_ref':
@@ -209,11 +205,6 @@ class Retrieval():
                         if not np.isfinite(model.pars[idx]):
                             model.pars[idx] = self.params[i]
                         break
-            elif pname in cloud.pnames:
-                icloud.append(i)
-                idx = cloud.pnames.index(pname)
-                map_pars['cloud'].append(idx)
-                self.texnames[i] = cloud.texnames[idx]
             elif pname in offset_pnames:
                 ioffset.append(i)
                 idx = offset_pnames.index(pname)
@@ -230,8 +221,6 @@ class Retrieval():
             self.itemp = itemp
         if len(imol) > 0:
             self.imol = imol
-        if len(icloud) > 0:
-            self.icloud = icloud
         if len(ioffset) > 0:
             self.ioffset = ioffset
 
@@ -254,15 +243,6 @@ class Retrieval():
             atm.molpars = np.zeros(len(atm.mol_pnames))
             atm.molpars[map_pars['mol']] = self.params[self.imol]
 
-        patch_cloud = (
-            cloud.pars is None and
-            self.icloud is not None and
-            len(map_pars['cloud']) == cloud.npars
-        )
-        if patch_cloud:
-            cloud.pars = np.zeros(cloud.npars)
-            cloud.pars[map_pars['cloud']] = self.params[self.icloud]
-
 
         if atm.tpars is None and atm.temp_model is not None:
             log.error('Not all temperature parameters were defined (tpars)')
@@ -275,8 +255,6 @@ class Retrieval():
                 bad_models = f"{opacity.models_type[j]} model '{model.name}', "
         if len(bad_models) > 0:
             log.error(f'Undefined parameter values for {bad_models[:-2]}')
-        if cloud.pars is None and cloud.npars > 0:
-            log.error('Not all Cloud parameters were defined (cpars)')
 
 
     def __str__(self):
@@ -381,7 +359,7 @@ class Retrieval():
 
 
 def collect_pnames_from_retflag(
-        inputs, ret, atm, opacity, cloud, log,
+        inputs, ret, atm, opacity, log,
     ):
     """
     Check and setup retrieval parameters via retflag argument.
@@ -400,6 +378,14 @@ def collect_pnames_from_retflag(
         if model.name in inputs.rayleigh and hasattr(model, 'pnames'):
             rayleigh_pnames += model.pnames
 
+    cloud_pnames = []
+    for model in opacity.models:
+        if inputs.clouds is None:
+            continue
+        if model.name in inputs.clouds and hasattr(model, 'pnames'):
+            cloud_pnames += model.pnames
+
+
     if 'temp' in retflag and atm.tmodelname is None:
         log.error('Requested temp in retflag, but there is no tmodel')
     if 'mol' in retflag:
@@ -411,7 +397,7 @@ def collect_pnames_from_retflag(
     if 'ray' in retflag and inputs.rayleigh is None:
         log.error('Requested ray in retflag, but there are no rayleigh models')
 
-    if 'cloud' in retflag and cloud.models == []:
+    if 'cloud' in retflag and inputs.clouds is None:
         log.error('Requested cloud in retflag, but there are no cloud models')
 
     if 'temp' in retflag:
@@ -425,7 +411,7 @@ def collect_pnames_from_retflag(
     if 'ray' in retflag:
         pnames += rayleigh_pnames
     if 'cloud' in retflag:
-        pnames += cloud.pnames
+        pnames += cloud_pnames
     if 'patchy' in retflag:
         pnames += ['f_patchy']
     if 'mass' in retflag:

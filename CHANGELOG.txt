@@ -8493,4 +8493,15 @@ atmospheric model.
 Moved alkali models from pyrat.alkali into pyrat.opacity.
 Removed pyrat/alkali.py, replaced with code in pyrat/opacity.py.
 
+*****
+
+Moved cloud models from pyrat.cl into pyrat.opacity.
+Removed Cloud class from objects.py, replaced with code in pyrat/opacity.py.
+Moved patchy variable from pyrat.clouds.fpatchy to pyrat/opacity.fpatchy.
+
+Now all opacity models are contained in pyrat.opacity.
+
+Refactored gray cloud model to be more in line with other opacity models.
+Still need to be fully sorted out, and moved from atmosphere to opacity
+module.
 

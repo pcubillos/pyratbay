@@ -4,7 +4,6 @@
 __all__ = [
     'Extinction',
     'Optdepth',
-    'Cloud',
     'Physics',
 ]
 
@@ -12,7 +11,6 @@ import numpy as np
 
 from .. import tools as pt
 from .. import constants as pc
-from .. import atmosphere as pa
 
 
 class Extinction():
@@ -41,54 +39,6 @@ class Extinction():
         fw.write('Minimum temperature (tmin, K): {:6.1f}', self.tmin)
         fw.write('Maximum temperature (tmax, K): {:6.1f}', self.tmax)
         fw.write('Temperature sampling interval (tstep, K): {self.tstep:6.1f}')
-        return fw.text
-
-
-class Cloud(object):
-    """Interface to collect all Cloud opacity models"""
-    def __init__(self, model_names, pars, fpatchy=None, log=None):
-        self.model_names = model_names
-        self.models = []    # List of cloud models
-        self.pnames = []
-        self.texnames = []
-        self.npars = 0
-        self.pars = None
-        self.ec = None  # Cloud extinction coefficient
-        self.fpatchy = fpatchy
-
-        if model_names is None:
-            return
-        for name in model_names:
-            model = pa.clouds.get_model(name)
-            self.models.append(model)
-            self.npars += model.npars
-            self.pnames += model.pnames
-            self.texnames += model.texnames
-
-        # Parse parameters:
-        if pars is None:
-            return
-        self.pars = pars
-        input_npars = len(self.pars)
-        if self.npars != input_npars:
-            log.error(
-                f'Number of input cloud parameters ({input_npars}) '
-                'does not match the number of required '
-                f'model parameters ({self.npars})'
-            )
-        j = 0
-        for model in self.models:
-            model.pars = self.pars[j:j+model.npars]
-            j += model.npars
-
-    def __str__(self):
-        fw = pt.Formatted_Write()
-        fw.write('Cloud-opacity models (models):')
-        for model in self.models:
-            fw.write('\n' + str(model))
-        fw.write('\nPatchiness fraction (fpatchy): {:.3f}', self.fpatchy)
-        fw.write('Total atmospheric cloud extinction-coefficient '
-                 '(ec, cm-1):\n{}', self.ec, fmt={'float':' {:.3e}'.format})
         return fw.text
 
 
@@ -179,7 +129,7 @@ class Optdepth():
       return fw.text
 
 
-class Physics(object):
+class Physics():
     """Physical properties about the planet and star"""
     def __init__(self, inputs):
         # Stellar properties

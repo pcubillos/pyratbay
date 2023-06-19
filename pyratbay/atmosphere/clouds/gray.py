@@ -17,12 +17,16 @@ class CCSgray():
     """
     Constant cross-section gray cloud model.
     """
-    def __init__(self):
+    def __init__(self, pressure, wn):
         self.name = 'ccsgray' # Model name is lowercased class name
+        self.pressure = pressure / pc.bar
+        self.wn = wn
+        self.nwave = len(wn)
+        self.nlayers = len(pressure)
         # log10 of cross-section scale factor, top, and bottom pressure (bar)
         self.pars = [0.0, -4.0, 2.0]
         self.npars = len(self.pars)  # Number of model fitting parameters
-        self.ec = None            # Model extinction coefficient
+        self.ec = np.zeros((self.nlayers, self.nwave))
         self.mol = 'H2'            # Species causing the extinction
         # Fitting-parameter names (plain text and figure labels):
         self.pnames = ['log_k_gray', 'log_p_top', 'log_p_bot']
@@ -33,7 +37,7 @@ class CCSgray():
         ]
         self.s0 = 5.31e-27  # Default coss-section (cm-2 molec-1)
 
-    def extinction(self, wn, pressure):
+    def calc_cross_section(self):
         """
         Calculate a uniform gray-cloud cross section in cm2 molec-1:
            cross section = s0 * 10**pars[0],
@@ -46,14 +50,26 @@ class CCSgray():
         wn:  1D float ndarray
            Wavenumber array in cm-1.
         """
-        nlayers = len(pressure)
-        nwave   = len(wn)
         # Get indices for cloud layer boundaries:
-        itop    = np.where(pressure >= 10**self.pars[1]*pc.bar)[0][ 0]
-        ibottom = np.where(pressure <= 10**self.pars[2]*pc.bar)[0][-1]
-        # Gray opacity cross section in cm2 molec-1 (aka. extinction coef.):
-        self.ec = np.zeros((nlayers, nwave))
-        self.ec[itop:ibottom+1,:] = 10**self.pars[0] * self.s0
+        p_top = 10**self.pars[1]*pc.bar
+        p_bottom = 10**self.pars[1]*pc.bar
+        p_mask = (self.pressure >= p_bottom) & (self.pressure <= p_top)
+
+        # Gray opacity cross section in cm2 molec-1
+        self.ec[p_mask,:] = 10**self.pars[0] * self.s0
+
+
+    def calc_extinction_coefficient(self, density, pars=None, layer=None):
+        if pars is not None:
+            self.pars[:] = pars
+        # Densities in molecules cm-3:
+        # Cross section (in cm2 molecule-1):
+        cs = self.calc_cross_section()
+        # Cloud absorption (cm-1):
+        if layer is not None:
+            return cs[layer] * density[layer]
+        return cs * np.expand_dims(density, axis=1)
+
 
     def __str__(self):
         fw = pt.Formatted_Write()
@@ -73,44 +89,58 @@ class Deck():
     """
     Instantly opaque gray cloud deck at given pressure.
     """
-    def __init__(self):
-        self.name  = 'deck'          # Model name is lowercased class name
-        self.pars  = [-1.0]          # log10(Pressure[bar]) of cloud top
+    def __init__(self, pressure, wn):
+        self.name = 'deck'
+        self.pressure = pressure / pc.bar
+        self.wn = wn
+        self.nwave = len(wn)
+        self.nlayers = len(pressure)
+        self.pars = [-1.0]          # log10(Pressure[bar]) of cloud top
         self.npars = len(self.pars)  # Number of model fitting parameters
-        self.ec    = None            # Model extinction coefficient
-        self.itop  = None
+        self.ec = np.zeros((self.nlayers, self.nwave))
         # Fitting-parameter names (plain text and figure labels):
         self.pnames = ['log_p_cl']
         self.texnames = [r'$\log\ p_{\rm cl}$']
+        self.itop = None
+        self.rsurf = 0.0
+        self.tsurf = 0.0
 
-    def extinction(self, pressure, radius, temp):
+    def calc_extinction_coefficient(
+        self, radius, temperature, pars=None, layer=None,
+    ):
         """
-        Calculate gray-cloud deck model that's optically thin
-        above ptop, and becomes instantly opaque at ptop, with
+        Calculate gray-cloud deck that's transparent above ptop,
+        and becomes instantly opaque at ptop, with
         ptop (bar) = 10**pars[0].
 
         Parameters
         ----------
-        pressure: 1D float ndarray
-            Atmospheric pressure profile (in barye).
         radius: 1D float ndarray
             Atmospheric radius profile (in cm).
         temp: 1D float ndarray
             Atmospheric temperature profile (in Kelvin degree).
         """
-        nlayers = len(pressure)
-        ptop = 10**self.pars[0]*pc.bar
+        if pars is not None:
+            self.pars[:] = pars
+
+        ptop = 10**self.pars[0]
         # Index of layer directly below cloud top:
-        if ptop >= pressure[-1]:  # Atmosphere boundary cases
-            self.itop = nlayers-1
-        elif ptop < pressure[0]:
+        if ptop >= self.pressure[-1]:  # Atmosphere boundary cases
+            self.itop = self.nlayers-1
+        elif ptop < self.pressure[0]:
             self.itop = 1
         else:
-            self.itop = np.where(pressure>=ptop)[0][0]
+            self.itop = np.where(self.pressure>=ptop)[0][0]
+
+        if layer is not None:
+            # Just a boolean indicating whether the cloud top is above layer:
+            return np.zeros(self.nwave) + int(layer > self.itop)
 
         # Radius and temperature at the cloud top:
-        self.tsurf = float(si.interp1d(pressure, temp)(ptop))
-        self.rsurf = float(si.interp1d(pressure, radius)(ptop))
+        self.tsurf = float(si.interp1d(self.pressure, temperature)(ptop))
+        self.rsurf = float(si.interp1d(self.pressure, radius)(ptop))
+        return self.ec
+
 
     def __str__(self):
         fw = pt.Formatted_Write()

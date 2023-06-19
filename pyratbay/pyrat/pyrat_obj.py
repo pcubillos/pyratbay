@@ -22,7 +22,6 @@ from .retrieval import Retrieval
 from .voigt import Voigt
 from . import spectrum as sp
 from .  import extinction as ex
-from .  import clouds as cl
 from .  import optical_depth as od
 from .  import objects as ob
 from .  import argum as ar
@@ -81,16 +80,9 @@ class Pyrat():
       self.timestamps['spectrum'] = timer.clock()
 
       self.obs = Observation(self.inputs, self.spec.wn, self.log)
-
       ar.check_spectrum(self)
 
       # Setup opacity models:
-      self.cloud = ob.Cloud(
-          self.inputs.clouds,
-          self.inputs.cpars,
-          self.inputs.fpatchy,
-          self.log,
-      )
       self.opacity = Opacity(
           self.inputs,
           self.spec.wn,
@@ -118,8 +110,10 @@ class Pyrat():
       ar.setup(self)
       self.ret = Retrieval(
           self.inputs,
-          self.atm, self.phy, self.obs,
-          self.opacity, self.cloud,
+          self.atm,
+          self.phy,
+          self.obs,
+          self.opacity,
           self.log,
       )
 
@@ -151,23 +145,20 @@ class Pyrat():
       # Re-calculate atmospheric properties if required:
       self.atm.calc_profiles(temp, vmr, radius, self.phy.mstar, self.log)
 
-      oob = self.opacity.check_temp_bounds(self.atm.temp)
-      good_status = len(oob) == 0
+      out_of_bounds = self.opacity.check_temp_bounds(self.atm.temp)
+      good_status = len(out_of_bounds) == 0
       if not good_status:
           self.log.warning(
               "Temperature values lie out of the cross-section "
-              f"boundaries for: {oob}"
+              f"boundaries for: {out_of_bounds}"
           )
           self.spec.spectrum[:] = 0.0
           return
 
-      # Calculate cloud absorption:
-      cl.absorption(self)
-      #self.cloud.calc_extinction_coefficient(self.atm.temp, self.atm.radius)
-      self.timestamps['cloud'] = timer.clock()
-
       # Calculate extinction coefficient:
-      self.opacity.calc_extinction_coefficient(self.atm.temp, self.atm.d)
+      self.opacity.calc_extinction_coefficient(
+          self.atm.temp, self.atm.radius, self.atm.d,
+      )
       self.timestamps['extinction'] = timer.clock()
 
       # Calculate the optical depth:
@@ -243,16 +234,8 @@ class Pyrat():
           ipar = ret.iopacity[j]
           model.pars[idx] = params[ipar]
 
-      if ret.icloud is not None:
-          ifree = ret.map_pars['cloud']
-          self.cloud.pars[ifree] = params[ret.icloud]
-          j = 0
-          for model in self.cloud.models:
-              model.pars = self.cloud.pars[j:j+model.npars]
-              j += model.npars
-
       if ret.ipatchy is not None:
-          self.cloud.fpatchy = params[ret.ipatchy][0]
+          self.opacity.fpatchy = params[ret.ipatchy][0]
 
       if ret.itstar is not None:
           self.phy.tstar = params[ret.itstar][0]
@@ -563,20 +546,9 @@ class Pyrat():
       label: List of strings
          The names of each atmospheric component that contributed to EC.
       """
-      # Allocate outputs:
-      ec = np.empty((0, self.spec.nwave))
-      label = []
-      # Line-sample, lbl, Rayleigh, and H- extinction coefficient:
       if len(self.opacity.models) > 0:
-          e, lab = self.opacity.get_ec(self.atm.temp, self.atm.d, layer)
-          ec = np.vstack((ec, e))
-          label += lab
-      # Haze/clouds extinction coefficient:
-      if self.cloud.models != []:
-          e, lab = cl.get_ec(self, layer)
-          ec = np.vstack((ec, e))
-          label += lab
-      return ec, label
+          return self.opacity.get_ec(self.atm.temp, self.atm.d, layer)
+      return None, []
 
 
   def percentile_spectrum(self, nmax=None):

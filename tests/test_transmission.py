@@ -134,12 +134,12 @@ def test_transmission_patchy(tmp_path):
     np.testing.assert_allclose(clear, expected['patchy_clear'], rtol=rtol)
     np.testing.assert_allclose(cloudy, expected['patchy_cloudy'], rtol=rtol)
 
-    pyrat.cloud.fpatchy = 0.0
+    pyrat.opacity.fpatchy = 0.0
     pyrat.run()
     spectrum = pyrat.spec.spectrum
     np.testing.assert_allclose(spectrum, expected['patchy_clear'], rtol=rtol)
 
-    pyrat.cloud.fpatchy = 1.0
+    pyrat.opacity.fpatchy = 1.0
     pyrat.run()
     spectrum = pyrat.spec.spectrum
     np.testing.assert_allclose(spectrum, expected['patchy_cloudy'], rtol=rtol)
@@ -344,7 +344,8 @@ def test_transmission_fit(tmp_path):
     params = [-4.67, -0.8, -0.8, 0.5, 1486.0, 100.0, -4.0, 0.0, -4.0, -3.0]
     model2 = pyrat.eval(params, retmodel=True)
     rmin = np.amin(np.sqrt(pyrat.spec.spectrum)) * pyrat.phy.rstar
-    rexpected = pyrat.cloud.models[0].rsurf
+    cloud_deck = pyrat.opacity.models[5]
+    rexpected = cloud_deck.rsurf
     np.testing.assert_allclose(rmin, rexpected, rtol=rtol)
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['fit2'], rtol=rtol)
     # Check pyrat.ret.params has been updated:
