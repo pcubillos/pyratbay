@@ -8487,3 +8487,10 @@ Implemented check_species_exists() function in pyrat/opacity.py
 This will take care of checking that opacity species exist in the
 atmospheric model.
 
+
+*****  Mon Jun 19 11:00:26 CEST 2023  *****
+
+Moved alkali models from pyrat.alkali into pyrat.opacity.
+Removed pyrat/alkali.py, replaced with code in pyrat/opacity.py.
+
+

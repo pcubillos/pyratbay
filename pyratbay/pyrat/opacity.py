@@ -46,7 +46,6 @@ class Opacity():
         species = list(species)
 
         self.nspec = []
-        #if len(inputs.extfile) > 0:
         # TBD: without runmode?
         if inputs.extfile is not None and inputs.runmode != 'opacity':
             log.head("\nReading cross-section table file(s):")
@@ -92,6 +91,18 @@ class Opacity():
             self.tmax['lbl'] = lbl.tmax
             self.nspec.append(lbl.nspec)
             self.pnames.append([])
+
+        if inputs.alkali_models is not None:
+            for name in inputs.alkali_models:
+                cutoff = inputs.alkali_cutoff
+                model = op.alkali.get_model(name, pressure, wn, cutoff)
+                self.models.append(model)
+                self.models_type.append('alkali')
+                check_species_exists(model.mol, species, model.name, log)
+                imol = species.index(model.mol)
+                self.mol_indices.append(imol)
+                self.nspec.append(1)
+                self.pnames.append([])
 
         if inputs.cia_files is not None:
             tmin = []
@@ -186,6 +197,9 @@ class Opacity():
 
             if model_type in ['rayleigh', 'cloud']:
                 args['density'] = density
+            elif model_type == 'alkali':
+                args['temperature'] = temperature
+                args['density'] = density
             else:
                 args['temperature'] = temperature
                 args['densities'] = density
@@ -220,6 +234,9 @@ class Opacity():
                 args['temperature'] = temperature[layer]
                 args['densities'] = density[layer]
                 args.pop('layer')
+            elif model_type == 'alkali':
+                args['temperature'] = temperature
+                args['density'] = density
             else:
                 args['temperature'] = temperature
                 args['densities'] = density
@@ -233,17 +250,12 @@ class Opacity():
             ec[j:j+self.nspec[i]] = extinction
             j += self.nspec[i]
 
-            if self.models_type[i] == 'line_sample':
+            if model_type in ['line_sample', 'lbl']:
                 label += list(model.species)
-            elif self.models_type[i] == 'lbl':
-                label += list(model.species)
+            elif model_type == 'alkali':
+                label.append(model.mol)
             else:
                 label.append(model.name)
-
-        ## Alkali
-        # ext_coeff = model.calc_extinction_coefficient(
-        #        temperature, density, layer)
-        # label.append(model.mol)
 
         return ec, label
 

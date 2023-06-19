@@ -35,8 +35,6 @@ def optical_depth(pyrat):
 
     # Sum all contributions to the extinction:
     od.ec[rtop:] = pyrat.opacity.ec[rtop:]
-    if pyrat.alkali.ec is not None:
-        od.ec[rtop:] += pyrat.alkali.ec[rtop:]
 
     # If fpatchy, compute clear and cloudy spectra separately:
     if pyrat.cloud.fpatchy is not None:

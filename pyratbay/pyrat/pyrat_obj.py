@@ -15,7 +15,6 @@ from .. import plots as pp
 from .. import spectrum as ps
 from .. import tools as pt
 
-from .alkali import Alkali
 from .atmosphere import Atmosphere
 from .observation import Observation
 from .opacity import Opacity
@@ -86,6 +85,12 @@ class Pyrat():
       ar.check_spectrum(self)
 
       # Setup opacity models:
+      self.cloud = ob.Cloud(
+          self.inputs.clouds,
+          self.inputs.cpars,
+          self.inputs.fpatchy,
+          self.log,
+      )
       self.opacity = Opacity(
           self.inputs,
           self.spec.wn,
@@ -117,16 +122,6 @@ class Pyrat():
           self.opacity, self.cloud,
           self.log,
       )
-
-      self.alkali = Alkali(
-          self.inputs.alkali_models,
-          self.atm.press,
-          self.spec.wn,
-          self.inputs.alkali_cutoff,
-          self.atm.species,
-          self.log,
-      )
-
 
 
   def compute_opacity(self):
@@ -171,13 +166,9 @@ class Pyrat():
       #self.cloud.calc_extinction_coefficient(self.atm.temp, self.atm.radius)
       self.timestamps['cloud'] = timer.clock()
 
-      # extinction coefficient from line-sample, lbl, CIA, rayleigh, H-:
+      # Calculate extinction coefficient:
       self.opacity.calc_extinction_coefficient(self.atm.temp, self.atm.d)
       self.timestamps['extinction'] = timer.clock()
-
-      # Calculate the alkali absorption:
-      self.alkali.calc_extinction_coefficient(self.atm.temp, self.atm.d)
-      self.timestamps['alkali'] = timer.clock()
 
       # Calculate the optical depth:
       od.optical_depth(self)
@@ -583,11 +574,6 @@ class Pyrat():
       # Haze/clouds extinction coefficient:
       if self.cloud.models != []:
           e, lab = cl.get_ec(self, layer)
-          ec = np.vstack((ec, e))
-          label += lab
-      # Alkali resonant lines extinction coefficient:
-      if self.alkali.models != []:
-          e, lab = self.alkali.get_ec(self.atm.temp, self.atm.d, layer)
           ec = np.vstack((ec, e))
           label += lab
       return ec, label

@@ -11,7 +11,6 @@ from .. import constants as pc
 from .. import spectrum as ps
 from .. import atmosphere as pa
 from .. import io as io
-from . import objects as ob
 
 
 def check_spectrum(pyrat):
@@ -52,11 +51,6 @@ def check_spectrum(pyrat):
     )
     if missing_radius_ratio:
         log.error("Undefined radius ratio, need to define rplanet and rstar")
-
-    # Initialize cloud models:
-    pyrat.cloud = ob.Cloud(
-        pyrat.inputs.clouds, pyrat.inputs.cpars, pyrat.inputs.fpatchy, log,
-    )
 
     # Accept ray-path argument:
     if pyrat.runmode in ['spectrum', 'mcmc'] and pyrat.od.rt_path is None:
