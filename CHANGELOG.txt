@@ -8505,3 +8505,8 @@ Refactored gray cloud model to be more in line with other opacity models.
 Still need to be fully sorted out, and moved from atmosphere to opacity
 module.
 
+
+*****  Wed Jun 21 16:19:24 CEST 2023  *****
+
+Got the radiative-equilibrium routine back in shape.
+

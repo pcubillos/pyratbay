@@ -460,48 +460,56 @@ class Pyrat():
       if nsamples is None:
           nsamples = self.inputs.nsamples
 
-      self.log.verb = 0  # Mute it
+      # No outputs while iterating
+      self.log.verb = 0
+      spec_file = self.spec.specfile
+      self.spec.specfile = None
+
       # Enforce two-stream RT:
       rt_path = self.od.rt_path
       self.od.rt_path = 'emission_two_stream'
-      tmin = np.amax((self.cs.tmin, self.ex.tmin))
-      tmax = np.amin((self.cs.tmax, self.ex.tmax))
+      tmin = np.amax(self.opacity.tmin.values())
+      tmax = np.amin(self.opacity.tmax.values())
 
       # Initial temperature scale factor
-      f_scale = atm._fscale if hasattr(atm,'_fscale') else None
+      if not hasattr(atm, '_dt_scale') or not continue_run:
+          atm._dt_scale = np.tile(1.0e5, atm.nlayers)
 
       if hasattr(atm, 'radeq_temps') and continue_run:
           radeq_temps = atm.radeq_temps
-          f_scale = None
       else:
-          radeq_temps = None
+          radeq_temps = np.atleast_2d(atm.temp)
 
       print("\nRadiative-thermochemical equilibrium calculation:")
-      radeq_temps, f_scale = ps.radiative_equilibrium(
-          atm.press, atm.temp, nsamples,
+      radeq_temps = ps.radiative_equilibrium(
+          atm.press,
+          radeq_temps,
+          nsamples,
           atm.chem_model,
           self.run,
           self.spec.wn,
           self.spec,
           self.atm,
-          radeq_temps,
           convection,
           tmin, tmax,
-          f_scale,
-          self.atm.mplanet, self.atm.mol_mass,
       )
-      print("\nDone.")
 
       # Update last tempertature iteration and save to file:
       atm.temp = radeq_temps[-1]
       io.write_atm(
-          self.spec.specfile.replace('.dat','.atm'),
+          spec_file.replace('.dat','.atm'),
           atm.press, atm.temp, self.atm.species, atm.vmr,
           punits="bar",
           header="# Radiative-thermochemical equilibrium profile.\n\n",
       )
-      self.atm._fscale = f_scale
       self.od.rt_path = rt_path
+      self.spec.specfile = spec_file
+      radeq_file = spec_file.replace('.dat','.npz')
+      np.savez(radeq_file, pressure=atm.press, temps=radeq_temps)
+      spec_type = 'emission'
+      io.write_spectrum(
+          1.0/self.spec.wn, self.spec.spectrum, self.spec.specfile, spec_type,
+      )
       self.log.verb = self.verb
 
 
