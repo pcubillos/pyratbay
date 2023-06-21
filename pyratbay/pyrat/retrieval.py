@@ -98,6 +98,10 @@ class Retrieval():
                 inputs, self, atm, opacity, log,
             )
 
+        unique_pnames, counts = np.unique(self.pnames, return_counts=True)
+        if np.any(counts>1):
+            log.error(f'Repeated parameter names: {unique_pnames[counts>1]}')
+
         # TeX unit conversions for masses and radii:
         utex = {
             'mjup': r'$M_{\rm Jup}$',
@@ -215,7 +219,6 @@ class Retrieval():
                     f"Invalid retrieval parameter '{pname}'. Possible "
                     f"values are:\n{all_available_params}"
                 )
-        # TBD: Check no repeated pnames
 
         if len(itemp) > 0:
             self.itemp = itemp

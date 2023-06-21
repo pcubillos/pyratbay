@@ -821,6 +821,20 @@ def test_spectrum_invalid_retrieval_params_pname(tmp_path):
         pyrat = pb.run(cfg)
 
 
+def test_spectrum_repeated_retrieval_params(tmp_path):
+    reset = {
+        'retrieval_params': 'R_planet 1.0\nR_planet 1.5',
+    }
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        reset=reset,
+    )
+    error = re.escape("Repeated parameter names: ['R_planet']")
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
+
+
 def test_spectrum_insuficient_retrieval_params_temp(tmp_path):
     reset = {
         'tmodel': 'isothermal',

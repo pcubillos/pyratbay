@@ -8510,3 +8510,8 @@ module.
 
 Got the radiative-equilibrium routine back in shape.
 
+*****
+
+Added check for repeated fitting parameter names.
+
+
