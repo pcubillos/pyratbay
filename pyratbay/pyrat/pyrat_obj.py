@@ -640,6 +640,7 @@ class Pyrat():
           'uncert': self.obs.uncert,
           'logxticks': self.inputs.logxticks,
           'yran': self.inputs.yran,
+          'theme': self.ret._default_theme,
       }
 
       if self.obs.nfilters > 0:

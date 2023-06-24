@@ -8542,3 +8542,11 @@ Fixed bug.
 Added mstar (optional) argument to Atmosphere() init method.
 Now argum.check_spectrum() only checks, does not modify objects.
 
+*****
+
+Implemented ColorTheme() Descriptor for pyrat.Retrieval()
+to remember the default initialization theme in a 'hidden' variable.
+When redefined, the hidden variable gets updated.
+This enables the golden color theme for spectra, while defaulting other
+plots to blue theme.
+
