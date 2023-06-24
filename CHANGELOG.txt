@@ -8532,3 +8532,8 @@ object.  Now all opacity models have a uniform naming convention.
 
 TBD: Update notebooks.
 
+*****
+
+Updated default color theme for plots.spectrum() function.
+Fixed bug.
+

@@ -180,10 +180,9 @@ def spectrum(
 
     theme = pt.resolve_theme(theme)
     if theme is None:
-        theme = mc3_colors.THEMES['orange']
+        theme = mc3_colors.Theme('darkorange')
+        theme.light_color = 'gold'
         theme.dark_color = 'maroon'
-        theme.color = 'orangered'
-        theme.light_color = 'orange'
 
     # Setup according to geometry:
     if rt_path == 'emission':

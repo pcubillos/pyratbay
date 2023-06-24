@@ -27,6 +27,28 @@ Q = pa.abundance(pressure, temperature, species)
 # need to see the output plots to be OK, but a not-breaking-code
 # is the minimum testing I can guarantee at the moment.
 
+@pytest.mark.skip
+def test_spectrum():
+    d = np.load('multinest_MCMC_WASP18b_equil_group02_dilut_yes_posteriors_info.npz')
+    spectra = d['depth_posterior']
+    wl = d['wl']
+    ibounds = [3,1,2,4]
+    bounds = spectra[ibounds] - spectra[0]
+
+    bands_wl0 = np.linspace(1.0, 2.75, 12)
+    data = np.random.normal(0.0, 3e-5, 12)
+    uncert = np.tile(3e-5, 12)
+    bands_flux = np.random.normal(0.0, 1e-5, 12)
+
+    theme = mc3_colors.Theme('darkorange')
+    theme.dark_color = 'maroon'
+    theme.light_color = 'gold'
+    pp.spectrum(
+        spectra[0]*0, wl, 'emission', bounds=bounds, theme=theme, gaussbin=50,
+        data=data, uncert=uncert, bands_wl0=bands_wl0, bands_flux=bands_flux,
+    )
+
+
 @pytest.mark.parametrize("ndim", ['1d', '2d'])
 def test_temperature_minimal(ndim):
     tmodel = pa.tmodels.Guillot(pressure)
