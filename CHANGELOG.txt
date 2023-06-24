@@ -8550,3 +8550,7 @@ When redefined, the hidden variable gets updated.
 This enables the golden color theme for spectra, while defaulting other
 plots to blue theme.
 
+*****
+
+Updated mc3 requirements to version >= 3.1.3.
+

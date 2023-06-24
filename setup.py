@@ -122,7 +122,7 @@ setup(
         'numpy>=1.19.5',
         'scipy>=1.5.4',
         'matplotlib>=3.3.4',
-        'mc3>=3.1.0',
+        'mc3>=3.1.3',
         'chemcat>=0.3.1',
         ],
     tests_require = [
