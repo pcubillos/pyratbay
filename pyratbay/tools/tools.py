@@ -6,6 +6,7 @@ __all__ = [
     'cd',
     'tmp_reset',
     'eta',
+    'resolve_theme',
     'binsearch',
     'divisors',
     'unpack',
@@ -38,8 +39,10 @@ import functools
 from collections.abc import Iterable
 from contextlib import contextmanager
 
-import numpy as np
+from matplotlib.colors import is_color_like
 import mc3.utils as mu
+import mc3.plots.colors as mc3_colors
+import numpy as np
 
 from .. import constants as pc
 from .. import io as io
@@ -155,6 +158,54 @@ def eta(time_seconds, n_completed, n_total, fmt='.2f'):
     delta_time /= 24.0
     units = 'days'
     return f'{delta_time:{fmt}} {units}'
+
+
+
+
+def resolve_theme(theme):
+    """
+    Resolve input into a mc3.plots.Theme instance.
+    Makes sure that input is either None, a mc3.plots.Theme, or
+    a value that can be interpreted as a matplotlib color.
+
+    Parameters
+    ----------
+    theme: Any
+        A matplotlib color or a mc3.plots.Theme instance
+
+    Returns
+    -------
+    theme: mc3.plots.Theme instance
+        A Theme computed using the input color.
+
+    Examples
+    --------
+    >>> import pyratbay.tools as pt
+    >>> import mc3
+
+    >>> # A Theme instance is returned unmodified
+    >>> theme = pt.resolve_theme(mc3.plots.THEMES['indigo'])
+    >>> # Anything that can be interpreted as matplolib color:
+    >>> theme1 = pt.resolve_theme('red')
+    >>> theme2 = pt.resolve_theme('xkcd:green')
+    >>> theme3 = pt.resolve_theme((0,0,1))
+
+    >>> # If input is None, return None
+    >>> theme = pt.resolve_theme(None)
+
+    >>> # Anything else will throw an error:
+    >>> theme = pt.resolve_theme('not_a_plt_color')
+    ValueError: Invalid color theme: 'not_a_plt_color'
+    """
+    if isinstance(theme, mc3_colors.Theme) or theme is None:
+        pass
+    elif isinstance(theme, str) and theme in mc3_colors.THEMES:
+        theme = mc3_colors.THEMES[theme]
+    elif is_color_like(theme):
+        theme = mc3_colors.Theme(theme)
+    else:
+        raise ValueError(f"Invalid color theme: '{theme}'")
+    return theme
 
 
 def binsearch(tli, wnumber, rec0, nrec, upper=True):
@@ -929,7 +980,7 @@ def cia_borysow(ciafile, species1, species2):
     cs = data[:,1:].T
 
     with open(ciafile) as f:
-        dummy_line = f.readline()
+        _ = f.readline()
         temp = f.readline().split()[1:]
     temp = [float(t.replace('K','')) for t in temp]
 

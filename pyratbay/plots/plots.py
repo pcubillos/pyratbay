@@ -85,18 +85,6 @@ def alphatize(colors, alpha, bg='w'):
     return rgb
 
 
-def resolve_theme(theme):
-    if isinstance(theme, mc3_colors.Theme) or theme is None:
-        pass
-    elif isinstance(theme, str) and theme in mc3_colors.THEMES:
-        theme = mc3_colors.THEMES[theme]
-    elif is_color_like(theme):
-        theme = mc3_colors.Theme(theme)
-    else:
-        raise ValueError('Invalid color theme')
-    return theme
-
-
 def spectrum(
     spectrum, wavelength, rt_path,
     data=None, uncert=None,
@@ -190,7 +178,7 @@ def spectrum(
     else:
         ax = axis
 
-    theme = resolve_theme(theme)
+    theme = pt.resolve_theme(theme)
     if theme is None:
         theme = mc3_colors.THEMES['orange']
         theme.dark_color = 'maroon'
@@ -495,7 +483,7 @@ def temperature(
         profiles = [profiles]
     nprofiles, nlayers = np.shape(profiles)
 
-    theme = resolve_theme(theme)
+    theme = pt.resolve_theme(theme)
     if theme is None:
         theme = mc3_colors.THEMES['blue']
 

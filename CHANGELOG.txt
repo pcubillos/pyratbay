@@ -8515,3 +8515,9 @@ Got the radiative-equilibrium routine back in shape.
 Added check for repeated fitting parameter names.
 
 
+*****  Sat Jun 24 10:32:56 CEST 2023  *****
+
+Moved resolve_theme() from plots to tools module.
+Documented and tested.
+
+

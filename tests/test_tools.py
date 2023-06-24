@@ -1,11 +1,12 @@
-# Copyright (c) 2021 Patricio Cubillos
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+# Copyright (c) 2021-2023 Patricio Cubillos
+# Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import os
-import sys
 import struct
 import pytest
+import re
 
+import mc3
 import numpy as np
 
 import pyratbay.tools as pt
@@ -55,6 +56,43 @@ def test_tmp_reset_keyword_arguments():
      with pt.tmp_reset(obj, 'o.x', z=10):
          x, y, w, z = obj.o.x, obj.o.y, obj.z, obj.w
      assert (x,y,w,z) == (None, 2.0, 10, 4.0)
+
+
+def test_resolve_theme_rgb():
+    theme = pt.resolve_theme((1,0,0))
+    assert isinstance(theme, mc3.plots.Theme)
+    np.testing.assert_allclose(theme.color, np.array([1.0, 0.0, 0.0]))
+    np.testing.assert_allclose(theme.dark_color, np.array([0.7, 0.0, 0.0]))
+    np.testing.assert_allclose(theme.light_color, np.array([1.00, 0.25, 0.25]))
+
+
+def test_resolve_theme_str_color():
+    theme = pt.resolve_theme('xkcd:green')
+    assert isinstance(theme, mc3.plots.Theme)
+    assert theme.color == 'xkcd:green'
+
+
+def test_resolve_theme_str_theme():
+    theme = pt.resolve_theme('orange')
+    assert isinstance(theme, mc3.plots.Theme)
+    assert theme.color == 'darkorange'
+
+
+def test_resolve_theme_Theme():
+    theme = pt.resolve_theme(mc3.plots.THEMES['indigo'])
+    assert isinstance(theme, mc3.plots.Theme)
+    assert theme.color == 'xkcd:indigo'
+
+
+def test_resolve_theme_none():
+    theme = pt.resolve_theme(None)
+    assert theme is None
+
+
+def test_resolve_theme_not_a_color():
+    error = re.escape("Invalid color theme: 'not_a_plt_color'")
+    with pytest.raises(ValueError, match=error):
+        theme = pt.resolve_theme('not_a_plt_color')
 
 
 def test_binsearch_zero():
