@@ -8520,4 +8520,8 @@ Added check for repeated fitting parameter names.
 Moved resolve_theme() from plots to tools module.
 Documented and tested.
 
+*****
+
+Added theme argument to parser to set a plotting color theme.
+
 

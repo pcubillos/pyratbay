@@ -164,7 +164,7 @@ def eta(time_seconds, n_completed, n_total, fmt='.2f'):
 
 def resolve_theme(theme):
     """
-    Resolve input into a mc3.plots.Theme instance.
+    Resolve input Theme or color into a mc3.plots.Theme instance.
     Makes sure that input is either None, a mc3.plots.Theme, or
     a value that can be interpreted as a matplotlib color.
 

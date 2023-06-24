@@ -30,7 +30,9 @@ class Retrieval():
         self.thigh = inputs.thigh
 
         self.sampler = inputs.sampler
-        self.theme = None
+        if inputs.theme is None:
+            inputs.theme = 'blue'
+        self.theme = pt.resolve_theme(inputs.theme)
         # MCMC options
         self.nsamples = inputs.nsamples
         self.burnin = inputs.burnin

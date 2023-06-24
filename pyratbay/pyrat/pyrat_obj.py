@@ -347,7 +347,7 @@ class Pyrat():
           nchains=ret.nchains, burnin=ret.burnin, thinning=ret.thinning,
           grtest=True, grbreak=ret.grbreak, grnmin=ret.grnmin,
           log=log, ncpu=self.ncpu,
-          plots=True, showbp=True,
+          plots=True, showbp=True, theme=ret.theme,
           pnames=ret.pnames, texnames=ret.texnames,
           resume=ret.resume, savefile=ret.mcmcfile,
       )
@@ -489,7 +489,7 @@ class Pyrat():
           self.run,
           self.spec.wn,
           self.spec,
-          self.atm,
+          atm,
           convection,
           tmin, tmax,
       )
@@ -498,7 +498,7 @@ class Pyrat():
       atm.temp = radeq_temps[-1]
       io.write_atm(
           spec_file.replace('.dat','.atm'),
-          atm.press, atm.temp, self.atm.species, atm.vmr,
+          atm.press, atm.temp, atm.species, atm.vmr,
           punits="bar",
           header="# Radiative-thermochemical equilibrium profile.\n\n",
       )
