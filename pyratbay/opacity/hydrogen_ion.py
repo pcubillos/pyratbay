@@ -208,7 +208,7 @@ class Hydrogen_Ion():
         return cross_section_bf
 
 
-    def calc_extinction_coefficient(self, temperature, densities, layer=None):
+    def calc_extinction_coefficient(self, temperature, density, layer=None):
         """
         Calculate extinction coefficient spectra (cm-1) for given
         temperature and number-density profiles.
@@ -217,11 +217,11 @@ class Hydrogen_Ion():
         ----------
         temperature: Float or 1D float array
             Temperature profile in Kelvin (of size ntemp)
-        densities: 1D/2D float array
+        density: 1D/2D float array
             Number density profiles (molecules per cm3) of H and electron
             over the given temperature array.
             If temperature is 1D array, must be of shape [2, ntemp]
-            If temperature is scalar, densities must be of size 2.
+            If temperature is scalar, density must be of size 2.
         layer: Integer
             If not None, compute extinction coefficient only at selected layer.
             In this case, the output array dimension is reduced by 1.
@@ -236,20 +236,20 @@ class Hydrogen_Ion():
         # Dimentional checks:
         is_scalar = np.isscalar(temperature)
         if is_scalar:
-            if np.size(densities) != 2:
+            if np.size(density) != 2:
                 raise ValueError(
                     'Incompatible dimensions, if temperature is scalar '
-                    'densities must have 2 elements (H and e- densities)'
+                    'density must have 2 elements (H and e- densities)'
                 )
-        elif np.shape(densities) != (len(temperature), 2):
+        elif np.shape(density) != (len(temperature), 2):
             ntemp = len(temperature)
             raise ValueError(
-                'Incompatible dimensions, densities must be a 2D array '
+                'Incompatible dimensions, density must be a 2D array '
                 f'of shape [{ntemp}, 2], i.e., [ntemp, 2]'
             )
         if not is_scalar and layer is not None:
             temperature = temperature[layer]
-            densities = densities[layer]
+            density = density[layer]
             is_scalar = True
 
         cross_section = (
@@ -258,12 +258,12 @@ class Hydrogen_Ion():
         )
 
         if is_scalar:
-            return cross_section * np.prod(densities)
+            return cross_section * np.prod(density)
 
         # Total H- extinction coefficient (cm-1)
         extinction_coefficient = (
             cross_section *
-            np.prod(densities, axis=1, keepdims=True)
+            np.prod(density, axis=1, keepdims=True)
         )
         return extinction_coefficient
 

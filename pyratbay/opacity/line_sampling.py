@@ -226,11 +226,11 @@ class Line_Sample():
             cross_section = np.zeros((self.nlayers, self.nwave))
             interp_ec = ec.interp_ec
 
-        densities = np.ones((self.nlayers, self.nspec))
+        density = np.ones((self.nlayers, self.nspec))
         interp_ec(
             cross_section,
             self.cs_table, self.temp,
-            temperature, densities,
+            temperature, density,
             layer1, layer2,
         )
 
@@ -243,7 +243,7 @@ class Line_Sample():
 
 
     def calc_extinction_coefficient(
-        self, temperature, densities, layer=None, per_mol=False,
+        self, temperature, density, layer=None, per_mol=False,
     ):
         """
         Calculate extinction-coefficient spectra (cm-1) for temperature
@@ -254,7 +254,7 @@ class Line_Sample():
         temperature: 1D float array
             Temperature array (Kelvin) at which to interpolate the
             cross section (must match nlayers size).
-        densities: 1D float array
+        density: 1D float array
             Number-density profiles (molec cm-3) at each layer.
             Array has shape [nspec,nlayers].
         layer: Integer
@@ -296,7 +296,7 @@ class Line_Sample():
         interp_ec(
             extinction,
             self.cs_table, self.temp,
-            temperature, densities,
+            temperature, density,
             layer1, layer2,
         )
 

@@ -8524,4 +8524,11 @@ Documented and tested.
 
 Added theme argument to parser to set a plotting color theme.
 
+*****
+
+Renamed calc_extinction_coefficient() densities argument to density
+for Collision_Induced(), Hydrogen_Ion(), Line_Sample(), and Line_By_Line()
+object.  Now all opacity models have a uniform naming convention.
+
+TBD: Update notebooks.
 

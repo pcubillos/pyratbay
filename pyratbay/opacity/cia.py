@@ -142,7 +142,7 @@ class Collision_Induced():
         return cross_section
 
 
-    def calc_extinction_coefficient(self, temperature, densities):
+    def calc_extinction_coefficient(self, temperature, density):
         """
         Calculate extinction-coefficient spectra (cm-1) over temperature
         and density profiles by interpolating in temperature from
@@ -153,8 +153,8 @@ class Collision_Induced():
         temperature: 1D float array
             Temperature array (Kelvin) at which to interpolate the
             cross section.
-        densities: 2D float array
-            Number density array (molecs cm-3) of self.species
+        density: 2D float array
+            Number density array (molecules cm-3) of self.species
             over the temperature array.
             If temperature is 1D array, must be of shape [self.nspec, ntemp]
             If temperature is scalar, must be of length self.nspec.
@@ -168,29 +168,29 @@ class Collision_Induced():
         """
         # Dimentional checks:
         is_scalar = np.isscalar(temperature)
-        dens_shape = np.shape(densities)
+        dens_shape = np.shape(density)
         if is_scalar:
-            if np.size(densities) != self.nspec:
+            if np.size(density) != self.nspec:
                 raise ValueError(
                     'Incompatible dimensions, if temperature is scalar '
-                    'densities must have self.nspec elements'
+                    'density must have self.nspec elements'
                 )
         elif dens_shape != (len(temperature), self.nspec):
             ntemp = len(temperature)
             nspec = self.nspec
             raise ValueError(
-                'Incompatible dimensions, densities must be a 2D array '
+                'Incompatible dimensions, density must be a 2D array '
                 f'of shape [{ntemp}, {nspec}], i.e., [ntemp, nspec]'
             )
 
         cross_section = self.calc_cross_section(temperature)
 
         if is_scalar:
-            return cross_section * np.prod(densities)
+            return cross_section * np.prod(density)
 
         extinction_coefficient = (
             cross_section *
-            np.prod(densities, axis=1, keepdims=True)
+            np.prod(density, axis=1, keepdims=True)
         )
         return extinction_coefficient
 

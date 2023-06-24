@@ -182,7 +182,7 @@ class Line_By_Line():
         log.head("Read LBL transitions done.\n")
 
 
-    def calc_extinction_coefficient(self, temperature, densities, layer=None):
+    def calc_extinction_coefficient(self, temperature, density, layer=None):
         """
         Calculate the extinction coefficient on the spot over
         temperature and number density profiles.
@@ -196,7 +196,7 @@ class Line_By_Line():
         if layer is not None:
             ec = ex.extinction(self.pyrat, [layer], grid=False, add=False)
             for i in range(self.nspec):
-                ec[i] *= densities[layer]
+                ec[i] *= density[layer]
             return ec
 
         self.ec[:] = 0.0

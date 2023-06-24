@@ -153,7 +153,7 @@ def test_cia_single_mismatch():
 
     temp = 1200.0
     error = re.escape(
-        "Incompatible dimensions, if temperature is scalar densities "
+        "Incompatible dimensions, if temperature is scalar density "
         "must have self.nspec elements"
     )
     with pytest.raises(ValueError, match=error):
@@ -169,7 +169,7 @@ def test_cia_array_mismatch():
 
     temp = np.tile(1200.0, nlayers)
     error = re.escape(
-        "Incompatible dimensions, densities must be a 2D array of "
+        "Incompatible dimensions, density must be a 2D array of "
         "shape [6, 2], i.e., [ntemp, nspec]"
     )
     with pytest.raises(ValueError, match=error):

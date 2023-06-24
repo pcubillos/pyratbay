@@ -224,16 +224,13 @@ class Opacity():
             args = {}
 
             if model.name == 'deck':
+                args['temperature'] = temperature
                 args['radius'] = radius
-                args['temperature'] = temperature
             elif model_type in ['rayleigh', 'cloud']:
-                args['density'] = density
-            elif model_type == 'alkali':
-                args['temperature'] = temperature
                 args['density'] = density
             else:
                 args['temperature'] = temperature
-                args['densities'] = density
+                args['density'] = density
 
             if hasattr(model, 'pars'):
                 args['pars'] = model.pars
@@ -266,14 +263,11 @@ class Opacity():
                 args['density'] = density
             elif model_type == 'cia':
                 args['temperature'] = temperature[layer]
-                args['densities'] = density[layer]
+                args['density'] = density[layer]
                 args.pop('layer')
-            elif model_type == 'alkali':
-                args['temperature'] = temperature
-                args['density'] = density
             else:
                 args['temperature'] = temperature
-                args['densities'] = density
+                args['density'] = density
 
             if self.models_type[i] == 'line_sample':
                 args['per_mol'] = True
