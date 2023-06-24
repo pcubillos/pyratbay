@@ -24,7 +24,6 @@ def check_spectrum(pyrat):
     atm = pyrat.atm
     with pt.log_error(log):
         pt.file_exists('atmfile', 'Atmospheric', atm.atmfile)
-        pt.file_exists('molfile', 'Molecular-data', atm.molfile)
 
     if pyrat.runmode == 'spectrum' and spec.specfile is None:
         log.error('Undefined output spectrum file (specfile).')
@@ -34,9 +33,6 @@ def check_spectrum(pyrat):
             'Missing atmospheric volume mixing ratios. Need to either read '
             'an input profile or compute one via a chemistry model (chemistry)'
         )
-
-    # Compute the Hill radius for the planet:
-    atm.rhill = pa.hill_radius(atm.smaxis, atm.mplanet, phy.mstar)
 
     # Check that the radius profile exists or can be computed:
     if atm.radius is None and pyrat.runmode != 'opacity':

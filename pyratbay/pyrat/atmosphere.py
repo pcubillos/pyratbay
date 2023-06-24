@@ -49,7 +49,7 @@ class Atmosphere():
     mplanet = MassGravity()  # Planetary mass
     gplanet = MassGravity()  # Planetary surface gravity (at rplanet)
 
-    def __init__(self, inputs, log):
+    def __init__(self, inputs, log, mstar=None):
         """
         Initialize an atmospheric model object
         There are four main properties to compute (in this order):
@@ -325,6 +325,8 @@ class Atmosphere():
             )
             # Base abundance profiles:
             self.base_vmr = np.copy(self.vmr)
+
+        self.rhill = pa.hill_radius(self.smaxis, self.mplanet, mstar)
 
         # Print radius array:
         if self.radius is not None:
