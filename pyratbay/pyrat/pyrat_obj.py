@@ -743,17 +743,10 @@ class Pyrat():
           for i,model in enumerate(self.opacity.models):
               if self.opacity.models_type[i] in ['line_sample', 'lbl']:
                   opacities += list(model.species)
+              elif self.opacity.models_type[i] in ['alkali']:
+                  opacities.append(model.species)
               else:
                   opacities.append(model.name)
-      if self.cs.nfiles > 0:
-          for cia in self.cs.models:
-              opacities.append(cia.name)
-      for rmodel in self.rayleigh.models:
-          opacities.append(rmodel.name)
-      for cloud in self.cloud.models:
-          opacities.append(cloud.name)
-      for alkali in self.alkali.models:
-          opacities.append(alkali.mol)
 
       pmin = self.atm.press[ 0]/pc.bar
       pmax = self.atm.press[-1]/pc.bar

@@ -607,33 +607,6 @@ class Atmosphere():
         fw.write("Output atmospheric file name (atmfile): '{}'", self.atmfile)
         fw.write('Number of layers (nlayers): {:d}', self.nlayers)
 
-        fw.write('\nPressure display units (punits): {}', self.punits)
-        fw.write('Pressure internal units: barye')
-        fw.write('Pressure at top of atmosphere (ptop):        {:.2e} {}',
-            self.ptop/pt.u(self.punits), self.punits)
-        fw.write('Pressure at bottom of atmosphere (pbottom):  {:.2e} {}',
-            self.pbottom/pt.u(self.punits), self.punits)
-        fw.write('Reference pressure at rplanet (refpressure): {:.2e} {}',
-            self.refpressure/pt.u(self.punits), self.punits)
-        fw.write(
-            'Pressure profile (press, {}):\n    {}',
-            self.punits, press, fmt=fmt, edge=3,
-        )
-
-        fw.write('Atmospheric species information:')
-        fw.write('Number of species (nmol): {:d}\n', self.nmol)
-        fw.write(
-            '\nMolecule    Mass       Radius\n'
-            '            g/mol      Angstrom\n'
-            '(name)      (mass)     (radius)  '
-        )
-        for i in range(self.nmol):
-            fw.write(
-                '  {:8s}  {:8.4f}  {:10.3f}',
-                self.species[i], self.mol_mass[i], self.mol_radius[i]/pc.A,
-            )
-        fw.write("Molecular data taken from (molfile): '{}'", self.molfile)
-
         rplanet = None if self.rplanet is None else self.rplanet/pc.rjup
         mplanet = None if self.mplanet is None else self.mplanet/pc.mjup
         gplanet = self.gplanet
@@ -649,11 +622,18 @@ class Atmosphere():
         fw.write('Planetary Hill radius (rhill, Rjup):  {:.3f}', rhill)
         fw.write('Orbital semi-major axis (smaxis, AU): {:.4f}', smaxis)
 
-        fw.write('\nRadius display units (runits): {}', self.runits)
-        fw.write('Radius internal units: cm', self.runits)
-        fw.write('Radius model name (rmodelname): {}', self.rmodelname)
-        fw.write('Radius profile (radius, {}):\n    {}', self.runits, radius,
-            prec=4, edge=3, lw=800)
+        fw.write('\nPressure display units (punits): {}', self.punits)
+        fw.write('Pressure internal units: barye')
+        fw.write('Pressure at top of atmosphere (ptop):        {:.2e} {}',
+            self.ptop/pt.u(self.punits), self.punits)
+        fw.write('Pressure at bottom of atmosphere (pbottom):  {:.2e} {}',
+            self.pbottom/pt.u(self.punits), self.punits)
+        fw.write('Reference pressure at rplanet (refpressure): {:.2e} {}',
+            self.refpressure/pt.u(self.punits), self.punits)
+        fw.write(
+            'Pressure profile (press, {}):\n    {}',
+            self.punits, press, fmt=fmt, edge=3,
+        )
 
         fw.write('\nTemperature units (tunits): {}', self.tunits)
         fw.write('Temperature model name (tmodelname): {}', self.tmodelname)
@@ -662,12 +642,21 @@ class Atmosphere():
         fw.write('Temperature profile (temp, K):\n    {}', self.temp,
             fmt={'float': '{:9.3f}'.format}, edge=3)
 
-
-        fw.write('\nMean molecular mass (mm, amu):\n    {}', self.mm,
-            fmt={'float': '{:8.4f}'.format}, edge=3)
         fw.write('\nAbundance units (qunits): {}', self.qunits)
-        fw.write('Abundance internal units: mole mixing fraction')
-        fw.write('Number of atmospheric species: {:d}', len(self.vmr[0]))
+        fw.write('Abundance internal units: VMR')
+        fw.write('Abundance model (chemistry): {}', self.chemistry)
+        fw.write('Number of species (nmol): {:d}\n', self.nmol)
+        fw.write(
+          '\nIndex   Molecule  Mass (g/mol)    Radius (A)\n'
+            '       (species)    (mol_mass)  (mol_radius)'
+        )
+        for i in range(self.nmol):
+            fw.write(
+                '{:>5d}  {:>9s}  {:12.5f}  {:12.3f}',
+                i, self.species[i], self.mol_mass[i], self.mol_radius[i]/pc.A,
+            )
+        fw.write("Molecular data taken from (molfile): '{}'", self.molfile)
+
         if len(self.mol_pnames) > 0:
             molpars = self.molpars
             if self.molpars == []:
@@ -680,12 +669,22 @@ class Atmosphere():
             for ibulk, bulk in zip(self.ibulk, self.bulk):
                 fw.write('     {:2d}  {:10s}', ibulk, bulk)
 
-        fw.write('Abundance profiles (vmr, mole mixing fraction):')
+        fw.write('Abundance profiles (vmr):')
         for i, q in enumerate(self.vmr.T):
-            fw.write('    species [{:2d}]:   {}', i, q,    fmt=fmt, edge=2)
+            fw.write('{:>16s}:   {}', self.species[i], q, fmt=fmt, edge=2)
         fw.write('Density profiles (d, molecules cm-3):')
         for i, dens in enumerate(self.d.T):
-            fw.write('    species [{:2d}]:   {}', i, dens, fmt=fmt, edge=2)
+            fw.write('{:>16s}:   {}', self.species[i], dens, fmt=fmt, edge=2)
+
+        fw.write('\nRadius display units (runits): {}', self.runits)
+        fw.write('Radius internal units: cm', self.runits)
+        fw.write('Radius model name (rmodelname): {}', self.rmodelname)
+        fw.write('Radius profile (radius, {}):\n    {}', self.runits, radius,
+            prec=4, edge=3, lw=800)
+
+
+        fw.write('\nMean molecular mass (mm, amu):\n    {}', self.mm,
+            fmt={'float': '{:8.4f}'.format}, edge=3)
 
         return fw.text
 

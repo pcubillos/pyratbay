@@ -32,7 +32,7 @@ class VanderWaals():
         self.voigt = broadening.Voigt()
 
         names, masses, _ = io.read_molecs(pc.ROOT+'pyratbay/data/molecules.dat')
-        self.mass = masses[list(names).index(self.mol)]
+        self.mass = masses[list(names).index(self.species)]
 
         # Spectral sampling rate at alkali wn0:
         self._dwave = np.zeros(self.nlines)
@@ -191,7 +191,7 @@ class VanderWaals():
         temperature: 1D float array
             Temperature profile in Kelvin (must match self.pressure array)
         density: 1D float array
-            Number density profile (molecules per cm3) of self.mol.
+            Number density profile (molecules per cm3) of self.species.
             (must match self.pressure array)
         layer: Interger
             If not None, calculate the extinction coefficient at a
@@ -213,7 +213,7 @@ class VanderWaals():
     def __str__(self):
         fw = pt.Formatted_Write()
         fw.write("Model name (name): '{}'", self.name)
-        fw.write('Model species (mol): {}', self.mol)
+        fw.write('Model species (species): {}', self.species)
         fw.write('Species mass (mass, amu): {}', self.mass)
         fw.write(
             'Profile hard cutoff from line center (cutoff, cm-1): {}',
@@ -284,7 +284,7 @@ class SodiumVdW(VanderWaals):
             from the center of each line.
         """
         self.name = 'sodium_vdw'
-        self.mol = 'Na'
+        self.species = 'Na'
 
         # Line-transition properties (from VALD, Piskunov 1995):
         # Wavenumber (cm-1), lower-state energy (cm-1), gf (unitless)
@@ -336,7 +336,7 @@ class PotassiumVdW(VanderWaals):
             from the center of each line.
         """
         self.name = 'potassium_vdw'
-        self.mol = 'K'
+        self.species = 'K'
 
         # Line-transition properties (from VALD, Piskunov 1995):
         # Wavenumber (cm-1), lower-state energy (cm-1), gf (unitless)

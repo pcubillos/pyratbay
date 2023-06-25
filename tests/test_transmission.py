@@ -308,7 +308,11 @@ def test_transmission_scale_model(tmp_path):
     )
     pyrat = pb.run(cfg)
     spectrum = pyrat.spec.spectrum
-    np.testing.assert_allclose(pyrat.atm.vmr[:,3], 0.1*pyrat.atm.base_vmr[:,3])
+    i_H2O = list(pyrat.atm.species).index('H2O')
+    np.testing.assert_allclose(
+        pyrat.atm.vmr[:,i_H2O],
+        0.1*pyrat.atm.base_vmr[:,i_H2O],
+    )
     np.testing.assert_allclose(spectrum, expected['scale'], rtol=rtol)
 
 

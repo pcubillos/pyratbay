@@ -100,8 +100,8 @@ class Opacity():
                 model = op.alkali.get_model(name, pressure, wn, cutoff)
                 self.models.append(model)
                 self.models_type.append('alkali')
-                check_species_exists(model.mol, species, model.name, log)
-                imol = species.index(model.mol)
+                check_species_exists(model.species, species, model.name, log)
+                imol = species.index(model.species)
                 self.mol_indices.append(imol)
                 self.nspec.append(1)
                 self.pnames.append([])
@@ -226,13 +226,15 @@ class Opacity():
             if model.name == 'deck':
                 args['temperature'] = temperature
                 args['radius'] = radius
+            elif model.name == 'ccsgray':
+                args['temperature'] = temperature
             elif model_type in ['rayleigh', 'cloud']:
                 args['density'] = density
             else:
                 args['temperature'] = temperature
                 args['density'] = density
 
-            if hasattr(model, 'pars'):
+            if hasattr(model, 'pars') and model.npars > 0:
                 args['pars'] = model.pars
             if model_type == 'cloud' and self.is_patchy:
                 self.ec_cloud += model.calc_extinction_coefficient(**args)
@@ -281,7 +283,7 @@ class Opacity():
             if model_type in ['line_sample', 'lbl']:
                 label += list(model.species)
             elif model_type == 'alkali':
-                label.append(model.mol)
+                label.append(model.species)
             else:
                 label.append(model.name)
 

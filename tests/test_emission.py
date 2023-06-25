@@ -321,8 +321,11 @@ def test_emission_scale_model(tmp_path):
     np.testing.assert_allclose(
         pyrat.spec.spectrum, expected['scale'], rtol=rtol,
     )
+    i_H2O = list(pyrat.atm.species).index('H2O')
     np.testing.assert_allclose(
-        pyrat.atm.vmr[:,3], 0.1*pyrat.atm.base_vmr[:,3], rtol=rtol,
+        pyrat.atm.vmr[:,i_H2O],
+        0.1*pyrat.atm.base_vmr[:,i_H2O],
+        rtol=rtol,
     )
 
 

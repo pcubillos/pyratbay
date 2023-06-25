@@ -12,7 +12,24 @@ from pyratbay.constants import ROOT
 os.chdir(ROOT+'tests')
 
 
-def test_alkali_str(tmp_path):
+def test_pyrat_transmission_str(tmp_path):
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+    )
+    pyrat = pb.run(cfg)
+    assert str(pyrat) == f"""\
+Pyrat atmospheric model
+configuration file:  '{tmp_path}/test.cfg'
+Pressure profile:  1.00e-06 -- 1.00e+02 bar (81 layers)
+Wavelength range:  1.10 -- 1.70 um (3209 samples, delta-wn=1.000 cm-1)
+Composition:
+  ['H2' 'He' 'H' 'Na' 'H2O' 'CH4' 'CO' 'CO2']
+Opacity sources:
+  ['H2O', 'Na', 'CIA H2-H2', 'CIA H2-He', 'lecavelier', 'deck']"""
+
+
+def test_opacity_alkali_str(tmp_path):
     reset = {
         'wllow': '0.466 um',
         'wlhigh': '0.80252 um',
@@ -24,11 +41,9 @@ def test_alkali_str(tmp_path):
         reset=reset,
     )
     pyrat = pb.run(cfg)
-    assert pyrat is not None
-    # print(pyrat.alkali.models[0])
-    assert str(pyrat.alkali.models[0]) == """\
+    assert str(pyrat.opacity.models[1]) == """\
 Model name (name): 'sodium_vdw'
-Model species (mol): Na
+Model species (species): Na
 Species mass (mass, amu): 22.989769
 Profile hard cutoff from line center (cutoff, cm-1): 4500.0
 Detuning parameter (detuning): 30.0
@@ -62,15 +77,18 @@ Cross section (cross_section, cm2 molecule-1):
  [0.000e+00 6.612e-21 ... 2.017e-20 2.014e-20]]
 """
 
-def test_cloud_str(tmp_path):
+def test_opacity_cloud_str(tmp_path):
+    reset = {
+        'clouds': 'deck ccsgray',
+        'cpars': '-3.0  0.0 -3.0 2.0',
+    }
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        reset={'clouds':'deck ccsgray', 'cpars':'-3.0  0.0 -4.0 2.0'},
+        reset=reset,
     )
     pyrat = pb.run(cfg)
-    assert pyrat is not None
-    assert str(pyrat.cloud.models[0]) == """\
+    assert str(pyrat.opacity.models[5]) == """\
 Model name (name): 'deck'
 Number of model parameters (npars): 1
 Parameter name     Value
@@ -82,34 +100,32 @@ Cloud-top altitude: 72750.08 km
 Cloud-top temperature: 1051.39 K
 """
 
-    assert str(pyrat.cloud.models[1]) == """\
+    assert str(pyrat.opacity.models[6]) == """\
 Model name (name): 'ccsgray'
-Model species (mol): H2
 Number of model parameters (npars): 3
 Parameter name     Value
   (pnames)         (pars)
   log_k_gray        0.000e+00
-  log_p_top        -4.000e+00
+  log_p_top        -3.000e+00
   log_p_bot         2.000e+00
-Extinction-coefficient (ec, cm2 molec-1):
-[[ 0.000e+00  0.000e+00  0.000e+00 ...  0.000e+00  0.000e+00  0.000e+00]
- [ 0.000e+00  0.000e+00  0.000e+00 ...  0.000e+00  0.000e+00  0.000e+00]
- [ 0.000e+00  0.000e+00  0.000e+00 ...  0.000e+00  0.000e+00  0.000e+00]
+Extinction coefficient (ec, cm-1):
+[[0.000e+00 0.000e+00 0.000e+00 ... 0.000e+00 0.000e+00 0.000e+00]
+ [0.000e+00 0.000e+00 0.000e+00 ... 0.000e+00 0.000e+00 0.000e+00]
+ [0.000e+00 0.000e+00 0.000e+00 ... 0.000e+00 0.000e+00 0.000e+00]
  ...
- [ 5.310e-27  5.310e-27  5.310e-27 ...  5.310e-27  5.310e-27  5.310e-27]
- [ 5.310e-27  5.310e-27  5.310e-27 ...  5.310e-27  5.310e-27  5.310e-27]
- [ 5.310e-27  5.310e-27  5.310e-27 ...  5.310e-27  5.310e-27  5.310e-27]]
+ [1.459e-06 1.459e-06 1.459e-06 ... 1.459e-06 1.459e-06 1.459e-06]
+ [1.836e-06 1.836e-06 1.836e-06 ... 1.836e-06 1.836e-06 1.836e-06]
+ [2.309e-06 2.309e-06 2.309e-06 ... 2.309e-06 2.309e-06 2.309e-06]]
 """
 
 
-def test_rayleigh_str(tmp_path):
+def test_opacity_rayleigh_str(tmp_path):
     cfg = make_config(tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        reset={'rayleigh':'lecavelier dalgarno_H dalgarno_He dalgarno_H2',
+        reset={'rayleigh': 'lecavelier dalgarno_H dalgarno_He dalgarno_H2',
                'rpars':'0.0 -4.0'})
     pyrat = pb.run(cfg)
-    assert pyrat is not None
-    assert str(pyrat.rayleigh.models[0]) == """\
+    assert str(pyrat.opacity.models[4]) == """\
 Model name (name): 'lecavelier'
 Model species (mol): H2
 Number of model parameters (npars): 2
@@ -123,7 +139,7 @@ Cross section (cross_section, cm2 molec-1):
    [ 9.540e-30  9.547e-30  9.553e-30 ...  5.436e-29  5.439e-29  5.441e-29]
 """
 
-    assert str(pyrat.rayleigh.models[1]) == """\
+    assert str(pyrat.opacity.models[5]) == """\
 Model name (name): 'dalgarno_H'
 Model species (mol): H
 Number of model parameters (npars): 0
@@ -133,7 +149,7 @@ Cross section (cross_section, cm2 molec-1):
    [7.002e-30 7.007e-30 7.012e-30 ... 4.038e-29 4.040e-29 4.041e-29]
 """
 
-    assert str(pyrat.rayleigh.models[2]) == """\
+    assert str(pyrat.opacity.models[6]) == """\
 Model name (name): 'dalgarno_He'
 Model species (mol): He
 Number of model parameters (npars): 0
@@ -143,7 +159,7 @@ Cross section (cross_section, cm2 molec-1):
    [6.577e-31 6.582e-31 6.586e-31 ... 3.757e-30 3.758e-30 3.760e-30]
 """
 
-    assert str(pyrat.rayleigh.models[3]) == """\
+    assert str(pyrat.opacity.models[7]) == """\
 Model name (name): 'dalgarno_H2'
 Model species (mol): H2
 Number of model parameters (npars): 0
@@ -154,133 +170,58 @@ Cross section (cross_section, cm2 molec-1):
 """
 
 
-def test_pyrat_transmission_str(tmp_path):
+def test_opacity_cia_str(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
     )
     pyrat = pb.run(cfg)
-    assert pyrat is not None
-    assert str(pyrat) == f"""\
-Pyrat atmospheric model
-configuration file:  '{tmp_path}/test.cfg'
-Pressure profile:  1.00e-06 -- 1.00e+02 bar (81 layers)
-Wavelength range:  1.10 -- 1.70 um (3209 samples, delta-wn=1.000 cm-1)
-Composition:
-  ['H2' 'He' 'Na' 'H2O' 'CH4' 'CO' 'CO2']
-Opacity sources:
-  ['H2O', 'CIA H2-H2', 'CIA H2-He', 'lecavelier', 'deck', 'Na']"""
-
-
-def test_pyrat_transmission_spec_str(tmp_path):
-    cfg = make_config(
-        tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
-    )
-    pyrat = pb.run(cfg)
-    assert str(pyrat.spec) == """\
-Spectral information:
-Wavenumber internal units: cm-1
-Wavelength internal units: cm
-Wavelength display units (wlunits): um
-Low wavenumber boundary (wnlow):     5882.353 cm-1  (wlhigh =   1.70 um)
-High wavenumber boundary (wnhigh):   9090.909 cm-1  (wllow  =   1.10 um)
-Number of samples (nwave): 3209
-Sampling interval (wnstep): 1.000 cm-1
+    assert str(pyrat.opacity.models[2]) == f"""\
+CIA file name (cia_file):
+    '{ROOT}pyratbay/data/CIA/CIA_Borysow_H2H2_0060-7000K_0.6-500um.dat'
+CIA species (species): ['H2', 'H2']
+Number of temperature samples (ntemp): 20
+Number of wavenumber samples (nwave): 3209
+Temperature array (temps, K):
+[  60.  100.  150.  200.  250.  300.  350.  400.  500.  600.  700.  800.
+  900. 1000. 2000. 3000. 4000. 5000. 6000. 7000.]
 Wavenumber array (wn, cm-1):
-    [ 5882.353  5883.353  5884.353 ...  9088.353  9089.353  9090.353]
-Oversampling factor (wnosamp): 2160
+[5882.353 5883.353 5884.353 ... 9088.353 9089.353 9090.353]
+Tabulated cross section (tab_cross_section, cm5 molec-2):
+[[6.79e-49 6.71e-49 6.64e-49 ... 5.35e-48 5.29e-48 5.22e-48]
+ [2.59e-48 2.58e-48 2.57e-48 ... 8.53e-48 8.45e-48 8.37e-48]
+ [5.35e-48 5.31e-48 5.27e-48 ... 1.35e-47 1.34e-47 1.33e-47]
+ ...
+ [1.22e-44 1.22e-44 1.22e-44 ... 3.76e-46 3.76e-46 3.76e-46]
+ [1.62e-44 1.61e-44 1.61e-44 ... 5.48e-46 5.47e-46 5.47e-46]
+ [1.89e-44 1.89e-44 1.89e-44 ... 7.42e-46 7.41e-46 7.40e-46]]
+Minimum and maximum temperatures (tmin, tmax) in K: [60.0, 7000.0]
+"""
 
-Gaussian quadrature cos(theta) angles (quadrature_mu):
-    [1.    0.94  0.766 0.5   0.174]
-Gaussian quadrature weights (quadrature_weights):
-    [0.095 0.691 1.058 0.931 0.367]
-
-Transmission spectrum, (Rp/Rs)**2 (spectrum):
-    [ 6.780e-03  6.781e-03  6.780e-03 ...  6.780e-03  6.780e-03  6.780e-03]
+    assert str(pyrat.opacity.models[3]) == f"""\
+CIA file name (cia_file):
+    '{ROOT}pyratbay/data/CIA/CIA_Borysow_H2He_0050-3000K_0.3-030um.dat'
+CIA species (species): ['H2', 'He']
+Number of temperature samples (ntemp): 20
+Number of wavenumber samples (nwave): 3209
+Temperature array (temps, K):
+[  50.   75.  100.  150.  200.  250.  300.  350.  400.  500.  600.  700.
+  800.  900. 1000. 1250. 1500. 2000. 2500. 3000.]
+Wavenumber array (wn, cm-1):
+[5882.353 5883.353 5884.353 ... 9088.353 9089.353 9090.353]
+Tabulated cross section (tab_cross_section, cm5 molec-2):
+[[1.23e-49 1.22e-49 1.22e-49 ... 8.34e-50 8.29e-50 8.24e-50]
+ [2.83e-49 2.81e-49 2.80e-49 ... 1.35e-49 1.35e-49 1.34e-49]
+ [5.78e-49 5.75e-49 5.72e-49 ... 2.06e-49 2.05e-49 2.04e-49]
+ ...
+ [1.28e-45 1.28e-45 1.27e-45 ... 3.93e-47 3.92e-47 3.91e-47]
+ [1.99e-45 1.99e-45 1.98e-45 ... 5.51e-47 5.50e-47 5.49e-47]
+ [2.85e-45 2.85e-45 2.84e-45 ... 7.41e-47 7.40e-47 7.38e-47]]
+Minimum and maximum temperatures (tmin, tmax) in K: [50.0, 3000.0]
 """
 
 
-def test_pyrat_transmission_atm_str(tmp_path):
-    cfg = make_config(
-        tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
-    )
-    pyrat = pb.run(cfg)
-    assert str(pyrat.atm) == """\
-Atmospheric model information:
-Input atmospheric file name (input_atmfile):
-    '{:s}/inputs/atmosphere_uniform_test.atm'
-Output atmospheric file name (atmfile): 'None'
-Number of layers (nlayers): 81
-
-Pressure display units (punits): bar
-Pressure internal units: barye
-Pressure at top of atmosphere (ptop):        1.00e-06 bar
-Pressure at bottom of atmosphere (pbottom):  1.00e+02 bar
-Reference pressure at rplanet (refpressure): 1.00e-01 bar
-Pressure profile (press, bar):
-    [ 1.000e-06  1.259e-06  1.585e-06 ...  6.310e+01  7.943e+01  1.000e+02]
-Atmospheric species information:
-Number of species (nmol): 7
-
-Molecule    Mass       Radius
-            g/mol      Angstrom
-(name)      (mass)     (radius)
-  H2          2.0160       1.440
-  He          4.0026       1.400
-  Na         22.9898       2.200
-  H2O        18.0150       1.600
-  CH4        16.0430       2.000
-  CO         28.0100       1.690
-  CO2        44.0090       1.900
-Molecular data taken from (molfile):
-    '/Users/pato/Dropbox/IWF/projects/2014_pyratbay/pyratbay/pyratbay/data/molecules.dat'
-
-Planetary radius (rplanet, Rjup): 1.000
-Planetary mass (mplanet, Mjup): 0.600
-Planetary surface gravity (gplanet, cm s-2): 1487.3
-Planetary internal temperature (tint, K):  100.0
-Planetary Hill radius (rhill, Rjup):  inf
-Orbital semi-major axis (smaxis, AU): 0.0450
-
-Radius display units (runits): rjup
-Radius internal units: cm
-Radius model name (rmodelname): hydro_m
-Radius profile (radius, rjup):
-    [1.0434 1.0425 1.0416 ... 0.9665 0.9653 0.9641]
-
-Temperature units (tunits): kelvin
-Temperature model name (tmodelname): None
-Temperature profile (temp, K):
-    [ 1047.045  1047.046  1047.048 ...  1663.181  1664.146  1665.360]
-
-Mean molecular mass (mm, amu):
-    [  2.3329   2.3329   2.3329 ...   2.3329   2.3329   2.3329]
-
-Abundance units (qunits): vmr
-Abundance internal units: mole mixing fraction
-Number of atmospheric species: 7
-Abundance profiles (vmr, mole mixing fraction):
-    species [ 0]:   [ 8.500e-01  8.500e-01 ...  8.500e-01  8.500e-01]
-    species [ 1]:   [ 1.490e-01  1.490e-01 ...  1.490e-01  1.490e-01]
-    species [ 2]:   [ 3.000e-06  3.000e-06 ...  3.000e-06  3.000e-06]
-    species [ 3]:   [ 4.000e-04  4.000e-04 ...  4.000e-04  4.000e-04]
-    species [ 4]:   [ 1.000e-04  1.000e-04 ...  1.000e-04  1.000e-04]
-    species [ 5]:   [ 5.000e-04  5.000e-04 ...  5.000e-04  5.000e-04]
-    species [ 6]:   [ 1.000e-07  1.000e-07 ...  1.000e-07  1.000e-07]
-Density profiles (d, molecules cm-3):
-    species [ 0]:   [ 5.880e+12  7.402e+12 ...  2.939e+20  3.697e+20]
-    species [ 1]:   [ 1.031e+12  1.298e+12 ...  5.151e+19  6.480e+19]
-    species [ 2]:   [ 2.075e+07  2.613e+07 ...  1.037e+15  1.305e+15]
-    species [ 3]:   [ 2.767e+09  3.483e+09 ...  1.383e+17  1.740e+17]
-    species [ 4]:   [ 6.918e+08  8.708e+08 ...  3.457e+16  4.349e+16]
-    species [ 5]:   [ 3.459e+09  4.354e+09 ...  1.729e+17  2.175e+17]
-    species [ 6]:   [ 6.918e+05  8.708e+05 ...  3.457e+13  4.349e+13]
-""".format(os.getcwd())
-
-
-def test_pyrat_transmission_lbl_str(tmp_path):
+def test_opacity_lbl_str(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
@@ -327,13 +268,122 @@ Number of isotopes (niso): 7
 Isotope  Molecule      Mass    Isotopic   Database
             index     g/mol       ratio
  (name)    (imol)    (mass)     (ratio)
-    161         3   18.0106   9.973e-01   HITRAN H2O
-    181         3   20.0148   2.000e-03   HITRAN H2O
-    171         3   19.0148   3.719e-04   HITRAN H2O
-    162         3   19.0167   3.107e-04   HITRAN H2O
-    182         3   21.0210   6.230e-07   HITRAN H2O
-    172         3   20.0210   1.159e-07   HITRAN H2O
-    262         3   20.0229   2.420e-08   HITRAN H2O
+    161         4   18.0106   9.973e-01   HITRAN H2O
+    181         4   20.0148   2.000e-03   HITRAN H2O
+    171         4   19.0148   3.719e-04   HITRAN H2O
+    162         4   19.0167   3.107e-04   HITRAN H2O
+    182         4   21.0210   6.230e-07   HITRAN H2O
+    172         4   20.0210   1.159e-07   HITRAN H2O
+    262         4   20.0229   2.420e-08   HITRAN H2O
+"""
+
+
+def test_pyrat_transmission_spec_str(tmp_path):
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+    )
+    pyrat = pb.run(cfg)
+    assert str(pyrat.spec) == """\
+Spectral information:
+Wavenumber internal units: cm-1
+Wavelength internal units: cm
+Wavelength display units (wlunits): um
+Low wavenumber boundary (wnlow):     5882.353 cm-1  (wlhigh =   1.70 um)
+High wavenumber boundary (wnhigh):   9090.909 cm-1  (wllow  =   1.10 um)
+Number of samples (nwave): 3209
+Sampling interval (wnstep): 1.000 cm-1
+Wavenumber array (wn, cm-1):
+    [ 5882.353  5883.353  5884.353 ...  9088.353  9089.353  9090.353]
+Oversampling factor (wnosamp): 2160
+
+Gaussian quadrature cos(theta) angles (quadrature_mu):
+    [1.    0.94  0.766 0.5   0.174]
+Gaussian quadrature weights (quadrature_weights):
+    [0.095 0.691 1.058 0.931 0.367]
+
+Transmission spectrum, (Rp/Rs)**2 (spectrum):
+    [ 6.780e-03  6.781e-03  6.780e-03 ...  6.780e-03  6.780e-03  6.780e-03]
+"""
+
+
+def test_atm_str(tmp_path):
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+    )
+    pyrat = pb.run(cfg)
+    assert str(pyrat.atm) == f"""\
+Atmospheric model information:
+Input atmospheric file name (input_atmfile):
+    '{os.getcwd()}/inputs/atmosphere_uniform_test.atm'
+Output atmospheric file name (atmfile): 'None'
+Number of layers (nlayers): 81
+
+Planetary radius (rplanet, Rjup): 1.000
+Planetary mass (mplanet, Mjup): 0.600
+Planetary surface gravity (gplanet, cm s-2): 1487.3
+Planetary internal temperature (tint, K):  100.0
+Planetary Hill radius (rhill, Rjup):  inf
+Orbital semi-major axis (smaxis, AU): 0.0450
+
+Pressure display units (punits): bar
+Pressure internal units: barye
+Pressure at top of atmosphere (ptop):        1.00e-06 bar
+Pressure at bottom of atmosphere (pbottom):  1.00e+02 bar
+Reference pressure at rplanet (refpressure): 1.00e-01 bar
+Pressure profile (press, bar):
+    [ 1.000e-06  1.259e-06  1.585e-06 ...  6.310e+01  7.943e+01  1.000e+02]
+
+Temperature units (tunits): kelvin
+Temperature model name (tmodelname): None
+Temperature profile (temp, K):
+    [ 1047.045  1047.046  1047.048 ...  1663.181  1664.146  1665.360]
+
+Abundance units (qunits): vmr
+Abundance internal units: VMR
+Abundance model (chemistry): None
+Number of species (nmol): 8
+
+Index   Molecule  Mass (g/mol)    Radius (A)
+       (species)    (mol_mass)  (mol_radius)
+    0         H2       2.01600         1.440
+    1         He       4.00260         1.400
+    2          H       1.00800         1.100
+    3         Na      22.98977         2.200
+    4        H2O      18.01500         1.600
+    5        CH4      16.04300         2.000
+    6         CO      28.01000         1.690
+    7        CO2      44.00900         1.900
+Molecular data taken from (molfile):
+    '{ROOT}pyratbay/data/molecules.dat'
+Abundance profiles (vmr):
+              H2:   [ 8.500e-01  8.500e-01 ...  8.500e-01  8.500e-01]
+              He:   [ 1.490e-01  1.490e-01 ...  1.490e-01  1.490e-01]
+               H:   [ 1.000e-06  1.000e-06 ...  1.000e-06  1.000e-06]
+              Na:   [ 3.000e-06  3.000e-06 ...  3.000e-06  3.000e-06]
+             H2O:   [ 4.000e-04  4.000e-04 ...  4.000e-04  4.000e-04]
+             CH4:   [ 1.000e-04  1.000e-04 ...  1.000e-04  1.000e-04]
+              CO:   [ 5.000e-04  5.000e-04 ...  5.000e-04  5.000e-04]
+             CO2:   [ 1.000e-07  1.000e-07 ...  1.000e-07  1.000e-07]
+Density profiles (d, molecules cm-3):
+              H2:   [ 5.880e+12  7.402e+12 ...  2.939e+20  3.697e+20]
+              He:   [ 1.031e+12  1.298e+12 ...  5.151e+19  6.480e+19]
+               H:   [ 6.918e+06  8.708e+06 ...  3.457e+14  4.349e+14]
+              Na:   [ 2.075e+07  2.613e+07 ...  1.037e+15  1.305e+15]
+             H2O:   [ 2.767e+09  3.483e+09 ...  1.383e+17  1.740e+17]
+             CH4:   [ 6.918e+08  8.708e+08 ...  3.457e+16  4.349e+16]
+              CO:   [ 3.459e+09  4.354e+09 ...  1.729e+17  2.175e+17]
+             CO2:   [ 6.918e+05  8.708e+05 ...  3.457e+13  4.349e+13]
+
+Radius display units (runits): rjup
+Radius internal units: cm
+Radius model name (rmodelname): hydro_m
+Radius profile (radius, rjup):
+    [1.0434 1.0425 1.0416 ... 0.9665 0.9653 0.9641]
+
+Mean molecular mass (mm, amu):
+    [  2.3329   2.3329   2.3329 ...   2.3329   2.3329   2.3329]
 """
 
 
@@ -376,56 +426,13 @@ Voigt profiles:
 """
 
 
-def test_pyrat_transmission_cs_str(tmp_path):
-    cfg = make_config(
-        tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
-    )
-    pyrat = pb.run(cfg)
-    assert str(pyrat.cs) == """\
-CIA extinction information:
-Number of CIA files (nfiles): 2
-
-CIA file name (files[0]):
-    '{:s}/pyratbay/data/CIA/CIA_Borysow_H2H2_0060-7000K_0.6-500um.dat'
-CIA species: H2-H2
-Number of temperature samples: 20
-Number of wavenumber samples: 3209
-Temperature array (temp, K):
-  [  60.  100.  150.  200.  250.  300.  350.  400.  500.  600.  700.  800.  900.
-    1000. 2000. 3000. 4000. 5000. 6000. 7000.]
-Wavenumber array (wavenumber, cm-1):
-  [5882.4 5883.4 5884.4 ... 9088.4 9089.4 9090.4]
-
-CIA file name (files[1]):
-    '{:s}/pyratbay/data/CIA/CIA_Borysow_H2He_0050-3000K_0.3-030um.dat'
-CIA species: H2-He
-Number of temperature samples: 20
-Number of wavenumber samples: 3209
-Temperature array (temp, K):
-  [  50.   75.  100.  150.  200.  250.  300.  350.  400.  500.  600.  700.  800.
-    900. 1000. 1250. 1500. 2000. 2500. 3000.]
-Wavenumber array (wavenumber, cm-1):
-  [5882.4 5883.4 5884.4 ... 9088.4 9089.4 9090.4]
-
-Minimum and maximum temperatures (tmin, tmax) in K: [60.0, 3000.0]
-CIA extinction coefficient (ec, cm-1):
-[[2.78e-20 2.77e-20 2.77e-20 ... 2.57e-21 2.57e-21 2.57e-21]
- [4.41e-20 4.40e-20 4.38e-20 ... 4.08e-21 4.07e-21 4.07e-21]
- [6.99e-20 6.97e-20 6.95e-20 ... 6.46e-21 6.45e-21 6.45e-21]
- ...
- [1.24e-04 1.24e-04 1.23e-04 ... 5.64e-06 5.64e-06 5.63e-06]
- [1.96e-04 1.96e-04 1.95e-04 ... 8.93e-06 8.92e-06 8.92e-06]
- [3.11e-04 3.10e-04 3.10e-04 ... 1.41e-05 1.41e-05 1.41e-05]]
-""".format(os.path.realpath('./..'), os.path.realpath('./..'))
-
-
 def test_pyrat_transmission_od_str(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
     )
     pyrat = pb.run(cfg)
+    print(pyrat.od)
     assert str(pyrat.od) == """\
 Optical depth information:
 Observing geometry (rt_path): transit
@@ -440,13 +447,13 @@ Total atmospheric extinction coefficient (ec, cm-1) [layer, wave]:
 
 Distance along the ray path across each layer (outside-in) at each impact
     parameter (raypath, km):
-    IP[  1]: [3061.02491505]
-    IP[  2]: [1268.96353345 3057.45786888]
-    IP[  3]: [ 974.34404583 1267.59004145 3053.53618033]
+    IP[  1]: [3061.0241686]
+    IP[  2]: [1268.9632235  3057.45712504]
+    IP[  3]: [ 974.34380755 1267.58973255 3053.53543918]
     ...
-    IP[ 80]: [ 164.81155312  165.38824754  165.93695005 ... 1097.04770713
-    1426.20058392
- 3434.15476801]
+    IP[ 80]: [ 164.81150878  165.38820318  165.93690568 ... 1097.04749244
+    1426.20030651
+ 3434.15410456]
 
 Maximum optical depth to calculate (maxdepth): 10.00
 Layer index where the optical depth reaches maxdepth (ideep):
@@ -463,122 +470,6 @@ Optical depth at each impact parameter, down to max(ideep) (depth):
  [ 8.247e-05  1.950e-02  8.365e-05 ...  7.768e-04  3.710e-04  3.931e-04]]
 """
 
-
-def test_pyrat_transmission_cloud_str(tmp_path):
-    cfg = make_config(
-        tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
-    )
-    pyrat = pb.run(cfg)
-    assert str(pyrat.cloud) == """\
-Cloud-opacity models (models):
-
-Model name (name): 'deck'
-Number of model parameters (npars): 1
-Parameter name     Value
-  (pnames)         (pars)
-  log_p_cl         -3.000e+00
-Index of atmospheric layer at or directly below cloud top: 30
-Cloud-top pressure: 1.0000e-03 bar
-Cloud-top altitude: 72750.08 km
-Cloud-top temperature: 1051.39 K
-
-Patchiness fraction (fpatchy): None
-Total atmospheric cloud extinction-coefficient (ec, cm-1):
-[[ 0.000e+00  0.000e+00  0.000e+00 ...  0.000e+00  0.000e+00  0.000e+00]
- [ 0.000e+00  0.000e+00  0.000e+00 ...  0.000e+00  0.000e+00  0.000e+00]
- [ 0.000e+00  0.000e+00  0.000e+00 ...  0.000e+00  0.000e+00  0.000e+00]
- ...
- [ 0.000e+00  0.000e+00  0.000e+00 ...  0.000e+00  0.000e+00  0.000e+00]
- [ 0.000e+00  0.000e+00  0.000e+00 ...  0.000e+00  0.000e+00  0.000e+00]
- [ 0.000e+00  0.000e+00  0.000e+00 ...  0.000e+00  0.000e+00  0.000e+00]]
-"""
-
-
-def test_pyrat_transmission_rayleigh_str(tmp_path):
-    cfg = make_config(
-        tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
-    )
-    pyrat = pb.run(cfg)
-    assert str(pyrat.rayleigh) == """\
-Rayleigh-opacity models (models):
-
-Model name (name): 'lecavelier'
-Model species (mol): H2
-Number of model parameters (npars): 2
-Parameter name     Value
-  (pnames)         (pars)
-  log_k_ray         0.000e+00
-  alpha_ray        -4.000e+00
-Wavenumber (wn, cm-1):
-   [5882.35 5883.35 5884.35 ... 9088.35 9089.35 9090.35]
-Cross section (cross_section, cm2 molec-1):
-   [ 9.540e-30  9.547e-30  9.553e-30 ...  5.436e-29  5.439e-29  5.441e-29]
-
-Total atmospheric Rayleigh extinction-coefficient (ec, cm-1):
-[[ 5.610e-17  5.614e-17  5.617e-17 ...  3.197e-16  3.198e-16  3.199e-16]
- [ 7.062e-17  7.067e-17  7.072e-17 ...  4.024e-16  4.026e-16  4.028e-16]
- [ 8.891e-17  8.897e-17  8.903e-17 ...  5.066e-16  5.068e-16  5.071e-16]
- ...
- [ 2.228e-09  2.230e-09  2.231e-09 ...  1.270e-08  1.270e-08  1.271e-08]
- [ 2.804e-09  2.806e-09  2.807e-09 ...  1.598e-08  1.598e-08  1.599e-08]
- [ 3.527e-09  3.529e-09  3.532e-09 ...  2.010e-08  2.011e-08  2.011e-08]]
-"""
-
-
-def test_pyrat_transmission_alkali_str(tmp_path):
-    cfg = make_config(
-        tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
-    )
-    pyrat = pb.run(cfg)
-    assert str(pyrat.alkali) == """\
-Alkali-opacity models (models):
-
-Model name (name): 'sodium_vdw'
-Model species (mol): Na
-Species mass (mass, amu): 22.989769
-Profile hard cutoff from line center (cutoff, cm-1): 4500.0
-Detuning parameter (detuning): 30.0
-Lorentz-width parameter (lpar): 0.071
-Partition function (Z): 2.0
-Wavenumber  Wavelength          gf   Lower-state energy
-      cm-1          um               cm-1
-      (wn)                    (gf)   (elow)
-  16960.87    0.589592   6.546e-01   0.000e+00
-  16978.07    0.588995   1.309e+00   0.000e+00
-Wavenumber (wn, cm-1):
-   [5882.35 5883.35 5884.35 ... 9088.35 9089.35 9090.35]
-Pressure (pressure, barye):
-[1.000e+00 1.259e+00 1.585e+00 1.995e+00 2.512e+00 3.162e+00 3.981e+00
- 5.012e+00 6.310e+00 7.943e+00 1.000e+01 1.259e+01 1.585e+01 1.995e+01
- 2.512e+01 3.162e+01 3.981e+01 5.012e+01 6.310e+01 7.943e+01 1.000e+02
- 1.259e+02 1.585e+02 1.995e+02 2.512e+02 3.162e+02 3.981e+02 5.012e+02
- 6.310e+02 7.943e+02 1.000e+03 1.259e+03 1.585e+03 1.995e+03 2.512e+03
- 3.162e+03 3.981e+03 5.012e+03 6.310e+03 7.943e+03 1.000e+04 1.259e+04
- 1.585e+04 1.995e+04 2.512e+04 3.162e+04 3.981e+04 5.012e+04 6.310e+04
- 7.943e+04 1.000e+05 1.259e+05 1.585e+05 1.995e+05 2.512e+05 3.162e+05
- 3.981e+05 5.012e+05 6.310e+05 7.943e+05 1.000e+06 1.259e+06 1.585e+06
- 1.995e+06 2.512e+06 3.162e+06 3.981e+06 5.012e+06 6.310e+06 7.943e+06
- 1.000e+07 1.259e+07 1.585e+07 1.995e+07 2.512e+07 3.162e+07 3.981e+07
- 5.012e+07 6.310e+07 7.943e+07 1.000e+08]
-Cross section (cross_section, cm2 molecule-1):
-[[0.000e+00 0.000e+00 ... 0.000e+00 0.000e+00]
- [0.000e+00 0.000e+00 ... 0.000e+00 0.000e+00]
- ...
- [0.000e+00 0.000e+00 ... 0.000e+00 0.000e+00]
- [0.000e+00 0.000e+00 ... 0.000e+00 0.000e+00]]
-
-Total atmospheric alkali extinction-coefficient (ec, cm-1):
-[[0.000e+00 0.000e+00 0.000e+00 ... 0.000e+00 0.000e+00 0.000e+00]
- [0.000e+00 0.000e+00 0.000e+00 ... 0.000e+00 0.000e+00 0.000e+00]
- [0.000e+00 0.000e+00 0.000e+00 ... 0.000e+00 0.000e+00 0.000e+00]
- ...
- [0.000e+00 0.000e+00 0.000e+00 ... 0.000e+00 0.000e+00 0.000e+00]
- [0.000e+00 0.000e+00 0.000e+00 ... 0.000e+00 0.000e+00 0.000e+00]
- [0.000e+00 0.000e+00 0.000e+00 ... 0.000e+00 0.000e+00 0.000e+00]]
-"""
 
 def test_pyrat_transmission_obs_str(tmp_path):
     cfg = make_config(
@@ -643,9 +534,9 @@ configuration file:  '{tmp_path}/test.cfg'
 Pressure profile:  1.00e-06 -- 1.00e+02 bar (81 layers)
 Wavelength range:  1.10 -- 1.70 um (2177 samples, R=5000.0)
 Composition:
-  ['H2' 'He' 'Na' 'H2O' 'CH4' 'CO' 'CO2']
+  ['H2' 'He' 'H' 'Na' 'H2O' 'CH4' 'CO' 'CO2']
 Opacity sources:
-  ['H2O', 'CIA H2-H2', 'CIA H2-He', 'lecavelier', 'Na']"""
+  ['H2O', 'Na', 'CIA H2-H2', 'CIA H2-He', 'lecavelier']"""
 
     assert str(pyrat.spec) == """\
 Spectral information:

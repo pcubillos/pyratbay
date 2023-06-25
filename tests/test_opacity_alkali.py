@@ -43,7 +43,7 @@ def test_alkali_init(model):
         mol = 'K'
 
     assert alkali.name == f'{model}_vdw'
-    assert alkali.mol == mol
+    assert alkali.species == mol
     assert alkali.nlayers == len(pressure)
     assert alkali.nwave == len(wn)
     assert alkali.cross_section is None

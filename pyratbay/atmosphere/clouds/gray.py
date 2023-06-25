@@ -27,9 +27,12 @@ class CCSgray():
         self.pars = [0.0, -4.0, 2.0]
         self.npars = len(self.pars)  # Number of model fitting parameters
         self.ec = np.zeros((self.nlayers, self.nwave))
-        self.mol = 'H2'            # Species causing the extinction
         # Fitting-parameter names (plain text and figure labels):
-        self.pnames = ['log_k_gray', 'log_p_top', 'log_p_bot']
+        self.pnames = [
+            'log_k_gray',
+            'log_p_top',
+            'log_p_bot',
+        ]
         self.texnames = [
             r'$\log_{10}(f_{\rm gray})$',
             r'$\log_{10}(p_{\rm top})\ ({\rm bar})$',
@@ -51,37 +54,39 @@ class CCSgray():
            Wavenumber array in cm-1.
         """
         # Get indices for cloud layer boundaries:
-        p_top = 10**self.pars[1]*pc.bar
-        p_bottom = 10**self.pars[1]*pc.bar
+        p_top = 10**self.pars[2]
+        p_bottom = 10**self.pars[1]
         p_mask = (self.pressure >= p_bottom) & (self.pressure <= p_top)
 
         # Gray opacity cross section in cm2 molec-1
-        self.ec[p_mask,:] = 10**self.pars[0] * self.s0
+        cs = np.zeros(self.nlayers)
+        cs[p_mask] = 10**self.pars[0] * self.s0
+        return cs
 
 
-    def calc_extinction_coefficient(self, density, pars=None, layer=None):
+    def calc_extinction_coefficient(self, temperature, pars=None, layer=None):
         if pars is not None:
             self.pars[:] = pars
         # Densities in molecules cm-3:
+        density = self.pressure*pc.bar / temperature / pc.k
         # Cross section (in cm2 molecule-1):
         cs = self.calc_cross_section()
-        # Cloud absorption (cm-1):
         if layer is not None:
             return cs[layer] * density[layer]
-        return cs * np.expand_dims(density, axis=1)
-
+        # Extinction coefficient (cm-1):
+        self.ec = np.expand_dims(cs*density, axis=1) * np.ones(self.nwave)
+        return self.ec
 
     def __str__(self):
         fw = pt.Formatted_Write()
-        fw.write("Model name (name): '{}'", self.name)
-        fw.write('Model species (mol): {}', self.mol)
-        fw.write('Number of model parameters (npars): {}', self.npars)
+        fw.write(f"Model name (name): '{self.name}'")
+        fw.write(f'Number of model parameters (npars): {self.npars}')
         fw.write('Parameter name     Value\n'
                  '  (pnames)         (pars)\n')
         for pname, param in zip(self.pnames, self.pars):
-            fw.write('  {:15s}  {: .3e}', pname, param)
-        fw.write('Extinction-coefficient (ec, cm2 molec-1):\n{}', self.ec,
-            fmt={'float':'{: .3e}'.format}, edge=3)
+            fw.write('  {:15s}  {:10.3e}', pname, param)
+        fw.write('Extinction coefficient (ec, cm-1):\n{}', self.ec,
+            fmt={'float':'{:.3e}'.format}, edge=3)
         return fw.text
 
 
