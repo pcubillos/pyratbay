@@ -10,7 +10,6 @@ import matplotlib.pyplot as plt
 
 import pyratbay as pb
 import pyratbay.plots as pp
-import pyratbay.constants as pc
 import pyratbay.atmosphere as pa
 
 
@@ -29,6 +28,7 @@ Q = pa.abundance(pressure, temperature, species)
 
 @pytest.mark.skip
 def test_spectrum():
+    import mc3
     d = np.load('multinest_MCMC_WASP18b_equil_group02_dilut_yes_posteriors_info.npz')
     spectra = d['depth_posterior']
     wl = d['wl']
@@ -40,7 +40,7 @@ def test_spectrum():
     uncert = np.tile(3e-5, 12)
     bands_flux = np.random.normal(0.0, 1e-5, 12)
 
-    theme = mc3_colors.Theme('darkorange')
+    theme = mc3.plots.Theme('darkorange')
     theme.dark_color = 'maroon'
     theme.light_color = 'gold'
     pp.spectrum(
