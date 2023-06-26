@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import is_color_like, to_rgb
 import numpy as np
 from scipy.ndimage import gaussian_filter1d as gaussf
-import mc3.plots.colors as mc3_colors
+import mc3.plots as mp
 
 from .. import constants as pc
 from .. import tools as pt
@@ -180,7 +180,7 @@ def spectrum(
 
     theme = pt.resolve_theme(theme)
     if theme is None:
-        theme = mc3_colors.Theme('darkorange')
+        theme = mp.Theme('darkorange')
         theme.light_color = 'gold'
         theme.dark_color = 'maroon'
 
@@ -484,7 +484,7 @@ def temperature(
 
     theme = pt.resolve_theme(theme)
     if theme is None:
-        theme = mc3_colors.THEMES['blue']
+        theme = mp.THEMES['blue']
 
     if colors is None and nprofiles <= 2:
         colors = [theme.color, theme.dark_color]

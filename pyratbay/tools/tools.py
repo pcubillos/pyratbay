@@ -41,7 +41,7 @@ from contextlib import contextmanager
 
 from matplotlib.colors import is_color_like
 import mc3.utils as mu
-import mc3.plots.colors as mc3_colors
+import mc3.plots as mp
 import numpy as np
 
 from .. import constants as pc
@@ -197,12 +197,12 @@ def resolve_theme(theme):
     >>> theme = pt.resolve_theme('not_a_plt_color')
     ValueError: Invalid color theme: 'not_a_plt_color'
     """
-    if isinstance(theme, mc3_colors.Theme) or theme is None:
+    if isinstance(theme, mp.Theme) or theme is None:
         pass
-    elif isinstance(theme, str) and theme in mc3_colors.THEMES:
-        theme = mc3_colors.THEMES[theme]
+    elif isinstance(theme, str) and theme in mp.THEMES:
+        theme = mp.THEMES[theme]
     elif is_color_like(theme):
-        theme = mc3_colors.Theme(theme)
+        theme = mp.Theme(theme)
     else:
         raise ValueError(f"Invalid color theme: '{theme}'")
     return theme
