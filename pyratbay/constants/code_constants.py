@@ -69,6 +69,7 @@ rmodes = [
 
 samplers = [
     'snooker',
+    'multinest',
 ]
 
 # Transmission radiative transfer:

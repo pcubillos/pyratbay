@@ -8564,3 +8564,7 @@ Fixed str tests.
 
 pyflakes.
 
+*****
+
+Added 'multinest' option to constants.sampler list.
+
