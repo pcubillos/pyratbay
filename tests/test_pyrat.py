@@ -103,7 +103,8 @@ def test_get_ec_line_sample(tmp_path):
     ec, labels = pyrat.get_ec(layer)
 
     expected_labels = [
-        'H2O', 'Na', 'CIA H2-H2', 'CIA H2-He', 'lecavelier', 'H- bf/ff',
+        'H2O', 'Na', 'CIA H2-H2', 'CIA H2-He', 'lecavelier',
+        'H- bound-free/free-free',
     ]
     with np.load(ROOT+'tests/expected/expected_get_ec_ls.npz') as d:
         expected_extinction = d['ec']

@@ -79,7 +79,7 @@ expected_ec_temps = np.array([
 def test_h_ion_init():
     h_ion = op.Hydrogen_Ion(wn)
 
-    assert h_ion.name == 'H- bf/ff'
+    assert h_ion.name == 'H- bound-free/free-free'
     np.testing.assert_allclose(h_ion.wn, wn)
     assert h_ion.nwave == len(wn)
     np.testing.assert_allclose(h_ion.sigma_bf, expected_sigma_bf)

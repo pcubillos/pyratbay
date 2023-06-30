@@ -8577,3 +8577,7 @@ Minor edits.
 
 Check for all opacity models that the species exist in atmosphere.
 
+*****
+
+Changed name of H- model from H- bf/ff to H- bound-free/free-free.
+
