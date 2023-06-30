@@ -58,6 +58,7 @@ class Opacity():
             ls = op.Line_Sample(inputs.extfile, min_wn, max_wn, log)
             self.models.append(ls)
             self.models_type.append('line_sample')
+            check_species_exists(ls.species, species, ls.name, log)
             imol = [species.index(mol) for mol in ls.species]
             self.mol_indices.append(imol)
             self.tmin['line_sample'] = ls.tmin
@@ -147,11 +148,8 @@ class Opacity():
                 self.nspec.append(1)
                 self.pnames.append(model.pnames)
 
-                if model.mol not in species:
-                    #log.error('Species not found in atmosphere')
-                    self.mol_indices.append(None)
-                else:
-                    self.mol_indices.append(species.index(model.mol))
+                check_species_exists(model.mol, species, model.name, log)
+                self.mol_indices.append(species.index(model.mol))
                 # Parse parameters:
                 if inputs.rpars is None:
                     model.pars = np.tile(np.nan, model.npars)
@@ -198,11 +196,7 @@ class Opacity():
             self.models.append(model)
             self.models_type.append(model.name)
 
-            if not np.all(np.in1d(['H','H-','e-'], species)):
-                log.error(
-                    "'h_ion' opacity model requires the atmosphere to "
-                    "contain H, H-, and e- species"
-            )
+            check_species_exists(['H','H-','e-'], species, model.name, log)
             # For calculations only H and e- are necessary:
             imol = [species.index(mol) for mol in ['H', 'e-']]
             self.mol_indices.append(imol)

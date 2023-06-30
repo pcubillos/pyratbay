@@ -729,22 +729,112 @@ def test_spectrum_raygrid(tmp_path, invalid_raygrid, value):
         pyrat = pb.run(cfg)
 
 
-def test_transmission_h_ion_missing_species(tmp_path):
+def test_line_sample_missing_species(tmp_path):
+    reset = {
+        'species': 'H2  He  H   Na  CH4  CO  CO2',
+        'chemistry': 'tea',
+        'extfile': f'{ROOT}tests/outputs/exttable_test_300-3000K_1.1-1.7um.npz',
+    }
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        remove=['tlifile'],
+        reset=reset,
+    )
+    error = re.escape(
+        "Species ['H2O'], required for opacity model line sampling, "
+        "are not present in the atmosphere"
+    )
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
+
+
+def test_line_by_line_missing_species(tmp_path):
+    reset = {
+        'species': 'H2  He  H   Na  CH4  CO  CO2',
+        'chemistry': 'tea',
+    }
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        reset=reset,
+    )
+    error = re.escape(
+        "The species 'H2O' for isotopes ['161' '181' '171' '162' '182' "
+        "'172' '262'] is not present in the atmosphere"
+    )
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
+
+
+def test_alkali_missing_species(tmp_path):
+    reset = {
+        'alkali': 'potassium_vdw',
+    }
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        reset=reset,
+    )
+    error = re.escape(
+        "Species ['K'], required for opacity model potassium_vdw, "
+        "are not present in the atmosphere"
+    )
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
+
+
+def test_cia_missing_species(tmp_path):
+    reset = {
+        'species': 'H2  H   Na  H2O CH4  CO  CO2',
+        'chemistry': 'tea',
+    }
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        reset=reset,
+    )
+    error = re.escape(
+        "Species ['He'], required for opacity model CIA H2-He, "
+        "are not present in the atmosphere"
+    )
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
+
+
+def test_rayleigh_missing_species(tmp_path):
+    reset = {
+        'species': 'H2  H   Na  H2O CH4  CO  CO2',
+        'chemistry': 'tea',
+        'rayleigh': 'lecavelier dalgarno_He',
+    }
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        remove=['csfile'],
+        reset=reset,
+    )
+    error = re.escape(
+        "Species ['He'], required for opacity model dalgarno_He, "
+        "are not present in the atmosphere"
+    )
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
+
+
+def test_h_ion_missing_species(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         remove=['tlifile', 'csfile', 'alkali', 'clouds'],
         reset={'h_ion': 'h_ion_john1988'},
     )
-    # All opacities except lecavelier (ignore H- because no ions in atmosphere)
     error = re.escape(
-        "'h_ion' opacity model requires the atmosphere to contain "
-        "H, H-, and e- species"
+        "Species ['H-' 'e-'], required for opacity model H- "
+        "bound-free/free-free, are not present in the atmosphere"
     )
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
-
-
 
 
 def test_spectrum_uncert_mismatch(tmp_path):

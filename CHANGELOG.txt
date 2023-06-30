@@ -8572,3 +8572,8 @@ Added 'multinest' option to constants.sampler list.
 
 Minor edits.
 
+
+*****  Fri Jun 30 09:52:55 BST 2023  *****
+
+Check for all opacity models that the species exist in atmosphere.
+
