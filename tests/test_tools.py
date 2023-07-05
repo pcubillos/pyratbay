@@ -410,6 +410,21 @@ def test_cia_borysow():
     # TBD: implement check
 
 
+def test_none_div_no_num():
+    div = pt.none_div(None, 1.0)
+    assert div is None
+
+
+def test_none_div_no_den():
+    div = pt.none_div(1.0, None)
+    assert div is None
+
+
+def test_none_div_all_good():
+    div = pt.none_div(1.0, 2.0)
+    np.testing.assert_allclose(div, 0.5)
+
+
 def test_depth_to_radius_scalar():
     depth = 1.44
     depth_err = 0.6

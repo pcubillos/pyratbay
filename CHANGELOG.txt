@@ -8581,3 +8581,10 @@ Check for all opacity models that the species exist in atmosphere.
 
 Changed name of H- model from H- bf/ff to H- bound-free/free-free.
 
+
+*****  Wed Jul 5 12:25:07 CEST 2023  *****
+
+Tweaked pt.none_div() function to consider None in both denominator
+and numerator.
+Added tests.
+

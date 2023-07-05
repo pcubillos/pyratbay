@@ -43,6 +43,7 @@ from matplotlib.colors import is_color_like
 import mc3.utils as mu
 import mc3.plots as mp
 import numpy as np
+import scipy.interpolate as sip
 
 from .. import constants as pc
 from .. import io as io
@@ -1004,7 +1005,7 @@ def none_div(a, b):
     """
     Non-breaking division when values are None.
     """
-    if a is None:
+    if a is None or b is None:
         return None
     return a/b
 
