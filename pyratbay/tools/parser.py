@@ -387,7 +387,7 @@ def parse(cfile, with_log=True, mute=False):
         parse_float(args, 'wnstep')
         parse_int(args, 'wnosamp')
         parse_float(args, 'resolution')
-        parse_float(args, 'wlstep')
+        parse_str(args, 'wlstep')
         # Atmospheric sampling options:
         parse_str(args, 'input_atmfile')
         parse_str(args, 'tmodel')

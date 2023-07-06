@@ -8595,3 +8595,8 @@ Updated the default nlor and ndop values from 40 to 100 and 50.
 Previous values were undersampling noticeable the line shapes
 over the atmosphere.
 
+*****
+
+Fixed bug handling wlstep argument, it was breaking whit input units
+Added tests.
+

@@ -20,7 +20,7 @@ keys = [
     'lec', 'cia', 'alkali', 'deck', 'tli',
     'patchy', 'patchy_clear', 'patchy_cloudy', 'h_ion', 'all', 'etable',
     'tmodel', 'vert', 'scale', 'fit1', 'fit2', 'fit3', 'fit4',
-    'bandflux4', 'resolution', 'odd_even',
+    'bandflux4', 'resolution', 'odd_even', 'wl_step',
 ]
 
 root = f"{ROOT}tests/expected/expected_spectrum_transmission"
@@ -157,12 +157,11 @@ def test_transmission_resolution(tmp_path):
         pyrat.spec.spectrum, expected['resolution'], rtol=rtol)
 
 
-@pytest.mark.skip(reason="TBD")
 def test_transmission_wl_step(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        reset={'wl_step':'1e-5 um'},
+        reset={'wlstep': '1e-4 um'},
         remove=['clouds'],
     )
     pyrat = pb.run(cfg)
