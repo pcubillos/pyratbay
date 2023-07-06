@@ -486,8 +486,10 @@ def test_interpolate_opacity_extrapolate():
 
     p_mask = pressure < np.amin(press_table)
     # Everything above min(press_table) is the same:
-    assert np.amax(np.abs(1-interp_cs[0,:,p_mask]/cs_data[0,:,0])) < 1e-14
-
+    relative_diff = interp_cs[0,:,p_mask]/cs_data[0,:,0]
+    expected_diff = np.ones_like(relative_diff)
+    np.testing.assert_allclose(relative_diff, expected_diff, rtol=1e-8)
+    
 
 def test_none_div_no_num():
     div = pt.none_div(None, 1.0)

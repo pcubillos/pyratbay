@@ -8628,3 +8628,6 @@ Doppler dominated, i.e., no longer depend on pressure).
 
 Up next: parse pressure source when initializing Atmosphere() object
 
+*****
+
+Updated pyratbay version to 1.1.12b1.
