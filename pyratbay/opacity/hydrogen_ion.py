@@ -25,11 +25,11 @@ class Hydrogen_Ion():
         # Photo-detachment wn threshold in cm-1 (wl0 = 1.6419 um):
         self._wn0_bf = 6090.5
 
-        self.sigma_bf = self.sigma_bound_free()
-        self.free_free_setup()
+        self.sigma_bf = self._sigma_bound_free()
+        self._setup_free_free()
 
 
-    def sigma_bound_free(self):
+    def _sigma_bound_free(self):
         """
         Compute the bound-free cross section for H- in cm2 units.
         Follows Equation (4) of John 1988, AA, 193, 189.
@@ -39,7 +39,7 @@ class Hydrogen_Ion():
         >>> # H- cross sections in cm2 / H-_molec and cm5 / elec / H_molec
 	>>> temperature = 2000.0
         >>> sigma_bf = h_ion.cross_section_bf
-        >>> sigma_ff = h_ion.free_free_cross_section(temperature)
+        >>> sigma_ff = h_ion.cross_section_free_free(temperature)
 
         >>> # As in MacDonald & Lewis (2022), Fig (6):
         >>> import pyratbay.constants as pc
@@ -67,7 +67,7 @@ class Hydrogen_Ion():
         >>> n_Hm = vmr_Hm * press / pc.k / temperature
         >>> n_H = vmr_H * press / pc.k / temperature
         >>> n_e = vmr_e * press / pc.k / temperature
-        >>> sigma_ff = h_ion.free_free_cross_section(temperature)
+        >>> sigma_ff = h_ion.cross_section_free_free(temperature)
 
         >>> cols = 'blue xkcd:green orange'.split()
         >>> labels = ['0.1 mbar','10 mbar', '1000 mbar']
@@ -103,7 +103,7 @@ class Hydrogen_Ion():
         return sigma
 
 
-    def free_free_setup(self):
+    def _setup_free_free(self):
         """
         Equation (6) of John 1988, AA, 193, 189.
 
@@ -158,7 +158,7 @@ class Hydrogen_Ion():
         self._lw_mask = lw_mask
 
 
-    def free_free_cross_section(self, temperature):
+    def cross_section_free_free(self, temperature):
         """
         Compute the free-free cross section for H- in cm5/H_mol/electron.
 
@@ -187,7 +187,7 @@ class Hydrogen_Ion():
         return cross_section_ff
 
 
-    def bound_free_cross_section(self, temperature):
+    def cross_section_bound_free(self, temperature):
         """
         Compute the free-free cross section for H- in cm5/H_mol/electron.
 
@@ -253,8 +253,8 @@ class Hydrogen_Ion():
             is_scalar = True
 
         cross_section = (
-            self.bound_free_cross_section(temperature) +
-            self.free_free_cross_section(temperature)
+            self.cross_section_bound_free(temperature) +
+            self.cross_section_free_free(temperature)
         )
 
         if is_scalar:

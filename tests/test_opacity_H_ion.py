@@ -88,8 +88,8 @@ def test_h_ion_init():
 def test_h_ion_cross_section_single_temp():
     h_ion = op.Hydrogen_Ion(wn)
     temperature = 2000.0
-    sigma_ff = h_ion.free_free_cross_section(temperature)
-    sigma_bf = h_ion.bound_free_cross_section(temperature)
+    sigma_ff = h_ion.cross_section_free_free(temperature)
+    sigma_bf = h_ion.cross_section_bound_free(temperature)
 
     np.testing.assert_allclose(sigma_ff, expected_ff_cs_2000)
     np.testing.assert_allclose(sigma_bf, expected_bf_cs_2000)
@@ -98,8 +98,8 @@ def test_h_ion_cross_section_single_temp():
 def test_h_ion_ff_cross_section_multiple_temps():
     h_ion = op.Hydrogen_Ion(wn)
     temperatures = np.array([2000.0, 5000.0])
-    sigma_ff = h_ion.free_free_cross_section(temperatures)
-    sigma_bf = h_ion.bound_free_cross_section(temperatures)
+    sigma_ff = h_ion.cross_section_free_free(temperatures)
+    sigma_bf = h_ion.cross_section_bound_free(temperatures)
 
     np.testing.assert_allclose(sigma_ff, expected_ff_cs_temps)
     np.testing.assert_allclose(sigma_bf, expected_bf_cs_temps)

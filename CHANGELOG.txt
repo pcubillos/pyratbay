@@ -8600,3 +8600,8 @@ over the atmosphere.
 Fixed bug handling wlstep argument, it was breaking whit input units
 Added tests.
 
+*****
+
+Renamed h_ion cross section methods.
+(Some more cleanup is needed).
+
