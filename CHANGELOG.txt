@@ -8617,3 +8617,14 @@ Updated Voigt vextent default value from 100 to 300 HWHM.
 Fixed bugs in Voigt() print method.
 Updated tests.
 
+*****
+
+Enabled interpolating cross-section data over atmospheric pressure
+array.
+Implemented check_pressure_boundaries() function to prevent
+extrapolation to larger pressures than tabulated values.
+Extrapolation to lower pressures is allowed (since profiles are
+Doppler dominated, i.e., no longer depend on pressure).
+
+Up next: parse pressure source when initializing Atmosphere() object
+

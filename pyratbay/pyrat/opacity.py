@@ -55,7 +55,7 @@ class Opacity():
             #    log.head(f"  '{cs_file}'.")
 
             # TBD: self.ls_files?
-            ls = op.Line_Sample(inputs.extfile, min_wn, max_wn, log)
+            ls = op.Line_Sample(inputs.extfile, min_wn, max_wn, pressure, log)
             self.models.append(ls)
             self.models_type.append('line_sample')
             check_species_exists(ls.species, species, ls.name, log)

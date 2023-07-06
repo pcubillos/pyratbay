@@ -17,7 +17,10 @@ from ..lib import _extcoeff as ec
 
 class Line_Sample():
     """Line-by-line sampled opacities"""
-    def __init__(self, cs_files, min_wn=-np.inf, max_wn=np.inf, log=None):
+    def __init__(
+        self, cs_files, min_wn=-np.inf, max_wn=np.inf,
+        pressure=None, log=None,
+    ):
         """
         Read line-sampled cross-section table(s), with units of cm2 molec-1.
 
@@ -84,10 +87,15 @@ class Line_Sample():
 
         # Get dimensions first:
         # Species, temperature (K), pressure (barye), and wavenumber (cm-1)
-        species, self.temp, self.press, wn = io.read_opacity(
+        species, self.temp, press, wn = io.read_opacity(
             self.cs_files[0], extract='arrays',
         )
         self.ntemp = len(self.temp)
+        if pressure is None:
+            self.press = press
+        else:
+            check_pressure_boundaries(pressure, press)
+            self.press = pressure
         self.nlayers = len(self.press)
         self.wn = wn[(wn >= min_wn) & (wn <= max_wn)]
         self.nwave = len(self.wn)
@@ -103,13 +111,10 @@ class Line_Sample():
             wn_masks.append(wn_mask)
             species_per_file.append(list(species))
             ntemp = len(temp)
-            nlayers = len(press)
             nwave = len(wn)
 
-            # TBD: need to reconsider if applying p-resampling
             shape_mismatch = (
                 ntemp != self.ntemp or
-                nlayers != self.nlayers or
                 nwave != self.nwave
             )
             if shape_mismatch:
@@ -117,14 +122,13 @@ class Line_Sample():
                     f"Shape of the cross-section file '{cs_file}' "
                     "does not match with previous file shapes."
                 )
-
+            check_pressure_boundaries(press, self.press)
             value_mismatch = [
                 np.any(np.abs(1.0-temp/self.temp) > 0.01),
-                np.any(np.abs(1.0-press/self.press) > 0.01),
                 np.any(np.abs(1.0-wn/self.wn) > 0.01),
             ]
             if np.any(value_mismatch):
-                vals = np.array(['temperature', 'pressure', 'wavenumber'])
+                vals = np.array(['temperature', 'wavenumber'])
                 mismatch = ', '.join(vals[value_mismatch])
                 log.error(
                     f"Tabulated {mismatch} values in file '{cs_file}' "
@@ -152,8 +156,9 @@ class Line_Sample():
             for i,cs_file in enumerate(self.cs_files):
                 idx = spec_indices[i]
                 mask = wn_masks[i]
-                self.cs_table[idx] += \
-                    io.read_opacity(cs_file, extract='opacity')[:,:,:,mask]
+                self.cs_table[idx] += pt.interpolate_opacity(
+                        cs_file, self.press, mask,
+                    )
         else:
             itemsize = MPI.DOUBLE.Get_size()
             if comm.rank == 0:
@@ -171,8 +176,9 @@ class Line_Sample():
                 for i,cs_file in enumerate(self.cs_files):
                     idx = spec_indices[i]
                     mask = wn_masks[i]
-                    self.cs_table[idx] += \
-                        io.read_opacity(cs_file, extract='opacity')[:,:,:,mask]
+                    self.cs_table[idx] += pt.interpolate_opacity(
+                        cs_file, self.press, mask,
+                    )
             comm.Barrier()
 
         # Set tabulated temperature extrema:
@@ -333,3 +339,15 @@ class Line_Sample():
         )
         return fw.text
 
+
+def check_pressure_boundaries(press, tabulated_press):
+    """
+    Check that values in pressure profile are no larger than the maximum
+    tabulated pressure (to relative precission of 1e-3).
+    """
+    pmax = np.amax(press)
+    pmax_table = np.amax(tabulated_press)
+    if pmax/pmax_table - 1 > 1e-3:
+        raise ValueError(
+            'Pressure profile extends beyond the maximum tabulated pressure'
+        )
