@@ -8605,3 +8605,9 @@ Added tests.
 Renamed h_ion cross section methods.
 (Some more cleanup is needed).
 
+*****
+
+Implemented pt.interpolate_opacity() to enable pressure-interpolation
+of cross section files when reading.
+Documented and tested.
+

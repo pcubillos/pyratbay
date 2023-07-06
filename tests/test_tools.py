@@ -9,8 +9,10 @@ import re
 import mc3
 import numpy as np
 
-import pyratbay.tools as pt
+import pyratbay.atmosphere as pa
 import pyratbay.constants as pc
+import pyratbay.io as io
+import pyratbay.tools as pt
 
 os.chdir(pc.ROOT+'tests')
 
@@ -408,6 +410,83 @@ def test_cia_borysow():
     ciafile = 'ciah2he_dh_quantmech'
     pt.cia_borysow(ciafile, 'H2', 'He')
     # TBD: implement check
+
+
+def test_interpolate_opacity_no_interp():
+    cs_file = 'outputs/exttable_test_300-3000K_1.1-1.7um.npz'
+    cs_shape, arrays, cs_data  = io.read_opacity(cs_file, extract='all')
+    wn_mask = np.ones(cs_shape[3], bool)
+    pressure = arrays[2]
+    interp_cs = pt.interpolate_opacity(cs_file, pressure, wn_mask)
+    np.testing.assert_allclose(interp_cs, cs_data)
+
+
+def test_interpolate_opacity_interp():
+    nlayers = 30
+    pressure = pa.pressure('1e-6 bar', '100 bar', nlayers)
+
+    cs_file = 'outputs/exttable_test_300-3000K_1.1-1.7um.npz'
+    cs_shape, arrays, cs_data  = io.read_opacity(cs_file, extract='all')
+    wn_mask = np.ones(cs_shape[3], bool)
+    interp_cs = pt.interpolate_opacity(cs_file, pressure, wn_mask)
+
+    assert np.shape(interp_cs)[2] == nlayers
+    # Test at a couple of temperatures and wavelengths:
+    expected_cs = np.array([
+        [5.9256602e-26, 5.9256568e-26, 5.9256478e-26, 5.9256355e-26,
+         5.9256032e-26, 5.9255582e-26, 5.9254563e-26, 5.9252774e-26,
+         5.9249862e-26, 5.9242619e-26, 5.9232402e-26, 5.9205721e-26,
+         5.9169112e-26, 5.9073085e-26, 5.8940521e-26, 5.8599102e-26,
+         5.8143418e-26, 5.7612622e-26, 5.6636491e-26, 5.5528489e-26,
+         5.5917755e-26, 6.0139450e-26, 8.8948915e-26, 1.3198975e-25,
+         2.3003751e-25, 3.2905595e-25, 4.9392910e-25, 6.3977799e-25,
+         7.7682735e-25, 8.4519621e-25],
+        [7.9934423e-29, 1.6021669e-28, 2.8992945e-28, 5.2823678e-28,
+         1.0516308e-27, 1.8142800e-27, 3.8143005e-27, 6.5806369e-27,
+         1.3834911e-26, 2.3868607e-26, 5.0178817e-26, 8.6575141e-26,
+         1.5244410e-25, 3.1401355e-25, 5.4180000e-25, 1.1390651e-24,
+         1.9650792e-24, 4.1313340e-24, 7.1248136e-24, 1.4958770e-23,
+         2.5692599e-23, 5.2247758e-23, 8.6441724e-23, 1.3506444e-22,
+         1.7437439e-22, 1.8541353e-22, 1.9677101e-22, 2.1005127e-22,
+         2.1333042e-22, 2.0219771e-22],
+        [2.3123446e-22, 2.3123447e-22, 2.3123449e-22, 2.3123454e-22,
+         2.3123460e-22, 2.3123477e-22, 2.3123502e-22, 2.3123551e-22,
+         2.3123652e-22, 2.3123803e-22, 2.3124199e-22, 2.3124745e-22,
+         2.3126165e-22, 2.3128124e-22, 2.3133215e-22, 2.3140087e-22,
+         2.3157194e-22, 2.3178886e-22, 2.3220604e-22, 2.3264652e-22,
+         2.3264711e-22, 2.2998136e-22, 2.2123921e-22, 1.8936443e-22,
+         1.4978443e-22, 9.3358221e-23, 6.4372064e-23, 4.5467870e-23,
+         3.5840648e-23, 3.0239903e-23],
+        [6.4448852e-23, 6.4448899e-23, 6.4449022e-23, 6.4449191e-23,
+         6.4449633e-23, 6.4450249e-23, 6.4451644e-23, 6.4454093e-23,
+         6.4458078e-23, 6.4467998e-23, 6.4481996e-23, 6.4518589e-23,
+         6.4568896e-23, 6.4701362e-23, 6.4885542e-23, 6.5272418e-23,
+         6.6028853e-23, 6.7171766e-23, 7.0189503e-23, 7.4344362e-23,
+         8.5163984e-23, 1.0011232e-22, 1.3962457e-22, 1.9414845e-22,
+         3.2728892e-22, 4.7195767e-22, 6.4254581e-22, 7.0593098e-22,
+         6.5726499e-22, 5.3100702e-22],
+    ])
+    i_temps = [1,3,7,9]
+    i_wave = [2234, 837, 2525, 1091]
+    for i in range(4):
+        j = i_temps[i]
+        k = i_wave[i]
+        np.testing.assert_allclose(interp_cs[0,j,:,k], expected_cs[i])
+
+
+def test_interpolate_opacity_extrapolate():
+    nlayers = 30
+    pressure = pa.pressure('1e-12 bar', '100 bar', nlayers)
+
+    cs_file = 'outputs/exttable_test_300-3000K_1.1-1.7um.npz'
+    cs_shape, arrays, cs_data  = io.read_opacity(cs_file, extract='all')
+    press_table = arrays[2]
+    wn_mask = np.ones(cs_shape[3], bool)
+    interp_cs = pt.interpolate_opacity(cs_file, pressure, wn_mask)
+
+    p_mask = pressure < np.amin(press_table)
+    # Everything above min(press_table) is the same:
+    assert np.amax(np.abs(1-interp_cs[0,:,p_mask]/cs_data[0,:,0])) < 1e-14
 
 
 def test_none_div_no_num():

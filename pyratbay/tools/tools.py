@@ -21,6 +21,7 @@ __all__ = [
     'get_exomol_mol',
     'get_exomol_composition',
     'cia_hitran', 'cia_borysow',
+    'interpolate_opacity',
     'none_div',
     'radius_to_depth',
     'depth_to_radius',
@@ -999,6 +1000,52 @@ def cia_borysow(ciafile, species1, species2):
         f'# This file contains the reformated {pair} CIA data from:\n'
         f'# http://www.astro.ku.dk/~aborysow/programs/{file_name}\n\n')
     io.write_cs(csfile, cs, species, temp, wn, header)
+
+
+def interpolate_opacity(cs_file, pressure, wn_mask):
+    """
+    Interpolate the cross-section data from an opacity file over a
+    desired pressure array.
+
+    Parameters
+    ----------
+    cs_file: String
+        Path to a cross-section file.
+    pressure: 1D float array
+        The desired pressure profile in CGS units (barye).
+        If this is the same as the tabulated pressure, do not interpolate.
+    wn_mask: 1D bool array
+        A mask of wavelength points to take.
+
+    Returns
+    -------
+    interp_cs: 4D float array
+        The interpolated cross-section array.
+    """
+    _, _, press, _ = io.read_opacity(cs_file, extract='arrays')
+    logp_table = np.log(press)
+    logp = np.log(pressure)
+
+    # If the pressure is the same as in the table, no need to interpolate:
+    resample_pressure = (
+        len(press) != len(pressure) or
+        np.any(np.abs(1.0-press/pressure) > 0.01)
+    )
+    if not resample_pressure:
+        return io.read_opacity(cs_file, extract='opacity')[:,:,:,wn_mask]
+
+    # Resample log_opacity according to log_pressure
+    log_cs = np.log(io.read_opacity(cs_file, extract='opacity')[:,:,:,wn_mask])
+    # Avoid infinities by capping the zero values to 1e-100:
+    log_cs[~np.isfinite(log_cs)] = -230.0
+
+    cs_extrap = log_cs[:,:,0], log_cs[:,:,-1]
+    cs_interp = sip.interp1d(
+        logp_table, log_cs, axis=2,
+        kind='slinear',
+        bounds_error=False, fill_value=cs_extrap,
+    )
+    return np.exp(cs_interp(logp))
 
 
 def none_div(a, b):
