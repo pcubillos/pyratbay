@@ -248,8 +248,8 @@ def test_transmission_tmodel(tmp_path):
         reset={'tmodel':'guillot', 'tpars':'-4.67 -0.8 -0.8 0.5 1486.0 100.0'},
     )
     pyrat = pb.run(cfg)
-    tmodel2 = pyrat.spec.spectrum
-    np.testing.assert_allclose(tmodel2, expected['tmodel'], rtol=rtol)
+    spectrum = pyrat.spec.spectrum
+    np.testing.assert_allclose(spectrum, expected['tmodel'], rtol=rtol)
 
 
 def test_transmission_tmodel_no_tpars(tmp_path):

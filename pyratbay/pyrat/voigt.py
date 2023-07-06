@@ -13,8 +13,8 @@ class Voigt():
     def __init__(self, inputs, lbl, ex, spec, atm, log):
         self.profile = None  # Voigt profile [sum(2*size+1)]
         self.dlratio = None  # Doppler-Lorentz ratio threshold
-        self.size = None  # Profile wavenumber half-size [ndop, nlor]
-        self.index = None  # Index where each profile starts [ndop, nlor]
+        self.size = None  # Profile wavenumber half-size [nlor, ndop]
+        self.index = None  # Index where each profile starts [nlor, ndop]
 
         # Profiles extent (in HWHMs) and cutoff (in cm-1)
         self.extent = inputs.voigt_extent
@@ -168,12 +168,12 @@ class Voigt():
             f"Voigt-profiles cutoff extent (cutoff in cm-1): {self.cutoff:.1f}",
         )
         fw.write(
-            'Voigt-profile half-sizes (size) of shape [ndop, nlor]:\n{}',
+            'Voigt-profile half-sizes (size) of shape [nlor, ndop]:\n{}',
             self.size,
             edge=2,
         )
         fw.write(
-            'Voigt-profile indices (index) of shape [ndop, nlor]:\n{}',
+            'Voigt-profile indices (index) of shape [nlor, ndop]:\n{}',
             self.index,
             edge=2,
         )
@@ -183,11 +183,11 @@ class Voigt():
             '\nVoigt profiles:\n  profile[ 0, 0]: {}',
             self.profile[index:index+size],
             fmt={'float':'{:.5e}'.format}, edge=2)
-        index = self.index[self.ndop-1,self.nlor-1]
-        size = 2*self.size[self.ndop-1,self.nlor-1] + 1
+        index = self.index[self.nlor-1,self.ndop-1]
+        size = 2*self.size[self.nlor-1,self.ndop-1] + 1
         fw.write(
             '  ...\n  profile[{:2d},{:2d}]: {}',
-            self.ndop-1, self.nlor-1,
+            self.nlor-1, self.ndop-1,
             self.profile[index:index+size],
             fmt={'float':'{:.5e}'.format}, edge=2)
         return fw.text

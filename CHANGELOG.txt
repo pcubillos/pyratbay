@@ -8611,3 +8611,9 @@ Implemented pt.interpolate_opacity() to enable pressure-interpolation
 of cross section files when reading.
 Documented and tested.
 
+*****
+
+Updated Voigt vextent default value from 100 to 300 HWHM.
+Fixed bugs in Voigt() print method.
+Updated tests.
+

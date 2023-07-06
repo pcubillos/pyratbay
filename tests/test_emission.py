@@ -180,7 +180,11 @@ def test_emission_dilution(tmp_path):
         remove=['clouds'],
     )
     pyrat = pb.run(cfg)
-    np.testing.assert_allclose(pyrat.spec.spectrum, 0.75*expected['all'], rtol=rtol)
+    np.testing.assert_allclose(
+        pyrat.spec.spectrum,
+        0.75*expected['all'],
+        rtol=rtol,
+    )
 
 
 # Optical-depth integration is home made, which depends on whether there is
@@ -374,12 +378,12 @@ def test_emission_band_integrate_no_data():
     bandfux = pyrat.band_integrate()
 
     expected_bandflux = [
-        2.06257949e-04, 2.29423565e-04, 2.40889439e-04, 2.80425609e-04,
-        3.01654038e-04, 3.19732138e-04, 3.33941559e-04, 3.35609677e-04,
-        3.21027993e-04, 2.41936455e-04, 2.61700595e-04, 2.62188669e-04,
-        2.60905152e-04, 3.10103149e-04, 3.32353567e-04, 3.91815468e-04,
-        4.58882653e-04, 4.91439241e-04, 5.31695989e-04, 5.53791755e-04,
-        5.70806138e-04
+        2.06236347e-04, 2.29404113e-04, 2.40870627e-04, 2.80421152e-04,
+        3.01652600e-04, 3.19731149e-04, 3.33937491e-04, 3.35602755e-04,
+        3.20580668e-04, 2.41654989e-04, 2.61549765e-04, 2.62008913e-04,
+        2.60698364e-04, 3.09882818e-04, 3.32194134e-04, 3.91690234e-04,
+        4.58805826e-04, 4.91399085e-04, 5.31683111e-04, 5.53786983e-04,
+        5.70803502e-04,
     ]
     np.testing.assert_allclose(pyrat.spec.spectrum, spectrum)
     np.testing.assert_allclose(bandfux, expected_bandflux)

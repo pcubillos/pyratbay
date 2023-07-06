@@ -396,33 +396,33 @@ def test_pyrat_transmission_voigt_str(tmp_path):
     assert str(pyrat.voigt) == """\
 Voigt-profile information:
 
-Number of Doppler-width samples (ndop): 40
-Number of Lorentz-width samples (nlor): 40
+Number of Doppler-width samples (ndop): 50
+Number of Lorentz-width samples (nlor): 100
 Doppler HWHM (doppler, cm-1):
-    [4.963e-03 5.243e-03 5.538e-03 ... 3.765e-02 3.977e-02 4.201e-02]
+    [4.963e-03 5.184e-03 5.415e-03 ... 3.850e-02 4.022e-02 4.201e-02]
 Lorentz HWMH (lorentz, cm-1):
-    [2.210e-08 3.702e-08 6.202e-08 ... 4.313e+00 7.225e+00 1.210e+01]
+    [2.210e-08 2.708e-08 3.318e-08 ... 8.061e+00 9.878e+00 1.210e+01]
 Doppler--Lorentz ratio threshold (dlratio): 1.000e-01
 
-Voigt-profiles extent (extent, in HWHMs): 100.0
+Voigt-profiles extent (extent, in HWHMs): 300.0
 Voigt-profiles cutoff extent (cutoff in cm-1): 25.0
-Voigt-profile half-sizes (size) of shape [ndop, nlor]:
-[[ 1072  1132 ...  8590  9074]
- [ 1072  1132 ...  8590  9074]
+Voigt-profile half-sizes (size) of shape [nlor, ndop]:
+[[ 3216  3359 ... 26061 27222]
+ [ 3216  3359 ... 26061 27222]
  ...
  [54000 54000 ... 54000 54000]
  [54000 54000 ... 54000 54000]]
-Voigt-profile indices (index) of shape [ndop, nlor]:
-[[       0     2145 ...   267162   284343]
- [  302492   304637 ...   569654   586835]
+Voigt-profile indices (index) of shape [nlor, ndop]:
+[[        0      6433 ...   1025574   1077697]
+ [  1132142   1138575 ...   2157718   2209841]
  ...
- [14927817 14927817 ... 14927817 14927817]
- [15035818 15035818 ... 15035818 15035818]]
+ [122214976 122214976 ... 122214976 122214976]
+ [122322977 122322977 ... 122322977 122322977]]
 
 Voigt profiles:
-  profile[ 0, 0]: [2.85914e-08 2.86448e-08 ... 2.86448e-08 2.85914e-08]
+  profile[ 0, 0]: [3.17423e-09 3.17621e-09 ... 3.17621e-09 3.17423e-09]
   ...
-  profile[39,39]: [4.99389e-03 4.99404e-03 ... 4.99404e-03 4.99389e-03]
+  profile[99,49]: [4.99389e-03 4.99404e-03 ... 4.99404e-03 4.99389e-03]
 """
 
 
@@ -432,18 +432,17 @@ def test_pyrat_transmission_od_str(tmp_path):
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
     )
     pyrat = pb.run(cfg)
-    print(pyrat.od)
     assert str(pyrat.od) == """\
 Optical depth information:
 Observing geometry (rt_path): transit
 Total atmospheric extinction coefficient (ec, cm-1) [layer, wave]:
-[[ 5.613e-17  1.806e-14  5.621e-17 ...  7.134e-16  3.406e-16  3.567e-16]
- [ 7.067e-17  2.274e-14  7.077e-17 ...  8.981e-16  4.288e-16  4.490e-16]
- [ 8.898e-17  2.863e-14  8.911e-17 ...  1.131e-15  5.399e-16  5.653e-16]
+[[ 5.613e-17  1.759e-14  5.620e-17 ...  7.911e-16  3.408e-16  3.573e-16]
+ [ 7.067e-17  2.214e-14  7.077e-17 ...  9.959e-16  4.291e-16  4.498e-16]
+ [ 8.898e-17  2.787e-14  8.911e-17 ...  1.254e-15  5.402e-16  5.662e-16]
  ...
- [ 1.245e-04  1.246e-04  1.245e-04 ...  7.748e-06  7.443e-06  7.152e-06]
- [ 1.970e-04  1.969e-04  1.966e-04 ...  1.162e-05  1.120e-05  1.079e-05]
- [ 3.119e-04  3.116e-04  3.112e-04 ...  1.752e-05  1.699e-05  1.647e-05]]
+ [ 1.245e-04  1.245e-04  1.244e-04 ...  7.790e-06  7.444e-06  7.121e-06]
+ [ 1.970e-04  1.969e-04  1.967e-04 ...  1.163e-05  1.120e-05  1.078e-05]
+ [ 3.119e-04  3.116e-04  3.111e-04 ...  1.749e-05  1.698e-05  1.648e-05]]
 
 Distance along the ray path across each layer (outside-in) at each impact
     parameter (raypath, km):
@@ -462,12 +461,12 @@ Maximum ideep (deepest layer reaching maxdepth): 30
 
 Optical depth at each impact parameter, down to max(ideep) (depth):
 [[ 0.000e+00  0.000e+00  0.000e+00 ...  0.000e+00  0.000e+00  0.000e+00]
- [ 3.881e-08  1.249e-05  3.887e-08 ...  4.933e-07  2.355e-07  2.466e-07]
- [ 6.490e-08  2.088e-05  6.499e-08 ...  8.248e-07  3.938e-07  4.123e-07]
+ [ 3.881e-08  1.216e-05  3.887e-08 ...  5.470e-07  2.357e-07  2.470e-07]
+ [ 6.490e-08  2.033e-05  6.499e-08 ...  9.146e-07  3.941e-07  4.130e-07]
  ...
- [ 4.696e-05  1.232e-02  4.744e-05 ...  4.890e-04  2.336e-04  2.463e-04]
- [ 6.197e-05  1.550e-02  6.274e-05 ...  6.163e-04  2.944e-04  3.112e-04]
- [ 8.247e-05  1.950e-02  8.365e-05 ...  7.768e-04  3.710e-04  3.931e-04]]
+ [ 4.704e-05  1.199e-02  4.756e-05 ...  5.424e-04  2.339e-04  2.472e-04]
+ [ 6.202e-05  1.509e-02  6.281e-05 ...  6.832e-04  2.947e-04  3.120e-04]
+ [ 8.254e-05  1.899e-02  8.373e-05 ...  8.609e-04  3.714e-04  3.942e-04]]
 """
 
 
@@ -557,7 +556,7 @@ Gaussian quadrature weights (quadrature_weights):
     [0.095 0.691 1.058 0.931 0.367]
 
 Transmission spectrum, (Rp/Rs)**2 (spectrum):
-    [ 6.525e-03  6.541e-03  6.525e-03 ...  6.670e-03  6.501e-03  6.473e-03]
+    [ 6.525e-03  6.541e-03  6.525e-03 ...  6.670e-03  6.502e-03  6.475e-03]
 """
 
 @pytest.mark.skip(reason="TBD")
@@ -635,13 +634,13 @@ Emission spectrum (spectrum, erg s-1 cm-2 cm):
 Optical depth information:
 Observing geometry (rt_path): emission
 Total atmospheric extinction coefficient (ec, cm-1) [layer, wave]:
-[[ 5.613e-17  1.806e-14  5.621e-17 ...  7.134e-16  3.406e-16  3.567e-16]
- [ 7.067e-17  2.274e-14  7.077e-17 ...  8.981e-16  4.288e-16  4.490e-16]
- [ 8.898e-17  2.863e-14  8.911e-17 ...  1.131e-15  5.399e-16  5.653e-16]
+[[ 5.613e-17  1.759e-14  5.620e-17 ...  7.911e-16  3.408e-16  3.573e-16]
+ [ 7.067e-17  2.214e-14  7.077e-17 ...  9.959e-16  4.291e-16  4.498e-16]
+ [ 8.898e-17  2.787e-14  8.911e-17 ...  1.254e-15  5.402e-16  5.662e-16]
  ...
- [ 1.245e-04  1.246e-04  1.245e-04 ...  7.748e-06  7.443e-06  7.152e-06]
- [ 1.970e-04  1.969e-04  1.966e-04 ...  1.162e-05  1.120e-05  1.079e-05]
- [ 3.119e-04  3.116e-04  3.112e-04 ...  1.752e-05  1.699e-05  1.647e-05]]
+ [ 1.245e-04  1.245e-04  1.244e-04 ...  7.790e-06  7.444e-06  7.121e-06]
+ [ 1.970e-04  1.969e-04  1.967e-04 ...  1.163e-05  1.120e-05  1.078e-05]
+ [ 3.119e-04  3.116e-04  3.111e-04 ...  1.749e-05  1.698e-05  1.648e-05]]
 
 Distance across each layer along a normal ray path (raypath, km):
     [62.8 62.7 62.6 62.5 ... 86.0 85.8 85.7 85.5]
@@ -663,12 +662,12 @@ Planck emission down to max(ideep) (B, erg s-1 cm-2 sr-1 cm):
 Optical depth at each layer along a normal ray path into the planet, down to
     max(ideep) (depth):
 [[ 0.000e+00  0.000e+00  0.000e+00 ...  0.000e+00  0.000e+00  0.000e+00]
- [ 3.984e-10  1.282e-07  3.989e-10 ...  5.063e-09  2.417e-09  2.531e-09]
- [ 8.992e-10  2.893e-07  9.004e-10 ...  1.143e-08  5.456e-09  5.713e-09]
+ [ 3.984e-10  1.248e-07  3.989e-10 ...  5.614e-09  2.419e-09  2.535e-09]
+ [ 8.992e-10  2.817e-07  9.004e-10 ...  1.267e-08  5.460e-09  5.723e-09]
  ...
- [ 1.090e-06  3.008e-04  1.099e-06 ...  1.193e-05  5.695e-06  5.995e-06]
- [ 1.422e-06  3.784e-04  1.436e-06 ...  1.502e-05  7.172e-06  7.562e-06]
- [ 1.869e-06  4.760e-04  1.891e-06 ...  1.892e-05  9.036e-06  9.544e-06]]
+ [ 1.091e-06  2.928e-04  1.101e-06 ...  1.322e-05  5.701e-06  6.012e-06]
+ [ 1.423e-06  3.684e-04  1.438e-06 ...  1.665e-05  7.180e-06  7.583e-06]
+ [ 1.871e-06  4.635e-04  1.893e-06 ...  2.097e-05  9.045e-06  9.569e-06]]
 """
 
 
