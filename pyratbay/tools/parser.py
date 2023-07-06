@@ -425,10 +425,10 @@ def parse(cfile, with_log=True, mute=False):
         parse_float(args, 'vcutoff')
         parse_float(args, 'dmin')
         parse_float(args, 'dmax')
-        parse_int(args,   'ndop')
+        parse_int(args, 'ndop')
         parse_float(args, 'lmin')
         parse_float(args, 'lmax')
-        parse_int(args,   'nlor')
+        parse_int(args, 'nlor')
         parse_float(args, 'dlratio')
         # Hazes and clouds options:
         parse_array(args, 'clouds')
@@ -727,13 +727,13 @@ def parse(cfile, with_log=True, mute=False):
     args.voigt_cutoff = args.get_default(
         'vcutoff', 'Voigt profile cutoff in cm-1', 25.0, ge=0.0)
     args.voigt_ndop = args.get_default(
-        'ndop', 'Number of Doppler-width samples', 40, ge=1)
+        'ndop', 'Number of Doppler-width samples', 50, ge=1)
     args.voigt_dmin = args.get_default(
         'dmin', 'Minimum Doppler HWHM (cm-1)', gt=0.0)
     args.voigt_dmax = args.get_default(
         'dmax', 'Maximum Doppler HWHM (cm-1)', gt=0.0)
     args.voigt_nlor = args.get_default(
-        'nlor', 'Number of Lorentz-width samples', 40, ge=1)
+        'nlor', 'Number of Lorentz-width samples', 100, ge=1)
     args.voigt_lmin = args.get_default(
         'lmin', 'Minimum Lorentz HWHM (cm-1)', gt=0.0)
     args.voigt_lmax = args.get_default(

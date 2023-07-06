@@ -8588,3 +8588,10 @@ Tweaked pt.none_div() function to consider None in both denominator
 and numerator.
 Added tests.
 
+
+*****  Thu Jul 6 10:41:56 CEST 2023  *****
+
+Updated the default nlor and ndop values from 40 to 100 and 50.
+Previous values were undersampling noticeable the line shapes
+over the atmosphere.
+
