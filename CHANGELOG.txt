@@ -8647,3 +8647,7 @@ tests/inputs/atmosphere_uniform_test.atm
 Brought default vextent value back to 300.0 HWMH, in tests set to 100
 only for faster execution.
 
+*****
+
+Moved clouds module from atmosphere to opacity.
+

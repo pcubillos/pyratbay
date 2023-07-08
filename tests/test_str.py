@@ -83,7 +83,7 @@ def test_opacity_cloud_deck_str():
     wn_min = 1.0 / (1.7 * pc.um)
     wn_max = 1.0 / (1.1 * pc.um)
     wn = np.arange(wn_min, wn_max, 1.0)
-    model = pa.clouds.Deck(pressure, wn)
+    model = op.clouds.Deck(pressure, wn)
 
     pars = [-3.0]
     tmodel = pa.tmodels.Guillot(pressure)
@@ -112,7 +112,7 @@ def test_opacity_cloud_ccsgray_str():
     wn_max = 1.0 / (1.1 * pc.um)
     wn = np.arange(wn_min, wn_max, 1.0)
 
-    model = pa.clouds.CCSgray(pressure, wn)
+    model = op.clouds.CCSgray(pressure, wn)
     pars = [0.0, -3.0, 2.0]
     tmodel = pa.tmodels.Guillot(pressure)
     temperature = tmodel([-4.83, -0.8, 0, 0, 1200, 100])

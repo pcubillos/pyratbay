@@ -3,7 +3,6 @@
 
 import numpy as np
 
-from .. import atmosphere as pa
 from .. import constants as pc
 from .. import opacity as op
 from .. import tools as pt
@@ -168,9 +167,9 @@ class Opacity():
             npars = 0
             for name in inputs.clouds:
                 if name == 'ccsgray':
-                    model = pa.clouds.CCSgray(pressure, wn)
+                    model = op.clouds.CCSgray(pressure, wn)
                 if name == 'deck':
-                    model = pa.clouds.Deck(pressure, wn)
+                    model = op.clouds.Deck(pressure, wn)
                 self.models.append(model)
                 self.models_type.append('cloud')
                 self.mol_indices.append(None)

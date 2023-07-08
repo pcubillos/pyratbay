@@ -1,19 +1,11 @@
 # Copyright (c) 2021-2023 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
-"""
-Atmospheric modeling functions.
-"""
+"""Cloud opacity models."""
 
-from .atmosphere import *
-from .vmr_scaling import *
-from . import tmodels
+from .gray import *
 
-__all__ = (
-    atmosphere.__all__
-  + vmr_scaling.__all__
-  + ['tmodels']
-)
+__all__ = gray.__all__
 
 
 # Clean up top-level namespace--delete everything that isn't in __all__

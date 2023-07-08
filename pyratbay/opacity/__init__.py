@@ -4,12 +4,14 @@
 __all__ = [
     'alkali',
     'broadening',
+    'clouds',
     'linelist',
     'partitions',
     'rayleigh',
 ]
 
 from . import alkali
+from . import clouds
 from . import broadening
 from . import linelist
 from . import partitions
