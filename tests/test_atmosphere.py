@@ -216,10 +216,10 @@ def test_temperature_madhu():
 
 def test_uniform():
     nlayers = 11
-    pressure    = pa.pressure(1e-8, 1e2, nlayers, units='bar')
+    pressure = pa.pressure(1e-8, 1e2, nlayers, units='bar')
     temperature = np.tile(1500.0, nlayers)
-    species     = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
-    abundances  = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
+    species = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
+    abundances = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
     qprofiles = pa.uniform(pressure, temperature, species, abundances)
     assert np.shape(qprofiles) == (nlayers, len(species))
     for q in qprofiles:
@@ -227,7 +227,7 @@ def test_uniform():
 
 
 def test_abundance_uniform():
-    atmfile = "outputs/atm_test.dat"
+    atmfile = "outputs/atm_test.atm"
     nlayers = 11
     punits  = 'bar'
     pressure = pa.pressure(1e-8, 1e2, nlayers, punits)

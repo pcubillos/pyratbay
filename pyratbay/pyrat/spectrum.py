@@ -34,6 +34,7 @@ class Spectrum():
         self.clear     = None  # Clear modulation spectrum for patchy model
         self.cloudy    = None  # Cloudy modulation spectrum for patchy model
         self.starflux  = None  # Stellar flux spectrum
+        self.wnosamp = None
 
         # Gaussian-quadrature flux integration over hemisphere (for emission)
         if inputs.quadrature is not None:

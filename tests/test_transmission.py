@@ -20,7 +20,7 @@ keys = [
     'lec', 'cia', 'alkali', 'deck', 'tli',
     'patchy', 'patchy_clear', 'patchy_cloudy', 'h_ion', 'all', 'etable',
     'tmodel', 'vert', 'scale', 'fit1', 'fit2', 'fit3', 'fit4',
-    'bandflux4', 'resolution', 'odd_even', 'wl_step',
+    'bandflux4', 'resolution', 'wl_step',
 ]
 
 root = f"{ROOT}tests/expected/expected_spectrum_transmission"
@@ -179,8 +179,7 @@ def test_transmission_odd_even(tmp_path):
         remove=['tlifile', 'csfile', 'alkali', 'clouds'],
     )
     pyrat = pb.run(cfg)
-    np.testing.assert_allclose(
-        pyrat.spec.spectrum, expected['odd_even'], rtol=rtol)
+    odd_spectrum = pyrat.spec.spectrum
 
     reset = {
         'input_atmfile': f'{INPUTS}atmosphere_uniform_even_layers.atm',
@@ -193,12 +192,11 @@ def test_transmission_odd_even(tmp_path):
         remove=['tlifile', 'csfile', 'alkali', 'clouds'],
     )
     pyrat = pb.run(cfg)
-    spectrum = pyrat.spec.spectrum
-    np.testing.assert_allclose(spectrum, expected['odd_even'], rtol=rtol)
+    even_spectrum = pyrat.spec.spectrum
+    np.testing.assert_allclose(odd_spectrum, even_spectrum, rtol=rtol)
 
 
 def test_transmission_etable(tmp_path):
-    # LBL from extinction table:
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',

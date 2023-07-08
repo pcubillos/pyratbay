@@ -723,7 +723,7 @@ def parse(cfile, with_log=True, mute=False):
             args.log_gstar = np.log10(gstar)
 
     args.voigt_extent = args.get_default(
-        'vextent', 'Voigt profile extent in HWHM', 250.0, ge=1.0)
+        'vextent', 'Voigt profile extent in HWHM', 300.0, ge=1.0)
     args.voigt_cutoff = args.get_default(
         'vcutoff', 'Voigt profile cutoff in cm-1', 25.0, ge=0.0)
     args.voigt_ndop = args.get_default(

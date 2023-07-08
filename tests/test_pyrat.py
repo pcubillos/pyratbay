@@ -71,7 +71,7 @@ def test_get_ec_lbl(tmp_path):
         reset={'csfile': cfile, 'wllow': '0.55'},
     )
     pyrat = pb.run(cfg)
-    layer = 50
+    layer = 31
     ec, labels = pyrat.get_ec(layer)
 
     expected_labels = ['H2O', 'Na', 'CIA H2-H2', 'lecavelier', 'deck']
@@ -99,7 +99,7 @@ def test_get_ec_line_sample(tmp_path):
         remove=['tlifile', 'clouds'],
     )
     pyrat = pb.run(cfg)
-    layer = 50
+    layer = 31
     ec, labels = pyrat.get_ec(layer)
 
     expected_labels = [

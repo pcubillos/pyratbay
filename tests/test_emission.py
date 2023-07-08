@@ -21,7 +21,7 @@ os.chdir(ROOT+'tests')
 # Expected spectra:
 keys = [
     'lec', 'cia', 'alkali', 'deck', 'tli', 'all', 'quadrature', 'etable',
-    'resolution', 'two_stream', 'odd_even',
+    'resolution', 'two_stream',
     'tmodel', 'vert', 'scale',
     #'fit1', 'fit2', 'fit3', 'fit4',
     #'bandflux4',
@@ -93,7 +93,9 @@ def test_emission_deck(tmp_path):
     )
     pyrat = pb.run(cfg)
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['deck'], rtol=rtol)
-    spectrum = ps.bbflux(pyrat.spec.wn, pyrat.atm.temp[30])
+
+    tsurf_cloud = pyrat.opacity.models[0].tsurf
+    spectrum = ps.bbflux(pyrat.spec.wn, tsurf_cloud)
     np.testing.assert_allclose(pyrat.spec.spectrum, spectrum, rtol=rtol)
 
 
@@ -197,8 +199,7 @@ def test_emission_odd_even(tmp_path):
         remove=['tlifile', 'alkali', 'clouds'],
     )
     pyrat = pb.run(cfg)
-    np.testing.assert_allclose(
-        pyrat.spec.spectrum, expected['odd_even'], rtol=rtol)
+    odd_spectrum = pyrat.spec.spectrum
 
     reset = {
         'input_atmfile': f'{INPUTS}atmosphere_uniform_even_layers.atm',
@@ -211,8 +212,8 @@ def test_emission_odd_even(tmp_path):
         reset=reset,
     )
     pyrat = pb.run(cfg)
-    np.testing.assert_allclose(
-        pyrat.spec.spectrum, expected['odd_even'], rtol=rtol)
+    even_spectrum = pyrat.spec.spectrum
+    np.testing.assert_allclose(odd_spectrum, even_spectrum, rtol=rtol)
 
 
 @pytest.mark.skip(reason="")
@@ -378,12 +379,12 @@ def test_emission_band_integrate_no_data():
     bandfux = pyrat.band_integrate()
 
     expected_bandflux = [
-        2.06236347e-04, 2.29404113e-04, 2.40870627e-04, 2.80421152e-04,
-        3.01652600e-04, 3.19731149e-04, 3.33937491e-04, 3.35602755e-04,
-        3.20580668e-04, 2.41654989e-04, 2.61549765e-04, 2.62008913e-04,
-        2.60698364e-04, 3.09882818e-04, 3.32194134e-04, 3.91690234e-04,
-        4.58805826e-04, 4.91399085e-04, 5.31683111e-04, 5.53786983e-04,
-        5.70803502e-04,
+        2.06005597e-04, 2.29200748e-04, 2.40634990e-04, 2.80284051e-04,
+        3.01541758e-04, 3.19626218e-04, 3.33792736e-04, 3.35382069e-04,
+        3.20701435e-04, 2.41386366e-04, 2.61135388e-04, 2.61636311e-04,
+        2.60311182e-04, 3.09387737e-04, 3.31626066e-04, 3.91020774e-04,
+        4.58048264e-04, 4.90616170e-04, 5.30905841e-04, 5.52920087e-04,
+        5.69824173e-04,
     ]
     np.testing.assert_allclose(pyrat.spec.spectrum, spectrum)
     np.testing.assert_allclose(bandfux, expected_bandflux)

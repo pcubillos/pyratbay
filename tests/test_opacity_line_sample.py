@@ -23,13 +23,13 @@ def test_line_sample_init(cs_input):
     assert ls.ntemp == 10
     assert ls.nwave == 3209
     assert ls.nspec == 1
-    assert ls.nlayers == 81
+    assert ls.nlayers == 51
 
     expected_temp = np.array([
          300.,  600.,  900., 1200., 1500., 1800., 2100., 2400., 2700., 3000.
     ])
     expected_wn = np.arange(5882.35294118, 9091.0, 1.0)
-    expected_press = np.logspace(0, 8, 81)
+    expected_press = np.logspace(0, 8, 51)
 
     assert ls.species == ['H2O']
     np.testing.assert_allclose(ls.wn, expected_wn)
@@ -48,7 +48,7 @@ def test_line_sample_trim_wn():
     assert ls.ntemp == 10
     assert ls.nwave == 1000
     assert ls.nspec == 1
-    assert ls.nlayers == 81
+    assert ls.nlayers == 51
 
     expected_wn = np.arange(6000.35294118, 7000.0, 1.0)
     np.testing.assert_allclose(ls.wn, expected_wn)
@@ -89,7 +89,7 @@ def test_line_sample_per_mol_cross_section():
 
     temp = np.tile(1200.0, ls.nlayers)
     cross_section = ls.calc_cross_section(temp, per_mol=True)
-    assert np.shape(cross_section) == (1, 81, 40)
+    assert np.shape(cross_section) == (1, 51, 40)
     np.testing.assert_allclose(cross_section[0], expected_cs)
 
 
@@ -102,7 +102,7 @@ def test_line_sample_per_mol_single_cross_section():
 
     temp = np.tile(1200.0, ls.nlayers)
     cross_section = ls.calc_cross_section(temp, per_mol=True)
-    assert np.shape(cross_section) == (1, 81, 40)
+    assert np.shape(cross_section) == (1, 51, 40)
     np.testing.assert_allclose(cross_section[0], expected_cs)
 
 
@@ -149,7 +149,7 @@ def test_line_sample_per_mol_extinction_coefficient():
     densities = pa.ideal_gas_density(vmr, ls.press, temp)
     extinction = ls.calc_extinction_coefficient(temp, densities, per_mol=True)
 
-    assert np.shape(extinction) == (1, 81, 40)
+    assert np.shape(extinction) == (1, 51, 40)
     np.testing.assert_allclose(extinction[0], expected_ec)
 
 
