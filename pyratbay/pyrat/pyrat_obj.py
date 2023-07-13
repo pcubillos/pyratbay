@@ -468,8 +468,8 @@ class Pyrat():
       # Enforce two-stream RT:
       rt_path = self.od.rt_path
       self.od.rt_path = 'emission_two_stream'
-      tmin = np.amax(self.opacity.tmin.values())
-      tmax = np.amin(self.opacity.tmax.values())
+      tmin = np.amax(list(self.opacity.tmin.values()))
+      tmax = np.amin(list(self.opacity.tmax.values()))
 
       # Initial temperature scale factor
       if not hasattr(atm, '_dt_scale') or not continue_run:

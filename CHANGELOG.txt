@@ -8651,3 +8651,9 @@ only for faster execution.
 
 Moved clouds module from atmosphere to opacity.
 
+
+*****  Thu Jul 13 10:39:38 CEST 2023  *****
+
+Fixed bug calculating the temperature limits before radiative eq.
+calculation.
+
