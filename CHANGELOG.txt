@@ -8657,3 +8657,11 @@ Moved clouds module from atmosphere to opacity.
 Fixed bug calculating the temperature limits before radiative eq.
 calculation.
 
+
+*****  Sun Jul 23 16:30:04 CEST 2023  *****
+
+Implemented Data() class object to handle data and uncertainties
+Currently it implements error scaling models as a multiplicative
+factor and an addition in quadrature.
+Documented and tested.
+

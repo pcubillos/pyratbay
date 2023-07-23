@@ -1,12 +1,15 @@
 # Copyright (c) 2021 Patricio Cubillos
 # Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
-from .tools import *
+from .data import *
 from .parser import *
+from .tools import *
 
-__all__ = ( tools.__all__
-          + parser.__all__
-          )
+__all__ = (
+    data.__all__
+    + parser.__all__
+    + tools.__all__
+)
 
 # Clean up top-level namespace--delete everything that isn't in __all__
 # or is a magic attribute, and that isn't a submodule of this package
