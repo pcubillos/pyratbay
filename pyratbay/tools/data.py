@@ -69,7 +69,9 @@ def parse_error_param(var):
 
 
 class Data():
-    def __init__(self, data, uncert, band_names, err_models=None):
+    def __init__(
+        self, data, uncert, band_names, err_models=None, err_pars=None,
+    ):
         """
         Parameters
         ----------
@@ -86,6 +88,10 @@ class Data():
             followed by a string matching a substring of at least one of
             the band_names, these specific data points will be affected by
             the error scaling model.
+        err_pars: 1D float iterable
+            Error scaling parameters. If not provided, or value is a None,
+            the default values are set such that there's no scaling from
+            the input uncert values.
 
         Examples
         --------
@@ -126,7 +132,10 @@ class Data():
         elif isinstance(err_models, str):
             err_models = [err_models]
         self.n_epars = len(err_models)
-        self.epars = np.zeros(self.n_epars)
+
+        self.epars = err_pars
+        if self.epars is None:
+            self.epars = np.tile(None, self.n_epars)
 
         self.data = np.copy(data)
         self.uncert = np.copy(uncert)
@@ -137,11 +146,16 @@ class Data():
         self.texnames = []
         self.indices = []
         self.scaling_modes = []
-        for param in err_models:
+        for i,param in enumerate(err_models):
             inst, texname, scaling = parse_error_param(param)
             self.inst.append(inst)
             self.texnames.append(texname)
             self.scaling_modes.append(scaling)
+            # default values (zero scaling):
+            if scaling == 'scale' and self.epars[i] is None:
+                self.epars[i] = 0.0
+            elif scaling == 'quadrature' and self.epars[i] is None:
+                self.epars[i] = -100.0
 
             indices = np.array([inst in name for name in band_names])
             if np.sum(indices) == 0:

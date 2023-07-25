@@ -8665,3 +8665,10 @@ Currently it implements error scaling models as a multiplicative
 factor and an addition in quadrature.
 Documented and tested.
 
+
+*****  Tue Jul 25 11:48:03 CEST 2023  *****
+
+Added err_pars argument to Data() class initializer
+If not provided, default values are set such that there's no
+error scaling.
+
