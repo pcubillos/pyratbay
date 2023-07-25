@@ -153,8 +153,7 @@ class Retrieval():
             opacity_pnames += names
 
         offset_pnames = obs.offset_instruments
-        if offset_pnames is None:
-            offset_pnames = []
+        error_pnames = obs.uncert_scaling
 
         # Indices to map free parameters of each model:
         self.map_pars = map_pars = {
@@ -162,6 +161,7 @@ class Retrieval():
             'mol': [],
             'opacity': [[] for model in opacity.models],
             'offset': [],
+            'error': [],
         }
         # Model parameter names
         self.nparams = len(self.pnames)
@@ -180,7 +180,8 @@ class Retrieval():
             temp_pnames +
             atm.mol_pnames +
             opacity_pnames +
-            offset_pnames
+            offset_pnames +
+            error_pnames
         )
 
         # Indices for each model parameters in self.params array:
@@ -194,10 +195,12 @@ class Retrieval():
         self.imol = None
         self.iopacity = [[] for model in opacity.models]
         self.ioffset = None
+        self.ierror = None
 
         itemp = []
         imol = []
         ioffset = []
+        ierror = []
         for i,pname in enumerate(self.pnames):
             if pname == 'log_p_ref':
                 self.ipress = np.array([i])
@@ -243,6 +246,11 @@ class Retrieval():
                 idx = offset_pnames.index(pname)
                 map_pars['offset'].append(idx)
                 self.texnames[i] = pname.replace('offset_', r'$\Delta$')
+            elif pname in error_pnames:
+                ierror.append(i)
+                idx = error_pnames.index(pname)
+                map_pars['error'].append(idx)
+                self.texnames[i] = obs.depth.texnames[idx]
             else:
                 log.error(
                     f"Invalid retrieval parameter '{pname}'. Possible "
@@ -255,6 +263,8 @@ class Retrieval():
             self.imol = imol
         if len(ioffset) > 0:
             self.ioffset = ioffset
+        if len(ierror) > 0:
+            self.ierror = ierror
 
         # Patch missing parameters if possible:
         patch_temp = (
@@ -452,6 +462,8 @@ def collect_pnames_from_retflag(
         pnames += ['T_eff']
     if 'offset' in retflag:
         pnames += list(ret.offset_instruments)
+    if 'error' in retflag:
+        pnames += list(ret.uncert_scaling)
 
     # Retrieval variables:
     if ret.params is not None and len(ret.params) != len(pnames):

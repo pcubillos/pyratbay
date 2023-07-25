@@ -276,6 +276,12 @@ class Pyrat():
           for j, offset in enumerate(obs.offset_pars):
               obs.bandflux[obs.offset_indices[j]] -= offset*obs._dunits
 
+      # Uncertainty scaling:
+      if ret.ierror is not None:
+          ifree = ret.map_pars['error']
+          obs.depth.epars[ifree] = params[ret.ierror]
+          obs.uncert = obs.depth.scale_errors(obs.depth.epars, obs.units)
+
       # Invalid model:
       if not np.any(obs.bandflux):
           reject_flag = True
@@ -461,6 +467,7 @@ class Pyrat():
           nsamples = self.inputs.nsamples
 
       # No outputs while iterating
+      tmp_verb = self.log.verb
       self.log.verb = 0
       spec_file = self.spec.specfile
       self.spec.specfile = None
@@ -510,7 +517,7 @@ class Pyrat():
       io.write_spectrum(
           1.0/self.spec.wn, self.spec.spectrum, self.spec.specfile, spec_type,
       )
-      self.log.verb = self.verb
+      self.log.verb = tmp_verb
 
 
   def band_integrate(self, spectrum=None):

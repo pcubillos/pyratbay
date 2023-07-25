@@ -12,6 +12,7 @@ from .. import io as io
 from .. import spectrum as ps
 from .. import tools as pt
 
+
 class Observation():
     def __init__(self, inputs, wn, log):
         # Transit or eclipse data point
@@ -36,7 +37,6 @@ class Observation():
                 self.filters, self.data, self.uncert = obs_data
             elif np.ndim(obs_data) == 1:
                 self.filters = obs_data
-        self.offset_instruments = inputs.offset_instruments
 
         # Number of datapoints and filters:
         self.ndata = 0
@@ -69,6 +69,7 @@ class Observation():
         self.bandflux = np.zeros(self.nfilters, np.double)
 
         # Parse instrumental offsets if any
+        self.offset_instruments = inputs.offset_instruments
         if self.offset_instruments is None:
             self.offset_instruments = []
 
@@ -89,6 +90,20 @@ class Observation():
         offsets = np.sum(self.offset_indices, axis=0)
         if np.any(offsets > 1):
             log.error('Multiple instrumental offsets apply to a same bandpass')
+
+        # Parse error scaling parameters:
+        self.uncert_scaling = inputs.uncert_scaling
+        self.uncert_pars = inputs.uncert_pars
+
+        # This objec contains the original transit/eclipse depth data
+        # self.data and self.uncert can be modified and computed with
+        # the methods of self.depth
+        self.depth = pt.Data(
+            self.data, self.uncert, band_names,
+            self.uncert_scaling, self.uncert_pars,
+        )
+        if len(self.uncert_pars) > 0:
+            self.uncert = self.depth.scale_errors(self.uncert_pars, self.units)
 
 
     def __str__(self):

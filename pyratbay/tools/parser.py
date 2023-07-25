@@ -452,6 +452,7 @@ def parse(cfile, with_log=True, mute=False):
         parse_array(args, 'filters')
         parse_str(args, 'obsfile')
         parse_array(args, 'inst_offset')
+        parse_str(args, 'uncert_scaling')
         # Abundances:
         parse_array(args, 'molvars')
         parse_array(args, 'molpars')
@@ -803,6 +804,23 @@ def parse(cfile, with_log=True, mute=False):
     args.offset_instruments = args.get_default(
         'inst_offset', 'Instrumental offsets',
     )
+
+    u_scaling = args.get_default('uncert_scaling', 'Uncertainty scaling')
+    if u_scaling is None:
+        args.uncert_scaling = []
+        args.uncert_pars = []
+    else:
+        upars = [
+            par for par in u_scaling.splitlines()
+            if par != ''
+        ]
+        args.uncert_scaling = []
+        args.uncert_pars = np.tile(None, len(upars))
+        for i,uscale in enumerate(upars):
+            fields = uscale.split()
+            args.uncert_scaling.append(fields[0])
+            if len(fields) > 1:
+                args.uncert_pars[i] = float(fields[1])
 
     args.sampler = args.get_choice('sampler', 'posterior sampler', pc.samplers)
     args.retflag = args.get_choice('retflag', 'retrieval flag', pc.retflags)

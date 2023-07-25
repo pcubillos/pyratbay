@@ -8672,3 +8672,15 @@ Added err_pars argument to Data() class initializer
 If not provided, default values are set such that there's no
 error scaling.
 
+*****
+
+Added uncert_scaling argument to set error scaling models
+and default values.
+Added a Data() object into pyrat.obs as obs.depth to contain
+data and uncert modifiers.
+pyrat.obs.data and pyrat.obs.uncert can then be modified and
+computed with the methods of pyrat.obs.depth.
+Enabled the uncert_scaling models as retrieval parameters.
+Added tests.
+
+
