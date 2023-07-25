@@ -8692,4 +8692,7 @@ using extinction file rather than lbl data.
 
 Updated tests.
 
+*****
+
+Fixed a deprecation warning being raised by Voigt.eval().
 

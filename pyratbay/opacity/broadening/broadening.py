@@ -138,7 +138,7 @@ class Gauss(object):
       return self.scale * np.exp(-0.5*((x-self.x0)/sigma)**2) * self._c2 / sigma
 
 
-class Voigt(object):
+class Voigt():
   r"""
   1D Voigt profile model.
 
@@ -218,6 +218,7 @@ class Voigt(object):
       self._B = np.array([[ 1.2359,  0.3786, -1.2359, -0.3786]]).T
       self._C = np.array([[-0.3085,  0.5906, -0.3085,  0.5906]]).T
       self._D = np.array([[ 0.0210, -1.1858, -0.0210,  1.1858]]).T
+      self._sqrt_pi_log2 = np.sqrt(np.pi*np.log(2.0))
 
 
   def __call__(self, x):
@@ -248,11 +249,15 @@ class Voigt(object):
       X = (x-self.x0) * np.sqrt(np.log(2)) / self.hwhm_G
       Y = self.hwhm_L * np.sqrt(np.log(2)) / self.hwhm_G
 
-      A, B, C, D = self._A, self._B, self._C, self._D
-      V = np.sum((C*(Y-A) + D*(X-B)) / ((Y-A)**2 + (X-B)**2), axis=0)
-      V /= np.pi * self.hwhm_L
+      V = np.sum(
+          (self._C*(Y-self._A) + self._D*(X-self._B))
+          / ((Y-self._A)**2 + (X-self._B)**2),
+          axis=0,
+      )
+      if np.isscalar(x):
+          V = np.squeeze(V)
 
-      return self.scale * self.hwhm_L/self.hwhm_G * np.sqrt(np.pi*np.log(2)) * V
+      return V * self.scale * self._sqrt_pi_log2 / (np.pi * self.hwhm_G)
 
 
 def doppler_hwhm(temperature, mass, wn):
