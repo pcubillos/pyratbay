@@ -40,7 +40,31 @@ expected_temperature = np.array([
     1659.56937861, 1659.66627037, 1659.78818839, 1659.94163515,
     1660.13475269, 1660.37777747, 1660.68357589, 1661.06831324,
     1661.55228907, 1662.16097781, 1662.92632193, 1663.88833303,
-    1665.09706555])
+    1665.09706555,
+])
+expected_temperature_madhu = np.array([
+    1300.39928128, 1300.63210647, 1300.95565962, 1301.38579756,
+    1301.93577227, 1302.61570817, 1303.43267611, 1304.39119013,
+    1305.49388442, 1306.74216399, 1308.13671376, 1309.6778389 ,
+    1311.36566367, 1313.20023427, 1315.18156644, 1317.30966395,
+    1319.58452681, 1322.00615501, 1324.57454856, 1327.28970745,
+    1330.15163169, 1333.16032128, 1336.31577621, 1339.61799648,
+    1343.0669821 , 1346.66273307, 1350.40524939, 1354.29453104,
+    1358.33057805, 1362.5133904 , 1366.8429681 , 1371.31931114,
+    1375.94241952, 1380.71229326, 1385.62893233, 1390.69233676,
+    1395.90250653, 1401.25944164, 1406.7631421 , 1412.41360791,
+    1418.21080526, 1424.15465089, 1430.24492698, 1436.4810888 ,
+    1442.86190456, 1449.38486209, 1456.04535703, 1462.83584552,
+    1469.74537081, 1476.76002857, 1483.86482936, 1491.04693861,
+    1498.29954996, 1505.62455979, 1513.03363807, 1520.54541108,
+    1528.17920864, 1535.94559525, 1543.83431159, 1551.80067553,
+    1559.75278637, 1567.54405188, 1574.97722796, 1581.8250059 ,
+    1587.8668003 , 1592.93330178, 1596.94409851, 1599.92401619,
+    1601.99180122, 1603.32648976, 1604.1252013 , 1604.56713048,
+    1604.79269689, 1604.89868562, 1604.94442906, 1604.96249712,
+    1604.96897056, 1604.97101225, 1604.971507  , 1604.971507  ,
+    1604.971507,
+])
 
 expected_vmr = np.load(
     f'{ROOT}/tests/expected/expected_tea_profile.npz')['arr_0']
@@ -177,7 +201,7 @@ def test_pt_tcea(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/pt_guillot.cfg',
-        reset={'tmodel':'tcea'},
+        reset={'tmodel': 'tcea'},
     )
     # Allowed, but discouraged:
     with pytest.warns(DeprecationWarning):
@@ -186,12 +210,11 @@ def test_pt_tcea(tmp_path):
     np.testing.assert_allclose(atmosphere.temp, expected_temperature)
 
 
-@pytest.mark.skip(reason="TBD")
 def test_pt_madhu(tmp_path):
     cfg = make_config(tmp_path, ROOT+'tests/configs/pt_madhu.cfg')
-    pressure, temperature, abundances, species, radius = pb.run(cfg)
-    np.testing.assert_allclose(pressure, expected_pressure, rtol=1e-7)
-    np.testing.assert_allclose(temperature, expected_temperature, rtol=1e-7)
+    atmosphere = pb.run(cfg)
+    np.testing.assert_allclose(atmosphere.press, expected_pressure)
+    np.testing.assert_allclose(atmosphere.temp, expected_temperature_madhu)
 
 
 def test_atmosphere_uniform(tmp_path):

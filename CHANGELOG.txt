@@ -8688,5 +8688,8 @@ Added tests.
 Added spectrum_transmission_extfile.cfg to run tests faster
 using extinction file rather than lbl data.
 
+*****
+
+Updated tests.
 
 
