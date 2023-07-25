@@ -8683,4 +8683,10 @@ computed with the methods of pyrat.obs.depth.
 Enabled the uncert_scaling models as retrieval parameters.
 Added tests.
 
+*****
+
+Added spectrum_transmission_extfile.cfg to run tests faster
+using extinction file rather than lbl data.
+
+
 

@@ -25,7 +25,7 @@ setup_err = "Error in module: 'argum.py', function: 'setup'"
 def test_run_runmode(tmp_path, capfd, runmode, call):
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         reset={'runmode':runmode},
     )
     error = (
@@ -485,7 +485,7 @@ def test_atmosphere_hydro_missing_mass_gravity(tmp_path):
 def test_spectrum_missing_units(tmp_path, param):
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         reset={param:'1.1'},
     )
     error = f"Invalid units 'None' for parameter {param}"
@@ -496,7 +496,7 @@ def test_spectrum_missing_units(tmp_path, param):
 def test_spectrum_missing_wl_units(tmp_path):
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         reset={'wllow': '1.1', 'wlhigh': '2.0'},
     )
     error = "Invalid units 'None' for parameter wllow"
@@ -507,7 +507,7 @@ def test_spectrum_missing_wl_units(tmp_path):
 def test_spectrum_inconsistent_wl_bounds(tmp_path):
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         reset={'wllow':'2.0 um', 'wlhigh':'1.0 um'},
     )
     error = re.escape(
@@ -522,7 +522,7 @@ def test_spectrum_inconsistent_wl_bounds(tmp_path):
 def test_spectrum_transmission_missing(tmp_path, param, undefined_spec):
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         remove=[param],
     )
     error = re.escape(undefined_spec[param])
@@ -540,7 +540,7 @@ def test_spectrum_missing_chemistry(tmp_path):
     }
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         reset=reset,
         remove=['input_atmfile', 'radmodel'],
     )
@@ -555,7 +555,7 @@ def test_spectrum_missing_chemistry(tmp_path):
 def test_spectrum_no_radius(tmp_path):
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         remove=['radmodel'],
     )
     error = re.escape(
@@ -572,7 +572,7 @@ def test_spectrum_no_radius(tmp_path):
 def test_spectrum_hydro_missing_MGplanet(tmp_path, atm):
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         reset={'input_atmfile': atm},
         remove=['mplanet', 'gplanet'],
     )
@@ -591,7 +591,7 @@ def test_spectrum_hydro_missing_rplanet(tmp_path, atm):
     #keep = ['mplanet', 'gplanet']
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         reset={'input_atmfile': atm},
         remove=['rplanet'],
     )
@@ -609,7 +609,7 @@ def test_spectrum_hydro_missing_rplanet(tmp_path, atm):
 def test_spectrum_hydro_refpressure(tmp_path, atm):
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         reset={'atmfile':atm},
         remove=['refpressure'],
     )
@@ -626,7 +626,7 @@ def test_spectrum_hydro_refpressure(tmp_path, atm):
 def test_spectrum_unbounded_pressures(tmp_path, param, value):
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         reset={param:value},
     )
     error = re.escape(
@@ -644,7 +644,7 @@ def test_spectrum_invalid_pressure_ranges(tmp_path):
     }
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         reset=reset,
     )
     error = re.escape(
@@ -660,7 +660,7 @@ def test_spectrum_invalid_pressure_ranges(tmp_path):
 def test_spectrum_invalid_file(tmp_path, param, invalid_file):
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         reset={param:'nope.dat'},
     )
     error = re.escape(invalid_file[param]) + '*.'
@@ -687,7 +687,7 @@ def test_spectrum_inconsistent_voigt_bounds(tmp_path, vmin, vmax):
 def test_spectrum_rpars_mismatch(tmp_path):
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         reset={'rpars':'1.0 1.0 1.0'},
     )
     error = re.escape(
@@ -701,7 +701,7 @@ def test_spectrum_rpars_mismatch(tmp_path):
 def test_spectrum_cpars_mismatch(tmp_path):
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         reset={'cpars':'1.0 1.0 1.0'},
     )
     error = re.escape(
@@ -721,7 +721,7 @@ def test_spectrum_cpars_mismatch(tmp_path):
 def test_spectrum_raygrid(tmp_path, invalid_raygrid, value):
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         reset={'raygrid':value},
     )
     error = re.escape(invalid_raygrid[value])
@@ -737,7 +737,7 @@ def test_line_sample_missing_species(tmp_path):
     }
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         remove=['tlifile'],
         reset=reset,
     )
@@ -773,7 +773,7 @@ def test_alkali_missing_species(tmp_path):
     }
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         reset=reset,
     )
     error = re.escape(
@@ -791,7 +791,7 @@ def test_cia_missing_species(tmp_path):
     }
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         reset=reset,
     )
     error = re.escape(
@@ -810,7 +810,7 @@ def test_rayleigh_missing_species(tmp_path):
     }
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         remove=['csfile'],
         reset=reset,
     )
@@ -825,7 +825,7 @@ def test_rayleigh_missing_species(tmp_path):
 def test_h_ion_missing_species(tmp_path):
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         remove=['tlifile', 'csfile', 'alkali', 'clouds'],
         reset={'h_ion': 'h_ion_john1988'},
     )
@@ -840,7 +840,7 @@ def test_h_ion_missing_species(tmp_path):
 def test_spectrum_uncert_mismatch(tmp_path):
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         reset={'data':'1.0 2.0', 'uncert':'0.1'},
     )
     error = re.escape(
@@ -858,7 +858,7 @@ def test_spectrum_filters_mismatch(tmp_path):
     }
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         reset=reset,
     )
     error = re.escape(
@@ -873,7 +873,6 @@ def test_spectrum_filters_mismatch(tmp_path):
     [1, 3, 4, 6, 9],
 )
 def test_spectrum_invalid_retrieval_params_entry(tmp_path, ncolumns):
-    #        pname  val     pmin   pmax   pstep  prior prior_lo prior_hi
     entry = 'T_iso 1500.0 300.0 3500.0 10.0 900.0 100.0 100.0 1.0'.split()
     ret_pars = " ".join(entry[0:ncolumns])
     reset = {
@@ -882,7 +881,7 @@ def test_spectrum_invalid_retrieval_params_entry(tmp_path, ncolumns):
     }
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         reset=reset,
     )
     error = re.escape(
@@ -899,7 +898,7 @@ def test_spectrum_invalid_retrieval_params_pname(tmp_path):
     }
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         reset=reset,
     )
     error = re.escape(
@@ -917,7 +916,7 @@ def test_spectrum_repeated_retrieval_params(tmp_path):
     }
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         reset=reset,
     )
     error = re.escape("Repeated parameter names: ['R_planet']")
@@ -932,7 +931,7 @@ def test_spectrum_insuficient_retrieval_params_temp(tmp_path):
     }
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         reset=reset,
     )
     error = re.escape('Not all temperature parameters were defined (tpars)')
@@ -948,7 +947,7 @@ def test_spectrum_insuficient_retrieval_params_mol(tmp_path):
     }
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         reset=reset,
     )
     error = re.escape('Not all abundance parameters were defined (molpars)')
@@ -963,7 +962,7 @@ def test_spectrum_insuficient_retrieval_params_cloud(tmp_path):
     }
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         reset=reset,
         remove=['cpars'],
     )
@@ -979,7 +978,7 @@ def test_spectrum_insuficient_retrieval_params_rayleigh(tmp_path):
     }
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         reset=reset,
         remove=['rpars'],
     )
@@ -996,7 +995,7 @@ def test_spectrum_params_misfit(tmp_path):
     }
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         reset=reset,
     )
     error = re.escape(
@@ -1017,7 +1016,7 @@ def test_eval_params_misfit(tmp_path, capfd):
     }
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         reset=reset,
     )
     pyrat = pb.run(cfg)
@@ -1036,7 +1035,7 @@ def test_eval_params_misfit(tmp_path, capfd):
 def test_bulk_not_in_atm(tmp_path):
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         reset={'bulk':'N2'},
     )
     error = re.escape(
@@ -1049,7 +1048,7 @@ def test_bulk_not_in_atm(tmp_path):
 def test_molvars_missing_vmr(tmp_path):
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         reset={'molvars': 'log_N2'},
     )
     error = re.escape(
@@ -1066,7 +1065,7 @@ def test_bulk_molfree_overlap(tmp_path):
     }
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         reset=reset,
     )
     error = re.escape(
@@ -1082,7 +1081,7 @@ def test_invalid_equil_without_tea(tmp_path):
     }
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         reset=reset,
     )
     error = re.escape("molvars variable 'metal' requires chemistry=tea")
@@ -1097,7 +1096,7 @@ def test_invalid_equil_molvars(tmp_path):
     }
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         reset=reset,
     )
     error = re.escape("Unrecognized molvars variable name: 'zen'")
@@ -1112,7 +1111,7 @@ def test_invalid_metal_molvars(tmp_path):
     }
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         reset=reset,
     )
     error = re.escape(
@@ -1130,7 +1129,7 @@ def test_invalid_ratio_molvars(tmp_path):
     }
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         reset=reset,
     )
     error = re.escape(
@@ -1145,7 +1144,7 @@ def test_invalid_ratio_molvars(tmp_path):
 def test_kurucz_missing_pars(tmp_path, param):
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         reset={'kurucz':f'{ROOT}/tests/inputs/mock_fp00k0odfnew.pck'},
         remove=[param],
     )
@@ -1171,7 +1170,7 @@ def test_spectrum_missing_retflag_models(tmp_path, param, undefined_mcmc):
     }
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         remove=[param],
         reset=reset,
     )
@@ -1226,8 +1225,8 @@ def test_read_opacity_missing_extfile(tmp_path):
     efile = str(tmp_path/'non_existent_exttable_test_300-3000K_1.1-1.7um.npz')
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        reset={'extfile':efile},
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
+        reset={'extfile':efile, 'wnstep': '1.0'},
     )
     error = re.escape(f"Missing opacity files: ['{efile}']")
     with pytest.raises(ValueError, match=error):
@@ -1270,7 +1269,7 @@ def test_read_opacity_mismatched_sizes(tmp_path):
     }
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         reset=reset,
     )
     error = re.escape(
@@ -1292,7 +1291,7 @@ def test_read_opacity_mismatched_values(tmp_path):
     }
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         reset=reset,
     )
     error = re.escape(
@@ -1342,7 +1341,7 @@ def test_molecule_not_in_molfile(tmp_path):
 
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         reset={'input_atmfile':new_atm},
     )
     error = re.escape(
@@ -1422,7 +1421,7 @@ def test_spectrum_temperature_bounds(tmp_path, capfd, param, invalid_temp):
     ]
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         reset=reset,
         remove=remove,
     )
