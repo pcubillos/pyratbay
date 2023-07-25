@@ -8696,3 +8696,7 @@ Updated tests.
 
 Fixed a deprecation warning being raised by Voigt.eval().
 
+*****
+
+PEP8ed broadening.py
+
