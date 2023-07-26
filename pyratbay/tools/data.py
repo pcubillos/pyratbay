@@ -70,7 +70,7 @@ def parse_error_param(var):
 
 class Data():
     def __init__(
-        self, data, uncert, band_names, err_models=None, err_pars=None,
+        self, data, uncert, band_names, err_models=None,
     ):
         """
         Parameters
@@ -88,28 +88,25 @@ class Data():
             followed by a string matching a substring of at least one of
             the band_names, these specific data points will be affected by
             the error scaling model.
-        err_pars: 1D float iterable
-            Error scaling parameters. If not provided, or value is a None,
-            the default values are set such that there's no scaling from
-            the input uncert values.
 
         Examples
         --------
         >>> import pyratbay.tools as pt
         >>> import pyratbay.constants as pc
         >>> import pyratbay.io as io
+        >>> import matplotlib.pyplot as plt
 
         >>> # Load a set of uncertainties obtained with JWST instruments:
         >>> obs_file = '/Users/pato/Documents/compendia/ERS/WASP39b/data/synthesis_v02/wasp39b_g395h_lrs.dat'
         >>> bands, depths, uncert = io.read_observations(obs_file)
         >>> band_names = [band.name for band in bands]
         >>> wl = [band.wl0 for band in bands]
-        >>> print(np.unique(band_names))
-        ['miri_lrs' 'nirspec_g395h_nrs1' 'nirspec_g395h_nrs2']
+        >>> print(set(band_names))
+        {'nirspec_g395h_nrs1', 'nirspec_g395h_nrs2', 'miri_lrs'}
 
         >>> # Multiplicative error scaling (increase by 1.5x):
         >>> # Target NRS1 uncertainties specifically of the NIRSpec instrument
-        >>> data = pt.Data(depths, uncert, band_names, 'err_scale_nrs1')
+        >>> data = pt.Data(depths, uncert, band_names, err_models='scale_nrs1')
         >>> inflated_err = data.scale_errors([0.3])
 
         >>> fig = plt.figure(1, (8,4))
@@ -121,41 +118,34 @@ class Data():
 
         >>> # Add-in-quadrature error scaling:
         >>> # Target all NIRSpec uncertainties (200ppm), for MIRI add 300ppm
-        >>> err_models = ['err_quad_nirspec', 'err_quad_miri']
-        >>> data2  = pt.Data(depths, uncert, band_names, err_models)
+        >>> err_models = ['quad_nirspec', 'quad_miri']
+        >>> data2 = pt.Data(depths, uncert, band_names, err_models=err_models)
         >>> inflated_err2 = data2.scale_errors([2.3, 2.5], 'ppm')
         >>> plt.plot(wl, inflated_err2/pc.ppm, 's', color='orange', mfc='none')
         >>> plt.tight_layout()
         """
+        # Input data
+        self.data = np.copy(data)
+        self.uncert = np.copy(uncert)
+        if uncert is not None:
+            self.ndata = len(self.data)
+
+        # Error scaling models
         if err_models is None:
             err_models = []
         elif isinstance(err_models, str):
             err_models = [err_models]
         self.n_epars = len(err_models)
 
-        self.epars = err_pars
-        if self.epars is None:
-            self.epars = np.tile(None, self.n_epars)
-
-        self.data = np.copy(data)
-        self.uncert = np.copy(uncert)
-        if uncert is not None:
-            self.ndata = len(self.data)
-
         self.inst = []
         self.texnames = []
         self.indices = []
         self.scaling_modes = []
-        for i,param in enumerate(err_models):
+        for param in err_models:
             inst, texname, scaling = parse_error_param(param)
             self.inst.append(inst)
             self.texnames.append(texname)
             self.scaling_modes.append(scaling)
-            # default values (zero scaling):
-            if scaling == 'scale' and self.epars[i] is None:
-                self.epars[i] = 0.0
-            elif scaling == 'quadrature' and self.epars[i] is None:
-                self.epars[i] = -100.0
 
             indices = np.array([inst in name for name in band_names])
             if np.sum(indices) == 0:
@@ -193,7 +183,6 @@ class Data():
         if vals is None or self.n_epars==0:
             return uncert
 
-        self.epars[:] = vals
         for j, val in enumerate(vals):
             indices = self.indices[j]
             mode = self.scaling_modes[j]

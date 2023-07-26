@@ -8700,3 +8700,7 @@ Fixed a deprecation warning being raised by Voigt.eval().
 
 PEP8ed broadening.py
 
+
+*****  Wed Jul 26 12:13:41 CEST 2023  *****
+
+Remove err_pars argument from Data() object.
