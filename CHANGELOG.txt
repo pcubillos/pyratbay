@@ -8709,3 +8709,10 @@ Remove err_pars argument from Data() object.
 
 Outsourced err_pars from Data() into Pyrat.obs.uncert_pars.
 
+*****
+
+Added offset_models argument to Data() object.
+Implemented offset_data() method to handle data offsets.
+Documented and tested.
+
+

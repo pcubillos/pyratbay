@@ -70,7 +70,8 @@ def parse_error_param(var):
 
 class Data():
     def __init__(
-        self, data, uncert, band_names, err_models=None,
+        self, data, uncert, band_names,
+        offset_models=None, err_models=None,
     ):
         """
         Parameters
@@ -81,6 +82,10 @@ class Data():
             The uncertainty values.
         band_names: 1D string iterable
             Names for the uncertainties.
+        offset_models: String or 1D iterable of strings
+            List of data offset models, the strings must match
+            a substring of at least one of the band_names, these specific
+            data points will be affected by the respective offset model.
         err_models: String or 1D iterable of strings
             List of error inflation model names, must begin with either
             - "err_scale_" to scale uncertainties as a multiplicative factor
@@ -103,6 +108,17 @@ class Data():
         >>> wl = [band.wl0 for band in bands]
         >>> print(set(band_names))
         {'nirspec_g395h_nrs1', 'nirspec_g395h_nrs2', 'miri_lrs'}
+
+        >>> # Offsets for MIRI data only:
+        >>> data = pt.Data(depths, uncert, band_names, offset_models='miri')
+        >>> offset_depths = data.offset_data([400.0], 'ppm')
+
+        >>> fig = plt.figure(0, (8,4))
+        >>> plt.clf()
+        >>> plt.semilogx(wl, data.uncert/pc.ppm, 'o', color='xkcd:green')
+        >>> plt.plot(wl, inflated_err/pc.ppm, '^' , color='blue', mfc='none')
+        >>> plt.xlabel('Wavelength (um)')
+        >>> plt.ylabel('Uncertainties (ppm)')
 
         >>> # Multiplicative error scaling (increase by 1.5x):
         >>> # Target NRS1 uncertainties specifically of the NIRSpec instrument
@@ -130,6 +146,33 @@ class Data():
         if uncert is not None:
             self.ndata = len(self.data)
 
+        # Data offset models
+        if offset_models is None:
+            offset_models = []
+        elif isinstance(offset_models, str):
+            offset_models = [offset_models]
+        self.offset_models = offset_models
+        self.n_offsets = len(self.offset_models)
+
+        self.offset_indices = []
+        self.offset_texnames = []
+        for inst in self.offset_models:
+            texname = r'$\Delta$ {inst.replace("_","")}'
+            indices = np.array([inst in name for name in band_names])
+            if np.sum(indices) == 0:
+                raise ValueError(
+                    f"Invalid instrumental offset parameter '{inst}'. "
+                    f"There is no instrument matching this name"
+                )
+            self.offset_indices.append(indices)
+            self.offset_texnames.append(texname)
+
+        offsets_per_data = np.sum(self.offset_indices, axis=0)
+        if np.any(offsets_per_data > 1):
+            raise ValueError(
+                'Multiple instrumental offsets apply to a same data point'
+            )
+
         # Error scaling models
         if err_models is None:
             err_models = []
@@ -137,14 +180,14 @@ class Data():
             err_models = [err_models]
         self.n_epars = len(err_models)
 
-        self.inst = []
-        self.texnames = []
-        self.indices = []
+        self.err_inst = []
+        self.err_texnames = []
+        self.err_indices = []
         self.scaling_modes = []
         for param in err_models:
             inst, texname, scaling = parse_error_param(param)
-            self.inst.append(inst)
-            self.texnames.append(texname)
+            self.err_inst.append(inst)
+            self.err_texnames.append(texname)
             self.scaling_modes.append(scaling)
 
             indices = np.array([inst in name for name in band_names])
@@ -153,13 +196,41 @@ class Data():
                     f"Invalid retrieval parameter '{param}'. "
                     f"There is no instrument matching the name '{inst}'"
                 )
-            self.indices.append(indices)
+            self.err_indices.append(indices)
 
-        n_scales_per_data = np.sum(self.indices, axis=0)
+        n_scales_per_data = np.sum(self.err_indices, axis=0)
         if np.any(n_scales_per_data > 1):
             raise ValueError(
                 'Multiple uncertainty scaling apply to a same data point',
             )
+
+
+    def offset_data(self, vals=None, units='none'):
+        """
+        Offset data values
+
+        Parameters
+        ----------
+        vals: 1D float iterable
+            Data offset values for each model.
+        units: String
+            The units of the scaling value. Options are:
+            'none', 'percent', 'ppt', or 'ppm'.
+
+        Returns
+        -------
+        data: 1D float array
+            The offset data array.
+        """
+        data = np.copy(self.data)
+        if vals is None or self.n_offsets==0:
+            return data
+
+        for j, val in enumerate(vals):
+            indices = self.offset_indices[j]
+            data[indices] += val * pt.u(units)
+
+        return data
 
 
     def scale_errors(self, vals=None, units='none'):
@@ -172,19 +243,19 @@ class Data():
             Uncertainty scaling value (in log10).
         units: String
             The units of the scaling value for quadrature errors.
+            Options are: 'none', 'percent', 'ppt', or 'ppm'.
 
         Returns
         -------
         uncert: 1D float array
-            The scaled uncertainty array. Options are:
-            'none', 'percent', 'ppt', or 'ppm'.
+            The scaled uncertainty array.
         """
         uncert = np.copy(self.uncert)
         if vals is None or self.n_epars==0:
             return uncert
 
         for j, val in enumerate(vals):
-            indices = self.indices[j]
+            indices = self.err_indices[j]
             mode = self.scaling_modes[j]
 
             e_scaling = 10.0**val

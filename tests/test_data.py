@@ -73,7 +73,7 @@ def test_parse_error_param_fail():
         pt.parse_error_param('err_fudging_IRAC1')
 
 
-def test_Data_no_error_models():
+def test_Data_no_models():
     data = pt.Data(base_data, base_uncert, base_names)
 
     assert data.n_epars == 0
@@ -81,8 +81,57 @@ def test_Data_no_error_models():
     np.testing.assert_allclose(data.uncert, base_uncert)
 
 
+def test_Data_offset_str_input():
+    data = pt.Data(base_data, base_uncert, base_names, offset_models='nrs1')
+    assert data.n_offsets == 1
+    assert data.offset_models == ['nrs1']
+
+    offset_data = data.offset_data([4000.0], 'ppm')
+    expected_offset = np.array([
+        0.0261654, 0.0259554, 0.0258184, 0.0254919, 0.0253856,
+        0.0209675, 0.0210958, 0.0213826, 0.0216047, 0.0226758,
+        0.0220769, 0.0213577, 0.0214181, 0.0215911, 0.0213866,
+        0.0210104, 0.021041 , 0.0199637, 0.0189196,
+    ])
+    np.testing.assert_allclose(offset_data, expected_offset)
+
+
+def test_Data_offset_iterable_input():
+    offset_models = ['nirspec', 'miri']
+    data = pt.Data(base_data, base_uncert, base_names, offset_models)
+    assert data.n_offsets == 2
+
+    offset_data = data.offset_data([400.0, 800.0], 'ppm')
+    expected_offset = np.array([
+        0.0225654, 0.0223554, 0.0222184, 0.0218919, 0.0217856,
+        0.0213675, 0.0214958, 0.0217826, 0.0220047, 0.0230758,
+        0.0228769, 0.0221577, 0.0222181, 0.0223911, 0.0221866,
+        0.0218104, 0.021841 , 0.0207637, 0.0197196,
+    ])
+    np.testing.assert_allclose(offset_data, expected_offset)
+
+
+def test_Data_offset_not_found_band_name():
+    match = re.escape(
+        "Invalid instrumental offset parameter 'prism'. There is no "
+        "instrument matching this name"
+    )
+    with pytest.raises(ValueError, match=match):
+        data = pt.Data(
+            base_data, base_uncert, base_names, offset_models='prism',
+        )
+
+
+def test_Data_offset_overlapping_bands():
+    err_models = ['nirspec', 'nrs1']
+    match = "Multiple instrumental offsets apply to a same data point"
+    with pytest.raises(ValueError, match=re.escape(match)):
+        data = pt.Data(base_data, base_uncert, base_names, err_models)
+
+
 def test_Data_error_multiplicative_str():
-    data = pt.Data(base_data, base_uncert, base_names, 'err_scale_nrs1')
+    err_model = 'err_scale_nrs1'
+    data = pt.Data(base_data, base_uncert, base_names, err_models=err_model)
     assert data.n_epars == 1
     assert data.scaling_modes == ['scale']
 
@@ -98,7 +147,7 @@ def test_Data_error_multiplicative_str():
 
 def test_Data_error_quadrature_list():
     err_models = ['err_quad_nirspec', 'err_quad_miri']
-    data = pt.Data(base_data, base_uncert, base_names, err_models)
+    data = pt.Data(base_data, base_uncert, base_names, err_models=err_models)
     assert data.n_epars == 2
     assert data.scaling_modes == ['quadrature', 'quadrature']
 
@@ -119,12 +168,13 @@ def test_Data_error_not_found_band_name():
         "instrument matching the name 'prism'"
     )
     with pytest.raises(ValueError, match=match):
-        data = pt.Data(base_data, base_uncert, base_names, 'err_scale_prism')
+        e_models = 'err_scale_prism'
+        data = pt.Data(base_data, base_uncert, base_names, err_models=e_models)
 
 
 def test_Data_error_overlapping_bands():
-    err_models = ['err_quad_nirspec', 'err_quad_nrs1']
+    e_models = ['err_quad_nirspec', 'err_quad_nrs1']
     match = re.escape("Multiple uncertainty scaling apply to a same data point")
     with pytest.raises(ValueError, match=match):
-        data = pt.Data(base_data, base_uncert, base_names, err_models)
+        data = pt.Data(base_data, base_uncert, base_names, err_models=e_models)
 
