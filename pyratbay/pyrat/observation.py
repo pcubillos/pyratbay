@@ -68,6 +68,8 @@ class Observation():
         self.bandwn = np.array([band.wn0 for band in self.filters])
         self.bandflux = np.zeros(self.nfilters, np.double)
 
+        # Instrumental offsets and error-scaling parameters
+        band_names = [band.name for band in self.filters]
         # Parse instrumental offsets if any
         self.offset_instruments = inputs.offset_instruments
         if self.offset_instruments is None:
@@ -77,7 +79,6 @@ class Observation():
         self.offset_indices = []
         self.offset_pars = np.zeros(n_offsets)
 
-        band_names = [band.name for band in self.filters]
         for var in self.offset_instruments:
             inst = var.replace('offset_', '', 1)
             flags = [inst in name for name in band_names]
@@ -91,7 +92,7 @@ class Observation():
         if np.any(offsets > 1):
             log.error('Multiple instrumental offsets apply to a same bandpass')
 
-        # Parse error scaling parameters:
+
         self.uncert_scaling = inputs.uncert_scaling
         self.uncert_pars = inputs.uncert_pars
 
@@ -100,9 +101,16 @@ class Observation():
         # the methods of self.depth
         self.depth = pt.Data(
             self.data, self.uncert, band_names,
-            self.uncert_scaling, self.uncert_pars,
+            self.uncert_scaling,
         )
         if len(self.uncert_pars) > 0:
+            # default values (zero scaling):
+            for i in range(self.depth.n_epars):
+                scaling = self.depth.scaling_modes[i]
+                if scaling == 'scale' and self.uncert_pars[i] is None:
+                    self.uncert_pars[i] = 0.0
+                elif scaling == 'quadrature' and self.uncert_pars[i] is None:
+                    self.uncert_pars[i] = -100.0
             self.uncert = self.depth.scale_errors(self.uncert_pars, self.units)
 
 

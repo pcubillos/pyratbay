@@ -261,7 +261,7 @@ class Pyrat():
       if pa.qcapcheck(atm.vmr, ret.qcap, atm.ibulk):
           reject_flag = True
           self.log.warning(
-              "The sum of trace abundances' fraction exceeds "
+              "The sum of trace abundances' VMRs exceeds "
               f"the cap of {ret.qcap:.3f}"
           )
 
@@ -279,8 +279,8 @@ class Pyrat():
       # Uncertainty scaling:
       if ret.ierror is not None:
           ifree = ret.map_pars['error']
-          obs.depth.epars[ifree] = params[ret.ierror]
-          obs.uncert = obs.depth.scale_errors(obs.depth.epars, obs.units)
+          obs.uncert_pars[ifree] = params[ret.ierror]
+          obs.uncert = obs.depth.scale_errors(obs.uncert_pars, obs.units)
 
       # Invalid model:
       if not np.any(obs.bandflux):
