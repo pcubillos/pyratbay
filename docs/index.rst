@@ -84,7 +84,7 @@ Documentation
    atm_tutorial
    spec_tutorial
    opac_tutorial
-   mcmc_tutorial
+   retrieval_tutorial
    cookbooks/recipes
    api
    units

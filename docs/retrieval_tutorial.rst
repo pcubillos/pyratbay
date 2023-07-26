@@ -3,10 +3,10 @@
 .. |CH4| replace:: CH\ :sub:`4`
 .. |H2|  replace:: H\ :sub:`2`
 
-.. _mcmctutorial:
+.. _retrievaltutorial:
 
-MCMC Tutorial
-=============
+Retrieval tutorial
+==================
 
 
 This mode allows you to fit spectra to observed exoplanet data.
@@ -19,13 +19,13 @@ Bayesian (MCMC) framework.
 Sample Configuration File
 -------------------------
 
-Here is an example of an opacity-table configuration file (`mcmc_eclipse.cfg
-<https://github.com/pcubillos/pyratbay/blob/master/examples/tutorial/mcmc_eclipse.cfg>`_):
+Here is an example of an opacity-table configuration file (`retrieval_eclipse.cfg
+<https://github.com/pcubillos/pyratbay/blob/master/examples/tutorial/retrieval_eclipse.cfg>`_):
 
-.. literalinclude:: ../examples/tutorial/mcmc_eclipse.cfg
+.. literalinclude:: ../examples/tutorial/retrieval_eclipse.cfg
 
-.. note:: Note that an '*mcmc*' run requires the user to define an
-          opacity table (``extfile``) to allow the code to finish
+.. note:: Note that a '*retrieval*' run requires the user to define
+          opacity table(s) (``extfile``) to allow the code to finish
           within a Hubble time.
 
 
@@ -176,7 +176,7 @@ filter files, e.g., with these shell commands:
 
    tutorial_path=https://raw.githubusercontent.com/pcubillos/pyratbay/master/examples/tutorial
    # Download the configuration file:
-   wget $tutorial_path/mcmc_eclipse.cfg
+   wget $tutorial_path/retrieval_eclipse.cfg
 
    # Download the filter files:
    for i in {0..9}
@@ -200,4 +200,4 @@ Just like before, to run the MCMC modeling, simply execute this command:
 
     import pyratbay as pb
 
-    pyrat = pb.run("mcmc_eclipse.cfg")
+    pyrat = pb.run("retrieval_eclipse.cfg")

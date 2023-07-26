@@ -66,6 +66,6 @@ def run(cfile, run_step=None, with_log=True):
         pyrat.radiative_equilibrium()
         return pyrat
 
-    if runmode == 'mcmc':
+    if runmode == 'retrieval':
         pyrat.retrieval()
         return pyrat

@@ -514,6 +514,14 @@ def parse(cfile, with_log=True, mute=False):
     else:
         args.verb = args.get_default('verb', 'Verbosity', 2, lt=5)
 
+    if args.runmode == 'mcmc':
+        args.runmode = 'retrieval'
+        warning_msg = (
+            "The 'mcmc' option for the 'runmode' argument is deprecated "
+            "and will be removed in the future, use 'retrieval' instead "
+        )
+        warnings.warn(warning_msg, category=DeprecationWarning)
+
     args.runmode = args.get_choice(
         'runmode', 'running mode', pc.rmodes, take_none=False,
     )
@@ -532,7 +540,7 @@ def parse(cfile, with_log=True, mute=False):
         'spectrum': args.specfile,
         'radeq': args.specfile,
         'opacity': args.extfile,
-        'mcmc': args.mcmcfile,
+        'retrieval': args.mcmcfile,
     }
     outfile = outfile_dict[args.runmode]
     if args.logfile is None and outfile is not None:
@@ -849,10 +857,10 @@ def parse(cfile, with_log=True, mute=False):
         'qcap', 'Metals volume-mixing-ratio cap', gt=0.0, le=1.0)
     args.tlow = args.get_default(
         'tlow', 'Retrieval low-temperature (K) bound', 0.0,
-        wflag=(args.runmode=='mcmc'))
+        wflag=(args.runmode=='retrieval'))
     args.thigh = args.get_default(
         'thigh', 'Retrieval high-temperature (K) bound', np.inf,
-        wflag=(args.runmode=='mcmc'))
+        wflag=(args.runmode=='retrieval'))
 
     args.nsamples = args.get_default(
         'nsamples', 'Number of MCMC samples', gt=0)

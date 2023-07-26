@@ -64,7 +64,7 @@ rmodes = [
     'opacity',
     'spectrum',
     'radeq',
-    'mcmc',
+    'retrieval',
 ]
 
 samplers = [
