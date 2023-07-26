@@ -152,7 +152,7 @@ class Retrieval():
         for names in opacity.pnames:
             opacity_pnames += names
 
-        offset_pnames = obs.offset_instruments
+        offset_pnames = obs.offset_inst
         error_pnames = obs.uncert_scaling
 
         # Indices to map free parameters of each model:
@@ -245,12 +245,12 @@ class Retrieval():
                 ioffset.append(i)
                 idx = offset_pnames.index(pname)
                 map_pars['offset'].append(idx)
-                self.texnames[i] = pname.replace('offset_', r'$\Delta$')
+                self.texnames[i] = obs.depth.offset_texnames[idx]
             elif pname in error_pnames:
                 ierror.append(i)
                 idx = error_pnames.index(pname)
                 map_pars['error'].append(idx)
-                self.texnames[i] = obs.depth.texnames[idx]
+                self.texnames[i] = obs.depth.err_texnames[idx]
             else:
                 log.error(
                     f"Invalid retrieval parameter '{pname}'. Possible "
@@ -461,7 +461,7 @@ def collect_pnames_from_retflag(
     if 'tstar' in retflag:
         pnames += ['T_eff']
     if 'offset' in retflag:
-        pnames += list(ret.offset_instruments)
+        pnames += list(ret.offset_inst)
     if 'error' in retflag:
         pnames += list(ret.uncert_scaling)
 

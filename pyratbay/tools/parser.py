@@ -451,7 +451,7 @@ def parse(cfile, with_log=True, mute=False):
         parse_array(args, 'uncert')
         parse_array(args, 'filters')
         parse_str(args, 'obsfile')
-        parse_array(args, 'inst_offset')
+        parse_str(args, 'offset_inst')
         parse_str(args, 'uncert_scaling')
         # Abundances:
         parse_array(args, 'molvars')
@@ -801,22 +801,36 @@ def parse(cfile, with_log=True, mute=False):
     args.obsfile = args.get_path(
         'obsfile', 'Observations data file', exists=True,
     )
-    args.offset_instruments = args.get_default(
-        'inst_offset', 'Instrumental offsets',
-    )
+
+    offsets = args.get_default('offset_inst', 'Instrumental offsets')
+    if offsets is None:
+        args.offset_inst = []
+        args.offset_pars = []
+    else:
+        pars = [
+            par for par in offsets.splitlines()
+            if par != ''
+        ]
+        args.offset_inst = []
+        args.offset_pars = np.zeros(len(pars))
+        for i,par in enumerate(pars):
+            fields = par.split()
+            args.offset_inst.append(fields[0])
+            if len(fields) > 1:
+                args.offset_pars[i] = float(fields[1])
 
     u_scaling = args.get_default('uncert_scaling', 'Uncertainty scaling')
     if u_scaling is None:
         args.uncert_scaling = []
         args.uncert_pars = []
     else:
-        upars = [
+        pars = [
             par for par in u_scaling.splitlines()
             if par != ''
         ]
         args.uncert_scaling = []
-        args.uncert_pars = np.tile(None, len(upars))
-        for i,uscale in enumerate(upars):
+        args.uncert_pars = np.tile(None, len(pars))
+        for i,uscale in enumerate(pars):
             fields = uscale.split()
             args.uncert_scaling.append(fields[0])
             if len(fields) > 1:

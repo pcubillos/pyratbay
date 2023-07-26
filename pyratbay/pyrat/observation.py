@@ -70,29 +70,8 @@ class Observation():
 
         # Instrumental offsets and error-scaling parameters
         band_names = [band.name for band in self.filters]
-        # Parse instrumental offsets if any
-        self.offset_instruments = inputs.offset_instruments
-        if self.offset_instruments is None:
-            self.offset_instruments = []
-
-        n_offsets = len(self.offset_instruments)
-        self.offset_indices = []
-        self.offset_pars = np.zeros(n_offsets)
-
-        for var in self.offset_instruments:
-            inst = var.replace('offset_', '', 1)
-            flags = [inst in name for name in band_names]
-            self.offset_indices.append(flags)
-            if np.sum(flags) == 0:
-                log.error(
-                    f"Invalid retrieval parameter '{var}'. "
-                    f"There is no instrument matching the name '{inst}'"
-                )
-        offsets = np.sum(self.offset_indices, axis=0)
-        if np.any(offsets > 1):
-            log.error('Multiple instrumental offsets apply to a same bandpass')
-
-
+        self.offset_inst = inputs.offset_inst
+        self.offset_pars = inputs.offset_pars
         self.uncert_scaling = inputs.uncert_scaling
         self.uncert_pars = inputs.uncert_pars
 
@@ -101,8 +80,10 @@ class Observation():
         # the methods of self.depth
         self.depth = pt.Data(
             self.data, self.uncert, band_names,
-            self.uncert_scaling,
+            self.offset_inst, self.uncert_scaling,
         )
+        if len(self.offset_pars) > 0:
+            self.data = self.depth.offset_data(self.offset_pars, self.units)
         if len(self.uncert_pars) > 0:
             # default values (zero scaling):
             for i in range(self.depth.n_epars):

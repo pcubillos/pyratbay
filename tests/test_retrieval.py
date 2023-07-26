@@ -14,10 +14,117 @@ from pyratbay.constants import ROOT
 os.chdir(ROOT+'tests')
 
 
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+def test_eval_offset_data_defaults(tmp_path):
+    offset_inst = """
+        STIS
+        WFC3
+    """
+    reset = {
+        'offset_inst': offset_inst,
+        'obsfile': '{ROOT}tests/inputs/obs_file_err_scaling.dat',
+        'dunits': 'ppm',
+    }
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
+        reset=reset,
+    )
+    pyrat = pb.run(cfg)
+    expected_data = np.array([
+        0.006647, 0.006626, 0.006578, 0.006549, 0.00655,
+        0.006591, 0.00671,  0.006721, 0.006721, 0.006683,
+        0.006646, 0.006605, 0.00655,  0.006537, 0.006541,
+    ])
+    np.testing.assert_allclose(pyrat.obs.data, expected_data)
+
+
+def test_eval_offset_data_fixed(tmp_path):
+    offset_inst = """
+        STIS 5000
+        WFC3 2000
+    """
+    reset = {
+        'offset_inst': offset_inst,
+        'obsfile': '{ROOT}/tests/inputs/obs_file_err_scaling.dat',
+        'dunits': 'ppm',
+    }
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
+        reset=reset,
+    )
+    pyrat = pb.run(cfg)
+    expected_data = np.array([
+        0.011647, 0.011626, 0.011578, 0.011549, 0.01155,
+        0.008591, 0.00871,  0.008721, 0.008721, 0.008683,
+        0.008646, 0.008605, 0.00855,  0.008537, 0.008541,
+    ])
+    np.testing.assert_allclose(pyrat.obs.data, expected_data)
+
+
+def test_eval_offset_data_fit_and_fix(tmp_path):
+    offset_inst = """
+        STIS 3000
+        WFC3
+    """
+    ret_params = """
+        WFC3  2000 -3.0  3.0 1.0
+    """
+    reset = {
+        'offset_inst': offset_inst,
+        'obsfile': '{ROOT}/tests/inputs/obs_file_err_scaling.dat',
+        'dunits': 'ppm',
+        'retrieval_params': ret_params,
+    }
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
+        reset=reset,
+    )
+    pyrat = pb.run(cfg)
+    # Only STIS uncertainties have changed
+    expected_data = np.array([
+        0.009647, 0.009626, 0.009578, 0.009549, 0.00955,
+        0.006591, 0.00671,  0.006721, 0.006721, 0.006683,
+        0.006646, 0.006605, 0.00655,  0.006537, 0.006541,
+    ])
+    np.testing.assert_allclose(pyrat.obs.data, expected_data)
+
+    # Now modify WFC3 uncertainties
+    pyrat.eval(pyrat.ret.params)
+    expected_data = np.array([
+        0.009647, 0.009626, 0.009578, 0.009549, 0.00955,
+        0.008591, 0.00871,  0.008721, 0.008721, 0.008683,
+        0.008646, 0.008605, 0.00855,  0.008537, 0.008541,
+    ])
+    np.testing.assert_allclose(pyrat.obs.data, expected_data)
+
+
+def test_eval_offset_data_no_data(tmp_path):
+    offset_inst = "WFC3 2.0"
+    reset = {
+        'offset_inst': offset_inst,
+        'dunits': 'ppm',
+    }
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
+        reset=reset,
+    )
+    error = re.escape(
+        "Invalid instrumental offset parameter 'WFC3'. There is no "
+        "instrument matching this name"
+    )
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
+
+
+
 def test_eval_uncert_scaling_defaults(tmp_path):
     uncert_scaling = """
-        err_scale_STIS
-        err_quad_WFC3
+        scale_STIS
+        quad_WFC3
     """
     reset = {
         'uncert_scaling': uncert_scaling,
@@ -39,8 +146,8 @@ def test_eval_uncert_scaling_defaults(tmp_path):
 
 def test_eval_uncert_scaling_fixed(tmp_path):
     uncert_scaling = """
-        err_scale_STIS 1.5
-        err_quad_WFC3 2.0
+        scale_STIS 1.5
+        quad_WFC3 2.0
     """
     reset = {
         'uncert_scaling': uncert_scaling,
@@ -64,11 +171,11 @@ def test_eval_uncert_scaling_fixed(tmp_path):
 
 def test_eval_uncert_scaling_fit_and_fix(tmp_path):
     uncert_scaling = """
-        err_scale_STIS 1.5
-        err_quad_WFC3
+        scale_STIS 1.5
+        quad_WFC3
     """
     ret_params = """
-        err_quad_WFC3  2.5 -3.0  3.0 1.0
+        quad_WFC3  2.5 -3.0  3.0 1.0
     """
     reset = {
         'uncert_scaling': uncert_scaling,
@@ -92,7 +199,6 @@ def test_eval_uncert_scaling_fit_and_fix(tmp_path):
 
     # Now modify WFC3 uncertainties
     pyrat.eval(pyrat.ret.params)
-    print(repr(pyrat.obs.uncert*1000))
     expected_uncert = np.array([
        0.00063245553, 0.00063245553, 0.00063245553, 0.00063245553,
        0.00063245553, 0.00031685959, 0.00031685959, 0.00031685959,
@@ -103,9 +209,7 @@ def test_eval_uncert_scaling_fit_and_fix(tmp_path):
 
 
 def test_eval_uncert_scaling_no_data(tmp_path):
-    uncert_scaling = """
-        err_quad_WFC3 2.0
-    """
+    uncert_scaling = "quad_WFC3 2.0"
     reset = {
         'uncert_scaling': uncert_scaling,
         'dunits': 'ppm',
@@ -116,7 +220,7 @@ def test_eval_uncert_scaling_no_data(tmp_path):
         reset=reset,
     )
     error = re.escape(
-        "Invalid retrieval parameter 'err_quad_WFC3'. There is no "
+        "Invalid retrieval parameter 'quad_WFC3'. There is no "
         "instrument matching the name 'WFC3'"
     )
     with pytest.raises(ValueError, match=error):

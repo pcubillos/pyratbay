@@ -269,12 +269,10 @@ class Pyrat():
       obs.bandflux = self.band_integrate()
 
       # Instrumental offset:
-      if obs.offset_instruments is not None:
-          if ret.ioffset is not None:
-              ifree = ret.map_pars['offset']
-              obs.offset_pars[ifree] = params[ret.ioffset]
-          for j, offset in enumerate(obs.offset_pars):
-              obs.bandflux[obs.offset_indices[j]] -= offset*obs._dunits
+      if ret.ioffset is not None:
+          ifree = ret.map_pars['offset']
+          obs.offset_pars[ifree] = params[ret.ioffset]
+          obs.data = obs.depth.offset_data(obs.offset_pars, obs.units)
 
       # Uncertainty scaling:
       if ret.ierror is not None:
