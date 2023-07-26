@@ -44,21 +44,21 @@ base_names = np.array([
 
 
 def test_parse_error_param_scale():
-    inst, texname, scaling = pt.parse_error_param('scale_WFC3')
+    inst, texname, scaling = pt.parse_error_param('err_scale_WFC3')
     assert inst == 'WFC3'
     assert texname == '$\\log\\ S^\\sigma_{\\rm WFC3}$'
     assert scaling == 'scale'
 
 
 def test_parse_error_param_quad():
-    inst, texname, scaling = pt.parse_error_param('quad_WFC3')
+    inst, texname, scaling = pt.parse_error_param('err_quad_WFC3')
     assert inst == 'WFC3'
     assert texname == '$\\log\\ \\sigma_{\\rm WFC3}$'
     assert scaling == 'quadrature'
 
 
 def test_parse_error_param_underscores():
-    inst, texname, scaling = pt.parse_error_param('quad_HST_WFC3')
+    inst, texname, scaling = pt.parse_error_param('err_quad_HST_WFC3')
     assert inst == 'HST WFC3'
     assert texname == '$\\log\\ \\sigma_{\\rm HST WFC3}$'
     assert scaling == 'quadrature'
@@ -66,11 +66,11 @@ def test_parse_error_param_underscores():
 
 def test_parse_error_param_fail():
     match = re.escape(
-        "Invalid error scaling parameter 'fudging_IRAC1'. Valid "
-        "options begin with: ['scale_', 'quad_']"
+        "Invalid error scaling parameter 'err_fudging_IRAC1'. Valid "
+        "options begin with: ['err_scale_', 'err_quad_']"
     )
     with pytest.raises(ValueError, match=match):
-        pt.parse_error_param('fudging_IRAC1')
+        pt.parse_error_param('err_fudging_IRAC1')
 
 
 def test_Data_no_models():
@@ -82,9 +82,9 @@ def test_Data_no_models():
 
 
 def test_Data_offset_str_input():
-    data = pt.Data(base_data, base_uncert, base_names, offset_models='nrs1')
+    data = pt.Data(base_data, base_uncert, base_names, offset_models='offset_nrs1')
     assert data.n_offsets == 1
-    assert data.offset_models == ['nrs1']
+    assert data.offset_models == ['offset_nrs1']
 
     offset_data = data.offset_data([4000.0], 'ppm')
     expected_offset = np.array([
@@ -113,12 +113,12 @@ def test_Data_offset_iterable_input():
 
 def test_Data_offset_not_found_band_name():
     match = re.escape(
-        "Invalid instrumental offset parameter 'prism'. There is no "
-        "instrument matching this name"
+        "Invalid instrumental offset parameter 'offset_prism'. There is no "
+        "instrument matching the name 'prism'"
     )
     with pytest.raises(ValueError, match=match):
         data = pt.Data(
-            base_data, base_uncert, base_names, offset_models='prism',
+            base_data, base_uncert, base_names, offset_models='offset_prism',
         )
 
 
@@ -130,7 +130,7 @@ def test_Data_offset_overlapping_bands():
 
 
 def test_Data_error_multiplicative_str():
-    err_model = 'scale_nrs1'
+    err_model = 'err_scale_nrs1'
     data = pt.Data(base_data, base_uncert, base_names, err_models=err_model)
     assert data.n_epars == 1
     assert data.scaling_modes == ['scale']
@@ -146,7 +146,7 @@ def test_Data_error_multiplicative_str():
 
 
 def test_Data_error_quadrature_list():
-    err_models = ['quad_nirspec', 'quad_miri']
+    err_models = ['err_quad_nirspec', 'err_quad_miri']
     data = pt.Data(base_data, base_uncert, base_names, err_models=err_models)
     assert data.n_epars == 2
     assert data.scaling_modes == ['quadrature', 'quadrature']
@@ -164,16 +164,16 @@ def test_Data_error_quadrature_list():
 
 def test_Data_error_not_found_band_name():
     match = re.escape(
-        "Invalid retrieval parameter 'scale_prism'. There is no "
+        "Invalid retrieval parameter 'err_scale_prism'. There is no "
         "instrument matching the name 'prism'"
     )
     with pytest.raises(ValueError, match=match):
-        e_models = 'scale_prism'
+        e_models = 'err_scale_prism'
         data = pt.Data(base_data, base_uncert, base_names, err_models=e_models)
 
 
 def test_Data_error_overlapping_bands():
-    e_models = ['quad_nirspec', 'quad_nrs1']
+    e_models = ['err_quad_nirspec', 'err_quad_nrs1']
     match = re.escape("Multiple uncertainty scaling apply to a same data point")
     with pytest.raises(ValueError, match=match):
         data = pt.Data(base_data, base_uncert, base_names, err_models=e_models)

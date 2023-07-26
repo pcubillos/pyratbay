@@ -13,13 +13,13 @@ from . import tools as pt
 def parse_error_param(var):
     r"""
     Parse error-scaling parameters. There are two options:
-    - scale_name: Scale uncertainties as a multiplicative factor.
-    - quad_name: Scale uncertainties by adding in quadrature.
+    - err_scale_name: Scale uncertainties as a multiplicative factor.
+    - err_quad_name: Scale uncertainties by adding in quadrature.
 
     Parameters
     ----------
     var: String
-        Parameter name. Must begin with either "scale_" or "quad_".
+        Parameter name. Must begin with either "err_scale_" or "err_quad_".
 
     Returns
     -------
@@ -34,18 +34,18 @@ def parse_error_param(var):
     --------
     >>> import pyratbay.tools as pt
     >>> # Valid options:
-    >>> print(pt.parse_error_param('scale_WFC3'))
+    >>> print(pt.parse_error_param('err_scale_WFC3'))
     ('WFC3', '$S_\\sigma^{\\rm WFC3}$', 'scale')
-    >>> print(pt.parse_error_param('quad_NIRSpec_PRISM'))
+    >>> print(pt.parse_error_param('err_quad_NIRSpec_PRISM'))
     ('NIRSpec PRISM', '$\\sigma_{\\rm NIRSpec PRISM}$', 'quadrature')
 
     >>> # Not valid scaling throws error:
-    >>> print(pt.parse_error_param('fudging_IRAC1'))
+    >>> print(pt.parse_error_param('err_fudging_IRAC1'))
     ValueError: Invalid error scaling parameter 'fudging_IRAC1'. Valid options begin with: ['scale_', 'quad_']
     """
     error_scalings = {
-        'scale_': r'$\log\ S^\sigma_{\rm INST}$',
-        'quad_': r'$\log\ \sigma_{\rm INST}$',
+        'err_scale_': r'$\log\ S^\sigma_{\rm INST}$',
+        'err_quad_': r'$\log\ \sigma_{\rm INST}$',
     }
 
     inst = None
@@ -54,7 +54,7 @@ def parse_error_param(var):
             inst = var.replace(scaling, '', 1)
             inst = inst.replace('_', ' ')
             texname = tex.replace('INST', inst)
-            mode = scaling.split('_')[0]
+            mode = scaling.split('_')[1]
             break
 
     if inst is None:
@@ -88,8 +88,8 @@ class Data():
             data points will be affected by the respective offset model.
         err_models: String or 1D iterable of strings
             List of error inflation model names, must begin with either
-            - "scale_" to scale uncertainties as a multiplicative factor
-            - "quad_" to scale uncertainties by adding in quadrature
+            - "err_scale_" to scale uncertainties as a multiplicative factor
+            - "err_quad_" to scale uncertainties by adding in quadrature
             followed by a string matching a substring of at least one of
             the band_names, these specific data points will be affected by
             the error scaling model.
@@ -110,33 +110,34 @@ class Data():
         {'nirspec_g395h_nrs1', 'nirspec_g395h_nrs2', 'miri_lrs'}
 
         >>> # Offsets for MIRI data only:
-        >>> data = pt.Data(depths, uncert, band_names, offset_models='miri')
-        >>> offset_depths = data.offset_data([400.0], 'ppm')
+        >>> offsets = 'offset_miri'
+        >>> obs = pt.Data(depths, uncert, band_names, offset_models=offsets)
+        >>> offset_depths = obs.offset_data([400.0], 'ppm')
 
         >>> fig = plt.figure(0, (8,4))
         >>> plt.clf()
-        >>> plt.semilogx(wl, data.uncert/pc.ppm, 'o', color='xkcd:green')
-        >>> plt.plot(wl, inflated_err/pc.ppm, '^' , color='blue', mfc='none')
+        >>> plt.semilogx(wl, obs.data/pc.ppm, 'o', color='darkorange')
+        >>> plt.plot(wl, offset_depths/pc.ppm, '^' , color='blue', mfc='none')
         >>> plt.xlabel('Wavelength (um)')
-        >>> plt.ylabel('Uncertainties (ppm)')
+        >>> plt.ylabel('Depths (ppm)')
 
         >>> # Multiplicative error scaling (increase by 1.5x):
         >>> # Target NRS1 uncertainties specifically of the NIRSpec instrument
-        >>> data = pt.Data(depths, uncert, band_names, err_models='scale_nrs1')
-        >>> inflated_err = data.scale_errors([0.3])
+        >>> obs = pt.Data(depths, uncert, band_names, err_models='err_scale_nrs1')
+        >>> inflated_err = obs.scale_errors([0.3])
 
         >>> fig = plt.figure(1, (8,4))
         >>> plt.clf()
-        >>> plt.semilogx(wl, data.uncert/pc.ppm, 'o', color='xkcd:green')
+        >>> plt.semilogx(wl, obs.uncert/pc.ppm, 'o', color='xkcd:green')
         >>> plt.plot(wl, inflated_err/pc.ppm, '^' , color='blue', mfc='none')
         >>> plt.xlabel('Wavelength (um)')
         >>> plt.ylabel('Uncertainties (ppm)')
 
         >>> # Add-in-quadrature error scaling:
         >>> # Target all NIRSpec uncertainties (200ppm), for MIRI add 300ppm
-        >>> err_models = ['quad_nirspec', 'quad_miri']
-        >>> data2 = pt.Data(depths, uncert, band_names, err_models=err_models)
-        >>> inflated_err2 = data2.scale_errors([2.3, 2.5], 'ppm')
+        >>> err_models = ['err_quad_nirspec', 'err_quad_miri']
+        >>> obs2 = pt.Data(depths, uncert, band_names, err_models=err_models)
+        >>> inflated_err2 = obs2.scale_errors([2.3, 2.5], 'ppm')
         >>> plt.plot(wl, inflated_err2/pc.ppm, 's', color='orange', mfc='none')
         >>> plt.tight_layout()
         """
@@ -156,13 +157,14 @@ class Data():
 
         self.offset_indices = []
         self.offset_texnames = []
-        for inst in self.offset_models:
-            texname = r'$\Delta$ {inst.replace("_","")}'
+        for var in self.offset_models:
+            inst = var.replace('offset_', '').replace('_',' ')
+            texname = r'$\Delta$ {inst}'
             indices = np.array([inst in name for name in band_names])
             if np.sum(indices) == 0:
                 raise ValueError(
-                    f"Invalid instrumental offset parameter '{inst}'. "
-                    f"There is no instrument matching this name"
+                    f"Invalid instrumental offset parameter '{var}'. "
+                    f"There is no instrument matching the name '{inst}'"
                 )
             self.offset_indices.append(indices)
             self.offset_texnames.append(texname)
@@ -184,8 +186,8 @@ class Data():
         self.err_texnames = []
         self.err_indices = []
         self.scaling_modes = []
-        for param in err_models:
-            inst, texname, scaling = parse_error_param(param)
+        for var in err_models:
+            inst, texname, scaling = parse_error_param(var)
             self.err_inst.append(inst)
             self.err_texnames.append(texname)
             self.scaling_modes.append(scaling)
@@ -193,7 +195,7 @@ class Data():
             indices = np.array([inst in name for name in band_names])
             if np.sum(indices) == 0:
                 raise ValueError(
-                    f"Invalid retrieval parameter '{param}'. "
+                    f"Invalid retrieval parameter '{var}'. "
                     f"There is no instrument matching the name '{inst}'"
                 )
             self.err_indices.append(indices)

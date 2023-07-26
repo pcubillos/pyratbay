@@ -8727,3 +8727,10 @@ Enabled passing offset values in config file, no values default to 0.
 One offset parameter per line.
 Added tests.
 
+*****
+
+Rolled back error model name change.
+(need to be more explicit for pyrat retrieval parameter names)
+error parameters need to start with err_
+offset parameters need to start with offset_
+ 

@@ -17,8 +17,8 @@ os.chdir(ROOT+'tests')
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 def test_eval_offset_data_defaults(tmp_path):
     offset_inst = """
-        STIS
-        WFC3
+        offset_STIS
+        offset_WFC3
     """
     reset = {
         'offset_inst': offset_inst,
@@ -41,8 +41,8 @@ def test_eval_offset_data_defaults(tmp_path):
 
 def test_eval_offset_data_fixed(tmp_path):
     offset_inst = """
-        STIS 5000
-        WFC3 2000
+        offset_STIS 5000
+        offset_WFC3 2000
     """
     reset = {
         'offset_inst': offset_inst,
@@ -65,11 +65,11 @@ def test_eval_offset_data_fixed(tmp_path):
 
 def test_eval_offset_data_fit_and_fix(tmp_path):
     offset_inst = """
-        STIS 3000
-        WFC3
+        offset_STIS 3000
+        offset_WFC3
     """
     ret_params = """
-        WFC3  2000 -3.0  3.0 1.0
+        offset_WFC3  2000 -3.0  3.0 1.0
     """
     reset = {
         'offset_inst': offset_inst,
@@ -102,7 +102,7 @@ def test_eval_offset_data_fit_and_fix(tmp_path):
 
 
 def test_eval_offset_data_no_data(tmp_path):
-    offset_inst = "WFC3 2.0"
+    offset_inst = "offset_WFC3 2.0"
     reset = {
         'offset_inst': offset_inst,
         'dunits': 'ppm',
@@ -113,8 +113,8 @@ def test_eval_offset_data_no_data(tmp_path):
         reset=reset,
     )
     error = re.escape(
-        "Invalid instrumental offset parameter 'WFC3'. There is no "
-        "instrument matching this name"
+        "Invalid instrumental offset parameter 'offset_WFC3'. There is no "
+        "instrument matching the name 'WFC3'"
     )
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
@@ -123,8 +123,8 @@ def test_eval_offset_data_no_data(tmp_path):
 
 def test_eval_uncert_scaling_defaults(tmp_path):
     uncert_scaling = """
-        scale_STIS
-        quad_WFC3
+        err_scale_STIS
+        err_quad_WFC3
     """
     reset = {
         'uncert_scaling': uncert_scaling,
@@ -146,8 +146,8 @@ def test_eval_uncert_scaling_defaults(tmp_path):
 
 def test_eval_uncert_scaling_fixed(tmp_path):
     uncert_scaling = """
-        scale_STIS 1.5
-        quad_WFC3 2.0
+        err_scale_STIS 1.5
+        err_quad_WFC3 2.0
     """
     reset = {
         'uncert_scaling': uncert_scaling,
@@ -171,11 +171,11 @@ def test_eval_uncert_scaling_fixed(tmp_path):
 
 def test_eval_uncert_scaling_fit_and_fix(tmp_path):
     uncert_scaling = """
-        scale_STIS 1.5
-        quad_WFC3
+        err_scale_STIS 1.5
+        err_quad_WFC3
     """
     ret_params = """
-        quad_WFC3  2.5 -3.0  3.0 1.0
+        err_quad_WFC3  2.5 -3.0  3.0 1.0
     """
     reset = {
         'uncert_scaling': uncert_scaling,
@@ -209,7 +209,7 @@ def test_eval_uncert_scaling_fit_and_fix(tmp_path):
 
 
 def test_eval_uncert_scaling_no_data(tmp_path):
-    uncert_scaling = "quad_WFC3 2.0"
+    uncert_scaling = "err_quad_WFC3 2.0"
     reset = {
         'uncert_scaling': uncert_scaling,
         'dunits': 'ppm',
@@ -220,7 +220,7 @@ def test_eval_uncert_scaling_no_data(tmp_path):
         reset=reset,
     )
     error = re.escape(
-        "Invalid retrieval parameter 'quad_WFC3'. There is no "
+        "Invalid retrieval parameter 'err_quad_WFC3'. There is no "
         "instrument matching the name 'WFC3'"
     )
     with pytest.raises(ValueError, match=error):
