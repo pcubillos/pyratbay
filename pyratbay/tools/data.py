@@ -13,13 +13,13 @@ from . import tools as pt
 def parse_error_param(var):
     r"""
     Parse error-scaling parameters. There are two options:
-    - err_scale_name: Scale uncertainties as a multiplicative factor.
-    - err_quad_name: Scale uncertainties by adding in quadrature.
+    - scale_name: Scale uncertainties as a multiplicative factor.
+    - quad_name: Scale uncertainties by adding in quadrature.
 
     Parameters
     ----------
     var: String
-        Parameter name. Must begin with either "err_scale_" or "err_quad_".
+        Parameter name. Must begin with either "scale_" or "quad_".
 
     Returns
     -------
@@ -34,18 +34,18 @@ def parse_error_param(var):
     --------
     >>> import pyratbay.tools as pt
     >>> # Valid options:
-    >>> print(pt.parse_error_param('err_scale_WFC3'))
+    >>> print(pt.parse_error_param('scale_WFC3'))
     ('WFC3', '$S_\\sigma^{\\rm WFC3}$', 'scale')
-    >>> print(pt.parse_error_param('err_quad_NIRSpec_PRISM'))
+    >>> print(pt.parse_error_param('quad_NIRSpec_PRISM'))
     ('NIRSpec PRISM', '$\\sigma_{\\rm NIRSpec PRISM}$', 'quadrature')
 
     >>> # Not valid scaling throws error:
-    >>> print(pt.parse_error_param('err_fudging_IRAC1'))
-    ValueError: Invalid error scaling parameter 'err_fudging_IRAC1'. Valid options begin with: ['err_scale_', 'err_quad_']
+    >>> print(pt.parse_error_param('fudging_IRAC1'))
+    ValueError: Invalid error scaling parameter 'fudging_IRAC1'. Valid options begin with: ['scale_', 'quad_']
     """
     error_scalings = {
-        'err_scale_': r'$S_\sigma^{\rm INST}$',
-        'err_quad_': r'$\sigma_{\rm INST}$',
+        'scale_': r'$\log\ S^\sigma_{\rm INST}$',
+        'quad_': r'$\log\ \sigma_{\rm INST}$',
     }
 
     inst = None
@@ -54,7 +54,7 @@ def parse_error_param(var):
             inst = var.replace(scaling, '', 1)
             inst = inst.replace('_', ' ')
             texname = tex.replace('INST', inst)
-            mode = scaling.split('_')[1]
+            mode = scaling.split('_')[0]
             break
 
     if inst is None:
@@ -88,8 +88,8 @@ class Data():
             data points will be affected by the respective offset model.
         err_models: String or 1D iterable of strings
             List of error inflation model names, must begin with either
-            - "err_scale_" to scale uncertainties as a multiplicative factor
-            - "err_quad_" to scale uncertainties by adding in quadrature
+            - "scale_" to scale uncertainties as a multiplicative factor
+            - "quad_" to scale uncertainties by adding in quadrature
             followed by a string matching a substring of at least one of
             the band_names, these specific data points will be affected by
             the error scaling model.

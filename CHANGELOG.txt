@@ -8715,4 +8715,7 @@ Added offset_models argument to Data() object.
 Implemented offset_data() method to handle data offsets.
 Documented and tested.
 
+*****
 
+Renamed error scaling name format. Removed redundant 'err_'.
+Added '\log' to error-scaling texnames.
