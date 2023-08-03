@@ -60,7 +60,7 @@ class Retrieval():
         # the user redefines ret.theme to something else:
         if inputs.theme is None:
             self._default_theme = None
-        # MCMC options
+        # Retrieval configuration
         self.nsamples = inputs.nsamples
         self.burnin = inputs.burnin
         self.thinning = inputs.thinning
@@ -68,6 +68,7 @@ class Retrieval():
         self.grbreak = inputs.grbreak
         self.grnmin = inputs.grnmin
         self.resume = inputs.resume
+        self.nlive = inputs.nlive
 
         # Overrides retflag. At some point this will be the only way.
         if inputs.retrieval_params is not None:

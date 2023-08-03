@@ -497,6 +497,7 @@ def parse(cfile, with_log=True, mute=False):
         parse_float(args, 'grnmin')
         parse_bool(args, 'resume')
         parse_str(args, 'theme')
+        parse_int(args, 'nlive')
         # Stellar models:
         parse_str(args, 'starspec')
         parse_str(args, 'kurucz')
@@ -891,6 +892,8 @@ def parse(cfile, with_log=True, mute=False):
         'grbreak', 'Gelman-Rubin convergence criteria', 0.0, ge=0)
     args.grnmin = args.get_default(
         'grnmin', 'Gelman-Rubin convergence fraction', 0.5, gt=0.0)
+    args.nlive = args.get_default(
+        'nlive', 'Number of Nested Sampling live points', 1000, gt=0)
 
     if args.molvars is None:
         args.molvars = []

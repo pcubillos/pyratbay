@@ -8749,3 +8749,9 @@ Fixed indentation in pyrat_obj.py file.
 Implemented parse_bool() function into tools module.
 Fixed 'resume' config argument to be processed as a bool.
 Added tests.
+
+*****
+
+Added nlive config argument to set nested-sampling live points
+Defaulted to 1000, read into Pyrat.ret.
+
