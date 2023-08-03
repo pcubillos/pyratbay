@@ -21,6 +21,11 @@ import numpy as np
 import mc3.utils as mu
 
 from . import tools as pt
+from .mpi_tools import (
+    check_mpi4py,
+    check_mpi_is_needed,
+    get_mpi_rank,
+)
 from .. import constants as pc
 from ..version import __version__
 
@@ -527,6 +532,14 @@ def parse(cfile, with_log=True, mute=False):
     args = Namespace(args)
     args.configfile = cfile
 
+    # Check that mpi4py is necessary and installed
+    check_mpi4py()
+
+    # Ensure that any process with rank !=0 is muted
+    rank = get_mpi_rank()
+    with_log &= rank==0
+    mute |= rank != 0
+
     if mute:
         args.verb = -1
     else:
@@ -907,6 +920,9 @@ def parse(cfile, with_log=True, mute=False):
         warnings.warn(warning_msg, category=DeprecationWarning)
     args.tmodelname = args.get_choice('tmodel', 'temperature model', pc.tmodels)
     args.ncpu = args.get_default('ncpu', 'Number of processors', 1, ge=1)
+
+    # Now, check that we really needed MPI (exclusively for MultiNest)
+    check_mpi_is_needed(args)
 
     del args._log
     return args, log

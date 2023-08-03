@@ -8769,4 +8769,8 @@ Added placeholder tests since I first need to figure out how to:
 - make mpirun calls without subprocess, or capture from screen output
 - run simulating that mpi4py is not installed
 
+*****
+
+Added MPI check in parse() to ensure that mpi4py is installed
+when needed, and that MPI is only used when needed (MultiNest runs).
 
