@@ -8791,4 +8791,11 @@ and pair-wise posterior plots, and a statistics text file.
 
 Added tests.
 
+*****
+
+Added constant.statistics list of available statistics to report
+in posterior plots.
+Added statistics config argument to the parser and loaded into
+pyrat.ret.
+
 

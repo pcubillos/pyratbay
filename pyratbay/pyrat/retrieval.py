@@ -61,6 +61,7 @@ class Retrieval():
         if inputs.theme is None:
             self._default_theme = None
         # Retrieval configuration
+        self.statistics = inputs.statistics
         self.nsamples = inputs.nsamples
         self.burnin = inputs.burnin
         self.thinning = inputs.thinning

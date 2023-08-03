@@ -12,6 +12,7 @@ __all__ = [
     'dbases',
     'rmodes',
     'samplers',
+    'statistics',
     'transmission_rt',
     'emission_rt',
     'rt_paths',
@@ -67,9 +68,18 @@ rmodes = [
     'retrieval',
 ]
 
+# Bayesian retrieval algorithms
 samplers = [
     'snooker',
     'multinest',
+]
+
+# Statistics for posterior plots
+statistics = [
+    'med_central',
+    'max_central',
+    'max_like',
+    'global_max_like',
 ]
 
 # Transmission radiative transfer:
