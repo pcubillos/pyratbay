@@ -4,6 +4,7 @@
 __all__ = [
     'Namespace',
     'parse',
+    'parse_bool',
     'parse_str',
     'parse_int',
     'parse_float',
@@ -187,8 +188,23 @@ class Namespace(argparse.Namespace):
         return value
 
 
+def parse_bool(args, param):
+    """Parse a string parameter in args into a Bool."""
+    if param not in args:
+        args[param] = False
+    elif args[param].lower() in ['false', '0', 'no']:
+        args[param] = False
+    elif args[param].lower() in ['true', '1', 'yes']:
+        args[param] = True
+    else:
+        raise ValueError(
+            f"Invalid data type for parameter '{param}', could not "
+            f"convert string '{args[param]}'to bool"
+        )
+
+
 def parse_str(args, param):
-    """Parse a string parameter into args."""
+    """Parse a string parameter in args into a string."""
     if param not in args:
         args[param] = None
     else:
@@ -198,8 +214,7 @@ def parse_str(args, param):
 def parse_int(args, param):
     """
     Convert a dictionary's parameter from string to integer.
-    Raise ValueError if the operation is not possible.
-    Set parameter to None if it was not in the dictinary.
+    Set parameter to None if it was not in the dictionary.
 
     Parameters
     ----------
@@ -241,18 +256,19 @@ def parse_int(args, param):
     except:
         raise ValueError(
             f"Invalid data type for {param}, could not convert string "
-            f"to integer: '{args[param]}'")
+            f"to integer: '{args[param]}'"
+        )
     if not np.isfinite(val) or int(val) != val:
         raise ValueError(
             f"Invalid data type for {param}, could not convert string "
-            f"to integer: '{args[param]}'")
+            f"to integer: '{args[param]}'"
+        )
     args[param] = int(val)
 
 
 def parse_float(args, param):
     """
     Convert a dictionary's parameter from string to float.
-    Raise ValueError if the operation is not possible.
     Set parameter to None if it was not in the dictinary.
 
     Parameters
@@ -295,7 +311,8 @@ def parse_float(args, param):
     except:
         raise ValueError(
             f"Invalid data type for {param}, could not convert string "
-            f"to float: '{args[param]}'")
+            f"to float: '{args[param]}'"
+        )
     args[param] = val
 
 
@@ -478,7 +495,7 @@ def parse(cfile, with_log=True, mute=False):
         parse_int(args, 'thinning')
         parse_float(args, 'grbreak')
         parse_float(args, 'grnmin')
-        parse_int(args, 'resume')      # False, action='store_true')
+        parse_bool(args, 'resume')
         parse_str(args, 'theme')
         # Stellar models:
         parse_str(args, 'starspec')

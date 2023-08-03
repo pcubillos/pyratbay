@@ -589,6 +589,36 @@ def test_parse_int_fail(var):
         pt.parse_int(args, 'par')
 
 
+@pytest.mark.parametrize('var', ['True', 'true', '1', 'yes'])
+def test_parse_bool_true(var):
+    args = {'par': var}
+    pt.parse_bool(args, 'par')
+    assert args['par'] is True
+
+
+@pytest.mark.parametrize('var', ['False', 'false', '0', 'no'])
+def test_parse_bool_false(var):
+    args = {'par': var}
+    pt.parse_bool(args, 'par')
+    assert args['par'] is False
+
+
+def test_parse_bool_default():
+    args = {'different_par': 'True'}
+    pt.parse_bool(args, 'par')
+    assert args['par'] is False
+
+
+def test_parse_bool_raise():
+    args = {'par': 'yes, please!'}
+    match = re.escape(
+        "Invalid data type for parameter 'par', could not convert string "
+        "'yes, please!'to bool"
+    )
+    with pytest.raises(ValueError, match=match):
+        pt.parse_bool(args, 'par')
+
+
 @pytest.mark.parametrize('var, val',
     [('10',   10.0),
      ('-10', -10.0),

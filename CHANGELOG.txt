@@ -8743,3 +8743,9 @@ Runs using 'mcmc' will still run, but throw a warning to the user.
 
 Fixed indentation in pyrat_obj.py file.
 
+
+*****  Thu Aug 3 11:29:57 CEST 2023  *****
+
+Implemented parse_bool() function into tools module.
+Fixed 'resume' config argument to be processed as a bool.
+Added tests.
