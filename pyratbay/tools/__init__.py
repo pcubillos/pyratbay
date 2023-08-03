@@ -1,12 +1,14 @@
-# Copyright (c) 2021 Patricio Cubillos
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+# Copyright (c) 2021-2023 Patricio Cubillos
+# Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 from .data import *
+from .mpi_tools import *
 from .parser import *
 from .tools import *
 
 __all__ = (
     data.__all__
+    + mpi_tools.__all__
     + parser.__all__
     + tools.__all__
 )

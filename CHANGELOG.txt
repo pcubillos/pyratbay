@@ -8755,3 +8755,18 @@ Added tests.
 Added nlive config argument to set nested-sampling live points
 Defaulted to 1000, read into Pyrat.ret.
 
+*****
+
+Added mpi_tools.py which implements functions to detect when MPI
+tools (via mpi4py) exists, and whether need to exist.
+Also MPI wrapper functions that wont disrupt executions when mpi4py
+is not installed.
+
+Added mpi4py to tests_require in setup.py.
+
+Added placeholder tests since I first need to figure out how to:
+- run MPI on github actions
+- make mpirun calls without subprocess, or capture from screen output
+- run simulating that mpi4py is not installed
+
+

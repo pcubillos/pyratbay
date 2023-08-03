@@ -124,10 +124,11 @@ setup(
         'matplotlib>=3.3.4',
         'mc3>=3.1.3',
         'chemcat>=0.3.1',
-        ],
+    ],
     tests_require = [
         'pytest>=3.9',
-        ],
+        'mpi4py>=3.1.4',
+    ],
     license = 'GPLv2',
     description = 'Python Radiative Transfer in a Bayesian Framework.',
     long_description = long_description,
