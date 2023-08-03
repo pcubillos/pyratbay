@@ -9,6 +9,7 @@ import re
 import mc3
 import numpy as np
 
+import pyratbay as pb
 import pyratbay.atmosphere as pa
 import pyratbay.constants as pc
 import pyratbay.io as io
@@ -673,3 +674,63 @@ def test_parse_none(parser):
     args = {}
     pt.parse_array(args, 'par')
     assert args['par'] is None
+
+
+
+def test_weighted_to_equal_default():
+    posterior = pt.weighted_to_equal('inputs/multinest_output.txt')
+    assert posterior.shape == (15000,2)
+    # Not the highest tolerance because there's a rng in between:
+    np.testing.assert_allclose(np.median(posterior), -2.470685, rtol=0.05)
+    np.testing.assert_allclose(np.std(posterior), 1.4980580, rtol=0.05)
+
+
+def test_weighted_to_equal_with_weighted():
+    posterior, weighted = pt.weighted_to_equal(
+        'inputs/multinest_output.txt',
+        get_weighted=True,
+    )
+    assert posterior.shape == (15000,2)
+    assert weighted.shape == (1825,2)
+
+
+def test_weighted_to_equal_with_size():
+    posterior, weighted = pt.weighted_to_equal(
+        'inputs/multinest_output.txt',
+        get_weighted=True,
+        min_size=0,
+    )
+    assert posterior.shape == (1825,2)
+    assert weighted.shape == (1825,2)
+
+
+def test_get_multinest_map():
+    bestp = pt.get_multinest_map('inputs/multinest_outputstats.txt')
+    expected_bestp = np.array([
+        -4.45678543, -0.873886357,  1352.33371, -3.35902318, -3.43078850,
+    ])
+    np.testing.assert_allclose(bestp, expected_bestp)
+
+
+def test_loglike():
+    pyrat = pb.Pyrat('configs/mcmc_transmission_test.cfg', log=False)
+    loglike = pt.Loglike(pyrat)
+
+    # For the log_like, free parameters only
+    ifree = pyrat.ret.pstep > 0
+    free_pars = pyrat.ret.params[ifree]
+    like = loglike(free_pars)
+    np.testing.assert_allclose(like, -1627.5530504136932)
+
+    # A non-physical model
+    #like = loglike(free_pars)
+    #np.testing.assert_allclose(like, -1e+98)
+
+    # Now with better-fitting parameters:
+    # map_pars = np.array([
+    #     -4.4567854, -0.87388636, 1352.3337, -3.3590232, -3.4307885,
+    # ])
+    # like = loglike(map_pars)
+    # np.testing.assert_allclose(like, -1627.5530504136932)
+
+

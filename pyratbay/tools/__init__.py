@@ -4,12 +4,14 @@
 from .data import *
 from .mpi_tools import *
 from .parser import *
+from .retrieval_tools import *
 from .tools import *
 
 __all__ = (
     data.__all__
     + mpi_tools.__all__
     + parser.__all__
+    + retrieval_tools.__all__
     + tools.__all__
 )
 

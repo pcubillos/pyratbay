@@ -8774,3 +8774,21 @@ Added placeholder tests since I first need to figure out how to:
 Added MPI check in parse() to ensure that mpi4py is installed
 when needed, and that MPI is only used when needed (MultiNest runs).
 
+*****
+
+Added retrieval_tools.py file into tools module.
+Implements the Loglike() class which computes the log(likelihood)
+of a pyratbay calculation, as it typically used by other Bayesian
+samplers.
+Implements the weighted_to_equal() function to compute
+an equally-weighted sample (a posterior distribution) from a
+MultiNest output file.
+Implements the get_multinest_map() function which extracts the
+best-fitting parameters from a MultiNest output file.
+Implements the multinest_run() function which is a wrapper of a
+MultiNest call plus post processing to produce trace, histogram,
+and pair-wise posterior plots, and a statistics text file.
+
+Added tests.
+
+
