@@ -8799,3 +8799,9 @@ Added statistics config argument to the parser and loaded into
 pyrat.ret.
 
 
+*****  Thu Aug 24 14:28:45 CEST 2023  *****
+
+Fixed bug when opacity pressure array boundaries differ from
+that of the atmosphere.
+Added tests.
+

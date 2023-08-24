@@ -54,6 +54,32 @@ def test_line_sample_trim_wn():
     np.testing.assert_allclose(ls.wn, expected_wn)
 
 
+def test_line_sample_resample_pressure():
+    cs_files = f"{pc.ROOT}tests/outputs/exttable_test_300-3000K_1.1-1.7um.npz"
+    pressure = np.logspace(1, 7, 90)
+    ls = op.Line_Sample(cs_files, pressure=pressure)
+
+    assert ls.ntemp == 10
+    assert ls.nwave == 3209
+    assert ls.nspec == 1
+    assert ls.nlayers == 90
+
+    np.testing.assert_allclose(ls.press, pressure, rtol=3e-5)
+
+
+def test_line_sample_extrapolate_low_pressure():
+    cs_files = f"{pc.ROOT}tests/outputs/exttable_test_300-3000K_1.1-1.7um.npz"
+    pressure = np.logspace(-2, 7, 90)
+    ls = op.Line_Sample(cs_files, pressure=pressure)
+
+    assert ls.ntemp == 10
+    assert ls.nwave == 3209
+    assert ls.nspec == 1
+    assert ls.nlayers == 90
+
+    np.testing.assert_allclose(ls.press, pressure, rtol=3e-5)
+
+
 # Cross sections
 def test_line_sample_cross_section():
     cs_files = f"{pc.ROOT}tests/outputs/exttable_test_300-3000K_1.1-1.7um.npz"
@@ -185,7 +211,7 @@ def test_line_sample_missing_cs_file():
 @pytest.mark.skip(reason='TBD')
 @pytest.mark.parametrize(
     'mismatch',
-    ['wavenumber', 'temperature', 'pressure'],
+    ['wavenumber', 'temperature'],
 )
 def test_line_sample_mismatch_sizes(mismatch):
     cs_files = [
@@ -216,4 +242,14 @@ def test_line_sample_temp_outbounds(call):
     if call == 'extinction':
         with pytest.raises(ValueError, match=error):
             extinction = ls.calc_extinction_coefficient(temp, densities)
+
+
+def test_line_sample_extrapolate_high_pressure():
+    cs_files = f"{pc.ROOT}tests/outputs/exttable_test_300-3000K_1.1-1.7um.npz"
+    pressure = np.logspace(0, 9, 90)
+    error = re.escape(
+        "Pressure profile extends beyond the maximum tabulated pressure"
+    )
+    with pytest.raises(ValueError, match=error):
+        ls = op.Line_Sample(cs_files, pressure=pressure)
 

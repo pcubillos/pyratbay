@@ -94,7 +94,6 @@ class Line_Sample():
         if pressure is None:
             self.press = press
         else:
-            check_pressure_boundaries(pressure, press)
             self.press = pressure
         self.nlayers = len(self.press)
         self.wn = wn[(wn >= min_wn) & (wn <= max_wn)]
@@ -122,7 +121,7 @@ class Line_Sample():
                     f"Shape of the cross-section file '{cs_file}' "
                     "does not match with previous file shapes."
                 )
-            check_pressure_boundaries(press, self.press)
+            check_pressure_boundaries(self.press, press)
             value_mismatch = [
                 np.any(np.abs(1.0-temp/self.temp) > 0.01),
                 np.any(np.abs(1.0-wn/self.wn) > 0.01),
