@@ -32,6 +32,11 @@ class Line_Sample():
             Minimum wavenumber value to extract from line-sample files (cm-1)
         max_wn: 1D float ndarray
             Maximum wavenumber value to extract from line-sample files (cm-1)
+        pressure: 1D floar array
+            Desired pressure profile where to resample the opacities (barye).
+            If None, use the tabulated pressure array from the opacities.
+            If not None, it is allowed to extrapolate to lower pressures
+            but to toward higher pressures.
 
         Examples
         --------

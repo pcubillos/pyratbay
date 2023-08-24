@@ -25,7 +25,7 @@ class Opacity():
     """Interface between opacity models and pyrat object"""
     def __init__(self, inputs, wn, species, pressure, log, pyrat):
         """
-        Read collision induced absorption (CIA) files.
+        Read opacity sources.
         """
         self.models = []
         self.models_type = []

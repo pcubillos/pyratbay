@@ -189,7 +189,7 @@ class Hydrogen_Ion():
 
     def cross_section_bound_free(self, temperature):
         """
-        Compute the free-free cross section for H- in cm5/H_mol/electron.
+        Compute the bound-free cross section for H- in cm5/H_mol/electron.
 
         Equation (4) of John 1988, AA, 193, 189.
         """

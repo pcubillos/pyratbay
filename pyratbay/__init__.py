@@ -24,7 +24,7 @@ from . import plots
 from . import spectrum
 from . import atmosphere
 from .pyrat import Pyrat
-from .pyrat.atmosphere import *
+from .pyrat.atmosphere import Atmosphere
 from .driver import run
 
 from .pyrat import optical_depth as _od
