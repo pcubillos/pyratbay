@@ -8809,3 +8809,10 @@ Added tests.
 
 Cosmetics.
 
+*****
+
+Moved extfile input/outout/exists checks into parser
+(prevent crashing when looking for files later, which occurs in
+multiple places)
+Updated tests.
+

@@ -103,7 +103,7 @@ def test_invalid_integer_type(tmp_path, param, value):
 
 @pytest.mark.parametrize('param',
     ['verb', 'wnosamp', 'nlayers', 'ndop', 'nlor', 'quadrature',
-     'nsamples', 'nchains', 'burnin', 'thinning', 'resume'])
+     'nsamples', 'nchains', 'burnin', 'thinning'])
 def test_invalid_integer_all_params(tmp_path, param):
     cfg = make_config(
         tmp_path,
@@ -1228,7 +1228,9 @@ def test_read_opacity_missing_extfile(tmp_path):
         ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         reset={'extfile':efile, 'wnstep': '1.0'},
     )
-    error = re.escape(f"Missing opacity files: ['{efile}']")
+    error = re.escape(
+        f"These input cross-section files are missing: ['{efile}']"
+    )
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
 
@@ -1251,8 +1253,8 @@ def test_compute_opacity_make_multiple_extfiles(tmp_path):
         reset=reset,
     )
     error = re.escape(
-        'Computing opacity table, but there is more than one'
-        'output opacity file set (extfile)'
+        'Computing opacity table, but there was more than one '
+        'output opacity file (extfile)'
     )
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)

@@ -20,6 +20,7 @@ def compute_opacity(pyrat):
     spec = pyrat.spec
     log = pyrat.log
 
+    # TBD: Remove this check (already covered in parser)?
     if ex.extfile is None:
         log.error(
             'Undefined output opacity file (extfile) needed to '
@@ -27,8 +28,8 @@ def compute_opacity(pyrat):
         )
     if len(ex.extfile) > 1:
         log.error(
-            'Computing opacity table, but there is more than one'
-            'output opacity file set (extfile)',
+            'Computing opacity table, but there was more than one '
+            'output opacity file (extfile)',
         )
     if ex.tmin is None:
         log.error(
@@ -134,7 +135,7 @@ def extinction(pyrat, indices, grid=False, add=False):
        If False, compute EC for atmospheric layer.
     add: Bool
        If True, co-add EC contribution (cm-1) from all species.
-       If False, keep EC contribution (cm2 molec-1) from each species separated.
+       If False, calc CS contribution (cm2 molec-1) from each species separated.
     """
     atm = pyrat.atm
     spec = pyrat.spec

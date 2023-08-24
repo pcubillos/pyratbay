@@ -558,14 +558,19 @@ def parse(cfile, with_log=True, mute=False):
         'runmode', 'running mode', pc.rmodes, take_none=False,
     )
 
+
     # Define logfile name and initialize log object:
     args.tlifile = args.get_path('tlifile', 'TLI')
     args.atmfile = args.get_path('atmfile', 'Atmospheric')
     args.input_atmfile = args.get_path('input_atmfile', 'Atmospheric')
     args.specfile = args.get_path('specfile', 'Spectrum')
+    # TBD: extfile or output_extfile depending on runmode=='opacity'?
     args.extfile = args.get_path('extfile', 'Extinction-coefficient')
     args.mcmcfile = args.get_path('mcmcfile', 'MCMC')
 
+    # TBD: Reverse this?
+    # - request a non-None logfile
+    # - make a __file based on logfile if needed
     outfile_dict = {
         'tli': args.tlifile,
         'atmosphere': args.atmfile,
@@ -579,7 +584,6 @@ def parse(cfile, with_log=True, mute=False):
         if args.runmode in ['tli', 'opacity']:
             outfile = outfile[0]
         args.logfile = os.path.splitext(outfile)[0] + '.log'
-
     args.logfile = args.get_path('logfile', 'Log')
 
     # Override logfile if requested:
@@ -611,6 +615,18 @@ def parse(cfile, with_log=True, mute=False):
     args.molfile = args.get_path('molfile', 'Molecular data', exists=True)
     args.cia_files = args.get_path('csfile', 'Cross-section', exists=True)
     args.ptfile = args.get_path('ptfile', 'Pressure-temperature')
+
+    # Validate opacity file path(s)
+    if args.runmode == 'opacity' and pt.isfile(args.extfile) == -1:
+        log.error(
+            'Undefined output opacity file (extfile) needed to compute '
+            'opacity table'
+        )
+    if args.runmode != 'opacity' and pt.isfile(args.extfile) == 0:
+        missing = [efile for efile in args.extfile if pt.isfile(efile) == 0]
+        log.error(
+            f"These input cross-section files are missing: {missing}"
+        )
 
     wlunits = args.get_default('wlunits', 'Wavelength units')
     if wlunits is None:

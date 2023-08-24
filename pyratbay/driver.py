@@ -52,12 +52,11 @@ def run(cfile, run_step=None, with_log=True):
     if run_step == 'init':
         return pyrat
 
-    # Calculate extinction-coefficient file if requested:
+    # Requested calculations:
     if runmode == 'opacity':
         pyrat.compute_opacity()
         return pyrat
 
-    # Compute spectrum and return pyrat object if requested:
     if runmode == "spectrum":
         pyrat.run()
         return pyrat

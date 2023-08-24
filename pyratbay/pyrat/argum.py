@@ -49,7 +49,7 @@ def check_spectrum(pyrat):
         log.error("Undefined radius ratio, need to define rplanet and rstar")
 
     # Accept ray-path argument:
-    if pyrat.runmode in ['spectrum', 'mcmc'] and pyrat.od.rt_path is None:
+    if pyrat.runmode in ['spectrum', 'retrieval'] and pyrat.od.rt_path is None:
         log.error(
             "Undefined radiative-transfer observing geometry (rt_path)."
             f"  Select from {pc.rt_paths}"
