@@ -279,6 +279,44 @@ def test_ilast_type(data):
     assert pt.ilast(data) == 2
 
 
+@pytest.mark.parametrize(
+    'file_path',
+    ['file.log', './file.log'],
+)
+def test_mkdir_in_cwd(tmp_path, file_path):
+    with pt.cd(tmp_path):
+        pt.mkdir(file_path)
+        # No dir made, nothing to test except no error was raised
+
+
+def test_mkdir_in_existing_absolute_path(tmp_path):
+    path_file = tmp_path / 'my_file.log'
+    pt.mkdir(path_file)
+    # No dir made, nothing to test except no error was raised
+
+
+@pytest.mark.parametrize(
+    'file_path',
+    ['NS/file.log', './NS/file.log'],
+)
+def test_mkdir_make_path_in_cwd(tmp_path, file_path):
+    with pt.cd(tmp_path):
+        pt.mkdir(file_path)
+        assert os.path.exists('NS')
+
+
+def test_mkdir_make_dir_in_existing_absolute_path(tmp_path):
+    file_path = tmp_path / 'NS/my_file.log'
+    pt.mkdir(file_path)
+    assert os.path.exists(tmp_path / 'NS')
+
+
+def test_mkdir_nested_new_dirs(tmp_path):
+    file_path = tmp_path / 'NS/dir2/my_file.log'
+    with pytest.raises(FileNotFoundError):
+        pt.mkdir(file_path)
+
+
 def test_isfile_none():
     assert pt.isfile(None) == -1
 

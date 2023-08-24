@@ -8816,3 +8816,8 @@ Moved extfile input/outout/exists checks into parser
 multiple places)
 Updated tests.
 
+*****
+
+Implemented tools.mkdir() function to make directories when needed.
+Documented and tested.
+

@@ -13,6 +13,7 @@ __all__ = [
     'u',
     'get_param',
     'ifirst', 'ilast',
+    'mkdir',
     'isfile',
     'file_exists',
     'path',
@@ -45,6 +46,11 @@ import mc3.utils as mu
 import mc3.plots as mp
 import numpy as np
 import scipy.interpolate as sip
+
+from .mpi_tools import (
+    get_mpi_rank,
+    mpi_barrier,
+)
 
 from .. import constants as pc
 from .. import io as io
@@ -544,6 +550,22 @@ def ilast(data, default_ret=-1):
     0
     """
     return _indices.ilast(np.asarray(data, int), default_ret)
+
+
+def mkdir(file_path):
+    """
+    Create a directory for given file_path if it doesn't exists.
+    Creating nested folders is not allowed.
+    """
+    path, filename = os.path.split(file_path)
+    path = path.removeprefix('./')
+
+    # Only make dirs in main process
+    rank = get_mpi_rank()
+    if rank == 0 and path !='' and not os.path.exists(path):
+        os.mkdir(path)
+    # Synchronize to ensure mkdir call has completed
+    mpi_barrier()
 
 
 def isfile(path):
