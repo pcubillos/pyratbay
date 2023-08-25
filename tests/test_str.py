@@ -825,7 +825,6 @@ Upper boundary for sum of metal abundances (qcap): None
 Temperature upper boundary (tlow, K):   300.0
 Temperature lower boundary (thigh, K): 3000.0
 
-Retrieval posterior file (mcmcfile):
-    {:s}/outputs/MCMC_transmission_test.npz
+Retrieval posterior file (mcmcfile): None
 """.format(os.getcwd())
 

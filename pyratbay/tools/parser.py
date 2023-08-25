@@ -40,10 +40,21 @@ class Namespace(argparse.Namespace):
         else:
             self._log = log
 
-    def get_path(self, pname, desc='', exists=False):
+    def get_path(self, pname, desc='', exists=False, make_dir=False):
         """
         Extract pname file path (or list of paths) from Namespace,
         return the canonical path.
+
+        Parameters
+        ----------
+        pname: String
+            The parameter name to extract.
+        desc: String
+            A description to display in case of raising an error
+        exists: Bool
+            If True, raise an error if the file path does not exists.
+        make_dir: Bool
+            If True, make directories for the file path if needed.
 
         Examples
         --------
@@ -77,6 +88,9 @@ class Namespace(argparse.Namespace):
                 self._log.error(
                     f"{desc} file ({pname}) does not exist: '{val}'"
                 )
+            if make_dir:
+                pt.mkdir(val)
+
             if not os.path.exists(os.path.dirname(val)):
                 self._log.error(
                     f"Folder for {desc} file ({pname}) does not exist: '{val}'"
@@ -390,6 +404,7 @@ def parse(cfile, with_log=True, mute=False):
 
     # Parse data type:
     with pt.log_error():
+        parse_str(args, 'logfile')
         parse_str(args, 'runmode')
         parse_int(args, 'ncpu')
         parse_int(args, 'verb')
@@ -525,7 +540,6 @@ def parse(cfile, with_log=True, mute=False):
         parse_float(args, 'beta_irr')
         # Outputs:
         parse_str(args,   'specfile')
-        parse_str(args,   'logfile')
         parse_array(args, 'logxticks')
         parse_array(args, 'yran')
 
@@ -546,54 +560,21 @@ def parse(cfile, with_log=True, mute=False):
     else:
         args.verb = args.get_default('verb', 'Verbosity', 2, lt=5)
 
-    if args.runmode == 'mcmc':
-        args.runmode = 'retrieval'
-        warning_msg = (
-            "The 'mcmc' option for the 'runmode' argument is deprecated "
-            "and will be removed in the future, use 'retrieval' instead "
-        )
-        warnings.warn(warning_msg, category=DeprecationWarning)
-
-    args.runmode = args.get_choice(
-        'runmode', 'running mode', pc.rmodes, take_none=False,
-    )
-
-
-    # Define logfile name and initialize log object:
-    args.tlifile = args.get_path('tlifile', 'TLI')
-    args.atmfile = args.get_path('atmfile', 'Atmospheric')
-    args.input_atmfile = args.get_path('input_atmfile', 'Atmospheric')
-    args.specfile = args.get_path('specfile', 'Spectrum')
-    # TBD: extfile or output_extfile depending on runmode=='opacity'?
-    args.extfile = args.get_path('extfile', 'Extinction-coefficient')
-    args.mcmcfile = args.get_path('mcmcfile', 'MCMC')
-
-    # TBD: Reverse this?
-    # - request a non-None logfile
-    # - make a __file based on logfile if needed
-    outfile_dict = {
-        'tli': args.tlifile,
-        'atmosphere': args.atmfile,
-        'spectrum': args.specfile,
-        'radeq': args.specfile,
-        'opacity': args.extfile,
-        'retrieval': args.mcmcfile,
-    }
-    outfile = outfile_dict[args.runmode]
-    if args.logfile is None and outfile is not None:
-        if args.runmode in ['tli', 'opacity']:
-            outfile = outfile[0]
-        args.logfile = os.path.splitext(outfile)[0] + '.log'
-    args.logfile = args.get_path('logfile', 'Log')
+    # logfile is now a required parameter (though users can still run
+    # without creating a logfile by setting with_log=False)
+    args.logfile = args.get_path('logfile', 'Log', make_dir=True)
+    if args.logfile is None:
+        raise ValueError(f"Missing 'logfile' input in config file")
 
     # Override logfile if requested:
     if not with_log:
-        args.logfile = None
-
-    args.logfile = pt.path(args.logfile)
-    log = mu.Log(
-        logname=args.logfile, verb=args.verb, width=80, append=args.resume,
-    )
+        logfile = None
+    else:
+        logfile = pt.path(args.logfile)
+    #args.logfile = pt.path(args.logfile)
+    log = mu.Log(logname=logfile, verb=args.verb, width=80, append=args.resume)
+    # Temporary reference to log in args (will be deleted at the end):
+    args._log = log
 
     # Welcome message:
     log.head(
@@ -607,9 +588,46 @@ def parse(cfile, with_log=True, mute=False):
 
     log.head(f"Read command-line arguments from configuration file: '{cfile}'")
 
-    # Temporary reference to log in args (will be deleted at the end):
-    args._log = log
-    # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+    if args.runmode == 'mcmc':
+        args.runmode = 'retrieval'
+        warning_msg = (
+            "The 'mcmc' option for the 'runmode' argument is deprecated "
+            "and will be removed in the future, use 'retrieval' instead "
+        )
+        warnings.warn(warning_msg, category=DeprecationWarning)
+
+    args.runmode = args.get_choice(
+        'runmode', 'running mode', pc.rmodes, take_none=False,
+    )
+
+    args.tlifile = args.get_path('tlifile', 'TLI')
+    args.atmfile = args.get_path('atmfile', 'Atmospheric')
+    args.input_atmfile = args.get_path('input_atmfile', 'Atmospheric')
+    args.specfile = args.get_path('specfile', 'Spectrum')
+    # TBD: extfile or output_extfile depending on runmode=='opacity'?
+    args.extfile = args.get_path('extfile', 'Extinction-coefficient')
+    args.mcmcfile = args.get_path('mcmcfile', 'MCMC')
+
+    # Default output filenames if needed base on logfile and runmode:
+    outfile, extension = os.path.splitext(args.logfile)
+    if args.runmode == 'tli' and args.tlifile is None:
+        args.tlifile = [outfile + '.tli']
+    if args.runmode == 'atmosphere' and args.atmfile is None:
+        args.atmfile = outfile + '.atm'
+    if args.runmode == 'opacity' and args.extfile is None:
+        args.extfile = [outfile + '.npz']
+    if args.runmode == 'spectrum' and args.specfile is None:
+        args.specfile = outfile + '.dat'
+
+    if args.runmode == 'radeq':
+        if args.specfile is None:
+            args.specfile = outfile + '.tli'
+        if args.atmfile is None:
+            args.atmfile = outfile + '.atm'
+    if args.runmode == 'retrieval' and args.mcmcfile is None:
+        args.mcmcfile = outfile + '.npz'
+
     # Parse valid inputs and defaults:
     args.dblist = args.get_path('dblist', 'Opacity database', exists=True)
     args.molfile = args.get_path('molfile', 'Molecular data', exists=True)

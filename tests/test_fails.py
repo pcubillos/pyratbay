@@ -42,26 +42,37 @@ def test_run_runmode(tmp_path, capfd, runmode, call):
 
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 # Check output for each case is defined:
-def test_run_tli2(tmp_path):
-    cfg = make_config(
-        tmp_path,
-        ROOT+'tests/configs/tli_hitran_1.1-1.7um_test.cfg',
-        remove=['tlifile'],
-    )
-    error = "Undefined TLI file (tlifile)"
-    with pytest.raises(ValueError, match=re.escape(error)):
-        pyrat = pb.run(cfg)
-
-
 def test_run_mcmc_mcmcfile(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/mcmc_transmission_test.cfg',
         remove=['mcmcfile'],
+        reset={'runmode': 'spectrum'},
     )
-    error = "Undefined MCMC file (mcmcfile)"
+    error = "Undefined retrieval file (mcmcfile)"
     with pytest.raises(ValueError, match=re.escape(error)):
-        pyrat = pb.run(cfg)
+        pyrat = pb.Pyrat(cfg)
+        pyrat.retrieval()
+
+
+@pytest.mark.skip(reason='TBD: fix input atmosphere, add radius')
+def test_run_opacity_extfile_missing(tmp_path):
+    reset = {
+        'runmode': 'spectrum',
+    }
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/opacity_test.cfg',
+        reset=reset,
+        remove=['extfile'],
+    )
+    error = re.escape(
+        'Undefined output opacity file (extfile) needed to compute '
+        'opacity table'
+    )
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.Pyrat(cfg)
+        pyrat.compute_opacity()
 
 
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -192,9 +203,22 @@ def test_file_not_found(tmp_path, param, invalid_file):
         pyrat = pb.run(cfg)
 
 
-@pytest.mark.parametrize('param',
-    ['atmfile', 'tlifile', 'extfile', 'mcmcfile', 'specfile', 'ptfile',
-     'logfile'])
+def test_invalid_logfile_path(tmp_path, invalid_path):
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/pt_isothermal.cfg',
+        reset={'logfile':'ok/nope/file.dat'},
+    )
+    error = re.escape('No such file or directory')
+    with pytest.raises(FileNotFoundError, match=error):
+        pyrat = pb.run(cfg)
+
+
+
+@pytest.mark.parametrize(
+    'param',
+    ['atmfile', 'tlifile', 'extfile', 'mcmcfile', 'specfile', 'ptfile'],
+)
 def test_invalid_file_path(tmp_path, param, invalid_path):
     cfg = make_config(
         tmp_path,
@@ -517,8 +541,10 @@ def test_spectrum_inconsistent_wl_bounds(tmp_path):
         pyrat = pb.run(cfg)
 
 
-@pytest.mark.parametrize('param',
-    ['rstar', 'rt_path', 'specfile'])
+@pytest.mark.parametrize(
+    'param',
+    ['rstar', 'rt_path'],
+)
 def test_spectrum_transmission_missing(tmp_path, param, undefined_spec):
     cfg = make_config(
         tmp_path,
@@ -1306,7 +1332,7 @@ def test_read_opacity_mismatched_values(tmp_path):
 
 @pytest.mark.parametrize(
     'param',
-    ['extfile', 'tmin', 'tmax', 'tstep', 'tlifile'],
+    ['tmin', 'tmax', 'tstep', 'tlifile'],
 )
 def test_opacity_missing(tmp_path, param):
     reset = {'extfile': str(tmp_path/'new_opacity.npz')}
@@ -1316,8 +1342,6 @@ def test_opacity_missing(tmp_path, param):
         reset=reset,
         remove=[param],
     )
-    if param == 'extfile':
-        err = 'output opacity file (extfile)'
     if param == 'tlifile':
         err = 'input TLI files (tlifile)'
     if param == 'tmin':

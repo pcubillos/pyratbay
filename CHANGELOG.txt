@@ -8821,3 +8821,17 @@ Updated tests.
 Implemented tools.mkdir() function to make directories when needed.
 Documented and tested.
 
+
+*****  Fri Aug 25 17:05:44 CEST 2023  *****
+
+Addded make_dir optinal argument to Namespace() class.
+Allow to create output logfiles in a newly created directory.
+
+Refactored parse() function to read first the logfile name,
+then assign other output filenames from the logfile root when needed
+Made logfile a required parameter (but maybe I should not...)
+
+This simplifies config files, just always keep logfile up after
+runstep, no need to worry about file extensions (always .log).
+
+
