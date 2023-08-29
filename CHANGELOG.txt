@@ -8835,3 +8835,11 @@ This simplifies config files, just always keep logfile up after
 runstep, no need to worry about file extensions (always .log).
 
 
+*****  Tue Aug 29 17:02:18 CEST 2023  *****
+
+Implemented wrapper that calls multinest for nested sampling runs
+This is a slight branch in pyrat.retrieval(), MCMC or NS.
+Some minor tweaks on the basic post-processing screen output.
+
+Proper docs is pending: how to call, mpi stuff, options, cookbooks.
+

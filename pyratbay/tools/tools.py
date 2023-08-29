@@ -556,6 +556,17 @@ def mkdir(file_path):
     """
     Create a directory for given file_path if it doesn't exists.
     Creating nested folders is not allowed.
+
+    Parameters
+    ----------
+    file_path: String
+        Path to a file.
+
+    Examples
+    --------
+    >>> import pyratbay.tools as pt
+    >>> log_file = 'NS1/ns_emission_tutorial.npz'
+    >>> pt.mkdir(log_file)
     """
     path, filename = os.path.split(file_path)
     path = path.removeprefix('./')

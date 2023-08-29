@@ -13,12 +13,8 @@ import sys
 
 import mc3
 import numpy as np
-from pymultinest.run import run
 
-from .mpi_tools import (
-    get_mpi_rank,
-    mpi_barrier,
-)
+from .mpi_tools import get_mpi_rank
 
 
 class Loglike():
@@ -166,9 +162,8 @@ def multinest_run(pyrat, mn_basename):
     (the call will run to completion in any case)
     https://github.com/open-mpi/ompi/issues/7393#issuecomment-882018321
     """
+    from pymultinest.run import run
     os.environ["OMP_NUM_THREADS"] = "1"
-    # Synchronize to ensure mkdir call has completed
-    mpi_barrier()
 
     # Shut up for a moment:
     log = pyrat.log
@@ -206,6 +201,7 @@ def multinest_run(pyrat, mn_basename):
         except Exception as e:
             sys.stderr.write(f'ERROR in loglikelihood: {e}\n')
             sys.exit(1)
+
 
     # The pymultinest call:
     run(
