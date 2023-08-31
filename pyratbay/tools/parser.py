@@ -545,7 +545,7 @@ def parse(cfile, with_log=True, mute=False):
 
     # Cast into a Namespace to make my life easier:
     args = Namespace(args)
-    args.configfile = cfile
+    args.config_file = cfile
 
     # Check that mpi4py is necessary and installed
     check_mpi4py()

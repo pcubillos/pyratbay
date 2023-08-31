@@ -763,7 +763,7 @@ class Pyrat():
         wlmax = 1.0/(self.spec.wn[ 0]*pc.um)
         return (
             "Pyrat atmospheric model\n"
-            f"configuration file:  '{self.inputs.configfile}'\n"
+            f"configuration file:  '{self.inputs.config_file}'\n"
             f"Pressure profile:  {pmin:.2e} -- {pmax:.2e} bar "
             f"({self.atm.nlayers:d} layers)\n"
             f"Wavelength range:  {wlmin:.2f} -- {wlmax:.2f} um "
