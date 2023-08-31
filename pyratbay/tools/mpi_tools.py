@@ -75,6 +75,8 @@ def get_mpi_rank():
         The MPI process rank.
     """
     rank = 0
+    if 'PBAY_NO_MPI' in os.environ:
+        return rank
     mpi_exists = importlib.util.find_spec('mpi4py') is not None
     if mpi_exists:
         from mpi4py import MPI
@@ -93,6 +95,8 @@ def get_mpi_size():
         The size of the MPI group of processes.
     """
     size = 1
+    if 'PBAY_NO_MPI' in os.environ:
+        return size
     mpi_exists = importlib.util.find_spec('mpi4py') is not None
     if mpi_exists:
         from mpi4py import MPI
@@ -104,6 +108,8 @@ def mpi_barrier():
     """
     Make an MPI barrier() call. Ignore it if mpi4py is not installed.
     """
+    if 'PBAY_NO_MPI' in os.environ:
+        return
     mpi_exists = importlib.util.find_spec('mpi4py') is not None
     if mpi_exists:
         from mpi4py import MPI

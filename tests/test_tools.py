@@ -772,3 +772,24 @@ def test_loglike():
     # np.testing.assert_allclose(like, -1627.5530504136932)
 
 
+def test_get_mpi_rank():
+    # In reallyty we would like to call this with mpirun, but
+    # that needs to be configured in Github Actions, which is work
+    os.environ['PBAY_NO_MPI'] = "1"
+    rank = pt.get_mpi_rank()
+    assert rank == 0
+
+
+def test_get_mpi_size():
+    # In reallyty we would like to call this with mpirun, but
+    # that needs to be configured in Github Actions, which is work
+    os.environ['PBAY_NO_MPI'] = "1"
+    size = pt.get_mpi_size()
+    assert size == 1
+
+
+def test_mpi_barrier():
+    # In reallyty we would like to call this with mpirun, but
+    # that needs to be configured in Github Actions, which is work
+    os.environ['PBAY_NO_MPI'] = "1"
+    pt.mpi_barrier()

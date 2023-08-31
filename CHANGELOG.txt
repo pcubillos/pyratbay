@@ -8853,3 +8853,13 @@ Documented and tested.
 
 Maintenance on Line_Sample() to go through the pb.tools' MPI wrappers
 when checking for multiprocessing variables.
+
+*****
+
+Added environment-variable check in get_mpi_rank(), get_mpi_size(),
+and mpi_barrier() to not even consider checking for MPI when the
+'PBAY_NO_MPI' environment variable is set.
+
+This enables a user to skip cheking for MPI ranks and sizes, which
+can break, e.g., for a process initiated by subprocess.run() that was
+in turn called from an mpirun process.
