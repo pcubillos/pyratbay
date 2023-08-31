@@ -5,8 +5,6 @@ __all__ = [
     'Line_Sample',
 ]
 
-import importlib
-
 import numpy as np
 import mc3
 
@@ -83,12 +81,10 @@ class Line_Sample():
             log.error(f'Missing opacity files: {missing_files}')
 
         # Load opacities into shared memory if and only if possible and needed:
-        use_shared_memory = False
-        mpi_exists = importlib.util.find_spec('mpi4py') is not None
-        if mpi_exists:
+        use_shared_memory = pt.get_mpi_size() > 1
+        if use_shared_memory:
             from mpi4py import MPI
-            comm = MPI.COMM_WORLD
-            use_shared_memory = comm.size > 1
+            rank = pt.get_mpi_rank()
 
         # Get dimensions first:
         # Species, temperature (K), pressure (barye), and wavenumber (cm-1)
@@ -165,25 +161,25 @@ class Line_Sample():
                     )
         else:
             itemsize = MPI.DOUBLE.Get_size()
-            if comm.rank == 0:
+            if rank == 0:
                 nbytes = np.prod(cs_shape) * itemsize
             else:
                 nbytes = 0
             # on rank 0, create the shared block
             # else get a handle to it
-            win = MPI.Win.Allocate_shared(nbytes, itemsize, comm=comm)
+            win = MPI.Win.Allocate_shared(nbytes, itemsize, comm=MPI.COMM_WORLD)
 
             buf, itemsize = win.Shared_query(0)
             assert itemsize == MPI.DOUBLE.Get_size()
             self.cs_table = np.ndarray(buffer=buf, dtype='d', shape=cs_shape)
-            if comm.rank == 0:
+            if rank == 0:
                 for i,cs_file in enumerate(self.cs_files):
                     idx = spec_indices[i]
                     mask = wn_masks[i]
                     self.cs_table[idx] += pt.interpolate_opacity(
                         cs_file, self.press, mask,
                     )
-            comm.Barrier()
+            pt.mpi_barrier()
 
         # Set tabulated temperature extrema:
         self.tmin = np.amin(self.temp)
