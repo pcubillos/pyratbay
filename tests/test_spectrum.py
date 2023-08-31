@@ -214,6 +214,27 @@ def test_constant_resolution_spectrum():
     np.testing.assert_allclose(res, expected_res)
 
 
+def test_bin_spectrum():
+    wl_min = 0.5
+    wl_max = 4.0
+    resolution = 100
+    wl = ps.constant_resolution_spectrum(wl_min, wl_max, resolution)
+    spectrum = 3.0 * wl
+    spectrum[wl>2.5] = 8.0
+
+    bin_wl = ps.constant_resolution_spectrum(wl_min, wl_max, 10.0)
+    bin_spectrum = ps.bin_spectrum(bin_wl, wl, spectrum)
+
+    expected_bin_spectrum = np.array([
+       1.54129415, 1.65720529, 1.83149662, 2.02411849, 2.23699875,
+       2.47226803, 2.732281  , 3.01964002, 3.33722111, 3.6882028 ,
+       4.07609787, 4.50478858, 4.97856547, 5.50217036, 6.08084374,
+       6.72037726, 7.59303535, 8.        , 8.        , 8.        ,
+       8.
+    ])
+    np.testing.assert_allclose(bin_spectrum, expected_bin_spectrum)
+
+
 @pytest.mark.parametrize('wn',
    [[1.0, 10.0, 100.0, 1000.0, 3000.0],
     [1  , 10  , 100  , 1000  , 3000  ],

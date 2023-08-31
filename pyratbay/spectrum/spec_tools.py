@@ -5,6 +5,7 @@ __all__ = [
     'PassBand',
     'Tophat',
     'constant_resolution_spectrum',
+    'bin_spectrum',
     'tophat',
     'resample',
     'band_integrate',
@@ -375,6 +376,69 @@ def constant_resolution_spectrum(wave_min, wave_max, resolution):
     nwave = int(np.ceil(-np.log(wave_min/wave_max) / np.log(g)))
     wave = wave_min * g**np.arange(nwave)
     return wave
+
+
+def bin_spectrum(bin_wl, wl, spectrum, half_widths=None):
+    """
+    Bin down a spectrum.
+
+    Parameters
+    ----------
+    bin_wl: 1D float array
+        Central wavelength (um) of the desired binned down spectra.
+    wl: 1D float array
+        Wavelength samples of the original spectrum.
+    spectrum: 1D float array
+        Spectral values to be binned down.
+    half_widths: 1D float array
+        The bin half widths (um).
+        If None, assume that the bin edges are at the mid-points
+        of the bin_wl array.
+
+    Returns
+    -------
+    bin_spectrum: 1D float array
+        The binned spectrum.
+
+    Notes
+    -----
+    Probably bad things will happen if bin_wl has a similar
+    or coarser resolution than wl.
+
+    Examples
+    --------
+    >>> import pyratbay.spectrum as ps
+    >>> import numpy as np
+    >>> import matplotlib.pyplot as plt
+
+    >>> # Make a noisy high-resolution signal
+    >>> wl = ps.constant_resolution_spectrum(1.0, 3.0, resolution=5000)
+    >>> spectrum = np.sin(3.14*wl) + np.random.normal(1.5, 0.1, len(wl))
+    >>> # Bin it down:
+    >>> bin_wl = ps.constant_resolution_spectrum(1.0, 3.0, resolution=125)
+    >>> bin_spectrum = ps.bin_spectrum(bin_wl, wl, spectrum)
+
+    >>> # Compare original and binned signals
+    >>> plt.figure(0)
+    >>> plt.clf()
+    >>> plt.plot(wl, spectrum, '.', ms=2, color='gray')
+    >>> plt.plot(bin_wl, bin_spectrum, color='red')
+    """
+    if half_widths is None:
+        half_widths = np.ediff1d(bin_wl, 0, 0)
+        half_widths[0] = half_widths[1]
+        half_widths[-1] = half_widths[-2]
+        half_widths /= 2.0
+    bands = [
+        Tophat(wl0, half_width)
+        for wl0, half_width in zip(bin_wl, half_widths)
+    ]
+    nbands = len(bands)
+    band_flux = np.zeros(nbands)
+    for i,band in enumerate(bands):
+        band_wl, response = band(wl)
+        band_flux[i] = np.trapz(spectrum[band.idx]*response, band.wn)
+    return band_flux
 
 
 def tophat(wl0, width, margin=None, dlambda=None, resolution=None, ffile=None):

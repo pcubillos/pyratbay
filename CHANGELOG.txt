@@ -8843,3 +8843,9 @@ Some minor tweaks on the basic post-processing screen output.
 
 Proper docs is pending: how to call, mpi stuff, options, cookbooks.
 
+
+*****  Thu Aug 31 17:06:39 CEST 2023  *****
+
+Implemented ps.bin_spectrum()
+Documented and tested.
+
