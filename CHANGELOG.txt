@@ -8904,3 +8904,7 @@ Documented and tested.
 Added potassium into the input atmospheric file for tests.
 Updated tests.
 
+*****
+
+Updated default colors in plots.py.
+
