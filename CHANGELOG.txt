@@ -8908,3 +8908,9 @@ Updated tests.
 
 Updated default colors in plots.py.
 
+*****
+
+Modified plots.spectrum() to bin down with ps.bin_spectrum()
+via the new argument resolution.
+If None default to gaussbin as before.
+

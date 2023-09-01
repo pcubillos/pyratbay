@@ -21,6 +21,7 @@ from scipy.ndimage import gaussian_filter1d as gaussf
 import mc3.plots as mp
 
 from .. import constants as pc
+from .. import spectrum as ps
 from .. import tools as pt
 
 
@@ -92,7 +93,8 @@ def spectrum(
     data=None, uncert=None,
     bands_wl0=None, bands_flux=None, bands_response=None, bands_wl=None,
     label='model', bounds=None, logxticks=None,
-    gaussbin=2.0, yran=None, filename=None, fignum=501, axis=None,
+    resolution=150.0, gaussbin=2.0,
+    yran=None, filename=None, fignum=501, axis=None,
     ms=5.0, lw=1.25, fs=14, units=None, dpi=300, theme=None,
     ):
     """
@@ -128,6 +130,9 @@ def spectrum(
     logxticks: 1D float ndarray
         If not None, switch the X-axis scale from linear to log, and set
         the X-axis ticks at the locations given by logxticks.
+    resolution: Float
+        Binning resolution to display the spectra.
+        If None, use gaussbin instead.
     gaussbin: Integer
         Standard deviation for Gaussian-kernel smoothing (in number of samples).
     yran: 1D float ndarray
@@ -194,21 +199,37 @@ def spectrum(
     elif rt_path == 'transit':
         plt.ylabel(fr'$(R_{{\rm p}}/R_{{\rm s}})^2$ {str_units}', fontsize=fs)
 
-    gmodel = gaussf(spectrum, gaussbin)
+    # Bin down the spectra
+    if resolution is not None:
+        wl_min = np.amin(wavelength)
+        wl_max = np.amax(wavelength)
+        bin_wl = ps.constant_resolution_spectrum(wl_min, wl_max, resolution)
+        bin_model = ps.bin_spectrum(bin_wl, wavelength, spectrum)
+        if bounds is not None:
+            bin_bounds = [
+                ps.bin_spectrum(bin_wl, wavelength, bound)
+                for bound in bounds
+            ]
+    else:
+        bin_wl = wavelength
+        bin_model = gaussf(spectrum, gaussbin)
+        if bounds is not None:
+            bin_bounds = [gaussf(bound, gaussbin) for bound in bounds]
+
+
     if bounds is not None:
-        gbounds = [gaussf(bound, gaussbin) for bound in bounds]
         ax.fill_between(
-            wavelength, flux_scale*gbounds[0], flux_scale*gbounds[3],
+            bin_wl, flux_scale*bin_bounds[2], flux_scale*bin_bounds[3],
             facecolor=theme.light_color, edgecolor='none', alpha=0.5,
         )
         ax.fill_between(
-            wavelength, flux_scale*gbounds[1], flux_scale*gbounds[2],
-            facecolor=theme.light_color, edgecolor='none', alpha=1.0,
+            bin_wl, flux_scale*bin_bounds[0], flux_scale*bin_bounds[1],
+            facecolor=theme.light_color, edgecolor='none', alpha=0.75,
         )
 
     # Plot model:
     plt.plot(
-        wavelength, gmodel*flux_scale, lw=lw, color=theme.color, label=label,
+        bin_wl, bin_model*flux_scale, lw=lw, color=theme.color, label=label
     )
     # Plot band-integrated model:
     if bands_flux is not None and bands_wl0 is not None:
