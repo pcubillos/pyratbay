@@ -31,7 +31,7 @@ configuration file:  '{tmp_path}/test.cfg'
 Pressure profile:  1.00e-06 -- 1.00e+02 bar (51 layers)
 Wavelength range:  1.10 -- 1.70 um (3209 samples, delta-wn=1.000 cm-1)
 Composition:
-  ['H2' 'He' 'H' 'Na' 'H2O' 'CH4' 'CO' 'CO2']
+  ['H2' 'He' 'H' 'Na' 'K' 'H2O' 'CH4' 'CO' 'CO2']
 Opacity sources:
   ['H2O', 'Na', 'CIA H2-H2', 'CIA H2-He', 'lecavelier', 'deck']"""
 
@@ -306,13 +306,13 @@ Number of isotopes (niso): 7
 Isotope  Molecule      Mass    Isotopic   Database
             index     g/mol       ratio
  (name)    (imol)    (mass)     (ratio)
-    161         4   18.0106   9.973e-01   HITRAN H2O
-    181         4   20.0148   2.000e-03   HITRAN H2O
-    171         4   19.0148   3.719e-04   HITRAN H2O
-    162         4   19.0167   3.107e-04   HITRAN H2O
-    182         4   21.0210   6.230e-07   HITRAN H2O
-    172         4   20.0210   1.159e-07   HITRAN H2O
-    262         4   20.0229   2.420e-08   HITRAN H2O
+    161         5   18.0106   9.973e-01   HITRAN H2O
+    181         5   20.0148   2.000e-03   HITRAN H2O
+    171         5   19.0148   3.719e-04   HITRAN H2O
+    162         5   19.0167   3.107e-04   HITRAN H2O
+    182         5   21.0210   6.230e-07   HITRAN H2O
+    172         5   20.0210   1.159e-07   HITRAN H2O
+    262         5   20.0229   2.420e-08   HITRAN H2O
 """
 
     assert str(pyrat.voigt) == """\
@@ -416,7 +416,7 @@ Temperature profile (temp, K):
 Abundance units (qunits): vmr
 Abundance internal units: VMR
 Abundance model (chemistry): None
-Number of species (nmol): 8
+Number of species (nmol): 9
 
 Index   Molecule  Mass (g/mol)    Radius (A)
        (species)    (mol_mass)  (mol_radius)
@@ -424,10 +424,11 @@ Index   Molecule  Mass (g/mol)    Radius (A)
     1         He       4.00260         1.400
     2          H       1.00800         1.100
     3         Na      22.98977         2.200
-    4        H2O      18.01500         1.600
-    5        CH4      16.04300         2.000
-    6         CO      28.01000         1.690
-    7        CO2      44.00900         1.900
+    4          K      39.09830         2.800
+    5        H2O      18.01500         1.600
+    6        CH4      16.04300         2.000
+    7         CO      28.01000         1.690
+    8        CO2      44.00900         1.900
 Molecular data taken from (molfile):
     '{ROOT}pyratbay/data/molecules.dat'
 Abundance profiles (vmr):
@@ -435,6 +436,7 @@ Abundance profiles (vmr):
               He:   [ 1.490e-01  1.490e-01 ...  1.490e-01  1.490e-01]
                H:   [ 1.000e-06  1.000e-06 ...  1.000e-06  1.000e-06]
               Na:   [ 3.000e-06  3.000e-06 ...  3.000e-06  3.000e-06]
+               K:   [ 5.000e-08  5.000e-08 ...  5.000e-08  5.000e-08]
              H2O:   [ 4.000e-04  4.000e-04 ...  4.000e-04  4.000e-04]
              CH4:   [ 1.000e-04  1.000e-04 ...  1.000e-04  1.000e-04]
               CO:   [ 5.000e-04  5.000e-04 ...  5.000e-04  5.000e-04]
@@ -444,6 +446,7 @@ Density profiles (d, molecules cm-3):
               He:   [ 1.031e+12  1.490e+12 ...  4.489e+19  6.481e+19]
                H:   [ 6.919e+06  1.000e+07 ...  3.012e+14  4.350e+14]
               Na:   [ 2.076e+07  3.000e+07 ...  9.037e+14  1.305e+15]
+               K:   [ 3.459e+05  5.000e+05 ...  1.506e+13  2.175e+13]
              H2O:   [ 2.767e+09  4.000e+09 ...  1.205e+17  1.740e+17]
              CH4:   [ 6.919e+08  1.000e+09 ...  3.012e+16  4.350e+16]
               CO:   [ 3.459e+09  5.000e+09 ...  1.506e+17  2.175e+17]
@@ -482,13 +485,13 @@ Total atmospheric extinction coefficient (ec, cm-1) [layer, wave]:
 
 Distance along the ray path across each layer (outside-in) at each impact
     parameter (raypath, km):
-    IP[  1]: [3870.14664667]
-    IP[  2]: [1605.35727316 3862.33746831]
-    IP[  3]: [1233.11877797 1602.1132131  3854.56029904]
+    IP[  1]: [3870.14481781]
+    IP[  2]: [1605.35651253 3862.33564995]
+    IP[  3]: [1233.1181926  1602.11245684 3854.55849113]
     ...
-    IP[ 50]: [ 263.88893704  265.29855539  266.75530531 ... 1392.69456689
-    1807.62684793
- 4345.38092292]
+    IP[ 50]: [ 263.88879948  265.29841779  266.75516765 ... 1392.69403372
+    1807.62616254
+ 4345.37929317]
 
 Maximum optical depth to calculate (maxdepth): 10.00
 Layer index where the optical depth reaches maxdepth (ideep):
@@ -574,7 +577,7 @@ configuration file:  '{tmp_path}/test.cfg'
 Pressure profile:  1.00e-06 -- 1.00e+02 bar (51 layers)
 Wavelength range:  1.10 -- 1.70 um (2177 samples, R=5000.0)
 Composition:
-  ['H2' 'He' 'H' 'Na' 'H2O' 'CH4' 'CO' 'CO2']
+  ['H2' 'He' 'H' 'Na' 'K' 'H2O' 'CH4' 'CO' 'CO2']
 Opacity sources:
   ['H2O', 'Na', 'CIA H2-H2', 'CIA H2-He', 'lecavelier']"""
 
@@ -615,7 +618,7 @@ Pyrat atmospheric model
 configuration file:  '{:s}/test.cfg'
 Pressure profile (bar):  1.00e-06 -- 1.00e+02 (81 layers)
 Wavelength range (um):  1.10 -- 1.70 (2177 samples, dwl=1e-05 um)
-Composition:  ['H2' 'He' 'Na' 'H2O' 'CH4' 'CO' 'CO2']
+Composition:  ['H2' 'He' 'H' 'Na' 'H2O' 'CH4' 'CO' 'CO2']
 Opacity sources:  ['H2O', 'CIA H2-H2', 'CIA H2-He', 'lecavelier', 'Na']""".format(str(tmp_path))
 
     assert str(pyrat.spec) == """\

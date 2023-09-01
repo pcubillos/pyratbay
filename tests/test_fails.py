@@ -796,6 +796,7 @@ def test_line_by_line_missing_species(tmp_path):
 def test_alkali_missing_species(tmp_path):
     reset = {
         'alkali': 'potassium_vdw',
+        'input_atmfile': '{ROOT}tests/inputs/atmosphere_uniform_no_potassium.atm',
     }
     cfg = make_config(
         tmp_path,

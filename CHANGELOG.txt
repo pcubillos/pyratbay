@@ -8899,3 +8899,8 @@ one opacity out).
 
 Documented and tested.
 
+*****
+
+Added potassium into the input atmospheric file for tests.
+Updated tests.
+

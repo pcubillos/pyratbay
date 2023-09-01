@@ -758,7 +758,7 @@ def test_loglike():
     ifree = pyrat.ret.pstep > 0
     free_pars = pyrat.ret.params[ifree]
     like = loglike(free_pars)
-    np.testing.assert_allclose(like, -1627.5530504136932)
+    np.testing.assert_allclose(like, -1627.5525381665527)
 
     # A non-physical model
     #like = loglike(free_pars)
