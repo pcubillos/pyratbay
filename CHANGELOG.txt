@@ -8919,3 +8919,12 @@ If None default to gaussbin as before.
 Some clean up on plots.spectrum().
 More cosmetics.
 
+*****
+
+Implemented tools.posterior_post_processing() function
+to compute medians and quantiles from posteriors after a
+retrieval run.
+
+Some issues are still pending: get it working for mcmc runs
+and collecting spectroscopically active species.
+
