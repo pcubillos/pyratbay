@@ -21,6 +21,9 @@ keys = [
     'patchy', 'patchy_clear', 'patchy_cloudy', 'h_ion', 'all', 'etable',
     'tmodel', 'vert', 'scale', 'fit1', 'fit2', 'fit3', 'fit4',
     'bandflux4', 'resolution', 'wl_step',
+    'skip_ls', 'skip_lbl', 'skip_cia', 'skip_H2_H2_cia',
+    'skip_alkali', 'skip_sodium', 'skip_rayleigh', 'skip_dalgarno',
+    'skip_cloud', 'skip_deck', 'all_ls'
 ]
 
 root = f"{ROOT}tests/expected/expected_spectrum_transmission"
@@ -445,4 +448,203 @@ def test_opacity_reset_wn(tmp_path, wllow, wlhigh):
     wn_range = (wn>= pyrat.spec.wnlow) & (wn <=pyrat.spec.wnhigh)
     etab = expected['etable'][wn_range]
     np.testing.assert_allclose(pyrat.spec.spectrum, etab, rtol=rtol)
+
+
+# Now, the skips
+@pytest.mark.parametrize(
+    'model',
+    ['line_sample', 'line sampling'],
+)
+def test_transmission_skip_sampling(tmp_path, model):
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
+        remove=['clouds'],
+    )
+    pyrat = pb.Pyrat(cfg)
+    pyrat.run(skip=[model])
+    spectrum = pyrat.spec.spectrum
+    np.testing.assert_allclose(spectrum, expected['skip_ls'], rtol=rtol)
+
+
+@pytest.mark.parametrize(
+    'model',
+    ['lbl', 'line by line'],
+)
+def test_transmission_skip_lbl(tmp_path, model):
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        remove=['clouds'],
+    )
+    pyrat = pb.Pyrat(cfg)
+    pyrat.run(skip=[model])
+    spectrum = pyrat.spec.spectrum
+    np.testing.assert_allclose(spectrum, expected['skip_lbl'], rtol=rtol)
+
+
+
+def test_transmission_skip_alkali(tmp_path):
+    reset = {
+        'alkali': 'sodium_vdw potassium_vdw',
+        'wllow': '0.4 um',
+        'wlhigh': '1.2 um',
+    }
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        reset=reset,
+        remove=['clouds'],
+    )
+    pyrat = pb.Pyrat(cfg)
+    pyrat.run(skip=['alkali'])
+    spectrum = pyrat.spec.spectrum
+    np.testing.assert_allclose(spectrum, expected['skip_alkali'], rtol=rtol)
+
+
+def test_transmission_skip_sodium_vdw(tmp_path):
+    reset = {
+        'alkali': 'sodium_vdw potassium_vdw',
+        'wllow': '0.4 um',
+        'wlhigh': '1.2 um',
+    }
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        reset=reset,
+        remove=['clouds'],
+    )
+    pyrat = pb.Pyrat(cfg)
+    pyrat.run(skip=['sodium_vdw'])
+    spectrum = pyrat.spec.spectrum
+    np.testing.assert_allclose(spectrum, expected['skip_sodium'], rtol=rtol)
+
+
+
+def test_transmission_skip_cia(tmp_path):
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
+        remove=['clouds'],
+    )
+    pyrat = pb.Pyrat(cfg)
+    pyrat.run(skip=['cia'])
+    spectrum = pyrat.spec.spectrum
+    np.testing.assert_allclose(spectrum, expected['skip_cia'], rtol=rtol)
+
+
+def test_transmission_skip_H2_H2_cia(tmp_path):
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
+        remove=['clouds'],
+    )
+    pyrat = pb.Pyrat(cfg)
+    pyrat.run(skip=['CIA H2-H2'])
+    spectrum = pyrat.spec.spectrum
+    np.testing.assert_allclose(spectrum, expected['skip_H2_H2_cia'], rtol=rtol)
+
+
+def test_transmission_skip_rayleigh(tmp_path):
+    reset = {
+        'rayleigh': 'dalgarno_H2 dalgarno_He',
+    }
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
+        reset=reset,
+        remove=['clouds', 'rpars'],
+    )
+    pyrat = pb.Pyrat(cfg)
+    pyrat.run(skip=['rayleigh'])
+    spectrum = pyrat.spec.spectrum
+    np.testing.assert_allclose(spectrum, expected['skip_rayleigh'], rtol=rtol)
+
+
+
+def test_transmission_skip_dalgarno(tmp_path):
+    reset = {
+        'rayleigh': 'dalgarno_H2 dalgarno_He',
+    }
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
+        reset=reset,
+        remove=['clouds', 'rpars'],
+    )
+    pyrat = pb.Pyrat(cfg)
+    pyrat.run(skip=['dalgarno_H2'])
+    spectrum = pyrat.spec.spectrum
+    np.testing.assert_allclose(spectrum, expected['skip_dalgarno'], rtol=rtol)
+
+
+def test_transmission_skip_lecavelier(tmp_path):
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
+        remove=['clouds'],
+    )
+    pyrat = pb.Pyrat(cfg)
+    pyrat.run(skip=['lecavelier'])
+    spectrum = pyrat.spec.spectrum
+    np.testing.assert_allclose(spectrum, expected['skip_rayleigh'], rtol=rtol)
+
+
+def test_transmission_skip_cloud(tmp_path):
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
+    )
+    pyrat = pb.Pyrat(cfg)
+    pyrat.run(skip=['cloud'])
+    spectrum = pyrat.spec.spectrum
+    np.testing.assert_allclose(spectrum, expected['skip_cloud'], rtol=rtol)
+
+
+def test_transmission_skip_deck(tmp_path):
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
+    )
+    pyrat = pb.Pyrat(cfg)
+    pyrat.run(skip=['deck'])
+    spectrum = pyrat.spec.spectrum
+    np.testing.assert_allclose(spectrum, expected['skip_deck'], rtol=rtol)
+
+
+def test_transmission_skip_H2O_line_sample(tmp_path):
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
+        remove=['clouds'],
+    )
+    pyrat = pb.Pyrat(cfg)
+    pyrat.run(skip=['H2O'])
+    spectrum = pyrat.spec.spectrum
+    np.testing.assert_allclose(spectrum, expected['skip_ls'], rtol=rtol)
+
+
+def test_transmission_skip_H2O_lbl(tmp_path):
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        remove=['clouds'],
+    )
+    pyrat = pb.Pyrat(cfg)
+    pyrat.run(skip=['H2O'])
+    spectrum = pyrat.spec.spectrum
+    np.testing.assert_allclose(spectrum, expected['skip_lbl'], rtol=rtol)
+
+
+def test_transmission_skip_nothing(tmp_path):
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
+        remove=['clouds'],
+    )
+    pyrat = pb.Pyrat(cfg)
+    pyrat.run(skip=['this_wont_match'])
+    spectrum = pyrat.spec.spectrum
+    np.testing.assert_allclose(spectrum, expected['all_ls'], rtol=rtol)
+
 

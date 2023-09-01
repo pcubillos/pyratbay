@@ -127,7 +127,7 @@ class Pyrat():
         ex.compute_opacity(self)
 
 
-    def run(self, temp=None, vmr=None, radius=None):
+    def run(self, temp=None, vmr=None, radius=None, skip=[]):
         """
         Evaluate a Pyrat spectroscopic model
 
@@ -140,6 +140,9 @@ class Pyrat():
             shape [nlayers, nmol].
         radius: 1D float ndarray
             Updated atmospheric altitude profile in cm, of size nlayers.
+        skip: List of strings
+            If set, the opacity from the model names or line-sample species
+            listed here will be neglected.
         """
         timer = pt.Timer()
 
@@ -158,7 +161,7 @@ class Pyrat():
 
         # Calculate extinction coefficient:
         self.opacity.calc_extinction_coefficient(
-            self.atm.temp, self.atm.radius, self.atm.d,
+            self.atm.temp, self.atm.radius, self.atm.d, skip=skip,
         )
         self.timestamps['extinction'] = timer.clock()
 
@@ -179,7 +182,7 @@ class Pyrat():
         )
 
 
-    def eval(self, params, retmodel=True):
+    def eval(self, params, retmodel=True, skip=[]):
         """
         Fitting routine for atmospheric retrieval
 
@@ -189,6 +192,9 @@ class Pyrat():
             Array of fitting parameters that define the atmosphere.
         retmodel: Bool
             Flag to include the model spectra in the return.
+        skip: List of strings
+            If set, the opacity from the model names or line-sample species
+            listed here will be neglected.
 
         Returns
         -------
@@ -246,7 +252,7 @@ class Pyrat():
             self.spec.f_dilution = params[ret.idilut][0]
 
         # Calculate atmosphere and spectrum:
-        self.run()
+        self.run(skip=skip)
 
         reject_flag = False
         # Turn-on reject flag if temperature is out-of-bounds:
@@ -297,6 +303,9 @@ class Pyrat():
 
 
     def retrieval(self):
+        """
+        Run an MCMC or nested-sampling atmospheric retrieval.
+        """
         ret = self.ret
         obs = self.obs
         log = self.log

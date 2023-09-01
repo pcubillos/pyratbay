@@ -8886,3 +8886,16 @@ Tests are TBD soon.
 
 PEP8ed src_c/_extcoeff.c
 
+*****
+
+Added skip argument to Opacity.calc_extinction_coefficient()
+which enables skipping the calculation of specific extinctions
+which can be tagged by either model type, model name, or by
+species (the latter for line_sample and lbl sources).
+
+Propagated skip argument into pyrat.eval() and pyrat.run()
+to make it accessible to the user (e.g., compute spectral leaving
+one opacity out).
+
+Documented and tested.
+

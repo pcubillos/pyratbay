@@ -157,7 +157,7 @@ def extinction(pyrat, indices, grid=False, add=False, skip_mol=[]):
     interpolate = spec.resolution is not None or spec.wlstep is not None
 
     iso_mol_indices = np.copy(lbl.iso_mol_index)
-    for mol in skip_mol:
+    for mol in np.intersect1d(skip_mol,lbl.species):
         mol_index = list(lbl.species).index(mol)
         iso_mol_indices[iso_mol_indices==mol_index] = -1
 

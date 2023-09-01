@@ -36,9 +36,9 @@ class Opacity():
         self.tmax = {}
         # extinction coefficient in cm-1
         self.nwave = len(wn)
-        nlayers = len(pressure)
-        self.ec = np.zeros((nlayers, self.nwave))
-        self.ec_cloud = np.zeros((nlayers, self.nwave))
+        self.nlayers = len(pressure)
+        self.ec = np.zeros((self.nlayers, self.nwave))
+        self.ec_cloud = np.zeros((self.nlayers, self.nwave))
         self.fpatchy = inputs.fpatchy
         self.is_patchy = self.fpatchy is not None
 
@@ -203,10 +203,16 @@ class Opacity():
             self.pnames.append([])
 
 
-    def calc_extinction_coefficient(self, temperature, radius, densities):
+    def calc_extinction_coefficient(
+        self, temperature, radius, densities, skip=[],
+    ):
         """
         Compute extinction coefficient over temperature and
         number density profiles.
+
+        It is possible to neglect specific opacities using the skip
+        argument, skipped sources can be tagged by type, name, or
+        species (the latter for line_sample and lbl sources)
         """
         self.ec[:] = 0.0
         self.ec_cloud[:] = 0.0
@@ -215,6 +221,20 @@ class Opacity():
             model_type = self.models_type[i]
             density = densities[:,imol]
             args = {}
+
+            # Skip opacities
+            if model.name in skip or model_type in skip:
+                if model.name == 'deck':
+                    model.itop = self.nlayers - 1
+                    model.tsurf = temperature[-1]
+                    model.rsurf = radius[-1]
+                continue
+            if model_type == 'line_sample':
+                intersect = np.in1d(model.species, skip)
+                if np.any(intersect) > 0:
+                    density[:,intersect] = 0.0
+            if model_type == 'lbl':
+                args['skip_mol'] = skip
 
             if model.name == 'deck':
                 args['temperature'] = temperature
@@ -267,6 +287,7 @@ class Opacity():
             if self.models_type[i] == 'line_sample':
                 args['per_mol'] = True
             if hasattr(model, 'pars'):
+            #if hasattr(model, 'pars') and model.npars > 0:
                 args['pars'] = model.pars
 
             extinction = model.calc_extinction_coefficient(**args)
