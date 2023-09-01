@@ -8882,3 +8882,7 @@ to enable neglecting opacities of selected species.
 
 Tests are TBD soon.
 
+*****
+
+PEP8ed src_c/_extcoeff.c
+
