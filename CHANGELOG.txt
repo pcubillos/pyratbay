@@ -8917,4 +8917,5 @@ If None default to gaussbin as before.
 *****
 
 Some clean up on plots.spectrum().
+More cosmetics.
 

@@ -708,7 +708,7 @@ def abundance(
         which='both', right=True, top=True, direction='in', labelsize=fs-2,
     )
     if legend_fs > 0:
-        ax.legend(loc='best', fontsize=legend_fs)
+        ax.legend(loc='best', fontsize=legend_fs, labelspacing=0.2)
 
     if filename is not None:
         plt.savefig(filename, dpi=dpi)
