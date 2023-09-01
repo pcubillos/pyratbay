@@ -10,7 +10,7 @@ import numpy as np
 import scipy.interpolate as si
 
 from ... import constants as pc
-from ... import tools     as pt
+from ... import tools as pt
 
 
 class CCSgray():

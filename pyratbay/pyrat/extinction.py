@@ -120,7 +120,7 @@ def compute_opacity(pyrat):
     )
 
 
-def extinction(pyrat, indices, grid=False, add=False):
+def extinction(pyrat, indices, grid=False, add=False, skip_mol=[]):
     """
     Python multiprocessing wrapper for the extinction-coefficient (EC)
     calculation function for the atmospheric layers or EC grid.
@@ -129,13 +129,15 @@ def extinction(pyrat, indices, grid=False, add=False):
     ----------
     pyrat: Pyrat Object
     indices: 1D integer list
-       The indices of the atmospheric layer or EC grid to calculate.
+        The indices of the atmospheric layer or EC grid to calculate.
     grid: Bool
-       If True, compute EC per species for EC grid.
-       If False, compute EC for atmospheric layer.
+        If True, compute EC per species for EC grid.
+        If False, compute EC for atmospheric layer.
     add: Bool
-       If True, co-add EC contribution (cm-1) from all species.
-       If False, calc CS contribution (cm2 molec-1) from each species separated.
+        If True, co-add EC contribution (cm-1) from all species
+        If False, calc CS contribution (cm2 molec-1) from each species separated
+    skip_mol: 1D iterable of strings
+        Species listed here will be flagged to neglect their opacity.
     """
     atm = pyrat.atm
     spec = pyrat.spec
@@ -153,6 +155,11 @@ def extinction(pyrat, indices, grid=False, add=False):
     verb = pyrat.log.verb
     pyrat.log.verb = (0 in indices) * verb
     interpolate = spec.resolution is not None or spec.wlstep is not None
+
+    iso_mol_indices = np.copy(lbl.iso_mol_index)
+    for mol in skip_mol:
+        mol_index = list(lbl.species).index(mol)
+        iso_mol_indices[iso_mol_indices==mol_index] = -1
 
     for i,index in enumerate(indices):
         ilayer = index % atm.nlayers  # Layer index
@@ -188,7 +195,7 @@ def extinction(pyrat, indices, grid=False, add=False):
             spec.wn, spec.own, spec.odivisors,
             density, atm.mol_radius, atm.mol_mass,
             lbl.iso_atm_index, lbl.iso_mass, lbl.iso_ratio,
-            iso_pf, lbl.iso_mol_index,
+            iso_pf, iso_mol_indices,
             lbl.wn, lbl.elow, lbl.gf, lbl.isoid,
             voigt.cutoff, lbl.ethresh, temp,
             verb-10, int(add), int(interpolate),

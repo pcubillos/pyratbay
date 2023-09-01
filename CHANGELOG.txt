@@ -8868,3 +8868,17 @@ in turn called from an mpirun process.
 
 Renamed pyrat.inputs.configfile to pyrat.inputs.config_file.
 
+
+*****  Fri Sep 1 13:33:58 CEST 2023  *****
+
+Tweaked extinction() C routine to ignore selected species
+when their indices (isoiext) are negative.
+
+Added skip_mol argument to extinction() Python wrapper to
+signal which species should be flagged as neglected.
+
+Added skip_mol argument to lbl.calc_extinction_coefficient()
+to enable neglecting opacities of selected species.
+
+Tests are TBD soon.
+

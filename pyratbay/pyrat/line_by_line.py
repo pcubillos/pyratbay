@@ -166,7 +166,7 @@ class Line_By_Line():
             species.index(mol)
             for mol in self.species
         ]
-        # Get species indices in opacity table for each isotopes:
+        # Get species indices in opacity table for each isotope:
         self.iso_mol_index = np.array([
             list(self.species).index(species[i])
             for i in self.iso_atm_index
@@ -182,10 +182,24 @@ class Line_By_Line():
         log.head("Read LBL transitions done.\n")
 
 
-    def calc_extinction_coefficient(self, temperature, density, layer=None):
+    def calc_extinction_coefficient(
+        self, temperature, density, layer=None, skip_mol=[],
+    ):
         """
         Calculate the extinction coefficient on the spot over
         temperature and number density profiles.
+
+        Parameters
+        ----------
+        temperature: 1D float array
+            Atmospheric temperature (K)
+        density: 2D float array
+            Atmospheric number density (gr cm-3).
+        layer: Integer
+            If not None, compute the extinction coefficient at a single
+            layer set by the given index.
+        skip_mol: 1D iterable of strings
+            Species listed here will be flagged to neglect their opacity.
         """
         # Update partition functions:
         self.iso_pf = np.zeros((self.niso, self.nlayers))
@@ -203,9 +217,10 @@ class Line_By_Line():
         processes = []
         indices = np.arange(self.nlayers) % self.pyrat.ncpu
         for i in range(self.pyrat.ncpu):
+            subproc_indices = np.where(indices==i)[0]
             grid = False
             add = True
-            args = (self.pyrat, np.where(indices==i)[0], grid, add)
+            args = (self.pyrat, subproc_indices, grid, add, skip_mol)
             proc = mp.get_context('fork').Process(
                 target=ex.extinction,
                 args=args,

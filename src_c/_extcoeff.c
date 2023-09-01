@@ -1,4 +1,4 @@
-// Copyright (c) 2021-2022 Patricio Cubillos
+// Copyright (c) 2021-2023 Patricio Cubillos
 // Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 #include <Python.h>
@@ -53,6 +53,7 @@ isoz: 1D Float ndarray                                            \n\
     Isotopes partition function [niso].                           \n\
 isoiext: 1D Float ndarray                                         \n\
     Index of molecule (in ext array) for each isotope [niso].     \n\
+    A negative value makes the code to neglect that molecule.     \n\
 lwn: 1D Float ndarray                                             \n\
     Line-transition wavenumber [nlines] (cm-1).                   \n\
 elow: 1D Float ndarray                                            \n\
@@ -153,7 +154,7 @@ static PyObject *extinction(PyObject *self, PyObject *args){
   kmax = (double *)calloc(nextinct, sizeof(double));
 
   ktmp = (double **)malloc(nextinct * sizeof(double *));
-  ktmp[0] = (double  *)calloc(nextinct*onwn, sizeof(double));
+  ktmp[0] = (double *)calloc(nextinct*onwn, sizeof(double));
   for (i=1; i<nextinct; i++)
       ktmp[i] = ktmp[0] + onwn*i;
 
@@ -210,6 +211,9 @@ static PyObject *extinction(PyObject *self, PyObject *args){
       wavn = INDd(lwn, ln);
       i = INDi(lID, ln);
       iext = INDi(isoiext, i);
+      // Flag to neglect this species
+      if (iext < 0)
+          continue;
       if (add)  /* Co-add extinction coefficient */
           iext = 0;
 
@@ -232,6 +236,9 @@ static PyObject *extinction(PyObject *self, PyObject *args){
       wavn = INDd(lwn, ln);
       i = INDi(lID, ln);
       iext = INDi(isoiext, i);
+      // Flag to neglect this species
+      if (iext < 0)
+          continue;
       if (add)
           iext = 0;
 
