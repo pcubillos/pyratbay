@@ -58,6 +58,10 @@ def main():
         help='Run Pyrat Bay for given configuration file.',
     )
     group.add_argument(
+        '--post', dest='post', default=None,
+        help='Post-processing posterior data after a retrieval run.',
+    )
+    group.add_argument(
         '-pf', dest='pf', default=None, nargs='+',
         help='Format a partition-function file.',
     )
@@ -103,6 +107,10 @@ def main():
     # Pyrat-Bay run:
     elif args.cfile is not None:
         pb.run(args.cfile)
+
+    # Post processing:
+    elif args.post is not None:
+        pb.tools.posterior_post_processing(cfg_file=args.post)
 
 
 if __name__ == '__main__':

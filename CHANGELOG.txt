@@ -8928,3 +8928,9 @@ retrieval run.
 Some issues are still pending: get it working for mcmc runs
 and collecting spectroscopically active species.
 
+*****
+
+Enabled --post command-line argument to signal a post-processing
+run (executed after a retrieval run).
+
+
