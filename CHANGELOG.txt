@@ -8933,4 +8933,11 @@ and collecting spectroscopically active species.
 Enabled --post command-line argument to signal a post-processing
 run (executed after a retrieval run).
 
+*****
+
+Added default argument to parse_bool() function
+since this one already set a default value when executed.
+Added post_processing config_file argument to signal when to
+run pt.posterior_post_processing() right after a retrieval run.
+
 

@@ -207,10 +207,10 @@ class Namespace(argparse.Namespace):
         return value
 
 
-def parse_bool(args, param):
+def parse_bool(args, param, default=False):
     """Parse a string parameter in args into a Bool."""
     if param not in args:
-        args[param] = False
+        args[param] = default
     elif args[param].lower() in ['false', '0', 'no']:
         args[param] = False
     elif args[param].lower() in ['true', '1', 'yes']:
@@ -496,6 +496,9 @@ def parse(cfile, with_log=True, mute=False):
         parse_array(args, 'bulk')
         # Retrieval options:
         parse_str(args, 'mcmcfile')
+        parse_str(args, 'sampler')
+        parse_bool(args, 'resume')
+        parse_bool(args, 'post_processing', default=True)
         parse_array(args, 'retflag')   # Deprecated
         parse_float(args, 'qcap')
         parse_str(args, 'retrieval_params')
@@ -508,14 +511,12 @@ def parse(cfile, with_log=True, mute=False):
         parse_array(args, 'prior')
         parse_array(args, 'priorlow')
         parse_array(args, 'priorup')
-        parse_str(args, 'sampler')
         parse_int(args, 'nsamples')
         parse_int(args, 'nchains')
         parse_int(args, 'burnin')
         parse_int(args, 'thinning')
         parse_float(args, 'grbreak')
         parse_float(args, 'grnmin')
-        parse_bool(args, 'resume')
         parse_str(args, 'theme')
         parse_int(args, 'nlive')
         parse_str(args, 'statistics')
