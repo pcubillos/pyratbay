@@ -177,14 +177,6 @@ def spectrum(
     elif str_units == '(percent)':
         str_units = '(%)'
 
-    if axis is None:
-        fig = plt.figure(fignum)
-        fig.set_size_inches(8.5, 4.5)
-        plt.clf()
-        ax = plt.subplot(111)
-    else:
-        ax = axis
-
     theme = pt.resolve_theme(theme)
     if theme is None:
         theme = mp.Theme('darkorange')
@@ -193,11 +185,11 @@ def spectrum(
 
     # Setup according to geometry:
     if rt_path == 'emission':
-        plt.ylabel(r'$F_{\rm p}$ (erg s$^{-1}$ cm$^{-2}$ cm)', fontsize=fs)
+        ylabel = r'$F_{\rm p}$ (erg s$^{-1}$ cm$^{-2}$ cm)'
     if rt_path == 'eclipse':
-        plt.ylabel(fr'$F_{{\rm p}}/F_{{\rm s}}$ {str_units}', fontsize=fs)
+        ylabel = fr'$F_{{\rm p}}/F_{{\rm s}}$ {str_units}'
     elif rt_path == 'transit':
-        plt.ylabel(fr'$(R_{{\rm p}}/R_{{\rm s}})^2$ {str_units}', fontsize=fs)
+        ylabel = fr'$(R_{{\rm p}}/R_{{\rm s}})^2$ {str_units}'
 
     # Bin down the spectra
     if resolution is not None:
@@ -217,6 +209,15 @@ def spectrum(
             bin_bounds = [gaussf(bound, gaussbin) for bound in bounds]
 
 
+    # The plot
+    if axis is None:
+        fig = plt.figure(fignum)
+        fig.set_size_inches(8.5, 4.5)
+        plt.clf()
+        ax = plt.subplot(111)
+    else:
+        ax = axis
+
     if bounds is not None:
         ax.fill_between(
             bin_wl, flux_scale*bin_bounds[2], flux_scale*bin_bounds[3],
@@ -226,8 +227,6 @@ def spectrum(
             bin_wl, flux_scale*bin_bounds[0], flux_scale*bin_bounds[1],
             facecolor=theme.light_color, edgecolor='none', alpha=0.75,
         )
-
-    # Plot model:
     plt.plot(
         bin_wl, bin_model*flux_scale, lw=lw, color=theme.color, label=label
     )
@@ -279,6 +278,7 @@ def spectrum(
         which='both', right=True, top=True, direction='in', labelsize=fs-2,
     )
     ax.set_xlabel('Wavelength (um)', fontsize=fs)
+    ax.set_ylabel(ylabel, fontsize=fs)
     ax.legend(loc='best', numpoints=1, fontsize=fs-1)
     ax.set_xlim(xmin, xmax)
     plt.tight_layout()
