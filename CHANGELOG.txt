@@ -8941,3 +8941,11 @@ Added post_processing config_file argument to signal when to
 run pt.posterior_post_processing() right after a retrieval run.
 
 
+*****  Tue Sep 5 09:42:46 CEST 2023  *****
+
+Added a call to pt.posterior_post_processing() after a retrieval
+run has finished (pending on the value of pyrat.inputs.post_processing)
+This is executed in a background job (as it only uses 1 cpu) allowing
+the uses to launch subsequent runs as desired while post processing
+is being run.
+

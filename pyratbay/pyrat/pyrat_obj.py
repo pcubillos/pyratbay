@@ -4,6 +4,7 @@
 import multiprocessing as mp
 from collections import OrderedDict
 import os
+import subprocess
 
 import numpy as np
 import mc3
@@ -440,6 +441,13 @@ class Pyrat():
         self.log = log  # Un-mute
         root_output = os.path.split(output)[0]
         log.msg(f"\nOutput retrieval files located at {root_output}")
+
+        if self.inputs.post_processing:
+            os.environ['PBAY_NO_MPI'] = "1"
+            subprocess.call(
+                f'pbay --post {self.inputs.config_file} &',
+                shell=True,
+            )
 
 
     def radiative_equilibrium(
