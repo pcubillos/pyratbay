@@ -470,4 +470,9 @@ def posterior_post_processing(cfg_file=None, pyrat=None):
     with open(post_file, 'wb') as handle:
         pickle.dump(outputs, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
+    # Now make some plots:
+    theme = pyrat.ret.theme
+    logxticks = pyrat.inputs.logxticks
+    pp.posteriors(post_file, theme=theme, logxticks=logxticks)
+
     return outputs

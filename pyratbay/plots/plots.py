@@ -8,14 +8,16 @@ __all__ = [
     'temperature',
     'abundance',
     'default_colors',
+    'posteriors',
 ]
 
 from itertools import cycle
+import pickle
 
 from cycler import cycler, Cycler
 import matplotlib
 import matplotlib.pyplot as plt
-from matplotlib.colors import is_color_like, to_rgb
+from matplotlib.colors import is_color_like, to_rgb, to_rgba
 import numpy as np
 from scipy.ndimage import gaussian_filter1d as gaussf
 import mc3.plots as mp
@@ -713,3 +715,183 @@ def abundance(
     if filename is not None:
         plt.savefig(filename, dpi=dpi)
     return ax
+
+
+def posteriors(
+        post_file, theme='blue', plot_species=None, vmr_lims=None,
+        logxticks=None, dpi=300,
+    ):
+    """
+    Plot contribution functions, temperature profiles, VMRs, and spectra
+    derived from a retrieval posterior file.
+
+    Parameters
+    ----------
+    post_file: String
+        A posterior pickle file produced by pt.posterior_post_processing()
+        containing post-processed medians and quantiles for atmospheric
+        values of interest.
+    theme: string or mc3.plots.Theme object
+        A color theme for the models.
+    plot_species: 1D string iterable
+        List of species to plot in VMR figure.
+        If None, default to the species in post_data['active_species'],
+        which includes the species that actively contribute to the opacity.
+    vmr_limits: 2-element float iterable
+        Plotting boundaries for the volume mixing ratio.
+    logxticks: 1D float ndarray
+        If not None, switch the X-axis scale from linear to log, and set
+        the X-axis ticks at the locations given by logxticks.
+    dpi: Integer
+        The resolution in dots per inch for saved files.
+
+    Examples
+    --------
+    >>> import pyratbay.plots as pp
+    >>> post_file = 'ns_emission_tutorial_posteriors_info.pickle'
+    >>> theme = 'red'
+    >>> pp.posteriors(post_file, theme='red')
+
+    >>> vmr_lims = 1e-5, 1.0
+    >>> pp.posteriors(post_file, theme='red', vmr_lims=vmr_lims)
+
+    >>> plot_species = 'H2O CO H2 He H CH4 CO2 C N O'.split()
+    >>> pp.posteriors(post_file, theme='red', plot_species=plot_species)
+    """
+    theme = pt.resolve_theme(theme)
+    root = post_file.replace('_posteriors_info.pickle', '')
+    with open(post_file, 'rb') as handle:
+        post_data = pickle.load(handle)
+    band_wl = post_data['band_wl']
+    pressure = post_data['pressure'] * pc.bar
+
+    # Contribution functions
+    cf_median = post_data['cf_posterior_median']
+    contribution(
+        cf_median, band_wl, post_data['path'],
+        pressure, filename=f'{root}_median_cf.png'
+    )
+
+    # Temperature profile
+    tpost = post_data['temperature_posterior']
+    nbands = len(band_wl)
+    cf_alpha = np.clip(1.3-nbands*0.0125, 0.05, 1.0)
+    ax = temperature(
+        pressure,
+        profiles=(tpost[0],),
+        labels=['median', 'best-fit'],
+        theme=theme.color,
+        colors=[theme.dark_color, 'black'],
+        bounds=tpost[1:],
+    )
+    x0, x1 = ax.get_xlim()
+    dx = 0.075*(x1-x0)
+    for i in range(nbands):
+        cf = cf_median[:,i] / np.amax(cf_median[:,i])
+        ax.plot(x0+cf*dx, pressure/pc.bar, 'k', alpha=cf_alpha)
+    ax.set_xlim(x0,x1)
+    plt.savefig(f'{root}_temperature_posteriors.png', dpi=dpi)
+
+    # Volume mixing ratios
+    nsamples, nlayers, nspecies = np.shape(post_data['vmr_posterior'])
+    species = post_data['species']
+    if plot_species is None:
+        plot_species = post_data['active_species']
+    else:
+        plot_species = np.array(plot_species)
+        plot_species = plot_species[np.in1d(plot_species, species)]
+
+    imols = [list(species).index(mol) for mol in plot_species]
+    nmol_show = len(plot_species)
+    post_vmr = post_data['vmr_posterior'][1:,:,imols]
+
+    free_colors = iter([
+        color for spec, color in default_colors.items()
+        if spec not in plot_species
+    ])
+    colors = []
+    for spec in plot_species:
+        if spec in default_colors:
+            colors.append(default_colors[spec])
+        else:
+            colors.append(next(free_colors))
+
+    ylim = np.amax(pressure/pc.bar), np.amin(pressure/pc.bar)
+    fs = 12
+    # narrower posteriors on top of wider ones
+    d_vmr = np.median(np.log(post_vmr[1]) - np.log(post_vmr[0]), axis=0)
+    zorder = [sorted(d_vmr, reverse=True).index(val) for val in d_vmr]
+
+    fig = plt.figure()
+    fig.clf()
+    ax = plt.subplot(111)
+    plt.subplots_adjust(0.12, 0.1, 0.98, 0.97)
+    for j in range(nmol_show):
+        spec = plot_species[j]
+        col = to_rgba(colors[j])
+        ax.fill_betweenx(
+            pressure/pc.bar, post_vmr[0,:,j], post_vmr[1,:,j],
+            color=col, label=spec, alpha=0.45, zorder=zorder[j],
+        )
+    ax.set_xscale('log')
+    ax.set_yscale('log')
+    leg_height = 0.97 - 0.03783*nmol_show
+    ax.legend(loc=(0.05,leg_height), fontsize=fs-3, labelspacing=0.25)
+    ax.set_ylim(ylim)
+    if vmr_lims is None:
+        vmr_min, vmr_max = ax.get_xlim()
+        vmr_min = np.clip(vmr_min, 1e-14, 1e-7)
+        vmr_max = np.clip(vmr_max, 1.0, 3.0)
+    else:
+        vmr_min, vmr_max = vmr_lims
+    ax.set_xlim(vmr_min, vmr_max)
+    ax.set_xlabel('Volume mixing ratio', fontsize=fs)
+    ax.set_ylabel('Pressure (bar)', fontsize=fs)
+    ax.xaxis.set_minor_locator(matplotlib.ticker.LogLocator(numticks=100))
+    ax.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
+    ax.tick_params(which='both', right=True, direction='in', labelsize=fs-1)
+    pax = ax.twiny()
+    xmin, xmax = np.log10(vmr_min), np.log10(vmr_max)
+    for k in range(nbands):
+        cf = cf_median[:,k] / np.amax(cf_median[:,k])
+        cf = xmin + 0.04 * (xmax-xmin) * cf
+        pax.plot(cf, pressure/pc.bar, color='k', lw=1.0, alpha=cf_alpha)
+    pax.tick_params(which='both', direction='in')
+    pax.set_xticks(np.log10(ax.get_xticks()))
+    pax.xaxis.set_minor_locator(matplotlib.ticker.MultipleLocator())
+    pax.set_xticklabels([])
+    pax.set_xlim(np.log10(ax.get_xlim()))
+    plt.savefig(f"{root}_vmr_posterior.png", dpi=dpi)
+
+    for j in range(nmol_show):
+        spec = plot_species[j]
+        col = to_rgba(colors[j])
+        ax.fill_betweenx(
+            pressure/pc.bar, post_vmr[2,:,j], post_vmr[3,:,j],
+            color=col, alpha=0.125, ec='none', zorder=zorder[j]-nmol_show,
+        )
+    plt.savefig(f"{root}_vmr_posterior_2sigma.png", dpi=300)
+
+    # Spectrum
+    depth_posterior = post_data['depth_posterior']
+    args = {}
+    args['wavelength'] = post_data['wl']
+    args['data'] = post_data['data']
+    args['uncert'] = post_data['uncert']
+    args['units'] = post_data['units']['depth']
+    args['logxticks'] = logxticks
+    args['bands_wl0'] = band_wl
+    args['bands_wl'] = post_data['bands_wl']
+    args['bands_response'] = post_data['bands_response']
+    args['bounds'] = depth_posterior[1:]
+    args['label'] = 'median model'
+    if post_data['path'] in pc.transmission_rt:
+        args['rt_path'] = 'transit'
+    elif post_data['path'] in pc.emission_rt:
+        args['rt_path'] = 'eclipse'
+    args['spectrum'] = np.copy(depth_posterior[0])
+    args['resolution'] = 125.0
+    args['theme'] = theme
+    args['filename'] = f"{root}_spectrum_posterior.png"
+    ax = spectrum(**args)
+

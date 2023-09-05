@@ -8949,3 +8949,11 @@ This is executed in a background job (as it only uses 1 cpu) allowing
 the uses to launch subsequent runs as desired while post processing
 is being run.
 
+*****
+
+Implemented plots.posteriors() to plot retrieval post-processed data
+medians and 1sigma boundaries for the contribution functions,
+temperature profiles, VMR profiles, and spectra.
+Tests are TBD.
+
+Added call to plots.posterior() at end of posterior_post_processing().
