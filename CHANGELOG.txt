@@ -8957,3 +8957,8 @@ temperature profiles, VMR profiles, and spectra.
 Tests are TBD.
 
 Added call to plots.posterior() at end of posterior_post_processing().
+
+*****
+
+Updated pyratbay version to 1.1.13b1.
+We are nearly a version 2.0.
