@@ -565,11 +565,13 @@ def mkdir(file_path):
     Examples
     --------
     >>> import pyratbay.tools as pt
-    >>> log_file = 'NS1/ns_emission_tutorial.npz'
+    >>> log_file = 'NS1/ns_emission_tutorial.log'
     >>> pt.mkdir(log_file)
     """
     path, filename = os.path.split(file_path)
-    path = path.removeprefix('./')
+    # path.removeprefix() alternative (python<3.9)
+    if path.startswith('./'):
+        path = path[2:]
 
     # Only make dirs in main process
     rank = get_mpi_rank()
