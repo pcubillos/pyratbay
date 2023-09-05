@@ -143,7 +143,7 @@ def test_opacity_rayleigh_lecavelier_str():
     model = op.rayleigh.Lecavelier(wn)
     assert str(model) == """\
 Model name (name): 'lecavelier'
-Model species (mol): H2
+Model species (species): H2
 Number of model parameters (npars): 2
 Parameter name     Value
   (pnames)         (pars)
@@ -160,10 +160,10 @@ def test_opacity_rayleigh_dalgarno_H_str():
     wn_min = 1.0 / (1.7 * pc.um)
     wn_max = 1.0 / (1.1 * pc.um)
     wn = np.arange(wn_min, wn_max, 1.0)
-    model = op.rayleigh.Dalgarno(wn, mol='H')
+    model = op.rayleigh.Dalgarno(wn, species='H')
     assert str(model) == """\
 Model name (name): 'dalgarno_H'
-Model species (mol): H
+Model species (species): H
 Number of model parameters (npars): 0
 Wavenumber (wn, cm-1):
    [5882.35 5883.35 5884.35 ... 9088.35 9089.35 9090.35]
@@ -175,10 +175,10 @@ def test_opacity_rayleigh_dalgarno_He_str():
     wn_min = 1.0 / (1.7 * pc.um)
     wn_max = 1.0 / (1.1 * pc.um)
     wn = np.arange(wn_min, wn_max, 1.0)
-    model = op.rayleigh.Dalgarno(wn, mol='He')
+    model = op.rayleigh.Dalgarno(wn, species='He')
     assert str(model) == """\
 Model name (name): 'dalgarno_He'
-Model species (mol): He
+Model species (species): He
 Number of model parameters (npars): 0
 Wavenumber (wn, cm-1):
    [5882.35 5883.35 5884.35 ... 9088.35 9089.35 9090.35]
@@ -190,10 +190,10 @@ def test_opacity_rayleigh_dalgarno_H2_str():
     wn_min = 1.0 / (1.7 * pc.um)
     wn_max = 1.0 / (1.1 * pc.um)
     wn = np.arange(wn_min, wn_max, 1.0)
-    model = op.rayleigh.Dalgarno(wn, mol='H2')
+    model = op.rayleigh.Dalgarno(wn, species='H2')
     assert str(model) == """\
 Model name (name): 'dalgarno_H2'
-Model species (mol): H2
+Model species (species): H2
 Number of model parameters (npars): 0
 Wavenumber (wn, cm-1):
    [5882.35 5883.35 5884.35 ... 9088.35 9089.35 9090.35]

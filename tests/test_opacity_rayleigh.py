@@ -122,12 +122,12 @@ expected_lec_ec_update_ec = np.array([
         1.59768926e-07],
 ])
 
-@pytest.mark.parametrize('mol', ['H2', 'H', 'He'])
-def test_dalgarno_init(mol):
-    rayleigh = op.rayleigh.Dalgarno(wn=wn, mol=mol)
+@pytest.mark.parametrize('species', ['H2', 'H', 'He'])
+def test_dalgarno_init(species):
+    rayleigh = op.rayleigh.Dalgarno(wn=wn, species=species)
 
-    assert rayleigh.name == 'dalgarno_' + mol
-    assert rayleigh.mol == mol
+    assert rayleigh.name == 'dalgarno_' + species
+    assert rayleigh.species == species
     assert rayleigh.npars == 0
     assert rayleigh.pars == []
     assert rayleigh.pnames == []
@@ -136,7 +136,7 @@ def test_dalgarno_init(mol):
 
 
 def test_dalgarno_H2():
-    H2_rayleigh = op.rayleigh.Dalgarno(wn=wn, mol='H2')
+    H2_rayleigh = op.rayleigh.Dalgarno(wn=wn, species='H2')
     np.testing.assert_allclose(H2_rayleigh.cross_section, expected_H2_cs)
 
     density = np.array([1.8e+14, 1.1e+18])
@@ -145,7 +145,7 @@ def test_dalgarno_H2():
 
 
 def test_dalgarno_H():
-    H_rayleigh = op.rayleigh.Dalgarno(wn=wn, mol='H')
+    H_rayleigh = op.rayleigh.Dalgarno(wn=wn, species='H')
     np.testing.assert_allclose(H_rayleigh.cross_section, expected_H_cs)
 
     density = np.array([1.8e+14, 1.1e+18])
@@ -154,7 +154,7 @@ def test_dalgarno_H():
 
 
 def test_dalgarno_He():
-    He_rayleigh = op.rayleigh.Dalgarno(wn=wn, mol='He')
+    He_rayleigh = op.rayleigh.Dalgarno(wn=wn, species='He')
     np.testing.assert_allclose(He_rayleigh.cross_section, expected_He_cs)
 
     density = np.array([1.8e+14, 1.1e+18])
@@ -167,7 +167,7 @@ def test_lecavelier_default():
     lec_rayleigh = op.rayleigh.Lecavelier(wn=wn)
 
     assert lec_rayleigh.name == 'lecavelier'
-    assert lec_rayleigh.mol == 'H2'
+    assert lec_rayleigh.species == 'H2'
     assert lec_rayleigh.npars == 2
     np.testing.assert_allclose(lec_rayleigh.pars, [0.0, -4.0])
     assert lec_rayleigh.pnames == ['log_k_ray', 'alpha_ray']

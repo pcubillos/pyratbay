@@ -16,17 +16,17 @@ class Dalgarno():
     Rayleigh-scattering models from Dalgarno (1962), Kurucz (1970), and
     Dalgarno & Williams (1962).
     """
-    def __init__(self, wn, mol):
+    def __init__(self, wn, species):
         """
         Parameters
         ----------
         wn: 1D float ndarray
            Wavenumber in cm-1.
-        mol: String
+        species: String
            The species, which can be H, He, or H2.
         """
-        self.name = f'dalgarno_{mol}'
-        self.mol = mol
+        self.name = f'dalgarno_{species}'
+        self.species = species
         self.set_wn(wn)
         self.npars = 0
         self.pars = []
@@ -38,13 +38,13 @@ class Dalgarno():
         When wn is updated the cross-sections must be re-calculated.
         """
         self.wn = wn
-        if self.mol == 'H':
+        if self.species == 'H':
             self.coef = np.array([5.799e-45, 1.422e-54, 2.784e-64])
             self._calc_H_cross_section()
-        elif self.mol == 'He':
+        elif self.species == 'He':
             self.coef = np.array([5.484e-46, 2.440e-11, 5.940e-42, 2.900e-11])
             self._calc_He_cross_section()
-        elif self.mol == 'H2':
+        elif self.species == 'H2':
             self.coef = np.array([8.140e-45, 1.280e-54, 1.610e-64])
             self._calc_H_cross_section()
 
@@ -101,7 +101,7 @@ class Dalgarno():
     def __str__(self):
         fw = pt.Formatted_Write()
         fw.write(f"Model name (name): '{self.name}'")
-        fw.write(f'Model species (mol): {self.mol}')
+        fw.write(f'Model species (species): {self.species}')
         fw.write(f'Number of model parameters (npars): {self.npars}')
         fw.write(
             'Wavenumber (wn, cm-1):\n   {}',
@@ -121,9 +121,9 @@ class Lecavelier():
     Rayleigh-scattering model from Lecavelier des Etangs et al. (2008).
     AA, 485, 865.
     """
-    def __init__(self, wn, mol='H2'):
+    def __init__(self, wn, species='H2'):
         self.name = 'lecavelier'
-        self.mol = mol  # Species causing the extinction
+        self.species = species  # Species causing the extinction
         self.wn = wn
         # Model parameters: cross-section scale factor and power-law exponent
         self.pars = [0.0, -4.0]
@@ -187,7 +187,7 @@ class Lecavelier():
     def __str__(self):
         fw = pt.Formatted_Write()
         fw.write("Model name (name): '{}'", self.name)
-        fw.write('Model species (mol): {}', self.mol)
+        fw.write('Model species (species): {}', self.species)
         fw.write('Number of model parameters (npars): {}', self.npars)
         fw.write('Parameter name     Value\n'
                  '  (pnames)         (pars)\n')

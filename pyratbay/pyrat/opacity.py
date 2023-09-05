@@ -147,8 +147,8 @@ class Opacity():
                 self.nspec.append(1)
                 self.pnames.append(model.pnames)
 
-                check_species_exists(model.mol, species, model.name, log)
-                self.mol_indices.append(species.index(model.mol))
+                check_species_exists(model.species, species, model.name, log)
+                self.mol_indices.append(species.index(model.species))
                 # Parse parameters:
                 if inputs.rpars is None:
                     model.pars = np.tile(np.nan, model.npars)

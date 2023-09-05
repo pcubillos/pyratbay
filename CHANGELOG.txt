@@ -8967,3 +8967,10 @@ We are nearly at version 2.0.
 
 Fixed bug in pt.mkdir() for python<3.9 (non exisiting removeprefix)
 Updated pyratbay version to 1.1.13b2.
+
+*****
+
+Renamed 'mol' variable to 'species' for rayleigh models
+to be consistent with the rest of the opacity models.
+Updated tests.
+
