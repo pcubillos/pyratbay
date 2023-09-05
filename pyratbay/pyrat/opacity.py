@@ -195,9 +195,9 @@ class Opacity():
             self.models.append(model)
             self.models_type.append(model.name)
 
-            check_species_exists(['H','H-','e-'], species, model.name, log)
+            check_species_exists(model.species, species, model.name, log)
             # For calculations only H and e- are necessary:
-            imol = [species.index(mol) for mol in ['H', 'e-']]
+            imol = [species.index(mol) for mol in model.species]
             self.mol_indices.append(imol)
             self.nspec.append(1)
             self.pnames.append([])

@@ -20,6 +20,7 @@ class Hydrogen_Ion():
         """
         self.name = 'H- bound-free/free-free'
         self.wn = wn
+        self.species = ['H', 'e-']
         self.nwave = len(self.wn)
         self._alpha = pc.h * pc.c / pc.k
         # Photo-detachment wn threshold in cm-1 (wl0 = 1.6419 um):

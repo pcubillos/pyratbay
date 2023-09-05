@@ -8974,3 +8974,10 @@ Renamed 'mol' variable to 'species' for rayleigh models
 to be consistent with the rest of the opacity models.
 Updated tests.
 
+*****
+
+Added species variable to h_ion model.
+Now all opacity models that are species dependent have a reference
+to their species.
+
+

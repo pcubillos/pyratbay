@@ -857,7 +857,7 @@ def test_h_ion_missing_species(tmp_path):
         reset={'h_ion': 'h_ion_john1988'},
     )
     error = re.escape(
-        "Species ['H-' 'e-'], required for opacity model H- "
+        "Species ['e-'], required for opacity model H- "
         "bound-free/free-free, are not present in the atmosphere"
     )
     with pytest.raises(ValueError, match=error):

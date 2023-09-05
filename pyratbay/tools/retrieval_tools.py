@@ -415,12 +415,13 @@ def posterior_post_processing(cfg_file=None, pyrat=None):
     active_species = []
     for model in pyrat.opacity.models:
         if not hasattr(model, 'species'):
-            # TBD: need to standardize
             continue
         if isinstance(model.species, str):
             model_species = [model.species]
         else:
             model_species = list(model.species)
+        if model.name == 'H- bound-free/free-free' and 'H-' in pyrat.atm.species:
+            model_species.append('H-')
         for spec in model_species:
             if spec not in active_species:
                 active_species.append(spec)
