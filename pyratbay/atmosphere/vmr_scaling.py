@@ -175,8 +175,9 @@ def ratio(vmr, ibulk):
 
 
 def qscale(
-        vmr, species, molvars, molpars, bulk,
+        vmr, species, mol_models, molpars, bulk,
         qsat=None, iscale=None, ibulk=None, bratio=None, invsrat=None,
+        log_press=None,
     ):
     """
     Scale specified species abundances and balance bulk abundances to
@@ -188,10 +189,10 @@ def qscale(
         Volume mixing ratio of atmospheric species [nlayers, nspecies].
     species: 1D string ndarray
         Names of the species in the atmosphere.
-    molvars: 1D string ndarray
-        Model to vary the species abundances.
+    mol_models: 1D string ndarray
+        List of VMR model names.
     molpars: 1D float ndarray
-        Scaling factor (dex) for each species in molvars.
+        List of all VMR model parameters.
     bulk: 1D string ndarray
         Names of the bulk (dominant) species.
     qsat: Float
@@ -204,6 +205,8 @@ def qscale(
         Abundance ratios between the bulk species (relative to bulk[0]).
     invsrat: 1D float ndarray
         Inverse of the sum of the ratios (at each layer).
+    log_press: 1D float array
+        Array of atmospheric pressures in log10(p/bar) units.
 
     Returns
     -------
@@ -223,29 +226,41 @@ def qscale(
     >>> vmr = np.tile([0.85, 0.15, 1e-4, 1e-4], (nlayers,1))
     >>> species = ['H2', 'He' ,'H2O', 'CH4']
     >>> # Set the H2O abundance to 1.0e-3:
-    >>> molvars = ['log_H2O']
+    >>> mol_models = ['log_H2O']
     >>> molpars = [-3.0]
     >>> bulk = ['H2', 'He']
-    >>> scaled_vmr = pa.qscale(vmr, species, molvars, molpars, bulk)
+    >>> scaled_vmr = pa.qscale(vmr, species, mol_models, molpars, bulk)
     >>> print(scaled_vmr)
     [[8.49065e-01 1.49835e-01 1.00000e-03 1.00000e-04]
      [8.49065e-01 1.49835e-01 1.00000e-03 1.00000e-04]]
     """
     if iscale is None:
-        molecs = [var.split('_')[-1] for var in molvars]
+        molecs = [var.split('_')[-1] for var in mol_models]
         iscale = [list(species).index(mol) for mol in molecs]
     if ibulk is None:
-        ibulk  = [list(species).index(mol) for mol in bulk]
+        ibulk = [list(species).index(mol) for mol in bulk]
     if bratio is None:
         bratio, invsrat = ratio(vmr, ibulk)
 
     # Scale abundance of requested species:
     scaled_vmr = np.copy(vmr)
-    for idx,model,value in zip(iscale, molvars, molpars):
-        if model.startswith('scale_'):
-            scaled_vmr[:,idx] = vmr[:,idx] * 10.0**value
-        elif model.startswith('log_'):
-            scaled_vmr[:,idx] = 10.0**value
+    j = 0
+    for i,model in enumerate(mol_models):
+        imol = iscale[i]
+        if model.startswith('log_'):
+            scaled_vmr[:,imol] = 10.0**molpars[j]
+            j += 1
+        elif model.startswith('scale_'):
+            scaled_vmr[:,imol] = vmr[:,imol] * 10.0**molpars[j]
+            j += 1
+        elif model.startswith('slant_'):
+            slope, vmr_0, vmr_max = molpars[j:j+3]
+            scaled_vmr[:,imol] = 10.0**np.clip(
+                slope * log_press + vmr_0,
+                -40,
+                vmr_max,
+            )
+            j += 3
 
     # Enforce saturation limit:
     if qsat is not None:
