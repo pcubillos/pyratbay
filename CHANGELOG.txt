@@ -9010,3 +9010,8 @@ Fixed bug in parse(), renaming specfile extension for radeq run.
 Updated qscale() function to include slant_VMR model.
 Added mol_models and log_press arguments.
 
+*****
+
+Renamed pa.qscale() to pa.vmr_scale().
+Added test for slant model.
+

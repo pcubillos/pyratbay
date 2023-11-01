@@ -627,14 +627,33 @@ def test_ratio():
     np.testing.assert_equal(invsrat, np.array([0.8, 0.8, 0.8, 0.8, 0.5]))
 
 
-def test_qscale():
+def test_vmr_scale_simples():
     spec = np.array(["H2", "He", "H2O", "CO", "CO2", "CH4"])
     bulk = np.array(['H2', 'He'])
-    molvars = ['log_H2O', 'scale_CO']
+    mol_models = ['log_H2O', 'scale_CO']
     molpars = [-4, 1.0]
-    vmr = pa.qscale(q0, spec, molvars, molpars, bulk)
+    vmr = pa.vmr_scale(q0, spec, mol_models, molpars, bulk)
     nlayers, nspec = np.shape(q0)
     # All H2O abundances set to constant value:
-    np.testing.assert_equal(vmr[:,2], np.tile(10**molpars[0], nlayers))
+    np.testing.assert_allclose(vmr[:,2], np.tile(10**molpars[0], nlayers))
     # All CO abundances scaled by value:
     np.testing.assert_allclose(vmr[:,3], q0[:,3]*10**molpars[1], rtol=1e-7)
+
+
+def test_vmr_scale_slant():
+    spec = np.array(["H2", "He", "H2O", "CO", "CO2", "CH4"])
+    bulk = np.array(['H2', 'He'])
+    nlayers, nspec = np.shape(q0)
+    pressure = pa.pressure('1e-8 bar', '1e2 bar', nlayers)
+    log_press = np.log10(pressure/pc.bar)
+
+    mol_models = ['slant_H2O']
+    #        slope, vmr0, vmr_max
+    molpars = [0.1, -4.0, -1.0]
+    vmr = pa.vmr_scale(q0, spec, mol_models, molpars, bulk, log_press=log_press)
+    expected_H2O = [
+        1.58489319e-05, 1.99526231e-05, 2.51188643e-05, 3.16227766e-05,
+        3.98107171e-05, 5.01187234e-05, 6.30957344e-05, 7.94328235e-05,
+        1.00000000e-04, 1.25892541e-04, 1.58489319e-04,
+    ]
+    np.testing.assert_allclose(vmr[:,2], expected_H2O)

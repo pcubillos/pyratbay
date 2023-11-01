@@ -5,7 +5,7 @@ __all__ = [
     'qcapcheck',
     'balance',
     'ratio',
-    'qscale',
+    'vmr_scale',
 ]
 
 import numpy as np
@@ -174,7 +174,7 @@ def ratio(vmr, ibulk):
     return bratio, invsrat
 
 
-def qscale(
+def vmr_scale(
         vmr, species, mol_models, molpars, bulk,
         qsat=None, iscale=None, ibulk=None, bratio=None, invsrat=None,
         log_press=None,
@@ -229,7 +229,7 @@ def qscale(
     >>> mol_models = ['log_H2O']
     >>> molpars = [-3.0]
     >>> bulk = ['H2', 'He']
-    >>> scaled_vmr = pa.qscale(vmr, species, mol_models, molpars, bulk)
+    >>> scaled_vmr = pa.vmr_scale(vmr, species, mol_models, molpars, bulk)
     >>> print(scaled_vmr)
     [[8.49065e-01 1.49835e-01 1.00000e-03 1.00000e-04]
      [8.49065e-01 1.49835e-01 1.00000e-03 1.00000e-04]]
