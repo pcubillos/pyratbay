@@ -623,7 +623,7 @@ def parse(cfile, with_log=True, mute=False):
 
     if args.runmode == 'radeq':
         if args.specfile is None:
-            args.specfile = outfile + '.tli'
+            args.specfile = outfile + '.dat'
         if args.atmfile is None:
             args.atmfile = outfile + '.atm'
     if args.runmode == 'retrieval' and args.mcmcfile is None:

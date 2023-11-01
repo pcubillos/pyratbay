@@ -9001,3 +9001,7 @@ In that case it will take the first mode reported in the file.
 Fixed loglike() call in multinest_run() stats post-processing
 (should have ifree filter).
 
+*****
+
+Fixed bug in parse(), renaming specfile extension for radeq run.
+
