@@ -346,7 +346,8 @@ class Opacity():
                 t_lims = ''
             if mtype in ['line_sample', 'lbl']:
                 for j in range(model.nspec):
-                    info = f'{model.species[j]:15} {mtype:11} {t_lims}'
-                    fw.write(info)
+                    fw.write(f'{model.species[j]:15} {mtype:11} {t_lims}')
+            else:
+                fw.write(f'{model.name:15} {mtype:11} {t_lims}')
         return fw.text
 

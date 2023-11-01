@@ -36,6 +36,26 @@ Opacity sources:
   ['H2O', 'Na', 'CIA H2-H2', 'CIA H2-He', 'lecavelier', 'deck']"""
 
 
+def test_pyrat_opacity_str(tmp_path):
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        reset={'extfile': f'{extfile}'},
+        remove=['tlifile'],
+    )
+    pyrat = pb.run(cfg)
+    assert str(pyrat.opacity) == f"""\
+Opacity extinction information:
+Model           type           T_min   T_max
+H2O             line_sample    300.0  3000.0
+sodium_vdw      alkali
+CIA H2-H2       cia             60.0  3000.0
+CIA H2-He       cia             60.0  3000.0
+lecavelier      cloud
+deck            cloud
+"""
+
+
 def test_opacity_alkali_str():
     pressure = pa.pressure('1e-6 bar', '1e2 bar', nlayers=51)
     temperature = pa.tmodels.Isothermal(pressure)(1500.0)

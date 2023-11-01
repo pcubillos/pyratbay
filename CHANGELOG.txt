@@ -8981,3 +8981,8 @@ Now all opacity models that are species dependent have a reference
 to their species.
 
 
+*****  Wed Nov 1 16:49:49 CET 2023  *****
+
+Fixed missing opacities screen output on print() call.
+Added test.
+
