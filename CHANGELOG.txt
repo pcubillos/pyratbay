@@ -8996,3 +8996,8 @@ and other cosmetics.
 Updated get_multinest_map() to work with multiple modes.
 In that case it will take the first mode reported in the file.
 
+*****
+
+Fixed loglike() call in multinest_run() stats post-processing
+(should have ifree filter).
+

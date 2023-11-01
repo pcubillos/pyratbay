@@ -290,7 +290,7 @@ def multinest_run(pyrat, mn_basename):
         red_chisq = np.nan
 
     # TBD: need to add log(prior)
-    output['best_log_post'] = loglike(bestp)
+    output['best_log_post'] = loglike(bestp[ifree])
     output['best_chisq'] = best_chisq
     output['red_chisq'] = red_chisq
     output['BIC'] = best_chisq + n_free*np.log(pyrat.obs.ndata)
