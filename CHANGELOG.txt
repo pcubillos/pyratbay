@@ -8986,3 +8986,8 @@ to their species.
 Fixed missing opacities screen output on print() call.
 Added test.
 
+*****
+
+Minor fix in pyrat.radiative_equilibrium() call.
+and other cosmetics.
+

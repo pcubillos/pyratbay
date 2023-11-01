@@ -486,7 +486,7 @@ class Pyrat():
         # No outputs while iterating
         tmp_verb = self.log.verb
         self.log.verb = 0
-        spec_file = self.spec.specfile
+        basename, extension = os.path.splitext(self.spec.specfile)
         self.spec.specfile = None
 
         # Enforce two-stream RT:
@@ -521,15 +521,14 @@ class Pyrat():
         # Update last tempertature iteration and save to file:
         atm.temp = radeq_temps[-1]
         io.write_atm(
-            spec_file.replace('.dat','.atm'),
+            f'{basename}.atm',
             atm.press, atm.temp, atm.species, atm.vmr,
             punits="bar",
             header="# Radiative-thermochemical equilibrium profile.\n\n",
         )
         self.od.rt_path = rt_path
-        self.spec.specfile = spec_file
-        radeq_file = spec_file.replace('.dat','.npz')
-        np.savez(radeq_file, pressure=atm.press, temps=radeq_temps)
+        np.savez(f'{basename}.npz', pressure=atm.press, temps=radeq_temps)
+        self.spec.specfile = f'{basename}.dat'
         spec_type = 'emission'
         io.write_spectrum(
             1.0/self.spec.wn, self.spec.spectrum, self.spec.specfile, spec_type,

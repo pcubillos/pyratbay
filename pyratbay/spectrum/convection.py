@@ -61,7 +61,7 @@ def convective_flux(
         * cp/mu * rho * temperature
         * np.sqrt(gravity*H)
         * delta_grad**1.5
-        )
+    )
 
     return F_conv
 

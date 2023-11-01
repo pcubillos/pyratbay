@@ -7,7 +7,7 @@ __all__ = [
 
 import time
 
-import numpy  as np
+import numpy as np
 from scipy.ndimage import gaussian_filter1d as gaussf
 
 from .. import constants as pc
@@ -22,7 +22,8 @@ def radiative_equilibrium(
         chem_model,
         two_stream_rt,
         wavenumber,
-        spec, atm,
+        spec,
+        atm,
         convection=False,
         tmin=0.0, tmax=6000.0,
     ):
@@ -62,6 +63,7 @@ def radiative_equilibrium(
     dt_scale_tmp = np.copy(dt_scale)
 
     dpress = np.ediff1d(np.log(pressure), to_begin=1.0)
+    dpress[0] = dpress[1]
     df_sign = np.zeros((nsamples, nlayers))
 
     t0 = time.time()
@@ -86,10 +88,10 @@ def radiative_equilibrium(
         dF = np.ediff1d(Q_net, to_begin=0)
 
         # Update scaling factor:
-        dt_scale_tmp = np.copy(dt_scale)
         df_sign[k] = np.sign(dF)
         lo = np.amax([k-4, 0])
         wobble = np.any(df_sign[lo:k] - df_sign[k], axis=0)
+        dt_scale_tmp = np.copy(dt_scale)
         dt_scale_tmp[wobble] *= 0.5
         dt_scale_tmp[~wobble] *= 1.15
         dt_scale_tmp = gaussf(np.clip(dt_scale_tmp, 1.0, maxf), 1.5)
