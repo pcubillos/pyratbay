@@ -742,10 +742,18 @@ def test_weighted_to_equal_with_size():
     assert weighted.shape == (1825,2)
 
 
-def test_get_multinest_map():
+def test_get_multinest_map_1mode():
     bestp = pt.get_multinest_map('inputs/multinest_outputstats.txt')
     expected_bestp = np.array([
         -4.45678543, -0.873886357,  1352.33371, -3.35902318, -3.43078850,
+    ])
+    np.testing.assert_allclose(bestp, expected_bestp)
+
+
+def test_get_multinest_map_2modes():
+    bestp = pt.get_multinest_map('inputs/multinest_outputstats_2modes.txt')
+    expected_bestp = np.array([
+        472.225158, 2.53499615, -0.102761300, 1.47440028, -1.39857495,
     ])
     np.testing.assert_allclose(bestp, expected_bestp)
 

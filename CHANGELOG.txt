@@ -8991,3 +8991,8 @@ Added test.
 Minor fix in pyrat.radiative_equilibrium() call.
 and other cosmetics.
 
+*****
+
+Updated get_multinest_map() to work with multiple modes.
+In that case it will take the first mode reported in the file.
+

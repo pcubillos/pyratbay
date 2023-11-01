@@ -152,11 +152,18 @@ def get_multinest_map(stats_file):
     with open(stats_file, 'r') as f:
         lines = f.readlines()
     map_line = lines.index('MAP Parameters\n') + 2
+    nlines = len(lines)
+
     npars = len(lines) - map_line
-    params = np.zeros(npars)
+    params = []
     for i in range(npars):
-        params[i] = lines[map_line+i].split()[1]
-    return params
+        if map_line+i >= nlines:
+            break
+        if lines[map_line+i].strip() == '':
+            break
+        index, value = lines[map_line+i].split()
+        params.append(value)
+    return np.array(params, np.double)
 
 
 def multinest_run(pyrat, mn_basename):
