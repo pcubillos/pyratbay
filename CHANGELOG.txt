@@ -9015,3 +9015,9 @@ Added mol_models and log_press arguments.
 Renamed pa.qscale() to pa.vmr_scale().
 Added test for slant model.
 
+
+*****  Thu Nov 2 08:50:58 CET 2023  *****
+
+Updated Atmosphere() init function to handle slant VMR models.
+Moved checks from argum.setup() into Atmosphere init.
+

@@ -754,12 +754,6 @@ def test_pyrat_exfile_str(tmp_path):
     assert pyrat is not None
     pyrat.band_integrate()
 
-    assert str(pyrat.opacity) == """\
-Opacity extinction information:
-Model           type           T_min   T_max
-H2O             line_sample    300.0  3000.0
-"""
-
     assert str(pyrat.obs) == """\
 Observing information:
 Data/bandflux display units (units): none

@@ -9,7 +9,6 @@ import scipy.interpolate as si
 from .. import tools as pt
 from .. import constants as pc
 from .. import spectrum as ps
-from .. import atmosphere as pa
 from .. import io as io
 
 
@@ -78,44 +77,8 @@ def setup(pyrat):
     Process the oberving filter bands.
     """
     # Shortcuts:
-    inputs = pyrat.inputs
     phy = pyrat.phy
-    atm = pyrat.atm
     log = pyrat.log
-
-    # Setup bulk and variable-abundance species:
-    species = pyrat.atm.species
-    # Non-overlapping species:
-    if atm.bulk is not None and len(np.setdiff1d(atm.bulk, species)) > 0:
-        missing = np.setdiff1d(atm.bulk, species)
-        log.error(
-            f'These bulk species are not present in the atmosphere: {missing}'
-        )
-
-    atm.parse_abundance_parameters(pyrat.inputs.molvars, log)
-    atm.molpars = inputs.molpars
-    # Allow null molpars for now, check later after retrieval_params
-    if atm.mol_npars > 0 and atm.molpars is not None:
-        if atm.mol_npars != len(atm.molpars):
-            log.error(
-                'There should be one molpars value for each molvars variable:\n'
-                f'molvars: {atm.mol_pnames}\nmolpars: {atm.molpars}'
-            )
-
-    # Overlapping species:
-    if atm.bulk is not None:
-        free_vmr = species[atm.ifree]
-        bulk_free_species = np.intersect1d(atm.bulk, free_vmr)
-        if len(bulk_free_species) > 0:
-            log.error(
-                'These species were marked as both bulk and '
-                f'variable-abundance: {bulk_free_species}'
-            )
-
-    # Obtain abundance ratios between the bulk species:
-    if atm.bulk is not None:
-        atm.ibulk = [list(species).index(mol) for mol in atm.bulk]
-        atm.bulkratio, atm.invsrat = pa.ratio(pyrat.atm.vmr, atm.ibulk)
 
     # Read stellar spectrum model: starspec, kurucz, or blackbody
     if phy.starspec is not None:

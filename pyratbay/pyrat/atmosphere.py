@@ -180,7 +180,7 @@ class Atmosphere():
             self.pbottom = np.amax(pressure)
             self.nlayers = len(pressure)
         self.press = pressure
-
+        self.log_press = np.log10(self.press/pc.bar)
 
         if p_status == 'calculate' and 'read' in [t_status,vmr_status,r_status]:
             # Interpolate if needed:
@@ -355,7 +355,7 @@ class Atmosphere():
             f"{mmm_text}",
             indent=2,
         )
-        # TBD: Add extra bits/logs from makesample.make_atmosphere()
+        self.parse_abundance_parameters(inputs.molvars, inputs.molpars, log)
 
         # Return atmospheric model if requested:
         if self.atmfile is not None:
@@ -401,7 +401,6 @@ class Atmosphere():
             )
         self.temp = temp
 
-
         # Volume mixing ratios:
         if vmr is not None:
             self.molpars = []
@@ -435,14 +434,14 @@ class Atmosphere():
                 #e_scale=e_scale,
             )
         elif np.any(~self._equil_var) and self.molpars is not None:
-            vmr_vars = np.array(self.mol_pnames)[~self._equil_var]
             vmr_pars = np.array(self.molpars)[~self._equil_var]
-            vmr = pa.qscale(
+            vmr = pa.vmr_scale(
                 np.copy(self.base_vmr),
                 self.species,
-                vmr_vars, vmr_pars, self.bulk,
+                self.mol_models, vmr_pars, self.bulk,
                 iscale=self.ifree, ibulk=self.ibulk,
                 bratio=self.bulkratio, invsrat=self.invsrat,
+                log_press=self.log_press,
             )
         else:
             vmr = np.copy(self.base_vmr)
@@ -543,15 +542,28 @@ class Atmosphere():
                 )
 
 
-    def parse_abundance_parameters(self, molvars, log=None):
+    def parse_abundance_parameters(self, molvars, molpars, log=None):
+        """
+        Sort out variables related to the VMR modeling
+        """
+        # Setup bulk and variable-abundance species:
+        species = self.species
+        # Non-overlapping species:
+        if self.bulk is not None and len(np.setdiff1d(self.bulk, species)) > 0:
+            missing = np.setdiff1d(self.bulk, species)
+            log.error(
+                'These bulk species are not present in the '
+                f'atmosphere: {missing}'
+            )
+
         # Sort out abundance free-parameters:
+        self.mol_models = molvars
         self.mol_pnames = []
         self.mol_texnames = []
-        self.mol_npars = len(molvars)
 
         free_vmr = []
-        self._equil_var = np.zeros(self.mol_npars, bool)
-        for i,var in enumerate(molvars):
+        equil_var = []
+        for i,var in enumerate(self.mol_models):
             # VMR variables
             if var.startswith('log_'):
                 molec = var[4:]
@@ -559,41 +571,93 @@ class Atmosphere():
                 self.validate_species(var, log, molec=molec)
                 self.mol_pnames.append(var)
                 self.mol_texnames.append(fr'$\log\ X_{{\rm {molec}}}$')
+                equil_var.append(False)
             elif var.startswith('scale_'):
                 molec = var[6:]
                 free_vmr.append(molec)
                 self.validate_species(var, log, molec=molec)
                 self.mol_pnames.append(var)
                 self.mol_texnames.append(fr'$\log\ X_{{\rm {molec}}}$')
+                equil_var.append(False)
+            elif var.startswith('slant_'):
+                molec = var[6:]
+                free_vmr.append(molec)
+                self.validate_species(var, log, molec=molec)
+                self.mol_pnames += [
+                    f'slope_{molec}',
+                    f'log_{molec}',
+                    f'max_{molec}',
+                ]
+                self.mol_texnames += [
+                    fr'$m_{{\rm {molec}}}$',
+                    fr'$\log\ X_{{\rm {molec}}}^{{0}}$',
+                    fr'$\log\ X_{{\rm {molec}}}^{{\rm max}}$',
+                ]
+                equil_var += [False, False, False]
             # Equillibrium variables
             elif var == 'metal':
-                self._equil_var[i] = True
                 self.validate_species(var, log)
                 self.mol_pnames.append(var)
                 self.mol_texnames.append('[M/H]')
+                equil_var.append(True)
             elif var.startswith('[') and var.endswith('/H]'):
-                self._equil_var[i] = True
                 self.validate_species(var, log, elements=[var[1:-3]])
                 self.mol_pnames.append(var)
                 self.mol_texnames.append(var)
+                equil_var.append(True)
             elif '/' in var:
-                self._equil_var[i] = True
                 idx = var.index('/')
                 elements = [var[0:idx], var[idx+1:]]
                 self.validate_species(var, log, elements=elements)
                 self.mol_pnames.append(var)
                 self.mol_texnames.append(var)
+                equil_var.append(True)
             else:
                 log.error(f"Unrecognized molvars variable name: '{var}'")
 
+        self._equil_var = np.array(equil_var, bool)
+        # TBD: trigger this error
+        vmr_uniques, vmr_counts = np.unique(free_vmr, return_counts=True)
+        if np.any(vmr_counts>1):
+            duplicates = vmr_uniques[vmr_counts>1]
+            log.error(f'There are repeated species {duplicates} in mol_models')
 
         self.ifree = [
             list(self.species).index(mol)
             for mol in free_vmr
         ]
 
-        if len(molvars) == 0:
+        self.mol_npars = len(self.mol_pnames)
+        self.molpars = molpars
+        # Allow null molpars for now, check later after retrieval_params
+        if self.mol_npars > 0 and self.molpars is not None:
+            npars = len(self.molpars)
+            if self.mol_npars != npars:
+                log.error(
+                    f'The number of abundance parameters (molpars): {npars} '
+                    'does not match the number of expected number of values '
+                    f'according to molvars: {self.mol_npars}.'
+                )
+
+        # Overlapping species:
+        if self.bulk is not None:
+            free_vmr = species[self.ifree]
+            bulk_free_species = np.intersect1d(self.bulk, free_vmr)
+            if len(bulk_free_species) > 0:
+                log.error(
+                    'These species were marked as both bulk and '
+                    f'variable-abundance: {bulk_free_species}'
+                )
+
+        # TBD: is this doing the right thing?
+        if len(self.mol_models) == 0:
             self.ibulk = None
+
+        # Obtain abundance ratios between the bulk species:
+        if self.bulk is not None:
+            self.ibulk = [list(species).index(mol) for mol in self.bulk]
+            self.bulkratio, self.invsrat = pa.ratio(self.vmr, self.ibulk)
+
 
     def __str__(self):
         fmt = {'float': '{: .3e}'.format}
