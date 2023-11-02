@@ -9021,3 +9021,7 @@ Added test for slant model.
 Updated Atmosphere() init function to handle slant VMR models.
 Moved checks from argum.setup() into Atmosphere init.
 
+*****
+
+Updated pyratbay version to 1.1.14b1.
+
