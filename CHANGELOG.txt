@@ -9033,3 +9033,6 @@ A patchy cloud parameter can be set from the retrieval_params input,
 when fpatchy was not set, the code was ignoring the patchy calculations.
 A test for the corrected behavior is TBD.
 
+*****
+
+Updated pyratbay version to 1.1.14b2.
