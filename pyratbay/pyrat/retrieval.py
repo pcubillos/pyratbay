@@ -150,6 +150,11 @@ class Retrieval():
         if atm.tmodelname in pc.tmodels:
             temp_pnames = atm.temp_model.pnames
 
+        opacity.is_patchy = (
+            opacity.fpatchy is not None or
+            'f_patchy' in self.pnames
+        )
+
         opacity_pnames = []
         for names in opacity.pnames:
             opacity_pnames += names

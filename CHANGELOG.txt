@@ -9025,3 +9025,11 @@ Moved checks from argum.setup() into Atmosphere init.
 
 Updated pyratbay version to 1.1.14b1.
 
+
+*****  Fri Nov 17 16:40:32 CET 2023  *****
+
+Fixed bug with f_patchy models.
+A patchy cloud parameter can be set from the retrieval_params input,
+when fpatchy was not set, the code was ignoring the patchy calculations.
+A test for the corrected behavior is TBD.
+

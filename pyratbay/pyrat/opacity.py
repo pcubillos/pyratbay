@@ -39,8 +39,10 @@ class Opacity():
         self.nlayers = len(pressure)
         self.ec = np.zeros((self.nlayers, self.nwave))
         self.ec_cloud = np.zeros((self.nlayers, self.nwave))
+
         self.fpatchy = inputs.fpatchy
-        self.is_patchy = self.fpatchy is not None
+        # The flag self.is_patchy will be set in pyrat.Retrieval() because
+        # a patchy model may be set via the retrieval_params input
 
         min_wn = np.amin(wn)
         max_wn = np.amax(wn)
