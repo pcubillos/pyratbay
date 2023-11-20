@@ -292,6 +292,8 @@ class Retrieval():
             atm.molpars = np.zeros(len(atm.mol_pnames))
             atm.molpars[map_pars['mol']] = self.params[self.imol]
 
+        if self.ipatchy is not None and opacity.fpatchy is None:
+            opacity.fpatchy = self.params[self.ipatchy]
 
         if atm.tpars is None and atm.temp_model is not None:
             log.error('Not all temperature parameters were defined (tpars)')

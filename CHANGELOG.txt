@@ -9036,3 +9036,12 @@ A test for the corrected behavior is TBD.
 *****
 
 Updated pyratbay version to 1.1.14b2.
+
+
+*****  Mon Nov 20 11:57:47 CET 2023  *****
+
+More patchy faactor bug fixes. Make sure code looks at is_patchy flag
+rather than not None f_patchy.
+Added test for f_patchy retrieval_param without fpatchy argument.
+
+

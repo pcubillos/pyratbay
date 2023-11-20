@@ -121,7 +121,7 @@ def test_transmission_all(tmp_path):
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['all'], rtol=rtol)
 
 
-def test_transmission_patchy(tmp_path):
+def test_transmission_patchy_from_fpatchy_param(tmp_path):
     reset = {
         'fpatchy': '0.5',
         'rpars': '10.0 -15.0',
@@ -144,6 +144,31 @@ def test_transmission_patchy(tmp_path):
 
     pyrat.opacity.fpatchy = 1.0
     pyrat.run()
+    spectrum = pyrat.spec.spectrum
+    np.testing.assert_allclose(spectrum, expected['patchy_cloudy'], rtol=rtol)
+
+
+def test_transmission_f_patchy_from_retrieval_params(tmp_path):
+    reset = {
+        'rpars': '10.0 -15.0',
+        'retrieval_params': 'f_patchy  0.5  0.0  1.0 0.1',
+    }
+    cfg_file = ROOT+'tests/configs/spectrum_transmission_test.cfg'
+    cfg = make_config(tmp_path, cfg_file, reset=reset)
+    pyrat = pb.run(cfg)
+
+    spectrum = pyrat.spec.spectrum
+    clear = pyrat.spec.clear
+    cloudy = pyrat.spec.cloudy
+    np.testing.assert_allclose(spectrum, expected['patchy'], rtol=rtol)
+    np.testing.assert_allclose(clear, expected['patchy_clear'], rtol=rtol)
+    np.testing.assert_allclose(cloudy, expected['patchy_cloudy'], rtol=rtol)
+
+    pyrat.eval([0.0])
+    spectrum = pyrat.spec.spectrum
+    np.testing.assert_allclose(spectrum, expected['patchy_clear'], rtol=rtol)
+
+    pyrat.eval([1.0])
     spectrum = pyrat.spec.spectrum
     np.testing.assert_allclose(spectrum, expected['patchy_cloudy'], rtol=rtol)
 
