@@ -534,7 +534,7 @@ def parse(cfile, with_log=True, mute=False):
         parse_str(args, 'rplanet')
         parse_str(args,   'refpressure')
         parse_str(args,   'mplanet')
-        parse_str(args,   'mpunits')
+        parse_str(args, 'mpunits')
         parse_float(args, 'gplanet')
         parse_str(args,   'smaxis')
         parse_float(args, 'tint')

@@ -9044,4 +9044,7 @@ More patchy faactor bug fixes. Make sure code looks at is_patchy flag
 rather than not None f_patchy.
 Added test for f_patchy retrieval_param without fpatchy argument.
 
+*****
+
+Fixed bug with mass_units texname when retrieving the planet mass.
 

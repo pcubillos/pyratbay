@@ -217,7 +217,7 @@ class Retrieval():
                 self.texnames[i] = fr'$R_{{\rm p}}$ ({utex[atm.runits]})'
             elif pname == 'M_planet':
                 self.imass = np.array([i])
-                self.texnames[i] = fr'$M_{{\rm p}}$ ({utex[phy.mpunits]})'
+                self.texnames[i] = fr'$M_{{\rm p}}$ ({utex[atm.mass_units]})'
             elif pname =='f_patchy':
                 self.ipatchy = np.array([i])
                 self.texnames[i] = r'$\phi_{\rm patchy}$'
