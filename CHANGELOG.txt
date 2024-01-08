@@ -9055,3 +9055,8 @@ Moved most package build configs from setup.py to pyproject.toml.
 Updated MANIFEST.in
 Updated pyratbay version to 1.1.15.
 
+*****
+
+Updated .readthedocs.yml configuration file according to new format.
+Added docs/docs_requirements.txt file.
+
