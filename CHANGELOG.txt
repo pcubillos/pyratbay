@@ -9048,3 +9048,10 @@ Added test for f_patchy retrieval_param without fpatchy argument.
 
 Fixed bug with mass_units texname when retrieving the planet mass.
 
+
+*****  Mon Jan  8 15:27:55 CET 2024  *****
+
+Moved most package build configs from setup.py to pyproject.toml.
+Updated MANIFEST.in
+Updated pyratbay version to 1.1.15.
+

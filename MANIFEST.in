@@ -8,8 +8,13 @@ include docs/*
 include docs/figures/*
 include examples/demo/*
 include examples/tutorial/*
-include pyratbay/data/*
-include pyratbay/data/CIA/*
+include pyratbay/data/AsplundEtal2009.txt
+include pyratbay/data/atoms.dat
+include pyratbay/data/molecules.dat
+include pyratbay/data/isotopes.dat
+include pyratbay/data/tips_2021.pkl
+include pyratbay/data/CIA/*.dat
+include pyratbay/data/filters/*.dat
 include src_c/*
 include src_c/include/*
 include tests/pytest.ini
