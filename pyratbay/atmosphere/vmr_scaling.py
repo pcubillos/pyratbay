@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2023 Patricio Cubillos
+# Copyright (c) 2021-2024 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -177,7 +177,6 @@ def ratio(vmr, ibulk):
 def vmr_scale(
         vmr, species, mol_models, molpars, bulk,
         qsat=None, iscale=None, ibulk=None, bratio=None, invsrat=None,
-        log_press=None,
     ):
     """
     Scale specified species abundances and balance bulk abundances to
@@ -198,15 +197,13 @@ def vmr_scale(
     qsat: Float
         Maximum allowed combined abundance for trace species.
     iscale: 1D integer ndarray
-        Indices of molvars species in vmr.
+        Indices of mol_model species in vmr.
     ibulk: 1D integer ndarray
         Indices of bulk species in vmr.
     bratio: 2D float ndarray
         Abundance ratios between the bulk species (relative to bulk[0]).
     invsrat: 1D float ndarray
         Inverse of the sum of the ratios (at each layer).
-    log_press: 1D float array
-        Array of atmospheric pressures in log10(p/bar) units.
 
     Returns
     -------
@@ -222,20 +219,31 @@ def vmr_scale(
     --------
     >>> import pyratbay.atmosphere as pa
 
-    >>> nlayers = 2
-    >>> vmr = np.tile([0.85, 0.15, 1e-4, 1e-4], (nlayers,1))
-    >>> species = ['H2', 'He' ,'H2O', 'CH4']
-    >>> # Set the H2O abundance to 1.0e-3:
-    >>> mol_models = ['log_H2O']
-    >>> molpars = [-3.0]
+    >>> nlayers = 51
+    >>> pressure = pa.pressure('1e-7 bar', '100 bar', nlayers)
+    >>> vmr = np.tile([0.85, 0.15, 1e-4, 1e-4, 1e-4, 1e-4], (nlayers,1))
+    >>> species = ['H2', 'He' ,'H2O', 'CH4', 'CO', 'CO2']
+    >>> mol_models = [
+    >>>     pa.vmr_models.IsoVMR('H2O',pressure),
+    >>>     pa.vmr_models.IsoVMR('CO',pressure),
+    >>> ]
+    >>> # VMR with updated H2O and CO abundances:
+    >>> molpars = [-3.5, -3.3]
     >>> bulk = ['H2', 'He']
     >>> scaled_vmr = pa.vmr_scale(vmr, species, mol_models, molpars, bulk)
-    >>> print(scaled_vmr)
-    [[8.49065e-01 1.49835e-01 1.00000e-03 1.00000e-04]
-     [8.49065e-01 1.49835e-01 1.00000e-03 1.00000e-04]]
+
+    >>> # Show abundances at a layer:
+    >>> for i,mol in enumerate(species):
+    >>>     print(f'VMR_{mol:4s} = {scaled_vmr[0,i]:.5f}')
+    VMR_H2   = 0.84914
+    VMR_He   = 0.14985
+    VMR_H2O  = 0.00032
+    VMR_CH4  = 0.00010
+    VMR_CO   = 0.00050
+    VMR_CO2  = 0.00010
     """
     if iscale is None:
-        molecs = [var.split('_')[-1] for var in mol_models]
+        molecs = [model.species for model in mol_models]
         iscale = [list(species).index(mol) for mol in molecs]
     if ibulk is None:
         ibulk = [list(species).index(mol) for mol in bulk]
@@ -247,21 +255,11 @@ def vmr_scale(
     j = 0
     for i,model in enumerate(mol_models):
         imol = iscale[i]
-        if model.startswith('log_'):
-            scaled_vmr[:,imol] = 10.0**molpars[j]
-            j += 1
-        elif model.startswith('scale_'):
-            scaled_vmr[:,imol] = vmr[:,imol] * 10.0**molpars[j]
-            j += 1
-        elif model.startswith('slant_'):
-            slope, vmr_0, vmr_max = molpars[j:j+3]
-            scaled_vmr[:,imol] = 10.0**np.clip(
-                slope * log_press + vmr_0,
-                -40,
-                vmr_max,
-            )
-            j += 3
+        npars = model.npars
+        scaled_vmr[:,imol] = model(molpars[j:j+npars])
+        j += npars
 
+    # TBD: remove qsat
     # Enforce saturation limit:
     if qsat is not None:
         indices = np.arange(len(species))
