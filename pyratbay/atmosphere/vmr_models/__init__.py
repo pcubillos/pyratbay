@@ -2,21 +2,12 @@
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 """
-Atmospheric modeling functions.
+Volume-mixing ratio models.
 """
 
-from .atmosphere import *
-from .vmr_scaling import *
-from . import tmodels
-from . import vmr_models
+from .vmr_models import *
 
-__all__ = (
-    atmosphere.__all__
-    + vmr_scaling.__all__
-    + ['tmodels']
-    + ['vmr_models']
-)
-
+__all__ = vmr_models.__all__
 
 # Clean up top-level namespace--delete everything that isn't in __all__
 # or is a magic attribute, and that isn't a submodule of this package

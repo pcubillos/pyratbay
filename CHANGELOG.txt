@@ -9060,3 +9060,10 @@ Updated pyratbay version to 1.1.15.
 Updated .readthedocs.yml configuration file according to new format.
 Added docs/docs_requirements.txt file.
 
+
+*****  Tue Jan 9 14:32:59 CET 2024  *****
+
+Added vmr_models.py file with classes for the VMR model parameters.
+It's a bit of an overkill for such simple objects, but within the PB
+framework, they really simplify the evaluation of an atmospheric VMR.
+

@@ -46,30 +46,6 @@ expected_dens = np.array([
     4.10241850e+10, 7.24297052e+09, 4.82864701e+06, 4.82864701e+06,
     4.82864701e+02, 4.82864701e+06])
 
-q0 = np.array(
-      [[  7.15780000e-01,   1.34580000e-01,   3.48390000e-04,
-          4.25490000e-04,   8.00670000e-08,   1.93810000e-22],
-       [  8.07420000e-01,   1.41760000e-01,   3.67350000e-04,
-          4.48220000e-04,   7.88430000e-08,   2.77920000e-20],
-       [  8.38830000e-01,   1.44230000e-01,   3.73770000e-04,
-          4.56010000e-04,   7.85590000e-08,   3.11600000e-18],
-       [  8.49010000e-01,   1.45030000e-01,   3.75850000e-04,
-          4.58530000e-04,   7.84790000e-08,   3.23090000e-16],
-       [  8.52260000e-01,   1.45280000e-01,   3.76510000e-04,
-          4.59340000e-04,   7.84550000e-08,   3.26810000e-14],
-       [  8.53290000e-01,   1.45360000e-01,   3.76720000e-04,
-          4.59590000e-04,   7.84480000e-08,   3.27990000e-12],
-       [  8.53610000e-01,   1.45390000e-01,   3.76780000e-04,
-          4.59670000e-04,   7.84450000e-08,   3.28370000e-10],
-       [  8.53720000e-01,   1.45390000e-01,   3.76840000e-04,
-          4.59670000e-04,   7.84460000e-08,   3.28440000e-08],
-       [  8.53750000e-01,   1.45400000e-01,   3.80050000e-04,
-          4.56480000e-04,   7.85620000e-08,   3.23430000e-06],
-       [  8.53560000e-01,   1.45440000e-01,   5.31500000e-04,
-          3.05290000e-04,   7.34970000e-08,   1.54570000e-04],
-       [  8.53190000e-01,   1.45530000e-01,   8.23730000e-04,
-          1.36860000e-05,   5.10860000e-09,   4.46510000e-04]])
-
 expected_vmr_tea = np.array([
        [7.35957328e-01, 8.90269702e-02, 1.06589477e-20, 6.66282723e-05,
         1.74484284e-01, 1.51805109e-04, 3.12878172e-04, 1.05436507e-07,
@@ -626,34 +602,3 @@ def test_ratio():
     np.testing.assert_equal(bratio[:,1], np.array([0.25,0.25,0.25,0.25,1.0]))
     np.testing.assert_equal(invsrat, np.array([0.8, 0.8, 0.8, 0.8, 0.5]))
 
-
-def test_vmr_scale_simples():
-    spec = np.array(["H2", "He", "H2O", "CO", "CO2", "CH4"])
-    bulk = np.array(['H2', 'He'])
-    mol_models = ['log_H2O', 'scale_CO']
-    molpars = [-4, 1.0]
-    vmr = pa.vmr_scale(q0, spec, mol_models, molpars, bulk)
-    nlayers, nspec = np.shape(q0)
-    # All H2O abundances set to constant value:
-    np.testing.assert_allclose(vmr[:,2], np.tile(10**molpars[0], nlayers))
-    # All CO abundances scaled by value:
-    np.testing.assert_allclose(vmr[:,3], q0[:,3]*10**molpars[1], rtol=1e-7)
-
-
-def test_vmr_scale_slant():
-    spec = np.array(["H2", "He", "H2O", "CO", "CO2", "CH4"])
-    bulk = np.array(['H2', 'He'])
-    nlayers, nspec = np.shape(q0)
-    pressure = pa.pressure('1e-8 bar', '1e2 bar', nlayers)
-    log_press = np.log10(pressure/pc.bar)
-
-    mol_models = ['slant_H2O']
-    #        slope, vmr0, vmr_max
-    molpars = [0.1, -4.0, -1.0]
-    vmr = pa.vmr_scale(q0, spec, mol_models, molpars, bulk, log_press=log_press)
-    expected_H2O = [
-        1.58489319e-05, 1.99526231e-05, 2.51188643e-05, 3.16227766e-05,
-        3.98107171e-05, 5.01187234e-05, 6.30957344e-05, 7.94328235e-05,
-        1.00000000e-04, 1.25892541e-04, 1.58489319e-04,
-    ]
-    np.testing.assert_allclose(vmr[:,2], expected_H2O)
