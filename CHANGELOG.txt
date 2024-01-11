@@ -9072,4 +9072,9 @@ framework, they really simplify the evaluation of an atmospheric VMR.
 Updated vmr_scale() function to work with the new VMR models.
 Removed log_press argument.
 
+*****
+
+Updated the VMR calculation in the Atmosphere() object.
+Much of the logic was moved into the newly implemented sub-classes.
+Tweaked ScaleEquil elements property, renamed as element as a string.
 

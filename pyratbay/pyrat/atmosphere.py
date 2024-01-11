@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2023 Patricio Cubillos
+# Copyright (c) 2021-2024 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -9,6 +9,7 @@ import numpy as np
 import scipy.interpolate as sip
 
 from .. import atmosphere as pa
+from ..atmosphere import vmr_models
 from .. import constants as pc
 from .. import io as io
 from .. import tools as pt
@@ -120,6 +121,7 @@ class Atmosphere():
             self.input_atmfile = inputs.input_atmfile
         else:
             input_atm_source = None
+            self.input_atmfile = None
 
         self.input_atm_source = input_atm_source
 
@@ -180,7 +182,6 @@ class Atmosphere():
             self.pbottom = np.amax(pressure)
             self.nlayers = len(pressure)
         self.press = pressure
-        self.log_press = np.log10(self.press/pc.bar)
 
         if p_status == 'calculate' and 'read' in [t_status,vmr_status,r_status]:
             # Interpolate if needed:
@@ -406,42 +407,35 @@ class Atmosphere():
             self.molpars = []
 
         elif self.chemistry == 'tea':
-            net = self.chem_model
             metallicity = None
-            e_abundances = {}
             e_ratio = {}
-            #e_scale = {}
+            e_scale = {}
             if np.any(self._equil_var):
-                equil_vars = np.array(self.mol_pnames)[self._equil_var]
                 equil_pars = np.array(self.molpars)[self._equil_var]
+                equil_models = self._equil_models
             else:
-                equil_vars, equil_pars = [], []
-            for var,val in zip(equil_vars, equil_pars):
-                if var == 'metal':
+                equil_models, equil_pars = [], []
+            for equil_model,val in zip(equil_models, equil_pars):
+                if equil_model.name == 'metal_equil':
                     metallicity = val
-                elif var.startswith('[') and var.endswith('/H]'):
-                    element = var[1:-3]
-                    idx = list(net._base_composition).index(element)
-                    solar_abundance = net._base_dex_abundances[idx]
-                    e_abundances[element] = solar_abundance + val
-                elif '/' in var:
-                    e_ratio[var.replace('/','_')] = val
-            vmr = net.thermochemical_equilibrium(
+                elif equil_model.name == 'scale_equil':
+                    e_scale[equil_model.element] = val
+                elif equil_model.name == 'ratio_equil':
+                    e_ratio[equil_model.element_ratio] = val
+            vmr = self.chem_model.thermochemical_equilibrium(
                 self.temp,
                 metallicity=metallicity,
-                e_abundances=e_abundances,
                 e_ratio=e_ratio,
-                #e_scale=e_scale,
+                e_scale=e_scale,
             )
         elif np.any(~self._equil_var) and self.molpars is not None:
             vmr_pars = np.array(self.molpars)[~self._equil_var]
             vmr = pa.vmr_scale(
-                np.copy(self.base_vmr),
+                self.base_vmr,
                 self.species,
-                self.mol_models, vmr_pars, self.bulk,
+                self._free_models, vmr_pars, self.bulk,
                 iscale=self.ifree, ibulk=self.ibulk,
                 bratio=self.bulkratio, invsrat=self.invsrat,
-                log_press=self.log_press,
             )
         else:
             vmr = np.copy(self.base_vmr)
@@ -522,7 +516,9 @@ class Atmosphere():
 
 
     def validate_species(self, var, log, molec=None, elements=[]):
-        # Validate composition variables:
+        """
+        Validate composition variables.
+        """
         if molec is not None:
             if molec not in self.species:
                 log.error(
@@ -546,86 +542,71 @@ class Atmosphere():
         """
         Sort out variables related to the VMR modeling
         """
-        # Setup bulk and variable-abundance species:
-        species = self.species
-        # Non-overlapping species:
-        if self.bulk is not None and len(np.setdiff1d(self.bulk, species)) > 0:
-            missing = np.setdiff1d(self.bulk, species)
-            log.error(
-                'These bulk species are not present in the '
-                f'atmosphere: {missing}'
-            )
+        species = [] if self.species is None else list(self.species)
 
         # Sort out abundance free-parameters:
         self.mol_models = molvars
+        self.vmr_models = []
         self.mol_pnames = []
         self.mol_texnames = []
 
-        free_vmr = []
-        equil_var = []
-        for i,var in enumerate(self.mol_models):
+        for i,var in enumerate(molvars):
             # VMR variables
             if var.startswith('log_'):
                 molec = var[4:]
-                free_vmr.append(molec)
                 self.validate_species(var, log, molec=molec)
-                self.mol_pnames.append(var)
-                self.mol_texnames.append(fr'$\log\ X_{{\rm {molec}}}$')
-                equil_var.append(False)
+                vmr_model = vmr_models.IsoVMR(molec, self.press)
             elif var.startswith('scale_'):
                 molec = var[6:]
-                free_vmr.append(molec)
                 self.validate_species(var, log, molec=molec)
-                self.mol_pnames.append(var)
-                self.mol_texnames.append(fr'$\log\ X_{{\rm {molec}}}$')
-                equil_var.append(False)
+                imol = species.index(molec)
+                vmr_model = vmr_models.ScaleVMR(
+                    molec, self.press, self.vmr[:,imol],
+                )
             elif var.startswith('slant_'):
                 molec = var[6:]
-                free_vmr.append(molec)
                 self.validate_species(var, log, molec=molec)
-                self.mol_pnames += [
-                    f'slope_{molec}',
-                    f'log_{molec}',
-                    f'max_{molec}',
-                ]
-                self.mol_texnames += [
-                    fr'$m_{{\rm {molec}}}$',
-                    fr'$\log\ X_{{\rm {molec}}}^{{0}}$',
-                    fr'$\log\ X_{{\rm {molec}}}^{{\rm max}}$',
-                ]
-                equil_var += [False, False, False]
+                vmr_model = vmr_models.SlantVMR(molec, self.press)
             # Equillibrium variables
             elif var == 'metal':
+                vmr_model = vmr_models.MetalEquil()
                 self.validate_species(var, log)
-                self.mol_pnames.append(var)
-                self.mol_texnames.append('[M/H]')
-                equil_var.append(True)
             elif var.startswith('[') and var.endswith('/H]'):
-                self.validate_species(var, log, elements=[var[1:-3]])
-                self.mol_pnames.append(var)
-                self.mol_texnames.append(var)
-                equil_var.append(True)
+                vmr_model = vmr_models.ScaleEquil(var)
+                self.validate_species(var, log, elements=[vmr_model.element])
             elif '/' in var:
-                idx = var.index('/')
-                elements = [var[0:idx], var[idx+1:]]
-                self.validate_species(var, log, elements=elements)
-                self.mol_pnames.append(var)
-                self.mol_texnames.append(var)
-                equil_var.append(True)
+                vmr_model = vmr_models.RatioEquil(var)
+                self.validate_species(var, log, elements=vmr_model.elements)
             else:
                 log.error(f"Unrecognized molvars variable name: '{var}'")
+            self.mol_pnames += vmr_model.pnames
+            self.mol_texnames += vmr_model.texnames
+            self.vmr_models.append(vmr_model)
 
+        self._equil_models = [
+            model for model in self.vmr_models if model.type == 'equil'
+        ]
+        self._free_models = [
+            model for model in self.vmr_models if model.type == 'free'
+        ]
+
+        equil_var = []
+        for model in self.vmr_models:
+            equil_var += [model.type=='equil' for _ in range(model.npars)]
         self._equil_var = np.array(equil_var, bool)
+
+        free_vmr = [
+            model.species
+            for model in self.vmr_models
+            if model.type=='free'
+        ]
         # TBD: trigger this error
         vmr_uniques, vmr_counts = np.unique(free_vmr, return_counts=True)
         if np.any(vmr_counts>1):
             duplicates = vmr_uniques[vmr_counts>1]
             log.error(f'There are repeated species {duplicates} in mol_models')
 
-        self.ifree = [
-            list(self.species).index(mol)
-            for mol in free_vmr
-        ]
+        self.ifree = [species.index(mol) for mol in free_vmr]
 
         self.mol_npars = len(self.mol_pnames)
         self.molpars = molpars
@@ -635,13 +616,19 @@ class Atmosphere():
             if self.mol_npars != npars:
                 log.error(
                     f'The number of abundance parameters (molpars): {npars} '
-                    'does not match the number of expected number of values '
+                    'does not match the expected number of values '
                     f'according to molvars: {self.mol_npars}.'
                 )
 
-        # Overlapping species:
+        # Ckeck bulk species:
+        if self.bulk is not None and len(np.setdiff1d(self.bulk, species)) > 0:
+            missing = np.setdiff1d(self.bulk, species)
+            log.error(
+                'These bulk species are not present in the '
+                f'atmosphere: {missing}'
+            )
         if self.bulk is not None:
-            free_vmr = species[self.ifree]
+            free_vmr = self.species[self.ifree]
             bulk_free_species = np.intersect1d(self.bulk, free_vmr)
             if len(bulk_free_species) > 0:
                 log.error(
@@ -655,15 +642,14 @@ class Atmosphere():
 
         # Obtain abundance ratios between the bulk species:
         if self.bulk is not None:
-            self.ibulk = [list(species).index(mol) for mol in self.bulk]
+            self.ibulk = [species.index(mol) for mol in self.bulk]
             self.bulkratio, self.invsrat = pa.ratio(self.vmr, self.ibulk)
 
 
     def __str__(self):
-        fmt = {'float': '{: .3e}'.format}
+        fmt = {'float': '{:.3e}'.format}
         fw = pt.Formatted_Write()
-        press  = self.press/pt.u(self.punits)
-        radius = self.radius/pt.u(self.runits)
+        press = self.press/pt.u(self.punits)
         fw.write('Atmospheric model information:')
         fw.write(
             f"Input atmospheric file name (input_atmfile): '{self.input_atmfile}'"
@@ -692,8 +678,14 @@ class Atmosphere():
             self.ptop/pt.u(self.punits), self.punits)
         fw.write('Pressure at bottom of atmosphere (pbottom):  {:.2e} {}',
             self.pbottom/pt.u(self.punits), self.punits)
-        fw.write('Reference pressure at rplanet (refpressure): {:.2e} {}',
-            self.refpressure/pt.u(self.punits), self.punits)
+        if self.refpressure is None:
+            ref_pressure = None
+        else:
+            ref_pressure = self.refpressure/pt.u(self.punits)
+        fw.write(
+            'Reference pressure at rplanet (refpressure): {:.2e} {}',
+            ref_pressure, self.punits,
+        )
         fw.write(
             'Pressure profile (press, {}):\n    {}',
             self.punits, press, fmt=fmt, edge=3,
@@ -743,8 +735,12 @@ class Atmosphere():
         fw.write('\nRadius display units (runits): {}', self.runits)
         fw.write('Radius internal units: cm', self.runits)
         fw.write('Radius model name (rmodelname): {}', self.rmodelname)
-        fw.write('Radius profile (radius, {}):\n    {}', self.runits, radius,
-            prec=4, edge=3, lw=800)
+        if self.radius is not None:
+            fw.write(
+                'Radius profile (radius, {}):\n    {}',
+                self.runits, self.radius/pt.u(self.runits),
+                prec=4, edge=3, lw=800,
+            )
 
 
         fw.write('\nMean molecular mass (mm, amu):\n    {}', self.mm,

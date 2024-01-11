@@ -34,7 +34,7 @@ def test_scaleequil_base():
     assert vmr_model.texnames == ['[C/H]']
     assert vmr_model.npars == 1
     assert vmr_model.type == 'equil'
-    assert vmr_model.elements == ['C']
+    assert vmr_model.element == 'C'
 
 
 def test_ratioequil_base():

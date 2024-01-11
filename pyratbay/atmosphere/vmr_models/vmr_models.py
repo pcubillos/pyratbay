@@ -59,7 +59,7 @@ class ScaleEquil():
             where 'X' is the element name (e.g.: [C/H], [Na/H], ...).
         """
         self.name = 'scale_equil'
-        self.elements = [name[1:-3]]
+        self.element = name[1:-3]
         self.pnames = [name]
         self.texnames = [name]
         self.npars = len(self.pnames)
