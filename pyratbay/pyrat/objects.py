@@ -77,13 +77,13 @@ class Optdepth():
               '\nDistance along the ray path across each layer '
               '(outside-in) at each impact parameter (raypath, km):',
           )
-          with np.printoptions(formatter={'float':'{:.1f}'.format},threshold=6):
-              fw.write('    IP[{:3d}]: {}', 1, self.raypath[1]/pc.km)
-              fw.write('    IP[{:3d}]: {}', 2, self.raypath[2]/pc.km)
-              fw.write('    IP[{:3d}]: {}', 3, self.raypath[3]/pc.km)
+          with np.printoptions(precision=2, threshold=6):
+              ilast = len(self.raypath) - 1
+              fw.write('    IP[  1]: {}', self.raypath[1]/pc.km)
+              fw.write('    IP[  2]: {}', self.raypath[2]/pc.km)
+              fw.write('    IP[  3]: {}', self.raypath[3]/pc.km)
               fw.write('    ...')
-              fw.write('    IP[{:3d}]: {}', len(self.raypath)-1,
-                       self.raypath[len(self.raypath)-1]/pc.km)
+              fw.write('    IP[{:3d}]: {}', ilast, self.raypath[ilast]/pc.km)
           od_text = (
               '\nOptical depth at each impact parameter, down to '
               'max(ideep) (depth):'
