@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2023 Patricio Cubillos
+# Copyright (c) 2021-2024 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -6,7 +6,6 @@ __all__ = [
     'temperature',
     'chemistry',
     'uniform',
-    'abundance',
     'hydro_g',
     'hydro_m',
     'hill_radius',
@@ -267,7 +266,7 @@ def chemistry(
     Parameters
     ----------
     chem_model: String
-        Name of chemistry model.
+        Name of chemistry model, select from: 'uniform' or 'tea'
     pressure: 1D float ndarray
         Atmospheric pressure profile (barye).
     temperature: 1D float ndarray
@@ -321,8 +320,7 @@ def chemistry(
     >>> species = 'H2O CH4 CO CO2 NH3 C2H2 C2H4 HCN N2 H2 H He H+ e-'.split()
     >>> # Equilibrium abundances model:
     >>> chem_model = 'tea'
-    >>> chem_network = pa.chemistry(
-    >>>     chem_model, pressure, temperature, species,)
+    >>> chem_network = pa.chemistry(chem_model, pressure, temperature, species)
 
     >>> q_uniform = np.array([
     >>>     5e-4, 3e-5, 2e-4, 1e-8,  1e-6, 1e-14, 1e-13, 5e-10,
@@ -362,6 +360,7 @@ def chemistry(
         ]
         chem_network.vmr = uniform(
             pressure, temperature, chem_network.species, abundances=abundances)
+
     elif chem_model == 'tea':
         chem_network.thermochemical_equilibrium()
 
@@ -370,140 +369,10 @@ def chemistry(
         io.write_atm(
             atmfile, pressure, temperature,
             chem_network.species, chem_network.vmr,
-            punits=punits, header=header)
-
-    return chem_network
-
-
-def abundance(
-        pressure, temperature, species, elements=None,
-        quniform=None, atmfile=None, punits='bar',
-        metallicity=0.0, e_abundances={}, e_scale={}, e_ratio={},
-        solar_file=None, log=None, verb=1,
-        # To be deprecated:
-        ncpu=None, xsolar=None, escale=None,
-    ):
-    """
-    Compute atmospheric abundaces for given pressure and
-    temperature profiles with either uniform abundances or TEA.
-
-    Parameters
-    ----------
-    pressure: 1D float ndarray
-        Atmospheric pressure profile (barye).
-    temperature: 1D float ndarray
-        Atmospheric temperature profile (Kelvin).
-    species: 1D string list
-        Output atmospheric composition.
-    elements: 1D strings list
-        Input elemental composition (default to minimum list of elements
-        required to form species).
-    quniform: 1D float ndarray
-        If not None, the output species abundances (isobaric).
-    atmfile: String
-        If not None, output file where to save the atmospheric model.
-    punits: String
-        Output pressure units.
-    metallicity: Float
-        Metallicity enhancement factor in dex units relative to solar.
-    e_abundances: Dictionary
-        Custom elemental abundances.
-        The dict contains the name of the element and their custom
-        abundance in dex units relative to H=12.0.
-        These values override metallicity.
-    e_scale: Dict
-        Scaling abundance factor for specified atoms by the respective
-        values (in dex units, in addition to metallicity scaling).
-        E.g. (3x solar): e_scale = {'C': np.log10(3.0)}
-    solar_file: String
-        Input solar elemental abundances file (default Asplund et al. 2021).
-    log: Log object
-        Screen-output log handler.
-    verb: Integer
-        Verbosity level.
-
-    ncpu: Integer [DEPRECATED]
-        Number of parallel CPUs to use in TEA calculation.
-    xsolar: Float [DEPRECATED]
-        Metallicity enhancement factor.  Deprecated, use metallicity instead.
-    escale: Dict [DEPRECATED]
-        Multiplication factor for specified atoms (dict's keys)
-        by the respective values (on top of the xsolar scaling).
-        Deprecated, use e_scale instead.
-
-    Returns
-    -------
-    vmr: 2D float ndarray
-       Atmospheric volume mixing fraction abundances of shape
-       [nlayers, nspecies].
-
-    Example
-    -------
-    >>> import pyratbay.atmosphere as pa
-    >>> import pyratbay.constants as pc
-
-    >>> nlayers = 100
-    >>> press = np.logspace(-8, 3, nlayers) * pc.bar
-    >>> temp  = np.tile(900.0, nlayers)
-    >>> species = 'H2O CH4 CO CO2 NH3 C2H2 C2H4 HCN N2 H2 H He'.split()
-    >>> # Thermochemical equilibrium abundances for requested species:
-    >>> vmr = pa.abundance(press, temp, species)
-    """
-    if solar_file is None:
-        solar_file = 'asplund_2021'
-    if log is None:
-        log = mu.Log(verb=verb)
-
-    # Uniform-abundances profile:
-    if quniform is not None:
-        log.head("\nCompute uniform-abundances profile.")
-        vmr = uniform(
-            pressure, temperature, species, quniform, punits, log, atmfile)
-        return vmr
-
-    # Deprecated arguments:
-    if ncpu is not None:
-        warning_msg = (
-            "The 'ncpu' argument is deprecated and no longer has any "
-            "effect, it will be removed in the near future"
-        )
-        warnings.warn(warning_msg, category=DeprecationWarning)
-    if not e_scale and escale is not None:
-        e_scale = {key: np.log10(val) for key,val in escale.items()}
-        warning_msg = (
-            "The 'escale' argument is deprecated and will be removed in "
-            "the near future, use 'e_scale' instead"
-        )
-        warnings.warn(warning_msg, category=DeprecationWarning)
-    if xsolar is not None:
-        metallicity = np.log10(xsolar)
-        warning_msg = (
-            "The 'xsolar' argument is deprecated and will be removed in "
-            "the near future, use 'metallicity' instead"
-        )
-        warnings.warn(warning_msg, category=DeprecationWarning)
-
-    # TEA abundances:
-    log.head("\nCompute TEA thermochemical-equilibrium abundances profile.")
-    chem_network = chemistry(
-        'tea',
-        pressure, temperature, species,
-        metallicity=metallicity,
-        e_abundances=e_abundances,
-        e_scale=e_scale,
-        e_ratio=e_ratio,
-        solar_file=solar_file,
-        log=log,
-        verb=verb,
-    )
-    vmr = chem_network.vmr
-    if atmfile is not None:
-        header = "# TEA atmospheric file\n\n"
-        io.write_atm(
-            atmfile, pressure, temperature, chem_network.species, vmr,
             punits=punits, header=header,
         )
-    return vmr
+
+    return chem_network
 
 
 def hydro_g(pressure, temperature, mu, g, p0=None, r0=None):

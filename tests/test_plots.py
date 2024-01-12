@@ -19,8 +19,7 @@ nlayers = 51
 pressure = pa.pressure('1e-6 bar', '1e2 bar', nlayers)
 temperature = pa.temperature('isothermal', pressure,  params=1000.0)
 species = 'H2O CH4 CO CO2 NH3 C2H2 C2H4 HCN N2 TiO VO H2 H He Na K'.split()
-Q = pa.abundance(pressure, temperature, species)
-
+vmr = pa.chemistry('tea', pressure, temperature, species).vmr
 
 # Templates, I don't know how to truly automatize this since I'd
 # need to see the output plots to be OK, but a not-breaking-code
@@ -102,7 +101,7 @@ def test_temperature_ax():
 
 
 def test_abundance_default_molecs():
-    ax = pp.abundance(Q, pressure, species, colors='default',
+    ax = pp.abundance(vmr, pressure, species, colors='default',
         highlight='H2O CH4 CO CO2 NH3 HCN H2 H He'.split())
 
 
@@ -110,20 +109,20 @@ def test_abundance_defaults_extra_molecs():
     spec2 = np.copy(species)
     spec2[1] = 'CH3'
     spec2[2] = 'O'
-    ax = pp.abundance(Q, pressure, spec2, colors='default',
+    ax = pp.abundance(vmr, pressure, spec2, colors='default',
         highlight='H2O CH4 CO CO2 NH3 HCN H2 H He'.split())
 
 
 def test_abundance_custom_colors():
     colors = 'b r g y m k 0.5'.split()
-    ax = pp.abundance(Q, pressure, species, colors=colors,
+    ax = pp.abundance(vmr, pressure, species, colors=colors,
         highlight='H2O CH4 CO CO2 NH3 HCN H2 H He'.split())
 
 
 def test_abundance_custom_dashes_and_colors():
     colors = 'b r g y m k 0.5'.split()
     ax = pp.abundance(
-        Q, pressure, species, colors=colors,
+        vmr, pressure, species, colors=colors,
         dashes=cycler(dashes=[(8,1), (3,1)]),
         highlight='H2O CH4 CO CO2 NH3 HCN H2 H He'.split(),
     )
@@ -132,27 +131,27 @@ def test_abundance_custom_dashes_and_colors():
 def test_abundance_custom_colors_a():
     # Different highlight changes color assignments:
     colors = 'b r g y m k 0.5'.split()
-    ax = pp.abundance(Q, pressure, species, colors=colors,
+    ax = pp.abundance(vmr, pressure, species, colors=colors,
         highlight='CH4 CO CO2 NH3 HCN H2 H He'.split())
 
 
 def test_abundance_matplotlib_default_colors():
     # Matplotlib colors:
-    ax = pp.abundance(Q, pressure, species, colors=None,
+    ax = pp.abundance(vmr, pressure, species, colors=None,
         highlight='H2O CH4 CO CO2 NH3 HCN H2 H He'.split())
 
 
 def test_abundance_one_to_one_colors():
     # Custom colors, ncolors == nspecies:
     colors = 'b r g y m k 0.5'.split()
-    ax = pp.abundance(Q, pressure, species[:7], colors=colors,
+    ax = pp.abundance(vmr, pressure, species[:7], colors=colors,
         highlight='H2O CH4 CO CO2 NH3 HCN H2 H He'.split())
 
 
 def test_abundance_one_to_one_dashes_and_colors():
     # Custom colors/dashes, ncolors == nspecies:
     colors = 'b r g y m k 0.5'.split()
-    ax = pp.abundance(Q, pressure, species[:7], colors=colors,
+    ax = pp.abundance(vmr, pressure, species[:7], colors=colors,
         dashes=[(),(3,1),(),(),(),(),()],
         highlight='H2O CH4 CO CO2 NH3 HCN H2 H He'.split())
 
@@ -160,13 +159,13 @@ def test_abundance_one_to_one_dashes_and_colors():
 def test_abundance_one_to_one_colors_alternative_highlight():
     # ncolors >= nspecies, different highlight preserves coloring:
     colors = 'b r g y m k 0.5'.split()
-    ax = pp.abundance(Q, pressure, species[:7], colors=colors,
+    ax = pp.abundance(vmr, pressure, species[:7], colors=colors,
         highlight='CH4 CO CO2 NH3 HCN H2 H He'.split())
 
 
 def test_abundance_one_to_one_dashes_and_colors_alternative_highlight():
     colors = 'b r g y m k 0.5'.split()
-    ax = pp.abundance(Q, pressure, species[:7], colors=colors,
+    ax = pp.abundance(vmr, pressure, species[:7], colors=colors,
         dashes=[(),(3,1),(),(),(),(),()],
         highlight='CH4 CO CO2 NH3 HCN H2 H He'.split())
 

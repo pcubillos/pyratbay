@@ -9082,3 +9082,9 @@ Tweaked ScaleEquil elements property, renamed as element as a string.
 
 Tweaked Optdepth() screen output of impact-parameter values.
 
+
+*****  Fri Jan 12 22:38:43 CET 2024  *****
+
+Removed pa.abundance() function, redundant with pa.chemistry().
+Updated docs and tests.
+

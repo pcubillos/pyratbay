@@ -24,7 +24,7 @@ pressure = pa.pressure('1e-8 bar', '1e2 bar', nlayers)
 temperature = np.tile(1200.0, nlayers)
 species = ['H2', 'H', 'He']
 
-vmr = pa.abundance(pressure, temperature, species)
+vmr = pa.chemistry('tea', pressure, temperature, species).vmr
 number_densities = pa.ideal_gas_density(vmr, pressure, temperature)
 
 H2_density = number_densities[:,0]

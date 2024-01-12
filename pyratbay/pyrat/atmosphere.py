@@ -228,13 +228,11 @@ class Atmosphere():
 
         # Composition (volume-mixing-ratio) profiles:
         species = None
-        radius = None
         if vmr_status == 'calculate':
             chem_net = pa.chemistry(
                 self.chemistry,
                 pressure, temperature, inputs.species,
                 metallicity=self.metallicity,
-                #e_abundances=self.e_abundances,
                 e_scale=self.e_scale,
                 e_ratio=self.e_ratio,
                 solar_file=inputs.solar,
@@ -291,9 +289,11 @@ class Atmosphere():
                     f"{self.mol_mass[i]:8.4f}",
                     indent=2,
                 )
+        self.parse_abundance_parameters(inputs.molvars, inputs.molpars, log)
 
 
         # Radius profile:
+        radius = None
         if r_status == 'calculate':
             # Mean molecular mass:
             mean_mass = pa.mean_weight(self.vmr, species)
@@ -356,7 +356,6 @@ class Atmosphere():
             f"{mmm_text}",
             indent=2,
         )
-        self.parse_abundance_parameters(inputs.molvars, inputs.molpars, log)
 
         # Return atmospheric model if requested:
         if self.atmfile is not None:
