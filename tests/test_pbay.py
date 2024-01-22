@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Patricio Cubillos
+# Copyright (c) 2021-2024 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import os
@@ -69,6 +69,9 @@ expected_temperature_madhu = np.array([
 expected_vmr = np.load(
     f'{ROOT}/tests/expected/expected_tea_profile.npz')['arr_0']
 
+expected_vmr_sub_solar = np.load(
+    f'{ROOT}/tests/expected/expected_tea_sub_solar_profile.npz')['arr_0']
+
 expected_radius = np.array([
     7.33194831e+09, 7.32830466e+09, 7.32466463e+09, 7.32102821e+09,
     7.31739539e+09, 7.31376616e+09, 7.31014053e+09, 7.30651847e+09,
@@ -113,9 +116,15 @@ def test_units_variable_not_needed(tmp_path):
 
 
 def test_units_separate(tmp_path):
-    cfg = make_config(tmp_path, ROOT+'tests/configs/pt_isothermal.cfg',
-        reset={'mplanet':'1.0',
-               'mpunits':'mjup'})
+    reset = {
+        'mplanet':'1.0',
+        'mpunits':'mjup',
+    }
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/pt_isothermal.cfg',
+        reset=reset,
+    )
     atmosphere = pb.run(cfg)
     # TBD: assert atmosphere.munits == 'mjup'
 
@@ -243,13 +252,14 @@ def test_atmosphere_uniform(tmp_path):
     np.testing.assert_equal(atm[4], expected_vmr)
 
 
-def test_atmosphere_tea(tmp_path):
+def test_atmosphere_tea_no_vmr_models(tmp_path):
     atmfile = str(tmp_path / 'test.atm')
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/atmosphere_tea_test.cfg',
         reset={'atmfile':atmfile},
     )
+    expected_species = np.array('H2 He Na K H2O CH4 CO CO2 NH3 HCN N2'.split())
 
     atmosphere = pb.run(cfg)
     np.testing.assert_allclose(atmosphere.press, expected_pressure)
@@ -258,12 +268,66 @@ def test_atmosphere_tea(tmp_path):
     # Compare against the atmospheric file now:
     atmf = io.read_atm(atmfile)
     assert atmf[0] == ('bar', 'kelvin', 'volume', None)
-    np.testing.assert_equal(atmf[1],
-        np.array('H2 He Na K H2O CH4 CO CO2 NH3 HCN N2'.split()))
+    np.testing.assert_equal(atmf[1], expected_species)
     # File read-write loses precision:
     np.testing.assert_allclose(atmf[2]*pc.bar, expected_pressure, rtol=1e-6)
     np.testing.assert_allclose(atmf[3], expected_temperature, rtol=1e-6)
     np.testing.assert_allclose(atmf[4], expected_vmr, rtol=1e-6)
+
+
+def test_atmosphere_tea_no_molpars_but_with_vmr_models(tmp_path):
+    atmfile = str(tmp_path / 'test.atm')
+    reset = {
+        'atmfile': atmfile,
+        'molvars': 'metal',
+    }
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/atmosphere_tea_test.cfg',
+        reset=reset,
+    )
+    expected_species = np.array('H2 He Na K H2O CH4 CO CO2 NH3 HCN N2'.split())
+
+    atmosphere = pb.run(cfg)
+    np.testing.assert_allclose(atmosphere.press, expected_pressure)
+    np.testing.assert_allclose(atmosphere.temp, expected_temperature)
+    np.testing.assert_allclose(atmosphere.vmr, expected_vmr)
+    # Compare against the atmospheric file now:
+    atmf = io.read_atm(atmfile)
+    assert atmf[0] == ('bar', 'kelvin', 'volume', None)
+    np.testing.assert_equal(atmf[1], expected_species)
+    # File read-write loses precision:
+    np.testing.assert_allclose(atmf[2]*pc.bar, expected_pressure, rtol=1e-6)
+    np.testing.assert_allclose(atmf[3], expected_temperature, rtol=1e-6)
+    np.testing.assert_allclose(atmf[4], expected_vmr, rtol=1e-6)
+
+
+def test_atmosphere_tea_with_vmr_models(tmp_path):
+    atmfile = str(tmp_path / 'test.atm')
+    reset = {
+        'atmfile': atmfile,
+        'molvars': 'metal',
+        'molpars': '-1.0',
+    }
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/atmosphere_tea_test.cfg',
+        reset=reset,
+    )
+    expected_species = np.array('H2 He Na K H2O CH4 CO CO2 NH3 HCN N2'.split())
+
+    atmosphere = pb.run(cfg)
+    np.testing.assert_allclose(atmosphere.press, expected_pressure)
+    np.testing.assert_allclose(atmosphere.temp, expected_temperature)
+    np.testing.assert_allclose(atmosphere.vmr, expected_vmr_sub_solar)
+    # Compare against the atmospheric file now:
+    atmf = io.read_atm(atmfile)
+    assert atmf[0] == ('bar', 'kelvin', 'volume', None)
+    np.testing.assert_equal(atmf[1], expected_species)
+    # File read-write loses precision:
+    np.testing.assert_allclose(atmf[2]*pc.bar, expected_pressure, rtol=1e-6)
+    np.testing.assert_allclose(atmf[3], expected_temperature, rtol=1e-6)
+    np.testing.assert_allclose(atmf[4], expected_vmr_sub_solar, rtol=1e-6)
 
 
 def test_atmosphere_hydro(tmp_path):

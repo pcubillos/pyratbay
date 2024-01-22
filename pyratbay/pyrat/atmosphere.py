@@ -226,61 +226,56 @@ class Atmosphere():
             temperature = inputs.temperature
         self.temp = temperature
 
-        # Composition (volume-mixing-ratio) profiles:
-        species = None
-        if vmr_status == 'calculate':
+
+        # Composition / volume mixing ratio profiles:
+        if vmr_status == 'skip':
+            self.species = None
+            self.vmr = None
+        elif vmr_status == 'read':
+            self.species = inputs.atm_species
+            self.vmr = inputs.vmr
+        elif vmr_status == 'calculate':
             chem_net = pa.chemistry(
                 self.chemistry,
                 pressure, temperature, inputs.species,
-                metallicity=self.metallicity,
-                e_scale=self.e_scale,
-                e_ratio=self.e_ratio,
                 solar_file=inputs.solar,
                 log=log,
                 punits=self.punits,
                 q_uniform=inputs.uniform,
             )
             self.chem_model = chem_net
-            vmr = chem_net.vmr
-            species = chem_net.species
-        elif vmr_status == 'read':
-            species = inputs.atm_species
-            vmr = inputs.vmr
-        elif vmr_status == 'skip':
-            vmr = None
-        self.vmr = vmr
+            self.species = chem_net.species
+            self.vmr = np.copy(chem_net.vmr)
 
-        # Set values of species properties:
-        self.species = species
-        if species is not None:
-            self.nmol = len(species)
+        self.base_vmr = None
+        if self.vmr is not None:
+            self.base_vmr = np.copy(self.vmr)
+
+        self.parse_abundance_parameters(inputs.molvars, inputs.molpars, log)
+        # Set species' mass and collision radius:
+        if self.species is not None:
+            self.nmol = len(self.species)
             log.msg(
                 f"Read species physical properties from: '{self.molfile}'",
                 indent=2,
             )
             mol_names, mol_mass, mol_radius = io.read_molecs(self.molfile)
-
-            # Check that all atmospheric species are listed in molfile:
-            absent = np.setdiff1d(species, mol_names)
+            absent = np.setdiff1d(self.species, mol_names)
             if len(absent) > 0:
                 log.error(
                     f"These species: {absent} are not listed in the molecules "
                     f"info file: {self.molfile}"
                 )
 
-            # Set molecule's values:
-            self.mol_mass = np.zeros(self.nmol)
-            self.mol_radius = np.zeros(self.nmol)
-
             log.msg(
                 'Molecule   Radius  Mass\n'
                 '           (A)     (gr/mol)',
                 indent=4,
             )
+            self.mol_mass = np.zeros(self.nmol)
+            self.mol_radius = np.zeros(self.nmol)
             for i in range(self.nmol):
-                # Find the molecule in the list:
                 imol = list(mol_names).index(self.species[i])
-                # Set molecule name, mass, and collision radius:
                 self.mol_mass[i] = mol_mass[imol]
                 self.mol_radius[i] = mol_radius[imol] * pc.A
                 log.msg(
@@ -289,24 +284,15 @@ class Atmosphere():
                     f"{self.mol_mass[i]:8.4f}",
                     indent=2,
                 )
-        self.parse_abundance_parameters(inputs.molvars, inputs.molpars, log)
 
 
-        # Radius profile:
-        radius = None
-        if r_status == 'calculate':
-            # Mean molecular mass:
-            mean_mass = pa.mean_weight(self.vmr, species)
-            # Altitude profile:
-            radius = self.rad_model(
-                pressure, temperature, mean_mass, self.mplanet,
-                self.gplanet, self.refpressure, self.rplanet,
-            )
+        if r_status == 'skip':
+            self.radius = None
         elif r_status == 'read':
-            radius = inputs.radius
+            self.radius = inputs.radius
             if self.runits is None:
                 self.runits = r_units
-        self.radius = radius
+
         # Planetary radius units (if not set by rplanet nor atmfile):
         if self.runits is None:
             if self.rplanet is not None:
@@ -314,22 +300,19 @@ class Atmosphere():
             else:
                 self.runits = 'rearth'
 
-        # Mean molecular mass and number densities:
+        # Compute VMR and radius profiles (when needed):
+        # and other properties (mean molecular mass, number density, Hill radius)
+        self.calc_profiles(mstar=mstar, log=log)
+
+
+        # Screen outputs:
         mmm_text = ''
         if self.vmr is not None:
-            self.mm = np.sum(self.vmr*self.mol_mass, axis=1)
-            # Number density profiles for each molecule (in molecules cm-3):
-            self.d = pa.ideal_gas_density(self.vmr, self.press, self.temp)
             median_mmm = np.median(self.mm)
             mmm_text += (
                 f"\nMedian mean molecular mass: {median_mmm:.3f} g mol-1."
             )
-            # Base abundance profiles:
-            self.base_vmr = np.copy(self.vmr)
 
-        self.rhill = pa.hill_radius(self.smaxis, self.mplanet, mstar)
-
-        # Print radius array:
         if self.radius is not None:
             radius_arr = self.radius / pt.u(self.runits)
             log.msg(
@@ -342,7 +325,6 @@ class Atmosphere():
                 indent=2,
             )
 
-        # Provide a summary of what happened here:
         log.msg(f"Species list:\n  {self.species}", indent=2, si=4)
         min_p = self.press[ 0] / pt.u(self.punits)
         max_p = self.press[-1] / pt.u(self.punits)
@@ -357,12 +339,12 @@ class Atmosphere():
             indent=2,
         )
 
-        # Return atmospheric model if requested:
+        # Save atmospheric model to file if requested:
         if self.atmfile is not None:
             header = '# pyrat bay atmospheric model\n'
             io.write_atm(
-                self.atmfile, pressure, temperature, species,
-                vmr, radius, self.punits, self.runits, header=header,
+                self.atmfile, pressure, temperature, self.species,
+                self.vmr, self.radius, self.punits, self.runits, header=header,
             )
             log.msg(f"Output atmospheric file: '{self.atmfile}'.")
 
@@ -388,7 +370,7 @@ class Atmosphere():
         if temp is not None:
             # Need to null tpars since it does not represent temp anymore
             self.tpars = None
-        elif self.tpars is not None:
+        elif self.temp_model is not None and self.tpars is not None:
             temp = self.temp_model(self.tpars)
         else:
             temp = self.temp
@@ -404,12 +386,18 @@ class Atmosphere():
         # Volume mixing ratios:
         if vmr is not None:
             self.molpars = []
+            if np.shape(vmr) != np.shape(self.vmr):
+                log.error(
+                    f"The shape of the input VMR array {np.shape(vmr)} "
+                     "doesn't match the shape of the Pyrat VMR "
+                    f"{np.shape(self.vmr)}"
+                )
 
         elif self.chemistry == 'tea':
             metallicity = None
             e_ratio = {}
             e_scale = {}
-            if np.any(self._equil_var):
+            if np.any(self._equil_var) and self.molpars is not None:
                 equil_pars = np.array(self.molpars)[self._equil_var]
                 equil_models = self._equil_models
             else:
@@ -436,20 +424,19 @@ class Atmosphere():
                 iscale=self.ifree, ibulk=self.ibulk,
                 bratio=self.bulkratio, invsrat=self.invsrat,
             )
+        elif self.base_vmr is None:
+            vmr = self.base_vmr
         else:
             vmr = np.copy(self.base_vmr)
-
-        if np.shape(vmr) != np.shape(self.vmr):
-            log.error(
-                f"The shape of the abundances array {np.shape(vmr)} doesn't "
-                 "match the shape of the Pyrat's abundance size "
-                f"{np.shape(self.vmr)}"
-            )
         self.vmr = vmr
 
-        # Mean molecular mass:
-        self.mm = np.sum(self.vmr * self.mol_mass, axis=1)
+        if self.vmr is None:
+            return
 
+        # Number density (molecules cm-3):
+        self.d = pa.ideal_gas_density(self.vmr, self.press, self.temp)
+        # Mean molecular mass:
+        self.mm = pa.mean_weight(self.vmr, mass=self.mol_mass)
 
         # Radius profile:
         if radius is not None:
@@ -463,20 +450,18 @@ class Atmosphere():
         else:
             pass
 
-        # Number density (molecules cm-3):
-        self.d = pa.ideal_gas_density(self.vmr, self.press, self.temp)
-
         # Check radii lie within Hill radius:
         self.rhill = pa.hill_radius(self.smaxis, self.mplanet, mstar)
-        self.rtop = pt.ifirst(self.radius<self.rhill, default_ret=0)
-        if self.rtop > 0:
-            rhill = self.rhill / pt.u(self.runits)
-            log.warning(
-                "The atmospheric pressure array extends beyond the Hill radius "
-                f"({rhill:.5f} {self.runits}) at pressure "
-                f"{self.press[self.rtop]/pc.bar:.3e} bar (layer {self.rtop}).  "
-                "Extinction beyond this layer will be neglected."
-            )
+        if self.radius is not None:
+            self.rtop = pt.ifirst(self.radius<self.rhill, default_ret=0)
+            if self.rtop > 0:
+                rhill = self.rhill / pt.u(self.runits)
+                log.warning(
+                    "The atmospheric pressure array extends beyond the Hill "
+                    f"radius ({rhill:.5f} {self.runits}) at pressure "
+                    f"{self.press[self.rtop]/pc.bar:.3e} bar (layer {self.rtop})."
+                    "  Extinction beyond this layer will be neglected."
+                )
 
 
     def rad_model(self, pressure, temperature, mu, mplanet, gplanet, p0, r0):
@@ -599,7 +584,7 @@ class Atmosphere():
             for model in self.vmr_models
             if model.type=='free'
         ]
-        # TBD: trigger this error
+        # TBD: trigger this error in tests
         vmr_uniques, vmr_counts = np.unique(free_vmr, return_counts=True)
         if np.any(vmr_counts>1):
             duplicates = vmr_uniques[vmr_counts>1]

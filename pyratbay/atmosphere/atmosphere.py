@@ -359,7 +359,8 @@ def chemistry(
             for spec in chem_network.species
         ]
         chem_network.vmr = uniform(
-            pressure, temperature, chem_network.species, abundances=abundances)
+            pressure, temperature, chem_network.species, abundances=abundances,
+        )
 
     elif chem_model == 'tea':
         chem_network.thermochemical_equilibrium()

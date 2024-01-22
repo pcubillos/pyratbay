@@ -9088,3 +9088,11 @@ Tweaked Optdepth() screen output of impact-parameter values.
 Removed pa.abundance() function, redundant with pa.chemistry().
 Updated docs and tests.
 
+
+*****  Mon Jan 22 16:55:37 CET 2024  *****
+
+Refactored Atmosphere() initialization method to parse VMR parameters
+from molmodel,molpars instead of metallicity, e_scale, and e_ratio.
+Now we can remove those input parameter redundancy/inconsistency.
+Updated and added tests.
+
