@@ -9096,3 +9096,10 @@ from molmodel,molpars instead of metallicity, e_scale, and e_ratio.
 Now we can remove those input parameter redundancy/inconsistency.
 Updated and added tests.
 
+
+*****  Tue Jan 23 13:32:20 CET 2024  *****
+
+Updated pytest.ini and scipy.interpolate.simpson() functions to
+avoid warnings while testing.
+
+

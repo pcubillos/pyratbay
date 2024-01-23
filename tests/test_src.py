@@ -50,7 +50,7 @@ def test_simps(odd):
     hsum, hrat, hfac = s.geth(h)
     integ = s.simps(y, h, hsum, hrat, hfac)
 
-    np_integ = si.simps(y, x, even='first')
+    np_integ = si.simpson(y, x)
     np.testing.assert_approx_equal(integ, np_integ)
 
 
