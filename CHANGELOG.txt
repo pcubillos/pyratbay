@@ -9110,3 +9110,7 @@ Renamed  mol_models, molpars arguments to vmr_models, vmr_pars.
 vmr_pars is now a list of parameters, each item corresponding to each
 model in vmr_models.
 
+*****
+
+Updated tests for vmr_scale().
+

@@ -8,6 +8,7 @@ import numpy as np
 import pyratbay.atmosphere as pa
 import pyratbay.constants as pc
 
+
 os.chdir(pc.ROOT+'tests')
 
 nlayers = 11
@@ -110,9 +111,31 @@ def test_slantvmr_base():
 def test_slantvmr_eval():
     spec = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
     bulk = np.array(['H2', 'He'])
-    mol_models = [pa.vmr_models.SlantVMR('H2O', pressure)]
+    mol_models = pa.vmr_models.SlantVMR('H2O', pressure)
     #       slope, vmr0, log_p0, vmr_min, vmr_max
     params = [0.25, -4.0, 0.0, -np.inf, -4.0]
+    vmr = pa.vmr_scale(vmr0, spec, mol_models, params, bulk)
+
+    imol = spec.index(mol_models.species)
+    expected_vmr = [
+        1.77827941e-06, 2.98538262e-06, 5.01187234e-06, 8.41395142e-06,
+        1.41253754e-05, 2.37137371e-05, 3.98107171e-05, 6.68343918e-05,
+        1.00000000e-04, 1.00000000e-04, 1.00000000e-04,
+    ]
+    np.testing.assert_allclose(vmr[:,imol], expected_vmr)
+
+
+def test_vmr_models_eval_list():
+    spec = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
+    bulk = np.array(['H2', 'He'])
+    mol_models = [
+        pa.vmr_models.SlantVMR('H2O', pressure),
+        pa.vmr_models.IsoVMR('CH4', pressure),
+    ]
+    params = [
+        [0.25, -4.0, 0.0, -np.inf, -4.0],
+        -3.3,
+    ]
     vmr = pa.vmr_scale(vmr0, spec, mol_models, params, bulk)
 
     imol = spec.index(mol_models[0].species)
@@ -122,4 +145,7 @@ def test_slantvmr_eval():
         1.00000000e-04, 1.00000000e-04, 1.00000000e-04,
     ]
     np.testing.assert_allclose(vmr[:,imol], expected_vmr)
+
+    imol = spec.index(mol_models[1].species)
+    np.testing.assert_allclose(vmr[:,imol], np.tile(10**params[1], nlayers))
 
