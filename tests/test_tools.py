@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2023 Patricio Cubillos
+# Copyright (c) 2021-2024 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import os
@@ -259,6 +259,22 @@ def test_get_param_invalid_value_gt(value):
 def test_get_param_invalid_value_ge():
     with pytest.raises(ValueError, match="Value -100.0 must be >= 0.0"):
         pt.get_param(-1.0, 'm', ge=0.0)
+
+
+@pytest.mark.parametrize(
+    'value',
+    ['1', '1.0', '-3.14', '+3.14', '1.0e+02', 'inf', 'nan'],
+)
+def test_is_number_true(value):
+    assert pt.is_number(value) is True
+
+
+@pytest.mark.parametrize(
+    'value',
+    ['1.0-3.14', '10abcde', '1.0e', 'e1.0', 'true', 'none'],
+)
+def test_is_number_false(value):
+    assert pt.is_number(value) is False
 
 
 @pytest.mark.parametrize('data',

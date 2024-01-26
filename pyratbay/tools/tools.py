@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2023 Patricio Cubillos
+# Copyright (c) 2021-2024 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -12,6 +12,7 @@ __all__ = [
     'unpack',
     'u',
     'get_param',
+    'is_number',
     'ifirst', 'ilast',
     'mkdir',
     'isfile',
@@ -482,6 +483,36 @@ def get_param(param, units='none', gt=None, ge=None):
         raise ValueError(f'Value {value} must be >= {ge}')
 
     return value
+
+
+def is_number(value):
+    r"""
+    Check whether a string value can be parsed as a number.
+
+    Examples
+    --------
+    >>> import pyratbay.tools as pt
+    >>> # These return True
+    >>> pt.is_number('1')
+    >>> pt.is_number('1.0')
+    >>> pt.is_number('-3.14')
+    >>> pt.is_number('+3.14')
+    >>> pt.is_number('1.0e+02')
+    >>> pt.is_number('inf')
+    >>> pt.is_number('nan')
+
+    >>> # These return False
+    >>> pt.is_number('1.0-3.14')
+    >>> pt.is_number('10abcde')
+    >>> pt.is_number('1.0e')
+    >>> pt.is_number('true')
+    >>> pt.is_number('none')
+    """
+    try:
+        val = float(value)
+        return True
+    except ValueError:
+        return False
 
 
 def ifirst(data, default_ret=-1):

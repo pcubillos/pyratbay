@@ -9114,3 +9114,9 @@ model in vmr_models.
 
 Updated tests for vmr_scale().
 
+*****
+
+Implemented tools.is_number() function to check whether a string
+input can be parsed as a number.
+Added tests.
+
