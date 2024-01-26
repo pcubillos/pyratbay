@@ -9103,3 +9103,10 @@ Updated pytest.ini and scipy.interpolate.simpson() functions to
 avoid warnings while testing.
 
 
+*****  Fri Jan 26 15:15:57 CET 2024  *****
+
+Refactored vmr_scale().
+Renamed  mol_models, molpars arguments to vmr_models, vmr_pars.
+vmr_pars is now a list of parameters, each item corresponding to each
+model in vmr_models.
+
