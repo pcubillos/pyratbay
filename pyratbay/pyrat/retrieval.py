@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2023 Patricio Cubillos
+# Copyright (c) 2021-2024 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -235,8 +235,11 @@ class Retrieval():
                 self.texnames[i] = atm.temp_model.texnames[idx]
             elif pname in atm.mol_pnames:
                 imol.append(i)
-                idx = atm.mol_pnames.index(pname)
-                map_pars['mol'].append(idx)
+                for imodel,model in enumerate(atm.vmr_models):
+                    if pname in model.pnames:
+                        idx = model.pnames.index(pname)
+                        map_pars['mol'].append((imodel,idx))
+                        break
                 self.texnames[i] = atm.mol_texnames[idx]
             elif pname in opacity_pnames:
                 for j,model in enumerate(opacity.models):
@@ -283,14 +286,20 @@ class Retrieval():
             atm.tpars = np.zeros(atm.temp_model.npars)
             atm.tpars[map_pars['temp']] = self.params[self.itemp]
 
+
         patch_abundance = (
-            atm.molpars is None and
+            atm.vmr_pars is None and
             self.imol is not None and
             len(map_pars['mol']) == atm.mol_npars
         )
         if patch_abundance:
-            atm.molpars = np.zeros(len(atm.mol_pnames))
-            atm.molpars[map_pars['mol']] = self.params[self.imol]
+            atm.vmr_pars = [
+                [None for _ in range(vmr_model.npars)]
+                for vmr_model in atm.vmr_models
+            ]
+            for j,imol in enumerate(self.imol):
+                imodel,idx = map_pars['mol'][j]
+                atm.vmr_pars[imodel][idx] = params[imol]
 
         if self.ipatchy is not None and opacity.fpatchy is None:
             opacity.fpatchy = self.params[self.ipatchy]
@@ -298,8 +307,8 @@ class Retrieval():
         if atm.tpars is None and atm.temp_model is not None:
             log.error('Not all temperature parameters were defined (tpars)')
 
-        if atm.molpars is None and atm.mol_npars > 0:
-            log.error('Not all abundance parameters were defined (molpars)')
+        if atm.vmr_pars is None and atm.mol_npars > 0:
+            log.error('Not all vmr parameter values were defined (vmr_vars)')
         bad_models = ''
         for j,model in enumerate(opacity.models):
             if hasattr(model, 'pars') and not np.all(np.isfinite(model.pars)):
@@ -440,9 +449,8 @@ def collect_pnames_from_retflag(
     if 'temp' in retflag and atm.tmodelname is None:
         log.error('Requested temp in retflag, but there is no tmodel')
     if 'mol' in retflag:
-        if inputs.molvars == []:
-            log.error("Requested mol in retflag, but there is no 'molvars'")
-        # TBD: This will break for pure eq-chem runs
+        if atm.vmr_vars == []:
+            log.error("Requested mol in retflag, but there is no 'vmr_vars'")
         if atm.bulk is None:
             log.error('Requested mol in retflag, but there are no bulk species')
     if 'ray' in retflag and inputs.rayleigh is None:

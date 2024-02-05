@@ -969,7 +969,7 @@ def test_spectrum_insuficient_retrieval_params_temp(tmp_path):
 def test_spectrum_insuficient_retrieval_params_mol(tmp_path):
     reset = {
         'chemistry': 'tea',
-        'molvars': 'metal',
+        'vmr_vars': '[M/H]',
         'retrieval_params': 'R_planet -3.0',
     }
     cfg = make_config(
@@ -977,7 +977,7 @@ def test_spectrum_insuficient_retrieval_params_mol(tmp_path):
         ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         reset=reset,
     )
-    error = re.escape('Not all abundance parameters were defined (molpars)')
+    error = re.escape('Not all vmr parameter values were defined (vmr_vars)')
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
 
@@ -1072,14 +1072,14 @@ def test_bulk_not_in_atm(tmp_path):
         pyrat = pb.run(cfg)
 
 
-def test_molvars_missing_vmr(tmp_path):
+def test_vmr_vars_missing_vmr(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
-        reset={'molvars': 'log_N2'},
+        reset={'vmr_vars': 'log_N2'},
     )
     error = re.escape(
-        "Invalid molvars variable 'log_N2', species N2 is not in the atmosphere"
+        "Invalid vmr_vars variable 'log_N2', species N2 is not in the atmosphere"
     )
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
@@ -1087,7 +1087,7 @@ def test_molvars_missing_vmr(tmp_path):
 
 def test_bulk_molfree_overlap(tmp_path):
     reset = {
-        'molvars': 'log_H2',
+        'vmr_vars': 'log_H2',
         'bulk': 'H2',
     }
     cfg = make_config(
@@ -1104,37 +1104,37 @@ def test_bulk_molfree_overlap(tmp_path):
 
 def test_invalid_equil_without_tea(tmp_path):
     reset = {
-        'molvars': 'metal',
+        'vmr_vars': '[M/H]',
     }
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         reset=reset,
     )
-    error = re.escape("molvars variable 'metal' requires chemistry=tea")
+    error = re.escape("vmr_vars variable '[M/H]' requires chemistry=tea")
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
 
 
-def test_invalid_equil_molvars(tmp_path):
+def test_invalid_equil_vmr_vars(tmp_path):
     reset = {
         'chemistry': 'tea',
-        'molvars': 'zen',
+        'vmr_vars': 'zen',
     }
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         reset=reset,
     )
-    error = re.escape("Unrecognized molvars variable name: 'zen'")
+    error = re.escape("Unrecognized VMR model (vmr_vars): 'zen'")
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
 
 
-def test_invalid_metal_molvars(tmp_path):
+def test_invalid_metal_vmr_vars(tmp_path):
     reset = {
         'chemistry': 'tea',
-        'molvars': '[X/H]',
+        'vmr_vars': '[X/H]',
     }
     cfg = make_config(
         tmp_path,
@@ -1142,17 +1142,17 @@ def test_invalid_metal_molvars(tmp_path):
         reset=reset,
     )
     error = re.escape(
-        "Invalid molvars variable '[X/H]', "
+        "Invalid vmr_vars variable '[X/H]', "
         "element 'X' is not in the atmosphere"
     )
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
 
 
-def test_invalid_ratio_molvars(tmp_path):
+def test_invalid_ratio_vmr_vars(tmp_path):
     reset = {
         'chemistry': 'tea',
-        'molvars': 'C/O/X',
+        'vmr_vars': 'C/O/X',
     }
     cfg = make_config(
         tmp_path,
@@ -1160,7 +1160,7 @@ def test_invalid_ratio_molvars(tmp_path):
         reset=reset,
     )
     error = re.escape(
-        "Invalid molvars variable 'C/O/X', "
+        "Invalid vmr_vars variable 'C/O/X', "
         "element 'O/X' is not in the atmosphere"
     )
     with pytest.raises(ValueError, match=error):
@@ -1185,14 +1185,14 @@ def test_kurucz_missing_pars(tmp_path, param):
 
 @pytest.mark.filterwarnings("ignore: The 'retflag' argument")
 @pytest.mark.parametrize('param',
-    ['tmodel', 'clouds', 'rayleigh', 'molvars', 'bulk'])
+    ['tmodel', 'clouds', 'rayleigh', 'vmr_vars', 'bulk'])
 def test_spectrum_missing_retflag_models(tmp_path, param, undefined_mcmc):
     reset = {
         'retflag': 'temp mol ray cloud',
         'tmodel': 'isothermal',
         'clouds': 'deck',
         'rayleigh': 'lecavelier',
-        'molvars': 'log_H2O',
+        'vmr_vars': 'log_H2O',
         'bulk': 'H2',
     }
     cfg = make_config(

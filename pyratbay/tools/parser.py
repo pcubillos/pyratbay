@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2023 Patricio Cubillos
+# Copyright (c) 2021-2024 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -440,18 +440,20 @@ def parse(cfile, with_log=True, mute=False):
         parse_str(args, 'atmfile')
         parse_str(args, 'radmodel')
         # Variables for chemistry calculations
-        parse_str(args,   'chemistry')
+        parse_str(args, 'chemistry')
         parse_array(args, 'species')
         parse_array(args, 'uniform')
-        parse_str(args,   'ptfile')
-        parse_str(args,   'solar')
-        parse_float(args, 'xsolar')
-        parse_float(args, 'metallicity')
-        parse_array(args, 'escale')
-        parse_array(args, 'e_scale')
-        parse_array(args, 'e_ratio')
-        parse_array(args, 'e_abundances')
-        parse_array(args, 'elements')
+        parse_array(args, 'bulk')
+        parse_str(args, 'vmr_vars')
+        parse_str(args, 'ptfile')
+        parse_str(args, 'solar')
+        parse_float(args, 'xsolar')   # Deprecated
+        parse_array(args, 'escale')   # Deprecated
+        parse_array(args, 'elements')   # Deprecated
+        parse_array(args, 'molvars')   # Deprecated
+        parse_array(args, 'molfree')   # Deprecated
+        parse_array(args, 'molmodel')   # Deprecated
+        parse_array(args, 'molpars')   # Deprecated
         # Extinction options:
         parse_float(args, 'tmin')
         parse_float(args, 'tmax')
@@ -490,10 +492,6 @@ def parse(cfile, with_log=True, mute=False):
         parse_str(args, 'obsfile')
         parse_str(args, 'offset_inst')
         parse_str(args, 'uncert_scaling')
-        # Abundances:
-        parse_array(args, 'molvars')
-        parse_array(args, 'molpars')
-        parse_array(args, 'bulk')
         # Retrieval options:
         parse_str(args, 'mcmcfile')
         parse_str(args, 'sampler')
@@ -565,7 +563,7 @@ def parse(cfile, with_log=True, mute=False):
     # without creating a logfile by setting with_log=False)
     args.logfile = args.get_path('logfile', 'Log', make_dir=True)
     if args.logfile is None:
-        raise ValueError(f"Missing 'logfile' input in config file")
+        raise ValueError("Missing 'logfile' input in config file")
 
     # Override logfile if requested:
     if not with_log:
@@ -712,55 +710,34 @@ def parse(cfile, with_log=True, mute=False):
         'refpressure', punits, 'Planetary reference pressure level', gt=0.0)
 
     # Chemistry:
-    args.chemistry = args.get_choice(
-       'chemistry', 'Chemical model', pc.chemmodels)
+    args.chemistry = args.get_choice('chemistry', 'Chemical model', pc.chemmodels)
     xsolar = args.get_default('xsolar', 'Atmospheric metallicity')
     if xsolar is not None:
-        args.metallicity = np.log10(xsolar)
+        args.vmr_vars += f'\n[M/H] {np.log10(xsolar)}'
         warning_msg = (
             "The 'xsolar' argument is deprecated and will be removed in "
-            "the near future, use 'metallicity' instead"
+            "the near future, use 'vmr_vars' instead"
         )
         warnings.warn(warning_msg, category=DeprecationWarning)
-    args.metallicity = args.get_default(
-        'metallicity',
-        'Atmospheric metallicity (dex, relative to solar)',
-        default=0.0)
     escale = args.get_default('escale', 'Elemental abundance scaling factors')
     if escale is not None:
+        for atom,e_scale in zip(escale[::2], escale[1::2]):
+            e_scale = np.log10(float(e_scale))
+            args.vmr_vars += f'\n[{atom}/H] {e_scale}'
         warning_msg = (
             "The 'escale' argument is deprecated and will be removed in "
-            "the near future, use 'e_scale' instead"
+            "the near future, use 'vmr_vars' instead"
         )
         warnings.warn(warning_msg, category=DeprecationWarning)
-        args.e_scale = {
-            atom: np.log10(float(fscale))
-            for atom,fscale in zip(escale[::2], escale[1::2])
-        }
 
-    e_scale = args.get_default(
-       'e_scale', 'Elemental abundance scaling factors (dex)', [],
-    )
-    args.e_scale = {
-        atom: float(fscale)
-        for atom,fscale in zip(e_scale[::2], e_scale[1::2])
-    }
+    if args.elements is not None:
+        warning_msg = (
+            "The 'elements' argument is deprecated and will be removed in "
+            "the near future.  Elemental compositions will be automatically "
+            "deduced from the atmospheric species."
+        )
+        warnings.warn(warning_msg, category=DeprecationWarning)
 
-    e_ratio = args.get_default(
-       'e_ratio', 'Elemental abundance ratios', [],
-    )
-    args.e_ratio = {
-        pair: float(ratio)
-        for pair,ratio in zip(e_ratio[::2], e_ratio[1::2])
-    }
-
-    e_abundances = args.get_default(
-       'e_abundances', 'Elemental abundances (dex relative to H=12)', [],
-    )
-    args.e_abundances = {
-        atom: float(abundance)
-        for atom,abundance in zip(e_abundances[::2], e_abundances[1::2])
-    }
 
     # System physical parameters:
     args.gplanet = args.get_default(
@@ -950,8 +927,11 @@ def parse(cfile, with_log=True, mute=False):
         pc.statistics,
     )
 
-    if args.molvars is None:
-        args.molvars = []
+    for arg in ['molvars', 'molmodel', 'molfree', 'molpars']:
+        if getattr(args, arg) is not None:
+            log.error(
+                f"The '{arg}' argument is deprecated, use 'vmr_vars' instead"
+            )
 
     if args.tmodel == 'tcea':
         args.tmodel = 'guillot'

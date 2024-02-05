@@ -222,8 +222,9 @@ class Pyrat():
             atm.tpars[ifree] = params[ret.itemp]
 
         if ret.imol is not None:
-            ifree = ret.map_pars['mol']
-            atm.molpars[ifree] = params[ret.imol]
+            for j,imol in enumerate(ret.imol):
+                imodel,idx = ret.map_pars['mol'][j]
+                atm.vmr_pars[imodel][idx] = params[imol]
 
         if ret.irad is not None:
             self.atm.rplanet = params[ret.irad][0] * pt.u(atm.runits)

@@ -95,9 +95,35 @@ class Atmosphere():
         self.tpars = inputs.tpars
 
         self.chemistry = inputs.chemistry
-        self.metallicity = inputs.metallicity
-        self.e_scale = inputs.e_scale
-        self.e_ratio = inputs.e_ratio
+        vmr_vars = inputs.vmr_vars
+        if vmr_vars is None:
+            vmr_vars = ''
+        vmr_vars = [
+            par for par in vmr_vars.splitlines()
+            if par != ''
+        ]
+        # if any item is a number, then assume {vars,pars} pairs, one per line
+        has_pars = np.any([
+            pt.is_number(val)
+            for vars in vmr_vars
+            for val in vars.split()
+        ])
+        self.vmr_vars = []
+        self.vmr_pars = []
+        if has_pars:
+            for vmr_var in vmr_vars:
+                vmr_var = vmr_var.split()
+                vmr_model = vmr_var[0]
+                self.vmr_vars.append(vmr_model)
+                if len(vmr_var) == 1:
+                    error = f'Unspecified parameter value for {vmr_model}'
+                    raise ValueError(error)
+                pars = np.array(vmr_var[1:], float)
+                self.vmr_pars.append(pars)
+        else:
+            vmr_vars = ' '.join(vmr_vars)
+            self.vmr_vars = vmr_vars.split()
+            self.vmr_pars = None
 
         #self.bulk = []
         #if inputs.bulk is not None:
@@ -251,7 +277,7 @@ class Atmosphere():
         if self.vmr is not None:
             self.base_vmr = np.copy(self.vmr)
 
-        self.parse_abundance_parameters(inputs.molvars, inputs.molpars, log)
+        self.parse_abundance_parameters(log)
         # Set species' mass and collision radius:
         if self.species is not None:
             self.nmol = len(self.species)
@@ -392,17 +418,14 @@ class Atmosphere():
                      "doesn't match the shape of the Pyrat VMR "
                     f"{np.shape(self.vmr)}"
                 )
-
         elif self.chemistry == 'tea':
             metallicity = None
             e_ratio = {}
             e_scale = {}
-            if np.any(self._equil_var) and self.molpars is not None:
-                equil_pars = np.array(self.molpars)[self._equil_var]
-                equil_models = self._equil_models
-            else:
-                equil_models, equil_pars = [], []
-            for equil_model,val in zip(equil_models, equil_pars):
+            for i,equil_model in enumerate(self.vmr_models):
+                if self.vmr_pars is None or not self._is_equil_model[i]:
+                    continue
+                val = self.vmr_pars[i][0]
                 if equil_model.name == 'metal_equil':
                     metallicity = val
                 elif equil_model.name == 'scale_equil':
@@ -415,8 +438,12 @@ class Atmosphere():
                 e_ratio=e_ratio,
                 e_scale=e_scale,
             )
-        elif np.any(~self._equil_var) and self.molpars is not None:
-            vmr_pars = np.array(self.molpars)[~self._equil_var]
+        elif np.any(~self._is_equil_model) and self.vmr_pars is not None:
+            vmr_pars = [
+                self.vmr_pars[i]
+                for i,is_equil in enumerate(self._is_equil_model)
+                if not is_equil
+            ]
             vmr = pa.vmr_scale(
                 self.base_vmr,
                 self.species,
@@ -506,35 +533,34 @@ class Atmosphere():
         if molec is not None:
             if molec not in self.species:
                 log.error(
-                    f"Invalid molvars variable '{var}', "
+                    f"Invalid vmr_vars variable '{var}', "
                     f"species {molec} is not in the atmosphere"
                 )
             return
 
         in_equillibrium = self.chemistry == 'tea'
         if not in_equillibrium:
-            log.error(f"molvars variable '{var}' requires chemistry=tea")
+            log.error(f"vmr_vars variable '{var}' requires chemistry=tea")
         for element in elements:
             if element not in self.chem_model.elements:
                 log.error(
-                    f"Invalid molvars variable '{var}', "
+                    f"Invalid vmr_vars variable '{var}', "
                     f"element '{element}' is not in the atmosphere"
                 )
 
 
-    def parse_abundance_parameters(self, molvars, molpars, log=None):
+    def parse_abundance_parameters(self, log=None):
         """
         Sort out variables related to the VMR modeling
         """
         species = [] if self.species is None else list(self.species)
 
         # Sort out abundance free-parameters:
-        self.mol_models = molvars
         self.vmr_models = []
-        self.mol_pnames = []
-        self.mol_texnames = []
+        self.mol_pnames = []  # --> self.vmr_pnames
+        self.mol_texnames = []  # --> self.vmr_texnames
 
-        for i,var in enumerate(molvars):
+        for i,var in enumerate(self.vmr_vars):
             # VMR variables
             if var.startswith('log_'):
                 molec = var[4:]
@@ -552,7 +578,7 @@ class Atmosphere():
                 self.validate_species(var, log, molec=molec)
                 vmr_model = vmr_models.SlantVMR(molec, self.press)
             # Equillibrium variables
-            elif var == 'metal':
+            elif var == '[M/H]':
                 vmr_model = vmr_models.MetalEquil()
                 self.validate_species(var, log)
             elif var.startswith('[') and var.endswith('/H]'):
@@ -562,7 +588,7 @@ class Atmosphere():
                 vmr_model = vmr_models.RatioEquil(var)
                 self.validate_species(var, log, elements=vmr_model.elements)
             else:
-                log.error(f"Unrecognized molvars variable name: '{var}'")
+                log.error(f"Unrecognized VMR model (vmr_vars): '{var}'")
             self.mol_pnames += vmr_model.pnames
             self.mol_texnames += vmr_model.texnames
             self.vmr_models.append(vmr_model)
@@ -574,10 +600,11 @@ class Atmosphere():
             model for model in self.vmr_models if model.type == 'free'
         ]
 
-        equil_var = []
-        for model in self.vmr_models:
-            equil_var += [model.type=='equil' for _ in range(model.npars)]
-        self._equil_var = np.array(equil_var, bool)
+        is_equil_model = [
+            model.type == 'equil'
+            for model in self.vmr_models
+        ]
+        self._is_equil_model = np.array(is_equil_model, dtype=bool)
 
         free_vmr = [
             model.species
@@ -588,21 +615,23 @@ class Atmosphere():
         vmr_uniques, vmr_counts = np.unique(free_vmr, return_counts=True)
         if np.any(vmr_counts>1):
             duplicates = vmr_uniques[vmr_counts>1]
-            log.error(f'There are repeated species {duplicates} in mol_models')
+            log.error(f'There are repeated species {duplicates} in vmr_vars')
 
         self.ifree = [species.index(mol) for mol in free_vmr]
 
         self.mol_npars = len(self.mol_pnames)
-        self.molpars = molpars
         # Allow null molpars for now, check later after retrieval_params
-        if self.mol_npars > 0 and self.molpars is not None:
-            npars = len(self.molpars)
-            if self.mol_npars != npars:
-                log.error(
-                    f'The number of abundance parameters (molpars): {npars} '
-                    'does not match the expected number of values '
-                    f'according to molvars: {self.mol_npars}.'
-                )
+        if self.vmr_pars is not None:
+            for i, vmr_pars in enumerate(self.vmr_pars):
+                vmr_model = self.vmr_models[i]
+                vmr_model_name = self.vmr_vars[i]
+                npars = np.size(vmr_pars)
+                if vmr_model.npars != npars:
+                    log.error(
+                        f"The parameters for model '{vmr_model_name}' ({npars}) "
+                        "does not match the expected number of values "
+                        f"({vmr_model.npars})"
+                    )
 
         # Ckeck bulk species:
         if self.bulk is not None and len(np.setdiff1d(self.bulk, species)) > 0:
@@ -621,7 +650,7 @@ class Atmosphere():
                 )
 
         # TBD: is this doing the right thing?
-        if len(self.mol_models) == 0:
+        if len(self.vmr_vars) == 0:
             self.ibulk = None
 
         # Obtain abundance ratios between the bulk species:

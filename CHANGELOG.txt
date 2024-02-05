@@ -9120,3 +9120,25 @@ Implemented tools.is_number() function to check whether a string
 input can be parsed as a number.
 Added tests.
 
+
+*****  Mo 05 Feb 2024 11:27:42 CET  *****
+
+Implemented vmr_vars argument,
+which replaces molvars, molpars, metallicity, e_scale, e_ratio,
+e_abundances, all into a single (simpler) input variable.
+
+Removed e_scale, e_ratio, e_abundances, and metallicity arguments.
+No deprecation warnings since they were removed before an official release.
+Added deprecation errors for molvars, molpars, molfree, and molmodel arguments.
+Updated deprecation warnings for xsolar and escale arguments.
+Added deprecation warning for elements argument.
+
+Renamed Atmosphere.molpars into Atmosphere.vmr_pars.
+Turned from a flat 1D array into a list, where each item is the set of
+parameters for each vmr_model.
+
+Refactored Retrieval.map_pars['mol'] list of integers into a list
+of (model_idx, param_idx) tuples.
+
+Updated tests.
+

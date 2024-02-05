@@ -66,7 +66,7 @@ def undefined_mcmc():
         'rayleigh': 'Requested ray in retflag, but there are no rayleigh '
                     'models',
         'clouds': 'Requested cloud in retflag, but there are no cloud models',
-        'molvars': "Requested mol in retflag, but there is no 'molvars'",
+        'vmr_vars': "Requested mol in retflag, but there is no 'vmr_vars'",
         'bulk': 'Requested mol in retflag, but there are no bulk species',
     }
     return data
