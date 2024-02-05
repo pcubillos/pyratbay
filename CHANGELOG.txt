@@ -9146,3 +9146,11 @@ Updated tests.
 
 Updated tests according to new vmr_vars argument.
 
+*****
+
+Modified alkali_cross_section() C extension
+to skip line-core undesampling adjustment.
+This makes this code more in line with other calculations (Allard),
+and it avoids the seemingly overestimation of the previous code.
+Updated tests.
+
