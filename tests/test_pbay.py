@@ -279,7 +279,7 @@ def test_atmosphere_tea_no_molpars_but_with_vmr_models(tmp_path):
     atmfile = str(tmp_path / 'test.atm')
     reset = {
         'atmfile': atmfile,
-        'molvars': 'metal',
+        'mol_vars': '[M/H]',
     }
     cfg = make_config(
         tmp_path,
@@ -306,8 +306,7 @@ def test_atmosphere_tea_with_vmr_models(tmp_path):
     atmfile = str(tmp_path / 'test.atm')
     reset = {
         'atmfile': atmfile,
-        'molvars': 'metal',
-        'molpars': '-1.0',
+        'vmr_vars': '[M/H] -1.0',
     }
     cfg = make_config(
         tmp_path,
@@ -328,6 +327,24 @@ def test_atmosphere_tea_with_vmr_models(tmp_path):
     np.testing.assert_allclose(atmf[2]*pc.bar, expected_pressure, rtol=1e-6)
     np.testing.assert_allclose(atmf[3], expected_temperature, rtol=1e-6)
     np.testing.assert_allclose(atmf[4], expected_vmr_sub_solar, rtol=1e-6)
+
+
+@pytest.mark.parametrize(
+    'arg',
+    ['molmodel', 'molfree', 'molvars', 'molpars'],
+)
+def test_deprecated_vmr_arguments(tmp_path, arg):
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/atmosphere_tea_test.cfg',
+        reset={arg:'tcea'},
+    )
+
+    error = re.escape(
+        f"The '{arg}' argument is deprecated, use 'vmr_vars' instead"
+    )
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
 def test_atmosphere_hydro(tmp_path):

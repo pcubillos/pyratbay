@@ -293,8 +293,7 @@ def test_transmission_tmodel_no_tpars(tmp_path):
 
 def test_transmission_vert_model(tmp_path):
     reset = {
-        'molvars': 'log_H2O',
-        'molpars': '-5',
+        'vmr_vars': 'log_H2O -5',
         'bulk': 'H2 He',
     }
     cfg = make_config(
@@ -312,17 +311,16 @@ def test_transmission_vert_model_no_molpars(tmp_path):
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         remove=['clouds', 'cpars'],
-        reset={'molvars':'log_H2O', 'bulk':'H2 He'},
+        reset={'vmr_vars':'log_H2O', 'bulk':'H2 He'},
     )
-    error = re.escape('Not all abundance parameters were defined (molpars)')
+    error = re.escape('Not all vmr parameter values were defined (vmr_vars)')
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
 
 
 def test_transmission_scale_model(tmp_path):
     reset = {
-        'molvars': 'scale_H2O',
-        'molpars': '-1',
+        'vmr_vars': 'scale_H2O -1.0',
         'bulk': 'H2 He',
     }
     cfg = make_config(
@@ -358,7 +356,7 @@ def test_transmission_fit(tmp_path):
     reset = {
         'tmodel': 'guillot',
         'cpars': '2.0',
-        'molvars': 'log_H2O',
+        'vmr_vars': 'log_H2O',
         'bulk': 'H2 He',
         'retrieval_params': retrieval_params,
     }

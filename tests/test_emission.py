@@ -279,9 +279,9 @@ def test_emission_tmodel_no_tpars(tmp_path):
 
 
 def test_emission_vert_model(tmp_path):
-    reset={
-        'molvars': 'log_H2O',
-        'molpars': '-5',
+    mol_vars = "log_H2O -5"
+    reset = {
+        'vmr_vars': 'log_H2O -5',
         'bulk': 'H2 He',
     }
     cfg = make_config(
@@ -296,7 +296,7 @@ def test_emission_vert_model(tmp_path):
 
 def test_emission_vert_model_no_molpars(tmp_path):
     reset = {
-        'molvars': 'log_H2O',
+        'vmr_vars': 'log_H2O',
         'bulk': 'H2 He',
     }
     cfg = make_config(
@@ -305,15 +305,14 @@ def test_emission_vert_model_no_molpars(tmp_path):
         remove=['clouds', 'cpars'],
         reset=reset,
     )
-    error = re.escape('Not all abundance parameters were defined (molpars)')
+    error = re.escape('Not all vmr parameter values were defined (vmr_vars)')
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
 
 
 def test_emission_scale_model(tmp_path):
     reset={
-        'molvars': 'scale_H2O',
-        'molpars': '-1',
+        'vmr_vars': 'scale_H2O -1',
         'bulk': 'H2 He',
     }
     cfg = make_config(
@@ -340,7 +339,7 @@ def test_emission_fit(tmp_path):
     reset = {
         'tmodel': 'guillot',
         'cpars': '2.0',
-        'molvars': 'log_H2O',
+        'vmr_vars': 'log_H2O',
         'bulk': 'H2 He',
         'retflag': 'temp mol ray cloud',
         'params': '-4.67 -0.8 -0.8 0.5 1486.0 100.0 -4.0 0.0 -4.0 2.0',

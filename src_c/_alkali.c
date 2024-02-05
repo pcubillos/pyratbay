@@ -1,4 +1,4 @@
-// Copyright (c) 2021-2022 Patricio Cubillos
+// Copyright (c) 2021-2024 Patricio Cubillos
 // Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 #include <Python.h>
@@ -32,7 +32,7 @@ static PyObject *alkali_cross_section(PyObject *self, PyObject *args){
         *i_wn0, *ec;
     int i, j, k, t, flip, nwave, nlayers, nlines;
     double detuning_wn, dsigma, mass, lorentz_par, part_func, cutoff,
-        lorentz, doppler, full_width, dwn, abs_dwn, lor_val, lor_sum;
+        lorentz, doppler, full_width, dwn, abs_dwn;
 
     /* Load inputs: */
     if (!PyArg_ParseTuple(
@@ -64,13 +64,13 @@ static PyObject *alkali_cross_section(PyObject *self, PyObject *args){
                 lorentz_par
                 * pow(INDd(temp,i)/2000.0,-0.7) * INDd(pressure,i) / ATM;
 
-            full_width = 2.0 * (0.5346*lorentz +
+            full_width = 2.0 * (
+                0.5346*lorentz +
                 sqrt(0.2166*pow(lorentz,2.0) + pow(doppler,2.0))
             );
             // Detuning frequency (cm-1):
             dsigma = detuning_wn * pow(INDd(temp,i)/500.0, 0.6);
 
-            lor_sum = 0.0;
             for (k=0; k<nwave; k++){
                 if (flip)
                     t = nwave - k - 1;
@@ -91,20 +91,12 @@ static PyObject *alkali_cross_section(PyObject *self, PyObject *args){
                         * exp(-C2*(abs_dwn-dsigma) / INDd(temp,i));
                 else {
                     // Lorentz profile in the core (detuning region):
-                    lor_val = lorentz / PI / (pow(lorentz,2.0) + pow(dwn,2.0));
-                    IND2d(ec,i,t) += lor_val * C3 * INDd(gf,j) / part_func;
+                    IND2d(ec,i,t) +=
+                        lorentz / PI / (pow(lorentz,2.0) + pow(dwn,2.0)) *
+                        C3 * INDd(gf,j) / part_func;
                     // Note this equation neglects exp(-Elow/T)*(1-exp(-wn0/T))
                     // because it is approximately 1.0 at T=[100K--4000K]
-                    if (t != INDi(i_wn0,j))
-                        lor_sum += fabs(INDd(wn,(t+1))-INDd(wn,(t-1)))*lor_val;
                 }
-            }
-            // Core correction for undersampled lines:
-            if ((full_width < 2.0*INDd(dwave,j)) & (lor_sum>0.0)){
-                k = INDi(i_wn0,j);
-                lor_val = (2.0-lor_sum) / fabs(INDd(wn,(k+1))-INDd(wn,(k-1)));
-                IND2d(ec,i,INDi(i_wn0,j)) =
-                    lor_val * C3 * INDd(gf,j) / part_func;
             }
         }
     }

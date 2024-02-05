@@ -9142,3 +9142,7 @@ of (model_idx, param_idx) tuples.
 
 Updated tests.
 
+*****
+
+Updated tests according to new vmr_vars argument.
+
