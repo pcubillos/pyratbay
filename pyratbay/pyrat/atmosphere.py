@@ -62,7 +62,7 @@ class Atmosphere():
 
         The rules are simple:
         - if there is a model in the config file, calculate the property
-        - else if there is an input_atmfile or ptfile, read properties from file
+        - else if there is an input atmfile or ptfile, read properties from file
         - else, skip the calculation
         - if calculate p, any further reads (T,VMR,r) will interpolate
         """
@@ -78,7 +78,6 @@ class Atmosphere():
         with pt.log_error(log):
             pt.file_exists('molfile', 'Molecular-data', self.molfile)
 
-        self.atmfile = inputs.atmfile
         # Display units (internally, these variables are in CGS units):
         self.qunits = 'vmr'
         self.tunits = 'kelvin'
@@ -137,17 +136,18 @@ class Atmosphere():
         self.mplanet = inputs.mplanet
         self.mass_units = inputs.mass_units
 
+        self.output_atmfile = inputs.output_atmfile
         # User-provided PT profile:
         if pt.isfile(inputs.ptfile) == 1:
             input_atm_source = 'ptfile'
-            self.input_atmfile = inputs.ptfile
+            self.atmfile = inputs.ptfile
         # Existing atmospheric file:
-        elif pt.isfile(inputs.input_atmfile) == 1:
+        elif pt.isfile(inputs.atmfile) == 1:
             input_atm_source = 'atmfile'
-            self.input_atmfile = inputs.input_atmfile
+            self.atmfile = inputs.atmfile
         else:
             input_atm_source = None
-            self.input_atmfile = None
+            self.atmfile = None
 
         self.input_atm_source = input_atm_source
 
@@ -158,8 +158,8 @@ class Atmosphere():
         inputs.radius = None
         inputs.atm_species = None
         if input_atm_source is not None:
-            log.msg(f"\nReading atmospheric profile from: '{self.input_atmfile}'")
-            input_atmosphere = check_input_atmosphere(self.input_atmfile, log)
+            log.msg(f"\nReading atmospheric profile from: '{self.atmfile}'")
+            input_atmosphere = check_input_atmosphere(self.atmfile, log)
 
             p_units, t_units, vmr_units, r_units = input_atmosphere[0]
             inputs.pressure = input_atmosphere[2]
@@ -326,7 +326,7 @@ class Atmosphere():
             else:
                 self.runits = 'rearth'
 
-        # Compute VMR and radius profiles (when needed):
+        # Compute VMR and radius profiles (when needed)
         # and other properties (mean molecular mass, number density, Hill radius)
         self.calc_profiles(mstar=mstar, log=log)
 
@@ -366,13 +366,13 @@ class Atmosphere():
         )
 
         # Save atmospheric model to file if requested:
-        if self.atmfile is not None:
+        if self.output_atmfile is not None:
             header = '# pyrat bay atmospheric model\n'
             io.write_atm(
-                self.atmfile, pressure, temperature, self.species,
+                self.output_atmfile, pressure, temperature, self.species,
                 self.vmr, self.radius, self.punits, self.runits, header=header,
             )
-            log.msg(f"Output atmospheric file: '{self.atmfile}'.")
+            log.msg(f"Output atmospheric file: '{self.output_atmfile}'.")
 
 
     def calc_profiles(
@@ -665,9 +665,11 @@ class Atmosphere():
         press = self.press/pt.u(self.punits)
         fw.write('Atmospheric model information:')
         fw.write(
-            f"Input atmospheric file name (input_atmfile): '{self.input_atmfile}'"
+            f"Input atmospheric file name (atmfile): '{self.atmfile}'"
         )
-        fw.write("Output atmospheric file name (atmfile): '{}'", self.atmfile)
+        fw.write(
+            f"Output atmospheric file name (output_atmfile): '{self.output_atmfile}'"
+        )
         fw.write('Number of layers (nlayers): {:d}', self.nlayers)
 
         rplanet = None if self.rplanet is None else self.rplanet/pc.rjup
@@ -832,7 +834,7 @@ def check_pressure(inputs, log):
     log.error(
         'Cannot compute pressure profile, either set {ptop, pbottom, nlayers} '
         'parameters, or provide an input PT profile (ptfile) or atmospheric '
-        'file (input_atmfile)'
+        'file (atmfile)'
     )
 
 
@@ -856,7 +858,7 @@ def check_temperature(inputs, log):
     log.error(
         'Cannot compute temperature profile, either set a temperature model '
         '(tmodelname) and parameters (tpars), or provide an input PT '
-        'profile (ptfile) or atmospheric file (input_atmfile)'
+        'profile (ptfile) or atmospheric file (atmfile)'
     )
 
 

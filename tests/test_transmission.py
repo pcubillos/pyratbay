@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2023 Patricio Cubillos
+# Copyright (c) 2021-2024 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import os
@@ -210,7 +210,7 @@ def test_transmission_odd_even(tmp_path):
     odd_spectrum = pyrat.spec.spectrum
 
     reset = {
-        'input_atmfile': f'{INPUTS}atmosphere_uniform_even_layers.atm',
+        'atmfile': f'{INPUTS}atmosphere_uniform_even_layers.atm',
         'rpars': '1.0 -4.0',
     }
     cfg = make_config(
@@ -240,7 +240,7 @@ def test_transmission_input_radius(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        reset={'input_atmfile': f'{INPUTS}atmosphere_uniform_radius.atm'},
+        reset={'atmfile': f'{INPUTS}atmosphere_uniform_radius.atm'},
         remove=['radmodel'],
     )
     pyrat = pb.run(cfg)
@@ -252,7 +252,7 @@ def test_transmission_input_radius_overwrite(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        reset={'input_atmfile':f'{INPUTS}/atmosphere_uniform_radius.atm'},
+        reset={'atmfile':f'{INPUTS}/atmosphere_uniform_radius.atm'},
     )
     pyrat = pb.run(cfg)
     atm = io.read_atm('inputs/atmosphere_uniform_radius.atm')

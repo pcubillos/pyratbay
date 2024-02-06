@@ -671,7 +671,6 @@ def ideal_gas_density(abundances, pressure, temperature):
     Examples
     --------
     >>> import pyratbay.atmosphere as pa
-    >>> atmfile = "uniform_test.atm"
     >>> nlayers = 11
     >>> pressure = pa.pressure(1e-8, 1e2, nlayers, units='bar')
     >>> temperature = np.tile(1500.0, nlayers)

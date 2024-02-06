@@ -107,7 +107,7 @@ def invalid_file():
 @pytest.fixture
 def invalid_path():
     data = {
-        'atmfile':  'Folder for Atmospheric file (atmfile) does not exist',
+        'output_atmfile':  'Folder for Atmospheric file (output_atmfile) does not exist',
         'tlifile':  'Folder for TLI file (tlifile) does not exist',
         'specfile': 'Folder for Spectrum file (specfile) does not exist',
         'mcmcfile': 'Folder for MCMC file (mcmcfile) does not exist',

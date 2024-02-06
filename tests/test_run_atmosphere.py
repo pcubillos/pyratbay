@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2023 Patricio Cubillos
+# Copyright (c) 2021-2024 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import os
@@ -176,7 +176,7 @@ def test_run_atmosphere_calc_pt(tmp_path, atm_input, reset_jupiter):
     remove = ['chemistry', 'radmodel']
 
     if atm_input == 'none':
-        remove += ['input_atmfile']
+        remove += ['atmfile']
     elif atm_input == 'pt':
         reset['ptfile'] = 'inputs/jupiter_isothermal_uniform_vmr.atm'
 
@@ -203,11 +203,11 @@ def test_run_atmosphere_calc_ptq(tmp_path, atm_input, reset_jupiter):
     remove = ['radmodel']
 
     if atm_input == 'none':
-        remove += ['input_atmfile']
+        remove += ['atmfile']
     elif atm_input == 'pt':
         reset['ptfile'] = 'inputs/jupiter_isothermal_uniform_vmr.atm'
     elif atm_input == 'atm':
-        reset['input_atmfile'] = 'inputs/jupiter_isothermal_uniform_vmr.atm'
+        reset['atmfile'] = 'inputs/jupiter_isothermal_uniform_vmr.atm'
 
     cfg = make_config(
         tmp_path,
@@ -234,11 +234,11 @@ def test_run_atmosphere_calc_ptqr(tmp_path, atm_input, reset_jupiter):
     reset = {}
     remove = []
     if atm_input == 'none':
-        remove += ['input_atmfile']
+        remove += ['atmfile']
     elif atm_input == 'pt':
         reset['ptfile'] = 'inputs/jupiter_isothermal_uniform_vmr.atm'
     elif atm_input == 'atm':
-        reset['input_atmfile'] = 'inputs/jupiter_isothermal_uniform_vmr.atm'
+        reset['atmfile'] = 'inputs/jupiter_isothermal_uniform_vmr.atm'
 
     cfg = make_config(
         tmp_path,
@@ -268,7 +268,7 @@ def test_run_atmosphere_read_p_calc_tq(tmp_path, atm_input, reset_jupiter):
     if atm_input == 'pt':
         reset['ptfile'] = 'inputs/jupiter_isothermal_uniform_vmr.atm'
     elif atm_input == 'atm':
-        reset['input_atmfile'] = 'inputs/jupiter_isothermal_uniform_vmr.atm'
+        reset['atmfile'] = 'inputs/jupiter_isothermal_uniform_vmr.atm'
 
     cfg = make_config(
         tmp_path,
@@ -298,7 +298,7 @@ def test_run_atmosphere_read_pt_calc_qr(tmp_path, atm_input, reset_jupiter):
     if atm_input == 'pt':
         reset['ptfile'] = 'inputs/jupiter_isothermal_uniform_vmr.atm'
     elif atm_input == 'atm':
-        reset['input_atmfile'] = 'inputs/jupiter_isothermal_uniform_vmr.atm'
+        reset['atmfile'] = 'inputs/jupiter_isothermal_uniform_vmr.atm'
 
     cfg = make_config(
         tmp_path,
@@ -328,7 +328,7 @@ def test_run_atmosphere_read_p_calc_tqr(tmp_path, atm_input, reset_jupiter):
     if atm_input == 'pt':
         reset['ptfile'] = 'inputs/jupiter_isothermal_uniform_vmr.atm'
     elif atm_input == 'atm':
-        reset['input_atmfile'] = 'inputs/jupiter_isothermal_uniform_vmr.atm'
+        reset['atmfile'] = 'inputs/jupiter_isothermal_uniform_vmr.atm'
 
     cfg = make_config(
         tmp_path,
@@ -358,7 +358,7 @@ def test_run_atmosphere_calc_pq_interp_t(tmp_path, atm_input, reset_jupiter):
     if atm_input == 'pt':
         reset['ptfile'] = 'inputs/jupiter_isothermal_uniform_vmr.atm'
     elif atm_input == 'atm':
-        reset['input_atmfile'] = 'inputs/jupiter_isothermal_uniform_vmr.atm'
+        reset['atmfile'] = 'inputs/jupiter_isothermal_uniform_vmr.atm'
 
     cfg = make_config(
         tmp_path,
@@ -387,7 +387,7 @@ def test_run_atmosphere_calc_pqr_interp_t(tmp_path, atm_input, reset_jupiter):
     if atm_input == 'pt':
         reset['ptfile'] = 'inputs/jupiter_isothermal_uniform_vmr.atm'
     elif atm_input == 'atm':
-        reset['input_atmfile'] = 'inputs/jupiter_isothermal_uniform_vmr.atm'
+        reset['atmfile'] = 'inputs/jupiter_isothermal_uniform_vmr.atm'
 
     cfg = make_config(
         tmp_path,
@@ -485,7 +485,7 @@ def test_run_atmosphere_read_p_calc_t_from_pt(tmp_path, reset_jupiter):
 def test_run_atmosphere_read_ptqr_from_atm(tmp_path, reset_jupiter):
     reset = {}
     remove = ['nlayers', 'tmodel', 'chemistry', 'radmodel']
-    reset['input_atmfile'] = 'inputs/jupiter_isothermal_uniform_vmr.atm'
+    reset['atmfile'] = 'inputs/jupiter_isothermal_uniform_vmr.atm'
 
     cfg = make_config(
         tmp_path,
@@ -511,7 +511,7 @@ def test_run_atmosphere_read_ptqr_from_atm(tmp_path, reset_jupiter):
 def test_run_atmosphere_read_ptq_calc_r_from_atm(tmp_path, reset_jupiter):
     reset = {}
     remove = ['nlayers', 'tmodel', 'chemistry']
-    reset['input_atmfile'] = 'inputs/jupiter_isothermal_uniform_vmr.atm'
+    reset['atmfile'] = 'inputs/jupiter_isothermal_uniform_vmr.atm'
 
     cfg = make_config(
         tmp_path,
@@ -537,7 +537,7 @@ def test_run_atmosphere_read_ptq_calc_r_from_atm(tmp_path, reset_jupiter):
 def test_run_atmosphere_read_p_interp_tqr_from_atm(tmp_path, reset_jupiter):
     reset = {}
     remove = ['tmodel', 'chemistry', 'radmodel']
-    reset['input_atmfile'] = 'inputs/jupiter_isothermal_uniform_vmr.atm'
+    reset['atmfile'] = 'inputs/jupiter_isothermal_uniform_vmr.atm'
 
     cfg = make_config(
         tmp_path,
@@ -565,7 +565,7 @@ def test_run_atmosphere_calc_p_interp_tq_calc_r_from_atm(
     ):
     reset = {}
     remove = ['tmodel', 'chemistry']
-    reset['input_atmfile'] = 'inputs/jupiter_isothermal_uniform_vmr.atm'
+    reset['atmfile'] = 'inputs/jupiter_isothermal_uniform_vmr.atm'
 
     cfg = make_config(
         tmp_path,
@@ -592,7 +592,7 @@ def test_run_atmosphere_take_species_from_atm(tmp_path, reset_jupiter):
     reset = {}
     # Read P and T
     remove = ['nlayers', 'tmodel', 'species']
-    reset['input_atmfile'] = 'inputs/jupiter_isothermal_uniform_vmr.atm'
+    reset['atmfile'] = 'inputs/jupiter_isothermal_uniform_vmr.atm'
     # Calculate VMRs, but take species from input_atmfile
     reset['chemistry'] = 'tea'
 
@@ -625,7 +625,7 @@ def test_run_atmosphere_calc_pt_missing_q(capfd, tmp_path, atm_input, reset_jupi
     reset = {}
     remove = ['chemistry']
     if atm_input == 'none':
-        remove += ['input_atmfile']
+        remove += ['atmfile']
     elif atm_input == 'pt':
         reset['ptfile'] = 'inputs/jupiter_isothermal_uniform_vmr.atm'
 
@@ -669,7 +669,7 @@ def test_run_atmosphere_missing_q_from_pt(capfd, tmp_path, press, temp):
 
 
 def test_run_atmosphere_missing_p(tmp_path):
-    remove = ['input_atmfile', 'chemistry', 'nlayers']
+    remove = ['atmfile', 'chemistry', 'nlayers']
     cfg = make_config(
         tmp_path,
         'configs/atmosphere_jupiter_calc.cfg',
@@ -679,14 +679,14 @@ def test_run_atmosphere_missing_p(tmp_path):
     error = re.escape(
         'Cannot compute pressure profile, either set {ptop, pbottom, '
         'nlayers} parameters, or provide an input PT profile (ptfile) '
-        'or atmospheric file (input_atmfile)'
+        'or atmospheric file (atmfile)'
     )
     with pytest.raises(ValueError, match=error):
         pb.run(cfg)
 
 
 def test_run_atmosphere_calc_p_missing_t(capfd, tmp_path):
-    remove = ['input_atmfile', 'chemistry', 'tmodel']
+    remove = ['atmfile', 'chemistry', 'tmodel']
     cfg = make_config(
         tmp_path,
         'configs/atmosphere_jupiter_calc.cfg',
@@ -696,7 +696,7 @@ def test_run_atmosphere_calc_p_missing_t(capfd, tmp_path):
     error = re.escape(
         'Cannot compute temperature profile, either set a temperature model '
         '(tmodelname) and parameters (tpars), or provide an input PT '
-        'profile (ptfile) or atmospheric file (input_atmfile)'
+        'profile (ptfile) or atmospheric file (atmfile)'
     )
     with pytest.raises(ValueError, match=error):
         pb.run(cfg)
@@ -707,7 +707,7 @@ def test_run_atmosphere_calc_q_missing_species(capfd, tmp_path, atm_input, reset
     reset = {}
     remove = ['species']
     if atm_input == 'none':
-        remove += ['input_atmfile']
+        remove += ['atmfile']
     elif atm_input == 'pt':
         reset['ptfile'] = 'inputs/jupiter_isothermal_uniform_vmr.atm'
 

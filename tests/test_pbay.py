@@ -231,7 +231,7 @@ def test_atmosphere_uniform(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/atmosphere_uniform_test.cfg',
-        reset={'atmfile':atmfile},
+        reset={'output_atmfile':atmfile},
     )
 
     atmosphere = pb.run(cfg)
@@ -257,7 +257,7 @@ def test_atmosphere_tea_no_vmr_models(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/atmosphere_tea_test.cfg',
-        reset={'atmfile':atmfile},
+        reset={'output_atmfile':atmfile},
     )
     expected_species = np.array('H2 He Na K H2O CH4 CO CO2 NH3 HCN N2'.split())
 
@@ -278,7 +278,7 @@ def test_atmosphere_tea_no_vmr_models(tmp_path):
 def test_atmosphere_tea_no_molpars_but_with_vmr_models(tmp_path):
     atmfile = str(tmp_path / 'test.atm')
     reset = {
-        'atmfile': atmfile,
+        'output_atmfile': atmfile,
         'mol_vars': '[M/H]',
     }
     cfg = make_config(
@@ -305,7 +305,7 @@ def test_atmosphere_tea_no_molpars_but_with_vmr_models(tmp_path):
 def test_atmosphere_tea_with_vmr_models(tmp_path):
     atmfile = str(tmp_path / 'test.atm')
     reset = {
-        'atmfile': atmfile,
+        'output_atmfile': atmfile,
         'vmr_vars': '[M/H] -1.0',
     }
     cfg = make_config(
@@ -352,7 +352,7 @@ def test_atmosphere_hydro(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/atmosphere_hydro_test.cfg',
-        reset={'atmfile':atmfile},
+        reset={'output_atmfile':atmfile},
     )
     atmosphere = pb.run(cfg)
     expected_vmr = np.tile(

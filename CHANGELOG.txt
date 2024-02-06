@@ -9154,3 +9154,11 @@ This makes this code more in line with other calculations (Allard),
 and it avoids the seemingly overestimation of the previous code.
 Updated tests.
 
+
+*****  Di 06 Feb 2024 17:42:33 CET  *****
+
+Renamed input_atmfile -> atmfile and atmfile -> output_atmfile.
+Which preserves the syntax of last public release.
+(also, output_atmfile is seldom needed to be defined)
+atmfile will never be overwriten, it is only used as input.
+

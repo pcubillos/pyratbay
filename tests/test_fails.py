@@ -217,7 +217,14 @@ def test_invalid_logfile_path(tmp_path, invalid_path):
 
 @pytest.mark.parametrize(
     'param',
-    ['atmfile', 'tlifile', 'extfile', 'mcmcfile', 'specfile', 'ptfile'],
+    [
+        'output_atmfile',
+        'tlifile',
+        'extfile',
+        'mcmcfile',
+        'specfile',
+        'ptfile',
+    ],
 )
 def test_invalid_file_path(tmp_path, param, invalid_path):
     cfg = make_config(
@@ -334,12 +341,12 @@ def test_pt_pressure_missing(tmp_path, param):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/pt_isothermal.cfg',
-        remove=['input_atmfile', param],
+        remove=['atmfile', param],
     )
     error = re.escape(
         'Cannot compute pressure profile, either set {ptop, pbottom, '
         'nlayers} parameters, or provide an input PT profile (ptfile) '
-        'or atmospheric file (input_atmfile)'
+        'or atmospheric file (atmfile)'
     )
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
@@ -376,12 +383,12 @@ def test_pt_temperature_missing(tmp_path, param):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/pt_isothermal.cfg',
-        remove=['input_atmfile', 'tmodel'],
+        remove=['atmfile', 'tmodel'],
     )
     error = re.escape(
         'Cannot compute temperature profile, either set a temperature model '
         '(tmodelname) and parameters (tpars), or provide an input PT '
-        'profile (ptfile) or atmospheric file (input_atmfile)'
+        'profile (ptfile) or atmospheric file (atmfile)'
     )
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
@@ -568,7 +575,7 @@ def test_spectrum_missing_chemistry(tmp_path):
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         reset=reset,
-        remove=['input_atmfile', 'radmodel'],
+        remove=['atmfile', 'radmodel'],
     )
     error = re.escape(
         'Missing atmospheric volume mixing ratios. Need to either read '
@@ -599,7 +606,7 @@ def test_spectrum_hydro_missing_MGplanet(tmp_path, atm):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
-        reset={'input_atmfile': atm},
+        reset={'atmfile': atm},
         remove=['mplanet', 'gplanet'],
     )
     error = re.escape(
@@ -618,7 +625,7 @@ def test_spectrum_hydro_missing_rplanet(tmp_path, atm):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
-        reset={'input_atmfile': atm},
+        reset={'atmfile': atm},
         remove=['rplanet'],
     )
     error = re.escape(
@@ -629,9 +636,13 @@ def test_spectrum_hydro_missing_rplanet(tmp_path, atm):
         pyrat = pb.run(cfg)
 
 
-@pytest.mark.parametrize('atm',
-    [f'{ROOT}/tests/inputs/atmosphere_uniform_test.atm',
-     f'{ROOT}/tests/inputs/atmosphere_uniform_radius.atm'])
+@pytest.mark.parametrize(
+    'atm',
+    [
+        f'{ROOT}/tests/inputs/atmosphere_uniform_test.atm',
+        f'{ROOT}/tests/inputs/atmosphere_uniform_radius.atm',
+    ]
+)
 def test_spectrum_hydro_refpressure(tmp_path, atm):
     cfg = make_config(
         tmp_path,
@@ -641,7 +652,8 @@ def test_spectrum_hydro_refpressure(tmp_path, atm):
     )
     error = re.escape(
         'Cannot compute hydrostatic-equilibrium radius profile.\n'
-        'Undefined reference pressure level (refpressure)')
+        'Undefined reference pressure level (refpressure)'
+    )
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
 
@@ -796,7 +808,7 @@ def test_line_by_line_missing_species(tmp_path):
 def test_alkali_missing_species(tmp_path):
     reset = {
         'alkali': 'potassium_vdw',
-        'input_atmfile': '{ROOT}tests/inputs/atmosphere_uniform_no_potassium.atm',
+        'atmfile': '{ROOT}tests/inputs/atmosphere_uniform_no_potassium.atm',
     }
     cfg = make_config(
         tmp_path,
@@ -1369,7 +1381,7 @@ def test_molecule_not_in_molfile(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
-        reset={'input_atmfile':new_atm},
+        reset={'atmfile':new_atm},
     )
     error = re.escape(
         "These species: ['X'] are not listed in the molecules info file:"

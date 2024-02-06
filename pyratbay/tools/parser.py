@@ -426,7 +426,7 @@ def parse(cfile, with_log=True, mute=False):
         parse_float(args, 'resolution')
         parse_str(args, 'wlstep')
         # Atmospheric sampling options:
-        parse_str(args, 'input_atmfile')
+        parse_str(args, 'atmfile')
         parse_str(args, 'tmodel')
         parse_array(args, 'tpars')
         parse_str(args, 'radlow')
@@ -437,7 +437,7 @@ def parse(cfile, with_log=True, mute=False):
         parse_int(args, 'nlayers')
         parse_str(args, 'ptop')
         parse_str(args, 'pbottom')
-        parse_str(args, 'atmfile')
+        parse_str(args, 'output_atmfile')
         parse_str(args, 'radmodel')
         # Variables for chemistry calculations
         parse_str(args, 'chemistry')
@@ -602,9 +602,8 @@ def parse(cfile, with_log=True, mute=False):
 
     args.tlifile = args.get_path('tlifile', 'TLI')
     args.atmfile = args.get_path('atmfile', 'Atmospheric')
-    args.input_atmfile = args.get_path('input_atmfile', 'Atmospheric')
+    args.output_atmfile = args.get_path('output_atmfile', 'Atmospheric')
     args.specfile = args.get_path('specfile', 'Spectrum')
-    # TBD: extfile or output_extfile depending on runmode=='opacity'?
     args.extfile = args.get_path('extfile', 'Extinction-coefficient')
     args.mcmcfile = args.get_path('mcmcfile', 'MCMC')
 
@@ -612,8 +611,8 @@ def parse(cfile, with_log=True, mute=False):
     outfile, extension = os.path.splitext(args.logfile)
     if args.runmode == 'tli' and args.tlifile is None:
         args.tlifile = [outfile + '.tli']
-    if args.runmode == 'atmosphere' and args.atmfile is None:
-        args.atmfile = outfile + '.atm'
+    if args.runmode == 'atmosphere' and args.output_atmfile is None:
+        args.output_atmfile = outfile + '.atm'
     if args.runmode == 'opacity' and args.extfile is None:
         args.extfile = [outfile + '.npz']
     if args.runmode == 'spectrum' and args.specfile is None:
@@ -622,8 +621,8 @@ def parse(cfile, with_log=True, mute=False):
     if args.runmode == 'radeq':
         if args.specfile is None:
             args.specfile = outfile + '.dat'
-        if args.atmfile is None:
-            args.atmfile = outfile + '.atm'
+        if args.output_atmfile is None:
+            args.output_atmfile = outfile + '.atm'
     if args.runmode == 'retrieval' and args.mcmcfile is None:
         args.mcmcfile = outfile + '.npz'
 

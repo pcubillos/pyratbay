@@ -202,7 +202,7 @@ def test_emission_odd_even(tmp_path):
     odd_spectrum = pyrat.spec.spectrum
 
     reset = {
-        'input_atmfile': f'{INPUTS}atmosphere_uniform_even_layers.atm',
+        'atmfile': f'{INPUTS}atmosphere_uniform_even_layers.atm',
         'rpars': '1.0 -4.0',
     }
     cfg = make_config(

@@ -408,9 +408,9 @@ def test_atm_str(tmp_path):
     print(pyrat.atm)
     assert str(pyrat.atm) == f"""\
 Atmospheric model information:
-Input atmospheric file name (input_atmfile):
+Input atmospheric file name (atmfile):
     '{os.getcwd()}/inputs/atmosphere_uniform_test.atm'
-Output atmospheric file name (atmfile): 'None'
+Output atmospheric file name (output_atmfile): 'None'
 Number of layers (nlayers): 51
 
 Planetary radius (rplanet, Rjup): 1.000
