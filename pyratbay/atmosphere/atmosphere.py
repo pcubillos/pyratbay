@@ -424,7 +424,10 @@ def hydro_g(pressure, temperature, mu, g, p0=None, r0=None):
      1.01409182 1.00704591 1.         0.99295409 0.98590818]
     """
     # Apply the HE equation:
-    radius = si.cumtrapz(-pc.k*sc.N_A*temperature / (mu*g), np.log(pressure))
+    radius = si.cumulative_trapezoid(
+        -pc.k*sc.N_A*temperature / (mu*g),
+        np.log(pressure)
+    )
     radius = np.concatenate(([0.0], radius))
 
     # Set absolute radii values if p0 and r0 are provided:
@@ -491,7 +494,10 @@ def hydro_m(pressure, temperature, mu, mass, p0, r0):
      1.01429324 1.00709591 1.         0.99300339 0.986104  ]
     """
     # Apply the HE equation:
-    I = si.cumtrapz((pc.k*sc.N_A*temperature)/(pc.G*mu*mass), np.log(pressure))
+    I = si.cumulative_trapezoid(
+        pc.k*sc.N_A*temperature/(pc.G*mu*mass),
+        np.log(pressure)
+    )
     I = np.concatenate(([0.0], I))
 
     # Find current radius at p0:

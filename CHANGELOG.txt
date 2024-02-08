@@ -9162,3 +9162,9 @@ Which preserves the syntax of last public release.
 (also, output_atmfile is seldom needed to be defined)
 atmfile will never be overwriten, it is only used as input.
 
+
+*****  Do 08 Feb 2024 16:42:27 CET  *****
+
+Replaced si.cumtrapz() with si.cumulative_trapezoid()
+to avoid deprecation warnings.
+
