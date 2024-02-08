@@ -49,6 +49,8 @@ class Retrieval():
         self.mcmcfile = inputs.mcmcfile
         self.retflag = inputs.retflag
         self.qcap = inputs.qcap
+        if atm.chemistry == 'tea':
+            self.qcap = None
         # Lower and upper temperature retrieval boundaries
         self.tlow = inputs.tlow
         self.thigh = inputs.thigh
@@ -239,8 +241,8 @@ class Retrieval():
                     if pname in model.pnames:
                         idx = model.pnames.index(pname)
                         map_pars['mol'].append((imodel,idx))
+                        self.texnames[i] = atm.mol_texnames[imodel]
                         break
-                self.texnames[i] = atm.mol_texnames[idx]
             elif pname in opacity_pnames:
                 for j,model in enumerate(opacity.models):
                     if pname in opacity.pnames[j]:

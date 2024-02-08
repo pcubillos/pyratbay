@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2023 Patricio Cubillos
+# Copyright (c) 2021-2024 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import os
@@ -15,6 +15,33 @@ os.chdir(ROOT+'tests')
 
 
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+def test_retrieval_parameters(tmp_path):
+    reset = {
+        'rt_path': 'emission',
+        'kurucz': f'{ROOT}tests/inputs/mock_fp00k0odfnew.pck',
+        'log_gstar': '4.5',
+    }
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/retrieval_transmission_tea.cfg',
+        reset=reset,
+    )
+    pyrat = pb.run(cfg)
+
+
+    expected_texnames = [
+        '$T_{\\rm irr} (K)$',
+        '$M_{\\rm p}$ ($M_{\\rm Jup}$)',
+        '$\\alpha$',
+        '$\\log\\ \\kappa_{\\rm ray}$',
+        '$\\alpha_{\\rm ray}$',
+        '[O/H]',
+        '[M/H]',
+        'C/O',
+    ]
+    assert pyrat.ret.texnames == expected_texnames
+
+
 def test_eval_offset_data_defaults(tmp_path):
     offset_inst = """
         offset_STIS

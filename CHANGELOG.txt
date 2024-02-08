@@ -9176,3 +9176,10 @@ Dropped testing for Python 3.6. Added Python 3.11.
 
 Fixed bug when pyrat.atm.ibulk was being left undefined (tea runs).
 
+*****
+
+Fixed bug fetching texnames from atm.mol_texnames.
+Added test.
+
+Also, enforced qcap = None when using tea chemistry.
+
