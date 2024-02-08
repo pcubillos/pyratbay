@@ -633,14 +633,17 @@ class Atmosphere():
                         f"({vmr_model.npars})"
                     )
 
-        # Ckeck bulk species:
-        if self.bulk is not None and len(np.setdiff1d(self.bulk, species)) > 0:
-            missing = np.setdiff1d(self.bulk, species)
-            log.error(
-                'These bulk species are not present in the '
-                f'atmosphere: {missing}'
-            )
+        # Obtain abundance ratios between the bulk species:
+        self.ibulk = None
         if self.bulk is not None:
+            # Ckeck bulk species:
+            missing = np.setdiff1d(self.bulk, species)
+            if len(missing) > 0:
+                log.error(
+                    'These bulk species are not present in the '
+                    f'atmosphere: {missing}'
+                )
+
             free_vmr = self.species[self.ifree]
             bulk_free_species = np.intersect1d(self.bulk, free_vmr)
             if len(bulk_free_species) > 0:
@@ -649,11 +652,9 @@ class Atmosphere():
                     f'variable-abundance: {bulk_free_species}'
                 )
 
-        # Obtain abundance ratios between the bulk species:
-        self.ibulk = None
-        if self.bulk is not None:
             self.ibulk = [species.index(mol) for mol in self.bulk]
             self.bulkratio, self.invsrat = pa.ratio(self.vmr, self.ibulk)
+
 
 
     def __str__(self):

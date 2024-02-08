@@ -9183,3 +9183,7 @@ Added test.
 
 Also, enforced qcap = None when using tea chemistry.
 
+*****
+
+Fixed bug finding bulk species indices.
+
