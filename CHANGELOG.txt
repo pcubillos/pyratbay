@@ -9172,3 +9172,7 @@ to avoid deprecation warnings.
 
 Dropped testing for Python 3.6. Added Python 3.11.
 
+*****
+
+Fixed bug when pyrat.atm.ibulk was being left undefined (tea runs).
+

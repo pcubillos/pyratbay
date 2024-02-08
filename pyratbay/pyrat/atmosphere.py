@@ -649,11 +649,8 @@ class Atmosphere():
                     f'variable-abundance: {bulk_free_species}'
                 )
 
-        # TBD: is this doing the right thing?
-        if len(self.vmr_vars) == 0:
-            self.ibulk = None
-
         # Obtain abundance ratios between the bulk species:
+        self.ibulk = None
         if self.bulk is not None:
             self.ibulk = [species.index(mol) for mol in self.bulk]
             self.bulkratio, self.invsrat = pa.ratio(self.vmr, self.ibulk)
