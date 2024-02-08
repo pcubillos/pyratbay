@@ -9168,3 +9168,7 @@ atmfile will never be overwriten, it is only used as input.
 Replaced si.cumtrapz() with si.cumulative_trapezoid()
 to avoid deprecation warnings.
 
+*****
+
+Dropped testing for Python 3.6. Added Python 3.11.
+
