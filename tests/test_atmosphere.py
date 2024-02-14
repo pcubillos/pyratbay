@@ -3,6 +3,7 @@
 
 import os
 import pytest
+import re
 
 import numpy as np
 
@@ -555,6 +556,34 @@ def test_chemistry_tea_metallicity_eabundances(e_abundances):
     vmr = chem_model.vmr
     expected_vmr = expected_vmr_tea_H2O[0]['C' in e_abundances]
     np.testing.assert_allclose(vmr[:,i_H2O], expected_vmr)
+
+
+def test_chemistry_mismatch_nspecies():
+    nlayers = 11
+    punits = 'bar'
+    pressure = pa.pressure(1e-8, 1e2, nlayers, punits)
+    tmodel = pa.tmodels.Isothermal(pressure)
+    temperature = tmodel(1500.0)
+    species = ["H2", "He", "H2O", "CO", "CO2"]
+    abundances  = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
+    match = "Species (5) and q_uniform array lengths (6) don't match"
+    with pytest.raises(ValueError, match=re.escape(match)):
+        chem = pa.chemistry(
+            'uniform', pressure, temperature, species, q_uniform=abundances,
+        )
+
+
+def test_chemistry_mismatch_nlayers():
+    nlayers = 11
+    punits = 'bar'
+    pressure = pa.pressure(1e-8, 1e2, nlayers, punits)
+    tmodel = pa.tmodels.Isothermal(pressure[:-1])
+    temperature = tmodel(1500.0)
+    species = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
+    abundances  = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
+    match = "pressure (11) and temperature array lengths (10) don't match"
+    with pytest.raises(ValueError, match=re.escape(match)):
+        chem = pa.chemistry('uniform', pressure, temperature, species)
 
 
 @pytest.mark.parametrize("qcap,qcap_result",

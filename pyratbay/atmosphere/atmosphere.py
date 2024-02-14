@@ -301,6 +301,15 @@ def chemistry(
     if log is None:
         log = mu.Log(verb=verb)
 
+    # Safety first
+    nlayers = len(pressure)
+    if len(temperature) != nlayers:
+        log.error(
+            f"pressure ({nlayers}) and temperature array "
+            f"lengths ({len(temperature)}) don't match"
+        )
+
+
     log.head("\nCompute chemical abundances.")
     chem_network = cat.Network(
         pressure/pc.bar, temperature, species,
@@ -312,11 +321,15 @@ def chemistry(
     )
 
     if chem_model == 'uniform':
+        if len(species) != len(q_uniform):
+            log.error(
+                f"Species ({len(species)}) and q_uniform "
+                f"array lengths ({len(q_uniform)}) don't match"
+            )
         abundances = [
             q_uniform[list(species).index(spec)]
             for spec in chem_network.species
         ]
-        nlayers = len(pressure)
         chem_network.vmr = uniform(abundances, nlayers)
 
 

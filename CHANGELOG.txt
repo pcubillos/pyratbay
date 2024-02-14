@@ -9196,5 +9196,9 @@ Updated docs and examples for atmosphere tutorial.
 
 Refactored pa.uniform() removing unnecessary arguments.
 The function now only perform a single action.
-Updated docs.
+Updated tests.
 
+*****
+
+Added array size checks for pa.chemistry() arguments.
+Updated tests.
