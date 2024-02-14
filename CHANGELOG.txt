@@ -9187,3 +9187,8 @@ Also, enforced qcap = None when using tea chemistry.
 
 Fixed bug finding bulk species indices.
 
+
+*****  Mi 14 Feb 2024 15:21:19 CET  *****
+
+Updated docs and examples for atmosphere tutorial.
+

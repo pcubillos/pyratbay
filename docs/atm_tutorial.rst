@@ -25,14 +25,14 @@ Atmosphere Tutorial
 ===================
 
 This run mode generates a 1D atmospheric model (pressure, temperature,
-abundances, and altitude profiles), and saves it to a file.  At
-minimum, the user needs to provide the arguments required to compute
-the pressure and temperature profiles.  Further, ``Pyrat Bay`` will
-compute volume-mixing ratio (abundance) profiles only if the user sets
-the ``chemistry`` and respective arguments.  Likewise, the code will
-compute the altitude profiles only if the user provides the
-``radmodel`` and respective arguments (which also require that the
-abundance profiles to be defined).
+abundances, and altitude profiles).  At minimum, the user needs to
+provide the arguments required to compute the pressure and temperature
+profiles.  Further, ``Pyrat Bay`` can compute abundance (volume-mixing
+ratio, VMR) profiles only if the user sets the ``chemistry`` and
+respective arguments.  Likewise, the code will compute the altitude
+profiles only if the user provides the ``radmodel`` and respective
+arguments (which also require that the abundance profiles to be
+defined).
 
 Regardless of which profiles are computed, in an interactive run the
 code returns a five-element tuple containing the pressure profile
@@ -42,11 +42,11 @@ code returns a five-element tuple containing the pressure profile
 Also, regardless of the input units, the output variables will always
 be in CGS units.
 
-In the config file, the user can set the ``input_atmfile``
-key to specify an atmospheric file to use as inputs for the pressure,
-temperature, volume mixing ratios, or altitude profiles.
-The ``atmfile`` key instead can be set to specify a file name where
-to store the outputs.
+In the config file, the user can set the ``atmfile`` argument to
+specify an input atmospheric file from where to read pressure,
+temperature, volume mixing ratios, and/or altitude profiles.  The
+``output_atmfile`` argument instead can be set to specify a file name
+where to store the outputs.
 
 Pressure Profile
 ----------------
@@ -226,16 +226,16 @@ And the results should look like this:
 Abundance Profiles
 ------------------
 
-Currently, there are two chemistry models (``chemistry`` argument) to
-compute volume-mixing-ratio abundances: uniform or thermochemical
-equilibrium.  Each one requires a different set of arguments, which is
-described in the table and sections below:
+Currently, there are two models to set the base volume-mixing-ratio
+chemistry (``chemistry`` argument): ``uniform`` or ``tea``.  Each one
+requires a different set of arguments, which is described in the table
+and sections below:
 
 ====================== ==================================================== ====
 Models (``chemistry``) Required arguments [optional arguments]              References
 ====================== ==================================================== ====
-uniform                ``species``, ``uniform``                                     ---
-tea                    ``species``, ``elements``, [``xsolar``, ``escale`` ] [Blecic2016]_
+uniform                ``species``, ``uniform``, [``vmr_vars``]             ---
+tea                    ``species``, [``vmr_vars``]                          [Blecic2016]_
 ====================== ==================================================== ====
 
 
@@ -248,31 +248,43 @@ species to include in the atmosphere, and the ``uniform`` key
 specifying the mole mixing fraction for each of the species listed in
 ``species``.
 
-Here is an example of a uniform atmosphere configuration file (`atmosphere_uniform.cfg
-<https://github.com/pcubillos/pyratbay/blob/master/examples/tutorial/atmosphere_uniform.cfg>`_):
+Here is an example of a uniform atmosphere configuration file (`tutorial_atmosphere_uniform.cfg
+<https://github.com/pcubillos/pyratbay/blob/master/examples/tutorial_atmosphere_uniform.cfg>`_):
 
-.. literalinclude:: ../examples/tutorial/atmosphere_uniform.cfg
+.. literalinclude:: ../examples/tutorial_atmosphere_uniform.cfg
 
 
 Thermochemical-equilibrium Abundances
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-``Pyrat Bay`` computes abundances in thermochemical equilibrium via
-the TEA package [Blecic2016]_, by minimizing the Gibbs free energy at
-each layer.  To produce a TEA model, the configuration file must
-contain the ``species`` key specifying the species to include in the
-atmosphere, the ``elements`` key specifying the elemental composition.
+``Pyrat Bay`` computes thermochemical equilibrium abundances (TEA) via
+the chemcat package, by minimizing the Gibbs free energy at each
+layer.  To produce a TEA model, the configuration file must set
+``chemistry=tea``.  The ``species`` argument sets the species to
+include in the atmosphere.
 
-The TEA run assumes a solar elemental composition from [Asplund2009]_;
-however, the user can scale the abundance of metals by setting the
-``xsolar`` key, or can scale individual elemental abundances by setting
-the ``escale`` key element and scale factor pairs:
+The TEA run assumes a solar elemental composition from [Asplund2021]_
+as the base for the thermochemical equilibrium model; however, the
+user can customize the elemental abundances using the ``vmr_vars``
+argument.  The table below shows the available options.
+
+================= ===
+``vmr_vars``      Notes
+================= ===
+``[M/H]``         Metallicity of all elemental species (dex units, with respect to solar)
+``[X/H]``         Metallicity of element ``X`` (dex units, with respect to solar).  Overrides ``[M/H]``
+``X/Y``           Abundance of element ``X`` relative to element ``Y``.  Overrides ``[M/H]`` for ``X``, but ``Y`` can be previously modified by ``[M/H]`` or ``[Y/H]``.
+================= ===
+
+
+.. ``log_mol``       log10(VMR) of species ``mol`` (constant with altitude)
+
 
 Here is an example of a thermochemical-equilibrium atmosphere
-configuration file (`atmosphere_tea.cfg
-<https://github.com/pcubillos/pyratbay/blob/master/examples/tutorial/atmosphere_tea.cfg>`_):
+configuration file (`tutorial_atmosphere_tea.cfg
+<https://github.com/pcubillos/pyratbay/blob/master/examples/tutorial_atmosphere_tea.cfg>`_):
 
-.. literalinclude:: ../examples/tutorial/atmosphere_tea.cfg
+.. literalinclude:: ../examples/tutorial_atmosphere_tea.cfg
 
 ----------------------------------------------------------------------
 
@@ -286,9 +298,9 @@ Abundance-profile Examples
 
           .. code-block:: shell
 
-              tutorial_path=https://raw.githubusercontent.com/pcubillos/pyratbay/master/examples/tutorial
-              wget $tutorial_path/atmosphere_tea.cfg
-              wget $tutorial_path/atmosphere_uniform.cfg
+              tutorial_path=https://raw.githubusercontent.com/pcubillos/pyratbay/master/examples
+              wget $tutorial_path/tutorial_atmosphere_tea.cfg
+              wget $tutorial_path/tutorial_atmosphere_uniform.cfg
 
 The following Python script creates and plots the abundance
 Aprofiles for the configuration files shown above:
@@ -302,21 +314,21 @@ Aprofiles for the configuration files shown above:
     import pyratbay.plots as pp
 
     # Generate a uniform and a thermochemical-equilibrium atmospheric model:
-    pressure, temp, vmr_tea, species_tea, radius = pb.run("atmosphere_tea.cfg")
-    pressure, temp, vmr_uni, species_uni, radius = pb.run("atmosphere_uniform.cfg")
+    atm_tea = pb.run("tutorial_atmosphere_tea.cfg")
+    atm_uni = pb.run("tutorial_atmosphere_uniform.cfg")
 
     # Plot the results:
     plt.figure(12, (6,5))
     plt.clf()
-    ax = plt.subplot(211)
+    ax1 = plt.subplot(211)
     ax1 = pp.abundance(
-        vmr_tea, pressure, species_tea,
-        colors='default', xlim=[1e-11, 10.0], legend_fs=0, ax=ax,
+        atm_tea.vmr, atm_tea.press, atm_tea.species,
+        colors='default', xlim=[1e-12, 3.0], legend_fs=8, ax=ax1,
     )
-    ax = plt.subplot(212)
+    ax2 = plt.subplot(212)
     ax2 = pp.abundance(
-        vmr_uni, pressure, species_uni,
-        colors='default', xlim=[1e-11, 10.0], legend_fs=8, ax=ax,
+        atm_uni.vmr, atm_uni.press, atm_uni.species,
+        colors='default', xlim=[1e-12, 3.0], legend_fs=0, ax=ax2,
     )
     plt.tight_layout()
 
