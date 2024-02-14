@@ -166,48 +166,31 @@ def temperature(tmodel, pressure=None, nlayers=None, log=None, params=None):
         return temperature
 
 
-def uniform(
-        pressure, temperature, species, abundances, punits="bar",
-        log=None, atmfile=None,
-    ):
+def uniform(abundances, nlayers):
     """
     Generate an atmospheric file with uniform abundances.
     Save it into atmfile.
 
     Parameters
     ----------
-    pressure: 1D float ndarray
-        Monotonously decreasing pressure profile (in punits).
-    temperature: 1D float ndarray
-        Temperature profile for pressure layers (in Kelvin).
-    species: 1D string ndarray
-        List of atmospheric species.
     abundances: 1D float ndarray
         The species mole mixing ratio.
-    punits:  String
-       Pressure units.
-    log: Log object
-        Screen-output log handler.
-    atmfile: String
-        If not None, filename to save atmospheric model.
+    nlayers: Integer
+       Number of pressure layers.
 
     Returns
     -------
-    qprofiles: 2D Float ndarray
+    vmr: 2D Float ndarray
         Abundance profiles of shape [nlayers,nspecies]
 
     Examples
     --------
     >>> import pyratbay.atmosphere as pa
     >>> nlayers = 11
-    >>> punits = 'bar'
-    >>> pressure = pa.pressure(1e-8, 1e2, nlayers, punits)
-    >>> tmodel = pa.tmodels.Isothermal(nlayers)
-    >>> species    = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
+    >>> species = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
     >>> abundances = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
-    >>> qprofiles = pa.uniform(pressure, tmodel(1500.0), species,
-    >>>     abundances=abundances, punits=punits)
-    >>> print(qprofiles)
+    >>> vmr = pa.uniform(abundances, nlayers)
+    >>> print(vmr)
     [[8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]
      [8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]
      [8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]
@@ -220,36 +203,11 @@ def uniform(
      [8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]
      [8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]]
     """
-    if log is None:
-        log = mu.Log()
-
-    nlayers = len(pressure)
-    # Safety checks:
-    if len(temperature) != nlayers:
-        log.error(
-            f"Pressure array length ({nlayers}) and temperature array "
-            f"length ({len(temperature)}) don't match."
-        )
-    if len(species) != len(abundances):
-        log.error(
-            f"Species array length ({len(species)}) and abundances "
-            f"array length ({len(abundances)}) don't match."
-        )
-
     # Expand abundances to 2D array:
-    qprofiles = np.tile(abundances, (nlayers,1))
-
-    if atmfile is not None:
-        header = (
-            "# This is an atmospheric file with pressure, temperature,\n"
-            "# and uniform mole mixing ratio profiles.\n\n"
-        )
-        io.write_atm(
-            atmfile, pressure, temperature, species, qprofiles,
-            punits=punits, header=header,
-        )
-
-    return qprofiles
+    if nlayers < 1:
+        raise ValueError('The number of layers has to be larger than zero')
+    vmr = np.tile(abundances, (nlayers,1))
+    return vmr
 
 
 def chemistry(
@@ -358,9 +316,9 @@ def chemistry(
             q_uniform[list(species).index(spec)]
             for spec in chem_network.species
         ]
-        chem_network.vmr = uniform(
-            pressure, temperature, chem_network.species, abundances=abundances,
-        )
+        nlayers = len(pressure)
+        chem_network.vmr = uniform(abundances, nlayers)
+
 
     elif chem_model == 'tea':
         chem_network.thermochemical_equilibrium()
@@ -412,7 +370,7 @@ def hydro_g(pressure, temperature, mu, g, p0=None, r0=None):
     >>> import pyratbay.constants as pc
     >>> nlayers = 11
     >>> pressure = pa.pressure(1e-8, 1e2, nlayers, units='bar')
-    >>> temperature = pa.tmodels.Isothermal(nlayers)(1500.0)
+    >>> temperature = pa.tmodels.Isothermal(pressure)(1500.0)
     >>> mu = np.tile(2.3, nlayers)
     >>> g = pc.G * pc.mjup / pc.rjup**2
     >>> r0 = 1.0 * pc.rjup
@@ -482,7 +440,7 @@ def hydro_m(pressure, temperature, mu, mass, p0, r0):
 
     >>> nlayers = 11
     >>> pressure = pa.pressure(1e-8, 1e2, nlayers, units='bar')
-    >>> temperature = pa.tmodels.Isothermal(nlayers)(1500.0)
+    >>> temperature = pa.tmodels.Isothermal(pressure)(1500.0)
     >>> mu = np.tile(2.3, nlayers)
     >>> mplanet = 1.0 * pc.mjup
     >>> r0 = 1.0 * pc.rjup

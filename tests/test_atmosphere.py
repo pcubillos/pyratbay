@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2023 Patricio Cubillos
+# Copyright (c) 2021-2024 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import os
@@ -192,14 +192,20 @@ def test_temperature_madhu():
 
 def test_uniform():
     nlayers = 11
-    pressure = pa.pressure(1e-8, 1e2, nlayers, units='bar')
-    temperature = np.tile(1500.0, nlayers)
-    species = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
+    #species = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
     abundances = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
-    qprofiles = pa.uniform(pressure, temperature, species, abundances)
-    assert np.shape(qprofiles) == (nlayers, len(species))
-    for q in qprofiles:
+    vmr = pa.uniform(abundances, nlayers)
+    assert np.shape(vmr) == (nlayers, len(abundances))
+    for q in vmr:
         np.testing.assert_equal(q, np.array(abundances))
+
+
+def test_uniform_error():
+    nlayers = -11
+    abundances = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
+    match = "The number of layers has to be larger than zero"
+    with pytest.raises(ValueError, match=match):
+        vmr = pa.uniform(abundances, nlayers)
 
 
 def test_hydro_g():

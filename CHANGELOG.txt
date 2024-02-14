@@ -9192,3 +9192,9 @@ Fixed bug finding bulk species indices.
 
 Updated docs and examples for atmosphere tutorial.
 
+*****
+
+Refactored pa.uniform() removing unnecessary arguments.
+The function now only perform a single action.
+Updated docs.
+
