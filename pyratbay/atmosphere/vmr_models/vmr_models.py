@@ -47,6 +47,13 @@ class MetalEquil():
         self.npars = len(self.pnames)
         self.type = 'equil'
 
+    def __str__(self):
+        return (
+            f'VMR model name: {self.name}\n'
+            f'Number of parameters: {self.npars}\n'
+            f'Parameters: {self.pnames}\n'
+        )
+
 
 class ScaleEquil():
     """Elemental abundance model for a thermochemical equilibrium model"""
@@ -64,6 +71,13 @@ class ScaleEquil():
         self.texnames = [name]
         self.npars = len(self.pnames)
         self.type = 'equil'
+
+    def __str__(self):
+        return (
+            f'VMR model name: {self.name}\n'
+            f'Number of parameters: {self.npars}\n'
+            f'Parameters: {self.pnames}'
+        )
 
 
 class RatioEquil():
@@ -84,6 +98,13 @@ class RatioEquil():
         self.texnames = [name]
         self.npars = len(self.pnames)
         self.type = 'equil'
+
+    def __str__(self):
+        return (
+            f'VMR model name: {self.name}\n'
+            f'Number of parameters: {self.npars}\n'
+            f'Parameters: {self.pnames}'
+        )
 
 
 class IsoVMR():
@@ -138,6 +159,13 @@ class IsoVMR():
             self.vmr[:] = 10.0**params
         return np.copy(self.vmr)
 
+    def __str__(self):
+        return (
+            f'VMR model name: {self.name}\n'
+            f'Number of parameters: {self.npars}\n'
+            f'Parameters: {self.pnames}'
+        )
+
 
 class ScaleVMR():
     """Scaled VMR model"""
@@ -160,6 +188,13 @@ class ScaleVMR():
         self.vmr0 = np.copy(vmr0)
         self.vmr = np.copy(self.vmr0)
         self.type = 'free'
+
+    def __str__(self):
+        return (
+            f'VMR model name: {self.name}\n'
+            f'Number of parameters: {self.npars}\n'
+            f'Parameters: {self.pnames}'
+        )
 
     @check_params
     def __call__(self, params):
@@ -217,10 +252,10 @@ class SlantVMR():
         self.name = f'slant_{species}'
         self.pnames = [
             f'slope_{species}',
-            f'log_{species}',
-            f'logp_{species}',
-            f'min_{species}',
-            f'max_{species}',
+            f'log_VMR0_{species}',
+            f'log_p0_{species}',
+            f'min_log_{species}',
+            f'max_log_{species}',
         ]
         self.texnames = [
             fr'$m_{{\rm {species}}}$',
@@ -234,6 +269,13 @@ class SlantVMR():
         self.log_press = np.log10(self.pressure/pc.bar)
         self.vmr = np.tile(1.0e-20, len(pressure))
         self.type = 'free'
+
+    def __str__(self):
+        return (
+            f'VMR model name: {self.name}\n'
+            f'Number of parameters: {self.npars}\n'
+            f'Parameters: {self.pnames}'
+        )
 
     @check_params
     def __call__(self, params):
@@ -263,7 +305,7 @@ class SlantVMR():
         >>> slant_vmr_H2O = pa.vmr_models.SlantVMR('H2O', pressure)
 
         >>> # Reduce VMR by 1 dex at each layer:
-        >>> # slope, vmr_0, log_p0, vmr_min, vmr_max
+        >>> # slope, vmr0, log_p0, min_vmr, max_vmr
         >>> params = [0.0, -3.3, 0.0, -10, -1.0]
         >>> vmr_H2O = slant_vmr_H2O(params)
         >>> params = [0.5, -3.3, 0.0, -10, -1.0]
@@ -280,7 +322,7 @@ class SlantVMR():
         >>> plt.ylim(100, 1e-7)
         """
         slope, vmr_0, log_p0, vmr_min, vmr_max = params
-        log_vmr = slope * (self.log_press-log_p0) + vmr_0,
+        log_vmr = slope * (self.log_press-log_p0) + vmr_0
         self.vmr[:] = 10.0**np.clip(log_vmr, vmr_min, vmr_max)
         return np.copy(self.vmr)
 

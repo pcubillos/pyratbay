@@ -71,7 +71,7 @@ def test_isovmr_eval():
 def test_scalevmr_base():
     vmr_model = pa.vmr_models.SlantVMR('H2O', pressure)
 
-    pnames = ['slope_H2O', 'log_H2O', 'logp_H2O', 'min_H2O', 'max_H2O']
+    pnames = ['slope_H2O', 'log_VMR0_H2O', 'log_p0_H2O', 'min_log_H2O', 'max_log_H2O']
     texnames = [
         '$m_{\\rm H2O}$',
         '$\\log\\ X_{\\rm H2O}^{0}$',
@@ -85,6 +85,19 @@ def test_scalevmr_base():
     assert vmr_model.texnames == texnames
     assert vmr_model.npars == 5
     assert vmr_model.type == 'free'
+
+
+def test_scalevmr_str(capsys):
+    vmr_model = pa.vmr_models.SlantVMR('H2O', pressure)
+    print(vmr_model)
+    captured = capsys.readouterr()
+
+    expected_captured = """VMR model name: slant_H2O
+Number of parameters: 5
+Parameters: ['slope_H2O', 'log_VMR0_H2O', 'log_p0_H2O', 'min_log_H2O', 'max_log_H2O']
+"""
+    assert captured.out == expected_captured
+
 
 
 def test_scalevmr_eval():

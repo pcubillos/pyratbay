@@ -9202,3 +9202,15 @@ Updated tests.
 
 Added array size checks for pa.chemistry() arguments.
 Updated tests.
+
+
+*****  Mi 21 Feb 2024 15:16:17 CET  *****
+
+Renamed pnames for SlantVMR() model to:
+slope_X, log_VMR0_X, log_p0_X, min_log_X, max_log_X.
+Fixed bug in SlantVMR.__call__() method that somehow did not break
+the code.
+Added cookbook for free-chemstry VMR models.
+Added __str__() method for models in pa.vmr_models.
+Updated tests.
+

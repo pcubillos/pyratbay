@@ -11,27 +11,48 @@ using ``Pyrat Bay``.
 
 Recipes list:
 
-- :ref:`compendia` lists compendia of peer-reviewed articles with scripts that reproduced the published material
+- **Atmospheric models**
 
-- :ref:`temperature_profiles` shows how to create and use atmospheric temperature-profile models.
+  - :ref:`temperature_profiles`
+  - :ref:`vmr_free_profiles`
+  - :ref:`vmr_equilibrium_profiles` (TBD)
+  - :ref:`radius_profiles` (TBD)
 
-- :ref:`passbands` shows how to create and use instrumental response passbands
+- **Opacity models**
 
-- Models to calculate opacities:
-
+  - :ref:`opacity_line_sampling` (TBD)
   - :ref:`opacity_alkali`
   - :ref:`opacity_cia`
   - :ref:`opacity_rayleigh`
+  - :ref:`opacity_h_ion` (TBD)
+
+- **Miscelaneous**
+
+  - :ref:`passbands` shows how to create and use instrumental response passbands
+  - :ref:`partition_functions` (TBD)
+  - :ref:`radiative_equilibrium` (TBD)
+  - :ref:`transmission_simulation` (TBD)
+  - :ref:`emission_simulation` (TBD)
+
+- **End-to-end analyses**
+
+  - :ref:`transmission_retrieval` (TBD)
+  - :ref:`emission_retrieval` (TBD)
+  - :ref:`radiative_equilibrium_simulation` (TBD)
+  - :ref:`JWST_proposal_simulation` (TBD)
+
+- :ref:`compendia` lists compendia of peer-reviewed articles with scripts that reproduced the published material
 
 .. toctree::
    :caption: These are the available recipes
    :maxdepth: 2
    :hidden:
 
-   compendia
    temperature_profiles
+   vmr_free_profiles
    passbands
    opacity_alkali
    opacity_cia
    opacity_rayleigh
+   compendia
 
