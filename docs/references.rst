@@ -5,6 +5,8 @@ References
 
 .. [Asplund2009] `Asplund et al. (2009): The Chemical Composition of the Sun <https://ui.adsabs.harvard.edu/abs/2009ARA&A..47..481A>`_
 
+.. [Asplund2021] `Asplund et al. (2021): The chemical make-up of the Sun: A 2020 vision <https://ui.adsabs.harvard.edu/abs/2021A%26A...653A.141A>`_
+
 .. [Blecic2016] `Blecic et al (2016): TEA: A Code Calculating Thermochemical Equilibrium Abundances <https://ui.adsabs.harvard.edu/abs/2016ApJS..225....4B>`_
 
 .. [Borysow1988] `Borysow et al. (1988): Collision-induced Rototranslational Absorption Spectra of H2-He Pairs at Temperatures from 40 to 3000 K <https://ui.adsabs.harvard.edu/abs/1988ApJ...326..509B>`_

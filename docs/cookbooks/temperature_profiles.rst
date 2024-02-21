@@ -1,7 +1,7 @@
 .. _temperature_profiles:
 
-Temperature Profiles Tutorial
-=============================
+Temperature profiles
+====================
 
 This tutorial shows how to create and use temperature-pressure profiles.
 Currently, there are three temperature models: ``isothermal``,

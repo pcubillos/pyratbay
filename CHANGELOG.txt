@@ -9214,3 +9214,11 @@ Added cookbook for free-chemstry VMR models.
 Added __str__() method for models in pa.vmr_models.
 Updated tests.
 
+****
+
+Docs updates, got toctree to show cookbooks subsections
+while hiding sub-toctree in recipes.rst.
+Added Asplund2021 reference.
+And some other cosmetics.
+
+

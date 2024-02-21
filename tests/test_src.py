@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Patricio Cubillos
+# Copyright (c) 2021-2024 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import sys
@@ -50,7 +50,7 @@ def test_simps(odd):
     hsum, hrat, hfac = s.geth(h)
     integ = s.simps(y, h, hsum, hrat, hfac)
 
-    np_integ = si.simpson(y, x)
+    np_integ = si.simpson(y, x=x)
     np.testing.assert_approx_equal(integ, np_integ)
 
 
