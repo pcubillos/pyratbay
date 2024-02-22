@@ -9241,3 +9241,6 @@ Updated cia opacity models to accept wavelength array as input
 Enforced wn and wl to be keyword arguments.
 Updated docs and tests.
 
+******
+
+Updated Pyrat parsing of cia and alkali input models.

@@ -1,4 +1,4 @@
-# Copyright (c) 2021 Patricio Cubillos
+# Copyright (c) 2021-2024 Patricio Cubillos
 # Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 """Alkali resonant-line models."""
@@ -8,12 +8,12 @@ from .alkali import *
 __all__ = alkali.__all__ + ['get_model']
 
 
-def get_model(name, *args):
+def get_model(name, *args, **kwargs):
     """Get an alkali model by its name."""
     if name == 'sodium_vdw':
-        return SodiumVdW(*args)
+        return SodiumVdW(*args, **kwargs)
     if name == 'potassium_vdw':
-        return PotassiumVdW(*args)
+        return PotassiumVdW(*args, **kwargs)
 
 
 # Clean up top-level namespace--delete everything that isn't in __all__

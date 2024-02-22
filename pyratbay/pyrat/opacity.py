@@ -99,7 +99,7 @@ class Opacity():
         if inputs.alkali_models is not None:
             for name in inputs.alkali_models:
                 cutoff = inputs.alkali_cutoff
-                model = op.alkali.get_model(name, pressure, wn, cutoff)
+                model = op.alkali.get_model(name, pressure, wn=wn, cutoff=cutoff)
                 self.models.append(model)
                 self.models_type.append('alkali')
                 check_species_exists(model.species, species, model.name, log)
@@ -113,7 +113,7 @@ class Opacity():
             tmax = []
             for cia_file in inputs.cia_files:
                 log.head(f"Read CIA file: '{cia_file}'.", indent=2)
-                cia = op.Collision_Induced(cia_file, wn)
+                cia = op.Collision_Induced(cia_file, wn=wn)
                 log.msg(
                     f'{cia.name} opacity:\n'
                     f'Read {cia.nwave} wave and {cia.ntemp} temperature samples.\n'
