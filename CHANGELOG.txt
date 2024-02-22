@@ -9249,3 +9249,16 @@ Updated Pyrat parsing of cia and alkali input models.
 
 Updated str tests.
 
+*****
+
+Fixed misleading docstring for op.make_tli()
+Made log an optional argument.
+Renamed wllow, wlhigh arguments to wl_low and wl_high.
+Allowed passing dblist, dbtype, and pflist as strings.
+Refactored wl_low and wl_high handling to make more sensible
+when calling from the python interpreter (parser() was turning
+values into cgs, now the driver will undo this just before calling
+make_tli()).
+Some minor cosmetics.
+
+

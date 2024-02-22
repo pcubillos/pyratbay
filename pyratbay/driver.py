@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2023 Patricio Cubillos
+# Copyright (c) 2021-2024 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -35,6 +35,9 @@ def run(cfile, run_step=None, with_log=True):
     if runmode == 'tli':
         if inputs.tlifile is None:
             log.error('Undefined TLI file (tlifile)')
+        # return wl variabels to their original units
+        inputs.wllow /= pt.u(inputs.wlunits)
+        inputs.wlhigh /= pt.u(inputs.wlunits)
         op.make_tli(
             inputs.dblist, inputs.pflist, inputs.dbtype,
             inputs.tlifile[0], inputs.wllow, inputs.wlhigh,

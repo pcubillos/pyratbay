@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Patricio Cubillos
+# Copyright (c) 2021-2024 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -11,6 +11,7 @@ import time
 import struct
 
 import numpy as np
+import mc3.utils as mu
 
 from . import linelist
 from .. import constants as pc
@@ -18,7 +19,10 @@ from .. import tools as pt
 from .. import version as ver
 
 
-def make_tli(dblist, pflist, dbtype, tlifile, wllow,  wlhigh, wlunits, log):
+def make_tli(
+        dblist, pflist, dbtype, tlifile, wl_low,  wl_high, wl_units,
+        log=None,
+    ):
     """
     Create a transition-line-information (TLI) file.
 
@@ -32,26 +36,26 @@ def make_tli(dblist, pflist, dbtype, tlifile, wllow,  wlhigh, wlunits, log):
         Database type of each database.
     tlifile: String
         Output TLI file name.
-    wllow: String or float
-        Lower wavelength boundary to consider. If float, assume units
-        from wlunits input.  Otherwise, wllow sets the value and units
-        (for example: '1.0 um').
-    wlhigh: String or float
-        High wavelength boundary to consider. If float, assume units
-        from wlunits input.  Otherwise, wlhigh sets the value and units.
-    wlunits: String
-        Wavelength units (when not specified in wllow nor wlhigh).
+    wl_low: Float
+        Lower wavelength boundary to consider, units given by wl_units.
+    wl_high: Float
+        High wavelength boundary to consider, units given by wl_units.
+    wl_units: String
+        Wavelength units (when not specified in wl_low nor wl_high).
     log: Log object
         An mc3.utils.Log instance to log screen outputs to file.
     """
+    if log is None:
+        log = mu.Log(verb=2)
+
     # Input-not-found error messages:
     if tlifile is None:
         log.error('Undefined TLI file (tlifile).')
 
-    if wllow is None:
-        log.error('Undefined low wavelength boundary (wllow)')
-    if wlhigh is None:
-        log.error('Undefined high wavelength boundary (wlhigh)')
+    if wl_low is None:
+        log.error('Undefined low wavelength boundary (wl_low)')
+    if wl_high is None:
+        log.error('Undefined high wavelength boundary (wl_high)')
 
     if dblist is None:
         log.error('There are no input database files (dblist)')
@@ -61,9 +65,16 @@ def make_tli(dblist, pflist, dbtype, tlifile, wllow,  wlhigh, wlunits, log):
         log.error('There are no partition-function inputs (pflist)')
 
     # Check number of files match:
+    if isinstance(dblist, str):
+        dblist = [dblist]
     nfiles = len(dblist)
+
+    if isinstance(pflist, str):
+        pflist = [pflist]
     if len(pflist) == 1:
         pflist = [pflist[0] for _ in range(nfiles)]
+    if isinstance(dbtype, str):
+        dbtype = [dbtype]
     if len(dbtype) == 1:
         dbtype = [dbtype[0] for _ in range(nfiles)]
 
@@ -76,7 +87,7 @@ def make_tli(dblist, pflist, dbtype, tlifile, wllow,  wlhigh, wlunits, log):
 
     # Driver routine to read the databases:
     db_readers = {
-        dbname.lower():getattr(linelist,dbname)
+        dbname.lower(): getattr(linelist,dbname)
         for dbname in pc.dbases
     }
     dblist = [
@@ -112,21 +123,20 @@ def make_tli(dblist, pflist, dbtype, tlifile, wllow,  wlhigh, wlunits, log):
     header += struct.pack('3h', ver.LR_VER, ver.LR_MIN, ver.LR_REV)
 
     # Boundaries in wavenumber space (in cm-1):
-    wnlow = 1.0/wlhigh
-    wnhigh = 1.0/wllow
+    wn_low = 1.0 / wl_high / pt.u(wl_units)
+    wn_high = 1.0 / wl_low / pt.u(wl_units)
 
     # Add initial and final wavenumber boundaries (in cm-1):
-    header += struct.pack('2d', wnlow, wnhigh)
+    header += struct.pack('2d', wn_low, wn_high)
 
     Ndb = len(np.unique(db_names))
     header += struct.pack('h', Ndb)
     tli.write(header)
 
-    wll, wlh = wllow/pt.u(wlunits), wlhigh/pt.u(wlunits)
     log.msg(
         f'\nOS endianness:  {sys.byteorder}\n'
-        f'Initial TLI wavelength ({wlunits}): {wll:7.3f} ({wnhigh:9.3f} cm-1)\n'
-        f'Final   TLI wavelength ({wlunits}): {wlh:7.3f} ({wnlow:9.3f} cm-1)\n'
+        f'Initial TLI wavelength ({wl_units}): {wl_low:7.3f} ({wn_high:9.3f} cm-1)\n'
+        f'Final TLI wavelength ({wl_units}):   {wl_high:7.3f} ({wn_low:9.3f} cm-1)\n'
         f'There are {Ndb} different database(s).'
     )
 
@@ -232,7 +242,7 @@ def make_tli(dblist, pflist, dbtype, tlifile, wllow,  wlhigh, wlunits, log):
         idb = db_names.index(db.name)
 
         ti = time.time()
-        transitions = db.dbread(wnlow, wnhigh, log.verb)
+        transitions = db.dbread(wn_low, wn_high, log.verb)
         tf = time.time()
 
         if transitions is None:
@@ -266,8 +276,8 @@ def make_tli(dblist, pflist, dbtype, tlifile, wllow,  wlhigh, wlunits, log):
     for ntrans in ntrans_iso:
         ilo = ihi
         ihi += ntrans
-        wnsort = np.argsort(wnumber[isort][ilo:ihi])
-        isort[ilo:ihi] = isort[ilo:ihi][wnsort]
+        wn_sort = np.argsort(wnumber[isort][ilo:ihi])
+        isort[ilo:ihi] = isort[ilo:ihi][wn_sort]
     tf = time.time()
 
     # Actual sorting:
@@ -277,7 +287,8 @@ def make_tli(dblist, pflist, dbtype, tlifile, wllow,  wlhigh, wlunits, log):
     isoID = isoID[isort]
 
     log.debug(f'Sort time:    {tf-ti:8.3f} seconds', indent=2)
-    log.msg(f'\nTransitions per isotope:\n{ntrans_iso}')
+    ntrans_str = '  '.join([f'{val:,d}' for val in ntrans_iso])
+    log.msg(f'\nTransitions per isotope:\n[{ntrans_str}]')
 
     # Pack:
     tli.write(struct.pack('i', ntransitions))
