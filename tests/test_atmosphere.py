@@ -332,8 +332,8 @@ def test_ideal_gas_density_2D():
     temperature = np.tile(1500.0, nlayers)
     species = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
     abundances = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
-    qprofiles = pa.uniform(pressure, temperature, species, abundances)
-    dens = pa.ideal_gas_density(qprofiles, pressure, temperature)
+    vmr = pa.uniform(abundances, nlayers)
+    dens = pa.ideal_gas_density(vmr, pressure, temperature)
     for i,density in enumerate(dens):
         np.testing.assert_allclose(density, expected_dens*10**i, rtol=1e-7)
 
@@ -588,16 +588,15 @@ def test_chemistry_mismatch_nlayers():
 
 @pytest.mark.parametrize("qcap,qcap_result",
     [(1e-3, False),
-     (1e-4, True)])
+     (1e-4, True)],
+)
 def test_qcapcheck(qcap, qcap_result):
     nlayers = 11
-    pressure    = pa.pressure(1e-8, 1e2, nlayers, units='bar')
-    temperature = np.tile(1500.0, nlayers)
-    species     = ["H2", "He", "H2O"]
-    abundances  = [0.8495, 0.15, 5e-4]
-    qprofiles = pa.uniform(pressure, temperature, species, abundances)
+    #species = ["H2", "He", "H2O"]
+    abundances = [0.8495, 0.15, 5e-4]
+    vmr = pa.uniform(abundances, nlayers)
     ibulk = [0,1]
-    assert pa.qcapcheck(qprofiles, qcap, ibulk) == qcap_result
+    assert pa.qcapcheck(vmr, qcap, ibulk) == qcap_result
 
 
 def test_balance():

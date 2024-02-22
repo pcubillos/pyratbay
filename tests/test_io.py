@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2023 Patricio Cubillos
+# Copyright (c) 2021-2024 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import os
@@ -218,11 +218,13 @@ def test_read_write_atm_ptq(tmpdir):
     nlayers = 11
     pressure = pa.pressure('1e-8 bar', '1e2 bar', nlayers)
     temperature = pa.tmodels.Isothermal(pressure)(1500.0)
-    species     = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
-    abundances  = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
-    qprofiles = pa.uniform(pressure, temperature, species, abundances)
-    io.write_atm(atm, pressure, temperature, species, qprofiles,
-                 punits='bar', header='# Test write atm\n')
+    species = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
+    abundances = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
+    vmr = pa.uniform(abundances, nlayers)
+    io.write_atm(
+        atm, pressure, temperature, species, vmr,
+        punits='bar', header='# Test write atm\n',
+    )
     assert atmfile in os.listdir(str(tmpdir))
 
     atm_input = io.read_atm(atm)
@@ -230,7 +232,7 @@ def test_read_write_atm_ptq(tmpdir):
     np.testing.assert_equal(atm_input[1], np.array(species))
     np.testing.assert_allclose(atm_input[2], pressure/pc.bar)
     np.testing.assert_allclose(atm_input[3], temperature)
-    np.testing.assert_allclose(atm_input[4], qprofiles)
+    np.testing.assert_allclose(atm_input[4], vmr)
     assert atm_input[5] is None
 
 
@@ -240,11 +242,12 @@ def test_read_write_atm_ptqr(tmpdir):
     nlayers = 11
     pressure = pa.pressure('1e-8 bar', '1e2 bar', nlayers)
     temperature = pa.tmodels.Isothermal(pressure)(1500.0)
-    species     = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
-    abundances  = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
-    qprofiles = pa.uniform(pressure, temperature, species, abundances)
+    species = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
+    abundances = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
+    vmr = pa.uniform(abundances, nlayers)
     radius = pa.hydro_g(pressure, temperature, 2.3, 2479.0, pc.bar, pc.rjup)
-    io.write_atm(atm, pressure, temperature, species, qprofiles,
+    io.write_atm(
+        atm, pressure, temperature, species, vmr,
         radius=radius, punits='bar', runits='km',
         header='# Test write atm\n')
     assert atmfile in os.listdir(str(tmpdir))
@@ -254,7 +257,7 @@ def test_read_write_atm_ptqr(tmpdir):
     np.testing.assert_equal(atm_input[1], np.array(species))
     np.testing.assert_allclose(atm_input[2], pressure/pc.bar)
     np.testing.assert_allclose(atm_input[3], temperature)
-    np.testing.assert_allclose(atm_input[4], qprofiles)
+    np.testing.assert_allclose(atm_input[4], vmr)
     np.testing.assert_allclose(atm_input[5], radius/pc.km, rtol=1e-5)
 
 
