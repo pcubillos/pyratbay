@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2023 Patricio Cubillos
+# Copyright (c) 2021-2024 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import os
@@ -63,7 +63,7 @@ def test_opacity_alkali_str():
     wn_max = 1.0 / (0.466 * pc.um)
     wn = np.arange(wn_min, wn_max, 1.0)
 
-    model = op.alkali.SodiumVdW(pressure, wn, cutoff=4500.0)
+    model = op.alkali.SodiumVdW(pressure, wn=wn, cutoff=4500.0)
     model.calc_cross_section(temperature)
     assert str(model) == """\
 Model name (name): 'sodium_vdw'
@@ -227,7 +227,7 @@ def test_opacity_cia_borysow_H2H2_str():
     wn_max = 1.0 / (1.1 * pc.um)
     wn = np.arange(wn_min, wn_max, 1.0)
     cia_file = f'{pc.ROOT}pyratbay/data/CIA/CIA_Borysow_H2H2_0060-7000K_0.6-500um.dat'
-    model = op.Collision_Induced(cia_file, wn)
+    model = op.Collision_Induced(cia_file, wn=wn)
     assert str(model) == f"""\
 CIA file name (cia_file):
     '{ROOT}pyratbay/data/CIA/CIA_Borysow_H2H2_0060-7000K_0.6-500um.dat'
@@ -239,6 +239,8 @@ Temperature array (temps, K):
   900. 1000. 2000. 3000. 4000. 5000. 6000. 7000.]
 Wavenumber array (wn, cm-1):
 [5882.353 5883.353 5884.353 ... 9088.353 9089.353 9090.353]
+Wavelength array (um):
+[1.70000 1.69971 1.69942 ... 1.10031 1.10019 1.10007]
 Tabulated cross section (tab_cross_section, cm5 molec-2):
 [[6.79e-49 6.71e-49 6.64e-49 ... 5.35e-48 5.29e-48 5.22e-48]
  [2.59e-48 2.58e-48 2.57e-48 ... 8.53e-48 8.45e-48 8.37e-48]
@@ -255,7 +257,7 @@ def test_opacity_cia_borysow_H2He_str():
     wn_max = 1.0 / (1.1 * pc.um)
     wn = np.arange(wn_min, wn_max, 1.0)
     cia_file = f'{pc.ROOT}pyratbay/data/CIA/CIA_Borysow_H2He_0050-3000K_0.3-030um.dat'
-    model = op.Collision_Induced(cia_file, wn)
+    model = op.Collision_Induced(cia_file, wn=wn)
     assert str(model) == f"""\
 CIA file name (cia_file):
     '{ROOT}pyratbay/data/CIA/CIA_Borysow_H2He_0050-3000K_0.3-030um.dat'
@@ -267,6 +269,8 @@ Temperature array (temps, K):
   800.  900. 1000. 1250. 1500. 2000. 2500. 3000.]
 Wavenumber array (wn, cm-1):
 [5882.353 5883.353 5884.353 ... 9088.353 9089.353 9090.353]
+Wavelength array (um):
+[1.70000 1.69971 1.69942 ... 1.10031 1.10019 1.10007]
 Tabulated cross section (tab_cross_section, cm5 molec-2):
 [[1.23e-49 1.22e-49 1.22e-49 ... 8.34e-50 8.29e-50 8.24e-50]
  [2.83e-49 2.81e-49 2.80e-49 ... 1.35e-49 1.35e-49 1.34e-49]

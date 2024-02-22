@@ -9244,3 +9244,8 @@ Updated docs and tests.
 ******
 
 Updated Pyrat parsing of cia and alkali input models.
+
+*****
+
+Updated str tests.
+
