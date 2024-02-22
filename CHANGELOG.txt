@@ -9226,3 +9226,11 @@ And some other cosmetics.
 
 Fixed tests, calls to pa.uniform().
 
+*****
+
+Updated alkali models to accept wavelength array as input
+(optional xor with wavenumber).
+Enforced wn, wl, and cutoff to be keyword arguments.
+Updated docs.
+Updated tests.
+

@@ -1,7 +1,8 @@
-# Copyright (c) 2021-2023 Patricio Cubillos
+# Copyright (c) 2021-2024 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import pytest
+import re
 import numpy as np
 import pyratbay.atmosphere as pa
 import pyratbay.constants as pc
@@ -36,10 +37,10 @@ root = f"{pc.ROOT}tests/expected/"
 )
 def test_alkali_init(model):
     if model == 'sodium':
-        alkali = op.alkali.SodiumVdW(pressure, wn)
+        alkali = op.alkali.SodiumVdW(pressure, wn=wn)
         mol = 'Na'
     elif model == 'potassium':
-        alkali = op.alkali.PotassiumVdW(pressure, wn)
+        alkali = op.alkali.PotassiumVdW(pressure, wn=wn)
         mol = 'K'
 
     assert alkali.name == f'{model}_vdw'
@@ -52,12 +53,66 @@ def test_alkali_init(model):
     np.testing.assert_allclose(alkali.cutoff, 4500.0)
 
 
+@pytest.mark.parametrize(
+    'model',
+    ['sodium', 'potassium'],
+)
+def test_alkali_wl_init(model):
+    wl = 1/(wn*pc.um)
+    if model == 'sodium':
+        alkali = op.alkali.SodiumVdW(pressure, wl=wl)
+        mol = 'Na'
+    elif model == 'potassium':
+        alkali = op.alkali.PotassiumVdW(pressure, wl=wl)
+        mol = 'K'
+
+    assert alkali.name == f'{model}_vdw'
+    assert alkali.species == mol
+    assert alkali.nlayers == len(pressure)
+    assert alkali.nwave == len(wn)
+    assert alkali.cross_section is None
+    np.testing.assert_allclose(alkali.wn, wn)
+    np.testing.assert_allclose(alkali.pressure, pressure)
+    np.testing.assert_allclose(alkali.cutoff, 4500.0)
+
+
+@pytest.mark.parametrize(
+    'model',
+    ['sodium', 'potassium'],
+)
+def test_alkali_duplicated_wave(model):
+    wl = 1/(wn*pc.um)
+    if model == 'sodium':
+        alkali_model = op.alkali.SodiumVdW
+    elif model == 'potassium':
+        alkali_model = op.alkali.PotassiumVdW
+
+    error = 'Either provide wavelength or wavenumber array, not both'
+    with pytest.raises(ValueError, match=re.escape(error)):
+        alkali_model(pressure, wl=wl, wn=wn)
+
+
+@pytest.mark.parametrize(
+    'model',
+    ['sodium', 'potassium'],
+)
+def test_alkali_missing_wave(model):
+    if model == 'sodium':
+        alkali_model = op.alkali.SodiumVdW
+    elif model == 'potassium':
+        alkali_model = op.alkali.PotassiumVdW
+
+    error = 'Neither of wavelength (wl) nor wavenumber (wn) were provided'
+    with pytest.raises(ValueError, match=re.escape(error)):
+        alkali_model(pressure)
+
+
 def test_alkali_wn_order():
     # Order of wn array does not matter:
     wn1 = wn
     wn2 = wn[::-1]
-    sodium1 = op.alkali.SodiumVdW(pressure, wn1)
-    sodium2 = op.alkali.SodiumVdW(pressure, wn2)
+    sodium1 = op.alkali.SodiumVdW(pressure, wn=wn1)
+    sodium2 = op.alkali.SodiumVdW(pressure, wn=wn2)
 
     Na_ext1 = sodium1.calc_extinction_coefficient(temperature, Na_density)
     Na_ext2 = sodium2.calc_extinction_coefficient(temperature, Na_density)
@@ -70,7 +125,7 @@ def test_sodium_cross_section():
     wn_max = 1e4/0.55
     resolution = 15000.0
     wn = ps.constant_resolution_spectrum(wn_min, wn_max, resolution)
-    alkali = op.alkali.SodiumVdW(pressure, wn, cutoff=1000.0)
+    alkali = op.alkali.SodiumVdW(pressure, wn=wn, cutoff=1000.0)
 
     with np.load(f'{root}expected_alkali_Na_opacity.npz') as d:
         expected_cs1 = d['expected_cs1']
@@ -90,7 +145,7 @@ def test_sodium_extinction_coefficient():
     wn_max = 1e4/0.55
     resolution = 15000.0
     wn = ps.constant_resolution_spectrum(wn_min, wn_max, resolution)
-    alkali = op.alkali.SodiumVdW(pressure, wn, cutoff=1000.0)
+    alkali = op.alkali.SodiumVdW(pressure, wn=wn, cutoff=1000.0)
 
     with np.load(f'{root}expected_alkali_Na_opacity.npz') as d:
         expected_cs1 = d['expected_cs1']
@@ -114,7 +169,7 @@ def test_potassium_cross_section():
     wn_max = 1e4/0.70
     resolution = 15000.0
     wn = ps.constant_resolution_spectrum(wn_min, wn_max, resolution)
-    alkali = op.alkali.PotassiumVdW(pressure, wn, cutoff=1000.0)
+    alkali = op.alkali.PotassiumVdW(pressure, wn=wn, cutoff=1000.0)
 
     with np.load(f'{root}expected_alkali_K_opacity.npz') as d:
         expected_cs1 = d['expected_cs1']
@@ -134,7 +189,7 @@ def test_potassium_extinction_coefficient():
     wn_max = 1e4/0.70
     resolution = 15000.0
     wn = ps.constant_resolution_spectrum(wn_min, wn_max, resolution)
-    alkali = op.alkali.PotassiumVdW(pressure, wn, cutoff=1000.0)
+    alkali = op.alkali.PotassiumVdW(pressure, wn=wn, cutoff=1000.0)
 
     with np.load(f'{root}expected_alkali_K_opacity.npz') as d:
         expected_cs1 = d['expected_cs1']
@@ -159,7 +214,7 @@ def test_sodium_layer_extinction_coefficient():
     wn_max = 1e4/0.55
     resolution = 15000.0
     wn = ps.constant_resolution_spectrum(wn_min, wn_max, resolution)
-    alkali = op.alkali.SodiumVdW(pressure, wn, cutoff=1000.0)
+    alkali = op.alkali.SodiumVdW(pressure, wn=wn, cutoff=1000.0)
 
     with np.load(f'{root}expected_alkali_Na_opacity.npz') as d:
         expected_cs1 = d['expected_cs1']

@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2023 Patricio Cubillos
+# Copyright (c) 2021-2024 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -269,7 +269,7 @@ class SodiumVdW(VanderWaals):
     >>> density = pa.ideal_gas_density(vmr, pressure, temperature)
     >>> ec = sodium.calc_extinction_coefficient(temperature, density)
     """
-    def __init__(self, pressure, wn, cutoff=4500.0):
+    def __init__(self, pressure, *, wn=None, wl=None, cutoff=4500.0):
         """
         Parameters
         ----------
@@ -277,14 +277,28 @@ class SodiumVdW(VanderWaals):
             Pressure profile over which the opacities will be
             evalulated (CGS units, barye).
         wn: 1D float array
-            Wavenumber array over which the opacities will be
-            sampled (units of cm-1).
+            Wavenumber array (cm-1 units) over which the opacities
+            will be sampled (only one of wl or wn should be provided).
+        wl: 1D float array
+            Wavelength array (micron units) over which the opacities
+            will be sampled (only one of wl or wn should be provided).
         cutoff: Float
             Maximum wavenumber extent (cm-1) of the line-profiles
             from the center of each line.
         """
         self.name = 'sodium_vdw'
         self.species = 'Na'
+
+        if wl is None and wn is None:
+            raise ValueError(
+                'Neither of wavelength (wl) nor wavenumber (wn) were provided'
+            )
+        if wl is not None and wn is not None:
+            raise ValueError(
+                'Either provide wavelength or wavenumber array, not both'
+            )
+        if wn is None:
+            wn = 1.0 / (wl*pc.um)
 
         # Line-transition properties (from VALD, Piskunov 1995):
         # Wavenumber (cm-1), lower-state energy (cm-1), gf (unitless)
@@ -321,7 +335,7 @@ class PotassiumVdW(VanderWaals):
     >>> density = pa.ideal_gas_density(vmr, pressure, temperature)
     >>> ec = potassium.calc_extinction_coefficient(temperature, density)
     """
-    def __init__(self, pressure, wn, cutoff=4500.0):
+    def __init__(self, pressure, *, wn=None, wl=None, cutoff=4500.0):
         """
         Parameters
         ----------
@@ -329,14 +343,28 @@ class PotassiumVdW(VanderWaals):
             Pressure profile over which the opacities will be
             evalulated (CGS units, barye).
         wn: 1D float array
-            Wavenumber array over which the opacities will be
-            sampled (units of cm-1).
+            Wavenumber array (cm-1 units) over which the opacities
+            will be sampled (only one of wl or wn should be provided).
+        wl: 1D float array
+            Wavelength array (micron units) over which the opacities
+            will be sampled (only one of wl or wn should be provided).
         cutoff: Float
             Maximum wavenumber extent (cm-1) of the line-profiles
             from the center of each line.
         """
         self.name = 'potassium_vdw'
         self.species = 'K'
+
+        if wl is None and wn is None:
+            raise ValueError(
+                'Neither of wavelength (wl) nor wavenumber (wn) were provided'
+            )
+        if wl is not None and wn is not None:
+            raise ValueError(
+                'Either provide wavelength or wavenumber array, not both'
+            )
+        if wn is None:
+            wn = 1.0 / (wl*pc.um)
 
         # Line-transition properties (from VALD, Piskunov 1995):
         # Wavenumber (cm-1), lower-state energy (cm-1), gf (unitless)
