@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# # Collision-induced Absorption Tutorial
+# # Collision-induced absorption Tutorial
 # This tutorial shows how to create CIA opacity objects and compute their extinction coefficient spectra for a given atmospheric profile.
 # Lets start by importing some necessary modules:
-
 
 import pyratbay.opacity as op
 import pyratbay.atmosphere as pa
@@ -16,13 +15,13 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 
-## Borysov CIA opacities
+# Borysov CIA opacities
 # `pyratbay` provides the Borysov et al. CIA data. The following table lists the available datasets and their range of validity:
-
+#
 # | Species | $T$-range (K) | $\lambda$-range (um) | File |
+# | --- | --- | --- | --- |
 # | H2-H2 | 60--7000 | 0.6--500.0 | CIA_Borysow_H2H2_0060-7000K_0.6-500um.dat
 # | H2-He | 50--7000 | 0.5--31.25 | CIA_Borysow_H2He_0050-7000K_0.5-031um.dat
-
 
 # Define wavelength array where to sample the opacities
 wl_min = 0.61
@@ -32,12 +31,11 @@ wl = ps.constant_resolution_spectrum(wl_min, wl_max, resolution)
 
 # Load up Borysov CIA model for H2-H2:
 cs_file = f'{pc.ROOT}pyratbay/data/CIA/CIA_Borysow_H2H2_0060-7000K_0.6-500um.dat'
-cia = op.Collision_Induced(cs_file, wn=1e4/wl)
+cia = op.Collision_Induced(cs_file, wl=wl)
 
 
 # A print() call shows some useful info about the object:
 print(cia)
-
 
 
 # Calculate cross sections:
@@ -78,24 +76,24 @@ nlayers = 81
 pressure = pa.pressure('1e-8 bar', '1e2 bar', nlayers)
 temperature = np.tile(1800.0, nlayers)
 species = ['H2', 'H', 'He']
-# Volume mixing ratios in thermochemical equilibrium (only H2, H, and He)
-vmr = pa.abundance(pressure, temperature, species)
-# Number-density profiles under IGL (molecules per cm3)
-number_densities = pa.ideal_gas_density(vmr, pressure, temperature)
-
+# Get VMRs in thermochemical equilibrium for a simple mix (only H2, H, and He)
+# and their number-density profiles under IGL (molecules per cm3)
+net = pa.chemistry('tea', pressure, temperature, species)
+number_densities = pa.ideal_gas_density(net.vmr, pressure, temperature)
 # Indices for H2,H2 number density in the atmosphere:
 cia_indices = [species.index(mol) for mol in cia.species]
-densities = number_densities[:,cia_indices]
-
+density = number_densities[:,cia_indices]
 
 # Compute extinction at all layers:
 extinction_coefficient = cia.calc_extinction_coefficient(
-    temperature, densities,
+    temperature,
+    density,
 )
 
 # Compute extinction at a single layer:
 ec_single = cia.calc_extinction_coefficient(
-    temperature[40], densities[40],
+    temperature[40],
+    density[40],
 )
 
 
@@ -131,33 +129,34 @@ ax.set_title('Borysov H2-H2 CIA')
 plt.tight_layout()
 
 
-### HITRAN CIA opacities
+# HITRAN CIA opacities
 # `pyratbay` does not provide the HITRAN CIA data, but you can get and format it with the following prompt commands:
-# 
+
 # ```shell
 # $ wget https://hitran.org/data/CIA/H2-H2_2011.cia
 # $ pbay -cs hitran H2-H2_2011.cia
 # ```
 
-
 # Sample at our desired wavelength array:
 cs_file = 'CIA_HITRAN_H2-H2_1.0-500.0um_0200-3000K.dat'
-hit_cia = op.Collision_Induced(cs_file, wn=1e4/wl)
+hit_cia = op.Collision_Induced(cs_file, wl=wl)
 
 # Sampling in wavenumber beyond the table limits is OK,
 # out-of-bounds opacities will be extrapolated as zero
 
 
 # Compare HITRAN and Borysov CIA cross sections:
-hit_cs_0300 = hit_cia.calc_cross_section(temperature=300.0)
-hit_cs_1200 = hit_cia.calc_cross_section(temperature=1200.0)
-hit_cs_3000 = hit_cia.calc_cross_section(temperature=3000.0)
-
 bor_cs_0300 = cia.calc_cross_section(temperature=300.0)
 bor_cs_1200 = cia.calc_cross_section(temperature=1200.0)
 bor_cs_3000 = cia.calc_cross_section(temperature=3000.0)
 bor_cs_5000 = cia.calc_cross_section(temperature=4500.0)
 
+hit_cs_0300 = hit_cia.calc_cross_section(temperature=300.0)
+hit_cs_1200 = hit_cia.calc_cross_section(temperature=1200.0)
+hit_cs_3000 = hit_cia.calc_cross_section(temperature=3000.0)
+# Note, HITRAN CIA's don't go beyond 3000K
+# Sampling in temperature beyond the table limits is not OK,
+# its not good science
 
 plt.figure(4)
 plt.clf()
@@ -183,14 +182,13 @@ ax.set_title('H2-H2 CIA:  Borysov (solid) vs. HITRAN (dashed)')
 plt.tight_layout()
 
 
-### H2-He CIA opacities
+# H2-He CIA opacities
 # Download and format the HITRAN H2-He CIA data with the following prompt commands:
-# 
+
 # ```shell
 # $ wget https://hitran.org/data/CIA/H2-He_2011.cia
 # $ pbay -cs hitran H2-He_2011.cia
 # ```
-
 
 wl_min = 0.5
 wl_max = 10.01
@@ -199,11 +197,11 @@ new_wl = ps.constant_resolution_spectrum(wl_min, wl_max, resolution)
 
 # Load up Borysov CIA tabulated data for H2-He:
 cs_file = f'{pc.ROOT}/pyratbay/data/CIA/CIA_Borysow_H2He_0050-7000K_0.5-031um.dat'
-bor_H2He_cia = op.Collision_Induced(cs_file, wn=1e4/new_wl)
+bor_H2He_cia = op.Collision_Induced(cs_file, wl=new_wl)
 
 # Load up HITRAN CIA tabulated data for H2-He:
 cs_file = 'CIA_HITRAN_H2-He_0.5-500.0um_0200-9900K.dat'
-hit_H2He_cia = op.Collision_Induced(cs_file, wn=1e4/new_wl)
+hit_H2He_cia = op.Collision_Induced(cs_file, wl=new_wl)
 
 
 # Compare HITRAN and Borysov CIA cross sections:
@@ -241,5 +239,4 @@ ax.set_ylabel('Cross section (cm$^{5}$ molec$^{-2}$)')
 ax.legend(loc='lower right')
 ax.set_title('H2-He CIA:  Borysov (solid) vs. HITRAN (dashed)')
 plt.tight_layout()
-
 

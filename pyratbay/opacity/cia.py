@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2023 Patricio Cubillos
+# Copyright (c) 2021-2024 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -15,14 +15,28 @@ from ..lib import _spline as sp
 
 class Collision_Induced():
     """Collision Induced Absorption opacities"""
-    def __init__(self, cia_file, wn=None, log=None):
+    def __init__(self, cia_file, *, wn=None, wl=None, log=None):
         """
         Parameters
         ----------
         cia_file: String
             A CIA cross section file.
-        wn: 1D float ndarray
-            Wavenumber array where to sample the CIA spectra (cm-1)
+        wn: 1D float array
+            Wavenumber array (cm-1 units) where to sample the CIA
+            (only one of wl or wn should be provided).
+        wl: 1D float array
+            Wavelength array (micron units) where to sample the CIA
+            (only one of wl or wn should be provided).
+
+        Examples
+        --------
+        >>> import pyratbay.spectrum as ps
+        >>> import pyratbay.constants as pc
+        >>> import pyratbay.opacity as op
+
+        >>> wl = ps.constant_resolution_spectrum(0.61, 10.01, 15000.0)
+        >>> cs_file = f'{pc.ROOT}/pyratbay/data/CIA/CIA_Borysow_H2H2_0060-7000K_0.6-500um.dat'
+        >>> cia = op.Collision_Induced(cs_file, wl=wl)
         """
         if log is None:
             log = mu.Log()
@@ -42,6 +56,11 @@ class Collision_Induced():
         self.ntemp = len(self.temps)
         self.tmin = np.amin(self.temps)
         self.tmax = np.amax(self.temps)
+
+        if wl is not None and wn is not None:
+            raise ValueError('Either provide wl or wn array for CIA, not both')
+        if wl is not None:
+            wn = 1.0 / (wl*pc.um)
 
         if wn is None:
             self.wn = tab_wn
@@ -206,6 +225,11 @@ class Collision_Induced():
             'Wavenumber array (wn, cm-1):\n{}',
             self.wn,
             fmt={'float': '{:.3f}'.format},
+        )
+        fw.write(
+            'Wavelength array (um):\n{}',
+            1/self.wn/pc.um,
+            fmt={'float': '{:.5f}'.format},
         )
         cm_pow = 3*self.nspec - 1
         mol_pow = -self.nspec
