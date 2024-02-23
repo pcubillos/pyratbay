@@ -13,7 +13,7 @@ Lets start by importing some necessary modules:
     or as a `jupyter notebook here
     <https://github.com/pcubillos/pyratbay/blob/master/docs/cookbooks/opacity_alkali.ipynb>`_.
 
-.. code:: ipython3
+.. code:: python
 
     import pyratbay.atmosphere as pa
     import pyratbay.constants as pc

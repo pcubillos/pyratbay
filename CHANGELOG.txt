@@ -9262,3 +9262,8 @@ make_tli()).
 Some minor cosmetics.
 
 
+*****  Fr 23 Feb 2024 18:08:50 CET  *****
+
+Added line_list_hitran.rst (py and ipynb) docs to demo how
+to compute HITRAN/HITEMP cross sections.
+
