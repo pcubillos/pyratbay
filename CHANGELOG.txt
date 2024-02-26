@@ -9267,3 +9267,14 @@ Some minor cosmetics.
 Added line_list_hitran.rst (py and ipynb) docs to demo how
 to compute HITRAN/HITEMP cross sections.
 
+*****
+
+Tweaked Line_Sample() class, added min_wl, max_wl optional arguments
+(more user friendly).
+Enforced optional arguments to be passed as keyword arguments.
+Added get_wl() method to make it simpler and explicit (with units).
+Tweaked the __str__() method.
+Updated and added tests.
+
+
+

@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2023 Patricio Cubillos
+# Copyright (c) 2021-2024 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import numpy as np
@@ -56,7 +56,10 @@ class Opacity():
             #    log.head(f"  '{cs_file}'.")
 
             # TBD: self.ls_files?
-            ls = op.Line_Sample(inputs.extfile, min_wn, max_wn, pressure, log)
+            ls = op.Line_Sample(
+                inputs.extfile, pressure=pressure,
+                min_wn=min_wn, max_wn=max_wn, log=log,
+            )
             self.models.append(ls)
             self.models_type.append('line_sample')
             check_species_exists(ls.species, species, ls.name, log)

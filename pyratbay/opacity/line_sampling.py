@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2023 Patricio Cubillos
+# Copyright (c) 2021-2024 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -10,42 +10,56 @@ import mc3
 
 from .. import io as io
 from .. import tools as pt
+from .. import constants as pc
 from ..lib import _extcoeff as ec
 
 
 class Line_Sample():
     """Line-by-line sampled opacities"""
     def __init__(
-        self, cs_files, min_wn=-np.inf, max_wn=np.inf,
-        pressure=None, log=None,
+        self, cs_files, *, pressure=None,
+        min_wl=None, max_wl=None, min_wn=None, max_wn=None,
+        log=None,
     ):
         """
         Read line-sampled cross-section table(s), with units of cm2 molec-1.
 
         Parameters
         ----------
-        cs_files: String
-            Line-sampled cross section files.
-        min_wn: 1D float ndarray
-            Minimum wavenumber value to extract from line-sample files (cm-1)
-        max_wn: 1D float ndarray
-            Maximum wavenumber value to extract from line-sample files (cm-1)
+        cs_files: String or iterable of strings
+            Line-sampled cross section file(s) to read.
         pressure: 1D floar array
             Desired pressure profile where to resample the opacities (barye).
             If None, use the tabulated pressure array from the opacities.
             If not None, it is allowed to extrapolate to lower pressures
-            but to toward higher pressures.
+            but not to higher pressures.
+        min_wl: 1D float ndarray
+            Minimum wavelength value to extract from line-sample files (um)
+            (only one of min_wl or max_wn should be provided).
+        max_wl: 1D float ndarray
+            Maximum wavelength value to extract from line-sample files (um)
+            (only one of min_wn or max_wl should be provided).
+        min_wn: 1D float ndarray
+            Minimum wavenumber value to extract from line-sample files (cm-1)
+            (only one of min_wn or max_wl should be provided).
+        max_wn: 1D float ndarray
+            Maximum wavenumber value to extract from line-sample files (cm-1)
+            (only one of min_wl or max_wn should be provided).
 
         Examples
         --------
         >>> import pyratbay.opacity as op
-        >>> # TDB: how to get these files
+        >>> import numpy as np
+        >>> import matplotlib.pyplot as plt
+
+        >>> # Generate these files from
+        >>> # pyratbay.rtfd.io/en/latest/cookbooks/line_list_hitran.html
         >>> cs_files = [
-        >>>     'cs_table_H2O_150-3000K_0.5-5.0um.npz',
-        >>>     'cs_table_CO_150-3000K_0.5-5.0um.npz',
+        >>>     'cross_section_R020K_0150-3000K_0.5-5.0um_hitran_H2O.npz',
+        >>>     'cross_section_R020K_0150-3000K_0.5-5.0um_hitemp_CO.npz',
         >>> ]
         >>> # Line-sample opacities at wavenumbers > 1.0 cm-1:
-        >>> ls = op.Line_Sample(cs_files, max_wn=1e4/1.0)
+        >>> ls = op.Line_Sample(cs_files, min_wl=1.0)
 
         >>> # Total or per-mol cross sections (cm2 molec-1):
         >>> temp = np.tile(1400.0, ls.nlayers)
@@ -59,8 +73,8 @@ class Line_Sample():
         >>> wl = 1e4/ls.wn
         >>> plt.figure(1)
         >>> plt.clf()
-        >>> plt.plot(wl, ec_per_mol[0,50], color='blue', lw=1.0)
-        >>> plt.plot(wl, cs_per_mol[1,50], alpha=0.6, color='orange', lw=1.0)
+        >>> plt.plot(wl, ec[0,35], color='blue', lw=1.0)
+        >>> plt.plot(wl, ec[1,35], alpha=0.6, color='orange', lw=1.0)
         >>> plt.yscale('log')
         """
         self.name = 'line sampling'
@@ -97,6 +111,18 @@ class Line_Sample():
         else:
             self.press = pressure
         self.nlayers = len(self.press)
+
+        if min_wn is not None and max_wl is not None:
+            log.error('Either define min_wn or max_wl, not both')
+        if max_wn is not None and min_wl is not None:
+            log.error('Either define min_wl or max_wn, not both')
+
+        if min_wn is None:
+            min_wn = 0.0 if max_wl is None else 1.0/(max_wl*pc.um)
+
+        if max_wn is None:
+            max_wn = np.inf if min_wl is None else 1.0/(min_wl*pc.um)
+
         self.wn = wn[(wn >= min_wn) & (wn <= max_wn)]
         self.nwave = len(self.wn)
 
@@ -184,6 +210,28 @@ class Line_Sample():
         # Set tabulated temperature extrema:
         self.tmin = np.amin(self.temp)
         self.tmax = np.amax(self.temp)
+
+    def get_wl(self, units='um'):
+        """
+        Get the wavelength array in the desired units.
+
+        Parameters
+        ----------
+        units: String
+            Select one from: ['A', 'nm', 'um', 'mm', 'cm', 'm', 'km']
+
+        Returns
+        -------
+        wl: 1D float ndarray
+            The wavelength array from the line-sample grid.
+        """
+        valid_units = 'A nm um mm cm m km'.split()
+        if units not in valid_units:
+            raise ValueError(
+                f"Invalid wavelength units '{units}', "
+                f"select one from {valid_units}"
+            )
+        return 1.0/(self.wn * pt.u(units))
 
 
     def calc_cross_section(self, temperature, layer=None, per_mol=False):
@@ -327,15 +375,24 @@ class Line_Sample():
             '\nMinimum and maximum temperatures (tmin, tmax) in K: '
             f'[{self.tmin:.1f}, {self.tmax:.1f}]'
         )
+        fw.write(
+            'Minimum and maximum pressures in bar: '
+            f'[{np.amin(self.press/pc.bar):.3e}, {np.amax(self.press/pc.bar):.3e}]'
+        )
+        fw.write(
+            'Minimum and maximum wavelengths in um: '
+            f'[{np.amin(self.get_wl()):.3f}, {np.amax(self.get_wl()):.3f}]'
+        )
         fw.write(f'\nLine-sample species (species): {self.species}')
         fw.write(f'Temperature array (temps, K):\n{self.temp}')
-        fw.write(f'Pressure layers (pressure, barye):\n{self.press}')
-        fw.write(f'Wavenumber array (wn, cm-1):\n{self.wn}')
+        with np.printoptions(precision=3):
+            fw.write(f'Pressure layers (pressure, barye):\n{self.press}')
+            fw.write(f'Wavenumber array (wn, cm-1):\n  {self.wn}')
 
         fw.write(
-            'Tabulated cross sections (cs_table, cm2 molecule-1):\n{}',
-            self.cs_table,
-            edge=1,
+            'The tabulated cross sections (cs_table, cm2 molecule-1) '
+            'are an array\nof dimensions [nspec,ntemp,nlayers,nwave] and '
+            f'shape {self.cs_table.shape}'
         )
         return fw.text
 

@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2023 Patricio Cubillos
+# Copyright (c) 2021-2024 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import pytest
@@ -41,9 +41,22 @@ def test_line_sample_init(cs_input):
     assert hasattr(ls, 'cs_table')
 
 
+def test_line_sample_trim_wl():
+    cs_files = f"{pc.ROOT}tests/outputs/exttable_test_300-3000K_1.1-1.7um.npz"
+    ls = op.Line_Sample(cs_files, min_wl=1.4, max_wl=1.6)
+
+    assert ls.ntemp == 10
+    assert ls.nwave == 893
+    assert ls.nspec == 1
+    assert ls.nlayers == 51
+
+    expected_wn = np.arange(6250.35294118, 7143.0, 1.0)
+    np.testing.assert_allclose(ls.wn, expected_wn)
+
+
 def test_line_sample_trim_wn():
     cs_files = f"{pc.ROOT}tests/outputs/exttable_test_300-3000K_1.1-1.7um.npz"
-    ls = op.Line_Sample(cs_files, min_wn=6000.0, max_wn=7000.0)
+    ls = op.Line_Sample(cs_files, min_wn=6000, max_wn=7000)
 
     assert ls.ntemp == 10
     assert ls.nwave == 1000
@@ -52,6 +65,52 @@ def test_line_sample_trim_wn():
 
     expected_wn = np.arange(6000.35294118, 7000.0, 1.0)
     np.testing.assert_allclose(ls.wn, expected_wn)
+
+
+def test_line_sample_duplicate_wn_min():
+    cs_files = f"{pc.ROOT}tests/outputs/exttable_test_300-3000K_1.1-1.7um.npz"
+
+    error = re.escape("Either define min_wn or max_wl, not both")
+    with pytest.raises(ValueError, match=error):
+        ls = op.Line_Sample(cs_files, min_wn=6000, max_wl=1.6)
+
+
+def test_line_sample_duplicate_wn_max():
+    cs_files = f"{pc.ROOT}tests/outputs/exttable_test_300-3000K_1.1-1.7um.npz"
+
+    error = re.escape("Either define min_wl or max_wn, not both")
+    with pytest.raises(ValueError, match=error):
+        ls = op.Line_Sample(cs_files, max_wn=7000, min_wl=1.4)
+
+
+def test_line_sample_trim_get_wl():
+    cs_files = f"{pc.ROOT}tests/outputs/exttable_test_300-3000K_1.1-1.7um.npz"
+    ls = op.Line_Sample(cs_files, min_wl=1.4, max_wl=1.6)
+
+    expected_wl = 1e4/np.arange(6250.35294118, 7143.0, 1.0)
+    wl = ls.get_wl()
+    np.testing.assert_allclose(wl, expected_wl)
+
+
+def test_line_sample_trim_get_units_wl():
+    cs_files = f"{pc.ROOT}tests/outputs/exttable_test_300-3000K_1.1-1.7um.npz"
+    ls = op.Line_Sample(cs_files, min_wl=1.4, max_wl=1.6)
+
+    expected_wl = 1e8/np.arange(6250.35294118, 7143.0, 1.0)
+    wl = ls.get_wl('A')
+    np.testing.assert_allclose(wl, expected_wl)
+
+
+def test_line_sample_trim_bad_get_wl():
+    cs_files = f"{pc.ROOT}tests/outputs/exttable_test_300-3000K_1.1-1.7um.npz"
+    ls = op.Line_Sample(cs_files, min_wl=1.4, max_wl=1.6)
+
+    error = re.escape(
+        "Invalid wavelength units 'rjup', select one from "
+        "['A', 'nm', 'um', 'mm', 'cm', 'm', 'km']"
+    )
+    with pytest.raises(ValueError, match=error):
+        ls.get_wl('rjup')
 
 
 def test_line_sample_resample_pressure():

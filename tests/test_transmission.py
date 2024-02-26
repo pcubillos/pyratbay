@@ -450,10 +450,12 @@ def test_multiple_opacities(tmp_path):
     np.testing.assert_allclose(spectrum1, spectrum2, rtol=rtol)
 
 
-@pytest.mark.parametrize('wllow,wlhigh',
+@pytest.mark.parametrize(
+    'wllow,wlhigh',
     [('1.1 um', '1.6 um'),
      ('1.2 um', '1.7 um'),
-     ('1.2 um', '1.6 um')])
+     ('1.2 um', '1.6 um'),]
+)
 def test_opacity_reset_wn(tmp_path, wllow, wlhigh):
     reset = {
         'extfile': f'{OUTPUTS}exttable_test_300-3000K_1.1-1.7um.npz',
@@ -468,7 +470,7 @@ def test_opacity_reset_wn(tmp_path, wllow, wlhigh):
     )
     pyrat = pb.run(cfg)
     wn = np.arange(1/1.7e-4, 1/1.1e-4, 1.0)
-    wn_range = (wn>= pyrat.spec.wnlow) & (wn <=pyrat.spec.wnhigh)
+    wn_range = (wn >= pyrat.spec.wnlow) & (wn <= pyrat.spec.wnhigh)
     etab = expected['etable'][wn_range]
     np.testing.assert_allclose(pyrat.spec.spectrum, etab, rtol=rtol)
 

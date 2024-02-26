@@ -26,7 +26,7 @@ Recipes list:
 
 - **Opacity models**
 
-  - :ref:`opacity_line_sample` (work in progress)
+  - :ref:`opacity_line_sample`
   - :ref:`opacity_alkali`
   - :ref:`opacity_cia`
   - :ref:`opacity_rayleigh`
