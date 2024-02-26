@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2023 Patricio Cubillos
+# Copyright (c) 2021-2024 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -35,7 +35,7 @@ def check_params(func):
     return new_func
 
 
-class Isothermal(object):
+class Isothermal():
     """Isothermal temperature profile model."""
     def __init__(self, pressure):
         """
@@ -90,8 +90,20 @@ class Isothermal(object):
             self.temperature[:] = params
         return np.copy(self.temperature)
 
+    def __str__(self):
+        with np.printoptions(formatter={'float':'{:.3e}'.format}):
+            str_pressure = str(self.pressure)
+        return (
+            f'Model name: {self.name}\n'
+            f'Number of parameters (npars): {self.npars}\n'
+            f'Parameter names (pnames): {self.pnames}\n'
+            f'Parameter Latex names (texnames): {self.texnames}\n'
+            f'Pressure array (pressure, barye):\n {str_pressure}\n'
+            f'Last evaluated profile (temperature, K):\n {self.temperature}\n'
+        )
 
-class Guillot(object):
+
+class Guillot():
     """
     Guillot (2010) temperature profile based on the three-channel
     Eddington approximation, as described Line et al. (2013)
@@ -115,8 +127,8 @@ class Guillot(object):
         Ideally, one would wish to input a pressure-dependent gravity,
         but such profile would need to be derived from a hydrostatic
         equilibrium calculation, for example.  Unfortunately, HE cannot
-        be solved without knowing the temperature, thus making this a
-        circular problem (shrug emoji).
+        be solved without knowing the temperature a priori, thus making
+        this a circular problem (shrug emoji).
         """
         self.name = 'guillot'
         self.pnames = [
@@ -198,12 +210,25 @@ class Guillot(object):
         self.temperature[:] = _pt.guillot(params, self.pressure, self.gravity)
         return np.copy(self.temperature)
 
+    def __str__(self):
+        with np.printoptions(formatter={'float':'{:.3e}'.format}):
+            str_pressure = str(self.pressure)
+        return (
+            f'Model name: {self.name}\n'
+            f'Number of parameters (npars): {self.npars}\n'
+            f'Parameter names (pnames): {self.pnames}\n'
+            f'Parameter Latex names (texnames): {self.texnames}\n'
+            f'Pressure array (pressure, barye):\n {str_pressure}\n'
+            f'Last evaluated profile (temperature, K):\n {self.temperature}\n'
+        )
+
+
 
 # For backwards compatibility:
 TCEA = Guillot
 
 
-class Madhu(object):
+class Madhu():
     """Temperature profile model by Madhusudhan & Seager (2009)"""
     def __init__(self, pressure):
         """
@@ -297,6 +322,19 @@ class Madhu(object):
             self.temperature, sigma=self.fsmooth, mode='nearest',
         )
         return np.copy(self.temperature)
+
+    def __str__(self):
+        with np.printoptions(formatter={'float':'{:.3e}'.format}):
+            str_pressure = str(self.pressure)
+        return (
+            f'Model name: {self.name}\n'
+            f'Number of parameters (npars): {self.npars}\n'
+            f'Parameter names (pnames): {self.pnames}\n'
+            f'Parameter Latex names (texnames): {self.texnames}\n'
+            f'Pressure array (pressure, barye):\n {str_pressure}\n'
+            f'Last evaluated profile (temperature, K):\n {self.temperature}\n'
+        )
+
 
 
 def get_model(name, *args, **kwargs):

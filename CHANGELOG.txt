@@ -9276,5 +9276,8 @@ Added get_wl() method to make it simpler and explicit (with units).
 Tweaked the __str__() method.
 Updated and added tests.
 
+*****
 
+Added __str__() method to temperature profile classes.
+Updated docs.
 
