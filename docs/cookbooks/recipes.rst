@@ -18,10 +18,10 @@ Recipes list:
   - :ref:`vmr_equilibrium_profiles` (TBD)
   - :ref:`radius_profiles` (TBD)
 
-- **Line-list sampling**
+- **Line-by-line opacity sampling**
 
   - :ref:`line_list_hitran`
-  - :ref:`line_list_exomol` (TBD)
+  - :ref:`line_list_exomol`
   - :ref:`line_list_repack` (TBD)
 
 - **Opacity models**
@@ -55,9 +55,10 @@ Recipes list:
    :hidden:
 
    temperature_profiles
-   line_list_hitran
-   opacity_line_sample
    vmr_free_profiles
+   line_list_hitran
+   line_list_exomol
+   opacity_line_sample
    passbands
    opacity_alkali
    opacity_cia

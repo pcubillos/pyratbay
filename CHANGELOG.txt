@@ -9286,3 +9286,7 @@ Updated docs.
 
 Added docs for ExoMol line-list sampling.
 
+*****
+
+Updated recipes.rst
+
