@@ -1,11 +1,10 @@
 #! /usr/bin/env python
 
-# Copyright (c) 2021-2022 Patricio Cubillos
+# Copyright (c) 2021-2024 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import argparse
 import matplotlib
-matplotlib.use('Agg')
 
 import pyratbay as pb
 
@@ -34,6 +33,7 @@ def main():
     pbay -cs hitran H2-H2_2011.cia 2 10
     pbay -cs borysow ciah2he_dh_quantmech H2 He
     """
+    matplotlib.use('Agg')
     # Parse configuration file:
     parser = argparse.ArgumentParser(
         description=__doc__,

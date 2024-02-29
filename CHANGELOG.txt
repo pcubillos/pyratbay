@@ -9290,3 +9290,7 @@ Added docs for ExoMol line-list sampling.
 
 Updated recipes.rst
 
+*****
+
+Shifted the matplotlib.use('Agg') into the main() function.
+Probably not something needed, in any case.
