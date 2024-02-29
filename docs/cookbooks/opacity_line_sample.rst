@@ -52,8 +52,8 @@ Lets start by importing some necessary modules:
 
 Which outputs:
 
-.. parsed-literal::
-
+.. code:: text
+	  
     Line-sampling cross-section files (cs_files):
     ['cross_section_R020K_0150-3000K_0.5-5.0um_hitran_H2O.npz',
         'cross_section_R020K_0150-3000K_0.5-5.0um_hitemp_CO.npz']

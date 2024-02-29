@@ -9281,3 +9281,8 @@ Updated and added tests.
 Added __str__() method to temperature profile classes.
 Updated docs.
 
+
+*****  Do 29 Feb 2024 13:46:30 CET  *****
+
+Added docs for ExoMol line-list sampling.
+
