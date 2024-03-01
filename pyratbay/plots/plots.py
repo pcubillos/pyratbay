@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2023 Patricio Cubillos
+# Copyright (c) 2021-2024 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -764,6 +764,7 @@ def posteriors(
         post_data = pickle.load(handle)
     band_wl = post_data['band_wl']
     pressure = post_data['pressure'] * pc.bar
+    cf_lab = 'transmittance' if post_data['path']=='transit' else 'contribution'
 
     # Contribution functions
     cf_median = post_data['cf_posterior_median']
@@ -772,7 +773,9 @@ def posteriors(
         pressure, filename=f'{root}_median_cf.png'
     )
 
+
     # Temperature profile
+    fs = 12
     tpost = post_data['temperature_posterior']
     nbands = len(band_wl)
     cf_alpha = np.clip(1.3-nbands*0.0125, 0.05, 1.0)
@@ -783,14 +786,28 @@ def posteriors(
         theme=theme.color,
         colors=[theme.dark_color, 'black'],
         bounds=tpost[1:],
+        fs=fs,
     )
-    x0, x1 = ax.get_xlim()
-    dx = 0.075*(x1-x0)
+    xmin, xmax = ax.get_xlim()
+    dx = 0.05
     for i in range(nbands):
         cf = cf_median[:,i] / np.amax(cf_median[:,i])
-        ax.plot(x0+cf*dx, pressure/pc.bar, 'k', alpha=cf_alpha)
-    ax.set_xlim(x0,x1)
+        ax.plot(xmin+cf*dx*(xmax-xmin), pressure/pc.bar, 'k', alpha=cf_alpha)
+    ax.set_xlim(xmin,xmax)
+
+    ax.text(
+        0.0, 1.015, cf_lab,
+        transform=ax.transAxes, va='bottom', fontsize=fs-3,
+    )
+    ax.axvline(
+        xmin+dx*(xmax-xmin), color='k', lw=0.5, alpha=0.35, dashes=(15,3),
+    )
+    ax.plot(
+        [dx, dx], [1.0, 1.015], lw=0.75, c='k',
+        clip_on=False, transform=ax.transAxes,
+    )
     plt.savefig(f'{root}_temperature_posteriors.png', dpi=dpi)
+
 
     # Volume mixing ratios
     nsamples, nlayers, nspecies = np.shape(post_data['vmr_posterior'])
@@ -817,15 +834,14 @@ def posteriors(
             colors.append(next(free_colors))
 
     ylim = np.amax(pressure/pc.bar), np.amin(pressure/pc.bar)
-    fs = 12
-    # narrower posteriors on top of wider ones
+    # draw narrower posteriors on top of wider ones
     d_vmr = np.median(np.log(post_vmr[1]) - np.log(post_vmr[0]), axis=0)
-    zorder = [sorted(d_vmr, reverse=True).index(val) for val in d_vmr]
+    zorder = [sorted(d_vmr, reverse=True).index(val)-nmol_show for val in d_vmr]
 
     fig = plt.figure()
     fig.clf()
     ax = plt.subplot(111)
-    plt.subplots_adjust(0.12, 0.1, 0.98, 0.97)
+    plt.subplots_adjust(0.12, 0.1, 0.98, 0.95)
     for j in range(nmol_show):
         spec = plot_species[j]
         col = to_rgba(colors[j])
@@ -852,15 +868,27 @@ def posteriors(
     ax.tick_params(which='both', right=True, direction='in', labelsize=fs-1)
     pax = ax.twiny()
     xmin, xmax = np.log10(vmr_min), np.log10(vmr_max)
+    dx = 0.04
     for k in range(nbands):
         cf = cf_median[:,k] / np.amax(cf_median[:,k])
-        cf = xmin + 0.04 * (xmax-xmin) * cf
+        cf = xmin + dx*(xmax-xmin) * cf
         pax.plot(cf, pressure/pc.bar, color='k', lw=1.0, alpha=cf_alpha)
     pax.tick_params(which='both', direction='in')
     pax.set_xticks(np.log10(ax.get_xticks()))
     pax.xaxis.set_minor_locator(matplotlib.ticker.MultipleLocator())
     pax.set_xticklabels([])
     pax.set_xlim(np.log10(ax.get_xlim()))
+    pax.text(
+        0.0, 1.015, cf_lab,
+        transform=ax.transAxes, va='bottom', fontsize=fs-3,
+    )
+    pax.axvline(
+        xmin+dx*(xmax-xmin), color='k', lw=0.5, alpha=0.35, dashes=(15,3),
+    )
+    pax.plot(
+        [dx, dx], [1.0, 1.015], lw=0.75, c='k',
+        clip_on=False, transform=ax.transAxes,
+    )
     plt.savefig(f"{root}_vmr_posterior.png", dpi=dpi)
 
     for j in range(nmol_show):
@@ -871,6 +899,7 @@ def posteriors(
             color=col, alpha=0.125, ec='none', zorder=zorder[j]-nmol_show,
         )
     plt.savefig(f"{root}_vmr_posterior_2sigma.png", dpi=300)
+
 
     # Spectrum
     depth_posterior = post_data['depth_posterior']

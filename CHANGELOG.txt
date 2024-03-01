@@ -9294,3 +9294,10 @@ Updated recipes.rst
 
 Shifted the matplotlib.use('Agg') into the main() function.
 Probably not something needed, in any case.
+
+
+*****  Fr 01 Mär 2024 11:39:24 CET  *****
+
+Added labels and dashed line for contribution curves in posterior
+plots for temperature and vmr profiles.
+
