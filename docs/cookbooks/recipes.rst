@@ -22,7 +22,7 @@ Recipes list:
 
   - :ref:`line_list_hitran`
   - :ref:`line_list_exomol`
-  - :ref:`line_list_repack` (TBD)
+  - :ref:`line_list_repack`
 
 - **Opacity models**
 
@@ -58,6 +58,7 @@ Recipes list:
    vmr_free_profiles
    line_list_hitran
    line_list_exomol
+   line_list_repack
    opacity_line_sample
    passbands
    opacity_alkali

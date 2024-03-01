@@ -9301,3 +9301,7 @@ Probably not something needed, in any case.
 Added labels and dashed line for contribution curves in posterior
 plots for temperature and vmr profiles.
 
+*****
+
+Added docs for repack line-list sampling.
+

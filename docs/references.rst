@@ -7,6 +7,8 @@ References
 
 .. [Asplund2021] `Asplund et al. (2021): The chemical make-up of the Sun: A 2020 vision <https://ui.adsabs.harvard.edu/abs/2021A%26A...653A.141A>`_
 
+.. [Azzam2016] `Azzam et al. (2016): ExoMol molecular line lists - XVI. The rotation-vibration spectrum of hot H2S <https://ui.adsabs.harvard.edu/abs/2016MNRAS.460.4063A>`_
+
 .. [Blecic2016] `Blecic et al (2016): TEA: A Code Calculating Thermochemical Equilibrium Abundances <https://ui.adsabs.harvard.edu/abs/2016ApJS..225....4B>`_
 
 .. [Borysow1988] `Borysow et al. (1988): Collision-induced Rototranslational Absorption Spectra of H2-He Pairs at Temperatures from 40 to 3000 K <https://ui.adsabs.harvard.edu/abs/1988ApJ...326..509B>`_
@@ -23,6 +25,12 @@ References
 
 .. [Castelli2003] `Castelli & Krucz (2003): New Grids of ATLAS9 Model Atmospheres <https://ui.adsabs.harvard.edu/abs/2003IAUS..210P.A20C>`_
 
+.. [Chubb2018] `Chubb et al. (2018): MARVEL analysis of the measured high-resolution rovibrational spectra of H2S <https://ui.adsabs.harvard.edu/abs/2018JQSRT.218..178C>`_
+
+.. [Chubb2020] `Chubb et al. (2020): ExoMol molecular line lists - XXXVII. Spectra of acetylene <https://ui.adsabs.harvard.edu/abs/2020MNRAS.493.1531C>`_
+
+.. [Coles2019] `Coles et al. (2019): ExoMol molecular line lists - XXXV. A rotation-vibration line list for hot ammonia <https://ui.adsabs.harvard.edu/abs/2019MNRAS.490.4638C>`_
+
 .. [Cubillos2017a] `Cubillos et al. (2017): On Correlated-noise Analyses Applied to Exoplanet Light Curves <https://ui.adsabs.harvard.edu/abs/2017AJ....153....3C>`_
 
 .. [Cubillos2017b] `Cubillos (2017): An Algorithm to Compress Line-transition Data for Radiative-transfer Calculations <http://ui.adsabs.harvard.edu/abs/2017ApJ...850...32C>`_
@@ -34,6 +42,10 @@ References
 .. [Griffith2014] `Griffith (2014): Disentangling degenerate solutions from primary transit and secondary eclipse spectroscopy of exoplanets <https://ui.adsabs.harvard.edu/abs/2014RSPTA.37230086G>`_
 
 .. [Hargreaves2019] `Hargreaves et al. (2019): Spectroscopic line parameters of NO, NO2, and N2O for the HITEMP database <https://ui.adsabs.harvard.edu/abs/2019JQSRT.232...35H>`_
+
+.. [Harris2006] `Harris et al. (2006): Improved HCN/HNC linelist, model atmospheres and synthetic spectra for WZ Cas <https://ui.adsabs.harvard.edu/abs/2006MNRAS.367..400H>`_
+
+.. [Harris2008] `Harris et al. (2008): A HCN/HNC linelist, model atmospheres and synthetic spectra for carbon stars <https://ui.adsabs.harvard.edu/abs/2008MNRAS.390..143H>`_
 
 .. [Iro2005] `Iro et al. (2005): A time-dependent radiative model of HD 209458b <https://ui.adsabs.harvard.edu/abs/2005A&A...436..719I>`_
 
@@ -53,11 +65,19 @@ References
 
 .. [Madhusudhan2009] `Madhusudhan & Seager (2009): A Temperature and Abundance Retrieval Method for Exoplanet Atmospheres. <http://ui.adsabs.harvard.edu/abs/2009ApJ...707...24M>`_
 
+.. [Mant2018] `Mant et al. (2018): ExoMol molecular line lists - XXVII. Spectra of C2H4 <https://ui.adsabs.harvard.edu/abs/2018MNRAS.478.3220M>`_
+
+.. [McKemmish2016] `McKemmish et al. (2016): ExoMol line lists - XVIII. The high-temperature spectrum of VO <https://ui.adsabs.harvard.edu/abs/2016MNRAS.463..771M>`_
+
+.. [McKemmish2019] `McKemmish et al. (2019): ExoMol molecular line lists - XXXIII. The spectrum of Titanium Oxide <https://ui.adsabs.harvard.edu/abs/2019MNRAS.488.2836M>`_
+
 .. [PS1997] `Partridge & Schwenke (1997): The determination of an accurate isotope dependent potential energy surface for water from extensive ab initio calculations and experimental data <http://ui.adsabs.harvard.edu/abs/1997JChPh.106.4618P>`_
 
 .. [Piskunov1995] `Piskunov et al. (1995): VALD: The Vienna Atomic Line Data Base. <https://ui.adsabs.harvard.edu/abs/1995A&AS..112..525P>`_
 
 .. [Plez1998] `Plez (1998): A new TiO line list <http://ui.adsabs.harvard.edu/abs/1998A%26A...337..495P>`_
+
+.. [Polyansky2018] `Polyansky et al. (2018): ExoMol molecular line lists XXX: a complete high-accuracy line list for water <https://ui.adsabs.harvard.edu/abs/2018MNRAS.480.2597P>`_
 
 .. [Prsa2016] `Prsa et al. (2016): Nominal Values for Selected Solar and Planetary Quantities: IAU 2015 Resolution B3 <https://ui.adsabs.harvard.edu/abs/2016AJ....152...41P>`_
 
@@ -75,8 +95,22 @@ References
 
 .. [Speagle2019] `Speagle (2019): dynesty: A Dynamic Nested Sampling Package for Estimating Bayesian Posteriors and Evidences <https://ui.adsabs.harvard.edu/abs/2019arXiv190402180S>`_
 
-.. [Taylor2020] `Understanding and mitigating biases when studying inhomogeneous emission spectra with JWST <https://ui.adsabs.harvard.edu/abs/2020MNRAS.493.4342T>`
+.. [Taylor2020] `Taylor et al. (2020): Understanding and mitigating biases when studying inhomogeneous emission spectra with JWST <https://ui.adsabs.harvard.edu/abs/2020MNRAS.493.4342T>`_
 
 .. [Tennyson2016] `Tennyson et al. (2016): The ExoMol database: Molecular line lists for exoplanet and other hot atmospheres <http://ui.adsabs.harvard.edu/abs/2016JMoSp.327...73T>`_
 
 .. [terBraak2008] `ter Braak & Vrugt (2008): Differential Evolution Markov Chain with snooker updater and fewer chains <http://dx.doi.org/10.1007/s11222-008-9104-9>`_
+
+.. [Underwood2016] `Underwood et al. (2016): ExoMol molecular line lists - XIV. The rotation-vibration spectrum of hot SO2 <https://ui.adsabs.harvard.edu/abs/2016MNRAS.459.3890U>`_
+
+.. [Yurchenko2013] `Yurchenko et al. (2013): Vibrational transition moments of CH4 from first principles <https://ui.adsabs.harvard.edu/abs/2013JMoSp.291...69Y>`_
+
+.. [Yurchenko2014] `Yurchenko et al. (2014): ExoMol line lists - IV. The rotation-vibration spectrum of methane up to 1500 K <https://ui.adsabs.harvard.edu/abs/2014MNRAS.440.1649Y>`_
+
+.. [Yurchenko2015] `Yurchenko et al. (2015): A theoretical room-temperature line list for NH3 <https://ui.adsabs.harvard.edu/abs/2015JQSRT.152...28Y>`_
+
+.. [Yurchenko2017] `Yurchenko et al. (2017): A hybrid line list for CH4 and hot methane continuum <https://ui.adsabs.harvard.edu/abs/2017A&A...605A..95Y>`_
+
+.. [Yurchenko2020] `Yurchenko et al. (2020): ExoMol line lists - XXXIX. Ro-vibrational molecular line list for CO2 <https://ui.adsabs.harvard.edu/abs/2020MNRAS.496.5282Y>`_
+
+
