@@ -47,7 +47,7 @@ You can find HITRAN and HITEMP line lists from their website:
 
 There are 3 types of files to fetch, the ``.trans`` files, the
 ``.states`` files, and the ``.pf`` files. For this demo, we will get
-those fot the HCN line lists. We can do this with the following prompt
+those for the HCN line lists. We can do this with the following prompt
 commands:
 
 .. code:: shell
@@ -92,8 +92,8 @@ converts the ExoMol/HCN line-lists (see ``dblist``) into a TLI file (see
 Partition-function information must also be provided (see ``pflist``).
 As in this demo (see above), this is the path to a partition-function
 file (either a unique PF file for all ``dblist`` files, or one PF file
-for each ``dblist`` file). Alternatively, one can set ``pflist = tips``
-to use the partition functions from `Gamache et
+for each ``dblist`` file). Alternatively, one can set ``pflist=tips`` to
+use the partition functions from `Gamache et
 al. (2017) <https://ui.adsabs.harvard.edu/abs/2017JQSRT.203...70G>`__.
 
 Lastly, the user can specify the wavelength range of the extracted data
@@ -119,7 +119,7 @@ over a narrow region:
        1H-13C-14N__Larner.trans
 
    # Type of line-transition database, select from:
-   # [hitran exomol repack pands tioschwenke voplez]
+   # [hitran exomol repack]
    dbtype = exomol
 
    # List of partition functions for each database:
@@ -222,3 +222,19 @@ commands:
 .. code:: shell
 
    $ pbay -c opacity_exomol_HCN_cookbook.cfg
+
+Concluding reparks
+------------------
+
+This script uses a relatively *small* line-list data set (70 million
+transitions). In many other cases the ExoMol line lists reach the
+billions of line transitions, for which computing cross-section spectra
+becomes computationally unfeasible. For such cases, the ``repack`` tool
+`(Cubillos
+2017) <https://ui.adsabs.harvard.edu/abs/2017ApJ...850...32C>`__ helps
+to identify and retain the strong line transitions that dominate the
+spectrum. ``repack`` effectively the line list down to millions, without
+significantly impacting the cross section spectra. The `repack-Exomol
+tutorial <https://pyratbay.readthedocs.io/en/latest/cookbooks/line_list_exomol.html#line-list-exomol>`__
+shows how to use repack-processed ExoMol data in ``Pyrat Bay``.
+

@@ -97,7 +97,7 @@ region that we need:
    dblist = 01_hit12.par
 
    # Type of line-transition database, select from:
-   # [hitran exomol repack pands tioschwenke voplez]
+   # [hitran exomol repack]
    dbtype = hitran
 
    # List of partition functions for each database:
@@ -128,7 +128,7 @@ To generate the TLI file for HITEMP/CO we use a similar config file
    dblist = 01_hit12.par
 
    # Type of line-transition database, select from:
-   # [hitran exomol repack pands tioschwenke voplez]
+   # [hitran exomol repack]
    dbtype = hitran
 
    # List of partition functions for each database:
