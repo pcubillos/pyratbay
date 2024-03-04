@@ -42,7 +42,7 @@ class Isothermal():
         Parameters
         ----------
         pressure: 1D float iterable
-            Pressure array where to evaluate the temperature profile.
+            Pressure array (bar) where to evaluate the temperature profile.
         """
         self.name = 'isothermal'
         self.pnames = ['T_iso']
@@ -98,7 +98,7 @@ class Isothermal():
             f'Number of parameters (npars): {self.npars}\n'
             f'Parameter names (pnames): {self.pnames}\n'
             f'Parameter Latex names (texnames): {self.texnames}\n'
-            f'Pressure array (pressure, barye):\n {str_pressure}\n'
+            f'Pressure array (pressure, bar):\n {str_pressure}\n'
             f'Last evaluated profile (temperature, K):\n {self.temperature}\n'
         )
 
@@ -113,7 +113,7 @@ class Guillot():
         Parameters
         ----------
         pressure: 1D float ndarray
-            Atmospheric pressure profile (barye).
+            Atmospheric pressure profile (bar).
         gravity: 1D float ndarray or scalar
             Atmospheric gravity profile (cm s-2).
             If None, assume a constant gravity of 1 cm s-2, in which
@@ -200,14 +200,16 @@ class Guillot():
         >>> # Plot the profiles:
         >>> plt.figure(1)
         >>> plt.clf()
-        >>> plt.semilogy(tp_inv, pressure/pc.bar, color='darkorange')
-        >>> plt.semilogy(tp_non_inv, pressure/pc.bar, color='red')
+        >>> plt.semilogy(tp_inv, pressure, color='darkorange')
+        >>> plt.semilogy(tp_non_inv, pressure, color='red')
         >>> plt.ylim(1e2, 1e-7)
         """
         # Ensure Numpy array:
         if isinstance(params, (list, tuple)):
             params = np.array(params, np.double)
-        self.temperature[:] = _pt.guillot(params, self.pressure, self.gravity)
+        self.temperature[:] = _pt.guillot(
+            params, self.pressure*pc.bar, self.gravity,
+        )
         return np.copy(self.temperature)
 
     def __str__(self):
@@ -218,7 +220,7 @@ class Guillot():
             f'Number of parameters (npars): {self.npars}\n'
             f'Parameter names (pnames): {self.pnames}\n'
             f'Parameter Latex names (texnames): {self.texnames}\n'
-            f'Pressure array (pressure, barye):\n {str_pressure}\n'
+            f'Pressure array (pressure, bar):\n {str_pressure}\n'
             f'Last evaluated profile (temperature, K):\n {self.temperature}\n'
         )
 
@@ -235,7 +237,7 @@ class Madhu():
         Parameters
         ----------
         pressure: 1D float ndarray
-            Pressure array in barye.
+            Pressure array in bar.
         """
         self.name = 'madhu'
         self.pnames = ['log_p1', 'log_p2', 'log_p3', 'a1', 'a2', 'T0']
@@ -250,7 +252,7 @@ class Madhu():
         self.npars = len(self.pnames)
 
         self.pressure = pressure
-        self.logp = np.log10(pressure/pc.bar)
+        self.logp = np.log10(pressure)
         self.temperature = np.zeros_like(pressure)
         self.logp0 = np.amin(self.logp)
         # Standard deviation of smoothing kernel (~0.3 dex in pressure):
@@ -293,8 +295,8 @@ class Madhu():
         >>> # Plot the profiles:
         >>> plt.figure(1)
         >>> plt.clf()
-        >>> plt.semilogy(inv, pressure/pc.bar, color='darkgreen')
-        >>> plt.semilogy(non_inv, pressure/pc.bar, color='limegreen')
+        >>> plt.semilogy(inv, pressure, color='darkgreen')
+        >>> plt.semilogy(non_inv, pressure, color='limegreen')
         >>> plt.ylim(1e2, 1e-7)
         """
         logp1, logp2, logp3, a1, a2, T0 = params
@@ -331,7 +333,7 @@ class Madhu():
             f'Number of parameters (npars): {self.npars}\n'
             f'Parameter names (pnames): {self.pnames}\n'
             f'Parameter Latex names (texnames): {self.texnames}\n'
-            f'Pressure array (pressure, barye):\n {str_pressure}\n'
+            f'Pressure array (pressure, bar):\n {str_pressure}\n'
             f'Last evaluated profile (temperature, K):\n {self.temperature}\n'
         )
 

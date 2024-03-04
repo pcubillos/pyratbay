@@ -9332,5 +9332,10 @@ Fixed bug in docstrings for pa.temperature().
 Removed punits argument for pp.abundance(), enforced input pressure
 array to be in bar units (much simpler).
 
+*****
+
+Refactored Isothermal(), Guillot(), and Madhu() models
+to work with bar input/output pressure units.
+
 
 
