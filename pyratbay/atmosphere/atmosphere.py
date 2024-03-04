@@ -17,8 +17,6 @@ __all__ = [
     'temperature_posterior',
 ]
 
-import warnings
-
 import numpy as np
 import scipy.integrate as si
 import scipy.constants as sc
@@ -55,7 +53,7 @@ def pressure(ptop, pbottom, nlayers, units="bar", log=None, verb=0):
     Returns
     -------
     press: 1D float ndarray
-       The pressure profile (in barye units).
+       The pressure profile (in bars).
 
     Examples
     --------
@@ -65,10 +63,10 @@ def pressure(ptop, pbottom, nlayers, units="bar", log=None, verb=0):
     >>> nlayers = 9
     >>> # These are all equivalent:
     >>> p1 = pa.pressure(ptop=1e-6, pbottom=1e2, nlayers=nlayers)
-    >>> p2 = pa.pressure(1e-6, 1e2, nlayers, 'bar')
+    >>> p2 = pa.pressure(1e-6, 1e2, nlayers, units='bar')
     >>> p3 = pa.pressure('1e-6 bar', '1e2 bar', nlayers)
-    >>> p4 = pa.pressure(1e-6*pc.bar, 1e2*pc.bar, nlayers, 'barye')
-    >>> print(p1/pc.bar)
+    >>> p4 = pa.pressure(1e-6*pc.bar, 1e2*pc.bar, nlayers, units='barye')
+    >>> print(p1)
     [1.e-06 1.e-05 1.e-04 1.e-03 1.e-02 1.e-01 1.e+00 1.e+01 1.e+02]
     """
     if log is None:
@@ -77,20 +75,20 @@ def pressure(ptop, pbottom, nlayers, units="bar", log=None, verb=0):
     ptop = pt.get_param(ptop, units, gt=0.0)
     pbottom = pt.get_param(pbottom, units, gt=0.0)
 
-    ptop_txt = ptop/pt.u(units)
-    pbot_txt = pbottom/pt.u(units)
+    ptop_bar = ptop/pc.bar
+    pbottom_bar = pbottom/pc.bar
 
     if ptop >= pbottom:
         log.error(
-            f'Bottom-layer pressure ({pbot_txt:.2e} {units}) must be '
-            f'higher than the top-layer pressure ({ptop_txt:.2e} {units}).'
+            f'Bottom-layer pressure ({pbottom_bar:.2e} bar) must be '
+            f'higher than the top-layer pressure ({ptop_bar:.2e} bar).'
         )
 
-    # Create pressure array in barye (CGS) units:
-    press = np.logspace(np.log10(ptop), np.log10(pbottom), nlayers)
+    # Create pressure array in bars:
+    press = np.logspace(np.log10(ptop_bar), np.log10(pbottom_bar), nlayers)
     log.head(
         f'Creating {nlayers}-layer atmospheric model between '
-        f'{pbot_txt:.1e} and {ptop_txt:.1e} {units}.'
+        f'{pbottom_bar:.1e} and {ptop_bar:.1e} {units}.'
     )
     return press
 
@@ -104,7 +102,7 @@ def temperature(tmodel, pressure=None, nlayers=None, log=None, params=None):
     tmodel: String
         Name of the temperature model.
     pressure: 1D float ndarray
-        Atmospheric pressure profile in barye units.
+        Atmospheric pressure profile in bars.
     nlayers: Integer
         Number of pressure layers.
     log: Log object
@@ -226,7 +224,7 @@ def chemistry(
     chem_model: String
         Name of chemistry model, select from: 'uniform' or 'tea'
     pressure: 1D float ndarray
-        Atmospheric pressure profile (barye).
+        Atmospheric pressure profile (bars).
     temperature: 1D float ndarray
         Atmospheric temperature profile (Kelvin).
     species: 1D string list
@@ -312,7 +310,7 @@ def chemistry(
 
     log.head("\nCompute chemical abundances.")
     chem_network = cat.Network(
-        pressure/pc.bar, temperature, species,
+        pressure, temperature, species,
         metallicity=metallicity,
         e_abundances=e_abundances,
         e_scale=e_scale,
@@ -355,7 +353,7 @@ def hydro_g(pressure, temperature, mu, g, p0=None, r0=None):
     Parameters
     ----------
     pressure: 1D float ndarray
-        Atmospheric pressure for each layer (in barye).
+        Atmospheric pressure for each layer (in bar).
     temperature: 1D float ndarray
         Atmospheric temperature for each layer (in K).
     mu: 1D float ndarray
@@ -363,7 +361,7 @@ def hydro_g(pressure, temperature, mu, g, p0=None, r0=None):
     g: Float
         Atmospheric gravity (in cm s-2).
     p0: Float
-        Reference pressure level (in barye) where radius(p0) = r0.
+        Reference pressure level (in bar) where radius(p0) = r0.
     r0: Float
         Reference radius level (in cm) corresponding to p0.
 
@@ -387,7 +385,7 @@ def hydro_g(pressure, temperature, mu, g, p0=None, r0=None):
     >>> mu = np.tile(2.3, nlayers)
     >>> g = pc.G * pc.mjup / pc.rjup**2
     >>> r0 = 1.0 * pc.rjup
-    >>> p0 = 1.0 * pc.bar
+    >>> p0 = 1.0  # bar
     >>> # Radius profile in Jupiter radii:
     >>> radius = pa.hydro_g(pressure, temperature, mu, g, p0, r0) / pc.rjup
     >>> print(radius)
@@ -423,7 +421,7 @@ def hydro_m(pressure, temperature, mu, mass, p0, r0):
     Parameters
     ----------
     pressure: 1D float ndarray
-        Atmospheric pressure for each layer (in barye).
+        Atmospheric pressure for each layer (in bar).
     temperature: 1D float ndarray
         Atmospheric temperature for each layer (in K).
     mu: 1D float ndarray
@@ -431,7 +429,7 @@ def hydro_m(pressure, temperature, mu, mass, p0, r0):
     mass: Float
         Object's mass (in g).
     p0: Float
-        Reference pressure level (in barye) where radius(p0) = r0.
+        Reference pressure level (in bar) where radius(p0) = r0.
     r0: Float
         Reference radius level (in cm) corresponding to p0.
 
@@ -457,7 +455,7 @@ def hydro_m(pressure, temperature, mu, mass, p0, r0):
     >>> mu = np.tile(2.3, nlayers)
     >>> mplanet = 1.0 * pc.mjup
     >>> r0 = 1.0 * pc.rjup
-    >>> p0 = 1.0 * pc.bar
+    >>> p0 = 1.0  # bar
     >>> # Radius profile in Jupiter radii:
     >>> radius = pa.hydro_m(pressure, temperature, mu, mplanet, p0, r0)/pc.rjup
     >>> print(radius)
@@ -636,7 +634,7 @@ def ideal_gas_density(abundances, pressure, temperature):
         Species volume mixing fraction.
         Can have a 2D shape of [nlayers,nmol] or a 1D shape of [nlayers]
     pressure: 1D array
-        Atmospheric pressure profile (in barye units).
+        Atmospheric pressure profile (in bars).
     temperature: 1D array
         Atmospheric temperature profile (in kelvin).
 
@@ -653,15 +651,15 @@ def ideal_gas_density(abundances, pressure, temperature):
     >>> temperature = np.tile(1500.0, nlayers)
     >>> species = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
     >>> abundances = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
-    >>> qprofiles = pa.uniform(pressure, temperature, species, abundances)
-    >>> dens = pa.ideal_gas_density(qprofiles, pressure, temperature)
+    >>> vmr = pa.uniform(abundances, nlayers)
+    >>> dens = pa.ideal_gas_density(vmr, pressure, temperature)
     >>> print(dens[0])
     [4.10241993e+10 7.24297303e+09 4.82864869e+06 4.82864869e+06
      4.82864869e+02 4.82864869e+06]
     """
     if np.shape(abundances) == np.shape(pressure):
-        return abundances * pressure/temperature / pc.k
-    return abundances * np.expand_dims(pressure/temperature, axis=1) / pc.k
+        return abundances * (pressure*pc.bar) / (temperature*pc.k)
+    return abundances*np.expand_dims(pressure/temperature,axis=1) * pc.bar/pc.k
 
 
 def equilibrium_temp(

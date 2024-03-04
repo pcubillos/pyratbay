@@ -13,7 +13,7 @@ import pyratbay.constants as pc
 os.chdir(pc.ROOT+'tests')
 
 
-expected_pressure = np.logspace(-2, 9, 15)
+expected_pressure = np.logspace(-8, 3, 15)
 
 expected_temp_guillot = np.array(
       [1046.89057381, 1046.89075751, 1046.89192532, 1046.89933754,
@@ -93,7 +93,7 @@ expected_vmr_tea_H2O = [
 
 
 def test_pressure_default_units():
-    ptop    = 1e-8
+    ptop = 1e-8
     pbottom = 1e3
     nlayers = 15
     pressure = pa.pressure(ptop, pbottom, nlayers)
@@ -101,24 +101,31 @@ def test_pressure_default_units():
 
 
 def test_pressure_floats():
-    ptop    = 1e-8
+    ptop = 1e-8
     pbottom = 1e3
     nlayers = 15
-    units   = "bar"
+    units = "bar"
     pressure = pa.pressure(ptop, pbottom, nlayers, units)
     np.testing.assert_allclose(pressure, expected_pressure)
 
 
 def test_pressure_with_units():
-    ptop    = "1e-8 bar"
+    ptop = "1e-8 bar"
     pbottom = "1e3 bar"
     nlayers = 15
     pressure = pa.pressure(ptop, pbottom, nlayers)
     np.testing.assert_allclose(pressure, expected_pressure)
 
 
-@pytest.mark.parametrize("params",
-    [1500.0, [1500.0], (1500,), np.array([1500.0])])
+@pytest.mark.parametrize(
+    "params",
+    [
+        1500.0,
+        [1500.0],
+        (1500,),
+        np.array([1500.0])
+    ],
+)
 def test_tmodel_isothermal(params):
     nlayers = 100
     pressure = np.logspace(-8, 2, nlayers)
@@ -206,7 +213,7 @@ def test_uniform_error():
     abundances = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
     match = "The number of layers has to be larger than zero"
     with pytest.raises(ValueError, match=match):
-        vmr = pa.uniform(abundances, nlayers)
+        pa.uniform(abundances, nlayers)
 
 
 def test_hydro_g():
@@ -217,7 +224,7 @@ def test_hydro_g():
     mu = np.tile(2.3, nlayers)
     g = pc.G * pc.mjup / pc.rjup**2
     r0 = 1.0 * pc.rjup
-    p0 = 1.0 * pc.bar
+    p0 = 1.0  # bar
     # Radius profile in Jupiter radii:
     radius = pa.hydro_g(pressure, temperature, mu, g, p0, r0) / pc.rjup
     np.testing.assert_allclose(radius, radius_g)
@@ -231,7 +238,7 @@ def test_hydro_m():
     mu = np.tile(2.3, nlayers)
     Mp = 1.0 * pc.mjup
     r0 = 1.0 * pc.rjup
-    p0 = 1.0 * pc.bar
+    p0 = 1.0  # bar
     radius = pa.hydro_m(pressure, temperature, mu, Mp, p0, r0) / pc.rjup
     # Radius profile in Jupiter radii:
     np.testing.assert_allclose(radius, radius_m)
@@ -245,13 +252,14 @@ def test_hydro_m_ultra_puff():
     mu = np.tile(2.3, nlayers)
     Mp = 0.1 * pc.mjup
     r0 = 2.0 * pc.rjup
-    p0 = 1.0 * pc.bar
+    p0 = 1.0  # bar
     radius = pa.hydro_m(pressure, temperature, mu, Mp, p0, r0) / pc.rjup
 
     puff_radius = np.array([
        23.59979187, 10.78753812,  6.99174271,  5.17191017,  4.10376853,
         3.40130545,  2.90418177,  2.5338435 ,  2.24727349,  2.01893776,
-        1.83272274,  1.67795772,  1.54729571])
+        1.83272274,  1.67795772,  1.54729571,
+    ])
 
     assert np.isinf(radius[0])
     assert np.isinf(radius[1])
@@ -323,7 +331,7 @@ def test_mean_weight_fail():
     abundances = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
     match = "Either species or mass arguments must be specified"
     with pytest.raises(ValueError, match=match):
-        mu = pa.mean_weight(abundances)
+        pa.mean_weight(abundances)
 
 
 def test_ideal_gas_density_2D():
@@ -353,11 +361,11 @@ def test_ideal_gas_density_1D():
 
 
 def test_teq():
-    tstar  = 6091.0
-    rstar  = 1.19 * pc.rsun
+    tstar = 6091.0
+    rstar = 1.19 * pc.rsun
     smaxis = 0.04747 * pc.au
-    tstar_unc  = 10.0
-    rstar_unc  = 0.02 * pc.rsun
+    tstar_unc = 10.0
+    rstar_unc = 0.02 * pc.rsun
     smaxis_unc = 0.00046 * pc.au
     A = 0.3
     f = 1.0
@@ -368,8 +376,8 @@ def test_teq():
 
 
 def test_teq_no_uncertainties():
-    tstar  = 6091.0
-    rstar  = 1.19 * pc.rsun
+    tstar = 6091.0
+    rstar = 1.19 * pc.rsun
     smaxis = 0.04747 * pc.au
     A = 0.3
     f = 1.0
@@ -412,8 +420,7 @@ def test_transit_path_nskip():
 
 def test_chemistry_uniform():
     nlayers = 11
-    punits = 'bar'
-    pressure = pa.pressure(1e-8, 1e2, nlayers, punits)
+    pressure = pa.pressure(1e-8, 1e2, nlayers, units='bar')
     tmodel = pa.tmodels.Isothermal(pressure)
     temperature = tmodel(1500.0)
     species = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
@@ -484,7 +491,8 @@ def test_chemistry_escale():
     expected_rel_abundance = np.array(
         [2.88403150e-05, 1.0, 8.20351544e-02, 6.76082975e-05, 4.89778819e-03])
     np.testing.assert_allclose(
-        chem_network.element_rel_abundance, expected_rel_abundance)
+        chem_network.element_rel_abundance, expected_rel_abundance,
+    )
 
 
 def test_chemistry_eratio():
@@ -500,7 +508,8 @@ def test_chemistry_eratio():
     expected_rel_abundance = np.array(
         [9.79557639e-04, 1.0, 8.20351544e-02, 6.76082975e-05, 4.89778819e-04])
     np.testing.assert_allclose(
-        chem_network.element_rel_abundance, expected_rel_abundance)
+        chem_network.element_rel_abundance, expected_rel_abundance,
+    )
 
 
 def test_chemistry_metallicity_escale():
@@ -520,7 +529,8 @@ def test_chemistry_metallicity_escale():
     expected_rel_abundance = np.array(
         [2.88403150e-05, 1.0, 8.20351544e-02, 6.76082975e-06, 4.89778819e-03])
     np.testing.assert_allclose(
-        chem_network.element_rel_abundance, expected_rel_abundance)
+        chem_network.element_rel_abundance, expected_rel_abundance,
+    )
 
 
 @pytest.mark.parametrize('e_ratio', [{}, {'C_O': 2.9512092}])
@@ -560,35 +570,36 @@ def test_chemistry_tea_metallicity_eabundances(e_abundances):
 
 def test_chemistry_mismatch_nspecies():
     nlayers = 11
-    punits = 'bar'
-    pressure = pa.pressure(1e-8, 1e2, nlayers, punits)
+    pressure = pa.pressure(1e-8, 1e2, nlayers, units='bar')
     tmodel = pa.tmodels.Isothermal(pressure)
     temperature = tmodel(1500.0)
     species = ["H2", "He", "H2O", "CO", "CO2"]
     abundances  = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
     match = "Species (5) and q_uniform array lengths (6) don't match"
     with pytest.raises(ValueError, match=re.escape(match)):
-        chem = pa.chemistry(
+        pa.chemistry(
             'uniform', pressure, temperature, species, q_uniform=abundances,
         )
 
 
 def test_chemistry_mismatch_nlayers():
     nlayers = 11
-    punits = 'bar'
-    pressure = pa.pressure(1e-8, 1e2, nlayers, punits)
+    pressure = pa.pressure(1e-8, 1e2, nlayers, units='bar')
     tmodel = pa.tmodels.Isothermal(pressure[:-1])
     temperature = tmodel(1500.0)
     species = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
-    abundances  = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
+    #abundances  = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
     match = "pressure (11) and temperature array lengths (10) don't match"
     with pytest.raises(ValueError, match=re.escape(match)):
-        chem = pa.chemistry('uniform', pressure, temperature, species)
+        pa.chemistry('uniform', pressure, temperature, species)
 
 
-@pytest.mark.parametrize("qcap,qcap_result",
-    [(1e-3, False),
-     (1e-4, True)],
+@pytest.mark.parametrize(
+    "qcap,qcap_result",
+    [
+        (1e-3, False),
+        (1e-4, True),
+    ],
 )
 def test_qcapcheck(qcap, qcap_result):
     nlayers = 11

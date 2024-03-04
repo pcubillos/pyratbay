@@ -9305,3 +9305,21 @@ plots for temperature and vmr profiles.
 
 Added docs for repack line-list sampling.
 
+*****
+
+Tweaked line-list docs.
+
+
+
+*****  Mo 04 Mär 2024 12:12:34 CET  *****
+
+Started porting all (or most) pressure default units to bars.
+Refactored pa.pressure() to return pressures in bars.
+Updated pa.pressure() docs.
+
+Refactored pa.chemistry() pa.hydro_g(), pa.hydro_m() and
+pa.ideal_gas_density() to receive pressure values in bars.
+Updated docs.
+
+Still, there are many other routines breaking that need to be fixed.
+
