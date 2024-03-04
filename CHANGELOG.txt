@@ -9327,4 +9327,10 @@ Still, there are many other routines breaking that need to be fixed.
 
 Fixed bug in docstrings for pa.temperature().
 
+*****
+
+Removed punits argument for pp.abundance(), enforced input pressure
+array to be in bar units (much simpler).
+
+
 

@@ -561,7 +561,7 @@ def temperature(
 
 def abundance(
         vol_mix_ratios, pressure, species,
-        highlight=None, xlim=None, punits='bar',
+        highlight=None, xlim=None,
         colors=None, dashes=None, filename=None,
         lw=2.0, fignum=505, fs=13, legend_fs=None, ax=None, dpi=300,
     ):
@@ -573,7 +573,7 @@ def abundance(
     vol_mix_ratios: 2D float ndarray
         Atmospheric volume mixing ratios to plot [nlayers,nspecies].
     pressure: 1D float ndarray
-        Atmospheric pressure [nlayers], units are given by punits argument.
+        Atmospheric pressure [nlayers], in bar units.
     species: 1D string iterable
         Atmospheric species names [nspecies].
     highlight: 1D string iterable
@@ -584,8 +584,6 @@ def abundance(
         If None, all input species are highlighted.
     xlim: 2-element float iterable
         Volume mixing ratio plotting boundaries.
-    punits: String
-        Pressure units.
     colors: 1D string iterable
         List of colors to use.
         - If len(colors) >= len(species), colors are assigned to each
@@ -682,7 +680,6 @@ def abundance(
     if dashes is None or len(dashes) != len(species):
         dashes = _dashes
 
-    press = pressure / pt.u(punits)
     # Plot the results:
     if ax is None:
         plt.figure(fignum, (7,5))
@@ -691,7 +688,7 @@ def abundance(
     for spec in highlight:
         imol = list(species).index(spec)
         ax.loglog(
-            vol_mix_ratios[:,imol], press, label=spec, lw=lw,
+            vol_mix_ratios[:,imol], pressure, label=spec, lw=lw,
             color=cols[imol], dashes=dashes[imol],
         )
     if xlim is None:
@@ -699,13 +696,13 @@ def abundance(
     for spec in lowlight:
         imol = list(species).index(spec)
         ax.loglog(
-            vol_mix_ratios[:,imol], press, label=spec, lw=lw, zorder=-1,
+            vol_mix_ratios[:,imol], pressure, label=spec, lw=lw, zorder=-1,
             color=alphatize(cols[imol],alpha=0.4), dashes=dashes[imol],
         )
     ax.set_xlim(xlim)
-    ax.set_ylim(np.amax(press), np.amin(press))
+    ax.set_ylim(np.amax(pressure), np.amin(pressure))
     ax.set_xlabel('Volume mixing ratio', fontsize=fs)
-    ax.set_ylabel(f'Pressure ({punits})', fontsize=fs)
+    ax.set_ylabel('Pressure (bar)', fontsize=fs)
     ax.tick_params(
         which='both', right=True, top=True, direction='in', labelsize=fs-2,
     )
