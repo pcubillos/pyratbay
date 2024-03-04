@@ -9323,3 +9323,8 @@ Updated docs.
 
 Still, there are many other routines breaking that need to be fixed.
 
+*****
+
+Fixed bug in docstrings for pa.temperature().
+
+

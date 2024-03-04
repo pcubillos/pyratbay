@@ -125,13 +125,13 @@ def temperature(tmodel, pressure=None, nlayers=None, log=None, params=None):
     >>> import pyratbay.atmosphere as pa
 
     >>> nlayers = 11
+    >>> pressure = pa.pressure(1e-8, 1e2, nlayers, units="bar")
     >>> # Isothermal profile:
-    >>> temp_iso = pa.temperature("isothermal", params=1500.0, nlayers=nlayers)
+    >>> temp_iso = pa.temperature("isothermal", pressure, params=1500.0)
     >>> print(temp_iso)
     [1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500.]
 
-    >>> # Three-channel Eddington-approximation profile:
-    >>> pressure = pa.pressure(1e-8, 1e2, nlayers, "bar")
+    >>> # Guillot (2010) temperature profile:
     >>> params = np.array([-4.84, -0.8, -0.8, 0.5, 1200.0, 100.0])
     >>> temp = pa.temperature('guillot', pressure, params=params)
     >>> print(temp)
