@@ -29,7 +29,7 @@ class Line_Sample():
         cs_files: String or iterable of strings
             Line-sampled cross section file(s) to read.
         pressure: 1D floar array
-            Desired pressure profile where to resample the opacities (barye).
+            Pressure profile where to resample the opacities (bar).
             If None, use the tabulated pressure array from the opacities.
             If not None, it is allowed to extrapolate to lower pressures
             but not to higher pressures.
@@ -101,7 +101,7 @@ class Line_Sample():
             rank = pt.get_mpi_rank()
 
         # Get dimensions first:
-        # Species, temperature (K), pressure (barye), and wavenumber (cm-1)
+        # Species, temperature (K), pressure (bar), and wavenumber (cm-1)
         species, self.temp, press, wn = io.read_opacity(
             self.cs_files[0], extract='arrays',
         )
@@ -377,7 +377,7 @@ class Line_Sample():
         )
         fw.write(
             'Minimum and maximum pressures in bar: '
-            f'[{np.amin(self.press/pc.bar):.3e}, {np.amax(self.press/pc.bar):.3e}]'
+            f'[{np.amin(self.press):.3e}, {np.amax(self.press):.3e}]'
         )
         fw.write(
             'Minimum and maximum wavelengths in um: '
@@ -386,7 +386,7 @@ class Line_Sample():
         fw.write(f'\nLine-sample species (species): {self.species}')
         fw.write(f'Temperature array (temps, K):\n{self.temp}')
         with np.printoptions(precision=3):
-            fw.write(f'Pressure layers (pressure, barye):\n{self.press}')
+            fw.write(f'Pressure layers (pressure, bar):\n{self.press}')
             fw.write(f'Wavenumber array (wn, cm-1):\n  {self.wn}')
 
         fw.write(

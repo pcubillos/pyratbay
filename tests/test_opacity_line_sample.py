@@ -29,12 +29,12 @@ def test_line_sample_init(cs_input):
          300.,  600.,  900., 1200., 1500., 1800., 2100., 2400., 2700., 3000.
     ])
     expected_wn = np.arange(5882.35294118, 9091.0, 1.0)
-    expected_press = np.logspace(0, 8, 51)
+    expected_pressure = pa.pressure('1e-6 bar', '1e2 bar', nlayers=51)
 
     assert ls.species == ['H2O']
     np.testing.assert_allclose(ls.wn, expected_wn)
     np.testing.assert_allclose(ls.temp, expected_temp)
-    np.testing.assert_allclose(ls.press, expected_press, rtol=3e-5)
+    np.testing.assert_allclose(ls.press, expected_pressure, rtol=3e-5)
 
     np.testing.assert_allclose(ls.tmin, 300.0)
     np.testing.assert_allclose(ls.tmax, 3000.0)
@@ -115,7 +115,7 @@ def test_line_sample_trim_bad_get_wl():
 
 def test_line_sample_resample_pressure():
     cs_files = f"{pc.ROOT}tests/outputs/exttable_test_300-3000K_1.1-1.7um.npz"
-    pressure = np.logspace(1, 7, 90)
+    pressure = pa.pressure('1e-8 bar', '1e-3 bar', nlayers=90)
     ls = op.Line_Sample(cs_files, pressure=pressure)
 
     assert ls.ntemp == 10
@@ -128,7 +128,7 @@ def test_line_sample_resample_pressure():
 
 def test_line_sample_extrapolate_low_pressure():
     cs_files = f"{pc.ROOT}tests/outputs/exttable_test_300-3000K_1.1-1.7um.npz"
-    pressure = np.logspace(-2, 7, 90)
+    pressure = pa.pressure('1e-8 bar', '10 bar', nlayers=90)
     ls = op.Line_Sample(cs_files, pressure=pressure)
 
     assert ls.ntemp == 10
@@ -305,10 +305,10 @@ def test_line_sample_temp_outbounds(call):
 
 def test_line_sample_extrapolate_high_pressure():
     cs_files = f"{pc.ROOT}tests/outputs/exttable_test_300-3000K_1.1-1.7um.npz"
-    pressure = np.logspace(0, 9, 90)
+    pressure = pa.pressure('1e-6 bar', '1e3 bar', nlayers=90)
     error = re.escape(
         "Pressure profile extends beyond the maximum tabulated pressure"
     )
     with pytest.raises(ValueError, match=error):
-        ls = op.Line_Sample(cs_files, pressure=pressure)
+        op.Line_Sample(cs_files, pressure=pressure)
 
