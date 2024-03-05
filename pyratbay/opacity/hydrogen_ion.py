@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2023 Patricio Cubillos
+# Copyright (c) 2021-2024 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -37,38 +37,45 @@ class Hydrogen_Ion():
 
         Examples
         --------
+        >>> import pyratbay.opacity as op
+        >>> import pyratbay.spectrum as ps
+        >>> import pyratbay.constants as pc
+
+        >>> wl = ps.constant_resolution_spectrum(0.1, 14.0, 15000.0)
+        >>> h_ion = op.Hydrogen_Ion(1e4/wl)
         >>> # H- cross sections in cm2 / H-_molec and cm5 / elec / H_molec
-	>>> temperature = 2000.0
-        >>> sigma_bf = h_ion.cross_section_bf
+        >>> temperature = 2000.0
+        >>> sigma_bf = h_ion.cross_section_bound_free(temperature)
         >>> sigma_ff = h_ion.cross_section_free_free(temperature)
 
         >>> # As in MacDonald & Lewis (2022), Fig (6):
-        >>> import pyratbay.constants as pc
         >>> plt.figure('MacDonald & Lewis (2022)')
         >>> plt.clf()
         >>> ax = plt.subplot(111)
         >>> plt.plot(wl, sigma_bf, color='blue', label='H- bound free')
-        >>> plt.plot(wl, sigma_ff[0], color='orange', label='H- free free')
+        >>> plt.plot(wl, sigma_ff, color='orange', label='H- free free')
         >>> plt.xscale('log')
         >>> plt.yscale('log')
         >>> ax.tick_params(which='both', right=True, top=True, direction='in')
         >>> ax.legend(loc='upper right')
         >>> plt.xlim(0.4, 14.0)
-        >>> plt.ylim(1e-40, 1.0e-14)
+        >>> plt.ylim(1.0e-40, 1.0e-35)
         >>> plt.xlabel('Wavelength (um)')
-        >>> plt.ylabel('Cross section (cm2/H- or cm5/H/e-)')
+        >>> plt.ylabel(r'Cross section (cm$^5$ / H / e-)')
 
         >>> # Lothringer (2018), Fig (6):
-	>>> temperature = np.array([4150.0, 3350.0, 2850.0])
-        >>> press = np.array([1e-4, 1e-2, 1.0]) * pc.bar
+        >>> temp = np.array([4150.0, 3350.0, 2850.0])
+        >>> press = np.array([1e-4, 1e-2, 1.0])
 
         >>> vmr_Hm = np.array([3.0e-12, 4.0e-11, 8e-11])
         >>> vmr_H = np.array([1.0, 1.0, 8e-2])
         >>> vmr_e = np.array([1.0e-4, 4.0e-6, 5.0e-7])
-        >>> n_Hm = vmr_Hm * press / pc.k / temperature
-        >>> n_H = vmr_H * press / pc.k / temperature
-        >>> n_e = vmr_e * press / pc.k / temperature
-        >>> sigma_ff = h_ion.cross_section_free_free(temperature)
+        >>> n_Hm = vmr_Hm * press*pc.bar / pc.k / temp
+        >>> n_H = vmr_H * press*pc.bar / pc.k / temp
+        >>> n_e = vmr_e * press*pc.bar / pc.k / temp
+        >>> sigma_ff = h_ion.cross_section_free_free(temp)
+        >>> dens = np.array([n_H,n_e]).T
+        >>> extinction = h_ion.calc_extinction_coefficient(temp, dens)
 
         >>> cols = 'blue xkcd:green orange'.split()
         >>> labels = ['0.1 mbar','10 mbar', '1000 mbar']
@@ -76,8 +83,7 @@ class Hydrogen_Ion():
         >>> plt.clf()
         >>> ax = plt.subplot(111)
         >>> for i in range(3):
-        >>>     sigma = sigma_bf*n_Hm[i] + (sigma_ff[i]*n_H[i]*n_e[i])
-        >>>     plt.plot(wl, sigma, c=cols[i], lw=2, label=labels[i])
+        >>>     plt.plot(wl, extinction[i], c=cols[i], lw=1.5, label=labels[i])
         >>> plt.xscale('log')
         >>> plt.yscale('log')
         >>> ax.tick_params(which='both', right=True, top=True, direction='in')
@@ -192,7 +198,7 @@ class Hydrogen_Ion():
         """
         Compute the bound-free cross section for H- in cm5/H_mol/electron.
 
-        Equation (4) of John 1988, AA, 193, 189.
+        Equation (3) of John 1988, AA, 193, 189.
         """
         scalar_temp = np.isscalar(temperature)
         if not scalar_temp:
@@ -221,7 +227,7 @@ class Hydrogen_Ion():
         density: 1D/2D float array
             Number density profiles (molecules per cm3) of H and electron
             over the given temperature array.
-            If temperature is 1D array, must be of shape [2, ntemp]
+            If temperature is 1D array, must be of shape [ntemp,2]
             If temperature is scalar, density must be of size 2.
         layer: Integer
             If not None, compute extinction coefficient only at selected layer.

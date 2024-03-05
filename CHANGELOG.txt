@@ -9344,3 +9344,10 @@ to work with bar input/output pressure units.
 Tweaked SodiumVdW() and PotassiumVdW() models to work with bar
 pressure units.
 
+*****
+
+Updated docs for Hydrogen_Ion() model.
+
+*****
+
+
