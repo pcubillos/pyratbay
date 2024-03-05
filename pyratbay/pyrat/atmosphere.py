@@ -197,7 +197,7 @@ class Atmosphere():
             self.pbottom = inputs.pbottom
             self.nlayers = inputs.nlayers
             pressure = pa.pressure(
-                self.ptop, self.pbottom, self.nlayers, 'barye', log,
+                self.ptop, self.pbottom, self.nlayers, 'bar', log,
             )
         elif p_status == 'read':
             pressure = inputs.pressure
@@ -352,8 +352,8 @@ class Atmosphere():
             )
 
         log.msg(f"Species list:\n  {self.species}", indent=2, si=4)
-        min_p = self.press[ 0] / pt.u(self.punits)
-        max_p = self.press[-1] / pt.u(self.punits)
+        min_p = self.press[ 0] * pc.bar/pt.u(self.punits)
+        max_p = self.press[-1] * pc.bar/pt.u(self.punits)
         log.msg(
             f"Abundances are given by volume mixing ratio.\n"
             f"Unit factors: radius: {self.runits}, pressure: {self.punits}, "
@@ -486,7 +486,7 @@ class Atmosphere():
                 log.warning(
                     "The atmospheric pressure array extends beyond the Hill "
                     f"radius ({rhill:.5f} {self.runits}) at pressure "
-                    f"{self.press[self.rtop]/pc.bar:.3e} bar (layer {self.rtop})."
+                    f"{self.press[self.rtop]:.3e} bar (layer {self.rtop})."
                     "  Extinction beyond this layer will be neglected."
                 )
 
@@ -502,7 +502,7 @@ class Atmosphere():
         Parameters
         ----------
         pressure: 1D float ndarray
-            Atmospheric pressure for each layer (in barye).
+            Atmospheric pressure for each layer (in bar).
         temperature: 1D float ndarray
             Atmospheric temperature for each layer (in K).
         mu: 1D float ndarray
@@ -512,7 +512,7 @@ class Atmosphere():
         gplanet: Float
             Atmospheric gravity in cm s-2 (ignored for hydro_m).
         p0: Float
-            Reference pressure level (in barye) where radius(p0) = r0.
+            Reference pressure level (in bar) where radius(p0) = r0.
         r0: Float
             Reference radius level (in cm) corresponding to p0.
         """
@@ -660,7 +660,7 @@ class Atmosphere():
     def __str__(self):
         fmt = {'float': '{:.3e}'.format}
         fw = pt.Formatted_Write()
-        press = self.press/pt.u(self.punits)
+        press = self.press*pc.bar/pt.u(self.punits)
         fw.write('Atmospheric model information:')
         fw.write(
             f"Input atmospheric file name (atmfile): '{self.atmfile}'"
@@ -686,15 +686,15 @@ class Atmosphere():
         fw.write('Orbital semi-major axis (smaxis, AU): {:.4f}', smaxis)
 
         fw.write('\nPressure display units (punits): {}', self.punits)
-        fw.write('Pressure internal units: barye')
+        fw.write('Pressure internal units: bar')
         fw.write('Pressure at top of atmosphere (ptop):        {:.2e} {}',
-            self.ptop/pt.u(self.punits), self.punits)
+            self.ptop*pc.bar/pt.u(self.punits), self.punits)
         fw.write('Pressure at bottom of atmosphere (pbottom):  {:.2e} {}',
-            self.pbottom/pt.u(self.punits), self.punits)
+            self.pbottom*pc.bar/pt.u(self.punits), self.punits)
         if self.refpressure is None:
             ref_pressure = None
         else:
-            ref_pressure = self.refpressure/pt.u(self.punits)
+            ref_pressure = self.refpressure*pc.bar/pt.u(self.punits)
         fw.write(
             'Reference pressure at rplanet (refpressure): {:.2e} {}',
             ref_pressure, self.punits,
@@ -771,7 +771,9 @@ def check_input_atmosphere(atm_file, log):
     input_atm = io.read_atm(atm_file)
     p_units, t_units, vmr_units, r_units = units = input_atm[0]
     species = input_atm[1]
-    pressure = input_atm[2] * pt.u(p_units)
+    pressure = input_atm[2]
+    if p_units != 'bar':
+        pressure *= pt.u(p_units) / pc.bar
     temperature = input_atm[3]
     vmr = input_atm[4]
     radius = input_atm[5]
@@ -779,10 +781,10 @@ def check_input_atmosphere(atm_file, log):
         radius *= pt.u(r_units)
 
     # Check that the layers are sorted from top to bottom:
-    sort    = np.all(np.ediff1d(pressure) > 0)
+    sort = np.all(np.ediff1d(pressure) > 0)
     reverse = np.all(np.ediff1d(pressure) < 0)
     if radius is not None:
-        sort    &= np.all(np.ediff1d(radius) < 0)
+        sort &= np.all(np.ediff1d(radius) < 0)
         reverse &= np.all(np.ediff1d(radius) > 0)
 
     if sort:  # Layers are in the correct order
@@ -809,8 +811,8 @@ def check_pressure(inputs, log):
     """
     if inputs.ptop is not None and inputs.pbottom is not None:
         if inputs.pbottom <= inputs.ptop:
-            pbottom = inputs.pbottom / pt.u(inputs.punits)
-            ptop = inputs.ptop / pt.u(inputs.punits)
+            pbottom = inputs.pbottom * pc.bar / pt.u(inputs.punits)
+            ptop = inputs.ptop * pc.bar / pt.u(inputs.punits)
             log.error(
                f'Bottom-layer pressure ({pbottom:.2e} {inputs.punits}) '
                 'must be higher than the top-layer pressure '

@@ -229,8 +229,7 @@ class Pyrat():
         if ret.irad is not None:
             self.atm.rplanet = params[ret.irad][0] * pt.u(atm.runits)
         elif ret.ipress is not None:
-            p_ref = 10.0**params[ret.ipress][0] * pc.bar
-            self.atm.refpressure = p_ref
+            self.atm.refpressure = 10.0**params[ret.ipress][0]
 
         if ret.imass is not None:
             self.atm.mplanet = params[ret.imass][0] * pt.u(self.atm.mass_units)
@@ -774,8 +773,8 @@ class Pyrat():
                 else:
                     opacities.append(model.name)
 
-        pmin = self.atm.press[ 0]/pc.bar
-        pmax = self.atm.press[-1]/pc.bar
+        pmin = self.atm.press[ 0]
+        pmax = self.atm.press[-1]
         wlmin = 1.0/(self.spec.wn[-1]*pc.um)
         wlmax = 1.0/(self.spec.wn[ 0]*pc.um)
         return (

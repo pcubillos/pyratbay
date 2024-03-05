@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2023 Patricio Cubillos
+# Copyright (c) 2021-2024 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import ctypes
@@ -168,7 +168,7 @@ def extinction(pyrat, indices, grid=False, add=False, skip_mol=[]):
         if grid:  # Take from grid
             itemp = int(index / atm.nlayers)  # Temp. index in EC table
             temp = pyrat.ex.temp[itemp]
-            density = atm.vmr[ilayer]*pressure / (pc.k*temp)
+            density = atm.vmr[ilayer]*pressure*pc.bar / (pc.k*temp)
             iso_pf = pyrat.ex.z[:,itemp]
             log.msg(
                 "Extinction-coefficient table: "
@@ -182,7 +182,7 @@ def extinction(pyrat, indices, grid=False, add=False, skip_mol=[]):
             iso_pf = lbl.iso_pf[:,ilayer]
             log.msg(
                 f"Calculating extinction at layer {ilayer+1:3d}/{atm.nlayers} "
-                f"(T={temp:6.1f} K, p={pressure/pc.bar:.1e} bar).",
+                f"(T={temp:6.1f} K, p={pressure:.1e} bar).",
                 indent=2,
             )
 

@@ -8,6 +8,7 @@ import shutil
 
 import numpy as np
 import pyratbay as pb
+import pyratbay.atmosphere as pa
 import pyratbay.constants as pc
 from pyratbay.constants import ROOT
 
@@ -187,7 +188,7 @@ def test_run_atmosphere_calc_pt(tmp_path, atm_input, reset_jupiter):
         remove=remove,
     )
     atm_model = pb.run(cfg)
-    expected_pressure = np.logspace(pmin, pmax, calc_nlayers)
+    expected_pressure = pa.pressure('1e-6 bar', '1e2 bar', calc_nlayers)
     expected_temperature = np.tile(calc_t, calc_nlayers)
 
     np.testing.assert_allclose(atm_model.press, expected_pressure)
@@ -216,7 +217,7 @@ def test_run_atmosphere_calc_ptq(tmp_path, atm_input, reset_jupiter):
         remove=remove,
     )
     atm_model = pb.run(cfg)
-    expected_pressure = np.logspace(pmin, pmax, calc_nlayers)
+    expected_pressure = pa.pressure('1e-6 bar', '1e2 bar', calc_nlayers)
     expected_temperature = np.tile(calc_t, calc_nlayers)
     expected_species = ['H2', 'He', 'H2O']
     expected_vmr = np.array([0.85, 0.149, 1e-4])
@@ -247,7 +248,7 @@ def test_run_atmosphere_calc_ptqr(tmp_path, atm_input, reset_jupiter):
         remove=remove,
     )
     atm_model = pb.run(cfg)
-    expected_pressure = np.logspace(pmin, pmax, calc_nlayers)
+    expected_pressure = pa.pressure('1e-6 bar', '1e2 bar', calc_nlayers)
     expected_temperature = np.tile(calc_t, calc_nlayers)
     expected_species = ['H2', 'He', 'H2O']
     expected_vmr = np.array([0.85, 0.149, 1e-4])
@@ -278,7 +279,7 @@ def test_run_atmosphere_read_p_calc_tq(tmp_path, atm_input, reset_jupiter):
     )
     atm_model = pb.run(cfg)
 
-    expected_pressure = np.logspace(pmin, pmax, read_nlayers)
+    expected_pressure = pa.pressure('1e-6 bar', '1e2 bar', read_nlayers)
     expected_temperature = np.tile(calc_t, read_nlayers)
     expected_species = ['H2', 'He', 'H2O']
     expected_vmr = np.array([0.85, 0.149, 1e-4])
@@ -308,7 +309,7 @@ def test_run_atmosphere_read_pt_calc_qr(tmp_path, atm_input, reset_jupiter):
     )
     atm_model = pb.run(cfg)
 
-    expected_pressure = np.logspace(pmin, pmax, read_nlayers)
+    expected_pressure = pa.pressure('1e-6 bar', '1e2 bar', read_nlayers)
     expected_temperature = np.tile(read_t, read_nlayers)
     expected_species = ['H2', 'He', 'H2O']
     expected_vmr = np.array([0.85, 0.149, 1e-4])
@@ -338,7 +339,7 @@ def test_run_atmosphere_read_p_calc_tqr(tmp_path, atm_input, reset_jupiter):
     )
     atm_model = pb.run(cfg)
 
-    expected_pressure = np.logspace(pmin, pmax, read_nlayers)
+    expected_pressure = pa.pressure('1e-6 bar', '1e2 bar', read_nlayers)
     expected_temperature = np.tile(calc_t, read_nlayers)
     expected_species = ['H2', 'He', 'H2O']
     expected_vmr = np.array([0.85, 0.149, 1e-4])
@@ -366,7 +367,7 @@ def test_run_atmosphere_calc_pq_interp_t(tmp_path, atm_input, reset_jupiter):
         reset=reset,
         remove=remove,
     )
-    expected_pressure = np.logspace(pmin, pmax, calc_nlayers)
+    expected_pressure = pa.pressure('1e-6 bar', '1e2 bar', calc_nlayers)
     expected_temperature = np.tile(read_t, calc_nlayers)
     atm_model = pb.run(cfg)
     expected_species = ['H2', 'He', 'H2O']
@@ -400,7 +401,7 @@ def test_run_atmosphere_calc_pqr_interp_t(tmp_path, atm_input, reset_jupiter):
     expected_vmr = np.array([0.85, 0.149, 1e-4])
     output_vmr = atm_model.vmr[0]
 
-    expected_pressure = np.logspace(pmin, pmax, calc_nlayers)
+    expected_pressure = pa.pressure('1e-6 bar', '1e2 bar', calc_nlayers)
     expected_temperature = np.tile(read_t, calc_nlayers)
 
     np.testing.assert_allclose(atm_model.press, expected_pressure, rtol=1e-6)
@@ -425,7 +426,7 @@ def test_run_atmosphere_read_pt_from_pt(tmp_path, reset_jupiter):
     )
     atm_model = pb.run(cfg)
 
-    expected_pressure = np.logspace(pmin, pmax, read_nlayers)
+    expected_pressure = pa.pressure('1e-6 bar', '1e2 bar', read_nlayers)
     expected_temperature = np.tile(read_t, read_nlayers)
 
     np.testing.assert_allclose(atm_model.press, expected_pressure, rtol=1e-6)
@@ -448,7 +449,7 @@ def test_run_atmosphere_calc_p_interp_t_from_pt(tmp_path, reset_jupiter):
     )
     atm_model = pb.run(cfg)
 
-    expected_pressure = np.logspace(pmin, pmax, calc_nlayers)
+    expected_pressure = pa.pressure('1e-6 bar', '1e2 bar', calc_nlayers)
     expected_temperature = np.tile(read_t, calc_nlayers)
 
     np.testing.assert_allclose(atm_model.press, expected_pressure, rtol=1e-6)
@@ -470,7 +471,7 @@ def test_run_atmosphere_read_p_calc_t_from_pt(tmp_path, reset_jupiter):
         remove=remove,
     )
     atm_model = pb.run(cfg)
-    expected_pressure = np.logspace(pmin, pmax, read_nlayers)
+    expected_pressure = pa.pressure('1e-6 bar', '1e2 bar', read_nlayers)
     expected_temperature = np.tile(calc_t, read_nlayers)
 
     np.testing.assert_allclose(atm_model.press, expected_pressure, rtol=1e-6)
@@ -495,7 +496,7 @@ def test_run_atmosphere_read_ptqr_from_atm(tmp_path, reset_jupiter):
     )
     atm_model = pb.run(cfg)
 
-    expected_pressure = np.logspace(pmin, pmax, read_nlayers)
+    expected_pressure = pa.pressure('1e-6 bar', '1e2 bar', read_nlayers)
     expected_temperature = np.tile(read_t, read_nlayers)
     expected_species = ['H2', 'He', 'H2O', 'CO']
     expected_vmr = np.array([0.85, 0.149, 1.0e-4, 1.0e-4])
@@ -521,7 +522,7 @@ def test_run_atmosphere_read_ptq_calc_r_from_atm(tmp_path, reset_jupiter):
     )
     atm_model = pb.run(cfg)
 
-    expected_pressure = np.logspace(pmin, pmax, read_nlayers)
+    expected_pressure = pa.pressure('1e-6 bar', '1e2 bar', read_nlayers)
     expected_temperature = np.tile(read_t, read_nlayers)
     expected_species = ['H2', 'He', 'H2O', 'CO']
     expected_vmr = np.array([0.85, 0.149, 1.0e-4, 1.0e-4])
@@ -547,7 +548,7 @@ def test_run_atmosphere_read_p_interp_tqr_from_atm(tmp_path, reset_jupiter):
     )
     atm_model = pb.run(cfg)
 
-    expected_pressure = np.logspace(pmin, pmax, calc_nlayers)
+    expected_pressure = pa.pressure('1e-6 bar', '1e2 bar', calc_nlayers)
     expected_temperature = np.tile(read_t, calc_nlayers)
     expected_species = ['H2', 'He', 'H2O', 'CO']
     expected_vmr = np.array([0.85, 0.149, 1.0e-4, 1.0e-4])
@@ -575,7 +576,7 @@ def test_run_atmosphere_calc_p_interp_tq_calc_r_from_atm(
     )
     atm_model = pb.run(cfg)
 
-    expected_pressure = np.logspace(pmin, pmax, calc_nlayers)
+    expected_pressure = pa.pressure('1e-6 bar', '1e2 bar', calc_nlayers)
     expected_temperature = np.tile(read_t, calc_nlayers)
     expected_species = ['H2', 'He', 'H2O', 'CO']
     expected_vmr = np.array([0.85, 0.149, 1.0e-4, 1.0e-4])
@@ -604,7 +605,7 @@ def test_run_atmosphere_take_species_from_atm(tmp_path, reset_jupiter):
     )
     atm_model = pb.run(cfg)
 
-    expected_pressure = np.logspace(pmin, pmax, read_nlayers)
+    expected_pressure = pa.pressure('1e-6 bar', '1e2 bar', read_nlayers)
     expected_temperature = np.tile(read_t, read_nlayers)
     expected_species = ['H2', 'He', 'H2O', 'CO']
     expected_vmr = np.array([

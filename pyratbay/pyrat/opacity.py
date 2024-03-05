@@ -78,7 +78,7 @@ class Opacity():
             with np.printoptions(formatter={'float':'{:.2f}'.format}):
                 str_wn = str(ls.wn)
             with np.printoptions(formatter={'float':'{:.3e}'.format}):
-                str_press = str(ls.press/pc.bar)
+                str_press = str(ls.press)
             log.msg(
                 f"Species names: {ls.species}\n"
                 f"Temperatures (K):\n   {str_temp}\n"

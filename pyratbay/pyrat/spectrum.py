@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2023 Patricio Cubillos
+# Copyright (c) 2021-2024 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -478,6 +478,7 @@ def two_stream(pyrat):
     spec.flux_down = np.zeros((nlayers, spec.nwave))
     spec.flux_up = np.zeros((nlayers, spec.nwave))
 
+    # TBD: Make this an error if any data is not there
     is_irradiation = (
         spec.starflux is not None
         and pyrat.atm.smaxis is not None
@@ -485,10 +486,12 @@ def two_stream(pyrat):
     )
     # Top boundary condition:
     if is_irradiation:
-        spec.flux_down[0] = \
+        spec.flux_down[pyrat.atm.rtop] = \
             pyrat.atm.beta_irr * (phy.rstar/pyrat.atm.smaxis)**2 * spec.starflux
     # Eqs. (B6) of Heng et al. (2014):
     for i in range(nlayers-1):
+    # TBD: Can I make this work of rtop is below the top layer?
+    #for i in range(pyrat.atm.rtop, nlayers-1):
         spec.flux_down[i+1] = (
             trans[i] * spec.flux_down[i]
             + np.pi * B[i] * (1-trans[i])
@@ -498,6 +501,7 @@ def two_stream(pyrat):
 
     spec.flux_up[nlayers-1] = spec.flux_down[nlayers-1] + spec.f_int
     for i in reversed(range(nlayers-1)):
+    #for i in reversed(range(pyrat.atm.rtop, nlayers-1)):
         spec.flux_up[i] = (
             trans[i] * spec.flux_up[i+1]
             + np.pi * B[i+1] * (1-trans[i])

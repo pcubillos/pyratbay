@@ -9378,3 +9378,7 @@ Add units to output when requesting all properties.
 
 Modified io.write_atm() to receive input pressures in bar units.
 
+*****
+
+Updated Pyrat() object and methods to work with pressure bar inputs.
+
