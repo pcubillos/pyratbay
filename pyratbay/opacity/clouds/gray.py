@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2023 Patricio Cubillos
+# Copyright (c) 2021-2024 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -19,15 +19,13 @@ class CCSgray():
     """
     def __init__(self, pressure, wn):
         self.name = 'ccsgray' # Model name is lowercased class name
-        self.pressure = pressure / pc.bar
+        self.pressure = pressure
         self.wn = wn
         self.nwave = len(wn)
         self.nlayers = len(pressure)
         # log10 of cross-section scale factor, top, and bottom pressure (bar)
         self.pars = [0.0, -4.0, 2.0]
-        self.npars = len(self.pars)  # Number of model fitting parameters
-        self.ec = np.zeros((self.nlayers, self.nwave))
-        # Fitting-parameter names (plain text and figure labels):
+        # Fitting-parameter names:
         self.pnames = [
             'log_k_gray',
             'log_p_top',
@@ -39,6 +37,8 @@ class CCSgray():
             r'$\log_{10}(p_{\rm bot})\ ({\rm bar})$',
         ]
         self.s0 = 5.31e-27  # Default coss-section (cm-2 molec-1)
+        self.npars = len(self.pars)  # Number of model fitting parameters
+        self.ec = np.zeros((self.nlayers, self.nwave))
 
     def calc_cross_section(self):
         """
@@ -96,7 +96,7 @@ class Deck():
     """
     def __init__(self, pressure, wn):
         self.name = 'deck'
-        self.pressure = pressure / pc.bar
+        self.pressure = pressure
         self.wn = wn
         self.nwave = len(wn)
         self.nlayers = len(pressure)
@@ -122,8 +122,13 @@ class Deck():
         ----------
         radius: 1D float ndarray
             Atmospheric radius profile (in cm).
-        temp: 1D float ndarray
+        temperature: 1D float ndarray
             Atmospheric temperature profile (in Kelvin degree).
+        pars: 1D float iterable
+            If not None, update the model parameters with input values
+        layer: integer
+            If not None, check whether the cloud top is above or below
+            the given atmospheric layer at this index.
         """
         if pars is not None:
             self.pars[:] = pars

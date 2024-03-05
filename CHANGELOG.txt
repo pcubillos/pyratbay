@@ -9358,3 +9358,7 @@ Updated docs and tests.
 
 Updated docstings for vmr_models.py classes.
 
+*****
+
+Modified gray cloud models to to take pressure inputs in bar units.
+
