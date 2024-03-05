@@ -9354,3 +9354,7 @@ Modified routines in broadening.py to take pressure inputs in bar
 units.
 Updated docs and tests.
 
+*****
+
+Updated docstings for vmr_models.py classes.
+

@@ -116,7 +116,7 @@ class IsoVMR():
         species: String
             The atmospheric species name for this VMR profile model.
         pressure: 1D float iterable
-            Pressure array where to evaluate the temperature profile.
+            Pressure array (bar) where to evaluate the temperature profile.
         """
         self.species = species
         self.name = f'log_{species}'
@@ -176,7 +176,7 @@ class ScaleVMR():
         species: String
             The atmospheric species name for this VMR profile model.
         pressure: 1D float iterable
-            Pressure array where to evaluate the temperature profile.
+            Pressure array (bar) where to evaluate the temperature profile.
         vmr0: 1D float array
         """
         self.species = species
@@ -217,7 +217,7 @@ class ScaleVMR():
         >>> nlayers = 21
         >>> pressure = pa.pressure('1e-7 bar', '100 bar', nlayers)
         >>> # An initial VMR profile:
-        >>> vmr_0 = 10**(0.5*np.tanh(np.log10(pressure)-4) - 3.5)
+        >>> vmr_0 = 10**(0.5*np.tanh(np.log10(pressure)+2) - 3.5)
 
         >>> scale_vmr_H2O = pa.vmr_models.ScaleVMR('H2O', pressure, vmr_0)
         >>> # Reduce VMR by 1dex at each layer:
@@ -225,8 +225,8 @@ class ScaleVMR():
 
         >>> plt.figure(0)
         >>> plt.clf()
-        >>> plt.loglog(vmr_0, pressure/pc.bar)
-        >>> plt.loglog(vmr_H2O, pressure/pc.bar)
+        >>> plt.loglog(vmr_0, pressure)
+        >>> plt.loglog(vmr_H2O, pressure)
         >>> plt.xlim(1e-6, 1e-2)
         >>> plt.ylim(100, 1e-7)
         """
@@ -246,7 +246,7 @@ class SlantVMR():
         species: String
             The atmospheric species name for this VMR profile model.
         pressure: 1D float iterable
-            Pressure array where to evaluate the temperature profile.
+            Pressure array (bar) where to evaluate the temperature profile.
         """
         self.species = species
         self.name = f'slant_{species}'
@@ -266,7 +266,7 @@ class SlantVMR():
         ]
         self.npars = len(self.pnames)
         self.pressure = pressure
-        self.log_press = np.log10(self.pressure/pc.bar)
+        self.log_press = np.log10(self.pressure)
         self.vmr = np.tile(1.0e-20, len(pressure))
         self.type = 'free'
 
