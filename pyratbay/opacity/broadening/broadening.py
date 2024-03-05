@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Patricio Cubillos
+# Copyright (c) 2021-2024 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -314,7 +314,7 @@ def lorentz_hwhm(temperature, pressure, masses, radii, vol_mix_ratio, imol):
     temperature: Float scalar or ndarray
         Atmospheric temperature (Kelvin degree).
     pressure: Float scalar or ndarray
-        Atmospheric pressure (barye).
+        Atmospheric pressure (bar).
     masses: 1D float ndarray
         Masses of atmospheric species (AMU).
     radii: 1D float ndarray
@@ -340,7 +340,7 @@ def lorentz_hwhm(temperature, pressure, masses, radii, vol_mix_ratio, imol):
     >>> import pyratbay.constants as pc
     >>> # Lorenz HWHM at 1000K and 1 bar, for H2O and CO2:
     >>> temperature = 1000.0
-    >>> pressure = 1.0 * pc.bar
+    >>> pressure = 1.0  # bar
     >>> #                  H2O   CO2   H2    He
     >>> masses = np.array([18.0, 44.0, 2.0,  4.0])
     >>> radii  = np.array([1.6,  1.9,  1.45, 1.4]) * pc.A
@@ -357,7 +357,7 @@ def lorentz_hwhm(temperature, pressure, masses, radii, vol_mix_ratio, imol):
         for radius,mass,vmr in zip(radii, masses, vol_mix_ratio)
     )
     lor_hwhm = (
-        pressure / pc.c
+        pressure*pc.bar / pc.c
         * np.sqrt(2.0/(np.pi * pc.k * temperature * pc.amu))
         * coll_factor
     )
@@ -382,7 +382,7 @@ def min_widths(min_temp, max_temp, min_wn, max_mass, min_rad, min_press):
     min_rad: Float
         Minimum collisional radius (cm).
     min_press: Float
-        Minimum atmospheric pressure (barye).
+        Minimum atmospheric pressure (bar).
 
     Returns
     -------
@@ -400,7 +400,7 @@ def min_widths(min_temp, max_temp, min_wn, max_mass, min_rad, min_press):
     >>> min_wn   = 1.0/(10.0*pc.um)
     >>> max_mass = 18.015    # H2O molecule
     >>> min_rad  = 1.6*pc.A  # H2O molecule
-    >>> min_press = 1e-5 * pc.bar
+    >>> min_press = 1e-5 # bar
     >>> dmin, lmin = b.min_widths(min_temp, max_temp, min_wn, max_mass,
     >>>     min_rad, min_press)
     >>> print('Minimum Doppler half width: {:.2e} cm-1\n'
@@ -424,7 +424,7 @@ def min_widths(min_temp, max_temp, min_wn, max_mass, min_rad, min_press):
     # Sum_a (n_a*d_a**2 ...) ~ n_H2*d_H2 ... (assuming H2-dominated atmosphere)
     lmin = (
         np.sqrt(2.0/(np.pi * pc.k * max_temp * pc.amu))
-        * min_press / pc.c * min_diam**2.0
+        * min_press*pc.bar * min_diam**2.0 / pc.c
         * np.sqrt(1.0/max_mass + 1.0/H2_mass)
     )
 
@@ -449,7 +449,7 @@ def max_widths(min_temp, max_temp, max_wn, min_mass, max_rad, max_press):
     max_rad: Float
         Maximum collisional radius (cm).
     max_press: Float
-        Maximum atmospheric pressure (barye).
+        Maximum atmospheric pressure (bar).
 
     Returns
     -------
@@ -467,7 +467,7 @@ def max_widths(min_temp, max_temp, max_wn, min_mass, max_rad, max_press):
     >>> max_wn   = 1.0/(1.0*pc.um)
     >>> min_mass = 18.015    # H2O molecule
     >>> max_rad  = 1.6*pc.A  # H2O molecule
-    >>> max_press = 100.0*pc.bar
+    >>> max_press = 100.0 # bar
     >>> dmax, lmax = b.max_widths(min_temp, max_temp, max_wn, min_mass,
     >>>     max_rad, max_press)
     >>> print('Maximum Doppler half width: {:.2e} cm-1\n'
@@ -492,7 +492,7 @@ def max_widths(min_temp, max_temp, max_wn, min_mass, max_rad, max_press):
     # (assuming H2-dominated atmosphere)
     lmax = (
         np.sqrt(2.0/(np.pi * pc.k * min_temp * pc.amu))
-        * max_press / pc.c * max_diam**2.0
+        * max_press*pc.bar * max_diam**2.0 / pc.c
         * np.sqrt(1.0/min_mass + 1.0/H2_mass)
     )
     return dmax, lmax

@@ -9350,4 +9350,7 @@ Updated docs for Hydrogen_Ion() model.
 
 *****
 
+Modified routines in broadening.py to take pressure inputs in bar
+units.
+Updated docs and tests.
 
