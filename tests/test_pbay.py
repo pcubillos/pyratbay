@@ -13,12 +13,13 @@ from conftest import make_config
 import pyratbay as pb
 import pyratbay.constants as pc
 import pyratbay.io as io
+import pyratbay.atmosphere as pa
 from pyratbay.constants import ROOT
 
 os.chdir(ROOT + 'tests')
 
 
-expected_pressure = np.logspace(0, 8, 81)
+expected_pressure = pa.pressure('1e-6 bar', '100 bar', nlayers=81)
 expected_temperature = np.array([
     1046.89433798, 1046.89534525, 1046.89661946, 1046.89823135,
     1046.90027034, 1046.90284953, 1046.90611195, 1046.91023851,
@@ -247,7 +248,7 @@ def test_atmosphere_uniform(tmp_path):
     assert atm[0] == ('bar', 'kelvin', 'volume', None)
     np.testing.assert_equal(atm[1], np.array('H2 He Na H2O CH4 CO CO2'.split()))
     # File read-write loses precision:
-    np.testing.assert_allclose(atm[2]*pc.bar, expected_pressure, rtol=3e-5)
+    np.testing.assert_allclose(atm[2], expected_pressure, rtol=3e-5)
     np.testing.assert_allclose(atm[3], expected_temperature, rtol=1e-6)
     np.testing.assert_equal(atm[4], expected_vmr)
 
@@ -270,7 +271,7 @@ def test_atmosphere_tea_no_vmr_models(tmp_path):
     assert atmf[0] == ('bar', 'kelvin', 'volume', None)
     np.testing.assert_equal(atmf[1], expected_species)
     # File read-write loses precision:
-    np.testing.assert_allclose(atmf[2]*pc.bar, expected_pressure, rtol=1e-6)
+    np.testing.assert_allclose(atmf[2], expected_pressure, rtol=1e-6)
     np.testing.assert_allclose(atmf[3], expected_temperature, rtol=1e-6)
     np.testing.assert_allclose(atmf[4], expected_vmr, rtol=1e-6)
 
@@ -297,7 +298,7 @@ def test_atmosphere_tea_no_molpars_but_with_vmr_models(tmp_path):
     assert atmf[0] == ('bar', 'kelvin', 'volume', None)
     np.testing.assert_equal(atmf[1], expected_species)
     # File read-write loses precision:
-    np.testing.assert_allclose(atmf[2]*pc.bar, expected_pressure, rtol=1e-6)
+    np.testing.assert_allclose(atmf[2], expected_pressure, rtol=1e-6)
     np.testing.assert_allclose(atmf[3], expected_temperature, rtol=1e-6)
     np.testing.assert_allclose(atmf[4], expected_vmr, rtol=1e-6)
 
@@ -324,7 +325,7 @@ def test_atmosphere_tea_with_vmr_models(tmp_path):
     assert atmf[0] == ('bar', 'kelvin', 'volume', None)
     np.testing.assert_equal(atmf[1], expected_species)
     # File read-write loses precision:
-    np.testing.assert_allclose(atmf[2]*pc.bar, expected_pressure, rtol=1e-6)
+    np.testing.assert_allclose(atmf[2], expected_pressure, rtol=1e-6)
     np.testing.assert_allclose(atmf[3], expected_temperature, rtol=1e-6)
     np.testing.assert_allclose(atmf[4], expected_vmr_sub_solar, rtol=1e-6)
 
@@ -370,7 +371,7 @@ def test_atmosphere_hydro(tmp_path):
     np.testing.assert_equal(atmf[1],
         np.array('H2 He Na H2O CH4 CO CO2'.split()))
     # File read-write loses precision:
-    np.testing.assert_allclose(atmf[2]*pc.bar, expected_pressure, rtol=1e-6)
+    np.testing.assert_allclose(atmf[2], expected_pressure, rtol=1e-6)
     np.testing.assert_allclose(atmf[3], expected_temperature, rtol=1e-6)
     np.testing.assert_allclose(atmf[4], expected_vmr)
     np.testing.assert_allclose(atmf[5]*pc.rjup, expected_radius, rtol=1e-6)

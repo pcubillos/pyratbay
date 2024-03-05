@@ -307,7 +307,7 @@ def contribution(
     rt_path: String
         Radiative-transfer observing geometry (emission or transit).
     pressure: 1D float ndarray
-        Layer's pressure array (barye units).
+        Layer's pressure array (bars).
     filename: String
         Filename of the output figure.
     filters: 1D string ndarray
@@ -342,8 +342,7 @@ def contribution(
     is_emission = rt_path in pc.emission_rt
     is_transit = rt_path in pc.transmission_rt
 
-    press = pressure / pc.bar
-    p_ranges = np.amax(press), np.amin(press)
+    p_ranges = np.amax(pressure), np.amin(pressure)
     log_p_ranges = np.log10(p_ranges)
 
     if is_emission:
@@ -376,9 +375,9 @@ def contribution(
         z[i,:,-1] = zz[:,i]**(0.5+0.5*(is_transit))
         if is_emission:
             cumul = np.cumsum(zz[:,i])/np.sum(zz[:,i])
-            plo[i], phi[i] = press[cumul>lo][0], press[cumul>hi][0]
+            plo[i], phi[i] = pressure[cumul>lo][0], pressure[cumul>hi][0]
         elif is_transit:
-            plo[i], phi[i] = press[zz[:,i]<lo][0], press[zz[:,i]<hi][0]
+            plo[i], phi[i] = pressure[zz[:,i]<lo][0], pressure[zz[:,i]<hi][0]
     plo[-1] = plo[-2]
     phi[-1] = phi[-2]
     log_p_lo = np.log10(plo)
@@ -453,7 +452,7 @@ def contribution(
 
 def temperature(
         pressure, profiles=None, labels=None, colors=None,
-        bounds=None, punits='bar', ax=None, filename=None,
+        bounds=None, ax=None, filename=None,
         theme='blue', alpha=[0.75,0.5], fs=13, lw=2.0, fignum=504,
         dpi=300,
     ):
@@ -463,7 +462,7 @@ def temperature(
     Parameters
     ----------
     pressure: 1D float ndarray
-        The atmospheric pressure profile in barye.
+        The atmospheric pressure profile in bars.
     profiles: iterable of 1D float ndarrays
         Temperature profiles to plot.
     labels: 1D string iterable
@@ -475,8 +474,6 @@ def temperature(
         boundaries.
         If not None, plot shaded area between +/-1sigma and +/-2sigma
         boundaries.
-    punits: String
-        Pressure units for output plot (input units are always barye).
     ax: AxesSubplot instance
         If not None, plot into the given axis.
     filename: String
@@ -499,8 +496,6 @@ def temperature(
     ax: AxesSubplot instance
         The matplotlib Axes of the figure.
     """
-    press = pressure / pt.u(punits)
-
     if profiles is None:
         profiles = []
     if np.ndim(profiles) == 1 and len(profiles) == len(pressure):
@@ -531,22 +526,22 @@ def temperature(
     # Note alpha != 0 does not work for ps/eps figures
     if bounds is not None and len(bounds) == 4:
         ax.fill_betweenx(
-            press, bounds[2], bounds[3],
+            pressure, bounds[2], bounds[3],
             facecolor=theme.light_color, edgecolor='none', alpha=alpha[1],
         )
     if bounds is not None and len(bounds) >= 2:
         ax.fill_betweenx(
-            press, bounds[0], bounds[1],
+            pressure, bounds[0], bounds[1],
             facecolor=theme.light_color, edgecolor='none', alpha=alpha[0],
         )
 
     for profile, color, label in zip(profiles, colors, _labels):
-        plt.plot(profile, press, color=color, lw=lw, label=label)
+        plt.plot(profile, pressure, color=color, lw=lw, label=label)
 
-    ax.set_ylim(np.amax(press), np.amin(press))
+    ax.set_ylim(np.amax(pressure), np.amin(pressure))
     ax.set_yscale('log')
     plt.xlabel('Temperature (K)', fontsize=fs)
-    plt.ylabel(f'Pressure ({punits})', fontsize=fs)
+    plt.ylabel('Pressure (bar)', fontsize=fs)
     ax.tick_params(
         which='both', right=True, top=True, direction='in', labelsize=fs-2,
     )
@@ -573,7 +568,7 @@ def abundance(
     vol_mix_ratios: 2D float ndarray
         Atmospheric volume mixing ratios to plot [nlayers,nspecies].
     pressure: 1D float ndarray
-        Atmospheric pressure [nlayers], in bar units.
+        Atmospheric pressure [nlayers], in bars.
     species: 1D string iterable
         Atmospheric species names [nspecies].
     highlight: 1D string iterable
@@ -760,7 +755,7 @@ def posteriors(
     with open(post_file, 'rb') as handle:
         post_data = pickle.load(handle)
     band_wl = post_data['band_wl']
-    pressure = post_data['pressure'] * pc.bar
+    pressure = post_data['pressure']
     cf_lab = 'transmittance' if post_data['path']=='transit' else 'contribution'
 
     # Contribution functions
@@ -789,7 +784,7 @@ def posteriors(
     dx = 0.05
     for i in range(nbands):
         cf = cf_median[:,i] / np.amax(cf_median[:,i])
-        ax.plot(xmin+cf*dx*(xmax-xmin), pressure/pc.bar, 'k', alpha=cf_alpha)
+        ax.plot(xmin+cf*dx*(xmax-xmin), pressure, 'k', alpha=cf_alpha)
     ax.set_xlim(xmin,xmax)
 
     ax.text(
@@ -830,7 +825,7 @@ def posteriors(
         else:
             colors.append(next(free_colors))
 
-    ylim = np.amax(pressure/pc.bar), np.amin(pressure/pc.bar)
+    ylim = np.amax(pressure), np.amin(pressure)
     # draw narrower posteriors on top of wider ones
     d_vmr = np.median(np.log(post_vmr[1]) - np.log(post_vmr[0]), axis=0)
     zorder = [sorted(d_vmr, reverse=True).index(val)-nmol_show for val in d_vmr]
@@ -843,7 +838,7 @@ def posteriors(
         spec = plot_species[j]
         col = to_rgba(colors[j])
         ax.fill_betweenx(
-            pressure/pc.bar, post_vmr[0,:,j], post_vmr[1,:,j],
+            pressure, post_vmr[0,:,j], post_vmr[1,:,j],
             color=col, label=spec, alpha=0.45, zorder=zorder[j],
         )
     ax.set_xscale('log')
@@ -869,7 +864,7 @@ def posteriors(
     for k in range(nbands):
         cf = cf_median[:,k] / np.amax(cf_median[:,k])
         cf = xmin + dx*(xmax-xmin) * cf
-        pax.plot(cf, pressure/pc.bar, color='k', lw=1.0, alpha=cf_alpha)
+        pax.plot(cf, pressure, color='k', lw=1.0, alpha=cf_alpha)
     pax.tick_params(which='both', direction='in')
     pax.set_xticks(np.log10(ax.get_xticks()))
     pax.xaxis.set_minor_locator(matplotlib.ticker.MultipleLocator())
@@ -892,7 +887,7 @@ def posteriors(
         spec = plot_species[j]
         col = to_rgba(colors[j])
         ax.fill_betweenx(
-            pressure/pc.bar, post_vmr[2,:,j], post_vmr[3,:,j],
+            pressure, post_vmr[2,:,j], post_vmr[3,:,j],
             color=col, alpha=0.125, ec='none', zorder=zorder[j]-nmol_show,
         )
     plt.savefig(f"{root}_vmr_posterior_2sigma.png", dpi=300)

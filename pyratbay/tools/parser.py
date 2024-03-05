@@ -191,7 +191,7 @@ class Namespace(argparse.Namespace):
         units = par[1]
         return units
 
-    def get_param(self, pname, units, desc, gt=None, ge=None):
+    def get_param(self, pname, units, desc, gt=None, ge=None, output_units=None):
         try:
             value = pt.get_param(getattr(self, pname), units)
         except ValueError as error:
@@ -199,6 +199,9 @@ class Namespace(argparse.Namespace):
 
         if value is None:
             return None
+
+        if output_units is not None:
+            value /= pt.u(output_units)
 
         if gt is not None and value <= gt:
             self._log.error(f'{desc} ({pname}) must be > {gt}')
@@ -530,7 +533,7 @@ def parse(cfile, with_log=True, mute=False):
         parse_float(args, 'tstar')
         parse_str(args,   'mstar')
         parse_str(args, 'rplanet')
-        parse_str(args,   'refpressure')
+        parse_str(args, 'refpressure')
         parse_str(args,   'mplanet')
         parse_str(args, 'mpunits')
         parse_float(args, 'gplanet')
@@ -688,25 +691,32 @@ def parse(cfile, with_log=True, mute=False):
 
     # Pressure inputs:
     args.nlayers = args.get_default(
-        'nlayers', 'Number of atmospheric layers', gt=1)
+        'nlayers', 'Number of atmospheric layers', gt=1,
+    )
     punits = args.get_default('punits', 'Pressure units')
     if punits is not None and not hasattr(pc, punits):
         log.error(f'Invalid pressure units (punits): {punits}')
+
     if punits is None and args.pbottom is not None:
         punits = args.get_units('pbottom')
     elif punits is None and args.ptop is not None:
         punits = args.get_units('ptop')
     elif punits is None and args.refpressure is not None:
         punits = args.get_units('refpressure')
-    # else, set atm.punits from atmospheric file
     args.punits = punits
 
     args.pbottom = args.get_param(
-        'pbottom', punits, 'Pressure at bottom of atmosphere', gt=0.0)
+        'pbottom', punits, 'Pressure at bottom of atmosphere',
+        gt=0.0, output_units='bar',
+    )
     args.ptop = args.get_param(
-        'ptop', punits, 'Pressure at top of atmosphere', gt=0.0)
+        'ptop', punits, 'Pressure at top of atmosphere',
+        gt=0.0, output_units='bar',
+    )
     args.refpressure = args.get_param(
-        'refpressure', punits, 'Planetary reference pressure level', gt=0.0)
+        'refpressure', punits, 'Planetary reference pressure level',
+        gt=0.0, output_units='bar',
+    )
 
     # Chemistry:
     args.chemistry = args.get_choice('chemistry', 'Chemical model', pc.chemmodels)

@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Patricio Cubillos
+# Copyright (c) 2021-2024 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -619,7 +619,7 @@ def band_integrate(spectrum, specwn, bandtrans, bandwn):
     """
     if not isinstance(bandtrans[0], Iterable):
         bandtrans = [bandtrans]
-        bandwn    = [bandwn]
+        bandwn = [bandwn]
 
     bflux = []
     for btrans, wn in zip(bandtrans, bandwn):

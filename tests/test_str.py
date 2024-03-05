@@ -80,15 +80,15 @@ Wavenumber  Wavelength          gf   Lower-state energy
   16978.07    0.588995   1.309e+00   0.000e+00
 Wavenumber (wn, cm-1):
    [12460.75 12461.75 12462.75 ... 21456.75 21457.75 21458.75]
-Pressure (pressure, barye):
-[1.000e+00 1.445e+00 2.089e+00 3.020e+00 4.365e+00 6.310e+00 9.120e+00
- 1.318e+01 1.905e+01 2.754e+01 3.981e+01 5.754e+01 8.318e+01 1.202e+02
- 1.738e+02 2.512e+02 3.631e+02 5.248e+02 7.586e+02 1.096e+03 1.585e+03
- 2.291e+03 3.311e+03 4.786e+03 6.918e+03 1.000e+04 1.445e+04 2.089e+04
- 3.020e+04 4.365e+04 6.310e+04 9.120e+04 1.318e+05 1.905e+05 2.754e+05
- 3.981e+05 5.754e+05 8.318e+05 1.202e+06 1.738e+06 2.512e+06 3.631e+06
- 5.248e+06 7.586e+06 1.096e+07 1.585e+07 2.291e+07 3.311e+07 4.786e+07
- 6.918e+07 1.000e+08]
+Pressure (pressure, bar):
+[1.000e-06 1.445e-06 2.089e-06 3.020e-06 4.365e-06 6.310e-06 9.120e-06
+ 1.318e-05 1.905e-05 2.754e-05 3.981e-05 5.754e-05 8.318e-05 1.202e-04
+ 1.738e-04 2.512e-04 3.631e-04 5.248e-04 7.586e-04 1.096e-03 1.585e-03
+ 2.291e-03 3.311e-03 4.786e-03 6.918e-03 1.000e-02 1.445e-02 2.089e-02
+ 3.020e-02 4.365e-02 6.310e-02 9.120e-02 1.318e-01 1.905e-01 2.754e-01
+ 3.981e-01 5.754e-01 8.318e-01 1.202e+00 1.738e+00 2.512e+00 3.631e+00
+ 5.248e+00 7.586e+00 1.096e+01 1.585e+01 2.291e+01 3.311e+01 4.786e+01
+ 6.918e+01 1.000e+02]
 Cross section (cross_section, cm2 molecule-1):
 [[0.000e+00 4.874e-29 ... 1.488e-28 1.486e-28]
  [0.000e+00 7.045e-29 ... 2.151e-28 2.149e-28]
@@ -108,9 +108,10 @@ def test_opacity_cloud_deck_str():
     pars = [-3.0]
     tmodel = pa.tmodels.Guillot(pressure)
     temperature = tmodel([-4.83, -0.8, 0, 0, 1200, 100])
+    p0 = 0.1  # bar
     mu = 2.3
     radius = pa.hydro_m(
-        pressure, temperature, mu, 1.0*pc.mjup, 0.1*pc.bar, 1.0*pc.rjup,
+        pressure, temperature, mu, 1.0*pc.mjup, p0, 1.0*pc.rjup,
     )
     model.calc_extinction_coefficient(radius, temperature, pars)
     assert str(model) == """\
@@ -425,7 +426,7 @@ Planetary Hill radius (rhill, Rjup):  inf
 Orbital semi-major axis (smaxis, AU): 0.0450
 
 Pressure display units (punits): bar
-Pressure internal units: barye
+Pressure internal units: bar
 Pressure at top of atmosphere (ptop):        1.00e-06 bar
 Pressure at bottom of atmosphere (pbottom):  1.00e+02 bar
 Reference pressure at rplanet (refpressure): 1.00e-01 bar

@@ -509,7 +509,7 @@ def is_number(value):
     >>> pt.is_number('none')
     """
     try:
-        val = float(value)
+        _ = float(value)
         return True
     except ValueError:
         return False
@@ -813,7 +813,7 @@ class Formatted_Write(string.Formatter):
             'threshold': threshold,
             'linewidth': numpy_fmt['lw'],
             'precision': numpy_fmt['prec'],
-            }
+        }
         with np.printoptions(**fmt):
             text = super(Formatted_Write, self).format(text, *format)
 
@@ -1078,7 +1078,7 @@ def interpolate_opacity(cs_file, pressure, wn_mask):
     cs_file: String
         Path to a cross-section file.
     pressure: 1D float array
-        The desired pressure profile in CGS units (barye).
+        The desired pressure profile in bars.
         If this is the same as the tabulated pressure, do not interpolate.
     wn_mask: 1D bool array
         A mask of wavelength points to take.

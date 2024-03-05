@@ -3,7 +3,6 @@
 
 import numpy as np
 
-from .. import constants as pc
 from .. import opacity as op
 from .. import tools as pt
 from .line_by_line import Line_By_Line

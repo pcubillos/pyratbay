@@ -451,7 +451,7 @@ def posterior_post_processing(cfg_file=None, pyrat=None):
         'vmr_posterior': vmr_posterior,
         'band_models_posterior': band_models_posterior,
         'cf_posterior_median': cf_median,
-        'pressure': pyrat.atm.press/pc.bar,
+        'pressure': pyrat.atm.press,
         'wl': wl,
         'band_wl': 1.0 / pyrat.obs.bandwn / pc.um,
         'bands_wl': [band.wl for band in pyrat.obs.filters],

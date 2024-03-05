@@ -469,7 +469,7 @@ def test_cia_borysow():
 
 def test_interpolate_opacity_no_interp():
     cs_file = 'outputs/exttable_test_300-3000K_1.1-1.7um.npz'
-    cs_shape, arrays, cs_data  = io.read_opacity(cs_file, extract='all')
+    cs_shape, cs_u, arrays, cs_data  = io.read_opacity(cs_file, extract='all')
     wn_mask = np.ones(cs_shape[3], bool)
     pressure = arrays[2]
     interp_cs = pt.interpolate_opacity(cs_file, pressure, wn_mask)
@@ -481,7 +481,7 @@ def test_interpolate_opacity_interp():
     pressure = pa.pressure('1e-6 bar', '100 bar', nlayers)
 
     cs_file = 'outputs/exttable_test_300-3000K_1.1-1.7um.npz'
-    cs_shape, arrays, cs_data  = io.read_opacity(cs_file, extract='all')
+    cs_shape, cs_u, arrays, cs_data  = io.read_opacity(cs_file, extract='all')
     wn_mask = np.ones(cs_shape[3], bool)
     interp_cs = pt.interpolate_opacity(cs_file, pressure, wn_mask)
 
@@ -534,7 +534,7 @@ def test_interpolate_opacity_extrapolate():
     pressure = pa.pressure('1e-12 bar', '100 bar', nlayers)
 
     cs_file = 'outputs/exttable_test_300-3000K_1.1-1.7um.npz'
-    cs_shape, arrays, cs_data  = io.read_opacity(cs_file, extract='all')
+    cs_shape, cs_u, arrays, cs_data  = io.read_opacity(cs_file, extract='all')
     press_table = arrays[2]
     wn_mask = np.ones(cs_shape[3], bool)
     interp_cs = pt.interpolate_opacity(cs_file, pressure, wn_mask)

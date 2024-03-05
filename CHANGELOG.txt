@@ -9382,3 +9382,9 @@ Modified io.write_atm() to receive input pressures in bar units.
 
 Updated Pyrat() object and methods to work with pressure bar inputs.
 
+*****
+
+Modified parser() to keep pressure inputs in bar units
+(ptop, pbottom, refpressure).
+
+Updated plotting routines and tests to work with bar pressures.
