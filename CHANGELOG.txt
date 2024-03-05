@@ -9339,3 +9339,8 @@ to work with bar input/output pressure units.
 
 
 
+*****  Di 05 Mär 2024 13:31:29 CET  *****
+
+Tweaked SodiumVdW() and PotassiumVdW() models to work with bar
+pressure units.
+

@@ -64,8 +64,10 @@ class VanderWaals():
         # Detuning frequency (cm-1):
         dsigma = self.detuning * (temperature/500.0)**0.6
         # Lorentz half width (cm-1):
-        lor = self.lpar * (temperature/2000.0)**(-0.7) * self.pressure/pc.atm
-
+        lor = (
+            self.lpar * (temperature/2000.0)**(-0.7) *
+            self.pressure * pc.bar/pc.atm
+        )
         voigt_det = np.zeros((self.nlayers,self.nlines))
         for j in range(self.nlines):
             wn0 = self.wn0[j]
@@ -102,10 +104,10 @@ class VanderWaals():
         voigt_det = self.voigt_det(temperature)
         if layer is None:
             nlayers = self.nlayers
-            pressure = self.pressure
+            pressure = self.pressure*pc.bar
         else:
             nlayers = 1
-            pressure = self.pressure[layer:layer+1]
+            pressure = self.pressure[layer:layer+1]*pc.bar
             temperature = temperature[layer:layer+1]
             voigt_det = voigt_det[layer:layer+1]
 
@@ -144,8 +146,10 @@ class VanderWaals():
             * np.expand_dims(self.wn0, axis=1) / pc.c
         )
         # Lorentz half width (cm-1):
-        lor = self.lpar * (temperature/2000.0)**(-0.7) * self.pressure/pc.atm
-
+        lor = (
+            self.lpar * (temperature/2000.0)**(-0.7) *
+            self.pressure * pc.bar/pc.atm
+        )
         # Calculate cross section:
         for wn0, gf, dwave, dop in zip(self.wn0, self.gf, self._dwave, doppler):
             iwave = np.abs(self.wn-wn0) < self.cutoff
@@ -238,7 +242,7 @@ class VanderWaals():
             fmt={'float':'{:.2f}'.format},
         )
         fw.write(
-            'Pressure (pressure, barye):\n{}',
+            'Pressure (pressure, bar):\n{}',
             self.pressure,
             fmt={'float':'{:.3e}'.format},
         )
@@ -274,8 +278,8 @@ class SodiumVdW(VanderWaals):
         Parameters
         ----------
         pressure: 1D float array
-            Pressure profile over which the opacities will be
-            evalulated (CGS units, barye).
+            Pressure profile (bars) over which the opacities will be
+            evalulated.
         wn: 1D float array
             Wavenumber array (cm-1 units) over which the opacities
             will be sampled (only one of wl or wn should be provided).
@@ -340,8 +344,8 @@ class PotassiumVdW(VanderWaals):
         Parameters
         ----------
         pressure: 1D float array
-            Pressure profile over which the opacities will be
-            evalulated (CGS units, barye).
+            Pressure profile (bar) over which the opacities will be
+            evalulated.
         wn: 1D float array
             Wavenumber array (cm-1 units) over which the opacities
             will be sampled (only one of wl or wn should be provided).
