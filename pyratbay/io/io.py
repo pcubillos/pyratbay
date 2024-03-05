@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2023 Patricio Cubillos
+# Copyright (c) 2021-2024 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -92,8 +92,10 @@ def load_pyrat(pfile):
     return pyrat
 
 
-def write_atm(atmfile, pressure, temperature, species=None, abundances=None,
-        radius=None, punits='bar', runits=None, header=None):
+def write_atm(
+        atmfile, pressure, temperature, species=None, abundances=None,
+        radius=None, punits='bar', runits=None, header=None,
+    ):
     r"""
     Write an atmospheric file following the Pyrat format.
 
@@ -102,7 +104,7 @@ def write_atm(atmfile, pressure, temperature, species=None, abundances=None,
     atmfile: String
         Name of output atmospheric file.
     pressure: 1D float ndarray
-        Monotonously decreasing pressure profile (in barye).
+        Monotonously decreasing pressure profile (in bar).
     temperature: 1D float ndarray
         Temperature profile for pressure layers (in Kelvin).
     species: 1D string ndarray
@@ -111,11 +113,11 @@ def write_atm(atmfile, pressure, temperature, species=None, abundances=None,
         The species mole mixing ratio (of shape [nlayers,nspecies]).
     radius: 1D float ndarray
         Monotonously increasing radius profile (in cm).
-    punits:  String
+    punits: String
         Pressure units of output.
-    runits:  String
+    runits: String
         Radius units of output.
-    header:  String
+    header: String
         Header message (comment) to include at the top of the file.
 
     Examples
@@ -126,12 +128,12 @@ def write_atm(atmfile, pressure, temperature, species=None, abundances=None,
 
     >>> atmfile = 'WASP-00b.atm'
     >>> nlayers = 5
-    >>> pressure    = pa.pressure('1e-8 bar', '1e2 bar', nlayers)
-    >>> temperature = pa.tmodels.Isothermal(nlayers)(1500.0)
-    >>> species     = "H2 He H2O".split()
-    >>> abundances  = [0.8499, 0.15, 1e-4]
-    >>> qprofiles = pa.uniform(pressure, temperature, species, abundances)
-    >>> io.write_atm(atmfile, pressure, temperature, species, qprofiles,
+    >>> pressure = pa.pressure('1e-8 bar', '1e2 bar', nlayers)
+    >>> temperature = pa.tmodels.Isothermal(pressure)(1500.0)
+    >>> species = "H2 He H2O".split()
+    >>> abundances = [0.8499, 0.15, 1e-4]
+    >>> vmr = pa.uniform(abundances, nlayers)
+    >>> io.write_atm(atmfile, pressure, temperature, species, vmr,
     >>>     punits='bar', header='# Example atmospheric file:\n')
     >>> # Print output file:
     >>> with open(atmfile, 'r') as f:
@@ -187,7 +189,7 @@ def write_atm(atmfile, pressure, temperature, species=None, abundances=None,
         f.write("".join([f"{mol:<14s}" for mol in species]))
     f.write("\n@DATA\n")
 
-    pressure = pressure/pt.u(punits)
+    pressure = pressure*pc.bar/pt.u(punits)
     if radius is not None:
         radius = radius/pt.u(runits)
 
@@ -226,7 +228,7 @@ def read_atm(atmfile):
     temp: 1D float ndarray
         The atmospheric temperature profile (of size nlayers). The
         file's @TEMPERATURE keyword indicates the ouptput units.
-    q: 2D float ndarray
+    vmr: 2D float ndarray
         The mixing ratio profiles of the atmospheric species (of size
         [nlayers,nspec]).  The file's @ABUNDANCE indicates the output
         units.
@@ -243,7 +245,7 @@ def read_atm(atmfile):
     >>> atmfile = 'WASP-00b.atm'
     >>> units, specs, pressure, temp, q, rad = io.read_atm(atmfile)
     >>> print(units, specs, pressure, temp, q, rad, sep='\n')
-    ('bar', 'kelvin', 'number', None)
+    ('bar', 'kelvin', 'volume', None)
     ['H2' 'He' 'H2O']
     [1.0000e-08 3.1623e-06 1.0000e-03 3.1623e-01 1.0000e+02]
     [1500. 1500. 1500. 1500. 1500.]
@@ -255,7 +257,7 @@ def read_atm(atmfile):
     None
     """
     atmfile = open(atmfile, "r")
-    punits, runits, tunits, qunits, species = None, None, None, None, None
+    punits, runits, tunits, vmr_units, species = None, None, None, None, None
 
     while True:
         line = atmfile.readline().strip()
@@ -273,7 +275,7 @@ def read_atm(atmfile):
         elif line == '@TEMPERATURE':
             tunits = atmfile.readline().strip()
         elif line == '@ABUNDANCE':
-            qunits = atmfile.readline().strip()
+            vmr_units = atmfile.readline().strip()
         elif line == '@SPECIES':
             species = np.asarray(atmfile.readline().strip().split())
         else:
@@ -284,15 +286,15 @@ def read_atm(atmfile):
     if tunits is None:
         raise ValueError("Atmospheric file does not have '@TEMPERATURE' header")
 
-    if qunits is None and species is not None:
+    if vmr_units is None and species is not None:
         raise ValueError("Atmospheric file does not have '@ABUNDANCE' header")
-    if species is None and qunits is not None:
+    if species is None and vmr_units is not None:
         raise ValueError("Atmospheric file does not have '@SPECIES' header")
 
     has_radius = runits is not None
-    has_q = species is not None
+    has_vmr = species is not None
 
-    nspecies = len(species) if has_q else 0
+    nspecies = len(species) if has_vmr else 0
     nrad = int(has_radius)
 
     # Read first line to count number of columns:
@@ -305,7 +307,7 @@ def read_atm(atmfile):
 
     if ncolumns != 2 + nrad + nspecies:
         rad_txt = ", 1 column for radius" if has_radius else ""
-        q_txt = f", {nspecies} columns for abundances" if has_q else ""
+        q_txt = f", {nspecies} columns for abundances" if has_vmr else ""
 
         raise ValueError(
             f"Inconsistent number of columns ({ncolumns}) in '@DATA', "
@@ -325,7 +327,7 @@ def read_atm(atmfile):
     radius = np.zeros(nlayers, np.double) if has_radius else None
     press = np.zeros(nlayers, np.double)
     temp = np.zeros(nlayers, np.double)
-    q = np.zeros((nlayers, nspecies), np.double) if has_q else None
+    vmr = np.zeros((nlayers, nspecies), np.double) if has_vmr else None
 
     # Read table:
     atmfile.seek(datastart, 0)
@@ -335,11 +337,11 @@ def read_atm(atmfile):
             radius[i] = data[0]
         press[i] = data[nrad+0]
         temp [i] = data[nrad+1]
-        if has_q:
-            q[i] = data[nrad+2:]
+        if has_vmr:
+            vmr[i] = data[nrad+2:]
 
-    units = (punits, tunits, qunits, runits)
-    return units, species, press, temp, q, radius
+    units = (punits, tunits, vmr_units, runits)
+    return units, species, press, temp, vmr, radius
 
 
 def write_spectra(spectra, wl, temperatures, filename):
@@ -577,7 +579,7 @@ def read_spectrum(filename, wn=True):
 
 def write_opacity(ofile, species, temp, press, wn, opacity):
     """
-    Write an opacity table as a binary file.
+    Write an opacity table as a binary npz file.
 
     Parameters
     ----------
@@ -589,16 +591,28 @@ def write_opacity(ofile, species, temp, press, wn, opacity):
     temp: 1D float ndarray
         Temperature array (Kelvin degree).
     press: 1D float ndarray
-        Pressure array (barye).
+        Pressure array (bar).
     wn: 1D float ndarray
         Wavenumber array (cm-1).
     opacity: 4D float ndarray
         Tabulated opacities (cm2 molecule-1) of shape
         [nspec, ntemp, nlayers, nwave].
     """
-    np.savez(ofile,
-        species=species, temperature=temp, pressure=press, wavenumber=wn,
-        opacity=opacity)
+    units = {
+        'temperature': 'K',
+        'pressure': 'bar',
+        'wavenumber': 'cm-1',
+        'cross section': 'cm2 molecule-1',
+    }
+    np.savez(
+        ofile,
+        species=species,
+        temperature=temp,
+        pressure=press,
+        wavenumber=wn,
+        opacity=opacity,
+        units=units,
+    )
 
 
 def read_opacity(ofile, extract='all'):
@@ -620,17 +634,19 @@ def read_opacity(ofile, extract='all'):
     sizes: 4-element integer tuple
         Sizes of the dimensions of the opacity table:
         (nspec, ntemp, nlayers, nwave)
+    units: dict
+        The physical units for the different quantities
     arrays: 4-element 1D ndarray tuple
         The dimensions of the opacity table:
-        - species     (string, the species names)
-        - temperature (float, Kelvin)
-        - pressure    (float, barye)
-        - wavenumber  (float, cm-1)
+        - species (string, the species names)
+        - temperature (float, K)
+        - pressure (float, bar)
+        - wavenumber (float, cm-1)
     opacity: 4D float ndarray tuple
         The tabulated opacities (cm2 molecule-1), of shape
         [nspec, ntemp, nlayers, nwave].
     """
-    with np.load(ofile) as f:
+    with np.load(ofile, allow_pickle=True) as f:
         if extract in ['arrays', 'all']:
             species = f['species']
             temp = f['temperature']
@@ -638,15 +654,29 @@ def read_opacity(ofile, extract='all'):
             wn = f['wavenumber']
         if extract in ['opacity', 'all']:
             opacity = f['opacity']
+        units = np.ndarray.item(f['units']) if 'units' in f else None
 
     if extract == 'opacity':
         return opacity
+
+    # If it does not have units, must be pyratbay<2.0, where pressures
+    # were stored in barye units, thus, need to convert to bars
+    if units is None:
+        press /= pc.bar
+        units = {
+            'temperature': 'K',
+            'pressure': 'bar',
+            'wavenumber': 'cm-1',
+            'cross section': 'cm2 molecule-1',
+        }
+
     if extract == 'arrays':
         return (species, temp, press, wn)
     if extract == 'all':
         shape = np.shape(opacity)
         return (
             shape,
+            units,
             (species, temp, press, wn),
             opacity,
         )
@@ -913,7 +943,7 @@ def read_pt(ptfile):
     Returns
     -------
     pressure: 1D float ndarray
-        Pressure profile in barye.
+        Pressure profile in bar.
     temperature: 1D float ndarray
         Temperature profile in Kelvin.
 
@@ -928,15 +958,14 @@ def read_pt(ptfile):
     >>>         f.write('{:.3e}  {:5.1f}\n'.format(p, t))
     >>> pressure, temperature = io.read_pt(ptfile)
     >>> for p,t in zip(pressure, temperature):
-    >>>     print('{:.1e} barye  {:5.1f} K'.format(p, t))
-    1.0e+00 barye  100.0 K
-    1.0e+02 barye  150.0 K
-    1.0e+04 barye  200.0 K
-    1.0e+06 barye  175.0 K
-    1.0e+08 barye  150.0 K
+    >>>     print('{:.1e} bar  {:5.1f} K'.format(p, t))
+    1.0e-06 bar  100.0 K
+    1.0e-04 bar  150.0 K
+    1.0e-02 bar  200.0 K
+    1.0e+00 bar  175.0 K
+    1.0e+02 bar  150.0 K
     """
     pressure, temperature = np.loadtxt(ptfile, usecols=(0,1), unpack=True)
-    pressure *= pc.bar
     return pressure, temperature
 
 
@@ -1372,11 +1401,11 @@ def import_xs(filename, source, read_all=True, ofile=None):
         Opacity cross-section in cm2 molecule-1.
         with shape [npress, ntemp, nwave].
     pressure: 1D float ndarray
-        Pressure sample of the opacity file (in barye units)
+        Pressure sample of the opacity file (in bars)
     temperature: 1D float ndarray
-        Temperature sample of the opacity file (in Kelvin degrees units).
+        Temperature sample of the opacity file (in Kelvin degrees).
     wavenumber: 1D float ndarray
-        Wavenumber sample of the opacity file (in cm-1 units).
+        Wavenumber sample of the opacity file (in cm-1).
     species: String
         The species name.
 
@@ -1406,17 +1435,17 @@ def import_xs(filename, source, read_all=True, ofile=None):
         with h5py.File(filename, 'r') as xs_data:
             xs = np.array(xs_data['xsecarr'])
             if read_all or ofile is not None:
-                pressure    = np.array(xs_data['p']) * pc.bar
+                pressure = np.array(xs_data['p'])
                 temperature = np.array(xs_data['t'])
-                wavenumber  = np.array(xs_data['bin_edges'])
-                species     = [xs_data['mol_name'][0]]
+                wavenumber = np.array(xs_data['bin_edges'])
+                species = [xs_data['mol_name'][0]]
 
     elif source == 'taurex':
         with open(filename, 'rb') as f:
             xs_data = pickle.load(f)
             xs = xs_data['xsecarr']
             if read_all or ofile is not None:
-                pressure = xs_data['p'] * pc.bar
+                pressure = xs_data['p']
                 temperature = xs_data['t']
                 wavenumber = xs_data['wno']
                 species = [xs_data['name']]
@@ -1480,8 +1509,8 @@ def import_tea(teafile, atmfile, req_species=None):
     # Extract per-layer data:
     nlayers = len(tea) - idata
     temperature = np.zeros(nlayers)
-    pressure    = np.zeros(nlayers)
-    abundance   = np.zeros((nlayers, nreqspecies))
+    pressure = np.zeros(nlayers)
+    abundance = np.zeros((nlayers, nreqspecies))
     for i in range(nlayers):
         data = np.asarray(tea[idata+i].split(), np.double)
         pressure[i], temperature[i] = data[0:2]
@@ -1489,19 +1518,22 @@ def import_tea(teafile, atmfile, req_species=None):
 
     # TEA pressure units are always bars:
     punits = "bar"
-    pressure = pressure * pt.u(punits)  # Set in barye units
     # File header:
     header = "# TEA atmospheric file formatted for Pyrat.\n\n"
 
-    write_atm(atmfile, pressure, temperature, req_species, abundance,
-        punits=punits, header=header)
+    write_atm(
+        atmfile, pressure, temperature, req_species, abundance,
+        punits=punits, header=header,
+    )
 
 
-def export_pandexo(pyrat, baseline, transit_duration,
-    Vmag=None, Jmag=None, Hmag=None, Kmag=None, metal=0.0,
-    instrument=None, n_transits=1, resolution=None,
-    noise_floor=0.0, sat_level=80.0,
-    save_file=True):
+def export_pandexo(
+        pyrat, baseline, transit_duration,
+        Vmag=None, Jmag=None, Hmag=None, Kmag=None, metal=0.0,
+        instrument=None, n_transits=1, resolution=None,
+        noise_floor=0.0, sat_level=80.0,
+        save_file=True,
+    ):
     """
     Parameters
     ----------
@@ -1671,7 +1703,8 @@ def export_pandexo(pyrat, baseline, transit_duration,
         save_file=save_file,
         output_path=output_path,
         output_file=output_file,
-        num_cores=pyrat.ncpu)
+        num_cores=pyrat.ncpu,
+    )
 
     if isinstance(pandexo_sim, list):
         pandexo_sim = [sim[list(sim.keys())[0]] for sim in pandexo_sim]

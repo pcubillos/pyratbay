@@ -9367,4 +9367,14 @@ Modified gray cloud models to to take pressure inputs in bar units.
 Modified Line_Sample() model to to take pressure inputs in bar units.
 Updated docstings and tests.
 
+*****
+
+Modified io.write_opacity() to include a dictionary with the units.
+Also, take and save input pressures in bar units.
+
+Modified io.read_opacity() to detect when a file was older (no units)
+in which case, scale the pressures from barye to bar (new default output).
+Add units to output when requesting all properties.
+
+Modified io.write_atm() to receive input pressures in bar units.
 

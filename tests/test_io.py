@@ -17,30 +17,9 @@ from pyratbay.constants import ROOT
 os.chdir(ROOT+'tests')
 
 
-@pytest.mark.skip(reason='wont be needed anymore (question mark)')
-def test_load_save_pyrat(tmp_path):
-    cfg = make_config(
-        tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        reset={'cpars': '1.0'},
-    )
-    pyrat = pb.run(cfg)
-    spectrum = np.copy(pyrat.spec.spectrum)
-    io.save_pyrat(pyrat)
-
-    pfile = pyrat.log.logname.replace('.log', '.pickle')
-    new_pyrat = io.load_pyrat(pfile)
-    # Check previous spectrum value still exists:
-    #np.testing.assert_allclose(new_pyrat.spec.spectrum, spectrum)
-    # Check re-run reproduces previous spectrum:
-    new_pyrat.run()
-    np.testing.assert_allclose(new_pyrat.spec.spectrum, spectrum)
-
-
-
 def test_read_write_spectrum(tmpdir):
     sfile = "spectrum_test.dat"
-    tmp_file = "{}/{}".format(tmpdir, sfile)
+    tmp_file = f"{tmpdir}/{sfile}"
 
     wl = np.linspace(1.1, 1.7, 7) * 1e-4
     spectrum = np.ones(7)
@@ -64,7 +43,7 @@ def test_read_write_spectrum(tmpdir):
 
 def test_read_write_spectrum_filter(tmpdir):
     ffile = 'filter_test.dat'
-    tmp_file = "{}/{}".format(tmpdir, ffile)
+    tmp_file = f"{tmpdir}/{ffile}"
 
     # Assert write:
     wl = np.linspace(1.4, 1.5, 20)
@@ -118,9 +97,9 @@ def test_read_spectrum_custom_header(tmpdir, header):
 def test_read_write_opacity_all(tmpdir, extract):
     ofile = "{}/opacity_test.npz".format(tmpdir)
     molID = np.array([101, 105])
-    temp  = np.linspace(300, 3000, 28)
-    press = np.logspace(-6, 2, 21)
-    wn    = np.linspace(1000, 2000, 1001)
+    temp = np.linspace(300, 3000, 28)
+    press = pa.pressure('1e-6 bar', '100 bar', nlayers=21)
+    wn = np.linspace(1000, 2000, 1001)
 
     nmol = len(molID)
     ntemp = len(temp)
@@ -129,8 +108,8 @@ def test_read_write_opacity_all(tmpdir, extract):
 
     etable = np.linspace(0.0, 1.0, nmol*ntemp*nlayers*nwave)
     etable = etable.reshape((nmol, ntemp, nlayers, nwave))
-
     io.write_opacity(ofile, molID, temp, press, wn, etable)
+
     if extract is None:
         edata = io.read_opacity(ofile)
     else:
@@ -142,11 +121,17 @@ def test_read_write_opacity_all(tmpdir, extract):
     assert nwave == 1001
     assert edata[0] == (nmol, ntemp, nlayers, nwave)
 
-    np.testing.assert_allclose(molID, edata[1][0])
-    np.testing.assert_allclose(temp, edata[1][1])
-    np.testing.assert_allclose(press, edata[1][2])
-    np.testing.assert_allclose(wn, edata[1][3])
-    np.testing.assert_allclose(etable, edata[2])
+    units = edata[1]
+    assert units['pressure'] == 'bar'
+    assert units['temperature'] == 'K'
+    assert units['wavenumber'] == 'cm-1'
+    assert units['cross section'] == 'cm2 molecule-1'
+
+    np.testing.assert_allclose(molID, edata[2][0])
+    np.testing.assert_allclose(temp, edata[2][1])
+    np.testing.assert_allclose(press, edata[2][2])
+    np.testing.assert_allclose(wn, edata[2][3])
+    np.testing.assert_allclose(etable, edata[3])
 
 
 def test_read_write_opacity_arrays(tmpdir):
@@ -174,7 +159,7 @@ def test_read_write_opacity_arrays(tmpdir):
 
 
 def test_read_write_opacity_opacity(tmpdir):
-    ofile = "{}/opacity_test.npz".format(tmpdir)
+    ofile = f"{tmpdir}/opacity_test.npz"
     molID = np.array([101, 105])
     temp  = np.linspace(300, 3000, 28)
     press = np.logspace(-6, 2, 21)
@@ -196,7 +181,7 @@ def test_read_write_opacity_opacity(tmpdir):
 
 def test_read_write_atm_pt(tmpdir):
     atmfile = "WASP-00b.atm"
-    atm = "{}/{}".format(tmpdir, atmfile)
+    atm = f"{tmpdir}/{atmfile}"
     nlayers = 11
     pressure = pa.pressure('1e-8 bar', '1e2 bar', nlayers)
     temperature = pa.tmodels.Isothermal(pressure)(1500.0)
@@ -206,7 +191,7 @@ def test_read_write_atm_pt(tmpdir):
     atm_input = io.read_atm(atm)
     assert atm_input[0] == ('bar', 'kelvin', None, None)
     assert atm_input[1] is None
-    np.testing.assert_allclose(atm_input[2], pressure/pc.bar)
+    np.testing.assert_allclose(atm_input[2], pressure)
     np.testing.assert_allclose(atm_input[3], temperature)
     assert atm_input[4] is None
     assert atm_input[5] is None
@@ -214,7 +199,7 @@ def test_read_write_atm_pt(tmpdir):
 
 def test_read_write_atm_ptq(tmpdir):
     atmfile = "WASP-00b.atm"
-    atm = "{}/{}".format(tmpdir, atmfile)
+    atm = f"{tmpdir}/{atmfile}"
     nlayers = 11
     pressure = pa.pressure('1e-8 bar', '1e2 bar', nlayers)
     temperature = pa.tmodels.Isothermal(pressure)(1500.0)
@@ -230,7 +215,7 @@ def test_read_write_atm_ptq(tmpdir):
     atm_input = io.read_atm(atm)
     assert atm_input[0] == ('bar', 'kelvin', 'volume', None)
     np.testing.assert_equal(atm_input[1], np.array(species))
-    np.testing.assert_allclose(atm_input[2], pressure/pc.bar)
+    np.testing.assert_allclose(atm_input[2], pressure)
     np.testing.assert_allclose(atm_input[3], temperature)
     np.testing.assert_allclose(atm_input[4], vmr)
     assert atm_input[5] is None
@@ -238,14 +223,15 @@ def test_read_write_atm_ptq(tmpdir):
 
 def test_read_write_atm_ptqr(tmpdir):
     atmfile = "WASP-00b.atm"
-    atm = "{}/{}".format(tmpdir, atmfile)
+    atm = f"{tmpdir}/{atmfile}"
     nlayers = 11
     pressure = pa.pressure('1e-8 bar', '1e2 bar', nlayers)
+    p0 = 1.0
     temperature = pa.tmodels.Isothermal(pressure)(1500.0)
     species = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
     abundances = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
     vmr = pa.uniform(abundances, nlayers)
-    radius = pa.hydro_g(pressure, temperature, 2.3, 2479.0, pc.bar, pc.rjup)
+    radius = pa.hydro_g(pressure, temperature, 2.3, 2479.0, p0, pc.rjup)
     io.write_atm(
         atm, pressure, temperature, species, vmr,
         radius=radius, punits='bar', runits='km',
@@ -255,7 +241,7 @@ def test_read_write_atm_ptqr(tmpdir):
     atm_input = io.read_atm(atm)
     assert atm_input[0] == ('bar', 'kelvin', 'volume', 'km')
     np.testing.assert_equal(atm_input[1], np.array(species))
-    np.testing.assert_allclose(atm_input[2], pressure/pc.bar)
+    np.testing.assert_allclose(atm_input[2], pressure)
     np.testing.assert_allclose(atm_input[3], temperature)
     np.testing.assert_allclose(atm_input[4], vmr)
     np.testing.assert_allclose(atm_input[5], radius/pc.km, rtol=1e-5)
@@ -341,25 +327,30 @@ def test_write_cs_mismatch_wn():
     csfile = 'CS_Mock.dat'
     species = ['H2', 'H2']
     temp = np.linspace(100, 1000, 3)
-    wn   = np.arange(10, 15, 0.5)
-    cs   = np.array([np.logspace( 0,-4,5),
-                     np.logspace(-1,-5,5),
-                     np.logspace(-2,-6,5)])
-    with pytest.raises(ValueError, match='Shape of the cross-section array '
-                       'does not match the number of wavenumber samples.'):
+    wn = np.arange(10, 15, 0.5)
+    cs = np.array([
+        np.logspace( 0,-4,5),
+        np.logspace(-1,-5,5),
+        np.logspace(-2,-6,5),
+    ])
+    error = (
+        'Shape of the cross-section array '
+        'does not match the number of wavenumber samples.'
+    )
+    with pytest.raises(ValueError, match=error):
         io.write_cs(csfile, cs, species, temp, wn)
 
 
 def test_read_pt(tmpdir):
     ptfile = 'mock_pt.dat'
-    ptf = "{}/{}".format(tmpdir, ptfile)
+    ptf = f"{tmpdir}/{ptfile}"
     temp  = np.array([100.0, 150.0, 200.0, 175.0, 150.0])
     press = np.array([1e-6,  1e-4,  1e-2,  1e0,   1e2])
     with open(ptf, 'w') as f:
         for p,t in zip(press, temp):
-            f.write('{:.3e}  {:5.1f}\n'.format(p, t))
+            f.write(f'{p:.3e}  {t:5.1f}\n')
     pressure, temperature = io.read_pt(ptf)
-    np.testing.assert_allclose(pressure, press*pc.bar,  rtol=1e-7)
+    np.testing.assert_allclose(pressure, press,  rtol=1e-7)
     np.testing.assert_allclose(temperature, temp,  rtol=1e-7)
 
 
