@@ -9388,3 +9388,12 @@ Modified parser() to keep pressure inputs in bar units
 (ptop, pbottom, refpressure).
 
 Updated plotting routines and tests to work with bar pressures.
+
+
+*****  Mo 11 Mär 2024 16:34:31 CET  *****
+
+Updated pyratbay version to 2.0.0beta1.
+This is it, no more new implementations beyond whats already planned.
+Only cleaning up and documenting from now on.
+
+
