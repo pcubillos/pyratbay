@@ -152,6 +152,28 @@ def test_Tophat_wn(flip):
     np.testing.assert_allclose(wn_integral, 1.0)
 
 
+def test_Tophat_gap_error():
+    hat = ps.Tophat(4.55, 0.03)
+    wl = np.arange(4.0, 5.01, 0.1)
+    error = re.escape(
+        'Tophat() passband at wl0 = 4.550 um does not cover any spectral point'
+    )
+    with pytest.raises(ValueError, match=error):
+        hat(wl)
+
+
+def test_Tophat_ignore_gaps():
+    hat = ps.Tophat(4.55, 0.03, ignore_gaps=True)
+    wl = np.arange(4.0, 5.01, 0.1)
+    out_wl, out_response = hat(wl)
+    assert out_wl is None
+    assert out_response is None
+    assert hat.idx is None
+    assert hat.wl is None
+    assert hat.wn is None
+    assert hat.response is None
+
+
 def test_Tophat_name():
     hat = ps.Tophat(4.5, 0.5)
     assert str(hat) == 'tophat_4.5um'

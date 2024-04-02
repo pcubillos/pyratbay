@@ -9434,3 +9434,11 @@ Tested and documented.
 Implemented wn_thinning config argument to enable thinning down
 tabulated cross sections.
 
+
+*****  Di 02 Apr 2024 12:09:58 CEST  *****
+
+Added ignore_gaps argument to Tophat() class to avoid raising errors
+when the passband does not cover any spectral point.
+Documented and tested.
+
+

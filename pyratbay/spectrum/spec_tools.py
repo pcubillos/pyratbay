@@ -190,9 +190,9 @@ class Tophat(PassBand):
     A Filter passband object with a tophat-shaped passband.
     """
     def __init__(
-        self, wl0, half_width,
-        name='tophat',
-    ):
+            self, wl0, half_width,
+            name='tophat', ignore_gaps=False,
+        ):
         """
         Parameters
         ----------
@@ -203,6 +203,11 @@ class Tophat(PassBand):
         name: Str
             A user-defined name for the filter when calling str(self),
             e.g., to identify the instrument provenance of this filter.
+        ignore_gaps: Bool
+            If True and there are no points inside the band,
+            set the idx, wn, wl, and response variables to None.
+            A ps.bin_spectrum() call on such band will return np.nan.
+            Otherwise the code will throw a ValueError.
 
         Examples
         --------
@@ -235,6 +240,7 @@ class Tophat(PassBand):
         self.half_width = half_width
         # Read filter wavenumber and transmission curves:
         self.wn0 = 1.0 / (self.wl0 * pc.um)
+        self.ignore_gaps = ignore_gaps
 
         self.name = name
 
@@ -264,10 +270,10 @@ class Tophat(PassBand):
 
         Defines
         -------
+        self.idx  Wavenumber indices
+        self.wn  Passband's wavenumber array
+        self.wl  Passband's wavelength array
         self.response  Normalized interpolated response function
-        self.idx       IndicesWavenumber indices
-        self.wn        Passband's wavenumber array
-        self.wl        Passband's wavelength array
 
         Returns
         -------
@@ -304,6 +310,18 @@ class Tophat(PassBand):
         wn_high = 1.0 / (wl_low*pc.um)
         idx = (wn >= wn_low) & (wn <= wn_high)
         indices = np.where(idx)[0]
+
+        if len(indices) == 0:
+            if self.ignore_gaps:
+                self.idx = None
+                self.response = None
+                self.wn = None
+                self.wl = None
+                return None, None
+            raise ValueError(
+                f"Tophat() passband at wl0 = {self.wl0:.3f} um does not "
+                "cover any spectral point"
+            )
 
         # One spectral point as margin:
         idx_first = indices[0]
