@@ -9441,4 +9441,11 @@ Added ignore_gaps argument to Tophat() class to avoid raising errors
 when the passband does not cover any spectral point.
 Documented and tested.
 
+*****
+
+Added ignore_gaps argument to bin_spectrum() function to avoid errors
+when a bin does not cover any wl spectral point. Return np.nan for
+such cases.
+Documented (to use with care) and tested.
+
 

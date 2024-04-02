@@ -396,7 +396,7 @@ def constant_resolution_spectrum(wave_min, wave_max, resolution):
     return wave
 
 
-def bin_spectrum(bin_wl, wl, spectrum, half_widths=None):
+def bin_spectrum(bin_wl, wl, spectrum, half_widths=None, ignore_gaps=False):
     """
     Bin down a spectrum.
 
@@ -412,6 +412,10 @@ def bin_spectrum(bin_wl, wl, spectrum, half_widths=None):
         The bin half widths (um).
         If None, assume that the bin edges are at the mid-points
         of the bin_wl array.
+    ignore_gaps: Bool
+        If True, return np.nan when the binned point does not cover any
+        value of the wl array (may occur when the resolution of wl is not
+        much higher than bin_wl's. Use with care).
 
     Returns
     -------
@@ -448,14 +452,17 @@ def bin_spectrum(bin_wl, wl, spectrum, half_widths=None):
         half_widths[-1] = half_widths[-2]
         half_widths /= 2.0
     bands = [
-        Tophat(wl0, half_width)
+        Tophat(wl0, half_width, ignore_gaps=ignore_gaps)
         for wl0, half_width in zip(bin_wl, half_widths)
     ]
     nbands = len(bands)
     band_flux = np.zeros(nbands)
     for i,band in enumerate(bands):
         band_wl, response = band(wl)
-        band_flux[i] = np.trapz(spectrum[band.idx]*response, band.wn)
+        if band.idx is None:
+            band_flux[i] = np.nan
+        else:
+            band_flux[i] = np.trapz(spectrum[band.idx]*response, band.wn)
     return band_flux
 
 

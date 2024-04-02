@@ -200,7 +200,7 @@ def test_Tophat_bad_input(wl_wn):
         out_wn, out_response = hat(wl, wn=wn)
 
 
-def test_PassBand_bad_spectral_range():
+def test_Tophat_bad_spectral_range():
     # Band range not contained in requested wl/wn range
     hat = ps.Tophat(4.5, 0.5)
     wl = np.arange(3.5, 5.5, 0.001)
@@ -253,6 +253,23 @@ def test_bin_spectrum():
        4.07609787, 4.50478858, 4.97856547, 5.50217036, 6.08084374,
        6.72037726, 7.59303535, 8.        , 8.        , 8.        ,
        8.
+    ])
+    np.testing.assert_allclose(bin_spectrum, expected_bin_spectrum)
+
+
+def test_bin_spectrum_ignore_gaps():
+    wl_min = 1.0
+    wl_max = 3.0
+    resolution = 10
+    wl = ps.constant_resolution_spectrum(wl_min, wl_max, resolution)
+    spectrum = np.ones(len(wl))
+
+    bin_wl = ps.constant_resolution_spectrum(wl_min, wl_max, 12.0)
+    bin_spectrum = ps.bin_spectrum(bin_wl, wl, spectrum, ignore_gaps=True)
+
+    expected_bin_spectrum = np.array([
+       1.0, 1.0, 1.0, np.nan, 1.0, 1.0, 1.0, 1.0, 1.0,
+       np.nan, 1.0, 1.0, 1.0, np.nan,
     ])
     np.testing.assert_allclose(bin_spectrum, expected_bin_spectrum)
 
