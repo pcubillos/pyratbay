@@ -9457,6 +9457,12 @@ Removed Makefile (obsolete now)
 
 Added ipython and nbsphinx extensions in conf.py for building docs.
 
+*****
+
 Updated temperature_profiles.ipynb docs.
+
+*****
+
+Updated vmr_free_profiles.ipynb docs.
 
 

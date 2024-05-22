@@ -13,8 +13,8 @@ Recipes list:
 
 - **Atmospheric models**
 
-  - `Temperature profile <./temperature_profiles.ipynb>`_
-  - `VMR free profiles <vmr_free_profiles.ipynb>`_
+  - `Temperature profiles tutorial <./temperature_profiles.ipynb>`_
+  - `VMR free profiles tutorial <vmr_free_profiles.ipynb>`_
   - :ref:`vmr_equilibrium_profiles` (TBD)
   - :ref:`radius_profiles` (TBD)
 
