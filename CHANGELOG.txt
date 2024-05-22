@@ -9465,4 +9465,7 @@ Updated temperature_profiles.ipynb docs.
 
 Updated vmr_free_profiles.ipynb docs.
 
+*****
+
+Updated hitran, exomol, and repack line-list tutorials.
 
