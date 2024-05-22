@@ -9449,3 +9449,7 @@ such cases.
 Documented (to use with care) and tested.
 
 
+*****  Mi 22 Mai 2024 10:16:30 CEST  *****
+
+Removed Makefile (obsolete now)
+
