@@ -4,8 +4,17 @@
 # # Temperature Profiles Tutorial
 # This tutorial shows how to create and use temperature-pressure profiles. Currently, there are three temperature models: ``isothermal``, ``guillot``, and ``madhu``.
 #
-# Lets start by importing some necessary modules:
+# <div class="alert alert-info">
+#
+# Note
+#
+# You can also find this tutorial as a [Python script here](https://github.com/pcubillos/pyratbay/blob/master/docs/cookbooks/temperature_profiles.py) or as a [jupyter notebook here](https://github.com/pcubillos/pyratbay/blob/master/docs/cookbooks/temperature_profiles.ipynb).
+#
+#
+# </div>
 
+
+# Lets start by importing some necessary modules
 import pyratbay.constants as pc
 import pyratbay.atmosphere as pa
 
@@ -14,20 +23,17 @@ import numpy as np
 np.set_printoptions(precision=4)
 
 
-# Define a pressure profile where to evaluate the temperature models:
+# Define a pressure profile (bars) where to evaluate the temperature models:
 nlayers = 101
 ptop = '1e-7 bar'
 pbottom = '100 bar'
-pressure_cgs = pa.pressure(ptop, pbottom, nlayers)
-# See help(pa.pressure) for alternative ways to set the boundaries/units
-
-# Same pressure array but in bar units:
-pressure = pressure_cgs / pc.bar
+pressure = pa.pressure(ptop, pbottom, nlayers)
 
 
-# Isothermal Profile
+# ## Isothermal Profile
 
-# To initialize an isothermal TP model, provide the number of layers:
+
+# To initialize an isothermal TP model, provide the pressure array (bars):
 tp_iso = pa.tmodels.Isothermal(pressure)
 
 
@@ -51,11 +57,12 @@ ax.legend()
 plt.tight_layout()
 
 
+
 # This is some useful data contained in the object:
 print(tp_iso)
 
 
-# Guillot TP Profiles
+# ## Guillot TP Profiles
 #
 # The ``guillot`` model has six parameters as defined in Line et al. (2013): $\log\kappa'$,
 # $\log\gamma_1$, $\log\gamma_2$, $\alpha$, $T_{\rm irr}$, and $T_{\rm int}$.  The temperature profile is given as:
@@ -77,8 +84,9 @@ print(tp_iso)
 #                 \left( \frac{R_{\rm s}}{2a}\right)^{1/2} T_{\rm s}, $$
 #
 
-# To initialize a Guillot TP model, provide the pressure array (in CGS units):
-tp_guillot = pa.tmodels.Guillot(pressure_cgs)
+
+# To initialize a Guillot TP model, provide the pressure array (in bars):
+tp_guillot = pa.tmodels.Guillot(pressure)
 
 
 # Evaluate a Guillot TP profile for a given set of parameters:
@@ -104,12 +112,14 @@ ax.legend()
 plt.tight_layout()
 
 
+
 # This is some useful data contained in the object:
 print(tp_guillot)
 
 
-# Madhu TP Profile
-
+# ## Madhu TP Profile
+#
+#
 # The madhu model has six parameters: $\log p_1$, $\log p_2$, $\log p_3$, $a_1$,
 # $a_2$, and $T_0$, as described in Madhusudhan & Seager (2009), where the pressure
 # values must be given in bars.  The temperature profile is given as:
@@ -127,11 +137,21 @@ print(tp_guillot)
 # A thermally inverted profile will result when $p_1 < p_2$;
 # a non-inverted profile will result when $p_2 < p_1$.
 #
-# The pressure parameters must also satisfy: $p_1 < p_3$ (otherwise the model will return zeros).
+#
+# <div class="alert alert-warning">
+#
+# Note
+#
+# The pressure parameters must also satisfy: $p_1 < p_3$ (otherwise the model will return zeros). In a retrieval you can use this as a condition to reject a proposed sample.
+#
+# </div>
+#
+#
 #
 
-# To initialize a Madhu TP model, provide the pressure array (in CGS units):
-tp_madhu = pa.tmodels.Madhu(pressure_cgs)
+
+# To initialize a Madhu TP model, provide the pressure array (in bars):
+tp_madhu = pa.tmodels.Madhu(pressure)
 
 
 # A non thermally-inverted profile (p1 > p2):
@@ -158,13 +178,15 @@ ax.legend()
 plt.tight_layout()
 
 
+
 # This is some useful data contained in the object:
 print(tp_madhu)
 
 
-# Understanding Guillot parameters
+# ## Understanding Guillot parameters
 
-tp_guillot = pa.tmodels.Guillot(pressure_cgs)
+
+tp_guillot = pa.tmodels.Guillot(pressure)
 
 # log_kappa sets the pressure where the profile changes:
 # Think it as: log_P0_bars approx 6 + log_kappa
@@ -213,6 +235,7 @@ ax.legend()
 plt.tight_layout()
 
 
+
 # T_irr sets how much incident flux the atmosphere receives:
 # Think it as: higher T_irr, higher overall temperature
 params21 = log_kappa, log_gamma1, log_gamma2, alpha, 1200.0, t_int
@@ -257,6 +280,7 @@ ax.legend()
 plt.tight_layout()
 
 
+
 # A non-zero alpha (in combination with gamma2) enables a linear combination
 # of two profiles with different gamma values:
 temp_guillot41 = tp_guillot([log_kappa, -0.25, 0.4, 0.0, t_irr, t_int])
@@ -283,15 +307,16 @@ ax.legend()
 plt.tight_layout()
 
 
-# Understanding Madhu parameters
+# ## Understanding Madhu parameters
 
-tp_madhu = pa.tmodels.Madhu(pressure_cgs)
+
+# Preamble:
+tp_madhu = pa.tmodels.Madhu(pressure)
 
 log_p2_ninv = -4.0
 log_p2_inv = 0.0
 T0_ninv = 1100.0
 T0_inv = 1500.0
-
 
 # a1 sets the gradient above the p1 pressure level:
 # a1 >> 0.0: isothermal layer, a1>0: T increases away from P0
@@ -330,6 +355,7 @@ for i in [0,1]:
     ax.set_ylabel('Pressure (bar)')
     ax.legend()
 plt.tight_layout()
+
 
 
 # log_p1 sets the location of the top layer:
@@ -371,6 +397,7 @@ for i in [0,1]:
 plt.tight_layout()
 
 
+
 # a2 sets the temperature gradient between p3 < p < p1:
 # a2 >> 0.0: isothermal layer, a2>0: T increases away from p2
 
@@ -409,6 +436,7 @@ for i in [0,1]:
     ax.set_ylabel('Pressure (bar)')
     ax.legend()
 plt.tight_layout()
+
 
 
 # log_p2 determines whether the atmosphere is thermally inverted
@@ -453,6 +481,7 @@ for i in [0,1]:
 plt.tight_layout()
 
 
+
 # logp3 sets the pressure of the isothermal lower layer:
 # Note that p2 is allowed to be at a deeper location than p3
 
@@ -489,6 +518,7 @@ for i in [0,1]:
     ax.set_ylabel('Pressure (bar)')
     ax.legend()
 plt.tight_layout()
+
 
 
 # T0 sets the temperature at the top of the profile:
