@@ -9453,3 +9453,7 @@ Documented (to use with care) and tested.
 
 Removed Makefile (obsolete now)
 
+*****
+
+Added ipython and nbsphinx extensions in conf.py for building docs.
+
