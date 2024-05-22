@@ -13,24 +13,24 @@ Recipes list:
 
 - **Atmospheric models**
 
-  - `Temperature profiles tutorial <./temperature_profiles.ipynb>`_
+  - `Temperature profiles tutorial <temperature_profiles.ipynb>`_
   - `VMR free profiles tutorial <vmr_free_profiles.ipynb>`_
   - :ref:`vmr_equilibrium_profiles` (TBD)
   - :ref:`radius_profiles` (TBD)
 
 - **Line-by-line opacity sampling**
 
-  - :ref:`line_list_hitran`
-  - :ref:`line_list_exomol`
-  - :ref:`line_list_repack`
+  - `HITRAN/HITEMP line-list tutorial <line_list_hitran.ipynb>`_
+  - `ExoMol line-list tutorial <line_list_exomol.ipynb>`_
+  - `repack line-list tutorial <line_list_repack.ipynb>`_
 
 - **Opacity models**
 
-  - :ref:`opacity_line_sample`
-  - :ref:`opacity_alkali`
-  - :ref:`opacity_cia`
-  - :ref:`opacity_rayleigh`
-  - :ref:`opacity_h_ion` (TBD)
+  - `Line-sample opacity tutorial <opacity_line_sample.ipynb>`_
+  - `Alkali opacity tutorial <opacity_alkali.ipynb>`_
+  - `Collision-induced absorption tutorial <opacity_cia.ipynb>`_
+  - `Rayleigh opacity tutorial <opacity_rayleigh.ipynb>`_
+  - `<opacity_h_ion.ipynb>` (TBD)
 
 - **Miscelaneous**
 

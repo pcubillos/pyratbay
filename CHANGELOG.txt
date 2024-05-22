@@ -9469,3 +9469,7 @@ Updated vmr_free_profiles.ipynb docs.
 
 Updated hitran, exomol, and repack line-list tutorials.
 
+*****
+
+Updated opacity_line_sample.ipynb docs.
+
