@@ -9478,3 +9478,9 @@ Updated opacity_line_sample.ipynb docs.
 
 Updated opacity_alkali.ipynb docs.
 
+*****
+
+Updated opacity_cia.ipynb docs.
+Updated opacity_rayleigh.ipynb docs.
+
+
