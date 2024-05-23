@@ -9473,3 +9473,8 @@ Updated hitran, exomol, and repack line-list tutorials.
 
 Updated opacity_line_sample.ipynb docs.
 
+
+*****  Do 23 Mai 2024 09:22:03 CEST  *****
+
+Updated opacity_alkali.ipynb docs.
+

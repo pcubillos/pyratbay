@@ -1,10 +1,19 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# Alkali Opacity Tutorial
+# # Alkali opacity tutorial
 # This tutorial shows how to create Alkali opacity objects and compute their extinction coefficient spectra for a given atmospheric profile.
-# Lets start by importing some necessary modules:
+#
+# <div class="alert alert-info">
+#
+# Note
+#
+# You can also find this tutorial as a [Python script here](https://github.com/pcubillos/pyratbay/blob/master/docs/cookbooks/opacity_alkali.py) or as a [jupyter notebook here](https://github.com/pcubillos/pyratbay/blob/master/docs/cookbooks/opacity_alkali.ipynb).
+#
+# </div>
 
+
+# Lets start by importing some necessary modules:
 import pyratbay.atmosphere as pa
 import pyratbay.constants as pc
 import pyratbay.opacity as op
@@ -14,7 +23,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-# Initialization
+# ### Initialization
 # We will sample the models over a wavelength array and over an atmospheric profile. Lets create these first:
 
 
@@ -25,16 +34,18 @@ wl_max = 1.0
 resolution = 30000.0
 wl = ps.constant_resolution_spectrum(wl_min, wl_max, resolution)
 
-# Atmospheric pressure profile in CGS units (barye):
+# Atmospheric pressure profile in bars:
 nlayers = 81
 pressure = pa.pressure('1e-8 bar', '1e2 bar', nlayers)
-pressure_bar = pressure / pc.bar
 
 # Initialize a Na model:
 sodium = op.alkali.SodiumVdW(pressure, wl=wl)
 
+
+
 # A print() call shows some useful info about the object
 print(sodium)
+
 
 
 # Evaluate the cross_section over an isothermal profile
@@ -59,8 +70,9 @@ ax.legend(loc='upper right')
 plt.tight_layout()
 
 
-# Extinction coefficient
+# ### Extinction coefficient
 # For radiative-transfer calculations we need the extinction coefficient, for which we need first number density profiles of the species.  Here we first simulate a simple atmosphere in thermochemical equilibrium to compute the number densities under the ideal gas law:
+
 
 # A very simple atmosphere with solar abundance in thermochemical equilibrium
 species = ['Na', 'K', 'H2', 'H', 'He']
@@ -78,7 +90,7 @@ plt.figure(1, (8,5))
 plt.clf()
 ax = plt.subplot(121)
 for i, spec in enumerate(species):
-    ax.plot(net.vmr[:,i], pressure_bar, color=cols[i], lw=2.0, label=spec)
+    ax.plot(net.vmr[:,i], pressure, color=cols[i], lw=2.0, label=spec)
 ax.set_xscale('log')
 ax.set_yscale('log')
 ax.set_ylim(100, 1e-8)
@@ -88,12 +100,13 @@ ax.legend(loc='best')
 
 ax = plt.subplot(122)
 for i, spec in enumerate(species):
-    ax.plot(number_densities[:,i], pressure_bar, color=cols[i], lw=2.0, label=spec)
+    ax.plot(number_densities[:,i], pressure, color=cols[i], lw=2.0, label=spec)
 ax.set_xscale('log')
 ax.set_yscale('log')
 ax.set_ylim(100, 1e-8)
 ax.set_xlabel('Number density (molecs cm$^{-3}$)')
 plt.tight_layout()
+
 
 
 # Extinction-coefficient over the atmospheric profile
@@ -130,7 +143,8 @@ ax.set_ylabel('Na extinction coefficient (cm$^{-1}$)')
 plt.tight_layout()
 
 
-# Sodium and Potassium models
+# ### Sodium and Potassium models
+
 
 # Similarly, we can compute K extinction coefficients
 potassium = op.alkali.PotassiumVdW(pressure, wl=wl)
@@ -153,6 +167,7 @@ ax.set_ylabel('Extinction coefficient (cm$^{-1}$)')
 ax.legend(loc='upper right')
 ax.set_title('Na and K spectra at 1mbar')
 plt.tight_layout()
+
 
 
 # To evaulate under new atmospheric conditions, simply call the
