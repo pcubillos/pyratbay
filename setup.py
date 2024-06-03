@@ -3,7 +3,6 @@
 
 import os
 import re
-import setuptools
 from setuptools import setup, Extension
 
 from numpy import get_include
@@ -17,8 +16,8 @@ cfiles = list(filter(lambda x: re.search('.+[.]c$', x), cfiles))
 cfiles = list(filter(lambda x: not re.search('[.#].+[.]c$', x), cfiles))
 
 inc = [get_include(), incdir]
-eca = ['-ffast-math']
-ela = []
+eca = ['-lm', '-O3', '-ffast-math']
+ela = ['-lm']
 
 extensions = [
     Extension(

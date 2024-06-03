@@ -9484,3 +9484,8 @@ Updated opacity_cia.ipynb docs.
 Updated opacity_rayleigh.ipynb docs.
 
 
+*****  Mo 03 Jun 2024 16:32:19 CEST  *****
+
+Added -lm C compiler argument to avoid undefined symbol bug
+with math libraries.
+
