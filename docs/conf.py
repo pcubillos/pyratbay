@@ -39,6 +39,7 @@ extensions = [
     'sphinx.ext.viewcode',
     'IPython.sphinxext.ipython_console_highlighting',
     'nbsphinx',
+    "sphinx_copybutton",
 ]
 
 # Add any paths that contain templates here, relative to this directory.

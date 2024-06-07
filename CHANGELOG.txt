@@ -9489,3 +9489,8 @@ Updated opacity_rayleigh.ipynb docs.
 Added -lm C compiler argument to avoid undefined symbol bug
 with math libraries.
 
+
+*****  Fr 07 Jun 2024 16:03:33 CEST  *****
+
+Added sphinx_copybutton to docs.
+
