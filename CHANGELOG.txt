@@ -9397,3 +9397,9 @@ This is it, no more new implementations beyond whats already planned.
 Only cleaning up and documenting from now on.
 
 
+*****  Do 27 Jun 2024 14:46:47 CEST  *****
+
+Updated io.write_opacity() to enable reading petitRADTRANS files.
+Drafted test, but in TBD state.
+Added h5py to requirements.
+
