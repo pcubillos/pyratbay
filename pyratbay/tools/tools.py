@@ -1068,15 +1068,18 @@ def cia_borysow(ciafile, species1, species2):
     io.write_cs(csfile, cs, species, temp, wn, header)
 
 
-def interpolate_opacity(cs_file, pressure, wn_mask):
+def interpolate_opacity(cs_file, temperature=None, pressure=None, wn_mask=None):
     """
     Interpolate the cross-section data from an opacity file over a
-    desired pressure array.
+    desired temperature and pressure array.
 
     Parameters
     ----------
     cs_file: String
         Path to a cross-section file.
+    temperature: 1D float array
+        The desired temperature array in K.
+        If this is the same as the tabulated temperatures, do not interpolate.
     pressure: 1D float array
         The desired pressure profile in bars.
         If this is the same as the tabulated pressure, do not interpolate.
@@ -1088,30 +1091,54 @@ def interpolate_opacity(cs_file, pressure, wn_mask):
     interp_cs: 4D float array
         The interpolated cross-section array.
     """
-    _, _, press, _ = io.read_opacity(cs_file, extract='arrays')
+    _, temp, press, wn = io.read_opacity(cs_file, extract='arrays')
     logp_table = np.log(press)
-    logp = np.log(pressure)
+    if wn_mask is None:
+        wn_mask = np.ones(len(wn), bool)
 
     # If the pressure is the same as in the table, no need to interpolate:
     resample_pressure = (
-        len(press) != len(pressure) or
-        np.any(np.abs(1.0-press/pressure) > 0.01)
+        pressure is not None and
+        (
+            len(press) != len(pressure) or
+            np.any(np.abs(1.0-press/pressure) > 0.01)
+        )
     )
-    if not resample_pressure:
+    resample_temperature = (
+        temperature is not None and
+        (
+            len(temp) != len(temperature) or
+            np.any(np.abs(1.0-temp/temperature) > 0.01)
+        )
+    )
+
+    if not resample_pressure and not resample_temperature:
         return io.read_opacity(cs_file, extract='opacity')[:,:,:,wn_mask]
 
-    # Resample log_opacity according to log_pressure
+    # Work in log_opacity, avoid infinities by capping at 1e-100:
     log_cs = np.log(io.read_opacity(cs_file, extract='opacity')[:,:,:,wn_mask])
-    # Avoid infinities by capping the zero values to 1e-100:
     log_cs[~np.isfinite(log_cs)] = -230.0
 
-    cs_extrap = log_cs[:,:,0], log_cs[:,:,-1]
-    cs_interp = sip.interp1d(
-        logp_table, log_cs, axis=2,
-        kind='slinear',
-        bounds_error=False, fill_value=cs_extrap,
-    )
-    return np.exp(cs_interp(logp))
+    if resample_pressure:
+        logp = np.log(pressure)
+        cs_extrap = log_cs[:,:,0], log_cs[:,:,-1]
+        cs_interp = sip.interp1d(
+            logp_table, log_cs, axis=2,
+            kind='slinear',
+            bounds_error=False, fill_value=cs_extrap,
+        )
+        log_cs = cs_interp(logp)
+
+    if resample_temperature:
+        cs_extrap = log_cs[:,0], log_cs[:,-1]
+        cs_interp = sip.interp1d(
+            temp, log_cs, axis=1,
+            kind='slinear',
+            bounds_error=False, fill_value=cs_extrap,
+        )
+        log_cs = cs_interp(temperature)
+
+    return np.exp(log_cs)
 
 
 def none_div(a, b):

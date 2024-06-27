@@ -9403,3 +9403,11 @@ Updated io.write_opacity() to enable reading petitRADTRANS files.
 Drafted test, but in TBD state.
 Added h5py to requirements.
 
+*****
+
+Added temperature argument to tools.interpolate_opacity()
+to allow interpolating over the temperature grid.
+Set temperature, pressure, and wn_mask as optional arguments.
+Updated tests.
+
+
