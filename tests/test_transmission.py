@@ -236,6 +236,34 @@ def test_transmission_etable(tmp_path):
         pyrat.spec.spectrum, expected['etable'], rtol=rtol)
 
 
+def test_transmission_interpolate_temp_etable(tmp_path):
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_interp_temp.cfg',
+    )
+    pyrat = pb.run(cfg)
+
+    expected_temp = np.array([ 500., 1000., 1500., 2000.])
+    ntemp = len(expected_temp)
+    assert pyrat.opacity.models[0].ntemp == ntemp
+    np.testing.assert_allclose(
+        pyrat.opacity.models[0].temp,
+        expected_temp,
+        rtol=rtol,
+    )
+
+
+@pytest.mark.skip(reason="TBD")
+def test_transmission_interpolate_temp_etable(tmp_path):
+    # TBD: make a config that resets the pressure
+    assert pyrat.opacity.models[0].nlayers == nlayers
+    np.testing.assert_allclose(
+        pyrat.opacity.models[0].press,
+        expected_press,
+        rtol=rtol,
+    )
+
+
 def test_transmission_input_radius(tmp_path):
     cfg = make_config(
         tmp_path,

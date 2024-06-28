@@ -9411,3 +9411,16 @@ Set temperature, pressure, and wn_mask as optional arguments.
 Updated tests.
 
 
+*****  Fr 28 Jun 2024 10:05:58 CEST  *****
+
+Added temperature optional argument to Line_Sample() init
+to allow pre-definin a temperature grid (to resample cross sections).
+Checks for boundaries are TBD.
+
+Updated pyrat/opacity.py to compute a temperature grid when
+tmin, tmax, and tstep are defined in the config file.
+Then, the code will interpolate the cross section tables into it.
+
+Added test for temperature grid interpolation.
+
+

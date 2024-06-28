@@ -17,7 +17,7 @@ from ..lib import _extcoeff as ec
 class Line_Sample():
     """Line-by-line sampled opacities"""
     def __init__(
-        self, cs_files, *, pressure=None,
+        self, cs_files, *, pressure=None, temperature=None,
         min_wl=None, max_wl=None, min_wn=None, max_wn=None,
         log=None,
     ):
@@ -102,10 +102,16 @@ class Line_Sample():
 
         # Get dimensions first:
         # Species, temperature (K), pressure (bar), and wavenumber (cm-1)
-        species, self.temp, press, wn = io.read_opacity(
+        species, temp, press, wn = io.read_opacity(
             self.cs_files[0], extract='arrays',
         )
+
+        if temperature is None:
+            self.temp = temp
+        else:
+            self.temp = temperature
         self.ntemp = len(self.temp)
+
         if pressure is None:
             self.press = press
         else:
@@ -139,27 +145,20 @@ class Line_Sample():
             ntemp = len(temp)
             nwave = len(wn)
 
-            shape_mismatch = (
-                ntemp != self.ntemp or
-                nwave != self.nwave
+            wave_mismatch = (
+               nwave != self.nwave or
+               np.any(np.abs(1.0-wn/self.wn) > 0.01)
             )
-            if shape_mismatch:
+            if wave_mismatch:
                 log.error(
-                    f"Shape of the cross-section file '{cs_file}' "
-                    "does not match with previous file shapes."
+                    f"Wavenumber array of cross-section file '{cs_file}' "
+                    "does not match with previous arrays"
                 )
+
             check_pressure_boundaries(self.press, press)
-            value_mismatch = [
-                np.any(np.abs(1.0-temp/self.temp) > 0.01),
-                np.any(np.abs(1.0-wn/self.wn) > 0.01),
-            ]
-            if np.any(value_mismatch):
-                vals = np.array(['temperature', 'wavenumber'])
-                mismatch = ', '.join(vals[value_mismatch])
-                log.error(
-                    f"Tabulated {mismatch} values in file '{cs_file}' "
-                    "do not match with previous arrays"
-                )
+            # TBD: Implement or raise warning
+            #check_temperature_boundaries(self.temp, temp)
+
             # Add new species:
             self.species += [
                 spec
@@ -183,8 +182,8 @@ class Line_Sample():
                 idx = spec_indices[i]
                 mask = wn_masks[i]
                 self.cs_table[idx] += pt.interpolate_opacity(
-                        cs_file, self.press, mask,
-                    )
+                    cs_file, self.temp, self.press, mask,
+                )
         else:
             itemsize = MPI.DOUBLE.Get_size()
             if rank == 0:
@@ -203,7 +202,7 @@ class Line_Sample():
                     idx = spec_indices[i]
                     mask = wn_masks[i]
                     self.cs_table[idx] += pt.interpolate_opacity(
-                        cs_file, self.press, mask,
+                        cs_file, self.temp, self.press, mask,
                     )
             pt.mpi_barrier()
 
