@@ -476,6 +476,46 @@ def test_interpolate_opacity_no_interp():
     np.testing.assert_allclose(interp_cs, cs_data)
 
 
+def test_interpolate_opacity_wn_mask():
+    cs_file = 'outputs/exttable_test_300-3000K_1.1-1.7um.npz'
+    cs_shape, cs_u, arrays, cs_data  = io.read_opacity(cs_file, extract='all')
+    temperature = arrays[1]
+    pressure = arrays[2]
+    wn = arrays[3]
+    wn_mask = (wn>=6000) & (wn<=8000)
+    interp_cs = pt.interpolate_opacity(
+        cs_file, temperature, pressure, wn_mask,
+    )
+    np.testing.assert_allclose(interp_cs, cs_data[:,:,:,wn_mask])
+
+
+def test_interpolate_opacity_thin_no_interp():
+    cs_file = 'outputs/exttable_test_300-3000K_1.1-1.7um.npz'
+    cs_shape, cs_u, arrays, cs_data  = io.read_opacity(cs_file, extract='all')
+    temperature = arrays[1]
+    pressure = arrays[2]
+    thin = 10
+    interp_cs = pt.interpolate_opacity(
+        cs_file, temperature, pressure, wn_thinning=thin,
+    )
+    np.testing.assert_allclose(interp_cs, cs_data[:,:,:,::thin])
+
+
+def test_interpolate_opacity_mask_thin():
+    cs_file = 'outputs/exttable_test_300-3000K_1.1-1.7um.npz'
+    cs_shape, cs_u, arrays, cs_data  = io.read_opacity(cs_file, extract='all')
+    temperature = arrays[1]
+    pressure = arrays[2]
+    wn = arrays[3]
+    wn_mask = (wn>=6000) & (wn<=8000)
+    thin = 10
+    interp_cs = pt.interpolate_opacity(
+        cs_file, temperature, pressure, wn_mask, wn_thinning=thin,
+    )
+    expected_cs = cs_data[:,:,:,wn_mask][:,:,:,::thin]
+    np.testing.assert_allclose(interp_cs, expected_cs)
+
+
 def test_interpolate_opacity_interp_pressure():
     nlayers = 30
     pressure = pa.pressure('1e-6 bar', '100 bar', nlayers)
@@ -581,6 +621,70 @@ def test_interpolate_opacity_interp_temperature_pressure():
         j = i_temps[i]
         k = i_wave[i]
         np.testing.assert_allclose(interp_cs[0,j,:,k], expected_cs[i])
+
+
+def test_interpolate_opacity_interp_and_wn_masking():
+    cs_file = 'outputs/exttable_test_300-3000K_1.1-1.7um.npz'
+    cs_shape, cs_u, arrays, cs_data  = io.read_opacity(cs_file, extract='all')
+    nlayers = 30
+    pressure = pa.pressure('1e-6 bar', '100 bar', nlayers)
+    temperature = arrays[1][1::2]
+    ntemps = len(temperature)
+    wn = arrays[3]
+    wn_mask = (wn>=6000) & (wn<=8000)
+    thin = 10
+    expected_wn = wn[wn_mask][::thin]
+    nwave = len(expected_wn)
+
+    interp_cs = pt.interpolate_opacity(
+        cs_file, temperature, pressure, wn_mask, wn_thinning=thin,
+    )
+    cs_shape = np.shape(interp_cs)
+    assert cs_shape[1] == ntemps
+    assert cs_shape[2] == nlayers
+    assert cs_shape[3] == nwave
+    # Test at a couple of temperatures and wavelengths:
+    expected_cs = np.array([
+        [7.74448417e-25, 7.74464911e-25, 7.74485639e-25, 7.74537253e-25,
+         7.74638920e-25, 7.74845698e-25, 7.75103589e-25, 7.75743079e-25,
+         7.77039922e-25, 7.79625009e-25, 7.82820195e-25, 7.90791250e-25,
+         8.07133193e-25, 8.39036390e-25, 8.96065534e-25, 9.76402641e-25,
+         1.16593626e-24, 1.50914368e-24, 2.08618034e-24, 2.68815554e-24,
+         3.68264421e-24, 4.54668842e-24, 4.75500526e-24, 4.26593708e-24,
+         3.31417224e-24, 2.77563774e-24, 2.93613872e-24, 3.31473243e-24,
+         3.60918512e-24, 3.63204895e-24],
+        [8.93169626e-30, 1.76602983e-29, 3.49143743e-29, 5.66588373e-29,
+         1.12029303e-28, 2.21511230e-28, 4.37985651e-28, 7.10665765e-28,
+         1.40517193e-27, 2.77839227e-27, 5.49360692e-27, 8.97477883e-27,
+         1.76254223e-26, 3.48505046e-26, 6.89085295e-26, 1.36217750e-25,
+         2.23377669e-25, 4.44885692e-25, 8.85073150e-25, 1.75342161e-24,
+         2.87171732e-24, 5.92105094e-24, 1.28200364e-23, 2.58533151e-23,
+         4.14267121e-23, 7.62105540e-23, 1.28913002e-22, 1.93630010e-22,
+         2.37083156e-22, 2.41601263e-22],
+        [4.40350514e-23, 4.40352507e-23, 4.40356427e-23, 4.40363370e-23,
+         4.40373532e-23, 4.40398517e-23, 4.40447418e-23, 4.40541591e-23,
+         4.40674028e-23, 4.40976390e-23, 4.41584836e-23, 4.42761322e-23,
+         4.44517523e-23, 4.48215336e-23, 4.55747585e-23, 4.70685628e-23,
+         4.93423961e-23, 5.37457336e-23, 6.28010896e-23, 8.05564734e-23,
+         1.13515248e-22, 1.51887332e-22, 2.40781605e-22, 3.97110617e-22,
+         6.54022521e-22, 8.85314276e-22, 1.09824343e-21, 1.06357094e-21,
+         9.35551345e-22, 8.40289164e-22],
+        [5.29568118e-24, 5.29571174e-24, 5.29577759e-24, 5.29591128e-24,
+         5.29617462e-24, 5.29671000e-24, 5.29737831e-24, 5.29903506e-24,
+         5.30239596e-24, 5.30909906e-24, 5.31739040e-24, 5.33809588e-24,
+         5.38071144e-24, 5.46435422e-24, 5.56691213e-24, 5.83095626e-24,
+         6.36215042e-24, 7.39628648e-24, 9.36555832e-24, 1.19730996e-23,
+         1.84127607e-23, 3.06841533e-23, 5.28102844e-23, 7.53554311e-23,
+         1.09576636e-22, 1.30047451e-22, 1.35644410e-22, 1.39477466e-22,
+         1.47766760e-22, 1.56840584e-22],
+    ])
+    i_temps = [0,1,3,4]
+    i_wave = [50, 75, 100, 125]
+    for i in range(4):
+        j = i_temps[i]
+        k = i_wave[i]
+        np.testing.assert_allclose(interp_cs[0,j,:,k], expected_cs[i])
+
 
 
 def test_interpolate_opacity_extrapolate():

@@ -1068,7 +1068,9 @@ def cia_borysow(ciafile, species1, species2):
     io.write_cs(csfile, cs, species, temp, wn, header)
 
 
-def interpolate_opacity(cs_file, temperature=None, pressure=None, wn_mask=None):
+def interpolate_opacity(
+        cs_file, temperature=None, pressure=None, wn_mask=None, wn_thinning=1,
+    ):
     """
     Interpolate the cross-section data from an opacity file over a
     desired temperature and pressure array.
@@ -1085,6 +1087,8 @@ def interpolate_opacity(cs_file, temperature=None, pressure=None, wn_mask=None):
         If this is the same as the tabulated pressure, do not interpolate.
     wn_mask: 1D bool array
         A mask of wavelength points to take.
+    wn_thinning: Integer
+        Thinning factor to take every n-th value of the wavenumber array
 
     Returns
     -------
@@ -1112,11 +1116,14 @@ def interpolate_opacity(cs_file, temperature=None, pressure=None, wn_mask=None):
         )
     )
 
+    cross_section = io.read_opacity(cs_file, extract='opacity')[:,:,:,wn_mask]
+    cross_section = cross_section[:,:,:,::wn_thinning]
+
     if not resample_pressure and not resample_temperature:
-        return io.read_opacity(cs_file, extract='opacity')[:,:,:,wn_mask]
+        return cross_section
 
     # Work in log_opacity, avoid infinities by capping at 1e-100:
-    log_cs = np.log(io.read_opacity(cs_file, extract='opacity')[:,:,:,wn_mask])
+    log_cs = np.log(cross_section)
     log_cs[~np.isfinite(log_cs)] = -230.0
 
     if resample_pressure:

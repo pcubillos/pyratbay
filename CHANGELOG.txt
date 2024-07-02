@@ -9424,3 +9424,8 @@ Then, the code will interpolate the cross section tables into it.
 Added test for temperature grid interpolation.
 
 
+*****  Di 02 Jul 2024 12:54:10 CEST  *****
+
+Added wn_thinning argument to pt.interpolate_opacity()
+Tested and documented.
+
