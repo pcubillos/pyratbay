@@ -428,6 +428,7 @@ def parse(cfile, with_log=True, mute=False):
         parse_int(args, 'wnosamp')
         parse_float(args, 'resolution')
         parse_str(args, 'wlstep')
+        parse_int(args, 'wn_thinning')
         # Atmospheric sampling options:
         parse_str(args, 'atmfile')
         parse_str(args, 'tmodel')
@@ -676,6 +677,11 @@ def parse(cfile, with_log=True, mute=False):
         'wnosamp', 'Wavenumber oversampling factor', ge=1)
     args.resolution = args.get_default(
         'resolution', 'Spectral resolution', gt=0.0)
+
+    args.wn_thinning = args.get_default(
+        'wn_thinning', 'Wavenumber thinning factor for Line_Sample opacities',
+        1, ge=1,
+    )
 
     runits = args.get_default('runits', 'Planetary-radius units')
     if runits is not None and not hasattr(pc, runits):

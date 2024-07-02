@@ -19,6 +19,7 @@ class Line_Sample():
     def __init__(
         self, cs_files, *, pressure=None, temperature=None,
         min_wl=None, max_wl=None, min_wn=None, max_wn=None,
+        wn_thinning=1,
         log=None,
     ):
         """
@@ -45,6 +46,8 @@ class Line_Sample():
         max_wn: 1D float ndarray
             Maximum wavenumber value to extract from line-sample files (cm-1)
             (only one of min_wl or max_wn should be provided).
+        wn_thinning: Integer
+            Thinning factor to take every n-th value of the wavenumber array
 
         Examples
         --------
@@ -129,7 +132,7 @@ class Line_Sample():
         if max_wn is None:
             max_wn = np.inf if min_wl is None else 1.0/(min_wl*pc.um)
 
-        self.wn = wn[(wn >= min_wn) & (wn <= max_wn)]
+        self.wn = wn[(wn >= min_wn) & (wn <= max_wn)][::wn_thinning]
         self.nwave = len(self.wn)
 
         self.species = []
@@ -139,7 +142,7 @@ class Line_Sample():
             #cs_file = os.path.basename(cs_file)
             species, temp, press, wn = io.read_opacity(cs_file,extract='arrays')
             wn_mask = (wn >= min_wn) & (wn <= max_wn)
-            wn = wn[wn_mask]
+            wn = wn[wn_mask][::wn_thinning]
             wn_masks.append(wn_mask)
             species_per_file.append(list(species))
             ntemp = len(temp)
@@ -182,7 +185,7 @@ class Line_Sample():
                 idx = spec_indices[i]
                 mask = wn_masks[i]
                 self.cs_table[idx] += pt.interpolate_opacity(
-                    cs_file, self.temp, self.press, mask,
+                    cs_file, self.temp, self.press, mask, wn_thinning,
                 )
         else:
             itemsize = MPI.DOUBLE.Get_size()
@@ -202,7 +205,7 @@ class Line_Sample():
                     idx = spec_indices[i]
                     mask = wn_masks[i]
                     self.cs_table[idx] += pt.interpolate_opacity(
-                        cs_file, self.temp, self.press, mask,
+                        cs_file, self.temp, self.press, mask, wn_thinning,
                     )
             pt.mpi_barrier()
 

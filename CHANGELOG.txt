@@ -9429,3 +9429,8 @@ Added test for temperature grid interpolation.
 Added wn_thinning argument to pt.interpolate_opacity()
 Tested and documented.
 
+*****
+
+Implemented wn_thinning config argument to enable thinning down
+tabulated cross sections.
+

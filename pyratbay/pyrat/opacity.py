@@ -70,7 +70,8 @@ class Opacity():
             # TBD: self.ls_files?
             ls = op.Line_Sample(
                 inputs.extfile, pressure=pressure, temperature=temp_array,
-                min_wn=min_wn, max_wn=max_wn, log=log,
+                min_wn=min_wn, max_wn=max_wn, wn_thinning=inputs.wn_thinning,
+                log=log,
             )
             self.models.append(ls)
             self.models_type.append('line_sample')
