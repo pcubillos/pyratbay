@@ -34,6 +34,7 @@ import pickle
 
 import numpy as np
 import mc3
+import h5py
 
 from .. import constants as pc
 from .. import tools as pt
@@ -618,6 +619,7 @@ def write_opacity(ofile, species, temp, press, wn, opacity):
 def read_opacity(ofile, extract='all'):
     """
     Read an opacity table from file.
+    Compatible with petitRADTRANS3 opacity files as well.
 
     Parameters
     ----------
@@ -646,18 +648,33 @@ def read_opacity(ofile, extract='all'):
         The tabulated opacities (cm2 molecule-1), of shape
         [nspec, ntemp, nlayers, nwave].
     """
-    with np.load(ofile, allow_pickle=True) as f:
-        if extract in ['arrays', 'all']:
+    if ofile.endswith('petitRADTRANS.h5'):
+        with h5py.File(ofile, 'r') as f:
+            species = list(f['mol_name'])
+            species = np.array([species[0].decode('utf-8')])
+            temp = np.array(f['t'])
+            press = np.array(f['p'])
+            wn = np.array(f['bin_edges'])
+            if extract in ['opacity', 'all']:
+                opacity = np.array(f['xsecarr'])
+                # Same format as pyratbay files: (nmol, npress, ntemp, nwave)
+                opacity = np.swapaxes(opacity, 0, 1)
+                opacity = np.expand_dims(opacity, axis=0)
+            units = {
+                'temperature': 'K',
+                'pressure': 'bar',
+                'wavenumber': 'cm-1',
+                'cross section': 'cm2 molecule-1',
+            }
+    else:
+        with np.load(ofile, allow_pickle=True) as f:
             species = f['species']
             temp = f['temperature']
             press = f['pressure']
             wn = f['wavenumber']
-        if extract in ['opacity', 'all']:
-            opacity = f['opacity']
-        units = np.ndarray.item(f['units']) if 'units' in f else None
-
-    if extract == 'opacity':
-        return opacity
+            if extract in ['opacity', 'all']:
+                opacity = f['opacity']
+            units = np.ndarray.item(f['units']) if 'units' in f else None
 
     # If it does not have units, must be pyratbay<2.0, where pressures
     # were stored in barye units, thus, need to convert to bars
@@ -670,6 +687,8 @@ def read_opacity(ofile, extract='all'):
             'cross section': 'cm2 molecule-1',
         }
 
+    if extract == 'opacity':
+        return opacity
     if extract == 'arrays':
         return (species, temp, press, wn)
     if extract == 'all':
@@ -1127,7 +1146,7 @@ def read_observations(obs_file):
         lines.append(line)
 
     if '@DATA' not in lines:
-        raise ValueError(f"Observation file does not have a '@DATA' header")
+        raise ValueError("Observation file does not have a '@DATA' header")
 
     # Number of header lines (to skip when reading the tabulated data):
     i = 0

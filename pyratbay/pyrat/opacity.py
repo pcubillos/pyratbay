@@ -54,10 +54,24 @@ class Opacity():
             #for cs_file in self.extfile:
             #    log.head(f"  '{cs_file}'.")
 
+            make_temp_array = (
+                inputs.tmin is not None and
+                inputs.tmax is not None and
+                inputs.tstep is not None
+            )
+            if make_temp_array:
+                # Instead of np.arange() to include inputs.tmax
+                ntemp = int((inputs.tmax-inputs.tmin)/inputs.tstep) + 1
+                tmax = inputs.tmin + (ntemp-1)*inputs.tstep
+                temp_array = np.linspace(inputs.tmin, tmax, ntemp)
+            else:
+                temp_array = None
+
             # TBD: self.ls_files?
             ls = op.Line_Sample(
-                inputs.extfile, pressure=pressure,
-                min_wn=min_wn, max_wn=max_wn, log=log,
+                inputs.extfile, pressure=pressure, temperature=temp_array,
+                min_wn=min_wn, max_wn=max_wn, wn_thinning=inputs.wn_thinning,
+                log=log,
             )
             self.models.append(ls)
             self.models_type.append('line_sample')

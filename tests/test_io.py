@@ -96,6 +96,7 @@ def test_read_spectrum_custom_header(tmpdir, header):
 )
 def test_read_write_opacity_all(tmpdir, extract):
     ofile = "{}/opacity_test.npz".format(tmpdir)
+    # TBD: Should be molname instead of molID?
     molID = np.array([101, 105])
     temp = np.linspace(300, 3000, 28)
     press = pa.pressure('1e-6 bar', '100 bar', nlayers=21)
@@ -176,6 +177,26 @@ def test_read_write_opacity_opacity(tmpdir):
     io.write_opacity(ofile, molID, temp, press, wn, etable)
     edata = io.read_opacity(ofile, extract='opacity')
 
+    np.testing.assert_allclose(etable, edata)
+
+
+@pytest.mark.skip(reason='TBD')
+def test_read_opacity_petitRADRANS(tmpdir):
+    ofile = f"{tmpdir}/test_R1e6_0.3-28mu.xsec.petitRADTRANS.h5"
+    # TBD: mock a prt3 file
+    #mol = np.array([105])
+    #temp  = np.linspace(300, 3000, 28)
+    #press = np.logspace(-6, 2, 21)
+    #wn = np.linspace(1000, 2000, 1001)
+    #nmol = len(molID)
+    #ntemp = len(temp)
+    #nlayers = len(press)
+    #nwave = len(wn)
+    #etable = np.linspace(0.0, 1.0, nmol*ntemp*nlayers*nwave)
+    #etable = etable.reshape((nmol, ntemp, nlayers, nwave))
+    #io.write_opacity(ofile, molID, temp, press, wn, etable)
+
+    edata = io.read_opacity(ofile, extract='opacity')
     np.testing.assert_allclose(etable, edata)
 
 

@@ -67,6 +67,20 @@ def test_line_sample_trim_wn():
     np.testing.assert_allclose(ls.wn, expected_wn)
 
 
+def test_line_sample_thin_wn():
+    cs_files = f"{pc.ROOT}tests/outputs/exttable_test_300-3000K_1.1-1.7um.npz"
+    thinning = 10
+    ls = op.Line_Sample(cs_files, wn_thinning=thinning)
+
+    assert ls.ntemp == 10
+    assert ls.nwave == 321
+    assert ls.nspec == 1
+    assert ls.nlayers == 51
+
+    expected_wn = np.arange(5882.35294118, 9091.0, 1.0)[::thinning]
+    np.testing.assert_allclose(ls.wn, expected_wn)
+
+
 def test_line_sample_duplicate_wn_min():
     cs_files = f"{pc.ROOT}tests/outputs/exttable_test_300-3000K_1.1-1.7um.npz"
 

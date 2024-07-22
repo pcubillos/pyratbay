@@ -9397,3 +9397,40 @@ This is it, no more new implementations beyond whats already planned.
 Only cleaning up and documenting from now on.
 
 
+*****  Do 27 Jun 2024 14:46:47 CEST  *****
+
+Updated io.write_opacity() to enable reading petitRADTRANS files.
+Drafted test, but in TBD state.
+Added h5py to requirements.
+
+*****
+
+Added temperature argument to tools.interpolate_opacity()
+to allow interpolating over the temperature grid.
+Set temperature, pressure, and wn_mask as optional arguments.
+Updated tests.
+
+
+*****  Fr 28 Jun 2024 10:05:58 CEST  *****
+
+Added temperature optional argument to Line_Sample() init
+to allow pre-definin a temperature grid (to resample cross sections).
+Checks for boundaries are TBD.
+
+Updated pyrat/opacity.py to compute a temperature grid when
+tmin, tmax, and tstep are defined in the config file.
+Then, the code will interpolate the cross section tables into it.
+
+Added test for temperature grid interpolation.
+
+
+*****  Di 02 Jul 2024 12:54:10 CEST  *****
+
+Added wn_thinning argument to pt.interpolate_opacity()
+Tested and documented.
+
+*****
+
+Implemented wn_thinning config argument to enable thinning down
+tabulated cross sections.
+
