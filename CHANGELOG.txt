@@ -9494,3 +9494,13 @@ with math libraries.
 
 Added sphinx_copybutton to docs.
 
+
+*****  Mo 22 Jul 2024 18:29:36 CEST  *****
+
+Some cosmetics.
+
+*****
+
+Updated pyproject to build including numpy>=2.0.
+Lost compatibility with unsuported Python<=3.8.
+

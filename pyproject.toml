@@ -1,8 +1,7 @@
 [build-system]
 requires = [
     'setuptools>=40.8.0',
-    'wheel',
-    'oldest-supported-numpy',
+    'numpy>=2.0.0',
 ]
 build-backend = "setuptools.build_meta"
 
@@ -15,16 +14,16 @@ license = { file = "LICENSE" }
 #https://packaging.python.org/en/latest/guides/single-sourcing-package-version/
 dynamic = ["version"]
 
-requires-python = ">=3.6"
+requires-python = ">=3.9"
 authors = [
   {name = "Patricio Cubillos", email = "patricio.cubillos@oeaw.ac.at"},
 ]
 
 dependencies = [
-    'numpy>=1.19.5',
+    'numpy>=1.23.5',
     'scipy>=1.5.4',
     'matplotlib>=3.3.4',
-    'mc3>=3.1.3',
+    'mc3>=3.2.0',
     'chemcat>=0.3.8',
     'h5py>=3.10.0',
 ]
