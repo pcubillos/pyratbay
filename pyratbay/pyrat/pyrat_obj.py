@@ -519,6 +519,7 @@ class Pyrat():
         )
 
         # Update last tempertature iteration and save to file:
+        pyrat.atm.radeq_temps = radeq_temps
         atm.temp = radeq_temps[-1]
         io.write_atm(
             f'{basename}.atm',

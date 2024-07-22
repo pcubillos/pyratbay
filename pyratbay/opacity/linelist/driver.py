@@ -1,5 +1,5 @@
-# Copyright (c) 2021 Patricio Cubillos
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+# Copyright (c) 2021-2024 Patricio Cubillos
+# Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import numpy as np
 
@@ -8,11 +8,11 @@ from ...constants import ROOT
 from .. import partitions as pf
 
 
-class Linelist(object):
+class Linelist():
   def __init__(self, dbfile, pffile, log):
       self.dbfile = dbfile
       self.pffile = pffile
-      self.log    = log
+      self.log = log
 
   def getpf(self, verbose=0):
       """
@@ -42,12 +42,14 @@ class Linelist(object):
           for j in range(niso):
               for i in range(ntemp):
                   # Formula from Irwin 1981, ApJS 45, 621 (equation #2):
-                  pf_data[j,i] = (self.PFcoeffs[j,0]                      +
-                                  self.PFcoeffs[j,1]* np.log(temp[i])     +
-                                  self.PFcoeffs[j,2]*(np.log(temp[i]))**2 +
-                                  self.PFcoeffs[j,3]*(np.log(temp[i]))**3 +
-                                  self.PFcoeffs[j,4]*(np.log(temp[i]))**4 +
-                                  self.PFcoeffs[j,5]*(np.log(temp[i]))**5 )
+                  pf_data[j,i] = (
+                      self.PFcoeffs[j,0] +
+                      self.PFcoeffs[j,1]* np.log(temp[i]) +
+                      self.PFcoeffs[j,2]*(np.log(temp[i]))**2 +
+                      self.PFcoeffs[j,3]*(np.log(temp[i]))**3 +
+                      self.PFcoeffs[j,4]*(np.log(temp[i]))**4 +
+                      self.PFcoeffs[j,5]*(np.log(temp[i]))**5
+                  )
           # Get the exponential of log(PF):
           pf_data = np.exp(pf_data)
 
@@ -172,8 +174,8 @@ class Linelist(object):
       else:
           self.log.error(f'Invalid database type: {dbtype}')
 
-      isotopes = [iso   for mol,iso   in zip(name, isotopes) if mol==molname]
-      mass     = [m     for mol,m     in zip(name, iso_mass) if mol==molname]
+      isotopes = [iso for mol,iso in zip(name, isotopes) if mol==molname]
+      mass = [m for mol,m in zip(name, iso_mass) if mol==molname]
       isoratio = [ratio for mol,ratio in zip(name, iso_ratio) if mol==molname]
 
       molID = ID[name==molname][0]

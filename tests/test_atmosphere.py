@@ -622,6 +622,19 @@ def test_balance():
     np.testing.assert_equal(q[:,1]/q[:,0], bratio[:,1]/bratio[:,0])
 
 
+@pytest.mark.skip(reason="TBD: add electrons, should not count as 'metals'")
+def test_balance_electrons():
+    q = np.tile([0.8, 0.2, 0.5], (5,1))
+    q[4] = 0.5, 0.5, 0.5
+    ibulk = [0, 1]
+    bratio, invsrat = pa.ratio(q, ibulk)
+    pa.balance(q, ibulk, bratio, invsrat)
+    # Check sum(q) == 1:
+    np.testing.assert_equal(np.sum(q,axis=1), np.tile(1.0,5))
+    # Check ratio(q) == bratio:
+    np.testing.assert_equal(q[:,1]/q[:,0], bratio[:,1]/bratio[:,0])
+
+
 def test_ratio():
     q = np.tile([0.8, 0.2], (5,1))
     q[4] = 0.5, 0.5

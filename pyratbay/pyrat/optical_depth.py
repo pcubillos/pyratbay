@@ -56,7 +56,8 @@ def optical_depth(pyrat):
                 od.depth[rtop:,i],
                 od.ec[rtop:,i],
                 od.raypath[rtop:rbottom],
-                maxdepth)
+                maxdepth,
+            )
             i += 1
 
     elif od.rt_path in pc.transmission_rt:
