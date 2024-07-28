@@ -9510,3 +9510,7 @@ Lost compatibility with unsuported Python<=3.8.
 Implemented suffix argument in posterior_post_processing()
 to allow renaming the post-process outputs.
 
+*****
+
+Updated version to 2.0.0b2
+
