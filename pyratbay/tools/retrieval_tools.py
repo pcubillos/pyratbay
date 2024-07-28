@@ -317,7 +317,7 @@ def multinest_run(pyrat, mn_basename):
     return output
 
 
-def posterior_post_processing(cfg_file=None, pyrat=None):
+def posterior_post_processing(cfg_file=None, pyrat=None, suffix=''):
     """
     Compute quantities of interest from a retrieval posterior distribution.
     The produced data is stored into a pickle file with root name based
@@ -474,7 +474,7 @@ def posterior_post_processing(cfg_file=None, pyrat=None):
         outputs['depth_posterior'] = depth
         outputs['rprs'] = rprs
 
-    post_file = f'{basename}_posteriors_info.pickle'
+    post_file = f'{basename}{suffix}_posteriors_info.pickle'
     with open(post_file, 'wb') as handle:
         pickle.dump(outputs, handle, protocol=pickle.HIGHEST_PROTOCOL)
 

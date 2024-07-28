@@ -9504,3 +9504,9 @@ Some cosmetics.
 Updated pyproject to build including numpy>=2.0.
 Lost compatibility with unsuported Python<=3.8.
 
+
+*****  Sun Jul 28 14:03:24 CEST 2024  *****
+
+Implemented suffix argument in posterior_post_processing()
+to allow renaming the post-process outputs.
+

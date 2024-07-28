@@ -70,6 +70,11 @@ def main():
         help='Format a cross-section file.',
     )
 
+    parser.add_argument(
+        '-suf', dest='suffix', default=None,
+        help='Suffix for post-processed file.',
+    )
+
     # Parse command-line args:
     args, unknown = parser.parse_known_args()
 
@@ -110,7 +115,8 @@ def main():
 
     # Post processing:
     elif args.post is not None:
-        pb.tools.posterior_post_processing(cfg_file=args.post)
+        suffix = '' if args.suffix is None else args.suffix
+        pb.tools.posterior_post_processing(cfg_file=args.post, suffix=suffix)
 
 
 if __name__ == '__main__':
