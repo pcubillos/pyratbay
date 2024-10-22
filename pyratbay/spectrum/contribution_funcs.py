@@ -106,6 +106,6 @@ def band_cf(cf, bands_response, wn, bands_idx):
         # Weighted CF (by filter response function):
         wcf = cf[:,wn_idx] * response
         # Integrated CF across bandpass at each layer:
-        bands_cf[:,i] = np.trapz(wcf, wn[wn_idx], axis=1)
+        bands_cf[:,i] = np.trapezoid(wcf, wn[wn_idx], axis=1)
 
     return bands_cf

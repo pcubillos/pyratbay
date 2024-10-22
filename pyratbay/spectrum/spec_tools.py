@@ -339,7 +339,7 @@ class Tophat(PassBand):
 
         self.wn = wn[self.idx]
         self.response = np.array(idx[self.idx], np.double)
-        self.response /= np.trapz(self.response, self.wn)
+        self.response /= np.trapezoid(self.response, self.wn)
 
         self.wl = 1.0 / (self.wn * pc.um)
         if input_is_wl:
@@ -462,7 +462,7 @@ def bin_spectrum(bin_wl, wl, spectrum, half_widths=None, ignore_gaps=False):
         if band.idx is None:
             band_flux[i] = np.nan
         else:
-            band_flux[i] = np.trapz(spectrum[band.idx]*response, band.wn)
+            band_flux[i] = np.trapezoid(spectrum[band.idx]*response, band.wn)
     return band_flux
 
 
@@ -582,7 +582,7 @@ def resample(signal, wn, specwn, normalize=False):
     resampled = si.interp1d(wn,signal)(specwn[wnidx])
 
     if normalize:
-        resampled /= np.trapz(resampled, specwn[wnidx])
+        resampled /= np.trapezoid(resampled, specwn[wnidx])
 
     # Return the normalized interpolated filter and the indices:
     return resampled, wnidx
@@ -651,7 +651,7 @@ def band_integrate(spectrum, specwn, bandtrans, bandwn):
         # Resample bandpasses into spectrum wavenumber sampling:
         resampled, wnidx = resample(btrans, wn, specwn, normalize=True)
         # Band-integrate spectrum:
-        bflux.append(np.trapz(spectrum[wnidx]*resampled, specwn[wnidx]))
+        bflux.append(np.trapezoid(spectrum[wnidx]*resampled, specwn[wnidx]))
 
     return bflux
 

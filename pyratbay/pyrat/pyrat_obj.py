@@ -553,7 +553,7 @@ class Pyrat():
             spectrum = spectrum / self.spec.starflux * rprs_square
 
         self.obs.bandflux = np.array([
-            np.trapz(spectrum[band.idx]*band.response, band.wn)
+            np.trapezoid(spectrum[band.idx]*band.response, band.wn)
             for band in self.obs.filters
         ])
 
@@ -768,7 +768,7 @@ class Pyrat():
         if len(self.opacity.models) > 0:
             for i,model in enumerate(self.opacity.models):
                 if self.opacity.models_type[i] in ['line_sample', 'lbl']:
-                    opacities += list(model.species)
+                    opacities += model.species.tolist()
                 elif self.opacity.models_type[i] in ['alkali']:
                     opacities.append(model.species)
                 else:

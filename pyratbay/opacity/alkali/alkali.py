@@ -176,7 +176,7 @@ class VanderWaals():
                 if whi > wlo and fwidth[j] < 2.0*dwave:
                     i0 = np.argmin(np.abs(wn0-wndet))
                     profile[i0] = 0.0
-                    profile[i0] = 1.0 - np.trapz(profile, wndet)
+                    profile[i0] = 1.0 - np.trapezoid(profile, wndet)
                 cs[j, wlo:whi] = profile
             # Add up contribution (include exponential cutoff):
             exp = np.exp(np.outer(1/temperature, -pc.C2*np.abs(wn-wn0)))

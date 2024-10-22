@@ -464,7 +464,7 @@ def two_stream(pyrat):
 
     # Set internal net bolometric flux to sigma*Tint**4:
     spec.f_int = ps.blackbody_wn(spec.wn, pyrat.atm.tint)
-    total_f_int = np.trapz(spec.f_int, spec.wn)
+    total_f_int = np.trapezoid(spec.f_int, spec.wn)
     if total_f_int > 0:
         spec.f_int *= pc.sigma * pyrat.atm.tint**4 / total_f_int
 

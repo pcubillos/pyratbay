@@ -58,7 +58,7 @@ def read_kurucz(filename, temp=None, logg=None):
     >>> gsun = 4.44    # Sun's surface gravity (log)
     >>> flux, wn, ktemp, klogg = ps.read_kurucz(kfile, tsun, gsun)
     >>> # Compute brightness at 1 AU from a 1 Rsun radius star:
-    >>> s = np.trapz(flux, wn) * (pc.rsun/pc.au)**2
+    >>> s = np.trapezoid(flux, wn) * (pc.rsun/pc.au)**2
     >>> print("Solar constant [T={:.0f} K, logg={:.1f}]:  S = {:.1f} W m-2".
     >>>       format(ktemp, klogg, s * 1e-3))
     Solar constant [T=5750 K, logg=4.5]:  S = 1340.0 W m-2

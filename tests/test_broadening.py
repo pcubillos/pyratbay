@@ -32,7 +32,7 @@ def test_Lorentz_hwhm():
 def test_Lorentz_integral():
     lor = pb.Lorentz(x0=0.0, hwhm=1.0, scale=1.0)
     x = np.linspace(-1000.0, 1000.0, 100001)
-    np.testing.assert_approx_equal(np.trapz(lor(x),x), 1.0, 3)
+    np.testing.assert_approx_equal(np.trapezoid(lor(x),x), 1.0, 3)
 
 
 def test_Lorentz():
@@ -51,7 +51,7 @@ def test_Gauss_hwhm():
 def test_Gauss_integral():
     gauss = pb.Gauss(x0=0.0, hwhm=1.0, scale=1.0)
     x = np.linspace(-100.0, 100.0, 100001)
-    np.testing.assert_approx_equal(np.trapz(gauss(x),x), 1.0, 7)
+    np.testing.assert_approx_equal(np.trapezoid(gauss(x),x), 1.0, 7)
 
 
 def test_Gauss():
@@ -89,7 +89,7 @@ def test_Voigt_Lorentz_hwhm():
 def test_Voigt_integral(hwhm_L, hwhm_G):
     voigt = pb.Voigt(x0=0.0, hwhm_L=hwhm_L, hwhm_G=hwhm_G, scale=1.0)
     x = np.linspace(-1000.0, 1000.0, 100001)
-    np.testing.assert_approx_equal(np.trapz(voigt(x),x), 1.0, 3)
+    np.testing.assert_approx_equal(np.trapezoid(voigt(x),x), 1.0, 3)
 
 
 @pytest.mark.parametrize("hwhm_L",

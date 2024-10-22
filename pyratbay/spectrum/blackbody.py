@@ -41,7 +41,7 @@ def bbflux(wn, teff):
     >>> wn = np.logspace(-1, 5, 30000)
     >>> flux = ps.bbflux(wn, tsun)
     >>> # Solar constant:
-    >>> s = np.trapz(flux, wn) * (pc.rsun/pc.au)**2
+    >>> s = np.trapezoid(flux, wn) * (pc.rsun/pc.au)**2
     >>> print("Solar constant (Teff={:.0f}K): S = {:.1f} W m-2\n"
     >>>       "Wien's displacement law: wn(flux_max) = {:.1f} cm-1\n"
     >>>       "             5.879E10 Hz/K * Teff / c = {:.1f} cm-1".

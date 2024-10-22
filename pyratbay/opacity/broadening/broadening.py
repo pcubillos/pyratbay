@@ -44,7 +44,7 @@ class Lorentz():
     2.4998
     >>> # Integral is ~ 1.0:
     >>> x = np.linspace(-5000.0, 5000.0, 100001)
-    >>> print(np.trapz(lor(x), x))
+    >>> print(np.trapezoid(lor(x), x))
     0.999681690140321
     >>> # Take a look at a Lorenzt profile:
     >>> x = linspace(-10, 10, 101)
@@ -102,7 +102,7 @@ class Gauss():
     2.4998
     >>> # Integral is ~ 1.0:
     >>> x = np.linspace(-5000.0, 5000.0, 100001)
-    >>> print(np.trapz(gauss(x), x))
+    >>> print(np.trapezoid(gauss(x), x))
     1.0
     >>> # Take a look at a Lorenzt profile:
     >>> x = linspace(-10, 10, 101)

@@ -82,8 +82,8 @@ def radiative_equilibrium(
         flux_up = spec.flux_up
         flux_down = spec.flux_down
         # Bolometric net fluxes through each layer:
-        Qup = np.trapz(flux_up, wavenumber, axis=1)
-        Qdown = np.trapz(flux_down, wavenumber, axis=1)
+        Qup = np.trapezoid(flux_up, wavenumber, axis=1)
+        Qdown = np.trapezoid(flux_down, wavenumber, axis=1)
         Q_net = Qup - Qdown
         dF = np.ediff1d(Q_net, to_begin=0)
 

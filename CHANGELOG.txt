@@ -9514,3 +9514,8 @@ to allow renaming the post-process outputs.
 
 Updated version to 2.0.0b2
 
+
+*****  Di 22 Okt 2024 09:47:09 CEST  *****
+
+Corrected np.trapz() to np.trapezoid() to avoid deprecation warning.
+

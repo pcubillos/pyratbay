@@ -40,7 +40,7 @@ def test_PassBand_wl(flip):
     np.testing.assert_equal(out_wl, band.wl)
     np.testing.assert_allclose(wl[band.idx], band.wl)
 
-    wn_integral = np.trapz(band.response, band.wn)
+    wn_integral = np.trapezoid(band.response, band.wn)
     np.testing.assert_allclose(wn_integral, 1.0)
 
 
@@ -57,7 +57,7 @@ def test_PassBand_wn(flip):
     np.testing.assert_equal(out_wn, band.wn)
     np.testing.assert_allclose(wn[band.idx], band.wn)
 
-    wn_integral = np.trapz(band.response, band.wn)
+    wn_integral = np.trapezoid(band.response, band.wn)
     np.testing.assert_allclose(wn_integral, 1.0)
 
 
@@ -132,7 +132,7 @@ def test_Tophat_wl(flip):
     np.testing.assert_equal(out_wl, hat.wl)
     np.testing.assert_allclose(wl[hat.idx], hat.wl)
 
-    wn_integral = np.trapz(hat.response, hat.wn)
+    wn_integral = np.trapezoid(hat.response, hat.wn)
     np.testing.assert_allclose(wn_integral, 1.0)
 
 
@@ -148,7 +148,7 @@ def test_Tophat_wn(flip):
     np.testing.assert_equal(out_wn, hat.wn)
     np.testing.assert_allclose(wn[hat.idx], hat.wn)
 
-    wn_integral = np.trapz(hat.response, hat.wn)
+    wn_integral = np.trapezoid(hat.response, hat.wn)
     np.testing.assert_allclose(wn_integral, 1.0)
 
 
@@ -297,7 +297,7 @@ def test_bbflux_sun():
     wn = np.logspace(-1, 5, 30000)
     flux = ps.bbflux(wn, tsun)
     # Solar constant:
-    s = np.trapz(flux, wn) * (pc.rsun/pc.au)**2
+    s = np.trapezoid(flux, wn) * (pc.rsun/pc.au)**2
     np.testing.assert_allclose(s, 1361195.40)
     # Wien's displacement law:
     np.testing.assert_allclose(wn[np.argmax(flux)], 5.879e10*tsun/pc.c,
@@ -322,7 +322,7 @@ def test_read_kurucz_sun():
     # Arrays:
     assert len(wn) == len(flux) == 1221
     # Scientific correctness:
-    s = np.trapz(flux, wn) * (pc.rsun/pc.au)**2
+    s = np.trapezoid(flux, wn) * (pc.rsun/pc.au)**2
     np.testing.assert_allclose(s, 1339957.11)
 
 
@@ -348,10 +348,10 @@ def test_read_kurucz_all():
     np.testing.assert_equal(ktemp, expected_kurucz_temps)
     np.testing.assert_equal(klogg, expected_kurucz_logg)
 
-    s = np.trapz(fluxes[6], wn) * (pc.rsun/pc.au)**2
+    s = np.trapezoid(fluxes[6], wn) * (pc.rsun/pc.au)**2
     np.testing.assert_allclose(s, 1339957.11)
 
-    c = np.trapz(continua[6], wn) * (pc.rsun/pc.au)**2
+    c = np.trapezoid(continua[6], wn) * (pc.rsun/pc.au)**2
     np.testing.assert_allclose(c, 1618263.50)
 
 
