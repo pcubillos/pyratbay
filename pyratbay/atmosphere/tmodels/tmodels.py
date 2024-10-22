@@ -13,7 +13,6 @@ import functools
 from collections.abc import Iterable
 
 import numpy as np
-from numpy.core.numeric import isscalar
 from scipy.ndimage import gaussian_filter1d
 
 from ... import constants as pc
@@ -151,7 +150,7 @@ class Guillot():
 
         if gravity is None:
             gravity = np.tile(1.0, len(pressure))
-        elif isscalar(gravity):
+        elif np.isscalar(gravity):
             gravity = np.tile(gravity, len(pressure))
         self.pressure = np.asarray(pressure, float)
         self.gravity = np.asarray(gravity, float)

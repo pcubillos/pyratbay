@@ -9519,3 +9519,6 @@ Updated version to 2.0.0b2
 
 Corrected np.trapz() to np.trapezoid() to avoid deprecation warning.
 
+*****
+
+Removed numpy.core.numeric isscalar imports.

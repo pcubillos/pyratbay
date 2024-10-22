@@ -11,7 +11,6 @@ __all__ = [
 import pickle
 
 import numpy as np
-from numpy.core.numeric import isscalar
 
 from ... import io as io
 from ... import constants as pc
@@ -96,7 +95,7 @@ def tips(molecule, isotopes=None, outfile=None, db_type='as_tips'):
 
     if isotopes is None:
         isotopes = list(data[molecule].keys())
-    isotopes = [isotopes] if isscalar(isotopes) else isotopes
+    isotopes = [isotopes] if np.isscalar(isotopes) else isotopes
 
     for iso in isotopes:
         if iso not in data[molecule]:
