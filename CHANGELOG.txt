@@ -9522,3 +9522,8 @@ Corrected np.trapz() to np.trapezoid() to avoid deprecation warning.
 *****
 
 Removed numpy.core.numeric isscalar imports.
+
+*****
+
+Corrected np.in1d() to np.isin().
+

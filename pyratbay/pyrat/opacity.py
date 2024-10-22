@@ -248,7 +248,7 @@ class Opacity():
                     model.rsurf = radius[-1]
                 continue
             if model_type == 'line_sample':
-                intersect = np.in1d(model.species, skip)
+                intersect = np.isin(model.species, skip)
                 if np.any(intersect) > 0:
                     density[:,intersect] = 0.0
             if model_type == 'lbl':

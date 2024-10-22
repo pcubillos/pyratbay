@@ -808,7 +808,7 @@ def posteriors(
         plot_species = post_data['active_species']
     else:
         plot_species = np.array(plot_species)
-        plot_species = plot_species[np.in1d(plot_species, species)]
+        plot_species = plot_species[np.isin(plot_species, species)]
 
     imols = [list(species).index(mol) for mol in plot_species]
     nmol_show = len(plot_species)
