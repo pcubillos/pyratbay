@@ -1,5 +1,5 @@
 numpy>=1.23.5
-scipy>=1.5.4
+scipy>=1.13.0
 matplotlib>=3.3.4
 pytest>=3.9
 mc3>=3.2.0

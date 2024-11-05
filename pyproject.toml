@@ -21,7 +21,7 @@ authors = [
 
 dependencies = [
     'numpy>=1.23.5',
-    'scipy>=1.5.4',
+    'scipy>=1.13.0',
     'matplotlib>=3.3.4',
     'mc3>=3.2.0',
     'chemcat>=0.3.8',
