@@ -9527,3 +9527,13 @@ Removed numpy.core.numeric isscalar imports.
 
 Corrected np.in1d() to np.isin().
 
+
+*****  Di 05 Nov 2024 11:22:31 CET  *****
+
+Updated scipy requirement compatible with Numpy2.0.
+
+*****
+
+Updated docs theme, switched from read_the_docs to furo.
+
+

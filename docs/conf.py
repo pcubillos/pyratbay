@@ -22,7 +22,7 @@ import re
 from datetime import date
 
 # Do not add path to the package (following example from astropy).
-#sys.path.insert(0, os.path.abspath('..'))
+sys.path.insert(0, os.path.abspath('.'))
 import pyratbay as pb
 
 # -- General configuration ------------------------------------------------
@@ -58,7 +58,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Pyrat Bay'
-copyright = u'2016-{:d}, Patricio Cubillos'.format(date.today().year)
+copyright = f'2016-{date.today().year:d}, Patricio Cubillos'
 author = u'Patricio Cubillos'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -103,7 +103,8 @@ exclude_patterns = ['_build', '.DS_Store']
 #show_authors = False
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
+#pygments_style = 'sphinx'
+pygments_style = 'custom_style.CustomStyle'
 
 # A list of ignored prefixes for module index sorting.
 #modindex_common_prefix = []
@@ -119,12 +120,15 @@ pygments_style = 'sphinx'
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'sphinx_rtd_theme'
+html_theme = 'furo'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 #html_theme_options = {}
+html_theme_options = {
+    "sidebar_hide_name": False,
+}
 
 # Add any paths that contain custom themes here, relative to this directory.
 #html_theme_path = []
@@ -164,7 +168,7 @@ html_static_path = ['_static']
 #html_use_smartypants = True
 
 # Custom sidebar templates, maps document names to template names.
-html_sidebars = {'*':['globaltoc.html', 'relations.html', 'searchbox.html']}
+#html_sidebars = {'*':['globaltoc.html', 'relations.html', 'searchbox.html']}
 
 # Additional templates that should be rendered to pages, maps page names to
 # template names.
