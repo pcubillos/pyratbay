@@ -125,9 +125,11 @@ html_theme = 'furo'
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-#html_theme_options = {}
 html_theme_options = {
     "sidebar_hide_name": False,
+    "light_css_variables": {
+        "color-background-border": "#d0d0d0",
+    },
 }
 
 # Add any paths that contain custom themes here, relative to this directory.
@@ -153,6 +155,7 @@ html_favicon = 'figures/favicon.ico'
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+html_css_files = ["custom.css"]
 
 # Add any extra paths that contain custom files (such as robots.txt or
 # .htaccess) here, relative to this directory. These files are copied

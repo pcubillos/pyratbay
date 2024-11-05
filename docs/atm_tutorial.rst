@@ -90,7 +90,7 @@ parameter (``tpars``): the temperature (:math:`T_0`) at all layers.
 Here is an example of an isothermal atmosphere configuration file:
 
 .. literalinclude:: ../examples/tutorial/pt_isothermal.cfg
-
+    :caption: File: pt_isothermal.cfg
 
 Guillot profile
 ^^^^^^^^^^^^^^^
