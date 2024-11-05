@@ -9536,4 +9536,5 @@ Updated scipy requirement compatible with Numpy2.0.
 
 Updated docs theme, switched from read_the_docs to furo.
 
+Added docs/custom_style.py file.
 
