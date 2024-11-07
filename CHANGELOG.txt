@@ -9543,3 +9543,26 @@ Added docs/custom_style.py file.
 
 Added water isotopes for 228 and 227.
 
+*****
+
+Refactored tips() function to extend partition functions domain
+when some isotopes have higher temperature ranges.
+This is done with a cubic spline. Before the code was cutting off
+at the lowest maximum temperature.
+
+These are the affected molecules:
+H2O
+[5000 5000 5000 5000 5000 5000 6000 6000 6000]
+CO2 
+[5000 5000 3500 3500 3500 3500 5000 3500 5000 5000 3500 5000 5000]
+CH4
+[3500 3500 4500 3500]
+NO2
+[3500 1000]
+OH
+[9000 5000 5000]
+H2CO
+[3500 5000 5000]
+H2S
+[4000 5000 5000]
+

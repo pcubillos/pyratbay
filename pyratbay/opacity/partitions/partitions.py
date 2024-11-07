@@ -11,6 +11,7 @@ __all__ = [
 import pickle
 
 import numpy as np
+from scipy.interpolate import CubicSpline
 
 from ... import io as io
 from ... import constants as pc
@@ -94,32 +95,52 @@ def tips(molecule, isotopes=None, outfile=None, db_type='as_tips'):
         raise ValueError(f"Molecule '{molecule}' is not in TIPS database.")
 
     if isotopes is None:
-        isotopes = list(data[molecule].keys())
+        isotopes = list(data[molecule])
     isotopes = [isotopes] if np.isscalar(isotopes) else isotopes
 
     for iso in isotopes:
         if iso not in data[molecule]:
             raise ValueError(
-                f"Molecule '{molecule}' does not have isotope '{iso}'")
+                f"Molecule '{molecule}' does not have isotope '{iso}'"
+            )
 
-    ntemp = np.amin([
+    # Extend to maximum tmax
+    tips_temp = data['temp']
+    ntemps = [
         len(data[molecule][iso])
         for iso in data[molecule]
-    ])
-    temp = data['temp'][0:ntemp]
+    ]
+    ntemp_max = np.amax(ntemps)
+    temp = tips_temp[0:ntemp_max]
 
     # Compute partition function:
-    niso  = len(isotopes)
-    pf = np.zeros((niso, ntemp), np.double)
+    niso = len(isotopes)
+    pf = np.zeros((niso, ntemp_max), np.double)
     for i,iso in enumerate(isotopes):
-        pf[i] = data[molecule][iso][0:ntemp]
+        iso = isotopes[i]
+        ntemp = ntemps[i]
+        part = data[molecule][iso]
+        iso_temp = tips_temp[0:ntemp]
+        # Extrapolate with cubic spline in log-pf:
+        if ntemp == np.amax(ntemps):
+            pf[i] = part
+        else:
+            pf[i,0:ntemp] = part
+            thin = 10
+            spline = CubicSpline(
+                iso_temp[::thin],
+                np.log(part[::thin]),
+                bc_type='not-a-knot',
+            )
+            pf[i,ntemp:] = np.exp(spline(tips_temp[ntemp:ntemp_max]))
+
 
     # Get exomol isotope names if requested:
     if db_type == 'as_exomol':
         ID, molecs, hitran, exomol, iso_ratio, iso_mass = \
             io.read_isotopes(pc.ROOT+'pyratbay/data/isotopes.dat')
         iso_map = {
-            exo:hit
+            exo.item(): hit.item()
             for mol, hit, exo in zip(molecs, exomol, hitran)
             if mol==molecule
         }
