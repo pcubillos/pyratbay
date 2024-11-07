@@ -9585,3 +9585,11 @@ test_read_write_spectrum_filter
 test_read_isotopes
 test_write_observations_mix_bandpass_tophats
 
+*****
+
+In spectrum.bin_spectrum() replaced ignore_gaps bool argument
+with gaps string argument.
+Allowed to keep the default behavior for gaps (raise Error),
+ignore them (keep nans), or patch with a linear interpolation.
+
+Updated docs and tests.

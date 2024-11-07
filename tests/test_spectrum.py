@@ -257,7 +257,7 @@ def test_bin_spectrum():
     np.testing.assert_allclose(bin_spectrum, expected_bin_spectrum)
 
 
-def test_bin_spectrum_ignore_gaps():
+def test_bin_spectrum_gaps_ignore():
     wl_min = 1.0
     wl_max = 3.0
     resolution = 10
@@ -265,11 +265,29 @@ def test_bin_spectrum_ignore_gaps():
     spectrum = np.ones(len(wl))
 
     bin_wl = ps.constant_resolution_spectrum(wl_min, wl_max, 12.0)
-    bin_spectrum = ps.bin_spectrum(bin_wl, wl, spectrum, ignore_gaps=True)
+    bin_spectrum = ps.bin_spectrum(bin_wl, wl, spectrum, gaps='ignore')
 
     expected_bin_spectrum = np.array([
-       1.0, 1.0, 1.0, np.nan, 1.0, 1.0, 1.0, 1.0, 1.0,
-       np.nan, 1.0, 1.0, 1.0, np.nan,
+       1.0, 1.0, 1.0, np.nan, 1.0, 1.0,
+       1.0, 1.0, 1.0, np.nan, 1.0, 1.0,
+       1.0, np.nan,
+    ])
+    np.testing.assert_allclose(bin_spectrum, expected_bin_spectrum)
+
+
+def test_bin_spectrum_gaps_interpolate():
+    wl_min = 1.0
+    wl_max = 3.0
+    resolution = 10
+    wl = ps.constant_resolution_spectrum(wl_min, wl_max, resolution)
+    spectrum = np.linspace(10.0, 20.0, len(wl))
+
+    bin_wl = ps.constant_resolution_spectrum(wl_min, wl_max, 12.0)
+    bin_spectrum = ps.bin_spectrum(bin_wl, wl, spectrum, gaps='interpolate')
+    expected_bin_spectrum = np.array([
+        10.0, 11.0, 12.0, 12.479167, 13.0, 14.0,
+        15.0, 16.0, 17.0, 17.479167, 18.0, 19.0,
+        20.0, 20.0,
     ])
     np.testing.assert_allclose(bin_spectrum, expected_bin_spectrum)
 

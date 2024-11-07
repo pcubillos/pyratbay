@@ -180,9 +180,7 @@ class PassBand():
         save_file: String
             File where to save the filter data.
         """
-        io.write_spectrum(
-            self.wl*pc.um, self.response, save_file, type='filter',
-        )
+        io.write_spectrum(self.wl, self.response, save_file, type='filter')
 
 
 class Tophat(PassBand):
@@ -396,7 +394,7 @@ def constant_resolution_spectrum(wave_min, wave_max, resolution):
     return wave
 
 
-def bin_spectrum(bin_wl, wl, spectrum, half_widths=None, ignore_gaps=False):
+def bin_spectrum(bin_wl, wl, spectrum, half_widths=None, gaps=None):
     """
     Bin down a spectrum.
 
@@ -412,10 +410,12 @@ def bin_spectrum(bin_wl, wl, spectrum, half_widths=None, ignore_gaps=False):
         The bin half widths (um).
         If None, assume that the bin edges are at the mid-points
         of the bin_wl array.
-    ignore_gaps: Bool
-        If True, return np.nan when the binned point does not cover any
-        value of the wl array (may occur when the resolution of wl is not
-        much higher than bin_wl's. Use with care).
+    gaps: String
+        If None (default) and there are bins that do not cover any value,
+        (e.g., when the resolution of wl is similar to bin_wl's), raise error.
+        If gaps=='ignore', patch those bins with np.nan values.
+        If gaps=='interpolate', patch those bins linearly interpolating.
+        Use with care.
 
     Returns
     -------
@@ -446,11 +446,16 @@ def bin_spectrum(bin_wl, wl, spectrum, half_widths=None, ignore_gaps=False):
     >>> plt.plot(wl, spectrum, '.', ms=2, color='gray')
     >>> plt.plot(bin_wl, bin_spectrum, color='red')
     """
+    if gaps is not None and gaps not in ['interpolate', 'ignore']:
+        raise ValueError("Invalid value for 'gaps' argument")
+
     if half_widths is None:
         half_widths = np.ediff1d(bin_wl, 0, 0)
         half_widths[0] = half_widths[1]
         half_widths[-1] = half_widths[-2]
         half_widths /= 2.0
+
+    ignore_gaps = gaps is not None
     bands = [
         Tophat(wl0, half_width, ignore_gaps=ignore_gaps)
         for wl0, half_width in zip(bin_wl, half_widths)
@@ -463,6 +468,13 @@ def bin_spectrum(bin_wl, wl, spectrum, half_widths=None, ignore_gaps=False):
             band_flux[i] = np.nan
         else:
             band_flux[i] = np.trapezoid(spectrum[band.idx]*response, band.wn)
+
+    # Patch gaps if requested and needed:
+    mask = np.isnan(band_flux)
+    if gaps == 'interpolate':
+        flux_interp = np.interp(bin_wl[mask], bin_wl[~mask], band_flux[~mask])
+        band_flux[mask] = flux_interp
+
     return band_flux
 
 
@@ -524,7 +536,7 @@ def tophat(wl0, width, margin=None, dlambda=None, resolution=None, ffile=None):
     transmission = np.array(np.abs(wl-wl0) < 0.5*width, np.double)
 
     if ffile is not None:
-        io.write_spectrum(wl*pc.um, transmission, ffile, type='filter')
+        io.write_spectrum(wl, transmission, ffile, type='filter')
 
     return wl, transmission
 
