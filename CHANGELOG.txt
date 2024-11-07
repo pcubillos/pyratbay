@@ -9538,3 +9538,8 @@ Updated docs theme, switched from read_the_docs to furo.
 
 Added docs/custom_style.py file.
 
+
+*****  Do 07 Nov 2024 11:47:50 CET  *****
+
+Added water isotopes for 228 and 227.
+
