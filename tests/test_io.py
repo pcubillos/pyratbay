@@ -21,10 +21,9 @@ def test_read_write_spectrum(tmpdir):
     sfile = "spectrum_test.dat"
     tmp_file = f"{tmpdir}/{sfile}"
 
-    wl = np.linspace(1.1, 1.7, 7) * 1e-4
+    wl = np.linspace(1.1, 1.7, 7)
     spectrum = np.ones(7)
-    io.write_spectrum(
-        wl, spectrum, filename=tmp_file, type='transit', wlunits='um')
+    io.write_spectrum(wl, spectrum, filename=tmp_file, type='transit')
     # Take a look at the output file:
     assert sfile in os.listdir(str(tmpdir))
     with open(tmp_file, 'r') as f:
@@ -48,7 +47,7 @@ def test_read_write_spectrum_filter(tmpdir):
     # Assert write:
     wl = np.linspace(1.4, 1.5, 20)
     transmission = np.array(np.abs(wl-1.45) < 0.035, np.double)
-    io.write_spectrum(wl*pc.um, transmission, tmp_file, 'filter')
+    io.write_spectrum(wl, transmission, tmp_file, 'filter')
     assert ffile in os.listdir(str(tmpdir))
     with open(tmp_file, 'r') as f:
         assert f.readline() == '# Wavelength      transmission\n'
@@ -66,7 +65,10 @@ def test_read_write_spectrum_filter(tmpdir):
 def test_write_spectrum_bad_type():
     wl = np.linspace(1.4, 1.5, 20)
     trans = np.ones(20)
-    match = "Input 'type' argument must be 'transit', 'emission', or 'filter'."
+    match = (
+        "Input 'type' argument must be 'transit', 'eclipse', "
+        "'emission', or 'filter'"
+    )
     with pytest.raises(ValueError, match=match):
         io.write_spectrum(wl, trans, "tophat_filter.dat", 'bad_type')
 
@@ -393,14 +395,16 @@ def test_read_isotopes():
     iso_data = io.read_isotopes(pc.ROOT+'pyratbay/data/isotopes.dat')
     ID, mol, hit_iso, exo_iso, ratio, mass = iso_data
 
-    hitran_iso = ['161', '181', '171', '162', '182', '172', '262']
-    exomol_iso = ['116', '118', '117', '126', '000', '000', '226']
+    hitran_iso = ['161', '181', '171', '162', '182', '172', '262', '282', '272']
+    exomol_iso = ['116', '118', '117', '126', '000', '000', '226', '228', '227']
     abundances = np.array([
         9.973173e-01, 1.999827e-03, 3.718840e-04, 3.106930e-04,
-        6.230030e-07, 1.158530e-07, 2.419740e-08,
+        6.230030e-07, 1.158530e-07, 2.419740e-08, 4.500000e-09, 8.600000e-10,
     ])
     masses = np.array([
-        18.01056, 20.01481, 19.01478, 19.01674, 21.02098, 20.02096, 20.02292])
+        18.01056, 20.01481, 19.01478, 19.01674, 21.02098, 20.02096,
+        20.02292, 22.027363, 21.027336,
+    ])
 
     assert 'H2O' in mol
     assert np.all(ID[mol=='H2O'] == 1)
@@ -448,6 +452,31 @@ def test_write_observations_with_depths(tmpdir):
     )
     assert obsfile in os.listdir(str(tmpdir))
     # TBD: Assert content is OK
+
+
+def test_write_observations_mix_bandpass_tophats(tmpdir):
+    obsfile = 'obs_file_mix.dat'
+    tmp_file = f"{tmpdir}/{obsfile}"
+
+    wl = [2.333, 2.523, 0.0]
+    half_widths = [0.095, 0.095, 0.0]
+    inst_names = [
+        'HST_WFC3',
+        'HST_WFC3',
+        '{ROOT}/pyratbay/data/filters/spitzer_irac1_sa.dat',
+    ]
+    data = np.array([329.6, 344.5, 301.4])
+    uncert = np.array([20.4, 21.9, 23.5])
+    io.write_observations(
+         tmp_file, inst_names, wl, half_widths, data, uncert, 'ppm',
+    )
+    assert obsfile in os.listdir(str(tmpdir))
+    with open(tmp_file, 'r') as f:
+        content = f.readlines()
+    print(content[16:])
+    assert content[16] == '  329.6     20.4     2.3330    0.0950    HST_WFC3\n'
+    assert content[17] == '  344.5     21.9     2.5230    0.0950    HST_WFC3\n'
+    assert content[18] == '  301.4     23.5   {ROOT}/pyratbay/data/filters/spitzer_irac1_sa.dat\n'
 
 
 

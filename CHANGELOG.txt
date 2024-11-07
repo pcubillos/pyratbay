@@ -9577,4 +9577,11 @@ Refactored io.read_spectrum() removing wlunits guessing.
 Refactored io.write_observations() to enable combining tophat
 and tabulated files as passband functions.
 
+*****
+
+Updated tests in test_io.py.
+test_read_write_spectrum
+test_read_write_spectrum_filter
+test_read_isotopes
+test_write_observations_mix_bandpass_tophats
 
