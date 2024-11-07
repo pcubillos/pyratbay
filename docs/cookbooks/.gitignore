@@ -5,3 +5,4 @@
 !*.py
 !*.rst
 !*.ipynb
+!*/*.ipynb

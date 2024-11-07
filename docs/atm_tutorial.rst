@@ -126,6 +126,7 @@ Here is an example of a ``guillot`` atmosphere configuration file
 <https://github.com/pcubillos/pyratbay/blob/master/examples/tutorial/pt_guillot.cfg>`_):
 
 .. literalinclude:: ../examples/tutorial/pt_guillot.cfg
+    :caption: File: pt_guillot.cfg
 
 
 Madhu profile
