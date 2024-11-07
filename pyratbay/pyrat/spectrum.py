@@ -22,7 +22,13 @@ from .. import tools as pt
 from ..lib import _trapz as t
 
 
+class GetWavelength:
+    def __get__(self, obj, objtype=None):
+        return 1.0 / (obj.wn * pc.um)
+
+
 class Spectrum():
+    wl = GetWavelength()
     def __init__(self, inputs, log):
         """
         Make the wavenumber sample from user inputs.
@@ -348,7 +354,11 @@ def spectrum(pyrat):
         spec_type = 'emission'
 
     io.write_spectrum(
-        1.0/pyrat.spec.wn, pyrat.spec.spectrum, pyrat.spec.specfile, spec_type)
+        pyrat.spec.wl,
+        pyrat.spec.spectrum,
+        pyrat.spec.specfile,
+        spec_type,
+    )
     if pyrat.spec.specfile is not None:
         specfile = f": '{pyrat.spec.specfile}'"
     else:

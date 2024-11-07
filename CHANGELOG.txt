@@ -9593,3 +9593,10 @@ Allowed to keep the default behavior for gaps (raise Error),
 ignore them (keep nans), or patch with a linear interpolation.
 
 Updated docs and tests.
+
+*****
+
+Added wl variable to pyrat.spec, to return the wavelength array
+in microns.
+
+

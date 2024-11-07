@@ -532,7 +532,10 @@ class Pyrat():
         self.spec.specfile = f'{basename}.dat'
         spec_type = 'emission'
         io.write_spectrum(
-            1.0/self.spec.wn, self.spec.spectrum, self.spec.specfile, spec_type,
+            self.spec.wl,
+            self.spec.spectrum,
+            self.spec.specfile,
+            spec_type,
         )
         self.log.verb = tmp_verb
 
