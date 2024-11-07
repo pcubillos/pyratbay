@@ -30,7 +30,7 @@ Recipes list:
   - `Alkali opacity tutorial <opacity_alkali.ipynb>`_
   - `Collision-induced absorption tutorial <opacity_cia.ipynb>`_
   - `Rayleigh opacity tutorial <opacity_rayleigh.ipynb>`_
-  - `<opacity_h_ion.ipynb>` (TBD)
+  - `H- bound-free/free-free opacity <opacity_h_ion.ipynb>`_
 
 - **Miscelaneous**
 
@@ -43,7 +43,7 @@ Recipes list:
 - **End-to-end analyses**
 
   - :ref:`transmission_retrieval` (TBD)
-  - :ref:`emission_retrieval` (TBD)
+  - `Notebook emission retrieval <wasp18b/notebook_emission_retrieval.ipynb>`_
   - :ref:`radiative_equilibrium_simulation` (TBD)
   - :ref:`JWST_proposal_simulation` (TBD)
 

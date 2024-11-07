@@ -1,0 +1,9 @@
+http://www.exomol.com/db/HCN/1H-12C-14N/Harris/1H-12C-14N__Harris.pf
+http://www.exomol.com/db/HCN/1H-13C-14N/Larner/1H-13C-14N__Larner.pf
+http://www.exomol.com/db/C2H2/12C2-1H2/aCeTY/12C2-1H2__aCeTY.pf
+https://www.exomol.com/db/VO/51V-16O/VOMYT/51V-16O__VOMYT.pf
+https://www.exomol.com/db/TiO/46Ti-16O/Toto/46Ti-16O__Toto.pf
+https://www.exomol.com/db/TiO/47Ti-16O/Toto/47Ti-16O__Toto.pf
+https://www.exomol.com/db/TiO/48Ti-16O/Toto/48Ti-16O__Toto.pf
+https://www.exomol.com/db/TiO/49Ti-16O/Toto/49Ti-16O__Toto.pf
+https://www.exomol.com/db/TiO/50Ti-16O/Toto/50Ti-16O__Toto.pf
