@@ -9566,3 +9566,15 @@ H2CO
 H2S
 [4000 5000 5000]
 
+****
+
+Refactored io.write_spectrum() to deal with the wavelength units
+always in microns. Removed wlunits argument.
+Added 'eclipse' type.
+
+Refactored io.read_spectrum() removing wlunits guessing.
+
+Refactored io.write_observations() to enable combining tophat
+and tabulated files as passband functions.
+
+

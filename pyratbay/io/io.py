@@ -432,26 +432,25 @@ def read_spectra(filename):
     return spectra, wn, temperatures
 
 
-def write_spectrum(wl, spectrum, filename, type, wlunits='um'):
+def write_spectrum(wl, spectrum, filename, type):
     """
     Write a spectrum to file.
 
     Parameters
     ----------
     wl: 1D float iterable
-        Wavelength array in cm units.
+        Wavelength array in micron units.
     spectrum: 1D float iterable
         Spectrum array. (rp/rs)**2 for transmission (unitless),
         planetary flux for emission (erg s-1 cm-2 cm units).
     filename: String
         Output file name.
     type: String
-        Data type:
-        - 'transit' for transmission
-        - 'emission' for emission
+        Data type (only used for header comments):
+        - 'transit' for transit spectra
+        - 'eclipse' for secondary eclipse spectra
+        - 'emission' for emission flux
         - 'filter' for a instrumental filter transmission
-    wlunits: String
-        Output units for wavelength.
 
     Examples
     --------
@@ -464,6 +463,9 @@ def write_spectrum(wl, spectrum, filename, type, wlunits='um'):
     if type == "transit":
         spectype  = "(Rp/Rs)**2"
         specunits = "unitless"
+    elif type == "eclipse":
+        spectype  = "Fp/Fs"
+        specunits = "unitless"
     elif type == "emission":
         spectype  = "Flux"
         specunits = "erg s-1 cm-2 cm"
@@ -472,11 +474,10 @@ def write_spectrum(wl, spectrum, filename, type, wlunits='um'):
         specunits = "unitless"
     else:
         raise ValueError(
-            "Input 'type' argument must be 'transit', 'emission', or 'filter'."
+            "Input 'type' argument must be 'transit', 'eclipse', "
+            "'emission', or 'filter'"
         )
 
-    # Wavelength units in brackets:
-    wl = wl/pt.u(wlunits)
     # Precision of 5 decimal places (or better if needed):
     precision = -np.floor(np.log10(np.amin(np.abs(np.ediff1d(wl)))))
     precision = int(np.clip(precision+1, 5, np.inf))
@@ -486,7 +487,7 @@ def write_spectrum(wl, spectrum, filename, type, wlunits='um'):
     with open(filename, 'w') as f:
         # Write header:
         f.write(f'# {"Wavelength":>{buff:d}s}   {spectype:>15s}\n')
-        f.write(f"# {wlunits:>{buff:d}s}   {specunits:>15s}\n")
+        f.write(f"# {'um':>{buff:d}s}   {specunits:>15s}\n")
         # Write the spectrum values:
         for wave, flux in zip(wl, spectrum):
             f.write(f"{wave:>{buff+2:d}.{precision:d}f}   {flux:.9e}\n")
@@ -521,10 +522,9 @@ def read_spectrum(filename, wn=True):
     >>> import pyratbay.io as io
     >>> # Write a spectrum to file:
     >>> nwave = 7
-    >>> wl = np.linspace(1.1, 1.7, nwave) * 1e-4
+    >>> wl = np.linspace(1.1, 1.7, nwave)
     >>> spectrum = np.ones(nwave)
-    >>> io.write_spectrum(wl, spectrum,
-    >>>     filename='sample_spectrum.dat', type='transit', wlunits='um')
+    >>> io.write_spectrum(wl, spectrum, 'sample_spectrum.dat', type='transit')
     >>> # Take a look at the output file:
     >>> with open('sample_spectrum.dat', 'r') as f:
     >>>     print("".join(f.readlines()))
@@ -551,31 +551,14 @@ def read_spectrum(filename, wn=True):
     >>> print(flux)
     [1. 1. 1. 1. 1. 1. 1.]
     """
-    data = np.loadtxt(filename, unpack=True)
-    wave, spectrum = data[0], data[1]
+    wave, spectrum = np.loadtxt(filename, unpack=True)
 
-    if not wn:
-        return wave, spectrum
-
-    # Check 'header' (last comment line) for wavelength units:
-    with open(filename, "r") as f:
-        for line in f:
-            info = line
-            if not line.strip().startswith('#') and line.strip() != '':
-                break
-
-    # Get wavelength units from last line of comments:
-    if len(info.split()) > 1:
-        wlunits = info.split()[1]
-    else:
-        wlunits = 'um'
-    if not hasattr(pc, wlunits):
-        wlunits = 'um'
-
-    # Convert wavelength to wavenumber in cm-1:
-    wave = 1.0/(wave*pt.u(wlunits))
+    # Convert wavelength (um) to wavenumber (cm-1)
+    if wn:
+        wave = 1.0 / (wave*pc.um)
 
     return wave, spectrum
+
 
 
 def write_opacity(ofile, species, temp, press, wn, opacity):
@@ -994,6 +977,8 @@ def write_observations(
     ):
     r"""
     Write an observation file for use in pyrat bay.
+    These can be a combination of tophat pass bands (non-zero wl) or
+    paths to files with tabulated passbands (zero wl value).
 
     Parameters
     ----------
@@ -1004,6 +989,8 @@ def write_observations(
         the same name for all bands.
     wl: 1D string ndarray
         Central wavelength of the bands (in microns).
+        If wl is zero for a data point, assume that the inst_name
+        is a file path to a tabulated pass band.
     wl_half_width: 2D float ndarray
         Bandpass half-width (in microns).
     data: 1D float ndarray
@@ -1017,10 +1004,13 @@ def write_observations(
     Examples
     --------
     >>> import pyratbay.io as io
+
+    >>> # Observation file with only the pass bands:
     >>> wl = [2.144, 2.333, 2.523]
     >>> half_widths = [0.095, 0.095, 0.095]
     >>> io.write_observations('obs_file.txt', 'HST', wl, half_widths)
 
+    >>> # Observation file with pass bands and data:
     >>> data = np.array([329.6, 344.5, 301.4])
     >>> uncert = np.array([20.4, 21.9, 23.5])
     >>> io.write_observations(
@@ -1079,14 +1069,16 @@ def write_observations(
                     f'{depth[i]:{depth_len}.{depth_dec}f}  '
                     f'{depth_err[i]:{depth_len}.{depth_dec}f}   '
                 )
-            #if wl[i] is None or not np.isfinite(wl[i]):
-            #    f.write('{inst_names[i]}\n')
-            #else:
-            f.write(
-                f'{wl[i]:{wl_len}.{wl_dec}f}  '
-                f'{wl_half_width[i]:{wl_len}.{wl_dec}f}    '
-                f'{inst_names[i]}\n'
-            )
+            # Passband file
+            if wl[i]==0.0:
+                f.write(f'{inst_names[i]}\n')
+            # Tophat
+            else:
+                f.write(
+                    f'{wl[i]:{wl_len}.{wl_dec}f}  '
+                    f'{wl_half_width[i]:{wl_len}.{wl_dec}f}    '
+                    f'{inst_names[i]}\n'
+                )
 
 
 def read_observations(obs_file):
