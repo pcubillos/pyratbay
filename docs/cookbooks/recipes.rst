@@ -44,6 +44,7 @@ Recipes list:
 
   - :ref:`transmission_retrieval` (TBD)
   - `Notebook emission retrieval <wasp18b/notebook_emission_retrieval.ipynb>`_
+  - :doc:`cross_sections_uhj/cross_sections_uhj2`
   - :ref:`radiative_equilibrium_simulation` (TBD)
   - :ref:`JWST_proposal_simulation` (TBD)
 
