@@ -71,19 +71,8 @@ through the ``Pyrat Bay`` sub modules (see :ref:`API`).
 System Requirements
 -------------------
 
-Pyrat-Bay (version 1.0+) has been extensively tested to work on
-Unix/Linux and OS X machines, with the following software
-requirements:
-
-* Python >= 3.6
-* Numpy >= 1.8.1
-* Scipy >= 0.13.3
-* Matplotlib >= 1.3.1
-* Sympy >= 0.7.6
-* mc3 >= 3.0.7
-
-``Pyrat Bay`` may work with previous software versions; however, we do
-not guarantee nor provide support for that.
+Pyrat-Bay (version 2.0+) has been extensively tested to work on
+Unix/Linux and OS X machines and is available for Python 3.9+.
 
 .. _install:
 

@@ -43,8 +43,7 @@ Recipes list:
 - **End-to-end analyses**
 
   - :ref:`transmission_retrieval` (TBD)
-  - `Notebook emission retrieval <wasp18b/notebook_emission_retrieval.ipynb>`_
-  - :doc:`cross_sections_uhj/cross_sections_uhj2`
+  - `Emission retrieval <wasp18b/notebook_emission_retrieval.ipynb>`_
   - :ref:`radiative_equilibrium_simulation` (TBD)
   - :ref:`JWST_proposal_simulation` (TBD)
 
@@ -65,5 +64,6 @@ Recipes list:
    opacity_alkali
    opacity_cia
    opacity_rayleigh
+   wasp18b/notebook_emission_retrieval
    compendia
 

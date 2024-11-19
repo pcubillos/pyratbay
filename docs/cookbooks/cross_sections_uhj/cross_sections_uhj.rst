@@ -7,7 +7,7 @@ Cross Sections for an Ultra Hot Jupiter
 This documentation demonstrates how to download and process molecular
 opacity line lists into tabulated cross sections. There are four main
 steps to compute cross-section files:
-   
+
 1. `Fetch Line Lists <#line-lists>`_
 2. `Fetch Partition Functions <#partition-functions>`_
 3. `Compute TLI Files <#tli-files>`_
@@ -18,6 +18,8 @@ allowing you to reuse the output files across projects. However, `Step
 4 <#cross-sections>`_ may need to be repeated on a per-project
 basis, depending on your specific requirements (e.g., different
 spectral, temperature, or pressure ranges; or varying resolutions).
+
+Now go back to the :doc:`WASP-18b <../wasp18b/notebook_emission_retrieval>` retrieval notebook.
 
 --------------------------------------------------------
 
@@ -71,7 +73,7 @@ The file below contains links to download all the required data.
    <details>
    <summary>Click here to show/hide: <a href="uhj_line_lists_data.txt">uhj_line_lists_data.txt</a></summary>
 
-.. literalinclude:: uhj_line_lists_data.txt 
+.. literalinclude:: uhj_line_lists_data.txt
     :caption: File: uhj_line_lists_data.txt
     :language: none
 
@@ -195,7 +197,7 @@ for example:
 
 .. literalinclude:: tli_exomol_H2O_pokazatel.cfg
     :caption: File: tli_exomol_H2O_pokazatel.cfg
-	      
+
 .. raw:: html
 
    </details>
@@ -219,7 +221,7 @@ Here are all the TLI configuration files:
    <details>
    <summary>Click here to show/hide: <a href="config_files_tli.txt">config_files_tli.txt</a></summary>
 
-.. literalinclude:: config_files_tli.txt 
+.. literalinclude:: config_files_tli.txt
     :caption: File: config_files_tli.txt
     :language: none
 
@@ -269,32 +271,130 @@ coadded with all other lines for the molecule. We do this across a
 regular grid of temperatures and pressures, enabling later use in
 radiative-transfer calculations.
 
-Depending on the application for the cross-section data, you may need
-to set specific parameters. For example, radiative-equilibrium
-applications typically require broad wavelength coverage (~0.3–30 µm)
-to capture the spectral regions where most of the stellar and
-planetary flux is concentrated.  In constrast, atmospheric retrievals
-may focus only on the spectral range covered by the observations, thus
-allowing to have higher spectral resolutions than you could with
-radiative-equilibrium run.  It's all a trade-off between science
-requirements and computational constraints.
+.. Note::
+    Depending on the application for the cross-section data, you
+    may need to set specific parameters. For example,
+    radiative-equilibrium applications typically require broad
+    wavelength coverage (~0.3–30 µm) to capture the spectral regions
+    where most of the stellar and planetary flux is concentrated.  In
+    constrast, atmospheric retrievals may focus only on the spectral
+    range covered by the observations, thus allowing to have higher
+    spectral resolutions than you could with radiative-equilibrium
+    run.  It's all a trade-off between science requirements and
+    computational constraints.
 
 Here we will focus on a emission atmospheric retrieval for an
-ultra-hot Jupiter.  Lets use the H2O cross-section configuration file
-to walk through the relevant parameters to set:
-
+ultra-hot Jupiter.
 
 .. raw:: html
 
    <details>
-   <summary>Click here to show/hide: <a href="opacity_0250-4000K_0.35-12.0um_R020K_exomol_H2O.cfg">opacity_0250-4000K_0.35-12.0um_R020K_exomol_H2O.cfg</a></summary>
+   <summary>Click here to show/hide: <a href="opacity_0250-4000K_0.35-12.0um_R025K_exomol_H2O.cfg">opacity_0250-4000K_0.35-12.0um_R025K_exomol_H2O.cfg</a></summary>
 
-.. literalinclude:: opacity_0250-4000K_0.35-12.0um_R020K_exomol_H2O.cfg 
-    :caption: File: opacity_0250-4000K_0.35-12.0um_R020K_exomol_H2O.cfg
-	      
+.. literalinclude:: opacity_0250-4000K_0.35-12.0um_R025K_exomol_H2O.cfg
+:caption: File: opacity_0250-4000K_0.35-12.0um_R025K_exomol_H2O.cfg
+
 .. raw:: html
 
    </details>
+.. raw:: html
+
+   <details>
+   <summary>Click here to show/hide: <a href="opacity_0250-4000K_0.35-12.0um_R025K_hitemp_CO.cfg">opacity_0250-4000K_0.35-12.0um_R025K_hitemp_CO.cfg</a></summary>
+
+.. literalinclude:: opacity_0250-4000K_0.35-12.0um_R025K_hitemp_CO.cfg
+:caption: File: opacity_0250-4000K_0.35-12.0um_R025K_hitemp_CO.cfg
+
+.. raw:: html
+
+   </details>
+.. raw:: html
+
+   <details>
+   <summary>Click here to show/hide: <a href="opacity_0250-4000K_0.35-12.0um_R020K_hitemp_CO2.cfg">opacity_0250-4000K_0.35-12.0um_R020K_hitemp_CO2.cfg</a></summary>
+
+.. literalinclude:: opacity_0250-4000K_0.35-12.0um_R020K_hitemp_CO2.cfg
+:caption: File: opacity_0250-4000K_0.35-12.0um_R020K_hitemp_CO2.cfg
+
+.. raw:: html
+
+   </details>
+.. raw:: html
+
+   <details>
+   <summary>Click here to show/hide: <a href="opacity_0250-4000K_0.35-12.0um_R020K_hitemp_CH4.cfg">opacity_0250-4000K_0.35-12.0um_R020K_hitemp_CH4.cfg</a></summary>
+
+.. literalinclude:: opacity_0250-4000K_0.35-12.0um_R020K_hitemp_CH4.cfg
+:caption: File: opacity_0250-4000K_0.35-12.0um_R020K_hitemp_CH4.cfg
+
+.. raw:: html
+
+   </details>
+.. raw:: html
+
+   <details>
+   <summary>Click here to show/hide: <a href="opacity_0250-4000K_0.35-12.0um_R020K_exomol_HCN.cfg">opacity_0250-4000K_0.35-12.0um_R020K_exomol_HCN.cfg</a></summary>
+
+.. literalinclude:: opacity_0250-4000K_0.35-12.0um_R020K_exomol_HCN.cfg
+:caption: File: opacity_0250-4000K_0.35-12.0um_R020K_exomol_HCN.cfg
+
+.. raw:: html
+
+   </details>
+.. raw:: html
+
+   <details>
+   <summary>Click here to show/hide: <a href="opacity_0250-4000K_0.35-12.0um_R020K_exomol_NH3.cfg">opacity_0250-4000K_0.35-12.0um_R020K_exomol_NH3.cfg</a></summary>
+
+.. literalinclude:: opacity_0250-4000K_0.35-12.0um_R020K_exomol_NH3.cfg
+:caption: File: opacity_0250-4000K_0.35-12.0um_R020K_exomol_NH3.cfg
+
+.. raw:: html
+
+   </details>
+.. raw:: html
+
+   <details>
+   <summary>Click here to show/hide: <a href="opacity_0250-4000K_0.35-12.0um_R020K_exomol_TiO.cfg">opacity_0250-4000K_0.35-12.0um_R020K_exomol_TiO.cfg</a></summary>
+
+.. literalinclude:: opacity_0250-4000K_0.35-12.0um_R020K_exomol_TiO.cfg
+:caption: File: opacity_0250-4000K_0.35-12.0um_R020K_exomol_TiO.cfg
+
+.. raw:: html
+
+   </details>
+.. raw:: html
+
+   <details>
+   <summary>Click here to show/hide: <a href="opacity_0250-4000K_0.35-12.0um_R020K_exomol_VO.cfg">opacity_0250-4000K_0.35-12.0um_R020K_exomol_VO.cfg</a></summary>
+
+.. literalinclude:: opacity_0250-4000K_0.35-12.0um_R020K_exomol_VO.cfg
+:caption: File: opacity_0250-4000K_0.35-12.0um_R020K_exomol_VO.cfg
+
+.. raw:: html
+
+   </details>
+.. raw:: html
+
+   <details>
+   <summary>Click here to show/hide: <a href="opacity_0250-4000K_0.35-12.0um_R020K_exomol_C2H2.cfg">opacity_0250-4000K_0.35-12.0um_R020K_exomol_C2H2.cfg</a></summary>
+
+.. literalinclude:: opacity_0250-4000K_0.35-12.0um_R020K_exomol_C2H2.cfg
+:caption: File: opacity_0250-4000K_0.35-12.0um_R020K_exomol_C2H2.cfg
+
+.. raw:: html
+
+   </details>
+
+|
+
+Lets use the H2O cross-section configuration file to walk through the
+relevant parameters:
+
+.. literalinclude:: opacity_0250-4000K_0.35-12.0um_R025K_exomol_H2O.cfg
+    :caption: Extract from: opacity_0250-4000K_0.35-12.0um_R025K_exomol_H2O.cfg
+    :language: ini
+    :lines: 3-12
 
 This is the boilerplate indicating what to run (``runmode``), the
 output file names (the output cross section file will have the same
@@ -302,11 +402,11 @@ name as ``logfile`` but as a .npz file), and ``ncpu`` sets how many
 parallel CPUs you want to use (use as many as you can without crashing
 your machine).
 
-.. literalinclude:: opacity_0250-4000K_0.35-12.0um_R020K_exomol_H2O.cfg 
-    :caption: Extract from: opacity_0250-4000K_0.35-12.0um_R020K_exomol_H2O.cfg
-    :language: ini
-    :lines: 3-12
 
+.. literalinclude:: opacity_0250-4000K_0.35-12.0um_R025K_exomol_H2O.cfg
+    :caption: Extract from: opacity_0250-4000K_0.35-12.0um_R025K_exomol_H2O.cfg
+    :language: ini
+    :lines: 14-26
 
 While the configuration file needs to define an atmosphere, the
 relevant parameters here are the ones for the pressure profile.  These
@@ -323,26 +423,25 @@ calculation.  Here you can set a relatively coarser grid if needed
 pressure grid if requested).
 
 
-.. literalinclude:: opacity_0250-4000K_0.35-12.0um_R020K_exomol_H2O.cfg 
-    :caption: Extract from: opacity_0250-4000K_0.35-12.0um_R020K_exomol_H2O.cfg
+.. literalinclude:: opacity_0250-4000K_0.35-12.0um_R025K_exomol_H2O.cfg
+    :caption: Extract from: opacity_0250-4000K_0.35-12.0um_R025K_exomol_H2O.cfg
     :language: ini
-    :lines: 14-26
+    :lines: 31-35
 
-
-The following section defines the wavelength sampling. ``wllow`` and
+This section defines the wavelength sampling. ``wllow`` and
 ``wlhigh`` set the ranges (we want to cover the TESS and JWST
 observing ranges), whereas ``resolution`` sets the resolving power of
 the spectra (we want a resolution >= 25K to avoid having sampling
 biases).  Lastly, the ``vextent`` parameter sets the extent of the
 Voigt profile when sampling each line transition (this is the distance
-in cm$^{-1}$ from the line center; for this we want at least something
-> ~300--500 cm$^{-1}$).
+in cm\ :sup:`-1` from the line center; for this we want at least something
+> ~300--500 cm\ :sup:`-1`).
 
 
-.. literalinclude:: opacity_0250-4000K_0.35-12.0um_R020K_exomol_H2O.cfg 
-    :caption: Extract from: opacity_0250-4000K_0.35-12.0um_R020K_exomol_H2O.cfg
+.. literalinclude:: opacity_0250-4000K_0.35-12.0um_R025K_exomol_H2O.cfg
+    :caption: Extract from: opacity_0250-4000K_0.35-12.0um_R025K_exomol_H2O.cfg
     :language: ini
-    :lines: 31-35
+    :lines: 37-40
 
 Then we set the temperature grid. This is a linear grid from ``tmin``
 to ``tmax`` with a step size of ``tstep``.  Note that you cannot
@@ -351,10 +450,23 @@ of the inputs.  That would require extrapolation, which is not too
 scientific.
 
 
-.. literalinclude:: opacity_0250-4000K_0.35-12.0um_R020K_exomol_H2O.cfg 
-    :caption: Extract from: opacity_0250-4000K_0.35-12.0um_R020K_exomol_H2O.cfg
-    :language: ini
-    :lines: 37-40
+|
+
+Now you can compute the TLI files using this ``Pyrat Bay`` shell command:
+
+.. code-block:: shell
+
+    pbay -c opacity_0250-4000K_0.35-12.0um_R025K_exomol_C2H2.cfg
+    pbay -c opacity_0250-4000K_0.35-12.0um_R025K_exomol_H2O.cfg
+    pbay -c opacity_0250-4000K_0.35-12.0um_R025K_exomol_HCN.cfg
+    pbay -c opacity_0250-4000K_0.35-12.0um_R025K_exomol_NH3.cfg
+    pbay -c opacity_0250-4000K_0.35-12.0um_R025K_exomol_TiO.cfg
+    pbay -c opacity_0250-4000K_0.35-12.0um_R025K_exomol_VO.cfg
+    pbay -c opacity_0250-4000K_0.35-12.0um_R025K_hitemp_CH4.cfg
+    pbay -c opacity_0250-4000K_0.35-12.0um_R025K_hitemp_CO2.cfg
+    pbay -c opacity_0250-4000K_0.35-12.0um_R025K_hitemp_CO.cfg
 
 
------------------------------------------------------------
+This may take a while since you are processing several millions of
+line transitions, but once you have generated these TLI files, you
+wont likely need to run this step again.
