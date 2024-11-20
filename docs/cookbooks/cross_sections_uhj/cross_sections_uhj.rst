@@ -1,4 +1,4 @@
-.. _cross_sections_uhj2:
+.. _cross_sections_uhj:
 
 
 Cross Sections for an Ultra Hot Jupiter
@@ -67,13 +67,12 @@ molecular line-lists to download and their sources.
 
 The file below contains links to download all the required data.
 
-
 .. raw:: html
 
    <details>
-   <summary>Click here to show/hide: <a href="uhj_line_lists_data.txt">uhj_line_lists_data.txt</a></summary>
+   <summary>Click here to show/hide: <a href="../../_static/data/uhj_line_lists_data.txt">uhj_line_lists_data.txt</a></summary>
 
-.. literalinclude:: uhj_line_lists_data.txt
+.. literalinclude:: ../../_static/data/uhj_line_lists_data.txt
     :caption: File: uhj_line_lists_data.txt
     :language: none
 
@@ -122,10 +121,10 @@ ExoMol database (the rest we will source from HITRAN).
 .. raw:: html
 
    <details>
-   <summary>Click here to show/hide: <a href="partition_function_data.txt">partition_function_data.txt</a></summary>
+   <summary>Click here to show/hide: <a href="../../_static/data/uhj_partition_function_data.txt">uhj_partition_function_data.txt</a></summary>
 
-.. literalinclude:: partition_function_data.txt
-    :caption: File: partition_function_data.txt
+.. literalinclude:: ../../_static/data/uhj_partition_function_data.txt
+    :caption: File: uhj_partition_function_data.txt
     :language: none
 
 .. raw:: html
@@ -138,7 +137,7 @@ partition-function files with this shell command:
 
 .. code-block:: shell
 
-    wget -i partition_function_data.txt
+    wget -i uhj_partition_function_data.txt
 
 
 Now we need to format the ExoMol partition function files into the
@@ -193,9 +192,9 @@ for example:
 .. raw:: html
 
    <details>
-   <summary>Click here to show/hide: <a href="tli_exomol_H2O_pokazatel.cfg">tli_exomol_H2O_pokazatel.cfg</a></summary>
+   <summary>Click here to show/hide: <a href="../../_static/data/tli_exomol_H2O_pokazatel.cfg">tli_exomol_H2O_pokazatel.cfg</a></summary>
 
-.. literalinclude:: tli_exomol_H2O_pokazatel.cfg
+.. literalinclude:: ../../_static/data/tli_exomol_H2O_pokazatel.cfg
     :caption: File: tli_exomol_H2O_pokazatel.cfg
 
 .. raw:: html
@@ -219,10 +218,10 @@ Here are all the TLI configuration files:
 .. raw:: html
 
    <details>
-   <summary>Click here to show/hide: <a href="config_files_tli.txt">config_files_tli.txt</a></summary>
+   <summary>Click here to show/hide: <a href="../../_static/data/uhj_configs_tli.txt">uhj_configs_tli.txt</a></summary>
 
-.. literalinclude:: config_files_tli.txt
-    :caption: File: config_files_tli.txt
+.. literalinclude:: ../../_static/data/uhj_configs_tli.txt
+    :caption: File: uhj_configs_tli.txt
     :language: none
 
 .. raw:: html
@@ -235,7 +234,7 @@ configuration files with:
 
 .. code-block:: shell
 
-    wget -i config_files_tli.txt
+    wget -i uhj_configs_tli.txt
 
 
 Now you can compute the TLI files using this ``Pyrat Bay`` shell command:
@@ -289,21 +288,10 @@ ultra-hot Jupiter.
 .. raw:: html
 
    <details>
-   <summary>Click here to show/hide: <a href="opacity_0250-4000K_0.35-12.0um_R025K_exomol_H2O.cfg">opacity_0250-4000K_0.35-12.0um_R025K_exomol_H2O.cfg</a></summary>
+   <summary>Click here to show/hide: <a href="../../_static/data/opacity_0250-4000K_0.35-12.0um_R025K_exomol_H2O.cfg">opacity_0250-4000K_0.35-12.0um_R025K_exomol_H2O.cfg</a></summary>
 
-.. literalinclude:: opacity_0250-4000K_0.35-12.0um_R025K_exomol_H2O.cfg
-:caption: File: opacity_0250-4000K_0.35-12.0um_R025K_exomol_H2O.cfg
-
-.. raw:: html
-
-   </details>
-.. raw:: html
-
-   <details>
-   <summary>Click here to show/hide: <a href="opacity_0250-4000K_0.35-12.0um_R025K_hitemp_CO.cfg">opacity_0250-4000K_0.35-12.0um_R025K_hitemp_CO.cfg</a></summary>
-
-.. literalinclude:: opacity_0250-4000K_0.35-12.0um_R025K_hitemp_CO.cfg
-:caption: File: opacity_0250-4000K_0.35-12.0um_R025K_hitemp_CO.cfg
+.. literalinclude:: ../../_static/data/opacity_0250-4000K_0.35-12.0um_R025K_exomol_H2O.cfg
+     :caption: File: opacity_0250-4000K_0.35-12.0um_R025K_exomol_H2O.cfg
 
 .. raw:: html
 
@@ -311,21 +299,10 @@ ultra-hot Jupiter.
 .. raw:: html
 
    <details>
-   <summary>Click here to show/hide: <a href="opacity_0250-4000K_0.35-12.0um_R020K_hitemp_CO2.cfg">opacity_0250-4000K_0.35-12.0um_R020K_hitemp_CO2.cfg</a></summary>
+   <summary>Click here to show/hide: <a href="../../_static/data/opacity_0250-4000K_0.35-12.0um_R025K_hitemp_CO.cfg">opacity_0250-4000K_0.35-12.0um_R025K_hitemp_CO.cfg</a></summary>
 
-.. literalinclude:: opacity_0250-4000K_0.35-12.0um_R020K_hitemp_CO2.cfg
-:caption: File: opacity_0250-4000K_0.35-12.0um_R020K_hitemp_CO2.cfg
-
-.. raw:: html
-
-   </details>
-.. raw:: html
-
-   <details>
-   <summary>Click here to show/hide: <a href="opacity_0250-4000K_0.35-12.0um_R020K_hitemp_CH4.cfg">opacity_0250-4000K_0.35-12.0um_R020K_hitemp_CH4.cfg</a></summary>
-
-.. literalinclude:: opacity_0250-4000K_0.35-12.0um_R020K_hitemp_CH4.cfg
-:caption: File: opacity_0250-4000K_0.35-12.0um_R020K_hitemp_CH4.cfg
+.. literalinclude:: ../../_static/data/opacity_0250-4000K_0.35-12.0um_R025K_hitemp_CO.cfg
+     :caption: File: opacity_0250-4000K_0.35-12.0um_R025K_hitemp_CO.cfg
 
 .. raw:: html
 
@@ -333,21 +310,10 @@ ultra-hot Jupiter.
 .. raw:: html
 
    <details>
-   <summary>Click here to show/hide: <a href="opacity_0250-4000K_0.35-12.0um_R020K_exomol_HCN.cfg">opacity_0250-4000K_0.35-12.0um_R020K_exomol_HCN.cfg</a></summary>
+   <summary>Click here to show/hide: <a href="../../_static/data/opacity_0250-4000K_0.35-12.0um_R025K_hitemp_CO2.cfg">opacity_0250-4000K_0.35-12.0um_R025K_hitemp_CO2.cfg</a></summary>
 
-.. literalinclude:: opacity_0250-4000K_0.35-12.0um_R020K_exomol_HCN.cfg
-:caption: File: opacity_0250-4000K_0.35-12.0um_R020K_exomol_HCN.cfg
-
-.. raw:: html
-
-   </details>
-.. raw:: html
-
-   <details>
-   <summary>Click here to show/hide: <a href="opacity_0250-4000K_0.35-12.0um_R020K_exomol_NH3.cfg">opacity_0250-4000K_0.35-12.0um_R020K_exomol_NH3.cfg</a></summary>
-
-.. literalinclude:: opacity_0250-4000K_0.35-12.0um_R020K_exomol_NH3.cfg
-:caption: File: opacity_0250-4000K_0.35-12.0um_R020K_exomol_NH3.cfg
+.. literalinclude:: ../../_static/data/opacity_0250-4000K_0.35-12.0um_R025K_hitemp_CO2.cfg
+     :caption: File: opacity_0250-4000K_0.35-12.0um_R025K_hitemp_CO2.cfg
 
 .. raw:: html
 
@@ -355,21 +321,10 @@ ultra-hot Jupiter.
 .. raw:: html
 
    <details>
-   <summary>Click here to show/hide: <a href="opacity_0250-4000K_0.35-12.0um_R020K_exomol_TiO.cfg">opacity_0250-4000K_0.35-12.0um_R020K_exomol_TiO.cfg</a></summary>
+   <summary>Click here to show/hide: <a href="../../_static/data/opacity_0250-4000K_0.35-12.0um_R025K_hitemp_CH4.cfg">opacity_0250-4000K_0.35-12.0um_R025K_hitemp_CH4.cfg</a></summary>
 
-.. literalinclude:: opacity_0250-4000K_0.35-12.0um_R020K_exomol_TiO.cfg
-:caption: File: opacity_0250-4000K_0.35-12.0um_R020K_exomol_TiO.cfg
-
-.. raw:: html
-
-   </details>
-.. raw:: html
-
-   <details>
-   <summary>Click here to show/hide: <a href="opacity_0250-4000K_0.35-12.0um_R020K_exomol_VO.cfg">opacity_0250-4000K_0.35-12.0um_R020K_exomol_VO.cfg</a></summary>
-
-.. literalinclude:: opacity_0250-4000K_0.35-12.0um_R020K_exomol_VO.cfg
-:caption: File: opacity_0250-4000K_0.35-12.0um_R020K_exomol_VO.cfg
+.. literalinclude:: ../../_static/data/opacity_0250-4000K_0.35-12.0um_R025K_hitemp_CH4.cfg
+     :caption: File: opacity_0250-4000K_0.35-12.0um_R025K_hitemp_CH4.cfg
 
 .. raw:: html
 
@@ -377,21 +332,66 @@ ultra-hot Jupiter.
 .. raw:: html
 
    <details>
-   <summary>Click here to show/hide: <a href="opacity_0250-4000K_0.35-12.0um_R020K_exomol_C2H2.cfg">opacity_0250-4000K_0.35-12.0um_R020K_exomol_C2H2.cfg</a></summary>
+   <summary>Click here to show/hide: <a href="../../_static/data/opacity_0250-4000K_0.35-12.0um_R025K_exomol_HCN.cfg">opacity_0250-4000K_0.35-12.0um_R025K_exomol_HCN.cfg</a></summary>
 
-.. literalinclude:: opacity_0250-4000K_0.35-12.0um_R020K_exomol_C2H2.cfg
-:caption: File: opacity_0250-4000K_0.35-12.0um_R020K_exomol_C2H2.cfg
+.. literalinclude:: ../../_static/data/opacity_0250-4000K_0.35-12.0um_R025K_exomol_HCN.cfg
+     :caption: File: opacity_0250-4000K_0.35-12.0um_R025K_exomol_HCN.cfg
 
 .. raw:: html
 
    </details>
+.. raw:: html
+
+   <details>
+   <summary>Click here to show/hide: <a href="../../_static/data/opacity_0250-4000K_0.35-12.0um_R025K_exomol_NH3.cfg">opacity_0250-4000K_0.35-12.0um_R025K_exomol_NH3.cfg</a></summary>
+
+.. literalinclude:: ../../_static/data/opacity_0250-4000K_0.35-12.0um_R025K_exomol_NH3.cfg
+     :caption: File: opacity_0250-4000K_0.35-12.0um_R025K_exomol_NH3.cfg
+
+.. raw:: html
+
+   </details>
+.. raw:: html
+
+   <details>
+   <summary>Click here to show/hide: <a href="../../_static/data/opacity_0250-4000K_0.35-12.0um_R025K_exomol_TiO.cfg">opacity_0250-4000K_0.35-12.0um_R025K_exomol_TiO.cfg</a></summary>
+
+.. literalinclude:: ../../_static/data/opacity_0250-4000K_0.35-12.0um_R025K_exomol_TiO.cfg
+     :caption: File: opacity_0250-4000K_0.35-12.0um_R025K_exomol_TiO.cfg
+
+.. raw:: html
+
+   </details>
+.. raw:: html
+
+   <details>
+   <summary>Click here to show/hide: <a href="../../_static/data/opacity_0250-4000K_0.35-12.0um_R025K_exomol_VO.cfg">opacity_0250-4000K_0.35-12.0um_R025K_exomol_VO.cfg</a></summary>
+
+.. literalinclude:: ../../_static/data/opacity_0250-4000K_0.35-12.0um_R025K_exomol_VO.cfg
+     :caption: File: opacity_0250-4000K_0.35-12.0um_R025K_exomol_VO.cfg
+
+.. raw:: html
+
+   </details>
+.. raw:: html
+
+   <details>
+   <summary>Click here to show/hide: <a href="../../_static/data/opacity_0250-4000K_0.35-12.0um_R025K_exomol_C2H2.cfg">opacity_0250-4000K_0.35-12.0um_R025K_exomol_C2H2.cfg</a></summary>
+
+.. literalinclude:: ../../_static/data/opacity_0250-4000K_0.35-12.0um_R025K_exomol_C2H2.cfg
+     :caption: File: opacity_0250-4000K_0.35-12.0um_R025K_exomol_C2H2.cfg
+
+.. raw:: html
+
+   </details>
+
 
 |
 
 Lets use the H2O cross-section configuration file to walk through the
 relevant parameters:
 
-.. literalinclude:: opacity_0250-4000K_0.35-12.0um_R025K_exomol_H2O.cfg
+.. literalinclude:: ../../_static/data/opacity_0250-4000K_0.35-12.0um_R025K_exomol_H2O.cfg
     :caption: Extract from: opacity_0250-4000K_0.35-12.0um_R025K_exomol_H2O.cfg
     :language: ini
     :lines: 3-12
@@ -403,7 +403,7 @@ parallel CPUs you want to use (use as many as you can without crashing
 your machine).
 
 
-.. literalinclude:: opacity_0250-4000K_0.35-12.0um_R025K_exomol_H2O.cfg
+.. literalinclude:: ../../_static/data/opacity_0250-4000K_0.35-12.0um_R025K_exomol_H2O.cfg
     :caption: Extract from: opacity_0250-4000K_0.35-12.0um_R025K_exomol_H2O.cfg
     :language: ini
     :lines: 14-26
@@ -423,7 +423,7 @@ calculation.  Here you can set a relatively coarser grid if needed
 pressure grid if requested).
 
 
-.. literalinclude:: opacity_0250-4000K_0.35-12.0um_R025K_exomol_H2O.cfg
+.. literalinclude:: ../../_static/data/opacity_0250-4000K_0.35-12.0um_R025K_exomol_H2O.cfg
     :caption: Extract from: opacity_0250-4000K_0.35-12.0um_R025K_exomol_H2O.cfg
     :language: ini
     :lines: 31-35
@@ -438,7 +438,7 @@ in cm\ :sup:`-1` from the line center; for this we want at least something
 > ~300--500 cm\ :sup:`-1`).
 
 
-.. literalinclude:: opacity_0250-4000K_0.35-12.0um_R025K_exomol_H2O.cfg
+.. literalinclude:: ../../_static/data/opacity_0250-4000K_0.35-12.0um_R025K_exomol_H2O.cfg
     :caption: Extract from: opacity_0250-4000K_0.35-12.0um_R025K_exomol_H2O.cfg
     :language: ini
     :lines: 37-40
