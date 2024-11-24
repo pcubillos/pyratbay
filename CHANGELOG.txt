@@ -9611,3 +9611,10 @@ Now __call__() method points to intgrate().
 Added arguments to set the wn/wl sampling at initialization.
 Updated docstrings and tests.
 
+*****
+
+Added FILTERS constant, path pointing directly to the filters folder
+Added cheops and tess passbands filters.
+Renamed spitzer_irac?_sa.dat filters to spitzer_irac?.dat
+
+

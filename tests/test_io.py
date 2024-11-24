@@ -463,7 +463,7 @@ def test_write_observations_mix_bandpass_tophats(tmpdir):
     inst_names = [
         'HST_WFC3',
         'HST_WFC3',
-        '{ROOT}/pyratbay/data/filters/spitzer_irac1_sa.dat',
+        '{FILTERS}spitzer_irac1.dat',
     ]
     data = np.array([329.6, 344.5, 301.4])
     uncert = np.array([20.4, 21.9, 23.5])
@@ -476,7 +476,7 @@ def test_write_observations_mix_bandpass_tophats(tmpdir):
     print(content[16:])
     assert content[16] == '  329.6     20.4     2.3330    0.0950    HST_WFC3\n'
     assert content[17] == '  344.5     21.9     2.5230    0.0950    HST_WFC3\n'
-    assert content[18] == '  301.4     23.5   {ROOT}/pyratbay/data/filters/spitzer_irac1_sa.dat\n'
+    assert content[18] == '  301.4     23.5   {FILTERS}spitzer_irac1.dat\n'
 
 
 
@@ -486,8 +486,8 @@ def test_read_observations_passband_file():
 
     expected_names = [
         'TESS_passband',
-        'spitzer_irac2_sa',
-        'spitzer_irac2_sa',
+        'spitzer_irac2',
+        'spitzer_irac2',
     ]
     expected_wl0 = [0.792, 4.471, 4.471]
     expected_nbands = len(expected_names)
@@ -533,8 +533,8 @@ def test_read_observations_data_passband_file():
 
     expected_names = [
         'TESS_passband',
-        'spitzer_irac2_sa',
-        'spitzer_irac2_sa',
+        'spitzer_irac2',
+        'spitzer_irac2',
     ]
     expected_wl0 = [0.792, 4.471, 4.471]
     expected_nbands = len(expected_names)
@@ -607,11 +607,11 @@ def test_read_observations_mix():
         'HST_WFC3',
         'HST_WFC3',
         'HST_WFC3',
-        'spitzer_irac2_sa',
-        'spitzer_irac2_sa',
+        'spitzer_irac1',
+        'spitzer_irac2',
     ]
     expected_wl0 = [
-        0.792, 1.0, 1.148, 1.240, 1.332, 1.424, 1.516, 1.608, 4.471, 4.471,
+        0.792, 1.0, 1.148, 1.240, 1.332, 1.424, 1.516, 1.608, 3.521, 4.471,
     ]
     expected_nbands = len(expected_names)
     expected_data = np.array([

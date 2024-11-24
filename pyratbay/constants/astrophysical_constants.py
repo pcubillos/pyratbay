@@ -54,7 +54,7 @@ __all__ = [
 import scipy.constants as sc
 
 """
-Constant values used in the pyrat project.
+Astrophysical constant values used in the pyrat project.
 
 Notes
 -----

@@ -1,8 +1,9 @@
-# Copyright (c) 2021-2023 Patricio Cubillos
+# Copyright (c) 2021-2024 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
     'ROOT',
+    'FILTERS',
     # Other constants
     'tlireclen',
     'dreclen',
@@ -30,11 +31,6 @@ import os
 
 """
 Constant values used in the pyrat project.
-
-Notes
------
-  Solar system constants come from:
-  http://nssdc.gsfc.nasa.gov/planetary/factsheet/
 """
 
 # TLI record lengths:
@@ -45,6 +41,7 @@ sreclen = 2  # Short byte length
 
 # Paths:
 ROOT = os.path.realpath(os.path.dirname(__file__) + '/../..') + '/'
+FILTERS = f'{ROOT}pyratbay/data/filters/'
 
 
 # Available line-transition databases:
