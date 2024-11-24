@@ -182,7 +182,8 @@ def test_transmission_resolution(tmp_path):
     )
     pyrat = pb.run(cfg)
     np.testing.assert_allclose(
-        pyrat.spec.spectrum, expected['resolution'], rtol=rtol)
+        pyrat.spec.spectrum, expected['resolution'], rtol=rtol,
+    )
 
 
 def test_transmission_wl_step(tmp_path):

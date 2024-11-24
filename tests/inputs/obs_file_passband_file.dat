@@ -14,6 +14,6 @@
 # depth uncert  passband_file
 @DATA
 inputs/TESS_passband.dat
-{ROOT}/pyratbay/data/filters/spitzer_irac2_sa.dat
-{ROOT}/pyratbay/data/filters/spitzer_irac2_sa.dat
+{FILTERS}spitzer_irac2.dat
+{FILTERS}spitzer_irac2.dat
 

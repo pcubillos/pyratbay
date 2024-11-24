@@ -15,7 +15,7 @@ os.chdir(pc.ROOT + 'tests')
 
 
 def test_PassBand_init():
-    filter_file = f'{pc.ROOT}pyratbay/data/filters/spitzer_irac2_sa.dat'
+    filter_file = f'{pc.FILTERS}/spitzer_irac2.dat'
     band = ps.PassBand(filter_file)
 
     # wl0 is passband's wavelength center of mass
@@ -29,72 +29,99 @@ def test_PassBand_init():
 
 @pytest.mark.parametrize('flip', (False, True))
 def test_PassBand_wl(flip):
-    filter_file = f'{pc.ROOT}pyratbay/data/filters/spitzer_irac2_sa.dat'
+    filter_file = f'{pc.FILTERS}/spitzer_irac2.dat'
     band = ps.PassBand(filter_file)
     wl = np.arange(3.5, 5.5, 0.001)
     if flip:
         wl = np.flip(wl)
-    out_wl, out_response = band(wl)
+    out_wl, out_response = band.set_sampling(wl)
 
     np.testing.assert_equal(out_response, band.response)
     np.testing.assert_equal(out_wl, band.wl)
     np.testing.assert_allclose(wl[band.idx], band.wl)
 
-    wn_integral = np.trapezoid(band.response, band.wn)
+    spectrum = np.ones(len(wl))
+    wn_integral = band.integrate(spectrum)
     np.testing.assert_allclose(wn_integral, 1.0)
 
 
 @pytest.mark.parametrize('flip', (False, True))
 def test_PassBand_wn(flip):
-    filter_file = f'{pc.ROOT}pyratbay/data/filters/spitzer_irac2_sa.dat'
+    filter_file = f'{pc.FILTERS}/spitzer_irac2.dat'
     band = ps.PassBand(filter_file)
     wn = 1e4 / np.flip(np.arange(3.5, 5.5, 0.001))
     if flip:
         wn = np.flip(wn)
-    out_wn, out_response = band(wn=wn)
+    out_wn, out_response = band.set_sampling(wn=wn)
 
     np.testing.assert_equal(out_response, band.response)
     np.testing.assert_equal(out_wn, band.wn)
     np.testing.assert_allclose(wn[band.idx], band.wn)
 
-    wn_integral = np.trapezoid(band.response, band.wn)
+    spectrum = np.ones(len(wn))
+    wn_integral = band.integrate(spectrum)
+    np.testing.assert_allclose(wn_integral, 1.0)
+
+
+@pytest.mark.parametrize('wave', ('wn', 'wl'))
+def test_PassBand_initialize_wave(wave):
+    filter_file = f'{pc.FILTERS}/spitzer_irac2.dat'
+    wl = np.arange(3.5, 5.5, 0.001)
+    if wave == 'wn':
+        wn = 1e4 / wl
+        band = ps.PassBand(filter_file, wn=wn)
+    elif wave == 'wl':
+        band = ps.PassBand(filter_file, wl=wl)
+
+    spectrum = np.ones(len(wl))
+    wn_integral = band.integrate(spectrum)
+    np.testing.assert_allclose(wn_integral, 1.0)
+
+
+def test_PassBand__call__():
+    filter_file = f'{pc.FILTERS}/spitzer_irac2.dat'
+    wl = np.arange(3.5, 5.5, 0.001)
+    band = ps.PassBand(filter_file, wl)
+    # use __call__() method:
+    spectrum = np.ones(len(wl))
+    wn_integral = band(spectrum)
     np.testing.assert_allclose(wn_integral, 1.0)
 
 
 def test_PassBand_name():
-    filter_file = f'{pc.ROOT}pyratbay/data/filters/spitzer_irac2_sa.dat'
+    filter_file = f'{pc.FILTERS}/spitzer_irac2.dat'
     band = ps.PassBand(filter_file)
-    assert str(band) == 'spitzer_irac2_sa'
+    assert str(band) == 'spitzer_irac2'
     band_repr = repr(band)
     assert band_repr.startswith("pyratbay.spectrum.PassBand(")
-    assert band_repr.endswith("pyratbay/data/filters/spitzer_irac2_sa.dat')")
+    assert band_repr.endswith("pyratbay/data/filters/spitzer_irac2.dat')")
 
 
 def test_PassBand_bad_input_both():
-    filter_file = f'{pc.ROOT}pyratbay/data/filters/spitzer_irac2_sa.dat'
+    filter_file = f'{pc.FILTERS}/spitzer_irac2.dat'
     band = ps.PassBand(filter_file)
     wl = np.arange(3.5, 5.5, 0.001)
     wn = 1e4 / wl
 
     error = 'Either provide wavelength or wavenumber array, not both'
     with pytest.raises(ValueError, match=error):
-        out_wn, out_response = band(wl, wn=wn)
+        out_wn, out_response = band.set_sampling(wl, wn=wn)
 
 
 def test_PassBand_bad_input_none():
-    filter_file = f'{pc.ROOT}pyratbay/data/filters/spitzer_irac2_sa.dat'
+    filter_file = f'{pc.FILTERS}/spitzer_irac2.dat'
     band = ps.PassBand(filter_file)
     wl = None
     wn = None
 
-    error = 'Neither of wavelength (wl) nor wavenumber (wn) were provided'
+    error = 'Either provide wavelength or wavenumber array, not both'
     with pytest.raises(ValueError, match=re.escape(error)):
-        out_wn, out_response = band(wl, wn=wn)
+        out_wn, out_response = band.set_sampling(wl, wn=wn)
 
 
 def test_PassBand_bad_spectral_range():
     # Band range not contained in requested wl/wn range
-    filter_file = f'{pc.ROOT}pyratbay/data/filters/spitzer_irac2_sa.dat'
+    filter_file = f'{pc.FILTERS}/spitzer_irac2.dat'
     band = ps.PassBand(filter_file)
     wl = np.arange(3.5, 5.5, 0.001)
     wl[10] = wl[11]
@@ -104,14 +131,14 @@ def test_PassBand_bad_spectral_range():
         'increasing or decreasing'
     )
     with pytest.raises(ValueError, match=error):
-        out_wn, out_response = band(wl)
+        out_wn, out_response = band.set_sampling(wl)
 
 
 def test_PassBand_save_filter(tmpdir):
-    filter_file = f'{pc.ROOT}pyratbay/data/filters/spitzer_irac2_sa.dat'
+    filter_file = f'{pc.FILTERS}/spitzer_irac2.dat'
     band = ps.PassBand(filter_file)
     wl = np.arange(3.5, 5.5, 0.001)
-    out_wl, out_response = band(wl)
+    out_wl, out_response = band.set_sampling(wl)
 
     save_file = 'spitzer_irac.dat'
     tmp_file = f'{tmpdir}/{save_file}'
@@ -126,13 +153,14 @@ def test_Tophat_wl(flip):
     wl = np.arange(3.5, 5.5, 0.001)
     if flip:
         wl = np.flip(wl)
-    out_wl, out_response = hat(wl)
+    out_wl, out_response = hat.set_sampling(wl)
 
     np.testing.assert_equal(out_response, hat.response)
     np.testing.assert_equal(out_wl, hat.wl)
     np.testing.assert_allclose(wl[hat.idx], hat.wl)
 
-    wn_integral = np.trapezoid(hat.response, hat.wn)
+    flux = np.ones(len(wl))
+    wn_integral = hat.integrate(flux)
     np.testing.assert_allclose(wn_integral, 1.0)
 
 
@@ -142,13 +170,14 @@ def test_Tophat_wn(flip):
     wn = 1e4 / np.flip(np.arange(3.5, 5.5, 0.001))
     if flip:
         wn = np.flip(wn)
-    out_wn, out_response = hat(wn=wn)
+    out_wn, out_response = hat.set_sampling(wn=wn)
 
     np.testing.assert_equal(out_response, hat.response)
     np.testing.assert_equal(out_wn, hat.wn)
     np.testing.assert_allclose(wn[hat.idx], hat.wn)
 
-    wn_integral = np.trapezoid(hat.response, hat.wn)
+    flux = np.ones(len(wn))
+    wn_integral = hat.integrate(flux)
     np.testing.assert_allclose(wn_integral, 1.0)
 
 
@@ -159,13 +188,13 @@ def test_Tophat_gap_error():
         'Tophat() passband at wl0 = 4.550 um does not cover any spectral point'
     )
     with pytest.raises(ValueError, match=error):
-        hat(wl)
+        hat.set_sampling(wl)
 
 
 def test_Tophat_ignore_gaps():
     hat = ps.Tophat(4.55, 0.03, ignore_gaps=True)
     wl = np.arange(4.0, 5.01, 0.1)
-    out_wl, out_response = hat(wl)
+    out_wl, out_response = hat.set_sampling(wl)
     assert out_wl is None
     assert out_response is None
     assert hat.idx is None
@@ -197,7 +226,7 @@ def test_Tophat_bad_input(wl_wn):
 
     error = 'Either provide wavelength or wavenumber array, not both'
     with pytest.raises(ValueError, match=error):
-        out_wn, out_response = hat(wl, wn=wn)
+        out_wn, out_response = hat.set_sampling(wl, wn=wn)
 
 
 def test_Tophat_bad_spectral_range():
@@ -211,7 +240,7 @@ def test_Tophat_bad_spectral_range():
         'increasing or decreasing'
     )
     with pytest.raises(ValueError, match=error):
-        out_wn, out_response = hat(wl)
+        out_wn, out_response = hat.set_sampling(wl)
 
 
 def test_constant_resolution_spectrum():
@@ -248,11 +277,10 @@ def test_bin_spectrum():
     bin_spectrum = ps.bin_spectrum(bin_wl, wl, spectrum)
 
     expected_bin_spectrum = np.array([
-       1.54129415, 1.65720529, 1.83149662, 2.02411849, 2.23699875,
-       2.47226803, 2.732281  , 3.01964002, 3.33722111, 3.6882028 ,
-       4.07609787, 4.50478858, 4.97856547, 5.50217036, 6.08084374,
-       6.72037726, 7.59303535, 8.        , 8.        , 8.        ,
-       8.
+        1.54168873, 1.65831041, 1.83271796, 2.02546828, 2.23849051, 2.47391667,
+        2.73410304, 3.02165368, 3.33944655, 3.69066229, 4.07881603, 4.50779261,
+        4.98188545, 5.50583951, 6.08489877, 6.72485877, 7.60180994, 8.0,
+        8.0       , 8.0       , 8.0       ,
     ])
     np.testing.assert_allclose(bin_spectrum, expected_bin_spectrum)
 
@@ -318,8 +346,8 @@ def test_bbflux_sun():
     s = np.trapezoid(flux, wn) * (pc.rsun/pc.au)**2
     np.testing.assert_allclose(s, 1361195.40)
     # Wien's displacement law:
-    np.testing.assert_allclose(wn[np.argmax(flux)], 5.879e10*tsun/pc.c,
-                               rtol=1e-4)
+    wn_max = 5.879e10*tsun/pc.c
+    np.testing.assert_allclose(wn[np.argmax(flux)], wn_max, rtol=1e-4)
 
 
 def test_bbflux_error():
@@ -470,7 +498,7 @@ def test_resample_outbounds():
 def test_band_integrate_single():
     wn = np.arange(1500, 5000.1, 1.0)
     signal = np.ones_like(wn)
-    filter_file = pc.ROOT+"pyratbay/data/filters/spitzer_irac1_sa.dat"
+    filter_file = pc.ROOT+"pyratbay/data/filters/spitzer_irac1.dat"
     wn1, irac1 = io.read_spectrum(filter_file)
     bandflux = ps.band_integrate(signal, wn, irac1, wn1)
     np.testing.assert_allclose(bandflux, [1.0])
@@ -479,8 +507,8 @@ def test_band_integrate_single():
 def test_band_integrate_multiple_constant():
     wn = np.arange(1500, 5000.1, 1.0)
     signal = np.ones_like(wn)
-    filter_file1 = pc.ROOT+"pyratbay/data/filters/spitzer_irac1_sa.dat"
-    filter_file2 = pc.ROOT+"pyratbay/data/filters/spitzer_irac2_sa.dat"
+    filter_file1 = pc.ROOT+"pyratbay/data/filters/spitzer_irac1.dat"
+    filter_file2 = pc.ROOT+"pyratbay/data/filters/spitzer_irac2.dat"
     wn1, irac1 = io.read_spectrum(filter_file1)
     wn2, irac2 = io.read_spectrum(filter_file2)
 
@@ -491,8 +519,8 @@ def test_band_integrate_multiple_constant():
 def test_band_integrate_multiple_blackbody():
     wn = np.arange(1500, 5000.1, 1.0)
     sflux = ps.bbflux(wn, 1800.0)
-    filter_file1 = pc.ROOT+"pyratbay/data/filters/spitzer_irac1_sa.dat"
-    filter_file2 = pc.ROOT+"pyratbay/data/filters/spitzer_irac2_sa.dat"
+    filter_file1 = pc.ROOT+"pyratbay/data/filters/spitzer_irac1.dat"
+    filter_file2 = pc.ROOT+"pyratbay/data/filters/spitzer_irac2.dat"
     wn1, irac1 = io.read_spectrum(filter_file1)
     wn2, irac2 = io.read_spectrum(filter_file2)
 

@@ -23,5 +23,5 @@ ppm
     621    47   1.424    0.046  HST_WFC3
     765    51   1.516    0.046  HST_WFC3
     732    57   1.608    0.046  HST_WFC3
-   3448    64   {ROOT}/pyratbay/data/filters/spitzer_irac2_sa.dat
-   3375    82   {ROOT}/pyratbay/data/filters/spitzer_irac2_sa.dat
+   3448    64   {FILTERS}spitzer_irac1.dat
+   3375    82   {FILTERS}spitzer_irac2.dat

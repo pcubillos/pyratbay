@@ -21,19 +21,29 @@ import scipy.interpolate as si
 from .. import constants as pc
 from .. import io as io
 
+counting_types = ['photon', 'energy']
+
 
 class PassBand():
     """
-    A Filter passband object.
+    A Filter passband object, typically used for photometric filters.
     """
-    def __init__(self, filter_file, wn=None):
+    def __init__(self, filter_file, wl=None, wn=None, counting_type='photon'):
         """
         Parameters
         ----------
         filter_file: String
             Path to filter file containing wavelength (um) and passband
-            response in two columns.
-            Comment and blank lines are ignored.
+            response function in two columns.
+        wl: 1D float array
+            Wavelength array at which evaluate the passband response's
+            in micron units.
+            (only one of wl or wn should be provided on call)
+        wn: 1D float array
+            Wavenumber (cm-1) at which the filter is intended to be evalulated.
+        counting_type: String
+            Detector counting type (i.e., the response function units),
+            choose between 'photon' (default) or 'energy'.
 
         Examples
         --------
@@ -41,29 +51,43 @@ class PassBand():
         >>> import pyratbay.constants as pc
         >>> import matplotlib.pyplot as plt
         >>> import numpy as np
-
-        >>> filter_file = f'{pc.ROOT}pyratbay/data/filters/spitzer_irac2_sa.dat'
-        >>> band = ps.PassBand(filter_file)
-
-        >>> # Evaluate over a wavelength array (um):
-        >>> wl = np.arange(3.5, 5.5, 0.001)
-        >>> out_wl, out_response = band(wl)
-
+        >>>
+        >>> # Test on a blackbody spectrum
+        >>> wl = np.linspace(1.0, 10.0, 10000)
+        >>> hj_spectrum = ps.bbflux(1e4/wl, 2100.0)
+        >>> # Create a Spitzer/IRAC2 band and integrate spectrum over it
+        >>> band = ps.PassBand(f'{pc.FILTERS}spitzer_irac2.dat', wl=wl)
+        >>> band_flux = band(hj_spectrum)
+        >>>
+        >>> plt.figure(0)
+        >>> plt.clf()
+        >>> plt.plot(wl, hj_spectrum, c='black')
+        >>> plt.plot(band.wl0, band_flux, 'o', c='royalblue')
+        >>> plt.plot(band.wl, band.response*5e7, c='0.7')
+        >>> plt.ylim(bottom=0.0)
+        >>>
+        >>> # Now, we can re-evaluate for a bunch of spectra
+        >>> temps = np.arange(900, 2500.0, 150.0)
+        >>> spectra = [ps.bbflux(1e4/wl, temp) for temp in temps]
+        >>> fluxes = [band(spectrum) for spectrum in spectra]
+        >>>
         >>> plt.figure(1)
         >>> plt.clf()
-        >>> plt.plot(out_wl, out_response)
-        >>> plt.plot(band.wl, band.response)  # Same variables
-        >>> # Note wl differs from band.wl, but original array can be used as:
-        >>> plt.plot(wl[band.idx], band.response)
-
-        >>> # Evaluate over a wavenumber array:
-        >>> wn = 1e4 / wl
-        >>> band(wn=wn)
-        >>> plt.figure(1)
-        >>> plt.clf()
-        >>> plt.plot(band.wn, band.response, dashes=(5,3))
-        >>> plt.plot(wn[band.idx], out_response)
+        >>> for i,temp in enumerate(temps):
+        >>>     color = plt.cm.viridis(i/11)
+        >>>     plt.plot(wl, spectra[i], c=color)
+        >>>     plt.plot(band.wl0, fluxes[i], 'o', c=color)
+        >>> plt.plot(band.wl, band.response*2e7, c='0.7', zorder=-1)
+        >>> plt.xscale('log')
+        >>> plt.ylim(bottom=0.0)
+        >>> plt.xlim(1.0, 10.0)
         """
+        self.name = os.path.splitext(os.path.basename(filter_file))[0]
+        if counting_type not in counting_types:
+            error = f"Invalid 'counting_type', must be one of {counting_types}"
+            raise ValueError(error)
+        self.counting_type = counting_type
+
         # Read filter wavenumber and transmission curves:
         filter_file = filter_file.replace('{ROOT}', pc.ROOT)
         self.filter_file = os.path.realpath(filter_file)
@@ -83,20 +107,12 @@ class PassBand():
         self.wn = np.copy(input_wn[wn_sort])
         self.wl = 1.0 / (self.wn * pc.um)
 
-        self.name = os.path.splitext(os.path.basename(filter_file))[0]
-
         # Resample the filters into the planet wavenumber array:
-        if wn is not None:
-            self.__eval__(wn=wn)
-
-    def __repr__(self):
-        return f"pyratbay.spectrum.PassBand('{self.filter_file}')"
-
-    def __str__(self):
-        return f'{self.name}'
+        if wn is not None or wl is not None:
+            self.set_sampling(wl, wn)
 
 
-    def __call__(self, wl=None, wn=None):
+    def set_sampling(self, wl=None, wn=None):
         """
         Interpolate filter response function at specified spectral array.
         The response funciton is normalized such that the integral over
@@ -106,12 +122,10 @@ class PassBand():
         ----------
         wl: 1D float array
             Wavelength array at which evaluate the passband response's
-            in micron units.
-            (only one of wl or wn should be provided on call)
+            in micron units (only one of wl or wn should be provided on call)
         wn: 1D float array
             Wavenumber array at which evaluate the passband response's
-            in cm-1 units.
-            (only one of wl or wn should be provided on call)
+            in cm-1 units (only one of wl or wn should be provided on call)
 
         Defines
         -------
@@ -131,14 +145,10 @@ class PassBand():
         --------
         >>> # See examples in help(ps.PassBand.__init__)
         """
-        if wl is None and wn is None:
-            raise ValueError(
-                'Neither of wavelength (wl) nor wavenumber (wn) were provided'
-            )
-        if wl is not None and wn is not None:
-            raise ValueError(
-                'Either provide wavelength or wavenumber array, not both'
-            )
+        if not operator.xor(wl is None, wn is None):
+            error = 'Either provide wavelength or wavenumber array, not both'
+            raise ValueError(error)
+
         input_is_wl = wn is None
         if input_is_wl:
             wn = 1.0 / (wl*pc.um)
@@ -151,24 +161,65 @@ class PassBand():
             )
         sign = sign[0]
 
-        response, wn_idx = resample(
-            self.input_response, self.input_wn, wn, normalize=True,
-        )
-
-        # Internally, wavenumber is always monotonically increasing:
+        response, wn_idx = resample(self.input_response, self.input_wn, wn)
+        # Internally, wavenumber is always monotonically increasing
         wn_sort = np.argsort(wn[wn_idx])
-
-        self.response = response[wn_sort] * sign
+        response = response[wn_sort] * sign
         self.wn = wn[wn_idx][wn_sort]
+        self.wl = 1.0 / (self.wn * pc.um)
         self.idx = wn_idx[wn_sort]
 
-        self.wl = 1.0 / (self.wn * pc.um)
+        # Normalize response function
+        if self.counting_type == 'photon':
+            self.response = response / np.trapezoid(response*self.wl, self.wn)
+        elif self.counting_type == 'energy':
+            self.response = response / np.trapezoid(response, self.wn)
+
         if input_is_wl:
             out_wave = self.wl
         else:
             out_wave = self.wn
 
         return out_wave, self.response
+
+
+    def integrate(self, spectrum, wl=None, wn=None):
+        """
+        Integrate a spectral function over the passband.
+
+        Parameters
+        ----------
+        spectrum: 1D float array
+            Spectral function to be band-integrated. The spectral sampling
+            of this must be set at initialization or with the set_spectrum()
+            method.  Otherwise, it can be set at run time with the wn or wl
+            arguments.
+        wn: 1D float array
+            (optional) wavenumber array (cm-1) over which spectrum is sampled.
+        wl: 1D float array
+            (optional) wavelength array (um) over which spectrum is sampled.
+
+        Returns
+        -------
+        bandflux: Float
+            Band-integrated value of the spectral  function.
+        """
+        if not hasattr(self, 'idx'):
+            raise ValueError(
+                "The passband's spectral sampling has not been defined yet.  "
+                "Need to call set_sampling() method or initialize with an "
+                "input wavelength sampling"
+            )
+        if wl is not None or wn is not None:
+            self.set_sampling(wl, wn)
+        if self.counting_type == 'energy':
+            return np.trapezoid(spectrum[self.idx]*self.response, self.wn)
+        return np.trapezoid(self.wl*spectrum[self.idx]*self.response, self.wn)
+
+
+    def __call__(self, spectrum, wl=None, wn=None):
+        return self.integrate(spectrum, wl, wn)
+
 
     def save_filter(self, save_file):
         """
@@ -182,14 +233,20 @@ class PassBand():
         """
         io.write_spectrum(self.wl, self.response, save_file, type='filter')
 
+    def __repr__(self):
+        return f"pyratbay.spectrum.PassBand('{self.filter_file}')"
+
+    def __str__(self):
+        return f'{self.name}'
+
 
 class Tophat(PassBand):
     """
     A Filter passband object with a tophat-shaped passband.
     """
     def __init__(
-            self, wl0, half_width,
-            name='tophat', ignore_gaps=False,
+            self, wl0, half_width, name='tophat', wl=None, wn=None,
+            counting_type='photon', ignore_gaps=False,
         ):
         """
         Parameters
@@ -201,6 +258,14 @@ class Tophat(PassBand):
         name: Str
             A user-defined name for the filter when calling str(self),
             e.g., to identify the instrument provenance of this filter.
+        wl: 1D float array
+            Wavelength array at which evaluate the passband response's
+            in micron units (only one of wl or wn should be provided on call)
+        wn: 1D float array
+            Wavenumber (cm-1) at which the filter is intended to be evalulated.
+        counting_type: String
+            Detector counting type (i.e., the response function units),
+            choose between 'photon' (default) or 'energy'.
         ignore_gaps: Bool
             If True and there are no points inside the band,
             set the idx, wn, wl, and response variables to None.
@@ -212,27 +277,36 @@ class Tophat(PassBand):
         >>> import pyratbay.spectrum as ps
         >>> import matplotlib.pyplot as plt
         >>> import numpy as np
-
-        >>> hat = ps.Tophat(4.5, 0.5)
-
-        >>> # Evaluate over a wavelength array (um units):
-        >>> wl = np.arange(3.5, 5.5, 0.001)
-        >>> out_wl, out_response = hat(wl)
-
+        >>>
+        >>> # Test on a blackbody spectrum
+        >>> wl = np.linspace(1.0, 10.0, 10000)
+        >>> hj_spectrum = ps.bbflux(1e4/wl, 2100.0)
+        >>> # Create a top-hat passband and integrate spectrum
+        >>> band = ps.Tophat(wl0=4.5, half_width=0.1, wl=wl)
+        >>> band_flux = band(hj_spectrum)
+        >>>
+        >>> plt.figure(0)
+        >>> plt.clf()
+        >>> plt.plot(wl, hj_spectrum, c='black')
+        >>> plt.plot(band.wl0, band_flux, 'o', c='royalblue')
+        >>> plt.plot(band.wl, band.response*5e6, c='0.7')
+        >>> plt.ylim(bottom=0.0)
+        >>>
+        >>> # Now, we can re-evaluate for a bunch of spectra
+        >>> temps = np.arange(900, 2500.0, 150.0)
+        >>> spectra = [ps.bbflux(1e4/wl, temp) for temp in temps]
+        >>> fluxes = [band(spectrum) for spectrum in spectra]
+        >>>
         >>> plt.figure(1)
         >>> plt.clf()
-        >>> plt.plot(out_wl, out_response)
-        >>> plt.plot(hat.wl, hat.response)  # Same variables
-        >>> # Note wl differs from hat.wl, but original array can be used as:
-        >>> plt.plot(wl[hat.idx], hat.response)
-
-        >>> # Evaluate over a wavenumber array:
-        >>> wn = 1e4 / wl
-        >>> hat(wn=wn)
-        >>> plt.figure(1)
-        >>> plt.clf()
-        >>> plt.plot(hat.wn, hat.response, dashes=(5,3))
-        >>> plt.plot(wn[hat.idx], out_response)
+        >>> for i,temp in enumerate(temps):
+        >>>     color = plt.cm.viridis(i/11)
+        >>>     plt.plot(wl, spectra[i], c=color)
+        >>>     plt.plot(band.wl0, fluxes[i], 'o', c=color)
+        >>> plt.plot(band.wl, band.response*2e6, c='0.7', zorder=-1)
+        >>> plt.xscale('log')
+        >>> plt.ylim(bottom=0.0)
+        >>> plt.xlim(1.0, 10.0)
         """
         self.wl0 = wl0
         self.half_width = half_width
@@ -241,30 +315,27 @@ class Tophat(PassBand):
         self.ignore_gaps = ignore_gaps
 
         self.name = name
+        self.counting_type = counting_type
 
-    def __repr__(self):
-        return f'pyratbay.spectrum.Tophat({self.wl0}, {self.half_width})'
-
-    def __str__(self):
-        return f'{self.name}_{self.wl0}um'
+        # Resample the filters into the planet wavenumber array:
+        if wn is not None or wl is not None:
+            self.set_sampling(wl, wn)
 
 
-    def __call__(self, wl=None, wn=None):
+    def set_sampling(self, wl=None, wn=None):
         """
         Interpolate filter response function at specified spectral array.
-        The response funciton is normalized such that the integral over
+        The response function is normalized such that the integral over
         wavenumber equals one.
 
         Parameters
         ----------
         wl: 1D float array
             Wavelength array at which evaluate the passband response's
-            in micron units.
-            (only one of wl or wn should be provided on call)
+            in um units (only one of wl or wn should be provided on call)
         wn: 1D float array
             Wavenumber array at which evaluate the passband response's
-            in cm-1 units.
-            (only one of wl or wn should be provided on call)
+            in cm-1 units (only one of wl or wn should be provided on call)
 
         Defines
         -------
@@ -285,9 +356,8 @@ class Tophat(PassBand):
         >>> # See examples in help(ps.Tophat.__init__)
         """
         if not operator.xor(wl is None, wn is None):
-            raise ValueError(
-                'Either provide wavelength or wavenumber array, not both'
-            )
+            error = 'Either provide wavelength or wavenumber array, not both'
+            raise ValueError(error)
         input_is_wl = wn is None
         if input_is_wl:
             wn = 1.0 / (wl*pc.um)
@@ -336,16 +406,28 @@ class Tophat(PassBand):
             self.idx = np.arange(idx_first, idx_last)
 
         self.wn = wn[self.idx]
-        self.response = np.array(idx[self.idx], np.double)
-        self.response /= np.trapezoid(self.response, self.wn)
-
         self.wl = 1.0 / (self.wn * pc.um)
+
+        # Normalized response function
+        self.response = np.array(idx[self.idx], np.double)
+        if self.counting_type == 'photon':
+            self.response /= np.trapezoid(self.response*self.wl, self.wn)
+        elif self.counting_type == 'energy':
+            self.response /= np.trapezoid(self.response, self.wn)
+
         if input_is_wl:
             out_wave = self.wl
         else:
             out_wave = self.wn
 
         return out_wave, self.response
+
+
+    def __repr__(self):
+        return f'pyratbay.spectrum.Tophat({self.wl0}, {self.half_width})'
+
+    def __str__(self):
+        return f'{self.name}_{self.wl0}um'
 
 
 def constant_resolution_spectrum(wave_min, wave_max, resolution):
@@ -457,17 +539,16 @@ def bin_spectrum(bin_wl, wl, spectrum, half_widths=None, gaps=None):
 
     ignore_gaps = gaps is not None
     bands = [
-        Tophat(wl0, half_width, ignore_gaps=ignore_gaps)
+        Tophat(wl0, half_width, wl=wl, ignore_gaps=ignore_gaps)
         for wl0, half_width in zip(bin_wl, half_widths)
     ]
     nbands = len(bands)
     band_flux = np.zeros(nbands)
     for i,band in enumerate(bands):
-        band_wl, response = band(wl)
         if band.idx is None:
             band_flux[i] = np.nan
         else:
-            band_flux[i] = np.trapezoid(spectrum[band.idx]*response, band.wn)
+            band_flux[i] = band(spectrum)
 
     # Patch gaps if requested and needed:
     mask = np.isnan(band_flux)
@@ -627,10 +708,8 @@ def band_integrate(spectrum, specwn, bandtrans, bandwn):
     >>> import pyratbay.spectrum as ps
     >>> import pyratbay.constants as pc
     >>> # Load Spitzer IRAC filters:
-    >>> wn1, irac1 = io.read_spectrum(
-    >>>     pc.ROOT+'pyratbay/data/filters/spitzer_irac1_sa.dat')
-    >>> wn2, irac2 = io.read_spectrum(
-    >>>     pc.ROOT+'pyratbay/data/filters/spitzer_irac2_sa.dat')
+    >>> wn1, irac1 = io.read_spectrum(pc.FILTERS+'spitzer_irac1.dat')
+    >>> wn2, irac2 = io.read_spectrum(pc.FILTERS+'spitzer_irac2.dat')
     >>> # Spectrum to integrate:
     >>> wn = np.arange(1500, 5000.1, 1.0)
     >>> sflux = ps.bbflux(wn, 1800.0)

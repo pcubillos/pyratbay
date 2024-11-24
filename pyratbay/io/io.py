@@ -611,7 +611,7 @@ def read_opacity(ofile, extract='all'):
     extract: String
         Information to extract, select between:
         - 'arrays' for the species, temperature, pressure, and wavenumber
-        - 'opacities' for the opacity grid
+        - 'opacity' for the opacity grid
         - 'all' to get both and the array dimensions.
 
     Returns
@@ -1172,6 +1172,7 @@ def read_observations(obs_file):
 
         if len(info) - ndata == 1:
             filter_file = info[ndata].replace('{ROOT}', pc.ROOT)
+            filter_file = filter_file.replace('{FILTERS}', pc.FILTERS)
             filter_file = os.path.realpath(filter_file)
             filters.append(ps.PassBand(filter_file))
         elif len(info) - ndata == 2:
@@ -1180,7 +1181,7 @@ def read_observations(obs_file):
         elif len(info) - ndata == 3:
             wl0, half_width = np.array(info[ndata:ndata+2], np.double)
             name = info[ndata+2]
-            filters.append(ps.Tophat(wl0, half_width, name))
+            filters.append(ps.Tophat(wl0, half_width, name=name))
         else:
             error_msg = 'Invalid number of values in obs_file'
             if has_data and len(info) in [1,2]:

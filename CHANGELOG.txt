@@ -9600,3 +9600,14 @@ Added wl variable to pyrat.spec, to return the wavelength array
 in microns.
 
 
+*****  Fr 22 Nov 2024 18:17:51 CET  *****
+
+Refactored PassBand() and Tophat() classes.
+Added counting_type argument and variable to specify whether the
+response function is per photon (default) or per energy.
+Re-named __call__() method to set_sampling().
+Added integrate() method to do the band_integration in-house.
+Now __call__() method points to intgrate().
+Added arguments to set the wn/wl sampling at initialization.
+Updated docstrings and tests.
+

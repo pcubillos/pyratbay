@@ -248,6 +248,10 @@ class Pyrat():
         if ret.itstar is not None:
             self.phy.tstar = params[ret.itstar][0]
             self.spec.starflux = self.spec.flux_interp(self.phy.tstar)
+            self.obs.bandflux_star = np.array([
+                band(pyrat.spec.starflux)
+                for band in self.obs.filters
+            ])
 
         if ret.idilut is not None:
             self.spec.f_dilution = params[ret.idilut][0]
@@ -547,20 +551,17 @@ class Pyrat():
         """
         if self.obs.filters is None:
             return None
-
         if spectrum is None:
             spectrum = self.spec.spectrum
 
-        rprs_square = (self.atm.rplanet/self.phy.rstar)**2.0
+        bandflux = np.array([band(spectrum) for band in self.obs.filters])
         if self.od.rt_path in pc.emission_rt:
-            spectrum = spectrum / self.spec.starflux * rprs_square
+            rprs_square = (self.atm.rplanet/self.phy.rstar)**2.0
+            bandflux = bandflux / self.obs.bandflux_star * rprs_square
 
-        self.obs.bandflux = np.array([
-            np.trapezoid(spectrum[band.idx]*band.response, band.wn)
-            for band in self.obs.filters
-        ])
-
+        self.obs.bandflux = bandflux
         return self.obs.bandflux
+
 
 
     def get_ec(self, layer):

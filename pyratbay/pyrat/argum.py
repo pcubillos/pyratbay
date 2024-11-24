@@ -74,7 +74,6 @@ def setup(pyrat):
     Process stellar spectrum.
     Process the oberving filter bands.
     """
-    # Shortcuts:
     phy = pyrat.phy
     log = pyrat.log
 
@@ -117,6 +116,11 @@ def setup(pyrat):
         if np.ndim(phy.starflux) == 1:
             sinterp = si.interp1d(phy.starwn, phy.starflux)
             pyrat.spec.starflux = sinterp(pyrat.spec.wn)
+            # Band-integrate the stellar flux
+            pyrat.obs.bandflux_star = np.array([
+                band(pyrat.spec.starflux)
+                for band in pyrat.obs.filters
+            ])
         # 2D spectra
         else:
             sinterp = si.interp1d(phy.starwn, phy.starflux, axis=1)

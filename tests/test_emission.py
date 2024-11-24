@@ -168,7 +168,8 @@ def test_emission_etable(tmp_path):
     )
     pyrat = pb.run(cfg)
     np.testing.assert_allclose(
-        pyrat.spec.spectrum, expected['etable'], rtol=rtol)
+        pyrat.spec.spectrum, expected['etable'], rtol=rtol,
+    )
 
 
 def test_emission_dilution(tmp_path):
@@ -375,18 +376,19 @@ def test_emission_band_integrate_no_data():
     pyrat = pb.run(ROOT+'tests/configs/spectrum_emission_filters_test.cfg')
     ev_spectrum, ev_bandflux = pyrat.eval(pyrat.ret.params, retmodel=True)
     spectrum = np.copy(pyrat.spec.spectrum)
-    bandfux = pyrat.band_integrate()
+    bandflux = pyrat.band_integrate()
 
     expected_bandflux = [
-        2.06005611e-04, 2.29200760e-04, 2.40635005e-04, 2.80284056e-04,
-        3.01541761e-04, 3.19626220e-04, 3.33792740e-04, 3.35382081e-04,
-        3.20701454e-04, 2.41386401e-04, 2.61135431e-04, 2.61636358e-04,
-        2.60311230e-04, 3.09387782e-04, 3.31626112e-04, 3.91020812e-04,
-        4.58048292e-04, 4.90616193e-04, 5.30905856e-04, 5.52920101e-04,
-        5.69824188e-04,
+        2.0600785289e-04, 2.2919655505e-04, 2.4065559114e-04, 2.8029860209e-04,
+        3.0155143043e-04, 3.1963485203e-04, 3.3379717207e-04, 3.3539204122e-04,
+        3.2066224764e-04, 2.4138103230e-04, 2.6113180837e-04, 2.6163118428e-04,
+        2.6030023197e-04, 3.0939984882e-04, 3.3163315401e-04, 3.9102530827e-04,
+        4.5804716173e-04, 4.9061722081e-04, 5.3090552207e-04, 5.5291946981e-04,
+        5.6982334683e-04
     ]
+    #print(' '.join([f'{flux:.10e},' for flux in bandflux]))
     np.testing.assert_allclose(pyrat.spec.spectrum, spectrum)
-    np.testing.assert_allclose(bandfux, expected_bandflux)
+    np.testing.assert_allclose(bandflux, expected_bandflux)
     np.testing.assert_allclose(ev_bandflux, expected_bandflux)
 
 

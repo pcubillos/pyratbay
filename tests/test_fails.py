@@ -799,7 +799,7 @@ def test_line_by_line_missing_species(tmp_path):
     )
     error = re.escape(
         "The species 'H2O' for isotopes ['161' '181' '171' '162' '182' "
-        "'172' '262'] is not present in the atmosphere"
+        "'172' '262' '282' '272'] is not present in the atmosphere"
     )
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
@@ -1244,7 +1244,7 @@ def test_compute_opacity_invalid_tmax(tmp_path):
         'runmode': 'opacity',
         'extfile': str(tmp_path/'new_opacity.npz'),
         'tmin':'1000.0',
-        'tmax':'6000.0',
+        'tmax':'9000.0',
         'tstep':'100',
     }
     cfg = make_config(
@@ -1253,8 +1253,8 @@ def test_compute_opacity_invalid_tmax(tmp_path):
         reset=reset,
     )
     error = re.escape(
-        "Requested cross-section table temperature (tmax=6000.0 K) "
-        "above the highest available TLI temperature (5000.0 K)"
+        "Requested cross-section table temperature (tmax=9000.0 K) "
+        "above the highest available TLI temperature (6000.0 K)"
     )
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
