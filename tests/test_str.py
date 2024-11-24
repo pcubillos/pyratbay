@@ -301,21 +301,23 @@ Number of databases (ndb): 1
 
 Database name (name): HITRAN H2O
 Species name (molname):  H2O
-Number of isotopes (niso): 7
-Number of temperature samples (ntemp): 1001
+Number of isotopes (niso): 9
+Number of temperature samples (ntemp): 1201
 Temperature (temp, K):
-    [1.000e+00 5.000e+00 1.000e+01 ... 4.990e+03 4.995e+03 5.000e+03]
+    [1.000e+00 5.000e+00 1.000e+01 ... 5.990e+03 5.995e+03 6.000e+03]
 Partition function for each isotope (z):
-    [ 1.000e+00  1.010e+00  1.328e+00 ...  8.358e+04  8.387e+04  8.416e+04]
-    [ 1.000e+00  1.010e+00  1.332e+00 ...  7.758e+04  7.785e+04  7.811e+04]
-    [ 6.000e+00  6.058e+00  7.981e+00 ...  4.655e+05  4.670e+05  4.686e+05]
-    [ 6.000e+00  6.213e+00  8.396e+00 ...  4.865e+05  4.880e+05  4.895e+05]
-    [ 6.000e+00  6.219e+00  8.445e+00 ...  4.733e+05  4.748e+05  4.763e+05]
-    [ 3.600e+01  3.729e+01  5.053e+01 ...  2.737e+06  2.746e+06  2.754e+06]
-    [ 6.000e+00  6.343e+00  9.129e+00 ...  9.578e+05  9.615e+05  9.652e+05]
+    [ 1.000e+00  1.010e+00  1.328e+00 ...  1.564e+05  1.568e+05  1.573e+05]
+    [ 1.000e+00  1.010e+00  1.332e+00 ...  1.450e+05  1.454e+05  1.459e+05]
+    [ 6.000e+00  6.058e+00  7.981e+00 ...  8.709e+05  8.735e+05  8.760e+05]
+    [ 6.000e+00  6.213e+00  8.396e+00 ...  8.406e+05  8.426e+05  8.446e+05]
+    [ 6.000e+00  6.219e+00  8.445e+00 ...  8.538e+05  8.561e+05  8.584e+05]
+    [ 3.600e+01  3.729e+01  5.053e+01 ...  4.911e+06  4.924e+06  4.938e+06]
+    [ 6.000e+00  6.343e+00  9.129e+00 ...  1.949e+06  1.955e+06  1.962e+06]
+    [ 6.000e+00  6.353e+00  9.217e+00 ...  2.006e+06  2.013e+06  2.019e+06]
+    [ 3.600e+01  3.809e+01  5.505e+01 ...  1.187e+07  1.191e+07  1.195e+07]
 
 Total number of line transitions (ntransitions): 47,658
-Minimum and maximum temperatures (tmin, tmax): [1.0, 5000.0] K
+Minimum and maximum temperatures (tmin, tmax): [1.0, 6000.0] K
 Line-transition isotope IDs (isoid):
     [0 0 0 0 0 0 0 ... 3 3 3 3 3 3 3]
 Line-transition wavenumbers (wn, cm-1):
@@ -326,7 +328,7 @@ Line-transition gf (gf, cm-1):
     [ 1.399e-08  1.188e-09  1.210e-08 ...  5.498e-06  1.558e-07  1.076e-06]
 Line-transition strength threshold (ethresh): 1.00e-15
 Isotopes information:
-Number of isotopes (niso): 7
+Number of isotopes (niso): 9
 
 Isotope  Molecule      Mass    Isotopic   Database
             index     g/mol       ratio
@@ -338,6 +340,8 @@ Isotope  Molecule      Mass    Isotopic   Database
     182         5   21.0210   6.230e-07   HITRAN H2O
     172         5   20.0210   1.159e-07   HITRAN H2O
     262         5   20.0229   2.420e-08   HITRAN H2O
+    282         5   22.0274   4.500e-09   HITRAN H2O
+    272         5   21.0273   8.600e-10   HITRAN H2O
 """
 
     assert str(pyrat.voigt) == """\
@@ -623,7 +627,7 @@ Gaussian quadrature weights (quadrature_weights):
     [0.095 0.691 1.058 0.931 0.367]
 
 Transmission spectrum, (Rp/Rs)**2 (spectrum):
-    [ 6.523e-03  6.540e-03  6.524e-03 ...  6.669e-03  6.500e-03  6.470e-03]
+    [ 6.523e-03  6.540e-03  6.524e-03 ...  6.669e-03  6.500e-03  6.473e-03]
 """
 
 @pytest.mark.skip(reason="TBD")

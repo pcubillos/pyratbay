@@ -33,7 +33,7 @@ def test_get_tips_molname_error():
 
 
 def test_pf_tips():
-    expected_temp = np.arange(0, 5001, 5.0)
+    expected_temp = np.arange(0, 6001, 5.0)
     expected_temp[0] = 1.0
 
     with open(f'{pc.ROOT}pyratbay/data/tips_2021.pkl', 'rb') as p:
@@ -42,11 +42,11 @@ def test_pf_tips():
         pf_data, isotopes, temp = pf.tips('H2O', outfile='default')
 
     np.testing.assert_equal(temp, expected_temp)
-    np.testing.assert_equal(pf_data[0], expected_pf['161'])
+    np.testing.assert_equal(pf_data[6], expected_pf['262'])
     assert isotopes == list(expected_pf.keys())
 
     pf_read, iso, temp_read = io.read_pf('outputs/PF_tips_H2O.dat')
-    np.testing.assert_allclose(pf_read[0,:], expected_pf['161'], rtol=1e-7)
+    np.testing.assert_allclose(pf_read[6,:], expected_pf['262'], rtol=1e-7)
     np.testing.assert_allclose(temp_read, expected_temp, rtol=1e-7)
     assert list(iso) == list(expected_pf.keys())
 

@@ -9617,4 +9617,8 @@ Added FILTERS constant, path pointing directly to the filters folder
 Added cheops and tess passbands filters.
 Renamed spitzer_irac?_sa.dat filters to spitzer_irac?.dat
 
+*****
+
+Updated tests on partition functions/isotopes according to latest
+changes.
 
