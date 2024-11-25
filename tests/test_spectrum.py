@@ -91,7 +91,7 @@ def test_PassBand__call__():
 def test_PassBand_name():
     filter_file = f'{pc.FILTERS}/spitzer_irac2.dat'
     band = ps.PassBand(filter_file)
-    assert str(band) == 'spitzer_irac2'
+    assert band.name == 'spitzer_irac2'
     band_repr = repr(band)
     assert band_repr.startswith("pyratbay.spectrum.PassBand(")
     assert band_repr.endswith("pyratbay/data/filters/spitzer_irac2.dat')")

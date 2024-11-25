@@ -159,21 +159,22 @@ class PassBand():
                 'Input wavelength/wavenumber array must be strictly '
                 'increasing or decreasing'
             )
-        sign = sign[0]
 
         response, wn_idx = resample(self.input_response, self.input_wn, wn)
         # Internally, wavenumber is always monotonically increasing
         wn_sort = np.argsort(wn[wn_idx])
-        response = response[wn_sort] * sign
+        response = response[wn_sort]
         self.wn = wn[wn_idx][wn_sort]
         self.wl = 1.0 / (self.wn * pc.um)
         self.idx = wn_idx[wn_sort]
 
-        # Normalize response function
+        # Normalize response function: max(response) == 1.0
+        self.response = response / np.amax(response)
+        # Scaling factor such that integ(response)dwn = 1.0
         if self.counting_type == 'photon':
-            self.response = response / np.trapezoid(response*self.wl, self.wn)
+            self.height = 1.0 / np.trapezoid(self.response*self.wl, self.wn)
         elif self.counting_type == 'energy':
-            self.response = response / np.trapezoid(response, self.wn)
+            self.height = 1.0 / np.trapezoid(self.response, self.wn)
 
         if input_is_wl:
             out_wave = self.wl
@@ -212,9 +213,18 @@ class PassBand():
             )
         if wl is not None or wn is not None:
             self.set_sampling(wl, wn)
+
         if self.counting_type == 'energy':
-            return np.trapezoid(spectrum[self.idx]*self.response, self.wn)
-        return np.trapezoid(self.wl*spectrum[self.idx]*self.response, self.wn)
+            band_integ = np.trapezoid(
+                spectrum[self.idx]*self.response,
+                self.wn,
+            )
+        else:
+            band_integ = np.trapezoid(
+                self.wl*spectrum[self.idx]*self.response,
+                self.wn,
+            )
+        return band_integ * self.height
 
 
     def __call__(self, spectrum, wl=None, wn=None):
@@ -237,7 +247,18 @@ class PassBand():
         return f"pyratbay.spectrum.PassBand('{self.filter_file}')"
 
     def __str__(self):
-        return f'{self.name}'
+        if self.__class__ is Tophat:
+            filter_file = ''
+        else:
+            filter_file = f"file = {repr(self.filter_file)}\n"
+        return (
+            filter_file +
+            f"name = {repr(self.name)}\n"
+            f"central_wl = {self.wl0}\n"
+            f"band_wl = {self.wl}\n"
+            f"band_wn = {self.wn}\n"
+            f"response = {self.response}\n"
+        )
 
 
 class Tophat(PassBand):
@@ -408,12 +429,13 @@ class Tophat(PassBand):
         self.wn = wn[self.idx]
         self.wl = 1.0 / (self.wn * pc.um)
 
-        # Normalized response function
+        # Normalize response function: max(response) == 1.0
         self.response = np.array(idx[self.idx], np.double)
+        # Scaling factor such that integ(response)dwn = 1.0
         if self.counting_type == 'photon':
-            self.response /= np.trapezoid(self.response*self.wl, self.wn)
+            self.height = 1.0 / np.trapezoid(self.response*self.wl, self.wn)
         elif self.counting_type == 'energy':
-            self.response /= np.trapezoid(self.response, self.wn)
+            self.height = 1.0 / np.trapezoid(self.response, self.wn)
 
         if input_is_wl:
             out_wave = self.wl

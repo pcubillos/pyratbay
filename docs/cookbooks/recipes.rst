@@ -34,7 +34,7 @@ Recipes list:
 
 - **Miscelaneous**
 
-  - :ref:`passbands` shows how to create and use instrumental response passbands
+  - `Passbands <passbands.ipynb>`_ shows how to create and use instrumental response passbands
   - :ref:`partition_functions` (TBD)
   - :ref:`radiative_equilibrium` (TBD)
   - :ref:`transmission_simulation` (TBD)
@@ -44,6 +44,7 @@ Recipes list:
 
   - :ref:`transmission_retrieval` (TBD)
   - `Emission retrieval <wasp18b/notebook_emission_retrieval.ipynb>`_
+  - :doc:`cross_sections_uhj/cross_sections_uhj`
   - :ref:`radiative_equilibrium_simulation` (TBD)
   - :ref:`JWST_proposal_simulation` (TBD)
 
@@ -60,10 +61,12 @@ Recipes list:
    line_list_exomol
    line_list_repack
    opacity_line_sample
-   passbands
    opacity_alkali
    opacity_cia
    opacity_rayleigh
+   opacity_h_ion
+   passbands
    wasp18b/notebook_emission_retrieval
+   cross_sections_uhj/cross_sections_uhj
    compendia
 

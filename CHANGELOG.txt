@@ -9622,3 +9622,11 @@ Renamed spitzer_irac?_sa.dat filters to spitzer_irac?.dat
 Updated tests on partition functions/isotopes according to latest
 changes.
 
+
+*****  Mo 25 Nov 2024 14:54:48 CET  *****
+
+Refactored PassBand() and Tophat() classes adding self.height
+and having self.response normalized to max(response)=1.
+Added passband docs to the cookbooks.
+Added kepler.dat passbands.
+
