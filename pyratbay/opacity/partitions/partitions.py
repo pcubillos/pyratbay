@@ -195,8 +195,9 @@ def exomol(pf_files, outfile=None):
     >>> # wget http://www.exomol.com/db/NH3/15N-1H3/BYTe-15/15N-1H3__BYTe-15.pf
     >>> import pyratbay.opacity.partitions as pf
     >>> # A single file:
-    >>> pf_data, isotopes, temp = pf.exomol('14N-1H3__BYTe.pf',
-    >>>     outfile='default')
+    >>> pf_data, isotopes, temp = pf.exomol(
+    >>>     '14N-1H3__BYTe.pf', outfile='default',
+    >>> )
     Written partition-function file:
       'PF_exomol_NH3.dat'
     for molecule NH3, with isotopes ['4111'],
@@ -204,11 +205,12 @@ def exomol(pf_files, outfile=None):
 
     >>> # Multiple files (isotopes) for a molecule:
     >>> pf_data, isotopes, temp = pf.exomol(
-    >>>     ['14N-1H3__BYTe.pf', '15N-1H3__BYTe-15.pf'], outfile='default')
+    >>>     ['14N-1H3__BYTe.pf', '15N-1H3__BYTe-15.pf'], outfile='default',
+    >>> )
 
     ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
       Warning:
-        Length of PF files do not match.  Trimming to shorter size.
+        Length of PF files do not match.  Trimming to shorter size
     ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
     Written partition-function file:
@@ -249,12 +251,11 @@ def exomol(pf_files, outfile=None):
     if minlen != maxlen:
         for temp in temps:
             if np.any(temp[0:minlen] - temps[0][0:minlen] != 0):
-                raise ValueError(
-                    'Temperature sampling in PF files are not compatible.')
+                error = 'Temperature sampling in PF files are not compatible'
+                raise ValueError(error)
+        warning = 'Length of PF files do not match.  Trimming to shorter size.'
         with mu.Log() as log:
-            log.warning('Length of PF files do not match.  Trimming to '
-                        'shorter size.')
-
+            log.warning(warning)
     pf = np.zeros((niso, ntemp), np.double)
     for i,z in enumerate(data):
         pf[i] = z[0:minlen]
@@ -265,12 +266,16 @@ def exomol(pf_files, outfile=None):
         outfile = f'PF_exomol_{molecule}.dat'
 
     if outfile is not None:
-        header = (f'# This file incorporates the tabulated {molecule} '
-                  'partition-function data\n# from Exomol\n\n')
+        header = (
+            f'# This file incorporates the tabulated {molecule} '
+            'partition-function data\n# from Exomol\n\n'
+        )
         io.write_pf(outfile, pf, isotopes, temp, header)
-        print("\nWritten partition-function file:\n  '{:s}'\nfor molecule "
-              "{:s}, with isotopes {},\nand temperature range {:.0f}--{:.0f} "
-              "K.".format(outfile, molecule, isotopes, temp[0], temp[-1]))
+        print(
+            f"\nWritten partition-function file:\n  '{outfile}'\n"
+            f"for molecule {molecule}, with isotopes {isotopes},\n"
+            f"and temperature range {temp[0]:.0f}--{temp[-1]:.0f} K."
+        )
     return pf, isotopes, temp
 
 
