@@ -249,7 +249,7 @@ class Pyrat():
             self.phy.tstar = params[ret.itstar][0]
             self.spec.starflux = self.spec.flux_interp(self.phy.tstar)
             self.obs.bandflux_star = np.array([
-                band(pyrat.spec.starflux)
+                band(self.spec.starflux)
                 for band in self.obs.filters
             ])
 
@@ -523,7 +523,7 @@ class Pyrat():
         )
 
         # Update last tempertature iteration and save to file:
-        pyrat.atm.radeq_temps = radeq_temps
+        self.atm.radeq_temps = radeq_temps
         atm.temp = radeq_temps[-1]
         io.write_atm(
             f'{basename}.atm',

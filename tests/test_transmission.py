@@ -263,14 +263,6 @@ def test_transmission_interpolate_press_etable(tmp_path):
 
     nlayers = 7
     expected_press = np.logspace(-5, 1, nlayers)
-    assert pyrat.opacity.models[0].nlayers == 7
-    np.testing.assert_allclose(
-        pyrat.opacity.models[0].press,
-        expected_press,
-        rtol=rtol,
-    )
-
-    # TBD: make a config that resets the pressure
     assert pyrat.opacity.models[0].nlayers == nlayers
     np.testing.assert_allclose(
         pyrat.opacity.models[0].press,

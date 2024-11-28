@@ -6,9 +6,6 @@ import pytest
 
 import numpy as np
 
-from conftest import make_config
-
-import pyratbay as pb
 import pyratbay.io as io
 import pyratbay.atmosphere as pa
 import pyratbay.constants as pc
@@ -184,7 +181,7 @@ def test_read_write_opacity_opacity(tmpdir):
 
 @pytest.mark.skip(reason='TBD')
 def test_read_opacity_petitRADRANS(tmpdir):
-    ofile = f"{tmpdir}/test_R1e6_0.3-28mu.xsec.petitRADTRANS.h5"
+    #ofile = f"{tmpdir}/test_R1e6_0.3-28mu.xsec.petitRADTRANS.h5"
     # TBD: mock a prt3 file
     #mol = np.array([105])
     #temp  = np.linspace(300, 3000, 28)
@@ -197,9 +194,9 @@ def test_read_opacity_petitRADRANS(tmpdir):
     #etable = np.linspace(0.0, 1.0, nmol*ntemp*nlayers*nwave)
     #etable = etable.reshape((nmol, ntemp, nlayers, nwave))
     #io.write_opacity(ofile, molID, temp, press, wn, etable)
-
-    edata = io.read_opacity(ofile, extract='opacity')
-    np.testing.assert_allclose(etable, edata)
+    #edata = io.read_opacity(ofile, extract='opacity')
+    #np.testing.assert_allclose(etable, edata)
+    pass
 
 
 def test_read_write_atm_pt(tmpdir):
