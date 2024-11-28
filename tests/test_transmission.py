@@ -254,8 +254,22 @@ def test_transmission_interpolate_temp_etable(tmp_path):
     )
 
 
-@pytest.mark.skip(reason="TBD")
-def test_transmission_interpolate_temp_etable(tmp_path):
+def test_transmission_interpolate_press_etable(tmp_path):
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_interp_press.cfg',
+    )
+    pyrat = pb.run(cfg)
+
+    nlayers = 7
+    expected_press = np.logspace(-5, 1, nlayers)
+    assert pyrat.opacity.models[0].nlayers == 7
+    np.testing.assert_allclose(
+        pyrat.opacity.models[0].press,
+        expected_press,
+        rtol=rtol,
+    )
+
     # TBD: make a config that resets the pressure
     assert pyrat.opacity.models[0].nlayers == nlayers
     np.testing.assert_allclose(
@@ -317,7 +331,7 @@ def test_transmission_tmodel_no_tpars(tmp_path):
     )
     error = re.escape('Not all temperature parameters were defined (tpars)')
     with pytest.raises(ValueError, match=error):
-        pyrat = pb.run(cfg)
+        pb.run(cfg)
 
 
 def test_transmission_vert_model(tmp_path):
@@ -344,7 +358,7 @@ def test_transmission_vert_model_no_molpars(tmp_path):
     )
     error = re.escape('Not all vmr parameter values were defined (vmr_vars)')
     with pytest.raises(ValueError, match=error):
-        pyrat = pb.run(cfg)
+        pb.run(cfg)
 
 
 def test_transmission_scale_model(tmp_path):
@@ -398,7 +412,7 @@ def test_transmission_fit(tmp_path):
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['fit1'], rtol=rtol)
     # Cloud deck:
     params = [-4.67, -0.8, -0.8, 0.5, 1486.0, 100.0, -4.0, 0.0, -4.0, -3.0]
-    model2 = pyrat.eval(params, retmodel=True)
+    pyrat.eval(params, retmodel=True)
     rmin = np.amin(np.sqrt(pyrat.spec.spectrum)) * pyrat.phy.rstar
     cloud_deck = pyrat.opacity.models[5]
     rexpected = cloud_deck.rsurf
@@ -408,7 +422,7 @@ def test_transmission_fit(tmp_path):
     np.testing.assert_allclose(pyrat.ret.params, params, rtol=rtol)
     # Depleted H2O:
     params = [-4.67, -0.8, -0.8, 0.5, 1486.0, 100.0, -8.0, 0.0, -4.0, 2.0]
-    model3 = pyrat.eval(params, retmodel=True)
+    pyrat.eval(params, retmodel=True)
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['fit3'], rtol=rtol)
 
 
