@@ -20,7 +20,7 @@ Recipes list:
 
 - **Line-by-line opacity sampling**
 
-  - `HITRAN/HITEMP line-list tutorial <line_list_hitran.ipynb>`_
+  - :doc:`line_sampling/line_list_hitran`
   - `ExoMol line-list tutorial <line_list_exomol.ipynb>`_
   - `repack line-list tutorial <line_list_repack.ipynb>`_
 
@@ -57,7 +57,7 @@ Recipes list:
 
    temperature_profiles
    vmr_free_profiles
-   line_list_hitran
+   line_sampling/line_list_hitran
    line_list_exomol
    line_list_repack
    opacity_line_sample

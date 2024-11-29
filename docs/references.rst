@@ -87,6 +87,8 @@ References
 
 .. [Gamache2017] `Gamache et al. (2017): Total internal partition sums for 166 isotopologues of 51 molecules important in planetary atmospheres: Application to HITRAN2016 and beyond <https://ui.adsabs.harvard.edu/abs/2017JQSRT.203...70G>`_
 
+.. [Gamache2021] `Gamache et al. (2021): Total internal partition sums for the HITRAN2020 database <https://ui.adsabs.harvard.edu/abs/2021JQSRT.27107713G>`_
+
 .. [Gordon2017] `Gordon et al. (2017): The HITRAN2016 molecular spectroscopic database <https://ui.adsabs.harvard.edu/abs/2017JQSRT.203....3G>`_
 
 .. [Rothman2013] `Rothman et al. (2013): The HITRAN2012 molecular spectroscopic database <http://ui.adsabs.harvard.edu/abs/2013JQSRT.130....4R>`_

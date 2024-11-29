@@ -27,7 +27,7 @@ class Linelist():
       isotopes: List of strings
           The names of the tabulated isotopes
       """
-      # Calculate the partition-function from the CTIPS module:
+      # Calculate the partition-function from the TIPS module:
       if self.pffile == 'tips':
           pf_data, isotopes, temp = pf.tips(self.molecule)
           return temp, pf_data, isotopes
@@ -55,7 +55,7 @@ class Linelist():
 
           return temp, pf_data, self.isotopes
 
-      # Extract the partition-function from the tabulated file:
+      # Extract the partition-function from a tabulated file
       else:
           # TBD: Catch file not found error with self.log
           pf_data, iso, temp = io.read_pf(self.pffile)
