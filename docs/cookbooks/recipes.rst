@@ -21,8 +21,8 @@ Recipes list:
 - **Line-by-line opacity sampling**
 
   - :doc:`line_sampling/line_list_hitran`
-  - `ExoMol line-list tutorial <line_list_exomol.ipynb>`_
-  - `repack line-list tutorial <line_list_repack.ipynb>`_
+  - :doc:`line_sampling/line_list_exomol`
+  - :doc:`line_sampling/line_list_repack`
 
 - **Opacity models**
 
@@ -58,8 +58,8 @@ Recipes list:
    temperature_profiles
    vmr_free_profiles
    line_sampling/line_list_hitran
-   line_list_exomol
-   line_list_repack
+   line_sampling/line_list_exomol
+   line_sampling/line_list_repack
    opacity_line_sample
    opacity_alkali
    opacity_cia

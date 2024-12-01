@@ -47,6 +47,8 @@ References
 
 .. [Harris2008] `Harris et al. (2008): A HCN/HNC linelist, model atmospheres and synthetic spectra for carbon stars <https://ui.adsabs.harvard.edu/abs/2008MNRAS.390..143H>`_
 
+.. [Huang2023] `Huang et al. (2023): AI-3000K Infrared Line List for Hot CO2 <https://ui.adsabs.harvard.edu/abs/2023JMoSp.39211748H>`_
+
 .. [Iro2005] `Iro et al. (2005): A time-dependent radiative model of HD 209458b <https://ui.adsabs.harvard.edu/abs/2005A&A...436..719I>`_
 
 .. [Jorgensen2000] `Jorgensen et al. (2000): The atmospheres of cool, helium-rich white dwarfs <https://ui.adsabs.harvard.edu/abs/2000A%26A...361..283J/abstract>`_
@@ -94,8 +96,6 @@ References
 .. [Rothman2013] `Rothman et al. (2013): The HITRAN2012 molecular spectroscopic database <http://ui.adsabs.harvard.edu/abs/2013JQSRT.130....4R>`_
 
 .. [Schwenke1998] `Schwenke (19988): Opacity of TiO from a coupled electronic state calculation parametrized by AB initio and experimental data <http://ui.adsabs.harvard.edu/abs/1998FaDi..109..321S>`_
-
-.. [Speagle2019] `Speagle (2019): dynesty: A Dynamic Nested Sampling Package for Estimating Bayesian Posteriors and Evidences <https://ui.adsabs.harvard.edu/abs/2019arXiv190402180S>`_
 
 .. [Taylor2020] `Taylor et al. (2020): Understanding and mitigating biases when studying inhomogeneous emission spectra with JWST <https://ui.adsabs.harvard.edu/abs/2020MNRAS.493.4342T>`_
 
