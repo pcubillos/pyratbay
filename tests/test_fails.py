@@ -144,11 +144,16 @@ def test_invalid_float_type(tmp_path, param, value):
         pyrat = pb.run(cfg)
 
 
-@pytest.mark.parametrize('param',
-    ['wnlow', 'wnhigh', 'wnstep', 'resolution', 'xsolar', 'tmin', 'tmax',
-     'tstep', 'ethresh', 'vextent', 'dmin', 'dmax', 'lmin', 'lmax', 'dlratio',
-     'fpatchy', 'maxdepth', 'qcap', 'tlow', 'thigh', 'grbreak', 'grnmin',
-     'log_gstar', 'tstar', 'gplanet', 'tint'])
+@pytest.mark.parametrize(
+    'param',
+    [
+        'wnlow', 'wnhigh', 'wnstep', 'resolution',
+        'xsolar', 'tmin', 'tmax', 'tstep',
+        'ethresh', 'voigt_extent', 'dmin', 'dmax', 'lmin', 'lmax', 'dlratio',
+        'fpatchy', 'maxdepth', 'qcap', 'tlow', 'thigh', 'grbreak', 'grnmin',
+        'log_gstar', 'tstar', 'gplanet', 'tint',
+    ]
+)
 def test_invalid_float_all_params(tmp_path, param):
     cfg = make_config(
         tmp_path,
@@ -298,7 +303,7 @@ def test_greater_than(tmp_path, param, value):
 
 @pytest.mark.parametrize('param',
     ['wnosamp', 'ndop', 'nlor', 'thinning', 'nchains', 'ncpu', 'tint',
-     'quadrature', 'grbreak', 'fpatchy', 'maxdepth', 'vextent'])
+     'quadrature', 'grbreak', 'fpatchy', 'maxdepth', 'voigt_extent'])
 def test_greater_equal(tmp_path, param):
     cfg = make_config(
         tmp_path,

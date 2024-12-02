@@ -464,8 +464,10 @@ def parse(cfile, with_log=True, mute=False):
         parse_float(args, 'tstep')
         parse_float(args, 'ethresh')
         # Voigt-profile options:
-        parse_float(args, 'vextent')
-        parse_float(args, 'vcutoff')
+        parse_float(args, 'vextent')   # Deprecated
+        parse_float(args, 'vcutoff')   # Deprecated
+        parse_float(args, 'voigt_extent')
+        parse_float(args, 'voigt_cutoff')
         parse_float(args, 'dmin')
         parse_float(args, 'dmax')
         parse_int(args, 'ndop')
@@ -790,10 +792,25 @@ def parse(cfile, with_log=True, mute=False):
         if args.log_gstar is None:
             args.log_gstar = np.log10(gstar)
 
+    # New Voigt parameters
     args.voigt_extent = args.get_default(
-        'vextent', 'Voigt profile extent in HWHM', 300.0, ge=1.0)
+        'voigt_extent', 'Voigt profile extent in HWHM', 300.0, ge=1.0)
     args.voigt_cutoff = args.get_default(
-        'vcutoff', 'Voigt profile cutoff in cm-1', 25.0, ge=0.0)
+        'voigt_cutoff', 'Voigt profile cutoff in cm-1', 25.0, ge=0.0)
+    # Deprecated
+    voigt_extent = args.get_default('vextent', 'Voigt HWHM', ge=1.0)
+    voigt_cutoff = args.get_default('vcutoff', 'Voigt cutoff', ge=0.0)
+    if voigt_extent is not None:
+        warning = "'vextent' argument is deprecated, use 'voigt_extent' instead"
+        warnings.warn(warning, category=DeprecationWarning)
+        if args.voigt_extent is None:
+            args.voigt_extent = voigt_extent
+    if voigt_cutoff is not None:
+        warning = "'vcutoff' argument is deprecated, use 'voigt_cutoff' instead"
+        warnings.warn(warning, category=DeprecationWarning)
+        if args.voigt_cutoff is None:
+            args.voigt_cutoff = voigt_cutoff
+
     args.voigt_ndop = args.get_default(
         'ndop', 'Number of Doppler-width samples', 50, ge=1)
     args.voigt_dmin = args.get_default(
