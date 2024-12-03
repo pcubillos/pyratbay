@@ -82,13 +82,23 @@ def main():
     if args.pf is not None:
         outfile = 'default'
         if args.pf[0] == 'exomol':
-            pb.opacity.partitions.exomol(args.pf[1:], outfile=outfile)
+            pb.opacity.partitions.exomol_pf(args.pf[1:], outfile=outfile)
+        if args.pf[0] == 'states':
+            tmin = float(args.pf[1])
+            tmax = float(args.pf[2])
+            tstep = float(args.pf[3])
+            state_files = args.pf[4:]
+            pb.opacity.partitions.exomol_states(
+                state_files, tmin, tmax, tstep, outfile=outfile,
+            )
         elif args.pf[0] == 'kurucz':
             pb.opacity.partitions.kurucz(args.pf[1], outfile=outfile)
         elif args.pf[0] == 'tips':
+            molecule = args.pf[1]
             dbtype = args.pf[2] if len(args.pf) > 2 else 'as_tips'
             pb.opacity.partitions.tips(
-                args.pf[1], outfile=outfile, db_type=dbtype)
+                molecule, outfile=outfile, db_type=dbtype,
+            )
         else:
             print('Invalid partition-function type.')
 
