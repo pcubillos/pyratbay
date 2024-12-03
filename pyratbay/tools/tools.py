@@ -844,13 +844,13 @@ class Timer(object):
         return delta
 
 
-def get_exomol_composition(dbfile):
+def get_exomol_composition(file):
     """
     Parse an exomol file to extract the molecule and isotope name.
 
     Parameters
     ----------
-    dbfile: String
+    file: String
         An exomol line-list file (must follow ExoMol naming convention).
 
     Returns
@@ -880,7 +880,7 @@ def get_exomol_composition(dbfile):
     ('CH4', '21111')
     ('CH4', '21112')
     """
-    atoms = os.path.split(dbfile)[1].split('_')[0].split('-')
+    atoms = os.path.split(file)[1].split('_')[0].split('-')
     elements = []
     atomic_numbers = []
     for atom in atoms:
@@ -892,13 +892,13 @@ def get_exomol_composition(dbfile):
     return elements, atomic_numbers
 
 
-def get_exomol_mol(dbfile):
+def get_exomol_mol(file):
     """
     Parse an exomol file to extract the molecule and isotope name.
 
     Parameters
     ----------
-    dbfile: String
+    file: String
         An exomol line-list file (must follow ExoMol naming convention).
 
     Returns
@@ -928,7 +928,7 @@ def get_exomol_mol(dbfile):
     ('CH4', '21111')
     ('CH4', '21112')
     """
-    atoms = os.path.split(dbfile)[1].split('_')[0].split('-')
+    atoms = os.path.split(file)[1].split('_')[0].split('-')
     elements = []
     isotope  = ''
     for atom in atoms:
@@ -940,7 +940,8 @@ def get_exomol_mol(dbfile):
     composition = [list(g[1]) for g in itertools.groupby(elements)]
     molecule = ''.join([
         c[0] + str(len(c))*(len(c)>1)
-        for c in composition])
+        for c in composition
+    ])
 
     return molecule, isotope
 

@@ -51,10 +51,14 @@ def test_pf_tips():
     assert list(iso) == list(expected_pf.keys())
 
 
-@pytest.mark.parametrize('outfile',
-     ['default',
-      './PF_tips_HCN.dat',
-     f'{pc.ROOT}/tests/outputs/PF_tips_HCN.dat'])
+@pytest.mark.parametrize(
+    'outfile',
+    [
+        'default',
+        './PF_tips_HCN.dat',
+        f'{pc.ROOT}/tests/outputs/PF_tips_HCN.dat',
+    ],
+)
 def test_pf_tips_outfile(outfile):
     with pt.cd('outputs/'):
         pf_data, isotopes, temp = pf.tips('HCN', outfile=outfile)
@@ -65,11 +69,11 @@ def test_pf_tips_outfile(outfile):
 def test_pf_exomol_single():
     epf = f'{pc.ROOT}tests/outputs/14N-1H4__MockBYTe.pf'
     expected_temp = np.arange(1,6)
-    expected_pf   = np.logspace(0,1,5)
+    expected_pf = np.logspace(0,1,5)
     mock_pf(epf, expected_temp, expected_pf)
 
     with pt.cd('outputs/'):
-        pf_data, isotopes, temp = pf.exomol(epf, outfile='default')
+        pf_data, isotopes, temp = pf.exomol_pf(epf, outfile='default')
     np.testing.assert_allclose(pf_data[0,:], expected_pf)
     np.testing.assert_allclose(temp, expected_temp)
     assert list(isotopes) == ['41111']
@@ -80,14 +84,68 @@ def test_pf_exomol_single():
     assert list(iso) == ['41111']
 
 
-def test_pf_exomol_listed_single():
+def test_check_exomol_files_pf():
+    files = [
+        '1H-12C-14N__Harris.pf',
+        '1H-13C-14N__Larner.pf',
+    ]
+    file_type, molecule, isotopes = pf.check_exomol_files(files)
+    assert file_type == 'pf'
+    assert molecule == 'HCN'
+    assert isotopes == ['124', '134']
+
+
+def test_check_exomol_files_states():
+    files = [
+        '1H-12C-14N__Harris.states',
+        '1H-13C-14N__Larner.states',
+    ]
+    file_type, molecule, isotopes = pf.check_exomol_files(files)
+    assert file_type == 'states'
+    assert molecule == 'HCN'
+    assert isotopes == ['124', '134']
+
+
+def test_check_exomol_files_bz2_states():
+    files = [
+        '1H-12C-14N__Harris.states.bz2',
+        '1H-13C-14N__Larner.states.bz2',
+    ]
+    file_type, molecule, isotopes = pf.check_exomol_files(files)
+    assert file_type == 'states'
+    assert molecule == 'HCN'
+    assert isotopes == ['124', '134']
+
+
+def test_check_exomol_files_mix():
+    files = [
+        '1H-12C-14N__Harris.pf',
+        '1H-13C-14N__Larner.states',
+    ]
+    file_type, molecule, isotopes = pf.check_exomol_files(files)
+    assert file_type == ''
+    assert molecule == 'HCN'
+    assert isotopes == ['124', '134']
+
+
+def test_check_exomol_files_molecule_mismatch():
+    files = [
+        '1H-12C-14N__Harris.pf',
+        '1H2-16O__POKAZATEL.pf',
+    ]
+    match = 'All files must correspond to the same molecule'
+    with pytest.raises(ValueError, match=match):
+        pf.check_exomol_files(files)
+
+
+def test_pf_exomol_pf_listed_single():
     epf = f'{pc.ROOT}tests/outputs/14N-1H4__MockBYTe.pf'
     expected_temp = np.arange(1,6)
-    expected_pf   = np.logspace(0,1,5)
+    expected_pf = np.logspace(0,1,5)
     mock_pf(epf, expected_temp, expected_pf)
 
     with pt.cd('outputs/'):
-        pf_data, isotopes, temp = pf.exomol([epf], outfile='default')
+        pf_data, isotopes, temp = pf.exomol_pf([epf], outfile='default')
     np.testing.assert_allclose(pf_data[0,:], expected_pf)
     np.testing.assert_allclose(temp, expected_temp)
     assert list(isotopes) == ['41111']
@@ -98,18 +156,18 @@ def test_pf_exomol_listed_single():
     assert list(iso) == ['41111']
 
 
-def test_pf_exomol_two():
+def test_pf_exomol_pf_two():
     epf1 = f'{pc.ROOT}tests/outputs/14N-1H4__MockBYTe.pf'
     epf2 = f'{pc.ROOT}tests/outputs/15N-1H4__MockBYTe.pf'
     expected_temp1 = np.arange(1,6)
     expected_temp2 = np.arange(1,9)
-    expected_pf1   = np.logspace(0,1,5)
-    expected_pf2   = np.logspace(0,1,8)
+    expected_pf1 = np.logspace(0,1,5)
+    expected_pf2 = np.logspace(0,1,8)
     mock_pf(epf1, expected_temp1, expected_pf1)
     mock_pf(epf2, expected_temp2, expected_pf2)
 
     with pt.cd('outputs/'):
-        pf_data, isotopes, temp = pf.exomol([epf1, epf2], outfile='default')
+        pf_data, isotopes, temp = pf.exomol_pf([epf1, epf2], outfile='default')
     np.testing.assert_allclose(pf_data[0,:], expected_pf1,     rtol=1e-5)
     np.testing.assert_allclose(pf_data[1,:], expected_pf2[:5], rtol=1e-5)
     np.testing.assert_allclose(temp, expected_temp1)
@@ -120,6 +178,24 @@ def test_pf_exomol_two():
     np.testing.assert_allclose(pf_read[1,:], expected_pf2[:5], rtol=1e-5)
     np.testing.assert_allclose(temp_read, expected_temp1)
     assert list(iso) == ['41111', '51111']
+
+
+def test_pf_exomol_states():
+    exomol_states = [
+        'inputs/1H-12C-14N__MockHarris.states',
+    ]
+    partition, isotopes, temps = pf.exomol_states(
+        exomol_states, tmin=100.0, tmax=1500.0, tstep=100.0,
+    )
+    expected_temps = np.arange(100, 1501, 100)
+    expected_pf = np.array([
+        6.00000001, 6.00023532, 6.00716014, 6.040937  , 6.12038858,
+        6.25410663, 6.44371221, 6.687976  , 6.9850604 , 7.33345747,
+        7.7322969 , 8.18138464, 8.68113366, 9.23245386, 9.83662866,
+    ])
+    np.testing.assert_allclose(partition[0], expected_pf, rtol=1e-5)
+    np.testing.assert_allclose(temps, expected_temps)
+    assert isotopes == ['124']
 
 
 def test_pf_kurucz_H2O():
