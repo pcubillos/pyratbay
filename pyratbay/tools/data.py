@@ -159,7 +159,7 @@ class Data():
         self.offset_texnames = []
         for var in self.offset_models:
             inst = var.replace('offset_', '').replace('_',' ')
-            texname = r'$\Delta$ {inst}'
+            texname = fr'$\Delta$ {inst}'
             indices = np.array([inst in name for name in band_names])
             if np.sum(indices) == 0:
                 raise ValueError(

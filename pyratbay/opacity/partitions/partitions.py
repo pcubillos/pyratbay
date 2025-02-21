@@ -90,7 +90,7 @@ def tips(molecule, isotopes=None, outfile=None, db_type='as_tips'):
     Written partition-function file:
       'PF_tips_H2O.dat'
     for molecule H2O, with isotopes ['161', '181', '171', '162', '182', '172', '262', '282', '272'],
-    and temperature range 1--5000 K.
+    and temperature range 1--6000 K.
     """
     with open(pc.ROOT+'pyratbay/data/tips_2021.pkl', 'rb') as p:
         data = pickle.load(p)
