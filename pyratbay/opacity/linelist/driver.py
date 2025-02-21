@@ -169,7 +169,7 @@ class Linelist():
 
       if dbtype == 'hitran':
           isotopes = hit_iso
-      elif dbtype in ['exomol', 'kurucz']:
+      elif dbtype in ['exomol', 'kurucz', 'ames']:
           isotopes = exo_iso
       else:
           self.log.error(f'Invalid database type: {dbtype}')
