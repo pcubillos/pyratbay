@@ -375,8 +375,7 @@ def test_read_kurucz_sun():
 def test_read_kurucz_all():
     # This is a mocked Kurucz file with fewer models but same format:
     kfile = 'inputs/mock_fp00k0odfnew.pck'
-    fluxes, wn, ktemp, klogg, continua = ps.read_kurucz(kfile)
-    assert np.shape(fluxes) == np.shape(continua) == (11, 1221)
+    fluxes, wn, ktemp, klogg = ps.read_kurucz(kfile)
     assert len(wn) == 1221
     assert len(ktemp) == 11
     assert len(klogg) == 11
@@ -396,9 +395,6 @@ def test_read_kurucz_all():
 
     s = np.trapezoid(fluxes[6], wn) * (pc.rsun/pc.au)**2
     np.testing.assert_allclose(s, 1339957.11)
-
-    c = np.trapezoid(continua[6], wn) * (pc.rsun/pc.au)**2
-    np.testing.assert_allclose(c, 1618263.50)
 
 
 def test_tophat_dlambda():

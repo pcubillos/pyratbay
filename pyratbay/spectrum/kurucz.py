@@ -41,9 +41,6 @@ def read_kurucz(filename, temp=None, logg=None):
         Surface temperature of the output models (in Kelvin degrees).
     klogg: Scalar or 1D float ndarray
         log10 of the stellar surface gravity of the output models (in cm s-2).
-    continuum: 2D ndarray
-        The models' fluxes with no line absorption.  Same units and
-        shape of flux. Returned only if temp and logg are None.
 
     Examples
     --------
@@ -118,9 +115,8 @@ def read_kurucz(filename, temp=None, logg=None):
     # Convert intensity per unit frequency to surface flux per unit
     # wavenumber (erg s-1 cm-2 cm):
     flux = np.flip(intensity, axis=1) * 4.0*np.pi * pc.c
-    continuum = np.flip(continuum, axis=1) * 4.0*np.pi * pc.c
 
     if temp is not None and logg is not None:
         return flux[0], wavenumber, tmodel, gmodel
 
-    return flux, wavenumber, ktemp, klogg, continuum
+    return flux, wavenumber, ktemp, klogg
