@@ -138,7 +138,7 @@ class Hitran(Linelist):
       wnumber = np.zeros(nread, np.double)
       gf      = np.zeros(nread, np.double)
       elow    = np.zeros(nread, np.double)
-      isoID   = np.zeros(nread,       int)
+      isoID = np.zeros(nread, int)
       A21     = np.zeros(nread, np.double)
       g2      = np.zeros(nread, np.double)
 
@@ -152,12 +152,27 @@ class Hitran(Linelist):
       if interval == 0:
           interval = 1
 
+      iso_map = {
+          '1': 0,
+          '2': 1,
+          '3': 2,
+          '4': 3,
+          '5': 4,
+          '6': 5,
+          '7': 6,
+          '8': 7,
+          '9': 8,
+          '0': 9,
+          'A': 10,
+          'B': 11,
+      }
+
       i = 0
       while i < nread:
           # Read a record:
           data.seek((istart+i) * self.recsize)
           line = data.read(self.recsize)
-          isoID  [i] = float(line[self.rec_iso:self.rec_wn])
+          isoID[i] = iso_map[line[self.rec_iso:self.rec_wn]]
           wnumber[i] = float(line[self.rec_wn:self.rec_strength])
           elow   [i] = float(line[self.rec_elow:self.rec_elow_end])
           A21    [i] = float(line[self.rec_A21:self.rec_air])
@@ -171,15 +186,11 @@ class Hitran(Linelist):
                   f'Wavenumber: {wnumber[i]:8.2f} cm-1   '
                   f'Wavelength: {1.0/(wnumber[i]*pc.um):6.3f} um\n'
                   f'Elow:     {elow[i]:.4e} cm-1   '
-                  f'gf: {gfval:.4e}   Iso ID: {(isoID[i]-1)%10:2d}',
+                  f'gf: {gfval:.4e}   Iso ID: {isoID[i]:2d}',
                   indent=6,
               )
           i += 1
       data.close()
-
-      # Set isotopic index to start counting from 0:
-      isoID -= 1
-      isoID[np.where(isoID < 0)] = 9 # 10th isotope has index 0 --> 10-1=9
 
       # Equation (36) of Simeckova (2006):
       gf = g2*A21*pc.C1 / (8.0*np.pi*pc.c) / wnumber**2.0
