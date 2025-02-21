@@ -99,7 +99,7 @@ def tips(molecule, isotopes=None, outfile=None, db_type='as_tips'):
 
     if isotopes is None:
         isotopes = list(data[molecule])
-    isotopes = [isotopes] if np.isscalar(isotopes) else isotopes
+    isotopes = [isotopes] if isinstance(isotopes, str) else isotopes
 
     for iso in isotopes:
         if iso not in data[molecule]:
@@ -111,7 +111,7 @@ def tips(molecule, isotopes=None, outfile=None, db_type='as_tips'):
     tips_temp = data['temp']
     ntemps = [
         len(data[molecule][iso])
-        for iso in data[molecule]
+        for iso in isotopes
     ]
     ntemp_max = np.amax(ntemps)
     temp = tips_temp[0:ntemp_max]
