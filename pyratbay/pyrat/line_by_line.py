@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2024 Patricio Cubillos
+# Copyright (c) 2021-2025 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import ctypes
@@ -130,7 +130,6 @@ class Line_By_Line():
         self.tmax = np.amin([np.amax(db.temp) for db in self.db])
 
         # Sizes:
-        self.ntransitions = len(self.wn)
         self.ndb = len(self.db)
 
         # Sort out isotopic info:
@@ -159,7 +158,23 @@ class Line_By_Line():
                 self.iso_pf_interp.append(pf_interp)
             total_niso += db.niso
 
+        # Single out an isotope if requested:
+        if inputs.single_isotope is not None:
+            iso = inputs.single_isotope
+            log.msg(f'Extract data only for the isotope {repr(iso)}', indent=2)
+            if iso not in self.iso_name:
+                msg = f'Single-isotope {repr(iso)} not found in TLI file'
+                raise ValueError(msg)
+            single_iso_index = list(self.iso_name).index(iso)
+            iso_mask = self.isoid == single_iso_index
+            self.wn = self.wn[iso_mask]
+            self.gf = self.gf[iso_mask]
+            self.elow = self.elow[iso_mask]
+            self.isoid = self.isoid[iso_mask]
+            self.iso_ratio[:] = 0.0
+            self.iso_ratio[single_iso_index] = 1.0
 
+        self.ntransitions = len(self.wn)
         self.species = np.unique(self.species)
         self.nspec = len(self.species)
         self.mol_index = [

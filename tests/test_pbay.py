@@ -389,6 +389,20 @@ def test_opacity_pbay(capfd):
     assert "exttable_test_300-3000K_1.1-1.7um.npz" in os.listdir('outputs/')
 
 
+def test_opacity_single_iso(capfd):
+    pyrat = pb.run(ROOT+'tests/configs/opacity_test_single_iso.cfg')
+    captured = capfd.readouterr()
+    assert "Extract data only for the isotope '181'" in captured.out
+    assert "Read a total of 733 line transitions" in captured.out
+
+
+def test_opacity_not_found_single_iso(capfd):
+    cfg = ROOT+'tests/configs/opacity_test_single_iso_fail.cfg'
+    error = re.escape("Single-isotope '26' not found in TLI file")
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
+
+
 @pytest.mark.skip
 def test_mcmc():
     pyrat = pb.run(ROOT+'tests/configs/mcmc_transmission_test.cfg')

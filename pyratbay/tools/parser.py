@@ -463,6 +463,7 @@ def parse(cfile, with_log=True, mute=False):
         parse_float(args, 'tmax')
         parse_float(args, 'tstep')
         parse_float(args, 'ethresh')
+        parse_str(args, 'single_isotope')
         # Voigt-profile options:
         parse_float(args, 'vextent')   # Deprecated
         parse_float(args, 'vcutoff')   # Deprecated
