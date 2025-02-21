@@ -136,6 +136,7 @@ rmodels = [
    'dalgarno_H',
    'dalgarno_H2',
    'dalgarno_He',
+   'dalgarno_e-',
    'lecavelier',
 ]
 

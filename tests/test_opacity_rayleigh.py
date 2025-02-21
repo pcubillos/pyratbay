@@ -54,6 +54,18 @@ expected_H_ec = np.array([
         7.30730724e-08],
 ])
 
+expected_e_ec = np.array([
+       [1.19754e-09, 1.19754e-09, 1.19754e-09, 1.19754e-09, 1.19754e-09,
+        1.19754e-09, 1.19754e-09, 1.19754e-09, 1.19754e-09, 1.19754e-09,
+        1.19754e-09, 1.19754e-09, 1.19754e-09, 1.19754e-09, 1.19754e-09,
+        1.19754e-09, 1.19754e-09],
+       [7.31830e-06, 7.31830e-06, 7.31830e-06, 7.31830e-06, 7.31830e-06,
+        7.31830e-06, 7.31830e-06, 7.31830e-06, 7.31830e-06, 7.31830e-06,
+        7.31830e-06, 7.31830e-06, 7.31830e-06, 7.31830e-06, 7.31830e-06,
+        7.31830e-06, 7.31830e-06]]
+)
+
+
 expected_He_cs = np.array([
        8.77611285e-33, 1.95859554e-32, 4.37127359e-32, 9.75668058e-32,
        2.17792182e-31, 4.86240727e-31, 1.08583333e-30, 2.42565173e-30,
@@ -122,7 +134,7 @@ expected_lec_ec_update_ec = np.array([
         1.59768926e-07],
 ])
 
-@pytest.mark.parametrize('species', ['H2', 'H', 'He'])
+@pytest.mark.parametrize('species', ['H2', 'H', 'He', 'e-'])
 def test_dalgarno_init(species):
     rayleigh = op.rayleigh.Dalgarno(wn=wn, species=species)
 
@@ -160,6 +172,15 @@ def test_dalgarno_He():
     density = np.array([1.8e+14, 1.1e+18])
     ec = He_rayleigh.calc_extinction_coefficient(density)
     np.testing.assert_allclose(ec, expected_He_ec)
+
+
+def test_dalgarno_e():
+    rayleigh = op.rayleigh.Dalgarno(wn=wn, species='e-')
+    np.testing.assert_allclose(rayleigh.cross_section, 6.653e-24)
+
+    density = np.array([1.8e+14, 1.1e+18])
+    ec = rayleigh.calc_extinction_coefficient(density)
+    np.testing.assert_allclose(ec, expected_e_ec)
 
 
 

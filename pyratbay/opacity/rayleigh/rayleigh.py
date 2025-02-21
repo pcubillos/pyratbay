@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2023 Patricio Cubillos
+# Copyright (c) 2021-2025 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -47,6 +47,8 @@ class Dalgarno():
         elif self.species == 'H2':
             self.coef = np.array([8.140e-45, 1.280e-54, 1.610e-64])
             self._calc_H_cross_section()
+        elif self.species == 'e-':
+            self._calc_e_cross_section()
 
     def _calc_H_cross_section(self):
         """
@@ -69,6 +71,13 @@ class Dalgarno():
             self.coef[1]*self.wn**2 +
             self.coef[2]*self.wn**4/(1 - self.coef[3]*self.wn**2)
         )**2.0
+
+    def _calc_e_cross_section(self):
+        """
+        Rayleigh e- cross section in cm2 molec-1 units.
+        Sections 5.13, Kurucz (1970).
+        """
+        self.cross_section = np.tile(6.653e-24, len(self.wn))
 
     def calc_extinction_coefficient(self, density, layer=None):
         """
