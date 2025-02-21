@@ -261,7 +261,7 @@ class Atmosphere():
             self.species = inputs.atm_species
             self.vmr = inputs.vmr
         elif vmr_status == 'calculate':
-            chem_net = pa.chemistry(
+            self.chem_model, self.species, self.vmr = pa.chemistry(
                 self.chemistry,
                 pressure, temperature, inputs.species,
                 solar_file=inputs.solar,
@@ -269,9 +269,6 @@ class Atmosphere():
                 punits=self.punits,
                 q_uniform=inputs.uniform,
             )
-            self.chem_model = chem_net
-            self.species = chem_net.species
-            self.vmr = np.copy(chem_net.vmr)
 
         self.base_vmr = None
         if self.vmr is not None:

@@ -260,8 +260,14 @@ def chemistry(
 
     Returns
     -------
-    model: Callable
+    chem_network: Callable
         The atmospheric chemistry-network model.
+    species: 1D string array
+        Output species, 'tea' species might differ from input species
+        if there is no thermochemical data for a given one (the species
+        is then removed)
+    vmr: 2D float array
+        Output volume mixing ratios of shape [nlayers, nspecies]
 
     Example
     -------
@@ -276,22 +282,22 @@ def chemistry(
     >>> species = 'H2O CH4 CO CO2 NH3 C2H2 C2H4 HCN N2 H2 H He H+ e-'.split()
     >>> # Equilibrium abundances model:
     >>> chem_model = 'tea'
-    >>> chem_network = pa.chemistry(chem_model, pressure, temperature, species)
+    >>> network, out_species, vmr_tea = pa.chemistry(chem_model, pressure, temperature, species)
 
-    >>> q_uniform = np.array([
+    >>> abundances = np.array([
     >>>     5e-4, 3e-5, 2e-4, 1e-8,  1e-6, 1e-14, 1e-13, 5e-10,
     >>>     1e-4, 0.85, 5e-3, 0.14,  3e-23, 1e-23])
     >>> chem_model = 'uniform'
-    >>> chem_network_unif = pa.chemistry(
-    >>>     chem_model, pressure, temperature, species, q_uniform=q_uniform)
+    >>> network, out_species, vmr_uni = pa.chemistry(
+    >>>     chem_model, pressure, temperature, species, q_uniform=abundances)
 
     >>> # Plot the results:
     >>> ax1 = pp.abundance(
-    >>>     chem_network.vmr, pressure, chem_network.species,
+    >>>     vmr_tea, pressure, species,
     >>>     colors='default', xlim=[1e-30, 3.0])
 
     >>> ax2 = pp.abundance(
-    >>>     chem_network_unif.vmr, pressure, chem_network_unif.species,
+    >>>     vmr_uni, pressure, species,
     >>>     colors='default', xlim=[1e-30, 3.0], fignum=506)
     """
     if solar_file is None:
@@ -306,7 +312,6 @@ def chemistry(
             f"pressure ({nlayers}) and temperature array "
             f"lengths ({len(temperature)}) don't match"
         )
-
 
     log.head("\nCompute chemical abundances.")
     chem_network = cat.Network(
@@ -324,15 +329,12 @@ def chemistry(
                 f"Species ({len(species)}) and q_uniform "
                 f"array lengths ({len(q_uniform)}) don't match"
             )
-        abundances = [
-            q_uniform[list(species).index(spec)]
-            for spec in chem_network.species
-        ]
-        chem_network.vmr = uniform(abundances, nlayers)
-
+        vmr = chem_network.vmr = uniform(q_uniform, nlayers)
 
     elif chem_model == 'tea':
         chem_network.thermochemical_equilibrium()
+        species = chem_network.species
+        vmr = np.copy(chem_network.vmr)
 
     if atmfile is not None:
         header = "# TEA atmospheric file\n\n"
@@ -342,7 +344,7 @@ def chemistry(
             punits=punits, header=header,
         )
 
-    return chem_network
+    return chem_network, np.array(species), vmr
 
 
 def hydro_g(pressure, temperature, mu, g, p0=None, r0=None):

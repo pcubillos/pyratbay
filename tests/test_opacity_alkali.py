@@ -22,7 +22,7 @@ pressure = pa.pressure('1e-8 bar', '1e2 bar', nlayers)
 temperature = np.tile(1000.0, nlayers)
 species = ['Na', 'K', 'H2', 'H', 'He']
 
-vmr = pa.chemistry('tea', pressure, temperature, species).vmr
+net, specs, vmr = pa.chemistry('tea', pressure, temperature, species)
 number_densities = pa.ideal_gas_density(vmr, pressure, temperature)
 
 Na_density = number_densities[:,0]

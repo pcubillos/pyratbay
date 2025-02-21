@@ -425,10 +425,9 @@ def test_chemistry_uniform():
     temperature = tmodel(1500.0)
     species = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
     abundances  = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
-    chem = pa.chemistry(
+    chem, _, vmr = pa.chemistry(
         'uniform', pressure, temperature, species, q_uniform=abundances,
     )
-    vmr = chem.vmr
 
     assert np.shape(vmr) == (nlayers, len(species))
     for q in vmr:
@@ -441,7 +440,7 @@ def test_chemistry_tea_basic():
     tmodel = pa.tmodels.Isothermal(pressure)
     temperature = tmodel(1500.0)
     species = 'H He C O H2 H2O CO CO2 CH4'.split()
-    vmr = pa.chemistry('tea', pressure, temperature, species).vmr
+    net, _, vmr = pa.chemistry('tea', pressure, temperature, species)
     np.testing.assert_allclose(vmr, expected_vmr_tea)
 
 
@@ -451,7 +450,7 @@ def test_chemistry_tea_solar():
     temperature = np.tile(900.0, nlayers)
     species = 'H2O CH4 CO CO2 NH3 C2H2 C2H4 HCN N2 H2 H He'.split()
     chem_model = 'tea'
-    chem_network = pa.chemistry(chem_model, pressure, temperature, species)
+    chem_network, _, _ = pa.chemistry(chem_model, pressure, temperature, species)
 
     expected_elements = 'C H He N O'.split()
     np.testing.assert_equal(chem_network.elements, expected_elements)
@@ -468,7 +467,7 @@ def test_chemistry_metallicity():
     temperature = np.tile(900.0, nlayers)
     species = 'H2O CH4 CO CO2 NH3 C2H2 C2H4 HCN N2 H2 H He'.split()
     chem_model = 'tea'
-    chem_network = pa.chemistry(
+    chem_network, _, _ = pa.chemistry(
         chem_model, pressure, temperature, species, metallicity=-1.0,
     )
     expected_rel_abundance = np.array(
@@ -485,7 +484,7 @@ def test_chemistry_escale():
     species = 'H2O CH4 CO CO2 NH3 C2H2 C2H4 HCN N2 H2 H He'.split()
     e_scale = {'C': -1.0, 'O': 1.0}
     chem_model = 'tea'
-    chem_network = pa.chemistry(
+    chem_network, _, _ = pa.chemistry(
         chem_model, pressure, temperature, species, e_scale=e_scale)
 
     expected_rel_abundance = np.array(
@@ -502,7 +501,7 @@ def test_chemistry_eratio():
     species = 'H2O CH4 CO CO2 NH3 C2H2 C2H4 HCN N2 H2 H He'.split()
     e_ratio = {'C_O': 2.0}
     chem_model = 'tea'
-    chem_network = pa.chemistry(
+    chem_network, _, _ = pa.chemistry(
         chem_model, pressure, temperature, species, e_ratio=e_ratio)
 
     expected_rel_abundance = np.array(
@@ -520,7 +519,7 @@ def test_chemistry_metallicity_escale():
     metallicity = -1.0
     e_scale = {'C': -1.0, 'O': 1.0}
     chem_model = 'tea'
-    chem_network = pa.chemistry(
+    chem_network, _, _ = pa.chemistry(
         chem_model, pressure, temperature, species,
         metallicity=metallicity,
         e_scale=e_scale,
@@ -541,11 +540,10 @@ def test_chemistry_tea_metallicity_eratio(e_ratio):
     temperature = tmodel(1500.0)
     species = 'H He C O H2 H2O CO CO2 CH4'.split()
     i_H2O = species.index('H2O')
-    chem_model = pa.chemistry(
+    chem_model, _, vmr = pa.chemistry(
         'tea', pressure, temperature, species,
         e_ratio=e_ratio,
     )
-    vmr = chem_model.vmr
     # (this C/O ratio leads to same composition as e_scale C=0.7)
     expected_vmr = expected_vmr_tea_H2O[0]['C_O' in e_ratio]
     np.testing.assert_allclose(vmr[:,i_H2O], expected_vmr)
@@ -559,11 +557,10 @@ def test_chemistry_tea_metallicity_eabundances(e_abundances):
     temperature = tmodel(1500.0)
     species = 'H He C O H2 H2O CO CO2 CH4'.split()
     i_H2O = species.index('H2O')
-    chem_model = pa.chemistry(
+    chem_model, _, vmr = pa.chemistry(
         'tea', pressure, temperature, species,
         e_abundances=e_abundances,
     )
-    vmr = chem_model.vmr
     expected_vmr = expected_vmr_tea_H2O[0]['C' in e_abundances]
     np.testing.assert_allclose(vmr[:,i_H2O], expected_vmr)
 
