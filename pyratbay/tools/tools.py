@@ -21,7 +21,6 @@ __all__ = [
     'Formatted_Write',
     'Timer',
     'get_exomol_mol',
-    'get_exomol_composition',
     'cia_hitran', 'cia_borysow',
     'interpolate_opacity',
     'none_div',
@@ -844,54 +843,6 @@ class Timer(object):
         return delta
 
 
-def get_exomol_composition(file):
-    """
-    Parse an exomol file to extract the molecule and isotope name.
-
-    Parameters
-    ----------
-    file: String
-        An exomol line-list file (must follow ExoMol naming convention).
-
-    Returns
-    -------
-    molecule: String
-        Name of the molecule.
-    isotope: String
-        Name of the isotope (See Tennyson et al. 2016, jmosp, 327).
-
-    Examples
-    --------
-    >>> import pyratbay.tools as pt
-    >>> filenames = [
-    >>>     '1H2-16O__POKAZATEL__00400-00500.trans.bz2',
-    >>>     '1H-2H-16O__VTT__00250-00500.trans.bz2',
-    >>>     '12C-16O2__HITEMP.pf',
-    >>>     '12C-16O-18O__Zak.par',
-    >>>     '12C-1H4__YT10to10__01100-01200.trans.bz2',
-    >>>     '12C-1H3-2H__MockName__01100-01200.trans.bz2'
-    >>>    ]
-    >>> for db in filenames:
-    >>>     print(pt.get_exomol_mol(db))
-    ('H2O', '116')
-    ('H2O', '126')
-    ('CO2', '266')
-    ('CO2', '268')
-    ('CH4', '21111')
-    ('CH4', '21112')
-    """
-    atoms = os.path.split(file)[1].split('_')[0].split('-')
-    elements = []
-    atomic_numbers = []
-    for atom in atoms:
-        match = re.match(r"([0-9]+)([a-z]+)([0-9]*)", atom, re.I)
-        N = 1 if match.group(3) == '' else int(match.group(3))
-        elements += N * [match.group(2)]
-        atomic_numbers += N * [int(''.join(match.group(1)))]
-
-    return elements, atomic_numbers
-
-
 def get_exomol_mol(file):
     """
     Parse an exomol file to extract the molecule and isotope name.
@@ -942,6 +893,9 @@ def get_exomol_mol(file):
         c[0] + str(len(c))*(len(c)>1)
         for c in composition
     ])
+    # Edge case:
+    if molecule == 'OCO':
+        molecule = 'CO2'
 
     return molecule, isotope
 
