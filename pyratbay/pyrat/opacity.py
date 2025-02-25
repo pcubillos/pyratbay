@@ -71,7 +71,7 @@ class Opacity():
             ls = op.Line_Sample(
                 inputs.extfile, pressure=pressure, temperature=temp_array,
                 min_wn=min_wn, max_wn=max_wn, wn_thinning=inputs.wn_thinning,
-                log=log,
+                log=log, isotope_ratios=inputs.isotope_ratios,
             )
             self.models.append(ls)
             self.models_type.append('line_sample')

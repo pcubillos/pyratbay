@@ -19,7 +19,7 @@ class Line_Sample():
     def __init__(
         self, cs_files, *, pressure=None, temperature=None,
         min_wl=None, max_wl=None, min_wn=None, max_wn=None,
-        wn_thinning=1,
+        isotope_ratios=None, wn_thinning=1,
         log=None,
     ):
         """
@@ -48,6 +48,7 @@ class Line_Sample():
             (only one of min_wl or max_wn should be provided).
         wn_thinning: Integer
             Thinning factor to take every n-th value of the wavenumber array
+        isotope_ratios: String
 
         Examples
         --------
@@ -135,7 +136,24 @@ class Line_Sample():
         self.wn = wn[(wn >= min_wn) & (wn <= max_wn)][::wn_thinning]
         self.nwave = len(self.wn)
 
+        # Unpack isotopic parameters
+        # TBD: move parsing logic to pyrat/opacity.py?
+        if isotope_ratios is None:
+            iso_keys = []
+        else:
+            ratios = isotope_ratios.strip().split('\n')
+            iso_keys = []
+            iso_labels = []
+            iso_ratios = []
+            for iso_data in ratios:
+                ext_label, label, ratio = iso_data.split()
+                iso_keys.append(ext_label)
+                iso_labels.append('iso_' + label)
+                iso_ratios.append(ratio)
+
         self.species = []
+        self.isotopes = []
+        iso_species = []
         species_per_file = []
         wn_masks = []
         for cs_file in self.cs_files:
@@ -144,7 +162,6 @@ class Line_Sample():
             wn_mask = (wn >= min_wn) & (wn <= max_wn)
             wn = wn[wn_mask][::wn_thinning]
             wn_masks.append(wn_mask)
-            species_per_file.append(list(species))
             ntemp = len(temp)
             nwave = len(wn)
 
@@ -163,19 +180,57 @@ class Line_Sample():
             #check_temperature_boundaries(self.temp, temp)
 
             # Add new species:
-            self.species += [
-                spec
-                for spec in species
-                if spec not in self.species
-            ]
+            iso = ''
+            for i,key in enumerate(iso_keys):
+                if key in cs_file and iso != '':
+                    err = f'Multiple isotope labels match {repr(cs_file)}'
+                    raise ValueError(err)
+                elif key in cs_file:
+                    iso = iso_labels[i]
+
+            new_species = []
+            new_isotopes = []
+            for spec in species:
+                if spec+iso not in iso_species:
+                    iso_species.append(spec + iso)
+                    new_species.append(spec)
+                    new_isotopes.append(iso)
+            self.species += new_species
+            self.isotopes += new_isotopes
+            species_per_file.append([spec + iso for spec in species])
 
         spec_indices = []
         for species in species_per_file:
             spec_indices.append([
-                self.species.index(spec) for spec in species
+                iso_species.index(spec) for spec in species
             ])
         self.species = np.array(self.species)
         self.nspec = len(self.species)
+
+        # Set isotopic ratios (ensure setup is valid)
+        self.iso_ratios = np.ones(self.nspec, float)
+        self.iso_fill = [None] * self.nspec
+        for i,iso in enumerate(self.isotopes):
+            if iso == '':
+                continue
+            idx = iso_labels.index(iso)
+            ratio = iso_ratios[idx]
+            is_fill = ratio.startswith('fill_')
+            if not is_fill:
+                self.iso_ratios[i] = 10**float(ratio)
+                continue
+
+            fillers = [f'iso_{filler}' for filler in ratio[5:].split('_')]
+            for filler in fillers:
+                if filler not in self.isotopes:
+                    raise ValueError('Invalid filler')
+            self.iso_fill[i] = [
+                self.isotopes.index(filler)
+                for filler in fillers
+            ]
+        # Now set the filler isotopic ratios
+        self._update_filler_iso_ratios()
+
 
         # Cross-sections table (cm2 molecule-1):
         cs_shape = (self.nspec, self.ntemp, self.nlayers, self.nwave)
@@ -212,6 +267,15 @@ class Line_Sample():
         # Set tabulated temperature extrema:
         self.tmin = np.amin(self.temp)
         self.tmax = np.amax(self.temp)
+
+
+    def _update_filler_iso_ratios(self):
+        """Ensure filler isotopic ratios are up to date"""
+        for i,iso in enumerate(self.isotopes):
+            if self.iso_fill[i] is not None:
+                fillers = self.iso_fill[i]
+                self.iso_ratios[i] = 1.0 - np.sum(self.iso_ratios[fillers])
+
 
     def get_wl(self, units='um'):
         """
@@ -282,7 +346,8 @@ class Line_Sample():
             cross_section = np.zeros((self.nlayers, self.nwave))
             interp_ec = ec.interp_ec
 
-        density = np.ones((self.nlayers, self.nspec))
+        self._update_filler_iso_ratios()
+        density = np.ones((self.nlayers, self.nspec)) * self.iso_ratios
         interp_ec(
             cross_section,
             self.cs_table, self.temp,
@@ -310,7 +375,7 @@ class Line_Sample():
         temperature: 1D float array
             Temperature array (Kelvin) at which to interpolate the
             cross section (must match nlayers size).
-        density: 1D float array
+        density: 2D float array
             Number-density profiles (molec cm-3) at each layer.
             Array has shape [nspec,nlayers].
         layer: Integer
@@ -349,10 +414,11 @@ class Line_Sample():
             extinction = np.zeros((self.nlayers, self.nwave))
             interp_ec = ec.interp_ec
 
+        self._update_filler_iso_ratios()
         interp_ec(
             extinction,
             self.cs_table, self.temp,
-            temperature, density,
+            temperature, density*self.iso_ratios,
             layer1, layer2,
         )
 
