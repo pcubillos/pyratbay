@@ -77,7 +77,8 @@ class Dalgarno():
         Rayleigh e- cross section in cm2 molec-1 units.
         Sections 5.13, Kurucz (1970).
         """
-        self.cross_section = np.tile(6.653e-24, len(self.wn))
+        # Note there is a typo in Kurucz 1070, the exp should be -25
+        self.cross_section = np.tile(6.653e-25, len(self.wn))
 
     def calc_extinction_coefficient(self, density, layer=None):
         """
