@@ -210,6 +210,9 @@ class Line_Sample():
         # Set isotopic ratios (ensure setup is valid)
         self.iso_ratios = np.ones(self.nspec, float)
         self.iso_fill = [None] * self.nspec
+        self._iso_free = []
+        self.pnames = []
+        pars = []
         for i,iso in enumerate(self.isotopes):
             if iso == '':
                 continue
@@ -217,7 +220,11 @@ class Line_Sample():
             ratio = iso_ratios[idx]
             is_fill = ratio.startswith('fill_')
             if not is_fill:
-                self.iso_ratios[i] = 10**float(ratio)
+                self.iso_ratios[i] = 10.0**float(ratio)
+                # Only non-fillers are free parameters
+                self.pnames.append(iso)
+                self._iso_free.append(i)
+                pars.append(ratio)
                 continue
 
             fillers = [f'iso_{filler}' for filler in ratio[5:].split('_')]
@@ -229,7 +236,10 @@ class Line_Sample():
                 for filler in fillers
             ]
         # Now set the filler isotopic ratios
-        self._update_filler_iso_ratios()
+        self._update_iso_ratios()
+        self.pars = np.array(pars, float)
+        self.npars = len(self.pars)
+        self.texnames = [pname for pname in self.pnames]
 
 
         # Cross-sections table (cm2 molecule-1):
@@ -269,8 +279,19 @@ class Line_Sample():
         self.tmax = np.amax(self.temp)
 
 
-    def _update_filler_iso_ratios(self):
-        """Ensure filler isotopic ratios are up to date"""
+    def _update_iso_ratios(self, pars=None):
+        """
+        Update isotopic ratios ensuring that filler isotopic ratios
+        are up to date
+
+        Parameters
+        ----------
+        pars: 1D float iterable
+            iso_ratio parameters for free isotope parameters.
+            That is, a parameter of -2.0 corresponds to a ratio of 10**-2.0
+        """
+        if pars is not None:
+            self.iso_ratios[self._iso_free] = 10.0**np.array(pars)
         for i,iso in enumerate(self.isotopes):
             if self.iso_fill[i] is not None:
                 fillers = self.iso_fill[i]
@@ -300,7 +321,9 @@ class Line_Sample():
         return 1.0/(self.wn * pt.u(units))
 
 
-    def calc_cross_section(self, temperature, layer=None, per_mol=False):
+    def calc_cross_section(
+        self, temperature, layer=None, per_mol=False, pars=None,
+    ):
         """
         Calculate cross-section spectra (cm2 molec-1) over temperature
         profiles by interpolating from tabulated values.
@@ -316,6 +339,8 @@ class Line_Sample():
         per_mol: bool
             If True, compute cross sections individually per species.
             If False, co-add cross section contributions from all species.
+        pars: 1D iterable
+            If not None, update the iso_ratio parameters with given values.
 
         Returns
         -------
@@ -346,7 +371,10 @@ class Line_Sample():
             cross_section = np.zeros((self.nlayers, self.nwave))
             interp_ec = ec.interp_ec
 
-        self._update_filler_iso_ratios()
+        # Update isotopic ratios
+        if pars is not None:
+            self._update_iso_ratios(pars)
+
         density = np.ones((self.nlayers, self.nspec)) * self.iso_ratios
         interp_ec(
             cross_section,
@@ -364,7 +392,7 @@ class Line_Sample():
 
 
     def calc_extinction_coefficient(
-        self, temperature, density, layer=None, per_mol=False,
+        self, temperature, density, layer=None, per_mol=False, pars=None,
     ):
         """
         Calculate extinction-coefficient spectra (cm-1) for temperature
@@ -384,6 +412,8 @@ class Line_Sample():
         per_mol: bool
             If True, compute extinction coefficients individually per species.
             If False, co-add extinction contributions from all species.
+        pars: 1D iterable
+            If not None, update the iso_ratio parameters with given values.
 
         Returns
         -------
@@ -414,7 +444,10 @@ class Line_Sample():
             extinction = np.zeros((self.nlayers, self.nwave))
             interp_ec = ec.interp_ec
 
-        self._update_filler_iso_ratios()
+        # Update isotopic ratios
+        if pars is not None:
+            self._update_iso_ratios(pars)
+
         interp_ec(
             extinction,
             self.cs_table, self.temp,

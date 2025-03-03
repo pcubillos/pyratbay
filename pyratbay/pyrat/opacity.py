@@ -99,7 +99,7 @@ class Opacity():
                 f"Wavenumber array (cm-1):\n   {str_wn}",
             )
             self.nspec.append(ls.nspec)
-            self.pnames.append([])
+            self.pnames.append(ls.pnames)
 
         if inputs.tlifile is not None:
             lbl = Line_By_Line(inputs, species, min_wn, max_wn, log, pyrat)

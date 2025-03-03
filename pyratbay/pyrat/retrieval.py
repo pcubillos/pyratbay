@@ -232,7 +232,7 @@ class Retrieval():
 
             elif pname in temp_pnames:
                 itemp.append(i)
-                idx = atm.temp_model.pnames.index(pname)
+                idx = temp_pnames.index(pname)
                 map_pars['temp'].append(idx)
                 self.texnames[i] = atm.temp_model.texnames[idx]
             elif pname in atm.mol_pnames:
@@ -287,7 +287,6 @@ class Retrieval():
         if patch_temp:
             atm.tpars = np.zeros(atm.temp_model.npars)
             atm.tpars[map_pars['temp']] = self.params[self.itemp]
-
 
         patch_abundance = (
             atm.vmr_pars is None and
