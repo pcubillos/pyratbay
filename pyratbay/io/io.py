@@ -469,6 +469,9 @@ def write_spectrum(wl, spectrum, filename, type):
     elif type == "emission":
         spectype  = "Flux"
         specunits = "erg s-1 cm-2 cm"
+    elif type == "f_lambda":
+        spectype  = "Flux"
+        specunits = "W m-2 um-1"
     elif type == "filter":
         spectype  = "transmission"
         specunits = "unitless"
@@ -1050,11 +1053,15 @@ def write_observations(
     depth_header1 = ''
     depth_header2 = ''
     if has_data:
-        depth_dec = np.amin([Decimal(err).adjusted() for err in depth_err])
-        depth_dec = np.clip(-depth_dec + 2, 1, 10)
-        depth_len = depth_dec + 6
         depth_header1 = f'\n\n@DEPTH_UNITS\n{depth_units}'
         depth_header2 = 'depth    depth_err'
+        if depth_units!='f_lambda':
+            depth_dec = np.amin([Decimal(err).adjusted() for err in depth_err])
+            depth_dec = np.clip(-depth_dec + 2, 1, 10)
+            depth_len = depth_dec + 6
+            data_fmt = f'{depth_len}.{depth_dec}f'
+        elif has_data and depth_units=='f_lambda':
+            data_fmt = '15.8e'
 
     with open(obs_file, 'w') as f:
         f.write(default_header)
@@ -1065,10 +1072,7 @@ def write_observations(
         )
         for i in range(ndata):
             if has_data:
-                f.write(
-                    f'{depth[i]:{depth_len}.{depth_dec}f}  '
-                    f'{depth_err[i]:{depth_len}.{depth_dec}f}   '
-                )
+                f.write(f'{depth[i]:{data_fmt}}  {depth_err[i]:{data_fmt}}   ')
             # Passband file
             if wl[i]==0.0:
                 f.write(f'{inst_names[i]}\n')
@@ -1194,8 +1198,10 @@ def read_observations(obs_file):
             raise ValueError(error_msg)
 
     if has_data:
-        depth *= pt.u(depth_units)
-        depth_err *= pt.u(depth_units)
+        # Absolute units or depths:
+        unit_factor = 1.0 if depth_units=='f_lambda' else pt.u(depth_units)
+        depth *= unit_factor
+        depth_err *= unit_factor
         return filters, depth, depth_err
     return filters
 
