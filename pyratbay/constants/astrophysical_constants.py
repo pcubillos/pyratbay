@@ -19,6 +19,7 @@ __all__ = [
     'km',
     'au',
     'pc',
+    'parsec',
     'rearth',
     'rjup',
     'rsun',
@@ -86,6 +87,7 @@ m  = 1e+2  # Meter
 km = 1e+5  # Kilometer
 au = sc.au*100  # Astronomical unit
 pc = sc.parsec*100  # Parsec
+parsec = sc.parsec*100  # Parsec
 rearth = 6.3781e8  # Earth equatorial radius (Prsa et al. 2016)
 rjup = 7.1492e9  # Jupiter equatorial radius (Prsa et al. 2016)
 rsun = 6.957e10  # Sun radius (Prsa et al. 2016)
