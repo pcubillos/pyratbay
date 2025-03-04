@@ -7,6 +7,7 @@ import os
 import subprocess
 
 import numpy as np
+import scipy.interpolate as si
 import mc3
 
 from .. import atmosphere as pa
@@ -276,6 +277,34 @@ class Pyrat():
                 "The sum of trace abundances' VMRs exceeds "
                 f"the cap of {ret.qcap:.3f}"
             )
+
+        # High-resolution data
+        # TBD: flag with obs.hr_data
+        if self.spec.inst_resolution is not None:
+            conv_flux = ps.inst_convolution(
+                self.spec.wn,
+                self.spec.spectrum,
+                self.spec.inst_resolution,
+                sampling_res=self.spec.resolution,
+            )
+            if self.od.rt_path == 'f_lambda':
+                # Convert flux from (erg s-1 cm-2 cm) to (W m-2 um-1)
+                conv_flux = (
+                    10.0 * conv_flux *
+                    (atm.rplanet/self.phy.distance * self.spec.wn[0]*pc.um)**2
+                )
+            self.spec.spectrum = conv_flux
+            # Radial-velocity shift
+            if ret.irv is not None:
+                vel_km = params[ret.irv][0]
+                wn = ps.rv_shift(vel_km, wn=self.spec.wn)
+            else:
+                wn = self.spec.wn
+            # Interpolate at data
+            if obs.data is not None:
+                obs.bandflux = si.interp1d(wn, conv_flux)(obs.bandwn)
+            return obs.bandflux
+
 
         # Band-integrate spectrum:
         obs.bandflux = self.band_integrate()
@@ -555,6 +584,7 @@ class Pyrat():
             spectrum = self.spec.spectrum
 
         bandflux = np.array([band(spectrum) for band in self.obs.filters])
+        # Handle 'f_lambda'
         if self.od.rt_path in pc.emission_rt:
             rprs_square = (self.atm.rplanet/self.phy.rstar)**2.0
             bandflux = bandflux / self.obs.bandflux_star * rprs_square

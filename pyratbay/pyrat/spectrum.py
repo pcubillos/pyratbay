@@ -124,6 +124,7 @@ class Spectrum():
 
         self.resolution = None
         self.wlstep = None
+        self.inst_resolution = inputs.inst_resolution
 
         # If there are cross-section tables, take sampling from there:
         if pt.isfile(inputs.extfile) == 1 and inputs.runmode != 'opacity':
@@ -337,7 +338,7 @@ def spectrum(pyrat):
     if pyrat.od.rt_path in pc.transmission_rt:
         modulation(pyrat)
 
-    elif pyrat.od.rt_path == 'emission':
+    elif pyrat.od.rt_path in ['emission', 'f_lambda']:
         intensity(pyrat)
         flux(pyrat)
 
