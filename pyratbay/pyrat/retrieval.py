@@ -180,6 +180,7 @@ class Retrieval():
             'log_p_ref',
             'R_planet',
             'M_planet',
+            'rv_shift',
             'f_patchy',
             'T_eff',
             'f_dilution',
@@ -198,6 +199,7 @@ class Retrieval():
         self.ipress = None
         self.ipatchy = None
         self.imass = None
+        self.irv = None
         self.itstar = None
         self.idilut = None
         self.itemp = None
@@ -220,6 +222,9 @@ class Retrieval():
             elif pname == 'M_planet':
                 self.imass = np.array([i])
                 self.texnames[i] = fr'$M_{{\rm p}}$ ({utex[atm.mass_units]})'
+            elif pname == 'rv_shift':
+                self.irv = np.array([i])
+                self.texnames[i] = 'RV (km/s)'
             elif pname =='f_patchy':
                 self.ipatchy = np.array([i])
                 self.texnames[i] = r'$\phi_{\rm patchy}$'
