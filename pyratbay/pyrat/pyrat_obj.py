@@ -291,7 +291,7 @@ class Pyrat():
                 # Convert flux from (erg s-1 cm-2 cm) to (W m-2 um-1)
                 conv_flux = (
                     10.0 * conv_flux *
-                    (atm.rplanet/self.phy.distance * self.spec.wn[0]*pc.um)**2
+                    (atm.rplanet/self.phy.distance * self.spec.wn*pc.um)**2
                 )
             self.spec.spectrum = conv_flux
             # Radial-velocity shift
