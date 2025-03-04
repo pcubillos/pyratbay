@@ -500,6 +500,7 @@ def parse(cfile, with_log=True, mute=False):
         parse_str(args, 'obsfile')
         parse_str(args, 'offset_inst')
         parse_str(args, 'uncert_scaling')
+        parse_float(args, 'inst_resolution')
         # Retrieval options:
         parse_str(args, 'mcmcfile')
         parse_str(args, 'sampler')
@@ -536,13 +537,14 @@ def parse(cfile, with_log=True, mute=False):
         parse_float(args, 'gstar')  # Deprecated
         parse_float(args, 'log_gstar')
         parse_float(args, 'tstar')
-        parse_str(args,   'mstar')
+        parse_str(args, 'mstar')
+        parse_str(args, 'distance')
         parse_str(args, 'rplanet')
         parse_str(args, 'refpressure')
-        parse_str(args,   'mplanet')
+        parse_str(args, 'mplanet')
         parse_str(args, 'mpunits')
         parse_float(args, 'gplanet')
-        parse_str(args,   'smaxis')
+        parse_str(args, 'smaxis')
         parse_float(args, 'tint')
         parse_float(args, 'beta_irr')
         # Outputs:
@@ -784,6 +786,9 @@ def parse(cfile, with_log=True, mute=False):
         'mstar', None, 'Stellar mass', gt=0.0)
     args.tstar = args.get_default(
         'tstar', 'Stellar effective temperature (K)', gt=0.0)
+    args.distance = args.get_param(
+        'distance', None, 'Distance from Earth to target', gt=0.0,
+    )
 
     args.log_gstar = args.get_default(
         'log_gstar', 'Stellar surface gravity (log10(cm s-2))')
@@ -921,6 +926,10 @@ def parse(cfile, with_log=True, mute=False):
             args.uncert_scaling.append(fields[0])
             if len(fields) > 1:
                 args.uncert_pars[i] = float(fields[1])
+
+    args.inst_resolution = args.get_default(
+        'inst_resolution', 'Instrumental resolution', gt=0.0,
+    )
 
     args.sampler = args.get_choice('sampler', 'posterior sampler', pc.samplers)
     args.retflag = args.get_choice('retflag', 'retrieval flag', pc.retflags)

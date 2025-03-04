@@ -137,6 +137,7 @@ class Physics():
         self.rstar = inputs.rstar
         self.mstar = inputs.mstar
         self.log_gstar = inputs.log_gstar
+        self.distance = inputs.distance
 
         # Stellar spectrum filename
         self.starspec = inputs.starspec
@@ -153,6 +154,7 @@ class Physics():
 
         rstar = pt.none_div(self.rstar, pc.rsun)
         mstar = pt.none_div(self.mstar, pc.msun)
+        distance = pt.none_div(self.distance, pc.parsec)
         fw.write(
             '\nStellar effective temperature (tstar, K): {:.1f}',
             self.tstar,
@@ -163,6 +165,7 @@ class Physics():
             'Stellar surface gravity (log_gstar, cm s-2): {:.2f}',
             self.log_gstar,
         )
+        fw.write('Distance (distance, parsec):   {:.3f}', distance)
         #fw.write('Planet-to-star radius ratio (rprs):   {:.5f}', rprs)
         if self.starspec is not None:
             fw.write(f"Input stellar spectrum (starspec): '{self.starspec}'")
