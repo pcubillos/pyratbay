@@ -63,7 +63,10 @@ class Observation():
 
         # Resample the filters into the planet wavenumber array:
         for band in self.filters:
-            band.set_sampling(wn=wn)
+            # zero half-width signals a high-resolution dataset
+            # TBD: could be a cleaner implementation
+            if band.half_width > 0:
+                band.set_sampling(wn=wn)
         # Per-band variables:
         self.bandwn = np.array([band.wn0 for band in self.filters])
         self.bandflux = np.zeros(self.nfilters, np.double)
