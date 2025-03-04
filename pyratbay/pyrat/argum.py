@@ -38,6 +38,7 @@ def check_spectrum(pyrat):
             'input profile or compute one via the radmodel argument'
         )
 
+    # Not needed for f_lambda
     missing_radius_ratio = (
         pyrat.od.rt_path in pc.emission_rt and
         (atm.rplanet is None or phy.rstar is None)
@@ -109,6 +110,10 @@ def setup(pyrat):
 
     phy.starflux = starflux
     phy.starwn = starwn
+
+    # Not needed for f_lambda
+    if pyrat.od.rt_path == 'f_lambda':
+        return
 
     # Store interpolated stellar spectrum:
     if phy.starflux is not None:
