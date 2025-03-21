@@ -57,7 +57,7 @@ The radiative-transfer include opacity sources from:
 - Na and K alkali resonant lines
 - Gray and Mie (soon) aerosol opacities
 
-Bayesian (MCMC) posterior sampling of atmospheric parameters:
+Bayesian (MCMC and Nested sampling) posterior sampling of atmospheric parameters:
 
 - Molecular abundances
 - Temperature profile
@@ -103,7 +103,7 @@ If you found ``Pyrat Bay`` useful for your research, please cite this article:
 Please prefer to channel your feedback or inquiries through the Github issue tracker: `<https://github.com/pcubillos/pyratbay>`_, or alternatively through this email: `patricio.cubillos[at]oeaw.ac.at`_.
 
 ``Pyrat Bay`` is open-source software under the GNU GPL v2 license (see
-:ref:`license`) and is compatible with Python>=3.6.
+:ref:`license`) and is compatible with Python>=3.9.
 
 
 .. _Patricio Cubillos: https://github.com/pcubillos/

@@ -36,7 +36,7 @@ The following table details what each of these steps do.
 | ``spectrum``   | Compute forward-modeling spectra (transmission or          |
 |                | emission)                                                  |
 +----------------+------------------------------------------------------------+
-| ``mcmc``       | Run an atmospheric retrieval                               |
+| ``retrieval``  | Run an atmospheric retrievals                              |
 +----------------+------------------------------------------------------------+
 
 Any of these steps can be run either interactively though the Python
@@ -85,7 +85,7 @@ To install ``Pyrat Bay`` run the following command from the terminal:
 
 .. code-block:: shell
 
-    pip install pyratbay
+    pip install pyratbay>=2.0.0b3
 
 Or if you prefer conda:
 
@@ -134,16 +134,15 @@ Download the water line-transition database from the HITRAN server and unzip it:
 
 Copy the input and configuration files for the demo from the `examples
 folder
-<https://github.com/pcubillos/pyratbay/tree/master/examples/demo>`_ to
+<https://github.com/pcubillos/pyratbay/tree/ver2.0/examples/>`_ to
 your working directory.  For example, use the following shell commands:
 
 .. code-block:: shell
 
-    demo_path=https://raw.githubusercontent.com/pcubillos/pyratbay/master/examples/demo
-    wget $demo_path/demo_spectrum-emission.cfg
-    wget $demo_path/demo_spectrum-transmission.cfg
-    wget $demo_path/demo_tli-hitran.cfg
-    wget $demo_path/uniform.atm
+    demo=https://raw.githubusercontent.com/pcubillos/pyratbay/ver2.0/tutorials/
+    wget $demo/tutorial_tli_hitran_H2O.cfg
+    wget $demo/tutorial_spectrum_emission.cfg
+    wget $demo/tutorial_spectrum_transmission.cfg
 
 
 Execute these commands from the shell to create a
@@ -153,11 +152,11 @@ transmission and emission spectra:
 .. code-block:: shell
 
    # Format line-by-line opacity:
-   pbay -c demo_tli-hitran.cfg
+   pbay -c tutorial_tli_hitran_H2O.cfg
 
    # Compute transmission and emission spectra:
-   pbay -c demo_spectrum-transmission.cfg
-   pbay -c demo_spectrum-emission.cfg
+   pbay -c tutorial_spectrum_transmission.cfg
+   pbay -c tutorial_spectrum_emission.cfg
 
 .. Outputs
    ^^^^^^^
@@ -172,44 +171,51 @@ interactive mode, I suggest starting the session with ``ipython
 
 .. code-block:: python
 
+  import pyratbay as pb
+  import pyratbay.spectrum as ps
+  import pyratbay.io as io
   import matplotlib
-  from scipy.ndimage.filters import gaussian_filter1d as gaussf
   import matplotlib.pyplot as plt
   plt.ion()
 
-  import pyratbay as pb
-  import pyratbay.io as io
 
-  wl, transmission = io.read_spectrum("./transmission_spectrum_demo.dat", wn=False)
-  wl, emission     = io.read_spectrum("./emission_spectrum_demo.dat", wn=False)
+  wl, transmission = io.read_spectrum("./transmission_spectrum_tutorial.dat", wn=False)
+  wl, emission = io.read_spectrum("./emission_spectrum_tutorial.dat", wn=False)
 
-  plt.figure(0, figsize=(7,5))
+  bin_wl = ps.constant_resolution_spectrum(0.3, 8.0, resolution=200)
+  bin_transit = ps.bin_spectrum(bin_wl, wl, transmission)
+  bin_emission = ps.bin_spectrum(bin_wl, wl, emission)
+
+  fig = plt.figure(0)
   plt.clf()
-  plt.subplots_adjust(0.14, 0.1, 0.95, 0.95, hspace=0.15)
+  fig.set_size_inches(7,5)
+  plt.subplots_adjust(0.12, 0.1, 0.98, 0.95, hspace=0.15)
   ax = plt.subplot(211)
-  plt.plot(wl, 100*transmission, "b", label="pyrat transmission model", lw=1.0)
-  plt.plot(wl, gaussf(100*transmission, sigma=5.0), "orange", lw=1.25)
+  plt.plot(wl, 100*transmission, color="royalblue", label="transmission model", lw=1.0)
+  plt.plot(bin_wl, 100*bin_transit, "salmon", lw=1.5)
   plt.xscale('log')
-  plt.ylabel(r"$(R_{\rm p}/R_{\rm s})^2}$  (%)")
+  plt.ylabel('Transit depth (%)')
   ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
-  ax.set_xticks([0.5, 0.7, 1.0, 2.0, 3.0, 4.0, 5.0])
-  plt.xlim(0.5, 5.5)
-  plt.ylim(1.88, 2.15)
+  ax.set_xticks([0.3, 0.5, 0.7, 1.0, 2.0, 3.0, 5.0, 7.0])
+  ax.tick_params(which='both', direction='in')
+  plt.xlim(0.3, 8.0)
+  plt.ylim(1.88, 2.17)
   plt.legend(loc="upper left")
 
   ax = plt.subplot(212)
-  plt.plot(wl, emission, "b", label="pyrat emission model", lw=1.0)
-  plt.plot(wl, gaussf(emission, sigma=5.0), "orange", lw=1.25)
+  plt.plot(wl, emission, "royalblue", label="emission model", lw=1.0)
+  plt.plot(bin_wl, bin_emission, "salmon", lw=1.5)
   plt.xscale('log')
   plt.xlabel(r"Wavelength  (um)")
-  plt.ylabel(r"$F_{\rm planet}$ (erg s$^{-1}$ cm$^{-2}$ cm)")
+  plt.ylabel(r"$F_{\rm p}$ (erg s$^{-1}$ cm$^{-2}$ cm)")
   ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
-  ax.set_xticks([0.5, 0.7, 1.0, 2.0, 3.0, 4.0, 5.0])
-  plt.ylim(0, 60000)
-  plt.xlim(0.5, 5.5)
+  ax.set_xticks([0.3, 0.5, 0.7, 1.0, 2.0, 3.0, 5.0, 7.0])
+  ax.tick_params(which='both', direction='in')
+  plt.ylim(0, 52000)
+  plt.xlim(0.3, 8.0)
   plt.legend(loc="upper left")
   plt.draw()
-  plt.savefig("pyrat_spectrum_demo.pdf")
+  plt.savefig("pyrat_spectrum_demo.png", dpi=300)
 
 The output figure should look like this:
 
@@ -249,7 +255,7 @@ importing the ``Pyrat Bay`` package:
 .. code-block:: python
 
     import pyratbay as pb
-    pyrat = pb.run('demo_spectrum-transmission.cfg')
+    pyrat = pb.run('tutorial_spectrum_transmission.cfg')
     ax = pyrat.plot_spectrum()
 
 The output vary depending on the selected run mode.  Additional low-
