@@ -85,22 +85,22 @@ To install ``Pyrat Bay`` run the following command from the terminal:
 
 .. code-block:: shell
 
-    pip install pyratbay>=2.0.0b3
+    pip install "pyratbay>=2.0.0b4"
 
 Or if you prefer conda:
 
 .. code-block:: shell
 
-    conda install -c conda-forge pyratbay
+    conda install -c conda-forge "pyratbay>=2.0.0b4"
 
 
 Alternatively (e.g., for developers), clone the repository to your local machine with the following terminal commands:
 
 .. code-block:: shell
 
-    git clone --recursive https://github.com/pcubillos/pyratbay
+    git clone https://github.com/pcubillos/pyratbay
     cd pyratbay
-    python setup.py develop
+    pip install -e .
 
 
 
@@ -139,7 +139,7 @@ your working directory.  For example, use the following shell commands:
 
 .. code-block:: shell
 
-    demo=https://raw.githubusercontent.com/pcubillos/pyratbay/ver2.0/tutorials/
+    demo=https://github.com/pcubillos/pyratbay/tree/ver2.0/examples/
     wget $demo/tutorial_tli_hitran_H2O.cfg
     wget $demo/tutorial_spectrum_emission.cfg
     wget $demo/tutorial_spectrum_transmission.cfg
