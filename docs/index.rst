@@ -81,10 +81,9 @@ Documentation
    :includehidden:
 
    getstarted
-   tli_tutorial
+   line_sampling
    atm_tutorial
    spec_tutorial
-   opac_tutorial
    retrieval_tutorial
    cookbooks/recipes
    api

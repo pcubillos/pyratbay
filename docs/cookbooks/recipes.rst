@@ -44,7 +44,7 @@ Recipes list:
 
   - :ref:`transmission_retrieval` (TBD)
   - `Emission retrieval <wasp18b/notebook_emission_retrieval.ipynb>`__
-  - :doc:`cross_sections_uhj/cross_sections_uhj`
+  - :doc:`wasp18b/cross_sections_uhj`
   - :ref:`radiative_equilibrium_simulation` (TBD)
   - :ref:`JWST_proposal_simulation` (TBD)
 
@@ -69,6 +69,6 @@ Recipes list:
    passbands
    partition_functions
    wasp18b/notebook_emission_retrieval
-   cross_sections_uhj/cross_sections_uhj
+   wasp18b/cross_sections_uhj
    compendia
 

@@ -3,11 +3,13 @@
 References
 ==========
 
-.. [Asplund2009] `Asplund et al. (2009): The Chemical Composition of the Sun <https://ui.adsabs.harvard.edu/abs/2009ARA&A..47..481A>`_
+.. .. [Asplund2009] `Asplund et al. (2009): The Chemical Composition of the Sun <https://ui.adsabs.harvard.edu/abs/2009ARA&A..47..481A>`_
 
 .. [Asplund2021] `Asplund et al. (2021): The chemical make-up of the Sun: A 2020 vision <https://ui.adsabs.harvard.edu/abs/2021A%26A...653A.141A>`_
 
 .. [Azzam2016] `Azzam et al. (2016): ExoMol molecular line lists - XVI. The rotation-vibration spectrum of hot H2S <https://ui.adsabs.harvard.edu/abs/2016MNRAS.460.4063A>`_
+
+.. [Barber2014] `Barber et al (2014): ExoMol line lists - III. An improved hot rotation-vibration line list for HCN and HNC <https://ui.adsabs.harvard.edu/abs/2014MNRAS.437.1828B>`_
 
 .. [Blecic2016] `Blecic et al (2016): TEA: A Code Calculating Thermochemical Equilibrium Abundances <https://ui.adsabs.harvard.edu/abs/2016ApJS..225....4B>`_
 
@@ -20,6 +22,8 @@ References
 .. [Borysow2001] `Borysow et al. (2001): High-temperature (1000-7000 K) collision-induced absorption of H2 pairs computed from the first principles, with application to cool and dense stellar atmospheres <https://ui.adsabs.harvard.edu/abs/2001JQSRT..68..235B>`_
 
 .. [Borysow2002] `Borysow (2002): Collision-induced absorption coefficients of H$_2$ pairs at temperatures from 60 K to 1000 K <https://ui.adsabs.harvard.edu/abs/2002A&A...390..779B>`_
+
+.. [Bowesman2024] `Bowesman et al. (2024): ExoMol line lists - LV: hyperfine-resolved molecular line list for vanadium monoxide VO <https://ui.adsabs.harvard.edu/abs/2024MNRAS.529.1321B>`_
 
 .. [Burrows2000] `Burrows et al. (2000): The Near-Infrared and Optical Spectra of Methane Dwarfs and Brown Dwarfs <http://ui.adsabs.harvard.edu/abs/2000ApJ...531..438B>`_
 
@@ -39,9 +43,19 @@ References
 
 .. [Dalgarno1962] `Dalgarno & Williams (1962): Rayleigh Scattering by Molecular Hydrogen <http://ui.adsabs.harvard.edu/abs/1962ApJ...136..690D>`_
 
+.. [Gamache2017] `Gamache et al. (2017): Total internal partition sums for 166 isotopologues of 51 molecules important in planetary atmospheres: Application to HITRAN2016 and beyond <https://ui.adsabs.harvard.edu/abs/2017JQSRT.203...70G>`_
+
+.. [Gamache2021] `Gamache et al. (2021): Total internal partition sums for the HITRAN2020 database <https://ui.adsabs.harvard.edu/abs/2021JQSRT.27107713G>`_
+
+.. [Gordon2022] `Gordon et al. (2022): The HITRAN2020 molecular spectroscopic database <https://ui.adsabs.harvard.edu/abs/2022JQSRT.27707949G>`_
+
 .. [Griffith2014] `Griffith (2014): Disentangling degenerate solutions from primary transit and secondary eclipse spectroscopy of exoplanets <https://ui.adsabs.harvard.edu/abs/2014RSPTA.37230086G>`_
 
 .. [Hargreaves2019] `Hargreaves et al. (2019): Spectroscopic line parameters of NO, NO2, and N2O for the HITEMP database <https://ui.adsabs.harvard.edu/abs/2019JQSRT.232...35H>`_
+
+.. [Hargreaves2020] `Hargreaves et al. (2020): An Accurate, Extensive, and Practical Line List of Methane for the HITEMP Database <https://ui.adsabs.harvard.edu/abs/2020ApJS..247...55H>`_
+
+.. [Hargreaves2025] `Hargreaves et al. (2025): Updating the carbon dioxide line list in HITEMP <https://ui.adsabs.harvard.edu/abs/2025JQSRT.33309324H>`_
 
 .. [Harris2006] `Harris et al. (2006): Improved HCN/HNC linelist, model atmospheres and synthetic spectra for WZ Cas <https://ui.adsabs.harvard.edu/abs/2006MNRAS.367..400H>`_
 
@@ -57,7 +71,7 @@ References
 
 .. [Kurucz1970] `Kurucz (1970): Atlas: a Computer Program for Calculating Model Stellar Atmospheres <http://ui.adsabs.harvard.edu/abs/1970SAOSR.309.....K>`_
 
-.. [Laraia2011] `Laraia et al. (2011): Total internal partition sums to support planetary remote sensing <http://ui.adsabs.harvard.edu/abs/2011Icar..215..391L>`_
+.. .. [Laraia2011] `Laraia et al. (2011): Total internal partition sums to support planetary remote sensing <http://ui.adsabs.harvard.edu/abs/2011Icar..215..391L>`_
 
 .. [Lecavelier2008] `Lecavelier des Etangs et al. (2008): Rayleigh Scattering in the Transit Spectrum of HD 189733b <http://ui.adsabs.harvard.edu/abs/2008A%26A...481L..83L>`_
 
@@ -73,11 +87,14 @@ References
 
 .. [McKemmish2019] `McKemmish et al. (2019): ExoMol molecular line lists - XXXIII. The spectrum of Titanium Oxide <https://ui.adsabs.harvard.edu/abs/2019MNRAS.488.2836M>`_
 
-.. [PS1997] `Partridge & Schwenke (1997): The determination of an accurate isotope dependent potential energy surface for water from extensive ab initio calculations and experimental data <http://ui.adsabs.harvard.edu/abs/1997JChPh.106.4618P>`_
+
+.. [Molliere2019] `Molliere et al. (2019): petitRADTRANS. A Python radiative transfer package for exoplanet characterization and retrieval <https://ui.adsabs.harvard.edu/abs/2019A&A...627A..67M>`_
+
+.. .. [PS1997] `Partridge & Schwenke (1997): The determination of an accurate isotope dependent potential energy surface for water from extensive ab initio calculations and experimental data <http://ui.adsabs.harvard.edu/abs/1997JChPh.106.4618P>`_
 
 .. [Piskunov1995] `Piskunov et al. (1995): VALD: The Vienna Atomic Line Data Base. <https://ui.adsabs.harvard.edu/abs/1995A&AS..112..525P>`_
 
-.. [Plez1998] `Plez (1998): A new TiO line list <http://ui.adsabs.harvard.edu/abs/1998A%26A...337..495P>`_
+.. .. [Plez1998] `Plez (1998): A new TiO line list <http://ui.adsabs.harvard.edu/abs/1998A%26A...337..495P>`_
 
 .. [Polyansky2018] `Polyansky et al. (2018): ExoMol molecular line lists XXX: a complete high-accuracy line list for water <https://ui.adsabs.harvard.edu/abs/2018MNRAS.480.2597P>`_
 
@@ -87,15 +104,9 @@ References
 
 .. [Rothman2010] `Rothman et al. (2010): HITEMP, the high-temperature molecular spectroscopic database <http://ui.adsabs.harvard.edu/abs/2010JQSRT.111.2139R>`_
 
-.. [Gamache2017] `Gamache et al. (2017): Total internal partition sums for 166 isotopologues of 51 molecules important in planetary atmospheres: Application to HITRAN2016 and beyond <https://ui.adsabs.harvard.edu/abs/2017JQSRT.203...70G>`_
+.. .. [Rothman2013] `Rothman et al. (2013): The HITRAN2012 molecular spectroscopic database <http://ui.adsabs.harvard.edu/abs/2013JQSRT.130....4R>`_
 
-.. [Gamache2021] `Gamache et al. (2021): Total internal partition sums for the HITRAN2020 database <https://ui.adsabs.harvard.edu/abs/2021JQSRT.27107713G>`_
-
-.. [Gordon2017] `Gordon et al. (2017): The HITRAN2016 molecular spectroscopic database <https://ui.adsabs.harvard.edu/abs/2017JQSRT.203....3G>`_
-
-.. [Rothman2013] `Rothman et al. (2013): The HITRAN2012 molecular spectroscopic database <http://ui.adsabs.harvard.edu/abs/2013JQSRT.130....4R>`_
-
-.. [Schwenke1998] `Schwenke (19988): Opacity of TiO from a coupled electronic state calculation parametrized by AB initio and experimental data <http://ui.adsabs.harvard.edu/abs/1998FaDi..109..321S>`_
+.. .. [Schwenke1998] `Schwenke (19988): Opacity of TiO from a coupled electronic state calculation parametrized by AB initio and experimental data <http://ui.adsabs.harvard.edu/abs/1998FaDi..109..321S>`_
 
 .. [Taylor2020] `Taylor et al. (2020): Understanding and mitigating biases when studying inhomogeneous emission spectra with JWST <https://ui.adsabs.harvard.edu/abs/2020MNRAS.493.4342T>`_
 
@@ -115,4 +126,7 @@ References
 
 .. [Yurchenko2020] `Yurchenko et al. (2020): ExoMol line lists - XXXIX. Ro-vibrational molecular line list for CO2 <https://ui.adsabs.harvard.edu/abs/2020MNRAS.496.5282Y>`_
 
+.. [Yurchenko2024a] `Yurchenko et al. (2024): ExoMol line lists - LVII. High accuracy ro-vibrational line list for methane (CH4) <https://ui.adsabs.harvard.edu/abs/2024MNRAS.528.3719Y>`_
+
+.. [Yurchenko2024b] `Yurchenko et al. (2024): ExoMol line lists - LX. Molecular line list for the ammonia isotopologue 15NH3 <https://ui.adsabs.harvard.edu/abs/2024MNRAS.533.3442Y>`_
 
