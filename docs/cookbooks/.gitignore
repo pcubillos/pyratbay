@@ -6,3 +6,4 @@
 !*.rst
 !*.ipynb
 !*/*.ipynb
+!*/*.rst

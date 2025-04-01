@@ -615,7 +615,7 @@ def parse(cfile, with_log=True, mute=False):
     args.output_atmfile = args.get_path('output_atmfile', 'Atmospheric')
     args.specfile = args.get_path('specfile', 'Spectrum')
     args.extfile = args.get_path('extfile', 'Extinction-coefficient')
-    args.mcmcfile = args.get_path('mcmcfile', 'MCMC')
+    args.mcmcfile = args.get_path('mcmcfile', 'Retrieval')
 
     # Default output filenames if needed base on logfile and runmode:
     outfile, extension = os.path.splitext(args.logfile)

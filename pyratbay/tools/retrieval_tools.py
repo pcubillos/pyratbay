@@ -468,6 +468,8 @@ def posterior_post_processing(cfg_file=None, pyrat=None, suffix=''):
 
     if is_transmission:
         outputs['depth_posterior'] = spectrum_posterior
+    elif is_emission and pyrat.od.rt_path=='f_lambda':
+        pass
     elif is_emission:
         rprs = pyrat.atm.rplanet / pyrat.phy.rstar
         depth = spectrum_posterior / pyrat.spec.starflux * rprs**2.0

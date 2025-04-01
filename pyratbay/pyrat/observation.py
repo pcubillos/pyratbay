@@ -65,7 +65,7 @@ class Observation():
         for band in self.filters:
             # zero half-width signals a high-resolution dataset
             # TBD: could be a cleaner implementation
-            if band.half_width > 0:
+            if not hasattr(band, 'half_width') or band.half_width > 0:
                 band.set_sampling(wn=wn)
         # Per-band variables:
         self.bandwn = np.array([band.wn0 for band in self.filters])

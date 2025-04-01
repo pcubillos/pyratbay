@@ -110,7 +110,7 @@ def invalid_path():
         'output_atmfile':  'Folder for Atmospheric file (output_atmfile) does not exist',
         'tlifile':  'Folder for TLI file (tlifile) does not exist',
         'specfile': 'Folder for Spectrum file (specfile) does not exist',
-        'mcmcfile': 'Folder for MCMC file (mcmcfile) does not exist',
+        'mcmcfile': 'Folder for Retrieval file (mcmcfile) does not exist',
         'extfile':  'Folder for Extinction-coefficient file (extfile) does '
                     'not exist',
         'ptfile':   'Folder for Pressure-temperature file (ptfile) does '

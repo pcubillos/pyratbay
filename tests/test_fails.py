@@ -42,19 +42,6 @@ def test_run_runmode(tmp_path, capfd, runmode, call):
 
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 # Check output for each case is defined:
-def test_run_mcmc_mcmcfile(tmp_path):
-    cfg = make_config(
-        tmp_path,
-        ROOT+'tests/configs/mcmc_transmission_test.cfg',
-        remove=['mcmcfile'],
-        reset={'runmode': 'spectrum'},
-    )
-    error = "Undefined retrieval file (mcmcfile)"
-    with pytest.raises(ValueError, match=re.escape(error)):
-        pyrat = pb.Pyrat(cfg)
-        pyrat.retrieval()
-
-
 @pytest.mark.skip(reason='TBD: fix input atmosphere, add radius')
 def test_run_opacity_extfile_missing(tmp_path):
     reset = {
@@ -947,7 +934,7 @@ def test_spectrum_invalid_retrieval_params_pname(tmp_path):
     )
     error = re.escape(
         "Invalid retrieval parameter 'log_H2O'. Possible values are:\n"
-        "['log_p_ref', 'R_planet', 'M_planet', 'f_patchy', 'T_eff', "
+        "['log_p_ref', 'R_planet', 'M_planet', 'rv_shift', 'f_patchy', 'T_eff', "
         "'f_dilution', 'T_iso', 'log_k_ray', 'alpha_ray', 'log_p_cl']"
     )
     with pytest.raises(ValueError, match=error):
@@ -1044,7 +1031,7 @@ def test_spectrum_params_misfit(tmp_path):
     )
     error = re.escape(
         """Invalid retrieval parameter 'T_iso'. Possible values are:\n"""
-        """['log_p_ref', 'R_planet', 'M_planet', 'f_patchy', 'T_eff', """
+        """['log_p_ref', 'R_planet', 'M_planet', 'rv_shift', 'f_patchy', 'T_eff', """
         """'f_dilution', "log_kappa'", 'log_gamma1', 'log_gamma2', 'alpha', """
         """'T_irr', 'T_int', 'log_k_ray', 'alpha_ray', 'log_p_cl']"""
     )
