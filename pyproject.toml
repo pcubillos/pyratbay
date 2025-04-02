@@ -1,6 +1,6 @@
 [build-system]
 requires = [
-    'setuptools>=40.8.0',
+    'setuptools>=77.0.3',
     'numpy>=2.0.0',
 ]
 build-backend = "setuptools.build_meta"
@@ -9,7 +9,8 @@ build-backend = "setuptools.build_meta"
 name = "pyratbay"
 description = "Python Radiative Transfer in a Bayesian Framework"
 readme = "README.md"
-license = { file = "LICENSE" }
+license = "GPL-2.0-only"
+license-files = ["LICENSE" ]
 
 #https://packaging.python.org/en/latest/guides/single-sourcing-package-version/
 dynamic = ["version"]
@@ -20,7 +21,7 @@ authors = [
 ]
 
 dependencies = [
-    'numpy>=1.23.5',
+    'numpy>=2.0.0',
     'scipy>=1.13.0',
     'matplotlib>=3.3.4',
     'mc3>=3.2.0',
@@ -44,7 +45,26 @@ pbay = "pyratbay.__main__:main"
 [tool.setuptools.dynamic]
 version = {attr = "pyratbay.version.__version__"}
 
+[tool.setuptools]
+include-package-data = true
+
 #https://setuptools.pypa.io/en/stable/userguide/package_discovery.html
 [tool.setuptools.packages]
-find = {namespaces = false}  # Take only folders with a __init__.py file
+find = { namespaces = false }  # Take only folders with a __init__.py file
+
+[tool.setuptools.package-data]
+"pyratbay.data" = ["*"]
+"pyratbay.data.CIA" = ["*"]
+"pyratbay.data.filters" = ["*"]
+
+#[tool.setuptools.packages]
+#find = { namespaces = true }  # Take all sub-packages
+#find = { namespaces = true, exclude = [
+#       "tests", "tests.*",
+#       "src", "src.*",
+#       "docs", "docs.*",
+#       "examples", "examples.*",
+#    ] }
+
+
 
