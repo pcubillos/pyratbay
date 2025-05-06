@@ -82,9 +82,10 @@ Documentation
 
    getstarted
    line_sampling
-   atm_tutorial
-   spec_tutorial
+   atmosphere_modeling
+   spectral_synthesis
    retrieval_tutorial
+
    cookbooks/recipes
    api
    units
