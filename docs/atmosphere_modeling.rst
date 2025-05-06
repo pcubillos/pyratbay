@@ -204,8 +204,6 @@ temperature models in a Python script:
 
 - `Temperature profiles tutorial <cookbooks/temperature_profiles.ipynb>`__
 
-in-depths
-
 
 Configuration files
 ^^^^^^^^^^^^^^^^^^^
@@ -231,9 +229,9 @@ interactive Python sessions. Here are examples for each of the models:
      
         </details>
 
-     Copy this configuration file to your local folder and then can
-     generate a temperature profile from the command line, or
-     interactively, as in the following script:
+     Copy this configuration file to your local folder.  Then users
+     can generate temperature profiles, either from an interactive
+     python session, as in the following script:
 
      .. code-block:: python
           
@@ -254,6 +252,15 @@ interactive Python sessions. Here are examples for each of the models:
         990. 990. 990. 990. 990. 990. 990. 990. 990. 990. 990. 990. 990. 990.
         990. 990. 990. 990. 990.]
 
+     Which will create an output .atm file with the
+     pressure-temperature profile (same root file name as ``logfile``
+     in the configuration file).  Alternatively, users can execute
+     this script from the command line:
+
+     .. code-block:: shell
+
+       pbay -c temperature_profile_isothermal.cfg
+
 
   .. tab-item:: guillot
 
@@ -269,9 +276,9 @@ interactive Python sessions. Here are examples for each of the models:
      
         </details>
 
-     Copy this configuration file to your local folder and then can
-     generate a temperature profile from the command line, or
-     interactively, as in the following script:
+     Copy this configuration file to your local folder.  Then users
+     can generate temperature profiles, either from an interactive
+     python session, as in the following script:
 
      .. code-block:: python
           
@@ -300,6 +307,15 @@ interactive Python sessions. Here are examples for each of the models:
         1031.6122709  1031.73878338 1031.91095189 1032.16328573 1032.53332577
         1033.07575077]
 
+     Which will create an output .atm file with the
+     pressure-temperature profile (same root file name as ``logfile``
+     in the configuration file).  Alternatively, users can execute
+     this script from the command line:
+
+     .. code-block:: shell
+
+       pbay -c temperature_profile_guillot.cfg
+
 
   .. tab-item:: madhu
 
@@ -315,9 +331,9 @@ interactive Python sessions. Here are examples for each of the models:
      
         </details>
 
-     Copy this configuration file to your local folder and then can
-     generate a temperature profile from the command line, or
-     interactively, as in the following script:
+     Copy this configuration file to your local folder.  Then users
+     can generate temperature profiles, either from an interactive
+     python session, as in the following script:
 
      .. code-block:: python
           
@@ -346,69 +362,15 @@ interactive Python sessions. Here are examples for each of the models:
         1256.34273652 1256.51152735 1256.5505651  1256.55759081 1256.55849942
         1256.55849942]
 
+     Which will create an output .atm file with the
+     pressure-temperature profile (same root file name as ``logfile``
+     in the configuration file).  Alternatively, users can execute
+     this script from the command line:
 
+     .. code-block:: shell
 
-Temperature-profile Examples
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+       pbay -c temperature_profile_madhu.cfg
 
-.. note:: Before running this example, download the configuration
-          files shown above, e.g., with these shell commands:
-
-          .. code-block:: shell
-
-              tutorial_path=https://raw.githubusercontent.com/pcubillos/pyratbay/master/examples/tutorial
-              wget $tutorial_path/pt_isothermal.cfg
-              wget $tutorial_path/pt_guillot.cfg
-              wget $tutorial_path/pt_madhu.cfg
-
-
-The following Python script creates and plots the pressure-temperature
-profiles for the configuration files shown above:
-
-
-.. code-block:: python
-
-  import matplotlib.pyplot as plt
-  plt.ion()
-
-  import pyratbay as pb
-  import pyratbay.constants as pc
-
-  # Generate PT profiles:
-  press, t_iso = pb.run("pt_isothermal.cfg")[0:2]
-  press, t_guillot = pb.run("pt_guillot.cfg")[0:2]
-  press, t_madhu = pb.run("pt_madhu.cfg")[0:2]
-
-  # Plot the PT profiles:
-  plt.figure(11)
-  plt.clf()
-  plt.semilogy(t_iso, press/pc.bar, color='mediumblue', lw=2, label='isothermal')
-  plt.semilogy(t_guillot, press/pc.bar, color='orange', lw=2, label='guillot')
-  plt.semilogy(t_madhu, press/pc.bar, color='tab:green', lw=2, label='madhu')
-  plt.ylim(100, 1e-5)
-  plt.xlim(800, 1200)
-  plt.legend(loc="best", fontsize=12)
-  plt.xlabel("Temperature  (K)", fontsize=12)
-  plt.ylabel("Pressure  (bar)", fontsize=12)
-  plt.tight_layout()
-
-
-And the results should look like this:
-
-.. image:: ./figures/pyrat_PT_tutorial.png
-   :width: 70%
-   :align: center
-
-
-.. note:: If any of the required variables is missing form the
-          configuration file, ``Pyrat Bay`` will throw an error
-          indicating the missing value, and **stop executing the
-          run.** Similarly, ``Pyrat Bay`` will throw a warning for a
-          missing variable that was defaulted, and **continue
-          executing the run.**
-
-
-----------------------------------------------------------------------
 
 .. _abundance_profile:
 
