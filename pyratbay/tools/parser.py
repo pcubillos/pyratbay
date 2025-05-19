@@ -19,6 +19,7 @@ import warnings
 
 import numpy as np
 import mc3.utils as mu
+import matplotlib
 
 from . import tools as pt
 from .mpi_tools import (
@@ -498,6 +499,7 @@ def parse(cfile, with_log=True, mute=False):
         parse_array(args, 'uncert')
         parse_array(args, 'filters')
         parse_str(args, 'obsfile')
+        parse_str(args, 'obsfile_hires')
         parse_str(args, 'offset_inst')
         parse_str(args, 'uncert_scaling')
         parse_float(args, 'inst_resolution')
@@ -525,6 +527,7 @@ def parse(cfile, with_log=True, mute=False):
         parse_float(args, 'grbreak')
         parse_float(args, 'grnmin')
         parse_str(args, 'theme')
+        parse_str(args, 'data_color')
         parse_int(args, 'nlive')
         parse_str(args, 'statistics')
         # Stellar models:
@@ -892,6 +895,9 @@ def parse(cfile, with_log=True, mute=False):
     args.obsfile = args.get_path(
         'obsfile', 'Observations data file', exists=True,
     )
+    args.obsfile_hires = args.get_path(
+        'obsfile_hires', 'High-resolution observations data file', exists=True,
+    )
 
     offsets = args.get_default('offset_inst', 'Instrumental offsets')
     if offsets is None:
@@ -969,6 +975,11 @@ def parse(cfile, with_log=True, mute=False):
         'Prefered statistics for posterior plots',
         pc.statistics,
     )
+
+    data_color = args.get_default('data_color', 'Color of data points', 'black')
+    if not matplotlib.colors.is_color_like(data_color):
+        data_color = 'black'
+    args.data_color = data_color
 
     for arg in ['molvars', 'molmodel', 'molfree', 'molpars']:
         if getattr(args, arg) is not None:

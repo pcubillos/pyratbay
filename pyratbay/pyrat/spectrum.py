@@ -124,7 +124,6 @@ class Spectrum():
 
         self.resolution = None
         self.wlstep = None
-        self.inst_resolution = inputs.inst_resolution
 
         # If there are cross-section tables, take sampling from there:
         if pt.isfile(inputs.extfile) == 1 and inputs.runmode != 'opacity':

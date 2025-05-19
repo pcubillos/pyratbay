@@ -218,6 +218,7 @@ class Pyrat():
             return None, None if retmodel else None
 
         # Update models parameters:
+        ret.params = np.copy(params)
         if ret.itemp is not None:
             ifree = ret.map_pars['temp']
             atm.tpars[ifree] = params[ret.itemp]
@@ -278,22 +279,23 @@ class Pyrat():
                 f"the cap of {ret.qcap:.3f}"
             )
 
+        if self.od.rt_path == 'f_lambda':
+            # Convert flux from (erg s-1 cm-2 cm) to (W m-2 um-1)
+            # TBD: check rplanet and distance exist
+            self.spec.spectrum = (
+                10.0 * self.spec.spectrum *
+                (atm.rplanet/self.phy.distance * self.spec.wn*pc.um)**2
+            )
+
         # High-resolution data
-        # TBD: flag with obs.hr_data
-        if self.spec.inst_resolution is not None:
-            conv_flux = ps.inst_convolution(
+        if self.obs.ndata_hires > 0:
+            self.spec.spectrum_convolved = conv_flux = ps.inst_convolution(
                 self.spec.wn,
                 self.spec.spectrum,
-                self.spec.inst_resolution,
+                obs.inst_resolution,
                 sampling_res=self.spec.resolution,
             )
-            if self.od.rt_path == 'f_lambda':
-                # Convert flux from (erg s-1 cm-2 cm) to (W m-2 um-1)
-                conv_flux = (
-                    10.0 * conv_flux *
-                    (atm.rplanet/self.phy.distance * self.spec.wn*pc.um)**2
-                )
-            self.spec.spectrum = conv_flux
+
             # Radial-velocity shift
             if ret.irv is not None:
                 vel_km = params[ret.irv][0]
@@ -301,9 +303,16 @@ class Pyrat():
             else:
                 wn = self.spec.wn
             # Interpolate at data
-            if obs.data is not None:
-                obs.bandflux = si.interp1d(wn, conv_flux)(obs.bandwn)
-            return obs.bandflux
+            if obs.data_hires is not None:
+                obs.bandflux_hires = si.interp1d(wn, conv_flux)(obs.wn_hires)
+
+            if reject_flag:
+                obs.bandflux_hires[:] = np.inf
+            # TBD: At the moment either return hires or lowres, but should be
+            # able to combine in the future
+            if retmodel:
+                return self.spec.spectrum, obs.bandflux_hires
+            return obs.bandflux_hires
 
 
         # Band-integrate spectrum:
@@ -329,7 +338,6 @@ class Pyrat():
         if obs.bandflux is not None and reject_flag:
             obs.bandflux[:] = np.inf
 
-        ret.params = np.copy(params)
         if retmodel:
             return self.spec.spectrum, obs.bandflux
 
@@ -418,6 +426,8 @@ class Pyrat():
         # Best-fitting model:
         self.spec.specfile = f"{output}_bestfit_spectrum.dat"
         ret.spec_best, ret.bestbandflux = self.eval(bestp)
+        filename = f'{output}_bestfit_spectrum.png'
+        self.plot_spectrum(spec='best', filename=filename)
 
         atm = self.atm
         header = "# Retrieval best-fitting atmospheric model.\n\n"
@@ -427,8 +437,6 @@ class Pyrat():
             atm.vmr, radius=atm.radius,
             punits=atm.punits, runits=atm.runits, header=header,
         )
-        filename = f'{output}_bestfit_spectrum.png'
-        self.plot_spectrum(spec='best', filename=filename)
 
         # Temperature profiles:
         if atm.temp_model is not None:
@@ -451,25 +459,27 @@ class Pyrat():
                 filename=f'{output}_posterior_temperature_profile.png',
             )
 
-        is_emission = self.od.rt_path in pc.emission_rt
         is_transmission = self.od.rt_path in pc.transmission_rt
-
-        if is_emission:
+        if is_transmission:
+            path = 'transit'
+            contrib = ps.transmittance(self.od.depth, self.od.ideep)
+        else:  # emission or eclipse
+            path = 'emission'
             contrib = ps.contribution_function(
                 self.od.depth, atm.press, self.od.B,
             )
-        elif is_transmission:
-            contrib = ps.transmittance(self.od.depth, self.od.ideep)
-        bands_idx = [band.idx for band in self.obs.filters]
-        bands_response = [band.response for band in self.obs.filters]
+        if self.obs.nfilters > 0:
+            bands_idx = [band.idx for band in self.obs.filters]
+            bands_response = [band.response for band in self.obs.filters]
+            band_wl = 1.0/(self.obs.bandwn*pc.um)
+        elif self.obs.nfilters_hires > 0:
+            bands_idx = [band.idx for band in self.obs.filters_hires]
+            bands_response = [band.response for band in self.obs.filters_hires]
+            band_wl = 1.0/(self.obs.wn_hires*pc.um)
         band_cf = ps.band_cf(contrib, bands_response, self.spec.wn, bands_idx)
 
-        path = 'transit' if is_transmission else 'emission'
-        pp.contribution(
-            band_cf, 1.0/(self.obs.bandwn*pc.um),
-            path, atm.press,
-            filename=f'{output}_bestfit_cf.png',
-        )
+        filename = f'{output}_bestfit_cf.png'
+        pp.contribution(band_cf, band_wl, path, atm.press, filename)
 
         self.log = log  # Un-mute
         root_output = os.path.split(output)[0]
@@ -584,8 +594,7 @@ class Pyrat():
             spectrum = self.spec.spectrum
 
         bandflux = np.array([band(spectrum) for band in self.obs.filters])
-        # Handle 'f_lambda'
-        if self.od.rt_path in pc.emission_rt:
+        if self.od.rt_path in pc.eclipse_rt:
             rprs_square = (self.atm.rplanet/self.phy.rstar)**2.0
             bandflux = bandflux / self.obs.bandflux_star * rprs_square
 
@@ -692,16 +701,17 @@ class Pyrat():
         ax: AxesSubplot instance
             The matplotlib Axes of the figure.
         """
+        obs = self.obs
         args = {
-            'wavelength': 1.0/(self.spec.wn*pc.um),
-            'data': self.obs.data,
-            'uncert': self.obs.uncert,
+            'wavelength': self.spec.wl,
+            'data': obs.data,
+            'uncert': obs.uncert,
             'logxticks': self.inputs.logxticks,
             'yran': self.inputs.yran,
             'theme': self.ret._default_theme,
+            'data_color': self.inputs.data_color,
         }
 
-        obs = self.obs
         if obs.nfilters > 0:
             args['bands_wl0'] = [band.wl0 for band in obs.filters]
             args['bands_wl'] = [band.wl for band in obs.filters]
