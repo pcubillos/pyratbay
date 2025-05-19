@@ -43,8 +43,8 @@ class Opacity():
         # The flag self.is_patchy will be set in pyrat.Retrieval() because
         # a patchy model may be set via the retrieval_params input
 
-        min_wn = np.amin(wn)
-        max_wn = np.amax(wn)
+        min_wn = pyrat.spec.wnlow
+        max_wn = pyrat.spec.wnhigh
         species = list(species)
 
         self.nspec = []

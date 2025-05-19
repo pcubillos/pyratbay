@@ -135,10 +135,8 @@ class Spectrum():
             self.nwave = len(self.wn)
             self.spectrum = np.zeros(self.nwave, np.double)
 
-            if self.wnlow <= self.wn[0]:
-                self.wnlow = self.wn[0]
-            if self.wnhigh >= self.wn[-1]:
-                self.wnhigh = self.wn[-1]
+            wn_min = self.wn[0]
+            wn_max = self.wn[-1]
 
             # Guess sampling by looking at std of sampling rates:
             dwn = np.ediff1d(np.abs(self.wn))
@@ -165,7 +163,7 @@ class Spectrum():
                 "Reading spectral sampling from extinction-coefficient "
                 f"table.  Adopting array with {sampling_text}, "
                 f"and {self.nwave} samples between "
-                f"[{self.wnlow:.2f}, {self.wnhigh:.2f}] cm-1."
+                f"[{wn_min:.2f}, {wn_max:.2f}] cm-1."
             )
             return
 
@@ -268,15 +266,18 @@ class Spectrum():
         fw.write('Wavenumber internal units: cm-1')
         fw.write('Wavelength internal units: cm')
         fw.write('Wavelength display units (wlunits): {:s}', self.wlunits)
+        wn_min = np.amin(self.wn)
+        wn_max = np.amax(self.wn)
+        wl_min = 1/(wn_max*pt.u(self.wlunits))
+        wl_max = 1/(wn_min*pt.u(self.wlunits))
+
         fw.write(
-            'Low wavenumber boundary (wnlow):   {:10.3f} cm-1  '
-            '(wlhigh = {:6.2f} {})',
-            self.wnlow, self.wlhigh/pt.u(self.wlunits), self.wlunits,
+            f'Low wavenumber boundary (wnlow):   {wn_min:10.3f} cm-1  '
+            f'(wlhigh = {wl_max:6.2f} {self.wlunits})',
         )
         fw.write(
-            'High wavenumber boundary (wnhigh): {:10.3f} cm-1  '
-            '(wllow  = {:6.2f} {})',
-            self.wnhigh, self.wllow/pt.u(self.wlunits), self.wlunits,
+            f'High wavenumber boundary (wnhigh): {wn_max:10.3f} cm-1  '
+            f'(wllow  = {wl_min:6.2f} {self.wlunits})',
         )
         fw.write('Number of samples (nwave): {:d}', self.nwave)
         if self.resolution is None:
