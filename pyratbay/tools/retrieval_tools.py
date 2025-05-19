@@ -281,7 +281,7 @@ def multinest_run(pyrat, mn_basename):
 
 
     # Statistics:
-    best_spectrum, best_model = pyrat.eval(bestp)
+    best_model = pyrat.eval(bestp, retmodel=False)
     data = pyrat.obs.data
     uncert = pyrat.obs.uncert
     best_chisq = np.sum((best_model-data)**2 / uncert**2)
@@ -357,7 +357,7 @@ def posterior_post_processing(cfg_file=None, pyrat=None, suffix=''):
 
     pyrat.spec.specfile = None
     nwave = pyrat.spec.nwave
-    wl = 1.0 / pyrat.spec.wn / pc.um
+    wl = pyrat.spec.wl
 
     # Unique posterior samples:
     u, uind, uinv = np.unique(
@@ -370,18 +370,28 @@ def posterior_post_processing(cfg_file=None, pyrat=None, suffix=''):
     ifree = pyrat.ret.pstep > 0
     u_posterior[:,ifree] = post.posterior[uind]
 
+    is_eclipse = pyrat.od.rt_path in pc.eclipse_rt
     is_emission = pyrat.od.rt_path in pc.emission_rt
     is_transmission = pyrat.od.rt_path in pc.transmission_rt
 
+    nbands = pyrat.obs.ndata
     bands_idx = [band.idx for band in pyrat.obs.filters]
     bands_response = [band.response for band in pyrat.obs.filters]
-    nbands = len(bands_response)
+    band_wl = 1.0 / pyrat.obs.bandwn / pc.um
+
+    ndata_hires = pyrat.obs.nfilters_hires
+    if ndata_hires != 0:
+        nbands = ndata_hires
+        bands_idx = [band.idx for band in pyrat.obs.filters_hires]
+        bands_response = [band.response for band in pyrat.obs.filters_hires]
+        band_wl = np.array([band.wl0 for band in pyrat.obs.filters_hires])
+
     # Evaluate models:
     models = np.zeros((n_unique, nwave))
     band_models = np.zeros((n_unique, nbands))
     temp = np.zeros((n_unique, pyrat.atm.nlayers))
     vmr = np.zeros((n_unique, pyrat.atm.nlayers, pyrat.atm.nmol))
-    cf = np.zeros((n_unique, pyrat.atm.nlayers, pyrat.obs.nfilters))
+    cf = np.zeros((n_unique, pyrat.atm.nlayers, nbands))
     t0 = time.time()
     for i in range(n_unique):
         models[i], band_models[i] = pyrat.eval(u_posterior[i])
@@ -413,6 +423,10 @@ def posterior_post_processing(cfg_file=None, pyrat=None, suffix=''):
         msample = models[uinv,i]
         spectrum_posterior[:,i] = np.percentile(msample, 100.0*quantiles)
 
+    band_models_posterior = np.percentile(
+        band_models[uinv,:], 100.0*quantiles, axis=0,
+    )
+
     temperature_posterior = np.percentile(temp[uinv], 100.0*quantiles, axis=0)
     vmr_posterior = np.percentile(vmr[uinv], 100.0*quantiles, axis=0)
     cf_posterior = cf[uinv]
@@ -433,27 +447,39 @@ def posterior_post_processing(cfg_file=None, pyrat=None, suffix=''):
             if spec not in active_species:
                 active_species.append(spec)
 
-    band_models_posterior = np.percentile(
-        band_models[uinv,:], 100.0*quantiles, axis=0,
-    )
+    if pyrat.od.rt_path == 'f_lambda':
+        flux_units = 'W m-2 um-1'
+    else:
+        flux_units = 'erg s-1 cm-2 cm'
 
     units = {
         'depth': pyrat.obs.units,
-        'flux': 'erg s-1 cm-2 cm',
+        'flux': flux_units,
         'pressure': 'bar',
         'temperature': 'K',
         'wavelength': 'um',
     }
 
-    outputs = {
-        'depth_posterior': None,  # placeholder
+    outputs = {}
+    if is_transmission:
+        outputs['depth_posterior'] = spectrum_posterior
+    elif is_emission:
+        outputs['flux_posterior'] = spectrum_posterior
+    elif is_eclipse:
+        rprs = pyrat.atm.rplanet / pyrat.phy.rstar
+        depth = spectrum_posterior / pyrat.spec.starflux * rprs**2.0
+        outputs['depth_posterior'] = depth
+        outputs['flux_posterior'] = spectrum_posterior
+        outputs['rprs'] = rprs
+
+    outputs |= {
         'temperature_posterior': temperature_posterior,
         'vmr_posterior': vmr_posterior,
         'band_models_posterior': band_models_posterior,
         'cf_posterior_median': cf_median,
         'pressure': pyrat.atm.press,
         'wl': wl,
-        'band_wl': 1.0 / pyrat.obs.bandwn / pc.um,
+        'band_wl': band_wl,
         'bands_wl': [band.wl for band in pyrat.obs.filters],
         'bands_response': [band.response for band in pyrat.obs.filters],
         'species': pyrat.atm.species,
@@ -462,27 +488,24 @@ def posterior_post_processing(cfg_file=None, pyrat=None, suffix=''):
         'quantiles': quantiles,
         'units': units,
         'path': pyrat.od.rt_path,
-        'data': pyrat.obs.data,
-        'uncert': pyrat.obs.uncert,
     }
-
-    if is_transmission:
-        outputs['depth_posterior'] = spectrum_posterior
-    elif is_emission and pyrat.od.rt_path=='f_lambda':
-        pass
-    elif is_emission:
-        rprs = pyrat.atm.rplanet / pyrat.phy.rstar
-        depth = spectrum_posterior / pyrat.spec.starflux * rprs**2.0
-        outputs['depth_posterior'] = depth
-        outputs['rprs'] = rprs
+    if pyrat.obs.data is not None:
+        outputs['data'] = pyrat.obs.data
+        outputs['uncert'] = pyrat.obs.uncert
+    if pyrat.obs.data_hires is not None:
+        outputs['data_hires'] = pyrat.obs.data_hires
+        outputs['uncert_hires'] = pyrat.obs.uncert_hires
 
     post_file = f'{basename}{suffix}_posteriors_info.pickle'
     with open(post_file, 'wb') as handle:
         pickle.dump(outputs, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     # Now make some plots:
-    theme = pyrat.ret.theme
-    logxticks = pyrat.inputs.logxticks
-    pp.posteriors(post_file, theme=theme, logxticks=logxticks)
+    pp.posteriors(
+        post_file,
+        theme=pyrat.ret.theme,
+        data_color=pyrat.inputs.data_color,
+        logxticks=pyrat.inputs.logxticks,
+    )
 
     return outputs
