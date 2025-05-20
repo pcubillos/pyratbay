@@ -716,7 +716,8 @@ def abundance(
 
 
 def posteriors(
-        post_file, theme='blue', plot_species=None, vmr_lims=None,
+        post_file, theme='blue', data_color='black',
+        plot_species=None, vmr_lims=None,
         logxticks=None, dpi=300,
     ):
     """
@@ -731,6 +732,8 @@ def posteriors(
         values of interest.
     theme: string or mc3.plots.Theme object
         A color theme for the models.
+    data_color: a valid matplotlib color
+        The color for the spectrum data points.
     plot_species: 1D string iterable
         List of species to plot in VMR figure.
         If None, default to the species in post_data['active_species'],
@@ -920,7 +923,6 @@ def posteriors(
         resolution = 125.0
         marker = 'o'
         data_front = True
-        data_color = 'black'
     # High-resolution data
     elif 'data_hires' in post_data:
         depth_posterior = post_data['band_models_posterior']
@@ -931,7 +933,6 @@ def posteriors(
         resolution = None
         marker = '.'
         data_front = False
-        data_color = 'tomato'
 
     args = {}
     args['spectrum'] = depth_posterior[0]

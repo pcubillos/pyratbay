@@ -85,7 +85,7 @@ class Observation():
                 filters_hires, self.data_hires, self.uncert_hires = obs_data
             elif np.ndim(obs_data) == 1:
                 filters_hires = obs_data
-            self.wn_hires = np.array([band.wn0 for band in self.filters_hires])
+            self.wn_hires = np.array([band.wn0 for band in filters_hires])
             for band in filters_hires:
                 band.half_width = band.wl0 / self.inst_resolution / 2.0
                 band.set_sampling(wn=wn)
