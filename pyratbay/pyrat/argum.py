@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2024 Patricio Cubillos
+# Copyright (c) 2021-2025 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import multiprocessing as mp
@@ -6,7 +6,6 @@ import multiprocessing as mp
 import numpy as np
 import scipy.interpolate as si
 
-from .. import tools as pt
 from .. import constants as pc
 from .. import spectrum as ps
 from .. import io as io
@@ -40,7 +39,7 @@ def check_spectrum(pyrat):
 
     # Not needed for f_lambda
     missing_radius_ratio = (
-        pyrat.od.rt_path in pc.emission_rt and
+        pyrat.od.rt_path in pc.eclipse_rt and
         (atm.rplanet is None or phy.rstar is None)
     )
     if missing_radius_ratio:
@@ -133,10 +132,10 @@ def setup(pyrat):
             pyrat.spec.flux_interp = si.interp1d(star_temps, starflux, axis=0)
             pyrat.spec.starflux = pyrat.spec.flux_interp(phy.tstar)
 
-    is_emission = pyrat.od.rt_path in pc.emission_rt
-    if is_emission and starflux is None:
+    is_eclipse = pyrat.od.rt_path in pc.eclipse_rt
+    if is_eclipse and starflux is None:
         log.error(
-            'Undefined stellar flux model.  Set starspec, kurucz, or '
-            'tstar (for a blackbody spectrum)'
+            'Undefined stellar flux model, required for eclipse calculation.  '
+            'Set starspec, kurucz, or tstar (for a blackbody spectrum)'
         )
 

@@ -27,7 +27,7 @@ def optical_depth(pyrat):
         od.depth_clear = np.zeros((nlayers, nwave))
 
     # Calculate the ray path:
-    if pyrat.od.rt_path in pc.emission_rt:
+    if pyrat.od.rt_path in pc.emission_rt + pc.eclipse_rt:
         pyrat.od.raypath = -cu.ediff(pyrat.atm.radius)
     elif pyrat.od.rt_path in pc.transmission_rt:
         pyrat.od.raypath = pa.transit_path(pyrat.atm.radius, pyrat.atm.rtop)
@@ -47,9 +47,9 @@ def optical_depth(pyrat):
             rbottom = model.itop + 1
             break
     # Calculate the optical depth for each wavenumber:
-    if od.rt_path in pc.emission_rt:
+    if od.rt_path in pc.emission_rt + pc.eclipse_rt:
         od.ideep = np.tile(nlayers-1, nwave)
-        maxdepth = np.inf if od.rt_path=='emission_two_stream' else od.maxdepth
+        maxdepth = np.inf if 'two_stream' in od.rt_path else od.maxdepth
         i = 0
         while i < nwave:
             od.ideep[i] = rtop - 1 + t.cumtrapz(

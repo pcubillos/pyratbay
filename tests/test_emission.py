@@ -23,9 +23,7 @@ keys = [
     'lec', 'cia', 'alkali', 'deck', 'tli', 'all', 'quadrature', 'etable',
     'resolution', 'two_stream',
     'tmodel', 'vert', 'scale',
-    #'fit1', 'fit2', 'fit3', 'fit4',
-    #'bandflux4',
-    ]
+]
 expected = {
     key:np.load(f"{ROOT}tests/expected/"
                 f"expected_spectrum_emission_{key}_test.npz")['arr_0']
@@ -183,11 +181,8 @@ def test_emission_dilution(tmp_path):
         remove=['clouds'],
     )
     pyrat = pb.run(cfg)
-    np.testing.assert_allclose(
-        pyrat.spec.spectrum,
-        0.75*expected['all'],
-        rtol=rtol,
-    )
+    spectrum = pyrat.spec.spectrum
+    np.testing.assert_allclose(spectrum, 0.75*expected['all'], rtol=rtol)
 
 
 # Optical-depth integration is home made, which depends on whether there is
@@ -379,12 +374,12 @@ def test_emission_band_integrate_no_data():
     bandflux = pyrat.band_integrate()
 
     expected_bandflux = [
-        2.0600785289e-04, 2.2919655505e-04, 2.4065559114e-04, 2.8029860209e-04,
-        3.0155143043e-04, 3.1963485203e-04, 3.3379717207e-04, 3.3539204122e-04,
-        3.2066224764e-04, 2.4138103230e-04, 2.6113180837e-04, 2.6163118428e-04,
-        2.6030023197e-04, 3.0939984882e-04, 3.3163315401e-04, 3.9102530827e-04,
-        4.5804716173e-04, 4.9061722081e-04, 5.3090552207e-04, 5.5291946981e-04,
-        5.6982334683e-04
+        8.3599947569e+04, 9.1936437625e+04, 9.5370700411e+04, 1.0969818451e+05,
+        1.1649916250e+05, 1.2185286352e+05, 1.2553116994e+05, 1.2438978527e+05,
+        1.1725908661e+05, 8.7011248879e+04, 9.2765800664e+04, 9.1579962889e+04,
+        8.9772751571e+04, 1.0512204822e+05, 1.1097901106e+05, 1.2887758081e+05,
+        1.4867552591e+05, 1.5681272074e+05, 1.6709541727e+05, 1.7135625157e+05,
+        1.7388629298e+05,
     ]
     #print(' '.join([f'{flux:.10e},' for flux in bandflux]))
     np.testing.assert_allclose(pyrat.spec.spectrum, spectrum)
@@ -481,7 +476,7 @@ def test_opacity_reset_wn(tmp_path, wllow, wlhigh):
     )
     pyrat = pb.run(cfg)
     wn = np.arange(1/1.7e-4, 1/1.1e-4, 1.0)
-    wn_range = (wn>= pyrat.spec.wnlow) & (wn <=pyrat.spec.wnhigh)
+    wn_range = (wn >= pyrat.spec.wnlow) & (wn <= pyrat.spec.wnhigh)
     etab = expected['etable'][wn_range]
     np.testing.assert_allclose(pyrat.spec.spectrum, etab, rtol=rtol)
 

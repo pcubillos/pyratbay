@@ -88,7 +88,7 @@ class Optdepth():
               '\nOptical depth at each impact parameter, down to '
               'max(ideep) (depth):'
           )
-      elif self.rt_path in pc.emission_rt:
+      elif self.rt_path in pc.emission_rt + pc.eclipse_rt:
           fw.write(
               '\nDistance across each layer along a normal ray path '
               '(raypath, km):\n    {}',
@@ -114,7 +114,7 @@ class Optdepth():
       )
       fw.write('Maximum ideep (deepest layer reaching maxdepth): {}', ideepest)
 
-      if self.rt_path in pc.emission_rt:
+      if self.rt_path in pc.emission_rt + pc.eclipse_rt:
           fw.write(
               '\nPlanck emission down to max(ideep) (B, erg s-1 cm-2 '
               'sr-1 cm):\n{}',

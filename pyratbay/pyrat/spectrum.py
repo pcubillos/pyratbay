@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2024 Patricio Cubillos
+# Copyright (c) 2021-2025 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -10,6 +10,7 @@ __all__ = [
     'two_stream',
 ]
 
+import os
 import numpy as np
 import scipy.constants as sc
 import scipy.special as ss
@@ -37,9 +38,9 @@ class Spectrum():
 
         self.specfile = inputs.specfile # Transmission/Emission spectrum file
         self.intensity = None  # Intensity spectrum array
-        self.clear     = None  # Clear modulation spectrum for patchy model
-        self.cloudy    = None  # Cloudy modulation spectrum for patchy model
-        self.starflux  = None  # Stellar flux spectrum
+        self.clear = None  # Clear modulation spectrum for patchy model
+        self.cloudy = None  # Cloudy modulation spectrum for patchy model
+        self.starflux = None  # Stellar flux spectrum
         self.wnosamp = None
 
         # Gaussian-quadrature flux integration over hemisphere (for emission)
@@ -338,28 +339,61 @@ def spectrum(pyrat):
     if pyrat.od.rt_path in pc.transmission_rt:
         modulation(pyrat)
 
-    elif pyrat.od.rt_path in ['emission', 'f_lambda']:
+    elif pyrat.od.rt_path in ['emission', 'eclipse', 'f_lambda']:
         intensity(pyrat)
         flux(pyrat)
 
-    elif pyrat.od.rt_path == 'emission_two_stream':
+    elif pyrat.od.rt_path in ['emission_two_stream', 'eclipse_two_stream']:
         two_stream(pyrat)
 
-    if pyrat.spec.f_dilution is not None and pyrat.od.rt_path in pc.emission_rt:
-        pyrat.spec.spectrum *= pyrat.spec.f_dilution
+    is_emission = pyrat.od.rt_path in pc.eclipse_rt + pc.emission_rt
+    if pyrat.od.rt_path in pc.eclipse_rt:
+        pyrat.spec.fplanet = np.copy(pyrat.spec.spectrum)
+        pyrat.spec.spectrum = pyrat.spec.eclipse = (
+            pyrat.spec.fplanet / pyrat.spec.starflux *
+            (pyrat.atm.rplanet/pyrat.phy.rstar)**2.0
+        )
 
-    # Print spectrum to file:
+    if pyrat.spec.f_dilution is not None and is_emission:
+        pyrat.spec.fplanet *= pyrat.spec.f_dilution
+        if hasattr(pyrat.spec, 'eclipse'):
+            pyrat.spec.eclipse *= pyrat.spec.f_dilution
+
+    # Print spectra to file:
     if pyrat.od.rt_path in pc.transmission_rt:
         spec_type = 'transit'
     elif pyrat.od.rt_path in pc.emission_rt:
         spec_type = 'emission'
-
+    elif pyrat.od.rt_path in pc.eclipse_rt:
+        spec_type = 'eclipse'
     io.write_spectrum(
         pyrat.spec.wl,
         pyrat.spec.spectrum,
         pyrat.spec.specfile,
         spec_type,
     )
+
+    # Also save fstar and fplanet when possible
+    if pyrat.spec.specfile is not None:
+        file, extension = os.path.splitext(pyrat.spec.specfile)
+        if is_emission and pyrat.spec.starflux is not None:
+            fstar_file = f'{file}_fstar{extension}'
+            io.write_spectrum(
+                pyrat.spec.wl,
+                pyrat.spec.starflux,
+                fstar_file,
+                'emission',
+            )
+        if pyrat.od.rt_path in pc.eclipse_rt:
+            fplanet_file = f'{file}_fplanet{extension}'
+            io.write_spectrum(
+                pyrat.spec.wl,
+                pyrat.spec.fplanet,
+                fplanet_file,
+                'emission',
+            )
+
+
     if pyrat.spec.specfile is not None:
         specfile = f": '{pyrat.spec.specfile}'"
     else:
@@ -446,7 +480,7 @@ def flux(pyrat):
     for eclipse geometry.
     """
     # Weight-sum the intensities to get the flux:
-    pyrat.spec.spectrum[:] = np.sum(
+    pyrat.spec.fplanet = pyrat.spec.spectrum = np.sum(
         pyrat.spec.intensity * pyrat.spec.quadrature_weights,
         axis=0,
     )
@@ -502,7 +536,7 @@ def two_stream(pyrat):
             pyrat.atm.beta_irr * (phy.rstar/pyrat.atm.smaxis)**2 * spec.starflux
     # Eqs. (B6) of Heng et al. (2014):
     for i in range(nlayers-1):
-    # TBD: Can I make this work of rtop is below the top layer?
+    # TBD: Can I make this work if rtop is below the top layer?
     #for i in range(pyrat.atm.rtop, nlayers-1):
         spec.flux_down[i+1] = (
             trans[i] * spec.flux_down[i]
@@ -521,5 +555,5 @@ def two_stream(pyrat):
                   2/3 * (1-np.exp(-dtau0[i])) - dtau0[i]*(1-trans[i]/3))
         )
 
-    spec.spectrum = spec.flux_up[0]
+    pyrat.spec.fplanet = pyrat.spec.spectrum = spec.flux_up[0]
 

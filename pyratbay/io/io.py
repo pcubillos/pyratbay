@@ -478,7 +478,7 @@ def write_spectrum(wl, spectrum, filename, type):
     else:
         raise ValueError(
             "Input 'type' argument must be 'transit', 'eclipse', "
-            "'emission', or 'filter'"
+            "'emission', 'f_lambda', or 'filter'"
         )
 
     # Precision of 5 decimal places (or better if needed):

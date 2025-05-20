@@ -589,20 +589,23 @@ class Pyrat():
         self.log.verb = tmp_verb
 
 
-    def band_integrate(self, spectrum=None):
+    def band_integrate(self):
         """
         Band-integrate transmission spectrum (transit) or planet-to-star
         flux ratio (eclipse) over transmission band passes.
         """
         if self.obs.filters is None:
             return None
-        if spectrum is None:
+
+        if self.od.rt_path in pc.transmission_rt:
             spectrum = self.spec.spectrum
+        else:
+            spectrum = self.spec.fplanet
 
         bandflux = np.array([band(spectrum) for band in self.obs.filters])
         if self.od.rt_path in pc.eclipse_rt:
-            rprs_square = (self.atm.rplanet/self.phy.rstar)**2.0
-            bandflux = bandflux / self.obs.bandflux_star * rprs_square
+            rprs = self.atm.rplanet/self.phy.rstar
+            bandflux *= rprs**2.0 / self.obs.bandflux_star
 
         self.obs.bandflux = bandflux
         return self.obs.bandflux
