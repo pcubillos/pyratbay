@@ -18,6 +18,8 @@ class Observation():
         # Transit or eclipse data point
         self.data = inputs.data
         self.uncert = inputs.uncert
+        self.data_hires = None
+        self.uncert_hires = None
         self.units = inputs.dunits
         self._dunits = pt.u(self.units)
 
@@ -93,6 +95,9 @@ class Observation():
 
         if self.data_hires is not None:
             self.ndata_hires = len(self.data_hires)
+        else:
+            self.ndata_hires = 0
+
         if self.uncert_hires is not None:
             self.n_uncert_hires = len(self.uncert_hires)
 
