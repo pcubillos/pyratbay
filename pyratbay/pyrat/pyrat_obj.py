@@ -366,12 +366,18 @@ class Pyrat():
         if ret.pstep is None:
             log.error('Missing pstep argument, required for retrieval runs')
 
-        if obs.data is None:
-            log.error("Undefined transit/eclipse data (data)")
-        if obs.uncert is None:
-            log.error("Undefined data uncertainties (uncert)")
-        if obs.nfilters == 0:
-            log.error("Undefined transmission filters (filters)")
+        if obs.data is None and obs.data_hires is None:
+            log.error("Undefined transit/emission/eclipse data for retrieval")
+        if obs.data is not None:
+            if obs.uncert is None:
+                log.error("Undefined data uncertainties")
+            if obs.nfilters == 0:
+                log.error("Undefined transmission filters (filters)")
+        if obs.data_hires is not None:
+            if obs.uncert_hires is None:
+                log.error("Undefined high-resolution data uncertainties")
+            if obs.nfilters_hires == 0:
+                log.error("Undefined transmission filters (filters)")
 
         # Create output folder if needed:
         pt.mkdir(ret.mcmcfile)
