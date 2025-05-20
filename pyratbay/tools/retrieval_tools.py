@@ -42,7 +42,25 @@ class Loglike():
         self.pstep = pyrat.ret.pstep
         self.ifree = self.pstep>0
         self.ishare = np.where(self.pstep<0)[0]
-        # TBD: Throw error when there is no data or retrieval parameters
+        # Concatenate (low-res) data and high-res data arrays
+        self.data = []
+        self.uncert = []
+        if pyrat.obs.data is not None:
+            self.data = pyrat.obs.data
+            self.uncert = pyrat.obs.uncert
+        if pyrat.obs.data_hires is not None:
+            self.data = np.concatenate((self.data, pyrat.obs.data_hires))
+            self.uncert = np.concatenate((self.uncert, pyrat.obs.uncert_hires))
+        if np.sum(self.ifree) == 0:
+            raise ValueError(
+                'Attempting to compute a log-likelihood for a model '
+                'with no free parameters'
+            )
+        if len(self.data) == 0:
+            raise ValueError(
+                'Attempting to compute a log-likelihood for a model '
+                'with no data'
+            )
 
     def __call__(self, params):
         """
@@ -60,12 +78,10 @@ class Loglike():
 
         # Evaluate model (and update data if necessary)
         model = self.func(self.params, retmodel=False)
-        data = self.obs.data
-        uncert = self.obs.uncert
 
         log_like = (
-            -0.5*np.sum(((data - model) / uncert)**2.0)
-            -0.5*np.sum(np.log(2.0*np.pi*uncert**2.0))
+            -0.5*np.sum(((self.data - model) / self.uncert)**2.0)
+            -0.5*np.sum(np.log(2.0*np.pi*self.uncert**2.0))
         )
         if not np.isfinite(log_like):
             log_like = -1.0e98
