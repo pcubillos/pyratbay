@@ -462,7 +462,7 @@ class Pyrat():
             ret.temp_median = tpost[0]
             ret.temp_post_boundaries = tpost[1:]
             self.plot_temperature(
-                filename=f'{output}_posterior_temperature_profile.png',
+                filename=f'{output}_bestfit_temperature.png',
             )
 
         is_transmission = self.od.rt_path in pc.transmission_rt
@@ -484,7 +484,7 @@ class Pyrat():
             band_wl = 1.0/(self.obs.wn_hires*pc.um)
         band_cf = ps.band_cf(contrib, bands_response, self.spec.wn, bands_idx)
 
-        filename = f'{output}_bestfit_cf.png'
+        filename = f'{output}_bestfit_contributions.png'
         pp.contribution(band_cf, band_wl, path, atm.press, filename)
 
         self.log = log  # Un-mute

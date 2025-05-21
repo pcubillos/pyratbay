@@ -771,7 +771,7 @@ def posteriors(
     cf_median = post_data['cf_posterior_median']
     contribution(
         cf_median, band_wl, post_data['path'],
-        pressure, filename=f'{root}_median_cf.png'
+        pressure, filename=f'{root}_posterior_contributions.png'
     )
 
 
@@ -807,7 +807,7 @@ def posteriors(
         [dx, dx], [1.0, 1.015], lw=0.75, c='k',
         clip_on=False, transform=ax.transAxes,
     )
-    plt.savefig(f'{root}_temperature_posteriors.png', dpi=dpi)
+    plt.savefig(f'{root}_posterior_temperature.png', dpi=dpi)
 
 
     # Volume mixing ratios
@@ -890,7 +890,7 @@ def posteriors(
         [dx, dx], [1.0, 1.015], lw=0.75, c='k',
         clip_on=False, transform=ax.transAxes,
     )
-    plt.savefig(f"{root}_vmr_posterior.png", dpi=dpi)
+    plt.savefig(f"{root}_posterior_vmr.png", dpi=dpi)
 
     for j in range(nmol_show):
         spec = plot_species[j]
@@ -899,7 +899,7 @@ def posteriors(
             pressure, post_vmr[2,:,j], post_vmr[3,:,j],
             color=col, alpha=0.125, ec='none', zorder=zorder[j]-nmol_show,
         )
-    plt.savefig(f"{root}_vmr_posterior_2sigma.png", dpi=300)
+    plt.savefig(f"{root}_posterior_vmr_2sigma.png", dpi=300)
 
 
     # Spectrum
@@ -952,6 +952,6 @@ def posteriors(
     args['logxticks'] = logxticks
     args['theme'] = theme
     args['data_color'] = data_color
-    args['filename'] = f"{root}_spectrum_posterior.png"
+    args['filename'] = f"{root}_posterior_spectrum.png"
     ax = spectrum(**args)
 

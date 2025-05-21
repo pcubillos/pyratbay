@@ -287,11 +287,11 @@ def multinest_run(pyrat, mn_basename):
     )
     log.msg(savefile, indent=2)
     # Pairwise posteriors plots:
-    savefile = f'{mn_basename}_pairwise_posterior.png'
+    savefile = f'{mn_basename}_posterior_pairwise.png'
     post.plot(savefile=savefile)
     log.msg(savefile, indent=2)
     # Histogram plots:
-    savefile = f'{mn_basename}_marginal_posterior.png'
+    savefile = f'{mn_basename}_posterior_marginal.png'
     post.plot_histogram(savefile=savefile)
     log.msg(savefile, indent=2)
 
