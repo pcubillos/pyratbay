@@ -298,18 +298,26 @@ def multinest_run(pyrat, mn_basename):
 
     # Statistics:
     best_model = pyrat.eval(bestp, retmodel=False)
-    data = pyrat.obs.data
-    uncert = pyrat.obs.uncert
+    data = []
+    uncert = []
+    if pyrat.obs.data is not None:
+        data = pyrat.obs.data
+        uncert = pyrat.obs.uncert
+    if pyrat.obs.data_hires is not None:
+        data = np.concatenate((data, pyrat.obs.data_hires))
+        uncert = np.concatenate((uncert, pyrat.obs.uncert_hires))
+
+    ndata = len(data)
     best_chisq = np.sum((best_model-data)**2 / uncert**2)
-    red_chisq = best_chisq / (pyrat.obs.ndata-n_free)
-    if pyrat.obs.ndata <= n_free:
+    red_chisq = best_chisq / (ndata-n_free)
+    if ndata <= n_free:
         red_chisq = np.nan
 
     # TBD: need to add log(prior)
     output['best_log_post'] = loglike(bestp[ifree])
     output['best_chisq'] = best_chisq
     output['red_chisq'] = red_chisq
-    output['BIC'] = best_chisq + n_free*np.log(pyrat.obs.ndata)
+    output['BIC'] = best_chisq + n_free*np.log(ndata)
     output['stddev_residuals'] = np.std(best_model-data)
 
     sample_stats = mc3.stats.calc_sample_statistics(
