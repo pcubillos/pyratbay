@@ -1,7 +1,6 @@
 # Isotopic data collected from HITRAN and Exomol databases
 # https://hitran.org/hapi/
 # https://www.exomol.com/data/molecules/
-# (as of: Wed Jun  1 14:17:31 CEST 2022)
 
 # Column: Notes
 # -------------
@@ -9,7 +8,7 @@
 # - Molecule name
 # - HITRAN isotopologue ID: AFGL code
 # - Exomol isotopologue ID: derived from Exomol file names, e.g,
-#       for water, 1H2-16O  --> 166
+#       for water, 1H2-16O  --> 116
 # - Isotopic ratio: taken from HITRAN, else, using elemental natural abundances
 #       Simeckova et al. (2006), Rothman et al (2013),
 # - Isotopic mass (amu): taken from HITRAN, else calculated with

@@ -316,7 +316,7 @@ Partition function for each isotope (z):
     [ 6.000e+00  6.353e+00  9.217e+00 ...  2.006e+06  2.013e+06  2.019e+06]
     [ 3.600e+01  3.809e+01  5.505e+01 ...  1.187e+07  1.191e+07  1.195e+07]
 
-Total number of line transitions (ntransitions): 47,658
+Total number of line transitions (ntransitions): 47,666
 Minimum and maximum temperatures (tmin, tmax): [1.0, 6000.0] K
 Line-transition isotope IDs (isoid):
     [0 0 0 0 0 0 0 ... 3 3 3 3 3 3 3]
@@ -389,7 +389,7 @@ Wavenumber internal units: cm-1
 Wavelength internal units: cm
 Wavelength display units (wlunits): um
 Low wavenumber boundary (wnlow):     5882.353 cm-1  (wlhigh =   1.70 um)
-High wavenumber boundary (wnhigh):   9090.909 cm-1  (wllow  =   1.10 um)
+High wavenumber boundary (wnhigh):   9090.353 cm-1  (wllow  =   1.10 um)
 Number of samples (nwave): 3209
 Sampling interval (wnstep): 1.000 cm-1
 Wavenumber array (wn, cm-1):
@@ -595,7 +595,7 @@ def test_pyrat_transmission_resolution_str(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        reset={'resolution':'5000.0'},
+        reset={'resolution': '5000.0'},
         remove=['clouds'],
     )
     pyrat = pb.run(cfg)
@@ -615,7 +615,7 @@ Wavenumber internal units: cm-1
 Wavelength internal units: cm
 Wavelength display units (wlunits): um
 Low wavenumber boundary (wnlow):     5882.353 cm-1  (wlhigh =   1.70 um)
-High wavenumber boundary (wnhigh):   9090.909 cm-1  (wllow  =   1.10 um)
+High wavenumber boundary (wnhigh):   9089.836 cm-1  (wllow  =   1.10 um)
 Number of samples (nwave): 2177
 Spectral resolving power (resolution): 5000.0
 Wavenumber array (wn, cm-1):

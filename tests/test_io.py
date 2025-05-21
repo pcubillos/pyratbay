@@ -64,7 +64,7 @@ def test_write_spectrum_bad_type():
     trans = np.ones(20)
     match = (
         "Input 'type' argument must be 'transit', 'eclipse', "
-        "'emission', or 'filter'"
+        "'emission', 'f_lambda', or 'filter'"
     )
     with pytest.raises(ValueError, match=match):
         io.write_spectrum(wl, trans, "tophat_filter.dat", 'bad_type')

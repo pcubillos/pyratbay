@@ -54,8 +54,13 @@ def undefined_mcmc():
     data = {
         'params': 'Undefined retrieval fitting parameters (params)',
         'data':   'Undefined transit/eclipse data (data)',
-        'uncert': 'Undefined data uncertainties (uncert)',
-        'filters': 'Undefined transmission filters (filters)',
+        'uncert': 'Undefined data uncertainties',
+        'filters': 'Undefined transmission filters',
+        #'data_hires': 'Undefined transit/eclipse data (data)',
+        #'uncert_hires': 'Undefined data uncertainties',
+        #'filters_hires': 'Undefined transmission filters',
+        'retrieval_params':
+            'Undefined retrieval fitting parameters (retrieval_params)',
         'sampler': 'Undefined retrieval algorithm (sampler).  Select '
                    "from ['snooker', 'multinest']",
         'nsamples': 'Undefined number of retrieval samples (nsamples)',

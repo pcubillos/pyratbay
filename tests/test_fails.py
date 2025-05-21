@@ -542,6 +542,23 @@ def test_spectrum_inconsistent_wl_bounds(tmp_path):
 
 @pytest.mark.parametrize(
     'param',
+    ['rstar'],
+)
+def test_spectrum_eclipse_missing(tmp_path, param, undefined_spec):
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_eclipse_filters_test.cfg',
+        remove=[param],
+    )
+    error = re.escape(
+        'Undefined radius ratio, need to define both rplanet and rstar'
+    )
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
+
+
+@pytest.mark.parametrize(
+    'param',
     ['rstar', 'rt_path'],
 )
 def test_spectrum_transmission_missing(tmp_path, param, undefined_spec):
@@ -591,9 +608,11 @@ def test_spectrum_no_radius(tmp_path):
         pyrat = pb.run(cfg)
 
 
-@pytest.mark.parametrize('atm',
+@pytest.mark.parametrize(
+    'atm',
     [f'{ROOT}/tests/inputs/atmosphere_uniform_test.atm',
-     f'{ROOT}/tests/inputs/atmosphere_uniform_radius.atm'])
+     f'{ROOT}/tests/inputs/atmosphere_uniform_radius.atm']
+)
 def test_spectrum_hydro_missing_MGplanet(tmp_path, atm):
     cfg = make_config(
         tmp_path,
@@ -1397,8 +1416,9 @@ def test_crosssec_mol_not_in_atm():
         'data',
         'uncert',
         'filters',
-        'rstar',
+        'retrieval_params',
         'sampler',
+        # MCMC-only:
         'nsamples',
         'burnin',
         'nchains',
@@ -1406,10 +1426,8 @@ def test_crosssec_mol_not_in_atm():
 )
 def test_mcmc_missing(tmp_path, param, undefined_mcmc):
     reset = {
-        'rt_path': 'emission',
-        'kurucz': f'{ROOT}tests/inputs/mock_fp00k0odfnew.pck',
-        'log_gstar': '4.5',
-        'sampler': 'snooker',
+        'tpars': '-4.84 -0.8 -0.8 0.5 1200.0 100.0',
+        'vmr_vars': 'log_H2O -4.8',
     }
     cfg = make_config(
         tmp_path,
@@ -1426,12 +1444,13 @@ def test_mcmc_missing_starspec(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/mcmc_transmission_test.cfg',
-        reset={'rt_path':'emission'},
-        remove=['tstar', 'tmodel'],
+        reset={'rt_path': 'eclipse'},
+        remove=['tstar'],
     )
     error = re.escape(
-        'Undefined stellar flux model.  Set starspec, kurucz, or tstar '
-        '(for a blackbody spectrum)')
+        'Undefined stellar flux model, required for eclipse calculations.  '
+        'Set starspec, kurucz, or tstar (for a blackbody spectrum)'
+    )
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
 

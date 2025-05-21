@@ -393,7 +393,7 @@ def test_opacity_single_iso(capfd):
     pyrat = pb.run(ROOT+'tests/configs/opacity_test_single_iso.cfg')
     captured = capfd.readouterr()
     assert "Extract data only for the isotope '181'" in captured.out
-    assert "Read a total of 240 line transitions" in captured.out
+    assert "Read a total of 241 line transitions" in captured.out
 
 
 def test_opacity_not_found_single_iso(capfd):

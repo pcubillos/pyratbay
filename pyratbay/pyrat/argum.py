@@ -43,7 +43,9 @@ def check_spectrum(pyrat):
         (atm.rplanet is None or phy.rstar is None)
     )
     if missing_radius_ratio:
-        log.error("Undefined radius ratio, need to define rplanet and rstar")
+        log.error(
+            "Undefined radius ratio, need to define both rplanet and rstar"
+        )
 
     # Accept ray-path argument:
     if pyrat.runmode in ['spectrum', 'retrieval'] and pyrat.od.rt_path is None:
@@ -135,7 +137,7 @@ def setup(pyrat):
     is_eclipse = pyrat.od.rt_path in pc.eclipse_rt
     if is_eclipse and starflux is None:
         log.error(
-            'Undefined stellar flux model, required for eclipse calculation.  '
+            'Undefined stellar flux model, required for eclipse calculations.  '
             'Set starspec, kurucz, or tstar (for a blackbody spectrum)'
         )
 
