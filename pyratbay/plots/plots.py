@@ -188,7 +188,7 @@ def spectrum(
     if rt_path == 'emission':
         ylabel = r'$F_{\rm p}$ (erg s$^{-1}$ cm$^{-2}$ cm)'
     elif rt_path == 'f_lambda':
-        ylabel = r'$F_{\rm p}$ (W m$^{-2}$ um$^{-1}$)'
+        ylabel = r'$F_{\rm p}$ (W m$^{-2}$ $\mathrm{\mu}$m$^{-1}$)'
     elif rt_path == 'eclipse':
         ylabel = fr'$F_{{\rm p}}/F_{{\rm s}}$ {str_units}'
     elif rt_path == 'transit':

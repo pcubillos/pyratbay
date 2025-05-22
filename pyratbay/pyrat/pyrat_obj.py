@@ -392,7 +392,7 @@ class Pyrat():
             posterior = sampler_output['posterior']
 
         # mc3 MCMC wrapper call:
-        if ret.sampler == 'snooker':
+        elif ret.sampler == 'snooker':
             if ret.nsamples is None:
                 log.error('Undefined number of retrieval samples (nsamples)')
             if ret.burnin is None:
@@ -404,7 +404,7 @@ class Pyrat():
             ret.resume = False
             # Mute logging in pyrat object, but not in mc3:
             self.log = mc3.utils.Log(verb=-1, width=80)
-            self.spec.specfile = None  # Avoid writing spectrum file during MCMC
+            self.spec.specfile = None  # Avoid writing spectra during MCMC
             retmodel = False  # Return only the band-integrated spectrum
             # Run MCMC:
             sampler_output = mc3.sample(
@@ -635,59 +635,6 @@ class Pyrat():
         return None, []
 
 
-    def percentile_spectrum(self, nmax=None):
-        """Compute spectrum posterior percentiles."""
-        if self.ret.posterior is None:
-            print('pyrat objec does not have a posterior distribution.')
-            return
-
-        nsamples = np.shape(self.ret.posterior)[0]
-        draws = np.arange(nsamples)
-        if nmax is not None:
-            nmax = np.clip(nmax, 0, nsamples)
-            draws = np.random.choice(draws, nmax, replace=False)
-
-        # Unique MCMC samples:
-        u, uind, uinv = np.unique(self.ret.posterior[draws,0],
-            return_index=True, return_inverse=True)
-        print('Computing {:d} models.'.format(len(u)))
-
-        # Array of all model parameters (with unique samples)
-        posterior = np.repeat([self.ret.params], len(u), axis=0)
-        ifree = np.where(self.ret.pstep >0)[0]
-        posterior[:,ifree] = self.ret.posterior[uind]
-        # Need to keep FILE objects out of pool:
-        logfile, self.log.file = self.log.file, None
-        verb, self.log.verb = self.log.verb, -1
-
-        with mp.get_context('fork').Pool(self.ncpu) as pool:
-            models = pool.map(self.eval, posterior)
-        models = np.array([model for model, bandm in models])
-
-        self.log.file = logfile
-        self.log.verb = verb
-
-        nwave = len(self.spec.wn)
-        low1   = np.zeros(nwave)
-        low2   = np.zeros(nwave)
-        median = np.zeros(nwave)
-        high1  = np.zeros(nwave)
-        high2  = np.zeros(nwave)
-        for i in range(nwave):
-            msample = models[uinv,i]
-            low2[i]   = np.percentile(msample,  2.275)
-            low1[i]   = np.percentile(msample, 15.865)
-            median[i] = np.percentile(msample, 50.000)
-            high1[i]  = np.percentile(msample, 84.135)
-            high2[i]  = np.percentile(msample, 97.725)
-
-        self.ret.spec_median = median
-        self.ret.spec_low1 = low1
-        self.ret.spec_low2 = low2
-        self.ret.spec_high1 = high1
-        self.ret.spec_high2 = high2
-
-
     def plot_spectrum(self, spec='model', **kwargs):
         """
         Plot spectrum.
@@ -696,11 +643,9 @@ class Pyrat():
         ----------
         spec: String
             Flag indicating which model to plot.  By default plot the
-            latest evaulated model (spec='model').  Other options are
-            'best' or 'median' to plot the posterior best-fit or median
-            model, in which case, the code will plot the 1- and 2-sigma
-            boundaries if they have been computed (see
-            self.percentile_spectrum).
+            latest evaulated model (spec='model').  Another option is
+            'best', to plot the posterior best-fit (after a retrieval
+            posterior run).
         kwargs: dict
             Dictionary of arguments to pass into plots.spectrum().
             See help(pyratbay.plots.spectrum).
@@ -712,69 +657,66 @@ class Pyrat():
         """
         obs = self.obs
         args = {
-            'wavelength': self.spec.wl,
-            'data': obs.data,
-            'uncert': obs.uncert,
             'logxticks': self.inputs.logxticks,
             'yran': self.inputs.yran,
             'theme': self.ret._default_theme,
             'data_color': self.inputs.data_color,
         }
 
-        if obs.nfilters > 0:
+        is_hires = obs.nfilters_hires > 0
+
+        if is_hires:
+            band_wl = np.array([band.wl0 for band in obs.filters_hires])
+            args['wavelength'] = band_wl
+            args['data'] = obs.data_hires
+            args['uncert'] = obs.uncert_hires
+            args['bands_wl0'] = band_wl
+            args['resolution'] = None
+            args['marker'] = '.'
+            args['data_front'] = False
+        else:
+            args['wavelength'] = self.spec.wl
+            args['data'] = obs.data
+            args['uncert'] = obs.uncert
             args['bands_wl0'] = [band.wl0 for band in obs.filters]
             args['bands_wl'] = [band.wl for band in obs.filters]
             args['bands_response'] = [band.response for band in obs.filters]
             args['bands_flux'] = obs.bandflux
-
-        if self.ret.spec_low2 is not None:
-            args['bounds'] = [
-                self.ret.spec_low2,  self.ret.spec_low1,
-                self.ret.spec_high1, self.ret.spec_high2,
-            ]
+            if self.obs.inst_resolution is not None:
+                args['resolution'] = self.obs.inst_resolution
+            args['marker'] = 'o'
+            args['data_front'] = True
 
         if spec == 'model':
             args['label'] = 'model'
-            spectrum = np.copy(self.spec.spectrum)
+            if is_hires:
+                args['spectrum'] = obs.bandflux_hires
+            else:
+                args['spectrum'] = self.spec.spectrum
+                args['bands_flux'] = obs.bandflux
         elif spec == 'best':
             args['label'] = 'best-fit model'
-            spectrum = np.copy(self.ret.spec_best)
-            args['bands_flux'] = self.ret.bestbandflux
-        elif spec == 'median':
-            args['label'] = 'median model'
-            spectrum = np.copy(self.ret.spec_median)
-            args['bands_flux'] = self.band_integrate(spectrum)
+            if is_hires:
+                args['spectrum'] = self.ret.bestbandflux
+            else:
+                args['spectrum'] = self.ret.spec_best
+                args['bands_flux'] = self.ret.bestbandflux
         else:
-            print(
-                "Invalid 'spec'.  Select from 'model' (default), 'best', "
-                "or 'median'."
-            )
             return
+
+        if self.od.rt_path == 'f_lambda':
+            args['rt_path'] = 'f_lambda'
+        elif self.od.rt_path in pc.transmission_rt:
+            args['rt_path'] = 'transit'
+        elif self.od.rt_path in pc.eclipse_rt:
+            args['rt_path'] = 'eclipse'
+        else:
+            args['rt_path'] = 'emission'
 
         # kwargs can overwite any of the previous value:
         args.update(kwargs)
 
-        is_eclipse = (
-            self.od.rt_path in pc.emission_rt and
-            self.spec.starflux is not None and
-            self.atm.rplanet is not None and
-            self.phy.rstar is not None
-        )
-
-        if self.od.rt_path in pc.transmission_rt:
-            args['rt_path'] = 'transit'
-        elif is_eclipse:
-            args['rt_path'] = 'eclipse'
-            rprs = self.atm.rplanet/self.phy.rstar
-            spectrum = spectrum/self.spec.starflux * rprs**2.0
-            if 'bounds' in args:
-                args['bounds'] = [
-                    bound/self.spec.starflux * rprs**2.0
-                    for bound in args['bounds']
-                ]
-        else:
-            args['rt_path'] = 'emission'
-        ax = pp.spectrum(spectrum, **args)
+        ax = pp.spectrum(**args)
         return ax
 
 
