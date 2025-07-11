@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2024 Patricio Cubillos
+# Copyright (c) 2021-2025 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -20,7 +20,6 @@ import numpy as np
 from ..pyrat import Pyrat
 from .. import constants as pc
 from .. import plots as pp
-from .. import spectrum as ps
 from .mpi_tools import get_mpi_rank
 from .tools import (
    eta,
@@ -399,15 +398,10 @@ def posterior_post_processing(cfg_file=None, pyrat=None, suffix=''):
     is_transmission = pyrat.od.rt_path in pc.transmission_rt
 
     nbands = pyrat.obs.ndata
-    bands_idx = [band.idx for band in pyrat.obs.filters]
-    bands_response = [band.response for band in pyrat.obs.filters]
     band_wl = 1.0 / pyrat.obs.bandwn / pc.um
-
     ndata_hires = pyrat.obs.nfilters_hires
     if ndata_hires != 0:
         nbands = ndata_hires
-        bands_idx = [band.idx for band in pyrat.obs.filters_hires]
-        bands_response = [band.response for band in pyrat.obs.filters_hires]
         band_wl = np.array([band.wl0 for band in pyrat.obs.filters_hires])
 
     # Evaluate models:
@@ -421,13 +415,7 @@ def posterior_post_processing(cfg_file=None, pyrat=None, suffix=''):
         models[i], band_models[i] = pyrat.eval(u_posterior[i])
         temp[i] = pyrat.atm.temp
         vmr[i] = pyrat.atm.vmr
-        if is_emission:
-            contrib = ps.contribution_function(
-                pyrat.od.depth, pyrat.atm.press, pyrat.od.B,
-            )
-        elif is_transmission:
-            contrib = ps.transmittance(pyrat.od.depth, pyrat.od.ideep)
-        cf[i] = ps.band_cf(contrib, bands_response, pyrat.spec.wn, bands_idx)
+        cf[i] = pyrat.band_contribution()
         timeleft = eta(time.time()-t0, i+1, n_unique, fmt='.2f')
         if i%3 == 0:
             eta_text = (
@@ -456,7 +444,7 @@ def posterior_post_processing(cfg_file=None, pyrat=None, suffix=''):
     cf_posterior = cf[uinv]
     cf_median = np.median(cf_posterior, axis=0)
 
-    # Collect spectroscopically active species:
+    # Collect spectroscopically active species
     active_species = []
     for model in pyrat.opacity.models:
         if not hasattr(model, 'species'):

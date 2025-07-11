@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2023 Patricio Cubillos
+# Copyright (c) 2021-2025 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -95,11 +95,8 @@ def band_cf(cf, bands_response, wn, bands_idx):
     """
     nfilters = len(bands_response)
     nlayers = np.shape(cf)[0]
-
-    # Allocate arrays for filter cf:
     bands_cf = np.zeros((nlayers, nfilters))
 
-    # Number of filters
     for i in range(nfilters):
         response = bands_response[i]
         wn_idx = bands_idx[i]
@@ -107,5 +104,8 @@ def band_cf(cf, bands_response, wn, bands_idx):
         wcf = cf[:,wn_idx] * response
         # Integrated CF across bandpass at each layer:
         bands_cf[:,i] = np.trapezoid(wcf, wn[wn_idx], axis=1)
+
+    # Normalize max-CF at each band = 1:
+    bands_cf /= np.amax(bands_cf, axis=0)
 
     return bands_cf

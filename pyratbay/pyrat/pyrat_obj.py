@@ -1,7 +1,6 @@
-# Copyright (c) 2021-2024 Patricio Cubillos
+# Copyright (c) 2021-2025 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
-import multiprocessing as mp
 from collections import OrderedDict
 import os
 import subprocess
@@ -23,10 +22,10 @@ from .opacity import Opacity
 from .retrieval import Retrieval
 from .voigt import Voigt
 from . import spectrum as sp
-from .  import extinction as ex
-from .  import optical_depth as od
-from .  import objects as ob
-from .  import argum as ar
+from . import extinction as ex
+from . import optical_depth as od
+from . import objects as ob
+from . import argum as ar
 
 
 class Pyrat():
@@ -444,7 +443,7 @@ class Pyrat():
             punits=atm.punits, runits=atm.runits, header=header,
         )
 
-        # Temperature profiles:
+        # Temperature profiles
         if atm.temp_model is not None:
             tparams = atm.tpars
             tparams[ret.map_pars['temp']] = bestp[ret.itemp]
@@ -465,24 +464,15 @@ class Pyrat():
                 filename=f'{output}_bestfit_temperature.png',
             )
 
+        # Contribution or transmittance
         is_transmission = self.od.rt_path in pc.transmission_rt
-        if is_transmission:
-            path = 'transit'
-            contrib = ps.transmittance(self.od.depth, self.od.ideep)
-        else:  # emission or eclipse
-            path = 'emission'
-            contrib = ps.contribution_function(
-                self.od.depth, atm.press, self.od.B,
-            )
+        path = 'transit' if is_transmission else 'emission'
+
         if self.obs.nfilters > 0:
-            bands_idx = [band.idx for band in self.obs.filters]
-            bands_response = [band.response for band in self.obs.filters]
             band_wl = 1.0/(self.obs.bandwn*pc.um)
         elif self.obs.nfilters_hires > 0:
-            bands_idx = [band.idx for band in self.obs.filters_hires]
-            bands_response = [band.response for band in self.obs.filters_hires]
             band_wl = 1.0/(self.obs.wn_hires*pc.um)
-        band_cf = ps.band_cf(contrib, bands_response, self.spec.wn, bands_idx)
+        band_cf = self.band_contribution()
 
         filename = f'{output}_bestfit_contributions.png'
         pp.contribution(band_cf, band_wl, path, atm.press, filename)
@@ -610,6 +600,33 @@ class Pyrat():
         self.obs.bandflux = bandflux
         return self.obs.bandflux
 
+
+    def band_contribution(self):
+        """
+        Compute contribution functions or transmittance at each band.
+        """
+        if self.obs.nfilters_hires != 0:
+            bands = self.obs.filters_hires
+        else:
+            bands = self.obs.filters
+        bands_idx = [band.idx for band in bands]
+        responses = [band.response for band in bands]
+
+        is_transmission = self.od.rt_path in pc.transmission_rt
+        if is_transmission:
+            contrib = ps.transmittance(self.od.depth, self.od.ideep)
+            if self.opacity.is_patchy:
+                patchy = self.opacity.fpatchy
+                depth = self.od.depth_clear
+                contrib_clear = ps.transmittance(depth, self.od.ideep_clear)
+                contrib = patchy*contrib + (1.0-patchy)*contrib_clear
+        else:
+            contrib = ps.contribution_function(
+                self.od.depth, self.atm.press, self.od.B,
+            )
+
+        cf = ps.band_cf(contrib, responses, self.spec.wn, bands_idx)
+        return cf
 
 
     def get_ec(self, layer):
