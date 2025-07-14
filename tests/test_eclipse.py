@@ -19,8 +19,9 @@ os.chdir(ROOT+'tests')
 
 # Expected spectra:
 keys = [
-    'lec', 'cia', 'alkali', 'deck', 'tli', 'all', 'quadrature',
-    'etable',
+    'lec', 'cia', 'alkali', 'deck', 'tli', 'all',
+    'patchy', 'patchy_clear', 'patchy_cloudy',
+    'quadrature', 'etable',
     'resolution', 'two_stream',
     'tmodel', 'vert', 'scale',
 ]
@@ -48,7 +49,7 @@ def test_eclipse_clear(tmp_path):
     )
     pyrat = pb.run(cfg)
     spectrum = (
-        ps.bbflux(pyrat.spec.wn, pyrat.atm.temp[-2]) / pyrat.spec.starflux
+        ps.bbflux(pyrat.spec.wn, pyrat.atm.temp[-1]) / pyrat.spec.starflux
         * (pyrat.atm.rplanet/pyrat.phy.rstar)**2
     )
     # TBD: Should be last layer, check ideep calculation
@@ -121,6 +122,33 @@ def test_eclipse_all(tmp_path):
     )
     pyrat = pb.run(cfg)
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['all'], rtol=rtol)
+
+
+def test_eclipse_patchy(tmp_path):
+    reset = {
+        'fpatchy': '0.5',
+        'rpars': '10.0 -15.0',
+    }
+    cfg_file = ROOT+'tests/configs/spectrum_eclipse_test.cfg'
+    cfg = make_config(tmp_path, cfg_file, reset=reset)
+    pyrat = pb.run(cfg)
+
+    spectrum = pyrat.spec.spectrum
+    clear = pyrat.spec.clear
+    cloudy = pyrat.spec.cloudy
+    np.testing.assert_allclose(spectrum, expected['patchy'], rtol=rtol)
+    np.testing.assert_allclose(clear, expected['patchy_clear'], rtol=rtol)
+    np.testing.assert_allclose(cloudy, expected['patchy_cloudy'], rtol=rtol)
+
+    pyrat.opacity.fpatchy = 0.0
+    pyrat.run()
+    spectrum = pyrat.spec.spectrum
+    np.testing.assert_allclose(spectrum, expected['patchy_clear'], rtol=rtol)
+
+    pyrat.opacity.fpatchy = 1.0
+    pyrat.run()
+    spectrum = pyrat.spec.spectrum
+    np.testing.assert_allclose(spectrum, expected['patchy_cloudy'], rtol=rtol)
 
 
 def test_eclipse_quadrature(tmp_path):
@@ -314,12 +342,12 @@ def test_eclipse_band_integrate_no_data():
     bandflux = pyrat.band_integrate()
 
     expected_bandflux = [
-        2.0600785289e-04, 2.2919655505e-04, 2.4065559114e-04, 2.8029860209e-04,
-        3.0155143043e-04, 3.1963485203e-04, 3.3379717207e-04, 3.3539204122e-04,
-        3.2066224764e-04, 2.4138103230e-04, 2.6113180837e-04, 2.6163118428e-04,
-        2.6030023197e-04, 3.0939984882e-04, 3.3163315401e-04, 3.9102530827e-04,
-        4.5804716173e-04, 4.9061722081e-04, 5.3090552207e-04, 5.5291946981e-04,
-        5.6982334683e-04
+        2.0600788298e-04, 2.2919658825e-04, 2.4065562317e-04, 2.8029874552e-04,
+        3.0155157611e-04, 3.1963498260e-04, 3.3379724104e-04, 3.3539207156e-04,
+        3.2066247253e-04, 2.4138121079e-04, 2.6113191746e-04, 2.6163132650e-04,
+        2.6030039529e-04, 3.0940004771e-04, 3.3163342065e-04, 3.9102537163e-04,
+        4.5804719770e-04, 4.9061725243e-04, 5.3090560560e-04, 5.5291950761e-04,
+        5.6982335856e-04,
     ]
     #print(' '.join([f'{flux:.10e},' for flux in bandflux]))
     np.testing.assert_allclose(pyrat.spec.spectrum, spectrum)

@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2024 Patricio Cubillos
+# Copyright (c) 2021-2025 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import numpy as np
@@ -52,13 +52,24 @@ def optical_depth(pyrat):
         maxdepth = np.inf if 'two_stream' in od.rt_path else od.maxdepth
         i = 0
         while i < nwave:
-            od.ideep[i] = rtop - 1 + t.cumtrapz(
+            od.ideep[i] = rtop  + t.cumtrapz(
                 od.depth[rtop:,i],
                 od.ec[rtop:,i],
                 od.raypath[rtop:rbottom],
                 maxdepth,
             )
             i += 1
+        if pyrat.opacity.is_patchy:
+            od.ideep_clear = np.tile(nlayers-1, nwave)
+            i = 0
+            while i < nwave:
+                od.ideep_clear[i] = rtop  + t.cumtrapz(
+                    od.depth_clear[rtop:,i],
+                    od.ec_clear[rtop:,i],
+                    od.raypath[rtop:nlayers],
+                    maxdepth,
+                )
+                i += 1
 
     elif od.rt_path in pc.transmission_rt:
         od.ideep = ideep = np.array(np.tile(-1, nwave), dtype=np.intc)
@@ -66,16 +77,17 @@ def optical_depth(pyrat):
         # Optical depth at each level (tau = 2.0*integral e*ds):
         for r in range(rtop, rbottom):
             od.depth[r] = t.optdepth(
-                od.ec[rtop:r+1], od.raypath[r], od.maxdepth, ideep, r)
+                od.ec[rtop:r+1], od.raypath[r], od.maxdepth, ideep, r,
+            )
         ideep[ideep<0] = r
 
         if pyrat.opacity.is_patchy:
-            rbottom = nlayers
             od.ideep_clear = ideep = np.array(np.tile(-1,nwave), dtype=np.intc)
-            for r in range(rtop, rbottom):
+            for r in range(rtop, nlayers):
                 od.depth_clear[r] = t.optdepth(
                     od.ec_clear[rtop:r+1], od.raypath[r], od.maxdepth,
-                    ideep, r)
+                    ideep, r,
+                )
             ideep[ideep<0] = r
 
     pyrat.log.head('Optical depth done.')

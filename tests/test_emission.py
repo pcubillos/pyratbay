@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Patricio Cubillos
+# Copyright (c) 2021-2025 Patricio Cubillos
 # Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 import os
@@ -20,7 +20,9 @@ os.chdir(ROOT+'tests')
 
 # Expected spectra:
 keys = [
-    'lec', 'cia', 'alkali', 'deck', 'tli', 'all', 'quadrature', 'etable',
+    'lec', 'cia', 'alkali', 'deck', 'tli', 'all',
+    'patchy', 'patchy_clear', 'patchy_cloudy',
+    'quadrature', 'etable',
     'resolution', 'two_stream',
     'tmodel', 'vert', 'scale',
 ]
@@ -45,8 +47,7 @@ def test_emission_clear(tmp_path):
         remove=['tlifile', 'csfile', 'rayleigh', 'alkali', 'clouds'],
     )
     pyrat = pb.run(cfg)
-    spectrum = ps.bbflux(pyrat.spec.wn, pyrat.atm.temp[-2])
-    # TBD: Should be last layer, check ideep calculation
+    spectrum = ps.bbflux(pyrat.spec.wn, pyrat.atm.temp[-1])
     np.testing.assert_allclose(pyrat.spec.spectrum, spectrum, rtol=rtol)
 
 
@@ -115,6 +116,34 @@ def test_emission_all(tmp_path):
     )
     pyrat = pb.run(cfg)
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['all'], rtol=rtol)
+
+
+def test_emission_patchy(tmp_path):
+    reset = {
+        'fpatchy': '0.5',
+        'rpars': '10.0 -15.0',
+    }
+    cfg_file = ROOT+'tests/configs/spectrum_emission_test.cfg'
+    cfg = make_config(tmp_path, cfg_file, reset=reset)
+    pyrat = pb.run(cfg)
+
+    spectrum = pyrat.spec.spectrum
+    clear = pyrat.spec.clear
+    cloudy = pyrat.spec.cloudy
+    np.testing.assert_allclose(spectrum, expected['patchy'], rtol=rtol)
+    np.testing.assert_allclose(clear, expected['patchy_clear'], rtol=rtol)
+    np.testing.assert_allclose(cloudy, expected['patchy_cloudy'], rtol=rtol)
+
+    pyrat.opacity.fpatchy = 0.0
+    pyrat.run()
+    spectrum = pyrat.spec.spectrum
+    np.testing.assert_allclose(spectrum, expected['patchy_clear'], rtol=rtol)
+
+    pyrat.opacity.fpatchy = 1.0
+    pyrat.run()
+    spectrum = pyrat.spec.spectrum
+    np.testing.assert_allclose(spectrum, expected['patchy_cloudy'], rtol=rtol)
+
 
 
 def test_emission_quadrature(tmp_path):
@@ -374,12 +403,12 @@ def test_emission_band_integrate_no_data():
     bandflux = pyrat.band_integrate()
 
     expected_bandflux = [
-        8.3599947569e+04, 9.1936437625e+04, 9.5370700411e+04, 1.0969818451e+05,
-        1.1649916250e+05, 1.2185286352e+05, 1.2553116994e+05, 1.2438978527e+05,
-        1.1725908661e+05, 8.7011248879e+04, 9.2765800664e+04, 9.1579962889e+04,
-        8.9772751571e+04, 1.0512204822e+05, 1.1097901106e+05, 1.2887758081e+05,
-        1.4867552591e+05, 1.5681272074e+05, 1.6709541727e+05, 1.7135625157e+05,
-        1.7388629298e+05,
+        8.3599959781e+04, 9.1936450946e+04, 9.5370713103e+04, 1.0969824065e+05,
+        1.1649921878e+05, 1.2185291329e+05, 1.2553119588e+05, 1.2438979652e+05,
+        1.1725916884e+05, 8.7011313220e+04, 9.2765839419e+04, 9.1580012671e+04,
+        8.9772807898e+04, 1.0512211580e+05, 1.1097910029e+05, 1.2887760170e+05,
+        1.4867553759e+05, 1.5681273084e+05, 1.6709544356e+05, 1.7135626329e+05,
+        1.7388629656e+05,
     ]
     #print(' '.join([f'{flux:.10e},' for flux in bandflux]))
     np.testing.assert_allclose(pyrat.spec.spectrum, spectrum)

@@ -4,9 +4,6 @@
 __all__ = [
     'Spectrum',
     'spectrum',
-    'modulation',
-    'intensity',
-    'flux',
     'two_stream',
 ]
 
@@ -14,13 +11,11 @@ import os
 import numpy as np
 import scipy.constants as sc
 import scipy.special as ss
-from scipy.interpolate import interp1d
 
 from .. import constants as pc
 from .. import io
 from .. import spectrum as ps
 from .. import tools as pt
-from ..lib import _trapz as t
 
 
 class GetWavelength:
@@ -323,41 +318,92 @@ class Spectrum():
         return fw.text
 
 
+def _get_cloud_deck(pyrat):
+    """Wrapper to get cloud deck parameters if they exist"""
+    for model in pyrat.opacity.models:
+        if model.name == 'deck':
+            return model.rsurf, model.tsurf, model.itop
+    return None, None, None
+
+
 def spectrum(pyrat):
     """
     Spectrum calculation driver.
     """
     pyrat.log.head('\nCalculate the planetary spectrum.')
+    spec = pyrat.spec
 
     # Initialize the spectrum array:
-    pyrat.spec.spectrum = np.empty(pyrat.spec.nwave, np.double)
+    spec.spectrum = np.empty(spec.nwave, np.double)
     if pyrat.opacity.is_patchy:
-        pyrat.spec.clear  = np.empty(pyrat.spec.nwave, np.double)
-        pyrat.spec.cloudy = np.empty(pyrat.spec.nwave, np.double)
+        spec.clear  = np.empty(spec.nwave, np.double)
+        spec.cloudy = np.empty(spec.nwave, np.double)
 
-    # Call respective function depending on the RT/geometry:
+    deck_rsurf, deck_tsurf, deck_itop = _get_cloud_deck(pyrat)
+    f_patchy = pyrat.opacity.fpatchy
+
+
+    # Transmission spectroscopy:
     if pyrat.od.rt_path in pc.transmission_rt:
-        modulation(pyrat)
+        spec.spectrum = ps.transmission(
+            pyrat.od.depth, pyrat.atm.radius, pyrat.phy.rstar,
+            pyrat.od.ideep, pyrat.atm.rtop,
+            deck_rsurf, deck_itop,
+        )
+        if pyrat.opacity.is_patchy:
+            spec.cloudy = spec.spectrum
+            spec.clear = ps.transmission(
+                pyrat.od.depth_clear, pyrat.atm.radius, pyrat.phy.rstar,
+                pyrat.od.ideep_clear, pyrat.atm.rtop,
+            )
+            spec.spectrum = f_patchy*spec.cloudy + (1.0-f_patchy)*spec.clear
 
+
+    # Plane-parallel emission
     elif pyrat.od.rt_path in ['emission', 'eclipse', 'f_lambda']:
-        intensity(pyrat)
-        flux(pyrat)
+        pyrat.od.B = np.zeros((pyrat.atm.nlayers, spec.nwave), np.double)
+        ps.blackbody_wn_2D(spec.wn, pyrat.atm.temp, pyrat.od.B)
+        weights = spec.quadrature_weights
 
+        spec.intensity, spec.spectrum = ps.plane_parallel_rt(
+            pyrat.od.depth, pyrat.od.B, spec.wn, spec.quadrature_mu,
+            spec.quadrature_weights, pyrat.od.ideep, pyrat.atm.rtop,
+            deck_tsurf, deck_itop,
+        )
+        spec.spectrum = np.sum(spec.intensity * weights, axis=0)
+        if pyrat.opacity.is_patchy:
+            spec.cloudy = spec.spectrum
+            intensity_clear, spec.clear = ps.plane_parallel_rt(
+                pyrat.od.depth_clear, pyrat.od.B, spec.wn, spec.quadrature_mu,
+                spec.quadrature_weights, pyrat.od.ideep_clear, pyrat.atm.rtop,
+            )
+            spec.spectrum = f_patchy*spec.cloudy + (1.0-f_patchy)*spec.clear
+        spec.fplanet = spec.spectrum
+
+
+    # Two stream emission
     elif pyrat.od.rt_path in ['emission_two_stream', 'eclipse_two_stream']:
         two_stream(pyrat)
 
-    is_emission = pyrat.od.rt_path in pc.eclipse_rt + pc.emission_rt
-    if pyrat.od.rt_path in pc.eclipse_rt:
-        pyrat.spec.fplanet = np.copy(pyrat.spec.spectrum)
-        pyrat.spec.spectrum = pyrat.spec.eclipse = (
-            pyrat.spec.fplanet / pyrat.spec.starflux *
-            (pyrat.atm.rplanet/pyrat.phy.rstar)**2.0
-        )
 
-    if pyrat.spec.f_dilution is not None and is_emission:
-        pyrat.spec.fplanet *= pyrat.spec.f_dilution
-        if hasattr(pyrat.spec, 'eclipse'):
-            pyrat.spec.eclipse *= pyrat.spec.f_dilution
+    # Scaling factors
+    is_emission = pyrat.od.rt_path in pc.eclipse_rt + pc.emission_rt
+    if is_emission and spec.f_dilution is not None:
+        spec.fplanet *= spec.f_dilution
+        if pyrat.opacity.is_patchy:
+            spec.clear *= spec.f_dilution
+            spec.cloudy *= spec.f_dilution
+
+    if pyrat.od.rt_path in pc.eclipse_rt:
+        fstar_rprs = 1/spec.starflux * (pyrat.atm.rplanet/pyrat.phy.rstar)**2
+        spec.fplanet = np.copy(spec.spectrum)
+        spec.spectrum = spec.eclipse = spec.fplanet * fstar_rprs
+        if pyrat.opacity.is_patchy:
+            spec.fplanet_clear = np.copy(spec.clear)
+            spec.fplanet_cloudy = np.copy(spec.cloudy)
+            spec.clear = spec.fplanet_clear * fstar_rprs
+            spec.cloudy = spec.fplanet_cloudy * fstar_rprs
+
 
     # Print spectra to file:
     if pyrat.od.rt_path in pc.transmission_rt:
@@ -367,123 +413,38 @@ def spectrum(pyrat):
     elif pyrat.od.rt_path in pc.eclipse_rt:
         spec_type = 'eclipse'
     io.write_spectrum(
-        pyrat.spec.wl,
-        pyrat.spec.spectrum,
-        pyrat.spec.specfile,
+        spec.wl,
+        spec.spectrum,
+        spec.specfile,
         spec_type,
     )
 
     # Also save fstar and fplanet when possible
-    if pyrat.spec.specfile is not None:
-        file, extension = os.path.splitext(pyrat.spec.specfile)
-        if is_emission and pyrat.spec.starflux is not None:
+    if spec.specfile is not None:
+        file, extension = os.path.splitext(spec.specfile)
+        if is_emission and spec.starflux is not None:
             fstar_file = f'{file}_fstar{extension}'
             io.write_spectrum(
-                pyrat.spec.wl,
-                pyrat.spec.starflux,
+                spec.wl,
+                spec.starflux,
                 fstar_file,
                 'emission',
             )
         if pyrat.od.rt_path in pc.eclipse_rt:
             fplanet_file = f'{file}_fplanet{extension}'
             io.write_spectrum(
-                pyrat.spec.wl,
-                pyrat.spec.fplanet,
+                spec.wl,
+                spec.fplanet,
                 fplanet_file,
                 'emission',
             )
 
-
-    if pyrat.spec.specfile is not None:
-        specfile = f": '{pyrat.spec.specfile}'"
+    if spec.specfile is not None:
+        specfile = f": '{spec.specfile}'"
     else:
         specfile = ""
     pyrat.log.head(f"Computed {spec_type} spectrum{specfile}.", indent=2)
     pyrat.log.head('Done.')
-
-
-def modulation(pyrat):
-    """Calculate transmission spectrum for transit geometry"""
-    rtop = pyrat.atm.rtop
-    radius = pyrat.atm.radius
-    depth = pyrat.od.depth
-
-    # Get Delta radius (and simps' integration variables):
-    h = np.ediff1d(radius[rtop:])
-    # The integrand:
-    integ = (np.exp(-depth[rtop:,:]) * np.expand_dims(radius[rtop:],1))
-
-    if pyrat.opacity.is_patchy:
-        depth_clear = pyrat.od.depth_clear
-        h_clear = np.copy(h)
-        integ_clear = (
-            np.exp(-depth_clear[rtop:,:]) * np.expand_dims(radius[rtop:],1)
-        )
-
-    for model in pyrat.opacity.models:
-        if model.name == 'deck':
-            # Replace (by interpolating) last layer with cloud top:
-            if model.itop > rtop:
-                h[model.itop-rtop-1] = model.rsurf - radius[model.itop-1]
-                integ[model.itop-rtop] = interp1d(
-                    radius[rtop:], integ, axis=0)(model.rsurf)
-            break
-
-    # Number of layers for integration at each wavelength:
-    nlayers = pyrat.od.ideep - rtop + 1
-    spectrum = t.trapz2D(integ, h, nlayers-1)
-    pyrat.spec.spectrum = (radius[rtop]**2 + 2*spectrum) / pyrat.phy.rstar**2
-
-    if pyrat.opacity.is_patchy:
-        nlayers = pyrat.od.ideep_clear - rtop + 1
-        pyrat.spec.clear = t.trapz2D(integ_clear, h_clear, nlayers-1)
-
-        pyrat.spec.clear = (
-            (radius[rtop]**2 + 2*pyrat.spec.clear) / pyrat.phy.rstar**2
-        )
-        pyrat.spec.cloudy = pyrat.spec.spectrum
-        pyrat.spec.spectrum = (
-            pyrat.spec.cloudy * pyrat.opacity.fpatchy +
-            pyrat.spec.clear * (1-pyrat.opacity.fpatchy)
-        )
-
-
-def intensity(pyrat):
-    """
-    Calculate the intensity spectrum (erg s-1 cm-2 sr-1 cm) for
-    eclipse geometry.
-    """
-    spec = pyrat.spec
-    pyrat.log.msg('Computing intensity spectrum.', indent=2)
-
-    # Allocate intensity array:
-    spec.intensity = np.empty((spec.nangles, spec.nwave), np.double)
-
-    # Calculate the Planck Emission:
-    pyrat.od.B = np.zeros((pyrat.atm.nlayers, spec.nwave), np.double)
-    ps.blackbody_wn_2D(spec.wn, pyrat.atm.temp, pyrat.od.B, pyrat.od.ideep)
-
-    for model in pyrat.opacity.models:
-        if model.name == 'deck':
-            pyrat.od.B[model.itop] = ps.blackbody_wn(pyrat.spec.wn, model.tsurf)
-
-    # Plane-parallel radiative-transfer intensity integration:
-    spec.intensity = t.intensity(
-        pyrat.od.depth, pyrat.od.ideep, pyrat.od.B, spec.quadrature_mu,
-        pyrat.atm.rtop,
-    )
-
-
-def flux(pyrat):
-    """
-    Calculate the hemisphere-integrated flux spectrum (erg s-1 cm-2 cm)
-    for eclipse geometry.
-    """
-    # Weight-sum the intensities to get the flux:
-    pyrat.spec.fplanet = pyrat.spec.spectrum = np.sum(
-        pyrat.spec.intensity * pyrat.spec.quadrature_weights,
-        axis=0,
-    )
 
 
 def two_stream(pyrat):
