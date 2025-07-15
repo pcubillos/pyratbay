@@ -783,9 +783,9 @@ def posteriors(
     ax = temperature(
         pressure,
         profiles=(tpost[0],),
-        labels=['median', 'best-fit'],
+        labels=['median'],
         theme=theme.color,
-        colors=[theme.dark_color, 'black'],
+        colors=[theme.dark_color],
         bounds=tpost[1:],
         fs=fs,
     )
