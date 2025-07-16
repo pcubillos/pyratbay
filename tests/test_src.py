@@ -12,7 +12,7 @@ from pyratbay.constants import ROOT
 sys.path.append(ROOT + 'pyratbay/lib')
 import _pt as pt
 import _simpson as s
-import _trapz as t
+import _trapezoid as t
 import cutils as cu
 import _indices
 

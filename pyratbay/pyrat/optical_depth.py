@@ -5,7 +5,7 @@ import numpy as np
 
 from .. import atmosphere as pa
 from .. import constants as pc
-from ..lib import _trapz as t
+from ..lib import _trapezoid as t
 from ..lib import cutils as cu
 
 
@@ -52,7 +52,7 @@ def optical_depth(pyrat):
         maxdepth = np.inf if 'two_stream' in od.rt_path else od.maxdepth
         i = 0
         while i < nwave:
-            od.ideep[i] = rtop  + t.cumtrapz(
+            od.ideep[i] = rtop  + t.cumulative_sum(
                 od.depth[rtop:,i],
                 od.ec[rtop:,i],
                 od.raypath[rtop:rbottom],
@@ -63,7 +63,7 @@ def optical_depth(pyrat):
             od.ideep_clear = np.tile(nlayers-1, nwave)
             i = 0
             while i < nwave:
-                od.ideep_clear[i] = rtop  + t.cumtrapz(
+                od.ideep_clear[i] = rtop  + t.cumulative_sum(
                     od.depth_clear[rtop:,i],
                     od.ec_clear[rtop:,i],
                     od.raypath[rtop:nlayers],

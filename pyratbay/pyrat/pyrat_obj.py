@@ -383,6 +383,10 @@ class Pyrat():
         # Basename of the output files (no extension):
         output, extension = os.path.splitext(ret.mcmcfile)
 
+        # Mute logging in pyrat object, but not in mc3:
+        self.log = mc3.utils.Log(verb=-1, width=80)
+        self.spec.specfile = None  # Avoid writing spectra during retrieval
+
         # MultiNest wrapper call:
         if ret.sampler == 'multinest':
             sampler_output = pt.multinest_run(self, output)
@@ -401,9 +405,6 @@ class Pyrat():
 
             # TBD: Fix resuming
             ret.resume = False
-            # Mute logging in pyrat object, but not in mc3:
-            self.log = mc3.utils.Log(verb=-1, width=80)
-            self.spec.specfile = None  # Avoid writing spectra during MCMC
             retmodel = False  # Return only the band-integrated spectrum
             # Run MCMC:
             sampler_output = mc3.sample(

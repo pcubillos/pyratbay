@@ -16,7 +16,7 @@ import scipy.interpolate as si
 from .. import constants as pc
 from .. import tools as pt
 from . import convection as ps
-from ..lib import _trapz as t
+from ..lib import _trapezoid as t
 from .blackbody import blackbody_wn
 
 
@@ -67,7 +67,7 @@ def transmission(
         integ[deck_itop-atm_itop] = f_interp(deck_rsurf)
 
     # Number of layers for integration at each wavelength:
-    spectrum = t.trapz2D(integ, h, nlayers-1)
+    spectrum = t.trapezoid2D(integ, h, nlayers-1)
     spectrum = (radius[atm_itop]**2 + 2*spectrum) / rstar**2
 
     return spectrum
