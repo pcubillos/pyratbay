@@ -304,8 +304,9 @@ class Opacity():
 
             if self.models_type[i] == 'line_sample':
                 args['per_mol'] = True
-            if hasattr(model, 'pars'):
-            #if hasattr(model, 'pars') and model.npars > 0:
+            # npars>0 requrements is if for Dalgarno Rayleigh models that
+            # have 0 free params ... TBD: remove model.pars from them?
+            if hasattr(model, 'pars') and model.npars > 0:
                 args['pars'] = model.pars
 
             extinction = model.calc_extinction_coefficient(**args)
