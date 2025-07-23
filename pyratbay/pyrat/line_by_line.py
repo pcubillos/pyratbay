@@ -148,8 +148,8 @@ class Line_By_Line():
             self.iso_ratio[iso_mask] = db.iso_ratio
             if db.molname not in species:
                 log.error(
-                    f"The species '{db.molname}' for isotopes "
-                    f"{db.iso_name} is not present in the atmosphere"
+                    f"The species '{db.molname}' is not present in the "
+                    "atmosphere, required for LBL calculation"
                 )
             self.species.append(db.molname)
             self.iso_atm_index[iso_mask] = species.index(db.molname)

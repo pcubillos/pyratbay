@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Patricio Cubillos
+# Copyright (c) 2021-2025 Patricio Cubillos
 # Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -45,13 +45,13 @@ class Hitran(Linelist):
       # Open DB file and read first two characters:
       if not os.path.isfile(self.dbfile):
           self.log.error(f"Input database file '{self.dbfile}' does not exist.")
+      # Molecule ID is first two characters
       with open(self.dbfile, "r") as data:
-          molID = int(data.read(2))  # Molecule ID is first two characters
+          molID = int(data.read(2))
       self.molecule = pf.get_tips_molname(molID)
 
-      ID, isotopes, mass, ratio = self.get_iso(self.molecule, dbtype='hitran')
+      isotopes, mass, ratio = self.get_iso(self.molecule, dbtype='hitran')
 
-      self.molID = ID
       self.isotopes = isotopes
       self.mass = mass
       self.isoratio = ratio

@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2024 Patricio Cubillos
+# Copyright (c) 2021-2025 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import numpy as np
@@ -155,8 +155,6 @@ class Linelist():
 
       Returns
       -------
-      molID: Integer
-          HITRAN molecule ID.
       isotopes: List of strings
           Isotopes names.
       mass: List of floats
@@ -164,8 +162,8 @@ class Linelist():
       isoratio: List of integers
           Isotopic terrestrial abundance ratio.
       """
-      ID, name, hit_iso, exo_iso, iso_ratio, iso_mass = \
-          io.read_isotopes(ROOT + 'pyratbay/data/isotopes.dat')
+      iso_data = io.read_isotopes(ROOT + 'pyratbay/data/isotopes.dat')
+      name, hit_iso, exo_iso, iso_ratio, iso_mass = iso_data
 
       if dbtype == 'hitran':
           isotopes = hit_iso
@@ -178,5 +176,4 @@ class Linelist():
       mass = [m for mol,m in zip(name, iso_mass) if mol==molname]
       isoratio = [ratio for mol,ratio in zip(name, iso_ratio) if mol==molname]
 
-      molID = ID[name==molname][0]
-      return molID, isotopes, mass, isoratio
+      return isotopes, mass, isoratio

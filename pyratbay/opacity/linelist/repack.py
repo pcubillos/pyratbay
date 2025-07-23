@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Patricio Cubillos
+# Copyright (c) 2021-2025 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -37,7 +37,7 @@ class Repack(Linelist):
       # Get info from file name:
       self.molecule, self.dbtype = os.path.split(dbfile)[1].split('_')[0:2]
       # Get isotopic info:
-      ID, isotopes, mass, ratio = self.get_iso(self.molecule, self.dbtype)
+      isotopes, mass, ratio = self.get_iso(self.molecule, self.dbtype)
       self.isotopes = isotopes
       self.mass     = mass
       self.isoratio = ratio

@@ -1334,8 +1334,6 @@ def read_isotopes(file):
 
     Returns
     -------
-    mol_ID: 1D integer ndarray
-        HITRAN molecule ID.
     mol: 1D string ndarray
         Molecule names.
     hitran_iso: 1D string ndarray
@@ -1351,7 +1349,7 @@ def read_isotopes(file):
     --------
     >>> import pyratbay.io as io
     >>> import pyratbay.constants as pc
-    >>> ID, mol, hit_iso, exo_iso, ratio, mass = \
+    >>> mol, hit_iso, exo_iso, ratio, mass = \
     >>>     io.read_isotopes(pc.ROOT+'pyratbay/data/isotopes.dat')
     >>> print("H2O isotopes:\n iso    iso    isotopic  mass"
     >>>                    "\n hitran exomol ratio     g/mol")
@@ -1372,27 +1370,25 @@ def read_isotopes(file):
     282    000    0.000e+00 22.0000
     272    000    0.000e+00 21.0000
     """
-    mol_ID, mol, hitran_iso, exomol_iso, ratio, mass = [], [], [], [], [], []
+    mol, hitran_iso, exomol_iso, ratio, mass = [], [], [], [], []
     for line in open(file, 'r'):
         # Skip comment and blank lines:
         if line.strip() == '' or line.strip().startswith('#'):
             continue
         info = line.split()
-        mol_ID.append(info[0])
-        mol.append(info[1])
-        hitran_iso.append(info[2])
-        exomol_iso.append(info[3])
-        ratio.append(info[4])
-        mass.append(info[5])
+        mol.append(info[0])
+        hitran_iso.append(info[1])
+        exomol_iso.append(info[2])
+        ratio.append(info[3])
+        mass.append(info[4])
 
-    mol_ID = np.asarray(mol_ID, int)
     mol = np.asarray(mol)
     hitran_iso = np.asarray(hitran_iso)
     exomol_iso = np.asarray(exomol_iso)
     ratio = np.asarray(ratio, np.double)
     mass = np.asarray(mass, np.double)
 
-    return mol_ID, mol, hitran_iso, exomol_iso, ratio, mass
+    return mol, hitran_iso, exomol_iso, ratio, mass
 
 
 def import_xs(filename, source, read_all=True, ofile=None):

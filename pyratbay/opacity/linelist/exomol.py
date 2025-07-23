@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2024 Patricio Cubillos
+# Copyright (c) 2021-2025 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -62,7 +62,7 @@ class Exomol(Linelist):
       # Get info from file name:
       self.molecule, self.iso = pt.get_exomol_mol(dbfile)
       # Get isotopic info:
-      ID, isotopes, mass, ratio = self.get_iso(self.molecule, dbtype='exomol')
+      isotopes, mass, ratio = self.get_iso(self.molecule, dbtype='exomol')
       self.isotopes = isotopes
       self.mass = mass
       self.isoratio = ratio
