@@ -301,7 +301,7 @@ Number of databases (ndb): 1
 
 Database name (name): HITRAN H2O
 Species name (molname):  H2O
-Number of isotopes (niso): 9
+Number of isotopes (niso): 10
 Number of temperature samples (ntemp): 1201
 Temperature (temp, K):
     [1.000e+00 5.000e+00 1.000e+01 ... 5.990e+03 5.995e+03 6.000e+03]
@@ -315,6 +315,7 @@ Partition function for each isotope (z):
     [ 6.000e+00  6.343e+00  9.129e+00 ...  1.949e+06  1.955e+06  1.962e+06]
     [ 6.000e+00  6.353e+00  9.217e+00 ...  2.006e+06  2.013e+06  2.019e+06]
     [ 3.600e+01  3.809e+01  5.505e+01 ...  1.187e+07  1.191e+07  1.195e+07]
+    [ 0.000e+00  0.000e+00  0.000e+00 ...  0.000e+00  0.000e+00  0.000e+00]
 
 Total number of line transitions (ntransitions): 47,666
 Minimum and maximum temperatures (tmin, tmax): [1.0, 6000.0] K
@@ -328,7 +329,7 @@ Line-transition gf (gf, cm-1):
     [ 1.399e-08  1.188e-09  1.210e-08 ...  5.498e-06  1.558e-07  1.076e-06]
 Line-transition strength threshold (ethresh): 1.00e-15
 Isotopes information:
-Number of isotopes (niso): 9
+Number of isotopes (niso): 10
 
 Isotope  Molecule      Mass    Isotopic   Database
             index     g/mol       ratio
@@ -340,8 +341,9 @@ Isotope  Molecule      Mass    Isotopic   Database
     182         5   21.0210   6.230e-07   HITRAN H2O
     172         5   20.0210   1.159e-07   HITRAN H2O
     262         5   20.0229   2.420e-08   HITRAN H2O
-    282         5   22.0274   4.500e-09   HITRAN H2O
-    272         5   21.0273   8.600e-10   HITRAN H2O
+    282         5   22.0274   4.300e-11   HITRAN H2O
+    272         5   21.0273   8.063e-12   HITRAN H2O
+    000         5   17.0187   9.997e-53   HITRAN H2O
 """
 
     assert str(pyrat.voigt) == """\
@@ -722,17 +724,17 @@ Distance across each layer along a normal ray path (raypath, km):
 
 Maximum optical depth to calculate (maxdepth): 10.00
 Layer index where the optical depth reaches maxdepth (ideep):
-    [ 19  19  19  19  19  19  19 ...  19  19  19  19  19  19  19]
-Maximum ideep (deepest layer reaching maxdepth): 19
+    [ 20  20  20  20  20  20  20 ...  20  20  20  20  20  20  20]
+Maximum ideep (deepest layer reaching maxdepth): 20
 
 Planck emission down to max(ideep) (B, erg s-1 cm-2 sr-1 cm):
 [[ 7.478e+02  7.471e+02  7.465e+02 ...  3.364e+01  3.361e+01  3.357e+01]
  [ 7.478e+02  7.471e+02  7.465e+02 ...  3.364e+01  3.361e+01  3.357e+01]
  [ 7.478e+02  7.472e+02  7.465e+02 ...  3.365e+01  3.361e+01  3.358e+01]
  ...
- [ 7.612e+02  7.605e+02  7.599e+02 ...  3.458e+01  3.454e+01  3.451e+01]
  [ 7.673e+02  7.666e+02  7.660e+02 ...  3.501e+01  3.497e+01  3.494e+01]
- [ 7.737e+02  7.730e+02  7.723e+02 ...  3.546e+01  3.542e+01  3.539e+01]]
+ [ 7.737e+02  7.730e+02  7.723e+02 ...  3.546e+01  3.542e+01  3.539e+01]
+ [ 7.893e+02  7.886e+02  7.879e+02 ...  3.657e+01  3.653e+01  3.650e+01]]
 
 Optical depth at each layer along a normal ray path into the planet, down to
     max(ideep) (depth):
@@ -740,9 +742,9 @@ Optical depth at each layer along a normal ray path into the planet, down to
  [ 6.897e-10  2.095e-07  6.907e-10 ...  1.012e-08  4.192e-09  4.367e-09]
  [ 1.684e-09  5.115e-07  1.687e-09 ...  2.472e-08  1.023e-08  1.066e-08]
  ...
- [ 8.937e-07  2.378e-04  9.008e-07 ...  1.156e-05  4.777e-06  5.002e-06]
  [ 1.362e-06  3.433e-04  1.375e-06 ...  1.673e-05  6.907e-06  7.248e-06]
- [ 2.114e-06  4.956e-04  2.142e-06 ...  2.423e-05  9.995e-06  1.052e-05]]
+ [ 2.114e-06  4.956e-04  2.142e-06 ...  2.423e-05  9.995e-06  1.052e-05]
+ [ 3.365e-06  7.157e-04  3.419e-06 ...  3.517e-05  1.448e-05  1.530e-05]]
 """
 
 

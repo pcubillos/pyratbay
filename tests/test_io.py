@@ -390,25 +390,22 @@ def test_read_molecs():
 
 def test_read_isotopes():
     iso_data = io.read_isotopes(pc.ROOT+'pyratbay/data/isotopes.dat')
-    ID, mol, hit_iso, exo_iso, ratio, mass = iso_data
+    mol, hit_iso, exo_iso, ratio, mass = iso_data
 
-    hitran_iso = ['161', '181', '171', '162', '182', '172', '262', '282', '272']
-    exomol_iso = ['116', '118', '117', '126', '000', '000', '226', '228', '227']
+    hitran_iso = ['626', '646', '636', '628']
+    exomol_iso = ['266', '466', '366', '268']
     abundances = np.array([
-        9.973173e-01, 1.999827e-03, 3.718840e-04, 3.106930e-04,
-        6.230030e-07, 1.158530e-07, 2.419740e-08, 4.500000e-09, 8.600000e-10,
+        0.945677700, 0.041950280, 0.007464462, 0.003792558,
     ])
     masses = np.array([
-        18.01056, 20.01481, 19.01478, 19.01674, 21.02098, 20.02096,
-        20.02292, 22.027363, 21.027336,
+        63.961900, 65.957700, 64.961290, 65.966150,
     ])
 
-    assert 'H2O' in mol
-    assert np.all(ID[mol=='H2O'] == 1)
-    assert list(hit_iso[mol=='H2O']) == hitran_iso
-    assert list(exo_iso[mol=='H2O']) == exomol_iso
-    np.testing.assert_allclose(ratio[mol=='H2O'], abundances)
-    np.testing.assert_allclose(mass[mol=='H2O'], masses)
+    assert 'SO2' in mol
+    assert hit_iso[mol=='SO2'].tolist() == hitran_iso
+    assert exo_iso[mol=='SO2'].tolist() == exomol_iso
+    np.testing.assert_allclose(ratio[mol=='SO2'], abundances)
+    np.testing.assert_allclose(mass[mol=='SO2'], masses)
 
 
 def test_write_observations_no_depths(tmpdir):

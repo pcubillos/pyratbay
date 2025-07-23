@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2023 Patricio Cubillos
+# Copyright (c) 2021-2025 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import os
@@ -809,8 +809,8 @@ def test_line_by_line_missing_species(tmp_path):
         reset=reset,
     )
     error = re.escape(
-        "The species 'H2O' for isotopes ['161' '181' '171' '162' '182' "
-        "'172' '262' '282' '272'] is not present in the atmosphere"
+        "The species 'H2O' is not present in the atmosphere, "
+        "required for LBL calculation"
     )
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
