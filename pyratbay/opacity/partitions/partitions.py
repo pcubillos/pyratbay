@@ -1,7 +1,8 @@
-# Copyright (c) 2021-2024 Patricio Cubillos
+# Copyright (c) 2021-2025 Patricio Cubillos
 # Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 __all__ = [
+    'get_tips_molecules',
     'get_tips_molname',
     'check_exomol_files',
     'tips',
@@ -20,6 +21,21 @@ import mc3.utils as mu
 from ... import io as io
 from ... import constants as pc
 from ... import tools as pt
+
+
+def get_tips_molecules():
+    """
+    Get a list of all TIPS molecules.
+
+    Note tha this list does not contain 'O', hence it's not the same
+    list as the HITRAN mol ID list: https://hitran.org/docs/molec-meta/
+    """
+    with open(pc.ROOT+'pyratbay/data/tips_2021.pkl', 'rb') as p:
+        data = pickle.load(p)
+    molecules = list(data.keys())
+    molecules.remove('temp')
+    molecules.remove('mol_ID')
+    return molecules
 
 
 def get_tips_molname(molID):
@@ -42,11 +58,16 @@ def get_tips_molname(molID):
     >>> print(pf.get_tips_molname(1), pf.get_tips_molname(6))
     H2O CH4
     """
+    # Note that TIPS does not contain 'O', but it's still returned
+    # here for compatibility with HITRAN molecule IDs:
+    if molID == 34:
+        return 'O'
+
     with open(pc.ROOT+'pyratbay/data/tips_2021.pkl', 'rb') as p:
         data = pickle.load(p)
     if molID not in data['mol_ID']:
-        raise ValueError(
-            f'TIPS 2021 database does not contain molecule ID: {molID}')
+        error = f'TIPS 2021 database does not contain molecule ID: {molID}'
+        raise ValueError(error)
     return data['mol_ID'][molID]
 
 
@@ -140,8 +161,9 @@ def tips(molecule, isotopes=None, outfile=None, db_type='as_tips'):
 
     # Get exomol isotope names if requested:
     if db_type == 'as_exomol':
-        ID, molecs, hitran, exomol, iso_ratio, iso_mass = \
-            io.read_isotopes(pc.ROOT+'pyratbay/data/isotopes.dat')
+        molecs, hitran, exomol, iso_ratio, iso_mass = io.read_isotopes(
+            pc.ROOT+'pyratbay/data/isotopes.dat',
+        )
         iso_map = {
             exo.item(): hit.item()
             for mol, hit, exo in zip(molecs, exomol, hitran)

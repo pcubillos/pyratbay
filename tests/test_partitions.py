@@ -20,10 +20,30 @@ def mock_pf(epf, temp, pf):
         f.write("\n".join(f"{t:7.1f}  {z:.10e}" for t,z in zip(temp,pf)))
 
 
+def test_get_tips_molecules():
+    molecules = pf.get_tips_molecules()
+    assert len(molecules) == 56
+    assert molecules[0] == 'H2O'
+    assert molecules[5] == 'CH4'
+    # Note that TIPS does not have molecule #34: 'O', hence the shift
+    # relative to molID
+    assert molecules[44] == 'CS'
+
+
+def test_get_tips_molecules_oxygen():
+    # Note that TIPS does not have molecule #34: 'O'
+    molecules = pf.get_tips_molecules()
+    assert molecules[33] == 'ClONO2'
+
+
 def test_get_tips_molname():
     assert pf.get_tips_molname(1) == 'H2O'
     assert pf.get_tips_molname(6) == 'CH4'
     assert pf.get_tips_molname(45) == 'H2'
+
+
+def test_get_tips_molname_oxygen():
+    assert pf.get_tips_molname(34) == 'O'
 
 
 def test_get_tips_molname_error():
