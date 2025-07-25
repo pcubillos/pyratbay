@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2024 Patricio Cubillos
+# Copyright (c) 2021-2025 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -285,7 +285,8 @@ def spectrum(
     ax.tick_params(
         which='both', right=True, top=True, direction='in', labelsize=fs-2,
     )
-    ax.set_xlabel('Wavelength (um)', fontsize=fs)
+    ax.set_xlabel(r'Wavelength ($\mathrm{\mu}$m)', fontsize=fs)
+
     ax.set_ylabel(ylabel, fontsize=fs)
     ax.legend(loc='best', numpoints=1, fontsize=fs-1)
     ax.set_xlim(xmin, xmax)
@@ -542,17 +543,17 @@ def temperature(
         )
 
     for profile, color, label in zip(profiles, colors, _labels):
-        plt.plot(profile, pressure, color=color, lw=lw, label=label)
+        ax.plot(profile, pressure, color=color, lw=lw, label=label)
 
     ax.set_ylim(np.amax(pressure), np.amin(pressure))
     ax.set_yscale('log')
-    plt.xlabel('Temperature (K)', fontsize=fs)
-    plt.ylabel('Pressure (bar)', fontsize=fs)
+    ax.set_xlabel('Temperature (K)', fontsize=fs)
+    ax.set_ylabel('Pressure (bar)', fontsize=fs)
     ax.tick_params(
         which='both', right=True, top=True, direction='in', labelsize=fs-2,
     )
     if labels is not None:
-        plt.legend(loc='best', fontsize=fs-2)
+        ax.legend(loc='best', fontsize=fs-2)
     if tighten:
         plt.tight_layout()
     if filename is not None:
