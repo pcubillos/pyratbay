@@ -9,6 +9,7 @@ __all__ = [
     'tophat',
     'resample',
     'band_integrate',
+    'wn_mask',
     'inst_convolution',
     'rv_shift',
 ]
@@ -772,6 +773,45 @@ def band_integrate(spectrum, specwn, bandtrans, bandwn):
         bflux.append(np.trapezoid(spectrum[wnidx]*resampled, specwn[wnidx]))
 
     return bflux
+
+
+def wn_mask(wn, wn_min, wn_max, tol=1.0e-8):
+    """
+    Get mask of wn values withing given ranges with a extra tolerance
+    to account for floating-point (in)precision.
+
+    Parameters
+    ----------
+    wn: 1D float array
+        Wavenumber array to mask.
+    wn_min: float
+        Minumum wavenumber in mask.
+    wn_max: float
+        Maximum wavenumber in mask.
+    tol: float
+        Tolerance factor at mask edges, calculated as delta_wn*tol,
+        where delta_wn is the sampling stepsize at the edges.
+
+    Returns
+    -------
+    wn_mask: 1D bool array
+        Mask of wavenumber values within ranges.
+    """
+    # Get sampling at edges
+    wn_mask = (wn >= wn_min) & (wn <= wn_max)
+
+    if np.sum(wn_mask) < 2:
+        min_dwn = max_dwn = 0
+    else:
+        min_dwn = np.abs(np.ediff1d(wn[wn_mask][0:2]))
+        max_dwn = np.abs(np.ediff1d(wn[wn_mask][-2:]))
+
+    # Add a tolerance padding to mask:
+    wn_mask = (
+        (wn >= wn_min - min_dwn*tol) &
+        (wn <= wn_max + max_dwn*tol)
+    )
+    return wn_mask
 
 
 def inst_convolution(wl, spectrum, resolution, sampling_res=None):

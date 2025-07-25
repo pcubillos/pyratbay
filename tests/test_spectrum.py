@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Patricio Cubillos
+# Copyright (c) 2021-2025 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import os
@@ -523,4 +523,63 @@ def test_band_integrate_multiple_blackbody():
     bandfluxes = ps.band_integrate(sflux, wn, [irac1,irac2], [wn1, wn2])
     bandfluxes = ps.band_integrate(sflux, wn, [irac1,irac2], [wn1, wn2])
     np.testing.assert_allclose(bandfluxes, [98527.148526, 84171.417692])
+
+
+def test_wn_mask_normal():
+    wn = np.linspace(1, 2, 11)
+    mask = ps.wn_mask(wn, wn_min=1.2, wn_max=1.7)
+    expected_mask = np.tile(False, len(wn))
+    expected_mask[2:8] = True
+    np.testing.assert_allclose(mask, expected_mask)
+
+
+def test_wn_mask_single_value():
+    wn = np.linspace(1, 2, 11)
+    mask = ps.wn_mask(wn, wn_min=1.25, wn_max=1.35)
+    expected_mask = np.tile(False, len(wn))
+    expected_mask[3] = True
+    np.testing.assert_allclose(mask, expected_mask)
+
+
+def test_wn_mask_no_overlap():
+    wn = np.linspace(1, 2, 11)
+    mask = ps.wn_mask(wn, wn_min=2.25, wn_max=3.25)
+    expected_mask = np.tile(False, len(wn))
+    np.testing.assert_allclose(mask, expected_mask)
+
+
+@pytest.mark.skip(reason="TBD")
+def test_inst_convolution():
+    wl_min = 1.49
+    wl_max = 1.51
+    resolution = 500_000
+    wl = ps.constant_resolution_spectrum(wl_min, wl_max, resolution)
+    nwave = len(wl)
+    # Delta
+    spectrum = np.zeros(nwave)
+    spectrum[np.where(wl>1.5)[0][0]] = 1.0
+    conv = ps.inst_convolution(wl, spectrum, resolution=4000)
+
+    resolution = 250_000
+    wl2 = ps.constant_resolution_spectrum(wl_min, wl_max, resolution)
+    nwave = len(wl2)
+    # Delta
+    spectrum2 = np.zeros(nwave)
+    spectrum2[np.where(wl2>1.5)[0][0]] = 1.0
+    conv2 = ps.inst_convolution(wl2, spectrum2, resolution=4000)
+
+    plt.figure(0)
+    plt.clf()
+    #plt.plot(wl, spectrum)
+    plt.plot(wl, conv/np.amax(conv))
+    plt.plot(wl2, conv2/np.amax(conv2))
+
+
+@pytest.mark.skip(reason="TBD")
+def rv_shift():
+    pass
+
+
+
+
 
