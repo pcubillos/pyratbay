@@ -381,7 +381,7 @@ class Pyrat():
         # Create output folder if needed:
         pt.mkdir(ret.mcmcfile)
         # Basename of the output files (no extension):
-        output, extension = os.path.splitext(ret.mcmcfile)
+        basename, extension = os.path.splitext(ret.mcmcfile)
 
         # Mute logging in pyrat object, but not in mc3:
         self.log = mc3.utils.Log(verb=-1, width=80)
@@ -389,10 +389,10 @@ class Pyrat():
 
         # MultiNest wrapper call:
         if ret.sampler == 'multinest':
-            sampler_output = pt.multinest_run(self, output)
+            output = pt.multinest_run(self, basename)
             if pt.get_mpi_rank() != 0:
                 return
-            posterior = sampler_output['posterior']
+            posterior = output['posterior']
 
         # mc3 MCMC wrapper call:
         elif ret.sampler == 'snooker':
@@ -407,7 +407,7 @@ class Pyrat():
             ret.resume = False
             retmodel = False  # Return only the band-integrated spectrum
             # Run MCMC:
-            sampler_output = mc3.sample(
+            output = mc3.sample(
                 data=self.obs.data, uncert=self.obs.uncert,
                 func=self.eval, indparams=[retmodel], params=ret.params,
                 pmin=ret.pmin, pmax=ret.pmax, pstep=ret.pstep,
@@ -420,24 +420,24 @@ class Pyrat():
                 pnames=ret.pnames, texnames=ret.texnames,
                 resume=ret.resume, savefile=ret.mcmcfile,
             )
-            if sampler_output is None:
+            if output is None:
                 log.error("Error in mc3")
-            posterior, zchain, zmask = mc3.utils.burn(sampler_output)
+            posterior, zchain, zmask = mc3.utils.burn(output)
 
 
         # Post processing (can be done directly from posterior outputs)
-        ret.bestp = bestp = sampler_output['bestp']
+        ret.bestp = bestp = output['bestp']
         ret.posterior = posterior
 
         # Best-fitting model:
-        self.spec.specfile = f"{output}_bestfit_spectrum.dat"
+        self.spec.specfile = f"{basename}_bestfit_spectrum.dat"
         ret.spec_best, ret.bestbandflux = self.eval(bestp)
-        filename = f'{output}_bestfit_spectrum.png'
+        filename = f'{basename}_bestfit_spectrum.png'
         self.plot_spectrum(spec='best', filename=filename)
 
         atm = self.atm
         header = "# Retrieval best-fitting atmospheric model.\n\n"
-        bestatm = f"{output}_bestfit_atmosphere.atm"
+        bestatm = f"{basename}_bestfit_atmosphere.atm"
         io.write_atm(
             bestatm, atm.press, atm.temp, atm.species,
             atm.vmr, radius=atm.radius,
@@ -462,7 +462,7 @@ class Pyrat():
             ret.temp_median = tpost[0]
             ret.temp_post_boundaries = tpost[1:]
             self.plot_temperature(
-                filename=f'{output}_bestfit_temperature.png',
+                filename=f'{basename}_bestfit_temperature.png',
             )
 
         # Contribution or transmittance
@@ -475,11 +475,11 @@ class Pyrat():
             band_wl = 1.0/(self.obs.wn_hires*pc.um)
         band_cf = self.band_contribution()
 
-        filename = f'{output}_bestfit_contributions.png'
+        filename = f'{basename}_bestfit_contributions.png'
         pp.contribution(band_cf, band_wl, path, atm.press, filename)
 
         self.log = log  # Un-mute
-        root_output = os.path.split(output)[0]
+        root_output = os.path.split(basename)[0]
         log.msg(f"\nOutput retrieval files located at {root_output}")
 
         if self.inputs.post_processing:

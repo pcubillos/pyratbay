@@ -393,6 +393,13 @@ def parse(cfile, with_log=True, mute=False):
         (e.g., to prevent overwritting log of a previous run).
     mute: Bool
         If True, enforce verb to take a value of -1.
+
+    Returns
+    -------
+    args: Dictionary
+        A dictionary containing the input configuration variables.
+    log: mc3.Log
+        A logging log object.
     """
     with pt.log_error():
         if not os.path.isfile(cfile):

@@ -181,9 +181,16 @@ def get_multinest_map(stats_file):
     return np.array(params, np.double)
 
 
-def multinest_run(pyrat, mn_basename):
+def multinest_run(pyrat, basename):
     """
     A Wrapper of a MultiNest posterior sampling.
+
+    Parameters
+    ----------
+    pyrat: Pyrat() object
+    basename: String
+        Basename for output files. May contain path.
+        Should not contain a file extension.
 
     Note
     ----
@@ -241,7 +248,7 @@ def multinest_run(pyrat, mn_basename):
         Prior=safe_prior,
         n_dims=n_free,
         importance_nested_sampling=False,
-        outputfiles_basename=mn_basename,
+        outputfiles_basename=basename,
         n_live_points=pyrat.ret.nlive,
         resume=pyrat.ret.resume,
         verbose=True,
@@ -260,12 +267,12 @@ def multinest_run(pyrat, mn_basename):
     ifree = np.where(pstep>0)[0]
     ishare = np.where(pstep<0)[0]
 
-    bestp[ifree] = get_multinest_map(f'{mn_basename}stats.dat')
+    bestp[ifree] = get_multinest_map(f'{basename}stats.dat')
     for s in ishare:
         bestp[s] = bestp[-int(pstep[s])-1]
 
     posterior, weighted_posterior = weighted_to_equal(
-        f'{mn_basename}.txt',
+        f'{basename}.txt',
         get_weighted=True,
     )
     output['posterior'] = posterior
@@ -277,7 +284,7 @@ def multinest_run(pyrat, mn_basename):
     )
 
     # Trace plot:
-    savefile = f'{mn_basename}_trace.png'
+    savefile = f'{basename}_trace.png'
     mc3.plots.trace(
         weighted_posterior,
         pnames=texnames[ifree],
@@ -286,25 +293,19 @@ def multinest_run(pyrat, mn_basename):
     )
     log.msg(savefile, indent=2)
     # Pairwise posteriors plots:
-    savefile = f'{mn_basename}_posterior_pairwise.png'
+    savefile = f'{basename}_posterior_pairwise.png'
     post.plot(savefile=savefile)
     log.msg(savefile, indent=2)
     # Histogram plots:
-    savefile = f'{mn_basename}_posterior_marginal.png'
+    savefile = f'{basename}_posterior_marginal.png'
     post.plot_histogram(savefile=savefile)
     log.msg(savefile, indent=2)
 
 
     # Statistics:
     best_model = pyrat.eval(bestp, retmodel=False)
-    data = []
-    uncert = []
-    if pyrat.obs.data is not None:
-        data = pyrat.obs.data
-        uncert = pyrat.obs.uncert
-    if pyrat.obs.data_hires is not None:
-        data = np.concatenate((data, pyrat.obs.data_hires))
-        uncert = np.concatenate((uncert, pyrat.obs.uncert_hires))
+    data = loglike.data
+    uncert = loglike.uncert
 
     ndata = len(data)
     best_chisq = np.sum((best_model-data)**2 / uncert**2)
@@ -331,7 +332,7 @@ def multinest_run(pyrat, mn_basename):
     output['hpd_low_bounds'] = sample_stats[6]
     output['hpd_high_bounds'] = sample_stats[7]
 
-    stats_file = f'{mn_basename}_statistics.txt'
+    stats_file = f'{basename}_statistics.txt'
     mc3.stats.summary_stats(post, output, filename=stats_file)
 
     # Restore verbosity
