@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2024 Patricio Cubillos
+# Copyright (c) 2021-2025 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -11,6 +11,7 @@ import mc3
 from .. import io as io
 from .. import tools as pt
 from .. import constants as pc
+from .. import spectrum as ps
 from ..lib import _extcoeff as ec
 
 
@@ -133,7 +134,8 @@ class Line_Sample():
         if max_wn is None:
             max_wn = np.inf if min_wl is None else 1.0/(min_wl*pc.um)
 
-        self.wn = wn[(wn >= min_wn) & (wn <= max_wn)][::wn_thinning]
+        wn_mask = ps.wn_mask(wn, min_wn, max_wn)
+        self.wn = wn[wn_mask][::wn_thinning]
         self.nwave = len(self.wn)
 
         # Unpack isotopic parameters
@@ -159,7 +161,7 @@ class Line_Sample():
         for cs_file in self.cs_files:
             #cs_file = os.path.basename(cs_file)
             species, temp, press, wn = io.read_opacity(cs_file,extract='arrays')
-            wn_mask = (wn >= min_wn) & (wn <= max_wn)
+            wn_mask = ps.wn_mask(wn, min_wn, max_wn)
             wn = wn[wn_mask][::wn_thinning]
             wn_masks.append(wn_mask)
             ntemp = len(temp)

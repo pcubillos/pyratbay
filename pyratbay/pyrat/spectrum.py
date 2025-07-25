@@ -126,7 +126,7 @@ class Spectrum():
             wn = io.read_opacity(inputs.extfile[0], extract='arrays')[3]
 
             # Update wavenumber sampling:
-            wn_mask = (wn >= self.wnlow) & (wn <= self.wnhigh)
+            wn_mask = ps.wn_mask(wn, self.wnlow, self.wnhigh)
             self.wn = wn[wn_mask][::inputs.wn_thinning]
             self.nwave = len(self.wn)
             self.spectrum = np.zeros(self.nwave, np.double)
