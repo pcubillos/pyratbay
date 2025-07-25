@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2024 Patricio Cubillos
+# Copyright (c) 2021-2025 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -20,7 +20,7 @@ from .. import version as ver
 
 
 def make_tli(
-        dblist, pflist, dbtype, tlifile, wl_low,  wl_high, wl_units,
+        dblist, pflist, dbtype, tlifile, wl_low, wl_high, wl_units,
         log=None,
     ):
     """
@@ -87,7 +87,7 @@ def make_tli(
 
     # Driver routine to read the databases:
     db_readers = {
-        dbname.lower(): getattr(linelist,dbname)
+        dbname.lower(): getattr(linelist, dbname)
         for dbname in pc.dbases
     }
     dblist = [
@@ -105,8 +105,10 @@ def make_tli(
                 f"Select from: {str(pc.dbases)}"
             )
         log.head(f'- {dbase}')
-        databases.append(db_readers[dtype](dbase, pf, log))
-        db_names.append(databases[-1].name)
+        db = db_readers[dtype](dbase, pf, log)
+        databases.append(db)
+        db_names.append(db.name)
+
     log.msg(f'There are {nfiles} input database file(s).')
 
     # Open output file:
@@ -156,9 +158,26 @@ def make_tli(
 
         # Get partition function values:
         temp, partition, pf_iso = db.getpf(log.verb)
-        iso_names = db.isotopes
-        iso_mass = db.mass
-        iso_ratio = db.isoratio
+
+        # Remove DB isotopes not found in PF isotopes:
+        iso_match = np.isin(db.isotopes, pf_iso)
+        if np.sum(iso_match) == 0:
+            log.error(
+                'There were no iso_match isotopes between line-list '
+                f'database ({db.isotopes}) and partition-function file '
+                f'({pf_iso})'
+            )
+        # TBD: Should match after parsing isotopes 'with' transitions
+        #if np.any(~iso_match):
+        #    log.warning(
+        #        'Some line-list isotopes were not found in the partition-'
+        #        f'function file:\n{db.isotopes[~iso_match]}'
+        #    )
+
+        # LBL isotopes present in PF isotopes:
+        iso_names = [iso for iso,flag in zip(db.isotopes,iso_match) if flag]
+        iso_mass = [mass for mass,flag in zip(db.mass,iso_match) if flag]
+        iso_ratio = [ratio for ratio,flag in zip(db.isoratio,iso_match) if flag]
 
         # Number of temperature samples and isotopes:
         ntemp = len(temp)

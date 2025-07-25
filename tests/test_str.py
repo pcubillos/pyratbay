@@ -301,7 +301,7 @@ Number of databases (ndb): 1
 
 Database name (name): HITRAN H2O
 Species name (molname):  H2O
-Number of isotopes (niso): 10
+Number of isotopes (niso): 9
 Number of temperature samples (ntemp): 1201
 Temperature (temp, K):
     [1.000e+00 5.000e+00 1.000e+01 ... 5.990e+03 5.995e+03 6.000e+03]
@@ -315,7 +315,6 @@ Partition function for each isotope (z):
     [ 6.000e+00  6.343e+00  9.129e+00 ...  1.949e+06  1.955e+06  1.962e+06]
     [ 6.000e+00  6.353e+00  9.217e+00 ...  2.006e+06  2.013e+06  2.019e+06]
     [ 3.600e+01  3.809e+01  5.505e+01 ...  1.187e+07  1.191e+07  1.195e+07]
-    [ 0.000e+00  0.000e+00  0.000e+00 ...  0.000e+00  0.000e+00  0.000e+00]
 
 Total number of line transitions (ntransitions): 47,666
 Minimum and maximum temperatures (tmin, tmax): [1.0, 6000.0] K
@@ -329,7 +328,7 @@ Line-transition gf (gf, cm-1):
     [ 1.399e-08  1.188e-09  1.210e-08 ...  5.498e-06  1.558e-07  1.076e-06]
 Line-transition strength threshold (ethresh): 1.00e-15
 Isotopes information:
-Number of isotopes (niso): 10
+Number of isotopes (niso): 9
 
 Isotope  Molecule      Mass    Isotopic   Database
             index     g/mol       ratio
@@ -343,7 +342,6 @@ Isotope  Molecule      Mass    Isotopic   Database
     262         5   20.0229   2.420e-08   HITRAN H2O
     282         5   22.0274   4.300e-11   HITRAN H2O
     272         5   21.0273   8.063e-12   HITRAN H2O
-    000         5   17.0187   9.997e-53   HITRAN H2O
 """
 
     assert str(pyrat.voigt) == """\
