@@ -12,6 +12,7 @@
 #       Simeckova et al. (2006), Rothman et al (2013), Lide (2008)
 # - Isotopic mass (amu): taken from HITRAN, else calculated with
 #       mendeleev.rtfd.io, else taken from Lide (2008) Handbook of chem.
+# - isotopes must follow HITRAN order first, then complement with exomol iso
 
 # molecule     isotopologue        isotopic      isotopic
 #              HITRAN  Exomol      ratio         mass

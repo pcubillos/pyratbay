@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Patricio Cubillos
+# Copyright (c) 2021-2024 Patricio Cubillos
 # Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 import os
@@ -52,23 +52,44 @@ def test_get_tips_molname_error():
         dummy = pf.get_tips_molname(0)
 
 
-def test_pf_tips():
-    expected_temp = np.arange(0, 6001, 5.0)
-    expected_temp[0] = 1.0
-
-    with open(f'{pc.ROOT}pyratbay/data/tips_2021.pkl', 'rb') as p:
-        expected_pf = pickle.load(p)['H2O']
+def test_pf_tips_default_dbtype():
     with pt.cd('outputs/'):
         pf_data, isotopes, temp = pf.tips('H2O', outfile='default')
 
+    with open(f'{pc.ROOT}pyratbay/data/tips_2021.pkl', 'rb') as p:
+        expected_pf = pickle.load(p)['H2O']
+    expected_temp = np.arange(0, 6001, 5.0)
+    expected_temp[0] = 1.0
+    # Default iso labels are as in exomol nomenclature
+    expected_iso = ['116', '118', '117', '126', '128', '127', '226', '228', '227']
     np.testing.assert_equal(temp, expected_temp)
     np.testing.assert_equal(pf_data[6], expected_pf['262'])
-    assert isotopes == list(expected_pf.keys())
+    assert isotopes == expected_iso
 
     pf_read, iso, temp_read = io.read_pf('outputs/PF_tips_H2O.dat')
     np.testing.assert_allclose(pf_read[6,:], expected_pf['262'], rtol=1e-7)
     np.testing.assert_allclose(temp_read, expected_temp, rtol=1e-7)
-    assert list(iso) == list(expected_pf.keys())
+    assert list(iso) == expected_iso
+
+
+def test_pf_tips_as_tips():
+    with pt.cd('outputs/'):
+        pf_data, isotopes, temp = pf.tips(
+            'H2O', outfile='default', db_type='as_tips',
+        )
+
+    with open(f'{pc.ROOT}pyratbay/data/tips_2021.pkl', 'rb') as p:
+        expected_pf = pickle.load(p)['H2O']
+    expected_temp = np.arange(0, 6001, 5.0)
+    expected_temp[0] = 1.0
+    np.testing.assert_equal(temp, expected_temp)
+    np.testing.assert_equal(pf_data[6], expected_pf['262'])
+    assert isotopes == list(expected_pf)
+
+    pf_read, iso, temp_read = io.read_pf('outputs/PF_tips_H2O.dat')
+    np.testing.assert_allclose(pf_read[6,:], expected_pf['262'], rtol=1e-7)
+    np.testing.assert_allclose(temp_read, expected_temp, rtol=1e-7)
+    assert list(iso) == list(expected_pf)
 
 
 @pytest.mark.parametrize(

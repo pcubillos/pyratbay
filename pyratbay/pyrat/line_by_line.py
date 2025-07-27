@@ -361,15 +361,15 @@ def read_tli_file(tli_file, wn_low, wn_high, log):
         log.warning(
             "TLI wavenumber range "
             f"({lbl_wn_low:.1f}--{lbl_wn_high:.1f} cm-1) does "
-            f"not overlap with Pyrat wavenumber range "
+            "not overlap with Pyrat wavenumber range "
             f"({wn_low:.1f}--{wn_high:.1f} cm-1)."
         )
     # TLI range is smaller than the pyrat required range:
     elif lbl_wn_low > wn_low or lbl_wn_high < wn_high:
         log.warning(
-            f"TLI wavenumber range "
+            "TLI wavenumber range "
             f"({lbl_wn_low:.1f}--{lbl_wn_high:.2f} cm-1) does "
-            f"not cover the full Pyrat wavenumber range "
+            "not cover the full Pyrat wavenumber range "
             f"({wn_low:.1f}--{wn_high:.1f} cm-1)."
         )
 

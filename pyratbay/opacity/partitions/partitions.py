@@ -71,7 +71,7 @@ def get_tips_molname(molID):
     return data['mol_ID'][molID]
 
 
-def tips(molecule, isotopes=None, outfile=None, db_type='as_tips'):
+def tips(molecule, isotopes=None, outfile=None, db_type='as_exomol'):
     """
     Extract TIPS 2021 partition-function values for given molecule.
     If requested, write the partition-function into a file for use
@@ -110,7 +110,7 @@ def tips(molecule, isotopes=None, outfile=None, db_type='as_tips'):
 
     Written partition-function file:
       'PF_tips_H2O.dat'
-    for molecule H2O, with isotopes ['161', '181', '171', '162', '182', '172', '262', '282', '272'],
+    for molecule H2O, with isotopes ['116', '118', '117', '126', '128', '127', '226', '228', '227'],
     and temperature range 1--6000 K.
     """
     with open(pc.ROOT+'pyratbay/data/tips_2021.pkl', 'rb') as p:
