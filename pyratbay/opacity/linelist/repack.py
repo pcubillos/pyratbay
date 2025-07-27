@@ -32,17 +32,17 @@ class Repack(Linelist):
 
       self.fmt = 'dddi'
       self.recsize = struct.calcsize(self.fmt)
-      self.dsize   = struct.calcsize('d')
+      self.dsize = struct.calcsize('d')
 
       # Get info from file name:
       self.molecule, self.dbtype = os.path.split(dbfile)[1].split('_')[0:2]
-      # Get isotopic info:
-      isotopes, mass, ratio = self.get_iso(self.molecule, self.dbtype)
-      self.isotopes = isotopes
-      self.mass     = mass
-      self.isoratio = ratio
-      # Database name:
       self.name = f'repack {self.dbtype} {self.molecule}'
+
+      # Get isotopic info:
+      isotopes, mass, ratio = self.get_iso(self.molecule)
+      self.isotopes = isotopes
+      self.mass = mass
+      self.isoratio = ratio
 
 
   def readwave(self, dbfile, irec):
@@ -116,7 +116,7 @@ class Repack(Linelist):
       wnumber = np.zeros(nread, np.double)
       elow    = np.zeros(nread, np.double)
       gf      = np.zeros(nread, np.double)
-      iso     = np.zeros(nread,       int)
+      iso     = np.zeros(nread, int)
 
       self.log.msg(f'Process {self.name} database between records '
           f'{istart:,d} and {istop:,d}.', indent=2)
@@ -143,11 +143,26 @@ class Repack(Linelist):
       data.close()
 
       # Unique isotopes and inverse indices:
-      uiso, inverse = np.unique(iso, return_inverse=True)
-      isonamelen = len(str(np.amax(uiso)))  # Count how many digits
-      idx = np.zeros(len(uiso), int)
-      for i in range(len(uiso)):
-          idx[i] = self.isotopes.index(str(uiso[i]).zfill(isonamelen))
+      unique_iso, inverse = np.unique(iso, return_inverse=True)
+      # Convert integer to string (care to pad leading '0's):
+      iso_len = len(self.isotopes[0])
+      unique_iso = [str(iso).zfill(iso_len) for iso in unique_iso]
+      n_iso = len(unique_iso)
+      idx = np.zeros(n_iso, int)
+      missing_isotopes = []
+      for i,iso in enumerate(unique_iso):
+          if iso in self.isotopes:
+              idx[i] = self.isotopes.index(iso)
+          else:
+              missing_isotopes.append(iso)
+
+      if len(missing_isotopes) > 0:
+          raise ValueError (
+              f'Unrecognized isotope names for {self.molecule} line-list: '
+              f'{missing_isotopes}\nSee list of known isotopes at '
+              f'{pc.ROOT}pyratbay/data/isotopes.dat'
+          )
+
       isoID = idx[inverse]
 
       return wnumber, gf, elow, isoID

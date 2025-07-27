@@ -49,14 +49,17 @@ class Hitran(Linelist):
       with open(self.dbfile, "r") as data:
           molID = int(data.read(2))
       self.molecule = pf.get_tips_molname(molID)
+      self.name = 'HITRAN ' + self.molecule
 
-      isotopes, mass, ratio = self.get_iso(self.molecule, dbtype='hitran')
+      # All isotopic data
+      iso_names, mass, ratio = self.get_iso(self.molecule)
+      # Ensure isotopes follow the HITRAN order (i.e., take from tips)
+      isotopes = pf.tips(self.molecule)[1]
+      isort = [iso_names.index(iso) for iso in isotopes]
 
       self.isotopes = isotopes
-      self.mass = mass
-      self.isoratio = ratio
-      # Database name:
-      self.name = 'HITRAN ' + self.molecule
+      self.mass = np.array(mass)[isort]
+      self.isoratio = np.array(ratio)[isort]
 
 
   def readwave(self, dbfile, irec):

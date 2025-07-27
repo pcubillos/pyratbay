@@ -61,13 +61,14 @@ class Exomol(Linelist):
 
       # Get info from file name:
       self.molecule, self.iso = pt.get_exomol_mol(dbfile)
+      self.name = 'Exomol ' + self.molecule
+
       # Get isotopic info:
-      isotopes, mass, ratio = self.get_iso(self.molecule, dbtype='exomol')
+      isotopes, mass, ratio = self.get_iso(self.molecule)
       self.isotopes = isotopes
       self.mass = mass
       self.isoratio = ratio
-      # Database name:
-      self.name = 'Exomol ' + self.molecule
+
 
 
   def readwave(self, dbfile, irec):

@@ -14,6 +14,7 @@ class Linelist():
       self.pffile = pffile
       self.log = log
 
+
   def getpf(self, verbose=0):
       """
       Compute partition function for specified source.
@@ -52,14 +53,13 @@ class Linelist():
                   )
           # Get the exponential of log(PF):
           pf_data = np.exp(pf_data)
-
           return temp, pf_data, self.isotopes
 
       # Extract the partition-function from a tabulated file
       else:
           # TBD: Catch file not found error with self.log
           pf_data, iso, temp = io.read_pf(self.pffile)
-          return temp, pf_data, iso
+          return temp, pf_data, iso.tolist()
 
 
   def dbread(self, iwl, fwl, verb):
@@ -142,7 +142,7 @@ class Linelist():
       return irec
 
 
-  def get_iso(self, molname, dbtype):
+  def get_iso(self, molname):
       """
       Get isotopic info from isotopes.dat file.
 
@@ -164,15 +164,9 @@ class Linelist():
       """
       iso_data = io.read_isotopes(ROOT + 'pyratbay/data/isotopes.dat')
       name, hit_iso, exo_iso, iso_ratio, iso_mass = iso_data
+      isotopes = exo_iso
 
-      if dbtype == 'hitran':
-          isotopes = hit_iso
-      elif dbtype in ['exomol', 'kurucz', 'ames']:
-          isotopes = exo_iso
-      else:
-          self.log.error(f'Invalid database type: {dbtype}')
-
-      isotopes = [iso for mol,iso in zip(name, isotopes) if mol==molname]
+      isotopes = [str(iso) for mol,iso in zip(name, isotopes) if mol==molname]
       mass = [m for mol,m in zip(name, iso_mass) if mol==molname]
       isoratio = [ratio for mol,ratio in zip(name, iso_ratio) if mol==molname]
 
