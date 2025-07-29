@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2023 Patricio Cubillos
+# Copyright (c) 2021-2025 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -16,7 +16,7 @@ from .. import constants as pc
 class Extinction():
     def __init__(self, inputs, log):
         self.ec = None # line-transition extinction coefficient in cm-1
-        self.extfile = inputs.extfile
+        self.sampled_cs = inputs.sampled_cs
         # Temperature sampling to compute opacity grid
         self.tmin = inputs.tmin
         self.tmax = inputs.tmax
@@ -31,10 +31,12 @@ class Extinction():
             fw.write(
                 '\nLBL extinction coefficient for the atmospheric model '
                 '(ec, cm-1) [layer, wave]:\n{}', self.ec, fmt=fmt)
-        extfile = ['None'] if self.extfile is None else self.extfile
-        fw.write("Extinction-coefficient table filename(s) (extfile): {}",
-            '\n    '.join(extfile))
-        if self.extfile is None:
+        cs_file = ['None'] if self.sampled_cs is None else self.sampled_cs
+        fw.write(
+            "Extinction-coefficient table filename(s) (cs_file): {}",
+            '\n    '.join(cs_tfile)
+        )
+        if self.sampled_cs is None:
             return fw.text
         fw.write('Minimum temperature (tmin, K): {:6.1f}', self.tmin)
         fw.write('Maximum temperature (tmax, K): {:6.1f}', self.tmax)

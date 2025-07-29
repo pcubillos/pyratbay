@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2024 Patricio Cubillos
+# Copyright (c) 2021-2025 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import numpy as np
@@ -49,9 +49,9 @@ class Opacity():
 
         self.nspec = []
         # TBD: without runmode?
-        if inputs.extfile is not None and inputs.runmode != 'opacity':
+        if inputs.sampled_cs is not None and inputs.runmode != 'opacity':
             log.head("\nReading cross-section table file(s):")
-            #for cs_file in self.extfile:
+            #for cs_file in self.sampled_cs:
             #    log.head(f"  '{cs_file}'.")
 
             make_temp_array = (
@@ -69,7 +69,7 @@ class Opacity():
 
             # TBD: self.ls_files?
             ls = op.Line_Sample(
-                inputs.extfile, pressure=pressure, temperature=temp_array,
+                inputs.sampled_cs, pressure=pressure, temperature=temp_array,
                 min_wn=min_wn, max_wn=max_wn, wn_thinning=inputs.wn_thinning,
                 log=log, isotope_ratios=inputs.isotope_ratios,
             )

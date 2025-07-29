@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2024 Patricio Cubillos
+# Copyright (c) 2021-2025 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -423,9 +423,11 @@ def parse(cfile, with_log=True, mute=False):
         parse_array(args, 'pflist')
         parse_array(args, 'dbtype')
         parse_array(args, 'tlifile')
-        parse_array(args, 'csfile')
         parse_str(args, 'molfile')
-        parse_array(args, 'extfile')
+        parse_array(args, 'sampled_cross_sec')
+        parse_array(args, 'continuum_cross_sec')
+        parse_array(args, 'extfile')   # Deprecated
+        parse_array(args, 'csfile')  # Deprecated
         # Spectrum sampling options:
         parse_str(args, 'wlunits')
         parse_str(args, 'wllow')
@@ -624,8 +626,20 @@ def parse(cfile, with_log=True, mute=False):
     args.atmfile = args.get_path('atmfile', 'Atmospheric')
     args.output_atmfile = args.get_path('output_atmfile', 'Atmospheric')
     args.specfile = args.get_path('specfile', 'Spectrum')
-    args.extfile = args.get_path('extfile', 'Extinction-coefficient')
     args.mcmcfile = args.get_path('mcmcfile', 'Retrieval')
+
+    args.sampled_cs = args.get_path(
+        'sampled_cross_sec',
+        'Sampled line cross sections',
+    )
+    # Deprecated varriable
+    sampled_cs = args.extfile = args.get_path('extfile')
+    if sampled_cs is not None:
+        warning = "'extfile' argument is deprecated, use 'sampled_cross_sec' instead"
+        warnings.warn(warning, category=DeprecationWarning)
+    if args.sampled_cs is None and sampled_cs is not None:
+        args.sampled_cs = sampled_cs
+
 
     # Default output filenames if needed base on logfile and runmode:
     outfile, extension = os.path.splitext(args.logfile)
@@ -633,8 +647,8 @@ def parse(cfile, with_log=True, mute=False):
         args.tlifile = [outfile + '.tli']
     if args.runmode == 'atmosphere' and args.output_atmfile is None:
         args.output_atmfile = outfile + '.atm'
-    if args.runmode == 'opacity' and args.extfile is None:
-        args.extfile = [outfile + '.npz']
+    if args.runmode == 'opacity' and args.sampled_cs is None:
+        args.sampled_cs = [outfile + '.npz']
     if args.runmode == 'spectrum' and args.specfile is None:
         args.specfile = outfile + '.dat'
 
@@ -653,13 +667,13 @@ def parse(cfile, with_log=True, mute=False):
     args.ptfile = args.get_path('ptfile', 'Pressure-temperature')
 
     # Validate opacity file path(s)
-    if args.runmode == 'opacity' and pt.isfile(args.extfile) == -1:
+    if args.runmode == 'opacity' and pt.isfile(args.sampled_cs) == -1:
         log.error(
-            'Undefined output opacity file (extfile) needed to compute '
-            'opacity table'
+            'Undefined output cross-section file (sampled_cross_sec) needed '
+            'to compute opacity table'
         )
-    if args.runmode != 'opacity' and pt.isfile(args.extfile) == 0:
-        missing = [efile for efile in args.extfile if pt.isfile(efile) == 0]
+    if args.runmode != 'opacity' and pt.isfile(args.sampled_cs) == 0:
+        missing = [efile for efile in args.sampled_cs if pt.isfile(efile) == 0]
         log.error(
             f"These input cross-section files are missing: {missing}"
         )

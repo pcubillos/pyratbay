@@ -122,8 +122,8 @@ class Spectrum():
         self.wlstep = None
 
         # If there are cross-section tables, take sampling from there:
-        if pt.isfile(inputs.extfile) == 1 and inputs.runmode != 'opacity':
-            wn = io.read_opacity(inputs.extfile[0], extract='arrays')[3]
+        if pt.isfile(inputs.sampled_cs) == 1 and inputs.runmode != 'opacity':
+            wn = io.read_opacity(inputs.sampled_cs[0], extract='arrays')[3]
 
             # Update wavenumber sampling:
             wn_mask = ps.wn_mask(wn, self.wnlow, self.wnhigh)
