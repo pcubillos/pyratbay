@@ -21,15 +21,15 @@ def compute_opacity(pyrat):
     log = pyrat.log
 
     # TBD: Remove this check (already covered in parser)?
-    if ex.extfile is None:
+    if ex.sampled_cs is None:
         log.error(
-            'Undefined output opacity file (extfile) needed to '
+            'Undefined output cross_section file (sampled_cross_sec) needed to '
             'compute opacity table'
         )
-    if len(ex.extfile) > 1:
+    if len(ex.sampled_cs) > 1:
         log.error(
             'Computing opacity table, but there was more than one '
-            'output opacity file (extfile)',
+            'output opacity file (sampled_cross_sec)',
         )
     if ex.tmin is None:
         log.error(
@@ -55,8 +55,8 @@ def compute_opacity(pyrat):
     i_lbl = pyrat.opacity.models_type.index('lbl')
     lbl = pyrat.opacity.models[i_lbl]
 
-    extfile = ex.extfile[0]
-    log.head(f"\nGenerating new cross-section table file:\n  '{extfile}'")
+    cs_file = ex.sampled_cs[0]
+    log.head(f"\nGenerating new cross-section table file:\n  '{cs_file}'")
     # Temperature boundaries check:
     if ex.tmin < lbl.tmin:
         log.error(
@@ -113,9 +113,9 @@ def compute_opacity(pyrat):
         proc.join()
 
     # Store values in file:
-    io.write_opacity(extfile, ex.species, ex.temp, ex.press, ex.wn, ex.etable)
+    io.write_opacity(cs_file, ex.species, ex.temp, ex.press, ex.wn, ex.etable)
     log.head(
-        f"Cross-section table written to file: '{extfile}'.",
+        f"Cross-section table written to file: '{cs_file}'.",
         indent=2,
     )
 

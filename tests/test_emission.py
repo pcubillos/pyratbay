@@ -20,17 +20,18 @@ os.chdir(ROOT+'tests')
 
 # Expected spectra:
 keys = [
-    'lec', 'cia', 'alkali', 'deck', 'tli', 'all',
-    'patchy', 'patchy_clear', 'patchy_cloudy',
-    'quadrature', 'etable',
+    'sampled_cs', 'tli', 'lec', 'cia', 'alkali', 'deck', 'all',
+    'patchy', 'patchy_clear', 'patchy_cloudy', 'quadrature',
     'resolution', 'two_stream',
     'tmodel', 'vert', 'scale',
 ]
 expected = {
-    key:np.load(f"{ROOT}tests/expected/"
-                f"expected_spectrum_emission_{key}_test.npz")['arr_0']
-    for key in keys}
-#np.savez('expected/expected_spectrum_emission_fit_test.npz', model1[0])
+    key:np.load(
+        f"{ROOT}tests/expected/"
+        f"expected_spectrum_emission_{key}_test.npz"
+    )['arr_0']
+    for key in keys
+}
 
 INPUTS = f'{ROOT}tests/inputs/'
 OUTPUTS = f'{ROOT}tests/outputs/'
@@ -44,18 +45,43 @@ def test_emission_clear(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_emission_test.cfg',
-        remove=['tlifile', 'csfile', 'rayleigh', 'alkali', 'clouds'],
+        remove=['sampled_cross_sec', 'csfile', 'rayleigh', 'alkali', 'clouds'],
     )
     pyrat = pb.run(cfg)
     spectrum = ps.bbflux(pyrat.spec.wn, pyrat.atm.temp[-1])
     np.testing.assert_allclose(pyrat.spec.spectrum, spectrum, rtol=rtol)
 
 
+def test_emission_sampled_cross_sec(tmp_path):
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_emission_test.cfg',
+        remove=['csfile', 'rayleigh', 'alkali', 'clouds'],
+    )
+    pyrat = pb.run(cfg)
+    spectrum = pyrat.spec.spectrum
+    np.testing.assert_allclose(spectrum, expected['sampled_cs'], rtol=rtol)
+
+
+def test_emission_tli(tmp_path):
+    reset = {
+        'tlifile': f'{OUTPUTS}HITRAN_H2O_1.1-1.7um_test.tli',
+    }
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_emission_test.cfg',
+        remove=['sampled_cross_sec', 'csfile', 'rayleigh', 'clouds', 'alkali'],
+        reset=reset,
+    )
+    pyrat = pb.run(cfg)
+    np.testing.assert_allclose(pyrat.spec.spectrum, expected['tli'], rtol=rtol)
+
+
 def test_emission_lecavelier(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_emission_test.cfg',
-        remove=['tlifile', 'csfile', 'alkali', 'clouds'],
+        remove=['sampled_cross_sec', 'csfile', 'alkali', 'clouds'],
     )
     pyrat = pb.run(cfg)
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['lec'], rtol=rtol)
@@ -65,7 +91,7 @@ def test_emission_CIA(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_emission_test.cfg',
-        remove=['tlifile', 'rayleigh', 'alkali', 'clouds'],
+        remove=['sampled_cross_sec', 'rayleigh', 'alkali', 'clouds'],
     )
     pyrat = pb.run(cfg)
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['cia'], rtol=rtol)
@@ -75,7 +101,7 @@ def test_emission_alkali(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_emission_test.cfg',
-        remove=['tlifile', 'csfile', 'rayleigh', 'clouds'],
+        remove=['sampled_cross_sec', 'csfile', 'rayleigh', 'clouds'],
         reset={'wllow':'0.45 um', 'wlhigh':'1.0 um'},
     )
     pyrat = pb.run(cfg)
@@ -88,7 +114,7 @@ def test_emission_deck(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_emission_test.cfg',
-        remove=['tlifile', 'csfile', 'rayleigh', 'alkali'],
+        remove=['sampled_cross_sec', 'csfile', 'rayleigh', 'alkali'],
     )
     pyrat = pb.run(cfg)
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['deck'], rtol=rtol)
@@ -96,16 +122,6 @@ def test_emission_deck(tmp_path):
     tsurf_cloud = pyrat.opacity.models[0].tsurf
     spectrum = ps.bbflux(pyrat.spec.wn, tsurf_cloud)
     np.testing.assert_allclose(pyrat.spec.spectrum, spectrum, rtol=rtol)
-
-
-def test_emission_tli(tmp_path):
-    cfg = make_config(
-        tmp_path,
-        ROOT+'tests/configs/spectrum_emission_test.cfg',
-        remove=['csfile', 'rayleigh', 'clouds', 'alkali'],
-    )
-    pyrat = pb.run(cfg)
-    np.testing.assert_allclose(pyrat.spec.spectrum, expected['tli'], rtol=rtol)
 
 
 def test_emission_all(tmp_path):
@@ -166,37 +182,24 @@ def test_emission_two_stream(tmp_path):
         remove=['clouds'],
     )
     pyrat = pb.run(cfg)
-    np.testing.assert_allclose(
-        pyrat.spec.spectrum, expected['two_stream'], rtol=rtol)
+    spectrum = pyrat.spec.spectrum
+    np.testing.assert_allclose(spectrum, expected['two_stream'], rtol=rtol)
 
 
 def test_emission_resolution(tmp_path):
-    cfg = make_config(
-        tmp_path,
-        ROOT+'tests/configs/spectrum_emission_test.cfg',
-        reset={'resolution':'5000.0'},
-        remove=['clouds'],
-    )
-    pyrat = pb.run(cfg)
-    np.testing.assert_allclose(
-        pyrat.spec.spectrum, expected['resolution'], rtol=rtol)
-
-
-def test_emission_etable(tmp_path):
-    # LBL from extinction table:
     reset = {
-        'extfile': f'{OUTPUTS}exttable_test_300-3000K_1.1-1.7um.npz',
+        'tlifile': f'{OUTPUTS}HITRAN_H2O_1.1-1.7um_test.tli',
+        'resolution': '5000.0',
     }
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_emission_test.cfg',
-        remove=['tlifile', 'clouds'],
+        remove=['sampled_cross_sec', 'clouds'],
         reset=reset,
     )
     pyrat = pb.run(cfg)
-    np.testing.assert_allclose(
-        pyrat.spec.spectrum, expected['etable'], rtol=rtol,
-    )
+    spectrum = pyrat.spec.spectrum
+    np.testing.assert_allclose(spectrum, expected['resolution'], rtol=rtol)
 
 
 def test_emission_dilution(tmp_path):
@@ -221,7 +224,7 @@ def test_emission_odd_even(tmp_path):
         tmp_path,
         ROOT+'tests/configs/spectrum_emission_test.cfg',
         reset={'rpars':'1.0 -4.0'},
-        remove=['tlifile', 'alkali', 'clouds'],
+        remove=['sampled_cross_sec', 'alkali', 'clouds'],
     )
     pyrat = pb.run(cfg)
     odd_spectrum = pyrat.spec.spectrum
@@ -233,7 +236,7 @@ def test_emission_odd_even(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_emission_test.cfg',
-        remove=['tlifile', 'alkali', 'clouds'],
+        remove=['sampled_cross_sec', 'alkali', 'clouds'],
         reset=reset,
     )
     pyrat = pb.run(cfg)
@@ -285,9 +288,8 @@ def test_emission_tmodel(tmp_path):
         reset=reset,
     )
     pyrat = pb.run(cfg)
-    np.testing.assert_allclose(
-        pyrat.spec.spectrum, expected['tmodel'], rtol=rtol,
-    )
+    spectrum = pyrat.spec.spectrum
+    np.testing.assert_allclose(spectrum, expected['tmodel'], rtol=rtol)
 
 
 def test_emission_tmodel_no_tpars(tmp_path):
@@ -347,9 +349,9 @@ def test_emission_scale_model(tmp_path):
         reset=reset,
     )
     pyrat = pb.run(cfg)
-    np.testing.assert_allclose(
-        pyrat.spec.spectrum, expected['scale'], rtol=rtol,
-    )
+    spectrum = pyrat.spec.spectrum
+    np.testing.assert_allclose(spectrum, expected['scale'], rtol=rtol)
+
     i_H2O = list(pyrat.atm.species).index('H2O')
     np.testing.assert_allclose(
         pyrat.atm.vmr[:,i_H2O],
@@ -403,12 +405,12 @@ def test_emission_band_integrate_no_data():
     bandflux = pyrat.band_integrate()
 
     expected_bandflux = [
-        8.3599959781e+04, 9.1936450946e+04, 9.5370713103e+04, 1.0969824065e+05,
-        1.1649921878e+05, 1.2185291329e+05, 1.2553119588e+05, 1.2438979652e+05,
-        1.1725916884e+05, 8.7011313220e+04, 9.2765839419e+04, 9.1580012671e+04,
-        8.9772807898e+04, 1.0512211580e+05, 1.1097910029e+05, 1.2887760170e+05,
-        1.4867553759e+05, 1.5681273084e+05, 1.6709544356e+05, 1.7135626329e+05,
-        1.7388629656e+05,
+        8.3599959865e+04, 9.1936451411e+04, 9.5370713453e+04, 1.0969824166e+05,
+        1.1649921886e+05, 1.2185291330e+05, 1.2553119593e+05, 1.2438979661e+05,
+        1.1725917129e+05, 8.7011322791e+04, 9.2765842011e+04, 9.1580023956e+04,
+        8.9772812537e+04, 1.0512215339e+05, 1.1097910892e+05, 1.2887760438e+05,
+        1.4867553787e+05, 1.5681273219e+05, 1.6709544375e+05, 1.7135626329e+05,
+        1.7388629657e+05,
     ]
     #print(' '.join([f'{flux:.10e},' for flux in bandflux]))
     np.testing.assert_allclose(pyrat.spec.spectrum, spectrum)
