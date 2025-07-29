@@ -274,7 +274,7 @@ def make_tli(
 
     # Store to file
     ti = time.time()
-    tli_file = open(tlifile.replace('.tli','_bin.tli'), 'wb')
+    tli_file = open(tlifile, 'wb')
     endian = sys.byteorder[0]
     tli_file.write(struct.pack('s', endian.encode('utf-8')))
     tli_file.write(struct.pack('3h', ver.LR_VER, ver.LR_MIN, ver.LR_REV))

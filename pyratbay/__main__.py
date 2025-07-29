@@ -82,7 +82,7 @@ def main():
         outfile = 'default'
         if args.pf[0] == 'exomol':
             pb.opacity.partitions.exomol_pf(args.pf[1:], outfile=outfile)
-        if args.pf[0] == 'states':
+        elif args.pf[0] == 'states':
             tmin = float(args.pf[1])
             tmax = float(args.pf[2])
             tstep = float(args.pf[3])
