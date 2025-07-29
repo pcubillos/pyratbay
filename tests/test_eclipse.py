@@ -19,10 +19,9 @@ os.chdir(ROOT+'tests')
 
 # Expected spectra:
 keys = [
-    'lec', 'cia', 'alkali', 'deck', 'tli', 'all',
+    'sampled_cs', 'tli', 'lec', 'cia', 'alkali', 'deck', 'all',
     'patchy', 'patchy_clear', 'patchy_cloudy',
-    'quadrature', 'etable',
-    'resolution', 'two_stream',
+    'quadrature', 'resolution', 'two_stream',
     'tmodel', 'vert', 'scale',
 ]
 expected = {
@@ -31,7 +30,6 @@ expected = {
     )['arr_0']
     for key in keys
 }
-#np.savez('expected/expected_spectrum_eclipse_fit_test.npz', model1[0])
 
 INPUTS = f'{ROOT}tests/inputs/'
 OUTPUTS = f'{ROOT}tests/outputs/'
@@ -45,7 +43,7 @@ def test_eclipse_clear(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_eclipse_test.cfg',
-        remove=['tlifile', 'csfile', 'rayleigh', 'alkali', 'clouds'],
+        remove=['sampled_cross_sec', 'csfile', 'rayleigh', 'alkali', 'clouds'],
     )
     pyrat = pb.run(cfg)
     spectrum = (
@@ -56,11 +54,36 @@ def test_eclipse_clear(tmp_path):
     np.testing.assert_allclose(pyrat.spec.spectrum, spectrum, rtol=rtol)
 
 
+def test_eclipse_sampled_cs(tmp_path):
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_eclipse_test.cfg',
+        remove=['csfile', 'rayleigh', 'clouds', 'alkali'],
+    )
+    pyrat = pb.run(cfg)
+    np.testing.assert_allclose(pyrat.spec.spectrum, expected['sampled_cs'], rtol=rtol)
+
+
+def test_eclipse_tli(tmp_path):
+    reset = {
+        'tlifile': f'{OUTPUTS}HITRAN_H2O_1.1-1.7um_test.tli',
+    }
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_eclipse_test.cfg',
+        remove=['sampled_cross_sec', 'csfile', 'rayleigh', 'clouds', 'alkali'],
+        reset=reset,
+    )
+    pyrat = pb.run(cfg)
+    spectrum = pyrat.spec.spectrum
+    np.testing.assert_allclose(spectrum, expected['tli'], rtol=rtol)
+
+
 def test_eclipse_lecavelier(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_eclipse_test.cfg',
-        remove=['tlifile', 'csfile', 'alkali', 'clouds'],
+        remove=['sampled_cross_sec', 'csfile', 'alkali', 'clouds'],
     )
     pyrat = pb.run(cfg)
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['lec'], rtol=rtol)
@@ -70,7 +93,7 @@ def test_eclipse_CIA(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_eclipse_test.cfg',
-        remove=['tlifile', 'rayleigh', 'alkali', 'clouds'],
+        remove=['sampled_cross_sec', 'rayleigh', 'alkali', 'clouds'],
     )
     pyrat = pb.run(cfg)
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['cia'], rtol=rtol)
@@ -80,7 +103,7 @@ def test_eclipse_alkali(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_eclipse_test.cfg',
-        remove=['tlifile', 'csfile', 'rayleigh', 'clouds'],
+        remove=['sampled_cross_sec', 'csfile', 'rayleigh', 'clouds'],
         reset={'wllow':'0.45 um', 'wlhigh':'1.0 um'},
     )
     pyrat = pb.run(cfg)
@@ -93,7 +116,7 @@ def test_eclipse_deck(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_eclipse_test.cfg',
-        remove=['tlifile', 'csfile', 'rayleigh', 'alkali'],
+        remove=['sampled_cross_sec', 'csfile', 'rayleigh', 'alkali'],
         reset={'cpars':'-1'},
     )
     pyrat = pb.run(cfg)
@@ -102,16 +125,6 @@ def test_eclipse_deck(tmp_path):
     tsurf_cloud = pyrat.opacity.models[0].tsurf
     spectrum = ps.bbflux(pyrat.spec.wn, tsurf_cloud)
     np.testing.assert_allclose(pyrat.spec.fplanet, spectrum, rtol=rtol)
-
-
-def test_eclipse_tli(tmp_path):
-    cfg = make_config(
-        tmp_path,
-        ROOT+'tests/configs/spectrum_eclipse_test.cfg',
-        remove=['csfile', 'rayleigh', 'clouds', 'alkali'],
-    )
-    pyrat = pb.run(cfg)
-    np.testing.assert_allclose(pyrat.spec.spectrum, expected['tli'], rtol=rtol)
 
 
 def test_eclipse_all(tmp_path):
@@ -171,37 +184,24 @@ def test_eclipse_two_stream(tmp_path):
         remove=['clouds'],
     )
     pyrat = pb.run(cfg)
-    np.testing.assert_allclose(
-        pyrat.spec.spectrum, expected['two_stream'], rtol=rtol)
+    spectrum = pyrat.spec.spectrum
+    np.testing.assert_allclose(spectrum, expected['two_stream'], rtol=rtol)
 
 
 def test_eclipse_resolution(tmp_path):
-    cfg = make_config(
-        tmp_path,
-        ROOT+'tests/configs/spectrum_eclipse_test.cfg',
-        reset={'resolution':'5000.0'},
-        remove=['clouds'],
-    )
-    pyrat = pb.run(cfg)
-    np.testing.assert_allclose(
-        pyrat.spec.spectrum, expected['resolution'], rtol=rtol)
-
-
-def test_eclipse_etable(tmp_path):
-    # LBL from extinction table:
     reset = {
-        'extfile': f'{OUTPUTS}exttable_test_300-3000K_1.1-1.7um.npz',
+        'tlifile': f'{OUTPUTS}HITRAN_H2O_1.1-1.7um_test.tli',
+        'resolution': '5000.0',
     }
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_eclipse_test.cfg',
-        remove=['tlifile', 'clouds'],
+        remove=['sampled_cross_sec', 'clouds'],
         reset=reset,
     )
     pyrat = pb.run(cfg)
-    np.testing.assert_allclose(
-        pyrat.spec.spectrum, expected['etable'], rtol=rtol,
-    )
+    spectrum = pyrat.spec.spectrum
+    np.testing.assert_allclose(spectrum, expected['resolution'], rtol=rtol)
 
 
 def test_eclipse_dilution(tmp_path):
@@ -229,7 +229,7 @@ def test_eclipse_odd_even(tmp_path):
         tmp_path,
         ROOT+'tests/configs/spectrum_eclipse_test.cfg',
         reset={'rpars':'1.0 -4.0'},
-        remove=['tlifile', 'alkali', 'clouds'],
+        remove=['sampled_cross_sec', 'alkali', 'clouds'],
     )
     pyrat = pb.run(cfg)
     odd_spectrum = pyrat.spec.spectrum
@@ -241,7 +241,7 @@ def test_eclipse_odd_even(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_eclipse_test.cfg',
-        remove=['tlifile', 'alkali', 'clouds'],
+        remove=['sampled_cross_sec', 'alkali', 'clouds'],
         reset=reset,
     )
     pyrat = pb.run(cfg)
@@ -249,7 +249,6 @@ def test_eclipse_odd_even(tmp_path):
     np.testing.assert_allclose(odd_spectrum, even_spectrum, rtol=rtol)
 
 
-# Now try some forward models that modify the atmospheric profile:
 def test_eclipse_tmodel(tmp_path):
     # Include tmodel and tpars in input config file:
     reset = {
@@ -342,12 +341,12 @@ def test_eclipse_band_integrate_no_data():
     bandflux = pyrat.band_integrate()
 
     expected_bandflux = [
-        2.0600788298e-04, 2.2919658825e-04, 2.4065562317e-04, 2.8029874552e-04,
-        3.0155157611e-04, 3.1963498260e-04, 3.3379724104e-04, 3.3539207156e-04,
-        3.2066247253e-04, 2.4138121079e-04, 2.6113191746e-04, 2.6163132650e-04,
-        2.6030039529e-04, 3.0940004771e-04, 3.3163342065e-04, 3.9102537163e-04,
-        4.5804719770e-04, 4.9061725243e-04, 5.3090560560e-04, 5.5291950761e-04,
-        5.6982335856e-04,
+        2.0600788319e-04, 2.2919658941e-04, 2.4065562405e-04, 2.8029874812e-04,
+        3.0155157632e-04, 3.1963498262e-04, 3.3379724117e-04, 3.3539207179e-04,
+        3.2066247922e-04, 2.4138123734e-04, 2.6113192476e-04, 2.6163135874e-04,
+        2.6030040874e-04, 3.0940015836e-04, 3.3163344643e-04, 3.9102537977e-04,
+        4.5804719858e-04, 4.9061725664e-04, 5.3090560619e-04, 5.5291950762e-04,
+        5.6982335860e-04,
     ]
     #print(' '.join([f'{flux:.10e},' for flux in bandflux]))
     np.testing.assert_allclose(pyrat.spec.spectrum, spectrum)
