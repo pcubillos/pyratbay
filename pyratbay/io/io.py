@@ -1400,7 +1400,7 @@ def import_xs(filename, source, read_all=True, ofile=None):
     filename: String
         The opacity pickle file to read.
     source: String
-        The cross-section source: exomol or taurex (see note below).
+        The cross-section source: 'exomol' or 'taurex' (see note below).
     read_all: Bool
         If True, extract all contents in the file: cross-section,
         pressure, temperature, and wavenumber.
@@ -1437,14 +1437,8 @@ def import_xs(filename, source, read_all=True, ofile=None):
     >>> # http://www.exomol.com/db/H2O/1H2-16O/POKAZATEL/1H2-16O__POKAZATEL__R15000_0.3-50mu.xsec.TauREx.h5
     >>> import pyratbay.io as io
     >>> filename = '1H2-16O__POKAZATEL__R15000_0.3-50mu.xsec.TauREx.h5'
-    >>> xs_H2O, press, temp, wn, species = io.import_xs(filename, 'exomol')
+    >>> xs, press, temp, wn, species = io.import_xs(filename, 'exomol')
     """
-    try:
-        import h5py
-    except ModuleNotFoundError as e:
-        if source == 'exomol':
-            raise e
-
     if source == 'exomol':
         with h5py.File(filename, 'r') as xs_data:
             xs = np.array(xs_data['xsecarr'])
@@ -1466,6 +1460,7 @@ def import_xs(filename, source, read_all=True, ofile=None):
 
     else:
         raise ValueError("Invalid cross-section source type.")
+
 
     if ofile is not None:
         nlayers, ntemp, nwave = np.shape(xs)
