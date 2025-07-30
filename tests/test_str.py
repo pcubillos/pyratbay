@@ -14,15 +14,13 @@ import pyratbay.opacity as op
 from pyratbay.constants import ROOT
 
 os.chdir(ROOT+'tests')
-extfile = '{ROOT}/tests/outputs/exttable_test_300-3000K_1.1-1.7um.npz'
+cs_file = '{ROOT}/tests/outputs/exttable_test_300-3000K_1.1-1.7um.npz'
 
 
 def test_pyrat_transmission_str(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        reset={'extfile': f'{extfile}'},
-        remove=['tlifile'],
     )
     pyrat = pb.run(cfg)
     assert str(pyrat) == f"""\
@@ -40,8 +38,6 @@ def test_pyrat_opacity_str(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        reset={'extfile': f'{extfile}'},
-        remove=['tlifile'],
     )
     pyrat = pb.run(cfg)
     assert str(pyrat.opacity) == f"""\
@@ -400,8 +396,6 @@ def test_atm_str(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        reset={'extfile': f'{extfile}'},
-        remove=['tlifile'],
     )
     pyrat = pb.run(cfg)
     print(pyrat.atm)
@@ -486,8 +480,6 @@ def test_pyrat_transmission_od_str(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        reset={'extfile': f'{extfile}'},
-        remove=['tlifile'],
     )
     pyrat = pb.run(cfg)
     assert str(pyrat.od) == """\
@@ -530,8 +522,6 @@ def test_pyrat_transmission_obs_str(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        reset={'extfile': f'{extfile}'},
-        remove=['tlifile'],
     )
     pyrat = pb.run(cfg)
     assert str(pyrat.obs) == """\
@@ -548,8 +538,6 @@ def test_pyrat_transmission_phy_str(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        reset={'extfile': f'{extfile}'},
-        remove=['tlifile'],
     )
     pyrat = pb.run(cfg)
     assert str(pyrat.phy) == """\
@@ -571,8 +559,6 @@ def test_pyrat_transmission_ret_str(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        reset={'extfile': f'{extfile}'},
-        remove=['tlifile'],
     )
     pyrat = pb.run(cfg)
     assert str(pyrat.ret) == """\
@@ -660,12 +646,7 @@ Modulation spectrum, (Rp/Rs)**2 (spectrum):
 def test_pyrat_emission_str(tmp_path):
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        reset={
-            'rt_path': 'emission',
-            'extfile': f'{extfile}',
-        },
-        remove=['tlifile'],
+        ROOT+'tests/configs/spectrum_emission_test.cfg',
     )
     pyrat = pb.run(cfg)
     assert str(pyrat.spec) == """\
@@ -690,7 +671,7 @@ Intensity spectra (intensity, erg s-1 cm-2 sr-1 cm):
     [ 7.737e+02  7.730e+02  7.723e+02 ...  3.546e+01  3.542e+01  3.539e+01]
     [ 7.737e+02  7.730e+02  7.723e+02 ...  3.546e+01  3.542e+01  3.539e+01]
     [ 7.737e+02  7.730e+02  7.723e+02 ...  3.546e+01  3.542e+01  3.539e+01]
-    [ 7.737e+02  7.730e+02  7.723e+02 ...  3.546e+01  3.542e+01  3.539e+01]
+    [ 7.737e+02  7.730e+02  7.723e+02 ...  3.546e+01  3.542e+01  3.538e+01]
 Emission spectrum (spectrum, erg s-1 cm-2 cm):
     [ 2.431e+03  2.428e+03  2.426e+03 ...  1.114e+02  1.113e+02  1.112e+02]
 """
@@ -699,13 +680,13 @@ Emission spectrum (spectrum, erg s-1 cm-2 cm):
 Optical depth information:
 Observing geometry (rt_path): emission
 Total atmospheric extinction coefficient (ec, cm-1) [layer, wave]:
-[[ 5.614e-17  1.705e-14  5.621e-17 ...  8.241e-16  3.412e-16  3.554e-16]
- [ 8.116e-17  2.465e-14  8.127e-17 ...  1.191e-15  4.932e-16  5.138e-16]
- [ 1.174e-16  3.563e-14  1.175e-16 ...  1.722e-15  7.129e-16  7.427e-16]
+[[ 5.611e-15  2.261e-14  5.618e-15 ...  3.247e-14  3.201e-14  3.203e-14]
+ [ 8.110e-15  3.268e-14  8.121e-15 ...  4.694e-14  4.626e-14  4.630e-14]
+ [ 1.172e-14  4.724e-14  1.174e-14 ...  6.785e-14  6.687e-14  6.693e-14]
  ...
- [ 7.173e-05  7.197e-05  7.190e-05 ...  4.776e-06  4.599e-06  4.419e-06]
- [ 1.496e-04  1.496e-04  1.494e-04 ...  9.100e-06  8.734e-06  8.387e-06]
- [ 3.119e-04  3.116e-04  3.112e-04 ...  1.746e-05  1.695e-05  1.645e-05]]
+ [ 7.189e-05  7.214e-05  7.207e-05 ...  5.730e-06  5.554e-06  5.374e-06]
+ [ 1.498e-04  1.498e-04  1.497e-04 ...  1.048e-05  1.011e-05  9.766e-06]
+ [ 3.123e-04  3.119e-04  3.115e-04 ...  1.945e-05  1.894e-05  1.845e-05]]
 
 Distance across each layer along a normal ray path (raypath, km):
     [100.5 100.2 99.9 99.7 ... 138.2 137.7 137.3 136.8]
@@ -727,12 +708,12 @@ Planck emission down to max(ideep) (B, erg s-1 cm-2 sr-1 cm):
 Optical depth at each layer along a normal ray path into the planet, down to
     max(ideep) (depth):
 [[ 0.000e+00  0.000e+00  0.000e+00 ...  0.000e+00  0.000e+00  0.000e+00]
- [ 6.897e-10  2.095e-07  6.907e-10 ...  1.012e-08  4.192e-09  4.367e-09]
- [ 1.684e-09  5.115e-07  1.687e-09 ...  2.472e-08  1.023e-08  1.066e-08]
+ [ 6.893e-08  2.778e-07  6.902e-08 ...  3.989e-07  3.932e-07  3.935e-07]
+ [ 1.683e-07  6.782e-07  1.685e-07 ...  9.740e-07  9.600e-07  9.608e-07]
  ...
- [ 1.362e-06  3.433e-04  1.375e-06 ...  1.673e-05  6.907e-06  7.248e-06]
- [ 2.114e-06  4.956e-04  2.142e-06 ...  2.423e-05  9.995e-06  1.052e-05]
- [ 3.365e-06  7.157e-04  3.419e-06 ...  3.517e-05  1.448e-05  1.530e-05]]
+ [ 1.129e-04  4.549e-04  1.131e-04 ...  6.524e-04  6.429e-04  6.435e-04]
+ [ 1.630e-04  6.566e-04  1.632e-04 ...  9.410e-04  9.272e-04  9.281e-04]
+ [ 2.354e-04  9.479e-04  2.357e-04 ...  1.357e-03  1.337e-03  1.338e-03]]
 """
 
 
@@ -740,13 +721,11 @@ def test_pyrat_exfile_str(tmp_path):
     reset = {
         'runmode': 'spectrum',
         'specfile': f'{ROOT}tests/outputs/extfile_spectrum_test.dat',
-        'extfile': f'{extfile}',
     }
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/mcmc_transmission_test.cfg',
         reset=reset,
-        remove=['tlifile'],
     )
     pyrat = pb.run(cfg)
     assert pyrat is not None

@@ -76,9 +76,9 @@ def test_get_ec_lbl(tmp_path):
 
 
 def test_get_ec_line_sample(tmp_path):
-    extfile = ROOT+'tests/outputs/exttable_test_300-3000K_1.1-1.7um.npz'
+    #cs_file = ROOT+'tests/outputs/exttable_test_300-3000K_1.1-1.7um.npz'
     reset = {
-        'extfile': extfile,
+        #'sampled_cross_sec': cs_file,
         'chemistry': 'tea',
         'species': 'H2 H He Na K H2O CH4 CO CO2 e- H- H+ H2+ Na- Na+ K+ K-',
         'h_ion': 'h_ion_john1988',
@@ -87,7 +87,7 @@ def test_get_ec_line_sample(tmp_path):
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         reset=reset,
-        remove=['tlifile', 'clouds'],
+        remove=['clouds'],
     )
     pyrat = pb.run(cfg)
     layer = 31
