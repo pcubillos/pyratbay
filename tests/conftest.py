@@ -116,7 +116,7 @@ def invalid_path():
         'tlifile':  'Folder for TLI file (tlifile) does not exist',
         'specfile': 'Folder for Spectrum file (specfile) does not exist',
         'mcmcfile': 'Folder for Retrieval file (mcmcfile) does not exist',
-        'extfile':  'Folder for Extinction-coefficient file (extfile) does '
+        'sampled_cross_sec':  'Folder for sampled cross-section file (sampled_cross_sec) does '
                     'not exist',
         'ptfile':   'Folder for Pressure-temperature file (ptfile) does '
                     'not exist',

@@ -212,7 +212,7 @@ def test_invalid_logfile_path(tmp_path, invalid_path):
     [
         'output_atmfile',
         'tlifile',
-        'extfile',
+        'sampled_cross_sec',
         'mcmcfile',
         'specfile',
         'ptfile',
@@ -723,7 +723,7 @@ def test_spectrum_invalid_file(tmp_path, param, invalid_file):
 def test_spectrum_inconsistent_voigt_bounds(tmp_path, vmin, vmax):
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        ROOT+'tests/configs/spectrum_transmission_test_tli.cfg',
         reset={vmin:'1e5', vmax:'1e4'},
     )
     error = re.escape(
@@ -782,7 +782,7 @@ def test_line_sample_missing_species(tmp_path):
     reset = {
         'species': 'H2  He  H   Na  CH4  CO  CO2',
         'chemistry': 'tea',
-        'extfile': f'{ROOT}tests/outputs/exttable_test_300-3000K_1.1-1.7um.npz',
+        'sampled_cross_sec': f'{ROOT}tests/outputs/exttable_test_300-3000K_1.1-1.7um.npz',
     }
     cfg = make_config(
         tmp_path,
@@ -809,8 +809,8 @@ def test_line_by_line_missing_species(tmp_path):
         reset=reset,
     )
     error = re.escape(
-        "The species 'H2O' is not present in the atmosphere, "
-        "required for LBL calculation"
+        "Species ['H2O'], required for opacity model line sampling, are "
+        "not present in the atmosphere"
     )
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
@@ -1232,14 +1232,14 @@ def test_spectrum_missing_retflag_models(tmp_path, param, undefined_mcmc):
 def test_compute_opacity_invalid_tmin(tmp_path):
     reset = {
         'runmode': 'opacity',
-        'extfile': str(tmp_path/'new_opacity.npz'),
+        'sampled_cross_sec': str(tmp_path/'new_opacity.npz'),
         'tmin': '0.1',
         'tmax': '1000.0',
         'tstep': '900',
     }
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        ROOT+'tests/configs/spectrum_transmission_test_tli.cfg',
         reset=reset,
     )
     error = re.escape(
@@ -1253,14 +1253,14 @@ def test_compute_opacity_invalid_tmin(tmp_path):
 def test_compute_opacity_invalid_tmax(tmp_path):
     reset = {
         'runmode': 'opacity',
-        'extfile': str(tmp_path/'new_opacity.npz'),
+        'sampled_cross_sec': str(tmp_path/'new_opacity.npz'),
         'tmin':'1000.0',
         'tmax':'9000.0',
         'tstep':'100',
     }
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        ROOT+'tests/configs/spectrum_transmission_test_tli.cfg',
         reset=reset,
     )
     error = re.escape(
@@ -1271,28 +1271,28 @@ def test_compute_opacity_invalid_tmax(tmp_path):
         pyrat = pb.run(cfg)
 
 
-def test_read_opacity_missing_extfile(tmp_path):
-    efile = str(tmp_path/'non_existent_exttable_test_300-3000K_1.1-1.7um.npz')
+def test_read_opacity_missing_sampled_cs_file(tmp_path):
+    cs_file = str(tmp_path/'non_existent_exttable_test_300-3000K_1.1-1.7um.npz')
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
-        reset={'extfile':efile, 'wnstep': '1.0'},
+        reset={'sampled_cross_sec':cs_file, 'wnstep': '1.0'},
     )
     error = re.escape(
-        f"These input cross-section files are missing: ['{efile}']"
+        f"These input cross-section files are missing: ['{cs_file}']"
     )
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
 
 
-def test_compute_opacity_make_multiple_extfiles(tmp_path):
+def test_compute_opacity_make_multiple_sampled_cs_files(tmp_path):
     extfiles = [
         str(tmp_path/'new_opacity1.npz'),
         str(tmp_path/'new_opacity2.npz'),
     ]
     reset = {
         'runmode': 'opacity',
-        'extfile': '\n  '.join(extfiles),
+        'sampled_cross_sec': '\n  '.join(extfiles),
         'tmin':'1000.0',
         'tmax':'6000.0',
         'tstep':'100',
@@ -1304,7 +1304,7 @@ def test_compute_opacity_make_multiple_extfiles(tmp_path):
     )
     error = re.escape(
         'Computing opacity table, but there was more than one '
-        'output opacity file (extfile)'
+        'output opacity file (sampled_cross_sec)'
     )
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
@@ -1359,7 +1359,7 @@ def test_read_opacity_mismatched_values(tmp_path):
     ['tmin', 'tmax', 'tstep', 'tlifile'],
 )
 def test_opacity_missing(tmp_path, param):
-    reset = {'extfile': str(tmp_path/'new_opacity.npz')}
+    reset = {'sampled_cross_sec': str(tmp_path/'new_opacity.npz')}
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/opacity_test.cfg',

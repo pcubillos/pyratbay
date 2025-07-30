@@ -630,7 +630,7 @@ def parse(cfile, with_log=True, mute=False):
 
     args.sampled_cs = args.get_path(
         'sampled_cross_sec',
-        'Sampled line cross sections',
+        'sampled cross-section',
     )
     # Deprecated varriable
     sampled_cs = args.extfile = args.get_path('extfile')
