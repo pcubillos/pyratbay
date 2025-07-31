@@ -368,7 +368,9 @@ def posterior_post_processing(cfg_file=None, pyrat=None, suffix=''):
 
     texnames = pyrat.ret.texnames
     theme = pyrat.ret.theme
-    post = mc3.plots.Posterior(posterior, texnames, theme=theme)
+    post = mc3.plots.Posterior(
+        posterior, texnames, theme=theme, statistics=pyrat.ret.statistics,
+    )
 
     pyrat.spec.specfile = None
     nwave = pyrat.spec.nwave
@@ -422,6 +424,7 @@ def posterior_post_processing(cfg_file=None, pyrat=None, suffix=''):
     # Spectra posteriors: median -1sigma +1sigma -2sigma +2sigma
     quantiles = np.array([0.5, 0.15865, 0.84135, 0.02275, 0.97725])
     nquantiles = len(quantiles)
+
     spectrum_posterior = np.zeros((nquantiles,nwave))
     for i in range(nwave):
         msample = models[uinv,i]
@@ -464,6 +467,21 @@ def posterior_post_processing(cfg_file=None, pyrat=None, suffix=''):
         'wavelength': 'um',
     }
 
+    # Parameter statistics
+    stats_1sigma = mc3.stats.calc_sample_statistics(
+        post.posterior, pyrat.ret.params, pyrat.ret.pstep, quantile=0.683,
+    )
+    stats_2sigma = mc3.stats.calc_sample_statistics(
+        post.posterior, pyrat.ret.params, pyrat.ret.pstep, quantile=0.9545,
+    )
+    nfree = np.sum(pyrat.ret.pstep>0)
+    params_posterior = np.zeros((nquantiles,nfree))
+    params_posterior[0] = stats_1sigma[0]
+    params_posterior[1] = stats_1sigma[3]
+    params_posterior[2] = stats_1sigma[4]
+    params_posterior[3] = stats_2sigma[3]
+    params_posterior[4] = stats_2sigma[4]
+
     outputs = {}
     if is_transmission:
         outputs['depth_posterior'] = spectrum_posterior
@@ -481,6 +499,9 @@ def posterior_post_processing(cfg_file=None, pyrat=None, suffix=''):
         'vmr_posterior': vmr_posterior,
         'band_models_posterior': band_models_posterior,
         'cf_posterior_median': cf_median,
+        'params_posterior' : params_posterior,
+        'params_names' : pyrat.ret.pnames,
+        'params_texnames' : pyrat.ret.texnames,
         'pressure': pyrat.atm.press,
         'wl': wl,
         'band_wl': band_wl,
