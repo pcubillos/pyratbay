@@ -183,7 +183,7 @@ def test_invalid_choice(tmp_path, param, reason):
 
 @pytest.mark.parametrize('param',
     ['starspec', 'kurucz', 'marcs', 'phoenix', 'filters',
-     'dblist', 'molfile', 'csfile'])
+     'dblist', 'molfile', 'continuum_cross_sec'])
 def test_file_not_found(tmp_path, param, invalid_file):
     cfg = make_config(
         tmp_path,
@@ -861,7 +861,7 @@ def test_rayleigh_missing_species(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
-        remove=['csfile'],
+        remove=['continuum_cross_sec'],
         reset=reset,
     )
     error = re.escape(
@@ -876,7 +876,7 @@ def test_h_ion_missing_species(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
-        remove=['tlifile', 'csfile', 'alkali', 'clouds'],
+        remove=['tlifile', 'continuum_cross_sec', 'alkali', 'clouds'],
         reset={'h_ion': 'h_ion_john1988'},
     )
     error = re.escape(
@@ -1457,7 +1457,7 @@ def test_mcmc_missing_starspec(tmp_path):
 
 
 @pytest.mark.skip(reason='TBD: warning or error...')
-@pytest.mark.parametrize('param', ['tlifile', 'csfile', 'extfile'])
+@pytest.mark.parametrize('param', ['tlifile', 'continuum_cross_sec', 'extfile'])
 def test_spectrum_temperature_bounds(tmp_path, capfd, param, invalid_temp):
     reset = {
         'tmodel': 'isothermal',
@@ -1466,7 +1466,7 @@ def test_spectrum_temperature_bounds(tmp_path, capfd, param, invalid_temp):
     }
     remove = [
         par
-        for par in ['tlifile', 'csfile', 'extfile']
+        for par in ['tlifile', 'continuum_cross_sec', 'extfile']
         if par != param
     ]
     cfg = make_config(

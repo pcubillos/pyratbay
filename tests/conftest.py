@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Patricio Cubillos
+# Copyright (c) 2021-2025 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import itertools
@@ -104,7 +104,7 @@ def invalid_file():
         'filters':  'Filter pass-bands file (filters) does not exist',
         'dblist':   'Opacity database file (dblist) does not exist',
         'molfile':  'Molecular data file (molfile) does not exist',
-        'csfile':   'Cross-section file (csfile) does not exist',
+        'continuum_cross_sec': 'Continuum cross-section file (continuum_cross_sec) does not exist',
     }
     return data
 
@@ -128,9 +128,9 @@ def invalid_path():
 @pytest.fixture
 def invalid_temp():
     data = {
-        'csfile':  'One or more input temperature values lies out of '
-                   'the cross-section\ntemperature boundaries '
-                   '(K): [  60.0, 3000.0].',
+        'sampled_cross_sec':
+            'One or more input temperature values lies out of the continuum '
+            'cross-section\ntemperature boundaries (K): [  60.0, 3000.0].',
         'tlifile': 'One or more input temperature values lies out of '
                    'the line-transition\ntemperature boundaries '
                    '(K): [   1.0, 5000.0]',

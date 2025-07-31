@@ -59,7 +59,7 @@ def test_get_ec_lbl(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test_tli.cfg',
-        reset={'csfile': cfile, 'wllow': '0.55'},
+        reset={'continuum_cross_sec': cfile, 'wllow': '0.55'},
     )
     pyrat = pb.run(cfg)
     layer = 31
@@ -76,9 +76,7 @@ def test_get_ec_lbl(tmp_path):
 
 
 def test_get_ec_line_sample(tmp_path):
-    #cs_file = ROOT+'tests/outputs/exttable_test_300-3000K_1.1-1.7um.npz'
     reset = {
-        #'sampled_cross_sec': cs_file,
         'chemistry': 'tea',
         'species': 'H2 H He Na K H2O CH4 CO CO2 e- H- H+ H2+ Na- Na+ K+ K-',
         'h_ion': 'h_ion_john1988',

@@ -43,7 +43,7 @@ def test_eclipse_clear(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_eclipse_test.cfg',
-        remove=['sampled_cross_sec', 'csfile', 'rayleigh', 'alkali', 'clouds'],
+        remove=['sampled_cross_sec', 'continuum_cross_sec', 'rayleigh', 'alkali', 'clouds'],
     )
     pyrat = pb.run(cfg)
     spectrum = (
@@ -58,7 +58,7 @@ def test_eclipse_sampled_cs(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_eclipse_test.cfg',
-        remove=['csfile', 'rayleigh', 'clouds', 'alkali'],
+        remove=['continuum_cross_sec', 'rayleigh', 'clouds', 'alkali'],
     )
     pyrat = pb.run(cfg)
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['sampled_cs'], rtol=rtol)
@@ -71,7 +71,7 @@ def test_eclipse_tli(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_eclipse_test.cfg',
-        remove=['sampled_cross_sec', 'csfile', 'rayleigh', 'clouds', 'alkali'],
+        remove=['sampled_cross_sec', 'continuum_cross_sec', 'rayleigh', 'clouds', 'alkali'],
         reset=reset,
     )
     pyrat = pb.run(cfg)
@@ -83,7 +83,7 @@ def test_eclipse_lecavelier(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_eclipse_test.cfg',
-        remove=['sampled_cross_sec', 'csfile', 'alkali', 'clouds'],
+        remove=['sampled_cross_sec', 'continuum_cross_sec', 'alkali', 'clouds'],
     )
     pyrat = pb.run(cfg)
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['lec'], rtol=rtol)
@@ -103,7 +103,7 @@ def test_eclipse_alkali(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_eclipse_test.cfg',
-        remove=['sampled_cross_sec', 'csfile', 'rayleigh', 'clouds'],
+        remove=['sampled_cross_sec', 'continuum_cross_sec', 'rayleigh', 'clouds'],
         reset={'wllow':'0.45 um', 'wlhigh':'1.0 um'},
     )
     pyrat = pb.run(cfg)
@@ -116,7 +116,7 @@ def test_eclipse_deck(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_eclipse_test.cfg',
-        remove=['sampled_cross_sec', 'csfile', 'rayleigh', 'alkali'],
+        remove=['sampled_cross_sec', 'continuum_cross_sec', 'rayleigh', 'alkali'],
         reset={'cpars':'-1'},
     )
     pyrat = pb.run(cfg)

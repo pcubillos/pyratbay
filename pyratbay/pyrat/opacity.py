@@ -124,12 +124,12 @@ class Opacity():
                 self.nspec.append(1)
                 self.pnames.append([])
 
-        if inputs.cia_files is not None:
+        if inputs.continuum_cs is not None:
             tmin = []
             tmax = []
-            for cia_file in inputs.cia_files:
-                log.head(f"Read CIA file: '{cia_file}'.", indent=2)
-                cia = op.Collision_Induced(cia_file, wn=wn)
+            for cs_file in inputs.continuum_cs:
+                log.head(f"Read continuum cross-section file: '{cs_file}'.", indent=2)
+                cia = op.Collision_Induced(cs_file, wn=wn)
                 log.msg(
                     f'{cia.name} opacity:\n'
                     f'Read {cia.nwave} wave and {cia.ntemp} temperature samples.\n'

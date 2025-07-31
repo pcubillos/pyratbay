@@ -663,8 +663,25 @@ def parse(cfile, with_log=True, mute=False):
     # Parse valid inputs and defaults:
     args.dblist = args.get_path('dblist', 'Opacity database', exists=True)
     args.molfile = args.get_path('molfile', 'Molecular data', exists=True)
-    args.cia_files = args.get_path('csfile', 'Cross-section', exists=True)
     args.ptfile = args.get_path('ptfile', 'Pressure-temperature')
+
+
+    args.continuum_cs = args.get_path(
+        'continuum_cross_sec',
+        'Continuum cross-section',
+        exists=True,
+    )
+    # Deprecated varriable
+    continuum_cs = args.cia_files = args.get_path('csfile', exists=True)
+    if continuum_cs is not None:
+        warning = (
+            "'csfile' argument is deprecated, "
+            "use 'continuum_cross_sec' instead"
+        )
+        warnings.warn(warning, category=DeprecationWarning)
+    if args.continuum_cs is None and continuum_cs is not None:
+        args.continuum_cs = continuum_cs
+
 
     # Validate opacity file path(s)
     if args.runmode == 'opacity' and pt.isfile(args.sampled_cs) == -1:

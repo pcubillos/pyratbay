@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2024 Patricio Cubillos
+# Copyright (c) 2021-2025 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import os
@@ -311,8 +311,8 @@ def test_write_pf_mismatch_temp():
 @pytest.mark.parametrize('species',
     [['CH4'], ['H2', 'H2']])
 def test_read_write_cs(species, tmpdir):
-    csfile = 'CS_Mock.dat'
-    csf = "{}/{}".format(tmpdir, csfile)
+    cs_file = 'CS_Mock.dat'
+    csf = "{}/{}".format(tmpdir, cs_file)
     temp = np.linspace(100, 1000, 3)
     wn = np.arange(10, 15, 1.0)
     cs = np.array([np.logspace( 0,-4,5),
@@ -320,7 +320,7 @@ def test_read_write_cs(species, tmpdir):
                    np.logspace(-2,-6,5)])
     header = '# Mock cross-section.\n'
     io.write_cs(csf, cs, species, temp, wn, header)
-    assert csfile in os.listdir(str(tmpdir))
+    assert cs_file in os.listdir(str(tmpdir))
     # TBD: assert file mentions the right opacity units
 
     cross_sec, specs, t, wave = io.read_cs(csf)
@@ -331,7 +331,7 @@ def test_read_write_cs(species, tmpdir):
 
 
 def test_write_cs_mismatch_temp():
-    csfile = 'CS_Mock.dat'
+    cs_file = 'CS_Mock.dat'
     species = ['H2', 'H2']
     temp = np.linspace(100, 1000, 10)
     wn   = np.arange(10, 15, 1.0)
@@ -340,11 +340,11 @@ def test_write_cs_mismatch_temp():
                      np.logspace(-2,-6,5)])
     with pytest.raises(ValueError, match='Shape of the cross-section array '
                        'does not match the number of temperature samples.'):
-        io.write_cs(csfile, cs, species, temp, wn)
+        io.write_cs(cs_file, cs, species, temp, wn)
 
 
 def test_write_cs_mismatch_wn():
-    csfile = 'CS_Mock.dat'
+    cs_file = 'CS_Mock.dat'
     species = ['H2', 'H2']
     temp = np.linspace(100, 1000, 3)
     wn = np.arange(10, 15, 0.5)
@@ -358,7 +358,7 @@ def test_write_cs_mismatch_wn():
         'does not match the number of wavenumber samples.'
     )
     with pytest.raises(ValueError, match=error):
-        io.write_cs(csfile, cs, species, temp, wn)
+        io.write_cs(cs_file, cs, species, temp, wn)
 
 
 def test_read_pt(tmpdir):
