@@ -786,7 +786,7 @@ Wavenumber  Wavelength    Bandflux  Filter name
    6188.02       1.616     0.00651  filter_test_WFC3_G141_1.616um
 """
 
-    assert str(pyrat.ret) == """\
+    assert str(pyrat.ret) == f"""\
 Retrieval information:
   Parameter name        value        pmin        pmax       pstep
   (pnames)           (params)      (pmin)      (pmax)     (pstep)
@@ -819,6 +819,7 @@ Upper boundary for sum of metal abundances (qcap): None
 Temperature upper boundary (tlow, K):   300.0
 Temperature lower boundary (thigh, K): 3000.0
 
-Retrieval posterior file (mcmcfile): None
-""".format(os.getcwd())
+Retrieval posterior file (retrieval_file):
+    {os.getcwd()}/outputs/MCMC_transmission_test
+"""
 

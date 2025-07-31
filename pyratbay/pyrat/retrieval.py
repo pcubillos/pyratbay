@@ -46,7 +46,7 @@ class Retrieval():
         self.spec_high1 = None
         self.spec_high2 = None
 
-        self.mcmcfile = inputs.mcmcfile
+        self.retrieval_file = inputs.retrieval_file
         self.retflag = inputs.retflag
         self.qcap = inputs.qcap
         if atm.chemistry == 'tea':
@@ -399,8 +399,10 @@ class Retrieval():
         )
         fw.write(f'Temperature upper boundary (tlow, K):  {self.tlow:6.1f}')
         fw.write(f'Temperature lower boundary (thigh, K): {self.thigh:6.1f}')
-
-        fw.write('\nRetrieval posterior file (mcmcfile): {}', self.mcmcfile)
+        fw.write(
+            '\nRetrieval posterior file (retrieval_file): {}',
+            self.retrieval_file,
+        )
         if self.posterior is not None:
             nsamples, nparams = np.shape(self.posterior)
             fw.write(

@@ -336,7 +336,7 @@ def posterior_post_processing(cfg_file=None, pyrat=None, suffix=''):
     """
     Compute quantities of interest from a retrieval posterior distribution.
     The produced data is stored into a pickle file with root name based
-    on the mcmcfile.
+    on the logfile.
 
     Parameters
     ----------
@@ -356,14 +356,14 @@ def posterior_post_processing(cfg_file=None, pyrat=None, suffix=''):
         pyrat = Pyrat(cfg_file, log=False, mute=True)
 
     # Basename of the output files (no extension):
-    basename, extension = os.path.splitext(pyrat.ret.mcmcfile)
+    basename = pyrat.ret.retrieval_file
 
     if pyrat.ret.sampler == 'multinest':
         if isfile(basename + '.txt') == 0:
             raise ValueError('MultiNest posterior outputs do not exist')
         posterior = weighted_to_equal(basename + '.txt')
     elif pyrat.ret.sampler == 'snooker':
-        mcmc = np.load(pyrat.ret.mcmcfile)
+        mcmc = np.load(basename + '.npz')
         posterior = mc3.utils.burn(mcmc)[0]
 
     texnames = pyrat.ret.texnames

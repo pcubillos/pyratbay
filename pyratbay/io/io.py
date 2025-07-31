@@ -86,10 +86,16 @@ def load_pyrat(pfile):
     pyrat.set_spectrum()
     pyrat.log.verb = pyrat.verb
     # Recover MCMC posterior:
-    if pt.isfile(pyrat.ret.mcmcfile) == 1:
-        with np.load(pyrat.ret.mcmcfile) as mcmc:
-            posterior, zchain, zmask = mc3.utils.burn(mcmc)
-        pyrat.ret.posterior = posterior
+    if pyrat.ret.sampler == 'multinest':
+        retrieval_file = f'{pyrat.ret.retrieval_file}.txt'
+        if pt.isfile(retrieval_file) == 1:
+            pyrat.ret.posterior = weighted_to_equal(retrieval_file)
+    elif pyrat.ret.sampler == 'snooker':
+        retrieval_file = f'{pyrat.ret.retrieval_file}.txt'
+        if pt.isfile(retrieval_file) == 1:
+            with np.load(retrieval_file) as mcmc:
+                pyrat.ret.posterior = mc3.utils.burn(mcmc)[0]
+
     return pyrat
 
 

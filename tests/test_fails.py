@@ -213,7 +213,6 @@ def test_invalid_logfile_path(tmp_path, invalid_path):
         'output_atmfile',
         'tlifile',
         'sampled_cross_sec',
-        'mcmcfile',
         'specfile',
         'ptfile',
     ],

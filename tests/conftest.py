@@ -93,7 +93,6 @@ def invalid_file():
         'atmfile':  'Atmospheric file (atmfile) does not exist',
         'tlifile':  'TLI file (tlifile) does not exist',
         'specfile': 'Spectrum file (specfile) does not exist',
-        'mcmcfile': 'MCMC file (mcmcfile) does not exist',
         'extfile':  'Extinction-coefficient file (extfile) does not exist',
         'ptfile':   'Pressure-temperature file (ptfile) does not exist',
         'logfile':  'Log file (logfile) does not exist',
@@ -115,7 +114,6 @@ def invalid_path():
         'output_atmfile':  'Folder for Atmospheric file (output_atmfile) does not exist',
         'tlifile':  'Folder for TLI file (tlifile) does not exist',
         'specfile': 'Folder for Spectrum file (specfile) does not exist',
-        'mcmcfile': 'Folder for Retrieval file (mcmcfile) does not exist',
         'sampled_cross_sec':  'Folder for sampled cross-section file (sampled_cross_sec) does '
                     'not exist',
         'ptfile':   'Folder for Pressure-temperature file (ptfile) does '

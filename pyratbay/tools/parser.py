@@ -513,7 +513,7 @@ def parse(cfile, with_log=True, mute=False):
         parse_str(args, 'uncert_scaling')
         parse_float(args, 'inst_resolution')
         # Retrieval options:
-        parse_str(args, 'mcmcfile')
+        parse_str(args, 'mcmcfile')  # Deprecated
         parse_str(args, 'sampler')
         parse_bool(args, 'resume')
         parse_bool(args, 'post_processing', default=True)
@@ -626,13 +626,20 @@ def parse(cfile, with_log=True, mute=False):
     args.atmfile = args.get_path('atmfile', 'Atmospheric')
     args.output_atmfile = args.get_path('output_atmfile', 'Atmospheric')
     args.specfile = args.get_path('specfile', 'Spectrum')
-    args.mcmcfile = args.get_path('mcmcfile', 'Retrieval')
+
+    # Deprecated variable
+    if args.get_path('mcmcfile') is not None:
+        warning = (
+            "'mcmcfile' argument is deprecated, output file names "
+            "are now based on logfile"
+        )
+        warnings.warn(warning, category=DeprecationWarning)
 
     args.sampled_cs = args.get_path(
         'sampled_cross_sec',
         'sampled cross-section',
     )
-    # Deprecated varriable
+    # Deprecated variable
     sampled_cs = args.extfile = args.get_path('extfile')
     if sampled_cs is not None:
         warning = "'extfile' argument is deprecated, use 'sampled_cross_sec' instead"
@@ -657,8 +664,8 @@ def parse(cfile, with_log=True, mute=False):
             args.specfile = outfile + '.dat'
         if args.output_atmfile is None:
             args.output_atmfile = outfile + '.atm'
-    if args.runmode == 'retrieval' and args.mcmcfile is None:
-        args.mcmcfile = outfile + '.npz'
+    # Always use root from logfile as retrieval_file
+    args.retrieval_file = outfile
 
     # Parse valid inputs and defaults:
     args.dblist = args.get_path('dblist', 'Opacity database', exists=True)
@@ -671,7 +678,7 @@ def parse(cfile, with_log=True, mute=False):
         'Continuum cross-section',
         exists=True,
     )
-    # Deprecated varriable
+    # Deprecated variable
     continuum_cs = args.cia_files = args.get_path('csfile', exists=True)
     if continuum_cs is not None:
         warning = (
@@ -1013,6 +1020,8 @@ def parse(cfile, with_log=True, mute=False):
         'Prefered statistics for posterior plots',
         pc.statistics,
     )
+    if args.statistics is None:
+        args.statistics = 'med_central'
 
     data_color = args.get_default('data_color', 'Color of data points', 'black')
     if not matplotlib.colors.is_color_like(data_color):

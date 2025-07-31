@@ -351,8 +351,6 @@ class Pyrat():
         obs = self.obs
         log = self.log
 
-        if ret.mcmcfile is None:
-            log.error('Undefined retrieval file (mcmcfile)')
         if ret.sampler is None:
             log.error(
                 'Undefined retrieval algorithm (sampler).  '
@@ -378,10 +376,10 @@ class Pyrat():
             if obs.nfilters_hires == 0:
                 log.error("Undefined transmission filters (filters)")
 
+        # Basename of the output files:
+        basename = ret.retrieval_file
         # Create output folder if needed:
-        pt.mkdir(ret.mcmcfile)
-        # Basename of the output files (no extension):
-        basename, extension = os.path.splitext(ret.mcmcfile)
+        pt.mkdir(basename)
 
         # Mute logging in pyrat object, but not in mc3:
         self.log = mc3.utils.Log(verb=-1, width=80)
@@ -420,7 +418,7 @@ class Pyrat():
                 log=log, ncpu=self.ncpu,
                 plots=False, showbp=True, theme=ret.theme,
                 pnames=ret.pnames, texnames=ret.texnames,
-                resume=ret.resume, savefile=ret.mcmcfile,
+                resume=ret.resume, savefile=f'{basename}.npz',
             )
             if output is None:
                 log.error("Error in mc3")
