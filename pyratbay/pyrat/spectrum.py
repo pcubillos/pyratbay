@@ -130,6 +130,8 @@ class Spectrum():
             self.wn = wn[wn_mask][::inputs.wn_thinning]
             self.nwave = len(self.wn)
             self.spectrum = np.zeros(self.nwave, np.double)
+            if self._rt_path not in pc.transmission_rt:
+                self.fplanet = np.zeros(self.nwave, np.double)
 
             wn_min = self.wn[0]
             wn_max = self.wn[-1]
@@ -219,6 +221,8 @@ class Spectrum():
         self.onwave = int(np.ceil((self.wn[-1]-self.wnlow)/self.ownstep)) + 1
         self.own = self.wnlow + np.arange(self.onwave) * self.ownstep
         self.spectrum = np.zeros(self.nwave, np.double)
+        if self._rt_path not in pc.transmission_rt:
+            self.fplanet = np.zeros(self.nwave, np.double)
 
         # Get list of divisors:
         self.odivisors = pt.divisors(self.wnosamp)
