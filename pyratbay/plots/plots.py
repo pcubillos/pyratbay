@@ -346,7 +346,7 @@ def contribution(
     if filters is not None:
         filters = [filters[i] for i in wlsort]
 
-    is_emission = rt_path in pc.emission_rt
+    is_emission = rt_path in pc.emission_rt or rt_path in pc.eclipse_rt
     is_transit = rt_path in pc.transmission_rt
 
     p_ranges = np.amax(pressure), np.amin(pressure)
@@ -909,6 +909,8 @@ def posteriors(
     elif post_data['path'] == 'f_lambda':
         path = post_data['path']
     elif post_data['path'] in pc.emission_rt:
+        path = 'emission'
+    elif post_data['path'] in pc.eclipse_rt:
         path = 'eclipse'
 
     # Low-resolution data

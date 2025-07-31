@@ -386,6 +386,8 @@ class Pyrat():
         # Mute logging in pyrat object, but not in mc3:
         self.log = mc3.utils.Log(verb=-1, width=80)
         self.spec.specfile = None  # Avoid writing spectra during retrieval
+        ifree = ret.pstep > 0
+        texnames = np.array(ret.texnames)[ifree]
 
         # MultiNest wrapper call:
         if ret.sampler == 'multinest':
@@ -416,13 +418,37 @@ class Pyrat():
                 nchains=ret.nchains, burnin=ret.burnin, thinning=ret.thinning,
                 grtest=True, grbreak=ret.grbreak, grnmin=ret.grnmin,
                 log=log, ncpu=self.ncpu,
-                plots=True, showbp=True, theme=ret.theme,
+                plots=False, showbp=True, theme=ret.theme,
                 pnames=ret.pnames, texnames=ret.texnames,
                 resume=ret.resume, savefile=ret.mcmcfile,
             )
             if output is None:
                 log.error("Error in mc3")
             posterior, zchain, zmask = mc3.utils.burn(output)
+
+            # Trace plot:
+            savefile = f'{basename}_posterior_trace.png'
+            mc3.plots.trace(
+                posterior, zchain=zchain, burnin=ret.burnin,
+                pnames=texnames, color=ret.theme.color,
+                savefile=savefile,
+            )
+            log.msg(savefile, indent=2)
+
+        post = mc3.plots.Posterior(
+            posterior, pnames=texnames, theme=ret.theme,
+            bestp=output['bestp'][ifree], statistics=ret.statistics,
+            show_estimates=True,  # TBD: get from cfg?
+        )
+
+        # Pairwise posteriors plots:
+        savefile = f'{basename}_posterior_pairwise.png'
+        post.plot(savefile=savefile)
+        log.msg(savefile, indent=2)
+        # Histogram plots:
+        savefile = f'{basename}_posterior_marginal.png'
+        post.plot_histogram(savefile=savefile)
+        log.msg(savefile, indent=2)
 
 
         # Post processing (can be done directly from posterior outputs)

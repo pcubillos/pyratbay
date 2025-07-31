@@ -284,7 +284,7 @@ def multinest_run(pyrat, basename):
     )
 
     # Trace plot:
-    savefile = f'{basename}_trace.png'
+    savefile = f'{basename}_posterior_trace.png'
     mc3.plots.trace(
         weighted_posterior,
         pnames=texnames[ifree],
@@ -292,15 +292,6 @@ def multinest_run(pyrat, basename):
         savefile=savefile,
     )
     log.msg(savefile, indent=2)
-    # Pairwise posteriors plots:
-    savefile = f'{basename}_posterior_pairwise.png'
-    post.plot(savefile=savefile)
-    log.msg(savefile, indent=2)
-    # Histogram plots:
-    savefile = f'{basename}_posterior_marginal.png'
-    post.plot_histogram(savefile=savefile)
-    log.msg(savefile, indent=2)
-
 
     # Statistics:
     best_model = pyrat.eval(bestp, retmodel=False)
@@ -372,8 +363,8 @@ def posterior_post_processing(cfg_file=None, pyrat=None, suffix=''):
             raise ValueError('MultiNest posterior outputs do not exist')
         posterior = weighted_to_equal(basename + '.txt')
     elif pyrat.ret.sampler == 'snooker':
-        pass
-        # TBD: read from mc3 npz file
+        mcmc = np.load(pyrat.ret.mcmcfile)
+        posterior = mc3.utils.burn(mcmc)[0]
 
     texnames = pyrat.ret.texnames
     theme = pyrat.ret.theme
@@ -480,9 +471,9 @@ def posterior_post_processing(cfg_file=None, pyrat=None, suffix=''):
         outputs['flux_posterior'] = spectrum_posterior
     elif is_eclipse:
         rprs = pyrat.atm.rplanet / pyrat.phy.rstar
-        depth = spectrum_posterior / pyrat.spec.starflux * rprs**2.0
-        outputs['depth_posterior'] = depth
-        outputs['flux_posterior'] = spectrum_posterior
+        fplanet = spectrum_posterior * pyrat.spec.starflux / rprs**2.0
+        outputs['depth_posterior'] = spectrum_posterior
+        outputs['flux_posterior'] = fplanet
         outputs['rprs'] = rprs
 
     outputs |= {
