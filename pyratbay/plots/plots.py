@@ -245,7 +245,7 @@ def spectrum(
         )
     # Plot data:
     zorder = 5 if data_front else -1
-    ecolor = alphatize(data_color, alpha=0.45)
+    ecolor = alphatize(data_color, alpha=0.85)
     if data is not None and uncert is not None and bands_wl0 is not None:
         plt.errorbar(
             bands_wl0, data*flux_scale, uncert*flux_scale,
