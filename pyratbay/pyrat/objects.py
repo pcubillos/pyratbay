@@ -34,7 +34,7 @@ class Extinction():
         cs_file = ['None'] if self.sampled_cs is None else self.sampled_cs
         fw.write(
             "Extinction-coefficient table filename(s) (cs_file): {}",
-            '\n    '.join(cs_tfile)
+            '\n    '.join(cs_file)
         )
         if self.sampled_cs is None:
             return fw.text

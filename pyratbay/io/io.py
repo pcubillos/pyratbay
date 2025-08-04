@@ -89,7 +89,7 @@ def load_pyrat(pfile):
     if pyrat.ret.sampler == 'multinest':
         retrieval_file = f'{pyrat.ret.retrieval_file}.txt'
         if pt.isfile(retrieval_file) == 1:
-            pyrat.ret.posterior = weighted_to_equal(retrieval_file)
+            pyrat.ret.posterior = pt.weighted_to_equal(retrieval_file)
     elif pyrat.ret.sampler == 'snooker':
         retrieval_file = f'{pyrat.ret.retrieval_file}.txt'
         if pt.isfile(retrieval_file) == 1:
