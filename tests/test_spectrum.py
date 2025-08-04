@@ -568,11 +568,11 @@ def test_inst_convolution():
     spectrum2[np.where(wl2>1.5)[0][0]] = 1.0
     conv2 = ps.inst_convolution(wl2, spectrum2, resolution=4000)
 
-    plt.figure(0)
-    plt.clf()
+    #plt.figure(0)
+    #plt.clf()
     #plt.plot(wl, spectrum)
-    plt.plot(wl, conv/np.amax(conv))
-    plt.plot(wl2, conv2/np.amax(conv2))
+    #plt.plot(wl, conv/np.amax(conv))
+    #plt.plot(wl2, conv2/np.amax(conv2))
 
 
 @pytest.mark.skip(reason="TBD")
