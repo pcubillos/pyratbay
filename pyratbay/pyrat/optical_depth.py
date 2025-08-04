@@ -50,26 +50,16 @@ def optical_depth(pyrat):
     if od.rt_path in pc.emission_rt + pc.eclipse_rt:
         od.ideep = np.tile(nlayers-1, nwave)
         maxdepth = np.inf if 'two_stream' in od.rt_path else od.maxdepth
-        i = 0
-        while i < nwave:
-            od.ideep[i] = rtop  + t.cumulative_sum(
-                od.depth[rtop:,i],
-                od.ec[rtop:,i],
-                od.raypath[rtop:rbottom],
-                maxdepth,
-            )
-            i += 1
+        t.plane_parallel_optical_depth(
+            od.depth, od.ideep,
+            od.ec, od.raypath, maxdepth, rtop, rbottom,
+        )
         if pyrat.opacity.is_patchy:
             od.ideep_clear = np.tile(nlayers-1, nwave)
-            i = 0
-            while i < nwave:
-                od.ideep_clear[i] = rtop  + t.cumulative_sum(
-                    od.depth_clear[rtop:,i],
-                    od.ec_clear[rtop:,i],
-                    od.raypath[rtop:nlayers],
-                    maxdepth,
-                )
-                i += 1
+            t.plane_parallel_optical_depth(
+                od.depth_clear, od.ideep_clear,
+                od.ec_clear, od.raypath, maxdepth, rtop, nlayers,
+            )
 
     elif od.rt_path in pc.transmission_rt:
         od.ideep = ideep = np.array(np.tile(-1, nwave), dtype=np.intc)

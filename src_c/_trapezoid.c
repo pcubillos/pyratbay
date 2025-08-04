@@ -147,6 +147,72 @@ static PyObject *cumulative_sum(PyObject *self, PyObject *args){
 }
 
 
+PyDoc_STRVAR(plane_parallel_optical_depth__doc__,
+"Integrate the extinction across a plane-parallel atmosphere into     \n\
+the optical depth using the trapezoidal rule. The calculation can    \n\
+be set to stop after a maxdepth value, or restriect between itop     \n\
+or ibottom layer indices.                                            \n\
+                                                                     \n\
+Parameters                                                           \n\
+----------                                                           \n\
+depth: 2D double ndarray                                             \n\
+    Output optical depth to calculate[nlayers,nwave].                \n\
+ideep: 1D integer array                                              \n\
+    Layer-index where the integration stopped for each wavelength channel.\n\
+extinction: 2D double ndarray                                   \n\
+    Extinction coefficient to integrate into optical depth      \n\
+intervals: 1D double ndarray                                    \n\
+    Intervals between the data samples (X-axis).                \n\
+maxdepth: double                                                \n\
+    Maximum depth threshold value to integrate.                 \n\
+itop: integer                                                   \n\
+    Top-layer index where to start integrating.                 \n\
+    Optical depth is zero above this layer.                     \n\
+ibottom: integer                                                \n\
+    Bottom-layer index where to stop integrating.               \n\
+");
+
+static PyObject *plane_parallel_optical_depth(PyObject *self, PyObject *args){
+    PyArrayObject *depth, *extinction, *intervals, *ideep;
+    int i, k, itop, ibottom;
+    double maxdepth;
+    double sum;
+
+    // Load inputs
+    if (!PyArg_ParseTuple(
+            args,
+            "OOOOdii",
+            &depth, &ideep, &extinction, &intervals, &maxdepth, &itop, &ibottom
+    ))
+        return NULL;
+
+    // Get the number of intervals
+    npy_intp nlayers = PyArray_DIM(depth, 0);
+    npy_intp nwave = PyArray_DIM(depth, 1);
+
+    for (i=0; i<nwave; i++){
+        sum = 0.0;
+        // First value is zero (zero-length interval)
+        for (k=0; k<nlayers; k++){
+            if (k <= itop){
+                IND2d(depth,k,i) = 0.0;
+                continue;
+            }
+            sum += 0.5*INDd(intervals,(k-1)) *
+                (IND2d(extinction,k,i) + IND2d(extinction,(k-1),i));
+            IND2d(depth,k,i) = sum;
+
+            // Stop if it reached threshold or cloud-top, or bottom
+            if (IND2d(depth,k,i) >= maxdepth || k==ibottom || k==nlayers-1){
+                break;
+            }
+        }
+        INDi(ideep,i) = k;
+    }
+    Py_RETURN_NONE;
+}
+
+
 PyDoc_STRVAR(optdepth__doc__,
 "Integrate optical depth using the trapezoidal rule.        \n\
                                                             \n\
@@ -287,6 +353,7 @@ static PyMethodDef trapezoid_methods[] = {
     {"trapezoid",     trapezoid,      METH_VARARGS, trapezoid__doc__},
     {"trapezoid2D",   trapezoid2D,    METH_VARARGS, trapezoid2D__doc__},
     {"cumulative_sum",  cumulative_sum,   METH_VARARGS, cumulative_sum__doc__},
+    {"plane_parallel_optical_depth", plane_parallel_optical_depth, METH_VARARGS, plane_parallel_optical_depth__doc__},
     {"optdepth",  optdepth,   METH_VARARGS, optdepth__doc__},
     {"intensity", intensity,  METH_VARARGS, intensity__doc__},
     {NULL, NULL, 0, NULL}    // sentinel
