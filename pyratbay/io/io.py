@@ -1452,7 +1452,7 @@ def import_xs(filename, source, read_all=True, ofile=None):
                 pressure = np.array(xs_data['p'])
                 temperature = np.array(xs_data['t'])
                 wavenumber = np.array(xs_data['bin_edges'])
-                species = [xs_data['mol_name'][0]]
+                species = [xs_data['mol_name'][0].decode('utf-8')]
 
     elif source == 'taurex':
         with open(filename, 'rb') as f:
