@@ -469,50 +469,40 @@ def test_cia_borysow():
 
 def test_interpolate_opacity_no_interp():
     cs_file = 'outputs/exttable_test_300-3000K_1.1-1.7um.npz'
-    cs_shape, cs_u, arrays, cs_data  = io.read_opacity(cs_file, extract='all')
-    temperature = arrays[1]
-    pressure = arrays[2]
-    interp_cs = pt.interpolate_opacity(cs_file, temperature, pressure)
-    np.testing.assert_allclose(interp_cs, cs_data)
+    units, mol, temp, press, wn, cs = io.read_opacity(cs_file, extract='all')
+    interp_cs = pt.interpolate_opacity(cs_file, temp, press)
+    np.testing.assert_allclose(interp_cs, cs)
 
 
 def test_interpolate_opacity_wn_mask():
     cs_file = 'outputs/exttable_test_300-3000K_1.1-1.7um.npz'
-    cs_shape, cs_u, arrays, cs_data  = io.read_opacity(cs_file, extract='all')
-    temperature = arrays[1]
-    pressure = arrays[2]
-    wn = arrays[3]
+    units, mol, temp, press, wn, cs = io.read_opacity(cs_file, extract='all')
     wn_mask = (wn>=6000) & (wn<=8000)
     interp_cs = pt.interpolate_opacity(
-        cs_file, temperature, pressure, wn_mask,
+        cs_file, temp, press, wn_mask,
     )
-    np.testing.assert_allclose(interp_cs, cs_data[:,:,:,wn_mask])
+    np.testing.assert_allclose(interp_cs, cs[:,:,:,wn_mask])
 
 
 def test_interpolate_opacity_thin_no_interp():
     cs_file = 'outputs/exttable_test_300-3000K_1.1-1.7um.npz'
-    cs_shape, cs_u, arrays, cs_data  = io.read_opacity(cs_file, extract='all')
-    temperature = arrays[1]
-    pressure = arrays[2]
+    units, mol, temp, press, wn, cs = io.read_opacity(cs_file, extract='all')
     thin = 10
     interp_cs = pt.interpolate_opacity(
-        cs_file, temperature, pressure, wn_thinning=thin,
+        cs_file, temp, press, wn_thinning=thin,
     )
-    np.testing.assert_allclose(interp_cs, cs_data[:,:,:,::thin])
+    np.testing.assert_allclose(interp_cs, cs[:,:,:,::thin])
 
 
 def test_interpolate_opacity_mask_thin():
     cs_file = 'outputs/exttable_test_300-3000K_1.1-1.7um.npz'
-    cs_shape, cs_u, arrays, cs_data  = io.read_opacity(cs_file, extract='all')
-    temperature = arrays[1]
-    pressure = arrays[2]
-    wn = arrays[3]
+    units, mol, temp, press, wn, cs = io.read_opacity(cs_file, extract='all')
     wn_mask = (wn>=6000) & (wn<=8000)
     thin = 10
     interp_cs = pt.interpolate_opacity(
-        cs_file, temperature, pressure, wn_mask, wn_thinning=thin,
+        cs_file, temp, press, wn_mask, wn_thinning=thin,
     )
-    expected_cs = cs_data[:,:,:,wn_mask][:,:,:,::thin]
+    expected_cs = cs[:,:,:,wn_mask][:,:,:,::thin]
     np.testing.assert_allclose(interp_cs, expected_cs)
 
 
@@ -521,7 +511,7 @@ def test_interpolate_opacity_interp_pressure():
     pressure = pa.pressure('1e-6 bar', '100 bar', nlayers)
 
     cs_file = 'outputs/exttable_test_300-3000K_1.1-1.7um.npz'
-    cs_shape, cs_u, arrays, cs_data  = io.read_opacity(cs_file, extract='all')
+    units, mol, temp, press, wn, cs = io.read_opacity(cs_file, extract='all')
     interp_cs = pt.interpolate_opacity(cs_file, pressure=pressure)
 
     assert np.shape(interp_cs)[2] == nlayers
@@ -570,10 +560,10 @@ def test_interpolate_opacity_interp_pressure():
 
 def test_interpolate_opacity_interp_temperature_pressure():
     cs_file = 'outputs/exttable_test_300-3000K_1.1-1.7um.npz'
-    cs_shape, cs_u, arrays, cs_data  = io.read_opacity(cs_file, extract='all')
+    units, mol, temp, press, wn, cs = io.read_opacity(cs_file, extract='all')
     nlayers = 30
     pressure = pa.pressure('1e-6 bar', '100 bar', nlayers)
-    temperature = arrays[1][1::2]
+    temperature = temp[1::2]
     ntemps = len(temperature)
 
     interp_cs = pt.interpolate_opacity(cs_file, temperature, pressure)
@@ -625,12 +615,11 @@ def test_interpolate_opacity_interp_temperature_pressure():
 
 def test_interpolate_opacity_interp_and_wn_masking():
     cs_file = 'outputs/exttable_test_300-3000K_1.1-1.7um.npz'
-    cs_shape, cs_u, arrays, cs_data  = io.read_opacity(cs_file, extract='all')
+    units, mol, temp, press, wn, cs = io.read_opacity(cs_file, extract='all')
     nlayers = 30
     pressure = pa.pressure('1e-6 bar', '100 bar', nlayers)
-    temperature = arrays[1][1::2]
+    temperature = temp[1::2]
     ntemps = len(temperature)
-    wn = arrays[3]
     wn_mask = (wn>=6000) & (wn<=8000)
     thin = 10
     expected_wn = wn[wn_mask][::thin]
@@ -692,13 +681,12 @@ def test_interpolate_opacity_extrapolate():
     pressure = pa.pressure('1e-12 bar', '100 bar', nlayers)
 
     cs_file = 'outputs/exttable_test_300-3000K_1.1-1.7um.npz'
-    cs_shape, cs_u, arrays, cs_data  = io.read_opacity(cs_file, extract='all')
-    press_table = arrays[2]
+    units, mol, temp, press, wn, cs = io.read_opacity(cs_file, extract='all')
     interp_cs = pt.interpolate_opacity(cs_file, pressure=pressure)
 
-    p_mask = pressure < np.amin(press_table)
+    p_mask = pressure < np.amin(press)
     # Everything above min(press_table) is the same:
-    relative_diff = interp_cs[0,:,p_mask]/cs_data[0,:,0]
+    relative_diff = interp_cs[0,:,p_mask]/cs[0,:,0]
     expected_diff = np.ones_like(relative_diff)
     np.testing.assert_allclose(relative_diff, expected_diff, rtol=1e-8)
     

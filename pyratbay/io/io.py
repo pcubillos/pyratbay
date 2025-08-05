@@ -625,17 +625,16 @@ def read_opacity(ofile, extract='all'):
 
     Returns
     -------
-    sizes: 4-element integer tuple
-        Sizes of the dimensions of the opacity table:
-        (nspec, ntemp, nlayers, nwave)
     units: dict
         The physical units for the different quantities
-    arrays: 4-element 1D ndarray tuple
-        The dimensions of the opacity table:
-        - species (string, the species names)
-        - temperature (float, K)
-        - pressure (float, bar)
-        - wavenumber (float, cm-1)
+    species: 1D string array
+        The species names.
+    temp: 1D float array
+        The temperature array (K)
+    press: 1D float array
+        The pressure array (bar)
+    wn: 1D float array
+        The wavenumber array (cm-1)
     opacity: 4D float ndarray tuple
         The tabulated opacities (cm2 molecule-1), of shape
         [nspec, ntemp, nlayers, nwave].
@@ -682,13 +681,11 @@ def read_opacity(ofile, extract='all'):
     if extract == 'opacity':
         return opacity
     if extract == 'arrays':
-        return (species, temp, press, wn)
+        return species, temp, press, wn
     if extract == 'all':
-        shape = np.shape(opacity)
         return (
-            shape,
             units,
-            (species, temp, press, wn),
+            species, temp, press, wn,
             opacity,
         )
 
