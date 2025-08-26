@@ -88,9 +88,9 @@ class Exomol(Linelist):
             Wavenumber value in cm-1.
         """
         dbfile.seek(irec*self.recsize)
-        line = dbfile.readline()
-        up = int(line[ 0:12])
-        low = int(line[13:25])
+        line = dbfile.readline().split()
+        up = int(line[0])
+        low = int(line[1])
         wavenumber = self.E[up] - self.E[low]
 
         return wavenumber
@@ -169,10 +169,7 @@ class Exomol(Linelist):
         while i < nread:
             # Read a record:
             data.seek((istart+i) * self.recsize)
-            line = data.read(self.recsize)
-            upID[i] = line[ 0:12]
-            loID[i] = line[13:25]
-            A21 [i] = line[26:36]
+            upID[i], loID[i], A21[i] = data.read(self.recsize).split()
             # Print a checkpoint statement every 10% interval:
             if (i % interval) == 0.0 and i != 0:
                 wn = self.E[upID[i]] - self.E[loID[i]]
