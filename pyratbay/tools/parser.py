@@ -912,7 +912,8 @@ def parse(cfile, with_log=True, mute=False):
     )
 
     args.ethresh = args.get_default(
-        'ethresh', 'Extinction-cofficient threshold', 1e-15, gt=0.0)
+        'ethresh', 'Extinction-cofficient threshold', 1e-30, gt=0.0,
+    )
     args.maxdepth = args.get_default(
         'maxdepth', 'Maximum optical-depth', 10.0, ge=0.0)
 
