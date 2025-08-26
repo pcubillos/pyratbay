@@ -12,6 +12,7 @@ import mc3
 from .. import atmosphere as pa
 from .. import constants as pc
 from .. import io as io
+from .. import opacity as op
 from .. import plots as pp
 from .. import spectrum as ps
 from .. import tools as pt
@@ -23,7 +24,6 @@ from .retrieval import Retrieval
 from .voigt import Voigt
 from . import spectrum as sp
 from . import extinction as ex
-from . import optical_depth as od
 from . import objects as ob
 from . import argum as ar
 
@@ -128,6 +128,44 @@ class Pyrat():
         ex.compute_opacity(self)
 
 
+    def optical_depth(self):
+        """
+        Calculate the optical depth.
+        """
+        self.log.head('\nBegin optical-depth calculation.')
+
+        ibottom = self.atm.nlayers
+        for model in self.opacity.models:
+            if model.name == 'deck':
+                ibottom = model.itop + 1
+                break
+
+        if self.opacity.is_patchy:
+            extinction_cloudy = self.opacity.ec_cloud
+        else:
+            extinction_cloudy = None
+
+        raypath, depth, ideep, depth_clear, ideep_clear = op.optical_depth(
+            self.od.rt_path,
+            self.opacity.ec,
+            self.atm.radius,
+            self.atm.rtop,
+            ibottom,
+            self.od.maxdepth,
+            extinction_cloudy,
+        )
+
+        self.od.raypath = raypath
+        self.od.depth = depth
+        self.od.ideep = ideep
+
+        if self.opacity.is_patchy:
+            self.od.ideep_clear = ideep_clear
+            self.od.depth_clear = depth_clear
+
+        self.log.head('Optical depth done.')
+
+
     def run(self, temp=None, vmr=None, radius=None, skip=[]):
         """
         Evaluate a Pyrat spectroscopic model
@@ -167,7 +205,7 @@ class Pyrat():
         self.timestamps['extinction'] = timer.clock()
 
         # Calculate the optical depth:
-        od.optical_depth(self)
+        self.optical_depth()
         self.timestamps['odepth'] = timer.clock()
 
         # Calculate the spectrum:

@@ -40,7 +40,7 @@ def test_pyrat_opacity_str(tmp_path):
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
     )
     pyrat = pb.run(cfg)
-    assert str(pyrat.opacity) == f"""\
+    assert str(pyrat.opacity) == """\
 Opacity extinction information:
 Model           type           T_min   T_max
 H2O             line_sample    300.0  3000.0
@@ -317,7 +317,7 @@ Line-transition lower-state energy (elow, cm-1):
     [ 1.807e+03  2.106e+03  2.630e+03 ...  1.244e+03  5.201e+02  6.531e+02]
 Line-transition gf (gf, cm-1):
     [ 1.399e-08  1.188e-09  1.210e-08 ...  5.498e-06  1.558e-07  1.076e-06]
-Line-transition strength threshold (ethresh): 1.00e-15
+Line-transition strength threshold (ethresh): 1.00e-30
 Isotopes information:
 Number of isotopes (niso): 4
 
@@ -485,14 +485,6 @@ def test_pyrat_transmission_od_str(tmp_path):
     assert str(pyrat.od) == """\
 Optical depth information:
 Observing geometry (rt_path): transit
-Total atmospheric extinction coefficient (ec, cm-1) [layer, wave]:
-[[ 5.614e-17  1.705e-14  5.621e-17 ...  8.241e-16  3.412e-16  3.554e-16]
- [ 8.116e-17  2.465e-14  8.127e-17 ...  1.191e-15  4.932e-16  5.138e-16]
- [ 1.174e-16  3.563e-14  1.175e-16 ...  1.722e-15  7.129e-16  7.427e-16]
- ...
- [ 7.173e-05  7.197e-05  7.190e-05 ...  4.776e-06  4.599e-06  4.419e-06]
- [ 1.496e-04  1.496e-04  1.494e-04 ...  9.100e-06  8.734e-06  8.387e-06]
- [ 3.119e-04  3.116e-04  3.112e-04 ...  1.746e-05  1.695e-05  1.645e-05]]
 
 Distance along the ray path across each layer (outside-in) at each impact
     parameter (raypath, km):
@@ -679,14 +671,6 @@ Emission spectrum (spectrum, erg s-1 cm-2 cm):
     assert str(pyrat.od) == """\
 Optical depth information:
 Observing geometry (rt_path): emission
-Total atmospheric extinction coefficient (ec, cm-1) [layer, wave]:
-[[ 5.611e-15  2.261e-14  5.618e-15 ...  3.247e-14  3.201e-14  3.203e-14]
- [ 8.110e-15  3.268e-14  8.121e-15 ...  4.694e-14  4.626e-14  4.630e-14]
- [ 1.172e-14  4.724e-14  1.174e-14 ...  6.785e-14  6.687e-14  6.693e-14]
- ...
- [ 7.189e-05  7.214e-05  7.207e-05 ...  5.730e-06  5.554e-06  5.374e-06]
- [ 1.498e-04  1.498e-04  1.497e-04 ...  1.048e-05  1.011e-05  9.766e-06]
- [ 3.123e-04  3.119e-04  3.115e-04 ...  1.945e-05  1.894e-05  1.845e-05]]
 
 Distance across each layer along a normal ray path (raypath, km):
     [100.5 100.2 99.9 99.7 ... 138.2 137.7 137.3 136.8]
