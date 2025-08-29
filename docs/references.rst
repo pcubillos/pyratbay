@@ -25,6 +25,8 @@ References
 
 .. [Bowesman2024] `Bowesman et al. (2024): ExoMol line lists - LV: hyperfine-resolved molecular line list for vanadium monoxide VO <https://ui.adsabs.harvard.edu/abs/2024MNRAS.529.1321B>`_
 
+.. [Buchner2014] `Buchner et al. (2014): X-ray spectral modelling of the AGN obscuring region in the CDFS: Bayesian model selection and catalogue <https://ui.adsabs.harvard.edu/abs/2014A&A...564A.125B>`_
+
 .. [Burrows2000] `Burrows et al. (2000): The Near-Infrared and Optical Spectra of Methane Dwarfs and Brown Dwarfs <http://ui.adsabs.harvard.edu/abs/2000ApJ...531..438B>`_
 
 .. [Castelli2003] `Castelli & Krucz (2003): New Grids of ATLAS9 Model Atmospheres <https://ui.adsabs.harvard.edu/abs/2003IAUS..210P.A20C>`_
@@ -42,6 +44,8 @@ References
 .. [CubillosBlecic2021] `Cubillos & Blecic (2021): The Pyrat-Bay Framework ifor Exoplanet Atmospheric Modeling: A Population Study of Hubble/WFC3 Transmission Spectra <https://ui.adsabs.harvard.edu/abs/2021MNRAS.505.2675C>`_
 
 .. [Dalgarno1962] `Dalgarno & Williams (1962): Rayleigh Scattering by Molecular Hydrogen <http://ui.adsabs.harvard.edu/abs/1962ApJ...136..690D>`_
+
+.. [Feroz2009] `Feroz et al. (2009): MULTINEST: an efficient and robust Bayesian inference tool for cosmology and particle physics <https://ui.adsabs.harvard.edu/abs/2009MNRAS.398.1601F>`_
 
 .. [Gamache2017] `Gamache et al. (2017): Total internal partition sums for 166 isotopologues of 51 molecules important in planetary atmospheres: Application to HITRAN2016 and beyond <https://ui.adsabs.harvard.edu/abs/2017JQSRT.203...70G>`_
 

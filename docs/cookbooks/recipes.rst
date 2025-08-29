@@ -42,10 +42,10 @@ Recipes list:
 
 - **End-to-end analyses**
 
-  - :ref:`transmission_retrieval` (TBD)
-  - `Emission retrieval <wasp18b/notebook_emission_retrieval.ipynb>`__
+  - :doc:`wasp39b/transmission_retrieval`
+  - `Eclipse retrieval: WASP-18b SOSS <wasp18b/notebook_emission_retrieval.ipynb>`__
   - :doc:`wasp18b/cross_sections_uhj`
-  - :ref:`radiative_equilibrium_simulation` (TBD)
+  - :ref:`radiative_equilibrium` (TBD)
   - :ref:`JWST_proposal_simulation` (TBD)
 
 - :ref:`compendia` lists compendia of peer-reviewed articles with scripts that reproduced the published material
