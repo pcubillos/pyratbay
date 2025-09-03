@@ -437,66 +437,6 @@ def test_transmission_fit_filters():
     np.testing.assert_allclose(model4[1], expected['bandflux4'], rtol=rtol)
 
 
-def test_multiple_opacities(tmp_path):
-    # Generate TLI files:
-    cfg = f'{ROOT}tests/configs/tli_multiple_opacity_H2O.cfg'
-    pyrat = pb.run(cfg)
-
-    cfg = f'{ROOT}tests/configs/tli_multiple_opacity_CH4.cfg'
-    pyrat = pb.run(cfg)
-
-    cfg = f'{ROOT}tests/configs/tli_multiple_opacity_CO2.cfg'
-    pyrat = pb.run(cfg)
-
-    # Generate opacity files:
-    opac_cfg = f'{ROOT}tests/configs/opacity_multiple.cfg'
-    cfg = make_config(tmp_path, opac_cfg)
-    pyrat = pb.run(cfg)
-    assert pyrat is not None
-
-    reset = {
-        'tlifile': f'{OUTPUTS}HITRAN_CO2_1.5-1.51um_test.tli',
-        'sampled_cross_sec': f'{OUTPUTS}exttable_CO2_300-3000K_1.5-1.51um.npz',
-    }
-    cfg = make_config(tmp_path, opac_cfg, reset=reset)
-    pyrat = pb.run(cfg)
-    assert pyrat is not None
-
-    reset = {
-        'tlifile': f'{OUTPUTS}HITRAN_CH4_1.5-1.51um_test.tli',
-        'sampled_cross_sec': f'{OUTPUTS}exttable_CH4_300-3000K_1.5-1.51um.npz',
-    }
-    cfg = make_config(tmp_path, opac_cfg, reset=reset)
-    pyrat = pb.run(cfg)
-    assert pyrat is not None
-
-    # Two species at a time:
-    reset = {
-        'tlifile':
-            f'{OUTPUTS}HITRAN_CO2_1.5-1.51um_test.tli'
-            f'\n    {OUTPUTS}HITRAN_CH4_1.5-1.51um_test.tli',
-        'sampled_cross_sec': f'{OUTPUTS}exttable_CO2-CH4_300-3000K_1.5-1.51um.npz',
-    }
-    cfg = make_config(tmp_path, opac_cfg, reset=reset)
-    pyrat = pb.run(cfg)
-    assert pyrat is not None
-
-    # Compute spectra from opacities:
-    cfg = f'{ROOT}tests/configs/spectrum_transmission_multiple_opacities.cfg'
-    pyrat = pb.run(cfg)
-    spectrum1 = pyrat.spec.spectrum
-
-    reset = {
-        'sampled_cross_sec':
-            f'{OUTPUTS}exttable_H2O_300-3000K_1.5-1.51um.npz'
-            f'\n  {OUTPUTS}exttable_CO2-CH4_300-3000K_1.5-1.51um.npz',
-    }
-    cfg = make_config(tmp_path, cfg, reset=reset)
-    pyrat = pb.run(cfg)
-    spectrum2 = pyrat.spec.spectrum
-    np.testing.assert_allclose(spectrum1, spectrum2, rtol=rtol)
-
-
 @pytest.mark.parametrize(
     'wllow,wlhigh',
     [('1.1 um', '1.6 um'),

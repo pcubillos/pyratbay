@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2024 Patricio Cubillos
+# Copyright (c) 2021-2025 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -1071,8 +1071,8 @@ def interpolate_opacity(
         )
     )
 
-    cross_section = io.read_opacity(cs_file, extract='opacity')[:,:,:,wn_mask]
-    cross_section = cross_section[:,:,:,::wn_thinning]
+    cross_section = io.read_opacity(cs_file, extract='opacity')[:,:,wn_mask]
+    cross_section = cross_section[:,:,::wn_thinning]
 
     if not resample_pressure and not resample_temperature:
         return cross_section
@@ -1083,20 +1083,24 @@ def interpolate_opacity(
 
     if resample_pressure:
         logp = np.log(pressure)
-        cs_extrap = log_cs[:,:,0], log_cs[:,:,-1]
+        cs_extrap = log_cs[:,0], log_cs[:,-1]
         cs_interp = sip.interp1d(
-            logp_table, log_cs, axis=2,
+            logp_table, log_cs,
+            axis=1,
             kind='slinear',
-            bounds_error=False, fill_value=cs_extrap,
+            bounds_error=False,
+            fill_value=cs_extrap,
         )
         log_cs = cs_interp(logp)
 
     if resample_temperature:
-        cs_extrap = log_cs[:,0], log_cs[:,-1]
+        cs_extrap = log_cs[0], log_cs[-1]
         cs_interp = sip.interp1d(
-            temp, log_cs, axis=1,
+            temp, log_cs,
+            axis=0,
             kind='slinear',
-            bounds_error=False, fill_value=cs_extrap,
+            bounds_error=False,
+            fill_value=cs_extrap,
         )
         log_cs = cs_interp(temperature)
 

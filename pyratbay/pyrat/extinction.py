@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2024 Patricio Cubillos
+# Copyright (c) 2021-2025 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import ctypes
@@ -54,6 +54,12 @@ def compute_opacity(pyrat):
 
     i_lbl = pyrat.opacity.models_type.index('lbl')
     lbl = pyrat.opacity.models[i_lbl]
+    if len(lbl.species) > 1:
+        log.error(
+            'Cross-section files must be for a single species only, but '
+            'line-by-line data include transitions for multiple ones: '
+            f'{lbl.species}'
+        )
 
     cs_file = ex.sampled_cs[0]
     log.head(f"\nGenerating new cross-section table file:\n  '{cs_file}'")
@@ -74,8 +80,7 @@ def compute_opacity(pyrat):
     # Create the temperature array:
     ex.ntemp = int((ex.tmax-ex.tmin)/ex.tstep) + 1
     ex.temp = np.linspace(ex.tmin, ex.tmin + (ex.ntemp-1)*ex.tstep, ex.ntemp)
-    ex.species = lbl.species
-    ex.nspec = len(pyrat.ex.species)
+    ex.species = lbl.species[0]
 
     with np.printoptions(formatter={'float':'{:.1f}'.format}):
         log.msg(f"Temperature sample (K):\n {ex.temp}", indent=2)
@@ -94,10 +99,11 @@ def compute_opacity(pyrat):
 
     # Allocate extinction-coefficient array:
     log.msg("Calculate cross-sections.", indent=2)
-    size = ex.nspec * ex.ntemp * ex.nlayers * ex.nwave
+    size = ex.ntemp * ex.nlayers * ex.nwave
     sm_ect = mp.Array(ctypes.c_double, np.zeros(size, np.double))
     ex.etable = np.ctypeslib.as_array(
-        sm_ect.get_obj()).reshape((ex.nspec, ex.ntemp, ex.nlayers, ex.nwave))
+        sm_ect.get_obj()).reshape((ex.ntemp, ex.nlayers, ex.nwave)
+    )
 
     # Multi-processing extinction calculation (in C):
     processes = []
@@ -202,7 +208,7 @@ def extinction(pyrat, indices, grid=False, add=False, skip_mol=[]):
         )
         # Store output:
         if grid:   # Into grid
-            pyrat.ex.etable[:, itemp, ilayer] = extinct_coeff
+            pyrat.ex.etable[itemp, ilayer] = extinct_coeff[0]
         elif add:  # Into ex.ec array for atmosphere
             lbl.ec[ilayer:ilayer+1] = extinct_coeff
         else:      # return single-layer EC of given layer

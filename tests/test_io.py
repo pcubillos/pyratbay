@@ -95,18 +95,17 @@ def test_read_spectrum_custom_header(tmpdir, header):
 )
 def test_read_write_opacity_all(tmpdir, extract):
     ofile = "{}/opacity_test.npz".format(tmpdir)
-    mol = ['H2O', 'CO']
+    mol = 'H2O'
     temp = np.linspace(300, 3000, 28)
     press = pa.pressure('1e-6 bar', '100 bar', nlayers=21)
     wn = np.linspace(1000, 2000, 1001)
 
-    nmol = len(mol)
     ntemp = len(temp)
     nlayers = len(press)
     nwave = len(wn)
 
-    etable = np.linspace(0.0, 1.0, nmol*ntemp*nlayers*nwave)
-    etable = etable.reshape((nmol, ntemp, nlayers, nwave))
+    etable = np.linspace(0.0, 1.0, ntemp*nlayers*nwave)
+    etable = etable.reshape((ntemp, nlayers, nwave))
     io.write_opacity(ofile, mol, temp, press, wn, etable)
 
     if extract is None:
@@ -114,19 +113,14 @@ def test_read_write_opacity_all(tmpdir, extract):
     else:
         edata = io.read_opacity(ofile, extract=extract)
 
-    assert nmol == 2
-    assert ntemp == 28
-    assert nlayers == 21
-    assert nwave == 1001
-
     units = edata[0]
     assert units['pressure'] == 'bar'
     assert units['temperature'] == 'K'
     assert units['wavenumber'] == 'cm-1'
     assert units['cross section'] == 'cm2 molecule-1'
 
-    molecs = list(edata[1])
-    assert molecs == mol
+    molec = edata[1]
+    assert molec == mol
     np.testing.assert_allclose(temp, edata[2])
     np.testing.assert_allclose(press, edata[3])
     np.testing.assert_allclose(wn, edata[4])
@@ -135,24 +129,23 @@ def test_read_write_opacity_all(tmpdir, extract):
 
 def test_read_write_opacity_arrays(tmpdir):
     ofile = "{}/opacity_test.npz".format(tmpdir)
-    mol = ['H2O', 'CO']
+    mol = 'H2O'
     temp = np.linspace(300, 3000, 28)
     press = np.logspace(-6, 2, 21)
     wn = np.linspace(1000, 2000, 1001)
 
-    nmol = len(mol)
     ntemp = len(temp)
     nlayers = len(press)
     nwave = len(wn)
 
-    etable = np.linspace(0.0, 1.0, nmol*ntemp*nlayers*nwave)
-    etable = etable.reshape((nmol, ntemp, nlayers, nwave))
+    etable = np.linspace(0.0, 1.0, ntemp*nlayers*nwave)
+    etable = etable.reshape((ntemp, nlayers, nwave))
 
     io.write_opacity(ofile, mol, temp, press, wn, etable)
     edata = io.read_opacity(ofile, extract='arrays')
 
-    molecs = list(edata[0])
-    assert molecs == mol
+    molec = edata[0]
+    assert molec == mol
     np.testing.assert_allclose(temp, edata[1])
     np.testing.assert_allclose(press, edata[2])
     np.testing.assert_allclose(wn, edata[3])
@@ -160,18 +153,17 @@ def test_read_write_opacity_arrays(tmpdir):
 
 def test_read_write_opacity_opacity(tmpdir):
     ofile = f"{tmpdir}/opacity_test.npz"
-    mol = ['H2O', 'CO']
+    mol = 'H2O'
     temp  = np.linspace(300, 3000, 28)
     press = np.logspace(-6, 2, 21)
     wn    = np.linspace(1000, 2000, 1001)
 
-    nmol = len(mol)
     ntemp = len(temp)
     nlayers = len(press)
     nwave = len(wn)
 
-    etable = np.linspace(0.0, 1.0, nmol*ntemp*nlayers*nwave)
-    etable = etable.reshape((nmol, ntemp, nlayers, nwave))
+    etable = np.linspace(0.0, 1.0, ntemp*nlayers*nwave)
+    etable = etable.reshape(( ntemp, nlayers, nwave))
 
     io.write_opacity(ofile, mol, temp, press, wn, etable)
     edata = io.read_opacity(ofile, extract='opacity')
@@ -197,6 +189,88 @@ def test_read_opacity_petitRADRANS(tmpdir):
     #edata = io.read_opacity(ofile, extract='opacity')
     #np.testing.assert_allclose(etable, edata)
     pass
+
+
+def test_read_opacity_pb_ver1(tmpdir):
+    # mock the file as in pyratbay version < 2:
+    cs_file = "{}/opacity_test.npz".format(tmpdir)
+    mol = ['H2O']
+    temp = np.linspace(300, 3000, 28)
+    press = pa.pressure('1e-6 bar', '100 bar', nlayers=21)
+    wn = np.linspace(1000, 2000, 1001)
+
+    ntemp = len(temp)
+    nlayers = len(press)
+    nwave = len(wn)
+    cs = np.linspace(0.0, 1.0, ntemp*nlayers*nwave)
+    cs = cs.reshape((1, ntemp, nlayers, nwave))
+    # input pressures are in barye
+    np.savez(
+        cs_file,
+        species=mol,
+        temperature=temp,
+        pressure=press*pc.bar,
+        wavenumber=wn,
+        opacity=cs,
+    )
+
+    cs_data = io.read_opacity(cs_file)
+
+    units = cs_data[0]
+    assert units['pressure'] == 'bar'
+    assert units['temperature'] == 'K'
+    assert units['wavenumber'] == 'cm-1'
+    assert units['cross section'] == 'cm2 molecule-1'
+
+    assert cs_data[1] == mol[0]
+    np.testing.assert_allclose(temp, cs_data[2])
+    np.testing.assert_allclose(press, cs_data[3])
+    np.testing.assert_allclose(wn, cs_data[4])
+    np.testing.assert_allclose(cs[0], cs_data[5])
+
+
+def test_read_opacity_pb_ver2beta(tmpdir):
+    # mock the file as in pyratbay version 2beta:
+    cs_file = "{}/opacity_test.npz".format(tmpdir)
+    mol = ['H2O']
+    temp = np.linspace(300, 3000, 28)
+    press = pa.pressure('1e-6 bar', '100 bar', nlayers=21)
+    wn = np.linspace(1000, 2000, 1001)
+
+    ntemp = len(temp)
+    nlayers = len(press)
+    nwave = len(wn)
+    cs = np.linspace(0.0, 1.0, ntemp*nlayers*nwave)
+    cs = cs.reshape((1, ntemp, nlayers, nwave))
+    units = {
+        'temperature': 'K',
+        'pressure': 'bar',
+        'wavenumber': 'cm-1',
+        'cross section': 'cm2 molecule-1',
+    }
+    np.savez(
+        cs_file,
+        species=mol,
+        temperature=temp,
+        pressure=press,
+        wavenumber=wn,
+        opacity=cs,
+        units=units,
+    )
+
+    cs_data = io.read_opacity(cs_file)
+
+    units = cs_data[0]
+    assert units['pressure'] == 'bar'
+    assert units['temperature'] == 'K'
+    assert units['wavenumber'] == 'cm-1'
+    assert units['cross section'] == 'cm2 molecule-1'
+
+    assert cs_data[1] == mol[0]
+    np.testing.assert_allclose(temp, cs_data[2])
+    np.testing.assert_allclose(press, cs_data[3])
+    np.testing.assert_allclose(wn, cs_data[4])
+    np.testing.assert_allclose(cs[0], cs_data[5])
 
 
 def test_read_write_atm_pt(tmpdir):

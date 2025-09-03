@@ -579,8 +579,8 @@ def write_opacity(ofile, species, temp, press, wn, opacity):
     ofile: String
         Output filename where to save the opacity data.
         File extension must be .npz
-    species: 1D string iterable
-        Species names.
+    species: String
+        The species name.
     temp: 1D float ndarray
         Temperature array (Kelvin degree).
     press: 1D float ndarray
@@ -588,9 +588,10 @@ def write_opacity(ofile, species, temp, press, wn, opacity):
     wn: 1D float ndarray
         Wavenumber array (cm-1).
     opacity: 4D float ndarray
-        Tabulated opacities (cm2 molecule-1) of shape
-        [nspec, ntemp, nlayers, nwave].
+        Tabulated opacities (cm2 molecule-1) of shape [ntemp, nlayers, nwave].
     """
+    if not isinstance(species, str):
+        raise ValueError("'species' input must be a string")
     units = {
         'temperature': 'K',
         'pressure': 'bar',
@@ -599,7 +600,7 @@ def write_opacity(ofile, species, temp, press, wn, opacity):
     }
     np.savez(
         ofile,
-        species=species,
+        species=[species],
         temperature=temp,
         pressure=press,
         wavenumber=wn,
@@ -627,8 +628,8 @@ def read_opacity(ofile, extract='all'):
     -------
     units: dict
         The physical units for the different quantities
-    species: 1D string array
-        The species names.
+    species: String
+        The species name.
     temp: 1D float array
         The temperature array (K)
     press: 1D float array
@@ -642,29 +643,35 @@ def read_opacity(ofile, extract='all'):
     if ofile.endswith('petitRADTRANS.h5'):
         with h5py.File(ofile, 'r') as f:
             species = list(f['mol_name'])
-            species = np.array([species[0].decode('utf-8')])
+            species = species[0].decode('utf-8')
             temp = np.array(f['t'])
             press = np.array(f['p'])
             wn = np.array(f['bin_edges'])
             if extract in ['opacity', 'all']:
                 opacity = np.array(f['xsecarr'])
-                # Same format as pyratbay files: (nmol, npress, ntemp, nwave)
+                # Same format as pyratbay files: (npress, ntemp, nwave)
                 opacity = np.swapaxes(opacity, 0, 1)
-                opacity = np.expand_dims(opacity, axis=0)
-            units = {
-                'temperature': 'K',
-                'pressure': 'bar',
-                'wavenumber': 'cm-1',
-                'cross section': 'cm2 molecule-1',
-            }
+        units = {
+            'temperature': 'K',
+            'pressure': 'bar',
+            'wavenumber': 'cm-1',
+            'cross section': 'cm2 molecule-1',
+        }
     else:
         with np.load(ofile, allow_pickle=True) as f:
-            species = f['species']
+            if len(f['species']) > 1:
+                raise ValueError(
+                    'Opacity files must contain a single species'
+                )
+            species = str(f['species'][0])
             temp = f['temperature']
             press = f['pressure']
             wn = f['wavenumber']
             if extract in ['opacity', 'all']:
                 opacity = f['opacity']
+                # check/correction for format in pyratbay version 2.0beta
+                if np.ndim(opacity) == 4:
+                    opacity = opacity[0]
             units = np.ndarray.item(f['units']) if 'units' in f else None
 
     # If it does not have units, must be pyratbay<2.0, where pressures
@@ -1449,7 +1456,7 @@ def import_xs(filename, source, read_all=True, ofile=None):
                 pressure = np.array(xs_data['p'])
                 temperature = np.array(xs_data['t'])
                 wavenumber = np.array(xs_data['bin_edges'])
-                species = [xs_data['mol_name'][0].decode('utf-8')]
+                species = xs_data['mol_name'][0].decode('utf-8')
 
     elif source == 'taurex':
         with open(filename, 'rb') as f:
@@ -1459,7 +1466,7 @@ def import_xs(filename, source, read_all=True, ofile=None):
                 pressure = xs_data['p']
                 temperature = xs_data['t']
                 wavenumber = xs_data['wno']
-                species = [xs_data['name']]
+                species = xs_data['name']
 
     else:
         raise ValueError("Invalid cross-section source type.")
@@ -1467,11 +1474,11 @@ def import_xs(filename, source, read_all=True, ofile=None):
 
     if ofile is not None:
         nlayers, ntemp, nwave = np.shape(xs)
-        xs_pb = np.swapaxes(xs,0,1).reshape(1,ntemp,nlayers,nwave)
+        xs_pb = np.swapaxes(xs, 0, 1)
         write_opacity(ofile, species, temperature, pressure, wavenumber, xs_pb)
 
     if read_all:
-        return xs, pressure, temperature, wavenumber, species[0]
+        return xs, pressure, temperature, wavenumber, species
     return xs
 
 

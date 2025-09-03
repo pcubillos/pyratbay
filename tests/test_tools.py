@@ -481,7 +481,7 @@ def test_interpolate_opacity_wn_mask():
     interp_cs = pt.interpolate_opacity(
         cs_file, temp, press, wn_mask,
     )
-    np.testing.assert_allclose(interp_cs, cs[:,:,:,wn_mask])
+    np.testing.assert_allclose(interp_cs, cs[:,:,wn_mask])
 
 
 def test_interpolate_opacity_thin_no_interp():
@@ -491,7 +491,7 @@ def test_interpolate_opacity_thin_no_interp():
     interp_cs = pt.interpolate_opacity(
         cs_file, temp, press, wn_thinning=thin,
     )
-    np.testing.assert_allclose(interp_cs, cs[:,:,:,::thin])
+    np.testing.assert_allclose(interp_cs, cs[:,:,::thin])
 
 
 def test_interpolate_opacity_mask_thin():
@@ -502,7 +502,7 @@ def test_interpolate_opacity_mask_thin():
     interp_cs = pt.interpolate_opacity(
         cs_file, temp, press, wn_mask, wn_thinning=thin,
     )
-    expected_cs = cs[:,:,:,wn_mask][:,:,:,::thin]
+    expected_cs = cs[:,:,wn_mask][:,:,::thin]
     np.testing.assert_allclose(interp_cs, expected_cs)
 
 
@@ -514,7 +514,7 @@ def test_interpolate_opacity_interp_pressure():
     units, mol, temp, press, wn, cs = io.read_opacity(cs_file, extract='all')
     interp_cs = pt.interpolate_opacity(cs_file, pressure=pressure)
 
-    assert np.shape(interp_cs)[2] == nlayers
+    assert np.shape(interp_cs)[1] == nlayers
     # Test at a couple of temperatures and wavelengths:
     expected_cs = np.array([
         [5.92566023e-26, 5.92565551e-26, 5.92564958e-26, 5.92563482e-26,
@@ -555,7 +555,7 @@ def test_interpolate_opacity_interp_pressure():
     for i in range(4):
         j = i_temps[i]
         k = i_wave[i]
-        np.testing.assert_allclose(interp_cs[0,j,:,k], expected_cs[i])
+        np.testing.assert_allclose(interp_cs[j,:,k], expected_cs[i])
 
 
 def test_interpolate_opacity_interp_temperature_pressure():
@@ -568,8 +568,8 @@ def test_interpolate_opacity_interp_temperature_pressure():
 
     interp_cs = pt.interpolate_opacity(cs_file, temperature, pressure)
     cs_shape = np.shape(interp_cs)
-    assert cs_shape[1] == ntemps
-    assert cs_shape[2] == nlayers
+    assert cs_shape[0] == ntemps
+    assert cs_shape[1] == nlayers
     # Test at a couple of temperatures and wavelengths:
     expected_cs = np.array([
         [5.92566023e-26, 5.92565551e-26, 5.92564958e-26, 5.92563482e-26,
@@ -610,7 +610,7 @@ def test_interpolate_opacity_interp_temperature_pressure():
     for i in range(4):
         j = i_temps[i]
         k = i_wave[i]
-        np.testing.assert_allclose(interp_cs[0,j,:,k], expected_cs[i])
+        np.testing.assert_allclose(interp_cs[j,:,k], expected_cs[i])
 
 
 def test_interpolate_opacity_interp_and_wn_masking():
@@ -629,9 +629,9 @@ def test_interpolate_opacity_interp_and_wn_masking():
         cs_file, temperature, pressure, wn_mask, wn_thinning=thin,
     )
     cs_shape = np.shape(interp_cs)
-    assert cs_shape[1] == ntemps
-    assert cs_shape[2] == nlayers
-    assert cs_shape[3] == nwave
+    assert cs_shape[0] == ntemps
+    assert cs_shape[1] == nlayers
+    assert cs_shape[2] == nwave
     # Test at a couple of temperatures and wavelengths:
     expected_cs = np.array([
         [7.74448417e-25, 7.74464911e-25, 7.74485639e-25, 7.74537253e-25,
@@ -672,7 +672,7 @@ def test_interpolate_opacity_interp_and_wn_masking():
     for i in range(4):
         j = i_temps[i]
         k = i_wave[i]
-        np.testing.assert_allclose(interp_cs[0,j,:,k], expected_cs[i])
+        np.testing.assert_allclose(interp_cs[j,:,k], expected_cs[i])
 
 
 
@@ -686,7 +686,7 @@ def test_interpolate_opacity_extrapolate():
 
     p_mask = pressure < np.amin(press)
     # Everything above min(press_table) is the same:
-    relative_diff = interp_cs[0,:,p_mask]/cs[0,:,0]
+    relative_diff = interp_cs[:,p_mask]/cs[:,0:1]
     expected_diff = np.ones_like(relative_diff)
     np.testing.assert_allclose(relative_diff, expected_diff, rtol=1e-8)
     
