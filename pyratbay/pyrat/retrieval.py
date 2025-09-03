@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2024 Patricio Cubillos
+# Copyright (c) 2021-2025 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -36,8 +36,8 @@ class ColorTheme():
 class Retrieval():
     theme = ColorTheme()
 
-    def __init__(self, inputs, atm, phy, obs, opacity, log):
-        self.nparams = 0     # Number of free parameters
+    def __init__(self, inputs, atm, obs, opacity, log):
+        self.nparams = 0
         self.posterior = None
         self.bestp = None
         self.spec_best = None

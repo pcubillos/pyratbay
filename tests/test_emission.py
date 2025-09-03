@@ -386,7 +386,7 @@ def test_emission_fit(tmp_path):
     # Cloud deck:
     params = [-4.67, -0.8, -0.8, 0.5, 1486.0, 100.0, -4.0, 0.0, -4.0, -3.0]
     model2 = pyrat.eval(params, retmodel=True)
-    rmin = np.amin(np.sqrt(pyrat.spec.spectrum)) * pyrat.phy.rstar
+    rmin = np.amin(np.sqrt(pyrat.spec.spectrum)) * pyrat.atm.rstar
     rexpected = pyrat.cloud.models[0].rsurf
     np.testing.assert_allclose(rmin, rexpected, rtol=rtol)
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['fit2'], rtol=rtol)

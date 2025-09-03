@@ -48,7 +48,7 @@ def test_transmission_clear(tmp_path):
         remove=['sampled_cross_sec', 'continuum_cross_sec', 'rayleigh', 'alkali', 'clouds'],
     )
     pyrat = pb.run(cfg)
-    depth_bottom = (pyrat.atm.radius[-1] / pyrat.phy.rstar)**2
+    depth_bottom = (pyrat.atm.radius[-1] / pyrat.atm.rstar)**2
     np.testing.assert_allclose(pyrat.spec.spectrum, depth_bottom, rtol=rtol)
 
 
@@ -416,7 +416,7 @@ def test_transmission_fit(tmp_path):
     # Cloud deck:
     params = [-4.67, -0.8, -0.8, 0.5, 1486.0, 100.0, -4.0, 0.0, -4.0, -3.0]
     pyrat.eval(params, retmodel=True)
-    rmin = np.amin(np.sqrt(pyrat.spec.spectrum)) * pyrat.phy.rstar
+    rmin = np.amin(np.sqrt(pyrat.spec.spectrum)) * pyrat.atm.rstar
     cloud_deck = pyrat.opacity.models[5]
     rexpected = cloud_deck.rsurf
     np.testing.assert_allclose(rmin, rexpected, rtol=rtol)

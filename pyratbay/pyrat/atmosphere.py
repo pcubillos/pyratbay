@@ -13,6 +13,7 @@ from .. import atmosphere as pa
 from ..atmosphere import vmr_models
 from .. import constants as pc
 from .. import io as io
+from .. import spectrum as ps
 from .. import tools as pt
 
 
@@ -51,7 +52,7 @@ class Atmosphere():
     mplanet = MassGravity()  # Planetary mass
     gplanet = MassGravity()  # Planetary surface gravity (at rplanet)
 
-    def __init__(self, inputs, log=None, mstar=None):
+    def __init__(self, inputs, wn=None, log=None):
         """
         Initialize an atmospheric model object
         There are four main properties to compute (in this order):
@@ -71,6 +72,19 @@ class Atmosphere():
             log = mu.Log(width=80)
         self.log = log
         log.head('\nGenerating atmospheric model')
+
+        # Stellar properties
+        self.tstar = inputs.tstar
+        self.rstar = inputs.rstar
+        self.mstar = inputs.mstar
+        self.log_gstar = inputs.log_gstar
+        self.distance = inputs.distance
+
+        sed_type, sed_file, starwn, starflux = self.setup_star_sed(inputs, wn)
+        self.sed_type = sed_type
+        self.sed_file = sed_file
+        self.starwn = starwn
+        self.starflux = starflux
 
         self.rtop = 0  # Index of topmost layer (within Hill radius)
 
@@ -329,8 +343,8 @@ class Atmosphere():
 
         # Compute VMR, radius profiles (when needed), and other
         # properties (mean molecular mass, number density, Hill radius)
-        self.calc_profiles(mstar=mstar)
-
+        self.calc_profiles()
+        # TBD: mstar=None?
 
         # Screen outputs:
         mmm_text = ''
@@ -377,7 +391,7 @@ class Atmosphere():
 
 
     def calc_profiles(
-            self, temp=None, vmr=None, radius=None, mstar=None,
+            self, temp=None, vmr=None, radius=None,
             # Deprecated parameters:
             abund=None,
         ):
@@ -479,7 +493,7 @@ class Atmosphere():
             pass
 
         # Check radii lie within Hill radius:
-        self.rhill = pa.hill_radius(self.smaxis, self.mplanet, mstar)
+        self.rhill = pa.hill_radius(self.smaxis, self.mplanet, self.mstar)
         if self.radius is not None:
             self.rtop = pt.ifirst(self.radius<self.rhill, default_ret=0)
             if self.rtop > 0:
@@ -659,6 +673,53 @@ class Atmosphere():
             self.bulkratio, self.invsrat = pa.ratio(self.vmr, self.ibulk)
 
 
+    def setup_star_sed(self, inputs, wn):
+        """
+        Read stellar spectrum model: starspec, kurucz, or blackbody
+
+        Returns
+        Input stellar flux spectrum (erg s-1 cm-2 cm)
+        """
+        log = self.log
+        if inputs.starspec is not None:
+            sed_type = 'input'
+            sed_file = inputs.starspec
+            starflux, starwn, sed_temps = io.read_spectra(inputs.starspec)
+            if sed_temps is not None:
+                self.sed_temps = sed_temps
+
+        elif inputs.kurucz is not None:
+            sed_type = 'kurucz'
+            sed_file = inputs.kurucz
+            if self.tstar is None:
+                log.error(
+                    'Undefined stellar temperature (tstar), required for '
+                    'Kurucz model'
+                )
+            if self.log_gstar is None:
+                log.error(
+                    'Undefined stellar gravity (log_gstar), required for '
+                    'Kurucz model'
+                )
+            starflux, starwn, kurucz_t, kurucz_g = ps.read_kurucz(
+                sed_file, self.tstar, self.log_gstar,
+            )
+            log.msg(
+                f'Input stellar params: T={self.tstar:7.1f} K, log(g)={self.log_gstar:4.2f}\n'
+                f'Best Kurucz match:    T={kurucz_t:7.1f} K, log(g)={kurucz_g:4.2f}'
+            )
+        elif self.tstar is not None and wn is not None:
+            sed_type = 'blackbody'
+            sed_file = None
+            starwn = wn
+            starflux = ps.bbflux(starwn, self.tstar)
+        else:
+            sed_type = None
+            sed_file = None
+            starflux, starwn = None, None
+
+        return sed_type, sed_file, starwn, starflux
+
 
     def __str__(self):
         fmt = {'float': '{:.3e}'.format}
@@ -673,20 +734,48 @@ class Atmosphere():
         )
         fw.write('Number of layers (nlayers): {:d}', self.nlayers)
 
-        rplanet = None if self.rplanet is None else self.rplanet/pc.rjup
-        mplanet = None if self.mplanet is None else self.mplanet/pc.mjup
-        gplanet = self.gplanet
+        rplanet = pt.none_div(self.rplanet, pc.rjup)
+        mplanet = pt.none_div(self.mplanet, pc.mjup)
         smaxis = pt.none_div(self.smaxis, pc.au)
         rhill = pt.none_div(self.rhill, pc.rjup)
+        rstar = pt.none_div(self.rstar, pc.rsun)
+        mstar = pt.none_div(self.mstar, pc.msun)
+        distance = pt.none_div(self.distance, pc.parsec)
+        rprs = pt.none_div(self.rplanet, self.rstar)
         fw.write('\nPlanetary radius (rplanet, Rjup): {:.3f}', rplanet)
         fw.write('Planetary mass (mplanet, Mjup): {:.3f}', mplanet)
-        fw.write('Planetary surface gravity (gplanet, cm s-2): {:.1f}', gplanet)
-        fw.write(
-            'Planetary internal temperature (tint, K):  {:.1f}',
-            self.tint,
-        )
-        fw.write('Planetary Hill radius (rhill, Rjup):  {:.3f}', rhill)
+        fw.write('Planetary surface gravity (gplanet, cm s-2): {:.1f}', self.gplanet)
+        fw.write('Planetary internal temperature (tint, K): {:.1f}', self.tint)
+        fw.write('Planetary Hill radius (rhill, Rjup): {:.3f}', rhill)
         fw.write('Orbital semi-major axis (smaxis, AU): {:.4f}', smaxis)
+
+        fw.write('\nStellar radius (rstar, Rsun): {:.3f}', rstar)
+        fw.write('Stellar mass (mstar, Msun):   {:.3f}', mstar)
+        fw.write(
+            'Stellar effective temperature (tstar, K): {:.1f}', self.tstar,
+        )
+        fw.write(
+            'Stellar surface gravity (log_gstar, cm s-2): {:.2f}',
+            self.log_gstar,
+        )
+        fw.write('Planet-to-star radius ratio: {:.5f}', rprs)
+        fw.write('Distance to target (distance, parsec): {:.3f}', distance)
+
+        fw.write(f"Input stellar SED type (sed_type): '{self.sed_type}'")
+        fw.write(f"Input stellar SED file (sed_file): {repr(self.sed_file)}")
+        if self.sed_type == 'blackbody':
+            fw.write(
+                "Input stellar spectrum is a blackbody at Teff = {:.1f} K.",
+                self.tstar,
+            )
+        fw.write(
+            'Stellar spectrum wavenumber (starwn, cm-1):\n    {}',
+            self.starwn,
+            fmt={'float': '{:10.3f}'.format},
+        )
+        fw.write('Stellar flux spectrum (starflux, erg s-1 cm-2 cm):\n    {}',
+            self.starflux, fmt={'float': '{: .3e}'.format})
+
 
         fw.write('\nPressure display units (punits): {}', self.punits)
         fw.write('Pressure internal units: bar')

@@ -488,7 +488,7 @@ def posterior_post_processing(cfg_file=None, pyrat=None, suffix=''):
     elif is_emission:
         outputs['flux_posterior'] = spectrum_posterior
     elif is_eclipse:
-        rprs = pyrat.atm.rplanet / pyrat.phy.rstar
+        rprs = pyrat.atm.rplanet / pyrat.atm.rstar
         fplanet = spectrum_posterior * pyrat.spec.starflux / rprs**2.0
         outputs['depth_posterior'] = spectrum_posterior
         outputs['flux_posterior'] = fplanet

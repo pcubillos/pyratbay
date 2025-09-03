@@ -48,7 +48,7 @@ def test_eclipse_clear(tmp_path):
     pyrat = pb.run(cfg)
     spectrum = (
         ps.bbflux(pyrat.spec.wn, pyrat.atm.temp[-1]) / pyrat.spec.starflux
-        * (pyrat.atm.rplanet/pyrat.phy.rstar)**2
+        * (pyrat.atm.rplanet/pyrat.atm.rstar)**2
     )
     # TBD: Should be last layer, check ideep calculation
     np.testing.assert_allclose(pyrat.spec.spectrum, spectrum, rtol=rtol)

@@ -350,14 +350,14 @@ def spectrum(pyrat):
     # Transmission spectroscopy:
     if pyrat.od.rt_path in pc.transmission_rt:
         spec.spectrum = ps.transmission(
-            pyrat.od.depth, pyrat.atm.radius, pyrat.phy.rstar,
+            pyrat.od.depth, pyrat.atm.radius, pyrat.atm.rstar,
             pyrat.od.ideep, pyrat.atm.rtop,
             deck_rsurf, deck_itop,
         )
         if pyrat.opacity.is_patchy:
             spec.cloudy = spec.spectrum
             spec.clear = ps.transmission(
-                pyrat.od.depth_clear, pyrat.atm.radius, pyrat.phy.rstar,
+                pyrat.od.depth_clear, pyrat.atm.radius, pyrat.atm.rstar,
                 pyrat.od.ideep_clear, pyrat.atm.rtop,
             )
             spec.spectrum = f_patchy*spec.cloudy + (1.0-f_patchy)*spec.clear
@@ -399,7 +399,7 @@ def spectrum(pyrat):
             spec.cloudy *= spec.f_dilution
 
     if pyrat.od.rt_path in pc.eclipse_rt:
-        fstar_rprs = 1/spec.starflux * (pyrat.atm.rplanet/pyrat.phy.rstar)**2
+        fstar_rprs = 1/spec.starflux * (pyrat.atm.rplanet/pyrat.atm.rstar)**2
         spec.fplanet = np.copy(spec.spectrum)
         spec.spectrum = spec.eclipse = spec.fplanet * fstar_rprs
         if pyrat.opacity.is_patchy:
@@ -469,7 +469,6 @@ def two_stream(pyrat):
     """
     pyrat.log.msg('Compute two-stream flux spectrum.', indent=2)
     spec = pyrat.spec
-    phy = pyrat.phy
     nlayers = pyrat.atm.nlayers
 
     # Set internal net bolometric flux to sigma*Tint**4:
@@ -493,16 +492,16 @@ def two_stream(pyrat):
     is_irradiation = (
         spec.starflux is not None
         and pyrat.atm.smaxis is not None
-        and phy.rstar is not None
+        and pyrat.atm.rstar is not None
     )
     # Top boundary condition:
     if is_irradiation:
-        spec.flux_down[pyrat.atm.rtop] = \
-            pyrat.atm.beta_irr * (phy.rstar/pyrat.atm.smaxis)**2 * spec.starflux
+        spec.flux_down[pyrat.atm.rtop] = pyrat.atm.beta_irr * \
+            (pyrat.atm.rstar/pyrat.atm.smaxis)**2 * spec.starflux
     # Eqs. (B6) of Heng et al. (2014):
-    for i in range(nlayers-1):
     # TBD: Can I make this work if rtop is below the top layer?
     #for i in range(pyrat.atm.rtop, nlayers-1):
+    for i in range(nlayers-1):
         spec.flux_down[i+1] = (
             trans[i] * spec.flux_down[i]
             + np.pi * B[i] * (1-trans[i])

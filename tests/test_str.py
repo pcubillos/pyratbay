@@ -409,9 +409,23 @@ Number of layers (nlayers): 51
 Planetary radius (rplanet, Rjup): 1.000
 Planetary mass (mplanet, Mjup): 0.600
 Planetary surface gravity (gplanet, cm s-2): 1487.3
-Planetary internal temperature (tint, K):  100.0
-Planetary Hill radius (rhill, Rjup):  inf
+Planetary internal temperature (tint, K): 100.0
+Planetary Hill radius (rhill, Rjup): inf
 Orbital semi-major axis (smaxis, AU): 0.0450
+
+Stellar radius (rstar, Rsun): 1.270
+Stellar mass (mstar, Msun):   None
+Stellar effective temperature (tstar, K): 5800.0
+Stellar surface gravity (log_gstar, cm s-2): 4.36
+Planet-to-star radius ratio: 0.08092
+Distance to target (distance, parsec): None
+Input stellar SED type (sed_type): 'blackbody'
+Input stellar SED file (sed_file): None
+Input stellar spectrum is a blackbody at Teff = 5800.0 K.
+Stellar spectrum wavenumber (starwn, cm-1):
+    [  5882.353   5883.353   5884.353 ...   9088.353   9089.353   9090.353]
+Stellar flux spectrum (starflux, erg s-1 cm-2 cm):
+    [ 2.306e+06  2.307e+06  2.307e+06 ...  3.293e+06  3.293e+06  3.293e+06]
 
 Pressure display units (punits): bar
 Pressure internal units: bar
@@ -525,27 +539,6 @@ Number of data points (ndata): 0
 Number of filter pass bands (nfilters): 0
 """
 
-
-def test_pyrat_transmission_phy_str(tmp_path):
-    cfg = make_config(
-        tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
-    )
-    pyrat = pb.run(cfg)
-    assert str(pyrat.phy) == """\
-Physical properties information:
-
-Stellar effective temperature (tstar, K): 5800.0
-Stellar radius (rstar, Rsun): 1.270
-Stellar mass (mstar, Msun):   None
-Stellar surface gravity (log_gstar, cm s-2): 4.36
-Distance (distance, parsec):   None
-Input stellar spectrum is a blackbody at Teff = 5800.0 K.
-Stellar spectrum wavenumber (starwn, cm-1):
-    [  5882.353   5883.353   5884.353 ...   9088.353   9089.353   9090.353]
-Stellar flux spectrum (starflux, erg s-1 cm-2 cm):
-    [ 2.306e+06  2.307e+06  2.307e+06 ...  3.293e+06  3.293e+06  3.293e+06]
-"""
 
 def test_pyrat_transmission_ret_str(tmp_path):
     cfg = make_config(

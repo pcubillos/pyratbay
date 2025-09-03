@@ -68,18 +68,17 @@ class Pyrat():
         self.ncpu = self.inputs.ncpu
         self.runmode = self.inputs.runmode
 
-        self.phy = ob.Physics(self.inputs)
         # TBD: Remove self.ex entirely?
         self.ex = ob.Extinction(self.inputs, self.log)
         self.od = ob.Optdepth(self.inputs, self.log)
 
-        # Initialize Atmosphere:
-        self.atm = Atmosphere(self.inputs, self.log)
-        self.timestamps['atmosphere'] = timer.clock()
-
         # Initialize wavenumber sampling:
         self.spec = sp.Spectrum(self.inputs, self.log)
         self.timestamps['spectrum'] = timer.clock()
+
+        # Initialize Atmosphere:
+        self.atm = Atmosphere(self.inputs, self.spec.wn, self.log)
+        self.timestamps['atmosphere'] = timer.clock()
 
         self.obs = Observation(self.inputs, self.spec.wn, self.log)
         ar.check_spectrum(self)
@@ -113,7 +112,6 @@ class Pyrat():
         self.ret = Retrieval(
             self.inputs,
             self.atm,
-            self.phy,
             self.obs,
             self.opacity,
             self.log,
@@ -186,7 +184,7 @@ class Pyrat():
         timer = pt.Timer()
 
         # Re-calculate atmospheric properties if required:
-        self.atm.calc_profiles(temp, vmr, radius, self.phy.mstar)
+        self.atm.calc_profiles(temp, vmr, radius)
 
         out_of_bounds = self.opacity.check_temp_bounds(self.atm.temp)
         good_status = len(out_of_bounds) == 0
@@ -285,8 +283,8 @@ class Pyrat():
             self.opacity.fpatchy = params[ret.ipatchy][0]
 
         if ret.itstar is not None:
-            self.phy.tstar = params[ret.itstar][0]
-            self.spec.starflux = self.spec.flux_interp(self.phy.tstar)
+            self.atm.tstar = params[ret.itstar][0]
+            self.spec.starflux = self.spec.flux_interp(self.atm.tstar)
             self.obs.bandflux_star = np.array([
                 band(self.spec.starflux)
                 for band in self.obs.filters
@@ -321,7 +319,7 @@ class Pyrat():
             # TBD: check rplanet and distance exist
             self.spec.spectrum = (
                 10.0 * self.spec.spectrum *
-                (atm.rplanet/self.phy.distance * self.spec.wn*pc.um)**2
+                (atm.rplanet/self.atm.distance * self.spec.wn*pc.um)**2
             )
 
         # High-resolution data
@@ -657,7 +655,7 @@ class Pyrat():
 
         bandflux = np.array([band(spectrum) for band in self.obs.filters])
         if self.od.rt_path in pc.eclipse_rt:
-            rprs = self.atm.rplanet/self.phy.rstar
+            rprs = self.atm.rplanet/self.atm.rstar
             bandflux *= rprs**2.0 / self.obs.bandflux_star
 
         self.obs.bandflux = bandflux
