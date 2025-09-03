@@ -186,7 +186,7 @@ class Pyrat():
         timer = pt.Timer()
 
         # Re-calculate atmospheric properties if required:
-        self.atm.calc_profiles(temp, vmr, radius, self.phy.mstar, self.log)
+        self.atm.calc_profiles(temp, vmr, radius, self.phy.mstar)
 
         out_of_bounds = self.opacity.check_temp_bounds(self.atm.temp)
         good_status = len(out_of_bounds) == 0

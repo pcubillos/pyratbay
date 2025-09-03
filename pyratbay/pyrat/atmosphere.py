@@ -7,6 +7,7 @@ __all__ = [
 
 import numpy as np
 import scipy.interpolate as sip
+import mc3.utils as mu
 
 from .. import atmosphere as pa
 from ..atmosphere import vmr_models
@@ -50,7 +51,7 @@ class Atmosphere():
     mplanet = MassGravity()  # Planetary mass
     gplanet = MassGravity()  # Planetary surface gravity (at rplanet)
 
-    def __init__(self, inputs, log, mstar=None):
+    def __init__(self, inputs, log=None, mstar=None):
         """
         Initialize an atmospheric model object
         There are four main properties to compute (in this order):
@@ -66,6 +67,9 @@ class Atmosphere():
         - else, skip the calculation
         - if calculate p, any further reads (T,VMR,r) will interpolate
         """
+        if log is None:
+            log = mu.Log(width=80)
+        self.log = log
         log.head('\nGenerating atmospheric model')
 
         self.rtop = 0  # Index of topmost layer (within Hill radius)
@@ -274,7 +278,7 @@ class Atmosphere():
         if self.vmr is not None:
             self.base_vmr = np.copy(self.vmr)
 
-        self.parse_abundance_parameters(log)
+        self.parse_abundance_parameters()
         # Set species' mass and collision radius:
         if self.species is not None:
             self.nmol = len(self.species)
@@ -323,9 +327,9 @@ class Atmosphere():
             else:
                 self.runits = 'rearth'
 
-        # Compute VMR and radius profiles (when needed)
-        # and other properties (mean molecular mass, number density, Hill radius)
-        self.calc_profiles(mstar=mstar, log=log)
+        # Compute VMR, radius profiles (when needed), and other
+        # properties (mean molecular mass, number density, Hill radius)
+        self.calc_profiles(mstar=mstar)
 
 
         # Screen outputs:
@@ -373,7 +377,7 @@ class Atmosphere():
 
 
     def calc_profiles(
-            self, temp=None, vmr=None, radius=None, mstar=None, log=None,
+            self, temp=None, vmr=None, radius=None, mstar=None,
             # Deprecated parameters:
             abund=None,
         ):
@@ -400,7 +404,7 @@ class Atmosphere():
 
         # Check that the dimensions match:
         if np.size(temp) != self.nlayers:
-            log.error(
+            self.log.error(
                 f"The temperature array size ({np.size(temp)}) doesn't match "
                 f"the Pyrat's temperature size ({np.size(self.temp)})"
             )
@@ -410,7 +414,7 @@ class Atmosphere():
         if vmr is not None:
             self.molpars = []
             if np.shape(vmr) != np.shape(self.vmr):
-                log.error(
+                self.log.error(
                     f"The shape of the input VMR array {np.shape(vmr)} "
                      "doesn't match the shape of the Pyrat VMR "
                     f"{np.shape(self.vmr)}"
@@ -480,7 +484,7 @@ class Atmosphere():
             self.rtop = pt.ifirst(self.radius<self.rhill, default_ret=0)
             if self.rtop > 0:
                 rhill = self.rhill / pt.u(self.runits)
-                log.warning(
+                self.log.warning(
                     "The atmospheric pressure array extends beyond the Hill "
                     f"radius ({rhill:.5f} {self.runits}) at pressure "
                     f"{self.press[self.rtop]:.3e} bar (layer {self.rtop})."
@@ -523,13 +527,13 @@ class Atmosphere():
             return pa.hydro_g(pressure, temperature, mu, gplanet, p0, r0)
 
 
-    def validate_species(self, var, log, molec=None, elements=[]):
+    def validate_species(self, var, molec=None, elements=[]):
         """
         Validate composition variables.
         """
         if molec is not None:
             if molec not in self.species:
-                log.error(
+                self.log.error(
                     f"Invalid vmr_vars variable '{var}', "
                     f"species {molec} is not in the atmosphere"
                 )
@@ -537,16 +541,16 @@ class Atmosphere():
 
         in_equillibrium = self.chemistry == 'tea'
         if not in_equillibrium:
-            log.error(f"vmr_vars variable '{var}' requires chemistry=tea")
+            self.log.error(f"vmr_vars variable '{var}' requires chemistry=tea")
         for element in elements:
             if element not in self.chem_model.elements:
-                log.error(
+                self.log.error(
                     f"Invalid vmr_vars variable '{var}', "
                     f"element '{element}' is not in the atmosphere"
                 )
 
 
-    def parse_abundance_parameters(self, log=None):
+    def parse_abundance_parameters(self):
         """
         Sort out variables related to the VMR modeling
         """
@@ -561,31 +565,31 @@ class Atmosphere():
             # VMR variables
             if var.startswith('log_'):
                 molec = var[4:]
-                self.validate_species(var, log, molec=molec)
+                self.validate_species(var, molec=molec)
                 vmr_model = vmr_models.IsoVMR(molec, self.press)
             elif var.startswith('scale_'):
                 molec = var[6:]
-                self.validate_species(var, log, molec=molec)
+                self.validate_species(var, molec=molec)
                 imol = species.index(molec)
                 vmr_model = vmr_models.ScaleVMR(
                     molec, self.press, self.vmr[:,imol],
                 )
             elif var.startswith('slant_'):
                 molec = var[6:]
-                self.validate_species(var, log, molec=molec)
+                self.validate_species(var, molec=molec)
                 vmr_model = vmr_models.SlantVMR(molec, self.press)
             # Equillibrium variables
             elif var == '[M/H]':
                 vmr_model = vmr_models.MetalEquil()
-                self.validate_species(var, log)
+                self.validate_species(var)
             elif var.startswith('[') and var.endswith('/H]'):
                 vmr_model = vmr_models.ScaleEquil(var)
-                self.validate_species(var, log, elements=[vmr_model.element])
+                self.validate_species(var, elements=[vmr_model.element])
             elif '/' in var:
                 vmr_model = vmr_models.RatioEquil(var)
-                self.validate_species(var, log, elements=vmr_model.elements)
+                self.validate_species(var, elements=vmr_model.elements)
             else:
-                log.error(f"Unrecognized VMR model (vmr_vars): '{var}'")
+                self.log.error(f"Unrecognized VMR model (vmr_vars): '{var}'")
             self.mol_pnames += vmr_model.pnames
             self.mol_texnames += vmr_model.texnames
             self.vmr_models.append(vmr_model)
@@ -612,7 +616,9 @@ class Atmosphere():
         vmr_uniques, vmr_counts = np.unique(free_vmr, return_counts=True)
         if np.any(vmr_counts>1):
             duplicates = vmr_uniques[vmr_counts>1]
-            log.error(f'There are repeated species {duplicates} in vmr_vars')
+            self.log.error(
+                f'There are repeated species {duplicates} in vmr_vars'
+            )
 
         self.ifree = [species.index(mol) for mol in free_vmr]
 
@@ -624,7 +630,7 @@ class Atmosphere():
                 vmr_model_name = self.vmr_vars[i]
                 npars = np.size(vmr_pars)
                 if vmr_model.npars != npars:
-                    log.error(
+                    self.log.error(
                         f"The parameters for model '{vmr_model_name}' ({npars}) "
                         "does not match the expected number of values "
                         f"({vmr_model.npars})"
@@ -636,7 +642,7 @@ class Atmosphere():
             # Ckeck bulk species:
             missing = np.setdiff1d(self.bulk, species)
             if len(missing) > 0:
-                log.error(
+                self.log.error(
                     'These bulk species are not present in the '
                     f'atmosphere: {missing}'
                 )
@@ -644,7 +650,7 @@ class Atmosphere():
             free_vmr = self.species[self.ifree]
             bulk_free_species = np.intersect1d(self.bulk, free_vmr)
             if len(bulk_free_species) > 0:
-                log.error(
+                self.log.error(
                     'These species were marked as both bulk and '
                     f'variable-abundance: {bulk_free_species}'
                 )
