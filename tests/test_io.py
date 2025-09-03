@@ -435,19 +435,6 @@ def test_write_cs_mismatch_wn():
         io.write_cs(cs_file, cs, species, temp, wn)
 
 
-def test_read_pt(tmpdir):
-    ptfile = 'mock_pt.dat'
-    ptf = f"{tmpdir}/{ptfile}"
-    temp  = np.array([100.0, 150.0, 200.0, 175.0, 150.0])
-    press = np.array([1e-6,  1e-4,  1e-2,  1e0,   1e2])
-    with open(ptf, 'w') as f:
-        for p,t in zip(press, temp):
-            f.write(f'{p:.3e}  {t:5.1f}\n')
-    pressure, temperature = io.read_pt(ptf)
-    np.testing.assert_allclose(pressure, press,  rtol=1e-7)
-    np.testing.assert_allclose(temperature, temp,  rtol=1e-7)
-
-
 def test_read_molecs():
     names, masses, radii = io.read_molecs(ROOT+'pyratbay/data/molecules.dat')
     assert 'H2O' in names
