@@ -169,7 +169,7 @@ class Exomol(Linelist):
         while i < nread:
             # Read a record:
             data.seek((istart+i) * self.recsize)
-            upID[i], loID[i], A21[i] = data.read(self.recsize).split()
+            upID[i], loID[i], A21[i] = data.read(self.recsize).split()[0:3]
             # Print a checkpoint statement every 10% interval:
             if (i % interval) == 0.0 and i != 0:
                 wn = self.E[upID[i]] - self.E[loID[i]]

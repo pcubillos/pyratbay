@@ -309,6 +309,9 @@ class SodiumVdW(VanderWaals):
         self.wn0 = [16960.87, 16978.07]
         self.elow = [0.0, 0.0]
         self.gf = [0.65464, 1.30918]
+        # Morton 1991
+        # self.gf = 10**np.array([-0.179, 0.101])
+        # self.gf = [0.662216, 1.261827]
         self.nlines = len(self.wn0)
 
         # Lorentz width parameter (Iro et al. 2005)
@@ -375,6 +378,9 @@ class PotassiumVdW(VanderWaals):
         self.wn0 = [12988.76, 13046.486]
         self.elow = [0.0, 0.0]
         self.gf = [0.701455, 1.40929]
+        # Morton 1991
+        # self.gf = 10**np.array([-0.168, 0.135])
+        # self.gf = [0.679204, 1.364583]
         self.nlines = len(self.wn0)
 
         self.lpar = 0.14
