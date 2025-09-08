@@ -47,7 +47,7 @@ def run(cfile, run_step=None, with_log=True):
 
     # Initialize atmosphere:
     if runmode == 'atmosphere':
-        return Atmosphere(inputs, log)
+        return Atmosphere(inputs, log=log)
 
     # Initialize pyrat object:
     pyrat = Pyrat(inputs, log)
