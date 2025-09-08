@@ -16,6 +16,7 @@ __all__ = [
     'statistics',
     'transmission_rt',
     'emission_rt',
+    'eclipse_rt',
     'rt_paths',
     'retflags',
     'tmodels',
@@ -85,6 +86,12 @@ transmission_rt = [
 ]
 
 # Emission radiative transfer:
+eclipse_rt = [
+    'eclipse',
+    'eclipse_two_stream',
+]
+
+# Emission radiative transfer:
 emission_rt = [
     'emission',
     'emission_two_stream',
@@ -92,7 +99,7 @@ emission_rt = [
 ]
 
 # Radiative-transfer observing geometry:
-rt_paths = transmission_rt + emission_rt
+rt_paths = transmission_rt + eclipse_rt + emission_rt
 
 # Retrieval flags:
 retflags = [

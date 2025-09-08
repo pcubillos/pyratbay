@@ -25,7 +25,7 @@ dependencies = [
     'scipy>=1.13.0',
     'matplotlib>=3.3.4',
     'mc3>=3.2.0',
-    'chemcat>=0.3.8',
+    'chemcat>=0.3.12',
     'h5py>=3.10.0',
 ]
 

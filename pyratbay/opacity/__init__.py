@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2023 Patricio Cubillos
+# Copyright (c) 2021-2025 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -20,6 +20,7 @@ from .cia import *
 from .hydrogen_ion import *
 from .line_sampling import *
 from .lread import *
+from .optic_depth import *
 from .. import version as ver
 
 __all__ = (
@@ -28,6 +29,7 @@ __all__ = (
     + hydrogen_ion.__all__
     + lread.__all__
     + line_sampling.__all__
+    + optic_depth.__all__
 )
 
 # Lineread version:

@@ -42,11 +42,11 @@ Recipes list:
 
 - **End-to-end analyses**
 
-  - :ref:`transmission_retrieval` (TBD)
-  - `Emission retrieval <wasp18b/notebook_emission_retrieval.ipynb>`__
+  - :doc:`wasp39b/transmission_retrieval`
+  - :doc:`wasp18b/eclipse_retrieval`
   - :doc:`wasp18b/cross_sections_uhj`
-  - :ref:`radiative_equilibrium_simulation` (TBD)
-  - :ref:`JWST_proposal_simulation` (TBD)
+  - radiative_equilibrium (TBD)
+  - JWST_proposal_simulation (TBD)
 
 - :ref:`compendia` lists compendia of peer-reviewed articles with scripts that reproduced the published material
 
@@ -68,7 +68,9 @@ Recipes list:
 
    passbands
    partition_functions
-   wasp18b/notebook_emission_retrieval
+
+   wasp39b/transmission_retrieval
+   wasp18b/eclipse_retrieval
    wasp18b/cross_sections_uhj
    compendia
 

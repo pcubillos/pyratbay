@@ -148,8 +148,8 @@ class Line_By_Line():
             self.iso_ratio[iso_mask] = db.iso_ratio
             if db.molname not in species:
                 log.error(
-                    f"The species '{db.molname}' for isotopes "
-                    f"{db.iso_name} is not present in the atmosphere"
+                    f"The species '{db.molname}' is not present in the "
+                    "atmosphere, required for LBL calculation"
                 )
             self.species.append(db.molname)
             self.iso_atm_index[iso_mask] = species.index(db.molname)
@@ -361,15 +361,15 @@ def read_tli_file(tli_file, wn_low, wn_high, log):
         log.warning(
             "TLI wavenumber range "
             f"({lbl_wn_low:.1f}--{lbl_wn_high:.1f} cm-1) does "
-            f"not overlap with Pyrat wavenumber range "
+            "not overlap with Pyrat wavenumber range "
             f"({wn_low:.1f}--{wn_high:.1f} cm-1)."
         )
     # TLI range is smaller than the pyrat required range:
     elif lbl_wn_low > wn_low or lbl_wn_high < wn_high:
         log.warning(
-            f"TLI wavenumber range "
+            "TLI wavenumber range "
             f"({lbl_wn_low:.1f}--{lbl_wn_high:.2f} cm-1) does "
-            f"not cover the full Pyrat wavenumber range "
+            "not cover the full Pyrat wavenumber range "
             f"({wn_low:.1f}--{wn_high:.1f} cm-1)."
         )
 

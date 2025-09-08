@@ -1,16 +1,18 @@
-# Copyright (c) 2021-2024 Patricio Cubillos
+# Copyright (c) 2021-2025 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
     'Line_Sample',
 ]
 
+import os
 import numpy as np
 import mc3
 
 from .. import io as io
 from .. import tools as pt
 from .. import constants as pc
+from .. import spectrum as ps
 from ..lib import _extcoeff as ec
 
 
@@ -133,7 +135,8 @@ class Line_Sample():
         if max_wn is None:
             max_wn = np.inf if min_wl is None else 1.0/(min_wl*pc.um)
 
-        self.wn = wn[(wn >= min_wn) & (wn <= max_wn)][::wn_thinning]
+        wn_mask = ps.wn_mask(wn, min_wn, max_wn)
+        self.wn = wn[wn_mask][::wn_thinning]
         self.nwave = len(self.wn)
 
         # Unpack isotopic parameters
@@ -159,10 +162,9 @@ class Line_Sample():
         for cs_file in self.cs_files:
             #cs_file = os.path.basename(cs_file)
             species, temp, press, wn = io.read_opacity(cs_file,extract='arrays')
-            wn_mask = (wn >= min_wn) & (wn <= max_wn)
+            wn_mask = ps.wn_mask(wn, min_wn, max_wn)
             wn = wn[wn_mask][::wn_thinning]
             wn_masks.append(wn_mask)
-            ntemp = len(temp)
             nwave = len(wn)
 
             wave_mismatch = (
@@ -188,22 +190,16 @@ class Line_Sample():
                 elif key in cs_file:
                     iso = iso_labels[i]
 
-            new_species = []
-            new_isotopes = []
-            for spec in species:
-                if spec+iso not in iso_species:
-                    iso_species.append(spec + iso)
-                    new_species.append(spec)
-                    new_isotopes.append(iso)
-            self.species += new_species
-            self.isotopes += new_isotopes
-            species_per_file.append([spec + iso for spec in species])
+            species_per_file.append(species + iso)
+            if species+iso not in iso_species:
+                iso_species.append(species + iso)
+                self.species.append(species)
+                self.isotopes.append(iso)
 
-        spec_indices = []
-        for species in species_per_file:
-            spec_indices.append([
-                iso_species.index(spec) for spec in species
-            ])
+        spec_indices = [
+            iso_species.index(species)
+            for species in species_per_file
+        ]
         self.species = np.array(self.species)
         self.nspec = len(self.species)
 
@@ -247,6 +243,8 @@ class Line_Sample():
         if not use_shared_memory:
             self.cs_table = np.zeros(cs_shape)
             for i,cs_file in enumerate(self.cs_files):
+                base_name, file_name = os.path.split(cs_file)
+                log.msg(file_name, indent=4)
                 idx = spec_indices[i]
                 mask = wn_masks[i]
                 self.cs_table[idx] += pt.interpolate_opacity(
@@ -267,6 +265,8 @@ class Line_Sample():
             self.cs_table = np.ndarray(buffer=buf, dtype='d', shape=cs_shape)
             if rank == 0:
                 for i,cs_file in enumerate(self.cs_files):
+                    base_name, file_name = os.path.split(cs_file)
+                    log.msg(file_name, indent=4)
                     idx = spec_indices[i]
                     mask = wn_masks[i]
                     self.cs_table[idx] += pt.interpolate_opacity(

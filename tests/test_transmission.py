@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2024 Patricio Cubillos
+# Copyright (c) 2021-2025 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import os
@@ -17,8 +17,8 @@ os.chdir(ROOT+'tests')
 
 # Expected spectra:
 keys = [
-    'lec', 'cia', 'alkali', 'deck', 'tli',
-    'patchy', 'patchy_clear', 'patchy_cloudy', 'h_ion', 'all', 'etable',
+    'sampled_cs', 'tli', 'lec', 'cia', 'alkali', 'deck',
+    'patchy', 'patchy_clear', 'patchy_cloudy', 'h_ion', 'all',
     'tmodel', 'vert', 'scale', 'fit1', 'fit2', 'fit3', 'fit4',
     'bandflux4', 'resolution', 'wl_step',
     'skip_ls', 'skip_lbl', 'skip_cia', 'skip_H2_H2_cia',
@@ -45,18 +45,41 @@ def test_transmission_clear(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        remove=['tlifile', 'csfile', 'rayleigh', 'alkali', 'clouds'],
+        remove=['sampled_cross_sec', 'continuum_cross_sec', 'rayleigh', 'alkali', 'clouds'],
     )
     pyrat = pb.run(cfg)
-    depth_bottom = (pyrat.atm.radius[-1] / pyrat.phy.rstar)**2
+    depth_bottom = (pyrat.atm.radius[-1] / pyrat.atm.rstar)**2
     np.testing.assert_allclose(pyrat.spec.spectrum, depth_bottom, rtol=rtol)
+
+
+def test_transmission_sampled_cs(tmp_path):
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        remove=['continuum_cross_sec', 'rayleigh', 'clouds', 'alkali'],
+    )
+    pyrat = pb.run(cfg)
+    spectrum = pyrat.spec.spectrum
+    np.testing.assert_allclose(spectrum, expected['sampled_cs'], rtol=rtol)
+
+
+def test_transmission_tli(tmp_path):
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        remove=['sampled_cross_sec', 'continuum_cross_sec', 'rayleigh', 'clouds', 'alkali'],
+        reset={'tlifile': f'{OUTPUTS}HITRAN_H2O_1.1-1.7um_test.tli'},
+    )
+    pyrat = pb.run(cfg)
+    spectrum = pyrat.spec.spectrum
+    np.testing.assert_allclose(spectrum, expected['tli'], rtol=rtol)
 
 
 def test_transmission_lecavelier(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        remove=['tlifile', 'csfile', 'alkali', 'clouds'],
+        remove=['sampled_cross_sec', 'continuum_cross_sec', 'alkali', 'clouds'],
     )
     pyrat = pb.run(cfg)
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['lec'], rtol=rtol)
@@ -66,7 +89,7 @@ def test_transmission_CIA(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        remove=['tlifile', 'rayleigh', 'alkali', 'clouds'],
+        remove=['sampled_cross_sec', 'rayleigh', 'alkali', 'clouds'],
     )
     pyrat = pb.run(cfg)
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['cia'], rtol=rtol)
@@ -76,32 +99,22 @@ def test_transmission_alkali(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        remove=['tlifile', 'csfile', 'rayleigh', 'clouds'],
+        remove=['sampled_cross_sec', 'continuum_cross_sec', 'rayleigh', 'clouds'],
         reset={'wllow':'0.45 um', 'wlhigh':'1.0 um'},
     )
     pyrat = pb.run(cfg)
-    np.testing.assert_allclose(
-        pyrat.spec.spectrum, expected['alkali'], rtol=rtol)
+    spectrum = pyrat.spec.spectrum
+    np.testing.assert_allclose(spectrum, expected['alkali'], rtol=rtol)
 
 
 def test_transmission_deck(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        remove=['tlifile', 'csfile', 'rayleigh', 'alkali'],
+        remove=['sampled_cross_sec', 'continuum_cross_sec', 'rayleigh', 'alkali'],
     )
     pyrat = pb.run(cfg)
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['deck'], rtol=rtol)
-
-
-def test_transmission_tli(tmp_path):
-    cfg = make_config(
-        tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        remove=['csfile', 'rayleigh', 'clouds', 'alkali'],
-    )
-    pyrat = pb.run(cfg)
-    np.testing.assert_allclose(pyrat.spec.spectrum, expected['tli'], rtol=rtol)
 
 
 def test_transmission_h_ion(tmp_path):
@@ -174,24 +187,31 @@ def test_transmission_f_patchy_from_retrieval_params(tmp_path):
 
 
 def test_transmission_resolution(tmp_path):
+    reset = {
+        'resolution':'5000.0',
+        'tlifile': f'{OUTPUTS}HITRAN_H2O_1.1-1.7um_test.tli',
+    }
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        reset={'resolution':'5000.0'},
-        remove=['clouds'],
+        reset=reset,
+        remove=['sampled_cross_sec', 'clouds'],
     )
     pyrat = pb.run(cfg)
-    np.testing.assert_allclose(
-        pyrat.spec.spectrum, expected['resolution'], rtol=rtol,
-    )
+    spectrum = pyrat.spec.spectrum
+    np.testing.assert_allclose(spectrum, expected['resolution'], rtol=rtol)
 
 
 def test_transmission_wl_step(tmp_path):
+    reset = {
+        'wlstep': '1e-4 um',
+        'tlifile': f'{OUTPUTS}HITRAN_H2O_1.1-1.7um_test.tli',
+    }
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        reset={'wlstep': '1e-4 um'},
-        remove=['clouds'],
+        reset=reset,
+        remove=['sampled_cross_sec', 'clouds'],
     )
     pyrat = pb.run(cfg)
     spectrum = pyrat.spec.spectrum
@@ -205,7 +225,7 @@ def test_transmission_odd_even(tmp_path):
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         reset={'rpars':'1.0 -4.0'},
-        remove=['tlifile', 'csfile', 'alkali', 'clouds'],
+        remove=['sampled_cross_sec', 'continuum_cross_sec', 'alkali', 'clouds'],
     )
     pyrat = pb.run(cfg)
     odd_spectrum = pyrat.spec.spectrum
@@ -218,23 +238,11 @@ def test_transmission_odd_even(tmp_path):
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         reset=reset,
-        remove=['tlifile', 'csfile', 'alkali', 'clouds'],
+        remove=['sampled_cross_sec', 'continuum_cross_sec', 'alkali', 'clouds'],
     )
     pyrat = pb.run(cfg)
     even_spectrum = pyrat.spec.spectrum
     np.testing.assert_allclose(odd_spectrum, even_spectrum, rtol=rtol)
-
-
-def test_transmission_etable(tmp_path):
-    cfg = make_config(
-        tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        remove=['tlifile', 'clouds'],
-        reset={'extfile':f'{OUTPUTS}exttable_test_300-3000K_1.1-1.7um.npz'},
-    )
-    pyrat = pb.run(cfg)
-    np.testing.assert_allclose(
-        pyrat.spec.spectrum, expected['etable'], rtol=rtol)
 
 
 def test_transmission_interpolate_temp_etable(tmp_path):
@@ -366,12 +374,13 @@ def test_transmission_scale_model(tmp_path):
     )
     pyrat = pb.run(cfg)
     spectrum = pyrat.spec.spectrum
+    np.testing.assert_allclose(spectrum, expected['scale'], rtol=rtol)
+
     i_H2O = list(pyrat.atm.species).index('H2O')
     np.testing.assert_allclose(
         pyrat.atm.vmr[:,i_H2O],
         0.1*pyrat.atm.base_vmr[:,i_H2O],
     )
-    np.testing.assert_allclose(spectrum, expected['scale'], rtol=rtol)
 
 
 def test_transmission_fit(tmp_path):
@@ -401,15 +410,18 @@ def test_transmission_fit(tmp_path):
         reset=reset,
     )
     pyrat = pb.run(cfg)
-    np.testing.assert_allclose(pyrat.spec.spectrum, expected['fit1'], rtol=rtol)
+    spectrum = pyrat.spec.spectrum
+    np.testing.assert_allclose(spectrum, expected['fit1'], rtol=rtol)
+
     # Cloud deck:
     params = [-4.67, -0.8, -0.8, 0.5, 1486.0, 100.0, -4.0, 0.0, -4.0, -3.0]
     pyrat.eval(params, retmodel=True)
-    rmin = np.amin(np.sqrt(pyrat.spec.spectrum)) * pyrat.phy.rstar
+    rmin = np.amin(np.sqrt(pyrat.spec.spectrum)) * pyrat.atm.rstar
     cloud_deck = pyrat.opacity.models[5]
     rexpected = cloud_deck.rsurf
     np.testing.assert_allclose(rmin, rexpected, rtol=rtol)
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['fit2'], rtol=rtol)
+
     # Check pyrat.ret.params has been updated:
     np.testing.assert_allclose(pyrat.ret.params, params, rtol=rtol)
     # Depleted H2O:
@@ -425,66 +437,6 @@ def test_transmission_fit_filters():
     np.testing.assert_allclose(model4[1], expected['bandflux4'], rtol=rtol)
 
 
-def test_multiple_opacities(tmp_path):
-    # Generate TLI files:
-    cfg = f'{ROOT}tests/configs/tli_multiple_opacity_H2O.cfg'
-    pyrat = pb.run(cfg)
-
-    cfg = f'{ROOT}tests/configs/tli_multiple_opacity_CH4.cfg'
-    pyrat = pb.run(cfg)
-
-    cfg = f'{ROOT}tests/configs/tli_multiple_opacity_CO2.cfg'
-    pyrat = pb.run(cfg)
-
-    # Generate opacity files:
-    opac_cfg = f'{ROOT}tests/configs/opacity_multiple.cfg'
-    cfg = make_config(tmp_path, opac_cfg)
-    pyrat = pb.run(cfg)
-    assert pyrat is not None
-
-    reset = {
-        'tlifile': f'{OUTPUTS}HITRAN_CO2_1.5-1.51um_test.tli',
-        'extfile': f'{OUTPUTS}exttable_CO2_300-3000K_1.5-1.51um.npz',
-    }
-    cfg = make_config(tmp_path, opac_cfg, reset=reset)
-    pyrat = pb.run(cfg)
-    assert pyrat is not None
-
-    reset = {
-        'tlifile': f'{OUTPUTS}HITRAN_CH4_1.5-1.51um_test.tli',
-        'extfile': f'{OUTPUTS}exttable_CH4_300-3000K_1.5-1.51um.npz',
-    }
-    cfg = make_config(tmp_path, opac_cfg, reset=reset)
-    pyrat = pb.run(cfg)
-    assert pyrat is not None
-
-    # Two species at a time:
-    reset = {
-        'tlifile':
-            f'{OUTPUTS}HITRAN_CO2_1.5-1.51um_test.tli'
-            f'\n    {OUTPUTS}HITRAN_CH4_1.5-1.51um_test.tli',
-        'extfile': f'{OUTPUTS}exttable_CO2-CH4_300-3000K_1.5-1.51um.npz',
-    }
-    cfg = make_config(tmp_path, opac_cfg, reset=reset)
-    pyrat = pb.run(cfg)
-    assert pyrat is not None
-
-    # Compute spectra from opacities:
-    cfg = f'{ROOT}tests/configs/spectrum_transmission_multiple_opacities.cfg'
-    pyrat = pb.run(cfg)
-    spectrum1 = pyrat.spec.spectrum
-
-    reset = {
-        'extfile':
-            f'{OUTPUTS}exttable_H2O_300-3000K_1.5-1.51um.npz'
-            f'\n  {OUTPUTS}exttable_CO2-CH4_300-3000K_1.5-1.51um.npz',
-    }
-    cfg = make_config(tmp_path, cfg, reset=reset)
-    pyrat = pb.run(cfg)
-    spectrum2 = pyrat.spec.spectrum
-    np.testing.assert_allclose(spectrum1, spectrum2, rtol=rtol)
-
-
 @pytest.mark.parametrize(
     'wllow,wlhigh',
     [('1.1 um', '1.6 um'),
@@ -493,20 +445,19 @@ def test_multiple_opacities(tmp_path):
 )
 def test_opacity_reset_wn(tmp_path, wllow, wlhigh):
     reset = {
-        'extfile': f'{OUTPUTS}exttable_test_300-3000K_1.1-1.7um.npz',
         'wllow': wllow,
         'wlhigh': wlhigh,
     }
     cfg = make_config(
         tmp_path,
         f'{ROOT}tests/configs/spectrum_transmission_test.cfg',
-        remove=['tlifile', 'clouds'],
+        remove=['continuum_cross_sec', 'rayleigh', 'clouds', 'alkali'],
         reset=reset,
     )
     pyrat = pb.run(cfg)
     wn = np.arange(1/1.7e-4, 1/1.1e-4, 1.0)
     wn_range = (wn >= pyrat.spec.wnlow) & (wn <= pyrat.spec.wnhigh)
-    etab = expected['etable'][wn_range]
+    etab = expected['sampled_cs'][wn_range]
     np.testing.assert_allclose(pyrat.spec.spectrum, etab, rtol=rtol)
 
 
@@ -532,10 +483,14 @@ def test_transmission_skip_sampling(tmp_path, model):
     ['lbl', 'line by line'],
 )
 def test_transmission_skip_lbl(tmp_path, model):
+    reset = {
+        'tlifile': f'{OUTPUTS}HITRAN_H2O_1.1-1.7um_test.tli',
+    }
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        remove=['clouds'],
+        reset=reset,
+        remove=['sampled_cross_sec', 'clouds'],
     )
     pyrat = pb.Pyrat(cfg)
     pyrat.run(skip=[model])
@@ -546,6 +501,7 @@ def test_transmission_skip_lbl(tmp_path, model):
 
 def test_transmission_skip_alkali(tmp_path):
     reset = {
+        'tlifile': f'{OUTPUTS}HITRAN_H2O_1.1-1.7um_test.tli',
         'alkali': 'sodium_vdw potassium_vdw',
         'wllow': '0.4 um',
         'wlhigh': '1.2 um',
@@ -554,7 +510,7 @@ def test_transmission_skip_alkali(tmp_path):
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         reset=reset,
-        remove=['clouds'],
+        remove=['sampled_cross_sec', 'clouds'],
     )
     pyrat = pb.Pyrat(cfg)
     pyrat.run(skip=['alkali'])
@@ -564,6 +520,7 @@ def test_transmission_skip_alkali(tmp_path):
 
 def test_transmission_skip_sodium_vdw(tmp_path):
     reset = {
+        'tlifile': f'{OUTPUTS}HITRAN_H2O_1.1-1.7um_test.tli',
         'alkali': 'sodium_vdw potassium_vdw',
         'wllow': '0.4 um',
         'wlhigh': '1.2 um',
@@ -572,7 +529,7 @@ def test_transmission_skip_sodium_vdw(tmp_path):
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         reset=reset,
-        remove=['clouds'],
+        remove=['sampled_cross_sec', 'clouds'],
     )
     pyrat = pb.Pyrat(cfg)
     pyrat.run(skip=['sodium_vdw'])

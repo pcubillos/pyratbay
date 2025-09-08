@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2024 Patricio Cubillos
+# Copyright (c) 2021-2025 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -16,15 +16,12 @@ __all__ = [
     'read_pf',
     'write_cs',
     'read_cs',
-    'read_pt',
     'write_observations',
     'read_observations',
-    'read_atomic',
     'read_molecs',
     'read_isotopes',
     'import_xs',
     'import_tea',
-    'export_pandexo',
 ]
 
 from decimal import Decimal
@@ -86,10 +83,16 @@ def load_pyrat(pfile):
     pyrat.set_spectrum()
     pyrat.log.verb = pyrat.verb
     # Recover MCMC posterior:
-    if pt.isfile(pyrat.ret.mcmcfile) == 1:
-        with np.load(pyrat.ret.mcmcfile) as mcmc:
-            posterior, zchain, zmask = mc3.utils.burn(mcmc)
-        pyrat.ret.posterior = posterior
+    if pyrat.ret.sampler == 'multinest':
+        retrieval_file = f'{pyrat.ret.retrieval_file}.txt'
+        if pt.isfile(retrieval_file) == 1:
+            pyrat.ret.posterior = pt.weighted_to_equal(retrieval_file)
+    elif pyrat.ret.sampler == 'snooker':
+        retrieval_file = f'{pyrat.ret.retrieval_file}.txt'
+        if pt.isfile(retrieval_file) == 1:
+            with np.load(retrieval_file) as mcmc:
+                pyrat.ret.posterior = mc3.utils.burn(mcmc)[0]
+
     return pyrat
 
 
@@ -478,7 +481,7 @@ def write_spectrum(wl, spectrum, filename, type):
     else:
         raise ValueError(
             "Input 'type' argument must be 'transit', 'eclipse', "
-            "'emission', or 'filter'"
+            "'emission', 'f_lambda', or 'filter'"
         )
 
     # Precision of 5 decimal places (or better if needed):
@@ -573,8 +576,8 @@ def write_opacity(ofile, species, temp, press, wn, opacity):
     ofile: String
         Output filename where to save the opacity data.
         File extension must be .npz
-    species: 1D string iterable
-        Species names.
+    species: String
+        The species name.
     temp: 1D float ndarray
         Temperature array (Kelvin degree).
     press: 1D float ndarray
@@ -582,9 +585,10 @@ def write_opacity(ofile, species, temp, press, wn, opacity):
     wn: 1D float ndarray
         Wavenumber array (cm-1).
     opacity: 4D float ndarray
-        Tabulated opacities (cm2 molecule-1) of shape
-        [nspec, ntemp, nlayers, nwave].
+        Tabulated opacities (cm2 molecule-1) of shape [ntemp, nlayers, nwave].
     """
+    if not isinstance(species, str):
+        raise ValueError("'species' input must be a string")
     units = {
         'temperature': 'K',
         'pressure': 'bar',
@@ -593,7 +597,7 @@ def write_opacity(ofile, species, temp, press, wn, opacity):
     }
     np.savez(
         ofile,
-        species=species,
+        species=[species],
         temperature=temp,
         pressure=press,
         wavenumber=wn,
@@ -619,17 +623,16 @@ def read_opacity(ofile, extract='all'):
 
     Returns
     -------
-    sizes: 4-element integer tuple
-        Sizes of the dimensions of the opacity table:
-        (nspec, ntemp, nlayers, nwave)
     units: dict
         The physical units for the different quantities
-    arrays: 4-element 1D ndarray tuple
-        The dimensions of the opacity table:
-        - species (string, the species names)
-        - temperature (float, K)
-        - pressure (float, bar)
-        - wavenumber (float, cm-1)
+    species: String
+        The species name.
+    temp: 1D float array
+        The temperature array (K)
+    press: 1D float array
+        The pressure array (bar)
+    wn: 1D float array
+        The wavenumber array (cm-1)
     opacity: 4D float ndarray tuple
         The tabulated opacities (cm2 molecule-1), of shape
         [nspec, ntemp, nlayers, nwave].
@@ -637,29 +640,35 @@ def read_opacity(ofile, extract='all'):
     if ofile.endswith('petitRADTRANS.h5'):
         with h5py.File(ofile, 'r') as f:
             species = list(f['mol_name'])
-            species = np.array([species[0].decode('utf-8')])
+            species = species[0].decode('utf-8')
             temp = np.array(f['t'])
             press = np.array(f['p'])
             wn = np.array(f['bin_edges'])
             if extract in ['opacity', 'all']:
                 opacity = np.array(f['xsecarr'])
-                # Same format as pyratbay files: (nmol, npress, ntemp, nwave)
+                # Same format as pyratbay files: (npress, ntemp, nwave)
                 opacity = np.swapaxes(opacity, 0, 1)
-                opacity = np.expand_dims(opacity, axis=0)
-            units = {
-                'temperature': 'K',
-                'pressure': 'bar',
-                'wavenumber': 'cm-1',
-                'cross section': 'cm2 molecule-1',
-            }
+        units = {
+            'temperature': 'K',
+            'pressure': 'bar',
+            'wavenumber': 'cm-1',
+            'cross section': 'cm2 molecule-1',
+        }
     else:
         with np.load(ofile, allow_pickle=True) as f:
-            species = f['species']
+            if len(f['species']) > 1:
+                raise ValueError(
+                    'Opacity files must contain a single species'
+                )
+            species = str(f['species'][0])
             temp = f['temperature']
             press = f['pressure']
             wn = f['wavenumber']
             if extract in ['opacity', 'all']:
                 opacity = f['opacity']
+                # check/correction for format in pyratbay version 2.0beta
+                if np.ndim(opacity) == 4:
+                    opacity = opacity[0]
             units = np.ndarray.item(f['units']) if 'units' in f else None
 
     # If it does not have units, must be pyratbay<2.0, where pressures
@@ -676,13 +685,11 @@ def read_opacity(ofile, extract='all'):
     if extract == 'opacity':
         return opacity
     if extract == 'arrays':
-        return (species, temp, press, wn)
+        return species, temp, press, wn
     if extract == 'all':
-        shape = np.shape(opacity)
         return (
-            shape,
             units,
-            (species, temp, press, wn),
+            species, temp, press, wn,
             opacity,
         )
 
@@ -935,45 +942,6 @@ def read_cs(csfile):
     return cs, species, temp, wn
 
 
-def read_pt(ptfile):
-    r"""
-    Read a pressure and temperature profile from a file.
-
-    Parameters
-    ----------
-    ptfile: String
-        Input file with pressure (in bars, first column) and temperature
-        profiles (in Kelvin degree, second column).
-
-    Returns
-    -------
-    pressure: 1D float ndarray
-        Pressure profile in bar.
-    temperature: 1D float ndarray
-        Temperature profile in Kelvin.
-
-    Examples
-    --------
-    >>> import pyratbay.io as io
-    >>> ptfile = 'pt_profile.dat'
-    >>> temp  = np.array([100.0, 150.0, 200.0, 175.0, 150.0])
-    >>> press = np.array([1e-6,  1e-4,  1e-2,  1e0,   1e2])
-    >>> with open(ptfile, 'w') as f:
-    >>>     for p,t in zip(press, temp):
-    >>>         f.write('{:.3e}  {:5.1f}\n'.format(p, t))
-    >>> pressure, temperature = io.read_pt(ptfile)
-    >>> for p,t in zip(pressure, temperature):
-    >>>     print('{:.1e} bar  {:5.1f} K'.format(p, t))
-    1.0e-06 bar  100.0 K
-    1.0e-04 bar  150.0 K
-    1.0e-02 bar  200.0 K
-    1.0e+00 bar  175.0 K
-    1.0e+02 bar  150.0 K
-    """
-    pressure, temperature = np.loadtxt(ptfile, usecols=(0,1), unpack=True)
-    return pressure, temperature
-
-
 def write_observations(
         obs_file, inst_names, wl, wl_half_width,
         depth=None, depth_err=None, depth_units='none',
@@ -1206,53 +1174,6 @@ def read_observations(obs_file):
     return filters
 
 
-def read_atomic(afile):
-    """
-    Read an elemental (atomic) composition file.
-
-    Parameters
-    ----------
-    afile: String
-        File with atomic composition.
-
-    Returns
-    -------
-    atomic_num: 1D integer ndarray
-        Atomic number (except for Deuterium, which has anum=0).
-    symbol: 1D string ndarray
-        Elemental chemical symbol.
-    dex: 1D float ndarray
-        Logarithmic number-abundance, scaled to log(H) = 12.
-    name: 1D string ndarray
-        Element names.
-    mass: 1D float ndarray
-        Elemental mass in amu.
-
-    Uncredited developers
-    ---------------------
-    Jasmina Blecic
-    """
-    # Allocate arrays:
-    nelements = 84  # Fixed number
-    atomic_num = np.zeros(nelements, int)
-    symbol = np.zeros(nelements, '|U2')
-    dex    = np.zeros(nelements, np.double)
-    name   = np.zeros(nelements, '|U20')
-    mass   = np.zeros(nelements, np.double)
-
-    # Open-read file:
-    with open(afile, 'r') as f:
-        # Read-discard first two lines (header):
-        f.readline()
-        f.readline()
-        # Store data into the arrays:
-        for i in range(nelements):
-            atomic_num[i], symbol[i], dex[i], name[i], mass[i] = \
-                f.readline().split()
-
-    return atomic_num, symbol, dex, name, mass
-
-
 def read_molecs(file):
     r"""
     Read a molecules file to extract their names, masses, and radii.
@@ -1334,8 +1255,6 @@ def read_isotopes(file):
 
     Returns
     -------
-    mol_ID: 1D integer ndarray
-        HITRAN molecule ID.
     mol: 1D string ndarray
         Molecule names.
     hitran_iso: 1D string ndarray
@@ -1351,7 +1270,7 @@ def read_isotopes(file):
     --------
     >>> import pyratbay.io as io
     >>> import pyratbay.constants as pc
-    >>> ID, mol, hit_iso, exo_iso, ratio, mass = \
+    >>> mol, hit_iso, exo_iso, ratio, mass = \
     >>>     io.read_isotopes(pc.ROOT+'pyratbay/data/isotopes.dat')
     >>> print("H2O isotopes:\n iso    iso    isotopic  mass"
     >>>                    "\n hitran exomol ratio     g/mol")
@@ -1372,27 +1291,25 @@ def read_isotopes(file):
     282    000    0.000e+00 22.0000
     272    000    0.000e+00 21.0000
     """
-    mol_ID, mol, hitran_iso, exomol_iso, ratio, mass = [], [], [], [], [], []
+    mol, hitran_iso, exomol_iso, ratio, mass = [], [], [], [], []
     for line in open(file, 'r'):
         # Skip comment and blank lines:
         if line.strip() == '' or line.strip().startswith('#'):
             continue
         info = line.split()
-        mol_ID.append(info[0])
-        mol.append(info[1])
-        hitran_iso.append(info[2])
-        exomol_iso.append(info[3])
-        ratio.append(info[4])
-        mass.append(info[5])
+        mol.append(info[0])
+        hitran_iso.append(info[1])
+        exomol_iso.append(info[2])
+        ratio.append(info[3])
+        mass.append(info[4])
 
-    mol_ID = np.asarray(mol_ID, int)
     mol = np.asarray(mol)
     hitran_iso = np.asarray(hitran_iso)
     exomol_iso = np.asarray(exomol_iso)
     ratio = np.asarray(ratio, np.double)
     mass = np.asarray(mass, np.double)
 
-    return mol_ID, mol, hitran_iso, exomol_iso, ratio, mass
+    return mol, hitran_iso, exomol_iso, ratio, mass
 
 
 def import_xs(filename, source, read_all=True, ofile=None):
@@ -1404,7 +1321,7 @@ def import_xs(filename, source, read_all=True, ofile=None):
     filename: String
         The opacity pickle file to read.
     source: String
-        The cross-section source: exomol or taurex (see note below).
+        The cross-section source: 'exomol' or 'taurex' (see note below).
     read_all: Bool
         If True, extract all contents in the file: cross-section,
         pressure, temperature, and wavenumber.
@@ -1441,14 +1358,8 @@ def import_xs(filename, source, read_all=True, ofile=None):
     >>> # http://www.exomol.com/db/H2O/1H2-16O/POKAZATEL/1H2-16O__POKAZATEL__R15000_0.3-50mu.xsec.TauREx.h5
     >>> import pyratbay.io as io
     >>> filename = '1H2-16O__POKAZATEL__R15000_0.3-50mu.xsec.TauREx.h5'
-    >>> xs_H2O, press, temp, wn, species = io.import_xs(filename, 'exomol')
+    >>> xs, press, temp, wn, species = io.import_xs(filename, 'exomol')
     """
-    try:
-        import h5py
-    except ModuleNotFoundError as e:
-        if source == 'exomol':
-            raise e
-
     if source == 'exomol':
         with h5py.File(filename, 'r') as xs_data:
             xs = np.array(xs_data['xsecarr'])
@@ -1456,7 +1367,7 @@ def import_xs(filename, source, read_all=True, ofile=None):
                 pressure = np.array(xs_data['p'])
                 temperature = np.array(xs_data['t'])
                 wavenumber = np.array(xs_data['bin_edges'])
-                species = [xs_data['mol_name'][0]]
+                species = xs_data['mol_name'][0].decode('utf-8')
 
     elif source == 'taurex':
         with open(filename, 'rb') as f:
@@ -1466,18 +1377,19 @@ def import_xs(filename, source, read_all=True, ofile=None):
                 pressure = xs_data['p']
                 temperature = xs_data['t']
                 wavenumber = xs_data['wno']
-                species = [xs_data['name']]
+                species = xs_data['name']
 
     else:
         raise ValueError("Invalid cross-section source type.")
 
+
     if ofile is not None:
         nlayers, ntemp, nwave = np.shape(xs)
-        xs_pb = np.swapaxes(xs,0,1).reshape(1,ntemp,nlayers,nwave)
+        xs_pb = np.swapaxes(xs, 0, 1)
         write_opacity(ofile, species, temperature, pressure, wavenumber, xs_pb)
 
     if read_all:
-        return xs, pressure, temperature, wavenumber, species[0]
+        return xs, pressure, temperature, wavenumber, species
     return xs
 
 
@@ -1543,199 +1455,4 @@ def import_tea(teafile, atmfile, req_species=None):
         atmfile, pressure, temperature, req_species, abundance,
         punits=punits, header=header,
     )
-
-
-def export_pandexo(
-        pyrat, baseline, transit_duration,
-        Vmag=None, Jmag=None, Hmag=None, Kmag=None, metal=0.0,
-        instrument=None, n_transits=1, resolution=None,
-        noise_floor=0.0, sat_level=80.0,
-        save_file=True,
-    ):
-    """
-    Parameters
-    ----------
-    pyrat: A Pyrat instance
-        Pyrat object from which to extract the system physical properties.
-    baseline: Float or string
-        Total observing time in sec (float) or with given units (string).
-    transit_duration: Float or string
-        Transit/eclipse duration in sec (float) or with given units (string).
-    metal: Float
-        Stellar metallicity as log10(Fe/H).
-    Vmag: Float
-        Stellar magnitude in the Johnson V band.
-        Only one of Vmag, Jmag, Hmag, or Kmag should be defined.
-    Jmag: Float
-        Stellar magnitude in the Johnson J band.
-        Only one of Vmag, Jmag, Hmag, or Kmag should be defined.
-    Hmag: Float
-        Stellar magnitude in the Johnson H band.
-        Only one of Vmag, Jmag, Hmag, or Kmag should be defined.
-    Kmag: Float
-        Stellar magnitude in the Johnson Kband.
-        Only one of Vmag, Jmag, Hmag, or Kmag should be defined.
-    instrument: String or list of strings or dict
-        Observing instrument to simulate.
-        If None, this function returns the input dictionary.
-    n_transits: Integer
-        Number of transits/eclipses.
-    resolution: Float
-        Approximate output spectral sampling R = 0.5*lambda/delta-lambda.
-    sat_level: Float
-        Saturation level in percent of full well.
-    noise_floor: Float or string
-        Noise-floor level in ppm at all wavelengths (if float) or
-        wavelength dependent (if string, filepath).
-    save_file: Bool or string
-        If string, store pandexo output pickle file with this filename.
-        If True, store pandexo output with default name based on
-        the pyrat object's output filename.
-
-    Returns
-    -------
-    pandexo_sim: dict
-        Output from pandexo.engine.justdoit.run_pandexo().
-        Note this dict has R=None, noccultations=1 (as suggested in pandexo).
-    wavelengths: List of 1D float arrays
-        Wavelengths of simulated observed spectra for each instrument.
-        Returned only if instrument is not None.
-    spectra: List of 1D float arrays
-        Simulated observed spectra for each instrument.
-        Returned only if instrument is not None.
-    uncertainties: List of 1D float arrays
-        Uncertainties of simulated observed spectra for each instrument.
-        Returned only if instrument is not None.
-
-    Examples
-    --------
-    >>> import pyratbay as pb
-    >>> import pyratbay.io as io
-
-    >>> pyrat = pb.run('demo_spectrum-transmission.cfg')
-    >>> instrument = 'NIRCam F322W2'
-    >>> #instrument = jdi.load_mode_dict(instrument)
-    >>> baseline = '4.0 hour'
-    >>> transit_duration = '2.0 hour'
-    >>> resolution = 100.0
-    >>> n_transits = 2
-    >>> Jmag = 8.0
-    >>> metal = 0.0
-
-    >>> pandexo_sim, wls, spectra, uncerts = io.export_pandexo(
-    >>>     pyrat, baseline, transit_duration,
-    >>>     n_transits=n_transits,
-    >>>     resolution=resolution,
-    >>>     instrument=instrument,
-    >>>     Jmag=Jmag,
-    >>>     metal=metal)
-    """
-    import pandexo.engine.justdoit as jdi
-    import pandexo.engine.justplotit as jpi
-
-    if isinstance(baseline, str):
-        baseline = pt.get_param(baseline)
-    if isinstance(transit_duration, str):
-        transit_duration = pt.get_param(transit_duration)
-
-    ref_wave = {
-        'Vmag':0.55,
-        'Jmag':1.25,
-        'Hmag':1.6,
-        'Kmag':2.22,
-        }
-    mags = {
-        'Vmag':Vmag,
-        'Jmag':Jmag,
-        'Hmag':Hmag,
-        'Kmag':Kmag,
-        }
-    mag = {key:val for key,val in mags.items() if val is not None}
-    if len(mag) != 1:
-        raise ValueError(
-            f'Exactly one of {list(mags.keys())} should be defined')
-    band_mag, mag = mag.popitem()
-
-    exo_dict = jdi.load_exo_dict()
-
-    exo_dict['observation']['sat_level'] = sat_level
-    exo_dict['observation']['sat_unit'] = '%'
-    exo_dict['observation']['noccultations'] = 1
-    exo_dict['observation']['R'] = None
-
-    exo_dict['planet']['transit_duration'] = transit_duration
-    exo_dict['planet']['td_unit'] = 's'
-    exo_dict['observation']['baseline'] = baseline
-    exo_dict['observation']['baseline_unit'] = 'total'
-    exo_dict['observation']['noise_floor'] = noise_floor
-
-    # Stellar flux from erg s-1 cm-2 cm to erg s-1 cm-2 Hz-1:
-    starflux = {'f':pyrat.spec.starflux/pc.c, 'w':1.0/pyrat.spec.wn}
-    exo_dict['star']['type'] = 'user'
-    exo_dict['star']['starpath'] = starflux
-    exo_dict['star']['w_unit'] = 'cm'
-    exo_dict['star']['f_unit'] = 'erg/cm2/s/Hz'
-    exo_dict['star']['mag'] = mag
-    exo_dict['star']['ref_wave'] = ref_wave[band_mag]
-
-    exo_dict['star']['temp'] = pyrat.phy.tstar
-    exo_dict['star']['metal'] = metal
-    exo_dict['star']['logg'] = pyrat.phy.log_gstar
-    exo_dict['star']['radius'] = pyrat.phy.rstar/pc.rsun
-    exo_dict['star']['r_unit'] = 'R_sun'
-
-    if pyrat.od.rt_path == 'transit':
-        exo_dict['planet']['f_unit'] = 'rp^2/r*^2'
-        spectrum = pyrat.spec.spectrum
-    elif pyrat.od.rt_path == 'emission':
-        exo_dict['planet']['f_unit'] = 'fp/f*'
-        rprs = pyrat.atm.rplanet/pyrat.phy.rstar
-        spectrum = pyrat.spec.spectrum/pyrat.spec.starflux * rprs**2
-
-    exo_dict['planet']['type'] ='user'
-    exo_dict['planet']['exopath'] = {'f':spectrum, 'w':1.0/pyrat.spec.wn}
-    exo_dict['planet']['w_unit'] = 'cm'
-    exo_dict['planet']['radius'] = pyrat.phy.rplanet
-    exo_dict['planet']['r_unit'] = 'cm'
-
-    if instrument is None:
-        return exo_dict
-
-    if isinstance(instrument, str):
-        instrument = [instrument]
-
-    if save_file is True:
-        output_path = os.path.dirname(pyrat.log.logname)
-        output_file = os.path.basename(pyrat.log.logname).replace(
-            '.log', '_pandexo.p')
-    elif isinstance(save_file, str):
-        output_path = os.path.dirname(save_file)
-        output_file = os.path.basename(save_file)
-        save_file = True
-    else:
-        save_file = False
-
-    pandexo_sim = jdi.run_pandexo(
-        exo_dict,
-        instrument,
-        save_file=save_file,
-        output_path=output_path,
-        output_file=output_file,
-        num_cores=pyrat.ncpu,
-    )
-
-    if isinstance(pandexo_sim, list):
-        pandexo_sim = [sim[list(sim.keys())[0]] for sim in pandexo_sim]
-    else:
-        pandexo_sim = [pandexo_sim]
-
-    wavelengths, spectra, uncerts = [], [], []
-    for sim in pandexo_sim:
-        wl, spec, unc = jpi.jwst_1d_spec(
-            sim, R=resolution, num_tran=n_transits, plot=False)
-        wavelengths += wl
-        spectra += spec
-        uncerts += unc
-
-    return pandexo_sim, wavelengths, spectra, uncerts
 

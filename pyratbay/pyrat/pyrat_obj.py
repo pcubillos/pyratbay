@@ -1,7 +1,6 @@
-# Copyright (c) 2021-2024 Patricio Cubillos
+# Copyright (c) 2021-2025 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
-import multiprocessing as mp
 from collections import OrderedDict
 import os
 import subprocess
@@ -13,6 +12,7 @@ import mc3
 from .. import atmosphere as pa
 from .. import constants as pc
 from .. import io as io
+from .. import opacity as op
 from .. import plots as pp
 from .. import spectrum as ps
 from .. import tools as pt
@@ -23,10 +23,9 @@ from .opacity import Opacity
 from .retrieval import Retrieval
 from .voigt import Voigt
 from . import spectrum as sp
-from .  import extinction as ex
-from .  import optical_depth as od
-from .  import objects as ob
-from .  import argum as ar
+from . import extinction as ex
+from . import objects as ob
+from . import argum as ar
 
 
 class Pyrat():
@@ -69,18 +68,17 @@ class Pyrat():
         self.ncpu = self.inputs.ncpu
         self.runmode = self.inputs.runmode
 
-        self.phy = ob.Physics(self.inputs)
         # TBD: Remove self.ex entirely?
         self.ex = ob.Extinction(self.inputs, self.log)
         self.od = ob.Optdepth(self.inputs, self.log)
 
-        # Initialize Atmosphere:
-        self.atm = Atmosphere(self.inputs, self.log)
-        self.timestamps['atmosphere'] = timer.clock()
-
         # Initialize wavenumber sampling:
         self.spec = sp.Spectrum(self.inputs, self.log)
         self.timestamps['spectrum'] = timer.clock()
+
+        # Initialize Atmosphere:
+        self.atm = Atmosphere(self.inputs, self.spec.wn, self.log)
+        self.timestamps['atmosphere'] = timer.clock()
 
         self.obs = Observation(self.inputs, self.spec.wn, self.log)
         ar.check_spectrum(self)
@@ -114,7 +112,6 @@ class Pyrat():
         self.ret = Retrieval(
             self.inputs,
             self.atm,
-            self.phy,
             self.obs,
             self.opacity,
             self.log,
@@ -127,6 +124,44 @@ class Pyrat():
         temperature, pressure, and wavenumber arrays
         """
         ex.compute_opacity(self)
+
+
+    def optical_depth(self):
+        """
+        Calculate the optical depth.
+        """
+        self.log.head('\nBegin optical-depth calculation.')
+
+        ibottom = self.atm.nlayers
+        for model in self.opacity.models:
+            if model.name == 'deck':
+                ibottom = model.itop + 1
+                break
+
+        if self.opacity.is_patchy:
+            extinction_cloudy = self.opacity.ec_cloud
+        else:
+            extinction_cloudy = None
+
+        raypath, depth, ideep, depth_clear, ideep_clear = op.optical_depth(
+            self.od.rt_path,
+            self.opacity.ec,
+            self.atm.radius,
+            self.atm.rtop,
+            ibottom,
+            self.od.maxdepth,
+            extinction_cloudy,
+        )
+
+        self.od.raypath = raypath
+        self.od.depth = depth
+        self.od.ideep = ideep
+
+        if self.opacity.is_patchy:
+            self.od.ideep_clear = ideep_clear
+            self.od.depth_clear = depth_clear
+
+        self.log.head('Optical depth done.')
 
 
     def run(self, temp=None, vmr=None, radius=None, skip=[]):
@@ -149,7 +184,7 @@ class Pyrat():
         timer = pt.Timer()
 
         # Re-calculate atmospheric properties if required:
-        self.atm.calc_profiles(temp, vmr, radius, self.phy.mstar, self.log)
+        self.atm.calc_profiles(temp, vmr, radius)
 
         out_of_bounds = self.opacity.check_temp_bounds(self.atm.temp)
         good_status = len(out_of_bounds) == 0
@@ -168,7 +203,7 @@ class Pyrat():
         self.timestamps['extinction'] = timer.clock()
 
         # Calculate the optical depth:
-        od.optical_depth(self)
+        self.optical_depth()
         self.timestamps['odepth'] = timer.clock()
 
         # Calculate the spectrum:
@@ -218,6 +253,7 @@ class Pyrat():
             return None, None if retmodel else None
 
         # Update models parameters:
+        ret.params = np.copy(params)
         if ret.itemp is not None:
             ifree = ret.map_pars['temp']
             atm.tpars[ifree] = params[ret.itemp]
@@ -247,8 +283,8 @@ class Pyrat():
             self.opacity.fpatchy = params[ret.ipatchy][0]
 
         if ret.itstar is not None:
-            self.phy.tstar = params[ret.itstar][0]
-            self.spec.starflux = self.spec.flux_interp(self.phy.tstar)
+            self.atm.tstar = params[ret.itstar][0]
+            self.spec.starflux = self.spec.flux_interp(self.atm.tstar)
             self.obs.bandflux_star = np.array([
                 band(self.spec.starflux)
                 for band in self.obs.filters
@@ -278,22 +314,23 @@ class Pyrat():
                 f"the cap of {ret.qcap:.3f}"
             )
 
+        if self.od.rt_path == 'f_lambda':
+            # Convert flux from (erg s-1 cm-2 cm) to (W m-2 um-1)
+            # TBD: check rplanet and distance exist
+            self.spec.spectrum = (
+                10.0 * self.spec.spectrum *
+                (atm.rplanet/self.atm.distance * self.spec.wn*pc.um)**2
+            )
+
         # High-resolution data
-        # TBD: flag with obs.hr_data
-        if self.spec.inst_resolution is not None:
-            conv_flux = ps.inst_convolution(
+        if self.obs.ndata_hires > 0:
+            self.spec.spectrum_convolved = conv_flux = ps.inst_convolution(
                 self.spec.wn,
                 self.spec.spectrum,
-                self.spec.inst_resolution,
+                obs.inst_resolution,
                 sampling_res=self.spec.resolution,
             )
-            if self.od.rt_path == 'f_lambda':
-                # Convert flux from (erg s-1 cm-2 cm) to (W m-2 um-1)
-                conv_flux = (
-                    10.0 * conv_flux *
-                    (atm.rplanet/self.phy.distance * self.spec.wn*pc.um)**2
-                )
-            self.spec.spectrum = conv_flux
+
             # Radial-velocity shift
             if ret.irv is not None:
                 vel_km = params[ret.irv][0]
@@ -301,9 +338,16 @@ class Pyrat():
             else:
                 wn = self.spec.wn
             # Interpolate at data
-            if obs.data is not None:
-                obs.bandflux = si.interp1d(wn, conv_flux)(obs.bandwn)
-            return obs.bandflux
+            if obs.data_hires is not None:
+                obs.bandflux_hires = si.interp1d(wn, conv_flux)(obs.wn_hires)
+
+            if reject_flag:
+                obs.bandflux_hires[:] = np.inf
+            # TBD: At the moment either return hires or lowres, but should be
+            # able to combine in the future
+            if retmodel:
+                return self.spec.spectrum, obs.bandflux_hires
+            return obs.bandflux_hires
 
 
         # Band-integrate spectrum:
@@ -329,7 +373,6 @@ class Pyrat():
         if obs.bandflux is not None and reject_flag:
             obs.bandflux[:] = np.inf
 
-        ret.params = np.copy(params)
         if retmodel:
             return self.spec.spectrum, obs.bandflux
 
@@ -344,8 +387,6 @@ class Pyrat():
         obs = self.obs
         log = self.log
 
-        if ret.mcmcfile is None:
-            log.error('Undefined retrieval file (mcmcfile)')
         if ret.sampler is None:
             log.error(
                 'Undefined retrieval algorithm (sampler).  '
@@ -358,27 +399,39 @@ class Pyrat():
         if ret.pstep is None:
             log.error('Missing pstep argument, required for retrieval runs')
 
-        if obs.data is None:
-            log.error("Undefined transit/eclipse data (data)")
-        if obs.uncert is None:
-            log.error("Undefined data uncertainties (uncert)")
-        if obs.nfilters == 0:
-            log.error("Undefined transmission filters (filters)")
+        if obs.data is None and obs.data_hires is None:
+            log.error("Undefined transit/emission/eclipse data for retrieval")
+        if obs.data is not None:
+            if obs.uncert is None:
+                log.error("Undefined data uncertainties")
+            if obs.nfilters == 0:
+                log.error("Undefined transmission filters (filters)")
+        if obs.data_hires is not None:
+            if obs.uncert_hires is None:
+                log.error("Undefined high-resolution data uncertainties")
+            if obs.nfilters_hires == 0:
+                log.error("Undefined transmission filters (filters)")
 
+        # Basename of the output files:
+        basename = ret.retrieval_file
         # Create output folder if needed:
-        pt.mkdir(ret.mcmcfile)
-        # Basename of the output files (no extension):
-        output, extension = os.path.splitext(ret.mcmcfile)
+        pt.mkdir(basename)
+
+        # Mute logging in pyrat object, but not in mc3:
+        self.log = mc3.utils.Log(verb=-1, width=80)
+        self.spec.specfile = None  # Avoid writing spectra during retrieval
+        ifree = ret.pstep > 0
+        texnames = np.array(ret.texnames)[ifree]
 
         # MultiNest wrapper call:
         if ret.sampler == 'multinest':
-            sampler_output = pt.multinest_run(self, output)
+            output = pt.multinest_run(self, basename)
             if pt.get_mpi_rank() != 0:
                 return
-            posterior = sampler_output['posterior']
+            posterior = output['posterior']
 
         # mc3 MCMC wrapper call:
-        if ret.sampler == 'snooker':
+        elif ret.sampler == 'snooker':
             if ret.nsamples is None:
                 log.error('Undefined number of retrieval samples (nsamples)')
             if ret.burnin is None:
@@ -388,12 +441,9 @@ class Pyrat():
 
             # TBD: Fix resuming
             ret.resume = False
-            # Mute logging in pyrat object, but not in mc3:
-            self.log = mc3.utils.Log(verb=-1, width=80)
-            self.spec.specfile = None  # Avoid writing spectrum file during MCMC
             retmodel = False  # Return only the band-integrated spectrum
             # Run MCMC:
-            sampler_output = mc3.sample(
+            output = mc3.sample(
                 data=self.obs.data, uncert=self.obs.uncert,
                 func=self.eval, indparams=[retmodel], params=ret.params,
                 pmin=ret.pmin, pmax=ret.pmax, pstep=ret.pstep,
@@ -402,35 +452,59 @@ class Pyrat():
                 nchains=ret.nchains, burnin=ret.burnin, thinning=ret.thinning,
                 grtest=True, grbreak=ret.grbreak, grnmin=ret.grnmin,
                 log=log, ncpu=self.ncpu,
-                plots=True, showbp=True, theme=ret.theme,
+                plots=False, showbp=True, theme=ret.theme,
                 pnames=ret.pnames, texnames=ret.texnames,
-                resume=ret.resume, savefile=ret.mcmcfile,
+                resume=ret.resume, savefile=f'{basename}.npz',
             )
-            if sampler_output is None:
+            if output is None:
                 log.error("Error in mc3")
-            posterior, zchain, zmask = mc3.utils.burn(sampler_output)
+            posterior, zchain, zmask = mc3.utils.burn(output)
+
+            # Trace plot:
+            savefile = f'{basename}_posterior_trace.png'
+            mc3.plots.trace(
+                posterior, zchain=zchain, burnin=ret.burnin,
+                pnames=texnames, color=ret.theme.color,
+                savefile=savefile,
+            )
+            log.msg(savefile, indent=2)
+
+        post = mc3.plots.Posterior(
+            posterior, pnames=texnames, theme=ret.theme,
+            bestp=output['bestp'][ifree], statistics=ret.statistics,
+            show_estimates=True,  # TBD: get from cfg?
+        )
+
+        # Pairwise posteriors plots:
+        savefile = f'{basename}_posterior_pairwise.png'
+        post.plot(savefile=savefile)
+        log.msg(savefile, indent=2)
+        # Histogram plots:
+        savefile = f'{basename}_posterior_marginal.png'
+        post.plot_histogram(savefile=savefile)
+        log.msg(savefile, indent=2)
 
 
         # Post processing (can be done directly from posterior outputs)
-        ret.bestp = bestp = sampler_output['bestp']
+        ret.bestp = bestp = output['bestp']
         ret.posterior = posterior
 
         # Best-fitting model:
-        self.spec.specfile = f"{output}_bestfit_spectrum.dat"
+        self.spec.specfile = f"{basename}_bestfit_spectrum.dat"
         ret.spec_best, ret.bestbandflux = self.eval(bestp)
+        filename = f'{basename}_bestfit_spectrum.png'
+        self.plot_spectrum(spec='best', filename=filename)
 
         atm = self.atm
         header = "# Retrieval best-fitting atmospheric model.\n\n"
-        bestatm = f"{output}_bestfit_atmosphere.atm"
+        bestatm = f"{basename}_bestfit_atmosphere.atm"
         io.write_atm(
             bestatm, atm.press, atm.temp, atm.species,
             atm.vmr, radius=atm.radius,
             punits=atm.punits, runits=atm.runits, header=header,
         )
-        filename = f'{output}_bestfit_spectrum.png'
-        self.plot_spectrum(spec='best', filename=filename)
 
-        # Temperature profiles:
+        # Temperature profiles
         if atm.temp_model is not None:
             tparams = atm.tpars
             tparams[ret.map_pars['temp']] = bestp[ret.itemp]
@@ -448,31 +522,24 @@ class Pyrat():
             ret.temp_median = tpost[0]
             ret.temp_post_boundaries = tpost[1:]
             self.plot_temperature(
-                filename=f'{output}_posterior_temperature_profile.png',
+                filename=f'{basename}_bestfit_temperature.png',
             )
 
-        is_emission = self.od.rt_path in pc.emission_rt
+        # Contribution or transmittance
         is_transmission = self.od.rt_path in pc.transmission_rt
-
-        if is_emission:
-            contrib = ps.contribution_function(
-                self.od.depth, atm.press, self.od.B,
-            )
-        elif is_transmission:
-            contrib = ps.transmittance(self.od.depth, self.od.ideep)
-        bands_idx = [band.idx for band in self.obs.filters]
-        bands_response = [band.response for band in self.obs.filters]
-        band_cf = ps.band_cf(contrib, bands_response, self.spec.wn, bands_idx)
-
         path = 'transit' if is_transmission else 'emission'
-        pp.contribution(
-            band_cf, 1.0/(self.obs.bandwn*pc.um),
-            path, atm.press,
-            filename=f'{output}_bestfit_cf.png',
-        )
+
+        if self.obs.nfilters > 0:
+            band_wl = 1.0/(self.obs.bandwn*pc.um)
+        elif self.obs.nfilters_hires > 0:
+            band_wl = 1.0/(self.obs.wn_hires*pc.um)
+        band_cf = self.band_contribution()
+
+        filename = f'{basename}_bestfit_contributions.png'
+        pp.contribution(band_cf, band_wl, path, atm.press, filename)
 
         self.log = log  # Un-mute
-        root_output = os.path.split(output)[0]
+        root_output = os.path.split(basename)[0]
         log.msg(f"\nOutput retrieval files located at {root_output}")
 
         if self.inputs.post_processing:
@@ -573,25 +640,54 @@ class Pyrat():
         self.log.verb = tmp_verb
 
 
-    def band_integrate(self, spectrum=None):
+    def band_integrate(self):
         """
         Band-integrate transmission spectrum (transit) or planet-to-star
         flux ratio (eclipse) over transmission band passes.
         """
         if self.obs.filters is None:
             return None
-        if spectrum is None:
+
+        if self.od.rt_path in pc.transmission_rt:
             spectrum = self.spec.spectrum
+        else:
+            spectrum = self.spec.fplanet
 
         bandflux = np.array([band(spectrum) for band in self.obs.filters])
-        # Handle 'f_lambda'
-        if self.od.rt_path in pc.emission_rt:
-            rprs_square = (self.atm.rplanet/self.phy.rstar)**2.0
-            bandflux = bandflux / self.obs.bandflux_star * rprs_square
+        if self.od.rt_path in pc.eclipse_rt:
+            rprs = self.atm.rplanet/self.atm.rstar
+            bandflux *= rprs**2.0 / self.obs.bandflux_star
 
         self.obs.bandflux = bandflux
         return self.obs.bandflux
 
+
+    def band_contribution(self):
+        """
+        Compute contribution functions or transmittance at each band.
+        """
+        if self.obs.nfilters_hires != 0:
+            bands = self.obs.filters_hires
+        else:
+            bands = self.obs.filters
+        bands_idx = [band.idx for band in bands]
+        responses = [band.response for band in bands]
+
+        is_transmission = self.od.rt_path in pc.transmission_rt
+        if is_transmission:
+            contrib = ps.transmittance(self.od.depth, self.od.ideep)
+            if self.opacity.is_patchy:
+                patchy = self.opacity.fpatchy
+                depth = self.od.depth_clear
+                contrib_clear = ps.transmittance(depth, self.od.ideep_clear)
+                contrib = patchy*contrib + (1.0-patchy)*contrib_clear
+        else:
+            contrib = ps.contribution_function(
+                self.od.depth, self.atm.press, self.od.B,
+            )
+
+        cf = ps.band_cf(contrib, responses, self.spec.wn, bands_idx)
+        return cf
 
 
     def get_ec(self, layer):
@@ -617,59 +713,6 @@ class Pyrat():
         return None, []
 
 
-    def percentile_spectrum(self, nmax=None):
-        """Compute spectrum posterior percentiles."""
-        if self.ret.posterior is None:
-            print('pyrat objec does not have a posterior distribution.')
-            return
-
-        nsamples = np.shape(self.ret.posterior)[0]
-        draws = np.arange(nsamples)
-        if nmax is not None:
-            nmax = np.clip(nmax, 0, nsamples)
-            draws = np.random.choice(draws, nmax, replace=False)
-
-        # Unique MCMC samples:
-        u, uind, uinv = np.unique(self.ret.posterior[draws,0],
-            return_index=True, return_inverse=True)
-        print('Computing {:d} models.'.format(len(u)))
-
-        # Array of all model parameters (with unique samples)
-        posterior = np.repeat([self.ret.params], len(u), axis=0)
-        ifree = np.where(self.ret.pstep >0)[0]
-        posterior[:,ifree] = self.ret.posterior[uind]
-        # Need to keep FILE objects out of pool:
-        logfile, self.log.file = self.log.file, None
-        verb, self.log.verb = self.log.verb, -1
-
-        with mp.get_context('fork').Pool(self.ncpu) as pool:
-            models = pool.map(self.eval, posterior)
-        models = np.array([model for model, bandm in models])
-
-        self.log.file = logfile
-        self.log.verb = verb
-
-        nwave = len(self.spec.wn)
-        low1   = np.zeros(nwave)
-        low2   = np.zeros(nwave)
-        median = np.zeros(nwave)
-        high1  = np.zeros(nwave)
-        high2  = np.zeros(nwave)
-        for i in range(nwave):
-            msample = models[uinv,i]
-            low2[i]   = np.percentile(msample,  2.275)
-            low1[i]   = np.percentile(msample, 15.865)
-            median[i] = np.percentile(msample, 50.000)
-            high1[i]  = np.percentile(msample, 84.135)
-            high2[i]  = np.percentile(msample, 97.725)
-
-        self.ret.spec_median = median
-        self.ret.spec_low1 = low1
-        self.ret.spec_low2 = low2
-        self.ret.spec_high1 = high1
-        self.ret.spec_high2 = high2
-
-
     def plot_spectrum(self, spec='model', **kwargs):
         """
         Plot spectrum.
@@ -678,11 +721,9 @@ class Pyrat():
         ----------
         spec: String
             Flag indicating which model to plot.  By default plot the
-            latest evaulated model (spec='model').  Other options are
-            'best' or 'median' to plot the posterior best-fit or median
-            model, in which case, the code will plot the 1- and 2-sigma
-            boundaries if they have been computed (see
-            self.percentile_spectrum).
+            latest evaulated model (spec='model').  Another option is
+            'best', to plot the posterior best-fit (after a retrieval
+            posterior run).
         kwargs: dict
             Dictionary of arguments to pass into plots.spectrum().
             See help(pyratbay.plots.spectrum).
@@ -692,70 +733,68 @@ class Pyrat():
         ax: AxesSubplot instance
             The matplotlib Axes of the figure.
         """
+        obs = self.obs
         args = {
-            'wavelength': 1.0/(self.spec.wn*pc.um),
-            'data': self.obs.data,
-            'uncert': self.obs.uncert,
             'logxticks': self.inputs.logxticks,
             'yran': self.inputs.yran,
             'theme': self.ret._default_theme,
+            'data_color': self.inputs.data_color,
         }
 
-        obs = self.obs
-        if obs.nfilters > 0:
+        is_hires = obs.nfilters_hires > 0
+
+        if is_hires:
+            band_wl = np.array([band.wl0 for band in obs.filters_hires])
+            args['wavelength'] = band_wl
+            args['data'] = obs.data_hires
+            args['uncert'] = obs.uncert_hires
+            args['bands_wl0'] = band_wl
+            args['resolution'] = None
+            args['marker'] = '.'
+            args['data_front'] = False
+        else:
+            args['wavelength'] = self.spec.wl
+            args['data'] = obs.data
+            args['uncert'] = obs.uncert
             args['bands_wl0'] = [band.wl0 for band in obs.filters]
             args['bands_wl'] = [band.wl for band in obs.filters]
             args['bands_response'] = [band.response for band in obs.filters]
             args['bands_flux'] = obs.bandflux
-
-        if self.ret.spec_low2 is not None:
-            args['bounds'] = [
-                self.ret.spec_low2,  self.ret.spec_low1,
-                self.ret.spec_high1, self.ret.spec_high2,
-            ]
+            if self.obs.inst_resolution is not None:
+                args['resolution'] = self.obs.inst_resolution
+            args['marker'] = 'o'
+            args['data_front'] = True
 
         if spec == 'model':
             args['label'] = 'model'
-            spectrum = np.copy(self.spec.spectrum)
+            if is_hires:
+                args['spectrum'] = obs.bandflux_hires
+            else:
+                args['spectrum'] = self.spec.spectrum
+                args['bands_flux'] = obs.bandflux
         elif spec == 'best':
             args['label'] = 'best-fit model'
-            spectrum = np.copy(self.ret.spec_best)
-            args['bands_flux'] = self.ret.bestbandflux
-        elif spec == 'median':
-            args['label'] = 'median model'
-            spectrum = np.copy(self.ret.spec_median)
-            args['bands_flux'] = self.band_integrate(spectrum)
+            if is_hires:
+                args['spectrum'] = self.ret.bestbandflux
+            else:
+                args['spectrum'] = self.ret.spec_best
+                args['bands_flux'] = self.ret.bestbandflux
         else:
-            print(
-                "Invalid 'spec'.  Select from 'model' (default), 'best', "
-                "or 'median'."
-            )
             return
+
+        if self.od.rt_path == 'f_lambda':
+            args['rt_path'] = 'f_lambda'
+        elif self.od.rt_path in pc.transmission_rt:
+            args['rt_path'] = 'transit'
+        elif self.od.rt_path in pc.eclipse_rt:
+            args['rt_path'] = 'eclipse'
+        else:
+            args['rt_path'] = 'emission'
 
         # kwargs can overwite any of the previous value:
         args.update(kwargs)
 
-        is_eclipse = (
-            self.od.rt_path in pc.emission_rt and
-            self.spec.starflux is not None and
-            self.atm.rplanet is not None and
-            self.phy.rstar is not None
-        )
-
-        if self.od.rt_path in pc.transmission_rt:
-            args['rt_path'] = 'transit'
-        elif is_eclipse:
-            args['rt_path'] = 'eclipse'
-            rprs = self.atm.rplanet/self.phy.rstar
-            spectrum = spectrum/self.spec.starflux * rprs**2.0
-            if 'bounds' in args:
-                args['bounds'] = [
-                    bound/self.spec.starflux * rprs**2.0
-                    for bound in args['bounds']
-                ]
-        else:
-            args['rt_path'] = 'emission'
-        ax = pp.spectrum(spectrum, **args)
+        ax = pp.spectrum(**args)
         return ax
 
 

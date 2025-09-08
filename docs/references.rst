@@ -3,8 +3,6 @@
 References
 ==========
 
-.. .. [Asplund2009] `Asplund et al. (2009): The Chemical Composition of the Sun <https://ui.adsabs.harvard.edu/abs/2009ARA&A..47..481A>`_
-
 .. [Asplund2021] `Asplund et al. (2021): The chemical make-up of the Sun: A 2020 vision <https://ui.adsabs.harvard.edu/abs/2021A%26A...653A.141A>`_
 
 .. [Azzam2016] `Azzam et al. (2016): ExoMol molecular line lists - XVI. The rotation-vibration spectrum of hot H2S <https://ui.adsabs.harvard.edu/abs/2016MNRAS.460.4063A>`_
@@ -25,6 +23,8 @@ References
 
 .. [Bowesman2024] `Bowesman et al. (2024): ExoMol line lists - LV: hyperfine-resolved molecular line list for vanadium monoxide VO <https://ui.adsabs.harvard.edu/abs/2024MNRAS.529.1321B>`_
 
+.. [Buchner2014] `Buchner et al. (2014): X-ray spectral modelling of the AGN obscuring region in the CDFS: Bayesian model selection and catalogue <https://ui.adsabs.harvard.edu/abs/2014A&A...564A.125B>`_
+
 .. [Burrows2000] `Burrows et al. (2000): The Near-Infrared and Optical Spectra of Methane Dwarfs and Brown Dwarfs <http://ui.adsabs.harvard.edu/abs/2000ApJ...531..438B>`_
 
 .. [Castelli2003] `Castelli & Krucz (2003): New Grids of ATLAS9 Model Atmospheres <https://ui.adsabs.harvard.edu/abs/2003IAUS..210P.A20C>`_
@@ -35,6 +35,8 @@ References
 
 .. [Coles2019] `Coles et al. (2019): ExoMol molecular line lists - XXXV. A rotation-vibration line list for hot ammonia <https://ui.adsabs.harvard.edu/abs/2019MNRAS.490.4638C>`_
 
+.. [Coulombe2023] `Coulombe et al. (2023): A broadband thermal emission spectrum of the ultra-hot Jupiter WASP-18b <https://ui.adsabs.harvard.edu/abs/2023Natur.620..292C>`_
+
 .. [Cubillos2017a] `Cubillos et al. (2017): On Correlated-noise Analyses Applied to Exoplanet Light Curves <https://ui.adsabs.harvard.edu/abs/2017AJ....153....3C>`_
 
 .. [Cubillos2017b] `Cubillos (2017): An Algorithm to Compress Line-transition Data for Radiative-transfer Calculations <http://ui.adsabs.harvard.edu/abs/2017ApJ...850...32C>`_
@@ -42,6 +44,10 @@ References
 .. [CubillosBlecic2021] `Cubillos & Blecic (2021): The Pyrat-Bay Framework ifor Exoplanet Atmospheric Modeling: A Population Study of Hubble/WFC3 Transmission Spectra <https://ui.adsabs.harvard.edu/abs/2021MNRAS.505.2675C>`_
 
 .. [Dalgarno1962] `Dalgarno & Williams (1962): Rayleigh Scattering by Molecular Hydrogen <http://ui.adsabs.harvard.edu/abs/1962ApJ...136..690D>`_
+
+.. [Deline2025] `Deline et al. (2025): Dark skies of the slightly eccentric WASP-18 b from its optical-to-infrared dayside emission <https://ui.adsabs.harvard.edu/abs/2025A&A...699A.150D>`_
+
+.. [Feroz2009] `Feroz et al. (2009): MULTINEST: an efficient and robust Bayesian inference tool for cosmology and particle physics <https://ui.adsabs.harvard.edu/abs/2009MNRAS.398.1601F>`_
 
 .. [Gamache2017] `Gamache et al. (2017): Total internal partition sums for 166 isotopologues of 51 molecules important in planetary atmospheres: Application to HITRAN2016 and beyond <https://ui.adsabs.harvard.edu/abs/2017JQSRT.203...70G>`_
 
@@ -63,6 +69,8 @@ References
 
 .. [Huang2023] `Huang et al. (2023): AI-3000K Infrared Line List for Hot CO2 <https://ui.adsabs.harvard.edu/abs/2023JMoSp.39211748H>`_
 
+.. [Husser2013] `Husser et al. (2013): A new extensive library of PHOENIX stellar atmospheres and synthetic spectra <https://ui.adsabs.harvard.edu/abs/2013A&A...553A...6H>`_
+
 .. [Iro2005] `Iro et al. (2005): A time-dependent radiative model of HD 209458b <https://ui.adsabs.harvard.edu/abs/2005A&A...436..719I>`_
 
 .. [Jorgensen2000] `Jorgensen et al. (2000): The atmospheres of cool, helium-rich white dwarfs <https://ui.adsabs.harvard.edu/abs/2000A%26A...361..283J/abstract>`_
@@ -70,8 +78,6 @@ References
 .. [Karman2019] `Karman et al. (2019): Update of the HITRAN collision-induced absorption section <https://ui.adsabs.harvard.edu/abs/2019Icar..328..160K>`_
 
 .. [Kurucz1970] `Kurucz (1970): Atlas: a Computer Program for Calculating Model Stellar Atmospheres <http://ui.adsabs.harvard.edu/abs/1970SAOSR.309.....K>`_
-
-.. .. [Laraia2011] `Laraia et al. (2011): Total internal partition sums to support planetary remote sensing <http://ui.adsabs.harvard.edu/abs/2011Icar..215..391L>`_
 
 .. [Lecavelier2008] `Lecavelier des Etangs et al. (2008): Rayleigh Scattering in the Transit Spectrum of HD 189733b <http://ui.adsabs.harvard.edu/abs/2008A%26A...481L..83L>`_
 
@@ -90,11 +96,7 @@ References
 
 .. [Molliere2019] `Molliere et al. (2019): petitRADTRANS. A Python radiative transfer package for exoplanet characterization and retrieval <https://ui.adsabs.harvard.edu/abs/2019A&A...627A..67M>`_
 
-.. .. [PS1997] `Partridge & Schwenke (1997): The determination of an accurate isotope dependent potential energy surface for water from extensive ab initio calculations and experimental data <http://ui.adsabs.harvard.edu/abs/1997JChPh.106.4618P>`_
-
 .. [Piskunov1995] `Piskunov et al. (1995): VALD: The Vienna Atomic Line Data Base. <https://ui.adsabs.harvard.edu/abs/1995A&AS..112..525P>`_
-
-.. .. [Plez1998] `Plez (1998): A new TiO line list <http://ui.adsabs.harvard.edu/abs/1998A%26A...337..495P>`_
 
 .. [Polyansky2018] `Polyansky et al. (2018): ExoMol molecular line lists XXX: a complete high-accuracy line list for water <https://ui.adsabs.harvard.edu/abs/2018MNRAS.480.2597P>`_
 
@@ -104,9 +106,7 @@ References
 
 .. [Rothman2010] `Rothman et al. (2010): HITEMP, the high-temperature molecular spectroscopic database <http://ui.adsabs.harvard.edu/abs/2010JQSRT.111.2139R>`_
 
-.. .. [Rothman2013] `Rothman et al. (2013): The HITRAN2012 molecular spectroscopic database <http://ui.adsabs.harvard.edu/abs/2013JQSRT.130....4R>`_
-
-.. .. [Schwenke1998] `Schwenke (19988): Opacity of TiO from a coupled electronic state calculation parametrized by AB initio and experimental data <http://ui.adsabs.harvard.edu/abs/1998FaDi..109..321S>`_
+.. [Sheppard2017] `Sheppard et al. (2017): Evidence for a Dayside Thermal Inversion and High Metallicity for the Hot Jupiter WASP-18b <https://ui.adsabs.harvard.edu/abs/2017ApJ...850L..32S>`_
 
 .. [Taylor2020] `Taylor et al. (2020): Understanding and mitigating biases when studying inhomogeneous emission spectra with JWST <https://ui.adsabs.harvard.edu/abs/2020MNRAS.493.4342T>`_
 

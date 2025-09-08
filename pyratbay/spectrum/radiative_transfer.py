@@ -1,7 +1,9 @@
-# Copyright (c) 2021-2023 Patricio Cubillos
+# Copyright (c) 2021-2025 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
+    'transmission',
+    'plane_parallel_rt',
     'radiative_equilibrium',
 ]
 
@@ -9,10 +11,131 @@ import time
 
 import numpy as np
 from scipy.ndimage import gaussian_filter1d as gaussf
+import scipy.interpolate as si
 
 from .. import constants as pc
 from .. import tools as pt
 from . import convection as ps
+from ..lib import _trapezoid as t
+from .blackbody import blackbody_wn
+
+
+def transmission(
+        depth, radius, rstar, ideep=None, atm_itop=0,
+        deck_rsurf=None, deck_itop=None,
+    ):
+    """
+    Compute a transmission spectrum for transit geometry
+
+    Parameters
+    ----------
+    depth: 2D float array
+        Optical depth at each layer and wavelength channel [nlayers,nwave].
+        Atmospheric layers are sorted from top to bottom (i.e.,
+        depth[0] is the top-most layer)
+    radius: 1D float array
+        Radius profile of atmospheric layers (cm)
+    rstar: Float
+        Stellar radius (cm).
+    ideep: 1D integer array
+        Index of the 'bottom' of the atmosphere at each wavelength,
+        from which to start the integration (e.g., at optically thick regime)
+    atm_itop: Integer
+        Index of the top of the atmosphere (to integrate only up to the layer)
+    cloud_rsurf: Float
+        If not None, the radius (cm) of an opaque cloud deck, which
+        becomes the bottom integration boundary.
+    cloud_itop: Integer
+        If not None, index of the atmosphere layer right below the
+        opaque cloud deck.
+
+    Returns
+    -------
+    spectrum: 1D float array
+        The transmission spectrum.
+    """
+    nlayers = ideep - atm_itop + 1
+
+    # Get Delta radius (and integration variables):
+    h = np.ediff1d(radius[atm_itop:])
+    integ = np.exp(-depth[atm_itop:]) * np.expand_dims(radius[atm_itop:],1)
+
+    # Replace (by interpolating) last layer with cloud top:
+    if deck_rsurf is not None and deck_itop > atm_itop:
+        h[deck_itop-atm_itop-1] = deck_rsurf - radius[deck_itop-1]
+        f_interp = si.interp1d(radius[atm_itop:], integ, axis=0)
+        integ[deck_itop-atm_itop] = f_interp(deck_rsurf)
+
+    # Number of layers for integration at each wavelength:
+    spectrum = t.trapezoid2D(integ, h, nlayers-1)
+    spectrum = (radius[atm_itop]**2 + 2*spectrum) / rstar**2
+
+    return spectrum
+
+
+def plane_parallel_rt(
+        depth, blackbody, wn, quadrature_mu, quadrature_weights=None,
+        ideep=None, atm_itop=0,
+        cloud_tsurf=None, cloud_itop=None,
+    ):
+    """
+    Compute the intensity (and optionally flux) spectra under
+    plane-parallel geometry for a range of slant angles
+
+    Parameters
+    ----------
+    depth: 2D float array
+        Optical depth at each layer and wavelength channel [nlayers,nwave].
+        Atmospheric layers are sorted from top to bottom (i.e.,
+        depth[0] is the top-most layer)
+    blackbody: 2D float array
+        Plank fuction evaluated at each layer and wavelength channel
+        (same shape as depth).
+    wn: 1D float array
+        Wavenumber array (cm-1).
+    quadrature_mu: 1D float array
+        Cosine of the slant-path angles repect to the normal.
+    quadrature_weights: 1D float array
+        Weights for each quadrature_mu.  If given, compute and return the
+        Gaussian-quadrature integral of the intensity over mu (i.e., flux)
+    ideep: 1D integer array
+        Index of the 'bottom' of the atmosphere at each wavelength,
+        from which to start the integration.
+    atm_itop: Integer
+        Index of the top of the atmosphere (to integrate only up to the layer)
+    cloud_tsurf: Float
+        If not None, the temperature at cloud_itop, an opaque cloud
+        deck that becomes the bottom integration boundary.
+    cloud_itop: Integer
+        If not None, index of the atmosphere layer right below an
+        opaque cloud deck.
+
+    Returns
+    -------
+    intensity: 2D float array
+        The intensity spectra at each angle mu (erg s-1 cm-2 cm sr-1).
+    flux: 1D float array [optional]
+        The flux spectrum of the integrated intensities (erg s-1 cm-2 cm).
+        (typically, a day-side integrated via the Gaussian-quadrature)
+    """
+    if ideep is None:
+        nlayers, nwave = depth.shape
+        ideep = np.tile(nlayers-1, nwave)
+
+    if cloud_tsurf is not None:
+        blackbody[cloud_itop] = blackbody_wn(wn, cloud_tsurf)
+        ideep = np.clip(ideep, 0, cloud_itop)
+
+    # Plane-parallel intensity integration
+    intensity = t.intensity(
+        depth, ideep, blackbody, quadrature_mu, atm_itop,
+    )
+
+    # Flux integral using Gaussian quadrature
+    if quadrature_weights is not None:
+        flux = np.sum(intensity * quadrature_weights, axis=0)
+        return intensity, flux
+    return intensity
 
 
 def radiative_equilibrium(

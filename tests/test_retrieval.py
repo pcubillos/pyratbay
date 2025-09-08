@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2024 Patricio Cubillos
+# Copyright (c) 2021-2025 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import os
@@ -254,8 +254,8 @@ def test_eval_uncert_scaling_no_data(tmp_path):
         pyrat = pb.run(cfg)
 
 
-# Short run will trigger warning when evaluating GR tests, ignore it.
 @pytest.mark.filterwarnings("ignore: divide by zero encountered")
+@pytest.mark.filterwarnings("ignore: Attempting to set identical low and high")
 def test_mcmc_transmission(tmp_path):
     cfg = make_config(
         tmp_path,

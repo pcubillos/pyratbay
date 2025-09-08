@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Patricio Cubillos
+# Copyright (c) 2021-2025 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import itertools
@@ -54,8 +54,13 @@ def undefined_mcmc():
     data = {
         'params': 'Undefined retrieval fitting parameters (params)',
         'data':   'Undefined transit/eclipse data (data)',
-        'uncert': 'Undefined data uncertainties (uncert)',
-        'filters': 'Undefined transmission filters (filters)',
+        'uncert': 'Undefined data uncertainties',
+        'filters': 'Undefined transmission filters',
+        #'data_hires': 'Undefined transit/eclipse data (data)',
+        #'uncert_hires': 'Undefined data uncertainties',
+        #'filters_hires': 'Undefined transmission filters',
+        'retrieval_params':
+            'Undefined retrieval fitting parameters (retrieval_params)',
         'sampler': 'Undefined retrieval algorithm (sampler).  Select '
                    "from ['snooker', 'multinest']",
         'nsamples': 'Undefined number of retrieval samples (nsamples)',
@@ -88,7 +93,6 @@ def invalid_file():
         'atmfile':  'Atmospheric file (atmfile) does not exist',
         'tlifile':  'TLI file (tlifile) does not exist',
         'specfile': 'Spectrum file (specfile) does not exist',
-        'mcmcfile': 'MCMC file (mcmcfile) does not exist',
         'extfile':  'Extinction-coefficient file (extfile) does not exist',
         'ptfile':   'Pressure-temperature file (ptfile) does not exist',
         'logfile':  'Log file (logfile) does not exist',
@@ -99,7 +103,7 @@ def invalid_file():
         'filters':  'Filter pass-bands file (filters) does not exist',
         'dblist':   'Opacity database file (dblist) does not exist',
         'molfile':  'Molecular data file (molfile) does not exist',
-        'csfile':   'Cross-section file (csfile) does not exist',
+        'continuum_cross_sec': 'Continuum cross-section file (continuum_cross_sec) does not exist',
     }
     return data
 
@@ -110,8 +114,7 @@ def invalid_path():
         'output_atmfile':  'Folder for Atmospheric file (output_atmfile) does not exist',
         'tlifile':  'Folder for TLI file (tlifile) does not exist',
         'specfile': 'Folder for Spectrum file (specfile) does not exist',
-        'mcmcfile': 'Folder for Retrieval file (mcmcfile) does not exist',
-        'extfile':  'Folder for Extinction-coefficient file (extfile) does '
+        'sampled_cross_sec':  'Folder for sampled cross-section file (sampled_cross_sec) does '
                     'not exist',
         'ptfile':   'Folder for Pressure-temperature file (ptfile) does '
                     'not exist',
@@ -123,9 +126,9 @@ def invalid_path():
 @pytest.fixture
 def invalid_temp():
     data = {
-        'csfile':  'One or more input temperature values lies out of '
-                   'the cross-section\ntemperature boundaries '
-                   '(K): [  60.0, 3000.0].',
+        'sampled_cross_sec':
+            'One or more input temperature values lies out of the continuum '
+            'cross-section\ntemperature boundaries (K): [  60.0, 3000.0].',
         'tlifile': 'One or more input temperature values lies out of '
                    'the line-transition\ntemperature boundaries '
                    '(K): [   1.0, 5000.0]',

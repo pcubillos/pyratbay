@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2024 Patricio Cubillos
+# Copyright (c) 2021-2025 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -19,7 +19,6 @@ import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.colors import is_color_like, to_rgb, to_rgba
 import numpy as np
-from scipy.ndimage import gaussian_filter1d as gaussf
 import mc3.plots as mp
 
 from .. import constants as pc
@@ -95,9 +94,10 @@ def spectrum(
     data=None, uncert=None,
     bands_wl0=None, bands_flux=None, bands_response=None, bands_wl=None,
     label='model', bounds=None, logxticks=None,
-    resolution=150.0, gaussbin=2.0,
+    resolution=150.0,
     yran=None, filename=None, fignum=501, axis=None,
-    ms=5.0, lw=1.25, fs=14, units=None, dpi=300, theme=None,
+    marker='o', ms=5.0, lw=1.25, fs=14, data_front=True,
+    units=None, dpi=300, theme=None, data_color='black',
     ):
     """
     Plot a transmission or emission model spectrum with (optional) data
@@ -134,9 +134,6 @@ def spectrum(
         the X-axis ticks at the locations given by logxticks.
     resolution: Float
         Binning resolution to display the spectra.
-        If None, use gaussbin instead.
-    gaussbin: Integer
-        Standard deviation for Gaussian-kernel smoothing (in number of samples).
     yran: 1D float ndarray
         Figure's Y-axis boundaries.
     filename: String
@@ -151,6 +148,8 @@ def spectrum(
         Line widths.
     fs: Float
         Font sizes.
+    data_front: Bool
+        display the data in front of models
     units: String
         Flux units. Select from: 'percent', 'ppt', 'ppm', 'none'.
     dpi: Integer
@@ -188,7 +187,9 @@ def spectrum(
     # Setup according to geometry:
     if rt_path == 'emission':
         ylabel = r'$F_{\rm p}$ (erg s$^{-1}$ cm$^{-2}$ cm)'
-    if rt_path == 'eclipse':
+    elif rt_path == 'f_lambda':
+        ylabel = r'$F_{\rm p}$ (W m$^{-2}$ $\mathrm{\mu}$m$^{-1}$)'
+    elif rt_path == 'eclipse':
         ylabel = fr'$F_{{\rm p}}/F_{{\rm s}}$ {str_units}'
     elif rt_path == 'transit':
         ylabel = fr'$(R_{{\rm p}}/R_{{\rm s}})^2$ {str_units}'
@@ -206,9 +207,9 @@ def spectrum(
             ]
     else:
         bin_wl = wavelength
-        bin_model = gaussf(spectrum, gaussbin)
+        bin_model = spectrum
         if bounds is not None:
-            bin_bounds = [gaussf(bound, gaussbin) for bound in bounds]
+            bin_bounds = bounds
 
 
     # The plot
@@ -224,28 +225,33 @@ def spectrum(
         ax.fill_between(
             bin_wl, flux_scale*bin_bounds[2], flux_scale*bin_bounds[3],
             facecolor=theme.light_color, edgecolor='none', alpha=0.5,
+            zorder=1,
         )
         ax.fill_between(
             bin_wl, flux_scale*bin_bounds[0], flux_scale*bin_bounds[1],
             facecolor=theme.light_color, edgecolor='none', alpha=0.75,
+            zorder=2,
         )
     plt.plot(
-        bin_wl, bin_model*flux_scale, lw=lw, color=theme.color, label=label
+        bin_wl, bin_model*flux_scale, lw=lw, color=theme.color, label=label,
+        zorder=3,
     )
     # Plot band-integrated model:
     if bands_flux is not None and bands_wl0 is not None:
         plt.plot(
             bands_wl0, bands_flux*flux_scale,
             ls='', marker='o', ms=ms, mew=lw,
-            color=theme.color, mec=theme.dark_color,
+            color=theme.color, mec=theme.dark_color, zorder=4,
         )
     # Plot data:
+    zorder = 5 if data_front else -1
+    ecolor = alphatize(data_color, alpha=0.85)
     if data is not None and uncert is not None and bands_wl0 is not None:
         plt.errorbar(
             bands_wl0, data*flux_scale, uncert*flux_scale,
-            fmt='o', label='data',
-            mfc='0.45', mec='black', ecolor='0.2',
-            ms=ms, elinewidth=lw, capthick=lw, zorder=3,
+            fmt=marker, label='data',
+            mfc=(1,1,1,0.85), mec=data_color, ecolor=ecolor,
+            ms=ms, elinewidth=lw, capthick=lw, zorder=zorder,
         )
 
     if yran is not None:
@@ -279,7 +285,8 @@ def spectrum(
     ax.tick_params(
         which='both', right=True, top=True, direction='in', labelsize=fs-2,
     )
-    ax.set_xlabel('Wavelength (um)', fontsize=fs)
+    ax.set_xlabel(r'Wavelength ($\mathrm{\mu}$m)', fontsize=fs)
+
     ax.set_ylabel(ylabel, fontsize=fs)
     ax.legend(loc='best', numpoints=1, fontsize=fs-1)
     ax.set_xlim(xmin, xmax)
@@ -339,7 +346,7 @@ def contribution(
     if filters is not None:
         filters = [filters[i] for i in wlsort]
 
-    is_emission = rt_path in pc.emission_rt
+    is_emission = rt_path in pc.emission_rt or rt_path in pc.eclipse_rt
     is_transit = rt_path in pc.transmission_rt
 
     p_ranges = np.amax(pressure), np.amin(pressure)
@@ -536,17 +543,17 @@ def temperature(
         )
 
     for profile, color, label in zip(profiles, colors, _labels):
-        plt.plot(profile, pressure, color=color, lw=lw, label=label)
+        ax.plot(profile, pressure, color=color, lw=lw, label=label)
 
     ax.set_ylim(np.amax(pressure), np.amin(pressure))
     ax.set_yscale('log')
-    plt.xlabel('Temperature (K)', fontsize=fs)
-    plt.ylabel('Pressure (bar)', fontsize=fs)
+    ax.set_xlabel('Temperature (K)', fontsize=fs)
+    ax.set_ylabel('Pressure (bar)', fontsize=fs)
     ax.tick_params(
         which='both', right=True, top=True, direction='in', labelsize=fs-2,
     )
     if labels is not None:
-        plt.legend(loc='best', fontsize=fs-2)
+        ax.legend(loc='best', fontsize=fs-2)
     if tighten:
         plt.tight_layout()
     if filename is not None:
@@ -710,7 +717,8 @@ def abundance(
 
 
 def posteriors(
-        post_file, theme='blue', plot_species=None, vmr_lims=None,
+        post_file, theme='blue', data_color='black',
+        plot_species=None, vmr_lims=None,
         logxticks=None, dpi=300,
     ):
     """
@@ -725,6 +733,8 @@ def posteriors(
         values of interest.
     theme: string or mc3.plots.Theme object
         A color theme for the models.
+    data_color: a valid matplotlib color
+        The color for the spectrum data points.
     plot_species: 1D string iterable
         List of species to plot in VMR figure.
         If None, default to the species in post_data['active_species'],
@@ -762,7 +772,7 @@ def posteriors(
     cf_median = post_data['cf_posterior_median']
     contribution(
         cf_median, band_wl, post_data['path'],
-        pressure, filename=f'{root}_median_cf.png'
+        pressure, filename=f'{root}_posterior_contributions.png'
     )
 
 
@@ -774,9 +784,9 @@ def posteriors(
     ax = temperature(
         pressure,
         profiles=(tpost[0],),
-        labels=['median', 'best-fit'],
+        labels=['median'],
         theme=theme.color,
-        colors=[theme.dark_color, 'black'],
+        colors=[theme.dark_color],
         bounds=tpost[1:],
         fs=fs,
     )
@@ -798,7 +808,7 @@ def posteriors(
         [dx, dx], [1.0, 1.015], lw=0.75, c='k',
         clip_on=False, transform=ax.transAxes,
     )
-    plt.savefig(f'{root}_temperature_posteriors.png', dpi=dpi)
+    plt.savefig(f'{root}_posterior_temperature.png', dpi=dpi)
 
 
     # Volume mixing ratios
@@ -881,7 +891,7 @@ def posteriors(
         [dx, dx], [1.0, 1.015], lw=0.75, c='k',
         clip_on=False, transform=ax.transAxes,
     )
-    plt.savefig(f"{root}_vmr_posterior.png", dpi=dpi)
+    plt.savefig(f"{root}_posterior_vmr.png", dpi=dpi)
 
     for j in range(nmol_show):
         spec = plot_species[j]
@@ -890,29 +900,61 @@ def posteriors(
             pressure, post_vmr[2,:,j], post_vmr[3,:,j],
             color=col, alpha=0.125, ec='none', zorder=zorder[j]-nmol_show,
         )
-    plt.savefig(f"{root}_vmr_posterior_2sigma.png", dpi=300)
+    plt.savefig(f"{root}_posterior_vmr_2sigma.png", dpi=300)
 
 
     # Spectrum
-    depth_posterior = post_data['depth_posterior']
-    args = {}
-    args['wavelength'] = post_data['wl']
-    args['data'] = post_data['data']
-    args['uncert'] = post_data['uncert']
-    args['units'] = post_data['units']['depth']
-    args['logxticks'] = logxticks
-    args['bands_wl0'] = band_wl
-    args['bands_wl'] = post_data['bands_wl']
-    args['bands_response'] = post_data['bands_response']
-    args['bounds'] = depth_posterior[1:]
-    args['label'] = 'median model'
     if post_data['path'] in pc.transmission_rt:
-        args['rt_path'] = 'transit'
+        path = 'transit'
+    elif post_data['path'] == 'f_lambda':
+        path = post_data['path']
     elif post_data['path'] in pc.emission_rt:
-        args['rt_path'] = 'eclipse'
-    args['spectrum'] = np.copy(depth_posterior[0])
-    args['resolution'] = 125.0
+        path = 'emission'
+    elif post_data['path'] in pc.eclipse_rt:
+        path = 'eclipse'
+
+    # Low-resolution data
+    if 'data' in post_data:
+        if post_data['path'] == 'f_lambda':  # if emission
+            depth_posterior = post_data['flux_posterior']
+        else:
+            depth_posterior = post_data['depth_posterior']
+        wavelength = post_data['wl']
+        bands_response = post_data['bands_response']
+        data = post_data['data']
+        uncert = post_data['uncert']
+        resolution = 125.0
+        marker = 'o'
+        data_front = True
+    # High-resolution data
+    elif 'data_hires' in post_data:
+        depth_posterior = post_data['band_models_posterior']
+        wavelength = post_data['band_wl']
+        bands_response = None
+        data = post_data['data_hires']
+        uncert = post_data['uncert_hires']
+        resolution = None
+        marker = '.'
+        data_front = False
+
+    args = {}
+    args['spectrum'] = depth_posterior[0]
+    args['bounds'] = depth_posterior[1:]
+    args['wavelength'] = wavelength
+    args['rt_path'] = path
+    args['units'] = post_data['units']['depth']
+    args['data'] = data
+    args['uncert'] = uncert
+    args['bands_wl0'] = post_data['band_wl']
+    args['bands_wl'] = post_data['bands_wl']
+    args['bands_response'] = bands_response
+    args['label'] = 'median model'
+    args['resolution'] = resolution
+    args['marker'] = marker
+    args['data_front'] = data_front
+    args['logxticks'] = logxticks
     args['theme'] = theme
-    args['filename'] = f"{root}_spectrum_posterior.png"
+    args['data_color'] = data_color
+    args['filename'] = f"{root}_posterior_spectrum.png"
     ax = spectrum(**args)
 

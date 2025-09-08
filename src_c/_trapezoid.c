@@ -1,4 +1,4 @@
-// Copyright (c) 2021 Patricio Cubillos
+// Copyright (c) 2021-2025 Patricio Cubillos
 // Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 #include <Python.h>
@@ -9,7 +9,7 @@
 #include "utils.h"
 
 
-PyDoc_STRVAR(trapz__doc__,
+PyDoc_STRVAR(trapezoid__doc__,
 "Integrate the data array using the trapezoidal rule.       \n\
                                                             \n\
 Parameters                                                  \n\
@@ -25,7 +25,7 @@ res: double                                                 \n\
     The integral of data over the given intervals.          \n\
 ");
 
-static PyObject *trapz(PyObject *self, PyObject *args){
+static PyObject *trapezoid(PyObject *self, PyObject *args){
     PyArrayObject *data, *intervals;
     int i, nint;
     double res=0;
@@ -33,10 +33,10 @@ static PyObject *trapz(PyObject *self, PyObject *args){
     if (!PyArg_ParseTuple(args, "OO", &data, &intervals))
         return NULL;
 
-    /* Get the number of intervals: */
+    // Get the number of intervals
     nint = (int)PyArray_DIM(intervals, 0);
 
-    /* Empty array case: */
+    // Empty array case
     if (nint < 1){
         return Py_BuildValue("d", 0.0);
     }
@@ -48,7 +48,7 @@ static PyObject *trapz(PyObject *self, PyObject *args){
 }
 
 
-PyDoc_STRVAR(trapz2D__doc__,
+PyDoc_STRVAR(trapezoid2D__doc__,
 "Integrate the data array using the trapezoidal rule.       \n\
                                                             \n\
 Parameters                                                  \n\
@@ -67,7 +67,7 @@ integ: 1D double ndarray                                    \n\
 ");
 
 
-static PyObject *trapz2D(PyObject *self, PyObject *args){
+static PyObject *trapezoid2D(PyObject *self, PyObject *args){
     PyArrayObject *data, *intervals, *nint, *integ;
     int i, j, nwave;
     npy_intp dims[1];
@@ -90,7 +90,7 @@ static PyObject *trapz2D(PyObject *self, PyObject *args){
 }
 
 
-PyDoc_STRVAR(cumtrapz__doc__,
+PyDoc_STRVAR(cumulative_sum__doc__,
 "Calculate the cumulative integral of a data array using the    \n\
 trapezoidal-rule.  Stop calculation if it reaches the threshold.\n\
                                                                 \n\
@@ -111,36 +111,105 @@ ind: integer                                                    \n\
    The index where the integration stopped.                     \n\
 ");
 
-static PyObject *cumtrapz(PyObject *self, PyObject *args){
-  PyArrayObject *output, *data, *intervals;
-  int i, nint;       /* Auxilliary for-loop indices                         */
-  double threshold;
+static PyObject *cumulative_sum(PyObject *self, PyObject *args){
+    PyArrayObject *output, *data, *intervals;
+    int i, nint;
+    double threshold;
 
-  /* Load inputs:                                                           */
-  if (!PyArg_ParseTuple(args, "OOOd", &output, &data, &intervals,
-                                      &threshold))
-    return NULL;
+    // Load inputs
+    if (!PyArg_ParseTuple(
+            args,
+            "OOOd",
+            &output, &data, &intervals, &threshold
+    ))
+        return NULL;
 
-  /* Get the number of intervals:                                           */
-  nint = (int)PyArray_DIM(intervals, 0);
+    // Get the number of intervals
+    nint = (int)PyArray_DIM(intervals, 0);
 
-  /* First value is zero (zero-length interval):                            */
-  INDd(output,0) = 0.0;
-  /* Empty array case:                                                      */
-  if (nint < 1){
-    return Py_BuildValue("i", 0);
-  }
-
-  for (i=0; i<nint; i++){
-    /* Integrate each interval:                                             */
-    INDd(output, (i+1)) = INDd(output,i) +
-            0.5*INDd(intervals,i) * (INDd(data,(i+1)) + INDd(data,i));
-    /* If it reached the threshold, stop:                                   */
-    if (INDd(output,(i+1)) >= threshold){
-      return Py_BuildValue("i", (i+1));
+    // First value is zero (zero-length interval)
+    INDd(output,0) = 0.0;
+    // Empty array case
+    if (nint < 1){
+        return Py_BuildValue("i", 0);
     }
-  }
-  return Py_BuildValue("i", nint);
+
+    for (i=0; i<nint; i++){
+        INDd(output, (i+1)) =
+            INDd(output,i)
+            + 0.5*INDd(intervals,i) * (INDd(data,(i+1)) + INDd(data,i));
+        // If it reached the threshold, stop
+        if (INDd(output,(i+1)) >= threshold){
+            return Py_BuildValue("i", (i+1));
+        }
+    }
+    return Py_BuildValue("i", nint);
+}
+
+
+PyDoc_STRVAR(plane_parallel_optical_depth__doc__,
+"Integrate the extinction across a plane-parallel atmosphere into     \n\
+the optical depth using the trapezoidal rule. The calculation can    \n\
+be set to stop after a maxdepth value, or restriect between itop     \n\
+or ibottom layer indices.                                            \n\
+                                                                     \n\
+Parameters                                                           \n\
+----------                                                           \n\
+depth: 2D double ndarray                                             \n\
+    Output optical depth to calculate[nlayers,nwave].                \n\
+ideep: 1D integer array                                              \n\
+    Layer-index where the integration stopped for each wavelength channel.\n\
+extinction: 2D double ndarray                                   \n\
+    Extinction coefficient to integrate into optical depth      \n\
+intervals: 1D double ndarray                                    \n\
+    Intervals between the data samples (X-axis).                \n\
+maxdepth: double                                                \n\
+    Maximum depth threshold value to integrate.                 \n\
+itop: integer                                                   \n\
+    Top-layer index where to start integrating.                 \n\
+    Optical depth is zero above this layer.                     \n\
+ibottom: integer                                                \n\
+    Bottom-layer index where to stop integrating.               \n\
+");
+
+static PyObject *plane_parallel_optical_depth(PyObject *self, PyObject *args){
+    PyArrayObject *depth, *extinction, *intervals, *ideep;
+    int i, k, itop, ibottom;
+    double maxdepth;
+    double sum;
+
+    // Load inputs
+    if (!PyArg_ParseTuple(
+            args,
+            "OOOOdii",
+            &depth, &ideep, &extinction, &intervals, &maxdepth, &itop, &ibottom
+    ))
+        return NULL;
+
+    // Get the number of intervals
+    npy_intp nlayers = PyArray_DIM(depth, 0);
+    npy_intp nwave = PyArray_DIM(depth, 1);
+
+    for (i=0; i<nwave; i++){
+        sum = 0.0;
+        // First value is zero (zero-length interval)
+        for (k=0; k<nlayers; k++){
+            if (k <= itop){
+                IND2d(depth,k,i) = 0.0;
+                continue;
+            }
+            sum += 0.5*INDd(intervals,(k-1)) *
+                (IND2d(extinction,k,i) + IND2d(extinction,(k-1),i));
+            IND2d(depth,k,i) = sum;
+
+            // Stop if it reached threshold or cloud-top, or bottom
+            if (IND2d(depth,k,i) >= maxdepth || k==ibottom || k==nlayers-1){
+                break;
+            }
+        }
+        INDi(ideep,i) = k;
+    }
+    Py_RETURN_NONE;
 }
 
 
@@ -172,12 +241,15 @@ static PyObject *optdepth(PyObject *self, PyObject *args){
     double taumax;
     npy_intp dims[1];
 
-    /* Load inputs: */
-    if (!PyArg_ParseTuple(args, "OOdOi",
-                          &data, &intervals, &taumax, &ideep, &ilay))
+    // Load inputs
+    if (!PyArg_ParseTuple(
+        args,
+        "OOdOi",
+        &data, &intervals, &taumax, &ideep, &ilay
+    ))
         return NULL;
 
-    /* Get the number of intervals: */
+    // Get the number of intervals
     nint  = (int)PyArray_DIM(intervals, 0);
     nwave = (int)PyArray_DIM(data, 1);
 
@@ -192,8 +264,8 @@ static PyObject *optdepth(PyObject *self, PyObject *args){
                 INDd(tau,j) += INDd(intervals,i)
                                * (IND2d(data,(i+1),j) + IND2d(data,i,j));
             }
-            /* I should now divide by two, but optical depth in   */
-            /* transmission is twice the integral just calculated */
+            // I should now divide by two, but optical depth in
+            // transmission is twice the integral just calculated
             if (INDd(tau,j) > taumax){
                 INDi(ideep,j) = (int)ilay;
             }
@@ -230,74 +302,78 @@ intensity: 2D double ndarray                                           \n\
 ");
 
 static PyObject *intensity(PyObject *self, PyObject *args){
-  PyArrayObject *tau, *ideep, *bbody, *mu, *intensity, *dtau;
-  int j, k, nwave, ntheta, rtop, last;
-  double taumax;
-  npy_intp idims[2], tdims[1];
+    PyArrayObject *tau, *ideep, *bbody, *mu, *intensity, *dtau;
+    int j, k, nwave, ntheta, rtop, last;
+    double taumax;
+    npy_intp idims[2], tdims[1];
 
-  /* Load inputs:                                                           */
-  if (!PyArg_ParseTuple(args, "OOOOi", &tau, &ideep, &bbody, &mu, &rtop))
-    return NULL;
+    // Load inputs
+    if (!PyArg_ParseTuple(args, "OOOOi", &tau, &ideep, &bbody, &mu, &rtop))
+        return NULL;
 
-  tdims[0] =          (int)PyArray_DIM(tau, 0);
-  idims[1] = nwave  = (int)PyArray_DIM(tau, 1);
-  idims[0] = ntheta = (int)PyArray_DIM(mu,  0);
+    tdims[0] = (int)PyArray_DIM(tau, 0);
+    idims[1] = nwave  = (int)PyArray_DIM(tau, 1);
+    idims[0] = ntheta = (int)PyArray_DIM(mu, 0);
 
-  intensity = (PyArrayObject *) PyArray_SimpleNew(2, idims, NPY_DOUBLE);
-  dtau      = (PyArrayObject *) PyArray_SimpleNew(1, tdims, NPY_DOUBLE);
+    intensity = (PyArrayObject *) PyArray_SimpleNew(2, idims, NPY_DOUBLE);
+    dtau      = (PyArrayObject *) PyArray_SimpleNew(1, tdims, NPY_DOUBLE);
 
-  for (j=0; j<nwave; j++){
-    last   = INDi(ideep, j);
-    taumax = IND2d(tau,last,j);
+    for (j=0; j<nwave; j++){
+        last = INDi(ideep, j);
+        taumax = IND2d(tau,last,j);
 
-    for (k=0; k<ntheta; k++){
-      if (last-rtop == 1){
-        IND2d(intensity,k,j) = IND2d(bbody,last,j);
-      }else{
-        /* Integral step: dtau = delta exp(-tau/mu)      */
-        tdiff(dtau, tau, INDd(mu,k), rtop, last, j);
-        /* Intensity trapezoidal integration:            */
-        IND2d(intensity,k,j) = IND2d(bbody,last,j)*exp(-taumax/INDd(mu,k))
-                               - itrapz(bbody, dtau, rtop, last, j);
-      }
+        for (k=0; k<ntheta; k++){
+            if (last-rtop == 1){
+                IND2d(intensity,k,j) = IND2d(bbody,last,j);
+            }else{
+                // Integral step: dtau = delta exp(-tau/mu)
+                tdiff(dtau, tau, INDd(mu,k), rtop, last, j);
+                // Intensity trapezoidal integration
+                IND2d(intensity,k,j) =
+                    IND2d(bbody,last,j)*exp(-taumax/INDd(mu,k))
+                    - itrapezoid(bbody, dtau, rtop, last, j);
+            }
+        }
     }
-  }
 
-  Py_DECREF(dtau);
-  return Py_BuildValue("N", intensity);
+    Py_DECREF(dtau);
+    return Py_BuildValue("N", intensity);
 }
 
 
-/* The module doc string                                                    */
-PyDoc_STRVAR(trapzmod__doc__,
-   "Python wrapper for trapezoidal-rule integration.");
+// The module doc string
+PyDoc_STRVAR(
+    trapezoidmod__doc__,
+    "Python wrapper for trapezoidal-rule integration."
+);
 
 
-/* A list of all the methods defined by this module.                        */
-static PyMethodDef trapz_methods[] = {
-    {"trapz",     trapz,      METH_VARARGS, trapz__doc__},
-    {"trapz2D",   trapz2D,    METH_VARARGS, trapz2D__doc__},
-    {"cumtrapz",  cumtrapz,   METH_VARARGS, cumtrapz__doc__},
+// Lst of all the methods defined by this module
+static PyMethodDef trapezoid_methods[] = {
+    {"trapezoid",     trapezoid,      METH_VARARGS, trapezoid__doc__},
+    {"trapezoid2D",   trapezoid2D,    METH_VARARGS, trapezoid2D__doc__},
+    {"cumulative_sum",  cumulative_sum,   METH_VARARGS, cumulative_sum__doc__},
+    {"plane_parallel_optical_depth", plane_parallel_optical_depth, METH_VARARGS, plane_parallel_optical_depth__doc__},
     {"optdepth",  optdepth,   METH_VARARGS, optdepth__doc__},
     {"intensity", intensity,  METH_VARARGS, intensity__doc__},
-    {NULL,        NULL,       0,            NULL}    /* sentinel            */
+    {NULL, NULL, 0, NULL}    // sentinel
 };
 
 
-/* Module definition for Python 3.                                          */
+// Module definition for Python 3
 static struct PyModuleDef moduledef = {
     PyModuleDef_HEAD_INIT,
-    "_trapz",
-    trapzmod__doc__,
+    "_trapezoid",
+    trapezoidmod__doc__,
     -1,
-    trapz_methods
+    trapezoid_methods
 };
 
-/* When Python 3 imports a C module named 'X' it loads the module           */
-/* then looks for a method named "PyInit_"+X and calls it.                  */
-PyObject *PyInit__trapz (void) {
-  PyObject *module = PyModule_Create(&moduledef);
-  import_array();
-  return module;
+// When Python 3 imports a C module named 'X' it loads the module
+// then looks for a method named "PyInit_"+X and calls it.
+PyObject *PyInit__trapezoid (void) {
+    PyObject *module = PyModule_Create(&moduledef);
+    import_array();
+    return module;
 }
 

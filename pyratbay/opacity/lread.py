@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2024 Patricio Cubillos
+# Copyright (c) 2021-2025 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -6,9 +6,9 @@ __all__ = [
 ]
 
 import os
-import sys
 import time
 import struct
+import sys
 
 import numpy as np
 import mc3.utils as mu
@@ -19,8 +19,21 @@ from .. import tools as pt
 from .. import version as ver
 
 
+def pack_str(file, string):
+    """Convenience function to pack length of and then a string"""
+    size = len(string)
+    file.write(struct.pack(f'h{size}s', size, string.encode('utf-8')))
+
+
+def pack_array(file, array, format, size=None):
+    """Convenience function to pack an array of given data type"""
+    if size is None:
+        size = len(array)
+    file.write(struct.pack(f'{size}{format}', *list(array)))
+
+
 def make_tli(
-        dblist, pflist, dbtype, tlifile, wl_low,  wl_high, wl_units,
+        dblist, pflist, dbtype, tlifile, wl_low, wl_high, wl_units,
         log=None,
     ):
     """
@@ -87,7 +100,7 @@ def make_tli(
 
     # Driver routine to read the databases:
     db_readers = {
-        dbname.lower(): getattr(linelist,dbname)
+        dbname.lower(): getattr(linelist, dbname)
         for dbname in pc.dbases
     }
     dblist = [
@@ -97,6 +110,7 @@ def make_tli(
 
     databases = []
     db_names = []
+    unique_dbs = []
     log.head('\nReading input database files:')
     for (dbase, pf, dtype) in zip(dblist, pflist, dbtype):
         if dtype not in db_readers:
@@ -104,223 +118,201 @@ def make_tli(
                 f"Unknown type '{dtype}' for database '{dbase}'.  "
                 f"Select from: {str(pc.dbases)}"
             )
-        log.head(f'- {dbase}')
-        databases.append(db_readers[dtype](dbase, pf, log))
-        db_names.append(databases[-1].name)
-    log.msg(f'There are {nfiles} input database file(s).')
-
-    # Open output file:
-    tli = open(tlifile, 'wb')
-
-    # Get the machine endian type (big/little):
-    if sys.byteorder == 'big':
-        endian = 'b'
-    if sys.byteorder == 'little':
-        endian = 'l'
-
-    # Start storing TLI header values:
-    header = struct.pack('s', endian.encode())
-    header += struct.pack('3h', ver.LR_VER, ver.LR_MIN, ver.LR_REV)
+        log.head(dbase, indent=2)
+        db = db_readers[dtype](dbase, pf, log)
+        databases.append(db)
+        db_names.append(db.name)
+        if db.name not in unique_dbs:
+            unique_dbs.append(db.name)
+    log.msg(f'There are {nfiles} input database file(s).\n\n')
 
     # Boundaries in wavenumber space (in cm-1):
     wn_low = 1.0 / wl_high / pt.u(wl_units)
     wn_high = 1.0 / wl_low / pt.u(wl_units)
 
-    # Add initial and final wavenumber boundaries (in cm-1):
-    header += struct.pack('2d', wn_low, wn_high)
+    # Output file:
+    tli = {}
+    tli['version'] = f'{ver.LR_VER}.{ver.LR_MIN}.{ver.LR_REV}'
+    tli['wn_units'] = 'cm-1'
+    tli['wn_min'] = wn_low
+    tli['wn_max'] = wn_high
 
-    Ndb = len(np.unique(db_names))
-    header += struct.pack('h', Ndb)
-    tli.write(header)
+    n_databases = len(unique_dbs)
+    tli['n_databases'] = n_databases
 
     log.msg(
-        f'\nOS endianness:  {sys.byteorder}\n'
-        f'Initial TLI wavelength ({wl_units}): {wl_low:7.3f} ({wn_high:9.3f} cm-1)\n'
-        f'Final TLI wavelength ({wl_units}):   {wl_high:7.3f} ({wn_low:9.3f} cm-1)\n'
-        f'There are {Ndb} different database(s).'
+        f'Initial wavelength: {wl_low:7.3f} {wl_units} ({wn_high:9.3f} cm-1)\n'
+        f'Final wavelength:   {wl_high:7.3f} {wl_units} ({wn_low:9.3f} cm-1)\n'
+        f'There are {n_databases} different database(s).'
     )
-
-
-    log.msg('\nReading and writting partition function info.')
-    idb = 1         # Database correlative number
-    niso_total = 0  # Cumulative number of isotopes
-    accum = [0]     # Cumulative number of isotopes per database
-    db_names = []
-    # Loop through the partition files (if more than one) and write the
-    # data to a processed TLI file:
-    for db in databases:
-        # Skip if we already stored the pf info of this DB:
-        if db.name in db_names:
-            continue
-        db_names.append(db.name)
-
-        # Get partition function values:
-        temp, partition, pf_iso = db.getpf(log.verb)
-        iso_names = db.isotopes
-        iso_mass = db.mass
-        iso_ratio = db.isoratio
-
-        # Number of temperature samples and isotopes:
-        ntemp = len(temp)
-        niso = len(iso_names)
-
-        # Extract partition-function info sorted by iso_names:
-        pf = np.zeros((niso, ntemp), np.double)
-        for part,iso in zip(partition, pf_iso):
-            # Ignore PF isotopes that don't exist in isotopes.dat:
-            if iso not in iso_names:
-                continue
-            idx = iso_names.index(iso)
-            pf[idx] = part
-
-        # Store length of and database name:
-        name = db.name
-        pack = struct.pack(f'h{len(name)}s', len(name), name.encode('utf-8'))
-        tli.write(pack)
-        # Store the molecule name:
-        mol = db.molecule
-        pack = struct.pack(f'h{len(mol)}s', len(mol), mol.encode('utf-8'))
-        tli.write(pack)
-        # Store the number of temperature samples and isotopes:
-        tli.write(struct.pack('hh', ntemp, niso))
-        log.msg(
-            f"Database ({idb}/{Ndb}): '{db.name}' ({db.molecule} molecule)",
-            indent=2,
-        )
-        log.msg(
-            f'Number of temperatures: {ntemp}\n'
-            f'Number of isotopes: {niso}',
-            indent=4,
-        )
-
-        # Write the temperature array:
-        tli.write(struct.pack(f'{ntemp}d', *temp))
-        log.msg(
-            'Temperatures (K): '
-            f'[{temp[0]:6.1f}, {temp[1]:6.1f}, ..., {temp[-1]:6.1f}]',
-            indent=4,
-        )
-
-        # For each isotope, write partition function information.
-        for j in range(niso):
-            iname = iso_names[j]
-            log.msg(f"Isotope ({j+1}/{niso}): '{iname}'", indent=4)
-
-            # Store length of isotope name, isotope name, and isotope mass:
-            pack = struct.pack(
-                f'h{len(iname)}s', len(iname), str(iname).encode('utf-8'),
-            )
-            tli.write(pack)
-            tli.write(struct.pack('d', iso_mass[j]))
-            tli.write(struct.pack('d', iso_ratio[j]))
-
-            # Write the partition function per isotope:
-            tli.write(struct.pack(f'{ntemp}d', *pf[j]))
-            log.msg(
-                f'Mass (u):        {iso_mass[j]:8.4f}\n'
-                f'Isotopic ratio:  {iso_ratio[j]:8.4g}\n'
-                f'Part. Function:  '
-                f'[{pf[j,0]:.2e}, {pf[j,1]:.2e}, ..., {pf[j,-1]:.2e}]',
-                indent=6,
-            )
-
-        # Calculate cumulative number of isotopes per database:
-        niso_total += niso
-        idb += 1
-        accum.append(niso_total)
-
-    log.msg(f'Cumulative number of isotopes per database: {accum}')
 
     log.head('\nExtracting line transition info.')
-    wnumber = np.array([], np.double)
-    gf = np.array([], np.double)
-    elow = np.array([], np.double)
-    isoID = np.array([], int)
-    # Read from file and write the transition info:
-    for db in databases:
-        # Get database index:
-        idb = db_names.index(db.name)
-
+    tli['databases'] = []
+    for i,db_name in enumerate(unique_dbs):
+        dbase = {}
+        tli['databases'].append(dbase)
         ti = time.time()
-        transitions = db.dbread(wn_low, wn_high, log.verb)
+        wn = []
+        gf = []
+        elow = []
+        iso_id = []
+        for db in databases:
+            if db.name != db_name:
+                continue
+            this_db = db
+            transitions = db.dbread(wn_low, wn_high, log.verb)
+            if transitions is None:
+                continue
+
+            wn.append(transitions[0])
+            gf.append(transitions[1])
+            elow.append(transitions[2])
+            iso_id.append(transitions[3])
+
+        db = this_db
+        wn = np.concatenate(wn)
+        gf = np.concatenate(gf)
+        elow = np.concatenate(elow)
+        iso_id = np.concatenate(iso_id)
+        tf = time.time()
+        log.debug(f'Reading time: {tf-ti:8.3f} seconds', indent=2)
+
+        ntransitions = np.size(wn)
+        # iso_id are indices as in db.isotopes
+        # iso_idx are indices 0-N, after filtering out isotopes with no lines
+        unique_iso, iso_idx, ntrans_iso = np.unique(
+            iso_id, return_inverse=True, return_counts=True,
+        )
+
+        # Sort by isotope ID, then each isotope by wavenumber:
+        ti = time.time()
+        isort = np.argsort(iso_id)
+        ihi = 0
+        for ntrans in ntrans_iso:
+            ilo = ihi
+            ihi += ntrans
+            wn_sort = np.argsort(wn[isort][ilo:ihi])
+            isort[ilo:ihi] = isort[ilo:ihi][wn_sort]
         tf = time.time()
 
-        if transitions is None:
-            continue
+        wn = wn[isort]
+        gf = gf[isort]
+        elow = elow[isort]
+        iso_id = iso_id[isort]
+        iso_idx = iso_idx[isort]
+        log.debug(f'Sort time:    {tf-ti:8.3f} seconds', indent=2)
 
-        wnumber = np.concatenate((wnumber, transitions[0]))
-        gf = np.concatenate((gf, transitions[1]))
-        elow = np.concatenate((elow, transitions[2]))
-        isoID = np.concatenate((isoID, transitions[3]+accum[idb]))
+        dbase['name'] = db.name
+        dbase['molecule'] = db.molecule
+        dbase['n_lines'] = ntransitions
+        dbase['n_lines_iso'] = ntrans_iso
+        dbase['iso_id'] = iso_idx
+        dbase['wn'] = wn
+        dbase['elow'] = elow
+        dbase['gf'] = gf
 
-        unique_iso = np.unique(transitions[3])
+        # Filter out isotopes with no line transitions:
+        iso_names = np.array(db.isotopes)[unique_iso]
+        iso_mass = np.array(db.mass)[unique_iso]
+        iso_ratio = np.array(db.isoratio)[unique_iso]
+
+        temp, partition, pf_iso = db.getpf(log.verb)
+        iso_match = np.isin(iso_names, pf_iso)
+        if np.any(~iso_match):
+            log.error(
+                'No partition functions found for these isotopes of the '
+                f'{db.molecule} line list: {iso_names[~iso_match]}'
+            )
+
+        # Filter and sort PF by isotopes in iso_names:
+        pf_idx = [pf_iso.index(iso) for iso in iso_names]
+        pf = partition[pf_idx]
+
+        # Store the number of temperature samples and isotopes:
+        dbase['temperatures'] = temp
+        dbase['isotopes'] = iso_names
+        dbase['iso_mass'] = iso_mass
+        dbase['iso_ratio'] = iso_ratio
+        dbase['partition'] = pf
+
+        # Report info for each isotope
+        wl_min = 1.0 / np.amax(wn) / pc.um
+        wl_max = 1.0 / np.amin(wn) / pc.um
+        n_iso = len(iso_names)
         log.msg(
-            f'Isotope in-database indices: {unique_iso}\n'
-            f'Isotope correlative indices: {unique_iso+accum[idb]}',
+            f"Database ({i+1}/{n_databases}): {repr(db.name)} "
+            f"({db.molecule} molecule)\n"
+            f'Number of isotopes with line transitions: {n_iso}',
             indent=2,
         )
-        log.debug('Reading time: {tf-ti:8.3f} seconds', indent=2)
+        log.msg("idx  isotope    mass (u)    fraction       n_lines", indent=2)
+        for j in range(n_iso):
+            name = f'{repr(str(iso_names[j])):10s}'
+            mass = iso_mass[j]
+            ratio = iso_ratio[j]
+            ratio = f'{ratio:9.7f}' if ratio >= 1e-5 else f'{ratio:.3e}'
+            ntrans = ntrans_iso[j]
+            log.msg(
+                f"{j+1:3d}  {name}  {mass:7.3f}    {ratio}  {ntrans:11,d}",
+                indent=2,
+            )
 
+        log.msg(
+            f'Total: {ntransitions:,d} line transitions '
+            f'between {wl_min:.3f} -- {wl_max:.3f} um\n\n'
+            f'Number of temperatures: {len(temp)}\n'
+            '  Temperatures (K): '
+            f'[{temp[0]:6.1f}, {temp[1]:6.1f}, ..., {temp[-1]:6.1f}]',
+            indent=2,
+        )
+        for j in range(n_iso):
+            log.msg(
+                f'Partition Function ({str(iso_names[j])}):  '
+                f'[{pf[j,0]:.2e}, {pf[j,1]:.2e}, ..., {pf[j,-1]:.2e}]',
+                indent=4,
+            )
 
-    # Total number of transitions:
-    ntransitions = np.size(wnumber)
-    # Number of transitions per isotope:
-    ntrans_iso = np.bincount(isoID)
-    ntrans_iso = ntrans_iso[np.where(ntrans_iso>0)]  # Remove zeroes
-
-    # Sort by isotope ID:
+    # Store to file
     ti = time.time()
-    isort = np.argsort(isoID)
-    # Sort each isotope by wavenumber:
-    ihi = 0
-    for ntrans in ntrans_iso:
-        ilo = ihi
-        ihi += ntrans
-        wn_sort = np.argsort(wnumber[isort][ilo:ihi])
-        isort[ilo:ihi] = isort[ilo:ihi][wn_sort]
-    tf = time.time()
+    tli_file = open(tlifile, 'wb')
+    endian = sys.byteorder[0]
+    tli_file.write(struct.pack('s', endian.encode('utf-8')))
+    tli_file.write(struct.pack('3h', ver.LR_VER, ver.LR_MIN, ver.LR_REV))
+    tli_file.write(struct.pack('2d', tli['wn_min'], tli['wn_max']))
+    tli_file.write(struct.pack('h', tli['n_databases']))
 
-    # Actual sorting:
-    wnumber = wnumber[isort]
-    gf = gf[isort]
-    elow = elow[isort]
-    isoID = isoID[isort]
+    dbases = tli['databases']
+    for dbase in dbases:
+        pack_str(tli_file, dbase['name'])
+        pack_str(tli_file, dbase['molecule'])
+        ntemp = len(dbase['temperatures'])
+        niso = len(dbase['isotopes'])
+        tli_file.write(struct.pack('hh', ntemp, niso))
+        pack_array(tli_file, dbase['temperatures'], 'd')
+        for j,iso in enumerate(dbase['isotopes']):
+            pack_str(tli_file, str(iso))
+            tli_file.write(struct.pack('d', dbase['iso_mass'][j]))
+            tli_file.write(struct.pack('d', dbase['iso_ratio'][j]))
+            pack_array(tli_file, dbase['partition'][j], 'd')
 
-    log.debug(f'Sort time:    {tf-ti:8.3f} seconds', indent=2)
-    ntrans_str = '  '.join([f'{val:,d}' for val in ntrans_iso])
-    log.msg(f'\nTransitions per isotope:\n[{ntrans_str}]')
+    n_lines = np.sum([dbase['n_lines'] for dbase in dbases])
+    tli_file.write(struct.pack('i', n_lines))
 
-    # Pack:
-    tli.write(struct.pack('i', ntransitions))
-    wn_min = np.amin(wnumber)
-    wn_max = np.amax(wnumber)
-    wl_min = 1.0 / wn_max / pc.um
-    wl_max = 1.0 / wn_min / pc.um
-    log.msg(
-        f'\nWriting {ntransitions:,d} transition lines '
-        f'between wavenumbers {wn_min:.2f} and {wn_max:.2f} cm-1 '
-        f'({wl_min:.3f} -- {wl_max:.3f} um).'
-    )
+    n_lines_iso = np.concatenate([dbase['n_lines_iso'] for dbase in dbases])
+    tli_file.write(struct.pack('i', len(n_lines_iso)))
+    for dbase in dbases:
+        pack_array(tli_file, dbase['n_lines_iso'], 'i')
 
-    # Write the number of transitions for each isotope:
-    niso = len(ntrans_iso)
-    tli.write(struct.pack('i', niso))
-    tli.write(struct.pack(str(niso)+'i', *list(ntrans_iso)))
-
-    # Write the Line-transition data:
-    ti = time.time()
-    transinfo  = struct.pack(str(ntransitions)+'d', *list(wnumber))
-    transinfo += struct.pack(str(ntransitions)+'h', *list(isoID))
-    transinfo += struct.pack(str(ntransitions)+'d', *list(elow))
-    transinfo += struct.pack(str(ntransitions)+'d', *list(gf))
-    tf = time.time()
-    log.debug(f'Packing time: {tf-ti:8.3f} seconds')
-
-    ti = time.time()
-    tli.write(transinfo)
+    for dbase in dbases:
+        pack_array(tli_file, dbase['wn'], 'd')
+    for dbase in dbases:
+        pack_array(tli_file, dbase['iso_id'], 'h')
+    for dbase in dbases:
+        pack_array(tli_file, dbase['elow'], 'd')
+    for dbase in dbases:
+        pack_array(tli_file, dbase['gf'], 'd')
+    tli_file.close()
     tf = time.time()
     log.debug(f'Writing time: {tf-ti:8.3f} seconds')
-
     log.head(f"Generated TLI file: '{tlifile}'.")
-    tli.close()
     log.close()

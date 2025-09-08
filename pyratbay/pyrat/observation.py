@@ -18,6 +18,8 @@ class Observation():
         # Transit or eclipse data point
         self.data = inputs.data
         self.uncert = inputs.uncert
+        self.data_hires = None
+        self.uncert_hires = None
         self.units = inputs.dunits
         self._dunits = pt.u(self.units)
 
@@ -29,6 +31,7 @@ class Observation():
                 for filter_file in inputs.filters
             ]
 
+        # Low-resolution data (pass bands)
         if inputs.obsfile is not None:
             # TBD: Throw error if filters already exist
             obs_data = io.read_observations(inputs.obsfile)
@@ -63,13 +66,43 @@ class Observation():
 
         # Resample the filters into the planet wavenumber array:
         for band in self.filters:
-            # zero half-width signals a high-resolution dataset
-            # TBD: could be a cleaner implementation
-            if not hasattr(band, 'half_width') or band.half_width > 0:
-                band.set_sampling(wn=wn)
+            band.set_sampling(wn=wn)
         # Per-band variables:
         self.bandwn = np.array([band.wn0 for band in self.filters])
         self.bandflux = np.zeros(self.nfilters, np.double)
+
+
+        # High-resolution data (sampled at nyquist frequency)
+        self.inst_resolution = inputs.inst_resolution
+        self.filters_hires = []
+        if inputs.obsfile_hires is not None:
+            # TBD: Check spec.wn is at constant resolution
+            if self.inst_resolution is None:
+                raise ValueError(
+                    'Undefined instrumental resolution is required for '
+                    'convolution of high-resolution data'
+                )
+            obs_data = io.read_observations(inputs.obsfile_hires)
+            if np.ndim(obs_data) == 2:
+                filters_hires, self.data_hires, self.uncert_hires = obs_data
+            elif np.ndim(obs_data) == 1:
+                filters_hires = obs_data
+            self.wn_hires = np.array([band.wn0 for band in filters_hires])
+            for band in filters_hires:
+                band.half_width = band.wl0 / self.inst_resolution / 2.0
+                band.set_sampling(wn=wn)
+            self.filters_hires = filters_hires
+
+        if self.data_hires is not None:
+            self.ndata_hires = len(self.data_hires)
+        else:
+            self.ndata_hires = 0
+
+        if self.uncert_hires is not None:
+            self.n_uncert_hires = len(self.uncert_hires)
+
+        self.nfilters_hires = len(self.filters_hires)
+        self.bandflux_hires = np.zeros(self.nfilters_hires, np.double)
 
         # Instrumental offsets and error-scaling parameters
         band_names = [band.name for band in self.filters]
@@ -78,7 +111,7 @@ class Observation():
         self.uncert_scaling = inputs.uncert_scaling
         self.uncert_pars = inputs.uncert_pars
 
-        # This objec contains the original transit/eclipse depth data
+        # This object contains the original transit/eclipse depth data
         # self.data and self.uncert can be modified and computed with
         # the methods of self.depth
         self.depth = pt.Data(
@@ -114,6 +147,7 @@ class Observation():
             for data, uncert, wn in zip(self.data, self.uncert, self.bandwn):
                 fw.write('  {:10.5f}   {:10.5f}    {:9.2f}  {:10.3f}',
                 data/units, uncert/units, wn, 1.0/(wn*pc.um))
+        # TBD: add hires data
 
         fw.write('\nNumber of filter pass bands (nfilters): {}', self.nfilters)
         if self.nfilters == 0:

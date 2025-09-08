@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2023 Patricio Cubillos
+# Copyright (c) 2021-2025 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -27,9 +27,8 @@ from .pyrat import Pyrat
 from .pyrat.atmosphere import Atmosphere
 from .driver import run
 
-from .pyrat import optical_depth as _od
 from .pyrat import spectrum as _sp
-__all__ += ['_od', '_sp']
+__all__ += ['_sp']
 
 from .version import __version__
 

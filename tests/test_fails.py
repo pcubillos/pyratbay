@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2023 Patricio Cubillos
+# Copyright (c) 2021-2025 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import os
@@ -183,7 +183,7 @@ def test_invalid_choice(tmp_path, param, reason):
 
 @pytest.mark.parametrize('param',
     ['starspec', 'kurucz', 'marcs', 'phoenix', 'filters',
-     'dblist', 'molfile', 'csfile'])
+     'dblist', 'molfile', 'continuum_cross_sec'])
 def test_file_not_found(tmp_path, param, invalid_file):
     cfg = make_config(
         tmp_path,
@@ -212,8 +212,7 @@ def test_invalid_logfile_path(tmp_path, invalid_path):
     [
         'output_atmfile',
         'tlifile',
-        'extfile',
-        'mcmcfile',
+        'sampled_cross_sec',
         'specfile',
         'ptfile',
     ],
@@ -542,6 +541,23 @@ def test_spectrum_inconsistent_wl_bounds(tmp_path):
 
 @pytest.mark.parametrize(
     'param',
+    ['rstar'],
+)
+def test_spectrum_eclipse_missing(tmp_path, param, undefined_spec):
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/spectrum_eclipse_filters_test.cfg',
+        remove=[param],
+    )
+    error = re.escape(
+        'Undefined radius ratio, need to define both rplanet and rstar'
+    )
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
+
+
+@pytest.mark.parametrize(
+    'param',
     ['rstar', 'rt_path'],
 )
 def test_spectrum_transmission_missing(tmp_path, param, undefined_spec):
@@ -591,9 +607,11 @@ def test_spectrum_no_radius(tmp_path):
         pyrat = pb.run(cfg)
 
 
-@pytest.mark.parametrize('atm',
+@pytest.mark.parametrize(
+    'atm',
     [f'{ROOT}/tests/inputs/atmosphere_uniform_test.atm',
-     f'{ROOT}/tests/inputs/atmosphere_uniform_radius.atm'])
+     f'{ROOT}/tests/inputs/atmosphere_uniform_radius.atm']
+)
 def test_spectrum_hydro_missing_MGplanet(tmp_path, atm):
     cfg = make_config(
         tmp_path,
@@ -704,7 +722,7 @@ def test_spectrum_invalid_file(tmp_path, param, invalid_file):
 def test_spectrum_inconsistent_voigt_bounds(tmp_path, vmin, vmax):
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        ROOT+'tests/configs/spectrum_transmission_test_tli.cfg',
         reset={vmin:'1e5', vmax:'1e4'},
     )
     error = re.escape(
@@ -763,7 +781,7 @@ def test_line_sample_missing_species(tmp_path):
     reset = {
         'species': 'H2  He  H   Na  CH4  CO  CO2',
         'chemistry': 'tea',
-        'extfile': f'{ROOT}tests/outputs/exttable_test_300-3000K_1.1-1.7um.npz',
+        'sampled_cross_sec': f'{ROOT}tests/outputs/exttable_test_300-3000K_1.1-1.7um.npz',
     }
     cfg = make_config(
         tmp_path,
@@ -790,8 +808,8 @@ def test_line_by_line_missing_species(tmp_path):
         reset=reset,
     )
     error = re.escape(
-        "The species 'H2O' for isotopes ['161' '181' '171' '162' '182' "
-        "'172' '262' '282' '272'] is not present in the atmosphere"
+        "Species ['H2O'], required for opacity model line sampling, are "
+        "not present in the atmosphere"
     )
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
@@ -842,7 +860,7 @@ def test_rayleigh_missing_species(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
-        remove=['csfile'],
+        remove=['continuum_cross_sec'],
         reset=reset,
     )
     error = re.escape(
@@ -857,7 +875,7 @@ def test_h_ion_missing_species(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
-        remove=['tlifile', 'csfile', 'alkali', 'clouds'],
+        remove=['tlifile', 'continuum_cross_sec', 'alkali', 'clouds'],
         reset={'h_ion': 'h_ion_john1988'},
     )
     error = re.escape(
@@ -1213,14 +1231,14 @@ def test_spectrum_missing_retflag_models(tmp_path, param, undefined_mcmc):
 def test_compute_opacity_invalid_tmin(tmp_path):
     reset = {
         'runmode': 'opacity',
-        'extfile': str(tmp_path/'new_opacity.npz'),
+        'sampled_cross_sec': str(tmp_path/'new_opacity.npz'),
         'tmin': '0.1',
         'tmax': '1000.0',
         'tstep': '900',
     }
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        ROOT+'tests/configs/spectrum_transmission_test_tli.cfg',
         reset=reset,
     )
     error = re.escape(
@@ -1234,14 +1252,14 @@ def test_compute_opacity_invalid_tmin(tmp_path):
 def test_compute_opacity_invalid_tmax(tmp_path):
     reset = {
         'runmode': 'opacity',
-        'extfile': str(tmp_path/'new_opacity.npz'),
+        'sampled_cross_sec': str(tmp_path/'new_opacity.npz'),
         'tmin':'1000.0',
         'tmax':'9000.0',
         'tstep':'100',
     }
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
+        ROOT+'tests/configs/spectrum_transmission_test_tli.cfg',
         reset=reset,
     )
     error = re.escape(
@@ -1252,28 +1270,28 @@ def test_compute_opacity_invalid_tmax(tmp_path):
         pyrat = pb.run(cfg)
 
 
-def test_read_opacity_missing_extfile(tmp_path):
-    efile = str(tmp_path/'non_existent_exttable_test_300-3000K_1.1-1.7um.npz')
+def test_read_opacity_missing_sampled_cs_file(tmp_path):
+    cs_file = str(tmp_path/'non_existent_exttable_test_300-3000K_1.1-1.7um.npz')
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
-        reset={'extfile':efile, 'wnstep': '1.0'},
+        reset={'sampled_cross_sec':cs_file, 'wnstep': '1.0'},
     )
     error = re.escape(
-        f"These input cross-section files are missing: ['{efile}']"
+        f"These input cross-section files are missing: ['{cs_file}']"
     )
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
 
 
-def test_compute_opacity_make_multiple_extfiles(tmp_path):
+def test_compute_opacity_make_multiple_sampled_cs_files(tmp_path):
     extfiles = [
         str(tmp_path/'new_opacity1.npz'),
         str(tmp_path/'new_opacity2.npz'),
     ]
     reset = {
         'runmode': 'opacity',
-        'extfile': '\n  '.join(extfiles),
+        'sampled_cross_sec': '\n  '.join(extfiles),
         'tmin':'1000.0',
         'tmax':'6000.0',
         'tstep':'100',
@@ -1285,7 +1303,7 @@ def test_compute_opacity_make_multiple_extfiles(tmp_path):
     )
     error = re.escape(
         'Computing opacity table, but there was more than one '
-        'output opacity file (extfile)'
+        'output opacity file (sampled_cross_sec)'
     )
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
@@ -1340,7 +1358,7 @@ def test_read_opacity_mismatched_values(tmp_path):
     ['tmin', 'tmax', 'tstep', 'tlifile'],
 )
 def test_opacity_missing(tmp_path, param):
-    reset = {'extfile': str(tmp_path/'new_opacity.npz')}
+    reset = {'sampled_cross_sec': str(tmp_path/'new_opacity.npz')}
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/opacity_test.cfg',
@@ -1397,8 +1415,9 @@ def test_crosssec_mol_not_in_atm():
         'data',
         'uncert',
         'filters',
-        'rstar',
+        'retrieval_params',
         'sampler',
+        # MCMC-only:
         'nsamples',
         'burnin',
         'nchains',
@@ -1406,10 +1425,8 @@ def test_crosssec_mol_not_in_atm():
 )
 def test_mcmc_missing(tmp_path, param, undefined_mcmc):
     reset = {
-        'rt_path': 'emission',
-        'kurucz': f'{ROOT}tests/inputs/mock_fp00k0odfnew.pck',
-        'log_gstar': '4.5',
-        'sampler': 'snooker',
+        'tpars': '-4.84 -0.8 -0.8 0.5 1200.0 100.0',
+        'vmr_vars': 'log_H2O -4.8',
     }
     cfg = make_config(
         tmp_path,
@@ -1426,19 +1443,20 @@ def test_mcmc_missing_starspec(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/mcmc_transmission_test.cfg',
-        reset={'rt_path':'emission'},
-        remove=['tstar', 'tmodel'],
+        reset={'rt_path': 'eclipse'},
+        remove=['tstar'],
     )
     error = re.escape(
-        'Undefined stellar flux model.  Set starspec, kurucz, or tstar '
-        '(for a blackbody spectrum)')
+        'Undefined stellar flux model, required for eclipse calculations.  '
+        'Set starspec, kurucz, or tstar (for a blackbody spectrum)'
+    )
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
 
 
 
 @pytest.mark.skip(reason='TBD: warning or error...')
-@pytest.mark.parametrize('param', ['tlifile', 'csfile', 'extfile'])
+@pytest.mark.parametrize('param', ['tlifile', 'continuum_cross_sec', 'extfile'])
 def test_spectrum_temperature_bounds(tmp_path, capfd, param, invalid_temp):
     reset = {
         'tmodel': 'isothermal',
@@ -1447,7 +1465,7 @@ def test_spectrum_temperature_bounds(tmp_path, capfd, param, invalid_temp):
     }
     remove = [
         par
-        for par in ['tlifile', 'csfile', 'extfile']
+        for par in ['tlifile', 'continuum_cross_sec', 'extfile']
         if par != param
     ]
     cfg = make_config(

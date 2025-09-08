@@ -56,40 +56,34 @@ are ready for use:
 
    `H2O <https://zenodo.org/records/14046762/files/H2O_exomol_pokazatel_0.24-500.0um_100-3500K_threshold_0.01_lbl.dat>`__, pokazatel, 116, [Polyansky2018]_
 
-   `NH3 <https://zenodo.org/records/14046762/files/NH3_exomol_coyute-byte_0.5-500.0um_100-3500K_threshold_0.03_lbl.dat>`__, coyute & byte, "4111, 5111", [Yurchenko2015]_ [Coles2019]_
+   `CH4 <https://zenodo.org/records/14266247/files/CH4_exomol_mm_0.83-50.0um_100-3000K_threshold_0.03_lbl.dat>`__, mm, 2111, [Yurchenko2024a]_
 
-   `TiO <https://zenodo.org/records/14046762/files/TiO_exomol_toto_0.33-500um_100-3500K_threshold_0.01_lbl.dat>`__, toto, "66, 76, 86, 96, 06", [McKemmish2019]_
-
-   `VO <https://zenodo.org/records/14046762/files/VO_exomol_vomyt_0.29-500um_100-3500K_threshold_0.01_lbl.dat>`__, vomyt, "16", [McKemmish2016]_
-
-   `HCN <https://zenodo.org/records/14046762/files/HCN_exomol_harris-larner_0.56-500um_100-3500K_threshold_0.01_lbl.dat>`__, harris & larner, "124, 134", [Harris2006]_ [Harris2008]_
+   `CO2 <https://zenodo.org/records/14266247/files/CO2_ames_ai3000k_0.5-50.0um_100-3500K_threshold_0.01_lbl.dat>`__, ai3000k, "266, 366, 628, 627", [Huang2023]_
 
    `CO2 <https://zenodo.org/records/14046762/files/CO2_exomol_ucl4000_0.5-500.0um_100-3500K_threshold_0.01_lbl.dat>`__, ucl4000, 266, [Yurchenko2020]_
 
-   CO2, ai3000k, "266, 366, 628, 627", [Huang2023]_
+   `NH3 <https://zenodo.org/records/14046762/files/NH3_exomol_coyute-byte_0.5-500.0um_100-3500K_threshold_0.03_lbl.dat>`__, coyute, "4111, 5111", [Coles2019]_ [Yurchenko2024b]_
 
-   `CH4 <https://zenodo.org/records/14046762/files/CH4_exomol_yt10to10_0.82-500.0um_100-3500K_threshold_0.03_lbl.dat>`__, yt10to10, 2111, [Yurchenko2013]_ [Yurchenko2014]_
+   `TiO <https://zenodo.org/records/14046762/files/TiO_exomol_toto_0.33-500um_100-3500K_threshold_0.01_lbl.dat>`__, toto, "66, 76, 86, 96, 06", [McKemmish2019]_
 
-   `CH4 <https://zenodo.org/records/14046762/files/CH4_exomol_yt34to10_0.83-500.0um_100-3500K_threshold_0.03_lbl.dat>`__, yt34to10, 2111, [Yurchenko2014]_ [Yurchenko2017]_
+   `VO <https://zenodo.org/records/14266247/files/VO_exomol_hyvo_0.22-50um_100-3500K_threshold_0.01_lbl.dat>`__, hyvo, "16", [Bowesman2024]_
+
+   `HCN <https://zenodo.org/records/14046762/files/HCN_exomol_harris-larner_0.56-500um_100-3500K_threshold_0.01_lbl.dat>`__, harris & larner, "124, 134", [Harris2006]_ [Harris2008]_
 
    `SO2 <https://zenodo.org/records/14046762/files/SO2_exomol_exoames_1.25-100.0um_100-3500K_threshold_0.03_lbl.dat>`__, exoames, 266, [Underwood2016]_
 
-   H2S, ayt2, 112, [Azzam2016]_ [Chubb2018]_
+   `H2S <https://zenodo.org/records/14266247/files/H2S_exomol_ayt2_0.28-500.0um_100-3500K_threshold_0.01_lbl.dat>`__, ayt2, 112, [Azzam2016]_ [Chubb2018]_
 
    `C2H2 <https://zenodo.org/records/14046762/files/C2H2_exomol_acety_1.0-500.0um_100-3500K_threshold_0.03_lbl.dat>`__, acety, 2211, [Chubb2020]_
 
-   `C2H4 <https://zenodo.org/records/14046762/files/C2H4_exomol_mayty_1.4-500um_100-3500K_threshold_0.03_lbl.dat>`__, mayty, 221111, [Mant2018]_
-
-
-
-For this demo, we will work with the VO repack line lists. We fetch the
+For this demo, we will work with the VO repack line list. We fetch the
 data can do this with the following prompt commands:
 
 .. code:: shell
 
    # Download the data
-   wget https://zenodo.org/records/14046762/files/VO_exomol_vomyt_0.29-500um_100-3500K_threshold_0.01_lbl.dat
-   wget https://www.exomol.com/db/VO/51V-16O/VOMYT/51V-16O__VOMYT.pf
+   wget https://zenodo.org/records/14266247/files/VO_exomol_hyvo_0.22-50um_100-3500K_threshold_0.01_lbl.dat
+   wget https://www.exomol.com/db/VO/51V-16O/HyVO/51V-16O__HyVO.pf
 
 -------------------------------------------------
 
@@ -102,9 +96,30 @@ following prompt command where we first specify the source (``exomol``)
 and then list all *‘.pf’* files of interest (one can combine multiple
 isotopologues of a species into a single file):
 
-.. code:: shell
+.. tab-set::
 
-   pbay -pf exomol 51V-16O__VOMYT.pf
+  .. tab-item:: From .pf files
+     :selected:
+
+     If the ExoMol .pf files sample the temperature range of
+     interest. Then use their .pf files directly:
+
+     .. code:: shell
+
+         pbay -pf exomol 51V-16O__HyVO.pf
+
+  .. tab-item:: From Exomol .states
+
+     Alternatively, if you expect to probe higher temperatures than
+     those sample in the .pf files, the we can compute the partitions
+     from the .states files with the command below.  Here one
+     specifies the temperature ranges and sampling step.
+
+     .. code:: shell
+
+         #             T_low  T_high  delta_T
+         pbay -pf states 5.0  10000.0  5.0  51V-16O__HyVO.states
+
 
 This will produce the *PF_exomol_VO.dat* file, which can be passed as
 input for the TLI config file.
@@ -114,18 +129,11 @@ input for the TLI config file.
 Compute TLI files
 -----------------
 
-The easiest way to generate TLI files is via configuration files and the
-command line. The config file below
-(`tli_repack_exomol_VO_cookbook.cfg <https://github.com/pcubillos/pyratbay/blob/master/docs/cookbooks/tli_repack_exomol_VO_cookbook.cfg>`__)
-converts the repack ExoMol/VO line-lists (see ``dblist``) into a TLI
-file (see ``tlifile`` or ``logfile``).
-
-Partition-function information must also be provided (see ``pflist``).
-As in this demo (see above), this is the path to a partition-function
-file (either a unique PF file for all ``dblist`` files, or one PF file
-for each ``dblist`` file). Alternatively, one can set ``pflist = tips``
-to use the partition functions from `Gamache et
-al. (2017) <https://ui.adsabs.harvard.edu/abs/2017JQSRT.203...70G>`__.
+The easiest way to generate TLI files is via configuration files and
+the command line. The config file below converts the repack ExoMol/VO
+line-lists (see ``dblist``) into a TLI file (see ``tlifile`` or
+``logfile``).  The partition-function information must also be
+provided (see ``pflist``).
 
 Lastly, the user can specify the wavelength range of the extracted data
 (see ``wllow`` and ``wlhigh``). Normally one want to the widest possible
@@ -134,8 +142,8 @@ calculation needs it), but for sake of this demo, we will extract just
 over a narrow region:
 
 
-.. literalinclude:: ../../_static/data/tli_repack_exomol_VO_cookbook.cfg
-    :caption: File: `tli_repack_exomol_VO_cookbook.cfg <../../_static/data/tli_repack_exomol_VO_cookbook.cfg>`_
+.. literalinclude:: ../../_static/data/line_sample_repack_VO_tli.cfg
+    :caption: File: `line_sample_repack_VO_tli.cfg <../../_static/data/line_sample_repack_VO_tli.cfg>`_
     :language: ini
 
 
@@ -143,7 +151,7 @@ To generate the tli files, we run these ``Pyrat Bay`` prompt commands:
 
 .. code:: shell
 
-   pbay -c tli_repack_exomol_VO_cookbook.cfg
+   pbay -c line_sample_repack_VO_tli.cfg
 
 -------------------------------------------------
 
@@ -152,8 +160,8 @@ Compute cross-section tables
 
 As with TLI files, cross-section files can be generated via
 configuration files and the command line. The config file below
-(`opacity_exomol_VO_cookbook.cfg <https://github.com/pcubillos/pyratbay/blob/master/docs/cookbooks/opacity_exomol_VO_cookbook.cfg>`__)
-computes a cross-section table (output name ``extfile``).
+computes a cross-section table (with the output name determined by the
+``extfile`` or ``logfile`` parameters).
 
 These parameters define each array of the cross-section table:
 
@@ -163,8 +171,8 @@ These parameters define each array of the cross-section table:
    temperature sampling array
 -  The ``wllow``, ``wlhigh``, and ``resolution`` parameters define the
    spectral array at a constant resolution (alternatively, one can
-   replace ``resolution`` with ``wnstep`` to sample at constant
-   :math:`\Delta`\ wavenumber, units in cm\ :math:`^{-1}`)
+   replace ``resolution`` with ``wnstep`` to sample at a constant
+   :math:`\Delta \text{wavenumber}`, units in cm\ :math:`^{-1}`)
 
 For the composition (``species``), make sure to include the molecule for
 which we are computing the cross-sections. Also, include the
@@ -175,12 +183,20 @@ background gasses are important, trace-gas VMRs are irrelevant (see
 define the atmosphere’s temperature profile, but for an opacity run,
 these do not impact the calculations.
 
-Lastly, the user can set ``ncpu`` (recommended) to speed up the
+The optional ``voigt_extent`` and ``voigt_cutoff`` keys set the extent
+of the profiles wings from the line centers.  ``voigt_extent`` sets
+the maximum extent in units of HWHM (default is 300 HWHM).
+``voigt_cutoff`` sets the maximum extent in wavenumber units of cm\
+:sup:`-1` (default is 25.0 cm\ :sup:`-1`).  For any given profile, the
+code truncates the line wing at the minimum value of either
+``voigt_extent`` or ``voigt_cutoff``.
+
+Lastly, the user can set ``ncpu`` to speed up the
 calculations using parallel computing.
 
 
-.. literalinclude:: ../../_static/data/opacity_exomol_VO_cookbook.cfg
-    :caption: File: `opacity_exomol_VO_cookbook.cfg <../../_static/data/opacity_exomol_VO_cookbook.cfg>`_
+.. literalinclude:: ../../_static/data/line_sample_repack_VO_opacity.cfg
+    :caption: File: `line_sample_repack_VO_opacity.cfg <../../_static/data/line_sample_repack_VO_opacity.cfg>`_
     :language: ini
 
 
@@ -189,7 +205,7 @@ command:
 
 .. code:: shell
 
-   pbay -c opacity_exomol_VO_cookbook.cfg
+   pbay -c line_sample_repack_VO_opacity.cfg
 
 -------------------------------------------------
 
@@ -201,9 +217,8 @@ Here's a Python script to take a look at the output cross section:
    import matplotlib
    import matplotlib.pyplot as plt
 
-
-   sizes, units, arrays, cross_section = io.read_opacity('cross_section_R020K_0150-3000K_0.3-3.0um_exomol_VO_vomyt.npz')
-   molecs, temps, pressure, wn = arrays
+   cs_file = 'cross_section_R025K_0150-3000K_0.3-30.0um_exomol_VO_hyvo.npz'
+   units, mol, temp, press, wn, cross_section = io.read_opacity(cs_file)
 
    p = 35
    wl = 1e4/wn
@@ -215,19 +230,19 @@ Here's a Python script to take a look at the output cross section:
    plt.subplots_adjust(0.1, 0.145, 0.98, 0.9)
    ax = plt.subplot(111)
    for i,t in enumerate([1,12]):
-       label = f'T = {temps[t]:.0f} K'
+       label = f'T = {temp[t]:.0f} K'
        plt.plot(
-           wl, cross_section[0,t,p], lw=1.0,
+           wl, cross_section[t,p], lw=1.0,
            color=colors[i], alpha=0.9, label=label,
        )
    plt.xscale('log')
    plt.yscale('log')
    ax.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
    ax.xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
-   ax.set_xticks([0.3, 0.5, 1.0, 2.0, 3.0])
-   plt.xlim(0.3, 3.0)
+   ax.set_xticks([0.3, 1.0, 3.0, 10.0])
+   plt.xlim(0.3, 12.0)
    plt.ylim(1e-26, 1e-14)
-   plt.title('Exomol VO (vomyt)')
+   plt.title('Exomol VO (hyvo)')
    plt.xlabel('Wavelength (um)')
    plt.ylabel(r'Cross section (cm$^{2}$ / molecule)')
    plt.legend(loc='upper right')

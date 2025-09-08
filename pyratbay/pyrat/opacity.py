@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2024 Patricio Cubillos
+# Copyright (c) 2021-2025 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import numpy as np
@@ -43,15 +43,15 @@ class Opacity():
         # The flag self.is_patchy will be set in pyrat.Retrieval() because
         # a patchy model may be set via the retrieval_params input
 
-        min_wn = np.amin(wn)
-        max_wn = np.amax(wn)
+        min_wn = pyrat.spec.wnlow
+        max_wn = pyrat.spec.wnhigh
         species = list(species)
 
         self.nspec = []
         # TBD: without runmode?
-        if inputs.extfile is not None and inputs.runmode != 'opacity':
+        if inputs.sampled_cs is not None and inputs.runmode != 'opacity':
             log.head("\nReading cross-section table file(s):")
-            #for cs_file in self.extfile:
+            #for cs_file in self.sampled_cs:
             #    log.head(f"  '{cs_file}'.")
 
             make_temp_array = (
@@ -69,7 +69,7 @@ class Opacity():
 
             # TBD: self.ls_files?
             ls = op.Line_Sample(
-                inputs.extfile, pressure=pressure, temperature=temp_array,
+                inputs.sampled_cs, pressure=pressure, temperature=temp_array,
                 min_wn=min_wn, max_wn=max_wn, wn_thinning=inputs.wn_thinning,
                 log=log, isotope_ratios=inputs.isotope_ratios,
             )
@@ -124,12 +124,12 @@ class Opacity():
                 self.nspec.append(1)
                 self.pnames.append([])
 
-        if inputs.cia_files is not None:
+        if inputs.continuum_cs is not None:
             tmin = []
             tmax = []
-            for cia_file in inputs.cia_files:
-                log.head(f"Read CIA file: '{cia_file}'.", indent=2)
-                cia = op.Collision_Induced(cia_file, wn=wn)
+            for cs_file in inputs.continuum_cs:
+                log.head(f"Read continuum cross-section file: '{cs_file}'.", indent=2)
+                cia = op.Collision_Induced(cs_file, wn=wn)
                 log.msg(
                     f'{cia.name} opacity:\n'
                     f'Read {cia.nwave} wave and {cia.ntemp} temperature samples.\n'
@@ -304,8 +304,9 @@ class Opacity():
 
             if self.models_type[i] == 'line_sample':
                 args['per_mol'] = True
-            if hasattr(model, 'pars'):
-            #if hasattr(model, 'pars') and model.npars > 0:
+            # npars>0 requrements is if for Dalgarno Rayleigh models that
+            # have 0 free params ... TBD: remove model.pars from them?
+            if hasattr(model, 'pars') and model.npars > 0:
                 args['pars'] = model.pars
 
             extinction = model.calc_extinction_coefficient(**args)

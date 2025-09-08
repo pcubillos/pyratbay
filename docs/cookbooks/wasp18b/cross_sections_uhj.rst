@@ -4,107 +4,97 @@
 Cross Sections for an Ultra Hot Jupiter
 =======================================
 
-This documentation demonstrates how to download and process molecular
-opacity line lists into tabulated cross sections. There are four main
-steps to compute cross-section files:
+This script shows how to cmopute line-sampled molecular cross
+sections, to be used for atmospheric modeling and retrievals.  There
+are four main steps to compute cross-section files:
 
-1. `Fetch Line Lists <#line-lists>`_
-2. `Fetch Partition Functions <#partition-functions>`_
-3. `Compute TLI Files <#tli-files>`_
-4. `Sample Cross Sections <#cross-sections>`_
+1. `Download line-list data <#line-lists>`_
+2. `Compute partition functions <#partition-functions>`_
+3. `Compute TLI files <#tli-files>`_
+4. `Sample cross sections <#cross-sections>`_
 
 Note that the first three steps are typically executed only once,
-allowing you to reuse the output files across projects. However, `Step
-4 <#cross-sections>`_ may need to be repeated on a per-project
+allowing you to reuse the output files across projects.  If you have
+already the tli files that you need, go directly to `Step 4
+<#cross-sections>`__.
+
+`Step 4 <#cross-sections>`__ may need to be executed on a per-project
 basis, depending on your specific requirements (e.g., different
 spectral, temperature, or pressure ranges; or varying resolutions).
-
-Now go back to the :doc:`WASP-18b <../wasp18b/notebook_emission_retrieval>` retrieval notebook.
 
 --------------------------------------------------------
 
 1. Line Lists
 -------------
 
-In this section, we'll download molecular line lists, typically
-sourced from the ExoMol or HITRAN/HITEMP databases. You will likely
-only need to complete this step once unless a new or updated line list
-becomes available. It may be better to store this data in a general
-directory on your machine. To create a folder for storing line lists,
-run:
-
-.. code-block:: shell
-
-   mkdir inputs
-   cd inputs
+First we need to download the line lists, typically sourced from the
+ExoMol or HITRAN/HITEMP databases.  You will likely only need to
+complete this step once unless a new or updated line list becomes
+available. It may be better to store this data in a general directory
+on your machine. 
 
 For this project, we will focus on the molecular absorbers relevant
-for an ultra-hot Jupiter (WASP-18b). The table below lists the
-molecular line-lists to download and their sources.
+for an ultra-hot Jupiter (WASP-18b). The table below lists the line
+lists that we will use.
 
 
-+----------+--------+--------------------------+
-| Molecule | Source | Line List / Reference    |
-+==========+========+==========================+
-| CH4      | HITEMP | Hargreaves et al. (2020) |
-+----------+--------+--------------------------+
-| CO       | HITEMP | Li et al. (2019)         |
-+----------+--------+--------------------------+
-| CO2      | HITEMP | Rothman et al. (2010)    |
-+----------+--------+--------------------------+
-| H2O      | ExoMol | pokazatel                |
-+----------+--------+--------------------------+
-| HCN      | ExoMol | larner/harris            |
-+----------+--------+--------------------------+
-| NH3      | ExoMol | coyute/byte              |
-+----------+--------+--------------------------+
-| TiO      | ExoMol | toto                     |
-+----------+--------+--------------------------+
-| VO       | ExoMol | vomyt                    |
-+----------+--------+--------------------------+
-| C2H2     | ExoMol | acety                    |
-+----------+--------+--------------------------+
+.. list-table:: Molecular line lists
+  :header-rows: 1
 
-The file below contains links to download all the required data.
+  * - Species (source)
+    - References
 
-.. raw:: html
+  * - `H2O <https://www.exomol.com/data/molecules/H2O/1H2-16O/POKAZATEL>`__ (exomol, pokazatel)
+    -  [Polyansky2018]_
 
-   <details>
-   <summary>Click here to show/hide: <a href="../../_static/data/uhj_line_lists_data.txt">uhj_line_lists_data.txt</a></summary>
+  * - `CO <https://hitran.org/hitemp>`__ (HITEMP, li)
+    - [Li2015]_
 
-.. literalinclude:: ../../_static/data/uhj_line_lists_data.txt
-    :caption: File: uhj_line_lists_data.txt
+  * - `CO2 <https://data.nas.nasa.gov/ai3000k>`__ (ames, ai3000k) 
+    - [Huang2023]_
+
+  * - `CH4 <https://www.exomol.com/data/molecules/CH4/12C-1H4/MM>`__ (exomol, mm)
+    - [Yurchenko2024a]_
+
+  * - `TiO <https://www.exomol.com/data/molecules/TiO>`__ (exomol, toto)
+    - [McKemmish2019]_
+
+  * - `VO <https://www.exomol.com/data/molecules/VO/51V-16O/HyVO>`__ (exomol, hyvo) 
+    - [Bowesman2024]_
+
+  * - `HCN <https://www.exomol.com/data/molecules/HCN/>`__ (exomol, harris larner)
+    - [Harris2008]_ [Barber2014]_
+
+  * - `NH3 <https://www.exomol.com/data/molecules/NH3>`__ (exomol, coyute)
+    - [Coles2019]_ [Yurchenko2024b]_
+
+  * - `C2H2 <https://www.exomol.com/data/molecules/C2H2/12C2-1H2/aCeTY>`__ (exomol, acety)
+    - [Chubb2020]_
+
+
+These datasets contain around 200 billion transitions, so it would be
+impractical to work with the full set of line lists.  Instead, we work
+with the datasets processed with ``repack`` [Cubillos2017b]_, which
+filtered the dominant transitions at each wavelength, and thus
+reduced the number of lines to model.  The file below contains the
+actual files to download.
+
+
+.. literalinclude:: ../../_static/data/wasp18b_line_lists_data.txt
+    :caption: File: `wasp18b_line_lists_data.txt <../../_static/data/wasp18b_line_lists_data.txt>`__  
     :language: none
 
-.. raw:: html
 
-   </details>
-
-Note that for ExoMol data, we will fetch line lists processed with
-``repack`` (`Cubillos 2017, ApJ 850
-<https://ui.adsabs.harvard.edu/abs/2017ApJ...850...32C>`_). This
-package identifies the strong lines dominating the spectrum from the
-weak ones, which get discarded, speeding up the sampling process by
-reducing the line lists from billions of transitions to only a few
-hundred million.
-
-On Linux/OSX, you can copy this file and then download the line-list
-data using the ``wget`` shell command (note these are several GB of
-data):
+Here's a script to download these files from the command line using
+``wget``.  First, make sure to copy the text file above to your current folder:
 
 .. code-block:: shell
 
-    wget -i uhj_line_lists_data.txt
+    # Download line lists (note there are several GBs of data):
+    wget -i wasp18b_line_lists_data.txt
 
-
-Now, unpack the HITEMP data with these shell commands:
-
-.. code-block:: shell
-
+    # Unzip the HITEMP data:
     bzip2 -d 05_HITEMP2019.par.bz2
-    bzip2 -d 06_HITEMP2020.par.bz2
-    unzip '*.zip'
-    rm -f *.zip
 
 --------------------------------------------------------
 
@@ -112,65 +102,55 @@ Now, unpack the HITEMP data with these shell commands:
 2. Partition Functions
 ----------------------
 
-In addition to the line-list data, to compute cross sections you will
-need the partition functions for each molecules.  This file below
-contains the links to the partition functions to extract from the
-ExoMol database (the rest we will source from HITRAN).
+In addition to the line-list data, we need the partition functions for
+each molecule and isotope.  For this we will use again the data
+provided by ExoMol and HITRAN TIPS ([Gamache2017]_ [Gamache2021]_).
+
+What's *really important* is to be aware of the temperature range of
+the partition functions.  For an ultra hot Jupiter like WASP-18b, we
+want cross sections as hot as ~5000K.  So, the strategy will be to use
+the tabulated partition functions files (.pf files) when they cover
+the temperatures we need. Otherwise, we will compute the partition
+from the .states files.  For CO2 I provide the partitions computed
+from the Ames states files.
+
+This file below contains links to the input partition-function data
+from Exomol, ames, and HITRAN:
 
 
-.. raw:: html
-
-   <details>
-   <summary>Click here to show/hide: <a href="../../_static/data/uhj_partition_function_data.txt">uhj_partition_function_data.txt</a></summary>
-
-.. literalinclude:: ../../_static/data/uhj_partition_function_data.txt
-    :caption: File: uhj_partition_function_data.txt
+.. literalinclude:: ../../_static/data/wasp18b_partition_function_data.txt
+    :caption: File: `wasp18b_partition_function_data.txt <../../_static/data/wasp18b_partition_function_data.txt>`__  
     :language: none
 
-.. raw:: html
 
-   </details>
-
-
-Copy this file to your ``inputs/`` folder and then download the
-partition-function files with this shell command:
+``Pyrat Bay`` provides the commands to parse and compute the
+partitions into the required format.  Here's a script to download
+these files above and process the partition functions (First, make
+sure to copy the text file above to your current folder):
 
 .. code-block:: shell
 
-    wget -i uhj_partition_function_data.txt
+    # Download partition function files
+    wget -i wasp18b_partition_function_data.txt
 
-
-Now we need to format the ExoMol partition function files into the
-right format for ``Pyrat Bay``.  For that run this shell commands:
-
-.. code-block:: shell
-
-    pbay -pf exomol 1H2-16O__POKAZATEL.pf
-    pbay -pf exomol 1H-12C-14N__Harris.pf 1H-13C-14N__Larner.pf
-    pbay -pf exomol 12C2-1H2__aCeTY.pf
-    pbay -pf exomol 46Ti-16O__Toto.pf 47Ti-16O__Toto.pf 48Ti-16O__Toto.pf 49Ti-16O__Toto.pf 50Ti-16O__Toto.pf
-    pbay -pf exomol 51V-16O__VOMYT.pf
-
-
-For the other molecules, we will use the HITRAN partition-function
-data (Gamache et al. `2017
-<https://ui.adsabs.harvard.edu/abs/2017JQSRT.203...70G>`_, `2021
-<https://ui.adsabs.harvard.edu/abs/2021JQSRT.27107713G>`_), which are
-readily availabel in ``Pyrat Bay`` (no need to download files).  To
-generate the partition function run the following shell commands:
-
-.. code-block:: shell
-
+    # Compute HITRAN partitions from TIPS data:
     pbay -pf tips CO
-    pbay -pf tips CO2
-    pbay -pf tips CH4
-    pbay -pf tips NH3 as_exomol
 
-Note that for NH3 we are using the HITRAN partition functions for the
-ExoMol line list (because this partition function samples up to 6000K,
-which we need for atmospheres of ultra-hot Jupiters).  Thus the
-``as_exomol`` argument makes the ouput file to label the isotope names
-as in the ExoMol format.
+    # Convert Exomol partitions from .pf files:
+    pbay -pf exomol 1H2-16O__POKAZATEL.pf
+    pbay -pf exomol 12C-1H4__MM.pf
+    pbay -pf exomol 12C2-1H2__aCeTY.pf
+    pbay -pf exomol 51V-16O__HyVO.pf
+    pbay -pf exomol 46Ti-16O__Toto.pf 47Ti-16O__Toto.pf 48Ti-16O__Toto.pf 49Ti-16O__Toto.pf 50Ti-16O__Toto.pf
+
+    # Compute Exomol partitions from .states files:
+    pbay -pf states 5.0 5000.0 5.0  1H-12C-14N__Harris.states.bz2 1H-13C-14N__Larner.states.bz2
+    pbay -pf states 5.0 5000.0 5.0  14N-1H3__CoYuTe.states.bz2 15N-1H3__CoYuTe-15.states.bz2
+
+
+.. note:: More info about calculating partition functions can be found
+    in the :doc:`../partition_functions` tutorial.
+
 
 --------------------------------------------------------
 
@@ -180,11 +160,10 @@ as in the ExoMol format.
 ------------
 
 Now we have all the needed inputs.  Lets return to our root directory
-(the one containing the ``inputs/`` folder).
-
-The next step is to format the line-list and partition-function input
-data into the format for use in ``Pyrat Bay``, these are called
-transmission line information (TLI) files.
+(the one containing the ``inputs/`` folder).  The next step is to
+format the line-list and partition-function data into the format for
+use in ``Pyrat Bay``, these are called transmission line information
+(TLI) files.
 
 Here below is the H2O/Exomol configuration files that run this step,
 for example:
@@ -201,17 +180,16 @@ for example:
 
    </details>
 
-A couple of things to note:
+There are two main things to configure during this step:
 
-- The configuration file indicates the wavelength range to
-  consider. Best practice is to include the full wavelength range
-  available from the line list.  That way you can create a single TLI
-  file that you can use for all of your future projects.  In `Step 4
-  <#cross-sections>`_ you will have the option to fine tune the
-  wavelength range for specific projects.
+1. Set the wavelength range to consider.  Best practice is to include
+   the full wavelength range that is available.  That way there is no
+   need to recalculate TLI files for future projects at other
+   wavelengths.  In `Step 4 <#cross-sections>`__ you will have the
+   option to fine tune the wavelength range for the cross-sections.
 
-- The partition-function input is the one file determining what is the
-  available temperature range.
+2. The partition-function input is the one file determining what is the
+   available temperature range.
 
 Here are all the TLI configuration files:
 
@@ -264,26 +242,24 @@ wont likely need to run this step again.
 -----------------
 
 The final step is to sample the line lists into tabulated data. In
-this step, each line transition is processed to compute its Voigt
-profile, which is then sampled over a specified wavelength range, and
-coadded with all other lines for the molecule. We do this across a
-regular grid of temperatures and pressures, enabling later use in
-radiative-transfer calculations.
+this step, the code computes the strength and Voigt profile of each
+transition of a given molecule, and co-adds them into a cross-section
+grid (cm\ :math:`^2` molecule\ :math:`^{-1}`), which is sampled over
+pressure, temperature, and wavelength.
 
-.. Note::
-    Depending on the application for the cross-section data, you
-    may need to set specific parameters. For example,
-    radiative-equilibrium applications typically require broad
-    wavelength coverage (~0.3–30 µm) to capture the spectral regions
-    where most of the stellar and planetary flux is concentrated.  In
-    constrast, atmospheric retrievals may focus only on the spectral
-    range covered by the observations, thus allowing to have higher
-    spectral resolutions than you could with radiative-equilibrium
-    run.  It's all a trade-off between science requirements and
-    computational constraints.
+.. Note:: Customization of the pressure, temperature, and wavelength
+    sampling will vary depending on the application.  For example,
+    radiative-equilibrium applications typically require a broad
+    wavelength coverage (~0.3-30 µm).  In constrast, atmospheric
+    retrievals may focus only on the spectral range covered by the
+    observations, thus allowing to have higher spectral resolutions
+    than you could with radiative-equilibrium run.  It's a
+    trade-off between science requirements and computational
+    constraints.
 
 Here we will focus on a emission atmospheric retrieval for an
-ultra-hot Jupiter.
+ultra-hot Jupiter constrained by optical and infrared observations.
+Here are the configuration files to sample the cross sections:
 
 .. raw:: html
 
@@ -470,3 +446,7 @@ Now you can compute the TLI files using this ``Pyrat Bay`` shell command:
 This may take a while since you are processing several millions of
 line transitions, but once you have generated these TLI files, you
 wont likely need to run this step again.
+
+-----
+
+Once you have the cross-section files needed for yout project, go back to the :doc:`WASP-18b <../wasp18b/notebook_emission_retrieval>` retrieval notebook.

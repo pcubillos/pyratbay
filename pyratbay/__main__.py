@@ -1,6 +1,5 @@
 #! /usr/bin/env python
-
-# Copyright (c) 2021-2024 Patricio Cubillos
+# Copyright (c) 2021-2025 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import argparse
@@ -83,7 +82,7 @@ def main():
         outfile = 'default'
         if args.pf[0] == 'exomol':
             pb.opacity.partitions.exomol_pf(args.pf[1:], outfile=outfile)
-        if args.pf[0] == 'states':
+        elif args.pf[0] == 'states':
             tmin = float(args.pf[1])
             tmax = float(args.pf[2])
             tstep = float(args.pf[3])
@@ -91,14 +90,11 @@ def main():
             pb.opacity.partitions.exomol_states(
                 state_files, tmin, tmax, tstep, outfile=outfile,
             )
-        elif args.pf[0] == 'kurucz':
-            pb.opacity.partitions.kurucz(args.pf[1], outfile=outfile)
         elif args.pf[0] == 'tips':
             molecule = args.pf[1]
-            dbtype = args.pf[2] if len(args.pf) > 2 else 'as_tips'
-            pb.opacity.partitions.tips(
-                molecule, outfile=outfile, db_type=dbtype,
-            )
+            pb.opacity.partitions.tips(molecule, outfile=outfile)
+        elif args.pf[0] == 'kurucz':
+            pb.opacity.partitions.kurucz(args.pf[1], outfile=outfile)
         else:
             print('Invalid partition-function type.')
 

@@ -1,10 +1,9 @@
-# Copyright (c) 2021-2023 Patricio Cubillos
+# Copyright (c) 2021-2025 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
     'Extinction',
     'Optdepth',
-    'Physics',
 ]
 
 import numpy as np
@@ -16,7 +15,7 @@ from .. import constants as pc
 class Extinction():
     def __init__(self, inputs, log):
         self.ec = None # line-transition extinction coefficient in cm-1
-        self.extfile = inputs.extfile
+        self.sampled_cs = inputs.sampled_cs
         # Temperature sampling to compute opacity grid
         self.tmin = inputs.tmin
         self.tmax = inputs.tmax
@@ -31,10 +30,12 @@ class Extinction():
             fw.write(
                 '\nLBL extinction coefficient for the atmospheric model '
                 '(ec, cm-1) [layer, wave]:\n{}', self.ec, fmt=fmt)
-        extfile = ['None'] if self.extfile is None else self.extfile
-        fw.write("Extinction-coefficient table filename(s) (extfile): {}",
-            '\n    '.join(extfile))
-        if self.extfile is None:
+        cs_file = ['None'] if self.sampled_cs is None else self.sampled_cs
+        fw.write(
+            "Extinction-coefficient table filename(s) (cs_file): {}",
+            '\n    '.join(cs_file)
+        )
+        if self.sampled_cs is None:
             return fw.text
         fw.write('Minimum temperature (tmin, K): {:6.1f}', self.tmin)
         fw.write('Maximum temperature (tmax, K): {:6.1f}', self.tmax)
@@ -88,7 +89,7 @@ class Optdepth():
               '\nOptical depth at each impact parameter, down to '
               'max(ideep) (depth):'
           )
-      elif self.rt_path in pc.emission_rt:
+      elif self.rt_path in pc.emission_rt + pc.eclipse_rt:
           fw.write(
               '\nDistance across each layer along a normal ray path '
               '(raypath, km):\n    {}',
@@ -114,7 +115,7 @@ class Optdepth():
       )
       fw.write('Maximum ideep (deepest layer reaching maxdepth): {}', ideepest)
 
-      if self.rt_path in pc.emission_rt:
+      if self.rt_path in pc.emission_rt + pc.eclipse_rt:
           fw.write(
               '\nPlanck emission down to max(ideep) (B, erg s-1 cm-2 '
               'sr-1 cm):\n{}',
@@ -127,63 +128,3 @@ class Optdepth():
           fmt={'float':'{: .3e}'.format},
       )
       return fw.text
-
-
-class Physics():
-    """Physical properties about the planet and star"""
-    def __init__(self, inputs):
-        # Stellar properties
-        self.tstar = inputs.tstar
-        self.rstar = inputs.rstar
-        self.mstar = inputs.mstar
-        self.log_gstar = inputs.log_gstar
-        self.distance = inputs.distance
-
-        # Stellar spectrum filename
-        self.starspec = inputs.starspec
-        self.kurucz = inputs.kurucz
-        self.marcs = inputs.marcs
-        self.phoenix = inputs.phoenix
-
-        self.starwn = None  # Input stellar wavenumber array
-        self.starflux = None  # Input stellar flux spectrum in  FINDME units
-
-    def __str__(self):
-        fw = pt.Formatted_Write()
-        fw.write('Physical properties information:')
-
-        rstar = pt.none_div(self.rstar, pc.rsun)
-        mstar = pt.none_div(self.mstar, pc.msun)
-        distance = pt.none_div(self.distance, pc.parsec)
-        fw.write(
-            '\nStellar effective temperature (tstar, K): {:.1f}',
-            self.tstar,
-        )
-        fw.write('Stellar radius (rstar, Rsun): {:.3f}', rstar)
-        fw.write('Stellar mass (mstar, Msun):   {:.3f}', mstar)
-        fw.write(
-            'Stellar surface gravity (log_gstar, cm s-2): {:.2f}',
-            self.log_gstar,
-        )
-        fw.write('Distance (distance, parsec):   {:.3f}', distance)
-        #fw.write('Planet-to-star radius ratio (rprs):   {:.5f}', rprs)
-        if self.starspec is not None:
-            fw.write(f"Input stellar spectrum (starspec): '{self.starspec}'")
-        elif self.kurucz is not None:
-            fw.write(f"Input Kurucz stellar spectrum (kurucz): '{self.kurucz}'")
-        elif self.marcs is not None:
-            fw.write(f"Input MARCS stellar spectrum (marcs): '{self.marcs}'")
-        elif self.phoenix is not None:
-            fw.write(
-                f"Input PHOENIX stellar spectrum (phoenix): '{self.phoenix}'",
-            )
-        elif self.starflux is not None:
-            fw.write(
-                "Input stellar spectrum is a blackbody at Teff = {:.1f} K.",
-                self.tstar,
-            )
-        fw.write('Stellar spectrum wavenumber (starwn, cm-1):\n    {}',
-            self.starwn, fmt={'float': '{:10.3f}'.format})
-        fw.write('Stellar flux spectrum (starflux, erg s-1 cm-2 cm):\n    {}',
-            self.starflux, fmt={'float': '{: .3e}'.format})
-        return fw.text

@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2024 Patricio Cubillos
+# Copyright (c) 2021-2025 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import os
@@ -58,8 +58,8 @@ def test_get_ec_lbl(tmp_path):
     cfile = f'{ROOT}pyratbay/data/CIA/CIA_Borysow_H2H2_0060-7000K_0.6-500um.dat'
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        reset={'csfile': cfile, 'wllow': '0.55'},
+        ROOT+'tests/configs/spectrum_transmission_test_tli.cfg',
+        reset={'continuum_cross_sec': cfile, 'wllow': '0.55'},
     )
     pyrat = pb.run(cfg)
     layer = 31
@@ -76,9 +76,7 @@ def test_get_ec_lbl(tmp_path):
 
 
 def test_get_ec_line_sample(tmp_path):
-    extfile = ROOT+'tests/outputs/exttable_test_300-3000K_1.1-1.7um.npz'
     reset = {
-        'extfile': extfile,
         'chemistry': 'tea',
         'species': 'H2 H He Na K H2O CH4 CO CO2 e- H- H+ H2+ Na- Na+ K+ K-',
         'h_ion': 'h_ion_john1988',
@@ -87,7 +85,7 @@ def test_get_ec_line_sample(tmp_path):
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         reset=reset,
-        remove=['tlifile', 'clouds'],
+        remove=['clouds'],
     )
     pyrat = pb.run(cfg)
     layer = 31

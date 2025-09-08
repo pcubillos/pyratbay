@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2024 Patricio Cubillos
+# Copyright (c) 2021-2025 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -36,8 +36,8 @@ class ColorTheme():
 class Retrieval():
     theme = ColorTheme()
 
-    def __init__(self, inputs, atm, phy, obs, opacity, log):
-        self.nparams = 0     # Number of free parameters
+    def __init__(self, inputs, atm, obs, opacity, log):
+        self.nparams = 0
         self.posterior = None
         self.bestp = None
         self.spec_best = None
@@ -46,7 +46,7 @@ class Retrieval():
         self.spec_high1 = None
         self.spec_high2 = None
 
-        self.mcmcfile = inputs.mcmcfile
+        self.retrieval_file = inputs.retrieval_file
         self.retflag = inputs.retflag
         self.qcap = inputs.qcap
         if atm.chemistry == 'tea':
@@ -399,8 +399,10 @@ class Retrieval():
         )
         fw.write(f'Temperature upper boundary (tlow, K):  {self.tlow:6.1f}')
         fw.write(f'Temperature lower boundary (thigh, K): {self.thigh:6.1f}')
-
-        fw.write('\nRetrieval posterior file (mcmcfile): {}', self.mcmcfile)
+        fw.write(
+            '\nRetrieval posterior file (retrieval_file): {}',
+            self.retrieval_file,
+        )
         if self.posterior is not None:
             nsamples, nparams = np.shape(self.posterior)
             fw.write(

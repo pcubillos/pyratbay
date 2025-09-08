@@ -7,11 +7,13 @@ __all__ = [
 
 import numpy as np
 import scipy.interpolate as sip
+import mc3.utils as mu
 
 from .. import atmosphere as pa
 from ..atmosphere import vmr_models
 from .. import constants as pc
 from .. import io as io
+from .. import spectrum as ps
 from .. import tools as pt
 
 
@@ -50,7 +52,7 @@ class Atmosphere():
     mplanet = MassGravity()  # Planetary mass
     gplanet = MassGravity()  # Planetary surface gravity (at rplanet)
 
-    def __init__(self, inputs, log, mstar=None):
+    def __init__(self, inputs, wn=None, log=None):
         """
         Initialize an atmospheric model object
         There are four main properties to compute (in this order):
@@ -66,7 +68,23 @@ class Atmosphere():
         - else, skip the calculation
         - if calculate p, any further reads (T,VMR,r) will interpolate
         """
+        if log is None:
+            log = mu.Log(width=80)
+        self.log = log
         log.head('\nGenerating atmospheric model')
+
+        # Stellar properties
+        self.tstar = inputs.tstar
+        self.rstar = inputs.rstar
+        self.mstar = inputs.mstar
+        self.log_gstar = inputs.log_gstar
+        self.distance = inputs.distance
+
+        sed_type, sed_file, starwn, starflux = self.setup_star_sed(inputs, wn)
+        self.sed_type = sed_type
+        self.sed_file = sed_file
+        self.starwn = starwn
+        self.starflux = starflux
 
         self.rtop = 0  # Index of topmost layer (within Hill radius)
 
@@ -274,7 +292,7 @@ class Atmosphere():
         if self.vmr is not None:
             self.base_vmr = np.copy(self.vmr)
 
-        self.parse_abundance_parameters(log)
+        self.parse_abundance_parameters()
         # Set species' mass and collision radius:
         if self.species is not None:
             self.nmol = len(self.species)
@@ -323,10 +341,9 @@ class Atmosphere():
             else:
                 self.runits = 'rearth'
 
-        # Compute VMR and radius profiles (when needed)
-        # and other properties (mean molecular mass, number density, Hill radius)
-        self.calc_profiles(mstar=mstar, log=log)
-
+        # Compute VMR, radius profiles (when needed), and other
+        # properties (mean molecular mass, number density, Hill radius)
+        self.calc_profiles()
 
         # Screen outputs:
         mmm_text = ''
@@ -373,7 +390,7 @@ class Atmosphere():
 
 
     def calc_profiles(
-            self, temp=None, vmr=None, radius=None, mstar=None, log=None,
+            self, temp=None, vmr=None, radius=None,
             # Deprecated parameters:
             abund=None,
         ):
@@ -400,7 +417,7 @@ class Atmosphere():
 
         # Check that the dimensions match:
         if np.size(temp) != self.nlayers:
-            log.error(
+            self.log.error(
                 f"The temperature array size ({np.size(temp)}) doesn't match "
                 f"the Pyrat's temperature size ({np.size(self.temp)})"
             )
@@ -410,7 +427,7 @@ class Atmosphere():
         if vmr is not None:
             self.molpars = []
             if np.shape(vmr) != np.shape(self.vmr):
-                log.error(
+                self.log.error(
                     f"The shape of the input VMR array {np.shape(vmr)} "
                      "doesn't match the shape of the Pyrat VMR "
                     f"{np.shape(self.vmr)}"
@@ -475,12 +492,12 @@ class Atmosphere():
             pass
 
         # Check radii lie within Hill radius:
-        self.rhill = pa.hill_radius(self.smaxis, self.mplanet, mstar)
+        self.rhill = pa.hill_radius(self.smaxis, self.mplanet, self.mstar)
         if self.radius is not None:
             self.rtop = pt.ifirst(self.radius<self.rhill, default_ret=0)
             if self.rtop > 0:
                 rhill = self.rhill / pt.u(self.runits)
-                log.warning(
+                self.log.warning(
                     "The atmospheric pressure array extends beyond the Hill "
                     f"radius ({rhill:.5f} {self.runits}) at pressure "
                     f"{self.press[self.rtop]:.3e} bar (layer {self.rtop})."
@@ -523,13 +540,13 @@ class Atmosphere():
             return pa.hydro_g(pressure, temperature, mu, gplanet, p0, r0)
 
 
-    def validate_species(self, var, log, molec=None, elements=[]):
+    def validate_species(self, var, molec=None, elements=[]):
         """
         Validate composition variables.
         """
         if molec is not None:
             if molec not in self.species:
-                log.error(
+                self.log.error(
                     f"Invalid vmr_vars variable '{var}', "
                     f"species {molec} is not in the atmosphere"
                 )
@@ -537,16 +554,16 @@ class Atmosphere():
 
         in_equillibrium = self.chemistry == 'tea'
         if not in_equillibrium:
-            log.error(f"vmr_vars variable '{var}' requires chemistry=tea")
+            self.log.error(f"vmr_vars variable '{var}' requires chemistry=tea")
         for element in elements:
             if element not in self.chem_model.elements:
-                log.error(
+                self.log.error(
                     f"Invalid vmr_vars variable '{var}', "
                     f"element '{element}' is not in the atmosphere"
                 )
 
 
-    def parse_abundance_parameters(self, log=None):
+    def parse_abundance_parameters(self):
         """
         Sort out variables related to the VMR modeling
         """
@@ -561,31 +578,31 @@ class Atmosphere():
             # VMR variables
             if var.startswith('log_'):
                 molec = var[4:]
-                self.validate_species(var, log, molec=molec)
+                self.validate_species(var, molec=molec)
                 vmr_model = vmr_models.IsoVMR(molec, self.press)
             elif var.startswith('scale_'):
                 molec = var[6:]
-                self.validate_species(var, log, molec=molec)
+                self.validate_species(var, molec=molec)
                 imol = species.index(molec)
                 vmr_model = vmr_models.ScaleVMR(
                     molec, self.press, self.vmr[:,imol],
                 )
             elif var.startswith('slant_'):
                 molec = var[6:]
-                self.validate_species(var, log, molec=molec)
+                self.validate_species(var, molec=molec)
                 vmr_model = vmr_models.SlantVMR(molec, self.press)
             # Equillibrium variables
             elif var == '[M/H]':
                 vmr_model = vmr_models.MetalEquil()
-                self.validate_species(var, log)
+                self.validate_species(var)
             elif var.startswith('[') and var.endswith('/H]'):
                 vmr_model = vmr_models.ScaleEquil(var)
-                self.validate_species(var, log, elements=[vmr_model.element])
+                self.validate_species(var, elements=[vmr_model.element])
             elif '/' in var:
                 vmr_model = vmr_models.RatioEquil(var)
-                self.validate_species(var, log, elements=vmr_model.elements)
+                self.validate_species(var, elements=vmr_model.elements)
             else:
-                log.error(f"Unrecognized VMR model (vmr_vars): '{var}'")
+                self.log.error(f"Unrecognized VMR model (vmr_vars): '{var}'")
             self.mol_pnames += vmr_model.pnames
             self.mol_texnames += vmr_model.texnames
             self.vmr_models.append(vmr_model)
@@ -612,7 +629,9 @@ class Atmosphere():
         vmr_uniques, vmr_counts = np.unique(free_vmr, return_counts=True)
         if np.any(vmr_counts>1):
             duplicates = vmr_uniques[vmr_counts>1]
-            log.error(f'There are repeated species {duplicates} in vmr_vars')
+            self.log.error(
+                f'There are repeated species {duplicates} in vmr_vars'
+            )
 
         self.ifree = [species.index(mol) for mol in free_vmr]
 
@@ -624,7 +643,7 @@ class Atmosphere():
                 vmr_model_name = self.vmr_vars[i]
                 npars = np.size(vmr_pars)
                 if vmr_model.npars != npars:
-                    log.error(
+                    self.log.error(
                         f"The parameters for model '{vmr_model_name}' ({npars}) "
                         "does not match the expected number of values "
                         f"({vmr_model.npars})"
@@ -636,7 +655,7 @@ class Atmosphere():
             # Ckeck bulk species:
             missing = np.setdiff1d(self.bulk, species)
             if len(missing) > 0:
-                log.error(
+                self.log.error(
                     'These bulk species are not present in the '
                     f'atmosphere: {missing}'
                 )
@@ -644,7 +663,7 @@ class Atmosphere():
             free_vmr = self.species[self.ifree]
             bulk_free_species = np.intersect1d(self.bulk, free_vmr)
             if len(bulk_free_species) > 0:
-                log.error(
+                self.log.error(
                     'These species were marked as both bulk and '
                     f'variable-abundance: {bulk_free_species}'
                 )
@@ -652,6 +671,53 @@ class Atmosphere():
             self.ibulk = [species.index(mol) for mol in self.bulk]
             self.bulkratio, self.invsrat = pa.ratio(self.vmr, self.ibulk)
 
+
+    def setup_star_sed(self, inputs, wn):
+        """
+        Read stellar spectrum model: starspec, kurucz, or blackbody
+
+        Returns
+        Input stellar flux spectrum (erg s-1 cm-2 cm)
+        """
+        log = self.log
+        if inputs.starspec is not None:
+            sed_type = 'input'
+            sed_file = inputs.starspec
+            starflux, starwn, sed_temps = io.read_spectra(inputs.starspec)
+            if sed_temps is not None:
+                self.sed_temps = sed_temps
+
+        elif inputs.kurucz is not None:
+            sed_type = 'kurucz'
+            sed_file = inputs.kurucz
+            if self.tstar is None:
+                log.error(
+                    'Undefined stellar temperature (tstar), required for '
+                    'Kurucz model'
+                )
+            if self.log_gstar is None:
+                log.error(
+                    'Undefined stellar gravity (log_gstar), required for '
+                    'Kurucz model'
+                )
+            starflux, starwn, kurucz_t, kurucz_g = ps.read_kurucz(
+                sed_file, self.tstar, self.log_gstar,
+            )
+            log.msg(
+                f'Input stellar params: T={self.tstar:7.1f} K, log(g)={self.log_gstar:4.2f}\n'
+                f'Best Kurucz match:    T={kurucz_t:7.1f} K, log(g)={kurucz_g:4.2f}'
+            )
+        elif self.tstar is not None and wn is not None:
+            sed_type = 'blackbody'
+            sed_file = None
+            starwn = wn
+            starflux = ps.bbflux(starwn, self.tstar)
+        else:
+            sed_type = None
+            sed_file = None
+            starflux, starwn = None, None
+
+        return sed_type, sed_file, starwn, starflux
 
 
     def __str__(self):
@@ -667,20 +733,48 @@ class Atmosphere():
         )
         fw.write('Number of layers (nlayers): {:d}', self.nlayers)
 
-        rplanet = None if self.rplanet is None else self.rplanet/pc.rjup
-        mplanet = None if self.mplanet is None else self.mplanet/pc.mjup
-        gplanet = self.gplanet
+        rplanet = pt.none_div(self.rplanet, pc.rjup)
+        mplanet = pt.none_div(self.mplanet, pc.mjup)
         smaxis = pt.none_div(self.smaxis, pc.au)
         rhill = pt.none_div(self.rhill, pc.rjup)
+        rstar = pt.none_div(self.rstar, pc.rsun)
+        mstar = pt.none_div(self.mstar, pc.msun)
+        distance = pt.none_div(self.distance, pc.parsec)
+        rprs = pt.none_div(self.rplanet, self.rstar)
         fw.write('\nPlanetary radius (rplanet, Rjup): {:.3f}', rplanet)
         fw.write('Planetary mass (mplanet, Mjup): {:.3f}', mplanet)
-        fw.write('Planetary surface gravity (gplanet, cm s-2): {:.1f}', gplanet)
-        fw.write(
-            'Planetary internal temperature (tint, K):  {:.1f}',
-            self.tint,
-        )
-        fw.write('Planetary Hill radius (rhill, Rjup):  {:.3f}', rhill)
+        fw.write('Planetary surface gravity (gplanet, cm s-2): {:.1f}', self.gplanet)
+        fw.write('Planetary internal temperature (tint, K): {:.1f}', self.tint)
+        fw.write('Planetary Hill radius (rhill, Rjup): {:.3f}', rhill)
         fw.write('Orbital semi-major axis (smaxis, AU): {:.4f}', smaxis)
+
+        fw.write('\nStellar radius (rstar, Rsun): {:.3f}', rstar)
+        fw.write('Stellar mass (mstar, Msun):   {:.3f}', mstar)
+        fw.write(
+            'Stellar effective temperature (tstar, K): {:.1f}', self.tstar,
+        )
+        fw.write(
+            'Stellar surface gravity (log_gstar, cm s-2): {:.2f}',
+            self.log_gstar,
+        )
+        fw.write('Planet-to-star radius ratio: {:.5f}', rprs)
+        fw.write('Distance to target (distance, parsec): {:.3f}', distance)
+
+        fw.write(f"Input stellar SED type (sed_type): '{self.sed_type}'")
+        fw.write(f"Input stellar SED file (sed_file): {repr(self.sed_file)}")
+        if self.sed_type == 'blackbody':
+            fw.write(
+                "Input stellar spectrum is a blackbody at Teff = {:.1f} K.",
+                self.tstar,
+            )
+        fw.write(
+            'Stellar spectrum wavenumber (starwn, cm-1):\n    {}',
+            self.starwn,
+            fmt={'float': '{:10.3f}'.format},
+        )
+        fw.write('Stellar flux spectrum (starflux, erg s-1 cm-2 cm):\n    {}',
+            self.starflux, fmt={'float': '{: .3e}'.format})
+
 
         fw.write('\nPressure display units (punits): {}', self.punits)
         fw.write('Pressure internal units: bar')

@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2024 Patricio Cubillos
+# Copyright (c) 2021-2025 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -9,6 +9,7 @@ __all__ = [
     'tophat',
     'resample',
     'band_integrate',
+    'wn_mask',
     'inst_convolution',
     'rv_shift',
 ]
@@ -21,10 +22,10 @@ import numpy as np
 import scipy.interpolate as si
 from scipy.signal import convolve
 from scipy.signal.windows import gaussian
-from scipy.interpolate import splrep, splev
 
 from .. import constants as pc
 from .. import io as io
+
 
 counting_types = ['photon', 'energy']
 
@@ -774,6 +775,45 @@ def band_integrate(spectrum, specwn, bandtrans, bandwn):
     return bflux
 
 
+def wn_mask(wn, wn_min, wn_max, tol=1.0e-8):
+    """
+    Get mask of wn values withing given ranges with a extra tolerance
+    to account for floating-point (in)precision.
+
+    Parameters
+    ----------
+    wn: 1D float array
+        Wavenumber array to mask.
+    wn_min: float
+        Minumum wavenumber in mask.
+    wn_max: float
+        Maximum wavenumber in mask.
+    tol: float
+        Tolerance factor at mask edges, calculated as delta_wn*tol,
+        where delta_wn is the sampling stepsize at the edges.
+
+    Returns
+    -------
+    wn_mask: 1D bool array
+        Mask of wavenumber values within ranges.
+    """
+    # Get sampling at edges
+    wn_mask = (wn >= wn_min) & (wn <= wn_max)
+
+    if np.sum(wn_mask) < 2:
+        min_dwn = max_dwn = 0
+    else:
+        min_dwn = np.abs(np.ediff1d(wn[wn_mask][0:2]))
+        max_dwn = np.abs(np.ediff1d(wn[wn_mask][-2:]))
+
+    # Add a tolerance padding to mask:
+    wn_mask = (
+        (wn >= wn_min - min_dwn*tol) &
+        (wn <= wn_max + max_dwn*tol)
+    )
+    return wn_mask
+
+
 def inst_convolution(wl, spectrum, resolution, sampling_res=None):
     """
     Convolve a spectrum according to an instrumental resolving power
@@ -833,8 +873,8 @@ def inst_convolution(wl, spectrum, resolution, sampling_res=None):
     rv_array = np.arange(-(n_el - 1) / 2, (n_el - 1) / 2 + 1, 1)
     rv_array_mod = np.linspace(-n_rv0*rv_pix, n_rv0*rv_pix, int(2*n_rv0+1))
 
-    csscaled = splrep(rv_array, kernel)
-    ker_conv_pix = splev(rv_array_mod, csscaled, der=0)
+    csscaled = si.splrep(rv_array, kernel)
+    ker_conv_pix = si.splev(rv_array_mod, csscaled, der=0)
     ker_conv_pix /= sum(ker_conv_pix)
     rconv = convolve(spectrum, ker_conv_pix, mode="same")
     return rconv
@@ -865,5 +905,4 @@ def rv_shift(vel_km, wn=None, wl=None):
     if wl is not None:
         doppler_factor = np.sqrt((1 + vel / pc.c) / (1 - vel / pc.c))
         return wl * doppler_factor
-
 

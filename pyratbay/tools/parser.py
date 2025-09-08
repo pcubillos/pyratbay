@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2024 Patricio Cubillos
+# Copyright (c) 2021-2025 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -19,6 +19,7 @@ import warnings
 
 import numpy as np
 import mc3.utils as mu
+import matplotlib
 
 from . import tools as pt
 from .mpi_tools import (
@@ -392,6 +393,13 @@ def parse(cfile, with_log=True, mute=False):
         (e.g., to prevent overwritting log of a previous run).
     mute: Bool
         If True, enforce verb to take a value of -1.
+
+    Returns
+    -------
+    args: Dictionary
+        A dictionary containing the input configuration variables.
+    log: mc3.Log
+        A logging log object.
     """
     with pt.log_error():
         if not os.path.isfile(cfile):
@@ -415,9 +423,11 @@ def parse(cfile, with_log=True, mute=False):
         parse_array(args, 'pflist')
         parse_array(args, 'dbtype')
         parse_array(args, 'tlifile')
-        parse_array(args, 'csfile')
         parse_str(args, 'molfile')
-        parse_array(args, 'extfile')
+        parse_array(args, 'sampled_cross_sec')
+        parse_array(args, 'continuum_cross_sec')
+        parse_array(args, 'extfile')   # Deprecated
+        parse_array(args, 'csfile')  # Deprecated
         # Spectrum sampling options:
         parse_str(args, 'wlunits')
         parse_str(args, 'wllow')
@@ -498,11 +508,12 @@ def parse(cfile, with_log=True, mute=False):
         parse_array(args, 'uncert')
         parse_array(args, 'filters')
         parse_str(args, 'obsfile')
+        parse_str(args, 'obsfile_hires')
         parse_str(args, 'offset_inst')
         parse_str(args, 'uncert_scaling')
         parse_float(args, 'inst_resolution')
         # Retrieval options:
-        parse_str(args, 'mcmcfile')
+        parse_str(args, 'mcmcfile')  # Deprecated
         parse_str(args, 'sampler')
         parse_bool(args, 'resume')
         parse_bool(args, 'post_processing', default=True)
@@ -525,6 +536,7 @@ def parse(cfile, with_log=True, mute=False):
         parse_float(args, 'grbreak')
         parse_float(args, 'grnmin')
         parse_str(args, 'theme')
+        parse_str(args, 'data_color')
         parse_int(args, 'nlive')
         parse_str(args, 'statistics')
         # Stellar models:
@@ -614,8 +626,27 @@ def parse(cfile, with_log=True, mute=False):
     args.atmfile = args.get_path('atmfile', 'Atmospheric')
     args.output_atmfile = args.get_path('output_atmfile', 'Atmospheric')
     args.specfile = args.get_path('specfile', 'Spectrum')
-    args.extfile = args.get_path('extfile', 'Extinction-coefficient')
-    args.mcmcfile = args.get_path('mcmcfile', 'Retrieval')
+
+    # Deprecated variable
+    if args.get_path('mcmcfile') is not None:
+        warning = (
+            "'mcmcfile' argument is deprecated, output file names "
+            "are now based on logfile"
+        )
+        warnings.warn(warning, category=DeprecationWarning)
+
+    args.sampled_cs = args.get_path(
+        'sampled_cross_sec',
+        'sampled cross-section',
+    )
+    # Deprecated variable
+    sampled_cs = args.extfile = args.get_path('extfile')
+    if sampled_cs is not None:
+        warning = "'extfile' argument is deprecated, use 'sampled_cross_sec' instead"
+        warnings.warn(warning, category=DeprecationWarning)
+    if args.sampled_cs is None and sampled_cs is not None:
+        args.sampled_cs = sampled_cs
+
 
     # Default output filenames if needed base on logfile and runmode:
     outfile, extension = os.path.splitext(args.logfile)
@@ -623,8 +654,8 @@ def parse(cfile, with_log=True, mute=False):
         args.tlifile = [outfile + '.tli']
     if args.runmode == 'atmosphere' and args.output_atmfile is None:
         args.output_atmfile = outfile + '.atm'
-    if args.runmode == 'opacity' and args.extfile is None:
-        args.extfile = [outfile + '.npz']
+    if args.runmode == 'opacity' and args.sampled_cs is None:
+        args.sampled_cs = [outfile + '.npz']
     if args.runmode == 'spectrum' and args.specfile is None:
         args.specfile = outfile + '.dat'
 
@@ -633,23 +664,40 @@ def parse(cfile, with_log=True, mute=False):
             args.specfile = outfile + '.dat'
         if args.output_atmfile is None:
             args.output_atmfile = outfile + '.atm'
-    if args.runmode == 'retrieval' and args.mcmcfile is None:
-        args.mcmcfile = outfile + '.npz'
+    # Always use root from logfile as retrieval_file
+    args.retrieval_file = outfile
 
     # Parse valid inputs and defaults:
     args.dblist = args.get_path('dblist', 'Opacity database', exists=True)
     args.molfile = args.get_path('molfile', 'Molecular data', exists=True)
-    args.cia_files = args.get_path('csfile', 'Cross-section', exists=True)
     args.ptfile = args.get_path('ptfile', 'Pressure-temperature')
 
-    # Validate opacity file path(s)
-    if args.runmode == 'opacity' and pt.isfile(args.extfile) == -1:
-        log.error(
-            'Undefined output opacity file (extfile) needed to compute '
-            'opacity table'
+
+    args.continuum_cs = args.get_path(
+        'continuum_cross_sec',
+        'Continuum cross-section',
+        exists=True,
+    )
+    # Deprecated variable
+    continuum_cs = args.cia_files = args.get_path('csfile', exists=True)
+    if continuum_cs is not None:
+        warning = (
+            "'csfile' argument is deprecated, "
+            "use 'continuum_cross_sec' instead"
         )
-    if args.runmode != 'opacity' and pt.isfile(args.extfile) == 0:
-        missing = [efile for efile in args.extfile if pt.isfile(efile) == 0]
+        warnings.warn(warning, category=DeprecationWarning)
+    if args.continuum_cs is None and continuum_cs is not None:
+        args.continuum_cs = continuum_cs
+
+
+    # Validate opacity file path(s)
+    if args.runmode == 'opacity' and pt.isfile(args.sampled_cs) == -1:
+        log.error(
+            'Undefined output cross-section file (sampled_cross_sec) needed '
+            'to compute opacity table'
+        )
+    if args.runmode != 'opacity' and pt.isfile(args.sampled_cs) == 0:
+        missing = [efile for efile in args.sampled_cs if pt.isfile(efile) == 0]
         log.error(
             f"These input cross-section files are missing: {missing}"
         )
@@ -864,7 +912,8 @@ def parse(cfile, with_log=True, mute=False):
     )
 
     args.ethresh = args.get_default(
-        'ethresh', 'Extinction-cofficient threshold', 1e-15, gt=0.0)
+        'ethresh', 'Extinction-cofficient threshold', 1e-30, gt=0.0,
+    )
     args.maxdepth = args.get_default(
         'maxdepth', 'Maximum optical-depth', 10.0, ge=0.0)
 
@@ -891,6 +940,9 @@ def parse(cfile, with_log=True, mute=False):
     args.filters = args.get_path('filters', 'Filter pass-bands', exists=True)
     args.obsfile = args.get_path(
         'obsfile', 'Observations data file', exists=True,
+    )
+    args.obsfile_hires = args.get_path(
+        'obsfile_hires', 'High-resolution observations data file', exists=True,
     )
 
     offsets = args.get_default('offset_inst', 'Instrumental offsets')
@@ -969,6 +1021,13 @@ def parse(cfile, with_log=True, mute=False):
         'Prefered statistics for posterior plots',
         pc.statistics,
     )
+    if args.statistics is None:
+        args.statistics = 'med_central'
+
+    data_color = args.get_default('data_color', 'Color of data points', 'black')
+    if not matplotlib.colors.is_color_like(data_color):
+        data_color = 'black'
+    args.data_color = data_color
 
     for arg in ['molvars', 'molmodel', 'molfree', 'molpars']:
         if getattr(args, arg) is not None:

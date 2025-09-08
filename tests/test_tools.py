@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2024 Patricio Cubillos
+# Copyright (c) 2021-2025 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import os
@@ -469,50 +469,40 @@ def test_cia_borysow():
 
 def test_interpolate_opacity_no_interp():
     cs_file = 'outputs/exttable_test_300-3000K_1.1-1.7um.npz'
-    cs_shape, cs_u, arrays, cs_data  = io.read_opacity(cs_file, extract='all')
-    temperature = arrays[1]
-    pressure = arrays[2]
-    interp_cs = pt.interpolate_opacity(cs_file, temperature, pressure)
-    np.testing.assert_allclose(interp_cs, cs_data)
+    units, mol, temp, press, wn, cs = io.read_opacity(cs_file, extract='all')
+    interp_cs = pt.interpolate_opacity(cs_file, temp, press)
+    np.testing.assert_allclose(interp_cs, cs)
 
 
 def test_interpolate_opacity_wn_mask():
     cs_file = 'outputs/exttable_test_300-3000K_1.1-1.7um.npz'
-    cs_shape, cs_u, arrays, cs_data  = io.read_opacity(cs_file, extract='all')
-    temperature = arrays[1]
-    pressure = arrays[2]
-    wn = arrays[3]
+    units, mol, temp, press, wn, cs = io.read_opacity(cs_file, extract='all')
     wn_mask = (wn>=6000) & (wn<=8000)
     interp_cs = pt.interpolate_opacity(
-        cs_file, temperature, pressure, wn_mask,
+        cs_file, temp, press, wn_mask,
     )
-    np.testing.assert_allclose(interp_cs, cs_data[:,:,:,wn_mask])
+    np.testing.assert_allclose(interp_cs, cs[:,:,wn_mask])
 
 
 def test_interpolate_opacity_thin_no_interp():
     cs_file = 'outputs/exttable_test_300-3000K_1.1-1.7um.npz'
-    cs_shape, cs_u, arrays, cs_data  = io.read_opacity(cs_file, extract='all')
-    temperature = arrays[1]
-    pressure = arrays[2]
+    units, mol, temp, press, wn, cs = io.read_opacity(cs_file, extract='all')
     thin = 10
     interp_cs = pt.interpolate_opacity(
-        cs_file, temperature, pressure, wn_thinning=thin,
+        cs_file, temp, press, wn_thinning=thin,
     )
-    np.testing.assert_allclose(interp_cs, cs_data[:,:,:,::thin])
+    np.testing.assert_allclose(interp_cs, cs[:,:,::thin])
 
 
 def test_interpolate_opacity_mask_thin():
     cs_file = 'outputs/exttable_test_300-3000K_1.1-1.7um.npz'
-    cs_shape, cs_u, arrays, cs_data  = io.read_opacity(cs_file, extract='all')
-    temperature = arrays[1]
-    pressure = arrays[2]
-    wn = arrays[3]
+    units, mol, temp, press, wn, cs = io.read_opacity(cs_file, extract='all')
     wn_mask = (wn>=6000) & (wn<=8000)
     thin = 10
     interp_cs = pt.interpolate_opacity(
-        cs_file, temperature, pressure, wn_mask, wn_thinning=thin,
+        cs_file, temp, press, wn_mask, wn_thinning=thin,
     )
-    expected_cs = cs_data[:,:,:,wn_mask][:,:,:,::thin]
+    expected_cs = cs[:,:,wn_mask][:,:,::thin]
     np.testing.assert_allclose(interp_cs, expected_cs)
 
 
@@ -521,116 +511,115 @@ def test_interpolate_opacity_interp_pressure():
     pressure = pa.pressure('1e-6 bar', '100 bar', nlayers)
 
     cs_file = 'outputs/exttable_test_300-3000K_1.1-1.7um.npz'
-    cs_shape, cs_u, arrays, cs_data  = io.read_opacity(cs_file, extract='all')
+    units, mol, temp, press, wn, cs = io.read_opacity(cs_file, extract='all')
     interp_cs = pt.interpolate_opacity(cs_file, pressure=pressure)
 
-    assert np.shape(interp_cs)[2] == nlayers
+    assert np.shape(interp_cs)[1] == nlayers
     # Test at a couple of temperatures and wavelengths:
     expected_cs = np.array([
-        [5.9256602e-26, 5.9256555e-26, 5.9256496e-26, 5.9256348e-26,
-         5.9256057e-26, 5.9255466e-26, 5.9254728e-26, 5.9252899e-26,
-         5.9249187e-26, 5.9241789e-26, 5.9232640e-26, 5.9209819e-26,
-         5.9162928e-26, 5.9071232e-26, 5.8907561e-26, 5.8675405e-26,
-         5.8124616e-26, 5.7650505e-26, 5.6494602e-26, 5.5598046e-26,
-         5.5908190e-26, 6.2732416e-26, 9.0794691e-26, 1.2920160e-25,
-         2.1522752e-25, 3.3813688e-25, 4.9021336e-25, 6.4348449e-25,
-         7.7893727e-25, 8.4519621e-25],
-        [7.9934423e-29, 1.5805125e-28, 3.1249628e-28, 5.0706958e-28,
-         1.0026088e-27, 1.9824199e-27, 3.9197627e-27, 6.3601197e-27,
-         1.2575619e-26, 2.4865286e-26, 4.9165161e-26, 8.0319985e-26,
-         1.5773454e-25, 3.1188204e-25, 6.1672524e-25, 1.2193091e-24,
-         1.9785237e-24, 3.9120528e-24, 7.7315564e-24, 1.5265081e-23,
-         2.4673733e-23, 4.7932903e-23, 8.8928006e-23, 1.4134727e-22,
-         1.6978598e-22, 1.8597358e-22, 1.9662256e-22, 2.1173349e-22,
-         2.1322711e-22, 2.0219771e-22],
-        [2.3123446e-22, 2.3123447e-22, 2.3123449e-22, 2.3123453e-22,
-         2.3123460e-22, 2.3123475e-22, 2.3123504e-22, 2.3123561e-22,
-         2.3123641e-22, 2.3123824e-22, 2.3124192e-22, 2.3124901e-22,
-         2.3125958e-22, 2.3128170e-22, 2.3132630e-22, 2.3141285e-22,
-         2.3153971e-22, 2.3176808e-22, 2.3216747e-22, 2.3265329e-22,
-         2.3244980e-22, 2.3053653e-22, 2.2034883e-22, 1.9016749e-22,
-         1.4033983e-22, 1.0358983e-22, 6.5056047e-23, 4.4927539e-23,
-         3.5164807e-23, 3.0239903e-23],
-        [6.4448852e-23, 6.4448899e-23, 6.4448998e-23, 6.4449200e-23,
-         6.4449598e-23, 6.4450408e-23, 6.4451418e-23, 6.4453922e-23,
-         6.4459002e-23, 6.4469135e-23, 6.4481669e-23, 6.4512966e-23,
-         6.4577406e-23, 6.4703947e-23, 6.4859073e-23, 6.5258456e-23,
-         6.6064676e-23, 6.7637561e-23, 7.0615985e-23, 7.4625355e-23,
-         8.4593206e-23, 1.0398544e-22, 1.4225449e-22, 1.9121900e-22,
-         3.0693973e-22, 4.8429187e-22, 6.5145866e-22, 7.0003931e-22,
-         6.5500481e-22, 5.3100702e-22],
+        [5.92566023e-26, 5.92565551e-26, 5.92564958e-26, 5.92563482e-26,
+         5.92560574e-26, 5.92554660e-26, 5.92547283e-26, 5.92528990e-26,
+         5.92491873e-26, 5.92417888e-26, 5.92326396e-26, 5.92098186e-26,
+         5.91629279e-26, 5.90712317e-26, 5.89075610e-26, 5.86754051e-26,
+         5.81246161e-26, 5.76505047e-26, 5.64946021e-26, 5.55980465e-26,
+         5.59081898e-26, 6.27324165e-26, 9.07946909e-26, 1.29201598e-25,
+         2.15227523e-25, 3.38136879e-25, 4.90213359e-25, 6.43484491e-25,
+         7.78937270e-25, 8.45196207e-25,],
+        [7.99344228e-29, 1.58051249e-28, 3.12496276e-28, 5.07069578e-28,
+         1.00260885e-27, 1.98241989e-27, 3.91976274e-27, 6.36011974e-27,
+         1.25756188e-26, 2.48652858e-26, 4.91651609e-26, 8.03199848e-26,
+         1.57734543e-25, 3.11882038e-25, 6.16725245e-25, 1.21930905e-24,
+         1.97852367e-24, 3.91205282e-24, 7.73155638e-24, 1.52650808e-23,
+         2.46737334e-23, 4.79329029e-23, 8.89280064e-23, 1.41347266e-22,
+         1.69785981e-22, 1.85973580e-22, 1.96622556e-22, 2.11733492e-22,
+         2.13227106e-22, 2.02197710e-22,],
+        [2.31234457e-22, 2.31234469e-22, 2.31234493e-22, 2.31234535e-22,
+         2.31234596e-22, 2.31234747e-22, 2.31235043e-22, 2.31235613e-22,
+         2.31236414e-22, 2.31238243e-22, 2.31241919e-22, 2.31249015e-22,
+         2.31259579e-22, 2.31281700e-22, 2.31326302e-22, 2.31412848e-22,
+         2.31539706e-22, 2.31768085e-22, 2.32167475e-22, 2.32653287e-22,
+         2.32449800e-22, 2.30536535e-22, 2.20348828e-22, 1.90167491e-22,
+         1.40339825e-22, 1.03589827e-22, 6.50560475e-23, 4.49275390e-23,
+         3.51648074e-23, 3.02399033e-23,],
+        [6.44488523e-23, 6.44488985e-23, 6.44489981e-23, 6.44492001e-23,
+         6.44495982e-23, 6.44504077e-23, 6.44514177e-23, 6.44539220e-23,
+         6.44590023e-23, 6.44691353e-23, 6.44816694e-23, 6.45129658e-23,
+         6.45774061e-23, 6.47039470e-23, 6.48590732e-23, 6.52584558e-23,
+         6.60646759e-23, 6.76375608e-23, 7.06159853e-23, 7.46253554e-23,
+         8.45932064e-23, 1.03985439e-22, 1.42254460e-22, 1.91218996e-22,
+         3.06939730e-22, 4.84291870e-22, 6.51458661e-22, 7.00039311e-22,
+         6.55004810e-22, 5.31007024e-22,]
     ])
     i_temps = [1,3,7,9]
     i_wave = [2234, 837, 2525, 1091]
     for i in range(4):
         j = i_temps[i]
         k = i_wave[i]
-        np.testing.assert_allclose(interp_cs[0,j,:,k], expected_cs[i])
+        np.testing.assert_allclose(interp_cs[j,:,k], expected_cs[i])
 
 
 def test_interpolate_opacity_interp_temperature_pressure():
     cs_file = 'outputs/exttable_test_300-3000K_1.1-1.7um.npz'
-    cs_shape, cs_u, arrays, cs_data  = io.read_opacity(cs_file, extract='all')
+    units, mol, temp, press, wn, cs = io.read_opacity(cs_file, extract='all')
     nlayers = 30
     pressure = pa.pressure('1e-6 bar', '100 bar', nlayers)
-    temperature = arrays[1][1::2]
+    temperature = temp[1::2]
     ntemps = len(temperature)
 
     interp_cs = pt.interpolate_opacity(cs_file, temperature, pressure)
     cs_shape = np.shape(interp_cs)
-    assert cs_shape[1] == ntemps
-    assert cs_shape[2] == nlayers
+    assert cs_shape[0] == ntemps
+    assert cs_shape[1] == nlayers
     # Test at a couple of temperatures and wavelengths:
     expected_cs = np.array([
-        [5.9256602e-26, 5.9256555e-26, 5.9256496e-26, 5.9256348e-26,
-         5.9256057e-26, 5.9255466e-26, 5.9254728e-26, 5.9252899e-26,
-         5.9249187e-26, 5.9241789e-26, 5.9232640e-26, 5.9209819e-26,
-         5.9162928e-26, 5.9071232e-26, 5.8907561e-26, 5.8675405e-26,
-         5.8124616e-26, 5.7650505e-26, 5.6494602e-26, 5.5598046e-26,
-         5.5908190e-26, 6.2732416e-26, 9.0794691e-26, 1.2920160e-25,
-         2.1522752e-25, 3.3813688e-25, 4.9021336e-25, 6.4348449e-25,
-         7.7893727e-25, 8.4519621e-25],
-        [7.9934423e-29, 1.5805125e-28, 3.1249628e-28, 5.0706958e-28,
-         1.0026088e-27, 1.9824199e-27, 3.9197627e-27, 6.3601197e-27,
-         1.2575619e-26, 2.4865286e-26, 4.9165161e-26, 8.0319985e-26,
-         1.5773454e-25, 3.1188204e-25, 6.1672524e-25, 1.2193091e-24,
-         1.9785237e-24, 3.9120528e-24, 7.7315564e-24, 1.5265081e-23,
-         2.4673733e-23, 4.7932903e-23, 8.8928006e-23, 1.4134727e-22,
-         1.6978598e-22, 1.8597358e-22, 1.9662256e-22, 2.1173349e-22,
-         2.1322711e-22, 2.0219771e-22],
-        [2.3123446e-22, 2.3123447e-22, 2.3123449e-22, 2.3123453e-22,
-         2.3123460e-22, 2.3123475e-22, 2.3123504e-22, 2.3123561e-22,
-         2.3123641e-22, 2.3123824e-22, 2.3124192e-22, 2.3124901e-22,
-         2.3125958e-22, 2.3128170e-22, 2.3132630e-22, 2.3141285e-22,
-         2.3153971e-22, 2.3176808e-22, 2.3216747e-22, 2.3265329e-22,
-         2.3244980e-22, 2.3053653e-22, 2.2034883e-22, 1.9016749e-22,
-         1.4033983e-22, 1.0358983e-22, 6.5056047e-23, 4.4927539e-23,
-         3.5164807e-23, 3.0239903e-23],
-        [6.4448852e-23, 6.4448899e-23, 6.4448998e-23, 6.4449200e-23,
-         6.4449598e-23, 6.4450408e-23, 6.4451418e-23, 6.4453922e-23,
-         6.4459002e-23, 6.4469135e-23, 6.4481669e-23, 6.4512966e-23,
-         6.4577406e-23, 6.4703947e-23, 6.4859073e-23, 6.5258456e-23,
-         6.6064676e-23, 6.7637561e-23, 7.0615985e-23, 7.4625355e-23,
-         8.4593206e-23, 1.0398544e-22, 1.4225449e-22, 1.9121900e-22,
-         3.0693973e-22, 4.8429187e-22, 6.5145866e-22, 7.0003931e-22,
-         6.5500481e-22, 5.3100702e-22],
+        [5.92566023e-26, 5.92565551e-26, 5.92564958e-26, 5.92563482e-26,
+         5.92560574e-26, 5.92554660e-26, 5.92547283e-26, 5.92528990e-26,
+         5.92491873e-26, 5.92417888e-26, 5.92326396e-26, 5.92098186e-26,
+         5.91629279e-26, 5.90712317e-26, 5.89075610e-26, 5.86754051e-26,
+         5.81246161e-26, 5.76505047e-26, 5.64946021e-26, 5.55980465e-26,
+         5.59081898e-26, 6.27324165e-26, 9.07946909e-26, 1.29201598e-25,
+         2.15227523e-25, 3.38136879e-25, 4.90213359e-25, 6.43484491e-25,
+         7.78937270e-25, 8.45196207e-25,],
+        [7.99344228e-29, 1.58051249e-28, 3.12496276e-28, 5.07069578e-28,
+         1.00260885e-27, 1.98241989e-27, 3.91976274e-27, 6.36011974e-27,
+         1.25756188e-26, 2.48652858e-26, 4.91651609e-26, 8.03199848e-26,
+         1.57734543e-25, 3.11882038e-25, 6.16725245e-25, 1.21930905e-24,
+         1.97852367e-24, 3.91205282e-24, 7.73155638e-24, 1.52650808e-23,
+         2.46737334e-23, 4.79329029e-23, 8.89280064e-23, 1.41347266e-22,
+         1.69785981e-22, 1.85973580e-22, 1.96622556e-22, 2.11733492e-22,
+         2.13227106e-22, 2.02197710e-22,],
+        [2.31234457e-22, 2.31234469e-22, 2.31234493e-22, 2.31234535e-22,
+         2.31234596e-22, 2.31234747e-22, 2.31235043e-22, 2.31235613e-22,
+         2.31236414e-22, 2.31238243e-22, 2.31241919e-22, 2.31249015e-22,
+         2.31259579e-22, 2.31281700e-22, 2.31326302e-22, 2.31412848e-22,
+         2.31539706e-22, 2.31768085e-22, 2.32167475e-22, 2.32653287e-22,
+         2.32449800e-22, 2.30536535e-22, 2.20348828e-22, 1.90167491e-22,
+         1.40339825e-22, 1.03589827e-22, 6.50560475e-23, 4.49275390e-23,
+         3.51648074e-23, 3.02399033e-23,],
+        [6.44488523e-23, 6.44488985e-23, 6.44489981e-23, 6.44492001e-23,
+         6.44495982e-23, 6.44504077e-23, 6.44514177e-23, 6.44539220e-23,
+         6.44590023e-23, 6.44691353e-23, 6.44816694e-23, 6.45129658e-23,
+         6.45774061e-23, 6.47039470e-23, 6.48590732e-23, 6.52584558e-23,
+         6.60646759e-23, 6.76375608e-23, 7.06159853e-23, 7.46253554e-23,
+         8.45932064e-23, 1.03985439e-22, 1.42254460e-22, 1.91218996e-22,
+         3.06939730e-22, 4.84291870e-22, 6.51458661e-22, 7.00039311e-22,
+         6.55004810e-22, 5.31007024e-22,]
     ])
     i_temps = [0,1,3,4]
     i_wave = [2234, 837, 2525, 1091]
     for i in range(4):
         j = i_temps[i]
         k = i_wave[i]
-        np.testing.assert_allclose(interp_cs[0,j,:,k], expected_cs[i])
+        np.testing.assert_allclose(interp_cs[j,:,k], expected_cs[i])
 
 
 def test_interpolate_opacity_interp_and_wn_masking():
     cs_file = 'outputs/exttable_test_300-3000K_1.1-1.7um.npz'
-    cs_shape, cs_u, arrays, cs_data  = io.read_opacity(cs_file, extract='all')
+    units, mol, temp, press, wn, cs = io.read_opacity(cs_file, extract='all')
     nlayers = 30
     pressure = pa.pressure('1e-6 bar', '100 bar', nlayers)
-    temperature = arrays[1][1::2]
+    temperature = temp[1::2]
     ntemps = len(temperature)
-    wn = arrays[3]
     wn_mask = (wn>=6000) & (wn<=8000)
     thin = 10
     expected_wn = wn[wn_mask][::thin]
@@ -640,9 +629,9 @@ def test_interpolate_opacity_interp_and_wn_masking():
         cs_file, temperature, pressure, wn_mask, wn_thinning=thin,
     )
     cs_shape = np.shape(interp_cs)
-    assert cs_shape[1] == ntemps
-    assert cs_shape[2] == nlayers
-    assert cs_shape[3] == nwave
+    assert cs_shape[0] == ntemps
+    assert cs_shape[1] == nlayers
+    assert cs_shape[2] == nwave
     # Test at a couple of temperatures and wavelengths:
     expected_cs = np.array([
         [7.74448417e-25, 7.74464911e-25, 7.74485639e-25, 7.74537253e-25,
@@ -652,7 +641,7 @@ def test_interpolate_opacity_interp_and_wn_masking():
          1.16593626e-24, 1.50914368e-24, 2.08618034e-24, 2.68815554e-24,
          3.68264421e-24, 4.54668842e-24, 4.75500526e-24, 4.26593708e-24,
          3.31417224e-24, 2.77563774e-24, 2.93613872e-24, 3.31473243e-24,
-         3.60918512e-24, 3.63204895e-24],
+         3.60918512e-24, 3.63204895e-24,],
         [8.93169626e-30, 1.76602983e-29, 3.49143743e-29, 5.66588373e-29,
          1.12029303e-28, 2.21511230e-28, 4.37985651e-28, 7.10665765e-28,
          1.40517193e-27, 2.77839227e-27, 5.49360692e-27, 8.97477883e-27,
@@ -660,15 +649,15 @@ def test_interpolate_opacity_interp_and_wn_masking():
          2.23377669e-25, 4.44885692e-25, 8.85073150e-25, 1.75342161e-24,
          2.87171732e-24, 5.92105094e-24, 1.28200364e-23, 2.58533151e-23,
          4.14267121e-23, 7.62105540e-23, 1.28913002e-22, 1.93630010e-22,
-         2.37083156e-22, 2.41601263e-22],
+         2.37083156e-22, 2.41601263e-22,],
         [4.40350514e-23, 4.40352507e-23, 4.40356427e-23, 4.40363370e-23,
          4.40373532e-23, 4.40398517e-23, 4.40447418e-23, 4.40541591e-23,
-         4.40674028e-23, 4.40976390e-23, 4.41584923e-23, 4.42761850e-23,
-         4.44518436e-23, 4.48215336e-23, 4.55747585e-23, 4.70685628e-23,
+         4.40674028e-23, 4.40976390e-23, 4.41584836e-23, 4.42761322e-23,
+         4.44517523e-23, 4.48215336e-23, 4.55747585e-23, 4.70685628e-23,
          4.93423961e-23, 5.37457336e-23, 6.28010896e-23, 8.05564734e-23,
-         1.13515248e-22, 1.51887332e-22, 2.40781605e-22, 3.97125611e-22,
+         1.13515248e-22, 1.51887332e-22, 2.40781605e-22, 3.97110617e-22,
          6.54022521e-22, 8.85314276e-22, 1.09824343e-21, 1.06357094e-21,
-         9.35551345e-22, 8.40289164e-22],
+         9.35551345e-22, 8.40289164e-22,],
         [5.29568118e-24, 5.29571174e-24, 5.29577759e-24, 5.29591128e-24,
          5.29617462e-24, 5.29671000e-24, 5.29737831e-24, 5.29903506e-24,
          5.30239596e-24, 5.30909906e-24, 5.31739040e-24, 5.33809588e-24,
@@ -676,14 +665,14 @@ def test_interpolate_opacity_interp_and_wn_masking():
          6.36215042e-24, 7.39628648e-24, 9.36555832e-24, 1.19730996e-23,
          1.84127607e-23, 3.06841533e-23, 5.28102844e-23, 7.53554311e-23,
          1.09576636e-22, 1.30047451e-22, 1.35644410e-22, 1.39477466e-22,
-         1.47766760e-22, 1.56840584e-22],
+         1.47766760e-22, 1.56840584e-22,]
     ])
     i_temps = [0, 1, 3, 4]
     i_wave = [50, 75, 100, 125]
     for i in range(4):
         j = i_temps[i]
         k = i_wave[i]
-        np.testing.assert_allclose(interp_cs[0,j,:,k], expected_cs[i])
+        np.testing.assert_allclose(interp_cs[j,:,k], expected_cs[i])
 
 
 
@@ -692,13 +681,12 @@ def test_interpolate_opacity_extrapolate():
     pressure = pa.pressure('1e-12 bar', '100 bar', nlayers)
 
     cs_file = 'outputs/exttable_test_300-3000K_1.1-1.7um.npz'
-    cs_shape, cs_u, arrays, cs_data  = io.read_opacity(cs_file, extract='all')
-    press_table = arrays[2]
+    units, mol, temp, press, wn, cs = io.read_opacity(cs_file, extract='all')
     interp_cs = pt.interpolate_opacity(cs_file, pressure=pressure)
 
-    p_mask = pressure < np.amin(press_table)
+    p_mask = pressure < np.amin(press)
     # Everything above min(press_table) is the same:
-    relative_diff = interp_cs[0,:,p_mask]/cs_data[0,:,0]
+    relative_diff = interp_cs[:,p_mask]/cs[:,0:1]
     expected_diff = np.ones_like(relative_diff)
     np.testing.assert_allclose(relative_diff, expected_diff, rtol=1e-8)
     
@@ -939,11 +927,12 @@ def test_loglike():
     ifree = pyrat.ret.pstep > 0
     free_pars = pyrat.ret.params[ifree]
     like = loglike(free_pars)
+    np.testing.assert_allclose(like, -1627.6479269805086)
 
-    np.testing.assert_allclose(like, -1627.6484855668375)
     # A non-physical model
-    #like = loglike(free_pars)
-    #np.testing.assert_allclose(like, -1e+98)
+    free_pars[3] = -1.0
+    like = loglike(free_pars)
+    np.testing.assert_allclose(like, -1e+98)
 
     # Now with better-fitting parameters:
     # map_pars = np.array([
