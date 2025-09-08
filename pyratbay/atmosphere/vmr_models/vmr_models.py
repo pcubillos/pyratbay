@@ -43,6 +43,7 @@ def hybrid_vmr(model, val, net):
     Care not to exceed the number of available elements.
     """
     elements = model.elements
+    # TBD: Add a switch that allows/forbids this threshold
     max_vmr = np.zeros((len(elements), len(net.pressure)))
     for i,element in enumerate(elements):
         j = list(net.elements).index(element)
@@ -52,7 +53,8 @@ def hybrid_vmr(model, val, net):
     max_vmr = np.min(max_vmr, axis=0)
     # TBD: hardcoded to an IsoVMR model. Could be more general?
     vmr = np.clip(10**val, 0, max_vmr)
-    return vmr
+    oob_flag = 10**val > np.amax(max_vmr)
+    return vmr, oob_flag
 
 
 class MetalEquil():

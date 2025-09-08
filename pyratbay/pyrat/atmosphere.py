@@ -456,7 +456,11 @@ class Atmosphere():
             for i,model in enumerate(self.vmr_models):
                 if self.vmr_pars is not None and self._is_hybrid_model[i]:
                     val = self.vmr_pars[i][0]
-                    vmr[:,model.imol] = vmr_models.hybrid_vmr(model, val, self.chem_model)
+                    vmr_profile, oob_flag = vmr_models.hybrid_vmr(
+                        model, val, self.chem_model,
+                    )
+                    vmr[:,model.imol] = vmr_profile
+                    self._vmr_oob_flag = oob_flag
 
         elif np.any(~self._is_equil_model) and self.vmr_pars is not None:
             vmr_pars = [

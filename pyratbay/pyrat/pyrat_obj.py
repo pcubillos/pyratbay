@@ -195,6 +195,10 @@ class Pyrat():
             )
             self.spec.spectrum[:] = 0.0
             return
+        # Hybrid-VMR OOB flag
+        if hasattr(self.atm, '_vmr_oob_flag') and self.atm._vmr_oob_flag:
+            self.spec.spectrum[:] = 0.0
+            return
 
         # Calculate extinction coefficient:
         self.opacity.calc_extinction_coefficient(
