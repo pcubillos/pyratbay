@@ -330,6 +330,82 @@ def test_atmosphere_tea_with_vmr_models(tmp_path):
     np.testing.assert_allclose(atmf[4], expected_vmr_sub_solar, rtol=1e-6)
 
 
+def test_atmosphere_tea_hybrid(tmp_path):
+    atmfile = str(tmp_path / 'test.atm')
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/atmosphere_tea_hybrid.cfg',
+        reset={'output_atmfile': atmfile},
+    )
+    atmosphere = pb.run(cfg)
+
+    # Free VMR
+    imol = list(atmosphere.species).index('SO2')
+    np.testing.assert_allclose(atmosphere.vmr[:,imol], 1e-5)
+
+    # While others remain at TEA values
+    imol = list(atmosphere.species).index('H2O')
+    expected_VMR = np.array([
+       2.55184930e-07, 8.14608932e-07, 2.83118752e-06, 1.06403134e-05,
+       3.92233949e-05, 1.08369202e-04, 1.88413900e-04, 2.43126941e-04,
+       2.73036780e-04, 2.85590164e-04, 2.89170561e-04, 2.89801238e-04,
+       2.89847008e-04, 2.89836436e-04, 2.89834142e-04, 2.89835033e-04,
+       2.89836066e-04, 2.89837123e-04, 2.89838543e-04, 2.89841116e-04,
+       2.89846769e-04, 2.89860292e-04, 2.89893664e-04, 2.89976886e-04,
+       2.90185028e-04, 2.90705122e-04, 2.91997860e-04, 2.95166504e-04,
+       3.02684150e-04, 3.19356284e-04, 3.52288535e-04, 4.07898910e-04,
+       4.86588503e-04, 5.78229715e-04, 6.63110771e-04, 7.23823480e-04,
+       7.57962003e-04, 7.74131044e-04, 7.81093221e-04, 7.83963877e-04,
+       7.85130747e-04,
+    ])
+    np.testing.assert_allclose(atmosphere.vmr[:,imol], expected_VMR)
+
+
+def test_atmosphere_tea_hybrid_over_limit(tmp_path):
+    atmfile = str(tmp_path / 'test.atm')
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/atmosphere_tea_hybrid_over.cfg',
+        reset={'output_atmfile': atmfile},
+    )
+    atmosphere = pb.run(cfg)
+
+    # Even when free, VMR does not go beyond sum of elements
+    imol = list(atmosphere.species).index('SO2')
+    expected_VMR = np.array([
+       1.23233838e-05, 1.24353767e-05, 1.26496529e-05, 1.30735898e-05,
+       1.39097712e-05, 1.54177065e-05, 1.76062410e-05, 1.99004735e-05,
+       2.15486735e-05, 2.23375344e-05, 2.25797195e-05, 2.26263234e-05,
+       2.26326367e-05, 2.26335085e-05, 2.26336933e-05, 2.26337820e-05,
+       2.26338493e-05, 2.26339026e-05, 2.26339450e-05, 2.26339788e-05,
+       2.26340058e-05, 2.26340278e-05, 2.26340463e-05, 2.26340637e-05,
+       2.26340841e-05, 2.26341167e-05, 2.26341830e-05, 2.26343333e-05,
+       2.26346803e-05, 2.26354421e-05, 2.26369414e-05, 2.26394700e-05,
+       2.26430480e-05, 2.26472203e-05, 2.26511005e-05, 2.26539090e-05,
+       2.26555483e-05, 2.26564226e-05, 2.26569457e-05, 2.26573638e-05,
+       2.26577839e-05,
+    ])
+    np.testing.assert_allclose(atmosphere.vmr[:,imol], expected_VMR)
+
+    # While others remain at TEA values
+    imol = list(atmosphere.species).index('H2O')
+    expected_VMR = np.array([
+       2.55184930e-07, 8.14608932e-07, 2.83118752e-06, 1.06403134e-05,
+       3.92233949e-05, 1.08369202e-04, 1.88413900e-04, 2.43126941e-04,
+       2.73036780e-04, 2.85590164e-04, 2.89170561e-04, 2.89801238e-04,
+       2.89847008e-04, 2.89836436e-04, 2.89834142e-04, 2.89835033e-04,
+       2.89836066e-04, 2.89837123e-04, 2.89838543e-04, 2.89841116e-04,
+       2.89846769e-04, 2.89860292e-04, 2.89893664e-04, 2.89976886e-04,
+       2.90185028e-04, 2.90705122e-04, 2.91997860e-04, 2.95166504e-04,
+       3.02684150e-04, 3.19356284e-04, 3.52288535e-04, 4.07898910e-04,
+       4.86588503e-04, 5.78229715e-04, 6.63110771e-04, 7.23823480e-04,
+       7.57962003e-04, 7.74131044e-04, 7.81093221e-04, 7.83963877e-04,
+       7.85130747e-04,
+    ])
+    np.testing.assert_allclose(atmosphere.vmr[:,imol], expected_VMR)
+
+
+
 @pytest.mark.parametrize(
     'arg',
     ['molmodel', 'molfree', 'molvars', 'molpars'],

@@ -7,6 +7,7 @@ this setup really simplifies the call in pb.atmosphere.vmr_scale()
 """
 
 __all__ = [
+    'hybrid_vmr',
     'MetalEquil',
     'ScaleEquil',
     'RatioEquil',
@@ -19,8 +20,6 @@ import functools
 from collections.abc import Iterable
 
 import numpy as np
-
-from ... import constants as pc
 
 
 def check_params(func):
@@ -36,6 +35,24 @@ def check_params(func):
                 f'of the {self.name} model')
         return func(*args, **kwargs)
     return new_func
+
+
+def hybrid_vmr(model, val, net):
+    """
+    Set a free VMR for a molecule on top of a thermochemical-equilibrium VMR.
+    Care not to exceed the number of available elements.
+    """
+    elements = model.elements
+    max_vmr = np.zeros((len(elements), len(net.pressure)))
+    for i,element in enumerate(elements):
+        j = list(net.elements).index(element)
+        idx = np.where(net.stoich_vals[:,j])[0]
+        stoichs = net.stoich_vals[idx,j]
+        max_vmr[i] = np.sum(net.vmr[:,idx]*stoichs, axis=1) / model.stoich[i]
+    max_vmr = np.min(max_vmr, axis=0)
+    # TBD: hardcoded to an IsoVMR model. Could be more general?
+    vmr = np.clip(10**val, 0, max_vmr)
+    return vmr
 
 
 class MetalEquil():
@@ -126,6 +143,7 @@ class IsoVMR():
         self.pressure = pressure
         self.vmr = np.tile(1.0e-20, len(pressure))
         self.type = 'free'
+
 
     @check_params
     def __call__(self, params):

@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2024 Patricio Cubillos
+# Copyright (c) 2021-2025 Patricio Cubillos
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -452,6 +452,12 @@ class Atmosphere():
                 e_ratio=e_ratio,
                 e_scale=e_scale,
             )
+            # Override with any free-log_VMR models
+            for i,model in enumerate(self.vmr_models):
+                if self.vmr_pars is not None and self._is_hybrid_model[i]:
+                    val = self.vmr_pars[i][0]
+                    vmr[:,model.imol] = vmr_models.hybrid_vmr(model, val, self.chem_model)
+
         elif np.any(~self._is_equil_model) and self.vmr_pars is not None:
             vmr_pars = [
                 self.vmr_pars[i]
@@ -625,6 +631,20 @@ class Atmosphere():
             for model in self.vmr_models
             if model.type=='free'
         ]
+
+        # Hybrid free VMRs into an equilibrium chemistry model
+        self._is_hybrid_model = np.zeros(len(self.vmr_models), dtype=bool)
+        for i,model in enumerate(self.vmr_models):
+            if self.chemistry == 'tea' and model.type == 'free':
+                # At the moment, only IsoVMR is enabled
+                if not model.name.startswith('log_'):
+                    continue
+                self._is_hybrid_model[i] = True
+                model.imol = list(self.chem_model.species).index(model.species)
+                idx = np.where(self.chem_model.stoich_vals[model.imol])[0]
+                model.elements = self.chem_model.elements[idx]
+                model.stoich = self.chem_model.stoich_vals[model.imol,idx]
+
         # TBD: trigger this error in tests
         vmr_uniques, vmr_counts = np.unique(free_vmr, return_counts=True)
         if np.any(vmr_counts>1):
