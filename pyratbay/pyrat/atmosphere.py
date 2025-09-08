@@ -344,7 +344,6 @@ class Atmosphere():
         # Compute VMR, radius profiles (when needed), and other
         # properties (mean molecular mass, number density, Hill radius)
         self.calc_profiles()
-        # TBD: mstar=None?
 
         # Screen outputs:
         mmm_text = ''

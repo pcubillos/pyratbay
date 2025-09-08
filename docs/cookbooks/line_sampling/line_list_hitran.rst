@@ -39,79 +39,71 @@ You can find HITRAN and HITEMP line lists from their website:
 -  https://hitran.org/lbl
 -  https://hitran.org/hitemp
 
-For this demo, we will get the HITRAN/H2O and HITEMP/CO line lists.  We
+For this demo, we will get the HITEMP/CO line lists.  We
 can do this with the following prompt commands:
 
 .. code:: shell
 
    # Download the data
-   wget https://www.cfa.harvard.edu/HITRAN/HITRAN2012/HITRAN2012/By-Molecule/Compressed-files/01_hit12.zip
    wget https://hitran.org/hitemp/data/bzip2format/05_HITEMP2019.par.bz2
 
    # Unzip the data
    bzip2 -d 05_HITEMP2019.par.bz2
-   unzip 01_hit12.zip
+
+
+Partition functions
+-------------------
+
+In addition to the line-list data, we need the partition functions for
+each molecule and isotope.  For this we will use again the data
+provided by ExoMol and HITRAN TIPS [Gamache2017]_ [Gamache2021]_.
+
+This data is already incorporated into the ``Pyrat Bay`` package, we
+only need to generate the partition-function file for CO with the
+following command:
+
+.. code:: shell
+
+    pbay -pf tips CO
+
+This will produce the *PF_tips_CO.dat* file, which can be passed as
+input for the TLI config file.
 
 
 Compute TLI files
 -----------------
 
 The easiest way to generate TLI files is via configuration files and
-the command line. The config file below converts the HITRAN/H2O
-line-list.
-
-.. literalinclude:: ../../_static/data/tli_hitran_H2O_cookbook.cfg
-    :caption: File: `tli_hitran_H2O_cookbook.cfg <../../_static/data/tli_hitran_H2O_cookbook.cfg>`_
-    :language: ini
-
-
-For the HITEMP/CO line list we use a similar config file:
-
-.. raw:: html
-
-   <details>
-   <summary>Click here to show/hide: <a href="../../_static/data/tli_hitran_CO_cookbook.cfg">tli_hitran_CO_cookbook.cfg</a></summary>
-
-.. literalinclude:: ../../_static/data/tli_hitran_CO_cookbook.cfg
-    :caption: File: tli_hitran_CO_cookbook.cfg
-    :language: ini
-
-.. raw:: html
-
-   </details>
-
-
+the command line.
 The ``tlifile`` and ``logfile`` parameters set the name of the output
 files.  The ``dblist`` parameter sets the name(s) of the input HITRAN
 file(s), along with the ``dbtype`` parameter which specifies the
 format of the input data.
 
-In addition to the line lists, the code requuires the partition-function data for the isotopes.  Set ``pflist=tips``  to use the HITRAN partition
-function data from [Gamache2017]_ and [Gamache2021]_ (which is readily available in ``Pyrat Bay``).
+Lastly, the user can specify the wavelength range of the extracted
+data (see ``wllow`` and ``wlhigh``). Normally one want to the widest
+possible range (to avoid needing to re-calculating TLI files if a
+future calculation needs it). The config file below converts the
+HITRAN CO line list:
 
-.. Note:: 
+
+.. literalinclude:: ../../_static/data/line_sample_hitran_CO_tli.cfg
+    :caption: File: `line_sample_hitran_CO_tli.cfg <../../_static/data/line_sample_hitran_CO_tli.cfg>`_
+    :language: ini
+
+.. Note::
 
     Note that the partition function is a temperature dependent value,
     and thus the temperature range of the input partition function
     sets the minimum and maximum temperature values at which the cross
     section can be evaluated.
 
-.. Alternatively, one can input the path to a partition-function file [TBD: Explain how].
-
-
-Lastly, the ``wllow`` and ``wlhigh`` parameters set the wavelength
-range of the extracted data.  Normally
-one sets the widest know range (to avoid needing to re-calculating TLI
-files for future applications), but for sake of this demo, we
-will extract just over the region that we need.
-
 
 To generate the TLI files, we run these ``Pyrat Bay`` prompt commands:
 
 .. code:: shell
 
-   pbay -c tli_hitran_H2O_cookbook.cfg
-   pbay -c tli_hitran_CO_cookbook.cfg
+   pbay -c line_sample_hitran_CO_tli.cfg
 
 
 ----------------------------
@@ -122,28 +114,8 @@ Compute cross-section tables
 
 As with TLI files, cross-section files can be generated via
 configuration files and the command line.  The config file below
-computes a cross-section table (output name ``extfile``):
-
-.. literalinclude:: ../../_static/data/opacity_hitran_H2O_cookbook.cfg
-    :caption: File: `opacity_hitran_H2O_cookbook.cfg <../../_static/data/opacity_hitran_H2O_cookbook.cfg>`_
-    :language: ini
-
-
-The configuration file for the CO cross section is similar:
-
-.. raw:: html
-
-   <details>
-   <summary>Click here to show/hide: <a href="../../_static/data/opacity_hitran_CO_cookbook.cfg">opacity_hitran_CO_cookbook.cfg</a></summary>
-
-.. literalinclude:: ../../_static/data/opacity_hitran_CO_cookbook.cfg
-    :caption: File: opacity_hitran_CO_cookbook.cfg
-    :language: ini
-
-.. raw:: html
-
-   </details>
-
+computes a cross-section table (with output name determined by the
+``extfile`` or ``logfile`` parameters).
 
 These parameters define each array of the cross-section table:
 
@@ -165,13 +137,72 @@ background gasses are important, trace-gas VMRs are irrelevant (see
 define the atmosphere’s temperature profile, but for an opacity run,
 these do not impact the calculations.
 
-Lastly, the user can set ``ncpu`` (recommended) to speed up the
+The optional ``voigt_extent`` and ``voigt_cutoff`` keys set the extent
+of the profiles wings from the line centers.  ``voigt_extent`` sets
+the maximum extent in units of HWHM (default is 300 HWHM).
+``voigt_cutoff`` sets the maximum extent in wavenumber units of cm\
+:sup:`-1` (default is 25.0 cm\ :sup:`-1`).  For any given profile, the
+code truncates the line wing at the minimum value of either
+``voigt_extent`` or ``voigt_cutoff``.
+
+Lastly, the user can set ``ncpu`` to speed up the
 calculations using parallel computing.
 
 
-To generate the cross-section files, run these ``Pyrat Bay`` prompt commands:
+.. literalinclude:: ../../_static/data/line_sample_hitran_CO_opacity.cfg
+    :caption: File: `line_sample_hitran_CO_opacity.cfg <../../_static/data/line_sample_hitran_CO_opacity.cfg>`_
+    :language: ini
+
+
+To generate the cross-section files, run these ``Pyrat Bay`` prompt command:
 
 .. code:: shell
 
-   pbay -c opacity_hitran_H2O_cookbook.cfg
-   pbay -c opacity_hitran_CO_cookbook.cfg
+   pbay -c line_sample_hitran_CO_opacity.cfg
+
+
+-------------------------------------------------
+
+Here's a Python script to take a look at the output cross section:
+
+.. code:: python
+
+   import pyratbay.io as io
+   import matplotlib
+   import matplotlib.pyplot as plt
+
+   cs_file = 'cross_section_R025K_0150-3000K_0.3-30.0um_hitemp_CO.npz'
+   units, mol, temp, press, wn, cross_section = io.read_opacity(cs_file)
+
+   p = 35
+   wl = 1e4/wn
+   colors = 'royalblue', 'salmon'
+
+   fig = plt.figure(0)
+   plt.clf()
+   fig.set_size_inches(7, 3)
+   plt.subplots_adjust(0.1, 0.145, 0.98, 0.9)
+   ax = plt.subplot(111)
+   for i,t in enumerate([1,12]):
+       label = f'T = {temp[t]:.0f} K'
+       plt.plot(
+           wl, cross_section[t,p], lw=1.0,
+           color=colors[i], alpha=0.9, label=label,
+       )
+   plt.xscale('log')
+   plt.yscale('log')
+   ax.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
+   ax.xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
+   ax.set_xticks([0.5, 1.0, 3.0, 10.0])
+   plt.xlim(0.5, 12.0)
+   plt.ylim(1e-35, 1e-16)
+   plt.title('HITEMP CO (2019)')
+   plt.xlabel('Wavelength (um)')
+   plt.ylabel(r'Cross section (cm$^{2}$ / molecule)')
+   plt.legend(loc='upper right')
+   ax.tick_params(which='both', direction='in')
+
+
+.. image:: ../../figures/CO_cross_section.png
+   :width: 90%
+   :align: center

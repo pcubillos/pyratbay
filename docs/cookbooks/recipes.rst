@@ -68,7 +68,9 @@ Recipes list:
 
    passbands
    partition_functions
-   wasp18b/notebook_emission_retrieval
+
+   wasp39b/transmission_retrieval
+   wasp18b/eclipse_retrieval
    wasp18b/cross_sections_uhj
    compendia
 

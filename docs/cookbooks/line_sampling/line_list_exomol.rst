@@ -1,3 +1,4 @@
+
 ExoMol line sampling
 ====================
 
@@ -66,9 +67,31 @@ following prompt command where we first specify the source (``exomol``)
 and then list all *‘.pf’* files of interest (one can combine multiple
 isotopologues of a species into a single file):
 
-.. code:: shell
+.. tab-set::
 
-   pbay -pf exomol 1H-12C-14N__Harris.pf 1H-13C-14N__Larner.pf
+  .. tab-item:: From .pf files
+     :selected:
+
+     If the ExoMol .pf files sample the temperature range of
+     interest. Then use their .pf files directly:
+
+     .. code:: shell
+
+         pbay -pf exomol 1H-12C-14N__Harris.pf 1H-13C-14N__Larner.pf
+
+  .. tab-item:: From Exomol .states
+
+     If you expect to probe higher temperatures than those sample in
+     the .pf files, the we can compute the partitions from the .states
+     files with the command below.  Here one specifies the temperature
+     ranges and sampling step.
+
+     .. code:: shell
+
+         #             T_low  T_high  delta_T
+         pbay -pf states 5.0  6000.0  5.0 \
+             1H-12C-14N__Harris.states \
+             1H-13C-14N__Larner.states
 
 This will produce the *PF_exomol_HCN.dat* file, which can be passed as
 input for the TLI config file.
@@ -86,8 +109,7 @@ Partition-function information must also be provided (see ``pflist``).
 As in this demo (see above), this is the path to a partition-function
 file (either a unique PF file for all ``dblist`` files, or one PF file
 for each ``dblist`` file). Alternatively, one can set ``pflist=tips`` to
-use the partition functions from `Gamache et
-al. (2017) <https://ui.adsabs.harvard.edu/abs/2017JQSRT.203...70G>`__.
+use the partition functions from [Gamache2017]_ [Gamache2021]_.
 
 Lastly, the user can specify the wavelength range of the extracted data
 (see ``wllow`` and ``wlhigh``). Normally one want to the widest possible
@@ -95,49 +117,23 @@ range (to avoid needing to re-calculating TLI files if a future
 calculation needs it), but for sake of this demo, we will extract just
 over a narrow region:
 
-.. code:: ini
+.. literalinclude:: ../../_static/data/line_sample_exomol_HCN_tli.cfg
+   :caption: File: `line_sample_exomol_HCN_tli.cfg <../../_static/data/line_sample_exomol_HCN_tli.cfg>`__
+   :language: ini
 
-   [pyrat]
-
-   # Select Pyrat Bay run mode: [tli atmosphere spectrum opacity retrieval radeq]
-   runmode = tli
-
-   # Output log and TLI file (if you ommit `tlifile`, it will be automatically generated from the logfile):
-   logfile = Exomol_HCN_1.0-3.0um.log
-
-   # List of line-transtion databases (.trans files):
-   # (make sure the corresponding .states files are in the same folder)
-   dblist =
-       1H-12C-14N__Harris.trans  
-       1H-13C-14N__Larner.trans
-
-   # Type of line-transition database, select from:
-   # [hitran exomol repack]
-   dbtype = exomol
-
-   # List of partition functions for each database:
-   pflist = PF_exomol_HCN.dat
-
-   # Initial and final wavelength:
-   wllow = 1.0 um
-   wlhigh = 3.0 um
-
-   # Verbosity level (<0:errors, 0:warnings, 1:headlines, 2:details, 3:debug):
-   verb = 2
 
 To generate the tli files, we run these ``Pyrat Bay`` prompt commands:
 
 .. code:: shell
 
-   pbay -c tli_exomol_HCN_cookbook.cfg
+   pbay -c line_sample_exomol_HCN_tli.cfg
 
 Compute cross-section tables
 ----------------------------
 
 As with TLI files, cross-section files can be generated via
 configuration files and the command line. The config file below
-(`opacity_exomol_HCN_cookbook.cfg <https://github.com/pcubillos/pyratbay/blob/master/docs/cookbooks/opacity_exomol_HCN_cookbook.cfg>`__)
-computes a cross-section table (output name ``extfile``).
+computes a cross-section table (with the output name determined by the ``extfile`` or ``logfile`` parameters).
 
 These parameters define each array of the cross-section table:
 
@@ -148,7 +144,7 @@ These parameters define each array of the cross-section table:
 -  The ``wllow``, ``wlhigh``, and ``resolution`` parameters define the
    spectral array at a constant resolution (alternatively, one can
    replace ``resolution`` with ``wnstep`` to sample at constant
-   :math:`\Delta`\ wavenumber, units in cm\ :math:`^{-1}`)
+   :math:`\Delta \text{wavenumber}`, units in cm\ :math:`^{-1}`)
 
 For the composition (``species``), make sure to include the molecule for
 which we are computing the cross-sections. Also, include the
@@ -159,62 +155,76 @@ background gasses are important, trace-gas VMRs are irrelevant (see
 define the atmosphere’s temperature profile, but for an opacity run,
 these do not impact the calculations.
 
-Lastly, the user can set ``ncpu`` (recommended) to speed up the
+The optional ``voigt_extent`` and ``voigt_cutoff`` keys set the
+extent of the profiles wings from the line centers.  ``voigt_extent``
+sets the maximum extent in units of HWHM (default is 300 HWHM).
+``voigt_cutoff`` sets the maximum extent in wavenumber units of cm\ :sup:`-1` (default
+is 25.0 cm\ :sup:`-1`).  For any given profile, the code truncates the line
+wing at the minimum value of either ``voigt_extent`` or
+``voigt_cutoff``.
+
+Lastly, the user can set ``ncpu`` to speed up the
 calculations using parallel computing.
 
-.. code:: ini
+.. literalinclude:: ../../_static/data/line_sample_exomol_HCN_opacity.cfg
+   :caption: File: `line_sample_exomol_HCN_opacity.cfg <../../_static/data/line_sample_exomol_HCN_opacity.cfg>`__
+   :language: ini
 
-   [pyrat]
-
-   # Select Pyrat Bay run mode: [tli atmosphere spectrum opacity retrieval radeq]
-   runmode = opacity
-
-   # Output log and cross-section file:
-   # (if you ommit extfile it will be automatically generated from logfile name)
-   logfile = cross_section_R020K_0150-3000K_1.0-3.0um_exomol_HCN_harris-larner.log
-
-   # Pressure sampling:
-   pbottom = 100 bar
-   ptop = 1e-8 bar
-   nlayers = 51
-
-   # Temperature profile (needed, but not relevant for cross-section generation)
-   tmodel = isothermal
-   tpars = 1000.0
-
-   # A simplified H2/He-dominated composition
-   chemistry = uniform
-   species = H2  He  HCN
-   uniform = 0.85 0.15 1e-4
-
-
-   # Wavelength sampling
-   wllow = 1.0 um
-   wlhigh = 3.0 um
-   resolution = 20000.0
-   # Line-profile wings extent (in HWHM from center):
-   vextent = 300.0
-
-   # Input TLI file:
-   tlifile = Exomol_HCN_1.0-3.0um.tli
-
-   # Cross-section temperature sampling:
-   tmin =  150
-   tmax = 3000
-   tstep = 150
-
-   # Number of CPUs for parallel processing:
-   ncpu = 16
-
-   # Verbosity level (<0:errors, 0:warnings, 1:headlines, 2:details, 3:debug):
-   verb = 2
 
 To generate the cross-section files, we run these ``Pyrat Bay`` prompt
-commands:
+command:
 
 .. code:: shell
 
-   pbay -c opacity_exomol_HCN_cookbook.cfg
+   pbay -c line_sample_exomol_HCN_opacity.cfg
+
+
+-------------------------------------------------
+
+Here's a Python script to take a look at the output cross section:
+
+.. code:: python
+
+   import pyratbay.io as io
+   import matplotlib
+   import matplotlib.pyplot as plt
+
+   cs_file = 'cross_section_R025K_0150-3000K_0.3-30.0um_exomol_HCN_harris-larner.npz'
+   units, mol, temp, press, wn, cross_section = io.read_opacity(cs_file)
+
+   p = 35
+   wl = 1e4/wn
+   colors = 'royalblue', 'salmon'
+
+   fig = plt.figure(0)
+   plt.clf()
+   fig.set_size_inches(7, 3)
+   plt.subplots_adjust(0.1, 0.145, 0.98, 0.9)
+   ax = plt.subplot(111)
+   for i,t in enumerate([1,12]):
+       label = f'T = {temp[t]:.0f} K'
+       plt.plot(
+           wl, cross_section[t,p], lw=1.0,
+           color=colors[i], alpha=0.9, label=label,
+       )
+   plt.xscale('log')
+   plt.yscale('log')
+   ax.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
+   ax.xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
+   ax.set_xticks([0.5, 1.0, 3.0, 10.0])
+   plt.xlim(0.5, 12.0)
+   plt.ylim(1e-26, 1e-17)
+   plt.title('Exomol HCN (harris-larner)')
+   plt.xlabel('Wavelength (um)')
+   plt.ylabel(r'Cross section (cm$^{2}$ / molecule)')
+   plt.legend(loc='upper left')
+   ax.tick_params(which='both', direction='in')
+
+
+.. image:: ../../figures/HCN_cross_section.png
+   :width: 90%
+   :align: center
+
 
 Concluding remarks
 ------------------
