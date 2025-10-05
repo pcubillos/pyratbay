@@ -422,6 +422,8 @@ class Atmosphere():
                 f"the Pyrat's temperature size ({np.size(self.temp)})"
             )
         self.temp = temp
+        if np.any(self.temp<=0):
+            return
 
         # Volume mixing ratios:
         if vmr is not None:
