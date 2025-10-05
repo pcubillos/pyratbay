@@ -366,25 +366,42 @@ def posterior_post_processing(cfg_file=None, pyrat=None, suffix=''):
         mcmc = np.load(basename + '.npz')
         posterior = mc3.utils.burn(mcmc)[0]
 
-    texnames = pyrat.ret.texnames
+    texnames = np.array(pyrat.ret.texnames)
     theme = pyrat.ret.theme
     post = mc3.plots.Posterior(
         posterior, texnames, theme=theme, statistics=pyrat.ret.statistics,
     )
 
-    pyrat.spec.specfile = None
-    nwave = pyrat.spec.nwave
-    wl = pyrat.spec.wl
+    # Quantiles for all posterior stats: median -1sigma +1sigma -2sigma +2sigma
+    quantiles = np.array([0.5, 0.15865, 0.84135, 0.02275, 0.97725])
+    nquantiles = len(quantiles)
+
+    # Parameter statistics
+    stats_1sigma = mc3.stats.calc_sample_statistics(
+        post.posterior, pyrat.ret.params, pyrat.ret.pstep, quantile=0.683,
+    )
+    stats_2sigma = mc3.stats.calc_sample_statistics(
+        post.posterior, pyrat.ret.params, pyrat.ret.pstep, quantile=0.9545,
+    )
+    ifree = pyrat.ret.pstep > 0
+    nfree = np.sum(ifree)
+    params_posterior = np.zeros((nquantiles,nfree))
+    params_posterior[0] = stats_1sigma[0][ifree]
+    params_posterior[1] = stats_1sigma[3][ifree]
+    params_posterior[2] = stats_1sigma[4][ifree]
+    params_posterior[3] = stats_2sigma[3][ifree]
+    params_posterior[4] = stats_2sigma[4][ifree]
+
 
     # Unique posterior samples:
     u, uind, uinv = np.unique(
-        post.posterior[:,0], return_index=True, return_inverse=True)
+        post.posterior[:,0], return_index=True, return_inverse=True,
+    )
     n_unique = len(u)
     print(f'Computing {len(u):d} models for posteriors post-processing')
 
     # Array of all model parameters (with unique samples)
     u_posterior = np.repeat([pyrat.ret.params], n_unique, axis=0)
-    ifree = pyrat.ret.pstep > 0
     u_posterior[:,ifree] = post.posterior[uind]
 
     is_eclipse = pyrat.od.rt_path in pc.eclipse_rt
@@ -398,7 +415,9 @@ def posterior_post_processing(cfg_file=None, pyrat=None, suffix=''):
         nbands = ndata_hires
         band_wl = np.array([band.wl0 for band in pyrat.obs.filters_hires])
 
-    # Evaluate models:
+    # Evaluate models / spectra:
+    pyrat.spec.specfile = None
+    nwave = pyrat.spec.nwave
     models = np.zeros((n_unique, nwave))
     band_models = np.zeros((n_unique, nbands))
     temp = np.zeros((n_unique, pyrat.atm.nlayers))
@@ -420,10 +439,6 @@ def posterior_post_processing(cfg_file=None, pyrat=None, suffix=''):
             print(f'{eta_text:80s}', end='\r', flush=True)
     endline = f'{100*(i+1)/n_unique:6.2f} % done'
     print(f'{endline:80s}', flush=True)
-
-    # Spectra posteriors: median -1sigma +1sigma -2sigma +2sigma
-    quantiles = np.array([0.5, 0.15865, 0.84135, 0.02275, 0.97725])
-    nquantiles = len(quantiles)
 
     spectrum_posterior = np.zeros((nquantiles,nwave))
     for i in range(nwave):
@@ -467,21 +482,6 @@ def posterior_post_processing(cfg_file=None, pyrat=None, suffix=''):
         'wavelength': 'um',
     }
 
-    # Parameter statistics
-    stats_1sigma = mc3.stats.calc_sample_statistics(
-        post.posterior, pyrat.ret.params, pyrat.ret.pstep, quantile=0.683,
-    )
-    stats_2sigma = mc3.stats.calc_sample_statistics(
-        post.posterior, pyrat.ret.params, pyrat.ret.pstep, quantile=0.9545,
-    )
-    nfree = np.sum(pyrat.ret.pstep>0)
-    params_posterior = np.zeros((nquantiles,nfree))
-    params_posterior[0] = stats_1sigma[0]
-    params_posterior[1] = stats_1sigma[3]
-    params_posterior[2] = stats_1sigma[4]
-    params_posterior[3] = stats_2sigma[3]
-    params_posterior[4] = stats_2sigma[4]
-
     outputs = {}
     if is_transmission:
         outputs['depth_posterior'] = spectrum_posterior
@@ -500,10 +500,10 @@ def posterior_post_processing(cfg_file=None, pyrat=None, suffix=''):
         'band_models_posterior': band_models_posterior,
         'cf_posterior_median': cf_median,
         'params_posterior' : params_posterior,
-        'params_names' : pyrat.ret.pnames,
-        'params_texnames' : pyrat.ret.texnames,
+        'params_names' : np.array(pyrat.ret.pnames)[ifree],
+        'params_texnames' : texnames[ifree],
         'pressure': pyrat.atm.press,
-        'wl': wl,
+        'wl': pyrat.spec.wl,
         'band_wl': band_wl,
         'bands_wl': [band.wl for band in pyrat.obs.filters],
         'bands_response': [band.response for band in pyrat.obs.filters],
