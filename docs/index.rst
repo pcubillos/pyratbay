@@ -32,7 +32,7 @@ Pyrat Bay:
 -------------------------------------------------------------------
 
 
-:Author:       Patricio Cubillos and contributors (see :ref:`team`)
+:Author:       Patricio Cubillos and Jasmina Blecic (see :ref:`team`)
 :Contact:      `patricio.cubillos[at]oeaw.ac.at`_
 :Organizations: `Space Research Institute (IWF)`_
 :Web Site:     https://github.com/pcubillos/pyratbay
