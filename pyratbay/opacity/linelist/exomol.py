@@ -5,6 +5,7 @@ __all__ = [
     'Exomol',
 ]
 
+import bz2
 import os
 import numpy as np
 
