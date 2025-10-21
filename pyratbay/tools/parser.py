@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2025 Patricio Cubillos
+# Copyright (c) 2021-2025 Cubillos & Blecic
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -602,7 +602,7 @@ def parse(cfile, with_log=True, mute=False):
        f"{log.sep}\n"
         "  Python Radiative Transfer in a Bayesian framework (Pyrat Bay).\n"
        f"  Version {__version__}.\n"
-       f"  Copyright (c) 2021-{date.today().year} Patricio Cubillos.\n"
+       f"  Copyright (c) 2021-{date.today().year} Cubillos & Blecic.\n"
         "  Pyrat Bay is open-source software under the GNU GPLv2 lincense "
           "(see LICENSE).\n"
        f"{log.sep}\n\n")

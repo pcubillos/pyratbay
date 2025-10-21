@@ -59,8 +59,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Pyrat Bay'
-copyright = f'2016-{date.today().year:d}, Patricio Cubillos'
-author = u'Patricio Cubillos'
+copyright = f'2021-{date.today().year:d}, Cubillos & Blecic'
+author = u'Cubillos & Blecic'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -245,7 +245,7 @@ latex_documents = [
         master_doc,
         'pyratbay.tex',
         u'Pyrat Bay Documentation',
-        u'Patricio Cubillos',
+        u'Cubillos & Blecic',
         'howto',
     ),
 ]

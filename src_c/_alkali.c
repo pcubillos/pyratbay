@@ -1,5 +1,5 @@
-// Copyright (c) 2021-2024 Patricio Cubillos
-// Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
+// Copyright (c) 2021-2025 Cubillos & Blecic
+// Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 #include <Python.h>
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
