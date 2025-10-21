@@ -6,10 +6,23 @@
 .. |NO2| replace:: NO\ :sub:`2`
 
 
+
 .. _line_sampling:
+
 
 Line Sampling
 =============
+
+.. note:: If you are simply interested in using cross sections rather
+          than computing them, you can download cross sections ready to
+          use from `this <https://zenodo.org/records/16965391>`__ and
+          this `this <https://zenodo.org/records/17060937>`__ Zenodo
+          repository.
+
+          Alternatively, ``Pyrat Bay`` can also directly use
+          `petitRADTRANS
+          <https://petitradtrans.readthedocs.io/en/latest/content/available_opacities.html#high-resolution-opacities-lbl-lambda-delta-lambda-10-6>`_
+          cross-section files [Molliere2019]_.
 
 
 `Pyrat Bay` enable users to generate their own line-sampled
@@ -110,7 +123,9 @@ available in each database).
    * - 
      - `C2H2 <https://www.exomol.com/data/molecules/C2H2/12C2-1H2/aCeTY/>`__ (acety)
      - [Chubb2020]_
-
+   * -
+     - `and many others <https://www.exomol.com/data/molecules/>`__
+     -
 
 
 .. list-table:: Available linelists from repack
@@ -121,41 +136,48 @@ available in each database).
      - Species (label)
      - References
    * - repack
-     - `H2O <https://zenodo.org/api/records/14266247/draft/files/H2O_exomol_pokazatel_0.24-500.0um_100-3500K_threshold_0.01_lbl.dat>`__ (exomol, pokazatel)
-     -  [Cubillos2017b]_ [Polyansky2018]_
-   * - 
-     - `CO2 <https://zenodo.org/api/records/14266247/draft/files/CO2_exomol_ucl4000_0.5-500.0um_100-3500K_threshold_0.01_lbl.dat>`__ (exomol, ucl4000)
-     - [Cubillos2017b]_ [Yurchenko2020]_
-   * - 
-     - `CO2 <https://zenodo.org/api/records/14266247/draft/files/CO2_ames_ai3000k_0.5-50.0um_100-3500K_threshold_0.01_lbl.dat>`__ (ames, ai3000k) 
-     - [Cubillos2017b]_ 
-   * - 
-     - `CH4 <https://zenodo.org/api/records/14266247/draft/files/CH4_exomol_mm_0.83-50.0um_100-3000K_threshold_0.03_lbl.dat>`__ (exomol, mm)
-     - [Cubillos2017b]_ [Yurchenko2024a]_
-   * - 
-     - `NH3 <https://zenodo.org/api/records/14266247/draft/files/NH3_exomol_coyute_0.5-500.0um_100-3000K_threshold_0.01_lbl.dat>`__ (exomol, coyute)
-     - [Cubillos2017b]_ [Coles2019]_ [Yurchenko2024b]_
-   * - 
-     - `TiO <https://zenodo.org/api/records/14266247/draft/files/TiO_exomol_toto_0.33-500um_100-3500K_threshold_0.01_lbl.dat>`__ (exomol, toto)
-     - [Cubillos2017b]_ [McKemmish2019]_
-   * - 
-     - `VO <https://zenodo.org/api/records/14266247/draft/files/VO_exomol_hyvo_0.22-50um_100-3500K_threshold_0.01_lbl.dat>`__ (exomol, hyvo)
-     - [Cubillos2017b]_ [Bowesman2024]_
-   * - 
-     - `HCN <https://zenodo.org/api/records/14266247/draft/files/HCN_exomol_harris-larner_0.56-500um_100-3500K_threshold_0.01_lbl.dat>`__ (exomol, harris larner)
-     - [Cubillos2017b]_ [Harris2008]_ [Barber2014]_
-   * - 
-     - `SO2 <https://zenodo.org/api/records/14266247/draft/files/SO2_exomol_exoames_1.25-100.0um_100-3500K_threshold_0.03_lbl.dat>`__ (exomol, exoames)
-     - [Cubillos2017b]_ [Underwood2016]_
-   * - 
-     - `H2S <https://zenodo.org/api/records/14266247/draft/files/H2S_exomol_ayt2_0.28-500.0um_100-3500K_threshold_0.01_lbl.dat>`__ (exomol, ayt2) 
-     - [Cubillos2017b]_ [Azzam2016]_ [Chubb2018]_
-   * - 
-     - `C2H2 <https://zenodo.org/api/records/14266247/draft/files/C2H2_exomol_acety_1.0-500.0um_100-3500K_threshold_0.03_lbl.dat>`__ (exomol, acety)
+     - `C2H2 <https://zenodo.org/records/14266247/files/C2H2_exomol_acety_1.0-500.0um_100-3500K_threshold_0.03_lbl.dat>`__ (exomol, acety)
      - [Cubillos2017b]_ [Chubb2020]_
+   * -
+     - `CH4 <https://zenodo.org/records/14266247/files/CH4_exomol_mm_0.83-50.0um_100-3000K_threshold_0.03_lbl.dat?download=1>`__ (exomol, mm)
+     - [Cubillos2017b]_ [Yurchenko2024a]_
+   * -
+     - `CO2 <https://zenodo.org/records/14266247/files/CO2_ames_ai3000k_0.5-50.0um_100-3500K_threshold_0.01_lbl.dat>`__ (ames, ai3000k)
+     - [Cubillos2017b]_ [Huang2023]_
+   * -
+     - `H2O <https://zenodo.org/records/14266247/files/H2O_exomol_pokazatel_0.24-500.0um_100-3500K_threshold_0.01_lbl.dat>`__ (exomol, pokazatel)
+     -  [Cubillos2017b]_ [Polyansky2018]_
+   * -
+     - `H2S <https://zenodo.org/records/14266247/files/H2S_exomol_ayt2_0.28-500.0um_100-3500K_threshold_0.01_lbl.dat>`__ (exomol, ayt2)
+     - [Cubillos2017b]_ [Azzam2016]_ [Chubb2018]_
+   * -
+     - `HCN <https://zenodo.org/records/14266247/files/HCN_exomol_harris-larner_0.56-500um_100-3500K_threshold_0.01_lbl.dat?download=1>`__ (exomol, harris larner)
+     - [Cubillos2017b]_ [Harris2008]_ [Barber2014]_
+   * -
+     - `KOH <https://zenodo.org/records/14266247/files/KOH_exomol_oyt4_1.66-50.0um_100-3000K_threshold_0.01_lbl.dat>`__ (exomol, oyt4)
+     - [Cubillos2017b]_ [Owens2021]_
    * - 
-     - `C2H4 <https://zenodo.org/api/records/14266247/draft/files/C2H4_exomol_mayty_1.4-500um_100-3500K_threshold_0.03_lbl.dat>`__ (exomol, mayty)
-     - [Cubillos2017b]_ [Mant2018]_
+     - `NH3 <https://zenodo.org/records/14266247/files/NH3_exomol_coyute_0.5-500.0um_100-3000K_threshold_0.01_lbl.dat>`__ (exomol, coyute)
+     - [Cubillos2017b]_ [Coles2019]_ [Yurchenko2024b]_
+   * -
+     - `OCS <https://zenodo.org/records/14266247/files/OCS_exomol_oyt8_1.0-50.0um_100-3000K_threshold_0.01_lbl.dat>`__ (exomol, oyt8)
+     - [Cubillos2017b]_ [Owens2024]_
+   * -
+     - `PH3 <https://zenodo.org/records/17167393/files/PH3_exomol_salty_1.0-50.0um_100-3000K_threshold_0.01_lbl.dat>`__ (exomol, salty)
+     - [Cubillos2017b]_ [Coles2019]_ [Sousa-Silva2014]_
+   * -
+     - `SiH4 <https://zenodo.org/records/14266247/files/SiH4_exomol_oy2t_2.0-50.0um_100-2000K_threshold_0.01_lbl.dat>`__ (exomol, oy2t)
+     - [Cubillos2017b]_ [Owens2017]_
+   * -
+     - `SO2 <https://zenodo.org/records/14266247/files/SO2_exomol_exoames_1.25-100.0um_100-3500K_threshold_0.03_lbl.dat?download=1>`__ (exomol, exoames)
+     - [Cubillos2017b]_ [Underwood2016]_
+   * -
+     - `TiO <https://zenodo.org/records/14266247/files/TiO_exomol_toto_0.33-500um_100-3500K_threshold_0.01_lbl.dat>`__ (exomol, toto)
+     - [Cubillos2017b]_ [McKemmish2019]_
+   * -
+     - `VO <https://zenodo.org/records/14266247/files/VO_exomol_hyvo_0.22-50um_100-3500K_threshold_0.01_lbl.dat>`__ (exomol, hyvo)
+     - [Cubillos2017b]_ [Bowesman2024]_
+
 
 
 
@@ -211,12 +233,3 @@ same species.  Use the tutorials above as a template, and modifies
 them to adjust to the scientific requirements/machine capabilities
 that each project requires.
 
-
-If in a hurry and want to immediately start computing spectra, ``Pyrat
-Bay`` is also compatible with the `petitRADTRANS
-<https://petitradtrans.readthedocs.io/en/latest/content/available_opacities.html#high-resolution-opacities-lbl-lambda-delta-lambda-10-6>`_
-cross section files [Molliere2019]_.  These files can be directly used
-as input in spectrum or retrieval calculations (and can be used in
-combination with the ``wn_thinning`` argument of the configuration
-files to reduce the sampling resolution).  More documentation on this
-is coming `soon`.

@@ -93,8 +93,13 @@ References
 
 .. [McKemmish2019] `McKemmish et al. (2019): ExoMol molecular line lists - XXXIII. The spectrum of Titanium Oxide <https://ui.adsabs.harvard.edu/abs/2019MNRAS.488.2836M>`_
 
-
 .. [Molliere2019] `Molliere et al. (2019): petitRADTRANS. A Python radiative transfer package for exoplanet characterization and retrieval <https://ui.adsabs.harvard.edu/abs/2019A&A...627A..67M>`_
+
+.. [Owens2017] `Owens et al. (2017): ExoMol line lists - XXII. The rotation-vibration spectrum of silane up to 1200 K <https://ui.adsabs.harvard.edu/abs/2017MNRAS.471.5025O>`_
+
+.. [Owens2021] `Owens et al. (2021): ExoMol line lists - XLI. High-temperature molecular line lists for the alkali metal hydroxides KOH and NaOH <https://ui.adsabs.harvard.edu/abs/2021MNRAS.502.1128O>`_
+
+.. [Owens2024] `Owens et al. (2024): ExoMol line lists -- LVIII. High-temperature molecular line list of carbonyl sulfide (OCS) <https://ui.adsabs.harvard.edu/abs/2024MNRAS.530.4004O>`_
 
 .. [Piskunov1995] `Piskunov et al. (1995): VALD: The Vienna Atomic Line Data Base. <https://ui.adsabs.harvard.edu/abs/1995A&AS..112..525P>`_
 
@@ -107,6 +112,8 @@ References
 .. [Rothman2010] `Rothman et al. (2010): HITEMP, the high-temperature molecular spectroscopic database <http://ui.adsabs.harvard.edu/abs/2010JQSRT.111.2139R>`_
 
 .. [Sheppard2017] `Sheppard et al. (2017): Evidence for a Dayside Thermal Inversion and High Metallicity for the Hot Jupiter WASP-18b <https://ui.adsabs.harvard.edu/abs/2017ApJ...850L..32S>`_
+
+.. [Sousa-Silva2014] `Sousa-Silva et al. (2014): ExoMol line lists VII: The rotation-vibration spectrum of phosphine up to 1500 K <https://ui.adsabs.harvard.edu/abs/2015MNRAS.446.2337S>`_
 
 .. [Taylor2020] `Taylor et al. (2020): Understanding and mitigating biases when studying inhomogeneous emission spectra with JWST <https://ui.adsabs.harvard.edu/abs/2020MNRAS.493.4342T>`_
 

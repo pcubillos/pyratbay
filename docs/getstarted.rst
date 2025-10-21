@@ -62,7 +62,7 @@ To install ``Pyrat Bay`` run the following command from the terminal:
 
 .. code-block:: shell
 
-    pip install "pyratbay>=2.0.0b4"
+    pip install "pyratbay"
 
 .. Or if you prefer conda:
    code-block:: shell
