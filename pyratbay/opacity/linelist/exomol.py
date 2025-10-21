@@ -29,23 +29,31 @@ class Exomol(Linelist):
             An mc3.utils.Log instance to log screen outputs to file.
         """
         super(Exomol, self).__init__(dbfile, pffile, log)
+        # Check files exist:
+        if not os.path.isfile(self.dbfile):
+            log.error(f"Exomol file '{self.dbfile}' does not exist")
 
+        # Read states:
         sfile = self.dbfile.replace('trans', 'states')
         if sfile.count('__') == 2:
             suffix = sfile[sfile.rindex('__'):sfile.index('.')]
             sfile = sfile.replace(suffix, '')
         else:
             suffix = ''
-        # Check files exist:
-        for dfile in [self.dbfile, sfile]:
-            if not os.path.isfile(dfile):
-                log.error(f"File '{dfile}' for Exomol database does not exist.")
 
-        # Read states:
         if sfile.count('__') == 2:
             sfile = sfile.replace(sfile[sfile.rindex('__'):sfile.index('.')], '')
-        with open(sfile, 'r') as f:
-            lines = f.readlines()
+
+        bz_file = sfile + '.bz2'
+        if os.path.isfile(sfile):
+            with open(sfile, 'r') as f:
+                lines = f.readlines()
+        elif os.path.isfile(bz_file):
+            with bz2.open(bz_file, 'rt') as f:
+                lines = f.readlines()
+        else:
+            log.error(f"Exomol file '{sfile}' does not exist")
+
         nstates = len(lines)
         state_id = np.zeros(nstates, int)
         state_E = np.zeros(nstates, np.double)  # State energy
