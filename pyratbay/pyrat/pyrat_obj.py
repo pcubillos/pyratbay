@@ -195,8 +195,7 @@ class Pyrat():
             )
             self.spec.spectrum[:] = 0.0
             return
-        # Hybrid-VMR OOB flag
-        if hasattr(self.atm, '_vmr_oob_flag') and self.atm._vmr_oob_flag:
+        if self.atm._out_of_bounds_vmr:
             self.spec.spectrum[:] = 0.0
             return
 
@@ -317,6 +316,9 @@ class Pyrat():
                 "The sum of trace abundances' VMRs exceeds "
                 f"the cap of {ret.qcap:.3f}"
             )
+        if self.atm._out_of_bounds_vmr:
+            reject_flag = True
+
 
         if self.od.rt_path == 'f_lambda':
             # Convert flux from (erg s-1 cm-2 cm) to (W m-2 um-1)

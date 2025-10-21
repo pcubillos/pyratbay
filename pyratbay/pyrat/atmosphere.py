@@ -86,7 +86,11 @@ class Atmosphere():
         self.starwn = starwn
         self.starflux = starflux
 
-        self.rtop = 0  # Index of topmost layer (within Hill radius)
+        # Index of topmost layer (within Hill radius)
+        self.rtop = 0
+
+        self._out_of_bounds_temp = False
+        self._out_of_bounds_vmr = False
 
         # Check that input files exist:
         if inputs.molfile is None:
@@ -422,7 +426,8 @@ class Atmosphere():
                 f"the Pyrat's temperature size ({np.size(self.temp)})"
             )
         self.temp = temp
-        if np.any(self.temp<=0):
+        self._out_of_bounds_temp = np.any(self.temp<=0)
+        if self._out_of_bounds_temp:
             return
 
         # Volume mixing ratios:
@@ -462,7 +467,7 @@ class Atmosphere():
                         model, val, self.chem_model,
                     )
                     vmr[:,model.imol] = vmr_profile
-                    self._vmr_oob_flag = oob_flag
+                    self.out_of_bounds_vmr = oob_flag
 
         elif np.any(~self._is_equil_model) and self.vmr_pars is not None:
             vmr_pars = [
@@ -483,7 +488,7 @@ class Atmosphere():
             vmr = np.copy(self.base_vmr)
         self.vmr = vmr
 
-        if self.vmr is None:
+        if self.vmr is None or self._out_of_bounds_vmr:
             return
 
         # Number density (molecules cm-3):
@@ -509,12 +514,13 @@ class Atmosphere():
             self.rtop = pt.ifirst(self.radius<self.rhill, default_ret=0)
             if self.rtop > 0:
                 rhill = self.rhill / pt.u(self.runits)
-                self.log.warning(
-                    "The atmospheric pressure array extends beyond the Hill "
-                    f"radius ({rhill:.5f} {self.runits}) at pressure "
-                    f"{self.press[self.rtop]:.3e} bar (layer {self.rtop})."
-                    "  Extinction beyond this layer will be neglected."
-                )
+                # TBD: patch?
+                #self.log.warning(
+                #    "The atmospheric pressure array extends beyond the Hill "
+                #    f"radius ({rhill:.5f} {self.runits}) at pressure "
+                #    f"{self.press[self.rtop]:.3e} bar (layer {self.rtop})."
+                #    "  Extinction beyond this layer will be neglected."
+                #)
 
 
     def rad_model(self, pressure, temperature, mu, mplanet, gplanet, p0, r0):
