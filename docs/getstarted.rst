@@ -1,3 +1,5 @@
+.. include:: _substitutions.rst
+
 .. _getstarted:
 
 Getting Started
@@ -106,21 +108,44 @@ Download the H2O line-list database from the HITRAN server and unzip it:
    unzip 01_hit12.zip
 
 
-Copy the ``Pyrat Bay`` configuration files from the `examples folder
-<https://github.com/pcubillos/pyratbay/tree/ver2.0/examples/>`_ to
-your directory.  For example, use the following shell commands:
+Now download the ``Pyrat Bay`` configuration files here below:
 
-.. code-block:: shell
+.. raw:: html
 
-    demo=https://github.com/pcubillos/pyratbay/tree/ver2.0/examples/
-    wget $demo/tutorial_tli_hitran_H2O.cfg
-    wget $demo/tutorial_spectrum_emission.cfg
-    wget $demo/tutorial_spectrum_transmission.cfg
+   <details>
+   <summary>Click here to show/hide: tutorial_tli_hitran_H2O.cfg</summary>
+
+.. literalinclude:: ./_static/data/tutorial_tli_hitran_H2O.cfg
+    :caption: File: `tutorial_tli_hitran_H2O.cfg <./_static/data/tutorial_tli_hitran_H2O.cfg>`__
+
+.. raw:: html
+
+   </details>
+
+   <details>
+   <summary>Click here to show/hide: tutorial_spectrum_transmission.cfg</summary>
+
+.. literalinclude:: ./_static/data/tutorial_spectrum_transmission.cfg
+    :caption: File: `tutorial_spectrum_transmission.cfg <./_static/data/tutorial_spectrum_transmission.cfg>`__
+
+.. raw:: html
+
+   </details>
+
+   <details>
+   <summary>Click here to show/hide: tutorial_spectrum_eclipse.cfg</summary>
+
+.. literalinclude:: ./_static/data/tutorial_spectrum_eclipse.cfg
+    :caption: File: `tutorial_spectrum_eclipse.cfg <./_static/data/tutorial_spectrum_eclipse.cfg>`__
+
+.. raw:: html
+
+   </details>
 
 
 Execute these commands from the shell to create a
-Transition-Line-Information (TLI) file, and then to use it to compute
-transmission and emission spectra:
+Transition-Line-Information file for |H2O|, and then to use it to
+compute transmission and emission spectra:
 
 .. code-block:: shell
 
@@ -152,8 +177,8 @@ interactive mode, I suggest starting the session with ``ipython
   plt.ion()
 
 
-  wl, transmission = io.read_spectrum("./transmission_spectrum_tutorial.dat", wn=False)
-  wl, eclipse = io.read_spectrum("./eclipse_spectrum_tutorial.dat", wn=False)
+  wl, transmission = io.read_spectrum("transmission_spectrum_tutorial.dat", wn=False)
+  wl, eclipse = io.read_spectrum("eclipse_spectrum_tutorial.dat", wn=False)
 
   bin_wl = ps.constant_resolution_spectrum(0.4, 8.0, resolution=200)
   bin_transit = ps.bin_spectrum(bin_wl, wl, transmission)
@@ -165,19 +190,19 @@ interactive mode, I suggest starting the session with ``ipython
   plt.subplots_adjust(0.12, 0.1, 0.98, 0.95, hspace=0.15)
   ax = plt.subplot(211)
   plt.plot(wl, transmission/pc.percent, color="royalblue", label="transmission model", lw=1.0)
-  plt.plot(bin_wl, bin_transit/pc.percent, "salmon", lw=1.5)
+  plt.plot(bin_wl, bin_transit/pc.percent, "salmon", lw=1.5, label='binned model')
   plt.xscale('log')
   plt.ylabel('Transit depth (%)')
   ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
   ax.set_xticks([0.5, 0.7, 1.0, 2.0, 3.0, 4.0, 6.0])
   ax.tick_params(which='both', direction='in')
   plt.xlim(0.4, 8.0)
-  plt.ylim(1.88, 2.17)
+  plt.ylim(1.88, 2.18)
   plt.legend(loc="upper left")
 
   ax = plt.subplot(212)
   plt.plot(wl, eclipse/pc.ppm, "royalblue", label="eclipse model", lw=1.0)
-  plt.plot(bin_wl, bin_eclipse/pc.ppm, "salmon", lw=1.5)
+  plt.plot(bin_wl, bin_eclipse/pc.ppm, "salmon", lw=1.5, label='binned model')
   plt.xscale('log')
   plt.xlabel(r"Wavelength  (um)")
   plt.ylabel(r"$F_{\rm p}/F_{\rm s}$ (ppm)")

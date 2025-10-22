@@ -1,4 +1,4 @@
-.. include:: ../../_substitutions.rst
+.. include:: _substitutions.rst
 
 .. _atmospheretutorial:
 
