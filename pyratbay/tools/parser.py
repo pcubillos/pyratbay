@@ -456,7 +456,8 @@ def parse(cfile, with_log=True, mute=False):
         # Variables for chemistry calculations
         parse_str(args, 'chemistry')
         parse_array(args, 'species')
-        parse_array(args, 'uniform')
+        parse_array(args, 'uniform')   # Deprecated
+        parse_array(args, 'uniform_vmr')
         parse_array(args, 'bulk')
         parse_str(args, 'vmr_vars')
         parse_str(args, 'ptfile')
@@ -806,6 +807,15 @@ def parse(cfile, with_log=True, mute=False):
             "deduced from the atmospheric species."
         )
         warnings.warn(warning_msg, category=DeprecationWarning)
+
+    if args.uniform is not None:
+        warning_msg = (
+            "The 'uniform' argument is deprecated, and will be removed in "
+            "the near future.  Use 'uniform_vmr' instead"
+        )
+        warnings.warn(warning_msg, category=DeprecationWarning)
+        if args.uniform_vmr is None:
+            args.uniform_vmr = args.uniform
 
 
     # System physical parameters:

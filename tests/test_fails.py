@@ -421,9 +421,9 @@ def test_atmosphere_missing_species(tmp_path, chem):
 def test_atmosphere_uniform_missing_uniform(tmp_path):
     cfg = make_config(tmp_path,
         ROOT+'tests/configs/atmosphere_uniform_test.cfg',
-        remove=['uniform'])
+        remove=['uniform_vmr'])
     error = re.escape(
-        'Undefined list of uniform volume mixing ratios (uniform) '
+        'Undefined list of uniform volume mixing ratios (uniform_vmr) '
         'for uniform chemistry model'
     )
     with pytest.raises(ValueError, match=error):
@@ -434,7 +434,7 @@ def test_atmosphere_uniform_mismatch_uniform(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/atmosphere_uniform_test.cfg',
-        reset={'uniform':'0.85 0.15'},
+        reset={'uniform_vmr':'0.85 0.15'},
     )
     error = re.escape(
         'Number of uniform abundances (2) does not match the number '

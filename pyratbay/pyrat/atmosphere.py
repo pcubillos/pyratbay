@@ -289,7 +289,7 @@ class Atmosphere():
                 solar_file=inputs.solar,
                 log=log,
                 punits=self.punits,
-                q_uniform=inputs.uniform,
+                q_uniform=inputs.uniform_vmr,
             )
 
         self.base_vmr = None
@@ -1010,12 +1010,12 @@ def check_chemistry(inputs, log, t_status):
 
     # Uniform-abundances profile:
     if inputs.chemistry == 'uniform':
-        if inputs.uniform is None:
+        if inputs.uniform_vmr is None:
             log.error(
                 'Undefined list of uniform volume mixing ratios '
-                f'(uniform) for {inputs.chemistry} chemistry model'
+                f'(uniform_vmr) for {inputs.chemistry} chemistry model'
             )
-        nuniform = len(inputs.uniform)
+        nuniform = len(inputs.uniform_vmr)
         nspecies = len(inputs.species)
         if nuniform != nspecies:
             log.error(
