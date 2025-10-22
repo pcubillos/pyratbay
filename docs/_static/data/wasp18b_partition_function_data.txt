@@ -1,0 +1,16 @@
+http://www.exomol.com/db/H2O/1H2-16O/POKAZATEL/1H2-16O__POKAZATEL.pf
+https://www.exomol.com/db/CH4/12C-1H4/MM/12C-1H4__MM.pf
+http://www.exomol.com/db/C2H2/12C2-1H2/aCeTY/12C2-1H2__aCeTY.pf
+https://www.exomol.com/db/VO/51V-16O/HyVO/51V-16O__HyVO.pf
+https://www.exomol.com/db/TiO/46Ti-16O/Toto/46Ti-16O__Toto.pf
+https://www.exomol.com/db/TiO/47Ti-16O/Toto/47Ti-16O__Toto.pf
+https://www.exomol.com/db/TiO/48Ti-16O/Toto/48Ti-16O__Toto.pf
+https://www.exomol.com/db/TiO/49Ti-16O/Toto/49Ti-16O__Toto.pf
+https://www.exomol.com/db/TiO/50Ti-16O/Toto/50Ti-16O__Toto.pf
+
+http://www.exomol.com/db/HCN/1H-12C-14N/Harris/1H-12C-14N__Harris.states.bz2
+http://www.exomol.com/db/HCN/1H-13C-14N/Larner/1H-13C-14N__Larner.states.bz2
+https://www.exomol.com/db/NH3/14N-1H3/CoYuTe/14N-1H3__CoYuTe.states.bz2
+https://www.exomol.com/db/NH3/15N-1H3/CoYuTe-15/15N-1H3__CoYuTe-15.states.bz2
+
+https://zenodo.org/records/14266247/files/PF_ames_CO2.dat

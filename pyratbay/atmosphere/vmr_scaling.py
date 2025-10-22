@@ -1,19 +1,20 @@
-# Copyright (c) 2021-2022 Patricio Cubillos
+# Copyright (c) 2021-2025 Cubillos & Blecic
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
     'qcapcheck',
     'balance',
     'ratio',
-    'qscale',
+    'vmr_scale',
 ]
 
 import numpy as np
+from collections.abc import Iterable
 
 
 def qcapcheck(vmr, qcap, ibulk):
     """
-    Check if the cummulative abundance of traces exceed qcap.
+    Check if the cummulative abundance of traces exceeds qcap.
 
     Parameters
     ----------
@@ -48,6 +49,9 @@ def qcapcheck(vmr, qcap, ibulk):
     >>> print(pa.qcapcheck(qprofiles, qcap, ibulk))
     True
     """
+    if qcap is None:
+        return False
+
     # The shape of things:
     nlayers, nspecies = np.shape(vmr)
 
@@ -171,8 +175,8 @@ def ratio(vmr, ibulk):
     return bratio, invsrat
 
 
-def qscale(
-        vmr, species, molmodel, molfree, molpars, bulk,
+def vmr_scale(
+        vmr, species, vmr_models, vmr_pars, bulk,
         qsat=None, iscale=None, ibulk=None, bratio=None, invsrat=None,
     ):
     """
@@ -185,18 +189,16 @@ def qscale(
         Volume mixing ratio of atmospheric species [nlayers, nspecies].
     species: 1D string ndarray
         Names of the species in the atmosphere.
-    molmodel: 1D string ndarray
-        Model to vary the species abundances.
-    molfree: 1D string ndarray
-        Names of the species to vary their abundances.
-    molpars: 1D float ndarray
-        Scaling factor (dex) for each species in molfree.
+    vmr_models: iterable of pyratbay.atmosphere.vmr_models instances
+        List of VMR models.  It can also be an individual model.
+    vmr_pars: 1D float ndarray
+        List of parameters for each model in vmr_models.
     bulk: 1D string ndarray
         Names of the bulk (dominant) species.
     qsat: Float
         Maximum allowed combined abundance for trace species.
     iscale: 1D integer ndarray
-        Indices of molfree species in vmr.
+        Indices of mol_model species in vmr.
     ibulk: 1D integer ndarray
         Indices of bulk species in vmr.
     bratio: 2D float ndarray
@@ -218,36 +220,49 @@ def qscale(
     --------
     >>> import pyratbay.atmosphere as pa
 
-    >>> nlayers = 2
-    >>> vmr = np.tile([0.85, 0.15, 1e-4, 1e-4], (nlayers,1))
-    >>> species = ['H2', 'He' ,'H2O', 'CH4']
-    >>> # Set the H2O abundance to 1.0e-3:
-    >>> molmodel = ['vert']
-    >>> molfree = ['H2O']
-    >>> molpars = [-3.0]
+    >>> nlayers = 51
+    >>> pressure = pa.pressure('1e-7 bar', '100 bar', nlayers)
+    >>> vmr = np.tile([0.85, 0.15, 1e-4, 1e-4, 1e-4, 1e-4], (nlayers,1))
+    >>> species = ['H2', 'He' ,'H2O', 'CH4', 'CO', 'CO2']
+    >>> vmr_models = [
+    >>>     pa.vmr_models.IsoVMR('H2O', pressure),
+    >>>     pa.vmr_models.IsoVMR('CO', pressure),
+    >>> ]
+    >>> # VMR with updated H2O and CO abundances:
+    >>> vmr_pars = [-3.5, -3.3]
     >>> bulk = ['H2', 'He']
-    >>> scaled_vmr = pa.qscale(
-    >>>     vmr, species, molmodel, molfree, molpars, bulk,
-    >>> )
-    >>> print(scaled_vmr)
-    [[8.49065e-01 1.49835e-01 1.00000e-03 1.00000e-04]
-     [8.49065e-01 1.49835e-01 1.00000e-03 1.00000e-04]]
+    >>> scaled_vmr = pa.vmr_scale(vmr, species, vmr_models, vmr_pars, bulk)
+
+    >>> # Show abundances at a layer:
+    >>> for i,mol in enumerate(species):
+    >>>     print(f'VMR_{mol:4s} = {scaled_vmr[0,i]:.5f}')
+    VMR_H2   = 0.84914
+    VMR_He   = 0.14985
+    VMR_H2O  = 0.00032
+    VMR_CH4  = 0.00010
+    VMR_CO   = 0.00050
+    VMR_CO2  = 0.00010
     """
-    scaled_vmr = np.copy(vmr)
+    # Pack into a list if needed (assume consistent vmr_models--vmr_pars inputs)
+    if not isinstance(vmr_models, Iterable):
+        vmr_models = [vmr_models]
+        vmr_pars = [vmr_pars]
+
     if iscale is None:
-        iscale = [list(species).index(mol) for mol in molfree]
+        molecs = [model.species for model in vmr_models]
+        iscale = [list(species).index(mol) for mol in molecs]
     if ibulk is None:
-        ibulk  = [list(species).index(mol) for mol in bulk]
+        ibulk = [list(species).index(mol) for mol in bulk]
     if bratio is None:
         bratio, invsrat = ratio(vmr, ibulk)
 
     # Scale abundance of requested species:
-    for idx,value,model in zip(iscale, molpars, molmodel):
-        if model == 'scale':
-            scaled_vmr[:,idx] = vmr[:,idx] * 10.0**value
-        elif model == 'vert':
-            scaled_vmr[:,idx] = 10.0**value
+    scaled_vmr = np.copy(vmr)
+    for i,model in enumerate(vmr_models):
+        imol = iscale[i]
+        scaled_vmr[:,imol] = model(vmr_pars[i])
 
+    # TBD: remove qsat
     # Enforce saturation limit:
     if qsat is not None:
         indices = np.arange(len(species))

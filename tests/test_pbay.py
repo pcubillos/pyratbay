@@ -1,8 +1,9 @@
-# Copyright (c) 2021-2022 Patricio Cubillos
+# Copyright (c) 2021-2025 Cubillos & Blecic
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import os
 import pytest
+import re
 import subprocess
 
 import numpy as np
@@ -12,12 +13,13 @@ from conftest import make_config
 import pyratbay as pb
 import pyratbay.constants as pc
 import pyratbay.io as io
+import pyratbay.atmosphere as pa
 from pyratbay.constants import ROOT
 
 os.chdir(ROOT + 'tests')
 
 
-expected_pressure = np.logspace(0, 8, 81)
+expected_pressure = pa.pressure('1e-6 bar', '100 bar', nlayers=81)
 expected_temperature = np.array([
     1046.89433798, 1046.89534525, 1046.89661946, 1046.89823135,
     1046.90027034, 1046.90284953, 1046.90611195, 1046.91023851,
@@ -39,10 +41,37 @@ expected_temperature = np.array([
     1659.56937861, 1659.66627037, 1659.78818839, 1659.94163515,
     1660.13475269, 1660.37777747, 1660.68357589, 1661.06831324,
     1661.55228907, 1662.16097781, 1662.92632193, 1663.88833303,
-    1665.09706555])
+    1665.09706555,
+])
+expected_temperature_madhu = np.array([
+    1300.39928128, 1300.63210647, 1300.95565962, 1301.38579756,
+    1301.93577227, 1302.61570817, 1303.43267611, 1304.39119013,
+    1305.49388442, 1306.74216399, 1308.13671376, 1309.6778389 ,
+    1311.36566367, 1313.20023427, 1315.18156644, 1317.30966395,
+    1319.58452681, 1322.00615501, 1324.57454856, 1327.28970745,
+    1330.15163169, 1333.16032128, 1336.31577621, 1339.61799648,
+    1343.0669821 , 1346.66273307, 1350.40524939, 1354.29453104,
+    1358.33057805, 1362.5133904 , 1366.8429681 , 1371.31931114,
+    1375.94241952, 1380.71229326, 1385.62893233, 1390.69233676,
+    1395.90250653, 1401.25944164, 1406.7631421 , 1412.41360791,
+    1418.21080526, 1424.15465089, 1430.24492698, 1436.4810888 ,
+    1442.86190456, 1449.38486209, 1456.04535703, 1462.83584552,
+    1469.74537081, 1476.76002857, 1483.86482936, 1491.04693861,
+    1498.29954996, 1505.62455979, 1513.03363807, 1520.54541108,
+    1528.17920864, 1535.94559525, 1543.83431159, 1551.80067553,
+    1559.75278637, 1567.54405188, 1574.97722796, 1581.8250059 ,
+    1587.8668003 , 1592.93330178, 1596.94409851, 1599.92401619,
+    1601.99180122, 1603.32648976, 1604.1252013 , 1604.56713048,
+    1604.79269689, 1604.89868562, 1604.94442906, 1604.96249712,
+    1604.96897056, 1604.97101225, 1604.971507  , 1604.971507  ,
+    1604.971507,
+])
 
 expected_vmr = np.load(
     f'{ROOT}/tests/expected/expected_tea_profile.npz')['arr_0']
+
+expected_vmr_sub_solar = np.load(
+    f'{ROOT}/tests/expected/expected_tea_sub_solar_profile.npz')['arr_0']
 
 expected_radius = np.array([
     7.33194831e+09, 7.32830466e+09, 7.32466463e+09, 7.32102821e+09,
@@ -84,14 +113,21 @@ def test_command_line_root(capfd):
 # Warm up, check when units are well or wrongly set:
 def test_units_variable_not_needed(tmp_path):
     cfg = make_config(tmp_path, ROOT+'tests/configs/pt_isothermal.cfg')
-    pressure, temperature, abundances, species, radius = pb.run(cfg)
+    atmosphere = pb.run(cfg)
 
 
 def test_units_separate(tmp_path):
-    cfg = make_config(tmp_path, ROOT+'tests/configs/pt_isothermal.cfg',
-        reset={'mplanet':'1.0',
-               'mpunits':'mjup'})
-    pressure, temperature, abundances, species, radius = pb.run(cfg)
+    reset = {
+        'mplanet':'1.0',
+        'mpunits':'mjup',
+    }
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/pt_isothermal.cfg',
+        reset=reset,
+    )
+    atmosphere = pb.run(cfg)
+    # TBD: assert atmosphere.munits == 'mjup'
 
 
 def test_units_in_value(tmp_path):
@@ -99,41 +135,43 @@ def test_units_in_value(tmp_path):
         tmp_path,
         ROOT+'tests/configs/pt_isothermal.cfg',
         reset={'mplanet':'1.0 rjup'})
-    pressure, temperature, abundances, species, radius = pb.run(cfg)
+    atmosphere = pb.run(cfg)
+    # TBD: assert atmosphere.munits == 'mjup'
 
 
-def test_units_missing(tmp_path, capfd):
+def test_units_missing(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/pt_isothermal.cfg',
-        reset={'mplanet':'1.0'})
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert "Invalid units 'None' for parameter mplanet." in captured.out
+        reset={'mplanet':'1.0'},
+    )
+    error = re.escape("Invalid units 'None' for parameter mplanet")
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
-def test_units_invalid(tmp_path, capfd):
+def test_units_invalid(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/pt_isothermal.cfg',
-        reset={'mplanet':'1.0', 'mpunits':'nope'})
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert "Invalid planet mass units (mpunits): nope" in captured.out
+        reset={'mplanet':'1.0', 'mpunits':'nope'},
+    )
+    error = re.escape("Invalid planet mass units (mpunits): nope")
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
-def test_units_in_value_invalid(tmp_path, capfd):
+def test_units_in_value_invalid(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/pt_isothermal.cfg',
-        reset={'mplanet':'1.0 nope'})
-    pyrat = pb.run(cfg)
-    assert pyrat is None
-    captured = capfd.readouterr()
-    assert "Invalid units for value '1.0 nope' for parameter mplanet." \
-        in captured.out
+        reset={'mplanet':'1.0 nope'},
+    )
+    error = re.escape(
+        "Invalid units for value '1.0 nope' for parameter mplanet"
+    )
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
 @pytest.mark.sort(order=1)
@@ -156,38 +194,37 @@ def test_tli_tio_schwenke():
 
 def test_pt_isothermal(tmp_path):
     cfg = make_config(tmp_path, ROOT+'tests/configs/pt_isothermal.cfg')
-
-    pressure, temperature, abundances, species, radius = pb.run(cfg)
-    np.testing.assert_allclose(pressure, expected_pressure, rtol=1e-7)
-    np.testing.assert_equal(temperature, np.tile(1500.0, 81))
+    atmosphere = pb.run(cfg)
+    expected_temp = np.tile(1500.0, 81)
+    np.testing.assert_allclose(atmosphere.press, expected_pressure)
+    np.testing.assert_allclose(atmosphere.temp, expected_temp)
 
 
 def test_pt_guillot(tmp_path):
     cfg = make_config(tmp_path, ROOT+'tests/configs/pt_guillot.cfg')
-    pressure, temperature, abundances, species, radius = pb.run(cfg)
-    np.testing.assert_allclose(pressure, expected_pressure, rtol=1e-7)
-    np.testing.assert_allclose(temperature, expected_temperature, rtol=1e-7)
+    atmosphere = pb.run(cfg)
+    np.testing.assert_allclose(atmosphere.press, expected_pressure)
+    np.testing.assert_allclose(atmosphere.temp, expected_temperature)
 
 
 def test_pt_tcea(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/pt_guillot.cfg',
-        reset={'tmodel':'tcea'},
+        reset={'tmodel': 'tcea'},
     )
     # Allowed, but discouraged:
     with pytest.warns(DeprecationWarning):
-        pressure, temperature, abundances, species, radius = pb.run(cfg)
-    np.testing.assert_allclose(pressure, expected_pressure, rtol=1e-7)
-    np.testing.assert_allclose(temperature, expected_temperature, rtol=1e-7)
+        atmosphere = pb.run(cfg)
+    np.testing.assert_allclose(atmosphere.press, expected_pressure)
+    np.testing.assert_allclose(atmosphere.temp, expected_temperature)
 
 
-@pytest.mark.skip(reason="TBD")
 def test_pt_madhu(tmp_path):
     cfg = make_config(tmp_path, ROOT+'tests/configs/pt_madhu.cfg')
-    pressure, temperature, abundances, species, radius = pb.run(cfg)
-    np.testing.assert_allclose(pressure, expected_pressure, rtol=1e-7)
-    np.testing.assert_allclose(temperature, expected_temperature, rtol=1e-7)
+    atmosphere = pb.run(cfg)
+    np.testing.assert_allclose(atmosphere.press, expected_pressure)
+    np.testing.assert_allclose(atmosphere.temp, expected_temperature_madhu)
 
 
 def test_atmosphere_uniform(tmp_path):
@@ -195,45 +232,196 @@ def test_atmosphere_uniform(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/atmosphere_uniform_test.cfg',
-        reset={'atmfile':atmfile},
+        reset={'output_atmfile':atmfile},
     )
 
-    press, temp, abund, species, radius = pb.run(cfg)
-    np.testing.assert_allclose(press, expected_pressure, rtol=1e-7)
-    np.testing.assert_allclose(temp, expected_temperature, rtol=1e-7)
-    q = np.tile([0.85, 0.149, 3.0e-6, 4.0e-4, 1.0e-4, 5.0e-4, 1.0e-7], (81,1))
-    np.testing.assert_equal(abund, q)
+    atmosphere = pb.run(cfg)
+    expected_vmr = np.tile(
+        [0.85, 0.149, 3.0e-6, 4.0e-4, 1.0e-4, 5.0e-4, 1.0e-7],
+        (81,1),
+    )
+    np.testing.assert_allclose(atmosphere.press, expected_pressure)
+    np.testing.assert_allclose(atmosphere.temp, expected_temperature)
+    np.testing.assert_equal(atmosphere.vmr, expected_vmr)
     # Compare against the atmospheric file now:
     atm = io.read_atm(atmfile)
     assert atm[0] == ('bar', 'kelvin', 'volume', None)
     np.testing.assert_equal(atm[1], np.array('H2 He Na H2O CH4 CO CO2'.split()))
     # File read-write loses precision:
-    np.testing.assert_allclose(atm[2]*pc.bar, expected_pressure, rtol=3e-5)
+    np.testing.assert_allclose(atm[2], expected_pressure, rtol=3e-5)
     np.testing.assert_allclose(atm[3], expected_temperature, rtol=1e-6)
-    np.testing.assert_equal(atm[4], q)
+    np.testing.assert_equal(atm[4], expected_vmr)
 
 
-def test_atmosphere_tea(tmp_path):
+def test_atmosphere_tea_no_vmr_models(tmp_path):
     atmfile = str(tmp_path / 'test.atm')
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/atmosphere_tea_test.cfg',
-        reset={'atmfile':atmfile},
+        reset={'output_atmfile':atmfile},
     )
+    expected_species = np.array('H2 He Na K H2O CH4 CO CO2 NH3 HCN N2'.split())
 
-    press, temp, vmr, species, radius = pb.run(cfg)
-    np.testing.assert_allclose(press, expected_pressure, rtol=1e-7)
-    np.testing.assert_allclose(temp, expected_temperature, atol=1e-7)
-    np.testing.assert_allclose(vmr, expected_vmr, rtol=1e-7)
+    atmosphere = pb.run(cfg)
+    np.testing.assert_allclose(atmosphere.press, expected_pressure)
+    np.testing.assert_allclose(atmosphere.temp, expected_temperature)
+    np.testing.assert_allclose(atmosphere.vmr, expected_vmr)
     # Compare against the atmospheric file now:
     atmf = io.read_atm(atmfile)
     assert atmf[0] == ('bar', 'kelvin', 'volume', None)
-    np.testing.assert_equal(atmf[1],
-        np.array('H2 He Na K H2O CH4 CO CO2 NH3 HCN N2'.split()))
+    np.testing.assert_equal(atmf[1], expected_species)
     # File read-write loses precision:
-    np.testing.assert_allclose(atmf[2]*pc.bar, expected_pressure, rtol=3e-5)
-    np.testing.assert_allclose(atmf[3], expected_temperature, rtol=5e-6)
+    np.testing.assert_allclose(atmf[2], expected_pressure, rtol=1e-6)
+    np.testing.assert_allclose(atmf[3], expected_temperature, rtol=1e-6)
     np.testing.assert_allclose(atmf[4], expected_vmr, rtol=1e-6)
+
+
+def test_atmosphere_tea_no_molpars_but_with_vmr_models(tmp_path):
+    atmfile = str(tmp_path / 'test.atm')
+    reset = {
+        'output_atmfile': atmfile,
+        'mol_vars': '[M/H]',
+    }
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/atmosphere_tea_test.cfg',
+        reset=reset,
+    )
+    expected_species = np.array('H2 He Na K H2O CH4 CO CO2 NH3 HCN N2'.split())
+
+    atmosphere = pb.run(cfg)
+    np.testing.assert_allclose(atmosphere.press, expected_pressure)
+    np.testing.assert_allclose(atmosphere.temp, expected_temperature)
+    np.testing.assert_allclose(atmosphere.vmr, expected_vmr)
+    # Compare against the atmospheric file now:
+    atmf = io.read_atm(atmfile)
+    assert atmf[0] == ('bar', 'kelvin', 'volume', None)
+    np.testing.assert_equal(atmf[1], expected_species)
+    # File read-write loses precision:
+    np.testing.assert_allclose(atmf[2], expected_pressure, rtol=1e-6)
+    np.testing.assert_allclose(atmf[3], expected_temperature, rtol=1e-6)
+    np.testing.assert_allclose(atmf[4], expected_vmr, rtol=1e-6)
+
+
+def test_atmosphere_tea_with_vmr_models(tmp_path):
+    atmfile = str(tmp_path / 'test.atm')
+    reset = {
+        'output_atmfile': atmfile,
+        'vmr_vars': '[M/H] -1.0',
+    }
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/atmosphere_tea_test.cfg',
+        reset=reset,
+    )
+    expected_species = np.array('H2 He Na K H2O CH4 CO CO2 NH3 HCN N2'.split())
+
+    atmosphere = pb.run(cfg)
+    np.testing.assert_allclose(atmosphere.press, expected_pressure)
+    np.testing.assert_allclose(atmosphere.temp, expected_temperature)
+    np.testing.assert_allclose(atmosphere.vmr, expected_vmr_sub_solar)
+    # Compare against the atmospheric file now:
+    atmf = io.read_atm(atmfile)
+    assert atmf[0] == ('bar', 'kelvin', 'volume', None)
+    np.testing.assert_equal(atmf[1], expected_species)
+    # File read-write loses precision:
+    np.testing.assert_allclose(atmf[2], expected_pressure, rtol=1e-6)
+    np.testing.assert_allclose(atmf[3], expected_temperature, rtol=1e-6)
+    np.testing.assert_allclose(atmf[4], expected_vmr_sub_solar, rtol=1e-6)
+
+
+def test_atmosphere_tea_hybrid(tmp_path):
+    atmfile = str(tmp_path / 'test.atm')
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/atmosphere_tea_hybrid.cfg',
+        reset={'output_atmfile': atmfile},
+    )
+    atmosphere = pb.run(cfg)
+
+    # Free VMR
+    imol = list(atmosphere.species).index('SO2')
+    np.testing.assert_allclose(atmosphere.vmr[:,imol], 1e-5)
+
+    # While others remain at TEA values
+    imol = list(atmosphere.species).index('H2O')
+    expected_VMR = np.array([
+       2.55184930e-07, 8.14608932e-07, 2.83118752e-06, 1.06403134e-05,
+       3.92233949e-05, 1.08369202e-04, 1.88413900e-04, 2.43126941e-04,
+       2.73036780e-04, 2.85590164e-04, 2.89170561e-04, 2.89801238e-04,
+       2.89847008e-04, 2.89836436e-04, 2.89834142e-04, 2.89835033e-04,
+       2.89836066e-04, 2.89837123e-04, 2.89838543e-04, 2.89841116e-04,
+       2.89846769e-04, 2.89860292e-04, 2.89893664e-04, 2.89976886e-04,
+       2.90185028e-04, 2.90705122e-04, 2.91997860e-04, 2.95166504e-04,
+       3.02684150e-04, 3.19356284e-04, 3.52288535e-04, 4.07898910e-04,
+       4.86588503e-04, 5.78229715e-04, 6.63110771e-04, 7.23823480e-04,
+       7.57962003e-04, 7.74131044e-04, 7.81093221e-04, 7.83963877e-04,
+       7.85130747e-04,
+    ])
+    np.testing.assert_allclose(atmosphere.vmr[:,imol], expected_VMR)
+
+
+def test_atmosphere_tea_hybrid_over_limit(tmp_path):
+    atmfile = str(tmp_path / 'test.atm')
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/atmosphere_tea_hybrid_over.cfg',
+        reset={'output_atmfile': atmfile},
+    )
+    atmosphere = pb.run(cfg)
+
+    # Even when free, VMR does not go beyond sum of elements
+    imol = list(atmosphere.species).index('SO2')
+    expected_VMR = np.array([
+       1.23233838e-05, 1.24353767e-05, 1.26496529e-05, 1.30735898e-05,
+       1.39097712e-05, 1.54177065e-05, 1.76062410e-05, 1.99004735e-05,
+       2.15486735e-05, 2.23375344e-05, 2.25797195e-05, 2.26263234e-05,
+       2.26326367e-05, 2.26335085e-05, 2.26336933e-05, 2.26337820e-05,
+       2.26338493e-05, 2.26339026e-05, 2.26339450e-05, 2.26339788e-05,
+       2.26340058e-05, 2.26340278e-05, 2.26340463e-05, 2.26340637e-05,
+       2.26340841e-05, 2.26341167e-05, 2.26341830e-05, 2.26343333e-05,
+       2.26346803e-05, 2.26354421e-05, 2.26369414e-05, 2.26394700e-05,
+       2.26430480e-05, 2.26472203e-05, 2.26511005e-05, 2.26539090e-05,
+       2.26555483e-05, 2.26564226e-05, 2.26569457e-05, 2.26573638e-05,
+       2.26577839e-05,
+    ])
+    np.testing.assert_allclose(atmosphere.vmr[:,imol], expected_VMR)
+
+    # While others remain at TEA values
+    imol = list(atmosphere.species).index('H2O')
+    expected_VMR = np.array([
+       2.55184930e-07, 8.14608932e-07, 2.83118752e-06, 1.06403134e-05,
+       3.92233949e-05, 1.08369202e-04, 1.88413900e-04, 2.43126941e-04,
+       2.73036780e-04, 2.85590164e-04, 2.89170561e-04, 2.89801238e-04,
+       2.89847008e-04, 2.89836436e-04, 2.89834142e-04, 2.89835033e-04,
+       2.89836066e-04, 2.89837123e-04, 2.89838543e-04, 2.89841116e-04,
+       2.89846769e-04, 2.89860292e-04, 2.89893664e-04, 2.89976886e-04,
+       2.90185028e-04, 2.90705122e-04, 2.91997860e-04, 2.95166504e-04,
+       3.02684150e-04, 3.19356284e-04, 3.52288535e-04, 4.07898910e-04,
+       4.86588503e-04, 5.78229715e-04, 6.63110771e-04, 7.23823480e-04,
+       7.57962003e-04, 7.74131044e-04, 7.81093221e-04, 7.83963877e-04,
+       7.85130747e-04,
+    ])
+    np.testing.assert_allclose(atmosphere.vmr[:,imol], expected_VMR)
+
+
+
+@pytest.mark.parametrize(
+    'arg',
+    ['molmodel', 'molfree', 'molvars', 'molpars'],
+)
+def test_deprecated_vmr_arguments(tmp_path, arg):
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/atmosphere_tea_test.cfg',
+        reset={arg:'tcea'},
+    )
+
+    error = re.escape(
+        f"The '{arg}' argument is deprecated, use 'vmr_vars' instead"
+    )
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
 def test_atmosphere_hydro(tmp_path):
@@ -241,61 +429,54 @@ def test_atmosphere_hydro(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/atmosphere_hydro_test.cfg',
-        reset={'atmfile':atmfile})
-
-    press, temp, abund, species, radius = pb.run(cfg)
-    np.testing.assert_allclose(press, expected_pressure, rtol=1e-7)
-    np.testing.assert_allclose(temp, expected_temperature, rtol=1e-7)
-    q = np.tile([0.85, 0.149, 3.0e-6, 4.0e-4, 1.0e-4, 5.0e-4, 1.0e-7], (81,1))
-    np.testing.assert_equal(abund, q)
-    np.testing.assert_allclose(radius, expected_radius, rtol=1e-7)
+        reset={'output_atmfile':atmfile},
+    )
+    atmosphere = pb.run(cfg)
+    expected_vmr = np.tile(
+        [0.85, 0.149, 3.0e-6, 4.0e-4, 1.0e-4, 5.0e-4, 1.0e-7],
+        (81,1),
+    )
+    #print(atmosphere.runits)
+    np.testing.assert_allclose(atmosphere.press, expected_pressure)
+    np.testing.assert_allclose(atmosphere.temp, expected_temperature)
+    np.testing.assert_allclose(atmosphere.vmr, expected_vmr)
+    np.testing.assert_allclose(atmosphere.radius, expected_radius)
     # Compare against the atmospheric file now:
     atmf = io.read_atm(atmfile)
     assert atmf[0] == ('bar', 'kelvin', 'volume', 'rjup')
     np.testing.assert_equal(atmf[1],
         np.array('H2 He Na H2O CH4 CO CO2'.split()))
     # File read-write loses precision:
-    np.testing.assert_allclose(atmf[2]*pc.bar, expected_pressure, rtol=3e-5)
-    np.testing.assert_allclose(atmf[3], expected_temperature, rtol=5e-6)
-    np.testing.assert_equal(atmf[4], q)
-    np.testing.assert_allclose(atmf[5]*pc.rjup, expected_radius, rtol=5e-5)
+    np.testing.assert_allclose(atmf[2], expected_pressure, rtol=1e-6)
+    np.testing.assert_allclose(atmf[3], expected_temperature, rtol=1e-6)
+    np.testing.assert_allclose(atmf[4], expected_vmr)
+    np.testing.assert_allclose(atmf[5]*pc.rjup, expected_radius, rtol=1e-6)
 
 
-def test_atmosphere_hydro_default_runits(tmp_path):
-    atmfile = str(tmp_path / 'test.atm')
-    cfg = make_config(tmp_path,
-        ROOT+'tests/configs/atmosphere_hydro_test.cfg',
-        reset={'atmfile':atmfile, 'gplanet':'2478.7504116251885'},
-        remove=['rplanet'])
-
-    press, temp, abund, species, radius = pb.run(cfg)
-    np.testing.assert_allclose(radius, expected_radius, rtol=1e-7)
-    atmf = io.read_atm(atmfile)
-    assert atmf[0] == ('bar', 'kelvin', 'volume', 'rjup')
-    np.testing.assert_allclose(atmf[5]*pc.rjup, expected_radius, rtol=5e-5)
-
-
-
-# See tests/test_spectrum.py for spectrum tests
-
-
-def test_spectrum_emission(tmp_path):
-    cfg = make_config(
-        tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
-        reset={'rt_path':'emission', 'cpars':'-0.5'})
-    pyrat = pb.run(cfg)
-    assert pyrat is not None
-    # TBD: implement asserts
+# See test_emission.py and test_transmission.py for spectrum tests
 
 
 @pytest.mark.sort(order=10)
 def test_opacity_pbay(capfd):
     pyrat = pb.run(ROOT+'tests/configs/opacity_test.cfg')
     captured = capfd.readouterr()
-    assert "Extinction-coefficient table written to file:" in captured.out
+    assert "Cross-section table written to file:" in captured.out
     assert "exttable_test_300-3000K_1.1-1.7um.npz'." in captured.out
     assert "exttable_test_300-3000K_1.1-1.7um.npz" in os.listdir('outputs/')
+
+
+def test_opacity_single_iso(capfd):
+    pyrat = pb.run(ROOT+'tests/configs/opacity_test_single_iso.cfg')
+    captured = capfd.readouterr()
+    assert "Extract data only for the isotope '118'" in captured.out
+    assert "Read a total of 241 line transitions" in captured.out
+
+
+def test_opacity_not_found_single_iso(capfd):
+    cfg = ROOT+'tests/configs/opacity_test_single_iso_fail.cfg'
+    error = re.escape("Single-isotope '26' not found in TLI file")
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
 
 
 @pytest.mark.skip

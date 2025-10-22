@@ -16,6 +16,5 @@ ppm
 # depth uncert  passband_file
 @DATA
     139     8   inputs/TESS_passband.dat
-   3448    64   {ROOT}/pyratbay/data/filters/spitzer_irac2_sa.dat
-   3375    82   {ROOT}/pyratbay/data/filters/spitzer_irac2_sa.dat
-
+   3448    64   {FILTERS}spitzer_irac2.dat
+   3375    82   {FILTERS}spitzer_irac2.dat

@@ -1,8 +1,9 @@
-# Copyright (c) 2021 Patricio Cubillos
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+# Copyright (c) 2021-2025 Cubillos & Blecic
+# Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import os
 import pytest
+import re
 
 import numpy as np
 
@@ -12,7 +13,7 @@ import pyratbay.constants as pc
 os.chdir(pc.ROOT+'tests')
 
 
-expected_pressure = np.logspace(-2, 9, 15)
+expected_pressure = np.logspace(-8, 3, 15)
 
 expected_temp_guillot = np.array(
       [1046.89057381, 1046.89075751, 1046.89192532, 1046.89933754,
@@ -45,30 +46,6 @@ radius_m = np.array([
 expected_dens = np.array([
     4.10241850e+10, 7.24297052e+09, 4.82864701e+06, 4.82864701e+06,
     4.82864701e+02, 4.82864701e+06])
-
-q0 = np.array(
-      [[  7.15780000e-01,   1.34580000e-01,   3.48390000e-04,
-          4.25490000e-04,   8.00670000e-08,   1.93810000e-22],
-       [  8.07420000e-01,   1.41760000e-01,   3.67350000e-04,
-          4.48220000e-04,   7.88430000e-08,   2.77920000e-20],
-       [  8.38830000e-01,   1.44230000e-01,   3.73770000e-04,
-          4.56010000e-04,   7.85590000e-08,   3.11600000e-18],
-       [  8.49010000e-01,   1.45030000e-01,   3.75850000e-04,
-          4.58530000e-04,   7.84790000e-08,   3.23090000e-16],
-       [  8.52260000e-01,   1.45280000e-01,   3.76510000e-04,
-          4.59340000e-04,   7.84550000e-08,   3.26810000e-14],
-       [  8.53290000e-01,   1.45360000e-01,   3.76720000e-04,
-          4.59590000e-04,   7.84480000e-08,   3.27990000e-12],
-       [  8.53610000e-01,   1.45390000e-01,   3.76780000e-04,
-          4.59670000e-04,   7.84450000e-08,   3.28370000e-10],
-       [  8.53720000e-01,   1.45390000e-01,   3.76840000e-04,
-          4.59670000e-04,   7.84460000e-08,   3.28440000e-08],
-       [  8.53750000e-01,   1.45400000e-01,   3.80050000e-04,
-          4.56480000e-04,   7.85620000e-08,   3.23430000e-06],
-       [  8.53560000e-01,   1.45440000e-01,   5.31500000e-04,
-          3.05290000e-04,   7.34970000e-08,   1.54570000e-04],
-       [  8.53190000e-01,   1.45530000e-01,   8.23730000e-04,
-          1.36860000e-05,   5.10860000e-09,   4.46510000e-04]])
 
 expected_vmr_tea = np.array([
        [7.35957328e-01, 8.90269702e-02, 1.06589477e-20, 6.66282723e-05,
@@ -109,14 +86,14 @@ expected_vmr_tea_H2O = [
       [[3.42626988e-03, 3.43230384e-03, 3.43421613e-03, 3.43482164e-03,
         3.43505041e-03, 3.43884079e-03, 3.75750334e-03, 7.32956730e-03,
         8.44006218e-03],
-       [1.23528363e-16, 1.24941383e-14, 1.25395526e-12, 1.25539518e-10,
-        1.25584800e-08, 1.25570443e-06, 1.22785048e-04, 4.53001025e-03,
-        8.53482480e-03],]
+       [5.89500056e-03, 5.90536636e-03, 5.90865151e-03, 5.90969120e-03,
+        5.91003098e-03, 5.91123064e-03, 6.01443782e-03, 7.84463736e-03,
+        8.42759310e-03],]
 ]
 
 
 def test_pressure_default_units():
-    ptop    = 1e-8
+    ptop = 1e-8
     pbottom = 1e3
     nlayers = 15
     pressure = pa.pressure(ptop, pbottom, nlayers)
@@ -124,24 +101,31 @@ def test_pressure_default_units():
 
 
 def test_pressure_floats():
-    ptop    = 1e-8
+    ptop = 1e-8
     pbottom = 1e3
     nlayers = 15
-    units   = "bar"
+    units = "bar"
     pressure = pa.pressure(ptop, pbottom, nlayers, units)
     np.testing.assert_allclose(pressure, expected_pressure)
 
 
 def test_pressure_with_units():
-    ptop    = "1e-8 bar"
+    ptop = "1e-8 bar"
     pbottom = "1e3 bar"
     nlayers = 15
     pressure = pa.pressure(ptop, pbottom, nlayers)
     np.testing.assert_allclose(pressure, expected_pressure)
 
 
-@pytest.mark.parametrize("params",
-    [1500.0, [1500.0], (1500,), np.array([1500.0])])
+@pytest.mark.parametrize(
+    "params",
+    [
+        1500.0,
+        [1500.0],
+        (1500,),
+        np.array([1500.0])
+    ],
+)
 def test_tmodel_isothermal(params):
     nlayers = 100
     pressure = np.logspace(-8, 2, nlayers)
@@ -216,95 +200,20 @@ def test_temperature_madhu():
 
 def test_uniform():
     nlayers = 11
-    pressure    = pa.pressure(1e-8, 1e2, nlayers, units='bar')
-    temperature = np.tile(1500.0, nlayers)
-    species     = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
-    abundances  = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
-    qprofiles = pa.uniform(pressure, temperature, species, abundances)
-    assert np.shape(qprofiles) == (nlayers, len(species))
-    for q in qprofiles:
+    #species = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
+    abundances = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
+    vmr = pa.uniform(abundances, nlayers)
+    assert np.shape(vmr) == (nlayers, len(abundances))
+    for q in vmr:
         np.testing.assert_equal(q, np.array(abundances))
 
 
-def test_abundance_uniform():
-    atmfile = "outputs/atm_test.dat"
-    nlayers = 11
-    punits  = 'bar'
-    pressure = pa.pressure(1e-8, 1e2, nlayers, punits)
-    tmodel = pa.tmodels.Isothermal(pressure)
-    temperature = tmodel(1500.0)
-    species     = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
-    abundances  = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
-    qprofiles = pa.abundance(pressure, temperature, species,
-        quniform=abundances, atmfile=atmfile, punits=punits)
-    assert np.shape(qprofiles) == (nlayers, len(species))
-    for q in qprofiles:
-        np.testing.assert_equal(q, np.array(abundances))
-
-
-def test_abundances_tea_basic():
-    nlayers = 9
-    pressure = pa.pressure(1e-10, 1e3, nlayers, units='bar')
-    tmodel = pa.tmodels.Isothermal(pressure)
-    temperature = tmodel(1500.0)
-    species = 'H He C O H2 H2O CO CO2 CH4'.split()
-    elements = 'H He C O'.split()
-    vmr = pa.abundance(pressure, temperature, species, elements)
-    np.testing.assert_allclose(vmr, expected_vmr_tea)
-
-
-@pytest.mark.parametrize('metallicity', [0.0, 1.0])
-@pytest.mark.parametrize('e_scale', [{}, {'C': 0.7}])
-def test_abundances_tea_metallicity_escale(metallicity, e_scale):
-    nlayers = 9
-    pressure = pa.pressure(1e-5, 1e3, nlayers, units='bar')
-    tmodel = pa.tmodels.Isothermal(pressure)
-    temperature = tmodel(1500.0)
-    species = 'H He C O H2 H2O CO CO2 CH4'.split()
-    elements = 'H He C O'.split()
-    i_H2O = species.index('H2O')
-    vmr = pa.abundance(
-        pressure, temperature, species, elements,
-        metallicity=metallicity, e_scale=e_scale,
-    )
-    expected_vmr = expected_vmr_tea_H2O[metallicity!=0]['C' in e_scale]
-    np.testing.assert_allclose(vmr[:,i_H2O], expected_vmr)
-
-
-@pytest.mark.parametrize('e_ratio', [{}, {'C_O': 2.9512092}])
-def test_abundances_tea_metallicity_eratio(e_ratio):
-    nlayers = 9
-    pressure = pa.pressure(1e-5, 1e3, nlayers, units='bar')
-    tmodel = pa.tmodels.Isothermal(pressure)
-    temperature = tmodel(1500.0)
-    species = 'H He C O H2 H2O CO CO2 CH4'.split()
-    elements = 'H He C O'.split()
-    i_H2O = species.index('H2O')
-    vmr = pa.abundance(
-        pressure, temperature, species, elements,
-        e_ratio=e_ratio,
-    )
-    # (this C/O ratio leads to same composition as e_scale C=0.7)
-    expected_vmr = expected_vmr_tea_H2O[0]['C_O' in e_ratio]
-    np.testing.assert_allclose(vmr[:,i_H2O], expected_vmr)
-
-
-@pytest.mark.parametrize('e_abundances', [{}, {'C': 9.16}])
-def test_abundances_tea_metallicity_eabundances(e_abundances):
-    nlayers = 9
-    pressure = pa.pressure(1e-5, 1e3, nlayers, units='bar')
-    tmodel = pa.tmodels.Isothermal(pressure)
-    temperature = tmodel(1500.0)
-    species = 'H He C O H2 H2O CO CO2 CH4'.split()
-    elements = 'H He C O'.split()
-    i_H2O = species.index('H2O')
-    vmr = pa.abundance(
-        pressure, temperature, species, elements,
-        e_abundances=e_abundances,
-    )
-    # (this abundance leads to same composition as e_scale C=0.7)
-    expected_vmr = expected_vmr_tea_H2O[0]['C' in e_abundances]
-    np.testing.assert_allclose(vmr[:,i_H2O], expected_vmr)
+def test_uniform_error():
+    nlayers = -11
+    abundances = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
+    match = "The number of layers has to be larger than zero"
+    with pytest.raises(ValueError, match=match):
+        pa.uniform(abundances, nlayers)
 
 
 def test_hydro_g():
@@ -315,7 +224,7 @@ def test_hydro_g():
     mu = np.tile(2.3, nlayers)
     g = pc.G * pc.mjup / pc.rjup**2
     r0 = 1.0 * pc.rjup
-    p0 = 1.0 * pc.bar
+    p0 = 1.0  # bar
     # Radius profile in Jupiter radii:
     radius = pa.hydro_g(pressure, temperature, mu, g, p0, r0) / pc.rjup
     np.testing.assert_allclose(radius, radius_g)
@@ -329,7 +238,7 @@ def test_hydro_m():
     mu = np.tile(2.3, nlayers)
     Mp = 1.0 * pc.mjup
     r0 = 1.0 * pc.rjup
-    p0 = 1.0 * pc.bar
+    p0 = 1.0  # bar
     radius = pa.hydro_m(pressure, temperature, mu, Mp, p0, r0) / pc.rjup
     # Radius profile in Jupiter radii:
     np.testing.assert_allclose(radius, radius_m)
@@ -343,13 +252,14 @@ def test_hydro_m_ultra_puff():
     mu = np.tile(2.3, nlayers)
     Mp = 0.1 * pc.mjup
     r0 = 2.0 * pc.rjup
-    p0 = 1.0 * pc.bar
+    p0 = 1.0  # bar
     radius = pa.hydro_m(pressure, temperature, mu, Mp, p0, r0) / pc.rjup
 
     puff_radius = np.array([
        23.59979187, 10.78753812,  6.99174271,  5.17191017,  4.10376853,
         3.40130545,  2.90418177,  2.5338435 ,  2.24727349,  2.01893776,
-        1.83272274,  1.67795772,  1.54729571])
+        1.83272274,  1.67795772,  1.54729571,
+    ])
 
     assert np.isinf(radius[0])
     assert np.isinf(radius[1])
@@ -421,27 +331,41 @@ def test_mean_weight_fail():
     abundances = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
     match = "Either species or mass arguments must be specified"
     with pytest.raises(ValueError, match=match):
-        mu = pa.mean_weight(abundances)
+        pa.mean_weight(abundances)
 
 
-def test_ideal_gas_density():
+def test_ideal_gas_density_2D():
     nlayers = 11
-    pressure    = pa.pressure(1e-8, 1e2, nlayers, units='bar')
+    pressure = pa.pressure(1e-8, 1e2, nlayers, units='bar')
     temperature = np.tile(1500.0, nlayers)
-    species     = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
-    abundances  = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
-    qprofiles = pa.uniform(pressure, temperature, species, abundances)
-    dens = pa.ideal_gas_density(qprofiles, pressure, temperature)
+    species = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
+    abundances = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
+    vmr = pa.uniform(abundances, nlayers)
+    dens = pa.ideal_gas_density(vmr, pressure, temperature)
     for i,density in enumerate(dens):
         np.testing.assert_allclose(density, expected_dens*10**i, rtol=1e-7)
 
 
+def test_ideal_gas_density_1D():
+    nlayers = 11
+    pressure = pa.pressure(1e-8, 1e2, nlayers, units='bar')
+    temperature = np.tile(1500.0, nlayers)
+    vmr = np.tile(0.8496, nlayers)
+    density = pa.ideal_gas_density(vmr, pressure, temperature)
+    expected_density = np.array([
+       4.1024185e+10, 4.1024185e+11, 4.1024185e+12, 4.1024185e+13,
+       4.1024185e+14, 4.1024185e+15, 4.1024185e+16, 4.1024185e+17,
+       4.1024185e+18, 4.1024185e+19, 4.1024185e+20,
+    ])
+    np.testing.assert_allclose(density, expected_density, rtol=1e-7)
+
+
 def test_teq():
-    tstar  = 6091.0
-    rstar  = 1.19 * pc.rsun
+    tstar = 6091.0
+    rstar = 1.19 * pc.rsun
     smaxis = 0.04747 * pc.au
-    tstar_unc  = 10.0
-    rstar_unc  = 0.02 * pc.rsun
+    tstar_unc = 10.0
+    rstar_unc = 0.02 * pc.rsun
     smaxis_unc = 0.00046 * pc.au
     A = 0.3
     f = 1.0
@@ -452,8 +376,8 @@ def test_teq():
 
 
 def test_teq_no_uncertainties():
-    tstar  = 6091.0
-    rstar  = 1.19 * pc.rsun
+    tstar = 6091.0
+    rstar = 1.19 * pc.rsun
     smaxis = 0.04747 * pc.au
     A = 0.3
     f = 1.0
@@ -494,13 +418,39 @@ def test_transit_path_nskip():
         np.testing.assert_allclose(path[i], expected_path[i])
 
 
-def test_chemistry_solar():
+def test_chemistry_uniform():
+    nlayers = 11
+    pressure = pa.pressure(1e-8, 1e2, nlayers, units='bar')
+    tmodel = pa.tmodels.Isothermal(pressure)
+    temperature = tmodel(1500.0)
+    species = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
+    abundances  = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
+    chem, _, vmr = pa.chemistry(
+        'uniform', pressure, temperature, species, q_uniform=abundances,
+    )
+
+    assert np.shape(vmr) == (nlayers, len(species))
+    for q in vmr:
+        np.testing.assert_equal(q, np.array(abundances))
+
+
+def test_chemistry_tea_basic():
+    nlayers = 9
+    pressure = pa.pressure(1e-10, 1e3, nlayers, units='bar')
+    tmodel = pa.tmodels.Isothermal(pressure)
+    temperature = tmodel(1500.0)
+    species = 'H He C O H2 H2O CO CO2 CH4'.split()
+    net, _, vmr = pa.chemistry('tea', pressure, temperature, species)
+    np.testing.assert_allclose(vmr, expected_vmr_tea)
+
+
+def test_chemistry_tea_solar():
     nlayers = 100
     pressure = pa.pressure(1.0e-08, 1.0e+03, nlayers, units='bar')
     temperature = np.tile(900.0, nlayers)
     species = 'H2O CH4 CO CO2 NH3 C2H2 C2H4 HCN N2 H2 H He'.split()
     chem_model = 'tea'
-    chem_network = pa.chemistry(chem_model, pressure, temperature, species)
+    chem_network, _, _ = pa.chemistry(chem_model, pressure, temperature, species)
 
     expected_elements = 'C H He N O'.split()
     np.testing.assert_equal(chem_network.elements, expected_elements)
@@ -517,12 +467,14 @@ def test_chemistry_metallicity():
     temperature = np.tile(900.0, nlayers)
     species = 'H2O CH4 CO CO2 NH3 C2H2 C2H4 HCN N2 H2 H He'.split()
     chem_model = 'tea'
-    chem_network = pa.chemistry(
-        chem_model, pressure, temperature, species, metallicity=-1.0)
+    chem_network, _, _ = pa.chemistry(
+        chem_model, pressure, temperature, species, metallicity=-1.0,
+    )
     expected_rel_abundance = np.array(
-        [2.88403150e-05, 1.0, 8.20351544e-02, 6.76082975e-06, 4.89778819e-05])
-    np.testing.assert_allclose(
-        chem_network.element_rel_abundance, expected_rel_abundance)
+        [2.88403150e-05, 1.0, 8.20351544e-02, 6.76082975e-06, 4.89778819e-05],
+    )
+    e_abundance = chem_network.element_rel_abundance
+    np.testing.assert_allclose(e_abundance, expected_rel_abundance)
 
 
 def test_chemistry_escale():
@@ -532,13 +484,14 @@ def test_chemistry_escale():
     species = 'H2O CH4 CO CO2 NH3 C2H2 C2H4 HCN N2 H2 H He'.split()
     e_scale = {'C': -1.0, 'O': 1.0}
     chem_model = 'tea'
-    chem_network = pa.chemistry(
+    chem_network, _, _ = pa.chemistry(
         chem_model, pressure, temperature, species, e_scale=e_scale)
 
     expected_rel_abundance = np.array(
         [2.88403150e-05, 1.0, 8.20351544e-02, 6.76082975e-05, 4.89778819e-03])
     np.testing.assert_allclose(
-        chem_network.element_rel_abundance, expected_rel_abundance)
+        chem_network.element_rel_abundance, expected_rel_abundance,
+    )
 
 
 def test_chemistry_eratio():
@@ -548,13 +501,14 @@ def test_chemistry_eratio():
     species = 'H2O CH4 CO CO2 NH3 C2H2 C2H4 HCN N2 H2 H He'.split()
     e_ratio = {'C_O': 2.0}
     chem_model = 'tea'
-    chem_network = pa.chemistry(
+    chem_network, _, _ = pa.chemistry(
         chem_model, pressure, temperature, species, e_ratio=e_ratio)
 
     expected_rel_abundance = np.array(
         [9.79557639e-04, 1.0, 8.20351544e-02, 6.76082975e-05, 4.89778819e-04])
     np.testing.assert_allclose(
-        chem_network.element_rel_abundance, expected_rel_abundance)
+        chem_network.element_rel_abundance, expected_rel_abundance,
+    )
 
 
 def test_chemistry_metallicity_escale():
@@ -562,33 +516,111 @@ def test_chemistry_metallicity_escale():
     pressure = pa.pressure(1.0e-08, 1.0e+03, nlayers, units='bar')
     temperature = np.tile(900.0, nlayers)
     species = 'H2O CH4 CO CO2 NH3 C2H2 C2H4 HCN N2 H2 H He'.split()
-    e_scale = {'C': -1.0, 'O':1.0}
+    metallicity = -1.0
+    e_scale = {'C': -1.0, 'O': 1.0}
     chem_model = 'tea'
-    chem_network = pa.chemistry(
+    chem_network, _, _ = pa.chemistry(
         chem_model, pressure, temperature, species,
-        metallicity=-1.0, e_scale=e_scale)
+        metallicity=metallicity,
+        e_scale=e_scale,
+    )
 
     expected_rel_abundance = np.array(
-        [2.88403150e-06, 1.0, 8.20351544e-02, 6.76082975e-06, 4.89778819e-04])
+        [2.88403150e-05, 1.0, 8.20351544e-02, 6.76082975e-06, 4.89778819e-03])
     np.testing.assert_allclose(
-        chem_network.element_rel_abundance, expected_rel_abundance)
+        chem_network.element_rel_abundance, expected_rel_abundance,
+    )
 
 
-@pytest.mark.parametrize("qcap,qcap_result",
-    [(1e-3, False),
-     (1e-4, True)])
+@pytest.mark.parametrize('e_ratio', [{}, {'C_O': 2.9512092}])
+def test_chemistry_tea_metallicity_eratio(e_ratio):
+    nlayers = 9
+    pressure = pa.pressure(1e-5, 1e3, nlayers, units='bar')
+    tmodel = pa.tmodels.Isothermal(pressure)
+    temperature = tmodel(1500.0)
+    species = 'H He C O H2 H2O CO CO2 CH4'.split()
+    i_H2O = species.index('H2O')
+    chem_model, _, vmr = pa.chemistry(
+        'tea', pressure, temperature, species,
+        e_ratio=e_ratio,
+    )
+    # (this C/O ratio leads to same composition as e_scale C=0.7)
+    expected_vmr = expected_vmr_tea_H2O[0]['C_O' in e_ratio]
+    np.testing.assert_allclose(vmr[:,i_H2O], expected_vmr)
+
+
+@pytest.mark.parametrize('e_abundances', [{}, {'C': 9.16}])
+def test_chemistry_tea_metallicity_eabundances(e_abundances):
+    nlayers = 9
+    pressure = pa.pressure(1e-5, 1e3, nlayers, units='bar')
+    tmodel = pa.tmodels.Isothermal(pressure)
+    temperature = tmodel(1500.0)
+    species = 'H He C O H2 H2O CO CO2 CH4'.split()
+    i_H2O = species.index('H2O')
+    chem_model, _, vmr = pa.chemistry(
+        'tea', pressure, temperature, species,
+        e_abundances=e_abundances,
+    )
+    expected_vmr = expected_vmr_tea_H2O[0]['C' in e_abundances]
+    np.testing.assert_allclose(vmr[:,i_H2O], expected_vmr)
+
+
+def test_chemistry_mismatch_nspecies():
+    nlayers = 11
+    pressure = pa.pressure(1e-8, 1e2, nlayers, units='bar')
+    tmodel = pa.tmodels.Isothermal(pressure)
+    temperature = tmodel(1500.0)
+    species = ["H2", "He", "H2O", "CO", "CO2"]
+    abundances  = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
+    match = "Species (5) and q_uniform array lengths (6) don't match"
+    with pytest.raises(ValueError, match=re.escape(match)):
+        pa.chemistry(
+            'uniform', pressure, temperature, species, q_uniform=abundances,
+        )
+
+
+def test_chemistry_mismatch_nlayers():
+    nlayers = 11
+    pressure = pa.pressure(1e-8, 1e2, nlayers, units='bar')
+    tmodel = pa.tmodels.Isothermal(pressure[:-1])
+    temperature = tmodel(1500.0)
+    species = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
+    #abundances  = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
+    match = "pressure (11) and temperature array lengths (10) don't match"
+    with pytest.raises(ValueError, match=re.escape(match)):
+        pa.chemistry('uniform', pressure, temperature, species)
+
+
+@pytest.mark.parametrize(
+    "qcap,qcap_result",
+    [
+        (1e-3, False),
+        (1e-4, True),
+    ],
+)
 def test_qcapcheck(qcap, qcap_result):
     nlayers = 11
-    pressure    = pa.pressure(1e-8, 1e2, nlayers, units='bar')
-    temperature = np.tile(1500.0, nlayers)
-    species     = ["H2", "He", "H2O"]
-    abundances  = [0.8495, 0.15, 5e-4]
-    qprofiles = pa.uniform(pressure, temperature, species, abundances)
+    #species = ["H2", "He", "H2O"]
+    abundances = [0.8495, 0.15, 5e-4]
+    vmr = pa.uniform(abundances, nlayers)
     ibulk = [0,1]
-    assert pa.qcapcheck(qprofiles, qcap, ibulk) == qcap_result
+    assert pa.qcapcheck(vmr, qcap, ibulk) == qcap_result
 
 
 def test_balance():
+    q = np.tile([0.8, 0.2, 0.5], (5,1))
+    q[4] = 0.5, 0.5, 0.5
+    ibulk = [0, 1]
+    bratio, invsrat = pa.ratio(q, ibulk)
+    pa.balance(q, ibulk, bratio, invsrat)
+    # Check sum(q) == 1:
+    np.testing.assert_equal(np.sum(q,axis=1), np.tile(1.0,5))
+    # Check ratio(q) == bratio:
+    np.testing.assert_equal(q[:,1]/q[:,0], bratio[:,1]/bratio[:,0])
+
+
+@pytest.mark.skip(reason="TBD: add electrons, should not count as 'metals'")
+def test_balance_electrons():
     q = np.tile([0.8, 0.2, 0.5], (5,1))
     q[4] = 0.5, 0.5, 0.5
     ibulk = [0, 1]
@@ -608,42 +640,4 @@ def test_ratio():
     np.testing.assert_equal(bratio[:,0], np.tile(1.0, 5))
     np.testing.assert_equal(bratio[:,1], np.array([0.25,0.25,0.25,0.25,1.0]))
     np.testing.assert_equal(invsrat, np.array([0.8, 0.8, 0.8, 0.8, 0.5]))
-
-
-def test_qscale():
-    spec = np.array(["H2", "He", "H2O", "CO", "CO2", "CH4"])
-    bulk = np.array(['H2', 'He'])
-    molmodel = ['vert', 'scale']
-    molfree  = ['H2O', 'CO']
-    molpars  = [-4, 1.0]
-    q2 = pa.qscale(q0, spec, molmodel, molfree, molpars, bulk)
-    nlayers, nspec = np.shape(q0)
-    # All H2O abundances set to constant value:
-    np.testing.assert_equal(q2[:,2], np.tile(10**molpars[0], nlayers))
-    # All CO abundances scaled by value:
-    np.testing.assert_allclose(q2[:,3], q0[:,3]*10**molpars[1], rtol=1e-7)
-
-
-@pytest.mark.parametrize('alkali', ['sodium_vdw', 'potassium_vdw'])
-def test_alkali_cutoff_default(alkali):
-    na = pa.alkali.get_model('sodium_vdw')
-    assert na.cutoff == 4500.0
-
-
-@pytest.mark.parametrize('cutoff', [4500, 4500.0, 5000.0])
-@pytest.mark.parametrize('alkali', ['sodium_vdw', 'potassium_vdw'])
-def test_alkali_cutoff(cutoff, alkali):
-    na = pa.alkali.get_model('sodium_vdw', cutoff)
-    assert na.cutoff == float(cutoff)
-
-
-@pytest.mark.skip(reason='TBD')
-def test_alkali_c_absorption():
-    pass
-
-
-@pytest.mark.skip(reason='TBD')
-def test_alkali_voigt_det():
-    pass
-
 

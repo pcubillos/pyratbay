@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Patricio Cubillos
+# Copyright (c) 2021-2025 Cubillos & Blecic
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -13,7 +13,6 @@ import functools
 from collections.abc import Iterable
 
 import numpy as np
-from numpy.core.numeric import isscalar
 from scipy.ndimage import gaussian_filter1d
 
 from ... import constants as pc
@@ -35,17 +34,17 @@ def check_params(func):
     return new_func
 
 
-class Isothermal(object):
+class Isothermal():
     """Isothermal temperature profile model."""
     def __init__(self, pressure):
         """
         Parameters
         ----------
         pressure: 1D float iterable
-            Pressure array where to evaluate the temperature profile.
+            Pressure array (bar) where to evaluate the temperature profile.
         """
         self.name = 'isothermal'
-        self.pnames = ['T_iso (K)']
+        self.pnames = ['T_iso']
         self.texnames = [r'$T\ ({\rm K})$']
         self.npars = len(self.pnames)
         self.pressure = pressure
@@ -90,8 +89,20 @@ class Isothermal(object):
             self.temperature[:] = params
         return np.copy(self.temperature)
 
+    def __str__(self):
+        with np.printoptions(formatter={'float':'{:.3e}'.format}):
+            str_pressure = str(self.pressure)
+        return (
+            f'Model name: {self.name}\n'
+            f'Number of parameters (npars): {self.npars}\n'
+            f'Parameter names (pnames): {self.pnames}\n'
+            f'Parameter Latex names (texnames): {self.texnames}\n'
+            f'Pressure array (pressure, bar):\n {str_pressure}\n'
+            f'Last evaluated profile (temperature, K):\n {self.temperature}\n'
+        )
 
-class Guillot(object):
+
+class Guillot():
     """
     Guillot (2010) temperature profile based on the three-channel
     Eddington approximation, as described Line et al. (2013)
@@ -101,7 +112,7 @@ class Guillot(object):
         Parameters
         ----------
         pressure: 1D float ndarray
-            Atmospheric pressure profile (barye).
+            Atmospheric pressure profile (bar).
         gravity: 1D float ndarray or scalar
             Atmospheric gravity profile (cm s-2).
             If None, assume a constant gravity of 1 cm s-2, in which
@@ -115,22 +126,22 @@ class Guillot(object):
         Ideally, one would wish to input a pressure-dependent gravity,
         but such profile would need to be derived from a hydrostatic
         equilibrium calculation, for example.  Unfortunately, HE cannot
-        be solved without knowing the temperature, thus making this a
-        circular problem (shrug emoji).
+        be solved without knowing the temperature a priori, thus making
+        this a circular problem (shrug emoji).
         """
         self.name = 'guillot'
         self.pnames = [
-            "log(kappa')",
-            'log(gamma1)',
-            'log(gamma2)',
+            "log_kappa'",
+            'log_gamma1',
+            'log_gamma2',
             'alpha',
-            'T_irr (K)',
-            'T_int (K)',
+            'T_irr',
+            'T_int',
         ]
         self.texnames = [
-            r"$\log (\kappa')$",
-            r'$\log (\gamma_1)$',
-            r'$\log (\gamma_2)$',
+            r"$\log\ \kappa'$",
+            r'$\log\ \gamma_1$',
+            r'$\log\ \gamma_2$',
             r'$\alpha$',
             r'$T_{\rm irr} (K)$',
             r'$T_{\rm int} (K)$',
@@ -139,7 +150,7 @@ class Guillot(object):
 
         if gravity is None:
             gravity = np.tile(1.0, len(pressure))
-        elif isscalar(gravity):
+        elif np.isscalar(gravity):
             gravity = np.tile(gravity, len(pressure))
         self.pressure = np.asarray(pressure, float)
         self.gravity = np.asarray(gravity, float)
@@ -188,36 +199,51 @@ class Guillot(object):
         >>> # Plot the profiles:
         >>> plt.figure(1)
         >>> plt.clf()
-        >>> plt.semilogy(tp_inv, pressure/pc.bar, color='darkorange')
-        >>> plt.semilogy(tp_non_inv, pressure/pc.bar, color='red')
+        >>> plt.semilogy(tp_inv, pressure, color='darkorange')
+        >>> plt.semilogy(tp_non_inv, pressure, color='red')
         >>> plt.ylim(1e2, 1e-7)
         """
         # Ensure Numpy array:
         if isinstance(params, (list, tuple)):
             params = np.array(params, np.double)
-        self.temperature[:] = _pt.guillot(params, self.pressure, self.gravity)
+        self.temperature[:] = _pt.guillot(
+            params, self.pressure*pc.bar, self.gravity,
+        )
         return np.copy(self.temperature)
+
+    def __str__(self):
+        with np.printoptions(formatter={'float':'{:.3e}'.format}):
+            str_pressure = str(self.pressure)
+        return (
+            f'Model name: {self.name}\n'
+            f'Number of parameters (npars): {self.npars}\n'
+            f'Parameter names (pnames): {self.pnames}\n'
+            f'Parameter Latex names (texnames): {self.texnames}\n'
+            f'Pressure array (pressure, bar):\n {str_pressure}\n'
+            f'Last evaluated profile (temperature, K):\n {self.temperature}\n'
+        )
+
 
 
 # For backwards compatibility:
 TCEA = Guillot
 
 
-class Madhu(object):
+class Madhu():
     """Temperature profile model by Madhusudhan & Seager (2009)"""
     def __init__(self, pressure):
         """
         Parameters
         ----------
         pressure: 1D float ndarray
-            Pressure array in barye.
+            Pressure array in bar.
         """
         self.name = 'madhu'
-        self.pnames = ['logp1', 'logp2', 'logp3', 'a1', 'a2', 'T0']
+        self.pnames = ['log_p1', 'log_p2', 'log_p3', 'a1', 'a2', 'T0']
         self.texnames = [
-            r'$\log (p_1)$',
-            r'$\log (p_2)$',
-            r'$\log (p_3)$',
+            r'$\log\ p_1$',
+            r'$\log\ p_2$',
+            r'$\log\ p_3$',
             r'$a_1$',
             r'$a_2$',
             r'$T_0$',
@@ -225,7 +251,7 @@ class Madhu(object):
         self.npars = len(self.pnames)
 
         self.pressure = pressure
-        self.logp = np.log10(pressure/pc.bar)
+        self.logp = np.log10(pressure)
         self.temperature = np.zeros_like(pressure)
         self.logp0 = np.amin(self.logp)
         # Standard deviation of smoothing kernel (~0.3 dex in pressure):
@@ -268,8 +294,8 @@ class Madhu(object):
         >>> # Plot the profiles:
         >>> plt.figure(1)
         >>> plt.clf()
-        >>> plt.semilogy(inv, pressure/pc.bar, color='darkgreen')
-        >>> plt.semilogy(non_inv, pressure/pc.bar, color='limegreen')
+        >>> plt.semilogy(inv, pressure, color='darkgreen')
+        >>> plt.semilogy(non_inv, pressure, color='limegreen')
         >>> plt.ylim(1e2, 1e-7)
         """
         logp1, logp2, logp3, a1, a2, T0 = params
@@ -297,6 +323,19 @@ class Madhu(object):
             self.temperature, sigma=self.fsmooth, mode='nearest',
         )
         return np.copy(self.temperature)
+
+    def __str__(self):
+        with np.printoptions(formatter={'float':'{:.3e}'.format}):
+            str_pressure = str(self.pressure)
+        return (
+            f'Model name: {self.name}\n'
+            f'Number of parameters (npars): {self.npars}\n'
+            f'Parameter names (pnames): {self.pnames}\n'
+            f'Parameter Latex names (texnames): {self.texnames}\n'
+            f'Pressure array (pressure, bar):\n {str_pressure}\n'
+            f'Last evaluated profile (temperature, K):\n {self.temperature}\n'
+        )
+
 
 
 def get_model(name, *args, **kwargs):

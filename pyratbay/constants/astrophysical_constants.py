@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Patricio Cubillos
+# Copyright (c) 2021-2025 Cubillos & Blecic
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -19,6 +19,7 @@ __all__ = [
     'km',
     'au',
     'pc',
+    'parsec',
     'rearth',
     'rjup',
     'rsun',
@@ -54,7 +55,7 @@ __all__ = [
 import scipy.constants as sc
 
 """
-Constant values used in the pyrat project.
+Astrophysical constant values used in the pyrat project.
 
 Notes
 -----
@@ -86,6 +87,7 @@ m  = 1e+2  # Meter
 km = 1e+5  # Kilometer
 au = sc.au*100  # Astronomical unit
 pc = sc.parsec*100  # Parsec
+parsec = sc.parsec*100  # Parsec
 rearth = 6.3781e8  # Earth equatorial radius (Prsa et al. 2016)
 rjup = 7.1492e9  # Jupiter equatorial radius (Prsa et al. 2016)
 rsun = 6.957e10  # Sun radius (Prsa et al. 2016)

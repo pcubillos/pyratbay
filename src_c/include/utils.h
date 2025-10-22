@@ -1,4 +1,4 @@
-// Copyright (c) 2021 Patricio Cubillos
+// Copyright (c) 2021-2025 Cubillos & Blecic
 // Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 
@@ -19,22 +19,25 @@ tdiff(PyArrayObject *dtau, /* Output differential element d(exp(-tau/mu))   */
 }
 
 
-/* Trapezoidal integration (1D, but acting on a 2D array)                   */
+// Trapezoidal integration (1D, but acting on a 2D array)
 double
-itrapz(PyArrayObject *bbody, /* Integrand                                   */
-       PyArrayObject *dtau,  /* Differential element                        */
-      int top,               /* Top-layer index                             */
-      int last,              /* Bottom-layer index                          */
-      int wave){             /* Wavenumber index in bbody                   */
-  int i;
-  double res=0.0;
+itrapezoid(
+    PyArrayObject *bbody, // Integrand
+    PyArrayObject *dtau,  // Differential element
+    int top,   // Top-layer index
+    int last,  // Bottom-layer index
+    int wave   // Wavenumber index in bbody
+){
+    int i;
+    double res=0.0;
 
-  /* Check for even number of samples (odd number of intervals):            */
-  for(i=0; i<last-top; i++){
-    res += INDd(dtau,i) * (IND2d(bbody,(top+i+1),wave)
-                         + IND2d(bbody,(top+i),  wave));
-  }
-  return 0.5*res;
+    // Check for even number of samples (odd number of intervals)
+    for(i=0; i<last-top; i++){
+        res +=
+            INDd(dtau,i) * (IND2d(bbody,(top+i+1),wave)
+            + IND2d(bbody,(top+i),  wave));
+    }
+    return 0.5*res;
 }
 
 
@@ -71,18 +74,18 @@ pyramidsearch(PyArrayObject *array, double value, int lo, int hi){
 
 int
 binsearchapprox(PyArrayObject *array, double value, int lo, int hi){
-  /* Last case, value limited between consecutive indices of array:         */
-  if (hi-lo <= 1){
-    /* Return closest array index to value:                                 */
-    if (fabs(INDd(array,hi)-value) < fabs(INDd(array,lo)-value))
-      return hi;
-    return lo;
-  }
-  /* Compare to middle point and search in corresponding sub-array:         */
-  else if (INDd(array,((hi+lo)/2)) > value)
-    return binsearchapprox(array, value, lo, (hi+lo)/2);
-  else
-    return binsearchapprox(array, value, (hi+lo)/2, hi);
+    // Last case, value limited between consecutive indices of array
+    if (hi-lo <= 1){
+        // Return closest array index to value
+        if (fabs(INDd(array,hi)-value) < fabs(INDd(array,lo)-value))
+            return hi;
+        return lo;
+    }
+    // Compare to middle point and search in corresponding sub-array
+    else if (INDd(array,((hi+lo)/2)) > value)
+        return binsearchapprox(array, value, lo, (hi+lo)/2);
+    else
+        return binsearchapprox(array, value, (hi+lo)/2, hi);
 }
 
 

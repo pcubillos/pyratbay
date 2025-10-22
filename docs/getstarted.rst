@@ -3,94 +3,60 @@
 Getting Started
 ===============
 
-The main goal of the ``Pyrat Bay`` package is to enable modeling of
-exoplanet atmospheres and their spectra.  Since this involves several
-different physical processes, ``Pyrat Bay`` adopts a modular approach
-allowing the user to execute particular steps or
-concatenate multiple steps in a single run (see figure below).
+``Pyrat Bay`` is a multi-purpose package that enables the modeling of
+exoplanet atmospheres and their spectra.  These can involve several
+different physical processes.  The following table summarizes the
+modeling capabilities enabled by ``Pyrat Bay``:
 
-.. figure:: ./figures/pyrat_user_case.png
-   :width: 60%
-   :align: center
+.. list-table:: 
+   :header-rows: 1
+   :widths: 10, 35, 15
 
-   ``Pyrat Bay`` use-case diagram and the main outputs from each case
-   (italics).  Solid arrows indicate steps that can be directly
-   executed by the user. Dotted arrows indicate steps that can be
-   linked in a single run.
+   * - Calculation
+     - Description
+     - Output
+   * - :doc:`line_sampling`
+     - Sample line-transition data (Exomol, HITEMP) into cross-section spectra at a
+       fixed grid of pressures, temperatures, and wavenumbers
+     - Cross sections tables
+   * - :doc:`atmosphere_modeling`
+     - Compute 1D temperature, volume-mixing ratios, and radius
+       profiles of a planetary atmosphere as function of pressure
+     - Atmospheric :math:`T(p)`, :math:`{\rm VMR}(p)`, and :math:`r(p)` profiles
+   * - :doc:`spectral_synthesis`
+     - Radiative-transfer calculations given an input exoplanet atmosphere
+     - Transit-depth, eclipse-depth, and/or emission spectra
+   * - :doc:`atmospheric_retrievals`
+     - Given an exoplanet parametric model and a spectroscopic observation,
+       infer the exoplanet atmospheric properties
+     - Posterior distribution of planetary model parameters
+   * - :doc:`radiative_equilibrium`
+     - Radiative-transfer calculations across an exoplanet atmosphere
+     - Equilibrium :math:`T(p)` and :math:`{\rm VMR}(p)`, emission spectra
 
-The following table details what each of these steps do.
 
-+----------------+------------------------------------------------------------+
-|  Run mode      | Description                                                |
-+================+============================================================+
-| ``tli``        | Format line-by-line (LBL) opacity databases into a         |
-|                | transition-line-information file (TLI, the format used by  |
-|                | ``Pyrat Bay`` for spectral computations)                   |
-+----------------+------------------------------------------------------------+
-| ``atmosphere`` | Generate a 1D atmospheric model (pressure, temperature,    |
-|                | abundances, and altitude profiles)                         |
-+----------------+------------------------------------------------------------+
-| ``opacity``    | Generate a cross-section table as function of wavenumber,  |
-|                | temperature, pressure, and species                         |
-+----------------+------------------------------------------------------------+
-| ``spectrum``   | Compute forward-modeling spectra (transmission or          |
-|                | emission)                                                  |
-+----------------+------------------------------------------------------------+
-| ``mcmc``       | Run an atmospheric retrieval                               |
-+----------------+------------------------------------------------------------+
-
-Any of these steps can be run either interactively though the Python
-Interpreter, or from the command line.  To streamline execution,
-``Pyrat Bay`` provides a single command to execute any of these runs.
-To set up any of these runs, ``Pyrat Bay`` uses configuration files
-following the standard `INI format
-<https://docs.python.org/3.6/library/configparser.html#supported-ini-file-structure>`_.
+Any of these steps can be run from the command line or interactively
+(though the Python Interpreter or a Jupyter Notebook).  To streamline
+execution, ``Pyrat Bay`` provides a single command to execute any of
+these runs.  To set up any of these runs, ``Pyrat Bay`` uses
+configuration files following the standard `INI format
+<https://docs.python.org/3/library/configparser.html#supported-ini-file-structure>`_.
 
 The :ref:`qexample` section below demonstrates a simple
-forward-modeling spectrum run, while the next sections give a thorough
-detail for each of the running modes.  Finally, most of the low- and
+forward-modeling spectrum run.  The following sections provide a 
+detailed for each of the running modes.  Finally, most of the low- and
 mid-level routines used for these calculations are available
 through the ``Pyrat Bay`` sub modules (see :ref:`API`).
 
-.. The ``pyrat`` package is the main package that provides the
-   radiative-transfer code that computes an emission or transmission
-   spectrum for a given atmospheric model.  The ``lineread`` package
-   formats online-available line-by-line opacity databases, used later
-   by ``pyrat``.  The ``pbay`` package provides the retrieval
-   framework (using a Markov-chain Monte Carlo algorithm, MCMC) to
-   model and constrain exoplanet atmospheres.
 
-.. Additional packages provide specific function to read stellar
-   spectra (``starspec``); generate, read, and write 1D atmospheric
-   models (``atmosphere``), provide universal and astrophysical constants
-   (``constants``), plotting (``plots``) and additional tools
-   (``tools``).
+
 
 ---------------------------------------------------------------------
-
-System Requirements
--------------------
-
-Pyrat-Bay (version 1.0+) has been extensively tested to work on
-Unix/Linux and OS X machines, with the following software
-requirements:
-
-* Python >= 3.6
-* Numpy >= 1.8.1
-* Scipy >= 0.13.3
-* Matplotlib >= 1.3.1
-* Sympy >= 0.7.6
-* mc3 >= 3.0.7
-
-``Pyrat Bay`` may work with previous software versions; however, we do
-not guarantee nor provide support for that.
 
 .. _install:
 
----------------------------------------------------------------------
-
-Install and Compile
--------------------
+Installation
+------------
 
 To install ``Pyrat Bay`` run the following command from the terminal:
 
@@ -98,22 +64,22 @@ To install ``Pyrat Bay`` run the following command from the terminal:
 
     pip install pyratbay
 
-Or if you prefer conda:
-
-.. code-block:: shell
-
-    conda install -c conda-forge pyratbay
+.. Or if you prefer conda:
+   code-block:: shell
+   conda install -c conda-forge "pyratbay>=2.0.0b4"
 
 
 Alternatively (e.g., for developers), clone the repository to your local machine with the following terminal commands:
 
 .. code-block:: shell
 
-    git clone --recursive https://github.com/pcubillos/pyratbay
+    git clone https://github.com/pcubillos/pyratbay
     cd pyratbay
-    python setup.py develop
+    pip install -e .
 
 
+``Pyrat Bay`` (version 2.0+) has been extensively tested to work on
+Unix/Linux and OS X machines and is available for Python 3.9+.
 
 ---------------------------------------------------------------------
 
@@ -122,39 +88,34 @@ Alternatively (e.g., for developers), clone the repository to your local machine
 Quick Example
 -------------
 
-The following script quickly you calculate a water transmission
-spectrum between 0.5 and 5.5 um.  These instructions are meant to be
-executed from a Shell terminal.  After you installed the package,
-create a working directory to place the files and execute the
-programs, e.g.:
+The following command-line scripts show how to calculate transmission
+and eclipse spectra for an exoplanet atmosphere between 0.4 and 8.0
+um.  First, create a directory to place input and output files, e.g.:
 
 .. code-block:: shell
 
    mkdir run_demo
    cd run_demo
 
-Download the water line-transition database from the HITRAN server and unzip it:
+Download the H2O line-list database from the HITRAN server and unzip it:
 
 .. code-block:: shell
 
-   # Using wget:
+   # Download HITRAN H2O line list
    wget https://www.cfa.harvard.edu/HITRAN/HITRAN2012/HITRAN2012/By-Molecule/Compressed-files/01_hit12.zip
-   # Or alternatively: curl https://www.cfa.harvard.edu/HITRAN/HITRAN2012/HITRAN2012/By-Molecule/Compressed-files/01_hit12.zip -o 01_hit12.zip
    unzip 01_hit12.zip
 
 
-Copy the input and configuration files for the demo from the `examples
-folder
-<https://github.com/pcubillos/pyratbay/tree/master/examples/demo>`_ to
-your working directory.  For example, use the following shell commands:
+Copy the ``Pyrat Bay`` configuration files from the `examples folder
+<https://github.com/pcubillos/pyratbay/tree/ver2.0/examples/>`_ to
+your directory.  For example, use the following shell commands:
 
 .. code-block:: shell
 
-    demo_path=https://raw.githubusercontent.com/pcubillos/pyratbay/master/examples/demo
-    wget $demo_path/demo_spectrum-emission.cfg
-    wget $demo_path/demo_spectrum-transmission.cfg
-    wget $demo_path/demo_tli-hitran.cfg
-    wget $demo_path/uniform.atm
+    demo=https://github.com/pcubillos/pyratbay/tree/ver2.0/examples/
+    wget $demo/tutorial_tli_hitran_H2O.cfg
+    wget $demo/tutorial_spectrum_emission.cfg
+    wget $demo/tutorial_spectrum_transmission.cfg
 
 
 Execute these commands from the shell to create a
@@ -164,16 +125,15 @@ transmission and emission spectra:
 .. code-block:: shell
 
    # Format line-by-line opacity:
-   pbay -c demo_tli-hitran.cfg
+   pbay -c tutorial_tli_hitran_H2O.cfg
 
    # Compute transmission and emission spectra:
-   pbay -c demo_spectrum-transmission.cfg
-   pbay -c demo_spectrum-emission.cfg
+   pbay -c tutorial_spectrum_transmission.cfg
+   pbay -c tutorial_spectrum_eclipse.cfg
 
-.. Outputs
-   ^^^^^^^
 
-------------------------------------------------------------------------
+Outputs
+^^^^^^^
 
 That's it, now let's see the results.  The screen outputs and any
 warnings raised are saved into log files.  The output spectrum is
@@ -183,44 +143,52 @@ interactive mode, I suggest starting the session with ``ipython
 
 .. code-block:: python
 
+  import pyratbay as pb
+  import pyratbay.constants as pc
+  import pyratbay.spectrum as ps
+  import pyratbay.io as io
   import matplotlib
-  from scipy.ndimage.filters import gaussian_filter1d as gaussf
   import matplotlib.pyplot as plt
   plt.ion()
 
-  import pyratbay as pb
-  import pyratbay.io as io
 
-  wl, transmission = io.read_spectrum("./transmission_spectrum_demo.dat", wn=False)
-  wl, emission     = io.read_spectrum("./emission_spectrum_demo.dat", wn=False)
+  wl, transmission = io.read_spectrum("./transmission_spectrum_tutorial.dat", wn=False)
+  wl, eclipse = io.read_spectrum("./eclipse_spectrum_tutorial.dat", wn=False)
 
-  plt.figure(0, figsize=(7,5))
+  bin_wl = ps.constant_resolution_spectrum(0.4, 8.0, resolution=200)
+  bin_transit = ps.bin_spectrum(bin_wl, wl, transmission)
+  bin_eclipse = ps.bin_spectrum(bin_wl, wl, eclipse)
+
+  fig = plt.figure(0)
   plt.clf()
-  plt.subplots_adjust(0.14, 0.1, 0.95, 0.95, hspace=0.15)
+  fig.set_size_inches(7,5)
+  plt.subplots_adjust(0.12, 0.1, 0.98, 0.95, hspace=0.15)
   ax = plt.subplot(211)
-  plt.plot(wl, 100*transmission, "b", label="pyrat transmission model", lw=1.0)
-  plt.plot(wl, gaussf(100*transmission, sigma=5.0), "orange", lw=1.25)
+  plt.plot(wl, transmission/pc.percent, color="royalblue", label="transmission model", lw=1.0)
+  plt.plot(bin_wl, bin_transit/pc.percent, "salmon", lw=1.5)
   plt.xscale('log')
-  plt.ylabel(r"$(R_{\rm p}/R_{\rm s})^2}$  (%)")
+  plt.ylabel('Transit depth (%)')
   ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
-  ax.set_xticks([0.5, 0.7, 1.0, 2.0, 3.0, 4.0, 5.0])
-  plt.xlim(0.5, 5.5)
-  plt.ylim(1.88, 2.15)
+  ax.set_xticks([0.5, 0.7, 1.0, 2.0, 3.0, 4.0, 6.0])
+  ax.tick_params(which='both', direction='in')
+  plt.xlim(0.4, 8.0)
+  plt.ylim(1.88, 2.17)
   plt.legend(loc="upper left")
 
   ax = plt.subplot(212)
-  plt.plot(wl, emission, "b", label="pyrat emission model", lw=1.0)
-  plt.plot(wl, gaussf(emission, sigma=5.0), "orange", lw=1.25)
+  plt.plot(wl, eclipse/pc.ppm, "royalblue", label="eclipse model", lw=1.0)
+  plt.plot(bin_wl, bin_eclipse/pc.ppm, "salmon", lw=1.5)
   plt.xscale('log')
   plt.xlabel(r"Wavelength  (um)")
-  plt.ylabel(r"$F_{\rm planet}$ (erg s$^{-1}$ cm$^{-2}$ cm)")
+  plt.ylabel(r"$F_{\rm p}/F_{\rm s}$ (ppm)")
   ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
-  ax.set_xticks([0.5, 0.7, 1.0, 2.0, 3.0, 4.0, 5.0])
-  plt.ylim(0, 60000)
-  plt.xlim(0.5, 5.5)
+  ax.set_xticks([0.5, 0.7, 1.0, 2.0, 3.0, 4.0, 6.0])
+  ax.tick_params(which='both', direction='in')
+  plt.xlim(0.4, 8.0)
+  plt.ylim(0, 3200)
   plt.legend(loc="upper left")
   plt.draw()
-  plt.savefig("pyrat_spectrum_demo.pdf")
+  plt.savefig("pyrat_spectrum_demo.png", dpi=300)
 
 The output figure should look like this:
 
@@ -228,9 +196,10 @@ The output figure should look like this:
    :width: 70%
    :align: center
 
+---------------------------------------------------------------------
 
-Command-line Run
-----------------
+Command-line runs
+-----------------
 
 As shown above, ``Pyrat Bay`` enables a command-line entry point to
 execute any of the runs listed above:
@@ -251,16 +220,16 @@ version, re-format files). To display these options, run:
     pbay -h
 
 
-Interactive Run
----------------
+Interactive runs
+----------------
 
-The same process can be executed from the Python Interpreter, after
-importing the ``Pyrat Bay`` package:
+The same process can be executed from the Python Interpreter or in a
+Jupyter Notebook:
 
 .. code-block:: python
 
     import pyratbay as pb
-    pyrat = pb.run('demo_spectrum-transmission.cfg')
+    pyrat = pb.run('tutorial_spectrum_transmission.cfg')
     ax = pyrat.plot_spectrum()
 
 The output vary depending on the selected run mode.  Additional low-

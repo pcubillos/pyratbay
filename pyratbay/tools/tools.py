@@ -1,16 +1,20 @@
-# Copyright (c) 2021 Patricio Cubillos
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+# Copyright (c) 2021-2025 Cubillos & Blecic
+# Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
     'log_error',
     'cd',
     'tmp_reset',
+    'eta',
+    'resolve_theme',
     'binsearch',
     'divisors',
     'unpack',
     'u',
     'get_param',
+    'is_number',
     'ifirst', 'ilast',
+    'mkdir',
     'isfile',
     'file_exists',
     'path',
@@ -18,9 +22,10 @@ __all__ = [
     'Timer',
     'get_exomol_mol',
     'cia_hitran', 'cia_borysow',
+    'interpolate_opacity',
+    'none_div',
     'radius_to_depth',
     'depth_to_radius',
-    'ignore_system_exit',
 ]
 
 
@@ -35,10 +40,17 @@ import itertools
 import functools
 from collections.abc import Iterable
 from contextlib import contextmanager
-import configparser
 
-import numpy as np
+from matplotlib.colors import is_color_like
 import mc3.utils as mu
+import mc3.plots as mp
+import numpy as np
+import scipy.interpolate as sip
+
+from .mpi_tools import (
+    get_mpi_rank,
+    mpi_barrier,
+)
 
 from .. import constants as pc
 from .. import io as io
@@ -55,7 +67,7 @@ def log_error(log=None, error=None):
             log = mu.Log(logname=None, verb=1, width=80)
         if error is None:
             error = str(e)
-        log.error(error, tracklev=-4)
+        log.error(error, ValueError)
 
 
 @contextmanager
@@ -115,6 +127,93 @@ def tmp_reset(obj, *attrs, **tmp_attrs):
 
     for attr, orig_val in orig_attrs.items():
         recursive_setattr(obj, attr, orig_val)
+
+
+def eta(time_seconds, n_completed, n_total, fmt='.2f'):
+    """
+    Find most appropriate units to report the remaining time
+    (seconds, minutes, hours, days)
+
+    Parameters
+    ----------
+    time_seconds: Float
+        An amount of time in seconds.
+    n_completed: Integer
+        Number of completed steps.
+    n_total: Integer
+        Total number of steps to complete.
+
+    Returns
+    -------
+    delta_time: Float
+        The time_seconds in the recalculated units.
+    """
+    delta_time = time_seconds * (n_total-n_completed) / n_completed
+    units = 'sec'
+    if delta_time < 60.0:
+        return f'{delta_time:{fmt}} {units}'
+
+    delta_time /= 60.0
+    units = 'min'
+    if delta_time < 60.0:
+        return f'{delta_time:{fmt}} {units}'
+
+    delta_time /= 60.0
+    units = 'hours'
+    if delta_time < 24.0:
+        return f'{delta_time:{fmt}} {units}'
+
+    delta_time /= 24.0
+    units = 'days'
+    return f'{delta_time:{fmt}} {units}'
+
+
+
+
+def resolve_theme(theme):
+    """
+    Resolve input Theme or color into a mc3.plots.Theme instance.
+    Makes sure that input is either None, a mc3.plots.Theme, or
+    a value that can be interpreted as a matplotlib color.
+
+    Parameters
+    ----------
+    theme: Any
+        A matplotlib color or a mc3.plots.Theme instance
+
+    Returns
+    -------
+    theme: mc3.plots.Theme instance
+        A Theme computed using the input color.
+
+    Examples
+    --------
+    >>> import pyratbay.tools as pt
+    >>> import mc3
+
+    >>> # A Theme instance is returned unmodified
+    >>> theme = pt.resolve_theme(mc3.plots.THEMES['indigo'])
+    >>> # Anything that can be interpreted as matplolib color:
+    >>> theme1 = pt.resolve_theme('red')
+    >>> theme2 = pt.resolve_theme('xkcd:green')
+    >>> theme3 = pt.resolve_theme((0,0,1))
+
+    >>> # If input is None, return None
+    >>> theme = pt.resolve_theme(None)
+
+    >>> # Anything else will throw an error:
+    >>> theme = pt.resolve_theme('not_a_plt_color')
+    ValueError: Invalid color theme: 'not_a_plt_color'
+    """
+    if isinstance(theme, mp.Theme) or theme is None:
+        pass
+    elif isinstance(theme, str) and theme in mp.THEMES:
+        theme = mp.THEMES[theme]
+    elif is_color_like(theme):
+        theme = mp.Theme(theme)
+    else:
+        raise ValueError(f"Invalid color theme: '{theme}'")
+    return theme
 
 
 def binsearch(tli, wnumber, rec0, nrec, upper=True):
@@ -385,6 +484,36 @@ def get_param(param, units='none', gt=None, ge=None):
     return value
 
 
+def is_number(value):
+    r"""
+    Check whether a string value can be parsed as a number.
+
+    Examples
+    --------
+    >>> import pyratbay.tools as pt
+    >>> # These return True
+    >>> pt.is_number('1')
+    >>> pt.is_number('1.0')
+    >>> pt.is_number('-3.14')
+    >>> pt.is_number('+3.14')
+    >>> pt.is_number('1.0e+02')
+    >>> pt.is_number('inf')
+    >>> pt.is_number('nan')
+
+    >>> # These return False
+    >>> pt.is_number('1.0-3.14')
+    >>> pt.is_number('10abcde')
+    >>> pt.is_number('1.0e')
+    >>> pt.is_number('true')
+    >>> pt.is_number('none')
+    """
+    try:
+        _ = float(value)
+        return True
+    except ValueError:
+        return False
+
+
 def ifirst(data, default_ret=-1):
     """
     Get the first index where data is True or 1.
@@ -451,6 +580,35 @@ def ilast(data, default_ret=-1):
     0
     """
     return _indices.ilast(np.asarray(data, int), default_ret)
+
+
+def mkdir(file_path):
+    """
+    Create a directory for given file_path if it doesn't exists.
+    Creating nested folders is not allowed.
+
+    Parameters
+    ----------
+    file_path: String
+        Path to a file.
+
+    Examples
+    --------
+    >>> import pyratbay.tools as pt
+    >>> log_file = 'NS1/ns_emission_tutorial.log'
+    >>> pt.mkdir(log_file)
+    """
+    path, filename = os.path.split(file_path)
+    # path.removeprefix() alternative (python<3.9)
+    if path.startswith('./'):
+        path = path[2:]
+
+    # Only make dirs in main process
+    rank = get_mpi_rank()
+    if rank == 0 and path !='' and not os.path.exists(path):
+        os.mkdir(path)
+    # Synchronize to ensure mkdir call has completed
+    mpi_barrier()
 
 
 def isfile(path):
@@ -654,7 +812,7 @@ class Formatted_Write(string.Formatter):
             'threshold': threshold,
             'linewidth': numpy_fmt['lw'],
             'precision': numpy_fmt['prec'],
-            }
+        }
         with np.printoptions(**fmt):
             text = super(Formatted_Write, self).format(text, *format)
 
@@ -685,13 +843,13 @@ class Timer(object):
         return delta
 
 
-def get_exomol_mol(dbfile):
+def get_exomol_mol(file):
     """
     Parse an exomol file to extract the molecule and isotope name.
 
     Parameters
     ----------
-    dbfile: String
+    file: String
         An exomol line-list file (must follow ExoMol naming convention).
 
     Returns
@@ -721,19 +879,23 @@ def get_exomol_mol(dbfile):
     ('CH4', '21111')
     ('CH4', '21112')
     """
-    atoms = os.path.split(dbfile)[1].split('_')[0].split('-')
+    atoms = os.path.split(file)[1].split('_')[0].split('-')
     elements = []
     isotope  = ''
     for atom in atoms:
         match = re.match(r"([0-9]+)([a-z]+)([0-9]*)", atom, re.I)
         N = 1 if match.group(3) == '' else int(match.group(3))
         elements += N * [match.group(2)]
-        isotope  += match.group(1)[-1:] * N
+        isotope += match.group(1)[-1:] * N
 
     composition = [list(g[1]) for g in itertools.groupby(elements)]
     molecule = ''.join([
         c[0] + str(len(c))*(len(c)>1)
-        for c in composition])
+        for c in composition
+    ])
+    # Edge case:
+    if molecule == 'OCO':
+        molecule = 'CO2'
 
     return molecule, isotope
 
@@ -841,7 +1003,7 @@ def cia_borysow(ciafile, species1, species2):
     cs = data[:,1:].T
 
     with open(ciafile) as f:
-        line = f.readline()
+        _ = f.readline()
         temp = f.readline().split()[1:]
     temp = [float(t.replace('K','')) for t in temp]
 
@@ -859,6 +1021,99 @@ def cia_borysow(ciafile, species1, species2):
         f'# This file contains the reformated {pair} CIA data from:\n'
         f'# http://www.astro.ku.dk/~aborysow/programs/{file_name}\n\n')
     io.write_cs(csfile, cs, species, temp, wn, header)
+
+
+def interpolate_opacity(
+        cs_file, temperature=None, pressure=None, wn_mask=None, wn_thinning=1,
+    ):
+    """
+    Interpolate the cross-section data from an opacity file over a
+    desired temperature and pressure array.
+
+    Parameters
+    ----------
+    cs_file: String
+        Path to a cross-section file.
+    temperature: 1D float array
+        The desired temperature array in K.
+        If this is the same as the tabulated temperatures, do not interpolate.
+    pressure: 1D float array
+        The desired pressure profile in bars.
+        If this is the same as the tabulated pressure, do not interpolate.
+    wn_mask: 1D bool array
+        A mask of wavelength points to take.
+    wn_thinning: Integer
+        Thinning factor to take every n-th value of the wavenumber array
+
+    Returns
+    -------
+    interp_cs: 4D float array
+        The interpolated cross-section array.
+    """
+    _, temp, press, wn = io.read_opacity(cs_file, extract='arrays')
+    logp_table = np.log(press)
+    if wn_mask is None:
+        wn_mask = np.ones(len(wn), bool)
+
+    # If the pressure is the same as in the table, no need to interpolate:
+    resample_pressure = (
+        pressure is not None and
+        (
+            len(press) != len(pressure) or
+            np.any(np.abs(1.0-press/pressure) > 0.01)
+        )
+    )
+    resample_temperature = (
+        temperature is not None and
+        (
+            len(temp) != len(temperature) or
+            np.any(np.abs(1.0-temp/temperature) > 0.01)
+        )
+    )
+
+    cross_section = io.read_opacity(cs_file, extract='opacity')[:,:,wn_mask]
+    cross_section = cross_section[:,:,::wn_thinning]
+
+    if not resample_pressure and not resample_temperature:
+        return cross_section
+
+    # Work in log_opacity, avoid infinities by capping at 1e-100:
+    log_cs = np.log(cross_section)
+    log_cs[~np.isfinite(log_cs)] = -230.0
+
+    if resample_pressure:
+        logp = np.log(pressure)
+        cs_extrap = log_cs[:,0], log_cs[:,-1]
+        cs_interp = sip.interp1d(
+            logp_table, log_cs,
+            axis=1,
+            kind='slinear',
+            bounds_error=False,
+            fill_value=cs_extrap,
+        )
+        log_cs = cs_interp(logp)
+
+    if resample_temperature:
+        cs_extrap = log_cs[0], log_cs[-1]
+        cs_interp = sip.interp1d(
+            temp, log_cs,
+            axis=0,
+            kind='slinear',
+            bounds_error=False,
+            fill_value=cs_extrap,
+        )
+        log_cs = cs_interp(temperature)
+
+    return np.exp(log_cs)
+
+
+def none_div(a, b):
+    """
+    Non-breaking division when values are None.
+    """
+    if a is None or b is None:
+        return None
+    return a/b
 
 
 def radius_to_depth(rprs, rprs_err):
@@ -958,15 +1213,3 @@ def depth_to_radius(depth, depth_err):
     rprs = np.sqrt(depth)
     rprs_err = 0.5 * depth_err / rprs
     return rprs, rprs_err
-
-
-def ignore_system_exit(func):
-    """Decorator to ignore SystemExit exceptions."""
-    @functools.wraps(func)
-    def new_func(*args, **kwargs):
-        try:
-            return func(*args, **kwargs)
-        except SystemExit:
-            return None
-    return new_func
-

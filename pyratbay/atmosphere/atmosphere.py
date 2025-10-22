@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Patricio Cubillos
+# Copyright (c) 2021-2025 Cubillos & Blecic
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -6,10 +6,9 @@ __all__ = [
     'temperature',
     'chemistry',
     'uniform',
-    'abundance',
     'hydro_g',
     'hydro_m',
-    'rhill',
+    'hill_radius',
     'stoich',
     'mean_weight',
     'ideal_gas_density',
@@ -17,8 +16,6 @@ __all__ = [
     'transit_path',
     'temperature_posterior',
 ]
-
-import warnings
 
 import numpy as np
 import scipy.integrate as si
@@ -56,7 +53,7 @@ def pressure(ptop, pbottom, nlayers, units="bar", log=None, verb=0):
     Returns
     -------
     press: 1D float ndarray
-       The pressure profile (in barye units).
+       The pressure profile (in bars).
 
     Examples
     --------
@@ -66,10 +63,10 @@ def pressure(ptop, pbottom, nlayers, units="bar", log=None, verb=0):
     >>> nlayers = 9
     >>> # These are all equivalent:
     >>> p1 = pa.pressure(ptop=1e-6, pbottom=1e2, nlayers=nlayers)
-    >>> p2 = pa.pressure(1e-6, 1e2, nlayers, 'bar')
+    >>> p2 = pa.pressure(1e-6, 1e2, nlayers, units='bar')
     >>> p3 = pa.pressure('1e-6 bar', '1e2 bar', nlayers)
-    >>> p4 = pa.pressure(1e-6*pc.bar, 1e2*pc.bar, nlayers, 'barye')
-    >>> print(p1/pc.bar)
+    >>> p4 = pa.pressure(1e-6*pc.bar, 1e2*pc.bar, nlayers, units='barye')
+    >>> print(p1)
     [1.e-06 1.e-05 1.e-04 1.e-03 1.e-02 1.e-01 1.e+00 1.e+01 1.e+02]
     """
     if log is None:
@@ -78,20 +75,20 @@ def pressure(ptop, pbottom, nlayers, units="bar", log=None, verb=0):
     ptop = pt.get_param(ptop, units, gt=0.0)
     pbottom = pt.get_param(pbottom, units, gt=0.0)
 
-    ptop_txt = ptop/pt.u(units)
-    pbot_txt = pbottom/pt.u(units)
+    ptop_bar = ptop/pc.bar
+    pbottom_bar = pbottom/pc.bar
 
     if ptop >= pbottom:
         log.error(
-            f'Bottom-layer pressure ({pbot_txt:.2e} {units}) must be '
-            f'higher than the top-layer pressure ({ptop_txt:.2e} {units}).'
+            f'Bottom-layer pressure ({pbottom_bar:.2e} bar) must be '
+            f'higher than the top-layer pressure ({ptop_bar:.2e} bar).'
         )
 
-    # Create pressure array in barye (CGS) units:
-    press = np.logspace(np.log10(ptop), np.log10(pbottom), nlayers)
+    # Create pressure array in bars:
+    press = np.logspace(np.log10(ptop_bar), np.log10(pbottom_bar), nlayers)
     log.head(
         f'Creating {nlayers}-layer atmospheric model between '
-        f'{pbot_txt:.1e} and {ptop_txt:.1e} {units}.'
+        f'{pbottom_bar:.1e} and {ptop_bar:.1e} {units}.'
     )
     return press
 
@@ -105,7 +102,7 @@ def temperature(tmodel, pressure=None, nlayers=None, log=None, params=None):
     tmodel: String
         Name of the temperature model.
     pressure: 1D float ndarray
-        Atmospheric pressure profile in barye units.
+        Atmospheric pressure profile in bars.
     nlayers: Integer
         Number of pressure layers.
     log: Log object
@@ -128,13 +125,13 @@ def temperature(tmodel, pressure=None, nlayers=None, log=None, params=None):
     >>> import pyratbay.atmosphere as pa
 
     >>> nlayers = 11
+    >>> pressure = pa.pressure(1e-8, 1e2, nlayers, units="bar")
     >>> # Isothermal profile:
-    >>> temp_iso = pa.temperature("isothermal", params=1500.0, nlayers=nlayers)
+    >>> temp_iso = pa.temperature("isothermal", pressure, params=1500.0)
     >>> print(temp_iso)
     [1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500.]
 
-    >>> # Three-channel Eddington-approximation profile:
-    >>> pressure = pa.pressure(1e-8, 1e2, nlayers, "bar")
+    >>> # Guillot (2010) temperature profile:
     >>> params = np.array([-4.84, -0.8, -0.8, 0.5, 1200.0, 100.0])
     >>> temp = pa.temperature('guillot', pressure, params=params)
     >>> print(temp)
@@ -167,48 +164,31 @@ def temperature(tmodel, pressure=None, nlayers=None, log=None, params=None):
         return temperature
 
 
-def uniform(
-        pressure, temperature, species, abundances, punits="bar",
-        log=None, atmfile=None,
-    ):
+def uniform(abundances, nlayers):
     """
     Generate an atmospheric file with uniform abundances.
     Save it into atmfile.
 
     Parameters
     ----------
-    pressure: 1D float ndarray
-        Monotonously decreasing pressure profile (in punits).
-    temperature: 1D float ndarray
-        Temperature profile for pressure layers (in Kelvin).
-    species: 1D string ndarray
-        List of atmospheric species.
     abundances: 1D float ndarray
         The species mole mixing ratio.
-    punits:  String
-       Pressure units.
-    log: Log object
-        Screen-output log handler.
-    atmfile: String
-        If not None, filename to save atmospheric model.
+    nlayers: Integer
+       Number of pressure layers.
 
     Returns
     -------
-    qprofiles: 2D Float ndarray
+    vmr: 2D Float ndarray
         Abundance profiles of shape [nlayers,nspecies]
 
     Examples
     --------
     >>> import pyratbay.atmosphere as pa
     >>> nlayers = 11
-    >>> punits = 'bar'
-    >>> pressure = pa.pressure(1e-8, 1e2, nlayers, punits)
-    >>> tmodel = pa.tmodels.Isothermal(nlayers)
-    >>> species    = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
+    >>> species = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
     >>> abundances = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
-    >>> qprofiles = pa.uniform(pressure, tmodel(1500.0), species,
-    >>>     abundances=abundances, punits=punits)
-    >>> print(qprofiles)
+    >>> vmr = pa.uniform(abundances, nlayers)
+    >>> print(vmr)
     [[8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]
      [8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]
      [8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]
@@ -221,36 +201,11 @@ def uniform(
      [8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]
      [8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]]
     """
-    if log is None:
-        log = mu.Log()
-
-    nlayers = len(pressure)
-    # Safety checks:
-    if len(temperature) != nlayers:
-        log.error(
-            f"Pressure array length ({nlayers}) and temperature array "
-            f"length ({len(temperature)}) don't match."
-        )
-    if len(species) != len(abundances):
-        log.error(
-            f"Species array length ({len(species)}) and abundances "
-            f"array length ({len(abundances)}) don't match."
-        )
-
     # Expand abundances to 2D array:
-    qprofiles = np.tile(abundances, (nlayers,1))
-
-    if atmfile is not None:
-        header = (
-            "# This is an atmospheric file with pressure, temperature,\n"
-            "# and uniform mole mixing ratio profiles.\n\n"
-        )
-        io.write_atm(
-            atmfile, pressure, temperature, species, qprofiles,
-            punits=punits, header=header,
-        )
-
-    return qprofiles
+    if nlayers < 1:
+        raise ValueError('The number of layers has to be larger than zero')
+    vmr = np.tile(abundances, (nlayers,1))
+    return vmr
 
 
 def chemistry(
@@ -267,9 +222,9 @@ def chemistry(
     Parameters
     ----------
     chem_model: String
-        Name of chemistry model.
+        Name of chemistry model, select from: 'uniform' or 'tea'
     pressure: 1D float ndarray
-        Atmospheric pressure profile (barye).
+        Atmospheric pressure profile (bars).
     temperature: 1D float ndarray
         Atmospheric temperature profile (Kelvin).
     species: 1D string list
@@ -305,8 +260,14 @@ def chemistry(
 
     Returns
     -------
-    model: Callable
+    chem_network: Callable
         The atmospheric chemistry-network model.
+    species: 1D string array
+        Output species, 'tea' species might differ from input species
+        if there is no thermochemical data for a given one (the species
+        is then removed)
+    vmr: 2D float array
+        Output volume mixing ratios of shape [nlayers, nspecies]
 
     Example
     -------
@@ -321,23 +282,22 @@ def chemistry(
     >>> species = 'H2O CH4 CO CO2 NH3 C2H2 C2H4 HCN N2 H2 H He H+ e-'.split()
     >>> # Equilibrium abundances model:
     >>> chem_model = 'tea'
-    >>> chem_network = pa.chemistry(
-    >>>     chem_model, pressure, temperature, species,)
+    >>> network, out_species, vmr_tea = pa.chemistry(chem_model, pressure, temperature, species)
 
-    >>> q_uniform = np.array([
+    >>> abundances = np.array([
     >>>     5e-4, 3e-5, 2e-4, 1e-8,  1e-6, 1e-14, 1e-13, 5e-10,
     >>>     1e-4, 0.85, 5e-3, 0.14,  3e-23, 1e-23])
     >>> chem_model = 'uniform'
-    >>> chem_network_unif = pa.chemistry(
-    >>>     chem_model, pressure, temperature, species, q_uniform=q_uniform)
+    >>> network, out_species, vmr_uni = pa.chemistry(
+    >>>     chem_model, pressure, temperature, species, q_uniform=abundances)
 
     >>> # Plot the results:
     >>> ax1 = pp.abundance(
-    >>>     chem_network.vmr, pressure, chem_network.species,
+    >>>     vmr_tea, pressure, species,
     >>>     colors='default', xlim=[1e-30, 3.0])
 
     >>> ax2 = pp.abundance(
-    >>>     chem_network_unif.vmr, pressure, chem_network_unif.species,
+    >>>     vmr_uni, pressure, species,
     >>>     colors='default', xlim=[1e-30, 3.0], fignum=506)
     """
     if solar_file is None:
@@ -345,9 +305,17 @@ def chemistry(
     if log is None:
         log = mu.Log(verb=verb)
 
+    # Safety first
+    nlayers = len(pressure)
+    if len(temperature) != nlayers:
+        log.error(
+            f"pressure ({nlayers}) and temperature array "
+            f"lengths ({len(temperature)}) don't match"
+        )
+
     log.head("\nCompute chemical abundances.")
     chem_network = cat.Network(
-        pressure/pc.bar, temperature, species,
+        pressure, temperature, species,
         metallicity=metallicity,
         e_abundances=e_abundances,
         e_scale=e_scale,
@@ -356,154 +324,27 @@ def chemistry(
     )
 
     if chem_model == 'uniform':
-        abundances = [
-            q_uniform[list(species).index(spec)]
-            for spec in chem_network.species
-        ]
-        chem_network.vmr = uniform(
-            pressure, temperature, chem_network.species, abundances=abundances)
+        if len(species) != len(q_uniform):
+            log.error(
+                f"Species ({len(species)}) and q_uniform "
+                f"array lengths ({len(q_uniform)}) don't match"
+            )
+        vmr = chem_network.vmr = uniform(q_uniform, nlayers)
+
     elif chem_model == 'tea':
         chem_network.thermochemical_equilibrium()
+        species = chem_network.species
+        vmr = np.copy(chem_network.vmr)
 
     if atmfile is not None:
         header = "# TEA atmospheric file\n\n"
         io.write_atm(
             atmfile, pressure, temperature,
             chem_network.species, chem_network.vmr,
-            punits=punits, header=header)
-
-    return chem_network
-
-
-def abundance(
-        pressure, temperature, species, elements=None,
-        quniform=None, atmfile=None, punits='bar',
-        metallicity=0.0, e_abundances={}, e_scale={}, e_ratio={},
-        solar_file=None, log=None, verb=1,
-        # To be deprecated:
-        ncpu=None, xsolar=None, escale=None,
-    ):
-    """
-    Compute atmospheric abundaces for given pressure and
-    temperature profiles with either uniform abundances or TEA.
-
-    Parameters
-    ----------
-    pressure: 1D float ndarray
-        Atmospheric pressure profile (barye).
-    temperature: 1D float ndarray
-        Atmospheric temperature profile (Kelvin).
-    species: 1D string list
-        Output atmospheric composition.
-    elements: 1D strings list
-        Input elemental composition (default to minimum list of elements
-        required to form species).
-    quniform: 1D float ndarray
-        If not None, the output species abundances (isobaric).
-    atmfile: String
-        If not None, output file where to save the atmospheric model.
-    punits: String
-        Output pressure units.
-    metallicity: Float
-        Metallicity enhancement factor in dex units relative to solar.
-    e_abundances: Dictionary
-        Custom elemental abundances.
-        The dict contains the name of the element and their custom
-        abundance in dex units relative to H=12.0.
-        These values override metallicity.
-    e_scale: Dict
-        Scaling abundance factor for specified atoms by the respective
-        values (in dex units, in addition to metallicity scaling).
-        E.g. (3x solar): e_scale = {'C': np.log10(3.0)}
-    solar_file: String
-        Input solar elemental abundances file (default Asplund et al. 2021).
-    log: Log object
-        Screen-output log handler.
-    verb: Integer
-        Verbosity level.
-
-    ncpu: Integer [DEPRECATED]
-        Number of parallel CPUs to use in TEA calculation.
-    xsolar: Float [DEPRECATED]
-        Metallicity enhancement factor.  Deprecated, use metallicity instead.
-    escale: Dict [DEPRECATED]
-        Multiplication factor for specified atoms (dict's keys)
-        by the respective values (on top of the xsolar scaling).
-        Deprecated, use e_scale instead.
-
-    Returns
-    -------
-    vmr: 2D float ndarray
-       Atmospheric volume mixing fraction abundances of shape
-       [nlayers, nspecies].
-
-    Example
-    -------
-    >>> import pyratbay.atmosphere as pa
-    >>> import pyratbay.constants as pc
-
-    >>> nlayers = 100
-    >>> press = np.logspace(-8, 3, nlayers) * pc.bar
-    >>> temp  = np.tile(900.0, nlayers)
-    >>> species = 'H2O CH4 CO CO2 NH3 C2H2 C2H4 HCN N2 H2 H He'.split()
-    >>> # Thermochemical equilibrium abundances for requested species:
-    >>> vmr = pa.abundance(press, temp, species)
-    """
-    if solar_file is None:
-        solar_file = 'asplund_2021'
-    if log is None:
-        log = mu.Log(verb=verb)
-
-    # Uniform-abundances profile:
-    if quniform is not None:
-        log.head("\nCompute uniform-abundances profile.")
-        vmr = uniform(
-            pressure, temperature, species, quniform, punits, log, atmfile)
-        return vmr
-
-    # Deprecated arguments:
-    if ncpu is not None:
-        warning_msg = (
-            "The 'ncpu' argument is deprecated and no longer has any "
-            "effect, it will be removed in the near future"
-        )
-        warnings.warn(warning_msg, category=DeprecationWarning)
-    if not e_scale and escale is not None:
-        e_scale = {key: np.log10(val) for key,val in escale.items()}
-        warning_msg = (
-            "The 'escale' argument is deprecated and will be removed in "
-            "the near future, use 'e_scale' instead"
-        )
-        warnings.warn(warning_msg, category=DeprecationWarning)
-    if xsolar is not None:
-        metallicity = np.log10(xsolar)
-        warning_msg = (
-            "The 'xsolar' argument is deprecated and will be removed in "
-            "the near future, use 'metallicity' instead"
-        )
-        warnings.warn(warning_msg, category=DeprecationWarning)
-
-    # TEA abundances:
-    log.head("\nCompute TEA thermochemical-equilibrium abundances profile.")
-    chem_network = chemistry(
-        'tea',
-        pressure, temperature, species,
-        metallicity=metallicity,
-        e_abundances=e_abundances,
-        e_scale=e_scale,
-        e_ratio=e_ratio,
-        solar_file=solar_file,
-        log=log,
-        verb=verb,
-    )
-    vmr = chem_network.vmr
-    if atmfile is not None:
-        header = "# TEA atmospheric file\n\n"
-        io.write_atm(
-            atmfile, pressure, temperature, chem_network.species, vmr,
             punits=punits, header=header,
         )
-    return vmr
+
+    return chem_network, np.array(species), vmr
 
 
 def hydro_g(pressure, temperature, mu, g, p0=None, r0=None):
@@ -514,7 +355,7 @@ def hydro_g(pressure, temperature, mu, g, p0=None, r0=None):
     Parameters
     ----------
     pressure: 1D float ndarray
-        Atmospheric pressure for each layer (in barye).
+        Atmospheric pressure for each layer (in bar).
     temperature: 1D float ndarray
         Atmospheric temperature for each layer (in K).
     mu: 1D float ndarray
@@ -522,7 +363,7 @@ def hydro_g(pressure, temperature, mu, g, p0=None, r0=None):
     g: Float
         Atmospheric gravity (in cm s-2).
     p0: Float
-        Reference pressure level (in barye) where radius(p0) = r0.
+        Reference pressure level (in bar) where radius(p0) = r0.
     r0: Float
         Reference radius level (in cm) corresponding to p0.
 
@@ -542,11 +383,11 @@ def hydro_g(pressure, temperature, mu, g, p0=None, r0=None):
     >>> import pyratbay.constants as pc
     >>> nlayers = 11
     >>> pressure = pa.pressure(1e-8, 1e2, nlayers, units='bar')
-    >>> temperature = pa.tmodels.Isothermal(nlayers)(1500.0)
+    >>> temperature = pa.tmodels.Isothermal(pressure)(1500.0)
     >>> mu = np.tile(2.3, nlayers)
     >>> g = pc.G * pc.mjup / pc.rjup**2
     >>> r0 = 1.0 * pc.rjup
-    >>> p0 = 1.0 * pc.bar
+    >>> p0 = 1.0  # bar
     >>> # Radius profile in Jupiter radii:
     >>> radius = pa.hydro_g(pressure, temperature, mu, g, p0, r0) / pc.rjup
     >>> print(radius)
@@ -554,7 +395,10 @@ def hydro_g(pressure, temperature, mu, g, p0=None, r0=None):
      1.01409182 1.00704591 1.         0.99295409 0.98590818]
     """
     # Apply the HE equation:
-    radius = si.cumtrapz(-pc.k*sc.N_A*temperature / (mu*g), np.log(pressure))
+    radius = si.cumulative_trapezoid(
+        -pc.k*sc.N_A*temperature / (mu*g),
+        np.log(pressure)
+    )
     radius = np.concatenate(([0.0], radius))
 
     # Set absolute radii values if p0 and r0 are provided:
@@ -579,7 +423,7 @@ def hydro_m(pressure, temperature, mu, mass, p0, r0):
     Parameters
     ----------
     pressure: 1D float ndarray
-        Atmospheric pressure for each layer (in barye).
+        Atmospheric pressure for each layer (in bar).
     temperature: 1D float ndarray
         Atmospheric temperature for each layer (in K).
     mu: 1D float ndarray
@@ -587,7 +431,7 @@ def hydro_m(pressure, temperature, mu, mass, p0, r0):
     mass: Float
         Object's mass (in g).
     p0: Float
-        Reference pressure level (in barye) where radius(p0) = r0.
+        Reference pressure level (in bar) where radius(p0) = r0.
     r0: Float
         Reference radius level (in cm) corresponding to p0.
 
@@ -609,11 +453,11 @@ def hydro_m(pressure, temperature, mu, mass, p0, r0):
 
     >>> nlayers = 11
     >>> pressure = pa.pressure(1e-8, 1e2, nlayers, units='bar')
-    >>> temperature = pa.tmodels.Isothermal(nlayers)(1500.0)
+    >>> temperature = pa.tmodels.Isothermal(pressure)(1500.0)
     >>> mu = np.tile(2.3, nlayers)
     >>> mplanet = 1.0 * pc.mjup
     >>> r0 = 1.0 * pc.rjup
-    >>> p0 = 1.0 * pc.bar
+    >>> p0 = 1.0  # bar
     >>> # Radius profile in Jupiter radii:
     >>> radius = pa.hydro_m(pressure, temperature, mu, mplanet, p0, r0)/pc.rjup
     >>> print(radius)
@@ -621,7 +465,10 @@ def hydro_m(pressure, temperature, mu, mass, p0, r0):
      1.01429324 1.00709591 1.         0.99300339 0.986104  ]
     """
     # Apply the HE equation:
-    I = si.cumtrapz((pc.k*sc.N_A*temperature)/(pc.G*mu*mass), np.log(pressure))
+    I = si.cumulative_trapezoid(
+        pc.k*sc.N_A*temperature/(pc.G*mu*mass),
+        np.log(pressure)
+    )
     I = np.concatenate(([0.0], I))
 
     # Find current radius at p0:
@@ -638,7 +485,7 @@ def hydro_m(pressure, temperature, mu, mass, p0, r0):
     return radius
 
 
-def rhill(smaxis, mplanet, mstar):
+def hill_radius(smaxis, mplanet, mstar):
     """
     Compute the Hill radius.  If any argument is None, return inf.
 
@@ -658,7 +505,7 @@ def rhill(smaxis, mplanet, mstar):
     """
     if smaxis is None or mplanet is None or mstar is None:
         return np.inf
-    rhill = smaxis * (mplanet/(3*mstar))**(1.0/3.0)
+    rhill = smaxis * (mplanet/(3.0*mstar))**(1.0/3.0)
     return rhill
 
 
@@ -781,38 +628,40 @@ def mean_weight(abundances, species=None, molfile=None, mass=None):
 
 def ideal_gas_density(abundances, pressure, temperature):
     """
-    Use the Ideal gas law to calculate number density in molecules cm-3.
+    Use the ideal gas law to calculate number density in molecules cm-3.
 
     Parameters
     ----------
-    abundances: 2D float ndarray
-        Species volume mixing fraction, of shape [nlayers,nmol].
-    pressure: 1D ndarray
-        Atmospheric pressure profile (in barye units).
-    temperature: 1D ndarray
+    abundances: 2D float array
+        Species volume mixing fraction.
+        Can have a 2D shape of [nlayers,nmol] or a 1D shape of [nlayers]
+    pressure: 1D array
+        Atmospheric pressure profile (in bars).
+    temperature: 1D array
         Atmospheric temperature profile (in kelvin).
 
     Returns
     -------
-    density: 2D float ndarray
+    density: 2D float array
         Atmospheric density in molecules cm-3.
 
     Examples
     --------
     >>> import pyratbay.atmosphere as pa
-    >>> atmfile = "uniform_test.atm"
     >>> nlayers = 11
-    >>> pressure    = pa.pressure(1e-8, 1e2, nlayers, units='bar')
+    >>> pressure = pa.pressure(1e-8, 1e2, nlayers, units='bar')
     >>> temperature = np.tile(1500.0, nlayers)
-    >>> species     = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
-    >>> abundances  = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
-    >>> qprofiles = pa.uniform(pressure, temperature, species, abundances)
-    >>> dens = pa.ideal_gas_density(qprofiles, pressure, temperature)
+    >>> species = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
+    >>> abundances = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
+    >>> vmr = pa.uniform(abundances, nlayers)
+    >>> dens = pa.ideal_gas_density(vmr, pressure, temperature)
     >>> print(dens[0])
     [4.10241993e+10 7.24297303e+09 4.82864869e+06 4.82864869e+06
      4.82864869e+02 4.82864869e+06]
     """
-    return abundances * np.expand_dims(pressure/temperature, axis=1) / pc.k
+    if np.shape(abundances) == np.shape(pressure):
+        return abundances * (pressure*pc.bar) / (temperature*pc.k)
+    return abundances*np.expand_dims(pressure/temperature,axis=1) * pc.bar/pc.k
 
 
 def equilibrium_temp(
@@ -953,24 +802,18 @@ def transit_path(radius, nskip=0):
     return path
 
 
-def temperature_posterior(posterior, tmodel, tpars, ifree, pressure):
+def temperature_posterior(posterior, tmodel):
     """
     Compute the median and inter-quantiles regions (68% and 95%)
     of a temperature profile posterior.
 
     Parameters
     ----------
-    posterior: 2D float ndarray [nsamples, nfree]
-        A posterior distribution for tmodel.
+    posterior: 2D float ndarray
+        A posterior distribution for the parameters of tmodel
+        of shape [nsamples, npars].
     tmodel: Callable
         Temperature-profile model.
-    tpars: 1D float iterable [npars]
-        Temperature-profile parameters (including fixed parameters).
-    ifree: 1D bool iterable [npars]
-        Mask of free (True) and fixed (False) parameters in tpars.
-        The number of free parameters must match nfree in posterior.
-    pressure: 1D float ndarray [nlayers]
-        The atmospheric pressure profile in barye.
 
     Returns
     -------
@@ -988,51 +831,46 @@ def temperature_posterior(posterior, tmodel, tpars, ifree, pressure):
     Examples
     --------
     >>> import pyratbay.atmosphere as pa
-    >>> import pyratbay.constants as pc
     >>> import pyratbay.plots as pp
     >>> import numpy as np
 
     >>> # Non-inverted temperature profile:
     >>> pressure = pa.pressure('1e-6 bar', '1e2 bar', nlayers=100)
     >>> tmodel = pa.tmodels.Guillot(pressure)
-    >>> tpars = np.array([-4.0, -1.0, 0.0, 0.0, 1000.0, 0.0])
-    >>> # Simulate posterior where kappa' and gamma are variable:
+
+    >>> # Simulate posterior where log_kappa' and log_gamma1 vary:
     >>> nsamples = 5000
-    >>> ifree = [True, True, False, False, False, False]
-    >>> posterior = np.array([
-    >>>     np.random.normal(tpars[0], 0.5, nsamples),
-    >>>     np.random.normal(tpars[1], 0.1, nsamples)]).T
-    >>> tpost = pa.temperature_posterior(
-    >>>     posterior, tmodel, tpars, ifree, pressure)
+    >>> posterior = np.tile([-4.0, -1.0, 0.0, 0.0, 1000.0, 0.0], (nsamples,1))
+    >>> posterior[:,0] = np.random.normal(-4.0, 0.5, nsamples)
+    >>> posterior[:,1] = np.random.normal(-1.0, 0.5, nsamples)
+
+    >>> # Compute posterior and take a look at it:
+    >>> tpost = pa.temperature_posterior(posterior, tmodel)
     >>> ax = pp.temperature(pressure, profiles=tpost[0], bounds=tpost[1:])
     """
-    nlayers = len(pressure)
-
     u, uind, uinv = np.unique(
         posterior[:,0], return_index=True, return_inverse=True,
     )
+    nlayers = len(tmodel.pressure)
     nsamples = len(u)
 
     # Evaluate posterior PT profiles:
     profiles = np.zeros((nsamples, nlayers), np.double)
-    tpars = np.array(tpars)
-    ifree = np.array(ifree)
     for i in range(nsamples):
-        tpars[ifree] = posterior[uind[i]]
-        profiles[i] = tmodel(tpars)
+        profiles[i] = tmodel(posterior[uind[i]])
 
     # Get median and inter-quantile ranges for 68% and 95% percentiles:
-    low1   = np.zeros(nlayers, np.double)
-    low2   = np.zeros(nlayers, np.double)
     median = np.zeros(nlayers, np.double)
-    high1  = np.zeros(nlayers, np.double)
-    high2  = np.zeros(nlayers, np.double)
+    low1 = np.zeros(nlayers, np.double)
+    low2 = np.zeros(nlayers, np.double)
+    high1 = np.zeros(nlayers, np.double)
+    high2 = np.zeros(nlayers, np.double)
     for i in range(nlayers):
         tpost = profiles[uinv,i]
-        low2[i]   = np.percentile(tpost,  2.275)
-        low1[i]   = np.percentile(tpost, 15.865)
         median[i] = np.percentile(tpost, 50.000)
-        high1[i]  = np.percentile(tpost, 84.135)
-        high2[i]  = np.percentile(tpost, 97.725)
+        low2[i] = np.percentile(tpost,  2.275)
+        low1[i] = np.percentile(tpost, 15.865)
+        high1[i] = np.percentile(tpost, 84.135)
+        high2[i] = np.percentile(tpost, 97.725)
     return median, low1, high1, low2, high2
 

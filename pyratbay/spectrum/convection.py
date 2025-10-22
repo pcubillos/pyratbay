@@ -1,9 +1,9 @@
-# Copyright (c) 2021 Patricio Cubillos
+# Copyright (c) 2021-2025 Cubillos & Blecic
 # Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 __all__ = [
     'convective_flux',
-    ]
+]
 
 import numpy as np
 
@@ -11,7 +11,8 @@ from .. import constants as pc
 
 
 def convective_flux(
-    pressure, temperature, cp, gravity, mu, rho, alpha=1.0, beta=1.0):
+        pressure, temperature, cp, gravity, mu, rho, alpha=1.5, beta=0.5,
+    ):
     """
     Estimate the convective flux for an atmosphere following mixing-
     length theory as described in 'Modern Astrophysics (Carrol & Ostlie).
@@ -61,7 +62,7 @@ def convective_flux(
         * cp/mu * rho * temperature
         * np.sqrt(gravity*H)
         * delta_grad**1.5
-        )
+    )
 
     return F_conv
 

@@ -1,11 +1,11 @@
-# Copyright (c) 2021 Patricio Cubillos
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+# Copyright (c) 2021-2025 Cubillos & Blecic
+# Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
     'contribution_function',
     'transmittance',
     'band_cf',
-    ]
+]
 
 import numpy as np
 
@@ -71,7 +71,7 @@ def transmittance(optdepth, ideep):
     return transmit
 
 
-def band_cf(cf, bandtrans, wn, bandidx):
+def band_cf(cf, bands_response, wn, bands_idx):
     """
     Compute band-averaged contribution functions or transmittances.
 
@@ -80,30 +80,32 @@ def band_cf(cf, bandtrans, wn, bandidx):
     cf: 2D float ndarray
         The contribution function or transmittance of
         shape [nlayers, nwave].
-    bandtrans: List of 1D ndarrays
-        List of band transmission curves.
+    bands_response: List of 1D ndarrays
+        List of band transmission response curves.
     wn: 1D float ndarray
         The wavenumber sampling (in cm-1).
-    bandidx: List of 1D ndarrays
-        List of wavenumber-index arrays for each band transmission curve.
+    bands_idx: List of 1D ndarrays
+        List of wavenumber-indices in wn sampled by bands_response.
 
     Returns
     -------
-    bandcf: 2D float ndarray
+    bands_cf: 2D float ndarray
         The band-integrated contribution functions of
         shape [nlayers, nbands].
     """
-    nfilters = len(bandtrans)
+    nfilters = len(bands_response)
     nlayers = np.shape(cf)[0]
+    bands_cf = np.zeros((nlayers, nfilters))
 
-    # Allocate arrays for filter cf:
-    bandcf = np.zeros((nlayers, nfilters))
-
-    # Number of filters
     for i in range(nfilters):
+        response = bands_response[i]
+        wn_idx = bands_idx[i]
         # Weighted CF (by filter response function):
-        wcf = cf[:,bandidx[i]] * bandtrans[i]
+        wcf = cf[:,wn_idx] * response
         # Integrated CF across bandpass at each layer:
-        bandcf[:,i] = np.trapz(wcf, wn[bandidx[i]], axis=1)
+        bands_cf[:,i] = np.trapezoid(wcf, wn[wn_idx], axis=1)
 
-    return bandcf
+    # Normalize max-CF at each band = 1:
+    bands_cf /= np.amax(bands_cf, axis=0)
+
+    return bands_cf

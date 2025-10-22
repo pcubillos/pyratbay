@@ -4,7 +4,7 @@
 
 > A Forward-modeling and retrieval code to model exoplanet atmospheres and spectra.
 
-[![Build Status](https://travis-ci.com/pcubillos/pyratbay.svg?branch=master)](https://travis-ci.com/pcubillos/pyratbay)
+[![Tests](https://github.com/pcubillos/pyratbay/actions/workflows/python-package.yml/badge.svg?branch=master)](https://github.com/pcubillos/pyratbay/actions/workflows/python-package.yml)
 [![Documentation Status](https://readthedocs.org/projects/pyratbay/badge/?version=latest)](https://pyratbay.readthedocs.io/en/latest/?badge=latest)
 [![PyPI](https://img.shields.io/pypi/v/pyratbay.svg)](https://pypi.org/project/pyratbay)
 [![Conda Version](https://img.shields.io/conda/vn/conda-forge/pyratbay.svg)](https://anaconda.org/conda-forge/pyratbay)

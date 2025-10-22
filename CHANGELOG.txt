@@ -7596,3 +7596,2037 @@ Fixed link to jupyter notebooks in docs/cookbooks.
 
 Bumped pyratbay version to 1.1.6.
 
+
+*****  Mon Oct 24 00:22:30 CEST 2022  *****
+
+Updated Physics() class in objects.py to automate planet gravity
+and mass consistency (see MassGravity descriptor object).
+Whenever one variable is edited, the other is modified accordingly
+as gplanet = G*mplanet/rplanet**2.
+This removes a lot of code in other places.
+Simplified the logic: not calculating rplanet from mass and gravity
+when missing, throw error instead if needed.
+Updated docs and tests.
+
+*****
+
+Cosmetics.
+
+
+*****  Tue Oct 25 09:59:29 CEST 2022  *****
+
+Updated docs, set up cookbooks section,
+added passbands.rst sub-section.
+
+
+*****  Fri Dec 2 13:03:26 CET 2022  *****
+
+Implemented make_atmosphere() in read_atm.py to take care
+in a single function the reading, interpolating, or computing
+of the atmospheric profiles.
+This is triggered through pyrat.set_atmosphere() in driver.py,
+which is now separated from pyrat.setup_spectrum(), which can
+enable the user to create an object only containing the
+atmospheric properties (no spectral properties).
+Implemented tests (for behavior) in test_run_atmosphere.py.
+
+This function replaces other scattered pieces of code that were
+in driver.py, makesample.py, and read_atm.py.
+
+Code is breaking, by the way, there are details to fine tune
+further ahead.
+
+*****
+
+Updated io.write_atm() to add two more digits to the radius and
+pressure.
+
+*****
+
+Change of behavior for atmfile input argument.
+Before it was used for both input and output depending on context,
+which was not always clear.
+Now there are two arguments, input_atmfile will be used only as
+input and won't be ever modified.
+The atmfile argument will be used exclusively for outputs and is
+the filename where pyratbay writes its outputs.
+
+Renamed atm.q to atm.vmr (variable is always in VMR units).
+Updates many tests and other pieces of the code to unbreak the
+execution (still there are pending breaking tests).
+
+
+*****  Mon Dec 5 10:50:25 CET 2022  *****
+
+Let the errors break the code and show python's traceback
+instead of capturing it and print 'nicely'. In hindsight, this is
+below optimal, as the user get's less information of what is breaking
+Known errors are still being captured in the logs, so, there is
+no major problems with this.
+
+This required to update mc3 to version >= 3.1.0, which actually
+implements the behavior of the Log() object.
+
+Removed tools.ignore_system_exit() decorator.
+Updated a ton of tests.
+
+*****
+
+Renamed atmosphere.rhill() function to atmosphere.hill_radius().
+
+*****
+
+Refactored partition function interpolation, generate interpolator
+functions only once, store them in the pyrat.iso.zinterp list
+for use later.
+
+
+*****  Tue Dec 13 11:06:16 CET 2022  *****
+
+Fixed indexing bug in radiative_equilibrium() function.
+
+
+*****  Mon Feb 6 12:36:02 CET 2023  *****
+
+Fixed bug in update_atm() function, require atm.chemistry value,
+and perform uniform vs tea calculations accordingly.
+In make_atmosphere() function: take input species from input file
+if provided.
+
+*****
+
+Updated mc3 requirements to 3.1.0b1.
+
+
+*****  Tue Feb 7 17:46:34 CET 2023  *****
+
+Enabled ms and lw arguments for plots.spectrum() function
+to set the marker size and line width.
+
+*****
+
+Updated names of abundance variables.
+
+
+*****  Wed Feb 8 12:08:47 CET 2023  *****
+
+Added tests for make_atmosphere() to check source of species
+from input_atmfile or trigger error when missing.
+
+Updated update_atm(): fixed bugs when computing VMRs,
+and some cosmetics.
+
+*****
+
+Outsourced calculation of atmospheric properties (T,VMR) from
+pyrat.eval() into update_atm(), which is called via pyrat.run()
+later in eval().
+Now, eval() only sets up the parameters and makes checks after
+the properties have been computed, which removed code duplication.
+
+Edited pyrat.run() to set the pyrat.spec.spectra to zeros when
+update_atm() breaks, this can later be used as a flag to reject
+runs in pyrat.eval().
+
+*****
+
+Set the log verbosity to -1 when running a retrieval.
+This will skip warning screen outputs if they occur.
+
+Removed verbose argument from pyrat.eval().
+Ideally, you want to set the log verbosity level to -1 if need
+to skip screen print outputs.
+
+
+*****  Thu Feb 9 14:11:18 CET 2023  *****
+
+Implemented H- bound-free and free-free opacity model
+as a stand-alone modeling object.
+Documented and tested.
+
+In pyrat.set_spectrum() fixed bug that was turning on ion_opacity
+even if there were no ions in the atmosphere.
+(could be a prettier fix in theory ...)
+
+Refactored molmodel, molfree, and molpars arguments to initialize
+by default as zero-length iterables instead of None.
+This fixes an error when a user launches a run with tea chemistry
+by no modeling paramters.
+
+*****
+
+Added self.name to Hydrogen_Ion_Opacity objects.
+Added get_ec() method to get extinciton coefficient at a single layer
+Updated tests.
+
+Added H- info into pyrat.get_ec() and pyrat.__str__() methods.
+
+
+*****  Fri Feb 10 10:19:58 CET 2023  *****
+
+Minor corrections in screen output of pyrat.__str__().
+
+*****
+
+Updated pyratbay version to 1.1.8b1.
+
+*****
+
+Added log_gstar argument to replace gstar (which is still usable,
+but deprecated).
+Updated docs and tests.
+
+
+*****  Thu Feb 16 14:11:31 CET 2023  *****
+
+Refactored tabulated cross section reading/computation
+for a more reasonable code.
+Only compute the cross-sections if runmode=='opacity'
+(this is a change of behavior).
+Now, if there's any input cross-section file(s), read at the beginning
+this will allow the code to set the pressure profile and wavelength
+arrays in a single function for each (and avoid some re-calculations).
+Removed ex.exttable() functon, no longer needed.
+
+Renamed ex.read_extinction() to ex.read_opacity().
+Renamed ex.calc_extinction() to ex.compute_opacity().
+Created pyrat.compute_opacity() method which outsources calculation
+into ex.compute_opacity() function.
+Added and updated tests.
+
+*****
+
+Implemented pb.spectrum.constant_resolution_spectrum() function
+that can compute a wavenumber or wavelength sampling array at
+constant resolving power.
+Documented and tested.
+
+*****
+
+Incorporated ps.constant_resolution_spectrum() into the framework.
+
+
+*****  Sat Feb 18 12:39:23 CET 2023  *****
+
+Replaced downloaded Kurucz file fp00k0odfnew.pck with a mock file
+with same format but fewer models.  There's no need to download now.
+Updated tests.
+This is a first step to remove all downloads for testing
+(and eventually get rid of travis, to be replaced with github actions)
+
+
+*****  Sun Feb 19 15:35:03 CET 2023  *****
+
+Removed a couple other HITRAN file downloads from .travis file,
+replaced with local mocked files (compressed and smaller in size).
+Updated tests.
+
+*****
+
+Removed another couple other HITEMP file downloads from .travis file,
+replaced with local mocked files (compressed and smaller in size).
+Updated tests.
+
+*****
+
+Removed some unused code from make_atmprofiles() function.
+Some more cleaning is needed to delete this unused function entirely.
+
+*****
+
+Added expected_spectrum_transmission_h_ion_test.npz file.
+
+*****
+
+Updated python-package.yml workflow to unzip tar.gz test files.
+(hopefully)
+
+*****
+
+Added 01_hit12.zip wget call into workflow.
+
+
+*****  Fri Mar 3 14:26:23 CET 2023  *****
+
+Added checks to validate chemical equilibrium variables.
+Added corresponding tests.
+
+
+*****  Mon Mar 6 10:12:56 CET 2023  *****
+
+Implemented io.write_spectra() and io.read_spectra() functions
+to work with spectra files tabulated by their effective temperatures.
+Added tstar retflag.
+When setting tstar as a retrieval parameter, interpolate from
+grid of stellar spectra (which must be a 2D array).
+A change in tstar in pyrat.eval() triggers an update in
+self.spec.starflux and self.obs.starflux (regardless of whether
+there are filters, there are no checks).
+All tests and docs are TBD.
+
+*****
+
+Fixed bug when calling pyrat.eval() with ret.itstar undefined.
+
+*****
+
+Updated test for missing retflag error screen output (add tstar).
+
+*****
+
+Fixed bug detecting outputs format of io.read_observations()
+(with without depths/errors)
+
+*****
+
+Updated pyratbay version to 1.1.9b1.
+
+
+*****  Fri Mar 31 23:32:08 CEST 2023  *****
+
+Fixed bug when getting element name of metallicity equilibrium
+parameters.
+
+*****
+
+Changed default qcap value from 1.0 to None.
+Tweaked qcapcheck() to skip calculations when qcap is None.
+
+*****
+
+PEP8ed rayleigh.py
+
+*****
+
+Updated pnames to remove blank spaces.
+Updated texnames, shorter names.
+
+*****
+
+Removed warnings file report after running pyrat.run().
+
+*****
+
+Stop calling pyrat.band_integrate() when calling plot_spectrum()
+use existing pyrat.obs.bandflux instead.
+
+*****
+
+Refactored Rayleigh() object to move initialization logic into it.
+Refactored Cloud() object to move initialization logic into it.
+Refactored Atm() object to move (some) initialization logic into it.
+
+Removed molmodel and molfree arguments. Replaced with molvars.
+Refactored qscale() function to read in molvars argument.
+
+Updated tests and docs.
+
+
+*****  Tue Apr 4 10:58:27 CEST 2023  *****
+
+Implemented retrieval_params argument which enables flagging
+custom parameters for retrieval, when called by pyrat.eval().
+This effectively replaces the 'retflag' argument, which is now
+deprecated and will be removed in the future.
+
+With this now one does not need to specify all parameters in a
+model as fitting parameters.
+
+Implemented ret.map_pars variable to map pyrat.ret.params into
+specific model params (e.g., atm.tpars, cloud.pars, etc).
+
+Only behavior change is that now it's not allowed to initialize
+models and not provide parameters.  Parameter will be taken from
+the repective params argument. If not, they will be taken from
+retrieval_params argument.  If any parameter value is left undefined
+the code will break.
+
+Fixed multiple bugs here and there.
+Updated tests.
+Updated opacity and mcmc tutorial config files.
+Added tutorial observation_file.dat to replace filters.
+
+*****
+
+Updated pnames of Guillot() and Madhu() temperature models.
+Replaced parentheses with underscores.
+
+*****
+
+Refactored pa.temperature_posterior() function to simplify usage.
+Updated docs.
+This should really be moved as a method of tmodel objects.
+
+*****
+
+Updated pnames Lecavelier() Rayleigh model.
+Replaced parentheses with underscores.
+Updated docs.
+
+*****
+
+Updated pnames for Cloud models.
+Replaced parentheses with underscores.
+Updated docs.
+
+*****
+
+Implemented io.write_observations() function.
+Currently it only works for Tophat type of bandpasses.
+Documented and tested.
+
+*****
+
+Implemented inst_offset argument to flag instrumental offsets.
+Variable names begin with 'offset_' followed by a string which
+will be matched against bandpass names.  Any instrument that
+contains the string will be affected by the offset.
+Offset values are defined by the dunits argument.
+This is work in progress, at the moment, only retrieval_params
+can set the offset values.
+
+In practice, during a pyrat.eval() call, the obs.bandflux values
+will be shifted (in the opposite direction) such that data is not
+modified (retrieval issues).
+
+No tests and no documentation has been done.
+
+*****
+
+Updated pyratbay version to 1.1.10b1.
+Updated tests.
+
+*****
+
+Updated mc3 requirements.
+
+*****
+
+Updated some tests calls (change assert equal to allclose).
+
+*****
+
+Updated numpy and scipy dependencies.
+
+*****
+
+Updated CI testing badges.
+
+*****
+
+Enabled custom units in plots.spectrum().
+There are no checks that the input units are valid.
+
+*****
+
+More colorful spectrum plots.
+
+*****
+
+Fixed mistyped version.
+
+*****
+
+Fixed bug with number of fields in retrieval_params
+when including priors.
+
+*****
+
+Updated instrumental offset parameter tex name (prettier, shorter)
+
+*****
+
+Fixed bugs with equilibrium chemistry parameter names.
+
+
+*****  Sun Apr 16 18:55:40 CEST 2023  *****
+
+Tweaked atmosphere.ideal_gas_law() function to allow 1D vmr input.
+Updated docs and tests.
+
+*****
+
+Refactored Dalgarno() and Lecavelier() models:
+Made them self suficient to compute extinction coefficients
+by moving functions from pyratbay/pyrat/rayleigh.py as methods.
+Renamed method names into more sensible names.
+Updated docs and tests.
+
+Moved Rayleigh opacity models from atmosphere module to opacity.
+
+*****
+
+Moved Rayleigh() class from pyrat/objects.py into pyrat/rayleigh.py
+Merged function from pyrat/rayleigh.py as methods of Rayleigh(),
+which makes them accessible to the user now (via pyrat.rayleigh).
+
+Removed get_model() function from rayleigh module (no longer needed).
+Updated docs (cookbooks) and tests.
+
+*****
+
+PEP8ed atmosphere/alkali/alkali.py
+
+
+*****  Tue Apr 18 12:27:06 CEST 2023  *****
+
+Refactored atmosphere/alkali/alkali.py to be self-suficient
+to compute extinction coefficients by moving functions from
+pyratbay/pyrat/alkali.py as methods.
+Renamed method names into more sensible names.
+
+*****
+
+Updated alkali_cross_section() C extension to consider case
+when the wavelength are sorted in decreasing order.
+Tests comming up.
+
+*****
+
+Moved atmosphere/alkali/alkali.py to opacity/alkali/alkali.py
+Updated alkali tests.
+
+*****
+
+Moved Alkali() interface from objects.py to pyratbay/pyrat/alkali.py
+Updated tests.
+
+*****
+
+Enabled layer argument in alkali models to compute extinction
+coefficients at a single layer.
+Updated tests.
+
+*****
+
+Added alkali models cookbook.
+
+
+*****  Fri Apr 21 22:20:17 CEST 2023  *****
+
+Added extract argument into io.read_opacity() function to specity
+what data to extract.
+Updated docs and tests.
+
+*****
+
+Refactored ex.read_opacity() to put opacity data into shared memory
+when possible and when needed (MPI runs via mpi4py).
+Refactored make_wavenumber() function to check opacity wavenumber
+array as input (when exists) without needing to process the opacity
+files already.
+Moved ex.read_opacoty() to after ms.make_wavenumber().
+
+
+*****  Mon Apr 24 11:01:47 CEST 2023  *****
+
+Tweaked 'pbay -cs hitran' call to default temp and wn steps to one
+when values are not provided.
+
+*****
+
+Added lin_interp_2D() function into _spline.c C extension
+for 1D linear interpolations into a 2D numpy array.
+Tests are TBD.
+
+*****
+
+Added CIA_Borysow_H2He_0050-7000K_0.5-031um.dat file
+which combines low- and high-temperature CIA data from Borysov
+joined at the 1000K point.
+Updated docs.
+
+*****
+
+Implemented Collision_Induced() class to model CIA opacities
+in a self-suficient object.
+Added tests and docs.
+
+*****
+
+Refactored Cross() class into CIA() class, merged with functions
+in crosssec.py, which are now methods of CIA() object.
+Now they use the opacity.Collision_Induced() as the base objects
+to model the CIA.
+Updated tests.
+Added self.name into Collision_Induced() objects.
+
+*****
+
+Minor edits in docs.
+
+
+*****  Tue Apr 25 13:43:37 CEST 2023  *****
+
+Make sure Rayleigh mol indices are set before parsing the  parameters
+
+*****
+
+Moved Atm() class and read_atm() function into Atmosphere() class
+Also merged Molecules() into Atmosphere().
+Moved rplanet, mplanet, and gplanet from Physics() into Atmosphere().
+Renamed atm.tmodel to temp_model.
+Moved pyrat.hydro to pyrat.atm.rad_model.
+Made parser routine independent of pyrat.atm module.
+
+
+*****  Thu Apr 27 17:20:50 CEST 2023  *****
+
+Made parser independent of pyrat.ret.
+
+*****
+
+Made parser independent of pyrat.phy.
+
+
+*****  Fri Apr 28 11:43:52 CEST 2023  *****
+
+Got no-spectrum error for PassBand() objects a bit more explicit.
+Updated tests.
+
+*****
+
+pyratbay/driver.py
+
+*****
+
+Moved Observation() class from objects.py into observation.py file.
+Made its initialization actually initialize stuff (moved code from
+parser, argum, and pyrat into it)
+Removed redundant obs.bandidx, obs.bandtrans, obs.starflux variables
+(they already exist in obs.filters objects).
+Updated tests.
+
+*****
+
+Refactored plots.spectrum() and pyrat.plot_spectrum()
+for a simpler interface.
+Added (emission) tests.
+
+*****
+
+Fixed band_cf() call.
+
+*****
+
+Added error verification when observation files miss a @DATA header
+in read_observations()
+
+*****
+
+Moved opacity in-bounds temperature checks out of update_atm().
+
+*****
+
+Moved none_div() into tools module.
+
+*****
+
+Moved smaxis, tint, rhill, and beta_irr from Physics() into
+Atmosphere().
+
+*****
+
+Removed read_atm.py file, moved update_atm() funtion into a
+method of Atmosphere(), renamed as calc_profiles().
+
+
+*****  Sat Apr 29 20:24:30 CEST 2023  *****
+
+Fixed bug in band_cf() function.
+
+*****
+
+Updated test mcmc config files replacing out retflags.
+
+*****
+
+Fixed bug in driver, output files were not being save in correct
+folder when config had an output with path.
+
+*****
+
+Added quick test for retrieval mcmc run.
+
+
+*****  Tue May 2 18:50:24 CEST 2023  *****
+
+Refactored Hydrogen_Ion() opacity model.
+Renamed from Hydrogen_Ion_Opacity().
+Made it independent of atmospheric species (densities must be passed
+as argument of calc_extinction_coefficient).
+Initialize with wavenumber array instead of wavelength.
+Standardized method names (just like other opacity models).
+Updated tests.
+
+*****
+
+Moved Spectrum() class from objects.py into pyrat/spectrum.py
+Merged code from makewavenumber as initializer method.
+Removed references to pyrat.spec in parser.
+
+Implemented H_Ion() interface between pyrat and Hydrogen_Ion() model.
+Updated tests.
+
+*****
+
+Added quadrature emission spectrum test.
+
+*****
+
+Cosmetics.
+
+*****
+
+Refactored Linetransition() into Line_By_Line().
+Simplified code separating tli reading from iso settings.
+Merged Isotopes() into Line_By_Line().
+Moved from objects.py into line_by_line.py.
+Merged with code from read_tli.py as initialization.
+Removed references to pyrat.lt in parser.
+Updated docs.
+
+*****
+
+Renamed pyrat.lt to pyrat.tli.
+
+
+*****  Thu May 4 10:23:52 CEST 2023  *****
+
+Refactored Voigt() class, moved from objects.py to voigt.py.
+Merged code from voigt.py as initialization method.
+Removed references to pyrat.voigt in parser.
+Updated tests.
+
+*****
+
+Cosmetics.
+
+
+*****  Sat May 6 22:12:03 CEST 2023  *****
+
+Implemented opacity.Line_Sample() class to take care of
+line-sampling from LBL opacities.
+Tested and documented.
+
+*****
+
+Implemented interp_ec_per_mol() C extension to interpolate
+line-sampling opacities separately per species.
+Changed input of interp_ec() adding one extra integer argument
+to define now starting and ending layer indices to interpolate.
+
+*****
+
+Implemented Opacity() class in pyrat/opacity.py
+as interface between Line_Sample() and pyrat object.
+The plan is to incorporate other opacity models into it.
+Removed read_opacity() from extintion.py (now Line_Sample() init
+method).
+Moved other bits out of optical_depth.py.
+Refactored pyrat.Extinction() class, actually initializing variable
+on declaration, and shifting variables into Opacity or Line_Sample().
+Might be removed in the future.
+
+Removed all references to pyrat.ex in parser() function.
+Updated tests.
+
+*****
+
+Fixed bug in Spectrum() initialization.
+Made sure self.resolution and self.wlstep defined as defaults (None).
+Fixed bug identifying sampling mode from line-sampled tables.
+
+*****
+
+Removed pyrat/h_ion.py file, incorporated H- interface into Opacity()
+Updated tests.
+
+*****
+
+Removed references to pyrat.od in parser() function.
+
+
+*****  Sun May 7 12:02:52 CEST 2023  *****
+
+Removed all remaining references to pyrat object in parser() function
+This is great! Now one can effectively call the parser before
+initializing a pyrat object(). This disentangles pt.parse() from
+pb.run() from pb.Pyrat(), and enables initializing atmosphere models
+without going through Pyrat().
+Removed pyrat.set_atmosphere() and pyrat.set_spectrum() arguments.
+
+Replace Pyrat() no_logfile argument with log.
+Still a boolean, but avoiding double negatives.
+
+Fixed issue with mute argument not muting.
+
+*****
+
+Removed pressure and molq arguments from extinction() C extension
+(redundant).
+
+*****
+
+Moved lbl extinction calculation out of optical_depth()
+into lbl.calc_extinction_coefficient().
+Still need to sort out final details.
+Moved ethresh from pyrat.ex into pyrat.lbl.
+Made lbl species not found in atmosphere an error (was warning before)
+Updated tests.
+
+
+*****  Thu May 25 13:47:36 CEST 2023  *****
+
+Incorporated lbl into pyrat.opacity list of opacity sources.
+Moved pyrat argument from lbl.ec() call to lbl.init().
+Renamed variables in lbl:
+lbl.mol_index --> lbl.iso_atm_index
+For each isotope, the idex of their precursor molecule in pyrat.atm
+lbl.mol_index
+For each lbl species, their index in pyrat.atm
+Enabled single-layer calculation in lbl.calc_extinction_coefficient()
+
+*****
+
+Updated pyratbay version to 1.1.11b1.
+
+*****
+
+Housekeeping.
+
+
+*****  Fri Jun 2 13:34:36 CEST 2023  *****
+
+Added dpi and theme arguments into plots.spectrum() function.
+Now theme manages the colors of the model and credible intervals,
+enabling the user to customize the color theme of the plot.
+
+*****
+
+Refactored plots.contribution() function,
+removed rtop and radius arguments, removed impact parameter
+axis (only plot as a function of pressure).
+
+*****
+
+Added dpi argument into plots.temperature() function.
+Some other minor adjustments.
+
+*****
+
+Added dpi argument into plots.abundance() function.
+Some other minor adjustments.
+
+*****
+
+Furhter automated color theming in plots.temperature() function.
+Now users can set any valid mc3 theme or matplotlib color.
+Set default colors from theme for profiles curves.
+
+*****
+
+Tweaked Pyrat.plot_temperature() method.
+
+*****
+
+Fixed bug in Atmosphere.calc_profiles() for equilibrium chemistry.
+
+*****
+
+Implemented tools.eta() function to get estimated remaining time.
+Documented and tested.
+
+*****
+
+Moved Retrieval() class into pyratbay/pyrat/retrieval.py file.
+Moved parts of argum.py into the Retrieval() init method.
+
+
+*****  Sat Jun 3 22:58:51 CEST 2023  *****
+
+Moved retrieval code from driver.py into a Pyrat() method.
+
+*****
+
+Added constants.samplers variable.
+
+*****
+
+Fixed bug in pyrat/spectrum.py, define spec.spectrum.
+
+*****
+
+Added f_dilution argument for (emission) flux dilution factor
+as in Taylor et al. (2020).
+Added tests and docs.
+
+
+*****  Sun Jun 18 15:18:50 CEST 2023  *****
+
+Moved Pyrat Rayleigh models from pyrat.rayleigh into pyrat.opacity.
+Moved Rayleigh initialization from argum.py to pyrat.opacity.__init__().
+Removed pyrat/rayleigh.py, replaced with code in pyrat/opacity.py
+
+Change of behavior: when a parametric model is selected, the code
+will require that the parameters are defined either via the parameter
+pars or via retrieval_parameters. Otherwise the code will break.
+
+Added pnames list into pyrat.opacity.
+Added ec_cloud variable into pyrat.opacity.
+
+Make clouds.py module to store opacity in pyrat.opacity.ec_cloud
+This file will be re-implemented.
+
+*****
+
+Moved CIA models from pyrat.cs into pyrat.opacity.
+Removed pyrat/crosssec.py, replaced with code in pyrat/opacity.py.
+
+Implemented check_species_exists() function in pyrat/opacity.py
+This will take care of checking that opacity species exist in the
+atmospheric model.
+
+
+*****  Mon Jun 19 11:00:26 CEST 2023  *****
+
+Moved alkali models from pyrat.alkali into pyrat.opacity.
+Removed pyrat/alkali.py, replaced with code in pyrat/opacity.py.
+
+*****
+
+Moved cloud models from pyrat.cl into pyrat.opacity.
+Removed Cloud class from objects.py, replaced with code in pyrat/opacity.py.
+Moved patchy variable from pyrat.clouds.fpatchy to pyrat/opacity.fpatchy.
+
+Now all opacity models are contained in pyrat.opacity.
+
+Refactored gray cloud model to be more in line with other opacity models.
+Still need to be fully sorted out, and moved from atmosphere to opacity
+module.
+
+
+*****  Wed Jun 21 16:19:24 CEST 2023  *****
+
+Got the radiative-equilibrium routine back in shape.
+
+*****
+
+Added check for repeated fitting parameter names.
+
+
+*****  Sat Jun 24 10:32:56 CEST 2023  *****
+
+Moved resolve_theme() from plots to tools module.
+Documented and tested.
+
+*****
+
+Added theme argument to parser to set a plotting color theme.
+
+*****
+
+Renamed calc_extinction_coefficient() densities argument to density
+for Collision_Induced(), Hydrogen_Ion(), Line_Sample(), and Line_By_Line()
+object.  Now all opacity models have a uniform naming convention.
+
+TBD: Update notebooks.
+
+*****
+
+Updated default color theme for plots.spectrum() function.
+Fixed bug.
+
+*****
+
+Added mstar (optional) argument to Atmosphere() init method.
+Now argum.check_spectrum() only checks, does not modify objects.
+
+*****
+
+Implemented ColorTheme() Descriptor for pyrat.Retrieval()
+to remember the default initialization theme in a 'hidden' variable.
+When redefined, the hidden variable gets updated.
+This enables the golden color theme for spectra, while defaulting other
+plots to blue theme.
+
+*****
+
+Updated mc3 requirements to version >= 3.1.3.
+
+*****
+
+Homogeneized variables of opacity models.
+Fixed bug with ccsgray cloud model.
+Fixed str tests.
+
+*****
+
+pyflakes.
+
+*****
+
+Added 'multinest' option to constants.sampler list.
+
+*****
+
+Minor edits.
+
+
+*****  Fri Jun 30 09:52:55 BST 2023  *****
+
+Check for all opacity models that the species exist in atmosphere.
+
+*****
+
+Changed name of H- model from H- bf/ff to H- bound-free/free-free.
+
+
+*****  Wed Jul 5 12:25:07 CEST 2023  *****
+
+Tweaked pt.none_div() function to consider None in both denominator
+and numerator.
+Added tests.
+
+
+*****  Thu Jul 6 10:41:56 CEST 2023  *****
+
+Updated the default nlor and ndop values from 40 to 100 and 50.
+Previous values were undersampling noticeable the line shapes
+over the atmosphere.
+
+*****
+
+Fixed bug handling wlstep argument, it was breaking whit input units
+Added tests.
+
+*****
+
+Renamed h_ion cross section methods.
+(Some more cleanup is needed).
+
+*****
+
+Implemented pt.interpolate_opacity() to enable pressure-interpolation
+of cross section files when reading.
+Documented and tested.
+
+*****
+
+Updated Voigt vextent default value from 100 to 300 HWHM.
+Fixed bugs in Voigt() print method.
+Updated tests.
+
+*****
+
+Enabled interpolating cross-section data over atmospheric pressure
+array.
+Implemented check_pressure_boundaries() function to prevent
+extrapolation to larger pressures than tabulated values.
+Extrapolation to lower pressures is allowed (since profiles are
+Doppler dominated, i.e., no longer depend on pressure).
+
+Up next: parse pressure source when initializing Atmosphere() object
+
+*****
+
+Updated pyratbay version to 1.1.12b1.
+
+
+*****  Fri Jul 7 10:02:50 CEST 2023  *****
+
+Testing github actions.
+
+
+*****  Sat Jul 8 16:45:00 CEST 2023  *****
+
+Modified atmosphere used for tests. Use 51 layers down from 81
+for faster execution.
+tests/inputs/atmosphere_uniform_test.atm
+
+Brought default vextent value back to 300.0 HWMH, in tests set to 100
+only for faster execution.
+
+*****
+
+Moved clouds module from atmosphere to opacity.
+
+
+*****  Thu Jul 13 10:39:38 CEST 2023  *****
+
+Fixed bug calculating the temperature limits before radiative eq.
+calculation.
+
+
+*****  Sun Jul 23 16:30:04 CEST 2023  *****
+
+Implemented Data() class object to handle data and uncertainties
+Currently it implements error scaling models as a multiplicative
+factor and an addition in quadrature.
+Documented and tested.
+
+
+*****  Tue Jul 25 11:48:03 CEST 2023  *****
+
+Added err_pars argument to Data() class initializer
+If not provided, default values are set such that there's no
+error scaling.
+
+*****
+
+Added uncert_scaling argument to set error scaling models
+and default values.
+Added a Data() object into pyrat.obs as obs.depth to contain
+data and uncert modifiers.
+pyrat.obs.data and pyrat.obs.uncert can then be modified and
+computed with the methods of pyrat.obs.depth.
+Enabled the uncert_scaling models as retrieval parameters.
+Added tests.
+
+*****
+
+Added spectrum_transmission_extfile.cfg to run tests faster
+using extinction file rather than lbl data.
+
+*****
+
+Updated tests.
+
+*****
+
+Fixed a deprecation warning being raised by Voigt.eval().
+
+*****
+
+PEP8ed broadening.py
+
+
+*****  Wed Jul 26 12:13:41 CEST 2023  *****
+
+Remove err_pars argument from Data() object.
+
+*****
+
+Outsourced err_pars from Data() into Pyrat.obs.uncert_pars.
+
+*****
+
+Added offset_models argument to Data() object.
+Implemented offset_data() method to handle data offsets.
+Documented and tested.
+
+*****
+
+Renamed error scaling name format. Removed redundant 'err_'.
+Added '\log' to error-scaling texnames.
+
+*****
+
+Renamed pyrat.obs.offset_instruments to pyrat.obs.offset_inst.
+Enabled passing offset values in config file, no values default to 0.
+One offset parameter per line.
+Added tests.
+
+*****
+
+Rolled back error model name change.
+(need to be more explicit for pyrat retrieval parameter names)
+error parameters need to start with err_
+offset parameters need to start with offset_
+
+*****
+
+Renamed mcmc runmode to retrieval.
+Runs using 'mcmc' will still run, but throw a warning to the user.
+
+*****
+
+Fixed indentation in pyrat_obj.py file.
+
+
+*****  Thu Aug 3 11:29:57 CEST 2023  *****
+
+Implemented parse_bool() function into tools module.
+Fixed 'resume' config argument to be processed as a bool.
+Added tests.
+
+*****
+
+Added nlive config argument to set nested-sampling live points
+Defaulted to 1000, read into Pyrat.ret.
+
+*****
+
+Added mpi_tools.py which implements functions to detect when MPI
+tools (via mpi4py) exists, and whether need to exist.
+Also MPI wrapper functions that wont disrupt executions when mpi4py
+is not installed.
+
+Added mpi4py to tests_require in setup.py.
+
+Added placeholder tests since I first need to figure out how to:
+- run MPI on github actions
+- make mpirun calls without subprocess, or capture from screen output
+- run simulating that mpi4py is not installed
+
+*****
+
+Added MPI check in parse() to ensure that mpi4py is installed
+when needed, and that MPI is only used when needed (MultiNest runs).
+
+*****
+
+Added retrieval_tools.py file into tools module.
+Implements the Loglike() class which computes the log(likelihood)
+of a pyratbay calculation, as it typically used by other Bayesian
+samplers.
+Implements the weighted_to_equal() function to compute
+an equally-weighted sample (a posterior distribution) from a
+MultiNest output file.
+Implements the get_multinest_map() function which extracts the
+best-fitting parameters from a MultiNest output file.
+Implements the multinest_run() function which is a wrapper of a
+MultiNest call plus post processing to produce trace, histogram,
+and pair-wise posterior plots, and a statistics text file.
+
+Added tests.
+
+*****
+
+Added constant.statistics list of available statistics to report
+in posterior plots.
+Added statistics config argument to the parser and loaded into
+pyrat.ret.
+
+
+*****  Thu Aug 24 14:28:45 CEST 2023  *****
+
+Fixed bug when opacity pressure array boundaries differ from
+that of the atmosphere.
+Added tests.
+
+*****
+
+Cosmetics.
+
+*****
+
+Moved extfile input/outout/exists checks into parser
+(prevent crashing when looking for files later, which occurs in
+multiple places)
+Updated tests.
+
+*****
+
+Implemented tools.mkdir() function to make directories when needed.
+Documented and tested.
+
+
+*****  Fri Aug 25 17:05:44 CEST 2023  *****
+
+Addded make_dir optinal argument to Namespace() class.
+Allow to create output logfiles in a newly created directory.
+
+Refactored parse() function to read first the logfile name,
+then assign other output filenames from the logfile root when needed
+Made logfile a required parameter (but maybe I should not...)
+
+This simplifies config files, just always keep logfile up after
+runstep, no need to worry about file extensions (always .log).
+
+
+*****  Tue Aug 29 17:02:18 CEST 2023  *****
+
+Implemented wrapper that calls multinest for nested sampling runs
+This is a slight branch in pyrat.retrieval(), MCMC or NS.
+Some minor tweaks on the basic post-processing screen output.
+
+Proper docs is pending: how to call, mpi stuff, options, cookbooks.
+
+
+*****  Thu Aug 31 17:06:39 CEST 2023  *****
+
+Implemented ps.bin_spectrum()
+Documented and tested.
+
+*****
+
+Maintenance on Line_Sample() to go through the pb.tools' MPI wrappers
+when checking for multiprocessing variables.
+
+*****
+
+Added environment-variable check in get_mpi_rank(), get_mpi_size(),
+and mpi_barrier() to not even consider checking for MPI when the
+'PBAY_NO_MPI' environment variable is set.
+
+This enables a user to skip cheking for MPI ranks and sizes, which
+can break, e.g., for a process initiated by subprocess.run() that was
+in turn called from an mpirun process.
+
+*****
+
+Renamed pyrat.inputs.configfile to pyrat.inputs.config_file.
+
+
+*****  Fri Sep 1 13:33:58 CEST 2023  *****
+
+Tweaked extinction() C routine to ignore selected species
+when their indices (isoiext) are negative.
+
+Added skip_mol argument to extinction() Python wrapper to
+signal which species should be flagged as neglected.
+
+Added skip_mol argument to lbl.calc_extinction_coefficient()
+to enable neglecting opacities of selected species.
+
+Tests are TBD soon.
+
+*****
+
+PEP8ed src_c/_extcoeff.c
+
+*****
+
+Added skip argument to Opacity.calc_extinction_coefficient()
+which enables skipping the calculation of specific extinctions
+which can be tagged by either model type, model name, or by
+species (the latter for line_sample and lbl sources).
+
+Propagated skip argument into pyrat.eval() and pyrat.run()
+to make it accessible to the user (e.g., compute spectral leaving
+one opacity out).
+
+Documented and tested.
+
+*****
+
+Added potassium into the input atmospheric file for tests.
+Updated tests.
+
+*****
+
+Updated default colors in plots.py.
+
+*****
+
+Modified plots.spectrum() to bin down with ps.bin_spectrum()
+via the new argument resolution.
+If None default to gaussbin as before.
+
+*****
+
+Some clean up on plots.spectrum().
+More cosmetics.
+
+*****
+
+Implemented tools.posterior_post_processing() function
+to compute medians and quantiles from posteriors after a
+retrieval run.
+
+Some issues are still pending: get it working for mcmc runs
+and collecting spectroscopically active species.
+
+*****
+
+Enabled --post command-line argument to signal a post-processing
+run (executed after a retrieval run).
+
+*****
+
+Added default argument to parse_bool() function
+since this one already set a default value when executed.
+Added post_processing config_file argument to signal when to
+run pt.posterior_post_processing() right after a retrieval run.
+
+
+*****  Tue Sep 5 09:42:46 CEST 2023  *****
+
+Added a call to pt.posterior_post_processing() after a retrieval
+run has finished (pending on the value of pyrat.inputs.post_processing)
+This is executed in a background job (as it only uses 1 cpu) allowing
+the uses to launch subsequent runs as desired while post processing
+is being run.
+
+*****
+
+Implemented plots.posteriors() to plot retrieval post-processed data
+medians and 1sigma boundaries for the contribution functions,
+temperature profiles, VMR profiles, and spectra.
+Tests are TBD.
+
+Added call to plots.posterior() at end of posterior_post_processing().
+
+*****
+
+Updated pyratbay version to 1.1.13b1.
+We are nearly at version 2.0.
+
+*****
+
+Fixed bug in pt.mkdir() for python<3.9 (non exisiting removeprefix)
+Updated pyratbay version to 1.1.13b2.
+
+*****
+
+Renamed 'mol' variable to 'species' for rayleigh models
+to be consistent with the rest of the opacity models.
+Updated tests.
+
+*****
+
+Added species variable to h_ion model.
+Now all opacity models that are species dependent have a reference
+to their species.
+
+
+*****  Wed Nov 1 16:49:49 CET 2023  *****
+
+Fixed missing opacities screen output on print() call.
+Added test.
+
+*****
+
+Minor fix in pyrat.radiative_equilibrium() call.
+and other cosmetics.
+
+*****
+
+Updated get_multinest_map() to work with multiple modes.
+In that case it will take the first mode reported in the file.
+
+*****
+
+Fixed loglike() call in multinest_run() stats post-processing
+(should have ifree filter).
+
+*****
+
+Fixed bug in parse(), renaming specfile extension for radeq run.
+
+*****
+
+Updated qscale() function to include slant_VMR model.
+Added mol_models and log_press arguments.
+
+*****
+
+Renamed pa.qscale() to pa.vmr_scale().
+Added test for slant model.
+
+
+*****  Thu Nov 2 08:50:58 CET 2023  *****
+
+Updated Atmosphere() init function to handle slant VMR models.
+Moved checks from argum.setup() into Atmosphere init.
+
+*****
+
+Updated pyratbay version to 1.1.14b1.
+
+
+*****  Fri Nov 17 16:40:32 CET 2023  *****
+
+Fixed bug with f_patchy models.
+A patchy cloud parameter can be set from the retrieval_params input,
+when fpatchy was not set, the code was ignoring the patchy calculations.
+A test for the corrected behavior is TBD.
+
+*****
+
+Updated pyratbay version to 1.1.14b2.
+
+
+*****  Mon Nov 20 11:57:47 CET 2023  *****
+
+More patchy faactor bug fixes. Make sure code looks at is_patchy flag
+rather than not None f_patchy.
+Added test for f_patchy retrieval_param without fpatchy argument.
+
+*****
+
+Fixed bug with mass_units texname when retrieving the planet mass.
+
+
+*****  Mon Jan  8 15:27:55 CET 2024  *****
+
+Moved most package build configs from setup.py to pyproject.toml.
+Updated MANIFEST.in
+Updated pyratbay version to 1.1.15.
+
+*****
+
+Updated .readthedocs.yml configuration file according to new format.
+Added docs/docs_requirements.txt file.
+
+
+*****  Tue Jan 9 14:32:59 CET 2024  *****
+
+Added vmr_models.py file with classes for the VMR model parameters.
+It's a bit of an overkill for such simple objects, but within the PB
+framework, they really simplify the evaluation of an atmospheric VMR.
+
+*****
+
+Updated vmr_scale() function to work with the new VMR models.
+Removed log_press argument.
+
+*****  Thu Jan 11 20:38:53 CET 2024  *****
+
+Updated the VMR calculation in the Atmosphere() object.
+Much of the logic was moved into the newly implemented sub-classes.
+Tweaked ScaleEquil elements property, renamed as element as a string.
+
+*****
+
+Tweaked Optdepth() screen output of impact-parameter values.
+
+
+*****  Fri Jan 12 22:38:43 CET 2024  *****
+
+Removed pa.abundance() function, redundant with pa.chemistry().
+Updated docs and tests.
+
+
+*****  Mon Jan 22 16:55:37 CET 2024  *****
+
+Refactored Atmosphere() initialization method to parse VMR parameters
+from molmodel,molpars instead of metallicity, e_scale, and e_ratio.
+Now we can remove those input parameter redundancy/inconsistency.
+Updated and added tests.
+
+
+*****  Tue Jan 23 13:32:20 CET 2024  *****
+
+Updated pytest.ini and scipy.interpolate.simpson() functions to
+avoid warnings while testing.
+
+
+*****  Fri Jan 26 15:15:57 CET 2024  *****
+
+Refactored vmr_scale().
+Renamed  mol_models, molpars arguments to vmr_models, vmr_pars.
+vmr_pars is now a list of parameters, each item corresponding to each
+model in vmr_models.
+
+*****
+
+Updated tests for vmr_scale().
+
+*****
+
+Implemented tools.is_number() function to check whether a string
+input can be parsed as a number.
+Added tests.
+
+
+*****  Mo 05 Feb 2024 11:27:42 CET  *****
+
+Implemented vmr_vars argument,
+which replaces molvars, molpars, metallicity, e_scale, e_ratio,
+e_abundances, all into a single (simpler) input variable.
+
+Removed e_scale, e_ratio, e_abundances, and metallicity arguments.
+No deprecation warnings since they were removed before an official release.
+Added deprecation errors for molvars, molpars, molfree, and molmodel arguments.
+Updated deprecation warnings for xsolar and escale arguments.
+Added deprecation warning for elements argument.
+
+Renamed Atmosphere.molpars into Atmosphere.vmr_pars.
+Turned from a flat 1D array into a list, where each item is the set of
+parameters for each vmr_model.
+
+Refactored Retrieval.map_pars['mol'] list of integers into a list
+of (model_idx, param_idx) tuples.
+
+Updated tests.
+
+*****
+
+Updated tests according to new vmr_vars argument.
+
+*****
+
+Modified alkali_cross_section() C extension
+to skip line-core undesampling adjustment.
+This makes this code more in line with other calculations (Allard),
+and it avoids the seemingly overestimation of the previous code.
+Updated tests.
+
+
+*****  Di 06 Feb 2024 17:42:33 CET  *****
+
+Renamed input_atmfile -> atmfile and atmfile -> output_atmfile.
+Which preserves the syntax of last public release.
+(also, output_atmfile is seldom needed to be defined)
+atmfile will never be overwriten, it is only used as input.
+
+
+*****  Do 08 Feb 2024 16:42:27 CET  *****
+
+Replaced si.cumtrapz() with si.cumulative_trapezoid()
+to avoid deprecation warnings.
+
+*****
+
+Dropped testing for Python 3.6. Added Python 3.11.
+
+*****
+
+Fixed bug when pyrat.atm.ibulk was being left undefined (tea runs).
+
+*****
+
+Fixed bug fetching texnames from atm.mol_texnames.
+Added test.
+
+Also, enforced qcap = None when using tea chemistry.
+
+*****
+
+Fixed bug finding bulk species indices.
+
+
+*****  Mi 14 Feb 2024 15:21:19 CET  *****
+
+Updated docs and examples for atmosphere tutorial.
+
+*****
+
+Refactored pa.uniform() removing unnecessary arguments.
+The function now only perform a single action.
+Updated tests.
+
+*****
+
+Added array size checks for pa.chemistry() arguments.
+Updated tests.
+
+
+*****  Mi 21 Feb 2024 15:16:17 CET  *****
+
+Renamed pnames for SlantVMR() model to:
+slope_X, log_VMR0_X, log_p0_X, min_log_X, max_log_X.
+Fixed bug in SlantVMR.__call__() method that somehow did not break
+the code.
+Added cookbook for free-chemstry VMR models.
+Added __str__() method for models in pa.vmr_models.
+Updated tests.
+
+****
+
+Docs updates, got toctree to show cookbooks subsections
+while hiding sub-toctree in recipes.rst.
+Added Asplund2021 reference.
+And some other cosmetics.
+
+
+*****  Do 22 Feb 2024 10:25:43 CET  *****
+
+Fixed tests, calls to pa.uniform().
+
+*****
+
+Updated alkali models to accept wavelength array as input
+(optional xor with wavenumber).
+Enforced wn, wl, and cutoff to be keyword arguments.
+Updated docs.
+Updated tests.
+
+*****
+
+Updated cia opacity models to accept wavelength array as input
+(optional xor with wavenumber).
+Enforced wn and wl to be keyword arguments.
+Updated docs and tests.
+
+******
+
+Updated Pyrat parsing of cia and alkali input models.
+
+*****
+
+Updated str tests.
+
+*****
+
+Fixed misleading docstring for op.make_tli()
+Made log an optional argument.
+Renamed wllow, wlhigh arguments to wl_low and wl_high.
+Allowed passing dblist, dbtype, and pflist as strings.
+Refactored wl_low and wl_high handling to make more sensible
+when calling from the python interpreter (parser() was turning
+values into cgs, now the driver will undo this just before calling
+make_tli()).
+Some minor cosmetics.
+
+
+*****  Fr 23 Feb 2024 18:08:50 CET  *****
+
+Added line_list_hitran.rst (py and ipynb) docs to demo how
+to compute HITRAN/HITEMP cross sections.
+
+*****
+
+Tweaked Line_Sample() class, added min_wl, max_wl optional arguments
+(more user friendly).
+Enforced optional arguments to be passed as keyword arguments.
+Added get_wl() method to make it simpler and explicit (with units).
+Tweaked the __str__() method.
+Updated and added tests.
+
+*****
+
+Added __str__() method to temperature profile classes.
+Updated docs.
+
+
+*****  Do 29 Feb 2024 13:46:30 CET  *****
+
+Added docs for ExoMol line-list sampling.
+
+*****
+
+Updated recipes.rst
+
+*****
+
+Shifted the matplotlib.use('Agg') into the main() function.
+Probably not something needed, in any case.
+
+
+*****  Fr 01 Mär 2024 11:39:24 CET  *****
+
+Added labels and dashed line for contribution curves in posterior
+plots for temperature and vmr profiles.
+
+*****
+
+Added docs for repack line-list sampling.
+
+*****
+
+Tweaked line-list docs.
+
+
+
+*****  Mo 04 Mär 2024 12:12:34 CET  *****
+
+Started porting all (or most) pressure default units to bars.
+Refactored pa.pressure() to return pressures in bars.
+Updated pa.pressure() docs.
+
+Refactored pa.chemistry() pa.hydro_g(), pa.hydro_m() and
+pa.ideal_gas_density() to receive pressure values in bars.
+Updated docs.
+
+Still, there are many other routines breaking that need to be fixed.
+
+*****
+
+Fixed bug in docstrings for pa.temperature().
+
+*****
+
+Removed punits argument for pp.abundance(), enforced input pressure
+array to be in bar units (much simpler).
+
+*****
+
+Refactored Isothermal(), Guillot(), and Madhu() models
+to work with bar input/output pressure units.
+
+
+
+*****  Di 05 Mär 2024 13:31:29 CET  *****
+
+Tweaked SodiumVdW() and PotassiumVdW() models to work with bar
+pressure units.
+
+*****
+
+Updated docs for Hydrogen_Ion() model.
+
+*****
+
+Modified routines in broadening.py to take pressure inputs in bar
+units.
+Updated docs and tests.
+
+*****
+
+Updated docstings for vmr_models.py classes.
+
+*****
+
+Modified gray cloud models to to take pressure inputs in bar units.
+
+*****
+
+Modified Line_Sample() model to to take pressure inputs in bar units.
+Updated docstings and tests.
+
+*****
+
+Modified io.write_opacity() to include a dictionary with the units.
+Also, take and save input pressures in bar units.
+
+Modified io.read_opacity() to detect when a file was older (no units)
+in which case, scale the pressures from barye to bar (new default output).
+Add units to output when requesting all properties.
+
+Modified io.write_atm() to receive input pressures in bar units.
+
+*****
+
+Updated Pyrat() object and methods to work with pressure bar inputs.
+
+*****
+
+Modified parser() to keep pressure inputs in bar units
+(ptop, pbottom, refpressure).
+
+Updated plotting routines and tests to work with bar pressures.
+
+
+*****  Mo 11 Mär 2024 16:34:31 CET  *****
+
+Updated pyratbay version to 2.0.0beta1.
+This is it, no more new implementations beyond whats already planned.
+Only cleaning up and documenting from now on.
+
+
+*****  Do 27 Jun 2024 14:46:47 CEST  *****
+
+Updated io.write_opacity() to enable reading petitRADTRANS files.
+Drafted test, but in TBD state.
+Added h5py to requirements.
+
+*****
+
+Added temperature argument to tools.interpolate_opacity()
+to allow interpolating over the temperature grid.
+Set temperature, pressure, and wn_mask as optional arguments.
+Updated tests.
+
+
+*****  Fr 28 Jun 2024 10:05:58 CEST  *****
+
+Added temperature optional argument to Line_Sample() init
+to allow pre-definin a temperature grid (to resample cross sections).
+Checks for boundaries are TBD.
+
+Updated pyrat/opacity.py to compute a temperature grid when
+tmin, tmax, and tstep are defined in the config file.
+Then, the code will interpolate the cross section tables into it.
+
+Added test for temperature grid interpolation.
+
+
+*****  Di 02 Jul 2024 12:54:10 CEST  *****
+
+Added wn_thinning argument to pt.interpolate_opacity()
+Tested and documented.
+
+*****
+
+Implemented wn_thinning config argument to enable thinning down
+tabulated cross sections.
+
+
+*****  Di 02 Apr 2024 12:09:58 CEST  *****
+
+Added ignore_gaps argument to Tophat() class to avoid raising errors
+when the passband does not cover any spectral point.
+Documented and tested.
+
+*****
+
+Added ignore_gaps argument to bin_spectrum() function to avoid errors
+when a bin does not cover any wl spectral point. Return np.nan for
+such cases.
+Documented (to use with care) and tested.
+
+
+*****  Mi 22 Mai 2024 10:16:30 CEST  *****
+
+Removed Makefile (obsolete now)
+
+*****
+
+Added ipython and nbsphinx extensions in conf.py for building docs.
+
+*****
+
+Updated temperature_profiles.ipynb docs.
+
+*****
+
+Updated vmr_free_profiles.ipynb docs.
+
+*****
+
+Updated hitran, exomol, and repack line-list tutorials.
+
+*****
+
+Updated opacity_line_sample.ipynb docs.
+
+
+*****  Do 23 Mai 2024 09:22:03 CEST  *****
+
+Updated opacity_alkali.ipynb docs.
+
+*****
+
+Updated opacity_cia.ipynb docs.
+Updated opacity_rayleigh.ipynb docs.
+
+
+*****  Mo 03 Jun 2024 16:32:19 CEST  *****
+
+Added -lm C compiler argument to avoid undefined symbol bug
+with math libraries.
+
+
+*****  Fr 07 Jun 2024 16:03:33 CEST  *****
+
+Added sphinx_copybutton to docs.
+
+
+*****  Mo 22 Jul 2024 18:29:36 CEST  *****
+
+Some cosmetics.
+
+*****
+
+Updated pyproject to build including numpy>=2.0.
+Lost compatibility with unsuported Python<=3.8.
+
+
+*****  Sun Jul 28 14:03:24 CEST 2024  *****
+
+Implemented suffix argument in posterior_post_processing()
+to allow renaming the post-process outputs.
+
+*****
+
+Updated version to 2.0.0b2
+
+
+*****  Di 22 Okt 2024 09:47:09 CEST  *****
+
+Corrected np.trapz() to np.trapezoid() to avoid deprecation warning.
+
+*****
+
+Removed numpy.core.numeric isscalar imports.
+
+*****
+
+Corrected np.in1d() to np.isin().
+
+
+*****  Di 05 Nov 2024 11:22:31 CET  *****
+
+Updated scipy requirement compatible with Numpy2.0.
+
+*****
+
+Updated docs theme, switched from read_the_docs to furo.
+
+Added docs/custom_style.py file.
+
+
+*****  Do 07 Nov 2024 11:47:50 CET  *****
+
+Added water isotopes for 228 and 227.
+
+*****
+
+Refactored tips() function to extend partition functions domain
+when some isotopes have higher temperature ranges.
+This is done with a cubic spline. Before the code was cutting off
+at the lowest maximum temperature.
+
+These are the affected molecules:
+H2O
+[5000 5000 5000 5000 5000 5000 6000 6000 6000]
+CO2 
+[5000 5000 3500 3500 3500 3500 5000 3500 5000 5000 3500 5000 5000]
+CH4
+[3500 3500 4500 3500]
+NO2
+[3500 1000]
+OH
+[9000 5000 5000]
+H2CO
+[3500 5000 5000]
+H2S
+[4000 5000 5000]
+
+****
+
+Refactored io.write_spectrum() to deal with the wavelength units
+always in microns. Removed wlunits argument.
+Added 'eclipse' type.
+
+Refactored io.read_spectrum() removing wlunits guessing.
+
+Refactored io.write_observations() to enable combining tophat
+and tabulated files as passband functions.
+
+*****
+
+Updated tests in test_io.py.
+test_read_write_spectrum
+test_read_write_spectrum_filter
+test_read_isotopes
+test_write_observations_mix_bandpass_tophats
+
+*****
+
+In spectrum.bin_spectrum() replaced ignore_gaps bool argument
+with gaps string argument.
+Allowed to keep the default behavior for gaps (raise Error),
+ignore them (keep nans), or patch with a linear interpolation.
+
+Updated docs and tests.
+
+*****
+
+Added wl variable to pyrat.spec, to return the wavelength array
+in microns.
+
+
+*****  Fr 22 Nov 2024 18:17:51 CET  *****
+
+Refactored PassBand() and Tophat() classes.
+Added counting_type argument and variable to specify whether the
+response function is per photon (default) or per energy.
+Re-named __call__() method to set_sampling().
+Added integrate() method to do the band_integration in-house.
+Now __call__() method points to intgrate().
+Added arguments to set the wn/wl sampling at initialization.
+Updated docstrings and tests.
+
+*****
+
+Added FILTERS constant, path pointing directly to the filters folder
+Added cheops and tess passbands filters.
+Renamed spitzer_irac?_sa.dat filters to spitzer_irac?.dat
+
+*****
+
+Updated tests on partition functions/isotopes according to latest
+changes.
+
+
+*****  Mo 25 Nov 2024 14:54:48 CET  *****
+
+Refactored PassBand() and Tophat() classes adding self.height
+and having self.response normalized to max(response)=1.
+Added passband docs to the cookbooks.
+Added kepler.dat passbands.
+

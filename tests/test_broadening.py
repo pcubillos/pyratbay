@@ -1,5 +1,5 @@
-# Copyright (c) 2021 Patricio Cubillos
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+# Copyright (c) 2021-2025 Cubillos & Blecic
+# Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import os
 import pytest
@@ -32,7 +32,7 @@ def test_Lorentz_hwhm():
 def test_Lorentz_integral():
     lor = pb.Lorentz(x0=0.0, hwhm=1.0, scale=1.0)
     x = np.linspace(-1000.0, 1000.0, 100001)
-    np.testing.assert_approx_equal(np.trapz(lor(x),x), 1.0, 3)
+    np.testing.assert_approx_equal(np.trapezoid(lor(x),x), 1.0, 3)
 
 
 def test_Lorentz():
@@ -51,7 +51,7 @@ def test_Gauss_hwhm():
 def test_Gauss_integral():
     gauss = pb.Gauss(x0=0.0, hwhm=1.0, scale=1.0)
     x = np.linspace(-100.0, 100.0, 100001)
-    np.testing.assert_approx_equal(np.trapz(gauss(x),x), 1.0, 7)
+    np.testing.assert_approx_equal(np.trapezoid(gauss(x),x), 1.0, 7)
 
 
 def test_Gauss():
@@ -89,7 +89,7 @@ def test_Voigt_Lorentz_hwhm():
 def test_Voigt_integral(hwhm_L, hwhm_G):
     voigt = pb.Voigt(x0=0.0, hwhm_L=hwhm_L, hwhm_G=hwhm_G, scale=1.0)
     x = np.linspace(-1000.0, 1000.0, 100001)
-    np.testing.assert_approx_equal(np.trapz(voigt(x),x), 1.0, 3)
+    np.testing.assert_approx_equal(np.trapezoid(voigt(x),x), 1.0, 3)
 
 
 @pytest.mark.parametrize("hwhm_L",
@@ -115,7 +115,7 @@ def test_doppler_hwhm():
 
 def test_lorentz_hwhm():
     temperature = 1000.0
-    pressure = 1.0 * pc.bar
+    pressure = 1.0 # bar
     #                  H2O   CO2   H2    He   
     masses = np.array([18.0, 44.0, 2.0,  4.0])
     radii  = np.array([1.6,  1.9,  1.45, 1.4]) * pc.A
@@ -123,7 +123,8 @@ def test_lorentz_hwhm():
     imol = np.array([0, 1])
     lor_hw = pb.lorentz_hwhm(temperature, pressure, masses, radii, vmr, imol)
     np.testing.assert_allclose(
-        lor_hw, [0.036911106660883666,0.04308068108378928], rtol=1e-7)
+        lor_hw, [0.036911106660883666,0.04308068108378928], rtol=1e-7,
+    )
 
 
 def test_min_widths():
@@ -132,9 +133,10 @@ def test_min_widths():
     min_wn   = 1.0/(0.6*pc.um)
     max_mass = 27.02534  # HCN molecular mass (amu)
     min_rad  = 2.5 * pc.A
-    min_press = 1e-5 * pc.bar
-    dmin, lmin = pb.min_widths(min_temp, max_temp, min_wn, max_mass,
-                               min_rad, min_press)
+    min_press = 1e-5 # bar
+    dmin, lmin = pb.min_widths(
+        min_temp, max_temp, min_wn, max_mass, min_rad, min_press,
+    )
     np.testing.assert_allclose(dmin, 0.025672743788107903)
     np.testing.assert_allclose(lmin, 3.9945391902150206e-07)
 
@@ -145,9 +147,10 @@ def test_max_widths():
     max_wn   = 1.0/(12.0*pc.um)
     min_mass = 1.007940  # H molecular mass (amu)
     max_rad  = 2.89/2.0 * pc.A
-    max_press = 100 * pc.bar
-    dmax, lmax = pb.max_widths(min_temp, max_temp, max_wn, min_mass,
-                               max_rad, max_press)
+    max_press = 100  # bar
+    dmax, lmax = pb.max_widths(
+        min_temp, max_temp, max_wn, min_mass, max_rad, max_press,
+    )
     np.testing.assert_allclose(dmax, 0.01486262554305687)
     np.testing.assert_allclose(lmax, 8.009255370607491)
 

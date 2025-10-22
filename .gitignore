@@ -4,6 +4,7 @@
 *~
 tests/inputs/*.par
 tests/inputs/*.pck
+tests/inputs/jupiter_isothermal_uniform_vmr.atm
 
 
 # Byte-compiled / optimized / DLL files

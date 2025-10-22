@@ -1,4 +1,4 @@
-// Copyright (c) 2021 Patricio Cubillos
+// Copyright (c) 2021-2025 Cubillos & Blecic
 // Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
 
 #include <Python.h>
@@ -151,12 +151,14 @@ static PyObject *splinterp_2D(PyObject *self, PyObject *args){
     double dx, dy, deltax, a, b, c;
 
     /* Load inputs: */
-    if (!PyArg_ParseTuple(args, "OOOOOii",
-                          &yin, &xin, &z, &xout, &yout, &lo, &hi))
+    if (!PyArg_ParseTuple(
+            args,
+            "OOOOOii",
+            &yin, &xin, &z, &xout, &yout, &lo, &hi))
         return NULL;
 
-    nin  = (int)PyArray_DIM(xin, 0);
-    nout = (int)PyArray_DIM(xout,0);
+    nin = (int)PyArray_DIM(xin, 0);
+    nout = (int)PyArray_DIM(xout, 0);
 
     for (i=0; i<nout; i++){
         if (INDd(xout,i) < INDd(xin,0) || INDd(xout,i) > INDd(xin,(nin-1)))
@@ -193,8 +195,76 @@ static PyObject *splinterp_2D(PyObject *self, PyObject *args){
 }
 
 
+PyDoc_STRVAR(lin_interp_2D__doc__,
+"Linear interpolation for 2D array along the first axis,             \n\
+Repeating across second axis.                                        \n\
+                                                                     \n\
+Parameters                                                           \n\
+----------                                                           \n\
+yin: 2D double ndarray                                               \n\
+    Input y values of shape [nin, nin2].                             \n\
+xin: 1D double ndarray                                               \n\
+    Input x array of length nin.                                     \n\
+dy_dx: 2D double ndarray                                             \n\
+    Derivatives of yin at xin (of shape [nin-1, nin2-1]).            \n\
+xout: 1D double ndarray                                              \n\
+    X value where to interpolate (of length nout).                   \n\
+yout: 2D double ndarray                                              \n\
+    X value where to interpolate (of shape [nout,nin2]).             \n\
+lo: Integer                                                          \n\
+    Lower index along second axis of yin to interpolate.             \n\
+hi: Integer                                                          \n\
+    Upper index along second axis of yin to interpolate.");
+
+static PyObject *lin_interp_2D(PyObject *self, PyObject *args){
+    PyArrayObject *xin, *yin, *dy_dx, *xout, *yout;
+    int i, j, nin, nout, index, lo, hi;
+    double deltax;
+
+    // Load inputs:
+    if (!PyArg_ParseTuple(
+            args,
+            "OOOOOii",
+            &yin, &xin, &dy_dx, &xout, &yout, &lo, &hi))
+        return NULL;
+
+    nin = (int)PyArray_DIM(xin, 0);
+    nout = (int)PyArray_DIM(xout, 0);
+
+    for (i=0; i<nout; i++){
+        if (INDd(xout,i) < INDd(xin,0) || INDd(xout,i) > INDd(xin,(nin-1)))
+            return Py_BuildValue("d", NAN);
+
+        // Binary search to find index:
+        index = binsearchapprox(xin, INDd(xout,i), 0, nin-1);
+        // Enforce: x[i] <= xout (except if x[N-1] == xout):
+        if (index == nin-1 || INDd(xout,i) < INDd(xin,index)){
+            index--;
+        }
+
+        // If the requested x falls on a given x, no interpolation needed:
+        if (INDd(xin,index) == INDd(xout,i)){
+            for (j=lo; j<hi; j++){
+                IND2d(yout,i,j) = IND2d(yin,index,j);
+            }
+            continue;
+        }
+        // Else, spline-interpolate
+        deltax = INDd(xout,i) - INDd(xin,index);
+        for (j=lo; j<hi; j++){
+            IND2d(yout,i,j) = IND2d(yin,index,j) + deltax*IND2d(dy_dx,index,j);
+        }
+    }
+
+    return Py_BuildValue("d", 0.0);
+}
+
+
 /* The module doc string */
-PyDoc_STRVAR(spline__doc__, "Python wrapper for Cubic Spline Interpolation.");
+PyDoc_STRVAR(
+    spline__doc__,
+    "Python wrapper for Cubic Spline Interpolation."
+);
 
 
 /* A list of all the methods defined by this module. */
@@ -202,11 +272,11 @@ static PyMethodDef spline_methods[] = {
     {"second_deriv", second_deriv, METH_VARARGS, second_deriv__doc__},
     {"splinterp_1D", splinterp_1D, METH_VARARGS, splinterp_1D__doc__},
     {"splinterp_2D", splinterp_2D, METH_VARARGS, splinterp_2D__doc__},
-    {NULL,           NULL,         0,            NULL}
+    {"lin_interp_2D", lin_interp_2D, METH_VARARGS, lin_interp_2D__doc__},
+    {NULL, NULL, 0, NULL}
 };
 
 
-#if PY_MAJOR_VERSION >= 3
 /* Module definition for Python 3. */
 static struct PyModuleDef moduledef = {
     PyModuleDef_HEAD_INIT,
@@ -219,16 +289,7 @@ static struct PyModuleDef moduledef = {
 /* When Python 3 imports a C module named 'X' it loads the module */
 /* then looks for a method named "PyInit_"+X and calls it. */
 PyObject *PyInit__spline (void) {
-  PyObject *module = PyModule_Create(&moduledef);
-  import_array();
-  return module;
+    PyObject *module = PyModule_Create(&moduledef);
+    import_array();
+    return module;
 }
-
-#else
-/* When Python 2 imports a C module named 'X' it loads the module */
-/* then looks for a method named "init"+X and calls it. */
-void init_spline(void){
-  Py_InitModule3("_spline", spline_methods, spline__doc__);
-  import_array();
-}
-#endif

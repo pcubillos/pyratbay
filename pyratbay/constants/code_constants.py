@@ -1,8 +1,9 @@
-# Copyright (c) 2021-2022 Patricio Cubillos
+# Copyright (c) 2021-2025 Cubillos & Blecic
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
     'ROOT',
+    'FILTERS',
     # Other constants
     'tlireclen',
     'dreclen',
@@ -11,28 +12,26 @@ __all__ = [
     # Choices
     'dbases',
     'rmodes',
+    'samplers',
+    'statistics',
     'transmission_rt',
     'emission_rt',
+    'eclipse_rt',
     'rt_paths',
     'retflags',
     'tmodels',
     'chemmodels',
     'radmodels',
-    'molmodels',
     'amodels',
     'rmodels',
     'cmodels',
+    'h_ion_models',
 ]
 
 import os
 
 """
 Constant values used in the pyrat project.
-
-Notes
------
-  Solar system constants come from:
-  http://nssdc.gsfc.nasa.gov/planetary/factsheet/
 """
 
 # TLI record lengths:
@@ -43,6 +42,7 @@ sreclen = 2  # Short byte length
 
 # Paths:
 ROOT = os.path.realpath(os.path.dirname(__file__) + '/../..') + '/'
+FILTERS = f'{ROOT}pyratbay/data/filters/'
 
 
 # Available line-transition databases:
@@ -63,7 +63,21 @@ rmodes = [
     'opacity',
     'spectrum',
     'radeq',
-    'mcmc',
+    'retrieval',
+]
+
+# Bayesian retrieval algorithms
+samplers = [
+    'snooker',
+    'multinest',
+]
+
+# Statistics for posterior plots
+statistics = [
+    'med_central',
+    'max_central',
+    'max_like',
+    'global_max_like',
 ]
 
 # Transmission radiative transfer:
@@ -72,13 +86,20 @@ transmission_rt = [
 ]
 
 # Emission radiative transfer:
+eclipse_rt = [
+    'eclipse',
+    'eclipse_two_stream',
+]
+
+# Emission radiative transfer:
 emission_rt = [
     'emission',
     'emission_two_stream',
+    'f_lambda',
 ]
 
 # Radiative-transfer observing geometry:
-rt_paths = transmission_rt + emission_rt
+rt_paths = transmission_rt + eclipse_rt + emission_rt
 
 # Retrieval flags:
 retflags = [
@@ -90,6 +111,7 @@ retflags = [
     'cloud',
     'patchy',
     'mass',
+    'tstar',
 ]
 
 # Temperature models:
@@ -111,13 +133,6 @@ radmodels = [
     'hydro_g',
 ]
 
-# Molecular-abundance models:
-molmodels = [
-    'vert',
-    'scale',
-    'equil',
-]
-
 # Alkali models:
 amodels = [
    'sodium_vdw',
@@ -129,6 +144,7 @@ rmodels = [
    'dalgarno_H',
    'dalgarno_H2',
    'dalgarno_He',
+   'dalgarno_e-',
    'lecavelier',
 ]
 
@@ -138,3 +154,7 @@ cmodels = [
     'ccsgray',
 ]
 
+# H- opacity models:
+h_ion_models = [
+    'h_ion_john1988',
+]

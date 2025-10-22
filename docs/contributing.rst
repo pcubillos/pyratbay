@@ -40,7 +40,7 @@ and will make me work less.  I strongly recommend the following
 programming guidelines:
 
   - Always keep it simple.
-  - Lines are strictly 80 character long, no more.
+  - Lines are approximately 80 character long.
   - **Never ever! use tabs (for any reason, just don't).**
   - Avoid hard-coding values at all cost.
   - Avoid excessively short variable names (such as ``x`` or ``a``).

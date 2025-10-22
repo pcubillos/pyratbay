@@ -1,0 +1,9 @@
+https://pyratbay.readthedocs.io/en/ver2.0/cookbooks/cross_sections_uhj/tli_exomol_C2H2_acety.cfg
+https://pyratbay.readthedocs.io/en/ver2.0/cookbooks/cross_sections_uhj/tli_exomol_H2O_pokazatel.cfg
+https://pyratbay.readthedocs.io/en/ver2.0/cookbooks/cross_sections_uhj/tli_exomol_HCN_harris-larner.cfg
+https://pyratbay.readthedocs.io/en/ver2.0/cookbooks/cross_sections_uhj/tli_exomol_NH3_coyute-byte.cfg
+https://pyratbay.readthedocs.io/en/ver2.0/cookbooks/cross_sections_uhj/tli_exomol_TiO_toto.cfg
+https://pyratbay.readthedocs.io/en/ver2.0/cookbooks/cross_sections_uhj/tli_exomol_VO_vomyt.cfg
+https://pyratbay.readthedocs.io/en/ver2.0/cookbooks/cross_sections_uhj/tli_hitemp_CH4_2020.cfg
+https://pyratbay.readthedocs.io/en/ver2.0/cookbooks/cross_sections_uhj/tli_hitemp_CO_li2019.cfg
+https://pyratbay.readthedocs.io/en/ver2.0/cookbooks/cross_sections_uhj/tli_hitemp_CO2_2010.cfg

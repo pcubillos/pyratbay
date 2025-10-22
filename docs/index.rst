@@ -3,18 +3,20 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Pyrat Bay:
-==========
+Pyrat Bay
+=========
 
-**Python Radiative Transfer in a Bayesian framework**
------------------------------------------------------
+.. raw:: html
+
+   <p style="font-size: 1.7rem; font-weight: bold;">Python Radiative Transfer in a Bayesian framework</p>
+
+
 
 |Build Status|
 |docs|
 |PyPI|
 |conda|
 |License|
-
 
 .. raw:: html
 
@@ -32,24 +34,23 @@ Pyrat Bay:
 -------------------------------------------------------------------
 
 
-:Author:       Patricio Cubillos and contributors (see :ref:`team`)
+:Author:       Patricio Cubillos and Jasmina Blecic
 :Contact:      `patricio.cubillos[at]oeaw.ac.at`_
 :Organizations: `Space Research Institute (IWF)`_
 :Web Site:     https://github.com/pcubillos/pyratbay
 :Date:         |today|
 
 Features
-========
+--------
 
 ``Pyrat Bay`` is an efficient, user-friendly Python tool to compute
 radiative-transfer spectra, and fit exoplanet atmospheric properties.
 This package offers:
 
-- Transmission or emission spectra of exoplanet transit or eclipses,
-  respectively.
+- **Transmission** or **emission** spectral synthesis of exoplanet atmospheres.
 - Forward-model or retrieval calculations.
 
-The radiative-transfer include opacity sources from:
+The radiative-transfer calculation includes opacity sources from:
 
 - Line-by-line molecular absorption
 - Collision-induced absorption
@@ -57,34 +58,49 @@ The radiative-transfer include opacity sources from:
 - Na and K alkali resonant lines
 - Gray and Mie (soon) aerosol opacities
 
-Bayesian (MCMC) posterior sampling of atmospheric parameters:
+Bayesian (MCMC and Nested sampling) posterior sampling of atmospheric parameters:
 
-- Molecular abundances
-- Temperature profile
+- Molecular abundances (free-, equilibrium-, or hybrid chemistry)
+- Temperature profiles
 - Pressure-radius
 - Rayleigh and cloud properties
+- Offsets between observing instruments
+- Error scaling for observations
 
 .. _team:
 
 Contributors
-============
+------------
 
 - `Patricio Cubillos`_ (IWF, Austria) `patricio.cubillos[at]oeaw.ac.at`_
 - Jasmina Blecic (NYU, Abu Dhabi)
 
 
+Be Kind
+-------
+
+If you found ``Pyrat Bay`` useful for your research, please cite this article:
+  `Cubillos & Blecic (2021): The Pyrat Bay Framework for Exoplanet Atmospheric Modeling: A Population Study of Hubble/WFC3 Transmission Spectra <https://ui.adsabs.harvard.edu/abs/2021MNRAS.505.2675C>`_, *MNRAS, 505, 2675.*
+
+Please prefer to channel your feedback or inquiries through the Github issue tracker: `<https://github.com/pcubillos/pyratbay>`_, or alternatively through this email: `patricio.cubillos[at]oeaw.ac.at`_.
+
+``Pyrat Bay`` is open-source software under the GNU GPL v2 license (see
+:ref:`license`) and is compatible with Python>=3.9.
+
+
 Documentation
-=============
+-------------
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
+   :includehidden:
 
    getstarted
-   tli_tutorial
-   atm_tutorial
-   spec_tutorial
-   opac_tutorial
-   mcmc_tutorial
+   line_sampling
+   atmosphere_modeling
+   spectral_synthesis
+   retrieval_tutorial
+
    cookbooks/recipes
    api
    units
@@ -93,25 +109,13 @@ Documentation
    license
 
 
-Be Kind
-=======
-
-If you found ``Pyrat Bay`` useful for your research, please cite this article:
-  `Cubillos & Blecic (2021): The Pyrat Bay Framework for Exoplanet Atmospheric Modeling: A Population Study of Hubble/WFC3 Transmission Spectra <https://ui.adsabs.harvard.edu/abs/2021MNRAS.505.2675C>`_, *MNRAS, 505, 2675.*
-
-Please prefer to channel your feedback or inquiries through the Github issue tracker: `<https://github.com/pcubillos/pyratbay>`_, or alternatively through this email: `patricio.cubillos[at]oeaw.ac.at`_.
-
-``Pyrat Bay`` is open-source software under the GNU GPL v2 license (see
-:ref:`license`) and is compatible with Python>=3.6.
-
-
 .. _Patricio Cubillos: https://github.com/pcubillos/
 .. _patricio.cubillos[at]oeaw.ac.at: patricio.cubillos@oeaw.ac.at
 .. _Space Research Institute (IWF): http://iwf.oeaw.ac.at/
 
 
-.. |Build Status| image:: https://travis-ci.com/pcubillos/pyratbay.svg?branch=master
-   :target: https://travis-ci.com/pcubillos/pyratbay
+.. |Build Status| image:: https://github.com/pcubillos/pyratbay/actions/workflows/python-package.yml/badge.svg?branch=master
+    :target: https://github.com/pcubillos/pyratbay/actions/workflows/python-package.yml?query=branch%3Amaster
 
 .. |docs| image:: https://readthedocs.org/projects/pyratbay/badge/?version=latest
     :target: https://pyratbay.readthedocs.io/en/latest/?badge=latest

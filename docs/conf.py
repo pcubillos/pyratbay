@@ -22,7 +22,7 @@ import re
 from datetime import date
 
 # Do not add path to the package (following example from astropy).
-#sys.path.insert(0, os.path.abspath('..'))
+sys.path.insert(0, os.path.abspath('.'))
 import pyratbay as pb
 
 # -- General configuration ------------------------------------------------
@@ -37,7 +37,11 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
-    ]
+    'IPython.sphinxext.ipython_console_highlighting',
+    'nbsphinx',
+    "sphinx_copybutton",
+    "sphinx_design",
+]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -55,8 +59,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Pyrat Bay'
-copyright = u'2016-{:d}, Patricio Cubillos'.format(date.today().year)
-author = u'Patricio Cubillos'
+copyright = f'2021-{date.today().year:d}, Cubillos & Blecic'
+author = u'Cubillos & Blecic'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -72,7 +76,7 @@ release = pb.__version__
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = 'en'
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
@@ -100,7 +104,8 @@ exclude_patterns = ['_build', '.DS_Store']
 #show_authors = False
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
+#pygments_style = 'sphinx'
+pygments_style = 'custom_style.CustomStyle'
 
 # A list of ignored prefixes for module index sorting.
 #modindex_common_prefix = []
@@ -116,12 +121,17 @@ pygments_style = 'sphinx'
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'sphinx_rtd_theme'
+html_theme = 'furo'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-#html_theme_options = {}
+html_theme_options = {
+    "sidebar_hide_name": False,
+    "light_css_variables": {
+        "color-background-border": "#d0d0d0",
+    },
+}
 
 # Add any paths that contain custom themes here, relative to this directory.
 #html_theme_path = []
@@ -146,6 +156,7 @@ html_favicon = 'figures/favicon.ico'
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+html_css_files = ["custom.css"]
 
 # Add any extra paths that contain custom files (such as robots.txt or
 # .htaccess) here, relative to this directory. These files are copied
@@ -161,7 +172,7 @@ html_static_path = ['_static']
 #html_use_smartypants = True
 
 # Custom sidebar templates, maps document names to template names.
-html_sidebars = {'*':['globaltoc.html', 'relations.html', 'searchbox.html']}
+#html_sidebars = {'*':['globaltoc.html', 'relations.html', 'searchbox.html']}
 
 # Additional templates that should be rendered to pages, maps page names to
 # template names.
@@ -230,8 +241,13 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  (master_doc, 'pyratbay.tex', u'Pyrat Bay Documentation',
-   u'Patricio Cubillos', 'howto'),
+    (
+        master_doc,
+        'pyratbay.tex',
+        u'Pyrat Bay Documentation',
+        u'Cubillos & Blecic',
+        'howto',
+    ),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -260,11 +276,13 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc,
-     'pyratbay',
-     u'Pyrat Bay Documentation',
-     [author],
-     1)
+    (
+        master_doc,
+        'pyratbay',
+        u'Pyrat Bay Documentation',
+        [author],
+        1,
+    )
 ]
 
 # If true, show URL addresses after external links.
@@ -277,13 +295,15 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  (master_doc,
-   'pyratbay',
-   u'Pyrat Bay Documentation',
-   author,
-   'Pyrat Bay',
-   'Python Radiative Transfer in a Bayesian framework.',
-   'Miscellaneous'),
+    (
+        master_doc,
+        'pyratbay',
+        u'Pyrat Bay Documentation',
+        author,
+        'Pyrat Bay',
+        'Python Radiative Transfer in a Bayesian framework.',
+        'Miscellaneous',
+    ),
 ]
 
 # Documents to append as an appendix to all manuals.
@@ -367,3 +387,7 @@ epub_exclude_files = ['search.html']
 
 # If false, no index is generated.
 #epub_use_index = True
+
+
+def setup(app):
+    app.add_css_file('custom.css')

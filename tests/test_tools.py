@@ -1,15 +1,19 @@
-# Copyright (c) 2021 Patricio Cubillos
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+# Copyright (c) 2021-2025 Cubillos & Blecic
+# Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import os
-import sys
 import struct
 import pytest
+import re
 
+import mc3
 import numpy as np
 
-import pyratbay.tools as pt
+import pyratbay as pb
+import pyratbay.atmosphere as pa
 import pyratbay.constants as pc
+import pyratbay.io as io
+import pyratbay.tools as pt
 
 os.chdir(pc.ROOT+'tests')
 
@@ -23,6 +27,31 @@ def test_tmp_reset_listed_arguments():
      assert (x, y, w, z) == (None, 2.0, None, 4.0)
 
 
+def test_eta_seconds():
+    str_time = pt.eta(45.0, 101, 200)
+    assert str_time == '44.11 sec'
+
+
+def test_eta_minutes():
+    str_time = pt.eta(145.0, 101, 200)
+    assert str_time == '2.37 min'
+
+
+def test_eta_hours():
+    str_time = pt.eta(345.0, 11, 200)
+    assert str_time == '1.65 hours'
+
+
+def test_eta_days():
+    str_time = pt.eta(945.0, 11, 2000)
+    assert str_time == '1.98 days'
+
+
+def test_eta_fmt():
+    str_time = pt.eta(45.0, 101, 200, fmt='.5e')
+    assert str_time == '4.41089e+01 sec'
+
+
 def test_tmp_reset_keyword_arguments():
      # Keyword arguments can be set to a value, but cannot be recursive:
      o   = type('obj', (object,), {'x':1.0, 'y':2.0})
@@ -30,6 +59,43 @@ def test_tmp_reset_keyword_arguments():
      with pt.tmp_reset(obj, 'o.x', z=10):
          x, y, w, z = obj.o.x, obj.o.y, obj.z, obj.w
      assert (x,y,w,z) == (None, 2.0, 10, 4.0)
+
+
+def test_resolve_theme_rgb():
+    theme = pt.resolve_theme((1,0,0))
+    assert isinstance(theme, mc3.plots.Theme)
+    np.testing.assert_allclose(theme.color, np.array([1.0, 0.0, 0.0]))
+    np.testing.assert_allclose(theme.dark_color, np.array([0.7, 0.0, 0.0]))
+    np.testing.assert_allclose(theme.light_color, np.array([1.00, 0.25, 0.25]))
+
+
+def test_resolve_theme_str_color():
+    theme = pt.resolve_theme('xkcd:green')
+    assert isinstance(theme, mc3.plots.Theme)
+    assert theme.color == 'xkcd:green'
+
+
+def test_resolve_theme_str_theme():
+    theme = pt.resolve_theme('orange')
+    assert isinstance(theme, mc3.plots.Theme)
+    assert theme.color == 'darkorange'
+
+
+def test_resolve_theme_Theme():
+    theme = pt.resolve_theme(mc3.plots.THEMES['indigo'])
+    assert isinstance(theme, mc3.plots.Theme)
+    assert theme.color == 'xkcd:indigo'
+
+
+def test_resolve_theme_none():
+    theme = pt.resolve_theme(None)
+    assert theme is None
+
+
+def test_resolve_theme_not_a_color():
+    error = re.escape("Invalid color theme: 'not_a_plt_color'")
+    with pytest.raises(ValueError, match=error):
+        theme = pt.resolve_theme('not_a_plt_color')
 
 
 def test_binsearch_zero():
@@ -195,6 +261,22 @@ def test_get_param_invalid_value_ge():
         pt.get_param(-1.0, 'm', ge=0.0)
 
 
+@pytest.mark.parametrize(
+    'value',
+    ['1', '1.0', '-3.14', '+3.14', '1.0e+02', 'inf', 'nan'],
+)
+def test_is_number_true(value):
+    assert pt.is_number(value) is True
+
+
+@pytest.mark.parametrize(
+    'value',
+    ['1.0-3.14', '10abcde', '1.0e', 'e1.0', 'true', 'none'],
+)
+def test_is_number_false(value):
+    assert pt.is_number(value) is False
+
+
 @pytest.mark.parametrize('data',
     [[False, True, True, False],
      [0,1,1,0],
@@ -211,6 +293,44 @@ def test_ifirst_type(data):
      np.array([False, True, True, False])])
 def test_ilast_type(data):
     assert pt.ilast(data) == 2
+
+
+@pytest.mark.parametrize(
+    'file_path',
+    ['file.log', './file.log'],
+)
+def test_mkdir_in_cwd(tmp_path, file_path):
+    with pt.cd(tmp_path):
+        pt.mkdir(file_path)
+        # No dir made, nothing to test except no error was raised
+
+
+def test_mkdir_in_existing_absolute_path(tmp_path):
+    path_file = tmp_path / 'my_file.log'
+    pt.mkdir(path_file)
+    # No dir made, nothing to test except no error was raised
+
+
+@pytest.mark.parametrize(
+    'file_path',
+    ['NS/file.log', './NS/file.log'],
+)
+def test_mkdir_make_path_in_cwd(tmp_path, file_path):
+    with pt.cd(tmp_path):
+        pt.mkdir(file_path)
+        assert os.path.exists('NS')
+
+
+def test_mkdir_make_dir_in_existing_absolute_path(tmp_path):
+    file_path = tmp_path / 'NS/my_file.log'
+    pt.mkdir(file_path)
+    assert os.path.exists(tmp_path / 'NS')
+
+
+def test_mkdir_nested_new_dirs(tmp_path):
+    file_path = tmp_path / 'NS/dir2/my_file.log'
+    with pytest.raises(FileNotFoundError):
+        pt.mkdir(file_path)
 
 
 def test_isfile_none():
@@ -347,6 +467,245 @@ def test_cia_borysow():
     # TBD: implement check
 
 
+def test_interpolate_opacity_no_interp():
+    cs_file = 'outputs/exttable_test_300-3000K_1.1-1.7um.npz'
+    units, mol, temp, press, wn, cs = io.read_opacity(cs_file, extract='all')
+    interp_cs = pt.interpolate_opacity(cs_file, temp, press)
+    np.testing.assert_allclose(interp_cs, cs)
+
+
+def test_interpolate_opacity_wn_mask():
+    cs_file = 'outputs/exttable_test_300-3000K_1.1-1.7um.npz'
+    units, mol, temp, press, wn, cs = io.read_opacity(cs_file, extract='all')
+    wn_mask = (wn>=6000) & (wn<=8000)
+    interp_cs = pt.interpolate_opacity(
+        cs_file, temp, press, wn_mask,
+    )
+    np.testing.assert_allclose(interp_cs, cs[:,:,wn_mask])
+
+
+def test_interpolate_opacity_thin_no_interp():
+    cs_file = 'outputs/exttable_test_300-3000K_1.1-1.7um.npz'
+    units, mol, temp, press, wn, cs = io.read_opacity(cs_file, extract='all')
+    thin = 10
+    interp_cs = pt.interpolate_opacity(
+        cs_file, temp, press, wn_thinning=thin,
+    )
+    np.testing.assert_allclose(interp_cs, cs[:,:,::thin])
+
+
+def test_interpolate_opacity_mask_thin():
+    cs_file = 'outputs/exttable_test_300-3000K_1.1-1.7um.npz'
+    units, mol, temp, press, wn, cs = io.read_opacity(cs_file, extract='all')
+    wn_mask = (wn>=6000) & (wn<=8000)
+    thin = 10
+    interp_cs = pt.interpolate_opacity(
+        cs_file, temp, press, wn_mask, wn_thinning=thin,
+    )
+    expected_cs = cs[:,:,wn_mask][:,:,::thin]
+    np.testing.assert_allclose(interp_cs, expected_cs)
+
+
+def test_interpolate_opacity_interp_pressure():
+    nlayers = 30
+    pressure = pa.pressure('1e-6 bar', '100 bar', nlayers)
+
+    cs_file = 'outputs/exttable_test_300-3000K_1.1-1.7um.npz'
+    units, mol, temp, press, wn, cs = io.read_opacity(cs_file, extract='all')
+    interp_cs = pt.interpolate_opacity(cs_file, pressure=pressure)
+
+    assert np.shape(interp_cs)[1] == nlayers
+    # Test at a couple of temperatures and wavelengths:
+    expected_cs = np.array([
+        [5.92566023e-26, 5.92565551e-26, 5.92564958e-26, 5.92563482e-26,
+         5.92560574e-26, 5.92554660e-26, 5.92547283e-26, 5.92528990e-26,
+         5.92491873e-26, 5.92417888e-26, 5.92326396e-26, 5.92098186e-26,
+         5.91629279e-26, 5.90712317e-26, 5.89075610e-26, 5.86754051e-26,
+         5.81246161e-26, 5.76505047e-26, 5.64946021e-26, 5.55980465e-26,
+         5.59081898e-26, 6.27324165e-26, 9.07946909e-26, 1.29201598e-25,
+         2.15227523e-25, 3.38136879e-25, 4.90213359e-25, 6.43484491e-25,
+         7.78937270e-25, 8.45196207e-25,],
+        [7.99344228e-29, 1.58051249e-28, 3.12496276e-28, 5.07069578e-28,
+         1.00260885e-27, 1.98241989e-27, 3.91976274e-27, 6.36011974e-27,
+         1.25756188e-26, 2.48652858e-26, 4.91651609e-26, 8.03199848e-26,
+         1.57734543e-25, 3.11882038e-25, 6.16725245e-25, 1.21930905e-24,
+         1.97852367e-24, 3.91205282e-24, 7.73155638e-24, 1.52650808e-23,
+         2.46737334e-23, 4.79329029e-23, 8.89280064e-23, 1.41347266e-22,
+         1.69785981e-22, 1.85973580e-22, 1.96622556e-22, 2.11733492e-22,
+         2.13227106e-22, 2.02197710e-22,],
+        [2.31234457e-22, 2.31234469e-22, 2.31234493e-22, 2.31234535e-22,
+         2.31234596e-22, 2.31234747e-22, 2.31235043e-22, 2.31235613e-22,
+         2.31236414e-22, 2.31238243e-22, 2.31241919e-22, 2.31249015e-22,
+         2.31259579e-22, 2.31281700e-22, 2.31326302e-22, 2.31412848e-22,
+         2.31539706e-22, 2.31768085e-22, 2.32167475e-22, 2.32653287e-22,
+         2.32449800e-22, 2.30536535e-22, 2.20348828e-22, 1.90167491e-22,
+         1.40339825e-22, 1.03589827e-22, 6.50560475e-23, 4.49275390e-23,
+         3.51648074e-23, 3.02399033e-23,],
+        [6.44488523e-23, 6.44488985e-23, 6.44489981e-23, 6.44492001e-23,
+         6.44495982e-23, 6.44504077e-23, 6.44514177e-23, 6.44539220e-23,
+         6.44590023e-23, 6.44691353e-23, 6.44816694e-23, 6.45129658e-23,
+         6.45774061e-23, 6.47039470e-23, 6.48590732e-23, 6.52584558e-23,
+         6.60646759e-23, 6.76375608e-23, 7.06159853e-23, 7.46253554e-23,
+         8.45932064e-23, 1.03985439e-22, 1.42254460e-22, 1.91218996e-22,
+         3.06939730e-22, 4.84291870e-22, 6.51458661e-22, 7.00039311e-22,
+         6.55004810e-22, 5.31007024e-22,]
+    ])
+    i_temps = [1,3,7,9]
+    i_wave = [2234, 837, 2525, 1091]
+    for i in range(4):
+        j = i_temps[i]
+        k = i_wave[i]
+        np.testing.assert_allclose(interp_cs[j,:,k], expected_cs[i])
+
+
+def test_interpolate_opacity_interp_temperature_pressure():
+    cs_file = 'outputs/exttable_test_300-3000K_1.1-1.7um.npz'
+    units, mol, temp, press, wn, cs = io.read_opacity(cs_file, extract='all')
+    nlayers = 30
+    pressure = pa.pressure('1e-6 bar', '100 bar', nlayers)
+    temperature = temp[1::2]
+    ntemps = len(temperature)
+
+    interp_cs = pt.interpolate_opacity(cs_file, temperature, pressure)
+    cs_shape = np.shape(interp_cs)
+    assert cs_shape[0] == ntemps
+    assert cs_shape[1] == nlayers
+    # Test at a couple of temperatures and wavelengths:
+    expected_cs = np.array([
+        [5.92566023e-26, 5.92565551e-26, 5.92564958e-26, 5.92563482e-26,
+         5.92560574e-26, 5.92554660e-26, 5.92547283e-26, 5.92528990e-26,
+         5.92491873e-26, 5.92417888e-26, 5.92326396e-26, 5.92098186e-26,
+         5.91629279e-26, 5.90712317e-26, 5.89075610e-26, 5.86754051e-26,
+         5.81246161e-26, 5.76505047e-26, 5.64946021e-26, 5.55980465e-26,
+         5.59081898e-26, 6.27324165e-26, 9.07946909e-26, 1.29201598e-25,
+         2.15227523e-25, 3.38136879e-25, 4.90213359e-25, 6.43484491e-25,
+         7.78937270e-25, 8.45196207e-25,],
+        [7.99344228e-29, 1.58051249e-28, 3.12496276e-28, 5.07069578e-28,
+         1.00260885e-27, 1.98241989e-27, 3.91976274e-27, 6.36011974e-27,
+         1.25756188e-26, 2.48652858e-26, 4.91651609e-26, 8.03199848e-26,
+         1.57734543e-25, 3.11882038e-25, 6.16725245e-25, 1.21930905e-24,
+         1.97852367e-24, 3.91205282e-24, 7.73155638e-24, 1.52650808e-23,
+         2.46737334e-23, 4.79329029e-23, 8.89280064e-23, 1.41347266e-22,
+         1.69785981e-22, 1.85973580e-22, 1.96622556e-22, 2.11733492e-22,
+         2.13227106e-22, 2.02197710e-22,],
+        [2.31234457e-22, 2.31234469e-22, 2.31234493e-22, 2.31234535e-22,
+         2.31234596e-22, 2.31234747e-22, 2.31235043e-22, 2.31235613e-22,
+         2.31236414e-22, 2.31238243e-22, 2.31241919e-22, 2.31249015e-22,
+         2.31259579e-22, 2.31281700e-22, 2.31326302e-22, 2.31412848e-22,
+         2.31539706e-22, 2.31768085e-22, 2.32167475e-22, 2.32653287e-22,
+         2.32449800e-22, 2.30536535e-22, 2.20348828e-22, 1.90167491e-22,
+         1.40339825e-22, 1.03589827e-22, 6.50560475e-23, 4.49275390e-23,
+         3.51648074e-23, 3.02399033e-23,],
+        [6.44488523e-23, 6.44488985e-23, 6.44489981e-23, 6.44492001e-23,
+         6.44495982e-23, 6.44504077e-23, 6.44514177e-23, 6.44539220e-23,
+         6.44590023e-23, 6.44691353e-23, 6.44816694e-23, 6.45129658e-23,
+         6.45774061e-23, 6.47039470e-23, 6.48590732e-23, 6.52584558e-23,
+         6.60646759e-23, 6.76375608e-23, 7.06159853e-23, 7.46253554e-23,
+         8.45932064e-23, 1.03985439e-22, 1.42254460e-22, 1.91218996e-22,
+         3.06939730e-22, 4.84291870e-22, 6.51458661e-22, 7.00039311e-22,
+         6.55004810e-22, 5.31007024e-22,]
+    ])
+    i_temps = [0,1,3,4]
+    i_wave = [2234, 837, 2525, 1091]
+    for i in range(4):
+        j = i_temps[i]
+        k = i_wave[i]
+        np.testing.assert_allclose(interp_cs[j,:,k], expected_cs[i])
+
+
+def test_interpolate_opacity_interp_and_wn_masking():
+    cs_file = 'outputs/exttable_test_300-3000K_1.1-1.7um.npz'
+    units, mol, temp, press, wn, cs = io.read_opacity(cs_file, extract='all')
+    nlayers = 30
+    pressure = pa.pressure('1e-6 bar', '100 bar', nlayers)
+    temperature = temp[1::2]
+    ntemps = len(temperature)
+    wn_mask = (wn>=6000) & (wn<=8000)
+    thin = 10
+    expected_wn = wn[wn_mask][::thin]
+    nwave = len(expected_wn)
+
+    interp_cs = pt.interpolate_opacity(
+        cs_file, temperature, pressure, wn_mask, wn_thinning=thin,
+    )
+    cs_shape = np.shape(interp_cs)
+    assert cs_shape[0] == ntemps
+    assert cs_shape[1] == nlayers
+    assert cs_shape[2] == nwave
+    # Test at a couple of temperatures and wavelengths:
+    expected_cs = np.array([
+        [7.74448417e-25, 7.74464911e-25, 7.74485639e-25, 7.74537253e-25,
+         7.74638920e-25, 7.74845698e-25, 7.75103589e-25, 7.75743079e-25,
+         7.77039922e-25, 7.79625009e-25, 7.82820195e-25, 7.90791250e-25,
+         8.07133193e-25, 8.39036390e-25, 8.96065534e-25, 9.76402641e-25,
+         1.16593626e-24, 1.50914368e-24, 2.08618034e-24, 2.68815554e-24,
+         3.68264421e-24, 4.54668842e-24, 4.75500526e-24, 4.26593708e-24,
+         3.31417224e-24, 2.77563774e-24, 2.93613872e-24, 3.31473243e-24,
+         3.60918512e-24, 3.63204895e-24,],
+        [8.93169626e-30, 1.76602983e-29, 3.49143743e-29, 5.66588373e-29,
+         1.12029303e-28, 2.21511230e-28, 4.37985651e-28, 7.10665765e-28,
+         1.40517193e-27, 2.77839227e-27, 5.49360692e-27, 8.97477883e-27,
+         1.76254223e-26, 3.48505046e-26, 6.89085295e-26, 1.36217750e-25,
+         2.23377669e-25, 4.44885692e-25, 8.85073150e-25, 1.75342161e-24,
+         2.87171732e-24, 5.92105094e-24, 1.28200364e-23, 2.58533151e-23,
+         4.14267121e-23, 7.62105540e-23, 1.28913002e-22, 1.93630010e-22,
+         2.37083156e-22, 2.41601263e-22,],
+        [4.40350514e-23, 4.40352507e-23, 4.40356427e-23, 4.40363370e-23,
+         4.40373532e-23, 4.40398517e-23, 4.40447418e-23, 4.40541591e-23,
+         4.40674028e-23, 4.40976390e-23, 4.41584836e-23, 4.42761322e-23,
+         4.44517523e-23, 4.48215336e-23, 4.55747585e-23, 4.70685628e-23,
+         4.93423961e-23, 5.37457336e-23, 6.28010896e-23, 8.05564734e-23,
+         1.13515248e-22, 1.51887332e-22, 2.40781605e-22, 3.97110617e-22,
+         6.54022521e-22, 8.85314276e-22, 1.09824343e-21, 1.06357094e-21,
+         9.35551345e-22, 8.40289164e-22,],
+        [5.29568118e-24, 5.29571174e-24, 5.29577759e-24, 5.29591128e-24,
+         5.29617462e-24, 5.29671000e-24, 5.29737831e-24, 5.29903506e-24,
+         5.30239596e-24, 5.30909906e-24, 5.31739040e-24, 5.33809588e-24,
+         5.38071144e-24, 5.46435422e-24, 5.56691213e-24, 5.83095626e-24,
+         6.36215042e-24, 7.39628648e-24, 9.36555832e-24, 1.19730996e-23,
+         1.84127607e-23, 3.06841533e-23, 5.28102844e-23, 7.53554311e-23,
+         1.09576636e-22, 1.30047451e-22, 1.35644410e-22, 1.39477466e-22,
+         1.47766760e-22, 1.56840584e-22,]
+    ])
+    i_temps = [0, 1, 3, 4]
+    i_wave = [50, 75, 100, 125]
+    for i in range(4):
+        j = i_temps[i]
+        k = i_wave[i]
+        np.testing.assert_allclose(interp_cs[j,:,k], expected_cs[i])
+
+
+
+def test_interpolate_opacity_extrapolate():
+    nlayers = 30
+    pressure = pa.pressure('1e-12 bar', '100 bar', nlayers)
+
+    cs_file = 'outputs/exttable_test_300-3000K_1.1-1.7um.npz'
+    units, mol, temp, press, wn, cs = io.read_opacity(cs_file, extract='all')
+    interp_cs = pt.interpolate_opacity(cs_file, pressure=pressure)
+
+    p_mask = pressure < np.amin(press)
+    # Everything above min(press_table) is the same:
+    relative_diff = interp_cs[:,p_mask]/cs[:,0:1]
+    expected_diff = np.ones_like(relative_diff)
+    np.testing.assert_allclose(relative_diff, expected_diff, rtol=1e-8)
+    
+
+def test_none_div_no_num():
+    div = pt.none_div(None, 1.0)
+    assert div is None
+
+
+def test_none_div_no_den():
+    div = pt.none_div(1.0, None)
+    assert div is None
+
+
+def test_none_div_all_good():
+    div = pt.none_div(1.0, 2.0)
+    np.testing.assert_allclose(div, 0.5)
+
+
 def test_depth_to_radius_scalar():
     depth = 1.44
     depth_err = 0.6
@@ -387,19 +746,6 @@ def test_radius_to_depth_iterable(func):
     np.testing.assert_allclose(depth_err, (0.6,0.9))
 
 
-@pytest.mark.parametrize('flag, output', [(False,1), (True,None)])
-def test_ignore_system_exit(flag, output):
-    @pt.ignore_system_exit
-    def dummy_function(flag):
-        if flag:
-            sys.exit()
-        return 1
-    if flag:
-        assert dummy_function(flag) is None
-    else:
-        assert dummy_function(flag) == 1
-
-
 def test_Namespace_get_path_str():
     ns = pt.Namespace({'path':'file0'})
     assert ns.get_path('path') == os.getcwd() + '/file0'
@@ -417,8 +763,8 @@ def test_Namespace_get_path_root():
 
 
 def test_Namespace_get_path_non_existing():
-    ns = pt.Namespace({'path':'file0'})
-    with pytest.raises(SystemExit):
+    ns = pt.Namespace({'path': 'file0'})
+    with pytest.raises(ValueError):
         ns.get_path('path', desc='Configuration', exists=True)
 
 
@@ -441,6 +787,36 @@ def test_parse_int_fail(var):
     with pytest.raises(ValueError, match="Invalid data type for par, "
         "could not convert string to integer: '{:s}'".format(var)):
         pt.parse_int(args, 'par')
+
+
+@pytest.mark.parametrize('var', ['True', 'true', '1', 'yes'])
+def test_parse_bool_true(var):
+    args = {'par': var}
+    pt.parse_bool(args, 'par')
+    assert args['par'] is True
+
+
+@pytest.mark.parametrize('var', ['False', 'false', '0', 'no'])
+def test_parse_bool_false(var):
+    args = {'par': var}
+    pt.parse_bool(args, 'par')
+    assert args['par'] is False
+
+
+def test_parse_bool_default():
+    args = {'different_par': 'True'}
+    pt.parse_bool(args, 'par')
+    assert args['par'] is False
+
+
+def test_parse_bool_raise():
+    args = {'par': 'yes, please!'}
+    match = re.escape(
+        "Invalid data type for parameter 'par', could not convert string "
+        "'yes, please!'to bool"
+    )
+    with pytest.raises(ValueError, match=match):
+        pt.parse_bool(args, 'par')
 
 
 @pytest.mark.parametrize('var, val',
@@ -497,3 +873,93 @@ def test_parse_none(parser):
     args = {}
     pt.parse_array(args, 'par')
     assert args['par'] is None
+
+
+
+def test_weighted_to_equal_default():
+    posterior = pt.weighted_to_equal('inputs/multinest_output.txt')
+    assert posterior.shape == (15000,2)
+    # Not the highest tolerance because there's a rng in between:
+    np.testing.assert_allclose(np.median(posterior), -2.470685, rtol=0.05)
+    np.testing.assert_allclose(np.std(posterior), 1.4980580, rtol=0.05)
+
+
+def test_weighted_to_equal_with_weighted():
+    posterior, weighted = pt.weighted_to_equal(
+        'inputs/multinest_output.txt',
+        get_weighted=True,
+    )
+    assert posterior.shape == (15000,2)
+    assert weighted.shape == (1825,2)
+
+
+def test_weighted_to_equal_with_size():
+    posterior, weighted = pt.weighted_to_equal(
+        'inputs/multinest_output.txt',
+        get_weighted=True,
+        min_size=0,
+    )
+    assert posterior.shape == (1825,2)
+    assert weighted.shape == (1825,2)
+
+
+def test_get_multinest_map_1mode():
+    bestp = pt.get_multinest_map('inputs/multinest_outputstats.txt')
+    expected_bestp = np.array([
+        -4.45678543, -0.873886357,  1352.33371, -3.35902318, -3.43078850,
+    ])
+    np.testing.assert_allclose(bestp, expected_bestp)
+
+
+def test_get_multinest_map_2modes():
+    bestp = pt.get_multinest_map('inputs/multinest_outputstats_2modes.txt')
+    expected_bestp = np.array([
+        472.225158, 2.53499615, -0.102761300, 1.47440028, -1.39857495,
+    ])
+    np.testing.assert_allclose(bestp, expected_bestp)
+
+
+def test_loglike():
+    pyrat = pb.Pyrat('configs/mcmc_transmission_test.cfg', log=False)
+    loglike = pt.Loglike(pyrat)
+
+    # For the log_like, free parameters only
+    ifree = pyrat.ret.pstep > 0
+    free_pars = pyrat.ret.params[ifree]
+    like = loglike(free_pars)
+    np.testing.assert_allclose(like, -1627.6479269805086)
+
+    # A non-physical model
+    free_pars[3] = -1.0
+    like = loglike(free_pars)
+    np.testing.assert_allclose(like, -1e+98)
+
+    # Now with better-fitting parameters:
+    # map_pars = np.array([
+    #     -4.4567854, -0.87388636, 1352.3337, -3.3590232, -3.4307885,
+    # ])
+    # like = loglike(map_pars)
+    # np.testing.assert_allclose(like, -1627.5530504136932)
+
+
+def test_get_mpi_rank():
+    # In reallyty we would like to call this with mpirun, but
+    # that needs to be configured in Github Actions, which is work
+    os.environ['PBAY_NO_MPI'] = "1"
+    rank = pt.get_mpi_rank()
+    assert rank == 0
+
+
+def test_get_mpi_size():
+    # In reallyty we would like to call this with mpirun, but
+    # that needs to be configured in Github Actions, which is work
+    os.environ['PBAY_NO_MPI'] = "1"
+    size = pt.get_mpi_size()
+    assert size == 1
+
+
+def test_mpi_barrier():
+    # In reallyty we would like to call this with mpirun, but
+    # that needs to be configured in Github Actions, which is work
+    os.environ['PBAY_NO_MPI'] = "1"
+    pt.mpi_barrier()

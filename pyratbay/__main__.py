@@ -1,11 +1,9 @@
 #! /usr/bin/env python
-
-# Copyright (c) 2021 Patricio Cubillos
-# Pyrat Bay is open-source software under the GNU GPL-2.0 license (see LICENSE)
+# Copyright (c) 2021-2025 Cubillos & Blecic
+# Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import argparse
 import matplotlib
-matplotlib.use('Agg')
 
 import pyratbay as pb
 
@@ -34,29 +32,47 @@ def main():
     pbay -cs hitran H2-H2_2011.cia 2 10
     pbay -cs borysow ciah2he_dh_quantmech H2 He
     """
+    matplotlib.use('Agg')
     # Parse configuration file:
     parser = argparse.ArgumentParser(
         description=__doc__,
         add_help=True,
-        formatter_class=argparse.RawDescriptionHelpFormatter)
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
     parser.add_argument(
-        '-v', '--version', action='version',
+        '-v', '--version',
+        action='version',
         help="Show Pyrat Bay's version.",
-        version=f'Pyrat Bay version {pb.__version__}')
+        version=f'Pyrat Bay version {pb.__version__}',
+    )
     parser.add_argument(
-        '--root', action='version',
+        '--root',
+        action='version',
         help="Show Pyrat Bay's ROOT directory.",
-        version=pb.constants.ROOT)
+        version=pb.constants.ROOT,
+    )
     group = parser.add_mutually_exclusive_group()
     group.add_argument(
         '-c', dest='cfile', default=None,
-        help='Run Pyrat Bay for given configuration file.')
+        help='Run Pyrat Bay for given configuration file.',
+    )
+    group.add_argument(
+        '--post', dest='post', default=None,
+        help='Post-processing posterior data after a retrieval run.',
+    )
     group.add_argument(
         '-pf', dest='pf', default=None, nargs='+',
-        help='Format a partition-function file.')
+        help='Format a partition-function file.',
+    )
     group.add_argument(
         '-cs', dest='cs', default=None, nargs='+',
-        help='Format a cross-section file.')
+        help='Format a cross-section file.',
+    )
+
+    parser.add_argument(
+        '-suf', dest='suffix', default=None,
+        help='Suffix for post-processed file.',
+    )
 
     # Parse command-line args:
     args, unknown = parser.parse_known_args()
@@ -65,20 +81,35 @@ def main():
     if args.pf is not None:
         outfile = 'default'
         if args.pf[0] == 'exomol':
-            pb.opacity.partitions.exomol(args.pf[1:], outfile=outfile)
+            pb.opacity.partitions.exomol_pf(args.pf[1:], outfile=outfile)
+        elif args.pf[0] == 'states':
+            tmin = float(args.pf[1])
+            tmax = float(args.pf[2])
+            tstep = float(args.pf[3])
+            state_files = args.pf[4:]
+            pb.opacity.partitions.exomol_states(
+                state_files, tmin, tmax, tstep, outfile=outfile,
+            )
+        elif args.pf[0] == 'tips':
+            molecule = args.pf[1]
+            pb.opacity.partitions.tips(molecule, outfile=outfile)
         elif args.pf[0] == 'kurucz':
             pb.opacity.partitions.kurucz(args.pf[1], outfile=outfile)
-        elif args.pf[0] == 'tips':
-            dbtype = args.pf[2] if len(args.pf) > 2 else 'as_tips'
-            pb.opacity.partitions.tips(
-                args.pf[1], outfile=outfile, db_type=dbtype)
         else:
             print('Invalid partition-function type.')
 
     # Cross-section reformatting:
     elif args.cs is not None:
         if args.cs[0] == 'hitran':
-            pb.tools.cia_hitran(args.cs[1], int(args.cs[2]), int(args.cs[3]))
+            if len(args.cs) < 3:
+                t_step = 1
+            else:
+                t_step = int(args.cs[2])
+            if len(args.cs) < 4:
+                wn_step = 1
+            else:
+                wn_step = int(args.cs[3])
+            pb.tools.cia_hitran(args.cs[1], t_step, wn_step)
         elif args.cs[0] == 'borysow':
             pb.tools.cia_borysow(*args.cs[1:])
         else:
@@ -87,6 +118,11 @@ def main():
     # Pyrat-Bay run:
     elif args.cfile is not None:
         pb.run(args.cfile)
+
+    # Post processing:
+    elif args.post is not None:
+        suffix = '' if args.suffix is None else args.suffix
+        pb.tools.posterior_post_processing(cfg_file=args.post, suffix=suffix)
 
 
 if __name__ == '__main__':

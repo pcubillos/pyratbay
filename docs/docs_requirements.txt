@@ -1,0 +1,5 @@
+furo==2023.9.10
+nbsphinx
+sphinx_copybutton
+ipython>=8.17
+sphinx-design

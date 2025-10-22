@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Patricio Cubillos
+# Copyright (c) 2021-2025 Cubillos & Blecic
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 """
@@ -8,17 +8,13 @@ Atmospheric modeling functions.
 from .atmosphere import *
 from .vmr_scaling import *
 from . import tmodels
-from . import clouds
-from . import rayleigh
-from . import alkali
+from . import vmr_models
 
 __all__ = (
     atmosphere.__all__
-  + vmr_scaling.__all__
-  + ['tmodels']
-  + ['clouds']
-  + ['rayleigh']
-  + ['alkali']
+    + vmr_scaling.__all__
+    + ['tmodels']
+    + ['vmr_models']
 )
 
 

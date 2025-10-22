@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Patricio Cubillos
+# Copyright (c) 2021-2025 Cubillos & Blecic
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -41,9 +41,6 @@ def read_kurucz(filename, temp=None, logg=None):
         Surface temperature of the output models (in Kelvin degrees).
     klogg: Scalar or 1D float ndarray
         log10 of the stellar surface gravity of the output models (in cm s-2).
-    continuum: 2D ndarray
-        The models' fluxes with no line absorption.  Same units and
-        shape of flux. Returned only if temp and logg are None.
 
     Examples
     --------
@@ -58,7 +55,7 @@ def read_kurucz(filename, temp=None, logg=None):
     >>> gsun = 4.44    # Sun's surface gravity (log)
     >>> flux, wn, ktemp, klogg = ps.read_kurucz(kfile, tsun, gsun)
     >>> # Compute brightness at 1 AU from a 1 Rsun radius star:
-    >>> s = np.trapz(flux, wn) * (pc.rsun/pc.au)**2
+    >>> s = np.trapezoid(flux, wn) * (pc.rsun/pc.au)**2
     >>> print("Solar constant [T={:.0f} K, logg={:.1f}]:  S = {:.1f} W m-2".
     >>>       format(ktemp, klogg, s * 1e-3))
     Solar constant [T=5750 K, logg=4.5]:  S = 1340.0 W m-2
@@ -72,20 +69,24 @@ def read_kurucz(filename, temp=None, logg=None):
     with open(filename, 'r') as f:
         lines = f.readlines()
 
-    iheaders = [i for i,line in enumerate(lines) if line.startswith('TEFF')]
+    iheaders = [
+        i
+        for i,line in enumerate(lines)
+        if line.startswith('TEFF')
+    ]
     headers = [lines[i].strip() for i in iheaders]
     ktemp = np.array([line[ 5:12] for line in headers], np.double)
     klogg = np.array([line[22:29] for line in headers], np.double)
 
-    # Get wavelength array (in nm):
+    # Get wavelength array (originally in nm):
     i = 0
     while lines[i].strip() != 'END':
         i += 1
     wl_start = i + 1
     wl_end = iheaders[0]
     wavelength = np.array(''.join(lines[wl_start:wl_end]).split(), np.double)
-    wavenumber = 1.0/(wavelength*pc.nm)
     # Sort by increasing wavenumber:
+    wavenumber = 1.0/(wavelength*pc.nm)
     wavenumber = np.flip(wavenumber, axis=0)
 
     nmodels = len(headers)
@@ -114,9 +115,8 @@ def read_kurucz(filename, temp=None, logg=None):
     # Convert intensity per unit frequency to surface flux per unit
     # wavenumber (erg s-1 cm-2 cm):
     flux = np.flip(intensity, axis=1) * 4.0*np.pi * pc.c
-    continuum = np.flip(continuum, axis=1) * 4.0*np.pi * pc.c
 
     if temp is not None and logg is not None:
         return flux[0], wavenumber, tmodel, gmodel
 
-    return flux, wavenumber, ktemp, klogg, continuum
+    return flux, wavenumber, ktemp, klogg
