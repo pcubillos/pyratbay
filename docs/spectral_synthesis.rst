@@ -13,140 +13,105 @@
 .. |f|    replace:: :math:`\log(f)`
 .. |nu|   replace:: :math:`\nu`
 
-.. _spectutorial:
 
-Spectrum Tutorial
-=================
+.. _spectral_synthesis:
 
-This run mode computes a transmission or emission spectrum, for a
-given atmospheric model.
+Spectral Synthesis
+==================
+
+This tutorial shows how compute transmission, emission, or eclipse
+spectra with ``Pyrat Bay``. 
+
+- :ref:`spec_config`
+- :ref:`spec_system`
+- :ref:`spec_star`
+- :ref:`spec_wavelength`
+- :ref:`spec_observations`
+- :ref:`spec_atmosphere`
+- :ref:`spec_opacities`
+- :ref:`spec_parameters`
+- :ref:`spec_demo`
 
 
-Sample Configuration File
--------------------------
+.. _spec_config:
 
-Here is a sample configuration file to compute a transmission spectrum (`spectrum_transmission.cfg
-<https://github.com/pcubillos/pyratbay/blob/master/examples/tutorial/spectrum_transmission.cfg>`_):
-
-.. literalinclude:: ../examples/tutorial/spectrum_transmission.cfg
-
-
-Observing Geometry
+Configuration File
 ------------------
 
-The ``rt_path`` key determines the radiative-transfer scheme and
-observing geometry.  The following table list the available options:
-
-=========== ===================== ===================== ===========
-``rt_path`` Observing geometry    Output spectrum       Units
-=========== ===================== ===================== ===========
-transit     Transmission geometry (|Rp|/|Rs|)\ :sup:`2` ---
-emission    Emission geometry     |Fp|                  erg s\ :sup:`-1` cm\ :sup:`-2` cm
-=========== ===================== ===================== ===========
-
-For transmission geometry ``Pyrat Bay`` computes the transit depth,
-assuming parallel rays that travel from the star to the observer
-across the planetary atmosphere, which is composed of spherically
-symmetric shell layers.
-For emission geometry, ``Pyrat Bay`` computes the planetary flux
-emission spectrum, adopting the plane-parallel approximation,
-evaluating the emergent intensity at multiple angles with respect to
-the normal, and integrating the intensities over the planetary
-hemisphere.  For more details, see [CubillosBlecic2021]_.
+To compute spectra, use a configuration file with the ``runmode`` key
+set to ``spectrum``.  Spectrum runs also require a ``logfile`` key,
+which sets the name of the output log and spectrum files.
 
 
-Atmospheric Model
------------------
+**Observing Geometry**
 
-The ``atmfile`` key sets the input atmospheric model from which to
-compute the spectrum.  If the file pointed by ``atmfile`` does not
-exist, the codel will attempt to produce it (provided all necessary
-input parameters are set in the configuration file).  The atmospheric
-model can be produced with ``Pyrat Bay`` or be a custom input from the
-user (as long as it follows the right format, see the `API <file:///home/pcubillos/Dropbox/IWF/projects/2014_pyratbay/sphinxdoc-pyratbay/html/api.html#pyratbay.io.write_atm>`_).
+The ``rt_path`` key sets the radiative-transfer scheme and observing
+geometry to use.  These are the options:
 
 
-Spectrum Sampling
------------------
+.. list-table::
+   :header-rows: 1
+   :widths: 5, 10, 20, 30
 
-The ``wllow`` and ``wlhigh`` keys set the wavelength boundaries for
-the output spectrum (values must contain units; otherwise, set the
-units with the ``wlunits`` key).  Alternatively, the user can set the
-spectrum boundaries by wavenumber using the ``wnlow`` and ``wnhigh``
-keys (wavenumber keys are always in |kayser|; thus, the user should
-not provide units for them).
+   * - Observing geometry
+     - ``rt_path``
+     - Output spectrum
+     - Comments
 
-By default, the code produces an output spectrum at
-constant-wavenumber sampling rate.  The ``wnstep`` sets the sampling
-rate in |kayser|.  Note that this will be the output sampling rate.
-Internally, ``Pyrat Bay`` must compute line profiles at a higher
-resolution to ensure not to undersample the line profiles.  The
-``wnosamp`` key (an integer) sets the oversampling factor of the
-high-resolution sampling relative to ``wnstep`` (that is, the
-high-resolution sampling rate is ``wnstep/wnosamp``).  Typical values
-for the optical/IR are ``wnstep = 1.0`` and ``wnosamp = 2000``.
+   * - Transmission
+     - ``transit``
+     - (|Rp|/|Rs|)\ :sup:`2`
+     - Transmission spectrum
 
-.. https://en.wikipedia.org/wiki/Highly_composite_number
+   * - Eclipse
+     - ``eclipse``
+     - |Fp|/|Fs|
+     - Occultation spectrum
 
+   * - Eclipse
+     - ``eclipse_two_stream``
+     - |Fp|/|Fs|
+     - Occultation spectrum
 
-Alternatively, the user can request a constant-resolution output by
-setting the ``resolution`` key (where the resolution is
-:math:`R=\lambda/\Delta\lambda`).  Note that in this case, the
-configuration file must still define ``wnstep`` and ``wnosamp``.
+   * - Emission
+     - ``emission``
+     - |Fp| (erg s\ :sup:`-1` cm\ :sup:`-2` cm)
+     - Flux at the planet's surface
 
+   * - Emission
+     - ``emission_two_stream``
+     - |Fp| (erg s\ :sup:`-1` cm\ :sup:`-2` cm)
+     - Flux at the planet's surface
 
-Voigt Profiles
---------------
-
-To speed up calculations, ``Pyrat Bay`` pre-computes a grid of Voigt
-profiles at a fixed grid of Doppler and Lorentz half-width at half
-maximum (HWHM).  When computing the LBL opacities, the code selects
-the closest profile to a given line, depending on the line properties.
-
-The grid properties are set automatically by the code (based on the
-input atmosphere properties), so the user does not need to set them.
-However, these values can be set configuration file.
-The user can thus set the ``dmin``, ``dmax``, and ``ndop`` keys to set
-the ranges and number of samples for the Doppler HWHM array (in
-|kayser| units).  Similarly, the ``lmin``, ``lmax``, and ``nlor`` keys
-set the ranges and number of samples for the Lorentz HWHM array (in
-|kayser| units).
-
-Finally, the ``vextent`` and ``vcutoff`` keys set the Voigt profiles
-extent from the center of the line.  ``vextent`` defines the maximum
-extent in units of HWHM (default is 100 HWHM), whereas ``vcutoff``
-defines the maximum extent in units of |kayser| (default is 25.0 |kayser|).
-For any given profile, the code truncates the line wing at the minimum
-value defined by ``vextent`` and ``vcutoff``.  A ``vcutoff`` value of
-zero results in no cutoff (``vextent`` still applies though).
-Note that there are no known physical grounds that set the extent of a
-line profile.  Typical (arbitrary) values found in the literature are
-on the order of ~100 HWHM and 25 |kayser|.
-
-The range of HWHM values can vary strongly with pressure, temperature,
-or wavelength, in particular the Lorentz HWHM as it is inversely
-proportional to pressure.  The following Figure, gives you an idea to
-set these values:
-
-.. figure:: ./figures/broadening.png
-   :width: 60%
-   :align: center
-
-   HCN HWHM variation with pressure, temperature, and wavelength in a
-   |H2|-dominated atmosphere (see legend).  Solid and dashed lines
-   denote the HWHM at 2500 and 500 K, respectively ([Cubillos2017b]_).
+   * - Emission
+     - ``f_lambda``
+     - |Fp| (W m\ :sup:`-2` μm\ :sup:`-1`)
+     - Flux measured at Earth
 
 
-.. dlratio
+Here is a sample configuration file to compute a
+transmission spectrum:
 
 
-System Parameters
+.. literalinclude:: ../examples/tutorial/spectrum_transmission.cfg
+   :language: ini
+   :caption: File `spectrum_transmission.cfg <../../_static/data/tutorial/spectrum_transmission.cfg>`__
+
+
+The output spectrum can be set with the ``specfile`` key, otherwise it
+is taken from the ``logfile`` name (replacing the `.log` file
+extension with `.dat`)
+
+
+.. _spec_system:
+
+System parameters
 -----------------
 
 The system parameters have multiple uses.
 
 Hill radius
-^^^^^^^^^^^
+~~~~~~~~~~~
 
 The ``mstar``, ``mplanet``, and ``smaxis`` keys set the stellar mass,
 planetary mass, and orbital semi-major axis.  If these keys are set in
@@ -157,15 +122,9 @@ larger than :math:`R_{\rm H}`, since they should not be
 gravitationally bound to the planet.
 
 
-Stellar spectrum
-^^^^^^^^^^^^^^^^
 
-The ``tstar`` key sets the stellar effective temperature, which can be
-used to define a stellar blackbody spectrum (|Fs|, see :ref:`starspec`).
-
-
-Radius Ratio
-^^^^^^^^^^^^
+Radius ratio
+~~~~~~~~~~~~
 
 To compute eclipse depths from the emission spectra (|Fp|), the user
 needs to set the ``rstar`` and ``rplanet`` keys, which define the
@@ -175,9 +134,146 @@ stellar and planetary radius.  The eclipse depths can then be computed as:
     {\rm Eclipse\ depth} = \frac{F_{\rm p}}{F_{\rm s}}
                   \left(\frac{R_{\rm p}}{R_{\rm s}}\right)^2
 
+The ``tstar`` key sets the stellar effective temperature, which can be
+used to define a stellar blackbody spectrum (|Fs|, see :ref:`starspec`).
 
-Line-by-line Opacities
-----------------------
+
+.. _spec_star:
+
+Stellar Spectrum
+----------------
+
+The stellar spectrum is required to compute eclipse depths as the
+planet-to-star flux spectrum (for transit calculations, a stellar
+spectrum is not required).  ``Pyrat Bay`` provides several options to
+set a stellar spectrum.
+
+.. tab-set::
+
+  .. tab-item:: Custom spectrum
+     :selected:
+  
+     Users can use their own custom stellar spectra via the
+     ``starspec`` argument.  This must point to a plain file file
+     containing a spectrum in two columns: the first column has the
+     wavelength array in microns, the second column has the flux
+     spectrum in erg s\ :sup:`-1` cm\ :sup:`-2` cm units.
+  
+     .. code-block:: ini
+  
+         # Custom stellar spectrum file
+         starspec = inputs/WASP18_spectrum.dat
+
+  .. tab-item:: Kurucz model
+  
+     Users can use a Kurucz stellar model [Castelli2003]_ via the
+     ``kurucz`` argument of the configuration file, pointing to a
+     Kurucz model.  These models can be downloaded from `this link
+     <http://kurucz.harvard.edu/grids/>`__.  The code selects the
+     correct Kurucz model based on the stellar temperature and surface
+     gravity values:
+  
+     .. code-block:: ini
+  
+         # Kurucz stellar spectrum
+         tstar = 5700
+         log_gstar = 4.5
+         kurucz = inputs/fp00k2odfnew.pck
+
+  .. tab-item:: Black body
+  
+     By defining the stellar effective temperature ``tstar``, the code
+     will adopt a blackbody spectrum for the star (unless the
+     ``starspec`` or ``kurucz`` arguments have been set).
+
+     .. code-block:: ini
+  
+         # Stellar effective temperature (K)
+         tstar = 5700
+
+
+.. _spec_atmosphere:
+
+Atmosphere Model
+----------------
+
+Users can choose to compute the 
+The ``atmfile`` key sets the input atmospheric model from which to
+compute the spectrum.  If the file pointed by ``atmfile`` does not
+exist, the codel will attempt to produce it (provided all necessary
+input parameters are set in the configuration file).  The atmospheric
+model can be produced with ``Pyrat Bay`` or be a custom input from the
+user.
+
+
+The user can re-compute the temperature profile of the atmosphere by
+specifying the ``tmodel`` and ``tpars`` keys (see :ref:`temp_profile`).
+
+Radius profile
+~~~~~~~~~~~~~~
+
+The ``radmodel`` key sets the model to compute the atmospheric
+layers's altitude assuming hydrostatic equilibrium.  This table shows
+the currently available models:
+
+=====================  =========================
+Models (``radmodel``)  Comments
+=====================  =========================
+hydro_m                Hydrostatic equilibrium with :math:`g(r)=GM/r^2`
+hydro_g                Hydrostatic equilibrium with constant gravity
+[undefined]            Take radius profile from input atmospheric file if exists
+=====================  =========================
+
+See the :ref:`altitude_profile` section for details.
+
+The ``refpressure``, ``rplanet``, ``mplanet`` and ``gplanet`` keys set
+the planetary reference pressure and radius level (:math:`p_0` and
+:math:`R_0`), the planetary mass (:math:`M_p`) and planetary surface
+gravity (:math:`g`), respectively.
+
+.. Note:: Note that the user can supply its own atmospheric altitude
+          profile (through the input atmospheric model), possibly not
+          in hydrostatic equilibrium.  In this case, do not set the
+          ``radmodel`` key.
+
+
+.. _spec_wavelength:
+
+Spectrum sampling
+-----------------
+
+The ``wllow`` and ``wlhigh`` keys set the wavelength boundaries for
+the output spectrum (values must contain units; otherwise, set the
+units with the ``wlunits`` key).
+
+
+The ``wnstep`` sets the sampling rate in |kayser|.  Note that this
+will be the output sampling rate.  Internally, ``Pyrat Bay`` must
+compute line profiles at a higher resolution to ensure not to
+undersample the line profiles.  The ``wnosamp`` key (an integer) sets
+the oversampling factor of the high-resolution sampling relative to
+``wnstep`` (that is, the high-resolution sampling rate is
+``wnstep/wnosamp``).  Typical values for the optical/IR are ``wnstep =
+1.0`` and ``wnosamp = 2000``.
+
+.. https://en.wikipedia.org/wiki/Highly_composite_number
+
+Alternatively, the user can request a constant-resolution output by
+setting the ``resolution`` key (where the resolution is
+:math:`R=\lambda/\Delta\lambda`).
+
+
+.. _spec_opacities:
+
+Opacities
+---------
+
+  - cross sections
+  - clouds
+
+
+Line-list data
+~~~~~~~~~~~~~~
 
 Use the ``tlifile`` key to include TLI file(s) containing LBL
 opacities (to create a TLI file, see :ref:`tlitutorial`).  The user
@@ -189,8 +285,8 @@ configuration file sets input LBL opacities through the ``extfile``
 
 .. _cia_opacity:
 
-Cross-section Opacities
------------------------
+Collision Induced Absorption
+----------------------------
 
 Use the ``csfile`` key to include opacities from cross-section files.
 A cross-section file contains opacity (in |kayser| amagat\ :sup:`-2`
@@ -231,11 +327,11 @@ For the **HITRAN** CIA database, ``Pyrat Bay`` provides these shell commands to 
 
 For the **Borysow** CIA database, the code provides already-formatted
 files for |H2|-|H2| in the 60--7000K and 0.6--500 um range \[`here
-<https://github.com/pcubillos/pyratbay/blob/master/pyratbay/data/CIA/CIA_Borysow_H2H2_0060-7000K_0.6-500um.dat>`_\]
+<https://github.com/pcubillos/pyratbay/blob/master/pyratbay/data/CIA/CIA_Borysow_H2H2_0060-7000K_0.6-500um.dat>`__\]
 (this file pieces together the tabulated |H2|-|H2| files described in
 the references above); and for |H2|-He in the 50--7000K and 0.5--31.25
 um range \[`here
-<https://github.com/pcubillos/pyratbay/blob/master/pyratbay/data/CIA/CIA_Borysow_H2He_0050-7000K_0.5-031um.dat>`_\]
+<https://github.com/pcubillos/pyratbay/blob/master/pyratbay/data/CIA/CIA_Borysow_H2He_0050-7000K_0.5-031um.dat>`__\]
 (this file was created using a re-implementation of the code described
 in the references above).  The user can access these files via the
 ``{ROOT}`` shortcut, as in the example below:
@@ -247,35 +343,8 @@ in the references above).  The user can access these files via the
         {ROOT}pyratbay/data/CIA/CIA_Borysow_H2He_0050-7000K_0.5-031um.dat
 
 
-Radius-profile Models
----------------------
-
-The ``radmodel`` key sets the model to compute the atmospheric
-layers's altitude assuming hydrostatic equilibrium.  This table shows
-the currently available models:
-
-=====================  =========================
-Models (``radmodel``)  Comments
-=====================  =========================
-hydro_m                Hydrostatic equilibrium with :math:`g(r)=GM/r^2`
-hydro_g                Hydrostatic equilibrium with constant gravity
-[undefined]            Take radius profile from input atmospheric file if exists
-=====================  =========================
-
-See the :ref:`altitude_profile` section for details.
-The ``refpressure``, ``rplanet``, ``mplanet`` and ``gplanet`` keys set
-the planetary reference pressure and radius level (:math:`p_0` and
-:math:`R_0`), the planetary mass (:math:`M_p`) and planetary surface
-gravity (:math:`g`), respectively.
-
-.. Note:: Note that the user can supply its own atmospheric altitude
-          profile (through the input atmospheric model), possibly not
-          in hydrostatic equilibrium.  In this case, do not set the
-          ``radmodel`` key.
-
-
-Alkali Opacity Models
----------------------
+Alkali Opacity
+~~~~~~~~~~~~~~
 
 Use the ``alkali`` key to include opacities from alkali species.
 Currently, the code provides the [Burrows2000]_ models for the sodium
@@ -294,8 +363,8 @@ This implementation adopts the line parameters from the VALD database
 
 .. _rayleigh_opacity:
 
-Rayleigh Opacity Models
------------------------
+Rayleigh Opacity
+~~~~~~~~~~~~~~~~
 
 The ``rayleigh`` key sets Rayleigh opacity models.  The following
 table lists the available Rayleigh model names:
@@ -337,8 +406,9 @@ expected for the |H2| molecule.
 
 .. _cloud_opacity:
 
-Cloud Opacity Models
---------------------
+
+Cloud Models
+~~~~~~~~~~~~
 
 Use the ``clouds`` key to include aerosol/haze/cloud opacities.
 Currently, the code provides simple gray cloud models (listed below),
@@ -375,7 +445,7 @@ atmosphere.
    one after the other in the config file.
 
 Patchy Cloud/Hazes
-------------------
+~~~~~~~~~~~~~~~~~~
 
 Set the ``fpatchy`` argument to compute transmission spectra from a
 linear combination of a clear and cloudy/hazy spectra.  The
@@ -390,7 +460,7 @@ For example, for a 45% cloudy / 55% clear atmosphere, set:
 
 
 Flux dilution factor
---------------------
+~~~~~~~~~~~~~~~~~~~~
 
 Set the ``f_dilution`` argument to set an flux dilution factor
 [Taylor2020]_, with values between 0--1, which compensates for
@@ -403,12 +473,6 @@ represents the fractional area of the hottest region on the planet
   # Flux dilution factor, value between [0--1]:
   f_dilution = 0.85
 
-
-Temperature Models
-------------------
-
-The user can re-compute the temperature profile of the atmosphere by
-specifying the ``tmodel`` and ``tpars`` keys (see :ref:`temp_profile`).
 
 
 Abundances Scaling
@@ -479,33 +543,10 @@ and oxygen, and 10x solar for all other metals:
   molpars = 1.0   1.5    1.5
 
 
-.. _starspec:
+.. _spec_observations:
 
-Stellar Spectrum
-----------------
-
-``Pyrat Bay`` provides several options to set a stellar spectrum.  The
-stellar spectrum is required to compute eclipse depths as the
-planet-to-star flux spectrum.  In order of precedence:
-
-The ``starspec`` key sets the path to a custom spectrum file
-containing a spectrum. This file should contain in the first column
-the wavelength array in microns, and in the second column the flux
-spectrum in erg s\ :sup:`-1` cm\ :sup:`-2` cm units.
-
-Alternatively, the user can use a Kurucz stellar model
-([Castelli2003]_) by setting the ``kurucz`` key to the path to a
-Kurucz model.  These models can be downloaded from this link:
-http://kurucz.harvard.edu/grids/ In this case, the code selects the
-correct Kurucz model based on the stellar temperature (``tstar`` key)
-and surface gravity (``log_gstar`` key).
-
-Finally, the user can set a blackbody stellar spectrum by setting the
-``tstar`` key with the stellar effective temperature (in Kelvin
-units).
-
-(MARCS and PHOENIX are TBI upon popular demand)
-
+Observations
+------------
 
 Filter Pass-bands
 -----------------
@@ -532,19 +573,20 @@ Use the ``dunits`` key to specify the units of the ``data`` and
           allow the code to plot these information if requested (see
           [link to plots]).
 
+.. _spec_parameters:
 
+Fitting parameters
+------------------
 
-Other Configuration Parameters
-------------------------------
 
 Number of CPUs
-^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~
 
 The ``ncpu`` key sets the number of CPUs to use when computing LBL
 opacities or when running retrievals (default: ``ncpu = 1``).
 
 Verbosity
-^^^^^^^^^
+~~~~~~~~~
 
 The ``verb`` key sets the screen-output and logfile verbosity level.
 Higher ``verb`` values will display increasingly levels of detail
@@ -560,42 +602,9 @@ according to the following table:
 3         Debug
 ========  =====================
 
-Log File
-^^^^^^^^
-
-Use the ``logfile`` key to set a file name where to save the screen
-outputs (same content as the screen output).  If this is not set by
-the user, the code will default the ``logfile`` to the output file of
-each corresponding ``runmode`` (changing the file extension to
-'*.log*').  The following table lists the files from where the code
-will take the default name for each ``runmode``:
-
-===========  =====================
-``runmode``  Default ``logfile`` name
-===========  =====================
-tli          ``tlifile``
-atmosphere   ``atmfile``
-spectrum     ``specfile``
-opacity      ``extfile``
-mcmc         ``mcmcfile``
-===========  =====================
-
-
-Optical-depth Cutoff
-^^^^^^^^^^^^^^^^^^^^
-
-The ``maxdepth`` key sets an optical-depth cutoff to stop the
-radiative-transfer calculations. Since there is little transmitted
-intensity through a layer when the optical depth is greater than one,
-layers where :math:`\tau \gg 1` won't impact on the resulting
-spectrum.  The default value of ``maxdepth = 10.0`` is thus an
-appropriate conservative value.
-
-.. what about ethresh?
-
 
 Plane-parallel Hemispheric Integration
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 For eclipse geometry, the code computes the emergent intensity under
 the plane-parallel approximation, and then it integrates (sums)
@@ -616,6 +625,8 @@ be ignored).
           yran
 
 ----------------------------------------------------------------------
+
+.. _spec_demo:
 
 Examples
 --------

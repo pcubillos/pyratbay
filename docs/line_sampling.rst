@@ -139,7 +139,7 @@ available in each database).
      - `C2H2 <https://zenodo.org/records/14266247/files/C2H2_exomol_acety_1.0-500.0um_100-3500K_threshold_0.03_lbl.dat>`__ (exomol, acety)
      - [Cubillos2017b]_ [Chubb2020]_
    * -
-     - `CH4 <https://zenodo.org/records/14266247/files/CH4_exomol_mm_0.83-50.0um_100-3000K_threshold_0.03_lbl.dat?download=1>`__ (exomol, mm)
+     - `CH4 <https://zenodo.org/records/14266247/files/CH4_exomol_mm_0.83-50.0um_100-3000K_threshold_0.03_lbl.dat>`__ (exomol, mm)
      - [Cubillos2017b]_ [Yurchenko2024a]_
    * -
      - `CO2 <https://zenodo.org/records/14266247/files/CO2_ames_ai3000k_0.5-50.0um_100-3500K_threshold_0.01_lbl.dat>`__ (ames, ai3000k)
@@ -151,7 +151,7 @@ available in each database).
      - `H2S <https://zenodo.org/records/14266247/files/H2S_exomol_ayt2_0.28-500.0um_100-3500K_threshold_0.01_lbl.dat>`__ (exomol, ayt2)
      - [Cubillos2017b]_ [Azzam2016]_ [Chubb2018]_
    * -
-     - `HCN <https://zenodo.org/records/14266247/files/HCN_exomol_harris-larner_0.56-500um_100-3500K_threshold_0.01_lbl.dat?download=1>`__ (exomol, harris larner)
+     - `HCN <https://zenodo.org/records/14266247/files/HCN_exomol_harris-larner_0.56-500um_100-3500K_threshold_0.01_lbl.dat>`__ (exomol, harris larner)
      - [Cubillos2017b]_ [Harris2008]_ [Barber2014]_
    * -
      - `KOH <https://zenodo.org/records/14266247/files/KOH_exomol_oyt4_1.66-50.0um_100-3000K_threshold_0.01_lbl.dat>`__ (exomol, oyt4)
@@ -169,7 +169,7 @@ available in each database).
      - `SiH4 <https://zenodo.org/records/14266247/files/SiH4_exomol_oy2t_2.0-50.0um_100-2000K_threshold_0.01_lbl.dat>`__ (exomol, oy2t)
      - [Cubillos2017b]_ [Owens2017]_
    * -
-     - `SO2 <https://zenodo.org/records/14266247/files/SO2_exomol_exoames_1.25-100.0um_100-3500K_threshold_0.03_lbl.dat?download=1>`__ (exomol, exoames)
+     - `SO2 <https://zenodo.org/records/14266247/files/SO2_exomol_exoames_1.25-100.0um_100-3500K_threshold_0.03_lbl.dat>`__ (exomol, exoames)
      - [Cubillos2017b]_ [Underwood2016]_
    * -
      - `TiO <https://zenodo.org/records/14266247/files/TiO_exomol_toto_0.33-500um_100-3500K_threshold_0.01_lbl.dat>`__ (exomol, toto)
