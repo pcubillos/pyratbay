@@ -31,17 +31,21 @@ profiles equi-spaced in log-pressure.  Users need to provide the the
 pressure at the top of the atmosphere ``ptop``, at the bottom
 ``pbottom``, the number of layers ``nlayers``, and (optionally) the
 units ``units``.  See :ref:`units` for a list of
-available pressure units.  
+available pressure units.
+
+
+Examples
+^^^^^^^^
 
 .. tab-set::
 
   .. tab-item:: default units
      :selected:
-  
+
      .. code-block:: python
-    
+
        import pyratbay.atmosphere as pa
-      
+
        # Generate pressure profile (default units are bars):
        press = pa.pressure(ptop=1e-8, pbottom=1e2, nlayers=61)
 
@@ -72,9 +76,9 @@ available pressure units.
   .. tab-item:: string inputs
 
      .. code-block:: python
-    
+
        import pyratbay.atmosphere as pa
-      
+
        # Generate pressure profile (specify units in pressure boundaries):
        press = pa.pressure(ptop='1e-8 bar', pbottom='1e2 bar', nlayers=61)
 
@@ -105,9 +109,9 @@ available pressure units.
   .. tab-item:: units argument
 
      .. code-block:: python
-          
+
        import pyratbay.atmosphere as pa
-      
+
        # Generate pressure profile (specify units):
        press = pa.pressure(ptop=1e-8, pbottom=1e2, units='bar', nlayers=61)
 
@@ -166,21 +170,12 @@ Any of these models can be used either as stand-alone functions or via
 the ``pb.run()`` function with a configuration file.
 
 
-Interactive notebooks
-^^^^^^^^^^^^^^^^^^^^^
+Examples
+^^^^^^^^
 
-This Notebook explains the model parameters and shows how to use the
-temperature models in a Python script:
-
-- `Temperature profiles tutorial <cookbooks/temperature_profiles.ipynb>`__
-
-
-Configuration files
-^^^^^^^^^^^^^^^^^^^
-
-Alternatively, temperature profiles can be generated from
-configuration files, which can be run from the command line or from
-interactive Python sessions. Here are examples for each of the models:
+Temperature profiles can be generated from configuration files, which
+can be *either* run from the command line or from interactive Python
+sessions. Here are examples for each of the models:
 
 .. tab-set::
 
@@ -188,15 +183,15 @@ interactive Python sessions. Here are examples for each of the models:
      :selected:
 
      .. raw:: html
-     
+
         <details>
         <summary>Click here to show/hide: temperature_profile_isothermal.cfg</summary>
-     
+
      .. literalinclude:: ./_static/data/temperature_profile_isothermal.cfg
          :caption: File: `temperature_profile_isothermal.cfg <./_static/data/temperature_profile_isothermal.cfg>`__
 
      .. raw:: html
-     
+
         </details>
 
      Copy this configuration file to your local folder.  Then users
@@ -204,7 +199,7 @@ interactive Python sessions. Here are examples for each of the models:
      python session, as in the following script:
 
      .. code-block:: python
-          
+
        import pyratbay as pb
 
        # Generate an atmosphere object with the profiles:
@@ -236,15 +231,15 @@ interactive Python sessions. Here are examples for each of the models:
   .. tab-item:: guillot
 
      .. raw:: html
-     
+
         <details>
         <summary>Click here to show/hide: temperature_profile_guillot.cfg</summary>
-     
+
      .. literalinclude:: ./_static/data/temperature_profile_guillot.cfg
          :caption: File: `temperature_profile_madhu.cfg <./_static/data/temperature_profile_guillot.cfg>`__
-     
+
      .. raw:: html
-     
+
         </details>
 
      Copy this configuration file to your local folder.  Then users
@@ -252,7 +247,7 @@ interactive Python sessions. Here are examples for each of the models:
      python session, as in the following script:
 
      .. code-block:: python
-          
+
        import pyratbay as pb
 
        # Generate an atmosphere object with the profiles:
@@ -292,15 +287,15 @@ interactive Python sessions. Here are examples for each of the models:
   .. tab-item:: madhu
 
      .. raw:: html
-     
+
         <details>
         <summary>Click here to show/hide: temperature_profile_madhu.cfg</summary>
-     
+
      .. literalinclude:: ./_static/data/temperature_profile_madhu.cfg
          :caption: File: `temperature_profile_madhu.cfg <./_static/data/temperature_profile_madhu.cfg>`__
-     
+
      .. raw:: html
-     
+
         </details>
 
      Copy this configuration file to your local folder.  Then users
@@ -308,7 +303,7 @@ interactive Python sessions. Here are examples for each of the models:
      python session, as in the following script:
 
      .. code-block:: python
-          
+
        import pyratbay as pb
 
        # Generate an atmosphere object with the profiles:
@@ -345,124 +340,163 @@ interactive Python sessions. Here are examples for each of the models:
        pbay -c temperature_profile_madhu.cfg
 
 
+
+Interactive notebooks
+^^^^^^^^^^^^^^^^^^^^^
+
+This Notebook explains the model parameters and shows how to use the
+temperature models in a Python script:
+
+- `Temperature profiles tutorial <cookbooks/temperature_profiles.ipynb>`__
+
+
 .. _abundance_profile:
 
 Abundance
 ---------
 
-Currently, there are two models to set the base volume-mixing-ratio
-chemistry (``chemistry`` argument): ``uniform`` or ``tea``.  Each one
-requires a different set of arguments, which is described in the table
-and sections below:
+Currently, there are two options to model Volume mixing ratio
+abundances (``chemistry`` argument).  Each one requires a different
+set of arguments, which is described in the table and sections below:
 
-====================== ==================================================== ====
-Models (``chemistry``) Required arguments [optional arguments]              References
-====================== ==================================================== ====
-uniform                ``species``, ``uniform``, [``vmr_vars``]             ---
-tea                    ``species``, [``vmr_vars``]                          [Blecic2016]_
-====================== ==================================================== ====
-
-
-Uniform abundances
-^^^^^^^^^^^^^^^^^^
-
-To produce a uniform-abundance model, the configuration file must
-contain the ``species`` key specifying a list of the name of the
-species to include in the atmosphere, and the ``uniform`` key
-specifying the mole mixing fraction for each of the species listed in
-``species``.
-
-Here is an example of a uniform atmosphere configuration file (`tutorial_atmosphere_uniform.cfg
-<https://github.com/pcubillos/pyratbay/blob/master/examples/tutorial_atmosphere_uniform.cfg>`_):
-
-.. literalinclude:: ../examples/tutorial_atmosphere_uniform.cfg
+===================== ============================ ================== ====
+Model (``chemistry``) Required arguments           Optional arguments              References
+===================== ============================ ================== ====
+uniform               ``species``, ``uniform_vmr`` ``vmr_vars``       ---
+tea                   ``species``                  ``vmr_vars``       [Blecic2016]_
+===================== ============================ ================== ====
 
 
-Thermochemical-equilibrium Abundances
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. _vmr_examples:
 
-``Pyrat Bay`` computes thermochemical equilibrium abundances (TEA) via
-the chemcat package, by minimizing the Gibbs free energy at each
-layer.  To produce a TEA model, the configuration file must set
-``chemistry=tea``.  The ``species`` argument sets the species to
-include in the atmosphere.
-
-The TEA run assumes a solar elemental composition from [Asplund2021]_
-as the base for the thermochemical equilibrium model; however, the
-user can customize the elemental abundances using the ``vmr_vars``
-argument.  The table below shows the available options.
-
-================= ===
-``vmr_vars``      Notes
-================= ===
-``[M/H]``         Metallicity of all elemental species (dex units, with respect to solar)
-``[X/H]``         Metallicity of element ``X`` (dex units, with respect to solar).  Overrides ``[M/H]``
-``X/Y``           Abundance of element ``X`` relative to element ``Y``.  Overrides ``[M/H]`` for ``X``, but ``Y`` can be previously modified by ``[M/H]`` or ``[Y/H]``.
-================= ===
+Examples
+^^^^^^^^
 
 
-.. ``log_mol``       log10(VMR) of species ``mol`` (constant with altitude)
+.. tab-set::
+
+  .. tab-item:: Uniform VMRs
+     :selected:
+
+     To produce a uniform-abundance model, the configuration file must
+     contain the ``species`` key specifying a list of the name of the
+     species to include in the atmosphere, and the ``uniform`` key
+     specifying the mole mixing fraction for each of the species listed in
+     ``species``.
+
+     Here is an example of a uniform-VMR configuration file.  Copy
+     this file to your local folder.  Then generate the VMR profiles
+     with the Python script below:
+
+     .. raw:: html
+
+        <details>
+        <summary>Click here to show/hide: vmr_profile_uniform.cfg</summary>
+
+     .. literalinclude:: ./_static/data/vmr_profile_uniform.cfg
+         :caption: File: `vmr_profile_uniform.cfg <./_static/data/vmr_profile_uniform.cfg>`__
+
+     .. raw:: html
+
+        </details>
+
+     .. code-block:: python
+
+         import matplotlib.pyplot as plt
+         plt.ion()
+
+         import pyratbay as pb
+         import pyratbay.plots as pp
+
+         # Generate a uniform and a thermochemical-equilibrium atmospheric model:
+         atm = pb.run("vmr_profile_uniform.cfg")
+
+         # Plot the results:
+         plt.figure(12, figsize=(7, 3.5))
+         plt.clf()
+         ax = pp.abundance(
+             atm.vmr, atm.press, atm.species,
+             colors='default', xlim=[1e-12, 3.0], legend_fs=10, ax=plt.subplot(111),
+         )
+         plt.tight_layout()
+
+     And the results should look like this:
+
+     .. image:: ./figures/pyrat_vmr_uniform.png
+        :width: 70%
+        :align: center
 
 
-Here is an example of a thermochemical-equilibrium atmosphere
-configuration file (`tutorial_atmosphere_tea.cfg
-<https://github.com/pcubillos/pyratbay/blob/master/examples/tutorial_atmosphere_tea.cfg>`_):
 
-.. literalinclude:: ../examples/tutorial_atmosphere_tea.cfg
+  .. tab-item:: Thermochemical equilibrium
 
-----------------------------------------------------------------------
 
-.. _abundance_tutorial_example:
+     ``Pyrat Bay`` computes thermochemical equilibrium abundances (TEA) via
+     the chemcat package, by minimizing the Gibbs free energy at each
+     layer.  To produce a TEA model, the configuration file must set
+     ``chemistry=tea``.  The ``species`` argument sets the species to
+     include in the atmosphere.
 
-Abundance-profile Examples
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+     The TEA run assumes a solar elemental composition from [Asplund2021]_
+     as the base for the thermochemical equilibrium model; however, the
+     user can customize the elemental abundances using the ``vmr_vars``
+     argument.  The table below shows the available options.
 
-.. note:: Before running this example, download the configuration
-          files shown above, e.g., with these shell commands:
+     ================= ===
+     ``vmr_vars``      Notes
+     ================= ===
+     ``[M/H]``         Metallicity of all elemental species (dex units, with respect to solar)
+     ``[X/H]``         Metallicity of element ``X`` (dex units, with respect to solar).  Overrides ``[M/H]``
+     ``X/Y``           Abundance of element ``X`` relative to element ``Y``.  Overrides ``[M/H]`` for ``X``, but ``Y`` can be previously modified by ``[M/H]`` or ``[Y/H]``.
+     ================= ===
 
-          .. code-block:: shell
+     .. ``log_mol``     log10(VMR) of species ``mol`` (constant with altitude)
 
-              tutorial_path=https://raw.githubusercontent.com/pcubillos/pyratbay/master/examples
-              wget $tutorial_path/tutorial_atmosphere_tea.cfg
-              wget $tutorial_path/tutorial_atmosphere_uniform.cfg
 
-The following Python script creates and plots the abundance
-Aprofiles for the configuration files shown above:
+     Here is an example of a thermochemical-equilibrium configuration
+     file.  Copy this file to your local folder.  Then generate VMR
+     profiles with the Python script below:
 
-.. code-block:: python
+     .. raw:: html
 
-    import matplotlib.pyplot as plt
-    plt.ion()
+        <details>
+        <summary>Click here to show/hide: vmr_profile_equilibrium.cfg</summary>
 
-    import pyratbay as pb
-    import pyratbay.plots as pp
+     .. literalinclude:: ./_static/data/vmr_profile_equilibrium.cfg
+         :caption: File: `vmr_profile_equilibrium.cfg <./_static/data/vmr_profile_equilbrium.cfg>`__
 
-    # Generate a uniform and a thermochemical-equilibrium atmospheric model:
-    atm_tea = pb.run("tutorial_atmosphere_tea.cfg")
-    atm_uni = pb.run("tutorial_atmosphere_uniform.cfg")
+     .. raw:: html
 
-    # Plot the results:
-    plt.figure(12, (6,5))
-    plt.clf()
-    ax1 = plt.subplot(211)
-    ax1 = pp.abundance(
-        atm_tea.vmr, atm_tea.press, atm_tea.species,
-        colors='default', xlim=[1e-12, 3.0], legend_fs=8, ax=ax1,
-    )
-    ax2 = plt.subplot(212)
-    ax2 = pp.abundance(
-        atm_uni.vmr, atm_uni.press, atm_uni.species,
-        colors='default', xlim=[1e-12, 3.0], legend_fs=0, ax=ax2,
-    )
-    plt.tight_layout()
+        </details>
 
-And the results should look like this:
 
-.. image:: ./figures/pyrat_atmosphere_tutorial.png
-   :width: 70%
-   :align: center
+     .. code-block:: python
 
-----------------------------------------------------------------------
+         import matplotlib.pyplot as plt
+         plt.ion()
+
+         import pyratbay as pb
+         import pyratbay.plots as pp
+
+         # Generate a uniform and a thermochemical-equilibrium atmospheric model:
+         atm = pb.run("vmr_profile_equilibrium.cfg")
+
+         # Plot the results:
+         plt.figure(12, figsize=(7, 3.5))
+         plt.clf()
+         ax = pp.abundance(
+             atm.vmr, atm.press, atm.species,
+             colors='default', xlim=[1e-12, 3.0], legend_fs=10, ax=plt.subplot(111),
+         )
+         plt.tight_layout()
+
+     And the results should look like this:
+
+     .. image:: ./figures/pyrat_vmr_equilibrium.png
+        :width: 70%
+        :align: center
+
+
 
 .. _radius_profile:
 
@@ -491,20 +525,15 @@ molecular mass, :math:`k_{\rm B}` is the Boltzmann constant, and
 and :ref:`abundance_profile`, respectively.
 
 
+To obtain the particular solution of these differential equations, one
+needs to know:
 
-To obtain the particular solution of these differential equations,
-the user needs to supply a pair of radius--pressure reference values
-to define the boundary condition :math:`r(p_0) = R_0`.  The
-``rplanet`` and ``refpressure`` keys set :math:`R_0` and :math:`p_0`,
-respectively.
-The ``mplanet`` and ``gplanet`` keys set the planetary mass (:math:`M_p`)
-and surface gravity (:math:`g`) corresponding to ``rplanet``, respectively.
+- the mass of the planet (:math:`M_p`, ``mplanet`` key)
 
-.. Note:: Note that the user needs only to define one variable between
-    ``mplanet`` and ``gplanet`` since they are related
-    through the equation: :math:`g(R_0) = G M_p / R_0^2`.  Whenever
-    ``mplanet`` is set to a given value, ``gplanet`` is updated
-    consistently, and vice versa.
+- the pair of radius--pressure reference values to define the boundary
+  condition :math:`r(p_0) = R_0`.  The ``rplanet`` and ``refpressure``
+  keys set :math:`R_0` and :math:`p_0`, respectively.
+
 
 Note that the selection of the :math:`\{p_0,R_0\}` pair is arbitrary.
 A good practice is to choose values close to the transit radius of
@@ -512,24 +541,36 @@ the planet.  Although the pressure at the transit radius is a priori
 unknown for a give particular case [Griffith2014]_, its value lies
 at around 0.1 bar.
 
+
+Examples
+^^^^^^^^
+
 Here is an example of a hydrostatic-equilibrium atmosphere
-configuration file (`atmosphere_hydro_m.cfg
-<https://github.com/pcubillos/pyratbay/blob/master/examples/tutorial/atmosphere_hydro_m.cfg>`_):
+configuration file:
 
-.. literalinclude:: ../examples/tutorial/atmosphere_hydro_m.cfg
+.. raw:: html
+
+   <details>
+   <summary>Click here to show/hide: profile_hydro_m.cfg</summary>
+
+.. literalinclude:: ./_static/data/profile_hydro_m.cfg
+    :caption: File: `profile_hydro_m.cfg <./_static/data/profile_hydro_m.cfg>`__
+
+.. raw:: html
+
+   </details>
 
 
-Altitude-profile Examples
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+   <details>
+   <summary>Click here to show/hide: profile_hydro_g.cfg</summary>
 
-.. note:: Before running this example, download the configuration
-          files shown above, e.g., with these shell commands:
+.. literalinclude:: ./_static/data/profile_hydro_g.cfg
+    :caption: File: `profile_hydro_g.cfg <./_static/data/profile_hydro_g.cfg>`__
 
-          .. code-block:: shell
+.. raw:: html
 
-              tutorial_path=https://raw.githubusercontent.com/pcubillos/pyratbay/master/examples/tutorial
-              wget $tutorial_path/atmosphere_hydro_m.cfg
-              wget $tutorial_path/atmosphere_hydro_g.cfg
+   </details>
+
 
 The following Python script creates and plots the profiles
 for the configuration file shown above:
@@ -538,30 +579,29 @@ for the configuration file shown above:
 
     import matplotlib.pyplot as plt
     plt.ion()
-
     import pyratbay as pb
     import pyratbay.constants as pc
 
-    # Kepler-11c mass and radius:
-    pressure, temp, q, species, radius = pb.run("atmosphere_hydro_m.cfg")
-    pressure, temp, q, species, radius_g = pb.run("atmosphere_hydro_g.cfg")
+    # A planet with Kepler-11c mass and radius:
+    atm = pb.run("profile_hydro_m.cfg")
+    atm_g = pb.run("profile_hydro_g.cfg")
 
     # Plot the results:
-    plt.figure(12, (6,5))
+    plt.figure(12, figsize=(6,4))
     plt.clf()
     ax = plt.subplot(111)
-    ax.semilogy(radius_g/pc.rearth, pressure/pc.bar, lw=2, c='navy', label='constant g')
-    ax.semilogy(radius/pc.rearth, pressure/pc.bar, lw=2, c='orange', label='g = g(p)')
-    ax.set_ylim(1e2, 1e-6)
+    ax.semilogy(atm.radius/pc.rearth, atm.press, lw=2, c='xkcd:blue', label='g = g(p)')
+    ax.semilogy(atm_g.radius/pc.rearth, atm_g.press, lw=2, c='salmon', label='constant g')
+    ax.set_ylim(1e2, 1e-8)
     ax.set_xlabel(r'Radius $(R_{\oplus})$', fontsize=12)
     ax.set_ylabel('Pressure (bar)', fontsize=12)
     ax.tick_params(labelsize=11)
-    ax.legend(loc='upper left', fontsize=12)
+    ax.legend(loc='lower right', fontsize=12)
     plt.tight_layout()
 
 And the results should look like this:
 
-.. image:: ./figures/pyrat_hydrostatic_tutorial.png
+.. image:: ./figures/pyrat_hydrostatic_equilibrium.png
    :width: 70%
    :align: center
 
