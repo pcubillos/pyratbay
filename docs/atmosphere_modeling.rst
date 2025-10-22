@@ -1,23 +1,4 @@
-.. |H2O| replace:: H\ :sub:`2`\ O
-.. |CO2| replace:: CO\ :sub:`2`
-.. |CH4| replace:: CH\ :sub:`4`
-.. |H2|  replace:: H\ :sub:`2`
-
-.. |kappa|  replace:: :math:`\log_{10}(\kappa')`
-.. |gamma1| replace:: :math:`\log_{10}(\gamma_1)`
-.. |gamma2| replace:: :math:`\log_{10}(\gamma_2)`
-.. |alpha|  replace:: :math:`\alpha`
-.. |beta|   replace:: :math:`\beta`
-.. |Tirr|   replace:: :math:`T_{\rm irr}`
-.. |Tint|   replace:: :math:`T_{\rm int}`
-
-.. |logp1| replace:: :math:`\log_{10}(p_1)`
-.. |logp2| replace:: :math:`\log_{10}(p_2)`
-.. |logp3| replace:: :math:`\log_{10}(p_3)`
-.. |a1|    replace:: :math:`a_1`
-.. |a2|    replace:: :math:`a_2`
-.. |T0|    replace:: :math:`T_0`
-
+.. include:: ../../_substitutions.rst
 
 .. _atmospheretutorial:
 
@@ -27,41 +8,30 @@ Atmosphere Modeling
 This documentation shows how to model 1D planetary atmospheres.  There
 are four properties that can be modeled:
 
-1. :ref:`pressure`
-2. `Temperature profile <#temperature-profiles>`_
-3. `Abundance profiles (volume mixing ratios) <#abundance-profiles>`_
-4. :ref:`radius`
+1. :ref:`Pressure profile <pressure>`
+2. :ref:`Temperature profile <temperature_profile>`
+3. :ref:`Abundance profile (volume mixing ratios) <abundance_profile>`
+4. :ref:`Radius profile <radius_profile>`
 
-Users can model these profiles 
+
 
 --------------------------------------------------------
 
-Regardless of which profiles are computed, in an interactive run the
-code returns a five-element tuple containing the pressure profile
-(bar), the temperature profile (Kelvin), the abundance profiles
-(volume mixing fraction), the species names, and the altitude profile
-(cm).  The outputs that were not calculated are set to ``None``.
-Also, regardless of the input units, the output variables will always
-be in CGS units.
+.. Regardless of which profiles are computed, in an interactive run the code returns a five-element tuple containing the pressure profile (bar), the temperature profile (Kelvin), the abundance profiles (volume mixing fraction), the species names, and the altitude profile (cm).  The outputs that were not calculated are set to ``None``. Also, regardless of the input units, the output variables will always be in CGS units.
 
-In the config file, the user can set the ``atmfile`` argument to
-specify an input atmospheric file from where to read pressure,
-temperature, volume mixing ratios, and/or altitude profiles.  The
-``output_atmfile`` argument instead can be set to specify a file name
-where to store the outputs.
+.. In the config file, the user can set the ``atmfile`` argument to specify an input atmospheric file from where to read pressure, temperature, volume mixing ratios, and/or altitude profiles.  The ``output_atmfile`` argument instead can be set to specify a file name where to store the outputs.
 
 .. _pressure:
 
-Pressure profile
-----------------
+Pressure
+--------
 
-``pyratbay`` offers the ``pa.pressure()`` function to compute pressure
+The ``pa.pressure()`` function allows users to compute pressure
 profiles equi-spaced in log-pressure.  Users need to provide the the
 pressure at the top of the atmosphere ``ptop``, at the bottom
 ``pbottom``, the number of layers ``nlayers``, and (optionally) the
 units ``units``.  See :ref:`units` for a list of
 available pressure units.  
-
 
 .. tab-set::
 
@@ -166,10 +136,10 @@ available pressure units.
 
 
 
-.. _temp_profile:
+.. _temperature_profile:
 
-Temperature profiles
---------------------
+Temperature
+-----------
 
 Currently, there are three available temperature models:
 
@@ -254,8 +224,9 @@ interactive Python sessions. Here are examples for each of the models:
 
      Which will create an output .atm file with the
      pressure-temperature profile (same root file name as ``logfile``
-     in the configuration file).  Alternatively, users can execute
-     this script from the command line:
+     in the configuration file).
+
+     Alternatively, users can execute this script from the command line:
 
      .. code-block:: shell
 
@@ -309,8 +280,9 @@ interactive Python sessions. Here are examples for each of the models:
 
      Which will create an output .atm file with the
      pressure-temperature profile (same root file name as ``logfile``
-     in the configuration file).  Alternatively, users can execute
-     this script from the command line:
+     in the configuration file).
+
+     Alternatively, users can execute this script from the command line:
 
      .. code-block:: shell
 
@@ -364,8 +336,9 @@ interactive Python sessions. Here are examples for each of the models:
 
      Which will create an output .atm file with the
      pressure-temperature profile (same root file name as ``logfile``
-     in the configuration file).  Alternatively, users can execute
-     this script from the command line:
+     in the configuration file).
+
+     Alternatively, users can execute this script from the command line:
 
      .. code-block:: shell
 
@@ -374,8 +347,8 @@ interactive Python sessions. Here are examples for each of the models:
 
 .. _abundance_profile:
 
-Abundance Profiles
-------------------
+Abundance
+---------
 
 Currently, there are two models to set the base volume-mixing-ratio
 chemistry (``chemistry`` argument): ``uniform`` or ``tea``.  Each one
@@ -491,10 +464,10 @@ And the results should look like this:
 
 ----------------------------------------------------------------------
 
-.. _radius:
+.. _radius_profile:
 
-Radius Profile
---------------
+Radius
+------
 
 If the user sets the ``radmodel`` key, the code will to compute the
 atmospheric altitude profile (radius profile).  The currently

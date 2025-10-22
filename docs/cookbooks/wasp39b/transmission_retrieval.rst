@@ -1,6 +1,6 @@
 .. include:: ../../_substitutions.rst
 
-.. _spectral_synthesis:
+.. _wasp39b:
 
 Transmission retrieval: WASP-39b JWST
 =====================================
