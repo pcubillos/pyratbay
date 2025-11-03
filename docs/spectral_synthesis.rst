@@ -1,18 +1,4 @@
-.. |H2O| replace:: H\ :sub:`2`\ O
-.. |CO2| replace:: CO\ :sub:`2`
-.. |CH4| replace:: CH\ :sub:`4`
-.. |H2|  replace:: H\ :sub:`2`
-.. |Rp|  replace:: :math:`R_{\rm p}`
-.. |Rs|  replace:: :math:`R_{\rm s}`
-.. |Fp|  replace:: :math:`F_{\rm p}`
-.. |Fs|  replace:: :math:`F_{\rm s}`
-.. |kayser| replace:: cm\ :sup:`-1`
-.. |ptop| replace:: :math:`\log(p_{\rm top})`
-.. |pt|   replace:: :math:`\log(p_{\rm t})`
-.. |pb|   replace:: :math:`\log(p_{\rm b})`
-.. |f|    replace:: :math:`\log(f)`
-.. |nu|   replace:: :math:`\nu`
-
+.. include:: _substitutions.rst
 
 .. _spectral_synthesis:
 
@@ -20,7 +6,7 @@ Spectral Synthesis
 ==================
 
 This tutorial shows how compute transmission, emission, or eclipse
-spectra with ``Pyrat Bay``. 
+spectra with ``Pyrat Bay``.
 
 - :ref:`spec_config`
 - :ref:`spec_system`
@@ -152,42 +138,42 @@ set a stellar spectrum.
 
   .. tab-item:: Custom spectrum
      :selected:
-  
+
      Users can use their own custom stellar spectra via the
      ``starspec`` argument.  This must point to a plain file file
      containing a spectrum in two columns: the first column has the
      wavelength array in microns, the second column has the flux
      spectrum in erg s\ :sup:`-1` cm\ :sup:`-2` cm units.
-  
+
      .. code-block:: ini
-  
+
          # Custom stellar spectrum file
          starspec = inputs/WASP18_spectrum.dat
 
   .. tab-item:: Kurucz model
-  
+
      Users can use a Kurucz stellar model [Castelli2003]_ via the
      ``kurucz`` argument of the configuration file, pointing to a
      Kurucz model.  These models can be downloaded from `this link
      <http://kurucz.harvard.edu/grids/>`__.  The code selects the
      correct Kurucz model based on the stellar temperature and surface
      gravity values:
-  
+
      .. code-block:: ini
-  
+
          # Kurucz stellar spectrum
          tstar = 5700
          log_gstar = 4.5
          kurucz = inputs/fp00k2odfnew.pck
 
   .. tab-item:: Black body
-  
+
      By defining the stellar effective temperature ``tstar``, the code
      will adopt a blackbody spectrum for the star (unless the
      ``starspec`` or ``kurucz`` arguments have been set).
 
      .. code-block:: ini
-  
+
          # Stellar effective temperature (K)
          tstar = 5700
 
@@ -197,7 +183,7 @@ set a stellar spectrum.
 Atmosphere Model
 ----------------
 
-Users can choose to compute the 
+Users can choose to compute the
 The ``atmfile`` key sets the input atmospheric model from which to
 compute the spectrum.  If the file pointed by ``atmfile`` does not
 exist, the codel will attempt to produce it (provided all necessary
