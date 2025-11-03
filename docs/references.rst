@@ -87,9 +87,9 @@ References
 
 .. [Madhusudhan2009] `Madhusudhan & Seager (2009): A Temperature and Abundance Retrieval Method for Exoplanet Atmospheres. <http://ui.adsabs.harvard.edu/abs/2009ApJ...707...24M>`_
 
-.. [Mant2018] `Mant et al. (2018): ExoMol molecular line lists - XXVII. Spectra of C2H4 <https://ui.adsabs.harvard.edu/abs/2018MNRAS.478.3220M>`_
+.. .. [Mant2018] `Mant et al. (2018): ExoMol molecular line lists - XXVII. Spectra of C2H4 <https://ui.adsabs.harvard.edu/abs/2018MNRAS.478.3220M>`_
 
-.. [McKemmish2016] `McKemmish et al. (2016): ExoMol line lists - XVIII. The high-temperature spectrum of VO <https://ui.adsabs.harvard.edu/abs/2016MNRAS.463..771M>`_
+.. .. [McKemmish2016] `McKemmish et al. (2016): ExoMol line lists - XVIII. The high-temperature spectrum of VO <https://ui.adsabs.harvard.edu/abs/2016MNRAS.463..771M>`_
 
 .. [McKemmish2019] `McKemmish et al. (2019): ExoMol molecular line lists - XXXIII. The spectrum of Titanium Oxide <https://ui.adsabs.harvard.edu/abs/2019MNRAS.488.2836M>`_
 
@@ -113,23 +113,27 @@ References
 
 .. [Sheppard2017] `Sheppard et al. (2017): Evidence for a Dayside Thermal Inversion and High Metallicity for the Hot Jupiter WASP-18b <https://ui.adsabs.harvard.edu/abs/2017ApJ...850L..32S>`_
 
+.. [Skilling2004] `Skilling (2004): Nested Sampling <https://ui.adsabs.harvard.edu/abs/2004AIPC..735..395S>`_
+
+.. [Skilling2006] `Skilling (2006): Nested sampling for general Bayesian computation <https://doi.org/10.1214/06-BA127>`_
+
 .. [Sousa-Silva2014] `Sousa-Silva et al. (2014): ExoMol line lists VII: The rotation-vibration spectrum of phosphine up to 1500 K <https://ui.adsabs.harvard.edu/abs/2015MNRAS.446.2337S>`_
 
 .. [Taylor2020] `Taylor et al. (2020): Understanding and mitigating biases when studying inhomogeneous emission spectra with JWST <https://ui.adsabs.harvard.edu/abs/2020MNRAS.493.4342T>`_
 
 .. [Tennyson2016] `Tennyson et al. (2016): The ExoMol database: Molecular line lists for exoplanet and other hot atmospheres <http://ui.adsabs.harvard.edu/abs/2016JMoSp.327...73T>`_
 
-.. [terBraak2008] `ter Braak & Vrugt (2008): Differential Evolution Markov Chain with snooker updater and fewer chains <http://dx.doi.org/10.1007/s11222-008-9104-9>`_
+.. .. [terBraak2008] `ter Braak & Vrugt (2008): Differential Evolution Markov Chain with snooker updater and fewer chains <http://dx.doi.org/10.1007/s11222-008-9104-9>`_
 
 .. [Underwood2016] `Underwood et al. (2016): ExoMol molecular line lists - XIV. The rotation-vibration spectrum of hot SO2 <https://ui.adsabs.harvard.edu/abs/2016MNRAS.459.3890U>`_
 
-.. [Yurchenko2013] `Yurchenko et al. (2013): Vibrational transition moments of CH4 from first principles <https://ui.adsabs.harvard.edu/abs/2013JMoSp.291...69Y>`_
+.. .. [Yurchenko2013] `Yurchenko et al. (2013): Vibrational transition moments of CH4 from first principles <https://ui.adsabs.harvard.edu/abs/2013JMoSp.291...69Y>`_
 
-.. [Yurchenko2014] `Yurchenko et al. (2014): ExoMol line lists - IV. The rotation-vibration spectrum of methane up to 1500 K <https://ui.adsabs.harvard.edu/abs/2014MNRAS.440.1649Y>`_
+.. .. [Yurchenko2014] `Yurchenko et al. (2014): ExoMol line lists - IV. The rotation-vibration spectrum of methane up to 1500 K <https://ui.adsabs.harvard.edu/abs/2014MNRAS.440.1649Y>`_
 
-.. [Yurchenko2015] `Yurchenko et al. (2015): A theoretical room-temperature line list for NH3 <https://ui.adsabs.harvard.edu/abs/2015JQSRT.152...28Y>`_
+.. .. [Yurchenko2015] `Yurchenko et al. (2015): A theoretical room-temperature line list for NH3 <https://ui.adsabs.harvard.edu/abs/2015JQSRT.152...28Y>`_
 
-.. [Yurchenko2017] `Yurchenko et al. (2017): A hybrid line list for CH4 and hot methane continuum <https://ui.adsabs.harvard.edu/abs/2017A&A...605A..95Y>`_
+.. .. [Yurchenko2017] `Yurchenko et al. (2017): A hybrid line list for CH4 and hot methane continuum <https://ui.adsabs.harvard.edu/abs/2017A&A...605A..95Y>`_
 
 .. [Yurchenko2020] `Yurchenko et al. (2020): ExoMol line lists - XXXIX. Ro-vibrational molecular line list for CO2 <https://ui.adsabs.harvard.edu/abs/2020MNRAS.496.5282Y>`_
 

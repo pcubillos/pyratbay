@@ -12,7 +12,10 @@
 .. |Rs|  replace:: :math:`R_{\rm s}`
 .. |Fp|  replace:: :math:`F_{\rm p}`
 .. |Fs|  replace:: :math:`F_{\rm s}`
-.. |kayser| replace:: cm\ :sup:`-1`
+.. |Rj|  replace:: :math:`R_{\rm jup}`
+.. |Mj|  replace:: :math:`M_{\rm jup}`
+.. |kms| replace:: cm\ :sup:`-1`
+.. |kayser| replace:: km s\ :sup:`-1`
 .. |f|    replace:: :math:`\log(f)`
 .. |nu|   replace:: :math:`\nu`
 
