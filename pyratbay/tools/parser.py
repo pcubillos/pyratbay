@@ -780,6 +780,19 @@ def parse(cfile, with_log=True, mute=False):
     )
 
     # Chemistry:
+    chemistry = getattr(args, 'chemistry')
+    chem_replace = {
+        'uniform': 'free',
+        'tea': 'equilibrium',
+    }
+    if chemistry in chem_replace:
+        setattr(args, 'chemistry', chem_replace[chemistry])
+        warning_msg = (
+            f"'{chemistry}' value for chemistry is deprecated, "
+            f"use {chem_replace[chemistry]} instead"
+        )
+        warnings.warn(warning_msg, category=DeprecationWarning)
+
     args.chemistry = args.get_choice('chemistry', 'Chemical model', pc.chemmodels)
     xsolar = args.get_default('xsolar', 'Atmospheric metallicity')
     if xsolar is not None:

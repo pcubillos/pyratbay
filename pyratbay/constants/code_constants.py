@@ -123,8 +123,8 @@ tmodels = [
 
 # Chemistry models:
 chemmodels = [
-    'uniform',
-    'tea',
+    'free',
+    'equilibrium',
 ]
 
 # Radius-profile models:
