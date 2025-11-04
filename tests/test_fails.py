@@ -406,7 +406,7 @@ def test_pt_tpars_mismatch(tmp_path, tmodel, npars):
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 # atmosphere (chemistry) runmode fails:
 
-@pytest.mark.parametrize('chem', ['uniform', 'tea'])
+@pytest.mark.parametrize('chem', ['free', 'equilibrium'])
 def test_atmosphere_missing_species(tmp_path, chem):
     cfg = make_config(
         tmp_path,
@@ -418,13 +418,13 @@ def test_atmosphere_missing_species(tmp_path, chem):
         pyrat = pb.run(cfg)
 
 
-def test_atmosphere_uniform_missing_uniform(tmp_path):
+def test_atmosphere_uniform_missing_uniform_vmr(tmp_path):
     cfg = make_config(tmp_path,
-        ROOT+'tests/configs/atmosphere_uniform_test.cfg',
+        ROOT+'tests/configs/atmosphere_free_test.cfg',
         remove=['uniform_vmr'])
     error = re.escape(
         'Undefined list of uniform volume mixing ratios (uniform_vmr) '
-        'for uniform chemistry model'
+        'for free chemistry model'
     )
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
@@ -433,7 +433,7 @@ def test_atmosphere_uniform_missing_uniform(tmp_path):
 def test_atmosphere_uniform_mismatch_uniform(tmp_path):
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/atmosphere_uniform_test.cfg',
+        ROOT+'tests/configs/atmosphere_free_test.cfg',
         reset={'uniform_vmr':'0.85 0.15'},
     )
     error = re.escape(
@@ -780,7 +780,7 @@ def test_spectrum_raygrid(tmp_path, invalid_raygrid, value):
 def test_line_sample_missing_species(tmp_path):
     reset = {
         'species': 'H2  He  H   Na  CH4  CO  CO2',
-        'chemistry': 'tea',
+        'chemistry': 'equilibrium',
         'sampled_cross_sec': f'{ROOT}tests/outputs/exttable_test_300-3000K_1.1-1.7um.npz',
     }
     cfg = make_config(
@@ -800,7 +800,7 @@ def test_line_sample_missing_species(tmp_path):
 def test_line_by_line_missing_species(tmp_path):
     reset = {
         'species': 'H2  He  H   Na  CH4  CO  CO2',
-        'chemistry': 'tea',
+        'chemistry': 'equilibrium',
     }
     cfg = make_config(
         tmp_path,
@@ -836,7 +836,7 @@ def test_alkali_missing_species(tmp_path):
 def test_cia_missing_species(tmp_path):
     reset = {
         'species': 'H2  H   Na  H2O CH4  CO  CO2',
-        'chemistry': 'tea',
+        'chemistry': 'equilibrium',
     }
     cfg = make_config(
         tmp_path,
@@ -854,7 +854,7 @@ def test_cia_missing_species(tmp_path):
 def test_rayleigh_missing_species(tmp_path):
     reset = {
         'species': 'H2  H   Na  H2O CH4  CO  CO2',
-        'chemistry': 'tea',
+        'chemistry': 'equilibrium',
         'rayleigh': 'lecavelier dalgarno_He',
     }
     cfg = make_config(
@@ -990,7 +990,7 @@ def test_spectrum_insuficient_retrieval_params_temp(tmp_path):
 
 def test_spectrum_insuficient_retrieval_params_mol(tmp_path):
     reset = {
-        'chemistry': 'tea',
+        'chemistry': 'equilibrium',
         'vmr_vars': '[M/H]',
         'retrieval_params': 'R_planet -3.0',
     }
@@ -1133,14 +1133,14 @@ def test_invalid_equil_without_tea(tmp_path):
         ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         reset=reset,
     )
-    error = re.escape("vmr_vars variable '[M/H]' requires chemistry=tea")
+    error = re.escape("vmr_vars variable '[M/H]' requires chemistry=equilibrium")
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
 
 
 def test_invalid_equil_vmr_vars(tmp_path):
     reset = {
-        'chemistry': 'tea',
+        'chemistry': 'equilibrium',
         'vmr_vars': 'zen',
     }
     cfg = make_config(
@@ -1155,7 +1155,7 @@ def test_invalid_equil_vmr_vars(tmp_path):
 
 def test_invalid_metal_vmr_vars(tmp_path):
     reset = {
-        'chemistry': 'tea',
+        'chemistry': 'equilibrium',
         'vmr_vars': '[X/H]',
     }
     cfg = make_config(
@@ -1173,7 +1173,7 @@ def test_invalid_metal_vmr_vars(tmp_path):
 
 def test_invalid_ratio_vmr_vars(tmp_path):
     reset = {
-        'chemistry': 'tea',
+        'chemistry': 'equilibrium',
         'vmr_vars': 'C/O/X',
     }
     cfg = make_config(
