@@ -222,7 +222,7 @@ def chemistry(
     Parameters
     ----------
     chem_model: String
-        Name of chemistry model, select from: 'uniform' or 'tea'
+        Name of chemistry model, select from: 'free' or 'equilibrium'
     pressure: 1D float ndarray
         Atmospheric pressure profile (bars).
     temperature: 1D float ndarray
@@ -281,13 +281,13 @@ def chemistry(
     >>> temperature = pa.temperature('isothermal', pressure, nlayers, params=T0)
     >>> species = 'H2O CH4 CO CO2 NH3 C2H2 C2H4 HCN N2 H2 H He H+ e-'.split()
     >>> # Equilibrium abundances model:
-    >>> chem_model = 'tea'
+    >>> chem_model = 'equilibrium'
     >>> network, out_species, vmr_tea = pa.chemistry(chem_model, pressure, temperature, species)
 
     >>> abundances = np.array([
     >>>     5e-4, 3e-5, 2e-4, 1e-8,  1e-6, 1e-14, 1e-13, 5e-10,
     >>>     1e-4, 0.85, 5e-3, 0.14,  3e-23, 1e-23])
-    >>> chem_model = 'uniform'
+    >>> chem_model = 'free'
     >>> network, out_species, vmr_uni = pa.chemistry(
     >>>     chem_model, pressure, temperature, species, q_uniform=abundances)
 
@@ -323,7 +323,7 @@ def chemistry(
         e_source=solar_file,
     )
 
-    if chem_model == 'uniform':
+    if chem_model == 'free':
         if len(species) != len(q_uniform):
             log.error(
                 f"Species ({len(species)}) and q_uniform "
@@ -331,7 +331,7 @@ def chemistry(
             )
         vmr = chem_network.vmr = uniform(q_uniform, nlayers)
 
-    elif chem_model == 'tea':
+    elif chem_model == 'equilibrium':
         chem_network.thermochemical_equilibrium()
         species = chem_network.species
         vmr = np.copy(chem_network.vmr)

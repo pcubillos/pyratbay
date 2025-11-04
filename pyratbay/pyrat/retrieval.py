@@ -49,7 +49,7 @@ class Retrieval():
         self.retrieval_file = inputs.retrieval_file
         self.retflag = inputs.retflag
         self.qcap = inputs.qcap
-        if atm.chemistry == 'tea':
+        if atm.chemistry == 'equilibrium':
             self.qcap = None
         # Lower and upper temperature retrieval boundaries
         self.tlow = inputs.tlow
