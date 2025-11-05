@@ -95,6 +95,8 @@ References
 
 .. [Molliere2019] `Molliere et al. (2019): petitRADTRANS. A Python radiative transfer package for exoplanet characterization and retrieval <https://ui.adsabs.harvard.edu/abs/2019A&A...627A..67M>`_
 
+.. [Moses2011] `Moses et al. (2011): Disequilibrium Carbon, Oxygen, and Nitrogen Chemistry in the Atmospheres of HD 189733b and HD 209458b <https://ui.adsabs.harvard.edu/abs/2011ApJ...737...15M>`_
+
 .. [Owens2017] `Owens et al. (2017): ExoMol line lists - XXII. The rotation-vibration spectrum of silane up to 1200 K <https://ui.adsabs.harvard.edu/abs/2017MNRAS.471.5025O>`_
 
 .. [Owens2021] `Owens et al. (2021): ExoMol line lists - XLI. High-temperature molecular line lists for the alkali metal hydroxides KOH and NaOH <https://ui.adsabs.harvard.edu/abs/2021MNRAS.502.1128O>`_

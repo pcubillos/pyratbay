@@ -51,7 +51,6 @@ Recipes list:
 - :ref:`compendia` lists compendia of peer-reviewed articles with scripts that reproduced the published material
 
 .. toctree::
-   :caption: These are the available recipes
    :maxdepth: 2
    :hidden:
 
