@@ -595,7 +595,7 @@ def test_run_atmosphere_take_species_from_atm(tmp_path, reset_jupiter):
     remove = ['nlayers', 'tmodel', 'species']
     reset['atmfile'] = 'inputs/jupiter_isothermal_uniform_vmr.atm'
     # Calculate VMRs, but take species from input_atmfile
-    reset['chemistry'] = 'tea'
+    reset['chemistry'] = 'equilibrium'
 
     cfg = make_config(
         tmp_path,

@@ -77,7 +77,7 @@ def test_get_ec_lbl(tmp_path):
 
 def test_get_ec_line_sample(tmp_path):
     reset = {
-        'chemistry': 'tea',
+        'chemistry': 'equilibrium',
         'species': 'H2 H He Na K H2O CH4 CO CO2 e- H- H+ H2+ Na- Na+ K+ K-',
         'h_ion': 'h_ion_john1988',
     }

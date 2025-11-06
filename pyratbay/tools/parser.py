@@ -438,7 +438,7 @@ def parse(cfile, with_log=True, mute=False):
         parse_int(args, 'wnosamp')
         parse_float(args, 'resolution')
         parse_str(args, 'wlstep')
-        parse_int(args, 'wn_thinning')
+        parse_int(args, 'wl_thinning')
         parse_str(args, 'wllow')  # Deprecated
         parse_str(args, 'wlhigh')  # Deprecated
         # Atmospheric sampling options:
@@ -748,8 +748,9 @@ def parse(cfile, with_log=True, mute=False):
     args.resolution = args.get_default(
         'resolution', 'Spectral resolution', gt=0.0)
 
-    args.wn_thinning = args.get_default(
-        'wn_thinning', 'Wavenumber thinning factor for Line_Sample opacities',
+    args.wl_thinning = args.get_default(
+        'wl_thinning',
+        'Wavelength-sampling thinning factor for Line_Sample opacities',
         1, ge=1,
     )
 

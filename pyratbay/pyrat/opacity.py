@@ -70,7 +70,7 @@ class Opacity():
             # TBD: self.ls_files?
             ls = op.Line_Sample(
                 inputs.sampled_cs, pressure=pressure, temperature=temp_array,
-                min_wn=min_wn, max_wn=max_wn, wn_thinning=inputs.wn_thinning,
+                min_wn=min_wn, max_wn=max_wn, wl_thinning=inputs.wl_thinning,
                 log=log, isotope_ratios=inputs.isotope_ratios,
             )
             self.models.append(ls)

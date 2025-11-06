@@ -127,7 +127,7 @@ class Spectrum():
 
             # Update wavenumber sampling:
             wn_mask = ps.wn_mask(wn, self.wnlow, self.wnhigh)
-            self.wn = wn[wn_mask][::inputs.wn_thinning]
+            self.wn = wn[wn_mask][::inputs.wl_thinning]
             self.nwave = len(self.wn)
             self.spectrum = np.zeros(self.nwave, np.double)
             if self._rt_path not in pc.transmission_rt:
