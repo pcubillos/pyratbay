@@ -173,13 +173,13 @@ Cross section (cross_section, cm2 molec-1):
 """
 
 
-def test_opacity_rayleigh_dalgarno_H_str():
+def test_opacity_rayleigh_H_str():
     wn_min = 1.0 / (1.7 * pc.um)
     wn_max = 1.0 / (1.1 * pc.um)
     wn = np.arange(wn_min, wn_max, 1.0)
-    model = op.rayleigh.Dalgarno(wn, species='H')
+    model = op.rayleigh.Kurucz(wn, species='H')
     assert str(model) == """\
-Model name (name): 'dalgarno_H'
+Model name (name): 'rayleigh_H'
 Model species (species): H
 Number of model parameters (npars): 0
 Wavenumber (wn, cm-1):
@@ -188,13 +188,13 @@ Cross section (cross_section, cm2 molec-1):
    [7.002e-30 7.007e-30 7.012e-30 ... 4.038e-29 4.040e-29 4.041e-29]
 """
 
-def test_opacity_rayleigh_dalgarno_He_str():
+def test_opacity_rayleigh_He_str():
     wn_min = 1.0 / (1.7 * pc.um)
     wn_max = 1.0 / (1.1 * pc.um)
     wn = np.arange(wn_min, wn_max, 1.0)
-    model = op.rayleigh.Dalgarno(wn, species='He')
+    model = op.rayleigh.Kurucz(wn, species='He')
     assert str(model) == """\
-Model name (name): 'dalgarno_He'
+Model name (name): 'rayleigh_He'
 Model species (species): He
 Number of model parameters (npars): 0
 Wavenumber (wn, cm-1):
@@ -203,13 +203,13 @@ Cross section (cross_section, cm2 molec-1):
    [6.577e-31 6.582e-31 6.586e-31 ... 3.757e-30 3.758e-30 3.760e-30]
 """
 
-def test_opacity_rayleigh_dalgarno_H2_str():
+def test_opacity_rayleigh_H2_str():
     wn_min = 1.0 / (1.7 * pc.um)
     wn_max = 1.0 / (1.1 * pc.um)
     wn = np.arange(wn_min, wn_max, 1.0)
-    model = op.rayleigh.Dalgarno(wn, species='H2')
+    model = op.rayleigh.Kurucz(wn, species='H2')
     assert str(model) == """\
-Model name (name): 'dalgarno_H2'
+Model name (name): 'rayleigh_H2'
 Model species (species): H2
 Number of model parameters (npars): 0
 Wavenumber (wn, cm-1):

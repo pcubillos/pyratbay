@@ -154,9 +154,9 @@ class Opacity():
         if inputs.rayleigh is not None:
             npars = 0
             for name in inputs.rayleigh:
-                if name.startswith('dalgarno_'):
+                if name.startswith('rayleigh_'):
                     mol = name.split('_')[1]
-                    model = op.rayleigh.Dalgarno(wn, mol)
+                    model = op.rayleigh.Kurucz(wn, mol)
                     self.models_type.append('rayleigh')
                 if name == 'lecavelier':
                     model = op.rayleigh.Lecavelier(wn)

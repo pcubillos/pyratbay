@@ -141,10 +141,10 @@ amodels = [
 
 # Rayleigh models:
 rmodels = [
-   'dalgarno_H',
-   'dalgarno_H2',
-   'dalgarno_He',
-   'dalgarno_e-',
+   'rayleigh_H',
+   'rayleigh_H2',
+   'rayleigh_He',
+   'rayleigh_e-',
    'lecavelier',
 ]
 

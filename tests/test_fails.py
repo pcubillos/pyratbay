@@ -855,7 +855,7 @@ def test_rayleigh_missing_species(tmp_path):
     reset = {
         'species': 'H2  H   Na  H2O CH4  CO  CO2',
         'chemistry': 'equilibrium',
-        'rayleigh': 'lecavelier dalgarno_He',
+        'rayleigh': 'lecavelier rayleigh_He',
     }
     cfg = make_config(
         tmp_path,
@@ -864,7 +864,7 @@ def test_rayleigh_missing_species(tmp_path):
         reset=reset,
     )
     error = re.escape(
-        "Species ['He'], required for opacity model dalgarno_He, "
+        "Species ['He'], required for opacity model rayleigh_He, "
         "are not present in the atmosphere"
     )
     with pytest.raises(ValueError, match=error):

@@ -135,10 +135,10 @@ expected_lec_ec_update_ec = np.array([
 ])
 
 @pytest.mark.parametrize('species', ['H2', 'H', 'He', 'e-'])
-def test_dalgarno_init(species):
-    rayleigh = op.rayleigh.Dalgarno(wn=wn, species=species)
+def test_rayleigh_init(species):
+    rayleigh = op.rayleigh.Kurucz(wn=wn, species=species)
 
-    assert rayleigh.name == 'dalgarno_' + species
+    assert rayleigh.name == 'rayleigh_' + species
     assert rayleigh.species == species
     assert rayleigh.npars == 0
     assert rayleigh.pars == []
@@ -147,8 +147,8 @@ def test_dalgarno_init(species):
     np.testing.assert_allclose(rayleigh.wn, wn)
 
 
-def test_dalgarno_H2():
-    H2_rayleigh = op.rayleigh.Dalgarno(wn=wn, species='H2')
+def test_rayleigh_H2():
+    H2_rayleigh = op.rayleigh.Kurucz(wn=wn, species='H2')
     np.testing.assert_allclose(H2_rayleigh.cross_section, expected_H2_cs)
 
     density = np.array([1.8e+14, 1.1e+18])
@@ -156,8 +156,8 @@ def test_dalgarno_H2():
     np.testing.assert_allclose(ec, expected_H2_ec)
 
 
-def test_dalgarno_H():
-    H_rayleigh = op.rayleigh.Dalgarno(wn=wn, species='H')
+def test_rayleigh_H():
+    H_rayleigh = op.rayleigh.Kurucz(wn=wn, species='H')
     np.testing.assert_allclose(H_rayleigh.cross_section, expected_H_cs)
 
     density = np.array([1.8e+14, 1.1e+18])
@@ -165,8 +165,8 @@ def test_dalgarno_H():
     np.testing.assert_allclose(ec, expected_H_ec)
 
 
-def test_dalgarno_He():
-    He_rayleigh = op.rayleigh.Dalgarno(wn=wn, species='He')
+def test_rayleigh_He():
+    He_rayleigh = op.rayleigh.Kurucz(wn=wn, species='He')
     np.testing.assert_allclose(He_rayleigh.cross_section, expected_He_cs)
 
     density = np.array([1.8e+14, 1.1e+18])
@@ -174,8 +174,8 @@ def test_dalgarno_He():
     np.testing.assert_allclose(ec, expected_He_ec)
 
 
-def test_dalgarno_e():
-    rayleigh = op.rayleigh.Dalgarno(wn=wn, species='e-')
+def test_rayleigh_e():
+    rayleigh = op.rayleigh.Kurucz(wn=wn, species='e-')
     np.testing.assert_allclose(rayleigh.cross_section, 6.653e-25)
 
     density = np.array([1.8e+14, 1.1e+18])

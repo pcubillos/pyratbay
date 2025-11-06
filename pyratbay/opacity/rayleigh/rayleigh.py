@@ -2,7 +2,7 @@
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
-    'Dalgarno',
+    'Kurucz',
     'Lecavelier',
 ]
 
@@ -11,7 +11,7 @@ import numpy as np
 from ... import tools as pt
 
 
-class Dalgarno():
+class Kurucz():
     """
     Rayleigh-scattering models from Dalgarno (1962), Kurucz (1970), and
     Dalgarno & Williams (1962).
@@ -23,9 +23,9 @@ class Dalgarno():
         wn: 1D float ndarray
            Wavenumber in cm-1.
         species: String
-           The species, which can be H, He, or H2.
+           The species, which can be H, He, H2, or e-.
         """
-        self.name = f'dalgarno_{species}'
+        self.name = f'rayleigh_{species}'
         self.species = species
         self.set_wn(wn)
         self.npars = 0
@@ -74,7 +74,7 @@ class Dalgarno():
 
     def _calc_e_cross_section(self):
         """
-        Rayleigh e- cross section in cm2 molec-1 units.
+        e- cross section in cm2 molec-1 units.
         Sections 5.13, Kurucz (1970).
         """
         # Note there is a typo in Kurucz 1070, the exp should be -25

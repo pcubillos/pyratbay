@@ -564,7 +564,7 @@ def test_transmission_skip_H2_H2_cia(tmp_path):
 
 def test_transmission_skip_rayleigh(tmp_path):
     reset = {
-        'rayleigh': 'dalgarno_H2 dalgarno_He',
+        'rayleigh': 'rayleigh_H2 rayleigh_He',
     }
     cfg = make_config(
         tmp_path,
@@ -581,7 +581,7 @@ def test_transmission_skip_rayleigh(tmp_path):
 
 def test_transmission_skip_dalgarno(tmp_path):
     reset = {
-        'rayleigh': 'dalgarno_H2 dalgarno_He',
+        'rayleigh': 'rayleigh_H2 rayleigh_He',
     }
     cfg = make_config(
         tmp_path,
@@ -590,7 +590,7 @@ def test_transmission_skip_dalgarno(tmp_path):
         remove=['clouds', 'rpars'],
     )
     pyrat = pb.Pyrat(cfg)
-    pyrat.run(skip=['dalgarno_H2'])
+    pyrat.run(skip=['rayleigh_H2'])
     spectrum = pyrat.spec.spectrum
     np.testing.assert_allclose(spectrum, expected['skip_dalgarno'], rtol=rtol)
 
