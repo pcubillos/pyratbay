@@ -9,7 +9,6 @@
 
 .. _line_sampling:
 
-
 Line Sampling
 =============
 
@@ -164,7 +163,7 @@ available in each database).
      - [Cubillos2017b]_ [Owens2024]_
    * -
      - `PH3 <https://zenodo.org/records/17167393/files/PH3_exomol_salty_1.0-50.0um_100-3000K_threshold_0.01_lbl.dat>`__ (exomol, salty)
-     - [Cubillos2017b]_ [Coles2019]_ [Sousa-Silva2014]_
+     - [Cubillos2017b]_ [Sousa-Silva2014]_
    * -
      - `SiH4 <https://zenodo.org/records/14266247/files/SiH4_exomol_oy2t_2.0-50.0um_100-2000K_threshold_0.01_lbl.dat>`__ (exomol, oy2t)
      - [Cubillos2017b]_ [Owens2017]_

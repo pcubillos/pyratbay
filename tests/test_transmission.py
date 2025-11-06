@@ -100,7 +100,7 @@ def test_transmission_alkali(tmp_path):
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         remove=['sampled_cross_sec', 'continuum_cross_sec', 'rayleigh', 'clouds'],
-        reset={'wllow':'0.45 um', 'wlhigh':'1.0 um'},
+        reset={'wl_low':'0.45 um', 'wl_high':'1.0 um'},
     )
     pyrat = pb.run(cfg)
     spectrum = pyrat.spec.spectrum
@@ -438,15 +438,15 @@ def test_transmission_fit_filters():
 
 
 @pytest.mark.parametrize(
-    'wllow,wlhigh',
+    'wl_low,wl_high',
     [('1.1 um', '1.6 um'),
      ('1.2 um', '1.7 um'),
      ('1.2 um', '1.6 um'),]
 )
-def test_opacity_reset_wn(tmp_path, wllow, wlhigh):
+def test_opacity_reset_wn(tmp_path, wl_low, wl_high):
     reset = {
-        'wllow': wllow,
-        'wlhigh': wlhigh,
+        'wl_low': wl_low,
+        'wl_high': wl_high,
     }
     cfg = make_config(
         tmp_path,
@@ -503,8 +503,8 @@ def test_transmission_skip_alkali(tmp_path):
     reset = {
         'tlifile': f'{OUTPUTS}HITRAN_H2O_1.1-1.7um_test.tli',
         'alkali': 'sodium_vdw potassium_vdw',
-        'wllow': '0.4 um',
-        'wlhigh': '1.2 um',
+        'wl_low': '0.4 um',
+        'wl_high': '1.2 um',
     }
     cfg = make_config(
         tmp_path,
@@ -522,8 +522,8 @@ def test_transmission_skip_sodium_vdw(tmp_path):
     reset = {
         'tlifile': f'{OUTPUTS}HITRAN_H2O_1.1-1.7um_test.tli',
         'alkali': 'sodium_vdw potassium_vdw',
-        'wllow': '0.4 um',
-        'wlhigh': '1.2 um',
+        'wl_low': '0.4 um',
+        'wl_high': '1.2 um',
     }
     cfg = make_config(
         tmp_path,

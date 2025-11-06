@@ -59,7 +59,7 @@ def test_get_ec_lbl(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test_tli.cfg',
-        reset={'continuum_cross_sec': cfile, 'wllow': '0.55'},
+        reset={'continuum_cross_sec': cfile, 'wl_low': '0.55'},
     )
     pyrat = pb.run(cfg)
     layer = 31

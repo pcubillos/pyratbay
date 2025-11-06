@@ -36,11 +36,11 @@ def run(cfile, run_step=None, with_log=True):
         if inputs.tlifile is None:
             log.error('Undefined TLI file (tlifile)')
         # return wl variabels to their original units
-        inputs.wllow /= pt.u(inputs.wlunits)
-        inputs.wlhigh /= pt.u(inputs.wlunits)
+        inputs.wl_low /= pt.u(inputs.wlunits)
+        inputs.wl_high /= pt.u(inputs.wlunits)
         op.make_tli(
             inputs.dblist, inputs.pflist, inputs.dbtype,
-            inputs.tlifile[0], inputs.wllow, inputs.wlhigh,
+            inputs.tlifile[0], inputs.wl_low, inputs.wl_high,
             inputs.wlunits, log,
         )
         return

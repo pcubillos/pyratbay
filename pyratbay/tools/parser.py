@@ -430,8 +430,8 @@ def parse(cfile, with_log=True, mute=False):
         parse_array(args, 'csfile')  # Deprecated
         # Spectrum sampling options:
         parse_str(args, 'wlunits')
-        parse_str(args, 'wllow')
-        parse_str(args, 'wlhigh')
+        parse_str(args, 'wl_low')
+        parse_str(args, 'wl_high')
         parse_float(args, 'wnlow')
         parse_float(args, 'wnhigh')
         parse_float(args, 'wnstep')
@@ -439,6 +439,8 @@ def parse(cfile, with_log=True, mute=False):
         parse_float(args, 'resolution')
         parse_str(args, 'wlstep')
         parse_int(args, 'wn_thinning')
+        parse_str(args, 'wllow')  # Deprecated
+        parse_str(args, 'wlhigh')  # Deprecated
         # Atmospheric sampling options:
         parse_str(args, 'atmfile')
         parse_str(args, 'tmodel')
@@ -703,21 +705,33 @@ def parse(cfile, with_log=True, mute=False):
             f"These input cross-section files are missing: {missing}"
         )
 
+    # Deprecated wl keys
+    wl_low = args.get_default('wllow', '')
+    if wl_low is not None:
+        warning = "'wllow' is deprecated, use 'wl_low' instead"
+        warnings.warn(warning, category=DeprecationWarning)
+        setattr(args, 'wl_low', wl_low)
+    wl_high = args.get_default('wlhigh', '')
+    if wl_high is not None:
+        warning = "'wlhigh' is deprecated, use 'wl_high' instead"
+        warnings.warn(warning, category=DeprecationWarning)
+        setattr(args, 'wl_high', wl_high)
+
     wlunits = args.get_default('wlunits', 'Wavelength units')
     if wlunits is None:
-        wlunits = args.get_units('wllow')
+        wlunits = args.get_units('wl_low')
     if wlunits is None:
-        wlunits = args.get_units('wlhigh')
+        wlunits = args.get_units('wl_high')
     if wlunits is None:
         wlunits = args.get_units('wlstep')
     if wlunits is not None and not hasattr(pc, wlunits):
         log.error(f'Invalid wavelength units (wlunits): {wlunits}')
     args.wlunits = wlunits
 
-    args.wllow = args.get_param(
-        'wllow', wlunits, 'Wavelength lower boundary', gt=0.0)
-    args.wlhigh = args.get_param(
-        'wlhigh', wlunits, 'Wavelength higher boundary', gt=0.0)
+    args.wl_low = args.get_param(
+        'wl_low', wlunits, 'Wavelength lower boundary', gt=0.0)
+    args.wl_high = args.get_param(
+        'wl_high', wlunits, 'Wavelength higher boundary', gt=0.0)
     args.wlstep = args.get_param(
         'wlstep', wlunits, 'Wavelength sampling step', gt=0.0)
 

@@ -102,7 +102,7 @@ def test_emission_alkali(tmp_path):
         tmp_path,
         ROOT+'tests/configs/spectrum_emission_test.cfg',
         remove=['sampled_cross_sec', 'continuum_cross_sec', 'rayleigh', 'clouds'],
-        reset={'wllow':'0.45 um', 'wlhigh':'1.0 um'},
+        reset={'wl_low':'0.45 um', 'wl_high':'1.0 um'},
     )
     pyrat = pb.run(cfg)
     np.testing.assert_allclose(
@@ -478,7 +478,7 @@ def test_multiple_opacities(tmp_path):
         reset={'extfile':f'{OUTPUTS}exttable_H2O_300-3000K_1.5-1.6um.npz'
                      f'\n  {OUTPUTS}exttable_CO2_300-3000K_1.5-1.6um.npz'
                      f'\n  {OUTPUTS}exttable_CH4_300-3000K_1.5-1.6um.npz',
-               'wllow':'1.5 um', 'wlhigh':'1.6 um'})
+               'wl_low':'1.5 um', 'wl_high':'1.6 um'})
     pyrat1 = pb.run(cfg)
     cfg = make_config(
         tmp_path,
@@ -486,24 +486,24 @@ def test_multiple_opacities(tmp_path):
         remove=['tlifile', 'clouds'],
         reset={'extfile':f'{OUTPUTS}exttable_H2O_300-3000K_1.5-1.6um.npz'
                      f'\n  {OUTPUTS}exttable_CO2-CH4_300-3000K_1.5-1.6um.npz',
-               'wllow':'1.5 um', 'wlhigh':'1.6 um'})
+               'wl_low':'1.5 um', 'wl_high':'1.6 um'})
     pyrat2 = pb.run(cfg)
     np.testing.assert_allclose(
         pyrat1.spec.spectrum, pyrat2.spec.spectrum, rtol=rtol)
 
 
 @pytest.mark.skip(reason="")
-@pytest.mark.parametrize('wllow,wlhigh',
+@pytest.mark.parametrize('wl_low,wl_high',
     [('1.1 um', '1.6 um'),
      ('1.2 um', '1.7 um'),
      ('1.2 um', '1.6 um')])
-def test_opacity_reset_wn(tmp_path, wllow, wlhigh):
+def test_opacity_reset_wn(tmp_path, wl_low, wl_high):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_emission_test.cfg',
         remove=['tlifile', 'clouds'],
         reset={'extfile':f'{OUTPUTS}exttable_test_300-3000K_1.1-1.7um.npz',
-               'wllow':wllow, 'wlhigh':wlhigh},
+               'wl_low':wl_low, 'wl_high':wl_high},
     )
     pyrat = pb.run(cfg)
     wn = np.arange(1/1.7e-4, 1/1.1e-4, 1.0)

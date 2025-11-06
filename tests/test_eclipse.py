@@ -104,7 +104,7 @@ def test_eclipse_alkali(tmp_path):
         tmp_path,
         ROOT+'tests/configs/spectrum_eclipse_test.cfg',
         remove=['sampled_cross_sec', 'continuum_cross_sec', 'rayleigh', 'clouds'],
-        reset={'wllow':'0.45 um', 'wlhigh':'1.0 um'},
+        reset={'wl_low':'0.45 um', 'wl_high':'1.0 um'},
     )
     pyrat = pb.run(cfg)
     np.testing.assert_allclose(

@@ -374,8 +374,8 @@ Spectral information:
 Wavenumber internal units: cm-1
 Wavelength internal units: cm
 Wavelength display units (wlunits): um
-Low wavenumber boundary (wnlow):     5882.353 cm-1  (wlhigh =   1.70 um)
-High wavenumber boundary (wnhigh):   9090.353 cm-1  (wllow  =   1.10 um)
+Low wavenumber boundary (wnlow):     5882.353 cm-1  (wl_high =   1.70 um)
+High wavenumber boundary (wnhigh):   9090.353 cm-1  (wl_low  =   1.10 um)
 Number of samples (nwave): 3209
 Sampling interval (wnstep): 1.000 cm-1
 Wavenumber array (wn, cm-1):
@@ -575,8 +575,8 @@ Spectral information:
 Wavenumber internal units: cm-1
 Wavelength internal units: cm
 Wavelength display units (wlunits): um
-Low wavenumber boundary (wnlow):     5882.353 cm-1  (wlhigh =   1.70 um)
-High wavenumber boundary (wnhigh):   9089.836 cm-1  (wllow  =   1.10 um)
+Low wavenumber boundary (wnlow):     5882.353 cm-1  (wl_high =   1.70 um)
+High wavenumber boundary (wnhigh):   9089.836 cm-1  (wl_low  =   1.10 um)
 Number of samples (nwave): 2177
 Spectral resolving power (resolution): 5000.0
 Wavenumber array (wn, cm-1):
@@ -615,8 +615,8 @@ Spectral information:
 Wavenumber internal units: cm-1
 Wavelength internal units: cm
 Wavelength display units (wlunits): um
-Low wavenumber boundary (wnlow):     5882.353 cm-1  (wlhigh =   1.70 um)
-High wavenumber boundary (wnhigh):   9090.909 cm-1  (wllow  =   1.10 um)
+Low wavenumber boundary (wnlow):     5882.353 cm-1  (wl_high =   1.70 um)
+High wavenumber boundary (wnhigh):   9090.909 cm-1  (wl_low  =   1.10 um)
 Number of samples (nwave): 2177
 Spectral resolving power (resolution): 5000.0
 Wavenumber array (wn, cm-1):
@@ -639,8 +639,8 @@ Spectral information:
 Wavenumber internal units: cm-1
 Wavelength internal units: cm
 Wavelength display units (wlunits): um
-Low wavenumber boundary (wnlow):     5882.353 cm-1  (wlhigh =   1.70 um)
-High wavenumber boundary (wnhigh):   9090.353 cm-1  (wllow  =   1.10 um)
+Low wavenumber boundary (wnlow):     5882.353 cm-1  (wl_high =   1.70 um)
+High wavenumber boundary (wnhigh):   9090.353 cm-1  (wl_low  =   1.10 um)
 Number of samples (nwave): 3209
 Sampling interval (wnstep): 1.000 cm-1
 Wavenumber array (wn, cm-1):

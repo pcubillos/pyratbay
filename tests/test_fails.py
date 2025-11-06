@@ -244,8 +244,8 @@ def test_missing_mass_units(tmp_path):
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 # Parameter boundaries:
 @pytest.mark.parametrize('param, value',
-    [('wllow',   ' -1.0 um'),
-     ('wlhigh',  ' -1.0 um'),
+    [('wl_low',   ' -1.0 um'),
+     ('wl_high',  ' -1.0 um'),
      ('wnhigh',  ' -1.0'),
      ('wnlow',   ' -1.0'),
      ('wnstep',  ' -1.0'),
@@ -519,9 +519,9 @@ def test_spectrum_missing_wl_units(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
-        reset={'wllow': '1.1', 'wlhigh': '2.0'},
+        reset={'wl_low': '1.1', 'wl_high': '2.0'},
     )
-    error = "Invalid units 'None' for parameter wllow"
+    error = "Invalid units 'None' for parameter wl_low"
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
 
@@ -530,7 +530,7 @@ def test_spectrum_inconsistent_wl_bounds(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
-        reset={'wllow':'2.0 um', 'wlhigh':'1.0 um'},
+        reset={'wl_low':'2.0 um', 'wl_high':'1.0 um'},
     )
     error = re.escape(
         'Wavenumber low boundary (10000.0 cm-1) must be larger than the '
