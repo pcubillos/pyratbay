@@ -81,7 +81,7 @@ file(s), along with the ``dbtype`` parameter which specifies the
 format of the input data.
 
 Lastly, the user can specify the wavelength range of the extracted
-data (see ``wllow`` and ``wlhigh``). Normally one want to the widest
+data (see ``wl_low`` and ``wl_high``). Normally one want to the widest
 possible range (to avoid needing to re-calculating TLI files if a
 future calculation needs it). The config file below converts the
 HITRAN CO line list:
@@ -123,7 +123,7 @@ These parameters define each array of the cross-section table:
    pressure sampling array
 -  The ``tmin``, ``tmax``, and ``tstep`` parameters define the
    temperature sampling array
--  The ``wllow``, ``wlhigh``, and ``resolution`` parameters define the
+-  The ``wl_low``, ``wl_high``, and ``resolution`` parameters define the
    spectral array at a constant resolution (alternatively, one can
    replace ``resolution`` with ``wnstep`` to sample at constant
    :math:`\Delta`\ wavenumber, units in cm\ :math:`^{-1}`)

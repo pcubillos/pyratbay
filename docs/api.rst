@@ -2074,7 +2074,7 @@ ________________
 
 .. py:module:: pyratbay.opacity
 
-.. py:function:: make_tli(dblist, pflist, dbtype, tlifile, wllow, wlhigh, wlunits, log)
+.. py:function:: make_tli(dblist, pflist, dbtype, tlifile, wl_low, wl_high, wlunits, log)
 .. code-block:: pycon
 
     Create a transition-line-information (TLI) file.
@@ -2089,15 +2089,15 @@ ________________
         Database type of each database.
     tlifile: String
         Output TLI file name.
-    wllow: String or float
+    wl_low: String or float
         Lower wavelength boundary to consider. If float, assume units
-        from wlunits input.  Otherwise, wllow sets the value and units
+        from wlunits input.  Otherwise, wl_low sets the value and units
         (for example: '1.0 um').
-    wlhigh: String or float
+    wl_high: String or float
         High wavelength boundary to consider. If float, assume units
-        from wlunits input.  Otherwise, wlhigh sets the value and units.
+        from wlunits input.  Otherwise, wl_high sets the value and units.
     wlunits: String
-        Wavelength units (when not specified in wllow nor wlhigh).
+        Wavelength units (when not specified in wl_low nor wl_high).
     log: Log object
         An mc3.utils.Log instance to log screen outputs to file.
 

@@ -136,7 +136,7 @@ line-lists (see ``dblist``) into a TLI file (see ``tlifile`` or
 provided (see ``pflist``).
 
 Lastly, the user can specify the wavelength range of the extracted data
-(see ``wllow`` and ``wlhigh``). Normally one want to the widest possible
+(see ``wl_low`` and ``wl_high``). Normally one want to the widest possible
 range (to avoid needing to re-calculating TLI files if a future
 calculation needs it), but for sake of this demo, we will extract just
 over a narrow region:
@@ -169,7 +169,7 @@ These parameters define each array of the cross-section table:
    pressure sampling array
 -  The ``tmin``, ``tmax``, and ``tstep`` parameters define the
    temperature sampling array
--  The ``wllow``, ``wlhigh``, and ``resolution`` parameters define the
+-  The ``wl_low``, ``wl_high``, and ``resolution`` parameters define the
    spectral array at a constant resolution (alternatively, one can
    replace ``resolution`` with ``wnstep`` to sample at a constant
    :math:`\Delta \text{wavenumber}`, units in cm\ :math:`^{-1}`)

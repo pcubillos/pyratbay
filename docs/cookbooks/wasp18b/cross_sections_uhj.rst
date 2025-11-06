@@ -404,8 +404,8 @@ pressure grid if requested).
     :language: ini
     :lines: 31-35
 
-This section defines the wavelength sampling. ``wllow`` and
-``wlhigh`` set the ranges (we want to cover the TESS and JWST
+This section defines the wavelength sampling. ``wl_low`` and
+``wl_high`` set the ranges (we want to cover the TESS and JWST
 observing ranges), whereas ``resolution`` sets the resolving power of
 the spectra (we want a resolution >= 25K to avoid having sampling
 biases).  Lastly, the ``vextent`` parameter sets the extent of the

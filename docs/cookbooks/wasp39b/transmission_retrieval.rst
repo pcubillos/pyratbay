@@ -199,7 +199,7 @@ Lets break this down:
      case we have a transit), the location of the observation file
      discussed above (and the desired output units)
 
-     ``wllow`` and ``wlhigh`` set the and the spectral range to model.
+     ``wl_low`` and ``wl_high`` set the and the spectral range to model.
      Note that the wavelenght sampling is partly set by the opacity
      files (resolution and maximum wavelength coverage).  One can trim
      the wavelength ranges (as shown here) to extract only the region
