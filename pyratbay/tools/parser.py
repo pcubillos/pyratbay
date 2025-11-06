@@ -542,6 +542,7 @@ def parse(cfile, with_log=True, mute=False):
         parse_str(args, 'data_color')
         parse_int(args, 'nlive')
         parse_str(args, 'statistics')
+        parse_float(args, 'dt_retrieval_snapshot')
         # Stellar models:
         parse_str(args, 'starspec')
         parse_str(args, 'kurucz')
@@ -1052,6 +1053,12 @@ def parse(cfile, with_log=True, mute=False):
         'grnmin', 'Gelman-Rubin convergence fraction', 0.5, gt=0.0)
     args.nlive = args.get_default(
         'nlive', 'Number of Nested Sampling live points', 1000, gt=0)
+    args.dt_retrieval_snapshot = args.get_default(
+        'dt_retrieval_snapshot',
+        'Take a snapshot of the posterior during a retrieval d_time',
+        default=0.0,
+        ge=0.0,
+    )
 
     args.statistics = args.get_choice(
         'statistics',
