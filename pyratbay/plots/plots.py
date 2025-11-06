@@ -648,9 +648,7 @@ def abundance(
     if colors is None:
         colors = matplotlib.rcParams['axes.prop_cycle'].by_key()['color']
 
-    if len(colors) >= len(species):
-        cols = colors
-    elif colors == 'default':
+    if colors == 'default':
         cols = [
             default_colors[mol] if mol in default_colors
             else None
@@ -659,6 +657,8 @@ def abundance(
         used_cols = [c for c in default_colors.values() if c in cols]
         remaining_cols = [c for c in default_colors.values() if c not in cols]
         colors = used_cols + remaining_cols
+    elif len(colors) >= len(species):
+        cols = colors
     else:
         cols = [None for _ in species]
 
