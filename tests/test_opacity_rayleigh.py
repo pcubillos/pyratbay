@@ -185,7 +185,7 @@ def test_rayleigh_e():
 
 
 def test_lecavelier_default():
-    lec_rayleigh = op.rayleigh.Lecavelier(wn=wn)
+    lec_rayleigh = op.clouds.Lecavelier(wn=wn)
 
     assert lec_rayleigh.name == 'lecavelier'
     assert lec_rayleigh.species == 'H2'
@@ -202,7 +202,7 @@ def test_lecavelier_default():
 
 
 def test_lecavelier_update_parameters():
-    lec_rayleigh = op.rayleigh.Lecavelier(wn=wn)
+    lec_rayleigh = op.clouds.Lecavelier(wn=wn)
     # Update cross sections only:
     pars0 = [1.0, -4.0]
     lec_rayleigh.calc_cross_section(pars0)

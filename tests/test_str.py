@@ -31,7 +31,7 @@ Wavelength range:  1.10 -- 1.70 um (3209 samples, delta-wn=1.000 cm-1)
 Composition:
   ['H2' 'He' 'H' 'Na' 'K' 'H2O' 'CH4' 'CO' 'CO2']
 Opacity sources:
-  ['H2O', 'Na', 'CIA H2-H2', 'CIA H2-He', 'lecavelier', 'deck']"""
+  ['H2O', 'Na', 'CIA H2-H2', 'CIA H2-He', 'deck', 'lecavelier']"""
 
 
 def test_pyrat_opacity_str(tmp_path):
@@ -47,8 +47,8 @@ H2O             line_sample    300.0  3000.0
 sodium_vdw      alkali
 CIA H2-H2       cia             60.0  3000.0
 CIA H2-He       cia             60.0  3000.0
-lecavelier      cloud
 deck            cloud
+lecavelier      cloud
 """
 
 
@@ -157,7 +157,7 @@ def test_opacity_rayleigh_lecavelier_str():
     wn_min = 1.0 / (1.7 * pc.um)
     wn_max = 1.0 / (1.1 * pc.um)
     wn = np.arange(wn_min, wn_max, 1.0)
-    model = op.rayleigh.Lecavelier(wn)
+    model = op.clouds.Lecavelier(wn)
     assert str(model) == """\
 Model name (name): 'lecavelier'
 Model species (species): H2
@@ -388,7 +388,7 @@ Gaussian quadrature weights (quadrature_weights):
     [0.095 0.691 1.058 0.931 0.367]
 
 Transmission spectrum, (Rp/Rs)**2 (spectrum):
-    [ 6.780e-03  6.781e-03  6.780e-03 ...  6.780e-03  6.780e-03  6.780e-03]
+    [ 6.523e-03  6.611e-03  6.524e-03 ...  6.505e-03  6.480e-03  6.497e-03]
 """
 
 
@@ -510,17 +510,17 @@ Distance along the ray path across each layer (outside-in) at each impact
 
 Maximum optical depth to calculate (maxdepth): 10.00
 Layer index where the optical depth reaches maxdepth (ideep):
-    [ 19  19  19  19  19  19  19 ...  19  19  19  19  19  19  19]
-Maximum ideep (deepest layer reaching maxdepth): 19
+    [ 37  36  37  36  37  37  37 ...  38  31  38  38  39  39  38]
+Maximum ideep (deepest layer reaching maxdepth): 41
 
 Optical depth at each impact parameter, down to max(ideep) (depth):
 [[ 0.000e+00  0.000e+00  0.000e+00 ...  0.000e+00  0.000e+00  0.000e+00]
  [ 5.313e-08  1.614e-05  5.321e-08 ...  7.800e-07  3.229e-07  3.364e-07]
  [ 9.871e-08  2.998e-05  9.885e-08 ...  1.449e-06  5.998e-07  6.248e-07]
  ...
- [ 3.741e-05  9.556e-03  3.777e-05 ...  4.654e-04  1.922e-04  2.016e-04]
- [ 5.784e-05  1.380e-02  5.855e-05 ...  6.740e-04  2.781e-04  2.925e-04]
- [ 9.147e-05  1.992e-02  9.288e-05 ...  9.775e-04  4.027e-04  4.252e-04]]
+ [ 0.000e+00  0.000e+00  0.000e+00 ...  1.567e+01  1.535e+01  0.000e+00]
+ [ 0.000e+00  0.000e+00  0.000e+00 ...  0.000e+00  0.000e+00  0.000e+00]
+ [ 0.000e+00  0.000e+00  0.000e+00 ...  0.000e+00  0.000e+00  0.000e+00]]
 """
 
 
@@ -568,7 +568,7 @@ Wavelength range:  1.10 -- 1.70 um (2177 samples, R=5000.0)
 Composition:
   ['H2' 'He' 'H' 'Na' 'K' 'H2O' 'CH4' 'CO' 'CO2']
 Opacity sources:
-  ['H2O', 'Na', 'CIA H2-H2', 'CIA H2-He', 'lecavelier']"""
+  ['H2O', 'Na', 'CIA H2-H2', 'CIA H2-He']"""
 
     assert str(pyrat.spec) == """\
 Spectral information:
@@ -589,7 +589,7 @@ Gaussian quadrature weights (quadrature_weights):
     [0.095 0.691 1.058 0.931 0.367]
 
 Transmission spectrum, (Rp/Rs)**2 (spectrum):
-    [ 6.523e-03  6.540e-03  6.524e-03 ...  6.669e-03  6.500e-03  6.471e-03]
+    [ 6.523e-03  6.539e-03  6.523e-03 ...  6.669e-03  6.494e-03  6.463e-03]
 """
 
 @pytest.mark.skip(reason="TBD")
@@ -652,13 +652,13 @@ Gaussian quadrature cos(theta) angles (quadrature_mu):
 Gaussian quadrature weights (quadrature_weights):
     [0.095 0.691 1.058 0.931 0.367]
 Intensity spectra (intensity, erg s-1 cm-2 sr-1 cm):
-    [ 7.737e+02  7.730e+02  7.723e+02 ...  3.546e+01  3.542e+01  3.539e+01]
-    [ 7.737e+02  7.730e+02  7.723e+02 ...  3.546e+01  3.542e+01  3.539e+01]
-    [ 7.737e+02  7.730e+02  7.723e+02 ...  3.546e+01  3.542e+01  3.539e+01]
-    [ 7.737e+02  7.730e+02  7.723e+02 ...  3.546e+01  3.542e+01  3.539e+01]
-    [ 7.737e+02  7.730e+02  7.723e+02 ...  3.546e+01  3.542e+01  3.538e+01]
+    [ 1.277e+04  1.148e+04  1.273e+04 ...  2.367e+03  2.399e+03  2.358e+03]
+    [ 1.267e+04  1.133e+04  1.263e+04 ...  2.321e+03  2.355e+03  2.312e+03]
+    [ 1.233e+04  1.081e+04  1.229e+04 ...  2.163e+03  2.199e+03  2.156e+03]
+    [ 1.152e+04  9.613e+03  1.148e+04 ...  1.800e+03  1.841e+03  1.799e+03]
+    [ 8.964e+03  6.256e+03  8.916e+03 ...  8.971e+02  9.296e+02  9.059e+02]
 Emission spectrum (spectrum, erg s-1 cm-2 cm):
-    [ 2.431e+03  2.428e+03  2.426e+03 ...  1.114e+02  1.113e+02  1.112e+02]
+    [ 3.702e+04  3.160e+04  3.690e+04 ...  6.121e+03  6.236e+03  6.108e+03]
 """
 
     assert str(pyrat.od) == """\
@@ -670,17 +670,17 @@ Distance across each layer along a normal ray path (raypath, km):
 
 Maximum optical depth to calculate (maxdepth): 10.00
 Layer index where the optical depth reaches maxdepth (ideep):
-    [ 20  20  20  20  20  20  20 ...  20  20  20  20  20  20  20]
-Maximum ideep (deepest layer reaching maxdepth): 20
+    [ 42  41  42  41  42  42  42 ...  43  40  43  43  44  43  43]
+Maximum ideep (deepest layer reaching maxdepth): 45
 
 Planck emission down to max(ideep) (B, erg s-1 cm-2 sr-1 cm):
 [[ 7.478e+02  7.471e+02  7.465e+02 ...  3.364e+01  3.361e+01  3.357e+01]
  [ 7.478e+02  7.471e+02  7.465e+02 ...  3.364e+01  3.361e+01  3.357e+01]
  [ 7.478e+02  7.472e+02  7.465e+02 ...  3.365e+01  3.361e+01  3.358e+01]
  ...
- [ 7.673e+02  7.666e+02  7.660e+02 ...  3.501e+01  3.497e+01  3.494e+01]
- [ 7.737e+02  7.730e+02  7.723e+02 ...  3.546e+01  3.542e+01  3.539e+01]
- [ 7.893e+02  7.886e+02  7.879e+02 ...  3.657e+01  3.653e+01  3.650e+01]]
+ [ 1.488e+04  1.487e+04  1.487e+04 ...  3.387e+03  3.385e+03  3.384e+03]
+ [ 1.489e+04  1.488e+04  1.488e+04 ...  3.391e+03  3.389e+03  3.387e+03]
+ [ 1.490e+04  1.490e+04  1.489e+04 ...  3.395e+03  3.393e+03  3.392e+03]]
 
 Optical depth at each layer along a normal ray path into the planet, down to
     max(ideep) (depth):
@@ -688,9 +688,9 @@ Optical depth at each layer along a normal ray path into the planet, down to
  [ 6.893e-08  2.778e-07  6.902e-08 ...  3.989e-07  3.932e-07  3.935e-07]
  [ 1.683e-07  6.782e-07  1.685e-07 ...  9.740e-07  9.600e-07  9.608e-07]
  ...
- [ 1.129e-04  4.549e-04  1.131e-04 ...  6.524e-04  6.429e-04  6.435e-04]
- [ 1.630e-04  6.566e-04  1.632e-04 ...  9.410e-04  9.272e-04  9.281e-04]
- [ 2.354e-04  9.479e-04  2.357e-04 ...  1.357e-03  1.337e-03  1.338e-03]]
+ [ 0.000e+00  0.000e+00  0.000e+00 ...  9.992e+00  1.132e+01  1.422e+01]
+ [ 0.000e+00  0.000e+00  0.000e+00 ...  1.615e+01  0.000e+00  0.000e+00]
+ [ 0.000e+00  0.000e+00  0.000e+00 ...  0.000e+00  0.000e+00  0.000e+00]]
 """
 
 

@@ -9,6 +9,7 @@ __all__ = [
     'parse_int',
     'parse_float',
     'parse_array',
+    'parse_var_vals',
 ]
 
 import os
@@ -380,6 +381,38 @@ def parse_array(args, param):
     args[param] = val
 
 
+def parse_var_vals(var_input):
+    if var_input is None:
+        return [], []
+    # parse models and parameters
+    inputs = [
+        par for par in var_input.splitlines()
+        if par != ''
+    ]
+    # if any item is a number, then assume {vars,pars} pairs per line
+    has_pars = np.any([
+        pt.is_number(val)
+        for vars in inputs
+        for val in vars.split()
+    ])
+
+    input_vars = []
+    input_pars = []
+    if has_pars:
+        for var in inputs:
+            var = var.split()
+            pars = None if len(var)==1 else np.array(var[1:], float)
+            input_vars.append(var[0])
+            input_pars.append(pars)
+    else:
+        input_vars = ' '.join(inputs).split()
+        input_pars = [None] * len(input_vars)
+
+    return input_vars, input_pars
+
+
+
+
 def parse(cfile, with_log=True, mute=False):
     """
     Read the command line arguments.
@@ -491,10 +524,8 @@ def parse(cfile, with_log=True, mute=False):
         parse_int(args, 'nlor')
         parse_float(args, 'dlratio')
         # Hazes and clouds options:
-        parse_array(args, 'clouds')
-        parse_array(args, 'cpars')
+        parse_str(args, 'clouds')
         parse_array(args, 'rayleigh')
-        parse_array(args, 'rpars')
         parse_float(args, 'fpatchy')
         parse_array(args, 'alkali')
         parse_float(args, 'alkali_cutoff')
@@ -930,8 +961,14 @@ def parse(cfile, with_log=True, mute=False):
     args.rayleigh = args.get_choice(
         'rayleigh', 'Rayleigh model', pc.rmodels)
 
-    args.clouds = args.get_choice(
-        'clouds', 'cloud model', pc.cmodels)
+    clouds, cpars = parse_var_vals(args.clouds)
+    for name in clouds:
+        if name in pc.cmodels:
+            continue
+        log.error(
+            f"Invalid cloud model (clouds): '{name}'. Select from: {pc.cmodels}"
+        )
+
     args.fpatchy = args.get_default(
         'fpatchy', 'Patchy-cloud fraction', ge=0.0, le=1.0,
     )

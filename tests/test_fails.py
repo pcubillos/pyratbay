@@ -732,29 +732,15 @@ def test_spectrum_inconsistent_voigt_bounds(tmp_path, vmin, vmax):
         pyrat = pb.run(cfg)
 
 
-def test_spectrum_rpars_mismatch(tmp_path):
+def test_spectrum_cloud_pars_mismatch(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
-        reset={'rpars':'1.0 1.0 1.0'},
+        reset={'clouds':'lecavelier 1.0 1.0 1.0'},
     )
     error = re.escape(
-        'Number of input Rayleigh parameters (3) does not match the '
-        'number of required model parameters (2)'
-    )
-    with pytest.raises(ValueError, match=error):
-        pyrat = pb.run(cfg)
-
-
-def test_spectrum_cpars_mismatch(tmp_path):
-    cfg = make_config(
-        tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
-        reset={'cpars':'1.0 1.0 1.0'},
-    )
-    error = re.escape(
-        'Number of input cloud parameters (3) does not match the number '
-        'of required model parameters (1)'
+        "Number of input parameters (3) does not match the number of "
+        "required parameters (2) for model 'lecavelier'"
     )
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
@@ -855,7 +841,7 @@ def test_rayleigh_missing_species(tmp_path):
     reset = {
         'species': 'H2  H   Na  H2O CH4  CO  CO2',
         'chemistry': 'equilibrium',
-        'rayleigh': 'lecavelier rayleigh_He',
+        'rayleigh': 'rayleigh_He',
     }
     cfg = make_config(
         tmp_path,
@@ -952,8 +938,8 @@ def test_spectrum_invalid_retrieval_params_pname(tmp_path):
     )
     error = re.escape(
         "Invalid retrieval parameter 'log_H2O'. Possible values are:\n"
-        "['log_p_ref', 'R_planet', 'M_planet', 'rv_shift', 'f_patchy', 'T_eff', "
-        "'f_dilution', 'T_iso', 'log_k_ray', 'alpha_ray', 'log_p_cl']"
+        "['log_p_ref', 'R_planet', 'M_planet', 'rv_shift', 'f_patchy', "
+        "'T_eff', 'f_dilution', 'T_iso', 'log_k_ray', 'alpha_ray']"
     )
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
@@ -1006,32 +992,15 @@ def test_spectrum_insuficient_retrieval_params_mol(tmp_path):
 
 def test_spectrum_insuficient_retrieval_params_cloud(tmp_path):
     reset = {
-        'cloud': 'deck',
+        'clouds': 'deck',
         'retrieval_params': 'R_planet -3.0',
     }
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         reset=reset,
-        remove=['cpars'],
     )
     error = re.escape("Undefined parameter values for cloud model 'deck'")
-    with pytest.raises(ValueError, match=error):
-        pyrat = pb.run(cfg)
-
-
-def test_spectrum_insuficient_retrieval_params_rayleigh(tmp_path):
-    reset = {
-        'rayleigh': 'lecavelier',
-        'retrieval_params': 'R_planet -3.0',
-    }
-    cfg = make_config(
-        tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
-        reset=reset,
-        remove=['rpars'],
-    )
-    error = re.escape("Undefined parameter values for cloud model 'lecavelier'")
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
 
@@ -1051,7 +1020,7 @@ def test_spectrum_params_misfit(tmp_path):
         """Invalid retrieval parameter 'T_iso'. Possible values are:\n"""
         """['log_p_ref', 'R_planet', 'M_planet', 'rv_shift', 'f_patchy', 'T_eff', """
         """'f_dilution', "log_kappa'", 'log_gamma1', 'log_gamma2', 'alpha', """
-        """'T_irr', 'T_int', 'log_k_ray', 'alpha_ray', 'log_p_cl']"""
+        """'T_irr', 'T_int', 'log_k_ray', 'alpha_ray']"""
     )
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
@@ -1206,14 +1175,15 @@ def test_kurucz_missing_pars(tmp_path, param):
 
 
 @pytest.mark.filterwarnings("ignore: The 'retflag' argument")
-@pytest.mark.parametrize('param',
-    ['tmodel', 'clouds', 'rayleigh', 'vmr_vars', 'bulk'])
+@pytest.mark.parametrize(
+    'param',
+    ['tmodel', 'clouds', 'vmr_vars', 'bulk'],
+)
 def test_spectrum_missing_retflag_models(tmp_path, param, undefined_mcmc):
     reset = {
-        'retflag': 'temp mol ray cloud',
+        'retflag': 'temp mol cloud',
         'tmodel': 'isothermal',
-        'clouds': 'deck',
-        'rayleigh': 'lecavelier',
+        'clouds': 'deck lecavelier',
         'vmr_vars': 'log_H2O',
         'bulk': 'H2',
     }

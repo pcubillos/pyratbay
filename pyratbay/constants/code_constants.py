@@ -116,9 +116,9 @@ retflags = [
 
 # Temperature models:
 tmodels = [
-   'isothermal',
-   'guillot',
-   'madhu',
+    'isothermal',
+    'guillot',
+    'madhu',
 ]
 
 # Chemistry models:
@@ -135,23 +135,23 @@ radmodels = [
 
 # Alkali models:
 amodels = [
-   'sodium_vdw',
-   'potassium_vdw',
+    'sodium_vdw',
+    'potassium_vdw',
 ]
 
 # Rayleigh models:
 rmodels = [
-   'rayleigh_H',
-   'rayleigh_H2',
-   'rayleigh_He',
-   'rayleigh_e-',
-   'lecavelier',
+    'rayleigh_H',
+    'rayleigh_H2',
+    'rayleigh_He',
+    'rayleigh_e-',
 ]
 
 # Cloud/haze models:
 cmodels = [
     'deck',
     'ccsgray',
+    'lecavelier',
 ]
 
 # H- opacity models:
