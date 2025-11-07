@@ -99,6 +99,7 @@ Documentation
    line_sampling
    atmosphere_modeling
    spectral_synthesis
+   cross_sections
    retrieval_tutorial
 
    cookbooks/recipes

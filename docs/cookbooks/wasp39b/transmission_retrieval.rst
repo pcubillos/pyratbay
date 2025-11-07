@@ -310,7 +310,7 @@ Lets break this down:
 
      .. literalinclude:: ../../_static/data/wasp39b_retrieval_transit_jwst.cfg
         :language: ini
-        :lines: 135-148
+        :lines: 134-147
 
      Finally, we configure the posterior sampler. In this case we use
      pymultinest [Feroz2009]_ [Buchner2014]_, with 1000 live points.

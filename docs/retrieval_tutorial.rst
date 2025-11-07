@@ -226,6 +226,13 @@ there are requirements to enable some of them.
      <tr><td><code>log_X</code></td><td><code>chemistry = tea</code> and<br><code>log_X</code> in <code>vmr_vars</code></td><td>Constant VMR embedded in equilibrium atmosphere. <code>X</code> is a species name</td></tr>
 
      <tr><td colspan="4" style="border-bottom: 3px solid #999;"></td></tr>
+     <tr>
+         <th rowspan="1">Isotopic ratios</th>
+         <td><code>iso_X</code></td>
+         <td><code>X</code> in <code>isotope_ratios</code></td>
+         <td><span>\( \log_{10}({f}) \)</span>, where <span>\( f \)</span> is the isotopic fraction for isotope <code>X</code></td></tr>
+
+     <tr><td colspan="4" style="border-bottom: 3px solid #999;"></td></tr>
      <tr><th rowspan="4">Clouds</th><td><code>log_p_cl</code></td><td><code>deck</code> in <code>clouds</code></td><td>pressure at top of opaque cloud deck.<br><span>\( \log_{10}(p/{\rm bar}) \)</span> units</td></tr>
      <tr><td><code>log_k_ray</code></td><td><code>lecavelier</code> in <code>rayleigh</code></td><td></td></tr>
      <tr><td><code>alpha_ray</code></td><td><code>lecavelier</code> in <code>rayleigh</code></td><td></td></tr>

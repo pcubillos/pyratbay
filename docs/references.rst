@@ -9,6 +9,10 @@ References
 
 .. [Barber2014] `Barber et al (2014): ExoMol line lists - III. An improved hot rotation-vibration line list for HCN and HNC <https://ui.adsabs.harvard.edu/abs/2014MNRAS.437.1828B>`_
 
+.. [Barton2014] `Barton et al. (2014): ExoMol molecular line lists V: the ro-vibrational spectra of NaCl and KCl <https://ui.adsabs.harvard.edu/abs/2014MNRAS.442.1821B>`_
+
+.. [Bernath2020] `Bernath et al. (2020): MoLLIST: Molecular Line Lists, Intensities and Spectra <https://ui.adsabs.harvard.edu/abs/2020JQSRT.24006687B>`_
+
 .. [Blecic2016] `Blecic et al (2016): TEA: A Code Calculating Thermochemical Equilibrium Abundances <https://ui.adsabs.harvard.edu/abs/2016ApJS..225....4B>`_
 
 .. [Borysow1988] `Borysow et al. (1988): Collision-induced Rototranslational Absorption Spectra of H2-He Pairs at Temperatures from 40 to 3000 K <https://ui.adsabs.harvard.edu/abs/1988ApJ...326..509B>`_
@@ -19,9 +23,11 @@ References
 
 .. [Borysow2001] `Borysow et al. (2001): High-temperature (1000-7000 K) collision-induced absorption of H2 pairs computed from the first principles, with application to cool and dense stellar atmospheres <https://ui.adsabs.harvard.edu/abs/2001JQSRT..68..235B>`_
 
-.. [Borysow2002] `Borysow (2002): Collision-induced absorption coefficients of H$_2$ pairs at temperatures from 60 K to 1000 K <https://ui.adsabs.harvard.edu/abs/2002A&A...390..779B>`_
+.. [Borysow2002] `Borysow (2002): Collision-induced absorption coefficients of H2 pairs at temperatures from 60 K to 1000 K <https://ui.adsabs.harvard.edu/abs/2002A&A...390..779B>`_
 
 .. [Bowesman2024] `Bowesman et al. (2024): ExoMol line lists - LV: hyperfine-resolved molecular line list for vanadium monoxide VO <https://ui.adsabs.harvard.edu/abs/2024MNRAS.529.1321B>`_
+
+.. [Brady2023] `Brady et al. (2023): ExoMol line lists - LVI. The SO line list, MARVEL analysis of experimental transition data and refinement of the spectroscopic model <https://ui.adsabs.harvard.edu/abs/2024MNRAS.527.6675B>`_
 
 .. [Buchner2014] `Buchner et al. (2014): X-ray spectral modelling of the AGN obscuring region in the CDFS: Bayesian model selection and catalogue <https://ui.adsabs.harvard.edu/abs/2014A&A...564A.125B>`_
 
@@ -37,6 +43,8 @@ References
 
 .. [Coulombe2023] `Coulombe et al. (2023): A broadband thermal emission spectrum of the ultra-hot Jupiter WASP-18b <https://ui.adsabs.harvard.edu/abs/2023Natur.620..292C>`_
 
+.. [Coxon2015] `Coxon et al. (2015): Improved direct potential fit analyses for the ground electronic states of the hydrogen halides: HF/DF/TF, HCl/DCl/TCl, HBr/DBr/TBr and HI/DI/TI <https://ui.adsabs.harvard.edu/abs/2015JQSRT.151..133C>`_
+
 .. [Cubillos2017a] `Cubillos et al. (2017): On Correlated-noise Analyses Applied to Exoplanet Light Curves <https://ui.adsabs.harvard.edu/abs/2017AJ....153....3C>`_
 
 .. [Cubillos2017b] `Cubillos (2017): An Algorithm to Compress Line-transition Data for Radiative-transfer Calculations <http://ui.adsabs.harvard.edu/abs/2017ApJ...850...32C>`_
@@ -47,6 +55,8 @@ References
 
 .. [Deline2025] `Deline et al. (2025): Dark skies of the slightly eccentric WASP-18 b from its optical-to-infrared dayside emission <https://ui.adsabs.harvard.edu/abs/2025A&A...699A.150D>`_
 
+.. [Dulic2003] `Dulic et al. (2003): Line Intensities and Molecular Opacities of the FeH F$^{4}\Delta_i$-X$^4\Delta_i$ Transition <https://ui.adsabs.harvard.edu/abs/2003ApJ...594..651D>`_
+
 .. [Feroz2009] `Feroz et al. (2009): MULTINEST: an efficient and robust Bayesian inference tool for cosmology and particle physics <https://ui.adsabs.harvard.edu/abs/2009MNRAS.398.1601F>`_
 
 .. [Gamache2017] `Gamache et al. (2017): Total internal partition sums for 166 isotopologues of 51 molecules important in planetary atmospheres: Application to HITRAN2016 and beyond <https://ui.adsabs.harvard.edu/abs/2017JQSRT.203...70G>`_
@@ -54,6 +64,8 @@ References
 .. [Gamache2021] `Gamache et al. (2021): Total internal partition sums for the HITRAN2020 database <https://ui.adsabs.harvard.edu/abs/2021JQSRT.27107713G>`_
 
 .. [Gordon2022] `Gordon et al. (2022): The HITRAN2020 molecular spectroscopic database <https://ui.adsabs.harvard.edu/abs/2022JQSRT.27707949G>`_
+
+.. [Gorman2019] `Gorman et al. (2019): ExoMol molecular line lists XXXVI: X$^2\Pi$-X$^2\Pi$ and A$^2\Sigma$^+$ - X$^2\Pi$ transitions of SH <https://ui.adsabs.harvard.edu/abs/2019MNRAS.490.1652G>`_
 
 .. [Griffith2014] `Griffith (2014): Disentangling degenerate solutions from primary transit and secondary eclipse spectroscopy of exoplanets <https://ui.adsabs.harvard.edu/abs/2014RSPTA.37230086G>`_
 
@@ -79,7 +91,11 @@ References
 
 .. [Kurucz1970] `Kurucz (1970): Atlas: a Computer Program for Calculating Model Stellar Atmospheres <http://ui.adsabs.harvard.edu/abs/1970SAOSR.309.....K>`_
 
+.. [Langleben2019] `Langleben et al (2019): ExoMol line list – XXXIV. A rovibrational line list for phosphinidene (PH) in its X $^3\Sigma^-$ and a $^1\Delta$ electronic states <https://ui.adsabs.harvard.edu/abs/2019MNRAS.488.2332L>`_
+
 .. [Lecavelier2008] `Lecavelier des Etangs et al. (2008): Rayleigh Scattering in the Transit Spectrum of HD 189733b <http://ui.adsabs.harvard.edu/abs/2008A%26A...481L..83L>`_
+
+.. [Li2013] `Li et al. (2013): Reference spectroscopic data for hydrogen halides. Part I: Construction and validation of the ro-vibrational dipole moment functions <https://ui.adsabs.harvard.edu/abs/2013JQSRT.121...78L>`_
 
 .. [Li2015] `Li et al. (2015): Rovibrational Line Lists for Nine Isotopologues of the CO Molecule <https://ui.adsabs.harvard.edu/abs/2015ApJS..216...15L>`_
 
@@ -88,8 +104,6 @@ References
 .. [Madhusudhan2009] `Madhusudhan & Seager (2009): A Temperature and Abundance Retrieval Method for Exoplanet Atmospheres. <http://ui.adsabs.harvard.edu/abs/2009ApJ...707...24M>`_
 
 .. .. [Mant2018] `Mant et al. (2018): ExoMol molecular line lists - XXVII. Spectra of C2H4 <https://ui.adsabs.harvard.edu/abs/2018MNRAS.478.3220M>`_
-
-.. .. [McKemmish2016] `McKemmish et al. (2016): ExoMol line lists - XVIII. The high-temperature spectrum of VO <https://ui.adsabs.harvard.edu/abs/2016MNRAS.463..771M>`_
 
 .. [McKemmish2019] `McKemmish et al. (2019): ExoMol molecular line lists - XXXIII. The spectrum of Titanium Oxide <https://ui.adsabs.harvard.edu/abs/2019MNRAS.488.2836M>`_
 
@@ -101,23 +115,35 @@ References
 
 .. [Owens2021] `Owens et al. (2021): ExoMol line lists - XLI. High-temperature molecular line lists for the alkali metal hydroxides KOH and NaOH <https://ui.adsabs.harvard.edu/abs/2021MNRAS.502.1128O>`_
 
+.. [Owens2022] `Owens et al. (2022): ExoMol line lists - XLV. Rovibronic molecular line lists of calcium monohydride (CaH) and magnesium monohydride (MgH) <https://ui.adsabs.harvard.edu/abs/2022MNRAS.511.5448O>`_
+
 .. [Owens2024] `Owens et al. (2024): ExoMol line lists -- LVIII. High-temperature molecular line list of carbonyl sulfide (OCS) <https://ui.adsabs.harvard.edu/abs/2024MNRAS.530.4004O>`_
+
+.. [Paulose2015] `Paulose et al. (2015): ExoMol molecular line lists - XII. Line lists for eight isotopologues of CS <https://ui.adsabs.harvard.edu/abs/2015MNRAS.454.1931P>`_
 
 .. [Piskunov1995] `Piskunov et al. (1995): VALD: The Vienna Atomic Line Data Base. <https://ui.adsabs.harvard.edu/abs/1995A&AS..112..525P>`_
 
 .. [Polyansky2018] `Polyansky et al. (2018): ExoMol molecular line lists XXX: a complete high-accuracy line list for water <https://ui.adsabs.harvard.edu/abs/2018MNRAS.480.2597P>`_
 
+.. [Prajapat2017] `Prajapat et al. (2017): ExoMol molecular line lists - XXIII. Spectra of PO and PS <https://ui.adsabs.harvard.edu/abs/2017MNRAS.472.3648P>`_
+
 .. [Prsa2016] `Prsa et al. (2016): Nominal Values for Selected Solar and Planetary Quantities: IAU 2015 Resolution B3 <https://ui.adsabs.harvard.edu/abs/2016AJ....152...41P>`_
 
 .. [Richard2012] `Richard et al. (2012): New section of the HITRAN database: Collision-induced absorption (CIA) <http://ui.adsabs.harvard.edu/abs/2012JQSRT.113.1276R>`_
 
+.. [Rivlin2015] `Rivlin et al. (2015): ExoMol molecular line lists - X. The spectrum of sodium hydride <https://ui.adsabs.harvard.edu/abs/2015MNRAS.451..634R>`_
+
 .. [Rothman2010] `Rothman et al. (2010): HITEMP, the high-temperature molecular spectroscopic database <http://ui.adsabs.harvard.edu/abs/2010JQSRT.111.2139R>`_
+
+.. [Semenov2025] `Semenov et al. (2025): ExoMol line lists - LXIV. Empirical rovibronic spectra of phosphorous mononitride (PN) covering the IR and UV regions <https://ui.adsabs.harvard.edu/abs/2025MNRAS.536..714S>`_
 
 .. [Sheppard2017] `Sheppard et al. (2017): Evidence for a Dayside Thermal Inversion and High Metallicity for the Hot Jupiter WASP-18b <https://ui.adsabs.harvard.edu/abs/2017ApJ...850L..32S>`_
 
 .. [Skilling2004] `Skilling (2004): Nested Sampling <https://ui.adsabs.harvard.edu/abs/2004AIPC..735..395S>`_
 
 .. [Skilling2006] `Skilling (2006): Nested sampling for general Bayesian computation <https://doi.org/10.1214/06-BA127>`_
+
+.. [Somogyi2021] `Somogyi et al. (2021): Calculation of electric quadrupole linestrengths for diatomic molecules: Application to the H2, CO, HF, and O2 molecules <https://ui.adsabs.harvard.edu/abs/2021JChPh.155u4303S>`_
 
 .. [Sousa-Silva2014] `Sousa-Silva et al. (2014): ExoMol line lists VII: The rotation-vibration spectrum of phosphine up to 1500 K <https://ui.adsabs.harvard.edu/abs/2015MNRAS.446.2337S>`_
 
@@ -129,15 +155,13 @@ References
 
 .. [Underwood2016] `Underwood et al. (2016): ExoMol molecular line lists - XIV. The rotation-vibration spectrum of hot SO2 <https://ui.adsabs.harvard.edu/abs/2016MNRAS.459.3890U>`_
 
-.. .. [Yurchenko2013] `Yurchenko et al. (2013): Vibrational transition moments of CH4 from first principles <https://ui.adsabs.harvard.edu/abs/2013JMoSp.291...69Y>`_
+.. [Upadhyay2018] `Upadhyay et al. (2018): ExoMol line lists XXV: a hot line list for silicon sulphide, SiS <https://ui.adsabs.harvard.edu/abs/2018MNRAS.477.1520U>`_
 
-.. .. [Yurchenko2014] `Yurchenko et al. (2014): ExoMol line lists - IV. The rotation-vibration spectrum of methane up to 1500 K <https://ui.adsabs.harvard.edu/abs/2014MNRAS.440.1649Y>`_
-
-.. .. [Yurchenko2015] `Yurchenko et al. (2015): A theoretical room-temperature line list for NH3 <https://ui.adsabs.harvard.edu/abs/2015JQSRT.152...28Y>`_
-
-.. .. [Yurchenko2017] `Yurchenko et al. (2017): A hybrid line list for CH4 and hot methane continuum <https://ui.adsabs.harvard.edu/abs/2017A&A...605A..95Y>`_
+.. [Yurchenko2018] `Yurchenko et al. (2018): ExoMol line lists XXIV: a new hot line list for silicon monohydride, SiH <https://ui.adsabs.harvard.edu/abs/2018MNRAS.473.5324Y>`_
 
 .. [Yurchenko2020] `Yurchenko et al. (2020): ExoMol line lists - XXXIX. Ro-vibrational molecular line list for CO2 <https://ui.adsabs.harvard.edu/abs/2020MNRAS.496.5282Y>`_
+
+.. [Yurchenko2022] `Yurchenko et al. (2022): ExoMol line lists - XLIV. Infrared and ultraviolet line list for silicon monoxide ($^{28}$Si$^{16}$O) <https://ui.adsabs.harvard.edu/abs/2022MNRAS.510..903Y>`_
 
 .. [Yurchenko2024a] `Yurchenko et al. (2024): ExoMol line lists - LVII. High accuracy ro-vibrational line list for methane (CH4) <https://ui.adsabs.harvard.edu/abs/2024MNRAS.528.3719Y>`_
 

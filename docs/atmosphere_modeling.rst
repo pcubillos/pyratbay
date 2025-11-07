@@ -747,7 +747,7 @@ abundances (VMRs):
      equilibrium):
 
      .. code-block:: ini
-         :emphasize-lines: 16
+         :emphasize-lines: 15
 
          # Chemistry model and composition [free equilibrium]
          chemistry = equilibrium

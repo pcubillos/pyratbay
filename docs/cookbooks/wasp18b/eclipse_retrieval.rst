@@ -386,7 +386,7 @@ Lets break this down:
      case we have a secondary eclipse), the path to the observation file
      discussed above (and the desired output units for plots)
 
-     ``wllow`` and ``wlhigh`` set the and the spectral range to model.
+     ``wl_low`` and ``wl_high`` set the and the spectral range to model.
      Note that the wavelenght sampling is partly set by the
      line-sampled opacity files (resolution and maximum wavelength
      coverage).  One can trim the wavelength ranges (as shown here) to
