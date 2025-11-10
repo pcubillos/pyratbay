@@ -85,6 +85,8 @@ References
 
 .. [Iro2005] `Iro et al. (2005): A time-dependent radiative model of HD 209458b <https://ui.adsabs.harvard.edu/abs/2005A&A...436..719I>`_
 
+.. [John1988] `John (1988): Continuous absorption by the negative hydrogen ion reconsidered <https://ui.adsabs.harvard.edu/abs/1988A&A...193..189J>`_
+
 .. [Jorgensen2000] `Jorgensen et al. (2000): The atmospheres of cool, helium-rich white dwarfs <https://ui.adsabs.harvard.edu/abs/2000A%26A...361..283J/abstract>`_
 
 .. [Karman2019] `Karman et al. (2019): Update of the HITRAN collision-induced absorption section <https://ui.adsabs.harvard.edu/abs/2019Icar..328..160K>`_

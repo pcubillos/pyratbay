@@ -1,5 +1,6 @@
 .. include:: _substitutions.rst
 
+
 .. _cross_sections:
 
 Cross Sections
@@ -16,6 +17,7 @@ opacities) that can be included in ``Pyrat Bay`` runs.
 - :ref:`cs_clouds`
 
 ----------------------------------------------------------------------
+
 
 .. _cs_sampled:
 
@@ -84,7 +86,7 @@ HWHM and at 25 |kayser|.  The grids sampling are:
 
   * - `CS2 <https://zenodo.org/records/16965391/files/cross_section_0.15-33.0um_0200-5000K_R025K_CS2_hitran_2020.npz>`__
     - HITRAN, 2020
-    - [ref]_
+    - [Gordon2022]_
 
   * - `FeH <https://zenodo.org/records/17060937/files/cross_section_0.15-33.0um_0200-5000K_R025K_FeH_exomol_mollist.npz>`__
     - Exomol, mollist
@@ -136,7 +138,7 @@ HWHM and at 25 |kayser|.  The grids sampling are:
 
   * - `OH <https://zenodo.org/records/16965391/files/cross_section_0.15-33.0um_0200-5000K_R025K_OH_hitemp_2022.npz>`__
     - HITEMP, 2022
-    - [ref]_
+    - [Gordon2022]_
 
   * - `PH <https://zenodo.org/records/16965391/files/cross_section_0.15-33.0um_0200-5000K_R025K_PH_exomol_laty.npz>`__
     - Exomol, laty
@@ -202,8 +204,8 @@ Other sources
 
 - Alternatively, ``Pyrat Bay`` is also compatible with `petitRADTRANS <https://petitradtrans.readthedocs.io/en/latest/content/available_opacities.html#high-resolution-opacities-lbl-lambda-delta-lambda-10-6>`_ cross-section files [Molliere2019]_.
 
-Use
-~~~
+Usage
+~~~~~
 
 In a configuration file, use the ``sampled_cross_sec`` key to list the
 cross sections to be included in a run:
@@ -280,7 +282,7 @@ atmospheres:
 
 .. raw:: html
 
-    <h3>Use</h3>
+    <h3>Usage</h3>
 
 In a configuration file, use the ``continuum_cross_sec`` key to list
 the CIA files to be included:
@@ -318,7 +320,7 @@ scripts.  See the following notebook for details: `CIA cross sections notebook <
 Alkali
 ------
 
-For the sodium and potasium alkali resonant doubles, ``Pyrat Bay``
+For the sodium and potasium alkali resonant doublets, ``Pyrat Bay``
 provides the line-profile models from [Burrows2000]_.
 
 =================  ========= =========================
@@ -334,16 +336,16 @@ collisional-broadening half-width from [Iro2005]_.
 
 .. raw:: html
 
-    <h3>Use</h3>
+    <h3>Usage</h3>
 
 In a configuration file, use the ``alkali`` key to list the cross
 sections to be included in a run.  the optional ``alkali_cutoff`` key
-sets a cutoff from the line centers (in |kayser|) at which to stop
-computing the profiles:
+sets a cutoff from the line centers (in |kayser| units) at which to
+stop computing the profiles:
 
 .. code-block:: ini
 
-  # Line-sampled cross sections
+  # Alkali cross sections [sodium_vdw potassium_vdw]
   alkali =
       sodium_vdw
       potassium_vdw
@@ -382,7 +384,7 @@ and thus req
 
 .. raw:: html
 
-    <h3>Use</h3>
+    <h3>Usage</h3>
 
 
 - In a configuration file, use the ``rayleigh`` key to list the
@@ -409,52 +411,29 @@ and thus req
 |H-| opacity
 ------------
 
-Set the ``fpatchy`` argument to compute transmission spectra from a
-linear combination of a clear and cloudy/hazy spectra.  The
-cloudy/hazy component will include the opacity defined by the
-:ref:`cloud_opacity` and the ``lecavelier`` :ref:`rayleigh_opacity`.
-For example, for a 45% cloudy / 55% clear atmosphere, set:
+|H-| absorption becomes significant at the high temperatures expected
+for ultra Hot Jupiters, where molecular hydrogen dissociates to give
+way to atomic and ionic hydrogen as the most abundant species.
+``Pyrat Bay`` implements the |H-| cross-section model from
+[John1988]_, which accounts for bound-free photo-ionization and
+free-free scattering.
+
+.. raw:: html
+
+    <h3>Usage</h3>
+
+- In a configuration file, use the ``h_ion`` key to include the |H-|
+  cross section:
 
 .. code-block:: python
 
-  # Patchy fraction, value between [0--1]:
-  fpatchy = 0.45
+    # H- bound-free and free-free opacity
+    h_ion = h_ion_john1988
 
-Use
-~~~
+- Lastly, |H-| cross sections can also be used in stand-alone
+  scripts. See the following notebook for details: `H bound-free and
+  free-free cross sections notebook <cookbooks/opacity_h_ion.ipynb>`__
 
-In a configuration file, use the ``sampled_cross_sec`` key to list the
-cross sections to be included in a run:
-
-.. code-block:: ini
-
-  # Line-sampled cross sections
-  sampled_cross_sec =
-      inputs/cross_section_0.15-33.0um_0200-5000K_R025K_H2O_exomol_pokazatel.npz
-      inputs/cross_section_0.15-33.0um_0200-5000K_R025K_CO_hitemp_2019.npz
-      inputs/cross_section_0.15-33.0um_0200-5000K_R025K_CO2_ames_ai3000k.npz
-      inputs/cross_section_0.15-33.0um_0200-5000K_R025K_CH4_exomol_mm.npz
-      inputs/cross_section_0.15-33.0um_0200-5000K_R025K_SO2_exomol_exoames.npz
-      inputs/cross_section_0.15-33.0um_0200-5000K_R025K_H2S_exomol_ayt2.npz
-
-
-Whenever sampled cross sections are used in ``Pyrat Bay``, output
-spectra will be computed at the given wavelength sampling of the cross
-sections.  This samping can be trimmed down or down sampled (if
-desired) with the following keys:
-
-.. code-block:: ini
-
-    # Wavelength sampling (keep every second point between boundaries)
-    wl_low = 1.0 um
-    wl_high = 12.0 um
-    wl_thinning = 2
-
-
-Lastly, cross sections can also be used in stand-alone scripts. See
-the following notebook for details:
-
-- `Sampled cross sections notebook <cookbooks/opacity_line_sample.ipynb>`__
 
 ----------------------------------------------------------------------
 
@@ -463,64 +442,95 @@ the following notebook for details:
 Clouds
 ------
 
-Use the ``clouds`` key to include aerosol/haze/cloud opacities.
-Currently, the code provides simple gray cloud models (listed below),
-but soon we will include more complex Mie-scattering clouds for use in
-forward- and retrieval modeling.  The following table lists the
-currently available cloud model names:
+The ``clouds`` key sets cloud opacity models.  The table below lists
+the available models:
 
-
-And these are the available haze/cloud models (``clouds`` parameter):
-
-==============  ============================================ =============================
-Models          Parameter names                              Description
-==============  ============================================ =============================
-``deck``        ``log_p_cl``                                 Opaque gray cloud deck
-ccsgray         ``log_k_gray``, ``log_p_top``, ``log_p_bot`` Constant gray cross-section
+==============  ============================================ ===
+Model           Parameter names                              Comments
+==============  ============================================ ===
 ``lecavelier``  ``log_k_ray``, ``alpha_ray``                 [Lecavelier2008]_
-==============  ============================================ =============================
+``deck``        ``log_p_cl``                                 Opaque gray cloud deck
+``ccsgray``     ``log_k_gray``, ``log_p_top``, ``log_p_bot`` Constant gray cross-section
+==============  ============================================ ===
 
-Use the ``cpars`` key to set the cloud model parameters.  The '*deck*'
-model makes the atmosphere instantly opaque at the :math:`\log(p_{\rm cl})` pressure
-(in bar units).
+.. tab-set::
 
-The '*ccsgray*' model creates a constant cross-section opacity between
-the :math:`p_{\rm t}` and :math:`p_{\rm b}` pressures (in bar units),
-and the |f| parameter scaling the opacity as: :math:`k = \kappa_{\rm gray}\ \kappa_0`, with
-:math:`\kappa_0=5.31 \times 10^{-27}` cm\ :sup:`2` molecule\
-:sup:`-1`.  This model uses the |H2| number-density profile to compute
-the extinction coefficient as: :math:`e(\lambda) = k\ n_{\rm H2}` (in
-|kayser| units).  Since the |H2| mixing ratio is generally constant,
-the '*ccsgray*' opacity will scale linearly with pressure over the
-atmosphere.
+  .. tab-item:: lecavelier
+     :selected:
+
+     The ``lecavelier`` model implements a parametric power-law cross
+     section (i.e., non-gray), allowing users to simulate
+     Rayleigh-like absorption:
+
+     .. math::
+         k(\lambda) = \kappa_{\rm ray}\ \kappa_0 \left(\frac{\lambda}{\lambda_0}\right)^{\alpha_{\rm ray}}.
+
+     Two model parameters modify the strength (``log_k_ray`` =
+     :math:`\log_{10}(\kappa_{\rm ray})`) and slope (``alpha_ray`` =
+     :math:`\alpha_{\rm ray}`) of the cross section.  Given the
+     constants :math:`\lambda_0=0.35` um and :math:`\kappa_0=5.31
+     \times 10^{-27}` cm\ :sup:`2` molecule\ :sup:`-1`, evaluating at
+     ``log_k_ray = 0.0`` and ``alpha_ray = -4.0`` results in a cross
+     section similar to |H2| Rayleigh for a primary atmosphere.
 
 
-The Lecavelier Rayleigh model is more flexible
-and allows the user to modify the absorption strength and wavelength
-dependency according to:
+  .. tab-item:: deck
 
-.. math::
-    k(\lambda) = \kappa_{\rm ray} \kappa_0 \left(\frac{\lambda}{\lambda_0}\right)^{\alpha_{\rm ray}},
+      The ``deck`` model imposes an opaque gray cloud deck at a
+      pressure defined by the model parameter ``log_p_cl`` =
+      :math:`\log(p_{\rm cl}/{\rm bar})`.
 
-where :math:`\lambda_0=0.35` um and :math:`\kappa_0=5.31 \times
-10^{-27}` cm\ :sup:`2` molecule\ :sup:`-1` are constants, and
-:math:`\log(\kappa_{\rm ray})` and :math:`\alpha_{\rm ray}` are
-fitting parameters that can be set through the ``rpars`` key.
-Adopting values of :math:`\log(\kappa_{\rm ray})=0.0` and
-:math:`\alpha_{\rm ray}=-4` reduces the Rayleigh opacity to that
-expected for the |H2| molecule.
+      .. note:: A technical note. To avoid computing spectra that
+          depend on the pressure sampling, this cloud model does not
+          simply apply a large opacity at the atmospheric layer
+          closest to ``log_p_cl``.  Rather, the code interpolates the
+          atmospheric profile, to define a '*surface*' located exactly
+          at ``log_p_cl``.
 
-.. note:: Be aware that the implementation of the Lecavelier model
-          uses the |H2| number-density profile (:math:`n_{\rm H2}`, in
-          molecules cm\ :sup:`-3`) to compute the extinction
-          coefficient (in |kayser| units) for a given atmospheric
-          model: :math:`e(\lambda) = k(\lambda)\ n_{\rm H2}`.  We do
-          this, because we are mostly interested in |H2|-dominated
-          atmospheres, and most people consider a nearly constant |H2|
-          profile.  Obviously, this needs to be fixed at some point in
-          the future for a more general use.
+  .. tab-item:: ccsgray
 
-.. For any of these type of models, the user can include multiple
-   models, simply by concatenating multiple models (and parameters)
-   one after the other in the config file.
+      The ``ccsgray`` model creates a constant cross-section opacity
+      (:math:`k = \kappa_{\rm gray}\ \kappa_0`) between two pressures,
+      with :math:`\kappa_0=5.31 \times 10^{-27}` cm\ :sup:`2`
+      molecule\ :sup:`-1` a constant.
+
+      Three model parametes define the cross section, ``log_k_gray`` =
+      :math:`\log10 (\kappa_{\rm gray})`, and the log-pressure ranges:
+      ``log_p_top`` and ``log_p_bot`` (in bar units).
+
+
+.. raw:: html
+
+    <h3>Usage</h3>
+
+In a configuration file, use the ``clouds`` key to include
+cloud-opacity models. Each row includes the name of the model,
+followed by their parameters.
+
+
+.. code-block:: ini
+
+  # Cloud cross sections and parameters [lecavelier deck ccsgray]
+  clouds =
+      lecavelier  1.0 -4.0
+      deck       -2.0
+
+
+- Some cloud cross sections can also be used in stand-alone scripts.  See the
+following notebook for details: `Lecavelier cross sections notebook
+<cookbooks/opacity_lecavelier.ipynb>`__.
+
+
+Patchy cloud fraction
+~~~~~~~~~~~~~~~~~~~~~
+
+The optional ``fpatchy`` key will produce spectra from a linear
+combination of a clear and cloudy spectrum (i.e., spectra including
+and excluding the cloud opacities listed above).  For example, for a
+40% cloudy / 60% clear atmosphere, set:
+
+.. code-block:: python
+
+  # Patchy fraction, value between [0--1]:
+  fpatchy = 0.4
 
