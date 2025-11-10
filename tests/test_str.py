@@ -153,14 +153,16 @@ Extinction coefficient (ec, cm-1):
 """
 
 
-def test_opacity_rayleigh_lecavelier_str():
+def test_opacity_lecavelier_str():
     wn_min = 1.0 / (1.7 * pc.um)
     wn_max = 1.0 / (1.1 * pc.um)
     wn = np.arange(wn_min, wn_max, 1.0)
-    model = op.clouds.Lecavelier(wn)
+    nlayers = 81
+    pressure = pa.pressure('1e-8 bar', '1e2 bar', nlayers)
+    model = op.clouds.Lecavelier(pressure, wn=wn)
     assert str(model) == """\
 Model name (name): 'lecavelier'
-Model species (species): H2
+Pressure array (pressure, bar): 1e-08 ... 100.0
 Number of model parameters (npars): 2
 Parameter name     Value
   (pnames)         (pars)
@@ -388,7 +390,7 @@ Gaussian quadrature weights (quadrature_weights):
     [0.095 0.691 1.058 0.931 0.367]
 
 Transmission spectrum, (Rp/Rs)**2 (spectrum):
-    [ 6.523e-03  6.611e-03  6.524e-03 ...  6.505e-03  6.480e-03  6.497e-03]
+    [ 6.523e-03  6.611e-03  6.524e-03 ...  6.506e-03  6.481e-03  6.498e-03]
 """
 
 
@@ -515,10 +517,10 @@ Maximum ideep (deepest layer reaching maxdepth): 41
 
 Optical depth at each impact parameter, down to max(ideep) (depth):
 [[ 0.000e+00  0.000e+00  0.000e+00 ...  0.000e+00  0.000e+00  0.000e+00]
- [ 5.313e-08  1.614e-05  5.321e-08 ...  7.800e-07  3.229e-07  3.364e-07]
- [ 9.871e-08  2.998e-05  9.885e-08 ...  1.449e-06  5.998e-07  6.248e-07]
+ [ 6.251e-08  1.615e-05  6.259e-08 ...  8.334e-07  3.763e-07  3.898e-07]
+ [ 1.161e-07  2.999e-05  1.163e-07 ...  1.548e-06  6.990e-07  7.241e-07]
  ...
- [ 0.000e+00  0.000e+00  0.000e+00 ...  1.567e+01  1.535e+01  0.000e+00]
+ [ 0.000e+00  0.000e+00  0.000e+00 ...  1.575e+01  1.543e+01  0.000e+00]
  [ 0.000e+00  0.000e+00  0.000e+00 ...  0.000e+00  0.000e+00  0.000e+00]
  [ 0.000e+00  0.000e+00  0.000e+00 ...  0.000e+00  0.000e+00  0.000e+00]]
 """
@@ -652,13 +654,13 @@ Gaussian quadrature cos(theta) angles (quadrature_mu):
 Gaussian quadrature weights (quadrature_weights):
     [0.095 0.691 1.058 0.931 0.367]
 Intensity spectra (intensity, erg s-1 cm-2 sr-1 cm):
-    [ 1.277e+04  1.148e+04  1.273e+04 ...  2.367e+03  2.399e+03  2.358e+03]
-    [ 1.267e+04  1.133e+04  1.263e+04 ...  2.321e+03  2.355e+03  2.312e+03]
-    [ 1.233e+04  1.081e+04  1.229e+04 ...  2.163e+03  2.199e+03  2.156e+03]
-    [ 1.152e+04  9.613e+03  1.148e+04 ...  1.800e+03  1.841e+03  1.799e+03]
-    [ 8.964e+03  6.256e+03  8.916e+03 ...  8.971e+02  9.296e+02  9.059e+02]
+    [ 1.268e+04  1.141e+04  1.265e+04 ...  2.259e+03  2.289e+03  2.251e+03]
+    [ 1.258e+04  1.126e+04  1.255e+04 ...  2.210e+03  2.241e+03  2.203e+03]
+    [ 1.223e+04  1.074e+04  1.219e+04 ...  2.043e+03  2.076e+03  2.038e+03]
+    [ 1.139e+04  9.520e+03  1.135e+04 ...  1.670e+03  1.705e+03  1.670e+03]
+    [ 8.758e+03  6.150e+03  8.712e+03 ...  7.889e+02  8.142e+02  7.964e+02]
 Emission spectrum (spectrum, erg s-1 cm-2 cm):
-    [ 3.702e+04  3.160e+04  3.690e+04 ...  6.121e+03  6.236e+03  6.108e+03]
+    [ 3.665e+04  3.134e+04  3.653e+04 ...  5.746e+03  5.848e+03  5.738e+03]
 """
 
     assert str(pyrat.od) == """\
@@ -670,7 +672,7 @@ Distance across each layer along a normal ray path (raypath, km):
 
 Maximum optical depth to calculate (maxdepth): 10.00
 Layer index where the optical depth reaches maxdepth (ideep):
-    [ 42  41  42  41  42  42  42 ...  43  40  43  43  44  43  43]
+    [ 42  41  42  41  42  42  42 ...  43  40  43  42  43  43  43]
 Maximum ideep (deepest layer reaching maxdepth): 45
 
 Planck emission down to max(ideep) (B, erg s-1 cm-2 sr-1 cm):
@@ -685,11 +687,11 @@ Planck emission down to max(ideep) (B, erg s-1 cm-2 sr-1 cm):
 Optical depth at each layer along a normal ray path into the planet, down to
     max(ideep) (depth):
 [[ 0.000e+00  0.000e+00  0.000e+00 ...  0.000e+00  0.000e+00  0.000e+00]
- [ 6.893e-08  2.778e-07  6.902e-08 ...  3.989e-07  3.932e-07  3.935e-07]
- [ 1.683e-07  6.782e-07  1.685e-07 ...  9.740e-07  9.600e-07  9.608e-07]
+ [ 8.109e-08  2.899e-07  8.120e-08 ...  4.682e-07  4.625e-07  4.629e-07]
+ [ 1.980e-07  7.079e-07  1.983e-07 ...  1.143e-06  1.129e-06  1.130e-06]
  ...
- [ 0.000e+00  0.000e+00  0.000e+00 ...  9.992e+00  1.132e+01  1.422e+01]
- [ 0.000e+00  0.000e+00  0.000e+00 ...  1.615e+01  0.000e+00  0.000e+00]
+ [ 0.000e+00  0.000e+00  0.000e+00 ...  1.104e+01  1.237e+01  1.527e+01]
+ [ 0.000e+00  0.000e+00  0.000e+00 ...  0.000e+00  0.000e+00  0.000e+00]
  [ 0.000e+00  0.000e+00  0.000e+00 ...  0.000e+00  0.000e+00  0.000e+00]]
 """
 

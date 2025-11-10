@@ -169,14 +169,11 @@ class Opacity():
             for name, pars in zip(cloud_vars, cloud_pars):
                 if name == 'ccsgray':
                     model = op.clouds.CCSgray(pressure, wn)
-                    self.mol_indices.append(None)
                 elif name == 'deck':
                     model = op.clouds.Deck(pressure, wn)
-                    self.mol_indices.append(None)
                 elif name == 'lecavelier':
-                    model = op.clouds.Lecavelier(wn)
-                    check_species_exists(model.species, species, model.name, log)
-                    self.mol_indices.append(species.index(model.species))
+                    model = op.clouds.Lecavelier(pressure, wn=wn)
+                self.mol_indices.append(None)
                 self.models.append(model)
                 self.models_type.append('cloud')
                 self.nspec.append(1)
@@ -242,9 +239,9 @@ class Opacity():
             if model.name == 'deck':
                 args['temperature'] = temperature
                 args['radius'] = radius
-            elif model.name == 'ccsgray':
+            elif model.name in ['lecavelier', 'ccsgray']:
                 args['temperature'] = temperature
-            elif model_type in ['rayleigh', 'cloud']:
+            elif model_type == 'rayleigh':
                 args['density'] = density
             else:
                 args['temperature'] = temperature
@@ -277,7 +274,9 @@ class Opacity():
             if model.name == 'deck':
                 args['temperature'] = temperature
                 args['radius'] = None
-            elif model_type in ['rayleigh', 'cloud']:
+            elif model.name in ['lecavelier', 'ccsgray']:
+                args['temperature'] = temperature
+            elif model_type == 'rayleigh':
                 args['density'] = density
             elif model_type == 'cia':
                 args['temperature'] = temperature[layer]

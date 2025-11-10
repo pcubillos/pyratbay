@@ -87,52 +87,6 @@ expected_He_ec = np.array([
         4.10057620e-09],
 ])
 
-expected_lec_cs = np.array([
-       1.27493100e-31, 2.84503350e-31, 6.34874797e-31, 1.41673554e-30,
-       3.16147311e-30, 7.05488917e-30, 1.57431234e-29, 3.51310881e-29,
-       7.83957112e-29, 1.74941565e-28, 3.90385528e-28, 8.71152952e-28,
-       1.94399487e-27, 4.33806264e-27, 9.68047174e-27, 2.16021623e-26,
-       4.82056482e-26,
-])
-expected_lec_ec = np.array([
-       [2.29487580e-17, 5.12106029e-17, 1.14277463e-16, 2.55012398e-16,
-        5.69065160e-16, 1.26988005e-15, 2.83376220e-15, 6.32359586e-15,
-        1.41112280e-14, 3.14894817e-14, 7.02693951e-14, 1.56807531e-13,
-        3.49919077e-13, 7.80851275e-13, 1.74248491e-12, 3.88838921e-12,
-        8.67701668e-12],
-       [1.40242410e-13, 3.12953685e-13, 6.98362277e-13, 1.55840910e-12,
-        3.47762042e-12, 7.76037809e-12, 1.73174357e-11, 3.86441969e-11,
-        8.62352823e-11, 1.92435721e-10, 4.29424081e-10, 9.58268248e-10,
-        2.13839436e-09, 4.77186890e-09, 1.06485189e-08, 2.37623785e-08,
-        5.30262130e-08],
-])
-
-expected_lec_cs_update_cs = np.array([
-       1.27493100e-30, 2.84503350e-30, 6.34874797e-30, 1.41673554e-29,
-       3.16147311e-29, 7.05488917e-29, 1.57431234e-28, 3.51310881e-28,
-       7.83957112e-28, 1.74941565e-27, 3.90385528e-27, 8.71152952e-27,
-       1.94399487e-26, 4.33806264e-26, 9.68047174e-26, 2.16021623e-25,
-       4.82056482e-25,
-])
-expected_lec_cs_update_ec = np.array([
-       6.24716190e-34, 2.08249427e-33, 6.94200416e-33, 2.31412026e-32,
-       7.71413044e-32, 2.57150891e-31, 8.57213668e-31, 2.85752568e-30,
-       9.52557489e-30, 3.17535474e-29, 1.05850595e-28, 3.52853442e-28,
-       1.17623856e-27, 3.92099661e-27, 1.30706601e-26, 4.35711052e-26,
-       1.45244478e-25,
-])
-expected_lec_ec_update_ec = np.array([
-       [1.12448914e-19, 3.74848969e-19, 1.24956075e-18, 4.16541646e-18,
-        1.38854348e-17, 4.62871603e-17, 1.54298460e-16, 5.14354622e-16,
-        1.71460348e-15, 5.71563853e-15, 1.90531071e-14, 6.35136196e-14,
-        2.11722941e-13, 7.05779390e-13, 2.35271882e-12, 7.84279893e-12,
-        2.61440060e-11],
-       [6.87187809e-16, 2.29074370e-15, 7.63620458e-15, 2.54553228e-14,
-        8.48554349e-14, 2.82865980e-13, 9.42935035e-13, 3.14327824e-12,
-        1.04781324e-11, 3.49289021e-11, 1.16435655e-10, 3.88138787e-10,
-        1.29386242e-09, 4.31309628e-09, 1.43777261e-08, 4.79282157e-08,
-        1.59768926e-07],
-])
 
 @pytest.mark.parametrize('species', ['H2', 'H', 'He', 'e-'])
 def test_rayleigh_init(species):
@@ -181,43 +135,3 @@ def test_rayleigh_e():
     density = np.array([1.8e+14, 1.1e+18])
     ec = rayleigh.calc_extinction_coefficient(density)
     np.testing.assert_allclose(ec, expected_e_ec)
-
-
-
-def test_lecavelier_default():
-    lec_rayleigh = op.clouds.Lecavelier(wn=wn)
-
-    assert lec_rayleigh.name == 'lecavelier'
-    assert lec_rayleigh.species == 'H2'
-    assert lec_rayleigh.npars == 2
-    np.testing.assert_allclose(lec_rayleigh.pars, [0.0, -4.0])
-    assert lec_rayleigh.pnames == ['log_k_ray', 'alpha_ray']
-    assert lec_rayleigh.texnames == [r'$\log\ \kappa_{\rm ray}$', r'$\alpha_{\rm ray}$']
-    np.testing.assert_allclose(lec_rayleigh.wn, wn)
-    np.testing.assert_allclose(lec_rayleigh.cross_section, expected_lec_cs)
-
-    density = np.array([1.8e+14, 1.1e+18])
-    ec = lec_rayleigh.calc_extinction_coefficient(density)
-    np.testing.assert_allclose(ec, expected_lec_ec)
-
-
-def test_lecavelier_update_parameters():
-    lec_rayleigh = op.clouds.Lecavelier(wn=wn)
-    # Update cross sections only:
-    pars0 = [1.0, -4.0]
-    lec_rayleigh.calc_cross_section(pars0)
-    np.testing.assert_allclose(lec_rayleigh.pars, pars0)
-    np.testing.assert_allclose(
-        lec_rayleigh.cross_section, expected_lec_cs_update_cs,
-    )
-    # Update cross sections and extinction coefficient:
-    density = np.array([1.8e+14, 1.1e+18])
-    pars1 = [0.0, -6.0]
-    ec = lec_rayleigh.calc_extinction_coefficient(density, pars1)
-    np.testing.assert_allclose(
-        lec_rayleigh.cross_section, expected_lec_cs_update_ec,
-    )
-    np.testing.assert_allclose(ec, expected_lec_ec_update_ec)
-
-
-

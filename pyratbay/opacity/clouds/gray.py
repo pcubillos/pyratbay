@@ -65,12 +65,14 @@ class CCSgray():
 
 
     def calc_extinction_coefficient(self, temperature, pars=None, layer=None):
+        # Cross section (in cm2 molecule-1)
         if pars is not None:
             self.pars[:] = pars
+        cs = self.calc_cross_section()
+
         # Densities in molecules cm-3:
         density = self.pressure*pc.bar / temperature / pc.k
-        # Cross section (in cm2 molecule-1):
-        cs = self.calc_cross_section()
+
         if layer is not None:
             return cs[layer] * density[layer]
         # Extinction coefficient (cm-1):
