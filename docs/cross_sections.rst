@@ -516,9 +516,7 @@ followed by their parameters.
       deck       -2.0
 
 
-- Some cloud cross sections can also be used in stand-alone scripts.  See the
-following notebook for details: `Lecavelier cross sections notebook
-<cookbooks/opacity_lecavelier.ipynb>`__.
+- Some cloud cross sections can also be used in stand-alone scripts.  See the following notebook for details: `Lecavelier cross sections notebook <cookbooks/opacity_lecavelier.ipynb>`__.
 
 
 Patchy cloud fraction

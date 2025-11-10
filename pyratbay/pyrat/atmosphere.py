@@ -49,6 +49,9 @@ class MassGravity():
 
 
 class Atmosphere():
+    """
+    Atmosphere object.
+    """
     mplanet = MassGravity()  # Planetary mass
     gplanet = MassGravity()  # Planetary surface gravity (at rplanet)
 

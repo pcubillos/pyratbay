@@ -131,8 +131,6 @@ References
 
 .. [Prsa2016] `Prsa et al. (2016): Nominal Values for Selected Solar and Planetary Quantities: IAU 2015 Resolution B3 <https://ui.adsabs.harvard.edu/abs/2016AJ....152...41P>`_
 
-.. [Richard2012] `Richard et al. (2012): New section of the HITRAN database: Collision-induced absorption (CIA) <http://ui.adsabs.harvard.edu/abs/2012JQSRT.113.1276R>`_
-
 .. [Rivlin2015] `Rivlin et al. (2015): ExoMol molecular line lists - X. The spectrum of sodium hydride <https://ui.adsabs.harvard.edu/abs/2015MNRAS.451..634R>`_
 
 .. [Rothman2010] `Rothman et al. (2010): HITEMP, the high-temperature molecular spectroscopic database <http://ui.adsabs.harvard.edu/abs/2010JQSRT.111.2139R>`_

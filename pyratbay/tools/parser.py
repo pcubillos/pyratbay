@@ -382,6 +382,9 @@ def parse_array(args, param):
 
 
 def parse_var_vals(var_input):
+    """
+    Parse keys that contain variable and values
+    """
     if var_input is None:
         return [], []
     # parse models and parameters

@@ -13,10 +13,10 @@ Recipes list:
 
 - **Atmospheric models**
 
-  - `Temperature profiles tutorial <temperature_profiles.ipynb>`__
-  - `VMR free profiles tutorial <vmr_free_profiles.ipynb>`__
-  - :ref:`vmr_equilibrium_profiles` (TBD)
-  - :ref:`radius_profiles` (TBD)
+  - `Temperature profiles <temperature_profiles.ipynb>`__
+  - `VMR free profiles <vmr_free_profiles.ipynb>`__
+
+.. - :ref:`vmr_equilibrium_profiles` (TBD)
 
 - **Line-by-line opacity sampling**
 
@@ -36,9 +36,10 @@ Recipes list:
 
   - `Instrumental Passbands <passbands.ipynb>`__
   - :doc:`partition_functions`
-  - :ref:`radiative_equilibrium` (TBD)
-  - :ref:`transmission_simulation` (TBD)
+
+..  - :ref:`transmission_simulation` (TBD)
   - :ref:`emission_simulation` (TBD)
+
 
 - **End-to-end analyses**
 
