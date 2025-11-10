@@ -10,21 +10,18 @@ ________
 
 .. py:module:: pyratbay
 
-.. py:class:: Pyrat(cfile, no_logfile=False, mute=False)
+.. py:class:: Pyrat(cfg_file, log=True, mute=False)
 
     .. code-block:: pycon
-
-        Main Pyrat object.
-
 
         Parse the command-line arguments into the pyrat object.
 
         Parameters
         ----------
-        cfile: String
+        cfg_file: String
             A Pyrat Bay configuration file.
-        no_logfile: Bool
-            If True, enforce not to write outputs to a log file
+        log: Bool
+            Flag to save screen outputs to file (True) or not (False)
             (e.g., to prevent overwritting log of a previous run).
         mute: Bool
             If True, enforce verb to take a value of -1.
@@ -32,40 +29,46 @@ ________
         Examples
         --------
         >>> import pyratbay as pb
-        >>> # Initialize and execute task:
         >>> pyrat = pb.run('spectrum_transmission.cfg')
 
-        >>> # Initialize only:
-        >>> pyrat = pb.Pyrat('spectrum_transmission.cfg')
-        >>> # Then, setup internal varible for spectra evaluation:
-        >>> pyrat.setup_spectrum()
+    .. py:method:: band_contribution()
+    .. code-block:: pycon
 
-    .. py:method:: band_integrate(spectrum=None)
+        Compute contribution functions or transmittance at each band.
+
+    .. py:method:: band_integrate()
     .. code-block:: pycon
 
         Band-integrate transmission spectrum (transit) or planet-to-star
         flux ratio (eclipse) over transmission band passes.
 
-    .. py:method:: eval(params, retmodel=True, verbose=False)
+    .. py:method:: compute_opacity()
     .. code-block:: pycon
 
-        Fitting routine for MCMC.
+        Calculate opacity (cm2 molecule-1) tabulated over
+        temperature, pressure, and wavenumber arrays
+
+    .. py:method:: eval(params, retmodel=True, skip=[])
+    .. code-block:: pycon
+
+        Fitting routine for atmospheric retrieval
 
         Parameters
         ----------
         params: 1D float iterable
-           Array of fitting parameters that define the atmosphere.
+            Array of fitting parameters that define the atmosphere.
         retmodel: Bool
-           Flag to include the model spectra in the return.
-        verbose: Bool
-           Flag to print out if a run failed.
+            Flag to include the model spectra in the return.
+        skip: List of strings
+            If set, the opacity from the model names or line-sample species
+            listed here will be neglected.
 
         Returns
         -------
         spectrum: 1D float ndarray
-           The output model spectra.  Returned only if retmodel=True.
+            The output model spectra.  Returned only if retmodel=True.
         bandflux: 1D float ndarray
-           The waveband-integrated spectrum values.
+            The waveband-integrated spectrum values.
 
     .. py:method:: get_ec(layer)
     .. code-block:: pycon
@@ -86,35 +89,10 @@ ________
         label: List of strings
            The names of each atmospheric component that contributed to EC.
 
-    .. py:method:: hydro(pressure, temperature, mu, g, mass, p0, r0)
+    .. py:method:: optical_depth()
     .. code-block:: pycon
 
-        Hydrostatic-equilibrium driver.
-        Depending on self.atm.rmodelname, select between the g=GM/r**2
-        (hydro_m) or constant-g (hydro_g) formula to compute
-        the hydrostatic-equilibrium radii of the planet layers.
-
-        Parameters
-        ----------
-        pressure: 1D float ndarray
-           Atmospheric pressure for each layer (in barye).
-        temperature: 1D float ndarray
-           Atmospheric temperature for each layer (in K).
-        mu: 1D float ndarray
-           Mean molecular mass for each layer (in g mol-1).
-        g: Float
-           Atmospheric gravity (in cm s-2).
-        mass: Float
-           Planetary mass (in g).
-        p0: Float
-           Reference pressure level (in barye) where radius(p0) = r0.
-        r0: Float
-           Reference radius level (in cm) corresponding to p0.
-
-    .. py:method:: percentile_spectrum(nmax=None)
-    .. code-block:: pycon
-
-        Compute spectrum posterior percentiles.
+        Calculate the optical depth.
 
     .. py:method:: plot_spectrum(spec='model', **kwargs)
     .. code-block:: pycon
@@ -125,11 +103,9 @@ ________
         ----------
         spec: String
             Flag indicating which model to plot.  By default plot the
-            latest evaulated model (spec='model').  Other options are
-            'best' or 'median' to plot the posterior best-fit or median
-            model, in which case, the code will plot the 1- and 2-sigma
-            boundaries if they have been computed (see
-            self.percentile_spectrum).
+            latest evaulated model (spec='model').  Another option is
+            'best', to plot the posterior best-fit (after a retrieval
+            posterior run).
         kwargs: dict
             Dictionary of arguments to pass into plots.spectrum().
             See help(pyratbay.plots.spectrum).
@@ -179,13 +155,18 @@ ________
         Returns
         -------
         There are no returned values, but this method updates the
-        temperature profile (self.atm.temp) and abundances (self.atm.q)
+        temperature profile (self.atm.temp) and abundances (self.atm.vmr)
         with the values from the last radiative-equilibrium iteration.
 
-        This method also defines pyrat.atm.radeq_temps, a 2D array
+        This method also defines self.atm.radeq_temps, a 2D array
         containing all temperature-profile iterations.
 
-    .. py:method:: run(temp=None, abund=None, radius=None)
+    .. py:method:: retrieval()
+    .. code-block:: pycon
+
+        Run an MCMC or nested-sampling atmospheric retrieval.
+
+    .. py:method:: run(temp=None, vmr=None, radius=None, skip=[])
     .. code-block:: pycon
 
         Evaluate a Pyrat spectroscopic model
@@ -199,13 +180,87 @@ ________
             shape [nlayers, nmol].
         radius: 1D float ndarray
             Updated atmospheric altitude profile in cm, of size nlayers.
+        skip: List of strings
+            If set, the opacity from the model names or line-sample species
+            listed here will be neglected.
 
-    .. py:method:: set_filters()
+.. py:class:: Atmosphere(inputs, wn=None, log=None)
+
     .. code-block:: pycon
 
-        Set observational variables (pyrat.obs) based on given parameters.
+        Initialize an atmospheric model object
+        There are four main properties to compute (in this order):
+        The pressure, the temperature, the volume mixing ratios (VMRs),
+        and the radius profiles.
 
-.. py:function:: run(cfile, run_step='run', no_logfile=False)
+        Properties can be read from input profiles, computed by models,
+        or skipped, depending on the configuration file.
+
+        The rules are simple:
+        - if there is a model in the config file, calculate the property
+        - else if there is an input atmfile or ptfile, read properties from file
+        - else, skip the calculation
+        - if calculate p, any further reads (T,VMR,r) will interpolate
+
+    .. py:method:: calc_profiles(temp=None, vmr=None, radius=None, abund=None)
+    .. code-block:: pycon
+
+        Update temperature, abundances, and radius profiles
+
+        Parameters
+        ----------
+        temp: 1D float ndarray
+            Layer's temperature profile (Kelvin) sorted from top to bottom.
+        vmr: 2D float ndarray
+            Species mole mixing ratio profiles [nlayers, nmol].
+        radius: 1D float ndarray
+            Layer's altitude profile (in cm), same order as temp.
+
+    .. py:method:: parse_abundance_parameters()
+    .. code-block:: pycon
+
+        Sort out variables related to the VMR modeling
+
+    .. py:method:: rad_model(pressure, temperature, mu, mplanet, gplanet, p0, r0)
+    .. code-block:: pycon
+
+        Calculate radius profile in hydrostatic equilibrium.
+
+        Depending on self.rmodelname, select between a g(r)=GM/r**2
+        (hydro_m) or constant-g (hydro_g) formula to compute
+        the hydrostatic-equilibrium radii at each layer.
+
+        Parameters
+        ----------
+        pressure: 1D float ndarray
+            Atmospheric pressure for each layer (in bar).
+        temperature: 1D float ndarray
+            Atmospheric temperature for each layer (in K).
+        mu: 1D float ndarray
+            Mean molecular mass for each layer (in g mol-1).
+        mplanet: Float
+            Planetary mass in g (ignored for hydro_g).
+        gplanet: Float
+            Atmospheric gravity in cm s-2 (ignored for hydro_m).
+        p0: Float
+            Reference pressure level (in bar) where radius(p0) = r0.
+        r0: Float
+            Reference radius level (in cm) corresponding to p0.
+
+    .. py:method:: setup_star_sed(inputs, wn)
+    .. code-block:: pycon
+
+        Read stellar spectrum model: starspec, kurucz, or blackbody
+
+        Returns
+        Input stellar flux spectrum (erg s-1 cm-2 cm)
+
+    .. py:method:: validate_species(var, molec=None, elements=[])
+    .. code-block:: pycon
+
+        Validate composition variables.
+
+.. py:function:: run(cfile, run_step=None, with_log=True)
 .. code-block:: pycon
 
     Pyrat Bay initialization driver.
@@ -215,11 +270,9 @@ ________
     cfile: String
         A Pyrat Bay configuration file.
     run_step: String
-        If 'dry': only read the configuration file into a Pyrat object
-        If 'init': initialize a Pyrat object (but no spectra calculation).
-        If 'run': run all the way (default).
-    no_logfile: Bool
-        If True, enforce not to write outputs to a log file
+        DEPRECATED
+    with_log: Bool
+        Flag to save screen outputs to file (True) or not (False)
         (e.g., to prevent overwritting log of a previous run).
 
 
@@ -252,7 +305,7 @@ __________________
 .. py:data:: sigma
 .. code-block:: pycon
 
-  5.670374419e-05
+  5.6703744191844314e-05
 
 .. py:data:: eV
 .. code-block:: pycon
@@ -300,6 +353,11 @@ __________________
   14959787070000.0
 
 .. py:data:: pc
+.. code-block:: pycon
+
+  3.0856775814913674e+18
+
+.. py:data:: parsec
 .. code-block:: pycon
 
   3.0856775814913674e+18
@@ -372,12 +430,12 @@ __________________
 .. py:data:: amu
 .. code-block:: pycon
 
-  1.6605390666e-24
+  1.66053906892e-24
 
 .. py:data:: me
 .. code-block:: pycon
 
-  9.1093837015e-28
+  9.1093837139e-28
 
 .. py:data:: kelvin
 .. code-block:: pycon
@@ -407,7 +465,7 @@ __________________
 .. py:data:: amagat
 .. code-block:: pycon
 
-  2.686780111e+19
+  2.6867801117984436e+19
 
 .. py:data:: e
 .. code-block:: pycon
@@ -437,7 +495,7 @@ __________________
 .. py:data:: C1
 .. code-block:: pycon
 
-  1129583353135.2844
+  1129583354672.9111
 
 .. py:data:: C2
 .. code-block:: pycon
@@ -447,12 +505,17 @@ __________________
 .. py:data:: C3
 .. code-block:: pycon
 
-  8.852821681767784e-13
+  8.852821669717024e-13
 
 .. py:data:: ROOT
 .. code-block:: pycon
 
-  os.path.realpath(os.path.dirname(__file__) + '/../..') + '/'
+  'os.path.realpath(os.path.dirname(__file__) + '/../..') + '/'
+
+.. py:data:: FILTERS
+.. code-block:: pycon
+
+  'os.path.realpath(os.path.dirname(__file__) + '/../..') + '/pyratbay/data/filters/'
 
 .. py:data:: tlireclen
 .. code-block:: pycon
@@ -482,7 +545,17 @@ __________________
 .. py:data:: rmodes
 .. code-block:: pycon
 
-  ['tli', 'atmosphere', 'opacity', 'spectrum', 'radeq', 'mcmc']
+  ['tli', 'atmosphere', 'opacity', 'spectrum', 'radeq', 'retrieval']
+
+.. py:data:: samplers
+.. code-block:: pycon
+
+  ['snooker', 'multinest']
+
+.. py:data:: statistics
+.. code-block:: pycon
+
+  ['med_central', 'max_central', 'max_like', 'global_max_like']
 
 .. py:data:: transmission_rt
 .. code-block:: pycon
@@ -492,17 +565,22 @@ __________________
 .. py:data:: emission_rt
 .. code-block:: pycon
 
-  ['emission', 'emission_two_stream']
+  ['emission', 'emission_two_stream', 'f_lambda']
+
+.. py:data:: eclipse_rt
+.. code-block:: pycon
+
+  ['eclipse', 'eclipse_two_stream']
 
 .. py:data:: rt_paths
 .. code-block:: pycon
 
-  ['transit', 'emission', 'emission_two_stream']
+  ['transit', 'eclipse', 'eclipse_two_stream', 'emission', 'emission_two_stream', 'f_lambda']
 
 .. py:data:: retflags
 .. code-block:: pycon
 
-  ['temp', 'rad', 'press', 'mol', 'ray', 'cloud', 'patchy', 'mass']
+  ['temp', 'rad', 'press', 'mol', 'ray', 'cloud', 'patchy', 'mass', 'tstar']
 
 .. py:data:: tmodels
 .. code-block:: pycon
@@ -512,17 +590,12 @@ __________________
 .. py:data:: chemmodels
 .. code-block:: pycon
 
-  ['uniform', 'tea']
+  ['free', 'equilibrium']
 
 .. py:data:: radmodels
 .. code-block:: pycon
 
   ['hydro_m', 'hydro_g']
-
-.. py:data:: molmodels
-.. code-block:: pycon
-
-  ['vert', 'scale', 'equil']
 
 .. py:data:: amodels
 .. code-block:: pycon
@@ -532,12 +605,17 @@ __________________
 .. py:data:: rmodels
 .. code-block:: pycon
 
-  ['dalgarno_H', 'dalgarno_H2', 'dalgarno_He', 'lecavelier']
+  ['rayleigh_H', 'rayleigh_H2', 'rayleigh_He', 'rayleigh_e-']
 
 .. py:data:: cmodels
 .. code-block:: pycon
 
-  ['deck', 'ccsgray']
+  ['deck', 'ccsgray', 'lecavelier']
+
+.. py:data:: h_ion_models
+.. code-block:: pycon
+
+  ['h_ion_john1988']
 
 
 pyratbay.io
@@ -584,7 +662,7 @@ ___________
     atmfile: String
         Name of output atmospheric file.
     pressure: 1D float ndarray
-        Monotonously decreasing pressure profile (in barye).
+        Monotonously decreasing pressure profile (in bar).
     temperature: 1D float ndarray
         Temperature profile for pressure layers (in Kelvin).
     species: 1D string ndarray
@@ -593,11 +671,11 @@ ___________
         The species mole mixing ratio (of shape [nlayers,nspecies]).
     radius: 1D float ndarray
         Monotonously increasing radius profile (in cm).
-    punits:  String
+    punits: String
         Pressure units of output.
-    runits:  String
+    runits: String
         Radius units of output.
-    header:  String
+    header: String
         Header message (comment) to include at the top of the file.
 
     Examples
@@ -608,12 +686,12 @@ ___________
 
     >>> atmfile = 'WASP-00b.atm'
     >>> nlayers = 5
-    >>> pressure    = pa.pressure('1e-8 bar', '1e2 bar', nlayers)
-    >>> temperature = pa.tmodels.Isothermal(nlayers)(1500.0)
-    >>> species     = "H2 He H2O".split()
-    >>> abundances  = [0.8499, 0.15, 1e-4]
-    >>> qprofiles = pa.uniform(pressure, temperature, species, abundances)
-    >>> io.write_atm(atmfile, pressure, temperature, species, qprofiles,
+    >>> pressure = pa.pressure('1e-8 bar', '1e2 bar', nlayers)
+    >>> temperature = pa.tmodels.Isothermal(pressure)(1500.0)
+    >>> species = "H2 He H2O".split()
+    >>> abundances = [0.8499, 0.15, 1e-4]
+    >>> vmr = pa.uniform(abundances, nlayers)
+    >>> io.write_atm(atmfile, pressure, temperature, species, vmr,
     >>>     punits='bar', header='# Example atmospheric file:\n')
     >>> # Print output file:
     >>> with open(atmfile, 'r') as f:
@@ -665,7 +743,7 @@ ___________
     temp: 1D float ndarray
         The atmospheric temperature profile (of size nlayers). The
         file's @TEMPERATURE keyword indicates the ouptput units.
-    q: 2D float ndarray
+    vmr: 2D float ndarray
         The mixing ratio profiles of the atmospheric species (of size
         [nlayers,nspec]).  The file's @ABUNDANCE indicates the output
         units.
@@ -682,7 +760,7 @@ ___________
     >>> atmfile = 'WASP-00b.atm'
     >>> units, specs, pressure, temp, q, rad = io.read_atm(atmfile)
     >>> print(units, specs, pressure, temp, q, rad, sep='\n')
-    ('bar', 'kelvin', 'number', None)
+    ('bar', 'kelvin', 'volume', None)
     ['H2' 'He' 'H2O']
     [1.0000e-08 3.1623e-06 1.0000e-03 3.1623e-01 1.0000e+02]
     [1500. 1500. 1500. 1500. 1500.]
@@ -693,7 +771,7 @@ ___________
      [8.499e-01 1.500e-01 1.000e-04]]
     None
 
-.. py:function:: write_spectrum(wl, spectrum, filename, type, wlunits='um')
+.. py:function:: write_spectrum(wl, spectrum, filename, type)
 .. code-block:: pycon
 
     Write a spectrum to file.
@@ -701,19 +779,18 @@ ___________
     Parameters
     ----------
     wl: 1D float iterable
-        Wavelength array in cm units.
+        Wavelength array in micron units.
     spectrum: 1D float iterable
         Spectrum array. (rp/rs)**2 for transmission (unitless),
         planetary flux for emission (erg s-1 cm-2 cm units).
     filename: String
         Output file name.
     type: String
-        Data type:
-        - 'transit' for transmission
-        - 'emission' for emission
+        Data type (only used for header comments):
+        - 'transit' for transit spectra
+        - 'eclipse' for secondary eclipse spectra
+        - 'emission' for emission flux
         - 'filter' for a instrumental filter transmission
-    wlunits: String
-        Output units for wavelength.
 
     Examples
     --------
@@ -749,10 +826,9 @@ ___________
     >>> import pyratbay.io as io
     >>> # Write a spectrum to file:
     >>> nwave = 7
-    >>> wl = np.linspace(1.1, 1.7, nwave) * 1e-4
+    >>> wl = np.linspace(1.1, 1.7, nwave)
     >>> spectrum = np.ones(nwave)
-    >>> io.write_spectrum(wl, spectrum,
-    >>>     filename='sample_spectrum.dat', type='transit', wlunits='um')
+    >>> io.write_spectrum(wl, spectrum, 'sample_spectrum.dat', type='transit')
     >>> # Take a look at the output file:
     >>> with open('sample_spectrum.dat', 'r') as f:
     >>>     print("".join(f.readlines()))
@@ -779,52 +855,93 @@ ___________
     >>> print(flux)
     [1. 1. 1. 1. 1. 1. 1.]
 
+.. py:function:: write_spectra(spectra, wl, temperatures, filename)
+.. code-block:: pycon
+
+    Write flux spectra as function of wavelength and temperature to file.
+
+    Parameters
+    ----------
+    spectra: 1D float iterable
+        Flux spectra arrays (erg s-1 cm-2 cm units).
+    wl: 1D float iterable
+        Wavelength array in microns.
+    temperatures: 1D float iterable
+        Effective temperature array in Kelvin degrees.
+    filename: String
+        Output file name.
+
+.. py:function:: read_spectra(filename)
+.. code-block:: pycon
+
+    Write flux spectra as function of wavelength and temperature to file.
+
+    Parameters
+    ----------
+    filename: String
+        Input file name.
+
+    Returns
+    -------
+    spectra: 1D float iterable
+        Flux spectra arrays (erg s-1 cm-2 cm units).
+    wn: 1D float iterable
+        Wavenumber array in cm-1.
+    temperatures: 1D float iterable
+        Effective temperature array in Kelvin degrees.
+
 .. py:function:: write_opacity(ofile, species, temp, press, wn, opacity)
 .. code-block:: pycon
 
-    Write an opacity table as a binary file.
+    Write an opacity table as a binary npz file.
 
     Parameters
     ----------
     ofile: String
         Output filename where to save the opacity data.
         File extension must be .npz
-    species: 1D string iterable
-        Species names.
+    species: String
+        The species name.
     temp: 1D float ndarray
         Temperature array (Kelvin degree).
     press: 1D float ndarray
-        Pressure array (barye).
+        Pressure array (bar).
     wn: 1D float ndarray
         Wavenumber array (cm-1).
-    opacity: 4D float ndarray
-        Tabulated opacities (cm2 molecule-1) of shape
-        [nspec, ntemp, nlayers, nwave].
+    opacity: 3D float ndarray
+        Tabulated opacities (cm2 molecule-1) of shape [ntemp, nlayers, nwave].
 
-.. py:function:: read_opacity(ofile)
+.. py:function:: read_opacity(ofile, extract='all')
 .. code-block:: pycon
 
     Read an opacity table from file.
+    Compatible with petitRADTRANS3 opacity files as well.
 
     Parameters
     ----------
     ofile: String
         Path to a Pyrat Bay opacity file.
+    extract: String
+        Information to extract, select between:
+        - 'arrays' for the species, temperature, pressure, and wavenumber
+        - 'opacity' for the opacity grid
+        - 'all' to get both and the array dimensions.
 
     Returns
     -------
-    sizes: 4-element integer tuple
-        Sizes of the dimensions of the opacity table:
-        (nspec, ntemp, nlayers, nwave)
-    arrays: 4-element 1D ndarray tuple
-        The dimensions of the opacity table:
-        - species     (string, the species names)
-        - temperature (float, Kelvin)
-        - pressure    (float, barye)
-        - wavenumber  (float, cm-1)
-    opacity: 4D float ndarray tuple
+    units: dict
+        The physical units for the different quantities
+    species: String
+        The species name.
+    temp: 1D float array
+        The temperature array (K)
+    press: 1D float array
+        The pressure array (bar)
+    wn: 1D float array
+        The wavenumber array (cm-1)
+    opacity: 3D float ndarray tuple
         The tabulated opacities (cm2 molecule-1), of shape
-        [nspec, ntemp, nlayers, nwave].
+        [ntemp, nlayers, nwave].
 
 .. py:function:: write_pf(pffile, pf, isotopes, temp, header=None)
 .. code-block:: pycon
@@ -959,41 +1076,49 @@ ___________
      [1.e-01 1.e-02 1.e-03 1.e-04 1.e-05]
      [1.e-02 1.e-03 1.e-04 1.e-05 1.e-06]]
 
-.. py:function:: read_pt(ptfile)
+.. py:function:: write_observations(obs_file, inst_names, wl, wl_half_width, depth=None, depth_err=None, depth_units='none')
 .. code-block:: pycon
 
-    Read a pressure and temperature profile from a file.
+    Write an observation file for use in pyrat bay.
+    These can be a combination of tophat pass bands (non-zero wl) or
+    paths to files with tabulated passbands (zero wl value).
 
     Parameters
     ----------
-    ptfile: String
-        Input file with pressure (in bars, first column) and temperature
-        profiles (in Kelvin degree, second column).
-
-    Returns
-    -------
-    pressure: 1D float ndarray
-        Pressure profile in barye.
-    temperature: 1D float ndarray
-        Temperature profile in Kelvin.
+    obs_file: String
+        Name of observation file.
+    inst_names: 1D string iterable
+        Name for the bandpasses.  If this is of type str, use
+        the same name for all bands.
+    wl: 1D string ndarray
+        Central wavelength of the bands (in microns).
+        If wl is zero for a data point, assume that the inst_name
+        is a file path to a tabulated pass band.
+    wl_half_width: 2D float ndarray
+        Bandpass half-width (in microns).
+    data: 1D float ndarray
+        Transit of eclipse depth corresponding to  each band.
+        If not None, include this data into the observation file.
+    depth_err: 1D float ndarray
+        Depth uncertainties.
+    depth_units:  String
+        Units of input depth data.
 
     Examples
     --------
     >>> import pyratbay.io as io
-    >>> ptfile = 'pt_profile.dat'
-    >>> temp  = np.array([100.0, 150.0, 200.0, 175.0, 150.0])
-    >>> press = np.array([1e-6,  1e-4,  1e-2,  1e0,   1e2])
-    >>> with open(ptfile, 'w') as f:
-    >>>     for p,t in zip(press, temp):
-    >>>         f.write('{:.3e}  {:5.1f}\n'.format(p, t))
-    >>> pressure, temperature = io.read_pt(ptfile)
-    >>> for p,t in zip(pressure, temperature):
-    >>>     print('{:.1e} barye  {:5.1f} K'.format(p, t))
-    1.0e+00 barye  100.0 K
-    1.0e+02 barye  150.0 K
-    1.0e+04 barye  200.0 K
-    1.0e+06 barye  175.0 K
-    1.0e+08 barye  150.0 K
+
+    >>> # Observation file with only the pass bands:
+    >>> wl = [2.144, 2.333, 2.523]
+    >>> half_widths = [0.095, 0.095, 0.095]
+    >>> io.write_observations('obs_file.txt', 'HST', wl, half_widths)
+
+    >>> # Observation file with pass bands and data:
+    >>> data = np.array([329.6, 344.5, 301.4])
+    >>> uncert = np.array([20.4, 21.9, 23.5])
+    >>> io.write_observations(
+    >>>     'obs_file.txt', 'HST', wl, half_widths, data, uncert, 'ppm',
+    >>> )
 
 .. py:function:: read_observations(obs_file)
 .. code-block:: pycon
@@ -1009,9 +1134,9 @@ ___________
     -------
     filters: List
         Filter passband objects.
-    data: 1D string list
+    depth: 1D string list
         The transit or eclipse depths for each filter.
-    uncert: 1D float ndarray
+    depth_err: 1D float ndarray
         The depth uncertainties.
 
     Notes
@@ -1035,38 +1160,11 @@ ___________
     >>> import pyratbay.io as io
     >>> # File including depths and uncertainties:
     >>> obs_file = 'observations.dat'
-    >>> bands, data, uncert = io.read_observations(obs_file)
+    >>> bands, depth, depth_err = io.read_observations(obs_file)
 
     >>> # File including only the passband info:
     >>> obs_file = 'filters.dat'
     >>> bands = io.read_observations(obs_file)
-
-.. py:function:: read_atomic(afile)
-.. code-block:: pycon
-
-    Read an elemental (atomic) composition file.
-
-    Parameters
-    ----------
-    afile: String
-        File with atomic composition.
-
-    Returns
-    -------
-    atomic_num: 1D integer ndarray
-        Atomic number (except for Deuterium, which has anum=0).
-    symbol: 1D string ndarray
-        Elemental chemical symbol.
-    dex: 1D float ndarray
-        Logarithmic number-abundance, scaled to log(H) = 12.
-    name: 1D string ndarray
-        Element names.
-    mass: 1D float ndarray
-        Elemental mass in amu.
-
-    Uncredited developers
-    ---------------------
-    Jasmina Blecic
 
 .. py:function:: read_molecs(file)
 .. code-block:: pycon
@@ -1118,8 +1216,6 @@ ___________
 
     Returns
     -------
-    mol_ID: 1D integer ndarray
-        HITRAN molecule ID.
     mol: 1D string ndarray
         Molecule names.
     hitran_iso: 1D string ndarray
@@ -1135,7 +1231,7 @@ ___________
     --------
     >>> import pyratbay.io as io
     >>> import pyratbay.constants as pc
-    >>> ID, mol, hit_iso, exo_iso, ratio, mass = \
+    >>> mol, hit_iso, exo_iso, ratio, mass = \
     >>>     io.read_isotopes(pc.ROOT+'pyratbay/data/isotopes.dat')
     >>> print("H2O isotopes:\n iso    iso    isotopic  mass"
     >>>                    "\n hitran exomol ratio     g/mol")
@@ -1166,7 +1262,7 @@ ___________
     filename: String
         The opacity pickle file to read.
     source: String
-        The cross-section source: exomol or taurex (see note below).
+        The cross-section source: 'exomol' or 'taurex' (see note below).
     read_all: Bool
         If True, extract all contents in the file: cross-section,
         pressure, temperature, and wavenumber.
@@ -1181,11 +1277,11 @@ ___________
         Opacity cross-section in cm2 molecule-1.
         with shape [npress, ntemp, nwave].
     pressure: 1D float ndarray
-        Pressure sample of the opacity file (in barye units)
+        Pressure sample of the opacity file (in bars)
     temperature: 1D float ndarray
-        Temperature sample of the opacity file (in Kelvin degrees units).
+        Temperature sample of the opacity file (in Kelvin degrees).
     wavenumber: 1D float ndarray
-        Wavenumber sample of the opacity file (in cm-1 units).
+        Wavenumber sample of the opacity file (in cm-1).
     species: String
         The species name.
 
@@ -1203,7 +1299,7 @@ ___________
     >>> # http://www.exomol.com/db/H2O/1H2-16O/POKAZATEL/1H2-16O__POKAZATEL__R15000_0.3-50mu.xsec.TauREx.h5
     >>> import pyratbay.io as io
     >>> filename = '1H2-16O__POKAZATEL__R15000_0.3-50mu.xsec.TauREx.h5'
-    >>> xs_H2O, press, temp, wn, species = io.import_xs(filename, 'exomol')
+    >>> xs, press, temp, wn, species = io.import_xs(filename, 'exomol')
 
 .. py:function:: import_tea(teafile, atmfile, req_species=None)
 .. code-block:: pycon
@@ -1220,92 +1316,509 @@ ___________
         The requested species for output.  If None, request all species
         in teafile.
 
-.. py:function:: export_pandexo(pyrat, baseline, transit_duration, Vmag=None, Jmag=None, Hmag=None, Kmag=None, metal=0.0, instrument=None, n_transits=1, resolution=None, noise_floor=0.0, sat_level=80.0, save_file=True)
-.. code-block:: pycon
-
-    Parameters
-    ----------
-    pyrat: A Pyrat instance
-        Pyrat object from which to extract the system physical properties.
-    baseline: Float or string
-        Total observing time in sec (float) or with given units (string).
-    transit_duration: Float or string
-        Transit/eclipse duration in sec (float) or with given units (string).
-    metal: Float
-        Stellar metallicity as log10(Fe/H).
-    Vmag: Float
-        Stellar magnitude in the Johnson V band.
-        Only one of Vmag, Jmag, Hmag, or Kmag should be defined.
-    Jmag: Float
-        Stellar magnitude in the Johnson J band.
-        Only one of Vmag, Jmag, Hmag, or Kmag should be defined.
-    Hmag: Float
-        Stellar magnitude in the Johnson H band.
-        Only one of Vmag, Jmag, Hmag, or Kmag should be defined.
-    Kmag: Float
-        Stellar magnitude in the Johnson Kband.
-        Only one of Vmag, Jmag, Hmag, or Kmag should be defined.
-    instrument: String or list of strings or dict
-        Observing instrument to simulate.
-        If None, this function returns the input dictionary.
-    n_transits: Integer
-        Number of transits/eclipses.
-    resolution: Float
-        Approximate output spectral sampling R = 0.5*lambda/delta-lambda.
-    sat_level: Float
-        Saturation level in percent of full well.
-    noise_floor: Float or string
-        Noise-floor level in ppm at all wavelengths (if float) or
-        wavelength dependent (if string, filepath).
-    save_file: Bool or string
-        If string, store pandexo output pickle file with this filename.
-        If True, store pandexo output with default name based on
-        the pyrat object's output filename.
-
-    Returns
-    -------
-    pandexo_sim: dict
-        Output from pandexo.engine.justdoit.run_pandexo().
-        Note this dict has R=None, noccultations=1 (as suggested in pandexo).
-    wavelengths: List of 1D float arrays
-        Wavelengths of simulated observed spectra for each instrument.
-        Returned only if instrument is not None.
-    spectra: List of 1D float arrays
-        Simulated observed spectra for each instrument.
-        Returned only if instrument is not None.
-    uncertainties: List of 1D float arrays
-        Uncertainties of simulated observed spectra for each instrument.
-        Returned only if instrument is not None.
-
-    Examples
-    --------
-    >>> import pyratbay as pb
-    >>> import pyratbay.io as io
-
-    >>> pyrat = pb.run('demo_spectrum-transmission.cfg')
-    >>> instrument = 'NIRCam F322W2'
-    >>> #instrument = jdi.load_mode_dict(instrument)
-    >>> baseline = '4.0 hour'
-    >>> transit_duration = '2.0 hour'
-    >>> resolution = 100.0
-    >>> n_transits = 2
-    >>> Jmag = 8.0
-    >>> metal = 0.0
-
-    >>> pandexo_sim, wls, spectra, uncerts = io.export_pandexo(
-    >>>     pyrat, baseline, transit_duration,
-    >>>     n_transits=n_transits,
-    >>>     resolution=resolution,
-    >>>     instrument=instrument,
-    >>>     Jmag=Jmag,
-    >>>     metal=metal)
-
 
 pyratbay.tools
 ______________
 
 
 .. py:module:: pyratbay.tools
+
+.. py:function:: parse_error_param(var)
+.. code-block:: pycon
+
+    Parse error-scaling parameters. There are two options:
+    - err_scale_name: Scale uncertainties as a multiplicative factor.
+    - err_quad_name: Scale uncertainties by adding in quadrature.
+
+    Parameters
+    ----------
+    var: String
+        Parameter name. Must begin with either "err_scale_" or "err_quad_".
+
+    Returns
+    -------
+    inst: String
+        Instrument name, parsed from the end of var.
+    texname: String
+        Instrument name as a tex string, for plotting purposes.
+    scaling: String
+        What type of uncertainty scaling: "scale" or "quadrature".
+
+    Examples
+    --------
+    >>> import pyratbay.tools as pt
+    >>> # Valid options:
+    >>> print(pt.parse_error_param('err_scale_WFC3'))
+    ('WFC3', '$S_\\sigma^{\\rm WFC3}$', 'scale')
+    >>> print(pt.parse_error_param('err_quad_NIRSpec_PRISM'))
+    ('NIRSpec PRISM', '$\\sigma_{\\rm NIRSpec PRISM}$', 'quadrature')
+
+    >>> # Not valid scaling throws error:
+    >>> print(pt.parse_error_param('err_fudging_IRAC1'))
+    ValueError: Invalid error scaling parameter 'fudging_IRAC1'. Valid options begin with: ['scale_', 'quad_']
+
+.. py:class:: Data(data, uncert, band_names, offset_models=None, err_models=None)
+
+    .. code-block:: pycon
+
+    .. code-block:: pycon
+
+        Parameters
+        ----------
+        data: 1D float iterable
+            The data values.
+        uncert: 1D float iterable
+            The uncertainty values.
+        band_names: 1D string iterable
+            Names for the uncertainties.
+        offset_models: String or 1D iterable of strings
+            List of data offset models, the strings must match
+            a substring of at least one of the band_names, these specific
+            data points will be affected by the respective offset model.
+        err_models: String or 1D iterable of strings
+            List of error inflation model names, must begin with either
+            - "err_scale_" to scale uncertainties as a multiplicative factor
+            - "err_quad_" to scale uncertainties by adding in quadrature
+            followed by a string matching a substring of at least one of
+            the band_names, these specific data points will be affected by
+            the error scaling model.
+
+        Examples
+        --------
+        >>> import pyratbay.tools as pt
+        >>> import pyratbay.constants as pc
+        >>> import pyratbay.io as io
+        >>> import matplotlib.pyplot as plt
+
+        >>> # Load a set of uncertainties obtained with JWST instruments:
+        >>> obs_file = '/Users/pato/Documents/compendia/ERS/WASP39b/data/synthesis_v02/wasp39b_g395h_lrs.dat'
+        >>> bands, depths, uncert = io.read_observations(obs_file)
+        >>> band_names = [band.name for band in bands]
+        >>> wl = [band.wl0 for band in bands]
+        >>> print(set(band_names))
+        {'nirspec_g395h_nrs1', 'nirspec_g395h_nrs2', 'miri_lrs'}
+
+        >>> # Offsets for MIRI data only:
+        >>> offsets = 'offset_miri'
+        >>> obs = pt.Data(depths, uncert, band_names, offset_models=offsets)
+        >>> offset_depths = obs.offset_data([400.0], 'ppm')
+
+        >>> fig = plt.figure(0, (8,4))
+        >>> plt.clf()
+        >>> plt.semilogx(wl, obs.data/pc.ppm, 'o', color='darkorange')
+        >>> plt.plot(wl, offset_depths/pc.ppm, '^' , color='blue', mfc='none')
+        >>> plt.xlabel('Wavelength (um)')
+        >>> plt.ylabel('Depths (ppm)')
+
+        >>> # Multiplicative error scaling (increase by 1.5x):
+        >>> # Target NRS1 uncertainties specifically of the NIRSpec instrument
+        >>> obs = pt.Data(depths, uncert, band_names, err_models='err_scale_nrs1')
+        >>> inflated_err = obs.scale_errors([0.3])
+
+        >>> fig = plt.figure(1, (8,4))
+        >>> plt.clf()
+        >>> plt.semilogx(wl, obs.uncert/pc.ppm, 'o', color='xkcd:green')
+        >>> plt.plot(wl, inflated_err/pc.ppm, '^' , color='blue', mfc='none')
+        >>> plt.xlabel('Wavelength (um)')
+        >>> plt.ylabel('Uncertainties (ppm)')
+
+        >>> # Add-in-quadrature error scaling:
+        >>> # Target all NIRSpec uncertainties (200ppm), for MIRI add 300ppm
+        >>> err_models = ['err_quad_nirspec', 'err_quad_miri']
+        >>> obs2 = pt.Data(depths, uncert, band_names, err_models=err_models)
+        >>> inflated_err2 = obs2.scale_errors([2.3, 2.5], 'ppm')
+        >>> plt.plot(wl, inflated_err2/pc.ppm, 's', color='orange', mfc='none')
+        >>> plt.tight_layout()
+
+    .. py:method:: offset_data(vals=None, units='none')
+    .. code-block:: pycon
+
+        Offset data values
+
+        Parameters
+        ----------
+        vals: 1D float iterable
+            Data offset values for each model.
+        units: String
+            The units of the scaling value. Options are:
+            'none', 'percent', 'ppt', or 'ppm'.
+
+        Returns
+        -------
+        data: 1D float array
+            The offset data array.
+
+    .. py:method:: scale_errors(vals=None, units='none')
+    .. code-block:: pycon
+
+        Scale uncertainties according to input scaling values.
+
+        Parameters
+        ----------
+        vals: 1D float iterable
+            Uncertainty scaling value (in log10).
+        units: String
+            The units of the scaling value for quadrature errors.
+            Options are: 'none', 'percent', 'ppt', or 'ppm'.
+
+        Returns
+        -------
+        uncert: 1D float array
+            The scaled uncertainty array.
+
+.. py:function:: check_mpi4py()
+.. code-block:: pycon
+
+    Detect when the code was called with MPI and mpi4py module is missing
+
+    Only raise an error when needed (more than one processor required),
+    otherwise you might be running multiple runs in parallel but not
+    talking to each other.
+
+.. py:function:: check_mpi_is_needed(inputs)
+.. code-block:: pycon
+
+    Prevent using parallel processes through MPI when not needed
+    (only required for MultiNest runs).
+
+.. py:function:: get_mpi_rank()
+.. code-block:: pycon
+
+    Get the MPI rank of the current process (intended for MPI runs).
+    If mpi4py is not installed, return zero.
+
+    Returns
+    -------
+    rank: Interger
+        The MPI process rank.
+
+.. py:function:: get_mpi_size()
+.. code-block:: pycon
+
+    Get the size of the current group of process (intended for MPI runs).
+    If mpi4py is not installed, return one.
+
+    Returns
+    -------
+    size: Interger
+        The size of the MPI group of processes.
+
+.. py:function:: mpi_barrier()
+.. code-block:: pycon
+
+    Make an MPI barrier() call. Ignore it if mpi4py is not installed.
+
+.. py:class:: Namespace(args=None, log=None)
+
+    .. code-block:: pycon
+
+        Initialize self.  See help(type(self)) for accurate signature.
+
+    .. py:method:: get_default(pname, desc, default=None, wflag=False, gt=None, ge=None, lt=None, le=None)
+    .. code-block:: pycon
+
+        Extract pname variable from Namespace; if None, return
+        default.  If any of gt, ge, lt, or le is not None, run
+        greater/lower/equal checks.
+
+        Parameters
+        ----------
+        pname: String
+            Parameter name.
+        desc: String
+            Parameter description.
+        default: Any
+            Parameter default value.
+        gt: Float
+            If not None, check output is greater than gt.
+        ge: Float
+            If not None, check output is greater-equal than gt.
+        lt: Float
+            If not None, check output is lower than gt.
+        le: Float
+            If not None, check output is lower-equal than gt.
+
+    .. py:method:: get_path(pname, desc='', exists=False, make_dir=False)
+    .. code-block:: pycon
+
+        Extract pname file path (or list of paths) from Namespace,
+        return the canonical path.
+
+        Parameters
+        ----------
+        pname: String
+            The parameter name to extract.
+        desc: String
+            A description to display in case of raising an error
+        exists: Bool
+            If True, raise an error if the file path does not exists.
+        make_dir: Bool
+            If True, make directories for the file path if needed.
+
+        Examples
+        --------
+        >>> import pyratbay.tools as pt
+        >>> ns = pt.Namespace({'f1':'file1', 'f23':['file2', 'file3']})
+        >>> # Get path of a single file:
+        >>> ns.get_path('f1')
+        >>> # Get path of a list of files:
+        >>> ns.get_path('f23')
+        >>> # Attempt to get non-existing file:
+        >>> ns.get_path('f1', desc='Configuration', exists=True)
+
+    .. py:method:: get_units(pname)
+    .. code-block:: pycon
+
+        Extract units from a value input.
+        Return None if value does not have units or has an invalid format.
+
+        Parameters
+        ----------
+        pname: String
+            Parameter name.
+
+        Returns
+        -------
+        units: String
+
+.. py:function:: parse(cfile, with_log=True, mute=False)
+.. code-block:: pycon
+
+    Read the command line arguments.
+
+    Parameters
+    ----------
+    cfile: String
+        A Pyrat Bay configuration file.
+    with_log: Bool
+        Flag to save screen outputs to file (True) or not (False)
+        (e.g., to prevent overwritting log of a previous run).
+    mute: Bool
+        If True, enforce verb to take a value of -1.
+
+    Returns
+    -------
+    args: Dictionary
+        A dictionary containing the input configuration variables.
+    log: mc3.Log
+        A logging log object.
+
+.. py:function:: parse_bool(args, param, default=False)
+.. code-block:: pycon
+
+    Parse a string parameter in args into a Bool.
+
+.. py:function:: parse_str(args, param)
+.. code-block:: pycon
+
+    Parse a string parameter in args into a string.
+
+.. py:function:: parse_int(args, param)
+.. code-block:: pycon
+
+    Convert a dictionary's parameter from string to integer.
+    Set parameter to None if it was not in the dictionary.
+
+    Parameters
+    ----------
+    args: dict
+        Dictionary where to operate.
+    param: String
+        Parameter to cast to int.
+
+    Examples
+    --------
+    >>> import pyratbay.tools as pt
+    >>> inputs = ['10', '-10', '+10', '10.0', '1e1',
+    >>>           '10.5', 'None', 'True', 'inf', '10 20']
+    >>> args = {f'par{i}':val for i,val in enumerate(inputs)}
+    >>> for i,var in enumerate(inputs):
+    >>>     try:
+    >>>         par = f'par{i}'
+    >>>         pt.parse_int(args, par)
+    >>>         print(f"{par}: '{var}' -> {args[par]}")
+    >>>     except ValueError as e:
+    >>>         print(e)
+    par0: '10' -> 10
+    par1: '-10' -> -10
+    par2: '+10' -> 10
+    par3: '10.0' -> 10
+    par4: '1e1' -> 10
+    Invalid data type for par5, could not convert string to integer: '10.5'
+    Invalid data type for par6, could not convert string to integer: 'None'
+    Invalid data type for par7, could not convert string to integer: 'True'
+    Invalid data type for par8, could not convert string to integer: 'inf'
+    Invalid data type for par9, could not convert string to integer: '10 20'
+
+.. py:function:: parse_float(args, param)
+.. code-block:: pycon
+
+    Convert a dictionary's parameter from string to float.
+    Set parameter to None if it was not in the dictinary.
+
+    Parameters
+    ----------
+    args: dict
+        Dictionary where to operate.
+    param: String
+        Parameter to cast to float.
+
+    Examples
+    --------
+    >>> import pyratbay.tools as pt
+    >>> inputs = ['10', '-10', '+10', '10.5', '1e1', 'inf', 'nan',
+    >>>           'None', 'True', '10 20']
+    >>> args = {f'par{i}':val for i,val in enumerate(inputs)}
+    >>> for i,var in enumerate(inputs):
+    >>>     try:
+    >>>         par = f'par{i}'
+    >>>         pt.parse_float(args, par)
+    >>>         print(f"{par}: '{var}' -> {args[par]}")
+    >>>     except ValueError as e:
+    >>>         print(e)
+    par0: '10' -> 10.0
+    par1: '-10' -> -10.0
+    par2: '+10' -> 10.0
+    par3: '10.5' -> 10.5
+    par4: '1e5' -> 10.0
+    par5: 'inf' -> inf
+    par6: 'nan' -> nan
+    Invalid data type for par7, could not convert string to float: 'None'
+    Invalid data type for par8, could not convert string to float: 'True'
+    Invalid data type for par9, could not convert string to float: '10 20'
+
+.. py:function:: parse_array(args, param)
+.. code-block:: pycon
+
+    Convert a dictionary's parameter from string to iterable.
+    If possible cast into a float numpy array; otherwise,
+    set as a list of strings.
+    Assume any blank character delimits the elements in the string.
+    Set parameter to None if it was not in the dictinary.
+
+    Parameters
+    ----------
+    args: dict
+        Dictionary where to operate.
+    param: String
+        Parameter to cast to array.
+
+    Examples
+    --------
+    >>> import pyratbay.tools as pt
+    >>> inputs = ['10 20', '10.0 20.0', 'a b', 'a\n b']
+    >>> args = {f'par{i}':val for i,val in enumerate(inputs)}
+    >>> for i,var in enumerate(inputs):
+    >>>     par = f'par{i}'
+    >>>     pt.parse_array(args, par)
+    >>>     print(f"{par}: {repr(var)} -> {repr(args[par])}")
+    par0: '10 20' -> array([10., 20.])
+    par1: '10.0 20.0' -> array([10., 20.])
+    par2: 'a b' -> ['a', 'b']
+    par3: 'a\n b' -> ['a', 'b']
+
+.. py:function:: parse_var_vals(var_input)
+.. code-block:: pycon
+
+    Parse keys that contain variable and values
+
+.. py:class:: Loglike(pyrat)
+
+    .. code-block:: pycon
+
+        Initialize self.  See help(type(self)) for accurate signature.
+
+.. py:function:: weighted_to_equal(posterior_file, get_weighted=False, min_size=15000)
+.. code-block:: pycon
+
+    Compute an equally-weighted sample from a weighted-probability sample
+    read from a Multinest output.
+
+    Parameters
+    ----------
+    posterior_file: String
+        A MultiNest probability-weighted sample output.
+    get_weighted: Bool
+        If True, also return the weighted sample.
+    min_size: Integer
+        Set the minimum sample size for the equally weighted posterior.
+
+    Returns
+    -------
+    equal_posterior: 2D float array
+        An equally-weighted posterior sample with dimensions (nsamples, npars).
+    weighted_posterior: 2D float array
+        The Multinest probabilty-weighted sample with dimensions
+        (nsamples, npars).  This is only returned if get_weighted is True.
+
+    Examples
+    --------
+    >>> import pyratbay.tools as pt
+    >>> posterior = pt.weighted_to_equal('multinest_output.txt')
+
+    >>> # Bet both equal and weighted samples:
+    >>> posterior, weighted = pt.weighted_to_equal(
+    >>>     'multinest_output.txt',
+    >>>     get_weighted=True,
+    >>> )
+
+.. py:function:: posterior_snapshot(retrieval_file, pnames)
+.. code-block:: pycon
+
+    Take a snapshot of a retrieval run, plot the histogram and traces
+    of the parameters.
+
+.. py:function:: get_multinest_map(stats_file)
+.. code-block:: pycon
+
+    Get maximum-a-posteriori (MAP) parameters from a MultiNest output file.
+
+    Parameters
+    ----------
+    stats_file: String
+        Path to a Multinest *stats.dat output file.
+
+    Returns
+    -------
+    params: 1D float array
+        The MAP parameter values.
+
+.. py:function:: multinest_run(pyrat, basename)
+.. code-block:: pycon
+
+    A Wrapper of a MultiNest posterior sampling.
+
+    Parameters
+    ----------
+    pyrat: Pyrat() object
+    basename: String
+        Basename for output files. May contain path.
+        Should not contain a file extension.
+
+    Note
+    ----
+    For OS X users, it is recommended to set the TMPDIR environment
+    variable to "/tmp", e.g., from the command line:
+        export TMPDIR=/tmp
+    to avoid an MPI error when terminating the execution
+    (the call will run to completion in any case)
+    https://github.com/open-mpi/ompi/issues/7393#issuecomment-882018321
+
+.. py:function:: posterior_post_processing(cfg_file=None, pyrat=None, suffix='')
+.. code-block:: pycon
+
+    Compute quantities of interest from a retrieval posterior distribution.
+    The produced data is stored into a pickle file with root name based
+    on the logfile.
+
+    Parameters
+    ----------
+    cfg_file: String
+        A pyratbay config file of a retrieval run (already executed,
+        so the parameter posterior files must already exist).
+    pyrat: a Pyrat instance
+        A pyrat object of an already executed retrieval.
+        Used if cfg_file is None.
 
 .. py:function:: log_error(log=None, error=None)
 .. code-block:: pycon
@@ -1336,6 +1849,62 @@ ______________
     >>> with pt.tmp_reset(obj, 'o.x', z=10):
     >>>     print(obj.o.x, obj.o.y, obj.z, obj.w)
     (None, 2.0, 10, 4.0)
+
+.. py:function:: eta(time_seconds, n_completed, n_total, fmt='.2f')
+.. code-block:: pycon
+
+    Find most appropriate units to report the remaining time
+    (seconds, minutes, hours, days)
+
+    Parameters
+    ----------
+    time_seconds: Float
+        An amount of time in seconds.
+    n_completed: Integer
+        Number of completed steps.
+    n_total: Integer
+        Total number of steps to complete.
+
+    Returns
+    -------
+    delta_time: Float
+        The time_seconds in the recalculated units.
+
+.. py:function:: resolve_theme(theme)
+.. code-block:: pycon
+
+    Resolve input Theme or color into a mc3.plots.Theme instance.
+    Makes sure that input is either None, a mc3.plots.Theme, or
+    a value that can be interpreted as a matplotlib color.
+
+    Parameters
+    ----------
+    theme: Any
+        A matplotlib color or a mc3.plots.Theme instance
+
+    Returns
+    -------
+    theme: mc3.plots.Theme instance
+        A Theme computed using the input color.
+
+    Examples
+    --------
+    >>> import pyratbay.tools as pt
+    >>> import mc3
+
+    >>> # A Theme instance is returned unmodified
+    >>> theme = pt.resolve_theme(mc3.plots.THEMES['indigo'])
+    >>> # Anything that can be interpreted as matplolib color:
+    >>> theme1 = pt.resolve_theme('red')
+    >>> theme2 = pt.resolve_theme('xkcd:green')
+    >>> theme3 = pt.resolve_theme((0,0,1))
+
+    >>> # If input is None, return None
+    >>> theme = pt.resolve_theme(None)
+
+    >>> # Anything else will throw an error:
+    >>> theme = pt.resolve_theme('not_a_plt_color')
+    ValueError: Invalid color theme: 'not_a_plt_color'
 
 .. py:function:: binsearch(tli, wnumber, rec0, nrec, upper=True)
 .. code-block:: pycon
@@ -1497,6 +2066,30 @@ ______________
     >>> pt.get_param('-30.0 kelvin', gt=0.0)
     ValueError: Value -30.0 must be > 0.0.
 
+.. py:function:: is_number(value)
+.. code-block:: pycon
+
+    Check whether a string value can be parsed as a number.
+
+    Examples
+    --------
+    >>> import pyratbay.tools as pt
+    >>> # These return True
+    >>> pt.is_number('1')
+    >>> pt.is_number('1.0')
+    >>> pt.is_number('-3.14')
+    >>> pt.is_number('+3.14')
+    >>> pt.is_number('1.0e+02')
+    >>> pt.is_number('inf')
+    >>> pt.is_number('nan')
+
+    >>> # These return False
+    >>> pt.is_number('1.0-3.14')
+    >>> pt.is_number('10abcde')
+    >>> pt.is_number('1.0e')
+    >>> pt.is_number('true')
+    >>> pt.is_number('none')
+
 .. py:function:: ifirst(data, default_ret=-1)
 .. code-block:: pycon
 
@@ -1560,6 +2153,23 @@ ______________
     -1
     >>> print(pt.ilast([False, False, False], default_ret=0))
     0
+
+.. py:function:: mkdir(file_path)
+.. code-block:: pycon
+
+    Create a directory for given file_path if it doesn't exists.
+    Creating nested folders is not allowed.
+
+    Parameters
+    ----------
+    file_path: String
+        Path to a file.
+
+    Examples
+    --------
+    >>> import pyratbay.tools as pt
+    >>> log_file = 'NS1/ns_emission_tutorial.log'
+    >>> pt.mkdir(log_file)
 
 .. py:function:: isfile(path)
 .. code-block:: pycon
@@ -1656,28 +2266,6 @@ ______________
 
     .. code-block:: pycon
 
-        Write (and keep) formatted, wrapped text to string.
-
-        Following PEP3101, this class subclasses Formatter to handle
-        None when a specific format is set.
-
-        Examples
-        --------
-        >>> import numpy as np
-        >>> import pyratbay.tools as pt
-        >>> fmt = pt.Formatted_Write()
-        >>> rstar = np.pi/3.14
-        >>> fmt.write('Stellar radius (rstar, rsun):  {:.2f}', rstar)
-        >>> fmt.write('Stellar radius (rstar, rsun):  {:.2f}', None)
-        >>> fmt.write('Stellar radius (rstar, rsun):  {}',     rstar)
-        >>> fmt.write('Stellar radius (rstar, rsun):  {}',     None)
-        >>> print(fmt.text)
-        Stellar radius (rstar, rsun):  1.00
-        Stellar radius (rstar, rsun):  None
-        Stellar radius (rstar, rsun):  1.0005072145190423
-        Stellar radius (rstar, rsun):  None
-
-
         Parameters
         ----------
         indent: Integer
@@ -1707,19 +2295,16 @@ ______________
 
     .. code-block:: pycon
 
-        Timer to get the time (in seconds) since the last call.
-
-
         Initialize self.  See help(type(self)) for accurate signature.
 
-.. py:function:: get_exomol_mol(dbfile)
+.. py:function:: get_exomol_mol(file)
 .. code-block:: pycon
 
     Parse an exomol file to extract the molecule and isotope name.
 
     Parameters
     ----------
-    dbfile: String
+    file: String
         An exomol line-list file (must follow ExoMol naming convention).
 
     Returns
@@ -1792,6 +2377,37 @@ ______________
     >>> # Before moving on, download a HITRAN CIA files from the link above.
     >>> ciafile = 'ciah2he_dh_quantmech'
     >>> pt.cia_borysow(ciafile, 'H2', 'He')
+
+.. py:function:: interpolate_opacity(cs_file, temperature=None, pressure=None, wn_mask=None, wl_thinning=1)
+.. code-block:: pycon
+
+    Interpolate the cross-section data from an opacity file over a
+    desired temperature and pressure array.
+
+    Parameters
+    ----------
+    cs_file: String
+        Path to a cross-section file.
+    temperature: 1D float array
+        The desired temperature array in K.
+        If this is the same as the tabulated temperatures, do not interpolate.
+    pressure: 1D float array
+        The desired pressure profile in bars.
+        If this is the same as the tabulated pressure, do not interpolate.
+    wn_mask: 1D bool array
+        A mask of wavelength points to take.
+    wl_thinning: Integer
+        Thinning factor to take every n-th value of the wavenumber array
+
+    Returns
+    -------
+    interp_cs: 4D float array
+        The interpolated cross-section array.
+
+.. py:function:: none_div(a, b)
+.. code-block:: pycon
+
+    Non-breaking division when values are None.
 
 .. py:function:: radius_to_depth(rprs, rprs_err)
 .. code-block:: pycon
@@ -1871,202 +2487,6 @@ ______________
     1.2 +/- 0.25
     1.5 +/- 0.3
 
-.. py:function:: ignore_system_exit(func)
-.. code-block:: pycon
-
-    Decorator to ignore SystemExit exceptions.
-
-.. py:class:: Namespace(args=None, log=None)
-
-    .. code-block:: pycon
-
-        A container object to hold variables.
-
-
-        Initialize self.  See help(type(self)) for accurate signature.
-
-    .. py:method:: get_default(pname, desc, default=None, wflag=False, gt=None, ge=None, lt=None, le=None)
-    .. code-block:: pycon
-
-        Extract pname variable from Namespace; if None, return
-        default.  If any of gt, ge, lt, or le is not None, run
-        greater/lower/equal checks.
-
-        Parameters
-        ----------
-        pname: String
-            Parameter name.
-        desc: String
-            Parameter description.
-        default: Any
-            Parameter default value.
-        gt: Float
-            If not None, check output is greater than gt.
-        ge: Float
-            If not None, check output is greater-equal than gt.
-        lt: Float
-            If not None, check output is lower than gt.
-        le: Float
-            If not None, check output is lower-equal than gt.
-
-    .. py:method:: get_path(pname, desc='', exists=False)
-    .. code-block:: pycon
-
-        Extract pname file path (or list of paths) from Namespace,
-        return the canonical path.
-
-        Examples
-        --------
-        >>> import pyratbay.tools as pt
-        >>> ns = pt.Namespace({'f1':'file1', 'f23':['file2', 'file3']})
-        >>> # Get path of a single file:
-        >>> ns.get_path('f1')
-        >>> # Get path of a list of files:
-        >>> ns.get_path('f23')
-        >>> # Attempt to get non-existing file:
-        >>> ns.get_path('f1', desc='Configuration', exists=True)
-
-    .. py:method:: get_units(pname)
-    .. code-block:: pycon
-
-        Extract units from a value input.
-        Return None if value does not have units or has an invalid format.
-
-        Parameters
-        ----------
-        pname: String
-            Parameter name.
-
-        Returns
-        -------
-        units: String
-
-.. py:function:: parse(pyrat, cfile, no_logfile=False, mute=False)
-.. code-block:: pycon
-
-    Read the command line arguments.
-
-    Parameters
-    ----------
-    cfile: String
-        A Pyrat Bay configuration file.
-    no_logfile: Bool
-        If True, enforce not to write outputs to a log file
-        (e.g., to prevent overwritting log of a previous run).
-    mute: Bool
-        If True, enforce verb to take a value of -1.
-
-.. py:function:: parse_str(args, param)
-.. code-block:: pycon
-
-    Parse a string parameter into args.
-
-.. py:function:: parse_int(args, param)
-.. code-block:: pycon
-
-    Convert a dictionary's parameter from string to integer.
-    Raise ValueError if the operation is not possible.
-    Set parameter to None if it was not in the dictinary.
-
-    Parameters
-    ----------
-    args: dict
-        Dictionary where to operate.
-    param: String
-        Parameter to cast to int.
-
-    Examples
-    --------
-    >>> import pyratbay.tools as pt
-    >>> inputs = ['10', '-10', '+10', '10.0', '1e1',
-    >>>           '10.5', 'None', 'True', 'inf', '10 20']
-    >>> args = {f'par{i}':val for i,val in enumerate(inputs)}
-    >>> for i,var in enumerate(inputs):
-    >>>     try:
-    >>>         par = f'par{i}'
-    >>>         pt.parse_int(args, par)
-    >>>         print(f"{par}: '{var}' -> {args[par]}")
-    >>>     except ValueError as e:
-    >>>         print(e)
-    par0: '10' -> 10
-    par1: '-10' -> -10
-    par2: '+10' -> 10
-    par3: '10.0' -> 10
-    par4: '1e1' -> 10
-    Invalid data type for par5, could not convert string to integer: '10.5'
-    Invalid data type for par6, could not convert string to integer: 'None'
-    Invalid data type for par7, could not convert string to integer: 'True'
-    Invalid data type for par8, could not convert string to integer: 'inf'
-    Invalid data type for par9, could not convert string to integer: '10 20'
-
-.. py:function:: parse_float(args, param)
-.. code-block:: pycon
-
-    Convert a dictionary's parameter from string to float.
-    Raise ValueError if the operation is not possible.
-    Set parameter to None if it was not in the dictinary.
-
-    Parameters
-    ----------
-    args: dict
-        Dictionary where to operate.
-    param: String
-        Parameter to cast to float.
-
-    Examples
-    --------
-    >>> import pyratbay.tools as pt
-    >>> inputs = ['10', '-10', '+10', '10.5', '1e1', 'inf', 'nan',
-    >>>           'None', 'True', '10 20']
-    >>> args = {f'par{i}':val for i,val in enumerate(inputs)}
-    >>> for i,var in enumerate(inputs):
-    >>>     try:
-    >>>         par = f'par{i}'
-    >>>         pt.parse_float(args, par)
-    >>>         print(f"{par}: '{var}' -> {args[par]}")
-    >>>     except ValueError as e:
-    >>>         print(e)
-    par0: '10' -> 10.0
-    par1: '-10' -> -10.0
-    par2: '+10' -> 10.0
-    par3: '10.5' -> 10.5
-    par4: '1e5' -> 10.0
-    par5: 'inf' -> inf
-    par6: 'nan' -> nan
-    Invalid data type for par7, could not convert string to float: 'None'
-    Invalid data type for par8, could not convert string to float: 'True'
-    Invalid data type for par9, could not convert string to float: '10 20'
-
-.. py:function:: parse_array(args, param)
-.. code-block:: pycon
-
-    Convert a dictionary's parameter from string to iterable.
-    If possible cast into a float numpy array; otherwise,
-    set as a list of strings.
-    Assume any blank character delimits the elements in the string.
-    Set parameter to None if it was not in the dictinary.
-
-    Parameters
-    ----------
-    args: dict
-        Dictionary where to operate.
-    param: String
-        Parameter to cast to array.
-
-    Examples
-    --------
-    >>> import pyratbay.tools as pt
-    >>> inputs = ['10 20', '10.0 20.0', 'a b', 'a\n b']
-    >>> args = {f'par{i}':val for i,val in enumerate(inputs)}
-    >>> for i,var in enumerate(inputs):
-    >>>     par = f'par{i}'
-    >>>     pt.parse_array(args, par)
-    >>>     print(f"{par}: {repr(var)} -> {repr(args[par])}")
-    par0: '10 20' -> array([10., 20.])
-    par1: '10.0 20.0' -> array([10., 20.])
-    par2: 'a b' -> ['a', 'b']
-    par3: 'a\n b' -> ['a', 'b']
-
 
 pyratbay.opacity
 ________________
@@ -2074,7 +2494,126 @@ ________________
 
 .. py:module:: pyratbay.opacity
 
-.. py:function:: make_tli(dblist, pflist, dbtype, tlifile, wl_low, wl_high, wlunits, log)
+.. py:class:: Collision_Induced(cia_file, *, wn=None, wl=None, log=None)
+
+    .. code-block:: pycon
+
+        Parameters
+        ----------
+        cia_file: String
+            A CIA cross section file.
+        wn: 1D float array
+            Wavenumber array (cm-1 units) where to sample the CIA
+            (only one of wl or wn should be provided).
+        wl: 1D float array
+            Wavelength array (micron units) where to sample the CIA
+            (only one of wl or wn should be provided).
+
+        Examples
+        --------
+        >>> import pyratbay.spectrum as ps
+        >>> import pyratbay.constants as pc
+        >>> import pyratbay.opacity as op
+
+        >>> wl = ps.constant_resolution_spectrum(0.61, 10.01, 15000.0)
+        >>> cs_file = f'{pc.ROOT}/pyratbay/data/CIA/CIA_Borysow_H2H2_0060-7000K_0.6-500um.dat'
+        >>> cia = op.Collision_Induced(cs_file, wl=wl)
+
+    .. py:method:: calc_cross_section(temperature)
+    .. code-block:: pycon
+
+        Calculate cross-section spectra (cm-1) over temperature
+        profiles by interpolating from tabulated values.
+
+        Parameters
+        ----------
+        temperature: float or 1D float array
+            Temperature array (Kelvin) at which to interpolate the
+            cross section.
+
+        Returns
+        -------
+        cross_section: 1D or 2D float array
+            Cross section spectra (cm-1 /(molec cm-3)**N)
+            where N is the number of species.
+            If temperature is scalar, cross_section is 1D of length self.nwave.
+            Otherwise, cross_section is a 2D array of shape [nlayers,nwave]
+
+    .. py:method:: calc_extinction_coefficient(temperature, density)
+    .. code-block:: pycon
+
+        Calculate extinction-coefficient spectra (cm-1) over temperature
+        and density profiles by interpolating in temperature from
+        tabulated values.
+
+        Parameters
+        ----------
+        temperature: 1D float array
+            Temperature array (Kelvin) at which to interpolate the
+            cross section.
+        density: 2D float array
+            Number density array (molecules cm-3) of self.species
+            over the temperature array.
+            If temperature is 1D array, must be of shape [self.nspec, ntemp]
+            If temperature is scalar, must be of length self.nspec.
+
+        Returns
+        -------
+        extinction_coefficient: 1D or 2D float array
+            Extinction coefficient spectra (cm-1)
+            If temperature is scalar, output is a 1D array of length nwave.
+            Otherwise, outout is a 2D array of shape [nlayers,nwave]
+
+.. py:class:: Hydrogen_Ion(wn)
+
+    .. code-block:: pycon
+
+        Parameters
+        ----------
+        wn: 1D float array
+            Wavenumber array where to sample the opacities (cm-1).
+
+    .. py:method:: calc_extinction_coefficient(temperature, density, layer=None)
+    .. code-block:: pycon
+
+        Calculate extinction coefficient spectra (cm-1) for given
+        temperature and number-density profiles.
+
+        Parameters
+        ----------
+        temperature: Float or 1D float array
+            Temperature profile in Kelvin (of size ntemp)
+        density: 1D/2D float array
+            Number density profiles (molecules per cm3) of H and electron
+            over the given temperature array.
+            If temperature is 1D array, must be of shape [ntemp,2]
+            If temperature is scalar, density must be of size 2.
+        layer: Integer
+            If not None, compute extinction coefficient only at selected layer.
+            In this case, the output array dimension is reduced by 1.
+
+        Returns
+        -------
+        extinction_coefficient: 1D/2D float array
+            H- extinction coefficient spectrum (cm-1)
+            If temperature is scalar, output is a 1D array of length nwave.
+            Otherwise, outout is a 2D array of shape [ntemp,nwave]
+
+    .. py:method:: cross_section_bound_free(temperature)
+    .. code-block:: pycon
+
+        Compute the bound-free cross section for H- in cm5/H_mol/electron.
+
+        Equation (3) of John 1988, AA, 193, 189.
+
+    .. py:method:: cross_section_free_free(temperature)
+    .. code-block:: pycon
+
+        Compute the free-free cross section for H- in cm5/H_mol/electron.
+
+        Equation (6) of John 1988, AA, 193, 189.
+
+.. py:function:: make_tli(dblist, pflist, dbtype, tlifile, wl_low, wl_high, wl_units, log=None)
 .. code-block:: pycon
 
     Create a transition-line-information (TLI) file.
@@ -2089,1062 +2628,369 @@ ________________
         Database type of each database.
     tlifile: String
         Output TLI file name.
-    wl_low: String or float
-        Lower wavelength boundary to consider. If float, assume units
-        from wlunits input.  Otherwise, wl_low sets the value and units
-        (for example: '1.0 um').
-    wl_high: String or float
-        High wavelength boundary to consider. If float, assume units
-        from wlunits input.  Otherwise, wl_high sets the value and units.
-    wlunits: String
+    wl_low: Float
+        Lower wavelength boundary to consider, units given by wl_units.
+    wl_high: Float
+        High wavelength boundary to consider, units given by wl_units.
+    wl_units: String
         Wavelength units (when not specified in wl_low nor wl_high).
     log: Log object
         An mc3.utils.Log instance to log screen outputs to file.
 
-
-pyratbay.opacity.linelist
-_________________________
-
-
-.. py:module:: pyratbay.opacity.linelist
-
-.. py:class:: Hitran(dbfile, pffile, log)
+.. py:class:: Line_Sample(cs_files, *, pressure=None, temperature=None, min_wl=None, max_wl=None, min_wn=None, max_wn=None, isotope_ratios=None, wl_thinning=1, log=None)
 
     .. code-block:: pycon
 
-        HITRAN/HITEMP database reader.
-
-
-        Initialize HITRAN database object.
+        Read line-sampled cross-section table(s), with units of cm2 molec-1.
 
         Parameters
         ----------
-        dbfile: String
-            File with the Database line-transition info.
-        pffile: String
-            File with the partition function.
-        log: Log object
-            An mc3.utils.Log instance to log screen outputs to file.
+        cs_files: String or iterable of strings
+            Line-sampled cross section file(s) to read.
+        pressure: 1D floar array
+            Pressure profile where to resample the opacities (bar).
+            If None, use the tabulated pressure array from the opacities.
+            If not None, it is allowed to extrapolate to lower pressures
+            but not to higher pressures.
+        min_wl: 1D float ndarray
+            Minimum wavelength value to extract from line-sample files (um)
+            (only one of min_wl or max_wn should be provided).
+        max_wl: 1D float ndarray
+            Maximum wavelength value to extract from line-sample files (um)
+            (only one of min_wn or max_wl should be provided).
+        min_wn: 1D float ndarray
+            Minimum wavenumber value to extract from line-sample files (cm-1)
+            (only one of min_wn or max_wl should be provided).
+        max_wn: 1D float ndarray
+            Maximum wavenumber value to extract from line-sample files (cm-1)
+            (only one of min_wl or max_wn should be provided).
+        wl_thinning: Integer
+            Thinning factor to take every n-th value of the wavenumber array
+        isotope_ratios: String
 
-    .. py:method:: binsearch(dbfile, wave, ilo, ihi, searchup=True)
-    .. code-block:: pycon
-
-        Do a binary (and then linear) search for wavelength/wavenumber in
-        file 'dbfile' between record positions ilo and ihi.
-
-        Parameters
-        ----------
-        dbfile: File object
-           File where to search.
-        wave: Scalar
-           Target wavelength/wavenumber (as given in each specific database).
-        ilo: Integer
-           Lowest index record to search.
-        ihi: Integer
-           highest index record to search.
-        searchup: Boolean
-           Search up (True) or down (False) the records for duplicate results
-           after the binary search.
-
-        Returns:
+        Examples
         --------
-        irec:  Integer
-           Record index for wave.
+        >>> import pyratbay.opacity as op
+        >>> import numpy as np
+        >>> import matplotlib.pyplot as plt
 
-    .. py:method:: dbread(iwn, fwn, verb)
+        >>> # Generate these files from
+        >>> # pyratbay.rtfd.io/en/latest/cookbooks/line_list_hitran.html
+        >>> cs_files = [
+        >>>     'cross_section_R020K_0150-3000K_0.5-5.0um_hitran_H2O.npz',
+        >>>     'cross_section_R020K_0150-3000K_0.5-5.0um_hitemp_CO.npz',
+        >>> ]
+        >>> # Line-sample opacities at wavenumbers > 1.0 cm-1:
+        >>> ls = op.Line_Sample(cs_files, min_wl=1.0)
+
+        >>> # Total or per-mol cross sections (cm2 molec-1):
+        >>> temp = np.tile(1400.0, ls.nlayers)
+        >>> cs = ls.calc_cross_section(temp)
+        >>> cs_per_mol = ls.calc_cross_section(temp, per_mol=True)
+
+        >>> # Cross section per species (cm2 molec-1):
+        >>> ec = ls.calc_cross_section(temp, per_mol=True)
+
+        >>> # Take a look
+        >>> wl = 1e4/ls.wn
+        >>> plt.figure(1)
+        >>> plt.clf()
+        >>> plt.plot(wl, ec[0,35], color='blue', lw=1.0)
+        >>> plt.plot(wl, ec[1,35], alpha=0.6, color='orange', lw=1.0)
+        >>> plt.yscale('log')
+
+    .. py:method:: calc_cross_section(temperature, layer=None, per_mol=False, pars=None)
     .. code-block:: pycon
 
-        Read line-transition info between wavenumbers iwn and fwn.
+        Calculate cross-section spectra (cm2 molec-1) over temperature
+        profiles by interpolating from tabulated values.
 
         Parameters
         ----------
-        iwn: Float
-            Lower wavenumber boundary in cm-1.
-        fwn: Float
-            Upper wavenumber boundary in cm-1.
-        verb: Integer
-            Verbosity threshold.
+        temperature: 1D float array
+            Temperature array (Kelvin) at which to interpolate the
+            cross section (must match nlayers size).
+        layer: Integer
+            If not None, compute cross-sections only at selected layer.
+            In this case, the output array dimension is reduced by 1.
+        per_mol: bool
+            If True, compute cross sections individually per species.
+            If False, co-add cross section contributions from all species.
+        pars: 1D iterable
+            If not None, update the iso_ratio parameters with given values.
 
         Returns
         -------
-        wnumber: 1D float ndarray
-            Line-transition central wavenumber (cm-1).
-        gf: 1D float ndarray
-            gf value (unitless).
-        elow: 1D float ndarray
-            Lower-state energy (cm-1).
-        isoID: 1D integer ndarray
-            Isotope index.
+        cross_section: 1D, 2D, or 3D float array
+            Cross section spectra (cm2 molec-1)
+            Output array has shape [nspec, nlayers, nwave].
+            If per_mol is False, nspec dimension is removed.
+            If layer is not None, nlayers dimension is removed.
 
-    .. py:method:: get_iso(molname, dbtype)
+    .. py:method:: calc_extinction_coefficient(temperature, density, layer=None, per_mol=False, pars=None)
     .. code-block:: pycon
 
-        Get isotopic info from isotopes.dat file.
+        Calculate extinction-coefficient spectra (cm-1) for temperature
+        and number-density profiles.
 
         Parameters
         ----------
-        mol: String
-            If not None, extract data based on this molecule name.
-        dbtype: String
-            Database type (for isotope names).
+        temperature: 1D float array
+            Temperature array (Kelvin) at which to interpolate the
+            cross section (must match nlayers size).
+        density: 2D float array
+            Number-density profiles (molec cm-3) at each layer.
+            Array has shape [nspec,nlayers].
+        layer: Integer
+            If not None, compute extinction coefficient only at selected layer.
+            In this case, the output array dimension is reduced by 1.
+        per_mol: bool
+            If True, compute extinction coefficients individually per species.
+            If False, co-add extinction contributions from all species.
+        pars: 1D iterable
+            If not None, update the iso_ratio parameters with given values.
 
         Returns
         -------
-        molID: Integer
-            HITRAN molecule ID.
-        isotopes: List of strings
-            Isotopes names.
-        mass: List of floats
-            Masses for each isotope.
-        isoratio: List of integers
-            Isotopic terrestrial abundance ratio.
+        extinction: 1D, 2D, or 3D float array
+            Extinction-coefficient spectra (cm-1)
+            Output array has shape [nspec, nlayers, nwave].
+            If per_mol is False, nspec dimension is removed.
+            If layer is not None, nlayers dimension is removed.
 
-    .. py:method:: getpf(verbose=0)
+    .. py:method:: get_wl(units='um')
     .. code-block:: pycon
 
-        Compute partition function for specified source.
+        Get the wavelength array in the desired units.
+
+        Parameters
+        ----------
+        units: String
+            Select one from: ['A', 'nm', 'um', 'mm', 'cm', 'm', 'km']
 
         Returns
         -------
-        temp: 1D float ndarray
-            Array with temperature sample.
-        PF: 2D float ndarray
-            The partition function data for each isotope at each temperature.
-        isotopes: List of strings
-            The names of the tabulated isotopes
+        wl: 1D float ndarray
+            The wavelength array from the line-sample grid.
 
-    .. py:method:: readwave(dbfile, irec)
-    .. code-block:: pycon
-
-        Read irec-th wavenumber record from FILE dbfile.
-
-        Parameters
-        ----------
-        dbfile: File object
-            File where to extract the wavenumber.
-        irec: Integer
-            Index of record.
-
-        Returns
-        -------
-        wavenumber: Float
-            Wavenumber value in cm-1.
-
-.. py:class:: Exomol(dbfile, pffile, log)
-
-    .. code-block:: pycon
-
-        Exomol database reader.
-
-
-        Initialize Exomol database object.
-
-        Parameters
-        ----------
-        dbfile: String
-            File with the Database line-transition info.
-        pffile: String
-            File with the partition function.
-        log: Log object
-            An mc3.utils.Log instance to log screen outputs to file.
-
-    .. py:method:: binsearch(dbfile, wave, ilo, ihi, searchup=True)
-    .. code-block:: pycon
-
-        Do a binary (and then linear) search for wavelength/wavenumber in
-        file 'dbfile' between record positions ilo and ihi.
-
-        Parameters
-        ----------
-        dbfile: File object
-           File where to search.
-        wave: Scalar
-           Target wavelength/wavenumber (as given in each specific database).
-        ilo: Integer
-           Lowest index record to search.
-        ihi: Integer
-           highest index record to search.
-        searchup: Boolean
-           Search up (True) or down (False) the records for duplicate results
-           after the binary search.
-
-        Returns:
-        --------
-        irec:  Integer
-           Record index for wave.
-
-    .. py:method:: dbread(iwn, fwn, verb)
-    .. code-block:: pycon
-
-        Read line-transition info between wavenumbers iwn and fwn.
-
-        Parameters
-        ----------
-        iwn: Float
-            Lower wavenumber boundary in cm-1.
-        fwn: Float
-            Upper wavenumber boundary in cm-1.
-        verb: Integer
-            Verbosity threshold.
-
-        Returns
-        -------
-        wnumber: 1D float ndarray
-            Line-transition central wavenumber (cm-1).
-        gf: 1D float ndarray
-            gf value (unitless).
-        elow: 1D float ndarray
-            Lower-state energy (cm-1).
-        isoID: 1D integer ndarray
-            Isotope index.
-
-    .. py:method:: get_iso(molname, dbtype)
-    .. code-block:: pycon
-
-        Get isotopic info from isotopes.dat file.
-
-        Parameters
-        ----------
-        mol: String
-            If not None, extract data based on this molecule name.
-        dbtype: String
-            Database type (for isotope names).
-
-        Returns
-        -------
-        molID: Integer
-            HITRAN molecule ID.
-        isotopes: List of strings
-            Isotopes names.
-        mass: List of floats
-            Masses for each isotope.
-        isoratio: List of integers
-            Isotopic terrestrial abundance ratio.
-
-    .. py:method:: getpf(verbose=0)
-    .. code-block:: pycon
-
-        Compute partition function for specified source.
-
-        Returns
-        -------
-        temp: 1D float ndarray
-            Array with temperature sample.
-        PF: 2D float ndarray
-            The partition function data for each isotope at each temperature.
-        isotopes: List of strings
-            The names of the tabulated isotopes
-
-    .. py:method:: readwave(dbfile, irec)
-    .. code-block:: pycon
-
-        Read irec-th wavenumber record from FILE dbfile.
-
-        Parameters
-        ----------
-        dbfile: File object
-            File where to extract the wavenumber.
-        irec: Integer
-            Index of record.
-
-        Returns
-        -------
-        wavenumber: Float
-            Wavenumber value in cm-1.
-
-.. py:class:: Repack(dbfile, pffile, log)
-
-    .. code-block:: pycon
-
-        Repack database reader.
-
-
-        Initialize Exomol database object.
-
-        Parameters
-        ----------
-        dbfile: String
-            File with the Database line-transition info.
-        pffile: String
-            File with the partition function.
-        log: Log object
-            An mc3.utils.Log instance to log screen outputs to file.
-
-    .. py:method:: binsearch(dbfile, wave, ilo, ihi, searchup=True)
-    .. code-block:: pycon
-
-        Do a binary (and then linear) search for wavelength/wavenumber in
-        file 'dbfile' between record positions ilo and ihi.
-
-        Parameters
-        ----------
-        dbfile: File object
-           File where to search.
-        wave: Scalar
-           Target wavelength/wavenumber (as given in each specific database).
-        ilo: Integer
-           Lowest index record to search.
-        ihi: Integer
-           highest index record to search.
-        searchup: Boolean
-           Search up (True) or down (False) the records for duplicate results
-           after the binary search.
-
-        Returns:
-        --------
-        irec:  Integer
-           Record index for wave.
-
-    .. py:method:: dbread(iwn, fwn, verb)
-    .. code-block:: pycon
-
-        Read line-transition info between wavenumbers iwn and fwn.
-
-        Parameters
-        ----------
-        iwn: Float
-            Lower wavenumber boundary in cm-1.
-        fwn: Float
-            Upper wavenumber boundary in cm-1.
-        verb: Integer
-            Verbosity threshold.
-
-        Returns
-        -------
-        wnumber: 1D float ndarray
-            Line-transition central wavenumber (cm-1).
-        gf: 1D float ndarray
-            gf value (unitless).
-        elow: 1D float ndarray
-            Lower-state energy (cm-1).
-        isoID: 1D integer ndarray
-            Isotope index.
-
-    .. py:method:: get_iso(molname, dbtype)
-    .. code-block:: pycon
-
-        Get isotopic info from isotopes.dat file.
-
-        Parameters
-        ----------
-        mol: String
-            If not None, extract data based on this molecule name.
-        dbtype: String
-            Database type (for isotope names).
-
-        Returns
-        -------
-        molID: Integer
-            HITRAN molecule ID.
-        isotopes: List of strings
-            Isotopes names.
-        mass: List of floats
-            Masses for each isotope.
-        isoratio: List of integers
-            Isotopic terrestrial abundance ratio.
-
-    .. py:method:: getpf(verbose=0)
-    .. code-block:: pycon
-
-        Compute partition function for specified source.
-
-        Returns
-        -------
-        temp: 1D float ndarray
-            Array with temperature sample.
-        PF: 2D float ndarray
-            The partition function data for each isotope at each temperature.
-        isotopes: List of strings
-            The names of the tabulated isotopes
-
-    .. py:method:: readwave(dbfile, irec)
-    .. code-block:: pycon
-
-        Read irec-th wavenumber record from FILE dbfile.
-
-        Parameters
-        ----------
-        dbfile: File object
-            File where to extract the wavenumber.
-        irec: Integer
-            Index of record.
-
-        Returns
-        -------
-        wavenumber: Float
-            Wavenumber value in cm-1.
-
-.. py:class:: Pands(dbfile, pffile, log)
-
-    .. code-block:: pycon
-
-        Partridge & Schwenke (1997) H2O database reader.
-
-
-        Initialize P&S database object.
-
-        Parameters
-        ----------
-        dbfile: String
-            File with the Database line-transition info.
-        pffile: String
-            File with the partition function.
-        log: Log object
-            An mc3.utils.Log instance to log screen outputs to file.
-
-    .. py:method:: binsearch(dbfile, wave, ilo, ihi, searchup=True)
-    .. code-block:: pycon
-
-        Do a binary (and then linear) search for wavelength/wavenumber in
-        file 'dbfile' between record positions ilo and ihi.
-
-        Parameters
-        ----------
-        dbfile: File object
-           File where to search.
-        wave: Scalar
-           Target wavelength/wavenumber (as given in each specific database).
-        ilo: Integer
-           Lowest index record to search.
-        ihi: Integer
-           highest index record to search.
-        searchup: Boolean
-           Search up (True) or down (False) the records for duplicate results
-           after the binary search.
-
-        Returns:
-        --------
-        irec:  Integer
-           Record index for wave.
-
-    .. py:method:: dbread(iwn, fwn, verb)
-    .. code-block:: pycon
-
-        Read line-transition info between wavenumbers iwn and fwn.
-
-        Parameters
-        ----------
-        iwn: Float
-            Lower wavenumber boundary in cm-1.
-        fwn: Float
-            Upper wavenumber boundary in cm-1.
-        verb: Integer
-            Verbosity threshold.
-
-        Returns
-        -------
-        wnumber: 1D float ndarray
-            Line-transition central wavenumber (cm-1).
-        gf: 1D float ndarray
-            gf value (unitless).
-        elow: 1D float ndarray
-            Lower-state energy (cm-1).
-        isoID: 1D integer ndarray
-            Isotope index.
-
-    .. py:method:: get_iso(molname, dbtype)
-    .. code-block:: pycon
-
-        Get isotopic info from isotopes.dat file.
-
-        Parameters
-        ----------
-        mol: String
-            If not None, extract data based on this molecule name.
-        dbtype: String
-            Database type (for isotope names).
-
-        Returns
-        -------
-        molID: Integer
-            HITRAN molecule ID.
-        isotopes: List of strings
-            Isotopes names.
-        mass: List of floats
-            Masses for each isotope.
-        isoratio: List of integers
-            Isotopic terrestrial abundance ratio.
-
-    .. py:method:: getpf(verbose=0)
-    .. code-block:: pycon
-
-        Compute partition function for specified source.
-
-        Returns
-        -------
-        temp: 1D float ndarray
-            Array with temperature sample.
-        PF: 2D float ndarray
-            The partition function data for each isotope at each temperature.
-        isotopes: List of strings
-            The names of the tabulated isotopes
-
-    .. py:method:: readwave(dbfile, irec)
-    .. code-block:: pycon
-
-        Read irec-th wavelength record from FILE dbfile.
-
-        Parameters
-        ----------
-        dbfile: File object
-            File where to extract the wavelength.
-        irec: Integer
-            Index of record.
-
-        Returns
-        -------
-        recwl: Unsigned integer
-            Wavelength value as given in the P&S binary file.
-
-.. py:class:: Tioschwenke(dbfile, pffile, log)
-
-    .. code-block:: pycon
-
-        Notes:
-        ------
-        Linelist and partition function downloaded from:
-          http://kurucz.harvard.edu/molecules/tio/tioschwenke.bin
-          http://kurucz.harvard.edu/molecules/tio/tiopart.dat
-
-        There might be a problem with the linebreak character of the partition
-        function.  One way to fix is, on vim do: :%s/        /        /g
-
-
-        Initialize self.  See help(type(self)) for accurate signature.
-
-    .. py:method:: binsearch(dbfile, wave, ilo, ihi, searchup=True)
-    .. code-block:: pycon
-
-        Do a binary (and then linear) search for wavelength/wavenumber in
-        file 'dbfile' between record positions ilo and ihi.
-
-        Parameters
-        ----------
-        dbfile: File object
-           File where to search.
-        wave: Scalar
-           Target wavelength/wavenumber (as given in each specific database).
-        ilo: Integer
-           Lowest index record to search.
-        ihi: Integer
-           highest index record to search.
-        searchup: Boolean
-           Search up (True) or down (False) the records for duplicate results
-           after the binary search.
-
-        Returns:
-        --------
-        irec:  Integer
-           Record index for wave.
-
-    .. py:method:: dbread(iwn, fwn, verb)
-    .. code-block:: pycon
-
-        Read the Schwenke TiO database.
-
-        Parameters
-        ----------
-        iwn: Scalar
-            Initial wavenumber limit (in cm-1).
-        fwn: Scalar
-            Final wavenumber limit (in cm-1).
-        verb: Integer
-            Verbosity threshold.
-
-        Returns
-        -------
-        wnumber: 1D float ndarray
-            Line-transition central wavenumber (centimeter-1).
-        gf: 1D float ndarray
-            gf value (unitless).
-        elow: 1D float ndarray
-            Lower-state energy (centimeter-1).
-        isoID: 2D integer ndarray
-            Isotope index (0, 1, 2, 3, ...).
-
-    .. py:method:: get_iso(molname, dbtype)
-    .. code-block:: pycon
-
-        Get isotopic info from isotopes.dat file.
-
-        Parameters
-        ----------
-        mol: String
-            If not None, extract data based on this molecule name.
-        dbtype: String
-            Database type (for isotope names).
-
-        Returns
-        -------
-        molID: Integer
-            HITRAN molecule ID.
-        isotopes: List of strings
-            Isotopes names.
-        mass: List of floats
-            Masses for each isotope.
-        isoratio: List of integers
-            Isotopic terrestrial abundance ratio.
-
-    .. py:method:: getpf(verbose=0)
-    .. code-block:: pycon
-
-        Compute partition function for specified source.
-
-        Returns
-        -------
-        temp: 1D float ndarray
-            Array with temperature sample.
-        PF: 2D float ndarray
-            The partition function data for each isotope at each temperature.
-        isotopes: List of strings
-            The names of the tabulated isotopes
-
-    .. py:method:: readwave(dbfile, irec)
-    .. code-block:: pycon
-
-        Read wavelength parameter from irec record in dbfile database.
-
-        Parameters
-        ----------
-        dbfile: File object
-           File where to extract the wavelength.
-        irec: Integer
-           Index of record.
-
-        Returns
-        -------
-        rec_wl: integer
-           Wavelength value at record irec, as given in dbfile database.
-
-.. py:class:: Voplez(dbfile, pffile, log)
-
-    .. code-block:: pycon
-
-        Download the linelist from:
-
-
-        Initializer.
-
-    .. py:method:: binsearch(dbfile, wave, ilo, ihi, searchup=True)
-    .. code-block:: pycon
-
-        Do a binary (and then linear) search for wavelength/wavenumber in
-        file 'dbfile' between record positions ilo and ihi.
-
-        Parameters
-        ----------
-        dbfile: File object
-           File where to search.
-        wave: Scalar
-           Target wavelength/wavenumber (as given in each specific database).
-        ilo: Integer
-           Lowest index record to search.
-        ihi: Integer
-           highest index record to search.
-        searchup: Boolean
-           Search up (True) or down (False) the records for duplicate results
-           after the binary search.
-
-        Returns:
-        --------
-        irec:  Integer
-           Record index for wave.
-
-    .. py:method:: dbread(iwn, fwn, verb)
-    .. code-block:: pycon
-
-        Read the B. Plez VO database between the wavelengths iwl and fwl.
-
-        Parameters:
-        -----------
-        iwn: Scalar
-           Initial wavenumber limit (in cm-1).
-        fwn: Scalar
-           Final wavenumber limit (in cm-1).
-        verb: Integer
-           Verbosity threshold.
-
-        Returns:
-        --------
-        wnumber: 1D float ndarray
-          Line-transition central wavenumber (centimeter-1).
-        gf: 1D float ndarray
-          gf value (unitless).
-        elow: 1D float ndarray
-          Lower-state energy (centimeter-1).
-        isoID: 2D integer ndarray
-          Isotope index (0, 1, 2, 3, ...).
-
-        Developers:
-        -----------
-        Patricio Cubillos (UCF).
-        Sarah Blumenthal (UCF).
-
-        Notes:
-        ------
-        The Plez VO database is an ASCII format.
-        The line transitions are sorted in increasing wavelength (micron) order.
-
-    .. py:method:: get_iso(molname, dbtype)
-    .. code-block:: pycon
-
-        Get isotopic info from isotopes.dat file.
-
-        Parameters
-        ----------
-        mol: String
-            If not None, extract data based on this molecule name.
-        dbtype: String
-            Database type (for isotope names).
-
-        Returns
-        -------
-        molID: Integer
-            HITRAN molecule ID.
-        isotopes: List of strings
-            Isotopes names.
-        mass: List of floats
-            Masses for each isotope.
-        isoratio: List of integers
-            Isotopic terrestrial abundance ratio.
-
-    .. py:method:: getpf(verbose=0)
-    .. code-block:: pycon
-
-        Compute partition function for specified source.
-
-        Returns
-        -------
-        temp: 1D float ndarray
-            Array with temperature sample.
-        PF: 2D float ndarray
-            The partition function data for each isotope at each temperature.
-        isotopes: List of strings
-            The names of the tabulated isotopes
-
-    .. py:method:: readwave(dbfile, irec)
-    .. code-block:: pycon
-
-        Extract the wavelength from record irec.
-
-        Parameters:
-        -----------
-        dbfile: File pointer
-           Pointer to file being read.
-        irec: Integer
-           Index of record to read.
-
-        Returns:
-        --------
-        wl: Float
-           The wavelength in microns for record irec.
-
-.. py:class:: Vald(dbfile, pffile, log)
-
-    .. code-block:: pycon
-
-        Notes
-        -----
-          Download linelist from: http://vald.astro.uu.se/~vald/php/vald.php
-             Selecting 'Extract Element' and 'Short format'.
-          Download partition functions from:
-
-
-        Initialize Basic data for the Database.
-
-        Parameters
-        ----------
-        dbfile: String
-            File with the Database line-transition info.
-        pffile: String
-            File with the partition function.
-        log: File
-            File object to store the log.
-
-    .. py:method:: binsearch(dbfile, wave, ilo, ihi, searchup=True)
-    .. code-block:: pycon
-
-        Do a binary (and then linear) search for wavelength/wavenumber in
-        file 'dbfile' between record positions ilo and ihi.
-
-        Parameters
-        ----------
-        dbfile: File object
-           File where to search.
-        wave: Scalar
-           Target wavelength/wavenumber (as given in each specific database).
-        ilo: Integer
-           Lowest index record to search.
-        ihi: Integer
-           highest index record to search.
-        searchup: Boolean
-           Search up (True) or down (False) the records for duplicate results
-           after the binary search.
-
-        Returns:
-        --------
-        irec:  Integer
-           Record index for wave.
-
-    .. py:method:: dbread(iwn, fwn, verb)
-    .. code-block:: pycon
-
-        Read a VALD database.
-
-        Parameters
-        ----------
-        iwn: Scalar
-            Initial wavenumber limit (in cm-1).
-        fwn: Scalar
-            Final wavenumber limit (in cm-1).
-        verb: Integer
-            Verbosity threshold.
-
-        Returns
-        -------
-        wnumber: 1D float ndarray
-            Line-transition central wavenumber (cm-1).
-        gf: 1D float ndarray
-            gf value (unitless).
-        elow: 1D float ndarray
-            Lower-state energy (cm-1).
-        isoID: 2D integer ndarray
-          Isotope index.
-
-    .. py:method:: get_iso(molname, dbtype)
-    .. code-block:: pycon
-
-        Get isotopic info from isotopes.dat file.
-
-        Parameters
-        ----------
-        mol: String
-            If not None, extract data based on this molecule name.
-        dbtype: String
-            Database type (for isotope names).
-
-        Returns
-        -------
-        molID: Integer
-            HITRAN molecule ID.
-        isotopes: List of strings
-            Isotopes names.
-        mass: List of floats
-            Masses for each isotope.
-        isoratio: List of integers
-            Isotopic terrestrial abundance ratio.
-
-    .. py:method:: getinfo()
-    .. code-block:: pycon
-
-        Doc me.
-
-    .. py:method:: getpf(verbose=0)
-    .. code-block:: pycon
-
-        Compute partition function for specified source.
-
-        Returns
-        -------
-        temp: 1D float ndarray
-            Array with temperature sample.
-        PF: 2D float ndarray
-            The partition function data for each isotope at each temperature.
-        isotopes: List of strings
-            The names of the tabulated isotopes
-
-    .. py:method:: readwave(dbfile, irec)
-    .. code-block:: pycon
-
-        Read irec-th wavenumber record from FILE dbfile.
-
-        Parameters
-        ----------
-        dbfile: File object
-            File where to extract the wavelength.
-        irec: Integer
-            Index of record.
-
-        Returns
-        -------
-        wavenumber: Unsigned integer
-            Wavenumber value in cm-1.
-
-
-pyratbay.opacity.partitions
-___________________________
-
-
-.. py:module:: pyratbay.opacity.partitions
-
-.. py:function:: get_tips_molname(molID)
+.. py:function:: optical_depth(rt_path, extinction, radius=None, itop=0, ibottom=None, maxdepth=inf, extinction_cloudy=None, raypath=None)
 .. code-block:: pycon
 
-    Get the TIPS molecule name for given molecule ID.
+    Calculate the optical depth.
 
     Parameters
     ----------
-    molID: Integer
-        HITRAN molecule ID. See for example: https://hitran.org/lbl/
+    rt_path: String
+        Radiative-transfer path.
+    extinction: 2D float array
+        Extinction coefficient (cm-1) at each layer and wavelength channel.
+    radius: 1D float array
+        Radius (altitude) array of the atmospheric layers (cm), from top
+        to bottom.  Used to compute the raypath.
+    itop: Integer
+        Index at top of the atmosphere, opacity at layer above this
+        will be ignored.
+    ibottom: Integer
+        Index at the bottom of the atmosphere. The optical depth will
+        be calculated down to the layer pointed by this index.
+    maxdepth: Float
+        Maximum optical depth to compute.  The optical depth calculation
+        will stop when maxdepth is reached (checked independently in each
+        wavelength channel).
+    extinction_couldy: 2d float array
+        If provided, signals that the optical depth should compute
+        separately the depth of a cloudy and a clear atmosphere.
+        This array contains the extinction coefficient of the 'cloud'
+        absorbers.
+    raypath:
+        The ray paths, which can be directly provided instead of radius.
 
     Returns
     -------
-    molname: String
-        Name of molecule.
+    raypath:
+        Path followed by the rays.
+    depth: 2D float array
+        The optical depth at each layer and wavelength channel.
+    ideep: 1D integer array
+        Indices of each wavelenght channel of the layer where the optical
+        depth surpassed maxdepth.
+    depth_clear: 2D float array
+        If extinction_couldy is provided, the optical depth at each
+        layer and wavelength channel for a cloud-less atmosphere.
+    ideep_clear: 1D integer array
+        Same as ideep but for depth_clear.
 
-    Examples
-    --------
-    >>> import pyratbay.opacity.partitions as pf
-    >>> print(pf.get_tips_molname(1), pf.get_tips_molname(6))
-    H2O CH4
 
-.. py:function:: tips(molecule, isotopes=None, outfile=None, db_type='as_tips')
+pyratbay.opacity.alkali
+_______________________
+
+
+.. py:module:: pyratbay.opacity.alkali
+
+.. py:class:: SodiumVdW(pressure, *, wn=None, wl=None, cutoff=4500.0)
+
+    .. code-block:: pycon
+
+        Parameters
+        ----------
+        pressure: 1D float array
+            Pressure profile (bars) over which the opacities will be
+            evalulated.
+        wn: 1D float array
+            Wavenumber array (cm-1 units) over which the opacities
+            will be sampled (only one of wl or wn should be provided).
+        wl: 1D float array
+            Wavelength array (micron units) over which the opacities
+            will be sampled (only one of wl or wn should be provided).
+        cutoff: Float
+            Maximum wavenumber extent (cm-1) of the line-profiles
+            from the center of each line.
+
+    .. py:method:: calc_cross_section(temperature, layer=None)
+    .. code-block:: pycon
+
+        Calculate cross section (cm2 molecule-1) at given temperatures
+        Saves value into self.cross_section.
+
+        Parameters
+        ----------
+        temperature: 1D float array
+            Temperature profile in Kelvin (must match self.pressure array)
+        layer: Interger
+            If not None, index at which to calculate the cross section.
+
+        Returns
+        -------
+        cross_section: 2D/1D float array
+            If layer is None, cross-section spectra (cm2 molec-1) at each
+            pressure-temperature point (also sets self.cross_section).
+            If layer is not None, cross-section spectrum at a single layer.
+
+    .. py:method:: calc_extinction_coefficient(temperature, density, layer=None)
+    .. code-block:: pycon
+
+        Calculate extinction coefficient (cm-1) for given temperature
+        and number-density profiles.
+
+        Parameters
+        ----------
+        temperature: 1D float array
+            Temperature profile in Kelvin (must match self.pressure array)
+        density: 1D float array
+            Number density profile (molecules per cm3) of self.species.
+            (must match self.pressure array)
+        layer: Interger
+            If not None, calculate the extinction coefficient at a
+            single layer pointed by this index. In this case the output
+            is a 1D array.
+
+        Returns
+        -------
+        extinction_coefficient: 2D float array
+            Alkali extinction coefficient spectrum (units of cm-1)
+            of shape [nlayers, nwave].
+
+    .. py:method:: voigt_det(temperature)
+    .. code-block:: pycon
+
+        Calculate Voigt profile value at the detuning wavelength
+        from the center of the lines (at each layer).
+
+        Parameters
+        ----------
+        temperature: 1D float array
+            A temperature profile (kelvin).
+
+        Returns
+        -------
+        voigt_det: 2D float array
+            Voigt-profile values at the detuning wavelength
+            of shape [nlayers,nlines].
+
+.. py:class:: PotassiumVdW(pressure, *, wn=None, wl=None, cutoff=4500.0)
+
+    .. code-block:: pycon
+
+        Parameters
+        ----------
+        pressure: 1D float array
+            Pressure profile (bar) over which the opacities will be
+            evalulated.
+        wn: 1D float array
+            Wavenumber array (cm-1 units) over which the opacities
+            will be sampled (only one of wl or wn should be provided).
+        wl: 1D float array
+            Wavelength array (micron units) over which the opacities
+            will be sampled (only one of wl or wn should be provided).
+        cutoff: Float
+            Maximum wavenumber extent (cm-1) of the line-profiles
+            from the center of each line.
+
+    .. py:method:: calc_cross_section(temperature, layer=None)
+    .. code-block:: pycon
+
+        Calculate cross section (cm2 molecule-1) at given temperatures
+        Saves value into self.cross_section.
+
+        Parameters
+        ----------
+        temperature: 1D float array
+            Temperature profile in Kelvin (must match self.pressure array)
+        layer: Interger
+            If not None, index at which to calculate the cross section.
+
+        Returns
+        -------
+        cross_section: 2D/1D float array
+            If layer is None, cross-section spectra (cm2 molec-1) at each
+            pressure-temperature point (also sets self.cross_section).
+            If layer is not None, cross-section spectrum at a single layer.
+
+    .. py:method:: calc_extinction_coefficient(temperature, density, layer=None)
+    .. code-block:: pycon
+
+        Calculate extinction coefficient (cm-1) for given temperature
+        and number-density profiles.
+
+        Parameters
+        ----------
+        temperature: 1D float array
+            Temperature profile in Kelvin (must match self.pressure array)
+        density: 1D float array
+            Number density profile (molecules per cm3) of self.species.
+            (must match self.pressure array)
+        layer: Interger
+            If not None, calculate the extinction coefficient at a
+            single layer pointed by this index. In this case the output
+            is a 1D array.
+
+        Returns
+        -------
+        extinction_coefficient: 2D float array
+            Alkali extinction coefficient spectrum (units of cm-1)
+            of shape [nlayers, nwave].
+
+    .. py:method:: voigt_det(temperature)
+    .. code-block:: pycon
+
+        Calculate Voigt profile value at the detuning wavelength
+        from the center of the lines (at each layer).
+
+        Parameters
+        ----------
+        temperature: 1D float array
+            A temperature profile (kelvin).
+
+        Returns
+        -------
+        voigt_det: 2D float array
+            Voigt-profile values at the detuning wavelength
+            of shape [nlayers,nlines].
+
+.. py:function:: get_model(name, *args, **kwargs)
 .. code-block:: pycon
 
-    Extract TIPS 2021 partition-function values for given molecule.
-    If requested, write the partition-function into a file for use
-    with Pyrat Bay.
-    References:
-        Gamache et al. (2017), JQSRT, 203, 70.
-        Gamache et al. (2021), JQSRT, 271, 107713.
-
-    Parameters
-    ----------
-    molecule: String
-        Name of the molecule.
-    isotopes: String or list of strings
-        If not None, only extract the requested isotopes.
-    outfile: String
-        If not None, save output to file.
-        If outfile == 'default', save output to file named as
-        PF_tips_molecule.dat
-    db_type: String
-        If db_type == 'as_exomol', return isotopic names following
-        the exomol notation.
-
-    Returns
-    -------
-    pf: 2D float ndarray
-        TIPS partition function for input molecule.
-    isotopes: 1D string list
-        List of isotopes.
-    temp: 1D float ndarray
-        Partition-function temperature samples (K).
-
-    Examples
-    --------
-    >>> import pyratbay.opacity.partitions as pf
-    >>> pf_data, isotopes, temp = pf.tips('H2O', outfile='default')
-
-    Written partition-function file:
-      'PF_tips_H2O.dat'
-    for molecule H2O, with isotopes ['161', '181', '171', '162', '182', '172', '262', '282', '272'],
-    and temperature range 1--5000 K.
-
-.. py:function:: exomol(pf_files, outfile=None)
-.. code-block:: pycon
-
-    Extract ExoMol partition-function values from input files.
-    If requested, write the partition-function into a file for use
-    with Pyrat Bay.
-
-    Parameters
-    ----------
-    pf_files: String or List of strings
-        Input Exomol partition-function filenames.  If there are
-        multiple isotopes, all of them must correspond to the same
-        molecule.
-    outfile: String
-        If not None, save output to file.
-        If outfile == 'default', save output to file named as
-        PF_exomol_molecule.dat
-
-    Returns
-    -------
-    pf: 2D float ndarray
-        TIPS partition function for input molecule.
-    isotopes: 1D string list
-        List of isotopes.
-    temp: 1D float ndarray
-        Partition-function temperature samples (K).
-
-    Examples
-    --------
-    >>> # First, download ExoMol data to current dictory, e.g.:
-    >>> # wget http://www.exomol.com/db/NH3/14N-1H3/BYTe/14N-1H3__BYTe.pf
-    >>> # wget http://www.exomol.com/db/NH3/15N-1H3/BYTe-15/15N-1H3__BYTe-15.pf
-    >>> import pyratbay.opacity.partitions as pf
-    >>> # A single file:
-    >>> pf_data, isotopes, temp = pf.exomol('14N-1H3__BYTe.pf',
-    >>>     outfile='default')
-    Written partition-function file:
-      'PF_exomol_NH3.dat'
-    for molecule NH3, with isotopes ['4111'],
-    and temperature range 1--1600 K.
-
-    >>> # Multiple files (isotopes) for a molecule:
-    >>> pf_data, isotopes, temp = pf.exomol(
-    >>>     ['14N-1H3__BYTe.pf', '15N-1H3__BYTe-15.pf'], outfile='default')
-
-    ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-      Warning:
-        Length of PF files do not match.  Trimming to shorter size.
-    ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-    Written partition-function file:
-      'PF_exomol_NH3.dat'
-    for molecule NH3, with isotopes ['4111', '5111'],
-    and temperature range 1--1600 K.
-
-.. py:function:: kurucz(pf_file, outfile=None, type_flag='as_exomol')
-.. code-block:: pycon
-
-    Extract Kurucz partition-function values from input file.
-    If requested, write the partition-function into a file for use
-    with Pyrat Bay.
-
-    Parameters
-    ----------
-    pf_file: String
-        Input partition-function from Kurucz webpage.  Currently only H2O
-        and TiO are available (probably there's no need for any other support).
-        Files can be downloaded from these links:
-          http://kurucz.harvard.edu/molecules/h2o/h2opartfn.dat
-          http://kurucz.harvard.edu/molecules/tio/tiopart.dat
-    outfile: String
-        If not None, save output to file.
-        If outfile == 'default', save output to file named as
-        PF_kurucz_molecule.dat
-
-    Returns
-    -------
-    pf: 2D float ndarray
-        TIPS partition function for input molecule.
-    isotopes: 1D string list
-        List of isotopes.
-    temp: 1D float ndarray
-        Partition-function temperature samples (K).
-
-    Examples
-    --------
-    >>> # First, download kurucz data to current dictory, e.g.:
-    >>> # wget http://kurucz.harvard.edu/molecules/h2o/h2opartfn.dat
-    >>> # wget http://kurucz.harvard.edu/molecules/tio/tiopart.dat
-
-    >>> import pyratbay.opacity.partitions as pf
-    >>> pf_data, isotopes, temp = pf.kurucz('h2opartfn.dat', outfile='default')
-
-    Written partition-function file:
-      'PF_kurucz_H2O.dat'
-    for molecule H2O, with isotopes ['1H1H16O', '1H1H17O', '1H1H18O', '1H2H16O'],
-    and temperature range 10--6000 K.
-
-    >>> pf_data, isotopes, temp = pf.kurucz('tiopart.dat', outfile='default')
-
-    Written partition-function file:
-      'PF_kurucz_TiO.dat'
-    for molecule TiO, with isotopes ['66', '76', '86', '96', '06'],
-    and temperature range 10--6000 K.
+    Get an alkali model by its name.
 
 
 pyratbay.opacity.broadening
@@ -3156,36 +3002,6 @@ ___________________________
 .. py:class:: Lorentz(x0=0.0, hwhm=1.0, scale=1.0)
 
     .. code-block:: pycon
-
-        1D Lorentz profile model.
-
-        Parameters
-        ----------
-        x0: Float
-           Profile center location.
-        hwhm: Float
-           Profile's half-width at half maximum.
-        scale: Float
-           Scale of the profile (scale=1 returns a profile with integral=1.0).
-
-        Examples
-        --------
-        >>> import numpy as np
-        >>> import matplotlib.pyplot as plt
-        >>> import pyratbay.opacity.broadening as b
-        >>> lor = b.Lorentz(x0=0.0, hwhm=2.5, scale=1.0)
-        >>> # Half-width at half maximum is ~2.5:
-        >>> x = np.linspace(-10.0, 10.0, 100001)
-        >>> print(0.5 * np.ptp(x[lor(x)>0.5*np.amax(lor(x))]))
-        2.4998
-        >>> # Integral is ~ 1.0:
-        >>> x = np.linspace(-5000.0, 5000.0, 100001)
-        >>> print(np.trapz(lor(x), x))
-        0.999681690140321
-        >>> # Take a look at a Lorenzt profile:
-        >>> x = linspace(-10, 10, 101)
-        >>> plt.plot(x, lor(x))
-
 
         Initialize self.  See help(type(self)) for accurate signature.
 
@@ -3208,36 +3024,6 @@ ___________________________
 
     .. code-block:: pycon
 
-        1D Gaussian profile model.
-
-        Parameters
-        ----------
-        x0: Float
-           Profile center location.
-        hwhm: Float
-           Profile's half-width at half maximum.
-        scale: Float
-           Scale of the profile (scale=1 returns a profile with integral=1.0).
-
-        Examples
-        --------
-        >>> import numpy as np
-        >>> import matplotlib.pyplot as plt
-        >>> import pyratbay.opacity.broadening as b
-        >>> gauss = b.Gauss(x0=0.0, hwhm=2.5, scale=1.0)
-        >>> # Half-width at half maximum is ~2.5:
-        >>> x = np.linspace(-10.0, 10.0, 100001)
-        >>> print(0.5 * np.ptp(x[gauss(x)>0.5*np.amax(gauss(x))]))
-        2.4998
-        >>> # Integral is ~ 1.0:
-        >>> x = np.linspace(-5000.0, 5000.0, 100001)
-        >>> print(np.trapz(gauss(x), x))
-        1.0
-        >>> # Take a look at a Lorenzt profile:
-        >>> x = linspace(-10, 10, 101)
-        >>> plt.plot(x, gauss(x))
-
-
         Initialize self.  See help(type(self)) for accurate signature.
 
     .. py:method:: eval(x)
@@ -3248,84 +3034,16 @@ ___________________________
         Parameters
         ----------
         x: 1D float ndarray
-           Input coordinates where to evaluate the profile.
+            Input coordinates where to evaluate the profile.
 
         Returns
         -------
         g: 1D float ndarray
-           The line profile at the x locations.
+            The line profile at the x locations.
 
 .. py:class:: Voigt(x0=0.0, hwhm_L=1.0, hwhm_G=1.0, scale=1.0)
 
     .. code-block:: pycon
-
-        1D Voigt profile model.
-
-        Parameters
-        ----------
-        x0: Float
-            Line center location.
-        hwhm_L: Float
-            Half-width at half maximum of the Lorentz distribution.
-        hwhm_G: Float
-            Half-width at half maximum of the Gaussian distribution.
-        scale: Float
-            Scale of the profile (scale=1 returns a profile with integral=1.0).
-
-        Examples
-        --------
-        >>> import numpy as np
-        >>> import matplotlib.pyplot as plt
-        >>> import pyratbay.opacity.broadening as b
-
-        >>> hwhm_G = 1.0
-        >>> hwhm_L = 1.0
-        >>> voigt = b.Voigt(x0=0.0, hwhm_L=hwhm_L, hwhm_G=hwhm_G)
-
-        >>> plt.figure('A Voigt profile', (6,4))
-        >>> plt.clf()
-        >>> ax = plt.subplot(1, 1, 1)
-        >>> x = np.linspace(-15.0, 15.0, 3001)
-        >>> plt.plot(x, voigt(x), lw=2.0, color="orange")
-        >>> plt.xlim(np.amin(x), np.amax(x))
-        >>> plt.xlabel(r"x", fontsize=12)
-        >>> plt.ylabel(r"Voigt profile", fontsize=12)
-
-        >>> # Compare a range of Voigt, Lorentz, and Doppler profiles:
-        >>> lorentz = b.Lorentz(x0=0.0, hwhm=hwhm_L)
-        >>> doppler = b.Gauss(x0=0.0, hwhm=hwhm_G)
-        >>> nplots = 5
-        >>> HWHM_L = np.logspace(-2, 2, nplots)
-        >>> nwidths = 10.0
-        >>> plt.figure(11, (6,6))
-        >>> plt.clf()
-        >>> plt.subplots_adjust(0.15, 0.1, 0.95, 0.95, wspace=0, hspace=0)
-        >>> for i,hwhm_L in enumerate(HWHM_L):
-        >>>     ax = plt.subplot(nplots, 1, 1+i)
-        >>>     voigt.hwhm_L = lorentz.hwhm = hwhm_L
-        >>>     width = 0.5346*hwhm_L + np.sqrt(0.2166*hwhm_L**2+hwhm_G**2)
-        >>>     x = np.arange(-nwidths*width, nwidths*width, width/1000.0)
-        >>>     plt.plot(x/width, lorentz(x), lw=2.0, color="blue", label="Lorentz")
-        >>>     plt.plot(
-        >>>         x/width, doppler(x), lw=2.0, color="limegreen", label="Doppler")
-        >>>     plt.plot(
-        >>>         x/width, voigt(x), lw=2.0, color="orange", label="Voigt",
-        >>>         dashes=(4,1))
-        >>>     ymin = np.amin([lorentz(x), voigt(x)])
-        >>>     ymax = np.amax([lorentz(x), voigt(x), doppler(x)])
-        >>>     plt.ylim(ymin, 3*ymax)
-        >>>     ax.set_yscale("log")
-        >>>     plt.text(
-        >>>         0.025, 0.75, rf"$\rm HWHM_L/HWHM_G={hwhm_L/hwhm_G:4g}$",
-        >>>         transform=ax.transAxes)
-        >>>     plt.xlim(-nwidths, nwidths)
-        >>>     plt.xlabel(r"$\rm x/HWHM_V$", fontsize=12)
-        >>>     plt.ylabel("Profile")
-        >>>     if i != nplots-1:
-        >>>         ax.set_xticklabels([])
-        >>>     if i == 0:
-        >>>         plt.legend(loc="upper right", fontsize=11)
-
 
         Initialize self.  See help(type(self)) for accurate signature.
 
@@ -3390,7 +3108,7 @@ ___________________________
     temperature: Float scalar or ndarray
         Atmospheric temperature (Kelvin degree).
     pressure: Float scalar or ndarray
-        Atmospheric pressure (barye).
+        Atmospheric pressure (bar).
     masses: 1D float ndarray
         Masses of atmospheric species (AMU).
     radii: 1D float ndarray
@@ -3416,7 +3134,7 @@ ___________________________
     >>> import pyratbay.constants as pc
     >>> # Lorenz HWHM at 1000K and 1 bar, for H2O and CO2:
     >>> temperature = 1000.0
-    >>> pressure = 1.0 * pc.bar
+    >>> pressure = 1.0  # bar
     >>> #                  H2O   CO2   H2    He
     >>> masses = np.array([18.0, 44.0, 2.0,  4.0])
     >>> radii  = np.array([1.6,  1.9,  1.45, 1.4]) * pc.A
@@ -3431,92 +3149,1298 @@ ___________________________
 .. py:function:: min_widths(min_temp, max_temp, min_wn, max_mass, min_rad, min_press)
 .. code-block:: pycon
 
-      Estimate the minimum Doppler and Lorentz half-widths at half maximum
-      (cm-1) for an H2-dominated atmosphere.
+        Estimate the minimum Doppler and Lorentz half-widths at half maximum
+        (cm-1) for an H2-dominated atmosphere.
 
-      Parameters
-      ----------
-      min_temp: Float
-          Minimum atmospheric tmperature (Kelvin degrees).
-      max_temp: Float
-          Maximum atmospheric tmperature (Kelvin degrees).
-      min_wn: Float
-          Minimum spectral wavenumber (cm-1).
-      max_mass: Float
-          Maximum mass of molecule/isotope (amu).
-      min_rad: Float
-          Minimum collisional radius (cm).
-      min_press: Float
-          Minimum atmospheric pressure (barye).
+        Parameters
+        ----------
+        min_temp: Float
+            Minimum atmospheric tmperature (Kelvin degrees).
+        max_temp: Float
+            Maximum atmospheric tmperature (Kelvin degrees).
+        min_wn: Float
+            Minimum spectral wavenumber (cm-1).
+        max_mass: Float
+            Maximum mass of molecule/isotope (amu).
+        min_rad: Float
+            Minimum collisional radius (cm).
+        min_press: Float
+            Minimum atmospheric pressure (bar).
 
-      Returns
-      -------
-      dmin: Float
-          Minimum Doppler HWHM (cm-1).
-      lmin: Float
-          Minimum Lorentz HWHM (cm-1).
+        Returns
+        -------
+        dmin: Float
+            Minimum Doppler HWHM (cm-1).
+        lmin: Float
+            Minimum Lorentz HWHM (cm-1).
 
-      Examples
-      --------
-      >>> import pyratbay.opacity.broadening as b
-      >>> import pyratbay.constants as pc
-      >>> min_temp =  100.0
-      >>> max_temp = 3000.0
-      >>> min_wn   = 1.0/(10.0*pc.um)
-      >>> max_mass = 18.015    # H2O molecule
-      >>> min_rad  = 1.6*pc.A  # H2O molecule
-      >>> min_press = 1e-5 * pc.bar
-      >>> dmin, lmin = b.min_widths(min_temp, max_temp, min_wn, max_mass,
-      >>>     min_rad, min_press)
-      >>> print('Minimum Doppler half width: {:.2e} cm-1
+        Examples
+        --------
+        >>> import pyratbay.opacity.broadening as b
+        >>> import pyratbay.constants as pc
+        >>> min_temp =  100.0
+        >>> max_temp = 3000.0
+        >>> min_wn   = 1.0/(10.0*pc.um)
+        >>> max_mass = 18.015    # H2O molecule
+        >>> min_rad  = 1.6*pc.A  # H2O molecule
+        >>> min_press = 1e-5 # bar
+        >>> dmin, lmin = b.min_widths(min_temp, max_temp, min_wn, max_mass,
+        >>>     min_rad, min_press)
+        >>> print('Minimum Doppler half width: {:.2e} cm-1
     '
-      >>>       'Minimum Lorentz half width: {:.2e} cm-1'.format(dmin,lmin))
-  
+        >>>       'Minimum Lorentz half width: {:.2e} cm-1'.format(dmin,lmin))
+        Minimum Doppler half width: 8.44e-04 cm-1
+        Minimum Lorentz half width: 2.21e-07 cm-1
+
 
 .. py:function:: max_widths(min_temp, max_temp, max_wn, min_mass, max_rad, max_press)
 .. code-block:: pycon
 
-      Estimate the maximum Doppler and Lorentz half-widths at half maximum
-      (cm-1) for an H2-dominated atmosphere.
+        Estimate the maximum Doppler and Lorentz half-widths at half maximum
+        (cm-1) for an H2-dominated atmosphere.
 
-      Parameters
-      ----------
-      min_temp: Float
-          Minimum atmospheric tmperature (Kelvin degrees).
-      max_temp: Float
-          Maximum atmospheric tmperature (Kelvin degrees).
-      max_wn: Float
-          Maximum spectral wavenumber (cm-1).
-      min_mass: Float
-          Minimum mass of molecule/isotope (amu).
-      max_rad: Float
-          Maximum collisional radius (cm).
-      max_press: Float
-          Maximum atmospheric pressure (barye).
+        Parameters
+        ----------
+        min_temp: Float
+            Minimum atmospheric tmperature (Kelvin degrees).
+        max_temp: Float
+            Maximum atmospheric tmperature (Kelvin degrees).
+        max_wn: Float
+            Maximum spectral wavenumber (cm-1).
+        min_mass: Float
+            Minimum mass of molecule/isotope (amu).
+        max_rad: Float
+            Maximum collisional radius (cm).
+        max_press: Float
+            Maximum atmospheric pressure (bar).
 
-      Returns
-      -------
-      dmax: Float
-          Maximum Doppler HWHM (cm-1).
-      lmax: Float
-          Maximum Lorentz HWHM (cm-1).
+        Returns
+        -------
+        dmax: Float
+            Maximum Doppler HWHM (cm-1).
+        lmax: Float
+            Maximum Lorentz HWHM (cm-1).
 
-      Examples
-      --------
-      >>> import pyratbay.opacity.broadening as b
-      >>> import pyratbay.constants as pc
-      >>> min_temp =  100.0
-      >>> max_temp = 3000.0
-      >>> max_wn   = 1.0/(1.0*pc.um)
-      >>> min_mass = 18.015    # H2O molecule
-      >>> max_rad  = 1.6*pc.A  # H2O molecule
-      >>> max_press = 100.0*pc.bar
-      >>> dmax, lmax = b.max_widths(min_temp, max_temp, max_wn, min_mass,
-      >>>     max_rad, max_press)
-      >>> print('Maximum Doppler half width: {:.2e} cm-1
+        Examples
+        --------
+        >>> import pyratbay.opacity.broadening as b
+        >>> import pyratbay.constants as pc
+        >>> min_temp =  100.0
+        >>> max_temp = 3000.0
+        >>> max_wn   = 1.0/(1.0*pc.um)
+        >>> min_mass = 18.015    # H2O molecule
+        >>> max_rad  = 1.6*pc.A  # H2O molecule
+        >>> max_press = 100.0 # bar
+        >>> dmax, lmax = b.max_widths(min_temp, max_temp, max_wn, min_mass,
+        >>>     max_rad, max_press)
+        >>> print('Maximum Doppler half width: {:.2e} cm-1
     '
-      >>>       'Maximum Lorentz half width: {:.2e} cm-1'.format(dmax,lmax))
-  
+        >>>       'Maximum Lorentz half width: {:.2e} cm-1'.format(dmax,lmax))
+        Maximum Doppler half width: 4.62e-02 cm-1
+        Maximum Lorentz half width: 1.21e+01 cm-1
+
+
+
+pyratbay.opacity.clouds
+_______________________
+
+
+.. py:module:: pyratbay.opacity.clouds
+
+.. py:class:: CCSgray(pressure, wn)
+
+    .. code-block:: pycon
+
+        Initialize self.  See help(type(self)) for accurate signature.
+
+    .. py:method:: calc_cross_section()
+    .. code-block:: pycon
+
+        Calculate a uniform gray-cloud cross section in cm2 molec-1:
+           cross section = s0 * 10**pars[0],
+        between layers with pressure 10**pars[1] -- 10**pars[2] bar
+        (top and bottom layers, respectively).
+        s0 is the H2 Rayleigh cross section at 0.35 um.
+
+        Parameters
+        ----------
+        wn:  1D float ndarray
+           Wavenumber array in cm-1.
+
+.. py:class:: Deck(pressure, wn)
+
+    .. code-block:: pycon
+
+        Initialize self.  See help(type(self)) for accurate signature.
+
+    .. py:method:: calc_extinction_coefficient(radius, temperature, pars=None, layer=None)
+    .. code-block:: pycon
+
+        Calculate gray-cloud deck that's transparent above ptop,
+        and becomes instantly opaque at ptop, with
+        ptop (bar) = 10**pars[0].
+
+        Parameters
+        ----------
+        radius: 1D float ndarray
+            Atmospheric radius profile (in cm).
+        temperature: 1D float ndarray
+            Atmospheric temperature profile (in Kelvin degree).
+        pars: 1D float iterable
+            If not None, update the model parameters with input values
+        layer: integer
+            If not None, check whether the cloud top is above or below
+            the given atmospheric layer at this index.
+
+.. py:class:: Lecavelier(pressure, wl=None, wn=None)
+
+    .. code-block:: pycon
+
+        Initialize self.  See help(type(self)) for accurate signature.
+
+    .. py:method:: calc_cross_section(pars=None)
+    .. code-block:: pycon
+
+        Calculate the Rayleigh cross section in cm2 molec-1:
+            cross section = k_ray * s0 * (lambda/l0)**alpha_ray,
+        parameterized as params = [log10(k_ray), alpha_ray].
+
+        Parameters
+        ----------
+        pars: 1D iterable
+            If not None, update the model parameters with given values.
+
+        Returns
+        -------
+        cross_section: 1D float array
+            Cross section (cm2 molecule-1) as function of wavelength
+
+    .. py:method:: calc_extinction_coefficient(temperature, pars=None, layer=None)
+    .. code-block:: pycon
+
+        Calculate extinction-coefficient (cm-1 units) over wavelength
+        and pressure arrays.
+        The nominal density profile of the absorber is assumed as
+        density = pressure / (k*temperature)
+
+        temperature: 1D float array
+            Temperature profile (K)
+        pars: 1D iterable
+            If not None, update the model parameters with given values
+            and re-calculate the cross sections.
+        layer: Integer
+            If not None, compute the extinction coefficient only
+            at the given index in density array.
+
+        Returns
+        -------
+        extinction_coefficient: 2D float array
+            The Rayleigh extinction coefficient (cm-1 units).
+
+
+pyratbay.opacity.linelist
+_________________________
+
+
+.. py:module:: pyratbay.opacity.linelist
+
+.. py:class:: Hitran(dbfile, pffile, log)
+
+    .. code-block:: pycon
+
+        Initialize HITRAN database object.
+
+        Parameters
+        ----------
+        dbfile: String
+            File with the Database line-transition info.
+        pffile: String
+            File with the partition function.
+        log: Log object
+            An mc3.utils.Log instance to log screen outputs to file.
+
+    .. py:method:: binsearch(dbfile, wave, ilo, ihi, searchup=True)
+    .. code-block:: pycon
+
+        Do a binary (and then linear) search for wavelength/wavenumber in
+        file 'dbfile' between record positions ilo and ihi.
+
+        Parameters
+        ----------
+        dbfile: File object
+           File where to search.
+        wave: Scalar
+           Target wavelength/wavenumber (as given in each specific database).
+        ilo: Integer
+           Lowest index record to search.
+        ihi: Integer
+           highest index record to search.
+        searchup: Boolean
+           Search up (True) or down (False) the records for duplicate results
+           after the binary search.
+
+        Returns:
+        --------
+        irec:  Integer
+           Record index for wave.
+
+    .. py:method:: dbread(iwn, fwn, verb)
+    .. code-block:: pycon
+
+        Read line-transition info between wavenumbers iwn and fwn.
+
+        Parameters
+        ----------
+        iwn: Float
+            Lower wavenumber boundary in cm-1.
+        fwn: Float
+            Upper wavenumber boundary in cm-1.
+        verb: Integer
+            Verbosity threshold.
+
+        Returns
+        -------
+        wnumber: 1D float ndarray
+            Line-transition central wavenumber (cm-1).
+        gf: 1D float ndarray
+            gf value (unitless).
+        elow: 1D float ndarray
+            Lower-state energy (cm-1).
+        isoID: 1D integer ndarray
+            Isotope index.
+
+    .. py:method:: get_iso(molname)
+    .. code-block:: pycon
+
+        Get isotopic info from isotopes.dat file.
+
+        Parameters
+        ----------
+        mol: String
+            If not None, extract data based on this molecule name.
+        dbtype: String
+            Database type (for isotope names).
+
+        Returns
+        -------
+        isotopes: List of strings
+            Isotopes names.
+        mass: List of floats
+            Masses for each isotope.
+        isoratio: List of integers
+            Isotopic terrestrial abundance ratio.
+
+    .. py:method:: getpf(verbose=0)
+    .. code-block:: pycon
+
+        Compute partition function for specified source.
+
+        Returns
+        -------
+        temp: 1D float ndarray
+            Array with temperature sample.
+        PF: 2D float ndarray
+            The partition function data for each isotope at each temperature.
+        isotopes: List of strings
+            The names of the tabulated isotopes
+
+    .. py:method:: readwave(dbfile, irec)
+    .. code-block:: pycon
+
+        Read irec-th wavenumber record from FILE dbfile.
+
+        Parameters
+        ----------
+        dbfile: File object
+            File where to extract the wavenumber.
+        irec: Integer
+            Index of record.
+
+        Returns
+        -------
+        wavenumber: Float
+            Wavenumber value in cm-1.
+
+.. py:class:: Exomol(dbfile, pffile, log)
+
+    .. code-block:: pycon
+
+        Initialize Exomol database object.
+
+        Parameters
+        ----------
+        dbfile: String
+            File with the Database line-transition info.
+        pffile: String
+            File with the partition function.
+        log: Log object
+            An mc3.utils.Log instance to log screen outputs to file.
+
+    .. py:method:: binsearch(dbfile, wave, ilo, ihi, searchup=True)
+    .. code-block:: pycon
+
+        Do a binary (and then linear) search for wavelength/wavenumber in
+        file 'dbfile' between record positions ilo and ihi.
+
+        Parameters
+        ----------
+        dbfile: File object
+           File where to search.
+        wave: Scalar
+           Target wavelength/wavenumber (as given in each specific database).
+        ilo: Integer
+           Lowest index record to search.
+        ihi: Integer
+           highest index record to search.
+        searchup: Boolean
+           Search up (True) or down (False) the records for duplicate results
+           after the binary search.
+
+        Returns:
+        --------
+        irec:  Integer
+           Record index for wave.
+
+    .. py:method:: dbread(iwn, fwn, verb)
+    .. code-block:: pycon
+
+        Read line-transition info between wavenumbers iwn and fwn.
+
+        Parameters
+        ----------
+        iwn: Float
+            Lower wavenumber boundary in cm-1.
+        fwn: Float
+            Upper wavenumber boundary in cm-1.
+        verb: Integer
+            Verbosity threshold.
+
+        Returns
+        -------
+        wnumber: 1D float ndarray
+            Line-transition central wavenumber (cm-1).
+        gf: 1D float ndarray
+            gf value (unitless).
+        elow: 1D float ndarray
+            Lower-state energy (cm-1).
+        isoID: 1D integer ndarray
+            Isotope index.
+
+    .. py:method:: get_iso(molname)
+    .. code-block:: pycon
+
+        Get isotopic info from isotopes.dat file.
+
+        Parameters
+        ----------
+        mol: String
+            If not None, extract data based on this molecule name.
+        dbtype: String
+            Database type (for isotope names).
+
+        Returns
+        -------
+        isotopes: List of strings
+            Isotopes names.
+        mass: List of floats
+            Masses for each isotope.
+        isoratio: List of integers
+            Isotopic terrestrial abundance ratio.
+
+    .. py:method:: getpf(verbose=0)
+    .. code-block:: pycon
+
+        Compute partition function for specified source.
+
+        Returns
+        -------
+        temp: 1D float ndarray
+            Array with temperature sample.
+        PF: 2D float ndarray
+            The partition function data for each isotope at each temperature.
+        isotopes: List of strings
+            The names of the tabulated isotopes
+
+    .. py:method:: readwave(dbfile, irec)
+    .. code-block:: pycon
+
+        Read irec-th wavenumber record from FILE dbfile.
+
+        Parameters
+        ----------
+        dbfile: File object
+            File where to extract the wavenumber.
+        irec: Integer
+            Index of record.
+
+        Returns
+        -------
+        wavenumber: Float
+            Wavenumber value in cm-1.
+
+.. py:class:: Repack(dbfile, pffile, log)
+
+    .. code-block:: pycon
+
+        Initialize Exomol database object.
+
+        Parameters
+        ----------
+        dbfile: String
+            File with the Database line-transition info.
+        pffile: String
+            File with the partition function.
+        log: Log object
+            An mc3.utils.Log instance to log screen outputs to file.
+
+    .. py:method:: binsearch(dbfile, wave, ilo, ihi, searchup=True)
+    .. code-block:: pycon
+
+        Do a binary (and then linear) search for wavelength/wavenumber in
+        file 'dbfile' between record positions ilo and ihi.
+
+        Parameters
+        ----------
+        dbfile: File object
+           File where to search.
+        wave: Scalar
+           Target wavelength/wavenumber (as given in each specific database).
+        ilo: Integer
+           Lowest index record to search.
+        ihi: Integer
+           highest index record to search.
+        searchup: Boolean
+           Search up (True) or down (False) the records for duplicate results
+           after the binary search.
+
+        Returns:
+        --------
+        irec:  Integer
+           Record index for wave.
+
+    .. py:method:: dbread(iwn, fwn, verb)
+    .. code-block:: pycon
+
+        Read line-transition info between wavenumbers iwn and fwn.
+
+        Parameters
+        ----------
+        iwn: Float
+            Lower wavenumber boundary in cm-1.
+        fwn: Float
+            Upper wavenumber boundary in cm-1.
+        verb: Integer
+            Verbosity threshold.
+
+        Returns
+        -------
+        wnumber: 1D float ndarray
+            Line-transition central wavenumber (cm-1).
+        gf: 1D float ndarray
+            gf value (unitless).
+        elow: 1D float ndarray
+            Lower-state energy (cm-1).
+        isoID: 1D integer ndarray
+            Isotope index.
+
+    .. py:method:: get_iso(molname)
+    .. code-block:: pycon
+
+        Get isotopic info from isotopes.dat file.
+
+        Parameters
+        ----------
+        mol: String
+            If not None, extract data based on this molecule name.
+        dbtype: String
+            Database type (for isotope names).
+
+        Returns
+        -------
+        isotopes: List of strings
+            Isotopes names.
+        mass: List of floats
+            Masses for each isotope.
+        isoratio: List of integers
+            Isotopic terrestrial abundance ratio.
+
+    .. py:method:: getpf(verbose=0)
+    .. code-block:: pycon
+
+        Compute partition function for specified source.
+
+        Returns
+        -------
+        temp: 1D float ndarray
+            Array with temperature sample.
+        PF: 2D float ndarray
+            The partition function data for each isotope at each temperature.
+        isotopes: List of strings
+            The names of the tabulated isotopes
+
+    .. py:method:: readwave(dbfile, irec)
+    .. code-block:: pycon
+
+        Read irec-th wavenumber record from FILE dbfile.
+
+        Parameters
+        ----------
+        dbfile: File object
+            File where to extract the wavenumber.
+        irec: Integer
+            Index of record.
+
+        Returns
+        -------
+        wavenumber: Float
+            Wavenumber value in cm-1.
+
+.. py:class:: Pands(dbfile, pffile, log)
+
+    .. code-block:: pycon
+
+        Initialize P&S database object.
+
+        Parameters
+        ----------
+        dbfile: String
+            File with the Database line-transition info.
+        pffile: String
+            File with the partition function.
+        log: Log object
+            An mc3.utils.Log instance to log screen outputs to file.
+
+    .. py:method:: binsearch(dbfile, wave, ilo, ihi, searchup=True)
+    .. code-block:: pycon
+
+        Do a binary (and then linear) search for wavelength/wavenumber in
+        file 'dbfile' between record positions ilo and ihi.
+
+        Parameters
+        ----------
+        dbfile: File object
+           File where to search.
+        wave: Scalar
+           Target wavelength/wavenumber (as given in each specific database).
+        ilo: Integer
+           Lowest index record to search.
+        ihi: Integer
+           highest index record to search.
+        searchup: Boolean
+           Search up (True) or down (False) the records for duplicate results
+           after the binary search.
+
+        Returns:
+        --------
+        irec:  Integer
+           Record index for wave.
+
+    .. py:method:: dbread(iwn, fwn, verb)
+    .. code-block:: pycon
+
+        Read line-transition info between wavenumbers iwn and fwn.
+
+        Parameters
+        ----------
+        iwn: Float
+            Lower wavenumber boundary in cm-1.
+        fwn: Float
+            Upper wavenumber boundary in cm-1.
+        verb: Integer
+            Verbosity threshold.
+
+        Returns
+        -------
+        wnumber: 1D float ndarray
+            Line-transition central wavenumber (cm-1).
+        gf: 1D float ndarray
+            gf value (unitless).
+        elow: 1D float ndarray
+            Lower-state energy (cm-1).
+        isoID: 1D integer ndarray
+            Isotope index.
+
+    .. py:method:: get_iso(molname)
+    .. code-block:: pycon
+
+        Get isotopic info from isotopes.dat file.
+
+        Parameters
+        ----------
+        mol: String
+            If not None, extract data based on this molecule name.
+        dbtype: String
+            Database type (for isotope names).
+
+        Returns
+        -------
+        isotopes: List of strings
+            Isotopes names.
+        mass: List of floats
+            Masses for each isotope.
+        isoratio: List of integers
+            Isotopic terrestrial abundance ratio.
+
+    .. py:method:: getpf(verbose=0)
+    .. code-block:: pycon
+
+        Compute partition function for specified source.
+
+        Returns
+        -------
+        temp: 1D float ndarray
+            Array with temperature sample.
+        PF: 2D float ndarray
+            The partition function data for each isotope at each temperature.
+        isotopes: List of strings
+            The names of the tabulated isotopes
+
+    .. py:method:: readwave(dbfile, irec)
+    .. code-block:: pycon
+
+        Read irec-th wavelength record from FILE dbfile.
+
+        Parameters
+        ----------
+        dbfile: File object
+            File where to extract the wavelength.
+        irec: Integer
+            Index of record.
+
+        Returns
+        -------
+        recwl: Unsigned integer
+            Wavelength value as given in the P&S binary file.
+
+.. py:class:: Tioschwenke(dbfile, pffile, log)
+
+    .. code-block:: pycon
+
+        Initialize self.  See help(type(self)) for accurate signature.
+
+    .. py:method:: binsearch(dbfile, wave, ilo, ihi, searchup=True)
+    .. code-block:: pycon
+
+        Do a binary (and then linear) search for wavelength/wavenumber in
+        file 'dbfile' between record positions ilo and ihi.
+
+        Parameters
+        ----------
+        dbfile: File object
+           File where to search.
+        wave: Scalar
+           Target wavelength/wavenumber (as given in each specific database).
+        ilo: Integer
+           Lowest index record to search.
+        ihi: Integer
+           highest index record to search.
+        searchup: Boolean
+           Search up (True) or down (False) the records for duplicate results
+           after the binary search.
+
+        Returns:
+        --------
+        irec:  Integer
+           Record index for wave.
+
+    .. py:method:: dbread(iwn, fwn, verb)
+    .. code-block:: pycon
+
+        Read the Schwenke TiO database.
+
+        Parameters
+        ----------
+        iwn: Scalar
+            Initial wavenumber limit (in cm-1).
+        fwn: Scalar
+            Final wavenumber limit (in cm-1).
+        verb: Integer
+            Verbosity threshold.
+
+        Returns
+        -------
+        wnumber: 1D float ndarray
+            Line-transition central wavenumber (centimeter-1).
+        gf: 1D float ndarray
+            gf value (unitless).
+        elow: 1D float ndarray
+            Lower-state energy (centimeter-1).
+        isoID: 2D integer ndarray
+            Isotope index (0, 1, 2, 3, ...).
+
+    .. py:method:: get_iso(molname)
+    .. code-block:: pycon
+
+        Get isotopic info from isotopes.dat file.
+
+        Parameters
+        ----------
+        mol: String
+            If not None, extract data based on this molecule name.
+        dbtype: String
+            Database type (for isotope names).
+
+        Returns
+        -------
+        isotopes: List of strings
+            Isotopes names.
+        mass: List of floats
+            Masses for each isotope.
+        isoratio: List of integers
+            Isotopic terrestrial abundance ratio.
+
+    .. py:method:: getpf(verbose=0)
+    .. code-block:: pycon
+
+        Compute partition function for specified source.
+
+        Returns
+        -------
+        temp: 1D float ndarray
+            Array with temperature sample.
+        PF: 2D float ndarray
+            The partition function data for each isotope at each temperature.
+        isotopes: List of strings
+            The names of the tabulated isotopes
+
+    .. py:method:: readwave(dbfile, irec)
+    .. code-block:: pycon
+
+        Read wavelength parameter from irec record in dbfile database.
+
+        Parameters
+        ----------
+        dbfile: File object
+           File where to extract the wavelength.
+        irec: Integer
+           Index of record.
+
+        Returns
+        -------
+        rec_wl: integer
+           Wavelength value at record irec, as given in dbfile database.
+
+.. py:class:: Voplez(dbfile, pffile, log)
+
+    .. code-block:: pycon
+
+        Initializer.
+
+    .. py:method:: binsearch(dbfile, wave, ilo, ihi, searchup=True)
+    .. code-block:: pycon
+
+        Do a binary (and then linear) search for wavelength/wavenumber in
+        file 'dbfile' between record positions ilo and ihi.
+
+        Parameters
+        ----------
+        dbfile: File object
+           File where to search.
+        wave: Scalar
+           Target wavelength/wavenumber (as given in each specific database).
+        ilo: Integer
+           Lowest index record to search.
+        ihi: Integer
+           highest index record to search.
+        searchup: Boolean
+           Search up (True) or down (False) the records for duplicate results
+           after the binary search.
+
+        Returns:
+        --------
+        irec:  Integer
+           Record index for wave.
+
+    .. py:method:: dbread(iwn, fwn, verb)
+    .. code-block:: pycon
+
+        Read the B. Plez VO database between the wavelengths iwl and fwl.
+
+        Parameters:
+        -----------
+        iwn: Scalar
+           Initial wavenumber limit (in cm-1).
+        fwn: Scalar
+           Final wavenumber limit (in cm-1).
+        verb: Integer
+           Verbosity threshold.
+
+        Returns:
+        --------
+        wnumber: 1D float ndarray
+          Line-transition central wavenumber (centimeter-1).
+        gf: 1D float ndarray
+          gf value (unitless).
+        elow: 1D float ndarray
+          Lower-state energy (centimeter-1).
+        isoID: 2D integer ndarray
+          Isotope index (0, 1, 2, 3, ...).
+
+        Developers:
+        -----------
+        Patricio Cubillos (UCF).
+        Sarah Blumenthal (UCF).
+
+        Notes:
+        ------
+        The Plez VO database is an ASCII format.
+        The line transitions are sorted in increasing wavelength (micron) order.
+
+    .. py:method:: get_iso(molname)
+    .. code-block:: pycon
+
+        Get isotopic info from isotopes.dat file.
+
+        Parameters
+        ----------
+        mol: String
+            If not None, extract data based on this molecule name.
+        dbtype: String
+            Database type (for isotope names).
+
+        Returns
+        -------
+        isotopes: List of strings
+            Isotopes names.
+        mass: List of floats
+            Masses for each isotope.
+        isoratio: List of integers
+            Isotopic terrestrial abundance ratio.
+
+    .. py:method:: getpf(verbose=0)
+    .. code-block:: pycon
+
+        Compute partition function for specified source.
+
+        Returns
+        -------
+        temp: 1D float ndarray
+            Array with temperature sample.
+        PF: 2D float ndarray
+            The partition function data for each isotope at each temperature.
+        isotopes: List of strings
+            The names of the tabulated isotopes
+
+    .. py:method:: readwave(dbfile, irec)
+    .. code-block:: pycon
+
+        Extract the wavelength from record irec.
+
+        Parameters:
+        -----------
+        dbfile: File pointer
+           Pointer to file being read.
+        irec: Integer
+           Index of record to read.
+
+        Returns:
+        --------
+        wl: Float
+           The wavelength in microns for record irec.
+
+.. py:class:: Vald(dbfile, ion, pffile, log)
+
+    .. code-block:: pycon
+
+        Initialize Basic data for the Database.
+
+        Parameters
+        ----------
+        dbfile: String
+            File with the Database line-transition info.
+        pffile: String
+            File with the partition function.
+        log: File
+            File object to store the log.
+
+    .. py:method:: binsearch(dbfile, wave, ilo, ihi, searchup=True)
+    .. code-block:: pycon
+
+        Do a binary (and then linear) search for wavelength/wavenumber in
+        file 'dbfile' between record positions ilo and ihi.
+
+        Parameters
+        ----------
+        dbfile: File object
+           File where to search.
+        wave: Scalar
+           Target wavelength/wavenumber (as given in each specific database).
+        ilo: Integer
+           Lowest index record to search.
+        ihi: Integer
+           highest index record to search.
+        searchup: Boolean
+           Search up (True) or down (False) the records for duplicate results
+           after the binary search.
+
+        Returns:
+        --------
+        irec:  Integer
+           Record index for wave.
+
+    .. py:method:: dbread(wn_init, wn_end, verb)
+    .. code-block:: pycon
+
+        Read a VALD database.
+
+        Parameters
+        ----------
+        wn_init: Scalar
+            Initial wavenumber limit (in cm-1).
+        wn_end: Scalar
+            Final wavenumber limit (in cm-1).
+        verb: Integer
+            Verbosity threshold.
+
+        Returns
+        -------
+        wnumber: 1D float ndarray
+            Line-transition central wavenumber (cm-1).
+        gf: 1D float ndarray
+            gf value (unitless).
+        elow: 1D float ndarray
+            Lower-state energy (cm-1).
+        iso_id: 2D integer ndarray
+          Isotope index.
+
+    .. py:method:: get_iso(molname)
+    .. code-block:: pycon
+
+        Get isotopic info from isotopes.dat file.
+
+        Parameters
+        ----------
+        mol: String
+            If not None, extract data based on this molecule name.
+        dbtype: String
+            Database type (for isotope names).
+
+        Returns
+        -------
+        isotopes: List of strings
+            Isotopes names.
+        mass: List of floats
+            Masses for each isotope.
+        isoratio: List of integers
+            Isotopic terrestrial abundance ratio.
+
+    .. py:method:: getinfo()
+    .. code-block:: pycon
+
+        Doc me.
+
+    .. py:method:: getpf(verbose=0)
+    .. code-block:: pycon
+
+        Compute partition function for specified source.
+
+        Returns
+        -------
+        temp: 1D float ndarray
+            Array with temperature sample.
+        PF: 2D float ndarray
+            The partition function data for each isotope at each temperature.
+        isotopes: List of strings
+            The names of the tabulated isotopes
+
+    .. py:method:: readwave(dbfile, irec)
+    .. code-block:: pycon
+
+        Read irec-th wavenumber record from FILE dbfile.
+
+        Parameters
+        ----------
+        dbfile: File object
+            File where to extract the wavelength.
+        irec: Integer
+            Index of record.
+
+        Returns
+        -------
+        wavenumber: Unsigned integer
+            Wavenumber value in cm-1.
+
+
+pyratbay.opacity.partitions
+___________________________
+
+
+.. py:module:: pyratbay.opacity.partitions
+
+.. py:function:: get_tips_molecules()
+.. code-block:: pycon
+
+    Get a list of all TIPS molecules.
+
+    Note tha this list does not contain 'O', hence it's not the same
+    list as the HITRAN mol ID list: https://hitran.org/docs/molec-meta/
+
+.. py:function:: get_tips_molname(molID)
+.. code-block:: pycon
+
+    Get the TIPS molecule name for given molecule ID.
+
+    Parameters
+    ----------
+    molID: Integer
+        HITRAN molecule ID. See for example: https://hitran.org/lbl/
+
+    Returns
+    -------
+    molname: String
+        Name of molecule.
+
+    Examples
+    --------
+    >>> import pyratbay.opacity.partitions as pf
+    >>> print(pf.get_tips_molname(1), pf.get_tips_molname(6))
+    H2O CH4
+
+.. py:function:: check_exomol_files(files)
+.. code-block:: pycon
+
+    Check that all input exomol files are of the same type.
+    Check that all refer to a same molecule.
+    Collect molecule and isotopes names.
+
+    Parameters
+    ----------
+    files: List of strings
+        A list of Exomol files.
+
+    Returns
+    -------
+    file_type: String
+        Whether all input files are .pf files (return 'pf'),
+        all input files are .states or .states.bz2 files (return 'states'),
+        or else return ''.
+    molecule: String
+        Molecule's name.
+    isotopes: List of strings
+        List of isotope names.
+
+.. py:function:: tips(molecule, isotopes=None, outfile=None, db_type='as_exomol')
+.. code-block:: pycon
+
+    Extract TIPS 2021 partition-function values for given molecule.
+    If requested, write the partition-function into a file for use
+    with Pyrat Bay.
+    References:
+        Gamache et al. (2017), JQSRT, 203, 70.
+        Gamache et al. (2021), JQSRT, 271, 107713.
+
+    Parameters
+    ----------
+    molecule: String
+        Name of the molecule.
+    isotopes: String or list of strings
+        If not None, only extract the requested isotopes.
+    outfile: String
+        If not None, save output to file.
+        If outfile == 'default', save output to file named as
+        PF_tips_molecule.dat
+    db_type: String
+        If db_type == 'as_exomol', return isotopic names following
+        the exomol notation.
+
+    Returns
+    -------
+    pf: 2D float ndarray
+        TIPS partition function for input molecule.
+    isotopes: 1D string list
+        List of isotopes.
+    temp: 1D float ndarray
+        Partition-function temperature samples (K).
+
+    Examples
+    --------
+    >>> import pyratbay.opacity.partitions as pf
+    >>> pf_data, isotopes, temp = pf.tips('H2O', outfile='default')
+
+    Written partition-function file:
+      'PF_tips_H2O.dat'
+    for molecule H2O, with isotopes ['116', '118', '117', '126', '128', '127', '226', '228', '227'],
+    and temperature range 1--6000 K.
+
+.. py:function:: exomol_pf(files, outfile=None)
+.. code-block:: pycon
+
+    Extract ExoMol partition-function values from input files.
+    If requested, write the partition-function into a file for use
+    with Pyrat Bay.
+
+    Parameters
+    ----------
+    files: String or List of strings
+        Input Exomol ilenames.  Files must either all correspond to .pf
+        files or all correspond to .states files.
+        For multiple isotopes, all files must correspond to a same molecule.
+    outfile: String
+         If not None, save output to file.  If outfile == 'default',
+         save output to file named as PF_exomol_molecule.dat
+
+    Returns
+    -------
+    pf: 2D float ndarray
+        TIPS partition function for input molecule.
+    isotopes: 1D string list
+        List of isotopes.
+    temps: 1D float ndarray
+        Partition-function temperature samples (K).
+
+    Examples
+    --------
+    >>> import pyratbay.opacity.partitions as pf
+    >>>
+    >>> # Extract data from Exomol .pf files
+    >>> # wget https://www.exomol.com/db/HCN/1H-12C-14N/Harris/1H-12C-14N__Harris.pf
+    >>> # wget https://www.exomol.com/db/HCN/1H-13C-14N/Larner/1H-13C-14N__Larner.pf
+    >>> files = ['1H-12C-14N__Harris.pf', '1H-13C-14N__Larner.pf']
+    >>> pf_data, isotopes, temps = pf.exomol_pf(files)
+
+.. py:function:: exomol_states(files, tmin, tmax, tstep, outfile=None)
+.. code-block:: pycon
+
+    Extract ExoMol partition-function values from input files.
+    If requested, write the partition-function into a file for use
+    with Pyrat Bay.
+
+    Parameters
+    ----------
+    files: String or List of strings
+        Input Exomol ilenames.  Files must either all correspond to .pf
+        files or all correspond to .states files.
+        For multiple isotopes, all files must correspond to a same molecule.
+    tmin: Float
+        Mimimum temperature to sample the partitions.
+        Required to sample from .state files only.
+    tmax: Float
+        Maximum temperature to sample the partitions.
+        Required to sample from .state files only.
+    tstep: Float
+        Temperature step at which to sample the temperature array
+        Required to sample from .state files only.
+    outfile: String
+         If not None, save output to file.  If outfile == 'default',
+         save output to file named as PF_exomol_molecule.dat
+
+    Returns
+    -------
+    pf: 2D float ndarray
+        TIPS partition function for input molecule.
+    isotopes: 1D string list
+        List of isotopes.
+    temps: 1D float ndarray
+        Partition-function temperature samples (K).
+
+    Examples
+    --------
+    >>> import pyratbay.opacity.partitions as pf
+    >>>
+    >>> # Extract data from Exomol .states files
+    >>> # wget https://www.exomol.com/db/HCN/1H-12C-14N/Harris/1H-12C-14N__Harris.states.bz2
+    >>> # wget https://www.exomol.com/db/HCN/1H-13C-14N/Larner/1H-13C-14N__Larner.states.bz2
+    >>> files = [
+    >>>     '1H-12C-14N__Harris.states.bz2',
+    >>>     '1H-13C-14N__Larner.states.bz2',
+    >>> ]
+    >>> pf, isotopes, temps = pf.exomol_states(
+    >>>     files, tmin=5.0, tmax=5000.0, tstep=5.0,
+    >>> )
+
+.. py:function:: kurucz(pf_file, outfile=None, type_flag='as_exomol')
+.. code-block:: pycon
+
+    Extract Kurucz partition-function values from input file.
+    If requested, write the partition-function into a file for use
+    with Pyrat Bay.
+
+    Parameters
+    ----------
+    pf_file: String
+        Input partition-function from Kurucz webpage.  Currently only H2O
+        and TiO are available (probably there's no need for any other support).
+        Files can be downloaded from these links:
+          http://kurucz.harvard.edu/molecules/h2o/h2opartfn.dat
+          http://kurucz.harvard.edu/molecules/tio/tiopart.dat
+    outfile: String
+        If not None, save output to file.
+        If outfile == 'default', save output to file named as
+        PF_kurucz_molecule.dat
+
+    Returns
+    -------
+    pf: 2D float ndarray
+        TIPS partition function for input molecule.
+    isotopes: 1D string list
+        List of isotopes.
+    temp: 1D float ndarray
+        Partition-function temperature samples (K).
+
+    Examples
+    --------
+    >>> # First, download kurucz data to current dictory, e.g.:
+    >>> # wget http://kurucz.harvard.edu/molecules/h2o/h2opartfn.dat
+    >>> # wget http://kurucz.harvard.edu/molecules/tio/tiopart.dat
+
+    >>> import pyratbay.opacity.partitions as pf
+    >>> pf_data, isotopes, temp = pf.kurucz('h2opartfn.dat', outfile='default')
+
+    Written partition-function file:
+      'PF_kurucz_H2O.dat'
+    for molecule H2O, with isotopes ['1H1H16O', '1H1H17O', '1H1H18O', '1H2H16O'],
+    and temperature range 10--6000 K.
+
+    >>> pf_data, isotopes, temp = pf.kurucz('tiopart.dat', outfile='default')
+
+    Written partition-function file:
+      'PF_kurucz_TiO.dat'
+    for molecule TiO, with isotopes ['66', '76', '86', '96', '06'],
+    and temperature range 10--6000 K.
+
+
+pyratbay.opacity.rayleigh
+_________________________
+
+
+.. py:module:: pyratbay.opacity.rayleigh
+
+.. py:class:: Kurucz(wn, species)
+
+    .. code-block:: pycon
+
+        Parameters
+        ----------
+        wn: 1D float ndarray
+           Wavenumber in cm-1.
+        species: String
+           The species, which can be H, He, H2, or e-.
+
+    .. py:method:: calc_extinction_coefficient(density, layer=None)
+    .. code-block:: pycon
+
+        Calculate extinction-coefficient (cm-1 units) over wavelength
+        and layers grid.
+
+        Parameters
+        ----------
+        density: 1D float array
+            Number density of this species over an atmospheric profile
+            (molecules cm-3 units)
+        layer: Integer
+            If not None, compute the extinction coefficient only
+            at the given index in density array.
+
+        Returns
+        -------
+        extinction_coefficient: 2D float array
+            The Rayleigh extinction for this species for the given
+            atmosphere (cm-1 units).
+
+    .. py:method:: set_wn(wn)
+    .. code-block:: pycon
+
+        When wn is updated the cross-sections must be re-calculated.
 
 
 pyratbay.plots
@@ -3552,7 +4476,7 @@ ______________
     >>> pp.alphatize(['r', 'b'], 0.8)
     [array([1. , 0.2, 0.2]), array([0.2, 0.2, 1. ])]
 
-.. py:function:: spectrum(spectrum, wavelength, rt_path, data=None, uncert=None, bandwl=None, bandflux=None, bandtrans=None, bandidx=None, starflux=None, rprs=None, label='model', bounds=None, logxticks=None, gaussbin=2.0, yran=None, filename=None, fignum=501, axis=None)
+.. py:function:: spectrum(spectrum, wavelength, rt_path, data=None, uncert=None, bands_wl0=None, bands_flux=None, bands_response=None, bands_wl=None, label='model', bounds=None, logxticks=None, resolution=150.0, yran=None, filename=None, fignum=501, axis=None, marker='o', ms=5.0, lw=1.25, fs=14, data_front=True, units=None, dpi=300, theme=None, data_color='black')
 .. code-block:: pycon
 
     Plot a transmission or emission model spectrum with (optional) data
@@ -3565,23 +4489,19 @@ ______________
     wavelength: 1D float ndarray
         The wavelength of the model in microns.
     rt_path: String
-        Radiative-transfer observing geometry (transit, eclipse, or emission).
+        Observing geometry: transit, eclipse, or emission.
     data: 1D float ndarray
-        Observing data points at each bandwl.
+        Observing data points at each bands_wl0.
     uncert: 1D float ndarray
         Uncertainties of the data points.
-    bandwl: 1D float ndarray
+    bands_wl0: 1D float ndarray
         The mean wavelength for each band/data point.
-    bandflux: 1D float ndarray
+    bands_flux: 1D float ndarray
         Band-integrated model spectrum at each bandwl.
-    bandtrans: List of 1D float ndarrays
-        Transmission curve for each band.
-    bandidx: List of 1D float ndarrays.
-        The indices in wavelength for each bandtrans.
-    starflux: 1D float ndarray
-        Stellar spectrum evaluated at wavelength.
-    rprs: Float
-        Planet-to-star radius ratio.
+    bands_response: Iterable of 1D float ndarrays
+        Transmission response curve for each band.
+    bands_wl: Iterable of 1D float ndarrays.
+        The wavelength arrasy for each bands_response curve.
     label: String
         Label for spectrum curve.
     bounds: Tuple
@@ -3591,8 +4511,8 @@ ______________
     logxticks: 1D float ndarray
         If not None, switch the X-axis scale from linear to log, and set
         the X-axis ticks at the locations given by logxticks.
-    gaussbin: Integer
-        Standard deviation for Gaussian-kernel smoothing (in number of samples).
+    resolution: Float
+        Binning resolution to display the spectra.
     yran: 1D float ndarray
         Figure's Y-axis boundaries.
     filename: String
@@ -3601,13 +4521,27 @@ ______________
         Figure number.
     axis: AxesSubplot instance
         The matplotlib Axes of the figure.
+    ms: Float
+        Marker sizes.
+    lw: Float
+        Line widths.
+    fs: Float
+        Font sizes.
+    data_front: Bool
+        display the data in front of models
+    units: String
+        Flux units. Select from: 'percent', 'ppt', 'ppm', 'none'.
+    dpi: Integer
+        The resolution in dots per inch for saved files.
+    theme: string or mc3.plots.Theme object
+        A color theme for the models.
 
     Returns
     -------
     ax: AxesSubplot instance
         The matplotlib Axes of the figure.
 
-.. py:function:: contribution(contrib_func, wl, rt_path, pressure, radius, rtop=0, filename=None, filters=None, fignum=-21)
+.. py:function:: contribution(contrib_func, wl, rt_path, pressure, filename=None, filters=None, fignum=-21, dpi=300)
 .. code-block:: pycon
 
     Plot the band-integrated normalized contribution functions
@@ -3622,17 +4556,15 @@ ______________
     rt_path: String
         Radiative-transfer observing geometry (emission or transit).
     pressure: 1D float ndarray
-        Layer's pressure array (barye units).
-    radius: 1D float ndarray
-        Layer's impact parameter array (cm units).
-    rtop: Integer
-        Index of topmost valid layer.
+        Layer's pressure array (bars).
     filename: String
         Filename of the output figure.
     filters: 1D string ndarray
         Name of the filter bands (optional).
     fignum: Integer
         Figure number.
+    dpi: Integer
+        The resolution in dots per inch for saved files.
 
     Returns
     -------
@@ -3647,7 +4579,7 @@ ______________
     - If there are more than 80 filters, this code will thin the
       displayed filter names.
 
-.. py:function:: temperature(pressure, profiles=None, labels=None, colors=None, bounds=None, punits='bar', ax=None, filename=None, theme='blue', alpha=[0.8, 0.6], fs=13, lw=2.0, fignum=504)
+.. py:function:: temperature(pressure, profiles=None, labels=None, colors=None, bounds=None, ax=None, filename=None, theme='blue', alpha=[0.75, 0.5], fs=13, lw=2.0, fignum=504, dpi=300)
 .. code-block:: pycon
 
     Plot temperature profiles.
@@ -3655,7 +4587,7 @@ ______________
     Parameters
     ----------
     pressure: 1D float ndarray
-        The atmospheric pressure profile in barye.
+        The atmospheric pressure profile in bars.
     profiles: iterable of 1D float ndarrays
         Temperature profiles to plot.
     labels: 1D string iterable
@@ -3667,16 +4599,12 @@ ______________
         boundaries.
         If not None, plot shaded area between +/-1sigma and +/-2sigma
         boundaries.
-    punits: String
-        Pressure units for output plot (input units are always barye).
     ax: AxesSubplot instance
         If not None, plot into the given axis.
     filename: String
         If not None, save plot to given file name.
-    theme: String
-        The histograms' color theme for bounds regions.
-        Only 'blue' and 'orange' themes are valid at the moment.
-        Alternatively, provide a two-element iterable to provide the colors.
+    theme: string or mc3.plots.Theme object
+        A color theme for the profiles and credible regions.
     alpha: 2-element float iterable
         Alpha transparency for bounds regions.
     fs: Float
@@ -3685,13 +4613,15 @@ ______________
         Lines width.
     fignum: Integer
         Figure's number (ignored if axis is not None).
+    dpi: Integer
+        The resolution in dots per inch for saved files.
 
     Returns
     -------
     ax: AxesSubplot instance
         The matplotlib Axes of the figure.
 
-.. py:function:: abundance(vol_mix_ratios, pressure, species, highlight=None, xlim=None, punits='bar', colors=None, dashes=None, filename=None, lw=2.0, fignum=505, fs=13, legend_fs=None, ax=None)
+.. py:function:: abundance(vol_mix_ratios, pressure, species, highlight=None, xlim=None, colors=None, dashes=None, filename=None, lw=2.0, fignum=505, fs=13, legend_fs=None, ax=None, dpi=300)
 .. code-block:: pycon
 
     Plot atmospheric volume-mixing-ratio abundances.
@@ -3701,7 +4631,7 @@ ______________
     vol_mix_ratios: 2D float ndarray
         Atmospheric volume mixing ratios to plot [nlayers,nspecies].
     pressure: 1D float ndarray
-        Atmospheric pressure [nlayers], units are given by punits argument.
+        Atmospheric pressure [nlayers], in bars.
     species: 1D string iterable
         Atmospheric species names [nspecies].
     highlight: 1D string iterable
@@ -3712,8 +4642,6 @@ ______________
         If None, all input species are highlighted.
     xlim: 2-element float iterable
         Volume mixing ratio plotting boundaries.
-    punits: String
-        Pressure units.
     colors: 1D string iterable
         List of colors to use.
         - If len(colors) >= len(species), colors are assigned to each
@@ -3741,6 +4669,8 @@ ______________
         If legend_fs <= 0, do not plot a legend.
     ax: AxesSubplot instance
         If not None, plot into the given axis.
+    dpi: Integer
+        The resolution in dots per inch for saved files.
 
     Returns
     -------
@@ -3756,7 +4686,7 @@ ______________
     >>> pressure = pa.pressure('1e-6 bar', '1e2 bar', nlayers)
     >>> temperature = pa.temperature('isothermal', pressure,  params=1000.0)
     >>> species = 'H2O CH4 CO CO2 NH3 C2H2 C2H4 HCN N2 TiO VO H2 H He Na K'.split()
-    >>> vmr = pa.chemistry('tea', pressure, temperature, species).vmr
+    >>> vmr = pa.chemistry('equilibrium', pressure, temperature, species).vmr
     >>> ax = pp.abundance(
     >>>     vmr, pressure, species, colors='default',
     >>>     highlight='H2O CH4 CO CO2 NH3 HCN H2 H He'.split())
@@ -3764,7 +4694,48 @@ ______________
 .. py:data:: default_colors
 .. code-block:: pycon
 
-  {'H2O': 'navy', 'CO2': 'red', 'CO': 'limegreen', 'CH4': 'orange', 'H2': 'deepskyblue', 'He': 'seagreen', 'HCN': '0.7', 'NH3': 'magenta', 'C2H2': 'brown', 'C2H4': 'pink', 'N2': 'gold', 'H': 'olive', 'TiO': 'black', 'VO': 'peru', 'Na': 'darkviolet', 'K': 'cornflowerblue'}
+  {'H2O': 'blue', 'CO': 'xkcd:green', 'CO2': 'red', 'CH4': 'gold', 'H2': 'indigo', 'SO2': 'deepskyblue', 'HCN': '0.6', 'NH3': 'darkorange', 'N2': 'darkkhaki', 'H': 'magenta', 'TiO': 'black', 'VO': 'peru', 'Na': 'darkviolet', 'K': 'olive', 'C2H2': 'green', 'C2H4': 'pink', 'He': 'dodgerblue', 'H2S': 'cornflowerblue'}
+
+.. py:function:: posteriors(post_file, theme='blue', data_color='black', plot_species=None, vmr_lims=None, logxticks=None, dpi=300)
+.. code-block:: pycon
+
+    Plot contribution functions, temperature profiles, VMRs, and spectra
+    derived from a retrieval posterior file.
+
+    Parameters
+    ----------
+    post_file: String
+        A posterior pickle file produced by pt.posterior_post_processing()
+        containing post-processed medians and quantiles for atmospheric
+        values of interest.
+    theme: string or mc3.plots.Theme object
+        A color theme for the models.
+    data_color: a valid matplotlib color
+        The color for the spectrum data points.
+    plot_species: 1D string iterable
+        List of species to plot in VMR figure.
+        If None, default to the species in post_data['active_species'],
+        which includes the species that actively contribute to the opacity.
+    vmr_limits: 2-element float iterable
+        Plotting boundaries for the volume mixing ratio.
+    logxticks: 1D float ndarray
+        If not None, switch the X-axis scale from linear to log, and set
+        the X-axis ticks at the locations given by logxticks.
+    dpi: Integer
+        The resolution in dots per inch for saved files.
+
+    Examples
+    --------
+    >>> import pyratbay.plots as pp
+    >>> post_file = 'ns_emission_tutorial_posteriors_info.pickle'
+    >>> theme = 'red'
+    >>> pp.posteriors(post_file, theme='red')
+
+    >>> vmr_lims = 1e-5, 1.0
+    >>> pp.posteriors(post_file, theme='red', vmr_lims=vmr_lims)
+
+    >>> plot_species = 'H2O CO H2 He H CH4 CO2 C N O'.split()
+    >>> pp.posteriors(post_file, theme='red', plot_species=plot_species)
 
 
 pyratbay.spectrum
@@ -3777,46 +4748,46 @@ _________________
 .. code-block:: pycon
 
     Calculate the Planck emission function in wavenumber space:
-       Bnu(T) = 2 h c**2 nu**3 / (exp(hc*nu/kT)-1),             
-    with units of erg s-1 sr-1 cm-2 cm.                         
-                                                            
-    Parameters                                                  
-    ----------                                                  
-    wn: 1D float ndarray                                        
-        Wavenumber spectrum (cm-1).                             
-    temp: Float                                                 
-        Temperature (Kelvin).                                   
-    B: 1D float ndarray [optional]                              
-        Array to store the Planck emission.                     
-                                                            
-    Returns                                                     
-    -------                                                     
-    (If B was not provided as input:)                           
-    B: 1D float ndarray                                         
+       Bnu(T) = 2 h c**2 nu**3 / (exp(hc*nu/kT)-1),
+    with units of erg s-1 sr-1 cm-2 cm.
+
+    Parameters
+    ----------
+    wn: 1D float ndarray
+        Wavenumber spectrum (cm-1).
+    temp: Float
+        Temperature (Kelvin).
+    B: 1D float ndarray [optional]
+        Array to store the Planck emission.
+
+    Returns
+    -------
+    (If B was not provided as input:)
+    B: 1D float ndarray
         Planck emission function at wn (erg s-1 sr-1 cm-2 cm).
 
 .. py:function:: blackbody_wn_2D(...)
 .. code-block:: pycon
 
-    Compute the Planck emission function in wavenumber space:       
-       Bnu(T) = 2 h c**2 nu**3 / (exp(hc*nu/kT)-1),                  
-    with units of erg s-1 sr-1 cm-2 cm.                              
-                                                                 
-    Parameters                                                       
-    ----------                                                       
-    wn: 1D float ndarray                                             
-        Wavenumber spectrum (cm-1).                                  
-    temp: 1D float ndarray                                           
-        Temperature at each layer (K).                               
-    B: 2D float ndarray [optional]                                   
+    Compute the Planck emission function in wavenumber space:
+       Bnu(T) = 2 h c**2 nu**3 / (exp(hc*nu/kT)-1),
+    with units of erg s-1 sr-1 cm-2 cm.
+
+    Parameters
+    ----------
+    wn: 1D float ndarray
+        Wavenumber spectrum (cm-1).
+    temp: 1D float ndarray
+        Temperature at each layer (K).
+    B: 2D float ndarray [optional]
         Array to store the Planck emission of shape [nlayers, nwave].
-    last: 1D integer ndarray [optional]                              
-        Indices of last layer to evaluate at each wavenumber.        
-                                                                 
-    Returns                                                          
-    -------                                                          
-    (If B was not provided as input:)                                
-    B: 2D float ndarray                                              
+    last: 1D integer ndarray [optional]
+        Indices of last layer to evaluate at each wavenumber.
+
+    Returns
+    -------
+    (If B was not provided as input:)
+    B: 2D float ndarray
         Planck emission function at wn (erg s-1 sr-1 cm-2 cm).
 
 .. py:function:: bbflux(wn, teff)
@@ -3846,7 +4817,7 @@ _________________
     >>> wn = np.logspace(-1, 5, 30000)
     >>> flux = ps.bbflux(wn, tsun)
     >>> # Solar constant:
-    >>> s = np.trapz(flux, wn) * (pc.rsun/pc.au)**2
+    >>> s = np.trapezoid(flux, wn) * (pc.rsun/pc.au)**2
     >>> print("Solar constant (Teff={:.0f}K): S = {:.1f} W m-2\n"
     >>>       "Wien's displacement law: wn(flux_max) = {:.1f} cm-1\n"
     >>>       "             5.879E10 Hz/K * Teff / c = {:.1f} cm-1".
@@ -3887,9 +4858,6 @@ _________________
         Surface temperature of the output models (in Kelvin degrees).
     klogg: Scalar or 1D float ndarray
         log10 of the stellar surface gravity of the output models (in cm s-2).
-    continuum: 2D ndarray
-        The models' fluxes with no line absorption.  Same units and
-        shape of flux. Returned only if temp and logg are None.
 
     Examples
     --------
@@ -3904,7 +4872,7 @@ _________________
     >>> gsun = 4.44    # Sun's surface gravity (log)
     >>> flux, wn, ktemp, klogg = ps.read_kurucz(kfile, tsun, gsun)
     >>> # Compute brightness at 1 AU from a 1 Rsun radius star:
-    >>> s = np.trapz(flux, wn) * (pc.rsun/pc.au)**2
+    >>> s = np.trapezoid(flux, wn) * (pc.rsun/pc.au)**2
     >>> print("Solar constant [T={:.0f} K, logg={:.1f}]:  S = {:.1f} W m-2".
     >>>       format(ktemp, klogg, s * 1e-3))
     Solar constant [T=5750 K, logg=4.5]:  S = 1340.0 W m-2
@@ -3914,19 +4882,24 @@ _________________
     >>> # (in this case, ktemp and klogg are 1D arrays)
     >>> fluxes, wn, ktemp, klogg, continua = ps.read_kurucz(kfile)
 
-.. py:class:: PassBand(filter_file, wn=None)
+.. py:class:: PassBand(filter_file, wl=None, wn=None, counting_type='photon')
 
     .. code-block:: pycon
-
-        A Filter passband object.
-
 
         Parameters
         ----------
         filter_file: String
             Path to filter file containing wavelength (um) and passband
-            response in two columns.
-            Comment and blank lines are ignored.
+            response function in two columns.
+        wl: 1D float array
+            Wavelength array at which evaluate the passband response's
+            in micron units.
+            (only one of wl or wn should be provided on call)
+        wn: 1D float array
+            Wavenumber (cm-1) at which the filter is intended to be evalulated.
+        counting_type: String
+            Detector counting type (i.e., the response function units),
+            choose between 'photon' (default) or 'energy'.
 
         Examples
         --------
@@ -3934,28 +4907,58 @@ _________________
         >>> import pyratbay.constants as pc
         >>> import matplotlib.pyplot as plt
         >>> import numpy as np
-
-        >>> filter_file = f'{pc.ROOT}pyratbay/data/filters/spitzer_irac2_sa.dat'
-        >>> band = ps.PassBand(filter_file)
-
-        >>> # Evaluate over a wavelength array (um):
-        >>> wl = np.arange(3.5, 5.5, 0.001)
-        >>> out_wl, out_response = band(wl)
-
+        >>>
+        >>> # Test on a blackbody spectrum
+        >>> wl = np.linspace(1.0, 10.0, 10000)
+        >>> hj_spectrum = ps.bbflux(1e4/wl, 2100.0)
+        >>> # Create a Spitzer/IRAC2 band and integrate spectrum over it
+        >>> band = ps.PassBand(f'{pc.FILTERS}spitzer_irac2.dat', wl=wl)
+        >>> band_flux = band(hj_spectrum)
+        >>>
+        >>> plt.figure(0)
+        >>> plt.clf()
+        >>> plt.plot(wl, hj_spectrum, c='black')
+        >>> plt.plot(band.wl0, band_flux, 'o', c='royalblue')
+        >>> plt.plot(band.wl, band.response*5e7, c='0.7')
+        >>> plt.ylim(bottom=0.0)
+        >>>
+        >>> # Now, we can re-evaluate for a bunch of spectra
+        >>> temps = np.arange(900, 2500.0, 150.0)
+        >>> spectra = [ps.bbflux(1e4/wl, temp) for temp in temps]
+        >>> fluxes = [band(spectrum) for spectrum in spectra]
+        >>>
         >>> plt.figure(1)
         >>> plt.clf()
-        >>> plt.plot(out_wl, out_response)
-        >>> plt.plot(band.wl, band.response)  # Same variables
-        >>> # Note wl differs from band.wl, but original array can be used as:
-        >>> plt.plot(wl[band.idx], band.response)
+        >>> for i,temp in enumerate(temps):
+        >>>     color = plt.cm.viridis(i/11)
+        >>>     plt.plot(wl, spectra[i], c=color)
+        >>>     plt.plot(band.wl0, fluxes[i], 'o', c=color)
+        >>> plt.plot(band.wl, band.response*2e7, c='0.7', zorder=-1)
+        >>> plt.xscale('log')
+        >>> plt.ylim(bottom=0.0)
+        >>> plt.xlim(1.0, 10.0)
 
-        >>> # Evaluate over a wavenumber array:
-        >>> wn = 1e4 / wl
-        >>> band(wn=wn)
-        >>> plt.figure(1)
-        >>> plt.clf()
-        >>> plt.plot(band.wn, band.response, dashes=(5,3))
-        >>> plt.plot(wn[band.idx], out_response)
+    .. py:method:: integrate(spectrum, wl=None, wn=None)
+    .. code-block:: pycon
+
+        Integrate a spectral function over the passband.
+
+        Parameters
+        ----------
+        spectrum: 1D float array
+            Spectral function to be band-integrated. The spectral sampling
+            of this must be set at initialization or with the set_spectrum()
+            method.  Otherwise, it can be set at run time with the wn or wl
+            arguments.
+        wn: 1D float array
+            (optional) wavenumber array (cm-1) over which spectrum is sampled.
+        wl: 1D float array
+            (optional) wavelength array (um) over which spectrum is sampled.
+
+        Returns
+        -------
+        bandflux: Float
+            Band-integrated value of the spectral  function.
 
     .. py:method:: save_filter(save_file)
     .. code-block:: pycon
@@ -3968,12 +4971,43 @@ _________________
         save_file: String
             File where to save the filter data.
 
-.. py:class:: Tophat(wl0, half_width, name='tophat')
-
+    .. py:method:: set_sampling(wl=None, wn=None)
     .. code-block:: pycon
 
-        A Filter passband object with a tophat-shaped passband.
+        Interpolate filter response function at specified spectral array.
+        The response funciton is normalized such that the integral over
+        wavenumber equals one.
 
+        Parameters
+        ----------
+        wl: 1D float array
+            Wavelength array at which evaluate the passband response's
+            in micron units (only one of wl or wn should be provided on call)
+        wn: 1D float array
+            Wavenumber array at which evaluate the passband response's
+            in cm-1 units (only one of wl or wn should be provided on call)
+
+        Defines
+        -------
+        self.response  Normalized interpolated response function
+        self.idx       IndicesWavenumber indices
+        self.wn        Passband's wavenumber array
+        self.wl        Passband's wavelength array
+
+        Returns
+        -------
+        out_wave: 1D float array
+            Same as self.wl or self.wn depending on the input argument.
+        out_response: 1D float array
+            Same as self.response
+
+        Examples
+        --------
+        >>> # See examples in help(ps.PassBand.__init__)
+
+.. py:class:: Tophat(wl0, half_width, name='tophat', wl=None, wn=None, counting_type='photon', ignore_gaps=False)
+
+    .. code-block:: pycon
 
         Parameters
         ----------
@@ -3984,33 +5018,77 @@ _________________
         name: Str
             A user-defined name for the filter when calling str(self),
             e.g., to identify the instrument provenance of this filter.
+        wl: 1D float array
+            Wavelength array at which evaluate the passband response's
+            in micron units (only one of wl or wn should be provided on call)
+        wn: 1D float array
+            Wavenumber (cm-1) at which the filter is intended to be evalulated.
+        counting_type: String
+            Detector counting type (i.e., the response function units),
+            choose between 'photon' (default) or 'energy'.
+        ignore_gaps: Bool
+            If True and there are no points inside the band,
+            set the idx, wn, wl, and response variables to None.
+            A ps.bin_spectrum() call on such band will return np.nan.
+            Otherwise the code will throw a ValueError.
 
         Examples
         --------
         >>> import pyratbay.spectrum as ps
         >>> import matplotlib.pyplot as plt
         >>> import numpy as np
-
-        >>> hat = ps.Tophat(4.5, 0.5)
-
-        >>> # Evaluate over a wavelength array (um units):
-        >>> wl = np.arange(3.5, 5.5, 0.001)
-        >>> out_wl, out_response = hat(wl)
-
+        >>>
+        >>> # Test on a blackbody spectrum
+        >>> wl = np.linspace(1.0, 10.0, 10000)
+        >>> hj_spectrum = ps.bbflux(1e4/wl, 2100.0)
+        >>> # Create a top-hat passband and integrate spectrum
+        >>> band = ps.Tophat(wl0=4.5, half_width=0.1, wl=wl)
+        >>> band_flux = band(hj_spectrum)
+        >>>
+        >>> plt.figure(0)
+        >>> plt.clf()
+        >>> plt.plot(wl, hj_spectrum, c='black')
+        >>> plt.plot(band.wl0, band_flux, 'o', c='royalblue')
+        >>> plt.plot(band.wl, band.response*5e6, c='0.7')
+        >>> plt.ylim(bottom=0.0)
+        >>>
+        >>> # Now, we can re-evaluate for a bunch of spectra
+        >>> temps = np.arange(900, 2500.0, 150.0)
+        >>> spectra = [ps.bbflux(1e4/wl, temp) for temp in temps]
+        >>> fluxes = [band(spectrum) for spectrum in spectra]
+        >>>
         >>> plt.figure(1)
         >>> plt.clf()
-        >>> plt.plot(out_wl, out_response)
-        >>> plt.plot(hat.wl, hat.response)  # Same variables
-        >>> # Note wl differs from hat.wl, but original array can be used as:
-        >>> plt.plot(wl[hat.idx], hat.response)
+        >>> for i,temp in enumerate(temps):
+        >>>     color = plt.cm.viridis(i/11)
+        >>>     plt.plot(wl, spectra[i], c=color)
+        >>>     plt.plot(band.wl0, fluxes[i], 'o', c=color)
+        >>> plt.plot(band.wl, band.response*2e6, c='0.7', zorder=-1)
+        >>> plt.xscale('log')
+        >>> plt.ylim(bottom=0.0)
+        >>> plt.xlim(1.0, 10.0)
 
-        >>> # Evaluate over a wavenumber array:
-        >>> wn = 1e4 / wl
-        >>> hat(wn=wn)
-        >>> plt.figure(1)
-        >>> plt.clf()
-        >>> plt.plot(hat.wn, hat.response, dashes=(5,3))
-        >>> plt.plot(wn[hat.idx], out_response)
+    .. py:method:: integrate(spectrum, wl=None, wn=None)
+    .. code-block:: pycon
+
+        Integrate a spectral function over the passband.
+
+        Parameters
+        ----------
+        spectrum: 1D float array
+            Spectral function to be band-integrated. The spectral sampling
+            of this must be set at initialization or with the set_spectrum()
+            method.  Otherwise, it can be set at run time with the wn or wl
+            arguments.
+        wn: 1D float array
+            (optional) wavenumber array (cm-1) over which spectrum is sampled.
+        wl: 1D float array
+            (optional) wavelength array (um) over which spectrum is sampled.
+
+        Returns
+        -------
+        bandflux: Float
+            Band-integrated value of the spectral  function.
 
     .. py:method:: save_filter(save_file)
     .. code-block:: pycon
@@ -4022,6 +5100,132 @@ _________________
         ----------
         save_file: String
             File where to save the filter data.
+
+    .. py:method:: set_sampling(wl=None, wn=None)
+    .. code-block:: pycon
+
+        Interpolate filter response function at specified spectral array.
+        The response function is normalized such that the integral over
+        wavenumber equals one.
+
+        Parameters
+        ----------
+        wl: 1D float array
+            Wavelength array at which evaluate the passband response's
+            in um units (only one of wl or wn should be provided on call)
+        wn: 1D float array
+            Wavenumber array at which evaluate the passband response's
+            in cm-1 units (only one of wl or wn should be provided on call)
+
+        Defines
+        -------
+        self.idx  Wavenumber indices
+        self.wn  Passband's wavenumber array
+        self.wl  Passband's wavelength array
+        self.response  Normalized interpolated response function
+
+        Returns
+        -------
+        out_wave: 1D float array
+            Same as self.wl or self.wn depending on the input argument.
+        out_response: 1D float array
+            Same as self.response
+
+        Examples
+        --------
+        >>> # See examples in help(ps.Tophat.__init__)
+
+.. py:function:: constant_resolution_spectrum(wave_min, wave_max, resolution)
+.. code-block:: pycon
+
+    Compute a constant resolving-power sampling array.
+
+    Parameters
+    ----------
+    wave_min: Float
+        Lower spectral boundary.  This could be either a wavelength
+        or a wavenumber. This is agnositc of units.
+    wave_max: Float
+        Upper spectral boundary.  This could be either a wavelength
+        or a wavenumber. This is agnositc of units.
+    resolution: Float
+        The sampling resolving power: R = wave / delta_wave.
+
+    Returns
+    -------
+    wave: 1D float array
+        A spectrum array with the given resolving power.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import pyratbay.spectrum as ps
+
+    >>> # A low-resolution wavelength sampling:
+    >>> wl_min = 0.5
+    >>> wl_max = 4.0
+    >>> resolution = 5.5
+    >>> wl = ps.constant_resolution_spectrum(wl_min, wl_max, resolution)
+    >>> print(wl)
+    [0.5        0.6        0.72       0.864      1.0368     1.24416
+     1.492992   1.7915904  2.14990848 2.57989018 3.09586821 3.71504185]
+    >>> # The actual resolution matches the input:
+    >>> wl_mean = 0.5*(wl[1:]+wl[:-1])
+    >>> print(wl_mean/np.ediff1d(wl))
+    [5.5 5.5 5.5 5.5 5.5 5.5 5.5 5.5 5.5 5.5 5.5]
+
+.. py:function:: bin_spectrum(bin_wl, wl, spectrum, half_widths=None, gaps=None)
+.. code-block:: pycon
+
+    Bin down a spectrum.
+
+    Parameters
+    ----------
+    bin_wl: 1D float array
+        Central wavelength (um) of the desired binned down spectra.
+    wl: 1D float array
+        Wavelength samples of the original spectrum.
+    spectrum: 1D float array
+        Spectral values to be binned down.
+    half_widths: 1D float array
+        The bin half widths (um).
+        If None, assume that the bin edges are at the mid-points
+        of the bin_wl array.
+    gaps: String
+        If None (default) and there are bins that do not cover any value,
+        (e.g., when the resolution of wl is similar to bin_wl's), raise error.
+        If gaps=='ignore', patch those bins with np.nan values.
+        If gaps=='interpolate', patch those bins linearly interpolating.
+        Use with care.
+
+    Returns
+    -------
+    bin_spectrum: 1D float array
+        The binned spectrum.
+
+    Notes
+    -----
+    Probably bad things will happen if bin_wl has a similar
+    or coarser resolution than wl.
+
+    Examples
+    --------
+    >>> import pyratbay.spectrum as ps
+    >>> import numpy as np
+    >>> import matplotlib.pyplot as plt
+
+    >>> # Make a noisy high-resolution signal
+    >>> wl = ps.constant_resolution_spectrum(1.0, 3.0, resolution=5000)
+    >>> spectrum = np.sin(3.14*wl) + np.random.normal(1.5, 0.1, len(wl))
+    >>> # Bin it down:
+    >>> bin_wl = ps.constant_resolution_spectrum(1.0, 3.0, resolution=125)
+    >>> bin_spectrum = ps.bin_spectrum(bin_wl, wl, spectrum)
+
+    >>> # Compare original and binned signals
+    >>> plt.figure(0)
+    >>> plt.clf()
+    >>> plt.plot(wl, spectrum, '.', ms=2, color='gray')
+    >>> plt.plot(bin_wl, bin_spectrum, color='red')
 
 .. py:function:: tophat(wl0, width, margin=None, dlambda=None, resolution=None, ffile=None)
 .. code-block:: pycon
@@ -4130,10 +5334,8 @@ _________________
     >>> import pyratbay.spectrum as ps
     >>> import pyratbay.constants as pc
     >>> # Load Spitzer IRAC filters:
-    >>> wn1, irac1 = io.read_spectrum(
-    >>>     pc.ROOT+'pyratbay/data/filters/spitzer_irac1_sa.dat')
-    >>> wn2, irac2 = io.read_spectrum(
-    >>>     pc.ROOT+'pyratbay/data/filters/spitzer_irac2_sa.dat')
+    >>> wn1, irac1 = io.read_spectrum(pc.FILTERS+'spitzer_irac1.dat')
+    >>> wn2, irac2 = io.read_spectrum(pc.FILTERS+'spitzer_irac2.dat')
     >>> # Spectrum to integrate:
     >>> wn = np.arange(1500, 5000.1, 1.0)
     >>> sflux = ps.bbflux(wn, 1800.0)
@@ -4156,6 +5358,93 @@ _________________
     >>> plt.ylim(4e4, 1.2e5)
     >>> plt.xlabel('Wavenumber  (cm$^{-1}$)')
     >>> plt.ylabel(r'Flux  (erg s$^{-1}$ cm$^{-2}$ cm)')
+
+.. py:function:: wn_mask(wn, wn_min, wn_max, tol=1e-08)
+.. code-block:: pycon
+
+    Get mask of wn values withing given ranges with a extra tolerance
+    to account for floating-point (in)precision.
+
+    Parameters
+    ----------
+    wn: 1D float array
+        Wavenumber array to mask.
+    wn_min: float
+        Minumum wavenumber in mask.
+    wn_max: float
+        Maximum wavenumber in mask.
+    tol: float
+        Tolerance factor at mask edges, calculated as delta_wn*tol,
+        where delta_wn is the sampling stepsize at the edges.
+
+    Returns
+    -------
+    wn_mask: 1D bool array
+        Mask of wavenumber values within ranges.
+
+.. py:function:: inst_convolution(wl, spectrum, resolution, sampling_res=None)
+.. code-block:: pycon
+
+    Convolve a spectrum according to an instrumental resolving power
+
+    Parameters
+    ----------
+    wl: 1D float array
+        Spectral array (can be either wavelength or wavenumber).
+    spectrum: 1D float array
+        Full-resolution spectrum to be convolved.
+    resolution: float
+        Instrumental resolving power R = lambda/delta_lambda
+        Where delta_lambda is the FHWM of the gaussian to be applied.
+    sampling_red: float
+        Sampling resolution of the input wl spectrum.
+
+    Examples
+    --------
+    >>> import pyratbay.spectrum as ps
+    >>> import numpy as np
+    >>> import matplotlib.pyplot as plt
+
+    >>> wl_min = 1.499
+    >>> wl_max = 1.501
+    >>> samp_resolution = 100_000
+    >>> wl = ps.constant_resolution_spectrum(wl_min, wl_max, samp_resolution)
+    >>> nwave = len(wl)
+
+    >>> # A delta at wl0 ~ 1.5
+    >>> spectrum = np.zeros(nwave)
+    >>> spectrum[np.where(wl>1.5)[0][0]] = 1.0
+    >>> wl0 = wl[np.where(wl>1.5)[0][0]]
+
+    >>> resolution = 5_000
+    >>> conv = ps.inst_convolution(wl, spectrum, resolution)
+
+    >>> # Plot convolved line and expected FWHM
+    >>> half_max = np.amax(conv)/2
+    >>> hwhm = 0.5 * wl0 / resolution
+    >>> plt.figure(0)
+    >>> plt.clf()
+    >>> plt.plot(wl, conv, color='salmon', lw=2)
+    >>> plt.plot([wl0-hwhm, wl0+hwhm], [half_max,half_max], color='xkcd:blue', lw=2)
+
+.. py:function:: rv_shift(vel_km, wn=None, wl=None)
+.. code-block:: pycon
+
+    Apply a radial velocity Doppler shift to a 1D wavelength array.
+
+    Parameters
+    ----------
+    vel_km: Float
+        Radial velocity in km/s.
+    wn: 1D float array
+        Wavenumber array.
+    wl: 1D float array
+        Wavelength array.
+
+    Returns
+    -------
+    wave: 1D float array
+        Doppler-shifted wavenumber of wavelebngth array
 
 .. py:function:: contribution_function(optdepth, pressure, B)
 .. code-block:: pycon
@@ -4192,7 +5481,7 @@ _________________
         Impact-parameter indices of deepest-calculated optical depth
         at each wavenumber.
 
-.. py:function:: band_cf(cf, bandtrans, wn, bandidx)
+.. py:function:: band_cf(cf, bands_response, wn, bands_idx)
 .. code-block:: pycon
 
     Compute band-averaged contribution functions or transmittances.
@@ -4202,20 +5491,20 @@ _________________
     cf: 2D float ndarray
         The contribution function or transmittance of
         shape [nlayers, nwave].
-    bandtrans: List of 1D ndarrays
-        List of band transmission curves.
+    bands_response: List of 1D ndarrays
+        List of band transmission response curves.
     wn: 1D float ndarray
         The wavenumber sampling (in cm-1).
-    bandidx: List of 1D ndarrays
-        List of wavenumber-index arrays for each band transmission curve.
+    bands_idx: List of 1D ndarrays
+        List of wavenumber-indices in wn sampled by bands_response.
 
     Returns
     -------
-    bandcf: 2D float ndarray
+    bands_cf: 2D float ndarray
         The band-integrated contribution functions of
         shape [nlayers, nbands].
 
-.. py:function:: convective_flux(pressure, temperature, cp, gravity, mu, rho, alpha=1.0, beta=1.0)
+.. py:function:: convective_flux(pressure, temperature, cp, gravity, mu, rho, alpha=1.5, beta=0.5)
 .. code-block:: pycon
 
     Estimate the convective flux for an atmosphere following mixing-
@@ -4250,7 +5539,81 @@ _________________
         This is not zero only where the actual temperature gradient
         is larger than the adiabatic gradient.
 
-.. py:function:: radiative_equilibrium(pressure, temperature, nsamples, chem_model, two_stream_rt, wavenumber, spec, atm, radeq_temps=None, convection=False, tmin=0.0, tmax=6000.0, f_scale=None, mplanet=None, mol_mass=None)
+.. py:function:: transmission(depth, radius, rstar, ideep=None, atm_itop=0, deck_rsurf=None, deck_itop=None)
+.. code-block:: pycon
+
+    Compute a transmission spectrum for transit geometry
+
+    Parameters
+    ----------
+    depth: 2D float array
+        Optical depth at each layer and wavelength channel [nlayers,nwave].
+        Atmospheric layers are sorted from top to bottom (i.e.,
+        depth[0] is the top-most layer)
+    radius: 1D float array
+        Radius profile of atmospheric layers (cm)
+    rstar: Float
+        Stellar radius (cm).
+    ideep: 1D integer array
+        Index of the 'bottom' of the atmosphere at each wavelength,
+        from which to start the integration (e.g., at optically thick regime)
+    atm_itop: Integer
+        Index of the top of the atmosphere (to integrate only up to the layer)
+    cloud_rsurf: Float
+        If not None, the radius (cm) of an opaque cloud deck, which
+        becomes the bottom integration boundary.
+    cloud_itop: Integer
+        If not None, index of the atmosphere layer right below the
+        opaque cloud deck.
+
+    Returns
+    -------
+    spectrum: 1D float array
+        The transmission spectrum.
+
+.. py:function:: plane_parallel_rt(depth, blackbody, wn, quadrature_mu, quadrature_weights=None, ideep=None, atm_itop=0, cloud_tsurf=None, cloud_itop=None)
+.. code-block:: pycon
+
+    Compute the intensity (and optionally flux) spectra under
+    plane-parallel geometry for a range of slant angles
+
+    Parameters
+    ----------
+    depth: 2D float array
+        Optical depth at each layer and wavelength channel [nlayers,nwave].
+        Atmospheric layers are sorted from top to bottom (i.e.,
+        depth[0] is the top-most layer)
+    blackbody: 2D float array
+        Plank fuction evaluated at each layer and wavelength channel
+        (same shape as depth).
+    wn: 1D float array
+        Wavenumber array (cm-1).
+    quadrature_mu: 1D float array
+        Cosine of the slant-path angles repect to the normal.
+    quadrature_weights: 1D float array
+        Weights for each quadrature_mu.  If given, compute and return the
+        Gaussian-quadrature integral of the intensity over mu (i.e., flux)
+    ideep: 1D integer array
+        Index of the 'bottom' of the atmosphere at each wavelength,
+        from which to start the integration.
+    atm_itop: Integer
+        Index of the top of the atmosphere (to integrate only up to the layer)
+    cloud_tsurf: Float
+        If not None, the temperature at cloud_itop, an opaque cloud
+        deck that becomes the bottom integration boundary.
+    cloud_itop: Integer
+        If not None, index of the atmosphere layer right below an
+        opaque cloud deck.
+
+    Returns
+    -------
+    intensity: 2D float array
+        The intensity spectra at each angle mu (erg s-1 cm-2 cm sr-1).
+    flux: 1D float array [optional]
+        The flux spectrum of the integrated intensities (erg s-1 cm-2 cm).
+        (typically, a day-side integrated via the Gaussian-quadrature)
+
+.. py:function:: radiative_equilibrium(pressure, radeq_temps, nsamples, chem_model, two_stream_rt, wavenumber, spec, atm, convection=False, tmin=0.0, tmax=6000.0)
 .. code-block:: pycon
 
     Compute radiative-thermochemical equilibrium atmosphere.
@@ -4260,22 +5623,18 @@ _________________
 
     Parameters
     ----------
+    pressure: 1D float array
+        Pressure profile in barye units.
     nsamples: Integer
         Number of radiative-equilibrium iterations to run.
-    continue_run: Bool
-        If True, continue from a previous radiative-equil. run.
-    no_convection: Bool
-        If True, skip convective flux calculation in the radiative
+    convection: Bool
+        If True, include convective-flux transport in the radiative
         equilibrium calculation.
 
     Returns
     -------
-    There are no returned values, but this method updates the
-    temperature profile (self.atm.temp) and abundances (self.atm.q)
-    with the values from the last radiative-equilibrium iteration.
-
-    This method also defines pyrat.atm.radeq_temps, a 2D array
-    containing all temperature-profile iterations.
+    radeq_temps: 2D float array
+        Temperature profiles at each iteration.
 
 
 pyratbay.atmosphere
@@ -4308,7 +5667,7 @@ ___________________
     Returns
     -------
     press: 1D float ndarray
-       The pressure profile (in barye units).
+       The pressure profile (in bars).
 
     Examples
     --------
@@ -4318,10 +5677,10 @@ ___________________
     >>> nlayers = 9
     >>> # These are all equivalent:
     >>> p1 = pa.pressure(ptop=1e-6, pbottom=1e2, nlayers=nlayers)
-    >>> p2 = pa.pressure(1e-6, 1e2, nlayers, 'bar')
+    >>> p2 = pa.pressure(1e-6, 1e2, nlayers, units='bar')
     >>> p3 = pa.pressure('1e-6 bar', '1e2 bar', nlayers)
-    >>> p4 = pa.pressure(1e-6*pc.bar, 1e2*pc.bar, nlayers, 'barye')
-    >>> print(p1/pc.bar)
+    >>> p4 = pa.pressure(1e-6*pc.bar, 1e2*pc.bar, nlayers, units='barye')
+    >>> print(p1)
     [1.e-06 1.e-05 1.e-04 1.e-03 1.e-02 1.e-01 1.e+00 1.e+01 1.e+02]
 
 .. py:function:: temperature(tmodel, pressure=None, nlayers=None, log=None, params=None)
@@ -4334,7 +5693,7 @@ ___________________
     tmodel: String
         Name of the temperature model.
     pressure: 1D float ndarray
-        Atmospheric pressure profile in barye units.
+        Atmospheric pressure profile in bars.
     nlayers: Integer
         Number of pressure layers.
     log: Log object
@@ -4357,13 +5716,13 @@ ___________________
     >>> import pyratbay.atmosphere as pa
 
     >>> nlayers = 11
+    >>> pressure = pa.pressure(1e-8, 1e2, nlayers, units="bar")
     >>> # Isothermal profile:
-    >>> temp_iso = pa.temperature("isothermal", params=1500.0, nlayers=nlayers)
+    >>> temp_iso = pa.temperature("isothermal", pressure, params=1500.0)
     >>> print(temp_iso)
     [1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500. 1500.]
 
-    >>> # Three-channel Eddington-approximation profile:
-    >>> pressure = pa.pressure(1e-8, 1e2, nlayers, "bar")
+    >>> # Guillot (2010) temperature profile:
     >>> params = np.array([-4.84, -0.8, -0.8, 0.5, 1200.0, 100.0])
     >>> temp = pa.temperature('guillot', pressure, params=params)
     >>> print(temp)
@@ -4380,9 +5739,9 @@ ___________________
     Parameters
     ----------
     chem_model: String
-        Name of chemistry model.
+        Name of chemistry model, select from: 'free' or 'equilibrium'
     pressure: 1D float ndarray
-        Atmospheric pressure profile (barye).
+        Atmospheric pressure profile (bars).
     temperature: 1D float ndarray
         Atmospheric temperature profile (Kelvin).
     species: 1D string list
@@ -4418,8 +5777,14 @@ ___________________
 
     Returns
     -------
-    model: Callable
+    chem_network: Callable
         The atmospheric chemistry-network model.
+    species: 1D string array
+        Output species, 'tea' species might differ from input species
+        if there is no thermochemical data for a given one (the species
+        is then removed)
+    vmr: 2D float array
+        Output volume mixing ratios of shape [nlayers, nspecies]
 
     Example
     -------
@@ -4433,27 +5798,26 @@ ___________________
     >>> temperature = pa.temperature('isothermal', pressure, nlayers, params=T0)
     >>> species = 'H2O CH4 CO CO2 NH3 C2H2 C2H4 HCN N2 H2 H He H+ e-'.split()
     >>> # Equilibrium abundances model:
-    >>> chem_model = 'tea'
-    >>> chem_network = pa.chemistry(
-    >>>     chem_model, pressure, temperature, species,)
+    >>> chem_model = 'equilibrium'
+    >>> network, out_species, vmr_tea = pa.chemistry(chem_model, pressure, temperature, species)
 
-    >>> q_uniform = np.array([
+    >>> abundances = np.array([
     >>>     5e-4, 3e-5, 2e-4, 1e-8,  1e-6, 1e-14, 1e-13, 5e-10,
     >>>     1e-4, 0.85, 5e-3, 0.14,  3e-23, 1e-23])
-    >>> chem_model = 'uniform'
-    >>> chem_network_unif = pa.chemistry(
-    >>>     chem_model, pressure, temperature, species, q_uniform=q_uniform)
+    >>> chem_model = 'free'
+    >>> network, out_species, vmr_uni = pa.chemistry(
+    >>>     chem_model, pressure, temperature, species, q_uniform=abundances)
 
     >>> # Plot the results:
     >>> ax1 = pp.abundance(
-    >>>     chem_network.vmr, pressure, chem_network.species,
+    >>>     vmr_tea, pressure, species,
     >>>     colors='default', xlim=[1e-30, 3.0])
 
     >>> ax2 = pp.abundance(
-    >>>     chem_network_unif.vmr, pressure, chem_network_unif.species,
+    >>>     vmr_uni, pressure, species,
     >>>     colors='default', xlim=[1e-30, 3.0], fignum=506)
 
-.. py:function:: uniform(pressure, temperature, species, abundances, punits='bar', log=None, atmfile=None)
+.. py:function:: uniform(abundances, nlayers)
 .. code-block:: pycon
 
     Generate an atmospheric file with uniform abundances.
@@ -4461,38 +5825,24 @@ ___________________
 
     Parameters
     ----------
-    pressure: 1D float ndarray
-        Monotonously decreasing pressure profile (in punits).
-    temperature: 1D float ndarray
-        Temperature profile for pressure layers (in Kelvin).
-    species: 1D string ndarray
-        List of atmospheric species.
     abundances: 1D float ndarray
         The species mole mixing ratio.
-    punits:  String
-       Pressure units.
-    log: Log object
-        Screen-output log handler.
-    atmfile: String
-        If not None, filename to save atmospheric model.
+    nlayers: Integer
+       Number of pressure layers.
 
     Returns
     -------
-    qprofiles: 2D Float ndarray
+    vmr: 2D Float ndarray
         Abundance profiles of shape [nlayers,nspecies]
 
     Examples
     --------
     >>> import pyratbay.atmosphere as pa
     >>> nlayers = 11
-    >>> punits = 'bar'
-    >>> pressure = pa.pressure(1e-8, 1e2, nlayers, punits)
-    >>> tmodel = pa.tmodels.Isothermal(nlayers)
-    >>> species    = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
+    >>> species = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
     >>> abundances = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
-    >>> qprofiles = pa.uniform(pressure, tmodel(1500.0), species,
-    >>>     abundances=abundances, punits=punits)
-    >>> print(qprofiles)
+    >>> vmr = pa.uniform(abundances, nlayers)
+    >>> print(vmr)
     [[8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]
      [8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]
      [8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]
@@ -4505,74 +5855,6 @@ ___________________
      [8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]
      [8.496e-01 1.500e-01 1.000e-04 1.000e-04 1.000e-08 1.000e-04]]
 
-.. py:function:: abundance(pressure, temperature, species, elements=None, quniform=None, atmfile=None, punits='bar', metallicity=0.0, e_abundances={}, e_scale={}, e_ratio={}, solar_file=None, log=None, verb=1, ncpu=None, xsolar=None, escale=None)
-.. code-block:: pycon
-
-    Compute atmospheric abundaces for given pressure and
-    temperature profiles with either uniform abundances or TEA.
-
-    Parameters
-    ----------
-    pressure: 1D float ndarray
-        Atmospheric pressure profile (barye).
-    temperature: 1D float ndarray
-        Atmospheric temperature profile (Kelvin).
-    species: 1D string list
-        Output atmospheric composition.
-    elements: 1D strings list
-        Input elemental composition (default to minimum list of elements
-        required to form species).
-    quniform: 1D float ndarray
-        If not None, the output species abundances (isobaric).
-    atmfile: String
-        If not None, output file where to save the atmospheric model.
-    punits: String
-        Output pressure units.
-    metallicity: Float
-        Metallicity enhancement factor in dex units relative to solar.
-    e_abundances: Dictionary
-        Custom elemental abundances.
-        The dict contains the name of the element and their custom
-        abundance in dex units relative to H=12.0.
-        These values override metallicity.
-    e_scale: Dict
-        Scaling abundance factor for specified atoms by the respective
-        values (in dex units, in addition to metallicity scaling).
-        E.g. (3x solar): e_scale = {'C': np.log10(3.0)}
-    solar_file: String
-        Input solar elemental abundances file (default Asplund et al. 2021).
-    log: Log object
-        Screen-output log handler.
-    verb: Integer
-        Verbosity level.
-
-    ncpu: Integer [DEPRECATED]
-        Number of parallel CPUs to use in TEA calculation.
-    xsolar: Float [DEPRECATED]
-        Metallicity enhancement factor.  Deprecated, use metallicity instead.
-    escale: Dict [DEPRECATED]
-        Multiplication factor for specified atoms (dict's keys)
-        by the respective values (on top of the xsolar scaling).
-        Deprecated, use e_scale instead.
-
-    Returns
-    -------
-    vmr: 2D float ndarray
-       Atmospheric volume mixing fraction abundances of shape
-       [nlayers, nspecies].
-
-    Example
-    -------
-    >>> import pyratbay.atmosphere as pa
-    >>> import pyratbay.constants as pc
-
-    >>> nlayers = 100
-    >>> press = np.logspace(-8, 3, nlayers) * pc.bar
-    >>> temp  = np.tile(900.0, nlayers)
-    >>> species = 'H2O CH4 CO CO2 NH3 C2H2 C2H4 HCN N2 H2 H He'.split()
-    >>> # Thermochemical equilibrium abundances for requested species:
-    >>> vmr = pa.abundance(press, temp, species)
-
 .. py:function:: hydro_g(pressure, temperature, mu, g, p0=None, r0=None)
 .. code-block:: pycon
 
@@ -4582,7 +5864,7 @@ ___________________
     Parameters
     ----------
     pressure: 1D float ndarray
-        Atmospheric pressure for each layer (in barye).
+        Atmospheric pressure for each layer (in bar).
     temperature: 1D float ndarray
         Atmospheric temperature for each layer (in K).
     mu: 1D float ndarray
@@ -4590,7 +5872,7 @@ ___________________
     g: Float
         Atmospheric gravity (in cm s-2).
     p0: Float
-        Reference pressure level (in barye) where radius(p0) = r0.
+        Reference pressure level (in bar) where radius(p0) = r0.
     r0: Float
         Reference radius level (in cm) corresponding to p0.
 
@@ -4610,11 +5892,11 @@ ___________________
     >>> import pyratbay.constants as pc
     >>> nlayers = 11
     >>> pressure = pa.pressure(1e-8, 1e2, nlayers, units='bar')
-    >>> temperature = pa.tmodels.Isothermal(nlayers)(1500.0)
+    >>> temperature = pa.tmodels.Isothermal(pressure)(1500.0)
     >>> mu = np.tile(2.3, nlayers)
     >>> g = pc.G * pc.mjup / pc.rjup**2
     >>> r0 = 1.0 * pc.rjup
-    >>> p0 = 1.0 * pc.bar
+    >>> p0 = 1.0  # bar
     >>> # Radius profile in Jupiter radii:
     >>> radius = pa.hydro_g(pressure, temperature, mu, g, p0, r0) / pc.rjup
     >>> print(radius)
@@ -4630,7 +5912,7 @@ ___________________
     Parameters
     ----------
     pressure: 1D float ndarray
-        Atmospheric pressure for each layer (in barye).
+        Atmospheric pressure for each layer (in bar).
     temperature: 1D float ndarray
         Atmospheric temperature for each layer (in K).
     mu: 1D float ndarray
@@ -4638,7 +5920,7 @@ ___________________
     mass: Float
         Object's mass (in g).
     p0: Float
-        Reference pressure level (in barye) where radius(p0) = r0.
+        Reference pressure level (in bar) where radius(p0) = r0.
     r0: Float
         Reference radius level (in cm) corresponding to p0.
 
@@ -4660,18 +5942,18 @@ ___________________
 
     >>> nlayers = 11
     >>> pressure = pa.pressure(1e-8, 1e2, nlayers, units='bar')
-    >>> temperature = pa.tmodels.Isothermal(nlayers)(1500.0)
+    >>> temperature = pa.tmodels.Isothermal(pressure)(1500.0)
     >>> mu = np.tile(2.3, nlayers)
     >>> mplanet = 1.0 * pc.mjup
     >>> r0 = 1.0 * pc.rjup
-    >>> p0 = 1.0 * pc.bar
+    >>> p0 = 1.0  # bar
     >>> # Radius profile in Jupiter radii:
     >>> radius = pa.hydro_m(pressure, temperature, mu, mplanet, p0, r0)/pc.rjup
     >>> print(radius)
     [1.05973436 1.05188019 1.04414158 1.036516   1.029001   1.02159419
      1.01429324 1.00709591 1.         0.99300339 0.986104  ]
 
-.. py:function:: rhill(smaxis, mplanet, mstar)
+.. py:function:: hill_radius(smaxis, mplanet, mstar)
 .. code-block:: pycon
 
     Compute the Hill radius.  If any argument is None, return inf.
@@ -4721,7 +6003,7 @@ ___________________
          [1 0 0 1]
          [1 0 0 2]
          [1 4 0 0]]
-    
+
 
 .. py:function:: mean_weight(abundances, species=None, molfile=None, mass=None)
 .. code-block:: pycon
@@ -4759,33 +6041,33 @@ ___________________
 .. py:function:: ideal_gas_density(abundances, pressure, temperature)
 .. code-block:: pycon
 
-    Use the Ideal gas law to calculate number density in molecules cm-3.
+    Use the ideal gas law to calculate number density in molecules cm-3.
 
     Parameters
     ----------
-    abundances: 2D float ndarray
-        Species volume mixing fraction, of shape [nlayers,nmol].
-    pressure: 1D ndarray
-        Atmospheric pressure profile (in barye units).
-    temperature: 1D ndarray
+    abundances: 2D float array
+        Species volume mixing fraction.
+        Can have a 2D shape of [nlayers,nmol] or a 1D shape of [nlayers]
+    pressure: 1D array
+        Atmospheric pressure profile (in bars).
+    temperature: 1D array
         Atmospheric temperature profile (in kelvin).
 
     Returns
     -------
-    density: 2D float ndarray
+    density: 2D float array
         Atmospheric density in molecules cm-3.
 
     Examples
     --------
     >>> import pyratbay.atmosphere as pa
-    >>> atmfile = "uniform_test.atm"
     >>> nlayers = 11
-    >>> pressure    = pa.pressure(1e-8, 1e2, nlayers, units='bar')
+    >>> pressure = pa.pressure(1e-8, 1e2, nlayers, units='bar')
     >>> temperature = np.tile(1500.0, nlayers)
-    >>> species     = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
-    >>> abundances  = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
-    >>> qprofiles = pa.uniform(pressure, temperature, species, abundances)
-    >>> dens = pa.ideal_gas_density(qprofiles, pressure, temperature)
+    >>> species = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
+    >>> abundances = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
+    >>> vmr = pa.uniform(abundances, nlayers)
+    >>> dens = pa.ideal_gas_density(vmr, pressure, temperature)
     >>> print(dens[0])
     [4.10241993e+10 7.24297303e+09 4.82864869e+06 4.82864869e+06
      4.82864869e+02 4.82864869e+06]
@@ -4892,7 +6174,7 @@ ___________________
     [1.22803364 2.23606798]
     [1.04455622 1.09637632 1.73205081]
 
-.. py:function:: temperature_posterior(posterior, tmodel, tpars, ifree, pressure)
+.. py:function:: temperature_posterior(posterior, tmodel)
 .. code-block:: pycon
 
     Compute the median and inter-quantiles regions (68% and 95%)
@@ -4900,17 +6182,11 @@ ___________________
 
     Parameters
     ----------
-    posterior: 2D float ndarray [nsamples, nfree]
-        A posterior distribution for tmodel.
+    posterior: 2D float ndarray
+        A posterior distribution for the parameters of tmodel
+        of shape [nsamples, npars].
     tmodel: Callable
         Temperature-profile model.
-    tpars: 1D float iterable [npars]
-        Temperature-profile parameters (including fixed parameters).
-    ifree: 1D bool iterable [npars]
-        Mask of free (True) and fixed (False) parameters in tpars.
-        The number of free parameters must match nfree in posterior.
-    pressure: 1D float ndarray [nlayers]
-        The atmospheric pressure profile in barye.
 
     Returns
     -------
@@ -4928,28 +6204,27 @@ ___________________
     Examples
     --------
     >>> import pyratbay.atmosphere as pa
-    >>> import pyratbay.constants as pc
     >>> import pyratbay.plots as pp
     >>> import numpy as np
 
     >>> # Non-inverted temperature profile:
     >>> pressure = pa.pressure('1e-6 bar', '1e2 bar', nlayers=100)
     >>> tmodel = pa.tmodels.Guillot(pressure)
-    >>> tpars = np.array([-4.0, -1.0, 0.0, 0.0, 1000.0, 0.0])
-    >>> # Simulate posterior where kappa' and gamma are variable:
+
+    >>> # Simulate posterior where log_kappa' and log_gamma1 vary:
     >>> nsamples = 5000
-    >>> ifree = [True, True, False, False, False, False]
-    >>> posterior = np.array([
-    >>>     np.random.normal(tpars[0], 0.5, nsamples),
-    >>>     np.random.normal(tpars[1], 0.1, nsamples)]).T
-    >>> tpost = pa.temperature_posterior(
-    >>>     posterior, tmodel, tpars, ifree, pressure)
+    >>> posterior = np.tile([-4.0, -1.0, 0.0, 0.0, 1000.0, 0.0], (nsamples,1))
+    >>> posterior[:,0] = np.random.normal(-4.0, 0.5, nsamples)
+    >>> posterior[:,1] = np.random.normal(-1.0, 0.5, nsamples)
+
+    >>> # Compute posterior and take a look at it:
+    >>> tpost = pa.temperature_posterior(posterior, tmodel)
     >>> ax = pp.temperature(pressure, profiles=tpost[0], bounds=tpost[1:])
 
 .. py:function:: qcapcheck(vmr, qcap, ibulk)
 .. code-block:: pycon
 
-    Check if the cummulative abundance of traces exceed qcap.
+    Check if the cummulative abundance of traces exceeds qcap.
 
     Parameters
     ----------
@@ -5065,7 +6340,7 @@ ___________________
     >>> print(invsrat)
     [ 0.8  0.8  0.8  0.8  0.8]
 
-.. py:function:: qscale(vmr, species, molmodel, molfree, molpars, bulk, qsat=None, iscale=None, ibulk=None, bratio=None, invsrat=None)
+.. py:function:: vmr_scale(vmr, species, vmr_models, vmr_pars, bulk, qsat=None, iscale=None, ibulk=None, bratio=None, invsrat=None)
 .. code-block:: pycon
 
     Scale specified species abundances and balance bulk abundances to
@@ -5077,18 +6352,16 @@ ___________________
         Volume mixing ratio of atmospheric species [nlayers, nspecies].
     species: 1D string ndarray
         Names of the species in the atmosphere.
-    molmodel: 1D string ndarray
-        Model to vary the species abundances.
-    molfree: 1D string ndarray
-        Names of the species to vary their abundances.
-    molpars: 1D float ndarray
-        Scaling factor (dex) for each species in molfree.
+    vmr_models: iterable of pyratbay.atmosphere.vmr_models instances
+        List of VMR models.  It can also be an individual model.
+    vmr_pars: 1D float ndarray
+        List of parameters for each model in vmr_models.
     bulk: 1D string ndarray
         Names of the bulk (dominant) species.
     qsat: Float
         Maximum allowed combined abundance for trace species.
     iscale: 1D integer ndarray
-        Indices of molfree species in vmr.
+        Indices of mol_model species in vmr.
     ibulk: 1D integer ndarray
         Indices of bulk species in vmr.
     bratio: 2D float ndarray
@@ -5110,20 +6383,28 @@ ___________________
     --------
     >>> import pyratbay.atmosphere as pa
 
-    >>> nlayers = 2
-    >>> vmr = np.tile([0.85, 0.15, 1e-4, 1e-4], (nlayers,1))
-    >>> species = ['H2', 'He' ,'H2O', 'CH4']
-    >>> # Set the H2O abundance to 1.0e-3:
-    >>> molmodel = ['vert']
-    >>> molfree = ['H2O']
-    >>> molpars = [-3.0]
+    >>> nlayers = 51
+    >>> pressure = pa.pressure('1e-7 bar', '100 bar', nlayers)
+    >>> vmr = np.tile([0.85, 0.15, 1e-4, 1e-4, 1e-4, 1e-4], (nlayers,1))
+    >>> species = ['H2', 'He' ,'H2O', 'CH4', 'CO', 'CO2']
+    >>> vmr_models = [
+    >>>     pa.vmr_models.IsoVMR('H2O', pressure),
+    >>>     pa.vmr_models.IsoVMR('CO', pressure),
+    >>> ]
+    >>> # VMR with updated H2O and CO abundances:
+    >>> vmr_pars = [-3.5, -3.3]
     >>> bulk = ['H2', 'He']
-    >>> scaled_vmr = pa.qscale(
-    >>>     vmr, species, molmodel, molfree, molpars, bulk,
-    >>> )
-    >>> print(scaled_vmr)
-    [[8.49065e-01 1.49835e-01 1.00000e-03 1.00000e-04]
-     [8.49065e-01 1.49835e-01 1.00000e-03 1.00000e-04]]
+    >>> scaled_vmr = pa.vmr_scale(vmr, species, vmr_models, vmr_pars, bulk)
+
+    >>> # Show abundances at a layer:
+    >>> for i,mol in enumerate(species):
+    >>>     print(f'VMR_{mol:4s} = {scaled_vmr[0,i]:.5f}')
+    VMR_H2   = 0.84914
+    VMR_He   = 0.14985
+    VMR_H2O  = 0.00032
+    VMR_CH4  = 0.00010
+    VMR_CO   = 0.00050
+    VMR_CO2  = 0.00010
 
 
 pyratbay.atmosphere.tmodels
@@ -5136,26 +6417,19 @@ ___________________________
 
     .. code-block:: pycon
 
-        Isothermal temperature profile model.
-
-
         Parameters
         ----------
         pressure: 1D float iterable
-            Pressure array where to evaluate the temperature profile.
+            Pressure array (bar) where to evaluate the temperature profile.
 
 .. py:class:: Guillot(pressure, gravity=None)
 
     .. code-block:: pycon
 
-        Guillot (2010) temperature profile based on the three-channel
-        Eddington approximation, as described Line et al. (2013)
-
-
         Parameters
         ----------
         pressure: 1D float ndarray
-            Atmospheric pressure profile (barye).
+            Atmospheric pressure profile (bar).
         gravity: 1D float ndarray or scalar
             Atmospheric gravity profile (cm s-2).
             If None, assume a constant gravity of 1 cm s-2, in which
@@ -5169,48 +6443,17 @@ ___________________________
         Ideally, one would wish to input a pressure-dependent gravity,
         but such profile would need to be derived from a hydrostatic
         equilibrium calculation, for example.  Unfortunately, HE cannot
-        be solved without knowing the temperature, thus making this a
-        circular problem (shrug emoji).
-
-.. py:class:: Guillot(pressure, gravity=None)
-
-    .. code-block:: pycon
-
-        Guillot (2010) temperature profile based on the three-channel
-        Eddington approximation, as described Line et al. (2013)
-
-
-        Parameters
-        ----------
-        pressure: 1D float ndarray
-            Atmospheric pressure profile (barye).
-        gravity: 1D float ndarray or scalar
-            Atmospheric gravity profile (cm s-2).
-            If None, assume a constant gravity of 1 cm s-2, in which
-            case, one should regard the kappa parameter as
-            kappa' = kappa/gravity.
-
-        Note that the input gravity can be a scalar value used at all
-        atmospheric pressures (as it has been used so far in the
-        literature.  However, from a parametric point of view, this is
-        redundant, as it only acts as a scaling factor for kappa.
-        Ideally, one would wish to input a pressure-dependent gravity,
-        but such profile would need to be derived from a hydrostatic
-        equilibrium calculation, for example.  Unfortunately, HE cannot
-        be solved without knowing the temperature, thus making this a
-        circular problem (shrug emoji).
+        be solved without knowing the temperature a priori, thus making
+        this a circular problem (shrug emoji).
 
 .. py:class:: Madhu(pressure)
 
     .. code-block:: pycon
 
-        Temperature profile model by Madhusudhan & Seager (2009)
-
-
         Parameters
         ----------
         pressure: 1D float ndarray
-            Pressure array in barye.
+            Pressure array in bar.
 
 .. py:function:: get_model(name, *args, **kwargs)
 .. code-block:: pycon
@@ -5218,193 +6461,77 @@ ___________________________
     Get a temperature-profile model by its name.
 
 
-pyratbay.atmosphere.clouds
-__________________________
+pyratbay.atmosphere.vmr_models
+______________________________
 
 
-.. py:module:: pyratbay.atmosphere.clouds
+.. py:module:: pyratbay.atmosphere.vmr_models
 
-.. py:class:: CCSgray()
-
-    .. code-block:: pycon
-
-        Constant cross-section gray cloud model.
-
-
-        Initialize self.  See help(type(self)) for accurate signature.
-
-    .. py:method:: extinction(wn, pressure)
-    .. code-block:: pycon
-
-        Calculate a uniform gray-cloud cross section in cm2 molec-1:
-           cross section = s0 * 10**pars[0],
-        between layers with pressure 10**pars[1] -- 10**pars[2] bar
-        (top and bottom layers, respectively).
-        s0 is the H2 Rayleigh cross section at 0.35 um.
-
-        Parameters
-        ----------
-        wn:  1D float ndarray
-           Wavenumber array in cm-1.
-
-.. py:class:: Deck()
-
-    .. code-block:: pycon
-
-        Instantly opaque gray cloud deck at given pressure.
-
-
-        Initialize self.  See help(type(self)) for accurate signature.
-
-    .. py:method:: extinction(pressure, radius, temp)
-    .. code-block:: pycon
-
-        Calculate gray-cloud deck model that's optically thin
-        above ptop, and becomes instantly opaque at ptop, with
-        ptop (bar) = 10**pars[0].
-
-        Parameters
-        ----------
-        pressure: 1D float ndarray
-            Atmospheric pressure profile (in barye).
-        radius: 1D float ndarray
-            Atmospheric radius profile (in cm).
-        temp: 1D float ndarray
-            Atmospheric temperature profile (in Kelvin degree).
-
-.. py:function:: get_model(name)
+.. py:function:: hybrid_vmr(model, val, net)
 .. code-block:: pycon
 
-    Get a cloud model by its name.
+    Set a free VMR for a molecule on top of a thermochemical-equilibrium VMR.
+    Care not to exceed the number of available elements.
 
-
-pyratbay.atmosphere.rayleigh
-____________________________
-
-
-.. py:module:: pyratbay.atmosphere.rayleigh
-
-.. py:class:: Dalgarno(mol)
+.. py:class:: MetalEquil()
 
     .. code-block:: pycon
 
-        Rayleigh-scattering model from Dalgarno (1962), Kurucz (1970), and
-        Dalgarno & Williams (1962).
+        Initialize self.  See help(type(self)) for accurate signature.
 
+.. py:class:: ScaleEquil(name)
+
+    .. code-block:: pycon
 
         Parameters
         ----------
-        mol: String
-           The species, which can be H, He, or H2.
+        name: String
+            The element's name, the format must be: [X/H]
+            where 'X' is the element name (e.g.: [C/H], [Na/H], ...).
 
-.. py:class:: Lecavelier()
+.. py:class:: RatioEquil(name)
 
     .. code-block:: pycon
-
-        Rayleigh-scattering model from Lecavelier des Etangs et al. (2008).
-        AA, 485, 865.
-
-
-        Initialize self.  See help(type(self)) for accurate signature.
-
-    .. py:method:: extinction(wn)
-    .. code-block:: pycon
-
-        Calculate the Rayleigh cross section in cm2 molec-1:
-            cross section = f_ray * s0 * (lambda/l0)**alpha_ray,
-        parameterized as params = [log10(f_ray), alpha_ray).
 
         Parameters
         ----------
-        wn:  1D float ndarray
-            Wavenumber array in cm-1.
+        name: String
+            The elements name ratio, the format must be: X/Y
+            where 'X' and 'Y' are the element names (e.g.: C/O, N/O, ...).
 
-.. py:function:: get_model(name)
-.. code-block:: pycon
-
-    Get a Rayleigh model by its name.
-
-
-pyratbay.atmosphere.alkali
-__________________________
-
-
-.. py:module:: pyratbay.atmosphere.alkali
-
-.. py:class:: SodiumVdW(cutoff=4500.0)
+.. py:class:: IsoVMR(species, pressure)
 
     .. code-block:: pycon
 
-        Sodium Van der Waals model (Burrows et al. 2000, ApJ, 531).
+        Parameters
+        ----------
+        species: String
+            The atmospheric species name for this VMR profile model.
+        pressure: 1D float iterable
+            Pressure array (bar) where to evaluate the temperature profile.
 
-
-        Initialize self.  See help(type(self)) for accurate signature.
-
-    .. py:method:: absorption(press, temp, wn)
-    .. code-block:: pycon
-
-        Evaluate alkali model's opacity cross section (cm2 molecule-1).
-
-.. py:class:: PotassiumVdW(cutoff=4500.0)
+.. py:class:: ScaleVMR(species, pressure, vmr0)
 
     .. code-block:: pycon
 
-        Potassium Van der Waals model (Burrows et al. 2000, ApJ, 531).
+        Parameters
+        ----------
+        species: String
+            The atmospheric species name for this VMR profile model.
+        pressure: 1D float iterable
+            Pressure array (bar) where to evaluate the temperature profile.
+        vmr0: 1D float array
 
+.. py:class:: SlantVMR(species, pressure)
 
-        Initialize self.  See help(type(self)) for accurate signature.
-
-    .. py:method:: absorption(press, temp, wn)
     .. code-block:: pycon
 
-        Evaluate alkali model's opacity cross section (cm2 molecule-1).
-
-.. py:function:: get_model(name, *args)
-.. code-block:: pycon
-
-    Get an alkali model by its name.
-
-
-pyratbay.pyrat.read_atm
-_______________________
-
-
-.. py:module:: pyratbay.pyrat.read_atm
-
-
-pyratbay.pyrat.crosssec
-_______________________
-
-
-.. py:module:: pyratbay.pyrat.crosssec
-
-
-pyratbay.pyrat.clouds
-_____________________
-
-
-.. py:module:: pyratbay.pyrat.clouds
-
-
-pyratbay.pyrat.rayleigh
-_______________________
-
-
-.. py:module:: pyratbay.pyrat.rayleigh
-
-
-pyratbay.pyrat.alkali
-_____________________
-
-
-.. py:module:: pyratbay.pyrat.alkali
-
-
-pyratbay.pyrat.optical_depth
-____________________________
-
-
-.. py:module:: pyratbay.pyrat.optical_depth
+        Parameters
+        ----------
+        species: String
+            The atmospheric species name for this VMR profile model.
+        pressure: 1D float iterable
+            Pressure array (bar) where to evaluate the temperature profile.
 
 
 pyratbay.pyrat.spectrum
@@ -5413,26 +6540,18 @@ _______________________
 
 .. py:module:: pyratbay.pyrat.spectrum
 
+.. py:class:: Spectrum(inputs, log)
+
+    .. code-block:: pycon
+
+    .. code-block:: pycon
+
+        Make the wavenumber sample from user inputs.
+
 .. py:function:: spectrum(pyrat)
 .. code-block:: pycon
 
     Spectrum calculation driver.
-
-.. py:function:: modulation(pyrat)
-.. code-block:: pycon
-
-    Calculate modulation spectrum for transit geometry.
-
-.. py:function:: intensity(pyrat)
-.. code-block:: pycon
-
-    Calculate the intensity spectrum [units] for eclipse geometry.
-
-.. py:function:: flux(pyrat)
-.. code-block:: pycon
-
-    Calculate the hemisphere-integrated flux spectrum [units] for eclipse
-    geometry.
 
 .. py:function:: two_stream(pyrat)
 .. code-block:: pycon
