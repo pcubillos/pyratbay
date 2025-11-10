@@ -67,7 +67,7 @@ class Atmosphere():
 
         The rules are simple:
         - if there is a model in the config file, calculate the property
-        - else if there is an input atmfile or ptfile, read properties from file
+        - else if there is an input atmfile, read properties from file
         - else, skip the calculation
         - if calculate p, any further reads (T,VMR,r) will interpolate
         """

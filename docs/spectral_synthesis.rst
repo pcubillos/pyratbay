@@ -14,7 +14,7 @@ spectra with ``Pyrat Bay``.
 - :ref:`spec_wavelength`
 - :ref:`spec_observations`
 - :ref:`spec_atmosphere`
-- :ref:`spec_opacities`
+- :ref:`spec_cross_sec`
 - :ref:`spec_parameters`
 - :ref:`spec_demo`
 
@@ -49,6 +49,11 @@ geometry to use.  These are the options:
      - (|Rp|/|Rs|)\ :sup:`2`
      - Transmission spectrum
 
+   * -
+     -
+     -
+     -
+
    * - Eclipse
      - ``eclipse``
      - |Fp|/|Fs|
@@ -57,21 +62,26 @@ geometry to use.  These are the options:
    * - Eclipse
      - ``eclipse_two_stream``
      - |Fp|/|Fs|
-     - Occultation spectrum
+     - Appendix B of [Heng2014]_
+
+   * -
+     -
+     -
+     -
 
    * - Emission
      - ``emission``
-     - |Fp| (erg s\ :sup:`-1` cm\ :sup:`-2` cm)
+     - |Fp| (|flux_cgs|)
      - Flux at the planet's surface
 
    * - Emission
      - ``emission_two_stream``
-     - |Fp| (erg s\ :sup:`-1` cm\ :sup:`-2` cm)
-     - Flux at the planet's surface
+     - |Fp| (|flux_cgs|)
+     - Appendix B of [Heng2014]_
 
    * - Emission
      - ``f_lambda``
-     - |Fp| (W m\ :sup:`-2` μm\ :sup:`-1`)
+     - |Fp| (|flux_lambda|)
      - Flux measured at Earth
 
 
@@ -79,9 +89,9 @@ Here is a sample configuration file to compute a
 transmission spectrum:
 
 
-.. literalinclude:: ../examples/tutorial/spectrum_transmission.cfg
+.. literalinclude:: _static/data/spectral_synthesis_transmission.cfg
    :language: ini
-   :caption: File `spectrum_transmission.cfg <../../_static/data/tutorial/spectrum_transmission.cfg>`__
+   :caption: File `spectral_synthesis_transmission.cfg <_static/data/spectral_synthesis_transmission.cfg>`__
 
 
 The output spectrum can be set with the ``specfile`` key, otherwise it
@@ -183,54 +193,52 @@ set a stellar spectrum.
 Atmosphere Model
 ----------------
 
-Users can choose to compute the
-The ``atmfile`` key sets the input atmospheric model from which to
-compute the spectrum.  If the file pointed by ``atmfile`` does not
-exist, the codel will attempt to produce it (provided all necessary
-input parameters are set in the configuration file).  The atmospheric
-model can be produced with ``Pyrat Bay`` or be a custom input from the
-user.
+There are four main atmospheric properties to consider
+(computed in this order): the pressure profile, the temperature, the
+volume mixing ratios (VMRs), and the radius profile.
+
+These properties can (a) be read from an input file (``atmfile``),
+(b) be computed from parametric models, or (c) be calculated from a
+mix of them.  The rules are simple:
+
+- if there is an input atmosphere file,  read properties from file
+- if a model and its parameters are defined, the property will be
+  calculculated from the model (overwritting a )
 
 
-The user can re-compute the temperature profile of the atmosphere by
-specifying the ``tmodel`` and ``tpars`` keys (see :ref:`temp_profile`).
+.. tab-set::
+
+  .. tab-item:: atmospheric file
+     :selected:
+
+     The ``atmfile`` key sets the input atmospheric model from which
+     to compute the spectrum.  If the file pointed by ``atmfile`` does
+     not exist, the codel will attempt to produce it (provided all
+     necessary input parameters are set in the configuration file).
+     The atmospheric model can be produced with ``Pyrat Bay`` or be a
+     custom input from the user.
+
+     .. code-block:: ini
+
+         # Input atmospheric profile
+         atmfile = wasp80b_custom_profile.atm
 
 
-Link to Atmosphere section:
+  .. tab-item:: atmospheric models
 
-- pressure
-- temperature
-- VMRs
-- radius / hydrostatic-equilibrium
+     See these sections to compute atmospheric profiles from models:
+
+     - :ref:`pressure`
+     - :ref:`temperature_profile`
+     - :ref:`VMRs <abundance_profile>`
+     - :ref:`radius_profile`
 
 
-Abundances Scaling
-------------------
+  .. tab-item:: combined file and models
 
-Use the ``molvars`` and ``molpars`` keys to modify the abundance of
-certain atmospheric species.  There are two sets of options depending
-on whether the atmosphere is modeled in chemical equilibrium or not.
-The following tables describe the available models (when the
-corresponding ``molpars`` is :math:`x`).
+     TBD
 
-In this case the parameters modify directly the VMR of specific
-species.  To preserve the sum of the VMR at 1.0 at each layer, the
-code will adjust the values of custom '*bulk*' species defined using
-the ``bulk`` key.  A good practice is to set here the dominant species
-in an atmosphere (e.g., ``bulk = H2 He`` for primary atmospheres).  If there
-is more than one '*bulk*' species, the code preserves the relative
-VMRs ratios between the bulk species.
-
-For example, the following configuration will set uniform mole mixing
-fractions for |H2O| and CO of :math:`10^{-3}` and :math:`10^{-4}`,
-respectively; and adjust the abundances of |H2| and He to
-preserve a total mixing fraction of 1.0 at each layer:
-
-.. code-block:: python
-
-  molvars = log_H2O log_CO
-  molpars = -3.0    -4.0
-  bulk = H2 He
+     .. if calculate p, any further reads (T,VMR,r) will interpolate
 
 
 .. _spec_wavelength:
@@ -238,7 +246,7 @@ preserve a total mixing fraction of 1.0 at each layer:
 Spectrum sampling
 -----------------
 
-The ``wllow`` and ``wl_high`` keys set the wavelength boundaries for
+The ``wl_low`` and ``wl_high`` keys set the wavelength boundaries for
 the output spectrum (values must contain units; otherwise, set the
 units with the ``wlunits`` key).
 
@@ -259,34 +267,20 @@ setting the ``resolution`` key (where the resolution is
 :math:`R=\lambda/\Delta\lambda`).
 
 
-.. _spec_opacities:
+.. _spec_cross_sec:
 
-Opacities
----------
+Cross sections
+--------------
 
-Link to Absorbers.
+See the following sections for available cross sections:
 
-- sampled cross sections
-- CIA
-- alkali
-- H-
-- rayleigh
-- clouds
+- :ref:`cs_sampled`
+- :ref:`Continuum cross sections (CIA) <cs_cia>`
+- :ref:`Alkali doublets <cs_alkali>`
+- :ref:`cs_rayleigh`
+- :ref:`cs_h_ion`
+- :ref:`cs_clouds`
 
-
-Patchy Cloud/Hazes
-~~~~~~~~~~~~~~~~~~
-
-Set the ``fpatchy`` argument to compute transmission spectra from a
-linear combination of a clear and cloudy/hazy spectra.  The
-cloudy/hazy component will include the opacity defined by the
-:ref:`cloud_opacity` and the ``lecavelier`` :ref:`rayleigh_opacity`.
-For example, for a 45% cloudy / 55% clear atmosphere, set:
-
-.. code-block:: python
-
-  # Patchy fraction, value between [0--1]:
-  fpatchy = 0.45
 
 
 Flux dilution factor
@@ -402,7 +396,7 @@ Examples
    .. code-block:: shell
 
        tutorial_path=https://raw.githubusercontent.com/pcubillos/pyratbay/master/examples/tutorial
-       wget $tutorial_path/spectrum_transmission.cfg
+       wget https://zenodo.org/records/16965391/files/cross_section_0.15-33.0um_0200-5000K_R025K_H2O_exomol_pokazatel.npz
 
 
 In an interactive run, a spectrum run returns a '*pyrat*' object that

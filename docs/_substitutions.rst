@@ -4,7 +4,7 @@
 .. |SO2| replace:: SO₂
 .. |CH4| replace:: CH⁴
 .. |C2H2| replace:: C₂H₂
-.. |NH3| replace:: NH³
+.. |NH3| replace:: NH₃
 .. |H2|  replace:: H₂
 .. |H-|  replace:: H⁻
 .. |e-|  replace:: e⁻
@@ -18,9 +18,11 @@
 
 .. |kms| replace:: km s\ :sup:`-1`
 .. |kayser| replace:: cm\ :sup:`-1`
-.. |f|    replace:: :math:`\log(f)`
 .. |nu|   replace:: :math:`\nu`
 .. |lambda|   replace:: :math:`\lambda`
+.. |flux_cgs| replace:: erg s⁻¹ cm⁻² cm
+.. |flux_lambda| replace:: W m⁻² μm⁻¹
+.. |micron| replace:: μm
 
 .. |kappa|  replace:: :math:`\log_{10}(\kappa')`
 .. |gamma1| replace:: :math:`\log_{10}(\gamma_1)`

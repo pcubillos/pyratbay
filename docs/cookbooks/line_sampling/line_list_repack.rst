@@ -161,7 +161,7 @@ Compute cross-section tables
 As with TLI files, cross-section files can be generated via
 configuration files and the command line. The config file below
 computes a cross-section table (with the output name determined by the
-``extfile`` or ``logfile`` parameters).
+``sampled_cross_sec`` or ``logfile`` parameters).
 
 These parameters define each array of the cross-section table:
 
@@ -179,8 +179,8 @@ which we are computing the cross-sections. Also, include the
 *background* gas, which is relevant for the pressure broadening (here,
 we assume a H2/He-dominated atmosphere). Only the VMR values of the
 background gasses are important, trace-gas VMRs are irrelevant (see
-``chemistry`` or ``uniform``. ``tmodel`` and ``tpars`` are needed to
-define the atmosphere’s temperature profile, but for an opacity run,
+``chemistry`` or ``uniform_vmr``. ``tmodel`` and ``tpars`` are needed to
+define the atmosphere's temperature profile, but for an opacity run,
 these do not impact the calculations.
 
 The optional ``voigt_extent`` and ``voigt_cutoff`` keys set the extent
