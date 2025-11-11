@@ -49,6 +49,9 @@ class MassGravity():
 
 
 class Atmosphere():
+    """
+    Atmosphere object.
+    """
     mplanet = MassGravity()  # Planetary mass
     gplanet = MassGravity()  # Planetary surface gravity (at rplanet)
 
@@ -64,7 +67,7 @@ class Atmosphere():
 
         The rules are simple:
         - if there is a model in the config file, calculate the property
-        - else if there is an input atmfile or ptfile, read properties from file
+        - else if there is an input atmfile, read properties from file
         - else, skip the calculation
         - if calculate p, any further reads (T,VMR,r) will interpolate
         """
@@ -439,7 +442,7 @@ class Atmosphere():
                      "doesn't match the shape of the Pyrat VMR "
                     f"{np.shape(self.vmr)}"
                 )
-        elif self.chemistry == 'tea':
+        elif self.chemistry == 'equilibrium':
             metallicity = None
             e_ratio = {}
             e_scale = {}
@@ -570,9 +573,9 @@ class Atmosphere():
                 )
             return
 
-        in_equillibrium = self.chemistry == 'tea'
+        in_equillibrium = self.chemistry == 'equilibrium'
         if not in_equillibrium:
-            self.log.error(f"vmr_vars variable '{var}' requires chemistry=tea")
+            self.log.error(f"vmr_vars variable '{var}' requires chemistry=equilibrium")
         for element in elements:
             if element not in self.chem_model.elements:
                 self.log.error(
@@ -647,7 +650,7 @@ class Atmosphere():
         # Hybrid free VMRs into an equilibrium chemistry model
         self._is_hybrid_model = np.zeros(len(self.vmr_models), dtype=bool)
         for i,model in enumerate(self.vmr_models):
-            if self.chemistry == 'tea' and model.type == 'free':
+            if self.chemistry == 'equilibrium' and model.type == 'free':
                 # At the moment, only IsoVMR is enabled
                 if not model.name.startswith('log_'):
                     continue
@@ -1009,7 +1012,7 @@ def check_chemistry(inputs, log, t_status):
         )
 
     # Uniform-abundances profile:
-    if inputs.chemistry == 'uniform':
+    if inputs.chemistry == 'free':
         if inputs.uniform_vmr is None:
             log.error(
                 'Undefined list of uniform volume mixing ratios '

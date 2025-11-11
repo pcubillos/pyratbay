@@ -4,8 +4,12 @@
 """Cloud opacity models."""
 
 from .gray import *
+from .lecavelier import *
 
-__all__ = gray.__all__
+__all__ = (
+    gray.__all__ +
+    lecavelier.__all__
+)
 
 
 # Clean up top-level namespace--delete everything that isn't in __all__

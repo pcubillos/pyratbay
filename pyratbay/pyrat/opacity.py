@@ -70,7 +70,7 @@ class Opacity():
             # TBD: self.ls_files?
             ls = op.Line_Sample(
                 inputs.sampled_cs, pressure=pressure, temperature=temp_array,
-                min_wn=min_wn, max_wn=max_wn, wn_thinning=inputs.wn_thinning,
+                min_wn=min_wn, max_wn=max_wn, wl_thinning=inputs.wl_thinning,
                 log=log, isotope_ratios=inputs.isotope_ratios,
             )
             self.models.append(ls)
@@ -152,61 +152,43 @@ class Opacity():
             self.tmax['cia'] = np.amin(tmax)
 
         if inputs.rayleigh is not None:
-            npars = 0
             for name in inputs.rayleigh:
-                if name.startswith('dalgarno_'):
+                if name.startswith('rayleigh_'):
                     mol = name.split('_')[1]
-                    model = op.rayleigh.Dalgarno(wn, mol)
-                    self.models_type.append('rayleigh')
-                if name == 'lecavelier':
-                    model = op.rayleigh.Lecavelier(wn)
-                    self.models_type.append('cloud')
+                    model = op.rayleigh.Kurucz(wn, mol)
+                self.models_type.append('rayleigh')
                 self.models.append(model)
                 self.nspec.append(1)
                 self.pnames.append(model.pnames)
 
                 check_species_exists(model.species, species, model.name, log)
                 self.mol_indices.append(species.index(model.species))
-                # Parse parameters:
-                if inputs.rpars is None:
-                    model.pars = np.tile(np.nan, model.npars)
-                elif len(inputs.rpars) >= npars+model.npars:
-                    model.pars = inputs.rpars[npars:npars+model.npars]
-                npars += model.npars
-
-            n_input = npars if inputs.rpars is None else len(inputs.rpars)
-            if n_input != npars:
-                log.error(
-                    f'Number of input Rayleigh parameters ({n_input}) does not '
-                    f'match the number of required model parameters ({npars})'
-                )
 
         if inputs.clouds is not None:
-            npars = 0
-            for name in inputs.clouds:
+            cloud_vars, cloud_pars = pt.parse_var_vals(inputs.clouds)
+            for name, pars in zip(cloud_vars, cloud_pars):
                 if name == 'ccsgray':
                     model = op.clouds.CCSgray(pressure, wn)
-                if name == 'deck':
+                elif name == 'deck':
                     model = op.clouds.Deck(pressure, wn)
+                elif name == 'lecavelier':
+                    model = op.clouds.Lecavelier(pressure, wn=wn)
+                self.mol_indices.append(None)
                 self.models.append(model)
                 self.models_type.append('cloud')
-                self.mol_indices.append(None)
                 self.nspec.append(1)
                 self.pnames.append(model.pnames)
 
-                # Parse parameters:
-                if inputs.cpars is None:
+                if pars is None:
                     model.pars = np.tile(np.nan, model.npars)
-                elif len(inputs.cpars) >= npars+model.npars:
-                    model.pars = inputs.cpars[npars:npars+model.npars]
-                npars += model.npars
-
-            n_input = npars if inputs.cpars is None else len(inputs.cpars)
-            if n_input != npars:
-                log.error(
-                    f'Number of input cloud parameters ({n_input}) does not '
-                    f'match the number of required model parameters ({npars})'
-                )
+                elif len(pars) != model.npars:
+                    log.error(
+                        f'Number of input parameters ({len(pars)}) does '
+                        'not match the number of required parameters '
+                        f'({model.npars}) for model {repr(name)}'
+                    )
+                else:
+                    model.pars = np.array(pars)
 
         if inputs.h_ion is not None:
             model = op.Hydrogen_Ion(wn)
@@ -257,9 +239,9 @@ class Opacity():
             if model.name == 'deck':
                 args['temperature'] = temperature
                 args['radius'] = radius
-            elif model.name == 'ccsgray':
+            elif model.name in ['lecavelier', 'ccsgray']:
                 args['temperature'] = temperature
-            elif model_type in ['rayleigh', 'cloud']:
+            elif model_type == 'rayleigh':
                 args['density'] = density
             else:
                 args['temperature'] = temperature
@@ -292,7 +274,9 @@ class Opacity():
             if model.name == 'deck':
                 args['temperature'] = temperature
                 args['radius'] = None
-            elif model_type in ['rayleigh', 'cloud']:
+            elif model.name in ['lecavelier', 'ccsgray']:
+                args['temperature'] = temperature
+            elif model_type == 'rayleigh':
                 args['density'] = density
             elif model_type == 'cia':
                 args['temperature'] = temperature[layer]
@@ -304,7 +288,7 @@ class Opacity():
 
             if self.models_type[i] == 'line_sample':
                 args['per_mol'] = True
-            # npars>0 requrements is if for Dalgarno Rayleigh models that
+            # npars>0 requrements is if for Rayleigh models, which
             # have 0 free params ... TBD: remove model.pars from them?
             if hasattr(model, 'pars') and model.npars > 0:
                 args['pars'] = model.pars

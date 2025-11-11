@@ -1,20 +1,28 @@
-.. |H2O| replace:: H\ :sub:`2`\ O
-.. |H2S| replace:: H\ :sub:`2`\ S
-.. |CO2| replace:: CO\ :sub:`2`
-.. |SO2| replace:: SO\ :sub:`2`
-.. |CH4| replace:: CH\ :sub:`4`
-.. |C2H2| replace:: C\ :sub:`2`\ H\ :sub:`2`
-.. |NH3| replace:: NH\ :sub:`3`
-.. |H2|  replace:: H\ :sub:`2`
-.. |H-|  replace:: H\ :sup:`-`
+.. |H2O| replace:: H₂O
+.. |H2S| replace:: H₂S
+.. |CO2| replace:: CO₂
+.. |SO2| replace:: SO₂
+.. |CH4| replace:: CH⁴
+.. |C2H2| replace:: C₂H₂
+.. |NH3| replace:: NH₃
+.. |H2|  replace:: H₂
+.. |H-|  replace:: H⁻
+.. |e-|  replace:: e⁻
 
 .. |Rp|  replace:: :math:`R_{\rm p}`
 .. |Rs|  replace:: :math:`R_{\rm s}`
 .. |Fp|  replace:: :math:`F_{\rm p}`
 .. |Fs|  replace:: :math:`F_{\rm s}`
+.. |Rj|  replace:: :math:`R_{\rm jup}`
+.. |Mj|  replace:: :math:`M_{\rm jup}`
+
+.. |kms| replace:: km s\ :sup:`-1`
 .. |kayser| replace:: cm\ :sup:`-1`
-.. |f|    replace:: :math:`\log(f)`
 .. |nu|   replace:: :math:`\nu`
+.. |lambda|   replace:: :math:`\lambda`
+.. |flux_cgs| replace:: erg s⁻¹ cm⁻² cm
+.. |flux_lambda| replace:: W m⁻² μm⁻¹
+.. |micron| replace:: μm
 
 .. |kappa|  replace:: :math:`\log_{10}(\kappa')`
 .. |gamma1| replace:: :math:`\log_{10}(\gamma_1)`

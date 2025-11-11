@@ -43,7 +43,7 @@ def test_eclipse_clear(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_eclipse_test.cfg',
-        remove=['sampled_cross_sec', 'continuum_cross_sec', 'rayleigh', 'alkali', 'clouds'],
+        remove=['sampled_cross_sec', 'continuum_cross_sec', 'alkali', 'clouds'],
     )
     pyrat = pb.run(cfg)
     spectrum = (
@@ -58,7 +58,7 @@ def test_eclipse_sampled_cs(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_eclipse_test.cfg',
-        remove=['continuum_cross_sec', 'rayleigh', 'clouds', 'alkali'],
+        remove=['continuum_cross_sec', 'clouds', 'alkali'],
     )
     pyrat = pb.run(cfg)
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['sampled_cs'], rtol=rtol)
@@ -71,7 +71,7 @@ def test_eclipse_tli(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_eclipse_test.cfg',
-        remove=['sampled_cross_sec', 'continuum_cross_sec', 'rayleigh', 'clouds', 'alkali'],
+        remove=['sampled_cross_sec', 'continuum_cross_sec', 'clouds', 'alkali'],
         reset=reset,
     )
     pyrat = pb.run(cfg)
@@ -83,7 +83,8 @@ def test_eclipse_lecavelier(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_eclipse_test.cfg',
-        remove=['sampled_cross_sec', 'continuum_cross_sec', 'alkali', 'clouds'],
+        remove=['sampled_cross_sec', 'continuum_cross_sec', 'alkali'],
+        reset={'clouds': 'lecavelier 2.0 -4.0'}
     )
     pyrat = pb.run(cfg)
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['lec'], rtol=rtol)
@@ -93,7 +94,7 @@ def test_eclipse_CIA(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_eclipse_test.cfg',
-        remove=['sampled_cross_sec', 'rayleigh', 'alkali', 'clouds'],
+        remove=['sampled_cross_sec', 'alkali', 'clouds'],
     )
     pyrat = pb.run(cfg)
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['cia'], rtol=rtol)
@@ -103,8 +104,8 @@ def test_eclipse_alkali(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_eclipse_test.cfg',
-        remove=['sampled_cross_sec', 'continuum_cross_sec', 'rayleigh', 'clouds'],
-        reset={'wllow':'0.45 um', 'wlhigh':'1.0 um'},
+        remove=['sampled_cross_sec', 'continuum_cross_sec', 'clouds'],
+        reset={'wl_low':'0.45 um', 'wl_high':'1.0 um'},
     )
     pyrat = pb.run(cfg)
     np.testing.assert_allclose(
@@ -116,8 +117,8 @@ def test_eclipse_deck(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_eclipse_test.cfg',
-        remove=['sampled_cross_sec', 'continuum_cross_sec', 'rayleigh', 'alkali'],
-        reset={'cpars':'-1'},
+        remove=['sampled_cross_sec', 'continuum_cross_sec', 'alkali'],
+        reset={'clouds': 'deck -1.0'},
     )
     pyrat = pb.run(cfg)
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['deck'], rtol=rtol)
@@ -131,7 +132,6 @@ def test_eclipse_all(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_eclipse_test.cfg',
-        remove=['clouds'],
     )
     pyrat = pb.run(cfg)
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['all'], rtol=rtol)
@@ -140,7 +140,7 @@ def test_eclipse_all(tmp_path):
 def test_eclipse_patchy(tmp_path):
     reset = {
         'fpatchy': '0.5',
-        'rpars': '10.0 -15.0',
+        'clouds': 'deck -3.0\nlecavelier 10.0 -15.0',
     }
     cfg_file = ROOT+'tests/configs/spectrum_eclipse_test.cfg'
     cfg = make_config(tmp_path, cfg_file, reset=reset)
@@ -169,7 +169,6 @@ def test_eclipse_quadrature(tmp_path):
         tmp_path,
         ROOT+'tests/configs/spectrum_eclipse_test.cfg',
         reset={'quadrature': '5'},
-        remove=['clouds'],
     )
     pyrat = pb.run(cfg)
     spectrum = pyrat.spec.spectrum
@@ -181,7 +180,6 @@ def test_eclipse_two_stream(tmp_path):
         tmp_path,
         ROOT+'tests/configs/spectrum_eclipse_test.cfg',
         reset={'rt_path': 'eclipse_two_stream'},
-        remove=['clouds'],
     )
     pyrat = pb.run(cfg)
     spectrum = pyrat.spec.spectrum
@@ -196,7 +194,7 @@ def test_eclipse_resolution(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_eclipse_test.cfg',
-        remove=['sampled_cross_sec', 'clouds'],
+        remove=['sampled_cross_sec'],
         reset=reset,
     )
     pyrat = pb.run(cfg)
@@ -212,7 +210,6 @@ def test_eclipse_dilution(tmp_path):
         tmp_path,
         ROOT+'tests/configs/spectrum_eclipse_test.cfg',
         reset=reset,
-        remove=['clouds'],
     )
     pyrat = pb.run(cfg)
     np.testing.assert_allclose(
@@ -228,20 +225,20 @@ def test_eclipse_odd_even(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_eclipse_test.cfg',
-        reset={'rpars':'1.0 -4.0'},
-        remove=['sampled_cross_sec', 'alkali', 'clouds'],
+        remove=['sampled_cross_sec', 'alkali'],
+        reset={'clouds':'lecavelier  1.0 -4.0'},
     )
     pyrat = pb.run(cfg)
     odd_spectrum = pyrat.spec.spectrum
 
     reset = {
         'atmfile': f'{INPUTS}atmosphere_uniform_even_layers.atm',
-        'rpars': '1.0 -4.0',
+        'clouds': 'lecavelier 1.0 -4.0',
     }
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_eclipse_test.cfg',
-        remove=['sampled_cross_sec', 'alkali', 'clouds'],
+        remove=['sampled_cross_sec', 'alkali'],
         reset=reset,
     )
     pyrat = pb.run(cfg)
@@ -258,7 +255,6 @@ def test_eclipse_tmodel(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_eclipse_test.cfg',
-        remove=['clouds', 'cpars'],
         reset=reset,
     )
     pyrat = pb.run(cfg)
@@ -272,7 +268,6 @@ def test_eclipse_tmodel_no_tpars(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_eclipse_test.cfg',
-        remove=['clouds', 'cpars'],
         reset={'tmodel': 'guillot'},
     )
     error = re.escape('Not all temperature parameters were defined (tpars)')
@@ -288,7 +283,6 @@ def test_eclipse_vert_model(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_eclipse_test.cfg',
-        remove=['clouds', 'cpars'],
         reset=reset,
     )
     pyrat = pb.run(cfg)
@@ -303,7 +297,6 @@ def test_eclipse_vert_model_no_molpars(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_eclipse_test.cfg',
-        remove=['clouds', 'cpars'],
         reset=reset,
     )
     error = re.escape('Not all vmr parameter values were defined (vmr_vars)')
@@ -319,7 +312,6 @@ def test_eclipse_scale_model(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_eclipse_test.cfg',
-        remove=['clouds', 'cpars'],
         reset=reset,
     )
     pyrat = pb.run(cfg)
@@ -341,12 +333,12 @@ def test_eclipse_band_integrate_no_data():
     bandflux = pyrat.band_integrate()
 
     expected_bandflux = [
-        2.0600788319e-04, 2.2919658941e-04, 2.4065562405e-04, 2.8029874812e-04,
-        3.0155157632e-04, 3.1963498262e-04, 3.3379724117e-04, 3.3539207179e-04,
-        3.2066247922e-04, 2.4138123734e-04, 2.6113192476e-04, 2.6163135874e-04,
-        2.6030040874e-04, 3.0940015836e-04, 3.3163344643e-04, 3.9102537977e-04,
-        4.5804719858e-04, 4.9061725664e-04, 5.3090560619e-04, 5.5291950762e-04,
-        5.6982335860e-04,
+        2.0592996064e-04, 2.2911498576e-04, 2.4057897739e-04, 2.8020997812e-04,
+        3.0146269875e-04, 3.1954832927e-04, 3.3371552773e-04, 3.3532023340e-04,
+        3.2060297850e-04, 2.4134939329e-04, 2.6110131318e-04, 2.6160407387e-04,
+        2.6027637033e-04, 3.0937133580e-04, 3.3160401113e-04, 3.9098940594e-04,
+        4.5800429309e-04, 4.9057321934e-04, 5.3085894000e-04, 5.5287412452e-04,
+        5.6978009081e-04,
     ]
     #print(' '.join([f'{flux:.10e},' for flux in bandflux]))
     np.testing.assert_allclose(pyrat.spec.spectrum, spectrum)

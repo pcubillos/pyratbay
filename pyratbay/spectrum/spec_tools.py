@@ -631,15 +631,15 @@ def tophat(wl0, width, margin=None, dlambda=None, resolution=None, ffile=None):
         raise ValueError('Either dlambda or resolution must be defined.')
 
     # Wavelength array:
-    wllow  = wl0 - 0.5*width - margin
-    wlhigh = wl0 + 0.5*width + margin
+    wl_low  = wl0 - 0.5*width - margin
+    wl_high = wl0 + 0.5*width + margin
     if dlambda is not None:
-        wl = np.arange(wllow, wlhigh, dlambda)
+        wl = np.arange(wl_low, wl_high, dlambda)
     else:
         f = 0.5 / resolution
         g = (1.0-f) / (1.0+f)
-        imax = int(np.ceil(np.log(wllow/wlhigh) / np.log(g))) + 1
-        dwl = wlhigh * g**np.arange(imax)
+        imax = int(np.ceil(np.log(wl_low/wl_high) / np.log(g))) + 1
+        dwl = wl_high * g**np.arange(imax)
         wl = 0.5 * np.flip(dwl[1:] + dwl[:-1], axis=0)
 
     transmission = np.array(np.abs(wl-wl0) < 0.5*width, np.double)

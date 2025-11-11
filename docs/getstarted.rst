@@ -6,9 +6,9 @@ Getting Started
 ===============
 
 ``Pyrat Bay`` is a multi-purpose package that enables the modeling of
-exoplanet atmospheres and their spectra.  These can involve several
-different physical processes.  The following table summarizes the
-modeling capabilities enabled by ``Pyrat Bay``:
+exoplanet atmospheres and their spectra [CubillosBlecic2021]_.  These
+can involve several different physical processes.  The following table
+summarizes the modeling capabilities enabled by ``Pyrat Bay``:
 
 .. list-table:: 
    :header-rows: 1
@@ -16,7 +16,7 @@ modeling capabilities enabled by ``Pyrat Bay``:
 
    * - Calculation
      - Description
-     - Output
+     - Outputs
    * - :doc:`line_sampling`
      - Sample line-transition data (Exomol, HITEMP) into cross-section spectra at a
        fixed grid of pressures, temperatures, and wavenumbers
@@ -28,7 +28,7 @@ modeling capabilities enabled by ``Pyrat Bay``:
    * - :doc:`spectral_synthesis`
      - Radiative-transfer calculations given an input exoplanet atmosphere
      - Transit-depth, eclipse-depth, and/or emission spectra
-   * - :doc:`atmospheric_retrievals`
+   * - :doc:`retrieval_tutorial`
      - Given an exoplanet parametric model and a spectroscopic observation,
        infer the exoplanet atmospheric properties
      - Posterior distribution of planetary model parameters

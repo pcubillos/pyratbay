@@ -112,7 +112,7 @@ for each ``dblist`` file). Alternatively, one can set ``pflist=tips`` to
 use the partition functions from [Gamache2017]_ [Gamache2021]_.
 
 Lastly, the user can specify the wavelength range of the extracted data
-(see ``wllow`` and ``wlhigh``). Normally one want to the widest possible
+(see ``wl_low`` and ``wl_high``). Normally one want to the widest possible
 range (to avoid needing to re-calculating TLI files if a future
 calculation needs it), but for sake of this demo, we will extract just
 over a narrow region:
@@ -133,7 +133,8 @@ Compute cross-section tables
 
 As with TLI files, cross-section files can be generated via
 configuration files and the command line. The config file below
-computes a cross-section table (with the output name determined by the ``extfile`` or ``logfile`` parameters).
+computes a cross-section table (with the output name determined by the
+``sampled_cross_sec`` or ``logfile`` parameters).
 
 These parameters define each array of the cross-section table:
 
@@ -141,7 +142,7 @@ These parameters define each array of the cross-section table:
    pressure sampling array
 -  The ``tmin``, ``tmax``, and ``tstep`` parameters define the
    temperature sampling array
--  The ``wllow``, ``wlhigh``, and ``resolution`` parameters define the
+-  The ``wl_low``, ``wl_high``, and ``resolution`` parameters define the
    spectral array at a constant resolution (alternatively, one can
    replace ``resolution`` with ``wnstep`` to sample at constant
    :math:`\Delta \text{wavenumber}`, units in cm\ :math:`^{-1}`)
@@ -151,7 +152,7 @@ which we are computing the cross-sections. Also, include the
 *background* gas, which is relevant for the pressure broadening (here,
 we assume a H2/He-dominated atmosphere). Only the VMR values of the
 background gasses are important, trace-gas VMRs are irrelevant (see
-``chemistry`` or ``uniform``. ``tmodel`` and ``tpars`` are needed to
+``chemistry`` or ``uniform_vmr``. ``tmodel`` and ``tpars`` are needed to
 define the atmosphere’s temperature profile, but for an opacity run,
 these do not impact the calculations.
 

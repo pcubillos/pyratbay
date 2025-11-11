@@ -584,7 +584,7 @@ def write_opacity(ofile, species, temp, press, wn, opacity):
         Pressure array (bar).
     wn: 1D float ndarray
         Wavenumber array (cm-1).
-    opacity: 4D float ndarray
+    opacity: 3D float ndarray
         Tabulated opacities (cm2 molecule-1) of shape [ntemp, nlayers, nwave].
     """
     if not isinstance(species, str):
@@ -633,9 +633,9 @@ def read_opacity(ofile, extract='all'):
         The pressure array (bar)
     wn: 1D float array
         The wavenumber array (cm-1)
-    opacity: 4D float ndarray tuple
+    opacity: 3D float ndarray tuple
         The tabulated opacities (cm2 molecule-1), of shape
-        [nspec, ntemp, nlayers, nwave].
+        [ntemp, nlayers, nwave].
     """
     if ofile.endswith('petitRADTRANS.h5'):
         with h5py.File(ofile, 'r') as f:

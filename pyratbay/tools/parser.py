@@ -9,6 +9,7 @@ __all__ = [
     'parse_int',
     'parse_float',
     'parse_array',
+    'parse_var_vals',
 ]
 
 import os
@@ -380,6 +381,41 @@ def parse_array(args, param):
     args[param] = val
 
 
+def parse_var_vals(var_input):
+    """
+    Parse keys that contain variable and values
+    """
+    if var_input is None:
+        return [], []
+    # parse models and parameters
+    inputs = [
+        par for par in var_input.splitlines()
+        if par != ''
+    ]
+    # if any item is a number, then assume {vars,pars} pairs per line
+    has_pars = np.any([
+        pt.is_number(val)
+        for vars in inputs
+        for val in vars.split()
+    ])
+
+    input_vars = []
+    input_pars = []
+    if has_pars:
+        for var in inputs:
+            var = var.split()
+            pars = None if len(var)==1 else np.array(var[1:], float)
+            input_vars.append(var[0])
+            input_pars.append(pars)
+    else:
+        input_vars = ' '.join(inputs).split()
+        input_pars = [None] * len(input_vars)
+
+    return input_vars, input_pars
+
+
+
+
 def parse(cfile, with_log=True, mute=False):
     """
     Read the command line arguments.
@@ -430,15 +466,17 @@ def parse(cfile, with_log=True, mute=False):
         parse_array(args, 'csfile')  # Deprecated
         # Spectrum sampling options:
         parse_str(args, 'wlunits')
-        parse_str(args, 'wllow')
-        parse_str(args, 'wlhigh')
+        parse_str(args, 'wl_low')
+        parse_str(args, 'wl_high')
         parse_float(args, 'wnlow')
         parse_float(args, 'wnhigh')
         parse_float(args, 'wnstep')
         parse_int(args, 'wnosamp')
         parse_float(args, 'resolution')
         parse_str(args, 'wlstep')
-        parse_int(args, 'wn_thinning')
+        parse_int(args, 'wl_thinning')
+        parse_str(args, 'wllow')  # Deprecated
+        parse_str(args, 'wlhigh')  # Deprecated
         # Atmospheric sampling options:
         parse_str(args, 'atmfile')
         parse_str(args, 'tmodel')
@@ -489,10 +527,8 @@ def parse(cfile, with_log=True, mute=False):
         parse_int(args, 'nlor')
         parse_float(args, 'dlratio')
         # Hazes and clouds options:
-        parse_array(args, 'clouds')
-        parse_array(args, 'cpars')
+        parse_str(args, 'clouds')
         parse_array(args, 'rayleigh')
-        parse_array(args, 'rpars')
         parse_float(args, 'fpatchy')
         parse_array(args, 'alkali')
         parse_float(args, 'alkali_cutoff')
@@ -540,6 +576,7 @@ def parse(cfile, with_log=True, mute=False):
         parse_str(args, 'data_color')
         parse_int(args, 'nlive')
         parse_str(args, 'statistics')
+        parse_float(args, 'dt_retrieval_snapshot')
         # Stellar models:
         parse_str(args, 'starspec')
         parse_str(args, 'kurucz')
@@ -703,21 +740,33 @@ def parse(cfile, with_log=True, mute=False):
             f"These input cross-section files are missing: {missing}"
         )
 
+    # Deprecated wl keys
+    wl_low = args.get_default('wllow', '')
+    if wl_low is not None:
+        warning = "'wllow' is deprecated, use 'wl_low' instead"
+        warnings.warn(warning, category=DeprecationWarning)
+        setattr(args, 'wl_low', wl_low)
+    wl_high = args.get_default('wlhigh', '')
+    if wl_high is not None:
+        warning = "'wlhigh' is deprecated, use 'wl_high' instead"
+        warnings.warn(warning, category=DeprecationWarning)
+        setattr(args, 'wl_high', wl_high)
+
     wlunits = args.get_default('wlunits', 'Wavelength units')
     if wlunits is None:
-        wlunits = args.get_units('wllow')
+        wlunits = args.get_units('wl_low')
     if wlunits is None:
-        wlunits = args.get_units('wlhigh')
+        wlunits = args.get_units('wl_high')
     if wlunits is None:
         wlunits = args.get_units('wlstep')
     if wlunits is not None and not hasattr(pc, wlunits):
         log.error(f'Invalid wavelength units (wlunits): {wlunits}')
     args.wlunits = wlunits
 
-    args.wllow = args.get_param(
-        'wllow', wlunits, 'Wavelength lower boundary', gt=0.0)
-    args.wlhigh = args.get_param(
-        'wlhigh', wlunits, 'Wavelength higher boundary', gt=0.0)
+    args.wl_low = args.get_param(
+        'wl_low', wlunits, 'Wavelength lower boundary', gt=0.0)
+    args.wl_high = args.get_param(
+        'wl_high', wlunits, 'Wavelength higher boundary', gt=0.0)
     args.wlstep = args.get_param(
         'wlstep', wlunits, 'Wavelength sampling step', gt=0.0)
 
@@ -733,8 +782,9 @@ def parse(cfile, with_log=True, mute=False):
     args.resolution = args.get_default(
         'resolution', 'Spectral resolution', gt=0.0)
 
-    args.wn_thinning = args.get_default(
-        'wn_thinning', 'Wavenumber thinning factor for Line_Sample opacities',
+    args.wl_thinning = args.get_default(
+        'wl_thinning',
+        'Wavelength-sampling thinning factor for Line_Sample opacities',
         1, ge=1,
     )
 
@@ -780,6 +830,19 @@ def parse(cfile, with_log=True, mute=False):
     )
 
     # Chemistry:
+    chemistry = getattr(args, 'chemistry')
+    chem_replace = {
+        'uniform': 'free',
+        'tea': 'equilibrium',
+    }
+    if chemistry in chem_replace:
+        setattr(args, 'chemistry', chem_replace[chemistry])
+        warning_msg = (
+            f"'{chemistry}' value for chemistry is deprecated, "
+            f"use {chem_replace[chemistry]} instead"
+        )
+        warnings.warn(warning_msg, category=DeprecationWarning)
+
     args.chemistry = args.get_choice('chemistry', 'Chemical model', pc.chemmodels)
     xsolar = args.get_default('xsolar', 'Atmospheric metallicity')
     if xsolar is not None:
@@ -901,8 +964,14 @@ def parse(cfile, with_log=True, mute=False):
     args.rayleigh = args.get_choice(
         'rayleigh', 'Rayleigh model', pc.rmodels)
 
-    args.clouds = args.get_choice(
-        'clouds', 'cloud model', pc.cmodels)
+    clouds, cpars = parse_var_vals(args.clouds)
+    for name in clouds:
+        if name in pc.cmodels:
+            continue
+        log.error(
+            f"Invalid cloud model (clouds): '{name}'. Select from: {pc.cmodels}"
+        )
+
     args.fpatchy = args.get_default(
         'fpatchy', 'Patchy-cloud fraction', ge=0.0, le=1.0,
     )
@@ -1025,6 +1094,12 @@ def parse(cfile, with_log=True, mute=False):
         'grnmin', 'Gelman-Rubin convergence fraction', 0.5, gt=0.0)
     args.nlive = args.get_default(
         'nlive', 'Number of Nested Sampling live points', 1000, gt=0)
+    args.dt_retrieval_snapshot = args.get_default(
+        'dt_retrieval_snapshot',
+        'Take a snapshot of the posterior during a retrieval d_time',
+        default=0.0,
+        ge=0.0,
+    )
 
     args.statistics = args.get_choice(
         'statistics',

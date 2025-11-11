@@ -426,7 +426,7 @@ def test_chemistry_uniform():
     species = ["H2", "He", "H2O", "CO", "CO2", "CH4"]
     abundances  = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
     chem, _, vmr = pa.chemistry(
-        'uniform', pressure, temperature, species, q_uniform=abundances,
+        'free', pressure, temperature, species, q_uniform=abundances,
     )
 
     assert np.shape(vmr) == (nlayers, len(species))
@@ -440,7 +440,7 @@ def test_chemistry_tea_basic():
     tmodel = pa.tmodels.Isothermal(pressure)
     temperature = tmodel(1500.0)
     species = 'H He C O H2 H2O CO CO2 CH4'.split()
-    net, _, vmr = pa.chemistry('tea', pressure, temperature, species)
+    net, _, vmr = pa.chemistry('equilibrium', pressure, temperature, species)
     np.testing.assert_allclose(vmr, expected_vmr_tea)
 
 
@@ -449,7 +449,7 @@ def test_chemistry_tea_solar():
     pressure = pa.pressure(1.0e-08, 1.0e+03, nlayers, units='bar')
     temperature = np.tile(900.0, nlayers)
     species = 'H2O CH4 CO CO2 NH3 C2H2 C2H4 HCN N2 H2 H He'.split()
-    chem_model = 'tea'
+    chem_model = 'equilibrium'
     chem_network, _, _ = pa.chemistry(chem_model, pressure, temperature, species)
 
     expected_elements = 'C H He N O'.split()
@@ -466,7 +466,7 @@ def test_chemistry_metallicity():
     pressure = pa.pressure(1.0e-08, 1.0e+03, nlayers, units='bar')
     temperature = np.tile(900.0, nlayers)
     species = 'H2O CH4 CO CO2 NH3 C2H2 C2H4 HCN N2 H2 H He'.split()
-    chem_model = 'tea'
+    chem_model = 'equilibrium'
     chem_network, _, _ = pa.chemistry(
         chem_model, pressure, temperature, species, metallicity=-1.0,
     )
@@ -483,7 +483,7 @@ def test_chemistry_escale():
     temperature = np.tile(900.0, nlayers)
     species = 'H2O CH4 CO CO2 NH3 C2H2 C2H4 HCN N2 H2 H He'.split()
     e_scale = {'C': -1.0, 'O': 1.0}
-    chem_model = 'tea'
+    chem_model = 'equilibrium'
     chem_network, _, _ = pa.chemistry(
         chem_model, pressure, temperature, species, e_scale=e_scale)
 
@@ -500,7 +500,7 @@ def test_chemistry_eratio():
     temperature = pa.tmodels.Isothermal(pressure)(900.0)
     species = 'H2O CH4 CO CO2 NH3 C2H2 C2H4 HCN N2 H2 H He'.split()
     e_ratio = {'C_O': 2.0}
-    chem_model = 'tea'
+    chem_model = 'equilibrium'
     chem_network, _, _ = pa.chemistry(
         chem_model, pressure, temperature, species, e_ratio=e_ratio)
 
@@ -518,7 +518,7 @@ def test_chemistry_metallicity_escale():
     species = 'H2O CH4 CO CO2 NH3 C2H2 C2H4 HCN N2 H2 H He'.split()
     metallicity = -1.0
     e_scale = {'C': -1.0, 'O': 1.0}
-    chem_model = 'tea'
+    chem_model = 'equilibrium'
     chem_network, _, _ = pa.chemistry(
         chem_model, pressure, temperature, species,
         metallicity=metallicity,
@@ -541,7 +541,7 @@ def test_chemistry_tea_metallicity_eratio(e_ratio):
     species = 'H He C O H2 H2O CO CO2 CH4'.split()
     i_H2O = species.index('H2O')
     chem_model, _, vmr = pa.chemistry(
-        'tea', pressure, temperature, species,
+        'equilibrium', pressure, temperature, species,
         e_ratio=e_ratio,
     )
     # (this C/O ratio leads to same composition as e_scale C=0.7)
@@ -558,7 +558,7 @@ def test_chemistry_tea_metallicity_eabundances(e_abundances):
     species = 'H He C O H2 H2O CO CO2 CH4'.split()
     i_H2O = species.index('H2O')
     chem_model, _, vmr = pa.chemistry(
-        'tea', pressure, temperature, species,
+        'equilibrium', pressure, temperature, species,
         e_abundances=e_abundances,
     )
     expected_vmr = expected_vmr_tea_H2O[0]['C' in e_abundances]
@@ -575,7 +575,7 @@ def test_chemistry_mismatch_nspecies():
     match = "Species (5) and q_uniform array lengths (6) don't match"
     with pytest.raises(ValueError, match=re.escape(match)):
         pa.chemistry(
-            'uniform', pressure, temperature, species, q_uniform=abundances,
+            'free', pressure, temperature, species, q_uniform=abundances,
         )
 
 
@@ -588,7 +588,7 @@ def test_chemistry_mismatch_nlayers():
     #abundances  = [0.8496, 0.15, 1e-4, 1e-4, 1e-8, 1e-4]
     match = "pressure (11) and temperature array lengths (10) don't match"
     with pytest.raises(ValueError, match=re.escape(match)):
-        pa.chemistry('uniform', pressure, temperature, species)
+        pa.chemistry('free', pressure, temperature, species)
 
 
 @pytest.mark.parametrize(

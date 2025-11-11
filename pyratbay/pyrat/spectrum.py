@@ -75,41 +75,41 @@ class Spectrum():
         wl_units = pt.u(inputs.wlunits)
 
         # Low wavenumber boundary:
-        if inputs.wnlow is None and inputs.wlhigh is None:
+        if inputs.wnlow is None and inputs.wl_high is None:
             log.error(
-                'Undefined low wavenumber boundary.  Either set wnlow or wlhigh'
+                'Undefined low wavenumber boundary.  Either set wnlow or wl_high'
             )
-        if inputs.wnlow is not None and inputs.wlhigh is not None:
+        if inputs.wnlow is not None and inputs.wl_high is not None:
             log.warning(
-                f'Both wnlow ({self.wnlow:.2e} cm-1) and wlhigh '
-                 '({self.wlhigh:.2e} cm) were defined.  wlhigh will be ignored'
+                f'Both wnlow ({self.wnlow:.2e} cm-1) and wl_high '
+                 '({self.wl_high:.2e} cm) were defined.  wl_high will be ignored'
             )
 
         if inputs.wnlow is not None:
             self.wnlow = inputs.wnlow
-            self.wlhigh = 1.0 / self.wnlow
+            self.wl_high = 1.0 / self.wnlow
         else:
-            self.wlhigh = inputs.wlhigh
-            self.wnlow = 1.0 / self.wlhigh
+            self.wl_high = inputs.wl_high
+            self.wnlow = 1.0 / self.wl_high
 
 
         # High wavenumber boundary:
-        if inputs.wnhigh is None and inputs.wllow is None:
+        if inputs.wnhigh is None and inputs.wl_low is None:
             log.error(
-                'Undefined high wavenumber boundary. Either set wnhigh or wllow'
+                'Undefined high wavenumber boundary. Either set wnhigh or wl_low'
             )
-        if inputs.wnhigh is not None and inputs.wllow is not None:
+        if inputs.wnhigh is not None and inputs.wl_low is not None:
             log.warning(
-                f'Both wnhigh ({self.wnhigh:.2e} cm-1) and wllow '
-                 '({self.wllow:.2e} cm) were defined.  wllow will be ignored'
+                f'Both wnhigh ({self.wnhigh:.2e} cm-1) and wl_low '
+                 '({self.wl_low:.2e} cm) were defined.  wl_low will be ignored'
             )
 
         if inputs.wnhigh is not None:
             self.wnhigh = inputs.wnhigh
-            self.wllow = 1.0 / self.wnhigh
+            self.wl_low = 1.0 / self.wnhigh
         else:
-            self.wllow = inputs.wllow
-            self.wnhigh = 1.0 / self.wllow
+            self.wl_low = inputs.wl_low
+            self.wnhigh = 1.0 / self.wl_low
 
         # Consistency check (wnlow < wnhigh):
         if self.wnlow > self.wnhigh:
@@ -127,7 +127,7 @@ class Spectrum():
 
             # Update wavenumber sampling:
             wn_mask = ps.wn_mask(wn, self.wnlow, self.wnhigh)
-            self.wn = wn[wn_mask][::inputs.wn_thinning]
+            self.wn = wn[wn_mask][::inputs.wl_thinning]
             self.nwave = len(self.wn)
             self.spectrum = np.zeros(self.nwave, np.double)
             if self._rt_path not in pc.transmission_rt:
@@ -206,7 +206,7 @@ class Spectrum():
             self.wlstep = None
         elif self.wlstep is not None:
             # Constant-sampling rate wavelength sampling:
-            wl = np.arange(self.wllow, self.wlhigh, self.wlstep)
+            wl = np.arange(self.wl_low, self.wl_high, self.wlstep)
             self.wn = 1.0/np.flip(wl)
             self.wnlow = self.wn[0]
             self.resolution = None
@@ -237,9 +237,9 @@ class Spectrum():
         # Screen output:
         log.msg(
             f'Initial wavenumber boundary:  {self.wnlow:.5e} cm-1  '
-            f'({self.wlhigh/wl_units:.3e} {self.wlunits})\n'
+            f'({self.wl_high/wl_units:.3e} {self.wlunits})\n'
             f'Final   wavenumber boundary:  {self.wnhigh:.5e} cm-1  '
-            f'({self.wllow/wl_units:.3e} {self.wlunits})',
+            f'({self.wl_low/wl_units:.3e} {self.wlunits})',
             indent=2,
         )
 
@@ -273,11 +273,11 @@ class Spectrum():
 
         fw.write(
             f'Low wavenumber boundary (wnlow):   {wn_min:10.3f} cm-1  '
-            f'(wlhigh = {wl_max:6.2f} {self.wlunits})',
+            f'(wl_high = {wl_max:6.2f} {self.wlunits})',
         )
         fw.write(
             f'High wavenumber boundary (wnhigh): {wn_max:10.3f} cm-1  '
-            f'(wllow  = {wl_min:6.2f} {self.wlunits})',
+            f'(wl_low  = {wl_min:6.2f} {self.wlunits})',
         )
         fw.write('Number of samples (nwave): {:d}', self.nwave)
         if self.resolution is None:

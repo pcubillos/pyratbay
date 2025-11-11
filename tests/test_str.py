@@ -31,7 +31,7 @@ Wavelength range:  1.10 -- 1.70 um (3209 samples, delta-wn=1.000 cm-1)
 Composition:
   ['H2' 'He' 'H' 'Na' 'K' 'H2O' 'CH4' 'CO' 'CO2']
 Opacity sources:
-  ['H2O', 'Na', 'CIA H2-H2', 'CIA H2-He', 'lecavelier', 'deck']"""
+  ['H2O', 'Na', 'CIA H2-H2', 'CIA H2-He', 'deck', 'lecavelier']"""
 
 
 def test_pyrat_opacity_str(tmp_path):
@@ -47,8 +47,8 @@ H2O             line_sample    300.0  3000.0
 sodium_vdw      alkali
 CIA H2-H2       cia             60.0  3000.0
 CIA H2-He       cia             60.0  3000.0
-lecavelier      cloud
 deck            cloud
+lecavelier      cloud
 """
 
 
@@ -153,14 +153,16 @@ Extinction coefficient (ec, cm-1):
 """
 
 
-def test_opacity_rayleigh_lecavelier_str():
+def test_opacity_lecavelier_str():
     wn_min = 1.0 / (1.7 * pc.um)
     wn_max = 1.0 / (1.1 * pc.um)
     wn = np.arange(wn_min, wn_max, 1.0)
-    model = op.rayleigh.Lecavelier(wn)
+    nlayers = 81
+    pressure = pa.pressure('1e-8 bar', '1e2 bar', nlayers)
+    model = op.clouds.Lecavelier(pressure, wn=wn)
     assert str(model) == """\
 Model name (name): 'lecavelier'
-Model species (species): H2
+Pressure array (pressure, bar): 1e-08 ... 100.0
 Number of model parameters (npars): 2
 Parameter name     Value
   (pnames)         (pars)
@@ -173,13 +175,13 @@ Cross section (cross_section, cm2 molec-1):
 """
 
 
-def test_opacity_rayleigh_dalgarno_H_str():
+def test_opacity_rayleigh_H_str():
     wn_min = 1.0 / (1.7 * pc.um)
     wn_max = 1.0 / (1.1 * pc.um)
     wn = np.arange(wn_min, wn_max, 1.0)
-    model = op.rayleigh.Dalgarno(wn, species='H')
+    model = op.rayleigh.Kurucz(wn, species='H')
     assert str(model) == """\
-Model name (name): 'dalgarno_H'
+Model name (name): 'rayleigh_H'
 Model species (species): H
 Number of model parameters (npars): 0
 Wavenumber (wn, cm-1):
@@ -188,13 +190,13 @@ Cross section (cross_section, cm2 molec-1):
    [7.002e-30 7.007e-30 7.012e-30 ... 4.038e-29 4.040e-29 4.041e-29]
 """
 
-def test_opacity_rayleigh_dalgarno_He_str():
+def test_opacity_rayleigh_He_str():
     wn_min = 1.0 / (1.7 * pc.um)
     wn_max = 1.0 / (1.1 * pc.um)
     wn = np.arange(wn_min, wn_max, 1.0)
-    model = op.rayleigh.Dalgarno(wn, species='He')
+    model = op.rayleigh.Kurucz(wn, species='He')
     assert str(model) == """\
-Model name (name): 'dalgarno_He'
+Model name (name): 'rayleigh_He'
 Model species (species): He
 Number of model parameters (npars): 0
 Wavenumber (wn, cm-1):
@@ -203,13 +205,13 @@ Cross section (cross_section, cm2 molec-1):
    [6.577e-31 6.582e-31 6.586e-31 ... 3.757e-30 3.758e-30 3.760e-30]
 """
 
-def test_opacity_rayleigh_dalgarno_H2_str():
+def test_opacity_rayleigh_H2_str():
     wn_min = 1.0 / (1.7 * pc.um)
     wn_max = 1.0 / (1.1 * pc.um)
     wn = np.arange(wn_min, wn_max, 1.0)
-    model = op.rayleigh.Dalgarno(wn, species='H2')
+    model = op.rayleigh.Kurucz(wn, species='H2')
     assert str(model) == """\
-Model name (name): 'dalgarno_H2'
+Model name (name): 'rayleigh_H2'
 Model species (species): H2
 Number of model parameters (npars): 0
 Wavenumber (wn, cm-1):
@@ -374,8 +376,8 @@ Spectral information:
 Wavenumber internal units: cm-1
 Wavelength internal units: cm
 Wavelength display units (wlunits): um
-Low wavenumber boundary (wnlow):     5882.353 cm-1  (wlhigh =   1.70 um)
-High wavenumber boundary (wnhigh):   9090.353 cm-1  (wllow  =   1.10 um)
+Low wavenumber boundary (wnlow):     5882.353 cm-1  (wl_high =   1.70 um)
+High wavenumber boundary (wnhigh):   9090.353 cm-1  (wl_low  =   1.10 um)
 Number of samples (nwave): 3209
 Sampling interval (wnstep): 1.000 cm-1
 Wavenumber array (wn, cm-1):
@@ -388,7 +390,7 @@ Gaussian quadrature weights (quadrature_weights):
     [0.095 0.691 1.058 0.931 0.367]
 
 Transmission spectrum, (Rp/Rs)**2 (spectrum):
-    [ 6.780e-03  6.781e-03  6.780e-03 ...  6.780e-03  6.780e-03  6.780e-03]
+    [ 6.523e-03  6.611e-03  6.524e-03 ...  6.506e-03  6.481e-03  6.498e-03]
 """
 
 
@@ -510,17 +512,17 @@ Distance along the ray path across each layer (outside-in) at each impact
 
 Maximum optical depth to calculate (maxdepth): 10.00
 Layer index where the optical depth reaches maxdepth (ideep):
-    [ 19  19  19  19  19  19  19 ...  19  19  19  19  19  19  19]
-Maximum ideep (deepest layer reaching maxdepth): 19
+    [ 37  36  37  36  37  37  37 ...  38  31  38  38  39  39  38]
+Maximum ideep (deepest layer reaching maxdepth): 41
 
 Optical depth at each impact parameter, down to max(ideep) (depth):
 [[ 0.000e+00  0.000e+00  0.000e+00 ...  0.000e+00  0.000e+00  0.000e+00]
- [ 5.313e-08  1.614e-05  5.321e-08 ...  7.800e-07  3.229e-07  3.364e-07]
- [ 9.871e-08  2.998e-05  9.885e-08 ...  1.449e-06  5.998e-07  6.248e-07]
+ [ 6.251e-08  1.615e-05  6.259e-08 ...  8.334e-07  3.763e-07  3.898e-07]
+ [ 1.161e-07  2.999e-05  1.163e-07 ...  1.548e-06  6.990e-07  7.241e-07]
  ...
- [ 3.741e-05  9.556e-03  3.777e-05 ...  4.654e-04  1.922e-04  2.016e-04]
- [ 5.784e-05  1.380e-02  5.855e-05 ...  6.740e-04  2.781e-04  2.925e-04]
- [ 9.147e-05  1.992e-02  9.288e-05 ...  9.775e-04  4.027e-04  4.252e-04]]
+ [ 0.000e+00  0.000e+00  0.000e+00 ...  1.575e+01  1.543e+01  0.000e+00]
+ [ 0.000e+00  0.000e+00  0.000e+00 ...  0.000e+00  0.000e+00  0.000e+00]
+ [ 0.000e+00  0.000e+00  0.000e+00 ...  0.000e+00  0.000e+00  0.000e+00]]
 """
 
 
@@ -568,15 +570,15 @@ Wavelength range:  1.10 -- 1.70 um (2177 samples, R=5000.0)
 Composition:
   ['H2' 'He' 'H' 'Na' 'K' 'H2O' 'CH4' 'CO' 'CO2']
 Opacity sources:
-  ['H2O', 'Na', 'CIA H2-H2', 'CIA H2-He', 'lecavelier']"""
+  ['H2O', 'Na', 'CIA H2-H2', 'CIA H2-He']"""
 
     assert str(pyrat.spec) == """\
 Spectral information:
 Wavenumber internal units: cm-1
 Wavelength internal units: cm
 Wavelength display units (wlunits): um
-Low wavenumber boundary (wnlow):     5882.353 cm-1  (wlhigh =   1.70 um)
-High wavenumber boundary (wnhigh):   9089.836 cm-1  (wllow  =   1.10 um)
+Low wavenumber boundary (wnlow):     5882.353 cm-1  (wl_high =   1.70 um)
+High wavenumber boundary (wnhigh):   9089.836 cm-1  (wl_low  =   1.10 um)
 Number of samples (nwave): 2177
 Spectral resolving power (resolution): 5000.0
 Wavenumber array (wn, cm-1):
@@ -589,7 +591,7 @@ Gaussian quadrature weights (quadrature_weights):
     [0.095 0.691 1.058 0.931 0.367]
 
 Transmission spectrum, (Rp/Rs)**2 (spectrum):
-    [ 6.523e-03  6.540e-03  6.524e-03 ...  6.669e-03  6.500e-03  6.471e-03]
+    [ 6.523e-03  6.539e-03  6.523e-03 ...  6.669e-03  6.494e-03  6.463e-03]
 """
 
 @pytest.mark.skip(reason="TBD")
@@ -615,8 +617,8 @@ Spectral information:
 Wavenumber internal units: cm-1
 Wavelength internal units: cm
 Wavelength display units (wlunits): um
-Low wavenumber boundary (wnlow):     5882.353 cm-1  (wlhigh =   1.70 um)
-High wavenumber boundary (wnhigh):   9090.909 cm-1  (wllow  =   1.10 um)
+Low wavenumber boundary (wnlow):     5882.353 cm-1  (wl_high =   1.70 um)
+High wavenumber boundary (wnhigh):   9090.909 cm-1  (wl_low  =   1.10 um)
 Number of samples (nwave): 2177
 Spectral resolving power (resolution): 5000.0
 Wavenumber array (wn, cm-1):
@@ -639,8 +641,8 @@ Spectral information:
 Wavenumber internal units: cm-1
 Wavelength internal units: cm
 Wavelength display units (wlunits): um
-Low wavenumber boundary (wnlow):     5882.353 cm-1  (wlhigh =   1.70 um)
-High wavenumber boundary (wnhigh):   9090.353 cm-1  (wllow  =   1.10 um)
+Low wavenumber boundary (wnlow):     5882.353 cm-1  (wl_high =   1.70 um)
+High wavenumber boundary (wnhigh):   9090.353 cm-1  (wl_low  =   1.10 um)
 Number of samples (nwave): 3209
 Sampling interval (wnstep): 1.000 cm-1
 Wavenumber array (wn, cm-1):
@@ -652,13 +654,13 @@ Gaussian quadrature cos(theta) angles (quadrature_mu):
 Gaussian quadrature weights (quadrature_weights):
     [0.095 0.691 1.058 0.931 0.367]
 Intensity spectra (intensity, erg s-1 cm-2 sr-1 cm):
-    [ 7.737e+02  7.730e+02  7.723e+02 ...  3.546e+01  3.542e+01  3.539e+01]
-    [ 7.737e+02  7.730e+02  7.723e+02 ...  3.546e+01  3.542e+01  3.539e+01]
-    [ 7.737e+02  7.730e+02  7.723e+02 ...  3.546e+01  3.542e+01  3.539e+01]
-    [ 7.737e+02  7.730e+02  7.723e+02 ...  3.546e+01  3.542e+01  3.539e+01]
-    [ 7.737e+02  7.730e+02  7.723e+02 ...  3.546e+01  3.542e+01  3.538e+01]
+    [ 1.268e+04  1.141e+04  1.265e+04 ...  2.259e+03  2.289e+03  2.251e+03]
+    [ 1.258e+04  1.126e+04  1.255e+04 ...  2.210e+03  2.241e+03  2.203e+03]
+    [ 1.223e+04  1.074e+04  1.219e+04 ...  2.043e+03  2.076e+03  2.038e+03]
+    [ 1.139e+04  9.520e+03  1.135e+04 ...  1.670e+03  1.705e+03  1.670e+03]
+    [ 8.758e+03  6.150e+03  8.712e+03 ...  7.889e+02  8.142e+02  7.964e+02]
 Emission spectrum (spectrum, erg s-1 cm-2 cm):
-    [ 2.431e+03  2.428e+03  2.426e+03 ...  1.114e+02  1.113e+02  1.112e+02]
+    [ 3.665e+04  3.134e+04  3.653e+04 ...  5.746e+03  5.848e+03  5.738e+03]
 """
 
     assert str(pyrat.od) == """\
@@ -670,27 +672,27 @@ Distance across each layer along a normal ray path (raypath, km):
 
 Maximum optical depth to calculate (maxdepth): 10.00
 Layer index where the optical depth reaches maxdepth (ideep):
-    [ 20  20  20  20  20  20  20 ...  20  20  20  20  20  20  20]
-Maximum ideep (deepest layer reaching maxdepth): 20
+    [ 42  41  42  41  42  42  42 ...  43  40  43  42  43  43  43]
+Maximum ideep (deepest layer reaching maxdepth): 45
 
 Planck emission down to max(ideep) (B, erg s-1 cm-2 sr-1 cm):
 [[ 7.478e+02  7.471e+02  7.465e+02 ...  3.364e+01  3.361e+01  3.357e+01]
  [ 7.478e+02  7.471e+02  7.465e+02 ...  3.364e+01  3.361e+01  3.357e+01]
  [ 7.478e+02  7.472e+02  7.465e+02 ...  3.365e+01  3.361e+01  3.358e+01]
  ...
- [ 7.673e+02  7.666e+02  7.660e+02 ...  3.501e+01  3.497e+01  3.494e+01]
- [ 7.737e+02  7.730e+02  7.723e+02 ...  3.546e+01  3.542e+01  3.539e+01]
- [ 7.893e+02  7.886e+02  7.879e+02 ...  3.657e+01  3.653e+01  3.650e+01]]
+ [ 1.488e+04  1.487e+04  1.487e+04 ...  3.387e+03  3.385e+03  3.384e+03]
+ [ 1.489e+04  1.488e+04  1.488e+04 ...  3.391e+03  3.389e+03  3.387e+03]
+ [ 1.490e+04  1.490e+04  1.489e+04 ...  3.395e+03  3.393e+03  3.392e+03]]
 
 Optical depth at each layer along a normal ray path into the planet, down to
     max(ideep) (depth):
 [[ 0.000e+00  0.000e+00  0.000e+00 ...  0.000e+00  0.000e+00  0.000e+00]
- [ 6.893e-08  2.778e-07  6.902e-08 ...  3.989e-07  3.932e-07  3.935e-07]
- [ 1.683e-07  6.782e-07  1.685e-07 ...  9.740e-07  9.600e-07  9.608e-07]
+ [ 8.109e-08  2.899e-07  8.120e-08 ...  4.682e-07  4.625e-07  4.629e-07]
+ [ 1.980e-07  7.079e-07  1.983e-07 ...  1.143e-06  1.129e-06  1.130e-06]
  ...
- [ 1.129e-04  4.549e-04  1.131e-04 ...  6.524e-04  6.429e-04  6.435e-04]
- [ 1.630e-04  6.566e-04  1.632e-04 ...  9.410e-04  9.272e-04  9.281e-04]
- [ 2.354e-04  9.479e-04  2.357e-04 ...  1.357e-03  1.337e-03  1.338e-03]]
+ [ 0.000e+00  0.000e+00  0.000e+00 ...  1.104e+01  1.237e+01  1.527e+01]
+ [ 0.000e+00  0.000e+00  0.000e+00 ...  0.000e+00  0.000e+00  0.000e+00]
+ [ 0.000e+00  0.000e+00  0.000e+00 ...  0.000e+00  0.000e+00  0.000e+00]]
 """
 
 

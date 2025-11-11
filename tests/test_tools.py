@@ -489,7 +489,7 @@ def test_interpolate_opacity_thin_no_interp():
     units, mol, temp, press, wn, cs = io.read_opacity(cs_file, extract='all')
     thin = 10
     interp_cs = pt.interpolate_opacity(
-        cs_file, temp, press, wn_thinning=thin,
+        cs_file, temp, press, wl_thinning=thin,
     )
     np.testing.assert_allclose(interp_cs, cs[:,:,::thin])
 
@@ -500,7 +500,7 @@ def test_interpolate_opacity_mask_thin():
     wn_mask = (wn>=6000) & (wn<=8000)
     thin = 10
     interp_cs = pt.interpolate_opacity(
-        cs_file, temp, press, wn_mask, wn_thinning=thin,
+        cs_file, temp, press, wn_mask, wl_thinning=thin,
     )
     expected_cs = cs[:,:,wn_mask][:,:,::thin]
     np.testing.assert_allclose(interp_cs, expected_cs)
@@ -626,7 +626,7 @@ def test_interpolate_opacity_interp_and_wn_masking():
     nwave = len(expected_wn)
 
     interp_cs = pt.interpolate_opacity(
-        cs_file, temperature, pressure, wn_mask, wn_thinning=thin,
+        cs_file, temperature, pressure, wn_mask, wl_thinning=thin,
     )
     cs_shape = np.shape(interp_cs)
     assert cs_shape[0] == ntemps
@@ -927,7 +927,7 @@ def test_loglike():
     ifree = pyrat.ret.pstep > 0
     free_pars = pyrat.ret.params[ifree]
     like = loglike(free_pars)
-    np.testing.assert_allclose(like, -1627.6479269805086)
+    np.testing.assert_allclose(like, -1633.7475526010119)
 
     # A non-physical model
     free_pars[3] = -1.0

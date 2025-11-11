@@ -386,7 +386,7 @@ Lets break this down:
      case we have a secondary eclipse), the path to the observation file
      discussed above (and the desired output units for plots)
 
-     ``wllow`` and ``wlhigh`` set the and the spectral range to model.
+     ``wl_low`` and ``wl_high`` set the and the spectral range to model.
      Note that the wavelenght sampling is partly set by the
      line-sampled opacity files (resolution and maximum wavelength
      coverage).  One can trim the wavelength ranges (as shown here) to
@@ -560,7 +560,7 @@ parallel-computing capability (thus, the prefix ``mpirun -n 64``):
 .. code-block:: shell
 
     # Launch the retrieval with 64 parallel CPUs
-    mpirun -n 64 pbay -c wasp39b_retrieval_transit_jwst.cfg
+    mpirun -n 64 pbay -c wasp18b_retrieval_eclipse_jwst.cfg
 
 You can adjust the number of CPUs according to your machine/cluster
 limitations.  ``Pyrat Bay`` internally uses shared memory to optimize
@@ -598,90 +598,5 @@ TBD
 Detection statistics
 --------------------
 
-OK, we have now a posterior distribution for species on WASP-39b based
-on the JWST observations, for some there are well constrained VMRs,
-for others there are upper limits.  We want now to assess the
-siginificance of each detection. For this we will run a series of
-leave-one-out retrievals with the same configuration as before, but
-removing opacity from one species at a time.
+TBD
 
-Here's an extract of what changed in the cofiguration for the run without |H2O|:
-
-.. code-block:: ini
-    :emphasize-lines: 5,19
-
-    # Pyrat Bay run mode [tli pt atmosphere spectrum radeq opacity mcmc]
-    runmode = retrieval
-
-    # Output file names
-    logfile = ret_wasp39b_no_H2O/WASP39b_jwst_no_H2O.log
-
-    ...
-
-    # Param name    value  lo_bound  hi_bound  step   prior  prior_sigma
-    retrieval_params =
-        log_p1        -4.0     -9.0       2.0   0.3
-        log_p2        -7.2     -9.0       2.0   0.3
-        log_p3        -1.0     -2.0       2.0   0.3
-        a1            1.50     0.02       2.0   0.02
-        a2            0.35     0.02       2.0   0.02
-        T0           850.0    800.0    1300.0   30.0
-        M_planet     0.266      0.1       0.43  0.05  0.266  0.033
-        log_p_ref    -1.0      -9.0       2.0   0.3
-        log_H2O      -10.0    -12.0      -0.3   0.0
-        log_CO2      -3.00    -12.0      -0.3   0.3
-
-    ...
-
-As you see, we only change two lines:
-
-- edit ``logfile`` to set the proper name for the outputs
-- fix the |H2O| free parameter (``step=0``) and set the initial value to a
-  negligible VMR (``-10.0``)
-
-And then, there are two more optimizations for a better efficiency:
-
-- to remove the |H2O| file from ``sampled_cross_sec`` to consume less
-  resources
-- set ``post_processing = False``, this will prevent the code from
-  running the post processing after the retrieval.  We will do that in
-  a separate call in a background process.
-
-Here are sample config files for leave-one-out runs for |H2O|, |CO2|, and |SO2|:
-
-- `wasp39b_retrieval_transit_jwst_no_H2O.cfg <../../_static/data/wasp39b_retrieval_transit_jwst_no_H2O.cfg>`__
-- `wasp39b_retrieval_transit_jwst_no_CO2.cfg <../../_static/data/wasp39b_retrieval_transit_jwst_no_CO2.cfg>`__
-- `wasp39b_retrieval_transit_jwst_no_SO2.cfg <../../_static/data/wasp39b_retrieval_transit_jwst_no_SO2.cfg>`__
-
-
-The recommendation is, since we want to run a series of retrievals, we
-write a script like the one below to concatenate one run after the
-other.
-
-Note that we added the ``pbay --post ...`` calls after each
-posterior sampling, with an ampersand at the end to rnu it in the
-background. This is useful since the post-processing uses only a
-single CPU and might take a few hours to complete.  Putting it in
-background allow us to launch each retrival right after the previous
-one.
-
-.. code-block:: shell
-   :caption: File: wasp39b_loo_retrievals.sh
-
-    # Launch the retrievals, and then the post-processing in the background
-    mpirun -n 64 pbay -c wasp39b_retrieval_transit_jwst_no_H2O.cfg
-    pbay --post wasp39b_retrieval_transit_jwst_no_H2O.cfg &
-
-    mpirun -n 64 pbay -c wasp39b_retrieval_transit_jwst_no_CO2.cfg
-    pbay --post wasp39b_retrieval_transit_jwst_no_CO2.cfg &
-
-    mpirun -n 64 pbay -c wasp39b_retrieval_transit_jwst_no_SO2.cfg
-    pbay --post wasp39b_retrieval_transit_jwst_no_SO2.cfg &
-
-
-Then to start the retrievals, run this command from the prompt:
-
-.. code-block:: shell
-
-    # Launch leave-one-out retrievals
-    sh wasp39b_loo_retrievals.sh

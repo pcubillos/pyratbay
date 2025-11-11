@@ -231,7 +231,7 @@ def test_atmosphere_uniform(tmp_path):
     atmfile = str(tmp_path / 'test.atm')
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/atmosphere_uniform_test.cfg',
+        ROOT+'tests/configs/atmosphere_free_test.cfg',
         reset={'output_atmfile':atmfile},
     )
 
@@ -257,7 +257,7 @@ def test_atmosphere_tea_no_vmr_models(tmp_path):
     atmfile = str(tmp_path / 'test.atm')
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/atmosphere_tea_test.cfg',
+        ROOT+'tests/configs/atmosphere_equilibrium_test.cfg',
         reset={'output_atmfile':atmfile},
     )
     expected_species = np.array('H2 He Na K H2O CH4 CO CO2 NH3 HCN N2'.split())
@@ -284,7 +284,7 @@ def test_atmosphere_tea_no_molpars_but_with_vmr_models(tmp_path):
     }
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/atmosphere_tea_test.cfg',
+        ROOT+'tests/configs/atmosphere_equilibrium_test.cfg',
         reset=reset,
     )
     expected_species = np.array('H2 He Na K H2O CH4 CO CO2 NH3 HCN N2'.split())
@@ -311,7 +311,7 @@ def test_atmosphere_tea_with_vmr_models(tmp_path):
     }
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/atmosphere_tea_test.cfg',
+        ROOT+'tests/configs/atmosphere_equilibrium_test.cfg',
         reset=reset,
     )
     expected_species = np.array('H2 He Na K H2O CH4 CO CO2 NH3 HCN N2'.split())
@@ -413,7 +413,7 @@ def test_atmosphere_tea_hybrid_over_limit(tmp_path):
 def test_deprecated_vmr_arguments(tmp_path, arg):
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/atmosphere_tea_test.cfg',
+        ROOT+'tests/configs/atmosphere_equilibrium_test.cfg',
         reset={arg:'tcea'},
     )
 

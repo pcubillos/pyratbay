@@ -70,7 +70,7 @@ def test_line_sample_trim_wn():
 def test_line_sample_thin_wn():
     cs_files = f"{pc.ROOT}tests/outputs/exttable_test_300-3000K_1.1-1.7um.npz"
     thinning = 10
-    ls = op.Line_Sample(cs_files, wn_thinning=thinning)
+    ls = op.Line_Sample(cs_files, wl_thinning=thinning)
 
     assert ls.ntemp == 10
     assert ls.nwave == 321

@@ -1,3 +1,4 @@
+
 .. include:: _substitutions.rst
 
 .. _atmospheretutorial:
@@ -10,16 +11,11 @@ are four properties that can be modeled:
 
 1. :ref:`Pressure profile <pressure>`
 2. :ref:`Temperature profile <temperature_profile>`
-3. :ref:`Abundance profile (volume mixing ratios) <abundance_profile>`
+3. :ref:`Abundance profiles (volume mixing ratios) <abundance_profile>`
 4. :ref:`Radius profile <radius_profile>`
 
 
-
 --------------------------------------------------------
-
-.. Regardless of which profiles are computed, in an interactive run the code returns a five-element tuple containing the pressure profile (bar), the temperature profile (Kelvin), the abundance profiles (volume mixing fraction), the species names, and the altitude profile (cm).  The outputs that were not calculated are set to ``None``. Also, regardless of the input units, the output variables will always be in CGS units.
-
-.. In the config file, the user can set the ``atmfile`` argument to specify an input atmospheric file from where to read pressure, temperature, volume mixing ratios, and/or altitude profiles.  The ``output_atmfile`` argument instead can be set to specify a file name where to store the outputs.
 
 .. _pressure:
 
@@ -188,6 +184,7 @@ sessions. Here are examples for each of the models:
         <summary>Click here to show/hide: temperature_profile_isothermal.cfg</summary>
 
      .. literalinclude:: ./_static/data/temperature_profile_isothermal.cfg
+         :language: ini
          :caption: File: `temperature_profile_isothermal.cfg <./_static/data/temperature_profile_isothermal.cfg>`__
 
      .. raw:: html
@@ -236,6 +233,7 @@ sessions. Here are examples for each of the models:
         <summary>Click here to show/hide: temperature_profile_guillot.cfg</summary>
 
      .. literalinclude:: ./_static/data/temperature_profile_guillot.cfg
+         :language: ini
          :caption: File: `temperature_profile_madhu.cfg <./_static/data/temperature_profile_guillot.cfg>`__
 
      .. raw:: html
@@ -292,6 +290,7 @@ sessions. Here are examples for each of the models:
         <summary>Click here to show/hide: temperature_profile_madhu.cfg</summary>
 
      .. literalinclude:: ./_static/data/temperature_profile_madhu.cfg
+         :language: ini
          :caption: File: `temperature_profile_madhu.cfg <./_static/data/temperature_profile_madhu.cfg>`__
 
      .. raw:: html
@@ -347,115 +346,286 @@ Interactive notebooks
 This Notebook explains the model parameters and shows how to use the
 temperature models in a Python script:
 
-- `Temperature profiles tutorial <cookbooks/temperature_profiles.ipynb>`__
+- `Temperature profiles: basics <cookbooks/temperature_profiles.ipynb>`__
+- `Temperature profiles: in depth <cookbooks/temperature_profiles_indepth.ipynb>`__
 
+--------------------------------------------------------
 
 .. _abundance_profile:
 
 Abundance
 ---------
 
-Currently, there are two options to model Volume mixing ratio
-abundances (``chemistry`` argument).  Each one requires a different
-set of arguments, which is described in the table and sections below:
+``Pyrat bay`` offers two options to compute volume mixing ratio
+abundances (VMRs):
 
-===================== ============================ ================== ====
-Model (``chemistry``) Required arguments           Optional arguments              References
-===================== ============================ ================== ====
-uniform               ``species``, ``uniform_vmr`` ``vmr_vars``       ---
-tea                   ``species``                  ``vmr_vars``       [Blecic2016]_
-===================== ============================ ================== ====
-
-
-.. _vmr_examples:
-
-Examples
-^^^^^^^^
+- Set ``chemistry = equilibrium`` to compute thermochemical-equilibrium abundances
+- Set ``chemistry = free`` to compute free-chemistry abundances
 
 
 .. tab-set::
 
-  .. tab-item:: Uniform VMRs
+  .. tab-item:: Free VMRs
      :selected:
 
-     To produce a uniform-abundance model, the configuration file must
-     contain the ``species`` key specifying a list of the name of the
-     species to include in the atmosphere, and the ``uniform`` key
-     specifying the mole mixing fraction for each of the species listed in
-     ``species``.
+     Free-chemistry calculations allow users to set VMR abundances for
+     each species, independently of others, and independently of the
+     temperature profile.  These runs must set ``chemistry = free`` in
+     the configuration file, list the species present in the
+     atmosphere (``species`` key), and set their VMRs
+     (``uniform_vmr``).  For example:
 
-     Here is an example of a uniform-VMR configuration file.  Copy
-     this file to your local folder.  Then generate the VMR profiles
-     with the Python script below:
+     .. code-block:: ini
 
-     .. raw:: html
+         # Chemistry model and composition [free equilibrium]
+         chemistry = free
+         species =       H2     He   H2O   CH4    CO   CO2   SO2
+         uniform_vmr = 0.85  0.149  4e-3  1e-5  5e-3  3e-7  1e-6
 
-        <details>
-        <summary>Click here to show/hide: vmr_profile_uniform.cfg</summary>
+     These abundances are constant-with-altitude; however, they can be
+     further modified with the ``vmr_vars`` key into constant or
+     non-isobaric profiles.
 
-     .. literalinclude:: ./_static/data/vmr_profile_uniform.cfg
-         :caption: File: `vmr_profile_uniform.cfg <./_static/data/vmr_profile_uniform.cfg>`__
+     Whenever VMRs are being modified with ``vmr_vars`` key, users
+     must define which are the '*filler*' gasses, whose VMRs are
+     adjusted such that the sum of all VMRs equal 1.0 at each layer).
+     The ``bulk`` key defines the filler gases.  For example, for
+     primary atmospheres hydrogen and helium are assumed as fillers
+     (``bulk = H2 He``).  If there is more than one ``bulk`` species,
+     the code preserves the relative VMRs ratios between the bulk
+     species.
 
-     .. raw:: html
+     .. list-table::
+         :header-rows: 1
 
-        </details>
+         * - ``vmr_vars``
+           - Description
+           - Comments
 
-     .. code-block:: python
+         * - ``log_X``
+           - Constant with altitude VMR of species ``X`` (for example, ``log_H2O``)
+           - Set :math:`\log_{10}({\rm VMR})` of species ``X``
 
-         import matplotlib.pyplot as plt
-         plt.ion()
+         * - ``slant_X``
+           - Non-isobaric VMR profile for species ``X``
+             (for example ``slant_CH4``)
+           - A 5-parameter model that allows for non-constant VMR
+             profiles
 
-         import pyratbay as pb
-         import pyratbay.plots as pp
+     **Examples**
 
-         # Generate a uniform and a thermochemical-equilibrium atmospheric model:
-         atm = pb.run("vmr_profile_uniform.cfg")
+     .. tab-set::
 
-         # Plot the results:
-         plt.figure(12, figsize=(7, 3.5))
-         plt.clf()
-         ax = pp.abundance(
-             atm.vmr, atm.press, atm.species,
-             colors='default', xlim=[1e-12, 3.0], legend_fs=10, ax=plt.subplot(111),
-         )
-         plt.tight_layout()
+          .. tab-item:: Constant VMR
+             :selected:
 
-     And the results should look like this:
+             .. raw:: html
 
-     .. image:: ./figures/pyrat_vmr_uniform.png
-        :width: 70%
-        :align: center
+                <details>
+                <summary>Click here to show/hide: vmr_profile_free_constant.cfg</summary>
+
+             .. literalinclude:: ./_static/data/vmr_profile_free_constant.cfg
+                 :language: ini
+                 :caption: File: `vmr_profile_free_constant.cfg <./_static/data/vmr_profile_free_constant.cfg>`__
+
+             .. raw:: html
+
+                 </details>
+
+             This example configuration file below computes free-VMR
+             profiles with |H2| and He as filler gasses.  The
+             ``vmr_vars`` key defines one model per row (|H2O| and
+             |CH4|), where the first field is the model name and the
+             second field its parameter value(s):
+
+             .. code-block:: python
+
+                 bulk = H2 He
+                 vmr_vars =
+                     log_H2O  -3.0
+                     log_CH4  -4.3
+
+             Copy this file to your local folder.  Then you can
+             generate VMR profiles with the Python script below:
+
+             .. code-block:: python
+
+                 import matplotlib.pyplot as plt
+                 import pyratbay as pb
+                 import pyratbay.plots as pp
+                 plt.ion()
+
+                 # Generate a free-chemistry atmosphere
+                 atm = pb.run("vmr_profile_free_constant.cfg")
+
+                 # Plot the results
+                 plt.figure(12, figsize=(7, 3.5))
+                 plt.clf()
+                 plt.subplots_adjust(0.1, 0.14, 0.99, 0.97)
+                 ax = pp.abundance(
+                     atm.vmr, atm.press, atm.species,
+                     colors='default', xlim=[1e-8, 2.0], ax=plt.subplot(111),
+                 )
+
+             And the results should look like this:
+
+             .. image:: ./figures/pyrat_vmr_free_constant.png
+                :width: 70%
+                :align: center
 
 
-
-  .. tab-item:: Thermochemical equilibrium
-
-
-     ``Pyrat Bay`` computes thermochemical equilibrium abundances (TEA) via
-     the chemcat package, by minimizing the Gibbs free energy at each
-     layer.  To produce a TEA model, the configuration file must set
-     ``chemistry=tea``.  The ``species`` argument sets the species to
-     include in the atmosphere.
-
-     The TEA run assumes a solar elemental composition from [Asplund2021]_
-     as the base for the thermochemical equilibrium model; however, the
-     user can customize the elemental abundances using the ``vmr_vars``
-     argument.  The table below shows the available options.
-
-     ================= ===
-     ``vmr_vars``      Notes
-     ================= ===
-     ``[M/H]``         Metallicity of all elemental species (dex units, with respect to solar)
-     ``[X/H]``         Metallicity of element ``X`` (dex units, with respect to solar).  Overrides ``[M/H]``
-     ``X/Y``           Abundance of element ``X`` relative to element ``Y``.  Overrides ``[M/H]`` for ``X``, but ``Y`` can be previously modified by ``[M/H]`` or ``[Y/H]``.
-     ================= ===
-
-     .. ``log_mol``     log10(VMR) of species ``mol`` (constant with altitude)
+          .. tab-item:: Non-isobaric VMR
 
 
-     Here is an example of a thermochemical-equilibrium configuration
-     file.  Copy this file to your local folder.  Then generate VMR
-     profiles with the Python script below:
+             The ``slant_X`` (non-isobaric) model consist of a slanted
+             $\\log {\\rm VMR}$-$\\log p$ profile, capped between two
+             VMR values. The model has five free parameters, as
+             described below:
+
+             ===============  ===
+             Parameter        Description
+             ===============  ===
+             ``slope``        Slope of VMR profile: ${\\rm d}(\\log {\\rm VMR}) / {\\rm d}(\\log p)$
+             ``log_VMR0``     Reference VMR value at reference pressure ``log_p0``
+             ``log_p0``       Reference pressure level
+             ``max_log_VMR``  Minimum VMR value (VMR profile is capped)
+             ``min_log_VMR``  Maximum VMR value (VMR profile is capped)
+             ===============  ===
+
+             The example configuration file below computes free-VMR
+             profiles with |H2| and He as filler gasses.  The
+             ``vmr_vars`` key defines the VMR models. Each row defines
+             which model (here, a non-isobaric |CH4| profile and a
+             constant |H2O| profile), followed by the model
+             parameters:
+
+             .. code-block:: python
+
+                 bulk = H2 He
+
+                 # slant params: slope  VMR0  p0   min   max
+                 vmr_vars =
+                     slant_CH4   1.5  -3.5  -3.0  -inf  -3.2
+                     log_H2O    -3.0
+
+             .. raw:: html
+
+                <details>
+                <summary>Click here to show/hide: vmr_profile_free_non_isobaric.cfg</summary>
+
+             .. literalinclude:: ./_static/data/vmr_profile_free_non_isobaric.cfg
+                 :language: ini
+                 :caption: File: `vmr_profile_free_non_isobaric.cfg <./_static/data/vmr_profile_free_non_isobaric.cfg>`__
+
+             .. raw:: html
+
+                </details>
+
+             Copy this file to your local folder.  Then you can
+             generate VMR profiles with the Python script below:
+
+             .. code-block:: python
+
+                 import matplotlib.pyplot as plt
+                 import pyratbay as pb
+                 import pyratbay.plots as pp
+                 plt.ion()
+
+                 # Generate a free-chemistry atmosphere
+                 atm = pb.run("vmr_profile_free_non_isobaric.cfg")
+
+                 # Plot the results
+                 plt.figure(12, figsize=(7, 3.5))
+                 plt.clf()
+                 plt.subplots_adjust(0.1, 0.14, 0.99, 0.97)
+                 ax = pp.abundance(
+                     atm.vmr, atm.press, atm.species,
+                     colors='default', xlim=[1e-8, 2.0], ax=plt.subplot(111),
+                 )
+
+             And the results should look like this:
+
+             .. image:: ./figures/pyrat_vmr_free_non_isobaric.png
+                :width: 70%
+                :align: center
+
+             .. note:: While 5 parameters sounds like a lot, the
+                 advantage of this model is its flexibility. It can
+                 reproduce a range of constant, slanted, and
+                 slanted+constant profiles. See the examples in the
+                 figure below.  In most cases, not all 5 parameters
+                 are relevant (this is particularly important for
+                 retrieval runs).
+
+                 .. figure:: ./figures/non_isobaric_vmr_model.png
+                    :width: 70%
+                    :align: center
+
+                    **Caption:** ``slant_x`` models for a variety of profiles from [Moses2011]_
+
+     **More Examples:**
+
+     - `Free VMR profiles used in an interactive notebook <cookbooks/vmr_free_profiles.ipynb>`__
+     - :doc:`Free constant VMR profiles used in retrieval <cookbooks/wasp39b/transmission_retrieval>`
+
+
+  .. tab-item:: Equilibrium VMRs
+
+     Equilibrium calculations take heritage from the ``TEA`` package
+     [Blecic2016]_, allowing users to select the set of atmospheric
+     species, computing thermochemical equilibrium abundances via a
+     Gibbs minimization (given the elemental composition, and
+     pressure-temperature profile).
+
+     An equilibrium run must set ``chemistry = equilibrium`` in the
+     configuration file, and define the set of species present in the
+     atmosphere via the ``species`` key.  For example, for a SCHON
+     chemistry:
+
+     .. code-block:: ini
+
+         # Chemistry model and composition [free equilibrium]
+         chemistry = equilibrium
+         species =
+             H2  He  H  H2O  CH4  CO  CO2  HCN  NH3  N2  OH  C2H2
+             S2  SH  H2S  SO2  SO  OCS  CS  CS2
+
+     The equilibrium calculation assumes a solar elemental composition
+     from [Asplund2021]_ as starting point.  These elemental
+     abundances can be further customized in a variety of ways via the
+     ``vmr_vars`` key.  The table below shows the available
+     options:
+
+     .. list-table::
+         :header-rows: 1
+
+         * - ``vmr_vars``
+           - Description
+           - Comments
+
+         * - ``[M/H]``
+           - Global metallicity scale factor for all metal elements (i.e., everything except H and He)
+           - dex units relative to solar.
+
+         * - ``[X/H]``
+           - Metallicity scale factor for element ``X``
+             (for example ``[C/H]`` or ``[O/H]``)
+           - dex units relative to solar.
+             Note this overrides ``[M/H]`` for element ``X``
+
+         * - ``X/Y``
+           - Set abundance of element ``X`` relative to element ``Y``
+             (for example ``C/O`` ratio)
+           - Note this overrides ``[M/H]`` for ``X``, but ``Y`` can be
+             previously scaled by ``[M/H]`` or ``[Y/H]``
+
+     .. note:: Note that users can use and combine as many VMR
+               parameters as desired!
+
+     **Examples**
+
+     This sample configuration file computes equilibrium VMRs, scaling
+     the abundances of carbon, oxygen, and all other metals.
 
      .. raw:: html
 
@@ -463,32 +633,40 @@ Examples
         <summary>Click here to show/hide: vmr_profile_equilibrium.cfg</summary>
 
      .. literalinclude:: ./_static/data/vmr_profile_equilibrium.cfg
+         :language: ini
          :caption: File: `vmr_profile_equilibrium.cfg <./_static/data/vmr_profile_equilbrium.cfg>`__
 
      .. raw:: html
 
         </details>
 
+     Copy this file to your local folder. Then you can generate VMR
+     profiles with the Python script below:
 
      .. code-block:: python
 
+         import numpy as np
          import matplotlib.pyplot as plt
          plt.ion()
 
          import pyratbay as pb
          import pyratbay.plots as pp
 
-         # Generate a uniform and a thermochemical-equilibrium atmospheric model:
+         # Compute a thermochemical-equilibrium atmosphere
          atm = pb.run("vmr_profile_equilibrium.cfg")
 
-         # Plot the results:
+         # Only show molecules of interest
+         mol_show = ['H2', 'He', 'H', 'H-', 'e-', 'H2O', 'CO', 'CO2', 'CH4', 'TiO', 'VO']
+         imol = np.isin(atm.species, mol_show)
+
          plt.figure(12, figsize=(7, 3.5))
          plt.clf()
+         plt.subplots_adjust(0.1, 0.14, 0.99, 0.97)
          ax = pp.abundance(
-             atm.vmr, atm.press, atm.species,
-             colors='default', xlim=[1e-12, 3.0], legend_fs=10, ax=plt.subplot(111),
+             atm.vmr[:,imol], atm.press, atm.species[imol],
+             colors='default', xlim=[1e-14, 2.0], ax=plt.subplot(111),
          )
-         plt.tight_layout()
+
 
      And the results should look like this:
 
@@ -496,6 +674,129 @@ Examples
         :width: 70%
         :align: center
 
+     **More Examples:**
+
+     - :doc:`Equilibrium chemistry VMRs used in retrieval <cookbooks/wasp18b/eclipse_retrieval>`
+
+
+  .. tab-item:: Hybrid VMRs
+
+     ``Pyrat Bay`` also enables hybrid-chemistry calculations that
+     embed free VMR profiles into an equilibrium-chemistry atmosphere.
+     A hybrid-chemistry run must set ``chemistry = equilibrium`` in
+     the configuration file, and define the set of species present in
+     the atmosphere via the ``species`` key.
+
+     As for the equilibrium mode, the ``vmr_vars`` key allows one to
+     customize the elemental composition, except that now users can
+     include free VMR profiles with the ``log_X`` option:
+
+     .. list-table::
+         :header-rows: 1
+
+         * - ``vmr_vars``
+           - Description
+           - Comments
+
+         * - ``[M/H]``
+           - Global metallicity scale factor for all metal elements (i.e., everything except H and He)
+           - dex units relative to solar.
+
+         * - ``[X/H]``
+           - Metallicity scale factor for element ``X``
+             (for example ``[C/H]`` or ``[O/H]``)
+           - dex units relative to solar.
+             Note this overrides ``[M/H]`` for element ``X``
+
+         * - ``X/Y``
+           - Set abundance of element ``X`` relative to element ``Y``
+             (for example ``C/O`` ratio)
+           - Note this overrides ``[M/H]`` for ``X``, but ``Y`` can be
+             previously scaled by ``[M/H]`` or ``[Y/H]``
+
+         * - ``log_X``
+           - Constant with altitude VMR of species ``X`` (for example, ``log_H2O``)
+           - The VMR profile for species ``X`` is taken out of equilibrium
+
+     .. note:: In hybrid-chemistry runs, first all equilibrium
+               variables will define the equilibrium-chemistry
+               composition.  Then, the ``log_X`` variables (if any)
+               will override the abundance of the ``X`` species,
+               taking them out of equilibrium, *without* altering any
+               other abundance.
+
+
+     **Examples**
+
+     .. raw:: html
+
+        <details>
+        <summary>Click here to show/hide: vmr_profile_hybrid.cfg</summary>
+
+     .. literalinclude:: ./_static/data/vmr_profile_hybrid.cfg
+         :language: ini
+         :caption: File: `vmr_profile_hybrid.cfg <./_static/data/vmr_profile_hybrid.cfg>`__
+
+     .. raw:: html
+
+        </details>
+
+     This configuration file computes a hybrid atmosphere in
+     equilibrium for all species except |SO2|, which is set to a
+     constant VMR abundance (with a much larger than that expected in
+     equilibrium):
+
+     .. code-block:: ini
+         :emphasize-lines: 15
+
+         # Chemistry model and composition [free equilibrium]
+         chemistry = equilibrium
+         species =
+             H  He  C  N  O  F  Na  Mg  Si  S  K  Ti  V Fe
+             H2  H2O  CH4  CO  CO2  HCN  NH3  N2  OH  C2H2  C2H4 OCS CS CS2
+             S2  SH  H2S  SO2  SO  TiO  VO  TiO2  VO2   SiO  SiH  SiS  SiH4
+             e-  H-  H+  H2+  He+  Na-  Na+  Mg+ K-  K+  Fe+  Ti+  V+ SiH+ Si- Si+
+
+         # Scale elemental abundances of carbon, oxygen, and metals.
+         # Then, adopt an out-of-equilibrium SO2 profile
+         vmr_vars =
+             [M/H]    1.0
+             [C/H]    0.8
+             [O/H]    1.1
+             log_SO2 -5.0
+
+     Copy this file to your local folder. Then you can generate VMR
+     profiles with the Python script below:
+
+     .. code-block:: python
+
+         import numpy as np
+         import pyratbay as pb
+         import pyratbay.plots as pp
+         import matplotlib.pyplot as plt
+         plt.ion()
+
+         # Compute a thermochemical-equilibrium atmosphere
+         atm = pb.run("vmr_profile_hybrid.cfg")
+
+         # Only show molecules of interest
+         mol_show = ['H2', 'He', 'H2O', 'CO', 'CO2', 'CH4', 'H2S', 'SO2']
+         imol = np.isin(atm.species, mol_show)
+
+         plt.figure(12, figsize=(7, 3.5))
+         plt.clf()
+         plt.subplots_adjust(0.1, 0.14, 0.99, 0.97)
+         ax = pp.abundance(
+             atm.vmr[:,imol], atm.press, atm.species[imol],
+             colors='default', xlim=[1e-10, 2.0], ax=plt.subplot(111),
+         )
+
+
+     And the results should look like this:
+
+     .. image:: ./figures/pyrat_vmr_hybrid.png
+        :width: 70%
+        :align: center
 
 
 .. _radius_profile:
@@ -503,43 +804,35 @@ Examples
 Radius
 ------
 
-If the user sets the ``radmodel`` key, the code will to compute the
-atmospheric altitude profile (radius profile).  The currently
-available models solve for the hydrostatic-equilibrium equation,
-combined with the ideal gas law with a pressure-dependent gravity
-(``radmodel=hydro_m``, recommended):
+Setting the ``radmodel`` key signals the code to compute the radius
+profile (altitude of each pressure layer) assuming hydrostatic
+equilibrium and ideal gas law.  There are two options, a
+pressure-dependent gravity model (``radmodel=hydro_m``, recommended):
 
 .. math::
    \frac{dr}{r^2} = -\frac{k_{\rm B}T}{\mu G M_p} \frac{dp}{p},
 
-or a constant surface gravity (``radmodel=hydro_g``):
+or a constant-gravity model (``radmodel=hydro_g``):
 
 .. math::
    dr = -\frac{k_{\rm B}T}{\mu g} \frac{dp}{p},
 
-where :math:`M_{\rm p}` is the mass of the planet, :math:`T(p)` is the
-atmospheric temperature, :math:`\mu(p)` is the atmospheric mean
-molecular mass, :math:`k_{\rm B}` is the Boltzmann constant, and
-:math:`G` is the gravitational constant.  Note that :math:`T(p)` and
-:math:`\mu(p)` are computed from the models of the :ref:`temp_profile`
-and :ref:`abundance_profile`, respectively.
+where :math:`k_{\rm B}` and :math:`G` are the Boltzmann and
+gravitational constants, respectively.  :math:`M_{\rm p}` is the mass
+of the planet, defined by the user (for example, ``mplanet = 2.9
+mearth``).  :math:`T(p)` and :math:`\mu(p)` are the atmospheric
+temperature and mean molecular mass profiles.
 
+To solve the hydrostatic-equilibrium equation, users also need to
+provide a radius--pressure reference point, defining the condition
+:math:`r(p_0) = R_0`.  The ``rplanet`` and ``refpressure`` keys set
+:math:`R_0` and :math:`p_0`, respectively.
 
-To obtain the particular solution of these differential equations, one
-needs to know:
-
-- the mass of the planet (:math:`M_p`, ``mplanet`` key)
-
-- the pair of radius--pressure reference values to define the boundary
-  condition :math:`r(p_0) = R_0`.  The ``rplanet`` and ``refpressure``
-  keys set :math:`R_0` and :math:`p_0`, respectively.
-
-
-Note that the selection of the :math:`\{p_0,R_0\}` pair is arbitrary.
-A good practice is to choose values close to the transit radius of
-the planet.  Although the pressure at the transit radius is a priori
-unknown for a give particular case [Griffith2014]_, its value lies
-at around 0.1 bar.
+.. note:: Note that the choice of the :math:`\{p_0,R_0\}` pair is
+    somewhat arbitrary.  A good practice is to choose values close to
+    the transit radius of the planet.  Although the pressure at the
+    transit radius is a priori unknown for a give particular case
+    [Griffith2014]_, its value lies at around 0.1 bar.
 
 
 Examples
@@ -554,6 +847,7 @@ configuration file:
    <summary>Click here to show/hide: profile_hydro_m.cfg</summary>
 
 .. literalinclude:: ./_static/data/profile_hydro_m.cfg
+    :language: ini
     :caption: File: `profile_hydro_m.cfg <./_static/data/profile_hydro_m.cfg>`__
 
 .. raw:: html
@@ -565,6 +859,7 @@ configuration file:
    <summary>Click here to show/hide: profile_hydro_g.cfg</summary>
 
 .. literalinclude:: ./_static/data/profile_hydro_g.cfg
+    :language: ini
     :caption: File: `profile_hydro_g.cfg <./_static/data/profile_hydro_g.cfg>`__
 
 .. raw:: html

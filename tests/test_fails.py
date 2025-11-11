@@ -244,8 +244,8 @@ def test_missing_mass_units(tmp_path):
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 # Parameter boundaries:
 @pytest.mark.parametrize('param, value',
-    [('wllow',   ' -1.0 um'),
-     ('wlhigh',  ' -1.0 um'),
+    [('wl_low',   ' -1.0 um'),
+     ('wl_high',  ' -1.0 um'),
      ('wnhigh',  ' -1.0'),
      ('wnlow',   ' -1.0'),
      ('wnstep',  ' -1.0'),
@@ -406,7 +406,7 @@ def test_pt_tpars_mismatch(tmp_path, tmodel, npars):
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 # atmosphere (chemistry) runmode fails:
 
-@pytest.mark.parametrize('chem', ['uniform', 'tea'])
+@pytest.mark.parametrize('chem', ['free', 'equilibrium'])
 def test_atmosphere_missing_species(tmp_path, chem):
     cfg = make_config(
         tmp_path,
@@ -418,13 +418,13 @@ def test_atmosphere_missing_species(tmp_path, chem):
         pyrat = pb.run(cfg)
 
 
-def test_atmosphere_uniform_missing_uniform(tmp_path):
+def test_atmosphere_uniform_missing_uniform_vmr(tmp_path):
     cfg = make_config(tmp_path,
-        ROOT+'tests/configs/atmosphere_uniform_test.cfg',
+        ROOT+'tests/configs/atmosphere_free_test.cfg',
         remove=['uniform_vmr'])
     error = re.escape(
         'Undefined list of uniform volume mixing ratios (uniform_vmr) '
-        'for uniform chemistry model'
+        'for free chemistry model'
     )
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
@@ -433,7 +433,7 @@ def test_atmosphere_uniform_missing_uniform(tmp_path):
 def test_atmosphere_uniform_mismatch_uniform(tmp_path):
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/atmosphere_uniform_test.cfg',
+        ROOT+'tests/configs/atmosphere_free_test.cfg',
         reset={'uniform_vmr':'0.85 0.15'},
     )
     error = re.escape(
@@ -519,9 +519,9 @@ def test_spectrum_missing_wl_units(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
-        reset={'wllow': '1.1', 'wlhigh': '2.0'},
+        reset={'wl_low': '1.1', 'wl_high': '2.0'},
     )
-    error = "Invalid units 'None' for parameter wllow"
+    error = "Invalid units 'None' for parameter wl_low"
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
 
@@ -530,7 +530,7 @@ def test_spectrum_inconsistent_wl_bounds(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
-        reset={'wllow':'2.0 um', 'wlhigh':'1.0 um'},
+        reset={'wl_low':'2.0 um', 'wl_high':'1.0 um'},
     )
     error = re.escape(
         'Wavenumber low boundary (10000.0 cm-1) must be larger than the '
@@ -732,29 +732,15 @@ def test_spectrum_inconsistent_voigt_bounds(tmp_path, vmin, vmax):
         pyrat = pb.run(cfg)
 
 
-def test_spectrum_rpars_mismatch(tmp_path):
+def test_spectrum_cloud_pars_mismatch(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
-        reset={'rpars':'1.0 1.0 1.0'},
+        reset={'clouds':'lecavelier 1.0 1.0 1.0'},
     )
     error = re.escape(
-        'Number of input Rayleigh parameters (3) does not match the '
-        'number of required model parameters (2)'
-    )
-    with pytest.raises(ValueError, match=error):
-        pyrat = pb.run(cfg)
-
-
-def test_spectrum_cpars_mismatch(tmp_path):
-    cfg = make_config(
-        tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
-        reset={'cpars':'1.0 1.0 1.0'},
-    )
-    error = re.escape(
-        'Number of input cloud parameters (3) does not match the number '
-        'of required model parameters (1)'
+        "Number of input parameters (3) does not match the number of "
+        "required parameters (2) for model 'lecavelier'"
     )
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
@@ -780,7 +766,7 @@ def test_spectrum_raygrid(tmp_path, invalid_raygrid, value):
 def test_line_sample_missing_species(tmp_path):
     reset = {
         'species': 'H2  He  H   Na  CH4  CO  CO2',
-        'chemistry': 'tea',
+        'chemistry': 'equilibrium',
         'sampled_cross_sec': f'{ROOT}tests/outputs/exttable_test_300-3000K_1.1-1.7um.npz',
     }
     cfg = make_config(
@@ -800,7 +786,7 @@ def test_line_sample_missing_species(tmp_path):
 def test_line_by_line_missing_species(tmp_path):
     reset = {
         'species': 'H2  He  H   Na  CH4  CO  CO2',
-        'chemistry': 'tea',
+        'chemistry': 'equilibrium',
     }
     cfg = make_config(
         tmp_path,
@@ -836,7 +822,7 @@ def test_alkali_missing_species(tmp_path):
 def test_cia_missing_species(tmp_path):
     reset = {
         'species': 'H2  H   Na  H2O CH4  CO  CO2',
-        'chemistry': 'tea',
+        'chemistry': 'equilibrium',
     }
     cfg = make_config(
         tmp_path,
@@ -854,8 +840,8 @@ def test_cia_missing_species(tmp_path):
 def test_rayleigh_missing_species(tmp_path):
     reset = {
         'species': 'H2  H   Na  H2O CH4  CO  CO2',
-        'chemistry': 'tea',
-        'rayleigh': 'lecavelier dalgarno_He',
+        'chemistry': 'equilibrium',
+        'rayleigh': 'rayleigh_He',
     }
     cfg = make_config(
         tmp_path,
@@ -864,7 +850,7 @@ def test_rayleigh_missing_species(tmp_path):
         reset=reset,
     )
     error = re.escape(
-        "Species ['He'], required for opacity model dalgarno_He, "
+        "Species ['He'], required for opacity model rayleigh_He, "
         "are not present in the atmosphere"
     )
     with pytest.raises(ValueError, match=error):
@@ -952,8 +938,8 @@ def test_spectrum_invalid_retrieval_params_pname(tmp_path):
     )
     error = re.escape(
         "Invalid retrieval parameter 'log_H2O'. Possible values are:\n"
-        "['log_p_ref', 'R_planet', 'M_planet', 'rv_shift', 'f_patchy', 'T_eff', "
-        "'f_dilution', 'T_iso', 'log_k_ray', 'alpha_ray', 'log_p_cl']"
+        "['log_p_ref', 'R_planet', 'M_planet', 'rv_shift', 'f_patchy', "
+        "'T_eff', 'f_dilution', 'T_iso', 'log_k_ray', 'alpha_ray']"
     )
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
@@ -990,7 +976,7 @@ def test_spectrum_insuficient_retrieval_params_temp(tmp_path):
 
 def test_spectrum_insuficient_retrieval_params_mol(tmp_path):
     reset = {
-        'chemistry': 'tea',
+        'chemistry': 'equilibrium',
         'vmr_vars': '[M/H]',
         'retrieval_params': 'R_planet -3.0',
     }
@@ -1006,32 +992,15 @@ def test_spectrum_insuficient_retrieval_params_mol(tmp_path):
 
 def test_spectrum_insuficient_retrieval_params_cloud(tmp_path):
     reset = {
-        'cloud': 'deck',
+        'clouds': 'deck',
         'retrieval_params': 'R_planet -3.0',
     }
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         reset=reset,
-        remove=['cpars'],
     )
     error = re.escape("Undefined parameter values for cloud model 'deck'")
-    with pytest.raises(ValueError, match=error):
-        pyrat = pb.run(cfg)
-
-
-def test_spectrum_insuficient_retrieval_params_rayleigh(tmp_path):
-    reset = {
-        'rayleigh': 'lecavelier',
-        'retrieval_params': 'R_planet -3.0',
-    }
-    cfg = make_config(
-        tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
-        reset=reset,
-        remove=['rpars'],
-    )
-    error = re.escape("Undefined parameter values for cloud model 'lecavelier'")
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
 
@@ -1051,7 +1020,7 @@ def test_spectrum_params_misfit(tmp_path):
         """Invalid retrieval parameter 'T_iso'. Possible values are:\n"""
         """['log_p_ref', 'R_planet', 'M_planet', 'rv_shift', 'f_patchy', 'T_eff', """
         """'f_dilution', "log_kappa'", 'log_gamma1', 'log_gamma2', 'alpha', """
-        """'T_irr', 'T_int', 'log_k_ray', 'alpha_ray', 'log_p_cl']"""
+        """'T_irr', 'T_int', 'log_k_ray', 'alpha_ray']"""
     )
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
@@ -1133,14 +1102,14 @@ def test_invalid_equil_without_tea(tmp_path):
         ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         reset=reset,
     )
-    error = re.escape("vmr_vars variable '[M/H]' requires chemistry=tea")
+    error = re.escape("vmr_vars variable '[M/H]' requires chemistry=equilibrium")
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
 
 
 def test_invalid_equil_vmr_vars(tmp_path):
     reset = {
-        'chemistry': 'tea',
+        'chemistry': 'equilibrium',
         'vmr_vars': 'zen',
     }
     cfg = make_config(
@@ -1155,7 +1124,7 @@ def test_invalid_equil_vmr_vars(tmp_path):
 
 def test_invalid_metal_vmr_vars(tmp_path):
     reset = {
-        'chemistry': 'tea',
+        'chemistry': 'equilibrium',
         'vmr_vars': '[X/H]',
     }
     cfg = make_config(
@@ -1173,7 +1142,7 @@ def test_invalid_metal_vmr_vars(tmp_path):
 
 def test_invalid_ratio_vmr_vars(tmp_path):
     reset = {
-        'chemistry': 'tea',
+        'chemistry': 'equilibrium',
         'vmr_vars': 'C/O/X',
     }
     cfg = make_config(
@@ -1206,14 +1175,15 @@ def test_kurucz_missing_pars(tmp_path, param):
 
 
 @pytest.mark.filterwarnings("ignore: The 'retflag' argument")
-@pytest.mark.parametrize('param',
-    ['tmodel', 'clouds', 'rayleigh', 'vmr_vars', 'bulk'])
+@pytest.mark.parametrize(
+    'param',
+    ['tmodel', 'clouds', 'vmr_vars', 'bulk'],
+)
 def test_spectrum_missing_retflag_models(tmp_path, param, undefined_mcmc):
     reset = {
-        'retflag': 'temp mol ray cloud',
+        'retflag': 'temp mol cloud',
         'tmodel': 'isothermal',
-        'clouds': 'deck',
-        'rayleigh': 'lecavelier',
+        'clouds': 'deck lecavelier',
         'vmr_vars': 'log_H2O',
         'bulk': 'H2',
     }

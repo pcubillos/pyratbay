@@ -59,33 +59,33 @@ def test_get_ec_lbl(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test_tli.cfg',
-        reset={'continuum_cross_sec': cfile, 'wllow': '0.55'},
+        reset={'continuum_cross_sec': cfile, 'wl_low': '0.55'},
     )
     pyrat = pb.run(cfg)
     layer = 31
     ec, labels = pyrat.get_ec(layer)
 
-    expected_labels = ['H2O', 'Na', 'CIA H2-H2', 'lecavelier', 'deck']
+    expected_labels = ['H2O', 'Na', 'CIA H2-H2', 'deck', 'lecavelier']
     with np.load(f'{ROOT}tests/expected/expected_get_ec_lbl.npz') as d:
         expected_extinction = d['ec']
 
     assert labels == expected_labels
     np.testing.assert_allclose(ec, expected_extinction)
     # Cloud deck model does not use the ec, rather post processed during RT.
-    # This array contains zeros or ones whether one is above or below cloud:
+    # This array contains zeros or ones whether one is above or below cloud
 
 
 def test_get_ec_line_sample(tmp_path):
     reset = {
-        'chemistry': 'tea',
+        'chemistry': 'equilibrium',
         'species': 'H2 H He Na K H2O CH4 CO CO2 e- H- H+ H2+ Na- Na+ K+ K-',
         'h_ion': 'h_ion_john1988',
+        'clouds': 'lecavelier  0.0 -4.0',
     }
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
         reset=reset,
-        remove=['clouds'],
     )
     pyrat = pb.run(cfg)
     layer = 31

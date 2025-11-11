@@ -4,11 +4,13 @@
 __all__ = [
     'Loglike',
     'weighted_to_equal',
+    'posterior_snapshot',
     'get_multinest_map',
     'multinest_run',
     'posterior_post_processing',
 ]
 
+import datetime
 import os
 import sys
 import time
@@ -25,6 +27,7 @@ from .tools import (
    eta,
    isfile,
 )
+
 
 class Loglike():
     """
@@ -60,6 +63,13 @@ class Loglike():
                 'Attempting to compute a log-likelihood for a model '
                 'with no data'
             )
+        self.pnames = np.array(pyrat.ret.texnames)
+        self.retrieval_file = pyrat.ret.retrieval_file
+        # dt_snapshot hours to seconds
+        self._dt_snapshot = pyrat.inputs.dt_retrieval_snapshot * 3600.0
+        if self._dt_snapshot > 0:
+            self.timer = time.time()
+
 
     def __call__(self, params):
         """
@@ -70,6 +80,13 @@ class Loglike():
         params: 1D float array
             Array of free parameters.
         """
+        # TMP plots
+        if get_mpi_rank() == 0 and self._dt_snapshot>0:
+            now = time.time()
+            if now - self.timer >= self._dt_snapshot:
+                posterior_snapshot(self.retrieval_file, self.pnames[self.ifree])
+                self.timer = now
+
         # Update the free and shared parameters:
         self.params[self.ifree] = params
         for s in self.ishare:
@@ -148,6 +165,38 @@ def weighted_to_equal(posterior_file, get_weighted=False, min_size=15000):
     if get_weighted:
         return equal_posterior, weighted_posterior
     return equal_posterior
+
+
+def posterior_snapshot(retrieval_file, pnames):
+    """
+    Take a snapshot of a retrieval run, plot the histogram and traces
+    of the parameters.
+    """
+    root, pfile = os.path.split(retrieval_file)
+    if not os.path.exists(f'{root}/{pfile}.txt'):
+        #print('No posterior file yet')
+        return
+
+    equal_posterior, weighted_posterior = weighted_to_equal(
+        f'{root}/{pfile}.txt', get_weighted=True,
+    )
+    with open(f'{root}/{pfile}resume.dat', 'r') as f:
+        lines = f.readlines()
+    nsamples = int(lines[1].split()[1]) / 1e6
+    today = str(datetime.date.today()).replace('-', '_')
+    label = f'{nsamples:06.2f}M__{today}'
+
+    if len(np.unique(equal_posterior[:,0])) == 1:
+        #print(f'Not enough samples to generate plots ({label}).')
+        return
+
+    post = mc3.plots.Posterior(equal_posterior, pnames)
+    mc3.plots.trace(
+        weighted_posterior,
+        pnames=pnames,
+        savefile=f'{root}/tmp_trace_{label}.png',
+    )
+    post.plot_histogram(savefile=f'{root}/tmp_histograms_{label}.png')
 
 
 def get_multinest_map(stats_file):
@@ -534,3 +583,6 @@ def posterior_post_processing(cfg_file=None, pyrat=None, suffix=''):
     )
 
     return outputs
+
+
+

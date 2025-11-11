@@ -1,18 +1,4 @@
-.. |H2O| replace:: H\ :sub:`2`\ O
-.. |CO2| replace:: CO\ :sub:`2`
-.. |CH4| replace:: CH\ :sub:`4`
-.. |H2|  replace:: H\ :sub:`2`
-.. |Rp|  replace:: :math:`R_{\rm p}`
-.. |Rs|  replace:: :math:`R_{\rm s}`
-.. |Fp|  replace:: :math:`F_{\rm p}`
-.. |Fs|  replace:: :math:`F_{\rm s}`
-.. |kayser| replace:: cm\ :sup:`-1`
-.. |ptop| replace:: :math:`\log(p_{\rm top})`
-.. |pt|   replace:: :math:`\log(p_{\rm t})`
-.. |pb|   replace:: :math:`\log(p_{\rm b})`
-.. |f|    replace:: :math:`\log(f)`
-.. |nu|   replace:: :math:`\nu`
-
+.. include:: _substitutions.rst
 
 .. _spectral_synthesis:
 
@@ -20,7 +6,7 @@ Spectral Synthesis
 ==================
 
 This tutorial shows how compute transmission, emission, or eclipse
-spectra with ``Pyrat Bay``. 
+spectra with ``Pyrat Bay``.
 
 - :ref:`spec_config`
 - :ref:`spec_system`
@@ -28,7 +14,7 @@ spectra with ``Pyrat Bay``.
 - :ref:`spec_wavelength`
 - :ref:`spec_observations`
 - :ref:`spec_atmosphere`
-- :ref:`spec_opacities`
+- :ref:`spec_cross_sec`
 - :ref:`spec_parameters`
 - :ref:`spec_demo`
 
@@ -63,6 +49,11 @@ geometry to use.  These are the options:
      - (|Rp|/|Rs|)\ :sup:`2`
      - Transmission spectrum
 
+   * -
+     -
+     -
+     -
+
    * - Eclipse
      - ``eclipse``
      - |Fp|/|Fs|
@@ -71,21 +62,26 @@ geometry to use.  These are the options:
    * - Eclipse
      - ``eclipse_two_stream``
      - |Fp|/|Fs|
-     - Occultation spectrum
+     - Appendix B of [Heng2014]_
+
+   * -
+     -
+     -
+     -
 
    * - Emission
      - ``emission``
-     - |Fp| (erg s\ :sup:`-1` cm\ :sup:`-2` cm)
+     - |Fp| (|flux_cgs|)
      - Flux at the planet's surface
 
    * - Emission
      - ``emission_two_stream``
-     - |Fp| (erg s\ :sup:`-1` cm\ :sup:`-2` cm)
-     - Flux at the planet's surface
+     - |Fp| (|flux_cgs|)
+     - Appendix B of [Heng2014]_
 
    * - Emission
      - ``f_lambda``
-     - |Fp| (W m\ :sup:`-2` μm\ :sup:`-1`)
+     - |Fp| (|flux_lambda|)
      - Flux measured at Earth
 
 
@@ -93,9 +89,9 @@ Here is a sample configuration file to compute a
 transmission spectrum:
 
 
-.. literalinclude:: ../examples/tutorial/spectrum_transmission.cfg
+.. literalinclude:: _static/data/spectral_synthesis_transmission.cfg
    :language: ini
-   :caption: File `spectrum_transmission.cfg <../../_static/data/tutorial/spectrum_transmission.cfg>`__
+   :caption: File `spectral_synthesis_transmission.cfg <_static/data/spectral_synthesis_transmission.cfg>`__
 
 
 The output spectrum can be set with the ``specfile`` key, otherwise it
@@ -152,42 +148,42 @@ set a stellar spectrum.
 
   .. tab-item:: Custom spectrum
      :selected:
-  
+
      Users can use their own custom stellar spectra via the
      ``starspec`` argument.  This must point to a plain file file
      containing a spectrum in two columns: the first column has the
      wavelength array in microns, the second column has the flux
      spectrum in erg s\ :sup:`-1` cm\ :sup:`-2` cm units.
-  
+
      .. code-block:: ini
-  
+
          # Custom stellar spectrum file
          starspec = inputs/WASP18_spectrum.dat
 
   .. tab-item:: Kurucz model
-  
+
      Users can use a Kurucz stellar model [Castelli2003]_ via the
      ``kurucz`` argument of the configuration file, pointing to a
      Kurucz model.  These models can be downloaded from `this link
      <http://kurucz.harvard.edu/grids/>`__.  The code selects the
      correct Kurucz model based on the stellar temperature and surface
      gravity values:
-  
+
      .. code-block:: ini
-  
+
          # Kurucz stellar spectrum
          tstar = 5700
          log_gstar = 4.5
          kurucz = inputs/fp00k2odfnew.pck
 
   .. tab-item:: Black body
-  
+
      By defining the stellar effective temperature ``tstar``, the code
      will adopt a blackbody spectrum for the star (unless the
      ``starspec`` or ``kurucz`` arguments have been set).
 
      .. code-block:: ini
-  
+
          # Stellar effective temperature (K)
          tstar = 5700
 
@@ -197,44 +193,52 @@ set a stellar spectrum.
 Atmosphere Model
 ----------------
 
-Users can choose to compute the 
-The ``atmfile`` key sets the input atmospheric model from which to
-compute the spectrum.  If the file pointed by ``atmfile`` does not
-exist, the codel will attempt to produce it (provided all necessary
-input parameters are set in the configuration file).  The atmospheric
-model can be produced with ``Pyrat Bay`` or be a custom input from the
-user.
+There are four main atmospheric properties to consider
+(computed in this order): the pressure profile, the temperature, the
+volume mixing ratios (VMRs), and the radius profile.
+
+These properties can (a) be read from an input file (``atmfile``),
+(b) be computed from parametric models, or (c) be calculated from a
+mix of them.  The rules are simple:
+
+- if there is an input atmosphere file,  read properties from file
+- if a model and its parameters are defined, the property will be
+  calculculated from the model (overwritting a )
 
 
-The user can re-compute the temperature profile of the atmosphere by
-specifying the ``tmodel`` and ``tpars`` keys (see :ref:`temp_profile`).
+.. tab-set::
 
-Radius profile
-~~~~~~~~~~~~~~
+  .. tab-item:: atmospheric file
+     :selected:
 
-The ``radmodel`` key sets the model to compute the atmospheric
-layers's altitude assuming hydrostatic equilibrium.  This table shows
-the currently available models:
+     The ``atmfile`` key sets the input atmospheric model from which
+     to compute the spectrum.  If the file pointed by ``atmfile`` does
+     not exist, the codel will attempt to produce it (provided all
+     necessary input parameters are set in the configuration file).
+     The atmospheric model can be produced with ``Pyrat Bay`` or be a
+     custom input from the user.
 
-=====================  =========================
-Models (``radmodel``)  Comments
-=====================  =========================
-hydro_m                Hydrostatic equilibrium with :math:`g(r)=GM/r^2`
-hydro_g                Hydrostatic equilibrium with constant gravity
-[undefined]            Take radius profile from input atmospheric file if exists
-=====================  =========================
+     .. code-block:: ini
 
-See the :ref:`altitude_profile` section for details.
+         # Input atmospheric profile
+         atmfile = wasp80b_custom_profile.atm
 
-The ``refpressure``, ``rplanet``, ``mplanet`` and ``gplanet`` keys set
-the planetary reference pressure and radius level (:math:`p_0` and
-:math:`R_0`), the planetary mass (:math:`M_p`) and planetary surface
-gravity (:math:`g`), respectively.
 
-.. Note:: Note that the user can supply its own atmospheric altitude
-          profile (through the input atmospheric model), possibly not
-          in hydrostatic equilibrium.  In this case, do not set the
-          ``radmodel`` key.
+  .. tab-item:: atmospheric models
+
+     See these sections to compute atmospheric profiles from models:
+
+     - :ref:`pressure`
+     - :ref:`temperature_profile`
+     - :ref:`VMRs <abundance_profile>`
+     - :ref:`radius_profile`
+
+
+  .. tab-item:: combined file and models
+
+     TBD
+
+     .. if calculate p, any further reads (T,VMR,r) will interpolate
 
 
 .. _spec_wavelength:
@@ -242,7 +246,7 @@ gravity (:math:`g`), respectively.
 Spectrum sampling
 -----------------
 
-The ``wllow`` and ``wlhigh`` keys set the wavelength boundaries for
+The ``wl_low`` and ``wl_high`` keys set the wavelength boundaries for
 the output spectrum (values must contain units; otherwise, set the
 units with the ``wlunits`` key).
 
@@ -263,200 +267,20 @@ setting the ``resolution`` key (where the resolution is
 :math:`R=\lambda/\Delta\lambda`).
 
 
-.. _spec_opacities:
+.. _spec_cross_sec:
 
-Opacities
----------
+Cross sections
+--------------
 
-  - cross sections
-  - clouds
+See the following sections for available cross sections:
 
+- :ref:`cs_sampled`
+- :ref:`Continuum cross sections (CIA) <cs_cia>`
+- :ref:`Alkali doublets <cs_alkali>`
+- :ref:`cs_rayleigh`
+- :ref:`cs_h_ion`
+- :ref:`cs_clouds`
 
-Line-list data
-~~~~~~~~~~~~~~
-
-Use the ``tlifile`` key to include TLI file(s) containing LBL
-opacities (to create a TLI file, see :ref:`tlitutorial`).  The user
-can include zero, one, or multiple TLI files if desired.
-
-Note that the ``tlifile`` opacities will be neglected if the
-configuration file sets input LBL opacities through the ``extfile``
-(see the rules in :ref:`opacity_io`).
-
-.. _cia_opacity:
-
-Collision Induced Absorption
-----------------------------
-
-Use the ``csfile`` key to include opacities from cross-section files.
-A cross-section file contains opacity (in |kayser| amagat\ :sup:`-2`
-units) tabulated as a function of temperature and wavenumber.  Since
-this format is tabulated in wavenumber, it is best suited for
-opacities that vary smoothly with wavenumber, like collision-induced
-absorption (CIA).  However, the code can also process LBL opacities,
-as long as the files follow the right format (more on this later).
-
-The following table list the most-commonly used CIA opacity sources:
-
-========== ========== ========== ===================== =====================
-Sources    Species    T range    |nu| range (|kayser|) References
-========== ========== ========== ===================== =====================
-`HITRAN`_  |H2|--|H2|  200--3000 1.0--500.0            [Richard2012]_ [Karman2019]_
-`HITRAN`_  |H2|--H    1000--2500 1.0--100.0            [Richard2012]_ [Karman2019]_
-`HITRAN`_  |H2|--He    200--9900 0.5--500.0            [Richard2012]_ [Karman2019]_
-`Borysow`_ |H2|--|H2|   60--7000 0.6--500.0            [Borysow2001]_ [Borysow2002]_
-`Borysow`_ |H2|--He     50--7000 0.5--31.25            [Borysow1988]_ [Borysow1989a]_ [Borysow1989b]_ [Jorgensen2000]_
-========== ========== ========== ===================== =====================
-
-
-.. _Borysow: https://www.astro.ku.dk/~aborysow/programs/index.html
-.. _HITRAN: https://hitran.org/cia
-
-
-For the **HITRAN** CIA database, ``Pyrat Bay`` provides these shell commands to re-format the downloaded CIA files
-
-.. code-block:: shell
-
-    # Download and format HITRAN H2-H2 CIA file for Pyrat Bay:
-    $ wget https://hitran.org/data/CIA/H2-H2_2011.cia
-    $ pbay -cs hitran H2-H2_2011.cia
-
-    # And for HITRAN H2-He CIA
-    $ wget https://hitran.org/data/CIA/H2-H2_2011.cia
-    $ pbay -cs hitran H2-He_2011.cia
-
-For the **Borysow** CIA database, the code provides already-formatted
-files for |H2|-|H2| in the 60--7000K and 0.6--500 um range \[`here
-<https://github.com/pcubillos/pyratbay/blob/master/pyratbay/data/CIA/CIA_Borysow_H2H2_0060-7000K_0.6-500um.dat>`__\]
-(this file pieces together the tabulated |H2|-|H2| files described in
-the references above); and for |H2|-He in the 50--7000K and 0.5--31.25
-um range \[`here
-<https://github.com/pcubillos/pyratbay/blob/master/pyratbay/data/CIA/CIA_Borysow_H2He_0050-7000K_0.5-031um.dat>`__\]
-(this file was created using a re-implementation of the code described
-in the references above).  The user can access these files via the
-``{ROOT}`` shortcut, as in the example below:
-
-.. code-block:: python
-
-    csfile =
-        {ROOT}pyratbay/data/CIA/CIA_Borysow_H2H2_0060-7000K_0.6-500um.dat
-        {ROOT}pyratbay/data/CIA/CIA_Borysow_H2He_0050-7000K_0.5-031um.dat
-
-
-Alkali Opacity
-~~~~~~~~~~~~~~
-
-Use the ``alkali`` key to include opacities from alkali species.
-Currently, the code provides the [Burrows2000]_ models for the sodium
-and potassium resonant lines, based on van der Waals and statistical
-theory.  The following table lists the available alkali model names:
-
-====================  ========= =========================
-Models (``alkali``)   Species   References
-====================  ========= =========================
-sodium_vdw            Na        [Burrows2000]_
-potassium_vdw         K         [Burrows2000]_
-====================  ========= =========================
-
-This implementation adopts the line parameters from the VALD database
-[Piskunov1995]_ and collisional-broadening half-width from [Iro2005]_.
-
-.. _rayleigh_opacity:
-
-Rayleigh Opacity
-~~~~~~~~~~~~~~~~
-
-The ``rayleigh`` key sets Rayleigh opacity models.  The following
-table lists the available Rayleigh model names:
-
-===================== ======= ============================  ===
-Models (``rayleigh``) Species Parameter names               References
-===================== ======= ============================  ===
-lecavelier            ---     ``log_k_ray``, ``alpha_ray``  [Lecavelier2008]_
-dalgarno_H            H       ---                           [Dalgarno1962]_
-dalgarno_He           He      ---                           [Kurucz1970]_
-dalgarno_H2           |H2|    ---                           [Kurucz1970]_
-===================== ======= ============================  ===
-
-The Dalgarno Rayleigh models are tailored for H, He, and |H2| species,
-and thus are not parametric.  The Lecavelier Rayleigh model is more flexible
-and allows the user to modify the absorption strength and wavelength
-dependency according to:
-
-.. math::
-    k(\lambda) = \kappa_{\rm ray} \kappa_0 \left(\frac{\lambda}{\lambda_0}\right)^{\alpha_{\rm ray}},
-
-where :math:`\lambda_0=0.35` um and :math:`\kappa_0=5.31 \times
-10^{-27}` cm\ :sup:`2` molecule\ :sup:`-1` are constants, and
-:math:`\log(\kappa_{\rm ray})` and :math:`\alpha_{\rm ray}` are
-fitting parameters that can be set through the ``rpars`` key.
-Adopting values of :math:`\log(\kappa_{\rm ray})=0.0` and
-:math:`\alpha_{\rm ray}=-4` reduces the Rayleigh opacity to that
-expected for the |H2| molecule.
-
-.. note:: Be aware that the implementation of the Lecavelier model
-          uses the |H2| number-density profile (:math:`n_{\rm H2}`, in
-          molecules cm\ :sup:`-3`) to compute the extinction
-          coefficient (in |kayser| units) for a given atmospheric
-          model: :math:`e(\lambda) = k(\lambda)\ n_{\rm H2}`.  We do
-          this, because we are mostly interested in |H2|-dominated
-          atmospheres, and most people consider a nearly constant |H2|
-          profile.  Obviously, this needs to be fixed at some point in
-          the future for a more general use.
-
-.. _cloud_opacity:
-
-
-Cloud Models
-~~~~~~~~~~~~
-
-Use the ``clouds`` key to include aerosol/haze/cloud opacities.
-Currently, the code provides simple gray cloud models (listed below),
-but soon we will include more complex Mie-scattering clouds for use in
-forward- and retrieval modeling.  The following table lists the
-currently available cloud model names:
-
-
-And these are the available haze/cloud models (``clouds`` parameter):
-
-=================== ============================================ =============================
-Models (``clouds``) Parameter names                              Description
-=================== ============================================ =============================
-deck                ``log_p_cl``                                 Opaque gray cloud deck
-ccsgray             ``log_k_gray``, ``log_p_top``, ``log_p_bot`` Constant gray cross-section
-=================== ============================================ =============================
-
-Use the ``cpars`` key to set the cloud model parameters.  The '*deck*'
-model makes the atmosphere instantly opaque at the :math:`\log(p_{\rm cl})` pressure
-(in bar units).
-
-The '*ccsgray*' model creates a constant cross-section opacity between
-the :math:`p_{\rm t}` and :math:`p_{\rm b}` pressures (in bar units),
-and the |f| parameter scaling the opacity as: :math:`k = \kappa_{\rm gray}\ \kappa_0`, with
-:math:`\kappa_0=5.31 \times 10^{-27}` cm\ :sup:`2` molecule\
-:sup:`-1`.  This model uses the |H2| number-density profile to compute
-the extinction coefficient as: :math:`e(\lambda) = k\ n_{\rm H2}` (in
-|kayser| units).  Since the |H2| mixing ratio is generally constant,
-the '*ccsgray*' opacity will scale linearly with pressure over the
-atmosphere.
-
-.. For any of these type of models, the user can include multiple
-   models, simply by concatenating multiple models (and parameters)
-   one after the other in the config file.
-
-Patchy Cloud/Hazes
-~~~~~~~~~~~~~~~~~~
-
-Set the ``fpatchy`` argument to compute transmission spectra from a
-linear combination of a clear and cloudy/hazy spectra.  The
-cloudy/hazy component will include the opacity defined by the
-:ref:`cloud_opacity` and the ``lecavelier`` :ref:`rayleigh_opacity`.
-For example, for a 45% cloudy / 55% clear atmosphere, set:
-
-.. code-block:: python
-
-  # Patchy fraction, value between [0--1]:
-  fpatchy = 0.45
 
 
 Flux dilution factor
@@ -475,89 +299,11 @@ represents the fractional area of the hottest region on the planet
 
 
 
-Abundances Scaling
-------------------
-
-Use the ``molvars`` and ``molpars`` keys to modify the abundance of
-certain atmospheric species.  There are two sets of options depending
-on whether the atmosphere is modeled in chemical equilibrium or not.
-The following tables describe the available models (when the
-corresponding ``molpars`` is :math:`x`).
-
-For runs with free abundances:
-
-============= =========================================== =====
-``molvars``   Scaling                                     Description
-============= =========================================== =====
-``log_mol``   :math:`\log_{10}{\rm VMR} = x`              Set log(VMR) of species 'mol' to given value (constant with altitude)
-``scale_mol`` :math:`{\rm VMR}(p) = {\rm VMR}_0(p)\ 10^x` Scale existing VMR of species 'mol' abundance by given value
-============= =========================================== =====
-
-In this case the parameters modify directly the VMR of specific
-species.  To preserve the sum of the VMR at 1.0 at each layer, the
-code will adjust the values of custom '*bulk*' species defined using
-the ``bulk`` key.  A good practice is to set here the dominant species
-in an atmosphere (e.g., ``bulk = H2 He`` for primary atmospheres).  If there
-is more than one '*bulk*' species, the code preserves the relative
-VMRs ratios between the bulk species.
-
-For example, the following configuration will set uniform mole mixing
-fractions for |H2O| and CO of :math:`10^{-3}` and :math:`10^{-4}`,
-respectively; and adjust the abundances of |H2| and He to
-preserve a total mixing fraction of 1.0 at each layer:
-
-.. code-block:: python
-
-  molvars = log_H2O log_CO
-  molpars = -3.0    -4.0
-  bulk = H2 He
-
-
-For runs in thermochemical equilibrium (``chemistry = tea``):
-
-================ ================================= =====
-``molvars``      Scaling                           Description
-================ ================================= =====
-``metal``        :math:`{\rm [M/H]} = x`           Set metallicity (dex units) of all metal species (everything except H and He)
-``[X/H]``        :math:`{\rm [X/H]} = x`           Set metallicity (dex units) of element 'X' relative to solar (overrided metal)
-``X/Y``          ...                               Set abundance of element 'X' relative to that of element 'Y' (note not in dex units)
-================ ================================= =====
-
-
-key, whereas :math:`Q_0` is the abundance of the given species taken
-from the atmospheric file ``atmfile``.
-Note that the user can specify as many scaling parameters as wished,
-as long as there are corresponding values for these three keys
-(``molvars``, ``molpars``).
-
-
-For example, the following configuration will compute abundances in
-thermochemical equilibrium assuming 30x solar abundances for carbon
-and oxygen, and 10x solar for all other metals:
-
-
-.. code-block:: python
-
-  chemistry = tea
-  molvars = metal [C/H] [O/H]
-  molpars = 1.0   1.5    1.5
-
 
 .. _spec_observations:
 
 Observations
 ------------
-
-Filter Pass-bands
------------------
-
-Use the ``filters`` key to set the path to instrument filter
-pass-bands (see [link to formats?]).  These can be used to compute
-band-integrated values for the transmission or eclipse-depth spectra.
-
-
-Observed Data
--------------
 
 Use the ``data`` and ``uncert`` keys to set values for observed
 transit- or eclipse-depth values and their uncertainties,
@@ -572,6 +318,16 @@ Use the ``dunits`` key to specify the units of the ``data`` and
           not strictly required for a spectrum run, but they will
           allow the code to plot these information if requested (see
           [link to plots]).
+
+
+Filter Pass-bands
+~~~~~~~~~~~~~~~~~
+
+Use the ``filters`` key to set the path to instrument filter
+pass-bands (see [link to formats?]).  These can be used to compute
+band-integrated values for the transmission or eclipse-depth spectra.
+
+
 
 .. _spec_parameters:
 
@@ -640,7 +396,7 @@ Examples
    .. code-block:: shell
 
        tutorial_path=https://raw.githubusercontent.com/pcubillos/pyratbay/master/examples/tutorial
-       wget $tutorial_path/spectrum_transmission.cfg
+       wget https://zenodo.org/records/16965391/files/cross_section_0.15-33.0um_0200-5000K_R025K_H2O_exomol_pokazatel.npz
 
 
 In an interactive run, a spectrum run returns a '*pyrat*' object that

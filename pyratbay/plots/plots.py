@@ -630,7 +630,7 @@ def abundance(
     >>> pressure = pa.pressure('1e-6 bar', '1e2 bar', nlayers)
     >>> temperature = pa.temperature('isothermal', pressure,  params=1000.0)
     >>> species = 'H2O CH4 CO CO2 NH3 C2H2 C2H4 HCN N2 TiO VO H2 H He Na K'.split()
-    >>> vmr = pa.chemistry('tea', pressure, temperature, species).vmr
+    >>> vmr = pa.chemistry('equilibrium', pressure, temperature, species).vmr
     >>> ax = pp.abundance(
     >>>     vmr, pressure, species, colors='default',
     >>>     highlight='H2O CH4 CO CO2 NH3 HCN H2 H He'.split())
@@ -648,9 +648,7 @@ def abundance(
     if colors is None:
         colors = matplotlib.rcParams['axes.prop_cycle'].by_key()['color']
 
-    if len(colors) >= len(species):
-        cols = colors
-    elif colors == 'default':
+    if colors == 'default':
         cols = [
             default_colors[mol] if mol in default_colors
             else None
@@ -659,6 +657,8 @@ def abundance(
         used_cols = [c for c in default_colors.values() if c in cols]
         remaining_cols = [c for c in default_colors.values() if c not in cols]
         colors = used_cols + remaining_cols
+    elif len(colors) >= len(species):
+        cols = colors
     else:
         cols = [None for _ in species]
 
