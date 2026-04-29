@@ -45,10 +45,11 @@ Recipes list:
 
   - :doc:`wasp39b/transmission_retrieval`
   - :doc:`wasp18b/eclipse_retrieval`
-  - :doc:`wasp18b/cross_sections_uhj`
-  - radiative_equilibrium (TBD)
-  - isotopic_ratio_retrievals (TBD)
-  - JWST_proposal_simulation (TBD)
+  - :doc:`wasp69b/radiative_equilibrium`
+  - :doc:`yses1b/iso_ratio_retrieval` (TBD)
+..   - JWST_proposal_simulation (TBD)
+
+..  - :doc:`wasp18b/cross_sections_uhj`
 
 - :ref:`compendia` lists compendia of peer-reviewed articles with scripts that reproduced the published material
 
@@ -72,6 +73,7 @@ Recipes list:
 
    wasp39b/transmission_retrieval
    wasp18b/eclipse_retrieval
-   wasp18b/cross_sections_uhj
+   wasp69b/radiative_equilibrium
+   yses1b/iso_ratio_retrieval
    compendia
 
