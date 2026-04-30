@@ -336,6 +336,10 @@ def chemistry(
         species = chem_network.species
         vmr = np.copy(chem_network.vmr)
 
+    else:
+        log.error(
+            f"Invalid chemistry model (chem_model={repr(chem_model)}), must select from: 'free' or 'equilibrium'")
+
     if atmfile is not None:
         header = "# TEA atmospheric file\n\n"
         io.write_atm(

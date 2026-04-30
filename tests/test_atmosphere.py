@@ -565,6 +565,19 @@ def test_chemistry_tea_metallicity_eabundances(e_abundances):
     np.testing.assert_allclose(vmr[:,i_H2O], expected_vmr)
 
 
+def test_chemistry_invalid_model():
+    nlayers = 11
+    pressure = pa.pressure(1e-8, 1e2, nlayers, units='bar')
+    tmodel = pa.tmodels.Isothermal(pressure)
+    temperature = tmodel(1500.0)
+    species = ["H2", "He", "H2O", "CO", "CO2"]
+    match = "Invalid chemistry model (chem_model='tea'), must select from: 'free' or 'equilibrium'"
+    with pytest.raises(ValueError, match=re.escape(match)):
+        pa.chemistry(
+            'tea', pressure, temperature, species,
+        )
+
+
 def test_chemistry_mismatch_nspecies():
     nlayers = 11
     pressure = pa.pressure(1e-8, 1e2, nlayers, units='bar')
