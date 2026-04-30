@@ -29,8 +29,9 @@ Recipes list:
   - `Line-sample opacity tutorial <opacity_line_sample.ipynb>`__
   - `Alkali opacity tutorial <opacity_alkali.ipynb>`__
   - `Collision-induced absorption tutorial <opacity_cia.ipynb>`__
-  - `Rayleigh opacity tutorial <opacity_rayleigh.ipynb>`__
   - `H- bound-free/free-free opacity <opacity_h_ion.ipynb>`__
+  - `Rayleigh opacity tutorial <opacity_rayleigh.ipynb>`__
+  - `Cloud opacity tutorial <opacity_aerosols.ipynb>`__
 
 - **Miscelaneous data manipulation**
 
@@ -65,8 +66,9 @@ Recipes list:
    opacity_line_sample
    opacity_alkali
    opacity_cia
-   opacity_rayleigh
    opacity_h_ion
+   opacity_rayleigh
+   opacity_aerosols
 
    passbands
    partition_functions
