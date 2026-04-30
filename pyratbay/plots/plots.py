@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2025 Cubillos & Blecic
+# Copyright (c) 2021-2026 Cubillos & Blecic
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -526,8 +526,9 @@ def temperature(
 
     tighten = ax is None
     if ax is None:
-        plt.figure(fignum, (7,5))
+        fig = plt.figure(fignum)
         plt.clf()
+        fig.set_size_inches(7,5)
         ax = plt.subplot(111)
 
     # Note alpha != 0 does not work for ps/eps figures
@@ -684,8 +685,9 @@ def abundance(
 
     # Plot the results:
     if ax is None:
-        plt.figure(fignum, (7,5))
+        fig = plt.figure(fignum)
         plt.clf()
+        fig.set_size_inches(7,5)
         ax = plt.subplot(111)
     for spec in highlight:
         imol = list(species).index(spec)

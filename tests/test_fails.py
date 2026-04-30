@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2025 Cubillos & Blecic
+# Copyright (c) 2021-2026 Cubillos & Blecic
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import os
@@ -889,7 +889,7 @@ def test_spectrum_uncert_mismatch(tmp_path):
 def test_spectrum_filters_mismatch(tmp_path):
     reset = {
         'data': '1.0 2.0',
-        'filters': ROOT+'tests/filters/filter_test_WFC3_G141_1.133um.dat',
+        'filters': ROOT+'tests/inputs/filter_test_WFC3_G141_1.133um.dat',
     }
     cfg = make_config(
         tmp_path,
@@ -1382,26 +1382,39 @@ def test_crosssec_mol_not_in_atm():
 @pytest.mark.parametrize(
     'param',
     [
-        'data',
-        'uncert',
-        'filters',
+        'obsfile',
         'retrieval_params',
         'sampler',
-        # MCMC-only:
-        'nsamples',
-        'burnin',
-        'nchains',
     ]
 )
-def test_mcmc_missing(tmp_path, param, undefined_mcmc):
+def test_retrieval_missing(tmp_path, param, undefined_mcmc):
     reset = {
         'tpars': '-4.84 -0.8 -0.8 0.5 1200.0 100.0',
         'vmr_vars': 'log_H2O -4.8',
     }
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/mcmc_transmission_test.cfg',
+        ROOT+'tests/configs/retrieval_transmission_no_offsets.cfg',
         reset=reset,
+        remove=[param],
+    )
+    error = re.escape(undefined_mcmc[param])
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
+
+
+@pytest.mark.parametrize(
+    'param',
+    [
+        'nsamples',
+        'burnin',
+        'nchains',
+    ]
+)
+def test_mcmc_missing(tmp_path, param, undefined_mcmc):
+    cfg = make_config(
+        tmp_path,
+        ROOT+'tests/configs/retrieval_mcmc_transmission.cfg',
         remove=[param],
     )
     error = re.escape(undefined_mcmc[param])
@@ -1412,7 +1425,7 @@ def test_mcmc_missing(tmp_path, param, undefined_mcmc):
 def test_mcmc_missing_starspec(tmp_path):
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/mcmc_transmission_test.cfg',
+        ROOT+'tests/configs/retrieval_transmission_test.cfg',
         reset={'rt_path': 'eclipse'},
         remove=['tstar'],
     )

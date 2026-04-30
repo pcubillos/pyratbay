@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2025 Cubillos & Blecic
+# Copyright (c) 2021-2026 Cubillos & Blecic
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import itertools
@@ -56,6 +56,7 @@ def undefined_mcmc():
         'data':   'Undefined transit/eclipse data (data)',
         'uncert': 'Undefined data uncertainties',
         'filters': 'Undefined transmission filters',
+        'obsfile': 'Undefined transit/emission/eclipse data for retrieval',
         #'data_hires': 'Undefined transit/eclipse data (data)',
         #'uncert_hires': 'Undefined data uncertainties',
         #'filters_hires': 'Undefined transmission filters',

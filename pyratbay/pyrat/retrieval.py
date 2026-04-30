@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2025 Cubillos & Blecic
+# Copyright (c) 2021-2026 Cubillos & Blecic
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -240,14 +240,16 @@ class Retrieval():
                 idx = temp_pnames.index(pname)
                 map_pars['temp'].append(idx)
                 self.texnames[i] = atm.temp_model.texnames[idx]
+
             elif pname in atm.mol_pnames:
                 imol.append(i)
                 for imodel,model in enumerate(atm.vmr_models):
                     if pname in model.pnames:
                         idx = model.pnames.index(pname)
                         map_pars['mol'].append((imodel,idx))
-                        self.texnames[i] = atm.mol_texnames[imodel]
+                        self.texnames[i] = model.texnames[idx]
                         break
+
             elif pname in opacity_pnames:
                 for j,model in enumerate(opacity.models):
                     if pname in opacity.pnames[j]:

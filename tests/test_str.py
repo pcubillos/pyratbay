@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2025 Cubillos & Blecic
+# Copyright (c) 2021-2026 Cubillos & Blecic
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import os
@@ -703,7 +703,7 @@ def test_pyrat_exfile_str(tmp_path):
     }
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/mcmc_transmission_test.cfg',
+        ROOT+'tests/configs/retrieval_transmission_test.cfg',
         reset=reset,
     )
     pyrat = pb.run(cfg)
@@ -712,71 +712,72 @@ def test_pyrat_exfile_str(tmp_path):
 
     assert str(pyrat.obs) == """\
 Observing information:
-Data/bandflux display units (units): none
+Data/bandflux display units (units): ppm
 Data/bandflux internal units: none
 Number of data points (ndata): 20
         Data  Uncertainty   Wavenumber  Wavelength
-        none         none         cm-1          um
+         ppm          ppm         cm-1          um
       (data)     (uncert)     (bandwn)
-     0.00661      0.00002      8826.31       1.133
-     0.00660      0.00002      8635.38       1.158
-     0.00660      0.00002      8449.69       1.183
-     0.00651      0.00002      8271.12       1.209
-     0.00645      0.00002      8097.00       1.235
-     0.00641      0.00002      7936.66       1.260
-     0.00647      0.00002      7781.94       1.285
-     0.00648      0.00002      7630.82       1.310
-     0.00666      0.00002      7484.88       1.336
-     0.00673      0.00002      7344.98       1.361
-     0.00677      0.00002      7207.07       1.388
-     0.00674      0.00002      7077.26       1.413
-     0.00676      0.00002      6951.56       1.439
-     0.00670      0.00002      6830.71       1.464
-     0.00667      0.00002      6715.80       1.489
-     0.00658      0.00002      6600.55       1.515
-     0.00656      0.00002      6493.61       1.540
-     0.00646      0.00002      6387.63       1.566
-     0.00650      0.00002      6285.45       1.591
-     0.00649      0.00002      6188.02       1.616
+  6612.83000     19.53000      8826.13       1.133
+  6600.05000     20.59000      8632.60       1.158
+  6604.69000     18.77000      8447.37       1.184
+  6509.71000     23.78000      8269.25       1.209
+  6445.17000     18.15000      8099.13       1.235
+  6412.58000     16.46000      7935.88       1.260
+  6472.99000     18.06000      7779.07       1.286
+  6479.71000     19.43000      7628.35       1.311
+  6656.21000     20.43000      7482.79       1.336
+  6725.91000     18.98000      7343.22       1.362
+  6769.79000     17.89000      7208.77       1.387
+  6740.33000     21.16000      7079.14       1.413
+  6758.53000     19.33000      6953.62       1.438
+  6701.70000     16.52000      6832.93       1.464
+  6673.81000     19.00000      6716.37       1.489
+  6584.85000     22.22000      6603.71       1.514
+  6562.60000     18.30000      6494.77       1.540
+  6464.12000     16.47000      6388.96       1.565
+  6502.68000     20.03000      6286.94       1.591
+  6490.36000     16.50000      6188.12       1.616
 
 Number of filter pass bands (nfilters): 20
 Wavenumber  Wavelength    Bandflux  Filter name
-      cm-1          um        none
+      cm-1          um         ppm
   (bandwn)              (bandflux)  (filters)
-   8826.31       1.133     0.00657  filter_test_WFC3_G141_1.133um
-   8635.38       1.158     0.00655  filter_test_WFC3_G141_1.158um
-   8449.69       1.183     0.00654  filter_test_WFC3_G141_1.183um
-   8271.12       1.209     0.00648  filter_test_WFC3_G141_1.209um
-   8097.00       1.235     0.00646  filter_test_WFC3_G141_1.235um
-   7936.66       1.260     0.00645  filter_test_WFC3_G141_1.260um
-   7781.94       1.285     0.00649  filter_test_WFC3_G141_1.285um
-   7630.82       1.310     0.00651  filter_test_WFC3_G141_1.310um
-   7484.88       1.336     0.00664  filter_test_WFC3_G141_1.336um
-   7344.98       1.361     0.00670  filter_test_WFC3_G141_1.361um
-   7207.07       1.388     0.00670  filter_test_WFC3_G141_1.387um
-   7077.26       1.413     0.00671  filter_test_WFC3_G141_1.413um
-   6951.56       1.439     0.00670  filter_test_WFC3_G141_1.438um
-   6830.71       1.464     0.00667  filter_test_WFC3_G141_1.464um
-   6715.80       1.489     0.00662  filter_test_WFC3_G141_1.489um
-   6600.55       1.515     0.00657  filter_test_WFC3_G141_1.515um
-   6493.61       1.540     0.00655  filter_test_WFC3_G141_1.540um
-   6387.63       1.566     0.00651  filter_test_WFC3_G141_1.565um
-   6285.45       1.591     0.00651  filter_test_WFC3_G141_1.591um
-   6188.02       1.616     0.00651  filter_test_WFC3_G141_1.616um
+   8826.13       1.133  6572.22362  HST_G102
+   8632.60       1.158  6552.44547  HST_G102
+   8447.37       1.184  6540.86399  HST_G102
+   8269.25       1.209  6478.56681  HST_G102
+   8099.13       1.235  6459.67320  HST_G102
+   7935.88       1.260  6449.90199  HST_G102
+   7779.07       1.286  6487.19519  HST_G141
+   7628.35       1.311  6510.12371  HST_G141
+   7482.79       1.336  6640.98462  HST_G141
+   7343.22       1.362  6694.78806  HST_G141
+   7208.77       1.387  6703.77427  HST_G141
+   7079.14       1.413  6707.12309  HST_G141
+   6953.62       1.438  6706.92391  HST_G141
+   6832.93       1.464  6664.68113  HST_G141
+   6716.37       1.489  6619.54308  HST_G141
+   6603.71       1.514  6565.79256  HST_G141
+   6494.77       1.540  6549.43138  HST_G141
+   6388.96       1.565  6510.04697  HST_G141
+   6286.94       1.591  6508.47630  HST_G141
+   6188.12       1.616  6511.41010  HST_G141
 """
 
     assert str(pyrat.ret) == f"""\
 Retrieval information:
   Parameter name        value        pmin        pmax       pstep
   (pnames)           (params)      (pmin)      (pmax)     (pstep)
-  log_kappa'       -5.000e+00  -9.000e+00   5.000e+00   3.000e-01
-  log_gamma1        0.000e+00  -3.000e+00   3.000e+00   3.000e-01
+  log_kappa'       -5.000e+00  -9.000e+00   5.000e+00   1.000e+00
+  log_gamma1        0.000e+00  -3.000e+00   3.000e+00   1.000e+00
   log_gamma2        0.000e+00  -3.000e+00   3.000e+00   0.000e+00
   alpha             0.000e+00   0.000e+00   1.000e+00   0.000e+00
-  T_irr             1.486e+03   0.000e+00   7.000e+03   5.000e+01
+  T_irr             1.486e+03   0.000e+00   7.000e+03   1.000e+00
   T_int             1.000e+02   0.000e+00   5.000e+02   0.000e+00
-  R_planet          1.020e+00   5.000e-01   4.500e+00   3.000e-02
-  log_H2O          -4.000e+00  -9.000e+00  -1.000e+00   5.000e-01
+  R_planet          1.020e+00   5.000e-01   4.500e+00   1.000e+00
+  log_H2O          -4.000e+00  -9.000e+00  -1.000e+00   1.000e+00
+  offset_G102       0.000e+00  -2.000e+02   2.000e+02   1.000e+00
 
 Parameter name     Prior
   log_kappa'       Uniform between     [-9.000e+00,  5.000e+00]
@@ -787,11 +788,12 @@ Parameter name     Prior
   T_int            Fixed at   1.000e+02
   R_planet         Uniform between     [ 5.000e-01,  4.500e+00]
   log_H2O          Uniform between     [-9.000e+00, -1.000e+00]
+  offset_G102      Uniform between     [-2.000e+02,  2.000e+02]
 
-Retrieval algorithm (sampler): snooker
-Number of retrieval samples (nsamples): 300
-Number of parallel chains (nchains):   21
-Number of burned-in samples (burnin):  10
+Retrieval algorithm (sampler): multinest
+Number of retrieval samples (nsamples): None
+Number of parallel chains (nchains):   None
+Number of burned-in samples (burnin):  None
 Thinning factor (thinning): 1
 
 Upper boundary for sum of metal abundances (qcap): None
@@ -799,6 +801,6 @@ Temperature upper boundary (tlow, K):   300.0
 Temperature lower boundary (thigh, K): 3000.0
 
 Retrieval posterior file (retrieval_file):
-    {os.getcwd()}/outputs/MCMC_transmission_test
+    {os.getcwd()}/outputs/retrieval_transmission_test
 """
 

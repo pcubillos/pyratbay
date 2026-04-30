@@ -32,7 +32,7 @@ summarizes the modeling capabilities enabled by ``Pyrat Bay``:
      - Given an exoplanet parametric model and a spectroscopic observation,
        infer the exoplanet atmospheric properties
      - Posterior distribution of planetary model parameters
-   * - :doc:`radiative_equilibrium`
+   * - :doc:`Radiative Equilibrium <cookbooks/wasp69b/radiative_equilibrium>`
      - Radiative-transfer calculations across an exoplanet atmosphere
      - Equilibrium :math:`T(p)` and :math:`{\rm VMR}(p)`, emission spectra
 

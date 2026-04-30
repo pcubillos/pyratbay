@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2025 Cubillos & Blecic
+# Copyright (c) 2021-2026 Cubillos & Blecic
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -814,7 +814,7 @@ def wn_mask(wn, wn_min, wn_max, tol=1.0e-8):
     return wn_mask
 
 
-def inst_convolution(wl, spectrum, resolution, sampling_res=None):
+def inst_convolution(wl, spectrum, resolution, sampling_res=None, mode='same'):
     """
     Convolve a spectrum according to an instrumental resolving power
 
@@ -876,7 +876,7 @@ def inst_convolution(wl, spectrum, resolution, sampling_res=None):
     csscaled = si.splrep(rv_array, kernel)
     ker_conv_pix = si.splev(rv_array_mod, csscaled, der=0)
     ker_conv_pix /= sum(ker_conv_pix)
-    rconv = convolve(spectrum, ker_conv_pix, mode="same")
+    rconv = convolve(spectrum, ker_conv_pix, mode=mode)
     return rconv
 
 

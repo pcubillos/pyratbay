@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2025 Cubillos & Blecic
+# Copyright (c) 2021-2026 Cubillos & Blecic
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 import os
@@ -426,10 +426,10 @@ def test_transmission_fit(tmp_path):
 
 
 def test_transmission_fit_filters():
-    pyrat = pb.run(ROOT+'tests/configs/spectrum_transmission_filters_test.cfg')
-    model4 = pyrat.eval(pyrat.ret.params, retmodel=True)
-    np.testing.assert_allclose(model4[0], expected['fit4'], rtol=rtol)
-    np.testing.assert_allclose(model4[1], expected['bandflux4'], rtol=rtol)
+    pyrat = pb.run('configs/spectrum_transmission_bands.cfg')
+    spectrum, band_spectrum = pyrat.eval(pyrat.ret.params, retmodel=True)
+    np.testing.assert_allclose(spectrum, expected['fit4'], rtol=rtol)
+    np.testing.assert_allclose(band_spectrum, expected['bandflux4'], rtol=rtol)
 
 
 @pytest.mark.parametrize(

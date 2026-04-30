@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2025 Cubillos & Blecic
+# Copyright (c) 2021-2026 Cubillos & Blecic
 # Pyrat Bay is open-source software under the GPL-2.0 license (see LICENSE)
 
 __all__ = [
@@ -335,6 +335,10 @@ def chemistry(
         chem_network.thermochemical_equilibrium()
         species = chem_network.species
         vmr = np.copy(chem_network.vmr)
+
+    else:
+        log.error(
+            f"Invalid chemistry model (chem_model={repr(chem_model)}), must select from: 'free' or 'equilibrium'")
 
     if atmfile is not None:
         header = "# TEA atmospheric file\n\n"
