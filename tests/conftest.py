@@ -56,6 +56,7 @@ def undefined_mcmc():
         'data':   'Undefined transit/eclipse data (data)',
         'uncert': 'Undefined data uncertainties',
         'filters': 'Undefined transmission filters',
+        'obsfile': 'Undefined transit/emission/eclipse data for retrieval',
         #'data_hires': 'Undefined transit/eclipse data (data)',
         #'uncert_hires': 'Undefined data uncertainties',
         #'filters_hires': 'Undefined transmission filters',

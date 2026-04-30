@@ -42,27 +42,20 @@ class Loglike():
 
         self.params = pyrat.ret.params
         self.pstep = pyrat.ret.pstep
-        self.ifree = self.pstep>0
+        self.ifree = self.pstep > 0
         self.ishare = np.where(self.pstep<0)[0]
-        # Concatenate (low-res) data and high-res data arrays
-        self.data = []
-        self.uncert = []
-        if pyrat.obs.data is not None:
-            self.data = pyrat.obs.data
-            self.uncert = pyrat.obs.uncert
-        if pyrat.obs.data_hires is not None:
-            self.data = np.concatenate((self.data, pyrat.obs.data_hires))
-            self.uncert = np.concatenate((self.uncert, pyrat.obs.uncert_hires))
+
+        if pyrat.obs.data is None and pyrat.obs.data_hires is None:
+            raise ValueError(
+                'Attempting to compute a log-likelihood for a model '
+                'with no data'
+            )
         if np.sum(self.ifree) == 0:
             raise ValueError(
                 'Attempting to compute a log-likelihood for a model '
                 'with no free parameters'
             )
-        if len(self.data) == 0:
-            raise ValueError(
-                'Attempting to compute a log-likelihood for a model '
-                'with no data'
-            )
+
         self.pnames = np.array(pyrat.ret.texnames)
         self.retrieval_file = pyrat.ret.retrieval_file
         # dt_snapshot hours to seconds
@@ -70,6 +63,21 @@ class Loglike():
         if self._dt_snapshot > 0:
             self.timer = time.time()
 
+    def get_data(self):
+        """
+        Concatenate low- and high-resolution data into a single array
+        """
+        obs = self.obs
+        if obs.data is not None and obs.data_hires is not None:
+            data = np.concatenate((obs.data, obs.data_hires))
+            uncert = np.concatenate((obs.uncert, obs.uncert_hires))
+        elif obs.data is not None:
+            data = obs.data
+            uncert = obs.uncert
+        else:
+            data = obs.data_hires
+            uncert = obs.uncert_hires
+        return data, uncert
 
     def __call__(self, params):
         """
@@ -94,10 +102,12 @@ class Loglike():
 
         # Evaluate model (and update data if necessary)
         model = self.func(self.params, retmodel=False)
+        # Concatenate (low-res) data and high-res data arrays
+        data, uncert = self.get_data()
 
         log_like = (
-            -0.5*np.sum(((self.data - model) / self.uncert)**2.0)
-            -0.5*np.sum(np.log(2.0*np.pi*self.uncert**2.0))
+            -0.5*np.sum(((data - model) / uncert)**2.0)
+            -0.5*np.sum(np.log(2.0*np.pi*uncert**2.0))
         )
         if not np.isfinite(log_like):
             log_like = -1.0e98
@@ -344,8 +354,7 @@ def multinest_run(pyrat, basename):
 
     # Statistics:
     best_model = pyrat.eval(bestp, retmodel=False)
-    data = loglike.data
-    uncert = loglike.uncert
+    data, uncert = loglike.get_data()
 
     ndata = len(data)
     best_chisq = np.sum((best_model-data)**2 / uncert**2)

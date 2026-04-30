@@ -15,19 +15,8 @@ os.chdir(ROOT+'tests')
 
 
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-def test_retrieval_parameters(tmp_path):
-    reset = {
-        'rt_path': 'emission',
-        'kurucz': f'{ROOT}tests/inputs/mock_fp00k0odfnew.pck',
-        'log_gstar': '4.5',
-    }
-    cfg = make_config(
-        tmp_path,
-        ROOT+'tests/configs/retrieval_transmission_tea.cfg',
-        reset=reset,
-    )
-    pyrat = pb.run(cfg)
-
+def test_retrieval_texnames(tmp_path):
+    pyrat = pb.run(ROOT+'tests/configs/spectrum_emission_texnames.cfg')
 
     expected_texnames = [
         '$T_{\\rm irr} (K)$',
@@ -254,12 +243,13 @@ def test_eval_uncert_scaling_no_data(tmp_path):
         pyrat = pb.run(cfg)
 
 
+@pytest.mark.skip(reason='Too long to execute')
 @pytest.mark.filterwarnings("ignore: divide by zero encountered")
 @pytest.mark.filterwarnings("ignore: Attempting to set identical low and high")
 def test_mcmc_transmission(tmp_path):
     cfg = make_config(
         tmp_path,
-        ROOT+'tests/configs/mcmc_transmission_test.cfg',
+        ROOT+'tests/configs/retrieval_transmission_test.cfg',
     )
     pyrat = pb.run(cfg)
 

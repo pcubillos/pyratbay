@@ -689,7 +689,7 @@ def test_interpolate_opacity_extrapolate():
     relative_diff = interp_cs[:,p_mask]/cs[:,0:1]
     expected_diff = np.ones_like(relative_diff)
     np.testing.assert_allclose(relative_diff, expected_diff, rtol=1e-8)
-    
+
 
 def test_none_div_no_num():
     div = pt.none_div(None, 1.0)
@@ -919,27 +919,36 @@ def test_get_multinest_map_2modes():
     np.testing.assert_allclose(bestp, expected_bestp)
 
 
-def test_loglike():
-    pyrat = pb.Pyrat('configs/mcmc_transmission_test.cfg', log=False)
+def test_loglike_base():
+    pyrat = pb.Pyrat('configs/retrieval_transmission_test.cfg', log=False)
     loglike = pt.Loglike(pyrat)
 
     # For the log_like, free parameters only
-    ifree = pyrat.ret.pstep > 0
-    free_pars = pyrat.ret.params[ifree]
+    free_pars = pyrat.ret.params[pyrat.ret.pstep > 0]
     like = loglike(free_pars)
-    np.testing.assert_allclose(like, -1633.7475526010119)
+    np.testing.assert_allclose(like, -1643.6087514224329)
+
+
+def test_loglike_unphysical():
+    pyrat = pb.Pyrat('configs/retrieval_transmission_test.cfg', log=False)
+    loglike = pt.Loglike(pyrat)
 
     # A non-physical model
+    free_pars = pyrat.ret.params[pyrat.ret.pstep > 0]
     free_pars[3] = -1.0
     like = loglike(free_pars)
     np.testing.assert_allclose(like, -1e+98)
 
-    # Now with better-fitting parameters:
-    # map_pars = np.array([
-    #     -4.4567854, -0.87388636, 1352.3337, -3.3590232, -3.4307885,
-    # ])
-    # like = loglike(map_pars)
-    # np.testing.assert_allclose(like, -1627.5530504136932)
+
+def test_loglike_offsets():
+    pyrat = pb.Pyrat('configs/retrieval_transmission_test.cfg', log=False)
+    loglike = pt.Loglike(pyrat)
+
+    # With offsets (that modify data, not the model)
+    free_pars = pyrat.ret.params[pyrat.ret.pstep > 0]
+    free_pars[5] = 100.0
+    like = loglike(free_pars)
+    np.testing.assert_allclose(like, -1322.830780356435)
 
 
 def test_get_mpi_rank():
