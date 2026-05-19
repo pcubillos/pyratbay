@@ -183,7 +183,7 @@ set a stellar spectrum.
          logg = 4.5
          metal = 0.4
          folder = 'inputs/'
-         ps.fetch_phoenix(metal, teff, logg, folder)
+         ps.fetch_phoenix(teff, logg, metal, folder)
 
 
   .. tab-item:: Kurucz model

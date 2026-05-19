@@ -131,7 +131,7 @@ def fetch_phoenix(teff, logg, metal, folder='.'):
     >>> logg = 4.57
     >>> metal = 0.35
     >>> folder = 'phoenix/'
-    >>> ps.fetch_phoenix(metal, teff, logg, folder=folder)
+    >>> ps.fetch_phoenix(teff, logg, metal, folder)
     """
     files = list_phoenix_files(teff, logg, metal)
 
