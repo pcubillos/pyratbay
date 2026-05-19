@@ -182,7 +182,7 @@ def test_invalid_choice(tmp_path, param, reason):
 
 
 @pytest.mark.parametrize('param',
-    ['starspec', 'kurucz', 'marcs', 'phoenix', 'filters',
+    ['starspec', 'kurucz', 'phoenix', 'filters',
      'dblist', 'molfile', 'continuum_cross_sec'])
 def test_file_not_found(tmp_path, param, invalid_file):
     cfg = make_config(

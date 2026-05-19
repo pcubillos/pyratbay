@@ -160,9 +160,35 @@ set a stellar spectrum.
          # Custom stellar spectrum file
          starspec = inputs/WASP18_spectrum.dat
 
+  .. tab-item:: PHOENIX model
+
+     Users can use PHOENIX New-Era stellar models [Hauschildt2025]_
+     via the ``phoenix`` argument of the configuration file, pointing
+     to a PHOENIX model.
+
+     .. code-block:: ini
+
+         # PHOENIX New-Era stellar spectrum
+         phoenix = inputs/lte04800-4.50+0.5.PHOENIX-NewEra-ACES-COND-2023.HSR.h5
+
+     Note that only the **New-Era** PHOENIX models can be used.  These
+     models can be downloaded using this python script:
+
+     .. code-block:: python
+
+         import pyratbay.spectrum as ps
+
+         # Download model with closest T_eff, log_g, and metallicity:
+         teff = 4790.0
+         logg = 4.5
+         metal = 0.4
+         folder = 'inputs/'
+         ps.fetch_phoenix(metal, teff, logg, folder)
+
+
   .. tab-item:: Kurucz model
 
-     Users can use a Kurucz stellar model [Castelli2003]_ via the
+     Users can use  Kurucz stellar models [Castelli2003]_ via the
      ``kurucz`` argument of the configuration file, pointing to a
      Kurucz model.  These models can be downloaded from `this link
      <http://kurucz.harvard.edu/grids/>`__.  The code selects the

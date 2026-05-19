@@ -39,7 +39,7 @@ Recipes list:
   - :doc:`partition_functions`
 
 ..  - :ref:`transmission_simulation` (TBD)
-  - :ref:`emission_simulation` (TBD)
+..  - :ref:`emission_simulation` (TBD)
 
 
 - **End-to-end analyses**
@@ -48,8 +48,8 @@ Recipes list:
   - :doc:`wasp18b/eclipse_retrieval`
   - :doc:`wasp69b/radiative_equilibrium`
   - :doc:`yses1b/iso_ratio_retrieval` (TBD)
-..   - JWST_proposal_simulation (TBD)
 
+..   - JWST_proposal_simulation (TBD)
 ..  - :doc:`wasp18b/cross_sections_uhj`
 
 - :ref:`compendia` lists compendia of peer-reviewed articles with scripts that reproduced the published material

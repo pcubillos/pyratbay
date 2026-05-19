@@ -709,9 +709,10 @@ class Atmosphere():
 
     def setup_star_sed(self, inputs, wn):
         """
-        Read stellar spectrum model: starspec, kurucz, or blackbody
+        Read stellar spectrum model: starspec, phoenix, kurucz, or blackbody
 
         Returns
+        -------
         Input stellar flux spectrum (erg s-1 cm-2 cm)
         """
         log = self.log
@@ -721,6 +722,12 @@ class Atmosphere():
             starflux, starwn, sed_temps = io.read_spectra(inputs.starspec)
             if sed_temps is not None:
                 self.sed_temps = sed_temps
+
+        elif inputs.phoenix is not None:
+            sed_type = 'phoenix'
+            sed_file = inputs.phoenix
+            star_wl, starflux = ps.read_phoenix(sed_file)
+            starwn = 1.0 / (star_wl*pc.um)
 
         elif inputs.kurucz is not None:
             sed_type = 'kurucz'

@@ -79,6 +79,8 @@ References
 
 .. [Harris2008] `Harris et al. (2008): A HCN/HNC linelist, model atmospheres and synthetic spectra for carbon stars <https://ui.adsabs.harvard.edu/abs/2008MNRAS.390..143H>`_
 
+.. [Hauschildt2025] `Hauschildt et al. (2025): The NewEra model grid <https://ui.adsabs.harvard.edu/abs/2025A%26A...698A..47H>`_
+
 .. [Heng2014] `Heng et al. (2014): Analytical Models of Exoplanetary Atmospheres. II. Radiative Transfer via the Two-stream Approximation <https://ui.adsabs.harvard.edu/abs/2014ApJS..215....4H>`_
 
 .. [Huang2023] `Huang et al. (2023): AI-3000K Infrared Line List for Hot CO2 <https://ui.adsabs.harvard.edu/abs/2023JMoSp.39211748H>`_

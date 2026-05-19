@@ -580,7 +580,6 @@ def parse(cfile, with_log=True, mute=False):
         # Stellar models:
         parse_str(args, 'starspec')
         parse_str(args, 'kurucz')
-        parse_str(args, 'marcs')
         parse_str(args, 'phoenix')
         # System parameters:
         parse_str(args,   'rstar')
@@ -998,7 +997,6 @@ def parse(cfile, with_log=True, mute=False):
 
     args.starspec = args.get_path('starspec', 'Stellar spectrum', exists=True)
     args.kurucz = args.get_path('kurucz', 'Kurucz model', exists=True)
-    args.marcs = args.get_path('marcs', 'MARCS model', exists=True)
     args.phoenix = args.get_path('phoenix', 'PHOENIX model', exists=True)
 
     args.raygrid = args.get_default(
