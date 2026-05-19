@@ -8,6 +8,7 @@ from .spec_tools import *
 from .contribution_funcs import *
 from .convection import *
 from .radiative_transfer import *
+from .transit_light_source import *
 
 __all__ = (
     []  # empty placeholder
@@ -18,6 +19,7 @@ __all__ = (
     + contribution_funcs.__all__
     + convection.__all__
     + radiative_transfer.__all__
+    + transit_light_source.__all__
 )
 
 
