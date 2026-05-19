@@ -397,6 +397,109 @@ def test_read_kurucz_all():
     np.testing.assert_allclose(s, 1339957.11)
 
 
+def mock_phoenix_new_era():
+    import h5py
+    import pyratbay.constants as pc
+    filename = 'phoenix/lte04800-4.50+0.5.PHOENIX-NewEra-ACES-COND-2023.HSR.h5'
+    wl, flux = ps.read_phoenix(filename)
+
+    mask = (wl>2.0) & (wl<2.01)
+    mask_wl = wl[mask] * pc.um / pc.A
+    mask_flux = np.log10(flux[mask] * (wl[mask]*pc.um)**-2.0)
+
+    mock_sed = f'{pc.ROOT}tests/inputs/lte05400-4.50+0.5.PHOENIX-NewEra-ACES-COND-2023.HSR.h5'
+    with h5py.File(mock_sed, 'w') as f:
+        grp = f.create_group('PHOENIX_SPECTRUM_LSR')
+        grp.create_dataset('wl', data=mask_wl)
+        grp.create_dataset('fl', data=mask_flux)
+
+
+def test_list_phoenix_files_single():
+    # Will also trigger url request on first call
+    teff = 4780.0
+    logg = 4.57
+    metal = 0.35
+    sed_models = ps.list_phoenix_files(teff, logg, metal)
+    assert len(sed_models) == 1
+    assert sed_models[0] == 'lte04800-4.50+0.5.PHOENIX-NewEra-ACES-COND-2023.HSR.h5'
+
+
+def test_list_phoenix_files_teffs():
+    teff = None
+    logg = 4.57
+    metal = 0.35
+    sed_models = ps.list_phoenix_files(teff, logg, metal)
+    assert len(sed_models) == 72
+    assert sed_models[0] == 'lte02300-4.50+0.5.PHOENIX-NewEra-ACES-COND-2023.HSR.h5'
+    assert sed_models[-1] == 'lte12000-4.50+0.5.PHOENIX-NewEra-ACES-COND-2023.HSR.h5'
+
+
+def test_list_phoenix_files_logg():
+    teff = 4780.0
+    logg = None
+    metal = 0.35
+    sed_models = ps.list_phoenix_files(teff, logg, metal)
+    assert len(sed_models) == 11
+    assert sed_models[0] == 'lte04800-1.00+0.5.PHOENIX-NewEra-ACES-COND-2023.HSR.h5'
+    assert sed_models[-1] == 'lte04800-6.00+0.5.PHOENIX-NewEra-ACES-COND-2023.HSR.h5'
+
+
+def test_list_phoenix_files_metal():
+    teff = 4780.0
+    logg = 4.57
+    metal = None
+    sed_models = ps.list_phoenix_files(teff, logg, metal)
+    assert len(sed_models) == 10
+    assert sed_models[0] == 'lte04800-4.50+0.5.PHOENIX-NewEra-ACES-COND-2023.HSR.h5'
+    assert sed_models[-1] == 'lte04800-4.50-4.0.PHOENIX-NewEra-ACES-COND-2023.HSR.h5'
+
+
+def test_list_phoenix_files_multi():
+    teff = 4780.0
+    logg = None
+    metal = None
+    sed_models = ps.list_phoenix_files(teff, logg, metal)
+    assert len(sed_models) == 128
+    assert sed_models[0] == 'lte04800-0.00-0.0.PHOENIX-NewEra-ACES-COND-2023.HSR.h5'
+    assert sed_models[1] == 'lte04800-0.00-0.5.PHOENIX-NewEra-ACES-COND-2023.HSR.h5'
+    assert sed_models[-1] == 'lte04800-6.00-4.0.PHOENIX-NewEra-ACES-COND-2023.HSR.h5'
+
+
+def test_fetch_phoenix():
+    folder = f'{pc.ROOT}tests/outputs/'
+    sed = f'{folder}lte04800-4.50+0.5.PHOENIX-NewEra-ACES-COND-2023.HSR.h5'
+    # Only trigger when file does not yet exisit (avoid local-test fetch
+    # unless wanted), will trigger on github actions
+    if os.path.exists(sed):
+        return
+
+    teff = 4780.0
+    logg = 4.57
+    metal = 0.35
+    ps.fetch_phoenix(teff, logg, metal, folder)
+    assert os.path.exists(sed)
+
+
+def test_read_phoenix():
+    sed_file = 'lte04800-4.50+0.5.PHOENIX-NewEra-ACES-COND-2023.HSR.h5'
+    sed = f'{pc.ROOT}tests/outputs/{sed_file}'
+    # If fetch from previous test succeeded
+    if os.path.exists(sed):
+        wl, flux = ps.read_phoenix(sed)
+        np.testing.assert_allclose(wl[0], 0.0009999999999999998)
+        np.testing.assert_allclose(wl[-1], 950.0)
+        np.testing.assert_allclose(flux[0], 4.3063735658500975e-105)
+        np.testing.assert_allclose(flux[-1], 9.634564779210837)
+    # Backup to mock file:
+    else:
+        sed = f'{pc.ROOT}tests/inputs/lte05400-4.50+0.5.PHOENIX-NewEra-ACES-COND-2023.HSR.h5'
+        wl, flux = ps.read_phoenix(sed)
+        np.testing.assert_allclose(wl[0], 2.00001)
+        np.testing.assert_allclose(wl[-1], 2.00999)
+        np.testing.assert_allclose(flux[0], 1983162.9180775404)
+        np.testing.assert_allclose(flux[-1], 1996700.9331634995)
+
+
 def test_tophat_dlambda():
     wl0     = 1.50
     width   = 0.50
