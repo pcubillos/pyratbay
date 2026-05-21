@@ -45,8 +45,8 @@ Opacity extinction information:
 Model           type           T_min   T_max
 H2O             line_sample    300.0  3000.0
 sodium_vdw      alkali
-CIA H2-H2       cia             60.0  3000.0
-CIA H2-He       cia             60.0  3000.0
+CIA H2-H2       cia             60.0  7000.0
+CIA H2-He       cia             60.0  7000.0
 deck            cloud
 lecavelier      cloud
 """
@@ -255,17 +255,17 @@ def test_opacity_cia_borysow_H2He_str():
     wn_min = 1.0 / (1.7 * pc.um)
     wn_max = 1.0 / (1.1 * pc.um)
     wn = np.arange(wn_min, wn_max, 1.0)
-    cia_file = f'{pc.ROOT}pyratbay/data/CIA/CIA_Borysow_H2He_0050-3000K_0.3-030um.dat'
+    cia_file = f'{pc.ROOT}pyratbay/data/CIA/CIA_Borysow_H2He_0050-7000K_0.5-031um.dat'
     model = op.Collision_Induced(cia_file, wn=wn)
     assert str(model) == f"""\
 CIA file name (cia_file):
-    '{ROOT}pyratbay/data/CIA/CIA_Borysow_H2He_0050-3000K_0.3-030um.dat'
+    '{ROOT}pyratbay/data/CIA/CIA_Borysow_H2He_0050-7000K_0.5-031um.dat'
 CIA species (species): ['H2', 'He']
-Number of temperature samples (ntemp): 20
+Number of temperature samples (ntemp): 21
 Number of wavenumber samples (nwave): 3209
 Temperature array (temps, K):
 [  50.   75.  100.  150.  200.  250.  300.  350.  400.  500.  600.  700.
-  800.  900. 1000. 1250. 1500. 2000. 2500. 3000.]
+  800.  900. 1000. 2000. 3000. 4000. 5000. 6000. 7000.]
 Wavenumber array (wn, cm-1):
 [5882.353 5883.353 5884.353 ... 9088.353 9089.353 9090.353]
 Wavelength array (um):
@@ -275,10 +275,10 @@ Tabulated cross section (tab_cross_section, cm5 molec-2):
  [2.83e-49 2.81e-49 2.80e-49 ... 1.35e-49 1.35e-49 1.34e-49]
  [5.78e-49 5.75e-49 5.72e-49 ... 2.06e-49 2.05e-49 2.04e-49]
  ...
- [1.28e-45 1.28e-45 1.27e-45 ... 3.93e-47 3.92e-47 3.91e-47]
- [1.99e-45 1.99e-45 1.98e-45 ... 5.51e-47 5.50e-47 5.49e-47]
- [2.85e-45 2.85e-45 2.84e-45 ... 7.41e-47 7.40e-47 7.38e-47]]
-Minimum and maximum temperatures (tmin, tmax) in K: [50.0, 3000.0]
+ [1.27e-44 1.27e-44 1.27e-44 ... 6.55e-46 6.55e-46 6.55e-46]
+ [1.79e-44 1.79e-44 1.79e-44 ... 1.16e-45 1.16e-45 1.16e-45]
+ [2.35e-44 2.35e-44 2.35e-44 ... 1.84e-45 1.84e-45 1.84e-45]]
+Minimum and maximum temperatures (tmin, tmax) in K: [50.0, 7000.0]
 """
 
 
@@ -390,7 +390,7 @@ Gaussian quadrature weights (quadrature_weights):
     [0.095 0.691 1.058 0.931 0.367]
 
 Transmission spectrum, (Rp/Rs)**2 (spectrum):
-    [ 6.523e-03  6.611e-03  6.524e-03 ...  6.506e-03  6.481e-03  6.498e-03]
+    [ 6.525e-03  6.612e-03  6.526e-03 ...  6.506e-03  6.481e-03  6.498e-03]
 """
 
 
@@ -512,7 +512,7 @@ Distance along the ray path across each layer (outside-in) at each impact
 
 Maximum optical depth to calculate (maxdepth): 10.00
 Layer index where the optical depth reaches maxdepth (ideep):
-    [ 37  36  37  36  37  37  37 ...  38  31  38  38  39  39  38]
+    [ 37  35  36  36  37  36  37 ...  38  31  38  38  39  39  38]
 Maximum ideep (deepest layer reaching maxdepth): 41
 
 Optical depth at each impact parameter, down to max(ideep) (depth):
@@ -520,7 +520,7 @@ Optical depth at each impact parameter, down to max(ideep) (depth):
  [ 6.251e-08  1.615e-05  6.259e-08 ...  8.334e-07  3.763e-07  3.898e-07]
  [ 1.161e-07  2.999e-05  1.163e-07 ...  1.548e-06  6.990e-07  7.241e-07]
  ...
- [ 0.000e+00  0.000e+00  0.000e+00 ...  1.575e+01  1.543e+01  0.000e+00]
+ [ 0.000e+00  0.000e+00  0.000e+00 ...  1.586e+01  1.554e+01  0.000e+00]
  [ 0.000e+00  0.000e+00  0.000e+00 ...  0.000e+00  0.000e+00  0.000e+00]
  [ 0.000e+00  0.000e+00  0.000e+00 ...  0.000e+00  0.000e+00  0.000e+00]]
 """
@@ -591,7 +591,7 @@ Gaussian quadrature weights (quadrature_weights):
     [0.095 0.691 1.058 0.931 0.367]
 
 Transmission spectrum, (Rp/Rs)**2 (spectrum):
-    [ 6.523e-03  6.539e-03  6.523e-03 ...  6.669e-03  6.494e-03  6.463e-03]
+    [ 6.525e-03  6.541e-03  6.525e-03 ...  6.669e-03  6.495e-03  6.463e-03]
 """
 
 @pytest.mark.skip(reason="TBD")
@@ -654,13 +654,13 @@ Gaussian quadrature cos(theta) angles (quadrature_mu):
 Gaussian quadrature weights (quadrature_weights):
     [0.095 0.691 1.058 0.931 0.367]
 Intensity spectra (intensity, erg s-1 cm-2 sr-1 cm):
-    [ 1.268e+04  1.141e+04  1.265e+04 ...  2.259e+03  2.289e+03  2.251e+03]
-    [ 1.258e+04  1.126e+04  1.255e+04 ...  2.210e+03  2.241e+03  2.203e+03]
-    [ 1.223e+04  1.074e+04  1.219e+04 ...  2.043e+03  2.076e+03  2.038e+03]
-    [ 1.139e+04  9.520e+03  1.135e+04 ...  1.670e+03  1.705e+03  1.670e+03]
-    [ 8.758e+03  6.150e+03  8.712e+03 ...  7.889e+02  8.142e+02  7.964e+02]
+    [ 1.261e+04  1.135e+04  1.258e+04 ...  2.258e+03  2.288e+03  2.251e+03]
+    [ 1.251e+04  1.120e+04  1.247e+04 ...  2.210e+03  2.240e+03  2.203e+03]
+    [ 1.215e+04  1.068e+04  1.212e+04 ...  2.043e+03  2.076e+03  2.038e+03]
+    [ 1.130e+04  9.462e+03  1.126e+04 ...  1.669e+03  1.705e+03  1.669e+03]
+    [ 8.660e+03  6.110e+03  8.616e+03 ...  7.887e+02  8.140e+02  7.963e+02]
 Emission spectrum (spectrum, erg s-1 cm-2 cm):
-    [ 3.665e+04  3.134e+04  3.653e+04 ...  5.746e+03  5.848e+03  5.738e+03]
+    [ 3.639e+04  3.116e+04  3.627e+04 ...  5.745e+03  5.847e+03  5.737e+03]
 """
 
     assert str(pyrat.od) == """\
@@ -690,7 +690,7 @@ Optical depth at each layer along a normal ray path into the planet, down to
  [ 8.109e-08  2.899e-07  8.120e-08 ...  4.682e-07  4.625e-07  4.629e-07]
  [ 1.980e-07  7.079e-07  1.983e-07 ...  1.143e-06  1.129e-06  1.130e-06]
  ...
- [ 0.000e+00  0.000e+00  0.000e+00 ...  1.104e+01  1.237e+01  1.527e+01]
+ [ 0.000e+00  0.000e+00  0.000e+00 ...  1.109e+01  1.242e+01  1.532e+01]
  [ 0.000e+00  0.000e+00  0.000e+00 ...  0.000e+00  0.000e+00  0.000e+00]
  [ 0.000e+00  0.000e+00  0.000e+00 ...  0.000e+00  0.000e+00  0.000e+00]]
 """
@@ -743,26 +743,26 @@ Number of filter pass bands (nfilters): 20
 Wavenumber  Wavelength    Bandflux  Filter name
       cm-1          um         ppm
   (bandwn)              (bandflux)  (filters)
-   8826.13       1.133  6572.22362  HST_G102
-   8632.60       1.158  6552.44547  HST_G102
-   8447.37       1.184  6540.86399  HST_G102
-   8269.25       1.209  6478.56681  HST_G102
-   8099.13       1.235  6459.67320  HST_G102
-   7935.88       1.260  6449.90199  HST_G102
-   7779.07       1.286  6487.19519  HST_G141
-   7628.35       1.311  6510.12371  HST_G141
-   7482.79       1.336  6640.98462  HST_G141
-   7343.22       1.362  6694.78806  HST_G141
-   7208.77       1.387  6703.77427  HST_G141
-   7079.14       1.413  6707.12309  HST_G141
-   6953.62       1.438  6706.92391  HST_G141
-   6832.93       1.464  6664.68113  HST_G141
-   6716.37       1.489  6619.54308  HST_G141
-   6603.71       1.514  6565.79256  HST_G141
-   6494.77       1.540  6549.43138  HST_G141
-   6388.96       1.565  6510.04697  HST_G141
-   6286.94       1.591  6508.47630  HST_G141
-   6188.12       1.616  6511.41010  HST_G141
+   8826.13       1.133  6572.22269  HST_G102
+   8632.60       1.158  6552.34009  HST_G102
+   8447.37       1.184  6540.58352  HST_G102
+   8269.25       1.209  6477.75198  HST_G102
+   8099.13       1.235  6458.69705  HST_G102
+   7935.88       1.260  6449.18189  HST_G102
+   7779.07       1.286  6487.15970  HST_G141
+   7628.35       1.311  6510.49428  HST_G141
+   7482.79       1.336  6641.12748  HST_G141
+   7343.22       1.362  6694.81336  HST_G141
+   7208.77       1.387  6703.80468  HST_G141
+   7079.14       1.413  6707.16831  HST_G141
+   6953.62       1.438  6706.97647  HST_G141
+   6832.93       1.464  6664.82002  HST_G141
+   6716.37       1.489  6619.88101  HST_G141
+   6603.71       1.514  6566.59346  HST_G141
+   6494.77       1.540  6550.73872  HST_G141
+   6388.96       1.565  6512.27616  HST_G141
+   6286.94       1.591  6510.95784  HST_G141
+   6188.12       1.616  6513.93163  HST_G141
 """
 
     assert str(pyrat.ret) == f"""\
