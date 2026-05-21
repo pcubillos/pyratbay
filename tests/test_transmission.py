@@ -85,7 +85,7 @@ def test_transmission_lecavelier(tmp_path):
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['lec'], rtol=rtol)
 
 
-def test_transmission_CIA(tmp_path):
+def test_transmission_cia(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_test.cfg',
@@ -489,7 +489,7 @@ def test_transmission_skip_lbl(tmp_path, model):
     pyrat = pb.Pyrat(cfg)
     pyrat.run(skip=[model])
     spectrum = pyrat.spec.spectrum
-    np.testing.assert_allclose(spectrum, expected['skip_lbl'], rtol=rtol)
+    np.testing.assert_allclose(spectrum, expected['skip_ls'], rtol=rtol)
 
 
 
