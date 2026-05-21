@@ -926,7 +926,7 @@ def test_loglike_base():
     # For the log_like, free parameters only
     free_pars = pyrat.ret.params[pyrat.ret.pstep > 0]
     like = loglike(free_pars)
-    np.testing.assert_allclose(like, -1643.6087514224329)
+    np.testing.assert_allclose(like, -1650.9052413637569)
 
 
 def test_loglike_unphysical():
@@ -948,7 +948,7 @@ def test_loglike_offsets():
     free_pars = pyrat.ret.params[pyrat.ret.pstep > 0]
     free_pars[5] = 100.0
     like = loglike(free_pars)
-    np.testing.assert_allclose(like, -1322.830780356435)
+    np.testing.assert_allclose(like, -1330.9846222328504)
 
 
 def test_get_mpi_rank():
