@@ -133,6 +133,12 @@ def fetch_phoenix(teff, logg, metal, folder='.'):
     >>> folder = 'phoenix/'
     >>> ps.fetch_phoenix(teff, logg, metal, folder)
     """
+    if not os.path.exists(folder):
+        raise ValueError(
+            'Output folder where to store PHOENIX models does '
+            f'not exist: {repr(folder)}'
+        )
+
     files = list_phoenix_files(teff, logg, metal)
 
     for file in files:

@@ -400,18 +400,20 @@ def test_read_kurucz_all():
 def mock_phoenix_new_era():
     import h5py
     import pyratbay.constants as pc
-    filename = 'phoenix/lte04800-4.50+0.5.PHOENIX-NewEra-ACES-COND-2023.HSR.h5'
-    wl, flux = ps.read_phoenix(filename)
+    for teff in [4000, 4500, 5000]:
+        file = f'lte0{teff}-4.50+0.5.PHOENIX-NewEra-ACES-COND-2023.HSR.h5'
+        wl, flux = ps.read_phoenix(f'phoenix/{file}')
 
-    mask = (wl>2.0) & (wl<2.01)
-    mask_wl = wl[mask] * pc.um / pc.A
-    mask_flux = np.log10(flux[mask] * (wl[mask]*pc.um)**-2.0)
+        mask = (wl>0.7) & (wl<5.0)
+        mask &= np.arange(len(wl))%100 == 0
+        mask_wl = wl[mask] * pc.um / pc.A
+        mask_flux = np.log10(flux[mask] * (wl[mask]*pc.um)**-2.0)
 
-    mock_sed = f'{pc.ROOT}tests/inputs/lte05400-4.50+0.5.PHOENIX-NewEra-ACES-COND-2023.HSR.h5'
-    with h5py.File(mock_sed, 'w') as f:
-        grp = f.create_group('PHOENIX_SPECTRUM_LSR')
-        grp.create_dataset('wl', data=mask_wl)
-        grp.create_dataset('fl', data=mask_flux)
+        mock_sed = f'{pc.ROOT}tests/inputs/{file}'
+        with h5py.File(mock_sed, 'w') as f:
+            grp = f.create_group('PHOENIX_SPECTRUM_LSR')
+            grp.create_dataset('wl', data=mask_wl)
+            grp.create_dataset('fl', data=mask_flux)
 
 
 def test_list_phoenix_files_single():
@@ -492,12 +494,12 @@ def test_read_phoenix():
         np.testing.assert_allclose(flux[-1], 9.634564779210837)
     # Backup to mock file:
     else:
-        sed = f'{pc.ROOT}tests/inputs/lte05400-4.50+0.5.PHOENIX-NewEra-ACES-COND-2023.HSR.h5'
+        sed = f'{pc.ROOT}tests/inputs/lte05000-4.50+0.5.PHOENIX-NewEra-ACES-COND-2023.HSR.h5'
         wl, flux = ps.read_phoenix(sed)
-        np.testing.assert_allclose(wl[0], 2.00001)
-        np.testing.assert_allclose(wl[-1], 2.00999)
-        np.testing.assert_allclose(flux[0], 1983162.9180775404)
-        np.testing.assert_allclose(flux[-1], 1996700.9331634995)
+        np.testing.assert_allclose(wl[0], 0.7000000000000001)
+        np.testing.assert_allclose(wl[-1], 4.989999999999999)
+        np.testing.assert_allclose(flux[0], 1910750.693807)
+        np.testing.assert_allclose(flux[-1], 283928.037478)
 
 
 def test_tophat_dlambda():
