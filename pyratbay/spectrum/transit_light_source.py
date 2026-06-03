@@ -39,7 +39,9 @@ class TransitLightSource():
     """
     A Transit-light-source model.
     """
-    def __init__(self, sed_folder, teff, wl=None, wl_range=None):
+    def __init__(
+        self, sed_folder, teff, wl=None, wl_range=None, sampling='interpolate',
+    ):
         r"""
         Parameters
         ----------
@@ -55,6 +57,11 @@ class TransitLightSource():
         wl_range: Two-element float pair
             If provided, trim output wavelengh range to be between
             wl_range[0] <= wl <= wl_range[-1].
+        sampling: String
+            Sampling method from SEDs wavelength sampling to wl array.
+            Select between:
+            'interpolate' (recommended for wl resolution > ~2000) or
+            'bin' (recommended for wl resolution < ~2000).
 
         Example
         -------
@@ -62,21 +69,22 @@ class TransitLightSource():
         >>> import numpy as np
         >>> import matplotlib
         >>> import matplotlib.pyplot as plt
+        >>> plt.ion()
         >>>
         >>> # A folder containing a list of phoenix new-era models
         >>> # (see ps.fetch_phoenix() function)
         >>> sed_folder = 'phoenix/'
         >>> # Initialize TLS model
         >>> teff = 4800.0
-        >>> wl = ps.constant_resolution_spectrum(0.3, 12.0, resolution=300.0)
-        >>> tls = ps.TransitLightSource(sed_folder, teff, wl)
-
+        >>> wl = ps.constant_resolution_spectrum(0.3, 12.0, resolution=200.0)
+        >>> tls = ps.TransitLightSource(sed_folder, teff, wl, sampling='bin')
+        >>>
         >>> # Evaluate TLS effect for a range of star spot/faculae temperature
-        >>> f_spot = 0.05
+        >>> f_spot = 0.01
         >>> t_spots = teff + np.linspace(-1500, 1500, 11)
         >>> epsilon = [tls(t_spot, f_spot) for t_spot in t_spots]
         >>>
-        >>> fig = plt.figure(0)
+        >>> fig = plt.figure(1)
         >>> plt.clf()
         >>> fig.set_size_inches(8,4)
         >>> ax = plt.axes([0.1, 0.12, 0.89, 0.87])
@@ -84,11 +92,11 @@ class TransitLightSource():
         >>>     col = 'red' if t==teff else plt.cm.viridis(i/10)
         >>>     label = f'Tspot = {t_spots[i]:.0f} K'
         >>>     plt.plot(tls.wl, epsilon[i], color=col, label=label)
-        >>> plt.legend(loc='lower left', fontsize=9, framealpha=0.75)
+        >>> plt.legend(loc='lower right', fontsize=9, ncols=2)
         >>> ax.set_xlim(0.45, 12)
-        >>> ax.set_ylim(0.95, 1.055)
+        >>> ax.set_ylim(0.985, 1.011)
         >>> ax.set_xlabel(r"Wavelength ($\mathrm{\mu}$m)", fontsize=12)
-        >>> ax.set_ylabel(r"TLS $\epsilon$", fontsize=12)
+        >>> ax.set_ylabel(r"TLS contamination $\epsilon$", fontsize=12)
         >>> ax.set_xscale('log')
         >>> ax.tick_params(which='both', direction='in', labelsize=11)
         >>> ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
@@ -107,6 +115,9 @@ class TransitLightSource():
             msg = f'No PHOENIX models found in TLS folder: {repr(sed_folder)}'
             raise ValueError(msg)
 
+        if sampling not in ['interpolate', 'bin']:
+            raise ValueError('Invalid wavelength sampling method')
+
         if wl_range is None:
             wl_range = -np.inf, np.inf
 
@@ -118,14 +129,15 @@ class TransitLightSource():
         if has_custom_wl:
             wl_mask = (wl>=wl_range[0]) & (wl<=wl_range[1])
             wl = wl[wl_mask]
-            # Make top-hat bands
-            half_widths = 0.5 * np.ediff1d(wl, 0, 0)
-            half_widths[0] = half_widths[1]
-            half_widths[-1] = half_widths[-2]
-            bands = [
-                ps.Tophat(wl0, half_width, wl=sed_wl, ignore_gaps=True)
-                for wl0, half_width in zip(wl, half_widths)
-            ]
+            if sampling == 'bin':
+                # Make top-hat bands
+                half_widths = 0.5 * np.ediff1d(wl, 0, 0)
+                half_widths[0] = half_widths[1]
+                half_widths[-1] = half_widths[-2]
+                bands = [
+                    ps.Tophat(wl0, half_width, wl=sed_wl, ignore_gaps=True)
+                    for wl0, half_width in zip(wl, half_widths)
+                ]
             self.wl = wl
         else:
             wl_mask = (sed_wl>=wl_range[0]) & (sed_wl<=wl_range[1])
@@ -138,12 +150,21 @@ class TransitLightSource():
         for i in range(ntemps):
             file = f'{sed_folder}/{models[i]}'
             sed_wl, sed_flux = read_phoenix(file)
-            if has_custom_wl:
+            if has_custom_wl and sampling=='bin':
                 fluxes[i] = _tophat_binning(bands, wl, sed_flux)
+            elif has_custom_wl and sampling=='interpolate':
+                fluxes[i] = si.interp1d(sed_wl, sed_flux)(wl)
             else:
                 fluxes[i] = sed_flux[wl_mask]
             self.temps[i] = float(models[i][3:8])
 
+        tmin = np.amin(self.temps)
+        tmax = np.amax(self.temps)
+        if self.teff < tmin or self.teff > tmax:
+            raise ValueError(
+                f'Effective temperature ({self.teff}) is not in range of '
+                f'SED temperatures ({tmin}, {tmax})'
+            )
         # Temperature interpolation
         i = np.searchsorted(self.temps, self.teff)
         star_flux = (
@@ -159,16 +180,56 @@ class TransitLightSource():
             fill_value=1e100,
         )
 
-    def __call__(self, t_spot, f_spot):
+
+    def epsilon(self, t_spot, f_spot, t_fac=None, f_fac=0.0):
         """
         Evaluate transit-light-source contamination factor into
-        a transit-depth spectrum (Equation 2 of Rackham+2018, ApJ, 853)
+        a transit-depth spectrum (Equation 3 of Rackham+2018, ApJ, 853)
+
+        Parameters
+        ----------
+        t_spot: Float
+            Spot temperature (K).
+        f_spot: Float
+            Spot covering fraction of the stellar projected area.
+        t_fac: Float
+            Faculae temperature (K). Ignored if t_fac is None.
+            Note that there is no intrinsic limitation to the t_fac
+            or t_spot values, either may be modeling spots or faculae
+            depending on the temperature.
+        f_fac: Float
+            Faculae covering fraction of the stellar projected area.
+
+        Returns
+        -------
+        epsilon: 1D float array
+            TLS contamination spectrum.
         """
-        epsilon = 1.0 / (1.0 - f_spot * (1.0 - self.flux_ratios(t_spot)))
+        if f_spot < 0 or f_spot > 1:
+            msg = 'Out of bounds f_spot fraction, value must be between 0 and 1'
+            raise ValueError(msg)
+        spot = f_spot * (1.0 - self.flux_ratios(t_spot))
+
+        if t_fac is None or f_fac==0:
+            fac = 0.0
+        else:
+            if f_fac < 0 or f_fac > 1:
+                msg = 'Out of bounds f_fac fraction, value must be between 0 and 1'
+                raise ValueError(msg)
+            if f_spot + f_fac > 1.0:
+                raise ValueError('Unphysical spot+faculae coverage > 1')
+            fac = f_fac * (1.0 - self.flux_ratios(t_fac))
+
+        epsilon = 1.0 / (1.0 - spot - fac)
         return epsilon
+
+
+    def __call__(self, t_spot, f_spot, t_fac=None, f_fac=0.0):
+        return self.epsilon(t_spot, f_spot, t_fac, f_fac)
 
     def __repr__(self):
         return "pyratbay.spectrum.TransitLightSource()"
+
 
     def __str__(self):
         with np.printoptions(threshold=100):

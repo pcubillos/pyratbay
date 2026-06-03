@@ -37,6 +37,7 @@ Recipes list:
 
   - `Instrumental Passbands <passbands.ipynb>`__
   - :doc:`partition_functions`
+  - :doc:`transit_light_source`
 
 ..  - :ref:`transmission_simulation` (TBD)
 ..  - :ref:`emission_simulation` (TBD)
@@ -72,6 +73,7 @@ Recipes list:
 
    passbands
    partition_functions
+   transit_light_source
 
    wasp39b/transmission_retrieval
    wasp18b/eclipse_retrieval

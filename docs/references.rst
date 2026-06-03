@@ -135,6 +135,8 @@ References
 
 .. [Prsa2016] `Prsa et al. (2016): Nominal Values for Selected Solar and Planetary Quantities: IAU 2015 Resolution B3 <https://ui.adsabs.harvard.edu/abs/2016AJ....152...41P>`_
 
+.. [Rackham2018] `Rackham et al. (2018): The Transit Light Source Effect: False Spectral Features and Incorrect Densities for M-dwarf Transiting Planets <https://ui.adsabs.harvard.edu/abs/2018ApJ...853..122R>`_
+
 .. [Rivlin2015] `Rivlin et al. (2015): ExoMol molecular line lists - X. The spectrum of sodium hydride <https://ui.adsabs.harvard.edu/abs/2015MNRAS.451..634R>`_
 
 .. [Rothman2010] `Rothman et al. (2010): HITEMP, the high-temperature molecular spectroscopic database <http://ui.adsabs.harvard.edu/abs/2010JQSRT.111.2139R>`_
