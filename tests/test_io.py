@@ -537,7 +537,7 @@ def test_write_observations_mix_bandpass_tophats(tmpdir):
 
 def test_read_observations_passband_file():
     obs_file = 'inputs/obs_file_passband_file.dat'
-    bands = io.read_observations(obs_file)
+    bands, wl0, hw = io.read_observations(obs_file)
 
     expected_names = [
         'tess',
@@ -550,13 +550,12 @@ def test_read_observations_passband_file():
     assert len(bands) == expected_nbands
     for i in range(expected_nbands):
         assert bands[i].name == expected_names[i]
-    wl0 = [band.wl0 for band in bands]
     np.testing.assert_allclose(wl0, expected_wl0, rtol=1e-5)
 
 
 def test_read_observations_tophat():
     obs_file = 'inputs/obs_file_tophat.dat'
-    bands = io.read_observations(obs_file)
+    bands, wl0, hw = io.read_observations(obs_file)
 
     expected_wl0 = [1.148, 1.240, 1.332, 1.424, 1.516, 1.608]
     expected_nbands = len(expected_wl0)
@@ -564,13 +563,12 @@ def test_read_observations_tophat():
     assert len(bands) == expected_nbands
     for i in range(expected_nbands):
         assert bands[i].name == 'tophat'
-    wl0 = [band.wl0 for band in bands]
     np.testing.assert_allclose(wl0, expected_wl0, rtol=1.0e-3)
 
 
 def test_read_observations_named_tophat():
     obs_file = 'inputs/obs_file_tophat_named.dat'
-    bands = io.read_observations(obs_file)
+    bands, wl0, hw = io.read_observations(obs_file)
 
     expected_wl0 = [1.148, 1.240, 1.332, 1.424, 1.516, 1.608]
     expected_nbands = len(expected_wl0)
@@ -578,13 +576,12 @@ def test_read_observations_named_tophat():
     assert len(bands) == expected_nbands
     for i in range(expected_nbands):
         assert bands[i].name == 'HST_WFC3'
-    wl0 = [band.wl0 for band in bands]
     np.testing.assert_allclose(wl0, expected_wl0, rtol=1.0e-3)
 
 
 def test_read_observations_data_passband_file():
     obs_file = 'inputs/obs_file_data_passband_file.dat'
-    bands, data, uncert = io.read_observations(obs_file)
+    bands, wl0, hw, data, uncert = io.read_observations(obs_file)
 
     expected_names = [
         'tess',
@@ -599,7 +596,6 @@ def test_read_observations_data_passband_file():
     assert len(bands) == expected_nbands
     for i in range(expected_nbands):
         assert bands[i].name == expected_names[i]
-    wl0 = [band.wl0 for band in bands]
     np.testing.assert_allclose(wl0, expected_wl0, rtol=1e-5)
     np.testing.assert_allclose(data, expected_data)
     np.testing.assert_allclose(uncert, expected_uncert)
@@ -607,7 +603,7 @@ def test_read_observations_data_passband_file():
 
 def test_read_observations_data_tophat():
     obs_file = 'inputs/obs_file_data_tophat.dat'
-    bands, data, uncert = io.read_observations(obs_file)
+    bands, wl0, hw, data, uncert = io.read_observations(obs_file)
 
     expected_wl0 = [1.148, 1.240, 1.332, 1.424, 1.516, 1.608]
     expected_nbands = len(expected_wl0)
@@ -621,7 +617,6 @@ def test_read_observations_data_tophat():
     assert len(bands) == expected_nbands
     for i in range(expected_nbands):
         assert bands[i].name == 'tophat'
-    wl0 = [band.wl0 for band in bands]
     np.testing.assert_allclose(wl0, expected_wl0, rtol=1.0e-3)
     np.testing.assert_allclose(data, expected_data)
     np.testing.assert_allclose(uncert, expected_uncert)
@@ -629,7 +624,7 @@ def test_read_observations_data_tophat():
 
 def test_read_observations_data_named_tophat():
     obs_file = 'inputs/obs_file_data_tophat_named.dat'
-    bands, data, uncert = io.read_observations(obs_file)
+    bands, wl0, hw, data, uncert = io.read_observations(obs_file)
 
     expected_wl0 = [1.148, 1.240, 1.332, 1.424, 1.516, 1.608]
     expected_nbands = len(expected_wl0)
@@ -643,7 +638,6 @@ def test_read_observations_data_named_tophat():
     assert len(bands) == expected_nbands
     for i in range(expected_nbands):
         assert bands[i].name == 'HST_WFC3'
-    wl0 = [band.wl0 for band in bands]
     np.testing.assert_allclose(wl0, expected_wl0, rtol=1.0e-3)
     np.testing.assert_allclose(data, expected_data)
     np.testing.assert_allclose(uncert, expected_uncert)
@@ -651,7 +645,7 @@ def test_read_observations_data_named_tophat():
 
 def test_read_observations_mix():
     obs_file = 'inputs/obs_file_data_mix.dat'
-    bands, data, uncert = io.read_observations(obs_file)
+    bands, wl0, hw, data, uncert = io.read_observations(obs_file)
 
     expected_names = [
         'tess',
@@ -681,7 +675,6 @@ def test_read_observations_mix():
     assert len(bands) == expected_nbands
     for i in range(expected_nbands):
         assert bands[i].name == expected_names[i]
-    wl0 = [band.wl0 for band in bands]
     np.testing.assert_allclose(wl0, expected_wl0, rtol=1.0e-3)
     np.testing.assert_allclose(data, expected_data)
     np.testing.assert_allclose(uncert, expected_uncert)
@@ -695,7 +688,7 @@ def test_read_observations_error_too_few_values():
         "'@DEPTH_UNITS' flag if there's no depth/uncert data"
     )
     with pytest.raises(ValueError, match=error_msg):
-        passband_data = io.read_observations(obs_file)
+        io.read_observations(obs_file)
 
 
 def test_read_observations_error_too_many_values():
@@ -706,7 +699,7 @@ def test_read_observations_error_too_many_values():
         "the '@DEPTH_UNITS' flag is missing"
     )
     with pytest.raises(ValueError, match=error_msg):
-        passband_data = io.read_observations(obs_file)
+        io.read_observations(obs_file)
 
 
 @pytest.mark.skip(

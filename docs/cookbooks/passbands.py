@@ -16,7 +16,6 @@
 # You can also find this tutorial as a [Python script here](https://github.com/pcubillos/pyratbay/blob/master/docs/cookbooks/passbands.py) or as a [jupyter notebook here](https://github.com/pcubillos/pyratbay/blob/master/docs/cookbooks/passbands.ipynb).
 # 
 # </div>
-# 
 
 # ## Passband Objects
 # 
@@ -44,6 +43,7 @@
 
 import pyratbay.spectrum as ps
 import pyratbay.constants as pc
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -65,13 +65,13 @@ spitzer_fluxes = [
 plt.figure(0)
 plt.clf()
 plt.plot(wl, bb_spectrum, c='k')
-plt.plot(irac1.wl0, spitzer_fluxes[0], 'o', c='salmon')
-plt.plot(irac2.wl0, spitzer_fluxes[1], 'o', c='royalblue')
+plt.errorbar(irac1.wl0, spitzer_fluxes[0], xerr=irac1.half_width, fmt='o', c='salmon')
+plt.errorbar(irac2.wl0, spitzer_fluxes[1], xerr=irac2.half_width, fmt='o', c='royalblue')
 plt.plot(irac1.wl, irac1.response*2e4, c='salmon')
 plt.plot(irac2.wl, irac2.response*2e4, c='royalblue')
-plt.xlabel('Wavelength (um)')
-plt.ylabel('Flux (erg s-1 cm-2 cm)')
-plt.ylim(0, 90000)
+plt.xlabel(r'Wavelength ($\mathrm{\mu}$m)', fontsize=12)
+plt.ylabel('Flux (erg s⁻¹ cm⁻² cm)', fontsize=12)
+plt.ylim(0, 95000)
 plt.xlim(0.5, 6.0)
 
 
@@ -96,7 +96,7 @@ plt.xlim(0.5, 6.0)
 # 
 # Altenatively, when one works with spectroscopic data, it is usually desired to split the data into a set of bins modeled as top-hat passbands.
 
-# In[3]:
+# In[2]:
 
 
 # A blackbody spectrum
@@ -108,22 +108,25 @@ bb_spectrum = ps.bbflux(wn=1/(wl*pc.um), teff=1700.0)
 # their central wavelength and half-width (in micron units):
 half_width = 0.05
 central_wavelengths = np.arange(1.1, 1.8, 2*half_width)
-hst_bands = [ps.Tophat(wl0, half_width, wl=wl) for wl0 in central_wavelengths]
+hst_bands = [
+    ps.Tophat(wl0, half_width, wl=wl)
+    for wl0 in central_wavelengths
+]
 
 # Integrate spectrum over passbands
 hst_fluxes = [band.integrate(bb_spectrum) for band in hst_bands]
 
-plt.figure(0)
+plt.figure(1)
 plt.clf()
 plt.plot(wl, bb_spectrum, c='k')
 for i,band in enumerate(hst_bands):
     color = plt.cm.plasma(i/7)
-    plt.plot(band.wl0, hst_fluxes[i], 'o', c=color)
+    plt.errorbar(band.wl0, hst_fluxes[i], xerr=band.half_width, fmt='o', c=color)
     plt.plot(band.wl, band.response*5000, c=color)
-    plt.xlabel('Wavelength (um)')
-plt.ylabel('Flux (erg s-1 cm-2 cm)')
-plt.ylim(0,90000)
-plt.xlim(0.5, 6.0)
+plt.xlabel(r'Wavelength ($\mathrm{\mu}$m)', fontsize=12)
+plt.ylabel('Flux (erg s⁻¹ cm⁻² cm)', fontsize=12)
+plt.ylim(0,75000)
+plt.xlim(0.7, 2.1)
 
 
 # ## Observation Files
@@ -158,46 +161,78 @@ plt.xlim(0.5, 6.0)
 # 
 # Note that the `{FILTERS}` text works as a path to the filters provided by ``pyrat bay``.
 # 
-# Now, say that these observations correspond to a set of eclipse-depth observations.  The example below shows how to load this file into passbands, and then simulate some spectra to compare band-integrated models and data.
+# The script below shows how to load and plot the data from this file.
 
-# In[4]:
+# In[3]:
 
 
 import pyratbay.io as io
 
-# Say, I have a planet and star with these properties:
-tstar = 6700.0
-tplanet = 2100.0
-rprs = 1.60 * pc.rjup / (1.81 * pc.rsun)
-
-
 # Load passbands and observations info:
-bands, depths, uncerts = io.read_observations('observations.dat')
-band_wl = [band.wl0 for band in bands]
+bands, band_wl, half_widths, depths, uncerts = io.read_observations('observations.dat')
+
+
+plt.figure(10)
+plt.clf()
+ax = plt.subplot(111)
+plt.errorbar(
+    band_wl, depths/pc.ppm, uncerts/pc.ppm, xerr=half_widths,
+    fmt='o', color='xkcd:blue', mfc='w',
+)
+ax.set_ylim(0, 1600)
+ax.set_xlim(0.9, 5.2)
+ax.set_xscale('log')
+ax.set_xlabel(r'Wavelength ($\mathrm{\mu}$m)', fontsize=12)
+ax.set_ylabel('Eclipse depth (ppm)', fontsize=12)
+ax.xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
+ax.set_xticks([1,2,3,4])
+ax.tick_params(which='both', right=True, top=True, direction='in', labelsize=11)
+
+
+# Now, say that the data correspond to eclipse-depth observations.  This script computes a flux-ratio model integrated over the bands and compares it to the data.
+
+# In[4]:
+
+
 # Evaluate passbands at given spectral array:
 wl = ps.constant_resolution_spectrum(0.5, 6.0, resolution=1000.0)
 for band in bands:
     band.set_sampling(wl=wl)
 
 
-# Compute the planet-to-star flux ratios
-bb_star = ps.bbflux(wn=1/(wl*pc.um), teff=tstar)
+# Say, I have a planet and star with these properties:
+tstar = 6700.0
+tplanet = 2100.0
+rprs = 1.60 * pc.rjup / (1.81 * pc.rsun)
+
+# Compute planet-to-star flux ratios
+wn =  1.0 / (wl*pc.um)
+bb_star = ps.bbflux(wn, teff=tstar)
+bb_planet = ps.bbflux(wn, teff=tplanet)
+
 bandflux_star = np.array([band.integrate(bb_star) for band in bands])
+bandflux_planet = np.array([band.integrate(bb_planet) for band in bands])
 
-bb_spectrum = ps.bbflux(wn=1/(wl*pc.um), teff=tplanet)
-bandflux = np.array([band.integrate(bb_spectrum) for band in bands])
-
-flux_ratio = bandflux / bandflux_star * rprs**2.0
-model = bb_spectrum/bb_star * rprs**2
+flux_ratio = bandflux_planet / bandflux_star * rprs**2.0
+model = bb_planet / bb_star * rprs**2
 
 
-plt.figure(10)
+plt.figure(11)
 plt.clf()
-plt.plot(wl, model/pc.ppm, color='salmon')
-plt.plot(band_wl, flux_ratio/pc.ppm, 's', color='red')
-plt.errorbar(band_wl, depths/pc.ppm, uncerts/pc.ppm, fmt='ok')
-plt.ylim(0, 1600)
-plt.xlim(0.8, 6.0)
-plt.xlabel('Wavelength (um)')
-plt.ylabel('Eclipse depth (ppm)')
+ax = plt.subplot(111)
+ax.plot(wl, model/pc.ppm, color='salmon')
+ax.plot(band_wl, flux_ratio/pc.ppm, 's', color='tomato', label='band-integrated model')
+plt.errorbar(
+    band_wl, depths/pc.ppm, uncerts/pc.ppm, xerr=half_widths,
+    fmt='o', color='xkcd:blue', mfc='w', label='data',
+)
+ax.legend(loc='upper left')
+ax.set_ylim(0, 1600)
+ax.set_xlim(0.9, 5.2)
+ax.set_xscale('log')
+ax.set_xlabel(r'Wavelength ($\mathrm{\mu}$m)', fontsize=12)
+ax.set_ylabel('Eclipse depth (ppm)', fontsize=12)
+ax.xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
+ax.set_xticks([1,2,3,4])
+ax.tick_params(which='both', right=True, top=True, direction='in', labelsize=11)
 

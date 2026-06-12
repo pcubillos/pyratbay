@@ -35,11 +35,10 @@ class Observation():
         if inputs.obsfile is not None:
             # TBD: Throw error if filters already exist
             obs_data = io.read_observations(inputs.obsfile)
-            if np.ndim(obs_data) == 2:
+            if len(obs_data) == 5:
                 # TBD: Throw error if data or uncert already exist
-                self.filters, self.data, self.uncert = obs_data
-            elif np.ndim(obs_data) == 1:
-                self.filters = obs_data
+                self.data, self.uncert = obs_data[3:]
+            self.filters, self.band_wl, self.half_widths = obs_data[0:3]
 
         # Number of datapoints and filters:
         self.ndata = 0
@@ -69,7 +68,6 @@ class Observation():
             band.set_sampling(wn=wn)
         # Per-band variables:
         self.bandwn = np.array([band.wn0 for band in self.filters])
-        self.band_wl = np.array([band.wl0 for band in self.filters])
         self.bandflux = np.zeros(self.nfilters, np.double)
 
 

@@ -102,10 +102,9 @@ class Data():
         >>> import matplotlib.pyplot as plt
 
         >>> # Load a set of uncertainties obtained with JWST instruments:
-        >>> obs_file = '/Users/pato/Documents/compendia/ERS/WASP39b/data/synthesis_v02/wasp39b_g395h_lrs.dat'
-        >>> bands, depths, uncert = io.read_observations(obs_file)
+        >>> obs_file = '/home/user/ers_synthesis/wasp39b_g395h_lrs.dat'
+        >>> bands, wl, hwidth, depths, uncert = io.read_observations(obs_file)
         >>> band_names = [band.name for band in bands]
-        >>> wl = [band.wl0 for band in bands]
         >>> print(set(band_names))
         {'nirspec_g395h_nrs1', 'nirspec_g395h_nrs2', 'miri_lrs'}
 
