@@ -468,10 +468,10 @@ def posterior_post_processing(cfg_file=None, pyrat=None, suffix=''):
 
     nbands = pyrat.obs.ndata
     band_wl = 1.0 / pyrat.obs.bandwn / pc.um
-    ndata_hires = pyrat.obs.nfilters_hires
+    ndata_hires = pyrat.obs.nbands_hires
     if ndata_hires != 0:
         nbands = ndata_hires
-        band_wl = np.array([band.wl0 for band in pyrat.obs.filters_hires])
+        band_wl = np.array([band.wl0 for band in pyrat.obs.bands_hires])
 
     # Evaluate models / spectra:
     pyrat.spec.specfile = None
@@ -565,8 +565,8 @@ def posterior_post_processing(cfg_file=None, pyrat=None, suffix=''):
         'pressure': pyrat.atm.press,
         'wl': pyrat.spec.wl,
         'band_wl': band_wl,
-        'bands_wl': [band.wl for band in pyrat.obs.filters],
-        'bands_response': [band.response for band in pyrat.obs.filters],
+        'bands_wl': [band.wl for band in pyrat.obs.bands],
+        'bands_response': [band.response for band in pyrat.obs.bands],
         'species': pyrat.atm.species,
         'active_species': active_species,
         'starflux': pyrat.spec.starflux,

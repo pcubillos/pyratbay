@@ -87,7 +87,7 @@ def setup(pyrat):
             # Band-integrate the stellar flux
             pyrat.obs.bandflux_star = np.array([
                 band(pyrat.spec.starflux)
-                for band in pyrat.obs.filters
+                for band in pyrat.obs.bands
             ])
         # 2D spectra
         else:

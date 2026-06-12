@@ -294,7 +294,7 @@ class Pyrat():
             self.spec.starflux = self.spec.flux_interp(self.atm.tstar)
             self.obs.bandflux_star = np.array([
                 band(self.spec.starflux)
-                for band in self.obs.filters
+                for band in self.obs.bands
             ])
 
         if ret.idilut is not None:
@@ -426,12 +426,12 @@ class Pyrat():
         if obs.data is not None:
             if obs.uncert is None:
                 log.error("Undefined data uncertainties")
-            if obs.nfilters == 0:
+            if obs.nbands == 0:
                 log.error("Undefined transmission filters (filters)")
         if obs.data_hires is not None:
             if obs.uncert_hires is None:
                 log.error("Undefined high-resolution data uncertainties")
-            if obs.nfilters_hires == 0:
+            if obs.nbands_hires == 0:
                 log.error("Undefined transmission filters (filters)")
 
         # Basename of the output files:
@@ -551,9 +551,9 @@ class Pyrat():
         is_transmission = self.od.rt_path in pc.transmission_rt
         path = 'transit' if is_transmission else 'emission'
 
-        if self.obs.nfilters > 0:
+        if self.obs.nbands > 0:
             band_wl = 1.0/(self.obs.bandwn*pc.um)
-        elif self.obs.nfilters_hires > 0:
+        elif self.obs.nbands_hires > 0:
             band_wl = 1.0/(self.obs.wn_hires*pc.um)
         band_cf = self.band_contribution()
 
@@ -667,7 +667,7 @@ class Pyrat():
         Band-integrate transmission spectrum (transit) or planet-to-star
         flux ratio (eclipse) over transmission band passes.
         """
-        bands = self.obs.filters
+        bands = self.obs.bands
         if bands is None:
             return None
 
@@ -709,10 +709,10 @@ class Pyrat():
         """
         Compute contribution functions or transmittance at each band.
         """
-        if self.obs.nfilters_hires != 0:
-            bands = self.obs.filters_hires
+        if self.obs.nbands_hires != 0:
+            bands = self.obs.bands_hires
         else:
-            bands = self.obs.filters
+            bands = self.obs.bands
         bands_idx = [band.idx for band in bands]
         responses = [band.response for band in bands]
 
@@ -784,10 +784,10 @@ class Pyrat():
             'data_color': self.inputs.data_color,
         }
 
-        is_hires = obs.nfilters_hires > 0
+        is_hires = obs.nbands_hires > 0
 
         if is_hires:
-            band_wl = np.array([band.wl0 for band in obs.filters_hires])
+            band_wl = np.array([band.wl0 for band in obs.bands_hires])
             args['wavelength'] = band_wl
             args['data'] = obs.data_hires
             args['uncert'] = obs.uncert_hires
@@ -799,9 +799,9 @@ class Pyrat():
             args['wavelength'] = self.spec.wl
             args['data'] = obs.data
             args['uncert'] = obs.uncert
-            args['bands_wl0'] = [band.wl0 for band in obs.filters]
-            args['bands_wl'] = [band.wl for band in obs.filters]
-            args['bands_response'] = [band.response for band in obs.filters]
+            args['bands_wl0'] = obs.band_wl
+            args['bands_wl'] = [band.wl for band in obs.bands]
+            args['bands_response'] = [band.response for band in obs.bands]
             args['bands_flux'] = obs.bandflux
             if self.obs.inst_resolution is not None:
                 args['resolution'] = self.obs.inst_resolution

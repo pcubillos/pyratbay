@@ -538,7 +538,7 @@ Data/bandflux display units (units): none
 Data/bandflux internal units: none
 Number of data points (ndata): 0
 
-Number of filter pass bands (nfilters): 0
+Number of filter pass bands (nbands): 0
 """
 
 
@@ -739,30 +739,30 @@ Number of data points (ndata): 20
   6502.68000     20.03000      6286.94       1.591
   6490.36000     16.50000      6188.12       1.616
 
-Number of filter pass bands (nfilters): 20
-Wavenumber  Wavelength    Bandflux  Filter name
-      cm-1          um         ppm
-  (bandwn)              (bandflux)  (filters)
-   8826.13       1.133  6572.22269  HST_G102
-   8632.60       1.158  6552.34009  HST_G102
-   8447.37       1.184  6540.58352  HST_G102
-   8269.25       1.209  6477.75198  HST_G102
-   8099.13       1.235  6458.69705  HST_G102
-   7935.88       1.260  6449.18189  HST_G102
-   7779.07       1.286  6487.15970  HST_G141
-   7628.35       1.311  6510.49428  HST_G141
-   7482.79       1.336  6641.12748  HST_G141
-   7343.22       1.362  6694.81336  HST_G141
-   7208.77       1.387  6703.80468  HST_G141
-   7079.14       1.413  6707.16831  HST_G141
-   6953.62       1.438  6706.97647  HST_G141
-   6832.93       1.464  6664.82002  HST_G141
-   6716.37       1.489  6619.88101  HST_G141
-   6603.71       1.514  6566.59346  HST_G141
-   6494.77       1.540  6550.73872  HST_G141
-   6388.96       1.565  6512.27616  HST_G141
-   6286.94       1.591  6510.95784  HST_G141
-   6188.12       1.616  6513.93163  HST_G141
+Number of filter pass bands (nbands): 20
+Wavelength    Bandflux  Filter name
+        um         ppm
+ (band_wl)  (bandflux)  (bands)
+     1.133  6572.22269  HST_G102
+     1.158  6552.34009  HST_G102
+     1.184  6540.58352  HST_G102
+     1.209  6477.75198  HST_G102
+     1.235  6458.69705  HST_G102
+     1.260  6449.18189  HST_G102
+     1.286  6487.15970  HST_G141
+     1.311  6510.49428  HST_G141
+     1.336  6641.12748  HST_G141
+     1.362  6694.81336  HST_G141
+     1.387  6703.80468  HST_G141
+     1.413  6707.16831  HST_G141
+     1.438  6706.97647  HST_G141
+     1.464  6664.82002  HST_G141
+     1.489  6619.88101  HST_G141
+     1.514  6566.59346  HST_G141
+     1.540  6550.73872  HST_G141
+     1.565  6512.27616  HST_G141
+     1.591  6510.95784  HST_G141
+     1.616  6513.93163  HST_G141
 """
 
     assert str(pyrat.ret) == f"""\

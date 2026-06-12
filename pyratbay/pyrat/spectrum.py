@@ -347,7 +347,7 @@ class TLS():
 
         self.pars = inputs.tls_pars.flatten()
         wl = spec.wl
-        band_names = [band.name for band in obs.filters]
+        band_names = [band.name for band in obs.bands]
 
         if tls_folder is None:
             log.error(
