@@ -177,7 +177,7 @@ class TransitLightSource():
             self.temps, fluxes/star_flux,
             axis=0,
             bounds_error=False,
-            fill_value=1e100,
+            fill_value=np.nan,
         )
 
 

@@ -192,7 +192,7 @@ def test_tls_out_of_bounds_temp():
     tls = ps.TransitLightSource(sed_folder, teff)
 
     eps = tls.epsilon(3200, 0.01)
-    np.testing.assert_allclose(eps, 1.e-98)
+    assert np.all(np.isnan(eps))
 
 
 def test_resample_out_of_bounds_fractions():

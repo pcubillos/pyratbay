@@ -83,6 +83,9 @@ class Pyrat():
         self.obs = Observation(self.inputs, self.spec.wn, self.log)
         ar.check_spectrum(self)
 
+        # Initialize TLS model
+        self.tls = sp.TLS(self.inputs, self.spec, self.obs, self.od.rt_path, self.log)
+
         # Setup opacity models:
         self.opacity = Opacity(
             self.inputs,
@@ -112,6 +115,7 @@ class Pyrat():
         self.ret = Retrieval(
             self.inputs,
             self.atm,
+            self.tls,
             self.obs,
             self.opacity,
             self.log,
@@ -349,33 +353,45 @@ class Pyrat():
 
             if reject_flag:
                 obs.bandflux_hires[:] = np.inf
-            # TBD: At the moment either return hires or lowres, but should be
-            # able to combine in the future
+            # TBD: At the moment either return hires or lowres, but should
+            # be able to combine in the future
             if retmodel:
                 return self.spec.spectrum, obs.bandflux_hires
             return obs.bandflux_hires
 
+        # TLS effect
+        if ret.itls is not None:
+            ifree = ret.map_pars['tls']
+            self.tls.pars[ifree] = params[ret.itls]
+        self.tls()
+        if self.tls.n_models > 0 and np.any(np.isnan(self.tls.epsilon)):
+            reject_flag = True
 
-        # Band-integrate spectrum:
+        # Band-integrate spectrum
         obs.bandflux = self.band_integrate()
 
-        # Instrumental offset:
+        # Instrumental offsets
+        obs.data = np.copy(obs.depth.data)
         if ret.ioffset is not None:
             ifree = ret.map_pars['offset']
             obs.offset_pars[ifree] = params[ret.ioffset]
             obs.data = obs.depth.offset_data(obs.offset_pars, obs.units)
 
-        # Uncertainty scaling:
+        # Uncertainty scaling
         if ret.ierror is not None:
             ifree = ret.map_pars['error']
             obs.uncert_pars[ifree] = params[ret.ierror]
             obs.uncert = obs.depth.scale_errors(obs.uncert_pars, obs.units)
 
-        # Invalid model:
+        # TLS correction to data
+        if self.tls.n_models > 0 and not self.tls.is_general:
+            obs.data -= self.tls.band_offset
+
+        # Invalid model
         if not np.any(obs.bandflux):
             reject_flag = True
 
-        # Reject this iteration if there are invalid temperatures or radii:
+        # Reject this iteration if there are invalid temperatures or radii
         if obs.bandflux is not None and reject_flag:
             obs.bandflux[:] = np.inf
 
@@ -651,20 +667,41 @@ class Pyrat():
         Band-integrate transmission spectrum (transit) or planet-to-star
         flux ratio (eclipse) over transmission band passes.
         """
-        if self.obs.filters is None:
+        bands = self.obs.filters
+        if bands is None:
             return None
 
         if self.od.rt_path in pc.transmission_rt:
             spectrum = self.spec.spectrum
+            tls = self.tls
+            if tls.n_models == 0:
+                band_flux = np.array([band(spectrum) for band in bands])
+            else:
+                # Modify model instead of data
+                if tls.is_general:
+                    spectrum *= np.prod(tls.epsilon, axis=0)
+                    band_flux = np.array([band(spectrum) for band in bands])
+                # Calculate TLS offsets to band-integrated spectra
+                else:
+                    band_flux = np.array([band(spectrum) for band in bands])
+                    tls.band_offset = np.zeros(self.obs.ndata)
+                    for i,eps in enumerate(tls.epsilon):
+                        mask = tls.band_mask[i]
+                        tls_spectrum = spectrum * eps
+                        tls_flux = np.array([
+                            band(tls_spectrum)
+                            for band,flag in zip(bands, mask)
+                            if flag
+                        ])
+                        tls.band_offset[mask] += tls_flux - band_flux[mask]
         else:
             spectrum = self.spec.fplanet
-
-        bandflux = np.array([band(spectrum) for band in self.obs.filters])
+            band_flux = np.array([band(spectrum) for band in bands])
         if self.od.rt_path in pc.eclipse_rt:
             rprs = self.atm.rplanet/self.atm.rstar
-            bandflux *= rprs**2.0 / self.obs.bandflux_star
+            band_flux *= rprs**2.0 / self.obs.bandflux_star
 
-        self.obs.bandflux = bandflux
+        self.obs.bandflux = band_flux
         return self.obs.bandflux
 
 

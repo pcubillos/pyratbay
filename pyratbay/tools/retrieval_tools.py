@@ -526,6 +526,8 @@ def posterior_post_processing(cfg_file=None, pyrat=None, suffix=''):
         for spec in model_species:
             if spec not in active_species:
                 active_species.append(spec)
+    # Now sort according to species
+    # TBD
 
     if pyrat.od.rt_path == 'f_lambda':
         flux_units = 'W m-2 um-1'

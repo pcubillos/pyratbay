@@ -36,7 +36,7 @@ class ColorTheme():
 class Retrieval():
     theme = ColorTheme()
 
-    def __init__(self, inputs, atm, obs, opacity, log):
+    def __init__(self, inputs, atm, tls, obs, opacity, log):
         self.nparams = 0
         self.posterior = None
         self.bestp = None
@@ -161,6 +161,7 @@ class Retrieval():
         for names in opacity.pnames:
             opacity_pnames += names
 
+        tls_pnames = tls.pnames
         offset_pnames = obs.offset_inst
         error_pnames = obs.uncert_scaling
 
@@ -171,6 +172,7 @@ class Retrieval():
             'opacity': [[] for model in opacity.models],
             'offset': [],
             'error': [],
+            'tls': [],
         }
         # Model parameter names
         self.nparams = len(self.pnames)
@@ -191,7 +193,8 @@ class Retrieval():
             atm.mol_pnames +
             opacity_pnames +
             offset_pnames +
-            error_pnames
+            error_pnames +
+            tls_pnames
         )
 
         # Indices for each model parameters in self.params array:
@@ -207,11 +210,13 @@ class Retrieval():
         self.iopacity = [[] for model in opacity.models]
         self.ioffset = None
         self.ierror = None
+        self.itls = None
 
         itemp = []
         imol = []
         ioffset = []
         ierror = []
+        itls = []
         for i,pname in enumerate(self.pnames):
             if pname == 'log_p_ref':
                 self.ipress = np.array([i])
@@ -270,6 +275,11 @@ class Retrieval():
                 idx = error_pnames.index(pname)
                 map_pars['error'].append(idx)
                 self.texnames[i] = obs.depth.err_texnames[idx]
+            elif pname in tls_pnames:
+                itls.append(i)
+                idx = tls_pnames.index(pname)
+                map_pars['tls'].append(idx)
+                self.texnames[i] = tls.texnames[idx]
             else:
                 log.error(
                     f"Invalid retrieval parameter '{pname}'. Possible "
@@ -284,6 +294,8 @@ class Retrieval():
             self.ioffset = ioffset
         if len(ierror) > 0:
             self.ierror = ierror
+        if len(itls) > 0:
+            self.itls = itls
 
         # Patch missing parameters if possible:
         patch_temp = (
