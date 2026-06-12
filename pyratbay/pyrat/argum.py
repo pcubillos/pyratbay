@@ -13,7 +13,6 @@ def check_spectrum(pyrat):
     """
     Check that user input arguments make sense.
     """
-    # Shortcuts:
     log = pyrat.log
     spec = pyrat.spec
     atm = pyrat.atm

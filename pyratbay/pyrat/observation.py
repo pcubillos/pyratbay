@@ -69,6 +69,7 @@ class Observation():
             band.set_sampling(wn=wn)
         # Per-band variables:
         self.bandwn = np.array([band.wn0 for band in self.filters])
+        self.band_wl = np.array([band.wl0 for band in self.filters])
         self.bandflux = np.zeros(self.nfilters, np.double)
 
 
