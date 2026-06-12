@@ -15,7 +15,7 @@ ppm
 # depth uncert  wavelength half_width passband_name
 # depth uncert  passband_file
 @DATA
-    139     8   inputs/TESS_passband.dat
+    139     8   {FILTERS}tess.dat
     200    50   1.000    0.100
     214    42   1.148    0.046  HST_WFC3
     325    43   1.240    0.046  HST_WFC3

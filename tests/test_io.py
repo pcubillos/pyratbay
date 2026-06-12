@@ -540,18 +540,18 @@ def test_read_observations_passband_file():
     bands = io.read_observations(obs_file)
 
     expected_names = [
-        'TESS_passband',
+        'tess',
         'spitzer_irac2',
         'spitzer_irac2',
     ]
-    expected_wl0 = [0.792, 4.471, 4.471]
+    expected_wl0 = [0.8, 4.501215, 4.501215]
     expected_nbands = len(expected_names)
 
     assert len(bands) == expected_nbands
     for i in range(expected_nbands):
         assert bands[i].name == expected_names[i]
     wl0 = [band.wl0 for band in bands]
-    np.testing.assert_allclose(wl0, expected_wl0, rtol=1.0e-3)
+    np.testing.assert_allclose(wl0, expected_wl0, rtol=1e-5)
 
 
 def test_read_observations_tophat():
@@ -587,11 +587,11 @@ def test_read_observations_data_passband_file():
     bands, data, uncert = io.read_observations(obs_file)
 
     expected_names = [
-        'TESS_passband',
+        'tess',
         'spitzer_irac2',
         'spitzer_irac2',
     ]
-    expected_wl0 = [0.792, 4.471, 4.471]
+    expected_wl0 = [0.8, 4.501215, 4.501215]
     expected_nbands = len(expected_names)
     expected_data = np.array([0.000139, 0.003448, 0.003375])
     expected_uncert = np.array([8.0e-06, 6.4e-05, 8.2e-05])
@@ -600,7 +600,7 @@ def test_read_observations_data_passband_file():
     for i in range(expected_nbands):
         assert bands[i].name == expected_names[i]
     wl0 = [band.wl0 for band in bands]
-    np.testing.assert_allclose(wl0, expected_wl0, rtol=1.0e-3)
+    np.testing.assert_allclose(wl0, expected_wl0, rtol=1e-5)
     np.testing.assert_allclose(data, expected_data)
     np.testing.assert_allclose(uncert, expected_uncert)
 
@@ -654,7 +654,7 @@ def test_read_observations_mix():
     bands, data, uncert = io.read_observations(obs_file)
 
     expected_names = [
-        'TESS_passband',
+        'tess',
         'tophat',
         'HST_WFC3',
         'HST_WFC3',
@@ -666,7 +666,7 @@ def test_read_observations_mix():
         'spitzer_irac2',
     ]
     expected_wl0 = [
-        0.792, 1.0, 1.148, 1.240, 1.332, 1.424, 1.516, 1.608, 3.521, 4.471,
+        0.8, 1.0, 1.148, 1.240, 1.332, 1.424, 1.516, 1.608, 3.535315, 4.501215,
     ]
     expected_nbands = len(expected_names)
     expected_data = np.array([

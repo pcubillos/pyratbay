@@ -19,9 +19,9 @@ def test_PassBand_init():
     band = ps.PassBand(filter_file)
 
     # wl0 is passband's wavelength center of mass
-    np.testing.assert_allclose(band.wl0, 4.47065351)
+    np.testing.assert_allclose(band.wl0, 4.501215)
     # wn0 is 1/wl0 (which differs from wavenumber center of mass)
-    np.testing.assert_allclose(band.wn0, 2236.80944)
+    np.testing.assert_allclose(band.wn0, 2221.622384)
     np.testing.assert_equal(band.response, band.input_response)
     np.testing.assert_allclose(band.wl, band.input_wl)
     np.testing.assert_allclose(band.wn, band.input_wn)

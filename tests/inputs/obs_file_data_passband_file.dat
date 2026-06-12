@@ -15,6 +15,6 @@ ppm
 # depth uncert  wavelength half_width passband_name
 # depth uncert  passband_file
 @DATA
-    139     8   inputs/TESS_passband.dat
+    139     8   {FILTERS}tess.dat
    3448    64   {FILTERS}spitzer_irac2.dat
    3375    82   {FILTERS}spitzer_irac2.dat

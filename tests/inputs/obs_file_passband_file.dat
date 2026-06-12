@@ -13,7 +13,7 @@
 # depth uncert  wavelength half_width passband_name
 # depth uncert  passband_file
 @DATA
-inputs/TESS_passband.dat
+{FILTERS}tess.dat
 {FILTERS}spitzer_irac2.dat
 {FILTERS}spitzer_irac2.dat
 
