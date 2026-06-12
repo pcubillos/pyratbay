@@ -549,6 +549,9 @@ def parse(cfile, with_log=True, mute=False):
         parse_str(args, 'offset_inst')
         parse_str(args, 'uncert_scaling')
         parse_float(args, 'inst_resolution')
+        # Transit light source effect
+        parse_str(args, 'tls_folder')
+        parse_str(args, 'tls_model')
         # Retrieval options:
         parse_str(args, 'mcmcfile')  # Deprecated
         parse_str(args, 'sampler')
@@ -1055,6 +1058,30 @@ def parse(cfile, with_log=True, mute=False):
             args.uncert_scaling.append(fields[0])
             if len(fields) > 1:
                 args.uncert_pars[i] = float(fields[1])
+
+    args.tls_folder = args.get_path('tls_folder', 'TLS SEDs folder')
+    tls_model = args.get_default('tls_model', 'TLS models')
+    if tls_model is None:
+        args.tls_models = []
+        args.tls_pars = []
+    else:
+        pars = [
+            par for par in tls_model.splitlines()
+            if par != ''
+        ]
+        args.tls_models = []
+        args.tls_pars = np.zeros((len(pars),4))
+        for i,par in enumerate(pars):
+            fields = par.split()
+            nfields = len(fields)
+            args.tls_models.append(fields[0])
+            if nfields == 1:
+                continue
+            elif nfields in [3,5]:
+                args.tls_pars[i,:nfields-1] = np.array(fields[1:], float)
+            else:
+                msg = f'Invalid number of parameters for {repr(fields[0])}'
+                raise ValueError(msg)
 
     args.inst_resolution = args.get_default(
         'inst_resolution', 'Instrumental resolution', gt=0.0,
