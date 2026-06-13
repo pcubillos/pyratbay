@@ -92,7 +92,9 @@ def alphatize(colors, alpha, bg='w'):
 def spectrum(
     spectrum, wavelength, rt_path,
     data=None, uncert=None,
-    bands_wl0=None, bands_flux=None, bands_response=None, bands_wl=None,
+    bands_wl0=None, bands_flux=None,
+    bands_half_width=None,
+    bands_response=None, bands_wl=None,
     label='model', bounds=None, logxticks=None,
     resolution=150.0,
     yran=None, filename=None, fignum=501, axis=None,
@@ -119,6 +121,8 @@ def spectrum(
         The mean wavelength for each band/data point.
     bands_flux: 1D float ndarray
         Band-integrated model spectrum at each bandwl.
+    bands_half_width: 1D float ndarray
+        Band wavelength half-width in microns.
     bands_response: Iterable of 1D float ndarrays
         Transmission response curve for each band.
     bands_wl: Iterable of 1D float ndarrays.
@@ -221,6 +225,7 @@ def spectrum(
     else:
         ax = axis
 
+    # The model
     if bounds is not None:
         ax.fill_between(
             bin_wl, flux_scale*bin_bounds[2], flux_scale*bin_bounds[3],
@@ -233,22 +238,23 @@ def spectrum(
             zorder=2,
         )
     plt.plot(
-        bin_wl, bin_model*flux_scale, lw=lw, color=theme.color, label=label,
-        zorder=3,
+        bin_wl, bin_model*flux_scale,
+        lw=lw, color=theme.color, label=label, zorder=3,
     )
-    # Plot band-integrated model:
+    # Band-integrated model
     if bands_flux is not None and bands_wl0 is not None:
         plt.plot(
             bands_wl0, bands_flux*flux_scale,
             ls='', marker='o', ms=ms, mew=lw,
             color=theme.color, mec=theme.dark_color, zorder=4,
         )
-    # Plot data:
+    # The data
     zorder = 5 if data_front else -1
     ecolor = alphatize(data_color, alpha=0.85)
     if data is not None and uncert is not None and bands_wl0 is not None:
         plt.errorbar(
             bands_wl0, data*flux_scale, uncert*flux_scale,
+            xerr=bands_half_width,
             fmt=marker, label='data',
             mfc=(1,1,1,0.85), mec=data_color, ecolor=ecolor,
             ms=ms, elinewidth=lw, capthick=lw, zorder=zorder,
@@ -267,7 +273,7 @@ def spectrum(
         else:
             return (x-xmin) / (xmax-xmin)
 
-    # Transmission filters:
+    # Pass bands
     if bands_response is not None and bands_wl is not None:
         band_height = 0.05*(yran[1] - yran[0])
         for response, wl, wl0 in zip(bands_response, bands_wl, bands_wl0):
@@ -361,7 +367,7 @@ def contribution(
     else:
         rt_paths = pc.rt_paths
         print(f"Invalid radiative-transfer geometry. Select from: {rt_paths}")
-        return
+        return None
 
     fs = 12
     colors = np.asarray(np.linspace(0, 255, nfilters), int)
@@ -752,9 +758,10 @@ def posteriors(
     Examples
     --------
     >>> import pyratbay.plots as pp
+    >>> post_file = 'ret_transit_tls_model_posteriors_info.pickle'
+    >>> pp.posteriors(post_file, theme='blue')
     >>> post_file = 'ns_emission_tutorial_posteriors_info.pickle'
-    >>> theme = 'red'
-    >>> pp.posteriors(post_file, theme='red')
+    >>> pp.posteriors(post_file, theme='blue')
 
     >>> vmr_lims = 1e-5, 1.0
     >>> pp.posteriors(post_file, theme='red', vmr_lims=vmr_lims)
@@ -923,6 +930,7 @@ def posteriors(
             depth_posterior = post_data['depth_posterior']
         wavelength = post_data['wl']
         bands_response = post_data['bands_response']
+        half_widths = post_data['band_half_widths']
         data = post_data['data']
         uncert = post_data['uncert']
         resolution = 125.0
@@ -933,6 +941,7 @@ def posteriors(
         depth_posterior = post_data['band_models_posterior']
         wavelength = post_data['band_wl']
         bands_response = None
+        half_widths = None
         data = post_data['data_hires']
         uncert = post_data['uncert_hires']
         resolution = None
@@ -948,8 +957,7 @@ def posteriors(
     args['data'] = data
     args['uncert'] = uncert
     args['bands_wl0'] = post_data['band_wl']
-    args['bands_wl'] = post_data['bands_wl']
-    args['bands_response'] = bands_response
+    args['bands_half_width'] = half_widths
     args['label'] = 'median model'
     args['resolution'] = resolution
     args['marker'] = marker

@@ -467,11 +467,13 @@ def posterior_post_processing(cfg_file=None, pyrat=None, suffix=''):
     is_transmission = pyrat.od.rt_path in pc.transmission_rt
 
     nbands = pyrat.obs.ndata
-    band_wl = 1.0 / pyrat.obs.bandwn / pc.um
+    band_wl = pyrat.obs.band_wl
+    half_widths = pyrat.obs.half_widths
     ndata_hires = pyrat.obs.nbands_hires
     if ndata_hires != 0:
         nbands = ndata_hires
         band_wl = np.array([band.wl0 for band in pyrat.obs.bands_hires])
+        half_widths = [band.half_width for band in pyrat.obs.bands_hires]
 
     # Evaluate models / spectra:
     pyrat.spec.specfile = None
@@ -565,8 +567,7 @@ def posterior_post_processing(cfg_file=None, pyrat=None, suffix=''):
         'pressure': pyrat.atm.press,
         'wl': pyrat.spec.wl,
         'band_wl': band_wl,
-        'bands_wl': [band.wl for band in pyrat.obs.bands],
-        'bands_response': [band.response for band in pyrat.obs.bands],
+        'band_half_widths': half_widths,
         'species': pyrat.atm.species,
         'active_species': active_species,
         'starflux': pyrat.spec.starflux,
