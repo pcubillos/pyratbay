@@ -800,8 +800,7 @@ class Pyrat():
             args['data'] = obs.data
             args['uncert'] = obs.uncert
             args['bands_wl0'] = obs.band_wl
-            args['bands_wl'] = [band.wl for band in obs.bands]
-            args['bands_response'] = [band.response for band in obs.bands]
+            args['bands_half_width'] = [band.half_width for band in obs.bands]
             args['bands_flux'] = obs.bandflux
             if self.obs.inst_resolution is not None:
                 args['resolution'] = self.obs.inst_resolution
