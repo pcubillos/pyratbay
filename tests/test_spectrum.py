@@ -416,6 +416,10 @@ def mock_phoenix_new_era():
             grp.create_dataset('fl', data=mask_flux)
 
 
+@pytest.mark.skipif(
+    os.getenv("GITHUB_ACTIONS") == "true",
+    reason="Run only locally, skip on GitHub Actions",
+)
 def test_list_phoenix_files_single():
     # Will also trigger url request on first call
     teff = 4780.0
@@ -426,6 +430,10 @@ def test_list_phoenix_files_single():
     assert sed_models[0] == 'lte04800-4.50+0.5.PHOENIX-NewEra-ACES-COND-2023.HSR.h5'
 
 
+@pytest.mark.skipif(
+    os.getenv("GITHUB_ACTIONS") == "true",
+    reason="Run only locally, skip on GitHub Actions",
+)
 def test_list_phoenix_files_teffs():
     teff = None
     logg = 4.57
@@ -436,6 +444,10 @@ def test_list_phoenix_files_teffs():
     assert sed_models[-1] == 'lte12000-4.50+0.5.PHOENIX-NewEra-ACES-COND-2023.HSR.h5'
 
 
+@pytest.mark.skipif(
+    os.getenv("GITHUB_ACTIONS") == "true",
+    reason="Run only locally, skip on GitHub Actions",
+)
 def test_list_phoenix_files_logg():
     teff = 4780.0
     logg = None
@@ -446,6 +458,10 @@ def test_list_phoenix_files_logg():
     assert sed_models[-1] == 'lte04800-6.00+0.5.PHOENIX-NewEra-ACES-COND-2023.HSR.h5'
 
 
+@pytest.mark.skipif(
+    os.getenv("GITHUB_ACTIONS") == "true",
+    reason="Run only locally, skip on GitHub Actions",
+)
 def test_list_phoenix_files_metal():
     teff = 4780.0
     logg = 4.57
@@ -456,6 +472,10 @@ def test_list_phoenix_files_metal():
     assert sed_models[-1] == 'lte04800-4.50-4.0.PHOENIX-NewEra-ACES-COND-2023.HSR.h5'
 
 
+@pytest.mark.skipif(
+    os.getenv("GITHUB_ACTIONS") == "true",
+    reason="Run only locally, skip on GitHub Actions",
+)
 def test_list_phoenix_files_multi():
     teff = 4780.0
     logg = None
@@ -467,11 +487,14 @@ def test_list_phoenix_files_multi():
     assert sed_models[-1] == 'lte04800-6.00-4.0.PHOENIX-NewEra-ACES-COND-2023.HSR.h5'
 
 
+@pytest.mark.skipif(
+    os.getenv("GITHUB_ACTIONS") == "true",
+    reason="Run only locally, skip on GitHub Actions",
+)
 def test_fetch_phoenix():
     folder = f'{pc.ROOT}tests/outputs/'
     sed = f'{folder}lte04800-4.50+0.5.PHOENIX-NewEra-ACES-COND-2023.HSR.h5'
-    # Only trigger when file does not yet exisit (avoid local-test fetch
-    # unless wanted), will trigger on github actions
+    # Only trigger when file does not yet exist (avoid url-fetch unless wanted)
     if os.path.exists(sed):
         return
 
