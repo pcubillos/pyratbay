@@ -95,7 +95,9 @@ def spectrum(
     bands_wl0=None, bands_flux=None,
     bands_half_width=None,
     bands_response=None, bands_wl=None,
-    label='model', bounds=None, logxticks=None,
+    label='model', bounds=None,
+    logxticks=None,
+    log_wl=None,
     resolution=150.0,
     yran=None, filename=None, fignum=501, axis=None,
     marker='o', ms=5.0, lw=1.25, fs=14, data_front=True,
@@ -134,8 +136,10 @@ def spectrum(
         If not None, plot shaded area between +/-1sigma and +/-2sigma
         boundaries.
     logxticks: 1D float ndarray
-        If not None, switch the X-axis scale from linear to log, and set
-        the X-axis ticks at the locations given by logxticks.
+        Deprecated. Use log_wl instead.
+    log_wl: 1D float ndarray
+        If not None, plot X-axis in logscale and set its ticks
+        to the input values.
     resolution: Float
         Binning resolution to display the spectra.
     yran: 1D float ndarray
@@ -266,7 +270,12 @@ def spectrum(
 
     xmin = np.amin(wavelength)
     xmax = np.amax(wavelength)
-    is_log = logxticks is not None
+
+    # Deprecated argument
+    if log_wl is None and logxticks is not None:
+        log_wl = logxticks
+
+    is_log = log_wl is not None
     def color(x, is_log):
         if is_log:
             return np.log(x/xmin) / np.log(xmax/xmin)
@@ -286,7 +295,7 @@ def spectrum(
         ax.set_xscale('log')
         ax.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
         ax.xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
-        ax.set_xticks(logxticks)
+        ax.set_xticks(log_wl)
 
     ax.tick_params(
         which='both', right=True, top=True, direction='in', labelsize=fs-2,
@@ -727,7 +736,7 @@ def abundance(
 def posteriors(
         post_file, theme='blue', data_color='black',
         plot_species=None, vmr_lims=None,
-        logxticks=None, dpi=300,
+        log_wl=None, dpi=300,
     ):
     """
     Plot contribution functions, temperature profiles, VMRs, and spectra
@@ -749,9 +758,9 @@ def posteriors(
         which includes the species that actively contribute to the opacity.
     vmr_limits: 2-element float iterable
         Plotting boundaries for the volume mixing ratio.
-    logxticks: 1D float ndarray
-        If not None, switch the X-axis scale from linear to log, and set
-        the X-axis ticks at the locations given by logxticks.
+    log_wl: 1D float ndarray
+        If not None, plot X-axis in logscale and set its ticks
+        to the input values.
     dpi: Integer
         The resolution in dots per inch for saved files.
 
@@ -962,7 +971,7 @@ def posteriors(
     args['resolution'] = resolution
     args['marker'] = marker
     args['data_front'] = data_front
-    args['logxticks'] = logxticks
+    args['log_wl'] = log_wl
     args['theme'] = theme
     args['data_color'] = data_color
     args['filename'] = f"{root}_posterior_spectrum.png"

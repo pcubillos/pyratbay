@@ -591,7 +591,7 @@ def posterior_post_processing(cfg_file=None, pyrat=None, suffix=''):
         post_file,
         theme=pyrat.ret.theme,
         data_color=pyrat.inputs.data_color,
-        logxticks=pyrat.inputs.logxticks,
+        log_wl=pyrat.inputs.log_wl,
     )
 
     return outputs

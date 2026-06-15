@@ -778,7 +778,7 @@ class Pyrat():
         """
         obs = self.obs
         args = {
-            'logxticks': self.inputs.logxticks,
+            'log_wl': self.inputs.log_wl,
             'yran': self.inputs.yran,
             'theme': self.ret._default_theme,
             'data_color': self.inputs.data_color,

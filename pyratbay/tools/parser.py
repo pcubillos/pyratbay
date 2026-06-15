@@ -601,7 +601,8 @@ def parse(cfile, with_log=True, mute=False):
         parse_float(args, 'beta_irr')
         # Outputs:
         parse_str(args,   'specfile')
-        parse_array(args, 'logxticks')
+        parse_array(args, 'log_wl')
+        parse_array(args, 'logxticks')  # Deprecated
         parse_array(args, 'yran')
 
     # Cast into a Namespace to make my life easier:
@@ -789,6 +790,15 @@ def parse(cfile, with_log=True, mute=False):
         'Wavelength-sampling thinning factor for Line_Sample opacities',
         1, ge=1,
     )
+
+    if args.logxticks is not None:
+        if args.log_wl is None:
+            args.log_wl = args.logxticks
+        warning_msg = (
+            "'logxticks' argument is deprecated and will be removed in "
+            "the future, use 'log_wl' instead "
+        )
+        warnings.warn(warning_msg, category=DeprecationWarning)
 
     runits = args.get_default('runits', 'Planetary-radius units')
     if runits is not None and not hasattr(pc, runits):
