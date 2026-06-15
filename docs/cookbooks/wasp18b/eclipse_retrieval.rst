@@ -186,18 +186,17 @@ line-sampled cross sections for these molecules: |H2O|, CO, |CO2|,
 the latests opacity sources for these species from ExoMol and HITEMP.
 
 The current recommendation for sampled cross sections for JWST
-retrievals is to adopt a resolution :math:`R>20.000`.  So, here we will use a
-cross section grid at :math:`R=25.000`, sampling from :math:`0.35-10.5`
-μm in wavelength (to cover the spectral range of the data), from
-:math:`500-4000` K in temperature, and from :math:`100-1.0^{-9}` bar
-in pressure.
+retrievals is to adopt a resolution :math:`R>20.000`.  So, here we
+will use a cross section grid at :math:`R=25.000`, sampling from
+:math:`0.35-10.5` μm in wavelength (to cover the spectral range of the
+data), :math:`500-4000` K in temperature, and from
+:math:`100-1.0^{-9}` bar in pressure.
 
-Now, beware that cross section files have many assumptions baked into
-them.  In addition, one might need to adjust the ranges or sampling
-resolution of the grid for specific project.  Thus, below there are
-two options, (a) download and use already made the cross-section
-files (b) compute your own cross sections starting from the line-list
-files (where you can customize at will).
+Now, be aware that cross sections always have assumptions baked into
+them.  Below you can find ready-to-use cross sections and their
+assumptions.
+
+.. Alternatively, if you need to adjust the ranges or sampling resolution for a specific project, compute your own cross sections starting from the line-list files (where you can customize at will).
 
 .. tab-set::
 
