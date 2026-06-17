@@ -114,6 +114,7 @@ class Observation():
         self.depth = pt.Data(
             self.data, self.uncert, band_names,
             self.offset_inst, self.uncert_scaling,
+            self.units,
         )
         if len(self.offset_pars) > 0:
             self.data = self.depth.offset_data(self.offset_pars, self.units)

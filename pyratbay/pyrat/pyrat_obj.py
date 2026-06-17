@@ -375,13 +375,13 @@ class Pyrat():
         if ret.ioffset is not None:
             ifree = ret.map_pars['offset']
             obs.offset_pars[ifree] = params[ret.ioffset]
-            obs.data = obs.depth.offset_data(obs.offset_pars, obs.units)
+            obs.data = obs.depth.offset_data(obs.offset_pars)
 
         # Uncertainty scaling
         if ret.ierror is not None:
             ifree = ret.map_pars['error']
             obs.uncert_pars[ifree] = params[ret.ierror]
-            obs.uncert = obs.depth.scale_errors(obs.uncert_pars, obs.units)
+            obs.uncert = obs.depth.scale_errors(obs.uncert_pars)
 
         # TLS correction to data
         if self.tls.n_models > 0 and not self.tls.is_general:
