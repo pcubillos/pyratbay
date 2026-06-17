@@ -774,7 +774,7 @@ class Pyrat():
         args = {
             'log_wl': self.inputs.log_wl,
             'yran': self.inputs.yran,
-            'theme': self.ret._default_theme,
+            'theme': self.ret.theme,
             'data_color': self.inputs.data_color,
         }
 

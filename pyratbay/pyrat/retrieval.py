@@ -11,31 +11,7 @@ from .. import constants as pc
 from .. import tools as pt
 
 
-class ColorTheme():
-    """
-    Descriptor object that remembers the default input theme
-    (in obj._default_theme) until it is redefined.
-    Used in pyrat.plot_spectrum().
-
-    To understand this sorcery see:
-    https://docs.python.org/3/howto/descriptor.html
-    """
-    def __set_name__(self, obj, name):
-        self.private_name = '_' + name
-
-    def __get__(self, obj, objtype=None):
-        value = getattr(obj, self.private_name)
-        return value
-
-    def __set__(self, obj, value):
-        priv_name = self.private_name
-        setattr(obj, priv_name, value)
-        obj._default_theme = value
-
-
 class Retrieval():
-    theme = ColorTheme()
-
     def __init__(self, inputs, atm, tls, obs, opacity, log):
         self.nparams = 0
         self.posterior = None
@@ -56,12 +32,8 @@ class Retrieval():
         self.thigh = inputs.thigh
 
         self.sampler = inputs.sampler
-        theme = 'blue' if inputs.theme is None else inputs.theme
+        theme = 'royalblue' if inputs.theme is None else inputs.theme
         self.theme = pt.resolve_theme(theme)
-        # If defaulted to None, keep _default_theme as None until
-        # the user redefines ret.theme to something else:
-        if inputs.theme is None:
-            self._default_theme = None
         # Retrieval configuration
         self.statistics = inputs.statistics
         self.nsamples = inputs.nsamples
