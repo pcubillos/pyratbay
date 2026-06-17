@@ -383,8 +383,8 @@ class Pyrat():
             obs.uncert_pars[ifree] = params[ret.ierror]
             obs.uncert = obs.depth.scale_errors(obs.uncert_pars)
 
-        # TLS correction to data
-        if self.tls.n_models > 0 and not self.tls.is_general:
+        # Apply TLS correction
+        if self.tls.n_models > 0:
             obs.data -= self.tls.band_offset
 
         # Invalid model
@@ -673,27 +673,21 @@ class Pyrat():
 
         if self.od.rt_path in pc.transmission_rt:
             spectrum = self.spec.spectrum
+            band_flux = np.array([band(spectrum) for band in bands])
             tls = self.tls
-            if tls.n_models == 0:
-                band_flux = np.array([band(spectrum) for band in bands])
-            else:
-                # Modify model instead of data
-                if tls.is_general:
-                    spectrum *= np.prod(tls.epsilon, axis=0)
-                    band_flux = np.array([band(spectrum) for band in bands])
-                # Calculate TLS offsets to band-integrated spectra
-                else:
-                    band_flux = np.array([band(spectrum) for band in bands])
-                    tls.band_offset = np.zeros(self.obs.ndata)
-                    for i,eps in enumerate(tls.epsilon):
-                        mask = tls.band_mask[i]
-                        tls_spectrum = spectrum * eps
-                        tls_flux = np.array([
-                            band(tls_spectrum)
-                            for band,flag in zip(bands, mask)
-                            if flag
-                        ])
-                        tls.band_offset[mask] += tls_flux - band_flux[mask]
+            if tls.n_models > 0:
+                # Calculate TLS spectra and band-integrated TLS-offsets
+                tls.band_offset = np.zeros(self.obs.ndata)
+                for i,eps in enumerate(tls.epsilon):
+                    mask = tls.band_mask[i]
+                    tls.spectrum[i] = spectrum * eps
+                    tls_depth = np.array([
+                        band(tls.spectrum[i])
+                        for band,flag in zip(bands, mask)
+                        if flag
+                    ])
+                    tls.band_offset[mask] += tls_depth - band_flux[mask]
+
         else:
             spectrum = self.spec.fplanet
             band_flux = np.array([band(spectrum) for band in bands])

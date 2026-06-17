@@ -348,6 +348,7 @@ class TLS():
         self.pars = inputs.tls_pars.flatten()
         wl = spec.wl
         band_names = [band.name for band in obs.bands]
+        self.spectrum = np.zeros((self.n_models, spec.nwave))
 
         if tls_folder is None:
             log.error(
@@ -371,9 +372,8 @@ class TLS():
                 "Combining detector-specifc ('tls_label') and general "
                 "TLS models ('tls') is not allowed"
             )
-        self.is_general = is_general
 
-        # setup target bands
+        # Setup target bands
         for var in self.models:
             if var == 'tls':
                 texname = ''
