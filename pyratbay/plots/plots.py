@@ -938,7 +938,6 @@ def posteriors(
         else:
             depth_posterior = post_data['depth_posterior']
         wavelength = post_data['wl']
-        bands_response = post_data['bands_response']
         half_widths = post_data['band_half_widths']
         data = post_data['data']
         uncert = post_data['uncert']
@@ -949,7 +948,6 @@ def posteriors(
     elif 'data_hires' in post_data:
         depth_posterior = post_data['band_models_posterior']
         wavelength = post_data['band_wl']
-        bands_response = None
         half_widths = None
         data = post_data['data_hires']
         uncert = post_data['uncert_hires']
