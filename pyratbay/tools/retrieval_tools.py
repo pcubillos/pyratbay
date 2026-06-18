@@ -475,20 +475,31 @@ def posterior_post_processing(cfg_file=None, pyrat=None, suffix=''):
         band_wl = np.array([band.wl0 for band in pyrat.obs.bands_hires])
         half_widths = [band.half_width for band in pyrat.obs.bands_hires]
 
-    # Evaluate models / spectra:
     pyrat.spec.specfile = None
     nwave = pyrat.spec.nwave
+    n_tls = pyrat.tls.n_models
+    n_offsets = pyrat.obs.depth.n_offsets
+
+    # Evaluate models / spectra:
     models = np.zeros((n_unique, nwave))
     band_models = np.zeros((n_unique, nbands))
     temp = np.zeros((n_unique, pyrat.atm.nlayers))
     vmr = np.zeros((n_unique, pyrat.atm.nlayers, pyrat.atm.nmol))
     cf = np.zeros((n_unique, pyrat.atm.nlayers, nbands))
+    offset = np.zeros((n_unique, nbands))
+    tls_epsilon = np.zeros((n_unique, n_tls, nwave))
+    tls_spectra = np.zeros((n_unique, n_tls, nwave))
     t0 = time.time()
     for i in range(n_unique):
         models[i], band_models[i] = pyrat.eval(u_posterior[i])
         temp[i] = pyrat.atm.temp
         vmr[i] = pyrat.atm.vmr
         cf[i] = pyrat.band_contribution()
+        if n_offsets > 0:
+            offset[i] = pyrat.obs.inst_offset
+        if n_tls > 0:
+            tls_epsilon[i] = pyrat.tls.epsilon
+            tls_spectra[i] = pyrat.tls.spectrum
         timeleft = eta(time.time()-t0, i+1, n_unique, fmt='.2f')
         if i%3 == 0:
             eta_text = (
@@ -500,10 +511,21 @@ def posterior_post_processing(cfg_file=None, pyrat=None, suffix=''):
     endline = f'{100*(i+1)/n_unique:6.2f} % done'
     print(f'{endline:80s}', flush=True)
 
-    spectrum_posterior = np.zeros((nquantiles,nwave))
+    spectrum_posterior = np.zeros((nquantiles, nwave))
+    tls_posterior = np.zeros((nquantiles, n_tls, nwave))
+    tls_spectra_posterior = np.zeros((nquantiles, n_tls, nwave))
     for i in range(nwave):
-        msample = models[uinv,i]
-        spectrum_posterior[:,i] = np.percentile(msample, 100.0*quantiles)
+        sample = models[uinv,i]
+        spectrum_posterior[:,i] = np.percentile(sample, 100.0*quantiles)
+        if n_tls > 0:
+            sample = tls_epsilon[uinv,:,i]
+            tls_posterior[:,:,i] = np.percentile(sample, 100.0*quantiles, axis=0)
+            sample = tls_spectra[uinv,:,i]
+            tls_spectra_posterior[:,:,i] = np.percentile(sample, 100.0*quantiles, axis=0)
+
+    if n_offsets > 0:
+        offset_posterior = np.percentile(offset[uinv], 100.0*quantiles, axis=0)
+
 
     band_models_posterior = np.percentile(
         band_models[uinv,:], 100.0*quantiles, axis=0,
@@ -561,9 +583,17 @@ def posterior_post_processing(cfg_file=None, pyrat=None, suffix=''):
         'vmr_posterior': vmr_posterior,
         'band_models_posterior': band_models_posterior,
         'cf_posterior_median': cf_median,
-        'params_posterior' : params_posterior,
-        'params_names' : np.array(pyrat.ret.pnames)[ifree],
-        'params_texnames' : texnames[ifree],
+    }
+    if n_tls > 0:
+        outputs['tls_posterior'] = tls_posterior
+        outputs['tls_spectra_posterior'] = tls_spectra_posterior
+        outputs['tls_labels'] = pyrat.tls.models
+    if n_offsets > 0:
+        outputs['offset_posterior'] = offset_posterior
+    outputs |= {
+        'params_posterior': params_posterior,
+        'params_names': np.array(pyrat.ret.pnames)[ifree],
+        'params_texnames': texnames[ifree],
         'pressure': pyrat.atm.press,
         'wl': pyrat.spec.wl,
         'band_wl': band_wl,
@@ -586,7 +616,7 @@ def posterior_post_processing(cfg_file=None, pyrat=None, suffix=''):
     with open(post_file, 'wb') as handle:
         pickle.dump(outputs, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-    # Now make some plots:
+    # Now make some plots
     pp.posteriors(
         post_file,
         theme=pyrat.ret.theme,
@@ -595,6 +625,5 @@ def posterior_post_processing(cfg_file=None, pyrat=None, suffix=''):
     )
 
     return outputs
-
 
 
