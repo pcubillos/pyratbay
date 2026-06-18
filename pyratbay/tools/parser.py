@@ -576,6 +576,7 @@ def parse(cfile, with_log=True, mute=False):
         parse_float(args, 'grbreak')
         parse_float(args, 'grnmin')
         parse_str(args, 'theme')
+        parse_float(args, 'fig_resolution')
         parse_str(args, 'data_color')
         parse_int(args, 'nlive')
         parse_str(args, 'statistics')
@@ -1143,6 +1144,11 @@ def parse(cfile, with_log=True, mute=False):
     )
     if args.statistics is None:
         args.statistics = 'med_central'
+
+    args.fig_resolution = args.get_default(
+        'fig_resolution', 'Spectral resolution for figures',
+        150.0, gt=0,
+    )
 
     data_color = args.get_default('data_color', 'Color of data points', 'black')
     if not matplotlib.colors.is_color_like(data_color):

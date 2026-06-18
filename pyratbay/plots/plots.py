@@ -260,7 +260,7 @@ def spectrum(
             bands_wl0, data*flux_scale, uncert*flux_scale,
             xerr=bands_half_width,
             fmt=marker, label='data',
-            mfc=(1,1,1,0.85), mec=data_color, ecolor=ecolor,
+            mfc='w', mec=data_color, ecolor=ecolor,
             ms=ms, elinewidth=lw, capthick=lw, zorder=zorder,
         )
 
@@ -941,7 +941,7 @@ def posteriors(
         half_widths = post_data['band_half_widths']
         data = post_data['data']
         uncert = post_data['uncert']
-        resolution = 125.0
+        resolution = post_data['fig_resolution'] if 'fig_resolution' in post_data else 125.0
         marker = 'o'
         data_front = True
     # High-resolution data
