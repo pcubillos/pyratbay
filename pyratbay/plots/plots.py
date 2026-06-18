@@ -4,6 +4,7 @@
 __all__ = [
     'alphatize',
     'spectrum',
+    'tls',
     'contribution',
     'temperature',
     'abundance',
@@ -101,7 +102,7 @@ def spectrum(
     resolution=150.0,
     yran=None, filename=None, fignum=501, axis=None,
     marker='o', ms=5.0, lw=1.25, fs=14, data_front=True,
-    units=None, dpi=300, theme=None, data_color='black',
+    units=None, dpi=300, theme='royalblue', data_color='black',
     ):
     """
     Plot a transmission or emission model spectrum with (optional) data
@@ -187,10 +188,6 @@ def spectrum(
         str_units = '(%)'
 
     theme = pt.resolve_theme(theme)
-    if theme is None:
-        theme = mp.Theme('darkorange')
-        theme.light_color = 'gold'
-        theme.dark_color = 'maroon'
 
     # Setup according to geometry:
     if rt_path == 'emission':
@@ -309,6 +306,130 @@ def spectrum(
 
     if filename is not None:
         plt.savefig(filename, dpi=dpi)
+    return ax
+
+
+def tls(
+        tls, wl, labels, bounds=None,
+        log_wl=None, resolution=150.0,
+        themes=None, lw=1.5, fs=12, yran=None,
+        filename=None, fignum=101, axis=None, dpi=300,
+    ):
+    """
+    Plot transit light source correction spectra.
+
+    Parameters
+    ----------
+    tls: 2D float darray
+        TLS correction (epsilon) spectrum.
+    wl: 1D float darray
+        The wavelength of the model in microns.
+    labels: String
+        Label for spectrum curve.
+    bounds: 3D float array
+        The -1 and +1 sigma boundaries of TLS correction.
+        If not None, plot shaded area between +/-1sigma boundaries.
+    log_wl: 1D float ndarray
+        If not None, plot X-axis in logscale and set its ticks
+        to the input values.
+    resolution: Float
+        Binning resolution to display the spectra.
+    themes: string or mc3.plots.Theme object
+        A color theme for the models.
+    lw: Float
+        Line widths.
+    fs: Float
+        Font size.
+    yran: 1D float ndarray
+        Figure's Y-axis boundaries.
+    filename: String
+        If not None, save figure to filename.
+    fignum: Integer
+        Figure number.
+    axis: AxesSubplot instance
+        The matplotlib Axes of the figure.
+    dpi: Integer
+        The resolution in dots per inch for saved files.
+
+    Returns
+    -------
+    ax: AxesSubplot instance
+        The matplotlib Axes of the figure.
+    """
+    n_tls = len(tls)
+    min_wl = np.amin(wl)
+    max_wl = np.amax(wl)
+    bin_wl = ps.constant_resolution_spectrum(min_wl, max_wl, resolution)
+    nbin = len(bin_wl)
+
+    # Bin down the TLS spectra
+    bin_tls = [
+        ps.bin_spectrum(bin_wl, wl, tls_model)
+        for tls_model in tls
+    ]
+    if bounds is not None:
+        nbounds = len(bounds)
+        bin_bounds = np.zeros((nbounds, n_tls, nbin))
+        for i in range(nbounds):
+            for j in range(n_tls):
+                bin_bounds[i,j] = ps.bin_spectrum(bin_wl, wl, bounds[i,j])
+
+    is_log = log_wl is not None
+    if themes is None:
+        themes = [
+            'royalblue',
+            'tomato',
+            'xkcd:green',
+            '0.5',
+            'mediumorchid',
+            'xkcd:goldenrod',
+            'deepskyblue',
+        ]
+        n_themes = len(themes)
+        if n_tls > n_themes:
+            raise ValueError(
+                'Need to input a list of color themes if you need more '
+                f'than {n_themes} TLS curves'
+            )
+    themes = [pt.resolve_theme(theme) for theme in themes]
+
+    # The plot
+    if axis is None:
+        fig = plt.figure(fignum)
+        fig.set_size_inches(7.0, 4.0)
+        plt.clf()
+        ax = plt.subplot(111)
+    else:
+        ax = axis
+
+    for j in range(n_tls):
+        color = themes[j].color
+        bin_tls_lo = bin_bounds[0,j]
+        bin_tls_hi = bin_bounds[1,j]
+        plt.fill_between(
+            bin_wl, bin_tls_lo, bin_tls_hi,
+            color=color, ec='none', alpha=0.5,
+        )
+        plt.plot(bin_wl, bin_tls[j], c=color, lw=lw, label=labels[j])
+
+    if is_log:
+        ax.set_xscale('log')
+        ax.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
+        ax.xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
+        ax.set_xticks(log_wl)
+
+    ax.set_xlim(min_wl, max_wl)
+    if yran is not None:
+        ax.set_ylim(np.array(yran))
+
+    ax.tick_params(which='both', direction='in', labelsize=fs-1)
+    ax.set_xlabel(r'Wavelength ($\mathrm{\mu}$m)', fontsize=fs)
+    ax.set_ylabel(r'TLS contamination, $\epsilon$', fontsize=fs)
+    ax.legend(loc='best', fontsize=fs-1)
+    plt.tight_layout()
+    if filename is not None:
+        plt.savefig(filename, dpi=dpi)
+
     return ax
 
 
@@ -767,9 +888,7 @@ def posteriors(
     Examples
     --------
     >>> import pyratbay.plots as pp
-    >>> post_file = 'ret_transit_tls_model_posteriors_info.pickle'
-    >>> pp.posteriors(post_file, theme='blue')
-    >>> post_file = 'ns_emission_tutorial_posteriors_info.pickle'
+    >>> post_file = 'ret_emission_posteriors_info.pickle'
     >>> pp.posteriors(post_file, theme='blue')
 
     >>> vmr_lims = 1e-5, 1.0
@@ -974,4 +1093,16 @@ def posteriors(
     args['data_color'] = data_color
     args['filename'] = f"{root}_posterior_spectrum.png"
     ax = spectrum(**args)
+
+    if 'tls_posterior' in post_data:
+        wl = post_data['wl']
+        tls_posterior = post_data['tls_posterior']
+        tls_eps = tls_posterior[0]
+        tls_bounds = tls_posterior[1:3]
+        tls_labels = post_data['tls_labels']
+        filename = f"{root}_posterior_tls_contamination.png"
+        ax = tls(
+            tls_eps, wl, tls_labels, bounds=tls_bounds, log_wl=log_wl,
+            filename=filename,
+        )
 
