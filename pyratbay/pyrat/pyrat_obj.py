@@ -376,6 +376,7 @@ class Pyrat():
             ifree = ret.map_pars['offset']
             obs.offset_pars[ifree] = params[ret.ioffset]
             obs.data = obs.depth.offset_data(obs.offset_pars)
+            obs.inst_offset = obs.data - obs.depth.data
 
         # Uncertainty scaling
         if ret.ierror is not None:
