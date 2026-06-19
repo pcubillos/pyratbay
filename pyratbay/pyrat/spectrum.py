@@ -412,13 +412,17 @@ class TLS():
             self.texnames += texnames
             self.band_mask.append(band_mask)
 
-    def __call__(self):
+    def __call__(self, params=None):
         """Compute TLS epsilon scaling factor for each model"""
+        if params is not None:
+            self.pars = params
+
         self.epsilon = []
         for i in range(self.n_models):
             t_spot, f_spot, t_fac, f_fac = self.pars[4*i:4*(i+1)]
             epsilon = self.tls(t_spot, f_spot, t_fac, f_fac)
             self.epsilon.append(epsilon)
+        return self.epsilon
 
 
 def _get_cloud_deck(pyrat):
