@@ -1058,7 +1058,7 @@ def posteriors(
             depth_posterior = post_data['depth_posterior']
         wavelength = post_data['wl']
         half_widths = post_data['band_half_widths']
-        data = post_data['data']
+        data = post_data['data_posterior'][0]
         uncert = post_data['uncert']
         resolution = post_data['fig_resolution'] if 'fig_resolution' in post_data else 125.0
         marker = 'o'
@@ -1100,9 +1100,10 @@ def posteriors(
         tls_eps = tls_posterior[0]
         tls_bounds = tls_posterior[1:3]
         tls_labels = post_data['tls_labels']
+        themes = None if len(tls_labels)>1 else [theme]
         filename = f"{root}_posterior_tls_contamination.png"
         ax = tls(
             tls_eps, wl, tls_labels, bounds=tls_bounds, log_wl=log_wl,
-            filename=filename,
+            themes=themes, filename=filename,
         )
 

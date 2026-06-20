@@ -443,7 +443,7 @@ def posterior_post_processing(cfg_file=None, pyrat=None, suffix=''):
     )
     ifree = pyrat.ret.pstep > 0
     nfree = np.sum(ifree)
-    params_posterior = np.zeros((nquantiles,nfree))
+    params_posterior = np.zeros((nquantiles, nfree))
     params_posterior[0] = stats_1sigma[0][ifree]
     params_posterior[1] = stats_1sigma[3][ifree]
     params_posterior[2] = stats_1sigma[4][ifree]
@@ -470,10 +470,12 @@ def posterior_post_processing(cfg_file=None, pyrat=None, suffix=''):
     band_wl = pyrat.obs.band_wl
     half_widths = pyrat.obs.half_widths
     ndata_hires = pyrat.obs.nbands_hires
+    band_labels = [band.name for band in pyrat.obs.bands]
     if ndata_hires != 0:
         nbands = ndata_hires
         band_wl = np.array([band.wl0 for band in pyrat.obs.bands_hires])
         half_widths = [band.half_width for band in pyrat.obs.bands_hires]
+        band_labels = None
 
     pyrat.spec.specfile = None
     nwave = pyrat.spec.nwave
@@ -486,20 +488,24 @@ def posterior_post_processing(cfg_file=None, pyrat=None, suffix=''):
     temp = np.zeros((n_unique, pyrat.atm.nlayers))
     vmr = np.zeros((n_unique, pyrat.atm.nlayers, pyrat.atm.nmol))
     cf = np.zeros((n_unique, pyrat.atm.nlayers, nbands))
+    data = np.zeros((n_unique, nbands))
     offset = np.zeros((n_unique, nbands))
     tls_epsilon = np.zeros((n_unique, n_tls, nwave))
     tls_spectra = np.zeros((n_unique, n_tls, nwave))
+    tls_offset = np.zeros((n_unique, nbands))
     t0 = time.time()
     for i in range(n_unique):
         models[i], band_models[i] = pyrat.eval(u_posterior[i])
         temp[i] = pyrat.atm.temp
         vmr[i] = pyrat.atm.vmr
         cf[i] = pyrat.band_contribution()
+        data[i] = pyrat.obs.data
         if n_offsets > 0:
             offset[i] = pyrat.obs.inst_offset
         if n_tls > 0:
             tls_epsilon[i] = pyrat.tls.epsilon
             tls_spectra[i] = pyrat.tls.spectrum
+            tls_offset[i] = pyrat.tls.band_offset
         timeleft = eta(time.time()-t0, i+1, n_unique, fmt='.2f')
         if i%3 == 0:
             eta_text = (
@@ -516,23 +522,22 @@ def posterior_post_processing(cfg_file=None, pyrat=None, suffix=''):
     tls_spectra_posterior = np.zeros((nquantiles, n_tls, nwave))
     for i in range(nwave):
         sample = models[uinv,i]
-        spectrum_posterior[:,i] = np.percentile(sample, 100.0*quantiles)
+        spectrum_posterior[:,i] = np.quantile(sample, quantiles)
         if n_tls > 0:
             sample = tls_epsilon[uinv,:,i]
-            tls_posterior[:,:,i] = np.percentile(sample, 100.0*quantiles, axis=0)
+            tls_posterior[:,:,i] = np.quantile(sample, quantiles, axis=0)
             sample = tls_spectra[uinv,:,i]
-            tls_spectra_posterior[:,:,i] = np.percentile(sample, 100.0*quantiles, axis=0)
+            tls_spectra_posterior[:,:,i] = np.quantile(sample, quantiles, axis=0)
 
+    band_models_posterior = np.quantile(band_models[uinv,:], quantiles, axis=0)
+    data_posterior = np.quantile(data[uinv], quantiles, axis=0)
     if n_offsets > 0:
-        offset_posterior = np.percentile(offset[uinv], 100.0*quantiles, axis=0)
+        offset_posterior = np.quantile(offset[uinv], quantiles, axis=0)
+    if n_tls > 0:
+        tls_offset_posterior = np.quantile(tls_offset[uinv], quantiles, axis=0)
 
-
-    band_models_posterior = np.percentile(
-        band_models[uinv,:], 100.0*quantiles, axis=0,
-    )
-
-    temperature_posterior = np.percentile(temp[uinv], 100.0*quantiles, axis=0)
-    vmr_posterior = np.percentile(vmr[uinv], 100.0*quantiles, axis=0)
+    temperature_posterior = np.quantile(temp[uinv], quantiles, axis=0)
+    vmr_posterior = np.quantile(vmr[uinv], quantiles, axis=0)
     cf_posterior = cf[uinv]
     cf_median = np.median(cf_posterior, axis=0)
 
@@ -587,6 +592,7 @@ def posterior_post_processing(cfg_file=None, pyrat=None, suffix=''):
     if n_tls > 0:
         outputs['tls_posterior'] = tls_posterior
         outputs['tls_spectra_posterior'] = tls_spectra_posterior
+        outputs['tls_offset_posterior'] = tls_offset_posterior
         outputs['tls_labels'] = pyrat.tls.models
     if n_offsets > 0:
         outputs['offset_posterior'] = offset_posterior
@@ -606,8 +612,10 @@ def posterior_post_processing(cfg_file=None, pyrat=None, suffix=''):
         'path': pyrat.od.rt_path,
     }
     if pyrat.obs.data is not None:
-        outputs['data'] = pyrat.obs.data
+        outputs['data_posterior'] = data_posterior
+        outputs['data'] = pyrat.obs.depth.data
         outputs['uncert'] = pyrat.obs.uncert
+        outputs['band_labels'] = band_labels
     if pyrat.obs.data_hires is not None:
         outputs['data_hires'] = pyrat.obs.data_hires
         outputs['uncert_hires'] = pyrat.obs.uncert_hires
