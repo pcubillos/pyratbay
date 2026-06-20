@@ -233,7 +233,7 @@ class Pyrat():
         Parameters
         ----------
         params: 1D float iterable
-            Array of fitting parameters that define the atmosphere.
+            Array of fitting parameters.
         retmodel: Bool
             Flag to include the model spectra in the return.
         skip: List of strings
@@ -546,6 +546,35 @@ class Pyrat():
             ret.temp_post_boundaries = tpost[1:]
             self.plot_temperature(
                 filename=f'{basename}_bestfit_temperature.png',
+            )
+
+        # TLS spectra
+        if self.tls.n_models > 0:
+            n_tls = self.tls.n_models
+            nsamples, nfree = np.shape(posterior)
+            tls_posterior = np.tile(self.tls.pars, (nsamples,1))
+            ifree = np.where(self.ret.pstep>0)[0]
+            for j, imap in zip(ret.itls, ret.map_pars['tls']):
+                if j in ifree:
+                    ipost = list(ifree).index(j)
+                    tls_posterior[:,imap] = posterior[:,ipost]
+
+            tls_epsilon = np.zeros((nsamples, n_tls, self.spec.nwave))
+            for j, tls_pars in enumerate(tls_posterior):
+                tls_epsilon[j] = self.tls(tls_pars)
+
+            quantiles = np.array([0.5, 0.15865, 0.84135])
+            tls_posterior = np.zeros((3, n_tls, self.spec.nwave))
+            for i in range(self.spec.nwave):
+                tls_posterior[:,:,i] = np.quantile(
+                    tls_epsilon[:,:,i], quantiles, axis=0,
+                )
+            themes = None if n_tls>1 else [ret.theme]
+            filename = f"{basename}_posterior_tls_contamination.png"
+            pp.tls(
+                tls_posterior[0], self.spec.wl, self.tls.models,
+                bounds=tls_posterior[1:3], log_wl=self.inputs.log_wl,
+                themes=themes, filename=filename,
             )
 
         # Contribution or transmittance
