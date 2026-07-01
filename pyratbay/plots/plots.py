@@ -311,8 +311,9 @@ def spectrum(
 
 def tls(
         tls, wl, labels, bounds=None,
-        log_wl=None, resolution=150.0,
-        themes=None, lw=1.5, fs=12, yran=None,
+        log_wl=None, resolution=150.0, themes=None,
+        tls_mask=None, band_wl=None, band_width=None,
+        lw=1.5, fs=12, yran=None,
         filename=None, fignum=101, axis=None, dpi=300,
     ):
     """
@@ -336,6 +337,14 @@ def tls(
         Binning resolution to display the spectra.
     themes: string or mc3.plots.Theme object
         A color theme for the models.
+    tls_mask: List of 1D bool arrays
+        Bandpass mask for each TLS model. If provided, apply alpha
+        shading to highlight wavelength covered by TLS model(s).
+        Requires band_wl and band_width inputs.
+    band_wl: 1D float array
+        Band central wavelengths (microns). See tls_mask.
+    band_width: 1D  float array
+        Band half widths (microns). See tls_mask.
     lw: Float
         Line widths.
     fs: Float
@@ -406,11 +415,29 @@ def tls(
         color = themes[j].color
         bin_tls_lo = bin_bounds[0,j]
         bin_tls_hi = bin_bounds[1,j]
+        if tls_mask is None or band_wl is None or band_width is None:
+            wl_mask = np.ones(nbin, bool)
+        else:
+            wl_min = np.amin((band_wl-band_width)[tls_mask[j]])
+            wl_max = np.amax((band_wl+band_width)[tls_mask[j]])
+            wl_mask = (bin_wl>=wl_min) & (bin_wl<=wl_max)
+
+        # in-band
+        mask = wl_mask | np.roll(wl_mask, 1) | np.roll(wl_mask, -1)
         plt.fill_between(
-            bin_wl, bin_tls_lo, bin_tls_hi,
+            bin_wl, bin_tls_lo, bin_tls_hi, where=mask,
             color=color, ec='none', alpha=0.5,
         )
-        plt.plot(bin_wl, bin_tls[j], c=color, lw=lw, label=labels[j])
+        nan_tls = bin_tls[j] * np.where(mask, 1.0, np.nan)
+        plt.plot(bin_wl, nan_tls, c=color, lw=lw, label=labels[j])
+        # out-of band
+        mask = ~wl_mask
+        plt.fill_between(
+            bin_wl, bin_tls_lo, bin_tls_hi, where=mask,
+            color=color, ec='none', alpha=0.3,
+        )
+        nan_tls = bin_tls[j] * np.where(mask, 1.0, np.nan)
+        plt.plot(bin_wl, nan_tls, c=color, lw=lw, alpha=0.4)
 
     if is_log:
         ax.set_xscale('log')
@@ -427,6 +454,7 @@ def tls(
     ax.set_ylabel(r'TLS contamination, $\epsilon$', fontsize=fs)
     ax.legend(loc='best', fontsize=fs-1)
     plt.tight_layout()
+
     if filename is not None:
         plt.savefig(filename, dpi=dpi)
 
@@ -912,7 +940,6 @@ def posteriors(
         pressure, filename=f'{root}_posterior_contributions.png'
     )
 
-
     # Temperature profile
     fs = 12
     tpost = post_data['temperature_posterior']
@@ -946,7 +973,6 @@ def posteriors(
         clip_on=False, transform=ax.transAxes,
     )
     plt.savefig(f'{root}_posterior_temperature.png', dpi=dpi)
-
 
     # Volume mixing ratios
     nsamples, nlayers, nspecies = np.shape(post_data['vmr_posterior'])
@@ -1100,10 +1126,17 @@ def posteriors(
         tls_eps = tls_posterior[0]
         tls_bounds = tls_posterior[1:3]
         tls_labels = post_data['tls_labels']
+
+        tls_mask = post_data['tls_mask']
+        band_wl = post_data['band_wl']
+        band_width = post_data['band_half_widths']
+
         themes = None if len(tls_labels)>1 else [theme]
         filename = f"{root}_posterior_tls_contamination.png"
         ax = tls(
-            tls_eps, wl, tls_labels, bounds=tls_bounds, log_wl=log_wl,
-            themes=themes, filename=filename,
+            tls_eps, wl, tls_labels,
+            bounds=tls_bounds, log_wl=log_wl, themes=themes,
+            tls_mask=tls_mask, band_wl=band_wl, band_width=band_width,
+            filename=filename,
         )
 

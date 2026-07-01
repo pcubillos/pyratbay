@@ -594,6 +594,7 @@ def posterior_post_processing(cfg_file=None, pyrat=None, suffix=''):
         outputs['tls_spectra_posterior'] = tls_spectra_posterior
         outputs['tls_offset_posterior'] = tls_offset_posterior
         outputs['tls_labels'] = pyrat.tls.models
+        outputs['tls_mask'] = pyrat.tls.band_mask
     if n_offsets > 0:
         outputs['offset_posterior'] = offset_posterior
     outputs |= {
