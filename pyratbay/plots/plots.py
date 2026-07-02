@@ -8,8 +8,9 @@ __all__ = [
     'contribution',
     'temperature',
     'abundance',
-    'default_colors',
     'posteriors',
+    'default_colors',
+    'default_themes',
 ]
 
 from itertools import cycle
@@ -48,6 +49,15 @@ default_colors = {
     'H2S': 'cornflowerblue',
 }
 
+default_themes = [
+    'royalblue',
+    'tomato',
+    'xkcd:green',
+    'xkcd:goldenrod',
+    'deepskyblue',
+    'mediumorchid',
+    '0.5',
+]
 
 def alphatize(colors, alpha, bg='w'):
     """
@@ -100,8 +110,8 @@ def spectrum(
         logxticks=None,
         log_wl=None,
         resolution=150.0,
-        ylim=None, filename=None, fignum=501, axis=None,
-        alpha=None, marker='o', ms=5.0, lw=1.25, fs=14, data_front=True,
+        ylim=None, filename=None, fignum=200, axis=None,
+        alpha=None, marker='o', ms=5.0, lw=1.25, fs=13, data_front=True,
         units=None, dpi=300, theme='royalblue', data_color='black',
     ):
     """
@@ -220,7 +230,7 @@ def spectrum(
     # The plot
     if axis is None:
         fig = plt.figure(fignum)
-        fig.set_size_inches(8.5, 4.5)
+        fig.set_size_inches(7.5, 4.0)
         plt.clf()
         ax = plt.subplot(111)
     else:
@@ -305,7 +315,7 @@ def spectrum(
     ax.set_ylabel(ylabel, fontsize=fs)
     ax.legend(loc='best', numpoints=1, fontsize=fs-1)
     ax.set_xlim(xmin, xmax)
-    plt.tight_layout()
+    plt.tight_layout(pad=0.2)
 
     if filename is not None:
         plt.savefig(filename, dpi=dpi)
@@ -317,7 +327,7 @@ def tls(
         log_wl=None, resolution=150.0, themes=None,
         tls_mask=None, band_wl=None, band_width=None,
         lw=1.5, fs=12, ylim=None,
-        filename=None, fignum=101, axis=None, dpi=300,
+        filename=None, fignum=202, axis=None, dpi=300,
     ):
     """
     Plot transit light source correction spectra.
@@ -388,15 +398,7 @@ def tls(
 
     is_log = log_wl is not None
     if themes is None:
-        themes = [
-            'royalblue',
-            'tomato',
-            'xkcd:green',
-            '0.5',
-            'mediumorchid',
-            'xkcd:goldenrod',
-            'deepskyblue',
-        ]
+        themes = default_themes
         n_themes = len(themes)
         if n_tls > n_themes:
             raise ValueError(
@@ -408,7 +410,7 @@ def tls(
     # The plot
     if axis is None:
         fig = plt.figure(fignum)
-        fig.set_size_inches(7.0, 4.0)
+        fig.set_size_inches(7.5, 4.0)
         plt.clf()
         ax = plt.subplot(111)
     else:
@@ -456,7 +458,7 @@ def tls(
     ax.set_xlabel(r'Wavelength ($\mathrm{\mu}$m)', fontsize=fs)
     ax.set_ylabel(r'TLS contamination, $\epsilon$', fontsize=fs)
     ax.legend(loc='best', fontsize=fs-1)
-    plt.tight_layout()
+    plt.tight_layout(pad=0.2)
 
     if filename is not None:
         plt.savefig(filename, dpi=dpi)
@@ -466,7 +468,7 @@ def tls(
 
 def contribution(
         contrib_func, wl, rt_path, pressure,
-        filename=None, filters=None, fignum=-21, dpi=300,
+        filename=None, filters=None, fignum=206, dpi=300,
     ):
     """
     Plot the band-integrated normalized contribution functions
@@ -530,7 +532,7 @@ def contribution(
         print(f"Invalid radiative-transfer geometry. Select from: {rt_paths}")
         return None
 
-    fs = 12
+    fs = 13
     colors = np.asarray(np.linspace(0, 255, nfilters), int)
     # 68% percentile boundaries of the central cumulative function:
     lo = 0.5*(1-0.683)
@@ -558,7 +560,7 @@ def contribution(
     log_p_hi = np.log10(phi)
 
     fig = plt.figure(fignum)
-    fig.set_size_inches(8.5, 4.5)
+    fig.set_size_inches(7.5, 4.0)
     plt.clf()
     plt.subplots_adjust(0.09, 0.10, 0.9, 0.95)
     ax = plt.subplot(111)
@@ -627,7 +629,7 @@ def contribution(
 def temperature(
         pressure, profiles=None, labels=None, colors=None,
         bounds=None, ax=None, filename=None,
-        theme='blue', alpha=[0.75,0.5], fs=13, lw=2.0, fignum=504,
+        theme='blue', alpha=[0.75,0.5], fs=13, lw=2.0, fignum=203,
         dpi=300,
     ):
     """
@@ -723,7 +725,7 @@ def temperature(
     if labels is not None:
         ax.legend(loc='best', fontsize=fs-2)
     if tighten:
-        plt.tight_layout()
+        plt.tight_layout(pad=0.2)
     if filename is not None:
         plt.savefig(filename, dpi=dpi)
     return ax
@@ -733,7 +735,7 @@ def abundance(
         vol_mix_ratios, pressure, species,
         highlight=None, xlim=None,
         colors=None, dashes=None, filename=None,
-        lw=2.0, fignum=505, fs=13, legend_fs=None, ax=None, dpi=300,
+        lw=2.0, fignum=204, fs=13, legend_fs=None, ax=None, dpi=300,
     ):
     """
     Plot atmospheric volume-mixing-ratio abundances.
@@ -991,6 +993,7 @@ def posteriors(
         [dx, dx], [1.0, 1.015], lw=0.75, c='k',
         clip_on=False, transform=ax.transAxes,
     )
+    plt.tight_layout(pad=0.2)
     plt.savefig(f'{root}_posterior_temperature.png', dpi=dpi)
 
     # Volume mixing ratios
@@ -1025,7 +1028,6 @@ def posteriors(
     fig = plt.figure()
     fig.clf()
     ax = plt.subplot(111)
-    plt.subplots_adjust(0.12, 0.1, 0.98, 0.95)
     for j in range(nmol_show):
         spec = plot_species[j]
         col = to_rgba(colors[j])
@@ -1073,6 +1075,7 @@ def posteriors(
         [dx, dx], [1.0, 1.015], lw=0.75, c='k',
         clip_on=False, transform=ax.transAxes,
     )
+    plt.tight_layout(pad=0.2)
     plt.savefig(f"{root}_posterior_vmr.png", dpi=dpi)
 
     for j in range(nmol_show):
@@ -1082,6 +1085,7 @@ def posteriors(
             pressure, post_vmr[2,:,j], post_vmr[3,:,j],
             color=col, alpha=0.125, ec='none', zorder=zorder[j]-nmol_show,
         )
+    plt.tight_layout(pad=0.2)
     plt.savefig(f"{root}_posterior_vmr_2sigma.png", dpi=300)
 
 
@@ -1144,12 +1148,14 @@ def posteriors(
         tls_posterior = post_data['tls_posterior']
         tls_eps = tls_posterior[0]
         tls_bounds = tls_posterior[1:3]
-        tls_labels = post_data['tls_labels']
-
+        tls_labels = [
+            'TLS' if lab=='tls' else lab.replace('tls_', 'TLS ', 1)
+            for lab in post_data['tls_labels']
+        ]
         tls_mask = post_data['tls_mask']
         band_wl = post_data['band_wl']
         band_width = post_data['band_half_widths']
-
+        # TLS contamination
         themes = None if len(tls_labels)>1 else [theme]
         filename = f"{root}_posterior_tls_contamination.png"
         ax = tls(
@@ -1158,4 +1164,45 @@ def posteriors(
             tls_mask=tls_mask, band_wl=band_wl, band_width=band_width,
             filename=filename,
         )
+
+        # TLS corrected and uncorrected spectra
+        tls_spectra_posterior = post_data['tls_spectra_posterior']
+        if 'offset_posterior' in post_data:
+            inst_offset = post_data['offset_posterior'][0]
+        else:
+            inst_offset = np.zeros(len(uncert))
+        ax = None
+        for j,label in enumerate(tls_labels):
+            args = {}
+            args['alpha'] = 0.5
+            args['spectrum'] = tls_spectra_posterior[0,j]
+            args['bounds'] = tls_spectra_posterior[1:3,j]
+            args['wavelength'] = post_data['wl']
+            args['rt_path'] = 'transit'
+            args['units'] = post_data['units']['depth']
+            args['uncert'] = uncert
+            args['bands_wl0'] = post_data['band_wl']
+            args['bands_half_width'] = post_data['band_half_widths']
+            args['label'] = label
+            args['marker'] = 'o'
+            args['lw'] = 1.5
+            args['data_front'] = True
+            args['log_wl'] = post_data['log_wl']
+            args['theme'] = default_themes[j+1]
+            args['data_color'] = post_data['fig_data_color']
+            args['resolution'] = post_data['fig_resolution']
+            args['axis'] = ax
+            args['fignum'] = 201
+            ax = spectrum(**args)
+
+        # Now the real deal
+        args['spectrum'] = depth_posterior[0]
+        args['bounds'] = depth_posterior[1:3]
+        args['label'] = 'uncontaminated'
+        args['label'] = 'no TLS'
+        args['data'] = post_data['data'] + inst_offset
+        args['axis'] = ax
+        args['theme'] = default_themes[0]
+        args['filename'] = f"{root}_posterior_spectra_tls.png"
+        ax = spectrum(**args)
 
