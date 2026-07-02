@@ -28,7 +28,7 @@ summarizes the modeling capabilities enabled by ``Pyrat Bay``:
    * - :doc:`spectral_synthesis`
      - Radiative-transfer calculations given an input exoplanet atmosphere
      - Transit-depth, eclipse-depth, and/or emission spectra
-   * - :doc:`retrieval_tutorial`
+   * - :doc:`retrievals`
      - Given an exoplanet parametric model and a spectroscopic observation,
        infer the exoplanet atmospheric properties
      - Posterior distribution of planetary model parameters

@@ -1,6 +1,6 @@
 .. include:: _substitutions.rst
 
-.. _retrieval_tutorial:
+.. _retrievals:
 
 Retrievals
 ==========
@@ -226,11 +226,22 @@ there are requirements to enable some of them.
      <tr><td><code>log_X</code></td><td><code>chemistry = tea</code> and<br><code>log_X</code> in <code>vmr_vars</code></td><td>Constant VMR embedded in equilibrium atmosphere. <code>X</code> is a species name</td></tr>
 
      <tr><td colspan="4" style="border-bottom: 3px solid #999;"></td></tr>
-     <tr>
-         <th rowspan="1">Isotopic ratios</th>
+     <tr><th rowspan="1">Isotopic ratios</th>
          <td><code>iso_X</code></td>
          <td><code>X</code> in <code>isotope_ratios</code></td>
          <td><span>\( \log_{10}({f}) \)</span>, where <span>\( f \)</span> is the isotopic fraction for isotope <code>X</code></td></tr>
+
+     <tr><td colspan="4" style="border-bottom: 3px solid #999;"></td></tr>
+     <tr><th rowspan="5">Transit light source (TLS)</th>
+         <td><code>T_spot</code></td>
+         <td rowspan="2"><code>tls_model = tls</code>, <code>tls_folder</code> is defined, and <code>tstar</code> is defined</td>
+         <td rowspan="2">TLS correction to all spectra, with the given spot temperature and covering fraction.</td></tr>
+     <tr><td><code>f_spot</code></td></tr>
+     <tr><td colspan="3" style="border-bottom: 2px solid #999; padding: 0px 0px"></td></tr>
+     <tr><td><code>T_spot_X</code></td>
+         <td rowspan="2"><code>tls_X</code> in <code>tls_model</code>, <code>tls_folder</code> is defined, and <code>tstar</code> is defined</td>
+         <td rowspan="2">TLS correction to data points containing <code>X</code> in name. This allows to combine multi-epoch retrievals with specific TLS models.</td></tr>
+     <tr><td><code>f_spot_X</code></td></tr>
 
      <tr><td colspan="4" style="border-bottom: 3px solid #999;"></td></tr>
      <tr><th rowspan="4">Clouds</th><td><code>log_p_cl</code></td><td><code>deck</code> in <code>clouds</code></td><td>pressure at top of opaque cloud deck.<br><span>\( \log_{10}(p/{\rm bar}) \)</span> units</td></tr>
@@ -241,7 +252,7 @@ there are requirements to enable some of them.
      <tr><td colspan="4" style="border-bottom: 3px solid #999;"></td></tr>
      <tr><th rowspan="6">Solo</th><td><code>R_planet</code></td><td></td><td>radius at <code>log_p_ref</code></td></tr>
      <tr><td><code>log_p_ref</code></td><td></td><td>pressure at <code>R_planet</code>.<br><span>\( \log_{10}(p/{\rm bar}) \)</span> units</td></tr>
-     <tr><td><code>M_planet</code></td><td></td><td></td></tr>
+     <tr><td><code>M_planet</code></td><td></td><td>Planet mass</td></tr>
      <tr><td><code>f_dilution</code></td><td></td><td>Emission dilution factor as in <a href="references.html#Taylor2020">TBD</a> </td></tr>
      <tr><td><code>T_eff</code></td><td></td><td>stellar effective temperature</td></tr>
      <tr><td><code>rv_shift</code></td><td></td><td>radial-velocity offset in km s<sup>-1</sup> </td></tr>
