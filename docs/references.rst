@@ -143,8 +143,6 @@ References
 
 .. [Semenov2025] `Semenov et al. (2025): ExoMol line lists - LXIV. Empirical rovibronic spectra of phosphorous mononitride (PN) covering the IR and UV regions <https://ui.adsabs.harvard.edu/abs/2025MNRAS.536..714S>`_
 
-.. [Sheppard2017] `Sheppard et al. (2017): Evidence for a Dayside Thermal Inversion and High Metallicity for the Hot Jupiter WASP-18b <https://ui.adsabs.harvard.edu/abs/2017ApJ...850L..32S>`_
-
 .. [Skilling2004] `Skilling (2004): Nested Sampling <https://ui.adsabs.harvard.edu/abs/2004AIPC..735..395S>`_
 
 .. [Skilling2006] `Skilling (2006): Nested sampling for general Bayesian computation <https://doi.org/10.1214/06-BA127>`_

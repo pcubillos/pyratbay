@@ -12,9 +12,10 @@ spectra with ``Pyrat Bay``.
 - :ref:`spec_system`
 - :ref:`spec_star`
 - :ref:`spec_wavelength`
-- :ref:`spec_observations`
 - :ref:`spec_atmosphere`
 - :ref:`spec_cross_sec`
+- :ref:`spec_tls`
+- :ref:`spec_observations`
 - :ref:`spec_parameters`
 - :ref:`spec_demo`
 
@@ -308,6 +309,15 @@ See the following sections for available cross sections:
 - :ref:`cs_clouds`
 
 
+.. _spec_tls:
+
+Transit light source
+--------------------
+
+A transit light source correction (TLS) due to unocculted spots and
+faculae can be enabled with the ``tls_model`` argument.  This is an
+implementation model from [Rackham2018]_. Details are TBD.
+
 
 Flux dilution factor
 ~~~~~~~~~~~~~~~~~~~~
@@ -324,35 +334,104 @@ represents the fractional area of the hottest region on the planet
   f_dilution = 0.85
 
 
-
-
 .. _spec_observations:
 
-Observations
-------------
+Observing bands and data
+------------------------
 
-Use the ``data`` and ``uncert`` keys to set values for observed
-transit- or eclipse-depth values and their uncertainties,
-respectively.  Logically, you want to set data values corresponding to
-the ``filters`` pass-bands.
+Use the ``obsfile`` key to define observing bands and data to fit. For
+example:
 
-Use the ``dunits`` key to specify the units of the ``data`` and
-``uncert`` values (default: ``dunits = none``).  Typical values are:
-'*none*', '*percent*', or '*ppm*' (see :ref:`units` section).
+.. code-block:: ini
 
-.. note:: Note that the ``filters``, ``data``, and ``uncert`` keys are
-          not strictly required for a spectrum run, but they will
-          allow the code to plot these information if requested (see
-          [link to plots]).
+    # The observations
+    obsfile = inputs/obs_jwst_transit_nirspec_miri.dat
+    dunits = percent
+
+Use the ``dunits`` key to specify the *output* units of the ``data``.
+Valid units are: '*none*', '*percent*', or '*ppm*'.  The ``obsfile``
+is a path to a plain-text file listing the bands (and optionally
+data).
+
+.. tab-set::
+
+  .. tab-item:: Bands only
+     :selected:
+
+     Below there's an ``obsfile`` that contains only the bands
+     information.  Each row defines a pass band, which can be set as a
+     top-hat (wavelength and half-width) or as a tabulated pass band.
+
+     .. code-block:: ini
+
+         # obs_bands.dat file
+         # Bands are defined as (1) a path to a file or (2) tophats.
+         # Wavelength units are always microns.
+
+         @DATA
+         # wl (um)  half_width (um)  name
+         1.100      0.050            hst_wfc3
+         1.200      0.050            hst_wfc3
+         1.300      0.050            hst_wfc3
+         1.400      0.050            hst_wfc3
+         1.500      0.050            hst_wfc3
+         1.600      0.050            hst_wfc3
+         1.700      0.050            hst_wfc3
+         {FILTERS}spitzer_irac1.dat
+         {FILTERS}spitzer_irac2.dat
 
 
-Filter Pass-bands
-~~~~~~~~~~~~~~~~~
+  .. tab-item:: Bands and data
 
-Use the ``filters`` key to set the path to instrument filter
-pass-bands (see [link to formats?]).  These can be used to compute
-band-integrated values for the transmission or eclipse-depth spectra.
+     An ``obsfile`` can also contain data/uncertainty values, e.g., to be
+     fit in retrieval runs.  To include data, an ``obsfile`` must
+     specify the ``@DEPTH_UNITS`` flag, which also sets the units of
+     the input depths and uncertainties.  In this case the depth and
+     uncertainties should be the first two columns of the file.
 
+     .. code-block:: ini
+
+         # obs_bands_and_data.dat file
+         # Bands info could be (1) a path to a file or (2) a tophat filter
+         # @DEPTH_UNITS flag indicates there's data/uncerts to read
+         #   and defines the input depth units (none, percent, ppt, ppm)
+         @DEPTH_UNITS
+         ppm
+
+         @DATA
+         # depth uncert  wl(um)  half_width  passband_name
+             107    82   1.100       0.050       hst_wfc3
+             162    83   1.200       0.050       hst_wfc3
+             207    82   1.300       0.050       hst_wfc3
+             310    97   1.400       0.050       hst_wfc3
+             382   101   1.500       0.050       hst_wfc3
+             366   107   1.600       0.050       hst_wfc3
+             497   116   1.700       0.050       hst_wfc3
+            1118    84   {FILTERS}spitzer_irac1.dat
+            1465    92   {FILTERS}spitzer_irac2.dat
+
+
+Top-hat band can (optionally) be named.  Names are important when
+defining instrumental offsets or TLS corrections that are specific to
+certain observations.
+
+
+Note that ``pyratbay`` provides a few commonly used broadbands. The
+``{FILTERS}`` flag is a shortcut that points to these band files. Here
+are all provided bands:
+
+================  =========================  ================
+Pass band         Central wavelength (um)    File
+================  =========================  ================
+CHEOPS            0.64                       `cheops.dat <https://github.com/pcubillos/pyratbay/blob/master/pyratbay/data/filters/cheops.dat>`__
+Kepler            0.64                       `kepler.dat <https://github.com/pcubillos/pyratbay/blob/master/pyratbay/data/filters/kepler.dat>`__
+TESS              0.80                       `tess.dat <https://github.com/pcubillos/pyratbay/blob/master/pyratbay/data/filters/tess.dat>`__
+Spitzer/IRAC1     3.6                        `spitzer_irac1.dat <https://github.com/pcubillos/pyratbay/blob/master/pyratbay/data/filters/spitzer_irac1.dat>`__
+Spitzer/IRAC2     4.5                        `spitzer_irac2.dat <https://github.com/pcubillos/pyratbay/blob/master/pyratbay/data/filters/spitzer_irac2.dat>`__
+Spitzer/IRAC3     5.6                        `spitzer_irac3.dat <https://github.com/pcubillos/pyratbay/blob/master/pyratbay/data/filters/spitzer_irac3.dat>`__
+Spitzer/IRAC4     8.0                        `spitzer_irac4.dat <https://github.com/pcubillos/pyratbay/blob/master/pyratbay/data/filters/spitzer_irac4.dat>`__
+Spitzer/MIPS      24.0                       `spitzer_mips.dat <https://github.com/pcubillos/pyratbay/blob/master/pyratbay/data/filters/spitzer_mips.dat>`__
+================  =========================  ================
 
 
 .. _spec_parameters:
