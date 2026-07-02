@@ -101,7 +101,7 @@ def spectrum(
         log_wl=None,
         resolution=150.0,
         ylim=None, filename=None, fignum=501, axis=None,
-        marker='o', ms=5.0, lw=1.25, fs=14, data_front=True,
+        alpha=None, marker='o', ms=5.0, lw=1.25, fs=14, data_front=True,
         units=None, dpi=300, theme='royalblue', data_color='black',
     ):
     """
@@ -197,7 +197,7 @@ def spectrum(
     elif rt_path == 'eclipse':
         ylabel = fr'$F_{{\rm p}}/F_{{\rm s}}$ {str_units}'
     elif rt_path == 'transit':
-        ylabel = fr'$(R_{{\rm p}}/R_{{\rm s}})^2$ {str_units}'
+        ylabel = f'Transit depth {str_units}'
 
     # Bin down the spectra
     if resolution is not None:
@@ -207,14 +207,14 @@ def spectrum(
         bin_model = ps.bin_spectrum(bin_wl, wavelength, spectrum)
         if bounds is not None:
             bin_bounds = [
-                ps.bin_spectrum(bin_wl, wavelength, bound)
+                ps.bin_spectrum(bin_wl, wavelength, bound) * flux_scale
                 for bound in bounds
             ]
     else:
         bin_wl = wavelength
         bin_model = spectrum
         if bounds is not None:
-            bin_bounds = bounds
+            bin_bounds = bounds * flux_scale
 
 
     # The plot
@@ -227,16 +227,19 @@ def spectrum(
         ax = axis
 
     # The model
+    if alpha is None:
+        alpha = 0.75, 0.5
+    elif np.isscalar(alpha):
+        alpha = alpha, alpha
     if bounds is not None:
+        if len(bounds) == 4:
+            ax.fill_between(
+                bin_wl, bin_bounds[2], bin_bounds[3],
+                fc=theme.light_color, ec='none', alpha=alpha[1], zorder=1,
+            )
         ax.fill_between(
-            bin_wl, flux_scale*bin_bounds[2], flux_scale*bin_bounds[3],
-            facecolor=theme.light_color, edgecolor='none', alpha=0.5,
-            zorder=1,
-        )
-        ax.fill_between(
-            bin_wl, flux_scale*bin_bounds[0], flux_scale*bin_bounds[1],
-            facecolor=theme.light_color, edgecolor='none', alpha=0.75,
-            zorder=2,
+            bin_wl, bin_bounds[0], bin_bounds[1],
+            fc=theme.light_color, ec='none', alpha=alpha[0], zorder=2,
         )
     plt.plot(
         bin_wl, bin_model*flux_scale,
