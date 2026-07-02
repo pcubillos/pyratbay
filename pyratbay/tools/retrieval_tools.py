@@ -335,7 +335,7 @@ def multinest_run(pyrat, basename):
         get_weighted=True,
     )
     output['posterior'] = posterior
-    theme = pyrat.ret.theme
+    theme = pyrat.fig.theme
     post = mc3.plots.Posterior(
         posterior, pnames=texnames[ifree], theme=theme,
         bestp=bestp[ifree], statistics=pyrat.ret.statistics,
@@ -425,7 +425,7 @@ def posterior_post_processing(cfg_file=None, pyrat=None, suffix=''):
         posterior = mc3.utils.burn(mcmc)[0]
 
     texnames = np.array(pyrat.ret.texnames)
-    theme = pyrat.ret.theme
+    theme = pyrat.fig.theme
     post = mc3.plots.Posterior(
         posterior, texnames, theme=theme, statistics=pyrat.ret.statistics,
     )
@@ -621,17 +621,18 @@ def posterior_post_processing(cfg_file=None, pyrat=None, suffix=''):
         outputs['data_hires'] = pyrat.obs.data_hires
         outputs['uncert_hires'] = pyrat.obs.uncert_hires
 
+    # Figure plotting configs
+    outputs['theme'] = pyrat.fig.theme
+    outputs['log_wl'] = pyrat.fig.log_wl
+    outputs['fig_resolution'] = pyrat.fig.resolution
+    outputs['fig_data_color'] = pyrat.fig.data_color
+
     post_file = f'{basename}{suffix}_posteriors_info.pickle'
     with open(post_file, 'wb') as handle:
         pickle.dump(outputs, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     # Now make some plots
-    pp.posteriors(
-        post_file,
-        theme=pyrat.ret.theme,
-        data_color=pyrat.inputs.data_color,
-        log_wl=pyrat.inputs.log_wl,
-    )
+    pp.posteriors(post_file)
 
     return outputs
 

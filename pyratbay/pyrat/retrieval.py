@@ -32,8 +32,6 @@ class Retrieval():
         self.thigh = inputs.thigh
 
         self.sampler = inputs.sampler
-        theme = 'royalblue' if inputs.theme is None else inputs.theme
-        self.theme = pt.resolve_theme(theme)
         # Retrieval configuration
         self.statistics = inputs.statistics
         self.nsamples = inputs.nsamples

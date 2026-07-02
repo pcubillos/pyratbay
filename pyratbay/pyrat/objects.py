@@ -4,9 +4,11 @@
 __all__ = [
     'Extinction',
     'Optdepth',
+    'Figure',
 ]
 
 import numpy as np
+import matplotlib
 
 from .. import tools as pt
 from .. import constants as pc
@@ -128,3 +130,27 @@ class Optdepth():
           fmt={'float':'{: .3e}'.format},
       )
       return fw.text
+
+
+class Figure():
+    """A container of configuration options for figures"""
+    def __init__(self, inputs, log):
+        self.resolution = inputs.fig_resolution
+        self.log_wl = inputs.log_wl
+        self.spec_ylim = inputs.spec_ylim
+
+        if inputs.theme is None:
+            theme = 'royalblue'
+        else:
+            theme = inputs.theme
+        self.theme = pt.resolve_theme(theme)
+
+        data_color = inputs.data_color
+        if not matplotlib.colors.is_color_like(data_color):
+            log.warning(
+                f"data_color {repr(data_color)} is not a valid color, "
+                "setting to 'black'"
+            )
+            data_color = 'black'
+        self.data_color = data_color
+

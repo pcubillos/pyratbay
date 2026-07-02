@@ -91,18 +91,18 @@ def alphatize(colors, alpha, bg='w'):
 
 
 def spectrum(
-    spectrum, wavelength, rt_path,
-    data=None, uncert=None,
-    bands_wl0=None, bands_flux=None,
-    bands_half_width=None,
-    bands_response=None, bands_wl=None,
-    label='model', bounds=None,
-    logxticks=None,
-    log_wl=None,
-    resolution=150.0,
-    yran=None, filename=None, fignum=501, axis=None,
-    marker='o', ms=5.0, lw=1.25, fs=14, data_front=True,
-    units=None, dpi=300, theme='royalblue', data_color='black',
+        spectrum, wavelength, rt_path,
+        data=None, uncert=None,
+        bands_wl0=None, bands_flux=None,
+        bands_half_width=None,
+        bands_response=None, bands_wl=None,
+        label='model', bounds=None,
+        logxticks=None,
+        log_wl=None,
+        resolution=150.0,
+        ylim=None, filename=None, fignum=501, axis=None,
+        marker='o', ms=5.0, lw=1.25, fs=14, data_front=True,
+        units=None, dpi=300, theme='royalblue', data_color='black',
     ):
     """
     Plot a transmission or emission model spectrum with (optional) data
@@ -143,7 +143,7 @@ def spectrum(
         to the input values.
     resolution: Float
         Binning resolution to display the spectra.
-    yran: 1D float ndarray
+    ylim: 1D float ndarray
         Figure's Y-axis boundaries.
     filename: String
         If not None, save figure to filename.
@@ -261,9 +261,9 @@ def spectrum(
             ms=ms, elinewidth=lw, capthick=lw, zorder=zorder,
         )
 
-    if yran is not None:
-        ax.set_ylim(np.array(yran))
-    yran = ax.get_ylim()
+    if ylim is not None:
+        ax.set_ylim(ylim)
+    ylim = ax.get_ylim()
 
     xmin = np.amin(wavelength)
     xmax = np.amax(wavelength)
@@ -281,12 +281,12 @@ def spectrum(
 
     # Pass bands
     if bands_response is not None and bands_wl is not None:
-        band_height = 0.05*(yran[1] - yran[0])
+        band_height = 0.05*(ylim[1] - ylim[0])
         for response, wl, wl0 in zip(bands_response, bands_wl, bands_wl0):
             col = plt.cm.viridis_r(color(wl0, is_log))
             btrans = band_height * response/np.amax(response)
-            plt.plot(wl, yran[0]+btrans, color=col, lw=1.0, zorder=-10)
-        ax.set_ylim(yran)
+            plt.plot(wl, ylim[0]+btrans, color=col, lw=1.0, zorder=-10)
+        ax.set_ylim(ylim)
 
     if is_log:
         ax.set_xscale('log')
@@ -313,7 +313,7 @@ def tls(
         tls, wl, labels, bounds=None,
         log_wl=None, resolution=150.0, themes=None,
         tls_mask=None, band_wl=None, band_width=None,
-        lw=1.5, fs=12, yran=None,
+        lw=1.5, fs=12, ylim=None,
         filename=None, fignum=101, axis=None, dpi=300,
     ):
     """
@@ -349,7 +349,7 @@ def tls(
         Line widths.
     fs: Float
         Font size.
-    yran: 1D float ndarray
+    ylim: 1D float ndarray
         Figure's Y-axis boundaries.
     filename: String
         If not None, save figure to filename.
@@ -446,8 +446,8 @@ def tls(
         ax.set_xticks(log_wl)
 
     ax.set_xlim(min_wl, max_wl)
-    if yran is not None:
-        ax.set_ylim(np.array(yran))
+    if ylim is not None:
+        ax.set_ylim(ylim)
 
     ax.tick_params(which='both', direction='in', labelsize=fs-1)
     ax.set_xlabel(r'Wavelength ($\mathrm{\mu}$m)', fontsize=fs)
@@ -883,9 +883,9 @@ def abundance(
 
 
 def posteriors(
-        post_file, theme='blue', data_color='black',
+        post_file, theme=None, data_color=None,
         plot_species=None, vmr_lims=None,
-        log_wl=None, dpi=300,
+        resolution=None, log_wl=None, dpi=300,
     ):
     """
     Plot contribution functions, temperature profiles, VMRs, and spectra
@@ -907,9 +907,10 @@ def posteriors(
         which includes the species that actively contribute to the opacity.
     vmr_limits: 2-element float iterable
         Plotting boundaries for the volume mixing ratio.
-    log_wl: 1D float ndarray
-        If not None, plot X-axis in logscale and set its ticks
-        to the input values.
+    log_wl: 1D float iterable
+        If empty list, plot wavelength in linear scale.
+        If list, plot wavelength in logscale with given values as ticks.
+        If None default to input in pickle file.
     dpi: Integer
         The resolution in dots per inch for saved files.
 
@@ -925,10 +926,25 @@ def posteriors(
     >>> plot_species = 'H2O CO H2 He H CH4 CO2 C N O'.split()
     >>> pp.posteriors(post_file, theme='red', plot_species=plot_species)
     """
-    theme = pt.resolve_theme(theme)
     root = post_file.replace('_posteriors_info.pickle', '')
     with open(post_file, 'rb') as handle:
         post_data = pickle.load(handle)
+
+    if data_color is None:
+        data_color = post_data['fig_data_color']
+    if theme is None:
+        theme = post_data['theme']
+    else:
+        theme = pt.resolve_theme(theme)
+
+    if log_wl is not None:
+        log_wl = None if len(log_wl)==0 else log_wl
+    else:
+        log_wl = post_data['log_wl']
+
+    if resolution is None:
+        resolution = post_data['fig_resolution']
+
     band_wl = post_data['band_wl']
     pressure = post_data['pressure']
     cf_lab = 'transmittance' if post_data['path']=='transit' else 'contribution'
@@ -1086,7 +1102,7 @@ def posteriors(
         half_widths = post_data['band_half_widths']
         data = post_data['data_posterior'][0]
         uncert = post_data['uncert']
-        resolution = post_data['fig_resolution'] if 'fig_resolution' in post_data else 125.0
+        fig_resolution = resolution
         marker = 'o'
         data_front = True
     # High-resolution data
@@ -1096,7 +1112,7 @@ def posteriors(
         half_widths = None
         data = post_data['data_hires']
         uncert = post_data['uncert_hires']
-        resolution = None
+        fig_resolution = None
         marker = '.'
         data_front = False
 
@@ -1111,12 +1127,12 @@ def posteriors(
     args['bands_wl0'] = post_data['band_wl']
     args['bands_half_width'] = half_widths
     args['label'] = 'median model'
-    args['resolution'] = resolution
     args['marker'] = marker
     args['data_front'] = data_front
     args['log_wl'] = log_wl
     args['theme'] = theme
     args['data_color'] = data_color
+    args['resolution'] = fig_resolution
     args['filename'] = f"{root}_posterior_spectrum.png"
     ax = spectrum(**args)
 

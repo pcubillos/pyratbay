@@ -67,6 +67,7 @@ class Pyrat():
 
         self.ncpu = self.inputs.ncpu
         self.runmode = self.inputs.runmode
+        self.fig = ob.Figure(self.inputs, self.log)
 
         # TBD: Remove self.ex entirely?
         self.ex = ob.Extinction(self.inputs, self.log)
@@ -475,7 +476,7 @@ class Pyrat():
                 nchains=ret.nchains, burnin=ret.burnin, thinning=ret.thinning,
                 grtest=True, grbreak=ret.grbreak, grnmin=ret.grnmin,
                 log=log, ncpu=self.ncpu,
-                plots=False, showbp=True, theme=ret.theme,
+                plots=False, showbp=True, theme=self.fig.theme,
                 pnames=ret.pnames, texnames=ret.texnames,
                 resume=ret.resume, savefile=f'{basename}.npz',
             )
@@ -487,13 +488,13 @@ class Pyrat():
             savefile = f'{basename}_posterior_trace.png'
             mc3.plots.trace(
                 posterior, zchain=zchain, burnin=ret.burnin,
-                pnames=texnames, color=ret.theme.color,
+                pnames=texnames, color=self.fig.theme.color,
                 savefile=savefile,
             )
             log.msg(savefile, indent=2)
 
         post = mc3.plots.Posterior(
-            posterior, pnames=texnames, theme=ret.theme,
+            posterior, pnames=texnames, theme=self.fig.theme,
             bestp=output['bestp'][ifree], statistics=ret.statistics,
             show_estimates=True,  # TBD: get from cfg?
         )
@@ -569,11 +570,11 @@ class Pyrat():
                 tls_posterior[:,:,i] = np.quantile(
                     tls_epsilon[:,:,i], quantiles, axis=0,
                 )
-            themes = None if n_tls>1 else [ret.theme]
+            themes = None if n_tls>1 else [self.fig.theme]
             filename = f"{basename}_posterior_tls_contamination.png"
             pp.tls(
                 tls_posterior[0], self.spec.wl, self.tls.models,
-                bounds=tls_posterior[1:3], log_wl=self.inputs.log_wl,
+                bounds=tls_posterior[1:3], log_wl=self.fig.log_wl,
                 themes=themes, filename=filename,
             )
 
@@ -802,10 +803,10 @@ class Pyrat():
         """
         obs = self.obs
         args = {
-            'log_wl': self.inputs.log_wl,
-            'yran': self.inputs.yran,
-            'theme': self.ret.theme,
-            'data_color': self.inputs.data_color,
+            'log_wl': self.fig.log_wl,
+            'ylim': self.fig.spec_ylim,
+            'theme': self.fig.theme,
+            'data_color': self.fig.data_color,
         }
 
         is_hires = obs.nbands_hires > 0
@@ -826,8 +827,7 @@ class Pyrat():
             args['bands_wl0'] = obs.band_wl
             args['bands_half_width'] = [band.half_width for band in obs.bands]
             args['bands_flux'] = obs.bandflux
-            if self.obs.inst_resolution is not None:
-                args['resolution'] = self.obs.inst_resolution
+            args['resolution'] = self.fig.resolution
             args['marker'] = 'o'
             args['data_front'] = True
 
@@ -857,7 +857,7 @@ class Pyrat():
         else:
             args['rt_path'] = 'emission'
 
-        # kwargs can overwite any of the previous value:
+        # kwargs overwite any of the previous values
         args.update(kwargs)
 
         ax = pp.spectrum(**args)
@@ -883,7 +883,7 @@ class Pyrat():
             The matplotlib Axes of the figure.
         """
         kwargs['pressure'] = self.atm.press
-        kwargs['theme'] = self.ret.theme
+        kwargs['theme'] = self.fig.theme
         if self.ret.posterior is None:
             kwargs['profiles'] = [self.atm.temp]
         else:

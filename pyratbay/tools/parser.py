@@ -20,7 +20,6 @@ import warnings
 
 import numpy as np
 import mc3.utils as mu
-import matplotlib
 
 from . import tools as pt
 from .mpi_tools import (
@@ -560,24 +559,21 @@ def parse(cfile, with_log=True, mute=False):
         parse_array(args, 'retflag')   # Deprecated
         parse_float(args, 'qcap')
         parse_str(args, 'retrieval_params')
-        parse_array(args, 'params')
-        parse_array(args, 'pstep')
-        parse_float(args, 'tlow')
-        parse_float(args, 'thigh')
-        parse_array(args, 'pmin')
-        parse_array(args, 'pmax')
-        parse_array(args, 'prior')
-        parse_array(args, 'priorlow')
-        parse_array(args, 'priorup')
+        parse_array(args, 'params')   # Deprecated
+        parse_array(args, 'pstep')   # Deprecated
+        parse_float(args, 'tlow')   # Deprecated
+        parse_float(args, 'thigh')   # Deprecated
+        parse_array(args, 'pmin')   # Deprecated
+        parse_array(args, 'pmax')   # Deprecated
+        parse_array(args, 'prior')   # Deprecated
+        parse_array(args, 'priorlow')   # Deprecated
+        parse_array(args, 'priorup')   # Deprecated
         parse_int(args, 'nsamples')
         parse_int(args, 'nchains')
         parse_int(args, 'burnin')
         parse_int(args, 'thinning')
         parse_float(args, 'grbreak')
         parse_float(args, 'grnmin')
-        parse_str(args, 'theme')
-        parse_float(args, 'fig_resolution')
-        parse_str(args, 'data_color')
         parse_int(args, 'nlive')
         parse_str(args, 'statistics')
         parse_float(args, 'dt_retrieval_snapshot')
@@ -602,9 +598,12 @@ def parse(cfile, with_log=True, mute=False):
         parse_float(args, 'beta_irr')
         # Outputs:
         parse_str(args,   'specfile')
+        parse_str(args, 'theme')
+        parse_float(args, 'fig_resolution')
+        parse_str(args, 'data_color')
         parse_array(args, 'log_wl')
         parse_array(args, 'logxticks')  # Deprecated
-        parse_array(args, 'yran')
+        parse_array(args, 'spec_ylim')
 
     # Cast into a Namespace to make my life easier:
     args = Namespace(args)
@@ -1150,10 +1149,7 @@ def parse(cfile, with_log=True, mute=False):
         150.0, gt=0,
     )
 
-    data_color = args.get_default('data_color', 'Color of data points', 'black')
-    if not matplotlib.colors.is_color_like(data_color):
-        data_color = 'black'
-    args.data_color = data_color
+    args.data_color = args.get_default('data_color', 'data points color', 'black')
 
     for arg in ['molvars', 'molmodel', 'molfree', 'molpars']:
         if getattr(args, arg) is not None:
