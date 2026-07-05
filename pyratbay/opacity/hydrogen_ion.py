@@ -18,7 +18,7 @@ class Hydrogen_Ion():
         wn: 1D float array
             Wavenumber array where to sample the opacities (cm-1).
         """
-        self.name = 'H- bound-free/free-free'
+        self.name = 'H- continuum'
         self.wn = wn
         self.species = ['H', 'e-']
         self.nwave = len(self.wn)

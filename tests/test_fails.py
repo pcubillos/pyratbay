@@ -865,8 +865,8 @@ def test_h_ion_missing_species(tmp_path):
         reset={'h_ion': 'h_ion_john1988'},
     )
     error = re.escape(
-        "Species ['e-'], required for opacity model H- "
-        "bound-free/free-free, are not present in the atmosphere"
+        "Species ['e-'], required for opacity model H- continuum, "
+        "are not present in the atmosphere"
     )
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)

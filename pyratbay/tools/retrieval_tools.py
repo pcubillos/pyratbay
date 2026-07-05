@@ -390,7 +390,9 @@ def multinest_run(pyrat, basename):
     return output
 
 
-def posterior_post_processing(cfg_file=None, pyrat=None, suffix=''):
+def posterior_post_processing(
+        cfg_file=None, pyrat=None, suffix='',
+    ):
     """
     Compute quantities of interest from a retrieval posterior distribution.
     The produced data is stored into a pickle file with root name based
@@ -550,7 +552,7 @@ def posterior_post_processing(cfg_file=None, pyrat=None, suffix=''):
             model_species = [model.species]
         else:
             model_species = list(model.species)
-        if model.name == 'H- bound-free/free-free' and 'H-' in pyrat.atm.species:
+        if model.name == 'H- continuum' and 'H-' in pyrat.atm.species:
             model_species.append('H-')
         for spec in model_species:
             if spec not in active_species:
