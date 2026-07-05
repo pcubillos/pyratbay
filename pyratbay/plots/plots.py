@@ -1188,7 +1188,7 @@ def posteriors(
             args['lw'] = 1.5
             args['data_front'] = True
             args['log_wl'] = post_data['log_wl']
-            args['theme'] = default_themes[j+1]
+            args['theme'] = default_themes[j]
             args['data_color'] = post_data['fig_data_color']
             args['resolution'] = post_data['fig_resolution']
             args['axis'] = ax
@@ -1202,7 +1202,7 @@ def posteriors(
         args['label'] = 'no TLS'
         args['data'] = post_data['data'] + inst_offset
         args['axis'] = ax
-        args['theme'] = default_themes[0]
+        args['theme'] = default_themes[len(tls_labels)]
         args['filename'] = f"{root}_posterior_spectra_tls.png"
         ax = spectrum(**args)
 
