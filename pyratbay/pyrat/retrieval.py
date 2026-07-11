@@ -43,6 +43,8 @@ class Retrieval():
         self.resume = inputs.resume
         self.nlive = inputs.nlive
 
+        self.post_processing = inputs.post_processing
+
         # Overrides retflag. At some point this will be the only way.
         if inputs.retrieval_params is not None:
             pars = [

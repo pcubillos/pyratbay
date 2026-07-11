@@ -555,7 +555,7 @@ def parse(cfile, with_log=True, mute=False):
         parse_str(args, 'mcmcfile')  # Deprecated
         parse_str(args, 'sampler')
         parse_bool(args, 'resume')
-        parse_bool(args, 'post_processing', default=True)
+        parse_str(args, 'post_processing')
         parse_array(args, 'retflag')   # Deprecated
         parse_float(args, 'qcap')
         parse_str(args, 'retrieval_params')
@@ -597,7 +597,7 @@ def parse(cfile, with_log=True, mute=False):
         parse_float(args, 'tint')
         parse_float(args, 'beta_irr')
         # Outputs:
-        parse_str(args,   'specfile')
+        parse_str(args, 'specfile')
         parse_str(args, 'theme')
         parse_float(args, 'fig_resolution')
         parse_str(args, 'data_color')
@@ -1135,6 +1135,17 @@ def parse(cfile, with_log=True, mute=False):
         default=0.0,
         ge=0.0,
     )
+
+    post = args.post_processing
+    if isinstance(post, str):
+        post = post.lower()
+        if post in ['none', 'false']:
+            post = None
+        elif post not in ['true', 'full']:
+            log.error(
+                f"Invalid post_processing argument {repr(args.post_processing)}, value must be 'False', 'True', or 'full'"
+            )
+        args.post_processing = post
 
     args.statistics = args.get_choice(
         'statistics',

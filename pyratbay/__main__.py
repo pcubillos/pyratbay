@@ -57,7 +57,11 @@ def main():
         help='Run Pyrat Bay for given configuration file.',
     )
     group.add_argument(
-        '--post', dest='post', default=None,
+        '--post',
+        help='Post-processing posterior data after a retrieval run.',
+    )
+    group.add_argument(
+        '--full_post',
         help='Post-processing posterior data after a retrieval run.',
     )
     group.add_argument(
@@ -67,11 +71,6 @@ def main():
     group.add_argument(
         '-cs', dest='cs', default=None, nargs='+',
         help='Format a cross-section file.',
-    )
-
-    parser.add_argument(
-        '-suf', dest='suffix', default=None,
-        help='Suffix for post-processed file.',
     )
 
     # Parse command-line args:
@@ -115,14 +114,18 @@ def main():
         else:
             print('Invalid cross-section type.')
 
-    # Pyrat-Bay run:
+    # Pyrat Bay run
     elif args.cfile is not None:
         pb.run(args.cfile)
 
-    # Post processing:
+    # Post processing
     elif args.post is not None:
-        suffix = '' if args.suffix is None else args.suffix
-        pb.tools.posterior_post_processing(cfg_file=args.post, suffix=suffix)
+        pb.tools.posterior_post_processing(cfg_file=args.post)
+    elif args.full_post is not None:
+        pb.tools.posterior_post_processing(
+            cfg_file=args.full_post,
+            contributions=True,
+        )
 
 
 if __name__ == '__main__':

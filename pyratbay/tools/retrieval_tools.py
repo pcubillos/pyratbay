@@ -406,6 +406,9 @@ def posterior_post_processing(
     pyrat: a Pyrat instance
         A pyrat object of an already executed retrieval.
         Used if cfg_file is None.
+    contributions: Bool
+        If True, compute and store the posterio spectra for each
+        individual absorber.
     """
     if pyrat is None and cfg_file is None:
         raise ValueError(

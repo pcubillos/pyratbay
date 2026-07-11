@@ -595,10 +595,12 @@ class Pyrat():
         root_output = os.path.split(basename)[0]
         log.msg(f"\nOutput retrieval files located at {root_output}")
 
-        if self.inputs.post_processing:
+        if ret.post_processing is not None:
             os.environ['PBAY_NO_MPI'] = "1"
+            arg = 'post' if ret.post_processing=='true' else 'full_post'
+            print(arg)
             subprocess.call(
-                f'pbay --post {self.inputs.config_file} &',
+                f'pbay --{arg} {self.inputs.config_file} &',
                 shell=True,
             )
 
