@@ -391,7 +391,7 @@ def multinest_run(pyrat, basename):
 
 
 def posterior_post_processing(
-        cfg_file=None, pyrat=None, suffix='',
+        cfg_file=None, pyrat=None, suffix='', contributions=False,
     ):
     """
     Compute quantities of interest from a retrieval posterior distribution.
@@ -495,6 +495,14 @@ def posterior_post_processing(
     tls_epsilon = np.zeros((n_unique, n_tls, nwave))
     tls_spectra = np.zeros((n_unique, n_tls, nwave))
     tls_offset = np.zeros((n_unique, nbands))
+    # opacity contributions
+    if contributions:
+        cs_contributions = pyrat.opacity.collect_contributions()
+    else:
+        cs_contributions = []
+    n_contrib = len(cs_contributions)
+    cs_models = np.zeros((n_unique, n_contrib, nwave))
+
     t0 = time.time()
     for i in range(n_unique):
         models[i], band_models[i] = pyrat.eval(u_posterior[i])
@@ -508,6 +516,9 @@ def posterior_post_processing(
             tls_epsilon[i] = pyrat.tls.epsilon
             tls_spectra[i] = pyrat.tls.spectrum
             tls_offset[i] = pyrat.tls.band_offset
+        for j,cs in enumerate(cs_contributions):
+            skip = [spec for spec in cs_contributions if spec != cs]
+            cs_models[i,j], _ = pyrat.eval(u_posterior[i], skip=skip)
         timeleft = eta(time.time()-t0, i+1, n_unique, fmt='.2f')
         if i%3 == 0:
             eta_text = (
@@ -520,6 +531,7 @@ def posterior_post_processing(
     print(f'{endline:80s}', flush=True)
 
     spectrum_posterior = np.zeros((nquantiles, nwave))
+    cs_contribution_posterior = np.zeros((nquantiles, n_contrib, nwave))
     tls_posterior = np.zeros((nquantiles, n_tls, nwave))
     tls_spectra_posterior = np.zeros((nquantiles, n_tls, nwave))
     for i in range(nwave):
@@ -530,6 +542,9 @@ def posterior_post_processing(
             tls_posterior[:,:,i] = np.quantile(sample, quantiles, axis=0)
             sample = tls_spectra[uinv,:,i]
             tls_spectra_posterior[:,:,i] = np.quantile(sample, quantiles, axis=0)
+        if contributions:
+            sample = cs_models[uinv,:,i]
+            cs_contribution_posterior[:,:,i] = np.quantile(sample, quantiles, axis=0)
 
     band_models_posterior = np.quantile(band_models[uinv,:], quantiles, axis=0)
     data_posterior = np.quantile(data[uinv], quantiles, axis=0)
@@ -591,6 +606,8 @@ def posterior_post_processing(
         'band_models_posterior': band_models_posterior,
         'cf_posterior_median': cf_median,
     }
+    if n_contrib > 0:
+        outputs['contribution_posterior'] = cs_contribution_posterior
     if n_tls > 0:
         outputs['tls_posterior'] = tls_posterior
         outputs['tls_spectra_posterior'] = tls_spectra_posterior
