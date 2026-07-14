@@ -15,6 +15,7 @@ import os
 import sys
 import time
 import pickle
+from multiprocessing import Pool
 
 import mc3
 import numpy as np
@@ -390,8 +391,45 @@ def multinest_run(pyrat, basename):
     return output
 
 
+_GLOBAL_OBJ = None
+
+def init_pool(obj):
+    global _GLOBAL_OBJ
+    _GLOBAL_OBJ = obj
+
+
+def multi_post(params):
+    model, band_model = _GLOBAL_OBJ.eval(params)
+    temp = _GLOBAL_OBJ.atm.temp
+    vmr = _GLOBAL_OBJ.atm.vmr
+    cf = _GLOBAL_OBJ.band_contribution()
+    data = _GLOBAL_OBJ.obs.data
+    output = [model, band_model, temp, vmr, cf, data]
+
+    if _GLOBAL_OBJ.obs.depth.n_offsets > 0:
+        output.append(_GLOBAL_OBJ.obs.inst_offset)
+    else:
+        output.append(None)
+    if _GLOBAL_OBJ.tls.n_models > 0:
+        tls_epsilon = _GLOBAL_OBJ.tls.epsilon
+        tls_spectra = _GLOBAL_OBJ.tls.spectrum
+        tls_offset = _GLOBAL_OBJ.tls.band_offset
+        output += [tls_epsilon, tls_spectra, tls_offset]
+    else:
+        output += [None, None, None]
+    for j,cs in enumerate(_GLOBAL_OBJ.cs_contributions):
+        # only the one absorber
+        skip = [spec for spec in _GLOBAL_OBJ.cs_contributions if spec != cs]
+        # loo-style
+        skip = [cs]
+        cs_model, _ = _GLOBAL_OBJ.eval(params, skip=skip)
+        output.append(cs_model)
+    return output
+
+
 def posterior_post_processing(
         cfg_file=None, pyrat=None, suffix='', contributions=False,
+        ncpu=1,
     ):
     """
     Compute quantities of interest from a retrieval posterior distribution.
@@ -407,7 +445,7 @@ def posterior_post_processing(
         A pyrat object of an already executed retrieval.
         Used if cfg_file is None.
     contributions: Bool
-        If True, compute and store the posterio spectra for each
+        If True, compute and store the posterior spectra for each
         individual absorber.
     """
     if pyrat is None and cfg_file is None:
@@ -417,13 +455,16 @@ def posterior_post_processing(
         )
     if cfg_file is not None:
         pyrat = Pyrat(cfg_file, log=False, mute=True)
+    else:
+        pyrat.log.file = None
+        pyrat.log.verb = -1
 
     # Basename of the output files (no extension):
     basename = pyrat.ret.retrieval_file
 
     if pyrat.ret.sampler == 'multinest':
         if isfile(basename + '.txt') == 0:
-            raise ValueError('MultiNest posterior outputs do not exist')
+            raise ValueError(f'MultiNest posterior outputs do not exist for basename {repr(basename)}')
         posterior = weighted_to_equal(basename + '.txt')
     elif pyrat.ret.sampler == 'snooker':
         mcmc = np.load(basename + '.npz')
@@ -507,31 +548,29 @@ def posterior_post_processing(
     cs_models = np.zeros((n_unique, n_contrib, nwave))
 
     t0 = time.time()
-    for i in range(n_unique):
-        models[i], band_models[i] = pyrat.eval(u_posterior[i])
-        temp[i] = pyrat.atm.temp
-        vmr[i] = pyrat.atm.vmr
-        cf[i] = pyrat.band_contribution()
-        data[i] = pyrat.obs.data
-        if n_offsets > 0:
-            offset[i] = pyrat.obs.inst_offset
-        if n_tls > 0:
-            tls_epsilon[i] = pyrat.tls.epsilon
-            tls_spectra[i] = pyrat.tls.spectrum
-            tls_offset[i] = pyrat.tls.band_offset
-        for j,cs in enumerate(cs_contributions):
-            skip = [spec for spec in cs_contributions if spec != cs]
-            cs_models[i,j], _ = pyrat.eval(u_posterior[i], skip=skip)
-        timeleft = eta(time.time()-t0, i+1, n_unique, fmt='.2f')
-        if i%3 == 0:
-            eta_text = (
-                f'{i+1}/{n_unique} samples, '
-                f'{100*(i+1)/n_unique:.2f} % done, '
-                f'ETA: {timeleft}'
-            )
-            print(f'{eta_text:80s}', end='\r', flush=True)
-    endline = f'{100*(i+1)/n_unique:6.2f} % done'
+    pyrat.cs_contributions = cs_contributions
+    with Pool(ncpu, initializer=init_pool, initargs=(pyrat,)) as pool:
+        for i,output in enumerate(pool.imap_unordered(multi_post, u_posterior)):
+            models[i], band_models[i], temp[i], vmr[i], cf[i], data[i] = output[:6]
+            if n_offsets > 0:
+                offset[i] = output[6]
+            if n_tls > 0:
+                tls_epsilon[i], tls_spectra[i], tls_offset[i] = output[7:10]
+            if contributions:
+                cs_models[i,:] = output[10:]
+            if i%5 == 0:
+                timeleft = eta(time.time()-t0, i+1, n_unique, fmt='.2f')
+                eta_text = (
+                    f'{i+1}/{n_unique} samples, '
+                    f'{100*(i+1)/n_unique:.2f} % done, '
+                    f'ETA: {timeleft}'
+                )
+                print(f'{eta_text:80s}', end='\r', flush=True)
+
+    total_time = f'{(time.time()-t0)/60.0:.3f} min'
+    endline = f'{100*(i+1)/n_unique:6.2f} % done in {total_time}'
     print(f'{endline:80s}', flush=True)
+
 
     spectrum_posterior = np.zeros((nquantiles, nwave))
     cs_contribution_posterior = np.zeros((nquantiles, n_contrib, nwave))
@@ -610,7 +649,8 @@ def posterior_post_processing(
         'cf_posterior_median': cf_median,
     }
     if n_contrib > 0:
-        outputs['contribution_posterior'] = cs_contribution_posterior
+        outputs['absorber_contribution_labels'] = cs_contributions
+        outputs['absorber_contribution_posterior'] = cs_contribution_posterior
     if n_tls > 0:
         outputs['tls_posterior'] = tls_posterior
         outputs['tls_spectra_posterior'] = tls_spectra_posterior

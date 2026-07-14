@@ -449,6 +449,7 @@ class Pyrat():
 
         # MultiNest wrapper call:
         if ret.sampler == 'multinest':
+            self.ncpu = pt.get_mpi_size()
             output = pt.multinest_run(self, basename)
             if pt.get_mpi_rank() != 0:
                 return
@@ -596,14 +597,11 @@ class Pyrat():
         log.msg(f"\nOutput retrieval files located at {root_output}")
 
         if ret.post_processing is not None:
-            os.environ['PBAY_NO_MPI'] = "1"
-            arg = 'post' if ret.post_processing=='true' else 'full_post'
-            print(arg)
-            subprocess.call(
-                f'pbay --{arg} {self.inputs.config_file} &',
-                shell=True,
+            pt.posterior_post_processing(
+                pyrat=self,
+                contributions=True,
+                ncpu=self.ncpu,
             )
-
 
     def radiative_equilibrium(
             self, nsamples=None, continue_run=False, convection=False,
