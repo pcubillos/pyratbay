@@ -364,7 +364,8 @@ class Pyrat():
         if ret.itls is not None:
             ifree = ret.map_pars['tls']
             self.tls.pars[ifree] = params[ret.itls]
-        self.tls()
+            self.tls()
+            self.tls.spectrum = self.spec.spectrum * self.tls.epsilon
         if self.tls.n_models > 0 and np.any(np.isnan(self.tls.epsilon)):
             reject_flag = True
 
@@ -711,7 +712,6 @@ class Pyrat():
                 tls.band_offset = np.zeros(self.obs.ndata)
                 for i,eps in enumerate(tls.epsilon):
                     mask = tls.band_mask[i]
-                    tls.spectrum[i] = spectrum * eps
                     tls_depth = np.array([
                         band(tls.spectrum[i])
                         for band,flag in zip(bands, mask)

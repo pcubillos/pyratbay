@@ -349,6 +349,7 @@ class TLS():
         wl = spec.wl
         band_names = [band.name for band in obs.bands]
         self.spectrum = np.zeros((self.n_models, spec.nwave))
+        self.epsilon = np.zeros((self.n_models, spec.nwave))
 
         if tls_folder is None:
             log.error(
@@ -417,11 +418,9 @@ class TLS():
         if params is not None:
             self.pars = params
 
-        self.epsilon = []
         for i in range(self.n_models):
             t_spot, f_spot, t_fac, f_fac = self.pars[4*i:4*(i+1)]
-            epsilon = self.tls(t_spot, f_spot, t_fac, f_fac)
-            self.epsilon.append(epsilon)
+            self.epsilon[i] = self.tls(t_spot, f_spot, t_fac, f_fac)
         return self.epsilon
 
 
