@@ -879,10 +879,17 @@ def inst_convolution(wl, spectrum, resolution, sampling_res=None, mode='same'):
     rv_array = np.arange(-(n_el - 1) / 2, (n_el - 1) / 2 + 1, 1)
     rv_array_mod = np.linspace(-n_rv0*rv_pix, n_rv0*rv_pix, int(2*n_rv0+1))
 
+
     csscaled = si.splrep(rv_array, kernel)
     ker_conv_pix = si.splev(rv_array_mod, csscaled, der=0)
     ker_conv_pix /= sum(ker_conv_pix)
-    rconv = convolve(spectrum, ker_conv_pix, mode=mode)
+    margin = (ker_conv_pix.size-1) // 2
+    wide_spectrum = np.concatenate((
+        np.tile(spectrum[0], margin),
+        spectrum,
+        np.tile(spectrum[-1], margin),
+    ))
+    rconv = convolve(wide_spectrum, ker_conv_pix, mode='valid')
     return rconv
 
 
