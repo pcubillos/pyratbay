@@ -448,13 +448,13 @@ class Pyrat():
         ifree = ret.pstep > 0
         texnames = np.array(ret.texnames)[ifree]
 
+        rank = pt.get_mpi_rank()
         # MultiNest wrapper call:
         if ret.sampler == 'multinest':
             self.ncpu = pt.get_mpi_size()
             output = pt.multinest_run(self, basename)
-            if pt.get_mpi_rank() != 0:
-                return
-            posterior = output['posterior']
+            if rank == 0:
+                posterior = output['posterior']
 
         # mc3 MCMC wrapper call:
         elif ret.sampler == 'snooker':
@@ -495,113 +495,112 @@ class Pyrat():
             )
             log.msg(savefile, indent=2)
 
-        post = mc3.plots.Posterior(
-            posterior, pnames=texnames, theme=self.fig.theme,
-            bestp=output['bestp'][ifree], statistics=ret.statistics,
-            show_estimates=True,  # TBD: get from cfg?
-        )
-
-        # Pairwise posteriors plots:
-        savefile = f'{basename}_posterior_pairwise.png'
-        post.plot(savefile=savefile)
-        log.msg(savefile, indent=2)
-        # Histogram plots:
-        savefile = f'{basename}_posterior_marginal.png'
-        post.plot_histogram(savefile=savefile)
-        log.msg(savefile, indent=2)
-
-
-        # Post processing (can be done directly from posterior outputs)
-        ret.bestp = bestp = output['bestp']
-        ret.posterior = posterior
-
-        # Best-fitting model:
-        self.spec.specfile = f"{basename}_bestfit_spectrum.dat"
-        ret.spec_best, ret.bestbandflux = self.eval(bestp)
-        filename = f'{basename}_bestfit_spectrum.png'
-        self.plot_spectrum(spec='best', filename=filename)
-
-        atm = self.atm
-        header = "# Retrieval best-fitting atmospheric model.\n\n"
-        bestatm = f"{basename}_bestfit_atmosphere.atm"
-        io.write_atm(
-            bestatm, atm.press, atm.temp, atm.species,
-            atm.vmr, radius=atm.radius,
-            punits=atm.punits, runits=atm.runits, header=header,
-        )
-
-        # Temperature profiles
-        if atm.temp_model is not None:
-            tparams = atm.tpars
-            tparams[ret.map_pars['temp']] = bestp[ret.itemp]
-            ret.temp_best = atm.temp_model(tparams)
-
-            nsamples, nfree = np.shape(posterior)
-            t_posterior = np.tile(tparams, (nsamples,1))
-            # Map temperature free parameters from posterior to tparams:
-            ifree = np.where(self.ret.pstep>0)[0]
-            for j, imap in zip(ret.itemp, ret.map_pars['temp']):
-                if j in ifree:
-                    ipost = list(ifree).index(j)
-                    t_posterior[:,imap] = posterior[:,ipost]
-            tpost = pa.temperature_posterior(t_posterior, atm.temp_model)
-            ret.temp_median = tpost[0]
-            ret.temp_post_boundaries = tpost[1:]
-            self.plot_temperature(
-                filename=f'{basename}_bestfit_temperature.png',
+        if rank == 0:
+            post = mc3.plots.Posterior(
+                posterior, pnames=texnames, theme=self.fig.theme,
+                bestp=output['bestp'][ifree], statistics=ret.statistics,
+                show_estimates=True,  # TBD: get from cfg?
             )
 
-        # TLS spectra
-        if self.tls.n_models > 0:
-            n_tls = self.tls.n_models
-            nsamples, nfree = np.shape(posterior)
-            tls_posterior = np.tile(self.tls.pars, (nsamples,1))
-            ifree = np.where(self.ret.pstep>0)[0]
-            for j, imap in zip(ret.itls, ret.map_pars['tls']):
-                if j in ifree:
-                    ipost = list(ifree).index(j)
-                    tls_posterior[:,imap] = posterior[:,ipost]
+            # Pairwise posteriors plots:
+            savefile = f'{basename}_posterior_pairwise.png'
+            post.plot(savefile=savefile)
+            log.msg(savefile, indent=2)
+            # Histogram plots:
+            savefile = f'{basename}_posterior_marginal.png'
+            post.plot_histogram(savefile=savefile)
+            log.msg(savefile, indent=2)
 
-            tls_epsilon = np.zeros((nsamples, n_tls, self.spec.nwave))
-            for j, tls_pars in enumerate(tls_posterior):
-                tls_epsilon[j] = self.tls(tls_pars)
 
-            quantiles = np.array([0.5, 0.15865, 0.84135])
-            tls_posterior = np.zeros((3, n_tls, self.spec.nwave))
-            for i in range(self.spec.nwave):
-                tls_posterior[:,:,i] = np.quantile(
-                    tls_epsilon[:,:,i], quantiles, axis=0,
+            # Post processing (can be done directly from posterior outputs)
+            ret.bestp = bestp = output['bestp']
+            ret.posterior = posterior
+
+            # Best-fitting model:
+            self.spec.specfile = f"{basename}_bestfit_spectrum.dat"
+            ret.spec_best, ret.bestbandflux = self.eval(bestp)
+            filename = f'{basename}_bestfit_spectrum.png'
+            self.plot_spectrum(spec='best', filename=filename)
+
+            atm = self.atm
+            header = "# Retrieval best-fitting atmospheric model.\n\n"
+            bestatm = f"{basename}_bestfit_atmosphere.atm"
+            io.write_atm(
+                bestatm, atm.press, atm.temp, atm.species,
+                atm.vmr, radius=atm.radius,
+                punits=atm.punits, runits=atm.runits, header=header,
+            )
+
+            # Temperature profiles
+            if atm.temp_model is not None:
+                tparams = atm.tpars
+                tparams[ret.map_pars['temp']] = bestp[ret.itemp]
+                ret.temp_best = atm.temp_model(tparams)
+
+                nsamples, nfree = np.shape(posterior)
+                t_posterior = np.tile(tparams, (nsamples,1))
+                # Map temperature free parameters from posterior to tparams:
+                ifree = np.where(self.ret.pstep>0)[0]
+                for j, imap in zip(ret.itemp, ret.map_pars['temp']):
+                    if j in ifree:
+                        ipost = list(ifree).index(j)
+                        t_posterior[:,imap] = posterior[:,ipost]
+                tpost = pa.temperature_posterior(t_posterior, atm.temp_model)
+                ret.temp_median = tpost[0]
+                ret.temp_post_boundaries = tpost[1:]
+                self.plot_temperature(
+                    filename=f'{basename}_bestfit_temperature.png',
                 )
-            themes = None if n_tls>1 else [self.fig.theme]
-            filename = f"{basename}_posterior_tls_contamination.png"
-            pp.tls(
-                tls_posterior[0], self.spec.wl, self.tls.models,
-                bounds=tls_posterior[1:3], log_wl=self.fig.log_wl,
-                themes=themes, filename=filename,
-            )
 
-        # Contribution or transmittance
-        is_transmission = self.od.rt_path in pc.transmission_rt
-        path = 'transit' if is_transmission else 'emission'
+            # TLS spectra
+            if self.tls.n_models > 0:
+                n_tls = self.tls.n_models
+                nsamples, nfree = np.shape(posterior)
+                tls_posterior = np.tile(self.tls.pars, (nsamples,1))
+                ifree = np.where(self.ret.pstep>0)[0]
+                for j, imap in zip(ret.itls, ret.map_pars['tls']):
+                    if j in ifree:
+                        ipost = list(ifree).index(j)
+                        tls_posterior[:,imap] = posterior[:,ipost]
 
-        if self.obs.nbands > 0:
-            band_wl = 1.0/(self.obs.bandwn*pc.um)
-        elif self.obs.nbands_hires > 0:
-            band_wl = 1.0/(self.obs.wn_hires*pc.um)
-        band_cf = self.band_contribution()
+                tls_epsilon = np.zeros((nsamples, n_tls, self.spec.nwave))
+                for j, tls_pars in enumerate(tls_posterior):
+                    tls_epsilon[j] = self.tls(tls_pars)
 
-        filename = f'{basename}_bestfit_contributions.png'
-        pp.contribution(band_cf, band_wl, path, atm.press, filename)
+                quantiles = np.array([0.5, 0.15865, 0.84135])
+                tls_posterior = np.zeros((3, n_tls, self.spec.nwave))
+                for i in range(self.spec.nwave):
+                    tls_posterior[:,:,i] = np.quantile(
+                        tls_epsilon[:,:,i], quantiles, axis=0,
+                    )
+                themes = None if n_tls>1 else [self.fig.theme]
+                filename = f"{basename}_posterior_tls_contamination.png"
+                pp.tls(
+                    tls_posterior[0], self.spec.wl, self.tls.models,
+                    bounds=tls_posterior[1:3], log_wl=self.fig.log_wl,
+                    themes=themes, filename=filename,
+                )
 
-        self.log = log  # Un-mute
-        root_output = os.path.split(basename)[0]
-        log.msg(f"\nOutput retrieval files located at {root_output}")
+            # Contribution or transmittance
+            is_transmission = self.od.rt_path in pc.transmission_rt
+            path = 'transit' if is_transmission else 'emission'
+
+            if self.obs.nbands > 0:
+                band_wl = 1.0/(self.obs.bandwn*pc.um)
+            elif self.obs.nbands_hires > 0:
+                band_wl = 1.0/(self.obs.wn_hires*pc.um)
+            band_cf = self.band_contribution()
+
+            filename = f'{basename}_bestfit_contributions.png'
+            pp.contribution(band_cf, band_wl, path, atm.press, filename)
+
+            root_output = os.path.split(basename)[0]
+            log.msg(f"\nOutput retrieval files located at {root_output}")
 
         if ret.post_processing is not None:
             pt.posterior_post_processing(
                 pyrat=self,
-                contributions=True,
-                ncpu=self.ncpu,
+                contributions=ret.post_processing,
             )
 
     def radiative_equilibrium(

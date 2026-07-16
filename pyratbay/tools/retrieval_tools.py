@@ -15,7 +15,6 @@ import os
 import sys
 import time
 import pickle
-from multiprocessing import Pool
 
 import mc3
 import numpy as np
@@ -23,7 +22,11 @@ import numpy as np
 from ..pyrat import Pyrat
 from .. import constants as pc
 from .. import plots as pp
-from .mpi_tools import get_mpi_rank
+from .mpi_tools import (
+    get_mpi_rank,
+    mpi_barrier,
+    MPI_Comm,
+)
 from .tools import (
    eta,
    isfile,
@@ -391,48 +394,9 @@ def multinest_run(pyrat, basename):
     return output
 
 
-_GLOBAL_OBJ = None
-
-def init_pool(obj):
-    global _GLOBAL_OBJ
-    _GLOBAL_OBJ = obj
-
-
-def multi_post(params):
-    model, band_model = _GLOBAL_OBJ.eval(params)
-    temp = _GLOBAL_OBJ.atm.temp
-    vmr = _GLOBAL_OBJ.atm.vmr
-    cf = _GLOBAL_OBJ.band_contribution()
-    data = _GLOBAL_OBJ.obs.data
-    output = [model, band_model, temp, vmr, cf, data]
-
-    if _GLOBAL_OBJ.obs.depth.n_offsets > 0:
-        output.append(_GLOBAL_OBJ.obs.inst_offset)
-    else:
-        output.append(None)
-    if _GLOBAL_OBJ.tls.n_models > 0:
-        tls_epsilon = _GLOBAL_OBJ.tls.epsilon
-        tls_spectra = _GLOBAL_OBJ.tls.spectrum
-        tls_offset = _GLOBAL_OBJ.tls.band_offset
-        output += [tls_epsilon, tls_spectra, tls_offset]
-    else:
-        output += [None, None, None]
-    for j,cs in enumerate(_GLOBAL_OBJ.cs_contributions):
-        # only the one absorber
-        skip = [spec for spec in _GLOBAL_OBJ.cs_contributions if spec != cs]
-        # loo-style
-        skip = [cs]
-        cs_model, _ = _GLOBAL_OBJ.eval(params, skip=skip)
-        output.append(cs_model)
-    return output
-
-
-def posterior_post_processing(
-        cfg_file=None, pyrat=None, suffix='', contributions=False,
-        ncpu=1,
-    ):
+def posterior_post_processing(cfg_file=None, pyrat=None, contributions=None):
     """
-    Compute quantities of interest from a retrieval posterior distribution.
+    MPI-compatible to compute retrieval posterior quantities of interest
     The produced data is stored into a pickle file with root name based
     on the logfile.
 
@@ -459,121 +423,124 @@ def posterior_post_processing(
         pyrat.log.file = None
         pyrat.log.verb = -1
 
-    # Basename of the output files (no extension):
-    basename = pyrat.ret.retrieval_file
+    pyrat.spec.specfile = None
+    ifree = pyrat.ret.pstep > 0
+    is_eclipse = pyrat.od.rt_path in pc.eclipse_rt
+    is_emission = pyrat.od.rt_path in pc.emission_rt
+    is_transmission = pyrat.od.rt_path in pc.transmission_rt
 
-    if pyrat.ret.sampler == 'multinest':
-        if isfile(basename + '.txt') == 0:
-            raise ValueError(f'MultiNest posterior outputs do not exist for basename {repr(basename)}')
-        posterior = weighted_to_equal(basename + '.txt')
-    elif pyrat.ret.sampler == 'snooker':
-        mcmc = np.load(basename + '.npz')
-        posterior = mc3.utils.burn(mcmc)[0]
+    band_wl = pyrat.obs.band_wl
+    nwave = pyrat.spec.nwave
+    nbands = pyrat.obs.ndata
+    nlayers = pyrat.atm.nlayers
+    n_tls = pyrat.tls.n_models
+    n_offsets = pyrat.obs.depth.n_offsets
+    # Individual-absorber contributions leave-one-out (loo) / one-at-a-time (oat)
+    per_absorber = contributions in ['loo', 'oat']
+    if per_absorber:
+        cs_contributions = pyrat.opacity.collect_contributions()
+    else:
+        cs_contributions = []
+    n_absorbers = len(cs_contributions)
 
-    texnames = np.array(pyrat.ret.texnames)
-    theme = pyrat.fig.theme
-    post = mc3.plots.Posterior(
-        posterior, texnames, theme=theme, statistics=pyrat.ret.statistics,
-    )
+    comm = MPI_Comm()
+    rank = comm.rank
+    size = comm.size
+
+    # Load posteriors
+    if rank == 0:
+        basename = pyrat.ret.retrieval_file
+        if pyrat.ret.sampler == 'multinest':
+            post_file = f'{basename}.txt'
+            if isfile(post_file) == 0:
+                error = f'Posterior file does not exist {repr(post_file)}'
+                raise ValueError(error)
+            posterior = weighted_to_equal(post_file)
+        elif pyrat.ret.sampler == 'snooker':
+            mcmc = np.load(basename + '.npz')
+            posterior = mc3.utils.burn(mcmc)[0]
+
+        texnames = np.array(pyrat.ret.texnames)
+        post = mc3.plots.Posterior(
+            posterior, texnames,
+            theme=pyrat.fig.theme,
+            statistics=pyrat.ret.statistics,
+        )
+        # All unique parameter samples
+        u, uind, uinv = np.unique(
+            post.posterior[:,0], return_index=True, return_inverse=True,
+        )
+        n_unique = len(u)
+        u_posterior = np.repeat([pyrat.ret.params], n_unique, axis=0)
+        u_posterior[:,ifree] = post.posterior[uind]
+        print(f'Computing {len(u):d} models for posterior post-processing')
+    else:
+        n_unique = None
+        u_posterior = None
+
+    n_unique = comm.bcast(n_unique)
+    u_posterior = comm.bcast(u_posterior)
+
+    # Allocate shared-memory arrays
+    indices = np.array_split(np.arange(n_unique), size)
+    models = comm.allocate_shared((n_unique, nwave))
+    band_models = comm.allocate_shared((n_unique, nbands))
+    temp = comm.allocate_shared((n_unique, nlayers))
+    vmr = comm.allocate_shared((n_unique, nlayers, pyrat.atm.nmol))
+    cf = comm.allocate_shared((n_unique, nlayers, nbands))
+    data = comm.allocate_shared((n_unique, nbands))
+    offset = comm.allocate_shared((n_unique, nbands))
+
+    tls_epsilon = comm.allocate_shared((n_unique, n_tls, nwave))
+    tls_spectra = comm.allocate_shared((n_unique, n_tls, nwave))
+    tls_offset = comm.allocate_shared((n_unique, nbands))
+    cs_models = comm.allocate_shared((n_unique, n_absorbers, nwave))
+
+    # Split and evaluate the samples
+    indices = np.array_split(np.arange(n_unique), size)
+    t0 = time.time()
+    for j,i in enumerate(indices[rank]):
+        models[i], band_models[i] = pyrat.eval(u_posterior[i])
+        temp[i] = pyrat.atm.temp
+        vmr[i] = pyrat.atm.vmr
+        cf[i] = pyrat.band_contribution()
+        data[i] = pyrat.obs.data
+
+        if n_offsets > 0:
+            offset[i] = pyrat.obs.inst_offset
+        if n_tls > 0:
+            tls_epsilon[i] = pyrat.tls.epsilon
+            tls_spectra[i] = pyrat.tls.spectrum
+            tls_offset[i] = pyrat.tls.band_offset
+        for k,absorber in enumerate(cs_contributions):
+            # leave-one-out or one-at-a-time contributions
+            if contributions == 'loo':
+                skip = [absorber]
+            elif contributions == 'oat':
+                skip = [spec for spec in cs_contributions if spec != absorber]
+            cs_models[i,k], _ = pyrat.eval(u_posterior[i], skip=skip)
+        if j%5 == 0 and rank==0:
+            timeleft = eta(time.time()-t0, size*j+1, n_unique, fmt='.2f')
+            eta_text = (
+                f'{size*j+1}/{n_unique} samples, '
+                f'{100*(size*j+1)/n_unique:.2f} % done, '
+                f'ETA: {timeleft}'
+            )
+            print(f'{eta_text:60s}', flush=True)
+
+    mpi_barrier()
+    if rank == 0:
+        total_time = f'{(time.time()-t0)/60.0:.2f} min'
+        print(f'100.0 % done in {total_time}', flush=True)
+    else:
+        return
 
     # Quantiles for all posterior stats: median -1sigma +1sigma -2sigma +2sigma
     quantiles = np.array([0.5, 0.15865, 0.84135, 0.02275, 0.97725])
     nquantiles = len(quantiles)
 
-    # Parameter statistics
-    stats_1sigma = mc3.stats.calc_sample_statistics(
-        post.posterior, pyrat.ret.params, pyrat.ret.pstep, quantile=0.683,
-    )
-    stats_2sigma = mc3.stats.calc_sample_statistics(
-        post.posterior, pyrat.ret.params, pyrat.ret.pstep, quantile=0.9545,
-    )
-    ifree = pyrat.ret.pstep > 0
-    nfree = np.sum(ifree)
-    params_posterior = np.zeros((nquantiles, nfree))
-    params_posterior[0] = stats_1sigma[0][ifree]
-    params_posterior[1] = stats_1sigma[3][ifree]
-    params_posterior[2] = stats_1sigma[4][ifree]
-    params_posterior[3] = stats_2sigma[3][ifree]
-    params_posterior[4] = stats_2sigma[4][ifree]
-
-
-    # Unique posterior samples:
-    u, uind, uinv = np.unique(
-        post.posterior[:,0], return_index=True, return_inverse=True,
-    )
-    n_unique = len(u)
-    print(f'Computing {len(u):d} models for posteriors post-processing')
-
-    # Array of all model parameters (with unique samples)
-    u_posterior = np.repeat([pyrat.ret.params], n_unique, axis=0)
-    u_posterior[:,ifree] = post.posterior[uind]
-
-    is_eclipse = pyrat.od.rt_path in pc.eclipse_rt
-    is_emission = pyrat.od.rt_path in pc.emission_rt
-    is_transmission = pyrat.od.rt_path in pc.transmission_rt
-
-    nbands = pyrat.obs.ndata
-    band_wl = pyrat.obs.band_wl
-    half_widths = pyrat.obs.half_widths
-    ndata_hires = pyrat.obs.nbands_hires
-    band_labels = [band.name for band in pyrat.obs.bands]
-    if ndata_hires != 0:
-        nbands = ndata_hires
-        band_wl = np.array([band.wl0 for band in pyrat.obs.bands_hires])
-        half_widths = [band.half_width for band in pyrat.obs.bands_hires]
-        band_labels = None
-
-    pyrat.spec.specfile = None
-    nwave = pyrat.spec.nwave
-    n_tls = pyrat.tls.n_models
-    n_offsets = pyrat.obs.depth.n_offsets
-
-    # Evaluate models / spectra:
-    models = np.zeros((n_unique, nwave))
-    band_models = np.zeros((n_unique, nbands))
-    temp = np.zeros((n_unique, pyrat.atm.nlayers))
-    vmr = np.zeros((n_unique, pyrat.atm.nlayers, pyrat.atm.nmol))
-    cf = np.zeros((n_unique, pyrat.atm.nlayers, nbands))
-    data = np.zeros((n_unique, nbands))
-    offset = np.zeros((n_unique, nbands))
-    tls_epsilon = np.zeros((n_unique, n_tls, nwave))
-    tls_spectra = np.zeros((n_unique, n_tls, nwave))
-    tls_offset = np.zeros((n_unique, nbands))
-    # opacity contributions
-    if contributions:
-        cs_contributions = pyrat.opacity.collect_contributions()
-    else:
-        cs_contributions = []
-    n_contrib = len(cs_contributions)
-    cs_models = np.zeros((n_unique, n_contrib, nwave))
-
-    t0 = time.time()
-    pyrat.cs_contributions = cs_contributions
-    with Pool(ncpu, initializer=init_pool, initargs=(pyrat,)) as pool:
-        for i,output in enumerate(pool.imap_unordered(multi_post, u_posterior)):
-            models[i], band_models[i], temp[i], vmr[i], cf[i], data[i] = output[:6]
-            if n_offsets > 0:
-                offset[i] = output[6]
-            if n_tls > 0:
-                tls_epsilon[i], tls_spectra[i], tls_offset[i] = output[7:10]
-            if contributions:
-                cs_models[i,:] = output[10:]
-            if i%5 == 0:
-                timeleft = eta(time.time()-t0, i+1, n_unique, fmt='.2f')
-                eta_text = (
-                    f'{i+1}/{n_unique} samples, '
-                    f'{100*(i+1)/n_unique:.2f} % done, '
-                    f'ETA: {timeleft}'
-                )
-                print(f'{eta_text:80s}', end='\r', flush=True)
-
-    total_time = f'{(time.time()-t0)/60.0:.3f} min'
-    endline = f'{100*(i+1)/n_unique:6.2f} % done in {total_time}'
-    print(f'{endline:80s}', flush=True)
-
-
     spectrum_posterior = np.zeros((nquantiles, nwave))
-    cs_contribution_posterior = np.zeros((nquantiles, n_contrib, nwave))
+    cs_contribution_posterior = np.zeros((nquantiles, n_absorbers, nwave))
     tls_posterior = np.zeros((nquantiles, n_tls, nwave))
     tls_spectra_posterior = np.zeros((nquantiles, n_tls, nwave))
     for i in range(nwave):
@@ -584,7 +551,7 @@ def posterior_post_processing(
             tls_posterior[:,:,i] = np.quantile(sample, quantiles, axis=0)
             sample = tls_spectra[uinv,:,i]
             tls_spectra_posterior[:,:,i] = np.quantile(sample, quantiles, axis=0)
-        if contributions:
+        if per_absorber:
             sample = cs_models[uinv,:,i]
             cs_contribution_posterior[:,:,i] = np.quantile(sample, quantiles, axis=0)
 
@@ -600,6 +567,21 @@ def posterior_post_processing(
     cf_posterior = cf[uinv]
     cf_median = np.median(cf_posterior, axis=0)
 
+    # Parameter statistics
+    stats_1sigma = mc3.stats.calc_sample_statistics(
+        post.posterior, pyrat.ret.params, pyrat.ret.pstep, quantile=0.683,
+    )
+    stats_2sigma = mc3.stats.calc_sample_statistics(
+        post.posterior, pyrat.ret.params, pyrat.ret.pstep, quantile=0.9545,
+    )
+    nfree = np.sum(ifree)
+    params_posterior = np.zeros((nquantiles, nfree))
+    params_posterior[0] = stats_1sigma[0][ifree]
+    params_posterior[1] = stats_1sigma[3][ifree]
+    params_posterior[2] = stats_1sigma[4][ifree]
+    params_posterior[3] = stats_2sigma[3][ifree]
+    params_posterior[4] = stats_2sigma[4][ifree]
+
     # Collect spectroscopically active species
     active_species = []
     for model in pyrat.opacity.models:
@@ -609,19 +591,17 @@ def posterior_post_processing(
             model_species = [model.species]
         else:
             model_species = list(model.species)
+        # TBD: remove second condition
         if model.name == 'H- continuum' and 'H-' in pyrat.atm.species:
             model_species.append('H-')
         for spec in model_species:
             if spec not in active_species:
                 active_species.append(spec)
-    # Now sort according to species
-    # TBD
 
     if pyrat.od.rt_path == 'f_lambda':
         flux_units = 'W m-2 um-1'
     else:
         flux_units = 'erg s-1 cm-2 cm'
-
     units = {
         'depth': pyrat.obs.units,
         'flux': flux_units,
@@ -648,7 +628,7 @@ def posterior_post_processing(
         'band_models_posterior': band_models_posterior,
         'cf_posterior_median': cf_median,
     }
-    if n_contrib > 0:
+    if per_absorber:
         outputs['absorber_contribution_labels'] = cs_contributions
         outputs['absorber_contribution_posterior'] = cs_contribution_posterior
     if n_tls > 0:
@@ -666,7 +646,7 @@ def posterior_post_processing(
         'pressure': pyrat.atm.press,
         'wl': pyrat.spec.wl,
         'band_wl': band_wl,
-        'band_half_widths': half_widths,
+        'band_half_widths': pyrat.obs.half_widths,
         'species': pyrat.atm.species,
         'active_species': active_species,
         'starflux': pyrat.spec.starflux,
@@ -674,11 +654,12 @@ def posterior_post_processing(
         'units': units,
         'path': pyrat.od.rt_path,
     }
+
     if pyrat.obs.data is not None:
         outputs['data_posterior'] = data_posterior
         outputs['data'] = pyrat.obs.depth.data
         outputs['uncert'] = pyrat.obs.uncert
-        outputs['band_labels'] = band_labels
+        outputs['band_labels'] = [band.name for band in pyrat.obs.bands]
     if pyrat.obs.data_hires is not None:
         outputs['data_hires'] = pyrat.obs.data_hires
         outputs['uncert_hires'] = pyrat.obs.uncert_hires
@@ -689,13 +670,10 @@ def posterior_post_processing(
     outputs['fig_resolution'] = pyrat.fig.resolution
     outputs['fig_data_color'] = pyrat.fig.data_color
 
-    post_file = f'{basename}{suffix}_posteriors_info.pickle'
+    post_file = f'{basename}_posteriors_info.pickle'
     with open(post_file, 'wb') as handle:
         pickle.dump(outputs, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     # Now make some plots
     pp.posteriors(post_file)
-
-    return outputs
-
 

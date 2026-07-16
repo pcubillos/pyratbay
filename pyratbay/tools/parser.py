@@ -1141,9 +1141,9 @@ def parse(cfile, with_log=True, mute=False):
         post = post.lower()
         if post in ['none', 'false']:
             post = None
-        elif post not in ['true', 'full']:
+        elif post not in ['true', 'loo', 'oat']:
             log.error(
-                f"Invalid post_processing argument {repr(args.post_processing)}, value must be 'False', 'True', or 'full'"
+                f"Invalid post_processing argument {repr(args.post_processing)}, value must be 'False', 'True', 'loo', or 'oat'"
             )
         args.post_processing = post
 
