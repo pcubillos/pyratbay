@@ -820,7 +820,7 @@ def wn_mask(wn, wn_min, wn_max, tol=1.0e-8):
     return wn_mask
 
 
-def inst_convolution(wl, spectrum, resolution, sampling_res=None, mode='same'):
+def inst_convolution(wl, spectrum, resolution, sampling_res=None):
     """
     Convolve a spectrum according to an instrumental resolving power
 

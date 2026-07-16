@@ -58,12 +58,14 @@ def main():
         help='Run Pyrat Bay for given configuration file.',
     )
     group.add_argument(
-        '--post',
-        help='Post-processing posterior data after a retrieval run.',
-    )
-    group.add_argument(
-        '--full_post',
-        help='Post-processing posterior data after a retrieval run.',
+        '--post', nargs='+',
+        help=(
+            "Post-processing posterior after a retrieval. Up to two "
+            "arguments are expected. First argument is the configuration "
+            "file. Second (optional) argument if provided computes "
+            "contributions from individual absorbers: set "
+            "'loo' for leave-one-out or 'oat' for one-at-a-time contributions"
+        ),
     )
     group.add_argument(
         '-pf', dest='pf', default=None, nargs='+',
@@ -121,11 +123,13 @@ def main():
 
     # Post processing
     elif args.post is not None:
-        pb.tools.posterior_post_processing(cfg_file=args.post)
-    elif args.full_post is not None:
+        if len(args.post) > 2:
+            raise ValueError('argument --post: expect one or two argument')
+        cfg = args.post[0]
+        contributions = None if len(args.post)==1 else args.post[1]
         pb.tools.posterior_post_processing(
-            cfg_file=args.full_post,
-            contributions=True,
+            cfg_file=cfg,
+            contributions=contributions,
         )
 
 
