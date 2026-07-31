@@ -223,7 +223,7 @@ Lets break this down:
  
      The other relevant planetary parameters set the planet mass, the
      planet radius, and the pressure at the given planet radius
-     (``refpressure``).
+     (``ref_pressure``).
 
 
   .. tab-item:: Atmosphere
@@ -252,7 +252,7 @@ Lets break this down:
      ``radmodel`` tells the code to compute the atmospheric layers'
      altitude under hydrostatic equilibrium assuming :math:`g(r) =
      GM/r^2` and boundary condition from ``rplanet`` and
-     ``refpressure`` (:math:`r(p_{\rm ref}) = r_{\rm p}`).
+     ``ref_pressure`` (:math:`r(p_{\rm ref}) = r_{\rm p}`).
 
      .. literalinclude:: ../../_static/data/wasp69b_radeq_1x_solar_metallicity.cfg
         :language: ini

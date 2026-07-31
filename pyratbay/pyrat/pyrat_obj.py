@@ -274,7 +274,7 @@ class Pyrat():
         if ret.irad is not None:
             self.atm.rplanet = params[ret.irad][0] * pt.u(atm.runits)
         elif ret.ipress is not None:
-            self.atm.refpressure = 10.0**params[ret.ipress][0]
+            self.atm.ref_pressure = 10.0**params[ret.ipress][0]
 
         if ret.imass is not None:
             self.atm.mplanet = params[ret.imass][0] * pt.u(self.atm.mass_units)

@@ -519,7 +519,7 @@ def posterior_post_processing(cfg_file=None, pyrat=None, contributions=None):
             elif contributions == 'oat':
                 skip = [spec for spec in cs_contributions if spec != absorber]
             cs_models[i,k], _ = pyrat.eval(u_posterior[i], skip=skip)
-        if j%5 == 0 and rank==0:
+        if (j+1)%4 == 0 and rank==0:
             timeleft = eta(time.time()-t0, size*j+1, n_unique, fmt='.2f')
             eta_text = (
                 f'{size*j+1}/{n_unique} samples, '

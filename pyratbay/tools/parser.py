@@ -589,7 +589,8 @@ def parse(cfile, with_log=True, mute=False):
         parse_str(args, 'mstar')
         parse_str(args, 'distance')
         parse_str(args, 'rplanet')
-        parse_str(args, 'refpressure')
+        parse_str(args, 'ref_pressure')
+        parse_str(args, 'refpressure')  # Deprecated
         parse_str(args, 'mplanet')
         parse_str(args, 'mpunits')
         parse_float(args, 'gplanet')
@@ -813,6 +814,15 @@ def parse(cfile, with_log=True, mute=False):
         'radmodel', 'Radius-profile model', pc.radmodels)
 
     # Pressure inputs:
+    if args.refpressure is not None:
+        if args.ref_pressure is None:
+            args.ref_pressure = args.refpressure
+        warning_msg = (
+            "'refpressure' argument is deprecated and will be removed in "
+            "the future, use 'ref_pressure' instead "
+        )
+        warnings.warn(warning_msg, category=DeprecationWarning)
+
     args.nlayers = args.get_default(
         'nlayers', 'Number of atmospheric layers', gt=1,
     )
@@ -824,8 +834,8 @@ def parse(cfile, with_log=True, mute=False):
         punits = args.get_units('pbottom')
     elif punits is None and args.ptop is not None:
         punits = args.get_units('ptop')
-    elif punits is None and args.refpressure is not None:
-        punits = args.get_units('refpressure')
+    elif punits is None and args.ref_pressure is not None:
+        punits = args.get_units('ref_pressure')
     args.punits = punits
 
     args.pbottom = args.get_param(
@@ -836,8 +846,8 @@ def parse(cfile, with_log=True, mute=False):
         'ptop', punits, 'Pressure at top of atmosphere',
         gt=0.0, output_units='bar',
     )
-    args.refpressure = args.get_param(
-        'refpressure', punits, 'Planetary reference pressure level',
+    args.ref_pressure = args.get_param(
+        'ref_pressure', punits, 'Planetary reference pressure level',
         gt=0.0, output_units='bar',
     )
 

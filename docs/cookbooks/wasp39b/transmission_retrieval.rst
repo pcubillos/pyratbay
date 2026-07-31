@@ -217,9 +217,9 @@ Lets break this down:
      and the planetary mass, radius, and reference pressure.
 
      Note that this ``rplanet`` value is the reference altitute
-     situated at the ``refpressure`` pressure (this is the constrain
+     situated at the ``ref_pressure`` pressure (this is the constrain
      to compute the layer's :math:`r(p)` profile under hydrostatic
-     equilibrium).  Also note that ``refpressure`` does not need to be
+     equilibrium).  Also note that ``ref_pressure`` does not need to be
      at one of the sampled layers (it can be anywhere in between the
      atmosphere pressure range).
 

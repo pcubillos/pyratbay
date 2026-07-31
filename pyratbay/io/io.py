@@ -389,7 +389,7 @@ def write_spectra(spectra, wl, temperatures, filename):
 
 def read_spectra(filename):
     """
-    Write flux spectra as function of wavelength and temperature to file.
+    Read flux spectra as function of wavelength and temperature.
 
     Parameters
     ----------

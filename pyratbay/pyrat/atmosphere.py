@@ -114,7 +114,7 @@ class Atmosphere():
         self.rhill = np.inf
         self.smaxis = inputs.smaxis
 
-        self.refpressure = inputs.refpressure
+        self.ref_pressure = inputs.ref_pressure
         self.tmodelname = inputs.tmodelname
         self.tpars = inputs.tpars
 
@@ -506,7 +506,7 @@ class Atmosphere():
             self.radius = self.rad_model(
                 self.press, self.temp, self.mm,
                 self.mplanet, self.gplanet,
-                self.refpressure, self.rplanet,
+                self.ref_pressure, self.rplanet,
             )
         else:
             pass
@@ -824,12 +824,12 @@ class Atmosphere():
             self.ptop*pc.bar/pt.u(self.punits), self.punits)
         fw.write('Pressure at bottom of atmosphere (pbottom):  {:.2e} {}',
             self.pbottom*pc.bar/pt.u(self.punits), self.punits)
-        if self.refpressure is None:
+        if self.ref_pressure is None:
             ref_pressure = None
         else:
-            ref_pressure = self.refpressure*pc.bar/pt.u(self.punits)
+            ref_pressure = self.ref_pressure*pc.bar/pt.u(self.punits)
         fw.write(
-            'Reference pressure at rplanet (refpressure): {:.2e} {}',
+            'Reference pressure at rplanet (ref_pressure): {:.2e} {}',
             ref_pressure, self.punits,
         )
         fw.write(
@@ -1057,8 +1057,8 @@ def check_altitude(inputs, log, vmr_status):
         err += ['Undefined planet radius (rplanet).']
     if inputs.mplanet is None and inputs.gplanet is None:
         err += ['Undefined planet mass (mplanet) or surface gravity (gplanet).']
-    if inputs.refpressure is None:
-        err += ['Undefined reference pressure level (refpressure).']
+    if inputs.ref_pressure is None:
+        err += ['Undefined reference pressure level (ref_pressure).']
 
     if len(err) != 0:
         error_message = '\n'.join(err)

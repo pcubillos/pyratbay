@@ -433,7 +433,7 @@ Pressure display units (punits): bar
 Pressure internal units: bar
 Pressure at top of atmosphere (ptop):        1.00e-06 bar
 Pressure at bottom of atmosphere (pbottom):  1.00e+02 bar
-Reference pressure at rplanet (refpressure): 1.00e-01 bar
+Reference pressure at rplanet (ref_pressure): 1.00e-01 bar
 Pressure profile (press, bar):
     [1.000e-06 1.445e-06 2.089e-06 ... 4.786e+01 6.918e+01 1.000e+02]
 
