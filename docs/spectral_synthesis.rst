@@ -9,14 +9,14 @@ This tutorial shows how compute transmission, emission, or eclipse
 spectra with ``Pyrat Bay``.
 
 - :ref:`spec_config`
-- :ref:`spec_system`
-- :ref:`spec_star`
 - :ref:`spec_wavelength`
+- :ref:`spec_system`
+- :ref:`spec_sed`
 - :ref:`spec_atmosphere`
 - :ref:`spec_cross_sec`
 - :ref:`spec_tls`
 - :ref:`spec_observations`
-- :ref:`spec_parameters`
+- :ref:`spec_outputs`
 - :ref:`spec_demo`
 
 
@@ -25,12 +25,48 @@ spectra with ``Pyrat Bay``.
 Configuration File
 ------------------
 
-To compute spectra, use a configuration file with the ``runmode`` key
-set to ``spectrum``.  Spectrum runs also require a ``logfile`` key,
-which sets the name of the output log and spectrum files.
+``Pyrat Bay`` runs are defined via configuration files.
+Here is a sample configuration file to compute a transmission
+spectrum:
+
+.. raw:: html
+
+   <details>
+   <summary>Click here to show/hide: spectral_synthesis_transmission.cfg</summary>
+
+.. literalinclude:: _static/data/spectral_synthesis_transmission.cfg
+   :language: ini
+   :caption: File `spectral_synthesis_transmission.cfg <_static/data/spectral_synthesis_transmission.cfg>`__
+.. raw:: html
+
+   </details>
 
 
-**Observing Geometry**
+To compute forward-model spectra, a configuration file must have:
+
+
+- a ``runmode`` key set to ``spectrum``
+- a ``logfile`` key that defines the name of the output log and
+  spectrum files
+- a ``rt_path`` key that defines the observing geometry
+
+
+.. code-block:: ini
+
+    # Pyrat Bay run mode [tli atmosphere spectrum radeq opacity retrieval]
+    runmode = spectrum
+
+    # Output files
+    logfile = transmission_spectrum_tutorial.log
+
+    # Radiative-transer observing geometry, select from: [transit emission]
+    rt_path = transit
+
+
+.. _obs_geometry:
+
+Observing Geometry
+~~~~~~~~~~~~~~~~~~
 
 The ``rt_path`` key sets the radiative-transfer scheme and observing
 geometry to use.  These are the options:
@@ -57,12 +93,12 @@ geometry to use.  These are the options:
 
    * - Eclipse
      - ``eclipse``
-     - |Fp|/|Fs|
+     - |Fp|/|Fs| * (|Rp|/|Rs|)\ :sup:`2`
      - Occultation spectrum
 
    * - Eclipse
      - ``eclipse_two_stream``
-     - |Fp|/|Fs|
+     - |Fp|/|Fs| * (|Rp|/|Rs|)\ :sup:`2`
      - Appendix B of [Heng2014]_
 
    * -
@@ -85,19 +121,66 @@ geometry to use.  These are the options:
      - |Fp| (|flux_lambda|)
      - Flux measured at Earth
 
-
-Here is a sample configuration file to compute a
-transmission spectrum:
-
-
-.. literalinclude:: _static/data/spectral_synthesis_transmission.cfg
-   :language: ini
-   :caption: File `spectral_synthesis_transmission.cfg <_static/data/spectral_synthesis_transmission.cfg>`__
+.. Note:: These |Fp| fluxes are at the surface of the object, except
+          for the last option ``f_lambda``, which evaluates the flux
+          received at Earth.
 
 
-The output spectrum can be set with the ``specfile`` key, otherwise it
-is taken from the ``logfile`` name (replacing the `.log` file
-extension with `.dat`)
+.. _spec_wavelength:
+
+Spectrum sampling
+-----------------
+
+The ``wl_low`` and ``wl_high`` keys set the wavelength boundaries for
+the output spectrum. Values should contain the units:
+
+.. code-block:: ini
+
+    # Wavelength sampling
+    wl_low  = 0.3 um
+    wl_high = 5.0 um
+
+
+If the run includes sampled cross-section files (see :ref:`cs_sampled`),
+the wavelength sampling will be taken from these files.  Otherwise, it
+can be defined via the ``resolution`` key:
+
+
+.. tab-set::
+
+  .. tab-item:: From line sample file
+     :selected:
+
+     When reading from a ``sampled_cross_sec`` file, the wavelength
+     array can optionally be down-sampled using the ``wl_thinning``
+     key. For example, ``wl_thinning = 4`` means every 4th
+     sample is kept.
+
+
+
+     .. code-block:: ini
+
+         # Wavelength sampling
+         wl_low  = 0.3 um
+         wl_high = 5.0 um
+         # Down-sample by a factor of 4
+         wl_thinning = 4
+
+         # Line-sampled cross sections
+         sampled_cross_sec =
+             inputs/cross_section_0.15-33.0um_0200-5000K_R025K_H2O_exomol_pokazatel.npz
+
+
+  .. tab-item:: From resolution
+
+     Sampling resolution is defined as :math:`R=\lambda/\Delta\lambda`:
+
+     .. code-block:: ini
+
+         # Wavelength sampling
+         wl_low  = 0.3 um
+         wl_high = 5.0 um
+         resolution = 50_000
 
 
 .. _spec_system:
@@ -105,19 +188,65 @@ extension with `.dat`)
 System parameters
 -----------------
 
-The system parameters have multiple uses.
+Users must define stellar and planetary system parameters:
 
-Hill radius
-~~~~~~~~~~~
 
-The ``mstar``, ``mplanet``, and ``smaxis`` keys set the stellar mass,
-planetary mass, and orbital semi-major axis.  If these keys are set in
-the configuration file, the code will compute the planetary Hill
-radius (:math:`R_{\rm H} = a \sqrt[3]{M_{\rm p}/3M_{\rm s}}`).  In
-such case, ``Pyrat Bay`` will neglect atmospheric layers at altitudes
-larger than :math:`R_{\rm H}`, since they should not be
-gravitationally bound to the planet.
+.. tab-set::
 
+  .. tab-item:: Minimum required
+     :selected:
+
+     These is the minimum set of parameter that must be defined:
+
+     .. code-block:: ini
+
+         # System parameters
+         rstar = 1.27 rsun
+         mplanet = 0.6 mjup
+         rplanet = 1.0 rjup
+         ref_pressure = 0.1 bar
+
+  .. tab-item:: All parameters
+
+     These are all available system parameters:
+
+     .. code-block:: ini
+
+         # System parameters
+         rstar = 1.27 rsun
+         mstar = 1.1 msun
+         tstar = 6000.0
+         log_gstar = 4.5
+         distance = 91.5 parsec
+
+         mplanet = 0.6 mjup
+         rplanet = 1.0 rjup
+         smaxis = 0.045 au
+         tint = 100.0
+         beta_irr = 0.66
+         ref_pressure = 0.1 bar
+
+
+These enable the code to compute planet-to-star radius ratios
+(**transmission spectroscopy**), planet-to-star flux ratios (**eclipse
+spectroscopy**, compute the atmospheric gravity, solve the
+hydrostatic-equilibrium equation, and more.
+
+Temperatures are always in K (no units are needed).  For other inputs
+the :ref:`units <units>` can be chosen at convenience.
+
+Here are some notes on the system parameters:
+
+-  ``ref_pressure`` is the atmospheric pressure at ``rplanet``
+- ``distance``: required to compute flux at Earth for the ``rt_path = f_lambda`` :ref:`observing geometry <obs_geometry>`
+- ``tstar``: required to define stellar SED (see :ref:`SED <spec_sed>` section)
+- ``log_gstar``: required for Kurucz input SED
+- ``tint``: internal planetary heat, required for radiative equilibrium (see :ref:`radeq <wasp69b_config>` example)
+- ``beta_irr``: incident irradiation factor, required for radiative
+  equilibrium (see :ref:`radeq <wasp69b_config>` example)
+- ``smaxis``: orbital semi-major axis. Required for radiative
+  equilibrium (:ref:`radeq <wasp69b_config>`) or Hill-radius calculation
+- ``mstar``: required to calculate planetary Hill radius
 
 
 Radius ratio
@@ -131,19 +260,27 @@ stellar and planetary radius.  The eclipse depths can then be computed as:
     {\rm Eclipse\ depth} = \frac{F_{\rm p}}{F_{\rm s}}
                   \left(\frac{R_{\rm p}}{R_{\rm s}}\right)^2
 
-The ``tstar`` key sets the stellar effective temperature, which can be
-used to define a stellar blackbody spectrum (|Fs|, see :ref:`starspec`).
+Hill radius
+~~~~~~~~~~~
+
+When the ``mstar``, ``mplanet``, and ``smaxis`` keys are defined, the
+code will compute the planetary Hill radius (:math:`R_{\rm H} = a
+\sqrt[3]{M_{\rm p}/3M_{\rm s}}`).  In such case, ``Pyrat Bay`` will
+neglect atmospheric layers at altitudes larger than :math:`R_{\rm H}`,
+since they should not be gravitationally bound to the planet.
 
 
-.. _spec_star:
+.. _spec_sed:
 
 Stellar Spectrum
 ----------------
 
-The stellar spectrum is required to compute eclipse depths as the
-planet-to-star flux spectrum (for transit calculations, a stellar
-spectrum is not required).  ``Pyrat Bay`` provides several options to
-set a stellar spectrum.
+- For *eclipse* calculations, a stellar SED is required to compute the
+  planet to star flux ratio.
+- For *transit* calculations, a stellar SED is necessary in case a TLS
+  model is required.
+
+``Pyrat Bay`` provides several options to set a stellar spectrum.
 
 .. tab-set::
 
@@ -268,32 +405,6 @@ mix of them.  The rules are simple:
      .. if calculate p, any further reads (T,VMR,r) will interpolate
 
 
-.. _spec_wavelength:
-
-Spectrum sampling
------------------
-
-The ``wl_low`` and ``wl_high`` keys set the wavelength boundaries for
-the output spectrum (values must contain units; otherwise, set the
-units with the ``wlunits`` key).
-
-
-The ``wnstep`` sets the sampling rate in |kayser|.  Note that this
-will be the output sampling rate.  Internally, ``Pyrat Bay`` must
-compute line profiles at a higher resolution to ensure not to
-undersample the line profiles.  The ``wnosamp`` key (an integer) sets
-the oversampling factor of the high-resolution sampling relative to
-``wnstep`` (that is, the high-resolution sampling rate is
-``wnstep/wnosamp``).  Typical values for the optical/IR are ``wnstep =
-1.0`` and ``wnosamp = 2000``.
-
-.. https://en.wikipedia.org/wiki/Highly_composite_number
-
-Alternatively, the user can request a constant-resolution output by
-setting the ``resolution`` key (where the resolution is
-:math:`R=\lambda/\Delta\lambda`).
-
-
 .. _spec_cross_sec:
 
 Cross sections
@@ -317,21 +428,6 @@ Transit light source
 A transit light source correction (TLS) due to unocculted spots and
 faculae can be enabled with the ``tls_model`` argument.  This is an
 implementation model from [Rackham2018]_. Details are TBD.
-
-
-Flux dilution factor
-~~~~~~~~~~~~~~~~~~~~
-
-Set the ``f_dilution`` argument to set an flux dilution factor
-[Taylor2020]_, with values between 0--1, which compensates for
-emission from an inhomogeneous atmosphere.  The dilution factor
-represents the fractional area of the hottest region on the planet
-(assuming that the colder regions flux is negligible in comparison).
-
-.. code-block:: python
-
-  # Flux dilution factor, value between [0--1]:
-  f_dilution = 0.85
 
 
 .. _spec_observations:
@@ -436,54 +532,68 @@ Spitzer/MIPS      24.0                       `spitzer_mips.dat <https://github.c
 
 .. _spec_parameters:
 
-Fitting parameters
-------------------
+Other parameters
+----------------
 
 
-Number of CPUs
-~~~~~~~~~~~~~~
+Flux dilution factor
+~~~~~~~~~~~~~~~~~~~~
 
-The ``ncpu`` key sets the number of CPUs to use when computing LBL
-opacities or when running retrievals (default: ``ncpu = 1``).
+Set the ``f_dilution`` argument to set an flux dilution factor
+[Taylor2020]_, with values between 0--1, which compensates for
+emission from an inhomogeneous atmosphere.  The dilution factor
+represents the fractional area of the hottest region on the planet
+(assuming that the colder regions flux is negligible in comparison).
+
+.. code-block:: python
+
+  # Flux dilution factor, value between [0--1]:
+  f_dilution = 0.85
+
+.. _spec_outputs:
+
+Figures and screen outputs
+--------------------------
+
+These options define screen and figure options:
+
+.. code-block:: python
+
+  # Screen-output verbosity
+  verb = 2
+
+  # Plotting options
+  theme = xkcd:blue
+  fig_resolution = 150.0
+  data_color = black
+  log_wl = 0.3 0.5 0.7 1.0 2.0 3.0 5.0
 
 Verbosity
 ~~~~~~~~~
 
-The ``verb`` key sets the screen-output and logfile verbosity level.
-Higher ``verb`` values will display increasingly levels of detail
-according to the following table:
+The ``verb`` key sets the screen-output verbosity.  Higher ``verb``
+values will display increasingly levels of detail according to the
+following table:
 
 ========  =====================
 ``verb``  Screen Outputs
 ========  =====================
-<0        Errors
-0         Warnings
-1         Headlines
-2         Details
-3         Debug
+<0        Only errors
+0         Errors and warnings
+1         Minimal output
+2         Detailed outputs
+3         Everything (for debugging)
 ========  =====================
 
+Figures
+~~~~~~~
 
-Plane-parallel Hemispheric Integration
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-For eclipse geometry, the code computes the emergent intensity under
-the plane-parallel approximation, and then it integrates (sums)
-intensity spectra at different angles with respect to the normal to
-model the emitted flux spectrum.  The ``raygrid`` sets the angles (in
-degrees) where to evaluate these intensities (default: ``raygrid = 0
-20 40 60 80``).  The user can set custom values for these angles as
-long as: (1) the first value is zero (normal to the planet's
-'surface'), (2) they lie in the [0,90) range, and (3) they are
-increasing order.
-
-Alternatively, the user can set the ``quadrature`` key to perform a
-Gaussian-quadrature integration, where the ``quadrature`` value sets
-number of Gaussian-quadrature points (in which case, ``raygrid`` will
-be ignored).
-
-.. Plots: logxticks
-          yran
+- ``theme`` sets the *color* theme for the models. This can be any valid `matplotlib color value <https://matplotlib.org/stable/users/explain/colors/colors.html#colors-def>`__
+- ``data_color`` sets the color for data points
+- ``fig_resolution`` sets the spectral resolution of the *output figures*
+- ``log_wl``, *if defined*, spectra will be plotted in log scale for the
+  wavelength, and place wavelength tick marks at the specified values (in
+  microns)
 
 ----------------------------------------------------------------------
 
@@ -492,23 +602,20 @@ be ignored).
 Examples
 --------
 
-.. note:: Before running this example, make sure that you have
-   generated the TLI file from the :ref:`tli_tutorial_example`,
-   generated the atmospheric profiles from the
-   :ref:`abundance_tutorial_example`, and download the configuration
-   file shown above, e.g., with these shell commands:
+Here's a quick transmission-spectrum example using the configure file
+from :ref:`above <spec_config>`.  You will need to download these two
+files, e.g, with the ``wget`` command:
 
-   .. code-block:: shell
+.. code-block:: shell
 
-       tutorial_path=https://raw.githubusercontent.com/pcubillos/pyratbay/master/examples/tutorial
-       wget https://zenodo.org/records/16965391/files/cross_section_0.15-33.0um_0200-5000K_R025K_H2O_exomol_pokazatel.npz
+    wget https://github.com/pcubillos/pyratbay/blob/master/docs/_static/data/spectral_synthesis_transmission.cfg
+    wget https://zenodo.org/records/16965391/files/cross_section_0.15-33.0um_0200-5000K_R025K_H2O_exomol_pokazatel.npz
 
 
-In an interactive run, a spectrum run returns a '*pyrat*' object that
-contains all input, intermediate, and output variables used to compute
-the spectrum.  The following Python script computes and plots a
-transmission spectrum using the configuration file found at the top of
-this tutorial:
+In an interactive run, the code creates a ``pyrat`` object that
+contains all input and output variables used to compute the spectrum.
+The following Python script computes and plots a transmission spectrum
+using the configuration file found at the top of this tutorial:
 
 .. code-block:: python
 
@@ -517,45 +624,44 @@ this tutorial:
 
     import pyratbay as pb
     import pyratbay.constants as pc
+    import pyratbay.spectrum as ps
 
-    pyrat = pb.run('spectrum_transmission.cfg')
+    pyrat = pb.run('spectral_synthesis_transmission.cfg')
 
-    # Plot the resulting spectrum:
-    wl = 1.0 / (pyrat.spec.wn*pc.um)
+    # Plot the resulting spectrum
+    wl = pyrat.spec.wl
     depth = pyrat.spec.spectrum / pc.percent
-    wl_ticks = [0.3, 0.5, 0.7, 1.0, 2.0, 3.0, 5.0]
+    bin_wl = ps.constant_resolution_spectrum(0.3, 5.0, resolution=150.0)
+    bin_depth = ps.bin_spectrum(bin_wl, wl, depth)
 
-    plt.figure(-3, (7,4))
+    fig = plt.figure(1)
+    fig.set_size_inches(8, 4)
     plt.clf()
     ax = plt.subplot(111)
-    plt.semilogx(wl, depth, "-", color='orange', lw=1.0)
+    ax.plot(wl, depth, color='royalblue', lw=1.0)
+    ax.plot(bin_wl, bin_depth, color='salmon', lw=1.75)
+    ax.set_xscale('log')
     ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
-    ax.set_xticks(wl_ticks)
-    plt.xlim(0.3, 5.0)
-    plt.ylabel("Transit depth (Rp/Rs)$^2$ (%)")
-    plt.xlabel("Wavelength (um)")
+    ax.set_xticks(pyrat.fig.log_wl)
+    ax.set_xlim(0.3, 5.0)
+    ax.set_ylabel("Transit depth (%)", fontsize=12)
+    ax.set_xlabel("Wavelength (um)", fontsize=12)
+    ax.tick_params(direction='in', labelsize=11)
+    plt.tight_layout()
 
-    # Or, alternatively:
-    ax = pyrat.plot_spectrum()
 
 And the results should look like this:
 
 .. image:: ./figures/pyrat_transmission-spectrum_tutorial.png
-    :width: 70%
+    :width: 85%
     :align: center
 
 
-.. note:: Note that although the user can define most input units,
-          nearly all variables are stored in CGS units in the
-          '*pyrat*' object.
-
-The '*pyrat*' object is modular, and implements several convenience
-methods to plot and display its content, as in the following example:
+Or, alternatively:
 
 .. code-block:: python
 
-    # pyrat object's string representation:
-    print(pyrat)
+    import pyratbay as pb
 
-    # String representation of the spectral variables:
-    print(pyrat.spec)
+    pyrat = pb.run('spectral_synthesis_transmission.cfg')
+    ax = pyrat.plot_spectrum(resolution=500)
