@@ -65,6 +65,8 @@ References
 
 .. [Gordon2022] `Gordon et al. (2022): The HITRAN2020 molecular spectroscopic database <https://ui.adsabs.harvard.edu/abs/2022JQSRT.27707949G>`_
 
+.. [Gordon2026] `Gordon et al. (2026): The HITRAN2024 molecular spectroscopic database <https://ui.adsabs.harvard.edu/abs/2026JQSRT.35309807G>`_
+
 .. [Gorman2019] `Gorman et al. (2019): ExoMol molecular line lists XXXVI: X$^2\Pi$-X$^2\Pi$ and A$^2\Sigma$^+$ - X$^2\Pi$ transitions of SH <https://ui.adsabs.harvard.edu/abs/2019MNRAS.490.1652G>`_
 
 .. [Griffith2014] `Griffith (2014): Disentangling degenerate solutions from primary transit and secondary eclipse spectroscopy of exoplanets <https://ui.adsabs.harvard.edu/abs/2014RSPTA.37230086G>`_

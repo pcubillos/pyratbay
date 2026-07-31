@@ -536,6 +536,8 @@ Other parameters
 ----------------
 
 
+.. _spec_dilution:
+
 Flux dilution factor
 ~~~~~~~~~~~~~~~~~~~~
 

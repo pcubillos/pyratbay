@@ -14,8 +14,8 @@ Line Sampling
 
 .. note:: If you are simply interested in using cross sections rather
           than computing them, you can download cross sections ready to
-          use from `this <https://zenodo.org/records/16965391>`__ and
-          this `this <https://zenodo.org/records/17060937>`__ Zenodo
+          use from `this <https://zenodo.org/records/16965390>`__ and
+          this `this <https://zenodo.org/records/17060936>`__ Zenodo
           repository.
 
           Alternatively, ``Pyrat Bay`` can also directly use

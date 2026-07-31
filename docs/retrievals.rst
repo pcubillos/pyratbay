@@ -240,7 +240,7 @@ there are requirements to enable some of them.
      <tr><td colspan="3" style="border-bottom: 2px solid #999; padding: 0px 0px"></td></tr>
      <tr><td><code>T_spot_X</code></td>
          <td rowspan="2"><code>tls_X</code> in <code>tls_model</code>, <code>tls_folder</code> is defined, and <code>tstar</code> is defined</td>
-         <td rowspan="2">TLS correction to data points containing <code>X</code> in name. This allows to combine multi-epoch retrievals with specific TLS models.</td></tr>
+         <td rowspan="2">TLS correction to data points containing <code>X</code> in name. This enables <em>multi-epoch</em> retrievals with observation-specific TLS.</td></tr>
      <tr><td><code>f_spot_X</code></td></tr>
 
      <tr><td colspan="4" style="border-bottom: 3px solid #999;"></td></tr>
@@ -253,7 +253,7 @@ there are requirements to enable some of them.
      <tr><th rowspan="6">Solo</th><td><code>R_planet</code></td><td></td><td>radius at <code>log_p_ref</code></td></tr>
      <tr><td><code>log_p_ref</code></td><td></td><td>pressure at <code>R_planet</code>.<br><span>\( \log_{10}(p/{\rm bar}) \)</span> units</td></tr>
      <tr><td><code>M_planet</code></td><td></td><td>Planet mass</td></tr>
-     <tr><td><code>f_dilution</code></td><td></td><td>Emission dilution factor as in <a href="references.html#Taylor2020">TBD</a> </td></tr>
+     <tr><td><code>f_dilution</code></td><td></td><td>Emission dilution factor as in <a href="spectral_synthesis.html#flux-dilution-factor">Taylor et al. (2020)</a> </td></tr>
      <tr><td><code>T_eff</code></td><td></td><td>stellar effective temperature</td></tr>
      <tr><td><code>rv_shift</code></td><td></td><td>radial-velocity offset in km s<sup>-1</sup> </td></tr>
 
