@@ -20,6 +20,7 @@ class Observation():
         self.uncert = inputs.uncert
         self.data_hires = None
         self.uncert_hires = None
+        self.band_wl = None
         self.units = inputs.dunits
         self._dunits = pt.u(self.units)
 
