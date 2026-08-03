@@ -49,7 +49,7 @@ Recipes list:
   - :doc:`wasp107b_tls/transmission_retrieval`
   - :doc:`wasp18b/eclipse_retrieval`
   - :doc:`wasp69b/radiative_equilibrium`
-  - :doc:`yses1b/iso_ratio_retrieval` (TBD)
+  - :doc:`yses1b/iso_ratio_retrieval`
 
 ..   - JWST_proposal_simulation (TBD)
 ..  - :doc:`wasp18b/cross_sections_uhj`

@@ -229,7 +229,7 @@ there are requirements to enable some of them.
      <tr><th rowspan="1">Isotopic ratios</th>
          <td><code>iso_X</code></td>
          <td><code>X</code> in <code>isotope_ratios</code></td>
-         <td><span>\( \log_{10}({f}) \)</span>, where <span>\( f \)</span> is the isotopic fraction for isotope <code>X</code></td></tr>
+         <td><span>\( \log_{10}({f}) \)</span>, where <span>\( f \)</span> is the isotopic fraction for isotope <code>X</code> (see <a href="cookbooks/yses1b/iso_ratio_retrieval.html">Isotopic ratio retrievals</a> section)</td></tr>
 
      <tr><td colspan="4" style="border-bottom: 3px solid #999;"></td></tr>
      <tr><th rowspan="5">Transit light source (TLS)</th>
@@ -380,6 +380,7 @@ peer-reviewed articles:
 - :doc:`cookbooks/wasp39b/transmission_retrieval`
 - :doc:`cookbooks/wasp107b_tls/transmission_retrieval`
 - :doc:`cookbooks/wasp18b/eclipse_retrieval`
+- :doc:`cookbooks/yses1b/iso_ratio_retrieval`
 
 .. TBD: High-resolution direct-imaging
 

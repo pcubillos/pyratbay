@@ -6,11 +6,11 @@ Isotopic-ratio retrieval: YSES-1b
 =================================
 
 This tutorial shows how perform an atmospheric retrieval of direct
-imaging observations of YSES-1b with SINFONI.  Here we will learn
+flux observations of YSES-1b with SINFONI.  Here we will learn
 about atmospheric analyses including:
 
 - ground-based high-resolution data
-- direct imaging flux measurements
+- direct-imaging flux spectra measurements
 - isotopic-ratio modeling
 
 We can break the analysis into the following steps:
