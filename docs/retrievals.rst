@@ -258,7 +258,7 @@ there are requirements to enable some of them.
      <tr><td><code>rv_shift</code></td><td></td><td>radial-velocity offset in km s<sup>-1</sup> </td></tr>
 
      <tr><td colspan="4" style="border-bottom: 3px solid #999;"></td></tr>
-     <tr><th rowspan="4">Data manipulation</th><td><code>offset_X</code></td><td><code>offset_X</code> in <code>offset_inst</code></td><td>shift depth to data points containing <code>X</code> in name. Units as given in <code>dunits</code> argument</td></tr>
+     <tr><th rowspan="4">Data manipulation</th><td><code>offset_X</code></td><td><code>offset_X</code> in <code>offset_inst</code></td><td>shift depth to data points containing <code>X</code> in name. Units as given in <code>dunits</code> argument (see <a href="retrievals.html#depth-offsets">Depth offsets</a> section)</td></tr>
      <tr><td colspan="3" style="border-bottom: 2px solid #999; padding: 0px 0px;"></td></tr>
      <tr><td><code>scale_X</code></td><td><code>scale_X</code> in <code>uncert_scaling</code></td><td>scale uncertainty of data points containing <code>X</code> in name</td></tr>
      <tr><td><code>quadrature_X</code></td><td><code>quadrature_X</code> in <code>uncert_scaling</code></td><td>add noise in quadrature to data points containing <code>X</code> in name. Units as given in <code>dunits</code> argument</td></tr>
@@ -366,6 +366,85 @@ negative 5):
        [M/H]        0.0     -2.0     3.0    1.0
        [Na/H]       0.0     -2.0     3.0    1.0
        [K/H]        0.0     -2.0     3.0   -5.0
+
+----------------------------------------------------------------------
+
+.. _depth_offsets:
+
+Depth offsets
+-------------
+
+Here's a tutorial to include depth-offsets free paramters into a
+retrieval.
+
+Say we want to perform an atmospheric retrieval of a multi-instrument
+dataset of a target observed with NIRISS, NIRSpec, and MIRI. Here is
+the *observation file* for this retrieval (see
+:ref:`spec_observations`):
+
+.. code-block:: ini
+   :caption: File: obs_wasp39b_transit_jwst.dat
+
+   # Simulated JWST transit observation of WASP-39b
+   # with NIRISS/SOSS + NIRSpec/BOTS G395H + MIRI/LRS
+
+   @DEPTH_UNITS
+   percent
+
+   #     depth    depth_err   wavelength  half_width    instrument
+   @DATA
+       2.07687      0.01495     0.833679    0.002779    soss_order1
+       2.06726      0.01398     0.839255    0.002798    soss_order1
+       2.07929      0.01343     0.844869    0.002816    soss_order1
+       ...
+       2.16862      0.00987     2.876297    0.005753    nirspec_g395h
+       2.15072      0.01013     2.887825    0.005776    nirspec_g395h
+       2.10883      0.01002     2.899399    0.005799    nirspec_g395h
+       ...
+       2.04815      0.06303    11.386969    0.071169    miri_lrs
+       2.03650      0.07101    11.530202    0.072064    miri_lrs
+       1.99208      0.07887    11.675236    0.072970    miri_lrs
+
+
+Note that the provenance from each datapoint can be set via the
+instrument label (last element in each row).  This allow us to create
+dataset-specific offset parameters in the retrieval configuration file:
+
+.. code-block:: ini
+   :caption: File: wasp39b_retrieval_transit_jwst_with_offsets.cfg
+
+   # The observations
+   obsfile = obs_wasp39b_transit_jwst.dat
+   dunits = percent
+
+   # Instrumental depth offsets
+   offset_inst =
+       offset_soss
+       offset_g395h
+
+   retrieval_params =
+   #   Name       value      min     max   step
+       offset_soss    0.0    -0.05    0.05  1.0
+       offset_g395h   0.0    -0.05    0.05  1.0
+       ...
+
+The ``offset_inst`` key defines the offset models to use. The syntax
+is ``offset_inst``, where ``inst`` is the instrument identifier.  If a
+datapoint name contains the string ``inst``, it will be affected by
+this offset model.  For example, ``offset_soss`` will apply to all
+data points that contain ``soss`` in their instrument name, that is,
+the ``soss_order1`` values.
+
+As many offset models as desired can be set.  The only restriction is
+that no datapoint can be affected by more than one offset model (e.g.,
+``offset_order1`` and ``offset_order2`` could be created, but not
+``offset_soss`` and ``offset_order1``).
+
+Once an offset model is declared with the ``offset_inst`` key, they
+can be included in the list of retrieval parameters
+(``retrieval_params``).  The units of the offset parameter are defined
+by the ``dunits`` key.  The valid data units are ``none``,
+``percent``, ``ppt``, and ``ppm``.
 
 ----------------------------------------------------------------------
 
