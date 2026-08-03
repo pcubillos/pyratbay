@@ -21,26 +21,29 @@ al., that is, a retrieval of:
 
 We can break the analysis into the following steps:
 
-- :ref:`wasp39b_obs`
-- :ref:`wasp39b_cross_sec`
-- :ref:`wasp39b_config`
-- :ref:`wasp39b_run`
-- :ref:`wasp39b_stats`
+- :ref:`wasp39b_data`
+    - :ref:`wasp39b_obs_file`
+    - :ref:`wasp39b_cross_sec`
+
+- :ref:`wasp39b_retrievals`
+    - :ref:`wasp39b_config`
+    - :ref:`wasp39b_run`
+    - :ref:`wasp39b_stats`
 
 ----------------------------------------------------------------------
 
-.. _wasp39b_obs:
+.. _wasp39b_data:
 
-Setup
------
+File inputs
+-----------
 
 For the setup we will need three ingredients:
 
-#. A **configuration file** to define the system parameters, atmospheric model, posterior sampling, etc.
+- A **configuration file** to define the system parameters, atmospheric model, posterior sampling, etc.
 
-#. An **observation file** defining the data points: depths, uncertainties, and bin wavelengths
+- An **observation file** defining the data points: depths, uncertainties, and bin wavelengths
 
-#. **Cross-section files** for the atmospheric species
+- **Cross-section files** for the atmospheric species
 
 
 Lets start with the required input files, and then go over the
@@ -72,8 +75,8 @@ users define the depth units and where the data starts.
 
 .. _wasp39b_cross_sec:
 
-Cross sections
-~~~~~~~~~~~~~~
+Cross section files
+~~~~~~~~~~~~~~~~~~~
 
 Following the analysis of Welbanks et al., we will include
 line-sampled cross sections for these molecules: |H2O|, CO, |CO2|,
@@ -147,15 +150,20 @@ files (where you can customize at will).
 
      TBD
 
+.. _wasp39b_retrievals:
+
+Retrieval analysis
+------------------
 
 .. _wasp39b_config:
 
 Configuration file
 ~~~~~~~~~~~~~~~~~~
 
-Lastly, the configuration file will put together the inputs, define
-the atmospheric model, and configure the retrieval options.  Here
-below is the file we will use for the JWST observation of WASP-39b.
+A ``Pyrat Bay`` configuration file will put together the inputs,
+define the atmospheric model, and configure the retrieval options.
+Here below is the file we will use for the JWST observation of
+WASP-39b.
 
 .. raw:: html
 
@@ -170,8 +178,8 @@ below is the file we will use for the JWST observation of WASP-39b.
 
    </details>
 
-Lets break this down:
 
+Lets break this down:
 
 .. tab-set::
 
@@ -321,6 +329,8 @@ Lets break this down:
      range constraints (beyond those set by the temperature-model
      parameters).
 
+     **Figure and data outputs**
+
      ``theme`` and ``data_color`` allow you to customize the color of the
      models and data points in the output plots.  Any valid `matplotlib
      color
@@ -331,19 +341,33 @@ Lets break this down:
      to plot wavelengths axes in log scale with the given ticks (otherwise
      defaults to a linear scale).
 
-     The ``post_processing = True`` parameter indicates to compute median
-     +/-1sigma, and +/-2sigma statistics out of the posterior distribution.
-     Note that this is a post-process step done *after* the posterior
-     sampling is finished.  These statistics are computed for the spectra,
-     the temperature profiles, contribution functions, and VMRs (along with
-     plots of them).  All these data will be neatly packed into a picke
-     file.
+     Last but not least, the ``post_processing`` key sets whether a
+     post-processing indicates to compute median +/-1sigma, and
+     +/-2sigma statistics out of the posterior distribution.  Note
+     that this is a post-process step done *after* the posterior
+     sampling is finished.  These statistics are computed for the
+     spectra, the temperature profiles, contribution functions, and
+     VMRs (along with plots of them).  All these data will be neatly
+     packed into a picke file.
+
+     - ``none`` no post-processing runs/files will be computed
+     - ``true`` A post-processing routine will run after the
+       retrieval, producing a pickle file containing the statistical
+       data from the posterior sample: median, :math:`\pm1\sigma`, and
+       :math:`\pm2\sigma` for the spectrum, temperature profile, VMR
+       profiles, TLS, contribution functions, and more.
+     - ``loo`` Same as with ``post_processing=true``, but will compute
+       in addition *leave-one-out* posterior spectra, removing one
+       absorber at a time.
+     - ``oat`` Same as with ``post_processing=true``, but will compute
+       in addition *one-at-a-time* posterior spectra including  one
+       absorber  at a time.
 
 
 .. _wasp39b_run:
 
 Retrieval run
--------------
+~~~~~~~~~~~~~
 
 To launch the retrieval run, we use the following command from the
 prompt.  Since we are using multinest, we will make use of its MPI
@@ -361,15 +385,19 @@ the memory demand.
 That's it. Now we wait until the run is over. This should take from
 one to a few days depending on your machine.
 
+----------------------------------------------------------------------
+
 Retrieval outputs
 ~~~~~~~~~~~~~~~~~
 
 TBD
 
+----------------------------------------------------------------------
+
 .. _wasp39b_stats:
 
 Detection statistics
---------------------
+~~~~~~~~~~~~~~~~~~~~
 
 OK, we have now a posterior distribution for species on WASP-39b based
 on the JWST observations, for some there are well constrained VMRs,
@@ -393,16 +421,16 @@ Here's an extract of what changed in the cofiguration for the run without |H2O|:
 
     # Param name    value  lo_bound  hi_bound  step   prior  prior_sigma
     retrieval_params =
-        log_p1        -4.0     -9.0       2.0   0.3
-        log_p2        -7.2     -9.0       2.0   0.3
-        log_p3        -1.0     -2.0       2.0   0.3
-        a1            1.50     0.02       2.0   0.02
-        a2            0.35     0.02       2.0   0.02
-        T0           850.0    800.0    1300.0   30.0
-        M_planet     0.266      0.1       0.43  0.05  0.266  0.033
-        log_p_ref    -1.0      -9.0       2.0   0.3
-        log_H2O      -10.0    -12.0      -0.3   0.0
-        log_CO2      -3.00    -12.0      -0.3   0.3
+        log_p1        -4.0     -9.0       2.0   1.0 
+        log_p2        -7.2     -9.0       2.0   1.0 
+        log_p3        -1.0     -2.0       2.0   1.0 
+        a1            1.50     0.02       2.0   1.0 
+        a2            0.35     0.02       2.0   1.0 
+        T0           850.0    800.0    1300.0   1.0 
+        M_planet     0.266      0.1       0.43  1.0   0.266  0.033
+        log_p_ref    -1.0      -9.0       2.0   1.0 
+        log_H2O      -10.0    -12.0      -0.3   0.0 
+        log_CO2      -3.00    -12.0      -0.3   1.0 
 
     ...
 
@@ -422,34 +450,51 @@ And then, there are two more optimizations for a better efficiency:
 
 Here are sample config files for leave-one-out runs for |H2O|, |CO2|, and |SO2|:
 
-- `wasp39b_retrieval_transit_jwst_no_H2O.cfg <../../_static/data/wasp39b_retrieval_transit_jwst_no_H2O.cfg>`__
-- `wasp39b_retrieval_transit_jwst_no_CO2.cfg <../../_static/data/wasp39b_retrieval_transit_jwst_no_CO2.cfg>`__
-- `wasp39b_retrieval_transit_jwst_no_SO2.cfg <../../_static/data/wasp39b_retrieval_transit_jwst_no_SO2.cfg>`__
 
+.. raw:: html
+
+   <details>
+   <summary>Click here to show/hide: <a href="../../_static/data/wasp39b_retrieval_transit_jwst_no_H2O.cfg">wasp39b_retrieval_transit_jwst_no_H2O.cfg</a></summary>
+
+.. literalinclude:: ../../_static/data/wasp39b_retrieval_transit_jwst_no_H2O.cfg
+    :caption: File: wasp39b_retrieval_transit_jwst_no_H2O.cfg
+    :language: ini
+
+.. raw:: html
+
+   </details>
+   <details>
+   <summary>Click here to show/hide: <a href="../../_static/data/wasp39b_retrieval_transit_jwst_no_CO2.cfg">wasp39b_retrieval_transit_jwst_no_CO2.cfg</a></summary>
+
+.. literalinclude:: ../../_static/data/wasp39b_retrieval_transit_jwst_no_CO2.cfg
+    :caption: File: wasp39b_retrieval_transit_jwst_no_CO2.cfg
+    :language: ini
+
+.. raw:: html
+
+   </details>
+   <details>
+   <summary>Click here to show/hide: <a href="../../_static/data/wasp39b_retrieval_transit_jwst_no_SO2.cfg">wasp39b_retrieval_transit_jwst_no_SO2.cfg</a></summary>
+
+.. literalinclude:: ../../_static/data/wasp39b_retrieval_transit_jwst_no_SO2.cfg
+    :caption: File: wasp39b_retrieval_transit_jwst_no_SO2.cfg
+    :language: ini
+
+.. raw:: html
+
+   </details>
 
 The recommendation is, since we want to run a series of retrievals, we
 write a script like the one below to concatenate one run after the
 other.
-
-Note that we added the ``pbay --post ...`` calls after each
-posterior sampling, with an ampersand at the end to rnu it in the
-background. This is useful since the post-processing uses only a
-single CPU and might take a few hours to complete.  Putting it in
-background allow us to launch each retrival right after the previous
-one.
 
 .. code-block:: shell
    :caption: File: wasp39b_loo_retrievals.sh
 
     # Launch the retrievals, and then the post-processing in the background
     mpirun -n 64 pbay -c wasp39b_retrieval_transit_jwst_no_H2O.cfg
-    pbay --post wasp39b_retrieval_transit_jwst_no_H2O.cfg &
-
     mpirun -n 64 pbay -c wasp39b_retrieval_transit_jwst_no_CO2.cfg
-    pbay --post wasp39b_retrieval_transit_jwst_no_CO2.cfg &
-
     mpirun -n 64 pbay -c wasp39b_retrieval_transit_jwst_no_SO2.cfg
-    pbay --post wasp39b_retrieval_transit_jwst_no_SO2.cfg &
 
 
 Then to start the retrievals, run this command from the prompt:

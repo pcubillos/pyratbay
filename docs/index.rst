@@ -67,6 +67,7 @@ Bayesian (Nested sampling) posterior sampling of atmospheric parameters:
 - Transit light source effect (TLS)
 - Offsets between observing instruments
 - Error scaling for observations
+- Isotopic-ratio fitting
 
 .. _team:
 
@@ -86,7 +87,7 @@ If you found ``Pyrat Bay`` useful for your research, please cite this article:
 Please prefer to channel your feedback or inquiries through the Github issue tracker: `<https://github.com/pcubillos/pyratbay>`_, or alternatively through this email: `patricio.cubillos[at]oeaw.ac.at`_.
 
 ``Pyrat Bay`` is open-source software under the GNU GPL v2 license (see
-:ref:`license`) and is compatible with Python>=3.9.
+:ref:`license`) and is compatible with Python>=3.10.
 
 
 Documentation

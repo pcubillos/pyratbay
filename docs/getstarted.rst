@@ -81,7 +81,7 @@ Alternatively (e.g., for developers), clone the repository to your local machine
 
 
 ``Pyrat Bay`` (version 2.0+) has been extensively tested to work on
-Unix/Linux and OS X machines and is available for Python 3.9+.
+Unix/Linux and OS X machines and is available for Python 3.10+.
 
 ---------------------------------------------------------------------
 
