@@ -235,12 +235,12 @@ there are requirements to enable some of them.
      <tr><th rowspan="5">Transit light source (TLS)</th>
          <td><code>T_spot</code></td>
          <td rowspan="2"><code>tls_model = tls</code>, <code>tls_folder</code> is defined, and <code>tstar</code> is defined</td>
-         <td rowspan="2">TLS correction to all spectra, with the given spot temperature and covering fraction.</td></tr>
+         <td rowspan="2">TLS correction to all spectra, with the given spot temperature and covering fraction (see <a href="cookbooks/wasp107b_tls/transmission_retrieval.html">TLS retrieval</a> section)</td></tr>
      <tr><td><code>f_spot</code></td></tr>
      <tr><td colspan="3" style="border-bottom: 2px solid #999; padding: 0px 0px"></td></tr>
      <tr><td><code>T_spot_X</code></td>
          <td rowspan="2"><code>tls_X</code> in <code>tls_model</code>, <code>tls_folder</code> is defined, and <code>tstar</code> is defined</td>
-         <td rowspan="2">TLS correction to data points containing <code>X</code> in name. This enables <em>multi-epoch</em> retrievals with observation-specific TLS.</td></tr>
+         <td rowspan="2">TLS correction to data points containing <code>X</code> in name. This enables <em>multi-epoch</em> retrievals with observation-specific TLS  (see <a href="cookbooks/wasp107b_tls/transmission_retrieval.html">TLS retrieval</a> section)</td></tr>
      <tr><td><code>f_spot_X</code></td></tr>
 
      <tr><td colspan="4" style="border-bottom: 3px solid #999;"></td></tr>
@@ -258,7 +258,7 @@ there are requirements to enable some of them.
      <tr><td><code>rv_shift</code></td><td></td><td>radial-velocity offset in km s<sup>-1</sup> </td></tr>
 
      <tr><td colspan="4" style="border-bottom: 3px solid #999;"></td></tr>
-     <tr><th rowspan="4">Data</th><td><code>offset_X</code></td><td><code>offset_X</code> in <code>offset_inst</code></td><td>shift depth to data points containing <code>X</code> in name. Units as given in <code>dunits</code> argument</td></tr>
+     <tr><th rowspan="4">Data manipulation</th><td><code>offset_X</code></td><td><code>offset_X</code> in <code>offset_inst</code></td><td>shift depth to data points containing <code>X</code> in name. Units as given in <code>dunits</code> argument</td></tr>
      <tr><td colspan="3" style="border-bottom: 2px solid #999; padding: 0px 0px;"></td></tr>
      <tr><td><code>scale_X</code></td><td><code>scale_X</code> in <code>uncert_scaling</code></td><td>scale uncertainty of data points containing <code>X</code> in name</td></tr>
      <tr><td><code>quadrature_X</code></td><td><code>quadrature_X</code> in <code>uncert_scaling</code></td><td>add noise in quadrature to data points containing <code>X</code> in name. Units as given in <code>dunits</code> argument</td></tr>
@@ -378,6 +378,7 @@ Here are a couple of examples to reproduce retrieval analyses from
 peer-reviewed articles:
 
 - :doc:`cookbooks/wasp39b/transmission_retrieval`
+- :doc:`cookbooks/wasp107b_tls/transmission_retrieval`
 - :doc:`cookbooks/wasp18b/eclipse_retrieval`
 
 .. TBD: High-resolution direct-imaging

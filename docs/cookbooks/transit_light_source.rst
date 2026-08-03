@@ -1,7 +1,9 @@
+.. _tls:
+
 Transit Light Source
 ====================
 
-This tutorial shows how model the Transit Light Source (TLS) effect
+This tutorial shows how to model the Transit Light Source (TLS) effect
 [Rackham2018]_.  This is a wavelenght-dependent correction to a
 transit depth when the host star presents spots and/or faculae.  The
 correction is modeled as:
@@ -22,13 +24,17 @@ fac}` are the spot and faculae coverage of the stellar surface
 
 Below are the steps to model TLS effect:
 
-- `Setup: Fetch PHOENIX New-ERA models <#fetch-phoenix-seds>`__
+- `Setup: Input files <#setup>`__
 
-- `Transit-light-source modeling <#tls-modeling>`__
+  - `PHOENIX New-ERA models <#fetch-phoenix-seds>`__
+
+- `Transit-light-source modeling <#transit-light-source-modeling>`__
 
   - `TLS spots <#tls-spots>`__
   - `TLS spots and faculae <#tls-spots-and-faculae>`__
 
+
+.. note:: For a application of the TLS effect into atmospheric retrievals see these docs: :ref:`wasp107b_tls`
 
 --------------
 
@@ -39,7 +45,7 @@ Fetch PHOENIX SEDs
 ~~~~~~~~~~~~~~~~~~
 
 The only input for the TLS model is a library of SED models covering
-the expected range of stellar, sopt, and faculae temperatures.
+the expected range of stellar, spot, and faculae temperatures.
 ``Pyrat Bay`` works with the PHOENIX New-Era SED models
 [Hauschildt2025]_, which span from :math:`T_{\rm eff} \approx` 2300 K to
 12000 K (min/max values may vary depending on the metallicity and
