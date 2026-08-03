@@ -54,6 +54,7 @@ For the setup we will need three ingredients:
 
 #. **Cross-section files** for the atmospheric species
 
+#. **Stellar spectral energy distribution (SED) files** to model the stellar flux and TLS effect
 
 Lets start with the required input files, and then go over the
 configuration file.
