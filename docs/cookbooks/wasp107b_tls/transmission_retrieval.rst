@@ -425,17 +425,21 @@ Retrieval outputs
 A retrieval including TLS models will produce a set of diagnostic figures.
 The posterior transmission spectrum will display:
 
-- the observed data *corrected* by the TLS effect
-- the planetary spectrum as the purely astrophysical signal (posterior median and span of the central 68% percentile)
+- the observed **data corrected by TLS effect** (black)
+- the posterior spectrum as the purely planetary signal (blue, posterior median and span of the central 68% percentile)
 
-.. image:: ./../../figures/fig_obs_WASP107b_transit_tls_soss.png
+.. image:: ./../../figures/WASP107b_transit_tls_soss_posterior_spectrum.png
     :width: 80%
     :align: center
 
 
-A second figure will display the original data points, the TLS affected planetary model (one curve for each TLS model), and a TLS-free model:
+A second figure will display:
 
-.. image:: ./../../figures/fig_obs_WASP107b_transit_tls_soss.png
+- the **original data** points (black, as in the input observation file)
+- the TLS affected planetary spectrum (one curve for each TLS model)
+- and a TLS-corrected spectrum (blue)
+
+.. image:: ./../../figures/WASP107b_transit_tls_soss_posterior_spectra_tls.png
     :width: 80%
     :align: center
 
@@ -443,6 +447,6 @@ A second figure will display the original data points, the TLS affected planetar
 A third figure will display the TLS correction factor :math:`\epsilon(\lambda)` as defined in Equation (3) of [Rackham2018]_.  If the TLS model(s) are epoch-specific, the constraining wavelength will be highlighted:
 
 
-.. image:: ./../../figures/fig_obs_WASP107b_transit_tls_soss.png
+.. image:: ./../../figures/WASP107b_transit_tls_soss_posterior_tls_contamination.png
     :width: 80%
     :align: center
