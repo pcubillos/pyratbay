@@ -307,7 +307,6 @@ For this example we assume the host is a K5V star with :math:`T_{\rm eff} = 4430
     no other SED except the list of Teff models (all at the same logg and metallicity).
 
 
-
 .. _wasp107b_retrievals:
 
 
@@ -400,6 +399,9 @@ For an explanation of the rest of the configuration file, see for example the do
 
 Retrieval run
 ~~~~~~~~~~~~~
+
+.. Note:: Before running these step, see :ref:`Multinest retrievals
+          <ret_multi>` section about MPI / Multinest installation.
 
 To launch the retrieval run, we use the following command from the
 prompt.  Since we are using multinest, we will make use of its MPI

@@ -7,29 +7,41 @@ Retrievals
 
 This section shows how to setup atmospheric retrievals with ``Pyrat Bay``.
 
-- :ref:`ret_config`
+- :ref:`ret_setup`
+
+  - :ref:`ret_multi`
+  - :ref:`ret_config`
+  - :ref:`ret_launch`
+  - :ref:`ret_post`
+
 - :ref:`ret_free_params`
+- :ref:`ret_depth_offsets`
 - :ref:`ret_examples`
 
 ----------------------------------------------------------------------
 
-.. _ret_config:
+.. _ret_setup:
 
-Setting up
-----------
+Setup and run
+-------------
 
-Multinest
-~~~~~~~~~
+.. _ret_multi:
+
+MPI / Multinest
+~~~~~~~~~~~~~~~
 
 Since version 2.0, ``Pyrat Bay`` enables atmospheric retrievals using
 the nested sampling algorithm [Skilling2004]_ [Skilling2006]_, via the
 MultiNest implementation [Feroz2009]_ [Buchner2014]_.  This is the
 recommended retrieval algorithm.
 
-
-make sure to install multinest and MPI on your machine. This can be
-quite specific for each machine, so I cannot help much there. Here and
-here are some installation guides that may help.
+So, please make sure to install multinest and MPI on your machine.
+This can be quite specific for each machine, so I cannot help much
+there. `Here
+<https://johannesbuchner.github.io/PyMultiNest/index.html>`__ and
+`here
+<https://www.astrobetter.com/wiki/MultiNest%2bInstallation%2bNotes>`__
+are some installation guides that may help.
 
 Then install their Python wrappers, e.g., with these commands:
 
@@ -39,6 +51,9 @@ Then install their Python wrappers, e.g., with these commands:
     pip install mpi4py
 
 
+----------------------------------------------------------------------
+
+.. _ret_config:
 
 Configuration file
 ~~~~~~~~~~~~~~~~~~
@@ -108,15 +123,17 @@ These are the requirements for the configuration file of a retrieval run:
 
      .. code-block:: ini
 
-         # Retrieval setup:
+         # Retrieval setup
          sampler = multinest
          nlive = 1000
          resume = True
-         post_processing = True
 
-         # Retrieval temperature boundaries:
+         # Retrieval temperature boundaries
          tlow  =  800
          thigh = 2500
+
+         # Take a snapshot of the posterior histograms every N-hours
+         dt_retrieval_snapshot = 12
 
      Finally, set the retrieval algorithm and other specific
      configurations.  For multinest, we need to define the number of
@@ -125,11 +142,70 @@ These are the requirements for the configuration file of a retrieval run:
      The ``resume`` option indicates whether to resume sampling from a
      previous run, or start from scratch.
 
+     Strict temperature boundaries can be set with the ``tlow`` and
+     ``thigh`` parameters (e.g., for ``madhu`` or ``guillot`` model).
+
+     The ``dt_retrieval_snapshot`` is a flag to produce a *snapshot*
+     of the posterior histograms at a cadence of the input value (in
+     hours)
+
+
+  .. tab-item:: Outputs
+
+     .. code-block:: ini
+
+         # Post-process data, select between [none, true, loo, oat]
+         post_processing = True
+
+         # Display
+         theme = royalblue
+         data_color = black
+         fig_resolution = 150.0
+
+         # Plot wavelength in log scale (with given tick marks)
+         log_wl = 0.7 1.0 2.0 3.0 4.0 5.0 7.0 10.0
+
+     The ``post_processing`` key sets whether a post-processing
+     indicates to compute median +/-1sigma, and +/-2sigma statistics
+     out of the posterior distribution.  Note that this is a
+     post-process step done *after* the posterior sampling is
+     finished.  These statistics are computed for the spectra, the
+     temperature profiles, contribution functions, and VMRs (along
+     with plots of them).  All these data will be packed into a picke
+     file and diplay into posterior figures.
+
+     - ``none`` no post-processing runs/files will be computed
+     - ``true`` A post-processing routine will run after the
+       retrieval, producing a pickle file containing the statistical
+       data from the posterior sample: median, :math:`\pm1\sigma`, and
+       :math:`\pm2\sigma` for the spectrum, temperature profile, VMR
+       profiles, TLS, contribution functions, and more.
+     - ``loo`` Same as with ``post_processing=true``, but will compute
+       in addition *leave-one-out* posterior spectra, removing one
+       absorber at a time.
+     - ``oat`` Same as with ``post_processing=true``, but will compute
+       in addition *one-at-a-time* posterior spectra including  one
+       absorber  at a time.
+
+     ``theme`` and ``data_color`` allow you to customize the color of the
+     models and data points in the output plots.  Any valid `matplotlib
+     color
+     <https://matplotlib.org/stable/users/explain/colors/colors.html#colors-def>`_
+     is a valid color.
+
+     The ``log_wl`` key has two effects: if set, it makes the code
+     to plot wavelengths axes in log scale with the given ticks (otherwise
+     defaults to a linear scale).
+
+     The ``fig_resolution`` key sets the resolution of *figures* for
+     the output model spectra.
+
+
 
 .. _ret_launch:
 
-Launch / multi-processing
-~~~~~~~~~~~~~~~~~~~~~~~~~
+Launch retrievals
+~~~~~~~~~~~~~~~~~
 
 Retrievals runs in single-CPU mode can be started from the command-line as:
 
@@ -148,6 +224,74 @@ to do so, e.g., with 128 parallel CPUs:
 
 
 ----------------------------------------------------------------------
+
+.. _ret_post:
+
+Post processing
+~~~~~~~~~~~~~~~
+
+Importantly, after running an atmospheric retrieval ``Pyrat Bay`` can
+produce posterior statistics for the spectra, temperature profiles,
+VMR profiles, TLS spectra, and depth offsets.
+
+The data consists of the posterior median, :math:`\pm1\sigma`, and
+:math:`\pm2\sigma` statistics of the variables listed above.  All
+these data will be packed into a picke file and saved to figures.
+This pickle file will also include contribution functions, the
+parameter posteriors, flux spectra, and other useful data.
+
+This post-processing step can run right after a retrieval via the
+``post_processing`` key, or it can be computed separately from the
+command line, as shown below.  There are three options:
+
+.. tab-set::
+
+  .. tab-item:: Basic post processing
+     :selected:
+
+     .. code-block:: shell
+
+         # Basic post processing
+         mpirun -n 64 pbay --post wasp39b_retrieval_transit_jwst.cfg
+
+     This is the basic post-processing call, which will compute and
+     plot the statistics listed above.
+
+  .. tab-item:: Leave-one-out
+
+     .. code-block:: shell
+
+         # Post processing with leave-one-out spectra
+         mpirun -n 64 pbay --post wasp39b_retrieval_transit_jwst.cfg loo
+
+     This call computes everything as the basic run, but in addition
+     computes a set of *leave-one-out* posterior spectra, where one
+     absorber is neglected from the atmosphere at a time.  This helps to
+     see the impact of each absorber into the model spectra.
+
+     .. Note:: Note that if there are *N* absorbers in the model, this
+               call will require *~N* times longer than the basic
+               post-processing call. Thus the recommendation to run
+               with MPI.
+
+  .. tab-item:: One-at-a-time
+
+     .. code-block:: shell
+
+         # Post processing with one-at-at-time spectra
+         mpirun -n 64 pbay --post wasp39b_retrieval_transit_jwst.cfg oat
+
+
+     This call computes everything as the basic run, but in addition
+     computes a set of *one-at-a-time* posterior spectra, where only one
+     absorber is considered in the atmosphere at a time.  This helps to
+     see the impact of each absorber into the model spectra.
+
+     .. Note:: Note that if there are *N* absorbers in the model, this
+               call will require *~N* times longer than the basic
+               post-processing call. Thus the recommendation to run
+               with MPI.
+
 
 
 .. _ret_free_params:
@@ -369,7 +513,7 @@ negative 5):
 
 ----------------------------------------------------------------------
 
-.. _depth_offsets:
+.. _ret_depth_offsets:
 
 Depth offsets
 -------------

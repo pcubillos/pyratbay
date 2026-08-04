@@ -337,13 +337,13 @@ Lets break this down:
      <https://matplotlib.org/stable/users/explain/colors/colors.html#colors-def>`_
      is a valid color.
 
-     The ``wl_ticks`` parameter has two effects: if set, it makes the code
+     The ``log_wl`` key has two effects: if set, it makes the code
      to plot wavelengths axes in log scale with the given ticks (otherwise
      defaults to a linear scale).
 
      Last but not least, the ``post_processing`` key sets whether a
      post-processing indicates to compute median +/-1sigma, and
-     +/-2sigma statistics out of the posterior distribution.  Note
+     +/-2sigma statistics out of the posterior distribution (see also :ref:`ret_post` section).  Note
      that this is a post-process step done *after* the posterior
      sampling is finished.  These statistics are computed for the
      spectra, the temperature profiles, contribution functions, and
@@ -368,6 +368,9 @@ Lets break this down:
 
 Retrieval run
 ~~~~~~~~~~~~~
+
+.. Note:: Before running these step, see :ref:`Multinest retrievals
+          <ret_multi>` section about MPI / Multinest installation.
 
 To launch the retrieval run, we use the following command from the
 prompt.  Since we are using multinest, we will make use of its MPI

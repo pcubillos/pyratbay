@@ -545,6 +545,9 @@ Lets break this down:
 Retrieval run
 -------------
 
+.. Note:: Before running these step, see :ref:`Multinest retrievals
+          <ret_multi>` section about MPI / Multinest installation.
+
 To launch the retrieval run, we use the following command from the
 prompt.  Since we are using multinest, we will make use of its MPI
 parallel-computing capability (thus, the prefix ``mpirun -n 64``):
@@ -560,24 +563,6 @@ the memory demand.
 
 That's it. Now we wait until the run is over. This should take from
 one to a few days depending on your machine.
-
-.. note:: Before starting this retrieval, make sure to install
-          multinest and MPI on your machine.  This can be quite
-          specific for each machine, so I cannot help much there.
-          `Here
-          <https://johannesbuchner.github.io/PyMultiNest/index.html>`__
-          and `here
-          <https://www.astrobetter.com/wiki/MultiNest%2bInstallation%2bNotes>`__
-          are some installation guides that may help.
-
-          Then install their Python wrappers, e.g., with these
-          commands:
-
-          .. code-block:: shell
-
-              pip install pymultinest
-              pip install mpi4py
-
 
 
 Retrieval outputs

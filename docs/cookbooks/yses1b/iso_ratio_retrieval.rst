@@ -241,7 +241,6 @@ Retrieval analysis
 Configuration file
 ~~~~~~~~~~~~~~~~~~
 
-
 The configuration file will put together the inputs, define the
 atmospheric model, and configure the retrieval options.  Here is the
 configuration file for the YSES-1b retrieval analysis:
@@ -485,6 +484,9 @@ Overview
 
 Retrieval run
 ~~~~~~~~~~~~~
+
+.. Note:: Before running these step, see :ref:`Multinest retrievals
+          <ret_multi>` section about MPI / Multinest installation.
 
 To launch the retrieval run, we use the following command from the
 prompt.  Since we are using multinest, we will make use of its MPI
