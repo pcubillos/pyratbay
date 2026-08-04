@@ -389,7 +389,7 @@ def write_spectra(spectra, wl, temperatures, filename):
 
 def read_spectra(filename):
     """
-    Write flux spectra as function of wavelength and temperature to file.
+    Read flux spectra as function of wavelength and temperature.
 
     Parameters
     ----------
@@ -1066,9 +1066,13 @@ def read_observations(obs_file):
     -------
     filters: List
         Filter passband objects.
-    depth: 1D string list
+    wl: 1D float array
+        The bands' central wavelength in microns.
+    half_width: 1D float array
+        The bands' wavelength half width in microns.
+    depth: 1D float array
         The transit or eclipse depths for each filter.
-    depth_err: 1D float ndarray
+    depth_err: 1D float array
         The depth uncertainties.
 
     Notes
@@ -1092,11 +1096,11 @@ def read_observations(obs_file):
     >>> import pyratbay.io as io
     >>> # File including depths and uncertainties:
     >>> obs_file = 'observations.dat'
-    >>> bands, depth, depth_err = io.read_observations(obs_file)
+    >>> bands, wl, hwidth, depth, depth_err = io.read_observations(obs_file)
 
     >>> # File including only the passband info:
     >>> obs_file = 'filters.dat'
-    >>> bands = io.read_observations(obs_file)
+    >>> bands, wl, half_width = io.read_observations(obs_file)
     """
     if not os.path.isfile(obs_file):
         raise ValueError(f"Observation file '{obs_file}' does not exist")
@@ -1129,7 +1133,7 @@ def read_observations(obs_file):
     nobs = nlines - i
     has_data = depth_units is not None
 
-    filters = []
+    bands = []
     depth = np.zeros(nobs)
     depth_err = np.zeros(nobs)
 
@@ -1146,14 +1150,14 @@ def read_observations(obs_file):
             filter_file = info[ndata].replace('{ROOT}', pc.ROOT)
             filter_file = filter_file.replace('{FILTERS}', pc.FILTERS)
             filter_file = os.path.realpath(filter_file)
-            filters.append(ps.PassBand(filter_file))
+            bands.append(ps.PassBand(filter_file))
         elif len(info) - ndata == 2:
             wl0, half_width = np.array(info[ndata:ndata+2], np.double)
-            filters.append(ps.Tophat(wl0, half_width))
+            bands.append(ps.Tophat(wl0, half_width))
         elif len(info) - ndata == 3:
             wl0, half_width = np.array(info[ndata:ndata+2], np.double)
             name = info[ndata+2]
-            filters.append(ps.Tophat(wl0, half_width, name=name))
+            bands.append(ps.Tophat(wl0, half_width, name=name))
         else:
             error_msg = 'Invalid number of values in obs_file'
             if has_data and len(info) in [1,2]:
@@ -1165,13 +1169,16 @@ def read_observations(obs_file):
                 error_msg += ", perhaps the '@DEPTH_UNITS' flag is missing"
             raise ValueError(error_msg)
 
+    wl = np.array([band.wl0 for band in bands])
+    half_widths = np.array([band.half_width for band in bands])
+
     if has_data:
         # Absolute units or depths:
         unit_factor = 1.0 if depth_units=='f_lambda' else pt.u(depth_units)
         depth *= unit_factor
         depth_err *= unit_factor
-        return filters, depth, depth_err
-    return filters
+        return bands, wl, half_widths, depth, depth_err
+    return bands, wl, half_widths
 
 
 def read_molecs(file):

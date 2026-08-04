@@ -51,134 +51,127 @@ configuration file.
 Observation file
 ~~~~~~~~~~~~~~~~
 
-``Pyrat Bay`` observation files tell the code what data is being fit.
-These are a plain text files containing the transit depth,
+``Pyrat Bay`` observation files tell the code the data that is being
+fit.  These are a plain text files containing the transit depth,
 uncertainty, and the band (which can be either a tophat or a broadband
 passband).  There is always one data point per row.
 
-Below you can find an extract of the WASP-18b eclipse data.  Click the
-link to see/download the entire file. Altenatively, you can see the
-script to make observation files in the right format.
-
+Here we will use WASP-18b eclipse observations by CHEOPS, TESS, JWST,
+and Spitzer from [Coulombe2023]_ and [Deline2025]_.
 
 .. tab-set::
 
   .. tab-item:: Download observation file
      :selected:
 
-     Here's the observation file containing the CHEOPS, TESS, JWST,
-     and Spitzer data.
+     Here's the WASP-18b observation files ready to use. Click the link
+     to see/download the entire file.  Some notes about observations
+     files:
 
-     Note in the header that comments are allowed, and there are two
-     special flags that let users define the depth units and where the
-     data starts.
+     - Lines starting with ``#`` are comments.
 
-     Important to note is that:
+     - An optional line with ``@DEPTH_UNITS`` (1) indicates that the
+       file contains depths and uncertainties, and (2) sets the units
+       for the depths in the following line.
 
-     - the first two columns provide the eclipse depth and
-       uncertainties (in the units specified by ``@DEPTH_UNITS``)
+     - A mandatory line with ``@DATA`` indicates where the data starts
 
-     - the JWST data is modeled as narrow tophat passbands, defined
-       by: the central wavelength, the bin half-width, and (optional)
-       a name for the instrument
+     - JWST data is modeled as tophat bands defined by the central
+       wavelength, the bin half-width, and (optionally) a name for the
+       instrument
 
-     - the CHEOPS, TESS, and Spitzer data come from broad-band
-       photometry.  These we specify as paths to plain files that
-       tabulate the wavelength and response of the band.  ``Pyrat
-       Bay`` provides the passbands for these instruments, indicated
-       by the ``{FILTERS}`` path, for other bands one should type the
-       path to the file.
+     - CHEOPS, TESS, and Spitzer data come from broad-band photometry.
+       Their response functions are specify as paths to plain files
+       that tabulate the wavelength and response.  CHEOPS, TESS,
+       Kepler, and Spitzer passbands are provided in ``Pyrat Bay``,
+       and can be accessed via the ``{FILTERS}`` flag. for other bands
+       type the full path to the files.
 
      .. literalinclude:: ../../_static/data/obs_wasp18b_eclipse_all.dat
-        :caption: File: `obs_wasp18b_eclipse_all.dat <../../_static/data/obs_wasp18b_eclipse_all.dat>`__
+        :caption: Extract from file: `obs_wasp18b_eclipse_all.dat <../../_static/data/obs_wasp18b_eclipse_all.dat>`__
         :language: ini
-        :lines: 1-21
+        :lines: 1-26
+
+
+     .. raw:: html
+
+        <details>
+        <summary>Click here to show/hide: <a href="../../_static/data/obs_wasp18b_eclipse_jwst.dat">obs_wasp18b_eclipse_jwst.dat</a></summary>
+
+     .. literalinclude:: ../../_static/data/obs_wasp18b_eclipse_jwst.dat
+         :caption: File:  `obs_wasp18b_eclipse_all.dat <../../_static/data/obs_wasp18b_eclipse_jwst.dat>`__
+         :language: ini
+
+     .. raw:: html
+
+        </details>
+
 
   .. tab-item:: Compute observation file
 
-     **TBD**
-
      We will constrain this retrieval to the JWST, Spitzer, CHEOPS,
-     and TESS emission observations. So we need to collect that
+     and TESS eclipse observations. So we need to collect that
      data. For the JWST spectroscopic observations we will use the
      NAMELESS spectral reduction (available on Zenodo
      https://zenodo.org/records/7907569), which we will model as a
      series of top-hat narrow passbands.
 
-     The CHEOPS [Deline2025]_, TESS [Coulombe2023]_, and Spitzer
-     [Sheppard2017]_ observations consist of broad photometric
-     passbands. For these we will use the passband filter files.
+     The CHEOPS, TESS, and Spitzer observations [Deline2025]_ consist
+     of broad photometric passbands. For these we will use
+     passband filter files  (that are included in ``Pyrat Bay``).
 
-     ``Pyrat Bay`` contains all of this information into an observation
-     file input. These scripts below show how to create observation
+     Simulations with ``Pyrat Bay`` load this information from an
+     observation file input. The script below creates observation
      files for (1) the JWST observations, and (2) all photometric and
      spectroscopic observations combined.
 
      .. code-block:: python
-         
+
          # Save JWST data
          import numpy as np
          import pyratbay.io as io
-         
+
          jwst_data = np.loadtxt('NAMELESS_W18b_spectrum.txt', unpack=True)
-         jwst_wl, jwst_depths, jwst_depth_uncerts, jwst_half_widths = jwst_data
+         jwst_wl, jwst_depths, jwst_uncerts, jwst_half_widths = jwst_data
          njwst = len(jwst_wl)
-         
+
          # Save JWST data:
-         obs_file = 'obs_wasp18b_emission_jwst.dat'
+         obs_file = 'obs_wasp18b_eclipse_jwst.dat'
          jwst_inst_names = ['NIRISS' for _ in jwst_wl]
          io.write_observations(
              obs_file,
              jwst_inst_names,
              jwst_wl, jwst_half_widths,
-             jwst_depths, jwst_depth_uncerts, depth_units='ppm',
+             jwst_depths, jwst_uncerts, depth_units='ppm',
          )
-     
-     
-         # Save JWST + Spitzer + CHEOPS + TESS data:
-         sheppard2017_spitzer = [2973, 3858, 3700, 4100]
-         sheppard2017_spitzer_uncerts = [70.0, 113, 300, 200]
-         
-         coulombe2023_tess = 357.0
-         coulombe2023_tess_uncert = 14.0
-         
-         ndata = 2 + njwst + 4
-         depths = np.zeros(ndata)
-         depth_uncerts = np.zeros(ndata)
-         
-         depths[0] = coulombe2023_tess
-         depths[1] = coulombe2023_tess
-         depths[2:2+njwst] = jwst_depths
-         depths[-4:] = sheppard2017_spitzer
-         
-         depth_uncerts[0] = coulombe2023_tess_uncert
-         depth_uncerts[1] = coulombe2023_tess_uncert
-         depth_uncerts[2:2+njwst] = jwst_depth_uncerts
-         depth_uncerts[-4:] = sheppard2017_spitzer_uncerts
-         
-         # Leaving the wavelenght values at zero signals to use the instrument
-         # name as a path to a passband file (for broadband photometry)
-         wl = np.zeros(ndata)
-         half_widths = np.zeros(ndata)
-         wl[2:2+njwst] = jwst_wl
-         half_widths[2:2+njwst] = jwst_half_widths
-         
-         spitzer_inst_names = [
-             f'{{ROOT}}/pyratbay/data/filters/spitzer_irac{i+1}_sa.dat'
-             for i in range(4)
+
+
+         # Save CHEOPS + TESS + JWST + Spitzer data:
+         deline2025_depths = [211.9, 340.4, 3098, 3925, 4080, 4350]
+         deline2025_uncerts = [ 7.6,   7.0,  112,   25,  230,  205]
+         n_photo = len(deline2025_depths)
+
+         depths = np.concatenate([deline2025_depths, jwst_depths])
+         depth_uncerts = np.concatenate([deline2025_uncerts, jwst_uncerts])
+         # zero wavelength => inst_name is path to passband file (photometry)
+         wl = np.concatenate([np.zeros(n_photo), jwst_wl])
+         half_widths = np.concatenate([np.zeros(n_photo), jwst_half_widths])
+         photo_names = [
+             '{FILTERS}cheops.dat',
+             '{FILTERS}tess.dat',
+             '{FILTERS}spitzer_irac1.dat',
+             '{FILTERS}spitzer_irac2.dat',
+             '{FILTERS}spitzer_irac3.dat',
+             '{FILTERS}spitzer_irac4.dat',
          ]
-         inst_names = [
-             'CHEOPS.dat',
-             'TESS.dat',
-         ]
-         inst_names += jwst_inst_names + spitzer_inst_names
-         
-         obs_file = 'obs_wasp18b_emission_all.dat'
+         inst_names = photo_names + jwst_inst_names
+
+         obs_file = 'obs_wasp18b_eclipse_all.dat'
          io.write_observations(
              obs_file,
              inst_names,
-             wl, half_widths,
-             depths, depth_uncerts, depth_units='ppm',
+             wl, half_widths, depths, depth_uncerts,
+             depth_units='ppm',
          )
 
 
@@ -193,18 +186,17 @@ line-sampled cross sections for these molecules: |H2O|, CO, |CO2|,
 the latests opacity sources for these species from ExoMol and HITEMP.
 
 The current recommendation for sampled cross sections for JWST
-retrievals is to adopt a resolution :math:`R>20.000`.  So, here we will use a
-cross section grid at :math:`R=25.000`, sampling from :math:`0.35-10.5`
-μm in wavelength (to cover the spectral range of the data), from
-:math:`500-4000` K in temperature, and from :math:`100-1.0^{-9}` bar
-in pressure.
+retrievals is to adopt a resolution :math:`R>20.000`.  So, here we
+will use a cross section grid at :math:`R=25.000`, sampling from
+:math:`0.35-10.5` μm in wavelength (to cover the spectral range of the
+data), :math:`500-4000` K in temperature, and from
+:math:`100-1.0^{-9}` bar in pressure.
 
-Now, beware that cross section files have many assumptions baked into
-them.  In addition, one might need to adjust the ranges or sampling
-resolution of the grid for specific project.  Thus, below there are
-two options, (a) download and use already made the cross-section
-files (b) compute your own cross sections starting from the line-list
-files (where you can customize at will).
+Now, be aware that cross sections always have assumptions baked into
+them.  Below you can find ready-to-use cross sections and their
+assumptions.
+
+.. Alternatively, if you need to adjust the ranges or sampling resolution for a specific project, compute your own cross sections starting from the line-list files (where you can customize at will).
 
 .. tab-set::
 
@@ -280,13 +272,13 @@ shell command:
 Now, we can create the stellar SED spectrum with this Python script:
 
 .. code-block:: python
-    
+
     import gen_tso.pandeia_io as pandeia
     import pyratbay.constants as pc
     import pyratbay.spectrum as ps
     import matplotlib.pyplot as plt
-    
-    
+
+
     # Use the Gen TSO package to get a PHOENIX SED model for WASP-18 (teff=6430.0, logg=4.31)
     # Closest SED to WASP-18 is an F5V model (Teff=6500K, logg=4.0)
     scene = pandeia.make_scene(
@@ -296,11 +288,11 @@ Now, we can create the stellar SED spectrum with this Python script:
     sed_wl, flux = pandeia.extract_sed(scene, wl_range=(0.35,12.0))
     # Convert flux from mJy to erg s-1 cm-2 cm-1
     sed_flux = flux * pc.c / 1e26
-    
+
     # Lower the resolution to something closer to NIRISS
     bin_wl = ps.constant_resolution_spectrum(0.35, 12.0, resolution=1500.0)
     bin_sed_flux = ps.bin_spectrum(bin_wl, sed_wl, sed_flux, gaps='interpolate')
-    
+
     # Save to file
     starspec_file = 'phoenix_F5V_6500K_WASP18.dat'
     io.write_spectrum(
@@ -326,7 +318,7 @@ Now, we can create the stellar SED spectrum with this Python script:
 .. plt.savefig('../../figures/phoenix_sed_wasp18.png')
 
 .. image:: ./../../figures/phoenix_sed_wasp18.png
-   :width: 70%    
+   :width: 70%
    :align: center
 
 
@@ -405,9 +397,9 @@ Lets break this down:
      as well as the planetary mass and radius.
 
      Note that this ``rplanet`` value is the reference altitute
-     situated at the ``refpressure`` pressure (this is the constrain
+     situated at the ``ref_pressure`` pressure (this is the constrain
      to compute the layer's :math:`r(p)` profile under hydrostatic
-     equilibrium).  Also note that ``refpressure`` does not need to be
+     equilibrium).  Also note that ``ref_pressure`` does not need to be
      at one of the sampled layers (it can be anywhere in between the
      atmosphere pressure range).
 
@@ -553,6 +545,9 @@ Lets break this down:
 Retrieval run
 -------------
 
+.. Note:: Before running these step, see :ref:`Multinest retrievals
+          <ret_multi>` section about MPI / Multinest installation.
+
 To launch the retrieval run, we use the following command from the
 prompt.  Since we are using multinest, we will make use of its MPI
 parallel-computing capability (thus, the prefix ``mpirun -n 64``):
@@ -568,24 +563,6 @@ the memory demand.
 
 That's it. Now we wait until the run is over. This should take from
 one to a few days depending on your machine.
-
-.. note:: Before starting this retrieval, make sure to install
-          multinest and MPI on your machine.  This can be quite
-          specific for each machine, so I cannot help much there.
-          `Here
-          <https://johannesbuchner.github.io/PyMultiNest/index.html>`__
-          and `here
-          <https://www.astrobetter.com/wiki/MultiNest%2bInstallation%2bNotes>`__
-          are some installation guides that may help.
-
-          Then install their Python wrappers, e.g., with these
-          commands:
-
-          .. code-block:: shell
-
-              pip install pymultinest
-              pip install mpi4py
-
 
 
 Retrieval outputs

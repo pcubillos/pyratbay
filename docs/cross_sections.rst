@@ -84,9 +84,13 @@ HWHM and at 25 |kayser|.  The grids sampling are:
     - Exomol, jnk
     - [Paulose2015]_
 
-  * - `CS2 <https://zenodo.org/records/16965391/files/cross_section_0.15-33.0um_0200-5000K_R025K_CS2_hitran_2020.npz>`__
-    - HITRAN, 2020
-    - [Gordon2022]_
+  * - `CS2 <https://zenodo.org/records/21643579/files/cross_section_0.15-33.0um_0200-5000K_R025K_CS2_hitran_2024.npz>`__
+    - HITRAN, 2024
+    - [Gordon2026]_
+
+  * - `Fe <https://zenodo.org/records/21645198/files/cross_section_0.15-33.0um_0200-5000K_R025K_Fe_vald.npz>`__
+    - VALD
+    - [Piskunov1995]_
 
   * - `FeH <https://zenodo.org/records/17060937/files/cross_section_0.15-33.0um_0200-5000K_R025K_FeH_exomol_mollist.npz>`__
     - Exomol, mollist
@@ -112,6 +116,10 @@ HWHM and at 25 |kayser|.  The grids sampling are:
     - Exomol, coxon-hajig
     - [Li2013]_ [Coxon2015]_ [Somogyi2021]_
 
+  * - `K <https://zenodo.org/records/21645198/files/cross_section_0.15-33.0um_0200-5000K_R025K_K_vald.npz>`__
+    - VALD
+    - [Piskunov1995]_
+
   * - `KCl <https://zenodo.org/records/17060937/files/cross_section_0.15-33.0um_0200-5000K_R025K_KCl_exomol_barton.npz>`__
     - Exomol, barton
     - [Barton2014]_
@@ -119,6 +127,14 @@ HWHM and at 25 |kayser|.  The grids sampling are:
   * - `KOH <https://zenodo.org/records/16965391/files/cross_section_0.15-33.0um_0200-5000K_R025K_KOH_exomol_oyt4.npz>`__
     - Exomol, oyt4
     - [Owens2021]_
+
+  * - `Mg <https://zenodo.org/records/21645198/files/cross_section_0.15-33.0um_0200-5000K_R025K_Mg_vald.npz>`__
+    - VALD
+    - [Piskunov1995]_
+
+  * - `Na <https://zenodo.org/records/21645198/files/cross_section_0.15-33.0um_0200-5000K_R025K_Na_vald.npz>`__
+    - VALD
+    - [Piskunov1995]_
 
   * - `NaCl <https://zenodo.org/records/17060937/files/cross_section_0.15-33.0um_0200-5000K_R025K_NaCl_exomol_barton.npz>`__
     - Exomol, barton

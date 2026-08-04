@@ -5,6 +5,7 @@
 tests/inputs/*.par
 tests/inputs/*.pck
 tests/inputs/jupiter_isothermal_uniform_vmr.atm
+pyratbay/data/phoenix_seds.dat
 
 
 # Byte-compiled / optimized / DLL files

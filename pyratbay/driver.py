@@ -10,16 +10,14 @@ from . import tools as pt
 from . import Pyrat, Atmosphere
 
 
-def run(cfile, run_step=None, with_log=True):
+def run(cfile, with_log=True):
     """
-    Pyrat Bay initialization driver.
+    Pyrat Bay command-line-interface run
 
     Parameters
     ----------
     cfile: String
         A Pyrat Bay configuration file.
-    run_step: String
-        DEPRECATED
     with_log: Bool
         Flag to save screen outputs to file (True) or not (False)
         (e.g., to prevent overwritting log of a previous run).
@@ -27,11 +25,7 @@ def run(cfile, run_step=None, with_log=True):
     inputs, log = pt.parse(cfile, with_log)
     runmode = inputs.runmode
 
-    # TBD: deprecate run_step
-    if run_step == 'dry':
-        return inputs
-
-    # Call lineread:
+    # Call lineread
     if runmode == 'tli':
         if inputs.tlifile is None:
             log.error('Undefined TLI file (tlifile)')
@@ -45,29 +39,22 @@ def run(cfile, run_step=None, with_log=True):
         )
         return
 
-    # Initialize atmosphere:
+    # Initialize and run atmosphere
     if runmode == 'atmosphere':
         return Atmosphere(inputs, log=log)
 
-    # Initialize pyrat object:
+    # Initialize pyrat and execute calculations
     pyrat = Pyrat(inputs, log)
-    # Stop and return if requested:
-    if run_step == 'init':
-        return pyrat
-
-    # Requested calculations:
     if runmode == 'opacity':
         pyrat.compute_opacity()
-        return pyrat
 
     if runmode == "spectrum":
         pyrat.run()
-        return pyrat
 
     if runmode == 'radeq':
         pyrat.radiative_equilibrium()
-        return pyrat
 
     if runmode == 'retrieval':
         pyrat.retrieval()
-        return pyrat
+
+    return pyrat

@@ -13,7 +13,6 @@ def check_spectrum(pyrat):
     """
     Check that user input arguments make sense.
     """
-    # Shortcuts:
     log = pyrat.log
     spec = pyrat.spec
     atm = pyrat.atm
@@ -88,7 +87,7 @@ def setup(pyrat):
             # Band-integrate the stellar flux
             pyrat.obs.bandflux_star = np.array([
                 band(pyrat.spec.starflux)
-                for band in pyrat.obs.filters
+                for band in pyrat.obs.bands
             ])
         # 2D spectra
         else:

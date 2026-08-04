@@ -11,7 +11,7 @@ are four properties that can be modeled:
 
 1. :ref:`Pressure profile <pressure>`
 2. :ref:`Temperature profile <temperature_profile>`
-3. :ref:`Abundance profiles (volume mixing ratios) <abundance_profile>`
+3. :ref:`Volume mixing ratio profiles <abundance_profile>`
 4. :ref:`Radius profile <radius_profile>`
 
 
@@ -825,7 +825,7 @@ temperature and mean molecular mass profiles.
 
 To solve the hydrostatic-equilibrium equation, users also need to
 provide a radius--pressure reference point, defining the condition
-:math:`r(p_0) = R_0`.  The ``rplanet`` and ``refpressure`` keys set
+:math:`r(p_0) = R_0`.  The ``rplanet`` and ``ref_pressure`` keys set
 :math:`R_0` and :math:`p_0`, respectively.
 
 .. note:: Note that the choice of the :math:`\{p_0,R_0\}` pair is

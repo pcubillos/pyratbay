@@ -7,12 +7,14 @@ __all__ = [
     'get_mpi_rank',
     'get_mpi_size',
     'mpi_barrier',
+    'MPI_Comm',
 ]
 
 import importlib
 import os
 import sys
 import warnings
+import numpy as np
 
 
 def check_mpi4py():
@@ -106,7 +108,7 @@ def get_mpi_size():
 
 def mpi_barrier():
     """
-    Make an MPI barrier() call. Ignore it if mpi4py is not installed.
+    Make an MPI barrier() call. Ignore it if mpi4py is not installed/used.
     """
     if 'PBAY_NO_MPI' in os.environ:
         return
@@ -114,3 +116,51 @@ def mpi_barrier():
     if mpi_exists:
         from mpi4py import MPI
         MPI.COMM_WORLD.barrier()
+
+
+class MPI_Comm():
+    """
+    A no-MPI safe comm object
+    """
+    def __init__(self):
+        self.rank = get_mpi_rank()
+        self.size = get_mpi_size()
+        self.use_mpi = (
+            self.size > 1 and
+            importlib.util.find_spec('mpi4py') is not None
+        )
+        if self.use_mpi:
+            from mpi4py import MPI
+            self._comm = MPI.COMM_WORLD
+            self._win = MPI.Win
+
+    def bcast(self, data, root=0):
+        if self.use_mpi:
+            return self._comm.bcast(data, root=root)
+        return data
+
+    def gather(self, data, root=0):
+        if self.use_mpi:
+            return self._comm.gather(data, root=root)
+        return data
+
+    def allocate_shared(self, shape):
+        if not self.use_mpi:
+            return np.array(shape)
+
+        dtype = np.float64
+        itemsize = np.dtype(dtype).itemsize
+        if self.rank == 0:
+            nbytes = np.prod(shape) * itemsize
+        else:
+            nbytes = 0
+
+        win = self._win.Allocate_shared(nbytes, itemsize, comm=self._comm)
+        buf, itemsize = win.Shared_query(0)
+        data = np.ndarray(
+            shape=shape,
+            dtype=dtype,
+            buffer=buf,
+        )
+        return data
+

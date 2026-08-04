@@ -37,19 +37,21 @@ Recipes list:
 
   - `Instrumental Passbands <passbands.ipynb>`__
   - :doc:`partition_functions`
+  - :doc:`transit_light_source`
 
 ..  - :ref:`transmission_simulation` (TBD)
-  - :ref:`emission_simulation` (TBD)
+..  - :ref:`emission_simulation` (TBD)
 
 
 - **End-to-end analyses**
 
   - :doc:`wasp39b/transmission_retrieval`
+  - :doc:`wasp107b_tls/transmission_retrieval`
   - :doc:`wasp18b/eclipse_retrieval`
   - :doc:`wasp69b/radiative_equilibrium`
-  - :doc:`yses1b/iso_ratio_retrieval` (TBD)
-..   - JWST_proposal_simulation (TBD)
+  - :doc:`yses1b/iso_ratio_retrieval`
 
+..   - JWST_proposal_simulation (TBD)
 ..  - :doc:`wasp18b/cross_sections_uhj`
 
 - :ref:`compendia` lists compendia of peer-reviewed articles with scripts that reproduced the published material
@@ -72,8 +74,10 @@ Recipes list:
 
    passbands
    partition_functions
+   transit_light_source
 
    wasp39b/transmission_retrieval
+   wasp107b_tls/transmission_retrieval
    wasp18b/eclipse_retrieval
    wasp69b/radiative_equilibrium
    yses1b/iso_ratio_retrieval

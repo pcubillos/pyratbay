@@ -34,10 +34,10 @@ Pyrat Bay
 -------------------------------------------------------------------
 
 
-:Author:       Patricio Cubillos and Jasmina Blecic
+:Author:       Patricio Cubillos & Jasmina Blecic
 :Contact:      `patricio.cubillos[at]oeaw.ac.at`_
 :Organizations: `Space Research Institute (IWF)`_
-:Web Site:     https://github.com/pcubillos/pyratbay
+:Web site:     https://github.com/pcubillos/pyratbay
 :Date:         |today|
 
 Features
@@ -47,10 +47,10 @@ Features
 radiative-transfer spectra, and fit exoplanet atmospheric properties.
 This package offers:
 
-- **Transmission** or **emission** spectral synthesis of exoplanet atmospheres.
-- Forward-model or retrieval calculations.
+- **Transmission**, **eclipse**, or **emission** spectral synthesis of exoplanet atmospheres.
+- Forward-model or (multinest) retrieval calculations.
 
-The radiative-transfer calculation includes opacity sources from:
+Radiative-transfer calculations include opacity sources from:
 
 - Line-by-line molecular absorption
 - Collision-induced absorption
@@ -58,14 +58,16 @@ The radiative-transfer calculation includes opacity sources from:
 - Na and K alkali resonant lines
 - Gray and Mie (soon) aerosol opacities
 
-Bayesian (MCMC and Nested sampling) posterior sampling of atmospheric parameters:
+Bayesian (Nested sampling) posterior sampling of atmospheric parameters:
 
 - Molecular abundances (free-, equilibrium-, or hybrid chemistry)
 - Temperature profiles
 - Pressure-radius
 - Rayleigh and cloud properties
+- Transit light source effect (TLS)
 - Offsets between observing instruments
 - Error scaling for observations
+- Isotopic-ratio fitting
 
 .. _team:
 
@@ -85,14 +87,14 @@ If you found ``Pyrat Bay`` useful for your research, please cite this article:
 Please prefer to channel your feedback or inquiries through the Github issue tracker: `<https://github.com/pcubillos/pyratbay>`_, or alternatively through this email: `patricio.cubillos[at]oeaw.ac.at`_.
 
 ``Pyrat Bay`` is open-source software under the GNU GPL v2 license (see
-:ref:`license`) and is compatible with Python>=3.9.
+:ref:`license`) and is compatible with Python>=3.10.
 
 
 Documentation
 -------------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :includehidden:
 
    getstarted
@@ -100,7 +102,7 @@ Documentation
    atmosphere_modeling
    spectral_synthesis
    cross_sections
-   retrieval_tutorial
+   retrievals
 
    cookbooks/recipes
    api

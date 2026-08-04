@@ -28,7 +28,7 @@ summarizes the modeling capabilities enabled by ``Pyrat Bay``:
    * - :doc:`spectral_synthesis`
      - Radiative-transfer calculations given an input exoplanet atmosphere
      - Transit-depth, eclipse-depth, and/or emission spectra
-   * - :doc:`retrieval_tutorial`
+   * - :doc:`retrievals`
      - Given an exoplanet parametric model and a spectroscopic observation,
        infer the exoplanet atmospheric properties
      - Posterior distribution of planetary model parameters
@@ -81,7 +81,7 @@ Alternatively (e.g., for developers), clone the repository to your local machine
 
 
 ``Pyrat Bay`` (version 2.0+) has been extensively tested to work on
-Unix/Linux and OS X machines and is available for Python 3.9+.
+Unix/Linux and OS X machines and is available for Python 3.10+.
 
 ---------------------------------------------------------------------
 

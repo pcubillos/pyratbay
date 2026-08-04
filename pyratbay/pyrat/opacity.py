@@ -307,6 +307,21 @@ class Opacity():
         return ec, label
 
 
+    def collect_contributions(self):
+        """Collect opacity contributions to spectrum"""
+        contributions = []
+        for model in self.models:
+            if model.name == 'line sampling':
+                contributions += model.species.tolist()
+            if model.name == 'alkali':
+                contributions.append(model.species)
+        if 'H- continuum' in self.models_type:
+            contributions.append('continuum_H-')
+        if 'cloud' in self.models_type:
+            contributions.append('cloud')
+        return contributions
+
+
     def check_temp_bounds(self, temperatures):
         """
         Check if any temperature lies out of bounds for any opacity

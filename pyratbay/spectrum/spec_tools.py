@@ -67,10 +67,11 @@ class PassBand():
         >>>
         >>> plt.figure(0)
         >>> plt.clf()
-        >>> plt.plot(wl, hj_spectrum, c='black')
-        >>> plt.plot(band.wl0, band_flux, 'o', c='royalblue')
-        >>> plt.plot(band.wl, band.response*5e7, c='0.7')
+        >>> plt.plot(wl, hj_spectrum, c='cornflowerblue')
+        >>> plt.errorbar(band.wl0, band_flux, xerr=band.half_width, fmt='o', c='tomato')
+        >>> plt.plot(band.wl, band.response*1e5, c='salmon')
         >>> plt.ylim(bottom=0.0)
+        >>> plt.xlim(1.0, 10.0)
         >>>
         >>> # Now, we can re-evaluate for a bunch of spectra
         >>> temps = np.arange(900, 2500.0, 150.0)
@@ -83,7 +84,8 @@ class PassBand():
         >>>     color = plt.cm.viridis(i/11)
         >>>     plt.plot(wl, spectra[i], c=color)
         >>>     plt.plot(band.wl0, fluxes[i], 'o', c=color)
-        >>> plt.plot(band.wl, band.response*2e7, c='0.7', zorder=-1)
+        >>>     plt.errorbar(band.wl0, fluxes[i], xerr=band.half_width, fmt='o', c=color)
+        >>> plt.plot(band.wl, band.response*1e5, c='0.7')
         >>> plt.xscale('log')
         >>> plt.ylim(bottom=0.0)
         >>> plt.xlim(1.0, 10.0)
@@ -98,10 +100,7 @@ class PassBand():
         filter_file = filter_file.replace('{ROOT}', pc.ROOT)
         self.filter_file = os.path.realpath(filter_file)
         input_wl, input_response = io.read_spectrum(self.filter_file, wn=False)
-
-        self.wl0 = np.sum(input_wl*input_response) / np.sum(input_response)
         input_wn = 1.0 / (input_wl * pc.um)
-        self.wn0 = 1.0 / (self.wl0 * pc.um)
 
         # Sort it in increasing wavenumber order, store it:
         wn_sort = np.argsort(input_wn)
@@ -116,6 +115,13 @@ class PassBand():
         # Resample the filters into the planet wavenumber array:
         if wn is not None or wl is not None:
             self.set_sampling(wl, wn)
+
+        response_mask = self.response > 0.25*np.amax(self.response)
+        min_wl = np.amin(self.wl[response_mask])
+        max_wl = np.amax(self.wl[response_mask])
+        self.wl0 = 0.5 * (min_wl + max_wl)
+        self.wn0 = 1.0 / (self.wl0 * pc.um)
+        self.half_width = 0.5 * (max_wl - min_wl)
 
 
     def set_sampling(self, wl=None, wn=None):
@@ -814,7 +820,7 @@ def wn_mask(wn, wn_min, wn_max, tol=1.0e-8):
     return wn_mask
 
 
-def inst_convolution(wl, spectrum, resolution, sampling_res=None, mode='same'):
+def inst_convolution(wl, spectrum, resolution, sampling_res=None):
     """
     Convolve a spectrum according to an instrumental resolving power
 
@@ -873,10 +879,17 @@ def inst_convolution(wl, spectrum, resolution, sampling_res=None, mode='same'):
     rv_array = np.arange(-(n_el - 1) / 2, (n_el - 1) / 2 + 1, 1)
     rv_array_mod = np.linspace(-n_rv0*rv_pix, n_rv0*rv_pix, int(2*n_rv0+1))
 
+
     csscaled = si.splrep(rv_array, kernel)
     ker_conv_pix = si.splev(rv_array_mod, csscaled, der=0)
     ker_conv_pix /= sum(ker_conv_pix)
-    rconv = convolve(spectrum, ker_conv_pix, mode=mode)
+    margin = (ker_conv_pix.size-1) // 2
+    wide_spectrum = np.concatenate((
+        np.tile(spectrum[0], margin),
+        spectrum,
+        np.tile(spectrum[-1], margin),
+    ))
+    rconv = convolve(wide_spectrum, ker_conv_pix, mode='valid')
     return rconv
 
 

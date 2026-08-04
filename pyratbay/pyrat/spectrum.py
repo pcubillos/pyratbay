@@ -3,6 +3,7 @@
 
 __all__ = [
     'Spectrum',
+    'TLS',
     'spectrum',
     'two_stream',
 ]
@@ -320,6 +321,107 @@ class Spectrum():
                 self.spectrum, fmt=fmt, edge=3,
             )
         return fw.text
+
+
+class TLS():
+    def __init__(self, inputs, spec, obs, rt_path, log):
+        """
+        Transit light source class for a pyrat object.
+        """
+        tls_folder = inputs.tls_folder
+        tls_models = inputs.tls_models
+        tstar = inputs.tstar
+
+        self.models = tls_models
+        self.n_models = len(self.models)
+        self.pars = []
+        self.band_mask = []
+        self.texnames = []
+        self.pnames = []
+
+        if len(inputs.tls_models) == 0:
+            return
+
+        if rt_path not in pc.transmission_rt:
+            log.error('Requested TLS model but observation is not a transit')
+
+        self.pars = inputs.tls_pars.flatten()
+        wl = spec.wl
+        band_names = [band.name for band in obs.bands]
+        self.spectrum = np.zeros((self.n_models, spec.nwave))
+        self.epsilon = np.zeros((self.n_models, spec.nwave))
+
+        if tls_folder is None:
+            log.error(
+                "Requested a transit-light-source model, but there is no "
+                "input 'tls_folder' constaining the PHOENIX SED models"
+            )
+        if tstar is None:
+            log.error(
+                "Requested a transit-light-source model, but 'tstar' "
+                "input is undefined"
+            )
+        self.tls = ps.TransitLightSource(tls_folder, tstar, wl)
+        self.tmin = np.amin(self.tls.temps)
+        self.tmax = np.amax(self.tls.temps)
+
+        # Detector/epoch specific or general TLS model
+        has_detector = np.any([var.startswith('tls_') for var in self.models])
+        is_general = 'tls' in self.models
+        if has_detector and is_general:
+            log.error(
+                "Combining detector-specifc ('tls_label') and general "
+                "TLS models ('tls') is not allowed"
+            )
+
+        # Setup target bands
+        for var in self.models:
+            if var == 'tls':
+                texname = ''
+                pname = ''
+            elif not var.startswith('tls_'):
+                log.error(
+                    f"Invalid TLS name {repr(var)}, TLS name should be "
+                    "of the form 'tls' or 'tls_label'"
+                )
+            else:
+                inst = var[4:].replace('_', ' ')
+                texname = fr'^{{\rm {inst}}}'
+                pname = var[3:]
+
+            pnames = [
+                f'T_spot{pname}', f'f_spot{pname}',
+                f'T_fac{pname}', f'f_fac{pname}',
+            ]
+            texnames = [
+                fr'$T_{{\rm spot}}{texname}$ (K)',
+                fr'$f_{{\rm spot}}{texname}$',
+                fr'$T_{{\rm fac}}{texname}$ (K)',
+                fr'$f_{{\rm fac}}{texname}$',
+            ]
+
+            if pname == '':
+                band_mask = np.ones(len(band_names), bool)
+            else:
+                band_mask = np.array([inst in name for name in band_names])
+                if np.sum(band_mask) == 0:
+                    log.error(
+                        f"Invalid TLS model '{var}'. There is "
+                        f"no instrument matching the name '{pname[1:]}'"
+                    )
+            self.pnames += pnames
+            self.texnames += texnames
+            self.band_mask.append(band_mask)
+
+    def __call__(self, params=None):
+        """Compute TLS epsilon scaling factor for each model"""
+        if params is not None:
+            self.pars = params
+
+        for i in range(self.n_models):
+            t_spot, f_spot, t_fac, f_fac = self.pars[4*i:4*(i+1)]
+            self.epsilon[i] = self.tls(t_spot, f_spot, t_fac, f_fac)
+        return self.epsilon
 
 
 def _get_cloud_deck(pyrat):

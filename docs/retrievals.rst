@@ -1,35 +1,47 @@
 .. include:: _substitutions.rst
 
-.. _retrieval_tutorial:
+.. _retrievals:
 
 Retrievals
 ==========
 
 This section shows how to setup atmospheric retrievals with ``Pyrat Bay``.
 
-- :ref:`ret_config`
+- :ref:`ret_setup`
+
+  - :ref:`ret_multi`
+  - :ref:`ret_config`
+  - :ref:`ret_launch`
+  - :ref:`ret_post`
+
 - :ref:`ret_free_params`
+- :ref:`ret_depth_offsets`
 - :ref:`ret_examples`
 
 ----------------------------------------------------------------------
 
-.. _ret_config:
+.. _ret_setup:
 
-Setting up
-----------
+Setup and run
+-------------
 
-Multinest
-~~~~~~~~~
+.. _ret_multi:
+
+MPI / Multinest
+~~~~~~~~~~~~~~~
 
 Since version 2.0, ``Pyrat Bay`` enables atmospheric retrievals using
 the nested sampling algorithm [Skilling2004]_ [Skilling2006]_, via the
 MultiNest implementation [Feroz2009]_ [Buchner2014]_.  This is the
 recommended retrieval algorithm.
 
-
-make sure to install multinest and MPI on your machine. This can be
-quite specific for each machine, so I cannot help much there. Here and
-here are some installation guides that may help.
+So, please make sure to install multinest and MPI on your machine.
+This can be quite specific for each machine, so I cannot help much
+there. `Here
+<https://johannesbuchner.github.io/PyMultiNest/index.html>`__ and
+`here
+<https://www.astrobetter.com/wiki/MultiNest%2bInstallation%2bNotes>`__
+are some installation guides that may help.
 
 Then install their Python wrappers, e.g., with these commands:
 
@@ -39,6 +51,9 @@ Then install their Python wrappers, e.g., with these commands:
     pip install mpi4py
 
 
+----------------------------------------------------------------------
+
+.. _ret_config:
 
 Configuration file
 ~~~~~~~~~~~~~~~~~~
@@ -108,15 +123,17 @@ These are the requirements for the configuration file of a retrieval run:
 
      .. code-block:: ini
 
-         # Retrieval setup:
+         # Retrieval setup
          sampler = multinest
          nlive = 1000
          resume = True
-         post_processing = True
 
-         # Retrieval temperature boundaries:
+         # Retrieval temperature boundaries
          tlow  =  800
          thigh = 2500
+
+         # Take a snapshot of the posterior histograms every N-hours
+         dt_retrieval_snapshot = 12
 
      Finally, set the retrieval algorithm and other specific
      configurations.  For multinest, we need to define the number of
@@ -125,11 +142,70 @@ These are the requirements for the configuration file of a retrieval run:
      The ``resume`` option indicates whether to resume sampling from a
      previous run, or start from scratch.
 
+     Strict temperature boundaries can be set with the ``tlow`` and
+     ``thigh`` parameters (e.g., for ``madhu`` or ``guillot`` model).
+
+     The ``dt_retrieval_snapshot`` is a flag to produce a *snapshot*
+     of the posterior histograms at a cadence of the input value (in
+     hours)
+
+
+  .. tab-item:: Outputs
+
+     .. code-block:: ini
+
+         # Post-process data, select between [none, true, loo, oat]
+         post_processing = True
+
+         # Display
+         theme = royalblue
+         data_color = black
+         fig_resolution = 150.0
+
+         # Plot wavelength in log scale (with given tick marks)
+         log_wl = 0.7 1.0 2.0 3.0 4.0 5.0 7.0 10.0
+
+     The ``post_processing`` key sets whether a post-processing
+     indicates to compute median +/-1sigma, and +/-2sigma statistics
+     out of the posterior distribution.  Note that this is a
+     post-process step done *after* the posterior sampling is
+     finished.  These statistics are computed for the spectra, the
+     temperature profiles, contribution functions, and VMRs (along
+     with plots of them).  All these data will be packed into a picke
+     file and diplay into posterior figures.
+
+     - ``none`` no post-processing runs/files will be computed
+     - ``true`` A post-processing routine will run after the
+       retrieval, producing a pickle file containing the statistical
+       data from the posterior sample: median, :math:`\pm1\sigma`, and
+       :math:`\pm2\sigma` for the spectrum, temperature profile, VMR
+       profiles, TLS, contribution functions, and more.
+     - ``loo`` Same as with ``post_processing=true``, but will compute
+       in addition *leave-one-out* posterior spectra, removing one
+       absorber at a time.
+     - ``oat`` Same as with ``post_processing=true``, but will compute
+       in addition *one-at-a-time* posterior spectra including  one
+       absorber  at a time.
+
+     ``theme`` and ``data_color`` allow you to customize the color of the
+     models and data points in the output plots.  Any valid `matplotlib
+     color
+     <https://matplotlib.org/stable/users/explain/colors/colors.html#colors-def>`_
+     is a valid color.
+
+     The ``log_wl`` key has two effects: if set, it makes the code
+     to plot wavelengths axes in log scale with the given ticks (otherwise
+     defaults to a linear scale).
+
+     The ``fig_resolution`` key sets the resolution of *figures* for
+     the output model spectra.
+
+
 
 .. _ret_launch:
 
-Launch / multi-processing
-~~~~~~~~~~~~~~~~~~~~~~~~~
+Launch retrievals
+~~~~~~~~~~~~~~~~~
 
 Retrievals runs in single-CPU mode can be started from the command-line as:
 
@@ -148,6 +224,74 @@ to do so, e.g., with 128 parallel CPUs:
 
 
 ----------------------------------------------------------------------
+
+.. _ret_post:
+
+Post processing
+~~~~~~~~~~~~~~~
+
+Importantly, after running an atmospheric retrieval ``Pyrat Bay`` can
+produce posterior statistics for the spectra, temperature profiles,
+VMR profiles, TLS spectra, and depth offsets.
+
+The data consists of the posterior median, :math:`\pm1\sigma`, and
+:math:`\pm2\sigma` statistics of the variables listed above.  All
+these data will be packed into a picke file and saved to figures.
+This pickle file will also include contribution functions, the
+parameter posteriors, flux spectra, and other useful data.
+
+This post-processing step can run right after a retrieval via the
+``post_processing`` key, or it can be computed separately from the
+command line, as shown below.  There are three options:
+
+.. tab-set::
+
+  .. tab-item:: Basic post processing
+     :selected:
+
+     .. code-block:: shell
+
+         # Basic post processing
+         mpirun -n 64 pbay --post wasp39b_retrieval_transit_jwst.cfg
+
+     This is the basic post-processing call, which will compute and
+     plot the statistics listed above.
+
+  .. tab-item:: Leave-one-out
+
+     .. code-block:: shell
+
+         # Post processing with leave-one-out spectra
+         mpirun -n 64 pbay --post wasp39b_retrieval_transit_jwst.cfg loo
+
+     This call computes everything as the basic run, but in addition
+     computes a set of *leave-one-out* posterior spectra, where one
+     absorber is neglected from the atmosphere at a time.  This helps to
+     see the impact of each absorber into the model spectra.
+
+     .. Note:: Note that if there are *N* absorbers in the model, this
+               call will require *~N* times longer than the basic
+               post-processing call. Thus the recommendation to run
+               with MPI.
+
+  .. tab-item:: One-at-a-time
+
+     .. code-block:: shell
+
+         # Post processing with one-at-at-time spectra
+         mpirun -n 64 pbay --post wasp39b_retrieval_transit_jwst.cfg oat
+
+
+     This call computes everything as the basic run, but in addition
+     computes a set of *one-at-a-time* posterior spectra, where only one
+     absorber is considered in the atmosphere at a time.  This helps to
+     see the impact of each absorber into the model spectra.
+
+     .. Note:: Note that if there are *N* absorbers in the model, this
+               call will require *~N* times longer than the basic
+               post-processing call. Thus the recommendation to run
+               with MPI.
+
 
 
 .. _ret_free_params:
@@ -226,11 +370,22 @@ there are requirements to enable some of them.
      <tr><td><code>log_X</code></td><td><code>chemistry = tea</code> and<br><code>log_X</code> in <code>vmr_vars</code></td><td>Constant VMR embedded in equilibrium atmosphere. <code>X</code> is a species name</td></tr>
 
      <tr><td colspan="4" style="border-bottom: 3px solid #999;"></td></tr>
-     <tr>
-         <th rowspan="1">Isotopic ratios</th>
+     <tr><th rowspan="1">Isotopic ratios</th>
          <td><code>iso_X</code></td>
          <td><code>X</code> in <code>isotope_ratios</code></td>
-         <td><span>\( \log_{10}({f}) \)</span>, where <span>\( f \)</span> is the isotopic fraction for isotope <code>X</code></td></tr>
+         <td><span>\( \log_{10}({f}) \)</span>, where <span>\( f \)</span> is the isotopic fraction for isotope <code>X</code> (see <a href="cookbooks/yses1b/iso_ratio_retrieval.html">Isotopic ratio retrievals</a> section)</td></tr>
+
+     <tr><td colspan="4" style="border-bottom: 3px solid #999;"></td></tr>
+     <tr><th rowspan="5">Transit light source (TLS)</th>
+         <td><code>T_spot</code></td>
+         <td rowspan="2"><code>tls_model = tls</code>, <code>tls_folder</code> is defined, and <code>tstar</code> is defined</td>
+         <td rowspan="2">TLS correction to all spectra, with the given spot temperature and covering fraction (see <a href="cookbooks/wasp107b_tls/transmission_retrieval.html">TLS retrieval</a> section)</td></tr>
+     <tr><td><code>f_spot</code></td></tr>
+     <tr><td colspan="3" style="border-bottom: 2px solid #999; padding: 0px 0px"></td></tr>
+     <tr><td><code>T_spot_X</code></td>
+         <td rowspan="2"><code>tls_X</code> in <code>tls_model</code>, <code>tls_folder</code> is defined, and <code>tstar</code> is defined</td>
+         <td rowspan="2">TLS correction to data points containing <code>X</code> in name. This enables <em>multi-epoch</em> retrievals with observation-specific TLS  (see <a href="cookbooks/wasp107b_tls/transmission_retrieval.html">TLS retrieval</a> section)</td></tr>
+     <tr><td><code>f_spot_X</code></td></tr>
 
      <tr><td colspan="4" style="border-bottom: 3px solid #999;"></td></tr>
      <tr><th rowspan="4">Clouds</th><td><code>log_p_cl</code></td><td><code>deck</code> in <code>clouds</code></td><td>pressure at top of opaque cloud deck.<br><span>\( \log_{10}(p/{\rm bar}) \)</span> units</td></tr>
@@ -241,13 +396,13 @@ there are requirements to enable some of them.
      <tr><td colspan="4" style="border-bottom: 3px solid #999;"></td></tr>
      <tr><th rowspan="6">Solo</th><td><code>R_planet</code></td><td></td><td>radius at <code>log_p_ref</code></td></tr>
      <tr><td><code>log_p_ref</code></td><td></td><td>pressure at <code>R_planet</code>.<br><span>\( \log_{10}(p/{\rm bar}) \)</span> units</td></tr>
-     <tr><td><code>M_planet</code></td><td></td><td></td></tr>
-     <tr><td><code>f_dilution</code></td><td></td><td>Emission dilution factor as in <a href="references.html#Taylor2020">TBD</a> </td></tr>
+     <tr><td><code>M_planet</code></td><td></td><td>Planet mass</td></tr>
+     <tr><td><code>f_dilution</code></td><td></td><td>Emission dilution factor as in <a href="spectral_synthesis.html#flux-dilution-factor">Taylor et al. (2020)</a> </td></tr>
      <tr><td><code>T_eff</code></td><td></td><td>stellar effective temperature</td></tr>
      <tr><td><code>rv_shift</code></td><td></td><td>radial-velocity offset in km s<sup>-1</sup> </td></tr>
 
      <tr><td colspan="4" style="border-bottom: 3px solid #999;"></td></tr>
-     <tr><th rowspan="4">Data</th><td><code>offset_X</code></td><td><code>offset_X</code> in <code>offset_inst</code></td><td>shift depth to data points containing <code>X</code> in name. Units as given in <code>dunits</code> argument</td></tr>
+     <tr><th rowspan="4">Data manipulation</th><td><code>offset_X</code></td><td><code>offset_X</code> in <code>offset_inst</code></td><td>shift depth to data points containing <code>X</code> in name. Units as given in <code>dunits</code> argument (see <a href="retrievals.html#depth-offsets">Depth offsets</a> section)</td></tr>
      <tr><td colspan="3" style="border-bottom: 2px solid #999; padding: 0px 0px;"></td></tr>
      <tr><td><code>scale_X</code></td><td><code>scale_X</code> in <code>uncert_scaling</code></td><td>scale uncertainty of data points containing <code>X</code> in name</td></tr>
      <tr><td><code>quadrature_X</code></td><td><code>quadrature_X</code> in <code>uncert_scaling</code></td><td>add noise in quadrature to data points containing <code>X</code> in name. Units as given in <code>dunits</code> argument</td></tr>
@@ -358,6 +513,85 @@ negative 5):
 
 ----------------------------------------------------------------------
 
+.. _ret_depth_offsets:
+
+Depth offsets
+-------------
+
+Here's a tutorial to include depth-offsets free paramters into a
+retrieval.
+
+Say we want to perform an atmospheric retrieval of a multi-instrument
+dataset of a target observed with NIRISS, NIRSpec, and MIRI. Here is
+the *observation file* for this retrieval (see
+:ref:`spec_observations`):
+
+.. code-block:: ini
+   :caption: File: obs_wasp39b_transit_jwst.dat
+
+   # Simulated JWST transit observation of WASP-39b
+   # with NIRISS/SOSS + NIRSpec/BOTS G395H + MIRI/LRS
+
+   @DEPTH_UNITS
+   percent
+
+   #     depth    depth_err   wavelength  half_width    instrument
+   @DATA
+       2.07687      0.01495     0.833679    0.002779    soss_order1
+       2.06726      0.01398     0.839255    0.002798    soss_order1
+       2.07929      0.01343     0.844869    0.002816    soss_order1
+       ...
+       2.16862      0.00987     2.876297    0.005753    nirspec_g395h
+       2.15072      0.01013     2.887825    0.005776    nirspec_g395h
+       2.10883      0.01002     2.899399    0.005799    nirspec_g395h
+       ...
+       2.04815      0.06303    11.386969    0.071169    miri_lrs
+       2.03650      0.07101    11.530202    0.072064    miri_lrs
+       1.99208      0.07887    11.675236    0.072970    miri_lrs
+
+
+Note that the provenance from each datapoint can be set via the
+instrument label (last element in each row).  This allow us to create
+dataset-specific offset parameters in the retrieval configuration file:
+
+.. code-block:: ini
+   :caption: File: wasp39b_retrieval_transit_jwst_with_offsets.cfg
+
+   # The observations
+   obsfile = obs_wasp39b_transit_jwst.dat
+   dunits = percent
+
+   # Instrumental depth offsets
+   offset_inst =
+       offset_soss
+       offset_g395h
+
+   retrieval_params =
+   #   Name       value      min     max   step
+       offset_soss    0.0    -0.05    0.05  1.0
+       offset_g395h   0.0    -0.05    0.05  1.0
+       ...
+
+The ``offset_inst`` key defines the offset models to use. The syntax
+is ``offset_inst``, where ``inst`` is the instrument identifier.  If a
+datapoint name contains the string ``inst``, it will be affected by
+this offset model.  For example, ``offset_soss`` will apply to all
+data points that contain ``soss`` in their instrument name, that is,
+the ``soss_order1`` values.
+
+As many offset models as desired can be set.  The only restriction is
+that no datapoint can be affected by more than one offset model (e.g.,
+``offset_order1`` and ``offset_order2`` could be created, but not
+``offset_soss`` and ``offset_order1``).
+
+Once an offset model is declared with the ``offset_inst`` key, they
+can be included in the list of retrieval parameters
+(``retrieval_params``).  The units of the offset parameter are defined
+by the ``dunits`` key.  The valid data units are ``none``,
+``percent``, ``ppt``, and ``ppm``.
+
+----------------------------------------------------------------------
+
 .. _ret_examples:
 
 Full examples
@@ -367,7 +601,9 @@ Here are a couple of examples to reproduce retrieval analyses from
 peer-reviewed articles:
 
 - :doc:`cookbooks/wasp39b/transmission_retrieval`
+- :doc:`cookbooks/wasp107b_tls/transmission_retrieval`
 - :doc:`cookbooks/wasp18b/eclipse_retrieval`
+- :doc:`cookbooks/yses1b/iso_ratio_retrieval`
 
 .. TBD: High-resolution direct-imaging
 

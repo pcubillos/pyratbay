@@ -20,13 +20,14 @@ class Observation():
         self.uncert = inputs.uncert
         self.data_hires = None
         self.uncert_hires = None
+        self.band_wl = None
         self.units = inputs.dunits
         self._dunits = pt.u(self.units)
 
         if inputs.filters is None:
-            self.filters = []
+            self.bands = []
         else:
-            self.filters = [
+            self.bands = [
                 ps.PassBand(filter_file)
                 for filter_file in inputs.filters
             ]
@@ -35,11 +36,10 @@ class Observation():
         if inputs.obsfile is not None:
             # TBD: Throw error if filters already exist
             obs_data = io.read_observations(inputs.obsfile)
-            if np.ndim(obs_data) == 2:
+            if len(obs_data) == 5:
                 # TBD: Throw error if data or uncert already exist
-                self.filters, self.data, self.uncert = obs_data
-            elif np.ndim(obs_data) == 1:
-                self.filters = obs_data
+                self.data, self.uncert = obs_data[3:]
+            self.bands, self.band_wl, self.half_widths = obs_data[0:3]
 
         # Number of datapoints and filters:
         self.ndata = 0
@@ -57,24 +57,24 @@ class Observation():
                     f'match the number of data points ({self.ndata})'
                 )
 
-        self.nfilters = len(self.filters)
-        if self.nfilters > 0 and self.ndata > 0 and self.ndata != self.nfilters:
+        self.nbands = len(self.bands)
+        if self.nbands > 0 and self.ndata > 0 and self.ndata != self.nbands:
             log.error(
-                f'Number of filter bands ({self.nfilters}) does not '
+                f'Number of filter bands ({self.nbands}) does not '
                 f'match the number of data points ({self.ndata})'
             )
 
         # Resample the filters into the planet wavenumber array:
-        for band in self.filters:
+        for band in self.bands:
             band.set_sampling(wn=wn)
         # Per-band variables:
-        self.bandwn = np.array([band.wn0 for band in self.filters])
-        self.bandflux = np.zeros(self.nfilters, np.double)
+        self.bandwn = np.array([band.wn0 for band in self.bands])
+        self.bandflux = np.zeros(self.nbands, np.double)
 
 
         # High-resolution data (sampled at nyquist frequency)
         self.inst_resolution = inputs.inst_resolution
-        self.filters_hires = []
+        self.bands_hires = []
         if inputs.obsfile_hires is not None:
             # TBD: Check spec.wn is at constant resolution
             if self.inst_resolution is None:
@@ -83,15 +83,13 @@ class Observation():
                     'convolution of high-resolution data'
                 )
             obs_data = io.read_observations(inputs.obsfile_hires)
-            if np.ndim(obs_data) == 2:
-                filters_hires, self.data_hires, self.uncert_hires = obs_data
-            elif np.ndim(obs_data) == 1:
-                filters_hires = obs_data
-            self.wn_hires = np.array([band.wn0 for band in filters_hires])
-            for band in filters_hires:
+            if len(obs_data) == 5:
+                self.data_hires, self.uncert_hires = obs_data[3:]
+            self.bands_hires, self.band_wl_hires, hw = obs_data[0:3]
+            self.wn_hires = 1.0 / (self.band_wl_hires*pc.um)
+            for band in self.bands_hires:
                 band.half_width = band.wl0 / self.inst_resolution / 2.0
                 band.set_sampling(wn=wn)
-            self.filters_hires = filters_hires
 
         if self.data_hires is not None:
             self.ndata_hires = len(self.data_hires)
@@ -101,11 +99,11 @@ class Observation():
         if self.uncert_hires is not None:
             self.n_uncert_hires = len(self.uncert_hires)
 
-        self.nfilters_hires = len(self.filters_hires)
-        self.bandflux_hires = np.zeros(self.nfilters_hires, np.double)
+        self.nbands_hires = len(self.bands_hires)
+        self.bandflux_hires = np.zeros(self.nbands_hires, np.double)
 
         # Instrumental offsets and error-scaling parameters
-        band_names = [band.name for band in self.filters]
+        band_names = [band.name for band in self.bands]
         self.offset_inst = inputs.offset_inst
         self.offset_pars = inputs.offset_pars
         self.uncert_scaling = inputs.uncert_scaling
@@ -117,6 +115,7 @@ class Observation():
         self.depth = pt.Data(
             self.data, self.uncert, band_names,
             self.offset_inst, self.uncert_scaling,
+            self.units,
         )
         if len(self.offset_pars) > 0:
             self.data = self.depth.offset_data(self.offset_pars, self.units)
@@ -135,7 +134,7 @@ class Observation():
         units = pt.u(self.units)
         fw = pt.Formatted_Write()
         fw.write('Observing information:')
-        if self.data is not None or self.filters is not None:
+        if self.data is not None or self.bands is not None:
             fw.write('Data/bandflux display units (units): {}', self.units)
             fw.write('Data/bandflux internal units: none')
         fw.write('Number of data points (ndata): {}', self.ndata)
@@ -149,20 +148,20 @@ class Observation():
                 data/units, uncert/units, wn, 1.0/(wn*pc.um))
         # TBD: add hires data
 
-        fw.write('\nNumber of filter pass bands (nfilters): {}', self.nfilters)
-        if self.nfilters == 0:
+        fw.write('\nNumber of filter pass bands (nbands): {}', self.nbands)
+        if self.nbands == 0:
             return fw.text
         fw.write(
-            'Wavenumber  Wavelength    Bandflux  Filter name\n'
-            '      cm-1          um     {:>7s}\n'
-            '  (bandwn)              (bandflux)  (filters)',
+            'Wavelength    Bandflux  Filter name\n'
+            '        um     {:>7s}\n'
+            ' (band_wl)  (bandflux)  (bands)',
             self.units,
         )
-        for i,band in enumerate(self.filters):
+        for i,band in enumerate(self.bands):
             band_flux = self.bandflux[i] / units
             fw.write(
-                ' {:9.2f}  {:10.3f}  {:10.5f}  {:s}',
-                band.wn0, 1.0/(band.wn0*pc.um), band_flux, band.name,
+                '{:10.3f}  {:10.5f}  {:s}',
+                band.wl0, band_flux, band.name,
             )
         return fw.text
 

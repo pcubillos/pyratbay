@@ -20,7 +20,6 @@ import warnings
 
 import numpy as np
 import mc3.utils as mu
-import matplotlib
 
 from . import tools as pt
 from .mpi_tools import (
@@ -549,38 +548,38 @@ def parse(cfile, with_log=True, mute=False):
         parse_str(args, 'offset_inst')
         parse_str(args, 'uncert_scaling')
         parse_float(args, 'inst_resolution')
+        # Transit light source effect
+        parse_str(args, 'tls_folder')
+        parse_str(args, 'tls_model')
         # Retrieval options:
         parse_str(args, 'mcmcfile')  # Deprecated
         parse_str(args, 'sampler')
         parse_bool(args, 'resume')
-        parse_bool(args, 'post_processing', default=True)
+        parse_str(args, 'post_processing')
         parse_array(args, 'retflag')   # Deprecated
         parse_float(args, 'qcap')
         parse_str(args, 'retrieval_params')
-        parse_array(args, 'params')
-        parse_array(args, 'pstep')
-        parse_float(args, 'tlow')
-        parse_float(args, 'thigh')
-        parse_array(args, 'pmin')
-        parse_array(args, 'pmax')
-        parse_array(args, 'prior')
-        parse_array(args, 'priorlow')
-        parse_array(args, 'priorup')
+        parse_array(args, 'params')   # Deprecated
+        parse_array(args, 'pstep')   # Deprecated
+        parse_float(args, 'tlow')   # Deprecated
+        parse_float(args, 'thigh')   # Deprecated
+        parse_array(args, 'pmin')   # Deprecated
+        parse_array(args, 'pmax')   # Deprecated
+        parse_array(args, 'prior')   # Deprecated
+        parse_array(args, 'priorlow')   # Deprecated
+        parse_array(args, 'priorup')   # Deprecated
         parse_int(args, 'nsamples')
         parse_int(args, 'nchains')
         parse_int(args, 'burnin')
         parse_int(args, 'thinning')
         parse_float(args, 'grbreak')
         parse_float(args, 'grnmin')
-        parse_str(args, 'theme')
-        parse_str(args, 'data_color')
         parse_int(args, 'nlive')
         parse_str(args, 'statistics')
         parse_float(args, 'dt_retrieval_snapshot')
         # Stellar models:
         parse_str(args, 'starspec')
         parse_str(args, 'kurucz')
-        parse_str(args, 'marcs')
         parse_str(args, 'phoenix')
         # System parameters:
         parse_str(args,   'rstar')
@@ -590,7 +589,8 @@ def parse(cfile, with_log=True, mute=False):
         parse_str(args, 'mstar')
         parse_str(args, 'distance')
         parse_str(args, 'rplanet')
-        parse_str(args, 'refpressure')
+        parse_str(args, 'ref_pressure')
+        parse_str(args, 'refpressure')  # Deprecated
         parse_str(args, 'mplanet')
         parse_str(args, 'mpunits')
         parse_float(args, 'gplanet')
@@ -598,9 +598,13 @@ def parse(cfile, with_log=True, mute=False):
         parse_float(args, 'tint')
         parse_float(args, 'beta_irr')
         # Outputs:
-        parse_str(args,   'specfile')
-        parse_array(args, 'logxticks')
-        parse_array(args, 'yran')
+        parse_str(args, 'specfile')
+        parse_str(args, 'theme')
+        parse_float(args, 'fig_resolution')
+        parse_str(args, 'data_color')
+        parse_array(args, 'log_wl')
+        parse_array(args, 'logxticks')  # Deprecated
+        parse_array(args, 'spec_ylim')
 
     # Cast into a Namespace to make my life easier:
     args = Namespace(args)
@@ -788,6 +792,15 @@ def parse(cfile, with_log=True, mute=False):
         1, ge=1,
     )
 
+    if args.logxticks is not None:
+        if args.log_wl is None:
+            args.log_wl = args.logxticks
+        warning_msg = (
+            "'logxticks' argument is deprecated and will be removed in "
+            "the future, use 'log_wl' instead "
+        )
+        warnings.warn(warning_msg, category=DeprecationWarning)
+
     runits = args.get_default('runits', 'Planetary-radius units')
     if runits is not None and not hasattr(pc, runits):
         log.error(f'Invalid radius units (runits): {runits}')
@@ -801,6 +814,15 @@ def parse(cfile, with_log=True, mute=False):
         'radmodel', 'Radius-profile model', pc.radmodels)
 
     # Pressure inputs:
+    if args.refpressure is not None:
+        if args.ref_pressure is None:
+            args.ref_pressure = args.refpressure
+        warning_msg = (
+            "'refpressure' argument is deprecated and will be removed in "
+            "the future, use 'ref_pressure' instead "
+        )
+        warnings.warn(warning_msg, category=DeprecationWarning)
+
     args.nlayers = args.get_default(
         'nlayers', 'Number of atmospheric layers', gt=1,
     )
@@ -812,8 +834,8 @@ def parse(cfile, with_log=True, mute=False):
         punits = args.get_units('pbottom')
     elif punits is None and args.ptop is not None:
         punits = args.get_units('ptop')
-    elif punits is None and args.refpressure is not None:
-        punits = args.get_units('refpressure')
+    elif punits is None and args.ref_pressure is not None:
+        punits = args.get_units('ref_pressure')
     args.punits = punits
 
     args.pbottom = args.get_param(
@@ -824,8 +846,8 @@ def parse(cfile, with_log=True, mute=False):
         'ptop', punits, 'Pressure at top of atmosphere',
         gt=0.0, output_units='bar',
     )
-    args.refpressure = args.get_param(
-        'refpressure', punits, 'Planetary reference pressure level',
+    args.ref_pressure = args.get_param(
+        'ref_pressure', punits, 'Planetary reference pressure level',
         gt=0.0, output_units='bar',
     )
 
@@ -998,7 +1020,6 @@ def parse(cfile, with_log=True, mute=False):
 
     args.starspec = args.get_path('starspec', 'Stellar spectrum', exists=True)
     args.kurucz = args.get_path('kurucz', 'Kurucz model', exists=True)
-    args.marcs = args.get_path('marcs', 'MARCS model', exists=True)
     args.phoenix = args.get_path('phoenix', 'PHOENIX model', exists=True)
 
     args.raygrid = args.get_default(
@@ -1058,6 +1079,30 @@ def parse(cfile, with_log=True, mute=False):
             if len(fields) > 1:
                 args.uncert_pars[i] = float(fields[1])
 
+    args.tls_folder = args.get_path('tls_folder', 'TLS SEDs folder')
+    tls_model = args.get_default('tls_model', 'TLS models')
+    if tls_model is None:
+        args.tls_models = []
+        args.tls_pars = []
+    else:
+        pars = [
+            par for par in tls_model.splitlines()
+            if par != ''
+        ]
+        args.tls_models = []
+        args.tls_pars = np.zeros((len(pars),4))
+        for i,par in enumerate(pars):
+            fields = par.split()
+            nfields = len(fields)
+            args.tls_models.append(fields[0])
+            if nfields == 1:
+                continue
+            elif nfields in [3,5]:
+                args.tls_pars[i,:nfields-1] = np.array(fields[1:], float)
+            else:
+                msg = f'Invalid number of parameters for {repr(fields[0])}'
+                raise ValueError(msg)
+
     args.inst_resolution = args.get_default(
         'inst_resolution', 'Instrumental resolution', gt=0.0,
     )
@@ -1101,6 +1146,17 @@ def parse(cfile, with_log=True, mute=False):
         ge=0.0,
     )
 
+    post = args.post_processing
+    if isinstance(post, str):
+        post = post.lower()
+        if post in ['none', 'false']:
+            post = None
+        elif post not in ['true', 'loo', 'oat']:
+            log.error(
+                f"Invalid post_processing argument {repr(args.post_processing)}, value must be 'False', 'True', 'loo', or 'oat'"
+            )
+        args.post_processing = post
+
     args.statistics = args.get_choice(
         'statistics',
         'Prefered statistics for posterior plots',
@@ -1109,10 +1165,12 @@ def parse(cfile, with_log=True, mute=False):
     if args.statistics is None:
         args.statistics = 'med_central'
 
-    data_color = args.get_default('data_color', 'Color of data points', 'black')
-    if not matplotlib.colors.is_color_like(data_color):
-        data_color = 'black'
-    args.data_color = data_color
+    args.fig_resolution = args.get_default(
+        'fig_resolution', 'Spectral resolution for figures',
+        150.0, gt=0,
+    )
+
+    args.data_color = args.get_default('data_color', 'data points color', 'black')
 
     for arg in ['molvars', 'molmodel', 'molfree', 'molpars']:
         if getattr(args, arg) is not None:

@@ -88,7 +88,7 @@ def test_emission_lecavelier(tmp_path):
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['lec'], rtol=rtol)
 
 
-def test_emission_CIA(tmp_path):
+def test_emission_cia(tmp_path):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_emission_test.cfg',
@@ -397,12 +397,12 @@ def test_emission_band_integrate_no_data():
     bandflux = pyrat.band_integrate()
 
     expected_bandflux = [
-        8.3568338152e+04, 9.1903718156e+04, 9.5340338736e+04, 1.0966350047e+05,
-        1.1646488256e+05, 1.2181987886e+05, 1.2550046594e+05, 1.2436315327e+05,
-        1.1723741319e+05, 8.6999843882e+04, 9.2754967397e+04, 9.1570473309e+04,
-        8.9764522132e+04, 1.0511236060e+05, 1.1096925857e+05, 1.2886574781e+05,
-        1.4866161137e+05, 1.5679865684e+05, 1.6708075619e+05, 1.7134219853e+05,
-        1.7387309305e+05,
+        8.3565581778e+04, 9.1904966377e+04, 9.5345350070e+04, 1.0967327604e+05,
+        1.1647629821e+05, 1.2182838088e+05, 1.2550144814e+05, 1.2435479481e+05,
+        1.1722279849e+05, 8.6989691099e+04, 9.2740401915e+04, 9.1552670226e+04,
+        8.9744952426e+04, 1.0507795153e+05, 1.1092129577e+05, 1.2878237040e+05,
+        1.4852550274e+05, 1.5661306336e+05, 1.6682507884e+05, 1.7103702826e+05,
+        1.7352591900e+05,
     ]
     #print(' '.join([f'{flux:.10e},' for flux in bandflux]))
     np.testing.assert_allclose(pyrat.spec.spectrum, spectrum)

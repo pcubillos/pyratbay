@@ -4,11 +4,13 @@
 __all__ = [
     'alphatize',
     'spectrum',
+    'tls',
     'contribution',
     'temperature',
     'abundance',
-    'default_colors',
     'posteriors',
+    'default_colors',
+    'default_themes',
 ]
 
 from itertools import cycle
@@ -47,6 +49,15 @@ default_colors = {
     'H2S': 'cornflowerblue',
 }
 
+default_themes = [
+    'royalblue',
+    'tomato',
+    'xkcd:green',
+    'xkcd:goldenrod',
+    'deepskyblue',
+    'mediumorchid',
+    '0.5',
+]
 
 def alphatize(colors, alpha, bg='w'):
     """
@@ -90,14 +101,18 @@ def alphatize(colors, alpha, bg='w'):
 
 
 def spectrum(
-    spectrum, wavelength, rt_path,
-    data=None, uncert=None,
-    bands_wl0=None, bands_flux=None, bands_response=None, bands_wl=None,
-    label='model', bounds=None, logxticks=None,
-    resolution=150.0,
-    yran=None, filename=None, fignum=501, axis=None,
-    marker='o', ms=5.0, lw=1.25, fs=14, data_front=True,
-    units=None, dpi=300, theme=None, data_color='black',
+        spectrum, wavelength, rt_path,
+        data=None, uncert=None,
+        bands_wl0=None, bands_flux=None,
+        bands_half_width=None,
+        bands_response=None, bands_wl=None,
+        label='model', bounds=None,
+        logxticks=None,
+        log_wl=None,
+        resolution=150.0,
+        ylim=None, filename=None, fignum=200, axis=None,
+        alpha=None, marker='o', ms=5.0, lw=1.25, fs=13, data_front=True,
+        units=None, dpi=300, theme='royalblue', data_color='black',
     ):
     """
     Plot a transmission or emission model spectrum with (optional) data
@@ -119,6 +134,8 @@ def spectrum(
         The mean wavelength for each band/data point.
     bands_flux: 1D float ndarray
         Band-integrated model spectrum at each bandwl.
+    bands_half_width: 1D float ndarray
+        Band wavelength half-width in microns.
     bands_response: Iterable of 1D float ndarrays
         Transmission response curve for each band.
     bands_wl: Iterable of 1D float ndarrays.
@@ -130,11 +147,13 @@ def spectrum(
         If not None, plot shaded area between +/-1sigma and +/-2sigma
         boundaries.
     logxticks: 1D float ndarray
-        If not None, switch the X-axis scale from linear to log, and set
-        the X-axis ticks at the locations given by logxticks.
+        Deprecated. Use log_wl instead.
+    log_wl: 1D float ndarray
+        If not None, plot X-axis in logscale and set its ticks
+        to the input values.
     resolution: Float
         Binning resolution to display the spectra.
-    yran: 1D float ndarray
+    ylim: 1D float ndarray
         Figure's Y-axis boundaries.
     filename: String
         If not None, save figure to filename.
@@ -179,10 +198,6 @@ def spectrum(
         str_units = '(%)'
 
     theme = pt.resolve_theme(theme)
-    if theme is None:
-        theme = mp.Theme('darkorange')
-        theme.light_color = 'gold'
-        theme.dark_color = 'maroon'
 
     # Setup according to geometry:
     if rt_path == 'emission':
@@ -192,7 +207,7 @@ def spectrum(
     elif rt_path == 'eclipse':
         ylabel = fr'$F_{{\rm p}}/F_{{\rm s}}$ {str_units}'
     elif rt_path == 'transit':
-        ylabel = fr'$(R_{{\rm p}}/R_{{\rm s}})^2$ {str_units}'
+        ylabel = f'Transit depth {str_units}'
 
     # Bin down the spectra
     if resolution is not None:
@@ -202,85 +217,95 @@ def spectrum(
         bin_model = ps.bin_spectrum(bin_wl, wavelength, spectrum)
         if bounds is not None:
             bin_bounds = [
-                ps.bin_spectrum(bin_wl, wavelength, bound)
+                ps.bin_spectrum(bin_wl, wavelength, bound) * flux_scale
                 for bound in bounds
             ]
     else:
         bin_wl = wavelength
         bin_model = spectrum
         if bounds is not None:
-            bin_bounds = bounds
+            bin_bounds = bounds * flux_scale
 
 
     # The plot
     if axis is None:
         fig = plt.figure(fignum)
-        fig.set_size_inches(8.5, 4.5)
+        fig.set_size_inches(7.5, 4.0)
         plt.clf()
         ax = plt.subplot(111)
     else:
         ax = axis
 
+    # The model
+    if alpha is None:
+        alpha = 0.75, 0.5
+    elif np.isscalar(alpha):
+        alpha = alpha, alpha
     if bounds is not None:
+        if len(bounds) == 4:
+            ax.fill_between(
+                bin_wl, bin_bounds[2], bin_bounds[3],
+                fc=theme.light_color, ec='none', alpha=alpha[1], zorder=1,
+            )
         ax.fill_between(
-            bin_wl, flux_scale*bin_bounds[2], flux_scale*bin_bounds[3],
-            facecolor=theme.light_color, edgecolor='none', alpha=0.5,
-            zorder=1,
-        )
-        ax.fill_between(
-            bin_wl, flux_scale*bin_bounds[0], flux_scale*bin_bounds[1],
-            facecolor=theme.light_color, edgecolor='none', alpha=0.75,
-            zorder=2,
+            bin_wl, bin_bounds[0], bin_bounds[1],
+            fc=theme.light_color, ec='none', alpha=alpha[0], zorder=2,
         )
     plt.plot(
-        bin_wl, bin_model*flux_scale, lw=lw, color=theme.color, label=label,
-        zorder=3,
+        bin_wl, bin_model*flux_scale,
+        lw=lw, color=theme.color, label=label, zorder=3,
     )
-    # Plot band-integrated model:
+    # Band-integrated model
     if bands_flux is not None and bands_wl0 is not None:
         plt.plot(
             bands_wl0, bands_flux*flux_scale,
             ls='', marker='o', ms=ms, mew=lw,
             color=theme.color, mec=theme.dark_color, zorder=4,
         )
-    # Plot data:
+    # The data
     zorder = 5 if data_front else -1
     ecolor = alphatize(data_color, alpha=0.85)
     if data is not None and uncert is not None and bands_wl0 is not None:
         plt.errorbar(
             bands_wl0, data*flux_scale, uncert*flux_scale,
+            xerr=bands_half_width,
             fmt=marker, label='data',
-            mfc=(1,1,1,0.85), mec=data_color, ecolor=ecolor,
+            mfc='w', mec=data_color, ecolor=ecolor,
             ms=ms, elinewidth=lw, capthick=lw, zorder=zorder,
         )
 
-    if yran is not None:
-        ax.set_ylim(np.array(yran))
-    yran = ax.get_ylim()
+    if ylim is not None:
+        ax.set_ylim(ylim)
+    ylim = ax.get_ylim()
 
     xmin = np.amin(wavelength)
     xmax = np.amax(wavelength)
-    is_log = logxticks is not None
+
+    # Deprecated argument
+    if log_wl is None and logxticks is not None:
+        log_wl = logxticks
+
+    is_log = log_wl is not None
     def color(x, is_log):
         if is_log:
             return np.log(x/xmin) / np.log(xmax/xmin)
         else:
             return (x-xmin) / (xmax-xmin)
 
-    # Transmission filters:
+    # Pass bands
     if bands_response is not None and bands_wl is not None:
-        band_height = 0.05*(yran[1] - yran[0])
+        band_height = 0.05*(ylim[1] - ylim[0])
         for response, wl, wl0 in zip(bands_response, bands_wl, bands_wl0):
             col = plt.cm.viridis_r(color(wl0, is_log))
             btrans = band_height * response/np.amax(response)
-            plt.plot(wl, yran[0]+btrans, color=col, lw=1.0, zorder=-10)
-        ax.set_ylim(yran)
+            plt.plot(wl, ylim[0]+btrans, color=col, lw=1.0, zorder=-10)
+        ax.set_ylim(ylim)
 
     if is_log:
         ax.set_xscale('log')
         ax.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
         ax.xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
-        ax.set_xticks(logxticks)
+        ax.set_xticks(log_wl)
 
     ax.tick_params(
         which='both', right=True, top=True, direction='in', labelsize=fs-2,
@@ -290,16 +315,160 @@ def spectrum(
     ax.set_ylabel(ylabel, fontsize=fs)
     ax.legend(loc='best', numpoints=1, fontsize=fs-1)
     ax.set_xlim(xmin, xmax)
-    plt.tight_layout()
+    plt.tight_layout(pad=0.2)
 
     if filename is not None:
         plt.savefig(filename, dpi=dpi)
     return ax
 
 
+def tls(
+        tls, wl, labels, bounds=None,
+        log_wl=None, resolution=150.0, themes=None,
+        tls_mask=None, band_wl=None, band_width=None,
+        lw=1.5, fs=12, ylim=None,
+        filename=None, fignum=202, axis=None, dpi=300,
+    ):
+    """
+    Plot transit light source correction spectra.
+
+    Parameters
+    ----------
+    tls: 2D float darray
+        TLS correction (epsilon) spectrum.
+    wl: 1D float darray
+        The wavelength of the model in microns.
+    labels: String
+        Label for spectrum curve.
+    bounds: 3D float array
+        The -1 and +1 sigma boundaries of TLS correction.
+        If not None, plot shaded area between +/-1sigma boundaries.
+    log_wl: 1D float ndarray
+        If not None, plot X-axis in logscale and set its ticks
+        to the input values.
+    resolution: Float
+        Binning resolution to display the spectra.
+    themes: string or mc3.plots.Theme object
+        A color theme for the models.
+    tls_mask: List of 1D bool arrays
+        Bandpass mask for each TLS model. If provided, apply alpha
+        shading to highlight wavelength covered by TLS model(s).
+        Requires band_wl and band_width inputs.
+    band_wl: 1D float array
+        Band central wavelengths (microns). See tls_mask.
+    band_width: 1D  float array
+        Band half widths (microns). See tls_mask.
+    lw: Float
+        Line widths.
+    fs: Float
+        Font size.
+    ylim: 1D float ndarray
+        Figure's Y-axis boundaries.
+    filename: String
+        If not None, save figure to filename.
+    fignum: Integer
+        Figure number.
+    axis: AxesSubplot instance
+        The matplotlib Axes of the figure.
+    dpi: Integer
+        The resolution in dots per inch for saved files.
+
+    Returns
+    -------
+    ax: AxesSubplot instance
+        The matplotlib Axes of the figure.
+    """
+    n_tls = len(tls)
+    min_wl = np.amin(wl)
+    max_wl = np.amax(wl)
+    bin_wl = ps.constant_resolution_spectrum(min_wl, max_wl, resolution)
+    nbin = len(bin_wl)
+
+    # Bin down the TLS spectra
+    bin_tls = [
+        ps.bin_spectrum(bin_wl, wl, tls_model)
+        for tls_model in tls
+    ]
+    if bounds is not None:
+        nbounds = len(bounds)
+        bin_bounds = np.zeros((nbounds, n_tls, nbin))
+        for i in range(nbounds):
+            for j in range(n_tls):
+                bin_bounds[i,j] = ps.bin_spectrum(bin_wl, wl, bounds[i,j])
+
+    is_log = log_wl is not None
+    if themes is None:
+        themes = default_themes[1:]
+        n_themes = len(themes)
+        if n_tls > n_themes:
+            raise ValueError(
+                'Need to input a list of color themes if you need more '
+                f'than {n_themes} TLS curves'
+            )
+    themes = [pt.resolve_theme(theme) for theme in themes]
+
+    # The plot
+    if axis is None:
+        fig = plt.figure(fignum)
+        fig.set_size_inches(7.5, 4.0)
+        plt.clf()
+        ax = plt.subplot(111)
+    else:
+        ax = axis
+
+    for j in range(n_tls):
+        color = themes[j].color
+        bin_tls_lo = bin_bounds[0,j]
+        bin_tls_hi = bin_bounds[1,j]
+        if tls_mask is None or band_wl is None or band_width is None:
+            wl_mask = np.ones(nbin, bool)
+        else:
+            wl_min = np.amin((band_wl-band_width)[tls_mask[j]])
+            wl_max = np.amax((band_wl+band_width)[tls_mask[j]])
+            wl_mask = (bin_wl>=wl_min) & (bin_wl<=wl_max)
+
+        # in-band
+        mask = wl_mask | np.roll(wl_mask, 1) | np.roll(wl_mask, -1)
+        plt.fill_between(
+            bin_wl, bin_tls_lo, bin_tls_hi, where=mask,
+            color=color, ec='none', alpha=0.5,
+        )
+        nan_tls = bin_tls[j] * np.where(mask, 1.0, np.nan)
+        plt.plot(bin_wl, nan_tls, c=color, lw=lw, label=labels[j])
+        # out-of band
+        mask = ~wl_mask
+        plt.fill_between(
+            bin_wl, bin_tls_lo, bin_tls_hi, where=mask,
+            color=color, ec='none', alpha=0.3,
+        )
+        nan_tls = bin_tls[j] * np.where(mask, 1.0, np.nan)
+        plt.plot(bin_wl, nan_tls, c=color, lw=lw, alpha=0.4)
+
+    if is_log:
+        ax.set_xscale('log')
+        ax.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
+        ax.xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
+        ax.set_xticks(log_wl)
+
+    ax.set_xlim(min_wl, max_wl)
+    if ylim is not None:
+        ax.set_ylim(ylim)
+
+    ax.tick_params(which='both', direction='in', labelsize=fs-1)
+    ax.set_xlabel(r'Wavelength ($\mathrm{\mu}$m)', fontsize=fs)
+    ax.set_ylabel(r'TLS contamination, $\epsilon$', fontsize=fs)
+    ax.legend(loc='best', fontsize=fs-1)
+    plt.tight_layout(pad=0.2)
+
+    if filename is not None:
+        plt.savefig(filename, dpi=dpi)
+
+    return ax
+
+
 def contribution(
         contrib_func, wl, rt_path, pressure,
-        filename=None, filters=None, fignum=-21, dpi=300,
+        filename=None, filters=None, fignum=206, dpi=300,
     ):
     """
     Plot the band-integrated normalized contribution functions
@@ -361,9 +530,9 @@ def contribution(
     else:
         rt_paths = pc.rt_paths
         print(f"Invalid radiative-transfer geometry. Select from: {rt_paths}")
-        return
+        return None
 
-    fs = 12
+    fs = 13
     colors = np.asarray(np.linspace(0, 255, nfilters), int)
     # 68% percentile boundaries of the central cumulative function:
     lo = 0.5*(1-0.683)
@@ -391,7 +560,7 @@ def contribution(
     log_p_hi = np.log10(phi)
 
     fig = plt.figure(fignum)
-    fig.set_size_inches(8.5, 4.5)
+    fig.set_size_inches(7.5, 4.0)
     plt.clf()
     plt.subplots_adjust(0.09, 0.10, 0.9, 0.95)
     ax = plt.subplot(111)
@@ -460,7 +629,7 @@ def contribution(
 def temperature(
         pressure, profiles=None, labels=None, colors=None,
         bounds=None, ax=None, filename=None,
-        theme='blue', alpha=[0.75,0.5], fs=13, lw=2.0, fignum=504,
+        theme='blue', alpha=[0.75,0.5], fs=13, lw=2.0, fignum=203,
         dpi=300,
     ):
     """
@@ -556,7 +725,7 @@ def temperature(
     if labels is not None:
         ax.legend(loc='best', fontsize=fs-2)
     if tighten:
-        plt.tight_layout()
+        plt.tight_layout(pad=0.2)
     if filename is not None:
         plt.savefig(filename, dpi=dpi)
     return ax
@@ -566,7 +735,7 @@ def abundance(
         vol_mix_ratios, pressure, species,
         highlight=None, xlim=None,
         colors=None, dashes=None, filename=None,
-        lw=2.0, fignum=505, fs=13, legend_fs=None, ax=None, dpi=300,
+        lw=2.0, fignum=204, fs=13, legend_fs=None, ax=None, dpi=300,
     ):
     """
     Plot atmospheric volume-mixing-ratio abundances.
@@ -719,9 +888,9 @@ def abundance(
 
 
 def posteriors(
-        post_file, theme='blue', data_color='black',
+        post_file, theme=None, data_color=None,
         plot_species=None, vmr_lims=None,
-        logxticks=None, dpi=300,
+        resolution=None, log_wl=None, dpi=300,
     ):
     """
     Plot contribution functions, temperature profiles, VMRs, and spectra
@@ -743,18 +912,18 @@ def posteriors(
         which includes the species that actively contribute to the opacity.
     vmr_limits: 2-element float iterable
         Plotting boundaries for the volume mixing ratio.
-    logxticks: 1D float ndarray
-        If not None, switch the X-axis scale from linear to log, and set
-        the X-axis ticks at the locations given by logxticks.
+    log_wl: 1D float iterable
+        If empty list, plot wavelength in linear scale.
+        If list, plot wavelength in logscale with given values as ticks.
+        If None default to input in pickle file.
     dpi: Integer
         The resolution in dots per inch for saved files.
 
     Examples
     --------
     >>> import pyratbay.plots as pp
-    >>> post_file = 'ns_emission_tutorial_posteriors_info.pickle'
-    >>> theme = 'red'
-    >>> pp.posteriors(post_file, theme='red')
+    >>> post_file = 'ret_emission_posteriors_info.pickle'
+    >>> pp.posteriors(post_file, theme='blue')
 
     >>> vmr_lims = 1e-5, 1.0
     >>> pp.posteriors(post_file, theme='red', vmr_lims=vmr_lims)
@@ -762,10 +931,25 @@ def posteriors(
     >>> plot_species = 'H2O CO H2 He H CH4 CO2 C N O'.split()
     >>> pp.posteriors(post_file, theme='red', plot_species=plot_species)
     """
-    theme = pt.resolve_theme(theme)
     root = post_file.replace('_posteriors_info.pickle', '')
     with open(post_file, 'rb') as handle:
         post_data = pickle.load(handle)
+
+    if data_color is None:
+        data_color = post_data['fig_data_color']
+    if theme is None:
+        theme = post_data['theme']
+    else:
+        theme = pt.resolve_theme(theme)
+
+    if log_wl is not None:
+        log_wl = None if len(log_wl)==0 else log_wl
+    else:
+        log_wl = post_data['log_wl']
+
+    if resolution is None:
+        resolution = post_data['fig_resolution']
+
     band_wl = post_data['band_wl']
     pressure = post_data['pressure']
     cf_lab = 'transmittance' if post_data['path']=='transit' else 'contribution'
@@ -776,7 +960,6 @@ def posteriors(
         cf_median, band_wl, post_data['path'],
         pressure, filename=f'{root}_posterior_contributions.png'
     )
-
 
     # Temperature profile
     fs = 12
@@ -810,8 +993,8 @@ def posteriors(
         [dx, dx], [1.0, 1.015], lw=0.75, c='k',
         clip_on=False, transform=ax.transAxes,
     )
+    plt.tight_layout(pad=0.2)
     plt.savefig(f'{root}_posterior_temperature.png', dpi=dpi)
-
 
     # Volume mixing ratios
     nsamples, nlayers, nspecies = np.shape(post_data['vmr_posterior'])
@@ -845,7 +1028,6 @@ def posteriors(
     fig = plt.figure()
     fig.clf()
     ax = plt.subplot(111)
-    plt.subplots_adjust(0.12, 0.1, 0.98, 0.95)
     for j in range(nmol_show):
         spec = plot_species[j]
         col = to_rgba(colors[j])
@@ -893,6 +1075,7 @@ def posteriors(
         [dx, dx], [1.0, 1.015], lw=0.75, c='k',
         clip_on=False, transform=ax.transAxes,
     )
+    plt.tight_layout(pad=0.2)
     plt.savefig(f"{root}_posterior_vmr.png", dpi=dpi)
 
     for j in range(nmol_show):
@@ -902,6 +1085,7 @@ def posteriors(
             pressure, post_vmr[2,:,j], post_vmr[3,:,j],
             color=col, alpha=0.125, ec='none', zorder=zorder[j]-nmol_show,
         )
+    plt.tight_layout(pad=0.2)
     plt.savefig(f"{root}_posterior_vmr_2sigma.png", dpi=300)
 
 
@@ -922,20 +1106,20 @@ def posteriors(
         else:
             depth_posterior = post_data['depth_posterior']
         wavelength = post_data['wl']
-        bands_response = post_data['bands_response']
-        data = post_data['data']
+        half_widths = post_data['band_half_widths']
+        data = post_data['data_posterior'][0]
         uncert = post_data['uncert']
-        resolution = 125.0
+        fig_resolution = resolution
         marker = 'o'
         data_front = True
     # High-resolution data
     elif 'data_hires' in post_data:
         depth_posterior = post_data['band_models_posterior']
         wavelength = post_data['band_wl']
-        bands_response = None
+        half_widths = None
         data = post_data['data_hires']
         uncert = post_data['uncert_hires']
-        resolution = None
+        fig_resolution = None
         marker = '.'
         data_front = False
 
@@ -948,15 +1132,76 @@ def posteriors(
     args['data'] = data
     args['uncert'] = uncert
     args['bands_wl0'] = post_data['band_wl']
-    args['bands_wl'] = post_data['bands_wl']
-    args['bands_response'] = bands_response
+    args['bands_half_width'] = half_widths
     args['label'] = 'median model'
-    args['resolution'] = resolution
     args['marker'] = marker
     args['data_front'] = data_front
-    args['logxticks'] = logxticks
+    args['log_wl'] = log_wl
     args['theme'] = theme
     args['data_color'] = data_color
+    args['resolution'] = fig_resolution
     args['filename'] = f"{root}_posterior_spectrum.png"
     ax = spectrum(**args)
+
+    if 'tls_posterior' in post_data:
+        wl = post_data['wl']
+        tls_posterior = post_data['tls_posterior']
+        tls_eps = tls_posterior[0]
+        tls_bounds = tls_posterior[1:3]
+        tls_labels = [
+            'TLS' if lab=='tls' else lab.replace('tls_', 'TLS ', 1)
+            for lab in post_data['tls_labels']
+        ]
+        tls_mask = post_data['tls_mask']
+        band_wl = post_data['band_wl']
+        band_width = post_data['band_half_widths']
+        # TLS contamination
+        themes = None if len(tls_labels)>1 else [theme]
+        filename = f"{root}_posterior_tls_contamination.png"
+        ax = tls(
+            tls_eps, wl, tls_labels,
+            bounds=tls_bounds, log_wl=log_wl, themes=themes,
+            tls_mask=tls_mask, band_wl=band_wl, band_width=band_width,
+            filename=filename,
+        )
+
+        # TLS corrected and uncorrected spectra
+        tls_spectra_posterior = post_data['tls_spectra_posterior']
+        if 'offset_posterior' in post_data:
+            inst_offset = post_data['offset_posterior'][0]
+        else:
+            inst_offset = np.zeros(len(uncert))
+        ax = None
+        for j,label in enumerate(tls_labels):
+            args = {}
+            args['alpha'] = 0.5
+            args['spectrum'] = tls_spectra_posterior[0,j]
+            args['bounds'] = tls_spectra_posterior[1:3,j]
+            args['wavelength'] = post_data['wl']
+            args['rt_path'] = 'transit'
+            args['units'] = post_data['units']['depth']
+            args['uncert'] = uncert
+            args['bands_wl0'] = post_data['band_wl']
+            args['bands_half_width'] = post_data['band_half_widths']
+            args['label'] = f'fit with {label}'
+            args['marker'] = 'o'
+            args['lw'] = 1.5
+            args['data_front'] = True
+            args['log_wl'] = post_data['log_wl']
+            args['theme'] = default_themes[j+1]
+            args['data_color'] = post_data['fig_data_color']
+            args['resolution'] = post_data['fig_resolution']
+            args['axis'] = ax
+            args['fignum'] = 201
+            ax = spectrum(**args)
+
+        # Now the real deal
+        args['spectrum'] = depth_posterior[0]
+        args['bounds'] = depth_posterior[1:3]
+        args['label'] = 'fit without TLS'
+        args['data'] = post_data['data'] + inst_offset
+        args['axis'] = ax
+        args['theme'] = default_themes[j]
+        args['filename'] = f"{root}_posterior_spectra_tls.png"
+        ax = spectrum(**args)
 

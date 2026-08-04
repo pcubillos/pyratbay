@@ -65,6 +65,8 @@ References
 
 .. [Gordon2022] `Gordon et al. (2022): The HITRAN2020 molecular spectroscopic database <https://ui.adsabs.harvard.edu/abs/2022JQSRT.27707949G>`_
 
+.. [Gordon2026] `Gordon et al. (2026): The HITRAN2024 molecular spectroscopic database <https://ui.adsabs.harvard.edu/abs/2026JQSRT.35309807G>`_
+
 .. [Gorman2019] `Gorman et al. (2019): ExoMol molecular line lists XXXVI: X$^2\Pi$-X$^2\Pi$ and A$^2\Sigma$^+$ - X$^2\Pi$ transitions of SH <https://ui.adsabs.harvard.edu/abs/2019MNRAS.490.1652G>`_
 
 .. [Griffith2014] `Griffith (2014): Disentangling degenerate solutions from primary transit and secondary eclipse spectroscopy of exoplanets <https://ui.adsabs.harvard.edu/abs/2014RSPTA.37230086G>`_
@@ -78,6 +80,8 @@ References
 .. [Harris2006] `Harris et al. (2006): Improved HCN/HNC linelist, model atmospheres and synthetic spectra for WZ Cas <https://ui.adsabs.harvard.edu/abs/2006MNRAS.367..400H>`_
 
 .. [Harris2008] `Harris et al. (2008): A HCN/HNC linelist, model atmospheres and synthetic spectra for carbon stars <https://ui.adsabs.harvard.edu/abs/2008MNRAS.390..143H>`_
+
+.. [Hauschildt2025] `Hauschildt et al. (2025): The NewEra model grid <https://ui.adsabs.harvard.edu/abs/2025A%26A...698A..47H>`_
 
 .. [Heng2014] `Heng et al. (2014): Analytical Models of Exoplanetary Atmospheres. II. Radiative Transfer via the Two-stream Approximation <https://ui.adsabs.harvard.edu/abs/2014ApJS..215....4H>`_
 
@@ -133,13 +137,13 @@ References
 
 .. [Prsa2016] `Prsa et al. (2016): Nominal Values for Selected Solar and Planetary Quantities: IAU 2015 Resolution B3 <https://ui.adsabs.harvard.edu/abs/2016AJ....152...41P>`_
 
+.. [Rackham2018] `Rackham et al. (2018): The Transit Light Source Effect: False Spectral Features and Incorrect Densities for M-dwarf Transiting Planets <https://ui.adsabs.harvard.edu/abs/2018ApJ...853..122R>`_
+
 .. [Rivlin2015] `Rivlin et al. (2015): ExoMol molecular line lists - X. The spectrum of sodium hydride <https://ui.adsabs.harvard.edu/abs/2015MNRAS.451..634R>`_
 
 .. [Rothman2010] `Rothman et al. (2010): HITEMP, the high-temperature molecular spectroscopic database <http://ui.adsabs.harvard.edu/abs/2010JQSRT.111.2139R>`_
 
 .. [Semenov2025] `Semenov et al. (2025): ExoMol line lists - LXIV. Empirical rovibronic spectra of phosphorous mononitride (PN) covering the IR and UV regions <https://ui.adsabs.harvard.edu/abs/2025MNRAS.536..714S>`_
-
-.. [Sheppard2017] `Sheppard et al. (2017): Evidence for a Dayside Thermal Inversion and High Metallicity for the Hot Jupiter WASP-18b <https://ui.adsabs.harvard.edu/abs/2017ApJ...850L..32S>`_
 
 .. [Skilling2004] `Skilling (2004): Nested Sampling <https://ui.adsabs.harvard.edu/abs/2004AIPC..735..395S>`_
 

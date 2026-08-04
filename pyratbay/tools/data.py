@@ -10,7 +10,7 @@ import numpy as np
 from . import tools as pt
 
 
-def parse_error_param(var):
+def parse_error_param(var, tex_units=''):
     r"""
     Parse error-scaling parameters. There are two options:
     - err_scale_name: Scale uncertainties as a multiplicative factor.
@@ -45,7 +45,7 @@ def parse_error_param(var):
     """
     error_scalings = {
         'err_scale_': r'$\log\ S^\sigma_{\rm INST}$',
-        'err_quad_': r'$\log\ \sigma_{\rm INST}$',
+        'err_quad_': fr'$\log\ \sigma_{{\rm INST}}${tex_units}',
     }
 
     inst = None
@@ -72,6 +72,7 @@ class Data():
     def __init__(
         self, data, uncert, band_names,
         offset_models=None, err_models=None,
+        units='none',
     ):
         """
         Parameters
@@ -93,6 +94,9 @@ class Data():
             followed by a string matching a substring of at least one of
             the band_names, these specific data points will be affected by
             the error scaling model.
+        units: String
+            Units for offsets and quadrature-scaling factors.
+            Options are: 'none', 'percent', 'ppt', or 'ppm'.
 
         Examples
         --------
@@ -102,10 +106,9 @@ class Data():
         >>> import matplotlib.pyplot as plt
 
         >>> # Load a set of uncertainties obtained with JWST instruments:
-        >>> obs_file = '/Users/pato/Documents/compendia/ERS/WASP39b/data/synthesis_v02/wasp39b_g395h_lrs.dat'
-        >>> bands, depths, uncert = io.read_observations(obs_file)
+        >>> obs_file = '/home/user/ers_synthesis/wasp39b_g395h_lrs.dat'
+        >>> bands, wl, hwidth, depths, uncert = io.read_observations(obs_file)
         >>> band_names = [band.name for band in bands]
-        >>> wl = [band.wl0 for band in bands]
         >>> print(set(band_names))
         {'nirspec_g395h_nrs1', 'nirspec_g395h_nrs2', 'miri_lrs'}
 
@@ -147,6 +150,22 @@ class Data():
         if uncert is not None:
             self.ndata = len(self.data)
 
+        # Handle units
+        if units is None:
+            units = 'none'
+        valid_units = ['none', 'percent', 'ppt', 'ppm']
+        if units not in valid_units:
+            raise ValueError(
+                f'Invalid depth units {repr(units)}, select from {valid_units}'
+            )
+        if units == 'none':
+            tex_units = ''
+        elif units == 'percent':
+            tex_units = ' (%)'
+        else:
+            tex_units = f' ({units})'
+        self.units = units
+
         # Data offset models
         if offset_models is None:
             offset_models = []
@@ -159,7 +178,7 @@ class Data():
         self.offset_texnames = []
         for var in self.offset_models:
             inst = var.replace('offset_', '').replace('_',' ')
-            texname = fr'$\Delta$ {inst}'
+            texname = fr'$\Delta${inst}{tex_units}'
             indices = np.array([inst in name for name in band_names])
             if np.sum(indices) == 0:
                 raise ValueError(
@@ -207,7 +226,7 @@ class Data():
             )
 
 
-    def offset_data(self, vals=None, units='none'):
+    def offset_data(self, vals=None, units=None):
         """
         Offset data values
 
@@ -224,6 +243,8 @@ class Data():
         data: 1D float array
             The offset data array.
         """
+        if units is None:
+            units = self.units
         data = np.copy(self.data)
         if vals is None or self.n_offsets==0:
             return data
@@ -235,7 +256,7 @@ class Data():
         return data
 
 
-    def scale_errors(self, vals=None, units='none'):
+    def scale_errors(self, vals=None, units=None):
         """
         Scale uncertainties according to input scaling values.
 
@@ -252,6 +273,8 @@ class Data():
         uncert: 1D float array
             The scaled uncertainty array.
         """
+        if units is None:
+            units = self.units
         uncert = np.copy(self.uncert)
         if vals is None or self.n_epars==0:
             return uncert

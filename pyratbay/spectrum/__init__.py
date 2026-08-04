@@ -3,21 +3,23 @@
 
 from .blackbody import *
 from .kurucz import *
-#from .marcs import *
-#from .phoenix import *
+from .phoenix import *
 from .spec_tools import *
 from .contribution_funcs import *
 from .convection import *
 from .radiative_transfer import *
+from .transit_light_source import *
 
 __all__ = (
     []  # empty placeholder
     + blackbody.__all__
     + kurucz.__all__
+    + phoenix.__all__
     + spec_tools.__all__
     + contribution_funcs.__all__
     + convection.__all__
     + radiative_transfer.__all__
+    + transit_light_source.__all__
 )
 
 

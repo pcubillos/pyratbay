@@ -11,32 +11,8 @@ from .. import constants as pc
 from .. import tools as pt
 
 
-class ColorTheme():
-    """
-    Descriptor object that remembers the default input theme
-    (in obj._default_theme) until it is redefined.
-    Used in pyrat.plot_spectrum().
-
-    To understand this sorcery see:
-    https://docs.python.org/3/howto/descriptor.html
-    """
-    def __set_name__(self, obj, name):
-        self.private_name = '_' + name
-
-    def __get__(self, obj, objtype=None):
-        value = getattr(obj, self.private_name)
-        return value
-
-    def __set__(self, obj, value):
-        priv_name = self.private_name
-        setattr(obj, priv_name, value)
-        obj._default_theme = value
-
-
 class Retrieval():
-    theme = ColorTheme()
-
-    def __init__(self, inputs, atm, obs, opacity, log):
+    def __init__(self, inputs, atm, tls, obs, opacity, log):
         self.nparams = 0
         self.posterior = None
         self.bestp = None
@@ -56,12 +32,6 @@ class Retrieval():
         self.thigh = inputs.thigh
 
         self.sampler = inputs.sampler
-        theme = 'blue' if inputs.theme is None else inputs.theme
-        self.theme = pt.resolve_theme(theme)
-        # If defaulted to None, keep _default_theme as None until
-        # the user redefines ret.theme to something else:
-        if inputs.theme is None:
-            self._default_theme = None
         # Retrieval configuration
         self.statistics = inputs.statistics
         self.nsamples = inputs.nsamples
@@ -72,6 +42,8 @@ class Retrieval():
         self.grnmin = inputs.grnmin
         self.resume = inputs.resume
         self.nlive = inputs.nlive
+
+        self.post_processing = inputs.post_processing
 
         # Overrides retflag. At some point this will be the only way.
         if inputs.retrieval_params is not None:
@@ -161,6 +133,7 @@ class Retrieval():
         for names in opacity.pnames:
             opacity_pnames += names
 
+        tls_pnames = tls.pnames
         offset_pnames = obs.offset_inst
         error_pnames = obs.uncert_scaling
 
@@ -171,6 +144,7 @@ class Retrieval():
             'opacity': [[] for model in opacity.models],
             'offset': [],
             'error': [],
+            'tls': [],
         }
         # Model parameter names
         self.nparams = len(self.pnames)
@@ -191,7 +165,8 @@ class Retrieval():
             atm.mol_pnames +
             opacity_pnames +
             offset_pnames +
-            error_pnames
+            error_pnames +
+            tls_pnames
         )
 
         # Indices for each model parameters in self.params array:
@@ -207,11 +182,13 @@ class Retrieval():
         self.iopacity = [[] for model in opacity.models]
         self.ioffset = None
         self.ierror = None
+        self.itls = None
 
         itemp = []
         imol = []
         ioffset = []
         ierror = []
+        itls = []
         for i,pname in enumerate(self.pnames):
             if pname == 'log_p_ref':
                 self.ipress = np.array([i])
@@ -270,6 +247,11 @@ class Retrieval():
                 idx = error_pnames.index(pname)
                 map_pars['error'].append(idx)
                 self.texnames[i] = obs.depth.err_texnames[idx]
+            elif pname in tls_pnames:
+                itls.append(i)
+                idx = tls_pnames.index(pname)
+                map_pars['tls'].append(idx)
+                self.texnames[i] = tls.texnames[idx]
             else:
                 log.error(
                     f"Invalid retrieval parameter '{pname}'. Possible "
@@ -284,6 +266,8 @@ class Retrieval():
             self.ioffset = ioffset
         if len(ierror) > 0:
             self.ierror = ierror
+        if len(itls) > 0:
+            self.itls = itls
 
         # Patch missing parameters if possible:
         patch_temp = (

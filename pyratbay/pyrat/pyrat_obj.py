@@ -67,6 +67,7 @@ class Pyrat():
 
         self.ncpu = self.inputs.ncpu
         self.runmode = self.inputs.runmode
+        self.fig = ob.Figure(self.inputs, self.log)
 
         # TBD: Remove self.ex entirely?
         self.ex = ob.Extinction(self.inputs, self.log)
@@ -82,6 +83,9 @@ class Pyrat():
 
         self.obs = Observation(self.inputs, self.spec.wn, self.log)
         ar.check_spectrum(self)
+
+        # Initialize TLS model
+        self.tls = sp.TLS(self.inputs, self.spec, self.obs, self.od.rt_path, self.log)
 
         # Setup opacity models:
         self.opacity = Opacity(
@@ -112,6 +116,7 @@ class Pyrat():
         self.ret = Retrieval(
             self.inputs,
             self.atm,
+            self.tls,
             self.obs,
             self.opacity,
             self.log,
@@ -229,7 +234,7 @@ class Pyrat():
         Parameters
         ----------
         params: 1D float iterable
-            Array of fitting parameters that define the atmosphere.
+            Array of fitting parameters.
         retmodel: Bool
             Flag to include the model spectra in the return.
         skip: List of strings
@@ -269,7 +274,7 @@ class Pyrat():
         if ret.irad is not None:
             self.atm.rplanet = params[ret.irad][0] * pt.u(atm.runits)
         elif ret.ipress is not None:
-            self.atm.refpressure = 10.0**params[ret.ipress][0]
+            self.atm.ref_pressure = 10.0**params[ret.ipress][0]
 
         if ret.imass is not None:
             self.atm.mplanet = params[ret.imass][0] * pt.u(self.atm.mass_units)
@@ -290,7 +295,7 @@ class Pyrat():
             self.spec.starflux = self.spec.flux_interp(self.atm.tstar)
             self.obs.bandflux_star = np.array([
                 band(self.spec.starflux)
-                for band in self.obs.filters
+                for band in self.obs.bands
             ])
 
         if ret.idilut is not None:
@@ -349,33 +354,47 @@ class Pyrat():
 
             if reject_flag:
                 obs.bandflux_hires[:] = np.inf
-            # TBD: At the moment either return hires or lowres, but should be
-            # able to combine in the future
+            # TBD: At the moment either return hires or lowres, but should
+            # be able to combine in the future
             if retmodel:
                 return self.spec.spectrum, obs.bandflux_hires
             return obs.bandflux_hires
 
+        # TLS effect
+        if ret.itls is not None:
+            ifree = ret.map_pars['tls']
+            self.tls.pars[ifree] = params[ret.itls]
+            self.tls()
+            self.tls.spectrum = self.spec.spectrum * self.tls.epsilon
+        if self.tls.n_models > 0 and np.any(np.isnan(self.tls.epsilon)):
+            reject_flag = True
 
-        # Band-integrate spectrum:
+        # Band-integrate spectrum
         obs.bandflux = self.band_integrate()
 
-        # Instrumental offset:
+        # Instrumental offsets
+        obs.data = np.copy(obs.depth.data)
         if ret.ioffset is not None:
             ifree = ret.map_pars['offset']
             obs.offset_pars[ifree] = params[ret.ioffset]
-            obs.data = obs.depth.offset_data(obs.offset_pars, obs.units)
+            obs.data = obs.depth.offset_data(obs.offset_pars)
+            obs.inst_offset = obs.data - obs.depth.data
 
-        # Uncertainty scaling:
+        # Uncertainty scaling
         if ret.ierror is not None:
             ifree = ret.map_pars['error']
             obs.uncert_pars[ifree] = params[ret.ierror]
-            obs.uncert = obs.depth.scale_errors(obs.uncert_pars, obs.units)
+            obs.uncert = obs.depth.scale_errors(obs.uncert_pars)
 
-        # Invalid model:
+        # Apply TLS correction
+        if self.tls.n_models > 0:
+            obs.data -= self.tls.band_offset
+
+        # Invalid model
         if not np.any(obs.bandflux):
             reject_flag = True
 
-        # Reject this iteration if there are invalid temperatures or radii:
+        # Reject this iteration if there are invalid temperatures or radii
         if obs.bandflux is not None and reject_flag:
             obs.bandflux[:] = np.inf
 
@@ -410,12 +429,12 @@ class Pyrat():
         if obs.data is not None:
             if obs.uncert is None:
                 log.error("Undefined data uncertainties")
-            if obs.nfilters == 0:
+            if obs.nbands == 0:
                 log.error("Undefined transmission filters (filters)")
         if obs.data_hires is not None:
             if obs.uncert_hires is None:
                 log.error("Undefined high-resolution data uncertainties")
-            if obs.nfilters_hires == 0:
+            if obs.nbands_hires == 0:
                 log.error("Undefined transmission filters (filters)")
 
         # Basename of the output files:
@@ -429,12 +448,13 @@ class Pyrat():
         ifree = ret.pstep > 0
         texnames = np.array(ret.texnames)[ifree]
 
+        rank = pt.get_mpi_rank()
         # MultiNest wrapper call:
         if ret.sampler == 'multinest':
+            self.ncpu = pt.get_mpi_size()
             output = pt.multinest_run(self, basename)
-            if pt.get_mpi_rank() != 0:
-                return
-            posterior = output['posterior']
+            if rank == 0:
+                posterior = output['posterior']
 
         # mc3 MCMC wrapper call:
         elif ret.sampler == 'snooker':
@@ -458,7 +478,7 @@ class Pyrat():
                 nchains=ret.nchains, burnin=ret.burnin, thinning=ret.thinning,
                 grtest=True, grbreak=ret.grbreak, grnmin=ret.grnmin,
                 log=log, ncpu=self.ncpu,
-                plots=False, showbp=True, theme=ret.theme,
+                plots=False, showbp=True, theme=self.fig.theme,
                 pnames=ret.pnames, texnames=ret.texnames,
                 resume=ret.resume, savefile=f'{basename}.npz',
             )
@@ -470,91 +490,118 @@ class Pyrat():
             savefile = f'{basename}_posterior_trace.png'
             mc3.plots.trace(
                 posterior, zchain=zchain, burnin=ret.burnin,
-                pnames=texnames, color=ret.theme.color,
+                pnames=texnames, color=self.fig.theme.color,
                 savefile=savefile,
             )
             log.msg(savefile, indent=2)
 
-        post = mc3.plots.Posterior(
-            posterior, pnames=texnames, theme=ret.theme,
-            bestp=output['bestp'][ifree], statistics=ret.statistics,
-            show_estimates=True,  # TBD: get from cfg?
-        )
-
-        # Pairwise posteriors plots:
-        savefile = f'{basename}_posterior_pairwise.png'
-        post.plot(savefile=savefile)
-        log.msg(savefile, indent=2)
-        # Histogram plots:
-        savefile = f'{basename}_posterior_marginal.png'
-        post.plot_histogram(savefile=savefile)
-        log.msg(savefile, indent=2)
-
-
-        # Post processing (can be done directly from posterior outputs)
-        ret.bestp = bestp = output['bestp']
-        ret.posterior = posterior
-
-        # Best-fitting model:
-        self.spec.specfile = f"{basename}_bestfit_spectrum.dat"
-        ret.spec_best, ret.bestbandflux = self.eval(bestp)
-        filename = f'{basename}_bestfit_spectrum.png'
-        self.plot_spectrum(spec='best', filename=filename)
-
-        atm = self.atm
-        header = "# Retrieval best-fitting atmospheric model.\n\n"
-        bestatm = f"{basename}_bestfit_atmosphere.atm"
-        io.write_atm(
-            bestatm, atm.press, atm.temp, atm.species,
-            atm.vmr, radius=atm.radius,
-            punits=atm.punits, runits=atm.runits, header=header,
-        )
-
-        # Temperature profiles
-        if atm.temp_model is not None:
-            tparams = atm.tpars
-            tparams[ret.map_pars['temp']] = bestp[ret.itemp]
-            ret.temp_best = atm.temp_model(tparams)
-
-            nsamples, nfree = np.shape(posterior)
-            t_posterior = np.tile(tparams, (nsamples,1))
-            # Map temperature free parameters from posterior to tparams:
-            ifree = np.where(self.ret.pstep>0)[0]
-            for j, imap in zip(ret.itemp, ret.map_pars['temp']):
-                if j in ifree:
-                    ipost = list(ifree).index(j)
-                    t_posterior[:,imap] = posterior[:,ipost]
-            tpost = pa.temperature_posterior(t_posterior, atm.temp_model)
-            ret.temp_median = tpost[0]
-            ret.temp_post_boundaries = tpost[1:]
-            self.plot_temperature(
-                filename=f'{basename}_bestfit_temperature.png',
+        if rank == 0:
+            post = mc3.plots.Posterior(
+                posterior, pnames=texnames, theme=self.fig.theme,
+                bestp=output['bestp'][ifree], statistics=ret.statistics,
+                show_estimates=True,  # TBD: get from cfg?
             )
 
-        # Contribution or transmittance
-        is_transmission = self.od.rt_path in pc.transmission_rt
-        path = 'transit' if is_transmission else 'emission'
+            # Pairwise posteriors plots:
+            savefile = f'{basename}_posterior_pairwise.png'
+            post.plot(savefile=savefile)
+            log.msg(savefile, indent=2)
+            # Histogram plots:
+            savefile = f'{basename}_posterior_marginal.png'
+            post.plot_histogram(savefile=savefile)
+            log.msg(savefile, indent=2)
 
-        if self.obs.nfilters > 0:
-            band_wl = 1.0/(self.obs.bandwn*pc.um)
-        elif self.obs.nfilters_hires > 0:
-            band_wl = 1.0/(self.obs.wn_hires*pc.um)
-        band_cf = self.band_contribution()
 
-        filename = f'{basename}_bestfit_contributions.png'
-        pp.contribution(band_cf, band_wl, path, atm.press, filename)
+            # Post processing (can be done directly from posterior outputs)
+            ret.bestp = bestp = output['bestp']
+            ret.posterior = posterior
 
-        self.log = log  # Un-mute
-        root_output = os.path.split(basename)[0]
-        log.msg(f"\nOutput retrieval files located at {root_output}")
+            # Best-fitting model:
+            self.spec.specfile = f"{basename}_bestfit_spectrum.dat"
+            ret.spec_best, ret.bestbandflux = self.eval(bestp)
+            filename = f'{basename}_bestfit_spectrum.png'
+            self.plot_spectrum(spec='best', filename=filename)
 
-        if self.inputs.post_processing:
-            os.environ['PBAY_NO_MPI'] = "1"
-            subprocess.call(
-                f'pbay --post {self.inputs.config_file} &',
-                shell=True,
+            atm = self.atm
+            header = "# Retrieval best-fitting atmospheric model.\n\n"
+            bestatm = f"{basename}_bestfit_atmosphere.atm"
+            io.write_atm(
+                bestatm, atm.press, atm.temp, atm.species,
+                atm.vmr, radius=atm.radius,
+                punits=atm.punits, runits=atm.runits, header=header,
             )
 
+            # Temperature profiles
+            if atm.temp_model is not None:
+                tparams = atm.tpars
+                tparams[ret.map_pars['temp']] = bestp[ret.itemp]
+                ret.temp_best = atm.temp_model(tparams)
+
+                nsamples, nfree = np.shape(posterior)
+                t_posterior = np.tile(tparams, (nsamples,1))
+                # Map temperature free parameters from posterior to tparams:
+                ifree = np.where(self.ret.pstep>0)[0]
+                for j, imap in zip(ret.itemp, ret.map_pars['temp']):
+                    if j in ifree:
+                        ipost = list(ifree).index(j)
+                        t_posterior[:,imap] = posterior[:,ipost]
+                tpost = pa.temperature_posterior(t_posterior, atm.temp_model)
+                ret.temp_median = tpost[0]
+                ret.temp_post_boundaries = tpost[1:]
+                self.plot_temperature(
+                    filename=f'{basename}_bestfit_temperature.png',
+                )
+
+            # TLS spectra
+            if self.tls.n_models > 0:
+                n_tls = self.tls.n_models
+                nsamples, nfree = np.shape(posterior)
+                tls_posterior = np.tile(self.tls.pars, (nsamples,1))
+                ifree = np.where(self.ret.pstep>0)[0]
+                for j, imap in zip(ret.itls, ret.map_pars['tls']):
+                    if j in ifree:
+                        ipost = list(ifree).index(j)
+                        tls_posterior[:,imap] = posterior[:,ipost]
+
+                tls_epsilon = np.zeros((nsamples, n_tls, self.spec.nwave))
+                for j, tls_pars in enumerate(tls_posterior):
+                    tls_epsilon[j] = self.tls(tls_pars)
+
+                quantiles = np.array([0.5, 0.15865, 0.84135])
+                tls_posterior = np.zeros((3, n_tls, self.spec.nwave))
+                for i in range(self.spec.nwave):
+                    tls_posterior[:,:,i] = np.quantile(
+                        tls_epsilon[:,:,i], quantiles, axis=0,
+                    )
+                themes = None if n_tls>1 else [self.fig.theme]
+                filename = f"{basename}_posterior_tls_contamination.png"
+                pp.tls(
+                    tls_posterior[0], self.spec.wl, self.tls.models,
+                    bounds=tls_posterior[1:3], log_wl=self.fig.log_wl,
+                    themes=themes, filename=filename,
+                )
+
+            # Contribution or transmittance
+            is_transmission = self.od.rt_path in pc.transmission_rt
+            path = 'transit' if is_transmission else 'emission'
+
+            if self.obs.nbands > 0:
+                band_wl = 1.0/(self.obs.bandwn*pc.um)
+            elif self.obs.nbands_hires > 0:
+                band_wl = 1.0/(self.obs.wn_hires*pc.um)
+            band_cf = self.band_contribution()
+
+            filename = f'{basename}_bestfit_contributions.png'
+            pp.contribution(band_cf, band_wl, path, atm.press, filename)
+
+            root_output = os.path.split(basename)[0]
+            log.msg(f"\nOutput retrieval files located at {root_output}")
+
+        if ret.post_processing is not None:
+            pt.posterior_post_processing(
+                pyrat=self,
+                contributions=ret.post_processing,
+            )
 
     def radiative_equilibrium(
             self, nsamples=None, continue_run=False, convection=False,
@@ -651,20 +698,34 @@ class Pyrat():
         Band-integrate transmission spectrum (transit) or planet-to-star
         flux ratio (eclipse) over transmission band passes.
         """
-        if self.obs.filters is None:
+        bands = self.obs.bands
+        if bands is None:
             return None
 
         if self.od.rt_path in pc.transmission_rt:
             spectrum = self.spec.spectrum
+            band_flux = np.array([band(spectrum) for band in bands])
+            tls = self.tls
+            if tls.n_models > 0:
+                # Calculate TLS spectra and band-integrated TLS-offsets
+                tls.band_offset = np.zeros(self.obs.ndata)
+                for i,eps in enumerate(tls.epsilon):
+                    mask = tls.band_mask[i]
+                    tls_depth = np.array([
+                        band(tls.spectrum[i])
+                        for band,flag in zip(bands, mask)
+                        if flag
+                    ])
+                    tls.band_offset[mask] += tls_depth - band_flux[mask]
+
         else:
             spectrum = self.spec.fplanet
-
-        bandflux = np.array([band(spectrum) for band in self.obs.filters])
+            band_flux = np.array([band(spectrum) for band in bands])
         if self.od.rt_path in pc.eclipse_rt:
             rprs = self.atm.rplanet/self.atm.rstar
-            bandflux *= rprs**2.0 / self.obs.bandflux_star
+            band_flux *= rprs**2.0 / self.obs.bandflux_star
 
-        self.obs.bandflux = bandflux
+        self.obs.bandflux = band_flux
         return self.obs.bandflux
 
 
@@ -672,10 +733,10 @@ class Pyrat():
         """
         Compute contribution functions or transmittance at each band.
         """
-        if self.obs.nfilters_hires != 0:
-            bands = self.obs.filters_hires
+        if self.obs.nbands_hires != 0:
+            bands = self.obs.bands_hires
         else:
-            bands = self.obs.filters
+            bands = self.obs.bands
         bands_idx = [band.idx for band in bands]
         responses = [band.response for band in bands]
 
@@ -741,16 +802,16 @@ class Pyrat():
         """
         obs = self.obs
         args = {
-            'logxticks': self.inputs.logxticks,
-            'yran': self.inputs.yran,
-            'theme': self.ret._default_theme,
-            'data_color': self.inputs.data_color,
+            'log_wl': self.fig.log_wl,
+            'ylim': self.fig.spec_ylim,
+            'theme': self.fig.theme,
+            'data_color': self.fig.data_color,
         }
 
-        is_hires = obs.nfilters_hires > 0
+        is_hires = obs.nbands_hires > 0
 
         if is_hires:
-            band_wl = np.array([band.wl0 for band in obs.filters_hires])
+            band_wl = np.array([band.wl0 for band in obs.bands_hires])
             args['wavelength'] = band_wl
             args['data'] = obs.data_hires
             args['uncert'] = obs.uncert_hires
@@ -762,12 +823,10 @@ class Pyrat():
             args['wavelength'] = self.spec.wl
             args['data'] = obs.data
             args['uncert'] = obs.uncert
-            args['bands_wl0'] = [band.wl0 for band in obs.filters]
-            args['bands_wl'] = [band.wl for band in obs.filters]
-            args['bands_response'] = [band.response for band in obs.filters]
+            args['bands_wl0'] = obs.band_wl
+            args['bands_half_width'] = [band.half_width for band in obs.bands]
             args['bands_flux'] = obs.bandflux
-            if self.obs.inst_resolution is not None:
-                args['resolution'] = self.obs.inst_resolution
+            args['resolution'] = self.fig.resolution
             args['marker'] = 'o'
             args['data_front'] = True
 
@@ -797,7 +856,7 @@ class Pyrat():
         else:
             args['rt_path'] = 'emission'
 
-        # kwargs can overwite any of the previous value:
+        # kwargs overwite any of the previous values
         args.update(kwargs)
 
         ax = pp.spectrum(**args)
@@ -823,7 +882,7 @@ class Pyrat():
             The matplotlib Axes of the figure.
         """
         kwargs['pressure'] = self.atm.press
-        kwargs['theme'] = self.ret.theme
+        kwargs['theme'] = self.fig.theme
         if self.ret.posterior is None:
             kwargs['profiles'] = [self.atm.temp]
         else:

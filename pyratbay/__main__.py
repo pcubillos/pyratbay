@@ -4,6 +4,7 @@
 
 import argparse
 import matplotlib
+import multiprocessing as mp
 
 import pyratbay as pb
 
@@ -57,8 +58,14 @@ def main():
         help='Run Pyrat Bay for given configuration file.',
     )
     group.add_argument(
-        '--post', dest='post', default=None,
-        help='Post-processing posterior data after a retrieval run.',
+        '--post', nargs='+',
+        help=(
+            "Post-processing posterior after a retrieval. Up to two "
+            "arguments are expected. First argument is the configuration "
+            "file. Second (optional) argument if provided computes "
+            "contributions from individual absorbers: set "
+            "'loo' for leave-one-out or 'oat' for one-at-a-time contributions"
+        ),
     )
     group.add_argument(
         '-pf', dest='pf', default=None, nargs='+',
@@ -67,11 +74,6 @@ def main():
     group.add_argument(
         '-cs', dest='cs', default=None, nargs='+',
         help='Format a cross-section file.',
-    )
-
-    parser.add_argument(
-        '-suf', dest='suffix', default=None,
-        help='Suffix for post-processed file.',
     )
 
     # Parse command-line args:
@@ -115,16 +117,23 @@ def main():
         else:
             print('Invalid cross-section type.')
 
-    # Pyrat-Bay run:
+    # Pyrat Bay run
     elif args.cfile is not None:
         pb.run(args.cfile)
 
-    # Post processing:
+    # Post processing
     elif args.post is not None:
-        suffix = '' if args.suffix is None else args.suffix
-        pb.tools.posterior_post_processing(cfg_file=args.post, suffix=suffix)
+        if len(args.post) > 2:
+            raise ValueError('argument --post: expect one or two argument')
+        cfg = args.post[0]
+        contributions = None if len(args.post)==1 else args.post[1]
+        pb.tools.posterior_post_processing(
+            cfg_file=cfg,
+            contributions=contributions,
+        )
 
 
 if __name__ == '__main__':
+    mp.set_start_method('fork')
     matplotlib.pyplot.ioff()
     main()

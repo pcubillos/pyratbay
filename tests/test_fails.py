@@ -182,7 +182,7 @@ def test_invalid_choice(tmp_path, param, reason):
 
 
 @pytest.mark.parametrize('param',
-    ['starspec', 'kurucz', 'marcs', 'phoenix', 'filters',
+    ['starspec', 'kurucz', 'phoenix', 'filters',
      'dblist', 'molfile', 'continuum_cross_sec'])
 def test_file_not_found(tmp_path, param, invalid_file):
     cfg = make_config(
@@ -253,7 +253,7 @@ def test_missing_mass_units(tmp_path):
      ('nlayers',  ' 1'),
      ('ptop',    ' -1.0 bar'),
      ('pbottom', ' -1.0 bar'),
-     ('refpressure', ' -1.0 bar'),
+     ('ref_pressure', ' -1.0 bar'),
      ('pbottom', ' -1.0 bar'),
      ('mplanet', ' -1.0 mjup'),
      ('rplanet', ' -1.0 rjup'),
@@ -451,27 +451,27 @@ def test_atmosphere_hydro_missing_all_planet_props(tmp_path):
     cfg = make_config(
         tmp_path,
         f'{ROOT}tests/configs/atmosphere_hydro_test.cfg',
-        remove=['rplanet', 'mplanet', 'gplanet', 'refpressure'],
+        remove=['rplanet', 'mplanet', 'gplanet', 'ref_pressure'],
     )
     error = re.escape(
         'Cannot compute hydrostatic-equilibrium radius profile.\n'
         'Undefined planet radius (rplanet).\n'
         'Undefined planet mass (mplanet) or surface gravity (gplanet).\n'
-        'Undefined reference pressure level (refpressure).'
+        'Undefined reference pressure level (ref_pressure).'
     )
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
 
 
-def test_atmosphere_hydro_missing_refpressure(tmp_path):
+def test_atmosphere_hydro_missing_ref_pressure(tmp_path):
     cfg = make_config(
         tmp_path,
         f'{ROOT}tests/configs/atmosphere_hydro_test.cfg',
-        remove=['refpressure'],
+        remove=['ref_pressure'],
     )
     error = re.escape(
         'Cannot compute hydrostatic-equilibrium radius profile.\n'
-        'Undefined reference pressure level (refpressure).'
+        'Undefined reference pressure level (ref_pressure).'
     )
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
@@ -499,7 +499,7 @@ def test_atmosphere_hydro_missing_mass_gravity(tmp_path):
     [
         'pbottom',
         'ptop',
-        'refpressure',
+        'ref_pressure',
         'mstar',
         'rstar',
         'smaxis',
@@ -653,16 +653,16 @@ def test_spectrum_hydro_missing_rplanet(tmp_path, atm):
         f'{ROOT}/tests/inputs/atmosphere_uniform_radius.atm',
     ]
 )
-def test_spectrum_hydro_refpressure(tmp_path, atm):
+def test_spectrum_hydro_ref_pressure(tmp_path, atm):
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         reset={'atmfile':atm},
-        remove=['refpressure'],
+        remove=['ref_pressure'],
     )
     error = re.escape(
         'Cannot compute hydrostatic-equilibrium radius profile.\n'
-        'Undefined reference pressure level (refpressure)'
+        'Undefined reference pressure level (ref_pressure)'
     )
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
@@ -865,8 +865,8 @@ def test_h_ion_missing_species(tmp_path):
         reset={'h_ion': 'h_ion_john1988'},
     )
     error = re.escape(
-        "Species ['e-'], required for opacity model H- "
-        "bound-free/free-free, are not present in the atmosphere"
+        "Species ['e-'], required for opacity model H- continuum, "
+        "are not present in the atmosphere"
     )
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
