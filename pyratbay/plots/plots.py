@@ -398,7 +398,7 @@ def tls(
 
     is_log = log_wl is not None
     if themes is None:
-        themes = default_themes
+        themes = default_themes[1:]
         n_themes = len(themes)
         if n_tls > n_themes:
             raise ValueError(
@@ -1183,12 +1183,12 @@ def posteriors(
             args['uncert'] = uncert
             args['bands_wl0'] = post_data['band_wl']
             args['bands_half_width'] = post_data['band_half_widths']
-            args['label'] = label
+            args['label'] = f'fit with {label}'
             args['marker'] = 'o'
             args['lw'] = 1.5
             args['data_front'] = True
             args['log_wl'] = post_data['log_wl']
-            args['theme'] = default_themes[j]
+            args['theme'] = default_themes[j+1]
             args['data_color'] = post_data['fig_data_color']
             args['resolution'] = post_data['fig_resolution']
             args['axis'] = ax
@@ -1198,11 +1198,10 @@ def posteriors(
         # Now the real deal
         args['spectrum'] = depth_posterior[0]
         args['bounds'] = depth_posterior[1:3]
-        args['label'] = 'uncontaminated'
-        args['label'] = 'no TLS'
+        args['label'] = 'fit without TLS'
         args['data'] = post_data['data'] + inst_offset
         args['axis'] = ax
-        args['theme'] = default_themes[len(tls_labels)]
+        args['theme'] = default_themes[j]
         args['filename'] = f"{root}_posterior_spectra_tls.png"
         ax = spectrum(**args)
 
