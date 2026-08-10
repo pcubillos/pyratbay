@@ -427,7 +427,10 @@ Transit light source
 
 A transit light source correction (TLS) due to unocculted spots and
 faculae can be enabled with the ``tls_model`` argument.  This is an
-implementation model from [Rackham2018]_. Details are TBD.
+implementation model from [Rackham2018]_. More details in these links:
+
+- :ref:`TLS application into atmospheric retrievals <wasp107b_tls>`
+- :ref:`TLS application as an independent module <tls>`
 
 
 .. _spec_observations:
