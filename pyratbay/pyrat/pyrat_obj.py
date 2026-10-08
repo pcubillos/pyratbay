@@ -96,7 +96,7 @@ class Pyrat():
             self.log,
             self,
         )
-        self.timestamps['read opacities'] = timer.clock()
+        self.timestamps['read c.sec'] = timer.clock()
 
         if 'lbl' in self.opacity.models_type:
             i_lbl = self.opacity.models_type.index('lbl')
@@ -203,6 +203,7 @@ class Pyrat():
         if self.atm._out_of_bounds_vmr:
             self.spec.spectrum[:] = 0.0
             return
+        self.timestamps['atmo'] = timer.clock()
 
         # Calculate extinction coefficient:
         self.opacity.calc_extinction_coefficient(
@@ -387,7 +388,7 @@ class Pyrat():
             obs.uncert = obs.depth.scale_errors(obs.uncert_pars)
 
         # Apply TLS correction
-        if self.tls.n_models > 0:
+        if self.tls.n_models > 0 and self.obs.ndata > 0:
             obs.data -= self.tls.band_offset
 
         # Invalid model
