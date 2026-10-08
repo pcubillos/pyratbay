@@ -470,7 +470,7 @@ class Atmosphere():
                         model, val, self.chem_model,
                     )
                     vmr[:,model.imol] = vmr_profile
-                    self.out_of_bounds_vmr = oob_flag
+                    self._out_of_bounds_vmr = oob_flag
 
         elif np.any(~self._is_equil_model) and self.vmr_pars is not None:
             vmr_pars = [
