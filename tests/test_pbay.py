@@ -341,7 +341,7 @@ def test_atmosphere_tea_hybrid(tmp_path):
 
     # Free VMR
     imol = list(atmosphere.species).index('SO2')
-    np.testing.assert_allclose(atmosphere.vmr[:,imol], 1e-5)
+    np.testing.assert_allclose(atmosphere.vmr[:,imol], 1.0e-5)
 
     # While others remain at TEA values
     imol = list(atmosphere.species).index('H2O')
@@ -361,7 +361,7 @@ def test_atmosphere_tea_hybrid(tmp_path):
     np.testing.assert_allclose(atmosphere.vmr[:,imol], expected_VMR)
 
 
-def test_atmosphere_tea_hybrid_over_limit(tmp_path):
+def test_atmosphere_tea_hybrid_over_limit(capfd, tmp_path):
     atmfile = str(tmp_path / 'test.atm')
     cfg = make_config(
         tmp_path,
@@ -369,6 +369,15 @@ def test_atmosphere_tea_hybrid_over_limit(tmp_path):
         reset={'output_atmfile': atmfile},
     )
     atmosphere = pb.run(cfg)
+    captured = capfd.readouterr()
+
+
+    # Must raise a warning
+    warning = (
+        "VMR for model ['log_SO2'] is larger than the available elemental "
+        "abundances\nof its components. VMR will be capped"
+    )
+    assert warning in captured.out
 
     # Even when free, VMR does not go beyond sum of elements
     imol = list(atmosphere.species).index('SO2')

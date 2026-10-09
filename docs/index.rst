@@ -48,7 +48,7 @@ radiative-transfer spectra, and fit exoplanet atmospheric properties.
 This package offers:
 
 - **Transmission**, **eclipse**, or **emission** spectral synthesis of exoplanet atmospheres.
-- Forward-model or (multinest) retrieval calculations.
+- Forward-model, radiative-equilibrium, or (multinest) retrieval calculations.
 
 Radiative-transfer calculations include opacity sources from:
 
@@ -56,7 +56,7 @@ Radiative-transfer calculations include opacity sources from:
 - Collision-induced absorption
 - Rayleigh scattering absorption
 - Na and K alkali resonant lines
-- Gray and Mie (soon) aerosol opacities
+- Gray and (soon) Mie aerosol opacities
 
 Bayesian (Nested sampling) posterior sampling of atmospheric parameters:
 
@@ -83,6 +83,10 @@ Be Kind
 
 If you found ``Pyrat Bay`` useful for your research, please cite this article:
   `Cubillos & Blecic (2021): The Pyrat Bay Framework for Exoplanet Atmospheric Modeling: A Population Study of Hubble/WFC3 Transmission Spectra <https://ui.adsabs.harvard.edu/abs/2021MNRAS.505.2675C>`_, *MNRAS, 505, 2675.*
+
+For the update including Multinest retrievals, radiative equilibrium, TLS, isotopic ratios, and/or direct-imaging spectra:
+  `Cubillos et al. (2026): PYRAT BAY 2.0: an upgraded framework for exoplanet atmosphere modelling in the JWST era <https://ui.adsabs.harvard.edu/abs/2026MNRAS.551g1526C>`_, *MNRAS, 551, 1526.*
+
 
 Please prefer to channel your feedback or inquiries through the Github issue tracker: `<https://github.com/pcubillos/pyratbay>`_, or alternatively through this email: `patricio.cubillos[at]oeaw.ac.at`_.
 

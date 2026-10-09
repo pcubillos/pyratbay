@@ -25,6 +25,8 @@ conda install -c conda-forge pyratbay
 
 ### Cite as ([ADS](https://ui.adsabs.harvard.edu/abs/2021arXiv210505598C)):
 
+For the base code:
+
 ```bibtex
 @ARTICLE{CubillosBlecic2021mnrasPyratBay,
        author = {{Cubillos}, Patricio E. and {Blecic}, Jasmina},
@@ -45,3 +47,24 @@ archivePrefix = {arXiv},
 }
 ```
 
+For Multinest retrievals, radiative-equilibrium, TLS, isotopic ratios, and/or direct-imaging spectra:
+```bibtex
+@ARTICLE{CubillosEtal2026mnrasPyratBay2,
+       author = {{Cubillos}, Patricio E. and {Blecic}, Jasmina and {Shulyak}, Denis and {Fossati}, Luca},
+        title = "{PYRAT BAY 2.0: an upgraded framework for exoplanet atmosphere modelling in the JWST era}",
+      journal = {\mnras},
+     keywords = {radiative transfer, techniques: spectroscopic, planets and satellites: atmospheres, Earth and Planetary Astrophysics, Instrumentation and Methods for Astrophysics},
+         year = 2026,
+        month = sep,
+       volume = {551},
+       number = {3},
+          eid = {stag1526},
+        pages = {stag1526},
+          doi = {10.1093/mnras/stag1526},
+archivePrefix = {arXiv},
+       eprint = {2608.07128},
+ primaryClass = {astro-ph.EP},
+       adsurl = {https://ui.adsabs.harvard.edu/abs/2026MNRAS.551g1526C},
+      adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+}
+```

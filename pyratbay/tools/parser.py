@@ -16,6 +16,7 @@ import os
 import argparse
 from datetime import date
 import configparser
+from pathlib import Path
 import warnings
 
 import numpy as np
@@ -80,7 +81,7 @@ class Namespace(argparse.Namespace):
             is_list = True
 
         values = [
-            os.path.realpath(val.replace('{ROOT}', pc.ROOT))
+            os.path.realpath(Path(val.replace('{ROOT}', pc.ROOT)).expanduser())
             for val in values
         ]
 
