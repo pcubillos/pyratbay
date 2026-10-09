@@ -192,8 +192,7 @@ class Pyrat():
         self.atm.calc_profiles(temp, vmr, radius)
 
         out_of_bounds = self.opacity.check_temp_bounds(self.atm.temp)
-        good_status = len(out_of_bounds) == 0
-        if not good_status:
+        if len(out_of_bounds) > 0:
             self.log.warning(
                 "Temperature values lie out of the cross-section "
                 f"boundaries for: {out_of_bounds}"
@@ -201,8 +200,10 @@ class Pyrat():
             self.spec.spectrum[:] = 0.0
             return
         if self.atm._out_of_bounds_vmr:
-            self.spec.spectrum[:] = 0.0
-            return
+            self.log.warning(
+                f'VMR for model {self.atm._oob_models} is larger than the available '
+                'elemental abundances of its components. VMR will be capped'
+            )
         self.timestamps['atmo'] = timer.clock()
 
         # Calculate extinction coefficient:
@@ -325,7 +326,6 @@ class Pyrat():
         if self.atm._out_of_bounds_vmr:
             reject_flag = True
 
-
         if self.od.rt_path == 'f_lambda':
             # Convert flux from (erg s-1 cm-2 cm) to (W m-2 um-1)
             # TBD: check rplanet and distance exist
@@ -387,7 +387,7 @@ class Pyrat():
             obs.uncert_pars[ifree] = params[ret.ierror]
             obs.uncert = obs.depth.scale_errors(obs.uncert_pars)
 
-        # Apply TLS correction
+        # Apply TLS correction to data
         if self.tls.n_models > 0 and self.obs.ndata > 0:
             obs.data -= self.tls.band_offset
 

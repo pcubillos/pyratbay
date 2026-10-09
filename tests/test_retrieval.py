@@ -243,6 +243,18 @@ def test_eval_uncert_scaling_no_data(tmp_path):
         pyrat = pb.run(cfg)
 
 
+def test_hybrid_eval_reject_VMR_OOBs():
+    cfg = ROOT+'tests/configs/retrieval_transmission_hybrid.cfg'
+    pyrat = pb.Pyrat(cfg)
+    pyrat.eval(pyrat.ret.params)
+
+    # Spectrum exists
+    expected_spec = [0.00679258, 0.00695102, 0.0067942 , 0.00682667, 0.00679244]
+    np.testing.assert_allclose(pyrat.spec.spectrum[0:5], expected_spec, rtol=1e-6)
+    # Evaluation at data points is np.inf (rejected)
+    np.testing.assert_array_equal(pyrat.obs.bandflux, np.inf)
+
+
 @pytest.mark.skip(reason='Too long to execute')
 @pytest.mark.filterwarnings("ignore: divide by zero encountered")
 @pytest.mark.filterwarnings("ignore: Attempting to set identical low and high")

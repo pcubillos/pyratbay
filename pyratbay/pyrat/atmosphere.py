@@ -352,13 +352,19 @@ class Atmosphere():
         # properties (mean molecular mass, number density, Hill radius)
         self.calc_profiles()
 
-        # Screen outputs:
+        if self._out_of_bounds_vmr:
+            models = np.array([model.name for model in self.vmr_models])
+            hybrid_models = models[self._is_hybrid_model]
+            log.warning(
+                f'VMR for model {self._oob_models} is larger than the available '
+                'elemental abundances of its components. VMR will be capped'
+            )
+
+        # Screen outputs
         mmm_text = ''
         if self.vmr is not None:
             median_mmm = np.median(self.mm)
-            mmm_text += (
-                f"\nMedian mean molecular mass: {median_mmm:.3f} g mol-1."
-            )
+            mmm_text += f"\nMedian mean molecular mass: {median_mmm:.3f} g mol-1."
 
         if self.radius is not None:
             radius_arr = self.radius / pt.u(self.runits)
@@ -462,7 +468,8 @@ class Atmosphere():
                 e_ratio=e_ratio,
                 e_scale=e_scale,
             )
-            # Override with any free-log_VMR models
+            # hybrid chemistry: override with free-log_VMR models
+            oob_models = []
             for i,model in enumerate(self.vmr_models):
                 if self.vmr_pars is not None and self._is_hybrid_model[i]:
                     val = self.vmr_pars[i][0]
@@ -470,7 +477,10 @@ class Atmosphere():
                         model, val, self.chem_model,
                     )
                     vmr[:,model.imol] = vmr_profile
-                    self._out_of_bounds_vmr = oob_flag
+                    if oob_flag:
+                        oob_models.append(model.name)
+            self._out_of_bounds_vmr = len(oob_models) > 0
+            self._oob_models = oob_models
 
         elif np.any(~self._is_equil_model) and self.vmr_pars is not None:
             vmr_pars = [
@@ -491,7 +501,7 @@ class Atmosphere():
             vmr = np.copy(self.base_vmr)
         self.vmr = vmr
 
-        if self.vmr is None or self._out_of_bounds_vmr:
+        if self.vmr is None:
             return
 
         # Number density (molecules cm-3):
