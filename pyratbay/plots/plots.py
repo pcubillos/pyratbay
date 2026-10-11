@@ -265,7 +265,12 @@ def spectrum(
     # The data
     zorder = 5 if data_front else -1
     ecolor = alphatize(data_color, alpha=0.85)
-    if data is not None and uncert is not None and bands_wl0 is not None:
+    has_data = (
+        data is not None and len(data)>0 and
+        uncert is not None and
+        bands_wl0 is not None
+    )
+    if has_data:
         plt.errorbar(
             bands_wl0, data*flux_scale, uncert*flux_scale,
             xerr=bands_half_width,

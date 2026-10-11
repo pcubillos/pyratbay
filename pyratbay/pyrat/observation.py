@@ -9,56 +9,42 @@ import numpy as np
 
 from .. import constants as pc
 from .. import io as io
-from .. import spectrum as ps
 from .. import tools as pt
 
 
 class Observation():
     def __init__(self, inputs, wn, log):
         # Transit or eclipse data point
-        self.data = inputs.data
-        self.uncert = inputs.uncert
+        self.data = []
+        self.uncert = []
         self.data_hires = None
         self.uncert_hires = None
-        self.band_wl = None
+        self.bands = []
+        self.band_wl = []
+        self.half_widths = []
         self.units = inputs.dunits
         self._dunits = pt.u(self.units)
 
-        if inputs.filters is None:
-            self.bands = []
-        else:
-            self.bands = [
-                ps.PassBand(filter_file)
-                for filter_file in inputs.filters
-            ]
-
         # Low-resolution data (pass bands)
         if inputs.obsfile is not None:
-            # TBD: Throw error if filters already exist
-            obs_data = io.read_observations(inputs.obsfile)
-            if len(obs_data) == 5:
-                # TBD: Throw error if data or uncert already exist
-                self.data, self.uncert = obs_data[3:]
-            self.bands, self.band_wl, self.half_widths = obs_data[0:3]
+            for obs_file in inputs.obsfile:
+                obs_data = io.read_observations(obs_file)
+                self.bands += obs_data[0]
+                self.band_wl += list(obs_data[1])
+                self.half_widths += list(obs_data[2])
+                if len(obs_data) == 5:
+                    self.data += list(obs_data[3])
+                    self.uncert += list(obs_data[4])
 
-        # Number of datapoints and filters:
-        self.ndata = 0
-        if self.data is None and self.uncert is not None:
-            log.error("Undefined transit/eclipse data (data)")
+        self.data = np.array(self.data)
+        self.uncert = np.array(self.uncert)
+        self.band_wl = np.array(self.band_wl)
+        self.half_widths = np.array(self.half_widths)
 
-        if self.data is not None:
-            self.ndata = len(self.data)
-
-        if self.uncert is not None:
-            n_uncert = len(self.uncert)
-            if self.ndata != n_uncert:
-                log.error(
-                    f'Number of data uncertainty values ({n_uncert}) does not '
-                    f'match the number of data points ({self.ndata})'
-                )
-
+        # Number of datapoints and filters
+        self.ndata = len(self.data)
         self.nbands = len(self.bands)
-        if self.nbands > 0 and self.ndata > 0 and self.ndata != self.nbands:
+        if self.ndata > 0 and self.ndata != self.nbands:
             log.error(
                 f'Number of filter bands ({self.nbands}) does not '
                 f'match the number of data points ({self.ndata})'
@@ -70,7 +56,6 @@ class Observation():
         # Per-band variables:
         self.bandwn = np.array([band.wn0 for band in self.bands])
         self.bandflux = np.zeros(self.nbands, np.double)
-
 
         # High-resolution data (sampled at nyquist frequency)
         self.inst_resolution = inputs.inst_resolution
@@ -134,11 +119,11 @@ class Observation():
         units = pt.u(self.units)
         fw = pt.Formatted_Write()
         fw.write('Observing information:')
-        if self.data is not None or self.bands is not None:
+        if self.ndata>0 or self.bands is not None:
             fw.write('Data/bandflux display units (units): {}', self.units)
             fw.write('Data/bandflux internal units: none')
         fw.write('Number of data points (ndata): {}', self.ndata)
-        if self.data is not None:
+        if self.ndata > 0:
             fw.write('        Data  Uncertainty   Wavenumber  Wavelength\n'
                      '     {:>7s}      {:>7s}         cm-1          um\n'
                      '      (data)     (uncert)     (bandwn)',

@@ -541,10 +541,10 @@ def parse(cfile, with_log=True, mute=False):
         parse_float(args, 'f_dilution')
         # Data options:
         parse_str(args, 'dunits')
-        parse_array(args, 'data')
-        parse_array(args, 'uncert')
-        parse_array(args, 'filters')
-        parse_str(args, 'obsfile')
+        parse_array(args, 'data')  # Deprecated
+        parse_array(args, 'uncert')  # Deprecated
+        parse_array(args, 'filters')  # Deprecated
+        parse_array(args, 'obsfile')
         parse_str(args, 'obsfile_hires')
         parse_str(args, 'offset_inst')
         parse_str(args, 'uncert_scaling')
@@ -1036,11 +1036,22 @@ def parse(cfile, with_log=True, mute=False):
     if not hasattr(pc, args.dunits):
         log.error(f'Invalid data units (dunits): {args.dunits}')
 
-    args.data = args.get_param('data', args.dunits, 'Data')
-    args.uncert = args.get_param('uncert', args.dunits, 'Uncertainties')
-    args.filters = args.get_path('filters', 'Filter pass-bands', exists=True)
+    # Depreacted data inputs
+    data = args.get_param('data', args.dunits, 'Data')
+    uncert = args.get_param('uncert', args.dunits, 'Uncertainties')
+    filters = args.get_path('filters', 'Filter pass-bands', exists=True)
+    deprecated_data = []
+    if data is not None:
+        deprecated_data.append('data')
+    if uncert is not None:
+        deprecated_data.append('uncert')
+    if filters is not None:
+        deprecated_data.append('filters')
+    if len(deprecated_data) > 0:
+        log.error(f"These arguments are deprecated: {deprecated_data}, use 'obsfile' instead")
+
     args.obsfile = args.get_path(
-        'obsfile', 'Observations data file', exists=True,
+        'obsfile', 'Observation data files', exists=True,
     )
     args.obsfile_hires = args.get_path(
         'obsfile_hires', 'High-resolution observations data file', exists=True,

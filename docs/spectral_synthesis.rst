@@ -452,6 +452,16 @@ Valid units are: '*none*', '*percent*', or '*ppm*'.  The ``obsfile``
 is a path to a plain-text file listing the bands (and optionally
 data).
 
+The input data in  ``obsfile`` can be loaded from multiple files (e.g., combining multi-epoch or repated observations):
+
+.. code-block:: ini
+
+    # The observations (multiple input files)
+    obsfile =
+        inputs/obs_jwst_transit_nirspec.dat
+        inputs/obs_jwst_transit_miri.dat
+    dunits = percent
+
 .. tab-set::
 
   .. tab-item:: Bands only

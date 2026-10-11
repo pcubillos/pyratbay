@@ -49,7 +49,7 @@ class Loglike():
         self.ifree = self.pstep > 0
         self.ishare = np.where(self.pstep<0)[0]
 
-        if pyrat.obs.data is None and pyrat.obs.data_hires is None:
+        if pyrat.obs.ndata==0 and pyrat.obs.data_hires is None:
             raise ValueError(
                 'Attempting to compute a log-likelihood for a model '
                 'with no data'
@@ -72,10 +72,10 @@ class Loglike():
         Concatenate low- and high-resolution data into a single array
         """
         obs = self.obs
-        if obs.data is not None and obs.data_hires is not None:
+        if obs.ndata>0 and obs.data_hires is not None:
             data = np.concatenate((obs.data, obs.data_hires))
             uncert = np.concatenate((obs.uncert, obs.uncert_hires))
-        elif obs.data is not None:
+        elif obs.ndata>0:
             data = obs.data
             uncert = obs.uncert
         else:
@@ -655,7 +655,7 @@ def posterior_post_processing(cfg_file=None, pyrat=None, contributions=None):
         'path': pyrat.od.rt_path,
     }
 
-    if pyrat.obs.data is not None:
+    if pyrat.obs.ndata > 0:
         outputs['data_posterior'] = data_posterior
         outputs['data'] = pyrat.obs.depth.data
         outputs['uncert'] = pyrat.obs.uncert

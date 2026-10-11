@@ -872,37 +872,6 @@ def test_h_ion_missing_species(tmp_path):
         pyrat = pb.run(cfg)
 
 
-def test_spectrum_uncert_mismatch(tmp_path):
-    cfg = make_config(
-        tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
-        reset={'data':'1.0 2.0', 'uncert':'0.1'},
-    )
-    error = re.escape(
-        'Number of data uncertainty values (1) does not match the '
-        'number of data points (2)'
-    )
-    with pytest.raises(ValueError, match=error):
-        pyrat = pb.run(cfg)
-
-
-def test_spectrum_filters_mismatch(tmp_path):
-    reset = {
-        'data': '1.0 2.0',
-        'filters': ROOT+'tests/inputs/filter_test_WFC3_G141_1.133um.dat',
-    }
-    cfg = make_config(
-        tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
-        reset=reset,
-    )
-    error = re.escape(
-        'Number of filter bands (1) does not match the number of '
-        'data points (2)'
-    )
-    with pytest.raises(ValueError, match=error):
-        pyrat = pb.run(cfg)
-
 @pytest.mark.parametrize(
     'ncolumns',
     [1, 3, 4, 6, 9],

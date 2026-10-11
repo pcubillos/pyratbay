@@ -3,7 +3,6 @@
 
 from collections import OrderedDict
 import os
-import subprocess
 
 import numpy as np
 import scipy.interpolate as si
@@ -425,13 +424,8 @@ class Pyrat():
         if ret.pstep is None:
             log.error('Missing pstep argument, required for retrieval runs')
 
-        if obs.data is None and obs.data_hires is None:
+        if obs.ndata==0 and obs.data_hires is None:
             log.error("Undefined transit/emission/eclipse data for retrieval")
-        if obs.data is not None:
-            if obs.uncert is None:
-                log.error("Undefined data uncertainties")
-            if obs.nbands == 0:
-                log.error("Undefined transmission filters (filters)")
         if obs.data_hires is not None:
             if obs.uncert_hires is None:
                 log.error("Undefined high-resolution data uncertainties")
