@@ -936,7 +936,7 @@ def check_input_atmosphere(atm_file, log):
         pressure = np.flip(pressure)
         temperature = np.flip(temperature)
         if vmr is not None:
-            vmr = np.flip(vmr)
+            vmr = np.flip(vmr, axis=0)
         if radius is not None:
             radius = np.flip(radius)
     else:
