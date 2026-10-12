@@ -294,9 +294,9 @@ class Pyrat():
         if ret.itstar is not None:
             self.atm.tstar = params[ret.itstar][0]
             self.spec.starflux = self.spec.flux_interp(self.atm.tstar)
-            self.obs.bandflux_star = np.array([
+            obs.bandflux_star = np.array([
                 band(self.spec.starflux)
-                for band in self.obs.bands
+                for band in obs.bands
             ])
 
         if ret.idilut is not None:
@@ -337,29 +337,31 @@ class Pyrat():
         if ret.irv is not None:
             ifree = ret.map_pars['rv'] # index in obs.rv
             for i,rv in enumerate(params[ret.irv]):
-                self.obs.rv_wn[i] = ps.rv_shift(rv, wn=self.spec.wn)
+                obs.rv_wn[i] = ps.rv_shift(rv, wn=self.spec.wn)
+
+        self.spec.spectrum_convolved = conv_flux = ps.inst_convolution(
+            self.spec.wn,
+            self.spec.spectrum,
+            obs.inst_resolution,
+            sampling_res=self.spec.resolution,
+        )
 
         # High-resolution data
-        if self.obs.ndata_hires > 0:
-            self.spec.spectrum_convolved = conv_flux = ps.inst_convolution(
-                self.spec.wn,
-                self.spec.spectrum,
-                obs.inst_resolution,
-                sampling_res=self.spec.resolution,
-            )
-
-            # Interpolate at data
-            # TBD: will break, pending re-implementation of hires_data input
-            if obs.data_hires is not None:
-                obs.bandflux_hires = si.interp1d(wn, conv_flux)(obs.wn_hires)
+        if obs.has_hi_res > 0:
+            # Interpolate at data for each instrument-rv
+            for i,rv in enumerate(obs.rv_wn):
+                wn = obs.rv_wn[i]
+                mask = ~obs.is_low_res & obs.rv_mask[i]
+                band_wn = obs.bandwn[mask]
+                obs.bandflux[mask] = si.interp1d(wn, conv_flux)(band_wn)
 
             if reject_flag:
-                obs.bandflux_hires[:] = np.inf
-            # TBD: At the moment either return hires or lowres, but should
+                obs.bandflux[:] = np.inf
+            # TBD: At the moment either return hi_res or low_res, but should
             # be able to combine in the future
             if retmodel:
-                return self.spec.spectrum, obs.bandflux_hires
-            return obs.bandflux_hires
+                return self.spec.spectrum, obs.bandflux
+            return obs.bandflux
 
         # TLS effect
         if ret.itls is not None:
@@ -388,7 +390,7 @@ class Pyrat():
             obs.uncert = obs.depth.scale_errors(obs.uncert_pars)
 
         # Apply TLS correction to data
-        if self.tls.n_models > 0 and self.obs.ndata > 0:
+        if self.tls.n_models > 0 and obs.ndata > 0:
             obs.data -= self.tls.band_offset
 
         # Invalid model
@@ -419,19 +421,11 @@ class Pyrat():
                 f'Select from {pc.samplers}'
             )
         if ret.params is None:
-            log.error(
-                'Undefined retrieval fitting parameters (retrieval_params)'
-            )
+            log.error('Undefined retrieval fitting parameters (retrieval_params)')
         if ret.pstep is None:
             log.error('Missing pstep argument, required for retrieval runs')
-
-        if obs.ndata==0 and obs.data_hires is None:
+        if obs.ndata == 0:
             log.error("Undefined transit/emission/eclipse data for retrieval")
-        if obs.data_hires is not None:
-            if obs.uncert_hires is None:
-                log.error("Undefined high-resolution data uncertainties")
-            if obs.nbands_hires == 0:
-                log.error("Undefined transmission filters (filters)")
 
         # Basename of the output files:
         basename = ret.retrieval_file
@@ -583,8 +577,6 @@ class Pyrat():
 
             if self.obs.nbands > 0:
                 band_wl = 1.0/(self.obs.bandwn*pc.um)
-            elif self.obs.nbands_hires > 0:
-                band_wl = 1.0/(self.obs.wn_hires*pc.um)
             band_cf = self.band_contribution()
 
             filename = f'{basename}_bestfit_contributions.png'
@@ -729,10 +721,7 @@ class Pyrat():
         """
         Compute contribution functions or transmittance at each band.
         """
-        if self.obs.nbands_hires != 0:
-            bands = self.obs.bands_hires
-        else:
-            bands = self.obs.bands
+        bands = self.obs.bands
         bands_idx = [band.idx for band in bands]
         responses = [band.response for band in bands]
 
@@ -804,42 +793,41 @@ class Pyrat():
             'data_color': self.fig.data_color,
         }
 
-        is_hires = obs.nbands_hires > 0
-
-        if is_hires:
-            band_wl = np.array([band.wl0 for band in obs.bands_hires])
-            args['wavelength'] = band_wl
-            args['data'] = obs.data_hires
-            args['uncert'] = obs.uncert_hires
-            args['bands_wl0'] = band_wl
+        lo_mask = self.is_low_res
+        hi_mask = ~self.is_low_res
+        if obs.has_hi_res:
+            args['wavelength'] = obs.band_wl[hi_mask]
+            args['data'] = obs.data[hi_mask]
+            args['uncert'] = obs.uncert[hi_mask]
+            args['bands_wl0'] = obs.band_wl[hi_mask]
             args['resolution'] = None
             args['marker'] = '.'
             args['data_front'] = False
-        else:
+        elif obs.has_low_res:
             args['wavelength'] = self.spec.wl
-            args['data'] = obs.data
-            args['uncert'] = obs.uncert
-            args['bands_wl0'] = obs.band_wl
-            args['bands_half_width'] = [band.half_width for band in obs.bands]
-            args['bands_flux'] = obs.bandflux
+            args['data'] = obs.data[lo_mask]
+            args['uncert'] = obs.uncert[lo_mask]
+            args['bands_wl0'] = obs.band_wl[lo_mask]
+            args['bands_half_width'] = obs.half_widths[lo_mask]
+            args['bands_flux'] = obs.bandflux[lo_mask]
             args['resolution'] = self.fig.resolution
             args['marker'] = 'o'
             args['data_front'] = True
 
         if spec == 'model':
             args['label'] = 'model'
-            if is_hires:
-                args['spectrum'] = obs.bandflux_hires
+            if obs.has_hi_res:
+                args['spectrum'] = obs.bandflux[hi_mask]
             else:
                 args['spectrum'] = self.spec.spectrum
-                args['bands_flux'] = obs.bandflux
+                args['bands_flux'] = obs.bandflux[lo_mask]
         elif spec == 'best':
             args['label'] = 'best-fit model'
-            if is_hires:
-                args['spectrum'] = self.ret.bestbandflux
+            if obs.has_hi_res:
+                args['spectrum'] = self.ret.bestbandflux[hi_mask]
             else:
                 args['spectrum'] = self.ret.spec_best
-                args['bands_flux'] = self.ret.bestbandflux
+                args['bands_flux'] = self.ret.bestbandflux[lo_mask]
         else:
             return
 
@@ -854,7 +842,6 @@ class Pyrat():
 
         # kwargs overwite any of the previous values
         args.update(kwargs)
-
         ax = pp.spectrum(**args)
         return ax
 

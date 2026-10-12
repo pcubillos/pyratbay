@@ -49,7 +49,7 @@ class Loglike():
         self.ifree = self.pstep > 0
         self.ishare = np.where(self.pstep<0)[0]
 
-        if pyrat.obs.ndata==0 and pyrat.obs.data_hires is None:
+        if pyrat.obs.ndata == 0:
             raise ValueError(
                 'Attempting to compute a log-likelihood for a model '
                 'with no data'
@@ -67,21 +67,6 @@ class Loglike():
         if self._dt_snapshot > 0:
             self.timer = time.time()
 
-    def get_data(self):
-        """
-        Concatenate low- and high-resolution data into a single array
-        """
-        obs = self.obs
-        if obs.ndata>0 and obs.data_hires is not None:
-            data = np.concatenate((obs.data, obs.data_hires))
-            uncert = np.concatenate((obs.uncert, obs.uncert_hires))
-        elif obs.ndata>0:
-            data = obs.data
-            uncert = obs.uncert
-        else:
-            data = obs.data_hires
-            uncert = obs.uncert_hires
-        return data, uncert
 
     def __call__(self, params):
         """
@@ -106,12 +91,10 @@ class Loglike():
 
         # Evaluate model (and update data if necessary)
         model = self.func(self.params, retmodel=False)
-        # Concatenate (low-res) data and high-res data arrays
-        data, uncert = self.get_data()
 
         log_like = (
-            -0.5*np.sum(((data - model) / uncert)**2.0)
-            -0.5*np.sum(np.log(2.0*np.pi*uncert**2.0))
+            -0.5*np.sum(((self.obs.data - model) / self.obs.uncert)**2.0)
+            -0.5*np.sum(np.log(2.0*np.pi*self.obs.uncert**2.0))
         )
         if not np.isfinite(log_like):
             log_like = -1.0e98
@@ -358,10 +341,9 @@ def multinest_run(pyrat, basename):
 
     # Statistics:
     best_model = pyrat.eval(bestp, retmodel=False)
-    data, uncert = loglike.get_data()
 
-    ndata = len(data)
-    best_chisq = np.sum((best_model-data)**2 / uncert**2)
+    ndata = len(loglike.obs.data)
+    best_chisq = np.sum((best_model-loglike.obs.data)**2 / loglike.obs.uncert**2)
     red_chisq = best_chisq / (ndata-n_free)
     if ndata <= n_free:
         red_chisq = np.nan
@@ -371,7 +353,7 @@ def multinest_run(pyrat, basename):
     output['best_chisq'] = best_chisq
     output['red_chisq'] = red_chisq
     output['BIC'] = best_chisq + n_free*np.log(ndata)
-    output['stddev_residuals'] = np.std(best_model-data)
+    output['stddev_residuals'] = np.std(best_model-loglike.obs.data)
 
     sample_stats = mc3.stats.calc_sample_statistics(
         post.posterior, bestp, pstep, calc_hpd=True,
@@ -655,14 +637,11 @@ def posterior_post_processing(cfg_file=None, pyrat=None, contributions=None):
         'path': pyrat.od.rt_path,
     }
 
-    if pyrat.obs.ndata > 0:
-        outputs['data_posterior'] = data_posterior
-        outputs['data'] = pyrat.obs.depth.data
-        outputs['uncert'] = pyrat.obs.uncert
-        outputs['band_labels'] = [band.name for band in pyrat.obs.bands]
-    if pyrat.obs.data_hires is not None:
-        outputs['data_hires'] = pyrat.obs.data_hires
-        outputs['uncert_hires'] = pyrat.obs.uncert_hires
+    outputs['data_posterior'] = data_posterior
+    outputs['data'] = pyrat.obs.depth.data
+    outputs['uncert'] = pyrat.obs.uncert
+    outputs['band_labels'] = [band.name for band in pyrat.obs.bands]
+    outputs['is_low_res_data'] = pyrat.obs.is_low_res
 
     # Figure plotting configs
     outputs['theme'] = pyrat.fig.theme

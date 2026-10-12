@@ -545,7 +545,7 @@ def parse(cfile, with_log=True, mute=False):
         parse_array(args, 'uncert')  # Deprecated
         parse_array(args, 'filters')  # Deprecated
         parse_array(args, 'obsfile')
-        parse_str(args, 'obsfile_hires')
+        parse_array(args, 'obsfile_hires')
         parse_str(args, 'offset_inst')
         parse_str(args, 'uncert_scaling')
         parse_float(args, 'inst_resolution')

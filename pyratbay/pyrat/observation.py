@@ -17,8 +17,6 @@ class Observation():
         # Transit or eclipse data point
         self.data = []
         self.uncert = []
-        self.data_hires = None
-        self.uncert_hires = None
         self.bands = []
         self.band_wl = []
         self.half_widths = []
@@ -37,10 +35,36 @@ class Observation():
                     self.data += list(obs_data[3])
                     self.uncert += list(obs_data[4])
 
+        n_low_res = len(self.bands)
+
+        # High-resolution data (sampled at nyquist frequency)
+        self.inst_resolution = inputs.inst_resolution
+        if inputs.obsfile_hires is not None:
+            # TBD: Check spec.wn is at constant resolution
+            if self.inst_resolution is None:
+                raise ValueError(
+                    'Undefined instrumental resolution is required for '
+                    'convolution of high-resolution data'
+                )
+            for obs_file in inputs.obsfile_hires:
+                obs_data = io.read_observations(obs_file)
+                bands = obs_data[0]
+                for band in bands:
+                    band.half_width = band.wl0 / self.inst_resolution / 2.0
+                self.bands += bands
+                self.band_wl += list(obs_data[1])
+                self.half_widths += [band.half_width for band in bands]
+                if len(obs_data) == 5:
+                    self.data += list(obs_data[3])
+                    self.uncert += list(obs_data[4])
+
+        # Low- and high-resolution flags
+        self.is_low_res = np.arange(len(self.bands)) < n_low_res
+        self.has_low_res = np.any(self.is_low_res)
+        self.has_hi_res = np.any(~self.is_low_res)
+
         self.data = np.array(self.data)
         self.uncert = np.array(self.uncert)
-        self.band_wl = np.array(self.band_wl)
-        self.half_widths = np.array(self.half_widths)
 
         # Number of datapoints and filters
         self.ndata = len(self.data)
@@ -51,42 +75,15 @@ class Observation():
                 f'match the number of data points ({self.ndata})'
             )
 
+        # Per-band variables
+        self.band_wl = np.array(self.band_wl)
+        self.half_widths = np.array(self.half_widths)
+        self.bandwn = np.array([band.wn0 for band in self.bands])
+        self.bandwn[~self.is_low_res] = 1.0/(self.band_wl[~self.is_low_res]*pc.um)
+        self.bandflux = np.zeros(self.nbands, np.double)
         # Resample the filters into the planet wavenumber array:
         for band in self.bands:
             band.set_sampling(wn=wn)
-        # Per-band variables:
-        self.bandwn = np.array([band.wn0 for band in self.bands])
-        self.bandflux = np.zeros(self.nbands, np.double)
-
-        # High-resolution data (sampled at nyquist frequency)
-        self.inst_resolution = inputs.inst_resolution
-        self.bands_hires = []
-        if inputs.obsfile_hires is not None:
-            # TBD: Check spec.wn is at constant resolution
-            if self.inst_resolution is None:
-                raise ValueError(
-                    'Undefined instrumental resolution is required for '
-                    'convolution of high-resolution data'
-                )
-            obs_data = io.read_observations(inputs.obsfile_hires)
-            if len(obs_data) == 5:
-                self.data_hires, self.uncert_hires = obs_data[3:]
-            self.bands_hires, self.band_wl_hires, hw = obs_data[0:3]
-            self.wn_hires = 1.0 / (self.band_wl_hires*pc.um)
-            for band in self.bands_hires:
-                band.half_width = band.wl0 / self.inst_resolution / 2.0
-                band.set_sampling(wn=wn)
-
-        if self.data_hires is not None:
-            self.ndata_hires = len(self.data_hires)
-        else:
-            self.ndata_hires = 0
-
-        if self.uncert_hires is not None:
-            self.n_uncert_hires = len(self.uncert_hires)
-
-        self.nbands_hires = len(self.bands_hires)
-        self.bandflux_hires = np.zeros(self.nbands_hires, np.double)
 
         # Instrumental offsets and error-scaling parameters
         band_names = [band.name for band in self.bands]
@@ -141,13 +138,18 @@ class Observation():
                         f"Invalid RV parameter '{var}'. There is "
                         f"no instrument matching the name '{inst}'"
                     )
-        if np.any(np.sum(rv_mask, axis=0)>1):
+        rv_mask_count = np.sum(rv_mask, axis=0)
+        if np.any(rv_mask_count>1):
             log.error('Multiple RV parameters apply to a same data point')
+        # Add no-RV to mask
+        rv_mask.append(rv_mask_count == 0)
 
         self.rv_inst = rv_inst
         self.rv_texnames = rv_texnames
         self.rv_mask = rv_mask
         self.rv_wn = np.zeros((len(self.rv_mask), len(self._wn)))
+        self.rv_wn[-1] = self._wn
+
 
     def __str__(self):
         units = pt.u(self.units)
@@ -165,7 +167,6 @@ class Observation():
             for data, uncert, wn in zip(self.data, self.uncert, self.bandwn):
                 fw.write('  {:10.5f}   {:10.5f}    {:9.2f}  {:10.3f}',
                 data/units, uncert/units, wn, 1.0/(wn*pc.um))
-        # TBD: add hires data
 
         fw.write('\nNumber of filter pass bands (nbands): {}', self.nbands)
         if self.nbands == 0:
