@@ -794,44 +794,6 @@ class Pyrat():
             'data_color': self.fig.data_color,
         }
 
-        lo_mask = self.is_low_res
-        hi_mask = ~self.is_low_res
-        if obs.has_hi_res:
-            args['wavelength'] = obs.band_wl[hi_mask]
-            args['data'] = obs.data[hi_mask]
-            args['uncert'] = obs.uncert[hi_mask]
-            args['bands_wl0'] = obs.band_wl[hi_mask]
-            args['resolution'] = None
-            args['marker'] = '.'
-            args['data_front'] = False
-        elif obs.has_low_res:
-            args['wavelength'] = self.spec.wl
-            args['data'] = obs.data[lo_mask]
-            args['uncert'] = obs.uncert[lo_mask]
-            args['bands_wl0'] = obs.band_wl[lo_mask]
-            args['bands_half_width'] = obs.half_widths[lo_mask]
-            args['bands_flux'] = obs.bandflux[lo_mask]
-            args['resolution'] = self.fig.resolution
-            args['marker'] = 'o'
-            args['data_front'] = True
-
-        if spec == 'model':
-            args['label'] = 'model'
-            if obs.has_hi_res:
-                args['spectrum'] = obs.bandflux[hi_mask]
-            else:
-                args['spectrum'] = self.spec.spectrum
-                args['bands_flux'] = obs.bandflux[lo_mask]
-        elif spec == 'best':
-            args['label'] = 'best-fit model'
-            if obs.has_hi_res:
-                args['spectrum'] = self.ret.bestbandflux[hi_mask]
-            else:
-                args['spectrum'] = self.ret.spec_best
-                args['bands_flux'] = self.ret.bestbandflux[lo_mask]
-        else:
-            return
-
         if self.od.rt_path == 'f_lambda':
             args['rt_path'] = 'f_lambda'
         elif self.od.rt_path in pc.transmission_rt:
@@ -841,9 +803,53 @@ class Pyrat():
         else:
             args['rt_path'] = 'emission'
 
-        # kwargs overwite any of the previous values
-        args.update(kwargs)
-        ax = pp.spectrum(**args)
+        if spec == 'model':
+            args['label'] = 'model'
+        elif spec == 'best':
+            args['label'] = 'best-fit model'
+        else:
+            return
+
+        lo_mask = obs.is_low_res
+        hi_mask = ~obs.is_low_res
+        if obs.has_hi_res:
+            args['wavelength'] = obs.band_wl[hi_mask]
+            if len(obs.data) > 0:
+                args['data'] = obs.data[hi_mask]
+                args['uncert'] = obs.uncert[hi_mask]
+            args['bands_wl0'] = obs.band_wl[hi_mask]
+            args['resolution'] = None
+            args['marker'] = '.'
+            args['data_front'] = False
+            if spec == 'model':
+                args['spectrum'] = obs.bandflux[hi_mask]
+            elif spec == 'best':
+                args['spectrum'] = self.ret.bestbandflux[hi_mask]
+            # kwargs overwite any of the previous values
+            args.update(kwargs)
+            ax = pp.spectrum(**args)
+
+        if obs.has_low_res:
+            args['wavelength'] = self.spec.wl
+            if len(obs.data) > 0:
+                args['data'] = obs.data[lo_mask]
+                args['uncert'] = obs.uncert[lo_mask]
+            args['bands_wl0'] = obs.band_wl[lo_mask]
+            args['bands_half_width'] = obs.half_widths[lo_mask]
+            args['bands_flux'] = obs.bandflux[lo_mask]
+            args['resolution'] = self.fig.resolution
+            args['marker'] = 'o'
+            args['data_front'] = True
+            if spec == 'model':
+                args['spectrum'] = self.spec.spectrum
+                args['bands_flux'] = obs.bandflux[lo_mask]
+            elif spec == 'best':
+                args['spectrum'] = self.ret.spec_best
+                args['bands_flux'] = self.ret.bestbandflux[lo_mask]
+            # kwargs overwite any of the previous values
+            args.update(kwargs)
+            ax = pp.spectrum(**args)
+
         return ax
 
 
