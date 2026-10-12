@@ -333,6 +333,12 @@ class Pyrat():
                 (atm.rplanet/self.atm.distance * self.spec.wn*pc.um)**2
             )
 
+        # Radial-velocity shift (only for high-resolution?)
+        if ret.irv is not None:
+            ifree = ret.map_pars['rv'] # index in obs.rv
+            for i,rv in enumerate(params[ret.irv]):
+                self.obs.rv_wn[i] = ps.rv_shift(rv, wn=self.spec.wn)
+
         # High-resolution data
         if self.obs.ndata_hires > 0:
             self.spec.spectrum_convolved = conv_flux = ps.inst_convolution(
@@ -342,13 +348,8 @@ class Pyrat():
                 sampling_res=self.spec.resolution,
             )
 
-            # Radial-velocity shift
-            if ret.irv is not None:
-                vel_km = params[ret.irv][0]
-                wn = ps.rv_shift(vel_km, wn=self.spec.wn)
-            else:
-                wn = self.spec.wn
             # Interpolate at data
+            # TBD: will break, pending re-implementation of hires_data input
             if obs.data_hires is not None:
                 obs.bandflux_hires = si.interp1d(wn, conv_flux)(obs.wn_hires)
 

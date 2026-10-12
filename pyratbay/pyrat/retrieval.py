@@ -136,6 +136,9 @@ class Retrieval():
         tls_pnames = tls.pnames
         offset_pnames = obs.offset_inst
         error_pnames = obs.uncert_scaling
+        # Initialize RV parameters
+        obs.parse_rv_parameters(self.pnames, log)
+        rv_pnames = obs.rv_inst
 
         # Indices to map free parameters of each model:
         self.map_pars = map_pars = {
@@ -145,6 +148,7 @@ class Retrieval():
             'offset': [],
             'error': [],
             'tls': [],
+            'rv': [],
         }
         # Model parameter names
         self.nparams = len(self.pnames)
@@ -154,7 +158,6 @@ class Retrieval():
             'log_p_ref',
             'R_planet',
             'M_planet',
-            'rv_shift',
             'f_patchy',
             'T_eff',
             'f_dilution',
@@ -166,7 +169,8 @@ class Retrieval():
             opacity_pnames +
             offset_pnames +
             error_pnames +
-            tls_pnames
+            tls_pnames +
+            rv_pnames
         )
 
         # Indices for each model parameters in self.params array:
@@ -189,6 +193,7 @@ class Retrieval():
         ioffset = []
         ierror = []
         itls = []
+        irv = []
         for i,pname in enumerate(self.pnames):
             if pname == 'log_p_ref':
                 self.ipress = np.array([i])
@@ -199,9 +204,6 @@ class Retrieval():
             elif pname == 'M_planet':
                 self.imass = np.array([i])
                 self.texnames[i] = fr'$M_{{\rm p}}$ ({utex[atm.mass_units]})'
-            elif pname == 'rv_shift':
-                self.irv = np.array([i])
-                self.texnames[i] = 'RV (km/s)'
             elif pname =='f_patchy':
                 self.ipatchy = np.array([i])
                 self.texnames[i] = r'$\phi_{\rm patchy}$'
@@ -237,6 +239,11 @@ class Retrieval():
                         if not np.isfinite(model.pars[idx]):
                             model.pars[idx] = self.params[i]
                         break
+            elif pname in rv_pnames:
+                irv.append(i)
+                idx = rv_pnames.index(pname)
+                map_pars['rv'].append(idx)
+                self.texnames[i] = obs.rv_texnames[idx]
             elif pname in offset_pnames:
                 ioffset.append(i)
                 idx = offset_pnames.index(pname)
@@ -268,6 +275,8 @@ class Retrieval():
             self.ierror = ierror
         if len(itls) > 0:
             self.itls = itls
+        if len(irv) > 0:
+            self.irv = irv
 
         # Patch missing parameters if possible:
         patch_temp = (

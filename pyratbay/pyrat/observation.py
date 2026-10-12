@@ -24,6 +24,7 @@ class Observation():
         self.half_widths = []
         self.units = inputs.dunits
         self._dunits = pt.u(self.units)
+        self._wn = wn
 
         # Low-resolution data (pass bands)
         if inputs.obsfile is not None:
@@ -113,7 +114,40 @@ class Observation():
                 elif scaling == 'quadrature' and self.uncert_pars[i] is None:
                     self.uncert_pars[i] = -100.0
             self.uncert = self.depth.scale_errors(self.uncert_pars, self.units)
+        # RV parameters will be initialized from pyrat.Retrieval()
 
+
+    def parse_rv_parameters(self, pnames, log):
+        """
+        Setup RV model parameters.
+        """
+        band_names = [band.name for band in self.bands]
+        rv_inst = []
+        rv_texnames = []
+        rv_mask = []
+        for var in pnames:
+            if var == 'rv_shift':
+                rv_texnames.append('RV (km/s)')
+                rv_mask.append(np.ones(self.nbands, bool))
+                rv_inst.append(var)
+            elif var.startswith('rv_'):
+                inst = var[3:].replace('_', ' ')
+                rv_texnames.append(fr'RV$_{{\rm {inst}}}$ (km/s)')
+                mask = np.array([inst in name for name in band_names])
+                rv_mask.append(mask)
+                rv_inst.append(var)
+                if np.sum(mask) == 0:
+                    log.error(
+                        f"Invalid RV parameter '{var}'. There is "
+                        f"no instrument matching the name '{inst}'"
+                    )
+        if np.any(np.sum(rv_mask, axis=0)>1):
+            log.error('Multiple RV parameters apply to a same data point')
+
+        self.rv_inst = rv_inst
+        self.rv_texnames = rv_texnames
+        self.rv_mask = rv_mask
+        self.rv_wn = np.zeros((len(self.rv_mask), len(self._wn)))
 
     def __str__(self):
         units = pt.u(self.units)
