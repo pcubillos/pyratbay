@@ -592,9 +592,9 @@ def parse(cfile, with_log=True, mute=False):
         parse_str(args, 'rplanet')
         parse_str(args, 'ref_pressure')
         parse_str(args, 'refpressure')  # Deprecated
+        parse_float(args, 'gplanet')  # Deprecated
         parse_str(args, 'mplanet')
         parse_str(args, 'mpunits')
-        parse_float(args, 'gplanet')
         parse_str(args, 'smaxis')
         parse_float(args, 'tint')
         parse_float(args, 'beta_irr')
@@ -903,11 +903,12 @@ def parse(cfile, with_log=True, mute=False):
         if args.uniform_vmr is None:
             args.uniform_vmr = args.uniform
 
+    if args.gplanet is not None:
+        warning_msg = "'gplanet' is no longer a valid input, use 'mplanet' instead"
+        warnings.warn(warning_msg, category=DeprecationWarning)
 
-    # System physical parameters:
-    args.gplanet = args.get_default(
-        'gplanet', 'Planetary surface gravity (cm s-2)', gt=0.0,
-    )
+
+    # System physical parameters
     mass_units = args.get_default('mpunits', 'Planetary-mass units')
     if mass_units is not None and not hasattr(pc, mass_units):
         log.error(f'Invalid planet mass units (mpunits): {mass_units}')

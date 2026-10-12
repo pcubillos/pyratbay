@@ -339,12 +339,13 @@ class Pyrat():
             for i,rv in enumerate(params[ret.irv]):
                 obs.rv_wn[i] = ps.rv_shift(rv, wn=self.spec.wn)
 
-        self.spec.spectrum_convolved = conv_flux = ps.inst_convolution(
-            self.spec.wn,
-            self.spec.spectrum,
-            obs.inst_resolution,
-            sampling_res=self.spec.resolution,
-        )
+        if obs.inst_resolution is not None:
+            self.spec.spectrum_convolved = conv_flux = ps.inst_convolution(
+                self.spec.wn,
+                self.spec.spectrum,
+                obs.inst_resolution,
+                sampling_res=self.spec.resolution,
+            )
 
         # High-resolution data
         if obs.has_hi_res > 0:

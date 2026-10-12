@@ -19,10 +19,10 @@ from .. import tools as pt
 
 class MassGravity():
     """
-    Descriptor object that keeps the planet mass and gravity
-    consistent with each other by ensuring that
+    Descriptor object that keeps the planet 'surface' gravity
+    consistent with the mass and radius by ensuring that
         gplanet = G * mplanet / rplanet**2
-    whenever one of these two variables are modified.
+    whenever one of the mass is modified.
 
     To understand this sorcery see:
     https://docs.python.org/3/howto/descriptor.html
@@ -44,8 +44,6 @@ class MassGravity():
         if obj.rplanet is not None and value is not None:
             if var_name == 'mplanet':
                 obj.gplanet = pc.G * obj.mplanet / obj.rplanet**2
-            elif var_name == 'gplanet':
-                obj.mplanet = obj.gplanet * obj.rplanet**2 / pc.G
 
 
 class Atmosphere():
@@ -53,7 +51,6 @@ class Atmosphere():
     Atmosphere object.
     """
     mplanet = MassGravity()  # Planetary mass
-    gplanet = MassGravity()  # Planetary surface gravity (at rplanet)
 
     def __init__(self, inputs, wn=None, log=None):
         """
@@ -157,7 +154,6 @@ class Atmosphere():
         self.rmodelname = inputs.rmodelname
 
         self.rplanet = inputs.rplanet
-        self.gplanet = inputs.gplanet
         self.mplanet = inputs.mplanet
         self.mass_units = inputs.mass_units
 
@@ -1064,11 +1060,11 @@ def check_altitude(inputs, log, vmr_status):
 
     err = []
     if inputs.rplanet is None:
-        err += ['Undefined planet radius (rplanet).']
-    if inputs.mplanet is None and inputs.gplanet is None:
-        err += ['Undefined planet mass (mplanet) or surface gravity (gplanet).']
+        err += ['Undefined planet radius (rplanet)']
+    if inputs.mplanet is None:
+        err += ['Undefined planet mass (mplanet)']
     if inputs.ref_pressure is None:
-        err += ['Undefined reference pressure level (ref_pressure).']
+        err += ['Undefined reference pressure level (ref_pressure)']
 
     if len(err) != 0:
         error_message = '\n'.join(err)

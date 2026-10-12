@@ -138,7 +138,7 @@ def test_invalid_float_type(tmp_path, param, value):
         'xsolar', 'tmin', 'tmax', 'tstep',
         'ethresh', 'voigt_extent', 'dmin', 'dmax', 'lmin', 'lmax', 'dlratio',
         'fpatchy', 'maxdepth', 'qcap', 'tlow', 'thigh', 'grbreak', 'grnmin',
-        'log_gstar', 'tstar', 'gplanet', 'tint',
+        'log_gstar', 'tstar', 'tint',
     ]
 )
 def test_invalid_float_all_params(tmp_path, param):
@@ -257,7 +257,6 @@ def test_missing_mass_units(tmp_path):
      ('pbottom', ' -1.0 bar'),
      ('mplanet', ' -1.0 mjup'),
      ('rplanet', ' -1.0 rjup'),
-     ('gplanet', ' -1000.0'),
      ('smaxis',  ' -0.01 au'),
      ('rstar',   ' -1.0 rsun'),
      ('mstar',   ' -1.0 msun'),
@@ -451,13 +450,13 @@ def test_atmosphere_hydro_missing_all_planet_props(tmp_path):
     cfg = make_config(
         tmp_path,
         f'{ROOT}tests/configs/atmosphere_hydro_test.cfg',
-        remove=['rplanet', 'mplanet', 'gplanet', 'ref_pressure'],
+        remove=['rplanet', 'mplanet', 'ref_pressure'],
     )
     error = re.escape(
         'Cannot compute hydrostatic-equilibrium radius profile.\n'
-        'Undefined planet radius (rplanet).\n'
-        'Undefined planet mass (mplanet) or surface gravity (gplanet).\n'
-        'Undefined reference pressure level (ref_pressure).'
+        'Undefined planet radius (rplanet)\n'
+        'Undefined planet mass (mplanet)\n'
+        'Undefined reference pressure level (ref_pressure)'
     )
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
@@ -471,7 +470,7 @@ def test_atmosphere_hydro_missing_ref_pressure(tmp_path):
     )
     error = re.escape(
         'Cannot compute hydrostatic-equilibrium radius profile.\n'
-        'Undefined reference pressure level (ref_pressure).'
+        'Undefined reference pressure level (ref_pressure)'
     )
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
@@ -481,11 +480,11 @@ def test_atmosphere_hydro_missing_mass_gravity(tmp_path):
     cfg = make_config(
         tmp_path,
         f'{ROOT}tests/configs/atmosphere_hydro_test.cfg',
-        remove=['mplanet', 'gplanet'],
+        remove=['mplanet'],
     )
     error = re.escape(
         'Cannot compute hydrostatic-equilibrium radius profile.\n'
-        'Undefined planet mass (mplanet) or surface gravity (gplanet).'
+        'Undefined planet mass (mplanet)'
     )
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
@@ -617,11 +616,11 @@ def test_spectrum_hydro_missing_MGplanet(tmp_path, atm):
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
         reset={'atmfile': atm},
-        remove=['mplanet', 'gplanet'],
+        remove=['mplanet'],
     )
     error = re.escape(
         'Cannot compute hydrostatic-equilibrium radius profile.\n'
-        'Undefined planet mass (mplanet) or surface gravity (gplanet).'
+        'Undefined planet mass (mplanet)'
     )
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
@@ -631,7 +630,6 @@ def test_spectrum_hydro_missing_MGplanet(tmp_path, atm):
     [f'{ROOT}/tests/inputs/atmosphere_uniform_test.atm',
      f'{ROOT}/tests/inputs/atmosphere_uniform_radius.atm'])
 def test_spectrum_hydro_missing_rplanet(tmp_path, atm):
-    #keep = ['mplanet', 'gplanet']
     cfg = make_config(
         tmp_path,
         ROOT+'tests/configs/spectrum_transmission_extfile.cfg',
@@ -640,7 +638,7 @@ def test_spectrum_hydro_missing_rplanet(tmp_path, atm):
     )
     error = re.escape(
         'Cannot compute hydrostatic-equilibrium radius profile.\n'
-        'Undefined planet radius (rplanet).'
+        'Undefined planet radius (rplanet)'
     )
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
@@ -907,7 +905,7 @@ def test_spectrum_invalid_retrieval_params_pname(tmp_path):
     )
     error = re.escape(
         "Invalid retrieval parameter 'log_H2O'. Possible values are:\n"
-        "['log_p_ref', 'R_planet', 'M_planet', 'rv_shift', 'f_patchy', "
+        "['log_p_ref', 'R_planet', 'M_planet', 'f_patchy', "
         "'T_eff', 'f_dilution', 'T_iso', 'log_k_ray', 'alpha_ray']"
     )
     with pytest.raises(ValueError, match=error):
@@ -987,7 +985,7 @@ def test_spectrum_params_misfit(tmp_path):
     )
     error = re.escape(
         """Invalid retrieval parameter 'T_iso'. Possible values are:\n"""
-        """['log_p_ref', 'R_planet', 'M_planet', 'rv_shift', 'f_patchy', 'T_eff', """
+        """['log_p_ref', 'R_planet', 'M_planet', 'f_patchy', 'T_eff', """
         """'f_dilution', "log_kappa'", 'log_gamma1', 'log_gamma2', 'alpha', """
         """'T_irr', 'T_int', 'log_k_ray', 'alpha_ray']"""
     )

@@ -288,7 +288,7 @@ def multinest_run(pyrat, basename):
             sys.exit(1)
 
 
-    # The pymultinest call:
+    # The pymultinest call
     run(
         LogLikelihood=safe_loglikelihood,
         Prior=safe_prior,
