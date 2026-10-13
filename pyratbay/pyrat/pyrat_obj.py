@@ -339,22 +339,25 @@ class Pyrat():
             for i,rv in enumerate(params[ret.irv]):
                 obs.rv_wn[i] = ps.rv_shift(rv, wn=self.spec.wn)
 
-        if obs.inst_resolution is not None:
-            self.spec.spectrum_convolved = conv_flux = ps.inst_convolution(
+        # TBD: at moment only applies to high-resolution data
+        for i,inst_resolution in enumerate(obs.inst_resolution):
+            obs.convolved_spectrum[i] = ps.inst_convolution(
                 self.spec.wn,
                 self.spec.spectrum,
-                obs.inst_resolution,
+                inst_resolution,
                 sampling_res=self.spec.resolution,
             )
 
         # High-resolution data
         if obs.has_hi_res > 0:
             # Interpolate at data for each instrument-rv
-            for i,rv in enumerate(obs.rv_wn):
-                wn = obs.rv_wn[i]
-                mask = ~obs.is_low_res & obs.rv_mask[i]
-                band_wn = obs.bandwn[mask]
-                obs.bandflux[mask] = si.interp1d(wn, conv_flux)(band_wn)
+            for j,conv_flux in enumerate(obs.convolved_spectrum):
+                inst_mask = ~obs.is_low_res & obs.inst_res_mask[j]
+                for i,rv in enumerate(obs.rv_wn):
+                    wn = obs.rv_wn[i]
+                    mask = inst_mask & obs.rv_mask[i]
+                    band_wn = obs.bandwn[mask]
+                    obs.bandflux[mask] = si.interp1d(wn, conv_flux)(band_wn)
 
             if reject_flag:
                 obs.bandflux[:] = np.inf

@@ -34,50 +34,66 @@ class Observation():
                 if len(obs_data) == 5:
                     self.data += list(obs_data[3])
                     self.uncert += list(obs_data[4])
-
         n_low_res = len(self.bands)
 
         # High-resolution data (sampled at nyquist frequency)
-        self.inst_resolution = inputs.inst_resolution
         if inputs.obsfile_hires is not None:
-            # TBD: Check spec.wn is at constant resolution
-            if self.inst_resolution is None:
-                raise ValueError(
-                    'Undefined instrumental resolution is required for '
-                    'convolution of high-resolution data'
-                )
             for obs_file in inputs.obsfile_hires:
                 obs_data = io.read_observations(obs_file)
                 bands = obs_data[0]
-                for band in bands:
-                    band.half_width = band.wl0 / self.inst_resolution / 2.0
                 self.bands += bands
                 self.band_wl += list(obs_data[1])
-                self.half_widths += [band.half_width for band in bands]
                 if len(obs_data) == 5:
                     self.data += list(obs_data[3])
                     self.uncert += list(obs_data[4])
+
+        self.nbands = len(self.bands)
+        band_names = [band.name for band in self.bands]
 
         # Low- and high-resolution flags
         self.is_low_res = np.arange(len(self.bands)) < n_low_res
         self.has_low_res = np.any(self.is_low_res)
         self.has_hi_res = np.any(~self.is_low_res)
+        # TBD: Check spec.wn is at constant resolution ?
 
-        self.data = np.array(self.data)
-        self.uncert = np.array(self.uncert)
-
-        # Number of datapoints and filters
-        self.ndata = len(self.data)
-        self.nbands = len(self.bands)
-        if self.ndata > 0 and self.ndata != self.nbands:
+        # Instrumental resolution
+        self.inst_res_label = inputs.inst_res_label
+        self.inst_resolution = np.array(inputs.inst_res, np.double)
+        n_res = len(self.inst_res_label)
+        self.inst_res_mask = np.zeros((n_res+1, self.nbands), bool)
+        for i,inst in enumerate(self.inst_res_label):
+            if inst == 'all':
+                self.inst_res_mask[i] = True
+            else:
+                self.inst_res_mask[i] = [inst in name for name in band_names]
+                if np.sum(self.inst_res_mask[i]) == 0:
+                    log.error(
+                        f"Invalid inst_resolution input, there is "
+                        f"no instrument matching the name '{inst}'"
+                    )
+        inst_mask_count = np.sum(self.inst_res_mask, axis=0)
+        if np.any(inst_mask_count>1):
+            log.error('Multiple inst_resolution values apply to a same data point')
+        # Every high-resolution point must have an instrumental resolution
+        missing_inst = (inst_mask_count==0) & ~self.is_low_res
+        if np.any(missing_inst):
+            missing = np.unique(np.array(band_names)[missing_inst])
             log.error(
-                f'Number of filter bands ({self.nbands}) does not '
-                f'match the number of data points ({self.ndata})'
+                f'Missing instrumental resolution for {missing} data, all high-'
+                'resolution data must have an instrumental resolution'
             )
+        for i,inst_resolution in enumerate(self.inst_resolution):
+            mask = np.where(self.inst_res_mask[i] & ~self.is_low_res)[0]
+            for idx in mask:
+                band = self.bands[idx]
+                band.half_width = band.wl0 / inst_resolution / 2.0
+        # Add no-instrumental-resolution to mask
+        self.inst_res_mask[-1] = inst_mask_count == 0
+        self.convolved_spectrum = np.zeros((len(self.inst_res_label), len(self._wn)))
 
         # Per-band variables
         self.band_wl = np.array(self.band_wl)
-        self.half_widths = np.array(self.half_widths)
+        self.half_widths = np.array([band.half_width for band in self.bands])
         self.bandwn = np.array([band.wn0 for band in self.bands])
         self.bandwn[~self.is_low_res] = 1.0/(self.band_wl[~self.is_low_res]*pc.um)
         self.bandflux = np.zeros(self.nbands, np.double)
@@ -85,8 +101,17 @@ class Observation():
         for band in self.bands:
             band.set_sampling(wn=wn)
 
+        # Collect the data
+        self.data = np.array(self.data)
+        self.uncert = np.array(self.uncert)
+        self.ndata = len(self.data)
+        if self.ndata > 0 and self.ndata != self.nbands:
+            log.error(
+                f'Number of filter bands ({self.nbands}) does not '
+                f'match the number of data points ({self.ndata})'
+            )
+
         # Instrumental offsets and error-scaling parameters
-        band_names = [band.name for band in self.bands]
         self.offset_inst = inputs.offset_inst
         self.offset_pars = inputs.offset_pars
         self.uncert_scaling = inputs.uncert_scaling
@@ -111,6 +136,7 @@ class Observation():
                 elif scaling == 'quadrature' and self.uncert_pars[i] is None:
                     self.uncert_pars[i] = -100.0
             self.uncert = self.depth.scale_errors(self.uncert_pars, self.units)
+
         # RV parameters will be initialized from pyrat.Retrieval()
 
 

@@ -548,7 +548,7 @@ def parse(cfile, with_log=True, mute=False):
         parse_array(args, 'obsfile_hires')
         parse_str(args, 'offset_inst')
         parse_str(args, 'uncert_scaling')
-        parse_float(args, 'inst_resolution')
+        parse_str(args, 'inst_resolution')
         # Transit light source effect
         parse_str(args, 'tls_folder')
         parse_str(args, 'tls_model')
@@ -1116,9 +1116,21 @@ def parse(cfile, with_log=True, mute=False):
                 msg = f'Invalid number of parameters for {repr(fields[0])}'
                 raise ValueError(msg)
 
-    args.inst_resolution = args.get_default(
-        'inst_resolution', 'Instrumental resolution', gt=0.0,
+    inst_resolution = args.get_default(
+        'inst_resolution', 'Instrumental resolution',
     )
+    args.inst_res_label = []
+    args.inst_res = []
+    if inst_resolution is not None:
+        for par in inst_resolution.splitlines():
+            if par == '':
+                continue
+            fields = par.split()
+            if len(fields) != 2:
+                msg = f'Invalid number of parameters for {repr(fields[0])}'
+                raise ValueError(msg)
+            args.inst_res_label.append(fields[0])
+            args.inst_res.append(fields[1])
 
     args.sampler = args.get_choice('sampler', 'posterior sampler', pc.samplers)
     args.retflag = args.get_choice('retflag', 'retrieval flag', pc.retflags)
