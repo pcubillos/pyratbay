@@ -13,6 +13,19 @@ from pyratbay.constants import ROOT
 
 os.chdir(ROOT+'tests')
 
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+# evals
+keys = [
+    'sampled_res', 'conv_800', 'conv_400',
+]
+
+expected = {
+    key:np.load(f"{ROOT}tests/expected/"
+                f"expected_spectrum_eval_{key}_test.npz")['arr_0']
+    for key in keys
+}
+
+
 
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 def test_retrieval_texnames(tmp_path):
@@ -238,6 +251,101 @@ def test_eval_uncert_scaling_no_data(tmp_path):
     error = re.escape(
         "Invalid retrieval parameter 'err_quad_WFC3'. There is no "
         "instrument matching the name 'WFC3'"
+    )
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
+
+
+def test_eval_inst_res_no_obs(tmp_path):
+    cfg = ROOT+'tests/configs/spectrum_inst_res_no_obs.cfg'
+    pyrat = pb.run(cfg)
+    pyrat.eval(pyrat.ret.params)
+    # full-resolution
+    np.testing.assert_allclose(pyrat.spec.spectrum, expected['sampled_res'])
+    # convolved
+    assert len(pyrat.obs.convolved_spectrum) == 1
+    np.testing.assert_allclose(pyrat.obs.convolved_spectrum[0], expected['conv_800'])
+    assert len(pyrat.obs.bandflux) == 0
+
+
+@pytest.mark.parametrize(
+    'inst_res',
+    ['all', 'named'],
+)
+def test_eval_inst_res_single_obs(inst_res):
+    cfg = f'{ROOT}tests/configs/spectrum_inst_res_sinfoni_{inst_res}.cfg'
+    pyrat = pb.run(cfg)
+    pyrat.eval(pyrat.ret.params)
+
+    expected_band_flux = [
+        6.58682347e-03, 6.60221302e-03, 6.54939010e-03, 6.47504149e-03,
+        6.48437380e-03,
+    ]
+
+    # full-resolution
+    np.testing.assert_allclose(pyrat.spec.spectrum, expected['sampled_res'])
+    # convolved
+    assert len(pyrat.obs.convolved_spectrum) == 1
+    np.testing.assert_allclose(pyrat.obs.convolved_spectrum[0], expected['conv_800'])
+    np.testing.assert_allclose(pyrat.obs.bandflux, expected_band_flux)
+
+
+def test_eval_inst_res_single_obs_missing():
+    cfg = ROOT+'tests/configs/spectrum_inst_res_sinfoni_missing.cfg'
+    error = re.escape(
+        "Missing instrumental resolution for ['sinfoni'] data, all "
+        "high-resolution data must have an instrumental resolution"
+    )
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
+
+
+def test_eval_inst_res_multi_obs_all():
+    cfg = f'{ROOT}tests/configs/spectrum_inst_res_gravity_sinfoni_all.cfg'
+    pyrat = pb.run(cfg)
+    pyrat.eval(pyrat.ret.params)
+
+    expected_band_flux = [
+        6.58682347e-03, 6.60221302e-03, 6.54939010e-03, 6.47504149e-03, 
+        6.48437380e-03, 6.53313140e-03, 6.73487945e-03, 6.69603985e-03,
+        6.72093999e-03, 6.71739385e-03, 6.61727801e-03, 6.57081608e-03,
+        6.50445165e-03, 6.53734500e-03, 6.51857724e-03,
+    ]
+
+    # full-resolution
+    np.testing.assert_allclose(pyrat.spec.spectrum, expected['sampled_res'])
+    # convolved
+    assert len(pyrat.obs.convolved_spectrum) == 1
+    np.testing.assert_allclose(pyrat.obs.convolved_spectrum[0], expected['conv_800'])
+    np.testing.assert_allclose(pyrat.obs.bandflux, expected_band_flux)
+
+
+def test_eval_inst_res_multi_obs_named():
+    cfg = f'{ROOT}tests/configs/spectrum_inst_res_gravity_sinfoni_named.cfg'
+    pyrat = pb.run(cfg)
+    pyrat.eval(pyrat.ret.params)
+
+    expected_band_flux = [
+        6.58682347e-03, 6.60221302e-03, 6.54939010e-03, 6.47504149e-03,
+        6.48437380e-03, 6.53745729e-03, 6.71868581e-03, 6.71472341e-03,
+        6.72533881e-03, 6.70610956e-03, 6.62701444e-03, 6.58258858e-03,
+        6.51031165e-03, 6.52730405e-03, 6.52603385e-03
+    ]
+
+    # full-resolution
+    np.testing.assert_allclose(pyrat.spec.spectrum, expected['sampled_res'])
+    # convolved
+    assert len(pyrat.obs.convolved_spectrum) == 2
+    np.testing.assert_allclose(pyrat.obs.convolved_spectrum[0], expected['conv_800'])
+    np.testing.assert_allclose(pyrat.obs.convolved_spectrum[1], expected['conv_400'])
+    np.testing.assert_allclose(pyrat.obs.bandflux, expected_band_flux)
+
+
+def test_eval_inst_res_multi_obs_missing():
+    cfg = ROOT+'tests/configs/spectrum_inst_res_gravity_sinfoni_missing.cfg'
+    error = re.escape(
+        "Missing instrumental resolution for ['gravity' 'sinfoni'] data, all "
+        "high-resolution data must have an instrumental resolution"
     )
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)

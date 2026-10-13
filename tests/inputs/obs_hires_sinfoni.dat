@@ -1,0 +1,11 @@
+@DEPTH_UNITS
+percent
+
+@DATA
+# depth  err    wl (um)  half-width    name
+0.6647   0.002  1.129    0.0        sinfoni
+0.6626   0.002  1.166    0.0        sinfoni
+0.6578   0.002  1.203    0.0        sinfoni
+0.6549   0.002  1.240    0.0        sinfoni
+0.6550   0.002  1.277    0.0        sinfoni
+
