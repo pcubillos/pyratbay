@@ -352,6 +352,16 @@ def test_eval_inst_res_multi_obs_missing():
         pyrat = pb.run(cfg)
 
 
+def test_eval_inst_res_multi_obs_misnamed():
+    cfg = ROOT+'tests/configs/spectrum_inst_res_gravity_sinfoni_misnamed.cfg'
+    error = re.escape(
+        "Invalid inst_resolution input, there is no instrument matching the "
+        "name 'soss'"
+    )
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
+
+
 def test_eval_high_resolution():
     cfg = f'{ROOT}tests/configs/spectrum_inst_res_gravity_sinfoni_named.cfg'
     pyrat = pb.run(cfg)
