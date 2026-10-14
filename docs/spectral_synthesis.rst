@@ -521,8 +521,89 @@ The input data in  ``obsfile`` can be loaded from multiple files (e.g., combinin
 
 
 Top-hat band can (optionally) be named.  Names are important when
-defining instrumental offsets or TLS corrections that are specific to
-certain observations.
+defining instrumental offsets, instrumental resolving power, or TLS
+corrections that are specific to certain observations.
+
+
+The ``inst_resolution`` key sets the instrumental resolving
+power. Each input line in this key defines a ``name``--``resolution``
+pair, where ``name`` is used to match the data points to which this
+resolution applies.  This is applied via a Gaussian convolution with
+FWHM = :math:`\Delta\lambda`, where the FWHM is set by the resolving
+power :math:`R = \lambda/\Delta\lambda`. See the examples below:
+
+
+.. tab-set::
+
+  .. tab-item:: Instrument-specific resolution
+     :selected:
+
+     Given an ``obsfile``, e.g., like this:
+
+     .. code-block:: ini
+
+         @DEPTH_UNITS
+         percent
+
+         @DATA
+         # depth      uncert      wl(um)  half_width    band_name
+         1.65499      0.00434     0.8500      0.0100    soss_o1
+         1.65843      0.00294     0.8700      0.0100    soss_o1
+         1.66388      0.00294     0.8900      0.0100    soss_o1
+         ...
+         1.69427      0.00635     2.76564    0.01324    nirspec_g395h_nrs1
+         1.69672      0.00417     2.79212    0.01324    nirspec_g395h_nrs1
+         1.70128      0.00335     2.81998    0.01462    nirspec_g395h_nrs1
+         ...
+
+     Users can define instrument-specific resolving powers in the
+     configuration file:
+
+     .. code-block:: ini
+
+         # Instrumental resolving power per instrument
+         inst_resolution =
+             soss    700.0
+             g395h  2700.0
+
+     In this example, all data points whose name *contain* ``soss`` will
+     have a resolving power of 700, and all data points whose name
+     contain ``g395h`` will have a resolving power of 2700.
+
+
+  .. tab-item:: General instrumental resolution
+
+
+     Given an ``obsfile``, e.g., like this:
+
+     .. code-block:: ini
+
+         @DEPTH_UNITS
+         ppm
+
+         @DATA
+         # depth    uncert     wl(um)  half_width    band_name
+         21145.3    118.7     0.63298     0.00336    niriss_soss2
+         21297.0    107.0     0.63971     0.00337    niriss_soss2
+         21200.6    103.8     0.64647     0.00339    niriss_soss2
+         ...
+         20943.2     87.1     0.87711     0.00445    niriss_soss1
+         21115.9     85.6     0.88603     0.00446    niriss_soss1
+         21123.2     85.0     0.89542     0.00492    niriss_soss1
+         ...
+
+     Users can define a global instrumental resolving power,
+     regardless of the name of the band names of the data points:
+
+     .. code-block:: ini
+
+         # Instrumental resolving power for all instruments
+         inst_resolution =
+             all    700.0
+
+     In this example, the name ``all`` matches all data,
+     setting a resolving power of 700 for all data points.
+
 
 
 Note that ``pyratbay`` provides a few commonly used broadbands. The
