@@ -717,7 +717,7 @@ Data/bandflux internal units: none
 Number of data points (ndata): 20
         Data  Uncertainty   Wavenumber  Wavelength
          ppm          ppm         cm-1          um
-      (data)     (uncert)     (bandwn)
+      (data)     (uncert)     (band_wn)
   6612.83000     19.53000      8826.13       1.133
   6600.05000     20.59000      8632.60       1.158
   6604.69000     18.77000      8447.37       1.184

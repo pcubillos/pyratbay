@@ -94,8 +94,8 @@ class Observation():
         # Per-band variables
         self.band_wl = np.array(self.band_wl)
         self.half_widths = np.array([band.half_width for band in self.bands])
-        self.bandwn = np.array([band.wn0 for band in self.bands])
-        self.bandwn[~self.is_low_res] = 1.0/(self.band_wl[~self.is_low_res]*pc.um)
+        self.band_wn = np.array([band.wn0 for band in self.bands])
+        self.band_wn[~self.is_low_res] = 1.0/(self.band_wl[~self.is_low_res]*pc.um)
         self.bandflux = np.zeros(self.nbands, np.double)
         # Resample the filters into the planet wavenumber array:
         for band in self.bands:
@@ -188,9 +188,9 @@ class Observation():
         if self.ndata > 0:
             fw.write('        Data  Uncertainty   Wavenumber  Wavelength\n'
                      '     {:>7s}      {:>7s}         cm-1          um\n'
-                     '      (data)     (uncert)     (bandwn)',
+                     '      (data)     (uncert)     (band_wn)',
                      self.units, self.units)
-            for data, uncert, wn in zip(self.data, self.uncert, self.bandwn):
+            for data, uncert, wn in zip(self.data, self.uncert, self.band_wn):
                 fw.write('  {:10.5f}   {:10.5f}    {:9.2f}  {:10.3f}',
                 data/units, uncert/units, wn, 1.0/(wn*pc.um))
 

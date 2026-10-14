@@ -356,7 +356,7 @@ class Pyrat():
                 for i,rv in enumerate(obs.rv_wn):
                     wn = obs.rv_wn[i]
                     mask = inst_mask & obs.rv_mask[i]
-                    band_wn = obs.bandwn[mask]
+                    band_wn = obs.band_wn[mask]
                     obs.bandflux[mask] = si.interp1d(wn, conv_flux)(band_wn)
 
             if reject_flag:
@@ -580,7 +580,7 @@ class Pyrat():
             path = 'transit' if is_transmission else 'emission'
 
             if self.obs.nbands > 0:
-                band_wl = 1.0/(self.obs.bandwn*pc.um)
+                band_wl = 1.0/(self.obs.band_wn*pc.um)
             band_cf = self.band_contribution()
 
             filename = f'{basename}_bestfit_contributions.png'
