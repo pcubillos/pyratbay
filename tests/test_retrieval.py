@@ -17,6 +17,7 @@ os.chdir(ROOT+'tests')
 # evals
 keys = [
     'sampled_res', 'conv_800', 'conv_400',
+    'rv_0000', 'rv_2000', 'rv_1000',
 ]
 
 expected = {
@@ -278,8 +279,8 @@ def test_eval_inst_res_single_obs(inst_res):
     pyrat.eval(pyrat.ret.params)
 
     expected_band_flux = [
-        6.58682347e-03, 6.60221302e-03, 6.54939010e-03, 6.47504149e-03,
-        6.48437380e-03,
+        6.58482163e-03, 6.60168415e-03, 6.54978523e-03, 6.47581211e-03,
+        6.48394974e-03,
     ]
 
     # full-resolution
@@ -306,10 +307,10 @@ def test_eval_inst_res_multi_obs_all():
     pyrat.eval(pyrat.ret.params)
 
     expected_band_flux = [
-        6.58682347e-03, 6.60221302e-03, 6.54939010e-03, 6.47504149e-03, 
-        6.48437380e-03, 6.53313140e-03, 6.73487945e-03, 6.69603985e-03,
-        6.72093999e-03, 6.71739385e-03, 6.61727801e-03, 6.57081608e-03,
-        6.50445165e-03, 6.53734500e-03, 6.51857724e-03,
+        6.58482163e-03, 6.60168415e-03, 6.54978523e-03, 6.47581211e-03,
+        6.48394974e-03, 6.53280975e-03, 6.73603680e-03, 6.69654605e-03,
+        6.71894321e-03, 6.71866380e-03, 6.61848780e-03, 6.57120856e-03,
+        6.50441699e-03, 6.53682492e-03, 6.51843522e-03,
     ]
 
     # full-resolution
@@ -326,10 +327,10 @@ def test_eval_inst_res_multi_obs_named():
     pyrat.eval(pyrat.ret.params)
 
     expected_band_flux = [
-        6.58682347e-03, 6.60221302e-03, 6.54939010e-03, 6.47504149e-03,
-        6.48437380e-03, 6.53745729e-03, 6.71868581e-03, 6.71472341e-03,
-        6.72533881e-03, 6.70610956e-03, 6.62701444e-03, 6.58258858e-03,
-        6.51031165e-03, 6.52730405e-03, 6.52603385e-03
+        6.58482163e-03, 6.60168415e-03, 6.54978523e-03, 6.47581211e-03,
+        6.48394974e-03, 6.53731146e-03, 6.71874367e-03, 6.71524846e-03,
+        6.72491824e-03, 6.70641183e-03, 6.62658782e-03, 6.58294680e-03,
+        6.51023138e-03, 6.52724592e-03, 6.52589355e-03,
     ]
 
     # full-resolution
@@ -346,6 +347,97 @@ def test_eval_inst_res_multi_obs_missing():
     error = re.escape(
         "Missing instrumental resolution for ['gravity' 'sinfoni'] data, all "
         "high-resolution data must have an instrumental resolution"
+    )
+    with pytest.raises(ValueError, match=error):
+        pyrat = pb.run(cfg)
+
+
+def test_eval_high_resolution():
+    cfg = f'{ROOT}tests/configs/spectrum_inst_res_gravity_sinfoni_named.cfg'
+    pyrat = pb.run(cfg)
+    pyrat.eval(pyrat.ret.params)
+
+    # half-width set by inst_resolution
+    expected_half_widths = [
+       7.05625e-04, 7.28750e-04, 7.51875e-04, 7.75000e-04, 7.98125e-04,
+       1.64125e-03, 1.68750e-03, 1.73375e-03, 1.78000e-03, 1.82625e-03,
+       1.87125e-03, 1.91750e-03, 1.96375e-03, 2.01000e-03, 2.05625e-03,
+    ]
+    np.testing.assert_allclose(pyrat.obs.half_widths, expected_half_widths)
+
+
+def test_eval_rv_shift_zero():
+    cfg = f'{ROOT}tests/configs/spectrum_inst_res_gravity_sinfoni_named.cfg'
+    pyrat = pb.run(cfg)
+    pyrat.eval([0.0])
+
+    expected_band_flux = [
+        6.58482163e-03, 6.60168415e-03, 6.54978523e-03, 6.47581211e-03,
+        6.48394974e-03, 6.53731146e-03, 6.71874367e-03, 6.71524846e-03,
+        6.72491824e-03, 6.70641183e-03, 6.62658782e-03, 6.58294680e-03,
+        6.51023138e-03, 6.52724592e-03, 6.52589355e-03,
+    ]
+    assert len(pyrat.obs.rv_wn) == 2
+    np.testing.assert_allclose(pyrat.obs.rv_wn[0], expected['rv_0000'])
+    np.testing.assert_allclose(pyrat.obs.rv_wn[0], pyrat.spec.wn)
+    np.testing.assert_allclose(pyrat.obs.bandflux, expected_band_flux)
+
+
+def test_eval_rv_shift_redshift():
+    cfg = f'{ROOT}tests/configs/spectrum_inst_res_gravity_sinfoni_named.cfg'
+    pyrat = pb.run(cfg)
+    pyrat.eval([2000.0])
+
+    expected_band_flux = [
+        6.59412279e-03, 6.57537475e-03, 6.54950339e-03, 6.47174060e-03,
+        6.45805756e-03, 6.53410677e-03, 6.69524995e-03, 6.72523065e-03,
+        6.69117916e-03, 6.66708765e-03, 6.63316833e-03, 6.58372580e-03,
+        6.52332997e-03, 6.50911580e-03, 6.53868303e-03,
+    ]
+    assert len(pyrat.obs.rv_wn) == 2
+    np.testing.assert_allclose(pyrat.obs.rv_wn[0], expected['rv_2000'])
+    np.testing.assert_allclose(pyrat.obs.bandflux, expected_band_flux)
+
+    if False:
+        wl_shift = 1e4/pyrat.obs.rv_wn[0]
+        wl_shift2 = 1e4/pyrat.obs.rv_wn[1] if len(pyrat.obs.rv_wn)==3 else wl_shift
+        fig = plt.figure(1)
+        fig.set_size_inches(8,4)
+        plt.clf()
+        plt.subplots_adjust(0.1, 0.1, 0.98, 0.98)
+        ax = plt.subplot(111)
+        ax.plot(pyrat.spec.wl, pyrat.spec.spectrum, color='xkcd:blue', lw=1, alpha=0.3)
+        ax.plot(wl_shift, pyrat.obs.convolved_spectrum[0], color='tomato')
+        ax.plot(wl_shift2, pyrat.obs.convolved_spectrum[1], color='xkcd:green')
+        ax.errorbar(
+            pyrat.obs.band_wl, pyrat.obs.bandflux, xerr=pyrat.obs.half_widths,
+            fmt='s', color='k', mfc='w', ms=5,
+        )
+        ax.set_xlim(1.25, 1.4)
+
+
+def test_eval_rv_shift_named():
+    cfg = f'{ROOT}tests/configs/spectrum_inst_res_gravity_sinfoni_rv_named.cfg'
+    pyrat = pb.run(cfg)
+    pyrat.eval([2000.0, 1000.0])
+
+    expected_band_flux = [
+        6.59412279e-03, 6.57537475e-03, 6.54950339e-03, 6.47174060e-03,
+        6.45805756e-03, 6.55074306e-03, 6.71978349e-03, 6.73919255e-03,
+        6.72296712e-03, 6.66128073e-03, 6.67522315e-03, 6.60662684e-03,
+        6.52594817e-03, 6.51660535e-03, 6.52494796e-03,
+    ]
+    assert len(pyrat.obs.rv_wn) == 3
+    np.testing.assert_allclose(pyrat.obs.rv_wn[0], expected['rv_2000'])
+    np.testing.assert_allclose(pyrat.obs.rv_wn[1], expected['rv_1000'])
+    np.testing.assert_allclose(pyrat.obs.bandflux, expected_band_flux)
+
+
+def test_eval_rv_shift_misnamed():
+    cfg = f'{ROOT}tests/configs/spectrum_inst_res_gravity_sinfoni_rv_misnamed.cfg'
+    error = re.escape(
+        "Invalid RV parameter 'rv_soss'. There is no instrument matching "
+        "the name 'soss'"
     )
     with pytest.raises(ValueError, match=error):
         pyrat = pb.run(cfg)
