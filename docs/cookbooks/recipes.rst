@@ -45,11 +45,27 @@ Recipes list:
 
 - **End-to-end analyses**
 
-  - :doc:`wasp39b/transmission_retrieval`
-  - :doc:`wasp107b_tls/transmission_retrieval`
-  - :doc:`wasp18b/eclipse_retrieval`
-  - :doc:`wasp69b/radiative_equilibrium`
-  - :doc:`yses1b/iso_ratio_retrieval`
+  - :doc:`WASP-39b JWST retrieval <wasp39b/transmission_retrieval>`
+
+    - transmission retrievals
+    - free chemistry
+
+  - :doc:`WASP-107b simulated JWST retrieval <wasp107b_tls/transmission_retrieval>`
+
+    - transmission retrievals
+    - TLS contamination
+
+  - :doc:`WASP-18b SOSS retrieval <wasp18b/eclipse_retrieval>`
+
+    - secondary-eclipse retrievals
+    - equilibrium chemistry
+
+  - :doc:`WASP-69b radiative equilibrium <wasp69b/radiative_equilibrium>`
+  - :doc:`YSES-1b SINFONI retrieval <yses1b/iso_ratio_retrieval>`
+
+    - direct-imaging retrievals
+    - high-resolution data
+    - isotopic-ratio fitting
 
 ..   - JWST_proposal_simulation (TBD)
 ..  - :doc:`wasp18b/cross_sections_uhj`

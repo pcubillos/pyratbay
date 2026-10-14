@@ -9,101 +9,109 @@ import numpy as np
 
 from .. import constants as pc
 from .. import io as io
-from .. import spectrum as ps
 from .. import tools as pt
 
 
 class Observation():
     def __init__(self, inputs, wn, log):
         # Transit or eclipse data point
-        self.data = inputs.data
-        self.uncert = inputs.uncert
-        self.data_hires = None
-        self.uncert_hires = None
-        self.band_wl = None
+        self.data = []
+        self.uncert = []
+        self.bands = []
+        self.band_wl = []
+        self.half_widths = []
         self.units = inputs.dunits
         self._dunits = pt.u(self.units)
-
-        if inputs.filters is None:
-            self.bands = []
-        else:
-            self.bands = [
-                ps.PassBand(filter_file)
-                for filter_file in inputs.filters
-            ]
+        self._wn = wn
 
         # Low-resolution data (pass bands)
         if inputs.obsfile is not None:
-            # TBD: Throw error if filters already exist
-            obs_data = io.read_observations(inputs.obsfile)
-            if len(obs_data) == 5:
-                # TBD: Throw error if data or uncert already exist
-                self.data, self.uncert = obs_data[3:]
-            self.bands, self.band_wl, self.half_widths = obs_data[0:3]
+            for obs_file in inputs.obsfile:
+                obs_data = io.read_observations(obs_file)
+                self.bands += obs_data[0]
+                self.band_wl += list(obs_data[1])
+                self.half_widths += list(obs_data[2])
+                if len(obs_data) == 5:
+                    self.data += list(obs_data[3])
+                    self.uncert += list(obs_data[4])
+        n_low_res = len(self.bands)
 
-        # Number of datapoints and filters:
-        self.ndata = 0
-        if self.data is None and self.uncert is not None:
-            log.error("Undefined transit/eclipse data (data)")
-
-        if self.data is not None:
-            self.ndata = len(self.data)
-
-        if self.uncert is not None:
-            n_uncert = len(self.uncert)
-            if self.ndata != n_uncert:
-                log.error(
-                    f'Number of data uncertainty values ({n_uncert}) does not '
-                    f'match the number of data points ({self.ndata})'
-                )
+        # High-resolution data (sampled at nyquist frequency)
+        if inputs.obsfile_hires is not None:
+            for obs_file in inputs.obsfile_hires:
+                obs_data = io.read_observations(obs_file)
+                bands = obs_data[0]
+                self.bands += bands
+                self.band_wl += list(obs_data[1])
+                if len(obs_data) == 5:
+                    self.data += list(obs_data[3])
+                    self.uncert += list(obs_data[4])
 
         self.nbands = len(self.bands)
-        if self.nbands > 0 and self.ndata > 0 and self.ndata != self.nbands:
+        band_names = [band.name for band in self.bands]
+
+        # Low- and high-resolution flags
+        self.is_low_res = np.arange(len(self.bands)) < n_low_res
+        self.has_low_res = np.any(self.is_low_res)
+        self.has_hi_res = np.any(~self.is_low_res)
+        # TBD: Check spec.wn is at constant resolution ?
+
+        # Instrumental resolution
+        self.inst_res_label = inputs.inst_res_label
+        self.inst_resolution = np.array(inputs.inst_res, np.double)
+        self.n_inst_res = len(self.inst_res_label)
+        self.inst_res_mask = np.zeros((self.n_inst_res+1, self.nbands), bool)
+        for i,inst in enumerate(self.inst_res_label):
+            if inst == 'all':
+                self.inst_res_mask[i] = True
+            else:
+                self.inst_res_mask[i] = [inst in name for name in band_names]
+                if np.sum(self.inst_res_mask[i]) == 0:
+                    log.error(
+                        f"Invalid inst_resolution input, there is "
+                        f"no instrument matching the name '{inst}'"
+                    )
+        inst_mask_count = np.sum(self.inst_res_mask, axis=0)
+        if np.any(inst_mask_count>1):
+            log.error('Multiple inst_resolution values apply to a same data point')
+        # Every high-resolution point must have an instrumental resolution
+        missing_inst = (inst_mask_count==0) & ~self.is_low_res
+        if np.any(missing_inst):
+            missing = np.unique(np.array(band_names)[missing_inst])
+            log.error(
+                f'Missing instrumental resolution for {missing} data, all high-'
+                'resolution data must have an instrumental resolution'
+            )
+        for i,inst_resolution in enumerate(self.inst_resolution):
+            mask = np.where(self.inst_res_mask[i] & ~self.is_low_res)[0]
+            for idx in mask:
+                band = self.bands[idx]
+                band.half_width = band.wl0 / inst_resolution / 2.0
+        # Add no-instrumental-resolution to mask
+        self.inst_res_mask[-1] = inst_mask_count == 0
+        self.convolved_spectrum = np.zeros((len(self.inst_res_label), len(self._wn)))
+
+        # Per-band variables
+        self.band_wl = np.array(self.band_wl)
+        self.half_widths = np.array([band.half_width for band in self.bands])
+        self.band_wn = np.array([band.wn0 for band in self.bands])
+        self.band_wn[~self.is_low_res] = 1.0/(self.band_wl[~self.is_low_res]*pc.um)
+        self.bandflux = np.zeros(self.nbands, np.double)
+        # Resample the filters into the planet wavenumber array:
+        for band in self.bands:
+            band.set_sampling(wn=wn)
+
+        # Collect the data
+        self.data = np.array(self.data)
+        self.uncert = np.array(self.uncert)
+        self.ndata = len(self.data)
+        if self.ndata > 0 and self.ndata != self.nbands:
             log.error(
                 f'Number of filter bands ({self.nbands}) does not '
                 f'match the number of data points ({self.ndata})'
             )
 
-        # Resample the filters into the planet wavenumber array:
-        for band in self.bands:
-            band.set_sampling(wn=wn)
-        # Per-band variables:
-        self.bandwn = np.array([band.wn0 for band in self.bands])
-        self.bandflux = np.zeros(self.nbands, np.double)
-
-
-        # High-resolution data (sampled at nyquist frequency)
-        self.inst_resolution = inputs.inst_resolution
-        self.bands_hires = []
-        if inputs.obsfile_hires is not None:
-            # TBD: Check spec.wn is at constant resolution
-            if self.inst_resolution is None:
-                raise ValueError(
-                    'Undefined instrumental resolution is required for '
-                    'convolution of high-resolution data'
-                )
-            obs_data = io.read_observations(inputs.obsfile_hires)
-            if len(obs_data) == 5:
-                self.data_hires, self.uncert_hires = obs_data[3:]
-            self.bands_hires, self.band_wl_hires, hw = obs_data[0:3]
-            self.wn_hires = 1.0 / (self.band_wl_hires*pc.um)
-            for band in self.bands_hires:
-                band.half_width = band.wl0 / self.inst_resolution / 2.0
-                band.set_sampling(wn=wn)
-
-        if self.data_hires is not None:
-            self.ndata_hires = len(self.data_hires)
-        else:
-            self.ndata_hires = 0
-
-        if self.uncert_hires is not None:
-            self.n_uncert_hires = len(self.uncert_hires)
-
-        self.nbands_hires = len(self.bands_hires)
-        self.bandflux_hires = np.zeros(self.nbands_hires, np.double)
-
         # Instrumental offsets and error-scaling parameters
-        band_names = [band.name for band in self.bands]
         self.offset_inst = inputs.offset_inst
         self.offset_pars = inputs.offset_pars
         self.uncert_scaling = inputs.uncert_scaling
@@ -129,24 +137,62 @@ class Observation():
                     self.uncert_pars[i] = -100.0
             self.uncert = self.depth.scale_errors(self.uncert_pars, self.units)
 
+        # RV parameters will be initialized from pyrat.Retrieval()
+
+
+    def parse_rv_parameters(self, pnames, log):
+        """
+        Setup RV model parameters.
+        """
+        band_names = [band.name for band in self.bands]
+        rv_inst = []
+        rv_texnames = []
+        rv_mask = []
+        for var in pnames:
+            if var == 'rv_shift':
+                rv_texnames.append('RV (km/s)')
+                rv_mask.append(np.ones(self.nbands, bool))
+                rv_inst.append(var)
+            elif var.startswith('rv_'):
+                inst = var[3:].replace('_', ' ')
+                rv_texnames.append(fr'RV$_{{\rm {inst}}}$ (km/s)')
+                mask = np.array([inst in name for name in band_names])
+                rv_mask.append(mask)
+                rv_inst.append(var)
+                if np.sum(mask) == 0:
+                    log.error(
+                        f"Invalid RV parameter '{var}'. There is "
+                        f"no instrument matching the name '{inst}'"
+                    )
+        rv_mask_count = np.sum(rv_mask, axis=0)
+        if np.any(rv_mask_count>1):
+            log.error('Multiple RV parameters apply to a same data point')
+        # Add no-RV to mask
+        rv_mask.append(rv_mask_count == 0)
+
+        self.rv_inst = rv_inst
+        self.rv_texnames = rv_texnames
+        self.rv_mask = rv_mask
+        self.rv_wn = np.zeros((len(self.rv_mask), len(self._wn)))
+        self.rv_wn[-1] = self._wn
+
 
     def __str__(self):
         units = pt.u(self.units)
         fw = pt.Formatted_Write()
         fw.write('Observing information:')
-        if self.data is not None or self.bands is not None:
+        if self.ndata>0 or self.bands is not None:
             fw.write('Data/bandflux display units (units): {}', self.units)
             fw.write('Data/bandflux internal units: none')
         fw.write('Number of data points (ndata): {}', self.ndata)
-        if self.data is not None:
+        if self.ndata > 0:
             fw.write('        Data  Uncertainty   Wavenumber  Wavelength\n'
                      '     {:>7s}      {:>7s}         cm-1          um\n'
-                     '      (data)     (uncert)     (bandwn)',
+                     '      (data)     (uncert)     (band_wn)',
                      self.units, self.units)
-            for data, uncert, wn in zip(self.data, self.uncert, self.bandwn):
+            for data, uncert, wn in zip(self.data, self.uncert, self.band_wn):
                 fw.write('  {:10.5f}   {:10.5f}    {:9.2f}  {:10.3f}',
                 data/units, uncert/units, wn, 1.0/(wn*pc.um))
-        # TBD: add hires data
 
         fw.write('\nNumber of filter pass bands (nbands): {}', self.nbands)
         if self.nbands == 0:

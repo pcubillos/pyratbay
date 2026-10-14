@@ -1,0 +1,15 @@
+@DEPTH_UNITS
+percent
+
+@DATA
+# depth  err    wl (um)  half-width    name
+0.6591   0.002  1.313    0.0        gravity
+0.6710   0.002  1.350    0.0        gravity
+0.6721   0.002  1.387    0.0        gravity
+0.6721   0.002  1.424    0.0        gravity
+0.6683   0.002  1.461    0.0        gravity
+0.6646   0.002  1.497    0.0        gravity
+0.6605   0.002  1.534    0.0        gravity
+0.6550   0.002  1.571    0.0        gravity
+0.6537   0.002  1.608    0.0        gravity
+0.6541   0.002  1.645    0.0        gravity

@@ -95,8 +95,7 @@ These are the requirements for the configuration file of a retrieval run:
 
      A retrieval run must include the ``obsfile`` argument to define
      the observed dataset (a transit, eclipse, or direct-imaging
-     spectrum) which will constrain the model parameters. TBD: link to
-     obsfile explanation.
+     spectrum) which will constrain the model parameters (see :ref:`spec_observations`)
 
      The ``dunits`` sets the units of the data *outputs* (i.e.,
      figures and screen outputs).

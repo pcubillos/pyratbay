@@ -3,7 +3,6 @@
 
 from collections import OrderedDict
 import os
-import subprocess
 
 import numpy as np
 import scipy.interpolate as si
@@ -295,10 +294,13 @@ class Pyrat():
         if ret.itstar is not None:
             self.atm.tstar = params[ret.itstar][0]
             self.spec.starflux = self.spec.flux_interp(self.atm.tstar)
-            self.obs.bandflux_star = np.array([
-                band(self.spec.starflux)
-                for band in self.obs.bands
-            ])
+            obs.bandflux_star = np.zeros(obs.nbands)
+            for j,mask in enumerate(obs.inst_res_mask):
+                inst_mask = obs.is_low_res & mask
+                conv_star_flux = self._convolve(j, self.spec.starflux)
+                for i in np.where(inst_mask)[0]:
+                    obs.bandflux_star[i] = obs.bands[i](conv_star_flux)
+
 
         if ret.idilut is not None:
             self.spec.f_dilution = params[ret.idilut][0]
@@ -334,41 +336,51 @@ class Pyrat():
                 (atm.rplanet/self.atm.distance * self.spec.wn*pc.um)**2
             )
 
-        # High-resolution data
-        if self.obs.ndata_hires > 0:
-            self.spec.spectrum_convolved = conv_flux = ps.inst_convolution(
-                self.spec.wn,
-                self.spec.spectrum,
-                obs.inst_resolution,
-                sampling_res=self.spec.resolution,
-            )
+        # Radial-velocity shift (only for high-resolution?)
+        if ret.irv is not None:
+            ifree = ret.map_pars['rv'] # index in obs.rv
+            for i,rv in enumerate(params[ret.irv]):
+                obs.rv_wn[i] = ps.rv_shift(rv, wn=self.spec.wn)
 
-            # Radial-velocity shift
-            if ret.irv is not None:
-                vel_km = params[ret.irv][0]
-                wn = ps.rv_shift(vel_km, wn=self.spec.wn)
-            else:
-                wn = self.spec.wn
-            # Interpolate at data
-            if obs.data_hires is not None:
-                obs.bandflux_hires = si.interp1d(wn, conv_flux)(obs.wn_hires)
+        # Apply instrumental resolution
+        if self.od.rt_path in pc.eclipse_rt:
+            spectrum = self.spec.fplanet
+        else:
+            spectrum = self.spec.spectrum
+        for j in range(self.obs.n_inst_res):
+            obs.convolved_spectrum[j] = self._convolve(j, spectrum)
+
+        # High-resolution data
+        if obs.has_hi_res > 0:
+            # Interpolate at data for each instrument-rv
+            for j,conv_flux in enumerate(obs.convolved_spectrum):
+                inst_mask = ~obs.is_low_res & obs.inst_res_mask[j]
+                for i,rv in enumerate(obs.rv_wn):
+                    wn = obs.rv_wn[i]
+                    mask = inst_mask & obs.rv_mask[i]
+                    band_wn = obs.band_wn[mask]
+                    obs.bandflux[mask] = si.interp1d(wn, conv_flux)(band_wn)
 
             if reject_flag:
-                obs.bandflux_hires[:] = np.inf
-            # TBD: At the moment either return hires or lowres, but should
+                obs.bandflux[:] = np.inf
+            # TBD: At the moment return either hi_res or low_res, but should
             # be able to combine in the future
             if retmodel:
-                return self.spec.spectrum, obs.bandflux_hires
-            return obs.bandflux_hires
+                return self.spec.spectrum, obs.bandflux
+            return obs.bandflux
+
 
         # TLS effect
-        if ret.itls is not None:
-            ifree = ret.map_pars['tls']
-            self.tls.pars[ifree] = params[ret.itls]
-            self.tls()
+        if self.tls.n_models > 0:
+            if ret.itls is not None:
+                ifree = ret.map_pars['tls']
+                self.tls.pars[ifree] = params[ret.itls]
+                self.tls()
+            elif np.all(self.tls.spectrum) == 0.0:
+                self.tls()
             self.tls.spectrum = self.spec.spectrum * self.tls.epsilon
-        if self.tls.n_models > 0 and np.any(np.isnan(self.tls.epsilon)):
-            reject_flag = True
+            if np.any(np.isnan(self.tls.epsilon)):
+                reject_flag = True
 
         # Band-integrate spectrum
         obs.bandflux = self.band_integrate()
@@ -388,7 +400,7 @@ class Pyrat():
             obs.uncert = obs.depth.scale_errors(obs.uncert_pars)
 
         # Apply TLS correction to data
-        if self.tls.n_models > 0 and self.obs.ndata > 0:
+        if self.tls.n_models > 0 and obs.ndata > 0:
             obs.data -= self.tls.band_offset
 
         # Invalid model
@@ -419,24 +431,11 @@ class Pyrat():
                 f'Select from {pc.samplers}'
             )
         if ret.params is None:
-            log.error(
-                'Undefined retrieval fitting parameters (retrieval_params)'
-            )
+            log.error('Undefined retrieval fitting parameters (retrieval_params)')
         if ret.pstep is None:
             log.error('Missing pstep argument, required for retrieval runs')
-
-        if obs.data is None and obs.data_hires is None:
+        if obs.ndata == 0:
             log.error("Undefined transit/emission/eclipse data for retrieval")
-        if obs.data is not None:
-            if obs.uncert is None:
-                log.error("Undefined data uncertainties")
-            if obs.nbands == 0:
-                log.error("Undefined transmission filters (filters)")
-        if obs.data_hires is not None:
-            if obs.uncert_hires is None:
-                log.error("Undefined high-resolution data uncertainties")
-            if obs.nbands_hires == 0:
-                log.error("Undefined transmission filters (filters)")
 
         # Basename of the output files:
         basename = ret.retrieval_file
@@ -587,9 +586,7 @@ class Pyrat():
             path = 'transit' if is_transmission else 'emission'
 
             if self.obs.nbands > 0:
-                band_wl = 1.0/(self.obs.bandwn*pc.um)
-            elif self.obs.nbands_hires > 0:
-                band_wl = 1.0/(self.obs.wn_hires*pc.um)
+                band_wl = 1.0/(self.obs.band_wn*pc.um)
             band_cf = self.band_contribution()
 
             filename = f'{basename}_bestfit_contributions.png'
@@ -700,28 +697,39 @@ class Pyrat():
         flux ratio (eclipse) over transmission band passes.
         """
         bands = self.obs.bands
+        tls = self.tls
         if bands is None:
             return None
 
-        if self.od.rt_path in pc.transmission_rt:
-            spectrum = self.spec.spectrum
-            band_flux = np.array([band(spectrum) for band in bands])
-            tls = self.tls
-            if tls.n_models > 0:
-                # Calculate TLS spectra and band-integrated TLS-offsets
-                tls.band_offset = np.zeros(self.obs.ndata)
-                for i,eps in enumerate(tls.epsilon):
-                    mask = tls.band_mask[i]
-                    tls_depth = np.array([
-                        band(tls.spectrum[i])
-                        for band,flag in zip(bands, mask)
-                        if flag
-                    ])
-                    tls.band_offset[mask] += tls_depth - band_flux[mask]
-
-        else:
+        if self.od.rt_path in pc.eclipse_rt:
             spectrum = self.spec.fplanet
-            band_flux = np.array([band(spectrum) for band in bands])
+        else:
+            spectrum = self.spec.spectrum
+
+        band_flux = np.copy(self.obs.bandflux)
+        for j,mask in enumerate(self.obs.inst_res_mask):
+            inst_mask = self.obs.is_low_res & mask
+            if j == self.obs.n_inst_res:
+                conv_flux = spectrum
+            else:
+                conv_flux = self.obs.convolved_spectrum[j]
+            for i in np.where(inst_mask)[0]:
+                band_flux[i] = bands[i](conv_flux)
+
+        # Calculate TLS transmission spectra and band-integrated TLS-offsets
+        if self.od.rt_path in pc.transmission_rt and tls.n_models > 0:
+            tls.band_offset = np.zeros(self.obs.ndata)
+            for i,eps in enumerate(tls.epsilon):
+                for j,inst_mask in enumerate(self.obs.inst_res_mask):
+                    mask = self.obs.is_low_res & inst_mask & tls.band_mask[i]
+                    if np.sum(mask) == 0:
+                        continue
+                    conv_flux = self._convolve(j, tls.spectrum[i])
+                    for k in np.where(mask)[0]:
+                        tls_depth = bands[k](conv_flux)
+                        tls.band_offset[k] += tls_depth - band_flux[k]
+
+        # Eclipse flux ratio
         if self.od.rt_path in pc.eclipse_rt:
             rprs = self.atm.rplanet/self.atm.rstar
             band_flux *= rprs**2.0 / self.obs.bandflux_star
@@ -734,10 +742,7 @@ class Pyrat():
         """
         Compute contribution functions or transmittance at each band.
         """
-        if self.obs.nbands_hires != 0:
-            bands = self.obs.bands_hires
-        else:
-            bands = self.obs.bands
+        bands = self.obs.bands
         bands_idx = [band.idx for band in bands]
         responses = [band.response for band in bands]
 
@@ -809,45 +814,6 @@ class Pyrat():
             'data_color': self.fig.data_color,
         }
 
-        is_hires = obs.nbands_hires > 0
-
-        if is_hires:
-            band_wl = np.array([band.wl0 for band in obs.bands_hires])
-            args['wavelength'] = band_wl
-            args['data'] = obs.data_hires
-            args['uncert'] = obs.uncert_hires
-            args['bands_wl0'] = band_wl
-            args['resolution'] = None
-            args['marker'] = '.'
-            args['data_front'] = False
-        else:
-            args['wavelength'] = self.spec.wl
-            args['data'] = obs.data
-            args['uncert'] = obs.uncert
-            args['bands_wl0'] = obs.band_wl
-            args['bands_half_width'] = [band.half_width for band in obs.bands]
-            args['bands_flux'] = obs.bandflux
-            args['resolution'] = self.fig.resolution
-            args['marker'] = 'o'
-            args['data_front'] = True
-
-        if spec == 'model':
-            args['label'] = 'model'
-            if is_hires:
-                args['spectrum'] = obs.bandflux_hires
-            else:
-                args['spectrum'] = self.spec.spectrum
-                args['bands_flux'] = obs.bandflux
-        elif spec == 'best':
-            args['label'] = 'best-fit model'
-            if is_hires:
-                args['spectrum'] = self.ret.bestbandflux
-            else:
-                args['spectrum'] = self.ret.spec_best
-                args['bands_flux'] = self.ret.bestbandflux
-        else:
-            return
-
         if self.od.rt_path == 'f_lambda':
             args['rt_path'] = 'f_lambda'
         elif self.od.rt_path in pc.transmission_rt:
@@ -857,10 +823,53 @@ class Pyrat():
         else:
             args['rt_path'] = 'emission'
 
-        # kwargs overwite any of the previous values
-        args.update(kwargs)
+        if spec == 'model':
+            args['label'] = 'model'
+        elif spec == 'best':
+            args['label'] = 'best-fit model'
+        else:
+            return
 
-        ax = pp.spectrum(**args)
+        lo_mask = obs.is_low_res
+        hi_mask = ~obs.is_low_res
+        if obs.has_hi_res:
+            args['wavelength'] = obs.band_wl[hi_mask]
+            if len(obs.data) > 0:
+                args['data'] = obs.data[hi_mask]
+                args['uncert'] = obs.uncert[hi_mask]
+            args['bands_wl0'] = obs.band_wl[hi_mask]
+            args['resolution'] = None
+            args['marker'] = '.'
+            args['data_front'] = False
+            if spec == 'model':
+                args['spectrum'] = obs.bandflux[hi_mask]
+            elif spec == 'best':
+                args['spectrum'] = self.ret.bestbandflux[hi_mask]
+            # kwargs overwite any of the previous values
+            args.update(kwargs)
+            ax = pp.spectrum(**args)
+
+        if obs.has_low_res:
+            args['wavelength'] = self.spec.wl
+            if len(obs.data) > 0:
+                args['data'] = obs.data[lo_mask]
+                args['uncert'] = obs.uncert[lo_mask]
+            args['bands_wl0'] = obs.band_wl[lo_mask]
+            args['bands_half_width'] = obs.half_widths[lo_mask]
+            args['bands_flux'] = obs.bandflux[lo_mask]
+            args['resolution'] = self.fig.resolution
+            args['marker'] = 'o'
+            args['data_front'] = True
+            if spec == 'model':
+                args['spectrum'] = self.spec.spectrum
+                args['bands_flux'] = obs.bandflux[lo_mask]
+            elif spec == 'best':
+                args['spectrum'] = self.ret.spec_best
+                args['bands_flux'] = self.ret.bestbandflux[lo_mask]
+            # kwargs overwite any of the previous values
+            args.update(kwargs)
+            ax = pp.spectrum(**args)
+
         return ax
 
 
@@ -893,6 +902,22 @@ class Pyrat():
 
         ax = pp.temperature(**kwargs)
         return ax
+
+
+    def _convolve(self, j, spectrum):
+        """
+        Wrapper to apply instrumental-resolution convolution.
+        """
+        if j == self.obs.n_inst_res:
+            return spectrum
+
+        convolved_spectrum = ps.inst_convolution(
+            self.spec.wn,
+            spectrum,
+            self.obs.inst_resolution[j],
+            sampling_res=self.spec.resolution,
+        )
+        return convolved_spectrum
 
 
     def __str__(self):

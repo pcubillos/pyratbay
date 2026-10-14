@@ -715,7 +715,7 @@ def resample(signal, wn, specwn, normalize=False):
     return resampled, wnidx
 
 
-def band_integrate(spectrum, specwn, bandtrans, bandwn):
+def band_integrate(spectrum, specwn, bandtrans, band_wn):
     """
     Integrate a spectrum over the band transmission.
 
@@ -727,7 +727,7 @@ def band_integrate(spectrum, specwn, bandtrans, bandwn):
         Wavenumber of spectrum in cm-1.
     bandtrans: 1D float iterable
         List of normalized interpolated band transmission values in each filter.
-    bandwn: 1D float iterable
+    band_wn: 1D float iterable
 
     Returns
     -------
@@ -769,10 +769,10 @@ def band_integrate(spectrum, specwn, bandtrans, bandwn):
     """
     if not isinstance(bandtrans[0], Iterable):
         bandtrans = [bandtrans]
-        bandwn = [bandwn]
+        band_wn = [band_wn]
 
     bflux = []
-    for btrans, wn in zip(bandtrans, bandwn):
+    for btrans, wn in zip(bandtrans, band_wn):
         # Resample bandpasses into spectrum wavenumber sampling:
         resampled, wnidx = resample(btrans, wn, specwn, normalize=True)
         # Band-integrate spectrum:
@@ -832,7 +832,7 @@ def inst_convolution(wl, spectrum, resolution, sampling_res=None):
         Full-resolution spectrum to be convolved.
     resolution: float
         Instrumental resolving power R = lambda/delta_lambda
-        Where delta_lambda is the FHWM of the gaussian to be applied.
+        Where delta_lambda is the FWHM of the gaussian to be applied.
     sampling_red: float
         Sampling resolution of the input wl spectrum.
 

@@ -541,14 +541,14 @@ def parse(cfile, with_log=True, mute=False):
         parse_float(args, 'f_dilution')
         # Data options:
         parse_str(args, 'dunits')
-        parse_array(args, 'data')
-        parse_array(args, 'uncert')
-        parse_array(args, 'filters')
-        parse_str(args, 'obsfile')
-        parse_str(args, 'obsfile_hires')
+        parse_array(args, 'data')  # Deprecated
+        parse_array(args, 'uncert')  # Deprecated
+        parse_array(args, 'filters')  # Deprecated
+        parse_array(args, 'obsfile')
+        parse_array(args, 'obsfile_hires')
         parse_str(args, 'offset_inst')
         parse_str(args, 'uncert_scaling')
-        parse_float(args, 'inst_resolution')
+        parse_str(args, 'inst_resolution')
         # Transit light source effect
         parse_str(args, 'tls_folder')
         parse_str(args, 'tls_model')
@@ -592,9 +592,9 @@ def parse(cfile, with_log=True, mute=False):
         parse_str(args, 'rplanet')
         parse_str(args, 'ref_pressure')
         parse_str(args, 'refpressure')  # Deprecated
+        parse_float(args, 'gplanet')  # Deprecated
         parse_str(args, 'mplanet')
         parse_str(args, 'mpunits')
-        parse_float(args, 'gplanet')
         parse_str(args, 'smaxis')
         parse_float(args, 'tint')
         parse_float(args, 'beta_irr')
@@ -903,11 +903,12 @@ def parse(cfile, with_log=True, mute=False):
         if args.uniform_vmr is None:
             args.uniform_vmr = args.uniform
 
+    if args.gplanet is not None:
+        warning_msg = "'gplanet' is no longer a valid input, use 'mplanet' instead"
+        warnings.warn(warning_msg, category=DeprecationWarning)
 
-    # System physical parameters:
-    args.gplanet = args.get_default(
-        'gplanet', 'Planetary surface gravity (cm s-2)', gt=0.0,
-    )
+
+    # System physical parameters
     mass_units = args.get_default('mpunits', 'Planetary-mass units')
     if mass_units is not None and not hasattr(pc, mass_units):
         log.error(f'Invalid planet mass units (mpunits): {mass_units}')
@@ -1036,11 +1037,22 @@ def parse(cfile, with_log=True, mute=False):
     if not hasattr(pc, args.dunits):
         log.error(f'Invalid data units (dunits): {args.dunits}')
 
-    args.data = args.get_param('data', args.dunits, 'Data')
-    args.uncert = args.get_param('uncert', args.dunits, 'Uncertainties')
-    args.filters = args.get_path('filters', 'Filter pass-bands', exists=True)
+    # Depreacted data inputs
+    data = args.get_param('data', args.dunits, 'Data')
+    uncert = args.get_param('uncert', args.dunits, 'Uncertainties')
+    filters = args.get_path('filters', 'Filter pass-bands', exists=True)
+    deprecated_data = []
+    if data is not None:
+        deprecated_data.append('data')
+    if uncert is not None:
+        deprecated_data.append('uncert')
+    if filters is not None:
+        deprecated_data.append('filters')
+    if len(deprecated_data) > 0:
+        log.error(f"These arguments are deprecated: {deprecated_data}, use 'obsfile' instead")
+
     args.obsfile = args.get_path(
-        'obsfile', 'Observations data file', exists=True,
+        'obsfile', 'Observation data files', exists=True,
     )
     args.obsfile_hires = args.get_path(
         'obsfile_hires', 'High-resolution observations data file', exists=True,
@@ -1104,9 +1116,21 @@ def parse(cfile, with_log=True, mute=False):
                 msg = f'Invalid number of parameters for {repr(fields[0])}'
                 raise ValueError(msg)
 
-    args.inst_resolution = args.get_default(
-        'inst_resolution', 'Instrumental resolution', gt=0.0,
+    inst_resolution = args.get_default(
+        'inst_resolution', 'Instrumental resolution',
     )
+    args.inst_res_label = []
+    args.inst_res = []
+    if inst_resolution is not None:
+        for par in inst_resolution.splitlines():
+            if par == '':
+                continue
+            fields = par.split()
+            if len(fields) != 2:
+                msg = f'Invalid number of parameters for {repr(fields[0])}'
+                raise ValueError(msg)
+            args.inst_res_label.append(fields[0])
+            args.inst_res.append(fields[1])
 
     args.sampler = args.get_choice('sampler', 'posterior sampler', pc.samplers)
     args.retflag = args.get_choice('retflag', 'retrieval flag', pc.retflags)

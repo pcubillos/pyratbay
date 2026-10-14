@@ -268,7 +268,7 @@ Here are the relevant keys to model isotopic ratios:
 
 .. literalinclude:: ../../_static/data/yses1b_retrieval_emission_sinfoni.cfg
    :language: ini
-   :lines: 54-59, 79-86, 98
+   :lines: 56-60, 80-88, 100
 
 - ``sampled_cross_sec`` defines the input line-sampled cross section
   data for the isotopes of interest (in this case, ¹²CO and ¹³CO)
@@ -308,7 +308,7 @@ Here are the relevant keys for direct imaging data:
 
 .. literalinclude:: ../../_static/data/yses1b_retrieval_emission_sinfoni.cfg
    :language: ini
-   :lines: 12-14, 24-25
+   :lines: 12-14, 26-27
 
 - ``rt_path`` indicates that the input data is measured as incoming
   flux in W m⁻² μm⁻¹, as received on Earth
@@ -320,21 +320,61 @@ Here are the relevant keys for direct imaging data:
 High-resolution data
 ....................
 
+
 Here are the relevant keys for high-resolution data:
+
+.. High-resolution data analyses need require two inputs: ``obsfile_hires`` and ``inst_resolution``.  Additionally, it's possible to apply radial-velocity shifts via the ``retrieval_params`` variable.
 
 .. literalinclude:: ../../_static/data/yses1b_retrieval_emission_sinfoni.cfg
    :language: ini
-   :lines:  15-18, 84-87
+   :lines: 15-16
 
-- ``obsfile_hires`` (as opposed to ``obsfile``) indicates that the
-  input data is high-resolution data evaluated at/near the pixel
-  sampling.  In this case the code will compute the model spectrum at
-  the resolution defined by the sampled cross sections, then convolve
-  to the ``inst_resolution`` resolving power, and then evaluate at the
-  wavelength of the data
-- ``inst_resolution`` sets the instrumental resolving power
-- In ``retrieval_params``, the ``rv_shift`` parameter enables the code
-  to apply a Doppler shift to the input data (in km s⁻¹ units)
+``obsfile_hires`` (as opposed to ``obsfile``) indicates that the input
+data is high-resolution data evaluated at/near the pixel sampling.
+Multiple input observation files can be defined to combine multiple
+observations.
+
+For high-resolution data, the code will first evaluate the spectra at
+the resolution defined by the sampled cross sections, then it will
+convolve to the instrumental resolving power defined by
+``inst_resolution``:
+
+.. tab-set::
+
+  .. tab-item:: Instrument-specific
+     :selected:
+
+     .. literalinclude:: ../../_static/data/yses1b_retrieval_emission_sinfoni.cfg
+        :language: ini
+        :lines: 17-19, 86-89
+
+  .. tab-item:: General-inputs
+
+     .. code-block:: ini
+
+         # Instrument name-resolution pairs (use name 'all' to default to all data)
+         inst_resolution =
+             all      4000.0
+
+         retrieval_params =
+         # Param name     value  lo_bound  hi_bound  step   prior  prior_sigma
+             rv_shift       0.0    -20.0      20.0    1.0
+
+
+- ``inst_resolution`` sets the instrumental resolving power. Each
+  input line in this key defines a ``name``--``resolution`` pair,
+  where ``name`` is used to match the data points to which this
+  resolution applies (see :ref:`spec_observations`).  To set a
+  general instrumental resolution applying to all data points use
+  the name ``all``.
+
+- In ``retrieval_params``, users can define free parameters with
+  name ``rv_INSTRUMENT`` to apply radial-velocity Doppler shifts
+  to the input data (in km s⁻¹ units).  As above, the
+  ``INSTRUMENT`` part of the name determines to which data points
+  this radial-velocity shift applies.  To set a general parameter
+  applying to all data points use the name ``rv_shift``.
+
 
 Overview
 ........
@@ -359,7 +399,7 @@ Overview
 
      .. literalinclude:: ../../_static/data/yses1b_retrieval_emission_sinfoni.cfg
         :language: ini
-        :lines: 12-22
+        :lines: 12-24
 
      Here we define the observing path of the observation (in this
      case a direct flux measurement) and the location of the
@@ -376,7 +416,7 @@ Overview
 
      .. literalinclude:: ../../_static/data/yses1b_retrieval_emission_sinfoni.cfg
         :language: ini
-        :lines: 24-29
+        :lines: 26-32
 
      This section defines the system parameters. For a direct flux
      measurement the relevant properties will be the distance to the
@@ -394,7 +434,7 @@ Overview
 
      .. literalinclude:: ../../_static/data/yses1b_retrieval_emission_sinfoni.cfg
         :language: ini
-        :lines: 31-52
+        :lines: 33-54
 
      These parameters define the atmospheric-profile models.
      For the temperature profile here we use the [Madhusudhan2009]_
@@ -416,7 +456,7 @@ Overview
 
      .. literalinclude:: ../../_static/data/yses1b_retrieval_emission_sinfoni.cfg
         :language: ini
-        :lines: 54-72
+        :lines: 56-74
 
      Now we define the atmospheric absorbers.  Make sure that all
      absorber species are defined in the atmospheric composition.
@@ -432,7 +472,7 @@ Overview
 
      .. literalinclude:: ../../_static/data/yses1b_retrieval_emission_sinfoni.cfg
         :language: ini
-        :lines: 74-100
+        :lines: 76-102
 
      Here we first define how to parameterize the atmospheric
      composition and the isotopic ratios.
@@ -455,7 +495,7 @@ Overview
 
      .. literalinclude:: ../../_static/data/yses1b_retrieval_emission_sinfoni.cfg
         :language: ini
-        :lines: 102-114
+        :lines: 104-116
 
      Finally, we configure the posterior sampler. In this case we use
      pymultinest [Feroz2009]_ [Buchner2014]_, with 1000 live points.
