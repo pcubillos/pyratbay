@@ -408,23 +408,6 @@ def test_eval_rv_shift_redshift():
     np.testing.assert_allclose(pyrat.obs.rv_wn[0], expected['rv_2000'])
     np.testing.assert_allclose(pyrat.obs.bandflux, expected_band_flux)
 
-    if False:
-        wl_shift = 1e4/pyrat.obs.rv_wn[0]
-        wl_shift2 = 1e4/pyrat.obs.rv_wn[1] if len(pyrat.obs.rv_wn)==3 else wl_shift
-        fig = plt.figure(1)
-        fig.set_size_inches(8,4)
-        plt.clf()
-        plt.subplots_adjust(0.1, 0.1, 0.98, 0.98)
-        ax = plt.subplot(111)
-        ax.plot(pyrat.spec.wl, pyrat.spec.spectrum, color='xkcd:blue', lw=1, alpha=0.3)
-        ax.plot(wl_shift, pyrat.obs.convolved_spectrum[0], color='tomato')
-        ax.plot(wl_shift2, pyrat.obs.convolved_spectrum[1], color='xkcd:green')
-        ax.errorbar(
-            pyrat.obs.band_wl, pyrat.obs.bandflux, xerr=pyrat.obs.half_widths,
-            fmt='s', color='k', mfc='w', ms=5,
-        )
-        ax.set_xlim(1.25, 1.4)
-
 
 def test_eval_rv_shift_named():
     cfg = f'{ROOT}tests/configs/spectrum_inst_res_gravity_sinfoni_rv_named.cfg'
