@@ -72,6 +72,7 @@ def setup(pyrat):
     Process the oberving filter bands.
     """
     atm = pyrat.atm
+    obs = pyrat.obs
     log = pyrat.log
 
     # Not needed for f_lambda
@@ -85,10 +86,13 @@ def setup(pyrat):
             sinterp = si.interp1d(atm.starwn, atm.starflux)
             pyrat.spec.starflux = sinterp(pyrat.spec.wn)
             # Band-integrate the stellar flux
-            pyrat.obs.bandflux_star = np.array([
-                band(pyrat.spec.starflux)
-                for band in pyrat.obs.bands
-            ])
+            obs.bandflux_star = np.zeros(obs.nbands)
+            for j,mask in enumerate(obs.inst_res_mask):
+                inst_mask = obs.is_low_res & mask
+                conv_star_flux = pyrat._convolve(j, pyrat.spec.starflux)
+                for i in np.where(inst_mask)[0]:
+                    obs.bandflux_star[i] = obs.bands[i](conv_star_flux)
+
         # 2D spectra
         else:
             sinterp = si.interp1d(atm.starwn, atm.starflux, axis=1)

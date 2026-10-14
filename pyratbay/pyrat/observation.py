@@ -59,8 +59,8 @@ class Observation():
         # Instrumental resolution
         self.inst_res_label = inputs.inst_res_label
         self.inst_resolution = np.array(inputs.inst_res, np.double)
-        n_res = len(self.inst_res_label)
-        self.inst_res_mask = np.zeros((n_res+1, self.nbands), bool)
+        self.n_inst_res = len(self.inst_res_label)
+        self.inst_res_mask = np.zeros((self.n_inst_res+1, self.nbands), bool)
         for i,inst in enumerate(self.inst_res_label):
             if inst == 'all':
                 self.inst_res_mask[i] = True

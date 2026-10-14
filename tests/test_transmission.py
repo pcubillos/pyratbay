@@ -20,7 +20,7 @@ keys = [
     'sampled_cs', 'tli', 'lec', 'cia', 'alkali', 'deck',
     'patchy', 'patchy_clear', 'patchy_cloudy', 'h_ion', 'all',
     'tmodel', 'vert', 'scale', 'fit1', 'fit2', 'fit3', 'fit4',
-    'bandflux4', 'resolution', 'wl_step',
+    'resolution', 'wl_step', 'tls_epsilon', 'tls_spectrum',
     'skip_ls', 'skip_lbl', 'skip_cia', 'skip_H2_H2_cia',
     'skip_alkali', 'skip_sodium', 'skip_rayleigh', 'skip_dalgarno',
     'skip_cloud', 'skip_deck', 'all_ls'
@@ -118,18 +118,15 @@ def test_transmission_deck(tmp_path):
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['deck'], rtol=rtol)
 
 
-def test_transmission_h_ion(tmp_path):
+def test_transmission_h_ion():
     cfg = f'{ROOT}tests/configs/spectrum_transmission_h_ion.cfg'
     pyrat = pb.run(cfg)
     desired = expected['h_ion']
     np.testing.assert_allclose(pyrat.spec.spectrum, desired, rtol=rtol)
 
 
-def test_transmission_all(tmp_path):
-    cfg = make_config(
-        tmp_path,
-        ROOT+'tests/configs/spectrum_transmission_test.cfg',
-    )
+def test_transmission_all():
+    cfg = ROOT+'tests/configs/spectrum_transmission_test.cfg'
     pyrat = pb.run(cfg)
     np.testing.assert_allclose(pyrat.spec.spectrum, expected['all'], rtol=rtol)
 
@@ -426,10 +423,85 @@ def test_transmission_fit(tmp_path):
 
 
 def test_transmission_fit_filters():
-    pyrat = pb.run('configs/spectrum_transmission_bands.cfg')
+    cfg = ROOT+'tests/configs/spectrum_transmission_bands.cfg'
+    pyrat = pb.run(cfg)
     spectrum, band_spectrum = pyrat.eval(pyrat.ret.params, retmodel=True)
+
+    expected_band_flux = [
+       6.57380029e-03, 6.55374261e-03, 6.54200596e-03, 6.47869436e-03,
+       6.45958103e-03, 6.45003931e-03, 6.48828981e-03, 6.51176839e-03,
+       6.64283066e-03, 6.69674652e-03, 6.70588516e-03, 6.70915447e-03,
+       6.70907346e-03, 6.66688312e-03, 6.62181718e-03, 6.56823910e-03,
+       6.55236711e-03, 6.51362767e-03, 6.51230301e-03, 6.51527736e-03,
+    ]
     np.testing.assert_allclose(spectrum, expected['fit4'], rtol=rtol)
-    np.testing.assert_allclose(band_spectrum, expected['bandflux4'], rtol=rtol)
+    np.testing.assert_allclose(band_spectrum, expected_band_flux, rtol=rtol)
+
+
+def test_transmission_inst_resolution_single():
+    cfg = ROOT+'tests/configs/spectrum_transmission_bands_inst_resolution.cfg'
+    pyrat = pb.run(cfg)
+    spectrum, band_spectrum = pyrat.eval(pyrat.ret.params, retmodel=True)
+
+    expected_band_flux = [
+       6.57068380e-03, 6.55477877e-03, 6.54169662e-03, 6.47942909e-03,
+       6.45982506e-03, 6.45103468e-03, 6.48828981e-03, 6.51176839e-03,
+       6.64283066e-03, 6.69674652e-03, 6.70588516e-03, 6.70915447e-03,
+       6.70907346e-03, 6.66688312e-03, 6.62181718e-03, 6.56823910e-03,
+       6.55236711e-03, 6.51362767e-03, 6.51230301e-03, 6.51527736e-03,
+    ]
+    np.testing.assert_allclose(spectrum, expected['fit4'], rtol=rtol)
+    np.testing.assert_allclose(band_spectrum, expected_band_flux, rtol=rtol)
+
+
+def test_transmission_inst_resolution_all():
+    cfg = ROOT+'tests/configs/spectrum_transmission_bands_inst_resolution_all.cfg'
+    pyrat = pb.run(cfg)
+    spectrum, band_spectrum = pyrat.eval(pyrat.ret.params, retmodel=True)
+
+    expected_band_flux = [
+       6.57068380e-03, 6.55477877e-03, 6.54169662e-03, 6.47942909e-03,
+       6.45982506e-03, 6.45103468e-03, 6.48564906e-03, 6.51267106e-03,
+       6.64420311e-03, 6.69613616e-03, 6.70166982e-03, 6.71061711e-03,
+       6.70508473e-03, 6.66429312e-03, 6.62589397e-03, 6.56938759e-03,
+       6.55022213e-03, 6.51524071e-03, 6.51236673e-03, 6.51603876e-03,
+    ]
+    np.testing.assert_allclose(spectrum, expected['fit4'], rtol=rtol)
+    np.testing.assert_allclose(band_spectrum, expected_band_flux, rtol=rtol)
+
+
+def test_transmission_inst_resolution_tls():
+    cfg = ROOT+'tests/configs/spectrum_transmission_bands_inst_resolution_tls.cfg'
+    pyrat = pb.run(cfg)
+    spectrum, band_spectrum = pyrat.eval(pyrat.ret.params, retmodel=True)
+
+    expected_band_flux = [
+       6.57068380e-03, 6.55477877e-03, 6.54169662e-03, 6.47942909e-03,
+       6.45982506e-03, 6.45103468e-03, 6.48828981e-03, 6.51176839e-03,
+       6.64283066e-03, 6.69674652e-03, 6.70588516e-03, 6.70915447e-03,
+       6.70907346e-03, 6.66688312e-03, 6.62181718e-03, 6.56823910e-03,
+       6.55236711e-03, 6.51362767e-03, 6.51230301e-03, 6.51527736e-03,
+    ]
+    np.testing.assert_allclose(spectrum, expected['fit4'], rtol=rtol)
+    np.testing.assert_allclose(band_spectrum, expected_band_flux, rtol=rtol)
+    # Now check the TLS arrays
+    expected_band_offset = [
+       2.23199146e-04, 2.18419589e-04, 2.12680870e-04, 2.08362055e-04,
+       2.03818547e-04, 1.99898057e-04, 2.00241624e-04, 1.98317848e-04,
+       1.93100435e-04, 1.93218556e-04, 1.87304275e-04, 1.81409226e-04,
+       1.76685310e-04, 1.67091781e-04, 1.60537013e-04, 1.60042861e-04,
+       1.49493237e-04, 1.42364499e-04, 1.35449401e-04, 1.33877041e-04,
+    ]
+    np.testing.assert_allclose(
+        pyrat.tls.band_offset, expected_band_offset, rtol=rtol,
+    )
+    np.testing.assert_allclose(
+        pyrat.tls.epsilon[0], expected['tls_epsilon'], rtol=rtol,
+    )
+    np.testing.assert_allclose(
+        pyrat.tls.spectrum[0], expected['tls_spectrum'], rtol=rtol,
+    )
+
 
 
 @pytest.mark.parametrize(
