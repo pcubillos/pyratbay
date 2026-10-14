@@ -832,7 +832,7 @@ def inst_convolution(wl, spectrum, resolution, sampling_res=None):
         Full-resolution spectrum to be convolved.
     resolution: float
         Instrumental resolving power R = lambda/delta_lambda
-        Where delta_lambda is the FHWM of the gaussian to be applied.
+        Where delta_lambda is the FWHM of the gaussian to be applied.
     sampling_red: float
         Sampling resolution of the input wl spectrum.
 
