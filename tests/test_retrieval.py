@@ -158,7 +158,7 @@ def test_eval_uncert_scaling_defaults(tmp_path):
     """
     reset = {
         'uncert_scaling': uncert_scaling,
-        'obsfile': '{ROOT}/tests/inputs/obs_file_err_scaling.dat',
+        'obsfile': '{ROOT}tests/inputs/obs_file_err_scaling.dat',
         'dunits': 'ppm',
     }
     cfg = make_config(
@@ -181,7 +181,7 @@ def test_eval_uncert_scaling_fixed(tmp_path):
     """
     reset = {
         'uncert_scaling': uncert_scaling,
-        'obsfile': '{ROOT}/tests/inputs/obs_file_err_scaling.dat',
+        'obsfile': '{ROOT}tests/inputs/obs_file_err_scaling.dat',
         'dunits': 'ppm',
     }
     cfg = make_config(
