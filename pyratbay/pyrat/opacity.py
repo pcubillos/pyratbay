@@ -51,8 +51,6 @@ class Opacity():
         # TBD: without runmode?
         if inputs.sampled_cs is not None and inputs.runmode != 'opacity':
             log.head("\nReading cross-section table file(s):")
-            #for cs_file in self.sampled_cs:
-            #    log.head(f"  '{cs_file}'.")
 
             make_temp_array = (
                 inputs.tmin is not None and
@@ -202,6 +200,10 @@ class Opacity():
             self.nspec.append(1)
             self.pnames.append([])
 
+        self.temp_range = (
+            max(self.tmin.values(), default=0.0),
+            min(self.tmax.values(), default=np.inf),
+        )
 
     def calc_extinction_coefficient(
         self, temperature, radius, densities, skip=[],
