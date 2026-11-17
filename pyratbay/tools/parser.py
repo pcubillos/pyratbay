@@ -14,7 +14,7 @@ __all__ = [
 
 import os
 import argparse
-from datetime import date
+import datetime as dt
 import configparser
 from pathlib import Path
 import warnings
@@ -641,15 +641,24 @@ def parse(cfile, with_log=True, mute=False):
     args._log = log
 
     # Welcome message:
+    today = dt.datetime.now()
     log.head(
-       f"{log.sep}\n"
-        "  Python Radiative Transfer in a Bayesian framework (Pyrat Bay).\n"
-       f"  Version {__version__}.\n"
-       f"  Copyright (c) 2021-{date.today().year} Cubillos & Blecic.\n"
-        "  Pyrat Bay is open-source software under the GNU GPLv2 lincense "
-          "(see LICENSE).\n"
-       f"{log.sep}\n\n")
-
+        f"{log.sep}\n"
+         "  Python Radiative Transfer in a Bayesian framework (Pyrat Bay).\n"
+        f"  Version {__version__}.\n"
+        f"  Copyright (c) 2021-{today.year} Cubillos & Blecic.\n"
+         "  Pyrat Bay is open-source software under the GNU GPLv2 lincense "
+           "(see LICENSE).\n"
+        f"{log.sep}\n"
+    )
+    the_time = today.strftime('%H:%M')
+    day = today.strftime('%A')
+    month = today.strftime ('%B')
+    log.head(
+        f"Right now, the clock strikes {the_time} on a sunny {day} "
+        f"of the {today.day}th of {month}, {today.year}\n"
+        f"({the_time} -- {today.day}.{today.month}.{today.year})\n\n"
+    )
     log.head(f"Read command-line arguments from configuration file: '{cfile}'")
 
 
