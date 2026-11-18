@@ -187,11 +187,11 @@ class Pyrat():
         """
         timer = pt.Timer()
 
-        # Re-calculate atmospheric properties if required:
-        self.atm.calc_profiles(temp, vmr, radius)
+        # Re-calculate atmospheric properties if required
+        self.atm.calc_profiles(temp, vmr, radius, temp_ranges=self.opacity.temp_range)
 
-        out_of_bounds = self.opacity.check_temp_bounds(self.atm.temp)
-        if len(out_of_bounds) > 0:
+        if self.atm._out_of_bounds_temp:
+            out_of_bounds = self.opacity.check_temp_bounds(self.atm.temp)
             self.log.warning(
                 "Temperature values lie out of the cross-section "
                 f"boundaries for: {out_of_bounds}"
@@ -301,14 +301,14 @@ class Pyrat():
                 for i in np.where(inst_mask)[0]:
                     obs.bandflux_star[i] = obs.bands[i](conv_star_flux)
 
-
         if ret.idilut is not None:
             self.spec.f_dilution = params[ret.idilut][0]
 
         # Calculate atmosphere and spectrum:
         self.run(skip=skip)
-
-        reject_flag = False
+        reject_flag = (
+            self.atm._out_of_bounds_temp or self.atm._out_of_bounds_vmr
+        )
         # Turn-on reject flag if temperature is out-of-bounds:
         temp = atm.temp
         if np.any(temp < ret.tlow) or np.any(temp > ret.thigh):
@@ -325,8 +325,6 @@ class Pyrat():
                 "The sum of trace abundances' VMRs exceeds "
                 f"the cap of {ret.qcap:.3f}"
             )
-        if self.atm._out_of_bounds_vmr:
-            reject_flag = True
 
         if self.od.rt_path == 'f_lambda':
             # Convert flux from (erg s-1 cm-2 cm) to (W m-2 um-1)
@@ -350,6 +348,35 @@ class Pyrat():
         for j in range(self.obs.n_inst_res):
             obs.convolved_spectrum[j] = self._convolve(j, spectrum)
 
+        # TLS effect
+        if self.tls.n_models > 0:
+            if ret.itls is not None:
+                ifree = ret.map_pars['tls']
+                self.tls.pars[ifree] = params[ret.itls]
+                self.tls()
+            elif np.all(self.tls.spectrum) == 0.0:
+                self.tls()
+            self.tls.spectrum = self.spec.spectrum * self.tls.epsilon
+            if np.any(np.isnan(self.tls.epsilon)):
+                reject_flag = True
+
+        # Band-integrate low-resolution spectrum
+        obs.bandflux = self.band_integrate()
+
+        # Instrumental offsets
+        obs.data = np.copy(obs.depth.data)
+        if ret.ioffset is not None:
+            ifree = ret.map_pars['offset']
+            obs.offset_pars[ifree] = params[ret.ioffset]
+            obs.data = obs.depth.offset_data(obs.offset_pars)
+            obs.inst_offset = obs.data - obs.depth.data
+
+        # Uncertainty scaling
+        if ret.ierror is not None:
+            ifree = ret.map_pars['error']
+            obs.uncert_pars[ifree] = params[ret.ierror]
+            obs.uncert = obs.depth.scale_errors(obs.uncert_pars)
+
         # High-resolution data
         if obs.has_hi_res > 0:
             # Interpolate at data for each instrument-rv
@@ -368,36 +395,6 @@ class Pyrat():
             if retmodel:
                 return self.spec.spectrum, obs.bandflux
             return obs.bandflux
-
-
-        # TLS effect
-        if self.tls.n_models > 0:
-            if ret.itls is not None:
-                ifree = ret.map_pars['tls']
-                self.tls.pars[ifree] = params[ret.itls]
-                self.tls()
-            elif np.all(self.tls.spectrum) == 0.0:
-                self.tls()
-            self.tls.spectrum = self.spec.spectrum * self.tls.epsilon
-            if np.any(np.isnan(self.tls.epsilon)):
-                reject_flag = True
-
-        # Band-integrate spectrum
-        obs.bandflux = self.band_integrate()
-
-        # Instrumental offsets
-        obs.data = np.copy(obs.depth.data)
-        if ret.ioffset is not None:
-            ifree = ret.map_pars['offset']
-            obs.offset_pars[ifree] = params[ret.ioffset]
-            obs.data = obs.depth.offset_data(obs.offset_pars)
-            obs.inst_offset = obs.data - obs.depth.data
-
-        # Uncertainty scaling
-        if ret.ierror is not None:
-            ifree = ret.map_pars['error']
-            obs.uncert_pars[ifree] = params[ret.ierror]
-            obs.uncert = obs.depth.scale_errors(obs.uncert_pars)
 
         # Apply TLS correction to data
         if self.tls.n_models > 0 and obs.ndata > 0:

@@ -146,7 +146,7 @@ class MPI_Comm():
 
     def allocate_shared(self, shape):
         if not self.use_mpi:
-            return np.array(shape)
+            return np.zeros(shape)
 
         dtype = np.float64
         itemsize = np.dtype(dtype).itemsize

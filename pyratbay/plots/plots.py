@@ -704,6 +704,8 @@ def temperature(
         plt.clf()
         fig.set_size_inches(7,5)
         ax = plt.subplot(111)
+    else:
+        fig = ax.get_figure()
 
     # Note alpha != 0 does not work for ps/eps figures
     if bounds is not None and len(bounds) == 4:
@@ -730,9 +732,9 @@ def temperature(
     if labels is not None:
         ax.legend(loc='best', fontsize=fs-2)
     if tighten:
-        plt.tight_layout(pad=0.2)
+        fig.tight_layout(pad=0.2)
     if filename is not None:
-        plt.savefig(filename, dpi=dpi)
+        fig.savefig(filename, dpi=dpi)
     return ax
 
 

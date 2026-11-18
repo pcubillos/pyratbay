@@ -400,6 +400,7 @@ class Atmosphere():
 
     def calc_profiles(
             self, temp=None, vmr=None, radius=None,
+            temp_ranges=None,
             # Deprecated parameters:
             abund=None,
         ):
@@ -414,6 +415,9 @@ class Atmosphere():
             Species mole mixing ratio profiles [nlayers, nmol].
         radius: 1D float ndarray
             Layer's altitude profile (in cm), same order as temp.
+        temp_ranges: 2-element float tuple
+            Minimum and maximum valid temperatures. If temp exceeds these
+            boundaries, the _out_of_bounds_temp flag is turned on.
         """
         # Temperature profile:
         if temp is not None:
@@ -431,11 +435,15 @@ class Atmosphere():
                 f"the Pyrat's temperature size ({np.size(self.temp)})"
             )
         self.temp = temp
-        self._out_of_bounds_temp = np.any(self.temp<=0)
+
+        self._out_of_bounds_temp = (
+            temp_ranges is not None and
+            ((np.amin(temp) < temp_ranges[0] or np.amax(temp) > temp_ranges[1]))
+        )
         if self._out_of_bounds_temp:
             return
 
-        # Volume mixing ratios:
+        # Volume mixing ratios
         if vmr is not None:
             self.molpars = []
             if np.shape(vmr) != np.shape(self.vmr):
@@ -458,6 +466,7 @@ class Atmosphere():
                     e_scale[equil_model.element] = val
                 elif equil_model.name == 'ratio_equil':
                     e_ratio[equil_model.element_ratio] = val
+
             vmr = self.chem_model.thermochemical_equilibrium(
                 self.temp,
                 metallicity=metallicity,
